@@ -78,7 +78,7 @@ namespace MFM {
   }
 
 
-  void NodeBlockClass::eval()
+  EvalStatus NodeBlockClass::eval()
   {
 #if 0
     //determine size of stackframe (enable for test t3116
@@ -93,11 +93,17 @@ namespace MFM {
 
     evalNodeProlog(0); //new current frame pointer for nodeeval stack
 
+    EvalStatus evs;
 
     if(m_nextNode)
       {
 	u32 slot = makeRoomForNodeType(m_nextNode->getNodeType());
-	m_nextNode->eval();  //side-effect for datamember vardecls
+	evs = m_nextNode->eval();  //side-effect for datamember vardecls
+	if(evs != NORMAL)
+	  {
+	    evalNodeEpilog();
+	    return evs;
+	  }
 	m_state.m_nodeEvalStack.popArgs(slot);
       }
 
@@ -108,7 +114,12 @@ namespace MFM {
 	makeRoomForNodeType(funcType);  //Int return
 	
 	//makeRoomForNodeType(funcType, STACK); no args to main
-	funcNode->eval();
+	evs = funcNode->eval();
+	if(evs != NORMAL)
+	  {
+	    evalNodeEpilog();
+	    return evs;
+	  }
 
 	UlamValue mainUV = m_state.m_nodeEvalStack.popArg();
 
@@ -117,7 +128,9 @@ namespace MFM {
       }
 
     evalNodeEpilog();
+    return NORMAL;
   }
+
 
   //override to check both variables and function names.
   bool NodeBlockClass::isIdInScope(u32 id, Symbol * & symptrref)

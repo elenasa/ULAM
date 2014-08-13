@@ -21,7 +21,7 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
-    virtual void  eval();
+    virtual EvalStatus eval();
 
   protected:
 

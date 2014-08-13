@@ -151,7 +151,7 @@ namespace MFM {
   }
   
 
-  void NodeBlockFunction::eval()
+  EvalStatus NodeBlockFunction::eval()
   {
     assert(isDefinition());
     assert(m_nextNode);
@@ -161,10 +161,28 @@ namespace MFM {
     
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth());  //local variables on callstack!!!
 
-    m_nextNode->eval();   
-
-    UlamValue rtnUV(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
-    assert(rtnUV.getUlamValueType() == getNodeType());
+    EvalStatus evs = m_nextNode->eval();
+    UlamValue rtnUV;
+    if(evs == RETURN)
+      {
+	s32 arraysize = getNodeType()->getArraySize();
+	// save results in the stackframe for caller;
+	// copies each element of the array by value, 
+	// in reverse order ([0] is last at bottom)
+	arraysize = (arraysize > 0 ? -arraysize : -1);
+	
+	rtnUV.init(getNodeType(), arraysize, true, STACK);  //negative to current stack frame pointer
+      }
+    else if (evs == NORMAL)  //no explicit return statement
+      {
+	rtnUV.init(getNodeType(), 1, true, EVALRETURN);    //positive to current frame pointer
+      }
+    else
+      {
+	m_state.m_funcCallStack.returnFrame();
+	evalNodeEpilog();
+	return evs;
+      }
 
     //save results in the node eval stackframe for function caller
     //return each element of the array by value, in reverse order ([0] is last at bottom)
@@ -172,6 +190,7 @@ namespace MFM {
 
     m_state.m_funcCallStack.returnFrame();
     evalNodeEpilog();
+    return NORMAL;
   }
 
 

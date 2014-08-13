@@ -55,13 +55,13 @@ namespace MFM {
   }
 
   // any node above assignexpr is not storeintoable
-  void Node::evalToStoreInto()
+  EvalStatus Node::evalToStoreInto()
   {
     std::ostringstream msg;
     msg << "Not storeIntoAble: " << m_storeIntoAble;
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     assert(!isStoreIntoAble());
-    //return UlamValue(m_state.getUlamTypeByIndex(Nav), 0, IMMEDIATE);
+    return ERROR;
   }
 
 
@@ -166,7 +166,7 @@ namespace MFM {
 
 
   //in case of arrays, rtnUV is a ptr.
-  void Node::assignReturnValueToStack(UlamValue rtnUV)
+  void Node::assignReturnValueToStack(UlamValue rtnUV, STORAGE where)
   {
     UlamType * rtnUVtype = rtnUV.getUlamValueType(); //==node type
     assert(rtnUVtype == getNodeType());
@@ -178,7 +178,16 @@ namespace MFM {
     // in reverse order ([0] is last at bottom)
     s32 arraysize = (rtnUVarraysize > 0 ? -rtnUVarraysize : -1);
 
-    UlamValue rtnPtr(rtnUVtype, arraysize, true, EVALRETURN);
+    //where to put the return value..'return' statement uses STACK
+    UlamValue rtnPtr;
+
+    if(where == EVALRETURN)
+      rtnPtr.init(rtnUVtype, arraysize, true, EVALRETURN);
+    else if (where == STACK)
+      rtnPtr.init(rtnUVtype, arraysize, true, STACK);
+    else
+      assert(0);
+
     m_state.m_nodeEvalStack.assignUlamValue(rtnPtr,rtnUV, m_state);
   }
 

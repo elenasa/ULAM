@@ -108,6 +108,11 @@ namespace MFM{
     */
     Node * parseDecl(bool parseSingleDecl = false);
 
+    /**
+       <RETURN_STATMENT> := 'return' + (0 | <ASSIGNEXPR>)
+    */
+    Node * parseReturn();
+
 
     /**
        <ASSIGNEXPR> := <EXPRESSION> | <LVAL_EXPRESSION> + '=' + <ASSIGNEXPR>
@@ -116,7 +121,7 @@ namespace MFM{
 
 
     /**
-       <LVAL_EXPRESSION> := <IDENT> | <IDENT> + '[' + <EXPRESSION> + ']' 
+       <LVAL_EXPRESSION> := <IDENT> | <IDENT> + '[' + <EXPRESSION> + ']'
     */
     Node * parseLvalExpr(Token identTok);
 
@@ -125,7 +130,6 @@ namespace MFM{
        <IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <FUNC_CALL>
     */
     Node * parseIdentExpr(Token identTok);
-
 
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'

@@ -67,13 +67,19 @@ namespace MFM {
   }
 
 
-  void  NodeControlIf::eval()
+  EvalStatus  NodeControlIf::eval()
   {
     assert(m_nodeCondition && m_nodeBody);
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForNodeType(getNodeType());
-    m_nodeCondition->eval();
+    EvalStatus evs = m_nodeCondition->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
     UlamValue cuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 	
     if(cuv.m_valBool == false)
@@ -81,13 +87,13 @@ namespace MFM {
 	if(m_nodeElse)  //not necessarily
 	  {
 	    makeRoomForNodeType(m_nodeElse->getNodeType());
-	    m_nodeElse->eval();
+	    evs = m_nodeElse->eval();
 	  }
       }
     else
       {
 	makeRoomForNodeType(m_nodeBody->getNodeType());
-	m_nodeBody->eval();  
+	evs = m_nodeBody->eval();  
       }
 
     // the type of this node is Bool for the condition since the
@@ -95,9 +101,10 @@ namespace MFM {
     // stored in a variable somewhere.
 
     //also copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(cuv);
+    assignReturnValueToStack(cuv); //skip this for a break statement ???
 
     evalNodeEpilog();
+    return evs;
   }
 
 

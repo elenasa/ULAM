@@ -43,7 +43,7 @@ namespace MFM {
   }
 
 
-  void NodeVarDeclList::eval()
+  EvalStatus NodeVarDeclList::eval()
   {   
     assert(m_nodeLeft && m_nodeRight);
     //evalNodeProlog(0); //new current frame pointer
@@ -60,26 +60,39 @@ namespace MFM {
     ////Node::assignReturnValueToStack(ruvPtr);  //convention is to return the right
     
     //evalNodeEpilog();
+    return NORMAL;
   }
 
 
-  void NodeVarDeclList::evalToStoreInto()
+  EvalStatus NodeVarDeclList::evalToStoreInto()
   {
     assert(m_nodeLeft && m_nodeRight);
 
     evalNodeProlog(0); //new current frame pointer
 
     u32 slots = makeRoomForSlots(1); 
-    m_nodeLeft->evalToStoreInto();
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
 
     makeRoomForSlots(1);
-    m_nodeRight->evalToStoreInto();  
+    evs = m_nodeRight->evalToStoreInto();  
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
     UlamValue ruvPtr(getNodeType(), slots + 1, true, EVALRETURN); //positive to current frame pointer
 
     //copy result UV to stack, -1 relative to current frame pointer
     assignReturnValuePtrToStack(ruvPtr);  //convention is to return the right
     
     evalNodeEpilog();
+    return NORMAL;
   }
 
 } //end MFM

@@ -16,7 +16,7 @@ namespace MFM{
 
     virtual void print(File * fp);
 
-    virtual void eval();
+    virtual EvalStatus eval();
 
     virtual const char * getName();
 

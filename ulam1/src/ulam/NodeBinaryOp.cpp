@@ -66,22 +66,33 @@ namespace MFM {
   }
 
 
-  void  NodeBinaryOp::eval()
+  EvalStatus NodeBinaryOp::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
 
     evalNodeProlog(0); //new current frame pointer
 
     u32 slot = makeRoomForNodeType(getNodeType());
-    m_nodeLeft->eval();
+    EvalStatus evs = m_nodeLeft->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
 
     makeRoomForNodeType(getNodeType());
-    m_nodeRight->eval();
+    evs = m_nodeRight->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
 
     //copies return UV to stack, -1 relative to current frame pointer
     doBinaryOperation(1, 1+slot, slot);
 
     evalNodeEpilog();
+    return NORMAL;
   }
 
 

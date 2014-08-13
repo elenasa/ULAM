@@ -86,18 +86,20 @@ namespace MFM {
   }
 
 
-  void NodeUnaryOp::eval()
+  EvalStatus NodeUnaryOp::eval()
   {
     assert(m_node);
 
     UlamType * nut = getNodeType();
     evalNodeProlog(0); //new current frame pointer
     u32 slots = makeRoomForNodeType(nut);
-    m_node->eval();
+    EvalStatus evs = m_node->eval();
     
-    doUnaryOperation(1,slots);
+    if(evs == NORMAL)
+      doUnaryOperation(1,slots);
 
     evalNodeEpilog();
+    return evs;
   }
 
 

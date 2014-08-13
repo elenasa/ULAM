@@ -121,7 +121,7 @@ namespace MFM {
   }
 
 
-  void NodeFunctionCall::eval()
+  EvalStatus NodeFunctionCall::eval()
   {
     assert(m_funcSymbol);
     NodeBlockFunction * func = m_funcSymbol->getFunctionNode();
@@ -130,6 +130,7 @@ namespace MFM {
     evalNodeProlog(0); //new current frame pointer on node eval stack
     
     u32 argsPushed = 0;
+    EvalStatus evs;
     // place values of arguments on call stack (reverse order) before calling function
     for(s32 i= m_argumentNodes.size() - 1; i >= 0; i--)
       {
@@ -137,7 +138,12 @@ namespace MFM {
 	// arrays are handled by callstack, and passed by value
 	u32 slots = makeRoomForNodeType(argType); //for eval return
 	
-	m_argumentNodes[i]->eval();
+	evs = m_argumentNodes[i]->eval();
+	if(evs != NORMAL)
+	  {
+	    evalNodeEpilog();
+	    return evs;
+	  }
 
 	// transfer to call stack
 	if(slots==1)
@@ -149,7 +155,7 @@ namespace MFM {
 	  {
 	    //array to transfer without reversing order again
 	    u32 baseSlot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
-	    makeRoomForNodeType(argType, STACK);  
+	    makeRoomForNodeType(argType, STACK);
 	    UlamValue basePtr(argType, baseSlot, true, STACK);  
 
 	    UlamValue auvPtr(argType, 1, true, EVALRETURN);  //positive to current frame pointer
@@ -162,23 +168,27 @@ namespace MFM {
     //push return value last (on both STACKS for now) 
     UlamType * rtnType = m_funcSymbol->getUlamType();
     u32 rtnslots = makeRoomForNodeType(rtnType);
-    //makeRoomForNodeType(rtnType, STACK);
+    makeRoomForNodeType(rtnType, STACK);
 
-    //assert(rtnslots == rtnType->getArraySize()); not true for scalar
     assert(rtnType->getArraySize() > 0 ? rtnslots == rtnType->getArraySize() : rtnslots == 1); 
     //********************************************    
 
-    func->eval();   //NodeBlockFunction..
-
+    evs = func->eval();   //NodeBlockFunction..
+    if(evs != NORMAL)
+      {
+	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
+	evalNodeEpilog();
+	return evs;
+      }
     //**********************************************
 
     UlamValue rtnPtr(rtnType, 1, true, EVALRETURN);  //positive to current frame pointer
-    assignReturnValueToStack(rtnPtr);  //in return space on eval stack; didn't need callstack space!!!
+    assignReturnValueToStack(rtnPtr);  //in return space on eval stack;
 
-    //m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args
-    m_state.m_funcCallStack.popArgs(argsPushed); //drops all the args
+    m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
 
     evalNodeEpilog();  //clears out the node eval stack
+    return NORMAL;
   }
 
 

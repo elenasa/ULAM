@@ -28,7 +28,6 @@ namespace MFM{
     UlamValue(UlamType * utype, s32 v, STORAGE place);
     UlamValue(UlamType * utype, bool v, STORAGE place);
     UlamValue(UlamType * utype, float v, STORAGE place);
-    //UlamValue(UlamType * arrayUType, UlamType * baseUType, STORAGE place);
     UlamValue(UlamType * arrayUType, s32 slot, bool headerOnly, STORAGE place);
 
     ~UlamValue();
@@ -36,7 +35,7 @@ namespace MFM{
     void init(UlamType * utype, s32 v);
     void init(UlamType * utype, bool v);
     void init(UlamType * utype, float v);
-    //void init(UlamType * arrayUType, UlamType * baseUType, STORAGE place);
+    void init(UlamType * arrayUType, s32 baseArrayIndex, bool headerOnly, STORAGE place);
 
     UlamType * getUlamValueType();
     void getUlamValueAsString(char * valstr, CompilerState& state);

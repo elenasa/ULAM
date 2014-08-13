@@ -23,7 +23,7 @@ namespace MFM{
 
     virtual UlamType * checkAndLabelType();
 
-    virtual void eval();
+    virtual EvalStatus eval();
 
     virtual bool isIdInScope(u32 id, Symbol * & symptrref);
     void addIdToScope(u32 id, Symbol * symptr);

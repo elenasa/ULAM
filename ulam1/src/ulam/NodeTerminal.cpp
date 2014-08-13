@@ -82,11 +82,12 @@ namespace MFM {
   }
 
 
-  void NodeTerminal::eval()
+  EvalStatus NodeTerminal::eval()
   {
-    evalNodeProlog(0); //new current frame pointer
-
+    EvalStatus evs = NORMAL; //init ok 
     UlamValue rtnUV(m_state.getUlamTypeByIndex(Nav), 0, IMMEDIATE); //init to error case
+
+    evalNodeProlog(0); //new current frame pointer
 
     switch(m_token.m_type)
       {
@@ -129,6 +130,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    evs = ERROR;
 	}
       };
 
@@ -136,6 +138,7 @@ namespace MFM {
     assignReturnValueToStack(rtnUV);
 
     evalNodeEpilog();
+    return evs;
   }
   
 

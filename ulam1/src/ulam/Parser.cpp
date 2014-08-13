@@ -33,6 +33,7 @@
 #include "NodeStatementEmpty.h"
 #include "NodeBlockEmpty.h"
 #include "NodeBlockFunction.h"
+#include "NodeReturn.h"
 #include "SymbolVariable.h"
 #include "SymbolFunction.h"
 
@@ -512,6 +513,11 @@ namespace MFM {
       {
 	rtnNode = parseTypedef();
       }
+    else if(pTok.m_type == TOK_KW_RETURN)
+      {
+	unreadToken();               // needs location
+	rtnNode = parseReturn();
+      }
     else if(pTok.m_type == TOK_ERROR_CONT)
       {
 	MSG(&pTok, "Unexpected input!! ERROR Token, Continue",ERR);
@@ -602,6 +608,26 @@ namespace MFM {
       }
     
     return rtnNode;  //parseDecl
+  }
+
+
+  Node * Parser::parseReturn()
+  {
+    Token pTok;    
+    getNextToken(pTok);
+
+    Node * rtnNode = NULL;
+    Node * rtnExprNode = parseAssignExpr(); // may be NULL
+    if(!rtnExprNode)
+      {
+	rtnExprNode = new NodeStatementEmpty(m_state); //has Nav type
+	rtnExprNode->setNodeLocation(pTok.m_locator);
+      }
+
+    rtnNode =  new NodeReturn(rtnExprNode, m_state);
+    rtnNode->setNodeLocation(pTok.m_locator);
+
+    return rtnNode;
   }
 
   
@@ -1078,30 +1104,30 @@ namespace MFM {
     
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, ut);
 
-    m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr); //ownership goes to the class block
+    //ownership goes to the class block
+    m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr); 
     
     rtnNode =  new NodeBlockFunction(fsymptr, prevBlock, m_state);
     rtnNode->setNodeLocation(typeTok.m_locator);
     
-    fsymptr->setFunctionNode(rtnNode); //symbol will have pointer to body (or just decl for 'use')
-                                       // tfr ownership
+    //symbol will have pointer to body (or just decl for 'use');
+    fsymptr->setFunctionNode(rtnNode); // tfr ownership
+                                       
+    m_state.m_currentBlock = rtnNode;  //before parsing the args
 
-    m_state.m_currentBlock = rtnNode; //before parsing the args
-
-    //no longer need to provide space on callStack for return, uses evalStack instead.
+    // use space on funcCallStack for return statement.
     //negative for parameters; allot space at top for the return value
     //currently, only scalar; determines start position of first arg "under".
-    //    u32 returnArraySize = fsymptr->getUlamType()->getArraySize();
-    //returnArraySize = (returnArraySize > 0 ? returnArraySize : 1);
-    //m_state.m_currentFunctionBlockDeclSize = - (returnArraySize + 1);  
-    m_state.m_currentFunctionBlockDeclSize = -1;  
+    u32 returnArraySize = fsymptr->getUlamType()->getArraySize();
+    returnArraySize = (returnArraySize > 0 ? returnArraySize : 1);
+    m_state.m_currentFunctionBlockDeclSize = - (returnArraySize + 1);  
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
     //parse and add parameters to function symbol
     parseRestOfFunctionParameters(fsymptr);
     
-
-    m_state.m_currentFunctionBlockDeclSize = 1;  //starts with positive one for local variables
+    //starts with positive one for local variables
+    m_state.m_currentFunctionBlockDeclSize = 1;  
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
     //parse body definition
@@ -1610,6 +1636,10 @@ namespace MFM {
     UlamKeyTypeSignature nkey("Nav", 8);
     UTI nidx = m_state.makeUlamType(nkey, Nav);
     assert(nidx == Nav);  //true for primitives
+
+    UlamKeyTypeSignature vkey("Void", 0);
+    UTI vidx = m_state.makeUlamType(vkey, Void);
+    assert(vidx == Void);  //true for primitives
 
     UlamKeyTypeSignature ikey("Int", 32);
     UTI iidx = m_state.makeUlamType(ikey, Int);

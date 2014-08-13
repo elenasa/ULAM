@@ -60,9 +60,10 @@ namespace MFM {
   }
 
 
-  void NodeTypedef::eval()
+  EvalStatus NodeTypedef::eval()
   {
     assert(m_typedefSymbol);
+    return NORMAL;
   }
 
 

@@ -62,7 +62,7 @@ namespace MFM {
   }
 
 
-  void NodeCast::eval()
+  EvalStatus NodeCast::eval()
   {
     assert(m_node); //has to be
 
@@ -71,7 +71,12 @@ namespace MFM {
     UlamType * nodeType = m_node->getNodeType(); //uv.getUlamValueType()
 
     makeRoomForNodeType(nodeType);
-    m_node->eval();
+    EvalStatus evs = m_node->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
 
     //do we believe these to be scalars, only?
     //possibly an array that needs to be casted, per elenemt
@@ -102,6 +107,7 @@ namespace MFM {
     assignReturnValueToStack(uv);
 
     evalNodeEpilog();
+    return NORMAL;
   }
 
 

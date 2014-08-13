@@ -22,9 +22,9 @@ namespace MFM{
 
     virtual UlamType * checkAndLabelType();
 
-    virtual void eval();
+    virtual EvalStatus eval();
 
-    virtual void evalToStoreInto();
+    virtual EvalStatus evalToStoreInto();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 

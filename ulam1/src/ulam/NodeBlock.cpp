@@ -66,15 +66,16 @@ namespace MFM {
   }
 
 
-  void NodeBlock::eval()
+  EvalStatus NodeBlock::eval()
   {
     assert(m_nextNode);
     evalNodeProlog(0);
 
     makeRoomForNodeType(getNodeType());
-    m_nextNode->eval();    //no return
+    EvalStatus evs = m_nextNode->eval();    //no return
 
     evalNodeEpilog();
+    return evs;
   }
 
 

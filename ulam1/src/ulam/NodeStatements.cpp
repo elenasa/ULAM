@@ -87,19 +87,29 @@ namespace MFM {
   }
 
 
-  void NodeStatements::eval()
+  EvalStatus NodeStatements::eval()
   {
     assert(m_node); 
 
     evalNodeProlog(0);
     makeRoomForNodeType(getNodeType());
-    m_node->eval();
-	
+    EvalStatus evs = m_node->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
     //not the last one, so thrown out results and continue
     if(m_nextNode)
       {
 	evalNodeEpilog();
-	m_nextNode->eval();
+	evs = m_nextNode->eval();
+	if(evs != NORMAL)
+	  {
+	    evalNodeEpilog();
+	    return evs;
+	  }
       }
     else
       {
@@ -108,6 +118,8 @@ namespace MFM {
 	assignReturnValueToStack(rtnPtr);
 	evalNodeEpilog();
       }
+
+    return NORMAL;
   }
 
 
