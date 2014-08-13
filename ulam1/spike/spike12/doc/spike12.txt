@@ -1,0 +1,160 @@
+SPIKE 12: Abstract file management for flexibility and testing
+
+RATIONALE: The C-style stdio FILE* abstraction is rigid and
+unextendible.  The C++ iostream abstraction is better, but it doesn't
+define standardized methods of dealing with directories.  ULAM wants a
+flexible mechanism to deal with finding, reading, and writing files in
+directories.
+
+TASK PART 1: Design and implement two C++ interfaces (i.e., abstract
+base classes), called: (1) File and (2) FileManager.  They provide the
+following minimal interfaces, respectively:
+
+File
+
+ virtual int read() = 0
+
+   Return the next byte of the file, as a non-negative int.  If EOF is
+   encountered, read() returns -1.  If this File is not open, or is
+   not open for reading, or some other I/O problem occurs, read()
+   returns a negative number less than -1 according to some scheme you
+   devise.
+
+ virtual int write(int ch) = 0
+
+   Write the bottom 8 bits of ch to this File, and return 0 if
+   successful.  If this File is not open, or is not open for output,
+   or some other I/O problem occurs, write() returns a negative number
+   according to some scheme you devise.
+
+ virtual int close() = 0
+
+   Attempt to close this File, and return 0 if successful.  If this
+   File is has already been closed, or some I/O problem occurs,
+   close() returns a negative number according to some scheme you
+   devise.  Except for the possibly changing return value, it should
+   be harmless to call close() on an already-closed file.
+
+ ~File
+
+   The File destructor should automatically invoke close() on the
+   File.
+
+FileManager
+
+ virtual File * open(str::string path, enum Mode mode) = 0
+
+   Attempt to open the path in the given mode.  Return a
+   newly-allocated instance of File, appropriately initialized, on
+   success; return NULL with errno set appropriately on failure.  Note
+   that on a non-NULL return, the return value becomes the caller's
+   responsibility to delete.
+
+   enum Mode is a member of FileManager and defines at least the
+   constants READ, WRITE, APPEND, and EXTEND.  (EXTEND is like APPEND
+   except APPEND will attempt to create the file if it doesn't already
+   exist, while EXTEND fails unless the file does already exist.)
+
+
+TASK PART 2: Design and implement two C++ concrete classes, called:
+(1) FileStdio, which implements File and (2) FileManagerStdio, which
+implements FileManager.  They provide the following behaviors,
+respectively:
+
+FileStdio
+
+ virtual int read()
+
+  Uses fgetc to read from a FILE* stored inside the FileStdio
+  (assuming appropriate open mode, non-error conditions, etc)
+
+ virtual int write(int)
+
+  Uses fputc to write to a FILE* stored inside the FileStdio (assuming
+  appropriate open mode, non-error conditions, etc)
+
+ virtual int close()
+
+  Uses fclose to close the FILE* stored inside the FileStdio, if it
+  has not already been closed.
+
+FileManagerStdio
+
+ FileManagerStdio(std::string directoryPath)
+
+  Create a FileManagerStdio based on the given directoryPath
+
+ virtual File * open(str::string path, enum Mode mode) = 0
+
+  First, obtain a complete pathname, which is equal to path if path
+  begins with a '/', or is equal to directoryPath+'/'+path otherwise.
+  Then, use fopen to attempt to open the file in the appropriate mode.
+  If fopen fails, return NULL with errno still set.  Otherwise, return
+  a new instance of FileStdio, appropriately initialized based on the
+  successful fopen.
+
+
+TASK PART 3: Design and implement two C++ concrete classes, called:
+(1) FileString, which implements File and (2) FileManagerString, which
+implements FileManager.  They provide the following behaviors,
+respectively:
+
+FileString
+
+ virtual int read()
+
+  Reads the next unread byte stored in the string inside the
+  FileString (assuming appropriate open mode, non-error conditions,
+  etc), returning -1 (EOF) if the end of the string has been reached.
+
+ virtual int write(int)
+
+  Concatenates the given byte onto the string inside the FileString
+  (assuming appropriate open mode, non-error conditions, etc)
+
+ virtual int close()
+
+  Does nothing, or perhaps marks the FileString closed in some way
+
+FileManagerString
+
+ FileManagerString(std::string directoryPath)
+
+  Create a FileManagerString based on the given directoryPath.  A
+  FileManagerString maintains an internal map from paths to file
+  contents, representing all the files that have been created in that
+  FileManagerString (via open() calls with mode WRITE or APPEND).
+
+ virtual File * open(str::string path, enum Mode mode) = 0
+
+  First, obtain a complete pathname, which is equal to path if path
+  begins with a '/', or is equal to directoryPath+'/'+path otherwise.
+  Then, use the internal map to attempt to open the file in the
+  appropriate mode.  If this fails (e.g., mode is READ or EXTEND but
+  the path doesn't exist in the map), return NULL with errno set to an
+  appropriate value.  Otherwise, return a new instance of FileString,
+  appropriately initialized based on the data from the internal map.
+
+ bool add(str::string path, str::string data)
+
+  Convenience routine for creating files in a FileManagerString.  May
+  be implemented otherwise, but its actions are equivalent to: Opens
+  the given path for WRITE, writes all the bytes of data to the
+  resulting FileString, then closes and deletes the FileString.
+  Returns true if all succeeded, false if any problem occurred.
+
+
+TASK PART 4: Reimplement spike11's SourceStream using File*s instead
+of FILE*s.  Then create two drivers:
+
+(1) spike12f, which uses a FileManagerStdio and acts like spike11.
+
+(2) spike12s, which uses a FileManagerString.  It (2.1) uses
+    FileManagerString::add to precreate the spike11 test files
+    internally for reading, (2.2) Writes the output to another
+    FileString opened for WRITE, and then (2.3) Checks that the
+    written file contains exactly the expected results.  If so, this
+    driver outputs nothing and exits status 0, otherwise it prints
+    some appropriate message to stderr and exits with non-zero status.
+
+

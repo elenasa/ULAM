@@ -1,0 +1,7 @@
+XX(Nav,"Nav")
+XX(Int,"Int")
+XX(Float,"Float")
+XX(Bool,"Bool")
+XX(Element,"Element")
+XX(Quark,"Quark")
+XX(Atom,"Atom")
