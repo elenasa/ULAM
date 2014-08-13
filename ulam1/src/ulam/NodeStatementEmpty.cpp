@@ -41,8 +41,16 @@ namespace MFM {
   }
 
 
-  void NodeStatementEmpty::eval()
-  {}
+  UlamType * NodeStatementEmpty::checkAndLabelType()
+  {
+    setNodeType(m_state.getUlamTypeByIndex(Void));
+    return getNodeType();
+  }
 
+
+  EvalStatus NodeStatementEmpty::eval()
+  {
+    return NORMAL;
+  }
 
 } //end MFM

@@ -16,7 +16,7 @@
 namespace MFM{
 
   enum EVALS { EVAL_RHS, EVAL_LHS, EVAL_SIDEEFFECTS};
-
+  enum EvalStatus {ERROR, NORMAL, RETURN, BREAK, CONTINUE};
 
   struct CompilerState; //forward
 
@@ -32,8 +32,8 @@ namespace MFM{
 
     virtual UlamType * checkAndLabelType();
 
-    virtual void eval() = 0;
-    virtual void evalToStoreInto();
+    virtual EvalStatus eval() = 0;
+    virtual EvalStatus evalToStoreInto();
 
     UlamType * getNodeType();
     void setNodeType(UlamType * ut);
@@ -58,7 +58,7 @@ namespace MFM{
     void evalNodeEpilog();
     u32 makeRoomForNodeType(UlamType * type, STORAGE where = EVALRETURN);
     u32 makeRoomForSlots(u32 slots);
-    void assignReturnValueToStack(UlamValue rtnUV);
+    void assignReturnValueToStack(UlamValue rtnUV, STORAGE where = EVALRETURN);
     void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
   protected:

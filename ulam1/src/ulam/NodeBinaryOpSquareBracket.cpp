@@ -61,17 +61,28 @@ namespace MFM {
   }
 
 
-  void NodeBinaryOpSquareBracket::eval()
+  EvalStatus NodeBinaryOpSquareBracket::eval()
   {    
     assert(m_nodeLeft && m_nodeRight);
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
-    m_nodeLeft->evalToStoreInto();
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
-    m_nodeRight->eval();  
+    evs = m_nodeRight->eval();  
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     assert(offset.getUlamValueType()->getUlamTypeIndex() == Int);
@@ -79,39 +90,45 @@ namespace MFM {
     assignReturnValueToStack(pluv.getValAt(offset.m_valInt, m_state));
 
     evalNodeEpilog();
+    return NORMAL;
   }
 
 
-  void NodeBinaryOpSquareBracket::evalToStoreInto()
+  EvalStatus NodeBinaryOpSquareBracket::evalToStoreInto()
   {
     assert(m_nodeLeft && m_nodeRight);
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
-    m_nodeLeft->evalToStoreInto();
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
-    m_nodeRight->eval();  
-   
+    evs = m_nodeRight->eval();  
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     assert(offset.getUlamValueType()->getUlamTypeIndex() == Int);
 
     //makeUlamValuePtrAt:
-    //UlamValue tmpuv = pluv.getValAt(offset.m_valInt, m_state); //for scalar type
     UlamType * scalarType = m_state.getUlamTypeAsScalar(pluv.getUlamValueType());
     UlamValue rtnPtr(scalarType, pluv.m_baseArraySlotIndex + offset.m_valInt, true, pluv.m_storage);
-
-    //Symbol * varSymbol;
-    //assert(getSymbolPtr(varSymbol));
-    //assert(!varSymbol->isFunction() && !varSymbol->isTypedef());     
-    //((SymbolVariable *) varSymbol)->getUlamValueAtToStoreInto(offset.m_valInt, m_state);
 
     //copy result UV to stack, -1 relative to current frame pointer
     assignReturnValuePtrToStack(rtnPtr);
 
     evalNodeEpilog();
+    return NORMAL;
   }
 
 

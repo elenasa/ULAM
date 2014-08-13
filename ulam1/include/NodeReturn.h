@@ -1,19 +1,19 @@
 /* -*- c++ -*- */
 
-#ifndef NODESTATEMENTS_H
-#define NODESTATEMENTS_H
+#ifndef NODERETURN_H
+#define NODERETURN_H
 
 #include "File.h"
 #include "Node.h"
 
 namespace MFM{
 
-  class NodeStatements : public Node
+  class NodeReturn : public Node
   {
   public:
 
-    NodeStatements(Node * s, CompilerState & state);
-    virtual ~NodeStatements();
+    NodeReturn(Node * s, CompilerState & state);
+    virtual ~NodeReturn();
 
     virtual void print(File * fp);
 
@@ -23,18 +23,14 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void setNextNode(NodeStatements * s);
-
     virtual const char * getName();
-
 
     virtual const std::string prettyNodeName();
 
   protected:
-    Node * m_node;
-    NodeStatements * m_nextNode;
 
   private:
+    Node * m_node;
 
 
   };

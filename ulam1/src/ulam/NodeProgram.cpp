@@ -70,7 +70,7 @@ namespace MFM {
     m_state.m_err.clearCounts();
 
     UlamType * rtnType =  m_root->checkAndLabelType();
-    //setNodeType(rtnType); //missing Fri Aug  8 09:16:07 2014 
+    //setNodeType(rtnType); //missing ???
 
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)
@@ -92,12 +92,12 @@ namespace MFM {
   }
 
 
-  void NodeProgram::eval()
+   EvalStatus NodeProgram::eval()
   {
     assert(m_root);
     m_state.m_err.clearCounts();
 
-    m_root->eval();
+    EvalStatus evs = m_root->eval();
 
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)
@@ -114,6 +114,8 @@ namespace MFM {
 	msg << errs << " TOO MANY EVAL ERRORS";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
+
+    return evs;
   }
 
 } //end MFM

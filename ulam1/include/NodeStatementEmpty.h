@@ -20,7 +20,9 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
-    virtual void eval();
+    virtual UlamType * checkAndLabelType();
+
+    virtual EvalStatus eval();
 
     virtual const char * getName();
 

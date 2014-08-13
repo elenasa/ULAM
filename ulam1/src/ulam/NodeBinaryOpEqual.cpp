@@ -56,37 +56,56 @@ namespace MFM {
   }
 
 
-  void  NodeBinaryOpEqual::eval()
+  EvalStatus NodeBinaryOpEqual::eval()
   {    
     assert(m_nodeLeft && m_nodeRight);
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     makeRoomForSlots(1); //always 1 slot for ptr
-    m_nodeLeft->evalToStoreInto();
+
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
 
     u32 slot = makeRoomForNodeType(getNodeType());
-    m_nodeRight->eval();   //a Node Function Call here
-    
+    evs = m_nodeRight->eval();   //a Node Function Call here
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
     //assigns rhs to lhs UV pointer (handles arrays);  
     //also copy result UV to stack, -1 relative to current frame pointer    
     doBinaryOperation(1, 2, slot);
 
     evalNodeEpilog();
+    return NORMAL;
   }
 
 
-  void NodeBinaryOpEqual::evalToStoreInto()
+  EvalStatus NodeBinaryOpEqual::evalToStoreInto()
   {
     assert(0);
     evalNodeProlog(0);
 
     makeRoomForSlots(1); //always 1 slot for ptr
-    m_nodeLeft->evalToStoreInto();  
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();  
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
     UlamValue luvPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
 
     assignReturnValuePtrToStack(luvPtr);
-
+    
     evalNodeEpilog();
+    return NORMAL;
   }
 
 

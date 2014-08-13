@@ -16,9 +16,9 @@ namespace MFM{
 
     virtual UlamType * checkAndLabelType();
 
-    virtual void eval();
+    virtual EvalStatus eval();
 
-    virtual void evalToStoreInto();
+    virtual EvalStatus evalToStoreInto();
 
     virtual const char * getName();
 

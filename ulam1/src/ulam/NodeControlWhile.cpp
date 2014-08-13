@@ -30,23 +30,37 @@ namespace MFM {
   }
 
 
-  void  NodeControlWhile::eval()
+  EvalStatus  NodeControlWhile::eval()
   {
     assert(m_nodeCondition && m_nodeBody);
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForNodeType(getNodeType());
-    m_nodeCondition->eval();
+    EvalStatus evs = m_nodeCondition->eval();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
     UlamValue cuv = m_state.m_nodeEvalStack.popArg();
 
     while(cuv.m_valBool == true)
       {
 	u32 slots = makeRoomForNodeType(m_nodeBody->getNodeType());
- 	m_nodeBody->eval();  //side-effect
+ 	evs = m_nodeBody->eval();  //side-effect
+	if(evs == BREAK)
+	  break;  //use C to break out of this loop
+	else if(evs != NORMAL && evs != CONTINUE)
+	  {
+	    evalNodeEpilog();
+	    return evs;
+	  }
+	//continue continues as normal
 	m_state.m_nodeEvalStack.popArgs(slots);
 
 	makeRoomForNodeType(getNodeType());
-	m_nodeCondition->eval();
+	evs = m_nodeCondition->eval();
 	cuv = m_state.m_nodeEvalStack.popArg();
       }
     
@@ -54,6 +68,7 @@ namespace MFM {
     assignReturnValueToStack(cuv); //always false
 
     evalNodeEpilog();
+    return NORMAL;
   }
 
 } //end MFM

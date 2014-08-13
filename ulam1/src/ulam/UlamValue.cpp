@@ -24,7 +24,7 @@ namespace MFM {
   void UlamValue::init(UlamType * utype, s32 v) { m_valInt = v; m_utype = utype;}
   void UlamValue::init(UlamType * utype, bool v) { m_valBool = v; m_utype = utype;}
   void UlamValue::init(UlamType * utype, float v) { m_valFloat = v; m_utype = utype;}
-
+  void UlamValue::init(UlamType * arrayUType, s32 baseArrayIndex, bool headerOnly, STORAGE place){ m_baseArraySlotIndex = baseArrayIndex; m_storage = place; m_utype = arrayUType; } //header for array
 
   UlamType * UlamValue::getUlamValueType()
   {

@@ -67,17 +67,18 @@ namespace MFM {
   }
 
 
-  void NodeVarDecl::eval()
+  EvalStatus NodeVarDecl::eval()
   {
     assert(m_varSymbol);
     //evalNodeProlog(0); //new current frame pointer
     //copy result UV to stack, -1 relative to current frame pointer
     //    assignReturnValueToStack(m_varSymbol->getUlamValue(m_state));
     //evalNodeEpilog();
+    return NORMAL;
   }
   
 
-  void  NodeVarDecl::evalToStoreInto()
+  EvalStatus  NodeVarDecl::evalToStoreInto()
   {
     assert(m_varSymbol);
 
@@ -87,6 +88,7 @@ namespace MFM {
     assignReturnValuePtrToStack(m_varSymbol->getUlamValueToStoreInto());
 
     evalNodeEpilog();
+    return NORMAL;
   }
 
 

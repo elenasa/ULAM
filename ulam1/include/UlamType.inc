@@ -1,4 +1,5 @@
 XX(Nav,"Nav")
+XX(Void,"Void")
 XX(Int,"Int")
 XX(Float,"Float")
 XX(Bool,"Bool")

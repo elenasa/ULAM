@@ -77,7 +77,7 @@ namespace MFM {
   }
 
 
-  void NodeTerminalIdent::eval()
+  EvalStatus NodeTerminalIdent::eval()
   {
     assert(m_varSymbol);
     evalNodeProlog(0); //new current frame pointer
@@ -86,10 +86,11 @@ namespace MFM {
     assignReturnValueToStack(m_varSymbol->getUlamValue(m_state));
 
     evalNodeEpilog();
+    return NORMAL;
   }
 
 
-  void NodeTerminalIdent::evalToStoreInto()
+  EvalStatus NodeTerminalIdent::evalToStoreInto()
   {
     assert(m_varSymbol);
     assert(isStoreIntoAble());
@@ -100,6 +101,7 @@ namespace MFM {
     assignReturnValuePtrToStack(m_varSymbol->getUlamValueToStoreInto());
 
     evalNodeEpilog();
+    return NORMAL;
   }
 
 
