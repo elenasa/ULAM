@@ -1,19 +1,19 @@
 #include <stdio.h>
-#include "NodeBlockFunction.h"
+#include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
 #include "SymbolVariable.h"
 
 namespace MFM {
 
-  NodeBlockFunction::NodeBlockFunction(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0) 
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0) 
   {}
 
-  NodeBlockFunction::~NodeBlockFunction()
+  NodeBlockFunctionDefinition::~NodeBlockFunctionDefinition()
   {
     // nodes deleted by SymbolTable in BlockClass 
   }
 
-  void NodeBlockFunction::print(File * fp)
+  void NodeBlockFunctionDefinition::print(File * fp)
   {
     printNodeLocation(fp);
     UlamType * myut = getNodeType();
@@ -35,7 +35,7 @@ namespace MFM {
   }
 
 
-  void NodeBlockFunction::printPostfix(File * fp)
+  void NodeBlockFunctionDefinition::printPostfix(File * fp)
   {
     fp->write(" ");
     fp->write(m_funcSymbol->getUlamType()->getUlamTypeNameBrief()); //short type name
@@ -85,60 +85,30 @@ namespace MFM {
   }
 
 
-  const char * NodeBlockFunction::getName()
+  const char * NodeBlockFunctionDefinition::getName()
   {
     return m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str();
   }
 
 
-  const std::string NodeBlockFunction::prettyNodeName()
+  const std::string NodeBlockFunctionDefinition::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
 
-  UlamType * NodeBlockFunction::checkAndLabelType()
+  UlamType * NodeBlockFunctionDefinition::checkAndLabelType()
   { 
     UlamType * it = m_funcSymbol->getUlamType();
     setNodeType(it);
 
+    m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
+    m_state.m_currentFunctionReturnType = it;
+
     if(m_nextNode) //non-empty function
       {
-	UlamType * nextType = m_nextNode->checkAndLabelType();
-	if(nextType != it)
-	  {
-	    ULAMTYPE nextBUT = nextType->getUlamTypeEnum();
-	    ULAMTYPE itBUT = it->getUlamTypeEnum();
-	    if(nextBUT != itBUT)
-	      {
-		std::ostringstream msg;
-		msg << "Function '" << getName() << "''s Return type's <" << it->getUlamTypeName().c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << "> does not match resulting type's <" << nextType->getUlamTypeName().c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(nextBUT) << ">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-
-		//NodeBlockFunction.cpp:119:52: error: cannot convert ‘MFM::NodeCast*’ to ‘MFM::NodeStatements*’ in assignment
-		//haven't considered array or bit sizes here
-		//m_nextNode = new NodeCast(m_nextNode, it, m_state);
-		//m_nextNode->setNodeLocation(getNodeLocation());
-	      }
-	    else
-	      {
-		if(nextType->getArraySize() != it->getArraySize())
-		  {
-		    std::ostringstream msg;
-		    msg << "Function '" << getName() << "''s Return type's <" << it->getUlamTypeName().c_str() << "> array size: <" << it->getArraySize() << "> does not match resulting type's <" << nextType->getUlamTypeName().c_str() << "> array size: <" << nextType->getArraySize() << ">";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		  }
-
-		if(nextType->getBitSize() != it->getBitSize())
-		  {
-		    std::ostringstream msg;
-		    msg << "Function '" << getName() << "''s Return type's <" << it->getUlamTypeName().c_str() << "> bit size: <" << it->getBitSize() << "> does not match resulting type's <" << nextType->getUlamTypeName().c_str() << "> bit size: <" << nextType->getBitSize() << ">";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		  }
-
-	      } //base types are the same..array and bit size might vary
-
-	  } //they are the same ulamtype
+	m_nextNode->checkAndLabelType();                     //side-effect
+	m_state.checkFunctionReturnNodeTypes(m_funcSymbol);  //gives errors
       }
     else
       {
@@ -151,15 +121,15 @@ namespace MFM {
   }
   
 
-  EvalStatus NodeBlockFunction::eval()
+  EvalStatus NodeBlockFunctionDefinition::eval()
   {
     assert(isDefinition());
     assert(m_nextNode);
 
-    evalNodeProlog(0);  //new current frame pointer on node eval stack
+    evalNodeProlog(0);                  //new current frame pointer on node eval stack
     makeRoomForNodeType(getNodeType()); //place for return vals node eval stack
     
-    m_state.m_funcCallStack.addFrameSlots(getMaxDepth());  //local variables on callstack!!!
+    m_state.m_funcCallStack.addFrameSlots(getMaxDepth());  //local variables on callstack!
 
     EvalStatus evs = m_nextNode->eval();
     UlamValue rtnUV;
@@ -194,19 +164,19 @@ namespace MFM {
   }
 
 
-  void NodeBlockFunction::setDefinition()
+  void NodeBlockFunctionDefinition::setDefinition()
   {
     m_isDefinition = true;
   }
 
   
-  bool NodeBlockFunction::isDefinition()
+  bool NodeBlockFunctionDefinition::isDefinition()
   {
     return m_isDefinition;
   }
 
 
-  void NodeBlockFunction::setMaxDepth(u32 depth)
+  void NodeBlockFunctionDefinition::setMaxDepth(u32 depth)
   {
     m_maxDepth = depth;
 
@@ -216,15 +186,16 @@ namespace MFM {
   }
 
 
-  u32 NodeBlockFunction::getMaxDepth()
+  u32 NodeBlockFunctionDefinition::getMaxDepth()
   {
     return m_maxDepth;
   }
 
 
-  SymbolFunction * NodeBlockFunction::getFuncSymbolPtr()
+  SymbolFunction * NodeBlockFunctionDefinition::getFuncSymbolPtr()
   {
     return m_funcSymbol;
   }
+
 
 } //end MFM
