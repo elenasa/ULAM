@@ -41,6 +41,9 @@ namespace MFM {
       m_node->printPostfix(fp);
     else 
       fp->write(" <EMPTYSTMT>");
+
+    fp->write(" ");
+    fp->write(getName());
   }
 
 
@@ -49,12 +52,19 @@ namespace MFM {
   {
     assert(m_node);
 
-    UlamType * rtnType = NULL;
+    UlamType * nodeType = m_node->checkAndLabelType();
 
-    rtnType = m_node->checkAndLabelType();
-    setNodeType(rtnType); //return take type of their node
+    if(nodeType != m_state.m_currentFunctionReturnType)
+      {
+	m_node = new NodeCast(m_node, m_state.m_currentFunctionReturnType, m_state);
+	m_node->setNodeLocation(getNodeLocation());
+	nodeType = m_node->checkAndLabelType(); //update for return node type
+      }
 
-    return rtnType;
+    setNodeType(nodeType); //return take type of their node
+
+    m_state.m_currentFunctionReturnNodes.push_back(this); //check later against defined function return type
+    return nodeType;
   }
 
 
@@ -77,14 +87,16 @@ namespace MFM {
     evalNodeProlog(0);
     makeRoomForNodeType(getNodeType());
     EvalStatus evs = m_node->eval();
-    if(evs == ERROR)
+    if(evs != NORMAL)
       {
+	assert(evs != CONTINUE && evs != BREAK);
 	evalNodeEpilog();
-	return ERROR;
+	return evs;
       }
 
     //end, so copy to -1
     UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
+    
     assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
     evalNodeEpilog();
     return RETURN;

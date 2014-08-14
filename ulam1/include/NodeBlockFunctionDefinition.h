@@ -1,7 +1,7 @@
 /* -*- c++ -*- */
 
-#ifndef NODEBLOCKFUNCTION_H
-#define NODEBLOCKFUNCTION_H
+#ifndef NODEBLOCKFUNCTIONDEFINITION_H
+#define NODEBLOCKFUNCTIONDEFINITION_H
 
 #include "File.h"
 #include "SymbolFunction.h"
@@ -9,13 +9,13 @@
 
 namespace MFM{
 
-  class NodeBlockFunction : public NodeBlock
+  class NodeBlockFunctionDefinition : public NodeBlock
   {
   public:
 
-    NodeBlockFunction(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
+    NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
 
-    virtual ~NodeBlockFunction();
+    virtual ~NodeBlockFunctionDefinition();
 
     virtual void print(File * fp);
 
@@ -49,4 +49,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBLOCK_H
+#endif //end NODEBLOCKFUNCTIONDEFINITION_H
