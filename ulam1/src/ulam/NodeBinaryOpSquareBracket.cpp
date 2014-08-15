@@ -33,7 +33,7 @@ namespace MFM {
 
     UlamType * newType = m_state.getUlamTypeByIndex(Nav);
     UlamType * leftType = m_nodeLeft->checkAndLabelType(); 
-    //assert(!leftType->isScalar());
+
     if(leftType->isScalar())
     {
       std::ostringstream msg;
@@ -75,6 +75,9 @@ namespace MFM {
       }
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
+    UlamType * ltype = pluv.getUlamValueType();
+
+    assert(!ltype->isScalar());   //already checked
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();  
@@ -86,6 +89,20 @@ namespace MFM {
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     assert(offset.getUlamValueType()->getUlamTypeIndex() == Int);
+    u32 arraysize = ltype->getArraySize();
+    if(offset.m_valInt >= (s32) arraysize)
+      {
+	Symbol * lsymptr;
+	u32 lid = 0;
+	if(getSymbolPtr(lsymptr))
+	  lid = lsymptr->getId();
+ 
+	std::ostringstream msg;
+	msg << "Array subscript [" << offset.m_valInt << "] exceeds the size (" << arraysize << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	evalNodeEpilog();
+	return ERROR;
+      }
 
     assignReturnValueToStack(pluv.getValAt(offset.m_valInt, m_state));
 

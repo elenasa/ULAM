@@ -22,7 +22,7 @@ namespace MFM {
 
     if (ss.push(startstr))
       {
-	Node *  programme = P->parseProgram(output); //will be compared to answer
+	Node *  programme = P->parseProgram(output); //output compared to answer
 	//Node *  programme = P->parseProgram();
 	
 	if(programme != NULL)
@@ -34,9 +34,10 @@ namespace MFM {
 		//debug only: tests' answer comparisons will fail.
 		//programme->print(output);
 		//output->write("\n");
+
 		if(cs.m_err.getErrorCount() == 0)
 		  {
-		    programme->eval();   //side-effect, or UlamValue val
+		    programme->eval();   //side-effect
 
 		    if(cs.m_err.getErrorCount() == 0)
 		      {
@@ -48,13 +49,13 @@ namespace MFM {
 			//output->write(valstr);
 		      }
 		    else
-		      output->write("evalParseTree unrecoverable EVAL FAILURE.\n");
+		      output->write("unrecoverable Program Test FAILURE.\n");
 		  }
 		else
-		  output->write("labelParseTree unrecoverable TYPE LABEL FAILURE.\n");
+		  output->write("Unrecoverable Program Type Label FAILURE.\n");
 	      }
 	    else
-	      output->write("parseProgram unrecoverable PARSE FAILURE.\n");		
+	      output->write("Unrecoverable Program Parse FAILURE.\n");		
 	  
 	    delete programme;
 	    programme = NULL;
@@ -62,17 +63,14 @@ namespace MFM {
 	  }
 	else
 	  {
-	    output->write("parseProgram unrecoverable PARSE FAILURE.");
-	    //	    output->write("--------------------------------------------------------------------------------");
+	    output->write("Unrecoverable Program PARSE FAILURE.");
 	  }
       }
     else
       {
-	output->write("parseProgram failed to start SourceStream.");
+	output->write("Failed to start SourceStream.");
       }
     
-    //  while(ss.read() != -1); //EOF
-
     delete P;
     delete PP;
     delete Lex;    

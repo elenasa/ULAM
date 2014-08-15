@@ -6,15 +6,12 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string(" { Int a(4);  Int b(5);  Int c(0);  Int main() {  a 4 = b 5 = } }\n");
+      return std::string(" { Int a(4);  Int b(5);  Int c(0);  Int test() {  a 4 = b 5 = a b +b return } }\nExit status: 9");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      //bool rtn1 = fms->add("a.ulam","ulam {  Int a; Int main(){ a=4; } }");
-      //bool rtn1 = fms->add("a.ulam","ulam {  Int a, b; Int main(){ a=4; b=5; } }");
-      //bool rtn1 = fms->add("a.ulam","ulam {  Int a; Int main(){ a=4; b=5; } Int b; }"); //allows data member var defined after use
-      bool rtn1 = fms->add("a.ulam","ulam {  Int a; Int main(){ a=4; b=5; } Int b,c; }"); //allows data member var defined after use
+      bool rtn1 = fms->add("a.ulam","ulam {  Int a; Int test(){ a=4; b=5; return (a + b); } Int b,c; }"); //allows data member var defined after use; return an expression
       
       if(rtn1)
 	return std::string("a.ulam");

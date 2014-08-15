@@ -132,10 +132,13 @@ namespace MFM {
   //default storage type is the EVALRETURN stack
   u32 Node::makeRoomForNodeType(UlamType * type, STORAGE where)
   {
+    if(type == m_state.getUlamTypeByIndex(Void)) 
+      return 0;
+
     UlamType * scalarType = m_state.getUlamTypeAsScalar(type);
     
     //push copies of individual array element singletons
-    UlamValue rtnUV(scalarType, scalarType, IMMEDIATE);  
+    UlamValue rtnUV(scalarType, 0, IMMEDIATE);  
 
     u32 pushsize = type->getArraySize();
     pushsize = (pushsize > 0 ? pushsize : 1); //=1 for scalar
@@ -171,6 +174,9 @@ namespace MFM {
     UlamType * rtnUVtype = rtnUV.getUlamValueType(); //==node type
     assert(rtnUVtype == getNodeType());
 
+    if(rtnUVtype == m_state.getUlamTypeByIndex(Void)) 
+      return;
+
     u32 rtnUVarraysize = rtnUVtype->getArraySize();
 	  
     // save results in the stackframe for caller;
@@ -182,19 +188,28 @@ namespace MFM {
     UlamValue rtnPtr;
 
     if(where == EVALRETURN)
-      rtnPtr.init(rtnUVtype, arraysize, true, EVALRETURN);
-    else if (where == STACK)
+      {
+	rtnPtr.init(rtnUVtype, arraysize, true, EVALRETURN);
+	m_state.m_nodeEvalStack.assignUlamValue(rtnPtr,rtnUV, m_state); //to,from,state
+      }
+    else if(where == STACK)
+      {
       rtnPtr.init(rtnUVtype, arraysize, true, STACK);
+      m_state.m_funcCallStack.assignUlamValue(rtnPtr,rtnUV, m_state); //to,from,state
+      }
     else
       assert(0);
-
-    m_state.m_nodeEvalStack.assignUlamValue(rtnPtr,rtnUV, m_state);
   }
+
 
   //in case of arrays, rtnUV is a ptr.
   void Node::assignReturnValuePtrToStack(UlamValue rtnUVptr)
   {
     UlamType * rtnUVtype = rtnUVptr.getUlamValueType(); //stack or atom PTR
+
+    if(rtnUVtype == m_state.getUlamTypeByIndex(Void)) 
+      return;
+
     UlamValue rtnPtr(rtnUVtype, -1, true, EVALRETURN);
     m_state.m_nodeEvalStack.assignUlamValuePtr(rtnPtr,rtnUVptr, m_state);
   }

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "SymbolTable.h"
 #include "SymbolFunction.h"
-#include "NodeBlockFunction.h"
+#include "NodeBlockFunctionDefinition.h"
 
 namespace MFM {
 
@@ -60,7 +60,7 @@ namespace MFM {
 	Symbol * sym = it->second;  
 	if(sym->isFunction())
 	  {
-	    NodeBlockFunction * func = ((SymbolFunction *) sym)->getFunctionNode();
+	    NodeBlockFunctionDefinition * func = ((SymbolFunction *) sym)->getFunctionNode();
 	    assert(func); //how would a function symbol be without a body?
 	    func->checkAndLabelType();
 	  }

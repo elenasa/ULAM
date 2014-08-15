@@ -6,12 +6,12 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string(" { Int x(15);  Int y(0);  Int main() {  y x ( 4 5 )times = = y ( x x )max = } }\n");
+      return std::string(" { Int x(15);  Int y(0);  Int test() {  y x ( 4 5 )times = = y ( x x )max = y return } }\nExit status: 0");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("a.ulam","ulam { Int times(Int m, Int n) { Int e; while( m-=1 ) e += n; e; } Int max(Int a, Int b) { a - b; } Int x, y; Int main(){ y = x = times(4,5); y = max(x,x); } }");
+      bool rtn1 = fms->add("a.ulam","ulam { Int times(Int m, Int n) { Int e; while( m-=1 ) e += n; return e; } Int max(Int a, Int b) { return (a - b); } Int x, y; Int test(){ y = x = times(4,5); y = max(x,x); return y; } }");
       
       if(rtn1)
 	return std::string("a.ulam");

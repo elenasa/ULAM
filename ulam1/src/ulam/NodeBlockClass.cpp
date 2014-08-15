@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "NodeBlockClass.h"
-#include "NodeBlockFunction.h"
+#include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
 
 
@@ -27,7 +27,7 @@ namespace MFM {
     if(m_nextNode)
       m_nextNode->print(fp);  //datamember var decls
 
-    NodeBlockFunction * func = findMainFunctionNode();
+    NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
       func->print(fp);
 
@@ -44,7 +44,7 @@ namespace MFM {
       m_nextNode->printPostfix(fp);  //datamember vardecls
 
 
-    NodeBlockFunction * func = findMainFunctionNode();
+    NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
       func->printPostfix(fp);
     else
@@ -71,17 +71,32 @@ namespace MFM {
     // label all the function definition bodies first.
     m_functionST.labelTableOfFunctions();
 
+    // check that a 'test' function returns Int (ulam convention)
+    NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
+    if(funcNode)
+      {
+	UlamType * funcType = funcNode->getNodeType();
+	if(funcType != m_state.getUlamTypeByIndex(Int))
+	  {
+	    std::ostringstream msg;
+	    msg << "By convention, Function '" << funcNode->getName() << "''s Return type must be <Int>, not <" << funcType->getUlamTypeNameBrief() << ">";
+	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
+
+    //side-effect DataMember VAR DECLS
     if(m_nextNode)
-      m_nextNode->checkAndLabelType();  //side-effect for datamember vardelcs
-
-    return Node::checkAndLabelType();
+      m_nextNode->checkAndLabelType();             
+    
+    setNodeType(m_state.getUlamTypeByIndex(Void));
+    return getNodeType();
   }
-
+  
 
   EvalStatus NodeBlockClass::eval()
   {
 #if 0
-    //determine size of stackframe (enable for test t3116
+    //determine size of stackframe (enable for test t3116)
     u32 stackframetotal = getSizeOfFuncSymbolsInTable();
     u32 numberoffuncs = getNumberOfFuncSymbolsInTable();
     {
@@ -91,44 +106,33 @@ namespace MFM {
     }
 #endif
 
-    evalNodeProlog(0); //new current frame pointer for nodeeval stack
+    evalNodeProlog(0);       //new current frame pointer for nodeeval stack
 
-    EvalStatus evs;
+    EvalStatus evs = ERROR;  //init
 
     if(m_nextNode)
       {
-	u32 slot = makeRoomForNodeType(m_nextNode->getNodeType());
-	evs = m_nextNode->eval();  //side-effect for datamember vardecls
-	if(evs != NORMAL)
-	  {
-	    evalNodeEpilog();
-	    return evs;
-	  }
-	m_state.m_nodeEvalStack.popArgs(slot);
+	m_nextNode->eval();  //side-effect for datamember vardecls
       }
 
-    NodeBlockFunction * funcNode = findMainFunctionNode();
+    NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
       {
+	setNodeType(m_state.getUlamTypeByIndex(Int)); //for testing
 	UlamType * funcType = funcNode->getNodeType();
+
 	makeRoomForNodeType(funcType);  //Int return
-	
-	//makeRoomForNodeType(funcType, STACK); no args to main
+
 	evs = funcNode->eval();
-	if(evs != NORMAL)
+	if(evs == NORMAL)
 	  {
-	    evalNodeEpilog();
-	    return evs;
+	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
+	    assignReturnValueToStack(testUV);
 	  }
-
-	UlamValue mainUV = m_state.m_nodeEvalStack.popArg();
-
-	// now what to do with the answer???
-	//assignReturnValueToStack(mainUV);
       }
 
     evalNodeEpilog();
-    return NORMAL;
+    return evs;
   }
 
 
@@ -164,14 +168,14 @@ namespace MFM {
 
 
   //don't set nextNode since it'll get deleted with program.
-  NodeBlockFunction * NodeBlockClass::findMainFunctionNode()
+  NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
   {
     Symbol * fsym;
-    NodeBlockFunction * func = NULL;
-    u32 mainid = m_state.m_pool.getIndexForDataString("main");
-    if(isFuncIdInScope(mainid, fsym))
+    NodeBlockFunctionDefinition * func = NULL;
+    u32 testid = m_state.m_pool.getIndexForDataString("test");
+    if(isFuncIdInScope(testid, fsym))
       {
-	func = ((SymbolFunction * ) fsym)->getFunctionNode();
+	func = ((SymbolFunction *) fsym)->getFunctionNode();
       }
     return func;
   }

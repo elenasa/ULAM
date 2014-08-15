@@ -1,6 +1,6 @@
 #include "NodeFunctionCall.h"
 #include "CompilerState.h"
-#include "NodeBlockFunction.h"
+#include "NodeBlockFunctionDefinition.h"
 #include "NodeProgram.h"
 #include "SymbolFunction.h"
 #include "CallStack.h"
@@ -124,7 +124,7 @@ namespace MFM {
   EvalStatus NodeFunctionCall::eval()
   {
     assert(m_funcSymbol);
-    NodeBlockFunction * func = m_funcSymbol->getFunctionNode();
+    NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);    
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
@@ -163,7 +163,7 @@ namespace MFM {
 	    m_state.m_funcCallStack.assignUlamValue(basePtr,auvPtr, m_state);
 	    m_state.m_nodeEvalStack.popArgs(slots);
 	  }
-      }
+      } //done with args
 
     //push return value last (on both STACKS for now) 
     UlamType * rtnType = m_funcSymbol->getUlamType();
@@ -173,9 +173,10 @@ namespace MFM {
     assert(rtnType->getArraySize() > 0 ? rtnslots == rtnType->getArraySize() : rtnslots == 1); 
     //********************************************    
 
-    evs = func->eval();   //NodeBlockFunction..
+    evs = func->eval();   //NodeBlockFunctionDefinition..
     if(evs != NORMAL)
       {
+	assert(evs != RETURN);
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
 	evalNodeEpilog();
 	return evs;
@@ -183,7 +184,7 @@ namespace MFM {
     //**********************************************
 
     UlamValue rtnPtr(rtnType, 1, true, EVALRETURN);  //positive to current frame pointer
-    assignReturnValueToStack(rtnPtr);  //in return space on eval stack;
+    assignReturnValueToStack(rtnPtr);                //in return space on eval stack;
 
     m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
 

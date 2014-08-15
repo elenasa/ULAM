@@ -61,7 +61,10 @@ namespace MFM {
   UlamType * NodeBlock::checkAndLabelType()
   { 
     assert(m_nextNode);
-    setNodeType(m_nextNode->checkAndLabelType()); //missing Fri Aug  8 09:10:27 2014 
+    m_nextNode->checkAndLabelType();
+
+    //blocks don't have types 
+    setNodeType(m_state.getUlamTypeByIndex(Void));
     return getNodeType();
   }
 
@@ -69,12 +72,12 @@ namespace MFM {
   EvalStatus NodeBlock::eval()
   {
     assert(m_nextNode);
-    evalNodeProlog(0);
+    //evalNodeProlog(0);
 
-    makeRoomForNodeType(getNodeType());
-    EvalStatus evs = m_nextNode->eval();    //no return
+    //makeRoomForNodeType(m_nextNode->getNodeType());
+    EvalStatus evs = m_nextNode->eval();    //no return value
 
-    evalNodeEpilog();
+    //evalNodeEpilog();
     return evs;
   }
 

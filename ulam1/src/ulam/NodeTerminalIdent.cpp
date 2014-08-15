@@ -212,10 +212,10 @@ namespace MFM {
 	  }
 
 	//UlamValue val(aut, but);  //array, base ulamtype args
-	u32 slot = m_state.m_selectedAtom.pushDataMember(aut,but);
+	u32 baseslot = m_state.m_selectedAtom.pushDataMember(aut,but);
 
 	//variable-index, ulamtype, ulamvalue(ownership to symbol)    
-	return (new SymbolVariableStatic(m_token.m_dataindex, aut, slot)); 
+	return (new SymbolVariableStatic(m_token.m_dataindex, aut, baseslot)); 
       }
 
     //Symbol is a parameter; always on the stack

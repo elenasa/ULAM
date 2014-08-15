@@ -20,7 +20,7 @@ namespace MFM {
   {  }
 
   //returns parse tree..
-  u32 Compiler::start(FileManager * fm, std::string startstr, File * output, Node * & rtnNode)
+  u32 Compiler::parseProgram(FileManager * fm, std::string startstr, File * output, Node * & rtnNode)
   {
     SourceStream ss(fm, m_state);    
     
@@ -47,27 +47,38 @@ namespace MFM {
   }
 
   // call before eval parse tree; return zero when no errors
-  u32 Compiler::labelParseTree(Node * root, File * output)
+  u32 Compiler::checkAndTypeLabelProgram(Node * root, File * output)
   {
     assert(root);
 
     m_state.m_err.setFileOutput(output);
 
-    root->checkAndLabelType(); //side-effects
+    root->checkAndLabelType();        //side-effects
 
     return m_state.m_err.getErrorCount();
   }
 
 
-  // after labelParseTree
-  u32 Compiler::evalParseTree(Node * root, File * output)
+  // after checkAndTypeLabelProgram
+  u32 Compiler::testProgram(Node * root, File * output, s32& rtnValue)
   {
     assert(root);
 
     m_state.m_err.setFileOutput(output);
 
-    root->eval();
+    m_state.m_nodeEvalStack.addFrameSlots(1);     //prolog
+    EvalStatus evs = root->eval();
+    if(evs != NORMAL)
+      {
+	rtnValue =  -1;   //error!
+      }
+    else
+      {
+	 UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	 rtnValue = rtnUV.m_valInt;
+      }
 
+    m_state.m_nodeEvalStack.returnFrame();       //epilog
     return m_state.m_err.getErrorCount();
   }
 
@@ -84,7 +95,7 @@ namespace MFM {
   }
 
 
-  void Compiler::printParseTree(Node * root, File * output)
+  void Compiler::printProgramForDebug(Node * root, File * output)
   {
     assert(root);
 

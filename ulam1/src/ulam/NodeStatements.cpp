@@ -51,8 +51,6 @@ namespace MFM {
 
     if(m_nextNode)
       m_nextNode->printPostfix(fp);
-    //else 
-    //  fp->write("<NULL>");
   }
 
 
@@ -61,17 +59,15 @@ namespace MFM {
   {
     assert(m_node);
 
-    UlamType * rtnType = NULL;
+    //unlike statements, blocks don't have an m_node
+    m_node->checkAndLabelType();       //side-effect
 
-    //blocks don't have an m_node
-    rtnType = m_node->checkAndLabelType();
-    setNodeType(rtnType); //statements take type of their node
-
-    //return the last one
     if(m_nextNode)
-      rtnType = m_nextNode->checkAndLabelType();
-    
-    return rtnType;
+      m_nextNode->checkAndLabelType(); //side-effect
+
+    //statements don't have types 
+    setNodeType(m_state.getUlamTypeByIndex(Void));
+    return getNodeType();
   }
 
 
@@ -92,7 +88,7 @@ namespace MFM {
     assert(m_node); 
 
     evalNodeProlog(0);
-    makeRoomForNodeType(getNodeType());
+    makeRoomForNodeType(m_node->getNodeType());
     EvalStatus evs = m_node->eval();
     if(evs != NORMAL)
       {
@@ -107,15 +103,15 @@ namespace MFM {
 	evs = m_nextNode->eval();
 	if(evs != NORMAL)
 	  {
-	    evalNodeEpilog();
+	    ////evalNodeEpilog();
 	    return evs;
 	  }
       }
     else
       {
 	//end, so copy to -1
-	UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
-	assignReturnValueToStack(rtnPtr);
+	//	UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
+	//assignReturnValueToStack(rtnPtr);
 	evalNodeEpilog();
       }
 

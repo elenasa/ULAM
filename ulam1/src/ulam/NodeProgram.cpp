@@ -70,7 +70,7 @@ namespace MFM {
     m_state.m_err.clearCounts();
 
     UlamType * rtnType =  m_root->checkAndLabelType();
-    //setNodeType(rtnType); //missing ???
+    setNodeType(rtnType);   //void type. missing?
 
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)
@@ -97,8 +97,12 @@ namespace MFM {
     assert(m_root);
     m_state.m_err.clearCounts();
 
+    setNodeType(m_state.getUlamTypeByIndex(Int)); //for testing
+
+    evalNodeProlog(1);    //new current frame pointer for nodeeval stack
     EvalStatus evs = m_root->eval();
 
+    // output informational warning and error counts
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)
       {
@@ -115,6 +119,13 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
 
+    if(evs == NORMAL)
+      {
+	UlamValue testUV = m_state.m_nodeEvalStack.popArg();
+	assignReturnValueToStack(testUV);     //for testProgram in Compiler
+      }
+
+    evalNodeEpilog();
     return evs;
   }
 

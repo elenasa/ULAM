@@ -1,5 +1,5 @@
 #include "SymbolFunction.h"
-#include "NodeBlockFunction.h"
+#include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
 
 namespace MFM {
@@ -12,7 +12,7 @@ namespace MFM {
   SymbolFunction::~SymbolFunction()
   {
     delete m_functionNode; 
-    // symbols belong to  NodeBlockFunction's ST; deleted there.
+    // symbols belong to  NodeBlockFunctionDefinition's ST; deleted there.
     m_parameterSymbols.clear();
   }
 
@@ -55,7 +55,7 @@ namespace MFM {
   }
 
 
-  void SymbolFunction::setFunctionNode(NodeBlockFunction * func)
+  void SymbolFunction::setFunctionNode(NodeBlockFunctionDefinition * func)
   {
     if(m_functionNode)
       delete m_functionNode;  //clean up any previous declarations
@@ -64,7 +64,7 @@ namespace MFM {
   }
 
 
-  NodeBlockFunction *  SymbolFunction::getFunctionNode()
+  NodeBlockFunctionDefinition *  SymbolFunction::getFunctionNode()
   {
     return m_functionNode;
   }
