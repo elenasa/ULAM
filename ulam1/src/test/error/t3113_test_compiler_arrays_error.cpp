@@ -11,7 +11,7 @@ namespace MFM {
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("a.ulam","ulam { Int a[3]; Int main() { a = 1; } }");
+      bool rtn1 = fms->add("a.ulam","ulam { Int a[3]; Int test() { a = 1; return a[1]; } }");
       
       if(rtn1)
 	return std::string("a.ulam");

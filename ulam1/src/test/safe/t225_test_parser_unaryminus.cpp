@@ -6,13 +6,13 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string(" { Int bar(-18);  Int main() {  bar 18 - = bar - - } }\n");
+      return std::string(" { Int bar(-18);  Int test() {  bar 18 - = bar - - bar return } }\n");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
       // newline lead to valgrind detecting leak in Lexer destructor: NULLifying sourcestream ref.
-      bool rtn1 = fms->add("a.ulam","ulam {Int bar; Int main() {bar = -18; - - bar ;} }\n"); 
+      bool rtn1 = fms->add("a.ulam","ulam {Int bar; Int test() {bar = -18; - - bar; return bar; } }\n"); 
       
       if(rtn1)
 	return std::string("a.ulam");

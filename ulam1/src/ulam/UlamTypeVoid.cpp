@@ -39,6 +39,7 @@ namespace MFM {
 	{
 	  switch(valtypidx)
 	    {
+	    case Void:
 	    case Int:
 	    case Float:
 	    case Bool:
@@ -51,12 +52,8 @@ namespace MFM {
 	}
       else
 	{
-	  if(myarraysize != valarraysize)
-	    {
-	      assert(0);
-	      //std::cerr << "UlamTypeVoid (cast) error! Different Array sizes; " << myarraysize << " Value Type and size was: " << valtypidx << "," << valarraysize << std::endl;
-	      brtn=false;
-	    }
+	  assert(0);
+	  brtn=false;
 	}
 
       return brtn;
@@ -65,28 +62,14 @@ namespace MFM {
 
   void UlamTypeVoid::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
   {
-    if(m_key.m_arraySize == 0)
-      {
-	  sprintf(valstr,"%d", val.m_valInt);
-      }
-    else
-      {
-	UlamValue ival = val.getValAt(0, state);
-	char tmpstr[8];
-	sprintf(valstr,"%d", ival.m_valInt);
-	for(s32 i = 1; i < (s32) m_key.m_arraySize ; i++)
-	  {
-	    ival = val.getValAt(i, state);
-	    sprintf(tmpstr,",%d", ival.m_valInt); 
-	    strcat(valstr,tmpstr);
-	  }
-      }
+    assert(m_key.m_arraySize == 0);      
+    sprintf(valstr,"0");
   }
 
 
   bool UlamTypeVoid::isZero(const UlamValue & val)
   {
-    return (val.m_valInt == 0);
+    return true;
   }
 
 } //end MFM

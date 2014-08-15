@@ -8,12 +8,12 @@ namespace MFM {
     {
       //a.ulam:1:45: ERROR: (3) <foo> has 1 arguments for a defined function, that has 0 parameters.
 
-      return std::string(" { Int a(0);  Int main() {  ( )foo } }\n");
+      return std::string(" { Int a(0);  Int test() {  ( )foo } }\n");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("a.ulam","ulam { Int a;  Int main() { { Int foo() { 1; } foo(); } }");
+      bool rtn1 = fms->add("a.ulam","ulam { Int a;  Int test() { { Int foo() { 1; } return foo(); } }");
             
       if(rtn1)
 	return std::string("a.ulam");

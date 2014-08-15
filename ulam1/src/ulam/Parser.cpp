@@ -32,7 +32,7 @@
 #include "NodeTypedef.h"
 #include "NodeStatementEmpty.h"
 #include "NodeBlockEmpty.h"
-#include "NodeBlockFunction.h"
+#include "NodeBlockFunctionDefinition.h"
 #include "NodeReturn.h"
 #include "SymbolVariable.h"
 #include "SymbolFunction.h"
@@ -213,7 +213,7 @@ namespace MFM {
 	      {
 		//first remove the pointer to this node from its symbol
 		if(rtnNode)
-		  ((NodeBlockFunction *) rtnNode)->getFuncSymbolPtr()->setFunctionNode((NodeBlockFunction *) NULL); //deletes node
+		  ((NodeBlockFunctionDefinition *) rtnNode)->getFuncSymbolPtr()->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
 		rtnNode = NULL;
 		MSG(&pTok, "INCOMPLETE Function Definition", ERR);
 	      }
@@ -1074,9 +1074,9 @@ namespace MFM {
   }
 
 
-  NodeBlockFunction * Parser::makeFunctionBlock(Token typeTok, Token identTok)
+  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(Token typeTok, Token identTok)
   {
-    NodeBlockFunction * rtnNode = NULL;
+    NodeBlockFunctionDefinition * rtnNode = NULL;
 
     // all functions are defined in this "class" block; 
     // or external 'use' for declarations.
@@ -1107,7 +1107,7 @@ namespace MFM {
     //ownership goes to the class block
     m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr); 
     
-    rtnNode =  new NodeBlockFunction(fsymptr, prevBlock, m_state);
+    rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, m_state);
     rtnNode->setNodeLocation(typeTok.m_locator);
     
     //symbol will have pointer to body (or just decl for 'use');
@@ -1138,7 +1138,7 @@ namespace MFM {
       }
     else
       {
-	fsymptr->setFunctionNode((NodeBlockFunction *) NULL); //deletes node
+	fsymptr->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
 	rtnNode = NULL;
       }
 
@@ -1176,7 +1176,7 @@ namespace MFM {
 	    //it IS a variable (declaration).
 	    Symbol * argSym;
 	    if(argNode->getSymbolPtr(argSym))
-	      sym->addParameterSymbol(argSym); //ownership stays with NodeBlockFunction's ST
+	      sym->addParameterSymbol(argSym); //ownership stays with NodeBlockFunctionDefinition's ST
 	    else
 	      MSG(&pTok, "No symbol from parameter declaration", ERR);
 	  }
@@ -1196,7 +1196,7 @@ namespace MFM {
   }
 
 
-  bool Parser::parseFunctionBody(NodeBlockFunction *& funcNode)
+  bool Parser::parseFunctionBody(NodeBlockFunctionDefinition *& funcNode)
   {
     bool brtn = false;
     

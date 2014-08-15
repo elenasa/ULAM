@@ -111,7 +111,6 @@ namespace MFM {
 	    {
 	      std::string str("INVALID results:\n");
 	      str.append(results);
-	      //str.append("--------------------------------------------------------------------------------");
 	      errorOutput->write(str.c_str());
 	      rtn = false;
 	    }

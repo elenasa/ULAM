@@ -39,7 +39,6 @@ namespace MFM {
 
   UlamType * NodeBlockEmpty::checkAndLabelType()
   {
-    //return Node::checkAndLabelType();
     setNodeType(m_state.getUlamTypeByIndex(Void));
     return getNodeType();
   }

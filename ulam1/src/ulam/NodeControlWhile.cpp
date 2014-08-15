@@ -51,16 +51,25 @@ namespace MFM {
  	evs = m_nodeBody->eval();  //side-effect
 	if(evs == BREAK)
 	  break;  //use C to break out of this loop
-	else if(evs != NORMAL && evs != CONTINUE)
+	else if(evs == RETURN || evs == ERROR)
 	  {
 	    evalNodeEpilog();
 	    return evs;
 	  }
+	assert(evs == NORMAL || evs == CONTINUE);
+
 	//continue continues as normal
 	m_state.m_nodeEvalStack.popArgs(slots);
 
 	makeRoomForNodeType(getNodeType());
+
 	evs = m_nodeCondition->eval();
+	if(evs != NORMAL)
+	  {
+	    evalNodeEpilog();
+	    return evs;
+	  }
+
 	cuv = m_state.m_nodeEvalStack.popArg();
       }
     

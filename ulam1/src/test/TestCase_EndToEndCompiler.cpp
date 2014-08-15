@@ -13,21 +13,27 @@ namespace MFM {
     // error messages appended to output are compared to answer
     //Node * programme = C.start(fm,startstr,output);
     Node * programme = NULL;
-    if(C.start(fm,startstr, output, programme) == 0)
+    if(C.parseProgram(fm,startstr, output, programme) == 0)
       {
 	rtn = true;
-	if(C.labelParseTree(programme, output) == 0)
-	  if(C.evalParseTree(programme, output) == 0)
-	    C.printPostFix(programme, output);
-	  else
-	    output->write("evalParseTree unrecoverable EVAL FAILURE.\n");
+	if(C.checkAndTypeLabelProgram(programme, output) == 0)
+	  {
+	    s32 exitReturnValue;	    
+	    
+	    if(C.testProgram(programme, output, exitReturnValue) == 0)
+	      C.printPostFix(programme, output);
+	    else
+	      output->write("Unrecoverable Program Test FAILURE.\n");
+
+	    output->write("Exit status: " );    //in compared answer
+	    output->write_decimal(exitReturnValue);	      
+	  }
 	else
-	  output->write("labelParseTree unrecoverable TYPE LABEL FAILURE.\n");
+	  output->write("Unrecoverable Program Type Label FAILURE.\n");
       }
     else
       {	
-	output->write("parseProgram unrecoverable PARSE FAILURE.\n");
-	//	output->write("--------------------------------------------------------------------------------");
+	output->write("Unrecoverable Program Parse FAILURE.\n");
       }
     
     delete programme;

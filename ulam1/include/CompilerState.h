@@ -1,4 +1,38 @@
 /* -*- c++ -*- */
+/**                                        -*- mode:C++ -*-
+ * CompilerState.h - Global Compiler State for ULAM
+ *
+ * Copyright (C) 2014 The Regents of the University of New Mexico.
+ * Copyright (C) 2014 Ackleyshack LLC.
+ *
+ * This file is part of the ULAM programming language compilation system.
+ *
+ * The ULAM programming language compilation system is free software:
+ * you can redistribute it and/or modify it under the terms of the GNU
+ * General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * The ULAM programming language compilation system is distributed in
+ * the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ * PARTICULAR PURPOSE.  See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with the ULAM programming language compilation system
+ * software.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
+ */
+
+/**
+  \file CompilerState.h - Global Compiler State for ULAM
+  \author Elenas S. Ackley.
+  \author David H. Ackley.
+  \date (C) 2014 All rights reserved.
+  \gpl
+*/
 
 #ifndef COMPILERSTATE_H
 #define COMPILERSTATE_H
@@ -11,11 +45,13 @@
 #include "Tokenizer.h"
 #include "NodeBlock.h"
 #include "NodeCast.h"
+#include "NodeReturn.h"
 #include "UlamType.h"
 #include "Token.h"
 #include "ErrorMessageHandler.h"
 #include "StringPool.h"
 #include "SymbolTable.h"
+#include "SymbolFunction.h"
 #include "CallStack.h"
 #include "UlamAtom.h"
 
@@ -48,7 +84,7 @@ namespace MFM{
     NodeBlockClass * m_classBlock;  //holds ST with function defs
 
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
-    s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunction
+    s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
 
     CallStack m_funcCallStack;    //local variables and arguments
     UlamAtom m_selectedAtom;      //storage for data member (static/global) variables
@@ -59,6 +95,9 @@ namespace MFM{
 
     std::vector<UlamType *> m_indexToUlamType;   //ulamtype ptr by index
     std::map<UlamKeyTypeSignature, UTI, less_than_key> m_definedUlamTypes;   //key -> index of ulamtype (UTI) 
+
+    std::vector<NodeReturn *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type 
+    UlamType * m_currentFunctionReturnType;
 
     CompilerState();
     ~CompilerState();
@@ -94,6 +133,8 @@ namespace MFM{
     /** helper method, uses string pool */
     const std::string getDataAsString(Token * tok);
     const std::string getTokenAsATypeName(Token tok);
+
+    bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
   };
   
 }
