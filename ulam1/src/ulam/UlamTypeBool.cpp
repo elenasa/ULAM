@@ -26,6 +26,13 @@ namespace MFM {
      return Bool;
    }
 
+
+  const std::string UlamTypeBool::getUlamTypeAsStringForC()
+  {
+    return "bool";
+  }
+
+
   bool UlamTypeBool::cast(UlamValue & val)
     {
       UTI valtypidx = val.getUlamValueType()->getUlamTypeIndex();

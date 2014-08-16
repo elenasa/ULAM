@@ -176,4 +176,14 @@ namespace MFM {
   }
 
 
+  void NodeBinaryOp::genCode(File * fp)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    m_nodeLeft->genCode(fp);
+    fp->write(" ");
+    fp->write(getName());
+    fp->write(" ");
+    m_nodeRight->genCode(fp);
+  }
+
 } //end MFM

@@ -54,6 +54,7 @@
 #include "SymbolFunction.h"
 #include "CallStack.h"
 #include "UlamAtom.h"
+#include "File.h"
 
 namespace MFM{
 
@@ -99,6 +100,8 @@ namespace MFM{
     std::vector<NodeReturn *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type 
     UlamType * m_currentFunctionReturnType;
 
+    u32 m_currentIndentLevel;                                 //for code generation: func def, blocks, control body
+
     CompilerState();
     ~CompilerState();
 
@@ -135,6 +138,7 @@ namespace MFM{
     const std::string getTokenAsATypeName(Token tok);
 
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
+    void indent(File * fp);
   };
   
 }

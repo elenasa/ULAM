@@ -51,6 +51,12 @@ namespace MFM {
   }    
 
 
+  const std::string UlamType::getUlamTypeAsStringForC()
+  {
+    return "?";
+  }
+
+
   const char * UlamType::getUlamTypeEnumAsString(ULAMTYPE etype)
   {
     return utype_string[etype];

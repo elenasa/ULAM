@@ -142,4 +142,9 @@ namespace MFM {
   }
   
 
+  void NodeTerminal::genCode(File * fp)
+  {
+    fp->write(getName());
+  }
+
 } //end MFM

@@ -21,7 +21,8 @@ namespace MFM {
 	    s32 exitReturnValue;	    
 	    
 	    if(C.testProgram(programme, output, exitReturnValue) == 0)
-	      C.printPostFix(programme, output);
+	      //C.printPostFix(programme, output);
+	      C.generateCodedProgram(programme, output); //temp!!! XXX
 	    else
 	      output->write("Unrecoverable Program Test FAILURE.\n");
 

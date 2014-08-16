@@ -26,6 +26,12 @@ namespace MFM {
    }
 
 
+  const std::string UlamTypeVoid::getUlamTypeAsStringForC()
+  {
+    return "void";
+  }
+
+
   //anything can be cast to a void
   bool UlamTypeVoid::cast(UlamValue & val)
     {

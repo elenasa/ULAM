@@ -102,5 +102,11 @@ namespace MFM {
     return evs;
   }
 
+  void NodeUnaryOp::genCode(File * fp)
+  {
+    assert(m_node);
+    printOp(fp); 
+    m_node->genCode(fp);
+  }
 
 } //end MFM

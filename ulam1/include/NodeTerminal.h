@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual void genCode(File * fp);
+
   protected:
     Token m_token;
 

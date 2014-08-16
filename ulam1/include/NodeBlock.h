@@ -72,6 +72,8 @@ namespace MFM{
 
      u32 getSizeOfSymbolsInTable();
 
+    virtual void genCode(File * fp);
+
   protected:
     SymbolTable m_ST;
 

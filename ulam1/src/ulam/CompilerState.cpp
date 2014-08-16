@@ -13,15 +13,17 @@
 #include "UlamTypeAtom.h"
 #include "NodeBlockClass.h"
 
+namespace MFM {
 
 //#define _DEBUG_OUTPUT 
 #ifdef _DEBUG_OUTPUT
-static const bool debugOn = true;
+  static const bool debugOn = true;
 #else
-static const bool debugOn = false;
+  static const bool debugOn = false;
 #endif
 
-namespace MFM {
+  static const char * m_indentedSpaceLevel("  ");
+
 
   CompilerState::CompilerState(): m_currentBlock(NULL), m_classBlock(NULL), m_currentFunctionBlockDeclSize(0),
 				  m_currentFunctionBlockMaxDepth(0)
@@ -392,5 +394,12 @@ namespace MFM {
     return rtnBool;
   }
 
+  void CompilerState::indent(File * fp)
+  {
+    for(u32 i = 0; i < m_currentIndentLevel; i++)
+      {
+	fp->write(m_indentedSpaceLevel); 
+      }
+  }
 
 } //end MFM

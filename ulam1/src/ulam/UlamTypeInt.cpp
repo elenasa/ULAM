@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <string.h>
 #include "UlamTypeInt.h"
@@ -24,6 +25,14 @@ namespace MFM {
    {
      return Int;
    }
+
+
+  const std::string UlamTypeInt::getUlamTypeAsStringForC()
+  {
+    std::ostringstream ctype;
+    ctype <<  "s" << m_key.m_bits;
+    return ctype.str();
+  }
 
 
   bool UlamTypeInt::cast(UlamValue & val)

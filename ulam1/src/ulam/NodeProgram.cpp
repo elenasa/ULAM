@@ -129,4 +129,40 @@ namespace MFM {
     return evs;
   }
 
+
+  void NodeProgram::genCode(File * fp)
+    {
+      assert(m_root);
+      m_state.m_err.clearCounts();
+
+      m_state.m_currentIndentLevel = 0;
+
+      //output the UlamTest class first
+      m_root->genCode(fp);
+
+      m_state.m_currentIndentLevel = 0;
+
+      fp->write("\n");
+      //m_state.indent(fp);
+      //fp->write("#include \"UlamTest.h\"\n");
+      m_state.indent(fp);
+      fp->write("int main()\n");
+
+      m_state.indent(fp);
+      fp->write("{\n");
+
+      m_state.m_currentIndentLevel++;
+
+      m_state.indent(fp);
+      fp->write("MFM::UlamTest utest;\n");
+
+      m_state.indent(fp);
+      fp->write("return utest.test();\n");
+
+      m_state.m_currentIndentLevel--;
+
+      m_state.indent(fp);
+      fp->write("}\n");
+    }
+
 } //end MFM

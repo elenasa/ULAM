@@ -180,4 +180,55 @@ namespace MFM {
     return func;
   }
 
+
+  void NodeBlockClass::genCode(File * fp)
+  {
+    m_state.m_currentIndentLevel = 0;
+    fp->write("/**                                        -*- mode:C++ -*/\n\n");
+
+    m_state.indent(fp);
+    fp->write("#ifndef ULAMTEST_H\n");
+
+    m_state.indent(fp);
+    fp->write("#define ULAMTEST_H\n\n");
+
+    m_state.indent(fp);
+    fp->write("#include \"../../include/itype.h\"\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("namespace MFM{\n\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("struct UlamTest\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //DataMember VAR DECLS
+    m_nextNode->genCode(fp);
+    fp->write("\n");
+
+    //gencode for all the function definitions
+    m_functionST.genCodeForTableOfFunctions(fp);
+
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("} //MFM\n\n");
+
+    m_state.indent(fp);
+    fp->write("#endif //end ULAMTEST_H\n");
+  }
+
 } //end MFM

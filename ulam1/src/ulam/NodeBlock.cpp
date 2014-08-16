@@ -108,4 +108,18 @@ namespace MFM {
     return m_ST.getTotalSymbolSize();
   }
 
+
+  void NodeBlock::genCode(File * fp)
+  {
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_nextNode->genCode(fp);
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("}\n");
+  }
+
 } //end MFM
