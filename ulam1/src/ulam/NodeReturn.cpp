@@ -102,5 +102,17 @@ namespace MFM {
     return RETURN;
   }
   
+  void NodeReturn::genCode(File * fp)
+  {
+    m_state.indent(fp);
+    fp->write("return ");
+    if(m_node)
+      {
+	fp->write("(");
+	m_node->genCode(fp);
+	fp->write(")");
+      }
+    fp->write(";\n");
+  }
 
 } //end MFM

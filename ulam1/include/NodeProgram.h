@@ -64,6 +64,7 @@ namespace MFM{
 
     void setRootNode(NodeBlockClass * root);
 
+    virtual void genCode(File * fp);
 
   protected:
 

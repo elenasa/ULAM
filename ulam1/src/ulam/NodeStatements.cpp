@@ -126,4 +126,12 @@ namespace MFM {
   }
 
 
+  void NodeStatements::genCode(File * fp)
+  {
+    m_node->genCode(fp);
+
+    if(m_nextNode)
+      m_nextNode->genCode(fp);
+  }
+
 } //end MFM

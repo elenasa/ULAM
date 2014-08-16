@@ -40,6 +40,7 @@
 #include <map>
 #include "Symbol.h"
 #include "itype.h"
+#include "File.h"
 
 namespace MFM{
 
@@ -56,6 +57,8 @@ namespace MFM{
     Symbol * getSymbolPtr(u32 id);
 
     void labelTableOfFunctions();
+
+    void genCodeForTableOfFunctions(File * fp);
 
     u32 getTableSize();
 

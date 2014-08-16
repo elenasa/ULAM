@@ -44,7 +44,7 @@ namespace MFM {
 
   const char * NodeControlIf::getName()
   {
-    return "ifthen";
+    return "if";
   }
 
 
@@ -107,5 +107,20 @@ namespace MFM {
     return evs;
   }
 
+
+  void NodeControlIf::genCode(File * fp)
+  {
+    NodeControl::genCode(fp);
+
+    if(m_nodeElse)
+      {
+	m_state.indent(fp);
+	fp->write("else\n");
+
+	m_state.m_currentIndentLevel++;
+	m_nodeElse->genCode(fp);
+	m_state.m_currentIndentLevel--;
+      }
+  }
 
 } //end MFM

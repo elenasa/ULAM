@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual void genCode(File * fp);
+
   private:
     SymbolVariable * m_varSymbol;
     //u32 m_stackFrameIndex;

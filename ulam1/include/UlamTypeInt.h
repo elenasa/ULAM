@@ -56,6 +56,8 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
+    virtual const std::string getUlamTypeAsStringForC();
+
     virtual bool cast(UlamValue & val);
 
     virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state);

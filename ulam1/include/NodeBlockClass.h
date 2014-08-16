@@ -72,6 +72,8 @@ namespace MFM{
      u32 getNumberOfFuncSymbolsInTable();
      u32 getSizeOfFuncSymbolsInTable();
 
+    virtual void genCode(File * fp);
+
   protected:
     SymbolTable m_functionST;
 

@@ -68,6 +68,25 @@ namespace MFM {
       }
   }
 
+
+  void SymbolTable::genCodeForTableOfFunctions(File * fp)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;  
+	if(sym->isFunction())
+	  {
+	    NodeBlockFunctionDefinition * func = ((SymbolFunction *) sym)->getFunctionNode();
+	    assert(func); //how would a function symbol be without a body?
+	    func->genCode(fp);
+	  }
+	it++;
+      }
+  }
+
+
   u32 SymbolTable::getTableSize()
   {
     return (m_idToSymbolPtr.empty() ? 0 : m_idToSymbolPtr.size());

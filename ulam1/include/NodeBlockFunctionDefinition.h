@@ -72,6 +72,8 @@ namespace MFM{
 
     SymbolFunction * getFuncSymbolPtr();
 
+    virtual void genCode(File * fp);
+
   protected:
 
 

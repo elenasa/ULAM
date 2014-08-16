@@ -206,4 +206,16 @@ namespace MFM {
     return m_argumentNodes.size();
   }
 
+
+  void NodeFunctionCall::genCode(File * fp)
+  {
+    fp->write(getName());
+    fp->write(" (");
+    for(u32 i = 0; i < m_argumentNodes.size(); i++)
+      {
+	m_argumentNodes[i]->genCode(fp);
+      }
+    fp->write(" )");
+
+  }
 } //end MFM

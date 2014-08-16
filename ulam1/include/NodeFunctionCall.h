@@ -65,6 +65,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual void genCode(File * fp);
 
   private:
 

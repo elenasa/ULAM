@@ -23,7 +23,6 @@ namespace MFM {
   const char * NodeTerminalIdent::getName()
   {
     return m_state.getDataAsString(&m_token).c_str();
-    //return m_state.getTokenAsATypeName(m_token).c_str();
   }
 
 

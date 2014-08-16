@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
+    virtual void genCode(File * fp);
+
   protected:
     
     Node * m_node;

@@ -57,6 +57,7 @@ namespace MFM{
     u32 testProgram(Node * root, File * output, s32& rtnValue);
     void printPostFix(Node * root, File * output);
     void printProgramForDebug(Node * root, File * output);
+    void generateCodedProgram(Node * root, File * output);
 
   private:
 

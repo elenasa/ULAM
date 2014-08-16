@@ -96,4 +96,21 @@ namespace MFM {
   }
 
 
+  void NodeControl::genCode(File * fp)
+  {
+    assert(m_nodeCondition && m_nodeBody);
+    
+    m_state.indent(fp);
+    fp->write(getName());
+    fp->write("(");
+    m_nodeCondition->genCode(fp);
+    fp->write(")\n");
+
+    m_state.m_currentIndentLevel++;
+    m_nodeBody->genCode(fp);
+    m_state.m_currentIndentLevel--;
+
+  }
+
+
 } //end MFM

@@ -60,6 +60,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+
   protected:
 
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots){}

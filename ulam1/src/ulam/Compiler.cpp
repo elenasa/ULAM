@@ -107,4 +107,15 @@ namespace MFM {
   }
 
 
+  void Compiler::generateCodedProgram(Node * root, File * output)
+  {
+    assert(root);
+
+    m_state.m_err.setFileOutput(output);
+
+    root->genCode(output);
+
+    output->write("\n");
+  }
+
 } //MFM

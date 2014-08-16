@@ -56,6 +56,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual void genCode(File * fp);
+
   protected:    
     virtual void doUnaryOperation(u32 slot, u32 nslots){}
 

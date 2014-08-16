@@ -27,6 +27,12 @@ namespace MFM {
    }
 
 
+  const std::string UlamTypeFloat::getUlamTypeAsStringForC()
+  {
+    return "float";
+  }
+
+
   bool UlamTypeFloat::cast(UlamValue & val)
     {
       UTI valtypidx = val.getUlamValueType()->getUlamTypeIndex();

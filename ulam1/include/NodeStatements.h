@@ -61,8 +61,9 @@ namespace MFM{
 
     virtual const char * getName();
 
-
     virtual const std::string prettyNodeName();
+
+    virtual void genCode(File * fp);
 
   protected:
     Node * m_node;

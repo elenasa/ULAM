@@ -99,6 +99,25 @@ namespace MFM {
   }
 
 
+  void NodeVarDecl::genCode(File * fp)
+  {
+    m_state.indent(fp);
+    fp->write(m_varSymbol->getUlamType()->getUlamTypeAsStringForC().c_str()); //for C++
+    fp->write(" ");
+    fp->write(getName());
+
+    u32 arraysize = m_varSymbol->getUlamType()->getArraySize();
+    if(arraysize > 0)
+      {
+	fp->write("[");
+	fp->write_decimal(arraysize);
+	fp->write("]");
+      }
+
+    fp->write(";\n");
+  }
+
+
 } //end MFM
 
 

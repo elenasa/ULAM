@@ -57,6 +57,8 @@ namespace MFM{
 
     virtual UlamType * checkAndLabelType();
 
+    virtual void genCode(File * fp);
+
   protected:
     
     Node * m_nodeCondition;

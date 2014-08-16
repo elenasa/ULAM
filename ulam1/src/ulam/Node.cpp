@@ -215,4 +215,11 @@ namespace MFM {
   }
 
 
+  void Node::genCode(File * fp)
+  {
+    fp->write("Needs a ");
+    fp->write(prettyNodeName().c_str());
+    fp->write("::genCode().\n");
+  }
+
 } //end MFM
