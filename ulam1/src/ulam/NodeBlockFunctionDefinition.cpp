@@ -224,7 +224,7 @@ namespace MFM {
 	fp->write(m_state.m_pool.getDataAsString(asym->getId()).c_str());
 
 	u32 arraysize = 0;
-	if(asym->isDataMember() && !asym->isFunction())
+	if(!asym->isFunction())
 	  {
 	    arraysize = ((SymbolVariable * ) asym)->getUlamType()->getArraySize();
 	  }

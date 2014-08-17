@@ -15,9 +15,7 @@ namespace MFM {
 #undef XX 
 
   UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_index(uti)
-  {
-    //m_key = key;
-  }
+  {}
   
 
   UlamType * UlamType::getUlamType()
@@ -29,7 +27,8 @@ namespace MFM {
   const std::string UlamType::getUlamTypeName()
   {
     return m_key.getUlamKeyTypeSignatureAsString();
-    //    return m_key.getUlamKeyTypeSignatureAsString().c_str();  error due to disappearing string
+    // REMINDER!! error due to disappearing string:
+    //    return m_key.getUlamKeyTypeSignatureAsString().c_str();  
   }
 
 

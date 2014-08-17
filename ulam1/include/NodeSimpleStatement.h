@@ -1,6 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpSquareBracket.h - Basic Node for handling 
- *                               Array Subscripts for ULAM
+ * NodeSimpleStatement.h - Node wrapping a Simple Statement for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -27,7 +26,7 @@
  */
 
 /**
-  \file NodeBinaryOpSquareBracket.h - Basic Node for handling Array Subscripts for ULAM
+  \file NodeSimpleStatement.h - Node wrapping a Simple Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -35,31 +34,28 @@
 */
 
 
-#ifndef NODEBINARYOPSQUAREBRACKET_H
-#define NODEBINARYOPSQUAREBRACKET_H
+#ifndef NODESIMPLESTATEMENT_H
+#define NODESIMPLESTATEMENT_H
 
-#include "NodeBinaryOp.h"
+#include "File.h"
+#include "Node.h"
 
 namespace MFM{
 
-  class NodeBinaryOpSquareBracket : public NodeBinaryOp
+  class NodeSimpleStatement : public Node
   {
   public:
-    
-    NodeBinaryOpSquareBracket(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpSquareBracket();
 
-    virtual void printOp(File * fp);
+    NodeSimpleStatement(Node * s, CompilerState & state);
+    virtual ~NodeSimpleStatement();
+
+    virtual void print(File * fp);
+
+    virtual void printPostfix(File * fp);
 
     virtual UlamType * checkAndLabelType();
 
     virtual EvalStatus eval();
-    virtual EvalStatus evalToStoreInto();
-
-    virtual bool getSymbolPtr(Symbol *& symptrref);
-
-    virtual bool installSymbolTypedef(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr);
-    virtual bool installSymbol(Token atok, u32 arraysize, Symbol *& asymptr);
 
     virtual const char * getName();
 
@@ -70,13 +66,11 @@ namespace MFM{
   protected:
 
   private:
-    //helper method to install symbol
-    bool getArraysizeInBracket(u32 & rtnArraySize);
+    Node * m_node;
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots){}
 
   };
 
 }
 
-#endif //end NODEBINARYOPSQUAREBRACKET_H
+#endif //end NODESTATEMENTS_H

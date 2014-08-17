@@ -1,18 +1,18 @@
 #include <stdio.h>
-#include "NodeReturn.h"
+#include "NodeReturnStatement.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeReturn::NodeReturn(Node * s, CompilerState & state) : Node(state), m_node(s) {}
+  NodeReturnStatement::NodeReturnStatement(Node * s, CompilerState & state) : Node(state), m_node(s) {}
 
-  NodeReturn::~NodeReturn()
+  NodeReturnStatement::~NodeReturnStatement()
   {
     delete m_node;
     m_node = NULL;
   }
 
-  void NodeReturn::print(File * fp)
+  void NodeReturnStatement::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node
     UlamType * myut = getNodeType();
@@ -33,7 +33,7 @@ namespace MFM {
   }
 
 
-  void NodeReturn::printPostfix(File * fp)
+  void NodeReturnStatement::printPostfix(File * fp)
   {
     assert(m_node);    //e.g. bad decl
 
@@ -48,7 +48,7 @@ namespace MFM {
 
 
 
-  UlamType * NodeReturn::checkAndLabelType()
+  UlamType * NodeReturnStatement::checkAndLabelType()
   {
     assert(m_node);
 
@@ -68,19 +68,19 @@ namespace MFM {
   }
 
 
-  const char * NodeReturn::getName()
+  const char * NodeReturnStatement::getName()
   {
     return "return";
   }
 
 
-  const std::string NodeReturn::prettyNodeName()
+  const std::string NodeReturnStatement::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
 
-  EvalStatus NodeReturn::eval()
+  EvalStatus NodeReturnStatement::eval()
   {
     assert(m_node); 
 
@@ -102,7 +102,7 @@ namespace MFM {
     return RETURN;
   }
   
-  void NodeReturn::genCode(File * fp)
+  void NodeReturnStatement::genCode(File * fp)
   {
     m_state.indent(fp);
     fp->write("return ");

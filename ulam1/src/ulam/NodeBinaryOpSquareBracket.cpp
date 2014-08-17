@@ -227,4 +227,15 @@ namespace MFM {
     return true;
   }
 
+
+  void NodeBinaryOpSquareBracket::genCode(File * fp)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    
+    m_nodeLeft->genCode(fp);
+    fp->write("[");
+    m_nodeRight->genCode(fp);
+    fp->write("]");
+  }
+
 } //end MFM

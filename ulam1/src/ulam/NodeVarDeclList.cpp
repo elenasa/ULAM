@@ -95,4 +95,13 @@ namespace MFM {
     return NORMAL;
   }
 
+
+  void NodeVarDeclList::genCode(File * fp)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    //each VarDecl is output separately, not as a list.
+    m_nodeLeft->genCode(fp);
+    m_nodeRight->genCode(fp);
+  }
+
 } //end MFM

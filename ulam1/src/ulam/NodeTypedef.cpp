@@ -74,6 +74,28 @@ namespace MFM {
   }
 
 
+  void NodeTypedef::genCode(File * fp)
+  {
+#if 0
+    m_state.indent(fp);
+    fp->write("typedef ");
+
+    fp->write(m_typedefSymbol->getUlamType()->getUlamTypeAsStringForC().c_str()); //for C++
+    fp->write(" ");
+    fp->write(getName());
+
+    u32 arraysize = m_typedefSymbol->getUlamType()->getArraySize();
+    if(arraysize > 0)
+      {
+	fp->write("[");
+	fp->write_decimal(arraysize);
+	fp->write("]");
+      }
+    fp->write(";\n");
+#endif
+  }
+
+
 } //end MFM
 
 

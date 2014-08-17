@@ -355,7 +355,7 @@ namespace MFM {
 
     for(u32 i = 0; i < m_currentFunctionReturnNodes.size(); i++)
       {
-	NodeReturn * rNode = m_currentFunctionReturnNodes.at(i);
+	NodeReturnStatement * rNode = m_currentFunctionReturnNodes.at(i);
 	UlamType * rType = rNode->getNodeType();
 	
 	if(rType != it)
@@ -368,7 +368,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName().c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << "> does not match resulting type's <" << rType->getUlamTypeName().c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
-		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturn", "checkAndLabelType", -1, MSG_ERR);
+		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
 
 	      }
 	    else
@@ -377,22 +377,22 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName().c_str() << "> array size: <" << it->getArraySize() << "> does not match resulting type's <" << rType->getUlamTypeName().c_str() << "> array size: <" << rType->getArraySize() << ">";
-		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturn", "checkAndLabelType", -1, MSG_ERR);
+		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
 		  }
 
 		if(rType->getBitSize() != it->getBitSize())
 		  {
 		    std::ostringstream msg;
 		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName().c_str() << "> bit size: <" << it->getBitSize() << "> does not match resulting type's <" << rType->getUlamTypeName().c_str() << "> bit size: <" << rType->getBitSize() << ">";
-		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturn", "checkAndLabelType", -1, MSG_ERR);
+		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
 		  }
-		
 	      } //base types are the same..array and bit size might vary
 	  } //different ulamtype
       } //next return node
 
     return rtnBool;
   }
+
 
   void CompilerState::indent(File * fp)
   {
