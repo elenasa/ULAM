@@ -1,3 +1,6 @@
+#include <sstream>
+#include <string.h>
+#include "CompilerState.h"
 #include "Symbol.h"
 
 namespace MFM {
@@ -38,6 +41,14 @@ namespace MFM {
   bool Symbol::isDataMember()
   {
     return m_dataMember;
+  }
+
+
+  const std::string Symbol::getMangledName(CompilerState& state)
+  {
+       std::ostringstream mangled;
+       mangled << getMangledPrefix() << state.m_pool.getDataAsString(getId()).c_str();
+       return mangled.str();
   }
 
 } //end MFM

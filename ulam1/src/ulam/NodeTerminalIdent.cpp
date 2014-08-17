@@ -236,4 +236,10 @@ namespace MFM {
     return rtnLocalSym;
   }
 
+
+  void NodeTerminalIdent::genCode(File * fp)
+  {
+    fp->write(m_varSymbol->getMangledName(m_state).c_str());
+  }
+
 } //end MFM

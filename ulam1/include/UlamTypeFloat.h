@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual const std::string getUlamTypeAsStringForC();
 
+    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
     virtual bool cast(UlamValue& val);
 
     virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state);

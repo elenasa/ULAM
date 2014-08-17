@@ -136,6 +136,7 @@ namespace MFM {
       m_state.m_err.clearCounts();
 
       m_state.m_currentIndentLevel = 0;
+      genMangledTypeHeaderFile(fp);
 
       //output the UlamTest class first
       m_root->genCode(fp);
@@ -157,12 +158,31 @@ namespace MFM {
       fp->write("MFM::UlamTest utest;\n");
 
       m_state.indent(fp);
-      fp->write("return utest.test();\n");
+      fp->write("return utest.Uf_test();\n");  //mangled test name
 
       m_state.m_currentIndentLevel--;
 
       m_state.indent(fp);
       fp->write("}\n");
     }
+
+
+  void NodeProgram::genMangledTypeHeaderFile(File * fp)
+  {
+    m_state.m_currentIndentLevel = 0;
+    fp->write("/**                                        -*- mode:C++ -*/\n\n");
+
+    m_state.indent(fp);
+    fp->write("#include \"../../include/itype.h\"\n");
+    fp->write("\n");
+
+    //skip Nav type (0), and Void (1)
+    u32 numTypes = m_state.m_indexToUlamType.size();
+    for(u32 i = 2; i < numTypes; i++)
+      {
+	UlamType * ut = m_state.getUlamTypeByIndex(i);
+	ut->genUlamTypeMangledDefinitionForC(fp,m_state);
+      }
+  }
 
 } //end MFM

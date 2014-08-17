@@ -114,7 +114,7 @@ namespace MFM {
   void NodeCast::genCode(File * fp)
   {
     fp->write("(");
-    fp->write(getNodeType()->getUlamTypeAsStringForC().c_str());
+    fp->write(getNodeType()->getUlamTypeMangledName().c_str());
     fp->write(") ");
     m_node->genCode(fp);
   }

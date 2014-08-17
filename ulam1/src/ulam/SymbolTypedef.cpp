@@ -12,4 +12,10 @@ namespace MFM {
     return true;
   }
 
+
+  const std::string SymbolTypedef::getMangledPrefix()
+  {
+    return "Ut_";  //?
+  }
+
 } //end MFM

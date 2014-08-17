@@ -32,6 +32,12 @@ namespace MFM {
   }
 
 
+  const char * UlamTypeVoid::getUlamTypeAsSingleLowercaseLetter()
+  {
+    return "v";
+  }
+
+
   //anything can be cast to a void
   bool UlamTypeVoid::cast(UlamValue & val)
     {

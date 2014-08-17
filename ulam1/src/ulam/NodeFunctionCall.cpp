@@ -209,7 +209,7 @@ namespace MFM {
 
   void NodeFunctionCall::genCode(File * fp)
   {
-    fp->write(getName());
+    fp->write(m_funcSymbol->getMangledName(m_state).c_str());
     fp->write("(");
     for(u32 i = 0; i < m_argumentNodes.size(); i++)
       {

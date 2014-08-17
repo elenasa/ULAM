@@ -55,6 +55,7 @@ namespace MFM{
     virtual UlamValue getUlamValueAtToStoreInto(s32 idx, CompilerState& state);
 
     virtual s32 getBaseArrayIndex();
+    virtual const std::string getMangledPrefix();
 
   protected:
 

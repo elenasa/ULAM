@@ -233,6 +233,8 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     
     m_nodeLeft->genCode(fp);
+    fp->write(".");
+    fp->write(getNodeType()->getUlamTypeAsSingleLowercaseLetter());
     fp->write("[");
     m_nodeRight->genCode(fp);
     fp->write("]");

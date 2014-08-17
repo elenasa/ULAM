@@ -66,10 +66,13 @@ namespace MFM{
 
     virtual void genCode(File * fp);
 
+
   protected:
 
   private:
     NodeBlockClass * m_root;
+
+    void genMangledTypeHeaderFile(File * fp);
 
   };
 

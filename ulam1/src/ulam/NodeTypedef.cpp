@@ -80,7 +80,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef ");
 
-    fp->write(m_typedefSymbol->getUlamType()->getUlamTypeAsStringForC().c_str()); //for C++
+    fp->write(m_typedefSymbol->getUlamType()->getUlamTypeMangledName().c_str()); //for C++
     fp->write(" ");
     fp->write(getName());
 

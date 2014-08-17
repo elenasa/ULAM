@@ -55,6 +55,8 @@ namespace MFM{
 
     virtual s32 getBaseArrayIndex();
 
+    virtual const std::string getMangledPrefix();
+
   protected:
 
   private:

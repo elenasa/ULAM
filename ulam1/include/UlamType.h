@@ -40,6 +40,7 @@
 #include <string>
 #include <assert.h>
 #include "itype.h"
+#include "File.h"
 #include "UlamKeyTypeSignature.h"
 
 namespace MFM{
@@ -92,6 +93,12 @@ namespace MFM{
 
     virtual const std::string getUlamTypeAsStringForC();
 
+    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
+    const std::string getUlamTypeMangledName();
+
+    void genUlamTypeMangledDefinitionForC(File * fp, CompilerState& state);
+
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
 
     static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
@@ -103,6 +110,7 @@ namespace MFM{
     u32 getArraySize();
 
     u32 getBitSize();
+
   protected:
     UlamKeyTypeSignature m_key;
     UTI m_index;
