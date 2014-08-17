@@ -9,7 +9,7 @@
 #include "Parser.h"
 #include "Token.h"
 #include "NodeProgram.h"
-
+#include "FileManagerStdio.h"
 
 namespace MFM {
 
@@ -45,6 +45,7 @@ namespace MFM {
     rtnNode = programme;  //ownership transferred to caller
     return m_state.m_err.getErrorCount();  
   }
+
 
   // call before eval parse tree; return zero when no errors
   u32 Compiler::checkAndTypeLabelProgram(Node * root, File * output)
@@ -107,15 +108,23 @@ namespace MFM {
   }
 
 
-  void Compiler::generateCodedProgram(Node * root, File * output)
+  void Compiler::generateCodedProgram(Node * root, File * errorOutput)
   {
     assert(root);
 
-    m_state.m_err.setFileOutput(output);
+    m_state.m_err.setFileOutput(errorOutput);
 
-    root->genCode(output);
+    FileManagerStdio * fm = new FileManagerStdio("./src/test/bin");
+    if(!fm)
+      {
+	errorOutput->write("Error in making new file manager for code generation...aborting");
+	return;
+      }
 
-    output->write("\n");
+    ((NodeProgram *) root)->generateCode(fm);
+
+    //output->write("\n");
+    delete fm;
   }
 
 } //MFM

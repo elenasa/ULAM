@@ -130,40 +130,67 @@ namespace MFM {
   }
 
 
-  void NodeProgram::genCode(File * fp)
+  void NodeProgram::generateCode(FileManager * fm)
     {
       assert(m_root);
       m_state.m_err.clearCounts();
 
+      //output the mangled types
+      File * fpt = fm->open("UlamTest_Types.h", WRITE);
+      if(!fpt)
+	{
+	  assert(0);
+	  return;      	 //error!
+	}
+      genMangledTypeHeaderFile(fpt);
+      delete fpt;
+
+
+      //output the UlamTest class
+      File * fpc = fm->open("UlamTest_Class.h", WRITE);
+      if(!fpc)
+	{
+	  assert(0);
+	  return;      	  //error!
+	}
+      m_root->genCode(fpc);
+      delete fpc;
+
+
+      //create main.cpp
+      File * fpm = fm->open("UlamTest_main.cpp", WRITE);
+      if(!fpm)
+	{
+	  assert(0);
+	  return; 	  //error!
+	}
       m_state.m_currentIndentLevel = 0;
-      genMangledTypeHeaderFile(fp);
+      m_state.indent(fpm);
+      fpm->write("#include \"UlamTest_Types.h\"\n");
+      m_state.indent(fpm);
+      fpm->write("#include \"UlamTest_Class.h\"\n");
+      fpm->write("\n");
 
-      //output the UlamTest class first
-      m_root->genCode(fp);
+      m_state.indent(fpm);
+      fpm->write("int main()\n");
 
-      m_state.m_currentIndentLevel = 0;
-
-      fp->write("\n");
-      //m_state.indent(fp);
-      //fp->write("#include \"UlamTest.h\"\n");
-      m_state.indent(fp);
-      fp->write("int main()\n");
-
-      m_state.indent(fp);
-      fp->write("{\n");
+      m_state.indent(fpm);
+      fpm->write("{\n");
 
       m_state.m_currentIndentLevel++;
 
-      m_state.indent(fp);
-      fp->write("MFM::UlamTest utest;\n");
+      m_state.indent(fpm);
+      fpm->write("MFM::UlamTest_Class utest;\n");
 
-      m_state.indent(fp);
-      fp->write("return utest.Uf_test();\n");  //mangled test name
+      m_state.indent(fpm);
+      fpm->write("return utest.Uf_test();\n");  //mangled test name
 
       m_state.m_currentIndentLevel--;
 
-      m_state.indent(fp);
-      fp->write("}\n");
+      m_state.indent(fpm);
+      fpm->write("}\n");
+      delete fpm;
+      //generateCode
     }
 
 
@@ -173,7 +200,8 @@ namespace MFM {
     fp->write("/**                                        -*- mode:C++ -*/\n\n");
 
     m_state.indent(fp);
-    fp->write("#include \"../../include/itype.h\"\n");
+    //fp->write("#include \"../../../include/itype.h\"\n"); //XXX
+    fp->write("#include \"itype.h\"\n"); 
     fp->write("\n");
 
     //skip Nav type (0), and Void (1)

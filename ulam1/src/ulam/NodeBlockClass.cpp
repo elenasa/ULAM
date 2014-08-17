@@ -187,13 +187,14 @@ namespace MFM {
     fp->write("/**                                        -*- mode:C++ -*/\n\n");
 
     m_state.indent(fp);
-    fp->write("#ifndef ULAMTEST_H\n");
+    fp->write("#ifndef ULAMTESTCLASS_H\n");
 
     m_state.indent(fp);
-    fp->write("#define ULAMTEST_H\n\n");
+    fp->write("#define ULAMTESTCLASS_H\n\n");
 
     m_state.indent(fp);
-    fp->write("#include \"../../include/itype.h\"\n");
+    fp->write("#include \"UlamTest_Types.h\"\n");
+
     fp->write("\n");
 
     m_state.indent(fp);
@@ -202,7 +203,7 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("struct UlamTest\n");
+    fp->write("struct UlamTest_Class\n");
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -228,7 +229,7 @@ namespace MFM {
     fp->write("} //MFM\n\n");
 
     m_state.indent(fp);
-    fp->write("#endif //end ULAMTEST_H\n");
+    fp->write("#endif //end ULAMTESTCLASS_H\n");
   }
 
 } //end MFM
