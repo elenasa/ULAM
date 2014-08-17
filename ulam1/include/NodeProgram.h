@@ -38,6 +38,7 @@
 #define NODEPROGRAM_H
 
 #include "File.h"
+#include "FileManager.h"
 #include "NodeBlockClass.h"
 
 namespace MFM{
@@ -64,7 +65,9 @@ namespace MFM{
 
     void setRootNode(NodeBlockClass * root);
 
-    virtual void genCode(File * fp);
+    //    virtual void genCode(File * fm);
+
+    void generateCode(FileManager * fm);
 
 
   protected:

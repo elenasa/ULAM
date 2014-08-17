@@ -13,7 +13,7 @@ namespace MFM {
     // error messages appended to output are compared to answer
     //Node * programme = C.start(fm,startstr,output);
     Node * programme = NULL;
-    if(C.parseProgram(fm,startstr, output, programme) == 0)
+    if(C.parseProgram(fm, startstr, output, programme) == 0)
       {
 	rtn = true;
 	if(C.checkAndTypeLabelProgram(programme, output) == 0)
@@ -21,8 +21,10 @@ namespace MFM {
 	    s32 exitReturnValue;	    
 	    
 	    if(C.testProgram(programme, output, exitReturnValue) == 0)
-	      //C.printPostFix(programme, output);
-	      C.generateCodedProgram(programme, output); //temp!!! XXX
+	      {
+		C.printPostFix(programme, output);
+		C.generateCodedProgram(programme, output);
+	      }
 	    else
 	      output->write("Unrecoverable Program Test FAILURE.\n");
 
@@ -47,5 +49,5 @@ namespace MFM {
   {    
     return CompareResultsWithAnswerKey(fms,errorOutput);
   }
-      
+
 } //end MFM
