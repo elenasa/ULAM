@@ -51,6 +51,8 @@ namespace MFM{
 
     virtual bool isTypedef();
 
+    virtual const std::string getMangledPrefix();
+
   protected:
 
   private:

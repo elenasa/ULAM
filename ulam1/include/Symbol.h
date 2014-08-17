@@ -43,6 +43,8 @@
 
 namespace MFM{
 
+  class CompilerState; //forward
+
   class Symbol
   {
   public:
@@ -57,6 +59,9 @@ namespace MFM{
     
     void setDataMember();
     bool isDataMember();
+
+    const std::string getMangledName(CompilerState& state);
+    virtual const std::string getMangledPrefix() = 0;
 
   protected:
 

@@ -67,7 +67,6 @@ namespace MFM{
 
   private:
     SymbolVariable * m_varSymbol;
-    //u32 m_stackFrameIndex;
   };
 
 }

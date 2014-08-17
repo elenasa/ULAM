@@ -69,4 +69,11 @@ namespace MFM {
     return m_functionNode;
   }
 
+
+  const std::string SymbolFunction::getMangledPrefix()
+  {
+    return "Uf_";
+  }
+
+
 } //end MFM

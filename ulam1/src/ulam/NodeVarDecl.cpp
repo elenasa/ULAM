@@ -102,10 +102,11 @@ namespace MFM {
   void NodeVarDecl::genCode(File * fp)
   {
     m_state.indent(fp);
-    fp->write(m_varSymbol->getUlamType()->getUlamTypeAsStringForC().c_str()); //for C++
+    fp->write(m_varSymbol->getUlamType()->getUlamTypeMangledName().c_str()); //for C++
     fp->write(" ");
-    fp->write(getName());
+    fp->write(m_varSymbol->getMangledName(m_state).c_str());
 
+#if 0
     u32 arraysize = m_varSymbol->getUlamType()->getArraySize();
     if(arraysize > 0)
       {
@@ -113,8 +114,9 @@ namespace MFM {
 	fp->write_decimal(arraysize);
 	fp->write("]");
       }
+#endif
 
-    fp->write(";\n");
+    fp->write(";\n");  //what about func call parameters???
   }
 
 

@@ -60,6 +60,8 @@ namespace MFM{
     void setFunctionNode(NodeBlockFunctionDefinition * func);
     NodeBlockFunctionDefinition *  getFunctionNode();
 
+    virtual const std::string getMangledPrefix();
+
   protected:
 
   private:

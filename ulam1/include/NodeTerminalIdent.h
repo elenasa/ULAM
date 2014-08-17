@@ -70,6 +70,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual void genCode(File * fp);
+
   private:
     SymbolVariable * m_varSymbol;
     SymbolVariable *  makeSymbol(UlamType * aut);

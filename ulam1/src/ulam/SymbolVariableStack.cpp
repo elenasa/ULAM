@@ -67,4 +67,9 @@ namespace MFM {
   }
 
 
+  const std::string SymbolVariableStack::getMangledPrefix()
+  {
+    return "Uv_"; 
+  }
+
 } //end MFM

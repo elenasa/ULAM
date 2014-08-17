@@ -58,7 +58,6 @@ namespace MFM {
 	fp->write(m_state.m_pool.getDataAsString(asym->getId()).c_str());
 
 	u32 arraysize = 0;
-	//if(asym->hasStaticUlamValue())
 	if(asym->isDataMember() && !asym->isFunction())
 	  {
 	    arraysize = ((SymbolVariable * ) asym)->getUlamType()->getUlamKeyTypeSignature().getUlamKeyTypeSignatureArraySize();
@@ -204,13 +203,16 @@ namespace MFM {
     assert(m_nextNode);
 
     m_state.indent(fp);
-    fp->write(m_funcSymbol->getUlamType()->getUlamTypeAsStringForC().c_str()); //for C++ XXX
+    fp->write(m_funcSymbol->getUlamType()->getUlamTypeMangledName().c_str()); //for C++ XXX
     fp->write(" ");
-    fp->write(getName());
+    fp->write(m_funcSymbol->getMangledName(m_state).c_str());
     // has no m_node! 
     // declaration has no m_nextNode!!
     fp->write("(");
     u32 numparams = m_funcSymbol->getNumberOfParameters();
+
+    if(numparams == 0)
+      fp->write("void");
 
     for(u32 i = 0; i < numparams; i++)
       {
@@ -219,23 +221,11 @@ namespace MFM {
 	
 	Symbol * asym = m_funcSymbol->getParameterSymbolPtr(i);
 	assert(asym);
-	fp->write(asym->getUlamType()->getUlamTypeAsStringForC().c_str()); //for C++
+	fp->write(asym->getUlamType()->getUlamTypeMangledName().c_str()); //for C++
 	fp->write(" ");
-	fp->write(m_state.m_pool.getDataAsString(asym->getId()).c_str());
-
-	u32 arraysize = 0;
-	if(!asym->isFunction())
-	  {
-	    arraysize = ((SymbolVariable * ) asym)->getUlamType()->getArraySize();
-	  }
-
-	if(arraysize > 0)
-	  {
-	    fp->write("[");
-	    fp->write_decimal(arraysize);
-	    fp->write("]");
-	  }
+	fp->write(asym->getMangledName(m_state).c_str());
       }
+
     fp->write(")");
 
     if(isDefinition())

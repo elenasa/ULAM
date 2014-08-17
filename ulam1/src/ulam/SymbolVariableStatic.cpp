@@ -71,4 +71,10 @@ namespace MFM {
     return (s32) getDataMemberSlotIndex();
   }
 
+
+  const std::string SymbolVariableStatic::getMangledPrefix()
+  {
+    return "Um_"; 
+  }
+
 } //end MFM

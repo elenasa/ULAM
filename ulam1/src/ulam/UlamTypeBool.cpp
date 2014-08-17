@@ -33,6 +33,12 @@ namespace MFM {
   }
 
 
+  const char * UlamTypeBool::getUlamTypeAsSingleLowercaseLetter()
+  {
+    return "b";
+  }
+
+
   bool UlamTypeBool::cast(UlamValue & val)
     {
       UTI valtypidx = val.getUlamValueType()->getUlamTypeIndex();

@@ -52,6 +52,39 @@ namespace MFM {
   }
 
 
+  static u32 countDigits(u32 num) 
+  {
+    const u32 BASE = 10;
+    u32 digits = 0;
+    do {
+      ++digits;
+      num /= BASE;
+    } while (num > 0);
+    return digits;
+  }
+
+
+  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureMangledName()
+  {
+    //Ut_18232Int  == Int[8]
+    std::ostringstream mangled;
+    mangled << "Ut_";
+    if(m_arraySize > 0)
+      mangled << countDigits(m_arraySize) << m_arraySize;
+    else
+      mangled << "0";
+
+    if(m_bits > 0)
+      mangled << countDigits(m_bits) << m_bits;
+    else
+      mangled << "0";
+
+    mangled << m_typeName;
+
+    return mangled.str();
+  }
+
+
   bool UlamKeyTypeSignature::operator<(const UlamKeyTypeSignature & key2)
   {    
     if(strcmp(m_typeName, key2.m_typeName) < 0) return true;
