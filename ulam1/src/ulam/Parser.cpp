@@ -33,7 +33,8 @@
 #include "NodeStatementEmpty.h"
 #include "NodeBlockEmpty.h"
 #include "NodeBlockFunctionDefinition.h"
-#include "NodeReturn.h"
+#include "NodeReturnStatement.h"
+#include "NodeSimpleStatement.h"
 #include "SymbolVariable.h"
 #include "SymbolFunction.h"
 
@@ -531,7 +532,12 @@ namespace MFM {
     else 
       {
 	unreadToken();
-	rtnNode = parseAssignExpr();
+	Node * expNode = parseAssignExpr();
+	if(expNode)
+	  {
+	    rtnNode = new NodeSimpleStatement(expNode,m_state); 
+	    rtnNode->setNodeLocation(expNode->getNodeLocation());
+	  }
       }
 
 
@@ -624,7 +630,7 @@ namespace MFM {
 	rtnExprNode->setNodeLocation(pTok.m_locator);
       }
 
-    rtnNode =  new NodeReturn(rtnExprNode, m_state);
+    rtnNode =  new NodeReturnStatement(rtnExprNode, m_state);
     rtnNode->setNodeLocation(pTok.m_locator);
 
     return rtnNode;

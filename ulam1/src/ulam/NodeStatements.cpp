@@ -15,6 +15,7 @@ namespace MFM {
     m_node = NULL;
   }
 
+
   void NodeStatements::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node

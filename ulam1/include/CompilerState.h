@@ -45,7 +45,7 @@
 #include "Tokenizer.h"
 #include "NodeBlock.h"
 #include "NodeCast.h"
-#include "NodeReturn.h"
+#include "NodeReturnStatement.h"
 #include "UlamType.h"
 #include "Token.h"
 #include "ErrorMessageHandler.h"
@@ -97,10 +97,10 @@ namespace MFM{
     std::vector<UlamType *> m_indexToUlamType;   //ulamtype ptr by index
     std::map<UlamKeyTypeSignature, UTI, less_than_key> m_definedUlamTypes;   //key -> index of ulamtype (UTI) 
 
-    std::vector<NodeReturn *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type 
+    std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type 
     UlamType * m_currentFunctionReturnType;
 
-    u32 m_currentIndentLevel;                                 //for code generation: func def, blocks, control body
+    u32 m_currentIndentLevel;    //for code generation: func def, blocks, control body
 
     CompilerState();
     ~CompilerState();

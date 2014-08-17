@@ -61,6 +61,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual void genCode(File * fp);
+
   private:
     SymbolTypedef * m_typedefSymbol;
   };

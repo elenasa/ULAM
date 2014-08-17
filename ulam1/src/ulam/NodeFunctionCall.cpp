@@ -210,12 +210,15 @@ namespace MFM {
   void NodeFunctionCall::genCode(File * fp)
   {
     fp->write(getName());
-    fp->write(" (");
+    fp->write("(");
     for(u32 i = 0; i < m_argumentNodes.size(); i++)
       {
-	m_argumentNodes[i]->genCode(fp);
+	if(i>0)
+	  fp->write(", ");
+
+	m_argumentNodes[i]->genCode(fp);	
       }
-    fp->write(" )");
+    fp->write(")");
 
   }
 } //end MFM

@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeReturn.h - Node handling the Return Statement for ULAM
+ * NodeReturnStatement.h - Node handling the Return Statement for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeReturn.h - Node handling the Return Statement for ULAM
+  \file NodeReturnStatement.h - Node handling the Return Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -42,12 +42,12 @@
 
 namespace MFM{
 
-  class NodeReturn : public Node
+  class NodeReturnStatement : public Node
   {
   public:
 
-    NodeReturn(Node * s, CompilerState & state);
-    virtual ~NodeReturn();
+    NodeReturnStatement(Node * s, CompilerState & state);
+    virtual ~NodeReturnStatement();
 
     virtual void print(File * fp);
 
