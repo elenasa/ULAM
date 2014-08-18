@@ -206,7 +206,7 @@ namespace MFM {
 
     //skip Nav type (0), and Void (1)
     u32 numTypes = m_state.m_indexToUlamType.size();
-    for(u32 i = 2; i < numTypes; i++)
+    for(u32 i = 1; i < numTypes; i++)
       {
 	UlamType * ut = m_state.getUlamTypeByIndex(i);
 	ut->genUlamTypeMangledDefinitionForC(fp,m_state);

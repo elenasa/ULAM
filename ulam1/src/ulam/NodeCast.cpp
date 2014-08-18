@@ -116,7 +116,9 @@ namespace MFM {
     fp->write("(");
     fp->write(getNodeType()->getUlamTypeMangledName().c_str());
     fp->write(") ");
+    fp->write("(");
     m_node->genCode(fp);
+    fp->write(")");
   }
 
 } //end MFM
