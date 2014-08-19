@@ -23,7 +23,7 @@ namespace MFM {
     if(!myut)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), myut->getUlamTypeName().c_str());
+      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
     fp->write(id);
 
     if(m_nodeLeft)
@@ -104,7 +104,7 @@ namespace MFM {
     if(!(lt->isScalar()) || !(rt->isScalar()))
       {
 	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: <" << lt->getUlamTypeName().c_str() << ">, RHS: <" << rt->getUlamTypeName().c_str() << "> for binary operator" << getName();
+	msg << "Incompatible (nonscalar) types, LHS: <" << lt->getUlamTypeName(&m_state).c_str() << ">, RHS: <" << rt->getUlamTypeName(&m_state).c_str() << "> for binary operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return newType;
       }
@@ -128,7 +128,7 @@ namespace MFM {
     else
       {
 	  std::ostringstream msg;
-	  msg << "Undefined type to use for " << lt->getUlamTypeName() << " op " << rt->getUlamTypeName();
+	  msg << "Undefined type to use for " << lt->getUlamTypeName(&m_state) << " op " << rt->getUlamTypeName(&m_state);
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
 
@@ -143,7 +143,7 @@ namespace MFM {
     if(!(lt->isScalar()) || !(rt->isScalar()))
       {
 	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: <" << lt->getUlamTypeName().c_str() << ">, RHS: <" << rt->getUlamTypeName().c_str() << "> for binary bitwise operator" << getName();
+	msg << "Incompatible (nonscalar) types, LHS: <" << lt->getUlamTypeName(&m_state).c_str() << ">, RHS: <" << rt->getUlamTypeName(&m_state).c_str() << "> for binary bitwise operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return newType;
       }
@@ -154,7 +154,7 @@ namespace MFM {
     if(rt == utFloat || lt == utFloat)
       {
 	std::ostringstream msg;
-	msg << "Invalid Operands of Types: " << lt->getUlamTypeNameBrief() << " and " << rt->getUlamTypeNameBrief()  << " to binary operator" << getName();
+	msg << "Invalid Operands of Types: " << lt->getUlamTypeNameBrief(&m_state).c_str() << " and " << rt->getUlamTypeNameBrief(&m_state)  << " to binary operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	//error
       }

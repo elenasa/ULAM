@@ -21,7 +21,7 @@ namespace MFM {
     if(!myut)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), myut->getUlamTypeName().c_str());
+      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
     fp->write(id);
     
     if(m_node)
@@ -73,7 +73,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) type: <" << ut->getUlamTypeName().c_str() << "> for unary operator" << getName();
+	    msg << "Incompatible (nonscalar) type: <" << ut->getUlamTypeName(&m_state).c_str() << "> for unary operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    
 	    setNodeType(m_state.getUlamTypeByIndex(Nav));

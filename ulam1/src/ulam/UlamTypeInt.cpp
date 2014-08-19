@@ -80,7 +80,7 @@ namespace MFM {
     }
 
 
-  void UlamTypeInt::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
+  void UlamTypeInt::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
   {
     if(m_key.m_arraySize == 0)
       {

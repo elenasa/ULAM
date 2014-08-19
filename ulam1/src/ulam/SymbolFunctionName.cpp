@@ -36,7 +36,7 @@ namespace MFM {
   }
 
 
-  bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym, CompilerState& state)
+  bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym, CompilerState * state)
   {
     bool overloaded = false;
 

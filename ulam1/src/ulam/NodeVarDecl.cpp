@@ -13,7 +13,7 @@ namespace MFM {
   void NodeVarDecl::printPostfix(File * fp)
   {
     fp->write(" ");
-    fp->write(m_varSymbol->getUlamType()->getUlamTypeNameBrief()); //short type name
+    fp->write(m_varSymbol->getUlamType()->getUlamTypeNameBrief(&m_state).c_str()); //short type name
     fp->write(" ");
     fp->write(getName());
 
@@ -28,7 +28,7 @@ namespace MFM {
     if(m_varSymbol->isDataMember())
       {
 	char * myval = new char[arraysize * 8 + 32];	
-	m_varSymbol->getUlamValue(m_state).getUlamValueAsString(myval, m_state);
+	m_varSymbol->getUlamValue(m_state).getUlamValueAsString(myval, &m_state);
 	fp->write("(");
 	fp->write(myval);
 	fp->write(")");
@@ -102,9 +102,9 @@ namespace MFM {
   void NodeVarDecl::genCode(File * fp)
   {
     m_state.indent(fp);
-    fp->write(m_varSymbol->getUlamType()->getUlamTypeMangledName().c_str()); //for C++
+    fp->write(m_varSymbol->getUlamType()->getUlamTypeMangledName(&m_state).c_str()); //for C++
     fp->write(" ");
-    fp->write(m_varSymbol->getMangledName(m_state).c_str());
+    fp->write(m_varSymbol->getMangledName(&m_state).c_str());
 
 #if 0
     u32 arraysize = m_varSymbol->getUlamType()->getArraySize();

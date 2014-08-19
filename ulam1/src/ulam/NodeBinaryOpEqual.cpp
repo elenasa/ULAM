@@ -32,7 +32,7 @@ namespace MFM {
     if(!m_nodeLeft->isStoreIntoAble())
       {
 	std::ostringstream msg;
-	msg << "Not storeIntoAble: <" << m_nodeLeft->getName() << ">, is type: <" << leftType->getUlamTypeName().c_str() << ">";
+	msg << "Not storeIntoAble: <" << m_nodeLeft->getName() << ">, is type: <" << leftType->getUlamTypeName(&m_state).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(newType);
 	setStoreIntoAble(false);

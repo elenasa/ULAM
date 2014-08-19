@@ -63,7 +63,7 @@ namespace MFM {
     }
 
   
-  void UlamTypeFloat::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
+  void UlamTypeFloat::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
   {
     if(m_key.m_arraySize == 0)
       sprintf(valstr,"%f", val.m_valFloat);

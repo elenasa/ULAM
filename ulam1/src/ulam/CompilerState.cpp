@@ -57,13 +57,13 @@ namespace MFM {
   UlamType * CompilerState::makeUlamType(Token typeTok, u32 bitsize, u32 arraysize)
   {
     //type names begin with capital letter..and the rest can be either
-    std::string typeName  = getTokenAsATypeName(typeTok); //Foo, Int, etc
+    u32 typeNameId  = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
 
     // is this name already a typedef for a complex type?
     ULAMTYPE bUT = getBaseTypeFromToken(typeTok);
 
     bitsize = (bitsize == 0 ? (bUT == Bool ? 8 : 32) : bitsize); //temporary!!!
-    UlamKeyTypeSignature key(typeName.c_str(),bitsize,arraysize);
+    UlamKeyTypeSignature key(typeNameId,bitsize,arraysize);
     UTI uti = 0;
     UlamType * ut;
 
@@ -175,9 +175,9 @@ namespace MFM {
   }
 
 
-  const char * CompilerState::getUlamTypeNameByIndex(UTI uti)
+  const std::string CompilerState::getUlamTypeNameByIndex(UTI uti)
   {
-    return m_indexToUlamType[uti]->getUlamTypeNameBrief();
+    return m_indexToUlamType[uti]->getUlamTypeNameBrief(this);
   }
 
 
@@ -226,12 +226,6 @@ namespace MFM {
 	    rtnBool = true; 
 	  }
       }
-    //else //must be a primitive, but could be array..
-    //  {
-	//UTI bUT = UlamType::getEnumFromUlamTypeString(name); //could be Element, etc.;
-	//rtnType = getUlamTypeByIndex(bUT);
-	//rtnBool = true;
-    //  }
 
     return rtnBool;
   }
@@ -247,10 +241,8 @@ namespace MFM {
     UlamKeyTypeSignature keyOfArg = utArg->getUlamKeyTypeSignature();
 
     u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
-    //const char * name = keyOfArg.getUlamKeyTypeSignatureName();
-    const char * name = UlamType::getUlamTypeEnumAsString(bUT);
-    UlamKeyTypeSignature baseKey(name, bitsize);  //default array size is zero
-    //ULAMTYPE bUT = utArg->getEnumFromUlamTypeString(name);
+    UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize);  //default array size is zero
+
     UTI buti = makeUlamType(baseKey, bUT);
     return getUlamTypeByIndex(buti);
   }
@@ -335,6 +327,13 @@ namespace MFM {
   }
 
 
+  u32 CompilerState::getTokenAsATypeNameId(Token tok)
+  {
+    std::string nstr = getTokenAsATypeName(tok);
+    return m_pool.getIndexForDataString(nstr);
+  }
+
+
   bool CompilerState::checkFunctionReturnNodeTypes(SymbolFunction * fsym)
   {
     bool rtnBool = true;
@@ -367,7 +366,7 @@ namespace MFM {
 	    if(rBUT != itBUT)
 	      {
 		std::ostringstream msg;
-		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName().c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << "> does not match resulting type's <" << rType->getUlamTypeName().c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
+		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName(this).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << "> does not match resulting type's <" << rType->getUlamTypeName(this).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
 		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
 
 	      }
@@ -376,14 +375,14 @@ namespace MFM {
 		if(rType->getArraySize() != it->getArraySize())
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName().c_str() << "> array size: <" << it->getArraySize() << "> does not match resulting type's <" << rType->getUlamTypeName().c_str() << "> array size: <" << rType->getArraySize() << ">";
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName(this).c_str() << "> array size: <" << it->getArraySize() << "> does not match resulting type's <" << rType->getUlamTypeName(this).c_str() << "> array size: <" << rType->getArraySize() << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
 		  }
 
 		if(rType->getBitSize() != it->getBitSize())
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName().c_str() << "> bit size: <" << it->getBitSize() << "> does not match resulting type's <" << rType->getUlamTypeName().c_str() << "> bit size: <" << rType->getBitSize() << ">";
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName(this).c_str() << "> bit size: <" << it->getBitSize() << "> does not match resulting type's <" << rType->getUlamTypeName(this).c_str() << "> bit size: <" << rType->getBitSize() << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
 		  }
 	      } //base types are the same..array and bit size might vary

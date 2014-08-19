@@ -1,10 +1,9 @@
 #include <stdio.h>
-
 #include "NodeBlockClass.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
 #include "SymbolFunctionName.h"
-#include "util.h"
+
 
 namespace MFM {
 
@@ -23,7 +22,7 @@ namespace MFM {
     if(!myut)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName().c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
     fp->write(id);
 
     if(m_nextNode)
@@ -81,7 +80,7 @@ namespace MFM {
 	if(funcType != m_state.getUlamTypeByIndex(Int))
 	  {
 	    std::ostringstream msg;
-	    msg << "By convention, Function '" << funcNode->getName() << "''s Return type must be <Int>, not <" << funcType->getUlamTypeNameBrief() << ">";
+	    msg << "By convention, Function '" << funcNode->getName() << "''s Return type must be <Int>, not <" << funcType->getUlamTypeNameBrief(&m_state).c_str() << ">";
 	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }

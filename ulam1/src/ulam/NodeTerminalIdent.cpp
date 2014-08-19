@@ -125,10 +125,11 @@ namespace MFM {
     bitsize = (bitsize == 0 ? (bUT == Bool ? 8 : 32) : bitsize); //temporary!!!
 
     //type names begin with capital letter..and the rest can be either case
-    std::string basetypeName  = m_state.getTokenAsATypeName(aTok); //Int, etc; 'Nav' if invalid
-    assert(basetypeName.compare("Nav") != 0); //checked beforehand
+    //std::string basetypeName  = m_state.getTokenAsATypeName(aTok); //Int, etc; 'Nav' if invalid
+    //assert(basetypeName.compare("Nav") != 0); //checked beforehand
+    u32 basetypeNameId  = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
 
-    UlamKeyTypeSignature key(basetypeName.c_str(), bitsize, arraysize);
+    UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
 
     // o.w. build symbol, first the base type ( with array size)
     UTI uti = m_state.makeUlamType(key, bUT);  
@@ -239,7 +240,7 @@ namespace MFM {
 
   void NodeTerminalIdent::genCode(File * fp)
   {
-    fp->write(m_varSymbol->getMangledName(m_state).c_str());
+    fp->write(m_varSymbol->getMangledName(&m_state).c_str());
   }
 
 } //end MFM

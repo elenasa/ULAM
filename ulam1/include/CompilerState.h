@@ -62,8 +62,10 @@ namespace MFM{
   {
     inline bool operator() (const UlamKeyTypeSignature key1, const UlamKeyTypeSignature key2)
     { 
-      if(strcmp(key1.m_typeName, key2.m_typeName) < 0) return true;
-      if(strcmp(key1.m_typeName, key2.m_typeName) > 0) return false;  
+      //if(strcmp(key1.m_typeName, key2.m_typeName) < 0) return true;
+      //if(strcmp(key1.m_typeName, key2.m_typeName) > 0) return false;  
+      if(key1.m_typeNameId < key2.m_typeNameId) return true;
+      if(key1.m_typeNameId > key2.m_typeNameId) return false;  
       if(key1.m_bits < key2.m_bits) return true;
       if(key1.m_bits > key2.m_bits) return false;
       if(key1.m_arraySize < key2.m_arraySize) return true;
@@ -113,7 +115,7 @@ namespace MFM{
     UlamType * createUlamType(UlamKeyTypeSignature key, UTI uti, ULAMTYPE utype);
 
     UlamType * getUlamTypeByIndex(UTI uti);
-    const char * getUlamTypeNameByIndex(UTI uti);
+    const std::string getUlamTypeNameByIndex(UTI uti);
     UTI getUlamTypeIndex(UlamType * ut);
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
@@ -136,6 +138,7 @@ namespace MFM{
     /** helper method, uses string pool */
     const std::string getDataAsString(Token * tok);
     const std::string getTokenAsATypeName(Token tok);
+    u32 getTokenAsATypeNameId(Token tok);
 
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
     void indent(File * fp);

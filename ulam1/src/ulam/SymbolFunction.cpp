@@ -78,7 +78,7 @@ namespace MFM {
 
 
   //supports overloading functions with SymbolFunctionName
-  const std::string SymbolFunction::getMangledNameWithTypes(CompilerState& state)
+  const std::string SymbolFunction::getMangledNameWithTypes(CompilerState * state)
   {
     std::ostringstream mangled;
     mangled << Symbol::getMangledName(state);  //e.g. Uf_14name, with lexNumbers
@@ -86,15 +86,15 @@ namespace MFM {
     // use void type when no parameters
     if(m_parameterSymbols.empty())
       {
-	UlamType * vit = state.getUlamTypeByIndex(Void);
-	mangled << vit->getUlamTypeMangledName().c_str();
+	UlamType * vit = state->getUlamTypeByIndex(Void);
+	mangled << vit->getUlamTypeMangledName(state).c_str();
       }
 
     // append mangled type name, e.g. 1023213Int, for each parameter
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	mangled << sym->getUlamType()->getUlamTypeMangledName().c_str();
+	mangled << sym->getUlamType()->getUlamTypeMangledName(state).c_str();
       }
 
     return mangled.str();

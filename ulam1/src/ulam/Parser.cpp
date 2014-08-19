@@ -102,9 +102,6 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << errs << " TOO MANY PARSE ERRORS";
 	MSG(&pTok, msg.str().c_str(), INFO);
-	// for debug test purposes return Program such as it is, for eval:
-	//delete P;
-	//return NULL;
       }
 
     return (P);  //ownership transferred to caller
@@ -205,8 +202,7 @@ namespace MFM {
     
     if(getExpectedToken(TOK_IDENTIFIER, iTok))
       {
-	//need another token to distinguish a function from a variable
-	// declaration (do so quietly)
+	//need another token to distinguish a function from a variable declaration (do so quietly)
 	if(getExpectedToken(TOK_OPEN_PAREN, QUIETLY))
 	  { 
 	    //eats the '(' when found
@@ -268,7 +264,7 @@ namespace MFM {
 
     if(getExpectedToken(TOK_CLOSE_CURLY, QUIETLY))
       {
-	rtnNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state);  	// legal
+	rtnNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); // legal
 	rtnNode->setNodeLocation(pTok.m_locator);
 	return rtnNode;
       }
@@ -554,9 +550,9 @@ namespace MFM {
   }
 
 
-  /**
-     <TYPEDEF> := 'typedef' + <TYPE> +( <IDENT> | <IDENT> + '[' + <EXPRESSION> + ']') 
-  */
+  // Typedefs are not transferred to generated code;
+  // they are a short-hand for ulamtypes (e.g. arrays)
+  // that may be used as function return types; scope-specific.
   Node * Parser::parseTypedef()
   {
     Node * rtnNode = NULL;
@@ -590,9 +586,8 @@ namespace MFM {
   }
 
 
-  // could be called for data members or
-  // or local function variables; or 'singledecl'
-  // function parameters; no longer for function defs.
+  // used for data members or local function variables; or 
+  // 'singledecl' function parameters; no longer for function defs.
   Node * Parser::parseDecl(bool parseSingleDecl)
   {
     Node * rtnNode = NULL;
@@ -647,7 +642,7 @@ namespace MFM {
       {
 	// though function calls are not proper lhs values in assign
 	// expression; they are parsed here (due to the two token look
-	// ahead, the Identifier Token is dropped before parseExpression) and is
+	// ahead, which drops the Identifier Token before parseExpression) and is
 	// caught during checkAndLabelType as NOT storeIntoAble.
 	if(!(rtnNode = parseIdentExpr(iTok)))
 	  return parseExpression(); 
@@ -721,16 +716,18 @@ namespace MFM {
   Node * Parser::parseFunctionCall(Token identTok)
   {
     Symbol * asymptr = NULL;
+
     // cannot call a function if a local variable name shadows it
     if(m_state.m_currentBlock->isIdInScope(identTok.m_dataindex,asymptr))
       {
 	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << asymptr->getUlamType()->getUlamTypeNameBrief() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << asymptr->getUlamType()->getUlamTypeNameBrief(&m_state).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 	MSG(&identTok, msg.str().c_str(), ERR);
 	return NULL;
       }
 
-    NodeFunctionCall * rtnNode = new NodeFunctionCall(identTok, NULL, m_state); //fill in func symbol during labelling 
+    //fill in func symbol during type labeling; supports function overloading
+    NodeFunctionCall * rtnNode = new NodeFunctionCall(identTok, NULL, m_state); 
     rtnNode->setNodeLocation(identTok.m_locator);
 
     if(!parseRestOfFunctionCallArguments(rtnNode))
@@ -1018,7 +1015,7 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << asymptr->getUlamType()->getUlamTypeNameBrief() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << asymptr->getUlamType()->getUlamTypeNameBrief(&m_state).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	    else 
@@ -1063,7 +1060,7 @@ namespace MFM {
     if(m_state.m_classBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
-	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << asymptr->getUlamType()->getUlamTypeNameBrief() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
+	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << asymptr->getUlamType()->getUlamTypeNameBrief(&m_state).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&typeTok, msg.str().c_str(), ERR);
 
 	// eat tokens until end of definition ???
@@ -1135,10 +1132,10 @@ namespace MFM {
     Symbol * fnSym = NULL;
     if(!m_state.m_classBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
       {
-	//first time name used as a function..add symbol function name/type
+	// first time name used as a function..add symbol function name/type
 	fnSym = new SymbolFunctionName(identTok.m_dataindex, ut);
 	
-	//ownership goes to the class block's ST
+	// ownership goes to the class block's ST
 	m_state.m_classBlock->addFuncIdToScope(fnSym->getId(), fnSym); 
       }
 
@@ -1156,7 +1153,7 @@ namespace MFM {
 
     if(rtnNode)
       {
-	bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr, m_state); //transfers ownership, if added
+	bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr, &m_state); //transfers ownership, if added
 	if(!isAdded)
 	  {
 	    //this is a duplicate function definition with same parameters and given name!!
@@ -1188,7 +1185,7 @@ namespace MFM {
 	  }
       }
 
-    //this block's ST is no longer in scope
+    // this block's ST is no longer in scope
     m_state.m_currentBlock = prevBlock;
     m_state.m_currentFunctionBlockDeclSize = 0;  //default zero for datamembers
     m_state.m_currentFunctionBlockMaxDepth = 0;  //reset
@@ -1207,8 +1204,8 @@ namespace MFM {
       }
 
     assert(sym);
-    //allows function name to be same as arg name 
-    //since the function starts a new "block" (i.e. ST);
+    // allows function name to be same as arg name 
+    // since the function starts a new "block" (i.e. ST);
     // the argument to parseDecl will prevent it from looking
     // for restofdecls
     if(Token::isTokenAType(pTok,&m_state))
@@ -1216,7 +1213,7 @@ namespace MFM {
 	unreadToken();
 	Node * argNode = parseDecl(true);  
 
-	//could be null symbol already in scope
+	// could be null symbol already in scope
 	if(argNode) 
 	  {
 	    //it IS a variable (declaration).
@@ -1237,7 +1234,7 @@ namespace MFM {
 	//continue or short-circuit???
       }
 
-    getExpectedToken(TOK_COMMA, QUIETLY); //if so, get next arg; o.w. unread
+    getExpectedToken(TOK_COMMA, QUIETLY); // if so, get next arg; o.w. unread
     return parseRestOfFunctionParameters(sym);
   }
 
@@ -1301,7 +1298,7 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << asymptr->getUlamType()->getUlamTypeNameBrief() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << asymptr->getUlamType()->getUlamTypeNameBrief(&m_state).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	    else 
@@ -1679,23 +1676,23 @@ namespace MFM {
   void Parser::initPrimitiveUlamTypes()
   {
     // initialize primitive UlamTypes, in order!!
-    UlamKeyTypeSignature nkey("Nav", 8);
+    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), 8);
     UTI nidx = m_state.makeUlamType(nkey, Nav);
     assert(nidx == Nav);  //true for primitives
 
-    UlamKeyTypeSignature vkey("Void", 0);
+    UlamKeyTypeSignature vkey(m_state.m_pool.getIndexForDataString("Void"), 0);
     UTI vidx = m_state.makeUlamType(vkey, Void);
     assert(vidx == Void);  //true for primitives
 
-    UlamKeyTypeSignature ikey("Int", 32);
+    UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), 32);
     UTI iidx = m_state.makeUlamType(ikey, Int);
     assert(iidx == Int);
 
-    UlamKeyTypeSignature fkey("Float", 32);
+    UlamKeyTypeSignature fkey(m_state.m_pool.getIndexForDataString("Float"), 32);
     UTI fidx = m_state.makeUlamType(fkey, Float);
     assert(fidx == Float);
 
-    UlamKeyTypeSignature bkey("Bool", 8);
+    UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), 8);
     UTI bidx = m_state.makeUlamType(bkey, Bool);
     assert(bidx == Bool);
 

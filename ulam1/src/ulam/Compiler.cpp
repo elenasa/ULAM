@@ -111,10 +111,9 @@ namespace MFM {
   void Compiler::generateCodedProgram(Node * root, File * errorOutput)
   {
     assert(root);
-
     m_state.m_err.setFileOutput(errorOutput);
 
-    FileManagerStdio * fm = new FileManagerStdio("./src/test/bin");
+    FileManagerStdio * fm = new FileManagerStdio("./src/test/bin"); //temporary!!!
     if(!fm)
       {
 	errorOutput->write("Error in making new file manager for code generation...aborting");
@@ -123,7 +122,6 @@ namespace MFM {
 
     ((NodeProgram *) root)->generateCode(fm);
 
-    //output->write("\n");
     delete fm;
   }
 

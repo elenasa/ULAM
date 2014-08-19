@@ -35,9 +35,9 @@ namespace MFM {
   }
 
 
-  void UlamTypeQuark::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
+  void UlamTypeQuark::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
   {
-    sprintf(valstr,"%s", getUlamTypeName().c_str());
+    sprintf(valstr,"%s", getUlamTypeName(state).c_str());
   }
 
 

@@ -34,9 +34,9 @@ namespace MFM {
   }
 
 
-  void UlamTypeAtom::getUlamValueAsString(const UlamValue& val, char * valstr, CompilerState& state)
+  void UlamTypeAtom::getUlamValueAsString(const UlamValue& val, char * valstr, CompilerState * state)
   {
-    sprintf(valstr,"%s", getUlamTypeName().c_str());
+    sprintf(valstr,"%s", getUlamTypeName(state).c_str());
   }
 
 
