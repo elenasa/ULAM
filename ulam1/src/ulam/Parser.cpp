@@ -37,6 +37,7 @@
 #include "NodeSimpleStatement.h"
 #include "SymbolVariable.h"
 #include "SymbolFunction.h"
+#include "SymbolFunctionName.h"
 
 
 namespace MFM {
@@ -709,7 +710,7 @@ namespace MFM {
 	  }
 	
 	//function call
-	return parseFunctionCall((SymbolFunction *) asymptr, identTok);
+	return parseFunctionCall(identTok);
       }
 
     // if here, we have a variable, not a function call
@@ -717,7 +718,7 @@ namespace MFM {
   }
 
 
-  Node * Parser::parseFunctionCall(SymbolFunction * fsym, Token identTok)
+  Node * Parser::parseFunctionCall(Token identTok)
   {
     Symbol * asymptr = NULL;
     // cannot call a function if a local variable name shadows it
@@ -729,7 +730,7 @@ namespace MFM {
 	return NULL;
       }
 
-    NodeFunctionCall * rtnNode = new NodeFunctionCall(identTok, fsym, m_state);
+    NodeFunctionCall * rtnNode = new NodeFunctionCall(identTok, NULL, m_state); //fill in func symbol during labelling 
     rtnNode->setNodeLocation(identTok.m_locator);
 
     if(!parseRestOfFunctionCallArguments(rtnNode))
@@ -1058,18 +1059,18 @@ namespace MFM {
     Symbol * asymptr = NULL;
     // ask current scope class block if this identifier name is there 
     // (checks functions and variables and typedefs); 
-    // if so, BAIL (check for overloading ???)
-    if(m_state.m_classBlock->isIdInScope(identTok.m_dataindex,asymptr))
+    // if not a function, BAIL; check for overloaded function, after parameter types available
+    if(m_state.m_classBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
-	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << asymptr->getUlamType()->getUlamTypeNameBrief() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << asymptr->getUlamType()->getUlamTypeNameBrief() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&typeTok, msg.str().c_str(), ERR);
 
 	// eat tokens until end of definition ???
 	return NULL;
       } 
 
-    // not in scope, or not yet defined
+    // not in scope, or not yet defined, or possible overloading
     // o.w. build symbol for function: return type + name + parameter symbols
     Node * rtnNode = makeFunctionBlock(typeTok, identTok);
 
@@ -1091,8 +1092,6 @@ namespace MFM {
     assert(prevBlock == m_state.m_classBlock);
 
     // o.w. build symbol for function: return type + name + arg symbols
-    // if symbol exists with same id it won't be added again, just leaked here.
-    // which is why caller already checked it isn't a duplicate.
     UlamType * ut = NULL;
     if(!m_state.getUlamTypeByTypedefName(m_state.getTokenAsATypeName(typeTok).c_str(),ut))
       {
@@ -1110,49 +1109,90 @@ namespace MFM {
     
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, ut);
 
-    //ownership goes to the class block
-    m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr); 
+    // WAIT for the parameters, so we can add it to the SymbolFunctionName map..
+    //m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr); 
     
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, m_state);
     rtnNode->setNodeLocation(typeTok.m_locator);
     
-    //symbol will have pointer to body (or just decl for 'use');
+    // symbol will have pointer to body (or just decl for 'use');
     fsymptr->setFunctionNode(rtnNode); // tfr ownership
                                        
     m_state.m_currentBlock = rtnNode;  //before parsing the args
 
     // use space on funcCallStack for return statement.
-    //negative for parameters; allot space at top for the return value
-    //currently, only scalar; determines start position of first arg "under".
+    // negative for parameters; allot space at top for the return value
+    // currently, only scalar; determines start position of first arg "under".
     u32 returnArraySize = fsymptr->getUlamType()->getArraySize();
     returnArraySize = (returnArraySize > 0 ? returnArraySize : 1);
     m_state.m_currentFunctionBlockDeclSize = - (returnArraySize + 1);  
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
-    //parse and add parameters to function symbol
+    // parse and add parameters to function symbol
     parseRestOfFunctionParameters(fsymptr);
     
-    //starts with positive one for local variables
-    m_state.m_currentFunctionBlockDeclSize = 1;  
-    m_state.m_currentFunctionBlockMaxDepth = 0;
-
-    //parse body definition
-    if(parseFunctionBody(rtnNode))
+    // Now, look specifically for a function with the same given name defined
+    Symbol * fnSym = NULL;
+    if(!m_state.m_classBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
       {
-	rtnNode->setDefinition();
-	rtnNode->setMaxDepth(m_state.m_currentFunctionBlockMaxDepth);
+	//first time name used as a function..add symbol function name/type
+	fnSym = new SymbolFunctionName(identTok.m_dataindex, ut);
+	
+	//ownership goes to the class block's ST
+	m_state.m_classBlock->addFuncIdToScope(fnSym->getId(), fnSym); 
       }
-    else
+
+
+    // verify return types agree (definitely when new name) --- o.w. error!
+    if(fnSym->getUlamType() != fsymptr->getUlamType())
       {
-	fsymptr->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
+	std::ostringstream msg;
+	msg << "Return Type <"  << m_state.getTokenAsATypeName(typeTok).c_str() << "> does not agree with return type of already defined function '" << m_state.m_pool.getDataAsString(fnSym->getId()) << "' with the same name" ;
+	MSG(&typeTok, msg.str().c_str(),ERR);
+	delete fsymptr;
 	rtnNode = NULL;
+      }
+
+
+    if(rtnNode)
+      {
+	bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr, m_state); //transfers ownership, if added
+	if(!isAdded)
+	  {
+	    //this is a duplicate function definition with same parameters and given name!!
+	    std::ostringstream msg;
+	    msg << "Duplicate defined function '" << m_state.m_pool.getDataAsString(fsymptr->getId()) << "' with the same parameters" ;
+	    MSG(&typeTok, msg.str().c_str(),ERR);
+	    delete fsymptr;         //also deletes the NodeBlockFunctionDefinition
+	    rtnNode = NULL;
+	  }
+      }
+
+
+    if(rtnNode)
+      {
+	//starts with positive one for local variables
+	m_state.m_currentFunctionBlockDeclSize = 1;  
+	m_state.m_currentFunctionBlockMaxDepth = 0;
+	
+	//parse body definition
+	if(parseFunctionBody(rtnNode))
+	  {
+	    rtnNode->setDefinition();
+	    rtnNode->setMaxDepth(m_state.m_currentFunctionBlockMaxDepth);
+	  }
+	else
+	  {
+	    fsymptr->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
+	    rtnNode = NULL;
+	  }
       }
 
     //this block's ST is no longer in scope
     m_state.m_currentBlock = prevBlock;
     m_state.m_currentFunctionBlockDeclSize = 0;  //default zero for datamembers
     m_state.m_currentFunctionBlockMaxDepth = 0;  //reset
-
+    
     return rtnNode;  //makeFunctionBlock
   }
 

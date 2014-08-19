@@ -57,7 +57,7 @@ namespace MFM {
     UlamType * nut = getNodeType();
     UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
 
-    UTI typidx = nut->getUlamTypeIndex();    
+    UTI typidx = scalartype->getUlamTypeIndex();    
     UlamValue rtnUV;  //immediate scalar
 
     for(u32 i = 0; i < slots; i++)

@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include "SymbolTable.h"
-#include "SymbolFunction.h"
-#include "NodeBlockFunctionDefinition.h"
+#include "SymbolFunctionName.h"
+
 
 namespace MFM {
 
@@ -60,9 +60,7 @@ namespace MFM {
 	Symbol * sym = it->second;  
 	if(sym->isFunction())
 	  {
-	    NodeBlockFunctionDefinition * func = ((SymbolFunction *) sym)->getFunctionNode();
-	    assert(func); //how would a function symbol be without a body?
-	    func->checkAndLabelType();
+	    ((SymbolFunctionName *) sym)->labelFunctions();
 	  }
 	it++;
       }
@@ -78,9 +76,7 @@ namespace MFM {
 	Symbol * sym = it->second;  
 	if(sym->isFunction())
 	  {
-	    NodeBlockFunctionDefinition * func = ((SymbolFunction *) sym)->getFunctionNode();
-	    assert(func); //how would a function symbol be without a body?
-	    func->genCode(fp);
+	    ((SymbolFunctionName *) sym)->generateCodedFunctions(fp);
 	  }
 	it++;
       }
@@ -100,10 +96,10 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    u32 depth = ((SymbolFunction *) sym)->getFunctionNode()->getMaxDepth();
+	    u32 depth = ((SymbolFunctionName *) sym)->getDepthSumOfFunctions();
 	    totalsizes += depth;
 	  }
 	else

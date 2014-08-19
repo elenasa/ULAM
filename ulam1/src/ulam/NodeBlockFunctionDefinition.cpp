@@ -211,9 +211,6 @@ namespace MFM {
     fp->write("(");
     u32 numparams = m_funcSymbol->getNumberOfParameters();
 
-    if(numparams == 0)
-      fp->write("void");
-
     for(u32 i = 0; i < numparams; i++)
       {
 	if(i > 0)

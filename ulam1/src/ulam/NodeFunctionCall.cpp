@@ -3,7 +3,9 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeProgram.h"
 #include "SymbolFunction.h"
+#include "SymbolFunctionName.h"
 #include "CallStack.h"
+#include "util.h"
 
 namespace MFM {
 
@@ -47,78 +49,51 @@ namespace MFM {
 
   UlamType * NodeFunctionCall::checkAndLabelType()
   {
-    UlamType * it = m_state.getUlamTypeByIndex(Nav);  //Nav
+    UlamType * it = m_state.getUlamTypeByIndex(Nav);  //Nav init return type
     u32 numErrorsFound = 0;
 
-    //call was before def, look up in class block
-    if(m_funcSymbol == NULL)
+    //first label argument types; used to pinpoint the exact function symbol in case of overloading
+    std::vector<UlamType *> argTypes;
+
+    for(u32 i = 0; i < m_argumentNodes.size(); i++)
       {
-	Symbol * asymptr;
-	if(m_state.m_classBlock->isFuncIdInScope(m_functionNameTok.m_dataindex,asymptr))
-	  {
-	    if(asymptr->isFunction())
-	      m_funcSymbol = (SymbolFunction *) asymptr;
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> is not a function, and cannot be called";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		numErrorsFound++;		
-	      }
-	  }
-	else
+	UlamType * argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
+	argTypes.push_back(argtype);
+      }
+
+    //look up in class block, and match argument types to parameters
+    assert(m_funcSymbol == NULL);
+    
+    Symbol * fnsymptr;
+    if(m_state.m_classBlock->isFuncIdInScope(m_functionNameTok.m_dataindex,fnsymptr))
+      {
+	// still need to pinpoint the SymbolFunction for m_funcSymbol! currently requires exact match
+	if(!((SymbolFunctionName *) fnsymptr)->findMatchingFunction(argTypes, m_funcSymbol))
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> is not a defined function, and cannot be called";
+	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> has no defined function with " << m_argumentNodes.size() << " matching argument types, and cannot be called";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    numErrorsFound++;		
-	  }	  
+	    numErrorsFound++;
+	  }
       }
-
-    //cannot continue
-    if(numErrorsFound > 0)
-      {
-	setNodeType(it);
-	return it;
-      }
-
-    u32 numArgs   = m_argumentNodes.size();
-    u32 numParams = m_funcSymbol->getNumberOfParameters();
-
-    if(numArgs != numParams)
+    else
       {
 	std::ostringstream msg;
-	msg << "(3) <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> has " << numArgs << " arguments for a defined function, that has " << numParams << " parameters";
+	msg << "(2) <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> is not a defined function, and cannot be called";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	numErrorsFound++;		
-      }
-
-    u32 shorterList = (numArgs > numParams ? numParams : numArgs);
-
-    //validate each arg against the corresponding parameter in the SymbolFunction.
-    for(u32 i = 0; i < shorterList; i++)
-      {	
-	Symbol * sym = m_funcSymbol->getParameterSymbolPtr(i);
-	UlamType * paramtype = sym->getUlamType();
-	UlamType * argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
-	if(paramtype != argtype)
-	  {
-	    std::ostringstream msg;
-	    msg << "(4) Mismatch Types: Function call <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> argument " << i << " has type <" << argtype->getUlamTypeName().c_str() << ">; parameter is defined as type: <" << paramtype->getUlamTypeName().c_str() << ">";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    numErrorsFound++;		//castable???
-	  }
+	numErrorsFound++;
       }
 
 
     if(!numErrorsFound)
       {
-	 it = m_funcSymbol->getUlamType();
+	it = m_funcSymbol->getUlamType();
       }
-
+    
     setNodeType(it);
     return it;
   }
+
 
 
   EvalStatus NodeFunctionCall::eval()

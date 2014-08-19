@@ -39,7 +39,7 @@ namespace MFM {
     //continue with the binary operation
 
     UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
-    UTI typidx = nut->getUlamTypeIndex();    
+    UTI typidx = scalartype->getUlamTypeIndex();    
     UlamValue rtnUV;  //immediate scalar, tmp
 
     for(u32 i = 0; i < slots; i++)

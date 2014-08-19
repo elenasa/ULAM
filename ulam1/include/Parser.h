@@ -168,7 +168,7 @@ namespace MFM{
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'
     */
-    Node * parseFunctionCall(SymbolFunction * fsym, Token identTok);
+    Node * parseFunctionCall(Token identTok);
 
     /**
        <ARGS>    := 0 | <ARG> | <ARG> + ',' + <ARGS>

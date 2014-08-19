@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolFunction.h -  Function Symbol handling for ULAM
+ * util.h Useful common static utility functions for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,53 +26,32 @@
  */
 
 /**
-  \file SymbolFunction.h -  Function Symbol handling for ULAM
+  \file util.h Useful common static utility functions for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
+#ifndef UTIL_H
+#define UTIL_H
 
-#ifndef SYMBOLFUNCTION_H
-#define SYMBOLFUNCTION_H
+#include "itype.h"
 
-#include <vector>
-#include "Symbol.h"
+namespace MFM {
 
-namespace MFM{
-
-  class NodeBlockFunctionDefinition;  //forward
-
-  class SymbolFunction : public Symbol
+  static u32 countDigits(u32 num) 
   {
-  public:
-    SymbolFunction(u32 id, UlamType * typetoreturn);
-    ~SymbolFunction();
+    const u32 BASE = 10;
+    u32 digits = 0;
+    do {
+      ++digits;
+      num /= BASE;
+    } while (num > 0);
+    return digits;
+  }
 
-    void addParameterSymbol(Symbol * argSym);
-    u32 getNumberOfParameters();    
-    u32 getTotalSizeOfParameters();
+} /* namespace MFM */
 
-    Symbol * getParameterSymbolPtr(u32 n);
+#endif  /* UTIL_H */
 
-    virtual bool isFunction();
-    void setFunctionNode(NodeBlockFunctionDefinition * func);
-    NodeBlockFunctionDefinition *  getFunctionNode();
-
-    virtual const std::string getMangledPrefix();
-
-    const std::string getMangledNameWithTypes(CompilerState & state);
-
-    bool matchingTypes(std::vector<UlamType *> argTypes);
-
-  protected:
-
-  private:
-    std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
-    NodeBlockFunctionDefinition * m_functionNode;
-  };
-
-}
-
-#endif //end SYMBOLFUNCTION_H

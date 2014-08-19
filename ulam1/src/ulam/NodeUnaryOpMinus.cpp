@@ -24,7 +24,8 @@ namespace MFM {
   void NodeUnaryOpMinus::doUnaryOperation(u32 slot, u32 nslots)
   {
     UlamType * nut = getNodeType();
-    UTI typidx = m_state.getUlamTypeIndex(nut);
+    UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
+    UTI typidx = m_state.getUlamTypeIndex(scalartype);
     
     for(u32 i = 0; i < nslots; i++)
       {

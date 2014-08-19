@@ -2,6 +2,7 @@
 #include <string.h>
 #include "CompilerState.h"
 #include "Symbol.h"
+#include "util.h"
 
 namespace MFM {
 
@@ -47,7 +48,10 @@ namespace MFM {
   const std::string Symbol::getMangledName(CompilerState& state)
   {
        std::ostringstream mangled;
-       mangled << getMangledPrefix() << state.m_pool.getDataAsString(getId()).c_str();
+       std::string nstr = state.m_pool.getDataAsString(getId());
+       u32 nstrlen = nstr.length();
+
+       mangled << getMangledPrefix() << countDigits(nstrlen) << nstrlen << nstr.c_str();
        return mangled.str();
   }
 

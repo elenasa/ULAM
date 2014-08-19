@@ -1,8 +1,10 @@
 #include <stdio.h>
+
 #include "NodeBlockClass.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
-
+#include "SymbolFunctionName.h"
+#include "util.h"
 
 namespace MFM {
 
@@ -170,13 +172,19 @@ namespace MFM {
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
   {
-    Symbol * fsym;
+    Symbol * fnSym;
     NodeBlockFunctionDefinition * func = NULL;
     u32 testid = m_state.m_pool.getIndexForDataString("test");
-    if(isFuncIdInScope(testid, fsym))
+    if(isFuncIdInScope(testid, fnSym))
       {
-	func = ((SymbolFunction *) fsym)->getFunctionNode();
+	SymbolFunction * funcSymbol = NULL;
+	std::vector<UlamType*> voidVector;
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol))
+	  {
+	    func = funcSymbol->getFunctionNode();
+	  }
       }
+
     return func;
   }
 

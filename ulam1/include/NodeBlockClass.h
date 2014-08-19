@@ -75,7 +75,7 @@ namespace MFM{
     virtual void genCode(File * fp);
 
   protected:
-    SymbolTable m_functionST;
+    SymbolTable m_functionST;  
 
   private:
     NodeBlockFunctionDefinition * findTestFunctionNode();
