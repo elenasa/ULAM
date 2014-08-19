@@ -1,6 +1,7 @@
 #include "SymbolFunction.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
@@ -73,6 +74,54 @@ namespace MFM {
   const std::string SymbolFunction::getMangledPrefix()
   {
     return "Uf_";
+  }
+
+
+  //supports overloading functions with SymbolFunctionName
+  const std::string SymbolFunction::getMangledNameWithTypes(CompilerState& state)
+  {
+    std::ostringstream mangled;
+    mangled << Symbol::getMangledName(state);  //e.g. Uf_14name, with lexNumbers
+
+    // use void type when no parameters
+    if(m_parameterSymbols.empty())
+      {
+	UlamType * vit = state.getUlamTypeByIndex(Void);
+	mangled << vit->getUlamTypeMangledName().c_str();
+      }
+
+    // append mangled type name, e.g. 1023213Int, for each parameter
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+      {
+	Symbol * sym = m_parameterSymbols[i];
+	mangled << sym->getUlamType()->getUlamTypeMangledName().c_str();
+      }
+
+    return mangled.str();
+  }
+
+
+  bool SymbolFunction::matchingTypes(std::vector<UlamType *> argTypes)
+  {
+    u32 numArgs = argTypes.size();
+
+    // check number of args first
+    if(numArgs != m_parameterSymbols.size())
+      return false;
+
+    bool rtnBool = true;
+
+    //next match types; order counts!
+    for(u32 i=0; i < numArgs; i++)
+      {
+	if(m_parameterSymbols.at(i)->getUlamType() != argTypes[i])
+	  {
+	    rtnBool = false;
+	    break;
+	  }
+      }
+
+    return rtnBool;
   }
 
 

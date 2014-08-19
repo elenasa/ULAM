@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolFunction.h -  Function Symbol handling for ULAM
+ * SymbolFunctionName.h -  Function Symbol Name handling for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file SymbolFunction.h -  Function Symbol handling for ULAM
+  \file SymbolFunctionName.h -  Function Symbol Name handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,45 +34,46 @@
 */
 
 
-#ifndef SYMBOLFUNCTION_H
-#define SYMBOLFUNCTION_H
+#ifndef SYMBOLFUNCTIONNAME_H
+#define SYMBOLFUNCTIONNAME_H
 
+#include <map>
 #include <vector>
 #include "Symbol.h"
+#include "SymbolFunction.h"
 
 namespace MFM{
 
-  class NodeBlockFunctionDefinition;  //forward
 
-  class SymbolFunction : public Symbol
+  class SymbolFunctionName : public Symbol
   {
   public:
-    SymbolFunction(u32 id, UlamType * typetoreturn);
-    ~SymbolFunction();
-
-    void addParameterSymbol(Symbol * argSym);
-    u32 getNumberOfParameters();    
-    u32 getTotalSizeOfParameters();
-
-    Symbol * getParameterSymbolPtr(u32 n);
+    SymbolFunctionName(u32 id, UlamType * typetoreturn);
+    ~SymbolFunctionName();
 
     virtual bool isFunction();
-    void setFunctionNode(NodeBlockFunctionDefinition * func);
-    NodeBlockFunctionDefinition *  getFunctionNode();
 
     virtual const std::string getMangledPrefix();
 
-    const std::string getMangledNameWithTypes(CompilerState & state);
+    bool overloadFunction(SymbolFunction * fsym, CompilerState& state);
 
-    bool matchingTypes(std::vector<UlamType *> argTypes);
+    bool findMatchingFunction(std::vector<UlamType *> argTypes, SymbolFunction *& funcSymbol);
+
+    u32 getDepthSumOfFunctions();
+
+    void labelFunctions();
+
+    void generateCodedFunctions(File * fp);
 
   protected:
 
   private:
-    std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
-    NodeBlockFunctionDefinition * m_functionNode;
+    std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr	 
+    bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
+
+
   };
 
 }
 
-#endif //end SYMBOLFUNCTION_H
+#endif //end SYMBOLFUNCTIONNAME_H

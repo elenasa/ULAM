@@ -2,6 +2,7 @@
 #include <string.h>
 #include <assert.h>
 #include "UlamKeyTypeSignature.h"
+#include "util.h"
 
 namespace MFM {
 
@@ -52,35 +53,12 @@ namespace MFM {
   }
 
 
-  static u32 countDigits(u32 num) 
-  {
-    const u32 BASE = 10;
-    u32 digits = 0;
-    do {
-      ++digits;
-      num /= BASE;
-    } while (num > 0);
-    return digits;
-  }
-
-
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureMangledName()
   {
     //Ut_18232Int  == Int[8]
     std::ostringstream mangled;
-    mangled << "Ut_";
-    if(m_arraySize > 0)
-      mangled << countDigits(m_arraySize) << m_arraySize;
-    else
-      mangled << "0";
-
-    if(m_bits > 0)
-      mangled << countDigits(m_bits) << m_bits;
-    else
-      mangled << "0";
-
-    mangled << m_typeName;
-
+    
+    mangled << "Ut_" << countDigits(m_arraySize) << m_arraySize << countDigits(m_bits) << m_bits << countDigits(strlen(m_typeName)) << strlen(m_typeName) << m_typeName;
     return mangled.str();
   }
 

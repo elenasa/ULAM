@@ -183,7 +183,7 @@ namespace MFM {
       fpm->write("MFM::UlamTest_Class utest;\n");
 
       m_state.indent(fpm);
-      fpm->write("return utest.Uf_test();\n");  //mangled test name
+      fpm->write("return utest.Uf_14test();\n");  //hardcoded mangled test name
 
       m_state.m_currentIndentLevel--;
 
