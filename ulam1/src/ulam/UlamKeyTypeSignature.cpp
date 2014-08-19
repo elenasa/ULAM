@@ -3,25 +3,21 @@
 #include <assert.h>
 #include "UlamKeyTypeSignature.h"
 #include "util.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
   UlamKeyTypeSignature::UlamKeyTypeSignature(){}
 
-
-  UlamKeyTypeSignature::UlamKeyTypeSignature(const char * name, u32 bitsize, u32 arraysize) : m_bits(bitsize), m_arraySize(arraysize) 
-  {
-    strncpy(m_typeName, name, MAX_TYPENAME_LEN);
-    m_typeName[MAX_TYPENAME_LEN] = '\0';
-  }
-
+  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, u32 bitsize, u32 arraysize ): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize) {}
 
   UlamKeyTypeSignature::~UlamKeyTypeSignature(){}
 
 
-  char * UlamKeyTypeSignature::getUlamKeyTypeSignatureName()
+  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureName(CompilerState * state)
   {
-    return m_typeName;
+    return state->m_pool.getDataAsString(m_typeNameId);
+    //return m_typeName;
   }
 
 
@@ -37,36 +33,40 @@ namespace MFM {
   }
 
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString()
+  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(CompilerState * state)
   {
     std::ostringstream key;
-    key << m_typeName << "." << m_bits << "." << m_arraySize << '\0';
+    key << getUlamKeyTypeSignatureName(state) << "." << m_bits << "." << m_arraySize << '\0';
     return key.str();
   }
 
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk)
+  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState* state)
   {
     std::ostringstream key;
-    key << utk.m_typeName << "." << utk.m_bits << "." << utk.m_arraySize;
+    key << utk.getUlamKeyTypeSignatureName(state) << "." << utk.m_bits << "." << utk.m_arraySize;
     return key.str();
   }
 
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureMangledName()
+  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureMangledName(CompilerState * state)
   {
     //Ut_18232Int  == Int[8]
     std::ostringstream mangled;
-    
-    mangled << "Ut_" << countDigits(m_arraySize) << m_arraySize << countDigits(m_bits) << m_bits << countDigits(strlen(m_typeName)) << strlen(m_typeName) << m_typeName;
+    std::string nstr = state->m_pool.getDataAsString(m_typeNameId);
+    u32 nstrlen = nstr.length();
+    mangled << "Ut_" << countDigits(m_arraySize) << m_arraySize << countDigits(m_bits) << m_bits << countDigits(nstrlen) << nstrlen << nstr.c_str();
     return mangled.str();
   }
 
 
   bool UlamKeyTypeSignature::operator<(const UlamKeyTypeSignature & key2)
   {    
-    if(strcmp(m_typeName, key2.m_typeName) < 0) return true;
-    if(strcmp(m_typeName, key2.m_typeName) > 0) return false;  
+    //if(strcmp(m_typeName, key2.m_typeName) < 0) return true;
+    //if(strcmp(m_typeName, key2.m_typeName) > 0) return false;  
+    if(m_typeNameId < key2.m_typeNameId) return true;  //?
+    if(m_typeNameId > key2.m_typeNameId) return false; //?
+   
     if(m_bits < key2.m_bits) return true;
     if(m_bits > key2.m_bits) return false;
     if(m_arraySize < key2.m_arraySize) return true;
@@ -77,7 +77,8 @@ namespace MFM {
 
   bool UlamKeyTypeSignature::operator==(const UlamKeyTypeSignature & key2)
   {    
-    return ((strcmp(m_typeName, key2.m_typeName)== 0) && (m_bits == key2.m_bits) && (m_arraySize == key2.m_arraySize));
+    //return ((strcmp(m_typeName, key2.m_typeName)== 0) && (m_bits == key2.m_bits) && (m_arraySize == key2.m_arraySize));
+    return ((m_typeNameId == key2.m_typeNameId) && (m_bits == key2.m_bits) && (m_arraySize == key2.m_arraySize));
   }
 
 } //end MFM

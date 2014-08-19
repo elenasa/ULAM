@@ -21,7 +21,7 @@ namespace MFM {
     if(!myut)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName().c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
     fp->write(id);
 
     //parameters in symbol
@@ -38,7 +38,7 @@ namespace MFM {
   void NodeBlockFunctionDefinition::printPostfix(File * fp)
   {
     fp->write(" ");
-    fp->write(m_funcSymbol->getUlamType()->getUlamTypeNameBrief()); //short type name
+    fp->write(m_funcSymbol->getUlamType()->getUlamTypeNameBrief(&m_state).c_str()); //short type name
     fp->write(" ");
     fp->write(getName());
     // has no m_node! 
@@ -53,7 +53,7 @@ namespace MFM {
 	
 	Symbol * asym = m_funcSymbol->getParameterSymbolPtr(i);
 	assert(asym);
-	fp->write(asym->getUlamType()->getUlamTypeNameBrief()); //short type name
+	fp->write(asym->getUlamType()->getUlamTypeNameBrief(&m_state).c_str()); //short type name
 	fp->write(" ");
 	fp->write(m_state.m_pool.getDataAsString(asym->getId()).c_str());
 
@@ -203,9 +203,9 @@ namespace MFM {
     assert(m_nextNode);
 
     m_state.indent(fp);
-    fp->write(m_funcSymbol->getUlamType()->getUlamTypeMangledName().c_str()); //for C++ XXX
+    fp->write(m_funcSymbol->getUlamType()->getUlamTypeMangledName(&m_state).c_str()); //for C++ XXX
     fp->write(" ");
-    fp->write(m_funcSymbol->getMangledName(m_state).c_str());
+    fp->write(m_funcSymbol->getMangledName(&m_state).c_str());
     // has no m_node! 
     // declaration has no m_nextNode!!
     fp->write("(");
@@ -218,9 +218,9 @@ namespace MFM {
 	
 	Symbol * asym = m_funcSymbol->getParameterSymbolPtr(i);
 	assert(asym);
-	fp->write(asym->getUlamType()->getUlamTypeMangledName().c_str()); //for C++
+	fp->write(asym->getUlamType()->getUlamTypeMangledName(&m_state).c_str()); //for C++
 	fp->write(" ");
-	fp->write(asym->getMangledName(m_state).c_str());
+	fp->write(asym->getMangledName(&m_state).c_str());
       }
 
     fp->write(")");

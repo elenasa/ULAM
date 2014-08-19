@@ -29,7 +29,7 @@ namespace MFM {
     if(!myut)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName().c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
     fp->write(id);
 
     //overrides NodeBlock print, has m_root, no m_node or m_nextNode.
@@ -209,7 +209,7 @@ namespace MFM {
     for(u32 i = 1; i < numTypes; i++)
       {
 	UlamType * ut = m_state.getUlamTypeByIndex(i);
-	ut->genUlamTypeMangledDefinitionForC(fp,m_state);
+	ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
       }
   }
 

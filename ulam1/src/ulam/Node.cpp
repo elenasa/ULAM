@@ -14,7 +14,7 @@ namespace MFM {
     if(!myut)    
       sprintf(id,"%s<NOTYPE>\n",prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName().c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
     fp->write(id);
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());

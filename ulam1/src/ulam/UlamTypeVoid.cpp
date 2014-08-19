@@ -72,7 +72,7 @@ namespace MFM {
     }
 
 
-  void UlamTypeVoid::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
+  void UlamTypeVoid::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
   {
     assert(m_key.m_arraySize == 0);      
     sprintf(valstr,"0");

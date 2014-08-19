@@ -60,7 +60,7 @@ namespace MFM{
     void setDataMember();
     bool isDataMember();
 
-    const std::string getMangledName(CompilerState& state);
+    const std::string getMangledName(CompilerState * state);
     virtual const std::string getMangledPrefix() = 0;
 
   protected:

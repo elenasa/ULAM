@@ -45,10 +45,10 @@ namespace MFM {
   }
 
 
-  const std::string Symbol::getMangledName(CompilerState& state)
+  const std::string Symbol::getMangledName(CompilerState * state)
   {
        std::ostringstream mangled;
-       std::string nstr = state.m_pool.getDataAsString(getId());
+       std::string nstr = state->m_pool.getDataAsString(getId());
        u32 nstrlen = nstr.length();
 
        mangled << getMangledPrefix() << countDigits(nstrlen) << nstrlen << nstr.c_str();

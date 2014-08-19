@@ -55,7 +55,7 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
-    bool overloadFunction(SymbolFunction * fsym, CompilerState& state);
+    bool overloadFunction(SymbolFunction * fsym, CompilerState * state);
 
     bool findMatchingFunction(std::vector<UlamType *> argTypes, SymbolFunction *& funcSymbol);
 

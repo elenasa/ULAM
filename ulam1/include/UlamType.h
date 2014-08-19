@@ -75,9 +75,9 @@ namespace MFM{
     /** returns a pointer to UlamType */
     UlamType * getUlamType();
     
-    const std::string getUlamTypeName();
+    const std::string getUlamTypeName(CompilerState * state);
 
-    const char * getUlamTypeNameBrief();
+    const std::string getUlamTypeNameBrief(CompilerState * state);
 
     UTI getUlamTypeIndex();
 
@@ -85,7 +85,7 @@ namespace MFM{
 
     virtual bool cast(UlamValue& val) = 0;
 
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state) = 0;
+    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state) = 0;
 
     virtual bool isZero(const UlamValue & val) = 0;
 
@@ -95,9 +95,9 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    const std::string getUlamTypeMangledName();
+    const std::string getUlamTypeMangledName(CompilerState * state);
 
-    void genUlamTypeMangledDefinitionForC(File * fp, CompilerState& state);
+    void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
 
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
 

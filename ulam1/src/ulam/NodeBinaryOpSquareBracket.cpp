@@ -104,7 +104,7 @@ namespace MFM {
 	return ERROR;
       }
 
-    assignReturnValueToStack(pluv.getValAt(offset.m_valInt, m_state));
+    assignReturnValueToStack(pluv.getValAt(offset.m_valInt, &m_state));
 
     evalNodeEpilog();
     return NORMAL;

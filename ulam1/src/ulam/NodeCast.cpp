@@ -98,7 +98,7 @@ namespace MFM {
 	if(!(tobeType->cast(uv)))
 	  {
 	    std::ostringstream msg;
-	    msg << "Cast problem! Value type <" << uv.getUlamValueType()->getUlamTypeName().c_str() << "> failed to be cast as type: <" << tobeType->getUlamTypeName().c_str() << ">";
+	    msg << "Cast problem! Value type <" << uv.getUlamValueType()->getUlamTypeName(&m_state).c_str() << "> failed to be cast as type: <" << tobeType->getUlamTypeName(&m_state).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
@@ -114,7 +114,7 @@ namespace MFM {
   void NodeCast::genCode(File * fp)
   {
     fp->write("(");
-    fp->write(getNodeType()->getUlamTypeMangledName().c_str());
+    fp->write(getNodeType()->getUlamTypeMangledName(&m_state).c_str());
     fp->write(") ");
     fp->write("(");
     m_node->genCode(fp);

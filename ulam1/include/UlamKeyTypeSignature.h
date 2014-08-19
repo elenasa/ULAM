@@ -43,29 +43,28 @@
 
 namespace MFM{
   
-#define MAX_TYPENAME_LEN 15
+  struct CompilerState;  //forward
   
   struct UlamKeyTypeSignature
   {
-    char m_typeName[MAX_TYPENAME_LEN + 1];
-    u32  m_bits;
+    u32 m_typeNameId;
+    u32 m_bits;
     u32 m_arraySize;
 
     UlamKeyTypeSignature();
-    UlamKeyTypeSignature(const char * name, u32 bitsize, u32 arraysize=0);
+    UlamKeyTypeSignature(u32 nameid, u32 bitsize, u32 arraysize=0);
     ~UlamKeyTypeSignature();
     
-    char * getUlamKeyTypeSignatureName();
+    const std::string getUlamKeyTypeSignatureName(CompilerState * state);
     u32 getUlamKeyTypeSignatureBitSize();
     u32 getUlamKeyTypeSignatureArraySize();
-    const std::string getUlamKeyTypeSignatureAsString();
-    static const std::string getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk);
+    const std::string getUlamKeyTypeSignatureAsString(CompilerState * state);
+    static const std::string getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState * state);
 
-    const std::string getUlamKeyTypeSignatureMangledName();
+    const std::string getUlamKeyTypeSignatureMangledName(CompilerState * state);
 
     bool operator<(const UlamKeyTypeSignature & key2);
     bool operator==(const UlamKeyTypeSignature & key2);
-
   };
   
   

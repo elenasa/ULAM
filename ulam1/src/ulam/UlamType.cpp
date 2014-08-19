@@ -25,17 +25,17 @@ namespace MFM {
   }
 
 
-  const std::string UlamType::getUlamTypeName()
+  const std::string UlamType::getUlamTypeName(CompilerState * state)
   {
-    return m_key.getUlamKeyTypeSignatureAsString();
+    return m_key.getUlamKeyTypeSignatureAsString(state);
     // REMINDER!! error due to disappearing string:
     //    return m_key.getUlamKeyTypeSignatureAsString().c_str();  
   }
 
 
-  const char * UlamType::getUlamTypeNameBrief()
+  const std::string UlamType::getUlamTypeNameBrief(CompilerState * state)
   {
-    return m_key.getUlamKeyTypeSignatureName();
+    return m_key.getUlamKeyTypeSignatureName(state);
   }
 
 
@@ -57,9 +57,9 @@ namespace MFM {
   }
 
 
-  const std::string UlamType::getUlamTypeMangledName()
+  const std::string UlamType::getUlamTypeMangledName(CompilerState * state)
   {
-    return m_key.getUlamKeyTypeSignatureMangledName();
+    return m_key.getUlamKeyTypeSignatureMangledName(state);
   }
 
 
@@ -69,43 +69,43 @@ namespace MFM {
   }
    
  
-  void UlamType::genUlamTypeMangledDefinitionForC(File * fp, CompilerState& state)
+  void UlamType::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
   {
-    state.m_currentIndentLevel = 0;
-    const std::string mangledName = getUlamTypeMangledName();	
+    state->m_currentIndentLevel = 0;
+    const std::string mangledName = getUlamTypeMangledName(state);	
     std::ostringstream  up;
     up << "Up_" << mangledName;
     std::string upstr = up.str();
     
-    state.indent(fp);
+    state->indent(fp);
     fp->write("#ifndef ");
     fp->write(upstr.c_str());
     fp->write("\n");
     
-    state.indent(fp);
+    state->indent(fp);
     fp->write("#define ");
     fp->write(upstr.c_str());
     fp->write("\n");
     
-    state.indent(fp);
+    state->indent(fp);
     fp->write("namespace MFM{\n");
     
-    state.m_currentIndentLevel++;
+    state->m_currentIndentLevel++;
     
     u32 arraysize = getArraySize();
     if(arraysize > 0)
       {
-	state.indent(fp);
+	state->indent(fp);
 	fp->write("struct ");
 	fp->write(mangledName.c_str());
 	fp->write("\n");
-	state.indent(fp);
+	state->indent(fp);
 	fp->write(" {\n");
     
-	state.m_currentIndentLevel++;
-	state.indent(fp);
+	state->m_currentIndentLevel++;
+	state->indent(fp);
 	fp->write(getUlamTypeAsStringForC().c_str());
-	fp->write(" ");  //getsinglelowercaseletterfortype
+	fp->write(" ");  
 	fp->write(getUlamTypeAsSingleLowercaseLetter());
 	
 	u32 arraysize = getArraySize();
@@ -117,13 +117,13 @@ namespace MFM {
 	  }
 	fp->write(";\n");
 
-	state.m_currentIndentLevel--;
-	state.indent(fp);
+	state->m_currentIndentLevel--;
+	state->indent(fp);
 	fp->write("};\n");
       }
     else
       {
-	state.indent(fp);
+	state->indent(fp);
 	fp->write("typedef ");
 	fp->write(getUlamTypeAsStringForC().c_str());
 	fp->write(" ");
@@ -131,11 +131,11 @@ namespace MFM {
 	fp->write(";\n");
       }
 
-    state.m_currentIndentLevel--;
-    state.indent(fp);
+    state->m_currentIndentLevel--;
+    state->indent(fp);
     fp->write("} //MFM\n");
     
-    state.indent(fp);
+    state->indent(fp);
     fp->write("#endif /*");
     fp->write(upstr.c_str());
     fp->write(" */\n\n");

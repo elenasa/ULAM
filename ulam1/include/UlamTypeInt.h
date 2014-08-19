@@ -62,7 +62,7 @@ namespace MFM{
 
     virtual bool cast(UlamValue & val);
 
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state);
+    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state);
 
     virtual bool isZero(const UlamValue & val);
     

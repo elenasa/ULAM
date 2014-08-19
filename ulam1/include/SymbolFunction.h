@@ -62,7 +62,7 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
-    const std::string getMangledNameWithTypes(CompilerState & state);
+    const std::string getMangledNameWithTypes(CompilerState * state);
 
     bool matchingTypes(std::vector<UlamType *> argTypes);
 

@@ -71,11 +71,11 @@ namespace MFM{
     void init(UlamType * arrayUType, s32 baseArrayIndex, bool headerOnly, STORAGE place);
 
     UlamType * getUlamValueType();
-    void getUlamValueAsString(char * valstr, CompilerState& state);
+    void getUlamValueAsString(char * valstr, CompilerState * state);
     bool isZero();
     u32 isArraySize();
 
-    UlamValue getValAt(s32 arrayindex, CompilerState& state) const;
+    UlamValue getValAt(s32 arrayindex, CompilerState * state) const;
   };
 
 }

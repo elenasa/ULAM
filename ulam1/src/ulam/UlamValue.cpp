@@ -32,7 +32,7 @@ namespace MFM {
   }
 
 
-  void UlamValue::getUlamValueAsString(char * valstr, CompilerState& state)
+  void UlamValue::getUlamValueAsString(char * valstr, CompilerState * state)
   {
     if(m_utype)
       m_utype->getUlamValueAsString(*this, valstr, state);
@@ -56,30 +56,30 @@ namespace MFM {
   }
 
 
-  UlamValue UlamValue::getValAt(s32 arrayindex, CompilerState& state) const
+  UlamValue UlamValue::getValAt(s32 arrayindex, CompilerState * state) const
   { 
     assert(m_utype->getArraySize() > 0);
     s32 index = m_baseArraySlotIndex + arrayindex;
    
     if(m_storage == ATOM)
       {
-	return state.m_selectedAtom.getDataMemberAt(index);
+	return state->m_selectedAtom.getDataMemberAt(index);
       }
     else if(m_storage == STACK)
       {
-	return state.m_funcCallStack.getFrameSlotAt(index);
+	return state->m_funcCallStack.getFrameSlotAt(index);
       }
     else if(m_storage == EVALRETURN)
       {
 	assert(0);  //not valid i think
-	return state.m_nodeEvalStack.getFrameSlotAt(index);
+	return state->m_nodeEvalStack.getFrameSlotAt(index);
       }
     else 
       {
 	assert(0);
       }
 
-    return UlamValue(state.getUlamTypeByIndex(Nav), 0, IMMEDIATE); //for compiler
+    return UlamValue(state->getUlamTypeByIndex(Nav), 0, IMMEDIATE); //for compiler
   }
 
 
