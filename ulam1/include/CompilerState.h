@@ -42,19 +42,20 @@
 #include <vector>
 #include <map>
 #include "itype.h"
-#include "Tokenizer.h"
+#include "CallStack.h"
+#include "ErrorMessageHandler.h"
+#include "File.h"
 #include "NodeBlock.h"
 #include "NodeCast.h"
 #include "NodeReturnStatement.h"
-#include "UlamType.h"
 #include "Token.h"
-#include "ErrorMessageHandler.h"
+#include "Tokenizer.h"
 #include "StringPool.h"
-#include "SymbolTable.h"
 #include "SymbolFunction.h"
-#include "CallStack.h"
+#include "SymbolTable.h"
 #include "UlamAtom.h"
-#include "File.h"
+#include "UlamType.h"
+
 
 namespace MFM{
 

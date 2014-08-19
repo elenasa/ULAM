@@ -1,17 +1,18 @@
 #include <stdio.h>
 #include <iostream>
-#include "SymbolVariable.h"
-#include "SymbolTypedef.h"
 #include "CompilerState.h"
-#include "UlamTypeNav.h"
-#include "UlamTypeVoid.h"
-#include "UlamTypeInt.h"
-#include "UlamTypeFloat.h"
+#include "NodeBlockClass.h"
+#include "SymbolTypedef.h"
+#include "SymbolVariable.h"
+#include "UlamTypeAtom.h"
 #include "UlamTypeBool.h"
 #include "UlamTypeElement.h"
+#include "UlamTypeFloat.h"
+#include "UlamTypeInt.h"
+#include "UlamTypeNav.h"
 #include "UlamTypeQuark.h"
-#include "UlamTypeAtom.h"
-#include "NodeBlockClass.h"
+#include "UlamTypeVoid.h"
+
 
 namespace MFM {
 

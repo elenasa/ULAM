@@ -47,7 +47,6 @@ namespace MFM {
   }
 
 
-
   UlamType * NodeReturnStatement::checkAndLabelType()
   {
     assert(m_node);

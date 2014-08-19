@@ -3,11 +3,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "Parser.h"
-#include "NodeTerminal.h"
-#include "NodeTerminalIdent.h"
-#include "NodeUnaryOpMinus.h"
-#include "NodeUnaryOpPlus.h"
-#include "NodeUnaryOpBang.h"
 #include "NodeBinaryOpSubtract.h"
 #include "NodeBinaryOpAdd.h"
 #include "NodeBinaryOpMultiply.h"
@@ -23,21 +18,27 @@
 #include "NodeBinaryOpBitwiseOrEqual.h"
 #include "NodeBinaryOpBitwiseXorEqual.h"
 #include "NodeBinaryOpSquareBracket.h"
-#include "NodeVarDeclList.h"
+#include "NodeBlock.h"
+#include "NodeBlockEmpty.h"
+#include "NodeBlockFunctionDefinition.h"
+#include "NodeCast.h"
 #include "NodeControlIf.h"
 #include "NodeControlWhile.h"
 #include "NodeProgram.h"
-#include "NodeBlock.h"
-#include "NodeVarDecl.h"
-#include "NodeTypedef.h"
-#include "NodeStatementEmpty.h"
-#include "NodeBlockEmpty.h"
-#include "NodeBlockFunctionDefinition.h"
 #include "NodeReturnStatement.h"
+#include "NodeTerminal.h"
+#include "NodeTerminalIdent.h"
+#include "NodeTypedef.h"
 #include "NodeSimpleStatement.h"
-#include "SymbolVariable.h"
+#include "NodeStatementEmpty.h"
+#include "NodeUnaryOpMinus.h"
+#include "NodeUnaryOpPlus.h"
+#include "NodeUnaryOpBang.h"
+#include "NodeVarDecl.h"
+#include "NodeVarDeclList.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
+#include "SymbolVariable.h"
 
 
 namespace MFM {
@@ -808,11 +809,22 @@ namespace MFM {
 	break;
       case TOK_OPEN_PAREN:
 	{
-	  rtnNode = parseExpression();
-	  if(!getExpectedToken(TOK_CLOSE_PAREN)) 
+	  //if next token is a type this a user cast, o.w. expression
+	  Token tTok;
+	  getNextToken(tTok);
+	  if(Token::isTokenAType(tTok,&m_state))
 	    {
-	      delete rtnNode;
-	      rtnNode = NULL;
+	      rtnNode = makeCastNode(tTok); 
+	    }	      
+	  else
+	    {
+	      unreadToken();
+	      rtnNode = parseExpression();
+	      if(!getExpectedToken(TOK_CLOSE_PAREN)) 
+		{
+		  delete rtnNode;
+		  rtnNode = NULL;
+		}
 	    }
 	}
 	break;
@@ -889,6 +901,29 @@ namespace MFM {
       };
     
     return rtnNode;  //parseRestOfFactor
+  }
+
+
+  Node * Parser::makeCastNode(Token typeTok)
+  {
+    Node * rtnNode = NULL;
+    std::string typeName = m_state.getTokenAsATypeName(typeTok); //either primitive or typedef
+    UlamType * typeToBe;
+
+    if(!m_state.getUlamTypeByTypedefName(typeName.c_str(), typeToBe))
+      {
+	assert(Token::getSpecialTokenWork(typeTok.m_type) == TOKSP_TYPEKEYWORD);
+	ULAMTYPE UT = UlamType::getEnumFromUlamTypeString(typeName.c_str());
+	typeToBe = m_state.getUlamTypeByIndex(UT);
+      }
+
+    if(getExpectedToken(TOK_CLOSE_PAREN)) 
+      {
+	rtnNode = new NodeCast(parseFactor(),typeToBe,m_state);
+	rtnNode->setNodeLocation(typeTok.m_locator);
+      }
+
+    return rtnNode;
   }
 
 

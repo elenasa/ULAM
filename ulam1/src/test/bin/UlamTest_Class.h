@@ -23,9 +23,9 @@ namespace MFM{
 
     Ut_1023213Int Uf_14test()
     {
-      Ut_101814Bool Uv_16mybool;
-      Uv_16mybool = true;
-      Um_11d = Uf_13foo(Uv_16mybool);
+      Ut_1023213Int Uv_11a;
+      Uv_11a = 1;
+      Um_11d = Uf_13foo((Ut_101814Bool) (Uv_11a));
       return (Um_11d.i[0]);
     }
 
