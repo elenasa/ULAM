@@ -30,12 +30,10 @@ namespace MFM {
 
   UlamType * NodeCast::checkAndLabelType()
   { 
-    // unlike the other nodes, nodecast is created by other nodes during checkAndLabelType, 
-    // and knows at construction type what it is,
-    // and what it needs to cast its child to be during eval.
+    // unlike the other nodes, nodecast knows its type at construction time;
     // this is for checking for errors, before eval happens.
     UlamType * tobeType = getNodeType();
-    UlamType * nodeType = m_node->getNodeType(); 
+    UlamType * nodeType = m_node->checkAndLabelType(); //user cast 
 
     if(tobeType == m_state.getUlamTypeByIndex(Nav))
       MSG(getNodeLocationAsString().c_str(), "Cannot cast to Nav.", ERR);

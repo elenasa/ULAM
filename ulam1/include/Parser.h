@@ -222,6 +222,7 @@ namespace MFM{
      */
     Node * makeFunctionSymbol(Token typeTok, Token identTok);
 
+
     /** helper method */
     NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, Token identTok);
     
@@ -251,15 +252,22 @@ namespace MFM{
 
 
     /** 
-	<UNOP> := '-' | '+' | '!'
+	<UNOP> := '-' | '+' | '!' | <CAST>
     */
     Node * parseRestOfFactor();
+
+
+    /**
+       <CAST> := '(' + <TYPE> + ')'
+    */
+    Node * makeCastNode(Token typeTok);
 
 
     /**
        helper method to make assigment nodes
     */
     NodeBinaryOpEqual * makeAssignExprNode(Node * leftNode);
+
 
     /**
        helper method to make binary expression nodes

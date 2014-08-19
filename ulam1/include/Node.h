@@ -41,11 +41,10 @@
 #include <stdio.h>
 #include <assert.h>
 #include "File.h"
-#include "UlamType.h"
-#include "UlamValue.h"
 #include "Locator.h"
 #include "Symbol.h"
-
+#include "UlamType.h"
+#include "UlamValue.h"
 
 namespace MFM{
 
