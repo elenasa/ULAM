@@ -27,10 +27,24 @@ namespace MFM {
     return m_SS.getPathFromLocator(loc);
   }
 
+
   bool Lexer::push(std::string filename, bool onlyOnce)
   {
     return m_SS.push(filename,onlyOnce);
   }
+
+
+  u32 Lexer::getFileUlamVersion() const 
+  {
+    return m_SS.getFileUlamVersion();
+  }
+
+
+  void Lexer::setFileUlamVersion(u32 ver)
+  {
+    m_SS.setFileUlamVersion(ver);
+  }
+
 
   void Lexer::unread()
   {

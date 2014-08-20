@@ -30,7 +30,7 @@ namespace MFM {
   const std::string UlamTypeInt::getUlamTypeAsStringForC()
   {
     std::ostringstream ctype;
-    ctype <<  "s" << m_key.m_bits;
+    ctype <<  "s" << m_key.getUlamKeyTypeSignatureBitSize();
     return ctype.str();
   }
 

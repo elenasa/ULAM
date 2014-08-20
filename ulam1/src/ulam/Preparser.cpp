@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "Preparser.h"
 
 namespace MFM {
@@ -10,6 +11,18 @@ namespace MFM {
   bool Preparser::push(std::string filename, bool onlyOnce)
   {
     return m_tokenizer->push(filename,onlyOnce);
+  }
+
+
+  u32 Preparser::getFileUlamVersion() const 
+  {
+    return m_tokenizer->getFileUlamVersion();
+  }
+
+
+  void Preparser::setFileUlamVersion(u32 ver)
+  {
+    m_tokenizer->setFileUlamVersion(ver);
   }
 
 
@@ -35,6 +48,10 @@ namespace MFM {
     else if(returnTok.m_type == TOK_KW_LOAD)
       {
 	return preparseKeywordLoad(returnTok);
+      }
+    else if(returnTok.m_type == TOK_KW_ULAM)
+      {
+	return preparseKeywordUlam(returnTok);
       }
 
     return true;
@@ -114,6 +131,44 @@ namespace MFM {
 	  } //end while
 	
 	return false;
+  }
+
+
+  bool Preparser::preparseKeywordUlam(Token & tok)
+  {
+    bool rtnBool = false;
+    Token ulamTok = tok;
+
+    Token nTok;
+    getNextToken(nTok);
+
+    if(nTok.m_type == TOK_NUMBER)
+      {
+	std::string nstr = m_state.getDataAsString(&nTok);
+	const char * numlist = nstr.c_str();
+	char * nEnd;
+	s32 numval = strtol(numlist, &nEnd, 10);   //base 10
+	setFileUlamVersion(numval);
+	rtnBool = true;
+
+	getNextToken(nTok);
+	if(nTok.m_type != TOK_SEMICOLON)  //e.g. float used in error
+	   {
+	     tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, 0);
+	     rtnBool = false;
+	   }
+	else
+	  {
+	    rtnBool = getNextToken(tok);
+	  }
+      }
+    else
+      {
+	tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, 0);
+	rtnBool = false;
+      }
+
+    return rtnBool;
   }
 
   
