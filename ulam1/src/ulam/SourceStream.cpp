@@ -201,4 +201,48 @@ namespace MFM {
     return lloc.getByteNo();
   }
 
+
+  u32 SourceStream::getFileUlamVersion() const
+  {
+    // If the most recent call to read() returned EOF, return the first
+    //	file that was push()ed into this SourceStream (i.e. everything popped).
+    if (m_openFilesStack.empty())
+      {
+	if(m_fileRecords.size() > 1)
+	  {
+	    return m_fileRecords[1].m_version; 
+	  }
+	else
+	  {
+	    return 0;
+	  }
+      }
+    
+    u16 id = m_openFilesStack.top();
+    
+    return m_fileRecords[id].m_version;
+  }
+
+    
+  void SourceStream::setFileUlamVersion(u32 ver)
+  {
+    // If the most recent call to read() returned EOF, return the first
+    //	file that was push()ed into this SourceStream (i.e. everything popped).
+    if (m_openFilesStack.empty())
+      {
+	if(m_fileRecords.size() > 1)
+	  {
+	    m_fileRecords[1].m_version = ver; 
+	  }
+	else
+	  {
+	    //error!
+	    return;
+	  }
+      }
+
+    u16 id = m_openFilesStack.top(); 
+    m_fileRecords[id].m_version = ver;
+  }
+
 }  //end MFM

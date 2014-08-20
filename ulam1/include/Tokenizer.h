@@ -62,6 +62,14 @@ namespace MFM{
     
     void unreadToken();
 
+
+    /** returns Ulam version of current filename from underlying sourcestream; 0 is unknown */
+    virtual u32 getFileUlamVersion() const = 0;
+    
+    /** passes through Ulam version of current filename to underlying sourcestream */
+    virtual void setFileUlamVersion(u32 ver) = 0;
+
+
   protected:
 
       Token m_lastToken;

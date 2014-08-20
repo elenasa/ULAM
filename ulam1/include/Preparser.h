@@ -56,6 +56,13 @@ namespace MFM{
       
     virtual bool push(std::string filename, bool onlyOnce = true);
 
+    /** returns Ulam version of current filename from underlying sourcestream; 0 is unknown */
+    virtual u32 getFileUlamVersion() const;
+    
+    /** passes through Ulam version of current filename to underlying sourcestream */
+    virtual void setFileUlamVersion(u32 ver);
+
+
     virtual bool getNextToken(Token & returnTok);
     
   private:
@@ -66,7 +73,7 @@ namespace MFM{
     bool preparseKeywordUse(Token & tok);
     bool preparseKeywordLoad(Token & tok);
     bool preparsePackageName(std::string & pStr);
-
+    bool preparseKeywordUlam(Token & tok);
   };
   
 }

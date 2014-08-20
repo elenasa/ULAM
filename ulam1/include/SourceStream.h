@@ -141,6 +141,13 @@ namespace MFM{
     u16 getByteNumberInLine() const;
 
 
+    /** returns Ulam version of the most recently pushed filename; where 0 is unknown */
+    u32 getFileUlamVersion() const;
+    
+    /** sets Ulam version of the most recently pushed filename */
+    void setFileUlamVersion(u32 ver);
+
+
   private:
   
     struct filerec 
@@ -152,8 +159,9 @@ namespace MFM{
       Locator m_unreadLoc;
       s32 m_unreadByte;
       bool m_haveUnreadByte;            
-      
-      filerec() : m_fp(NULL), m_haveUnreadByte(false){}
+      u32 m_version;
+
+      filerec() : m_fp(NULL), m_haveUnreadByte(false), m_version(0){}
     
       ~filerec()
       {
@@ -213,7 +221,16 @@ namespace MFM{
 	return m_unreadLoc;
       }
 
-    };
+      void setFileVersion(u32 ver)
+      {
+	m_version = ver;
+      }
+
+      u32 getFileVersion() const
+      {
+	return m_version;
+      }
+    };  //filerec
   
     //std::map<std::string, u16> m_registeredFilenames; //maps filenames to id (1..n)
     std::map<u32, u16> m_registeredFilenames; //maps stringpool index of filename  to id (1..n)
