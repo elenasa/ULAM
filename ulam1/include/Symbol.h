@@ -56,6 +56,7 @@ namespace MFM{
     
     virtual bool isFunction();
     virtual bool isTypedef();
+    virtual bool isClass();
     
     void setDataMember();
     bool isDataMember();

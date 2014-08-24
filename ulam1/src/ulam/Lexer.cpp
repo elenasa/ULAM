@@ -177,7 +177,16 @@ namespace MFM {
     // build an identifier
     // index to data in map, vector
     u32 idx = m_state.m_pool.getIndexForDataString(aname);
-    tok.init(TOK_IDENTIFIER,firstloc,idx);
+
+    // if Capitalized, then TYPE_IDENT
+    if(Token::isUpper(aname.at(0)))
+      {
+	tok.init(TOK_TYPE_IDENTIFIER,firstloc,idx);
+      }
+    else
+      {
+	tok.init(TOK_IDENTIFIER,firstloc,idx);
+      }
     return true;
   }
 

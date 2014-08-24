@@ -98,7 +98,7 @@ namespace MFM {
     return false;
   }
 
-  bool Node::installSymbol(Token atok, u32 arraysize, Symbol *& asymptr)
+  bool Node::installSymbolVariable(Token atok, u32 arraysize, Symbol *& asymptr)
   {
     return false;
   }

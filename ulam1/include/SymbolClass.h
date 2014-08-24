@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeElement.h -  Basic handling of the Element UlamType for ULAM
+ * SymbolClass.h -  Basic handling of Class Symbols for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,47 +26,49 @@
  */
 
 /**
-  \file UlamTypeElement.h -  Basic handling of the Element UlamType for ULAM
+  \file SymbolClass.h -  Basic handling of Class Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
+#ifndef SYMBOLCLASS_H
+#define SYMBOLCLASS_H
 
-#ifndef ULAMTYPEELEMENT_H
-#define ULAMTYPEELEMENT_H
-
-#include "UlamType.h"
+#include "Symbol.h"
+#include "NodeBlockClass.h"
+#include "UlamTypeClass.h"
 
 namespace MFM{
 
-  class CompilerState; //forward
 
-  class UlamTypeElement : public UlamType
+  class CompilerState;  //forward
+
+  class SymbolClass : public Symbol
   {
   public:
-    
-    UlamTypeElement(const UlamKeyTypeSignature key, const UTI uti);
-    virtual ~UlamTypeElement(){}
-    virtual void newValue(UlamValue & val);
-    
-    virtual void deleteValue(UlamValue * val);
+    SymbolClass(u32 id, UlamType * utype, NodeBlockClass * classblock);
+    ~SymbolClass();
 
-    virtual ULAMTYPE getUlamTypeEnum();
+    virtual bool isClass();
 
-    virtual bool cast(UlamValue &val);
+    void setClassBlockNode(NodeBlockClass * node);
+    NodeBlockClass * getClassBlockNode();
     
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state);
-    
-    virtual bool isZero(const UlamValue & val);
+    virtual const std::string getMangledPrefix();
 
-    
-    
+    ULAMCLASSTYPE getUlamClassType();
+
+    void setUlamClassType(ULAMCLASSTYPE type);
+
+  protected:
+
   private:
-    
+    NodeBlockClass * m_classBlock;
+
   };
-  
+
 }
 
-#endif //end ULAMTYPEELEMENT_H
+#endif //end SYMBOLCLASS_H

@@ -33,6 +33,12 @@ namespace MFM {
   }
 
 
+  bool Symbol::isClass()
+  {
+    return false;
+  }
+
+
   void Symbol::setDataMember()
   {
     m_dataMember = true;

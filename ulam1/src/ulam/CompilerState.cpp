@@ -2,21 +2,20 @@
 #include <iostream>
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "SymbolTable.h"
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
 #include "UlamTypeAtom.h"
 #include "UlamTypeBool.h"
-#include "UlamTypeElement.h"
 #include "UlamTypeFloat.h"
 #include "UlamTypeInt.h"
 #include "UlamTypeNav.h"
-#include "UlamTypeQuark.h"
 #include "UlamTypeVoid.h"
 
 
 namespace MFM {
 
-//#define _DEBUG_OUTPUT 
+#define _DEBUG_OUTPUT 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
 #else
@@ -78,7 +77,6 @@ namespace MFM {
 	uti = makeUlamType(key,bUT);    
 	ut = getUlamTypeByIndex(uti);
       }
-
     return ut;
   }
 
@@ -140,11 +138,8 @@ namespace MFM {
       case Bool:
 	ut = new UlamTypeBool(key, uti);      
 	break;
-      case Element:
-	ut = new UlamTypeElement(key, uti);      
-	break;
-      case Quark:
-	ut = new UlamTypeQuark(key, uti);      
+      case Class:
+	ut = new UlamTypeClass(key, uti);      
 	break;
       case Atom:
 	ut = new UlamTypeAtom(key, uti);      
@@ -204,10 +199,49 @@ namespace MFM {
       }
     else
       {
-	//no way to get the bUT, except to assume typeName is one of them?
-	bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
+	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
+	  {
+	    //no way to get the bUT, except to assume typeName is one of them?
+	    bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
+	  }
+	else
+	  {
+	    SymbolClass * csym = NULL;
+	    if(alreadyDefinedSymbolClass(tok.m_dataindex, csym))
+	      {
+		UlamType * ut = csym->getUlamType();
+		bUT = ut->getUlamTypeEnum();
+	      }
+	  }
       }
     return bUT;
+  }
+
+
+  UlamType * CompilerState::getUlamTypeFromToken(Token tok)
+  {
+    UlamType * ut = NULL;
+    std::string typeName  = getTokenAsATypeName(tok); //Foo, Int, etc
+
+    // is this name already a typedef for a complex type?
+    if(!getUlamTypeByTypedefName(typeName.c_str(), ut))
+      {
+	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
+	  {
+	    ULAMTYPE bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could Int, Bool, Void, Float;
+	    ut = getUlamTypeByIndex((UTI) bUT);
+	  }
+	else
+	  {
+	    //check for a Class type, or make one if doesn't exist yet, while parsing.
+	    SymbolClass * csym = NULL;
+	    if(alreadyDefinedSymbolClass(tok.m_dataindex, csym))
+	      {
+		ut = csym->getUlamType();
+	      }
+	  }
+      }
+    return ut;
   }
 
 
@@ -249,6 +283,50 @@ namespace MFM {
   }
 
 
+  bool CompilerState::getUlamTypeByClassToken(Token ctok, UlamType* & rtnType)
+  {
+    u32 cidx = getTokenAsATypeNameId(ctok);
+    return getUlamTypeByClassNameId(cidx, rtnType);
+  }
+
+
+  bool CompilerState::getUlamTypeByClassNameId(u32 idx, UlamType* & rtnType)
+  {
+    bool rtnBool = false;
+    SymbolClass * csymptr = NULL;
+    
+    if(alreadyDefinedSymbolClass(idx, csymptr) || (addIncompleteClassSymbolToProgramTable(idx, csymptr), true) )
+      {
+	rtnType = csymptr->getUlamType();
+	rtnBool = true;
+      }
+
+    assert(rtnBool);  //no way it's false!
+    return rtnBool;  
+  }
+
+
+  bool CompilerState::alreadyDefinedSymbolClass(u32 dataindex, SymbolClass * & symptr)
+  {
+    return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
+  }
+
+
+  //temporary UlamType which will be updated during type labeling.
+  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr) 
+  {
+    assert(!alreadyDefinedSymbolClass(dataindex,symptr));
+
+    UlamKeyTypeSignature key(dataindex, 0);
+    UTI cuti = makeUlamType(key, Class);
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    
+    // symbol ownership goes to the programDefST; 
+    symptr = new SymbolClass(dataindex, cut, NULL);  //NodeBlockClass is NULL for now
+    m_programDefST.addToTable(dataindex, symptr);
+  }
+
+
   bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
@@ -262,15 +340,16 @@ namespace MFM {
 	blockNode = blockNode->getPreviousBlockPointer();  //traverse the chain
       }
 
-    // data member variables in class block are linked to the function block.
-    // check function data members separately
+    // data member variables in class block; function symbols are linked to their 
+    // function def block; check function data members separately.
     if(!brtn)
       {
 	brtn = m_classBlock->isFuncIdInScope(dataindex,symptr);
       }
-
+ 
     return brtn;
   }
+
 
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr) 
@@ -314,7 +393,7 @@ namespace MFM {
   //does it check for existence?
   const std::string CompilerState::getTokenAsATypeName(Token tok)
   {
-    if(Token::isTokenAType(tok,this))
+    if(Token::isTokenAType(tok))
       {
 	if((Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD))
 	  {
@@ -400,6 +479,41 @@ namespace MFM {
       {
 	fp->write(m_indentedSpaceLevel); 
       }
+  }
+
+  std::string CompilerState::getFileNameForAClassHeader(u32 id)
+  {
+    std::ostringstream f;
+    Symbol * csym = m_programDefST.getSymbolPtr(id);
+    UlamType * cut = csym->getUlamType();
+    f << cut->getUlamTypeMangledName(this).c_str() << ".h";
+    return f.str();
+  }
+
+
+  std::string CompilerState::getFileNameForThisClassHeader()
+  {
+    return getFileNameForAClassHeader(m_compileThisId);
+  }
+
+
+  std::string CompilerState::getFileNameForThisClassBody()
+  {
+    std::ostringstream f;
+    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    UlamType * cut = csym->getUlamType();
+    f << cut->getUlamTypeMangledName(this).c_str() << ".cpp";
+    return f.str();
+  }
+
+
+  std::string CompilerState::getFileNameForThisTypesHeader()
+  {
+    std::ostringstream f;
+    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    UlamType * cut = csym->getUlamType();
+    f << cut->getUlamTypeMangledName(this).c_str() << "_Types.h";
+    return f.str();
   }
 
 } //end MFM

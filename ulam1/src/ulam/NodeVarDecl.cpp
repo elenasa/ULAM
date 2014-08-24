@@ -101,13 +101,15 @@ namespace MFM {
 
   void NodeVarDecl::genCode(File * fp)
   {
+    UlamType * vut = m_varSymbol->getUlamType(); 
     m_state.indent(fp);
-    fp->write(m_varSymbol->getUlamType()->getUlamTypeMangledName(&m_state).c_str()); //for C++
+    fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+    fp->write(vut->getBitSizeTemplateString().c_str());  //for quark templates
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName(&m_state).c_str());
 
 #if 0
-    u32 arraysize = m_varSymbol->getUlamType()->getArraySize();
+    u32 arraysize = vut->getArraySize();
     if(arraysize > 0)
       {
 	fp->write("[");
@@ -116,7 +118,7 @@ namespace MFM {
       }
 #endif
 
-    fp->write(";\n");  //what about func call parameters???
+    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   }
 
 

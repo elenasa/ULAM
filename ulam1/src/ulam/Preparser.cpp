@@ -107,6 +107,7 @@ namespace MFM {
 	  {
 	    switch(pTok.m_type)
 	      {
+	      case TOK_TYPE_IDENTIFIER:
 	      case TOK_IDENTIFIER:
 		{
 		  pStr.append(m_state.m_pool.getDataAsString(pTok.m_dataindex));

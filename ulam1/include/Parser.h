@@ -64,10 +64,12 @@ namespace MFM{
     ~Parser();
       
     /** 
-	<PROGRAM> := "ulam" + <CLASS_BLOCK> + <EOF> 
+	<PROGRAM> := <PROGRAM_DEF>* + <EOF>
+
+	Ends when subject of compile (i.e. startstr) has been parsed
 	(takes an optional error output arg).
      */
-    Node * parseProgram(File * errOutput = NULL); 
+    Node * parseProgram(std::string startstr, File * errOutput = NULL); 
 
 
   private:
@@ -80,16 +82,30 @@ namespace MFM{
 
 
     /** 
-	<CLASS_BLOCK> := '{' + (<FUNC_DEF> | <DECL>) * + '}'
+	<PROGRAM_DEF> := <QUARK_DEF> | <ELEMENT_DEF>
+	<ELEMENT_DEF> := 'element' + <TYPE_IDENT> + <CLASS_BLOCK>
+	<QUARK_DEF>   := 'quark'   + <TYPE_IDENT> + <CLASS_BLOCK> 
     */
+    bool parseThisClass();
 
+
+    /** 
+	<CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
+    */
     NodeBlockClass * parseClassBlock();
+
+
+    /**
+       <DATA_MEMBERS> := ( <FUNC_DEF> | <DECL> + ';' | <TYPE_DEF> + ';' )*
+     */
     bool parseDataMember(NodeStatements *& nextNode);
+
 
     /** 
 	<BLOCK> := '{' + <STATEMENTS> + '}' 
     */
     Node * parseBlock();
+
 
     /** 
 	<STATEMENTS> := NULL | <STATEMENT> + <STATEMENTS> 
@@ -115,6 +131,7 @@ namespace MFM{
     */
     Node * parseControlIf(Token ifTok);
 
+
     /**
        <WHILE_STATEMENT> := 'while' + '(' + <ASSIGN_EXPR> + ')' + <STATEMENT>
     */
@@ -128,19 +145,26 @@ namespace MFM{
     Node * parseSimpleStatement();
 
 
+
     /**
-       <TYPEDEF> := 'typedef' + <TYPE> +( <IDENT> | <IDENT> + '[' + <EXPRESSION> + ']') 
+       <TYPEDEF> := 'typedef' + <TYPE> + <TYPE_EXPRESSION>
+       <TYPE_EXPRESSION> := ( <TYPE_IDENT> | <TYPE_IDENT> + '[' + <EXPRESSION> + ']') 
     */
     Node * parseTypedef();
+
 
     /** helper for parseTypedef */
     Node * makeTypedefSymbol(Token typeTok, Token identTok);
 
+
     /**
        <DECL> := <TYPE> + <VAR_DECLS>
-       when flag is true stops after one decl for function parameters.
+       <TYPE> := 'Int' | 'Float' | 'Bool' | <TYPE_IDENT>
+       <TYPE_IDENT> := /^[A-Z][A-Za-z0-9\_]*
+       (when flag is true stops after one decl for function parameters).
     */
     Node * parseDecl(bool parseSingleDecl = false);
+
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGNEXPR>)
@@ -156,25 +180,34 @@ namespace MFM{
 
     /**
        <LVAL_EXPRESSION> := <IDENT> | <IDENT> + '[' + <EXPRESSION> + ']'
+       <IDENT> := /^[a-z][A-Za-z0-9\_]*
     */
     Node * parseLvalExpr(Token identTok);
 
 
     /**
-       <IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <FUNC_CALL>
+       <IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <FUNC_CALL> | <MEMBER_SELECT_EXPRESSION>
     */
     Node * parseIdentExpr(Token identTok);
 
+
+    /** 
+	<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + <IDENT_EXPRESSION>
+    */
+
+ 
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'
     */
     Node * parseFunctionCall(Token identTok);
+
 
     /**
        <ARGS>    := 0 | <ARG> | <ARG> + ',' + <ARGS>
        <ARG>     := <ASSIGNEXPR>
     */
     bool parseRestOfFunctionCallArguments(NodeFunctionCall * callNode);
+
 
     /**
        <EXPRESSION> := <TERM> | <EXPRESSION> <ADDOP> <TERM>
@@ -206,7 +239,8 @@ namespace MFM{
     Node * parseRestOfLvalExpr(Node * leftNode);
 
 
-    /** <VAR_DECLS> := <VAR_DECL> | <VAR_DECL> + ',' + <VAR_DECLS>
+    /** 
+	<VAR_DECLS> := <VAR_DECL> | <VAR_DECL> + ',' + <VAR_DECLS>
 	<VAR_DECL> := <LVAL_EXPRESSION>
     */
     Node * parseRestOfDecls(Token typeTok, Node * dNode);
@@ -217,7 +251,7 @@ namespace MFM{
 
 
     /** 
-	<FUNC_DEF> := <FUNC_DECL> + <BLOCK>
+	<FUNC_DEF>  := <FUNC_DECL> + <BLOCK>
 	<FUNC_DECL> := <TYPE> + <IDENT> + '(' + <FUNC_PARAMS> + ')'
      */
     Node * makeFunctionSymbol(Token typeTok, Token identTok);
@@ -226,6 +260,7 @@ namespace MFM{
     /** helper method */
     NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, Token identTok);
     
+
     /**
 	<FUNC_PARAMS> := 0 | <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
 	<FUNC_PARAM>  := <TYPE> + <VAR_DECL> | <FUNC_DECL>  	
@@ -238,6 +273,7 @@ namespace MFM{
 	returns true if body parsed 
     */
     bool parseFunctionBody(NodeBlockFunctionDefinition *& funcNode);
+
 
     /** 
 	<ADDOP> := '+' | '-'
@@ -285,6 +321,7 @@ namespace MFM{
        helper method to make unary factor nodes
     */
     NodeUnaryOp * makeFactorNode();
+
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);

@@ -3,9 +3,12 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
 #include "SymbolFunctionName.h"
+#include "util.h"
 
 
 namespace MFM {
+
+  static const char * CModeForHeaderFiles = "/**                                        -*- mode:C++ -*/\n\n";
 
   NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s)
   {}
@@ -39,6 +42,9 @@ namespace MFM {
 
   void NodeBlockClass::printPostfix(File * fp)
   {
+    fp->write(getNodeType()->getUlamTypeAsStringForC().c_str());  //e.g. Ue_Foo
+    fp->write(getName());  //unmangled
+
     fp->write(" {");
     // has no m_node! 
     if(m_nextNode)
@@ -57,7 +63,8 @@ namespace MFM {
 
   const char * NodeBlockClass::getName()
   {
-    return "{}";
+    return getNodeType()->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str(); ///??? error
+    //return "{}";
   }
 
 
@@ -89,7 +96,7 @@ namespace MFM {
     if(m_nextNode)
       m_nextNode->checkAndLabelType();             
     
-    setNodeType(m_state.getUlamTypeByIndex(Void));
+    setNodeType(m_state.getUlamTypeByIndex(Void)); //reset to reflect the Class type
     return getNodeType();
   }
   
@@ -119,7 +126,8 @@ namespace MFM {
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
       {
-	setNodeType(m_state.getUlamTypeByIndex(Int)); //for testing
+	UlamType * saveClassType = getNodeType();  //temp!!
+	setNodeType(m_state.getUlamTypeByIndex(Int)); //for testing WHY? clobbers element/quark type
 	UlamType * funcType = funcNode->getNodeType();
 
 	makeRoomForNodeType(funcType);  //Int return
@@ -130,6 +138,8 @@ namespace MFM {
 	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
 	    assignReturnValueToStack(testUV);
 	  }
+
+	setNodeType(saveClassType); //temp, restore
       }
 
     evalNodeEpilog();
@@ -188,21 +198,34 @@ namespace MFM {
   }
 
 
+  //header .h file
   void NodeBlockClass::genCode(File * fp)
   {
+    assert(getNodeType()->getUlamTypeEnum() == Class);
+    UlamTypeClass * cut = (UlamTypeClass *) getNodeType();
+    ULAMCLASSTYPE classtype = cut->getUlamClassType();
+
     m_state.m_currentIndentLevel = 0;
-    fp->write("/**                                        -*- mode:C++ -*/\n\n");
+    fp->write(CModeForHeaderFiles);
+
+    //generate includes for all the other classes that have appeared
+    m_state.m_programDefST.generateIncludesForTableOfClasses(fp, m_state);
 
     m_state.indent(fp);
-    fp->write("#ifndef ULAMTESTCLASS_H\n");
-
-    m_state.indent(fp);
-    fp->write("#define ULAMTESTCLASS_H\n\n");
-
-    m_state.indent(fp);
-    fp->write("#include \"UlamTest_Types.h\"\n");
-
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameForThisTypesHeader().c_str());  
+    fp->write("\"\n");
     fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#ifndef ");
+    fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write("_H\n");
+
+    m_state.indent(fp);
+    fp->write("#define ");
+    fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write("_H\n\n");
 
     m_state.indent(fp);
     fp->write("namespace MFM{\n\n");
@@ -210,20 +233,46 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("struct UlamTest_Class\n");
+    if(classtype == UC_QUARK)
+      {
+	fp->write("template <u32 POS>\n");
+	m_state.indent(fp);
+	fp->write("static ");
+      }
+
+    fp->write("struct ");
+    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+
+    fp->write("\n");
 
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
 
-    //DataMember VAR DECLS
-    m_nextNode->genCode(fp);
-    fp->write("\n");
+    if(classtype == UC_ELEMENT)
+      {
+	//DataMember VAR DECLS
+	m_nextNode->genCode(fp);
+	fp->write("\n");
+      }
 
-    //gencode for all the function definitions
-    m_functionST.genCodeForTableOfFunctions(fp);
+    //default constructor/destructor
+    if(classtype == UC_ELEMENT)
+      {
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("();\n");
+	
+	m_state.indent(fp);
+	fp->write("~");
+	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("();\n\n");
+      }
 
+    //gencode declarations only for all the function definitions
+    //bool declOnly = (m_state.m_compileThisId != getNodeType()->getUlamKeyTypeSignature()->getUlamKeyTypeSignatureNameId());
+    m_functionST.genCodeForTableOfFunctions(fp, (classtype == UC_ELEMENT), classtype, &m_state);
 
     m_state.m_currentIndentLevel--;
 
@@ -236,7 +285,55 @@ namespace MFM {
     fp->write("} //MFM\n\n");
 
     m_state.indent(fp);
-    fp->write("#endif //end ULAMTESTCLASS_H\n");
+    fp->write("#endif //end ULAM");
+    fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write("_H\n");
+  }
+
+
+  //Body for This Class only; practically empty if quark (.cpp)
+  void NodeBlockClass::genCodeBody(File * fp)
+  {
+    UlamType * cut = getNodeType();
+    ULAMCLASSTYPE classtype = cut->getUlamClassType();
+
+    m_state.m_currentIndentLevel = 0;
+
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameForThisClassHeader().c_str());  
+    fp->write("\"\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("namespace MFM{\n\n");
+
+    if(classtype == UC_ELEMENT)
+      {
+	m_state.m_currentIndentLevel++;
+
+	//default constructor
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("::");
+	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("(){}\n\n");
+	
+	//default destructor
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("::~");
+	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("(){}\n\n");
+	
+	assert(m_state.m_compileThisId == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+	m_functionST.genCodeForTableOfFunctions(fp, false, classtype, &m_state);
+
+	m_state.m_currentIndentLevel--;
+      }
+    
+    m_state.indent(fp);
+    fp->write("} //MFM\n\n");
   }
 
 } //end MFM

@@ -21,6 +21,12 @@ namespace MFM {
   }
 
 
+  u32 UlamKeyTypeSignature::getUlamKeyTypeSignatureNameId()
+  {
+    return m_typeNameId;
+  }
+
+
   u32 UlamKeyTypeSignature::getUlamKeyTypeSignatureBitSize()
   {
     return m_bits;

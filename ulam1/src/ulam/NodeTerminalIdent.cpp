@@ -68,7 +68,7 @@ namespace MFM {
       }
     
     setNodeType(it);
-
+    
     //if(it->isScalar())
     setStoreIntoAble(true);
 
@@ -125,13 +125,11 @@ namespace MFM {
     bitsize = (bitsize == 0 ? (bUT == Bool ? 8 : 32) : bitsize); //temporary!!!
 
     //type names begin with capital letter..and the rest can be either case
-    //std::string basetypeName  = m_state.getTokenAsATypeName(aTok); //Int, etc; 'Nav' if invalid
-    //assert(basetypeName.compare("Nav") != 0); //checked beforehand
     u32 basetypeNameId  = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
 
     UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
 
-    // o.w. build symbol, first the base type ( with array size)
+    // o.w. build symbol, first the base type (with array size)
     UTI uti = m_state.makeUlamType(key, bUT);  
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
 
@@ -145,7 +143,7 @@ namespace MFM {
 
 
   //see also NodeBinaryOpSquareBracket
-  bool NodeTerminalIdent::installSymbol(Token aTok, u32 arraysize, Symbol *& asymptr)
+  bool NodeTerminalIdent::installSymbolVariable(Token aTok, u32 arraysize, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there; 
     // if so, nothing to install return symbol and false
@@ -158,10 +156,12 @@ namespace MFM {
       }
 
     // verify typedef exists for this scope; or is a primitive keyword type
-    // if a primitive (array size 0), we may need to make a new arraysize type for it.
+    // if a primitive (array size 0), we may need to make a new arraysize type for it;
+    // or if it is a class type (quark, element).
     std::string typeName  = m_state.getTokenAsATypeName(aTok); //Foo, Int, etc
     UlamType * aut = NULL;
     bool brtn = false;
+
     if(m_state.getUlamTypeByTypedefName(typeName.c_str(), aut))
       {
 	brtn = true;
@@ -170,11 +170,17 @@ namespace MFM {
       {
 	if(Token::getSpecialTokenWork(aTok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    //this was automatically creating UlamTypes for the base types with different array sizes.
-	    //but with typedef's we want "scope" of use, so it needs to be checked.
+	    //UlamTypes automatically created for the base types with different array sizes.
+	    //but with typedef's "scope" of use, typedef needs to be checked first.
 	    
-	    // o.w. build symbol, first base type ( with array size)
+	    // o.w. build symbol, first base type (with array size)
 	    aut = m_state.makeUlamType(aTok, 0, arraysize);
+	    brtn = true;
+	  }
+	else 
+	  {
+	    // will substitute placeholder class type if it hasn't been seen yet
+	    m_state.getUlamTypeByClassToken(aTok, aut);  
 	    brtn = true;
 	  }
       }

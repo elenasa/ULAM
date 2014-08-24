@@ -60,6 +60,7 @@ namespace MFM{
     virtual EvalStatus eval();
 
     virtual bool isIdInScope(u32 id, Symbol * & symptrref);
+
     void addIdToScope(u32 id, Symbol * symptr);
 
     NodeBlock * getPreviousBlockPointer();
@@ -68,9 +69,11 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-     u32 getNumberOfSymbolsInTable();
+    u32 getNumberOfSymbolsInTable();
+    
+    u32 getSizeOfSymbolsInTable();
 
-     u32 getSizeOfSymbolsInTable();
+    u32 getBitSizesOfVariableSymbolsInTable();
 
     virtual void genCode(File * fp);
 
