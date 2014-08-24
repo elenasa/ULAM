@@ -36,6 +36,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <string.h>
+#include <sstream>
 #include "itype.h"
 
 namespace MFM {
@@ -49,6 +51,21 @@ namespace MFM {
       num /= BASE;
     } while (num > 0);
     return digits;
+  }
+
+  
+  static std::string allCAPS(const char * s)
+  {
+    u32 len = strlen(s);
+    std::ostringstream up;
+    
+    for(unsigned int i = 0; i < len; ++i)
+      {
+      std::string c(1,(s[i] <= 'z' && s[i] >= 'a') ? s[i]-('a'-'A') : s[i]);
+      up << c;
+    }
+    
+    return up.str();
   }
 
 } /* namespace MFM */

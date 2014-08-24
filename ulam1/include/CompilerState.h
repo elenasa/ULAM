@@ -51,6 +51,7 @@
 #include "Token.h"
 #include "Tokenizer.h"
 #include "StringPool.h"
+#include "SymbolClass.h"
 #include "SymbolFunction.h"
 #include "SymbolTable.h"
 #include "UlamAtom.h"
@@ -77,6 +78,11 @@ namespace MFM{
 
   class Symbol;         //forward
   class NodeBlockClass; //forward
+  class SymbolTable;    //forward
+
+#ifndef BITSPERATOM
+#define BITSPERATOM (96)
+#endif //BITSPERATOM
 
   struct CompilerState
   {
@@ -84,8 +90,11 @@ namespace MFM{
     // e.g., Token identifiers that are variables, path names read by SS, etc.)
     StringPool m_pool;
 
-    NodeBlock * m_currentBlock;     //replaces m_stackOfBlocks
-    NodeBlockClass * m_classBlock;  //holds ST with function defs
+    u32 m_compileThisId;           // the subject of this compilation; id into m_pool
+    SymbolTable m_programDefST;
+
+    NodeBlock *      m_currentBlock;     //replaces m_stackOfBlocks
+    NodeBlockClass * m_classBlock;       //holds ST with function defs
 
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
@@ -120,15 +129,30 @@ namespace MFM{
     UTI getUlamTypeIndex(UlamType * ut);
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
+    UlamType * getUlamTypeFromToken(Token tok);
     bool getUlamTypeByTypedefName(const char * name, UlamType* & rtnType);
 
-    UlamType * getUlamTypeAsScalar(UlamType * utArg); //turns array into its single element type
+    /** turns array into its single element type */
+    UlamType * getUlamTypeAsScalar(UlamType * utArg); 
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
+
+
+    
+    /** searches table of class defs for specific name, by token or idx,
+        returns a place-holder type if class def not yet seen */
+    bool getUlamTypeByClassToken(Token ctok, UlamType* & rtnType);
+    bool getUlamTypeByClassNameId(u32 idx, UlamType* & rtnType);
+
+    /** return true and the Symbol pointer in 2nd arg if found; */
+    bool alreadyDefinedSymbolClass(u32 dataindex, SymbolClass * & symptr);
+
+    /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
+    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr);
 
 
     /** helper methods for error messaging, uses string pool */
@@ -143,6 +167,11 @@ namespace MFM{
 
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
     void indent(File * fp);
+
+    std::string getFileNameForAClassHeader(u32 id);
+    std::string getFileNameForThisClassHeader();
+    std::string getFileNameForThisClassBody();
+    std::string getFileNameForThisTypesHeader();
   };
   
 }

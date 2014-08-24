@@ -6,12 +6,13 @@
 
 namespace MFM {
 
-  NodeProgram::NodeProgram(CompilerState & state) : Node(state), m_root(NULL) {}
+  static const char * CModeForHeaderFiles = "/**                                        -*- mode:C++ -*/\n\n";
+
+  NodeProgram::NodeProgram(u32 id, CompilerState & state) : Node(state), m_root(NULL), m_compileThisId(id) {}
 
   NodeProgram::~NodeProgram()
   {
-    delete m_root;
-    m_root = NULL;
+    //m_root deletion handled by m_programDefST;
   }
 
 
@@ -46,7 +47,7 @@ namespace MFM {
   void NodeProgram::printPostfix(File * fp)
   {
     if(m_root)
-      m_root->printPostfix(fp);
+	m_root->printPostfix(fp);
     else 
       fp->write("<NULL>\n");
   }
@@ -54,7 +55,7 @@ namespace MFM {
 
   const char * NodeProgram::getName()
   {
-    return "ulam";
+    return  m_state.m_pool.getDataAsString(m_compileThisId).c_str();
   }
 
 
@@ -69,7 +70,11 @@ namespace MFM {
     assert(m_root);
     m_state.m_err.clearCounts();
 
-    UlamType * rtnType =  m_root->checkAndLabelType();
+    // label all the class; sets "current" m_currentClassSymbol in CS
+    m_state.m_programDefST.labelTableOfClasses(m_state);
+
+    //UlamType * rtnType =  m_root->checkAndLabelType();
+    UlamType * rtnType =  m_root->getNodeType();
     setNodeType(rtnType);   //void type. missing?
 
     u32 warns = m_state.m_err.getWarningCount();
@@ -135,82 +140,102 @@ namespace MFM {
       assert(m_root);
       m_state.m_err.clearCounts();
 
-      //output the mangled types
-      File * fpt = fm->open("UlamTest_Types.h", WRITE);
-      if(!fpt)
-	{
-	  assert(0);
-	  return;      	 //error!
-	}
-      genMangledTypeHeaderFile(fpt);
-      delete fpt;
+      m_state.m_classBlock = m_root;  //reset to cmopileThis' class block
+
+      // mangled types and forward class declarations
+      genMangledTypeHeaderFile(fm);    
+
+      // this class header
+      {
+	File * fp = fm->open(m_state.getFileNameForThisClassHeader().c_str(), WRITE);
+	assert(fp);
+
+	m_root->genCode(fp);      //compileThisId only, class block
+	delete fp;
+      }
+
+      // this class body
+      {
+	File * fp = fm->open(m_state.getFileNameForThisClassBody().c_str(), WRITE);
+	assert(fp);
+
+	m_root->genCodeBody(fp);  //compileThisId only, MFM namespace
+
+	generateMain(fp);  	  //append main to .cpp
+	delete fp;
+      }
+    }     //generateCode
 
 
-      //output the UlamTest class
-      File * fpc = fm->open("UlamTest_Class.h", WRITE);
-      if(!fpc)
-	{
-	  assert(0);
-	  return;      	  //error!
-	}
-      m_root->genCode(fpc);
-      delete fpc;
-
-
-      //create main.cpp
-      File * fpm = fm->open("UlamTest_main.cpp", WRITE);
-      if(!fpm)
-	{
-	  assert(0);
-	  return; 	  //error!
-	}
-      m_state.m_currentIndentLevel = 0;
-      m_state.indent(fpm);
-      fpm->write("#include \"UlamTest_Types.h\"\n");
-      m_state.indent(fpm);
-      fpm->write("#include \"UlamTest_Class.h\"\n");
-      fpm->write("\n");
-
-      m_state.indent(fpm);
-      fpm->write("int main()\n");
-
-      m_state.indent(fpm);
-      fpm->write("{\n");
-
-      m_state.m_currentIndentLevel++;
-
-      m_state.indent(fpm);
-      fpm->write("MFM::UlamTest_Class utest;\n");
-
-      m_state.indent(fpm);
-      fpm->write("return utest.Uf_14test();\n");  //hardcoded mangled test name
-
-      m_state.m_currentIndentLevel--;
-
-      m_state.indent(fpm);
-      fpm->write("}\n");
-      delete fpm;
-      //generateCode
-    }
-
-
-  void NodeProgram::genMangledTypeHeaderFile(File * fp)
+  // append main to .cpp for debug useage
+  // outside the MFM namespace !!!
+  void NodeProgram::generateMain(File * fp)
   {
+    /*
+    File * fp = fm->open(m_state.getFileNameForThisClassMain().c_str(), WRITE);
+    assert(fp);
+    
     m_state.m_currentIndentLevel = 0;
-    fp->write("/**                                        -*- mode:C++ -*/\n\n");
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameforThisTypesHeader().c_str());
+    fp->write("\"\n");
 
     m_state.indent(fp);
-    //fp->write("#include \"../../../include/itype.h\"\n"); //XXX
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameforThisClassHeader().c_str());
+    fp->write("\"\n");
+    */
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("int main()\n");
+    
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //declare an instance of This class
+    Symbol * csym = m_state.m_programDefST.getSymbolPtr(m_compileThisId);
+
+    m_state.indent(fp);
+    fp->write("MFM::");
+    fp->write(csym->getUlamType()->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(" utest;\n");
+    
+    m_state.indent(fp);
+    fp->write("return utest.Uf_14test();\n");  //hardcoded mangled test name
+	
+    m_state.m_currentIndentLevel--;
+
+    m_state.indent(fp);
+    fp->write("}\n");
+    //delete fp;
+  }
+
+
+  void NodeProgram::genMangledTypeHeaderFile(FileManager * fm)
+  {
+    File * fp = fm->open(m_state.getFileNameForThisTypesHeader().c_str(), WRITE);
+    assert(fp);
+    
+    m_state.m_currentIndentLevel = 0;
+    fp->write(CModeForHeaderFiles);
+
+    m_state.indent(fp);
+    //use -I ../../../include in g++ command
     fp->write("#include \"itype.h\"\n"); 
     fp->write("\n");
 
-    //skip Nav type (0), and Void (1)
+    //skip Nav type (0)
     u32 numTypes = m_state.m_indexToUlamType.size();
     for(u32 i = 1; i < numTypes; i++)
       {
 	UlamType * ut = m_state.getUlamTypeByIndex(i);
 	ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
       }
+    delete fp;
   }
 
 } //end MFM

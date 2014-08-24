@@ -62,6 +62,8 @@ namespace MFM{
 
   class CompilerState; //forward
 
+  enum ULAMCLASSTYPE { UC_INCOMPLETE, UC_QUARK, UC_ELEMENT, UC_NOTACLASS };
+
   class UlamType
   {    
   public: 
@@ -89,15 +91,17 @@ namespace MFM{
 
     virtual bool isZero(const UlamValue & val) = 0;
 
+    virtual ULAMCLASSTYPE getUlamClassType();
+
     virtual ULAMTYPE getUlamTypeEnum() = 0;
 
     virtual const std::string getUlamTypeAsStringForC();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    const std::string getUlamTypeMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeMangledName(CompilerState * state);
 
-    void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
 
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
 
@@ -109,7 +113,11 @@ namespace MFM{
 
     u32 getArraySize();
 
-    u32 getBitSize();
+    virtual u32 getBitSize();  //'class' type calculates its size after type labeling
+
+    virtual void setBitSize(u32 bits);  //'class' type calculates its size after type labeling
+
+    virtual const std::string getBitSizeTemplateString();
 
   protected:
     UlamKeyTypeSignature m_key;

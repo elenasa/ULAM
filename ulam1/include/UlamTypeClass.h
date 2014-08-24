@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeQuark.h -  Basic handling of the Quark UlamType for ULAM
+ * UlamTypeClass.h -  Basic handling of the Class UlamType for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeQuark.h -  Basic handling of the Quark UlamType for ULAM
+  \file UlamTypeClass.h -  Basic handling of the Class UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,8 +34,8 @@
 */
 
 
-#ifndef ULAMTYPEQUARK_H
-#define ULAMTYPEQUARK_H
+#ifndef ULAMTYPECLASS_H
+#define ULAMTYPECLASS_H
 
 #include "UlamType.h"
 
@@ -43,12 +43,13 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  class UlamTypeQuark : public UlamType
+  class UlamTypeClass : public UlamType
   {
   public:
     
-    UlamTypeQuark(const UlamKeyTypeSignature key, const UTI uti);
-    virtual ~UlamTypeQuark(){}
+    UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type = UC_INCOMPLETE);
+
+    virtual ~UlamTypeClass(){}
 
     virtual void newValue(UlamValue & val);
     
@@ -57,15 +58,35 @@ namespace MFM{
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual bool cast(UlamValue & val);
+
+    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
+    virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+
+    virtual const std::string getUlamTypeAsStringForC();
     
+    virtual const std::string getUlamTypeMangledName(CompilerState * state);
+
     virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state);
     
     virtual bool isZero(const UlamValue & val);
 
+    virtual ULAMCLASSTYPE getUlamClassType();
+
+    void setUlamClassType(ULAMCLASSTYPE type);
+
+    virtual u32 getBitSize();  //'class' type calculates its size after type labeling
+
+    virtual void setBitSize(u32 bits);  //'class' type calculates its size after type labeling
+
+    virtual const std::string getBitSizeTemplateString();
+
    private:
-    
+
+    ULAMCLASSTYPE m_classType;
+    u32 m_bitLength;   // calculated total of "data member" bits for quark type
   };
   
 }
 
-#endif //end ULAMTYPEQUARK_H
+#endif //end ULAMTYPECLASS_H

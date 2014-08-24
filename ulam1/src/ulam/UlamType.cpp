@@ -51,6 +51,12 @@ namespace MFM {
   }    
 
 
+  ULAMCLASSTYPE UlamType::getUlamClassType()
+  {
+    return UC_NOTACLASS;
+  }
+
+
   const std::string UlamType::getUlamTypeAsStringForC()
   {
     return "?";
@@ -181,5 +187,16 @@ namespace MFM {
     return m_key.getUlamKeyTypeSignatureBitSize();
   }
 
+
+  void UlamType::setBitSize(u32 bits)  
+  {
+    assert(0);  //only in UlamTypeClass 
+  }
+
+
+  const std::string UlamType::getBitSizeTemplateString()
+  {
+    return "";
+  }
 
 } //end MFM

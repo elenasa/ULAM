@@ -63,7 +63,7 @@ namespace MFM{
 
     void labelFunctions();
 
-    void generateCodedFunctions(File * fp);
+    void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
 
   protected:
 

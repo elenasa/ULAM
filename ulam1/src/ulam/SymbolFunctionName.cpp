@@ -110,16 +110,14 @@ namespace MFM {
   }
 
 
-  void SymbolFunctionName::generateCodedFunctions(File * fp)
+  void SymbolFunctionName::generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state)
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
 
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;  
-	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func); //how would a function symbol be without a body?
-	func->genCode(fp);
+	fsym->generateFunctionDeclaration(fp, declOnly, classtype, state);  
 	++it;
       }
   }

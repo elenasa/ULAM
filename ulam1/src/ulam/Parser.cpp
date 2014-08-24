@@ -39,6 +39,7 @@
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
 #include "SymbolVariable.h"
+#include "SymbolClass.h"
 
 
 namespace MFM {
@@ -56,37 +57,66 @@ namespace MFM {
  
 
   // change to return Node * rather than vector; change tests
-  Node * Parser::parseProgram(File * errOutput)
+  Node * Parser::parseProgram(std::string startstr, File * errOutput)
   {
-    Token pTok;
-
     if(errOutput)
       m_state.m_err.setFileOutput(errOutput);
 
-    if(!getExpectedToken(TOK_KW_ULAM, pTok))
+    // add name of the thing we are compiling to string pool (and node program);
+    // dropping the .ulam suffix
+    u32 foundSuffix = startstr.find(".ulam");
+    if(foundSuffix == std::string::npos)
       {
+	std::ostringstream msg;
+	msg << "File name <" << startstr << "> doesn't have a valid suffix (.ulam)";
+	MSG("",msg.str().c_str() , ERR);
 	return NULL;
       }
 
-    NodeProgram * P = new NodeProgram(m_state);  //no previous block, root set later
-    P->setNodeLocation(pTok.m_locator);
+    std::string compileThis = startstr.substr(0,foundSuffix);
+    char c = compileThis.at(0);
+    if(!Token::isUpper(c))
+      {
+	//compileThis.at(0) = 'A' + (c - 'a');  //uppercase
+	std::ostringstream msg;
+	msg << "File name <" << startstr << "> must match a valid class name (uppercase) to compile";
+	MSG("", msg.str().c_str() , ERR);
+	return  NULL;
+      }
 
+    u32 compileThisId  = m_state.m_pool.getIndexForDataString(compileThis);
+    m_state.m_compileThisId = compileThisId;  // for everyone
 
-    NodeBlockClass * rootNode = parseClassBlock(); 
-    if(!rootNode)
+    initPrimitiveUlamTypes();
+
+    // here's the start (first token)!!  preparser will handle the VERSION_DECL, 
+    // as well as USE and LOAD keywords. so the first thing we see may not be 
+    // "our guy"..but we'll know.
+
+    do{
+      m_state.m_currentBlock = NULL;  //reset for each new class block
+    } while(!parseThisClass());
+
+    // here when THIS class is done, or there was an error
+    NodeProgram * P = NULL;
+    Symbol * thisClassSymbol = NULL;
+
+    if(m_state.m_programDefST.isInTable(compileThisId, thisClassSymbol))
+      {
+	NodeBlockClass * rootNode = ((SymbolClass *) thisClassSymbol)->getClassBlockNode();	
+	if(rootNode)
+	  {
+	    P = new NodeProgram(compileThisId, m_state);  
+	    P->setRootNode(rootNode);
+	    P->setNodeLocation(rootNode->getNodeLocation());  
+	    assert(m_state.m_classBlock == rootNode);
+	  }
+      }
+    
+
+    if(!P)
       { 
-	MSG(&pTok, "No parse tree", ERR);
-	delete P;
-	return NULL;     //stop this maddness!
-      }
-
-    P->setRootNode(rootNode);
-
-    // NodeEOF not created.
-    if(!getExpectedToken(TOK_EOF,pTok))
-      {
-	delete P;
-	return NULL;
+	MSG("", "No parse tree", ERR);
       }
 
     u32 warns = m_state.m_err.getWarningCount();
@@ -94,7 +124,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << warns << " warnings during parsing";
-	MSG(&pTok, msg.str().c_str(), INFO);
+	MSG((P ? P->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
 
     u32 errs = m_state.m_err.getErrorCount();
@@ -102,10 +132,87 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << errs << " TOO MANY PARSE ERRORS";
-	MSG(&pTok, msg.str().c_str(), INFO);
+	MSG((P ? P->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
 
     return (P);  //ownership transferred to caller
+  }
+
+    
+  bool Parser::parseThisClass()
+  {
+    Token pTok;
+    getNextToken(pTok);
+    
+    if( (pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) )
+      {
+	//error!
+	return true;  //we're done.
+      }
+
+    //each class has its own parse tree; only compileThis has code generated later.
+    Token iTok;
+    getNextToken(iTok);
+
+    //insure the class name starts with a capital letter, and is not a primitive (e.g. TOK_TYPE_INT)
+    //if(!(iTok.m_type == TOK_IDENTIFIER && Token::isTokenAType(iTok,&m_state)))
+    if(iTok.m_type != TOK_TYPE_IDENTIFIER)
+      {
+	//error! 
+	return  true; //we're done unless we can gobble the rest up? 
+      }
+
+
+    SymbolClass * cSym = NULL;
+    if(!m_state.alreadyDefinedSymbolClass(iTok.m_dataindex, cSym))
+      {
+	m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, cSym);
+      }
+    else
+      {
+	//if already defined, then must be incomplete, else duplicate!!
+	if(cSym->getUlamClassType() != UC_INCOMPLETE)
+	  {
+	    //error!! duplicate
+	    
+	    return  true;  //we're done unless we can gobble the rest up? 
+	  }
+      }
+
+
+    //set class type in UlamType (through its class symbol) since we know it
+    switch(pTok.m_type)
+      {
+      case TOK_KW_ELEMENT:
+	{
+	  cSym->setUlamClassType(UC_ELEMENT);
+	  break;
+	}
+      case TOK_KW_QUARK:
+	{
+	  cSym->setUlamClassType(UC_QUARK);
+	  break;
+	}
+      default:
+	//error!!
+	assert(0);
+      };
+
+
+    NodeBlockClass * classNode = parseClassBlock();
+
+    if(classNode)
+      {
+	cSym->setClassBlockNode(classNode);
+      }
+    else
+      {
+	//error! reset to incomplete
+	cSym->setUlamClassType(UC_INCOMPLETE);
+      }
+
+    //return true when we've seen THIS class
+    return (iTok.m_dataindex == m_state.m_compileThisId); //parseThisClass
   }
 
 
@@ -124,7 +231,7 @@ namespace MFM {
       }
 
     NodeBlock * prevBlock = m_state.m_currentBlock;
-    assert(prevBlock == NULL); //this is the first block, not program
+    assert(prevBlock == NULL); //this is the class' first block
 
     rtnNode = new NodeBlockClass(prevBlock, m_state);
     rtnNode->setNodeLocation(pTok.m_locator); 
@@ -139,7 +246,7 @@ namespace MFM {
     NodeStatements * nextNode = rtnNode;
     NodeStatements * stmtNode = NULL;
 
-    initPrimitiveUlamTypes();
+    //initPrimitiveUlamTypes();
 
     while( parseDataMember(stmtNode))   //could be false, in case of function def
       {
@@ -194,7 +301,7 @@ namespace MFM {
       }
 
     
-    if(! Token::isTokenAType(pTok,&m_state))
+    if(! Token::isTokenAType(pTok))
       {
 	unreadToken();
 	return false;
@@ -503,7 +610,7 @@ namespace MFM {
 	rtnNode = new NodeStatementEmpty(m_state);  	// empty statement
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
-    else if(Token::isTokenAType(pTok,&m_state))
+    else if(Token::isTokenAType(pTok))
       {
 	unreadToken();
 	rtnNode = parseDecl();        //updates symbol table	
@@ -560,12 +667,13 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
       
-    if(Token::isTokenAType(pTok,&m_state))
+    if(Token::isTokenAType(pTok))
       {
 	Token iTok;
 	getNextToken(iTok);
 	//insure the typedef name starts with a capital letter
-	if(iTok.m_type == TOK_IDENTIFIER && Token::isTokenAType(iTok,&m_state))
+	//if(iTok.m_type == TOK_IDENTIFIER && Token::isTokenAType(iTok,&m_state))
+	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
 	    rtnNode = makeTypedefSymbol(pTok, iTok);
 	  }
@@ -597,7 +705,7 @@ namespace MFM {
     getNextToken(pTok);
 
     // should have already known to be true
-    assert(Token::isTokenAType(pTok,&m_state));
+    assert(Token::isTokenAType(pTok));
 
     if(getExpectedToken(TOK_IDENTIFIER, iTok))
       {
@@ -812,7 +920,7 @@ namespace MFM {
 	  //if next token is a type this a user cast, o.w. expression
 	  Token tTok;
 	  getNextToken(tTok);
-	  if(Token::isTokenAType(tTok,&m_state))
+	  if(Token::isTokenAType(tTok))
 	    {
 	      rtnNode = makeCastNode(tTok); 
 	    }	      
@@ -1020,14 +1128,18 @@ namespace MFM {
 
   Node * Parser::makeVariableSymbol(Token typeTok, Token identTok)
   {
+    assert(! Token::isTokenAType(identTok)); 
+#if 0
+    // new! done by Lexer
     // first check that the function name begins with a lower case letter
-    if(Token::isTokenAType(identTok, &m_state))
+    if(Token::isTokenAType(identTok))
       {	
 	std::ostringstream msg;
 	msg << "Variable <" << m_state.getDataAsString(&identTok).c_str() << "> is not a valid (lower case) name";
 	MSG(&identTok, msg.str().c_str(), ERR);
 	return NULL;
       }
+#endif
 
     NodeVarDecl * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok);
@@ -1045,7 +1157,7 @@ namespace MFM {
 	if(m_state.getUlamTypeByTypedefName(m_state.getTokenAsATypeName(typeTok).c_str(), ut))
 	  arraysize = ut->getArraySize(); //typedef built-in arraysize, no []
 
-	if(!lvalNode->installSymbol(typeTok, arraysize, asymptr))
+	if(!lvalNode->installSymbolVariable(typeTok, arraysize, asymptr))
 	  {
 	    if(asymptr)
 	      {
@@ -1078,7 +1190,7 @@ namespace MFM {
   Node * Parser::makeFunctionSymbol(Token typeTok, Token identTok)
   {
     // first check that the function name begins with a lower case letter
-    if(Token::isTokenAType(identTok, &m_state))
+    if(Token::isTokenAType(identTok))
       {	
 	std::ostringstream msg;
 	msg << "Function <" << m_state.getDataAsString(&identTok).c_str() << "> is not a valid (lower case) name";
@@ -1123,27 +1235,12 @@ namespace MFM {
     NodeBlock * prevBlock = m_state.m_currentBlock;  //restore before returning
     assert(prevBlock == m_state.m_classBlock);
 
-    // o.w. build symbol for function: return type + name + arg symbols
-    UlamType * ut = NULL;
-    if(!m_state.getUlamTypeByTypedefName(m_state.getTokenAsATypeName(typeTok).c_str(),ut))
-      {
-	//must be primitive, Int, Element, etc.
-	UTI bUT = UlamType::getEnumFromUlamTypeString(m_state.getTokenAsATypeName(typeTok).c_str()); 
-	if(bUT == Nav)
-	  {
-	    std::ostringstream msg;
-	    msg << "Missing Typedef for <"  << m_state.getTokenAsATypeName(typeTok).c_str() << ">";
-	    MSG(&typeTok, msg.str().c_str(),ERR);
-	    assert(0);
-	  }
-	ut = m_state.getUlamTypeByIndex(bUT);
-      }
-    
+    // o.w. build symbol for function: name, return type, plus arg symbols
+    UlamType * ut = m_state.getUlamTypeFromToken(typeTok);
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, ut);
 
     // WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     //m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr); 
-    
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, m_state);
     rtnNode->setNodeLocation(typeTok.m_locator);
     
@@ -1243,7 +1340,7 @@ namespace MFM {
     // since the function starts a new "block" (i.e. ST);
     // the argument to parseDecl will prevent it from looking
     // for restofdecls
-    if(Token::isTokenAType(pTok,&m_state))
+    if(Token::isTokenAType(pTok))
       {
 	unreadToken();
 	Node * argNode = parseDecl(true);  
@@ -1730,6 +1827,15 @@ namespace MFM {
     UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), 8);
     UTI bidx = m_state.makeUlamType(bkey, Bool);
     assert(bidx == Bool);
+
+    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), 0);
+    UTI cidx = m_state.makeUlamType(ckey, Class);
+    assert(cidx == Class);
+
+    UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), 0);
+    UTI aidx = m_state.makeUlamType(akey, Atom);
+    assert(aidx == Atom);
+
 
     //initialize call stack with 'Int' UlamType pointer
     m_state.m_funcCallStack.init(m_state.getUlamTypeByIndex(iidx));

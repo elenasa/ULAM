@@ -31,7 +31,7 @@ namespace MFM {
 
     if (ss.push(startstr))
       {
-	programme = P->parseProgram(output); //will be compared to answer
+	programme = P->parseProgram(startstr, output); //will be compared to answer
 	//programme =  P->parseProgram();
       }
     else

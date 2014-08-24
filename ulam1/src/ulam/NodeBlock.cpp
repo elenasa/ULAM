@@ -109,6 +109,12 @@ namespace MFM {
   }
 
 
+  u32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
+  {
+    return m_ST.getTotalVariableSymbolsBitSize();
+  }
+
+
   void NodeBlock::genCode(File * fp)
   {
     m_state.indent(fp);

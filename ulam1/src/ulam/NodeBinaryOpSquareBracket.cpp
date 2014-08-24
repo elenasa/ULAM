@@ -179,7 +179,7 @@ namespace MFM {
 
 
   //see also NodeTerminalIdent
-  bool NodeBinaryOpSquareBracket::installSymbol(Token atok, u32 arraysize, Symbol *& asymptr)
+  bool NodeBinaryOpSquareBracket::installSymbolVariable(Token atok, u32 arraysize, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -191,7 +191,7 @@ namespace MFM {
     
     u32 newarraysize = 0;
     if(getArraysizeInBracket(newarraysize))
-      return m_nodeLeft->installSymbol(atok, newarraysize, asymptr);
+      return m_nodeLeft->installSymbolVariable(atok, newarraysize, asymptr);
    
     return false;  //error getting array size
   }

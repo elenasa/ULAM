@@ -47,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    NodeProgram(CompilerState & state);
+    NodeProgram(u32 id, CompilerState & state);
 
     virtual ~NodeProgram();
 
@@ -65,8 +65,6 @@ namespace MFM{
 
     void setRootNode(NodeBlockClass * root);
 
-    //    virtual void genCode(File * fm);
-
     void generateCode(FileManager * fm);
 
 
@@ -74,9 +72,9 @@ namespace MFM{
 
   private:
     NodeBlockClass * m_root;
-
-    void genMangledTypeHeaderFile(File * fp);
-
+    u32 m_compileThisId;
+    void genMangledTypeHeaderFile(FileManager * fm);
+    void generateMain(File * fp);
   };
 
 }

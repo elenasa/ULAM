@@ -41,8 +41,11 @@
 #include "Symbol.h"
 #include "itype.h"
 #include "File.h"
+#include "UlamTypeClass.h"
 
 namespace MFM{
+
+  struct CompilerState; //forward
 
   class SymbolTable
   {
@@ -57,12 +60,19 @@ namespace MFM{
     Symbol * getSymbolPtr(u32 id);
 
     void labelTableOfFunctions();
+    
+    void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
 
-    void genCodeForTableOfFunctions(File * fp);
+    void labelTableOfClasses(CompilerState& state);
+
+    void generateIncludesForTableOfClasses(File * fp, CompilerState& state);
+    //void genCodeForTableOfClasses(FileManager * fm, CompilerState& state); not used???
 
     u32 getTableSize();
 
     u32 getTotalSymbolSize();
+
+    u32 getTotalVariableSymbolsBitSize();
 
   protected:
     std::map<u32, Symbol* > m_idToSymbolPtr;

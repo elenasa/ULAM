@@ -39,6 +39,7 @@
 
 #include <vector>
 #include "Symbol.h"
+#include "UlamTypeClass.h"
 
 namespace MFM{
 
@@ -66,11 +67,18 @@ namespace MFM{
 
     bool matchingTypes(std::vector<UlamType *> argTypes);
 
+    void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
+
   protected:
+
 
   private:
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
+
+ 
+    void generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
+    void generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
   };
 
 }

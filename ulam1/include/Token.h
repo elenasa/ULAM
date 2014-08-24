@@ -78,7 +78,7 @@ namespace MFM{
 	ulam says an identifier is a Type when it starts with a capital letter
 	or is predefined (e.g. Int, Bool, etc). 
     */
-    static bool isTokenAType(Token tok, CompilerState * state);
+    static bool isTokenAType(Token tok);
     static bool isUpper(char c);
 
     void print(File * fp, CompilerState * state);

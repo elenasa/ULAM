@@ -81,10 +81,12 @@ namespace MFM {
   //oops! do the remaining letters have to be lower case? no.
   //for the typename use helper in CS:;getTokenAsATypeName
   //no verification as to existence.
-  bool Token::isTokenAType(Token tok, CompilerState * state)
+  //bool Token::isTokenAType(Token tok, CompilerState * state)
+  bool Token::isTokenAType(Token tok)
   {
-    assert(state);
-    return ((getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD) || ((! state->getDataAsString(&tok).empty() && isUpper(state->getDataAsString(&tok).at(0)))));
+    //assert(state);
+    //return ((getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD) || ((! state->getDataAsString(&tok).empty() && isUpper(state->getDataAsString(&tok).at(0)))));
+    return ((getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD) || (tok.m_type == TOK_TYPE_IDENTIFIER));
   }
 
 

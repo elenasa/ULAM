@@ -22,7 +22,7 @@ namespace MFM {
 
     if (ss.push(startstr))
       {
-	Node *  programme = P->parseProgram(output); //output compared to answer
+	Node *  programme = P->parseProgram(startstr, output); //output compared to answer
 	//Node *  programme = P->parseProgram();
 	
 	if(programme != NULL)

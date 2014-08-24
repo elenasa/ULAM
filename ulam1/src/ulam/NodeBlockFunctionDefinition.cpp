@@ -202,47 +202,16 @@ namespace MFM {
     assert(isDefinition());
     assert(m_nextNode);
 
+    fp->write("\n");
     m_state.indent(fp);
-    fp->write(m_funcSymbol->getUlamType()->getUlamTypeMangledName(&m_state).c_str()); //for C++ XXX
-    fp->write(" ");
-    fp->write(m_funcSymbol->getMangledName(&m_state).c_str());
-    // has no m_node! 
-    // declaration has no m_nextNode!!
-    fp->write("(");
-    u32 numparams = m_funcSymbol->getNumberOfParameters();
+    fp->write("{\n");
 
-    for(u32 i = 0; i < numparams; i++)
-      {
-	if(i > 0)
-	  fp->write(", ");
-	
-	Symbol * asym = m_funcSymbol->getParameterSymbolPtr(i);
-	assert(asym);
-	fp->write(asym->getUlamType()->getUlamTypeMangledName(&m_state).c_str()); //for C++
-	fp->write(" ");
-	fp->write(asym->getMangledName(&m_state).c_str());
-      }
-
-    fp->write(")");
-
-    if(isDefinition())
-      {
-	fp->write("\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-	m_nextNode->genCode(fp);
-	m_state.m_currentIndentLevel--;
-
-	m_state.indent(fp);
-	fp->write("}\n\n");
-      }
-    else
-      {
-	m_state.indent(fp);
-	fp->write(";\n\n");
-      }
+    m_state.m_currentIndentLevel++;
+    m_nextNode->genCode(fp);
+    m_state.m_currentIndentLevel--;
+    
+    m_state.indent(fp);
+    fp->write("}\n\n");
   }
 
 

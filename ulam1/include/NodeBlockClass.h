@@ -69,10 +69,11 @@ namespace MFM{
     bool isFuncIdInScope(u32 id, Symbol * & symptrref);
     void addFuncIdToScope(u32 id, Symbol * symptr);
 
-     u32 getNumberOfFuncSymbolsInTable();
-     u32 getSizeOfFuncSymbolsInTable();
-
+    u32 getNumberOfFuncSymbolsInTable();
+    u32 getSizeOfFuncSymbolsInTable();
+    
     virtual void genCode(File * fp);
+    void genCodeBody(File * fp);  //specific for this class
 
   protected:
     SymbolTable m_functionST;  
