@@ -80,6 +80,8 @@ namespace MFM{
   protected:
     SymbolTable m_ST;
 
+    void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
+
   private:
     NodeBlock * m_prevBlockNode;
 

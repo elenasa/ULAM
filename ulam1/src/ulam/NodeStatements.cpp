@@ -127,6 +127,15 @@ namespace MFM {
   }
 
 
+  void NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    m_node->packBitsInOrderOfDeclaration(offset); //updates offset
+
+    if(m_nextNode)
+      m_nextNode->packBitsInOrderOfDeclaration(offset);
+  }
+
+
   void NodeStatements::genCode(File * fp)
   {
     m_node->genCode(fp);

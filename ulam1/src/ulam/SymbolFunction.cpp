@@ -142,7 +142,15 @@ namespace MFM {
   {
     state->indent(fp);
     fp->write(getUlamType()->getUlamTypeMangledName(state).c_str()); //return type for C++
-    fp->write(getUlamType()->getBitSizeTemplateString().c_str());    //for quark templates
+    //fp->write(getUlamType()->getBitSizeTemplateString().c_str());  //for quark templates
+    if(getUlamType()->getUlamClassType() == UC_QUARK)
+      {
+	std::ostringstream msg;
+	msg << "Return Type <"  << getUlamType()->getUlamTypeName(state).c_str() << ">  for function '" << state->m_pool.getDataAsString(getId()).c_str() << "', is a 'quark' and not a valid return type" ;
+	state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	fp->write("<POS>");
+      }
+
     fp->write(" ");
     if(!declOnly)
       {
@@ -161,9 +169,17 @@ namespace MFM {
 	  fp->write(", ");
 	
 	Symbol * asym = getParameterSymbolPtr(i);
+	UlamType * aut = asym->getUlamType();
 	assert(asym);
-	fp->write(asym->getUlamType()->getUlamTypeMangledName(state).c_str()); //for C++
-	fp->write(getUlamType()->getBitSizeTemplateString().c_str());  //for quark templates
+	fp->write(aut->getUlamTypeMangledName(state).c_str()); //for C++
+	if(aut->getUlamClassType() == UC_QUARK)
+	  {
+	    std::ostringstream msg;
+	    msg << "Parameter " << i + 1 << ", <"  << aut->getUlamTypeName(state).c_str() << ">, for function '" << state->m_pool.getDataAsString(getId()).c_str() << "', is a 'quark' and not a valid parameter" ;
+	    state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	    fp->write("<POS>");
+	  }
+
 	fp->write(" ");
 	fp->write(asym->getMangledName(state).c_str());
       }
@@ -172,7 +188,6 @@ namespace MFM {
 
     if(declOnly)
       {
-	//state->indent(fp);
 	fp->write(";\n\n");
       }
     else
@@ -189,7 +204,7 @@ namespace MFM {
     if(declOnly)
       return;
 
-    //template declared outside the quark struct instead.
+    //template<POS> declared outside the quark struct instead.
     state->indent(fp);
     fp->write(getUlamType()->getUlamTypeMangledName(state).c_str()); //return type for C++
     fp->write(" ");
@@ -202,7 +217,7 @@ namespace MFM {
     UlamType * atomut = state->getUlamTypeByIndex(Atom);
     fp->write(atomut->getUlamTypeMangledName(state).c_str()); //type for C++
     fp->write("& ");          //only place we use a reference
-    //fp->write("Uv_11");     //hardcoded variable XXX
+    fp->write("Uv_11");       //hardcoded variable XXX
     fp->write(atomut->getUlamTypeAsSingleLowercaseLetter());  //a name
 
     u32 numparams = getNumberOfParameters();
@@ -227,8 +242,8 @@ namespace MFM {
     fp->write(")");
     
     NodeBlockFunctionDefinition * func = getFunctionNode();
-    assert(func); //how would a function symbol be without a body?
-    func->genCode(fp);  //it better know its a quark!!!
+    assert(func);       // how would a function symbol be without a body?
+    func->genCode(fp);  // it better know its a quark!!!
   }
 
 } //end MFM

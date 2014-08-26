@@ -73,8 +73,9 @@ namespace MFM{
   private:
     NodeBlockClass * m_root;
     u32 m_compileThisId;
+
     void genMangledTypeHeaderFile(FileManager * fm);
-    void generateMain(File * fp);
+    void generateMain(FileManager * fm);
   };
 
 }

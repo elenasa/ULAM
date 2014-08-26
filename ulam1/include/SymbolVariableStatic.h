@@ -57,6 +57,8 @@ namespace MFM{
     virtual s32 getBaseArrayIndex();
     virtual const std::string getMangledPrefix();
 
+    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype, CompilerState * state);
+
   protected:
 
   private:

@@ -61,6 +61,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual void packBitsInOrderOfDeclaration(u32& offset);
+
     virtual void genCode(File * fp);
 
   private:

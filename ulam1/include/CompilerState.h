@@ -84,6 +84,10 @@ namespace MFM{
 #define BITSPERATOM (96)
 #endif //BITSPERATOM
 
+#ifndef BITSPERBOOL
+#define BITSPERBOOL (1)
+#endif //BITSPERBOOL
+
   struct CompilerState
   {
     // tokenizer ptr replace by StringPool, service for deferencing strings 
@@ -154,6 +158,8 @@ namespace MFM{
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
     void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr);
 
+    /** during type labeling, sets the ULAMCLASSTYPE and bitsize for typedefs that involved incomplete Class types */
+    bool completeIncompleteClassSymbol(UlamType * incomplete) ;
 
     /** helper methods for error messaging, uses string pool */
     const std::string getTokenLocationAsString(Token * tok);
@@ -172,6 +178,7 @@ namespace MFM{
     std::string getFileNameForThisClassHeader();
     std::string getFileNameForThisClassBody();
     std::string getFileNameForThisTypesHeader();
+    std::string getFileNameForThisClassMain();
   };
   
 }

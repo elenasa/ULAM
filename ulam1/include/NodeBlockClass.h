@@ -71,6 +71,8 @@ namespace MFM{
 
     u32 getNumberOfFuncSymbolsInTable();
     u32 getSizeOfFuncSymbolsInTable();
+
+    void packBitsForVariableDataMembers();
     
     virtual void genCode(File * fp);
     void genCodeBody(File * fp);  //specific for this class

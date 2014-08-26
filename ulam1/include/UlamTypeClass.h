@@ -63,7 +63,9 @@ namespace MFM{
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
 
-    virtual const std::string getUlamTypeAsStringForC();
+    //virtual const std::string getUlamTypeAsStringForC();
+    
+    virtual const std::string getUlamTypeUPrefix();
     
     virtual const std::string getUlamTypeMangledName(CompilerState * state);
 
@@ -75,16 +77,18 @@ namespace MFM{
 
     void setUlamClassType(ULAMCLASSTYPE type);
 
-    virtual u32 getBitSize();  //'class' type calculates its size after type labeling
+    virtual s32 getBitSize();      //'class' type calculates its size after type labeling
 
-    virtual void setBitSize(u32 bits);  //'class' type calculates its size after type labeling
+    virtual void setBitSize(s32 bits);  //'class' type calculates its size after type labeling
 
     virtual const std::string getBitSizeTemplateString();
 
    private:
 
     ULAMCLASSTYPE m_classType;
-    u32 m_bitLength;   // calculated total of "data member" bits for quark type
+
+
+    void genArrayMangledDefinitionForC(File * fp, CompilerState * state);
   };
   
 }

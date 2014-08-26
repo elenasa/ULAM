@@ -114,12 +114,11 @@ namespace MFM {
     return true; 
   }
 
-
-  //'Class' type calculates its size after type labeling
+#if 0
   u32 UlamTypeAtom::getBitSize()  
   {
     return BITSPERATOM;  //CompilerState.h
   }
-
+#endif
 
 } //end MFM

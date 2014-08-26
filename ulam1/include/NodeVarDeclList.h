@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual void packBitsInOrderOfDeclaration(u32& offset);
+
     virtual void genCode(File * fp);
 
   protected:

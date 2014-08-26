@@ -59,11 +59,22 @@ namespace MFM{
 
     Symbol * getSymbolPtr(u32 id);
 
+
+    void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype, CompilerState * state);
+
     void labelTableOfFunctions();
     
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
 
     void labelTableOfClasses(CompilerState& state);
+
+    bool setBitSizeOfTableOfClasses(CompilerState& state);
+
+    u32 getTotalVariableSymbolsBitSize(CompilerState& state);
+
+    void packBitsForTableOfClasses();
+
+    //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 
     void generateIncludesForTableOfClasses(File * fp, CompilerState& state);
     //void genCodeForTableOfClasses(FileManager * fm, CompilerState& state); not used???
@@ -72,14 +83,13 @@ namespace MFM{
 
     u32 getTotalSymbolSize();
 
-    u32 getTotalVariableSymbolsBitSize();
 
   protected:
     std::map<u32, Symbol* > m_idToSymbolPtr;
 
   private:
 
-
+    s32 calcVariableSymbolTypeSize(UlamType * ut, CompilerState& state);
 
   };
 
