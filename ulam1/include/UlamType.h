@@ -97,6 +97,8 @@ namespace MFM{
 
     virtual const std::string getUlamTypeAsStringForC();
 
+    virtual const std::string getUlamTypeUPrefix();
+
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual const std::string getUlamTypeMangledName(CompilerState * state);
@@ -113,15 +115,18 @@ namespace MFM{
 
     u32 getArraySize();
 
-    virtual u32 getBitSize();  //'class' type calculates its size after type labeling
+    u32 getTotalBitSize();  // arraysize * bitsize
 
-    virtual void setBitSize(u32 bits);  //'class' type calculates its size after type labeling
+    virtual s32 getBitSize();  //'class' type calculates its size after type labeling
+
+    virtual void setBitSize(s32 bits);  //'class' type calculates its size after type labeling
 
     virtual const std::string getBitSizeTemplateString();
 
   protected:
     UlamKeyTypeSignature m_key;
     UTI m_index;
+    u32 m_bitLength;   // calculated total of "data member" bits for quark type
 
   private:
   };

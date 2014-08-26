@@ -4,6 +4,7 @@
 #include <sstream>
 #include "UlamType.h"
 #include "CompilerState.h"
+#include "util.h"
 
 namespace MFM {
 
@@ -16,7 +17,9 @@ namespace MFM {
 #undef XX 
 
   UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_index(uti)
-  {}
+  {
+    m_bitLength = key.m_bits;
+  }
   
 
   UlamType * UlamType::getUlamType()
@@ -65,7 +68,21 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeMangledName(CompilerState * state)
   {
-    return m_key.getUlamKeyTypeSignatureMangledName(state);
+    //return m_key.getUlamKeyTypeSignatureMangledName(state);
+    std::ostringstream mangled;
+    std::string nstr = m_key.getUlamKeyTypeSignatureName(state);
+    u32 nstrlen = nstr.length();
+    
+    mangled << getUlamTypeUPrefix().c_str();
+    mangled << countDigits(getArraySize()) << getArraySize() << countDigits(getBitSize()) << getBitSize();
+    mangled << countDigits(nstrlen) << nstrlen << nstr.c_str();
+    return mangled.str();
+  }
+
+
+  const std::string UlamType::getUlamTypeUPrefix()
+  {
+    return "Ut_";
   }
 
 
@@ -106,11 +123,11 @@ namespace MFM {
 	fp->write(mangledName.c_str());
 	fp->write("\n");
 	state->indent(fp);
-	fp->write(" {\n");
+	fp->write("{\n");
     
 	state->m_currentIndentLevel++;
 	state->indent(fp);
-	fp->write(getUlamTypeAsStringForC().c_str());
+	fp->write(getUlamTypeAsStringForC().c_str()); //e.g. s32, bool
 	fp->write(" ");  
 	fp->write(getUlamTypeAsSingleLowercaseLetter());
 	
@@ -131,7 +148,7 @@ namespace MFM {
       {
 	state->indent(fp);
 	fp->write("typedef ");
-	fp->write(getUlamTypeAsStringForC().c_str());
+	fp->write(getUlamTypeAsStringForC().c_str());  //e.g. s32, bool
 	fp->write(" ");
 	fp->write(mangledName.c_str());	
 	fp->write(";\n");
@@ -182,20 +199,30 @@ namespace MFM {
   }
 
 
-  u32 UlamType::getBitSize()
+  u32 UlamType::getTotalBitSize()  // arraysize * bitsize
   {
-    return m_key.getUlamKeyTypeSignatureBitSize();
+    u32 arraysize = getArraySize();
+    arraysize = (arraysize > 0 ? arraysize : 1);
+    return getBitSize() * arraysize;
   }
 
 
-  void UlamType::setBitSize(u32 bits)  
+  s32 UlamType::getBitSize()
   {
-    assert(0);  //only in UlamTypeClass 
+    //return m_key.getUlamKeyTypeSignatureBitSize();
+    return m_bitLength;
+  }
+
+
+  void UlamType::setBitSize(s32 bits)  
+  {
+    assert(getBitSize() == bits);  //only in UlamTypeClass 
   }
 
 
   const std::string UlamType::getBitSizeTemplateString()
   {
+    assert(0);  //see UlamTypeClass, must be a quark
     return "";
   }
 

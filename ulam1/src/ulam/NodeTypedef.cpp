@@ -14,8 +14,7 @@ namespace MFM {
     fp->write(" typedef");
 
     fp->write(" ");
-    ULAMTYPE UT = m_typedefSymbol->getUlamType()->getUlamTypeEnum();
-    fp->write(UlamType::getUlamTypeEnumAsString(UT));
+    fp->write(m_typedefSymbol->getUlamType()->getUlamTypeNameBrief(&m_state).c_str());
     fp->write(" ");
     fp->write(getName());
 
@@ -53,8 +52,18 @@ namespace MFM {
 	it = m_state.getUlamTypeByIndex(Nav);
       }
     else
-      it = m_typedefSymbol->getUlamType();  
+      {
+	it = m_typedefSymbol->getUlamType();  
+	//check for incomplete Classes
+	if(it->getUlamClassType() == UC_INCOMPLETE)
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete Typedef for type: <" << m_state.getUlamTypeNameByIndex(m_state.getUlamTypeIndex(it)).c_str() << "> used with variable symbol name <" << getName() << ">";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
+	    m_state.completeIncompleteClassSymbol(it);
+	  }
+      }
     setNodeType(it);
     return getNodeType();
   }
@@ -71,6 +80,12 @@ namespace MFM {
   {
     symptrref = m_typedefSymbol;
     return true;
+  }
+
+
+  void NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    //do nothing ???
   }
 
 

@@ -42,7 +42,7 @@ namespace MFM {
 
   void NodeBlockClass::printPostfix(File * fp)
   {
-    fp->write(getNodeType()->getUlamTypeAsStringForC().c_str());  //e.g. Ue_Foo
+    fp->write(getNodeType()->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
 
     fp->write(" {");
@@ -94,7 +94,7 @@ namespace MFM {
 
     //side-effect DataMember VAR DECLS
     if(m_nextNode)
-      m_nextNode->checkAndLabelType();             
+      m_nextNode->checkAndLabelType();   
     
     setNodeType(m_state.getUlamTypeByIndex(Void)); //reset to reflect the Class type
     return getNodeType();
@@ -198,6 +198,13 @@ namespace MFM {
   }
 
 
+  void NodeBlockClass::packBitsForVariableDataMembers()
+  {
+    u32 offset = 0;
+    //m_ST.packBitsForTableOfVariableDataMembers();
+    m_nextNode->packBitsInOrderOfDeclaration(offset);
+  }
+
   //header .h file
   void NodeBlockClass::genCode(File * fp)
   {
@@ -232,14 +239,13 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    m_state.indent(fp);
     if(classtype == UC_QUARK)
       {
-	fp->write("template <u32 POS>\n");
 	m_state.indent(fp);
-	fp->write("static ");
+	fp->write("template <u32 POS>\n");
       }
 
+    m_state.indent(fp);
     fp->write("struct ");
     fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
 
@@ -253,7 +259,8 @@ namespace MFM {
     if(classtype == UC_ELEMENT)
       {
 	//DataMember VAR DECLS
-	m_nextNode->genCode(fp);
+	//m_nextNode->genCode(fp);
+	NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype);
 	fp->write("\n");
       }
 
@@ -270,6 +277,11 @@ namespace MFM {
 	fp->write("();\n\n");
       }
 
+    // if this 'element' contains more than one template (quark) data members, 
+    // we need vector of offsets to generate a separate function decl/dfn for each one's POS
+    // in case a function has one as a return value and/or parameter.
+
+
     //gencode declarations only for all the function definitions
     //bool declOnly = (m_state.m_compileThisId != getNodeType()->getUlamKeyTypeSignature()->getUlamKeyTypeSignatureNameId());
     m_functionST.genCodeForTableOfFunctions(fp, (classtype == UC_ELEMENT), classtype, &m_state);
@@ -285,7 +297,7 @@ namespace MFM {
     fp->write("} //MFM\n\n");
 
     m_state.indent(fp);
-    fp->write("#endif //end ULAM");
+    fp->write("#endif //");
     fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n");
   }

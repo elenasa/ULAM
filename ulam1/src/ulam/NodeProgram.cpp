@@ -73,7 +73,12 @@ namespace MFM {
     // label all the class; sets "current" m_currentClassSymbol in CS
     m_state.m_programDefST.labelTableOfClasses(m_state);
 
-    //UlamType * rtnType =  m_root->checkAndLabelType();
+    // size all the class; sets "current" m_currentClassSymbol in CS
+    while(!m_state.m_programDefST.setBitSizeOfTableOfClasses(m_state)){}
+
+    // must happen after type labeling and before code gen; separate pass.
+    m_state.m_programDefST.packBitsForTableOfClasses();
+
     UlamType * rtnType =  m_root->getNodeType();
     setNodeType(rtnType);   //void type. missing?
 
@@ -161,31 +166,32 @@ namespace MFM {
 
 	m_root->genCodeBody(fp);  //compileThisId only, MFM namespace
 
-	generateMain(fp);  	  //append main to .cpp
 	delete fp;
       }
-    }     //generateCode
+
+      //separate main.cpp for elements only
+      if(m_root->getNodeType()->getUlamClassType() == UC_ELEMENT)
+	{
+	  generateMain(fm);  	  
+	}
+
+    }  //generateCode
 
 
   // append main to .cpp for debug useage
   // outside the MFM namespace !!!
-  void NodeProgram::generateMain(File * fp)
+  void NodeProgram::generateMain(FileManager * fm)
   {
-    /*
     File * fp = fm->open(m_state.getFileNameForThisClassMain().c_str(), WRITE);
     assert(fp);
     
     m_state.m_currentIndentLevel = 0;
     m_state.indent(fp);
-    fp->write("#include \"");
-    fp->write(m_state.getFileNameforThisTypesHeader().c_str());
-    fp->write("\"\n");
-
+    
     m_state.indent(fp);
     fp->write("#include \"");
-    fp->write(m_state.getFileNameforThisClassHeader().c_str());
+    fp->write(m_state.getFileNameForThisClassHeader().c_str());
     fp->write("\"\n");
-    */
 
     fp->write("\n");
     m_state.indent(fp);
@@ -211,7 +217,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("}\n");
-    //delete fp;
+    delete fp;
   }
 
 

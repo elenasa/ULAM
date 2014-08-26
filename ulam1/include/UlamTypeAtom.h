@@ -68,7 +68,7 @@ namespace MFM{
 
     virtual bool isZero(const UlamValue & val);
 
-    virtual u32 getBitSize();  //'class' type calculates its size after type labeling
+    //virtual u32 getBitSize();
 
   private:
    

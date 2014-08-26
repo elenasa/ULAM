@@ -77,4 +77,36 @@ namespace MFM {
     return "Um_"; 
   }
 
+
+  void SymbolVariableStatic::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype, CompilerState * state)
+  {
+    UlamType * vut = getUlamType(); 
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+
+    state->indent(fp);
+    fp->write(vut->getUlamTypeMangledName(state).c_str()); //for C++
+    
+    if(vclasstype == UC_QUARK)       // called on classtype elements only
+      {
+	fp->write("<");
+	fp->write_decimal(getPosOffset());
+	fp->write(">");
+      }    
+    fp->write(" ");
+    fp->write(getMangledName(state).c_str());
+
+#if 0
+    //???
+    u32 arraysize = vut->getArraySize();
+    if(arraysize > 0)
+      {
+	fp->write("[");
+	fp->write_decimal(arraysize);
+	fp->write("]");
+      }
+#endif
+
+    fp->write(";\n");  
+  }
+
 } //end MFM

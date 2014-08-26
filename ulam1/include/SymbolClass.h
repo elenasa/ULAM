@@ -54,6 +54,7 @@ namespace MFM{
     virtual bool isClass();
 
     void setClassBlockNode(NodeBlockClass * node);
+
     NodeBlockClass * getClassBlockNode();
     
     virtual const std::string getMangledPrefix();

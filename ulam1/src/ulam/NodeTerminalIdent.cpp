@@ -122,7 +122,7 @@ namespace MFM {
       }
 
     ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
-    bitsize = (bitsize == 0 ? (bUT == Bool ? 8 : 32) : bitsize); //temporary!!!
+    bitsize = ((bitsize == 0 && bUT != Class) ? (bUT == Bool ? BITSPERBOOL : 32) : bitsize); //temporary!!!
 
     //type names begin with capital letter..and the rest can be either case
     u32 basetypeNameId  = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid

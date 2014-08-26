@@ -60,8 +60,17 @@ namespace MFM {
 	it = m_state.getUlamTypeByIndex(Nav);
       }
     else
-      it = m_varSymbol->getUlamType();  //base type has arraysize
-
+      {
+	it = m_varSymbol->getUlamType();  //base type has arraysize
+	//check for incomplete Classes
+	if(it->getUlamClassType() == UC_INCOMPLETE)
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete Var Decl for type: <" << m_state.getUlamTypeNameByIndex(m_state.getUlamTypeIndex(it)).c_str() << "> used with variable symbol name <" << getName() << ">";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.completeIncompleteClassSymbol(it);
+	  }
+      }
     setNodeType(it);
     return getNodeType();
   }
@@ -99,12 +108,28 @@ namespace MFM {
   }
 
 
+  void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    m_varSymbol->setPosOffset(offset);
+    offset += m_varSymbol->getUlamType()->getTotalBitSize();
+  }
+
+
   void NodeVarDecl::genCode(File * fp)
   {
     UlamType * vut = m_varSymbol->getUlamType(); 
     m_state.indent(fp);
     fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
-    fp->write(vut->getBitSizeTemplateString().c_str());  //for quark templates
+    
+    if(m_varSymbol->isDataMember())
+      {
+	fp->write("<POS>");  //needs to adjust position by previous quark bit lengths XXX
+      }
+    else
+      {
+	fp->write(vut->getBitSizeTemplateString().c_str());  //for quark templates
+      }
+    
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName(&m_state).c_str());
 

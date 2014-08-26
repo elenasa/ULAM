@@ -215,6 +215,12 @@ namespace MFM {
   }
 
 
+  void Node::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    assert(0);
+  }
+
+
   void Node::genCode(File * fp)
   {
     m_state.indent(fp);

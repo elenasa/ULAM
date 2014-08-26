@@ -1832,7 +1832,7 @@ namespace MFM {
     UTI cidx = m_state.makeUlamType(ckey, Class);
     assert(cidx == Class);
 
-    UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), 0);
+    UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), BITSPERATOM);
     UTI aidx = m_state.makeUlamType(akey, Atom);
     assert(aidx == Atom);
 

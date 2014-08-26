@@ -96,6 +96,15 @@ namespace MFM {
   }
 
 
+  void NodeVarDeclList::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    //each VarDecl is output separately, not as a list.
+    m_nodeLeft->packBitsInOrderOfDeclaration(offset); //updates offset first
+    m_nodeRight->packBitsInOrderOfDeclaration(offset); //updates offset next
+  }
+
+
   void NodeVarDeclList::genCode(File * fp)
   {
     assert(m_nodeLeft && m_nodeRight);

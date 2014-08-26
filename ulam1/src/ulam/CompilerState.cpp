@@ -62,7 +62,7 @@ namespace MFM {
     // is this name already a typedef for a complex type?
     ULAMTYPE bUT = getBaseTypeFromToken(typeTok);
 
-    bitsize = (bitsize == 0 ? (bUT == Bool ? 8 : 32) : bitsize); //temporary!!!
+    bitsize = ((bitsize == 0 && bUT != Class) ? (bUT == Bool ? BITSPERBOOL : 32) : bitsize); //temporary!!!
     UlamKeyTypeSignature key(typeNameId,bitsize,arraysize);
     UTI uti = 0;
     UlamType * ut;
@@ -327,6 +327,28 @@ namespace MFM {
   }
 
 
+  bool CompilerState::completeIncompleteClassSymbol(UlamType * incomplete) 
+  {
+    bool rtnB = false;
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(incomplete->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+      {
+	UlamType * but = csym->getUlamType();
+	ULAMCLASSTYPE bc = but->getUlamClassType();
+	assert(bc == UC_ELEMENT || bc == UC_QUARK);
+	((UlamTypeClass *) incomplete)->setUlamClassType(bc);
+	((UlamTypeClass *) incomplete)->setBitSize(but->getBitSize());
+	rtnB = true;
+      }
+    else
+      {
+	assert(0);
+      }
+
+    return rtnB;
+  }
+
+
   bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
@@ -507,6 +529,17 @@ namespace MFM {
   }
 
 
+  //separate file for element compilations, avoid multiple mains, select the one to test during linking
+  std::string CompilerState::getFileNameForThisClassMain()
+  {
+    std::ostringstream f;
+    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    UlamType * cut = csym->getUlamType();
+    f << cut->getUlamTypeMangledName(this).c_str() << "_main.cpp";
+    return f.str();
+  }
+
+
   std::string CompilerState::getFileNameForThisTypesHeader()
   {
     std::ostringstream f;
@@ -515,5 +548,6 @@ namespace MFM {
     f << cut->getUlamTypeMangledName(this).c_str() << "_Types.h";
     return f.str();
   }
+
 
 } //end MFM

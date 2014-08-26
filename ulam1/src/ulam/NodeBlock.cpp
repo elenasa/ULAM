@@ -111,9 +111,14 @@ namespace MFM {
 
   u32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
   {
-    return m_ST.getTotalVariableSymbolsBitSize();
+    return m_ST.getTotalVariableSymbolsBitSize(m_state);
   }
 
+
+  void NodeBlock::genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
+  {
+    m_ST.genCodeForTableOfVariableDataMembers(fp, classtype, &m_state);
+  }
 
   void NodeBlock::genCode(File * fp)
   {

@@ -59,7 +59,14 @@ namespace MFM{
     virtual UlamValue getUlamValueAtToStoreInto(s32 idx, CompilerState& state) = 0;
     virtual s32 getBaseArrayIndex() = 0;
 
+    u32 getPosOffset();
+
+    void setPosOffset(u32 offsetIntoAtom);
+
+    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype, CompilerState * state) = 0;
+
   protected:
+    u32 m_posOffset;
 
   private:
     virtual UlamValue makeUlamValuePtr() = 0;
