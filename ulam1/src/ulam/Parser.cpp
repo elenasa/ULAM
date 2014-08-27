@@ -841,30 +841,11 @@ namespace MFM {
     
     if(qTok.m_type == TOK_DOT)
       {
-	Token iTok;
-	if(getExpectedToken(TOK_IDENTIFIER, iTok))
-	  {
-	    // set up compiler state to NOT use the current class block
-	    // for symbol searches; may be unknown until type label
-	    m_state.m_currentMemberClassBlock = NULL; 
-	    m_state.m_useMemberBlock = true;
-
-	    rtnNode = new NodeMemberSelect(rtnNode, parseIdentExpr(iTok), m_state);
-	    rtnNode->setNodeLocation(qTok.m_locator);
-
-	    m_state.m_useMemberBlock = false;  //reset
-	  }
-	else
-	  {
-	    //error! 
-	    delete rtnNode;
-	    rtnNode = NULL;
-	  }
+	rtnNode = parseRestOfMemberSelectExpr(rtnNode);
       }
     else
       {
-	// not a member select
-	unreadToken();
+	unreadToken();  // not a member select
       }
     
     return rtnNode;  //parseIdentExpr
@@ -877,29 +858,35 @@ namespace MFM {
     // declared as a variable, either as a data member or locally,
     // WAIT To  search back through the block symbol tables during type labeling
 
+    Node * classInstanceNode = new NodeTerminalIdent(memberTok, (SymbolVariable *) NULL, m_state);
+    classInstanceNode->setNodeLocation(memberTok.m_locator);
+	
+    return parseRestOfMemberSelectExpr(classInstanceNode); //parseMemberSelect
+  }
+
+
+  Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
+  {
     Node * rtnNode = NULL;
     Token iTok;
     if(getExpectedToken(TOK_IDENTIFIER, iTok))
       {
-	Node * classInstanceNode = new NodeTerminalIdent(memberTok, (SymbolVariable *) NULL, m_state);
-	classInstanceNode->setNodeLocation(memberTok.m_locator);
-	
 	// set up compiler state to NOT use the current class block
 	// for symbol searches; may be unknown until type label
 	m_state.m_currentMemberClassBlock = NULL; 
 	m_state.m_useMemberBlock = true;
-
+	
 	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
-	rtnNode->setNodeLocation(memberTok.m_locator);
-
+	rtnNode->setNodeLocation(iTok.m_locator);
+    
 	//clear up compiler state to no longer use the member class block for symbol searches
 	m_state.m_useMemberBlock = false;
 	m_state.m_currentMemberClassBlock = NULL;
       }
-    
-    return rtnNode; //parseMemberSelect
-  }
 
+    return rtnNode;
+  }
+  
 
   Node * Parser::parseFunctionCall(Token identTok)
   {
@@ -1207,18 +1194,7 @@ namespace MFM {
 
   Node * Parser::makeVariableSymbol(Token typeTok, Token identTok)
   {
-    assert(! Token::isTokenAType(identTok)); 
-#if 0
-    // new! done by Lexer
-    // first check that the function name begins with a lower case letter
-    if(Token::isTokenAType(identTok))
-      {	
-	std::ostringstream msg;
-	msg << "Variable <" << m_state.getDataAsString(&identTok).c_str() << "> is not a valid (lower case) name";
-	MSG(&identTok, msg.str().c_str(), ERR);
-	return NULL;
-      }
-#endif
+    assert(! Token::isTokenAType(identTok));  //capitalization check done by Lexer
 
     NodeVarDecl * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok);
@@ -1229,12 +1205,12 @@ namespace MFM {
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
-
-
 	UlamType * ut;
 	u32 arraysize = 0;
 	if(m_state.getUlamTypeByTypedefName(m_state.getTokenAsATypeName(typeTok).c_str(), ut))
-	  arraysize = ut->getArraySize(); //typedef built-in arraysize, no []
+	  {
+	    arraysize = ut->getArraySize(); //typedef built-in arraysize, no []
+	  }
 
 	if(!lvalNode->installSymbolVariable(typeTok, arraysize, asymptr))
 	  {
@@ -1280,9 +1256,9 @@ namespace MFM {
       }
 
     Symbol * asymptr = NULL;
-    // ask current scope class block if this identifier name is there 
-    // (checks functions and variables and typedefs); 
-    // if not a function, BAIL; check for overloaded function, after parameter types available
+    // ask current scope class block if this identifier name is there (no embedded funcs)
+    // (checks functions and variables and typedefs); if not a function, BAIL; 
+    // check for overloaded function, after parameter types available
     if(m_state.m_classBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
@@ -1333,7 +1309,7 @@ namespace MFM {
     // currently, only scalar; determines start position of first arg "under".
     u32 returnArraySize = fsymptr->getUlamType()->getArraySize();
     returnArraySize = (returnArraySize > 0 ? returnArraySize : 1);
-    m_state.m_currentFunctionBlockDeclSize = - (returnArraySize + 1);  
+    m_state.m_currentFunctionBlockDeclSize = - (returnArraySize + 1);
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
     // parse and add parameters to function symbol
