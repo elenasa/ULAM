@@ -24,6 +24,7 @@
 #include "NodeCast.h"
 #include "NodeControlIf.h"
 #include "NodeControlWhile.h"
+#include "NodeMemberSelect.h"
 #include "NodeProgram.h"
 #include "NodeReturnStatement.h"
 #include "NodeTerminal.h"
@@ -798,8 +799,11 @@ namespace MFM {
   // lvalExpr + func Calls
   Node * Parser::parseIdentExpr(Token identTok)
   {
+    Node * rtnNode = NULL;
+    Token pTok;
+    getNextToken(pTok);
     //function call, otherwise lvalExpr
-    if(getExpectedToken(TOK_OPEN_PAREN, QUIETLY))
+    if(pTok.m_type == TOK_OPEN_PAREN)
       {
 	Symbol * asymptr = NULL;
 
@@ -810,15 +814,90 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Undefined function <" << m_state.getDataAsString(&identTok).c_str() << "> that has already been declared as a variable";
 	    MSG(&identTok, msg.str().c_str(), ERR);
-	    return  NULL;
+	    return  NULL; //bail
 	  }
 	
 	//function call
-	return parseFunctionCall(identTok);
+	rtnNode = parseFunctionCall(identTok);
+      }
+    else if(pTok.m_type == TOK_DOT)
+      {
+	rtnNode = parseMemberSelectExpr(identTok);
+      }
+    else
+      {
+	// else we have a variable, not a function call, nor member_select
+	unreadToken();
+	rtnNode = parseLvalExpr(identTok);  
       }
 
-    // if here, we have a variable, not a function call
-    return parseLvalExpr(identTok);  //parseIdentExpr
+    // bail if no node 
+    if(!rtnNode)
+      return NULL;
+
+    // check for member select expression
+    Token qTok;
+    getNextToken(qTok);
+    
+    if(qTok.m_type == TOK_DOT)
+      {
+	Token iTok;
+	if(getExpectedToken(TOK_IDENTIFIER, iTok))
+	  {
+	    // set up compiler state to NOT use the current class block
+	    // for symbol searches; may be unknown until type label
+	    m_state.m_currentMemberClassBlock = NULL; 
+	    m_state.m_useMemberBlock = true;
+
+	    rtnNode = new NodeMemberSelect(rtnNode, parseIdentExpr(iTok), m_state);
+	    rtnNode->setNodeLocation(qTok.m_locator);
+
+	    m_state.m_useMemberBlock = false;  //reset
+	  }
+	else
+	  {
+	    //error! 
+	    delete rtnNode;
+	    rtnNode = NULL;
+	  }
+      }
+    else
+      {
+	// not a member select
+	unreadToken();
+      }
+    
+    return rtnNode;  //parseIdentExpr
+  } 
+
+
+  Node * Parser::parseMemberSelectExpr(Token memberTok)
+  {
+    // arg is an instance of a class, it will be/was
+    // declared as a variable, either as a data member or locally,
+    // WAIT To  search back through the block symbol tables during type labeling
+
+    Node * rtnNode = NULL;
+    Token iTok;
+    if(getExpectedToken(TOK_IDENTIFIER, iTok))
+      {
+	Node * classInstanceNode = new NodeTerminalIdent(memberTok, (SymbolVariable *) NULL, m_state);
+	classInstanceNode->setNodeLocation(memberTok.m_locator);
+	
+	// set up compiler state to NOT use the current class block
+	// for symbol searches; may be unknown until type label
+	m_state.m_currentMemberClassBlock = NULL; 
+	m_state.m_useMemberBlock = true;
+
+	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
+	rtnNode->setNodeLocation(memberTok.m_locator);
+
+	//clear up compiler state to no longer use the member class block for symbol searches
+	m_state.m_useMemberBlock = false;
+	m_state.m_currentMemberClassBlock = NULL;
+      }
+    
+    return rtnNode; //parseMemberSelect
   }
 
 
@@ -1824,7 +1903,7 @@ namespace MFM {
     UTI fidx = m_state.makeUlamType(fkey, Float);
     assert(fidx == Float);
 
-    UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), 8);
+    UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), BITSPERBOOL);
     UTI bidx = m_state.makeUlamType(bkey, Bool);
     assert(bidx == Bool);
 

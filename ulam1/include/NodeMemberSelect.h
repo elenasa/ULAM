@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpAdd.h -  Node for handling Addition for ULAM
+ * NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,26 +26,26 @@
  */
 
 /**
-  \file NodeBinaryOpAdd.h -  Node for handling Addition for ULAM
+  \file NodeMemberSelect.h -  Node for handling Class Instance Member Selection for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
-#ifndef NODEBINARYOPADD_H
-#define NODEBINARYOPADD_H
+#ifndef NODEMEMBERSELECT_H
+#define NODEMEMBERSELECT_H
 
-#include "NodeBinaryOp.h"
+#include "NodeBinaryOpEqual.h"
 
 namespace MFM{
 
-  class NodeBinaryOpAdd : public NodeBinaryOp
+  class NodeMemberSelect : public NodeBinaryOpEqual
   {
   public:
     
-    NodeBinaryOpAdd(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpAdd();
+    NodeMemberSelect(Node * left, Node * right, CompilerState & state);
+    ~NodeMemberSelect();
 
     virtual void printOp(File * f);
 
@@ -55,12 +55,15 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    //virtual EvalStatus eval();
+
   protected:
 
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
 
+    virtual void genCode(File * fp);
   };
 
 } //MFM
 
-#endif //NODEBINARYOPADD_H
+#endif //NODEMEMBERSELECT_H

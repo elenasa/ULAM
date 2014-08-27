@@ -72,4 +72,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBINARYOP_H
+#endif //NODEBINARYOP_H

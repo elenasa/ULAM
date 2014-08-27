@@ -76,7 +76,12 @@ namespace MFM {
 
   UlamType * NodeBlockClass::checkAndLabelType()
   { 
-    // label all the function definition bodies first.
+    //side-effect DataMember VAR DECLS
+    if(m_nextNode)
+      m_nextNode->checkAndLabelType();   
+
+
+    // label all the function definition bodies first. why?
     m_functionST.labelTableOfFunctions();
 
     // check that a 'test' function returns Int (ulam convention)
@@ -91,10 +96,6 @@ namespace MFM {
 	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
-
-    //side-effect DataMember VAR DECLS
-    if(m_nextNode)
-      m_nextNode->checkAndLabelType();   
     
     setNodeType(m_state.getUlamTypeByIndex(Void)); //reset to reflect the Class type
     return getNodeType();

@@ -47,13 +47,13 @@ namespace MFM {
 
   u32 CallStack::returnFrame()
   {
-    u32 prevZero = m_frames[m_currentFrame].m_valInt;
-    assert(prevZero < m_frames.size());
+    s32 prevZero = m_frames[m_currentFrame].m_valInt;
+    assert(prevZero < (s32) m_frames.size());
 
     //let caller pop its args!
     //u32 popslots = m_currentFrame - prevZero;
-    u32 popslots = m_frames.size() - m_currentFrame;
-    for(u32 i = 0; i < popslots; i++)
+    s32 popslots = m_frames.size() - m_currentFrame;
+    for(s32 i = 0; i < popslots; i++)
       m_frames.pop_back();
 
     m_currentFrame = prevZero;

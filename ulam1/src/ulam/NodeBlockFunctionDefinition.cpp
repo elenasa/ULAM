@@ -101,6 +101,8 @@ namespace MFM {
     UlamType * it = m_funcSymbol->getUlamType();
     setNodeType(it);
 
+    m_state.m_currentBlock = this;
+
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
     m_state.m_currentFunctionReturnType = it;
 

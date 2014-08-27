@@ -39,13 +39,15 @@ namespace MFM {
     //use was before def, look up in class block
     if(m_varSymbol == NULL)
       {
-	Symbol * asymptr;
-	if(m_state.m_classBlock->isIdInScope(m_token.m_dataindex,asymptr))
+	Symbol * asymptr = NULL;
+	//if(m_state.m_classBlock->isIdInScope(m_token.m_dataindex,asymptr))
+	//if(m_state.isIdInClassScope(m_token.m_dataindex,asymptr))
+	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
 	  {
 	    if(!asymptr->isFunction())
 	      {
 		m_varSymbol = (SymbolVariable *) asymptr;
-		assert(m_varSymbol->isDataMember());
+		//assert(m_varSymbol->isDataMember()); //could be a local variable
 	      }
 	    else
 	      {
