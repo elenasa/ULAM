@@ -195,7 +195,9 @@ namespace MFM{
 	<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + <IDENT_EXPRESSION>
     */
     Node * parseMemberSelectExpr(Token memberTok);
- 
+
+    Node * parseRestOfMemberSelectExpr(Node * classInstanceNode); 
+
 
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'
