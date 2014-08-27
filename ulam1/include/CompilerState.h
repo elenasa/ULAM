@@ -94,17 +94,20 @@ namespace MFM{
     // e.g., Token identifiers that are variables, path names read by SS, etc.)
     StringPool m_pool;
 
-    u32 m_compileThisId;           // the subject of this compilation; id into m_pool
+    u32 m_compileThisId;                 // the subject of this compilation; id into m_pool
     SymbolTable m_programDefST;
 
     NodeBlock *      m_currentBlock;     //replaces m_stackOfBlocks
     NodeBlockClass * m_classBlock;       //holds ST with function defs
 
+    bool m_useMemberBlock;               // used during parsing member select expression
+    NodeBlockClass * m_currentMemberClassBlock;  
+
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
 
     CallStack m_funcCallStack;    //local variables and arguments
-    UlamAtom m_selectedAtom;      //storage for data member (static/global) variables
+    UlamAtom  m_selectedAtom;     //storage for data member (static/global) variables
     CallStack m_nodeEvalStack;    //for node eval return values, 
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
 
@@ -143,6 +146,8 @@ namespace MFM{
 	search SymbolTables LIFO order; o.w. return false
     */
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr);
+    bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr);
+    bool isIdInClassScope(u32 dataindex, Symbol * & symptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
 
 

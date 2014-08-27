@@ -89,7 +89,7 @@ namespace MFM {
 
   EvalStatus NodeBinaryOpEqual::evalToStoreInto()
   {
-    assert(0);
+    //assert(0);
     evalNodeProlog(0);
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -130,10 +130,14 @@ namespace MFM {
       {
 	m_state.m_funcCallStack.assignUlamValue(pluv, ruv, m_state);
       }
+    else if (pluv.m_storage == EVALRETURN)
+      {
+	m_state.m_nodeEvalStack.assignUlamValue(pluv, ruv, m_state);
+      }
     else
       {
 	assert(0);
-	//error! luv not store into able!
+	// error! luv not storeintoable
       }
   }
 

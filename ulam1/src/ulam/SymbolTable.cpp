@@ -121,6 +121,8 @@ namespace MFM {
 	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	    assert(classNode);
 	    state.m_classBlock = classNode;
+	    state.m_currentBlock = state.m_classBlock;
+
 	    classNode->checkAndLabelType();
 	    classNode->setNodeType(sym->getUlamType()); //resets class' type (was Void). sweet.
 
@@ -156,21 +158,23 @@ namespace MFM {
 	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	    assert(classNode);
 	    state.m_classBlock = classNode;
+	    state.m_currentBlock = state.m_classBlock;
+
 	    u32 totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
 	    if(totalbits == 0)
 	      {
-		std::ostringstream msg;
-		msg << "setting zero bit size symbol!! " << sym->getUlamType()->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
+		//std::ostringstream msg;
+		//msg << "setting zero bit size symbol!! " << sym->getUlamType()->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
+		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
 		aok = false;
 	      }
 	    else
 	      {
 		UlamType * sut = sym->getUlamType();
 		sut->setBitSize(totalbits);  //"scalar" Class bitsize
-		std::ostringstream msg;
-		msg << "symbol size is aok (=" << totalbits << ", total= " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
+		//std::ostringstream msg;
+		//msg << "symbol size is aok (=" << totalbits << ", total= " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
+		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
 	      }
 	  }
 	it++;
@@ -202,9 +206,9 @@ namespace MFM {
 	    else
 	      {
 		sut->setBitSize(symsize);  //total bits NOT including arrays
-		std::ostringstream msg;
-		msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
+		//std::ostringstream msg;
+		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
+		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
 	      }
 	    totalsizes += sut->getTotalBitSize();
 	  }
@@ -376,6 +380,7 @@ namespace MFM {
 	    assert(classNode);
 
 	    m_state.m_classBlock = classNode;
+	    m_state.m_currentBlock = m_state.m_classBlock;
 
 	    ULAMCLASSTYPE uct = ((SymbolClass *) sym)->getUlamClassType();
 	    if(uct == UC_ELEMENT)

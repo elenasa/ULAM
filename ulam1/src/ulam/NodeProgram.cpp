@@ -145,7 +145,8 @@ namespace MFM {
       assert(m_root);
       m_state.m_err.clearCounts();
 
-      m_state.m_classBlock = m_root;  //reset to cmopileThis' class block
+      m_state.m_classBlock = m_root;  //reset to compileThis' class block
+      m_state.m_currentBlock = m_state.m_classBlock;
 
       // mangled types and forward class declarations
       genMangledTypeHeaderFile(fm);    

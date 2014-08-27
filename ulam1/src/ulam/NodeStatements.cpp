@@ -100,11 +100,12 @@ namespace MFM {
     //not the last one, so thrown out results and continue
     if(m_nextNode)
       {
-	evalNodeEpilog();
+	evalNodeEpilog();  //Tue Aug 26 16:18:43 2014 
 	evs = m_nextNode->eval();
 	if(evs != NORMAL)
 	  {
 	    ////evalNodeEpilog();
+	    //evalNodeEpilog(); //Tue Aug 26 16:18:56 2014 
 	    return evs;
 	  }
       }

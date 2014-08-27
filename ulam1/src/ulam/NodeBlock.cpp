@@ -61,6 +61,9 @@ namespace MFM {
   UlamType * NodeBlock::checkAndLabelType()
   { 
     assert(m_nextNode);
+
+    m_state.m_currentBlock = this;
+
     m_nextNode->checkAndLabelType();
 
     //blocks don't have types 

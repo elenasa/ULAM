@@ -18,8 +18,9 @@ namespace MFM {
 	rtn = true;
 	if(C.checkAndTypeLabelProgram(programme, output) == 0)
 	  {
-	    s32 exitReturnValue;	    
-	    
+	    //	    C.printProgramForDebug(programme, output);
+
+	    s32 exitReturnValue = 0;
 	    if(C.testProgram(programme, output, exitReturnValue) == 0)
 	      {
 		C.printPostFix(programme, output);
@@ -30,6 +31,7 @@ namespace MFM {
 
 	    output->write("Exit status: " );    //in compared answer
 	    output->write_decimal(exitReturnValue);	      
+
 	  }
 	else
 	  output->write("Unrecoverable Program Type Label FAILURE.\n");

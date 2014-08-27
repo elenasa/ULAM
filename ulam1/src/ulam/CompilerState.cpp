@@ -25,8 +25,7 @@ namespace MFM {
   static const char * m_indentedSpaceLevel("  ");
 
 
-  CompilerState::CompilerState(): m_currentBlock(NULL), m_classBlock(NULL), m_currentFunctionBlockDeclSize(0),
-				  m_currentFunctionBlockMaxDepth(0)
+  CompilerState::CompilerState(): m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0)
   {
     m_err.init(this, debugOn, NULL);
   }
@@ -356,6 +355,11 @@ namespace MFM {
     // start with the current "top" block and look down the stack
     // until the 'variable id' is found.
     NodeBlock * blockNode = m_currentBlock;
+
+    // substitute another selected class block to search for data member
+    if(m_useMemberBlock)
+      blockNode = m_currentMemberClassBlock;
+
     while(!brtn && blockNode)
       {
 	brtn = blockNode->isIdInScope(dataindex,symptr);
@@ -366,9 +370,39 @@ namespace MFM {
     // function def block; check function data members separately.
     if(!brtn)
       {
-	brtn = m_classBlock->isFuncIdInScope(dataindex,symptr);
+	brtn = isFuncIdInClassScope(dataindex, symptr);
       }
  
+    return brtn;
+  }
+
+
+  bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
+  {
+    bool brtn = false;
+    if(m_useMemberBlock)
+      {
+	if(m_currentMemberClassBlock)
+	  brtn = m_currentMemberClassBlock->isFuncIdInScope(dataindex,symptr);
+      }
+    else
+      brtn = m_classBlock->isFuncIdInScope(dataindex,symptr);
+   
+    return brtn;
+  }
+  
+
+  bool CompilerState::isIdInClassScope(u32 dataindex, Symbol * & symptr)
+  {
+    bool brtn = false;
+    if(m_useMemberBlock)
+      {
+	if(m_currentMemberClassBlock)
+	  brtn = m_currentMemberClassBlock->isIdInScope(dataindex,symptr);
+      }
+    else
+      brtn = m_classBlock->isIdInScope(dataindex,symptr);
+   
     return brtn;
   }
 

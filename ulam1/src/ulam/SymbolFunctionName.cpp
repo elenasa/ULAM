@@ -48,8 +48,10 @@ namespace MFM {
     SymbolFunction * anyotherSym;
     if(!isDefined(mangled, anyotherSym))
       {
-	m_mangledFunctionNames.insert(std::pair<std::string,SymbolFunction *>(mangled,fsym));
-	overloaded = true;
+	std::pair<std::map<std::string,SymbolFunction *>::iterator,bool> ret;
+	ret = m_mangledFunctionNames.insert(std::pair<std::string,SymbolFunction *>(mangled,fsym));
+	overloaded = ret.second; //false if already existed, i.e. not added
+	assert(overloaded); //shouldn't be a duplicate, we've checked by now.
       }
 
     return overloaded;
@@ -59,6 +61,9 @@ namespace MFM {
   bool SymbolFunctionName::findMatchingFunction(std::vector<UlamType *> argTypes, SymbolFunction *& funcSymbol)
   {
     bool rtnBool = false;
+
+    if(m_mangledFunctionNames.empty())
+      return false;
 
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     assert(funcSymbol == NULL);
