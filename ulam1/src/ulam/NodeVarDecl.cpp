@@ -117,22 +117,30 @@ namespace MFM {
 
   void NodeVarDecl::genCode(File * fp)
   {
+    //like ST version: genCodeForTableOfVariableDataMembers, except in order declared
     UlamType * vut = m_varSymbol->getUlamType(); 
+    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
     m_state.indent(fp);
     fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
     
-    if(m_varSymbol->isDataMember())
+    if(vclasstype == UC_QUARK)
       {
-	fp->write("<POS>");  //needs to adjust position by previous quark bit lengths XXX
-      }
-    else
-      {
-	fp->write(vut->getBitSizeTemplateString().c_str());  //for quark templates
+	if(m_varSymbol->isDataMember())
+	  {
+	    // position determined by previous data member bit lengths
+	    fp->write("<");
+	    fp->write_decimal(m_varSymbol->getPosOffset());
+	    fp->write(">");
+	  }
+	else
+	  {
+	    fp->write(vut->getBitSizeTemplateString().c_str());  //for quark templates
+	  }
       }
     
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName(&m_state).c_str());
-
+    
 #if 0
     u32 arraysize = vut->getArraySize();
     if(arraysize > 0)
@@ -142,10 +150,9 @@ namespace MFM {
 	fp->write("]");
       }
 #endif
-
+    
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   }
-
 
 } //end MFM
 

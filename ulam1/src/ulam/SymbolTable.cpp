@@ -171,7 +171,7 @@ namespace MFM {
 	    else
 	      {
 		UlamType * sut = sym->getUlamType();
-		sut->setBitSize(totalbits);  //"scalar" Class bitsize
+		sut->setBitSize(totalbits, &state);  //"scalar" Class bitsize
 		//std::ostringstream msg;
 		//msg << "symbol size is aok (=" << totalbits << ", total= " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
 		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
@@ -205,7 +205,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		sut->setBitSize(symsize);  //total bits NOT including arrays
+		sut->setBitSize(symsize, &state);  //total bits NOT including arrays
 		//std::ostringstream msg;
 		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
 		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
@@ -243,7 +243,7 @@ namespace MFM {
 	  }
 	else // totbitsize == 0
 	  {
-	    argut->setBitSize(-1);  //before the recusive call..
+	    argut->setBitSize(-1, &state);  //before the recusive call..
 	    //get base type
 	    SymbolClass * csym = NULL;
 	    if(state.alreadyDefinedSymbolClass(argut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))

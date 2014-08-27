@@ -6,15 +6,15 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string(" { Int a(0);  Int test() {  a 5 = a a 1 -b = cast cond {} while a return } }\n");
+      return std::string("Ue_A { Int a(0);  Int test() {  a 5 = a a 1 -b = cast cond {} while a return } }\n");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("a.ulam","ulam { Int a; Int test() {a = 5; while( a = a - 1 ) { } return a; } }");
+      bool rtn1 = fms->add("A.ulam","element A { Int a; Int test() {a = 5; while( a = a - 1 ) { } return a; } }");
       
       if(rtn1)
-	return std::string("a.ulam");
+	return std::string("A.ulam");
       
       return std::string("");
     }      

@@ -78,6 +78,7 @@ namespace MFM {
   }
 
 
+  // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
   void SymbolVariableStatic::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype, CompilerState * state)
   {
     UlamType * vut = getUlamType(); 
@@ -96,7 +97,6 @@ namespace MFM {
     fp->write(getMangledName(state).c_str());
 
 #if 0
-    //???
     u32 arraysize = vut->getArraySize();
     if(arraysize > 0)
       {
@@ -105,7 +105,6 @@ namespace MFM {
 	fp->write("]");
       }
 #endif
-
     fp->write(";\n");  
   }
 

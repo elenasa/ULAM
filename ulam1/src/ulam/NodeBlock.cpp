@@ -120,6 +120,7 @@ namespace MFM {
 
   void NodeBlock::genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {
+    assert(0); //using the NodeVarDecl:genCode approach instead.
     m_ST.genCodeForTableOfVariableDataMembers(fp, classtype, &m_state);
   }
 

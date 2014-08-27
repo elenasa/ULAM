@@ -84,6 +84,10 @@ namespace MFM{
 #define BITSPERATOM (96)
 #endif //BITSPERATOM
 
+#ifndef BITSPERQUARK
+#define BITSPERQUARK (32)
+#endif //BITSPERQUARK
+
 #ifndef BITSPERBOOL
 #define BITSPERBOOL (1)
 #endif //BITSPERBOOL

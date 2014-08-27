@@ -11,7 +11,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //std::string answerkey = "bang/b.ulam:1.1:TOK_IDENTIFIER(bar)\nno/c_ake/c.ulam:1.1:TOK_IDENTIFIER(CCC)\nbang/b.ulam:2.15:TOK_SEMICOLON\na.ulam:1.11:TOK_SEMICOLON\na.ulam:2.11:TOK_SEMICOLON\nbang/b.ulam:1.1:TOK_IDENTIFIER(bar)\nbang/b.ulam:2.15:TOK_SEMICOLON\na.ulam:2.24:TOK_SEMICOLON\na.ulam:2.36:TOK_SEMICOLON\na.ulam:3.0:TOK_EOF\n";
-      std::string answerkey = "bang/b.ulam:1.1:TOK_IDENTIFIER(bar)\nno/c_ake/c.ulam:1.1:TOK_IDENTIFIER(CCC)\nbang/b.ulam:1.1:TOK_IDENTIFIER(bar)\na.ulam:3.0:TOK_EOF\n";
+      std::string answerkey = "bang/b.ulam:1.1:TOK_IDENTIFIER(bar)\nno/c_ake/c.ulam:1.1:TOK_TYPE_IDENTIFIER(CCC)\nbang/b.ulam:1.1:TOK_IDENTIFIER(bar)\na.ulam:3.0:TOK_EOF\n";
       return answerkey;
     }
 

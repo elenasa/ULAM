@@ -72,6 +72,7 @@ namespace MFM {
     return "Uv_"; 
   }
 
+
   void SymbolVariableStack::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype, CompilerState * state)
   {
     assert(0);

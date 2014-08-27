@@ -10,7 +10,7 @@ namespace MFM {
   {  
     std::string GetAnswerKey()
     {
-      std::string answerkey = "a.ulam:1.1:TOK_IDENTIFIER(AAA)\na.ulam:1.3:TOK_EOF\n";
+      std::string answerkey = "a.ulam:1.1:TOK_TYPE_IDENTIFIER(AAA)\na.ulam:1.3:TOK_EOF\n";
       return answerkey;
     }
 

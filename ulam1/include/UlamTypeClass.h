@@ -79,7 +79,7 @@ namespace MFM{
 
     virtual s32 getBitSize();      //'class' type calculates its size after type labeling
 
-    virtual void setBitSize(s32 bits);  //'class' type calculates its size after type labeling
+    virtual void setBitSize(s32 bits, CompilerState * state);  //'class' type calculates its size after type labeling
 
     virtual const std::string getBitSizeTemplateString();
 

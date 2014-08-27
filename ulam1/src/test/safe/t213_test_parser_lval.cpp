@@ -6,15 +6,15 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string(" { Int a[5](0,0,0,0,7);  Int j(3);  Int test() {  a 1 3 +b [] 7 = j 10 a 4 [] -b = j return } }\n");
+      return std::string("Ue_A { Int a[3](3,0,7);  Int test() {  Int j;  a 1 1 +b [] 7 = j 10 a 2 [] -b = a 0 [] j = j return } }\n");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("a.ulam","ulam { Int a[5]; Int j; Int test() { a[1+3] = 7; j = 10 - a[4]; return j; } }");
+      bool rtn1 = fms->add("A.ulam","element A { Int a[3]; Int test() { Int j; a[1+1] = 7; j = 10 - a[2]; a[0] = j; return j; } }");
       
       if(rtn1)
-	return std::string("a.ulam");
+	return std::string("A.ulam");
       
       return std::string("");
     }      
