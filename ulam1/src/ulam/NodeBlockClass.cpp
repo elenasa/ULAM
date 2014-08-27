@@ -260,8 +260,8 @@ namespace MFM {
     if(classtype == UC_ELEMENT)
       {
 	//DataMember VAR DECLS
-	//m_nextNode->genCode(fp);
-	NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype);
+	m_nextNode->genCode(fp);
+	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
 

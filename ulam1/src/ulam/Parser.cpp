@@ -75,6 +75,7 @@ namespace MFM {
       }
 
     std::string compileThis = startstr.substr(0,foundSuffix);
+
     char c = compileThis.at(0);
     if(!Token::isUpper(c))
       {

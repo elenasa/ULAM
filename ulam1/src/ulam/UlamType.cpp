@@ -214,9 +214,15 @@ namespace MFM {
   }
 
 
-  void UlamType::setBitSize(s32 bits)  
+  void UlamType::setBitSize(s32 bits, CompilerState * state)  
   {
-    assert(getBitSize() == bits);  //only in UlamTypeClass 
+    if(getBitSize() != bits)  //only in UlamTypeClass 
+      {
+	std::ostringstream msg;
+	msg << "Trying to set INCONSISTENT bit size (" << getBitSize() << ") for " << getUlamTypeName(state).c_str() << " with " << bits << " bits";
+	state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	assert(0);
+      }
   }
 
 

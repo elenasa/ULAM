@@ -336,7 +336,7 @@ namespace MFM {
 	ULAMCLASSTYPE bc = but->getUlamClassType();
 	assert(bc == UC_ELEMENT || bc == UC_QUARK);
 	((UlamTypeClass *) incomplete)->setUlamClassType(bc);
-	((UlamTypeClass *) incomplete)->setBitSize(but->getBitSize());
+	((UlamTypeClass *) incomplete)->setBitSize(but->getBitSize(), this);
 	rtnB = true;
       }
     else
