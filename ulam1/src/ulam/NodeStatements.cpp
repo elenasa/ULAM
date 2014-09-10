@@ -19,12 +19,12 @@ namespace MFM {
   void NodeStatements::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)    
+    if(myut == Nav)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     if(m_node) 
@@ -56,7 +56,7 @@ namespace MFM {
 
 
 
-  UlamType * NodeStatements::checkAndLabelType()
+  UTI NodeStatements::checkAndLabelType()
   {
     assert(m_node);
 
@@ -67,7 +67,7 @@ namespace MFM {
       m_nextNode->checkAndLabelType(); //side-effect
 
     //statements don't have types 
-    setNodeType(m_state.getUlamTypeByIndex(Void));
+    setNodeType(Void);
     return getNodeType();
   }
 

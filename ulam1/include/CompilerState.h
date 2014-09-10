@@ -43,18 +43,19 @@
 #include <map>
 #include "itype.h"
 #include "CallStack.h"
+#include "Constants.h"
 #include "ErrorMessageHandler.h"
+#include "EventWindow.h"
 #include "File.h"
 #include "NodeBlock.h"
 #include "NodeCast.h"
 #include "NodeReturnStatement.h"
-#include "Token.h"
-#include "Tokenizer.h"
 #include "StringPool.h"
 #include "SymbolClass.h"
 #include "SymbolFunction.h"
 #include "SymbolTable.h"
-#include "UlamAtom.h"
+#include "Token.h"
+#include "Tokenizer.h"
 #include "UlamType.h"
 
 
@@ -80,18 +81,6 @@ namespace MFM{
   class NodeBlockClass; //forward
   class SymbolTable;    //forward
 
-#ifndef BITSPERATOM
-#define BITSPERATOM (96)
-#endif //BITSPERATOM
-
-#ifndef BITSPERQUARK
-#define BITSPERQUARK (32)
-#endif //BITSPERQUARK
-
-#ifndef BITSPERBOOL
-#define BITSPERBOOL (1)
-#endif //BITSPERBOOL
-
   struct CompilerState
   {
     // tokenizer ptr replace by StringPool, service for deferencing strings 
@@ -111,7 +100,8 @@ namespace MFM{
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
 
     CallStack m_funcCallStack;    //local variables and arguments
-    UlamAtom  m_selectedAtom;     //storage for data member (static/global) variables
+    //UlamAtom  m_selectedAtom;   //storage for data member (static/global) variables
+    EventWindow  m_eventWindow;   //storage for 41 atoms (elements)
     CallStack m_nodeEvalStack;    //for node eval return values, 
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
 
@@ -121,30 +111,35 @@ namespace MFM{
     std::map<UlamKeyTypeSignature, UTI, less_than_key> m_definedUlamTypes;   //key -> index of ulamtype (UTI) 
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type 
-    UlamType * m_currentFunctionReturnType;
-
-    u32 m_currentIndentLevel;    //for code generation: func def, blocks, control body
+    UTI m_currentFunctionReturnType;  //used during type labeling to check return types 
+    UlamValue m_currentObjPtr;     //used in eval of members: data or funcs
+    u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
 
     CompilerState();
     ~CompilerState();
 
     void clearAllDefinedUlamTypes();
 
-    UlamType * makeUlamType(Token typeTok, u32 bitsize, u32 arraysize);
+    UTI makeUlamType(Token typeTok, u32 bitsize, u32 arraysize);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, UTI uti, ULAMTYPE utype);
 
     UlamType * getUlamTypeByIndex(UTI uti);
+    const std::string getUlamTypeNameBriefByIndex(UTI uti);
     const std::string getUlamTypeNameByIndex(UTI uti);
     UTI getUlamTypeIndex(UlamType * ut);
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
-    UlamType * getUlamTypeFromToken(Token tok);
-    bool getUlamTypeByTypedefName(const char * name, UlamType* & rtnType);
+    UTI getUlamTypeFromToken(Token tok);
+    bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType);
 
     /** turns array into its single element type */
-    UlamType * getUlamTypeAsScalar(UlamType * utArg); 
+    UTI getUlamTypeAsScalar(UTI utArg); 
+    bool isScalar(UTI utArg);
+    u32 getArraySize(UTI utArg);
+    u32 getBitSize(UTI utArg);
+    void setBitSize(UTI utArg, s32 total);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
@@ -154,12 +149,11 @@ namespace MFM{
     bool isIdInClassScope(u32 dataindex, Symbol * & symptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
 
-
     
     /** searches table of class defs for specific name, by token or idx,
         returns a place-holder type if class def not yet seen */
-    bool getUlamTypeByClassToken(Token ctok, UlamType* & rtnType);
-    bool getUlamTypeByClassNameId(u32 idx, UlamType* & rtnType);
+    bool getUlamTypeByClassToken(Token ctok, UTI & rtnType);
+    bool getUlamTypeByClassNameId(u32 idx, UTI & rtnType);
 
     /** return true and the Symbol pointer in 2nd arg if found; */
     bool alreadyDefinedSymbolClass(u32 dataindex, SymbolClass * & symptr);
@@ -168,7 +162,7 @@ namespace MFM{
     void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr);
 
     /** during type labeling, sets the ULAMCLASSTYPE and bitsize for typedefs that involved incomplete Class types */
-    bool completeIncompleteClassSymbol(UlamType * incomplete) ;
+    bool completeIncompleteClassSymbol(UTI incomplete) ;
 
     /** helper methods for error messaging, uses string pool */
     const std::string getTokenLocationAsString(Token * tok);
@@ -188,6 +182,27 @@ namespace MFM{
     std::string getFileNameForThisClassBody();
     std::string getFileNameForThisTypesHeader();
     std::string getFileNameForThisClassMain();
+
+
+    /** returns immediate target value: extracts data from packed targets; unpacked array targets are invalid */
+    UlamValue getPtrTarget(UlamValue ptr);
+
+    /** general purpose store value (except for Ptr as value) */
+    void assignValue(UlamValue lptr, UlamValue ruv);
+
+    /** assign pointer as value */
+    void assignValuePtr(UlamValue lptr, UlamValue rptr);
+
+    /** used by assignValue when rhs is a Ptr (private) */
+    void assignArrayValues(UlamValue lptr, UlamValue rptr);
+
+    /** determinePackable: returns true
+	if entire array can fit within an atom (including type); 
+	or if a 32-bit immediate scalar (non-Classes);
+	discovered when installing a variable symbol
+    */
+    bool determinePackable(UTI aut);
+
   };
   
 }

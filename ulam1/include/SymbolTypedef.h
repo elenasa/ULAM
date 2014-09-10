@@ -42,11 +42,13 @@
 
 namespace MFM{
 
+  class CompilerState;  //forward
+
   //distinguish between Symbols
   class SymbolTypedef : public Symbol
   {
   public:
-    SymbolTypedef(u32 id, UlamType * utype);
+    SymbolTypedef(u32 id, UTI utype, CompilerState& state);
     ~SymbolTypedef();
 
     virtual bool isTypedef();

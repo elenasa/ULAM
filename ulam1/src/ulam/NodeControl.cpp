@@ -18,12 +18,12 @@ namespace MFM {
   void NodeControl::print(File * fp)
   {
     printNodeLocation(fp);
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n",prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     fp->write("condition:\n");
@@ -68,14 +68,14 @@ namespace MFM {
   }
 
 
-  UlamType * NodeControl::checkAndLabelType()
+  UTI NodeControl::checkAndLabelType()
   { 
     assert(m_nodeCondition && m_nodeBody);
-    UlamType * newType = m_state.getUlamTypeByIndex(Bool);  
+    UTI newType = Bool;
 
     // should be bool, cast
-    UlamType * cut = m_nodeCondition->checkAndLabelType();
-    assert(cut->isScalar());
+    UTI cut = m_nodeCondition->checkAndLabelType();
+    assert(m_state.isScalar(cut));
 
     if(cut != newType)
       {

@@ -50,10 +50,6 @@ namespace MFM{
     UlamTypeBool(const UlamKeyTypeSignature key, const UTI uti);
     virtual ~UlamTypeBool(){}
 
-    virtual void newValue(UlamValue & val);
-
-    virtual void deleteValue(UlamValue * val);
-
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual const std::string getUlamTypeAsStringForC();
@@ -62,9 +58,7 @@ namespace MFM{
 
     virtual bool cast(UlamValue& val);
 
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state);
-
-    virtual bool isZero(const UlamValue & val);
+    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state);
 
   private:
 

@@ -28,20 +28,22 @@ namespace MFM {
   }
 
 
-  UlamType * NodeMemberSelect::checkAndLabelType()
+  UTI NodeMemberSelect::checkAndLabelType()
   { 
     assert(m_nodeLeft && m_nodeRight);
 
-    UlamType * lut = m_nodeLeft->checkAndLabelType(); //side-effect
-    if(lut->getUlamClassType() == UC_NOTACLASS)
+    UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+
+    if(lut->getUlamClass() == UC_NOTACLASS)
       {
 	//error!
 	// must be a 'Class' type, either quark or element
-	setNodeType(m_state.getUlamTypeByIndex(Nav));
+	setNodeType(Nav);
 	return getNodeType();
       }
     
-    std::string className = lut->getUlamTypeNameBrief(&m_state); //help me debug
+    std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
     SymbolClass * csym = NULL;
     assert(m_state.alreadyDefinedSymbolClass(lut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
@@ -53,7 +55,7 @@ namespace MFM {
     m_state.m_currentMemberClassBlock = memberClassNode;
     m_state.m_useMemberBlock = true;
 
-    UlamType * rightType = m_nodeRight->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType();
     
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.m_useMemberBlock = false;
@@ -66,16 +68,127 @@ namespace MFM {
   }
 
 
+  EvalStatus NodeMemberSelect::eval()
+  {
+    assert(m_nodeLeft && m_nodeRight);
+
+    evalNodeProlog(0); //new current frame pointer on node eval stack
+
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+
+    makeRoomForSlots(1); //always 1 slot for ptr
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+    //UlamValue pluv = m_state.m_nodeEvalStack.popArg(); //Ptr to atom  ???which way???
+    m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
+
+
+    u32 slot = makeRoomForNodeType(getNodeType());
+    evs = m_nodeRight->eval();   //a Node Function Call here, or data member eval
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+
+    //Symbol * rsymptr = NULL;
+    //if(m_nodeRight->getSymbolPtr(rsymptr) && rsymptr->isFunction())
+
+	//assigns rhs to lhs UV pointer (handles arrays);  
+	//also copy result UV to stack, -1 relative to current frame pointer    
+  
+    doBinaryOperation(1, 2, slot);  //????????
+
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
+    evalNodeEpilog();
+    return NORMAL;
+  }
+
+
+  //for eval, want the value of the rhs 
   void NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    UlamValue pluv = m_state.m_nodeEvalStack.getFrameSlotAt(lslot);
-    UlamValue ruvPtr(getNodeType(), rslot, true, EVALRETURN);  //positive to current frame pointer
-    //assignUlamValue(pluv,ruvPtr);
+    //the return value of a function call, or value of a data member
+    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); 
 
-    //also copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(ruvPtr);
+    UlamValue rtnUV;    
+    UTI ruti = getNodeType();
+
+    if(m_state.isScalar(ruti) || m_state.determinePackable(ruti))
+      {
+	rtnUV = ruv; 
+      }
+    else
+      {
+	//make a ptr to an unpacked array, base[0] ? [pls test]
+	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, false, m_state);
+      }
+
+    //copy result UV to stack, -1 relative to current frame pointer
+    assignReturnValueToStack(rtnUV);
   }
+
   
+
+  EvalStatus NodeMemberSelect::evalToStoreInto()
+  {
+    evalNodeProlog(0);
+
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+
+    makeRoomForSlots(1); //always 1 slot for ptr
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();  
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+    //m_state.m_currentObjPtr = m_state.m_nodeEvalStack.popArg(); //e.g. Ptr to atom
+    m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
+
+    makeRoomForSlots(1); //always 1 slot for ptr
+    evs = m_nodeRight->evalToStoreInto();  
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    //UlamValue ruvPtr = m_state.m_nodeEvalStack.popArg();
+    UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2);
+
+    assignReturnValuePtrToStack(ruvPtr);
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr *************
+    
+    evalNodeEpilog();
+    return NORMAL;
+  }
+
+
+  UlamValue NodeMemberSelect::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    assert(0); //unused
+    return UlamValue();
+  }
+
+
+  void NodeMemberSelect::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    assert(0); //unused
+  }
+
+
   //differs from NodeBinaryOp, no spaces surrounding the operator .
   void NodeMemberSelect::genCode(File * fp)
   {

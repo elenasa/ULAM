@@ -54,7 +54,7 @@ namespace MFM {
   }
 
 
-  UlamType * NodeControlIf::checkAndLabelType()
+  UTI NodeControlIf::checkAndLabelType()
   { 
     NodeControl::checkAndLabelType();  //does condition and true
 
@@ -82,7 +82,7 @@ namespace MFM {
 
     UlamValue cuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 	
-    if(cuv.m_valBool == false)
+    if((bool) cuv.getImmediateData(m_state) == false)
       {
 	if(m_nodeElse)  //not necessarily
 	  {

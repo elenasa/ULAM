@@ -66,8 +66,17 @@ namespace MFM {
     assert(root);
 
     m_state.m_err.setFileOutput(output);
+    // set up an atom in eventWindow; init m_currentObjPtr to point to it
+    // set up stacks since func call not called
+    Coord c0(0,0);
+    UTI   cuti = m_state.m_classBlock->getNodeType();
+    m_state.m_eventWindow.setSiteElementType(c0, cuti);
+    UlamValue objPtr = UlamValue::makePtr(c0.convertCoordToIndex(), EVENTWINDOW, cuti, false, m_state);
+    m_state.m_currentObjPtr =  objPtr;  
+    m_state.m_funcCallStack.pushArg(objPtr);      //hidden arg on STACK
+    m_state.m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1, 32));  //return slot on STACK
 
-    m_state.m_nodeEvalStack.addFrameSlots(1);     //prolog
+    m_state.m_nodeEvalStack.addFrameSlots(1);     //prolog, 1 for return
     EvalStatus evs = root->eval();
     if(evs != NORMAL)
       {
@@ -76,9 +85,19 @@ namespace MFM {
     else
       {
 	 UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-	 rtnValue = rtnUV.m_valInt;
+	 rtnValue = rtnUV.getImmediateData(32);
       }
 
+    //curious..
+    {
+      UlamValue objUV = m_state.m_eventWindow.loadAtomFromSite(c0.convertCoordToIndex());
+      u32 data = objUV.getData(25,32);  //Int f.m_i (t3146)
+      std::ostringstream msg;
+      msg << "Output for m_i = <" << data << "> (expecting 4 for t3146)";
+      MSG("",msg.str().c_str() , INFO);
+    }
+
+    
     m_state.m_nodeEvalStack.returnFrame();       //epilog
     return m_state.m_err.getErrorCount();
   }

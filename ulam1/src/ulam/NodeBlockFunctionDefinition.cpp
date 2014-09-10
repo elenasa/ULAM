@@ -16,12 +16,12 @@ namespace MFM {
   void NodeBlockFunctionDefinition::print(File * fp)
   {
     printNodeLocation(fp);
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)    
+    if(myut==Nav)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     //parameters in symbol
@@ -38,7 +38,7 @@ namespace MFM {
   void NodeBlockFunctionDefinition::printPostfix(File * fp)
   {
     fp->write(" ");
-    fp->write(m_funcSymbol->getUlamType()->getUlamTypeNameBrief(&m_state).c_str()); //short type name
+    fp->write(m_state.getUlamTypeNameBriefByIndex(m_funcSymbol->getUlamTypeIdx()).c_str()); //short type name
     fp->write(" ");
     fp->write(getName());
     // has no m_node! 
@@ -53,14 +53,14 @@ namespace MFM {
 	
 	Symbol * asym = m_funcSymbol->getParameterSymbolPtr(i);
 	assert(asym);
-	fp->write(asym->getUlamType()->getUlamTypeNameBrief(&m_state).c_str()); //short type name
+	fp->write(m_state.getUlamTypeNameBriefByIndex(asym->getUlamTypeIdx()).c_str()); //short type name
 	fp->write(" ");
 	fp->write(m_state.m_pool.getDataAsString(asym->getId()).c_str());
 
 	u32 arraysize = 0;
 	if(asym->isDataMember() && !asym->isFunction())
 	  {
-	    arraysize = ((SymbolVariable * ) asym)->getUlamType()->getUlamKeyTypeSignature().getUlamKeyTypeSignatureArraySize();
+	    arraysize = m_state.getArraySize( ((SymbolVariable *) asym)->getUlamTypeIdx());
 	  }
 
 	if(arraysize > 0)
@@ -96,9 +96,9 @@ namespace MFM {
   }
 
 
-  UlamType * NodeBlockFunctionDefinition::checkAndLabelType()
+  UTI NodeBlockFunctionDefinition::checkAndLabelType()
   { 
-    UlamType * it = m_funcSymbol->getUlamType();
+    UTI it = m_funcSymbol->getUlamTypeIdx();
     setNodeType(it);
 
     m_state.m_currentBlock = this;
@@ -127,26 +127,53 @@ namespace MFM {
     assert(isDefinition());
     assert(m_nextNode);
 
+    // m_currentObjPtr set up by caller
+    assert(m_state.m_currentObjPtr.getUlamValueTypeIdx() != Nav);
+    m_state.m_currentFunctionReturnType = getNodeType(); //to help find hidden first arg
+
     evalNodeProlog(0);                  //new current frame pointer on node eval stack
     makeRoomForNodeType(getNodeType()); //place for return vals node eval stack
     
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth());  //local variables on callstack!
 
+#define VERIFYHIDDENARG
+#ifdef VERIFYHIDDENARG
+    // Curious: is m_currentObjPtr the same as the "hidden" first arg on the STACK?
+    UTI nuti = getNodeType();
+    s32 arraysize = m_state.getArraySize(nuti);    
+    s32 firstArgSlot = -1;
+    if(m_state.determinePackable(nuti))
+      firstArgSlot--;
+    else
+      firstArgSlot -= (arraysize > 0 ? arraysize: 1);
+
+    UlamValue firstArg = m_state.m_funcCallStack.loadUlamValueFromSlot(firstArgSlot);
+    assert(firstArg == m_state.m_currentObjPtr);
+    //////////////////////////////////////////////////////
+#endif
+
     EvalStatus evs = m_nextNode->eval();
+
+    bool packRtn = m_state.determinePackable(getNodeType());
     UlamValue rtnUV;
+
     if(evs == RETURN)
-      {
-	s32 arraysize = getNodeType()->getArraySize();
+      {	
 	// save results in the stackframe for caller;
 	// copies each element of the array by value, 
 	// in reverse order ([0] is last at bottom)
-	arraysize = (arraysize > 0 ? -arraysize : -1);
+	s32 arraysize = m_state.getArraySize(getNodeType());
+	if(packRtn)
+	  arraysize = -1;  
+	else
+	  arraysize = (arraysize > 0 ? -arraysize : -1);
 	
-	rtnUV.init(getNodeType(), arraysize, true, STACK);  //negative to current stack frame pointer
+	rtnUV = UlamValue::makePtr(arraysize, STACK, getNodeType(), packRtn, m_state); //negative to current stack frame pointer
       }
     else if (evs == NORMAL)  //no explicit return statement
       {
-	rtnUV.init(getNodeType(), 1, true, EVALRETURN);    //positive to current frame pointer
+	// 1 for base of array or scalar
+	rtnUV = UlamValue::makePtr(1, EVALRETURN, getNodeType(), packRtn, m_state); //positive to current frame pointer
       }
     else
       {

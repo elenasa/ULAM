@@ -53,7 +53,11 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -61,9 +65,7 @@ namespace MFM{
 
     u32 getNumberOfArguments();
 
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
+    virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual void genCode(File * fp);
 

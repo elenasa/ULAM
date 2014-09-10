@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolVariableStatic.h -  Data Member Variable Symbol handling for ULAM
+ * Site.h -  Basic handling of a Site for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file SymbolVariableStatic.h - Data Member Variable Symbol handling for ULAM
+  \file Site.h -  Basic handling of a Site for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,40 +34,40 @@
 */
 
 
-#ifndef SYMBOLVARIABLESTATIC_H
-#define SYMBOLVARIABLESTATIC_H
+#ifndef SITE_H
+#define SITE_H
 
+#include "itype.h"
 #include "UlamValue.h"
-#include "SymbolVariable.h"
 
-namespace MFM{
+namespace MFM
+{
+ 
+  class CompilerState;  //forward
 
-  class SymbolVariableStatic : public SymbolVariable
+  //single site storage within an event window
+  class Site
   {
   public:
-    SymbolVariableStatic(u32 id, UlamType * utype, u32 slot);
-    ~SymbolVariableStatic();
+    Site();
+    ~Site();
 
-    virtual u32 getDataMemberSlotIndex();
-    virtual UlamValue getUlamValue(CompilerState & m_state);
-    virtual UlamValue getUlamValueToStoreInto();
-    virtual UlamValue getUlamValueAt(s32 idx, CompilerState& m_state);
-    virtual UlamValue getUlamValueAtToStoreInto(s32 idx, CompilerState& state);
+    void init();
 
-    virtual s32 getBaseArrayIndex();
-    virtual const std::string getMangledPrefix();
+    UTI getElementTypeNumber(); //passes through to AtomValue at site
+    void setElementTypeNumber(UTI type);
+    
+    bool isSiteLive();
+    void setSiteLive(bool b);
 
-    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype, CompilerState * state);
-
-  protected:
+    UlamValue getSiteUlamValue();
+    void setSiteUlamValue(UlamValue uv);
 
   private:
-    u32 m_dataMemberSlotIndex;
-    virtual UlamValue makeUlamValuePtr();
-    virtual UlamValue makeUlamValuePtrAt(u32 idx, CompilerState& state);
-
+    bool m_live;
+    UlamValue m_site;  //only of type UlamTypeAtom, contains Atom (bitVector(96))
   };
 
 }
 
-#endif //end SYMBOLVARIABLESTATIC_H
+#endif //SITE_H

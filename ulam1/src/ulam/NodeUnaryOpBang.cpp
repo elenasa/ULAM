@@ -20,14 +20,14 @@ namespace MFM {
   }
 
 
-  UlamType * NodeUnaryOpBang::checkAndLabelType()
+  UTI NodeUnaryOpBang::checkAndLabelType()
   { 
     assert(m_node);
 
-    UlamType * but = m_state.getUlamTypeByIndex(Bool);
-    UlamType * ut  = m_node->checkAndLabelType(); 
+    UTI but = Bool;
+    UTI ut  = m_node->checkAndLabelType(); 
     
-    assert(ut->isScalar());
+    assert(m_state.isScalar(ut));
 
     if(ut != but)
       {
@@ -43,21 +43,9 @@ namespace MFM {
   }
 
 
-  void NodeUnaryOpBang::doUnaryOperation(u32 slot, u32 nslots)
+  UlamValue NodeUnaryOpBang::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {
-    UlamType * nut = getNodeType();
-    UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
-
-    for(u32 i = 0; i < nslots; i++)
-      {
-	UlamValue uv = m_state.m_nodeEvalStack.getFrameSlotAt(slot+i); //immediate scalar
-	
-	//assumes bool; invert uv.
-	uv.init(scalartype, !uv.m_valBool);
-	
-	//copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(uv, -nslots + i);	
-      }
+    return UlamValue::makeImmediate(type, !((bool) data), len);
   }
-  
+
 } //end MFM

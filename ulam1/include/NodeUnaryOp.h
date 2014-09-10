@@ -54,7 +54,7 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -63,7 +63,10 @@ namespace MFM{
   protected:
     
     Node * m_node;
-    virtual void doUnaryOperation(u32 slot, u32 nslots) = 0;    
+    virtual void doUnaryOperation(s32 slot, u32 nslots);
+    virtual void doUnaryOperationImmediate(s32 slot, u32 nslots);
+    virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len) = 0;
+
   };
 
 }

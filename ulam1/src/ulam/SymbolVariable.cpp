@@ -1,8 +1,9 @@
 #include "SymbolVariable.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
-  SymbolVariable::SymbolVariable(u32 id, UlamType * utype) : Symbol(id, utype), m_posOffset(0){}
+  SymbolVariable::SymbolVariable(u32 id, UTI utype, bool packed, CompilerState& state) : Symbol(id, utype, state), m_posOffset(0), m_packed(packed){}
 
   SymbolVariable::~SymbolVariable()
   {}
@@ -31,6 +32,18 @@ namespace MFM {
   void SymbolVariable::setPosOffset(u32 offsetIntoAtom)
   {
     m_posOffset = offsetIntoAtom;
+  }
+
+
+  bool SymbolVariable::isPacked()
+  {
+    return m_packed;
+  }
+
+
+  void SymbolVariable::setPacked(bool p)
+  {
+    m_packed = p;
   }
 
 

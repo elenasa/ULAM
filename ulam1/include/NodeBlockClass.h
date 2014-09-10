@@ -55,7 +55,7 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -82,7 +82,7 @@ namespace MFM{
 
   private:
     NodeBlockFunctionDefinition * findTestFunctionNode();
-
+    static std::string allCAPS(const char * s);
   };
 
 }

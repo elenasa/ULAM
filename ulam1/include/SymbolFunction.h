@@ -44,11 +44,12 @@
 namespace MFM{
 
   class NodeBlockFunctionDefinition;  //forward
+  class CompilerState;   //forward
 
   class SymbolFunction : public Symbol
   {
   public:
-    SymbolFunction(u32 id, UlamType * typetoreturn);
+    SymbolFunction(u32 id, UTI typetoreturn, CompilerState& state);
     ~SymbolFunction();
 
     void addParameterSymbol(Symbol * argSym);
@@ -63,11 +64,11 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
-    const std::string getMangledNameWithTypes(CompilerState * state);
+    const std::string getMangledNameWithTypes();
 
-    bool matchingTypes(std::vector<UlamType *> argTypes);
+    bool matchingTypes(std::vector<UTI> argTypes);
 
-    void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
+    void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
   protected:
 
@@ -77,8 +78,8 @@ namespace MFM{
     NodeBlockFunctionDefinition * m_functionNode;
 
  
-    void generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
-    void generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
+    void generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
   };
 
 }

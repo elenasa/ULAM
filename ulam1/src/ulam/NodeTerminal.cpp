@@ -33,9 +33,9 @@ namespace MFM {
   }
 
 
-  UlamType * NodeTerminal::checkAndLabelType()
+  UTI NodeTerminal::checkAndLabelType()
   {
-    UlamType * newType = m_state.getUlamTypeByIndex(Nav);  //Nav
+    UTI newType = Nav;  //init
     ULAMTYPE numType = Nav;
 
     switch(m_token.m_type)
@@ -47,19 +47,12 @@ namespace MFM {
 	  std::size_t found = numstr.find('.');
 	  if ( found != std::string::npos)
 	    {
-	      if( numstr.find('.', found+1) == std::string::npos)   //needs work...
-		{
-		  numType = Float;
-		}
-	      else
-		{
-		  std::ostringstream msg;
-		  msg << "Found 2 dots in number: <" << numstr << ">, type is Nav";
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		  numType = Nav;
-		}
-	    } 
-	}
+	      std::ostringstream msg;
+	      msg << "Float not supported: <" << numstr << ">, type is Nav";
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      numType = Nav;	
+	    }
+	} 
 	break;
 	
       case TOK_KW_TRUE:
@@ -74,7 +67,7 @@ namespace MFM {
 	}
       };
     
-    newType = m_state.getUlamTypeByIndex(numType);
+    newType = numType;
     setNodeType(newType);
     
     setStoreIntoAble(false);
@@ -85,7 +78,7 @@ namespace MFM {
   EvalStatus NodeTerminal::eval()
   {
     EvalStatus evs = NORMAL; //init ok 
-    UlamValue rtnUV(m_state.getUlamTypeByIndex(Nav), 0, IMMEDIATE); //init to error case
+    UlamValue rtnUV;   //init to Nav error case
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -97,20 +90,12 @@ namespace MFM {
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
 	  
-	  UlamType * nut = getNodeType();
-	  UTI typidx = m_state.getUlamTypeIndex(nut);
-	  
-	  if (typidx == Float)
-	    {
-	      float numFloat = strtof(numlist,&nEnd);
-	      rtnUV.init(m_state.getUlamTypeByIndex(Float), numFloat);
-	      break;
-	    }
+	  UTI typidx = getNodeType();
 	  
 	  if (typidx == Int)
 	    {
 	      s32 numval = strtol(numlist, &nEnd, 10);   //base 10
-	      rtnUV.init(m_state.getUlamTypeByIndex(Int), numval); 
+	      rtnUV = UlamValue::makeImmediate(Int, numval, m_state); 
 	      break;
 	    }
  
@@ -120,10 +105,10 @@ namespace MFM {
 	}
 	break;
       case TOK_KW_TRUE:
-	rtnUV.init(m_state.getUlamTypeByIndex(Bool), true);
+	rtnUV = UlamValue::makeImmediate(Bool, true, m_state); 
 	break;
       case TOK_KW_FALSE:
-	rtnUV.init(m_state.getUlamTypeByIndex(Bool), false);
+	rtnUV = UlamValue::makeImmediate(Bool, false, m_state); 
 	break;
       default:
 	{

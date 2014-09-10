@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * util.h Useful common static utility functions for ULAM
+ * Fail.h Substitute for BitVector Fail functions for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,49 +26,20 @@
  */
 
 /**
-  \file util.h Useful common static utility functions for ULAM
+  \file Fail.h  Substitute for BitVector Fail functions for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
-#ifndef UTIL_H
-#define UTIL_H
-
-#include <string.h>
-#include <sstream>
-#include "itype.h"
+#ifndef FAIL_H
+#define FAIL_H
 
 namespace MFM {
 
-  static u32 countDigits(u32 num) 
-  {
-    const u32 BASE = 10;
-    u32 digits = 0;
-    do {
-      ++digits;
-      num /= BASE;
-    } while (num > 0);
-    return digits;
-  }
+#define FAIL(x) abort()
 
-  
-  static std::string allCAPS(const char * s)
-  {
-    u32 len = strlen(s);
-    std::ostringstream up;
-    
-    for(unsigned int i = 0; i < len; ++i)
-      {
-      std::string c(1,(s[i] <= 'z' && s[i] >= 'a') ? s[i]-('a'-'A') : s[i]);
-      up << c;
-    }
-    
-    return up.str();
-  }
+} //MFM
 
-} /* namespace MFM */
-
-#endif  /* UTIL_H */
-
+#endif //FAIL_H

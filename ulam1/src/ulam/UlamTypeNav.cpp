@@ -10,12 +10,6 @@ namespace MFM {
   {}
 
 
-  void UlamTypeNav::newValue(UlamValue & val){}
-
-
-  void UlamTypeNav::deleteValue(UlamValue * val){}
-
-
    ULAMTYPE UlamTypeNav::getUlamTypeEnum()
    {
      return Nav;
@@ -30,16 +24,9 @@ namespace MFM {
   }
 
 
-  void UlamTypeNav::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
+  void UlamTypeNav::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
   {
-    sprintf(valstr,"%s", getUlamTypeName(state).c_str());
+    sprintf(valstr,"%s", getUlamTypeName(&state).c_str());
   }
-
-
-  bool UlamTypeNav::isZero(const UlamValue & val)
-  {
-    return true; 
-  }
-
 
 } //end MFM

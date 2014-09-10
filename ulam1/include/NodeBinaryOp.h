@@ -36,6 +36,7 @@
 #ifndef NODEBINARYOP_H
 #define NODEBINARYOP_H
 
+#include <assert.h>
 #include "Node.h"
 #include "NodeCast.h"
 
@@ -63,11 +64,16 @@ namespace MFM{
     Node * m_nodeLeft;
     Node * m_nodeRight;
 
-    UlamType * calcNodeType(UlamType * lt, UlamType * rt);
-    UlamType * calcNodeTypeBitwise(UlamType * lt, UlamType * rt);
-
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots) = 0;
 
+    virtual void doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots);
+    virtual void doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
+
+    virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len) = 0;
+    virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len) = 0;
+
+    UTI calcNodeType(UTI lt, UTI rt);
+    UTI calcNodeTypeBitwise(UTI lt, UTI rt);
   };
 
 }

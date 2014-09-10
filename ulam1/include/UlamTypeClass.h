@@ -51,10 +51,6 @@ namespace MFM{
 
     virtual ~UlamTypeClass(){}
 
-    virtual void newValue(UlamValue & val);
-    
-    virtual void deleteValue(UlamValue * val);
-
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual bool cast(UlamValue & val);
@@ -69,13 +65,11 @@ namespace MFM{
     
     virtual const std::string getUlamTypeMangledName(CompilerState * state);
 
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state);
+    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state);
     
-    virtual bool isZero(const UlamValue & val);
+    virtual ULAMCLASSTYPE getUlamClass();
 
-    virtual ULAMCLASSTYPE getUlamClassType();
-
-    void setUlamClassType(ULAMCLASSTYPE type);
+    void setUlamClass(ULAMCLASSTYPE type);
 
     virtual s32 getBitSize();      //'class' type calculates its size after type labeling
 
@@ -85,7 +79,7 @@ namespace MFM{
 
    private:
 
-    ULAMCLASSTYPE m_classType;
+    ULAMCLASSTYPE m_class;
 
 
     void genArrayMangledDefinitionForC(File * fp, CompilerState * state);

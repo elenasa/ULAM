@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(u32 id, UlamType * typetoreturn) : Symbol(id,typetoreturn), m_functionNode(NULL) 
+  SymbolFunction::SymbolFunction(u32 id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL) 
   { 
     setDataMember(); // by definition all function definitions are data members
   }
@@ -42,7 +42,7 @@ namespace MFM {
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	u32 arraysize = sym->getUlamType()->getArraySize();
+	u32 arraysize = m_state.getArraySize(sym->getUlamTypeIdx());
 	totalsizes += (arraysize > 0 ? arraysize : 1);
       }
     return totalsizes; 
@@ -78,30 +78,30 @@ namespace MFM {
 
 
   //supports overloading functions with SymbolFunctionName
-  const std::string SymbolFunction::getMangledNameWithTypes(CompilerState * state)
+  const std::string SymbolFunction::getMangledNameWithTypes()
   {
     std::ostringstream mangled;
-    mangled << Symbol::getMangledName(state);  //e.g. Uf_14name, with lexNumbers
+    mangled << Symbol::getMangledName();  //e.g. Uf_14name, with lexNumbers
 
     // use void type when no parameters
     if(m_parameterSymbols.empty())
       {
-	UlamType * vit = state->getUlamTypeByIndex(Void);
-	mangled << vit->getUlamTypeMangledName(state).c_str();
+	UlamType * vit = m_state.getUlamTypeByIndex(Void);
+	mangled << vit->getUlamTypeMangledName(&m_state).c_str();
       }
 
     // append mangled type name, e.g. 1023213Int, for each parameter
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	mangled << sym->getUlamType()->getUlamTypeMangledName(state).c_str();
+	mangled << m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName(&m_state).c_str();
       }
 
     return mangled.str();
   }
 
 
-  bool SymbolFunction::matchingTypes(std::vector<UlamType *> argTypes)
+  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes)
   {
     u32 numArgs = argTypes.size();
 
@@ -114,7 +114,7 @@ namespace MFM {
     //next match types; order counts!
     for(u32 i=0; i < numArgs; i++)
       {
-	if(m_parameterSymbols.at(i)->getUlamType() != argTypes[i])
+	if(m_parameterSymbols.at(i)->getUlamTypeIdx() != argTypes[i])
 	  {
 	    rtnBool = false;
 	    break;
@@ -125,41 +125,42 @@ namespace MFM {
   }
 
 
-  void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state)
+  void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     if(classtype == UC_ELEMENT)
       {
-	generateElementFunctionDeclaration(fp, declOnly, classtype, state);
+	generateElementFunctionDeclaration(fp, declOnly, classtype);
       }
     else
       {
-	generateQuarkFunctionDeclaration(fp, declOnly, classtype, state);
+	generateQuarkFunctionDeclaration(fp, declOnly, classtype);
       }
   }
   
   
-  void SymbolFunction::generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state)
+  void SymbolFunction::generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    state->indent(fp);
-    fp->write(getUlamType()->getUlamTypeMangledName(state).c_str()); //return type for C++
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    m_state.indent(fp);
+    fp->write(sut->getUlamTypeMangledName(&m_state).c_str()); //return type for C++
     //fp->write(getUlamType()->getBitSizeTemplateString().c_str());  //for quark templates
-    if(getUlamType()->getUlamClassType() == UC_QUARK)
+    if(sut->getUlamClass() == UC_QUARK)
       {
 	std::ostringstream msg;
-	msg << "Return Type <"  << getUlamType()->getUlamTypeName(state).c_str() << ">  for function '" << state->m_pool.getDataAsString(getId()).c_str() << "', is a 'quark' and not a valid return type" ;
-	state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	msg << "Return Type <"  << sut->getUlamTypeName(&m_state).c_str() << ">  for function '" << m_state.m_pool.getDataAsString(getId()).c_str() << "', is a 'quark' and not a valid return type" ;
+	MSG("", msg.str().c_str(), ERR);
 	fp->write("<POS>");
       }
 
     fp->write(" ");
     if(!declOnly)
       {
-	UlamTypeClass * cut = (UlamTypeClass *) state->m_classBlock->getNodeType();
+	UTI cuti = m_state.m_classBlock->getNodeType();
 	//include the mangled class::
-	fp->write(cut->getUlamTypeMangledName(state).c_str());
+	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("::");
       }
-    fp->write(getMangledName(state).c_str());
+    fp->write(getMangledName().c_str());
     fp->write("(");
     u32 numparams = getNumberOfParameters();
     
@@ -169,19 +170,21 @@ namespace MFM {
 	  fp->write(", ");
 	
 	Symbol * asym = getParameterSymbolPtr(i);
-	UlamType * aut = asym->getUlamType();
 	assert(asym);
-	fp->write(aut->getUlamTypeMangledName(state).c_str()); //for C++
-	if(aut->getUlamClassType() == UC_QUARK)
+	UTI auti = asym->getUlamTypeIdx();
+	UlamType * aut = m_state.getUlamTypeByIndex(auti);
+
+	fp->write(aut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+	if(aut->getUlamClass() == UC_QUARK)
 	  {
 	    std::ostringstream msg;
-	    msg << "Parameter " << i + 1 << ", <"  << aut->getUlamTypeName(state).c_str() << ">, for function '" << state->m_pool.getDataAsString(getId()).c_str() << "', is a 'quark' and not a valid parameter" ;
-	    state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	    msg << "Parameter " << i + 1 << ", <"  << aut->getUlamTypeName(&m_state).c_str() << ">, for function '" << m_state.m_pool.getDataAsString(getId()).c_str() << "', is a 'quark' and not a valid parameter" ;
+	    MSG("", msg.str().c_str(),ERR);
 	    fp->write("<POS>");
 	  }
 
 	fp->write(" ");
-	fp->write(asym->getMangledName(state).c_str());
+	fp->write(asym->getMangledName().c_str());
       }
     
     fp->write(")");
@@ -199,23 +202,23 @@ namespace MFM {
   }
   
 
-  void SymbolFunction::generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state)
+  void SymbolFunction::generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     if(declOnly)
       return;
-
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     //template<POS> declared outside the quark struct instead.
-    state->indent(fp);
-    fp->write(getUlamType()->getUlamTypeMangledName(state).c_str()); //return type for C++
+    m_state.indent(fp);
+    fp->write(sut->getUlamTypeMangledName(&m_state).c_str()); //return type for C++
     fp->write(" ");
     
-    fp->write(getMangledName(state).c_str());
+    fp->write(getMangledName().c_str());
     fp->write("(");
 
     //first one is always Atom a&
     //fp->write("Atom& a");   //mangled ???
-    UlamType * atomut = state->getUlamTypeByIndex(Atom);
-    fp->write(atomut->getUlamTypeMangledName(state).c_str()); //type for C++
+    UlamType * atomut = m_state.getUlamTypeByIndex(Atom);
+    fp->write(atomut->getUlamTypeMangledName(&m_state).c_str()); //type for C++
     fp->write("& ");          //only place we use a reference
     fp->write("Uv_11");       //hardcoded variable XXX
     fp->write(atomut->getUlamTypeAsSingleLowercaseLetter());  //a name
@@ -229,14 +232,14 @@ namespace MFM {
 	
 	Symbol * asym = getParameterSymbolPtr(i);
 	assert(asym);
-	UlamType * aut = asym->getUlamType();
-	fp->write(aut->getUlamTypeMangledName(state).c_str()); //type for C++
-	if(aut->getUlamClassType() == UC_QUARK) 
+	UlamType * aut = m_state.getUlamTypeByIndex(asym->getUlamTypeIdx());
+	fp->write(aut->getUlamTypeMangledName(&m_state).c_str()); //type for C++
+	if(aut->getUlamClass() == UC_QUARK) 
 	  {
 	    fp->write("<POS>");
 	  }
 	fp->write(" ");
-	fp->write(asym->getMangledName(state).c_str());
+	fp->write(asym->getMangledName().c_str());
       }
     
     fp->write(")");

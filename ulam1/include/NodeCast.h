@@ -45,10 +45,10 @@ namespace MFM{
   {
   public:
     
-    NodeCast(Node * n, UlamType * typeToBe, CompilerState & state);
+    NodeCast(Node * n, UTI typeToBe, CompilerState & state);
     ~NodeCast();
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -59,7 +59,7 @@ namespace MFM{
     virtual void genCode(File * fp);
 
   protected:    
-    virtual void doUnaryOperation(u32 slot, u32 nslots){}
+    virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len); //noop
 
   };
 

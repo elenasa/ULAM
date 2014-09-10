@@ -3,14 +3,13 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
 #include "SymbolFunctionName.h"
-#include "util.h"
 
 
 namespace MFM {
 
   static const char * CModeForHeaderFiles = "/**                                        -*- mode:C++ -*/\n\n";
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state)
   {}
 
   NodeBlockClass::~NodeBlockClass()
@@ -20,12 +19,12 @@ namespace MFM {
   void NodeBlockClass::print(File * fp)
   {
     printNodeLocation(fp);
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)    
+    if(myut == Nav)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     if(m_nextNode)
@@ -42,7 +41,7 @@ namespace MFM {
 
   void NodeBlockClass::printPostfix(File * fp)
   {
-    fp->write(getNodeType()->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
+    fp->write(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
 
     fp->write(" {");
@@ -63,7 +62,7 @@ namespace MFM {
 
   const char * NodeBlockClass::getName()
   {
-    return getNodeType()->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str(); ///??? error
+    return m_state.getUlamTypeByIndex(getNodeType())->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str(); 
     //return "{}";
   }
 
@@ -74,7 +73,7 @@ namespace MFM {
   }
 
 
-  UlamType * NodeBlockClass::checkAndLabelType()
+  UTI NodeBlockClass::checkAndLabelType()
   { 
     //side-effect DataMember VAR DECLS
     if(m_nextNode)
@@ -88,16 +87,15 @@ namespace MFM {
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
       {
-	UlamType * funcType = funcNode->getNodeType();
-	if(funcType != m_state.getUlamTypeByIndex(Int))
+	UTI funcType = funcNode->getNodeType();
+	if(funcType != Int)
 	  {
 	    std::ostringstream msg;
-	    msg << "By convention, Function '" << funcNode->getName() << "''s Return type must be <Int>, not <" << funcType->getUlamTypeNameBrief(&m_state).c_str() << ">";
+	    msg << "By convention, Function '" << funcNode->getName() << "''s Return type must be <Int>, not <" << m_state.getUlamTypeNameBriefByIndex(funcType).c_str() << ">";
 	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
-    
-    setNodeType(m_state.getUlamTypeByIndex(Void)); //reset to reflect the Class type
+    setNodeType(Void);     //will be reset to reflect the Class type
     return getNodeType();
   }
   
@@ -119,18 +117,22 @@ namespace MFM {
 
     EvalStatus evs = ERROR;  //init
 
+#if 0
+    // NodeVarDecl's make UlamValue storage now, so don't want their
+    // side-effects for the class definition, rather the instance.
     if(m_nextNode)
       {
 	m_nextNode->eval();  //side-effect for datamember vardecls
       }
+#endif
 
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
       {
-	UlamType * saveClassType = getNodeType();  //temp!!
-	setNodeType(m_state.getUlamTypeByIndex(Int)); //for testing WHY? clobbers element/quark type
-	UlamType * funcType = funcNode->getNodeType();
-
+	UTI saveClassType = getNodeType();  //temp!!
+	setNodeType(Int);   //for testing WHY? clobbers element/quark type
+	UTI funcType = funcNode->getNodeType();
+	
 	makeRoomForNodeType(funcType);  //Int return
 
 	evs = funcNode->eval();
@@ -188,7 +190,7 @@ namespace MFM {
     if(isFuncIdInScope(testid, fnSym))
       {
 	SymbolFunction * funcSymbol = NULL;
-	std::vector<UlamType*> voidVector;
+	std::vector<UTI> voidVector;
 	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol))
 	  {
 	    func = funcSymbol->getFunctionNode();
@@ -209,15 +211,15 @@ namespace MFM {
   //header .h file
   void NodeBlockClass::genCode(File * fp)
   {
-    assert(getNodeType()->getUlamTypeEnum() == Class);
-    UlamTypeClass * cut = (UlamTypeClass *) getNodeType();
-    ULAMCLASSTYPE classtype = cut->getUlamClassType();
+    UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    assert(cut->getUlamTypeEnum() == Class);
 
     m_state.m_currentIndentLevel = 0;
     fp->write(CModeForHeaderFiles);
 
     //generate includes for all the other classes that have appeared
-    m_state.m_programDefST.generateIncludesForTableOfClasses(fp, m_state);
+    m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
 
     m_state.indent(fp);
     fp->write("#include \"");
@@ -285,7 +287,7 @@ namespace MFM {
 
     //gencode declarations only for all the function definitions
     //bool declOnly = (m_state.m_compileThisId != getNodeType()->getUlamKeyTypeSignature()->getUlamKeyTypeSignatureNameId());
-    m_functionST.genCodeForTableOfFunctions(fp, (classtype == UC_ELEMENT), classtype, &m_state);
+    m_functionST.genCodeForTableOfFunctions(fp, (classtype == UC_ELEMENT), classtype);
 
     m_state.m_currentIndentLevel--;
 
@@ -307,8 +309,8 @@ namespace MFM {
   //Body for This Class only; practically empty if quark (.cpp)
   void NodeBlockClass::genCodeBody(File * fp)
   {
-    UlamType * cut = getNodeType();
-    ULAMCLASSTYPE classtype = cut->getUlamClassType();
+    UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    ULAMCLASSTYPE classtype = cut->getUlamClass();
 
     m_state.m_currentIndentLevel = 0;
 
@@ -340,7 +342,7 @@ namespace MFM {
 	fp->write("(){}\n\n");
 	
 	assert(m_state.m_compileThisId == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
-	m_functionST.genCodeForTableOfFunctions(fp, false, classtype, &m_state);
+	m_functionST.genCodeForTableOfFunctions(fp, false, classtype);
 
 	m_state.m_currentIndentLevel--;
       }
@@ -348,5 +350,21 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("} //MFM\n\n");
   }
+
+
+  std::string NodeBlockClass::allCAPS(const char * s)
+  {
+    u32 len = strlen(s);
+    std::ostringstream up;
+    
+    for(unsigned int i = 0; i < len; ++i)
+      {
+      std::string c(1,(s[i] <= 'z' && s[i] >= 'a') ? s[i]-('a'-'A') : s[i]);
+      up << c;
+    }
+    
+    return up.str();
+  }
+
 
 } //end MFM

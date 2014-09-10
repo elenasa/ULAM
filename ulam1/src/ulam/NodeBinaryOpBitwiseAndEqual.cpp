@@ -20,63 +20,43 @@ namespace MFM {
   }
 
 
+  // third arg is the slots for the rtype; slots for the left is
+  // rslot-lslot; they should be equal, unless one is a packed array
+  // and the other isn't; however, currently, according to
+  // CompilerState determinePackable, they should always be the same
+  // since their types must be identical.
   void NodeBinaryOpBitwiseAndEqual::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
-  {    
-    s32 plslot = lslot;
-    UlamValue pluv = m_state.m_nodeEvalStack.getFrameSlotAt(plslot);
-
-    UlamType * nut = getNodeType();    
-
-    UlamValue ruvPtr(nut, rslot, true, EVALRETURN);  //positive to current frame pointer
-
-    //to avoid knowing lhs storage place, just push on the node eval stack
-    makeRoomForNodeType(nut);
-    lslot = 1 + slots + 1; 
-    m_nodeLeft->eval();  
-    UlamValue luvPtr(nut, lslot, true, EVALRETURN);  //positive to current frame pointer
-
-
-    //continue with the binary operation
-
-    UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
-    UTI typidx = scalartype->getUlamTypeIndex();    
-    UlamValue rtnUV;  //immediate scalar, tmp
-
-    for(u32 i = 0; i < slots; i++)
+  {
+    UTI nuti = getNodeType();
+    if(m_state.isScalar(nuti))  //not an array
       {
-	UlamValue luv = m_state.m_nodeEvalStack.getFrameSlotAt(lslot+i);
-	UlamValue ruv = m_state.m_nodeEvalStack.getFrameSlotAt(rslot+i);
-
-	switch(typidx)
-	  {
-	  case Int:
-	    rtnUV.init(scalartype, (luv.m_valInt & ruv.m_valInt));
-	    break;
-	  case Bool:
-	    rtnUV.init(nut, (luv.m_valBool & ruv.m_valBool));
-	    break;
-	  case Float:
-	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(typidx) << "> used with binary operator" << getName();
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	      rtnUV.init(m_state.getUlamTypeByIndex(Nav), 0);
-	      assert(0);
-	    }
-	  };
-
-	//overwrite lhs copy with result UV 
-	// (could possibly avoid this step if we used luv instead of rtnUV ?)
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, lslot + i); 
+	doBinaryOperationImmediate(lslot, rslot, slots);
       }
+    else
+      { //array
+	// leverage case when both are packed, for logical bitwise operations
+	if(m_state.determinePackable(nuti))
+	  {
+	    doBinaryOperationImmediate(lslot, rslot, slots);
+	  }
+	else
+	  { 
+	    doBinaryOperationArray(lslot, rslot, slots);
+	  }
+      }
+  } //end dobinaryop
+  
 
-    assignUlamValue(pluv,luvPtr);
-
-    //also copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(luvPtr);
+  UlamValue NodeBinaryOpBitwiseAndEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    return UlamValue::makeImmediate(type, ldata & rdata, len);
   }
 
 
+  void NodeBinaryOpBitwiseAndEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    assert(0); //not used, though could be
+    refUV.putData(pos, len, ldata & rdata);
+  }
 
 } //end MFM

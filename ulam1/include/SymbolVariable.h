@@ -47,30 +47,28 @@ namespace MFM{
   class SymbolVariable : public Symbol
   {
   public:
-    SymbolVariable(u32 id, UlamType * utype);
+    SymbolVariable(u32 id, UTI utype, bool packed, CompilerState& state);
     ~SymbolVariable();
 
     virtual s32 getStackFrameSlotIndex();
     virtual u32 getDataMemberSlotIndex();
 
-    virtual UlamValue getUlamValue(CompilerState & m_state) = 0;
-    virtual UlamValue getUlamValueToStoreInto() = 0;
-    virtual UlamValue getUlamValueAt(s32 idx, CompilerState& m_state) = 0;
-    virtual UlamValue getUlamValueAtToStoreInto(s32 idx, CompilerState& state) = 0;
     virtual s32 getBaseArrayIndex() = 0;
 
     u32 getPosOffset();
-
     void setPosOffset(u32 offsetIntoAtom);
 
-    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype, CompilerState * state) = 0;
+    bool isPacked();
+    void setPacked(bool p);
+
+    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype) = 0;
 
   protected:
     u32 m_posOffset;
+    bool m_packed;
 
   private:
-    virtual UlamValue makeUlamValuePtr() = 0;
-    virtual UlamValue makeUlamValuePtrAt(u32 idx, CompilerState& state) = 0;
+
   };
 
 }

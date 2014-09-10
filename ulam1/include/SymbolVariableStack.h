@@ -44,27 +44,21 @@ namespace MFM{
   class SymbolVariableStack : public SymbolVariable
   {
   public:
-    SymbolVariableStack(u32 id, UlamType * utype, s32 slot);
+    SymbolVariableStack(u32 id, UTI utype, bool packed, s32 slot, CompilerState& state);
     ~SymbolVariableStack();
 
     virtual s32 getStackFrameSlotIndex();
-    virtual UlamValue getUlamValue(CompilerState & m_state);
-    virtual UlamValue getUlamValueToStoreInto();
-    virtual UlamValue getUlamValueAt(s32 idx, CompilerState& m_state);
-    virtual UlamValue getUlamValueAtToStoreInto(s32 idx, CompilerState& state);
 
     virtual s32 getBaseArrayIndex();
 
     virtual const std::string getMangledPrefix();
 
-    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype, CompilerState * state);
+    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
   protected:
 
   private:
     s32 m_stackFrameSlotIndex;
-    virtual UlamValue makeUlamValuePtr();
-    virtual UlamValue makeUlamValuePtrAt(u32 idx, CompilerState& state);
   };
 
 }

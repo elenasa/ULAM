@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(u32 id, UlamType * utype, NodeBlockClass * classblock) : Symbol(id, utype), m_classBlock(classblock){}
+  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock){}
 
   SymbolClass::~SymbolClass()
   {
@@ -35,19 +35,19 @@ namespace MFM {
   const std::string SymbolClass::getMangledPrefix()
   {
     //    return ((UlamTypeClass *) getUlamType())->getUlamTypeAsStringForC();
-    return getUlamType()->getUlamTypeUPrefix();
+    return m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamTypeUPrefix();
   }
 
 
-  ULAMCLASSTYPE SymbolClass::getUlamClassType()
+  ULAMCLASSTYPE SymbolClass::getUlamClass()
   {
-    return  ((UlamTypeClass * ) getUlamType())->getUlamClassType();
+    return  m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
   }
 
 
-  void SymbolClass::setUlamClassType(ULAMCLASSTYPE type)
+  void SymbolClass::setUlamClass(ULAMCLASSTYPE type)
   {
-    ((UlamTypeClass * ) getUlamType())->setUlamClassType(type);
+    ((UlamTypeClass * ) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->setUlamClass(type);
   }
 
 

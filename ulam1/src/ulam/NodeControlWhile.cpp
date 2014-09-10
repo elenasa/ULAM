@@ -45,7 +45,7 @@ namespace MFM {
 
     UlamValue cuv = m_state.m_nodeEvalStack.popArg();
 
-    while(cuv.m_valBool == true)
+    while((bool) cuv.getImmediateData(m_state) == true) 
       {
 	u32 slots = makeRoomForNodeType(m_nodeBody->getNodeType());
  	evs = m_nodeBody->eval();  //side-effect

@@ -173,7 +173,7 @@ namespace MFM {
     else
       {
 	//if already defined, then must be incomplete, else duplicate!!
-	if(cSym->getUlamClassType() != UC_INCOMPLETE)
+	if(cSym->getUlamClass() != UC_INCOMPLETE)
 	  {
 	    //error!! duplicate
 	    
@@ -187,12 +187,12 @@ namespace MFM {
       {
       case TOK_KW_ELEMENT:
 	{
-	  cSym->setUlamClassType(UC_ELEMENT);
+	  cSym->setUlamClass(UC_ELEMENT);
 	  break;
 	}
       case TOK_KW_QUARK:
 	{
-	  cSym->setUlamClassType(UC_QUARK);
+	  cSym->setUlamClass(UC_QUARK);
 	  break;
 	}
       default:
@@ -210,7 +210,7 @@ namespace MFM {
     else
       {
 	//error! reset to incomplete
-	cSym->setUlamClassType(UC_INCOMPLETE);
+	cSym->setUlamClass(UC_INCOMPLETE);
       }
 
     //return true when we've seen THIS class
@@ -897,7 +897,7 @@ namespace MFM {
     if(m_state.m_currentBlock->isIdInScope(identTok.m_dataindex,asymptr))
       {
 	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << asymptr->getUlamType()->getUlamTypeNameBrief(&m_state).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 	MSG(&identTok, msg.str().c_str(), ERR);
 	return NULL;
       }
@@ -1082,19 +1082,19 @@ namespace MFM {
   Node * Parser::makeCastNode(Token typeTok)
   {
     Node * rtnNode = NULL;
-    std::string typeName = m_state.getTokenAsATypeName(typeTok); //either primitive or typedef
-    UlamType * typeToBe;
+    UTI typeToBe;
 
-    if(!m_state.getUlamTypeByTypedefName(typeName.c_str(), typeToBe))
+    if(!m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, typeToBe))
       {
 	assert(Token::getSpecialTokenWork(typeTok.m_type) == TOKSP_TYPEKEYWORD);
+	std::string typeName = m_state.getTokenAsATypeName(typeTok); //either primitive or typedef
 	ULAMTYPE UT = UlamType::getEnumFromUlamTypeString(typeName.c_str());
-	typeToBe = m_state.getUlamTypeByIndex(UT);
+	typeToBe = UT;
       }
 
     if(getExpectedToken(TOK_CLOSE_PAREN)) 
       {
-	rtnNode = new NodeCast(parseFactor(),typeToBe,m_state);
+	rtnNode = new NodeCast(parseFactor(), typeToBe, m_state);
 	rtnNode->setNodeLocation(typeTok.m_locator);
       }
 
@@ -1206,11 +1206,11 @@ namespace MFM {
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
-	UlamType * ut;
+	UTI ut;
 	u32 arraysize = 0;
-	if(m_state.getUlamTypeByTypedefName(m_state.getTokenAsATypeName(typeTok).c_str(), ut))
+	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, ut))
 	  {
-	    arraysize = ut->getArraySize(); //typedef built-in arraysize, no []
+	    arraysize = m_state.getArraySize(ut); //typedef built-in arraysize, no []
 	  }
 
 	if(!lvalNode->installSymbolVariable(typeTok, arraysize, asymptr))
@@ -1218,7 +1218,7 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << asymptr->getUlamType()->getUlamTypeNameBrief(&m_state).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	    else 
@@ -1263,7 +1263,7 @@ namespace MFM {
     if(m_state.m_classBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
-	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << asymptr->getUlamType()->getUlamTypeNameBrief(&m_state).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
+	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&typeTok, msg.str().c_str(), ERR);
 
 	// eat tokens until end of definition ???
@@ -1292,8 +1292,8 @@ namespace MFM {
     assert(prevBlock == m_state.m_classBlock);
 
     // o.w. build symbol for function: name, return type, plus arg symbols
-    UlamType * ut = m_state.getUlamTypeFromToken(typeTok);
-    SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, ut);
+    UTI uti = m_state.getUlamTypeFromToken(typeTok);
+    SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, uti, m_state);
 
     // WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     //m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr); 
@@ -1308,11 +1308,24 @@ namespace MFM {
     // use space on funcCallStack for return statement.
     // negative for parameters; allot space at top for the return value
     // currently, only scalar; determines start position of first arg "under".
-    u32 returnArraySize = fsymptr->getUlamType()->getArraySize();
-    returnArraySize = (returnArraySize > 0 ? returnArraySize : 1);
-    m_state.m_currentFunctionBlockDeclSize = - (returnArraySize + 1);
+    u32 returnArraySize = m_state.getArraySize(fsymptr->getUlamTypeIdx());
+    if(m_state.determinePackable(fsymptr->getUlamTypeIdx()))
+      returnArraySize = 1;
+    else
+      returnArraySize = (returnArraySize > 0 ? returnArraySize : 1);
+
+    //extra one for "hidden" first arg, Ptr to its Atom
+    m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1); 
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
+#if 0
+    // create "self" symbol whose index is that of the "hidden" first arg (i.e. a Ptr to an Atom);
+    // immediately below the return value(s); and belongs to the function definition scope.
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    SymbolVariableStack * selfsym = new SymbolVariableStack(selfid, Atom, false, m_state.m_currentFunctionBlockDeclSize, m_state);
+    m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
+#endif
+    
     // parse and add parameters to function symbol
     parseRestOfFunctionParameters(fsymptr);
     
@@ -1321,7 +1334,7 @@ namespace MFM {
     if(!m_state.m_classBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
       {
 	// first time name used as a function..add symbol function name/type
-	fnSym = new SymbolFunctionName(identTok.m_dataindex, ut);
+	fnSym = new SymbolFunctionName(identTok.m_dataindex, uti, m_state);
 	
 	// ownership goes to the class block's ST
 	m_state.m_classBlock->addFuncIdToScope(fnSym->getId(), fnSym); 
@@ -1329,7 +1342,7 @@ namespace MFM {
 
 
     // verify return types agree (definitely when new name) --- o.w. error!
-    if(fnSym->getUlamType() != fsymptr->getUlamType())
+    if(fnSym->getUlamTypeIdx() != fsymptr->getUlamTypeIdx())
       {
 	std::ostringstream msg;
 	msg << "Return Type <"  << m_state.getTokenAsATypeName(typeTok).c_str() << "> does not agree with return type of already defined function '" << m_state.m_pool.getDataAsString(fnSym->getId()) << "' with the same name" ;
@@ -1341,7 +1354,7 @@ namespace MFM {
 
     if(rtnNode)
       {
-	bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr, &m_state); //transfers ownership, if added
+	bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr); //transfers ownership, if added
 	if(!isAdded)
 	  {
 	    //this is a duplicate function definition with same parameters and given name!!
@@ -1399,12 +1412,12 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	Node * argNode = parseDecl(true);  
+	Node * argNode = parseDecl(true);     //singletons
 
 	// could be null symbol already in scope
 	if(argNode) 
 	  {
-	    //it IS a variable (declaration).
+	    //parameter IS a variable (declaration).
 	    Symbol * argSym;
 	    if(argNode->getSymbolPtr(argSym))
 	      sym->addParameterSymbol(argSym); //ownership stays with NodeBlockFunctionDefinition's ST
@@ -1422,7 +1435,7 @@ namespace MFM {
 	//continue or short-circuit???
       }
 
-    getExpectedToken(TOK_COMMA, QUIETLY); // if so, get next arg; o.w. unread
+    getExpectedToken(TOK_COMMA, QUIETLY); // if so, get next parameter; o.w. unread
     return parseRestOfFunctionParameters(sym);
   }
 
@@ -1486,7 +1499,7 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << asymptr->getUlamType()->getUlamTypeNameBrief(&m_state).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	    else 
@@ -1876,15 +1889,11 @@ namespace MFM {
     UTI iidx = m_state.makeUlamType(ikey, Int);
     assert(iidx == Int);
 
-    UlamKeyTypeSignature fkey(m_state.m_pool.getIndexForDataString("Float"), 32);
-    UTI fidx = m_state.makeUlamType(fkey, Float);
-    assert(fidx == Float);
-
     UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), BITSPERBOOL);
     UTI bidx = m_state.makeUlamType(bkey, Bool);
     assert(bidx == Bool);
 
-    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), 0);
+    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), 0);  //bits tbd
     UTI cidx = m_state.makeUlamType(ckey, Class);
     assert(cidx == Class);
 
@@ -1892,11 +1901,14 @@ namespace MFM {
     UTI aidx = m_state.makeUlamType(akey, Atom);
     assert(aidx == Atom);
 
+    UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("Ut_Ptr"), MAXSTATEBITS);
+    UTI pidx = m_state.makeUlamType(pkey, Ptr);
+    assert(pidx == Ptr);
 
     //initialize call stack with 'Int' UlamType pointer
-    m_state.m_funcCallStack.init(m_state.getUlamTypeByIndex(iidx));
-    m_state.m_nodeEvalStack.init(m_state.getUlamTypeByIndex(iidx));
-    m_state.m_selectedAtom.init(m_state.getUlamTypeByIndex(iidx)); //necessary?
+    m_state.m_funcCallStack.init(iidx);
+    m_state.m_nodeEvalStack.init(iidx);
+    //m_state.m_eventWindow.init(iidx); //necessary?
   }
    
 

@@ -47,9 +47,9 @@ namespace MFM {
   }
 
 
-  UlamType * NodeFunctionCall::checkAndLabelType()
+  UTI NodeFunctionCall::checkAndLabelType()
   {
-    UlamType * it = m_state.getUlamTypeByIndex(Nav);  //Nav init return type
+    UTI it = Nav;  // init return type
     u32 numErrorsFound = 0;
 
     //look up in class block, and match argument types to parameters
@@ -59,11 +59,11 @@ namespace MFM {
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
 	//label argument types; used to pinpoint the exact function symbol in case of overloading
-	std::vector<UlamType *> argTypes;
+	std::vector<UTI> argTypes;
 
 	for(u32 i = 0; i < m_argumentNodes.size(); i++)
 	  {
-	    UlamType * argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
+	    UTI argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
 	    argTypes.push_back(argtype);
 	  }
 	
@@ -92,7 +92,7 @@ namespace MFM {
 
 	assert(m_funcSymbol == funcSymbol);
 
-	it = m_funcSymbol->getUlamType();
+	it = m_funcSymbol->getUlamTypeIdx();
       }
     
     setNodeType(it);
@@ -100,21 +100,34 @@ namespace MFM {
   }
 
 
+  // since functions are defined at the class-level; a function call
+  // must be PRECEDED by a member selection (element or quark) --- a
+  // local variable instance that provides the storage (i.e. atom) for
+  // its data members on the STACK, as the first argument.
   EvalStatus NodeFunctionCall::eval()
   {
     assert(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
-    assert(func);    
+    assert(func);
+
+    // before processing arguments, get the hidden atom ptr off the top
+    // of the call stack, in order to adjust its index to be relative (negative)
+    // to the upcoming new frame pointer (including all arg and return slots),
+    // and return to the stack as the "first" arg.
+    //UlamValue atomPtr  = m_state.m_funcCallStack.popArg();  //could be packed!
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
     
     u32 argsPushed = 0;
     EvalStatus evs;
+
     // place values of arguments on call stack (reverse order) before calling function
     for(s32 i= m_argumentNodes.size() - 1; i >= 0; i--)
       {
-	UlamType * argType = m_argumentNodes[i]->getNodeType();
-	// arrays are handled by callstack, and passed by value
+	UTI argType = m_argumentNodes[i]->getNodeType();
+
+	// extra slot for a Ptr to unpacked array;
+	// arrays are handled by CS/callstack, and passed by value
 	u32 slots = makeRoomForNodeType(argType); //for eval return
 	
 	evs = m_argumentNodes[i]->eval();
@@ -128,46 +141,93 @@ namespace MFM {
 	if(slots==1)
 	  {
 	    UlamValue auv = m_state.m_nodeEvalStack.popArg();
-	    argsPushed += m_state.m_funcCallStack.pushArg(auv, m_state);
+	    m_state.m_funcCallStack.pushArg(auv);
+	    argsPushed++;
 	  }
 	else
 	  {
+	    //array
+	    bool packed  = m_state.determinePackable(argType);
+	    assert(packed);
+
 	    //array to transfer without reversing order again
 	    u32 baseSlot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
-	    makeRoomForNodeType(argType, STACK);
-	    UlamValue basePtr(argType, baseSlot, true, STACK);  
+	    argsPushed  += makeRoomForNodeType(argType, STACK);
 
-	    UlamValue auvPtr(argType, 1, true, EVALRETURN);  //positive to current frame pointer
+	    //both either unpacked or packed
+	    UlamValue basePtr = UlamValue::makePtr(baseSlot, STACK, argType, packed, m_state);
 
-	    m_state.m_funcCallStack.assignUlamValue(basePtr,auvPtr, m_state);
+	    //positive to current frame pointer  
+	    UlamValue auvPtr = UlamValue::makePtr(1, EVALRETURN, argType, packed, m_state); 
+
+	    m_state.assignValue(basePtr, auvPtr);
 	    m_state.m_nodeEvalStack.popArgs(slots);
 	  }
       } //done with args
 
-    //push return value last (on both STACKS for now) 
-    UlamType * rtnType = m_funcSymbol->getUlamType();
+
+    //before pushing return slot(s) last (on both STACKS for now) 
+    UTI rtnType  = m_funcSymbol->getUlamTypeIdx();
     u32 rtnslots = makeRoomForNodeType(rtnType);
+
+    // insert "first" hidden arg (adjusted index pointing to atom);
+    // atom index (negative) relative new frame, includes all the pushed args, 
+    // and upcoming rtnslots: current_atom_index - relative_top_index (+ returns) 
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
+    UlamValue atomPtr = m_state.m_currentObjPtr;              //*********
+    if(saveCurrentObjectPtr.getPtrStorage() == STACK)
+      {
+	//adjust index if on the STACK, not for Event Window site
+	s32 nextslot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
+	s32 atomslot = atomPtr.getPtrSlotIndex();
+	s32 adjustedatomslot = atomslot - (nextslot + rtnslots); //negative index
+	atomPtr.setPtrSlotIndex(adjustedatomslot);
+      }
+    // push the "hidden" first arg, and update the current object ptr (restore later)
+    m_state.m_funcCallStack.pushArg(atomPtr);                 //*********
+    argsPushed++;
+    m_state.m_currentObjPtr = atomPtr;                        //*********
+
+    //(con't) push return slot(s) last (on both STACKS for now) 
     makeRoomForNodeType(rtnType, STACK);
 
-    assert(rtnType->getArraySize() > 0 ? rtnslots == rtnType->getArraySize() : rtnslots == 1); 
-    //********************************************    
+    u32 rtnarraysize = m_state.getArraySize(rtnType);
+    bool rtnpacked = m_state.determinePackable(rtnType);
 
+    if(rtnpacked)
+      assert(rtnslots == 1);
+    else
+      assert(rtnarraysize > 0 ? rtnslots == rtnarraysize : rtnslots == 1);
+
+
+    //********************************************    
+    //*  FUNC CALL HERE!!
+    //*
     evs = func->eval();   //NodeBlockFunctionDefinition..
     if(evs != NORMAL)
       {
 	assert(evs != RETURN);
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
+	m_state.m_currentObjPtr = saveCurrentObjectPtr;    //restore current object ptr *************
 	evalNodeEpilog();
 	return evs;
       }
+    //*
     //**********************************************
 
-    UlamValue rtnPtr(rtnType, 1, true, EVALRETURN);  //positive to current frame pointer
-    assignReturnValueToStack(rtnPtr);                //in return space on eval stack;
+    // ANY return value placed on the STACK by a Return Statement,
+    // was copied to EVALRETURN by the NodeBlockFunctionDefinition
+    // before arriving here! And may be ignored at this point.
+ 
+    //positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
+    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, rtnpacked, m_state);
+
+    assignReturnValueToStack(rtnPtr);                     //into return space on eval stack;
 
     m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
 
-    evalNodeEpilog();  //clears out the node eval stack
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;       //restore current object ptr *************
+    evalNodeEpilog();                                     //clears out the node eval stack
     return NORMAL;
   }
 
@@ -186,9 +246,16 @@ namespace MFM {
   }
 
 
+  bool NodeFunctionCall::getSymbolPtr(Symbol *& symptrref)
+  {
+    symptrref = m_funcSymbol;
+    return true;
+  }
+
+
   void NodeFunctionCall::genCode(File * fp)
   {
-    fp->write(m_funcSymbol->getMangledName(&m_state).c_str());
+    fp->write(m_funcSymbol->getMangledName().c_str());
     fp->write("(");
     for(u32 i = 0; i < m_argumentNodes.size(); i++)
       {

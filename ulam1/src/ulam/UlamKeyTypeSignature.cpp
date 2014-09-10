@@ -2,8 +2,8 @@
 #include <string.h>
 #include <assert.h>
 #include "UlamKeyTypeSignature.h"
-#include "util.h"
 #include "CompilerState.h"
+#include "Util.h"
 
 namespace MFM {
 
@@ -61,7 +61,7 @@ namespace MFM {
     std::ostringstream mangled;
     std::string nstr = state->m_pool.getDataAsString(m_typeNameId);
     u32 nstrlen = nstr.length();
-    mangled << "Ut_" << countDigits(m_arraySize) << m_arraySize << countDigits(m_bits) << m_bits << countDigits(nstrlen) << nstrlen << nstr.c_str();
+    mangled << "Ut_" << DigitCount(m_arraySize, BASE10) << m_arraySize << DigitCount(m_bits, BASE10) << m_bits << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
     return mangled.str();
   }
 

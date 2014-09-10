@@ -1,8 +1,9 @@
 #include "SymbolTypedef.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
-  SymbolTypedef::SymbolTypedef(u32 id, UlamType * utype) : Symbol(id, utype){}
+  SymbolTypedef::SymbolTypedef(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state){}
 
   SymbolTypedef::~SymbolTypedef()
   {}
