@@ -52,7 +52,7 @@ namespace MFM{
 
     virtual void print(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 

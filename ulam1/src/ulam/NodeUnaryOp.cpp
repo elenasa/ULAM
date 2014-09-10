@@ -16,12 +16,12 @@ namespace MFM {
   void NodeUnaryOp::print(File * fp)
   {
     printNodeLocation(fp);
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)    
+    if(myut == Nav)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
     
     if(m_node)
@@ -52,15 +52,15 @@ namespace MFM {
   }
   
 
-  UlamType * NodeUnaryOp::checkAndLabelType()
+  UTI NodeUnaryOp::checkAndLabelType()
   { 
     assert(m_node);
 
-    UlamType * ut = m_node->checkAndLabelType();
+    UTI ut = m_node->checkAndLabelType();
     
-    if(ut == m_state.getUlamTypeByIndex(Bool))  //if array???
+    if(ut == Bool)  //if array?, unsupported at this time
       {
-	UlamType * iut = m_state.getUlamTypeByIndex(Int);
+	UTI iut = Int;
 	m_node = new NodeCast(m_node, iut, m_state);  //except for Bang
 	m_node->setNodeLocation(getNodeLocation());
 	m_node->checkAndLabelType();
@@ -68,15 +68,15 @@ namespace MFM {
       }
     else
       {
-	if(ut->isScalar())
+	if(m_state.isScalar(ut))
 	  setNodeType(ut);  //stays the same
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) type: <" << ut->getUlamTypeName(&m_state).c_str() << "> for unary operator" << getName();
+	    msg << "Incompatible (nonscalar) type: <" << m_state.getUlamTypeNameByIndex(ut).c_str() << "> for unary operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    
-	    setNodeType(m_state.getUlamTypeByIndex(Nav));
+	    setNodeType(Nav);
 	  }
       }
 
@@ -90,7 +90,7 @@ namespace MFM {
   {
     assert(m_node);
 
-    UlamType * nut = getNodeType();
+    UTI nut = getNodeType();
     evalNodeProlog(0); //new current frame pointer
     u32 slots = makeRoomForNodeType(nut);
     EvalStatus evs = m_node->eval();
@@ -101,6 +101,35 @@ namespace MFM {
     evalNodeEpilog();
     return evs;
   }
+
+
+  void NodeUnaryOp::doUnaryOperation(s32 slot, u32 nslots)
+  {
+    if(m_state.isScalar(getNodeType()))  //not an array
+      {
+	doUnaryOperationImmediate(slot, nslots);
+      }
+    else
+      { //arrays not supported at this time
+	assert(0); 
+      }
+  } //end dobinaryop
+
+
+  void NodeUnaryOp::doUnaryOperationImmediate(s32 slot, u32 nslots)
+  {
+    assert(nslots == 1);
+    UTI nuti = getNodeType();
+    u32 arraysize = m_state.getArraySize(nuti);
+    u32 bitsize   = m_state.getBitSize(nuti);
+    u32 len = bitsize * (arraysize > 0 ? arraysize : 1);
+
+    UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value                  
+    u32 data = uv.getImmediateData(len);
+    UlamValue rtnUV = makeImmediateUnaryOp(nuti, data, len);
+    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+  } //end dounaryopImmediate
+
 
   void NodeUnaryOp::genCode(File * fp)
   {

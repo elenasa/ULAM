@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolFunctionName::SymbolFunctionName(u32 id, UlamType * typetoreturn) : Symbol(id,typetoreturn)
+  SymbolFunctionName::SymbolFunctionName(u32 id, UTI typetoreturn, CompilerState& state) : Symbol(id,typetoreturn,state)
   { 
     setDataMember(); // by definition all function definitions are data members
   }
@@ -36,13 +36,13 @@ namespace MFM {
   }
 
 
-  bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym, CompilerState * state)
+  bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
   {
     bool overloaded = false;
 
-    assert(getUlamType() == fsym->getUlamType());
+    assert(getUlamTypeIdx() == fsym->getUlamTypeIdx());
 
-    std::string mangled = fsym->getMangledNameWithTypes(state);
+    std::string mangled = fsym->getMangledNameWithTypes();
    
     //if doesn't already exist, potentially overload it by inserting into map.
     SymbolFunction * anyotherSym;
@@ -58,7 +58,7 @@ namespace MFM {
   }
 
 
-  bool SymbolFunctionName::findMatchingFunction(std::vector<UlamType *> argTypes, SymbolFunction *& funcSymbol)
+  bool SymbolFunctionName::findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol)
   {
     bool rtnBool = false;
 
@@ -115,14 +115,14 @@ namespace MFM {
   }
 
 
-  void SymbolFunctionName::generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state)
+  void SymbolFunctionName::generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
 
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;  
-	fsym->generateFunctionDeclaration(fp, declOnly, classtype, state);  
+	fsym->generateFunctionDeclaration(fp, declOnly, classtype);  
 	++it;
       }
   }

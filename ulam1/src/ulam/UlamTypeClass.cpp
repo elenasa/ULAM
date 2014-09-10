@@ -4,23 +4,12 @@
 #include "UlamTypeClass.h"
 #include "UlamValue.h"
 #include "CompilerState.h"
-#include "util.h"
+#include "Util.h"
 
 namespace MFM {
 
-  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type) : UlamType(key, uti), m_classType(type)
+  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type) : UlamType(key, uti), m_class(type)
   {}
-
-
-  void UlamTypeClass::newValue(UlamValue & val)
-  {
-    assert((val.isArraySize() == m_key.m_arraySize) && (m_key.m_arraySize == 0));
-    val.m_baseArraySlotIndex = 0;  //tmp! newUlamValueClass?
-  }
-
-
-  void UlamTypeClass::deleteValue(UlamValue * val)
-  { }
 
 
    ULAMTYPE UlamTypeClass::getUlamTypeEnum()
@@ -39,7 +28,7 @@ namespace MFM {
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
-    switch(m_classType)
+    switch(m_class)
       {
       case UC_ELEMENT:
 	return "e";
@@ -57,7 +46,7 @@ namespace MFM {
   void UlamTypeClass::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
   {
     //keep forward's in the MFM namespace
-    if(m_classType == UC_ELEMENT || m_classType == UC_QUARK) //skip primitive class (incomplete) 
+    if(m_class == UC_ELEMENT || m_class == UC_QUARK) //skip primitive class (incomplete) 
       {
 	if(getArraySize() > 0)
 	  {
@@ -70,7 +59,7 @@ namespace MFM {
 	    
 	    state->m_currentIndentLevel++;
 	    
-	    if(m_classType == UC_QUARK)
+	    if(m_class == UC_QUARK)
 	      {
 		state->indent(fp);
 		fp->write("template<u32 POS>\n");
@@ -115,9 +104,9 @@ namespace MFM {
     
     SymbolClass * csym = NULL;
     assert(state->alreadyDefinedSymbolClass(getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
-    UlamType * but = csym->getUlamType();
-	
-    if(but->getUlamClassType() == UC_QUARK)
+    UlamType * but = state->getUlamTypeByIndex(csym->getUlamTypeIdx());
+
+    if(but->getUlamClass() == UC_QUARK)
       {
 	state->indent(fp);
 	fp->write("template <u32 POS>\n");
@@ -133,7 +122,7 @@ namespace MFM {
     state->m_currentIndentLevel++;
     state->indent(fp);
     fp->write(but->getUlamTypeMangledName(state).c_str()); //complete base class
-    if(but->getUlamClassType() == UC_QUARK)
+    if(but->getUlamClass() == UC_QUARK)
       {
 	fp->write("<POS>");  
       }
@@ -160,27 +149,21 @@ namespace MFM {
   }
 
 
-  void UlamTypeClass::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
+  void UlamTypeClass::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
   {
-    sprintf(valstr,"%s", getUlamTypeName(state).c_str());
+    sprintf(valstr,"%s", getUlamTypeName(&state).c_str());
   }
 
 
-  bool UlamTypeClass::isZero(const UlamValue & val)
+  ULAMCLASSTYPE UlamTypeClass::getUlamClass()
   {
-    return true; 
+    return m_class;
   }
 
 
-  ULAMCLASSTYPE UlamTypeClass::getUlamClassType()
+  void UlamTypeClass::setUlamClass(ULAMCLASSTYPE type)
   {
-    return m_classType;
-  }
-
-
-  void UlamTypeClass::setUlamClassType(ULAMCLASSTYPE type)
-  {
-    m_classType = type;
+    m_class = type;
   }
 
 #if 0
@@ -199,7 +182,7 @@ namespace MFM {
     if(getArraySize() > 0)
       return "Ut_";
 
-    switch(m_classType)
+    switch(m_class)
       {
       case UC_ELEMENT:
 	return "Ue_";
@@ -219,7 +202,7 @@ namespace MFM {
   // only the key name and whether they are element or quark.
   const std::string UlamTypeClass::getUlamTypeMangledName(CompilerState * state)
   {
-    assert(m_classType != UC_INCOMPLETE);
+    assert(m_class != UC_INCOMPLETE);
 
     if(getArraySize()== 0)
       {
@@ -228,8 +211,8 @@ namespace MFM {
 	u32 nstrlen = nstr.length();
 
 	mangled << getUlamTypeUPrefix().c_str();
-	mangled << countDigits(getArraySize()) << getArraySize() << countDigits(getBitSize()) << getBitSize();
-	mangled << countDigits(nstrlen) << nstrlen << nstr.c_str();
+	mangled << DigitCount(getArraySize(), BASE10) << getArraySize() << DigitCount(getBitSize(), BASE10) << getBitSize();
+	mangled << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
 	return mangled.str();
       }
     return UlamType::getUlamTypeMangledName(state);  //e.g. Ut_071313Zot
@@ -246,23 +229,23 @@ namespace MFM {
   //'Class' type calculates its size after type labeling
   void UlamTypeClass::setBitSize(s32 bits, CompilerState * state)  
   {
-    if(m_classType == UC_ELEMENT)
+    if(m_class == UC_ELEMENT)
       {
-	if(bits > BITSPERATOM)
+	if(bits > MAXSTATEBITS)
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << BITSPERATOM << ") for element " << getUlamTypeName(state).c_str() << " with " << bits << " bits";
+	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << getUlamTypeName(state).c_str() << " with " << bits << " bits";
 	    state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
 	    assert(0);
 	  } 
       }
 
-    if(m_classType == UC_QUARK)
+    if(m_class == UC_QUARK)
       {
-	if(bits > BITSPERQUARK)
+	if(bits > MAXBITSPERQUARK)
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << BITSPERQUARK << ") for quark " << getUlamTypeName(state).c_str() << " with " << bits << " bits";
+	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << getUlamTypeName(state).c_str() << " with " << bits << " bits";
 	    state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
 	    assert(0);
 	  }
@@ -276,7 +259,7 @@ namespace MFM {
   const std::string UlamTypeClass::getBitSizeTemplateString()
   {
     std::ostringstream mangled;
-    if(m_classType == UC_QUARK)
+    if(m_class == UC_QUARK)
       {
 	mangled << "<" << UlamType::getTotalBitSize() << ">";
       }

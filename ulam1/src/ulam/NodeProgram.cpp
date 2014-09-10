@@ -25,12 +25,12 @@ namespace MFM {
   void NodeProgram::print(File * fp)
   {
     printNodeLocation(fp);
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     //overrides NodeBlock print, has m_root, no m_node or m_nextNode.
@@ -65,21 +65,21 @@ namespace MFM {
   }
 
 
-  UlamType * NodeProgram::checkAndLabelType()
+  UTI NodeProgram::checkAndLabelType()
   { 
     assert(m_root);
     m_state.m_err.clearCounts();
 
     // label all the class; sets "current" m_currentClassSymbol in CS
-    m_state.m_programDefST.labelTableOfClasses(m_state);
+    m_state.m_programDefST.labelTableOfClasses();
 
     // size all the class; sets "current" m_currentClassSymbol in CS
-    while(!m_state.m_programDefST.setBitSizeOfTableOfClasses(m_state)){}
+    while(!m_state.m_programDefST.setBitSizeOfTableOfClasses()){}
 
     // must happen after type labeling and before code gen; separate pass.
     m_state.m_programDefST.packBitsForTableOfClasses();
 
-    UlamType * rtnType =  m_root->getNodeType();
+    UTI rtnType =  m_root->getNodeType();
     setNodeType(rtnType);   //void type. missing?
 
     u32 warns = m_state.m_err.getWarningCount();
@@ -107,7 +107,7 @@ namespace MFM {
     assert(m_root);
     m_state.m_err.clearCounts();
 
-    setNodeType(m_state.getUlamTypeByIndex(Int)); //for testing
+    setNodeType(Int);     //for testing
 
     evalNodeProlog(1);    //new current frame pointer for nodeeval stack
     EvalStatus evs = m_root->eval();
@@ -171,7 +171,7 @@ namespace MFM {
       }
 
       //separate main.cpp for elements only
-      if(m_root->getNodeType()->getUlamClassType() == UC_ELEMENT)
+      if(m_state.getUlamTypeByIndex(m_root->getNodeType())->getUlamClass() == UC_ELEMENT)
 	{
 	  generateMain(fm);  	  
 	}
@@ -208,7 +208,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("MFM::");
-    fp->write(csym->getUlamType()->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(m_state.getUlamTypeByIndex(csym->getUlamTypeIdx())->getUlamTypeMangledName(&m_state).c_str());
     fp->write(" utest;\n");
     
     m_state.indent(fp);
@@ -233,6 +233,7 @@ namespace MFM {
     m_state.indent(fp);
     //use -I ../../../include in g++ command
     fp->write("#include \"itype.h\"\n"); 
+    fp->write("#include \"BitVector.h\"\n"); 
     fp->write("\n");
 
     //skip Nav type (0)

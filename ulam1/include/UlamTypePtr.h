@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamAtom.h -  Basic handling of Atom data members for ULAM
+ * UlamTypePtr.h -  Basic handling of the Ptr UlamType for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamAtom.h -  Basic handling of Atom data members for ULAM
+  \file UlamTypePtr.h -  Basic handling of the Ptr UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,46 +34,32 @@
 */
 
 
-#ifndef ULAMATOM_H
-#define ULAMATOM_H
+#ifndef ULAMTYPEPTR_H
+#define ULAMTYPEPTR_H
 
-#include <vector>
-#include "itype.h"
-#include "UlamValue.h"
 #include "UlamType.h"
 
-namespace MFM
-{
- 
-  class CompilerState;  //forward
+namespace MFM{
 
- //similar to CallStack, except for dataMembers
-  class UlamAtom
+  class CompilerState; //forward
+
+  class UlamTypePtr : public UlamType
   {
   public:
-    UlamAtom();
-    ~UlamAtom();
-
-    void init(UlamType * intType);
-
-    u32 getUlamAtomTypeNumber();
-    void setUlamAtomTypeNumber(u32 typenumber);
     
-    //returns baseIndex of array, or index of scalar
-    u32 pushDataMember(UlamType * arrayType, UlamType * scalarType);
-
-    UlamValue getDataMemberAt(u32 idx);
-    void storeDataMemberAt(UlamValue uv, u32 idx);
-
-    void assignUlamValue(UlamValue luv, UlamValue ruv, CompilerState & state);
-    void assignUlamValuePtr(UlamValue pluv, UlamValue puv, CompilerState & state);
-
+    UlamTypePtr(const UlamKeyTypeSignature key, const UTI uti);
+    virtual ~UlamTypePtr(){}
+    
+    virtual ULAMTYPE getUlamTypeEnum();
+        
+    virtual bool cast(UlamValue& val);
+    
+    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state);
+    
   private:
-    u32 m_elementTypeNumber;
-    std::vector<UlamValue> m_dataMembers;
-
+    
   };
-
+  
 }
 
-#endif //end ULAMATOM_H
+#endif //end ULAMTYPEPTR_H

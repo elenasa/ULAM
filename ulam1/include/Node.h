@@ -63,13 +63,13 @@ namespace MFM{
     virtual void print(File * fp);
     virtual void printPostfix(File * fp) = 0;
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval() = 0;
     virtual EvalStatus evalToStoreInto();
 
-    UlamType * getNodeType();
-    void setNodeType(UlamType * ut);
+    UTI getNodeType();
+    void setNodeType(UTI ut);
 
     bool isStoreIntoAble();
     void setStoreIntoAble(bool s);
@@ -90,8 +90,10 @@ namespace MFM{
 
     void evalNodeProlog(u32 depth);
     void evalNodeEpilog();
-    u32 makeRoomForNodeType(UlamType * type, STORAGE where = EVALRETURN);
-    u32 makeRoomForSlots(u32 slots);
+
+    u32 makeRoomForNodeType(UTI type, STORAGE where = EVALRETURN);
+    u32 makeRoomForSlots(u32 slots, STORAGE where = EVALRETURN);
+
     void assignReturnValueToStack(UlamValue rtnUV, STORAGE where = EVALRETURN);
     void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
@@ -105,7 +107,7 @@ namespace MFM{
 
   private:
     bool m_storeIntoAble;
-    UlamType * m_nodeUType;
+    UTI m_nodeUType;
     Locator m_nodeLoc;
 
   };

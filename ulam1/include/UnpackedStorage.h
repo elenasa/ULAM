@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeFloat.h -  Basic handling of the Float UlamType for ULAM
+ * UnpackedStorage.h -  Basic handling of unpacked storage for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file UlamTypeFloat.h -  Basic handling of the Float UlamType for ULAM
+  \file UnpackedStorage.h -  Basic handling of unpacked storage for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,43 +34,43 @@
 */
 
 
-#ifndef ULAMTYPEFLOAT_H
-#define ULAMTYPEFLOAT_H
+#ifndef UNPACKEDSTORAGE_H
+#define UNPACKEDSTORAGE_H
 
+#include <vector>
+#include "itype.h"
+#include "UlamValue.h"
 #include "UlamType.h"
 
-namespace MFM{
+namespace MFM
+{
+ 
+  class CompilerState;  //forward
 
-  class CompilerState; //forward
-
-  class UlamTypeFloat : public UlamType
+ //similar to CallStack, except for dataMembers
+  class UnpackedStorage
   {
   public:
+    UnpackedStorage(CompilerState& state);
+    ~UnpackedStorage();
 
-    UlamTypeFloat(const UlamKeyTypeSignature key, const UTI uti);
-    virtual ~UlamTypeFloat(){}
+    void init(UTI intType);
+    
+    //returns baseIndex of array, or index of scalar
+    u32 pushDataMember(UTI arrayType, UTI scalarType);
 
-    virtual void newValue(UlamValue & val);
+    UlamValue loadDataMemberAt(u32 idx);
+    void storeDataMemberAt(UlamValue uv, u32 idx);
 
-    virtual void deleteValue(UlamValue * val);
-
-    virtual ULAMTYPE getUlamTypeEnum();
-
-    virtual const std::string getUlamTypeAsStringForC();
-
-    virtual const char * getUlamTypeAsSingleLowercaseLetter();
-
-    virtual bool cast(UlamValue& val);
-
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state);
-
-    virtual bool isZero(const UlamValue & val);
- 
+    void assignUlamValue(UlamValue luv, UlamValue ruv);
+    void assignUlamValuePtr(UlamValue pluv, UlamValue puv);
 
   private:
+    std::vector<UlamValue> m_values;
+    CompilerState& m_state;
 
   };
 
 }
 
-#endif //end ULAMTYPEFLOAT_H
+#endif //end UNPACKEDSTORAGE_H

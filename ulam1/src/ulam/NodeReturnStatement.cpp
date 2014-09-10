@@ -15,12 +15,12 @@ namespace MFM {
   void NodeReturnStatement::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)    
+    if(myut == Nav)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     if(m_node) 
@@ -47,11 +47,11 @@ namespace MFM {
   }
 
 
-  UlamType * NodeReturnStatement::checkAndLabelType()
+  UTI NodeReturnStatement::checkAndLabelType()
   {
     assert(m_node);
 
-    UlamType * nodeType = m_node->checkAndLabelType();
+    UTI nodeType = m_node->checkAndLabelType();
 
     if(nodeType != m_state.m_currentFunctionReturnType)
       {
@@ -94,7 +94,8 @@ namespace MFM {
       }
 
     //end, so copy to -1
-    UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
+    //UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
+    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, getNodeType(), m_state.determinePackable(getNodeType()), m_state);  //positive to current frame pointer
     
     assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
     evalNodeEpilog();

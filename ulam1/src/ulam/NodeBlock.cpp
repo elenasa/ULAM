@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeBlock::NodeBlock(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeStatements(NULL, state), m_prevBlockNode(prevBlockNode) 
+  NodeBlock::NodeBlock(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeStatements(NULL, state), m_ST(state), m_prevBlockNode(prevBlockNode)
   {
     setNextNode(s);
   }
@@ -18,12 +18,12 @@ namespace MFM {
   void NodeBlock::print(File * fp)
   {
     printNodeLocation(fp);
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)    
+    if(myut == Nav)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     m_nextNode->print(fp);
@@ -58,7 +58,7 @@ namespace MFM {
   }
 
 
-  UlamType * NodeBlock::checkAndLabelType()
+  UTI NodeBlock::checkAndLabelType()
   { 
     assert(m_nextNode);
 
@@ -67,7 +67,7 @@ namespace MFM {
     m_nextNode->checkAndLabelType();
 
     //blocks don't have types 
-    setNodeType(m_state.getUlamTypeByIndex(Void));
+    setNodeType(Void);
     return getNodeType();
   }
 
@@ -114,14 +114,14 @@ namespace MFM {
 
   u32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
   {
-    return m_ST.getTotalVariableSymbolsBitSize(m_state);
+    return m_ST.getTotalVariableSymbolsBitSize();
   }
 
 
   void NodeBlock::genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {
     assert(0); //using the NodeVarDecl:genCode approach instead.
-    m_ST.genCodeForTableOfVariableDataMembers(fp, classtype, &m_state);
+    m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
   }
 
   void NodeBlock::genCode(File * fp)

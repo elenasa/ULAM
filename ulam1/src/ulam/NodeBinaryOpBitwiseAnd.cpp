@@ -20,15 +20,15 @@ namespace MFM {
   }
 
 
-  UlamType * NodeBinaryOpBitwiseAnd::checkAndLabelType()
+  UTI NodeBinaryOpBitwiseAnd::checkAndLabelType()
   { 
     assert(m_nodeLeft && m_nodeRight);
 
-    UlamType * leftType = m_nodeLeft->checkAndLabelType();
-    UlamType * rightType = m_nodeRight->checkAndLabelType();	
-    UlamType * newType = calcNodeTypeBitwise(leftType, rightType);
+    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType();	
+    UTI newType = calcNodeTypeBitwise(leftType, rightType);
 
-    if(newType !=  m_state.getUlamTypeByIndex(Nav))  //Nav
+    if(newType != Nav)
       {
 	if(newType != leftType)
 	  {
@@ -50,42 +50,45 @@ namespace MFM {
     return newType;
   }
 
-    
+   
+  // third arg is the slots for the rtype; slots for the left is
+  // rslot-lslot; they should be equal, unless one is a packed array
+  // and the other isn't; however, currently, according to
+  // CompilerState determinePackable, they should always be the same
+  // since their types must be identical.
   void NodeBinaryOpBitwiseAnd::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
-    UlamType * nut = getNodeType();
-    UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
-
-    UTI typidx = scalartype->getUlamTypeIndex();    
-    UlamValue rtnUV;  //immediate scalar
-
-    for(u32 i = 0; i < slots; i++)
+    UTI nuti = getNodeType();
+    if(m_state.isScalar(nuti))  //not an array
       {
-	UlamValue luv = m_state.m_nodeEvalStack.getFrameSlotAt(lslot+i);
-	UlamValue ruv = m_state.m_nodeEvalStack.getFrameSlotAt(rslot+i);
-
-	switch(typidx)
-	  {
-	  case Int:
-	    rtnUV.init(scalartype, (luv.m_valInt & ruv.m_valInt));
-	    break;
-	  case Bool:
-	    rtnUV.init(scalartype, (luv.m_valBool & ruv.m_valBool));
-	    break;
-	  case Float:
-	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(typidx) << "> used with binary operator" << getName();
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	      rtnUV.init(m_state.getUlamTypeByIndex(Nav), 0);
-	      assert(0);
-	    }
-	  };
-
-	//copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
+	doBinaryOperationImmediate(lslot, rslot, slots);
       }
+    else
+      { //array
+	// leverage case when both are packed, for logical bitwise operations
+	if(m_state.determinePackable(nuti))
+	  {
+	    doBinaryOperationImmediate(lslot, rslot, slots);
+	  }
+	else
+	  { 
+	    doBinaryOperationArray(lslot, rslot, slots);
+	  }
+      }
+  } //end dobinaryop
+  
+
+  UlamValue NodeBinaryOpBitwiseAnd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    return UlamValue::makeImmediate(type, ldata & rdata, len);
   }
+
+
+  void NodeBinaryOpBitwiseAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    assert(0); //not used, though could be
+    refUV.putData(pos, len, ldata & rdata);
+  }
+
 
 } //end MFM

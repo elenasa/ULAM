@@ -37,9 +37,9 @@ namespace MFM {
   }
 
 
-  UlamType * NodeBlockEmpty::checkAndLabelType()
+  UTI NodeBlockEmpty::checkAndLabelType()
   {
-    setNodeType(m_state.getUlamTypeByIndex(Void));
+    setNodeType(Void);
     return getNodeType();
   }
 

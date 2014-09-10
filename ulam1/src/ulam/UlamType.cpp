@@ -4,7 +4,7 @@
 #include <sstream>
 #include "UlamType.h"
 #include "CompilerState.h"
-#include "util.h"
+#include "Util.h"
 
 namespace MFM {
 
@@ -54,7 +54,7 @@ namespace MFM {
   }    
 
 
-  ULAMCLASSTYPE UlamType::getUlamClassType()
+  ULAMCLASSTYPE UlamType::getUlamClass()
   {
     return UC_NOTACLASS;
   }
@@ -74,8 +74,8 @@ namespace MFM {
     u32 nstrlen = nstr.length();
     
     mangled << getUlamTypeUPrefix().c_str();
-    mangled << countDigits(getArraySize()) << getArraySize() << countDigits(getBitSize()) << getBitSize();
-    mangled << countDigits(nstrlen) << nstrlen << nstr.c_str();
+    mangled << DigitCount(getArraySize(), BASE10) << getArraySize() << DigitCount(getBitSize(), BASE10) << getBitSize();
+    mangled << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
     return mangled.str();
   }
 

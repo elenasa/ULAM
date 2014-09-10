@@ -48,22 +48,22 @@ namespace MFM{
   class SymbolFunctionName : public Symbol
   {
   public:
-    SymbolFunctionName(u32 id, UlamType * typetoreturn);
+    SymbolFunctionName(u32 id, UTI typetoreturn, CompilerState& state);
     ~SymbolFunctionName();
 
     virtual bool isFunction();
 
     virtual const std::string getMangledPrefix();
 
-    bool overloadFunction(SymbolFunction * fsym, CompilerState * state);
+    bool overloadFunction(SymbolFunction * fsym);
 
-    bool findMatchingFunction(std::vector<UlamType *> argTypes, SymbolFunction *& funcSymbol);
+    bool findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol);
 
     u32 getDepthSumOfFunctions();
 
     void labelFunctions();
 
-    void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype, CompilerState * state);
+    void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
   protected:
 

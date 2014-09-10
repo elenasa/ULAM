@@ -7,10 +7,10 @@
 #include "SymbolVariable.h"
 #include "UlamTypeAtom.h"
 #include "UlamTypeBool.h"
-#include "UlamTypeFloat.h"
 #include "UlamTypeInt.h"
 #include "UlamTypeNav.h"
 #include "UlamTypeVoid.h"
+#include "UlamTypePtr.h"
 
 
 namespace MFM {
@@ -24,8 +24,8 @@ namespace MFM {
 
   static const char * m_indentedSpaceLevel("  ");
 
-
-  CompilerState::CompilerState(): m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0)
+  //use of this in the initialization list seems to be okay;
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this)
   {
     m_err.init(this, debugOn, NULL);
   }
@@ -53,7 +53,7 @@ namespace MFM {
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it;
   // trick to know the base ULAMTYPE
-  UlamType * CompilerState::makeUlamType(Token typeTok, u32 bitsize, u32 arraysize)
+  UTI CompilerState::makeUlamType(Token typeTok, u32 bitsize, u32 arraysize)
   {
     //type names begin with capital letter..and the rest can be either
     u32 typeNameId  = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
@@ -63,20 +63,13 @@ namespace MFM {
 
     bitsize = ((bitsize == 0 && bUT != Class) ? (bUT == Bool ? BITSPERBOOL : 32) : bitsize); //temporary!!!
     UlamKeyTypeSignature key(typeNameId,bitsize,arraysize);
-    UTI uti = 0;
-    UlamType * ut;
-
-    if(isDefined(key,uti))
-      {
-	ut = getUlamTypeByIndex(uti);
-      }
-    else
+    UTI uti = Nav;
+    if(!isDefined(key,uti))
       {
 	//no key, make new type, how to know baseUT? bitsize?
 	uti = makeUlamType(key,bUT);    
-	ut = getUlamTypeByIndex(uti);
       }
-    return ut;
+    return uti;
   }
 
 
@@ -131,9 +124,6 @@ namespace MFM {
       case Int:
 	ut = new UlamTypeInt(key, uti);      
 	break;
-      case Float:
-	ut = new UlamTypeFloat(key, uti);      
-	break;
       case Bool:
 	ut = new UlamTypeBool(key, uti);      
 	break;
@@ -142,6 +132,9 @@ namespace MFM {
 	break;
       case Atom:
 	ut = new UlamTypeAtom(key, uti);      
+	break;
+      case Ptr:
+	ut = new UlamTypePtr(key, uti);      
 	break;
       default:
 	{
@@ -170,9 +163,15 @@ namespace MFM {
   }
 
 
-  const std::string CompilerState::getUlamTypeNameByIndex(UTI uti)
+  const std::string CompilerState::getUlamTypeNameBriefByIndex(UTI uti)
   {
     return m_indexToUlamType[uti]->getUlamTypeNameBrief(this);
+  }
+
+
+  const std::string CompilerState::getUlamTypeNameByIndex(UTI uti)
+  {
+    return m_indexToUlamType[uti]->getUlamTypeName(this);
   }
 
 
@@ -187,19 +186,19 @@ namespace MFM {
 
   ULAMTYPE CompilerState::getBaseTypeFromToken(Token tok)
   {
-    std::string typeName  = getTokenAsATypeName(tok); //Foo, Int, etc
-
     // is this name already a typedef for a complex type?
-    UlamType * ut = NULL;
     ULAMTYPE bUT = Nav;
-    if(getUlamTypeByTypedefName(typeName.c_str(), ut))
+    UTI ut = Nav;
+    if(getUlamTypeByTypedefName(tok.m_dataindex, ut))
       {
-	bUT = ut->getUlamTypeEnum();
+	bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
       }
     else
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
+	    std::string typeName  = getTokenAsATypeName(tok); //Foo, Int, etc
+
 	    //no way to get the bUT, except to assume typeName is one of them?
 	    bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
 	  }
@@ -208,8 +207,8 @@ namespace MFM {
 	    SymbolClass * csym = NULL;
 	    if(alreadyDefinedSymbolClass(tok.m_dataindex, csym))
 	      {
-		UlamType * ut = csym->getUlamType();
-		bUT = ut->getUlamTypeEnum();
+		UTI ut = csym->getUlamTypeIdx();
+		bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
 	      }
 	  }
       }
@@ -217,18 +216,18 @@ namespace MFM {
   }
 
 
-  UlamType * CompilerState::getUlamTypeFromToken(Token tok)
+  UTI CompilerState::getUlamTypeFromToken(Token tok)
   {
-    UlamType * ut = NULL;
-    std::string typeName  = getTokenAsATypeName(tok); //Foo, Int, etc
+    UTI uti = Nav;
 
     // is this name already a typedef for a complex type?
-    if(!getUlamTypeByTypedefName(typeName.c_str(), ut))
+    if(!getUlamTypeByTypedefName(tok.m_dataindex, uti))
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    ULAMTYPE bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could Int, Bool, Void, Float;
-	    ut = getUlamTypeByIndex((UTI) bUT);
+	    std::string typeName  = getTokenAsATypeName(tok); //Foo, Int, etc
+	    ULAMTYPE bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could Int, Bool, Void;
+	    uti = bUT;  //see Parser primitive assertions
 	  }
 	else
 	  {
@@ -236,67 +235,95 @@ namespace MFM {
 	    SymbolClass * csym = NULL;
 	    if(alreadyDefinedSymbolClass(tok.m_dataindex, csym))
 	      {
-		ut = csym->getUlamType();
+		uti = csym->getUlamTypeIdx();
 	      }
 	  }
       }
-    return ut;
+    return uti;
   }
 
 
-  bool CompilerState::getUlamTypeByTypedefName(const char * name, UlamType* & rtnType)
+  // new version! uses indexes
+  bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType)
   {
     bool rtnBool = false;
     Symbol * asymptr = NULL;
-    std::string nameStr(name);
-    u32 idx = m_pool.getIndexForDataString(nameStr);
 
     //searched back through all block's ST for idx
-    if(alreadyDefinedSymbol(idx, asymptr))
+    if(alreadyDefinedSymbol(nameIdx, asymptr))
       {
 	if(asymptr->isTypedef())
 	  {
-	    rtnType = asymptr->getUlamType();
+	    rtnType = asymptr->getUlamTypeIdx();
 	    rtnBool = true; 
 	  }
       }
-
     return rtnBool;
   }
 
 
-  UlamType * CompilerState::getUlamTypeAsScalar(UlamType * utArg)
+  UTI CompilerState::getUlamTypeAsScalar(UTI utArg)
   {
-    if(utArg->isScalar())
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    if(ut->isScalar())
       return utArg;
 
     // for typedef array, the scalar is the primitive type
-    ULAMTYPE bUT = utArg->getUlamTypeEnum();
-    UlamKeyTypeSignature keyOfArg = utArg->getUlamKeyTypeSignature();
+    ULAMTYPE bUT = ut->getUlamTypeEnum();
+    UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
 
     u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize);  //default array size is zero
 
     UTI buti = makeUlamType(baseKey, bUT);
-    return getUlamTypeByIndex(buti);
+    return buti;
   }
 
 
-  bool CompilerState::getUlamTypeByClassToken(Token ctok, UlamType* & rtnType)
+
+  bool CompilerState::isScalar(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->isScalar());
+  }
+
+
+  u32 CompilerState::getArraySize(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->getArraySize());
+  }
+  
+
+  u32 CompilerState::getBitSize(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->getBitSize());
+  }
+
+
+  // NEEDS TO DO MORE WITH KEY. SOON.
+  void CompilerState::setBitSize(UTI utArg, s32 total)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    ut->setBitSize(total, this);
+  }
+
+  bool CompilerState::getUlamTypeByClassToken(Token ctok, UTI & rtnType)
   {
     u32 cidx = getTokenAsATypeNameId(ctok);
     return getUlamTypeByClassNameId(cidx, rtnType);
   }
 
 
-  bool CompilerState::getUlamTypeByClassNameId(u32 idx, UlamType* & rtnType)
+  bool CompilerState::getUlamTypeByClassNameId(u32 idx, UTI & rtnType)
   {
     bool rtnBool = false;
     SymbolClass * csymptr = NULL;
     
     if(alreadyDefinedSymbolClass(idx, csymptr) || (addIncompleteClassSymbolToProgramTable(idx, csymptr), true) )
       {
-	rtnType = csymptr->getUlamType();
+	rtnType = csymptr->getUlamTypeIdx();
 	rtnBool = true;
       }
 
@@ -318,25 +345,25 @@ namespace MFM {
 
     UlamKeyTypeSignature key(dataindex, 0);
     UTI cuti = makeUlamType(key, Class);
-    UlamType * cut = getUlamTypeByIndex(cuti);
     
     // symbol ownership goes to the programDefST; 
-    symptr = new SymbolClass(dataindex, cut, NULL);  //NodeBlockClass is NULL for now
+    symptr = new SymbolClass(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
     m_programDefST.addToTable(dataindex, symptr);
   }
 
 
-  bool CompilerState::completeIncompleteClassSymbol(UlamType * incomplete) 
+  bool CompilerState::completeIncompleteClassSymbol(UTI incomplete) 
   {
     bool rtnB = false;
     SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(incomplete->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+    UlamType * ict = getUlamTypeByIndex(incomplete);
+    if(alreadyDefinedSymbolClass(ict->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
       {
-	UlamType * but = csym->getUlamType();
-	ULAMCLASSTYPE bc = but->getUlamClassType();
+	UTI but = csym->getUlamTypeIdx();
+	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
 	assert(bc == UC_ELEMENT || bc == UC_QUARK);
-	((UlamTypeClass *) incomplete)->setUlamClassType(bc);
-	((UlamTypeClass *) incomplete)->setBitSize(but->getBitSize(), this);
+	((UlamTypeClass *) ict)->setUlamClass(bc);
+	((UlamTypeClass *) ict)->setBitSize(getBitSize(but), this);
 	rtnB = true;
       }
     else
@@ -473,11 +500,11 @@ namespace MFM {
   bool CompilerState::checkFunctionReturnNodeTypes(SymbolFunction * fsym)
   {
     bool rtnBool = true;
-    UlamType * it = fsym->getUlamType();
+    UTI it = fsym->getUlamTypeIdx();
 
     if(m_currentFunctionReturnNodes.empty()) 
       {
-	if(it != getUlamTypeByIndex(Void))
+	if(it != Void)
 	  {
 	    std::ostringstream msg;
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return Statement is missing";
@@ -491,34 +518,33 @@ namespace MFM {
     for(u32 i = 0; i < m_currentFunctionReturnNodes.size(); i++)
       {
 	NodeReturnStatement * rNode = m_currentFunctionReturnNodes.at(i);
-	UlamType * rType = rNode->getNodeType();
+	UTI rType = rNode->getNodeType();
 	
 	if(rType != it)
 	  {
 	    rtnBool = false;
 
-	    ULAMTYPE rBUT = rType->getUlamTypeEnum();
-	    ULAMTYPE itBUT = it->getUlamTypeEnum();
+	    ULAMTYPE rBUT = getUlamTypeByIndex(rType)->getUlamTypeEnum();
+	    ULAMTYPE itBUT = getUlamTypeByIndex(it)->getUlamTypeEnum();
 	    if(rBUT != itBUT)
 	      {
 		std::ostringstream msg;
-		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName(this).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << "> does not match resulting type's <" << rType->getUlamTypeName(this).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
+		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << getUlamTypeNameByIndex(it).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << "> does not match resulting type's <" << getUlamTypeNameByIndex(rType).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
 		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
-
 	      }
 	    else
 	      {
-		if(rType->getArraySize() != it->getArraySize())
+		if(getArraySize(rType) != getArraySize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName(this).c_str() << "> array size: <" << it->getArraySize() << "> does not match resulting type's <" << rType->getUlamTypeName(this).c_str() << "> array size: <" << rType->getArraySize() << ">";
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << getUlamTypeNameByIndex(it).c_str() << "> array size: <" << getArraySize(it) << "> does not match resulting type's <" << getUlamTypeNameByIndex(rType).c_str() << "> array size: <" << getArraySize(rType) << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
 		  }
 
-		if(rType->getBitSize() != it->getBitSize())
+		if(getBitSize(rType) != getBitSize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << it->getUlamTypeName(this).c_str() << "> bit size: <" << it->getBitSize() << "> does not match resulting type's <" << rType->getUlamTypeName(this).c_str() << "> bit size: <" << rType->getBitSize() << ">";
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << getUlamTypeNameByIndex(it).c_str() << "> bit size: <" << getBitSize(it) << "> does not match resulting type's <" << getUlamTypeNameByIndex(rType).c_str() << "> bit size: <" << getBitSize(rType) << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
 		  }
 	      } //base types are the same..array and bit size might vary
@@ -541,8 +567,8 @@ namespace MFM {
   {
     std::ostringstream f;
     Symbol * csym = m_programDefST.getSymbolPtr(id);
-    UlamType * cut = csym->getUlamType();
-    f << cut->getUlamTypeMangledName(this).c_str() << ".h";
+    UTI cuti = csym->getUlamTypeIdx();
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".h";
     return f.str();
   }
 
@@ -557,8 +583,8 @@ namespace MFM {
   {
     std::ostringstream f;
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    UlamType * cut = csym->getUlamType();
-    f << cut->getUlamTypeMangledName(this).c_str() << ".cpp";
+    UTI cuti = csym->getUlamTypeIdx();
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".cpp";
     return f.str();
   }
 
@@ -568,8 +594,8 @@ namespace MFM {
   {
     std::ostringstream f;
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    UlamType * cut = csym->getUlamType();
-    f << cut->getUlamTypeMangledName(this).c_str() << "_main.cpp";
+    UTI cuti = csym->getUlamTypeIdx();
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_main.cpp";
     return f.str();
   }
 
@@ -578,9 +604,169 @@ namespace MFM {
   {
     std::ostringstream f;
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    UlamType * cut = csym->getUlamType();
-    f << cut->getUlamTypeMangledName(this).c_str() << "_Types.h";
+    UTI cuti = csym->getUlamTypeIdx();
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_Types.h";
     return f.str();
+  }
+
+
+  // NEW VERSION!!!
+  // uses CallStack::loadUlamValueFromSlot, depending on storage place
+  // (was UlamValue CallStack::getFrameSlotAt(PtrValue p))
+  UlamValue CompilerState::getPtrTarget(UlamValue ptr)
+  {
+    assert(ptr.getUlamValueTypeIdx() == Ptr);
+
+    // slot + storage 
+    UlamValue valAtIdx;
+
+    switch(ptr.getPtrStorage())
+      {
+      case STACK:
+	valAtIdx = m_funcCallStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
+	break;
+      case EVALRETURN:
+	valAtIdx = m_nodeEvalStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
+	break;
+      case EVENTWINDOW:
+	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex());
+	break;
+      default:
+	//error!
+	assert(0);
+      };
+
+    // when the target loaded from the slot (i.e. an element/atom),
+    // doesn't match the target type, then we want to make an
+    // immediate UV, encompassing the entire length, array or not,
+    // since it must fit in this one UlamValue.
+    UTI puti = ptr.getPtrTargetType(); //could be a 'scalar' ptr, or packed Ptr.
+    UTI vuti = valAtIdx.getUlamValueTypeIdx();  //could be scalar type, or packed array type
+    if( (vuti != puti) && (puti != getUlamTypeAsScalar(vuti)))
+      {
+	assert(vuti == Atom || getUlamTypeByIndex(vuti)->getUlamClass() == UC_ELEMENT); //must be!
+	return  UlamValue::makeImmediate(puti, valAtIdx.getData(ptr.getPtrPos(), ptr.getPtrLen()), ptr.getPtrLen());  //len is entire packed array when ptr made
+      }
+    
+    // o.w. return what was pointed to (may be a single element of an
+    // unpacked array, the entire array, a scalar, or an atom)
+    return valAtIdx;  //return as-is
+  }
+
+
+  //general purpose store
+  void CompilerState::assignValue(UlamValue lptr, UlamValue ruv)
+  {
+    assert(lptr.getUlamValueTypeIdx() == Ptr);
+
+    if(ruv.getUlamValueTypeIdx() == Ptr)
+      return assignArrayValues(lptr, ruv);
+    
+    // r is immediate (includes packed arrays), store it into where lptr is pointing
+    assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx());
+
+    STORAGE place = lptr.getPtrStorage();
+    switch(place)
+      {
+      case STACK:
+	m_funcCallStack.assignUlamValue(lptr, ruv);
+	break;
+      case EVALRETURN:
+	m_nodeEvalStack.assignUlamValue(lptr, ruv);
+	break;
+      case EVENTWINDOW:
+	m_eventWindow.assignUlamValue(lptr, ruv);
+	break;
+      default:
+	assert(0);
+      };
+  }
+
+
+  //store pointer (rptr) as value to where lptr is pointing
+  void CompilerState::assignValuePtr(UlamValue lptr, UlamValue rptr)
+  {
+    assert(lptr.getUlamValueTypeIdx() == Ptr);
+    assert(rptr.getUlamValueTypeIdx() == Ptr);
+
+    assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
+
+    STORAGE place = lptr.getPtrStorage();
+    switch(place)
+      {
+      case STACK:
+	m_funcCallStack.assignUlamValuePtr(lptr, rptr);
+	break;
+      case EVALRETURN:
+	m_nodeEvalStack.assignUlamValuePtr(lptr, rptr);
+	break;
+      case EVENTWINDOW:
+	m_eventWindow.assignUlamValuePtr(lptr, rptr);
+	break;
+      default:
+	assert(0);
+      };
+  }
+
+  
+  void CompilerState::assignArrayValues(UlamValue lptr, UlamValue rptr)
+  {
+    assert(lptr.getUlamValueTypeIdx() == Ptr);
+    assert(rptr.getUlamValueTypeIdx() == Ptr);
+
+    //assert types..the same, and arrays
+    assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
+    
+    // unless we're copying from different storage classes
+    //assert(!isScalar(lptr.getPtrTargetType()));  //deal w scalars differently
+
+    //assigned packed or unpacked
+    assert(lptr.isTargetPacked() == rptr.isTargetPacked());
+    bool packed = lptr.isTargetPacked();
+
+    if(packed)
+      {
+	UlamValue atval = getPtrTarget(rptr); // entire array in one slot
+	assignValue(lptr, atval); 
+      }
+    else
+      {
+	//assign each array element
+	u32 arraysize = getArraySize(rptr.getPtrTargetType());
+	UlamValue nextlptr = UlamValue::makeScalarPtr(lptr,*this);
+	UlamValue nextrptr = UlamValue::makeScalarPtr(rptr,*this);
+
+	for(u32 i = 0; i < arraysize; i++)
+	  {
+	    //UlamValue atval = rptr.getValAt(i, *this);  //returns scalar at i (via getPtrTarget)
+	    UlamValue atval = getPtrTarget(nextrptr);
+	    assignValue(nextlptr, atval);
+	    nextlptr.incrementPtr(*this);
+	    nextrptr.incrementPtr(*this);
+	  }
+      }
+  }
+
+
+  bool CompilerState::determinePackable(UTI aut)
+  {
+    bool rtnB = false;
+    u32 arraysize = getArraySize(aut);
+    u32 bitsize   = getBitSize(aut);
+
+    //scalars are considered packable (arraysize == 0); Atoms and Ptrs are NOT.
+    if(arraysize > 0)
+      {
+	rtnB = ((arraysize * bitsize) < MAXSTATEBITS);
+      }
+    else
+      {  //scalar, immediate only...must also allow quark!
+	ULAMCLASSTYPE classtype = getUlamTypeByIndex(aut)->getUlamClass();
+	if(classtype == UC_NOTACLASS || classtype == UC_QUARK)
+	  rtnB = (bitsize <= MAXBITSPERQUARK);  //32
+      }
+
+    return rtnB;
   }
 
 

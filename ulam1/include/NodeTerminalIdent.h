@@ -51,10 +51,9 @@ namespace MFM{
     NodeTerminalIdent(Token tok, SymbolVariable * symptr, CompilerState & state);
     ~NodeTerminalIdent();
 
-
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -74,7 +73,8 @@ namespace MFM{
 
   private:
     SymbolVariable * m_varSymbol;
-    SymbolVariable *  makeSymbol(UlamType * aut);
+    SymbolVariable *  makeSymbol(UTI aut);
+    UlamValue makeUlamValuePtr();
 
   };
 

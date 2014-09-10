@@ -58,7 +58,7 @@ namespace MFM{
   struct UlamValue; //forward
 
 
-#define UTI u32
+#define UTI u16
 
   class CompilerState; //forward
 
@@ -69,10 +69,6 @@ namespace MFM{
   public: 
     UlamType(const UlamKeyTypeSignature key, const UTI uti);
     ~UlamType(){}
-
-    virtual void newValue(UlamValue & val) = 0;
-    
-    virtual void deleteValue(UlamValue * val) = 0;
 
     /** returns a pointer to UlamType */
     UlamType * getUlamType();
@@ -87,11 +83,9 @@ namespace MFM{
 
     virtual bool cast(UlamValue& val) = 0;
 
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state) = 0;
+    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state) = 0;
 
-    virtual bool isZero(const UlamValue & val) = 0;
-
-    virtual ULAMCLASSTYPE getUlamClassType();
+    virtual ULAMCLASSTYPE getUlamClass();
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
 

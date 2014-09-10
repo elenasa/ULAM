@@ -1,7 +1,7 @@
 XX(Nav,"Nav")
 XX(Void,"Void")
 XX(Int,"Int")
-XX(Float,"Float")
 XX(Bool,"Bool")
 XX(Class,"Ut_Class")
 XX(Atom,"Atom")
+XX(Ptr,"Ut_Ptr")

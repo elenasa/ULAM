@@ -48,10 +48,10 @@ namespace MFM{
   class Symbol
   {
   public:
-    Symbol(u32 id, UlamType * utype);
+    Symbol(u32 id, UTI utype, CompilerState& state);
     virtual ~Symbol();    //abstract
 
-    UlamType * getUlamType();
+    UTI getUlamTypeIdx();
     u32 getId();
     
     virtual bool isFunction();
@@ -61,16 +61,18 @@ namespace MFM{
     void setDataMember();
     bool isDataMember();
 
-    const std::string getMangledName(CompilerState * state);
+    const std::string getMangledName();
     virtual const std::string getMangledPrefix() = 0;
 
   protected:
+    CompilerState & m_state;
 
   private:
     u32 m_id;            // id to its name (string) in lexer; also in ST
-    UlamType * m_utype;  // may seem redundant, but not; from NodeVarDecl, before m_value known.
+    UTI m_utypeIdx;      // may seem redundant, but not; from NodeVarDecl, before m_value known.
                          // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
     bool m_dataMember;
+
   };
 
 }

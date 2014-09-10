@@ -38,44 +38,119 @@
 #define ULAMVALUE_H
 
 #include "itype.h"
+#include "BitVector.h"
+#include "Constants.h"
+#include "UlamType.h"
 
 namespace MFM{
 
-  enum STORAGE { IMMEDIATE = 0, ATOM, STACK, EVALRETURN};
+  typedef BitVector<BITSPERATOM> AtomBitVector;
 
-  class UlamType;      //forward
   class CompilerState; //forward
 
   struct UlamValue
   {
-    UlamType * m_utype;
-    union{
-      s32 m_valInt;
-      bool m_valBool;
-      float m_valFloat;
-      s32 m_baseArraySlotIndex;
-    };
-    STORAGE m_storage;
+    union UV {
+
+      struct RawAtom {
+	u16 m_short;
+	UTI m_utypeIdx;
+	u8  m_bits[10];
+      } m_rawAtom;
+
+      /*
+      struct IntValue {
+	UTI m_utypeIdx;
+	u16 m_pad;
+	u32 m_val;
+	u32 m_pad2;
+	}*/
+
+      struct PtrValue {
+	s16 m_slotIndex;
+	UTI m_utypeIdx;
+	u8  m_posInAtom;
+	u8  m_bitlenInAtom;
+	u8  m_storage; //STORAGE
+	u8  m_packed;  //bool
+	u16 m_targetType;
+	u16 m_pad;
+      } m_ptrValue;
+
+      struct Storage {
+	AtomBitVector m_atom;  //0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
+      } m_storage;
+
+    } m_uv;
+
     
     UlamValue();   //requires init to avoid Null ptr for type
-    UlamValue(UlamType * utype, s32 v, STORAGE place);
-    UlamValue(UlamType * utype, bool v, STORAGE place);
-    UlamValue(UlamType * utype, float v, STORAGE place);
-    UlamValue(UlamType * arrayUType, s32 slot, bool headerOnly, STORAGE place);
-
     ~UlamValue();
 
-    void init(UlamType * utype, s32 v);
-    void init(UlamType * utype, bool v);
-    void init(UlamType * utype, float v);
-    void init(UlamType * arrayUType, s32 baseArrayIndex, bool headerOnly, STORAGE place);
+    void init(UTI utype, u32 v, CompilerState& state);
 
-    UlamType * getUlamValueType();
-    void getUlamValueAsString(char * valstr, CompilerState * state);
-    bool isZero();
-    u32 isArraySize();
+    // returns cleared Atom with element type set
+    static UlamValue makeAtom(UTI elementType);
 
-    UlamValue getValAt(s32 arrayindex, CompilerState * state) const;
+    // returns cleared Atom
+    static UlamValue makeAtom();
+
+    // starts at the end per utype bits
+    static UlamValue makeImmediate(UTI utype, u32 v, CompilerState& state);
+
+    static UlamValue makeImmediate(UTI utype, u32 v, u32 len = 32);
+
+    // returns a pointer to an UlamValue of type targetType; pos==0 determined from targettype
+    static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, bool packed, CompilerState& state, u32 pos = 0);
+
+    static UlamValue makeScalarPtr(UlamValue arrayPtr, CompilerState& state);
+
+    UTI  getUlamValueTypeIdx() const;
+
+    void setUlamValueTypeIdx(UTI utype);
+
+    UTI  getAtomElementTypeIdx();
+
+    void setAtomElementTypeIdx(UTI utype);
+
+    void getUlamValueAsString(char * valstr, CompilerState& state);
+
+    u32 isArraySize(CompilerState& state);
+
+    bool isTargetPacked();             // Ptr only
+
+    UlamValue getValAt(u32 offset, CompilerState& state) const;   // Ptr only, arrays
+
+    STORAGE getPtrStorage();
+
+    void setPtrSlotIndex(s32 s);  
+
+    s32 getPtrSlotIndex();  
+
+    u32 getPtrPos();        
+
+    u32 getPtrLen();        
+
+    UTI getPtrTargetType(); 
+
+    void setPtrTargetType(UTI type);
+
+    void incrementPtr(CompilerState& state, s32 offset = 1);
+    
+    u32 getImmediateData(CompilerState& state) const;
+
+    u32 getImmediateData(u32 len = 32) const;
+
+    u32 getDataFromAtom(u32 pos, u32 len) const;
+
+    void putDataIntoAtom(UlamValue p, UlamValue data);
+    
+    u32 getData(u32 pos, u32 len) const;
+
+    void putData(u32 pos, u32 len, u32 data);
+
+    UlamValue& operator=(const UlamValue& rhs);
+    bool operator==(const UlamValue& rhs);
   };
 
 }

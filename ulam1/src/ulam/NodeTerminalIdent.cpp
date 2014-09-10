@@ -2,7 +2,7 @@
 #include "NodeTerminalIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
-#include "SymbolVariableStatic.h"
+#include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "SymbolTypedef.h"
 
@@ -32,9 +32,9 @@ namespace MFM {
   }
 
 
-  UlamType * NodeTerminalIdent::checkAndLabelType()
+  UTI NodeTerminalIdent::checkAndLabelType()
   {
-    UlamType * it = m_state.getUlamTypeByIndex(Nav);  //Nav
+    UTI it = Nav;  //init
 
     //use was before def, look up in class block
     if(m_varSymbol == NULL)
@@ -66,7 +66,7 @@ namespace MFM {
 
     if(m_varSymbol)
       {
-	it = m_varSymbol->getUlamType();
+	it = m_varSymbol->getUlamTypeIdx();
       }
     
     setNodeType(it);
@@ -83,8 +83,16 @@ namespace MFM {
     assert(m_varSymbol);
     evalNodeProlog(0); //new current frame pointer
 
+    //return the ptr for an array; square bracket will resolve down to the immediate data
+    UlamValue uv;
+    UlamValue uvp = makeUlamValuePtr();
+    if(m_state.isScalar(getNodeType()))
+      uv = m_state.getPtrTarget(uvp);
+    else
+      uv = uvp;
+
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(m_varSymbol->getUlamValue(m_state));
+    assignReturnValueToStack(uv);
 
     evalNodeEpilog();
     return NORMAL;
@@ -96,16 +104,70 @@ namespace MFM {
     assert(m_varSymbol);
     assert(isStoreIntoAble());
 
-    evalNodeProlog(0); //new current frame pointer
+    evalNodeProlog(0);         //new current node eval frame pointer
 
+    UlamValue rtnUVPtr = makeUlamValuePtr();
+ 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(m_varSymbol->getUlamValueToStoreInto());
+    assignReturnValuePtrToStack(rtnUVPtr);
 
     evalNodeEpilog();
     return NORMAL;
   }
+    
 
+  UlamValue NodeTerminalIdent::makeUlamValuePtr()
+  {
+    UlamValue ptr;
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
+    if(classtype == UC_ELEMENT)
+      {
+	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;) to become new m_currentObjPtr
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), false, m_state); 
+      }
+    else
+      {
+	if(m_varSymbol->isDataMember())
+	  {
+	    //#define VERIFYHIDDENARG2
+#ifdef VERIFYHIDDENARG2
+	    {
+	      // Curious: is m_currentObjPtr the same as the "hidden" first arg on the STACK?
+	      UTI futi = m_state.m_currentFunctionReturnType;
+	      s32 firstArgSlot = -1;
+	      if(m_state.determinePackable(futi))
+		firstArgSlot--;
+	      else
+		{
+		  s32 arraysize = m_state.getArraySize(futi);    
+		  firstArgSlot -= (arraysize > 0 ? arraysize: 1);
+		}
+	      
+	      UlamValue firstArg = m_state.m_funcCallStack.loadUlamValueFromSlot(firstArgSlot);
+	      assert(firstArg.getUlamValueTypeIdx() == m_state.m_currentObjPtr.getUlamValueTypeIdx());
+	      assert(firstArg.getUlamValueTypeIdx() == Ptr);
+	      assert(firstArg.getPtrTargetType() == m_state.m_currentObjPtr.getPtrTargetType());
+	      assert(firstArg.getPtrStorage() == m_state.m_currentObjPtr.getPtrStorage());
+	      assert(firstArg.getPtrPos() == m_state.m_currentObjPtr.getPtrPos());
+	      //////////////////////////////////////////////////////
+	    }
+#endif
 
+	    // return ptr to this data member within the m_currentObjPtr (also same as "hidden" first arg)
+	    // 'pos' modified by this data member symbol's packed bit position
+	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset());
+	  }
+	else
+	  {
+	    //local variable on the stack; could be array ptr!
+	    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state);
+	  }
+      }
+    
+    return ptr;
+  }
+  
+  
   bool NodeTerminalIdent::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
@@ -133,10 +195,10 @@ namespace MFM {
 
     // o.w. build symbol, first the base type (with array size)
     UTI uti = m_state.makeUlamType(key, bUT);  
-    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    //UlamType * ut = m_state.getUlamTypeByIndex(uti);
 
     //create a symbol for this new ulam type, a typedef, with its type
-    SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, ut);
+    SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, uti, m_state);
     m_state.addSymbolToCurrentScope(symtypedef);
 
     //gets the symbol just created by makeUlamType
@@ -160,11 +222,10 @@ namespace MFM {
     // verify typedef exists for this scope; or is a primitive keyword type
     // if a primitive (array size 0), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
-    std::string typeName  = m_state.getTokenAsATypeName(aTok); //Foo, Int, etc
-    UlamType * aut = NULL;
+    UTI aut = Nav;
     bool brtn = false;
 
-    if(m_state.getUlamTypeByTypedefName(typeName.c_str(), aut))
+    if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, aut))
       {
 	brtn = true;
       }
@@ -200,43 +261,52 @@ namespace MFM {
   }
 
 
-  SymbolVariable *  NodeTerminalIdent::makeSymbol(UlamType * aut)
+  SymbolVariable *  NodeTerminalIdent::makeSymbol(UTI aut)
   {
     //adjust decl count and max_depth, used for function definitions
-    u32 arraysize = aut->getArraySize();
+    u32 arraysize = m_state.getArraySize(aut);
    
-
     if(m_state.m_currentFunctionBlockDeclSize == 0)
       {
 	// when current block and class block are the same, this is a data member
 	// assert(m_state.m_currentBlock == (NodeBlock *) m_state.m_classBlock);
-	// fails when using a data member inside a function block!!!
-	UlamType * but = aut;
-
+	// assert fails when using a data member inside a function block!!!
+	//UTI but = aut;
+	//
 	// get UlamType for arrays
-	if(arraysize > 0)
-	  {
-	    but = m_state.getUlamTypeAsScalar(aut);
-	  }
-
+	//if(arraysize > 0)
+	//  {
+	//    but = m_state.getUlamTypeAsScalar(aut);
+	//  }
+	//
 	//UlamValue val(aut, but);  //array, base ulamtype args
-	u32 baseslot = m_state.m_selectedAtom.pushDataMember(aut,but);
+	//u32 baseslot = m_state.m_eventWindow.pushDataMember(aut,but);
+	u32 baseslot = 1;  //no longer stored unpacked
 
-	//variable-index, ulamtype, ulamvalue(ownership to symbol)    
-	return (new SymbolVariableStatic(m_token.m_dataindex, aut, baseslot)); 
+	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
+	return (new SymbolVariableDataMember(m_token.m_dataindex, aut, baseslot, m_state)); 
       }
+
+    bool packit = m_state.determinePackable(aut);
 
     //Symbol is a parameter; always on the stack
     if(m_state.m_currentFunctionBlockDeclSize < 0)
       {
-	m_state.m_currentFunctionBlockDeclSize -= (arraysize > 0 ? arraysize : 1);   //1 slot for scalar
-	return (new SymbolVariableStack(m_token.m_dataindex, aut, m_state.m_currentFunctionBlockDeclSize + 1)); //slot after adjust, plus 1
+	if(packit)
+	  m_state.m_currentFunctionBlockDeclSize -= 1; //1 slot for scalar or packed array
+	else
+	  m_state.m_currentFunctionBlockDeclSize -= (arraysize > 0 ? arraysize : 1); //1 slot for scalar;
+	
+	return (new SymbolVariableStack(m_token.m_dataindex, aut, packit, m_state.m_currentFunctionBlockDeclSize + 1, m_state)); //slot after adjust, plus 1
       }
 
     //Symbol is a local variable, always on the stack 
-    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token.m_dataindex, aut, m_state.m_currentFunctionBlockDeclSize); //slot before adjustment
+    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token.m_dataindex, aut, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
 
-    m_state.m_currentFunctionBlockDeclSize += (arraysize > 0 ? arraysize : 1);
+    if(packit)
+      m_state.m_currentFunctionBlockDeclSize += (arraysize > 0 ? 1 + 1 : 1);
+    else
+      m_state.m_currentFunctionBlockDeclSize += (arraysize > 0 ? arraysize + 1 : 1);
     
     //adjust max depth, excluding parameters and initial start value (=1)
     if(m_state.m_currentFunctionBlockDeclSize - 1 > m_state.m_currentFunctionBlockMaxDepth)
@@ -248,7 +318,8 @@ namespace MFM {
 
   void NodeTerminalIdent::genCode(File * fp)
   {
-    fp->write(m_varSymbol->getMangledName(&m_state).c_str());
+    fp->write(m_varSymbol->getMangledName().c_str());
   }
+
 
 } //end MFM

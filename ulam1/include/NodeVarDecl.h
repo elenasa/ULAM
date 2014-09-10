@@ -51,7 +51,7 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 

@@ -10,16 +10,6 @@ namespace MFM {
   {}
 
 
-  void UlamTypeVoid::newValue(UlamValue & val)
-  {
-    assert((val.isArraySize() == m_key.m_arraySize) && (m_key.m_arraySize == 0));
-    val.m_valInt = 0;  //init to zero
-  }
-
-
-  void UlamTypeVoid::deleteValue(UlamValue * val){}
-
-
    ULAMTYPE UlamTypeVoid::getUlamTypeEnum()
    {
      return Void;
@@ -38,13 +28,13 @@ namespace MFM {
   }
 
 
-  //anything can be cast to a void
+  //anything can be cast to a void  ???
   bool UlamTypeVoid::cast(UlamValue & val)
     {
-      UTI valtypidx = val.getUlamValueType()->getUlamTypeIndex();
+      UTI valtypidx = val.getUlamValueTypeIdx();
       bool brtn = true;
-
-      u32 valarraysize = val.getUlamValueType()->getArraySize();
+#if 0
+      u32 valarraysize = m_state.getArraySize(valtypidx);
       u32 myarraysize = getArraySize();
 
       if(valarraysize == 0 && myarraysize == 0)
@@ -53,7 +43,6 @@ namespace MFM {
 	    {
 	    case Void:
 	    case Int:
-	    case Float:
 	    case Bool:
 	      val.init(this, 0);
 	      break;
@@ -67,21 +56,15 @@ namespace MFM {
 	  assert(0);
 	  brtn=false;
 	}
-
+#endif
       return brtn;
     }
 
 
-  void UlamTypeVoid::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
+  void UlamTypeVoid::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
   {
     assert(m_key.m_arraySize == 0);      
     sprintf(valstr,"0");
-  }
-
-
-  bool UlamTypeVoid::isZero(const UlamValue & val)
-  {
-    return true;
   }
 
 } //end MFM

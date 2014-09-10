@@ -2,11 +2,11 @@
 #include <string.h>
 #include "CompilerState.h"
 #include "Symbol.h"
-#include "util.h"
+#include "Util.h"
 
 namespace MFM {
 
-  Symbol::Symbol(u32 id, UlamType * utype) : m_id(id), m_utype(utype), m_dataMember(false){}
+  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false) {}
   Symbol::~Symbol(){}
 
   u32 Symbol::getId()
@@ -15,9 +15,9 @@ namespace MFM {
   }
 
 
-  UlamType * Symbol::getUlamType()
+  UTI Symbol::getUlamTypeIdx()
   {
-    return m_utype;
+    return m_utypeIdx;
   }
 
 
@@ -51,13 +51,13 @@ namespace MFM {
   }
 
 
-  const std::string Symbol::getMangledName(CompilerState * state)
+  const std::string Symbol::getMangledName()
   {
        std::ostringstream mangled;
-       std::string nstr = state->m_pool.getDataAsString(getId());
+       std::string nstr = m_state.m_pool.getDataAsString(getId());
        u32 nstrlen = nstr.length();
 
-       mangled << getMangledPrefix() << countDigits(nstrlen) << nstrlen << nstr.c_str();
+       mangled << getMangledPrefix() << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
        return mangled.str();
   }
 

@@ -27,26 +27,26 @@ namespace MFM {
   }
 
 
-  UlamType * NodeBinaryOpSquareBracket::checkAndLabelType()
+  UTI NodeBinaryOpSquareBracket::checkAndLabelType()
   { 
     assert(m_nodeLeft && m_nodeRight);
 
-    UlamType * newType = m_state.getUlamTypeByIndex(Nav);
-    UlamType * leftType = m_nodeLeft->checkAndLabelType(); 
+    UTI newType  = Nav; //init
+    UTI leftType = m_nodeLeft->checkAndLabelType(); 
 
-    if(leftType->isScalar())
+    if(m_state.isScalar(leftType))
     {
       std::ostringstream msg;
-      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType->getUlamTypeIndex()) << "> used with " << getName();
+      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType) << "> used with " << getName();
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     }
 
-    UlamType * rightType = m_nodeRight->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType();
 
-    if(rightType->getUlamTypeIndex() != Int)
+    if(rightType != Int)
     {
       std::ostringstream msg;
-      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(rightType->getUlamTypeIndex()) << "> used within " << getName();
+      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(rightType) << "> used within " << getName();
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     }
 
@@ -75,12 +75,12 @@ namespace MFM {
       }
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
-    UlamType * ltype = pluv.getUlamValueType();
+    UTI ltype = pluv.getPtrTargetType();
 
-    assert(!ltype->isScalar());   //already checked
+    assert(!m_state.isScalar(ltype));                //already checked, must be array
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
-    evs = m_nodeRight->eval();  
+    evs = m_nodeRight->eval();
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -88,9 +88,11 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
-    assert(offset.getUlamValueType()->getUlamTypeIndex() == Int);
-    u32 arraysize = ltype->getArraySize();
-    if(offset.m_valInt >= (s32) arraysize)
+    assert(offset.getUlamValueTypeIdx() == Int);
+    u32 arraysize = m_state.getArraySize(ltype);
+    u32 offsetInt = offset.getImmediateData(m_state);
+
+    if(offsetInt >= (s32) arraysize)
       {
 	Symbol * lsymptr;
 	u32 lid = 0;
@@ -98,13 +100,13 @@ namespace MFM {
 	  lid = lsymptr->getId();
  
 	std::ostringstream msg;
-	msg << "Array subscript [" << offset.m_valInt << "] exceeds the size (" << arraysize << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	evalNodeEpilog();
 	return ERROR;
       }
 
-    assignReturnValueToStack(pluv.getValAt(offset.m_valInt, &m_state));
+    assignReturnValueToStack(pluv.getValAt(offsetInt, m_state)); 
 
     evalNodeEpilog();
     return NORMAL;
@@ -135,17 +137,25 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
-    assert(offset.getUlamValueType()->getUlamTypeIndex() == Int);
+    assert(offset.getUlamValueTypeIdx() == Int);
+    u32 offsetInt = offset.getImmediateData(m_state);
 
-    //makeUlamValuePtrAt:
-    UlamType * scalarType = m_state.getUlamTypeAsScalar(pluv.getUlamValueType());
-    UlamValue rtnPtr(scalarType, pluv.m_baseArraySlotIndex + offset.m_valInt, true, pluv.m_storage);
-
+    //adjust pos by offset * len, according to its scalar type 
+    UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
+    scalarPtr.incrementPtr(m_state, offsetInt);
+   
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(rtnPtr);
+    assignReturnValuePtrToStack(scalarPtr);
 
     evalNodeEpilog();
     return NORMAL;
+  }
+
+
+  UlamValue NodeBinaryOpSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    assert(0); //unused
+    return UlamValue();
   }
 
 
@@ -201,8 +211,8 @@ namespace MFM {
   {
     // since square brackets determine the constant size for this type, else error
     u32 newarraysize = 1;
-    UlamType * sizetype = m_nodeRight->checkAndLabelType();
-    if(sizetype->getUlamTypeIndex() == Int)
+    UTI sizetype = m_nodeRight->checkAndLabelType();
+    if(sizetype == Int)
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
@@ -210,7 +220,7 @@ namespace MFM {
 	UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog(); 
 
-	newarraysize = arrayUV.m_valInt;
+	newarraysize = arrayUV.getImmediateData(m_state);
 	if(newarraysize == 0)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), "Array element specifier in [] is not a constant expression", ERR);
@@ -231,10 +241,11 @@ namespace MFM {
   void NodeBinaryOpSquareBracket::genCode(File * fp)
   {
     assert(m_nodeLeft && m_nodeRight);
-    
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+
     m_nodeLeft->genCode(fp);
     fp->write(".");
-    fp->write(getNodeType()->getUlamTypeAsSingleLowercaseLetter());
+    fp->write(nut->getUlamTypeAsSingleLowercaseLetter());
     fp->write("[");
     m_nodeRight->genCode(fp);
     fp->write("]");
