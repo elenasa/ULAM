@@ -19,10 +19,11 @@ namespace MFM {
   u32 SymbolVariable::getDataMemberSlotIndex()
   {
     assert(0);
-    return 0;  //== not a dta member
+    return 0;  //== not a data member
   }
 
 
+  //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS
   u32 SymbolVariable::getPosOffset()
   {
     return m_posOffset;
@@ -46,5 +47,10 @@ namespace MFM {
     m_packed = p;
   }
 
+
+  void SymbolVariable::printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
+  {
+    assert(0);  //only for Class' data members 
+  }
 
 } //end MFM

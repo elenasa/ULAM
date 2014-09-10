@@ -67,6 +67,26 @@ namespace MFM {
       }
   }
 
+  // storage for class members persists, so we give up preserving
+  // order of declaration that the NodeVarDecl in the parseTree
+  // provides, in order to distinguish between an instance's data
+  // members on the STACK verses the classes' data members in
+  // EVENTWINDOW.
+  void SymbolTable::printPostfixValuesForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;  
+	if(!sym->isTypedef() && sym->isDataMember())
+	  {
+	    ((SymbolVariable *) sym)->printPostfixValuesOfVariableDeclarations(fp, classtype);
+	  }
+	it++;
+      }
+  }
+
 
   void SymbolTable::labelTableOfFunctions()
   {
@@ -240,7 +260,7 @@ namespace MFM {
 	  }
 	else // totbitsize == 0
 	  {
-	    //m_state.setBitSize(argut, -1);  //before the recusive call.. HMMMM???
+	    m_state.setBitSize(argut, -1);  //before the recusive call.. HMMMM???
 	    //get base type
 	    SymbolClass * csym = NULL;
 	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
@@ -314,6 +334,7 @@ namespace MFM {
   }
 
 
+  //#define OPTIMIZE_PACKED_BITS
 #ifdef OPTIMIZE_PACKED_BITS
   // currently, packing is done by Nodes since the order of declaration is available;
   // but in case we may want to optimize the layout someday, 

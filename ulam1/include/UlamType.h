@@ -119,7 +119,7 @@ namespace MFM{
 
   protected:
     UlamKeyTypeSignature m_key;
-    UTI m_index;
+    UTI m_uti;
     u32 m_bitLength;   // calculated total of "data member" bits for quark type
 
   private:

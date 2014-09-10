@@ -682,7 +682,11 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid typedef Identifier <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">, requires capitalization";
+	    if(iTok.m_dataindex == 0)
+	      msg << "Invalid typedef Alias (2nd arg) <" << Token::getTokenAsString(iTok.m_type) << ">, try: 'typedef Type Alias <[n]>;'";
+	    else
+		msg << "Invalid typedef Alias (2nd arg) <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">, Identifier requires capitalization";
+
 	    MSG(&iTok, msg.str().c_str(), ERR);
 	  }
       }

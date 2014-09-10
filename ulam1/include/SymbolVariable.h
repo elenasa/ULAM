@@ -62,6 +62,7 @@ namespace MFM{
     void setPacked(bool p);
 
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype) = 0;
+    virtual void printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
   protected:
     u32 m_posOffset;
