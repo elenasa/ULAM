@@ -88,6 +88,8 @@ namespace MFM {
 	 rtnValue = rtnUV.getImmediateData(32);
       }
 
+    //#define CURIOUS_T3146
+#ifdef CURIOUS_T3146
     //curious..
     {
       UlamValue objUV = m_state.m_eventWindow.loadAtomFromSite(c0.convertCoordToIndex());
@@ -96,7 +98,7 @@ namespace MFM {
       msg << "Output for m_i = <" << data << "> (expecting 4 for t3146)";
       MSG("",msg.str().c_str() , INFO);
     }
-
+#endif
     
     m_state.m_nodeEvalStack.returnFrame();       //epilog
     return m_state.m_err.getErrorCount();

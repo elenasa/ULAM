@@ -46,9 +46,12 @@ namespace MFM {
 
     fp->write(" {");
     // has no m_node! 
-    if(m_nextNode)
-      m_nextNode->printPostfix(fp);  //datamember vardecls
-
+    // use Symbol Table of variables instead of parse tree; only want the EventWindow storage
+    // since the two stack-type storage are all gone by now.
+    //    if(m_nextNode)
+    //  m_nextNode->printPostfix(fp);  //datamember vardecls
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
+    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, classtype);
 
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
@@ -203,7 +206,7 @@ namespace MFM {
 
   void NodeBlockClass::packBitsForVariableDataMembers()
   {
-    u32 offset = 0;
+    u32 offset = 0; //relative to ATOMFIRSTSTATEBITPOS
     //m_ST.packBitsForTableOfVariableDataMembers();
     m_nextNode->packBitsInOrderOfDeclaration(offset);
   }

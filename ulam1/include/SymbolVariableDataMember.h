@@ -51,9 +51,12 @@ namespace MFM{
     virtual u32 getDataMemberUnpackedSlotIndex();
 
     virtual s32 getBaseArrayIndex();
+
     virtual const std::string getMangledPrefix();
 
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
+
+    virtual void printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
   protected:
 

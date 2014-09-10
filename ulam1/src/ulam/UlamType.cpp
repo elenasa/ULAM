@@ -16,7 +16,7 @@ namespace MFM {
   
 #undef XX 
 
-  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_index(uti)
+  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti)
   {
     m_bitLength = key.m_bits;
   }
@@ -44,7 +44,7 @@ namespace MFM {
 
   UTI UlamType::getUlamTypeIndex()
   {
-    return m_index;
+    return m_uti;
   }
 
 
