@@ -61,4 +61,10 @@ namespace MFM {
        return mangled.str();
   }
 
+
+  void Symbol::printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
+    {
+      assert(0);
+    }
+
 } //end MFM

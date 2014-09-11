@@ -47,10 +47,4 @@ namespace MFM {
     m_packed = p;
   }
 
-
-  void SymbolVariable::printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
-  {
-    assert(0);  //only for Class' data members 
-  }
-
 } //end MFM

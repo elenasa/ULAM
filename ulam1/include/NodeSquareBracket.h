@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpSquareBracket.h - Basic Node for handling 
+ * NodeSquareBracket.h - Basic Node for handling 
  *                               Array Subscripts for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
@@ -27,7 +27,7 @@
  */
 
 /**
-  \file NodeBinaryOpSquareBracket.h - Basic Node for handling Array Subscripts for ULAM
+  \file NodeSquareBracket.h - Basic Node for handling Array Subscripts for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -42,12 +42,12 @@
 
 namespace MFM{
 
-  class NodeBinaryOpSquareBracket : public NodeBinaryOp
+  class NodeSquareBracket : public NodeBinaryOp
   {
   public:
     
-    NodeBinaryOpSquareBracket(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpSquareBracket();
+    NodeSquareBracket(Node * left, Node * right, CompilerState & state);
+    ~NodeSquareBracket();
 
     virtual void printOp(File * fp);
 

@@ -69,7 +69,12 @@ namespace MFM {
     // set up an atom in eventWindow; init m_currentObjPtr to point to it
     // set up stacks since func call not called
     Coord c0(0,0);
-    UTI   cuti = m_state.m_classBlock->getNodeType();
+
+    //m_classBlock ok now, reset by NodeProgram after type label done
+    //UTI cuti = m_state.m_classBlock->getNodeType(); 
+    Symbol * csym = m_state.m_programDefST.getSymbolPtr(m_state.m_compileThisId); //safer approach
+    UTI cuti = csym->getUlamTypeIdx();
+
     m_state.m_eventWindow.setSiteElementType(c0, cuti);
     UlamValue objPtr = UlamValue::makePtr(c0.convertCoordToIndex(), EVENTWINDOW, cuti, false, m_state);
     m_state.m_currentObjPtr =  objPtr;  

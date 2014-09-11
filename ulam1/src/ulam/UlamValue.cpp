@@ -89,7 +89,10 @@ namespace MFM {
 	  }
       }
     else
-      rtnUV.m_uv.m_ptrValue.m_posInAtom = pos; 
+      {
+	assert(pos >= 0 && (pos + len) <= BITSPERATOM);
+	rtnUV.m_uv.m_ptrValue.m_posInAtom = pos; 
+      }
 
     rtnUV.m_uv.m_ptrValue.m_bitlenInAtom = len; //if packed, entire array len
     rtnUV.m_uv.m_ptrValue.m_storage = storage;

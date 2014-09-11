@@ -153,7 +153,7 @@ namespace MFM {
 	    }
 #endif
 
-	    // return ptr to this data member within the m_currentObjPtr (also same as "hidden" first arg)
+	    // return ptr to this data member within the m_currentObjPtr
 	    // 'pos' modified by this data member symbol's packed bit position
 	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset());
 	  }
@@ -206,7 +206,7 @@ namespace MFM {
   }
 
 
-  //see also NodeBinaryOpSquareBracket
+  //see also NodeSquareBracket
   bool NodeTerminalIdent::installSymbolVariable(Token aTok, u32 arraysize, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there; 

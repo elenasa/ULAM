@@ -17,7 +17,7 @@
 #include "NodeBinaryOpBitwiseAndEqual.h"
 #include "NodeBinaryOpBitwiseOrEqual.h"
 #include "NodeBinaryOpBitwiseXorEqual.h"
-#include "NodeBinaryOpSquareBracket.h"
+#include "NodeSquareBracket.h"
 #include "NodeBlock.h"
 #include "NodeBlockEmpty.h"
 #include "NodeBlockFunctionDefinition.h"
@@ -1151,7 +1151,7 @@ namespace MFM {
       }
     else
       {
-	rtnNode = new NodeBinaryOpSquareBracket(leftNode, rightNode, m_state);
+	rtnNode = new NodeSquareBracket(leftNode, rightNode, m_state);
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
     
@@ -1206,7 +1206,7 @@ namespace MFM {
  
     if(lvalNode)
       {
-	// lvalNode could be either a NodeTerminalIdent or a NodeBinaryOpSquareBracket
+	// lvalNode could be either a NodeTerminalIdent or a NodeSquareBracket
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
@@ -1492,7 +1492,7 @@ namespace MFM {
  
     if(lvalNode)
       {
-	// lvalNode could be either a NodeTerminalIdent or a NodeBinaryOpSquareBracket
+	// lvalNode could be either a NodeTerminalIdent or a NodeSquareBracket
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;

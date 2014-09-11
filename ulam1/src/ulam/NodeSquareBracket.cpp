@@ -1,33 +1,33 @@
-#include "NodeBinaryOpSquareBracket.h"
+#include "NodeSquareBracket.h"
 #include "NodeTerminalIdent.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeBinaryOpSquareBracket::NodeBinaryOpSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
+  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
 
-  NodeBinaryOpSquareBracket::~NodeBinaryOpSquareBracket(){}
+  NodeSquareBracket::~NodeSquareBracket(){}
 
 
-  void NodeBinaryOpSquareBracket::printOp(File * fp)
+  void NodeSquareBracket::printOp(File * fp)
   {
 	NodeBinaryOp::printOp(fp);
   }
 
 
-  const char * NodeBinaryOpSquareBracket::getName()
+  const char * NodeSquareBracket::getName()
   {
     return "[]";
   }
 
 
-  const std::string NodeBinaryOpSquareBracket::prettyNodeName()
+  const std::string NodeSquareBracket::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
 
-  UTI NodeBinaryOpSquareBracket::checkAndLabelType()
+  UTI NodeSquareBracket::checkAndLabelType()
   { 
     assert(m_nodeLeft && m_nodeRight);
 
@@ -37,7 +37,7 @@ namespace MFM {
     if(m_state.isScalar(leftType))
     {
       std::ostringstream msg;
-      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType) << "> used with " << getName();
+      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << "> used with " << getName();
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     }
 
@@ -46,7 +46,7 @@ namespace MFM {
     if(rightType != Int)
     {
       std::ostringstream msg;
-      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(rightType) << "> used within " << getName();
+      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(rightType).c_str() << "> used within " << getName();
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     }
 
@@ -61,7 +61,7 @@ namespace MFM {
   }
 
 
-  EvalStatus NodeBinaryOpSquareBracket::eval()
+  EvalStatus NodeSquareBracket::eval()
   {    
     assert(m_nodeLeft && m_nodeRight);
     evalNodeProlog(0); //new current frame pointer
@@ -113,7 +113,7 @@ namespace MFM {
   }
 
 
-  EvalStatus NodeBinaryOpSquareBracket::evalToStoreInto()
+  EvalStatus NodeSquareBracket::evalToStoreInto()
   {
     assert(m_nodeLeft && m_nodeRight);
     evalNodeProlog(0); //new current frame pointer
@@ -152,14 +152,14 @@ namespace MFM {
   }
 
 
-  UlamValue NodeBinaryOpSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     assert(0); //unused
     return UlamValue();
   }
 
 
-  bool NodeBinaryOpSquareBracket::getSymbolPtr(Symbol *& symptrref)
+  bool NodeSquareBracket::getSymbolPtr(Symbol *& symptrref)
   {
     if(m_nodeLeft)
       return m_nodeLeft->getSymbolPtr(symptrref);
@@ -170,7 +170,7 @@ namespace MFM {
 
 
   //see also NodeTerminalIdent
-  bool NodeBinaryOpSquareBracket::installSymbolTypedef(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolTypedef(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -189,7 +189,7 @@ namespace MFM {
 
 
   //see also NodeTerminalIdent
-  bool NodeBinaryOpSquareBracket::installSymbolVariable(Token atok, u32 arraysize, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolVariable(Token atok, u32 arraysize, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -207,7 +207,7 @@ namespace MFM {
   }
 
 
-  bool NodeBinaryOpSquareBracket::getArraysizeInBracket(u32 & rtnArraySize)
+  bool NodeSquareBracket::getArraysizeInBracket(u32 & rtnArraySize)
   {
     // since square brackets determine the constant size for this type, else error
     u32 newarraysize = 1;
@@ -238,7 +238,7 @@ namespace MFM {
   }
 
 
-  void NodeBinaryOpSquareBracket::genCode(File * fp)
+  void NodeSquareBracket::genCode(File * fp)
   {
     assert(m_nodeLeft && m_nodeRight);
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
