@@ -65,7 +65,7 @@ namespace MFM {
   }
 
 
-  // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
+  // replaces NodeVarDecl:printPostfix to learn the values of Class' storage in center site
   void SymbolVariableDataMember::printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
   {
     UTI vuti = getUlamTypeIdx(); 

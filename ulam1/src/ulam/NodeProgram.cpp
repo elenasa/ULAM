@@ -46,6 +46,9 @@ namespace MFM {
 
   void NodeProgram::printPostfix(File * fp)
   {
+    m_state.m_classBlock = m_root;  //reset to compileThis' class block
+    m_state.m_currentBlock = m_state.m_classBlock;
+
     if(m_root)
 	m_root->printPostfix(fp);
     else 
@@ -82,6 +85,10 @@ namespace MFM {
     UTI rtnType =  m_root->getNodeType();
     setNodeType(rtnType);   //void type. missing?
 
+    // reset m_current class block, for next stage
+    m_state.m_classBlock = m_root;  //reset to compileThis' class block
+    m_state.m_currentBlock = m_state.m_classBlock;
+
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)
       {
@@ -106,6 +113,9 @@ namespace MFM {
   {
     assert(m_root);
     m_state.m_err.clearCounts();
+
+    m_state.m_classBlock = m_root;  //reset to compileThis' class block
+    m_state.m_currentBlock = m_state.m_classBlock;
 
     setNodeType(Int);     //for testing
 

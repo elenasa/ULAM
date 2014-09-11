@@ -186,7 +186,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Undefined type to use for " << m_state.getUlamTypeNameByIndex(lt) << " op " << m_state.getUlamTypeNameByIndex(rt);
+	    msg << "Undefined type to use for " << m_state.getUlamTypeNameByIndex(lt).c_str() << " op " << m_state.getUlamTypeNameByIndex(rt);
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }

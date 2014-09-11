@@ -79,10 +79,10 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;  
-	if(!sym->isTypedef() && sym->isDataMember())
-	  {
-	    ((SymbolVariable *) sym)->printPostfixValuesOfVariableDeclarations(fp, classtype);
-	  }
+	if(sym->isTypedef() || sym->isDataMember())
+	{
+	  sym->printPostfixValuesOfVariableDeclarations(fp, classtype);
+	}
 	it++;
       }
   }

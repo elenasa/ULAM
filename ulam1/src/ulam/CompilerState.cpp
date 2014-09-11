@@ -644,7 +644,9 @@ namespace MFM {
     UTI vuti = valAtIdx.getUlamValueTypeIdx();  //could be scalar type, or packed array type
     if( (vuti != puti) && (puti != getUlamTypeAsScalar(vuti)))
       {
-	assert(vuti == Atom || getUlamTypeByIndex(vuti)->getUlamClass() == UC_ELEMENT); //must be!
+	ULAMCLASSTYPE vclasstype = getUlamTypeByIndex(vuti)->getUlamClass();
+	//assert(vuti == Atom || vclasstype == UC_ELEMENT); //must be!
+	assert(vuti == Atom || vclasstype == UC_ELEMENT || vclasstype == UC_QUARK); //must be!
 	return  UlamValue::makeImmediate(puti, valAtIdx.getData(ptr.getPtrPos(), ptr.getPtrLen()), ptr.getPtrLen());  //len is entire packed array when ptr made
       }
     

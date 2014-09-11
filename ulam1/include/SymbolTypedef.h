@@ -55,6 +55,7 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix();
 
+    virtual void printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
   protected:
 
   private:
