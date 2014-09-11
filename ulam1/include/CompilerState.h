@@ -124,6 +124,7 @@ namespace MFM{
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, UTI uti, ULAMTYPE utype);
+    bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI uti);
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);

@@ -149,6 +149,27 @@ namespace MFM {
   }
 
 
+  //used to update Class' calculated bit size (setBitSize)
+  bool CompilerState::deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI uti)
+  {
+    bool rtnBool= false;
+
+    std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_definedUlamTypes.begin();
+
+    while(it != m_definedUlamTypes.end())
+      {
+	if(key == it->first && it->second == uti)
+	  {
+	    m_definedUlamTypes.erase(it);
+	    rtnBool = true;
+	    break;
+	  }
+	it++;
+      }
+    return rtnBool;
+  }
+
+
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {
     if(typidx >= m_indexToUlamType.size())
@@ -302,12 +323,59 @@ namespace MFM {
   }
 
 
-  // NEEDS TO DO MORE WITH KEY. SOON.
+  // updates key. we can do this now that UTI is used and the UlamType * isn't saved
   void CompilerState::setBitSize(UTI utArg, s32 total)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    ut->setBitSize(total, this);
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
+    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
+
+    //skip primitives or Classes already set; insure same bit size
+    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK || key.getUlamKeyTypeSignatureBitSize() == 0))
+      {
+	assert((s32) key.getUlamKeyTypeSignatureBitSize() == total);
+	return;
+      }
+
+    //verify total bits is within limits for elements and quarks
+    if(classtype == UC_ELEMENT)
+      {
+	if(total > MAXSTATEBITS)
+	  {
+	    std::ostringstream msg;
+	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
+	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	    assert(0);
+	  } 
+      }
+
+    if(classtype == UC_QUARK)
+      {
+	if(total > MAXBITSPERQUARK)
+	  {
+	    std::ostringstream msg;
+	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
+	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	    assert(0);
+	  }
+      }
+
+    //continue with valid number of bits for Class UlamTypes only
+    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), total, key.getUlamKeyTypeSignatureArraySize());
+
+    //remove old key from map
+    deleteUlamKeyTypeSignature(key, utArg);
+    delete ut;  // clear vector
+    m_indexToUlamType[utArg] = NULL;
+    assert(!isDefined(key, utArg));
+
+    UlamType * newut = createUlamType(newkey, utArg, Class);
+    m_indexToUlamType[utArg] = newut;
+    m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,utArg));
+    ((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
+    assert(isDefined(newkey, utArg));
   }
+
 
   bool CompilerState::getUlamTypeByClassToken(Token ctok, UTI & rtnType)
   {
@@ -363,7 +431,7 @@ namespace MFM {
 	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
 	assert(bc == UC_ELEMENT || bc == UC_QUARK);
 	((UlamTypeClass *) ict)->setUlamClass(bc);
-	((UlamTypeClass *) ict)->setBitSize(getBitSize(but), this);
+	assert(getBitSize(but) > 0);
 	rtnB = true;
       }
     else

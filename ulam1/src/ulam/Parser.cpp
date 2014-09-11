@@ -1889,7 +1889,7 @@ namespace MFM {
     UTI vidx = m_state.makeUlamType(vkey, Void);
     assert(vidx == Void);  //true for primitives
 
-    UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), 32);
+    UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), MAXBITSPERINT);
     UTI iidx = m_state.makeUlamType(ikey, Int);
     assert(iidx == Int);
 
