@@ -111,16 +111,13 @@ namespace MFM{
 
     u32 getTotalBitSize();  // arraysize * bitsize
 
-    virtual s32 getBitSize();  //'class' type calculates its size after type labeling
-
-    virtual void setBitSize(s32 bits, CompilerState* state);  //'class' type calculates its size after type labeling
+    s32 getBitSize();  //'class' type calculates its size after type labeling
 
     virtual const std::string getBitSizeTemplateString();
 
   protected:
     UlamKeyTypeSignature m_key;
     UTI m_uti;
-    u32 m_bitLength;   // calculated total of "data member" bits for quark type
 
   private:
   };

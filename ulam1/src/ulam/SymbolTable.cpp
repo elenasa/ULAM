@@ -165,10 +165,13 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class <"  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "> was never defined, fails sizing";
-	    MSG("", msg.str().c_str(),ERR);
-	    assert(0);
+	    //MSG("", msg.str().c_str(),ERR);
+	    MSG("", msg.str().c_str(),INFO);
+	    //assert(0);
+	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //???
+	    
 	  }
-	else
+	//	else
 	  {
 	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	    assert(classNode);

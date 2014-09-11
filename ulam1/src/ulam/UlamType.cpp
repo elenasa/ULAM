@@ -17,10 +17,8 @@ namespace MFM {
 #undef XX 
 
   UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti)
-  {
-    m_bitLength = key.m_bits;
-  }
-  
+  {}
+ 
 
   UlamType * UlamType::getUlamType()
   {
@@ -209,20 +207,7 @@ namespace MFM {
 
   s32 UlamType::getBitSize()
   {
-    //return m_key.getUlamKeyTypeSignatureBitSize();
-    return m_bitLength;
-  }
-
-
-  void UlamType::setBitSize(s32 bits, CompilerState * state)  
-  {
-    if(getBitSize() != bits)  //only in UlamTypeClass 
-      {
-	std::ostringstream msg;
-	msg << "Trying to set INCONSISTENT bit size (" << getBitSize() << ") for " << getUlamTypeName(state).c_str() << " with " << bits << " bits";
-	state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
-	assert(0);
-      }
+    return m_key.getUlamKeyTypeSignatureBitSize();
   }
 
 

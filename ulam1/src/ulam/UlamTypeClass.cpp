@@ -219,43 +219,6 @@ namespace MFM {
   }
 
 
-  //'Class' type calculates its size after type labeling
-  s32 UlamTypeClass::getBitSize()  
-  {
-    return m_bitLength;
-  }
-
-
-  //'Class' type calculates its size after type labeling
-  void UlamTypeClass::setBitSize(s32 bits, CompilerState * state)  
-  {
-    if(m_class == UC_ELEMENT)
-      {
-	if(bits > MAXSTATEBITS)
-	  {
-	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << getUlamTypeName(state).c_str() << " with " << bits << " bits";
-	    state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
-	    assert(0);
-	  } 
-      }
-
-    if(m_class == UC_QUARK)
-      {
-	if(bits > MAXBITSPERQUARK)
-	  {
-	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << getUlamTypeName(state).c_str() << " with " << bits << " bits";
-	    state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
-	    assert(0);
-	  }
-      }
-
-    //-1 indicates we're trying to recursively calculate it
-    m_bitLength = bits;
-  }
-
-
   const std::string UlamTypeClass::getBitSizeTemplateString()
   {
     std::ostringstream mangled;
