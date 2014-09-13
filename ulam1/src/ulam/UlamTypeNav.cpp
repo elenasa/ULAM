@@ -16,14 +16,6 @@ namespace MFM {
    }
 
 
-  bool UlamTypeNav::cast(UlamValue & val)
-  {
-    assert(0);
-    //std::cerr << "UlamTypeNav (cast) error! " << std::endl;
-    return false;
-  }
-
-
   void UlamTypeNav::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
   {
     sprintf(valstr,"%s", getUlamTypeName(&state).c_str());

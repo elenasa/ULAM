@@ -66,7 +66,7 @@ namespace MFM {
     else
       { //array
 	// leverage case when both are packed, for logical bitwise operations
-	if(m_state.determinePackable(nuti))
+	if(m_state.determinePackable(nuti) == PACKEDLOADABLE)
 	  {
 	    doBinaryOperationImmediate(lslot, rslot, slots);
 	  }

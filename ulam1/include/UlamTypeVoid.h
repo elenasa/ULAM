@@ -52,11 +52,13 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
+    virtual bool cast(UlamValue & val, CompilerState& state);
+
+    virtual bool castBitSize(UlamValue & val, CompilerState& state);
+
     virtual const std::string getUlamTypeAsStringForC();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
-
-    virtual bool cast(UlamValue & val);
 
     virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state);
 

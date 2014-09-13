@@ -65,10 +65,10 @@ namespace MFM {
   }
 
 
-  UlamValue UlamValue::makePtr(u32 slot, STORAGE storage, UTI targetType, bool packed, CompilerState& state, u32 pos)
+  UlamValue UlamValue::makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos)
   {
     UlamValue rtnUV;  //static method
-    rtnUV.m_uv.m_ptrValue.m_utypeIdx  = Ptr;
+    rtnUV.m_uv.m_ptrValue.m_utypeIdx = Ptr;
     rtnUV.m_uv.m_ptrValue.m_slotIndex = slot;
     
     //NOTE: 'len' of a packed-array, 
@@ -76,7 +76,10 @@ namespace MFM {
     u32 len = state.getBitSize(targetType);
     u32 arraysize = state.getArraySize(targetType);
     arraysize = (arraysize > 0 ? arraysize : 1);
-    if(packed) len *= arraysize;
+    if(packed == PACKED || packed == PACKEDLOADABLE) 
+      {
+	len *= arraysize;
+      }
 
     if(pos == 0)
       {
@@ -96,9 +99,9 @@ namespace MFM {
 
     rtnUV.m_uv.m_ptrValue.m_bitlenInAtom = len; //if packed, entire array len
     rtnUV.m_uv.m_ptrValue.m_storage = storage;
-    rtnUV.m_uv.m_ptrValue.m_packed  = packed;
+    rtnUV.m_uv.m_ptrValue.m_packed = packed;
     rtnUV.m_uv.m_ptrValue.m_targetType = targetType;
-    rtnUV.m_uv.m_ptrValue.m_pad  = 0;
+    rtnUV.m_uv.m_ptrValue.m_pad = 0;
     return rtnUV;
   }
 
@@ -106,10 +109,11 @@ namespace MFM {
   // incrementPtr increments index or pos depending on packness.
   UlamValue UlamValue::makeScalarPtr(UlamValue arrayPtr, CompilerState& state)
   {
+    UTI scalarType = state.getUlamTypeAsScalar(arrayPtr.getPtrTargetType());
     UlamValue rtnUV = UlamValue::makePtr(arrayPtr.getPtrSlotIndex(),
 					 arrayPtr.getPtrStorage(),
-					 state.getUlamTypeAsScalar(arrayPtr.getPtrTargetType()),
-					 arrayPtr.isTargetPacked(),
+					 scalarType,
+					 state.determinePackable(scalarType), //PACKEDLOADABLE
 					 state,
 					 arrayPtr.getPtrPos() /* base pos of array */
 					 );
@@ -176,10 +180,10 @@ namespace MFM {
   }
 
 
-  bool UlamValue::isTargetPacked()
+  PACKFIT UlamValue::isTargetPacked()
   {
     assert(getUlamValueTypeIdx() == Ptr);
-    return m_uv.m_ptrValue.m_packed;
+    return (PACKFIT) m_uv.m_ptrValue.m_packed;
   }
     
 
@@ -238,7 +242,7 @@ namespace MFM {
   {
     assert(getUlamValueTypeIdx() == Ptr);
     assert(state.isScalar(getPtrTargetType())); //?
-    if((bool) m_uv.m_ptrValue.m_packed)
+    if(WritePacked((PACKFIT) m_uv.m_ptrValue.m_packed))
       m_uv.m_ptrValue.m_posInAtom += (m_uv.m_ptrValue.m_bitlenInAtom * offset);
     else
       m_uv.m_ptrValue.m_slotIndex += offset; 
@@ -263,16 +267,63 @@ namespace MFM {
     assert(getUlamValueTypeIdx() != Atom);
     assert(getUlamValueTypeIdx() != Ptr);
     assert(getUlamValueTypeIdx() != Nav);
+    assert(len > 0 && len <= MAXBITSPERINT);
     return getData(BITSPERATOM - len, len);
   }
 
 
-  void UlamValue::putDataIntoAtom(UlamValue p, UlamValue data)
+  //p is Ptr into this destination, not into the data necessarily
+  void UlamValue::putDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state)
   {
-    //    assert(getUlamValueTypeIdx() == Atom);
-    assert(data.getUlamValueTypeIdx() == p.m_uv.m_ptrValue.m_targetType);
-    u32 datavalue = data.getImmediateData(p.m_uv.m_ptrValue.m_bitlenInAtom);
-    putData(p.m_uv.m_ptrValue.m_posInAtom, p.m_uv.m_ptrValue.m_bitlenInAtom, datavalue);
+    // apparently amused by other types..
+    UTI duti = data.getUlamValueTypeIdx();
+
+    //assert(getUlamValueTypeIdx() == Atom || state.getUlamTypeByIndex(getUlamValueTypeIdx())->getUlamClass() == UC_ELEMENT);
+    assert( (duti == p.getPtrTargetType()) || (getUlamValueTypeIdx() == p.getPtrTargetType())); //ALL-PURPOSE!
+
+    if(!state.isScalar(p.getPtrTargetType()) && p.isTargetPacked() == PACKED)
+      {
+	//must get data piecemeal, too big to fit into one int
+	putPackedArrayDataIntoAtom(p, data, state);
+      }
+    else 
+	{
+	  assert(p.isTargetPacked() == PACKEDLOADABLE);
+	  PACKFIT packedData = state.determinePackable(duti);
+	  u32 datavalue;
+	  if(packedData == PACKED)
+	    datavalue = data.getData(p.getPtrPos(), p.getPtrLen());
+	  else
+	    {
+	      ULAMCLASSTYPE dclasstype = state.getUlamTypeByIndex(duti)->getUlamClass();
+	      if(dclasstype == UC_NOTACLASS)
+		datavalue = data.getImmediateData(p.getPtrLen());
+	      else
+		datavalue = data.getData(p.getPtrPos(), p.getPtrLen());
+	    }
+
+	  putData(p.getPtrPos(), p.getPtrLen(), datavalue);
+	}
+  }
+
+
+  // bigger than an int, yet packable, array data
+  void UlamValue::putPackedArrayDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state)
+  {
+    UTI tuti = p.getPtrTargetType();
+    assert(data.getUlamValueTypeIdx() == tuti);
+    u32 arraysize = state.getArraySize(tuti);
+    assert(arraysize > 0);
+    UlamValue dPtr = UlamValue::makePtr(0, IMMEDIATE, tuti, p.isTargetPacked(), state);
+    UlamValue nextDPtr = UlamValue::makeScalarPtr(dPtr,state);
+    UlamValue nextPPtr = UlamValue::makeScalarPtr(p,state);
+    for(u32 i = 0; i < arraysize; i++)
+      {
+	u32 datavalue = data.getData(nextDPtr.getPtrPos(), nextDPtr.getPtrLen());
+	putData(nextPPtr.getPtrPos(), nextPPtr.getPtrLen(), datavalue);
+	nextDPtr.incrementPtr(state);
+	nextPPtr.incrementPtr(state);
+      }
   }
 
 

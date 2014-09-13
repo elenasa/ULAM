@@ -16,14 +16,6 @@ namespace MFM {
    }
 
 
-  bool UlamTypeAtom::cast(UlamValue & val)
-  {
-    assert(0);
-    //std::cerr << "UlamTypeAtom (cast) error! " << std::endl;
-    return false;
-  }
-
-
   void UlamTypeAtom::getUlamValueAsString(const UlamValue& val, char * valstr, CompilerState& state)
   {
     sprintf(valstr,"%s", getUlamTypeName(&state).c_str());

@@ -142,7 +142,8 @@ namespace MFM {
     UTI nuti = getNodeType();
     s32 arraysize = m_state.getArraySize(nuti);    
     s32 firstArgSlot = -1;
-    if(m_state.determinePackable(nuti))
+    PACKFIT packFit = m_state.determinePackable(nuti);
+    if(WritePacked(packFit))
       firstArgSlot--;
     else
       firstArgSlot -= (arraysize > 0 ? arraysize: 1);
@@ -154,7 +155,7 @@ namespace MFM {
 
     EvalStatus evs = m_nextNode->eval();
 
-    bool packRtn = m_state.determinePackable(getNodeType());
+    PACKFIT packRtn = m_state.determinePackable(getNodeType());
     UlamValue rtnUV;
 
     if(evs == RETURN)
@@ -163,8 +164,8 @@ namespace MFM {
 	// copies each element of the array by value, 
 	// in reverse order ([0] is last at bottom)
 	s32 arraysize = m_state.getArraySize(getNodeType());
-	if(packRtn)
-	  arraysize = -1;  
+	if(WritePacked(packRtn))
+	  arraysize = -1;
 	else
 	  arraysize = (arraysize > 0 ? -arraysize : -1);
 	

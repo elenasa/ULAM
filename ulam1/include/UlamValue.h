@@ -72,7 +72,7 @@ namespace MFM{
 	u8  m_posInAtom;
 	u8  m_bitlenInAtom;
 	u8  m_storage; //STORAGE
-	u8  m_packed;  //bool
+	u8  m_packed;  //PACKFIT
 	u16 m_targetType;
 	u16 m_pad;
       } m_ptrValue;
@@ -101,7 +101,7 @@ namespace MFM{
     static UlamValue makeImmediate(UTI utype, u32 v, u32 len = 32);
 
     // returns a pointer to an UlamValue of type targetType; pos==0 determined from targettype
-    static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, bool packed, CompilerState& state, u32 pos = 0);
+    static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos = 0);
 
     static UlamValue makeScalarPtr(UlamValue arrayPtr, CompilerState& state);
 
@@ -117,7 +117,7 @@ namespace MFM{
 
     u32 isArraySize(CompilerState& state);
 
-    bool isTargetPacked();             // Ptr only
+    PACKFIT isTargetPacked();             // Ptr only
 
     UlamValue getValAt(u32 offset, CompilerState& state) const;   // Ptr only, arrays
 
@@ -143,8 +143,11 @@ namespace MFM{
 
     u32 getDataFromAtom(u32 pos, u32 len) const;
 
-    void putDataIntoAtom(UlamValue p, UlamValue data);
-    
+    void putDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
+
+    // called by putDataIntoAtom when packed array is not 'loadable' in a single integer
+    void putPackedArrayDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
+
     u32 getData(u32 pos, u32 len) const;
 
     void putData(u32 pos, u32 len, u32 data);

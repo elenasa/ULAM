@@ -32,9 +32,9 @@ namespace MFM {
   { 
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI leftType  = m_nodeLeft->checkAndLabelType();
+    UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();	
-    UTI newType   = calcNodeType(leftType, rightType);
+    UTI newType = calcNodeType(leftType, rightType);
 
     if(newType != Nav) //init
       {

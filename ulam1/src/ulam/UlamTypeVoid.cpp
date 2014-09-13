@@ -29,7 +29,7 @@ namespace MFM {
 
 
   //anything can be cast to a void  ???
-  bool UlamTypeVoid::cast(UlamValue & val)
+  bool UlamTypeVoid::cast(UlamValue & val, CompilerState& state)
     {
       UTI valtypidx = val.getUlamValueTypeIdx();
       bool brtn = true;
@@ -59,6 +59,13 @@ namespace MFM {
 #endif
       return brtn;
     }
+
+
+  bool UlamTypeVoid::castBitSize(UlamValue & val, CompilerState& state)
+  {
+    assert(0); //???
+    return false;
+  }
 
 
   void UlamTypeVoid::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)

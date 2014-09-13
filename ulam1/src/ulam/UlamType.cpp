@@ -52,6 +52,22 @@ namespace MFM {
   }    
 
 
+  bool UlamType::cast(UlamValue & val, CompilerState& state)
+  {
+    assert(0);
+    //std::cerr << "UlamTypeClass (cast) error! " << std::endl;
+    return false;
+  }
+
+
+  bool UlamType::castBitSize(UlamValue & val, CompilerState& state)
+  {
+    assert(0);
+    //std::cerr << "UlamType (castbitsize) error! " << std::endl;
+    return false;
+  }
+
+
   ULAMCLASSTYPE UlamType::getUlamClass()
   {
     return UC_NOTACLASS;

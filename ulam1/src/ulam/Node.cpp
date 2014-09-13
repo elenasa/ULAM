@@ -138,7 +138,8 @@ namespace MFM {
 
     u32 slots;
     u32 arraysize = m_state.getArraySize(type);
-    if(m_state.determinePackable(type))
+    PACKFIT packRtn = m_state.determinePackable(type);
+    if(WritePacked(packRtn))
       slots = makeRoomForSlots(1, where);  //=1 for scalar or packed array
     else
       slots = makeRoomForSlots((arraysize > 0 ? arraysize : 1), where);  //=1 for scalar
@@ -209,8 +210,7 @@ namespace MFM {
   }
 
 
-  // WHAT T DO IN CASE OF UNPACKED ARRAY????
-  //in case of arrays, rtnUV is a ptr?; default STORAGE is EVALRETURN
+  //in case of arrays, rtnUV is a ptr; default STORAGE is EVALRETURN
   void Node::assignReturnValueToStack(UlamValue rtnUV, STORAGE where)
   {
     UTI rtnUVtype = rtnUV.getUlamValueTypeIdx(); //==node type
@@ -225,12 +225,12 @@ namespace MFM {
     assert(rtnUVtype == getNodeType());
 
     u32 rtnUVarraysize = m_state.getArraySize(rtnUVtype);
-    bool packedRtn = m_state.determinePackable(rtnUVtype);
+    PACKFIT packedRtn = m_state.determinePackable(rtnUVtype);
     s32 arraysize;
     // save results in the stackframe for caller;
-    // copies each element of the array by value, 
+    // copies each element of the 'unpacked' array by value, 
     // in reverse order ([0] is last at bottom)
-    if(packedRtn)
+    if(WritePacked(packedRtn))
       arraysize = -1;
     else
       arraysize = (rtnUVarraysize > 0 ? -rtnUVarraysize : -1); 

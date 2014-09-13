@@ -31,7 +31,7 @@ namespace MFM {
   { 
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI newType  = Nav; //init
+    UTI newType = Nav; //init
     UTI leftType = m_nodeLeft->checkAndLabelType(); 
 
     if(m_state.isScalar(leftType))

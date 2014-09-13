@@ -57,10 +57,11 @@ namespace MFM {
 	//check for incomplete Classes
 	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_INCOMPLETE)
 	  {
+#if 0
 	    std::ostringstream msg;
 	    msg << "Incomplete Typedef for type: <" << m_state.getUlamTypeNameByIndex(it).c_str() << "> used with variable symbol name <" << getName() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
+#endif
 	    m_state.completeIncompleteClassSymbol(it);
 	  }
       }

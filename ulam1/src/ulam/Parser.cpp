@@ -86,7 +86,7 @@ namespace MFM {
 	return  NULL;
       }
 
-    u32 compileThisId  = m_state.m_pool.getIndexForDataString(compileThis);
+    u32 compileThisId = m_state.m_pool.getIndexForDataString(compileThis);
     m_state.m_compileThisId = compileThisId;  // for everyone
 
     initPrimitiveUlamTypes();
@@ -1313,7 +1313,9 @@ namespace MFM {
     // negative for parameters; allot space at top for the return value
     // currently, only scalar; determines start position of first arg "under".
     u32 returnArraySize = m_state.getArraySize(fsymptr->getUlamTypeIdx());
-    if(m_state.determinePackable(fsymptr->getUlamTypeIdx()))
+    PACKFIT packFit = m_state.determinePackable(fsymptr->getUlamTypeIdx());
+
+    if(WritePacked(packFit))
       returnArraySize = 1;
     else
       returnArraySize = (returnArraySize > 0 ? returnArraySize : 1);
@@ -1896,6 +1898,10 @@ namespace MFM {
     UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), BITSPERBOOL);
     UTI bidx = m_state.makeUlamType(bkey, Bool);
     assert(bidx == Bool);
+
+    UlamKeyTypeSignature ukey(m_state.m_pool.getIndexForDataString("Unary"), MAXBITSPERINT);
+    UTI uidx = m_state.makeUlamType(ukey, Unary);
+    assert(uidx == Unary);
 
     UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), 0);  //bits tbd
     UTI cidx = m_state.makeUlamType(ckey, Class);

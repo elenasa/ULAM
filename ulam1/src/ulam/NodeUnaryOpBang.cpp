@@ -25,7 +25,7 @@ namespace MFM {
     assert(m_node);
 
     UTI but = Bool;
-    UTI ut  = m_node->checkAndLabelType(); 
+    UTI ut = m_node->checkAndLabelType(); 
     
     assert(m_state.isScalar(ut));
 

@@ -123,7 +123,7 @@ namespace MFM {
     if(classtype == UC_ELEMENT)
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;) to become new m_currentObjPtr
-	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), false, m_state); 
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), UNPACKED, m_state); 
       }
     else
       {
@@ -135,7 +135,9 @@ namespace MFM {
 	      // Curious: is m_currentObjPtr the same as the "hidden" first arg on the STACK?
 	      UTI futi = m_state.m_currentFunctionReturnType;
 	      s32 firstArgSlot = -1;
-	      if(m_state.determinePackable(futi))
+	      PACKFIT packFit = m_state.determinePackable(futi);
+
+	      if(WritePacked(packFit))
 		firstArgSlot--;
 	      else
 		{
@@ -189,7 +191,7 @@ namespace MFM {
     bitsize = ((bitsize == 0 && bUT != Class) ? (bUT == Bool ? BITSPERBOOL : 32) : bitsize); //temporary!!!
 
     //type names begin with capital letter..and the rest can be either case
-    u32 basetypeNameId  = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
+    u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
 
     UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
 
@@ -287,26 +289,26 @@ namespace MFM {
 	return (new SymbolVariableDataMember(m_token.m_dataindex, aut, baseslot, m_state)); 
       }
 
-    bool packit = m_state.determinePackable(aut);
+    PACKFIT packit = m_state.determinePackable(aut);
 
     //Symbol is a parameter; always on the stack
     if(m_state.m_currentFunctionBlockDeclSize < 0)
       {
-	if(packit)
+	if(WritePacked(packit))
 	  m_state.m_currentFunctionBlockDeclSize -= 1; //1 slot for scalar or packed array
 	else
 	  m_state.m_currentFunctionBlockDeclSize -= (arraysize > 0 ? arraysize : 1); //1 slot for scalar;
 	
-	return (new SymbolVariableStack(m_token.m_dataindex, aut, packit, m_state.m_currentFunctionBlockDeclSize + 1, m_state)); //slot after adjust, plus 1
+	return (new SymbolVariableStack(m_token.m_dataindex, aut, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
       }
 
-    //Symbol is a local variable, always on the stack 
+    //(else) Symbol is a local variable, always on the stack 
     SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token.m_dataindex, aut, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
 
     if(packit)
-      m_state.m_currentFunctionBlockDeclSize += (arraysize > 0 ? 1 + 1 : 1);
+      m_state.m_currentFunctionBlockDeclSize += 1;
     else
-      m_state.m_currentFunctionBlockDeclSize += (arraysize > 0 ? arraysize + 1 : 1);
+      m_state.m_currentFunctionBlockDeclSize += (arraysize > 0 ? arraysize : 1);
     
     //adjust max depth, excluding parameters and initial start value (=1)
     if(m_state.m_currentFunctionBlockDeclSize - 1 > m_state.m_currentFunctionBlockMaxDepth)

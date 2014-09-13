@@ -198,7 +198,7 @@ namespace MFM {
 
     u32 leftindex = pluv.getPtrSlotIndex();    //even for scalars
     bool stored = false;
-    if(!pluv.isTargetPacked())
+    if(pluv.isTargetPacked() == UNPACKED)
       {
 	stored = storeAtomIntoSite(leftindex, ruv);
       }
@@ -211,11 +211,11 @@ namespace MFM {
 	if(lvalAtIdx.getUlamValueTypeIdx() == Nav)
 	  {
 	    stored = storeAtomIntoSite(leftindex, ruv);
-	    setSiteElementType(leftindex, Atom); //what element?
+	    setSiteElementType(leftindex, Atom);
 	  }
 	else
 	  {
-	    lvalAtIdx.putDataIntoAtom(pluv, ruv);
+	    lvalAtIdx.putDataIntoAtom(pluv, ruv, m_state);
 	    stored = storeAtomIntoSite(leftindex, lvalAtIdx);
 	  }
       } 
