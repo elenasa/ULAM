@@ -85,14 +85,14 @@ namespace MFM {
 
 
   //called by CompilerState
-  void CallStack::assignUlamValue(UlamValue pluv, UlamValue ruv)
+  void CallStack::assignUlamValue(UlamValue pluv, UlamValue ruv, CompilerState& state)
   {
     assert(pluv.getUlamValueTypeIdx() == Ptr);
-    assert(ruv.getUlamValueTypeIdx()  != Ptr);
+    assert(ruv.getUlamValueTypeIdx() != Ptr);
 
     s32 leftbaseslot = pluv.getPtrSlotIndex();    //even for scalars
 
-    if(!pluv.isTargetPacked())
+    if(pluv.isTargetPacked() == UNPACKED)       //?
       {
 	m_frames[m_currentFrame + leftbaseslot] = ruv;  //must be immediate
       }
@@ -103,12 +103,13 @@ namespace MFM {
 
 	// if uninitialized, copy the entire ruv
 	if(lvalAtIdx.getUlamValueTypeIdx() == Nav)
-	  {
-	    m_frames[m_currentFrame + leftbaseslot] = ruv;  //must be immediate
+	  {  
+	    lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
+	    //m_frames[m_currentFrame + leftbaseslot] = ruv;  //must be immediate
 	  }
-	else
+	//else
 	  {
-	    lvalAtIdx.putDataIntoAtom(pluv, ruv);
+	    lvalAtIdx.putDataIntoAtom(pluv, ruv, state);
 	    storeUlamValueInSlot(lvalAtIdx, leftbaseslot);
 	    //lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
 	  }

@@ -65,7 +65,7 @@ namespace MFM
 
     u32 getRelativeTopOfStackNextSlot();
 
-    void assignUlamValue(UlamValue luv, UlamValue ruv);
+    void assignUlamValue(UlamValue luv, UlamValue ruv, CompilerState& state);
 
     void assignUlamValuePtr(UlamValue pluv, UlamValue puv);
 

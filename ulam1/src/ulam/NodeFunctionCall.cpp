@@ -114,7 +114,7 @@ namespace MFM {
     // of the call stack, in order to adjust its index to be relative (negative)
     // to the upcoming new frame pointer (including all arg and return slots),
     // and return to the stack as the "first" arg.
-    //UlamValue atomPtr  = m_state.m_funcCallStack.popArg();  //could be packed!
+    //UlamValue atomPtr = m_state.m_funcCallStack.popArg();  //could be packed!
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
     
@@ -147,8 +147,8 @@ namespace MFM {
 	else
 	  {
 	    //array
-	    bool packed  = m_state.determinePackable(argType);
-	    assert(packed);
+	    PACKFIT packed = m_state.determinePackable(argType);
+	    assert(WritePacked(packed));
 
 	    //array to transfer without reversing order again
 	    u32 baseSlot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
@@ -167,7 +167,7 @@ namespace MFM {
 
 
     //before pushing return slot(s) last (on both STACKS for now) 
-    UTI rtnType  = m_funcSymbol->getUlamTypeIdx();
+    UTI rtnType = m_funcSymbol->getUlamTypeIdx();
     u32 rtnslots = makeRoomForNodeType(rtnType);
 
     // insert "first" hidden arg (adjusted index pointing to atom);
@@ -192,9 +192,9 @@ namespace MFM {
     makeRoomForNodeType(rtnType, STACK);
 
     u32 rtnarraysize = m_state.getArraySize(rtnType);
-    bool rtnpacked = m_state.determinePackable(rtnType);
+    PACKFIT rtnpacked = m_state.determinePackable(rtnType);
 
-    if(rtnpacked)
+    if(WritePacked(rtnpacked))
       assert(rtnslots == 1);
     else
       assert(rtnarraysize > 0 ? rtnslots == rtnarraysize : rtnslots == 1);

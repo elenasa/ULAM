@@ -81,7 +81,9 @@ namespace MFM{
 
     UlamKeyTypeSignature getUlamKeyTypeSignature();
 
-    virtual bool cast(UlamValue& val) = 0;
+    virtual bool cast(UlamValue& val, CompilerState& state);
+
+    virtual bool castBitSize(UlamValue & val, CompilerState& state);
 
     virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state) = 0;
 

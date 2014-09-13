@@ -101,7 +101,7 @@ namespace MFM {
     assert(slots == 1);
     UTI nuti = getNodeType();
     u32 arraysize = m_state.getArraySize(nuti);
-    u32 bitsize   = m_state.getBitSize(nuti);
+    u32 bitsize = m_state.getBitSize(nuti);
     u32 len = bitsize * (arraysize > 0 ? arraysize : 1);
 
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value                  
@@ -120,15 +120,18 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     u32 arraysize = m_state.getArraySize(nuti);
-    u32 bitsize   = m_state.getBitSize(nuti);
+    u32 bitsize = m_state.getBitSize(nuti);
    
     UTI scalartypidx = m_state.getUlamTypeAsScalar(nuti);
-    bool packRtn = m_state.determinePackable(nuti);
+    PACKFIT packRtn = m_state.determinePackable(nuti);
 
-    if(packRtn)
+    if(WritePacked(packRtn))
       {
 	// pack result too. (slot size known ahead of time)
-	rtnUV = UlamValue::makeImmediate(nuti, 0, bitsize * arraysize); //accumulate result here
+	//rtnUV = UlamValue::makeImmediate(nuti, 0, bitsize * arraysize); //accumulate result here
+	// exclude arraysize when init to zero's in case it is unloadable
+	//rtnUV = UlamValue::makeImmediate(nuti, 0, bitsize); //accumulate result here
+	rtnUV = UlamValue::makeAtom(nuti); //accumulate result here
       }
 
     // point to base array slots, packedness determines its 'pos'
@@ -148,7 +151,7 @@ namespace MFM {
 	u32 ldata = luv.getData(lp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
 	u32 rdata = ruv.getData(rp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
 		
-	if(packRtn)
+	if(WritePacked(packRtn))
 	  // use calc position where base [0] is furthest from the end.
 	  appendBinaryOp(rtnUV, ldata, rdata, (BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
 	else
@@ -163,7 +166,7 @@ namespace MFM {
 	rp.incrementPtr(m_state);
       } //forloop
     
-    if(packRtn)
+    if(WritePacked(packRtn))
       m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result
     
   } //end dobinaryoparray

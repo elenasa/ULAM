@@ -57,7 +57,7 @@ namespace MFM {
 
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureMangledName(CompilerState * state)
   {
-    //Ut_18232Int  == Int[8]
+    //Ut_18232Int == Int[8]
     std::ostringstream mangled;
     std::string nstr = state->m_pool.getDataAsString(m_typeNameId);
     u32 nstrlen = nstr.length();

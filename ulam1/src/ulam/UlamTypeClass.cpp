@@ -18,14 +18,6 @@ namespace MFM {
    }
 
 
-  bool UlamTypeClass::cast(UlamValue & val)
-  {
-    assert(0);
-    //std::cerr << "UlamTypeClass (cast) error! " << std::endl;
-    return false;
-  }
-
-
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
     switch(m_class)

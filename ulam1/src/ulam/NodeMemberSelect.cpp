@@ -121,15 +121,16 @@ namespace MFM {
 
     UlamValue rtnUV;    
     UTI ruti = getNodeType();
+    PACKFIT packFit = m_state.determinePackable(ruti);
 
-    if(m_state.isScalar(ruti) || m_state.determinePackable(ruti))
+    if(m_state.isScalar(ruti) || WritePacked(packFit))
       {
 	rtnUV = ruv; 
       }
     else
       {
 	//make a ptr to an unpacked array, base[0] ? [pls test]
-	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, false, m_state);
+	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, UNPACKED, m_state);
       }
 
     //copy result UV to stack, -1 relative to current frame pointer

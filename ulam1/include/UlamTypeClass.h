@@ -53,8 +53,6 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool cast(UlamValue & val);
-
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);

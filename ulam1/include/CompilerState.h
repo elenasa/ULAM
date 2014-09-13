@@ -191,18 +191,18 @@ namespace MFM{
     /** general purpose store value (except for Ptr as value) */
     void assignValue(UlamValue lptr, UlamValue ruv);
 
-    /** assign pointer as value */
-    void assignValuePtr(UlamValue lptr, UlamValue rptr);
-
     /** used by assignValue when rhs is a Ptr (private) */
     void assignArrayValues(UlamValue lptr, UlamValue rptr);
+
+    /** assign pointer as value */
+    void assignValuePtr(UlamValue lptr, UlamValue rptr);
 
     /** determinePackable: returns true
 	if entire array can fit within an atom (including type); 
 	or if a 32-bit immediate scalar (non-Classes);
 	discovered when installing a variable symbol
     */
-    bool determinePackable(UTI aut);
+    PACKFIT determinePackable(UTI aut);
 
   };
   

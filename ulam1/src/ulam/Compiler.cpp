@@ -76,7 +76,7 @@ namespace MFM {
     UTI cuti = csym->getUlamTypeIdx();
 
     m_state.m_eventWindow.setSiteElementType(c0, cuti);
-    UlamValue objPtr = UlamValue::makePtr(c0.convertCoordToIndex(), EVENTWINDOW, cuti, false, m_state);
+    UlamValue objPtr = UlamValue::makePtr(c0.convertCoordToIndex(), EVENTWINDOW, cuti, UNPACKED, m_state);
     m_state.m_currentObjPtr =  objPtr;  
     m_state.m_funcCallStack.pushArg(objPtr);      //hidden arg on STACK
     m_state.m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1, 32));  //return slot on STACK

@@ -7,6 +7,7 @@
 #include "SymbolVariable.h"
 #include "UlamTypeAtom.h"
 #include "UlamTypeBool.h"
+#include "UlamTypeUnary.h"
 #include "UlamTypeInt.h"
 #include "UlamTypeNav.h"
 #include "UlamTypeVoid.h"
@@ -56,7 +57,7 @@ namespace MFM {
   UTI CompilerState::makeUlamType(Token typeTok, u32 bitsize, u32 arraysize)
   {
     //type names begin with capital letter..and the rest can be either
-    u32 typeNameId  = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
+    u32 typeNameId = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
 
     // is this name already a typedef for a complex type?
     ULAMTYPE bUT = getBaseTypeFromToken(typeTok);
@@ -104,7 +105,6 @@ namespace MFM {
 	  }
 	it++;
       }
-
     return rtnBool;
   }
 
@@ -126,6 +126,9 @@ namespace MFM {
 	break;
       case Bool:
 	ut = new UlamTypeBool(key, uti);      
+	break;
+      case Unary:
+	ut = new UlamTypeUnary(key, uti);      
 	break;
       case Class:
 	ut = new UlamTypeClass(key, uti);      
@@ -218,7 +221,7 @@ namespace MFM {
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    std::string typeName  = getTokenAsATypeName(tok); //Foo, Int, etc
+	    std::string typeName = getTokenAsATypeName(tok); //Foo, Int, etc
 
 	    //no way to get the bUT, except to assume typeName is one of them?
 	    bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
@@ -246,7 +249,7 @@ namespace MFM {
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    std::string typeName  = getTokenAsATypeName(tok); //Foo, Int, etc
+	    std::string typeName = getTokenAsATypeName(tok); //Foo, Int, etc
 	    ULAMTYPE bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could Int, Bool, Void;
 	    uti = bUT;  //see Parser primitive assertions
 	  }
@@ -374,6 +377,13 @@ namespace MFM {
     m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,utArg));
     ((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
     assert(isDefined(newkey, utArg));
+#if 0
+    {
+      std::ostringstream msg;
+      msg << "Bit size set for Class: " << newut->getUlamTypeName(this).c_str();
+      m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+    }
+#endif
   }
 
 
@@ -431,7 +441,14 @@ namespace MFM {
 	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
 	assert(bc == UC_ELEMENT || bc == UC_QUARK);
 	((UlamTypeClass *) ict)->setUlamClass(bc);
-	assert(getBitSize(but) > 0);
+#if 0
+	if(getBitSize(but) == 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Bit size still unknown (0) for Class: " << ict->getUlamTypeName(this).c_str();
+	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+	  }
+#endif
 	rtnB = true;
       }
     else
@@ -705,17 +722,22 @@ namespace MFM {
       };
 
     // when the target loaded from the slot (i.e. an element/atom),
-    // doesn't match the target type, then we want to make an
-    // immediate UV, encompassing the entire length, array or not,
-    // since it must fit in this one UlamValue.
+    // doesn't match the target type, then we want to make a UV
+    // encompassing the entire length, array or not, since it must fit
+    // in this one UlamValue, though perhaps more than an immediate.
     UTI puti = ptr.getPtrTargetType(); //could be a 'scalar' ptr, or packed Ptr.
     UTI vuti = valAtIdx.getUlamValueTypeIdx();  //could be scalar type, or packed array type
-    if( (vuti != puti) && (puti != getUlamTypeAsScalar(vuti)))
+    if(vuti != puti)
       {
-	ULAMCLASSTYPE vclasstype = getUlamTypeByIndex(vuti)->getUlamClass();
-	//assert(vuti == Atom || vclasstype == UC_ELEMENT); //must be!
-	assert(vuti == Atom || vclasstype == UC_ELEMENT || vclasstype == UC_QUARK); //must be!
-	return  UlamValue::makeImmediate(puti, valAtIdx.getData(ptr.getPtrPos(), ptr.getPtrLen()), ptr.getPtrLen());  //len is entire packed array when ptr made
+	if(getUlamTypeAsScalar(vuti) != puti)   //sanity check
+	  {
+	    ULAMCLASSTYPE vclasstype = getUlamTypeByIndex(vuti)->getUlamClass();
+	    assert(vuti == Atom || vclasstype == UC_ELEMENT || vclasstype == UC_QUARK); //must be!
+	  }
+
+	UlamValue rtnUV = UlamValue::makeAtom(puti); //len irrelevant; sets type
+	rtnUV.putDataIntoAtom(ptr, valAtIdx, *this);
+	return rtnUV;
       }
     
     // o.w. return what was pointed to (may be a single element of an
@@ -732,17 +754,17 @@ namespace MFM {
     if(ruv.getUlamValueTypeIdx() == Ptr)
       return assignArrayValues(lptr, ruv);
     
-    // r is immediate (includes packed arrays), store it into where lptr is pointing
+    // r is data (includes packed arrays), store it into where lptr is pointing
     assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx());
 
     STORAGE place = lptr.getPtrStorage();
     switch(place)
       {
       case STACK:
-	m_funcCallStack.assignUlamValue(lptr, ruv);
+	m_funcCallStack.assignUlamValue(lptr, ruv, *this);
 	break;
       case EVALRETURN:
-	m_nodeEvalStack.assignUlamValue(lptr, ruv);
+	m_nodeEvalStack.assignUlamValue(lptr, ruv, *this);
 	break;
       case EVENTWINDOW:
 	m_eventWindow.assignUlamValue(lptr, ruv);
@@ -750,6 +772,52 @@ namespace MFM {
       default:
 	assert(0);
       };
+  }
+
+  
+  void CompilerState::assignArrayValues(UlamValue lptr, UlamValue rptr)
+  {
+    assert(lptr.getUlamValueTypeIdx() == Ptr);
+    assert(rptr.getUlamValueTypeIdx() == Ptr);
+
+    //assert types..the same, and arrays
+    assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
+    
+    // unless we're copying from different storage classes
+    //assert(!isScalar(lptr.getPtrTargetType()));  //deal w scalars differently
+
+    //assigned packed or unpacked
+    PACKFIT packed = lptr.isTargetPacked();
+
+    //assert(lptr.isTargetPacked() == rptr.isTargetPacked());
+    if(packed != rptr.isTargetPacked())
+      {
+	std::ostringstream msg;
+	msg << "PACKFIT array differ! left packed is " << packed << ", right is " << rptr.isTargetPacked() << " for target type <" << getUlamTypeNameByIndex(rptr.getPtrTargetType()).c_str() << ">";
+	m_err.buildMessage("", msg.str().c_str(), "MFM::CompilerState", "assignArrayValues", 830, MSG_DEBUG);
+      }
+
+    if(WritePacked(packed))
+      {
+	UlamValue atval = getPtrTarget(rptr); // entire array in one slot
+	assignValue(lptr, atval); 
+      }
+    else
+      {
+	//assign each array element, packed or unpacked
+	u32 arraysize = getArraySize(rptr.getPtrTargetType());
+	UlamValue nextlptr = UlamValue::makeScalarPtr(lptr,*this);
+	UlamValue nextrptr = UlamValue::makeScalarPtr(rptr,*this);
+
+	for(u32 i = 0; i < arraysize; i++)
+	  {
+	    //UlamValue atval = rptr.getValAt(i, *this);  //returns scalar at i (via getPtrTarget)
+	    UlamValue atval = getPtrTarget(nextrptr);
+	    assignValue(nextlptr, atval);
+	    nextlptr.incrementPtr(*this);
+	    nextrptr.incrementPtr(*this);
+	  }	
+      }
   }
 
 
@@ -778,65 +846,32 @@ namespace MFM {
       };
   }
 
-  
-  void CompilerState::assignArrayValues(UlamValue lptr, UlamValue rptr)
+
+  PACKFIT CompilerState::determinePackable(UTI aut)
   {
-    assert(lptr.getUlamValueTypeIdx() == Ptr);
-    assert(rptr.getUlamValueTypeIdx() == Ptr);
-
-    //assert types..the same, and arrays
-    assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
-    
-    // unless we're copying from different storage classes
-    //assert(!isScalar(lptr.getPtrTargetType()));  //deal w scalars differently
-
-    //assigned packed or unpacked
-    assert(lptr.isTargetPacked() == rptr.isTargetPacked());
-    bool packed = lptr.isTargetPacked();
-
-    if(packed)
-      {
-	UlamValue atval = getPtrTarget(rptr); // entire array in one slot
-	assignValue(lptr, atval); 
-      }
-    else
-      {
-	//assign each array element
-	u32 arraysize = getArraySize(rptr.getPtrTargetType());
-	UlamValue nextlptr = UlamValue::makeScalarPtr(lptr,*this);
-	UlamValue nextrptr = UlamValue::makeScalarPtr(rptr,*this);
-
-	for(u32 i = 0; i < arraysize; i++)
-	  {
-	    //UlamValue atval = rptr.getValAt(i, *this);  //returns scalar at i (via getPtrTarget)
-	    UlamValue atval = getPtrTarget(nextrptr);
-	    assignValue(nextlptr, atval);
-	    nextlptr.incrementPtr(*this);
-	    nextrptr.incrementPtr(*this);
-	  }
-      }
-  }
-
-
-  bool CompilerState::determinePackable(UTI aut)
-  {
-    bool rtnB = false;
+    PACKFIT rtn = UNPACKED;   //was false == 0
     u32 arraysize = getArraySize(aut);
-    u32 bitsize   = getBitSize(aut);
+    u32 bitsize = getBitSize(aut);
 
     //scalars are considered packable (arraysize == 0); Atoms and Ptrs are NOT.
     if(arraysize > 0)
       {
-	rtnB = ((arraysize * bitsize) < MAXSTATEBITS);
+	u32 len = (arraysize * bitsize);
+	if(len <= MAXBITSPERINT)
+	  rtn = PACKEDLOADABLE;
+	else
+	  if(len < MAXSTATEBITS)
+	    rtn = PACKED;
       }
     else
       {  //scalar, immediate only...must also allow quark!
 	ULAMCLASSTYPE classtype = getUlamTypeByIndex(aut)->getUlamClass();
 	if(classtype == UC_NOTACLASS || classtype == UC_QUARK)
-	  rtnB = (bitsize <= MAXBITSPERQUARK);  //32
+	  if(bitsize <= MAXBITSPERINT)  //32
+	    rtn = PACKEDLOADABLE;
       }
 
-    return rtnB;
+    return rtn;
   }
 
 

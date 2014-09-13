@@ -121,13 +121,15 @@ namespace MFM {
       }
     else
       {
-	if(m_state.determinePackable(nuti))
+	PACKFIT packed = m_state.determinePackable(nuti);
+	if(WritePacked(packed)) // == PACKEDLOADABLE)
 	  {
 	    ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //packed array
 	  }
 	else
 	  {
-	    ruv = UlamValue::makePtr(rslot, EVALRETURN, nuti, false, m_state); //ptr to unpacked array
+	    // unpacked
+	    ruv = UlamValue::makePtr(rslot, EVALRETURN, nuti, packed, m_state); //ptr
 	  }
       }
 
@@ -143,7 +145,7 @@ namespace MFM {
     assert(slots == 1);
     UTI nuti = getNodeType();
     u32 arraysize = m_state.getArraySize(nuti);
-    u32 bitsize   = m_state.getBitSize(nuti);
+    u32 bitsize = m_state.getBitSize(nuti);
     u32 len = bitsize * (arraysize > 0 ? arraysize : 1);
 
     // 'pluv' is where the resulting sum needs to be stored
@@ -171,15 +173,17 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     u32 arraysize = m_state.getArraySize(nuti);
-    u32 bitsize   = m_state.getBitSize(nuti);
+    u32 bitsize = m_state.getBitSize(nuti);
    
     UTI scalartypidx = m_state.getUlamTypeAsScalar(nuti);
-    bool packRtn = m_state.determinePackable(nuti);
+    PACKFIT packRtn = m_state.determinePackable(nuti);
 
-    if(packRtn)
+    if(WritePacked(packRtn))
       {
 	// pack result too. (slot size known ahead of time)
-	rtnUV = UlamValue::makeImmediate(nuti, 0, bitsize * arraysize); //accumulate result here
+	// use bitsize for all zeros in case not loadable
+	//rtnUV = UlamValue::makeImmediate(nuti, 0, bitsize * arraysize); //accumulate result here
+	rtnUV = UlamValue::makeAtom(nuti); //accumulate result here
       }
 
     // 'pluv' is where the resulting sum needs to be stored
@@ -203,11 +207,12 @@ namespace MFM {
 	u32 ldata = luv.getData(lp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
 	u32 rdata = ruv.getData(rp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
 		
-	if(packRtn)
+	if(WritePacked(packRtn))
 	  // use calc position where base [0] is furthest from the end.
 	  appendBinaryOp(rtnUV, ldata, rdata, (BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
 	else
 	  {
+	    // else, unpacked array
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
 	    
 	    // overwrite lhs copy with result UV 
@@ -221,7 +226,7 @@ namespace MFM {
 	rp.incrementPtr(m_state);
       } //forloop
     
-    if(packRtn)
+    if(WritePacked(packRtn))
       {
 	m_state.assignValue(pluv, rtnUV); 	                  //overwrite lhs copy with result UV 
 	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result

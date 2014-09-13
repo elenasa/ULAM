@@ -121,7 +121,7 @@ namespace MFM {
     assert(nslots == 1);
     UTI nuti = getNodeType();
     u32 arraysize = m_state.getArraySize(nuti);
-    u32 bitsize   = m_state.getBitSize(nuti);
+    u32 bitsize = m_state.getBitSize(nuti);
     u32 len = bitsize * (arraysize > 0 ? arraysize : 1);
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value                  

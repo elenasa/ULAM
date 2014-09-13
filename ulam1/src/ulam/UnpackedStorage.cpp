@@ -42,16 +42,16 @@ namespace MFM {
 
     s32 leftbaseslot = pluv.getPtrSlotIndex();    //even for scalars
 
-    if(!pluv.isTargetPacked())
+    if(pluv.isTargetPacked() == UNPACKED)
       {
 	m_values[leftbaseslot] = ruv;  //must be immediate
       }
     else
       {
-	//target is packed, use pos & len in ptr
+	//target is packed or packedloadable, use pos & len in ptr
 	UlamValue lvalAtIdx = loadDataMemberAt(leftbaseslot);
 	assert(lvalAtIdx.getUlamValueTypeIdx() == Atom);  //?
-	lvalAtIdx.putDataIntoAtom(pluv, ruv);
+	lvalAtIdx.putDataIntoAtom(pluv, ruv, m_state);
 	storeDataMemberAt(lvalAtIdx, leftbaseslot);
       }
   }
