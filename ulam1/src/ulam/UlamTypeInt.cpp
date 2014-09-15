@@ -34,95 +34,90 @@ namespace MFM {
 
 
   bool UlamTypeInt::cast(UlamValue & val, CompilerState& state)
-    {
-      bool brtn = true;
+  {
+    bool brtn = true;
+    
+    UTI typidx = getUlamTypeIndex();
+    UTI valtypidx = val.getUlamValueTypeIdx();
+    
+    u32 arraysize = getArraySize();
+    if(arraysize != state.getArraySize(valtypidx))
+      {
+	std::ostringstream msg;
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
+	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	return false;
+      }
+    
+    //change the size first of tobe, if necessary
+    u32 bitsize = getBitSize();
+    u32 valbitsize = state.getBitSize(valtypidx);
+    if(bitsize != valbitsize)
+      {
+	//base types e.g. Int, Bool, Unary, Foo, Bar..
+	ULAMTYPE typEnum = getUlamTypeEnum();
 
-      UTI typidx = getUlamTypeIndex();
-      UTI valtypidx = val.getUlamValueTypeIdx();
+	//change to val's size, within the TOBE current type; 
+	//get string index for TOBE enum type string
+	u32 enumStrIdx = state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
+	UlamKeyTypeSignature vkey1 = UlamKeyTypeSignature(enumStrIdx, valbitsize, arraysize);
+	UTI vtype1 = state.makeUlamType(vkey1, typEnum); //may not exist yet, create  
+	
+	if(!(state.getUlamTypeByIndex(vtype1)->cast(val,state))) //val changes!!!
+	  {
+	    //error! 
+	    return false;
+	  }
+      }
 
-      u32 arraysize = getArraySize();
-      if(arraysize != state.getArraySize(valtypidx))
+	
+    valtypidx = val.getUlamValueTypeIdx();  //might have changed, so reload
+    valbitsize = state.getBitSize(valtypidx);
+    //assert(bitsize == valbitsize);
+
+    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+
+    // casting Int to Int to change bits
+    u32 newdata = 0;
+    u32 data = val.getImmediateData(state);
+    
+    switch(valtypEnum)
+      {
+      case Bool:
 	{
-	  std::ostringstream msg;
-	  msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	  state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
-	  return false;
-	}
-
-      //base types e.g. Int, Bool, Unary, Foo, Bar..
-      ULAMTYPE typEnum = getUlamTypeEnum();
-      ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-
-      //change the size first, if necessary
-      u32 bitsize = getBitSize();
-      if(bitsize != state.getBitSize(valtypidx))
-	{
-	  if(typEnum == valtypEnum)
-	    {
-	      if(!castBitSize(val,state))
-		{
-		  //error!
-		  return false;
-		}
-	    }
+	  s32 count1s = PopCount(data);
+	  if(count1s > (s32) (bitsize - count1s))
+	    val = UlamValue::makeImmediate(getUlamTypeIndex(), 1, state); //overwrite val
 	  else
-	    {
-	      //change the size, within the val's current type
-	      UlamKeyTypeSignature vkey1 = UlamKeyTypeSignature(valtypEnum, bitsize, arraysize);
-	      UTI vtype1 = state.makeUlamType(vkey1, valtypEnum); //may not exist yet, create  
-
-	      if(!(state.getUlamTypeByIndex(vtype1)->castBitSize(val,state)))
-		{
-		  //error! 
-		  return false;
-		}
-	    }
+	    val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val
 	}
-
-      // if same base type we're done, otherwise cast type
-      if(typEnum != valtypEnum)
+	break;
+      case Unary:
 	{
-	  //casting between types (e.g. Int->Bool, Bool->Int, Unary->Int)
-	  // (same bit and array size)
-	  switch(valtypidx)
-	    {
-	    case Bool:
-	      {
-		u32 data = val.getImmediateData(state);
-		u32 count1s = PopCount(data);
-		if(count1s > (bitsize - count1s))
-		  {
-		    val = UlamValue::makeImmediate(getUlamTypeIndex(), 1, state); //overwrite val
-		  }
-		else
-		  {
-		    val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val
-		  }
-	      }
-	      break;
-	    case Unary:
-	      {
-		u32 data = val.getImmediateData(state);
-		u32 count1s = PopCount(data);
-		val = UlamValue::makeImmediate(getUlamTypeIndex(), count1s, state); //overwrite val
-	      }
-	      break;
-	    case Int:
-	      // nothing to do
-	      break;
-	    default:
-	      //std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
-	      brtn = false;
-	    };
-	}
-      return brtn;
-    } //end cast
-
-
+	  u32 count1s = PopCount(data);
+	  val = UlamValue::makeImmediate(getUlamTypeIndex(), count1s, state); //overwrite val
+	  }
+	break;
+      case Int:
+	val = UlamValue::makeImmediate(getUlamTypeIndex(), data, state); //overwrite val to change bitsize
+	break;
+      default:
+	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+    return brtn;
+  } //end cast
+  
+  
+#if 0
   bool UlamTypeInt::castBitSize(UlamValue & val, CompilerState& state)
   {
     UTI valtypidx = val.getUlamValueTypeIdx();
-    assert(valtypidx == getUlamTypeIndex());
+    //assert(valtypidx == getUlamTypeIndex());
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    ULAMTYPE typEnum = getUlamTypeEnum();
+    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+    assert(typEnum == valtypEnum);
 
     u32 bitsize = getBitSize();
     u32 valbitsize = state.getBitSize(valtypidx);
@@ -139,6 +134,16 @@ namespace MFM {
 
     val = UlamValue::makeImmediate(getUlamTypeIndex(), data, state); //overwrite val
     return true;
+  }
+#endif
+
+
+  void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+  {
+    if(prefix == 'z')
+      sprintf(valstr,"%d", (s32) data);
+    else
+      sprintf(valstr,"%c%d", prefix, (s32) data);
   }
 
 

@@ -49,6 +49,12 @@ namespace MFM{
 #endif /*Up_Ut_0027116Ut_Ptr */
 
 namespace MFM{
-  class Ue_0026411A;   //forward 
+  template<u32 POS>
+  class Uq_0023213Foo;   //forward 
+} //MFM
+
+namespace MFM{
+  template<u32 POS>
+  class Uq_0023213Bar;   //forward 
 } //MFM
 

@@ -54,7 +54,7 @@ namespace MFM{
 
     virtual bool cast(UlamValue & val, CompilerState& state);
 
-    virtual bool castBitSize(UlamValue & val, CompilerState& state);
+    //virtual bool castBitSize(UlamValue & val, CompilerState& state);
 
     virtual const std::string getUlamTypeAsStringForC();
 

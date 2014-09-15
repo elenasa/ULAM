@@ -122,13 +122,13 @@ namespace MFM {
     else
       {
 	PACKFIT packed = m_state.determinePackable(nuti);
-	if(WritePacked(packed)) // == PACKEDLOADABLE)
+	if(WritePacked(packed)) 
 	  {
-	    ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //packed array
+	    ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //packed/PL array
 	  }
 	else
 	  {
-	    // unpacked
+	    // unpacked array requires a ptr
 	    ruv = UlamValue::makePtr(rslot, EVALRETURN, nuti, packed, m_state); //ptr
 	  }
       }
@@ -156,7 +156,8 @@ namespace MFM {
     UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value                  
 
-    u32 ldata = luv.getImmediateData(len);
+    //u32 ldata = luv.getImmediateData(len);
+    u32 ldata = luv.getDataFromAtom(pluv, m_state);
     u32 rdata = ruv.getImmediateData(len);
     UlamValue rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
 

@@ -45,89 +45,97 @@ namespace MFM {
 	return false;
       }
     
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();
-    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-    
-    //change the size first, if necessary
+    //change the size first of tobe, if necessary
     u32 bitsize = getBitSize();
-    if(bitsize != state.getBitSize(valtypidx))
+    u32 valbitsize = state.getBitSize(valtypidx);
+    if(bitsize != valbitsize)
       {
-	if(typEnum == valtypEnum)
+	//base types e.g. Int, Bool, Unary, Foo, Bar..
+	ULAMTYPE typEnum = getUlamTypeEnum();
+
+	//change to val's size, within the TOBE current type; 
+	//get string index for TOBE enum type string
+	u32 enumStrIdx = state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
+	UlamKeyTypeSignature vkey1 = UlamKeyTypeSignature(enumStrIdx, valbitsize, arraysize);
+	UTI vtype1 = state.makeUlamType(vkey1, typEnum); //may not exist yet, create  
+	
+	if(!(state.getUlamTypeByIndex(vtype1)->cast(val,state))) //val changes!!!
 	  {
-	    if(!castBitSize(val,state))
-	      {
-		//error!
-		return false;
-	      }
-	  }
-	else
-	  {
-	    //change the size, within the val's current type
-	    UlamKeyTypeSignature vkey1 = UlamKeyTypeSignature(valtypEnum, bitsize, arraysize);
-	    UTI vtype1 = state.makeUlamType(vkey1, valtypEnum); //may not exist yet, create  
-	    
-	    if(!(state.getUlamTypeByIndex(vtype1)->castBitSize(val,state)))
-	      {
-		//error! 
-		return false;
-	      }
+	    //error! 
+	    return false;
 	  }
       }
-    
-    // casting Bool to Bool could improve the bit count!
-    // if same base type we're done, otherwise cast type
-    // if(typEnum != valtypEnum)
-    {
-      u32 newdata = 0;
-      u32 data = val.getImmediateData(state);
-      
-      switch(valtypidx)
-	{
-	case Int:
-	case Unary:
-	  {
-	    if(data != 0) //signed or unsigned
-	      {
-		newdata = _GetNOnes32(bitsize);  //all ones if true
-	      }
-	  }
-	  break;
-	case Bool:
-	  {
-	    u32 count1s = PopCount(data);
-	    if(count1s > (bitsize - count1s))
-	      newdata = _GetNOnes32(bitsize);  //all ones if true
-	  }
-	  break;
-	default:
-	  //std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
-	  brtn = false;
-	};
-    
-      if(brtn)
-	val = UlamValue::makeImmediate(getUlamTypeIndex(), newdata, state); //overwrite val
-    }
 
+    //might have changed, so reload
+    valtypidx = val.getUlamValueTypeIdx();  
+    valbitsize = state.getBitSize(valtypidx);
+    //assert(bitsize == valbitsize);
+
+    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+
+    u32 newdata = 0;
+    u32 data = val.getImmediateData(state);    
+    switch(valtypEnum)
+      {
+      case Int:
+      case Unary:
+	{
+	  if(data != 0) //signed or unsigned
+	    {
+	      newdata = _GetNOnes32(bitsize);  //all ones if true
+	    }
+	}
+	break;
+      case Bool:
+	{
+	  // casting Bool to Bool could improve the bit count!
+	  s32 count1s = PopCount(data);
+	  if(count1s > (s32) (bitsize - count1s))  // == when even number bits is ignored (warning at def)
+	    newdata = _GetNOnes32(bitsize);  //all ones if true
+	}
+	break;
+      default:
+	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+    
+    if(brtn)
+      val = UlamValue::makeImmediate(getUlamTypeIndex(), newdata, state); //overwrite val
+    
     return brtn;
   } //end cast
   
 
+#if 0
   bool UlamTypeBool::castBitSize(UlamValue & val, CompilerState& state)
   {
     UTI valtypidx = val.getUlamValueTypeIdx();
-    assert(valtypidx == getUlamTypeIndex());
+    //assert(valtypidx == getUlamTypeIndex());
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    ULAMTYPE typEnum = getUlamTypeEnum();
+    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+    assert(typEnum == valtypEnum);
 
     u32 bitsize = getBitSize();
     u32 data = val.getImmediateData(state);
-    u32 count1s = PopCount(data);
-    if(count1s > (bitsize - count1s))
+    s32 count1s = PopCount(data);
+    if(count1s > (s32) (bitsize - count1s))
       data = _GetNOnes32(bitsize);  //all ones if true
     else
       data = 0;             //o.w. all zeros for false
     
     val = UlamValue::makeImmediate(getUlamTypeIndex(), data, state); //overwrite val
     return true;
+  }
+#endif
+
+
+  void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+  {
+    if(prefix == 'z')
+      sprintf(valstr,"%s", data ? "true" : "false");
+    else
+      sprintf(valstr,"%c%s", prefix, data ? "true" : "false");
   }
 
 

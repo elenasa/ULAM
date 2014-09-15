@@ -91,6 +91,7 @@ namespace MFM {
     Coord c0(0,0);
     u32 slot = c0.convertCoordToIndex();
 
+#if 0
     //build the string of values (for both scalar and packed array)
     UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, m_state.determinePackable(vuti), m_state, ATOMFIRSTSTATEBITPOS + getPosOffset());
     UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
@@ -108,7 +109,29 @@ namespace MFM {
 	sprintf(tmpstr,",%d", data); 
 	strcat(valstr,tmpstr);
       }
+#endif
+
+    //build the string of values (for both scalar and packed array)
+    UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, m_state.determinePackable(vuti), m_state, ATOMFIRSTSTATEBITPOS + getPosOffset());
+    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
     
+    UlamValue atval = m_state.getPtrTarget(nextPtr);
+    //u32 data = atval.getData(nextPtr.getPtrPos(), nextPtr.getPtrLen());
+    u32 data = atval.getDataFromAtom(nextPtr, m_state);
+    vut->getDataAsString(data, valstr, 'z', m_state);
+    
+    for(u32 i = 1; i < arraysize; i++)
+      {
+	char tmpstr[8];
+	nextPtr.incrementPtr(m_state);
+	atval = m_state.getPtrTarget(nextPtr);
+	//data = atval.getData(nextPtr.getPtrPos(), nextPtr.getPtrLen());
+	u32 data = atval.getDataFromAtom(nextPtr, m_state);
+	vut->getDataAsString(data, tmpstr, ',', m_state);
+	strcat(valstr,tmpstr);
+      }
+
+
     //output the arraysize (optional), and results
     if(arraysize > 1)
       {

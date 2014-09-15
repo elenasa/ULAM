@@ -49,6 +49,32 @@ namespace MFM{
 #endif /*Up_Ut_0027116Ut_Ptr */
 
 namespace MFM{
-  class Ue_0026411A;   //forward 
+  template<u32 POS>
+  class Uq_001313Bar;   //forward 
 } //MFM
+
+#ifndef Up_Ut_131114Bool
+#define Up_Ut_131114Bool
+namespace MFM{
+  struct Ut_131114Bool
+  {
+    bool b[3];
+  };
+} //MFM
+#endif /*Up_Ut_131114Bool */
+
+namespace MFM{
+  class Ue_0024613Foo;   //forward 
+} //MFM
+
+#ifndef Up_Ut_121313Bar
+#define Up_Ut_121313Bar
+namespace MFM{
+  template <u32 POS>
+  struct Ut_121313Bar
+  {
+    Uq_001313Bar<POS> q[2];
+  };
+} //MFM
+#endif /*Up_Ut_121313Bar */
 

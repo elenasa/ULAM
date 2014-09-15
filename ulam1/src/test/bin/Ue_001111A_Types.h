@@ -49,6 +49,30 @@ namespace MFM{
 #endif /*Up_Ut_0027116Ut_Ptr */
 
 namespace MFM{
-  class Ue_0026411A;   //forward 
+  class Ue_001111A;   //forward 
 } //MFM
+
+#ifndef Up_Ut_1823213Int
+#define Up_Ut_1823213Int
+namespace MFM{
+  struct Ut_1823213Int
+  {
+    int i[8];
+  };
+} //MFM
+#endif /*Up_Ut_1823213Int */
+
+#ifndef Up_Ut_0023214Bool
+#define Up_Ut_0023214Bool
+namespace MFM{
+  typedef bool Ut_0023214Bool;
+} //MFM
+#endif /*Up_Ut_0023214Bool */
+
+#ifndef Up_Ut_001113Int
+#define Up_Ut_001113Int
+namespace MFM{
+  typedef int Ut_001113Int;
+} //MFM
+#endif /*Up_Ut_001113Int */
 

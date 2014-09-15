@@ -60,13 +60,13 @@ namespace MFM {
       return brtn;
     }
 
-
+#if 0
   bool UlamTypeVoid::castBitSize(UlamValue & val, CompilerState& state)
   {
     assert(0); //???
     return false;
   }
-
+#endif
 
   void UlamTypeVoid::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
   {

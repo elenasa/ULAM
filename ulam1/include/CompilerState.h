@@ -204,6 +204,8 @@ namespace MFM{
     */
     PACKFIT determinePackable(UTI aut);
 
+    void setupCenterSiteForTesting();
+
   };
   
 }

@@ -206,8 +206,10 @@ namespace MFM {
 
   void NodeBlockClass::packBitsForVariableDataMembers()
   {
+    if(m_ST.getTableSize() == 0) return;
     u32 offset = 0; //relative to ATOMFIRSTSTATEBITPOS
     //m_ST.packBitsForTableOfVariableDataMembers();
+    assert(m_nextNode);
     m_nextNode->packBitsInOrderOfDeclaration(offset);
   }
 
@@ -265,9 +267,12 @@ namespace MFM {
     if(classtype == UC_ELEMENT)
       {
 	//DataMember VAR DECLS
-	m_nextNode->genCode(fp);
-	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
-	fp->write("\n");
+	if(m_nextNode)
+	  {
+	    m_nextNode->genCode(fp);
+	    //NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
+	    fp->write("\n");
+	  }
       }
 
     //default constructor/destructor

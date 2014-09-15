@@ -49,6 +49,13 @@ namespace MFM{
 #endif /*Up_Ut_0027116Ut_Ptr */
 
 namespace MFM{
-  class Ue_0026411A;   //forward 
+  class Ue_0026511A;   //forward 
 } //MFM
+
+#ifndef Up_Ut_0023214Bool
+#define Up_Ut_0023214Bool
+namespace MFM{
+  typedef bool Ut_0023214Bool;
+} //MFM
+#endif /*Up_Ut_0023214Bool */
 

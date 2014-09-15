@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Uq_Bar { Bool valb[3](0,0,0);  <NOMAIN> }\nExit status: -1");
+      return std::string("Uq_Bar { Bool valb[3](false,false,false);  <NOMAIN> }\nExit status: -1");
     }
     
     std::string PresetTest(FileManagerString * fms)

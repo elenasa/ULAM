@@ -157,16 +157,6 @@ namespace MFM {
   }
 
 
-  //pointer returns the arraysize of its target type; o.w. arraysize of its type
-  u32 UlamValue::isArraySize(CompilerState& state)
-  {
-    if(getUlamValueTypeIdx() == Ptr)
-      return state.getArraySize(m_uv.m_ptrValue.m_targetType);
-
-    return state.getArraySize(getUlamValueTypeIdx());
-  }
-
-
   // for iterating an entire array see CompilerState::assignArrayValues
   UlamValue UlamValue::getValAt(u32 offset, CompilerState& state) const
   { 
@@ -176,7 +166,18 @@ namespace MFM {
     UlamValue scalarPtr = UlamValue::makeScalarPtr(*this, state);
   
     scalarPtr.incrementPtr(state, offset);   //incr appropriately by packed-ness
-    return state.getPtrTarget(scalarPtr);
+    UlamValue atval = state.getPtrTarget(scalarPtr);
+    
+    // redo what getPtrTarget use to do, when types didn't match due to
+    // an element/quark or a requested scalar of an arraytype
+    UTI suti = scalarPtr.getPtrTargetType();
+    if(atval.getUlamValueTypeIdx() != suti)
+      {
+	u32 datavalue = atval.getDataFromAtom(scalarPtr, state); 
+	atval= UlamValue::makeImmediate(suti, datavalue, state);
+      }
+    
+    return atval;
   }
 
 
@@ -249,6 +250,81 @@ namespace MFM {
   }
 
 
+  // bigger than an int, yet packable, extract array from data 
+  // where ptr p refers to its start pos/len in data;
+  // returns data right justified so that its type will indicate its start.
+  // note: cannot be an array of elements since they aren't packable; may be loadable
+  UlamValue UlamValue::getPackedArrayDataFromAtom(UlamValue p, UlamValue data, CompilerState& state)
+  {
+    UTI tuti = p.getPtrTargetType();
+    //assert(data.getUlamValueTypeIdx() == tuti); not if 'data' is an element
+
+    UlamValue rtnUV;  //static return
+    rtnUV.setUlamValueTypeIdx(tuti);
+
+    u32 arraysize = state.getArraySize(tuti);
+    assert(arraysize > 0);
+    u32 bitsize = state.getBitSize(tuti);
+    assert( (bitsize * arraysize) == p.getPtrLen());  
+
+    if(p.isTargetPacked() == PACKEDLOADABLE)
+      {
+	u32 len = bitsize * arraysize;
+	u32 datavalue = data.getData(p.getPtrPos(), len); //entire array
+	rtnUV.putData((BITSPERATOM-len), len, datavalue); //immediate
+      }
+    else
+      {
+	assert(p.isTargetPacked() == PACKED);
+	// base [0] is furthest from the end
+	UlamValue nextPtr = UlamValue::makeScalarPtr(p,state);
+	for(u32 i = 0; i < arraysize; i++)
+	  {
+	    u32 datavalue = data.getData(nextPtr.getPtrPos(), nextPtr.getPtrLen());
+	    rtnUV.putData((BITSPERATOM-(bitsize * (arraysize - i))), bitsize, datavalue);
+	    nextPtr.incrementPtr(state);
+	  }
+      }
+    return rtnUV;
+  }
+
+
+  u32 UlamValue::getDataFromAtom(UlamValue p, CompilerState& state) const
+  {
+    UTI duti = getUlamValueTypeIdx();
+    //assert(duti == p.getPtrTargetType()); this could be an 'unpacked' element
+
+    if(!state.isScalar(p.getPtrTargetType()) && p.isTargetPacked() == PACKED)
+      {
+	//must get data piecemeal, too big to fit into one int
+	//use getPackedArrayDataIntoAtom(p, data, state);
+	assert(0);
+      }
+
+    assert(p.getPtrLen() <= MAXBITSPERINT);
+
+    //either a packed-loadable array or scalar
+    u32 datavalue;
+    PACKFIT packedData = state.determinePackable(duti);
+    //assert(p.isTargetPacked() == packedData); untrue if this is an element
+
+    if(WritePacked(packedData)) //scalar packed within
+      {
+	datavalue = getData(p.getPtrPos(), p.getPtrLen());
+      }
+    else
+      {
+	ULAMCLASSTYPE dclasstype = state.getUlamTypeByIndex(duti)->getUlamClass();
+	if(dclasstype == UC_NOTACLASS)
+	  datavalue = getImmediateData(p.getPtrLen());
+	else
+	  datavalue = getData(p.getPtrPos(), p.getPtrLen());
+      }
+    
+    return datavalue;
+  } //getDataFromAtom overloaded
+
+
   u32 UlamValue::getDataFromAtom(u32 pos, u32 len) const
   {
     assert(getUlamValueTypeIdx() == Atom); ///??? not an atom, element?
@@ -272,13 +348,11 @@ namespace MFM {
   }
 
 
-  //p is Ptr into this destination, not into the data necessarily
+  // 'p' is Ptr into this destination; assumes 'data' is right-justified
   void UlamValue::putDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state)
   {
     // apparently amused by other types..
     UTI duti = data.getUlamValueTypeIdx();
-
-    //assert(getUlamValueTypeIdx() == Atom || state.getUlamTypeByIndex(getUlamValueTypeIdx())->getUlamClass() == UC_ELEMENT);
     assert( (duti == p.getPtrTargetType()) || (getUlamValueTypeIdx() == p.getPtrTargetType())); //ALL-PURPOSE!
 
     if(!state.isScalar(p.getPtrTargetType()) && p.isTargetPacked() == PACKED)
@@ -289,8 +363,10 @@ namespace MFM {
     else 
 	{
 	  assert(p.isTargetPacked() == PACKEDLOADABLE);
-	  PACKFIT packedData = state.determinePackable(duti);
 	  u32 datavalue;
+
+#if 0
+	  PACKFIT packedData = state.determinePackable(duti);
 	  if(packedData == PACKED)
 	    datavalue = data.getData(p.getPtrPos(), p.getPtrLen());
 	  else
@@ -301,27 +377,36 @@ namespace MFM {
 	      else
 		datavalue = data.getData(p.getPtrPos(), p.getPtrLen());
 	    }
+#endif
 
+	  datavalue = data.getImmediateData(p.getPtrLen()); //can we make this assumption???
 	  putData(p.getPtrPos(), p.getPtrLen(), datavalue);
 	}
   }
 
 
-  // bigger than an int, yet packable, array data
+  // bigger than an int, yet packable, array data; assume 'data' is
+  // right-justified, and 'p' refers to this' destination.
   void UlamValue::putPackedArrayDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state)
   {
     UTI tuti = p.getPtrTargetType();
     assert(data.getUlamValueTypeIdx() == tuti);
     u32 arraysize = state.getArraySize(tuti);
     assert(arraysize > 0);
-    UlamValue dPtr = UlamValue::makePtr(0, IMMEDIATE, tuti, p.isTargetPacked(), state);
-    UlamValue nextDPtr = UlamValue::makeScalarPtr(dPtr,state);
+    u32 bitsize = state.getBitSize(tuti);
+    
+    //UlamValue dPtr = UlamValue::makePtr(0, IMMEDIATE, tuti, p.isTargetPacked(), state); //???
+    //UlamValue nextDPtr = UlamValue::makeScalarPtr(dPtr,state);
     UlamValue nextPPtr = UlamValue::makeScalarPtr(p,state);
+    assert(bitsize == nextPPtr.getPtrLen()); 
+
     for(u32 i = 0; i < arraysize; i++)
       {
-	u32 datavalue = data.getData(nextDPtr.getPtrPos(), nextDPtr.getPtrLen());
+	//assume data is right-justified, base [0] is furthest from the end
+	//u32 datavalue = data.getData(nextDPtr.getPtrPos(), nextDPtr.getPtrLen()); //???
+	u32 datavalue = data.getData((BITSPERATOM-(bitsize * (arraysize - i))), bitsize); 
 	putData(nextPPtr.getPtrPos(), nextPPtr.getPtrLen(), datavalue);
-	nextDPtr.incrementPtr(state);
+	//nextDPtr.incrementPtr(state);
 	nextPPtr.incrementPtr(state);
       }
   }

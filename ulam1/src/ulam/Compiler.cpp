@@ -66,20 +66,10 @@ namespace MFM {
     assert(root);
 
     m_state.m_err.setFileOutput(output);
+
     // set up an atom in eventWindow; init m_currentObjPtr to point to it
-    // set up stacks since func call not called
-    Coord c0(0,0);
-
-    //m_classBlock ok now, reset by NodeProgram after type label done
-    //UTI cuti = m_state.m_classBlock->getNodeType(); 
-    Symbol * csym = m_state.m_programDefST.getSymbolPtr(m_state.m_compileThisId); //safer approach
-    UTI cuti = csym->getUlamTypeIdx();
-
-    m_state.m_eventWindow.setSiteElementType(c0, cuti);
-    UlamValue objPtr = UlamValue::makePtr(c0.convertCoordToIndex(), EVENTWINDOW, cuti, UNPACKED, m_state);
-    m_state.m_currentObjPtr =  objPtr;  
-    m_state.m_funcCallStack.pushArg(objPtr);      //hidden arg on STACK
-    m_state.m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1, 32));  //return slot on STACK
+    // set up STACK since func call not called
+    m_state.setupCenterSiteForTesting();
 
     m_state.m_nodeEvalStack.addFrameSlots(1);     //prolog, 1 for return
     EvalStatus evs = root->eval();

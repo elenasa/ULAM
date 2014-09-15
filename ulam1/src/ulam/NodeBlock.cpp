@@ -112,8 +112,10 @@ namespace MFM {
   }
 
 
-  u32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
+  s32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
   {
+    if(m_ST.getTableSize() == 0) return -1;
+
     return m_ST.getTotalVariableSymbolsBitSize();
   }
 

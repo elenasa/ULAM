@@ -6,13 +6,22 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_Foo { typedef Bar Pop[2];  Int m_i(0);  Bar m_bar2[2](Bar.0.2);  Int test() {  Foo f;  f m_i . 3 = f ( 1 )check . 7 return } }\nExit status: 7");
+      //note: order of appearance of 'Bool b' first; not in parse-tree order to print their values.
+      return std::string("Ue_Foo { Bool b(false);  typedef Bar Pop[2];  Bool a(false);  Bar m_bar1(0);  Int m_i(7);  Bar m_bar2[2](0,0);  Bar m_bar3(0);  Int test() {  Foo f;  f ( 1 )check . m_i 7 = m_i return } }\nExit status: 7");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      //bool rtn1 = fms->add("Foo.ulam","ulam 1; use Bar; element Foo { Bar m_bar1; Int m_i; Bar m_bar2; Bar check(Bar b) { return b; } Int test() { Foo f; return 1; } }\n"); //errors quarks as parameter and return values.
-      bool rtn1 = fms->add("Foo.ulam","ulam 1; use Bar; element Foo { typedef Bar Pop[2]; Bool a; Bar m_bar1; Int m_i; Pop m_bar2[2]; Bool b; Bar m_bar3; Bool check(Int v) { return true; } Int test() { Foo f; f.check(1); return 7; } }\n"); //tests offsets, but too complicated data members in Foo for memberselect
+      /* in Ud_0024613Foo.h:     
+	 Ut_001114Bool Um_11a;
+	 Uq_001313Bar<1> Um_16m_bar1;
+	 Ut_0023213Int Um_13m_i;
+	 Ut_121313Bar<36> Um_16m_bar2;
+	 Ut_001114Bool Um_11b;
+	 Uq_001313Bar<43> Um_16m_bar3;
+      */
+
+      bool rtn1 = fms->add("Foo.ulam","ulam 1; use Bar; element Foo { typedef Bar Pop[2]; Bool a; Bar m_bar1; Int m_i; Pop m_bar2[2]; Bool b; Bar m_bar3; Bool check(Int v) { return true; } Int test() { Foo f; f.check(1); m_i = 7; return m_i; } }\n"); //tests offsets, but too complicated data members in Foo for memberselect
       
       bool rtn2 = fms->add("Bar.ulam"," ulam 1; quark Bar { Bool val_b[3];  Void reset(Bool b) { b = 0; } }\n");
       

@@ -115,8 +115,6 @@ namespace MFM{
 
     void getUlamValueAsString(char * valstr, CompilerState& state);
 
-    u32 isArraySize(CompilerState& state);
-
     PACKFIT isTargetPacked();             // Ptr only
 
     UlamValue getValAt(u32 offset, CompilerState& state) const;   // Ptr only, arrays
@@ -137,22 +135,29 @@ namespace MFM{
 
     void incrementPtr(CompilerState& state, s32 offset = 1);
     
+    static UlamValue getPackedArrayDataFromAtom(UlamValue p, UlamValue data, CompilerState& state);
+
+    u32 getDataFromAtom(UlamValue p, CompilerState& state) const;
+
+    u32 getDataFromAtom(u32 pos, u32 len) const;
+
     u32 getImmediateData(CompilerState& state) const;
 
     u32 getImmediateData(u32 len = 32) const;
 
-    u32 getDataFromAtom(u32 pos, u32 len) const;
-
     void putDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
+    //void putDataIntoAtom(UlamValue srcPtr, UlamValue srcData, UlamValue destPtr, CompilerState& state);
 
     // called by putDataIntoAtom when packed array is not 'loadable' in a single integer
     void putPackedArrayDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
+    //void putPackedArrayDataIntoAtom(UlamValue srcPtr, UlamValue srcData, UlamValue destPtr, CompilerState& state);
 
     u32 getData(u32 pos, u32 len) const;
 
     void putData(u32 pos, u32 len, u32 data);
 
     UlamValue& operator=(const UlamValue& rhs);
+
     bool operator==(const UlamValue& rhs);
   };
 

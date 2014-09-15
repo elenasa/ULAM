@@ -24,6 +24,13 @@ namespace MFM{
 } //MFM
 #endif /*Up_Ut_001114Bool */
 
+#ifndef Up_Ut_0023215Unary
+#define Up_Ut_0023215Unary
+namespace MFM{
+  typedef int Ut_0023215Unary;
+} //MFM
+#endif /*Up_Ut_0023215Unary */
+
 #ifndef Up_Ut_0029614Atom
 #define Up_Ut_0029614Atom
 namespace MFM{

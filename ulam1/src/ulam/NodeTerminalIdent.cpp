@@ -82,12 +82,23 @@ namespace MFM {
   {
     assert(m_varSymbol);
     evalNodeProlog(0); //new current frame pointer
+    UTI nuti = getNodeType();
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
     UlamValue uv;
     UlamValue uvp = makeUlamValuePtr();
-    if(m_state.isScalar(getNodeType()))
-      uv = m_state.getPtrTarget(uvp);
+    if(m_state.isScalar(nuti))
+      {
+	uv = m_state.getPtrTarget(uvp);
+	
+	// redo what getPtrTarget use to do, when types didn't match due to
+	// an element/quark or a requested scalar of an arraytype
+	if(uv.getUlamValueTypeIdx() != nuti)
+	  {
+	    u32 datavalue = uv.getDataFromAtom(uvp, m_state); 
+	    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+	  }
+      }
     else
       uv = uvp;
 
