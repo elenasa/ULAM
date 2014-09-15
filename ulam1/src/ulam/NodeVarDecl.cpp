@@ -26,19 +26,6 @@ namespace MFM {
 	fp->write("]");
       }
 
-#if 0
-    if(m_varSymbol->isDataMember())
-      {
-	char * myval = new char[arraysize * 8 + 32];
-	//arrays require a ptr
-	m_varSymbol->getUlamValue(m_state).getUlamValueAsString(myval, m_state);
-	fp->write("(");
-	fp->write(myval);
-	fp->write(")");
-	delete [] myval;
-      }
-#endif
-
     fp->write("; ");
   }
 

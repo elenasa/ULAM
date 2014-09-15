@@ -695,9 +695,6 @@ namespace MFM {
   }
 
 
-  // NEW VERSION!!!
-  // uses CallStack::loadUlamValueFromSlot, depending on storage place
-  // (was UlamValue CallStack::getFrameSlotAt(PtrValue p))
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
     assert(ptr.getUlamValueTypeIdx() == Ptr);
@@ -721,30 +718,6 @@ namespace MFM {
 	assert(0);
       };
 
-#if 0
-    // when the target loaded from the slot (i.e. an element/atom),
-    // doesn't match the target type, then we want to make a UV
-    // encompassing the entire length, array or not, since it must fit
-    // in this one UlamValue, though perhaps more than an immediate.
-    UTI puti = ptr.getPtrTargetType(); //could be a 'scalar' ptr, or packed Ptr.
-    UTI vuti = valAtIdx.getUlamValueTypeIdx();  //could be scalar type, or packed array type
-    if(vuti != puti)
-      {
-	if(getUlamTypeAsScalar(vuti) != puti)   //sanity check
-	  {
-	    ULAMCLASSTYPE vclasstype = getUlamTypeByIndex(vuti)->getUlamClass();
-	    assert(vuti == Atom || vclasstype == UC_ELEMENT || vclasstype == UC_QUARK); //must be!
-	  }
-
-	UlamValue rtnUV = UlamValue::makeAtom(puti); //len irrelevant; sets type
-	rtnUV.putDataIntoAtom(ptr, valAtIdx, *this);
-
-	return rtnUV;
-      }
-#endif
-    
-    // o.w. return what was pointed to (may be a single element of an
-    // unpacked array, the entire array, a scalar, or an atom)
     return valAtIdx;  //return as-is
   }
 

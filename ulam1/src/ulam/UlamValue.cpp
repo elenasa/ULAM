@@ -147,16 +147,6 @@ namespace MFM {
   }
 
 
-
-  void UlamValue::getUlamValueAsString(char * valstr, CompilerState& state)
-  {
-    if(getUlamValueTypeIdx())
-      state.getUlamTypeByIndex(getUlamValueTypeIdx())->getUlamValueAsString(*this, valstr, state);
-    else
-      sprintf(valstr,"<NOVALUE>");
-  }
-
-
   // for iterating an entire array see CompilerState::assignArrayValues
   UlamValue UlamValue::getValAt(u32 offset, CompilerState& state) const
   { 
@@ -363,23 +353,7 @@ namespace MFM {
     else 
 	{
 	  assert(p.isTargetPacked() == PACKEDLOADABLE);
-	  u32 datavalue;
-
-#if 0
-	  PACKFIT packedData = state.determinePackable(duti);
-	  if(packedData == PACKED)
-	    datavalue = data.getData(p.getPtrPos(), p.getPtrLen());
-	  else
-	    {
-	      ULAMCLASSTYPE dclasstype = state.getUlamTypeByIndex(duti)->getUlamClass();
-	      if(dclasstype == UC_NOTACLASS)
-		datavalue = data.getImmediateData(p.getPtrLen());
-	      else
-		datavalue = data.getData(p.getPtrPos(), p.getPtrLen());
-	    }
-#endif
-
-	  datavalue = data.getImmediateData(p.getPtrLen()); //can we make this assumption???
+	  u32 datavalue = data.getImmediateData(p.getPtrLen());
 	  putData(p.getPtrPos(), p.getPtrLen(), datavalue);
 	}
   }
@@ -395,18 +369,14 @@ namespace MFM {
     assert(arraysize > 0);
     u32 bitsize = state.getBitSize(tuti);
     
-    //UlamValue dPtr = UlamValue::makePtr(0, IMMEDIATE, tuti, p.isTargetPacked(), state); //???
-    //UlamValue nextDPtr = UlamValue::makeScalarPtr(dPtr,state);
     UlamValue nextPPtr = UlamValue::makeScalarPtr(p,state);
     assert(bitsize == nextPPtr.getPtrLen()); 
 
     for(u32 i = 0; i < arraysize; i++)
       {
 	//assume data is right-justified, base [0] is furthest from the end
-	//u32 datavalue = data.getData(nextDPtr.getPtrPos(), nextDPtr.getPtrLen()); //???
 	u32 datavalue = data.getData((BITSPERATOM-(bitsize * (arraysize - i))), bitsize); 
 	putData(nextPPtr.getPtrPos(), nextPPtr.getPtrLen(), datavalue);
-	//nextDPtr.incrementPtr(state);
 	nextPPtr.incrementPtr(state);
       }
   }
@@ -421,7 +391,6 @@ namespace MFM {
 
   void UlamValue::putData(u32 pos, u32 len, u32 data)
   {
-    //assert(getUlamValueTypeIdx() == Atom);
     m_uv.m_storage.m_atom.Write(pos, len, data);
   }
 

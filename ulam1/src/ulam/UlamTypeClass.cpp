@@ -150,12 +150,6 @@ namespace MFM {
   }
 
 
-  void UlamTypeClass::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
-  {
-    sprintf(valstr,"%s", getUlamTypeName(&state).c_str());
-  }
-
-
   ULAMCLASSTYPE UlamTypeClass::getUlamClass()
   {
     return m_class;

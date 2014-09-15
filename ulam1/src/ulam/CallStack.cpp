@@ -101,18 +101,14 @@ namespace MFM {
 	//target is packed, use pos & len in ptr, unless there's no type
 	UlamValue lvalAtIdx = loadUlamValueFromSlot(leftbaseslot);
 
-	// if uninitialized, copy the entire ruv
+	// if uninitialized, set the type
 	if(lvalAtIdx.getUlamValueTypeIdx() == Nav)
-	  {  
-	    lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
-	    //m_frames[m_currentFrame + leftbaseslot] = ruv;  //must be immediate
-	  }
-	//else
 	  {
-	    lvalAtIdx.putDataIntoAtom(pluv, ruv, state);
-	    storeUlamValueInSlot(lvalAtIdx, leftbaseslot);
-	    //lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
+	    lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
 	  }
+	
+	lvalAtIdx.putDataIntoAtom(pluv, ruv, state);
+	storeUlamValueInSlot(lvalAtIdx, leftbaseslot);
       }
   }
 

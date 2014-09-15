@@ -3,6 +3,7 @@
 #include <string.h>
 #include "UlamTypeVoid.h"
 #include "UlamValue.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
@@ -28,50 +29,36 @@ namespace MFM {
   }
 
 
-  //anything can be cast to a void  ???
+  //anything can be cast to a void
   bool UlamTypeVoid::cast(UlamValue & val, CompilerState& state)
-    {
-      UTI valtypidx = val.getUlamValueTypeIdx();
-      bool brtn = true;
-#if 0
-      u32 valarraysize = m_state.getArraySize(valtypidx);
-      u32 myarraysize = getArraySize();
-
-      if(valarraysize == 0 && myarraysize == 0)
-	{
-	  switch(valtypidx)
-	    {
-	    case Void:
-	    case Int:
-	    case Bool:
-	      val.init(this, 0);
-	      break;
-	    default:
-	      //std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;
-	      brtn = false;
-	    };
-	}
-      else
-	{
-	  assert(0);
-	  brtn=false;
-	}
-#endif
-      return brtn;
-    }
-
-#if 0
-  bool UlamTypeVoid::castBitSize(UlamValue & val, CompilerState& state)
   {
-    assert(0); //???
-    return false;
-  }
-#endif
+    bool brtn = true;    
+    UTI valtypidx = val.getUlamValueTypeIdx();    
+    u32 arraysize = getArraySize();
+    if(arraysize != state.getArraySize(valtypidx))
+      {
+	std::ostringstream msg;
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
+	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	return false;
+      }
+    
+    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
-  void UlamTypeVoid::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
-  {
-    assert(m_key.m_arraySize == 0);      
-    sprintf(valstr,"0");
-  }
+    switch(valtypEnum)
+      {
+      case Void:
+      case Bool:
+      case Int:
+      case Unary:
+	val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val, no data
+	break;
+      default:
+	//std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+
+    return brtn;
+  } //end cast    
 
 } //end MFM

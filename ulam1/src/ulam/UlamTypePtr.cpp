@@ -15,10 +15,4 @@ namespace MFM {
      return Ptr;
    }
 
-
-  void UlamTypePtr::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
-  {
-    sprintf(valstr,"%s", getUlamTypeName(&state).c_str());
-  }
-
 } //end MFM
