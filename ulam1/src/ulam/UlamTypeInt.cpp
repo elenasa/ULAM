@@ -36,10 +36,7 @@ namespace MFM {
   bool UlamTypeInt::cast(UlamValue & val, CompilerState& state)
   {
     bool brtn = true;
-    
-    UTI typidx = getUlamTypeIndex();
-    UTI valtypidx = val.getUlamValueTypeIdx();
-    
+    UTI valtypidx = val.getUlamValueTypeIdx();    
     u32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
       {
@@ -69,18 +66,12 @@ namespace MFM {
 	    return false;
 	  }
       }
-
 	
     valtypidx = val.getUlamValueTypeIdx();  //might have changed, so reload
     valbitsize = state.getBitSize(valtypidx);
-    //assert(bitsize == valbitsize);
-
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
-    // casting Int to Int to change bits
-    u32 newdata = 0;
-    u32 data = val.getImmediateData(state);
-    
+    u32 data = val.getImmediateData(state);    
     switch(valtypEnum)
       {
       case Bool:
@@ -99,7 +90,8 @@ namespace MFM {
 	  }
 	break;
       case Int:
-	val = UlamValue::makeImmediate(getUlamTypeIndex(), data, state); //overwrite val to change bitsize
+	// casting Int to Int to change bits size
+	val = UlamValue::makeImmediate(getUlamTypeIndex(), data, state); //overwrite val
 	break;
       default:
 	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
@@ -107,35 +99,6 @@ namespace MFM {
       };
     return brtn;
   } //end cast
-  
-  
-#if 0
-  bool UlamTypeInt::castBitSize(UlamValue & val, CompilerState& state)
-  {
-    UTI valtypidx = val.getUlamValueTypeIdx();
-    //assert(valtypidx == getUlamTypeIndex());
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();
-    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-    assert(typEnum == valtypEnum);
-
-    u32 bitsize = getBitSize();
-    u32 valbitsize = state.getBitSize(valtypidx);
-
-    s32 data = val.getImmediateData(state);    
-    if(bitsize < valbitsize)
-      {
-	//warning! may lose precision
-      }
-    else
-      {
-	data = _SignExtend32(data, bitsize);
-      }
-
-    val = UlamValue::makeImmediate(getUlamTypeIndex(), data, state); //overwrite val
-    return true;
-  }
-#endif
 
 
   void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
@@ -145,29 +108,5 @@ namespace MFM {
     else
       sprintf(valstr,"%c%d", prefix, (s32) data);
   }
-
-
-  void UlamTypeInt::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
-  {
-    if(m_key.m_arraySize == 0)
-      {
-	s32 idata = (s32) val.getImmediateData(state);
-	sprintf(valstr,"%d", idata);
-      }
-    else
-      {
-	UlamValue ival = val.getValAt(0, state);
-	s32 idata = (s32) ival.getImmediateData(state);
-	char tmpstr[8];
-	sprintf(valstr,"%d", idata);
-	for(s32 i = 1; i < (s32) m_key.m_arraySize ; i++)
-	  {
-	    ival = val.getValAt(i, state);
-	    idata = (s32) ival.getImmediateData(state);
-	    sprintf(tmpstr,",%d", idata); 
-	    strcat(valstr,tmpstr);
-	  }
-      }
-   }
   
 } //end MFM

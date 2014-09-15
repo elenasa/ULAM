@@ -15,13 +15,6 @@ namespace MFM {
      return Atom;
    }
 
-
-  void UlamTypeAtom::getUlamValueAsString(const UlamValue& val, char * valstr, CompilerState& state)
-  {
-    sprintf(valstr,"%s", getUlamTypeName(&state).c_str());
-  }
-
-
   const std::string UlamTypeAtom::getUlamTypeAsStringForC()
   {
     std::ostringstream ctype;

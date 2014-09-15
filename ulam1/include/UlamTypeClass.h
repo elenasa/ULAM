@@ -65,8 +65,6 @@ namespace MFM{
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state);
-    
     virtual ULAMCLASSTYPE getUlamClass();
 
     void setUlamClass(ULAMCLASSTYPE type);

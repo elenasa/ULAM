@@ -113,8 +113,6 @@ namespace MFM{
 
     void setAtomElementTypeIdx(UTI utype);
 
-    void getUlamValueAsString(char * valstr, CompilerState& state);
-
     PACKFIT isTargetPacked();             // Ptr only
 
     UlamValue getValAt(u32 offset, CompilerState& state) const;   // Ptr only, arrays

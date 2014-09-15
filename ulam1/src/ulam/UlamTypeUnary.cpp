@@ -36,8 +36,6 @@ namespace MFM {
   bool UlamTypeUnary::cast(UlamValue & val, CompilerState& state)
   {
     bool brtn = true;
-    
-    UTI typidx = getUlamTypeIndex();
     UTI valtypidx = val.getUlamValueTypeIdx();
     
     u32 arraysize = getArraySize();
@@ -73,27 +71,18 @@ namespace MFM {
     //might have changed, so reload
     valtypidx = val.getUlamValueTypeIdx();  
     valbitsize = state.getBitSize(valtypidx);
-    //    assert(bitsize == valbitsize);
-
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
-    // casting Int to Int to change bits
-    u32 newdata = 0;
-    u32 data = val.getImmediateData(state);
-    
+    u32 data = val.getImmediateData(state);    
     switch(valtypEnum)
       {
       case Bool:
 	{
 	  s32 count1s = PopCount(data);
 	  if(count1s > (s32) (bitsize - count1s))
-	    {
-	      val = UlamValue::makeImmediate(getUlamTypeIndex(), 1, state); //overwrite val
-	    }
+	    val = UlamValue::makeImmediate(getUlamTypeIndex(), 1, state); //overwrite val
 	  else
-	    {
-	      val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val
-	    }
+	    val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val
 	}
 	break;
       case Int:
@@ -119,38 +108,10 @@ namespace MFM {
 	//std::cerr << "UlamTypeUnary (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
+  
+    return brtn;
   } //end cast    
   
-
-#if 0
-  bool UlamTypeUnary::castBitSize(UlamValue & val, CompilerState& state)
-  {
-    bool rtnb = true;
-    UTI valtypidx = val.getUlamValueTypeIdx();
-    //assert(valtypidx == getUlamTypeIndex());
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();
-    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-    assert(typEnum == valtypEnum);
-    
-    
-    u32 bitsize = getBitSize();
-    u32 valbitsize = state.getBitSize(valtypidx);
-    
-    u32 data = val.getImmediateData(state);    
-    u32 count1s = PopCount(data);
-    if(bitsize < valbitsize)
-      {
-	if(count1s > bitsize)
-	  rtnb = false;   //error! losing precision 
-	data = _GetNOnes32(count1s);
-      }
-    
-    val = UlamValue::makeImmediate(getUlamTypeIndex(), data, state); //overwrite val
-    return rtnb;
-  }
-#endif
-
 
   void UlamTypeUnary::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {
@@ -160,28 +121,4 @@ namespace MFM {
       sprintf(valstr,"%c%u", prefix, PopCount(data));  //converted to binary
   }
 
-
-  void UlamTypeUnary::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState& state)
-  {
-    if(m_key.m_arraySize == 0)
-      {
-	u32 idata = val.getImmediateData(state);
-	sprintf(valstr,"%d", idata);
-      }
-    else
-      {
-	UlamValue ival = val.getValAt(0, state);
-	u32 idata =  ival.getImmediateData(state);
-	char tmpstr[8];
-	sprintf(valstr,"%d", idata);
-	for(s32 i = 1; i < (s32) m_key.m_arraySize ; i++)
-	  {
-	    ival = val.getValAt(i, state);
-	    idata = ival.getImmediateData(state);
-	    sprintf(tmpstr,",%d", idata); 
-	    strcat(valstr,tmpstr);
-	  }
-      }
-   }
-  
 } //end MFM

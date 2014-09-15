@@ -194,7 +194,6 @@ namespace MFM {
   {
     assert(pluv.getUlamValueTypeIdx() == Ptr);
     assert(ruv.getUlamValueTypeIdx()  != Ptr);      // not a Ptr
-    //assert(ruti == Atom || m_state.getUlamTypeByIndex(ruti)->getUlamClass() == UC_ELEMENT);
 
     u32 leftindex = pluv.getPtrSlotIndex();    //even for scalars
     bool stored = false;
