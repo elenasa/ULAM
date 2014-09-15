@@ -49,6 +49,6 @@ namespace MFM{
 #endif /*Up_Ut_0027116Ut_Ptr */
 
 namespace MFM{
-  class Ue_0026411A;   //forward 
+  class Ue_0023211A;   //forward 
 } //MFM
 

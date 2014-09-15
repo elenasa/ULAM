@@ -43,11 +43,11 @@ namespace MFM {
   }
 
   inline u32 _GetNOnes32(u32 bitwidth) {
-    return (((u32)1)<<bitwidth)-1;
+    return (bitwidth >= 32) ? (u32) -1 : (((u32)1)<<bitwidth)-1;
   }
 
   inline u64 _GetNOnes64(u32 bitwidth) {
-    return (((u64)1)<<bitwidth)-1;
+    return (bitwidth >= 64) ? (u64) -1L : (((u64)1)<<bitwidth)-1;
   }
 
   inline u32 _ShiftToBitNumber32(u32 value, u32 bitpos) {

@@ -73,7 +73,7 @@ namespace MFM{
     
     u32 getSizeOfSymbolsInTable();
 
-    u32 getBitSizesOfVariableSymbolsInTable();
+    s32 getBitSizesOfVariableSymbolsInTable();
 
     virtual void genCode(File * fp);
 

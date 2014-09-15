@@ -348,7 +348,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
 	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
-	    assert(0);
+	    return;
 	  } 
       }
 
@@ -359,7 +359,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
 	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
-	    assert(0);
+	    return;
 	  }
       }
 
@@ -721,6 +721,7 @@ namespace MFM {
 	assert(0);
       };
 
+#if 0
     // when the target loaded from the slot (i.e. an element/atom),
     // doesn't match the target type, then we want to make a UV
     // encompassing the entire length, array or not, since it must fit
@@ -737,8 +738,10 @@ namespace MFM {
 
 	UlamValue rtnUV = UlamValue::makeAtom(puti); //len irrelevant; sets type
 	rtnUV.putDataIntoAtom(ptr, valAtIdx, *this);
+
 	return rtnUV;
       }
+#endif
     
     // o.w. return what was pointed to (may be a single element of an
     // unpacked array, the entire array, a scalar, or an atom)
@@ -782,7 +785,8 @@ namespace MFM {
 
     //assert types..the same, and arrays
     assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
-    
+    UTI tuti = rptr.getPtrTargetType();
+
     // unless we're copying from different storage classes
     //assert(!isScalar(lptr.getPtrTargetType()));  //deal w scalars differently
 
@@ -800,7 +804,16 @@ namespace MFM {
     if(WritePacked(packed))
       {
 	UlamValue atval = getPtrTarget(rptr); // entire array in one slot
-	assignValue(lptr, atval); 
+
+	// redo what getPtrTarget use to do, when types didn't match due to
+	// an element/quark or a requested scalar of an arraytype
+	if(atval.getUlamValueTypeIdx() != tuti)
+	  {
+	    UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
+	    assignValue(lptr, atvalUV); 
+	  }
+	else
+	  assignValue(lptr, atval); 
       }
     else
       {
@@ -808,12 +821,22 @@ namespace MFM {
 	u32 arraysize = getArraySize(rptr.getPtrTargetType());
 	UlamValue nextlptr = UlamValue::makeScalarPtr(lptr,*this);
 	UlamValue nextrptr = UlamValue::makeScalarPtr(rptr,*this);
+	tuti = nextrptr.getPtrTargetType(); // update type
 
 	for(u32 i = 0; i < arraysize; i++)
 	  {
-	    //UlamValue atval = rptr.getValAt(i, *this);  //returns scalar at i (via getPtrTarget)
 	    UlamValue atval = getPtrTarget(nextrptr);
-	    assignValue(nextlptr, atval);
+
+	    // redo what getPtrTarget use to do, when types didn't match due to
+	    // an element/quark or a requested scalar of an arraytype
+	    if(atval.getUlamValueTypeIdx() != tuti)
+	      {
+		UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
+		assignValue(nextlptr, atvalUV); 
+	      }
+	    else
+	      assignValue(nextlptr, atval); 
+	    
 	    nextlptr.incrementPtr(*this);
 	    nextrptr.incrementPtr(*this);
 	  }	
@@ -874,5 +897,26 @@ namespace MFM {
     return rtn;
   }
 
+
+  void CompilerState::setupCenterSiteForTesting()
+  {
+    assert(m_currentObjPtr.getUlamValueTypeIdx() == Nav);
+    // set up an atom in eventWindow; init m_currentObjPtr to point to it
+    // set up stacks since func call not called
+    Coord c0(0,0);
+
+    //m_classBlock ok now, reset by NodeProgram after type label done
+    //UTI cuti = m_state.m_classBlock->getNodeType(); 
+    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
+    UTI cuti = csym->getUlamTypeIdx();
+
+    m_eventWindow.setSiteElementType(c0, cuti);
+    UlamValue objPtr = UlamValue::makePtr(c0.convertCoordToIndex(), EVENTWINDOW, cuti, UNPACKED, *this);
+    m_currentObjPtr =  objPtr;  
+
+    // set up STACK since func call not called
+    m_funcCallStack.pushArg(m_currentObjPtr);                        //hidden arg on STACK
+    m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1, 32));  //return slot on STACK
+  }
 
 } //end MFM

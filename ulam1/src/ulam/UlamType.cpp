@@ -59,13 +59,20 @@ namespace MFM {
     return false;
   }
 
-
+#if 0
   bool UlamType::castBitSize(UlamValue & val, CompilerState& state)
   {
     assert(0);
     //std::cerr << "UlamType (castbitsize) error! " << std::endl;
     return false;
   }
+#endif
+
+
+  void UlamType::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+    {
+      sprintf(valstr,"%s", getUlamTypeName(&state).c_str());
+    }
 
 
   ULAMCLASSTYPE UlamType::getUlamClass()
