@@ -44,7 +44,7 @@ namespace MFM{
   class SymbolVariableStack : public SymbolVariable
   {
   public:
-    SymbolVariableStack(u32 id, UTI utype, bool packed, s32 slot, CompilerState& state);
+    SymbolVariableStack(u32 id, UTI utype, PACKFIT packed, s32 slot, CompilerState& state);
     ~SymbolVariableStack();
 
     virtual s32 getStackFrameSlotIndex();

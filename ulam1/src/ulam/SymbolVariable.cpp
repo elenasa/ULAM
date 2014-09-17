@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolVariable::SymbolVariable(u32 id, UTI utype, bool packed, CompilerState& state) : Symbol(id, utype, state), m_posOffset(0), m_packed(packed){}
+  SymbolVariable::SymbolVariable(u32 id, UTI utype, PACKFIT packed, CompilerState& state) : Symbol(id, utype, state), m_posOffset(0), m_packed(packed){}
 
   SymbolVariable::~SymbolVariable()
   {}
@@ -36,13 +36,13 @@ namespace MFM {
   }
 
 
-  bool SymbolVariable::isPacked()
+  PACKFIT SymbolVariable::isPacked()
   {
     return m_packed;
   }
 
 
-  void SymbolVariable::setPacked(bool p)
+  void SymbolVariable::setPacked(PACKFIT p)
   {
     m_packed = p;
   }

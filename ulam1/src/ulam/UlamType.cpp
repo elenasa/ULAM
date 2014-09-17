@@ -8,13 +8,15 @@
 
 namespace MFM {
 
-#define XX(a,b) b,
+#define XX(a,b,c) b,
 
   static const char * utype_string[] = {
 #include "UlamType.inc"
   };
   
 #undef XX 
+
+
 
   UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti)
   {}
@@ -36,7 +38,8 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeNameBrief(CompilerState * state)
   {
-    return m_key.getUlamKeyTypeSignatureName(state);
+    //return m_key.getUlamKeyTypeSignatureName(state);
+    return m_key.getUlamKeyTypeSignatureNameAndBitSize(state);
   }
 
 

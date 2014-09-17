@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(u32 id, UTI utype, u32 slot, CompilerState& state) : SymbolVariable(id, utype, true, state), m_dataMemberUnpackedSlotIndex(slot)
+  SymbolVariableDataMember::SymbolVariableDataMember(u32 id, UTI utype, PACKFIT packed, u32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_dataMemberUnpackedSlotIndex(slot)
   {
     setDataMember();
   }

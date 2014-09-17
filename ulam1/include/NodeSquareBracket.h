@@ -59,7 +59,7 @@ namespace MFM{
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual bool installSymbolTypedef(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr);
-    virtual bool installSymbolVariable(Token atok, u32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolVariable(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr);
 
     virtual const char * getName();
 

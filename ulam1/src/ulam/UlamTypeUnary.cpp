@@ -50,11 +50,13 @@ namespace MFM {
     //change the size first of tobe, if necessary
     u32 bitsize = getBitSize();
     u32 valbitsize = state.getBitSize(valtypidx);
-    if(bitsize != valbitsize)
-      {
-	//base types e.g. Int, Bool, Unary, Foo, Bar..
-	ULAMTYPE typEnum = getUlamTypeEnum();
 
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    ULAMTYPE typEnum = getUlamTypeEnum();
+    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+
+    if((bitsize != valbitsize) && (typEnum != valtypEnum))
+      {
 	//change to val's size, within the TOBE current type; 
 	//get string index for TOBE enum type string
 	u32 enumStrIdx = state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
@@ -66,13 +68,11 @@ namespace MFM {
 	    //error! 
 	    return false;
 	  }
+	
+	valtypidx = val.getUlamValueTypeIdx();  //reload
+	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
       }
 	
-    //might have changed, so reload
-    valtypidx = val.getUlamValueTypeIdx();  
-    valbitsize = state.getBitSize(valtypidx);
-    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-
     u32 data = val.getImmediateData(state);    
     switch(valtypEnum)
       {

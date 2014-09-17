@@ -225,5 +225,10 @@ namespace MFM {
   }
 
 
+  const std::string UlamTypeClass::getUlamTypeNameBrief(CompilerState * state)
+  {
+    return m_key.getUlamKeyTypeSignatureName(state);
+  }
+
 
 } //end MFM

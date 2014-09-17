@@ -14,8 +14,9 @@
 <VAR_DECL> := <LVAL_EXPRESSION>
 
 
-<TYPE> := <TYPE_NAME> | <TYPE_NAME> + '(' + <EXPRESSION> + ')'
 <TYPE_NAME> := 'Int' | 'Bool' | 'Unary' | <TYPE_IDENT> 
+<TYPE> := <TYPE_NAME> | <TYPE_NAME> + '(' + <EXPRESSION> + ')'
+
 <TYPE_DEF> := 'typedef' + <TYPE> + <TYPE_EXPRESSION>
 <TYPE_EXPRESSION> := <TYPE_IDENT> | <TYPE_IDENT> + '[' + <EXPRESSION> + ']'
 

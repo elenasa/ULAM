@@ -30,7 +30,7 @@ namespace MFM {
   UTI NodeSquareBracket::checkAndLabelType()
   { 
     assert(m_nodeLeft && m_nodeRight);
-
+    u32 errorCount = 0;
     UTI newType = Nav; //init
     UTI leftType = m_nodeLeft->checkAndLabelType(); 
 
@@ -39,6 +39,7 @@ namespace MFM {
       std::ostringstream msg;
       msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << "> used with " << getName();
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      errorCount++;
     }
 
     UTI rightType = m_nodeRight->checkAndLabelType();
@@ -48,14 +49,19 @@ namespace MFM {
       std::ostringstream msg;
       msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(rightType).c_str() << "> used within " << getName();
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      errorCount++;
     }
 
-    // sq bracket purpose in life is to account for array elements;    
-    newType = m_state.getUlamTypeAsScalar(leftType); 
-    setNodeType(newType);
+    if(errorCount == 0)
+      {
+	// sq bracket purpose in life is to account for array elements;    
+	newType = m_state.getUlamTypeAsScalar(leftType); 
+
+	setNodeType(newType);
     
-    // multi-dimensional possible    
-    setStoreIntoAble(true);
+	// multi-dimensional possible    
+	setStoreIntoAble(true);
+      }
 
     return newType;
   }
@@ -189,7 +195,7 @@ namespace MFM {
 
 
   //see also NodeTerminalIdent
-  bool NodeSquareBracket::installSymbolVariable(Token atok, u32 arraysize, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolVariable(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -201,7 +207,7 @@ namespace MFM {
     
     u32 newarraysize = 0;
     if(getArraysizeInBracket(newarraysize))
-      return m_nodeLeft->installSymbolVariable(atok, newarraysize, asymptr);
+      return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, asymptr);
    
     return false;  //error getting array size
   }
@@ -235,7 +241,7 @@ namespace MFM {
 
     rtnArraySize = newarraysize;
     return true;
-  }
+  } //getArraysizeInBracket 
 
 
   void NodeSquareBracket::genCode(File * fp)

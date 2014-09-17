@@ -2,6 +2,7 @@
 #include "NodeTerminalIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "NodeTypeBitsize.h"
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "SymbolTypedef.h"
@@ -199,8 +200,9 @@ namespace MFM {
       }
 
     ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
-    bitsize = ((bitsize == 0 && bUT != Class) ? (bUT == Bool ? BITSPERBOOL : 32) : bitsize); //temporary!!!
-
+    if(bitsize == 0)
+      bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+    
     //type names begin with capital letter..and the rest can be either case
     u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
 
@@ -220,9 +222,9 @@ namespace MFM {
 
 
   //see also NodeSquareBracket
-  bool NodeTerminalIdent::installSymbolVariable(Token aTok, u32 arraysize, Symbol *& asymptr)
+  bool NodeTerminalIdent::installSymbolVariable(Token aTok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
   {
-    // ask current scope block if this variable name is there; 
+    // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
     if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
@@ -248,9 +250,14 @@ namespace MFM {
 	  {
 	    //UlamTypes automatically created for the base types with different array sizes.
 	    //but with typedef's "scope" of use, typedef needs to be checked first.
+	    if(bitsize == 0)
+	      {
+		ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
+		bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+	      }
 	    
-	    // o.w. build symbol, first base type (with array size)
-	    aut = m_state.makeUlamType(aTok, 0, arraysize);
+	    // o.w. build symbol (with bit and array sizes)
+	    aut = m_state.makeUlamType(aTok, bitsize, arraysize);
 	    brtn = true;
 	  }
 	else 
@@ -278,7 +285,8 @@ namespace MFM {
   {
     //adjust decl count and max_depth, used for function definitions
     u32 arraysize = m_state.getArraySize(aut);
-   
+    PACKFIT packit = m_state.determinePackable(aut);
+
     if(m_state.m_currentFunctionBlockDeclSize == 0)
       {
 	// when current block and class block are the same, this is a data member
@@ -297,10 +305,8 @@ namespace MFM {
 	u32 baseslot = 1;  //no longer stored unpacked
 
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
-	return (new SymbolVariableDataMember(m_token.m_dataindex, aut, baseslot, m_state)); 
+	return (new SymbolVariableDataMember(m_token.m_dataindex, aut, packit, baseslot, m_state)); 
       }
-
-    PACKFIT packit = m_state.determinePackable(aut);
 
     //Symbol is a parameter; always on the stack
     if(m_state.m_currentFunctionBlockDeclSize < 0)

@@ -17,7 +17,6 @@
 #include "NodeBinaryOpBitwiseAndEqual.h"
 #include "NodeBinaryOpBitwiseOrEqual.h"
 #include "NodeBinaryOpBitwiseXorEqual.h"
-#include "NodeSquareBracket.h"
 #include "NodeBlock.h"
 #include "NodeBlockEmpty.h"
 #include "NodeBlockFunctionDefinition.h"
@@ -27,8 +26,10 @@
 #include "NodeMemberSelect.h"
 #include "NodeProgram.h"
 #include "NodeReturnStatement.h"
+#include "NodeSquareBracket.h"
 #include "NodeTerminal.h"
 #include "NodeTerminalIdent.h"
+#include "NodeTypeBitsize.h"
 #include "NodeTypedef.h"
 #include "NodeSimpleStatement.h"
 #include "NodeStatementEmpty.h"
@@ -309,14 +310,30 @@ namespace MFM {
 	return false;
       }
 
+    // check for Type bitsize specifier
+    Token bTok;
+    u32 typebitsize = 0;
+    getNextToken(bTok);
+    if(bTok.m_type == TOK_OPEN_PAREN)
+      {
+	NodeTypeBitsize * typebitsizeNode = (NodeTypeBitsize *) parseTypeBitsize(pTok);
+	typebitsizeNode->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(pTok));
+	delete typebitsizeNode;  //done with it
+      }
+    else
+      {
+	unreadToken();
+      }
     
-    if(getExpectedToken(TOK_IDENTIFIER, iTok))
+    getNextToken(iTok);
+    //if(getExpectedToken(TOK_IDENTIFIER, iTok))
+    if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//need another token to distinguish a function from a variable declaration (do so quietly)
 	if(getExpectedToken(TOK_OPEN_PAREN, QUIETLY))
 	  { 
 	    //eats the '(' when found
-	    rtnNode = makeFunctionSymbol(pTok, iTok); //with params
+	    rtnNode = makeFunctionSymbol(pTok, typebitsize, iTok); //with params
 	    if(!getExpectedToken(TOK_CLOSE_CURLY))
 	      {
 		//first remove the pointer to this node from its symbol
@@ -336,10 +353,10 @@ namespace MFM {
 	    // not '(', so token is unread, and we know
 	    // it's a variable, not a function;
 	    // also handles arrays
-	    rtnNode = makeVariableSymbol(pTok, iTok);
+	    rtnNode = makeVariableSymbol(pTok, typebitsize, iTok);
 	    
 	    if(rtnNode)
-	      rtnNode = parseRestOfDecls(pTok, rtnNode);  
+	      rtnNode = parseRestOfDecls(pTok, typebitsize, rtnNode);  
 	    
 	    if(!getExpectedToken(TOK_SEMICOLON))
 	      {
@@ -358,7 +375,15 @@ namespace MFM {
 	      }
 	  }
       }
-    //else error!
+    else
+      {
+	//user error!
+	std::ostringstream msg;
+	msg << "Name of variable/function <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">: Identifier must begin with a lower-case letter";
+	MSG(&iTok, msg.str().c_str(), ERR);
+
+	unreadToken();
+      }
     return brtn;  //parseDataMember
   }
 
@@ -666,26 +691,41 @@ namespace MFM {
   Node * Parser::parseTypedef()
   {
     Node * rtnNode = NULL;
+    u32 typebitsize = 0;
     Token pTok;
     getNextToken(pTok);
       
     if(Token::isTokenAType(pTok))
       {
+	Token bTok;
+	getNextToken(bTok);
+	if(bTok.m_type == TOK_OPEN_PAREN)
+	  {
+	    NodeTypeBitsize * typebitsizeNode = (NodeTypeBitsize *) parseTypeBitsize(pTok);
+	    typebitsizeNode->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(pTok));
+	    delete typebitsizeNode;  //done with it
+	  }
+	else
+	  {
+	    unreadToken();
+	  }
+
+
 	Token iTok;
 	getNextToken(iTok);
 	//insure the typedef name starts with a capital letter
 	//if(iTok.m_type == TOK_IDENTIFIER && Token::isTokenAType(iTok,&m_state))
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
-	    rtnNode = makeTypedefSymbol(pTok, iTok);
+	    rtnNode = makeTypedefSymbol(pTok, typebitsize, iTok);
 	  }
 	else
 	  {
 	    std::ostringstream msg;
 	    if(iTok.m_dataindex == 0)
-	      msg << "Invalid typedef Alias (2nd arg) <" << Token::getTokenAsString(iTok.m_type) << ">, try: 'typedef Type Alias <[n]>;'";
+	      msg << "Invalid typedef Alias <" << Token::getTokenAsString(iTok.m_type) << ">, try: 'typedef Type Alias <[n]>;'";
 	    else
-		msg << "Invalid typedef Alias (2nd arg) <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">, Identifier requires capitalization";
+		msg << "Invalid typedef Alias <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">, Type Identifier (2nd arg) requires capitalization";
 
 	    MSG(&iTok, msg.str().c_str(), ERR);
 	  }
@@ -706,26 +746,73 @@ namespace MFM {
   Node * Parser::parseDecl(bool parseSingleDecl)
   {
     Node * rtnNode = NULL;
-    Token pTok, iTok;
+    Token pTok, iTok, bTok;
+    u32 typebitsize = 0;
 
     getNextToken(pTok);
 
     // should have already known to be true
     assert(Token::isTokenAType(pTok));
 
-    if(getExpectedToken(TOK_IDENTIFIER, iTok))
+    getNextToken(bTok);
+    if(bTok.m_type == TOK_OPEN_PAREN)
       {
-	rtnNode = makeVariableSymbol(pTok, iTok);
+	NodeTypeBitsize * typebitsizeNode = (NodeTypeBitsize *) parseTypeBitsize(pTok);
+	typebitsizeNode->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(pTok));
+	delete typebitsizeNode;  //done with it
+      }
+    else
+      {
+	unreadToken();
+      }
+
+    getNextToken(iTok);
+    if(iTok.m_type == TOK_IDENTIFIER)
+      {
+	rtnNode = makeVariableSymbol(pTok, typebitsize, iTok);
 
 	if(rtnNode && !parseSingleDecl) 
 	  {
 	    // for multi's of same type
-	    return parseRestOfDecls(pTok, rtnNode);  
+	    return parseRestOfDecls(pTok, typebitsize, rtnNode);  
 	  }
       }
-    
+    else
+      {
+	//user error!
+	std::ostringstream msg;
+	msg << "Name of variable <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">: Identifier must begin with a lower-case letter";
+	MSG(&iTok, msg.str().c_str(), ERR);
+
+	unreadToken();
+      }    
     return rtnNode;  //parseDecl
   }
+
+
+  Node * Parser::parseTypeBitsize(Token typeTok)
+  {
+    Node * rtnNode = parseExpression();
+    if(!rtnNode)
+      {
+	std::ostringstream msg;
+	msg << "Bitsize of Open Paren is missing, type " << typeTok.getTokenString() ;
+	MSG(&typeTok, msg.str().c_str(), ERR);
+      }
+    else
+      {
+	rtnNode = new NodeTypeBitsize(rtnNode, m_state);
+	rtnNode->setNodeLocation(typeTok.m_locator);
+      }
+
+    if(!getExpectedToken(TOK_CLOSE_PAREN)) 
+      {
+	delete rtnNode;
+	rtnNode = NULL;
+      }
+
+    return rtnNode;
+  } //parseTypeBitsize
 
 
   Node * Parser::parseReturn()
@@ -1166,7 +1253,7 @@ namespace MFM {
   }
 
 
-  Node * Parser::parseRestOfDecls(Token typeTok, Node * dNode)
+  Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, Node * dNode)
   { 
 
     if(!getExpectedToken(TOK_COMMA, QUIETLY))
@@ -1179,7 +1266,7 @@ namespace MFM {
     if(getExpectedToken(TOK_IDENTIFIER, iTok))
       {
 	// another decl of same type typeTok
-	Node * sNode = makeVariableSymbol(typeTok, iTok);  //a decl
+	Node * sNode = makeVariableSymbol(typeTok, typebitsize, iTok);  //a decl
 	if (sNode)
 	  {
 	    rtnNode =  new NodeVarDeclList(dNode, sNode, m_state) ;
@@ -1193,11 +1280,11 @@ namespace MFM {
 	unreadToken();
       }
 
-    return parseRestOfDecls(typeTok, rtnNode);
+    return parseRestOfDecls(typeTok, typebitsize, rtnNode);
   }
     
 
-  Node * Parser::makeVariableSymbol(Token typeTok, Token identTok)
+  Node * Parser::makeVariableSymbol(Token typeTok, u32 typebitsize, Token identTok)
   {
     assert(! Token::isTokenAType(identTok));  //capitalization check done by Lexer
 
@@ -1217,7 +1304,7 @@ namespace MFM {
 	    arraysize = m_state.getArraySize(ut); //typedef built-in arraysize, no []
 	  }
 
-	if(!lvalNode->installSymbolVariable(typeTok, arraysize, asymptr))
+	if(!lvalNode->installSymbolVariable(typeTok, typebitsize, arraysize, asymptr))
 	  {
 	    if(asymptr)
 	      {
@@ -1247,7 +1334,7 @@ namespace MFM {
   } 
 
 
-  Node * Parser::makeFunctionSymbol(Token typeTok, Token identTok)
+  Node * Parser::makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok)
   {
     // first check that the function name begins with a lower case letter
     if(Token::isTokenAType(identTok))
@@ -1276,7 +1363,7 @@ namespace MFM {
 
     // not in scope, or not yet defined, or possible overloading
     // o.w. build symbol for function: return type + name + parameter symbols
-    Node * rtnNode = makeFunctionBlock(typeTok, identTok);
+    Node * rtnNode = makeFunctionBlock(typeTok, typebitsize, identTok);
 
     // exclude the declaration & definition from the parse tree 
     // (since in SymbolFunction) & return NULL.
@@ -1285,7 +1372,7 @@ namespace MFM {
   }
 
 
-  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(Token typeTok, Token identTok)
+  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok)
   {
     NodeBlockFunctionDefinition * rtnNode = NULL;
 
@@ -1296,7 +1383,7 @@ namespace MFM {
     assert(prevBlock == m_state.m_classBlock);
 
     // o.w. build symbol for function: name, return type, plus arg symbols
-    UTI uti = m_state.getUlamTypeFromToken(typeTok);
+    UTI uti = m_state.getUlamTypeFromToken(typeTok, typebitsize);
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, uti, m_state);
 
     // WAIT for the parameters, so we can add it to the SymbolFunctionName map..
@@ -1487,7 +1574,7 @@ namespace MFM {
   }
 
 
-  Node * Parser::makeTypedefSymbol(Token typeTok, Token identTok)
+  Node * Parser::makeTypedefSymbol(Token typeTok, u32 typebitsize, Token identTok)
   {
     NodeTypedef * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok);
@@ -1500,7 +1587,7 @@ namespace MFM {
 	Symbol * asymptr = NULL;
 	u32 arraysize = 0;
 
-	if(!lvalNode->installSymbolTypedef(typeTok, 0, arraysize, asymptr))
+	if(!lvalNode->installSymbolTypedef(typeTok, typebitsize, arraysize, asymptr))
 	  {
 	    if(asymptr)
 	      {
@@ -1883,7 +1970,7 @@ namespace MFM {
   void Parser::initPrimitiveUlamTypes()
   {
     // initialize primitive UlamTypes, in order!!
-    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), 8);
+    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), 0);
     UTI nidx = m_state.makeUlamType(nkey, Nav);
     assert(nidx == Nav);  //true for primitives
 

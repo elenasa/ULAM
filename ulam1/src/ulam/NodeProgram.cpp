@@ -76,11 +76,14 @@ namespace MFM {
     // label all the class; sets "current" m_currentClassSymbol in CS
     m_state.m_programDefST.labelTableOfClasses();
 
-    // size all the class; sets "current" m_currentClassSymbol in CS
-    while(!m_state.m_programDefST.setBitSizeOfTableOfClasses()){}
+    if(m_state.m_err.getErrorCount() == 0)
+      {
+	// size all the class; sets "current" m_currentClassSymbol in CS
+	while(!m_state.m_programDefST.setBitSizeOfTableOfClasses()){}
 
-    // must happen after type labeling and before code gen; separate pass.
-    m_state.m_programDefST.packBitsForTableOfClasses();
+	// must happen after type labeling and before code gen; separate pass.
+	m_state.m_programDefST.packBitsForTableOfClasses();
+      }
 
     UTI rtnType =  m_root->getNodeType();
     setNodeType(rtnType);   //void type. missing?

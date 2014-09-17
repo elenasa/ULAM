@@ -56,10 +56,12 @@ namespace MFM {
 	//check for incomplete Classes
 	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_INCOMPLETE)
 	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete Var Decl for type: <" << m_state.getUlamTypeNameByIndex(it).c_str() << "> used with variable symbol name <" << getName() << ">";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_state.completeIncompleteClassSymbol(it);
+	    if(! m_state.completeIncompleteClassSymbol(it))
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Var Decl for type: <" << m_state.getUlamTypeNameByIndex(it).c_str() << "> used with variable symbol name <" << getName() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
 	  }
       }
     setNodeType(it);

@@ -18,10 +18,10 @@ namespace MFM {
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("a.ulam","ulam { Int a; Int foo() { return 1; } Int test() { foo() = a; return foo(); } }");
+      bool rtn1 = fms->add("D.ulam","quark D { Int(8) a; Int(8) foo() { return 1; } Int test() { foo() = a; return foo(); } }");
             
       if(rtn1)
-	return std::string("a.ulam");
+	return std::string("D.ulam");
       
       return std::string("");
     }

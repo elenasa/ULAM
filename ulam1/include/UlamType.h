@@ -46,7 +46,7 @@
 namespace MFM{
 
 
-#define XX(a,b) a,
+#define XX(a,b,c) a,
 
   enum ULAMTYPE
   {
@@ -75,7 +75,7 @@ namespace MFM{
     
     const std::string getUlamTypeName(CompilerState * state);
 
-    const std::string getUlamTypeNameBrief(CompilerState * state);
+    virtual const std::string getUlamTypeNameBrief(CompilerState * state);
 
     UTI getUlamTypeIndex();
 

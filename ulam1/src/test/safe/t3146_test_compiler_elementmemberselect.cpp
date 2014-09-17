@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_Foo { Int m_i(4);  Int test() {  Foo f;  f m_i . 3 = f ( 1 )check . m_i 4 = f m_i . return } }\nExit status: 3");
+      return std::string("Ue_Foo { Int(32) m_i(4);  Int(32) test() {  Foo f;  f m_i . 3 = f ( 1 )check . m_i 4 = f m_i . return } }\nExit status: 3");
     }
     
     std::string PresetTest(FileManagerString * fms)
