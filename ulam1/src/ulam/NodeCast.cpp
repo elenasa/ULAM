@@ -41,7 +41,7 @@ namespace MFM {
       {
 	if(!m_state.isScalar(tobeType))
 	  {
-	    MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts, elena", ERR);
+	    MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts, elena", DEBUG);
 
 	    if(!m_state.isScalar(nodeType))
 	      MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast scalar into array", ERR);

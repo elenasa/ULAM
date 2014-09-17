@@ -59,6 +59,9 @@ namespace MFM{
     u32 getUlamKeyTypeSignatureNameId();
     u32 getUlamKeyTypeSignatureBitSize();
     u32 getUlamKeyTypeSignatureArraySize();
+
+    const std::string getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state);
+
     const std::string getUlamKeyTypeSignatureAsString(CompilerState * state);
     static const std::string getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState * state);
 

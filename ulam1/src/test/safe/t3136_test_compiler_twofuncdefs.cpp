@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_A { Int x(15);  Int y(0);  Int test() {  y x ( 4 5 )times = = y ( x x )max = y return } }\nExit status: 0");
+      return std::string("Ue_A { Int(32) x(15);  Int(32) y(0);  Int(32) test() {  y x ( 4 5 )times = = y ( x x )max = y return } }\nExit status: 0");
     }
     
     std::string PresetTest(FileManagerString * fms)

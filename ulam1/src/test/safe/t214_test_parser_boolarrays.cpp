@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_A { Bool a[5](false,false,false,false,true);  Int test() {  a 1 3 +b [] true = 0 return } }\n");
+      return std::string("Ue_A { Bool(1) a[5](false,false,false,false,true);  Int(32) test() {  a 1 3 +b [] true = 0 return } }\n");
     }
     
     std::string PresetTest(FileManagerString * fms)

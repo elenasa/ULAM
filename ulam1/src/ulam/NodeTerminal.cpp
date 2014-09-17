@@ -49,7 +49,7 @@ namespace MFM {
 	    {
 	      std::ostringstream msg;
 	      msg << "Float not supported: <" << numstr << ">, type is Nav";
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      numType = Nav;	
 	    }
 	} 
@@ -63,7 +63,7 @@ namespace MFM {
 	{
 	  std::ostringstream msg;
 	  msg << "Token not a number or boolean: <" << m_token.getTokenString() << ">";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
     

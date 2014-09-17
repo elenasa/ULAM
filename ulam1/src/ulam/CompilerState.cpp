@@ -61,8 +61,9 @@ namespace MFM {
 
     // is this name already a typedef for a complex type?
     ULAMTYPE bUT = getBaseTypeFromToken(typeTok);
+    if(bitsize == 0)
+      bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-    bitsize = ((bitsize == 0 && bUT != Class) ? (bUT == Bool ? BITSPERBOOL : 32) : bitsize); //temporary!!!
     UlamKeyTypeSignature key(typeNameId,bitsize,arraysize);
     UTI uti = Nav;
     if(!isDefined(key,uti))
@@ -240,7 +241,7 @@ namespace MFM {
   }
 
 
-  UTI CompilerState::getUlamTypeFromToken(Token tok)
+  UTI CompilerState::getUlamTypeFromToken(Token tok, u32 typebitsize)
   {
     UTI uti = Nav;
 
@@ -249,9 +250,7 @@ namespace MFM {
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    std::string typeName = getTokenAsATypeName(tok); //Foo, Int, etc
-	    ULAMTYPE bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could Int, Bool, Void;
-	    uti = bUT;  //see Parser primitive assertions
+	    uti = makeUlamType(tok, typebitsize, 0); //assume scalar		
 	  }
 	else
 	  {
@@ -273,6 +272,9 @@ namespace MFM {
     bool rtnBool = false;
     Symbol * asymptr = NULL;
 
+    // e.g. KEYWORDS have no m_dataindex (=0); short-circuit
+    if(nameIdx == 0) return false;
+
     //searched back through all block's ST for idx
     if(alreadyDefinedSymbol(nameIdx, asymptr))
       {
@@ -282,6 +284,7 @@ namespace MFM {
 	    rtnBool = true; 
 	  }
       }
+
     return rtnBool;
   }
 
@@ -439,17 +442,21 @@ namespace MFM {
       {
 	UTI but = csym->getUlamTypeIdx();
 	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
-	assert(bc == UC_ELEMENT || bc == UC_QUARK);
-	((UlamTypeClass *) ict)->setUlamClass(bc);
-#if 0
-	if(getBitSize(but) == 0)
+
+	//e.g. out-of-scope typedef is not a class, return false 
+	if(bc == UC_ELEMENT || bc == UC_QUARK)
 	  {
-	    std::ostringstream msg;
-	    msg << "Bit size still unknown (0) for Class: " << ict->getUlamTypeName(this).c_str();
-	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
-	  }
+	    ((UlamTypeClass *) ict)->setUlamClass(bc);
+#if 0
+	    if(getBitSize(but) == 0)
+	      {
+		std::ostringstream msg;
+		msg << "Bit size still unknown (0) for Class: " << ict->getUlamTypeName(this).c_str();
+		m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+	      }
 #endif
-	rtnB = true;
+	    rtnB = true;
+	  }
       }
     else
       {
@@ -592,7 +599,7 @@ namespace MFM {
 	if(it != Void)
 	  {
 	    std::ostringstream msg;
-	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return Statement is missing";
+	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return Statement is missing; Return type <" << getUlamTypeNameByIndex(it).c_str() << ">";
 	    m_err.buildMessage("", msg.str().c_str(), "MFM::NodeFunctionBlock", "checkAndLabelType", -1, MSG_ERR);
 	    return false;
 	  }

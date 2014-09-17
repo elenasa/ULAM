@@ -47,7 +47,7 @@ namespace MFM{
   class SymbolVariable : public Symbol
   {
   public:
-    SymbolVariable(u32 id, UTI utype, bool packed, CompilerState& state);
+    SymbolVariable(u32 id, UTI utype, PACKFIT packed, CompilerState& state);
     ~SymbolVariable();
 
     virtual s32 getStackFrameSlotIndex();
@@ -58,14 +58,14 @@ namespace MFM{
     u32 getPosOffset();
     void setPosOffset(u32 offsetIntoAtom);
 
-    bool isPacked();
-    void setPacked(bool p);
+    PACKFIT isPacked();
+    void setPacked(PACKFIT p);
 
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype) = 0;
 
   protected:
     u32 m_posOffset;
-    bool m_packed;
+    PACKFIT m_packed;
 
   private:
 

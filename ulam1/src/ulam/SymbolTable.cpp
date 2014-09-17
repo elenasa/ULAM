@@ -133,7 +133,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class <"  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "> was never defined, fails labeling";
 	    MSG("", msg.str().c_str(),ERR);
-	    assert(0);
+	    //assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
+	    break;
 	  }
 	else
 	  {
@@ -159,22 +160,22 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	assert(sym->isClass());
 	if( ((SymbolClass *) sym)->getUlamClass() == UC_INCOMPLETE)
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class <"  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "> was never defined, fails sizing";
-	    //MSG("", msg.str().c_str(),ERR);
-	    MSG("", msg.str().c_str(),INFO);
-	    //assert(0);
-	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //???
-	    
+	    MSG("", msg.str().c_str(), ERR);
+	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	  }
-	//	else
+
+	//else
 	  {
 	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	    assert(classNode);
+	    //if(!classNode) continue; //infinite loop "Incomplete Class <> was never defined, fails sizing"
+
 	    m_state.m_classBlock = classNode;
 	    m_state.m_currentBlock = m_state.m_classBlock;
 
@@ -461,11 +462,15 @@ namespace MFM {
 	  }
 	else
 	  {
-	    u32 arraysize = m_state.getArraySize(sym->getUlamTypeIdx());
-	    if(((SymbolVariable *) sym)->isPacked())
-	      totalsizes += 1;
-	    else	      
-	      totalsizes += (arraysize > 0 ? arraysize : 1);
+	    // typedefs don't contribute to the total bit size
+	    if(!sym->isTypedef())
+	      {
+		u32 arraysize = m_state.getArraySize(sym->getUlamTypeIdx());
+		if(WritePacked(((SymbolVariable *) sym)->isPacked()))
+		  totalsizes += 1;
+		else	      
+		  totalsizes += (arraysize > 0 ? arraysize : 1);
+	      }
 	  }
 	it++;
       }

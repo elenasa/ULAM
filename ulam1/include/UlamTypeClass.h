@@ -71,6 +71,8 @@ namespace MFM{
 
     virtual const std::string getBitSizeTemplateString();
 
+    virtual const std::string getUlamTypeNameBrief(CompilerState * state);
+
    private:
 
     ULAMCLASSTYPE m_class;

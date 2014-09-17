@@ -45,7 +45,7 @@ namespace MFM{
   class SymbolVariableDataMember : public SymbolVariable
   {
   public:
-    SymbolVariableDataMember(u32 id, UTI utype, u32 slot, CompilerState& state);
+    SymbolVariableDataMember(u32 id, UTI utype, PACKFIT packed, u32 slot, CompilerState& state);
     ~SymbolVariableDataMember();
 
     virtual u32 getDataMemberUnpackedSlotIndex();

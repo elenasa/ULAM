@@ -154,17 +154,21 @@ namespace MFM{
 
 
     /** helper for parseTypedef */
-    Node * makeTypedefSymbol(Token typeTok, Token identTok);
+    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, Token identTok);
 
 
     /**
        <DECL> := <TYPE> + <VAR_DECLS>
-       <TYPE> := 'Int' | 'Float' | 'Bool' | <TYPE_IDENT>
+       <TYPE_NAME> := 'Int' | 'Float' | 'Bool' | <TYPE_IDENT>
+       <TYPE> := <TYPE_NAME> | <TYPE_NAME> + '(' + <EXPRESSION> + ')'
+
        <TYPE_IDENT> := /^[A-Z][A-Za-z0-9\_]*
        (when flag is true stops after one decl for function parameters).
     */
     Node * parseDecl(bool parseSingleDecl = false);
 
+    /** helper for parsing type */
+    Node * parseTypeBitsize(Token typeTok);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGNEXPR>)
@@ -246,22 +250,22 @@ namespace MFM{
 	<VAR_DECLS> := <VAR_DECL> | <VAR_DECL> + ',' + <VAR_DECLS>
 	<VAR_DECL> := <LVAL_EXPRESSION>
     */
-    Node * parseRestOfDecls(Token typeTok, Node * dNode);
+    Node * parseRestOfDecls(Token typeTok, u32 typebitsize, Node * dNode);
 
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(Token typeTok, Token identTok);
+    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, Token identTok);
 
 
     /** 
 	<FUNC_DEF>  := <FUNC_DECL> + <BLOCK>
 	<FUNC_DECL> := <TYPE> + <IDENT> + '(' + <FUNC_PARAMS> + ')'
      */
-    Node * makeFunctionSymbol(Token typeTok, Token identTok);
+    Node * makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok);
 
 
     /** helper method */
-    NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, Token identTok);
+    NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok);
     
 
     /**

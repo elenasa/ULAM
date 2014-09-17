@@ -33,6 +33,8 @@
   \gpl
 */
 
+#include "itype.h"
+
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
@@ -71,6 +73,19 @@ namespace MFM {
 #ifndef BASE10
 #define BASE10 (10)
 #endif //BASE10
+
+#ifndef ULAMTYPE_DEFAULTBITSIZE
+
+#define XX(a,b,c) c,
+
+  static const u32 ULAMTYPE_DEFAULTBITSIZE[] = {
+#include "UlamType.inc"
+  };
+  
+#undef XX 
+
+#endif //ULAMTYPE_DEFAULTBITSIZE
+
 
 } //MFM
 
