@@ -14,7 +14,7 @@ namespace MFM {
 
    ULAMTYPE UlamTypeUnary::getUlamTypeEnum()
    {
-     return Int;
+     return Unary;
    }
 
 
@@ -23,13 +23,13 @@ namespace MFM {
     //std::ostringstream ctype;
     //ctype <<  "s" << m_key.getUlamKeyTypeSignatureBitSize(); 
     //return ctype.str();
-    return "int";
+    return "unsigned int";
   }
 
 
   const char * UlamTypeUnary::getUlamTypeAsSingleLowercaseLetter()
   {
-    return "i";
+    return "u";
   }
 
 
@@ -77,19 +77,19 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Bool:
-	{
-	  s32 count1s = PopCount(data);
-	  if(count1s > (s32) (bitsize - count1s))
-	    val = UlamValue::makeImmediate(getUlamTypeIndex(), 1, state); //overwrite val
-	  else
-	    val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val
-	}
-	break;
+	//	{
+	//  s32 count1s = PopCount(data);
+	//  if(count1s > (s32) (bitsize - count1s))
+	//    val = UlamValue::makeImmediate(getUlamTypeIndex(), 1, state); //overwrite val
+	//  else
+	//    val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val
+	//}
+	//break;
       case Int:
 	{
-	  // cast from Int to Unary
+	  // cast from Int->Unary, OR Bool->Unary
 	  u32 count1s = PopCount(data);
-	  val = UlamValue::makeImmediate(getUlamTypeIndex(), count1s, state); //overwrite val
+	  val = UlamValue::makeImmediate(getUlamTypeIndex(), _GetNOnes32(count1s), state); //overwrite val
 	}
 	break;
       case Unary:
@@ -116,7 +116,7 @@ namespace MFM {
   void UlamTypeUnary::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%u", PopCount(data));  //converted to binary
+      sprintf(valstr,"%u", PopCount(data));            //converted to binary
     else
       sprintf(valstr,"%c%u", prefix, PopCount(data));  //converted to binary
   }

@@ -176,15 +176,49 @@ namespace MFM {
   {
     UTI newType = Nav; //init
 
+    //apply equivalence case to both scalars and arrays
+    //if(lt == rt && (ltypEnum != Bool))
+    if(lt == rt)
+      {
+	return lt;  //however, for Bool we wanted Int?
+      }
+
     if( m_state.isScalar(lt) && m_state.isScalar(rt))
       {
-	if(lt == Int && rt == Int)
+	// return appropriate type with larger of left/right bit size
+	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+
+	u32 lbits = m_state.getBitSize(lt);
+	u32 rbits = m_state.getBitSize(rt);
+	if(ltypEnum == Int && rtypEnum == Int)
 	  {
-	    newType = Int;
+	    if(lbits > rbits)
+	      newType = lt;
+	    else
+	      newType = rt;
+	    //newType = Int;
 	  }
-	else if(lt == Bool || rt == Bool)
+	else if(ltypEnum == Bool || rtypEnum == Bool)
 	  {
-	    newType = Int;
+	    u32 newbitsize;
+	    if(lbits > rbits)
+	      newbitsize = lbits;
+	    else
+	      newbitsize = rbits;
+	    //use Int with bit size of the larger (left or right) Bool size
+	    u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(Int));
+	    UlamKeyTypeSignature newkey(enumStrIdx, newbitsize, 0);
+	    newType = m_state.makeUlamType(newkey, Int); //may not exist yet, create  
+	    //newType = Int;
+	  }
+	else if(ltypEnum == Unary && rtypEnum == Unary)
+	  {
+	    if(lbits > rbits)
+	      newType = lt;
+	    else
+	      newType = rt;
+	    //newType = Unary;
 	  }
 	else
 	  {
@@ -192,20 +226,13 @@ namespace MFM {
 	    msg << "Undefined type to use for " << m_state.getUlamTypeNameByIndex(lt).c_str() << " op " << m_state.getUlamTypeNameByIndex(rt);
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
-      }
+      } //both scalars
     else
-      {
-	if(lt == rt)
-	  {
-	    newType = lt;
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary operator" << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-      }    
+      {  //arrays
+	std::ostringstream msg;
+	msg << "Incompatible (nonscalar) types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary operator" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
     return newType;
   }
 
