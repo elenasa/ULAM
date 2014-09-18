@@ -83,7 +83,7 @@ namespace MFM {
 	{
 	  // casting Bool to Bool could improve the bit count!
 	  s32 count1s = PopCount(data);
-	  if(count1s > (s32) (bitsize - count1s))  // == when even number bits is ignored (warning at def)
+	  if(count1s > (s32) (valbitsize - count1s))  // == when even number bits is ignored (warning at def)
 	    newdata = _GetNOnes32(bitsize);        //all ones if true
 	}
 	break;

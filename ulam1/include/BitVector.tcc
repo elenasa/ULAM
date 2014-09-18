@@ -6,6 +6,7 @@
 namespace MFM {
 
 #if 0
+  //constructors disabled for use within UlamValue union
   template <u32 BITS>
   BitVector<BITS>::BitVector()
   {

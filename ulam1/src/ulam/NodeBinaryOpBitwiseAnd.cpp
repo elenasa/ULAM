@@ -86,7 +86,7 @@ namespace MFM {
 
   void NodeBinaryOpBitwiseAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //not used, though could be
+    //assert(0); //not used, though could be
     refUV.putData(pos, len, ldata & rdata);
   }
 
