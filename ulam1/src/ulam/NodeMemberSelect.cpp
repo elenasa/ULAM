@@ -101,11 +101,11 @@ namespace MFM {
     //Symbol * rsymptr = NULL;
     //if(m_nodeRight->getSymbolPtr(rsymptr) && rsymptr->isFunction())
 
-	//assigns rhs to lhs UV pointer (handles arrays);  
-	//also copy result UV to stack, -1 relative to current frame pointer    
-  
-    doBinaryOperation(1, 2, slot);  //????????
+    //assigns rhs to lhs UV pointer (handles arrays);  
+    //also copy result UV to stack, -1 relative to current frame pointer
 
+    if(slot)   //avoid Void's
+      doBinaryOperation(1, 1+slot, slot);  //????????
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
     evalNodeEpilog();
@@ -116,6 +116,7 @@ namespace MFM {
   //for eval, want the value of the rhs 
   void NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
+    assert(slots);
     //the return value of a function call, or value of a data member
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); 
 

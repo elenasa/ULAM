@@ -58,6 +58,7 @@ namespace MFM {
   // since their types must be identical.
   void NodeBinaryOpBitwiseOr::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
+    assert(slots);
     UTI nuti = getNodeType();
     if(m_state.isScalar(nuti))  //not an array
       {

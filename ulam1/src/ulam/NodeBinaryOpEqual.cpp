@@ -80,7 +80,8 @@ namespace MFM {
 
     //assigns rhs to lhs UV pointer (handles arrays);  
     //also copy result UV to stack, -1 relative to current frame pointer    
-    doBinaryOperation(1, 2, slot);
+    if(slot)
+      doBinaryOperation(1, 2, slot);
 
     evalNodeEpilog();
     return NORMAL;
@@ -111,6 +112,7 @@ namespace MFM {
 
   void NodeBinaryOpEqual::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {    
+    assert(slots);
     UTI nuti = getNodeType();
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot);
     UlamValue ruv;

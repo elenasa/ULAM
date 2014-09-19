@@ -192,28 +192,6 @@ namespace MFM {
   }
 
 
-  // MAY replace the UlamType method for ALL!
-  // unlike the other UlamTypes, (base) Class types do not need the bitsize/array in their mangled names,
-  // only the key name and whether they are element or quark.
-  const std::string UlamTypeClass::getUlamTypeMangledName(CompilerState * state)
-  {
-    assert(m_class != UC_INCOMPLETE);
-
-    if(getArraySize()== 0)
-      {
-	std::ostringstream mangled;
-	std::string nstr = m_key.getUlamKeyTypeSignatureName(state);
-	u32 nstrlen = nstr.length();
-
-	mangled << getUlamTypeUPrefix().c_str();
-	mangled << DigitCount(getArraySize(), BASE10) << getArraySize() << DigitCount(getBitSize(), BASE10) << getBitSize();
-	mangled << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
-	return mangled.str();
-      }
-    return UlamType::getUlamTypeMangledName(state);  //e.g. Ut_071313Zot
-  }
-
-
   const std::string UlamTypeClass::getBitSizeTemplateString()
   {
     std::ostringstream mangled;

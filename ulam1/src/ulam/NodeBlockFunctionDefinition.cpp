@@ -143,10 +143,13 @@ namespace MFM {
     s32 arraysize = m_state.getArraySize(nuti);    
     s32 firstArgSlot = -1;
     PACKFIT packFit = m_state.determinePackable(nuti);
-    if(WritePacked(packFit))
-      firstArgSlot--;
-    else
-      firstArgSlot -= (arraysize > 0 ? arraysize: 1);
+    if(nuti != Void)
+      {
+	if(WritePacked(packFit))
+	  firstArgSlot--;
+	else
+	  firstArgSlot -= (arraysize > 0 ? arraysize: 1);
+      }
 
     UlamValue firstArg = m_state.m_funcCallStack.loadUlamValueFromSlot(firstArgSlot);
     assert(firstArg == m_state.m_currentObjPtr);

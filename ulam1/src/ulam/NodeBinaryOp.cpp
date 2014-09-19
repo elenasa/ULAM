@@ -89,7 +89,8 @@ namespace MFM {
       }
 
     //copies return UV to stack, -1 relative to current frame pointer
-    doBinaryOperation(1, 1+slot, slot2);
+    if(slot && slot2)
+      doBinaryOperation(1, 1+slot, slot2);
 
     evalNodeEpilog();
     return NORMAL;

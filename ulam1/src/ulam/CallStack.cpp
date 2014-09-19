@@ -92,7 +92,7 @@ namespace MFM {
 
     s32 leftbaseslot = pluv.getPtrSlotIndex();    //even for scalars
 
-    if(pluv.isTargetPacked() == UNPACKED)       //?
+    if(pluv.isTargetPacked() == UNPACKED)       //???
       {
 	m_frames[m_currentFrame + leftbaseslot] = ruv;  //must be immediate
       }
@@ -106,7 +106,10 @@ namespace MFM {
 	  {
 	    lvalAtIdx.setUlamValueTypeIdx(pluv.getPtrTargetType());
 	  }
-	
+
+	// never is lvalAtIdx a Ptr
+	assert(lvalAtIdx.getUlamValueTypeIdx() != Ptr);
+
 	lvalAtIdx.putDataIntoAtom(pluv, ruv, state);
 	storeUlamValueInSlot(lvalAtIdx, leftbaseslot);
       }
