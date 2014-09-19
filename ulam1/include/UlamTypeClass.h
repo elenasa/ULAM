@@ -61,8 +61,6 @@ namespace MFM{
     
     virtual const std::string getUlamTypeUPrefix();
     
-    virtual const std::string getUlamTypeMangledName(CompilerState * state);
-
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 
     virtual ULAMCLASSTYPE getUlamClass();

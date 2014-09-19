@@ -214,13 +214,14 @@ namespace MFM {
   void Node::assignReturnValueToStack(UlamValue rtnUV, STORAGE where)
   {
     UTI rtnUVtype = rtnUV.getUlamValueTypeIdx(); //==node type
-    if(rtnUVtype == Void)
-      return;
 
     if(rtnUVtype == Ptr)  //unpacked array
       {
 	rtnUVtype = rtnUV.getPtrTargetType();
       }
+
+    if(rtnUVtype == Void)  //check after Ptr target type
+      return;
 
     assert(rtnUVtype == getNodeType());
 

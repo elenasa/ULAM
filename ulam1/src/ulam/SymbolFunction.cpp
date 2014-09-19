@@ -91,10 +91,13 @@ namespace MFM {
       }
 
     // append mangled type name, e.g. 1023213Int, for each parameter
+    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == 0),
+    //        during this parse stage, the key remains consistent.
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	mangled << m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName(&m_state).c_str();
+	UlamType * sut = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx());
+	mangled << sut->getUlamTypeMangledName(&m_state).c_str();
       }
 
     return mangled.str();
@@ -144,6 +147,9 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(sut->getUlamTypeMangledName(&m_state).c_str()); //return type for C++
     //fp->write(getUlamType()->getBitSizeTemplateString().c_str());  //for quark templates
+
+#if 0
+    // might want to permit quarks as return value; if not, then need to prohibit them as local variables.
     if(sut->getUlamClass() == UC_QUARK)
       {
 	std::ostringstream msg;
@@ -151,7 +157,7 @@ namespace MFM {
 	MSG("", msg.str().c_str(), ERR);
 	fp->write("<POS>");
       }
-
+#endif
     fp->write(" ");
     if(!declOnly)
       {
@@ -175,6 +181,9 @@ namespace MFM {
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
 	fp->write(aut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+
+#if 0
+	// might want to permit quark's as args
 	if(aut->getUlamClass() == UC_QUARK)
 	  {
 	    std::ostringstream msg;
@@ -182,6 +191,7 @@ namespace MFM {
 	    MSG("", msg.str().c_str(),ERR);
 	    fp->write("<POS>");
 	  }
+#endif
 
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());

@@ -767,13 +767,11 @@ namespace MFM {
     assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
     UTI tuti = rptr.getPtrTargetType();
 
-    // unless we're copying from different storage classes
-    //assert(!isScalar(lptr.getPtrTargetType()));  //deal w scalars differently
+    // unless we're copying from different storage classes, or an element
+    //assert(!isScalar(lptr.getPtrTargetType()));
 
     //assigned packed or unpacked
     PACKFIT packed = lptr.isTargetPacked();
-
-    //assert(lptr.isTargetPacked() == rptr.isTargetPacked());
     if(packed != rptr.isTargetPacked())
       {
 	std::ostringstream msg;
@@ -799,6 +797,8 @@ namespace MFM {
       {
 	//assign each array element, packed or unpacked
 	u32 arraysize = getArraySize(rptr.getPtrTargetType());
+	arraysize = (arraysize > 0 ? arraysize : 1); //maybe an Element(unpacked)
+
 	UlamValue nextlptr = UlamValue::makeScalarPtr(lptr,*this);
 	UlamValue nextrptr = UlamValue::makeScalarPtr(rptr,*this);
 	tuti = nextrptr.getPtrTargetType(); // update type
@@ -870,8 +870,10 @@ namespace MFM {
       {  //scalar, immediate only...must also allow quark!
 	ULAMCLASSTYPE classtype = getUlamTypeByIndex(aut)->getUlamClass();
 	if(classtype == UC_NOTACLASS || classtype == UC_QUARK)
-	  if(bitsize <= MAXBITSPERINT)  //32
-	    rtn = PACKEDLOADABLE;
+	  {
+	    if(bitsize <= MAXBITSPERINT)  //32
+	      rtn = PACKEDLOADABLE;
+	  }
       }
 
     return rtn;

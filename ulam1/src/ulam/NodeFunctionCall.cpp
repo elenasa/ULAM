@@ -180,7 +180,7 @@ namespace MFM {
 	//adjust index if on the STACK, not for Event Window site
 	s32 nextslot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
 	s32 atomslot = atomPtr.getPtrSlotIndex();
-	s32 adjustedatomslot = atomslot - (nextslot + rtnslots); //negative index
+	s32 adjustedatomslot = atomslot - (nextslot + rtnslots + 1); //negative index; 1 more for atomPtr
 	atomPtr.setPtrSlotIndex(adjustedatomslot);
       }
     // push the "hidden" first arg, and update the current object ptr (restore later)
@@ -193,12 +193,15 @@ namespace MFM {
 
     u32 rtnarraysize = m_state.getArraySize(rtnType);
     PACKFIT rtnpacked = m_state.determinePackable(rtnType);
-
-    if(WritePacked(rtnpacked))
-      assert(rtnslots == 1);
+    if(rtnType == Void)
+      assert(rtnslots == 0);
     else
-      assert(rtnarraysize > 0 ? rtnslots == rtnarraysize : rtnslots == 1);
-
+      {
+	if(WritePacked(rtnpacked))
+	  assert(rtnslots == 1);
+	else
+	  assert(rtnarraysize > 0 ? rtnslots == rtnarraysize : rtnslots == 1);
+      }
 
     //********************************************    
     //*  FUNC CALL HERE!!
