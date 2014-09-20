@@ -110,14 +110,13 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);
 
-    // before processing arguments, get the hidden atom ptr off the top
-    // of the call stack, in order to adjust its index to be relative (negative)
-    // to the upcoming new frame pointer (including all arg and return slots),
-    // and return to the stack as the "first" arg.
-    //UlamValue atomPtr = m_state.m_funcCallStack.popArg();  //could be packed!
+    // before processing arguments, get the "self" atom ptr,
+    // so that arguments will be relative to it, and not the possible 
+    // selected member instance this function body could effect.
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
+    m_state.m_currentObjPtr = m_state.m_currentSelf;
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
-    
     u32 argsPushed = 0;
     EvalStatus evs;
 
@@ -171,9 +170,9 @@ namespace MFM {
     u32 rtnslots = makeRoomForNodeType(rtnType);
 
     // insert "first" hidden arg (adjusted index pointing to atom);
-    // atom index (negative) relative new frame, includes all the pushed args, 
+    // atom index (negative) relative new frame, includes ALL the pushed args, 
     // and upcoming rtnslots: current_atom_index - relative_top_index (+ returns) 
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  // RESTORE *********
     UlamValue atomPtr = m_state.m_currentObjPtr;              //*********
     if(saveCurrentObjectPtr.getPtrStorage() == STACK)
       {
@@ -187,6 +186,9 @@ namespace MFM {
     m_state.m_funcCallStack.pushArg(atomPtr);                 //*********
     argsPushed++;
     m_state.m_currentObjPtr = atomPtr;                        //*********
+
+    UlamValue saveSelf = m_state.m_currentSelf;      // restore upon return from func *****
+    m_state.m_currentSelf = m_state.m_currentObjPtr; // set for subsequent func calls *****
 
     //(con't) push return slot(s) last (on both STACKS for now) 
     makeRoomForNodeType(rtnType, STACK);
@@ -212,6 +214,7 @@ namespace MFM {
 	assert(evs != RETURN);
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
 	m_state.m_currentObjPtr = saveCurrentObjectPtr;    //restore current object ptr *************
+	m_state.m_currentSelf = saveSelf;                  //restore previous self      *****
 	evalNodeEpilog();
 	return evs;
       }
@@ -230,6 +233,7 @@ namespace MFM {
     m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;       //restore current object ptr *************
+    m_state.m_currentSelf = saveSelf;                     //restore previous self      *************
     evalNodeEpilog();                                     //clears out the node eval stack
     return NORMAL;
   }

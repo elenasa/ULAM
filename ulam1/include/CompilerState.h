@@ -112,7 +112,9 @@ namespace MFM{
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type 
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types 
-    UlamValue m_currentObjPtr;     //used in eval of members: data or funcs
+    UlamValue m_currentObjPtr;        //used in eval of members: data or funcs; updated at each '.'
+    UlamValue m_currentSelf;          //used in eval of func calls: updated after args, becomes currentObjPtr for args
+
     u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
 
     CompilerState();

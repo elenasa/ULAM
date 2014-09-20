@@ -317,7 +317,7 @@ namespace MFM {
 
   u32 UlamValue::getDataFromAtom(u32 pos, u32 len) const
   {
-    assert(getUlamValueTypeIdx() == Atom); ///??? not an atom, element?
+    //assert(getUlamValueTypeIdx() == Atom); ///??? not an atom, element?
     return getData(pos,len);
   }
 

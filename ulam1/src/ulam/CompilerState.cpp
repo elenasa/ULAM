@@ -893,8 +893,7 @@ namespace MFM {
     UTI cuti = csym->getUlamTypeIdx();
 
     m_eventWindow.setSiteElementType(c0, cuti);
-    UlamValue objPtr = UlamValue::makePtr(c0.convertCoordToIndex(), EVENTWINDOW, cuti, UNPACKED, *this);
-    m_currentObjPtr =  objPtr;  
+    m_currentSelf = m_currentObjPtr = m_eventWindow.makePtrToCenter();
 
     // set up STACK since func call not called
     m_funcCallStack.pushArg(m_currentObjPtr);                        //hidden arg on STACK
