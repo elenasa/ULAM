@@ -227,4 +227,19 @@ namespace MFM {
     assert(0); //invalid assignment
   }
 
+
+  UlamValue EventWindow::makePtrToCenter()
+  {
+    return makePtrToSite(Coord(0,0));
+  }
+
+
+  UlamValue EventWindow::makePtrToSite(Coord c)
+  {
+    u32 cidx = c.convertCoordToIndex(); 
+    UlamValue ptr = UlamValue::makePtr(cidx, EVENTWINDOW, getSiteElementType(cidx), UNPACKED, m_state);
+    return ptr;
+  }
+
+
 } //MFM

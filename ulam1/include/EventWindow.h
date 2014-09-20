@@ -101,7 +101,8 @@ namespace MFM
     void setSiteElementType(u32 index, UTI type);
     void setSiteElementType(Coord c, UTI type);
 
-
+    UlamValue makePtrToCenter();
+    UlamValue makePtrToSite(Coord c);
 
   private:
     std::map<Coord, Site, less_than_coord> m_diamondOfSites;
