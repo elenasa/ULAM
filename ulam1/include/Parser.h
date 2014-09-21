@@ -167,8 +167,8 @@ namespace MFM{
     */
     Node * parseDecl(bool parseSingleDecl = false);
 
-    /** helper for parsing type */
-    Node * parseTypeBitsize(Token typeTok);
+    /** helper for parsing type; returns bitsize or 0 */
+    u32 parseTypeBitsize(Token typeTok);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGNEXPR>)
@@ -304,7 +304,7 @@ namespace MFM{
        <CAST> := '(' + <TYPE> + ')'
     */
     Node * makeCastNode(Token typeTok);
-
+    Node * parseRestOfCastOrExpression();
 
     /**
        helper method to make assigment nodes

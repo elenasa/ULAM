@@ -57,13 +57,13 @@ namespace MFM {
 	fp->write(" ");
 	fp->write(m_state.m_pool.getDataAsString(asym->getId()).c_str());
 
-	u32 arraysize = 0;
+	s32 arraysize = 0;
 	if(asym->isDataMember() && !asym->isFunction())
 	  {
 	    arraysize = m_state.getArraySize( ((SymbolVariable *) asym)->getUlamTypeIdx());
 	  }
 
-	if(arraysize > 0)
+	if(arraysize > NONARRAYSIZE)
 	  {
 	    fp->write("[");
 	    fp->write_decimal(arraysize);
@@ -136,26 +136,6 @@ namespace MFM {
     
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth());  //local variables on callstack!
 
-#define VERIFYHIDDENARG
-#ifdef VERIFYHIDDENARG
-    // Curious: is m_currentObjPtr the same as the "hidden" first arg on the STACK?
-    UTI nuti = getNodeType();
-    s32 arraysize = m_state.getArraySize(nuti);    
-    s32 firstArgSlot = -1;
-    PACKFIT packFit = m_state.determinePackable(nuti);
-    if(nuti != Void)
-      {
-	if(WritePacked(packFit))
-	  firstArgSlot--;
-	else
-	  firstArgSlot -= (arraysize > 0 ? arraysize: 1);
-      }
-
-    UlamValue firstArg = m_state.m_funcCallStack.loadUlamValueFromSlot(firstArgSlot);
-    assert(firstArg == m_state.m_currentObjPtr);
-    //////////////////////////////////////////////////////
-#endif
-
     EvalStatus evs = m_nextNode->eval();
 
     PACKFIT packRtn = m_state.determinePackable(getNodeType());
@@ -166,13 +146,8 @@ namespace MFM {
 	// save results in the stackframe for caller;
 	// copies each element of the array by value, 
 	// in reverse order ([0] is last at bottom)
-	s32 arraysize = m_state.getArraySize(getNodeType());
-	if(WritePacked(packRtn))
-	  arraysize = -1;
-	else
-	  arraysize = (arraysize > 0 ? -arraysize : -1);
-	
-	rtnUV = UlamValue::makePtr(arraysize, STACK, getNodeType(), packRtn, m_state); //negative to current stack frame pointer
+	s32 slot = m_state.slotsNeeded(getNodeType());
+	rtnUV = UlamValue::makePtr(-slot, STACK, getNodeType(), packRtn, m_state); //negative to current stack frame pointer
       }
     else if (evs == NORMAL)  //no explicit return statement
       {

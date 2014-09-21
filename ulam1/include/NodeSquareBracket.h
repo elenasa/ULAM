@@ -58,8 +58,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual bool installSymbolTypedef(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr);
-    virtual bool installSymbolVariable(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
     virtual const char * getName();
 
@@ -71,7 +71,7 @@ namespace MFM{
 
   private:
     //helper method to install symbol
-    bool getArraysizeInBracket(u32 & rtnArraySize);
+    bool getArraysizeInBracket(s32 & rtnArraySize);
 
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots){}
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);

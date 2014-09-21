@@ -311,19 +311,7 @@ namespace MFM {
       }
 
     // check for Type bitsize specifier
-    Token bTok;
-    u32 typebitsize = 0;
-    getNextToken(bTok);
-    if(bTok.m_type == TOK_OPEN_PAREN)
-      {
-	NodeTypeBitsize * typebitsizeNode = (NodeTypeBitsize *) parseTypeBitsize(pTok);
-	typebitsizeNode->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(pTok));
-	delete typebitsizeNode;  //done with it
-      }
-    else
-      {
-	unreadToken();
-      }
+    u32 typebitsize = parseTypeBitsize(pTok);
     
     getNextToken(iTok);
     //if(getExpectedToken(TOK_IDENTIFIER, iTok))
@@ -691,25 +679,13 @@ namespace MFM {
   Node * Parser::parseTypedef()
   {
     Node * rtnNode = NULL;
-    u32 typebitsize = 0;
     Token pTok;
     getNextToken(pTok);
       
     if(Token::isTokenAType(pTok))
       {
-	Token bTok;
-	getNextToken(bTok);
-	if(bTok.m_type == TOK_OPEN_PAREN)
-	  {
-	    NodeTypeBitsize * typebitsizeNode = (NodeTypeBitsize *) parseTypeBitsize(pTok);
-	    typebitsizeNode->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(pTok));
-	    delete typebitsizeNode;  //done with it
-	  }
-	else
-	  {
-	    unreadToken();
-	  }
-
+	// check for Type bitsize specifier
+	u32 typebitsize = parseTypeBitsize(pTok);
 
 	Token iTok;
 	getNextToken(iTok);
@@ -746,25 +722,15 @@ namespace MFM {
   Node * Parser::parseDecl(bool parseSingleDecl)
   {
     Node * rtnNode = NULL;
-    Token pTok, iTok, bTok;
-    u32 typebitsize = 0;
+    Token pTok, iTok;
 
     getNextToken(pTok);
 
     // should have already known to be true
     assert(Token::isTokenAType(pTok));
 
-    getNextToken(bTok);
-    if(bTok.m_type == TOK_OPEN_PAREN)
-      {
-	NodeTypeBitsize * typebitsizeNode = (NodeTypeBitsize *) parseTypeBitsize(pTok);
-	typebitsizeNode->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(pTok));
-	delete typebitsizeNode;  //done with it
-      }
-    else
-      {
-	unreadToken();
-      }
+    // check for Type bitsize specifier
+    u32 typebitsize = parseTypeBitsize(pTok);
 
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
@@ -790,28 +756,45 @@ namespace MFM {
   }
 
 
-  Node * Parser::parseTypeBitsize(Token typeTok)
+  u32 Parser::parseTypeBitsize(Token typeTok)
   {
-    Node * rtnNode = parseExpression();
-    if(!rtnNode)
+    u32 typebitsize = 0;
+
+    Token bTok;
+    getNextToken(bTok);
+
+    if(bTok.m_type == TOK_OPEN_PAREN)
       {
-	std::ostringstream msg;
-	msg << "Bitsize of Open Paren is missing, type " << typeTok.getTokenString() ;
-	MSG(&typeTok, msg.str().c_str(), ERR);
+	Node * bitsizeNode = parseExpression();
+	if(!bitsizeNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Bitsize of Open Paren is missing, type " << bTok.getTokenString() ;
+	    MSG(&bTok, msg.str().c_str(), ERR);
+	  }
+	else
+	  {
+	    bitsizeNode = new NodeTypeBitsize(bitsizeNode, m_state);
+	    bitsizeNode->setNodeLocation(typeTok.m_locator);
+	    
+	    // eval what we need, and delete the node
+	    ((NodeTypeBitsize *) bitsizeNode)->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(typeTok));
+
+	    delete bitsizeNode;   //done with it!
+	    bitsizeNode = NULL;
+	  }
+
+	if(!getExpectedToken(TOK_CLOSE_PAREN)) 
+	  {
+	    typebitsize = 0;   //?
+	  }
       }
     else
       {
-	rtnNode = new NodeTypeBitsize(rtnNode, m_state);
-	rtnNode->setNodeLocation(typeTok.m_locator);
+	unreadToken(); //not open paren, bitsize is unspecified
       }
-
-    if(!getExpectedToken(TOK_CLOSE_PAREN)) 
-      {
-	delete rtnNode;
-	rtnNode = NULL;
-      }
-
-    return rtnNode;
+    
+    return typebitsize;
   } //parseTypeBitsize
 
 
@@ -1074,25 +1057,7 @@ namespace MFM {
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_OPEN_PAREN:
-	{
-	  //if next token is a type this a user cast, o.w. expression
-	  Token tTok;
-	  getNextToken(tTok);
-	  if(Token::isTokenAType(tTok))
-	    {
-	      rtnNode = makeCastNode(tTok); 
-	    }	      
-	  else
-	    {
-	      unreadToken();
-	      rtnNode = parseExpression();
-	      if(!getExpectedToken(TOK_CLOSE_PAREN)) 
-		{
-		  delete rtnNode;
-		  rtnNode = NULL;
-		}
-	    }
-	}
+	rtnNode = parseRestOfCastOrExpression();
 	break;
       case TOK_MINUS:
       case TOK_PLUS:
@@ -1169,19 +1134,54 @@ namespace MFM {
     return rtnNode;  //parseRestOfFactor
   }
 
+  
+  Node * Parser::parseRestOfCastOrExpression()
+  {
+    Node * rtnNode = NULL;
+    // just saw an open paren..
+    //if next token is a type this a user cast, o.w. expression
+    Token tTok;
+    getNextToken(tTok);
+    if(Token::isTokenAType(tTok))
+      {
+	rtnNode = makeCastNode(tTok);   //also parses its child Factor
+      }
+    else
+      {
+	unreadToken();
+	//rtnNode = parseExpression();  //grammar says assign_expr
+	rtnNode = parseAssignExpr();    //grammar says assign_expr
+	if(!getExpectedToken(TOK_CLOSE_PAREN)) 
+	  {
+	    delete rtnNode;
+	    rtnNode = NULL;
+	  }
+      }
+    return rtnNode;
+  }
+
 
   Node * Parser::makeCastNode(Token typeTok)
   {
     Node * rtnNode = NULL;
-    UTI typeToBe;
 
+    // check for Type bitsize specifier
+    u32 typebitsize = parseTypeBitsize(typeTok);
+
+    // allows for casting to a class (makes class type if newly seen)
+    UTI typeToBe = m_state.getUlamTypeFromToken(typeTok, typebitsize);    
+
+#if 0
+    // this version doesn't allow for the type to be a class. ???
     if(!m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, typeToBe))
       {
 	assert(Token::getSpecialTokenWork(typeTok.m_type) == TOKSP_TYPEKEYWORD);
-	std::string typeName = m_state.getTokenAsATypeName(typeTok); //either primitive or typedef
-	ULAMTYPE UT = UlamType::getEnumFromUlamTypeString(typeName.c_str());
-	typeToBe = UT;
+	//std::string typeName = m_state.getTokenAsATypeName(typeTok); //either primitive or typedef
+	//ULAMTYPE UT = UlamType::getEnumFromUlamTypeString(typeName.c_str());
+	//typeToBe = UT;
+	typeToBe = makeUlamType(typeTok, typebitsize, NONARRAYSIZE); //assume scalar 
       }
+#endif
 
     if(getExpectedToken(TOK_CLOSE_PAREN)) 
       {
@@ -1190,7 +1190,7 @@ namespace MFM {
       }
 
     return rtnNode;
-  }
+  } //makeCastNode
 
 
   Node * Parser::parseRestOfTerm(Node * leftNode)
@@ -1298,7 +1298,7 @@ namespace MFM {
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
 	UTI ut;
-	u32 arraysize = 0;
+	s32 arraysize = NONARRAYSIZE;
 	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, ut))
 	  {
 	    arraysize = m_state.getArraySize(ut); //typedef built-in arraysize, no []
@@ -1399,13 +1399,7 @@ namespace MFM {
     // use space on funcCallStack for return statement.
     // negative for parameters; allot space at top for the return value
     // currently, only scalar; determines start position of first arg "under".
-    u32 returnArraySize = m_state.getArraySize(fsymptr->getUlamTypeIdx());
-    PACKFIT packFit = m_state.determinePackable(fsymptr->getUlamTypeIdx());
-
-    if(WritePacked(packFit))
-      returnArraySize = 1;
-    else
-      returnArraySize = (returnArraySize > 0 ? returnArraySize : 1);
+    s32 returnArraySize = m_state.slotsNeeded(fsymptr->getUlamTypeIdx());
 
     //extra one for "hidden" first arg, Ptr to its Atom
     m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1); 
@@ -1438,7 +1432,7 @@ namespace MFM {
     if(fnSym->getUlamTypeIdx() != fsymptr->getUlamTypeIdx())
       {
 	std::ostringstream msg;
-	msg << "Return Type <"  << m_state.getTokenAsATypeName(typeTok).c_str() << "> does not agree with return type of already defined function '" << m_state.m_pool.getDataAsString(fnSym->getId()) << "' with the same name" ;
+	msg << "Return Type <"  << m_state.getUlamTypeNameByIndex(fsymptr->getUlamTypeIdx()).c_str() << "> does not agree with return type of already defined function '" << m_state.m_pool.getDataAsString(fnSym->getId()) << "' with the same name and return type <" << m_state.getUlamTypeNameByIndex(fnSym->getUlamTypeIdx()).c_str() << ">";
 	MSG(&typeTok, msg.str().c_str(),ERR);
 	delete fsymptr;
 	rtnNode = NULL;
@@ -1502,6 +1496,7 @@ namespace MFM {
     // since the function starts a new "block" (i.e. ST);
     // the argument to parseDecl will prevent it from looking
     // for restofdecls
+    
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
@@ -1585,7 +1580,7 @@ namespace MFM {
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
-	u32 arraysize = 0;
+	s32 arraysize = NONARRAYSIZE;
 
 	if(!lvalNode->installSymbolTypedef(typeTok, typebitsize, arraysize, asymptr))
 	  {

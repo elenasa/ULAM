@@ -130,8 +130,8 @@ namespace MFM {
     
     state->m_currentIndentLevel++;
     
-    u32 arraysize = getArraySize();
-    if(arraysize > 0)
+    s32 arraysize = getArraySize();
+    if(arraysize > NONARRAYSIZE)
       {
 	state->indent(fp);
 	fp->write("struct ");
@@ -146,8 +146,8 @@ namespace MFM {
 	fp->write(" ");  
 	fp->write(getUlamTypeAsSingleLowercaseLetter());
 	
-	u32 arraysize = getArraySize();
-	if( arraysize > 0)
+	s32 arraysize = getArraySize();
+	if( arraysize > NONARRAYSIZE)
 	  {
 	    fp->write("[");
 	    fp->write_decimal(arraysize);
@@ -204,20 +204,20 @@ namespace MFM {
 
   bool UlamType::isScalar()
   {
-    return (m_key.getUlamKeyTypeSignatureArraySize() == 0);
+    return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);
   }
 
 
-  u32 UlamType::getArraySize()
+  s32 UlamType::getArraySize()
   {
     return m_key.getUlamKeyTypeSignatureArraySize();
   }
 
 
-  u32 UlamType::getTotalBitSize()  // arraysize * bitsize
+  s32 UlamType::getTotalBitSize()  // arraysize * bitsize
   {
-    u32 arraysize = getArraySize();
-    arraysize = (arraysize > 0 ? arraysize : 1);
+    s32 arraysize = getArraySize();
+    arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
     return getBitSize() * arraysize;
   }
 

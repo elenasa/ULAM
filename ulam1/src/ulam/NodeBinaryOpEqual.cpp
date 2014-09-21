@@ -32,7 +32,7 @@ namespace MFM {
     if(!m_nodeLeft->isStoreIntoAble())
       {
 	std::ostringstream msg;
-	msg << "Not storeIntoAble: <" << m_nodeLeft->getName() << ">, is type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << ">";
+	msg << "Lefthand side of equals is 'Not StoreIntoAble': <" << m_nodeLeft->getName() << ">, type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(newType);
 	setStoreIntoAble(false);
@@ -146,9 +146,7 @@ namespace MFM {
   {
     assert(slots == 1);
     UTI nuti = getNodeType();
-    u32 arraysize = m_state.getArraySize(nuti);
-    u32 bitsize = m_state.getBitSize(nuti);
-    u32 len = bitsize * (arraysize > 0 ? arraysize : 1);
+    u32 len = m_state.getTotalBitSize(nuti);
 
     // 'pluv' is where the resulting sum needs to be stored
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //a Ptr
@@ -175,8 +173,8 @@ namespace MFM {
     UlamValue rtnUV;
 
     UTI nuti = getNodeType();
-    u32 arraysize = m_state.getArraySize(nuti);
-    u32 bitsize = m_state.getBitSize(nuti);
+    s32 arraysize = m_state.getArraySize(nuti);
+    s32 bitsize = m_state.getBitSize(nuti);
    
     UTI scalartypidx = m_state.getUlamTypeAsScalar(nuti);
     PACKFIT packRtn = m_state.determinePackable(nuti);
@@ -184,8 +182,6 @@ namespace MFM {
     if(WritePacked(packRtn))
       {
 	// pack result too. (slot size known ahead of time)
-	// use bitsize for all zeros in case not loadable
-	//rtnUV = UlamValue::makeImmediate(nuti, 0, bitsize * arraysize); //accumulate result here
 	rtnUV = UlamValue::makeAtom(nuti); //accumulate result here
       }
 
@@ -202,7 +198,7 @@ namespace MFM {
     UlamValue rp = UlamValue::makeScalarPtr(rArrayPtr, m_state);
 
     //make immediate result for each element inside loop
-    for(u32 i = 0; i < arraysize; i++)
+    for(s32 i = 0; i < arraysize; i++)
       {
 	UlamValue luv = m_state.getPtrTarget(lp);
 	UlamValue ruv = m_state.getPtrTarget(rp);

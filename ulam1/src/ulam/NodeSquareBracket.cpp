@@ -27,6 +27,7 @@ namespace MFM {
   }
 
 
+  // used to select an array element; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
   { 
     assert(m_nodeLeft && m_nodeRight);
@@ -43,8 +44,9 @@ namespace MFM {
     }
 
     UTI rightType = m_nodeRight->checkAndLabelType();
-
-    if(rightType != Int)
+    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
+    //some kind of Int..of any bit size
+    if(rtypEnum != Int)
     {
       std::ostringstream msg;
       msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(rightType).c_str() << "> used within " << getName();
@@ -94,11 +96,12 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
-    assert(offset.getUlamValueTypeIdx() == Int);
-    u32 arraysize = m_state.getArraySize(ltype);
-    u32 offsetInt = offset.getImmediateData(m_state);
+    // constant expression only required for array declaration
+    //assert(offset.getUlamValueTypeIdx() == m_state.getUlamTypeOfConstant(Int));
+    s32 arraysize = m_state.getArraySize(ltype);
+    s32 offsetInt = offset.getImmediateData(m_state);
 
-    if(offsetInt >= (s32) arraysize)
+    if(offsetInt >= arraysize)
       {
 	Symbol * lsymptr;
 	u32 lid = 0;
@@ -143,7 +146,8 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
-    assert(offset.getUlamValueTypeIdx() == Int);
+    // constant expression only required for array declaration
+    //assert(offset.getUlamValueTypeIdx() == m_state.getUlamTypeOfConstant(Int));
     u32 offsetInt = offset.getImmediateData(m_state);
 
     //adjust pos by offset * len, according to its scalar type 
@@ -176,7 +180,7 @@ namespace MFM {
 
 
   //see also NodeTerminalIdent
-  bool NodeSquareBracket::installSymbolTypedef(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -186,7 +190,7 @@ namespace MFM {
 	return false;
       }
     
-    u32 newarraysize = 0;
+    s32 newarraysize = 0;
     if(getArraysizeInBracket(newarraysize))
       return m_nodeLeft->installSymbolTypedef(atok, bitsize, newarraysize, asymptr);
    
@@ -195,7 +199,7 @@ namespace MFM {
 
 
   //see also NodeTerminalIdent
-  bool NodeSquareBracket::installSymbolVariable(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -205,7 +209,7 @@ namespace MFM {
 	return false;
       }
     
-    u32 newarraysize = 0;
+    s32 newarraysize = NONARRAYSIZE;
     if(getArraysizeInBracket(newarraysize))
       return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, asymptr);
    
@@ -213,29 +217,31 @@ namespace MFM {
   }
 
 
-  bool NodeSquareBracket::getArraysizeInBracket(u32 & rtnArraySize)
+  bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
   {
     // since square brackets determine the constant size for this type, else error
-    u32 newarraysize = 1;
+    s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
-    if(sizetype == Int)
+    
+    // expect a constant integer
+    if(sizetype == m_state.getUlamTypeOfConstant(Int))
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
 	m_nodeRight->eval();  
 	UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog(); 
-
+	
 	newarraysize = arrayUV.getImmediateData(m_state);
-	if(newarraysize == 0)
+	if(newarraysize == NONARRAYSIZE)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), "Array element specifier in [] is not a constant expression", ERR);
+	    MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
 	    return false;
 	  }
       }
     else
       {
-	MSG(getNodeLocationAsString().c_str(), "Array element specifier in [] is not an integer", ERR);
+	MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a constant integer", ERR);
 	return false;
       }
 

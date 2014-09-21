@@ -141,32 +141,6 @@ namespace MFM {
       {
 	if(m_varSymbol->isDataMember())
 	  {
-	    //#define VERIFYHIDDENARG2
-#ifdef VERIFYHIDDENARG2
-	    {
-	      // Curious: is m_currentObjPtr the same as the "hidden" first arg on the STACK?
-	      UTI futi = m_state.m_currentFunctionReturnType;
-	      s32 firstArgSlot = -1;
-	      PACKFIT packFit = m_state.determinePackable(futi);
-
-	      if(WritePacked(packFit))
-		firstArgSlot--;
-	      else
-		{
-		  s32 arraysize = m_state.getArraySize(futi);    
-		  firstArgSlot -= (arraysize > 0 ? arraysize: 1);
-		}
-	      
-	      UlamValue firstArg = m_state.m_funcCallStack.loadUlamValueFromSlot(firstArgSlot);
-	      assert(firstArg.getUlamValueTypeIdx() == m_state.m_currentObjPtr.getUlamValueTypeIdx());
-	      assert(firstArg.getUlamValueTypeIdx() == Ptr);
-	      assert(firstArg.getPtrTargetType() == m_state.m_currentObjPtr.getPtrTargetType());
-	      assert(firstArg.getPtrStorage() == m_state.m_currentObjPtr.getPtrStorage());
-	      assert(firstArg.getPtrPos() == m_state.m_currentObjPtr.getPtrPos());
-	      //////////////////////////////////////////////////////
-	    }
-#endif
-
 	    // return ptr to this data member within the m_currentObjPtr
 	    // 'pos' modified by this data member symbol's packed bit position
 	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset());
@@ -189,7 +163,7 @@ namespace MFM {
   }
 
 
-  bool NodeTerminalIdent::installSymbolTypedef(Token aTok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
+  bool NodeTerminalIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there; 
     // if so, nothing to install return symbol and false
@@ -222,7 +196,7 @@ namespace MFM {
 
 
   //see also NodeSquareBracket
-  bool NodeTerminalIdent::installSymbolVariable(Token aTok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
+  bool NodeTerminalIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
@@ -284,18 +258,18 @@ namespace MFM {
   SymbolVariable *  NodeTerminalIdent::makeSymbol(UTI aut)
   {
     //adjust decl count and max_depth, used for function definitions
-    u32 arraysize = m_state.getArraySize(aut);
     PACKFIT packit = m_state.determinePackable(aut);
 
     if(m_state.m_currentFunctionBlockDeclSize == 0)
       {
+	// s32 arraysize = m_state.getArraySize(aut);
 	// when current block and class block are the same, this is a data member
 	// assert(m_state.m_currentBlock == (NodeBlock *) m_state.m_classBlock);
 	// assert fails when using a data member inside a function block!!!
 	//UTI but = aut;
 	//
 	// get UlamType for arrays
-	//if(arraysize > 0)
+	//if(arraysize > NONARRAYSIZE)
 	//  {
 	//    but = m_state.getUlamTypeAsScalar(aut);
 	//  }
@@ -311,10 +285,7 @@ namespace MFM {
     //Symbol is a parameter; always on the stack
     if(m_state.m_currentFunctionBlockDeclSize < 0)
       {
-	if(WritePacked(packit))
-	  m_state.m_currentFunctionBlockDeclSize -= 1; //1 slot for scalar or packed array
-	else
-	  m_state.m_currentFunctionBlockDeclSize -= (arraysize > 0 ? arraysize : 1); //1 slot for scalar;
+	  m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(aut); //1 slot for scalar or packed array
 	
 	return (new SymbolVariableStack(m_token.m_dataindex, aut, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
       }
@@ -322,10 +293,7 @@ namespace MFM {
     //(else) Symbol is a local variable, always on the stack 
     SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token.m_dataindex, aut, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
 
-    if(packit)
-      m_state.m_currentFunctionBlockDeclSize += 1;
-    else
-      m_state.m_currentFunctionBlockDeclSize += (arraysize > 0 ? arraysize : 1);
+    m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(aut);
     
     //adjust max depth, excluding parameters and initial start value (=1)
     if(m_state.m_currentFunctionBlockDeclSize - 1 > m_state.m_currentFunctionBlockMaxDepth)

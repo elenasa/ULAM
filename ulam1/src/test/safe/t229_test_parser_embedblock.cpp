@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //return std::string(" { Int j(5);  j 1 3 +b = { j j 1 +b = Float j(8.400000);  j 2.1 4 cast * = <EMPTYSTMT> Bool b(false);  b j cast ! = } Int(32) i(0);  i<NULLRIGHT> = }\n");
-      return std::string("Ue_A { Int(32) j(5);  Bool(1) b(false);  Int(32) i(0);  Int(32) test() {  j 1 3 +b = { j j 1 +b = Int(32) j;  j 2 4 * = b j cast ! = } i b cast = j return } }\n");
+      return std::string("Ue_A { Int(32) j(5);  Bool(1) b(false);  Int(32) i(0);  Int(32) test() {  j 1 3 +b cast = { j j cast 1 +b cast = Int(32) j;  j 2 4 * cast = b j cast ! = } i b cast = j return } }\n");
     }
     
     std::string PresetTest(FileManagerString * fms)

@@ -18,8 +18,8 @@ namespace MFM {
     fp->write(" ");
     fp->write(getName());
 
-    u32 arraysize = m_state.getArraySize(m_varSymbol->getUlamTypeIdx());
-    if(arraysize > 0)
+    s32 arraysize = m_state.getArraySize(m_varSymbol->getUlamTypeIdx());
+    if(arraysize > NONARRAYSIZE)
       {
 	fp->write("[");
 	fp->write_decimal(arraysize);
@@ -147,8 +147,8 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledName().c_str());
     
 #if 0
-    u32 arraysize = vut->getArraySize();
-    if(arraysize > 0)
+    s32 arraysize = vut->getArraySize();
+    if(arraysize > NONARRAYSIZE)
       {
 	fp->write("[");
 	fp->write_decimal(arraysize);

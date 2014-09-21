@@ -122,7 +122,7 @@ namespace MFM{
 
     void clearAllDefinedUlamTypes();
 
-    UTI makeUlamType(Token typeTok, u32 bitsize, u32 arraysize);
+    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, UTI uti, ULAMTYPE utype);
@@ -139,10 +139,16 @@ namespace MFM{
 
     /** turns array into its single element type */
     UTI getUlamTypeAsScalar(UTI utArg); 
+    UTI getUlamTypeOfConstant(ULAMTYPE etype);
+    bool isConstant(UTI uti);
+
     bool isScalar(UTI utArg);
-    u32 getArraySize(UTI utArg);
-    u32 getBitSize(UTI utArg);
+    s32 getArraySize(UTI utArg);
+    s32 getBitSize(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
+
+    u32 getTotalBitSize(UTI utArg);
+    s32 slotsNeeded(UTI uti);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false

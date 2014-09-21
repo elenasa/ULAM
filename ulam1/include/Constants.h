@@ -74,8 +74,8 @@ namespace MFM {
 #define BASE10 (10)
 #endif //BASE10
 
-#ifndef ULAMTYPE_DEFAULTBITSIZE
 
+#ifndef ULAMTYPE_DEFAULTBITSIZE
 #define XX(a,b,c) c,
 
   static const u32 ULAMTYPE_DEFAULTBITSIZE[] = {
@@ -83,8 +83,16 @@ namespace MFM {
   };
   
 #undef XX 
-
 #endif //ULAMTYPE_DEFAULTBITSIZE
+
+
+#ifndef ANYBITSIZECONSTANT
+#define ANYBITSIZECONSTANT (-1)
+#endif //ANYBITSIZECONSTANT
+
+#ifndef NONARRAYSIZE
+#define NONARRAYSIZE (-1)
+#endif //NONARRAYSIZE
 
 
 } //MFM
