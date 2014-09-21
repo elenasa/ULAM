@@ -42,8 +42,7 @@ namespace MFM {
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	u32 arraysize = m_state.getArraySize(sym->getUlamTypeIdx());
-	totalsizes += (arraysize > 0 ? arraysize : 1);
+	totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
       }
     return totalsizes; 
   }
@@ -117,10 +116,16 @@ namespace MFM {
     //next match types; order counts!
     for(u32 i=0; i < numArgs; i++)
       {
-	if(m_parameterSymbols.at(i)->getUlamTypeIdx() != argTypes[i])
+	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
+	if( puti != argTypes[i])
 	  {
-	    rtnBool = false;
-	    break;
+	    //constants can match any bit size
+	    ULAMTYPE ptypEnum = m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum();
+	    if(argTypes[i] != m_state.getUlamTypeOfConstant(ptypEnum))
+	      {
+		rtnBool = false;
+		break;
+	      }
 	  }
       }
 

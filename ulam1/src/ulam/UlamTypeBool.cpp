@@ -33,7 +33,7 @@ namespace MFM {
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();    
-    u32 arraysize = getArraySize();
+    s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
@@ -43,8 +43,8 @@ namespace MFM {
       }
     
     //change the size first of tobe, if necessary
-    u32 bitsize = getBitSize();
-    u32 valbitsize = state.getBitSize(valtypidx);
+    s32 bitsize = getBitSize();
+    s32 valbitsize = state.getBitSize(valtypidx);
     
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     ULAMTYPE typEnum = getUlamTypeEnum();
@@ -55,7 +55,7 @@ namespace MFM {
 	//change to val's size, within the TOBE current type; 
 	//get string index for TOBE enum type string
 	u32 enumStrIdx = state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
-	UlamKeyTypeSignature vkey1 = UlamKeyTypeSignature(enumStrIdx, valbitsize, arraysize);
+	UlamKeyTypeSignature vkey1(enumStrIdx, valbitsize, arraysize);
 	UTI vtype1 = state.makeUlamType(vkey1, typEnum); //may not exist yet, create  
 	
 	if(!(state.getUlamTypeByIndex(vtype1)->cast(val,state))) //val changes!!!
@@ -81,10 +81,18 @@ namespace MFM {
 	break;
       case Bool:
 	{
-	  // casting Bool to Bool could improve the bit count!
-	  s32 count1s = PopCount(data);
-	  if(count1s > (s32) (valbitsize - count1s))  // == when even number bits is ignored (warning at def)
-	    newdata = _GetNOnes32(bitsize);        //all ones if true
+	  if(state.isConstant(valtypidx))
+	    {
+	      if(data != 0) //signed or unsigned
+		newdata = _GetNOnes32(bitsize);  //all ones if true
+	    }
+	  else
+	    {
+	      // casting Bool to Bool could improve the bit count!
+	      s32 count1s = PopCount(data);
+	      if(count1s > (s32) (valbitsize - count1s))  // == when even number bits is ignored (warning at def)
+		newdata = _GetNOnes32(bitsize);        //all ones if true
+	    }
 	}
 	break;
       default:

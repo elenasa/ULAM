@@ -6,12 +6,12 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //D.ulam:1:68: ERROR: Incomplete Var Decl for type: <Bar.0.0> used with variable symbol name <f>.
-      //D.ulam:1:76: ERROR: Invalid Type: <Bar.0.0> used with [].
-      //D.ulam:1:80: ERROR: Not storeIntoAble: <[]>, is type: <Nav.0.0>.
-      //D.ulam:1:118: ERROR: Invalid Type: <Bar.0.0> used with [].
-      //D.ulam:1:118: ERROR: Invalid Type: <Bar.0.0> used with [].
-      // ERROR: Incomplete Class <Bar.0.0> was never defined, fails labeling.
+      //D.ulam:1:68: ERROR: Incomplete Var Decl for type: <Bar.0.-1> used with variable symbol name <f>.
+      //D.ulam:1:76: ERROR: Invalid Type: <Bar.0.-1> used with [].
+      //D.ulam:1:80: ERROR: Not storeIntoAble: <[]>, is type: <Nav.0.-1>.
+      //D.ulam:1:118: ERROR: Invalid Type: <Bar.0.-1> used with [].
+      //D.ulam:1:118: ERROR: Invalid Type: <Bar.0.-1> used with [].
+      // ERROR: Incomplete Class <Bar.0.-1> was never defined, fails labeling.
       //D.ulam:1:11: fyi: 6 TOO MANY TYPELABEL ERRORS.
       //Unrecoverable Program Type Label FAILURE.
       return std::string("Ue_D { Int(32) test() {  { typedef Int(32) Bar[2];  Bar e[2];  e 0 [] 4 = } 3 } }\n");

@@ -36,13 +36,11 @@ namespace MFM {
   UTI NodeTerminal::checkAndLabelType()
   {
     UTI newType = Nav;  //init
-    ULAMTYPE numType = Nav;
 
     switch(m_token.m_type)
       {
       case TOK_NUMBER:
 	{
-	  numType = Int;
 	  std::string numstr = getName();
 	  std::size_t found = numstr.find('.');
 	  if ( found != std::string::npos)
@@ -50,14 +48,20 @@ namespace MFM {
 	      std::ostringstream msg;
 	      msg << "Float not supported: <" << numstr << ">, type is Nav";
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      numType = Nav;	
+	      newType = Nav;
 	    }
-	} 
+	  else
+	    {
+	      newType = m_state.getUlamTypeOfConstant(Int);  	  // a constant Int
+	    }
+	}
 	break;
 	
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
-	numType = Bool;
+	{
+	  newType = m_state.getUlamTypeOfConstant(Bool);  	  // a constant Bool
+	}
 	break;
       default:
 	{
@@ -67,7 +71,6 @@ namespace MFM {
 	}
       };
     
-    newType = numType;
     setNodeType(newType);
     
     setStoreIntoAble(false);
@@ -91,11 +94,11 @@ namespace MFM {
 	  char * nEnd;
 	  
 	  UTI typidx = getNodeType();
-	  
-	  if (typidx == Int)
+	  ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+	  if (typEnum == Int)
 	    {
 	      s32 numval = strtol(numlist, &nEnd, 10);   //base 10
-	      rtnUV = UlamValue::makeImmediate(Int, numval, m_state); 
+	      rtnUV = UlamValue::makeImmediate(typidx, numval, m_state); 
 	      break;
 	    }
  
@@ -105,10 +108,10 @@ namespace MFM {
 	}
 	break;
       case TOK_KW_TRUE:
-	rtnUV = UlamValue::makeImmediate(Bool, true, m_state); 
+	rtnUV = UlamValue::makeImmediate(getNodeType(), true, m_state); 
 	break;
       case TOK_KW_FALSE:
-	rtnUV = UlamValue::makeImmediate(Bool, false, m_state); 
+	rtnUV = UlamValue::makeImmediate(getNodeType(), false, m_state); 
 	break;
       default:
 	{

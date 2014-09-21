@@ -56,18 +56,24 @@ namespace MFM {
     //assert(m_funcSymbol == NULL);
     SymbolFunction * funcSymbol = NULL;
     Symbol * fnsymptr = NULL;
+
+    //label argument types; used to pinpoint the exact function symbol in case of overloading
+    std::vector<UTI> argTypes;
+    u32 constantArgs = 0;
+
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
-	//label argument types; used to pinpoint the exact function symbol in case of overloading
-	std::vector<UTI> argTypes;
-
 	for(u32 i = 0; i < m_argumentNodes.size(); i++)
 	  {
 	    UTI argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
 	    argTypes.push_back(argtype);
+	    // track constants and potential casting to be handled
+	    if(m_state.isConstant(argtype)) 
+	      constantArgs++;
 	  }
 	
 	// still need to pinpoint the SymbolFunction for m_funcSymbol! currently requires exact match
+	// (let constant match any size of same type)
 	if(!((SymbolFunctionName *) fnsymptr)->findMatchingFunction(argTypes, funcSymbol))
 	  {
 	    std::ostringstream msg;
@@ -93,9 +99,28 @@ namespace MFM {
 	assert(m_funcSymbol == funcSymbol);
 
 	it = m_funcSymbol->getUlamTypeIdx();
+	setNodeType(it);
+
+	// insert casts of constant args, now that we have a "matching" function symbol
+	if(constantArgs > 0)
+	  {
+	    u32 argsWithCast = 0;
+	    for(u32 i = 0; i < m_argumentNodes.size(); i++)
+	      {
+		if(m_state.isConstant(argTypes[i]))
+		  {
+		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
+		    UTI ptype = psym->getUlamTypeIdx();
+		    m_argumentNodes[i] = new NodeCast(m_argumentNodes[i], ptype, m_state);
+		    m_argumentNodes[i]->setNodeLocation(getNodeLocation());
+		    m_argumentNodes[i]->checkAndLabelType();
+		    argsWithCast++;
+		  }
+	      }
+	    assert(argsWithCast == constantArgs);
+	  }
       }
-    
-    setNodeType(it);
+   
     return it;
   }
 
@@ -167,7 +192,7 @@ namespace MFM {
 
     //before pushing return slot(s) last (on both STACKS for now) 
     UTI rtnType = m_funcSymbol->getUlamTypeIdx();
-    u32 rtnslots = makeRoomForNodeType(rtnType);
+    s32 rtnslots = makeRoomForNodeType(rtnType);
 
     // insert "first" hidden arg (adjusted index pointing to atom);
     // atom index (negative) relative new frame, includes ALL the pushed args, 
@@ -193,17 +218,7 @@ namespace MFM {
     //(con't) push return slot(s) last (on both STACKS for now) 
     makeRoomForNodeType(rtnType, STACK);
 
-    u32 rtnarraysize = m_state.getArraySize(rtnType);
-    PACKFIT rtnpacked = m_state.determinePackable(rtnType);
-    if(rtnType == Void)
-      assert(rtnslots == 0);
-    else
-      {
-	if(WritePacked(rtnpacked))
-	  assert(rtnslots == 1);
-	else
-	  assert(rtnarraysize > 0 ? rtnslots == rtnarraysize : rtnslots == 1);
-      }
+    assert(rtnslots == m_state.slotsNeeded(rtnType));
 
     //********************************************    
     //*  FUNC CALL HERE!!
@@ -226,7 +241,7 @@ namespace MFM {
     // before arriving here! And may be ignored at this point.
  
     //positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
-    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, rtnpacked, m_state);
+    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
 
     assignReturnValueToStack(rtnPtr);                     //into return space on eval stack;
 

@@ -101,9 +101,7 @@ namespace MFM {
   {
     assert(slots == 1);
     UTI nuti = getNodeType();
-    u32 arraysize = m_state.getArraySize(nuti);
-    u32 bitsize = m_state.getBitSize(nuti);
-    u32 len = bitsize * (arraysize > 0 ? arraysize : 1);
+    u32 len = m_state.getTotalBitSize(nuti);
 
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value                  
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value                  
@@ -120,18 +118,16 @@ namespace MFM {
     UlamValue rtnUV;
 
     UTI nuti = getNodeType();
-    u32 arraysize = m_state.getArraySize(nuti);
-    u32 bitsize = m_state.getBitSize(nuti);
-   
+    s32 arraysize = m_state.getArraySize(nuti);
+    s32 bitsize = m_state.getBitSize(nuti);
+    assert (bitsize > ANYBITSIZECONSTANT); //sure to bite!
+
     UTI scalartypidx = m_state.getUlamTypeAsScalar(nuti);
     PACKFIT packRtn = m_state.determinePackable(nuti);
 
     if(WritePacked(packRtn))
       {
 	// pack result too. (slot size known ahead of time)
-	//rtnUV = UlamValue::makeImmediate(nuti, 0, bitsize * arraysize); //accumulate result here
-	// exclude arraysize when init to zero's in case it is unloadable
-	//rtnUV = UlamValue::makeImmediate(nuti, 0, bitsize); //accumulate result here
 	rtnUV = UlamValue::makeAtom(nuti); //accumulate result here
       }
 
@@ -144,7 +140,7 @@ namespace MFM {
     UlamValue rp = UlamValue::makeScalarPtr(rArrayPtr, m_state);
 
     //make immediate result for each element inside loop
-    for(u32 i = 0; i < arraysize; i++)
+    for(s32 i = 0; i < arraysize; i++)
       {
 	UlamValue luv = m_state.getPtrTarget(lp);
 	UlamValue ruv = m_state.getPtrTarget(rp);
@@ -192,15 +188,14 @@ namespace MFM {
 
 	u32 lbits = m_state.getBitSize(lt);
 	u32 rbits = m_state.getBitSize(rt);
-	if(ltypEnum == Int && rtypEnum == Int)
+	if(ltypEnum == Int && rtypEnum == Int)	        //newType = Int
 	  {
 	    if(lbits > rbits)
 	      newType = lt;
 	    else
 	      newType = rt;
-	    //newType = Int;
 	  }
-	else if(ltypEnum == Bool || rtypEnum == Bool)
+	else if(ltypEnum == Bool || rtypEnum == Bool)  //newType = Int
 	  {
 	    u32 newbitsize;
 	    if(lbits > rbits)
@@ -209,17 +204,15 @@ namespace MFM {
 	      newbitsize = rbits;
 	    //use Int with bit size of the larger (left or right) Bool size
 	    u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(Int));
-	    UlamKeyTypeSignature newkey(enumStrIdx, newbitsize, 0);
+	    UlamKeyTypeSignature newkey(enumStrIdx, newbitsize);
 	    newType = m_state.makeUlamType(newkey, Int); //may not exist yet, create  
-	    //newType = Int;
 	  }
-	else if(ltypEnum == Unary && rtypEnum == Unary)
+	else if(ltypEnum == Unary && rtypEnum == Unary)  //newType = Unary
 	  {
 	    if(lbits > rbits)
 	      newType = lt;
 	    else
 	      newType = rt;
-	    //newType = Unary;
 	  }
 	else
 	  {

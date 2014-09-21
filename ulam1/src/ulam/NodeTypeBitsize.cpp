@@ -35,7 +35,7 @@ namespace MFM {
   {
     UTI it = Nav;
     it = m_node->checkAndLabelType();
-    assert(it == Int);
+    assert(it == m_state.getUlamTypeOfConstant(Int));
     setNodeType(it);
     return getNodeType();
   }
@@ -53,9 +53,9 @@ namespace MFM {
   // guards against even Bool's.
   bool NodeTypeBitsize::getTypeBitSizeInParen(u32& rtnBitSize, ULAMTYPE BUT)
   {
-    u32 newbitsize = 1;
+    u32 newbitsize = ANYBITSIZECONSTANT;
     UTI sizetype = checkAndLabelType();
-    if(sizetype == Int)
+    if(sizetype == m_state.getUlamTypeOfConstant(Int))
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
@@ -64,11 +64,11 @@ namespace MFM {
 	evalNodeEpilog();     
 	
 	newbitsize = bitUV.getImmediateData(m_state);
-	if(newbitsize == 0)
-	  {
-	    MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not a constant expression", ERR);
-	    return false;
-	  }
+	//if(newbitsize == 0)
+	//  {
+	//    MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not a constant expression", ERR);
+	//    return false;
+	//  }
 	
 	// warn against even Bool bits, and reduce by 1.
 	if(BUT == Bool && ((newbitsize % 2) == 0) )
@@ -81,7 +81,7 @@ namespace MFM {
       }
     else
       {
-	MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not an integer", ERR);
+	MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not a constant expression", ERR);
 	return false;
       }
 

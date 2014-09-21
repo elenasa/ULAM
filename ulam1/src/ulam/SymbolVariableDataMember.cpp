@@ -53,8 +53,8 @@ namespace MFM {
     fp->write(getMangledName().c_str());
 
 #if 0
-    u32 arraysize = vut->getArraySize();
-    if(arraysize > 0)
+    s32 arraysize = vut->getArraySize();
+    if(arraysize > NONARRAYSIZE)
       {
 	fp->write("[");
 	fp->write_decimal(arraysize);
@@ -77,63 +77,46 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
 
-    u32 arraysize = vut->getArraySize();
-    arraysize = arraysize > 0 ? arraysize : 1;
-    u32 bitlen = vut->getBitSize();
-    PACKFIT packFit = m_state.determinePackable(vuti);
+    s32 arraysize = m_state.getArraySize(vuti);
+    //scalar has 'size=1'; empty array [0] is still '0'.
+    s32 size = (arraysize > NONARRAYSIZE ? arraysize : 1); 
 
+    PACKFIT packFit = m_state.determinePackable(vuti);
     assert(WritePacked(packFit));   //has to be to fit in an atom/site; 
 
+    char * valstr = new char[size * 8 + 32];
 
-    char * valstr = new char[arraysize * 8 + 32];
-
-    //simplifying assumption for testing purposes: center site
-    Coord c0(0,0);
-    u32 slot = c0.convertCoordToIndex();
-
-#if 0
-    //build the string of values (for both scalar and packed array)
-    UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, m_state.determinePackable(vuti), m_state, ATOMFIRSTSTATEBITPOS + getPosOffset());
-    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
-    
-    UlamValue atval = m_state.getPtrTarget(nextPtr);
-    u32 data = atval.getData(nextPtr.getPtrPos(), nextPtr.getPtrLen());
-    sprintf(valstr,"%d", data);
-    
-    for(u32 i = 1; i < arraysize; i++)
+    if(size > 0)
       {
-	char tmpstr[8];
-	nextPtr.incrementPtr(m_state);
-	atval = m_state.getPtrTarget(nextPtr);
-	data = atval.getData(nextPtr.getPtrPos(), nextPtr.getPtrLen());
-	sprintf(tmpstr,",%d", data); 
-	strcat(valstr,tmpstr);
-      }
-#endif
-
-    //build the string of values (for both scalar and packed array)
-    UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, m_state.determinePackable(vuti), m_state, ATOMFIRSTSTATEBITPOS + getPosOffset());
-    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
-    
-    UlamValue atval = m_state.getPtrTarget(nextPtr);
-    //u32 data = atval.getData(nextPtr.getPtrPos(), nextPtr.getPtrLen());
-    u32 data = atval.getDataFromAtom(nextPtr, m_state);
-    vut->getDataAsString(data, valstr, 'z', m_state);
-    
-    for(u32 i = 1; i < arraysize; i++)
-      {
-	char tmpstr[8];
-	nextPtr.incrementPtr(m_state);
-	atval = m_state.getPtrTarget(nextPtr);
-	//data = atval.getData(nextPtr.getPtrPos(), nextPtr.getPtrLen());
+	//simplifying assumption for testing purposes: center site
+	Coord c0(0,0);
+	u32 slot = c0.convertCoordToIndex();
+	
+	//build the string of values (for both scalar and packed array)
+	UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, packFit, m_state, ATOMFIRSTSTATEBITPOS + getPosOffset());
+	UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
+	
+	UlamValue atval = m_state.getPtrTarget(nextPtr);
 	u32 data = atval.getDataFromAtom(nextPtr, m_state);
-	vut->getDataAsString(data, tmpstr, ',', m_state);
-	strcat(valstr,tmpstr);
+	vut->getDataAsString(data, valstr, 'z', m_state); //'z' -> no preceeding ','
+	
+	for(s32 i = 1; i < size; i++)
+	  {
+	    char tmpstr[8];
+	    nextPtr.incrementPtr(m_state);
+	    atval = m_state.getPtrTarget(nextPtr);
+	    data = atval.getDataFromAtom(nextPtr, m_state);
+	    vut->getDataAsString(data, tmpstr, ',', m_state);
+	    strcat(valstr,tmpstr);
+	  }
+      } //end arrays > 0, and scalar
+    else
+      {
+	sprintf(valstr," ");
       }
-
 
     //output the arraysize (optional), and results
-    if(arraysize > 1)
+    if(arraysize > NONARRAYSIZE)
       {
 	fp->write("[");
 	fp->write_decimal(arraysize);

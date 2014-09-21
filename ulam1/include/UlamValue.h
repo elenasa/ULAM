@@ -70,7 +70,7 @@ namespace MFM{
 	s16 m_slotIndex;
 	UTI m_utypeIdx;
 	u8  m_posInAtom;
-	u8  m_bitlenInAtom;
+	s8  m_bitlenInAtom;
 	u8  m_storage; //STORAGE
 	u8  m_packed;  //PACKFIT
 	u16 m_targetType;
@@ -98,7 +98,7 @@ namespace MFM{
     // starts at the end per utype bits
     static UlamValue makeImmediate(UTI utype, u32 v, CompilerState& state);
 
-    static UlamValue makeImmediate(UTI utype, u32 v, u32 len = 32);
+    static UlamValue makeImmediate(UTI utype, u32 v, s32 len = 32);
 
     // returns a pointer to an UlamValue of type targetType; pos==0 determined from targettype
     static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos = 0);
@@ -125,7 +125,7 @@ namespace MFM{
 
     u32 getPtrPos();        
 
-    u32 getPtrLen();        
+    s32 getPtrLen();
 
     UTI getPtrTargetType(); 
 
@@ -137,11 +137,11 @@ namespace MFM{
 
     u32 getDataFromAtom(UlamValue p, CompilerState& state) const;
 
-    u32 getDataFromAtom(u32 pos, u32 len) const;
+    u32 getDataFromAtom(u32 pos, s32 len) const;
 
     u32 getImmediateData(CompilerState& state) const;
 
-    u32 getImmediateData(u32 len = 32) const;
+    u32 getImmediateData(s32 len = 32) const;
 
     void putDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
     //void putDataIntoAtom(UlamValue srcPtr, UlamValue srcData, UlamValue destPtr, CompilerState& state);
@@ -150,9 +150,9 @@ namespace MFM{
     void putPackedArrayDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
     //void putPackedArrayDataIntoAtom(UlamValue srcPtr, UlamValue srcData, UlamValue destPtr, CompilerState& state);
 
-    u32 getData(u32 pos, u32 len) const;
+    u32 getData(u32 pos, s32 len) const;
 
-    void putData(u32 pos, u32 len, u32 data);
+    void putData(u32 pos, s32 len, u32 data);
 
     UlamValue& operator=(const UlamValue& rhs);
 

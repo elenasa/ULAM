@@ -93,12 +93,12 @@ namespace MFM {
     return false;
   }
 
-  bool Node::installSymbolTypedef(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
+  bool Node::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     return false;
   }
 
-  bool Node::installSymbolVariable(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
+  bool Node::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     return false;
   }
@@ -136,14 +136,8 @@ namespace MFM {
     if(type == Void)
       return 0;
 
-    u32 slots;
-    u32 arraysize = m_state.getArraySize(type);
-    PACKFIT packRtn = m_state.determinePackable(type);
-    if(WritePacked(packRtn))
-      slots = makeRoomForSlots(1, where);  //=1 for scalar or packed array
-    else
-      slots = makeRoomForSlots((arraysize > 0 ? arraysize : 1), where);  //=1 for scalar
-
+    u32 slots = m_state.slotsNeeded(type);
+    makeRoomForSlots(slots, where);  //=1 for scalar or packed array
     return slots;
   }
 
@@ -225,19 +219,13 @@ namespace MFM {
 
     assert(rtnUVtype == getNodeType());
 
-    u32 rtnUVarraysize = m_state.getArraySize(rtnUVtype);
-    PACKFIT packedRtn = m_state.determinePackable(rtnUVtype);
-    s32 arraysize;
     // save results in the stackframe for caller;
     // copies each element of the 'unpacked' array by value, 
     // in reverse order ([0] is last at bottom)
-    if(WritePacked(packedRtn))
-      arraysize = -1;
-    else
-      arraysize = (rtnUVarraysize > 0 ? -rtnUVarraysize : -1); 
+    s32 slots = m_state.slotsNeeded(rtnUVtype);
 
     //where to put the return value..'return' statement uses STACK
-    UlamValue rtnPtr = UlamValue::makePtr(arraysize, where, rtnUVtype, packedRtn, m_state);
+    UlamValue rtnPtr = UlamValue::makePtr(-slots, where, rtnUVtype, m_state.determinePackable(rtnUVtype), m_state);
     m_state.assignValue(rtnPtr, rtnUV);
   }
 

@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string(" D.ulam:1:35: ERROR: Incompatible (nonscalar) types, LHS: <Int.16.3>, RHS: <Int.16.0> for binary operator+.\n");
+      return std::string(" D.ulam:1:35: ERROR: Incompatible (nonscalar) types, LHS: <Int.16.3>, RHS: <Int.16.-1> for binary operator+.\n");
     }
     
     std::string PresetTest(FileManagerString * fms)

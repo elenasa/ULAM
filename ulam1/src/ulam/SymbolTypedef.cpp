@@ -32,8 +32,8 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
 
-    u32 arraysize = m_state.getArraySize(tuti);
-    if(arraysize > 0)
+    s32 arraysize = m_state.getArraySize(tuti);
+    if(arraysize > NONARRAYSIZE)
       {
 	fp->write("[");
 	fp->write_decimal(arraysize);

@@ -34,7 +34,7 @@ namespace MFM {
   {
     bool brtn = true;    
     UTI valtypidx = val.getUlamValueTypeIdx();    
-    u32 arraysize = getArraySize();
+    s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;

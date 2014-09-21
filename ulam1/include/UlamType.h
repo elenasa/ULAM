@@ -105,11 +105,11 @@ namespace MFM{
 
     //for name by index see CompilerState::getUlamTypeNameByIndex
 
-    bool isScalar(); //arraysize == 0 is scalar
+    bool isScalar(); //arraysize == NOTARRAYSIZE is scalar
 
-    u32 getArraySize();
+    s32 getArraySize();
 
-    u32 getTotalBitSize();  // arraysize * bitsize
+    s32 getTotalBitSize();  // arraysize * bitsize
 
     s32 getBitSize();  //'class' type calculates its size after type labeling
 

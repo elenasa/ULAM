@@ -465,11 +465,7 @@ namespace MFM {
 	    // typedefs don't contribute to the total bit size
 	    if(!sym->isTypedef())
 	      {
-		u32 arraysize = m_state.getArraySize(sym->getUlamTypeIdx());
-		if(WritePacked(((SymbolVariable *) sym)->isPacked()))
-		  totalsizes += 1;
-		else	      
-		  totalsizes += (arraysize > 0 ? arraysize : 1);
+		totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
 	      }
 	  }
 	it++;

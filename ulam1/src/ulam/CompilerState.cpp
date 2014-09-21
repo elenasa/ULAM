@@ -54,7 +54,7 @@ namespace MFM {
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it;
   // trick to know the base ULAMTYPE
-  UTI CompilerState::makeUlamType(Token typeTok, u32 bitsize, u32 arraysize)
+  UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize)
   {
     //type names begin with capital letter..and the rest can be either
     u32 typeNameId = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
@@ -250,7 +250,7 @@ namespace MFM {
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    uti = makeUlamType(tok, typebitsize, 0); //assume scalar		
+	    uti = makeUlamType(tok, typebitsize, NONARRAYSIZE); //assume scalar		
 	  }
 	else
 	  {
@@ -307,6 +307,19 @@ namespace MFM {
   }
 
 
+  UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)
+  {
+    u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
+    UlamKeyTypeSignature ckey(enumStrIdx, ANYBITSIZECONSTANT, NONARRAYSIZE);
+    return makeUlamType(ckey, etype); //may not exist yet, create  
+  }
+
+
+  bool CompilerState::isConstant(UTI uti)
+  {
+    return getBitSize(uti) == ANYBITSIZECONSTANT;
+  }
+
 
   bool CompilerState::isScalar(UTI utArg)
   {
@@ -315,14 +328,14 @@ namespace MFM {
   }
 
 
-  u32 CompilerState::getArraySize(UTI utArg)
+  s32 CompilerState::getArraySize(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     return (ut->getArraySize());
   }
   
 
-  u32 CompilerState::getBitSize(UTI utArg)
+  s32 CompilerState::getBitSize(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     return (ut->getBitSize());
@@ -390,6 +403,29 @@ namespace MFM {
   }
 
 
+  u32 CompilerState::getTotalBitSize(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->getTotalBitSize());
+  }
+
+
+  s32 CompilerState::slotsNeeded(UTI uti)
+  {
+    s32 arraysize = getArraySize(uti);
+    if(uti == Void)
+      return 0;
+
+    PACKFIT packed = determinePackable(uti);
+
+    if(WritePacked(packed))
+      arraysize = 1;
+    else
+      arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
+    return arraysize;
+  }
+
+
   bool CompilerState::getUlamTypeByClassToken(Token ctok, UTI & rtnType)
   {
     u32 cidx = getTokenAsATypeNameId(ctok);
@@ -424,7 +460,7 @@ namespace MFM {
   {
     assert(!alreadyDefinedSymbolClass(dataindex,symptr));
 
-    UlamKeyTypeSignature key(dataindex, 0);
+    UlamKeyTypeSignature key(dataindex, 0);  //and scalar default
     UTI cuti = makeUlamType(key, Class);
     
     // symbol ownership goes to the programDefST; 
@@ -796,8 +832,7 @@ namespace MFM {
     else
       {
 	//assign each array element, packed or unpacked
-	u32 arraysize = getArraySize(rptr.getPtrTargetType());
-	arraysize = (arraysize > 0 ? arraysize : 1); //maybe an Element(unpacked)
+	u32 arraysize = slotsNeeded(rptr.getPtrTargetType());
 
 	UlamValue nextlptr = UlamValue::makeScalarPtr(lptr,*this);
 	UlamValue nextrptr = UlamValue::makeScalarPtr(rptr,*this);
@@ -852,14 +887,14 @@ namespace MFM {
 
   PACKFIT CompilerState::determinePackable(UTI aut)
   {
-    PACKFIT rtn = UNPACKED;   //was false == 0
-    u32 arraysize = getArraySize(aut);
-    u32 bitsize = getBitSize(aut);
+    PACKFIT rtn = UNPACKED;            //was false == 0
+    s32 arraysize = getArraySize(aut); //negative for scalars
+    s32 bitsize = getBitSize(aut);     //negative for constants
 
-    //scalars are considered packable (arraysize == 0); Atoms and Ptrs are NOT.
-    if(arraysize > 0)
+    //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
+    if(arraysize > NONARRAYSIZE)
       {
-	u32 len = (arraysize * bitsize);
+	u32 len = (arraysize * bitsize);  //could be 0
 	if(len <= MAXBITSPERINT)
 	  rtn = PACKEDLOADABLE;
 	else
