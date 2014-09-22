@@ -115,7 +115,7 @@ namespace MFM {
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_varSymbol->setPosOffset(offset);
-    offset += m_state.getUlamTypeByIndex(m_varSymbol->getUlamTypeIdx())->getTotalBitSize();
+    offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
   }
 
 
@@ -139,7 +139,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    fp->write(vut->getBitSizeTemplateString().c_str());  //for quark templates
+	    fp->write(m_state.getBitSizeTemplateString(vuti).c_str());  //for quark templates
 	  }
       }
     

@@ -36,6 +36,7 @@ namespace MFM {
   bool UlamTypeUnary::cast(UlamValue & val, CompilerState& state)
   {
     bool brtn = true;
+    UTI typidx = getUlamTypeIndex();
     UTI valtypidx = val.getUlamValueTypeIdx();
     
     s32 arraysize = getArraySize();
@@ -72,6 +73,12 @@ namespace MFM {
 	valtypidx = val.getUlamValueTypeIdx();  //reload
 	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
       }
+
+    if(state.isConstant(typidx))
+      {
+	// avoid using out-of-band value as bitsize
+	bitsize = state.getDefaultBitSize(typidx);
+      }
 	
     u32 data = val.getImmediateData(state);    
     switch(valtypEnum)
@@ -89,18 +96,24 @@ namespace MFM {
 	{
 	  // cast from Int->Unary, OR Bool->Unary
 	  u32 count1s = PopCount(data);
-	  val = UlamValue::makeImmediate(getUlamTypeIndex(), _GetNOnes32(count1s), state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, _GetNOnes32(count1s), state); //overwrite val
 	}
 	break;
       case Unary:
 	{
+	  if(state.isConstant(valtypidx))
+	    {
+	      // avoid using out-of-band value as bitsize
+	      valbitsize = state.getDefaultBitSize(valtypidx);
+	    }
+	  
 	  // size type change..
 	  if(bitsize < valbitsize)
-	    val = UlamValue::makeImmediate(getUlamTypeIndex(), data, state); //overwrite val, same data
+	    val = UlamValue::makeImmediate(typidx, data, state); //overwrite val, same data
 	  else
 	    {
 	      u32 count1s = PopCount(data);
-	      val = UlamValue::makeImmediate(getUlamTypeIndex(), _GetNOnes32(count1s), state); //overwrite val, max 1s
+	      val = UlamValue::makeImmediate(typidx, _GetNOnes32(count1s), state); //overwrite val, max 1s
 	    }
 	}
 	break;

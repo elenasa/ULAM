@@ -403,10 +403,24 @@ namespace MFM {
   }
 
 
+  u32 CompilerState::getDefaultBitSize(UTI uti)
+  {
+    ULAMTYPE et = getUlamTypeByIndex(uti)->getUlamTypeEnum();
+    return ULAMTYPE_DEFAULTBITSIZE[et];
+  }
+
+
   u32 CompilerState::getTotalBitSize(UTI utArg)
   {
-    UlamType * ut = getUlamTypeByIndex(utArg);
-    return (ut->getTotalBitSize());
+    s32 arraysize = getArraySize(utArg);
+    arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
+    
+    s32 bitsize = getBitSize(utArg);
+    if(bitsize == ANYBITSIZECONSTANT)
+      {
+	bitsize = getDefaultBitSize(utArg);
+      }
+    return bitsize * arraysize;
   }
 
 
@@ -717,6 +731,16 @@ namespace MFM {
   }
 
 
+  std::string CompilerState::getFileNameForThisTypesHeader()
+  {
+    std::ostringstream f;
+    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    UTI cuti = csym->getUlamTypeIdx();
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_Types.h";
+    return f.str();
+  }
+
+
   //separate file for element compilations, avoid multiple mains, select the one to test during linking
   std::string CompilerState::getFileNameForThisClassMain()
   {
@@ -728,13 +752,17 @@ namespace MFM {
   }
 
 
-  std::string CompilerState::getFileNameForThisTypesHeader()
+  const std::string CompilerState::getBitSizeTemplateString(UTI uti) 
   {
-    std::ostringstream f;
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    UTI cuti = csym->getUlamTypeIdx();
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_Types.h";
-    return f.str();
+    ULAMCLASSTYPE classtype = getUlamTypeByIndex(uti)->getUlamClass();
+    assert(classtype == UC_QUARK || classtype == UC_ELEMENT);
+
+    std::ostringstream mangled;
+    if(classtype == UC_QUARK)
+      {
+	mangled << "<" << getTotalBitSize(uti) << ">";
+      }
+    return mangled.str();
   }
 
 
@@ -932,7 +960,7 @@ namespace MFM {
 
     // set up STACK since func call not called
     m_funcCallStack.pushArg(m_currentObjPtr);                        //hidden arg on STACK
-    m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1, 32));  //return slot on STACK
+    m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1));      //return slot on STACK
   }
 
 } //end MFM

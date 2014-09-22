@@ -105,7 +105,6 @@ namespace MFM {
 	break;
       };
     return rtnUV;
-    //return UlamValue::makeImmediate(type, quotient, len);
   }
 
 

@@ -109,11 +109,8 @@ namespace MFM{
 
     s32 getArraySize();
 
-    s32 getTotalBitSize();  // arraysize * bitsize
-
     s32 getBitSize();  //'class' type calculates its size after type labeling
 
-    virtual const std::string getBitSizeTemplateString();
 
   protected:
     UlamKeyTypeSignature m_key;

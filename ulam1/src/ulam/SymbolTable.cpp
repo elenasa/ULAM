@@ -231,7 +231,7 @@ namespace MFM {
 		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
 		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
 	      }
-	    totalsizes += m_state.getUlamTypeByIndex(sut)->getTotalBitSize();
+	    totalsizes += m_state.getTotalBitSize(sut);
 	  }
 	it++;
       }
@@ -355,7 +355,7 @@ namespace MFM {
 	  {
 	    //updates the offset with the bit size of sym
 	    ((SymbolVariable *) sym)->setPosOffset(offsetIntoAtom);
-	    offsetIntoAtom += sym->getUlamType()->getTotalBitSize();  // times array size 
+	    offsetIntoAtom += m_state.getTotalBitSize(sym->getUlamTypeIdx());  // times array size 
 	  }
 	it++;
       }

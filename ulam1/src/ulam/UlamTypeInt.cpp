@@ -36,6 +36,7 @@ namespace MFM {
   bool UlamTypeInt::cast(UlamValue & val, CompilerState& state)
   {
     bool brtn = true;
+    UTI typidx = getUlamTypeIndex();
     UTI valtypidx = val.getUlamValueTypeIdx();    
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
@@ -72,27 +73,43 @@ namespace MFM {
 	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
       }
 	
-    u32 data = val.getImmediateData(state);    
+    if(state.isConstant(typidx))
+      {
+	// avoid using out-of-band value as bitsize
+	bitsize = state.getDefaultBitSize(typidx);
+      }
+
+    u32 data = val.getImmediateData(state);
     switch(valtypEnum)
       {
       case Bool:
 	{
-	  s32 count1s = PopCount(data);
-	  if(count1s > (s32) (bitsize - count1s))
-	    val = UlamValue::makeImmediate(getUlamTypeIndex(), 1, state); //overwrite val
+	  if(state.isConstant(valtypidx))  // bitsize is misleading
+	    {
+	      if(data != 0) //signed or unsigned
+		val = UlamValue::makeImmediate(typidx, 1, state); //overwrite val
+	      else
+		val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
+	    }
 	  else
-	    val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val
+	    {
+	      s32 count1s = PopCount(data);
+	      if(count1s > (s32) (valbitsize - count1s))
+		val = UlamValue::makeImmediate(typidx, 1, state); //overwrite val
+	      else
+		val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
+	    }
 	}
 	break;
       case Unary:
 	{
 	  u32 count1s = PopCount(data);
-	  val = UlamValue::makeImmediate(getUlamTypeIndex(), count1s, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, count1s, state); //overwrite val
 	  }
 	break;
       case Int:
 	// casting Int to Int to change bits size
-	val = UlamValue::makeImmediate(getUlamTypeIndex(), data, state); //overwrite val
+	val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
 	break;
       default:
 	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;

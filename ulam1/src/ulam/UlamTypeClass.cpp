@@ -192,17 +192,6 @@ namespace MFM {
   }
 
 
-  const std::string UlamTypeClass::getBitSizeTemplateString()
-  {
-    std::ostringstream mangled;
-    if(m_class == UC_QUARK)
-      {
-	mangled << "<" << UlamType::getTotalBitSize() << ">";
-      }
-    return mangled.str();
-  }
-
-
   const std::string UlamTypeClass::getUlamTypeNameBrief(CompilerState * state)
   {
     return m_key.getUlamKeyTypeSignatureName(state);

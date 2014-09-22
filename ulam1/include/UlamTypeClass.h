@@ -67,8 +67,6 @@ namespace MFM{
 
     void setUlamClass(ULAMCLASSTYPE type);
 
-    virtual const std::string getBitSizeTemplateString();
-
     virtual const std::string getUlamTypeNameBrief(CompilerState * state);
 
    private:

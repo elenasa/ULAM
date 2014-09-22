@@ -147,6 +147,7 @@ namespace MFM{
     s32 getBitSize(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
 
+    u32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
 
@@ -192,6 +193,7 @@ namespace MFM{
     std::string getFileNameForThisTypesHeader();
     std::string getFileNameForThisClassMain();
 
+    const std::string getBitSizeTemplateString(UTI uti);
 
     /** returns immediate target value: extracts data from packed targets; unpacked array targets are invalid */
     UlamValue getPtrTarget(UlamValue ptr);

@@ -82,7 +82,6 @@ namespace MFM {
 
   UlamValue NodeBinaryOpSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    //return UlamValue::makeImmediate(type, (s32) ldata - (s32) rdata, len);
     UlamValue rtnUV;
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
     switch(typEnum)
@@ -96,7 +95,7 @@ namespace MFM {
 	  if(diffof1s > 0)
 	    rtnUV = UlamValue::makeImmediate(type, _GetNOnes32(diffof1s), len);
 	  else
-	    rtnUV = UlamValue::makeImmediate(type, 0, len);  //???
+	    rtnUV = UlamValue::makeImmediate(type, 0, len); //least surprising
 	}
 	break;
       default:
