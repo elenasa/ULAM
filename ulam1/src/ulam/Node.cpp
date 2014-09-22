@@ -141,51 +141,6 @@ namespace MFM {
     return slots;
   }
 
-  /*
-#if 0
-    // good stuff! but overkill for this function XXX
-    // push a Ptr "header" for array first; assumption is unpacked here!
-    if(arraysize > 0)
-      {
-	//get next relative slot for Ptr, and point to next one for base of array [0]
-	u32 nextSlot;
-	if(where == EVALRETURN)
-	  nextSlot = m_state.m_nodeEvalStack.getRelativeTopOfStackNextSlot();
-	else if (where == STACK)
-	  nextSlot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();
-	else
-	  assert(0);
-
-	UlamValue ptrUV = UlamValue::makePtr(nextSlot+1, where, type, false);
-
-	if(where == EVALRETURN)
-	  m_state.m_nodeEvalStack.pushArg(ptrUV, m_state);
-	else if (where == STACK)
-	  m_state.m_funcCallStack.pushArg(ptrUV, m_state);
-	else
-	  assert(0);
-      }
-
-    //push copies of individual array element singletons
-    UTI scalarTypidx = m_state.getUlamTypeAsScalar(type);
-    u32 typeLen = m_state.getBitSize(type);
-    UlamValue rtnUV = makeImmediate(scalarTypidx, 0, typeLen);  
-
-    s32 pushsize = (arraysize > 0 ? arraysize : 1); //=1 for scalar
-    while(pushsize-- > 0)
-      {
-	if(where == EVALRETURN)
-	  m_state.m_nodeEvalStack.pushArg(rtnUV, m_state);    //last ones
-	else if (where == STACK)
-	  m_state.m_funcCallStack.pushArg(rtnUV, m_state);    //last ones
-	else
-	  assert(0);
-      }
-
-    return  (arraysize > 0 ? arraysize + 1 : 1);  //=1 for scalar; +Ptr for arrays
- }
-#endif 
-  */
 
   u32 Node::makeRoomForSlots(u32 slots, STORAGE where)
   {

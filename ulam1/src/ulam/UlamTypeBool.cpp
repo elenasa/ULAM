@@ -32,7 +32,8 @@ namespace MFM {
   bool UlamTypeBool::cast(UlamValue & val, CompilerState& state)
   {
     bool brtn = true;
-    UTI valtypidx = val.getUlamValueTypeIdx();    
+    UTI typidx = getUlamTypeIndex();
+    UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
       {
@@ -68,6 +69,12 @@ namespace MFM {
 	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
       }
 
+    if(state.isConstant(typidx))
+      {
+	// avoid using out-of-band value as bitsize
+	bitsize = state.getDefaultBitSize(typidx);
+      }
+
     u32 newdata = 0;
     u32 data = val.getImmediateData(state);    
     switch(valtypEnum)
@@ -101,7 +108,7 @@ namespace MFM {
       };
     
     if(brtn)
-      val = UlamValue::makeImmediate(getUlamTypeIndex(), newdata, state); //overwrite val
+      val = UlamValue::makeImmediate(typidx, newdata, state); //overwrite val
     
     return brtn;
   } //end cast

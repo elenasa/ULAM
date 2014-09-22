@@ -68,7 +68,6 @@ namespace MFM {
 
   UlamValue NodeBinaryOpMultiply::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    //return UlamValue::makeImmediate(type, (s32) ldata * (s32) rdata, len);
     UlamValue rtnUV;
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
     switch(typEnum)
@@ -92,7 +91,6 @@ namespace MFM {
 
   void NodeBinaryOpMultiply::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    //refUV.putData(pos, len, (s32) ldata * (s32) rdata);
     UTI type = refUV.getUlamValueTypeIdx();
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
     switch(typEnum)

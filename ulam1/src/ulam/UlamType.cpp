@@ -214,24 +214,10 @@ namespace MFM {
   }
 
 
-  s32 UlamType::getTotalBitSize()  // arraysize * bitsize
-  {
-    s32 arraysize = getArraySize();
-    arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
-    return getBitSize() * arraysize;
-  }
-
-
   s32 UlamType::getBitSize()
   {
     return m_key.getUlamKeyTypeSignatureBitSize();
   }
 
-
-  const std::string UlamType::getBitSizeTemplateString()
-  {
-    assert(0);  //see UlamTypeClass, must be a quark
-    return "";
-  }
 
 } //end MFM

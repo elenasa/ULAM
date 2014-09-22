@@ -31,7 +31,7 @@ namespace MFM {
       return;
 
     if(len == ANYBITSIZECONSTANT)
-      len = MAXBITSPERINT;
+      len = state.getDefaultBitSize(utype);
 
     putData(BITSPERATOM - len, len, v);  //starts from end, for 32 bit boundary case
   }
@@ -57,6 +57,12 @@ namespace MFM {
   UlamValue UlamValue::makeImmediate(UTI utype, u32 v, CompilerState& state)
   {
     s32 len = state.getBitSize(utype);
+
+    if(len == ANYBITSIZECONSTANT)
+      {
+	len = state.getDefaultBitSize(utype);
+      }
+    
     return UlamValue::makeImmediate(utype, v, len);
   }
 
@@ -64,18 +70,10 @@ namespace MFM {
   UlamValue UlamValue::makeImmediate(UTI utype, u32 v, s32 len)
   {
     UlamValue rtnVal;             //static
-    assert(len <=32 && (s32) len >= ANYBITSIZECONSTANT);  //very important!
+    assert(len <=32 && (s32) len >= 0);  //very important!
     rtnVal.m_uv.m_storage.m_atom.Clear();
-
-    if(len < 0)
-      {
-	len = MAXBITSPERINT;
-      } 
-
-    if(len > 0)
-      rtnVal.putData(BITSPERATOM - len, len, v);  //starts from end, for 32 bit boundary case
-
     rtnVal.setUlamValueTypeIdx(utype);
+    rtnVal.putData(BITSPERATOM - len, len, v);  //starts from end, for 32 bit boundary case
     return rtnVal;
   }
 
@@ -88,10 +86,8 @@ namespace MFM {
     
     //NOTE: 'len' of a packed-array, 
     //       becomes the total size (bits * arraysize);
-    //       constants become 32
+    //       constants become default len
     s32 len = state.getTotalBitSize(targetType);
-    if(len == ANYBITSIZECONSTANT)
-      len = MAXBITSPERINT;
 
     if(pos == 0)
       {
@@ -341,7 +337,15 @@ namespace MFM {
 
   u32 UlamValue::getImmediateData(CompilerState & state) const
   {
-    return getImmediateData(state.getBitSize(getUlamValueTypeIdx()));
+    s32 len = state.getBitSize(getUlamValueTypeIdx());
+
+    if(len == 0)
+      return 0;
+
+    if(len == ANYBITSIZECONSTANT)
+      len = state.getDefaultBitSize(getUlamValueTypeIdx());
+
+    return getImmediateData(len);
   }
 
 
@@ -350,13 +354,7 @@ namespace MFM {
     assert(getUlamValueTypeIdx() != Atom);
     assert(getUlamValueTypeIdx() != Ptr);
     assert(getUlamValueTypeIdx() != Nav);
-    assert(len >= ANYBITSIZECONSTANT && len <= MAXBITSPERINT);
-
-    if(len == 0)
-      return 0;
-
-    if(len == ANYBITSIZECONSTANT)
-      len = MAXBITSPERINT;
+    assert(len >= 0 && len <= MAXBITSPERINT);
 
     return getData(BITSPERATOM - len, len);
   }
@@ -380,8 +378,7 @@ namespace MFM {
 	  s32 len = p.getPtrLen();
 
 	  if(len == ANYBITSIZECONSTANT)
-	    len = MAXBITSPERINT;
-
+	    len = state.getDefaultBitSize(p.getPtrTargetType());
 
 	  u32 datavalue = data.getImmediateData(len);
 	  putData(p.getPtrPos(), len, datavalue);
