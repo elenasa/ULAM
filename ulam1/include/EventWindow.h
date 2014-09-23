@@ -49,7 +49,7 @@ namespace MFM
 #define MAXMANHATTANDIST (4)
 #define MAXWIDTH (MAXMANHATTANDIST + MAXMANHATTANDIST + 1)
 
-  // center is 0,0 (index 40); max hamiltonian distance is 4 in any direction
+  // center is 0,0 (index 40); max manhattan distance is 4 in any direction
   // index 0 is (-4,-4); index 80 is (4,4)
   struct Coord {
     s8 x, y;

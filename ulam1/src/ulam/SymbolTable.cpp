@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <iostream>
 #include "SymbolTable.h"
 #include "SymbolFunctionName.h"
 #include "SymbolVariable.h"
@@ -201,6 +202,35 @@ namespace MFM {
 	it++;
       }
     return aok;
+  }
+
+
+  // separate pass...after labeling all classes is completed;
+  void SymbolTable::printBitSizeOfTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+
+	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	assert(classNode);
+	
+	UTI suti = sym->getUlamTypeIdx();
+	u32 total = m_state.getTotalBitSize(suti);  
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	ULAMCLASSTYPE classtype = sut->getUlamClass();
+	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS - total : MAXBITSPERQUARK - total);
+
+	std::ostringstream msg;
+	msg << "TotalSize of " << (classtype == UC_ELEMENT ? "element <" : "quark   <") << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ">:\t" << total << "\t(" << remaining << " bits available).";
+	//m_state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+	std::cerr << msg.str().c_str() << std::endl;
+
+	it++;
+      }
   }
 
 

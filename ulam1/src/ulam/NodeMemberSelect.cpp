@@ -34,8 +34,8 @@ namespace MFM {
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
-
-    if(lut->getUlamClass() == UC_NOTACLASS)
+    ULAMCLASSTYPE classtype = lut->getUlamClass();
+    if(classtype == UC_NOTACLASS || classtype == UC_INCOMPLETE)
       {
 	//error!
 	// must be a 'Class' type, either quark or element
@@ -49,20 +49,19 @@ namespace MFM {
     assert(m_state.alreadyDefinedSymbolClass(lut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-    assert(memberClassNode);
-
+    assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
     //set up compiler state to use the member class block for symbol searches
     m_state.m_currentMemberClassBlock = memberClassNode;
     m_state.m_useMemberBlock = true;
-
+    
     UTI rightType = m_nodeRight->checkAndLabelType();
     
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.m_useMemberBlock = false;
     m_state.m_currentMemberClassBlock = NULL;
-
+    
     setNodeType(rightType);
-
+    
     setStoreIntoAble(m_nodeRight->isStoreIntoAble());
     return getNodeType();
   }

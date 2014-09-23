@@ -58,8 +58,8 @@ namespace MFM {
   EvalStatus Node::evalToStoreInto()
   {
     std::ostringstream msg;
-    msg << "Not storeIntoAble: " << m_storeIntoAble;
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+    msg << "Invalid lefthand value (not storeIntoAble): <" << getName() << ">";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     assert(!isStoreIntoAble());
     return ERROR;
   }

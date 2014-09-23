@@ -83,6 +83,9 @@ namespace MFM {
 
 	// must happen after type labeling and before code gen; separate pass.
 	m_state.m_programDefST.packBitsForTableOfClasses();
+
+	// let Ulam programmer know the bits used/available
+	//m_state.m_programDefST.printBitSizeOfTableOfClasses();
       }
 
     UTI rtnType =  m_root->getNodeType();

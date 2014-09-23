@@ -1,0 +1,31 @@
+#include "TestCase_EndToEndCompiler.h"
+
+namespace MFM {
+
+  BEGINTESTCASECOMPILER(t3188_test_compiler_elementandquark_memberselectedfunc)
+  {
+    std::string GetAnswerKey()
+    {
+      //note: 148 decimal == 0x94 hex
+      return std::string("Ue_Foo { C2D m_coord(148);  Int(32) m_idx(40);  Bool(1) m_b(false);  Int(32) test() {  m_coord ( 9 cast 4 cast )func = m_idx m_coord ( 0 cast 0 cast )getIndex . = m_idx return } }\nExit status: 40");
+    }
+    
+    std::string PresetTest(FileManagerString * fms)
+    {
+      bool rtn1 = fms->add("Foo.ulam","ulam 1; use C2D; element Foo { C2D m_coord; Int m_idx; Bool m_b; C2D func(Int i, Int j) { C2D c; c.init(i,j); return c; } Int test() { m_coord = func(9,4); m_idx = m_coord.getIndex(0,0);  return m_idx; } }\n"); 
+
+      bool rtn2 = fms->add("C2D.ulam","quark C2D { Int(4) m_width; Int(4) m_height;  Void init(Int x, Int y) { m_width = x; m_height = y; return; } Void init() { m_width = 9; m_height = 4; return; /* event window overload */ } Int getIndex(Int a, Int b){return ((m_height-b) * m_width + (m_height-a)); } }\n");
+
+
+      if(rtn1 & rtn2)
+	return std::string("Foo.ulam");
+      
+      return std::string("");
+    }
+  }
+  
+  ENDTESTCASECOMPILER(t3188_test_compiler_elementandquark_memberselectedfunc)
+  
+} //end MFM
+
+

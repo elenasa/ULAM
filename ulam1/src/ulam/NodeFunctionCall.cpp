@@ -52,6 +52,9 @@ namespace MFM {
     UTI it = Nav;  // init return type
     u32 numErrorsFound = 0;
 
+    //might be related to m_currentSelf..???
+    bool saveUseMemberBlock = m_state.m_useMemberBlock; //doesn't apply to arguments
+
     //look up in class block, and match argument types to parameters
     //assert(m_funcSymbol == NULL);
     SymbolFunction * funcSymbol = NULL;
@@ -63,6 +66,8 @@ namespace MFM {
 
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
+	m_state.m_useMemberBlock = false;   //doesn't apply to arguments!
+
 	for(u32 i = 0; i < m_argumentNodes.size(); i++)
 	  {
 	    UTI argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
@@ -121,6 +126,8 @@ namespace MFM {
 	  }
       }
    
+    m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
+
     return it;
   }
 
@@ -251,6 +258,16 @@ namespace MFM {
     m_state.m_currentSelf = saveSelf;                     //restore previous self      *************
     evalNodeEpilog();                                     //clears out the node eval stack
     return NORMAL;
+  }
+
+
+  EvalStatus NodeFunctionCall::evalToStoreInto()
+  {
+    std::ostringstream msg;
+    msg << "Use of function calls as lefthand values is not currently supported. Save the results of <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> to a variable, type: <" << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str() << ">";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    assert(!isStoreIntoAble());
+    return ERROR;
   }
 
 
