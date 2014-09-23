@@ -714,7 +714,7 @@ namespace MFM {
       }
 
     return rtnNode;
-  }
+  } //parseTypedef
 
 
   // used for data members or local function variables; or 
@@ -871,13 +871,13 @@ namespace MFM {
   }
 
 
-  // lvalExpr + func Calls
+  // lvalExpr + func Calls + member select (dot)
   Node * Parser::parseIdentExpr(Token identTok)
   {
     Node * rtnNode = NULL;
     Token pTok;
     getNextToken(pTok);
-    //function call, otherwise lvalExpr
+    //function call, otherwise lvalExpr or member select
     if(pTok.m_type == TOK_OPEN_PAREN)
       {
 	Symbol * asymptr = NULL;
@@ -1234,7 +1234,7 @@ namespace MFM {
       {
 	MSG(&pTok, "RHS of Open Square is missing->Sq Bracket deleted", ERR);
 	delete leftNode;
-	rtnNode = NULL;  
+	rtnNode = NULL;
       }
     else
       {

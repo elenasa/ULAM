@@ -61,6 +61,8 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
+    virtual EvalStatus evalToStoreInto();
+
     void addArgument(Node * n);
 
     u32 getNumberOfArguments();
