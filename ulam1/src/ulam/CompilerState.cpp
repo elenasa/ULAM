@@ -926,7 +926,7 @@ namespace MFM {
 	if(len <= MAXBITSPERINT)
 	  rtn = PACKEDLOADABLE;
 	else
-	  if(len < MAXSTATEBITS)
+	  if(len <= MAXSTATEBITS)
 	    rtn = PACKED;
       }
     else

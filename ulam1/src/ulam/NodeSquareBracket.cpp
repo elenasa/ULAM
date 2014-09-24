@@ -1,4 +1,6 @@
 #include "NodeSquareBracket.h"
+#include "NodeFunctionCall.h"
+#include "NodeMemberSelect.h"
 #include "NodeTerminalIdent.h"
 #include "CompilerState.h"
 
@@ -29,42 +31,64 @@ namespace MFM {
 
   // used to select an array element; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
-  { 
+  {
     assert(m_nodeLeft && m_nodeRight);
     u32 errorCount = 0;
     UTI newType = Nav; //init
     UTI leftType = m_nodeLeft->checkAndLabelType(); 
-
+    
     if(m_state.isScalar(leftType))
-    {
-      std::ostringstream msg;
-      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << "> used with " << getName();
-      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      errorCount++;
-    }
+      {
+	std::ostringstream msg;
+	msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << "> used with " << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	errorCount++;
+      }
 
     UTI rightType = m_nodeRight->checkAndLabelType();
-    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
-    //some kind of Int..of any bit size
-    if(rtypEnum != Int)
-    {
-      std::ostringstream msg;
-      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(rightType).c_str() << "> used within " << getName();
-      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      errorCount++;
-    }
 
+    //must be some kind of Int..of any bit size
+    if(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Int)
+      {
+	//"cast" Quark to return an Int by
+	//inserting NodeMemberSelect and NodeFunctionCall to 'castToInt' method.
+	if(m_state.getUlamTypeByIndex(rightType)->getUlamClass() == UC_QUARK)
+	  {
+	    Token identTok;	 
+	    u32 castId = m_state.m_pool.getIndexForDataString("toInt");	 
+	    identTok.init(TOK_IDENTIFIER, getNodeLocation(), castId);
+	    
+	    //fill in func symbol during type labeling;
+	    Node * fcallNode = new NodeFunctionCall(identTok,NULL, m_state);
+	    fcallNode->setNodeLocation(identTok.m_locator);
+	    Node * mselectNode = new NodeMemberSelect(m_nodeRight,fcallNode,m_state);
+	    mselectNode->setNodeLocation(identTok.m_locator);
+	    
+	    m_nodeRight=mselectNode;  //replace right node with new branch
+	    
+	    //redo check and type labeling
+	    rightType = m_nodeRight->checkAndLabelType(); 
+	    assert(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() == Int);
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(rightType).c_str() << "> used within " << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errorCount++;
+	  }
+      }
+    
     if(errorCount == 0)
       {
 	// sq bracket purpose in life is to account for array elements;    
-	newType = m_state.getUlamTypeAsScalar(leftType); 
-
+	newType = m_state.getUlamTypeAsScalar(leftType);
 	setNodeType(newType);
-    
-	// multi-dimensional possible    
+	
+	// multi-dimensional possible
 	setStoreIntoAble(true);
       }
-
+    
     return newType;
   }
 
