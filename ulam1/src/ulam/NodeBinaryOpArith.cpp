@@ -41,20 +41,16 @@ namespace MFM {
       {
 	//return constant expressions as constants; 
 	if(lt == rt && m_state.isConstant(lt))
-	  return lt;   // or perhaps return constant Int?
+	  return lt;   // or perhaps return constant Int? what's an unsigned constant?
 
 	newType = Int;
 
-	//#define REVISIT_FOR_UNSIGNED_INT
-#ifndef REVISIT_FOR_UNSIGNED_INT
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
 
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
 	  {
-	    newType = Unsigned;
-	    if(lt == rt && m_state.isConstant(lt))
-	      newType = lt;   	    //check if isConstant?
+	    newType = Unsigned;   //check if isConstant?
 	  }
 	else
 	  {
@@ -68,19 +64,16 @@ namespace MFM {
 		//output warning
 	      }
 	  }
-#endif  //REVISIT_FOR_UNSIGNED_INT
-
       } //both scalars
     else
       { 
-
 	//#define SUPPORT_ARITHMETIC_ARRAY_OPS
 #ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
 	// Conflicted: we don't like the idea that the type might be
 	// different for arrays than scalars; casting occurring differently.
 	// besides, for arithmetic ops, unlike logical ops, we have to do each 
 	// op separately anyway, so no big win (let ulam programmer do the loop).
-	// let arrays of same types through ???
+	// let arrays of same types through ??? Is SO for op equals, btw.
 	if(lt == rt)
 	  {
 	    return lt;  

@@ -3,20 +3,20 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "Parser.h"
-#include "NodeBinaryOpSubtract.h"
-#include "NodeBinaryOpAdd.h"
-#include "NodeBinaryOpMultiply.h"
-#include "NodeBinaryOpDivide.h"
+#include "NodeBinaryOpArithAdd.h"
+#include "NodeBinaryOpArithDivide.h"
+#include "NodeBinaryOpArithMultiply.h"
+#include "NodeBinaryOpArithSubtract.h"
 #include "NodeBinaryOpBitwiseAnd.h"
 #include "NodeBinaryOpBitwiseOr.h"
 #include "NodeBinaryOpBitwiseXor.h"
 #include "NodeBinaryOpEqual.h"
-#include "NodeBinaryOpPlusEqual.h"
-#include "NodeBinaryOpMinusEqual.h"
-#include "NodeBinaryOpMultiplyEqual.h"
-#include "NodeBinaryOpBitwiseAndEqual.h"
-#include "NodeBinaryOpBitwiseOrEqual.h"
-#include "NodeBinaryOpBitwiseXorEqual.h"
+#include "NodeBinaryOpEqualArithAdd.h"
+#include "NodeBinaryOpEqualArithMultiply.h"
+#include "NodeBinaryOpEqualArithSubtract.h"
+#include "NodeBinaryOpEqualBitwiseAnd.h"
+#include "NodeBinaryOpEqualBitwiseOr.h"
+#include "NodeBinaryOpEqualBitwiseXor.h"
 #include "NodeBlock.h"
 #include "NodeBlockEmpty.h"
 #include "NodeBlockFunctionDefinition.h"
@@ -1718,22 +1718,22 @@ namespace MFM {
 	    rtnNode = new NodeBinaryOpEqual(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_PLUS_EQUAL:
-	    rtnNode = new NodeBinaryOpPlusEqual(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpEqualArithAdd(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_MINUS_EQUAL:
-	    rtnNode = new NodeBinaryOpMinusEqual(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpEqualArithSubtract(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_STAR_EQUAL:
-	    rtnNode = new NodeBinaryOpMultiplyEqual(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpEqualArithMultiply(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_AMP_EQUAL:
-	    rtnNode = new NodeBinaryOpBitwiseAndEqual(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpEqualBitwiseAnd(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_PIPE_EQUAL:
-	    rtnNode = new NodeBinaryOpBitwiseOrEqual(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpEqualBitwiseOr(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_HAT_EQUAL:
-	    rtnNode = new NodeBinaryOpBitwiseXorEqual(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpEqualBitwiseXor(leftNode, rightNode, m_state);
 	    break;
 	  default:
 	    {
@@ -1773,10 +1773,10 @@ namespace MFM {
 	switch(pTok.m_type)
 	  {
 	  case TOK_PLUS:
-	    rtnNode = new NodeBinaryOpAdd(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpArithAdd(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_MINUS:
-	    rtnNode = new NodeBinaryOpSubtract(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpArithSubtract(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_AMP:
 	    rtnNode = new NodeBinaryOpBitwiseAnd(leftNode, rightNode, m_state);
@@ -1825,10 +1825,10 @@ namespace MFM {
 	switch(pTok.m_type)
 	  {
 	  case TOK_STAR:
-	    rtnNode = new NodeBinaryOpMultiply(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpArithMultiply(leftNode, rightNode, m_state);
 	    break;
 	  case TOK_SLASH:
-	    rtnNode = new NodeBinaryOpDivide(leftNode, rightNode, m_state);
+	    rtnNode = new NodeBinaryOpArithDivide(leftNode, rightNode, m_state);
 	    break;
 	  default:
 	    {

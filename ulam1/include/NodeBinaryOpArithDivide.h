@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpDivide.h - Node for handling Division for ULAM
+ * NodeBinaryOpArithDivide.h - Node for handling Division for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeBinaryOpDivide.h - Node for handling Division for ULAM
+  \file NodeBinaryOpArithDivide.h - Node for handling Division for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,19 +34,19 @@
 */
 
 
-#ifndef NODEBINARYOPDIVIDE_H
-#define NODEBINARYOPDIVIDE_H
+#ifndef NODEBINARYOPARITHDIVIDE_H
+#define NODEBINARYOPARITHDIVIDE_H
 
 #include "NodeBinaryOpArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpDivide : public NodeBinaryOpArith
+  class NodeBinaryOpArithDivide : public NodeBinaryOpArith
   {
   public:
     
-    NodeBinaryOpDivide(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpDivide();
+    NodeBinaryOpArithDivide(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpArithDivide();
 
     virtual const char * getName();
 
@@ -62,4 +62,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBINARYOPDIVIDE_H
+#endif //end NODEBINARYOPARITHDIVIDE_H

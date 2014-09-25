@@ -1,6 +1,6 @@
+/* -*- c++ -*- */
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpBitwiseXorEqual.h - Node for handling Bitwise 
- *                                Xor Equal Operation for ULAM
+ * NodeBinaryOpArithMultiply.h - Node for handling Multiplication for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -27,27 +27,26 @@
  */
 
 /**
-  \file NodeBinaryOpBitwiseXorEqual.h - Node for handling Bitwise Xor Equal for ULAM
+  \file NodeBinaryOpArithMultiply.h - Node for handling Multiplication for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
+#ifndef NODEBINARYOPARITHMULTIPLY_H
+#define NODEBINARYOPARITHMULTIPLY_H
 
-#ifndef NODEBINARYOPBITWISEXOREQUAL_H
-#define NODEBINARYOPBITWISEXOREQUAL_H
-
-#include "NodeBinaryOpEqualBitwise.h"
+#include "NodeBinaryOpArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpBitwiseXorEqual : public NodeBinaryOpEqualBitwise
+  class NodeBinaryOpArithMultiply : public NodeBinaryOpArith
   {
   public:
     
-    NodeBinaryOpBitwiseXorEqual(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpBitwiseXorEqual();
+    NodeBinaryOpArithMultiply(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpArithMultiply();
 
     virtual const char * getName();
 
@@ -63,4 +62,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBINARYOPBITWISEXOREQUAL_H
+#endif //end NODEBINARYOPARITHMULTIPLY_H

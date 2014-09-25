@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpMinusEqual.h - Node for handling Minus Equal for ULAM
+ * NodeBinaryOpEqualArithAdd.h - Node for handling Plus Equal for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,26 +26,27 @@
  */
 
 /**
-  \file NodeBinaryOpMinusEqual.h - Node for handling Minus Equal for ULAM
+  \file NodeBinaryOpEqualArithAdd.h - Node for handling Plus Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
-#ifndef NODEBINARYOPMINUSEQUAL_H
-#define NODEBINARYOPMINUSEQUAL_H
+
+#ifndef NODEBINARYOPEQUALARITHADD_H
+#define NODEBINARYOPEQUALARITHADD_H
 
 #include "NodeBinaryOpEqualArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpMinusEqual : public NodeBinaryOpEqualArith
+  class NodeBinaryOpEqualArithAdd : public NodeBinaryOpEqualArith
   {
   public:
     
-    NodeBinaryOpMinusEqual(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpMinusEqual();
+    NodeBinaryOpEqualArithAdd(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpEqualArithAdd();
 
     virtual const char * getName();
 
@@ -53,12 +54,12 @@ namespace MFM{
 
   protected:
 
+    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
-
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
   };
 
 }
 
-#endif //end NODEBINARYOPMINUSEQUAL_H
+#endif //end NODEBINARYOPEQUALARITHADD_H
