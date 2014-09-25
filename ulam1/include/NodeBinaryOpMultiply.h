@@ -37,18 +37,16 @@
 #ifndef NODEBINARYOPMULTIPLY_H
 #define NODEBINARYOPMULTIPLY_H
 
-#include "NodeBinaryOp.h"
+#include "NodeBinaryOpArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpMultiply : public NodeBinaryOp
+  class NodeBinaryOpMultiply : public NodeBinaryOpArith
   {
   public:
     
     NodeBinaryOpMultiply(Node * left, Node * right, CompilerState & state);
     ~NodeBinaryOpMultiply();
-
-    virtual UTI checkAndLabelType();
 
     virtual const char * getName();
 
@@ -56,8 +54,8 @@ namespace MFM{
 
   protected:
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
   };

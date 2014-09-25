@@ -37,11 +37,11 @@
 #ifndef NODEBINARYOPBITWISEOREQUAL_H
 #define NODEBINARYOPBITWISEOREQUAL_H
 
-#include "NodeBinaryOpEqual.h"
+#include "NodeBinaryOpEqualBitwise.h"
 
 namespace MFM{
 
-  class NodeBinaryOpBitwiseOrEqual : public NodeBinaryOpEqual
+  class NodeBinaryOpBitwiseOrEqual : public NodeBinaryOpEqualBitwise
   {
   public:
     
@@ -55,8 +55,8 @@ namespace MFM{
 
   protected:
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
   };

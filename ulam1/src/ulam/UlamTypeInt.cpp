@@ -105,7 +105,7 @@ namespace MFM {
 	{
 	  u32 count1s = PopCount(data);
 	  val = UlamValue::makeImmediate(typidx, count1s, state); //overwrite val
-	  }
+	}
 	break;
       case Int:
 	// casting Int to Int to change bits size

@@ -104,6 +104,7 @@ namespace MFM{
   protected:
 
     CompilerState & m_state;  //for printing error messages with path
+    Node * makeCastingNode(Node * node, UTI tobeType);
 
   private:
     bool m_storeIntoAble;

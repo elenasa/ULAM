@@ -43,6 +43,13 @@ namespace MFM {
   }
 
 
+  UTI NodeVarDeclList::calcNodeType(UTI lt, UTI rt)
+  {
+    assert(0);
+    return Nav;
+  }
+
+
   EvalStatus NodeVarDeclList::eval()
   {   
     assert(m_nodeLeft && m_nodeRight);

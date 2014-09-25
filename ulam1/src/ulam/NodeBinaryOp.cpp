@@ -6,6 +6,7 @@ namespace MFM {
 
   NodeBinaryOp::NodeBinaryOp(Node * left, Node * right, CompilerState & state) : Node(state), m_nodeLeft(left), m_nodeRight(right) {}
 
+
   NodeBinaryOp::~NodeBinaryOp()
   {
     delete m_nodeLeft;
@@ -64,6 +65,35 @@ namespace MFM {
     sprintf(myname," %s", getName());
     fp->write(myname);
   }
+
+
+  UTI NodeBinaryOp::checkAndLabelType()
+  { 
+    assert(m_nodeLeft && m_nodeRight);
+
+    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType();	
+    UTI newType = calcNodeType(leftType, rightType);
+    
+    if(newType != Nav)
+      {
+	if(newType != leftType)
+	  {
+	    m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
+	  }
+	
+	if(newType != rightType)
+	  {
+	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
+	  }
+      }
+    
+    setNodeType(newType);
+    
+    setStoreIntoAble(false);
+
+    return newType;
+  } //checkAndLabelType
 
 
   EvalStatus NodeBinaryOp::eval()
@@ -170,94 +200,6 @@ namespace MFM {
       m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result
     
   } //end dobinaryoparray
-
-
-  UTI NodeBinaryOp::calcNodeType(UTI lt, UTI rt)
-  {
-    UTI newType = Nav; //init
-
-    //apply equivalence case to both scalars and arrays
-    //if(lt == rt && (ltypEnum != Bool))
-    if(lt == rt)
-      {
-	return lt;  //however, for Bool we wanted Int?
-      }
-
-    if( m_state.isScalar(lt) && m_state.isScalar(rt))
-      {
-	// return appropriate type with larger of left/right bit size
-	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
-
-	u32 lbits = m_state.getBitSize(lt);
-	u32 rbits = m_state.getBitSize(rt);
-	if(ltypEnum == Int && rtypEnum == Int)	        //newType = Int
-	  {
-	    if(lbits > rbits)
-	      newType = lt;
-	    else
-	      newType = rt;
-	  }
-	else if(ltypEnum == Bool || rtypEnum == Bool)  //newType = Int
-	  {
-	    u32 newbitsize;
-	    if(lbits > rbits)
-	      newbitsize = lbits;
-	    else
-	      newbitsize = rbits;
-	    //use Int with bit size of the larger (left or right) Bool size
-	    u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(Int));
-	    UlamKeyTypeSignature newkey(enumStrIdx, newbitsize);
-	    newType = m_state.makeUlamType(newkey, Int); //may not exist yet, create  
-	  }
-	else if(ltypEnum == Unary && rtypEnum == Unary)  //newType = Unary
-	  {
-	    if(lbits > rbits)
-	      newType = lt;
-	    else
-	      newType = rt;
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Undefined type to use for " << m_state.getUlamTypeNameByIndex(lt).c_str() << " op " << m_state.getUlamTypeNameByIndex(rt);
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	  }
-      } //both scalars
-    else
-      {  //arrays
-	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary operator" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-    return newType;
-  }
-
-
-  UTI NodeBinaryOp::calcNodeTypeBitwise(UTI lt, UTI rt)
-  {
-    UTI newType = Nav;  //init
-
-    if(rt == lt)
-      {
-	//maintain type
-	newType = rt;
-      }
-    else
-      {
-	if(m_state.isScalar(lt) && m_state.isScalar(rt))
-	  {
-	    newType = Int;  //default is Int
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary bitwise operator" << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }	
-      }
-    return newType;
-  }
 
 
   void NodeBinaryOp::genCode(File * fp)

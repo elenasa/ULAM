@@ -37,11 +37,11 @@
 #ifndef NODEBINARYOPSUBTRACT_H
 #define NODEBINARYOPSUBTRACT_H
 
-#include "NodeBinaryOp.h"
+#include "NodeBinaryOpArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpSubtract : public NodeBinaryOp
+  class NodeBinaryOpSubtract : public NodeBinaryOpArith
   {
   public:
     
@@ -50,16 +50,14 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
-    virtual UTI checkAndLabelType();
-
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
   protected:
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
   };
