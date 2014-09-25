@@ -1965,35 +1965,43 @@ namespace MFM {
   void Parser::initPrimitiveUlamTypes()
   {
     // initialize primitive UlamTypes, in order!!
-    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), 0);
+    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
     UTI nidx = m_state.makeUlamType(nkey, Nav);
     assert(nidx == Nav);  //true for primitives
 
-    UlamKeyTypeSignature vkey(m_state.m_pool.getIndexForDataString("Void"), 0);
+    UlamKeyTypeSignature vkey(m_state.m_pool.getIndexForDataString("Void"), ULAMTYPE_DEFAULTBITSIZE[Void]);
     UTI vidx = m_state.makeUlamType(vkey, Void);
     assert(vidx == Void);  //true for primitives
 
-    UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), MAXBITSPERINT);
+    UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), ULAMTYPE_DEFAULTBITSIZE[Int]);
     UTI iidx = m_state.makeUlamType(ikey, Int);
     assert(iidx == Int);
 
-    UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), BITSPERBOOL);
+    UlamKeyTypeSignature uikey(m_state.m_pool.getIndexForDataString("Unsigned"), ULAMTYPE_DEFAULTBITSIZE[Unsigned]);
+    UTI uiidx = m_state.makeUlamType(uikey, Unsigned);
+    assert(uiidx == Unsigned);
+
+    UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), ULAMTYPE_DEFAULTBITSIZE[Bool]);
     UTI bidx = m_state.makeUlamType(bkey, Bool);
     assert(bidx == Bool);
 
-    UlamKeyTypeSignature ukey(m_state.m_pool.getIndexForDataString("Unary"), MAXBITSPERINT);
+    UlamKeyTypeSignature ukey(m_state.m_pool.getIndexForDataString("Unary"), ULAMTYPE_DEFAULTBITSIZE[Unary]);
     UTI uidx = m_state.makeUlamType(ukey, Unary);
     assert(uidx == Unary);
 
-    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), 0);  //bits tbd
+    UlamKeyTypeSignature bitskey(m_state.m_pool.getIndexForDataString("Bits"), ULAMTYPE_DEFAULTBITSIZE[Bits]);
+    UTI bitsidx = m_state.makeUlamType(bitskey, Bits);
+    assert(bitsidx == Bits);
+
+    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), ULAMTYPE_DEFAULTBITSIZE[Class]);  //bits tbd
     UTI cidx = m_state.makeUlamType(ckey, Class);
     assert(cidx == Class);
 
-    UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), BITSPERATOM);
+    UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[Atom]);
     UTI aidx = m_state.makeUlamType(akey, Atom);
     assert(aidx == Atom);
 
-    UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("Ut_Ptr"), MAXSTATEBITS);
+    UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("Ut_Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr]);
     UTI pidx = m_state.makeUlamType(pkey, Ptr);
     assert(pidx == Ptr);
 

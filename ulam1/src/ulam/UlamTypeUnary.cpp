@@ -104,6 +104,7 @@ namespace MFM {
 	}
 	break;
       case Int:
+      case Unsigned:
 	{
 	  // cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
 	  //u32 count1s = PopCount(data);
@@ -114,6 +115,7 @@ namespace MFM {
 	}
 	break;
       case Unary:
+      case Bits:
 	{
 	  if(state.isConstant(valtypidx))
 	    {

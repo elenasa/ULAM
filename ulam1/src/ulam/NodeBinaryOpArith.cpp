@@ -45,7 +45,7 @@ namespace MFM {
 
 	newType = Int;
 
-#define REVISIT_FOR_UNSIGNED_INT
+	//#define REVISIT_FOR_UNSIGNED_INT
 #ifndef REVISIT_FOR_UNSIGNED_INT
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
@@ -53,8 +53,8 @@ namespace MFM {
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
 	  {
 	    newType = Unsigned;
-	    //check if isConstant?
-
+	    if(lt == rt && m_state.isConstant(lt))
+	      newType = lt;   	    //check if isConstant?
 	  }
 	else
 	  {
@@ -62,6 +62,9 @@ namespace MFM {
 	    // unsigned gets a warning, but still uses signed Int.
 	    if(ltypEnum == Unsigned || rtypEnum == Unsigned)
 	      {
+		std::ostringstream msg;
+		msg << "Attempting to mix signed and unsigned types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary operator" << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		//output warning
 	      }
 	  }
