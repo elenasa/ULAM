@@ -80,15 +80,14 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Int:
-      case Unary:
       case Unsigned:
+      case Unary:
 	{
 	  if(data != 0) //signed or unsigned
 	    newdata = _GetNOnes32(bitsize);  //all ones if true
 	}
 	break;
       case Bool:
-      case Bits:
 	{
 	  if(state.isConstant(valtypidx))
 	    {
@@ -104,8 +103,11 @@ namespace MFM {
 	    }
 	}
 	break;
+      case Bits:
+	newdata = data;  //no change to Bits data
+	break;
+      case Void:
       default:
-	assert(0);
 	//std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
@@ -119,10 +121,25 @@ namespace MFM {
 
   void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {
-    if(prefix == 'z')
-      sprintf(valstr,"%s", data ? "true" : "false");
+    UTI typidx = getUlamTypeIndex();
+    bool dataAsBool = false;
+    if(state.isConstant(typidx))
+      {
+	dataAsBool = (bool) data;
+      }
     else
-      sprintf(valstr,"%c%s", prefix, data ? "true" : "false");
+      {
+	s32 bitsize = state.getBitSize(typidx);
+	s32 count1s = PopCount(data);
+
+	if(count1s > (s32) (bitsize - count1s))  // == when even number bits is ignored (warning at def)
+	  dataAsBool = true;        
+      }
+
+    if(prefix == 'z')
+      sprintf(valstr,"%s", dataAsBool ? "true" : "false");
+    else
+      sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   }
 
 } //end MFM
