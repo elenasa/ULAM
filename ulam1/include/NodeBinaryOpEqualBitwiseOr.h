@@ -1,5 +1,6 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpMultiplyEqual.h - Node for handling Multiply Equal for ULAM
+ * NodeBinaryOpEqualBitwiseOr.h - Node for handling Bitwise 
+ *                                Or Equal Operation for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,26 +27,27 @@
  */
 
 /**
-  \file NodeBinaryOpMultiplyEqual.h - Node for handling Multiply Equal for ULAM
+  \file NodeBinaryOpEqualBitwiseOr.h - Node for handling Bitwise Or Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
-#ifndef NODEBINARYOPMULTIPLYEQUAL_H
-#define NODEBINARYOPMULTIPLYEQUAL_H
+#ifndef NODEBINARYOPBITWISEOREQUAL_H
+#define NODEBINARYOPBITWISEOREQUAL_H
 
-#include "NodeBinaryOpEqualArith.h"
+#include "NodeBinaryOpEqualBitwise.h"
 
 namespace MFM{
 
-  class NodeBinaryOpMultiplyEqual : public NodeBinaryOpEqualArith
+  class NodeBinaryOpEqualBitwiseOr : public NodeBinaryOpEqualBitwise
   {
   public:
     
-    NodeBinaryOpMultiplyEqual(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpMultiplyEqual();
+    NodeBinaryOpEqualBitwiseOr(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpEqualBitwiseOr();
+
 
     virtual const char * getName();
 
@@ -61,4 +63,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBINARYOPMULTIPLYEQUAL_H
+#endif //end NODEBINARYOPBITWISEOREQUAL_H

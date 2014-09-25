@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpAdd.h -  Node for handling Addition for ULAM
+ * NodeBinaryOpArithAdd.h -  Node for handling Addition for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,26 +26,26 @@
  */
 
 /**
-  \file NodeBinaryOpAdd.h -  Node for handling Addition for ULAM
+  \file NodeBinaryOpArithAdd.h -  Node for handling Addition for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
-#ifndef NODEBINARYOPADD_H
-#define NODEBINARYOPADD_H
+#ifndef NODEBINARYOPARITHADD_H
+#define NODEBINARYOPARITHADD_H
 
 #include "NodeBinaryOpArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpAdd : public NodeBinaryOpArith
+  class NodeBinaryOpArithAdd : public NodeBinaryOpArith
   {
   public:
     
-    NodeBinaryOpAdd(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpAdd();
+    NodeBinaryOpArithAdd(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpArithAdd();
 
     virtual void printOp(File * f);
 
@@ -61,4 +61,4 @@ namespace MFM{
 
 } //MFM
 
-#endif //NODEBINARYOPADD_H
+#endif //NODEBINARYOPARITHADD_H

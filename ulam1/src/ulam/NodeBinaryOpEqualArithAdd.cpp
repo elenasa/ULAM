@@ -1,26 +1,26 @@
-#include "NodeBinaryOpPlusEqual.h"
+#include "NodeBinaryOpEqualArithAdd.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeBinaryOpPlusEqual::NodeBinaryOpPlusEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
+  NodeBinaryOpEqualArithAdd::NodeBinaryOpEqualArithAdd(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
 
-  NodeBinaryOpPlusEqual::~NodeBinaryOpPlusEqual(){}
+  NodeBinaryOpEqualArithAdd::~NodeBinaryOpEqualArithAdd(){}
 
 
-  const char * NodeBinaryOpPlusEqual::getName()
+  const char * NodeBinaryOpEqualArithAdd::getName()
   {
     return "+=";
   }
 
 
-  const std::string NodeBinaryOpPlusEqual::prettyNodeName()
+  const std::string NodeBinaryOpEqualArithAdd::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
 
-  void NodeBinaryOpPlusEqual::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  void NodeBinaryOpEqualArithAdd::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     if(m_state.isScalar(getNodeType()))  //not an array
@@ -34,7 +34,7 @@ namespace MFM {
   } //end dobinaryop
 
   //same as NodeBinaryOpAdd
-  UlamValue NodeBinaryOpPlusEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  UlamValue NodeBinaryOpEqualArithAdd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     //    return UlamValue::makeImmediate(type, (s32) ldata + (s32) rdata, len);
     UlamValue rtnUV;
@@ -64,7 +64,7 @@ namespace MFM {
   }
 
   //same as NodeBinaryOpAdd
-  void NodeBinaryOpPlusEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  void NodeBinaryOpEqualArithAdd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     //refUV.putData(pos, len, (s32) ldata + (s32) rdata);
     UTI type = refUV.getUlamValueTypeIdx();

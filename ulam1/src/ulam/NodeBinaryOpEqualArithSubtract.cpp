@@ -1,27 +1,27 @@
-#include "NodeBinaryOpMinusEqual.h"
+#include "NodeBinaryOpEqualArithSubtract.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeBinaryOpMinusEqual::NodeBinaryOpMinusEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
+  NodeBinaryOpEqualArithSubtract::NodeBinaryOpEqualArithSubtract(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
 
-  NodeBinaryOpMinusEqual::~NodeBinaryOpMinusEqual(){}
+  NodeBinaryOpEqualArithSubtract::~NodeBinaryOpEqualArithSubtract(){}
 
 
-  const char * NodeBinaryOpMinusEqual::getName()
+  const char * NodeBinaryOpEqualArithSubtract::getName()
   {
     return "-=";
   }
 
 
-  const std::string NodeBinaryOpMinusEqual::prettyNodeName()
+  const std::string NodeBinaryOpEqualArithSubtract::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
 
   //same as NodeBinaryOpSubtract
-  UlamValue NodeBinaryOpMinusEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  UlamValue NodeBinaryOpEqualArithSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     //return UlamValue::makeImmediate(type, (s32) ldata - (s32) rdata, len);
     UlamValue rtnUV;
@@ -55,7 +55,7 @@ namespace MFM {
 
 
   //same as NodeBinaryOpSubtract
-  void NodeBinaryOpMinusEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  void NodeBinaryOpEqualArithSubtract::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     //refUV.putData(pos, len, (s32) ldata - (s32) rdata);
     UTI type = refUV.getUlamValueTypeIdx();

@@ -1,6 +1,6 @@
-/* -*- c++ -*- */
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpMultiply.h - Node for handling Multiplication for ULAM
+ * NodeBinaryOpEqualBitwiseAnd.h - Node for handling Bitwise 
+ *                                 And Equal Operation for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -27,26 +27,27 @@
  */
 
 /**
-  \file NodeBinaryOpMultiply.h - Node for handling Multiplication for ULAM
+  \file NodeBinaryOpEqualBitwiseAnd.h - Node for handling Bitwise And Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
-#ifndef NODEBINARYOPMULTIPLY_H
-#define NODEBINARYOPMULTIPLY_H
 
-#include "NodeBinaryOpArith.h"
+#ifndef NODEBINARYOPEQUALBITWISEAND_H
+#define NODEBINARYOPEQUALBITWISEAND_H
+
+#include "NodeBinaryOpEqualBitwise.h"
 
 namespace MFM{
 
-  class NodeBinaryOpMultiply : public NodeBinaryOpArith
+  class NodeBinaryOpEqualBitwiseAnd : public NodeBinaryOpEqualBitwise
   {
   public:
     
-    NodeBinaryOpMultiply(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpMultiply();
+    NodeBinaryOpEqualBitwiseAnd(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpEqualBitwiseAnd();
 
     virtual const char * getName();
 
@@ -62,4 +63,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBINARYOPMULTIPLY_H
+#endif //end NODEBINARYOPEQUALBITWISEAND_H

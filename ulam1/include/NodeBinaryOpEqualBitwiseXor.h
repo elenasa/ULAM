@@ -1,5 +1,6 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpPlusEqual.h - Node for handling Plus Equal for ULAM
+ * NodeBinaryOpEqualBitwiseXor.h - Node for handling Bitwise 
+ *                                Xor Equal Operation for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +27,7 @@
  */
 
 /**
-  \file NodeBinaryOpPlusEqual.h - Node for handling Plus Equal for ULAM
+  \file NodeBinaryOpEqualBitwiseXor.h - Node for handling Bitwise Xor Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,19 +35,19 @@
 */
 
 
-#ifndef NODEBINARYOPPLUSEQUAL_H
-#define NODEBINARYOPPLUSEQUAL_H
+#ifndef NODEBINARYOPEQUALBITWISEXOR_H
+#define NODEBINARYOPEQUALBITWISEXOR_H
 
-#include "NodeBinaryOpEqual.h"
+#include "NodeBinaryOpEqualBitwise.h"
 
 namespace MFM{
 
-  class NodeBinaryOpPlusEqual : public NodeBinaryOpEqual
+  class NodeBinaryOpEqualBitwiseXor : public NodeBinaryOpEqualBitwise
   {
   public:
     
-    NodeBinaryOpPlusEqual(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpPlusEqual();
+    NodeBinaryOpEqualBitwiseXor(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpEqualBitwiseXor();
 
     virtual const char * getName();
 
@@ -54,12 +55,12 @@ namespace MFM{
 
   protected:
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
   };
 
 }
 
-#endif //end NODEBINARYOPPLUSEQUAL_H
+#endif //end NODEBINARYOPEQUALBITWISEXOR_H

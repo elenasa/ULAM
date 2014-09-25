@@ -1,28 +1,27 @@
-#include "NodeBinaryOpMultiplyEqual.h"
+#include "NodeBinaryOpArithMultiply.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeBinaryOpMultiplyEqual::NodeBinaryOpMultiplyEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
+  NodeBinaryOpArithMultiply::NodeBinaryOpArithMultiply(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
 
-  NodeBinaryOpMultiplyEqual::~NodeBinaryOpMultiplyEqual(){}
+  NodeBinaryOpArithMultiply::~NodeBinaryOpArithMultiply(){}
 
 
-  const char * NodeBinaryOpMultiplyEqual::getName()
+  const char * NodeBinaryOpArithMultiply::getName()
   {
-    return "*=";
+    return "*";
   }
 
 
-  const std::string NodeBinaryOpMultiplyEqual::prettyNodeName()
+  const std::string NodeBinaryOpArithMultiply::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  //same as NodeBinaryOpMultiply
-  UlamValue NodeBinaryOpMultiplyEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+
+  UlamValue NodeBinaryOpArithMultiply::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    //    return UlamValue::makeImmediate(type, (s32) ldata * (s32) rdata, len);
     UlamValue rtnUV;
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
     switch(typEnum)
@@ -49,10 +48,9 @@ namespace MFM {
     return rtnUV;
   }
 
-  //same as NodeBinaryOpMultiply
-  void NodeBinaryOpMultiplyEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+
+  void NodeBinaryOpArithMultiply::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    //refUV.putData(pos, len, (s32) ldata * (s32) rdata);
     UTI type = refUV.getUlamValueTypeIdx();
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
     switch(typEnum)
@@ -77,8 +75,6 @@ namespace MFM {
 	break;
       };
     return;
-
   }
-
 
 } //end MFM

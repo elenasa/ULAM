@@ -1,14 +1,14 @@
-#include "NodeBinaryOpSubtract.h"
+#include "NodeBinaryOpArithSubtract.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeBinaryOpSubtract::NodeBinaryOpSubtract(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
+  NodeBinaryOpArithSubtract::NodeBinaryOpArithSubtract(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
 
-  NodeBinaryOpSubtract::~NodeBinaryOpSubtract(){}
+  NodeBinaryOpArithSubtract::~NodeBinaryOpArithSubtract(){}
 
 
-  void NodeBinaryOpSubtract::printOp(File * fp)
+  void NodeBinaryOpArithSubtract::printOp(File * fp)
   {
     char myname[16];
     sprintf(myname," %sb", getName());
@@ -16,19 +16,19 @@ namespace MFM {
   }
 
 
-  const char * NodeBinaryOpSubtract::getName()
+  const char * NodeBinaryOpArithSubtract::getName()
   {
     return "-";
   }
 
 
-  const std::string NodeBinaryOpSubtract::prettyNodeName()
+  const std::string NodeBinaryOpArithSubtract::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
 
-  UlamValue NodeBinaryOpSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  UlamValue NodeBinaryOpArithSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
@@ -61,7 +61,7 @@ namespace MFM {
   }
 
 
-  void NodeBinaryOpSubtract::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  void NodeBinaryOpArithSubtract::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     UTI type = refUV.getUlamValueTypeIdx();
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();

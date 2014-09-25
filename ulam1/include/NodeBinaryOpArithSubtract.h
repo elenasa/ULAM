@@ -1,6 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpBitwiseOrEqual.h - Node for handling Bitwise 
- *                                Or Equal Operation for ULAM
+ * NodeBinaryOpArithSubtract.h - Node for handling Subtraction for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -27,27 +26,29 @@
  */
 
 /**
-  \file NodeBinaryOpBitwiseOrEqual.h - Node for handling Bitwise Or Equal for ULAM
+  \file NodeBinaryOpArithSubtract.h - Node for handling Subtraction for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
-#ifndef NODEBINARYOPBITWISEOREQUAL_H
-#define NODEBINARYOPBITWISEOREQUAL_H
 
-#include "NodeBinaryOpEqualBitwise.h"
+#ifndef NODEBINARYOPARITHSUBTRACT_H
+#define NODEBINARYOPARITHSUBTRACT_H
+
+#include "NodeBinaryOpArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpBitwiseOrEqual : public NodeBinaryOpEqualBitwise
+  class NodeBinaryOpArithSubtract : public NodeBinaryOpArith
   {
   public:
     
-    NodeBinaryOpBitwiseOrEqual(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpBitwiseOrEqual();
+    NodeBinaryOpArithSubtract(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpArithSubtract();
 
+    virtual void printOp(File * fp);
 
     virtual const char * getName();
 
@@ -63,4 +64,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBINARYOPBITWISEOREQUAL_H
+#endif //end NODEBINARYOPARITHSUBTRACT_H

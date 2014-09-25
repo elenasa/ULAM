@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpSubtract.h - Node for handling Subtraction for ULAM
+ * NodeBinaryOpEqualArithMultiply.h - Node for handling Multiply Equal for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,29 +26,26 @@
  */
 
 /**
-  \file NodeBinaryOpSubtract.h - Node for handling Subtraction for ULAM
+  \file NodeBinaryOpEqualArithMultiply.h - Node for handling Multiply Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
+#ifndef NODEBINARYOPEQUALARITHMULTIPLY_H
+#define NODEBINARYOPEQUALARITHMULTIPLY_H
 
-#ifndef NODEBINARYOPSUBTRACT_H
-#define NODEBINARYOPSUBTRACT_H
-
-#include "NodeBinaryOpArith.h"
+#include "NodeBinaryOpEqualArith.h"
 
 namespace MFM{
 
-  class NodeBinaryOpSubtract : public NodeBinaryOpArith
+  class NodeBinaryOpEqualArithMultiply : public NodeBinaryOpEqualArith
   {
   public:
     
-    NodeBinaryOpSubtract(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpSubtract();
-
-    virtual void printOp(File * fp);
+    NodeBinaryOpEqualArithMultiply(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpEqualArithMultiply();
 
     virtual const char * getName();
 
@@ -64,4 +61,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBINARYOPSUBTRACT_H
+#endif //end NODEBINARYOPEQUALARITHMULTIPLY_H
