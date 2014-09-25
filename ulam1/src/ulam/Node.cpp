@@ -1,5 +1,9 @@
-#include "CompilerState.h"
 #include <iostream>
+#include "Node.h"
+#include "CompilerState.h"
+#include "NodeFunctionCall.h"
+#include "NodeMemberSelect.h"
+
 
 namespace MFM {
 
@@ -29,6 +33,46 @@ namespace MFM {
     m_storeIntoAble = false;
     return m_nodeUType; 
   }
+
+
+  Node * Node::makeCastingNode(Node * node, UTI tobeType)
+  {
+    Node * rtnNode = NULL;
+    UTI nuti = node->getNodeType();
+    ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
+
+    if(nclasstype == UC_NOTACLASS)
+      {
+	rtnNode = new NodeCast(node, tobeType, m_state);
+	rtnNode->setNodeLocation(getNodeLocation());
+	rtnNode->checkAndLabelType();
+      }
+    else if (nclasstype == UC_QUARK)
+      {
+	    Token identTok;
+	    u32 castId = m_state.m_pool.getIndexForDataString("toInt");	 
+	    identTok.init(TOK_IDENTIFIER, getNodeLocation(), castId);
+	    assert(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() == Int);
+
+	    //fill in func symbol during type labeling;
+	    Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+	    fcallNode->setNodeLocation(identTok.m_locator);
+	    Node * mselectNode = new NodeMemberSelect(node, fcallNode, m_state);
+	    mselectNode->setNodeLocation(identTok.m_locator);
+	    
+	    rtnNode=mselectNode;  //replace right node with new branch
+	    
+	    //redo check and type labeling
+	    UTI newType = rtnNode->checkAndLabelType(); 
+	    assert(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Int);
+      }
+    else
+      {
+	//error!
+	assert(0);
+      }
+    return rtnNode;
+  } //make casting node
 
 
   UTI Node::getNodeType()
@@ -98,10 +142,12 @@ namespace MFM {
     return false;
   }
 
+
   bool Node::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     return false;
   }
+
 
   const std::string Node::nodeName(const std::string& prettyFunction)
   {

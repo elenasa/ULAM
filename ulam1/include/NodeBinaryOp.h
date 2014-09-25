@@ -55,12 +55,13 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
+    virtual UTI checkAndLabelType();
+
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp);
 
   protected:
-
     Node * m_nodeLeft;
     Node * m_nodeRight;
 
@@ -72,8 +73,8 @@ namespace MFM{
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len) = 0;
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len) = 0;
 
-    UTI calcNodeType(UTI lt, UTI rt);
-    UTI calcNodeTypeBitwise(UTI lt, UTI rt);
+    virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
+
   };
 
 }

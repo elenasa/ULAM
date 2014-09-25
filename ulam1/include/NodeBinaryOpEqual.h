@@ -48,15 +48,15 @@ namespace MFM{
     NodeBinaryOpEqual(Node * left, Node * right, CompilerState & state);
     ~NodeBinaryOpEqual();
 
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
-
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
 
 
   protected:
@@ -64,9 +64,10 @@ namespace MFM{
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
     virtual void doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots);
     virtual void doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
-    virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
-    virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
+    virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len); //stub
+    virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len); //stub
+    virtual UTI calcNodeType(UTI lt, UTI rt);  //stub
   };
 
 }

@@ -27,8 +27,7 @@ namespace MFM {
     UTI newType = Nav; //init
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
-	
-    //assert(m_nodeLeft->isStoreIntoAble());
+
     if(!m_nodeLeft->isStoreIntoAble())
       {
 	std::ostringstream msg;
@@ -44,15 +43,20 @@ namespace MFM {
     //cast RHS if necessary
     if(newType != rightType)
       {
-	m_nodeRight = new NodeCast(m_nodeRight, newType, m_state);
-	m_nodeRight->setNodeLocation(getNodeLocation());
-	m_nodeRight->checkAndLabelType();
+	m_nodeRight = makeCastingNode(m_nodeRight, newType);
       }
 
     setNodeType(newType);
     
     setStoreIntoAble(true);
     return newType;
+  }
+
+
+  UTI NodeBinaryOpEqual::calcNodeType(UTI lt, UTI rt)
+  {
+    assert(0);
+    return Nav;
   }
 
 

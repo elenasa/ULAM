@@ -50,6 +50,10 @@ namespace MFM {
     //must be some kind of Int..of any bit size
     if(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Int)
       {
+
+	m_nodeRight = makeCastingNode(m_nodeRight, Int);  //refactored
+
+#if 0
 	//"cast" Quark to return an Int by
 	//inserting NodeMemberSelect and NodeFunctionCall to 'castToInt' method.
 	if(m_state.getUlamTypeByIndex(rightType)->getUlamClass() == UC_QUARK)
@@ -77,6 +81,8 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorCount++;
 	  }
+#endif
+
       }
     
     if(errorCount == 0)
@@ -90,6 +96,13 @@ namespace MFM {
       }
     
     return newType;
+  }
+
+
+  UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
+  {
+    assert(0);
+    return Int;
   }
 
 
