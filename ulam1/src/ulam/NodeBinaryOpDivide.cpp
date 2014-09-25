@@ -85,6 +85,23 @@ namespace MFM {
 	  refUV.putData(pos, len, _GetNOnes32(quoOf1s));
 	}
 	break;
+      case Unsigned:
+	{
+	  s32 quotient = 0;
+	  if( rdata == 0)
+	    {
+	      MSG(getNodeLocationAsString().c_str(), "Possible Divide By Zero Attempt", ERR);
+	    }
+	  else
+	    {
+	      quotient = ldata/ rdata;
+	    }
+	  refUV.putData(pos, len, quotient);
+	}
+	break;
+      case Bits:
+	assert(0);
+	break;
       default:
 	{
 	  s32 quotient = 0;

@@ -52,14 +52,14 @@ namespace MFM {
       {
 	if(m_state.isScalar(lt) && m_state.isScalar(rt))
 	  {
-	    newType = Int;  //default is Int
+	    newType = Bits;  //default is Bits
 	  }
 	else
 	  {
 	    std::ostringstream msg;
 	    msg << "Incompatible (nonscalar) types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary bitwise operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }	
+	  }
       }
     return newType;
   }

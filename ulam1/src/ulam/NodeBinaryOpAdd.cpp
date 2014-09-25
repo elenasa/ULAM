@@ -43,6 +43,12 @@ namespace MFM {
 	  rtnUV = UlamValue::makeImmediate(type, _GetNOnes32(sumOf1s), len);
 	}
 	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediate(type, ldata + rdata, len);
+	break;
+      case Bits:
+	assert(0);
+	break;
       default:
 	rtnUV = UlamValue::makeImmediate(type, (s32) ldata + (s32) rdata, len);
 	break;
@@ -65,6 +71,12 @@ namespace MFM {
 	  u32 sumOf1s = leftCount1s + rightCount1s;
 	  refUV.putData(pos, len, _GetNOnes32(sumOf1s));
 	}
+	break;
+      case Unsigned:
+	refUV.putData(pos, len, ldata + rdata);
+	break;
+      case Bits:
+	assert(0);
 	break;
       default:
 	refUV.putData(pos, len, (s32) ldata + (s32) rdata);

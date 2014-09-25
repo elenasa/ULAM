@@ -51,9 +51,12 @@ namespace MFM {
       case Bool:
       case Int:
       case Unary:
+      case Unsigned:
+      case Bits:
 	val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val, no data
 	break;
       default:
+	assert(0);
 	//std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };

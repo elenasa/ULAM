@@ -81,12 +81,14 @@ namespace MFM {
       {
       case Int:
       case Unary:
+      case Unsigned:
 	{
 	  if(data != 0) //signed or unsigned
 	    newdata = _GetNOnes32(bitsize);  //all ones if true
 	}
 	break;
       case Bool:
+      case Bits:
 	{
 	  if(state.isConstant(valtypidx))
 	    {
@@ -103,6 +105,7 @@ namespace MFM {
 	}
 	break;
       default:
+	assert(0);
 	//std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };

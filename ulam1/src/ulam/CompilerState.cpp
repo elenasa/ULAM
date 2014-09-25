@@ -8,7 +8,9 @@
 #include "UlamTypeAtom.h"
 #include "UlamTypeBool.h"
 #include "UlamTypeUnary.h"
+#include "UlamTypeBits.h"
 #include "UlamTypeInt.h"
+#include "UlamTypeUnsigned.h"
 #include "UlamTypeNav.h"
 #include "UlamTypeVoid.h"
 #include "UlamTypePtr.h"
@@ -125,11 +127,17 @@ namespace MFM {
       case Int:
 	ut = new UlamTypeInt(key, uti);      
 	break;
+      case Unsigned:
+	ut = new UlamTypeUnsigned(key, uti);      
+	break;
       case Bool:
 	ut = new UlamTypeBool(key, uti);      
 	break;
       case Unary:
 	ut = new UlamTypeUnary(key, uti);      
+	break;
+      case Bits:
+	ut = new UlamTypeBits(key, uti);      
 	break;
       case Class:
 	ut = new UlamTypeClass(key, uti);      

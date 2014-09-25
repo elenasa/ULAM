@@ -46,6 +46,12 @@ namespace MFM {
 	    rtnUV = UlamValue::makeImmediate(type, 0, len); //least surprising
 	}
 	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediate(type, ldata - rdata, len);
+	break;
+      case Bits:
+	assert(0);
+	break;
       default:
 	rtnUV = UlamValue::makeImmediate(type, (s32) ldata - (s32) rdata, len);
 	break;
@@ -72,6 +78,12 @@ namespace MFM {
 	  else
 	    refUV.putData(pos, len, 0);
 	}
+	break;
+      case Unsigned:
+	refUV.putData(pos, len, ldata - rdata);
+	break;
+      case Bits:
+	assert(0);
 	break;
       default:
 	refUV.putData(pos, len, (s32) ldata - (s32) rdata);

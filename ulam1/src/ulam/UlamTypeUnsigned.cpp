@@ -2,23 +2,23 @@
 #include <sstream>
 #include <stdio.h>
 #include <string.h>
-#include "UlamTypeInt.h"
+#include "UlamTypeUnsigned.h"
 #include "UlamValue.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
+  UlamTypeUnsigned::UlamTypeUnsigned(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
   {}
 
 
-   ULAMTYPE UlamTypeInt::getUlamTypeEnum()
+   ULAMTYPE UlamTypeUnsigned::getUlamTypeEnum()
    {
-     return Int;
+     return Unsigned;
    }
 
 
-  const std::string UlamTypeInt::getUlamTypeAsStringForC()
+  const std::string UlamTypeUnsigned::getUlamTypeAsStringForC()
   {
     //std::ostringstream ctype;
     //ctype <<  "s" << m_key.getUlamKeyTypeSignatureBitSize(); 
@@ -27,13 +27,13 @@ namespace MFM {
   }
 
 
-  const char * UlamTypeInt::getUlamTypeAsSingleLowercaseLetter()
+  const char * UlamTypeUnsigned::getUlamTypeAsSingleLowercaseLetter()
   {
     return "i";
   }
 
 
-  bool UlamTypeInt::cast(UlamValue & val, CompilerState& state)
+  bool UlamTypeUnsigned::cast(UlamValue & val, CompilerState& state)
   {
     bool brtn = true;
     UTI typidx = getUlamTypeIndex();
@@ -110,9 +110,9 @@ namespace MFM {
       case Int:
       case Unsigned:
       case Bits:
-	// casting Int to Int to change bits size
-	// casting Unsigned to Int to change type
-	// casting Bits to Int to change type
+	// casting Int to Unsigned to change type
+	// casting UnsignedInt to UnsignedInt to change bits size
+	// casting to Bits Unsigned to change type
 	val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
 	break;
       default:
@@ -120,16 +120,17 @@ namespace MFM {
 	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
+
     return brtn;
   } //end cast
 
 
-  void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+  void UlamTypeUnsigned::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%d", (s32) data);
+      sprintf(valstr,"%d", data);
     else
-      sprintf(valstr,"%c%d", prefix, (s32) data);
+      sprintf(valstr,"%c%d", prefix, data);
   }
   
 } //end MFM
