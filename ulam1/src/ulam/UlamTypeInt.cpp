@@ -82,6 +82,20 @@ namespace MFM {
     u32 data = val.getImmediateData(state);
     switch(valtypEnum)
       {
+      case Int:
+      case Unsigned:
+      case Bits:
+	// casting Int to Int to change bits size
+	// casting Unsigned to Int to change type
+	// casting Bits to Int to change type
+	val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
+	break;
+      case Unary:
+	{
+	  u32 count1s = PopCount(data);
+	  val = UlamValue::makeImmediate(typidx, count1s, state); //overwrite val
+	}
+	break;
       case Bool:
 	{
 	  if(state.isConstant(valtypidx))  // bitsize is misleading
@@ -101,22 +115,8 @@ namespace MFM {
 	    }
 	}
 	break;
-      case Unary:
-	{
-	  u32 count1s = PopCount(data);
-	  val = UlamValue::makeImmediate(typidx, count1s, state); //overwrite val
-	}
-	break;
-      case Int:
-      case Unsigned:
-      case Bits:
-	// casting Int to Int to change bits size
-	// casting Unsigned to Int to change type
-	// casting Bits to Int to change type
-	val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
-	break;
+      case Void:
       default:
-	assert(0);
 	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };

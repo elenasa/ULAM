@@ -83,6 +83,17 @@ namespace MFM {
     u32 data = val.getImmediateData(state);    
     switch(valtypEnum)
       {
+      case Int:
+      case Unsigned:
+	{
+	  // cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
+	  //u32 count1s = PopCount(data);
+	  if((s32) data <= 0)   //signed int check
+	    val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
+	  else
+	    val = UlamValue::makeImmediate(typidx, _GetNOnes32(data), state); //overwrite val
+	}
+	break;
       case Bool:
 	{
 	  // Bool -> Unary is the same as Bool -> Int
@@ -103,19 +114,7 @@ namespace MFM {
 	    }
 	}
 	break;
-      case Int:
-      case Unsigned:
-	{
-	  // cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
-	  //u32 count1s = PopCount(data);
-	  if((s32) data <= 0)   //signed int check
-	    val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
-	  else
-	    val = UlamValue::makeImmediate(typidx, _GetNOnes32(data), state); //overwrite val
-	}
-	break;
       case Unary:
-      case Bits:
 	{
 	  if(state.isConstant(valtypidx))
 	    {
@@ -133,6 +132,10 @@ namespace MFM {
 	    }
 	}
 	break;
+      case Bits:
+	val = UlamValue::makeImmediate(typidx, data, state); //overwrite val, same data
+	break;
+      case Void:
       default:
 	//std::cerr << "UlamTypeUnary (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;

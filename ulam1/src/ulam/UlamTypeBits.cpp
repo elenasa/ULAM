@@ -49,14 +49,15 @@ namespace MFM {
     u32 data = val.getImmediateData(state);
     switch(valtypEnum)
       {
-      case Bool:
+      case Void:
       case Int:
       case Unsigned:
+      case Bool:
+      case Unary:
       case Bits:
 	val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
 	break;
       default:
-	assert(0);
 	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
@@ -68,9 +69,9 @@ namespace MFM {
   void UlamTypeBits::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%x", data);
+      sprintf(valstr,"%u", data);
     else
-      sprintf(valstr,"%c%x", prefix, data);
+      sprintf(valstr,"%c%u", prefix, data);
   }
   
 } //end MFM

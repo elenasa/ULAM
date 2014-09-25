@@ -144,9 +144,9 @@ namespace MFM {
   void UlamTypeClass::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%d", (s32) data);
+      sprintf(valstr,"%d", data);
     else
-      sprintf(valstr,"%c%d", prefix, (s32) data);
+      sprintf(valstr,"%c%d", prefix, data);
   }
 
 
