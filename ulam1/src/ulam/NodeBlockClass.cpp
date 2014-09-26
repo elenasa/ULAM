@@ -217,6 +217,7 @@ namespace MFM {
     m_nextNode->packBitsInOrderOfDeclaration(offset);
   }
 
+
   //header .h file
   void NodeBlockClass::genCode(File * fp)
   {
@@ -253,48 +254,12 @@ namespace MFM {
 
     if(classtype == UC_QUARK)
       {
-	m_state.indent(fp);
-	fp->write("template <u32 POS>\n");
+	genCodeHeaderQuark(fp);
       }
-
-    m_state.indent(fp);
-    fp->write("struct ");
-    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
-
-    fp->write("\n");
-
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    if(classtype == UC_ELEMENT)
+    else  //element
       {
-	//DataMember VAR DECLS
-	if(m_nextNode)
-	  {
-	    m_nextNode->genCode(fp);
-	    //NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
-	    fp->write("\n");
-	  }
+	genCodeHeaderElement(fp);
       }
-
-    //default constructor/destructor
-    if(classtype == UC_ELEMENT)
-      {
-	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("();\n");
-	
-	m_state.indent(fp);
-	fp->write("~");
-	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("();\n\n");
-      }
-
-    // if this 'element' contains more than one template (quark) data members, 
-    // we need vector of offsets to generate a separate function decl/dfn for each one's POS
-    // in case a function has one as a return value and/or parameter.
 
 
     //gencode declarations only for all the function definitions
@@ -316,6 +281,74 @@ namespace MFM {
     fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n");
   }
+
+
+  void NodeBlockClass::genCodeHeaderQuark(File * fp)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    genCodeHeaderQuark(fp);
+    m_state.indent(fp);
+    fp->write("template <u32 POS>\n");
+
+    m_state.indent(fp);
+    fp->write("class ");
+    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+
+    //tbd inheritance
+
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //default constructor/destructor
+  }
+
+
+  void NodeBlockClass::genCodeHeaderElement(File * fp)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    m_state.indent(fp);
+    fp->write("template<class CC>\n");
+
+    m_state.indent(fp);
+    fp->write("class ");
+    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+    
+    fp->write(" : public Element<CC>");
+
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //DataMember VAR DECLS
+    if(m_nextNode)
+      {
+	m_nextNode->genCode(fp);
+	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
+	fp->write("\n");
+      }
+
+    //default constructor/destructor
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write("();\n");
+    
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write("();\n\n");
+
+    // if this 'element' contains more than one template (quark) data members, 
+    // we need vector of offsets to generate a separate function decl/dfn for each one's POS
+    // in case a function has one as a return value and/or parameter.
+  }
+
 
 
   //Body for This Class only; practically empty if quark (.cpp)

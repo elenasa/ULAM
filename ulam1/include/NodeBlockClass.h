@@ -83,6 +83,9 @@ namespace MFM{
   private:
     NodeBlockFunctionDefinition * findTestFunctionNode();
     static std::string allCAPS(const char * s);
+
+    void genCodeHeaderQuark(File * fp);
+    void genCodeHeaderElement(File * fp);
   };
 
 }

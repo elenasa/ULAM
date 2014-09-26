@@ -23,13 +23,13 @@ namespace MFM {
     //std::ostringstream ctype;
     //ctype <<  "s" << m_key.getUlamKeyTypeSignatureBitSize(); 
     //return ctype.str();
-    return "int";
+    return "unsigned int";
   }
 
 
   const char * UlamTypeUnsigned::getUlamTypeAsSingleLowercaseLetter()
   {
-    return "i";
+    return "u";
   }
 
 
