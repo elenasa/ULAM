@@ -32,12 +32,19 @@ namespace MFM {
   { 
     // unlike the other nodes, nodecast knows its type at construction time;
     // this is for checking for errors, before eval happens.
+    u32 errorsFound = 0;
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->checkAndLabelType(); //user cast 
+    ULAMCLASSTYPE tobeClass = m_state.getUlamTypeByIndex(tobeType)->getUlamClass();
 
-    if(tobeType == Nav)
-      MSG(getNodeLocationAsString().c_str(), "Cannot cast to Nav.", ERR);
-    else
+    if(tobeType == Nav || tobeClass != UC_NOTACLASS)
+      {
+	std::ostringstream msg;
+	msg << "Cannot cast to type <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	errorsFound++;
+      }
+    else 
       {
 	if(!m_state.isScalar(tobeType))
 	  {
@@ -48,14 +55,50 @@ namespace MFM {
 
 	    if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
 	      MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Array sizes differ", ERR);
+	    errorsFound++;
 	  }
 	else
 	  {
 	    if(!m_state.isScalar(nodeType))
-	      MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast array into scalar", ERR);
+	      {
+		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast array into scalar", ERR);
+		errorsFound++;
+	      }
 	  }
       }
 
+    // special case: user casting a quark to an Int; 
+    if(errorsFound == 0)  
+      {
+	ULAMCLASSTYPE nodeClass = m_state.getUlamTypeByIndex(nodeType)->getUlamClass();
+	if(nodeClass == UC_QUARK)
+	  {
+	    ULAMTYPE tobeTypEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
+	    if(tobeTypEnum != Int)
+	      {
+		std::ostringstream msg;
+		msg << "Cannot cast quark type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to non-Int <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++;		//error!
+	      }
+	    else
+	      {
+		// update to NodeMemberSelect + NodeFunctionCall
+		m_node = makeCastingNode(m_node, tobeType);
+	      }
+	  }
+	else
+	  {
+	    if(nodeClass == UC_ELEMENT || nodeClass == UC_INCOMPLETE)
+	      {
+		std::ostringstream msg;
+		msg << "Cannot cast type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++;	    //error!
+	      }
+	  }
+      }
+    
     return getNodeType(); 
   }
 

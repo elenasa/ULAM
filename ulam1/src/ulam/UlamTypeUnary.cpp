@@ -84,11 +84,18 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Int:
-      case Unsigned:
 	{
 	  // cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
 	  //u32 count1s = PopCount(data);
 	  if((s32) data <= 0)   //signed int check
+	    val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
+	  else
+	    val = UlamValue::makeImmediate(typidx, _GetNOnes32(data), state); //overwrite val
+	}
+	break;
+      case Unsigned:
+	{
+	  if( data == 0)   
 	    val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
 	  else
 	    val = UlamValue::makeImmediate(typidx, _GetNOnes32(data), state); //overwrite val

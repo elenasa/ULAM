@@ -56,7 +56,12 @@ namespace MFM {
 		state->indent(fp);
 		fp->write("template<u32 POS>\n");
 	      }
-	    
+	    else  //element
+	      {
+		state->indent(fp);
+		fp->write("template<class CC>\n");
+	      }
+
 	    state->indent(fp);
 	    fp->write("class ");
 	    fp->write(getUlamTypeMangledName(state).c_str());

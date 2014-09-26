@@ -250,6 +250,7 @@ namespace MFM {
     //use -I ../../../include in g++ command
     fp->write("#include \"itype.h\"\n"); 
     fp->write("#include \"BitVector.h\"\n"); 
+    fp->write("#include \"BitField.h\"\n"); 
     fp->write("\n");
 
     //skip Nav type (0)
