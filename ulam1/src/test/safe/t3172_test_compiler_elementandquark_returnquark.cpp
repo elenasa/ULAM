@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_Foo { typedef Bar Pop[2];  Int(4) m_i(0);  Bar m_bar[2](0,2);  Int(32) test() {  Foo f;  f m_i . 15 cast = m_bar 1 [] f ( 1 cast )check . = f m_i . cast return } }\nExit status: 15");
+      return std::string("Ue_Foo { typedef Bar Pop[2];  Int(4) m_i(0);  Bar m_bar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,true,false); );  Int(32) test() {  Foo f;  f m_i . 15 cast = m_bar 1 [] f ( 1 cast )check . = f m_i . cast return } }\nExit status: 15");
     }
     
     std::string PresetTest(FileManagerString * fms)

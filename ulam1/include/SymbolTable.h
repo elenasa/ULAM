@@ -62,7 +62,7 @@ namespace MFM{
 
     void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
 
-    void printPostfixValuesForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
+    void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
     void labelTableOfFunctions();
     

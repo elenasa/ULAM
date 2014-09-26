@@ -56,7 +56,7 @@ namespace MFM{
 
     virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
 
-    virtual void printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype);
+    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
   protected:
 

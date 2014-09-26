@@ -73,7 +73,7 @@ namespace MFM {
   // provides, in order to distinguish between an instance's data
   // members on the STACK verses the classes' data members in
   // EVENTWINDOW.
-  void SymbolTable::printPostfixValuesForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
+  void SymbolTable::printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
@@ -82,7 +82,7 @@ namespace MFM {
 	Symbol * sym = it->second;  
 	if(sym->isTypedef() || sym->isDataMember())
 	{
-	  sym->printPostfixValuesOfVariableDeclarations(fp, classtype);
+	  sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
 	}
 	it++;
       }

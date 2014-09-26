@@ -68,8 +68,9 @@ namespace MFM {
       }
     else
       {
-	//error!
-	assert(0);
+	std::ostringstream msg;
+	msg << "Cannot CAST type: <" << m_state.getUlamTypeNameByIndex(nuti).c_str() << "> as a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return rtnNode;
   } //make casting node

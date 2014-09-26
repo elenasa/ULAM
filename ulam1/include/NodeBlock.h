@@ -75,6 +75,8 @@ namespace MFM{
 
     s32 getBitSizesOfVariableSymbolsInTable();
 
+    SymbolTable * getSymbolTablePtr(); //used for print postfix 
+
     virtual void genCode(File * fp);
 
   protected:

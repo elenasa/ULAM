@@ -21,7 +21,7 @@ namespace MFM {
 
 
   // replaces NodeTypedef:printPostfix to learn the values of Class' storage in center site
-  void SymbolTypedef::printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
+  void SymbolTypedef::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     UTI tuti = getUlamTypeIdx();
 

@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //note: 148 decimal == 0x94 hex
-      return std::string("Ue_Foo { C2D m_coord(148);  Int(32) m_idx(40);  Bool(1) m_b(false);  Int(32) test() {  m_coord ( 9 cast 4 cast )func = m_idx m_coord ( 0 cast 0 cast )getIndex . = m_idx return } }\nExit status: 40");
+      return std::string("Ue_Foo { C2D m_coord( Int(4) m_width(9);  Int(4) m_height(4); );  Int(32) m_idx(40);  Bool(1) m_b(false);  Int(32) test() {  m_coord ( 9 cast 4 cast )func = m_idx m_coord ( 0 cast 0 cast )getIndex . = m_idx return } }\nExit status: 40");
     }
     
     std::string PresetTest(FileManagerString * fms)
