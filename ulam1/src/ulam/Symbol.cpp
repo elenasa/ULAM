@@ -62,7 +62,7 @@ namespace MFM {
   }
 
 
-  void Symbol::printPostfixValuesOfVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
+  void Symbol::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
     {
       assert(0);
     }

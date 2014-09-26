@@ -51,7 +51,11 @@ namespace MFM {
     //    if(m_nextNode)
     //  m_nextNode->printPostfix(fp);  //datamember vardecls
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
-    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, classtype);
+    //simplifying assumption for testing purposes: center site
+    Coord c0(0,0);
+    s32 slot = c0.convertCoordToIndex();
+    
+    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
 
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
