@@ -9,7 +9,9 @@
 namespace MFM {
 
   UlamTypeUnary::UlamTypeUnary(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
-  {}
+  {
+    m_lengthBy32 = fitsIntoInts(getTotalBitSize());
+  }
 
 
    ULAMTYPE UlamTypeUnary::getUlamTypeEnum()
@@ -18,12 +20,9 @@ namespace MFM {
    }
 
 
-  const std::string UlamTypeUnary::getUlamTypeAsStringForC()
+  const std::string UlamTypeUnary::getUlamTypeVDAsStringForC()
   {
-    //std::ostringstream ctype;
-    //ctype <<  "s" << m_key.getUlamKeyTypeSignatureBitSize(); 
-    //return ctype.str();
-    return "unsigned int";
+    return "VD::UNARY";
   }
 
 

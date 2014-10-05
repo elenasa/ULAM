@@ -100,11 +100,16 @@ namespace MFM{
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void genCode(File * fp);
+    virtual std::string genCodeReadIntoATmpVar(File * fp);
+    virtual void genCodeWriteFromATmpVar(File * fp, std::string tmpVar);
 
   protected:
 
     CompilerState & m_state;  //for printing error messages with path
     Node * makeCastingNode(Node * node, UTI tobeType);
+
+    const std::string readMethodForCodeGen(UTI nuti);
+    const std::string writeMethodForCodeGen(UTI nuti);
 
   private:
     bool m_storeIntoAble;

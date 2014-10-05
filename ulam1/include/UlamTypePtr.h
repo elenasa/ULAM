@@ -51,7 +51,11 @@ namespace MFM{
     virtual ~UlamTypePtr(){}
     
     virtual ULAMTYPE getUlamTypeEnum();
-        
+
+    virtual const std::string getUlamTypeVDAsStringForC();
+
+    virtual bool needsImmediateType();
+
   private:
     
   };

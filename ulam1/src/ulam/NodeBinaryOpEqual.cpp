@@ -255,4 +255,30 @@ namespace MFM {
   }
 
 
-} //end MFM
+  void NodeBinaryOpEqual::genCode(File * fp)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+
+#if 0
+    m_nodeLeft->genCode(fp);
+    fp->write(getName()); //=
+    m_nodeRight->genCode(fp);
+
+#else
+    
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+
+    std::string tmpVar = m_nodeRight->genCodeReadIntoATmpVar(fp);
+    //m_state.indent(fp);
+    //fp->write("//UH_tmp_loadable |= true;   //HARDCODED? \n");  
+    m_nodeLeft->genCodeWriteFromATmpVar(fp, tmpVar);
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");
+    fp->write("\n");
+#endif
+  } //genCode
+
+  } //end MFM

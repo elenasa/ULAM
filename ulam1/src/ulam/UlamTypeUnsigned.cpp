@@ -9,7 +9,9 @@
 namespace MFM {
 
   UlamTypeUnsigned::UlamTypeUnsigned(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
-  {}
+  {
+    m_lengthBy32 = fitsIntoInts(getTotalBitSize());
+  }
 
 
    ULAMTYPE UlamTypeUnsigned::getUlamTypeEnum()
@@ -18,12 +20,24 @@ namespace MFM {
    }
 
 
-  const std::string UlamTypeUnsigned::getUlamTypeAsStringForC()
+  const std::string UlamTypeUnsigned::getUlamTypeVDAsStringForC()
   {
-    //std::ostringstream ctype;
-    //ctype <<  "s" << m_key.getUlamKeyTypeSignatureBitSize(); 
-    //return ctype.str();
-    return "unsigned int";
+    return "VD::U32";
+  }
+
+
+  const std::string UlamTypeUnsigned::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    if(needsImmediateType())
+      return UlamType::getUlamTypeImmediateMangledName(state);
+
+    return "u32";
+  }
+
+
+  bool UlamTypeUnsigned::needsImmediateType()
+  {
+    return ((getBitSize() == ANYBITSIZECONSTANT || getBitSize() == MAXBITSPERINT) ? false : true);
   }
 
 

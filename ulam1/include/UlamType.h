@@ -64,6 +64,7 @@ namespace MFM{
 
   enum ULAMCLASSTYPE { UC_INCOMPLETE, UC_QUARK, UC_ELEMENT, UC_NOTACLASS };
 
+
   class UlamType
   {    
   public: 
@@ -91,13 +92,23 @@ namespace MFM{
 
     virtual const std::string getUlamTypeAsStringForC();
 
-    virtual const std::string getUlamTypeUPrefix();
-
-    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+    virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual const std::string getUlamTypeMangledName(CompilerState * state);
 
+    virtual const std::string getUlamTypeUPrefix();
+
+    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+
+    virtual bool needsImmediateType();
+
+    virtual const std::string getImmediateTypeAsString(CompilerState * state);
+
+    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
     virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+
+    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp, CompilerState * state);
 
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
 
@@ -105,16 +116,24 @@ namespace MFM{
 
     //for name by index see CompilerState::getUlamTypeNameByIndex
 
-    bool isScalar(); //arraysize == NOTARRAYSIZE is scalar
+    bool isScalar();   //arraysize == NOTARRAYSIZE is scalar
 
     s32 getArraySize();
 
-    s32 getBitSize();  //'class' type calculates its size after type labeling
+    s32 getBitSize();  //'class' type calculated after type labeling
 
+    u32 getTotalBitSize();  //bitsize * arraysize, accounting for constants and scalars
+
+    /** Number of bits (rounded up to nearest 32 bits) required to
+    hold the total bit size  */
+    u32 getTotalSizeByInts();   
+
+    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
 
   protected:
     UlamKeyTypeSignature m_key;
     UTI m_uti;
+    u32 m_lengthBy32;
 
   private:
   };

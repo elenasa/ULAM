@@ -81,6 +81,9 @@ namespace MFM{
   class NodeBlockClass; //forward
   class SymbolTable;    //forward
 
+  static const char * HIDDEN_ARG_NAME = "Uv_4self";
+
+
   struct CompilerState
   {
     // tokenizer ptr replace by StringPool, service for deferencing strings 
@@ -115,6 +118,8 @@ namespace MFM{
     UlamValue m_currentObjPtr;        //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelf;          //used in eval of func calls: updated after args, becomes currentObjPtr for args
 
+    Symbol * m_currentObjSymbolForCodeGen;  //used in code generation; parallels m_currentObjPtr
+    Symbol * m_currentSelfSymbolForCodeGen; //used in code generation; parallels m_currentSelf
     u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
 
     CompilerState();
@@ -181,6 +186,7 @@ namespace MFM{
 
     /** helper method, uses string pool */
     const std::string getDataAsString(Token * tok);
+    std::string getDataAsStringMangled(u32 dataindex);
     const std::string getTokenAsATypeName(Token tok);
     u32 getTokenAsATypeNameId(Token tok);
 
@@ -190,10 +196,16 @@ namespace MFM{
     std::string getFileNameForAClassHeader(u32 id);
     std::string getFileNameForThisClassHeader();
     std::string getFileNameForThisClassBody();
+    std::string getFileNameForThisClassCPP();
     std::string getFileNameForThisTypesHeader();
     std::string getFileNameForThisClassMain();
 
+    ULAMCLASSTYPE getUlamClassForThisClass();
+    UTI getUlamTypeForThisClass();
+
     const std::string getBitSizeTemplateString(UTI uti);
+
+    const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
 
     /** returns immediate target value: extracts data from packed targets; unpacked array targets are invalid */
     UlamValue getPtrTarget(UlamValue ptr);

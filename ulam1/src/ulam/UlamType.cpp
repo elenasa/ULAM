@@ -18,7 +18,7 @@ namespace MFM {
 
 
 
-  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti)
+  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti), m_lengthBy32(0)
   {}
  
 
@@ -77,20 +77,53 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeAsStringForC()
   {
-    return "?";
+    s32 len = getTotalBitSize(); // includes arrays
+    assert(len > 0);             // exclude Voids, Navs, 
+    //s32 roundUpSize = fitsIntoInts(len);
+    s32 roundUpSize = getTotalSizeByInts();
+
+    std::ostringstream ctype;
+    ctype << "BitField<BitVector<" << roundUpSize << ">, ";
+
+    if(isScalar())
+      ctype << getUlamTypeVDAsStringForC() << ", ";
+    else      
+      ctype << "VD::BITS, ";  //use BITS for arrays
+
+    ctype << len << ", " << roundUpSize - len << ">";
+    return ctype.str();
+  }
+
+
+  const std::string UlamType::getUlamTypeVDAsStringForC()
+  {
+    assert(0);
+    return "VD::NOTDEFINED";
   }
 
 
   const std::string UlamType::getUlamTypeMangledName(CompilerState * state)
   {
-    //return m_key.getUlamKeyTypeSignatureMangledName(state);
     std::ostringstream mangled;
-    std::string nstr = m_key.getUlamKeyTypeSignatureName(state);
-    u32 nstrlen = nstr.length();
-    
+    s32 bitsize = getBitSize();
+    //    assert(bitsize != ANYBITSIZECONSTANT);     //constant types invalid
+    s32 arraysize = getArraySize();
+    //    arraysize = (arraysize == NONARRAYSIZE ? 0 : arraysize); 
+
     mangled << getUlamTypeUPrefix().c_str();
-    mangled << DigitCount(getArraySize(), BASE10) << getArraySize() << DigitCount(getBitSize(), BASE10) << getBitSize();
-    mangled << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
+
+    if(arraysize > 0)
+      mangled << DigitCount(arraysize, BASE10) << arraysize;
+    else
+      mangled << 10;
+
+    if(bitsize > 0)
+      mangled << DigitCount(bitsize, BASE10) << bitsize;
+    else
+      mangled << 10;
+
+    mangled << state->getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
+
     return mangled.str();
   }
 
@@ -99,6 +132,45 @@ namespace MFM {
   {
     return "Ut_";
   }
+
+
+  const std::string UlamType::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    std::ostringstream imangled;
+    imangled << "Ui_" << getUlamTypeMangledName(state) ;
+    return  imangled.str();
+  }
+
+
+  bool UlamType::needsImmediateType()
+  {
+    return ( (getBitSize() == ANYBITSIZECONSTANT) ? false : true);  //skip constants
+  }
+
+
+  const std::string UlamType::getImmediateTypeAsString(CompilerState * state)
+  {
+    std::string ctype;
+    //s32 sizeByIntBits = fitsIntoInts(getTotalBitSize());
+    s32 sizeByIntBits = getTotalSizeByInts();
+    switch(sizeByIntBits)
+      {
+      case 32:
+	ctype = "u32";
+	break;
+      case 64:
+	ctype = "u64";
+	break;
+      default:
+	{
+	  assert(0);
+	  //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
+	}
+	//error!
+      };
+    
+    return ctype;
+  } //getImmediateTypeAsString
 
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
@@ -110,7 +182,7 @@ namespace MFM {
   void UlamType::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
   {
     state->m_currentIndentLevel = 0;
-    const std::string mangledName = getUlamTypeMangledName(state);	
+    const std::string mangledName = getUlamTypeImmediateMangledName(state);	
     std::ostringstream  up;
     up << "Up_" << mangledName;
     std::string upstr = up.str();
@@ -129,7 +201,8 @@ namespace MFM {
     fp->write("namespace MFM{\n");
     
     state->m_currentIndentLevel++;
-    
+
+#if 0    
     s32 arraysize = getArraySize();
     if(arraysize > NONARRAYSIZE)
       {
@@ -145,7 +218,7 @@ namespace MFM {
 	fp->write(getUlamTypeAsStringForC().c_str()); //e.g. s32, bool
 	fp->write(" ");  
 	fp->write(getUlamTypeAsSingleLowercaseLetter());
-	
+
 	s32 arraysize = getArraySize();
 	if( arraysize > NONARRAYSIZE)
 	  {
@@ -160,15 +233,16 @@ namespace MFM {
 	fp->write("};\n");
       }
     else
+#endif
       {
 	state->indent(fp);
 	fp->write("typedef ");
-	fp->write(getUlamTypeAsStringForC().c_str());  //e.g. s32, bool
+	fp->write(getUlamTypeAsStringForC().c_str());  //e.g. BitVector
 	fp->write(" ");
 	fp->write(mangledName.c_str());	
 	fp->write(";\n");
       }
-
+  
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("} //MFM\n");
@@ -179,6 +253,19 @@ namespace MFM {
     fp->write(" */\n\n");
   }
 
+
+  void UlamType::genUlamTypeMangledImmediateDefinitionForC(File * fp, CompilerState * state)
+  {
+    const std::string mangledName = getUlamTypeImmediateMangledName(state);	
+    std::ostringstream  up;
+
+    state->indent(fp);
+    fp->write("typedef ");
+    fp->write(getUlamTypeAsStringForC().c_str());  //e.g. BitVector
+    fp->write(" ");
+    fp->write(mangledName.c_str());	
+    fp->write(";\n");
+  }
 
 
   const char * UlamType::getUlamTypeEnumAsString(ULAMTYPE etype)
@@ -219,5 +306,41 @@ namespace MFM {
     return m_key.getUlamKeyTypeSignatureBitSize();
   }
 
+
+  u32 UlamType::getTotalBitSize()
+  {
+    s32 arraysize = getArraySize();
+    arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
+    
+    s32 bitsize = getBitSize();
+    if(bitsize == ANYBITSIZECONSTANT)
+      {
+	ULAMTYPE et = getUlamTypeEnum();
+	bitsize = ULAMTYPE_DEFAULTBITSIZE[et];
+      }
+
+    return bitsize * arraysize;
+  }
+
+
+  u32 UlamType::getTotalSizeByInts()
+  {
+    return m_lengthBy32;  //e.g. 32, 64, 96
+  }
+
+
+  const std::string UlamType::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  {
+    std::ostringstream rtnMethod;
+    UlamType * nut = state.getUlamTypeByIndex(nodetype);
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    ULAMTYPE typEnum = getUlamTypeEnum();
+    ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
+    s32 sizeByIntBitsToBe = getTotalSizeByInts();
+    s32 sizeByIntBits = nut->getTotalSizeByInts();
+
+    rtnMethod << "_" << UlamType::getUlamTypeEnumAsString(nodetypEnum) << sizeByIntBits << "To" << UlamType::getUlamTypeEnumAsString(typEnum) << sizeByIntBitsToBe;
+    return rtnMethod.str();
+  } //castMethodForCodeGen
 
 } //end MFM

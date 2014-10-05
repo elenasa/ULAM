@@ -294,16 +294,90 @@ namespace MFM {
 
   void NodeFunctionCall::genCode(File * fp)
   {
+    // before processing arguments, get the "self" symbol
+    // so that arguments will be relative to it, and not the possible 
+    // selected member instance this function body could effect.
+    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*********
+    m_state.m_currentObjSymbolForCodeGen = m_state.m_currentSelfSymbolForCodeGen;
+
+
     fp->write(m_funcSymbol->getMangledName().c_str());
     fp->write("(");
+
+    //fp->write(HIDDEN_ARG_NAME);  //first arg
+    if(m_state.m_currentObjSymbolForCodeGen == saveCurrentObjectSymbol)
+      fp->write(HIDDEN_ARG_NAME);
+    else
+      fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
+
+
     for(u32 i = 0; i < m_argumentNodes.size(); i++)
       {
-	if(i>0)
+	//if(i>0)
 	  fp->write(", ");
 
 	m_argumentNodes[i]->genCode(fp);	
       }
     fp->write(")");
 
-  }
+
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  // RESTORE *********
+    Symbol * saveSelf = m_state.m_currentSelfSymbolForCodeGen;      // restore upon return from func *****
+    m_state.m_currentSelfSymbolForCodeGen = m_state.m_currentObjSymbolForCodeGen; // set for subsequent func calls *****
+
+    //func called..
+
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore current object ptr *************
+    m_state.m_currentSelfSymbolForCodeGen = saveSelf;               //restore previous self      *************
+  } //codeGen
+
+
+  std::string NodeFunctionCall::genCodeReadIntoATmpVar(File * fp)
+  {
+    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*********
+    m_state.m_currentObjSymbolForCodeGen = m_state.m_currentSelfSymbolForCodeGen;
+
+    std::string tmpVar;
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    m_state.indent(fp);    
+    tmpVar = "UH_tmp_loadable";  //???
+    fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    fp->write(" ");
+    
+    fp->write(tmpVar.c_str());
+    fp->write(" = ");
+
+    // name of func
+    fp->write(m_funcSymbol->getMangledName().c_str());
+    fp->write("(");
+
+    //if(m_state.m_currentObjSymbolForCodeGen->isDataMember())
+    if(m_state.m_currentObjSymbolForCodeGen == saveCurrentObjectSymbol)
+      fp->write(HIDDEN_ARG_NAME);
+    else
+      fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
+
+    for(u32 i = 0; i < m_argumentNodes.size(); i++)
+      {
+	//if(i>0)
+	fp->write(", ");
+	m_argumentNodes[i]->genCode(fp);	
+      }
+
+    fp->write(");\n");
+
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  // RESTORE *********
+    Symbol * saveSelf = m_state.m_currentSelfSymbolForCodeGen;      // restore upon return from func *****
+    m_state.m_currentSelfSymbolForCodeGen = m_state.m_currentObjSymbolForCodeGen; // set for subsequent func calls *****
+
+    //func called..
+
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore current object ptr *************
+    m_state.m_currentSelfSymbolForCodeGen = saveSelf;               //restore previous self      *************
+
+    return tmpVar;
+  } //genCodeReadIntoATmpVar
+
 } //end MFM

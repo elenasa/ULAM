@@ -259,4 +259,84 @@ namespace MFM {
     fp->write("::genCode(File * fp){} is needed!!\n");
   }
 
+
+  std::string Node::genCodeReadIntoATmpVar(File * fp)
+  {
+    //assert(0);
+    std::string tmpVar = "tmpErrorVar";
+    m_state.indent(fp);
+    fp->write("//just a stub: ");
+    fp->write(tmpVar.c_str());
+    fp->write(";\n");
+    return tmpVar;
+  }
+    
+  void Node::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
+  {
+    assert(0);
+    m_state.indent(fp);
+    fp->write("//just a stub: ");
+    fp->write(tmpVar.c_str());
+    fp->write(";\n");
+  }
+
+  const std::string Node::readMethodForCodeGen(UTI nuti)
+  {
+    std::string method;
+    //s32 sizeByIntBits = fitsIntoInts(m_state.getTotalBitSize(nuti));
+    s32 sizeByIntBits = m_state.getUlamTypeByIndex(nuti)->getTotalSizeByInts();
+    if(m_state.isScalar(nuti))
+      {     
+	switch(sizeByIntBits)
+	  {
+	  case 32:
+	    method = "Read";
+	    break;
+	  case 64:
+	    method = "ReadLong";
+	    break;
+	  default:
+	    method = "ReadUnpacked";
+	    MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
+	    assert(0);
+	    //error!
+	  };
+      }
+    else
+      {
+	method = "ReadArray";
+      }
+    return method;
+  } //readMethodForCodeGen
+
+
+  const std::string Node::writeMethodForCodeGen(UTI nuti)
+  {
+    std::string method;
+    s32 sizeByIntBits = m_state.getUlamTypeByIndex(nuti)->getTotalSizeByInts();
+    if(m_state.isScalar(nuti))
+      {     
+	switch(sizeByIntBits)
+	  {
+	  case 32:
+	    method = "Write";
+	    break;
+	  case 64:
+	    method = "WriteLong";
+	    break;
+	  default:
+	    method = "WriteUnpacked";
+	    MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
+	    assert(0);
+	    //error!
+	  };
+      }
+    else
+      {
+	method = "WriteArray";
+      }
+    return method;
+  } //writeMethodForCodeGen
+
+
 } //end MFM

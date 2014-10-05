@@ -57,10 +57,16 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     virtual void genCode(File * fp);
+    virtual std::string genCodeReadIntoATmpVar(File * fp);
+    virtual void genCodeWriteFromATmpVar(File * fp, std::string tmpVar);
 
   protected:    
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len); //noop
 
+  private:
+    //cast if the base types are different OR the arraysizes differ (i.e. one's scalar)
+    // --- trying to avoid extraneous casting.
+    bool needsACast();  
   };
 
 }

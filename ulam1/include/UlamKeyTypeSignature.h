@@ -65,8 +65,6 @@ namespace MFM{
     const std::string getUlamKeyTypeSignatureAsString(CompilerState * state);
     static const std::string getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState * state);
 
-    const std::string getUlamKeyTypeSignatureMangledName(CompilerState * state);
-
     bool operator<(const UlamKeyTypeSignature & key2);
     bool operator==(const UlamKeyTypeSignature & key2);
   };

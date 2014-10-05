@@ -135,4 +135,27 @@ namespace MFM {
     fp->write(getName());
   }
 
+
+  std::string NodeTerminal::genCodeReadIntoATmpVar(File * fp)
+  {
+    std::string tmpVar;
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    m_state.indent(fp);
+    
+    tmpVar = "UH_tmp_loadable";
+    fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    fp->write(" ");
+
+    fp->write(tmpVar.c_str());
+    fp->write(" = ");
+
+    fp->write(getName());
+    
+    fp->write(";\n"); 
+
+    return tmpVar;
+  } //genCodeReadIntoTmp
+  
+
 } //end MFM

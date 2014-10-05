@@ -52,13 +52,18 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
     
-    virtual const std::string getUlamTypeAsStringForC();
+    virtual const std::string getUlamTypeVDAsStringForC();
+
+    virtual const std::string getUlamTypeMangledName(CompilerState * state);
+
+    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+
+    virtual bool needsImmediateType();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+    //virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
 
-    //virtual u32 getBitSize();
 
   private:
    

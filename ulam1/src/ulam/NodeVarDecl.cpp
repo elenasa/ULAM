@@ -119,45 +119,62 @@ namespace MFM {
   }
 
 
+  // parse tree in order declared, unlike the ST.
   void NodeVarDecl::genCode(File * fp)
   {
-    //like ST version: genCodeForTableOfVariableDataMembers, except in order declared
-    UTI vuti = m_varSymbol->getUlamTypeIdx(); 
+    if(m_varSymbol->isDataMember())
+      return genCodedBitFieldTypedef(fp);
+
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
     m_state.indent(fp);
-    fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
-    
-    if(vclasstype == UC_QUARK)
+    if(!m_varSymbol->isDataMember())
+      fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++ local vars, ie non-data members
+    else
       {
-	if(m_varSymbol->isDataMember())
-	  {
-	    // position determined by previous data member bit lengths
-	    fp->write("<");
-	    fp->write_decimal(m_varSymbol->getPosOffset());
-	    fp->write(">");
-	  }
-	else
-	  {
-	    fp->write(m_state.getBitSizeTemplateString(vuti).c_str());  //for quark templates
-	  }
+	fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+	assert(0); //doesn't happen anymore..
       }
-    
+
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName().c_str());
-    
-#if 0
-    s32 arraysize = vut->getArraySize();
-    if(arraysize > NONARRAYSIZE)
-      {
-	fp->write("[");
-	fp->write_decimal(arraysize);
-	fp->write("]");
-      }
-#endif
-    
+
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   }
+
+
+  void NodeVarDecl::genCodedBitFieldTypedef(File * fp)
+  {
+    UTI nuti = getNodeType();
+    UlamType * vut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
+
+    m_state.indent(fp);
+    fp->write("typedef AtomicParameterType<");
+    fp->write("CC");  //BITSPERATOM
+    fp->write(", ");
+    fp->write(vut->getUlamTypeVDAsStringForC().c_str());
+    fp->write(", ");
+    fp->write_decimal(vut->getTotalBitSize());   //include arraysize
+    fp->write(", ");
+    if(classtype == UC_QUARK)
+      {
+	fp->write("POS + ");
+	fp->write_decimal(m_varSymbol->getPosOffset());
+      }
+    else
+      {
+	assert(classtype == UC_ELEMENT);
+	fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+      }
+
+    fp->write("> ");
+    fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
+    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
+  }
+
 
 } //end MFM
 

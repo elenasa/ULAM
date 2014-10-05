@@ -8,7 +8,9 @@
 namespace MFM {
 
   UlamTypeBool::UlamTypeBool(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
-  {}
+  {
+    m_lengthBy32 = fitsIntoInts(getTotalBitSize());
+  }
 
 
    ULAMTYPE UlamTypeBool::getUlamTypeEnum()
@@ -17,10 +19,26 @@ namespace MFM {
    }
 
 
-  const std::string UlamTypeBool::getUlamTypeAsStringForC()
+  const std::string UlamTypeBool::getUlamTypeVDAsStringForC()
   {
+    return "VD::BOOL";
+  }
+
+
+  const std::string UlamTypeBool::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    if(needsImmediateType())
+      return UlamType::getUlamTypeImmediateMangledName(state);
+
     return "bool";
   }
+
+
+  bool UlamTypeBool::needsImmediateType()
+  {
+    return ((getBitSize() == ANYBITSIZECONSTANT || getBitSize() == BITSPERBOOL) ? false : true);
+  }
+
 
 
   const char * UlamTypeBool::getUlamTypeAsSingleLowercaseLetter()

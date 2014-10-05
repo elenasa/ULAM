@@ -63,17 +63,6 @@ namespace MFM {
   }
 
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureMangledName(CompilerState * state)
-  {
-    //Ut_18232Int == Int[8]
-    std::ostringstream mangled;
-    std::string nstr = state->m_pool.getDataAsString(m_typeNameId);
-    u32 nstrlen = nstr.length();
-    mangled << "Ut_" << DigitCount(m_arraySize, BASE10) << m_arraySize << DigitCount(m_bits, BASE10) << m_bits << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
-    return mangled.str();
-  }
-
-
   bool UlamKeyTypeSignature::operator<(const UlamKeyTypeSignature & key2)
   {    
     //if(strcmp(m_typeName, key2.m_typeName) < 0) return true;

@@ -28,7 +28,7 @@ namespace MFM {
   static const char * m_indentedSpaceLevel("  ");
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this), m_currentObjSymbolForCodeGen(NULL), m_currentSelfSymbolForCodeGen(NULL)
   {
     m_err.init(this, debugOn, NULL);
   }
@@ -420,15 +420,8 @@ namespace MFM {
 
   u32 CompilerState::getTotalBitSize(UTI utArg)
   {
-    s32 arraysize = getArraySize(utArg);
-    arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
-    
-    s32 bitsize = getBitSize(utArg);
-    if(bitsize == ANYBITSIZECONSTANT)
-      {
-	bitsize = getDefaultBitSize(utArg);
-      }
-    return bitsize * arraysize;
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->getTotalBitSize());
   }
 
 
@@ -623,6 +616,24 @@ namespace MFM {
   }
 
 
+  std::string CompilerState::getDataAsStringMangled(u32 dataindex)
+  {
+    std::ostringstream mangled;
+    std::string nstr = m_pool.getDataAsString(dataindex);
+    u32 nstrlen = nstr.length();    
+
+    if(nstrlen < BASE10 - 1)
+      {
+	mangled << nstrlen << nstr.c_str();
+      }
+    else
+      {	
+	mangled << 9 << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
+      }
+    return mangled.str();
+  } //getDataAsStringMangled
+
+
   //does it check for existence?
   const std::string CompilerState::getTokenAsATypeName(Token tok)
   {
@@ -732,8 +743,16 @@ namespace MFM {
   std::string CompilerState::getFileNameForThisClassBody()
   {
     std::ostringstream f;
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    UTI cuti = csym->getUlamTypeIdx();
+    UTI cuti = getUlamTypeForThisClass();
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".tcc";
+    return f.str();
+  }
+
+
+  std::string CompilerState::getFileNameForThisClassCPP()
+  {
+    std::ostringstream f;
+    UTI cuti = getUlamTypeForThisClass();
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".cpp";
     return f.str();
   }
@@ -742,8 +761,7 @@ namespace MFM {
   std::string CompilerState::getFileNameForThisTypesHeader()
   {
     std::ostringstream f;
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    UTI cuti = csym->getUlamTypeIdx();
+    UTI cuti = getUlamTypeForThisClass();
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_Types.h";
     return f.str();
   }
@@ -753,10 +771,23 @@ namespace MFM {
   std::string CompilerState::getFileNameForThisClassMain()
   {
     std::ostringstream f;
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    UTI cuti = csym->getUlamTypeIdx();
+    UTI cuti = getUlamTypeForThisClass();
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_main.cpp";
     return f.str();
+  }
+
+
+  ULAMCLASSTYPE CompilerState::getUlamClassForThisClass()
+  {
+    UTI cuti = getUlamTypeForThisClass();
+    return getUlamTypeByIndex(cuti)->getUlamClass();
+  }
+
+
+  UTI CompilerState::getUlamTypeForThisClass()
+  {
+    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    return csym->getUlamTypeIdx();
   }
 
 
@@ -768,11 +799,51 @@ namespace MFM {
     std::ostringstream mangled;
     if(classtype == UC_QUARK)
       {
-	mangled << "<" << getTotalBitSize(uti) << ">";
+	mangled << "<" << getTotalBitSize(uti) << ">";  //???
       }
     return mangled.str();
   }
 
+  //unfortunately, the uti did not reveal a Class symbol; already down to primitive types
+  // for casting. 
+  const std::string CompilerState::getBitVectorLengthAsStringForCodeGen(UTI uti) 
+  {
+    ULAMCLASSTYPE classtype = getUlamTypeByIndex(uti)->getUlamClass();
+
+    std::ostringstream lenstr;
+    if(classtype == UC_NOTACLASS)
+      {
+	lenstr << getTotalBitSize(uti);
+      }
+    else
+      {
+	SymbolClass * csym = NULL;
+	UlamType * ict = getUlamTypeByIndex(uti);
+	if(alreadyDefinedSymbolClass(ict->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+	  {
+	    lenstr << csym->getMangledNameForParameterType();
+	    
+	    if(classtype == UC_QUARK)
+	      {
+		lenstr << "::QUARK_SIZE";
+	      }
+	    else if(classtype == UC_ELEMENT)
+	      {
+		lenstr << "::LENGTH";
+	      }
+	    else
+	      assert(0);  	    //error!! neither quark nor element
+	  }
+	else
+	  {
+	    //error!! no class symbol for this type
+	    assert(0);
+	  }
+      }
+    
+    return lenstr.str();
+  } //getBitVectorLengthAsStringForCodeGen
+  
 
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {

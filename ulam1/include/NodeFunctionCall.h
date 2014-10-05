@@ -71,6 +71,8 @@ namespace MFM{
 
     virtual void genCode(File * fp);
 
+    virtual std::string genCodeReadIntoATmpVar(File * fp);
+
   private:
 
     Token m_functionNameTok;

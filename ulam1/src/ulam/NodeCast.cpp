@@ -161,12 +161,84 @@ namespace MFM {
 
   void NodeCast::genCode(File * fp)
   {
+    if(needsACast())
+      {
+	//	fp->write("(");
+	//fp->write(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeImmediateMangledName(&m_state).c_str());
+	//fp->write(") ");
+	//fp->write("(");
+	//m_node->genCode(fp);
+	//fp->write(")");
+	
+	//std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);
+	genCodeReadIntoATmpVar(fp);
+      }
+    else
+	m_node->genCode(fp);
+  }
+
+
+  std::string NodeCast::genCodeReadIntoATmpVar(File * fp)
+  {
+    std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);   //just the terminal
+
+    if(!needsACast())
+      return tmpVar;
+
+
+    UTI nuti = getNodeType();
+    UTI nodetype = m_node->getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    m_state.indent(fp);
+    
+    std::ostringstream tmpVarCast;
+    tmpVarCast << tmpVar << "_1" ;
+
+    fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    fp->write(" ");
+    fp->write(tmpVarCast.str().c_str());
+    fp->write(" = ");
+
+    // write the cast method (e.g. _SignExtend32, _S32ToUnary, etc..)
+    fp->write(nut->castMethodForCodeGen(nodetype, m_state).c_str());
     fp->write("(");
-    fp->write(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeMangledName(&m_state).c_str());
-    fp->write(") ");
-    fp->write("(");
-    m_node->genCode(fp);
+
+    fp->write(tmpVar.c_str());
+    fp->write(", ");
+    //LENGTH of node being casted (UH_AP_mi::LENGTH ?)
+    //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());    
+    s32 nodeLength = m_state.getTotalBitSize(nodetype);
+    fp->write_decimal(nodeLength);
+
     fp->write(")");
+    fp->write(";\n");
+
+    return tmpVarCast.str();
+  } //genCodeReadIntoTmp
+
+
+  void NodeCast::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
+  {
+    assert(0);
+    m_node->genCodeWriteFromATmpVar(fp, tmpVar);
+  }    
+
+
+  bool NodeCast::needsACast()
+  {
+    return true;  //debug
+
+    UTI tobeType = getNodeType();
+    UTI nodeType = m_node->getNodeType();
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
+    ULAMTYPE nodetypEnum = m_state.getUlamTypeByIndex(nodeType)->getUlamTypeEnum();
+    s32 arraysize = m_state.getArraySize(tobeType);
+    s32 nodearraysize = m_state.getArraySize(nodeType);
+
+    //cast if the base types are different OR the arraysizes differ (i.e. one's scalar, not constant)
+    return(typEnum != nodetypEnum || (arraysize != nodearraysize && !m_state.isConstant(nodeType)));
+    //return(typEnum != nodetypEnum || (arraysize != nodearraysize) || m_state.isConstant(nodeType));
   }
 
 } //end MFM

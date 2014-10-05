@@ -15,4 +15,15 @@ namespace MFM {
      return Ptr;
    }
 
+  const std::string UlamTypePtr::getUlamTypeVDAsStringForC()
+    {
+      return "VD::PTR";
+    }
+
+
+  bool UlamTypePtr::needsImmediateType()
+  {
+    return false;
+  }
+
 } //end MFM

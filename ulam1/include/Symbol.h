@@ -62,7 +62,11 @@ namespace MFM{
     bool isDataMember();
 
     const std::string getMangledName();
+
+    const std::string getMangledNameForParameterType();
+
     virtual const std::string getMangledPrefix() = 0;
+
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 

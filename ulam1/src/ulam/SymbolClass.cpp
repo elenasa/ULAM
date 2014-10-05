@@ -34,7 +34,6 @@ namespace MFM {
 
   const std::string SymbolClass::getMangledPrefix()
   {
-    //    return ((UlamTypeClass *) getUlamType())->getUlamTypeAsStringForC();
     return m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamTypeUPrefix();
   }
 

@@ -65,9 +65,21 @@ namespace MFM {
 #define MAXBITSPERINT (32)
 #endif //MAXBITSPERINT
 
+#ifndef MAXBITSPERLONG
+#define MAXBITSPERLONG (64)
+#endif //MAXBITSPERLONG
+
 #ifndef BITSPERBOOL
 #define BITSPERBOOL (1)
 #endif //BITSPERBOOL
+
+#ifndef ANYBITSIZECONSTANT
+#define ANYBITSIZECONSTANT (-1)
+#endif //ANYBITSIZECONSTANT
+
+#ifndef NONARRAYSIZE
+#define NONARRAYSIZE (-1)
+#endif //NONARRAYSIZE
 
 
 #ifndef BASE10
@@ -86,14 +98,9 @@ namespace MFM {
 #endif //ULAMTYPE_DEFAULTBITSIZE
 
 
-#ifndef ANYBITSIZECONSTANT
-#define ANYBITSIZECONSTANT (-1)
-#endif //ANYBITSIZECONSTANT
-
-#ifndef NONARRAYSIZE
-#define NONARRAYSIZE (-1)
-#endif //NONARRAYSIZE
-
+  /** Number of bits (rounded up to nearest 32 bits) required to
+      hold the bit size argument l */
+#define fitsIntoInts(l) ((l / MAXBITSPERINT) * MAXBITSPERINT + ( (l % MAXBITSPERINT) > 0 ? MAXBITSPERINT : 0))
 
 } //MFM
 

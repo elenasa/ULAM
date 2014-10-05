@@ -70,6 +70,8 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     virtual void genCode(File * fp);
+    virtual std::string genCodeReadIntoATmpVar(File * fp);
+    virtual void genCodeWriteFromATmpVar(File * fp, std::string tmpVar);
 
   private:
     SymbolVariable * m_varSymbol;
