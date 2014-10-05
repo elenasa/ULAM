@@ -9,7 +9,9 @@
 namespace MFM {
 
   UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
-  {}
+  {
+    m_lengthBy32 = fitsIntoInts(getTotalBitSize());
+  }
 
 
    ULAMTYPE UlamTypeInt::getUlamTypeEnum()
@@ -18,12 +20,48 @@ namespace MFM {
    }
 
 
-  const std::string UlamTypeInt::getUlamTypeAsStringForC()
+  const std::string UlamTypeInt::getUlamTypeVDAsStringForC()
   {
-    //std::ostringstream ctype;
-    //ctype <<  "s" << m_key.getUlamKeyTypeSignatureBitSize(); 
-    //return ctype.str();
-    return "int";
+    return "VD::S32";
+  }
+
+
+  const std::string UlamTypeInt::getImmediateTypeAsString(CompilerState * state)
+  {
+    std::string ctype;
+    s32 sizeByIntBits = getTotalSizeByInts();
+    switch(sizeByIntBits)
+      {
+      case 32:
+	ctype = "s32";
+	break;
+      case 64:
+	ctype = "s64";
+	break;
+      default:
+	{
+	  assert(0);
+	  //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
+	}
+	//error!
+      };
+    
+    return ctype;
+  } //getImmediateTypeAsString
+
+
+  const std::string UlamTypeInt::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    if(needsImmediateType())
+      return UlamType::getUlamTypeImmediateMangledName(state);
+
+    return "s32";
+  }
+
+
+  bool UlamTypeInt::needsImmediateType()
+  {
+    return ((getBitSize() == ANYBITSIZECONSTANT || getBitSize() == MAXBITSPERINT) ? false : true);
   }
 
 
@@ -122,6 +160,30 @@ namespace MFM {
       };
     return brtn;
   } //end cast
+
+
+  const std::string UlamTypeInt::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  {
+    std::ostringstream rtnMethod;
+    UlamType * nut = state.getUlamTypeByIndex(nodetype);
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    ULAMTYPE typEnum = getUlamTypeEnum();
+    ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
+    s32 sizeByIntBits = nut->getTotalSizeByInts();
+    switch(nodetypEnum)
+      {
+      case Unsigned:
+	rtnMethod << 	"_SignExtend" << sizeByIntBits;
+	break;
+      case Int:
+	rtnMethod << 	"_SignExtend" << sizeByIntBits;
+	break;
+      default:
+	return UlamType::castMethodForCodeGen(nodetype, state); //standard '_NodeToNew32' format
+	break;
+      };
+    return rtnMethod.str();
+  } //end castmethod
 
 
   void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)

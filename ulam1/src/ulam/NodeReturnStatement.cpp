@@ -102,6 +102,7 @@ namespace MFM {
     return RETURN;
   }
   
+#if 0
   void NodeReturnStatement::genCode(File * fp)
   {
     m_state.indent(fp);
@@ -114,5 +115,29 @@ namespace MFM {
       }
     fp->write(";\n");
   }
+#endif
+
+
+  void NodeReturnStatement::genCode(File * fp)
+  {
+    if(m_node)
+      {
+	std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);
+	m_state.indent(fp);
+	fp->write("return ");
+	fp->write("(");
+	fp->write(tmpVar.c_str());
+	fp->write(")");
+      }
+    else
+      {
+	m_state.indent(fp);
+	fp->write("return ");   //void 
+      }
+
+    fp->write(";\n");
+  }
+
+
 
 } //end MFM

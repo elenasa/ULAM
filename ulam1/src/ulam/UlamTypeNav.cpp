@@ -15,4 +15,10 @@ namespace MFM {
      return Nav;
    }
 
+
+  bool UlamTypeNav::needsImmediateType()
+  {
+    return false;
+  }
+
 } //end MFM

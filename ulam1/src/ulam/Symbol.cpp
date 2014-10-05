@@ -54,13 +54,19 @@ namespace MFM {
   const std::string Symbol::getMangledName()
   {
        std::ostringstream mangled;
-       std::string nstr = m_state.m_pool.getDataAsString(getId());
-       u32 nstrlen = nstr.length();
+       std::string nstr = m_state.getDataAsStringMangled(getId());
 
-       mangled << getMangledPrefix() << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
+       mangled << getMangledPrefix() << nstr.c_str();
        return mangled.str();
   }
 
+
+  const std::string Symbol::getMangledNameForParameterType()
+  {
+    std::ostringstream pmangled;
+    pmangled << "Up_" << getMangledName();
+    return pmangled.str();
+  }
 
   void Symbol::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
     {

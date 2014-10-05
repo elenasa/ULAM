@@ -7,7 +7,9 @@
 namespace MFM {
 
   UlamTypeAtom::UlamTypeAtom(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
-  {}
+  {
+    m_lengthBy32 = fitsIntoInts(getTotalBitSize());
+  }
 
 
    ULAMTYPE UlamTypeAtom::getUlamTypeEnum()
@@ -15,73 +17,34 @@ namespace MFM {
      return Atom;
    }
 
-  const std::string UlamTypeAtom::getUlamTypeAsStringForC()
+
+  const std::string UlamTypeAtom::getUlamTypeVDAsStringForC()
   {
-    std::ostringstream ctype;
-    ctype << "BitVector<" << BITSPERATOM << ">";
-    return ctype.str();
+    return "VD::ATOM";
+  }
+
+
+  const std::string UlamTypeAtom::getUlamTypeMangledName(CompilerState * state)
+  {
+    return "T";
+  }
+
+
+  const std::string UlamTypeAtom::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    return "T";
+  }
+
+
+  bool UlamTypeAtom::needsImmediateType()
+  {
+    return false;
   }
 
 
   const char * UlamTypeAtom::getUlamTypeAsSingleLowercaseLetter()
   {
-    return "a";
+    return "a";  //self ???
   }
-
-
-  void UlamTypeAtom::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
-  {
-    state->m_currentIndentLevel = 0;
-    const std::string mangledName = getUlamTypeMangledName(state);	
-    std::ostringstream  up;
-    up << "Up_" << mangledName;
-    std::string upstr = up.str();
-    
-    state->indent(fp);
-    fp->write("#ifndef ");
-    fp->write(upstr.c_str());
-    fp->write("\n");
-    
-    state->indent(fp);
-    fp->write("#define ");
-    fp->write(upstr.c_str());
-    fp->write("\n");
-    
-    state->indent(fp);
-    fp->write("namespace MFM{\n");
-    
-    state->m_currentIndentLevel++;
-    
-    state->indent(fp);
-    fp->write("struct ");
-    fp->write(mangledName.c_str());
-    fp->write("\n");
-    state->indent(fp);
-    fp->write("{\n");
-    
-    state->m_currentIndentLevel++;
-    state->indent(fp);
-    fp->write(getUlamTypeAsStringForC().c_str());
-    fp->write(" ");  
-    fp->write(getUlamTypeAsSingleLowercaseLetter());	
-    //fp->write("[");
-    //fp->write_decimal(BITSPERATOM/32);  //BITSPERATOM/32
-    //fp->write("]");
-    fp->write(";\n");
-
-    state->m_currentIndentLevel--;
-    state->indent(fp);
-    fp->write("};\n");
-  
-    state->m_currentIndentLevel--;
-    state->indent(fp);
-    fp->write("} //MFM\n");
-    
-    state->indent(fp);
-    fp->write("#endif /*");
-    fp->write(upstr.c_str());
-    fp->write(" */\n\n");
-  }
-
  
 } //end MFM

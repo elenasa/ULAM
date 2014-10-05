@@ -58,6 +58,7 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
+    virtual void genCode(File * fp);
 
   protected:
 

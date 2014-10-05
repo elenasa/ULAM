@@ -1482,7 +1482,7 @@ namespace MFM {
   }
 
 
- void Parser::parseRestOfFunctionParameters(SymbolFunction * sym)
+ void Parser::parseRestOfFunctionParameters(SymbolFunction * fsym)
   {
     Token pTok;
     getNextToken(pTok);
@@ -1491,7 +1491,7 @@ namespace MFM {
 	return;  //done with parameters
       }
 
-    assert(sym);
+    assert(fsym);
     // allows function name to be same as arg name 
     // since the function starts a new "block" (i.e. ST);
     // the argument to parseDecl will prevent it from looking
@@ -1503,12 +1503,12 @@ namespace MFM {
 	Node * argNode = parseDecl(true);     //singletons
 
 	// could be null symbol already in scope
-	if(argNode) 
+	if(argNode)
 	  {
 	    //parameter IS a variable (declaration).
 	    Symbol * argSym;
 	    if(argNode->getSymbolPtr(argSym))
-	      sym->addParameterSymbol(argSym); //ownership stays with NodeBlockFunctionDefinition's ST
+	      fsym->addParameterSymbol(argSym); //ownership stays with NodeBlockFunctionDefinition's ST
 	    else
 	      MSG(&pTok, "No symbol from parameter declaration", ERR);
 	  }
@@ -1524,7 +1524,7 @@ namespace MFM {
       }
 
     getExpectedToken(TOK_COMMA, QUIETLY); // if so, get next parameter; o.w. unread
-    return parseRestOfFunctionParameters(sym);
+    return parseRestOfFunctionParameters(fsym);
   }
 
 

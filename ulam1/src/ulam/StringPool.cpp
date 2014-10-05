@@ -46,5 +46,4 @@ namespace MFM {
     return m_dataAsString[dataindex];
   }
 
-
 } //MFM

@@ -86,7 +86,7 @@ namespace MFM {
     assert(m_node);
     m_state.indent(fp);
     m_node->genCode(fp);
-    fp->write(";\n");
+    //fp->write(";\n");
   }
 
 } //end MFM

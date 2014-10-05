@@ -9,13 +9,50 @@
 namespace MFM {
 
   UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type) : UlamType(key, uti), m_class(type)
-  {}
+  {
+    m_lengthBy32 = fitsIntoInts(getTotalBitSize());
+  }
 
 
    ULAMTYPE UlamTypeClass::getUlamTypeEnum()
    {
      return Class;
    }
+
+
+  const std::string UlamTypeClass::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    if(needsImmediateType())   //no longer does quark have an immediate type
+      return UlamType::getUlamTypeImmediateMangledName(state);
+
+    //XXX  TODO: needs to return a struct that has a T, not a bare T without storage
+    return getImmediateTypeAsString(state);  
+  }
+
+
+  bool UlamTypeClass::needsImmediateType()
+  {
+    // no "naked" quarks; all living within an atom somehwere.
+    //return (m_class == UC_ELEMENT || m_class == UC_INCOMPLETE ? false : true);
+    return false; 
+  }
+
+
+  const std::string UlamTypeClass::getImmediateTypeAsString(CompilerState * state)
+  {
+    if(m_class == UC_QUARK)
+      {
+	//return UlamType::getUlamTypeImmediateMangledName(state); //no "naked" quarks
+	return state->getUlamTypeByIndex(Atom)->getUlamTypeMangledName(state); // T
+      }
+    else if(m_class == UC_ELEMENT)
+      {
+	return state->getUlamTypeByIndex(Atom)->getUlamTypeMangledName(state); // T
+      }
+    else
+      assert(0);
+    return ""; //error!
+  }
 
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
@@ -42,7 +79,7 @@ namespace MFM {
       {
 	if(getArraySize() > 0)
 	  {
-	    genArrayMangledDefinitionForC(fp, state);
+	    genArrayMangledDefinitionForC(fp, state);  //???
 	  }	
 	else
 	  {
@@ -54,7 +91,7 @@ namespace MFM {
 	    if(m_class == UC_QUARK)
 	      {
 		state->indent(fp);
-		fp->write("template<u32 POS>\n");
+		fp->write("template<class C, u32 POS>\n");
 	      }
 	    else  //element
 	      {
@@ -146,6 +183,7 @@ namespace MFM {
   }
 
 
+  //see SymbolVariableDataMember printPostfix for recursive output
   void UlamTypeClass::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {
     if(prefix == 'z')
@@ -176,6 +214,14 @@ namespace MFM {
     return getUlamTypeUPrefix(); //??? what is was before
   }
 #endif
+
+
+  const std::string UlamTypeClass::getUlamTypeVDAsStringForC()
+  {
+    //assert(m_class == UC_QUARK); what if element???
+    return "VD::BITS";  //for quark use bits
+  }
+
 
   const std::string UlamTypeClass::getUlamTypeUPrefix()
   {

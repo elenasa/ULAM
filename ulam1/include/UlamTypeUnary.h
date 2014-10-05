@@ -52,7 +52,7 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual const std::string getUlamTypeAsStringForC();
+    virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 

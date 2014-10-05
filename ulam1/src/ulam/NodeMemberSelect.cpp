@@ -190,13 +190,180 @@ namespace MFM {
   }
 
 
+  bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
+  {
+    if(m_nodeLeft)
+      return m_nodeLeft->getSymbolPtr(symptrref);
+    
+    MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
+    return false;
+  }
+
+
   //differs from NodeBinaryOp, no spaces surrounding the operator .
   void NodeMemberSelect::genCode(File * fp)
   {
     assert(m_nodeLeft && m_nodeRight);
-    m_nodeLeft->genCode(fp);
-    fp->write(getName());
-    m_nodeRight->genCode(fp);
+
+    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
+    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+    Symbol * lsym = NULL;
+    if(!getSymbolPtr(lsym))
+      {
+	//error!
+	assert(0);
+      }
+    m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
+
+    //m_nodeLeft->genCode(fp);
+    //fp->write(getName());
+    //m_nodeRight->genCode(fp);
+
+    //create a tmp local variable big enough to hold the lhs membe
+    //std::string tmpVar = genCodeReadIntoATmpVar(fp);
+
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+  } //genCode
+
+
+  std::string NodeMemberSelect::genCodeReadIntoATmpVar(File * fp)
+  {
+    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
+    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+    Symbol * lsym = NULL;
+    if(!getSymbolPtr(lsym))
+      {
+	//error!
+	assert(0);
+      }
+    m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
+
+    //casting..need to pass to right as current, but its not a symbol???
+    //std::string tmpVar = m_nodeLeft->genCodeReadIntoATmpVar(fp);   //the terminal
+
+    std::string tmpVar = m_nodeRight->genCodeReadIntoATmpVar(fp);
+
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******    
+    return tmpVar;
   }
+
+  void NodeMemberSelect::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
+  {
+    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
+    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+    Symbol * lsym = NULL;
+    if(!getSymbolPtr(lsym))
+      {
+	//error!
+	assert(0);
+      }
+    m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
+
+    m_nodeRight->genCodeWriteFromATmpVar(fp, tmpVar);
+    
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******    
+  }
+
+
+#if 0
+  std::string NodeMemberSelect::genCodeReadIntoATmpVar(File * fp)
+  {
+    std::string tmpVar;
+    assert(m_nodeLeft && m_nodeRight);
+    //make a tmp local variable big enough to hold the lhs member
+    Symbol * lsym = NULL;
+    Symbol * rsym = NULL;
+    if(!m_nodeLeft->getSymbolPtr(lsym))
+      {
+	MSG(getNodeLocationAsString().c_str(), "No L symbol", ERR);
+      }
+    if(!m_nodeRight->getSymbolPtr(rsym))
+      {
+	MSG(getNodeLocationAsString().c_str(), "No R symbol", ERR);
+      }
+
+    if(lsym && rsym)
+      {
+	UTI luti = m_nodeLeft->getNodeType();
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	//PACKFIT lpacked = m_state.determinePackable(luti);
+
+	UTI ruti = rsym->getUlamTypeIdx();
+	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+	m_state.indent(fp);
+	
+	tmpVar = "UH_tmp_loadable";
+	fp->write(rut->getImmediateTypeAsString(&m_state)); //e.g. u32, s32, u64, etc.
+	fp->write(" ");
+
+	fp->write(tmpVar.c_str());
+	fp->write(" = ");
+	fp->write(lut->getUlamTypeImmediateMangledName(&m_state).c_str());
+	fp->write("::");
+	// we need the atomicparametertype for this quark's data member m_val_b!!!
+	fp->write(rsym->getMangledNameForParameterType().c_str());
+	fp->write("::");
+	fp->write(readMethodForCodeGen(ruti).c_str());
+	fp->write("(");
+
+	fp->write(HIDDEN_ARG_NAME);  //???
+	fp->write(".GetBits());\n");
+      }
+    else
+      {
+	tmpVar = "tmpVarError";
+	MSG(getNodeLocationAsString().c_str(), "Cannot Read without both symbols", ERR);
+      }
+    return tmpVar;
+  } //genCodeReadIntoTmp
+#endif
+
+
+#if 0
+  void NodeMemberSelect::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    //make a tmp local variable big enough to hold the lhs member
+    Symbol * lsym = NULL;
+    Symbol * rsym = NULL;
+    if(!m_nodeLeft->getSymbolPtr(lsym))
+      {
+	MSG(getNodeLocationAsString().c_str(), "No L symbol", ERR);
+      }
+    if(!m_nodeRight->getSymbolPtr(rsym))
+      {
+	MSG(getNodeLocationAsString().c_str(), "No R symbol", ERR);
+      }
+
+    if(lsym && rsym)
+      {
+	UTI luti = m_nodeLeft->getNodeType();
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	//PACKFIT lpacked = m_state.determinePackable(luti);
+
+	UTI ruti = rsym->getUlamTypeIdx();
+	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+	s32 sizeByIntBits = rut->getTotalSizeByInts();
+	m_state.indent(fp);
+
+	fp->write(lut->getUlamTypeImmediateMangledName(&m_state).c_str());
+	fp->write("::");
+	// we need the atomicparametertype for this quark's data member m_val_b!!!
+	fp->write(rsym->getMangledNameForParameterType().c_str());
+	fp->write("::");
+
+	fp->write(writeMethodForCodeGen(ruti).c_str());
+	fp->write("(");
+	
+	fp->write(HIDDEN_ARG_NAME);
+	fp->write(".GetBits(), ");
+	fp->write(tmpVar.c_str());
+	fp->write(");\n");
+      }
+    else
+      MSG(getNodeLocationAsString().c_str(), "Cannot Write without both symbols", ERR);
+  } //genCodeWriteFromATmpVar
+#endif
+
 
 } //end MFM

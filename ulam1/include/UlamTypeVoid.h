@@ -54,6 +54,12 @@ namespace MFM{
 
     virtual bool cast(UlamValue & val, CompilerState& state);
 
+    virtual const std::string getUlamTypeMangledName(CompilerState * state);
+
+    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+
+    virtual bool needsImmediateType();
+
     virtual const std::string getUlamTypeAsStringForC();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();

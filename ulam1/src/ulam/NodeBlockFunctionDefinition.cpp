@@ -207,6 +207,9 @@ namespace MFM {
 
   void NodeBlockFunctionDefinition::genCode(File * fp)
   {
+    // m_currentObjSymbol set up by caller
+    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
+    
     assert(isDefinition());
     assert(m_nextNode);
 

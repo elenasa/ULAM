@@ -153,7 +153,7 @@ namespace MFM {
       }
     
     return ptr;
-  }
+  } //makeUlamValuePtr
   
   
   bool NodeTerminalIdent::getSymbolPtr(Symbol *& symptrref)
@@ -307,6 +307,161 @@ namespace MFM {
   {
     fp->write(m_varSymbol->getMangledName().c_str());
   }
+
+
+  std::string NodeTerminalIdent::genCodeReadIntoATmpVar(File * fp)
+  {
+    std::string tmpVar;
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    m_state.indent(fp);    
+    tmpVar = "UH_tmp_loadable";
+    fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    fp->write(" ");
+    
+    fp->write(tmpVar.c_str());
+    fp->write(" = ");
+
+    
+    if(m_varSymbol->isDataMember())
+      {
+	// we need the atomicparametertype for this quark's data member m_val_b!!!
+	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
+	fp->write("::");
+      }
+    else
+      {
+	fp->write(nut->getUlamTypeImmediateMangledName(&m_state).c_str());
+	fp->write("::");
+      }
+    
+    fp->write(readMethodForCodeGen(nuti).c_str());
+    fp->write("(");
+
+  
+    if(m_varSymbol->isDataMember())
+      {
+	//currentSelfSymbol changes with function call
+	if(m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)
+	  {
+	    fp->write(HIDDEN_ARG_NAME);
+	    fp->write(".GetBits()");
+	  }
+	else 
+	  {
+	    //currentObjSymbol changes with MemberSelect
+	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
+	    fp->write(".GetBits()");
+	  }
+      }
+    else 
+      {
+	fp->write(m_varSymbol->getMangledName().c_str());
+	//fp->write(".GetBits()");
+      }
+	
+#if 0
+    if(m_state.m_currentObjSymbolForCodeGen->isDataMember())  //???
+      {
+	fp->write(HIDDEN_ARG_NAME);
+	fp->write(".GetBits()");
+      }
+    else
+      fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
+#endif
+
+
+    if(!m_state.isScalar(nuti))
+      {
+	fp->write(", ");
+	fp->write_decimal(m_state.getBitSize(nuti));
+	fp->write(", ");
+	//rest (i.e. array index, etc) is up to the rhs of square bracket
+      }
+    else
+      fp->write(");\n"); 
+
+    return tmpVar;
+  } //genCodeReadIntoTmp
+  
+
+
+  void NodeTerminalIdent::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
+  {
+    //tmpvar is big enough to hold the symbol
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    m_state.indent(fp);
+
+    
+    if(m_varSymbol->isDataMember())
+      {
+	// we need the atomicparametertype for this quark's data member m_val_b!!!
+	fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
+	fp->write("::");
+      }
+    else
+      {
+	fp->write(nut->getUlamTypeImmediateMangledName(&m_state).c_str());
+	fp->write("::");
+      }
+    
+    fp->write(writeMethodForCodeGen(nuti).c_str());
+    fp->write("(");
+
+    if(m_varSymbol->isDataMember())
+      {
+	//currentSelfSymbol changes with function call
+	if(m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)
+	  {
+	    fp->write(HIDDEN_ARG_NAME);
+	    fp->write(".GetBits()");
+	  }
+	else 
+	  {
+	    //currentObjSymbol changes with MemberSelect
+	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
+	    fp->write(".GetBits()");
+	  }
+      }
+    else 
+      {
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write(".GetBits()");
+      }
+	
+    fp->write(", ");
+
+    ULAMCLASSTYPE classtype = nut->getUlamClass();
+    if(classtype == UC_QUARK || classtype == UC_ELEMENT)
+      {
+	//need to read from the tmpVar
+	fp->write(nut->getUlamTypeImmediateMangledName(&m_state).c_str());
+	fp->write("::");
+	// seems extraneous ???
+	//fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
+	//fp->write("::");
+	fp->write(readMethodForCodeGen(nuti).c_str());
+	fp->write("(");
+
+	fp->write(tmpVar.c_str());  //value is 2nd arg, because we have the variable name here!
+	//fp->write(".GetBits())"); //getbits only needed to go from-atom to-BitVector
+      }
+    else
+      fp->write(tmpVar.c_str());  //value is 2nd arg, because we have the variable name here!
+
+    if(!m_state.isScalar(nuti))
+      {
+	fp->write(", ");
+	fp->write_decimal(m_state.getBitSize(nuti)); //BITS_PER_ITEM
+	fp->write(", ");
+	//rest (i.e. array index, etc) is up to the rhs of square bracket
+      }
+    else
+      fp->write(");\n"); 
+  } //genCodeWriteFromATmpVar
 
 
 } //end MFM

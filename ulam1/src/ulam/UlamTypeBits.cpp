@@ -9,7 +9,9 @@
 namespace MFM {
 
   UlamTypeBits::UlamTypeBits(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
-  {}
+  {
+    m_lengthBy32 = fitsIntoInts(getTotalBitSize());
+  }
 
 
    ULAMTYPE UlamTypeBits::getUlamTypeEnum()
@@ -18,9 +20,9 @@ namespace MFM {
    }
 
 
-  const std::string UlamTypeBits::getUlamTypeAsStringForC()
+  const std::string UlamTypeBits::getUlamTypeVDAsStringForC()
   {
-    return "unsigned int";
+    return "VD::BITS";
   }
 
 

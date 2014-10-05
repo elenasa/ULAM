@@ -145,4 +145,23 @@ namespace MFM {
       m_nextNode->genCode(fp);
   }
 
+
+  std::string NodeStatements::genCodeReadIntoATmpVar(File * fp)
+  {
+    std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);
+
+    if(m_nextNode)
+      m_nextNode->genCodeReadIntoATmpVar(fp);
+    return tmpVar;
+  }
+
+
+  void NodeStatements::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
+  {
+    m_node->genCodeWriteFromATmpVar(fp, tmpVar);
+
+    if(m_nextNode)
+      m_nextNode->genCodeWriteFromATmpVar(fp, tmpVar);
+  }    
+
 } //end MFM

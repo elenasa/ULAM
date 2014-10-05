@@ -300,4 +300,21 @@ namespace MFM {
     fp->write("]");
   }
 
+
+  std::string NodeSquareBracket::genCodeReadIntoATmpVar(File * fp)
+  {
+    std::string tmpVar = m_nodeLeft->genCodeReadIntoATmpVar(fp);
+    m_nodeRight->genCode(fp);
+    fp->write(");\n");
+    return tmpVar;
+  }
+
+
+  void NodeSquareBracket::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
+  {
+    m_nodeLeft->genCodeWriteFromATmpVar(fp, tmpVar);
+    m_nodeRight->genCode(fp);
+    fp->write(");\n"); 
+  }
+
 } //end MFM

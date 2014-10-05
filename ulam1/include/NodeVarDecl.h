@@ -69,6 +69,8 @@ namespace MFM{
 
   private:
     SymbolVariable * m_varSymbol;
+
+    void genCodedBitFieldTypedef(File * fp);
   };
 
 }

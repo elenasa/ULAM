@@ -66,6 +66,8 @@ namespace MFM{
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void genCode(File * fp);
+    virtual std::string genCodeReadIntoATmpVar(File * fp);
+    virtual void genCodeWriteFromATmpVar(File * fp, std::string tmpVar);
 
   protected:
     Node * m_node;

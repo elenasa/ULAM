@@ -51,7 +51,8 @@ namespace MFM{
     virtual ~UlamTypeNav(){}
     
     virtual ULAMTYPE getUlamTypeEnum();
-        
+
+    virtual bool needsImmediateType();        
   private:
     
   };
