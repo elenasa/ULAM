@@ -167,7 +167,7 @@ namespace MFM {
     std::ostringstream rtnMethod;
     UlamType * nut = state.getUlamTypeByIndex(nodetype);
     //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();
+    //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
     s32 sizeByIntBits = nut->getTotalSizeByInts();
     switch(nodetypEnum)

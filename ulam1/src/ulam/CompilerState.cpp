@@ -27,6 +27,9 @@ namespace MFM {
 
   static const char * m_indentedSpaceLevel("  ");
 
+  static const char * HIDDEN_ARG_NAME = "Uv_4self";
+
+
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this), m_currentObjSymbolForCodeGen(NULL), m_currentSelfSymbolForCodeGen(NULL)
   {
@@ -37,6 +40,7 @@ namespace MFM {
   CompilerState::~CompilerState()
   {
     clearAllDefinedUlamTypes();
+    clearAllLinesOfText();
   }
 
 
@@ -50,6 +54,21 @@ namespace MFM {
     m_indexToUlamType.clear();
     m_definedUlamTypes.clear();
     m_currentFunctionReturnNodes.clear();
+  }
+
+
+  void CompilerState::clearAllLinesOfText()
+  {
+    std::map<u32, std::vector<u32>*>::iterator it;
+
+    for(it = m_textByLinePerFilePath.begin(); it != m_textByLinePerFilePath.end(); it++)
+      {
+	std::vector<u32> * v = it->second;
+	v->clear();
+	delete v;
+      }
+
+    m_textByLinePerFilePath.clear();
   }
 
 
@@ -724,6 +743,13 @@ namespace MFM {
       }
   }
 
+
+  const char * CompilerState::getHiddenArgName()
+  {
+    return  HIDDEN_ARG_NAME;
+  }
+
+
   std::string CompilerState::getFileNameForAClassHeader(u32 id)
   {
     std::ostringstream f;
@@ -1041,5 +1067,71 @@ namespace MFM {
     m_funcCallStack.pushArg(m_currentObjPtr);                        //hidden arg on STACK
     m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1));      //return slot on STACK
   }
+
+
+  // used by SourceStream to build m_textByLinePerFilePath during parsing
+  void CompilerState::appendNextLineOfText(Locator loc, std::string textstr)
+  {
+    std::vector<u32> * textOfLines = NULL;
+
+    // get index for string of text in string pool; may exist, o.w. new
+    u32 textid = m_pool.getIndexForDataString(textstr);
+
+    u32 pathidx = loc.getPathIndex();
+    u16 linenum = loc.getLineNo();
+
+    // use path index in locator to access its vector of lines
+    std::map<u32, std::vector<u32>*>::iterator it = m_textByLinePerFilePath.find(pathidx);
+    if(it != m_textByLinePerFilePath.end())
+      {
+	textOfLines = it->second;
+      }
+    else
+      {
+	textOfLines = new std::vector<u32>();
+	assert(textOfLines);
+	m_textByLinePerFilePath.insert(std::pair<u32, std::vector<u32>*> (pathidx,textOfLines));
+      }
+
+    // may contain "empty" lines
+    if(linenum > textOfLines->size())
+      {
+	// get index for string of text in string pool
+	u32 blankid = m_pool.getIndexForDataString("\n");
+	
+	textOfLines->insert(textOfLines->end(), linenum - textOfLines->size(), blankid);
+      }
+    assert(linenum >= 0 && linenum <= textOfLines->size());
+    textOfLines->push_back(textid);
+  }
+
+
+  std::string CompilerState::getLineOfText(Locator loc)
+  {
+    std::vector<u32> * textOfLines = NULL;
+
+    u32 pathidx = loc.getPathIndex();
+    u16 linenum = loc.getLineNo();
+
+    // use path index in locator to access its vector of lines
+    std::map<u32, std::vector<u32>*>::iterator it = m_textByLinePerFilePath.find(pathidx);
+    if(it != m_textByLinePerFilePath.end())
+      {
+	textOfLines = it->second;
+      }
+    else
+      {
+	//error!
+	//assert(0);
+	std::ostringstream msg;
+	msg << "Cannot find path index (" << pathidx << ") for line " << linenum << ": " << m_pool.getDataAsString(pathidx).c_str();
+	m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	return "";
+      }
+
+    u32 textid = (*textOfLines)[linenum];
+    return m_pool.getDataAsString(textid);
+  } //getLineOfText
+
 
 } //end MFM

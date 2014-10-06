@@ -139,6 +139,11 @@ namespace MFM {
 
   void NodeStatements::genCode(File * fp)
   {
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("//");
+    fp->write(m_state.getLineOfText(getNodeLocation()).c_str());
+
     m_node->genCode(fp);
 
     if(m_nextNode)

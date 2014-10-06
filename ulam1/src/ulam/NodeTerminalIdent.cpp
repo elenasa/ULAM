@@ -345,7 +345,7 @@ namespace MFM {
 	//currentSelfSymbol changes with function call
 	if(m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)
 	  {
-	    fp->write(HIDDEN_ARG_NAME);
+	    fp->write(m_state.getHiddenArgName());
 	    fp->write(".GetBits()");
 	  }
 	else 
@@ -364,7 +364,7 @@ namespace MFM {
 #if 0
     if(m_state.m_currentObjSymbolForCodeGen->isDataMember())  //???
       {
-	fp->write(HIDDEN_ARG_NAME);
+	fp->write(m_state.getHiddenArgName());
 	fp->write(".GetBits()");
       }
     else
@@ -416,7 +416,7 @@ namespace MFM {
 	//currentSelfSymbol changes with function call
 	if(m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)
 	  {
-	    fp->write(HIDDEN_ARG_NAME);
+	    fp->write(m_state.getHiddenArgName());
 	    fp->write(".GetBits()");
 	  }
 	else 
