@@ -306,7 +306,7 @@ namespace MFM {
 	fp->write(readMethodForCodeGen(ruti).c_str());
 	fp->write("(");
 
-	fp->write(HIDDEN_ARG_NAME);  //???
+	fp->write(m_state.getHiddenArgName());  //???
 	fp->write(".GetBits());\n");
       }
     else
@@ -355,7 +355,7 @@ namespace MFM {
 	fp->write(writeMethodForCodeGen(ruti).c_str());
 	fp->write("(");
 	
-	fp->write(HIDDEN_ARG_NAME);
+	fp->write(m_state.getHiddenArgName());
 	fp->write(".GetBits(), ");
 	fp->write(tmpVar.c_str());
 	fp->write(");\n");

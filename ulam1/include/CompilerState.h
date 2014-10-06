@@ -81,14 +81,18 @@ namespace MFM{
   class NodeBlockClass; //forward
   class SymbolTable;    //forward
 
-  static const char * HIDDEN_ARG_NAME = "Uv_4self";
-
 
   struct CompilerState
   {
     // tokenizer ptr replace by StringPool, service for deferencing strings 
     // e.g., Token identifiers that are variables, path names read by SS, etc.)
     StringPool m_pool;
+
+    // map key is the prefix id in the Locator; value is a vector of
+    // stringpool id's indexed by line into the original ulam source
+    // code; built by SourceStream during parsing; used for
+    // documentation during code generation.
+    std::map<u32,std::vector<u32>* > m_textByLinePerFilePath;
 
     u32 m_compileThisId;                 // the subject of this compilation; id into m_pool
     SymbolTable m_programDefST;
@@ -126,6 +130,7 @@ namespace MFM{
     ~CompilerState();
 
     void clearAllDefinedUlamTypes();
+    void clearAllLinesOfText();
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
@@ -192,6 +197,7 @@ namespace MFM{
 
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
     void indent(File * fp);
+    const char * getHiddenArgName();
 
     std::string getFileNameForAClassHeader(u32 id);
     std::string getFileNameForThisClassHeader();
@@ -227,6 +233,12 @@ namespace MFM{
     PACKFIT determinePackable(UTI aut);
 
     void setupCenterSiteForTesting();
+
+    /** used by SourceStream to build m_textByLinePerFilePath during parsing */
+    void appendNextLineOfText(Locator loc, std::string textstr);
+
+    /** used during codeGen to document the source Ulam code */
+    std::string getLineOfText(Locator loc);
 
   };
   

@@ -15,9 +15,9 @@ namespace MFM {
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("Foo.ulam","ulam 1; use Bar; element Foo { Unary(4) m_i; Unary(4) m_j; Bits(4) m_bits; Int(4) m_k; Bar m_bar; Bar check(Int v) { Bar b; b.val_b[1] = true; return b; } Int test() { m_bar = check(1); m_i = (Unary)((Int) m_bar); m_j = (Unary(4)) 7; m_bits = m_i; m_k = m_bits; return m_i; } }\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nUnary(4) m_i;\nUnary(4) m_j;\nBits(4) m_bits;\nInt(4) m_k;\nBar m_bar;\nBar check(Int v) {\nBar b;\nb.val_b[1] = true;\nreturn b; }\nInt test() {\nm_bar = check(1);\nm_i = (Unary)((Int) m_bar);\nm_j = (Unary(4)) 7;\nm_bits = m_i;\nm_k = m_bits;\nreturn m_i;}\n}\n");
       
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1; quark Bar { Bool val_b[3];  Void reset(Bool b) { b = 0; } Int toInt(){ return 3;} }\n");
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool val_b[3];\nVoid reset(Bool b) {\nb = 0; }\nInt toInt(){\nreturn 3;}\n}\n");
       
       if(rtn1 & rtn2)
 	return std::string("Foo.ulam");

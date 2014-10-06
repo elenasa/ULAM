@@ -122,20 +122,30 @@ namespace MFM {
   {
     if(m_node)
       {
+	m_state.indent(fp);
+	fp->write("{\n");
+	m_state.m_currentIndentLevel++;
+
 	std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);
 	m_state.indent(fp);
 	fp->write("return ");
 	fp->write("(");
 	fp->write(tmpVar.c_str());
 	fp->write(")");
+	fp->write(";\n");
+
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("}\n");
+	//fp->write("\n");
       }
     else
       {
 	m_state.indent(fp);
 	fp->write("return ");   //void 
+	fp->write(";\n");
       }
 
-    fp->write(";\n");
   }
 
 

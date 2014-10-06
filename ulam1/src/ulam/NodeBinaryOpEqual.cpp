@@ -277,7 +277,7 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
-    fp->write("\n");
+    //fp->write("\n");
 #endif
   } //genCode
 

@@ -306,7 +306,7 @@ namespace MFM {
 
     //fp->write(HIDDEN_ARG_NAME);  //first arg
     if(m_state.m_currentObjSymbolForCodeGen == saveCurrentObjectSymbol)
-      fp->write(HIDDEN_ARG_NAME);
+      fp->write(m_state.getHiddenArgName());
     else
       fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
 
@@ -355,7 +355,7 @@ namespace MFM {
 
     //if(m_state.m_currentObjSymbolForCodeGen->isDataMember())
     if(m_state.m_currentObjSymbolForCodeGen == saveCurrentObjectSymbol)
-      fp->write(HIDDEN_ARG_NAME);
+      fp->write(m_state.getHiddenArgName());
     else
       fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
 

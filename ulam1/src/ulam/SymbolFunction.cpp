@@ -182,7 +182,7 @@ namespace MFM {
     fp->write("& ");          //only place we use a reference
     //fp->write("Uv_14");     //hardcoded variable self
     //fp->write(atomut->getUlamTypeAsSingleLowercaseLetter());  //a name
-    fp->write(HIDDEN_ARG_NAME);
+    fp->write(m_state.getHiddenArgName());
 
     u32 numparams = getNumberOfParameters();
     
@@ -260,7 +260,7 @@ namespace MFM {
     fp->write("& ");            //only place we use a reference
     //fp->write("Uv_14");         //hardcoded variable self
     //fp->write(atomut->getUlamTypeAsSingleLowercaseLetter());  //a name
-    fp->write(HIDDEN_ARG_NAME);
+    fp->write(m_state.getHiddenArgName());
 
     u32 numparams = getNumberOfParameters();
     

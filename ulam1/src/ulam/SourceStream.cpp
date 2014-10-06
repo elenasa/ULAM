@@ -61,6 +61,8 @@ namespace MFM {
       {
 	m_lastReadByte = fp->read();
 
+	updateLineOfText(id, m_lastReadByte);                     // before line no incremented
+
 	m_fileRecords[id].m_loc.updateLineByteNo(m_lastReadByte); // update access record
 
 	//save this read byte, and  last read loc before updating, in case of future unread;
@@ -240,9 +242,45 @@ namespace MFM {
 	    return;
 	  }
       }
-
     u16 id = m_openFilesStack.top(); 
     m_fileRecords[id].m_version = ver;
+  }
+
+
+  bool SourceStream::getFileIdFromLocator(Locator loc, u32& idref)
+  {
+    bool brtn = false;
+    u32 findex = loc.getPathIndex();
+ 
+    // use path index in locator to get id and line to retrieve text
+   std::map<u32,u16>::iterator it = m_registeredFilenames.find(findex);
+    if(it != m_registeredFilenames.end())
+      {
+	idref = it->second;
+	brtn = true;
+      }
+    return brtn;
+  }
+
+
+  std::string SourceStream::getLineOfTextAsString(u32 id) const
+  {
+    assert(id > 0 && id < m_fileRecords.size());
+    
+    return m_fileRecords[id].getLineOfText();
+  }
+
+
+  void SourceStream::updateLineOfText(u32 id, char c)
+  {
+    assert(id > 0 && id < m_fileRecords.size());
+    m_fileRecords[id].appendToLineOfText(c);     //update line of text first
+    if(c == '\n')
+      {
+	//send line to CompilerState, then clear
+	m_state.appendNextLineOfText(m_fileRecords[id].m_loc, getLineOfTextAsString(id));
+	m_fileRecords[id].clearLineOfText();
+      }
   }
 
 }  //end MFM
