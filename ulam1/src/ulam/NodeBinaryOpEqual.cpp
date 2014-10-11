@@ -255,29 +255,35 @@ namespace MFM {
   }
 
 
-  void NodeBinaryOpEqual::genCode(File * fp)
+  void NodeBinaryOpEqual::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
 
 #if 0
-    m_nodeLeft->genCode(fp);
+    m_nodeLeft->genCode(fp, uvpass);
     fp->write(getName()); //=
-    m_nodeRight->genCode(fp);
+    m_nodeRight->genCode(fp, uvpass);
 
 #else
-    
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
+
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
-    std::string tmpVar = m_nodeRight->genCodeReadIntoATmpVar(fp);
-    //m_state.indent(fp);
-    //fp->write("//UH_tmp_loadable |= true;   //HARDCODED? \n");  
-    m_nodeLeft->genCodeWriteFromATmpVar(fp, tmpVar);
+    m_nodeLeft->genCodeToStoreInto(fp, uvpass);  //updates m_currentObjSymbol
+
+    UlamValue ruvpass;
+    m_nodeRight->genCode(fp, ruvpass);
+
+    genCodeWriteFromATmpVar(fp, uvpass, ruvpass);        //uses rhs' tmpvar
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
-    //fp->write("\n");
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
 #endif
   } //genCode
 

@@ -162,11 +162,11 @@ namespace MFM {
   } //end dounaryopImmediate
 
 
-  void NodeUnaryOp::genCode(File * fp)
+  void NodeUnaryOp::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
     printOp(fp); 
-    m_node->genCode(fp);
+    m_node->genCode(fp, uvpass);
   }
 
 } //end MFM

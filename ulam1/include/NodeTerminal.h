@@ -60,14 +60,16 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual std::string genCodeReadIntoATmpVar(File * fp);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
     Token m_token;
 
   private:
+    EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
+
   };
 
 }

@@ -132,13 +132,13 @@ namespace MFM {
     m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
   }
 
-  void NodeBlock::genCode(File * fp)
+  void NodeBlock::genCode(File * fp, UlamValue& uvpass)
   {
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
-    m_nextNode->genCode(fp);
+    m_nextNode->genCode(fp, uvpass);
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);

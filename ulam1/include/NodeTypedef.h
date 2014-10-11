@@ -63,7 +63,7 @@ namespace MFM{
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   private:
     SymbolTypedef * m_typedefSymbol;

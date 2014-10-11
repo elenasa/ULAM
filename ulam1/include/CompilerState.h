@@ -120,11 +120,12 @@ namespace MFM{
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type 
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types 
     UlamValue m_currentObjPtr;        //used in eval of members: data or funcs; updated at each '.'
-    UlamValue m_currentSelf;          //used in eval of func calls: updated after args, becomes currentObjPtr for args
+    UlamValue m_currentSelfPtr;       //used in eval of func calls: updated after args, becomes currentObjPtr for args
 
     Symbol * m_currentObjSymbolForCodeGen;  //used in code generation; parallels m_currentObjPtr
     Symbol * m_currentSelfSymbolForCodeGen; //used in code generation; parallels m_currentSelf
     u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
+    s32 m_nextTmpVarNumber;           //used in code gen when a "slot index" is not available
 
     CompilerState();
     ~CompilerState();
@@ -198,6 +199,7 @@ namespace MFM{
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
     void indent(File * fp);
     const char * getHiddenArgName();
+    s32 getNextTmpVarNumber();
 
     std::string getFileNameForAClassHeader(u32 id);
     std::string getFileNameForThisClassHeader();

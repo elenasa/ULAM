@@ -200,7 +200,8 @@ namespace MFM {
 	genAllCapsIfndefForHeaderFile(fp);
 	generateHeaderIncludes(fp);
 
-	m_root->genCode(fp);      //compileThisId only, class block
+	UlamValue uvpass;
+	m_root->genCode(fp, uvpass);      //compileThisId only, class block
 
 	// include this .tcc
 	m_state.indent(fp);
@@ -220,8 +221,9 @@ namespace MFM {
 
 	m_state.m_currentIndentLevel = 0;
 	fp->write(CModeForHeaderFiles);  //needed for .tcc files too
-
-	m_root->genCodeBody(fp);  //compileThisId only, MFM namespace
+ 
+	UlamValue uvpass;
+	m_root->genCodeBody(fp, uvpass);  //compileThisId only, MFM namespace
 
 	delete fp;
       }

@@ -287,34 +287,41 @@ namespace MFM {
   } //getArraysizeInBracket 
 
 
-  void NodeSquareBracket::genCode(File * fp)
+  void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    UlamValue luvpass;
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+    UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
 
-    m_nodeLeft->genCode(fp);
-    fp->write(".");
-    fp->write(nut->getUlamTypeAsSingleLowercaseLetter());
-    fp->write("[");
-    m_nodeRight->genCode(fp);
-    fp->write("]");
-  }
+    UlamValue offset;
+    m_nodeRight->genCode(fp, offset);
+
+    s32 offsetInt = offset.getImmediateData(m_state);
+    nextlptr.incrementPtr(m_state, offsetInt);
+
+    //genCodeReadIntoATmpVar(fp, nextlptr);
+    //uvpass = luvpass;
+    uvpass = nextlptr;
+    uvpass.setPtrNameId(luvpass.getPtrNameId());
+  } //genCode
 
 
-  std::string NodeSquareBracket::genCodeReadIntoATmpVar(File * fp)
+  void NodeSquareBracket::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
-    std::string tmpVar = m_nodeLeft->genCodeReadIntoATmpVar(fp);
-    m_nodeRight->genCode(fp);
-    fp->write(");\n");
-    return tmpVar;
-  }
+    assert(m_nodeLeft && m_nodeRight);
 
+    UlamValue luvpass;
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+    UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
 
-  void NodeSquareBracket::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
-  {
-    m_nodeLeft->genCodeWriteFromATmpVar(fp, tmpVar);
-    m_nodeRight->genCode(fp);
-    fp->write(");\n"); 
-  }
+    UlamValue offset;
+    m_nodeRight->genCodeToStoreInto(fp, offset);
+
+    s32 offsetInt = offset.getImmediateData(m_state);
+    nextlptr.incrementPtr(m_state, offsetInt);
+    uvpass = nextlptr; //return
+    uvpass.setPtrNameId(luvpass.getPtrNameId());
+  } //genCodeToStoreInto
 
 } //end MFM

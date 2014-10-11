@@ -81,11 +81,11 @@ namespace MFM {
   }
 
   
-  void NodeSimpleStatement::genCode(File * fp)
+  void NodeSimpleStatement::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
     m_state.indent(fp);
-    m_node->genCode(fp);
+    m_node->genCode(fp, uvpass);
     //fp->write(";\n");
   }
 

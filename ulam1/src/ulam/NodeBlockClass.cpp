@@ -219,7 +219,7 @@ namespace MFM {
 
 
   //header .h file
-  void NodeBlockClass::genCode(File * fp)
+  void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
     ULAMCLASSTYPE classtype = cut->getUlamClass();
@@ -328,14 +328,15 @@ namespace MFM {
     fp->write("\n");
 
     // where to put these???
-    genImmediateMangledTypesForHeaderFile(fp);
+    //genImmediateMangledTypesForHeaderFile(fp);
 
     fp->write("\n");
 
     //DataMember VAR DECLS
     if(m_nextNode)
       {
-	m_nextNode->genCode(fp);  //output the BitField typedefs
+	UlamValue uvpass;
+	m_nextNode->genCode(fp, uvpass);  //output the BitField typedefs
 	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
@@ -371,7 +372,7 @@ namespace MFM {
     fp->write("\n");
 
     // where to put these???
-    genImmediateMangledTypesForHeaderFile(fp);
+    //genImmediateMangledTypesForHeaderFile(fp);
 
     fp->write("\n");
     m_state.m_currentIndentLevel--;
@@ -390,7 +391,8 @@ namespace MFM {
     //DataMember VAR DECLS
     if(m_nextNode)
       {
-	m_nextNode->genCode(fp);  //output the BitField typedefs
+	UlamValue uvpass;
+	m_nextNode->genCode(fp, uvpass);  //output the BitField typedefs
 	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
@@ -429,7 +431,7 @@ namespace MFM {
 
 
   //Body for This Class only; practically empty if quark (.tcc)
-  void NodeBlockClass::genCodeBody(File * fp)
+  void NodeBlockClass::genCodeBody(File * fp, UlamValue& uvpass)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
     ULAMCLASSTYPE classtype = cut->getUlamClass();
@@ -446,14 +448,22 @@ namespace MFM {
       {
 	//default constructor
 	m_state.indent(fp);
+	fp->write("template<class CC>\n");
+
+	m_state.indent(fp);
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>");
 	fp->write("::");
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("(){}\n\n");
 	
 	//default destructor
 	m_state.indent(fp);
+	fp->write("template<class CC>\n");
+
+	m_state.indent(fp);
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>");
 	fp->write("::~");
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("(){}\n\n");

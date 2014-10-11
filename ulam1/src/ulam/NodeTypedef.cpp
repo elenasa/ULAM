@@ -90,7 +90,7 @@ namespace MFM {
   }
 
 
-  void NodeTypedef::genCode(File * fp)
+  void NodeTypedef::genCode(File * fp, UlamValue& uvpass)
   {
 #if 0
     m_state.indent(fp);

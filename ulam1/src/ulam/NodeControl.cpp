@@ -96,18 +96,18 @@ namespace MFM {
   }
 
 
-  void NodeControl::genCode(File * fp)
+  void NodeControl::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeCondition && m_nodeBody);
     
     m_state.indent(fp);
     fp->write(getName());
     fp->write("(");
-    m_nodeCondition->genCode(fp);
+    m_nodeCondition->genCode(fp, uvpass);
     fp->write(")\n");
 
     m_state.m_currentIndentLevel++;
-    m_nodeBody->genCode(fp);
+    m_nodeBody->genCode(fp, uvpass);
     m_state.m_currentIndentLevel--;
 
   }

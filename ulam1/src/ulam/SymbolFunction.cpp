@@ -215,9 +215,10 @@ namespace MFM {
       }
     else
       {
+	UlamValue uvpass;
 	NodeBlockFunctionDefinition * func = getFunctionNode();
 	assert(func); //how would a function symbol be without a body?
-	func->genCode(fp);
+	func->genCode(fp, uvpass);
       }
   } //generateElementFunctionDeclaration
   
@@ -290,9 +291,10 @@ namespace MFM {
       }
     else
       {    
+	UlamValue uvpass;
 	NodeBlockFunctionDefinition * func = getFunctionNode();
 	assert(func);       // how would a function symbol be without a body?
-	func->genCode(fp);  // it better know its a quark!!!
+	func->genCode(fp, uvpass);  // it better know its a quark!!!
       }
   } //generateQuarkFunctionDeclaration
 

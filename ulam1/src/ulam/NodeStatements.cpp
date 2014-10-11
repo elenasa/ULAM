@@ -137,36 +137,26 @@ namespace MFM {
   }
 
 
-  void NodeStatements::genCode(File * fp)
+  void NodeStatements::genCode(File * fp, UlamValue& uvpass)
   {
     fp->write("\n");
     m_state.indent(fp);
     fp->write("//");
     fp->write(m_state.getLineOfText(getNodeLocation()).c_str());
 
-    m_node->genCode(fp);
+    m_node->genCode(fp, uvpass);
 
     if(m_nextNode)
-      m_nextNode->genCode(fp);
-  }
+      m_nextNode->genCode(fp, uvpass);
+  } //genCode
 
 
-  std::string NodeStatements::genCodeReadIntoATmpVar(File * fp)
+  void NodeStatements::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
-    std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);
+    m_node->genCodeToStoreInto(fp, uvpass);
 
     if(m_nextNode)
-      m_nextNode->genCodeReadIntoATmpVar(fp);
-    return tmpVar;
-  }
-
-
-  void NodeStatements::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
-  {
-    m_node->genCodeWriteFromATmpVar(fp, tmpVar);
-
-    if(m_nextNode)
-      m_nextNode->genCodeWriteFromATmpVar(fp, tmpVar);
-  }    
+      m_nextNode->genCodeToStoreInto(fp, uvpass);
+  } //genCodeToStoreInto
 
 } //end MFM

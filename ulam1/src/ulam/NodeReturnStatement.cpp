@@ -103,14 +103,14 @@ namespace MFM {
   }
   
 #if 0
-  void NodeReturnStatement::genCode(File * fp)
+  void NodeReturnStatement::GENCODE(File * fp)
   {
     m_state.indent(fp);
     fp->write("return ");
     if(m_node)
       {
 	fp->write("(");
-	m_node->genCode(fp);
+	m_node->genCode(fp, uvpass);
 	fp->write(")");
       }
     fp->write(";\n");
@@ -118,7 +118,7 @@ namespace MFM {
 #endif
 
 
-  void NodeReturnStatement::genCode(File * fp)
+  void NodeReturnStatement::genCode(File * fp, UlamValue& uvpass)
   {
     if(m_node)
       {
@@ -126,11 +126,36 @@ namespace MFM {
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 
-	std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);
+	m_node->genCodeToStoreInto(fp, uvpass);
+	UTI vuti = uvpass.getUlamValueTypeIdx();
+	bool isTerminal = false;
+	if(vuti == Ptr)
+	  {
+	    //genCodeReadIntoATmpVar(fp, uvpass);
+	  }
+	else
+	  {
+	    isTerminal = true;
+	  }
+
 	m_state.indent(fp);
 	fp->write("return ");
 	fp->write("(");
-	fp->write(tmpVar.c_str());
+	if(isTerminal)
+	  {
+	    // write out terminal explicitly
+	    u32 data = uvpass.getImmediateData(m_state);
+	    char dstr[40];
+	    m_state.getUlamTypeByIndex(vuti)->getDataAsString(data, dstr, 'z', m_state);
+	    fp->write(dstr);
+	  }
+	else
+	  {
+	    std::ostringstream tmpVar;
+	    tmpVar << "UH_tmp_loadable_" << uvpass.getPtrSlotIndex();
+	    fp->write(tmpVar.str().c_str());
+	  }
+
 	fp->write(")");
 	fp->write(";\n");
 
@@ -145,8 +170,7 @@ namespace MFM {
 	fp->write("return ");   //void 
 	fp->write(";\n");
       }
-
-  }
+  } //genCode
 
 
 

@@ -159,75 +159,130 @@ namespace MFM {
   }
 
 
-  void NodeCast::genCode(File * fp)
+  void NodeCast::genCode(File * fp, UlamValue& uvpass)
   {
+    //m_node->genCode(fp, uvpass);
+    m_node->genCodeToStoreInto(fp, uvpass);
     if(needsACast())
       {
 	//	fp->write("(");
 	//fp->write(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeImmediateMangledName(&m_state).c_str());
 	//fp->write(") ");
 	//fp->write("(");
-	//m_node->genCode(fp);
+	//m_node->genCode(fp, uvpass);
 	//fp->write(")");
 	
 	//std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);
-	genCodeReadIntoATmpVar(fp);
+	//m_node->genCodeToStoreInto(fp, uvpass); //rename..genCodeRead
+	genCodeReadIntoATmpVar(fp, uvpass);     // cast.
       }
+#if 0
     else
-	m_node->genCode(fp);
+      {
+	m_node->genCode(fp, uvpass);
+	Node::genCodeReadIntoATmpVar(fp, uvpass);
+      }
+#endif
   }
 
 
-  std::string NodeCast::genCodeReadIntoATmpVar(File * fp)
+ void NodeCast::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
-    std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);   //just the terminal
+    m_node->genCodeToStoreInto(fp, uvpass);
+    if(needsACast())
+      {
+	genCodeReadIntoATmpVar(fp, uvpass);     // cast.
+      }
+  }
 
+
+  void NodeCast::genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass)
+  {
+    assert(needsACast());
     if(!needsACast())
-      return tmpVar;
-
+      return; //tmpVar;
 
     UTI nuti = getNodeType();
-    UTI nodetype = m_node->getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    m_state.indent(fp);
-    
-    std::ostringstream tmpVarCast;
-    tmpVarCast << tmpVar << "_1" ;
+    //UTI nodetype = m_node->getNodeType();
+    UTI vuti = uvpass.getUlamValueTypeIdx();
+    bool isTerminal = false;
+    s32 tmpVarNum = 0;
 
+   if(vuti == Ptr)
+      {
+	tmpVarNum = uvpass.getPtrSlotIndex();
+	vuti = uvpass.getPtrTargetType();  //replace
+      }
+    else
+      {
+	// an immediate terminal value
+	isTerminal = true;
+      }
+
+   UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+   ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+   if(vclasstype == UC_QUARK)
+     {
+       m_node->genCodeReadIntoATmpVar(fp, uvpass);
+     }
+
+    s32 tmpVarCastNum = m_state.getNextTmpVarNumber(); 
+    std::ostringstream tmpVarCast;
+    tmpVarCast << "UH_tmp_loadable_" << tmpVarCastNum;
+
+    m_state.indent(fp);
     fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
     fp->write(" ");
     fp->write(tmpVarCast.str().c_str());
     fp->write(" = ");
 
     // write the cast method (e.g. _SignExtend32, _S32ToUnary, etc..)
-    fp->write(nut->castMethodForCodeGen(nodetype, m_state).c_str());
+    fp->write(nut->castMethodForCodeGen(vuti, m_state).c_str());
     fp->write("(");
 
-    fp->write(tmpVar.c_str());
+    if(isTerminal)
+      {
+	u32 data = uvpass.getImmediateData(m_state);
+	char dstr[40];
+	vut->getDataAsString(data, dstr, 'z', m_state);
+	fp->write(dstr);
+      }
+    else
+      {
+	std::ostringstream tmpVar;  // from..
+	tmpVar << "UH_tmp_loadable" << tmpVarNum;
+	fp->write(tmpVar.str().c_str());
+      }
+
     fp->write(", ");
     //LENGTH of node being casted (UH_AP_mi::LENGTH ?)
     //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());    
-    s32 nodeLength = m_state.getTotalBitSize(nodetype);
+    s32 nodeLength = m_state.getTotalBitSize(vuti);
     fp->write_decimal(nodeLength);
 
     fp->write(")");
     fp->write(";\n");
 
-    return tmpVarCast.str();
+    if(isTerminal)
+      uvpass = UlamValue::makePtr(tmpVarCastNum, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified.
+    else
+      uvpass = UlamValue::makePtr(tmpVarCastNum, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
   } //genCodeReadIntoTmp
 
 
-  void NodeCast::genCodeWriteFromATmpVar(File * fp, std::string tmpVar)
+  void NodeCast::genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
     assert(0);
-    m_node->genCodeWriteFromATmpVar(fp, tmpVar);
+    genCodeWriteFromATmpVar(fp, luvpass, ruvpass);
   }    
 
 
   bool NodeCast::needsACast()
   {
-    return true;  //debug
+    //return true;  //debug
 
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->getNodeType();

@@ -120,10 +120,10 @@ namespace MFM {
 
 
   // parse tree in order declared, unlike the ST.
-  void NodeVarDecl::genCode(File * fp)
+  void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
   {
     if(m_varSymbol->isDataMember())
-      return genCodedBitFieldTypedef(fp);
+      return genCodedBitFieldTypedef(fp, uvpass);
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -141,11 +141,22 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName().c_str());
 
+    //initialize T to default atom (might need "OurAtom" if data member ?)
+    if(vclasstype == UC_QUARK || vclasstype == UC_ELEMENT)
+      {
+	fp->write(" = ");
+	UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
+	fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>");
+	fp->write("::");
+	fp->write("GetDefaultAtom()");
+      }
+
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   }
 
 
-  void NodeVarDecl::genCodedBitFieldTypedef(File * fp)
+  void NodeVarDecl::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
   {
     UTI nuti = getNodeType();
     UlamType * vut = m_state.getUlamTypeByIndex(nuti);
@@ -173,7 +184,7 @@ namespace MFM {
     fp->write("> ");
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
-  }
+  } //genCodedBitFieldTypedef
 
 
 } //end MFM

@@ -205,7 +205,7 @@ namespace MFM {
   }
 
 
-  void NodeBlockFunctionDefinition::genCode(File * fp)
+  void NodeBlockFunctionDefinition::genCode(File * fp, UlamValue& uvpass)
   {
     // m_currentObjSymbol set up by caller
     assert(m_state.m_currentObjSymbolForCodeGen != NULL);
@@ -218,7 +218,7 @@ namespace MFM {
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
-    m_nextNode->genCode(fp);
+    m_nextNode->genCode(fp, uvpass);
     m_state.m_currentIndentLevel--;
     
     m_state.indent(fp);
