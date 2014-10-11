@@ -72,7 +72,7 @@ namespace MFM{
 
     SymbolFunction * getFuncSymbolPtr();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
 

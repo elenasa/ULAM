@@ -78,6 +78,14 @@ namespace MFM {
   }
 
 
+  UlamValue UlamValue::makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, u32 id)
+  {
+    UlamValue rtnUV = UlamValue::makePtr(slot,storage,targetType,packed,state,pos);
+    rtnUV.setPtrNameId(id);
+    return rtnUV;
+  }
+
+
   UlamValue UlamValue::makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos)
   {
     UlamValue rtnUV;  //static method
@@ -101,7 +109,7 @@ namespace MFM {
       }
     else
       {
-	assert(pos >= 0 && (pos + len) <= BITSPERATOM);
+	assert(pos > 0 && (pos + len) <= BITSPERATOM);
 	rtnUV.m_uv.m_ptrValue.m_posInAtom = pos; 
       }
 
@@ -109,7 +117,7 @@ namespace MFM {
     rtnUV.m_uv.m_ptrValue.m_storage = storage;
     rtnUV.m_uv.m_ptrValue.m_packed = packed;
     rtnUV.m_uv.m_ptrValue.m_targetType = targetType;
-    rtnUV.m_uv.m_ptrValue.m_pad = 0;
+    rtnUV.m_uv.m_ptrValue.m_nameid = 0;
     return rtnUV;
   }
 
@@ -238,6 +246,21 @@ namespace MFM {
   {
     assert(getUlamValueTypeIdx() == Ptr);
     m_uv.m_ptrValue.m_targetType = type;
+  }
+
+
+  u16 UlamValue::getPtrNameId()
+  { 
+    assert(getUlamValueTypeIdx() == Ptr);
+    return m_uv.m_ptrValue.m_nameid;
+  }
+
+
+  void UlamValue::setPtrNameId(u32 id)
+  { 
+    assert(getUlamValueTypeIdx() == Ptr);
+    assert(id <= ((1 << 17) - 1));
+    m_uv.m_ptrValue.m_nameid = (u16) id;
   }
 
 
@@ -437,5 +460,21 @@ namespace MFM {
     return m_uv.m_storage.m_atom == rhs.m_uv.m_storage.m_atom;
   }
 
+
+  void UlamValue::genCodeBitField(File * fp, CompilerState& state)
+  {
+    assert(getUlamValueTypeIdx() == Ptr);
+    UTI vuti = getPtrTargetType();
+    UlamType * vut = state.getUlamTypeByIndex(vuti);
+
+    //state.indent(fp);
+    fp->write("BitField<BPA,");
+    fp->write(vut->getUlamTypeVDAsStringForC().c_str());  //VD type
+    fp->write(",");
+    fp->write_decimal(vut->getTotalBitSize());
+    fp->write(",");
+    fp->write_decimal(getPtrPos());
+    fp->write(">");
+  }
 
 } //end MFM

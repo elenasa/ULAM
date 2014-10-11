@@ -31,7 +31,7 @@ namespace MFM {
 
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this), m_currentObjSymbolForCodeGen(NULL), m_currentSelfSymbolForCodeGen(NULL)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this), m_currentObjSymbolForCodeGen(NULL), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(9999)
   {
     m_err.init(this, debugOn, NULL);
   }
@@ -1050,7 +1050,8 @@ namespace MFM {
 
   void CompilerState::setupCenterSiteForTesting()
   {
-    assert(m_currentObjPtr.getUlamValueTypeIdx() == Nav);
+    // call again for code gen..
+    // assert(m_currentObjPtr.getUlamValueTypeIdx() == Nav);
     // set up an atom in eventWindow; init m_currentObjPtr to point to it
     // set up stacks since func call not called
     Coord c0(0,0);
@@ -1061,12 +1062,12 @@ namespace MFM {
     UTI cuti = csym->getUlamTypeIdx();
 
     m_eventWindow.setSiteElementType(c0, cuti);
-    m_currentSelf = m_currentObjPtr = m_eventWindow.makePtrToCenter();
+    m_currentSelfPtr = m_currentObjPtr = m_eventWindow.makePtrToCenter();
 
     // set up STACK since func call not called
     m_funcCallStack.pushArg(m_currentObjPtr);                        //hidden arg on STACK
     m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1));      //return slot on STACK
-  }
+  } //setupCenterSiteForTesting
 
 
   // used by SourceStream to build m_textByLinePerFilePath during parsing
@@ -1133,5 +1134,9 @@ namespace MFM {
     return m_pool.getDataAsString(textid);
   } //getLineOfText
 
+  s32 CompilerState::getNextTmpVarNumber()
+  {
+    return m_nextTmpVarNumber++;
+  }
 
 } //end MFM

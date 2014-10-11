@@ -61,10 +61,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void genCode(File * fp);
-
-    virtual std::string genCodeReadIntoATmpVar(File * fp);
-    virtual void genCodeWriteFromATmpVar(File * fp, std::string tmpVar);
+    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
 

@@ -74,7 +74,7 @@ namespace MFM{
 	u8  m_storage; //STORAGE
 	u8  m_packed;  //PACKFIT
 	u16 m_targetType;
-	u16 m_pad;
+	u16 m_nameid;     //for code gen
       } m_ptrValue;
 
       struct Storage {
@@ -102,6 +102,9 @@ namespace MFM{
 
     // returns a pointer to an UlamValue of type targetType; pos==0 determined from targettype
     static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos = 0);
+
+    // overload for code gen to "pad" with symbol id, o.w. zero
+    static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos, u32 id);
 
     static UlamValue makeScalarPtr(UlamValue arrayPtr, CompilerState& state);
 
@@ -131,6 +134,10 @@ namespace MFM{
 
     void setPtrTargetType(UTI type);
 
+    u16 getPtrNameId();
+
+    void setPtrNameId(u32 id);
+
     void incrementPtr(CompilerState& state, s32 offset = 1);
     
     static UlamValue getPackedArrayDataFromAtom(UlamValue p, UlamValue data, CompilerState& state);
@@ -157,6 +164,8 @@ namespace MFM{
     UlamValue& operator=(const UlamValue& rhs);
 
     bool operator==(const UlamValue& rhs);
+
+    void genCodeBitField(File * fp, CompilerState& state);
   };
 
 }

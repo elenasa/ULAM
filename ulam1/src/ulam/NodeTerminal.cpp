@@ -81,9 +81,23 @@ namespace MFM {
   EvalStatus NodeTerminal::eval()
   {
     EvalStatus evs = NORMAL; //init ok 
-    UlamValue rtnUV;   //init to Nav error case
-
     evalNodeProlog(0); //new current frame pointer
+
+    UlamValue rtnUV;
+    evs = makeTerminalValue(rtnUV);
+
+    //copy result UV to stack, -1 relative to current frame pointer
+    assignReturnValueToStack(rtnUV);
+
+    evalNodeEpilog();
+    return evs;
+  }
+  
+
+  EvalStatus NodeTerminal::makeTerminalValue(UlamValue& uvarg)
+  {
+    UlamValue rtnUV;         //init to Nav error case
+    EvalStatus evs = NORMAL; //init ok 
 
     switch(m_token.m_type)
       {
@@ -122,40 +136,41 @@ namespace MFM {
 	}
       };
 
-    //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(rtnUV);
-
-    evalNodeEpilog();
+    uvarg = rtnUV;
     return evs;
-  }
-  
+  } //makeTerminalValue
 
-  void NodeTerminal::genCode(File * fp)
+
+#if 0
+  void NodeTerminal::genCode(File * fp, UlamValue& uvpass)
   {
     fp->write(getName());
   }
+#endif
 
 
-  std::string NodeTerminal::genCodeReadIntoATmpVar(File * fp)
+  void NodeTerminal::genCode(File * fp, UlamValue& uvpass)
   {
-    std::string tmpVar;
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    m_state.indent(fp);
+    UlamValue tv; 
+    assert(makeTerminalValue(tv) == NORMAL);
     
-    tmpVar = "UH_tmp_loadable";
-    fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
-    fp->write(" ");
+    // UNCLEAR to do this read or not; squarebracket not happy, or cast not happy ???
+    genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
+    uvpass = tv;
+    return; 
+  }
 
-    fp->write(tmpVar.c_str());
-    fp->write(" = ");
 
-    fp->write(getName());
-    
-    fp->write(";\n"); 
+  void NodeTerminal::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    UlamValue tv; 
+    assert(makeTerminalValue(tv) == NORMAL);
+    //genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot" SAME AS GENCODE!!!! updated to ptr.
+    uvpass = tv;
+    return; //uvpass is an immediate UV, not a PTR
+  }
 
-    return tmpVar;
-  } //genCodeReadIntoTmp
-  
+
+
 
 } //end MFM

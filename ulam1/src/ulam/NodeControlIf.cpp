@@ -108,9 +108,9 @@ namespace MFM {
   }
 
 
-  void NodeControlIf::genCode(File * fp)
+  void NodeControlIf::genCode(File * fp, UlamValue& uvpass)
   {
-    NodeControl::genCode(fp);
+    NodeControl::genCode(fp, uvpass);
 
     if(m_nodeElse)
       {
@@ -118,7 +118,7 @@ namespace MFM {
 	fp->write("else\n");
 
 	m_state.m_currentIndentLevel++;
-	m_nodeElse->genCode(fp);
+	m_nodeElse->genCode(fp, uvpass);
 	m_state.m_currentIndentLevel--;
       }
   }

@@ -443,14 +443,14 @@ namespace MFM {
 		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId()).c_str(),WRITE);
 		assert(fp);
 
-		classNode->genCode(fp);	
+		classNode->genCode(fp, uvpass);	
 		delete fp;
 
 		// output body for This Class only
 		File * fpb = fm->fopen(m_state.getFileNameForThisClassBody().c_str(),WRITE);
 		assert(fpb);
 		
-		classNode->genCodeBody(fpb);	
+		classNode->genCodeBody(fpb, uvpass);	
 		delete fpb;
 	      }
 	    else
@@ -460,7 +460,7 @@ namespace MFM {
 		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId()).c_str(),WRITE);
 		assert(fp);
 
-		classNode->genCodeBody(fp);	
+		classNode->genCodeBody(fp, uvpass);	
 		delete fp;
 	      }
 	  }

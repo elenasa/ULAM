@@ -65,12 +65,12 @@ namespace MFM{
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   private:
     SymbolVariable * m_varSymbol;
 
-    void genCodedBitFieldTypedef(File * fp);
+    void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
   };
 
 }

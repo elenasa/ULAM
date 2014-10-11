@@ -57,7 +57,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
     

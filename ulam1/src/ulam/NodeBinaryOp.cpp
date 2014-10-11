@@ -202,14 +202,14 @@ namespace MFM {
   } //end dobinaryoparray
 
 
-  void NodeBinaryOp::genCode(File * fp)
+  void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    m_nodeLeft->genCode(fp);
+    m_nodeLeft->genCode(fp, uvpass);
     fp->write(" ");
     fp->write(getName());
     fp->write(" ");
-    m_nodeRight->genCode(fp);
+    m_nodeRight->genCode(fp, uvpass);
   }
 
 } //end MFM

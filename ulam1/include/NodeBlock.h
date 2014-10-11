@@ -77,7 +77,7 @@ namespace MFM{
 
     SymbolTable * getSymbolTablePtr(); //used for print postfix 
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
     SymbolTable m_ST;

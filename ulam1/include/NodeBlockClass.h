@@ -74,8 +74,9 @@ namespace MFM{
 
     void packBitsForVariableDataMembers();
     
-    virtual void genCode(File * fp);
-    void genCodeBody(File * fp);  //specific for this class
+    virtual void genCode(File * fp, UlamValue& uvpass);
+
+    void genCodeBody(File * fp, UlamValue& uvpass);  //specific for this class
 
   protected:
     SymbolTable m_functionST;  

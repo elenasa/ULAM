@@ -59,7 +59,7 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
     Node * m_nodeLeft;

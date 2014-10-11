@@ -136,9 +136,12 @@ namespace MFM {
 	return;
       }
 
+
     // setup for codeGen
     m_state.m_currentObjSymbolForCodeGen = m_state.m_programDefST.getSymbolPtr(m_state.m_compileThisId);
     m_state.m_currentSelfSymbolForCodeGen = m_state.m_currentObjSymbolForCodeGen;
+
+    m_state.setupCenterSiteForTesting();
 
     ((NodeProgram *) root)->generateCode(fm);
 
