@@ -258,23 +258,22 @@ namespace MFM {
   void NodeBinaryOpEqual::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-
-#if 0
-    m_nodeLeft->genCode(fp, uvpass);
-    fp->write(getName()); //=
-    m_nodeRight->genCode(fp, uvpass);
-
-#else
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;                //*************
     Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
 
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
-    m_nodeLeft->genCodeToStoreInto(fp, uvpass);  //updates m_currentObjSymbol
-
+    // generate rhs first; may update current object globals (e.g. function call)
     UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
+
+    // lhs should be the new current object: node member select updates them, 
+    // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
+    // to mean "don't read into a TmpVar" (e.g. by NodeCast).
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // init to self
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
+    m_nodeLeft->genCodeToStoreInto(fp, uvpass);      //may update m_currentObjSymbol
 
     genCodeWriteFromATmpVar(fp, uvpass, ruvpass);        //uses rhs' tmpvar
 
@@ -284,7 +283,6 @@ namespace MFM {
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
     m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
-#endif
   } //genCode
 
-  } //end MFM
+} //end MFM
