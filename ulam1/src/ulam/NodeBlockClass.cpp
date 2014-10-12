@@ -270,7 +270,8 @@ namespace MFM {
     //gencode declarations only for all the function definitions
     //bool declOnly = (m_state.m_compileThisId != getNodeType()->getUlamKeyTypeSignature()->getUlamKeyTypeSignatureNameId());
     //m_functionST.genCodeForTableOfFunctions(fp, (classtype == UC_ELEMENT), classtype);
-    m_functionST.genCodeForTableOfFunctions(fp, true, classtype);
+    bool declOnly = true;
+    m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
 
     m_state.m_currentIndentLevel--;
 
@@ -307,10 +308,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    m_state.indent(fp);
-    fp->write("// Extract short names for parameter types\n");
-    m_state.indent(fp);
-    fp->write("typedef typename CC::ATOM_TYPE T;\n");
+    genShortNameParameterTypesExtractedForHeaderFile(fp);
 
     // output quark size enum
     m_state.indent(fp);
@@ -363,13 +361,8 @@ namespace MFM {
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("// Extract short names for parameter types\n");
-    m_state.indent(fp);
-    fp->write("typedef typename CC::ATOM_TYPE T;\n");
-    m_state.indent(fp);
-    fp->write("typedef typename CC::PARAM_CONFIG P;\n");
-    fp->write("\n");
+
+    genShortNameParameterTypesExtractedForHeaderFile(fp);
 
     // where to put these???
     //genImmediateMangledTypesForHeaderFile(fp);
@@ -381,12 +374,6 @@ namespace MFM {
     fp->write("public:\n");
 
     m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("typedef BitVector<P::");
-    //fp->write_decimal(BITSPERATOM);
-    fp->write("BITS_PER_ATOM");
-    fp->write("> BVA;\n");
 
     //DataMember VAR DECLS
     if(m_nextNode)
@@ -428,6 +415,27 @@ namespace MFM {
 	  ut->genUlamTypeMangledImmediateDefinitionForC(fp, &m_state);
       }
   } //genImmediateMangledTypesForHeaderFile
+
+
+
+  void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)
+  {
+    m_state.indent(fp);
+    fp->write("// Extract short names for parameter types\n");
+    m_state.indent(fp);
+    fp->write("typedef typename CC::ATOM_TYPE T;\n");
+    m_state.indent(fp);
+    fp->write("typedef typename CC::PARAM_CONFIG P;\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("enum { BPA = P::BITS_PER_ATOM };\n");
+
+    m_state.indent(fp);
+    fp->write("typedef BitVector<BPA> BV;\n");
+
+    fp->write("\n");
+  }
 
 
   //Body for This Class only; practically empty if quark (.tcc)

@@ -109,6 +109,7 @@ namespace MFM{
     CompilerState & m_state;  //for printing error messages with path
     Node * makeCastingNode(Node * node, UTI tobeType);
 
+    void genMemberNameOfMethod(File * fp, UlamValue uvpass); //helper method to read/write into/from tmpvar
     const std::string readMethodForCodeGen(UTI nuti);
     const std::string writeMethodForCodeGen(UTI nuti);
 

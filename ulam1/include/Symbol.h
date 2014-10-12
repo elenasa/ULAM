@@ -63,6 +63,8 @@ namespace MFM{
 
     const std::string getMangledName();
 
+    static const std::string getParameterTypePrefix(bool isaclass);
+
     const std::string getMangledNameForParameterType();
 
     virtual const std::string getMangledPrefix() = 0;

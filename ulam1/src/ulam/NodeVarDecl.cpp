@@ -156,31 +156,45 @@ namespace MFM {
   }
 
 
+  // variable is a data member
   void NodeVarDecl::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
   {
     UTI nuti = getNodeType();
     UlamType * vut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
     ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
 
     m_state.indent(fp);
-    fp->write("typedef AtomicParameterType<");
-    fp->write("CC");  //BITSPERATOM
-    fp->write(", ");
-    fp->write(vut->getUlamTypeVDAsStringForC().c_str());
-    fp->write(", ");
-    fp->write_decimal(vut->getTotalBitSize());   //include arraysize
-    fp->write(", ");
-    if(classtype == UC_QUARK)
+
+    // use typedef rather than atomic parameter for quarks within elements
+    if(vclasstype == UC_QUARK)
       {
-	fp->write("POS + ");
-	fp->write_decimal(m_varSymbol->getPosOffset());
+	fp->write("typedef ");
+	fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+	fp->write("<CC, ");  
+	fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
       }
     else
       {
-	assert(classtype == UC_ELEMENT);
-	fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	fp->write("typedef AtomicParameterType<");
+	fp->write("CC");  //BITSPERATOM
+	fp->write(", ");
+	fp->write(vut->getUlamTypeVDAsStringForC().c_str());
+	fp->write(", ");
+	fp->write_decimal(vut->getTotalBitSize());   //include arraysize
+	fp->write(", ");
+	if(classtype == UC_QUARK)
+	  {
+	    fp->write("POS + ");
+	    fp->write_decimal(m_varSymbol->getPosOffset());
+	  }
+	else
+	  {
+	    assert(classtype == UC_ELEMENT);
+	    fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	  }
       }
-
+    
     fp->write("> ");
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's

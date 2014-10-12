@@ -355,10 +355,62 @@ namespace MFM {
     m_state.m_currentIndentLevel = 0;
     
     m_state.indent(fp);
+    fp->write("#include <stdio.h>\n\n");
+
+    m_state.indent(fp);
+    fp->write("#include \"Atom.h\"\n\n");
+
+    m_state.indent(fp);
+    fp->write("//CoreConfig.h\n");
+    m_state.indent(fp);
+    fp->write("template <class A, class P>\n");
+    m_state.indent(fp);
+    fp->write("struct CoreConfig\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("typedef A ATOM_TYPE;\n");
+    m_state.indent(fp);
+    fp->write("typedef A PARAM_CONFIG;\n");
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n\n");
+
+    m_state.indent(fp);
+    fp->write("//ParamConfig.h\n");
+    m_state.indent(fp);
+    fp->write("template <u32 BPA>\n");
+    m_state.indent(fp);
+    fp->write("struct ParamConfig\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("enum { BITS_PER_ATOM = BPA };\n");
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n\n");
+
+
+    m_state.indent(fp);
+    fp->write("//P3Atom.h\n");
+    m_state.indent(fp);
+    fp->write("template <class PC>\n");
+    m_state.indent(fp);
+    fp->write("struct P3Atom : Atom<CoreConfig <P3Atom<PC>, PC> > {\n");
+    m_state.indent(fp);
+    fp->write("};\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("//includes Element.h\n");
+    m_state.indent(fp);
     fp->write("#include \"");
     fp->write(m_state.getFileNameForThisClassHeader().c_str());
     fp->write("\"\n");
 
+    //MAIN STARTS HERE !!!
     fp->write("\n");
     m_state.indent(fp);
     fp->write("int main()\n");
@@ -368,16 +420,49 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    //declare an instance of This class
-    Symbol * csym = m_state.m_programDefST.getSymbolPtr(m_compileThisId);
+    m_state.indent(fp);
+    fp->write("enum { SIZE = ");
+    fp->write_decimal(BITSPERATOM);
+    fp->write(" };\n");
 
     m_state.indent(fp);
+    fp->write("typedef ParamConfig<SIZE> OurParamConfig;\n");
+
+    m_state.indent(fp);
+    fp->write("typedef P3Atom<OurParamConfig> OurAtom;\n");
+
+    m_state.indent(fp);
+    fp->write("typedef CoreConfig<OurAtom, OurParamConfig> OurCoreConfig;\n");
+
+    //declare an instance of This class
+    Symbol * csym = m_state.m_programDefST.getSymbolPtr(m_compileThisId);
+    UTI cuti = csym->getUlamTypeIdx();
+
+    m_state.indent(fp);
+    fp->write("typedef ");
     fp->write("MFM::");
-    fp->write(m_state.getUlamTypeByIndex(csym->getUlamTypeIdx())->getUlamTypeMangledName(&m_state).c_str());
-    fp->write(" utest;\n");
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
+    fp->write("<OurCoreConfig> OurFoo;\n");
+
+    m_state.indent(fp);
+    fp->write("OurFoo foo;\n");
     
     m_state.indent(fp);
-    fp->write("return utest.Uf_14test();\n");  //hardcoded mangled test name
+    fp->write("foo.SetType(23); //This is actually done by code code in a complicated way\n");
+
+    m_state.indent(fp);
+    fp->write("OurAtom fooAtom = foo.GetDefaultAtom();\n");
+
+    m_state.indent(fp);
+    fp->write("return foo.Uf_14test();\n");  //hardcoded mangled test name
+
+    //    m_state.indent(fp);
+    //fp->write("MFM::");
+    //fp->write(m_state.getUlamTypeByIndex(csym->getUlamTypeIdx())->getUlamTypeMangledName(&m_state).c_str());
+    //fp->write(" utest;\n");
+    
+    //m_state.indent(fp);
+    //fp->write("return utest.Uf_14test();\n");  //hardcoded mangled test name
 	
     m_state.m_currentIndentLevel--;
 

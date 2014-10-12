@@ -333,21 +333,7 @@ namespace MFM {
 
 
 	  {
-	    // note: for local variables, neither the m_currentObjSymbol nor m_currentSelfSymbol are modified
-	    //       with a "naked" quark! e.g. return b; where 
-	    //if(m_varSymbol->isDataMember())
-	    if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
-	      {
-		// we need the atomicparametertype for this quark's data member m_val_b!!!
-		fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
-		fp->write("::");
-	      }
-	    else
-	      {
-		uvpass.genCodeBitField(fp, m_state);
-		//fp->write(nut->getUlamTypeImmediateMangledName(&m_state).c_str());
-		fp->write("::");
-	      }
+	    genMemberNameOfMethod(fp, uvpass);
 	    
 	    // the READ method
 	    fp->write(readMethodForCodeGen(vuti).c_str());
@@ -389,7 +375,7 @@ namespace MFM {
   void Node::genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
     assert(luvpass.getUlamValueTypeIdx() == Ptr);
-    //    assert(ruvpass.getUlamValueTypeIdx() == Ptr);
+
     bool isTerminal = false;
     UTI vuti = ruvpass.getUlamValueTypeIdx();
 
@@ -408,38 +394,14 @@ namespace MFM {
     //assert(vuti == luti || (m_state.isConstant(vuti) && vut->getUlamTypeEnum() == lut->getUlamTypeEnum())); 
 
     m_state.indent(fp);
-   
-#if 0
-    if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
-    //if(m_varSymbol->isDataMember())
-      {
-	// we need the atomicparametertype for this quark's data member m_val_b!!!
-	fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
-	fp->write("::");
-      }
-    else
-      {
-	//if(vclasstype == UC_QUARK || vclasstype == UC_ELEMENT)
-	//fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str()); bool?
-	luvpass.genCodeBitField(fp, m_state);
-	//m_state.m_currentObjPtr.genCodeBitField(fp, m_state);
-	//fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
-	fp->write("::");
-      }
-#else
-    {
-      //Symbol * sym = NULL;
-      //assert(m_state.alreadyDefinedSymbol(luvpass.getPtrID(),sym)); failed.
-      luvpass.genCodeBitField(fp, m_state);
-      fp->write("::");
-    }
-#endif
+
+    genMemberNameOfMethod(fp, luvpass);
 
     fp->write(writeMethodForCodeGen(vuti).c_str());
     fp->write("(");
 
-
-    // a data member quark, or the element itself should both getBits from self
+    // a data member quark, or the element itself should both getBits from self;
+    // getbits needed to go from-atom to-BitVector
     if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
       {
 	fp->write(m_state.getHiddenArgName());
@@ -475,14 +437,9 @@ namespace MFM {
 	    //fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str());
 	    ruvpass.genCodeBitField(fp, m_state);
 	    fp->write("::");
-	    // seems extraneous ???
-	    //fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
-	    //fp->write("::");
 	    fp->write(readMethodForCodeGen(vuti).c_str());
 	    fp->write("(");
-
 	    fp->write(tmpVar.str().c_str());  //value is 2nd arg, because we have the variable name here!
-	    //fp->write(".GetBits())"); //getbits only needed to go from-atom to-BitVector
 	  }
 	else
 	  fp->write(tmpVar.str().c_str());  //value is 2nd arg, because we have the variable name here!
@@ -497,17 +454,77 @@ namespace MFM {
 	else
 	  fp->write(");\n");
       } //not terminal
- 
   } //genCodeWriteFromATmpVar
+
+
+  void Node::genMemberNameOfMethod(File * fp, UlamValue uvpass)
+  {
+#if 1
+    if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
+      {
+	UlamType * ut = m_state.getUlamTypeByIndex(m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx());
+	ULAMCLASSTYPE classtype = ut->getUlamClass();
+
+	if(classtype == UC_NOTACLASS)
+	  {
+	    assert(0);
+	    // we need the atomicparametertype for this primitive data member
+	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
+	    fp->write("::");
+	  }
+	else
+	  {
+	    if(m_state.m_currentObjSymbolForCodeGen->isDataMember()) //within an element
+	      {
+		fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
+		fp->write("::");
+	      }
+
+	    SymbolClass * csym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
+	    
+	    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+	    assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
+	    
+	    m_state.m_currentMemberClassBlock = memberClassNode;
+	    m_state.m_useMemberBlock = true;
+	    
+	    Symbol * sym = NULL;
+	    assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(),sym)); //failed last time
+	    
+	    m_state.m_useMemberBlock = false;
+	    m_state.m_currentMemberClassBlock = NULL;
+	    
+	    // we need the atomicparametertype for this quark's data member m_val_b!!!
+	    fp->write(sym->getMangledNameForParameterType().c_str());
+	    fp->write("::");
+	  }
+      }
+    else
+      {
+	//if(vclasstype == UC_QUARK || vclasstype == UC_ELEMENT)
+	//fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str()); bool?
+	uvpass.genCodeBitField(fp, m_state);
+	//m_state.m_currentObjPtr.genCodeBitField(fp, m_state);
+	//fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
+	fp->write("::");
+      }
+#else
+    {
+      uvpass.genCodeBitField(fp, m_state);
+      fp->write("::");
+    }
+#endif
+  } //genMemberNameOfMethod
 
 
   void Node::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     std::ostringstream msg;
-    msg << "genCodeToStoreInto called on Node type <" << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << "> and failed."; 
+    msg << "genCodeToStoreInto called on Node type <" << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << "> and failed.";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-    //assert(0);
-    return; //stub for now
+    //assert(0);  //e.g. NodeReturnStatement..
+    return;
   } //genCodeToStoreInto
 
 

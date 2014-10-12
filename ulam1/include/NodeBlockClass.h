@@ -84,9 +84,11 @@ namespace MFM{
   private:
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
-    void genImmediateMangledTypesForHeaderFile(File * fp);
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);
+
+    void genImmediateMangledTypesForHeaderFile(File * fp);
+    void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
   };
 
 }
