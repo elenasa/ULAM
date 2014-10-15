@@ -154,10 +154,10 @@ namespace MFM {
     UlamValue tv; 
     assert(makeTerminalValue(tv) == NORMAL);
     
-    // UNCLEAR to do this read or not; squarebracket not happy, or cast not happy ???
-    genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
+    // unclear to do this read or not; squarebracket not happy, or cast not happy ???
+    // genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
     uvpass = tv;
-    return; 
+    return;
   }
 
 
@@ -165,7 +165,6 @@ namespace MFM {
   {
     UlamValue tv; 
     assert(makeTerminalValue(tv) == NORMAL);
-    //genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot" SAME AS GENCODE!!!! updated to ptr.
     uvpass = tv;
     return; //uvpass is an immediate UV, not a PTR
   }

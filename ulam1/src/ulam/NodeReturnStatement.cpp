@@ -126,17 +126,10 @@ namespace MFM {
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 
-	m_node->genCodeToStoreInto(fp, uvpass);
+	//m_node->genCodeToStoreInto(fp, uvpass);
+	m_node->genCode(fp, uvpass);
 	UTI vuti = uvpass.getUlamValueTypeIdx();
-	bool isTerminal = false;
-	if(vuti == Ptr)
-	  {
-	    //genCodeReadIntoATmpVar(fp, uvpass);
-	  }
-	else
-	  {
-	    isTerminal = true;
-	  }
+	bool isTerminal = (vuti != Ptr);
 
 	m_state.indent(fp);
 	fp->write("return ");
@@ -151,9 +144,8 @@ namespace MFM {
 	  }
 	else
 	  {
-	    std::ostringstream tmpVar;
-	    tmpVar << "UH_tmp_loadable_" << uvpass.getPtrSlotIndex();
-	    fp->write(tmpVar.str().c_str());
+	    vuti = uvpass.getPtrTargetType();
+	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str());
 	  }
 
 	fp->write(")");

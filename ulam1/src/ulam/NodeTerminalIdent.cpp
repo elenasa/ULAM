@@ -151,11 +151,19 @@ namespace MFM {
 	    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state);
 	  }
       }
-    
     return ptr;
   } //makeUlamValuePtr
   
-  
+
+  UlamValue NodeTerminalIdent::makeUlamValuePtrForCodeGen()
+  {
+    UlamValue uvpass = makeUlamValuePtr();
+    uvpass.setPtrNameId(m_varSymbol->getId());
+    uvpass.setPtrSlotIndex(m_state.getNextTmpVarNumber());
+    return uvpass;
+  } //makeUlamValuePtrForCodeGen
+
+
   bool NodeTerminalIdent::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
@@ -313,25 +321,35 @@ namespace MFM {
 
   void NodeTerminalIdent::genCode(File * fp, UlamValue & uvpass)
   {
-    //UTI nuti = getNodeType();
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
-    uvpass = makeUlamValuePtr();
+    uvpass = makeUlamValuePtrForCodeGen();
 
-    uvpass.setPtrNameId(m_varSymbol->getId());
+    m_state.m_currentObjPtr = uvpass;                    //*************
+    //if(!m_varSymbol->isDataMember())
+    m_state.m_currentObjSymbolForCodeGen = m_varSymbol;  //************UPDATED GLOBAL; 
 
-    // UNCLEAR: should this be consistent with constants???
+    // UNCLEAR: should this be consistent with constants?
     genCodeReadIntoATmpVar(fp, uvpass);
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
   } //genCode
 
 
   void NodeTerminalIdent::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
-    //return the ptr for an array; square bracket will resolve down to the immediate data
-    uvpass = makeUlamValuePtr();
-    uvpass.setPtrNameId(m_varSymbol->getId());
-    //m_state.m_currentObjSymbolForCodeGen = m_varSymbol;  //************UPDATED GLOBAL; without restore capability!!!
-  } //genCodeToStoreInto
+    //e.g. return the ptr for an array; square bracket will resolve down to the immediate data
+    uvpass = makeUlamValuePtrForCodeGen();
 
+    if(!m_varSymbol->isDataMember())
+      {
+	//******UPDATED GLOBAL; no restore!!!**************************
+	m_state.m_currentObjPtr = uvpass;                   //*********
+	m_state.m_currentObjSymbolForCodeGen = m_varSymbol; //*********
+      }
+  } //genCodeToStoreInto
 
 } //end MFM

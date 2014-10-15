@@ -18,7 +18,7 @@ namespace MFM {
 
 
 
-  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti), m_lengthBy32(0)
+  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti), m_wordLength(0)
   {}
  
 
@@ -79,8 +79,8 @@ namespace MFM {
   {
     s32 len = getTotalBitSize(); // includes arrays
     assert(len > 0);             // exclude Voids, Navs, 
-    //s32 roundUpSize = fitsIntoInts(len);
-    s32 roundUpSize = getTotalSizeByInts();
+    //s32 roundUpSize = calcWordSize(len);
+    s32 roundUpSize = getTotalWordSize();
 
     std::ostringstream ctype;
     ctype << "BitField<BitVector<" << roundUpSize << ">, ";
@@ -151,8 +151,8 @@ namespace MFM {
   const std::string UlamType::getImmediateTypeAsString(CompilerState * state)
   {
     std::string ctype;
-    //s32 sizeByIntBits = fitsIntoInts(getTotalBitSize());
-    s32 sizeByIntBits = getTotalSizeByInts();
+    //s32 sizeByIntBits = calcWordSize(getTotalBitSize());
+    s32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
       {
       case 32:
@@ -323,9 +323,9 @@ namespace MFM {
   }
 
 
-  u32 UlamType::getTotalSizeByInts()
+  u32 UlamType::getTotalWordSize()
   {
-    return m_lengthBy32;  //e.g. 32, 64, 96
+    return m_wordLength;  //e.g. 32, 64, 96
   }
 
 
@@ -336,8 +336,8 @@ namespace MFM {
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
-    s32 sizeByIntBitsToBe = getTotalSizeByInts();
-    s32 sizeByIntBits = nut->getTotalSizeByInts();
+    s32 sizeByIntBitsToBe = getTotalWordSize();
+    s32 sizeByIntBits = nut->getTotalWordSize();
 
     rtnMethod << "_" << UlamType::getUlamTypeEnumAsString(nodetypEnum) << sizeByIntBits << "To" << UlamType::getUlamTypeEnumAsString(typEnum) << sizeByIntBitsToBe;
     return rtnMethod.str();

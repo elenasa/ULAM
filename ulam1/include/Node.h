@@ -104,6 +104,13 @@ namespace MFM{
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
     virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
+
+    /**
+     * Returns converted const argument to all capital letters as a string
+     */
+    static std::string allCAPS(const char * s);
+
+
   protected:
 
     CompilerState & m_state;  //for printing error messages with path

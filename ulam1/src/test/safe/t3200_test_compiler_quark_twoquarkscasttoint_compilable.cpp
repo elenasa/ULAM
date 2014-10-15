@@ -14,12 +14,10 @@ namespace MFM {
     {
       //return expression
       //note: don't have <<2, so substituted *4
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nUnsigned(2) x;\nUnsigned(2) y;\nInt toInt(){\nreturn (x * 4) + y;\n}\n}\n"); 
+      //bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nreturn (x * 4) + y;\n}\n}\n"); 
 
-      //bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nUnsigned(2) x;\nUnsigned(2) y;\nInt toInt(){\nUnsigned u;\n u = (x * 4) + y;\nreturn u;\n}\n}\n"); //use variable
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nreturn (6 / x) + y;\n}\n}\n"); 
 
-      // temporary! use a constant return value until binop + * are gen codeed.
-      //bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nUnsigned(2) x;\nUnsigned(2) y;\nInt toInt(){\nreturn 4;\n}\n}\n");
       
       if(rtn2)
 	return std::string("Bar.ulam");

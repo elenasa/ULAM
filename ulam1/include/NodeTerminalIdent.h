@@ -77,6 +77,7 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
     SymbolVariable *  makeSymbol(UTI aut);
     UlamValue makeUlamValuePtr();
+    UlamValue makeUlamValuePtrForCodeGen();
 
   };
 

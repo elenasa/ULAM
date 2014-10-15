@@ -10,7 +10,7 @@ namespace MFM {
 
   UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type) : UlamType(key, uti), m_class(type)
   {
-    m_lengthBy32 = fitsIntoInts(getTotalBitSize());
+    m_wordLength = calcWordSize(getTotalBitSize());
   }
 
 

@@ -10,7 +10,7 @@ namespace MFM {
 
   UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
   {
-    m_lengthBy32 = fitsIntoInts(getTotalBitSize());
+    m_wordLength = calcWordSize(getTotalBitSize());
   }
 
 
@@ -29,7 +29,7 @@ namespace MFM {
   const std::string UlamTypeInt::getImmediateTypeAsString(CompilerState * state)
   {
     std::string ctype;
-    s32 sizeByIntBits = getTotalSizeByInts();
+    s32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
       {
       case 32:
@@ -169,7 +169,7 @@ namespace MFM {
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
-    s32 sizeByIntBits = nut->getTotalSizeByInts();
+    s32 sizeByIntBits = nut->getTotalWordSize();
     switch(nodetypEnum)
       {
       case Unsigned:

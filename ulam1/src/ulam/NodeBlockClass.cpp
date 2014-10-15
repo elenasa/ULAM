@@ -243,12 +243,12 @@ namespace MFM {
 #if 0
     m_state.indent(fp);
     fp->write("#ifndef ");
-    fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n");
 
     m_state.indent(fp);
     fp->write("#define ");
-    fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n\n");
 #endif
 
@@ -268,8 +268,6 @@ namespace MFM {
       }
 
     //gencode declarations only for all the function definitions
-    //bool declOnly = (m_state.m_compileThisId != getNodeType()->getUlamKeyTypeSignature()->getUlamKeyTypeSignatureNameId());
-    //m_functionST.genCodeForTableOfFunctions(fp, (classtype == UC_ELEMENT), classtype);
     bool declOnly = true;
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
 
@@ -326,7 +324,7 @@ namespace MFM {
     fp->write("\n");
 
     // where to put these???
-    //genImmediateMangledTypesForHeaderFile(fp);
+    genImmediateMangledTypesForHeaderFile(fp);
 
     fp->write("\n");
 
@@ -365,7 +363,7 @@ namespace MFM {
     genShortNameParameterTypesExtractedForHeaderFile(fp);
 
     // where to put these???
-    //genImmediateMangledTypesForHeaderFile(fp);
+    genImmediateMangledTypesForHeaderFile(fp);
 
     fp->write("\n");
     m_state.m_currentIndentLevel--;

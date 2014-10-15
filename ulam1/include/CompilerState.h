@@ -200,6 +200,7 @@ namespace MFM{
     void indent(File * fp);
     const char * getHiddenArgName();
     s32 getNextTmpVarNumber();
+    const std::string getTmpVarAsString(UTI uti, s32 num);
 
     std::string getFileNameForAClassHeader(u32 id);
     std::string getFileNameForThisClassHeader();

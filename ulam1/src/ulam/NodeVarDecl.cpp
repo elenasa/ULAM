@@ -131,7 +131,13 @@ namespace MFM {
 
     m_state.indent(fp);
     if(!m_varSymbol->isDataMember())
-      fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++ local vars, ie non-data members
+      {
+	//needs storage
+	fp->write("BitVector<");
+	fp->write_decimal(vut->getTotalWordSize());
+	fp->write(">");
+	//fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++ local vars, ie non-data members
+      }
     else
       {
 	fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
@@ -199,7 +205,6 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   } //genCodedBitFieldTypedef
-
 
 } //end MFM
 
