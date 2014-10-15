@@ -31,7 +31,7 @@ namespace MFM {
 
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this), m_currentObjSymbolForCodeGen(NULL), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(9999)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this), m_currentObjSymbolForCodeGen(NULL), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
   {
     m_err.init(this, debugOn, NULL);
   }
@@ -1136,7 +1136,24 @@ namespace MFM {
 
   s32 CompilerState::getNextTmpVarNumber()
   {
-    return m_nextTmpVarNumber++;
+    return ++m_nextTmpVarNumber;
   }
+
+  const std::string CompilerState::getTmpVarAsString(UTI uti, s32 num)
+  {
+    assert(uti != Void);
+
+    std::ostringstream tmpVar;  // into
+    PACKFIT packed = determinePackable(uti);
+
+    if(WritePacked(packed))
+      tmpVar << "UH_tmp_loadable_" ;
+    else
+      tmpVar << "UH_tmp_unpacked_" ;
+
+    tmpVar << DigitCount(num, BASE10) << num;
+    
+    return tmpVar.str();
+  } //getTmpVarAsString
 
 } //end MFM

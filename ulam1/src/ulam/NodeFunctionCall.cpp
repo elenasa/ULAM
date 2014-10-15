@@ -303,11 +303,18 @@ namespace MFM {
     else
       arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
 
-
+    // since non-datamember variables can modify globals, save/restore before/after each
     for(u32 i = 0; i < m_argumentNodes.size(); i++)
       {
 	UTI auti;
+	UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+	Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
+
 	m_argumentNodes[i]->genCodeToStoreInto(fp, uvpass);
+
+	m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
+	m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
+
 	auti = uvpass.getUlamValueTypeIdx();
 	if( auti == Ptr)
 	  arglist << ", " << "UH_tmp_loadable_" << uvpass.getPtrSlotIndex();
@@ -332,14 +339,9 @@ namespace MFM {
 	s32 rtnSlot = m_state.getNextTmpVarNumber();
 	uvpass = UlamValue::makePtr(rtnSlot, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0, m_state.m_currentSelfSymbolForCodeGen->getId()); //POS 0 rightjustified; selfsymbol id in Ptr;
 	
-	std::ostringstream tmpVar;
-	tmpVar << "UH_tmp_loadable_" << rtnSlot;
-	    
-	//  uvpass.genCodeBitField(fp, m_state);
-	//else
 	fp->write(nut->getUlamTypeImmediateMangledName(&m_state).c_str());
 	fp->write(" ");
-	fp->write(tmpVar.str().c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot).c_str());
 	fp->write(" = ");
 
 	ULAMCLASSTYPE nclasstype = nut->getUlamClass();
@@ -353,7 +355,7 @@ namespace MFM {
 	    fp->write("::");
 	    fp->write("GetDefaultAtom();\n");
 	    m_state.indent(fp);
-	    fp->write(tmpVar.str().c_str());
+	    fp->write(m_state.getTmpVarAsString(nuti, rtnSlot).c_str());
 	    fp->write(" = ");
 	  }
       } //not void return
@@ -369,8 +371,6 @@ namespace MFM {
 	fp->write(m_state.getUlamTypeByIndex(objuti)->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("<CC, ");
 	fp->write_decimal(m_state.m_currentObjPtr.getPtrPos());
-	//fp->write(", ");
-	//fp->write_decimal(m_state.m_currentObjPtr.getPtrLen());
 	fp->write(">");
       }
     else
@@ -380,7 +380,7 @@ namespace MFM {
 
 	//fp->write(m_state.m_currentSelfSymbolForCodeGen->getMangledName().c_str());
 	fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>");  //could be different for a quark method ???
+	fp->write("<CC>");  //different for a quark method
       }
     
     fp->write("::");
@@ -442,16 +442,9 @@ namespace MFM {
 	s32 rtnSlot = m_state.getNextTmpVarNumber();
 	uvpass = UlamValue::makePtr(rtnSlot, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified.
 	
-	std::ostringstream tmpVar;
-	tmpVar << "UH_tmp_loadable_" << rtnSlot;
-
-	// put result of function call into a variable;
-	//if(vclasstype == UC_QUARK || vclasstype == UC_ELEMENT)
-	//  uvpass.genCodeBitField(fp, m_state);
-	//else
 	fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeImmediateMangledName(&m_state).c_str());
 	fp->write(" ");
-	fp->write(tmpVar.str().c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot).c_str());
 	fp->write(" = ");
       }
 

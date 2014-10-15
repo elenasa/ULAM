@@ -100,7 +100,7 @@ namespace MFM {
 
   /** Number of bits (rounded up to nearest 32 bits) required to
       hold the bit size argument l */
-#define fitsIntoInts(l) ((l / MAXBITSPERINT) * MAXBITSPERINT + ( (l % MAXBITSPERINT) > 0 ? MAXBITSPERINT : 0))
+#define calcWordSize(l) ((l / MAXBITSPERINT) * MAXBITSPERINT + ( (l % MAXBITSPERINT) > 0 ? MAXBITSPERINT : 0))
 
 } //MFM
 

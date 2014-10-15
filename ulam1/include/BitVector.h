@@ -34,6 +34,14 @@
 
 namespace MFM {
 
+  inline u32 _Int32ToUnsigned32(s32 val, u32 bitwidth) {
+    return ((u32) val);
+  }
+
+  inline u64 _Int64ToUnsigned64(s64 val, u32 bitwidth) {
+    return ((u64) val);
+  }
+
   inline s32 _SignExtend32(u32 val, u32 bitwidth) {
     return ((s32)(val<<(32-bitwidth)))>>(32-bitwidth);
   }

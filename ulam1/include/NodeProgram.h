@@ -82,10 +82,6 @@ namespace MFM{
     void genMangledTypeHeaderFile(FileManager * fm);  //obsolete
     void generateMain(FileManager * fm);
 
-    /**
-     * Returns converted const argument to all capital letters as a string
-     */
-    static std::string allCAPS(const char * s);
   };
 
 }

@@ -77,9 +77,8 @@ namespace MFM{
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
 
- 
-    void generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+     //void generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    //void generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
   };
 
 }

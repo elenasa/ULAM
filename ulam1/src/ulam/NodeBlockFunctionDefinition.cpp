@@ -210,6 +210,8 @@ namespace MFM {
     // m_currentObjSymbol set up by caller
     assert(m_state.m_currentObjSymbolForCodeGen != NULL);
     
+    m_state.m_currentBlock = this;
+
     assert(isDefinition());
     assert(m_nextNode);
 

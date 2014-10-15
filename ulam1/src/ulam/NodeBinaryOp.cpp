@@ -204,12 +204,64 @@ namespace MFM {
 
   void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
   {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     assert(m_nodeLeft && m_nodeRight);
-    m_nodeLeft->genCode(fp, uvpass);
+    UlamValue luvpass;
+    m_nodeLeft->genCode(fp, luvpass);
+    UlamValue ruvpass;
+    m_nodeRight->genCode(fp, ruvpass);
+
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+
+    m_state.indent(fp);
+    fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write(" ");
+
+    fp->write(m_state.getTmpVarAsString(getNodeType(),tmpVarNum).c_str());
+    fp->write(" = ");
+
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    if(luti == Ptr)
+      {
+	fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), luvpass.getPtrSlotIndex()).c_str());
+      }
+    else
+      {
+	//immediate
+	u32 data = luvpass.getImmediateData(m_state);
+	char dstr[40];
+	m_state.getUlamTypeByIndex(luti)->getDataAsString(data, dstr, 'z', m_state);
+	fp->write(dstr);
+      }
+
     fp->write(" ");
     fp->write(getName());
     fp->write(" ");
-    m_nodeRight->genCode(fp, uvpass);
+
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
+    if(ruti == Ptr)
+      {
+	fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+      }
+    else
+      {
+	//immediate
+	u32 data = ruvpass.getImmediateData(m_state);
+	char dstr[40];
+	m_state.getUlamTypeByIndex(ruti)->getDataAsString(data, dstr, 'z', m_state);
+	fp->write(dstr);
+      }
+
+    fp->write(";\n");
+  
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified.
+  } //genCode
+
+
+  void NodeBinaryOp::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    genCode(fp,uvpass);
   }
 
 } //end MFM

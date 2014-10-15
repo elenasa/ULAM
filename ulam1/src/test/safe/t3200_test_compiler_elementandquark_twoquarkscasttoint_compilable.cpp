@@ -16,14 +16,15 @@ namespace MFM {
       // printf(\"%d\n\", (Int) bar1);\nprintf(\"%d\n\", (Int) bar2);\n STARS AND SLASHES OH MY!!!
 
       // fixed a bug that didn't address different int bit sizes automatically during casting
-      // no support for arrays in simulator code yet..change i[2] to i and j.
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nBar bar1;\nBar bar2;\nInt(4) i;\nInt(4) j; Int test(){\nbar1.x = 1;\nbar1.y = 2;\nbar2.x = 3;\nbar2.y = 0;\ni = bar1;\nj = bar2;\n\nreturn 0;}\n}\n");
 
       // now that we believe toInt works, let's simplify Foo (remove the Int data member) for code gen testing
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nBar bar1;\nBar bar2;\nInt test(){\nbar1.x = 1;\nbar1.y = 2;\nbar2.x = 3;\nbar2.y = 0;\nreturn 0;}\n}\n");
 
-      //note: don't have <<2, so substituted *4
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nUnsigned(2) x;\nUnsigned(2) y;\nInt toInt(){\nreturn (x * 4) + y;\n}\n}\n");
+      // use a variable for rhs of bar1
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nBar bar1;\nBar bar2;\nInt(4) i, j;\nInt test(){\nInt(2) d;\nd = 1;\nbar1.x = d;\nbar1.y = 2;\nbar2.x = 3;\nbar2.y = 0;\ni = bar1;\nj = bar2;\n\nreturn 0;}\n}\n");
+
+      //note: don't have <<2, so substituted *4; use 3 bits so not to cross word boundary
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nreturn (x * 4) + y;\n}\n}\n");
       
       if(rtn1 & rtn2)
 	return std::string("Foo.ulam");

@@ -135,17 +135,92 @@ namespace MFM {
 
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    if(classtype == UC_ELEMENT)
+    //if(classtype == UC_ELEMENT)
+    //	generateElementFunctionDeclaration(fp, declOnly, classtype);
+    //else
+    //	generateQuarkFunctionDeclaration(fp, declOnly, classtype);
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
+    
+    m_state.indent(fp);
+    if(declOnly)
+      fp->write("static ");
+    else
       {
-	generateElementFunctionDeclaration(fp, declOnly, classtype);
+	if(classtype == UC_QUARK)
+	  fp->write("template<class CC, u32 POS>\n");
+	else
+	  fp->write("template<class CC>\n");
+	m_state.indent(fp);
+      }
+    
+    fp->write(sut->getUlamTypeImmediateMangledName(&m_state).c_str()); //return type for C++
+    //fp->write(getUlamType()->getBitSizeTemplateString().c_str());  //for quark templates
+    
+    fp->write(" ");
+    if(!declOnly)
+      {
+	UTI cuti = m_state.m_classBlock->getNodeType();
+	//include the mangled class::
+	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
+	
+	if(classtype == UC_QUARK)
+	  fp->write("<CC, POS>");
+	else
+	  fp->write("<CC>");
+	
+	fp->write("::");
+      }
+    
+    fp->write(getMangledName().c_str());
+    fp->write("(");
+    
+    //first one is always Atom a&
+    UlamType * atomut = m_state.getUlamTypeByIndex(Atom);
+    fp->write(atomut->getUlamTypeMangledName(&m_state).c_str()); //type for C++
+    fp->write("& ");          //only place we use a reference
+    fp->write(m_state.getHiddenArgName());
+    
+    u32 numparams = getNumberOfParameters();
+    
+    for(u32 i = 0; i < numparams; i++)
+      {
+	//if(i > 0)
+	fp->write(", ");
+	
+	Symbol * asym = getParameterSymbolPtr(i);
+	assert(asym);
+	UTI auti = asym->getUlamTypeIdx();
+	UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	
+	fp->write(aut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++
+	//fp->write(aut->getBitSizeTemplateString().c_str());  //for quark templates
+	
+	if(aut->getUlamClass() == UC_QUARK) 
+	  {
+	    fp->write("<CC,POS>");
+	  }
+	
+	fp->write(" ");
+	fp->write(asym->getMangledName().c_str());
+      }
+    
+    fp->write(")");
+    
+    if(declOnly)
+      {
+	fp->write(";\n\n");
       }
     else
       {
-	generateQuarkFunctionDeclaration(fp, declOnly, classtype);
+	UlamValue uvpass;
+	NodeBlockFunctionDefinition * func = getFunctionNode();
+	assert(func); //how would a function symbol be without a body?
+	func->genCode(fp, uvpass);
       }
-  }
+  } //generateFunctionDeclaration
   
   
+#if 0
   void SymbolFunction::generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
@@ -176,12 +251,9 @@ namespace MFM {
     fp->write("(");
 
     //first one is always Atom a&
-    //fp->write("Atom& a");   //mangled ???
     UlamType * atomut = m_state.getUlamTypeByIndex(Atom);
     fp->write(atomut->getUlamTypeMangledName(&m_state).c_str()); //type for C++
     fp->write("& ");          //only place we use a reference
-    //fp->write("Uv_14");     //hardcoded variable self
-    //fp->write(atomut->getUlamTypeAsSingleLowercaseLetter());  //a name
     fp->write(m_state.getHiddenArgName());
 
     u32 numparams = getNumberOfParameters();
@@ -197,6 +269,7 @@ namespace MFM {
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
 	fp->write(aut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++
+	//fp->write(aut->getBitSizeTemplateString().c_str());  //for quark templates
 
 	if(aut->getUlamClass() == UC_QUARK) 
 	  {
@@ -221,15 +294,16 @@ namespace MFM {
 	func->genCode(fp, uvpass);
       }
   } //generateElementFunctionDeclaration
-  
+#endif
 
+#if 0
   void SymbolFunction::generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //if(declOnly)
     //  return;
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
-    //template<POS> declared outside the quark struct instead.
+   
     m_state.indent(fp);
     if(declOnly)
       fp->write("static ");
@@ -255,12 +329,9 @@ namespace MFM {
     fp->write("(");
 
     //first one is always Atom a&
-    //fp->write("Atom& a");   //mangled ???
     UlamType * atomut = m_state.getUlamTypeByIndex(Atom);
     fp->write(atomut->getUlamTypeMangledName(&m_state).c_str()); //type for C++
     fp->write("& ");            //only place we use a reference
-    //fp->write("Uv_14");         //hardcoded variable self
-    //fp->write(atomut->getUlamTypeAsSingleLowercaseLetter());  //a name
     fp->write(m_state.getHiddenArgName());
 
     u32 numparams = getNumberOfParameters();
@@ -293,9 +364,9 @@ namespace MFM {
       {    
 	UlamValue uvpass;
 	NodeBlockFunctionDefinition * func = getFunctionNode();
-	assert(func);       // how would a function symbol be without a body?
+	assert(func);               // how would a function symbol be without a body?
 	func->genCode(fp, uvpass);  // it better know its a quark!!!
       }
   } //generateQuarkFunctionDeclaration
-
+#endif
 } //end MFM

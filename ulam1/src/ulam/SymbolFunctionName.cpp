@@ -108,7 +108,7 @@ namespace MFM {
       {
 	SymbolFunction * fsym = it->second;  
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
-	assert(func); //how would a function symbol be without a body?
+	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->checkAndLabelType();
 	++it;
       }

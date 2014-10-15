@@ -126,14 +126,14 @@ namespace MFM{
 
     /** Number of bits (rounded up to nearest 32 bits) required to
     hold the total bit size  */
-    u32 getTotalSizeByInts();   
+    u32 getTotalWordSize();   
 
     virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
 
   protected:
     UlamKeyTypeSignature m_key;
     UTI m_uti;
-    u32 m_lengthBy32;
+    u32 m_wordLength;
 
   private:
   };

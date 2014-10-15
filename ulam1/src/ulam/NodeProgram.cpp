@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  static const char * CModeForHeaderFiles = "/**                                        -*- mode:C++ -*/\n\n";
+  static const char * CModeForHeaderFiles = "/**                                      -*- mode:C++ -*- */\n\n";
 
   // First line something like: "/* NodeProgram.h - Root Node of Programs for ULAM\n"
   static const char * CopyrightAndLicenseForUlamHeader =   "*\n"
@@ -282,12 +282,12 @@ namespace MFM {
     UlamType * cut = m_state.getUlamTypeByIndex(m_root->getNodeType());
     m_state.indent(fp);
     fp->write("#ifndef ");
-    fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n");
 
     m_state.indent(fp);
     fp->write("#define ");
-    fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n\n");
   }
 
@@ -297,7 +297,7 @@ namespace MFM {
     UlamType * cut = m_state.getUlamTypeByIndex(m_root->getNodeType());
     //m_state.indent(fp);
     fp->write("#endif //");
-    fp->write(allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n");
   }
 
@@ -306,10 +306,12 @@ namespace MFM {
   {
     m_state.indent(fp);
     //use -I ../../../include in g++ command
-    fp->write("#include \"itype.h\"\n"); 
-    fp->write("#include \"BitVector.h\"\n"); 
-    fp->write("#include \"BitField.h\"\n"); 
+    fp->write("//#include \"itype.h\"\n"); 
+    fp->write("//#include \"BitVector.h\"\n"); 
+    fp->write("//#include \"BitField.h\"\n"); 
     
+    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+
     //generate includes for all the other classes that have appeared
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
   }
@@ -357,6 +359,11 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include <stdio.h>\n\n");
 
+
+    m_state.indent(fp);
+    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+
+#if 0
     m_state.indent(fp);
     fp->write("#include \"Atom.h\"\n\n");
 
@@ -402,6 +409,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("};\n");
     fp->write("\n");
+#endif
 
     m_state.indent(fp);
     fp->write("//includes Element.h\n");
@@ -409,6 +417,7 @@ namespace MFM {
     fp->write("#include \"");
     fp->write(m_state.getFileNameForThisClassHeader().c_str());
     fp->write("\"\n");
+
 
     //MAIN STARTS HERE !!!
     fp->write("\n");
@@ -426,13 +435,13 @@ namespace MFM {
     fp->write(" };\n");
 
     m_state.indent(fp);
-    fp->write("typedef ParamConfig<SIZE> OurParamConfig;\n");
+    fp->write("typedef MFM::ParamConfig<SIZE> OurParamConfig;\n");
 
     m_state.indent(fp);
-    fp->write("typedef P3Atom<OurParamConfig> OurAtom;\n");
+    fp->write("typedef MFM::P3Atom<OurParamConfig> OurAtom;\n");
 
     m_state.indent(fp);
-    fp->write("typedef CoreConfig<OurAtom, OurParamConfig> OurCoreConfig;\n");
+    fp->write("typedef MFM::CoreConfig<OurAtom, OurParamConfig> OurCoreConfig;\n");
 
     //declare an instance of This class
     Symbol * csym = m_state.m_programDefST.getSymbolPtr(m_compileThisId);
@@ -454,15 +463,15 @@ namespace MFM {
     fp->write("OurAtom fooAtom = foo.GetDefaultAtom();\n");
 
     m_state.indent(fp);
-    fp->write("return foo.Uf_14test();\n");  //hardcoded mangled test name
+    fp->write("OurFoo::Uf_4test(fooAtom);\n");  //hardcoded mangled test name
 
-    //    m_state.indent(fp);
-    //fp->write("MFM::");
-    //fp->write(m_state.getUlamTypeByIndex(csym->getUlamTypeIdx())->getUlamTypeMangledName(&m_state).c_str());
-    //fp->write(" utest;\n");
-    
-    //m_state.indent(fp);
-    //fp->write("return utest.Uf_14test();\n");  //hardcoded mangled test name
+    // output for t3200..
+    m_state.indent(fp);
+    fp->write("printf(\"Bar1 toInt = %d\\n\", OurFoo::Ut_Um_4bar1::Uf_5toInt(fooAtom));\n");
+    fp->write("printf(\"Bar2 toInt = %d\\n\", OurFoo::Ut_Um_4bar2::Uf_5toInt(fooAtom));\n");
+
+    m_state.indent(fp);
+    fp->write("return 0;\n");
 	
     m_state.m_currentIndentLevel--;
 
@@ -472,18 +481,5 @@ namespace MFM {
   }
 
 
-  std::string NodeProgram::allCAPS(const char * s)
-  {
-    u32 len = strlen(s);
-    std::ostringstream up;
-    
-    for(u32 i = 0; i < len; ++i)
-      {
-      std::string c(1,(s[i] <= 'z' && s[i] >= 'a') ? s[i]-('a'-'A') : s[i]);
-      up << c;
-    }
-    
-    return up.str();
-  }
 
 } //end MFM

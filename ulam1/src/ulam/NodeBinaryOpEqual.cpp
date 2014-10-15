@@ -268,13 +268,16 @@ namespace MFM {
     UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
+    // restore current object globals
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // init to self
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
+
     // lhs should be the new current object: node member select updates them, 
     // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
-    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // init to self
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);      //may update m_currentObjSymbol
 
+    // current object globals should pertain to lhs for the write
     genCodeWriteFromATmpVar(fp, uvpass, ruvpass);        //uses rhs' tmpvar
 
     m_state.m_currentIndentLevel--;

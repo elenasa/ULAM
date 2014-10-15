@@ -161,29 +161,12 @@ namespace MFM {
 
   void NodeCast::genCode(File * fp, UlamValue& uvpass)
   {
-    //m_node->genCode(fp, uvpass);
-    m_node->genCodeToStoreInto(fp, uvpass);
+    m_node->genCode(fp, uvpass);
     if(needsACast())
       {
-	//	fp->write("(");
-	//fp->write(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeImmediateMangledName(&m_state).c_str());
-	//fp->write(") ");
-	//fp->write("(");
-	//m_node->genCode(fp, uvpass);
-	//fp->write(")");
-	
-	//std::string tmpVar = m_node->genCodeReadIntoATmpVar(fp);
-	//m_node->genCodeToStoreInto(fp, uvpass); //rename..genCodeRead
 	genCodeReadIntoATmpVar(fp, uvpass);     // cast.
       }
-#if 0
-    else
-      {
-	m_node->genCode(fp, uvpass);
-	Node::genCodeReadIntoATmpVar(fp, uvpass);
-      }
-#endif
-  }
+  } //genCode
 
 
  void NodeCast::genCodeToStoreInto(File * fp, UlamValue& uvpass)
@@ -199,8 +182,6 @@ namespace MFM {
   void NodeCast::genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass)
   {
     assert(needsACast());
-    if(!needsACast())
-      return; //tmpVar;
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -223,20 +204,12 @@ namespace MFM {
 
    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-
-   if(vclasstype == UC_QUARK)
-     {
-       m_node->genCodeReadIntoATmpVar(fp, uvpass);
-     }
-
-    s32 tmpVarCastNum = m_state.getNextTmpVarNumber(); 
-    std::ostringstream tmpVarCast;
-    tmpVarCast << "UH_tmp_loadable_" << tmpVarCastNum;
+   s32 tmpVarCastNum = m_state.getNextTmpVarNumber(); 
 
     m_state.indent(fp);
     fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
     fp->write(" ");
-    fp->write(tmpVarCast.str().c_str());
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarCastNum).c_str());
     fp->write(" = ");
 
     // write the cast method (e.g. _SignExtend32, _S32ToUnary, etc..)
@@ -252,9 +225,7 @@ namespace MFM {
       }
     else
       {
-	std::ostringstream tmpVar;  // from..
-	tmpVar << "UH_tmp_loadable" << tmpVarNum;
-	fp->write(tmpVar.str().c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());
       }
 
     fp->write(", ");
@@ -293,7 +264,6 @@ namespace MFM {
 
     //cast if the base types are different OR the arraysizes differ (i.e. one's scalar, not constant)
     return(typEnum != nodetypEnum || (arraysize != nodearraysize && !m_state.isConstant(nodeType)));
-    //return(typEnum != nodetypEnum || (arraysize != nodearraysize) || m_state.isConstant(nodeType));
   }
 
 } //end MFM

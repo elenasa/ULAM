@@ -290,8 +290,24 @@ namespace MFM {
   void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
+
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //********
+
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+    m_state.m_currentObjPtr = luvpass; //updated by lhs
+
+    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+    Symbol * lsym = NULL;
+    if(!getSymbolPtr(lsym))
+      {
+	//error!
+	assert(0);
+      }
+    m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
+
+
     UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
 
     UlamValue offset;
@@ -299,11 +315,13 @@ namespace MFM {
 
     s32 offsetInt = offset.getImmediateData(m_state);
     nextlptr.incrementPtr(m_state, offsetInt);
+    nextlptr.setPtrNameId(luvpass.getPtrNameId());
 
-    //genCodeReadIntoATmpVar(fp, nextlptr);
-    //uvpass = luvpass;
+    genCodeReadIntoATmpVar(fp, nextlptr);  // more consistent, ok?
     uvpass = nextlptr;
-    uvpass.setPtrNameId(luvpass.getPtrNameId());
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
   } //genCode
 
 
@@ -313,15 +331,31 @@ namespace MFM {
 
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+    m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
+
+    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+    Symbol * lsym = NULL;
+    if(!getSymbolPtr(lsym))
+      {
+	//error!
+	assert(0);
+      }
+    m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
+
+
     UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
 
     UlamValue offset;
-    m_nodeRight->genCodeToStoreInto(fp, offset);
+    //    m_nodeRight->genCodeToStoreInto(fp, offset);
+    m_nodeRight->genCode(fp, offset);  //either way, gets immediate 
 
     s32 offsetInt = offset.getImmediateData(m_state);
     nextlptr.incrementPtr(m_state, offsetInt);
+
     uvpass = nextlptr; //return
     uvpass.setPtrNameId(luvpass.getPtrNameId());
+
+    // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
 
 } //end MFM
