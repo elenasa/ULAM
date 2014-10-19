@@ -26,7 +26,16 @@ namespace MFM {
   }
 
 
-  const std::string UlamTypeInt::getImmediateTypeAsString(CompilerState * state)
+  const std::string UlamTypeInt::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    if(needsImmediateType())
+      return UlamType::getUlamTypeImmediateMangledName(state);
+
+    return getImmediateStorageTypeAsString(state); //BV<32>, not "s32" ?
+  }
+
+
+  const std::string UlamTypeInt::getTmpStorageTypeAsString(CompilerState * state)
   {
     std::string ctype;
     s32 sizeByIntBits = getTotalWordSize();
@@ -47,22 +56,7 @@ namespace MFM {
       };
     
     return ctype;
-  } //getImmediateTypeAsString
-
-
-  const std::string UlamTypeInt::getUlamTypeImmediateMangledName(CompilerState * state)
-  {
-    if(needsImmediateType())
-      return UlamType::getUlamTypeImmediateMangledName(state);
-
-    return "s32";
-  }
-
-
-  bool UlamTypeInt::needsImmediateType()
-  {
-    return ((getBitSize() == ANYBITSIZECONSTANT || getBitSize() == MAXBITSPERINT) ? false : true);
-  }
+  } //getTmpStorageTypeAsString
 
 
   const char * UlamTypeInt::getUlamTypeAsSingleLowercaseLetter()
@@ -173,13 +167,13 @@ namespace MFM {
     switch(nodetypEnum)
       {
       case Unsigned:
-	rtnMethod << 	"_SignExtend" << sizeByIntBits;
+	rtnMethod << 	"_SignExtend" << sizeByIntBits; //aka Unsigned32ToInt32
 	break;
       case Int:
 	rtnMethod << 	"_SignExtend" << sizeByIntBits;
 	break;
       default:
-	return UlamType::castMethodForCodeGen(nodetype, state); //standard '_NodeToNew32' format
+	return UlamType::castMethodForCodeGen(nodetype, state); //standard '_Node32ToInt32' format
 	break;
       };
     return rtnMethod.str();

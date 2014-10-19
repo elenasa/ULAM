@@ -64,6 +64,9 @@ namespace MFM{
 
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
+    /** reads into a tmp BitVector */
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
+
   protected:
     Token m_token;
 

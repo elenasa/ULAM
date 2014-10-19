@@ -132,10 +132,13 @@ namespace MFM {
     m_state.indent(fp);
     if(!m_varSymbol->isDataMember())
       {
+#if 0
 	//needs storage
 	fp->write("BitVector<");
 	fp->write_decimal(vut->getTotalWordSize());
 	fp->write(">");
+#endif
+	fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++ local vars, ie non-data members
 	//fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++ local vars, ie non-data members
       }
     else

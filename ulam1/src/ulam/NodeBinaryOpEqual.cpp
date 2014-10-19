@@ -261,8 +261,11 @@ namespace MFM {
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;                //*************
     Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
 
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
+#endif
 
     // generate rhs first; may update current object globals (e.g. function call)
     UlamValue ruvpass;
@@ -280,10 +283,11 @@ namespace MFM {
     // current object globals should pertain to lhs for the write
     genCodeWriteFromATmpVar(fp, uvpass, ruvpass);        //uses rhs' tmpvar
 
+#ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");
-
+    fp->write("}\n");  //close for tmpVar
+#endif
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
     m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
   } //genCode

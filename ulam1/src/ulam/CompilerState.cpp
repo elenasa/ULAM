@@ -1134,6 +1134,7 @@ namespace MFM {
     return m_pool.getDataAsString(textid);
   } //getLineOfText
 
+
   s32 CompilerState::getNextTmpVarNumber()
   {
     return ++m_nextTmpVarNumber;

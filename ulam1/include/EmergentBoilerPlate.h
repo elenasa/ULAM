@@ -57,6 +57,7 @@ typedef signed long s64;
 #define FAIL() abort()
 
 //BitVector.h
+#include <string.h> //for memcpy
 template <u32 S>
 struct BitVector {
   enum { BPW = 32 };
@@ -64,26 +65,16 @@ struct BitVector {
   enum { WORDS = (SIZE + BPW - 1)/BPW };
   u32 m_stg[WORDS];
   BitVector() ;
+  BitVector(const u32 * const values); 
+  BitVector(const BitVector & other); //copy constructor
+  BitVector(const u32 value);
+  BitVector(const s32 value);
+
   u32 Read(u32 pos, u32 len) ;
   void Write(u32 pos, u32 len, u32 val) ;
 };
 
 //BitVector.tcc
-  inline u32 _Int32ToUnsigned32(s32 val, u32 bitwidth) {
-    return ((u32) val);
-  }
-
-  inline u64 _Int64ToUnsigned64(s64 val, u32 bitwidth) {
-    return ((u64) val);
-  }
-
-  inline s32 _SignExtend32(u32 val, u32 bitwidth) {
-    return ((s32)(val<<(32-bitwidth)))>>(32-bitwidth);
-  }
-
-  inline s64 _SignExtend64(u64 val, u32 bitwidth) {
-    return ((s64)(val<<(64-bitwidth)))>>(64-bitwidth);
-  }
 
   inline u32 _GetNOnes32(u32 bitwidth) {
     return (bitwidth >= 32) ? (u32) -1 : (((u32)1)<<bitwidth)-1;
@@ -92,6 +83,105 @@ struct BitVector {
   inline u64 _GetNOnes64(u32 bitwidth) {
     return (bitwidth >= 64) ? (u64) -1L : (((u64)1)<<bitwidth)-1;
   }
+
+  inline static u32 PopCount(const u32 bits) {
+    return __builtin_popcount(bits); // GCC
+  }
+
+  //To INT:
+  // i.e. Unsigned32toInt32
+  inline s32 _SignExtend32(u32 val, u32 bitwidth) {
+    return ((s32)(val<<(32-bitwidth)))>>(32-bitwidth);
+  }
+
+  // i.e. Unsigned64toInt64
+  inline s64 _SignExtend64(u64 val, u32 bitwidth) {
+    return ((s64)(val<<(64-bitwidth)))>>(64-bitwidth);
+  }
+
+  inline s32 _Bool32ToInt32(u32 val, u32 bitwidth) {
+    s32 count1s = PopCount(val);
+    if(count1s > (s32) (bitwidth - count1s))
+      return 1;
+    return 0;
+  }
+
+  inline s64 _Bool64ToInt64(u64 val, u32 bitwidth) {
+    s32 count1s = PopCount(val);
+    if(count1s > (s32) (bitwidth - count1s))
+      return 1;
+    return 0;
+  }
+
+  inline s32 _Unary32ToInt32(u32 val, u32 bitwidth) {
+    return PopCount(val);
+  }
+
+  inline s64 _Unary64ToInt64(u64 val, u32 bitwidth) {
+    return (s64) PopCount(val);
+  }
+
+  inline s32 _Bits32ToInt32(u32 val, u32 bitwidth) {
+    return val;
+  }
+
+  inline s64 _Bits64ToInt64(u64 val, u32 bitwidth) {
+    return val;
+  }
+
+  //To BOOL:
+
+  inline bool _Int32ToBool(s32 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Int64ToBool(s64 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Unsigned32ToBool(u32 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Unsigned64ToBool(u64 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Unary32ToBool(u32 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Unary64ToBool(u64 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Bool32ToBool(u32 val, u32 bitwidth) {
+    s32 count1s = PopCount(val);
+    return (count1s > (s32) (bitwidth - count1s));  // == when even number bits is ignored (warning at def)
+  }
+
+  inline bool _Bool64ToBool(u64 val, u32 bitwidth) {
+    s64 count1s = PopCount(val);
+    return (count1s > (s64) (bitwidth - count1s));  // == when even number bits is ignored (warning at def)
+  }
+
+  inline bool _Bits32ToBool(u32 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Bits64ToBool(u64 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  //To UNSIGNED:
+  inline u32 _Int32ToUnsigned32(s32 val, u32 bitwidth) {
+    return ((u32) val);
+  }
+
+  inline u64 _Int64ToUnsigned64(s64 val, u32 bitwidth) {
+    return ((u64) val);
+  }
+
 
   inline u32 _ShiftToBitNumber32(u32 value, u32 bitpos) {
     return value<<bitpos;
@@ -153,18 +243,43 @@ BitVector<S>::BitVector() {
     m_stg[i] = 0;
   }
 }
+  
+  template <u32 S>
+  BitVector<S>::BitVector(const u32 * const values)
+  {
+    memcpy(m_stg,values,sizeof(m_stg));
+  }
 
-template<u32 S>
+  template <u32 S>
+  BitVector<S>::BitVector(const BitVector & other)
+  {
+    memcpy(m_stg,other.m_stg,sizeof(m_stg));
+  }
+  
+  template <u32 S>
+  BitVector<S>::BitVector(const u32 value)
+  {
+    m_stg[WORDS-1] = value;
+  }
+
+  template <u32 S>
+  BitVector<S>::BitVector(const s32 value)
+  {
+    m_stg[WORDS-1] = (u32) value;
+  }
+
+  template<u32 S>
 u32 BitVector<S>::Read(u32 pos, u32 len)
 {
   u32 widx = pos/BPW;
   u32 bidx = pos%BPW;
   u32 eidx = bidx + len;
-  if (len >= BPW)
+  if (len > BPW)
     FAIL(); // This stub doesn't even handle 32 bit fields
   if (eidx > BPW)
     FAIL(); // This stub doesn't handle fields crossing word boundaries
   u32 mask = (1<<len)-1;
+  if(len==BPW) mask = -1;
   return (m_stg[widx]>>(BPW-eidx)) & mask;
 }
 
@@ -174,12 +289,13 @@ void BitVector<S>::Write(u32 pos, u32 len, u32 val)
   u32 widx = pos/BPW;
   u32 bidx = pos%BPW;
   u32 eidx = bidx + len;
-  if (len >= BPW)
+  if (len > BPW)
     FAIL(); // This stub doesn't even handle 32 bit fields
   if (eidx > BPW)
     FAIL(); // This stub doesn't handle fields crossing word boundaries
   u32 lshift = BPW - eidx;
   u32 mask = ((1<<len)-1)<<lshift;
+  if(len==BPW) mask = -1;
   u32 mval = (val<<lshift) & mask;
   m_stg[widx] = (m_stg[widx] & ~mask) | mval;
 }

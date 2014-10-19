@@ -56,13 +56,15 @@ namespace MFM{
 
     virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
 
-    virtual bool needsImmediateType();
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual bool cast(UlamValue& val, CompilerState& state);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
+
+    const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
 
   private:
 

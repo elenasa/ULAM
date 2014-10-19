@@ -55,7 +55,7 @@ namespace MFM{
       struct RawAtom {
 	u16 m_short;
 	UTI m_utypeIdx;
-	u8  m_bits[10];
+	u8  m_bits[8];  //oops! not 10 anymore
       } m_rawAtom;
 
       /*
@@ -71,14 +71,15 @@ namespace MFM{
 	UTI m_utypeIdx;
 	u8  m_posInAtom;
 	s8  m_bitlenInAtom;
-	u8  m_storage; //STORAGE
+	u8  m_storagetype; //STORAGE
 	u8  m_packed;  //PACKFIT
 	u16 m_targetType;
 	u16 m_nameid;     //for code gen
       } m_ptrValue;
 
       struct Storage {
-	AtomBitVector m_atom;  //0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
+	//AtomBitVector m_atom;  //0-15 UTI, 16-24 errcorr. 25-96 designed by element data members	
+	u32 m_atom[AtomBitVector::ARRAY_LENGTH];
       } m_storage;
 
     } m_uv;
@@ -86,6 +87,8 @@ namespace MFM{
     
     UlamValue();   //requires init to avoid Null ptr for type
     ~UlamValue();
+
+    void clear();
 
     void init(UTI utype, u32 v, CompilerState& state);
 
@@ -158,7 +161,7 @@ namespace MFM{
     //void putPackedArrayDataIntoAtom(UlamValue srcPtr, UlamValue srcData, UlamValue destPtr, CompilerState& state);
 
     u32 getData(u32 pos, s32 len) const;
-
+    
     void putData(u32 pos, s32 len, u32 data);
 
     UlamValue& operator=(const UlamValue& rhs);

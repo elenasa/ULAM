@@ -80,4 +80,18 @@ namespace MFM {
     return NORMAL;
   }
 
+
+  void NodeControlWhile::genCode(File * fp, UlamValue& uvpass)
+  {
+    m_state.indent(fp);
+    fp->write("{\n");  //for overall tmpvars
+    m_state.m_currentIndentLevel++;
+
+    NodeControl::genCode(fp, uvpass);  //condition and body
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");  //overall tmpvar
+  } //genCode
+
 } //end MFM
