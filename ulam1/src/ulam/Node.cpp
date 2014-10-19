@@ -273,107 +273,75 @@ namespace MFM {
   {
     UTI vuti = uvpass.getUlamValueTypeIdx();
     UlamType * vut = NULL;
-    bool isTerminal = false;
-    s32 tmpVarNum;
 
-    if(vuti == Ptr)
-      {
-	tmpVarNum = uvpass.getPtrSlotIndex();
-	vuti = uvpass.getPtrTargetType();  //replaces vuti w target type
-      }
-    else
-      {
-	// an immediate terminal value
-	isTerminal = true;
-	tmpVarNum = m_state.getNextTmpVarNumber();
-      }
+    assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
+     
+    s32 tmpVarNum = uvpass.getPtrSlotIndex();
+    vuti = uvpass.getPtrTargetType();  //replaces vuti w target type
 
     vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
-    fp->write(vut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    fp->write("const ");
+
+    fp->write(vut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    
     fp->write(" ");
     
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
     fp->write(" = ");
 
-    if(isTerminal)
-      {
-	// write out terminal explicitly
-	u32 data = uvpass.getImmediateData(m_state);
-	char dstr[40];
-	vut->getDataAsString(data, dstr, 'z', m_state);
-	fp->write(dstr);
-	fp->write(";\n");
+#if 0
+    UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
-	// substitute Ptr for uvpass to contain the tmpVar number; save id of constant string in Ptr;
-	u32 datastringidx = m_state.m_pool.getIndexForDataString(std::string(dstr));
-	uvpass = UlamValue::makePtr(tmpVarNum, TMPVAR, vuti, m_state.determinePackable(vuti), m_state, 0, datastringidx);  //POS 0 rightjustified.
+    // initialize to default type of self's element
+    if(vclasstype == UC_QUARK || vclasstype == UC_ELEMENT)
+      {
+	fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>");
+	fp->write("::");
+	fp->write("GetDefaultAtom();\n");
+	m_state.indent(fp);
+	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+	fp->write(" = ");
       }
-    else
-      {
-	UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
-	// initialize to default type of self's element
-	if(vclasstype == UC_QUARK || vclasstype == UC_ELEMENT)
-	  {
-	    fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
-	    fp->write("<CC>");
-	    fp->write("::");
-	    fp->write("GetDefaultAtom();\n");
-	    m_state.indent(fp);
-	    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
-	    fp->write(" = ");
-	  }
+#endif
 
-
-	  {
-	    UTI cosuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
-	    genMemberNameOfMethod(fp, uvpass);
+    {
+      UTI cosuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
+      genMemberNameOfMethod(fp, uvpass);
 	    
-	    // the READ method
-	    //fp->write(readMethodForCodeGen(vuti).c_str());
-	    fp->write(readMethodForCodeGen(cosuti).c_str());
-	    fp->write("(");	    
-	    
-
-	    // a data member quark, or the element itself should both getBits from self
-	    if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
-	      {
-		fp->write(m_state.getHiddenArgName());
-		fp->write(".GetBits()");
-	      }
-	    else
-	      {
-		// o.w. use a local variable's self ?
-
-		//assert(0);
-		//fp->write(m_varSymbol->getMangledName().c_str());
-		//fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
-		//fp->write(m_state.m_currentSelfSymbolForCodeGen->getMangledName().c_str());
-		//fp->write(".GetBits()");
-
-		//local
-		Symbol * sym;
-		assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(), sym));
-		fp->write(sym->getMangledName().c_str());
-	      }
-
-	    //if(!m_state.isScalar(vuti))
-	    if(!m_state.isScalar(cosuti))
-	      {
-		fp->write(", ");
-		fp->write_decimal(m_state.getTotalBitSize(cosuti)); //array size
-		fp->write(", ");
-		fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
-		fp->write(", ");
-		fp->write_decimal(uvpass.getPtrPos()); //item POS (last like others)
-		//BAD IDEA! rest (i.e. array index,..) is up to the rhs of sq bracket
-	      }
-	    
-	    fp->write(");\n");
-	  } // uc class
-      } //not a terminal
+      // the READ method
+      fp->write(readMethodForCodeGen(cosuti).c_str());
+      fp->write("(");	    	    
+      
+      // a data member quark, or the element itself should both getBits from self
+      if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
+	{
+	  fp->write(m_state.getHiddenArgName());
+	  fp->write(".GetBits()");
+	}
+      else
+	{
+	  //local
+	  Symbol * sym;
+	  assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(), sym));
+	  fp->write(sym->getMangledName().c_str());
+	}
+      
+      if(!m_state.isScalar(cosuti))
+	{
+	  fp->write(", ");
+	  fp->write_decimal(m_state.getTotalBitSize(cosuti)); //array size
+	  fp->write(", ");
+	  fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
+	  fp->write(", ");
+	  fp->write_decimal(uvpass.getPtrPos()); //item POS (last like others)
+	}
+      
+      fp->write(");\n");
+    } // uc class
   } //genCodeReadIntoTmp
   
 
@@ -383,21 +351,20 @@ namespace MFM {
     assert(luvpass.getUlamValueTypeIdx() == Ptr);
 
     bool isTerminal = false;
-    UTI vuti = ruvpass.getUlamValueTypeIdx();
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
 
-    if(vuti == Ptr)
+    if(ruti == Ptr)
       {
-	vuti = ruvpass.getPtrTargetType();
+	ruti = ruvpass.getPtrTargetType();
       }
     else
       {
 	isTerminal = true;
       }
 
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
     //rhs could be a constant; or previously cast from Int to Unary variables.
-    //assert(vuti == luti || (m_state.isConstant(vuti) && vut->getUlamTypeEnum() == lut->getUlamTypeEnum())); 
     UTI cosuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
 
     m_state.indent(fp);
@@ -405,7 +372,7 @@ namespace MFM {
     genMemberNameOfMethod(fp, luvpass);
 
     // the WRITE method
-    //fp->write(writeMethodForCodeGen(vuti).c_str());
+    //fp->write(writeMethodForCodeGen(ruti).c_str());
     fp->write(writeMethodForCodeGen(cosuti).c_str());
     fp->write("(");
 
@@ -418,10 +385,6 @@ namespace MFM {
       }
     else
       {
-	// if we update currentobjsymbol to be the Bar, we lose the Foo; use self
-	//fp->write(m_state.m_currentSelfSymbolForCodeGen->getMangledName().c_str());
-	//fp->write(".GetBits()");
-	
 	//local
 	Symbol * sym;
 	assert(m_state.alreadyDefinedSymbol(luvpass.getPtrNameId(), sym));
@@ -435,32 +398,32 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = ruvpass.getImmediateData(m_state);
 	char dstr[40];
-	vut->getDataAsString(data, dstr, 'z', m_state);
+	rut->getDataAsString(data, dstr, 'z', m_state);
 	fp->write(dstr);
 	fp->write(");\n");
       }
     else
       {
-	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+	ULAMCLASSTYPE vclasstype = rut->getUlamClass();
 
 	if(vclasstype == UC_QUARK || vclasstype == UC_ELEMENT)
 	  {
 	    //need to read from the tmpVar
-	    //fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str());
+	    //fp->write(rut->getUlamTypeImmediateMangledName(&m_state).c_str());
 	    ruvpass.genCodeBitField(fp, m_state);
 	    fp->write("::");
-	    fp->write(readMethodForCodeGen(vuti).c_str());
+	    fp->write(readMethodForCodeGen(ruti).c_str());
 	    fp->write("(");
-	    fp->write(m_state.getTmpVarAsString(vuti, ruvpass.getPtrSlotIndex()).c_str());
+	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
 	    fp->write(")");
 	  }
 	else
 	  {
-	    fp->write(m_state.getTmpVarAsString(vuti, ruvpass.getPtrSlotIndex()).c_str());
+	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
 	  }
 	
 	// rest of array write args 
-	//if(!m_state.isScalar(vuti))
+	//if(!m_state.isScalar(ruti))
 	if(!m_state.isScalar(cosuti))
 	  {
 	    fp->write(", ");
@@ -521,11 +484,11 @@ namespace MFM {
       }
     else
       {
-	UTI vuti = uvpass.getUlamValueTypeIdx();
-	assert(vuti == Ptr);
-	vuti = uvpass.getPtrTargetType();
-	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-	fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str()); //bool?
+	UTI ruti = uvpass.getUlamValueTypeIdx();
+	assert(ruti == Ptr);
+	ruti = uvpass.getPtrTargetType();
+	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+	fp->write(rut->getUlamTypeImmediateMangledName(&m_state).c_str()); //bool?
 	//uvpass.genCodeBitField(fp, m_state);
 	fp->write("::");
       }

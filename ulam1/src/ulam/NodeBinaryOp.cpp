@@ -215,7 +215,8 @@ namespace MFM {
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);
-    fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(getNodeType(),tmpVarNum).c_str());

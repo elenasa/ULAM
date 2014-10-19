@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-#if 0
+#if 1
   //constructors disabled for use within UlamValue union
   template <u32 BITS>
   BitVector<BITS>::BitVector()
@@ -24,7 +24,34 @@ namespace MFM {
   {
     memcpy(m_bits,other.m_bits,sizeof(m_bits));
   }
+
+  template <u32 BITS>
+  BitVector<BITS>::BitVector(const u32 value)
+  {
+    m_bits[ARRAY_LENGTH-1] = value;
+  }
+
+  template <u32 BITS>
+  BitVector<BITS>::BitVector(const s32 value)
+  {
+    m_bits[ARRAY_LENGTH-1] = (u32) value;
+  }
+
 #endif
+
+  template <u32 BITS>
+  void BitVector<BITS>::GetStorage(u32 array[ARRAY_LENGTH])
+  {
+    for(u32 i = 0; i < ARRAY_LENGTH; i++)
+      array[i] = m_bits[i];
+  }
+
+  template <u32 BITS>
+  void BitVector<BITS>::SetStorage(u32* array)
+  {
+    for(u32 i = 0; i < ARRAY_LENGTH; i++)
+      m_bits[i] = array[i];
+  }
 
   template <u32 BITS>
   void BitVector<BITS>::Clear()

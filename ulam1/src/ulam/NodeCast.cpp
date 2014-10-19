@@ -181,7 +181,12 @@ namespace MFM {
 
   void NodeCast::genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass)
   {
-    assert(needsACast());
+    //assert(needsACast());
+    // e.g. called by NodeFunctionCall on a NodeTerminal..
+    if(!needsACast())
+      {
+	return m_node->genCodeReadIntoATmpVar(fp, uvpass);
+      }
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -203,11 +208,12 @@ namespace MFM {
       }
 
    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-   ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+   //ULAMCLASSTYPE vclasstype = vut->getUlamClass();
    s32 tmpVarCastNum = m_state.getNextTmpVarNumber(); 
 
     m_state.indent(fp);
-    fp->write(nut->getImmediateTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarCastNum).c_str());
     fp->write(" = ");

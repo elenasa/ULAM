@@ -148,7 +148,15 @@ namespace MFM {
   }
 
 
-  const std::string UlamType::getImmediateTypeAsString(CompilerState * state)
+  const std::string UlamType::getImmediateStorageTypeAsString(CompilerState * state)
+  {
+    std::ostringstream ctype;
+    ctype << "BitVector<" << getTotalWordSize() << ">";
+    return ctype.str();
+  } //getImmediateStorageTypeAsString
+
+
+  const std::string UlamType::getTmpStorageTypeAsString(CompilerState * state)
   {
     std::string ctype;
     //s32 sizeByIntBits = calcWordSize(getTotalBitSize());
@@ -170,7 +178,7 @@ namespace MFM {
       };
     
     return ctype;
-  } //getImmediateTypeAsString
+  } //getTmpStorageTypeAsString
 
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()

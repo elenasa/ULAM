@@ -160,6 +160,10 @@ namespace MFM {
     UlamValue uvpass = makeUlamValuePtr();
     uvpass.setPtrNameId(m_varSymbol->getId());
     uvpass.setPtrSlotIndex(m_state.getNextTmpVarNumber());
+
+    // does this work instead of relying on m_currentObjPtr for getPtrPos to add to this variable's PosOffset???
+    //UlamValue uvpass = UlamValue::makePtr(m_state.getNextTmpVarNumber(), TMPVAR, getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjSymbolForCodeGen->getPosOffset() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+
     return uvpass;
   } //makeUlamValuePtrForCodeGen
 
@@ -351,5 +355,13 @@ namespace MFM {
 	m_state.m_currentObjSymbolForCodeGen = m_varSymbol; //*********
       }
   } //genCodeToStoreInto
+
+
+  // overrides NodeTerminal that reads into a tmp var BitVector
+  void NodeTerminalIdent::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
+  {
+    Node::genCodeReadIntoATmpVar(fp, uvpass);
+  }
+
 
 } //end MFM

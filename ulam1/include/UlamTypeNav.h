@@ -52,7 +52,10 @@ namespace MFM{
     
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool needsImmediateType();        
+    virtual bool needsImmediateType();
+
+    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+
   private:
     
   };

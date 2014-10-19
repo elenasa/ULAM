@@ -31,13 +31,7 @@ namespace MFM {
     if(needsImmediateType())
       return UlamType::getUlamTypeImmediateMangledName(state);
 
-    return "u32";
-  }
-
-
-  bool UlamTypeUnsigned::needsImmediateType()
-  {
-    return ((getBitSize() == ANYBITSIZECONSTANT || getBitSize() == MAXBITSPERINT) ? false : true);
+    return getImmediateStorageTypeAsString(state); //"u32";
   }
 
 

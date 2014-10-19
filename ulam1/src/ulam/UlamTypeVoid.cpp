@@ -16,6 +16,50 @@ namespace MFM {
      return Void;
    }
 
+
+  const std::string UlamTypeVoid::getUlamTypeAsStringForC()
+  {
+    return "void";
+  }
+
+
+  const std::string UlamTypeVoid::getUlamTypeMangledName(CompilerState * state)
+  {
+    return "void";
+  }
+
+
+  const std::string UlamTypeVoid::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    return getImmediateStorageTypeAsString(state); //"void";
+  }
+
+
+  bool UlamTypeVoid::needsImmediateType()
+  {
+    return false;
+  }
+
+
+  const std::string UlamTypeVoid::getImmediateStorageTypeAsString(CompilerState * state)
+  {
+    assert(0);
+    return "void";
+  }
+
+
+  const std::string UlamTypeVoid::getTmpStorageTypeAsString(CompilerState * state)
+  {
+    return "void";
+  }
+
+
+  const char * UlamTypeVoid::getUlamTypeAsSingleLowercaseLetter()
+  {
+    return "v";
+  }
+
+
   //anything can be cast to a void
   bool UlamTypeVoid::cast(UlamValue & val, CompilerState& state)
   {
@@ -50,34 +94,5 @@ namespace MFM {
     return brtn;
   } //end cast    
 
-
-  const std::string UlamTypeVoid::getUlamTypeAsStringForC()
-  {
-    return "void";
-  }
-
-
-  const char * UlamTypeVoid::getUlamTypeAsSingleLowercaseLetter()
-  {
-    return "v";
-  }
-
-
-  const std::string UlamTypeVoid::getUlamTypeMangledName(CompilerState * state)
-  {
-    return "void";
-  }
-
-
-  const std::string UlamTypeVoid::getUlamTypeImmediateMangledName(CompilerState * state)
-  {
-    return "void";
-  }
-
-
-  bool UlamTypeVoid::needsImmediateType()
-  {
-    return false;
-  }
 
 } //end MFM

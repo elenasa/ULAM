@@ -26,7 +26,7 @@ namespace MFM {
       return UlamType::getUlamTypeImmediateMangledName(state);
 
     //XXX  TODO: needs to return a struct that has a T, not a bare T without storage
-    return getImmediateTypeAsString(state);  
+    return getImmediateStorageTypeAsString(state);  
   }
 
 
@@ -38,8 +38,10 @@ namespace MFM {
   }
 
 
-  const std::string UlamTypeClass::getImmediateTypeAsString(CompilerState * state)
+  const std::string UlamTypeClass::getTmpStorageTypeAsString(CompilerState * state)
   {
+    return "T";
+#if 0
     if(m_class == UC_QUARK)
       {
 	//return UlamType::getUlamTypeImmediateMangledName(state); //no "naked" quarks
@@ -52,6 +54,7 @@ namespace MFM {
     else
       assert(0);
     return ""; //error!
+#endif
   }
 
 

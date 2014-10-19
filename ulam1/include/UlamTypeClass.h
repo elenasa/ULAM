@@ -57,7 +57,7 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getImmediateTypeAsString(CompilerState * state);
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 

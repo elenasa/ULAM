@@ -9,7 +9,8 @@ namespace MFM {
 
   UlamValue::UlamValue()
   {
-    m_uv.m_storage.m_atom.Clear();  //default type is Nav == 0
+    //m_uv.m_storage.m_atom.Clear();  //default type is Nav == 0
+    clear();  //default type is Nav == 0
   }
 
 
@@ -20,11 +21,19 @@ namespace MFM {
   }
 
 
+  void UlamValue::clear()
+  {
+    AtomBitVector a;  //clear storage
+    a.GetStorage(m_uv.m_storage.m_atom);
+  }
+
+
   void UlamValue::init(UTI utype, u32 v, CompilerState& state)
   {
     s32 len = state.getBitSize(utype);
     assert(len <=32 && len >= ANYBITSIZECONSTANT);  //very important!
-    m_uv.m_storage.m_atom.Clear();
+    //m_uv.m_storage.m_atom.Clear();
+    clear();
     setUlamValueTypeIdx(utype);
 
     if(len == 0)
@@ -48,7 +57,8 @@ namespace MFM {
   UlamValue UlamValue::makeAtom()
   {
     UlamValue rtnVal;   //static
-    rtnVal.m_uv.m_storage.m_atom.Clear();
+    //rtnVal.m_uv.m_storage.m_atom.Clear();
+    rtnVal.clear();
     rtnVal.setAtomElementTypeIdx(Atom);
     return rtnVal;
   }
@@ -71,7 +81,8 @@ namespace MFM {
   {
     UlamValue rtnVal;             //static
     assert(len <=32 && (s32) len >= 0);  //very important!
-    rtnVal.m_uv.m_storage.m_atom.Clear();
+    //rtnVal.m_uv.m_storage.m_atom.Clear();
+    rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
     rtnVal.putData(BITSPERATOM - len, len, v);  //starts from end, for 32 bit boundary case
     return rtnVal;
@@ -114,7 +125,7 @@ namespace MFM {
       }
 
     rtnUV.m_uv.m_ptrValue.m_bitlenInAtom = len; //if packed, entire array len
-    rtnUV.m_uv.m_ptrValue.m_storage = storage;
+    rtnUV.m_uv.m_ptrValue.m_storagetype = storage;
     rtnUV.m_uv.m_ptrValue.m_packed = packed;
     rtnUV.m_uv.m_ptrValue.m_targetType = targetType;
     rtnUV.m_uv.m_ptrValue.m_nameid = 0;
@@ -197,7 +208,7 @@ namespace MFM {
   STORAGE UlamValue::getPtrStorage()
   {
     assert(getUlamValueTypeIdx() == Ptr);
-    return (STORAGE) m_uv.m_ptrValue.m_storage;
+    return (STORAGE) m_uv.m_ptrValue.m_storagetype;
   }
 
 
@@ -436,28 +447,48 @@ namespace MFM {
   u32 UlamValue::getData(u32 pos, s32 len) const
   {
     assert(len >= 0);
-    return m_uv.m_storage.m_atom.Read(pos, len);
-  }
+    AtomBitVector a(m_uv.m_storage.m_atom); //copy
 
+    //return m_uv.m_storage.m_atom.Read(pos, len);
+    return a.Read(pos, len);
+  }
 
 
   void UlamValue::putData(u32 pos, s32 len, u32 data)
   {
     assert(len >= 0);
-    m_uv.m_storage.m_atom.Write(pos, len, data);
+    AtomBitVector a(m_uv.m_storage.m_atom); //copy
+
+    //m_uv.m_storage.m_atom.Write(pos, len, data);
+    a.Write(pos, len, data);
+    a.GetStorage(m_uv.m_storage.m_atom);
   }
 
 
   UlamValue& UlamValue::operator=(const UlamValue& rhs)
   {
-    m_uv.m_storage.m_atom = rhs.m_uv.m_storage.m_atom;
+    for(u32 i = 0; i < AtomBitVector::ARRAY_LENGTH; i++)
+      {
+	m_uv.m_storage.m_atom[i] = rhs.m_uv.m_storage.m_atom[i];
+      }
+    //m_uv.m_storage.m_atom = rhs.m_uv.m_storage.m_atom;
     return *this;
   }
 
 
   bool UlamValue::operator==(const UlamValue& rhs)
   {
-    return m_uv.m_storage.m_atom == rhs.m_uv.m_storage.m_atom;
+    bool allTheSame = true;
+    for(u32 i = 0; i < AtomBitVector::ARRAY_LENGTH; i++)
+      {
+	if(m_uv.m_storage.m_atom[i] != rhs.m_uv.m_storage.m_atom[i])
+	  {
+	    allTheSame = false;
+	    break;
+	  }
+      }
+    return allTheSame;	
+    //return m_uv.m_storage.m_atom == rhs.m_uv.m_storage.m_atom;
   }
 
 

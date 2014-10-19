@@ -109,7 +109,7 @@ namespace MFM {
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
     evalNodeEpilog();
     return NORMAL;
-  }
+  } //eval
 
 
   //for eval, want the value of the rhs 
@@ -154,7 +154,6 @@ namespace MFM {
       }
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
-    //m_state.m_currentObjPtr = m_state.m_nodeEvalStack.popArg(); //e.g. Ptr to atom
     m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -174,7 +173,7 @@ namespace MFM {
     
     evalNodeEpilog();
     return NORMAL;
-  }
+  } //evalToStoreInto
 
 
   UlamValue NodeMemberSelect::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
@@ -219,8 +218,7 @@ namespace MFM {
       }
     m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
 
-    m_nodeRight->genCode(fp, uvpass);  // with readInto
-
+    m_nodeRight->genCode(fp, uvpass);  // with readInto (except Terminals)
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ****
     m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******

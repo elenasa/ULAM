@@ -30,15 +30,14 @@ namespace MFM {
     if(needsImmediateType())
       return UlamType::getUlamTypeImmediateMangledName(state);
 
+    return getImmediateStorageTypeAsString(state);  //"bool"
+  }
+
+
+  const std::string UlamTypeBool::getTmpStorageTypeAsString(CompilerState * state)
+  {
     return "bool";
   }
-
-
-  bool UlamTypeBool::needsImmediateType()
-  {
-    return ((getBitSize() == ANYBITSIZECONSTANT || getBitSize() == BITSPERBOOL) ? false : true);
-  }
-
 
 
   const char * UlamTypeBool::getUlamTypeAsSingleLowercaseLetter()
@@ -159,5 +158,20 @@ namespace MFM {
     else
       sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   }
+
+
+  const std::string UlamTypeBool::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  {
+    std::ostringstream rtnMethod;
+    UlamType * nut = state.getUlamTypeByIndex(nodetype);
+    
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    ULAMTYPE typEnum = getUlamTypeEnum();   //no word size distinction for bool
+    ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
+    s32 sizeByIntBits = nut->getTotalWordSize();
+
+    rtnMethod << "_" << UlamType::getUlamTypeEnumAsString(nodetypEnum) << sizeByIntBits << "To" << UlamType::getUlamTypeEnumAsString(typEnum);
+    return rtnMethod.str();
+  } //castMethodForCodeGen
 
 } //end MFM

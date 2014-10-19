@@ -34,6 +34,100 @@
 
 namespace MFM {
 
+  inline u32 _GetNOnes32(u32 bitwidth) {
+    return (bitwidth >= 32) ? (u32) -1 : (((u32)1)<<bitwidth)-1;
+  }
+
+  inline u64 _GetNOnes64(u32 bitwidth) {
+    return (bitwidth >= 64) ? (u64) -1L : (((u64)1)<<bitwidth)-1;
+  }
+
+  //To INT:
+  // i.e. Unsigned32toInt32
+  inline s32 _SignExtend32(u32 val, u32 bitwidth) {
+    return ((s32)(val<<(32-bitwidth)))>>(32-bitwidth);
+  }
+
+  // i.e. Unsigned64toInt64
+  inline s64 _SignExtend64(u64 val, u32 bitwidth) {
+    return ((s64)(val<<(64-bitwidth)))>>(64-bitwidth);
+  }
+
+  inline s32 _Bool32ToInt32(u32 val, u32 bitwidth) {
+    s32 count1s = PopCount(val);
+    if(count1s > (s32) (bitwidth - count1s))
+      return 1;
+    return 0;
+  }
+
+  inline s64 _Bool64ToInt64(u64 val, u32 bitwidth) {
+    s32 count1s = PopCount(val);
+    if(count1s > (s32) (bitwidth - count1s))
+      return 1;
+    return 0;
+  }
+
+  inline s32 _Unary32ToInt32(u32 val, u32 bitwidth) {
+    return PopCount(val);
+  }
+
+  inline s64 _Unary64ToInt64(u64 val, u32 bitwidth) {
+    return (s64) PopCount(val);
+  }
+
+  inline s32 _Bits32ToInt32(u32 val, u32 bitwidth) {
+    return val;
+  }
+
+  inline s64 _Bits64ToInt64(u64 val, u32 bitwidth) {
+    return val;
+  }
+
+  //To BOOL:
+
+  inline bool _Int32ToBool(s32 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Int64ToBool(s64 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Unsigned32ToBool(u32 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Unsigned64ToBool(u64 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Unary32ToBool(u32 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Unary64ToBool(u64 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Bool32ToBool(u32 val, u32 bitwidth) {
+    s32 count1s = PopCount(val);
+    return (count1s > (s32) (bitwidth - count1s));  // == when even number bits is ignored (warning at def)
+  }
+
+  inline bool _Bool64ToBool(u64 val, u32 bitwidth) {
+    s64 count1s = PopCount(val);
+    return (count1s > (s64) (bitwidth - count1s));  // == when even number bits is ignored (warning at def)
+  }
+
+  inline bool _Bits32ToBool(u32 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  inline bool _Bits64ToBool(u64 val, u32 bitwidth) {
+    return (val != 0);
+  }
+
+  //To UNSIGNED:
   inline u32 _Int32ToUnsigned32(s32 val, u32 bitwidth) {
     return ((u32) val);
   }
@@ -42,21 +136,6 @@ namespace MFM {
     return ((u64) val);
   }
 
-  inline s32 _SignExtend32(u32 val, u32 bitwidth) {
-    return ((s32)(val<<(32-bitwidth)))>>(32-bitwidth);
-  }
-
-  inline s64 _SignExtend64(u64 val, u32 bitwidth) {
-    return ((s64)(val<<(64-bitwidth)))>>(64-bitwidth);
-  }
-
-  inline u32 _GetNOnes32(u32 bitwidth) {
-    return (bitwidth >= 32) ? (u32) -1 : (((u32)1)<<bitwidth)-1;
-  }
-
-  inline u64 _GetNOnes64(u32 bitwidth) {
-    return (bitwidth >= 64) ? (u64) -1L : (((u64)1)<<bitwidth)-1;
-  }
 
   inline u32 _ShiftToBitNumber32(u32 value, u32 bitpos) {
     return value<<bitpos;
@@ -134,6 +213,10 @@ namespace MFM {
 
     static const u32 ARRAY_LENGTH = (BITS + BITS_PER_UNIT - 1) / BITS_PER_UNIT;
 
+    void GetStorage(u32 array[ARRAY_LENGTH]);
+
+    void SetStorage(u32* array);
+
   private:
     BitUnitType m_bits[ARRAY_LENGTH];
 
@@ -183,7 +266,7 @@ namespace MFM {
      */
     bool ReadBit(u32 idx);
 
-#if 0
+#if 1
     /**
      * Constructs a new BitVector. Set parameters of this BitVector
      * using the template arguments. All bits are initialized to \c 0 .
@@ -207,6 +290,9 @@ namespace MFM {
      *               can hold (specified as a template parameter).
      */
     BitVector(const u32 * const values);
+
+    BitVector(const u32 value);
+    BitVector(const s32 value);
 #endif
 
     /**

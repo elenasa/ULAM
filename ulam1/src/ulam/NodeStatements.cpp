@@ -144,10 +144,19 @@ namespace MFM {
     fp->write("//");
     fp->write(m_state.getLineOfText(getNodeLocation()).c_str());
 
+    //m_state.indent(fp);
+    //fp->write("{\n");    //open for tmpvar arg's
+    //m_state.m_currentIndentLevel++;
+
     m_node->genCode(fp, uvpass);
+
+    //    m_state.m_currentIndentLevel--;
+    //m_state.indent(fp);
+    //fp->write("}\n");  //close for tmpVar
 
     if(m_nextNode)
       m_nextNode->genCode(fp, uvpass);
+
   } //genCode
 
 

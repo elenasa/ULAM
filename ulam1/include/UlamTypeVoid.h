@@ -52,7 +52,7 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool cast(UlamValue & val, CompilerState& state);
+    virtual const std::string getUlamTypeAsStringForC();
 
     virtual const std::string getUlamTypeMangledName(CompilerState * state);
 
@@ -60,9 +60,14 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getUlamTypeAsStringForC();
+    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
+    virtual bool cast(UlamValue & val, CompilerState& state);
+
 
   private:
 

@@ -122,10 +122,11 @@ namespace MFM {
   {
     if(m_node)
       {
+#ifdef TMPVARBRACES
 	m_state.indent(fp);
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
-
+#endif
 	//m_node->genCodeToStoreInto(fp, uvpass);
 	m_node->genCode(fp, uvpass);
 	UTI vuti = uvpass.getUlamValueTypeIdx();
@@ -151,10 +152,12 @@ namespace MFM {
 	fp->write(")");
 	fp->write(";\n");
 
+#ifdef TMPVARBRACES
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
 	fp->write("}\n");
 	//fp->write("\n");
+#endif
       }
     else
       {

@@ -220,11 +220,16 @@ namespace MFM {
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
+
     m_nextNode->genCode(fp, uvpass);
-    m_state.m_currentIndentLevel--;
-    
+
+    m_state.m_currentIndentLevel--;    
+
+    fp->write("\n");
     m_state.indent(fp);
-    fp->write("}\n\n");
+    fp->write("} // ");
+    fp->write(m_funcSymbol->getMangledName().c_str());  //end of function
+    fp->write("\n\n\n");
   }
 
 

@@ -21,4 +21,11 @@ namespace MFM {
     return false;
   }
 
+
+  const std::string UlamTypeNav::getImmediateStorageTypeAsString(CompilerState * state)
+  {
+    assert(0);
+    return "void";
+  }
+
 } //end MFM
