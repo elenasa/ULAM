@@ -115,6 +115,22 @@ namespace MFM {
   }
 
 
+  u32 SymbolFunctionName::countNativeFuncDecls()
+  {
+    u32 count = 0;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;  
+	count += fsym->isNativeFunctionDeclaration();  
+	++it;
+      }
+
+    return count;
+  }
+
+
   void SymbolFunctionName::generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();

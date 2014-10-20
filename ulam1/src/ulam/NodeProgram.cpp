@@ -209,6 +209,15 @@ namespace MFM {
 	fp->write(m_state.getFileNameForThisClassBody().c_str());
 	fp->write("\"\n\n");
 
+	// include native .tcc for this class if any declared
+	if(m_root->countNativeFuncDecls() > 0)
+	  {
+	    m_state.indent(fp);
+	    fp->write("#include \"");
+	    fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
+	    fp->write("\"\n\n");
+	  }
+
 	genAllCapsEndifForHeaderFile(fp);
 
 	delete fp;

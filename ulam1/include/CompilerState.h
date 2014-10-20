@@ -205,6 +205,7 @@ namespace MFM{
     std::string getFileNameForAClassHeader(u32 id);
     std::string getFileNameForThisClassHeader();
     std::string getFileNameForThisClassBody();
+    std::string getFileNameForThisClassBodyNative();
     std::string getFileNameForThisClassCPP();
     std::string getFileNameForThisTypesHeader();
     std::string getFileNameForThisClassMain();

@@ -63,6 +63,8 @@ namespace MFM{
 
     void labelFunctions();
 
+    u32 countNativeFuncDecls();
+
     void generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
   protected:
