@@ -322,7 +322,10 @@ namespace MFM {
 	  { 
 	    //eats the '(' when found
 	    rtnNode = makeFunctionSymbol(pTok, typebitsize, iTok); //with params
-	    if(!getExpectedToken(TOK_CLOSE_CURLY))
+	    Token qTok;
+	    getNextToken(qTok);
+
+	    if((qTok.m_type != TOK_CLOSE_CURLY) && (((NodeBlockFunctionDefinition *) rtnNode)->isNative() && qTok.m_type != TOK_SEMICOLON))
 	      {
 		//first remove the pointer to this node from its symbol
 		if(rtnNode)
@@ -1533,8 +1536,12 @@ namespace MFM {
     bool brtn = false;
     
     // if next token is { this is a definition; o.w. a declaration, alone invalid
-    Token pTok;
-    if(getExpectedToken(TOK_OPEN_CURLY, pTok))
+    // however, keyword 'native' is exception.
+
+    Token qTok;
+    getNextToken(qTok);
+
+    if(qTok.m_type == TOK_OPEN_CURLY)
       {
 	brtn = true;
 	//build definition!! (not a new block)
@@ -1563,6 +1570,27 @@ namespace MFM {
 	  }
 	else
 	  unreadToken();
+      }
+    else if(qTok.m_type == TOK_KW_NATIVE)
+      {
+	NodeStatements * nextNode;
+	nextNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); //legal
+	nextNode->setNodeLocation(qTok.m_locator);
+	funcNode->setNextNode(nextNode);
+
+	funcNode->setNative();
+
+	std::ostringstream msg;
+	msg << "Native Function Definition: <" << funcNode->getName() << ">";
+	MSG(&qTok, msg.str().c_str(), INFO);
+	brtn = true;
+      }
+    else
+      {
+	unreadToken();
+	std::ostringstream msg;
+	msg << "Unexpected input!! Token: <" << qTok.getTokenEnumName() << "> after function declaration.";
+	MSG(&qTok, msg.str().c_str(),ERR);
       }
 
     return brtn;

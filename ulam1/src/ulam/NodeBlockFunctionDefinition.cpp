@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0) 
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false) 
   {}
 
   NodeBlockFunctionDefinition::~NodeBlockFunctionDefinition()
@@ -199,6 +199,18 @@ namespace MFM {
   }
 
 
+  void NodeBlockFunctionDefinition::setNative()
+  {
+    m_native = true;
+  }
+
+
+  bool NodeBlockFunctionDefinition::isNative()
+  {
+    return m_native;
+  }
+
+
   SymbolFunction * NodeBlockFunctionDefinition::getFuncSymbolPtr()
   {
     return m_funcSymbol;
@@ -214,6 +226,8 @@ namespace MFM {
 
     assert(isDefinition());
     assert(m_nextNode);
+
+    assert(!isNative()); 
 
     fp->write("\n");
     m_state.indent(fp);
