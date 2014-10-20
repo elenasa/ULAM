@@ -74,6 +74,8 @@ namespace MFM{
 
     void packBitsForVariableDataMembers();
     
+    u32 countNativeFuncDecls();
+
     virtual void genCode(File * fp, UlamValue& uvpass);
 
     void genCodeBody(File * fp, UlamValue& uvpass);  //specific for this class

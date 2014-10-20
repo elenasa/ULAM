@@ -218,6 +218,12 @@ namespace MFM {
   }
 
 
+  u32 NodeBlockClass::countNativeFuncDecls()
+  {
+    return m_functionST.countNativeFuncDeclsForTableOfFunctions();
+  }
+
+
   //header .h file
   void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
   {

@@ -68,6 +68,8 @@ namespace MFM{
 
     bool matchingTypes(std::vector<UTI> argTypes);
 
+    u32 isNativeFunctionDeclaration();
+
     void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
   protected:

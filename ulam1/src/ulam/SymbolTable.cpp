@@ -105,6 +105,24 @@ namespace MFM {
   }
 
 
+  u32 SymbolTable::countNativeFuncDeclsForTableOfFunctions()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    u32 nativeCount = 0;
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;  
+	assert(sym->isFunction());
+
+	nativeCount += ((SymbolFunctionName *) sym)->countNativeFuncDecls();
+
+	it++;
+      }
+    return nativeCount;
+  }
+
+
   void SymbolTable::genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

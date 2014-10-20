@@ -775,6 +775,15 @@ namespace MFM {
   }
 
 
+  std::string CompilerState::getFileNameForThisClassBodyNative()
+  {
+    std::ostringstream f;
+    UTI cuti = getUlamTypeForThisClass();
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_native.tcc";
+    return f.str();
+  }
+
+
   std::string CompilerState::getFileNameForThisClassCPP()
   {
     std::ostringstream f;

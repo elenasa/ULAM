@@ -133,6 +133,15 @@ namespace MFM {
   }
 
 
+  u32 SymbolFunction::isNativeFunctionDeclaration()
+  {
+    NodeBlockFunctionDefinition * func = getFunctionNode();
+    assert(func); 
+
+    return (func->isNative() ? 1 : 0);
+  }
+
+
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
