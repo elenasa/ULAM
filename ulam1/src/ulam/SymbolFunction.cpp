@@ -135,6 +135,13 @@ namespace MFM {
 
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    NodeBlockFunctionDefinition * func = getFunctionNode();
+    assert(func); //how would a function symbol be without a body?
+
+    //up to programmer to define this function!!!
+    if(!declOnly && func->isNative())
+      return;
+
     //if(classtype == UC_ELEMENT)
     //	generateElementFunctionDeclaration(fp, declOnly, classtype);
     //else
@@ -211,13 +218,14 @@ namespace MFM {
     
     if(declOnly)
       {
-	fp->write(";\n\n");
+	if(func->isNative())
+	  fp->write("; //native\n\n");
+	else
+	  fp->write(";\n\n");
       }
     else
       {
 	UlamValue uvpass;
-	NodeBlockFunctionDefinition * func = getFunctionNode();
-	assert(func); //how would a function symbol be without a body?
 	func->genCode(fp, uvpass);
       }
   } //generateFunctionDeclaration
