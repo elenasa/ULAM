@@ -63,9 +63,10 @@ namespace MFM {
 
     if(ut != but)
       {
-	m_node = new NodeCast(m_node, but, m_state);
-	m_node->setNodeLocation(getNodeLocation());
-	m_node->checkAndLabelType();
+	//m_node = new NodeCast(m_node, but, m_state);
+	//m_node->setNodeLocation(getNodeLocation());
+	//m_node->checkAndLabelType();
+	m_node = makeCastingNode(m_node, but);
       }
     
     setNodeType(but);

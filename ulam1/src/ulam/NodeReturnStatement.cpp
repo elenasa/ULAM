@@ -55,9 +55,11 @@ namespace MFM {
 
     if(nodeType != m_state.m_currentFunctionReturnType)
       {
-	m_node = new NodeCast(m_node, m_state.m_currentFunctionReturnType, m_state);
-	m_node->setNodeLocation(getNodeLocation());
-	nodeType = m_node->checkAndLabelType(); //update for return node type
+	m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
+	//m_node = new NodeCast(m_node, m_state.m_currentFunctionReturnType, m_state);
+	//m_node->setNodeLocation(getNodeLocation());
+	//nodeType = m_node->checkAndLabelType(); //update for return node type
+	nodeType = m_node->getNodeType();
       }
 
     setNodeType(nodeType); //return take type of their node

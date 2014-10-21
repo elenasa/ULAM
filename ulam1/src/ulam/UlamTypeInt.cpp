@@ -115,6 +115,8 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Int:
+	if(bitsize > valbitsize)
+	  data = _SignExtend32(data, valbitsize); //no break
       case Unsigned:
       case Bits:
 	// casting Int to Int to change bits size

@@ -154,8 +154,8 @@ namespace MFM {
     UlamValue tv; 
     assert(makeTerminalValue(tv) == NORMAL);
     
-    // unclear to do this read or not; squarebracket not happy, or cast not happy ???
-    // genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
+    // unclear to do this read or not; squarebracket not happy, or cast not happy ?
+    genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
     uvpass = tv;
     return;
   }
@@ -169,34 +169,31 @@ namespace MFM {
     return; //uvpass is an immediate UV, not a PTR
   }
 
-  // reads into a tmp var BitVector
+
+  // reads into a tmp var 
+  // (for BitVector use Node::genCodeConvertATmpVarIntoBitVector)
   void NodeTerminal::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
   {
+    // into tmp storage first, in case of casts
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32	tmpVarNum = m_state.getNextTmpVarNumber();
-
+    
     m_state.indent(fp);
     fp->write("const ");
 
-    // write out terminal as temp BitVector
-    //u32 data = uvpass.getImmediateData(m_state);
-    //char dstr[40];
-    //vut->getDataAsString(data, dstr, 'z', m_state);
-    
-    fp->write(nut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); 
     fp->write(" ");
     
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());
-    fp->write("(");
-    //fp->write(dstr); // use constructor (not equals)
+
+    fp->write(" = ");
+
     fp->write(getName());
-    fp->write(");\n");
+    fp->write(";\n");
     
     // substitute Ptr for uvpass to contain the tmpVar number; save id of constant string in Ptr;
-    //u32 datastringidx = m_state.m_pool.getIndexForDataString(std::string(dstr));
-    u32 datastringidx = m_state.m_pool.getIndexForDataString(getName());
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0, datastringidx);  //POS 0 rightjustified.
-  }
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified.
+  } //genCodeReadIntoATmpVar
 
 } //end MFM

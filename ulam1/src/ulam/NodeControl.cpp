@@ -83,9 +83,10 @@ namespace MFM {
 
     if(ctypEnum != newEnumTyp)
       {
-	m_nodeCondition = new NodeCast(m_nodeCondition, newType, m_state);
-	m_nodeCondition->setNodeLocation(getNodeLocation());
-	m_nodeCondition->checkAndLabelType();
+	//m_nodeCondition = new NodeCast(m_nodeCondition, newType, m_state);
+	//m_nodeCondition->setNodeLocation(getNodeLocation());
+	//m_nodeCondition->checkAndLabelType();
+	m_nodeCondition = makeCastingNode(m_nodeCondition, newType);
       }
     else
       newType = cuti;

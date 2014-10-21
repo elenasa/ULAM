@@ -474,11 +474,13 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("OurFoo::Uf_4test(fooAtom);\n");  //hardcoded mangled test name
 
+#if 0
     // output for t3200..
     m_state.indent(fp);
     fp->write("printf(\"Bar1 toInt = %d\\n\", OurFoo::Ut_Um_4bar1::Uf_5toInt(fooAtom));\n");
     m_state.indent(fp);
     fp->write("printf(\"Bar2 toInt = %d\\n\", OurFoo::Ut_Um_4bar2::Uf_5toInt(fooAtom));\n");
+#endif
 
     m_state.indent(fp);
     fp->write("return 0;\n");

@@ -25,7 +25,14 @@ namespace MFM {
   const std::string UlamTypeNav::getImmediateStorageTypeAsString(CompilerState * state)
   {
     assert(0);
-    return "void";
+    return "nav";
+  }
+
+
+  const std::string UlamTypeNav::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  {
+    assert(0);
+    return "nav";
   }
 
 } //end MFM

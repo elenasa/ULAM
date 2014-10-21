@@ -836,7 +836,7 @@ namespace MFM {
 	  return parseExpression(); 
       }
     else
-      return parseExpression();   //perhaps a number, true or false
+      return parseExpression();   //perhaps a number, true or false, cast..
 
     // if nothing else follows, parseRestOfAssignExpr returns its argument
     return parseRestOfAssignExpr(rtnNode);  //parseAssignExpr
@@ -1190,6 +1190,7 @@ namespace MFM {
       {
 	rtnNode = new NodeCast(parseFactor(), typeToBe, m_state);
 	rtnNode->setNodeLocation(typeTok.m_locator);
+	((NodeCast *) rtnNode)->setExplicitCast();
       }
 
     return rtnNode;
