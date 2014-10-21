@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeCast::NodeCast(Node * n, UTI typeToBe, CompilerState & state): NodeUnaryOp(n, state) 
+  NodeCast::NodeCast(Node * n, UTI typeToBe, CompilerState & state): NodeUnaryOp(n, state), m_explicit(false) 
   {
     setNodeType(typeToBe);
   }
@@ -25,6 +25,18 @@ namespace MFM {
   const std::string NodeCast::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+
+  void NodeCast::setExplicitCast()
+  {
+    m_explicit = true;
+  }
+
+
+  bool NodeCast::isExplicitCast()
+  {
+    return m_explicit;
   }
 
 
@@ -174,6 +186,7 @@ namespace MFM {
     m_node->genCodeToStoreInto(fp, uvpass);
     if(needsACast())
       {
+	m_node->genCodeReadIntoATmpVar(fp, uvpass);
 	genCodeReadIntoATmpVar(fp, uvpass);     // cast.
       }
   }
@@ -237,12 +250,17 @@ namespace MFM {
     fp->write(", ");
     //LENGTH of node being casted (UH_AP_mi::LENGTH ?)
     //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());    
-    s32 nodeLength = m_state.getTotalBitSize(vuti);
+    s32 nodeLength = m_state.getTotalBitSize(vuti);   // yes! == m_node->getNodeType()
+    //s32 nodeLength = m_state.getTotalBitSize(nuti); //tobe length??? No.
+    // s32 nodeLength = m_state.getTotalBitSize(m_node->getNodeType()); //node length??? Yes!
     fp->write_decimal(nodeLength);
 
     fp->write(")");
     fp->write(";\n");
 
+
+    //PROBLEM is that funccall checks for 0 nameid to use the tmp var!
+    // but then if we don't pass it along Node::genMemberNameForMethod fails..
     if(isTerminal)
       uvpass = UlamValue::makePtr(tmpVarCastNum, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified.
     else
@@ -265,11 +283,14 @@ namespace MFM {
     UTI nodeType = m_node->getNodeType();
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
     ULAMTYPE nodetypEnum = m_state.getUlamTypeByIndex(nodeType)->getUlamTypeEnum();
-    s32 arraysize = m_state.getArraySize(tobeType);
-    s32 nodearraysize = m_state.getArraySize(nodeType);
+    //s32 arraysize = m_state.getArraySize(tobeType);
+    //s32 nodearraysize = m_state.getArraySize(nodeType);
 
-    //cast if the base types are different OR the arraysizes differ (i.e. one's scalar, not constant)
-    return(typEnum != nodetypEnum || (arraysize != nodearraysize && !m_state.isConstant(nodeType)));
+    //  consider user requested first; broadening (e.g. from Int(4) to Int(32)) requires SignExtension, except for constants(i.e. bitsize -1).
+    return(isExplicitCast() || typEnum != nodetypEnum || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)  && !m_state.isConstant(nodeType)));
+
+    // consider user requested first, then size independent (except constants) 
+    //return(isExplicitCast() || typEnum != nodetypEnum || !m_state.isConstant(nodeType));
   }
 
 } //end MFM

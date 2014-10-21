@@ -104,6 +104,7 @@ namespace MFM{
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
     virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
+    void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
 
     /**
      * Returns converted const argument to all capital letters as a string

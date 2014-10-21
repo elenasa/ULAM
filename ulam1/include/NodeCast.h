@@ -48,13 +48,16 @@ namespace MFM{
     NodeCast(Node * n, UTI typeToBe, CompilerState & state);
     ~NodeCast();
 
-    virtual UTI checkAndLabelType();
-
-    virtual EvalStatus eval();
-
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
+
+    void setExplicitCast();
+    bool isExplicitCast();
+
+    virtual UTI checkAndLabelType();
+
+    virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
@@ -66,6 +69,8 @@ namespace MFM{
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len); //noop
 
   private:
+    bool m_explicit;  //requested by user (not automatic)
+
     //cast if the base types are different OR the arraysizes differ (i.e. one's scalar)
     // --- trying to avoid extraneous casting.
     bool needsACast();  

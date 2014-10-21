@@ -68,7 +68,6 @@ namespace MFM{
 
     virtual bool cast(UlamValue & val, CompilerState& state);
 
-
   private:
 
   };

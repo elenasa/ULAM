@@ -56,6 +56,8 @@ namespace MFM{
 
     virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
 
+    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+
   private:
     
   };

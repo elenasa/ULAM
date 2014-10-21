@@ -93,9 +93,10 @@ namespace MFM {
     if(ut == Bool)  //if array?, unsupported at this time
       {
 	UTI iut = Int;
-	m_node = new NodeCast(m_node, iut, m_state);  //except for Bang
-	m_node->setNodeLocation(getNodeLocation());
-	m_node->checkAndLabelType();
+	//m_node = new NodeCast(m_node, iut, m_state);  //except for Bang
+	//m_node->setNodeLocation(getNodeLocation());
+	//m_node->checkAndLabelType();
+	m_node = makeCastingNode(m_node, iut);
 	setNodeType(iut);
       }
     else

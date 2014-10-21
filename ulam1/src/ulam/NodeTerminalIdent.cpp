@@ -348,7 +348,8 @@ namespace MFM {
     //e.g. return the ptr for an array; square bracket will resolve down to the immediate data
     uvpass = makeUlamValuePtrForCodeGen();
 
-    if(!m_varSymbol->isDataMember())
+    // consistency..
+    //if(!m_varSymbol->isDataMember())
       {
 	//******UPDATED GLOBAL; no restore!!!**************************
 	m_state.m_currentObjPtr = uvpass;                   //*********

@@ -311,7 +311,8 @@ namespace MFM {
     UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
 
     UlamValue offset;
-    m_nodeRight->genCode(fp, offset);
+    //m_nodeRight->genCode(fp, offset);
+    m_nodeRight->genCodeToStoreInto(fp, offset); //for immediate value
 
     s32 offsetInt = offset.getImmediateData(m_state);
     nextlptr.incrementPtr(m_state, offsetInt);
@@ -346,8 +347,8 @@ namespace MFM {
     UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
 
     UlamValue offset;
-    //    m_nodeRight->genCodeToStoreInto(fp, offset);
-    m_nodeRight->genCode(fp, offset);  //either way, gets immediate 
+    //m_nodeRight->genCode(fp, offset);  
+    m_nodeRight->genCodeToStoreInto(fp, offset); //for immediate value
 
     s32 offsetInt = offset.getImmediateData(m_state);
     nextlptr.incrementPtr(m_state, offsetInt);
