@@ -26,12 +26,14 @@ namespace MFM {
   }
 
 
+  //As it stands, this can refer to base class code now.
   const std::string UlamTypeInt::getUlamTypeImmediateMangledName(CompilerState * state)
   {
     if(needsImmediateType())
       return UlamType::getUlamTypeImmediateMangledName(state);
 
-    return getImmediateStorageTypeAsString(state); //BV<32>, not "s32" ?
+    //return getImmediateStorageTypeAsString(state); //BV<32>, not "s32" ? inf loop
+    return UlamType::getUlamTypeImmediateMangledName(state); //? for constants
   }
 
 

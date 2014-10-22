@@ -233,18 +233,6 @@ namespace MFM {
 
     m_state.m_currentIndentLevel = 0;
     //fp->write(CModeForHeaderFiles);  moved to NodeProgram
-    
-    //generate includes for all the other classes that have appeared
-    //m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //moved to NodeProgram
-
-#if 0
-    //no longer using the _Types.h file
-    m_state.indent(fp);
-    fp->write("#include \"");
-    fp->write(m_state.getFileNameForThisTypesHeader().c_str());  
-    fp->write("\"\n");
-    fp->write("\n");
-#endif
 
 #if 0
     m_state.indent(fp);
@@ -330,7 +318,7 @@ namespace MFM {
     fp->write("\n");
 
     // where to put these???
-    genImmediateMangledTypesForHeaderFile(fp);
+    //genImmediateMangledTypesForHeaderFile(fp);
 
     fp->write("\n");
 
@@ -369,7 +357,7 @@ namespace MFM {
     genShortNameParameterTypesExtractedForHeaderFile(fp);
 
     // where to put these???
-    genImmediateMangledTypesForHeaderFile(fp);
+    //genImmediateMangledTypesForHeaderFile(fp);
 
     fp->write("\n");
     m_state.m_currentIndentLevel--;
