@@ -114,7 +114,8 @@ namespace MFM {
 
   s32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
   {
-    if(m_ST.getTableSize() == 0) return -1;
+    if(m_ST.getTableSize() == 0)
+      return EMPTYSYMBOLTABLE;  //should allow no variable data members
 
     return m_ST.getTotalVariableSymbolsBitSize();
   }

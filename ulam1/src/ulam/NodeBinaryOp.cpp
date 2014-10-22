@@ -150,11 +150,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     s32 arraysize = m_state.getArraySize(nuti);
     s32 bitsize = m_state.getBitSize(nuti);
-    if(bitsize == ANYBITSIZECONSTANT)
-      {
-	bitsize = m_state.getDefaultBitSize(nuti);
-      }
-
     UTI scalartypidx = m_state.getUlamTypeAsScalar(nuti);
     PACKFIT packRtn = m_state.determinePackable(nuti);
 

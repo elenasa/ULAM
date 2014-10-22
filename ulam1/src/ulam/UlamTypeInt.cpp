@@ -107,12 +107,6 @@ namespace MFM {
 	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
       }
 	
-    if(state.isConstant(typidx))
-      {
-	// avoid using out-of-band value as bitsize
-	bitsize = state.getDefaultBitSize(typidx);
-      }
-
     u32 data = val.getImmediateData(state);
     switch(valtypEnum)
       {
@@ -174,8 +168,11 @@ namespace MFM {
 	rtnMethod << 	"_SignExtend" << sizeByIntBits; //aka Unsigned32ToInt32
 	break;
       case Int:
-	rtnMethod << 	"_SignExtend" << sizeByIntBits;
-	break;
+	if(getBitSize() > nut->getBitSize())
+	  {
+	    rtnMethod << "_SignExtend" << sizeByIntBits;
+	    break;
+	  }
       default:
 	return UlamType::castMethodForCodeGen(nodetype, state); //standard '_Node32ToInt32' format
 	break;

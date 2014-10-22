@@ -106,12 +106,6 @@ namespace MFM {
   {
     std::ostringstream mangled;
     s32 bitsize = getBitSize();
-
-    if(bitsize == ANYBITSIZECONSTANT)     //constant types use default bit size
-      {
-	bitsize = state->getDefaultBitSize(getUlamTypeIndex());
-      }
-
     s32 arraysize = getArraySize();
     //    arraysize = (arraysize == NONARRAYSIZE ? 0 : arraysize); 
 
@@ -149,7 +143,8 @@ namespace MFM {
 
   bool UlamType::needsImmediateType()
   {
-    return ( (getBitSize() == ANYBITSIZECONSTANT) ? false : true);  //skip constants
+    return !isConstant();
+    //return ( (getBitSize() == ANYBITSIZECONSTANT) ? false : true);  //skip constants
   }
 
 
@@ -458,6 +453,13 @@ namespace MFM {
     return rtnUT;
   }
 
+
+  bool UlamType::isConstant()
+  {
+    return m_key.getUlamKeyTypeSignatureBitSize() == ANYBITSIZECONSTANT;
+  }
+
+
   bool UlamType::isScalar()
   {
     return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);
@@ -472,7 +474,10 @@ namespace MFM {
 
   s32 UlamType::getBitSize()
   {
-    return m_key.getUlamKeyTypeSignatureBitSize();
+    if(isConstant())
+      return ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()];
+
+    return m_key.getUlamKeyTypeSignatureBitSize(); 
   }
 
 
@@ -482,12 +487,6 @@ namespace MFM {
     arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
     
     s32 bitsize = getBitSize();
-    if(bitsize == ANYBITSIZECONSTANT)
-      {
-	ULAMTYPE et = getUlamTypeEnum();
-	bitsize = ULAMTYPE_DEFAULTBITSIZE[et];
-      }
-
     return bitsize * arraysize;
   }
 

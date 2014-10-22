@@ -344,7 +344,9 @@ namespace MFM {
 
   bool CompilerState::isConstant(UTI uti)
   {
-    return getBitSize(uti) == ANYBITSIZECONSTANT;
+    UlamType * ut = getUlamTypeByIndex(uti);
+    return (ut->isConstant());
+    //    return getBitSize(uti) == ANYBITSIZECONSTANT; Wed Oct 22 14:00:18 2014 
   }
 
 
@@ -1031,7 +1033,7 @@ namespace MFM {
   {
     PACKFIT rtn = UNPACKED;            //was false == 0
     s32 arraysize = getArraySize(aut); //negative for scalars
-    s32 bitsize = getBitSize(aut);     //negative for constants
+    s32 bitsize = getBitSize(aut);     //default size for constants
 
     //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
     if(arraysize > NONARRAYSIZE)

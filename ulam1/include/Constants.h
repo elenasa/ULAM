@@ -86,6 +86,14 @@ namespace MFM {
 #define BASE10 (10)
 #endif //BASE10
 
+#ifndef CYCLEFLAG
+#define CYCLEFLAG (-2)
+#endif //CYCLEFLAG
+
+#ifndef EMPTYSYMBOLTABLE
+#define EMPTYSYMBOLTABLE (-1)
+#endif //EMPTYSYMBOLTABLE
+
 
 #ifndef ULAMTYPE_DEFAULTBITSIZE
 #define XX(a,b,c) c,

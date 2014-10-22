@@ -199,7 +199,7 @@ namespace MFM {
 	    m_state.m_currentBlock = m_state.m_classBlock;
 
 	    u32 totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
-	    if(totalbits == 0)
+	    if(totalbits == 0)	    
 	      {
 		//std::ostringstream msg;
 		//msg << "setting zero bit size symbol!! " << sym->getUlamType()->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
@@ -209,7 +209,7 @@ namespace MFM {
 	    else
 	      {
 		UTI sut = sym->getUlamTypeIdx();
-		m_state.setBitSize(sut, totalbits);  //"scalar" Class bitsize  XXXXX ADJUST KEY
+		m_state.setBitSize(sut, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
 
 
 		//std::ostringstream msg;
@@ -266,11 +266,16 @@ namespace MFM {
 	    UTI sut = sym->getUlamTypeIdx();
 	    s32 symsize = calcVariableSymbolTypeSize(sut);
 
-	    if(symsize < 0)
+	    if(symsize == CYCLEFLAG)  // was < 0
 	      {
 		std::ostringstream msg;
 		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
 		MSG("", msg.str().c_str(),ERR);
+	      }
+	    else if(symsize == EMPTYSYMBOLTABLE)
+	      {
+		symsize = 0;
+		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
 	      }
 	    else
 	      {
@@ -289,11 +294,11 @@ namespace MFM {
 
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
-    s32 totbitsize = -1;
+    s32 totbitsize = CYCLEFLAG;
     if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS)
       {
 	totbitsize = m_state.getBitSize(argut);
-	assert(totbitsize);
+	assert(totbitsize >= 0);
 	return totbitsize;
       }
 
@@ -304,22 +309,26 @@ namespace MFM {
 	  {
 	    return totbitsize;
 	  }
-	if(totbitsize < 0)
+	if(totbitsize == CYCLEFLAG)  //was < 0
 	  {
 	    //error! cycle
-	    return -1;
 	    assert(0);
+	    return CYCLEFLAG;
+	  }
+	if(totbitsize == EMPTYSYMBOLTABLE)
+	  {
+	    return 0;  //empty, ok
 	  }
 	else // totbitsize == 0
 	  {
-	    m_state.setBitSize(argut, -1);  //before the recusive call.. HMMMM???
+	    m_state.setBitSize(argut, CYCLEFLAG);  //before the recusive call..
 	    //get base type
 	    SymbolClass * csym = NULL;
 	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
 	    if(m_state.alreadyDefinedSymbolClass(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
 	      {
-		UTI but = csym->getUlamTypeIdx();
-		return calcVariableSymbolTypeSize(but);  // NEEDS CORRECTION
+		UTI cut = csym->getUlamTypeIdx();
+		return calcVariableSymbolTypeSize(cut);  // NEEDS CORRECTION
 	      }
 	  }
       }
@@ -330,12 +339,15 @@ namespace MFM {
 	    return totbitsize;
 	  }
 
-	if(totbitsize < 0)
+	if(totbitsize == CYCLEFLAG) // was < 0
 	  {
 	    //error! cycle
-	    return -1;
+	    return CYCLEFLAG;
 	  }
-
+	else if(totbitsize == EMPTYSYMBOLTABLE)
+	  {
+	    return 0;  //empty, ok
+	  }
 	else //totbitsize == 0
 	  {
 	    //get base type
@@ -343,17 +355,21 @@ namespace MFM {
 	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
 	    if(m_state.alreadyDefinedSymbolClass(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
 	      {
-		UTI but = csym->getUlamTypeIdx();
-		s32 bsize;
+		UTI cut = csym->getUlamTypeIdx();
+		s32 csize;
 		
-		if((bsize = m_state.getBitSize(but)) > 0)
+		if((csize = m_state.getBitSize(cut)) > 0)
 		  {
-		    return bsize;
+		    return csize;
 		  }
-		else if(bsize < 0)
+		else if(csize == CYCLEFLAG)  // was < 0
 		  {
 		    //error! cycle..replace with message
-		    return bsize;
+		    return csize;
+		  }
+		else if(csize == EMPTYSYMBOLTABLE)
+		  {
+		    return 0;  //empty, ok
 		  }
 		else
 		  {
@@ -362,13 +378,13 @@ namespace MFM {
 		    assert(classblock);
 		    assert(classblock != m_state.m_classBlock);
 		    
-		    bsize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
-		    return bsize;
+		    csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
+		    return csize;
 		  }
 	      }
 	  } //totbitsize == 0
       } //not primitive, not array
-    return -1;
+    return CYCLEFLAG;
   } 
 
 
