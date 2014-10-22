@@ -202,6 +202,8 @@ namespace MFM {
     std::ostringstream  ud;
     ud << "Ud_" << mangledName;  //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
+
+    s32 sizeByIntBits = getTotalWordSize();
     
     state->indent(fp);
     fp->write("#ifndef ");
@@ -230,32 +232,48 @@ namespace MFM {
     state->indent(fp);
     fp->write("typedef ");
     fp->write(getUlamTypeAsStringForC().c_str());  //e.g. BitField
-    fp->write(" bf;\n");
+    fp->write(" BF;\n");
 
     //storage here
     state->indent(fp);
     fp->write("BitVector<");
-    fp->write_decimal(getTotalWordSize());
+    fp->write_decimal(sizeByIntBits);
     fp->write(">");
-    fp->write(" bv;\n");
+    fp->write(" m_stg;\n");
 
     //default constructor (used by local vars)
     state->indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() : bv() { }\n");
+    fp->write("() : m_stg() { }\n");
 
     //constructor here (used by const tmpVars)
     state->indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
-    fp->write(" d) : bv(d) { }\n");
+    fp->write(" d) : m_stg(d) {}\n");
 
     //default destructor (for completeness)
     state->indent(fp);
     fp->write("~");
     fp->write(mangledName.c_str());
-    fp->write("() { }\n");
+    fp->write("() {}\n");
+
+
+    //read BV method
+    state->indent(fp);
+    fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
+    fp->write(" read() {return BF::");
+    fp->write(readMethodForCodeGen().c_str());
+    fp->write("(m_stg);}\n");
+
+    //write BV method
+    state->indent(fp);
+    fp->write("void write(");
+    fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
+    fp->write(" v) { BF::");
+    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("(m_stg, v); }\n");
 
     state->m_currentIndentLevel--;
     state->indent(fp);
@@ -271,6 +289,62 @@ namespace MFM {
     fp->write(" */\n\n");
   }
 
+
+  const std::string UlamType::readMethodForCodeGen()
+  {
+    std::string method;
+    s32 sizeByIntBits = getTotalWordSize();
+    if(isScalar())
+      {     
+	switch(sizeByIntBits)
+	  {
+	  case 32:
+	    method = "Read";
+	    break;
+	  case 64:
+	    method = "ReadLong";
+	    break;
+	  default:
+	    method = "ReadUnpacked";  //TBD
+	    //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
+	    assert(0);
+	  };
+      }
+    else
+      {
+	method = "ReadArray"; //TBD
+      }
+    return method;
+  } //readMethodForCodeGen
+
+
+  const std::string UlamType::writeMethodForCodeGen()
+  {
+    std::string method;
+    s32 sizeByIntBits = getTotalWordSize();
+    if(isScalar())
+      {     
+	switch(sizeByIntBits)
+	  {
+	  case 32:
+	      method = "Write";
+	      break;
+	  case 64:
+	    method = "WriteLong";
+	    break;
+	  default:
+	    method = "WriteUnpacked";  //TBD
+	    //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
+	    assert(0);	 
+	  };
+      }
+    else
+      {
+	method = "WriteArray"; //TBD
+      }
+    return method;
+  } //writeMethodForCodeGen
+  
 
 #if 0
   //redo above
