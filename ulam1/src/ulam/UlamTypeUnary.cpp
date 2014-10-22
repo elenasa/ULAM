@@ -73,12 +73,6 @@ namespace MFM {
 	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
       }
 
-    if(state.isConstant(typidx))
-      {
-	// avoid using out-of-band value as bitsize
-	bitsize = state.getDefaultBitSize(typidx);
-      }
-	
     u32 data = val.getImmediateData(state);    
     switch(valtypEnum)
       {
@@ -122,12 +116,6 @@ namespace MFM {
 	break;
       case Unary:
 	{
-	  if(state.isConstant(valtypidx))
-	    {
-	      // avoid using out-of-band value as bitsize
-	      valbitsize = state.getDefaultBitSize(valtypidx);
-	    }
-	  
 	  // size type change..
 	  if(bitsize >= valbitsize)
 	    val = UlamValue::makeImmediate(typidx, data, state); //overwrite val, same data

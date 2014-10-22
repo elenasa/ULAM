@@ -39,9 +39,6 @@ namespace MFM {
     if(len == 0)
       return;
 
-    if(len == ANYBITSIZECONSTANT)
-      len = state.getDefaultBitSize(utype);
-
     putData(BITSPERATOM - len, len, v);  //starts from end, for 32 bit boundary case
   }
 
@@ -67,12 +64,6 @@ namespace MFM {
   UlamValue UlamValue::makeImmediate(UTI utype, u32 v, CompilerState& state)
   {
     s32 len = state.getBitSize(utype);
-
-    if(len == ANYBITSIZECONSTANT)
-      {
-	len = state.getDefaultBitSize(utype);
-      }
-    
     return UlamValue::makeImmediate(utype, v, len);
   }
 
@@ -376,9 +367,6 @@ namespace MFM {
     if(len == 0)
       return 0;
 
-    if(len == ANYBITSIZECONSTANT)
-      len = state.getDefaultBitSize(getUlamValueTypeIdx());
-
     return getImmediateData(len);
   }
 
@@ -429,7 +417,6 @@ namespace MFM {
     s32 arraysize = state.getArraySize(tuti);
     assert(arraysize > NONARRAYSIZE);
     s32 bitsize = state.getBitSize(tuti);
-    assert(bitsize > ANYBITSIZECONSTANT);
 
     UlamValue nextPPtr = UlamValue::makeScalarPtr(p,state);
     assert(bitsize == nextPPtr.getPtrLen()); 

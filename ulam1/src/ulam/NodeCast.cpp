@@ -286,8 +286,9 @@ namespace MFM {
     //s32 arraysize = m_state.getArraySize(tobeType);
     //s32 nodearraysize = m_state.getArraySize(nodeType);
 
-    //  consider user requested first; broadening (e.g. from Int(4) to Int(32)) requires SignExtension, except for constants(i.e. bitsize -1).
-    return(isExplicitCast() || typEnum != nodetypEnum || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)  && !m_state.isConstant(nodeType)));
+    //  consider user requested first; broadening (e.g. from Int(4) to Int(32)) requires SignExtension, except for constants(i.e. bitsize default).
+    //return(isExplicitCast() || typEnum != nodetypEnum || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)  && !m_state.isConstant(nodeType)));
+    return(isExplicitCast() || typEnum != nodetypEnum || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)));
 
     // consider user requested first, then size independent (except constants) 
     //return(isExplicitCast() || typEnum != nodetypEnum || !m_state.isConstant(nodeType));

@@ -117,12 +117,13 @@ namespace MFM{
     static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
 
     //for name by index see CompilerState::getUlamTypeNameByIndex
+    bool isConstant();
 
     bool isScalar();   //arraysize == NOTARRAYSIZE is scalar
 
     s32 getArraySize();
 
-    s32 getBitSize();  //'class' type calculated after type labeling
+    s32 getBitSize();  //'class' type calculated after type labeling; default size for constants
 
     u32 getTotalBitSize();  //bitsize * arraysize, accounting for constants and scalars
 

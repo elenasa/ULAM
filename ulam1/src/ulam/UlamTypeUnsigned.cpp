@@ -81,12 +81,6 @@ namespace MFM {
 	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
       }
 	
-    if(state.isConstant(typidx))
-      {
-	// avoid using out-of-band value as bitsize
-	bitsize = state.getDefaultBitSize(typidx);
-      }
-
     u32 data = val.getImmediateData(state);
     switch(valtypEnum)
       {

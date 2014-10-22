@@ -166,8 +166,44 @@ namespace MFM {
   void NodeUnaryOp::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
-    printOp(fp); 
     m_node->genCode(fp, uvpass);
+
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write(" ");
+
+    fp->write(m_state.getTmpVarAsString(getNodeType(),tmpVarNum).c_str());
+    fp->write(" = ");
+
+    printOp(fp); 
+
+    UTI uti = uvpass.getUlamValueTypeIdx();
+    if(uti == Ptr)
+      {
+	fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex()).c_str());
+      }
+    else
+      {
+	//immediate
+	u32 data = uvpass.getImmediateData(m_state);
+	char dstr[40];
+	m_state.getUlamTypeByIndex(uti)->getDataAsString(data, dstr, 'z', m_state);
+	fp->write(dstr);
+      }
+    fp->write(";\n");
+  
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified.
+  }
+
+
+  void NodeUnaryOp::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    genCode(fp,uvpass);
   }
 
 } //end MFM

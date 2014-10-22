@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
   protected:
     
     Node * m_node;

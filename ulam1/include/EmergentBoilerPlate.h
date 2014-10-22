@@ -99,6 +99,14 @@ struct BitVector {
     return ((s64)(val<<(64-bitwidth)))>>(64-bitwidth);
   }
 
+  inline s32 _Int32ToInt32(s32 val, u32 bitwidth) {
+    return val;
+  }
+
+  inline s64 _Int64ToInt64(s64 val, u32 bitwidth) {
+    return val;
+  }
+
   inline s32 _Bool32ToInt32(u32 val, u32 bitwidth) {
     s32 count1s = PopCount(val);
     if(count1s > (s32) (bitwidth - count1s))
