@@ -121,6 +121,9 @@ namespace MFM{
     const std::string readMethodForCodeGen(UTI nuti);
     const std::string writeMethodForCodeGen(UTI nuti);
 
+    bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self; 
+
+
   private:
     bool m_storeIntoAble;
     UTI m_nodeUType;

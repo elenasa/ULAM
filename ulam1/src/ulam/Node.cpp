@@ -282,7 +282,9 @@ namespace MFM {
 
 
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
-    if(((m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)) || (uvpass.getPtrNameId() > 0)) )
+    //if(((m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)) || (uvpass.getPtrNameId() > 0)) )
+    //if(isCurrentObjNotALocalVar() || (uvpass.getPtrNameId() > 0))
+    if(!isCurrentObjectALocalVariableOrArgument())
       {
 	m_state.indent(fp);
 	fp->write("const ");
@@ -319,7 +321,8 @@ namespace MFM {
 	fp->write("(");	    	    
 	
 	// a data member quark, or the element itself should both getBits from self
-	if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
+	//if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
+	if(!isCurrentObjectALocalVariableOrArgument())
 	  {
 	    fp->write(m_state.getHiddenArgName());
 	    fp->write(".GetBits()");
@@ -331,7 +334,7 @@ namespace MFM {
 	    Symbol * sym;
 	    assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(), sym));
 	    fp->write(sym->getMangledName().c_str());
-	    fp->write(".bv");
+	    //fp->write(".bv");
 	  }
 
 	if(!m_state.isScalar(cosuti))
@@ -349,11 +352,26 @@ namespace MFM {
     else
       {
 	//local
-	if(!m_state.m_currentObjSymbolForCodeGen->isDataMember() && uvpass.getPtrNameId() > 0)
+	//if(!m_state.m_currentObjSymbolForCodeGen->isDataMember() && uvpass.getPtrNameId() > 0)
+	if(uvpass.getPtrNameId() > 0)
 	  {
 	    Symbol * sym;
 	    assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(), sym));
+
+	    m_state.indent(fp);
+	    fp->write("const ");
+	    
+	    fp->write(vut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+	    
+	    fp->write(" ");
+	    
+	    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+	    fp->write(" = ");
+
 	    fp->write(sym->getMangledName().c_str());
+	    fp->write(".");
+	    fp->write(readMethodForCodeGen(vuti).c_str());
+	    fp->write("();\n");
 	  }
 	else
 	  {		  
@@ -415,6 +433,7 @@ namespace MFM {
     assert(luvpass.getUlamValueTypeIdx() == Ptr);
 
     bool isTerminal = false;
+    UTI luti = luvpass.getPtrTargetType();
     UTI ruti = ruvpass.getUlamValueTypeIdx();
 
     if(ruti == Ptr)
@@ -431,33 +450,37 @@ namespace MFM {
     //rhs could be a constant; or previously cast from Int to Unary variables.
     UTI cosuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
 
-    m_state.indent(fp);
-
-    genMemberNameOfMethod(fp, luvpass);
-
-    // the WRITE method
-    //fp->write(writeMethodForCodeGen(ruti).c_str());
-    fp->write(writeMethodForCodeGen(cosuti).c_str());
-    fp->write("(");
-
     // a data member quark, or the element itself should both getBits from self;
     // getbits needed to go from-atom to-BitVector
-    if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
+    //if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
+    if(!isCurrentObjectALocalVariableOrArgument())
       {
+	m_state.indent(fp);
+	
+	genMemberNameOfMethod(fp, luvpass);
+	// the WRITE method
+	//fp->write(writeMethodForCodeGen(ruti).c_str());
+	fp->write(writeMethodForCodeGen(cosuti).c_str());
+	fp->write("(");
+	
 	fp->write(m_state.getHiddenArgName());
 	fp->write(".GetBits()");
+	fp->write(", ");
       }
     else
       {
 	//local
 	Symbol * sym;
 	assert(m_state.alreadyDefinedSymbol(luvpass.getPtrNameId(), sym));
+	m_state.indent(fp);
 	fp->write(sym->getMangledName().c_str());
-	fp->write(".bv"); // new! the storage within the immediate struct that is sym
+	fp->write(".");
+	fp->write(writeMethodForCodeGen(luti).c_str());
+	fp->write("(");
+	//fp->write(".bv"); // new! the storage within the immediate struct that is sym
       }
 
-    fp->write(", ");
-
+    //value to be written:
     if(isTerminal)
       {
 	// write out terminal explicitly
@@ -473,7 +496,7 @@ namespace MFM {
 
 	if(vclasstype == UC_QUARK || vclasstype == UC_ELEMENT)
 	  {
-	    //need to read from the tmpVar
+	    //need to read from the tmpVar ??? (need a test case!)
 	    //fp->write(rut->getUlamTypeImmediateMangledName(&m_state).c_str());
 	    ruvpass.genCodeBitField(fp, m_state);
 	    fp->write("::");
@@ -506,56 +529,56 @@ namespace MFM {
 
   void Node::genMemberNameOfMethod(File * fp, UlamValue uvpass)
   {
-#if 1
-    if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
-      {
-	UlamType * ut = m_state.getUlamTypeByIndex(m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx());
-	ULAMCLASSTYPE classtype = ut->getUlamClass();
+    assert(!isCurrentObjectALocalVariableOrArgument());
+
+    UlamType * ut = m_state.getUlamTypeByIndex(m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx());
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
 	
-	if(classtype == UC_NOTACLASS)
-	  {
-	    //assert(0);
-	    // we need the atomicparametertype for this primitive data member
-	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
+    if(classtype == UC_NOTACLASS)
+      {
+	//assert(0);
+	// we need the atomicparametertype for this primitive data member
+	fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
+	fp->write("::");
+      }
+    else
+      {
+	if(m_state.m_currentObjSymbolForCodeGen->isDataMember()) //within an element
+	  {             
+	    SymbolClass * csym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
+	    
+	    NodeBlockClass * memberClassNode = csym->getClassBlockNode();	  
+	    assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
+	    
+	    m_state.m_currentMemberClassBlock = memberClassNode;
+	    m_state.m_useMemberBlock = true;
+	    
+	    Symbol * sym = NULL;
+	    assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(),sym)); //failed last time
+	    
+	    m_state.m_useMemberBlock = false;
+	    m_state.m_currentMemberClassBlock = NULL;
+	    
+	    // we need the atomicparametertype for this quark's data member m_val_b!!!
+	    fp->write(sym->getMangledNameForParameterType().c_str());
 	    fp->write("::");
 	  }
-	else
+	else  //cos == css (self) 
 	  {
-	    if(m_state.m_currentObjSymbolForCodeGen->isDataMember()) //within an element
-	    //if(m_state.m_currentObjSymbolForCodeGen->isDataMember() && uvpass.getPtrNameId() > 0) //within an element
-	      {             
-		SymbolClass * csym = NULL;
-		assert(m_state.alreadyDefinedSymbolClass(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
+	    //within self so no need for member name..
+	    fp->write(m_state.m_currentSelfSymbolForCodeGen->getMangledNameForParameterType().c_str());
+	    //fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
 	    
-		NodeBlockClass * memberClassNode = csym->getClassBlockNode();	  
-		assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
-	    
-		m_state.m_currentMemberClassBlock = memberClassNode;
-		m_state.m_useMemberBlock = true;
-	    
-		Symbol * sym = NULL;
-		assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(),sym)); //failed last time
-		
-		m_state.m_useMemberBlock = false;
-		m_state.m_currentMemberClassBlock = NULL;
-	    
-		// we need the atomicparametertype for this quark's data member m_val_b!!!
-		fp->write(sym->getMangledNameForParameterType().c_str());
-		fp->write("::");
-	      }
-	    else  //cos == css (self) 
-	      {
-		//within self so no need for member name..
-		fp->write(m_state.m_currentSelfSymbolForCodeGen->getMangledNameForParameterType().c_str());
-		//fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
-
-		//UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();		
-		//fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
-		//fp->write("<CC>");
-		//fp->write("::");
-	      }
+	    //UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();		
+	    //fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
+	    //fp->write("<CC>");
+	    //fp->write("::");
 	  }
       }
+    
+#if 0
+    //no longer the syntax for immediate read/writes
     else
       {
 	UTI ruti = uvpass.getUlamValueTypeIdx();
@@ -564,14 +587,13 @@ namespace MFM {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 	fp->write(rut->getUlamTypeImmediateMangledName(&m_state).c_str()); //bool?
 	//uvpass.genCodeBitField(fp, m_state);
-	fp->write("::bf"); //typedef within immediate struct (new!)
+	//fp->write("::bf"); //typedef within immediate struct (new!)
 	fp->write("::");
       }
-#else
-    {
-      uvpass.genCodeBitField(fp, m_state);
-      fp->write("::");
-    }
+    //    {
+    //  uvpass.genCodeBitField(fp, m_state);
+    //  fp->write("::");
+    // }
 #endif
   } //genMemberNameOfMethod
 
@@ -589,29 +611,22 @@ namespace MFM {
   const std::string Node::readMethodForCodeGen(UTI nuti)
   {
     std::string method;
-    //s32 sizeByIntBits = calcWordSize(m_state.getTotalBitSize(nuti));
-    s32 sizeByIntBits = m_state.getUlamTypeByIndex(nuti)->getTotalWordSize();
-    if(m_state.isScalar(nuti))
-      {     
-	switch(sizeByIntBits)
-	  {
-	  case 32:
-	    method = "Read";
-	    break;
-	  case 64:
-	    method = "ReadLong";
-	    break;
-	  default:
-	    method = "ReadUnpacked";
-	    MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
-	    assert(0);
-	    //error!
-	  };
+    if(!isCurrentObjectALocalVariableOrArgument())
+      { 
+	method = m_state.getUlamTypeByIndex(nuti)->readMethodForCodeGen();
       }
     else
       {
-	method = "ReadArray";
+	if(m_state.isScalar(nuti))
+	  {     
+	    method = "read";
+	  }
+	else
+	  {
+	    method = "readArray"; //TBD
+	  }
       }
+ 
     return method;
   } //readMethodForCodeGen
 
@@ -619,30 +634,30 @@ namespace MFM {
   const std::string Node::writeMethodForCodeGen(UTI nuti)
   {
     std::string method;
-    s32 sizeByIntBits = m_state.getUlamTypeByIndex(nuti)->getTotalWordSize();
-    if(m_state.isScalar(nuti))
-      {     
-	switch(sizeByIntBits)
-	  {
-	  case 32:
-	    method = "Write";
-	    break;
-	  case 64:
-	    method = "WriteLong";
-	    break;
-	  default:
-	    method = "WriteUnpacked";
-	    MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
-	    assert(0);
-	    //error!
-	  };
+    if(!isCurrentObjectALocalVariableOrArgument())
+      {
+	method = m_state.getUlamTypeByIndex(nuti)->writeMethodForCodeGen();
       }
     else
       {
-	method = "WriteArray";
+	if(m_state.isScalar(nuti))
+	  {     
+	    method = "write";
+	  }
+	else
+	  {
+	    method = "writeArray";
+	  }
       }
+
     return method;
   } //writeMethodForCodeGen
+
+
+  bool Node::isCurrentObjectALocalVariableOrArgument()
+  {
+    return !(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen));
+  }
 
 
   std::string Node::allCAPS(const char * s) //static method

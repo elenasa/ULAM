@@ -320,7 +320,7 @@ namespace MFM {
     else
       {
 	arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
-	arglist << ".bv"; //new! bv is the storage within the struct
+	arglist << ".m_stg"; //new! bv is the storage within the struct
       }
     // since non-datamember variables can modify globals, save/restore before/after each
     for(u32 i = 0; i < m_argumentNodes.size(); i++)
@@ -447,7 +447,7 @@ namespace MFM {
     else
       {
 	arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
-	arglist << ".bv"; //new! the storage within the struct
+	arglist << ".m_stg"; //new! the storage within the struct
       }
 
     // since non-datamember variables can modify globals, save/restore before/after each

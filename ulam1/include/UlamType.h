@@ -132,6 +132,10 @@ namespace MFM{
 
     virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
 
+    const std::string readMethodForCodeGen();
+
+    const std::string writeMethodForCodeGen();
+
   protected:
     UlamKeyTypeSignature m_key;
     UTI m_uti;

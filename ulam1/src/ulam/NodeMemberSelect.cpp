@@ -218,7 +218,7 @@ namespace MFM {
       }
     m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
 
-    m_nodeRight->genCode(fp, uvpass);  // with readInto (except Terminals)
+    m_nodeRight->genCode(fp, uvpass);  // with readInto
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ****
     m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
