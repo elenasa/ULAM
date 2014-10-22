@@ -331,6 +331,7 @@ namespace MFM {
 	    Symbol * sym;
 	    assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(), sym));
 	    fp->write(sym->getMangledName().c_str());
+	    fp->write(".bv");
 	  }
 
 	if(!m_state.isScalar(cosuti))
@@ -452,6 +453,7 @@ namespace MFM {
 	Symbol * sym;
 	assert(m_state.alreadyDefinedSymbol(luvpass.getPtrNameId(), sym));
 	fp->write(sym->getMangledName().c_str());
+	fp->write(".bv"); // new! the storage within the immediate struct that is sym
       }
 
     fp->write(", ");
@@ -562,6 +564,7 @@ namespace MFM {
 	UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 	fp->write(rut->getUlamTypeImmediateMangledName(&m_state).c_str()); //bool?
 	//uvpass.genCodeBitField(fp, m_state);
+	fp->write("::bf"); //typedef within immediate struct (new!)
 	fp->write("::");
       }
 #else

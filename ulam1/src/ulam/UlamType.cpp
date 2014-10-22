@@ -106,7 +106,12 @@ namespace MFM {
   {
     std::ostringstream mangled;
     s32 bitsize = getBitSize();
-    //    assert(bitsize != ANYBITSIZECONSTANT);     //constant types invalid
+
+    if(bitsize == ANYBITSIZECONSTANT)     //constant types use default bit size
+      {
+	bitsize = state->getDefaultBitSize(getUlamTypeIndex());
+      }
+
     s32 arraysize = getArraySize();
     //    arraysize = (arraysize == NONARRAYSIZE ? 0 : arraysize); 
 
@@ -151,7 +156,10 @@ namespace MFM {
   const std::string UlamType::getImmediateStorageTypeAsString(CompilerState * state)
   {
     std::ostringstream ctype;
-    ctype << "BitVector<" << getTotalWordSize() << ">";
+    //ctype << "BitVector<" << getTotalWordSize() << ">";
+
+    ctype << getUlamTypeImmediateMangledName(state);  // name of struct w typedef(bf) and storage(bv);
+
     return ctype.str();
   } //getImmediateStorageTypeAsString
 
@@ -186,8 +194,87 @@ namespace MFM {
     return "x";
   }
    
- 
+
   void UlamType::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
+  {
+    state->m_currentIndentLevel = 0;
+    const std::string mangledName = getUlamTypeImmediateMangledName(state);	
+    std::ostringstream  ud;
+    ud << "Ud_" << mangledName;  //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
+    
+    state->indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+    
+    state->indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+    
+    state->indent(fp);
+    fp->write("namespace MFM{\n");
+    
+    state->m_currentIndentLevel++;
+
+    state->indent(fp);
+    fp->write("struct ");
+    fp->write(mangledName.c_str());
+    fp->write("\n");
+    state->indent(fp);
+    fp->write("{\n");
+    
+    //typedef bitfield inside struct
+    state->m_currentIndentLevel++;
+    state->indent(fp);
+    fp->write("typedef ");
+    fp->write(getUlamTypeAsStringForC().c_str());  //e.g. BitField
+    fp->write(" bf;\n");
+
+    //storage here
+    state->indent(fp);
+    fp->write("BitVector<");
+    fp->write_decimal(getTotalWordSize());
+    fp->write(">");
+    fp->write(" bv;\n");
+
+    //default constructor (used by local vars)
+    state->indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("() : bv() { }\n");
+
+    //constructor here (used by const tmpVars)
+    state->indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(");
+    fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
+    fp->write(" d) : bv(d) { }\n");
+
+    //default destructor (for completeness)
+    state->indent(fp);
+    fp->write("~");
+    fp->write(mangledName.c_str());
+    fp->write("() { }\n");
+
+    state->m_currentIndentLevel--;
+    state->indent(fp);
+    fp->write("};\n");
+    
+    state->m_currentIndentLevel--;
+    state->indent(fp);
+    fp->write("} //MFM\n");
+    
+    state->indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  }
+
+
+#if 0
+  //redo above
+  void UlamType::GENULAMTYPEMANGLEDDEFINITIONFORC(File * fp, CompilerState * state)
   {
     state->m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName(state);	
@@ -260,7 +347,7 @@ namespace MFM {
     fp->write(upstr.c_str());
     fp->write(" */\n\n");
   }
-
+#endif
 
   void UlamType::genUlamTypeMangledImmediateDefinitionForC(File * fp, CompilerState * state)
   {

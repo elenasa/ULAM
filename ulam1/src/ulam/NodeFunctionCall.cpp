@@ -300,7 +300,7 @@ namespace MFM {
     // generate for value
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
+    //UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
 
     std::ostringstream arglist;
 
@@ -318,8 +318,10 @@ namespace MFM {
     if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
       arglist << m_state.getHiddenArgName();
     else
-      arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
-
+      {
+	arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
+	arglist << ".bv"; //new! bv is the storage within the struct
+      }
     // since non-datamember variables can modify globals, save/restore before/after each
     for(u32 i = 0; i < m_argumentNodes.size(); i++)
       {
@@ -443,7 +445,10 @@ namespace MFM {
     if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
       arglist << m_state.getHiddenArgName();
     else
-      arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
+      {
+	arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
+	arglist << ".bv"; //new! the storage within the struct
+      }
 
     // since non-datamember variables can modify globals, save/restore before/after each
     for(u32 i = 0; i < m_argumentNodes.size(); i++)

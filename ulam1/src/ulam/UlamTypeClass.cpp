@@ -120,18 +120,18 @@ namespace MFM {
   {
     state->m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeMangledName(state);	
-    std::ostringstream  up;
-    up << "Up_" << mangledName;
-    std::string upstr = up.str();
+    std::ostringstream  ud;
+    ud << "Ud_" << mangledName;
+    std::string udstr = ud.str();
     
     state->indent(fp);
     fp->write("#ifndef ");
-    fp->write(upstr.c_str());
+    fp->write(udstr.c_str());
     fp->write("\n");
     
     state->indent(fp);
     fp->write("#define ");
-    fp->write(upstr.c_str());
+    fp->write(udstr.c_str());
     fp->write("\n");
     
     state->indent(fp);
@@ -181,7 +181,7 @@ namespace MFM {
     
     state->indent(fp);
     fp->write("#endif /*");
-    fp->write(upstr.c_str());
+    fp->write(udstr.c_str());
     fp->write(" */\n\n");
   }
 

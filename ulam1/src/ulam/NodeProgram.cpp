@@ -189,7 +189,7 @@ namespace MFM {
       m_state.m_currentBlock = m_state.m_classBlock;
 
       // mangled types and forward class declarations
-      // genMangledTypeHeaderFile(fm);    
+      genMangledTypeHeaderFile(fm);    
 
       // this class header
       {
@@ -314,24 +314,34 @@ namespace MFM {
   void NodeProgram::generateHeaderIncludes(File * fp)
   {
     m_state.indent(fp);
+#if 0
+    // moved to _types.h
     //use -I ../../../include in g++ command
     fp->write("//#include \"itype.h\"\n"); 
     fp->write("//#include \"BitVector.h\"\n"); 
     fp->write("//#include \"BitField.h\"\n"); 
-    
+#endif
     fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+
+    //using the _Types.h file
+    m_state.indent(fp);
+    fp->write("#include \"");
+    fp->write(m_state.getFileNameForThisTypesHeader().c_str());  
+    fp->write("\"\n");
+    fp->write("\n");
 
     //generate includes for all the other classes that have appeared
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
-  }
+  } //generateHeaderIncludes
 
 
+#if 0
   // REPLACED BY: genImmediateMangledTypesForHeaderFile
   // this is for immediate types, and will probably be moved to the element's .h
   // since template typedefs are not supported in the version of g++ we've selected.
-  void NodeProgram::genMangledTypeHeaderFile(FileManager * fm)
+  void NodeProgram::GENMANGLEDTYPEHEADERFILE(FILEMANAGER * FM)
   {
-    File * fp = fm->open(m_state.getFileNameForThisTypesHeader().c_str(), WRITE);
+    FILE * fp = fm->open(m_state.getFileNameForThisTypesHeader().c_str(), WRITE);
     assert(fp);
     
     m_state.m_currentIndentLevel = 0;
@@ -339,10 +349,13 @@ namespace MFM {
 
     m_state.indent(fp);
     //use -I ../../../include in g++ command
-    fp->write("#include \"itype.h\"\n"); 
-    fp->write("#include \"BitVector.h\"\n"); 
-    fp->write("#include \"BitField.h\"\n"); 
+    fp->write("//#include \"itype.h\"\n"); 
+    fp->write("//#include \"BitVector.h\"\n"); 
+    fp->write("//#include \"BitField.h\"\n"); 
     fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
 
     //skip Nav type (0)
     u32 numTypes = m_state.m_indexToUlamType.size();
@@ -354,7 +367,41 @@ namespace MFM {
       }
     delete fp;
   }
+#endif
 
+
+  //redo: create structs with BV, as storage, and typedef
+  //      for primitive types; useful as args and local variables;
+  //      important for overloading functions
+  void NodeProgram::genMangledTypeHeaderFile(FileManager * fm)
+  {
+    File * fp = fm->open(m_state.getFileNameForThisTypesHeader().c_str(), WRITE);
+    assert(fp);
+    
+    m_state.m_currentIndentLevel = 0;
+    fp->write(CModeForHeaderFiles);
+
+    m_state.indent(fp);
+    //use -I ../../../include in g++ command
+    fp->write("//#include \"itype.h\"\n"); 
+    fp->write("//#include \"BitVector.h\"\n"); 
+    fp->write("//#include \"BitField.h\"\n"); 
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+
+    //skip Nav type (0)
+    u32 numTypes = m_state.m_indexToUlamType.size();
+    for(u32 i = 1; i < numTypes; i++)
+      {
+	UlamType * ut = m_state.getUlamTypeByIndex(i);
+	if(ut->needsImmediateType())   //e.g. skip constants
+	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+      }
+    delete fp;
+  } //genMangledTypeHeaderFile
+ 
 
   // append main to .cpp for debug useage
   // outside the MFM namespace !!!
