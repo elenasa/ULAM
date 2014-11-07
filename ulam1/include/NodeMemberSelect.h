@@ -49,11 +49,13 @@ namespace MFM{
 
     virtual void printOp(File * f);
 
-    virtual UTI checkAndLabelType();
-
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
+
+    virtual const std::string methodNameForCodeGen();
+
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 

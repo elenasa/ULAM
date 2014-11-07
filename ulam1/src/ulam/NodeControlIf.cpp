@@ -139,23 +139,4 @@ namespace MFM {
 #endif
   } //genCode
 
-
-#if 0
-  void NodeControlIf::GENCODE(File * fp, UlamValue& uvpass)
-  {
-    NodeControl::genCode(fp, uvpass);
-
-    if(m_nodeElse)
-      {
-	m_state.indent(fp);
-	fp->write("else\n");
-
-	m_state.m_currentIndentLevel++;
-	m_nodeElse->genCode(fp, uvpass);
-	m_state.m_currentIndentLevel--;
-      }
-  }
-#endif
-
-
 } //end MFM

@@ -52,6 +52,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual const std::string methodNameForCodeGen();
+
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();

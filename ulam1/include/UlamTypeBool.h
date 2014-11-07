@@ -64,8 +64,8 @@ namespace MFM{
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 
-    const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
-
+    //const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+    const std::string getConvertToCboolMethod();
   private:
 
   };

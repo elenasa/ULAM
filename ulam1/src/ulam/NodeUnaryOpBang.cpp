@@ -20,6 +20,16 @@ namespace MFM {
   }
 
 
+  const std::string NodeUnaryOpBang::methodNameForCodeGen()
+  {
+    s32 sizeByInts = m_state.getUlamTypeByIndex(getNodeType())->getTotalWordSize();
+
+    std::ostringstream methodname;
+    methodname << "_LogicalBang" << "Bool" << sizeByInts;
+    return methodname.str();
+  }
+
+
   UTI NodeUnaryOpBang::checkAndLabelType()
   { 
     assert(m_node);
@@ -49,32 +59,6 @@ namespace MFM {
 
     return newType; 
   } //checkAndLabelType
-
-
-#if 0
-  UTI NodeUnaryOpBang::CHECKANDLABELTYPE()
-  { 
-    assert(m_node);
-
-    UTI but = Bool;
-    UTI ut = m_node->checkAndLabelType(); 
-    
-    assert(m_state.isScalar(ut));
-
-    if(ut != but)
-      {
-	//m_node = new NodeCast(m_node, but, m_state);
-	//m_node->setNodeLocation(getNodeLocation());
-	//m_node->checkAndLabelType();
-	m_node = makeCastingNode(m_node, but);
-      }
-    
-    setNodeType(but);
-    setStoreIntoAble(false);
-
-    return getNodeType();
-  }
-#endif
 
 
   UlamValue NodeUnaryOpBang::makeImmediateUnaryOp(UTI type, u32 data, u32 len)

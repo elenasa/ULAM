@@ -73,6 +73,8 @@ namespace MFM{
 
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
+
   private:
 
     Token m_functionNameTok;

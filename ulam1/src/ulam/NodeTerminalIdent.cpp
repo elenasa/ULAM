@@ -161,9 +161,6 @@ namespace MFM {
     uvpass.setPtrNameId(m_varSymbol->getId());
     uvpass.setPtrSlotIndex(m_state.getNextTmpVarNumber());
 
-    // does this work instead of relying on m_currentObjPtr for getPtrPos to add to this variable's PosOffset???
-    //UlamValue uvpass = UlamValue::makePtr(m_state.getNextTmpVarNumber(), TMPVAR, getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjSymbolForCodeGen->getPosOffset() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
-
     return uvpass;
   } //makeUlamValuePtrForCodeGen
 
@@ -332,7 +329,6 @@ namespace MFM {
     uvpass = makeUlamValuePtrForCodeGen();
 
     m_state.m_currentObjPtr = uvpass;                    //*************
-    //if(!m_varSymbol->isDataMember())
     m_state.m_currentObjSymbolForCodeGen = m_varSymbol;  //************UPDATED GLOBAL; 
 
     // UNCLEAR: should this be consistent with constants?
@@ -348,13 +344,9 @@ namespace MFM {
     //e.g. return the ptr for an array; square bracket will resolve down to the immediate data
     uvpass = makeUlamValuePtrForCodeGen();
 
-    // consistency..
-    //if(!m_varSymbol->isDataMember())
-      {
-	//******UPDATED GLOBAL; no restore!!!**************************
-	m_state.m_currentObjPtr = uvpass;                   //*********
-	m_state.m_currentObjSymbolForCodeGen = m_varSymbol; //*********
-      }
+    //******UPDATED GLOBAL; no restore!!!**************************
+    m_state.m_currentObjPtr = uvpass;                   //*********
+    m_state.m_currentObjSymbolForCodeGen = m_varSymbol; //*********
   } //genCodeToStoreInto
 
 

@@ -52,14 +52,17 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual UTI checkAndLabelType();
+
+    virtual const std::string methodNameForCodeGen();
+
   protected:
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len);
 
   private:
    
-
   };
 
-}
+} //MFM
 
-#endif //end NODEUNARYOP_H
+#endif //end NODEUNARYOPMINUS_H

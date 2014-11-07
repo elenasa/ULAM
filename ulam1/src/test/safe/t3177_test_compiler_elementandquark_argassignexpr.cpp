@@ -11,9 +11,9 @@ namespace MFM {
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("Foo.ulam","ulam 1; use Bar; element Foo { Int(4) m_i; Bar m_bar; Bool m_b; Bool check(Bool b) { return b /* true */; } Int test() { Foo f;  f.m_bar.reset();  m_i = check(m_b = f.m_bar.val_b[1]); return m_i; } }\n"); //worked without f.m_bar as arg to check func; m_i not true? is m_bar f's? YES..now it works.
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use Bar;\n element Foo {\n Int(4) m_i;\n Bar m_bar;\n Bool m_b;\n Bool check(Bool b) {\n return b /* true */;\n }\n Int test() {\n Foo f;\n  f.m_bar.reset();\n  m_i = check(m_b = f.m_bar.val_b[1]);\n return m_i;\n }\n }\n"); //worked without f.m_bar as arg to check func; m_i not true? is m_bar f's? YES..now it works.
 
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1; quark Bar { Bool val_b[3];  Void reset() { val_b[1] = true; } }\n");
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset() {\n val_b[1] = true;\n }\n }\n");
       
       if(rtn1 & rtn2)
 	return std::string("Foo.ulam");

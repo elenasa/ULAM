@@ -55,11 +55,14 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
+    virtual const std::string methodNameForCodeGen() = 0;
+
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
+
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:

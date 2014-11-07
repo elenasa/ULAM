@@ -106,6 +106,8 @@ namespace MFM{
 
     void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
 
+    void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
+
     /**
      * Returns converted const argument to all capital letters as a string
      */
@@ -116,10 +118,16 @@ namespace MFM{
 
     CompilerState & m_state;  //for printing error messages with path
     Node * makeCastingNode(Node * node, UTI tobeType);
+    bool warnOfNarrowingCast(UTI nodeType, UTI tobeType);
 
     void genMemberNameOfMethod(File * fp, UlamValue uvpass); //helper method to read/write into/from tmpvar
+    void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
+
     const std::string readMethodForCodeGen(UTI nuti);
     const std::string writeMethodForCodeGen(UTI nuti);
+
+    const std::string readMethodForImmediateBitValueForCodeGen(UTI nuti);
+    const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti);
 
     bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self; 
 

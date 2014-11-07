@@ -541,7 +541,7 @@ namespace MFM {
       };
     
     return rtnNode;
-  }
+  } //parseControlStatement
 
 
   Node * Parser::parseControlIf(Token ifTok)
@@ -569,18 +569,27 @@ namespace MFM {
 	return NULL;  //stop this maddness
       }
 
-    Node * falseNode = NULL;
+    // wrapping body in NodeStatements produces proper comment for genCode
+    NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
+    trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
+
+    Node * falseStmtNode = NULL;
 
     if(getExpectedToken(TOK_KW_ELSE, QUIETLY))
       {
-	falseNode = parseStatement();
+	Node * falseNode = parseStatement();
+	if(falseNode != NULL)
+	  {
+	    falseStmtNode = new NodeStatements(falseNode, m_state);
+	    falseStmtNode->setNodeLocation(falseNode->getNodeLocation());
+	  }
       }
 
-    Node * rtnNode = new NodeControlIf(condNode, trueNode, falseNode, m_state);
+    Node * rtnNode = new NodeControlIf(condNode, trueStmtNode, falseStmtNode, m_state);
     rtnNode->setNodeLocation(ifTok.m_locator);
 
     return rtnNode;
-  }
+  } //parseControlIf
 
 
   Node * Parser::parseControlWhile(Token wTok)
@@ -608,11 +617,15 @@ namespace MFM {
 	return NULL;  //stop this maddness
       }
 
-    Node * rtnNode = new NodeControlWhile(condNode, trueNode, m_state);
+    // wrapping body in NodeStatements produces proper comment for genCode
+    NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
+    trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
+
+    Node * rtnNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
     rtnNode->setNodeLocation(wTok.m_locator);
 
     return rtnNode;
-  }
+  } //parseControlWhile
 
 
   Node * Parser::parseSimpleStatement()
@@ -673,7 +686,7 @@ namespace MFM {
       }
     
     return rtnNode;   //parseSimpleStatement
-  }
+  } //parseSimpleStatement
 
 
   // Typedefs are not transferred to generated code;
@@ -818,7 +831,7 @@ namespace MFM {
     rtnNode->setNodeLocation(pTok.m_locator);
 
     return rtnNode;
-  }
+  } //parseReturn
 
   
   Node * Parser::parseAssignExpr()
@@ -1580,10 +1593,12 @@ namespace MFM {
 	funcNode->setNextNode(nextNode);
 
 	funcNode->setNative();
-
+#if 0
+	//output messes up test answer comparison
 	std::ostringstream msg;
 	msg << "Native Function Definition: <" << funcNode->getName() << ">";
 	MSG(&qTok, msg.str().c_str(), INFO);
+#endif
 	brtn = true;
       }
     else

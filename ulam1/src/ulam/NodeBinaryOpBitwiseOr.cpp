@@ -20,6 +20,14 @@ namespace MFM {
   }
 
 
+  const std::string NodeBinaryOpBitwiseOr::methodNameForCodeGen()
+  {
+    std::ostringstream methodname;
+    methodname << "_BitwiseOr" << NodeBinaryOpBitwise::methodNameForCodeGen();
+    return methodname.str();
+  }
+
+
   UlamValue NodeBinaryOpBitwiseOr::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     return UlamValue::makeImmediate(type, ldata | rdata, len);

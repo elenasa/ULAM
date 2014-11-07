@@ -27,6 +27,21 @@ namespace MFM {
   }
 
 
+  const std::string NodeVarDeclList::methodNameForCodeGen()
+  {
+    return "_VarDeclList_Stub";
+  }
+
+
+  void NodeVarDeclList::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    //each VarDecl is output separately, not as a list.
+    m_nodeLeft->packBitsInOrderOfDeclaration(offset); //updates offset first
+    m_nodeRight->packBitsInOrderOfDeclaration(offset); //updates offset next
+  }
+
+
   UTI NodeVarDeclList::checkAndLabelType()
   { 
     assert(m_nodeLeft && m_nodeRight);
@@ -82,15 +97,6 @@ namespace MFM {
   {
     assert(0); //unused
     return UlamValue();
-  }
-
-
-  void NodeVarDeclList::packBitsInOrderOfDeclaration(u32& offset)
-  {
-    assert(m_nodeLeft && m_nodeRight);
-    //each VarDecl is output separately, not as a list.
-    m_nodeLeft->packBitsInOrderOfDeclaration(offset); //updates offset first
-    m_nodeRight->packBitsInOrderOfDeclaration(offset); //updates offset next
   }
 
 

@@ -510,7 +510,7 @@ namespace MFM {
     fp->write("<OurCoreConfig> OurFoo;\n");
 
     m_state.indent(fp);
-    fp->write("OurFoo foo;\n");
+    fp->write("OurFoo& foo = OurFoo::THE_INSTANCE;\n");
     
     m_state.indent(fp);
     fp->write("foo.SetType(23); //This is actually done by code code in a complicated way\n");
@@ -524,9 +524,9 @@ namespace MFM {
 #if 0
     // output for t3200..
     m_state.indent(fp);
-    fp->write("printf(\"Bar1 toInt = %d\\n\", OurFoo::Ut_Um_4bar1::Uf_5toInt(fooAtom));\n");
+    fp->write("printf(\"Bar1 toInt = %d\\n\", OurFoo::Ut_Um_4bar1::Uf_5toInt(fooAtom).read());\n");
     m_state.indent(fp);
-    fp->write("printf(\"Bar2 toInt = %d\\n\", OurFoo::Ut_Um_4bar2::Uf_5toInt(fooAtom));\n");
+    fp->write("printf(\"Bar2 toInt = %d\\n\", OurFoo::Ut_Um_4bar2::Uf_5toInt(fooAtom).read());\n");
 #endif
 
     m_state.indent(fp);

@@ -20,6 +20,12 @@ namespace MFM {
   }
 
 
+  const std::string NodeBinaryOpEqual::methodNameForCodeGen()
+  {
+    return "_Equal_Stub";
+  }
+
+
   UTI NodeBinaryOpEqual::checkAndLabelType()
   { 
     assert(m_nodeLeft && m_nodeRight);
@@ -256,6 +262,9 @@ namespace MFM {
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;                //*************
     Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
 
+    //UlamValue saveCurrentSelfPtr = m_state.m_currentSelfPtr;                //*************
+    //Symbol * saveCurrentSelfSymbol = m_state.m_currentSelfSymbolForCodeGen; //*************
+
 #ifdef TMPVARBRACES
     m_state.indent(fp);
     fp->write("{\n");
@@ -267,16 +276,22 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // init to self
+    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // restore to self
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
 
-    // lhs should be the new current object: node member select updates them, 
+    //m_state.m_currentSelfSymbolForCodeGen = saveCurrentSelfSymbol; // restore to self
+    // m_state.m_currentSelfPtr = saveCurrentSelfPtr;  //restore *******
+
+    // lhs should be the new current object/self: node member select updates them, 
     // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
-    m_nodeLeft->genCodeToStoreInto(fp, uvpass);      //may update m_currentObjSymbol
+    UlamValue luvpass;
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass);      //may update m_currentObjSymbol, m_currentSelfSymbol
 
     // current object globals should pertain to lhs for the write
-    genCodeWriteFromATmpVar(fp, uvpass, ruvpass);        //uses rhs' tmpvar
+    genCodeWriteFromATmpVar(fp, luvpass, ruvpass);   //uses rhs' tmpvar
+
+    uvpass = ruvpass;  // in case we're the rhs of an equals..
 
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
@@ -285,6 +300,9 @@ namespace MFM {
 #endif
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
     m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+
+    //    m_state.m_currentSelfSymbolForCodeGen = saveCurrentSelfSymbol; // restore to self
+    //m_state.m_currentSelfPtr = saveCurrentSelfPtr;  //restore *******
   } //genCode
 
 } //end MFM

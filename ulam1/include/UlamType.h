@@ -112,18 +112,23 @@ namespace MFM{
 
     virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp, CompilerState * state);
 
+    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
+
+
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
 
     static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
 
     //for name by index see CompilerState::getUlamTypeNameByIndex
-    bool isConstant();
+    virtual bool isConstant();
 
     bool isScalar();   //arraysize == NOTARRAYSIZE is scalar
 
     s32 getArraySize();
 
-    s32 getBitSize();  //'class' type calculated after type labeling; default size for constants
+    virtual s32 getBitSize();  //'class' type calculated after type labeling; default size for constants
 
     u32 getTotalBitSize();  //bitsize * arraysize, accounting for constants and scalars
 
@@ -131,11 +136,14 @@ namespace MFM{
     hold the total bit size  */
     u32 getTotalWordSize();   
 
-    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
-
     const std::string readMethodForCodeGen();
 
     const std::string writeMethodForCodeGen();
+
+    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+
+    virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
+
 
   protected:
     UlamKeyTypeSignature m_key;

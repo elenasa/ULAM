@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //developed by Dave (10092014) in c++ and then converted to Ulam.
-      return std::string("Ue_Foo { Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(9);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = j ( i cast 7 cast +b )update cast = 0 cast return } }\nExit status: 0");
+      return std::string("Ue_Foo { Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(7);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = j ( i cast 7 cast +b )update cast = 0 cast return } }\nExit status: 0");
     }
     
     std::string PresetTest(FileManagerString * fms)

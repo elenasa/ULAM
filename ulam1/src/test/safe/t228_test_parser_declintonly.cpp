@@ -13,7 +13,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       //bool rtn1 = fms->add("a.ulam","( a + x ) * PI;"); 
-      bool rtn1 = fms->add("A.ulam","element A{Int a;}"); 
+      bool rtn1 = fms->add("A.ulam","element A{\nInt a;\n}\n"); 
       
       if(rtn1)
 	return std::string("A.ulam");

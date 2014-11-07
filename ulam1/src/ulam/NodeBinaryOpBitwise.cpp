@@ -64,4 +64,31 @@ namespace MFM {
     return newType;
   }
 
+
+  const std::string NodeBinaryOpBitwise::methodNameForCodeGen()
+  {
+    std::ostringstream methodname;
+    //methodname << "_BitwiseOr";  determined by each op
+
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+
+    // common part of name
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    switch(etyp)
+      {
+      case Int:
+	methodname << "Int";
+	break;
+      case Unary:
+	methodname << "Unary";
+	break;
+      default:
+	methodname << "Bits";
+	break;
+      };
+
+    methodname << nut->getTotalWordSize();
+    return methodname.str();
+  } // methodNameForCodeGen
+
 } //end MFM

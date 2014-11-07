@@ -122,7 +122,8 @@ namespace MFM {
 
   void NodeReturnStatement::genCode(File * fp, UlamValue& uvpass)
   {
-    if(m_node)
+    // return for void type has a NodeStatementEmpty m_node
+    if(m_node && getNodeType() != Void)
       {
 #ifdef TMPVARBRACES
 	m_state.indent(fp);
@@ -132,23 +133,28 @@ namespace MFM {
 	//m_node->genCodeToStoreInto(fp, uvpass);
 	m_node->genCode(fp, uvpass);
 	UTI vuti = uvpass.getUlamValueTypeIdx();
-	bool isTerminal = (vuti != Ptr);
+	//bool isTerminal = (vuti != Ptr);
 
-	m_state.indent(fp);
-	fp->write("return ");
-	fp->write("(");
-	if(isTerminal)
+	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
+
+	//if(isTerminal)
+	//  {
+	//    // write out terminal explicitly
+	//    m_state.indent(fp);
+	//    fp->write("return ");
+	//    fp->write("(");
+	//    u32 data = uvpass.getImmediateData(m_state);
+	//    char dstr[40];
+	//    m_state.getUlamTypeByIndex(vuti)->getDataAsString(data, dstr, 'z', m_state);
+	//    fp->write(dstr);
+	//  }
+	//else
 	  {
-	    // write out terminal explicitly
-	    u32 data = uvpass.getImmediateData(m_state);
-	    char dstr[40];
-	    m_state.getUlamTypeByIndex(vuti)->getDataAsString(data, dstr, 'z', m_state);
-	    fp->write(dstr);
-	  }
-	else
-	  {
+	    m_state.indent(fp);
+	    fp->write("return ");
+	    fp->write("(");
 	    vuti = uvpass.getPtrTargetType();
-	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str());
+	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 	  }
 
 	fp->write(")");
@@ -158,14 +164,12 @@ namespace MFM {
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
 	fp->write("}\n");
-	//fp->write("\n");
 #endif
       }
     else
       {
 	m_state.indent(fp);
-	fp->write("return ");   //void 
-	fp->write(";\n");
+	fp->write("return;\n");   //void 
       }
   } //genCode
 

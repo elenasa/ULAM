@@ -43,7 +43,6 @@ namespace MFM {
 
   const std::string UlamTypeVoid::getImmediateStorageTypeAsString(CompilerState * state)
   {
-    assert(0);
     return "void";
   }
 

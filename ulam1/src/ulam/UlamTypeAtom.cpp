@@ -39,6 +39,13 @@ namespace MFM {
   bool UlamTypeAtom::needsImmediateType()
   {
     return false;
+    //return true;
+  }
+
+
+  const std::string UlamTypeAtom::getTmpStorageTypeAsString(CompilerState * state)
+  {
+    return "BV";
   }
 
 

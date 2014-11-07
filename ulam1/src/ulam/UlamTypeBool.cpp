@@ -30,13 +30,16 @@ namespace MFM {
     if(needsImmediateType())
       return UlamType::getUlamTypeImmediateMangledName(state);
 
-    return getImmediateStorageTypeAsString(state);  //"bool"
+    //return getImmediateStorageTypeAsString(state);  //"bool" inf loop
+    //return getTmpStorageTypeAsString(state); 
+    return UlamType::getUlamTypeImmediateMangledName(state); //? for constants
   }
 
 
   const std::string UlamTypeBool::getTmpStorageTypeAsString(CompilerState * state)
   {
-    return "bool";
+    //return "bool";
+    return "u32";
   }
 
 
@@ -65,57 +68,30 @@ namespace MFM {
     s32 valbitsize = state.getBitSize(valtypidx);
     
     //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();
+    //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-
-    if((bitsize != valbitsize) && (typEnum != valtypEnum))
-      {
-	//change to val's size, within the TOBE current type; 
-	//get string index for TOBE enum type string
-	u32 enumStrIdx = state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
-	UlamKeyTypeSignature vkey1(enumStrIdx, valbitsize, arraysize);
-	UTI vtype1 = state.makeUlamType(vkey1, typEnum); //may not exist yet, create  
-	
-	if(!(state.getUlamTypeByIndex(vtype1)->cast(val,state))) //val changes!!!
-	  {
-	    //error! 
-	    return false;
-	  }
-	
-	valtypidx = val.getUlamValueTypeIdx();  //reload
-	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-      }
 
     u32 newdata = 0;
     u32 data = val.getImmediateData(state);    
     switch(valtypEnum)
       {
       case Int:
-      case Unsigned:
-      case Unary:
 	{
-	  if(data != 0) //signed or unsigned
-	    newdata = _GetNOnes32(bitsize);  //all ones if true
+	  s32 sdata = _SignExtend32(data, valbitsize);
+	  newdata = _Int32ToBool32(sdata, valbitsize, bitsize);
 	}
+	break;
+      case Unsigned:
+	newdata = _Unsigned32ToBool32(data, valbitsize, bitsize);
+	break;
+      case Unary:
+	newdata = _Unary32ToBool32(data, valbitsize, bitsize); //all ones if true
 	break;
       case Bool:
-	{
-	  if(state.isConstant(valtypidx))
-	    {
-	      if(data != 0) //signed or unsigned
-		newdata = _GetNOnes32(bitsize);  //all ones if true
-	    }
-	  else
-	    {
-	      // casting Bool to Bool could improve the bit count!
-	      s32 count1s = PopCount(data);
-	      if(count1s > (s32) (valbitsize - count1s))  // == when even number bits is ignored (warning at def)
-		newdata = _GetNOnes32(bitsize);        //all ones if true
-	    }
-	}
+	newdata = _Bool32ToBool32(data, valbitsize, bitsize); //all ones if true
 	break;
       case Bits:
-	newdata = data;  //no change to Bits data
+	newdata = _Bits32ToBool32(data, valbitsize, bitsize);  //no change to Bits data
 	break;
       case Void:
       default:
@@ -152,20 +128,13 @@ namespace MFM {
     else
       sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   }
+  
 
-
-  const std::string UlamTypeBool::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  const std::string UlamTypeBool::getConvertToCboolMethod()
   {
     std::ostringstream rtnMethod;
-    UlamType * nut = state.getUlamTypeByIndex(nodetype);
-    
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();   //no word size distinction for bool
-    ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
-    s32 sizeByIntBits = nut->getTotalWordSize();
-
-    rtnMethod << "_" << UlamType::getUlamTypeEnumAsString(nodetypEnum) << sizeByIntBits << "To" << UlamType::getUlamTypeEnumAsString(typEnum);
+    rtnMethod << "_Bool" << getTotalWordSize() << "ToCbool";
     return rtnMethod.str();
-  } //castMethodForCodeGen
-
+  } //getCovertToCBoolMethod
+  
 } //end MFM

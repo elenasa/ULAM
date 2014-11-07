@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     //virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);

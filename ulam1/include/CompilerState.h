@@ -200,7 +200,7 @@ namespace MFM{
     void indent(File * fp);
     const char * getHiddenArgName();
     s32 getNextTmpVarNumber();
-    const std::string getTmpVarAsString(UTI uti, s32 num);
+    const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
 
     std::string getFileNameForAClassHeader(u32 id);
     std::string getFileNameForThisClassHeader();
@@ -243,6 +243,8 @@ namespace MFM{
 
     /** used during codeGen to document the source Ulam code */
     std::string getLineOfText(Locator loc);
+
+    void outputTextAsComment(File * fp, Locator nodeloc);
 
   };
   

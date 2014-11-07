@@ -70,7 +70,7 @@ namespace MFM {
     std::ostringstream pmangled;
     pmangled << Symbol::getParameterTypePrefix(isaclass).c_str() << getMangledName();
     return pmangled.str();
-  }
+  } //getMangledNameForParameterType
 
 
   const std::string Symbol::getParameterTypePrefix(bool isaclass)  //static method

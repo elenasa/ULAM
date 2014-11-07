@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "NodeControlWhile.h"
+#include "UlamTypeBool.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -83,15 +84,82 @@ namespace MFM {
 
   void NodeControlWhile::genCode(File * fp, UlamValue& uvpass)
   {
+    assert(m_nodeCondition && m_nodeBody);
+
+#ifdef TMPVARBRACES
     m_state.indent(fp);
     fp->write("{\n");  //for overall tmpvars
     m_state.m_currentIndentLevel++;
+#endif
 
-    NodeControl::genCode(fp, uvpass);  //condition and body
+    //while true..
+    m_state.indent(fp);
+    fp->write(getName());  
+    fp->write("(true)\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+
+    //if !condition break;
+    m_nodeCondition->genCode(fp, uvpass);
+    
+    bool isTerminal = false;
+    UTI cuti = uvpass.getUlamValueTypeIdx();
+
+    if(cuti == Ptr)
+      {
+	cuti = uvpass.getPtrTargetType();
+      }
+    else
+      {
+	isTerminal = true;
+      }
+
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("if(!");
+
+    if(isTerminal)
+      {
+	// fp->write("(bool) ");
+	// write out terminal explicitly
+	u32 data = uvpass.getImmediateData(m_state);
+	char dstr[40];
+	cut->getDataAsString(data, dstr, 'z', m_state);
+	fp->write(dstr);
+      }
+    else
+      {
+	assert(cut->getUlamTypeEnum() == Bool);
+	fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
+	fp->write(", ");
+	fp->write_decimal(cut->getBitSize());
+	fp->write(")");
+      }
+    fp->write(")\n");
+    m_state.indent(fp);
+    fp->write("break;\n");
+
+    //else do the body
+    m_nodeBody->genCode(fp, uvpass);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");  //overall tmpvar
+    fp->write("} // end ");
+    fp->write(getName()); //end while
+    fp->write("\n");
+
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");  //close for tmpVar
+#endif
+
   } //genCode
 
 } //end MFM

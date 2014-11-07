@@ -19,6 +19,15 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+
+  const std::string NodeBinaryOpEqualArithMultiply::methodNameForCodeGen()
+  {
+    std::ostringstream methodname;
+    methodname << "_BinOpMultiply" << NodeBinaryOpEqualArith::methodNameForCodeGen();
+    return methodname.str();
+  } //methodNameForCodeGen
+
+
   //same as NodeBinaryOpMultiply
   UlamValue NodeBinaryOpEqualArithMultiply::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {

@@ -16,6 +16,13 @@ namespace MFM {
    }
 
 
+  const std::string UlamTypeNav::getUlamTypeAsStringForC()
+  {
+    assert(0);
+    return "nav";
+  }
+
+
   bool UlamTypeNav::needsImmediateType()
   {
     return false;

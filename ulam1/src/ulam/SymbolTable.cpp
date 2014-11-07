@@ -376,6 +376,8 @@ namespace MFM {
 		    // ==0, redo variable total
 		    NodeBlockClass * classblock = csym->getClassBlockNode();
 		    assert(classblock);
+		    
+		    //quark cannot contain a copy of itself!
 		    assert(classblock != m_state.m_classBlock);
 		    
 		    csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
@@ -419,6 +421,7 @@ namespace MFM {
 	  {
 	    //updates the offset with the bit size of sym
 	    ((SymbolVariable *) sym)->setPosOffset(offsetIntoAtom);
+
 	    offsetIntoAtom += m_state.getTotalBitSize(sym->getUlamTypeIdx());  // times array size 
 	  }
 	it++;

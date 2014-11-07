@@ -54,6 +54,8 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
+    virtual const std::string getUlamTypeAsStringForC();
+
     virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
 
     virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);

@@ -316,12 +316,20 @@ namespace MFM {
 
     //"hidden" first arg
     if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
-      arglist << m_state.getHiddenArgName();
+      {
+	arglist << m_state.getHiddenArgName();
+      }
     else
       {
 	arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
-	arglist << ".m_stg"; //new! bv is the storage within the struct
+
+	UTI cosuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();       
+	if(m_state.getUlamTypeByIndex(cosuti)->getUlamClass() == UC_QUARK)
+	  {
+	    arglist << ".m_stg"; //the T storage within the struct for immediate quarks
+	  }
       }
+    
     // since non-datamember variables can modify globals, save/restore before/after each
     for(u32 i = 0; i < m_argumentNodes.size(); i++)
       {
@@ -339,7 +347,7 @@ namespace MFM {
 	    auti = auvpass.getPtrTargetType();
 	  }
 
-	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex()).c_str();
+	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
 
 	m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
 	m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
@@ -351,228 +359,53 @@ namespace MFM {
     if(nuti != Void)
       {
 	s32 rtnSlot = m_state.getNextTmpVarNumber();
-	uvpass = UlamValue::makePtr(rtnSlot, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0, m_state.m_currentSelfSymbolForCodeGen->getId()); //POS 0 rightjustified; selfsymbol id in Ptr;
+	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0, m_state.m_currentSelfSymbolForCodeGen->getId()); //POS 0 rightjustified; selfsymbol id in Ptr;
 
-	ULAMCLASSTYPE nclasstype = nut->getUlamClass();	
-	// put result of function call into a variable; (still unresolved, perhaps a struct???)
-	if(nclasstype == UC_QUARK || nclasstype == UC_ELEMENT)
-	  {
-	    fp->write("const ");
-	    fp->write(nut->getImmediateStorageTypeAsString(&m_state).c_str()); //BitVector<32>
-	    fp->write(" ");
-	    fp->write(m_state.getTmpVarAsString(nuti, rtnSlot).c_str());
-	    fp->write(" = ");
-	  }
-	else
-	  {
-	    fp->write("const ");
-	    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //u32, s32, etc.
-	    fp->write(" ");
-	    fp->write(m_state.getTmpVarAsString(nuti, rtnSlot).c_str());
-	    fp->write(" = ");
-	  }
+	// put result of function call into a variable;
+	// (C turns it into the copy constructor)
+	fp->write("const ");
+	fp->write(nut->getImmediateStorageTypeAsString(&m_state).c_str()); //BitVector<32>
+	fp->write(" ");
+	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
+	fp->write(" = ");	
       } //not void return
 
-    //who's function is it? can we use m_cos???
-    //UTI objuti = m_state.m_currentObjPtr.getUlamValueTypeIdx();
-    //assert(objuti == Ptr);
-    //objuti = m_state.m_currentObjPtr.getPtrTargetType();
+    // static functions..oh yeah.
+    //who's function is it? can we use m_cos' type
     UTI objuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(objuti)->getUlamClass();
-    if(classtype == UC_QUARK)
+
+    if(m_state.m_currentObjSymbolForCodeGen->isDataMember())
       {
-	fp->write(m_state.getUlamTypeByIndex(objuti)->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC, ");
-	// assumes this quark is a data member?
-	assert(m_state.m_currentObjSymbolForCodeGen->isDataMember());
-	//fp->write_decimal(m_state.m_currentObjPtr.getPtrPos());
-	fp->write_decimal(((SymbolVariableDataMember *) m_state.m_currentObjSymbolForCodeGen)->getPosOffset() + ATOMFIRSTSTATEBITPOS);
-	fp->write(">");
+	assert(classtype == UC_QUARK);
+	fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
 	fp->write("::");
       }
-#if 0
+    else if(m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)
+      {
+	//nothing to do?
+      }
     else
       {
-	//must be element
-	assert(classtype == UC_ELEMENT);
-
-	//fp->write(m_state.m_currentSelfSymbolForCodeGen->getMangledName().c_str());
-	fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>");  //different for a quark method
-	fp->write("::");
+	//local (static functions)
+	if(classtype == UC_QUARK)
+	  {
+	    fp->write(m_state.getUlamTypeByIndex(objuti)->getUlamTypeImmediateMangledName(&m_state).c_str());
+	    fp->write("<CC>");
+	    fp->write("::");	    
+	    fp->write("Us::");
+	  }  
       }
-#endif
 
     fp->write(m_funcSymbol->getMangledName().c_str());
     fp->write("(");
     fp->write(arglist.str().c_str());
     fp->write(");\n");
 
-#ifdef TMPVARBRACES
-    if(nuti == Void)
-      {
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");  //close for tmpVar
-      }
-#endif
-  } //codeGen
-
-
-
-#if 0
-  // during genCode of a single function body "self" doesn't change!!!
-  void NodeFunctionCall::GENCODE(File * fp, UlamValue& uvpass)
-  {
-    // generate for value
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
-
-    std::ostringstream arglist;
-
-    // presumably there's no = sign.., and no open brace for tmpvars
-#ifdef TMPVARBRACES
-    if(nuti == Void)
-      {
-	m_state.indent(fp);
-	fp->write("{\n");    //open for tmpvar arg's
-	m_state.m_currentIndentLevel++;
-      }
-#endif
-
-    //"hidden" first arg
-    if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
-      arglist << m_state.getHiddenArgName();
-    else
-      {
-	arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
-	arglist << ".m_stg"; //new! the storage within the struct
-      }
-
-    // since non-datamember variables can modify globals, save/restore before/after each
-    for(u32 i = 0; i < m_argumentNodes.size(); i++)
-      {
-	UlamValue auvpass;
-	UTI auti;
-	UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-	Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
-
-	m_argumentNodes[i]->genCodeToStoreInto(fp, auvpass);
-	
-	auti = auvpass.getUlamValueTypeIdx();
-	if(auti == Ptr)
-	  {
-	    auti = auvpass.getPtrTargetType();
-	    ULAMCLASSTYPE aclasstype = m_state.getUlamTypeByIndex(auti)->getUlamClass();
-	    if(aclasstype == UC_QUARK || aclasstype == UC_ELEMENT)
-	      {
-		m_argumentNodes[i]->genCodeReadIntoATmpVar(fp, auvpass);
-		
-		arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex()).c_str();
-	      }
-	    else
-	      {
-		//local
-		if(auvpass.getPtrNameId() > 0)
-		  {
-		    Symbol * sym;
-		    assert(m_state.alreadyDefinedSymbol(auvpass.getPtrNameId(), sym));
-		    arglist << ", " << sym->getMangledName().c_str();
-		  }
-		else
-		  {
-		    // write out intermediate tmpVar as temp BitVector arg
-		    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-		    s32 tmpVarNumArg = m_state.getNextTmpVarNumber();
-		    
-		    m_state.indent(fp);
-		    fp->write("const ");
-		    
-		    fp->write(aut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
-		    fp->write(" ");
-		    
-		    fp->write(m_state.getTmpVarAsString(auti, tmpVarNumArg).c_str());
-		    fp->write("("); // use constructor (not equals)
-		    fp->write(m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex()).c_str()); //first tmp num for this arg
-		    fp->write(");\n");
-
-		  
-		    arglist << ", " << m_state.getTmpVarAsString(auti, tmpVarNumArg).c_str();
-		  }
-	      }
-	  }
-	else
-	  {
-	    // write out terminal argument to BitVector
-	    m_argumentNodes[i]->genCodeReadIntoATmpVar(fp, uvpass);
-	    
-	    arglist << ", " << m_state.getTmpVarAsString(auti, uvpass.getPtrSlotIndex()).c_str(); 
-	  }
-	
-	m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
-	m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
-      } //next arg..
-    
-    
-    //non-void return value saved in a tmp var; depends on return type
-    m_state.indent(fp);
     if(nuti != Void)
       {
-	s32 rtnSlot = m_state.getNextTmpVarNumber();
-	uvpass = UlamValue::makePtr(rtnSlot, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0, m_state.m_currentSelfSymbolForCodeGen->getId()); //POS 0 rightjustified; selfsymbol id in Ptr;
-
-	ULAMCLASSTYPE nclasstype = nut->getUlamClass();	
-	// put result of function call into a variable; (still unresolved, perhaps a struct???)
-	if(nclasstype == UC_QUARK || nclasstype == UC_ELEMENT)
-	  {
-	    fp->write("const ");
-	    fp->write(nut->getImmediateStorageTypeAsString(&m_state).c_str()); //BitVector<32>
-	    fp->write(" ");
-	    fp->write(m_state.getTmpVarAsString(nuti, rtnSlot).c_str());
-	    fp->write(" = ");
-	  }
-	else
-	  {
-	    fp->write("const ");
-	    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //u32, s32, etc.
-	    fp->write(" ");
-	    fp->write(m_state.getTmpVarAsString(nuti, rtnSlot).c_str());
-	    fp->write(" = ");
-	  }
-      } //not void return
-
-    //who's function is it? can we use m_cos???
-    //UTI objuti = m_state.m_currentObjPtr.getUlamValueTypeIdx();
-    //assert(objuti == Ptr);
-    //objuti = m_state.m_currentObjPtr.getPtrTargetType();
-    UTI objuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(objuti)->getUlamClass();
-    if(classtype == UC_QUARK)
-      {
-	fp->write(m_state.getUlamTypeByIndex(objuti)->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC, ");
-	// assumes this quark is a data member?
-	assert(m_state.m_currentObjSymbolForCodeGen->isDataMember());
-	//fp->write_decimal(m_state.m_currentObjPtr.getPtrPos());
-	fp->write_decimal(((SymbolVariableDataMember *) m_state.m_currentObjSymbolForCodeGen)->getPosOffset() + ATOMFIRSTSTATEBITPOS);
-	fp->write(">");
+	Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass);
       }
-    else
-      {
-	//must be element
-	assert(classtype == UC_ELEMENT);
-
-	//fp->write(m_state.m_currentSelfSymbolForCodeGen->getMangledName().c_str());
-	fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>");  //different for a quark method
-      }
-    
-    fp->write("::");
-    fp->write(m_funcSymbol->getMangledName().c_str());
-    fp->write("(");
-    fp->write(arglist.str().c_str());
-    fp->write(");\n");
 
 #ifdef TMPVARBRACES
     if(nuti == Void)
@@ -583,7 +416,7 @@ namespace MFM {
       }
 #endif
   } //codeGen
-#endif
+
 
   // during genCode of a single function body "self" doesn't change!!!
   void NodeFunctionCall::genCodeToStoreInto(File * fp, UlamValue& uvpass)
@@ -591,5 +424,11 @@ namespace MFM {
     return genCode(fp,uvpass);
   } //codeGenToStoreInto
 
+
+  // overrides Node in case of memberselect genCode
+  void NodeFunctionCall::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
+  {
+    return;  //no-op
+  }
 
 } //end MFM

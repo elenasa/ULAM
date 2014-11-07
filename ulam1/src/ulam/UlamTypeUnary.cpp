@@ -52,78 +52,37 @@ namespace MFM {
     s32 valbitsize = state.getBitSize(valtypidx);
 
     //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();
+    //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-
-    if((bitsize != valbitsize) && (typEnum != valtypEnum))
-      {
-	//change to val's size, within the TOBE current type; 
-	//get string index for TOBE enum type string
-	u32 enumStrIdx = state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
-	UlamKeyTypeSignature vkey1(enumStrIdx, valbitsize, arraysize);
-	UTI vtype1 = state.makeUlamType(vkey1, typEnum); //may not exist yet, create  
-	
-	if(!(state.getUlamTypeByIndex(vtype1)->cast(val,state))) //val changes!!!
-	  {
-	    //error! 
-	    return false;
-	  }
-	
-	valtypidx = val.getUlamValueTypeIdx();  //reload
-	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-      }
 
     u32 data = val.getImmediateData(state);    
     switch(valtypEnum)
       {
       case Int:
 	{
+	  s32 sdata = _SignExtend32(data, valbitsize);
 	  // cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
-	  //u32 count1s = PopCount(data);
-	  if((s32) data <= 0)   //signed int check
-	    val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
-	  else
-	    val = UlamValue::makeImmediate(typidx, _GetNOnes32(data), state); //overwrite val
+	  sdata = _Int32ToUnary32(sdata, valbitsize, bitsize); 
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
 	}
 	break;
       case Unsigned:
 	{
-	  if( data == 0)   
-	    val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
-	  else
-	    val = UlamValue::makeImmediate(typidx, _GetNOnes32(data), state); //overwrite val
+	  data = _Unsigned32ToUnary32(data, valbitsize, bitsize);
+	  val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
 	}
 	break;
       case Bool:
 	{
 	  // Bool -> Unary is the same as Bool -> Int
-	  if(state.isConstant(valtypidx))  // bitsize is misleading
-	    {
-	      if(data != 0) //signed or unsigned
-		val = UlamValue::makeImmediate(typidx, 1, state); //overwrite val
-	      else
-		val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
-	    }
-	  else
-	    {
-	      s32 count1s = PopCount(data);
-	      if(count1s > (s32) (valbitsize - count1s))
-		val = UlamValue::makeImmediate(typidx, 1, state); //overwrite val
-	      else
-		val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
-	    }
+	  data = _Bool32ToUnary32(data, valbitsize, bitsize);
+	  val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
 	}
 	break;
       case Unary:
 	{
-	  // size type change..
-	  if(bitsize >= valbitsize)
-	    val = UlamValue::makeImmediate(typidx, data, state); //overwrite val, same data
-	  else
-	    {
-	      u32 count1s = PopCount(data);
-	      val = UlamValue::makeImmediate(typidx, _GetNOnes32(count1s), state); //overwrite val, max 1s
-	    }
+	  data = _Unary32ToUnary32(data, valbitsize, bitsize);
+	  val = UlamValue::makeImmediate(typidx, data, state); //overwrite val, same data
 	}
 	break;
       case Bits:

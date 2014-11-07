@@ -53,4 +53,10 @@ namespace MFM {
     return NORMAL;
   }
 
+
+  void NodeStatementEmpty::genCode(File * fp, UlamValue& uvpass)
+  {
+    return;
+  }
+
 } //end MFM
