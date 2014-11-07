@@ -1133,17 +1133,44 @@ namespace MFM {
       }
     else
       {
-	//error!
-	//assert(0);
 	std::ostringstream msg;
 	msg << "Cannot find path index (" << pathidx << ") for line " << linenum << ": " << m_pool.getDataAsString(pathidx).c_str();
 	m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
-	return "";
+	return "<empty path>\n";
+      }
+
+    if(linenum >= textOfLines->size())
+      {
+	std::ostringstream txt;
+	txt << "<empty line " << linenum << ">\n";
+	return txt.str();
       }
 
     u32 textid = (*textOfLines)[linenum];
+    if(textid == 0)
+      {
+	return "<no line>\n>";
+      }
+
     return m_pool.getDataAsString(textid);
   } //getLineOfText
+
+
+  void CompilerState::outputTextAsComment(File * fp, Locator nodeloc)
+  {
+    fp->write("\n");
+    indent(fp);
+    fp->write("//! ");
+
+    //fp->write(m_state.getFullLocationAsString(nodeloc).c_str()); //includes byte no.
+    fp->write(getPathFromLocator(nodeloc).c_str());
+    fp->write(58);  // : ascii decimal
+    fp->write_decimal(nodeloc.getLineNo());
+    fp->write(58);  // : ascii decimal
+    fp->write(" ");
+
+    fp->write(getLineOfText(nodeloc).c_str());
+  } //outputTextAsComment
 
 
   s32 CompilerState::getNextTmpVarNumber()
@@ -1151,17 +1178,27 @@ namespace MFM {
     return ++m_nextTmpVarNumber;
   }
 
-  const std::string CompilerState::getTmpVarAsString(UTI uti, s32 num)
+  const std::string CompilerState::getTmpVarAsString(UTI uti, s32 num, STORAGE stg)
   {
     assert(uti != Void);
 
     std::ostringstream tmpVar;  // into
     PACKFIT packed = determinePackable(uti);
 
-    if(WritePacked(packed))
-      tmpVar << "UH_tmp_loadable_" ;
+    if(stg == TMPREGISTER)
+      {
+	if(WritePacked(packed))
+	  tmpVar << "Uh_tmpreg_loadable_" ;
+	else
+	  tmpVar << "Uh_tmpreg_unpacked_" ;
+      }
     else
-      tmpVar << "UH_tmp_unpacked_" ;
+      {
+	if(WritePacked(packed))
+	  tmpVar << "Uh_tmpval_loadable_" ;
+	else
+	  tmpVar << "Uh_tmpval_unpacked_" ;
+      }
 
     tmpVar << DigitCount(num, BASE10) << num;
     

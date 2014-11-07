@@ -59,12 +59,17 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
 
+    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
 
     virtual const std::string getUlamTypeVDAsStringForC();
-    //virtual const std::string getUlamTypeAsStringForC();
+    
+    virtual const std::string getUlamTypeAsStringForC();
     
     virtual const std::string getUlamTypeUPrefix();
     
@@ -73,6 +78,9 @@ namespace MFM{
     virtual ULAMCLASSTYPE getUlamClass();
 
     void setUlamClass(ULAMCLASSTYPE type);
+
+    virtual bool isConstant();
+    virtual s32 getBitSize();
 
     virtual const std::string getUlamTypeNameBrief(CompilerState * state);
 

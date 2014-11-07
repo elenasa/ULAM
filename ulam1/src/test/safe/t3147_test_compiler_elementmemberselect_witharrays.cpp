@@ -11,7 +11,7 @@ namespace MFM {
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("Foo.ulam","ulam 1; element Foo { Bool m_ba[6]; Bool check(Int v) { return true; } Int test() { Foo f; f.m_ba[1] = true; f.m_ba[5] = f.check(1); m_ba = f.m_ba; return 0; } }\n"); //2 basic member select tests: data member, func call
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\n Bool m_ba[6];\n Bool check(Int v) {\n return true;\n }\n Int test() {\n Foo f;\n f.m_ba[1] = true;\n f.m_ba[5] = f.check(1);\n m_ba = f.m_ba;\n return 0;\n }\n }\n"); //2 basic member select tests: data member, func call
       
       if(rtn1)
 	return std::string("Foo.ulam");

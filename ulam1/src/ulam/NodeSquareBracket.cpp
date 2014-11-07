@@ -29,6 +29,12 @@ namespace MFM {
   }
 
 
+  const std::string NodeSquareBracket::methodNameForCodeGen()
+  {
+    return "_SquareBracket_Stub";
+  }
+
+
   // used to select an array element; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
   {

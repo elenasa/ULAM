@@ -151,6 +151,8 @@ namespace MFM {
     if(!declOnly && func->isNative())
       return;
 
+    m_state.outputTextAsComment(fp, func->getNodeLocation());
+
     //if(classtype == UC_ELEMENT)
     //	generateElementFunctionDeclaration(fp, declOnly, classtype);
     //else
@@ -169,8 +171,8 @@ namespace MFM {
 	m_state.indent(fp);
       }
     
-    fp->write(sut->getTmpStorageTypeAsString(&m_state).c_str()); //return type for C++
-    //fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++
+    //fp->write(sut->getTmpStorageTypeAsString(&m_state).c_str()); //return type for C++
+    fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++
     //fp->write(sut->getUlamTypeImmediateMangledName(&m_state).c_str()); //return type for C++
     //fp->write(getUlamType()->getBitSizeTemplateString().c_str());  //for quark templates
     

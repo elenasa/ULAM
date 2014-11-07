@@ -48,6 +48,10 @@ namespace MFM{
     NodeBinaryOpEqualBitwise(Node * left, Node * right, CompilerState & state);
     ~NodeBinaryOpEqualBitwise();
 
+    virtual const std::string methodNameForCodeGen();
+
+    virtual void genCode(File * fp, UlamValue& uvpass);
+
   protected:
 
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);

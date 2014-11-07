@@ -20,6 +20,14 @@ namespace MFM {
   }
 
 
+  const std::string NodeBinaryOpEqualArithAdd::methodNameForCodeGen()
+  {
+    std::ostringstream methodname;
+    methodname << "_BinOpAdd" << NodeBinaryOpEqualArith::methodNameForCodeGen();
+    return methodname.str();
+  } //methodNameForCodeGen
+
+
   void NodeBinaryOpEqualArithAdd::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);

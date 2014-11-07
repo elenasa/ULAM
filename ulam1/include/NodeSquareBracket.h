@@ -51,19 +51,23 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
+    virtual const std::string methodNameForCodeGen();
+
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
+
     virtual EvalStatus evalToStoreInto();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+
     virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
-
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 

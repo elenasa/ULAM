@@ -187,9 +187,11 @@ namespace MFM {
   {
     m_maxDepth = depth;
 
-    //std::ostringstream msg;
-    //msg << "Max Depth is: <" << m_maxDepth << ">";
-    //MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+#if 0
+    std::ostringstream msg;
+    msg << "Max Depth is: <" << m_maxDepth << ">";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+#endif
   }
 
 

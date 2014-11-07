@@ -76,7 +76,13 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast array into scalar", ERR);
 		errorsFound++;
 	      }
-	  }
+	  } // end not scalar errors
+
+	// needs commandline arg..lots of non-explicit warning.
+	// reserve for user requested casts; arithmetic operations
+	// cast to Int32 all the time causing this to happend often. 
+	////if(isExplicitCast())
+	//  Node::warnOfNarrowingCast(nodeType, tobeType);
       }
 
     // special case: user casting a quark to an Int; 
@@ -231,7 +237,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarCastNum).c_str());
     fp->write(" = ");
 
-    // write the cast method (e.g. _SignExtend32, _S32ToUnary, etc..)
+    // write the cast method (e.g. _Unsigned32ToInt32, _Int32ToUnary32, etc..)
     fp->write(nut->castMethodForCodeGen(vuti, m_state).c_str());
     fp->write("(");
 
@@ -248,12 +254,12 @@ namespace MFM {
       }
 
     fp->write(", ");
-    //LENGTH of node being casted (UH_AP_mi::LENGTH ?)
+    //LENGTH of node being casted (Uh_AP_mi::LENGTH ?)
     //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());    
-    s32 nodeLength = m_state.getTotalBitSize(vuti);   // yes! == m_node->getNodeType()
-    //s32 nodeLength = m_state.getTotalBitSize(nuti); //tobe length??? No.
-    // s32 nodeLength = m_state.getTotalBitSize(m_node->getNodeType()); //node length??? Yes!
-    fp->write_decimal(nodeLength);
+    fp->write_decimal(m_state.getTotalBitSize(vuti)); //src length
+
+    fp->write(", ");
+    fp->write_decimal(m_state.getTotalBitSize(nuti)); //tobe length
 
     fp->write(")");
     fp->write(";\n");
@@ -262,9 +268,9 @@ namespace MFM {
     //PROBLEM is that funccall checks for 0 nameid to use the tmp var!
     // but then if we don't pass it along Node::genMemberNameForMethod fails..
     if(isTerminal)
-      uvpass = UlamValue::makePtr(tmpVarCastNum, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified.
+      uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified.
     else
-      uvpass = UlamValue::makePtr(tmpVarCastNum, TMPVAR, nuti, m_state.determinePackable(nuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+      uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
   } //genCodeReadIntoTmp
 
 
@@ -286,12 +292,21 @@ namespace MFM {
     //s32 arraysize = m_state.getArraySize(tobeType);
     //s32 nodearraysize = m_state.getArraySize(nodeType);
 
-    //  consider user requested first; broadening (e.g. from Int(4) to Int(32)) requires SignExtension, except for constants(i.e. bitsize default).
+    //  consider user requested first; broadening (e.g. from Int(4) to Int(32)) requires SignExtension, except for constants(i.e. bitsize default); Always Bools (e.g. control condition).
     //return(isExplicitCast() || typEnum != nodetypEnum || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)  && !m_state.isConstant(nodeType)));
-    return(isExplicitCast() || typEnum != nodetypEnum || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)));
+    //return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)) || (typEnum == Bool && !m_state.isConstant(nodeType)) );
 
     // consider user requested first, then size independent (except constants) 
     //return(isExplicitCast() || typEnum != nodetypEnum || !m_state.isConstant(nodeType));
+
+    // fails when putting s32 constant into an unsigned var
+    //return(isExplicitCast() || (!m_state.isConstant(nodeType) && (tobeType != nodeType || typEnum == Bool)));
+
+    //    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType) && !m_state.isConstant(nodeType)) || (typEnum == Bool && !m_state.isConstant(nodeType)) );
+
+    // Bool constants require casts to generate "full" true UlamValue.
+    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType) && !m_state.isConstant(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType)) );
+
   }
 
 } //end MFM

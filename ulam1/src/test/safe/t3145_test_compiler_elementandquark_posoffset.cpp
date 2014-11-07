@@ -21,9 +21,9 @@ namespace MFM {
 	 Uq_001313Bar<43> Um_16m_bar3;
       */
 
-      bool rtn1 = fms->add("Foo.ulam","ulam 1; use Bar; element Foo { typedef Bar Pop[2]; Bool a; Bar m_bar1; Int m_i; Pop m_bar2[2]; Bool b; Bar m_bar3; Bool check(Int v) { return true; } Int test() { Foo f; f.check(1); m_i = 7; return m_i; } }\n"); //tests offsets, but too complicated data members in Foo for memberselect
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use Bar;\n element Foo {\n typedef Bar Pop[2];\n Bool a;\n Bar m_bar1;\n Int m_i;\n Pop m_bar2[2];\n Bool b;\n Bar m_bar3;\n Bool check(Int v) {\n return true;\n }\n Int test() {\n Foo f;\n f.check(1);\n m_i = 7;\n return m_i;\n }\n }\n"); //tests offsets, but too complicated data members in Foo for memberselect
       
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1; quark Bar { Bool val_b[3];  Void reset(Bool b) { b = 0; } }\n");
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = 0;\n }\n }\n");
       
       if(rtn1 & rtn2)
 	return std::string("Foo.ulam");

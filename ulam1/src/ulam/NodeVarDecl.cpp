@@ -114,6 +114,7 @@ namespace MFM {
 
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
   {
+    assert((s32) offset >= 0); //neg is invalid
     m_varSymbol->setPosOffset(offset);
     offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
   }
@@ -132,14 +133,7 @@ namespace MFM {
     m_state.indent(fp);
     if(!m_varSymbol->isDataMember())
       {
-#if 0
-	//needs storage
-	fp->write("BitVector<");
-	fp->write_decimal(vut->getTotalWordSize());
-	fp->write(">");
-#endif
 	fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++ local vars, ie non-data members
-	//fp->write(vut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++ local vars, ie non-data members
       }
     else
       {
@@ -151,35 +145,42 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledName().c_str());
 
     //initialize T to default atom (might need "OurAtom" if data member ?)
-    if(vclasstype == UC_QUARK || vclasstype == UC_ELEMENT)
+    if(vclasstype == UC_ELEMENT)
       {
 	fp->write(" = ");
-	UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
-	fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
+	//UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
+	//fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("<CC>");
-	fp->write("::");
-	fp->write("GetDefaultAtom()");
+	fp->write("::THE_INSTANCE");
+	fp->write(".GetDefaultAtom()");  //returns object of type T
+      }
+
+    if(vclasstype == UC_QUARK)
+      {
+	//right-justified?
       }
 
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   }
 
 
-  // variable is a data member
+  // variable is a data member; not an element
   void NodeVarDecl::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
   {
     UTI nuti = getNodeType();
-    UlamType * vut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
     ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
 
     m_state.indent(fp);
 
     // use typedef rather than atomic parameter for quarks within elements
-    if(vclasstype == UC_QUARK)
+    //if(nclasstype == UC_QUARK)
+    if(nclasstype == UC_QUARK && classtype == UC_ELEMENT)
       {
 	fp->write("typedef ");
-	fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+	fp->write(nut->getUlamTypeMangledName(&m_state).c_str()); //for C++
 	fp->write("<CC, ");  
 	fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
       }
@@ -188,9 +189,9 @@ namespace MFM {
 	fp->write("typedef AtomicParameterType<");
 	fp->write("CC");  //BITSPERATOM
 	fp->write(", ");
-	fp->write(vut->getUlamTypeVDAsStringForC().c_str());
+	fp->write(nut->getUlamTypeVDAsStringForC().c_str());
 	fp->write(", ");
-	fp->write_decimal(vut->getTotalBitSize());   //include arraysize
+	fp->write_decimal(nut->getTotalBitSize());   //include arraysize
 	fp->write(", ");
 	if(classtype == UC_QUARK)
 	  {

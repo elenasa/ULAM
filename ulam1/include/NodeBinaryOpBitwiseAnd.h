@@ -51,6 +51,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual const std::string methodNameForCodeGen();
+
   protected:
 
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);

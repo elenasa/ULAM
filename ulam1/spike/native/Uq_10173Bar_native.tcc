@@ -6,9 +6,9 @@
 namespace MFM{
 
   template<class CC, u32 POS>
-  void Uq_10173Bar<CC, POS>::Uf_5print(T& Uv_4self, BitVector<32> Uv_3arg)
+  void Uq_10173Bar<CC, POS>::Uf_5print(T& Uv_4self, Ui_Ut_102323Int Uv_3arg)
   {
-    s32 tmp = Ui_Ut_102323Int::Read(Uv_3arg);
+    s32 tmp = Uv_3arg.read();
     //std::cout << "Arg: " << tmp << std::endl;
     printf("Arg: 0x%x\n", tmp);
   }	

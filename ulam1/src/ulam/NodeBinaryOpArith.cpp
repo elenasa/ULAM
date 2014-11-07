@@ -10,6 +10,32 @@ namespace MFM {
   { }
 
 
+  const std::string NodeBinaryOpArith::methodNameForCodeGen()
+  {
+    std::ostringstream methodname;
+    //methodname << "_BitwiseOr";  determined by each op
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+
+    // common part of name
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    switch(etyp)
+      {
+      case Int:
+	methodname << "Int";
+	break;
+      case Unsigned:
+	methodname << "Unsigned";
+	break;
+      default:
+	assert(0);
+	methodname << "NAV";
+	break;
+      };
+    methodname << nut->getTotalWordSize();
+    return methodname.str();
+  } // methodNameForCodeGen
+
+
   void NodeBinaryOpArith::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
@@ -59,7 +85,7 @@ namespace MFM {
 	    if(ltypEnum == Unsigned || rtypEnum == Unsigned)
 	      {
 		std::ostringstream msg;
-		msg << "Attempting to mix signed and unsigned types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary operator" << getName();
+		msg << "Attempting to mix signed and unsigned types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary operator" << getName() << " ";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		//output warning
 	      }

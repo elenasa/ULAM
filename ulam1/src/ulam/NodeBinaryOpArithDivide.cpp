@@ -20,6 +20,14 @@ namespace MFM {
   }
 
 
+  const std::string NodeBinaryOpArithDivide::methodNameForCodeGen()
+  {
+    std::ostringstream methodname;
+    methodname << "_BinOpDivide" << NodeBinaryOpArith::methodNameForCodeGen();
+    return methodname.str();
+  } //methodNameForCodeGen
+
+
   UlamValue NodeBinaryOpArithDivide::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;

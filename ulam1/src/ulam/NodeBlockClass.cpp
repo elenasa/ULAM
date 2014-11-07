@@ -224,6 +224,12 @@ namespace MFM {
   }
 
 
+  void NodeBlockClass::generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
+  }
+
+
   //header .h file
   void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
   {
@@ -263,7 +269,7 @@ namespace MFM {
 
     //gencode declarations only for all the function definitions
     bool declOnly = true;
-    m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
+    generateCodeForFunctions(fp, declOnly, classtype);
 
     m_state.m_currentIndentLevel--;
 
@@ -272,6 +278,20 @@ namespace MFM {
 
     //m_state.m_currentIndentLevel--;
     //m_state.indent(fp);
+
+    //declaration of THE_INSTANCE for ELEMENT
+    if(classtype == UC_ELEMENT)
+      {
+	fp->write("\n");
+	m_state.indent(fp);
+	fp->write("template<class CC>\n");
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC> ");
+	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>::THE_INSTANCE;\n\n");
+      }
+
     m_state.m_currentIndentLevel = 0;
     fp->write("} //MFM\n\n");
 
@@ -319,6 +339,8 @@ namespace MFM {
 
     // where to put these???
     //genImmediateMangledTypesForHeaderFile(fp);
+    m_state.indent(fp);
+    fp->write("typedef AtomicParameterType <CC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n");
 
     fp->write("\n");
 
@@ -363,9 +385,15 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
     //m_state.m_currentIndentLevel = 0;
     m_state.indent(fp);
-    fp->write("public:\n");
+    fp->write("public:\n\n");
 
     m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("static ");
+    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(" THE_INSTANCE;\n");
+
 
     //DataMember VAR DECLS
     if(m_nextNode)
@@ -471,7 +499,7 @@ namespace MFM {
 	assert(m_state.m_compileThisId == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
 
-    m_functionST.genCodeForTableOfFunctions(fp, false, classtype);
+    generateCodeForFunctions(fp, false, classtype);
 
     m_state.m_currentIndentLevel--;
 	

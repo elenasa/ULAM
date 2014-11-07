@@ -51,10 +51,12 @@ namespace MFM {
 	break;
       default:
 	{
+	  std::ostringstream msg;
+	  msg << "Need UNPACKED ARRAY for " << sizeByIntBits << " bits; s32[" << getArraySize() << "]";
+	  state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+	  ctype = "s32*"; //array
 	  assert(0);
-	  //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	}
-	//error!
       };
     
     return ctype;
@@ -65,6 +67,24 @@ namespace MFM {
   {
     return "i";
   }
+
+
+  void UlamTypeInt::genUlamTypeReadDefinitionForC(File * fp, CompilerState * state)
+  {
+    state->indent(fp);
+    fp->write("const ");
+    fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
+    fp->write(" read() const { ");
+    //fp->write("\n");
+    //state->indent(fp);
+    fp->write("return _SignExtend");
+    fp->write_decimal(getTotalWordSize());
+    fp->write("(BF::");
+    fp->write(readMethodForCodeGen().c_str());
+    fp->write("(m_stg), ");
+    fp->write_decimal(getBitSize());
+    fp->write("); }\n");
+  } //genUlamTypeReadDefinitionForC
 
 
   bool UlamTypeInt::cast(UlamValue & val, CompilerState& state)
@@ -83,66 +103,48 @@ namespace MFM {
     
     //change the size first of tobe, if necessary
     s32 bitsize = getBitSize();
-    s32 valbitsize = state.getBitSize(valtypidx);
-
+    s32 valbitsize = state.getBitSize(valtypidx);	
+    
     //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();
+    //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
-    if((bitsize != valbitsize) && (typEnum != valtypEnum))
-      {
-	//change to val's size, within the TOBE current type; 
-	//get string index for TOBE enum type string
-	u32 enumStrIdx = state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
-	UlamKeyTypeSignature vkey1(enumStrIdx, valbitsize, arraysize);
-	UTI vtype1 = state.makeUlamType(vkey1, typEnum); //may not exist yet, create  
-	
-	if(!(state.getUlamTypeByIndex(vtype1)->cast(val,state))) //val changes!!!
-	  {
-	    //error! 
-	    return false;
-	  }
-	
-	valtypidx = val.getUlamValueTypeIdx();  //reload
-	valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-      }
-	
     u32 data = val.getImmediateData(state);
+
     switch(valtypEnum)
       {
       case Int:
-	if(bitsize > valbitsize)
-	  data = _SignExtend32(data, valbitsize); //no break
+	{
+	  // casting Int to Int to change bits size
+	  s32 sdata = _SignExtend32(data, valbitsize);
+	  sdata = _Int32ToInt32(sdata, valbitsize, bitsize);
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
+	}
+	break;
       case Unsigned:
+	{
+	  // casting Unsigned to Int to change type
+	  s32 sdata = _Unsigned32ToInt32(data, valbitsize, bitsize);
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
+	}
+	break;
       case Bits:
-	// casting Int to Int to change bits size
-	// casting Unsigned to Int to change type
-	// casting Bits to Int to change type
-	val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
+	{
+	  // casting Bits to Int to change type
+	  s32 sdata = _Bits32ToInt32(data, valbitsize, bitsize);
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
+	}
 	break;
       case Unary:
 	{
-	  u32 count1s = PopCount(data);
-	  val = UlamValue::makeImmediate(typidx, count1s, state); //overwrite val
+	  s32 sdata = _Unary32ToInt32(data, valbitsize, bitsize);
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
 	}
 	break;
       case Bool:
 	{
-	  if(state.isConstant(valtypidx))  // bitsize is misleading
-	    {
-	      if(data != 0) //signed or unsigned
-		val = UlamValue::makeImmediate(typidx, 1, state); //overwrite val
-	      else
-		val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
-	    }
-	  else
-	    {
-	      s32 count1s = PopCount(data);
-	      if(count1s > (s32) (valbitsize - count1s))
-		val = UlamValue::makeImmediate(typidx, 1, state); //overwrite val
-	      else
-		val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val
-	    }
+	  s32 sdata = _Bool32ToInt32(data, valbitsize, bitsize);
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
 	}
 	break;
       case Void:
@@ -154,31 +156,47 @@ namespace MFM {
   } //end cast
 
 
-  const std::string UlamTypeInt::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state)
   {
-    std::ostringstream rtnMethod;
-    UlamType * nut = state.getUlamTypeByIndex(nodetype);
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    //ULAMTYPE typEnum = getUlamTypeEnum();
-    ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
-    s32 sizeByIntBits = nut->getTotalWordSize();
-    switch(nodetypEnum)
+    assert(uvpass.getUlamValueTypeIdx() == Ptr);
+
+    UTI uti = getUlamTypeIndex();
+    s32 tmpVarNum = uvpass.getPtrSlotIndex();
+    s32 tmpVarCastNum = state.getNextTmpVarNumber(); 
+    s32 totWords = getTotalWordSize();
+	
+    state.indent(fp);
+    fp->write("const ");
+    fp->write(getTmpStorageTypeAsString(&state).c_str()); //i.e. s32, s64
+    fp->write(" ");
+    fp->write(state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
+    fp->write(" = ");
+    
+    // write the cast method (e.g. _SignExtend32)
+    //fp->write(castMethodForCodeGen(uti, state).c_str());
+    fp->write("_SignExtend");
+    fp->write_decimal(totWords);
+    
+    fp->write("(");
+    fp->write(state.getTmpVarAsString(uti, tmpVarNum).c_str());
+    fp->write(", ");
+    fp->write_decimal(getTotalBitSize());
+    fp->write(")");
+    fp->write(";\n");
+    
+    UTI newuti = uti;
+#if 0
+    UTI newuti = Int;
+
+    if(totWords > MAXBITSPERINT)
       {
-      case Unsigned:
-	rtnMethod << 	"_SignExtend" << sizeByIntBits; //aka Unsigned32ToInt32
-	break;
-      case Int:
-	if(getBitSize() > nut->getBitSize())
-	  {
-	    rtnMethod << "_SignExtend" << sizeByIntBits;
-	    break;
-	  }
-      default:
-	return UlamType::castMethodForCodeGen(nodetype, state); //standard '_Node32ToInt32' format
-	break;
-      };
-    return rtnMethod.str();
-  } //end castmethod
+	UlamKeyTypeSignature ikey(state.m_pool.getIndexForDataString("Int"), totWords);
+	newuti = state.makeUlamType(ikey, Int);
+      }
+#endif
+
+    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, state.determinePackable(newuti), state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+  } //genCodeAfterReadingIntoATmpVar
 
 
   void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)

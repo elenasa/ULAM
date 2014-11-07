@@ -20,6 +20,14 @@ namespace MFM {
   }
 
 
+  const std::string NodeBinaryOpEqualArithSubtract::methodNameForCodeGen()
+  {
+    std::ostringstream methodname;
+    methodname << "_BinOpSubtract" << NodeBinaryOpEqualArith::methodNameForCodeGen();
+    return methodname.str();
+  } //methodNameForCodeGen
+
+
   //same as NodeBinaryOpSubtract
   UlamValue NodeBinaryOpEqualArithSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {

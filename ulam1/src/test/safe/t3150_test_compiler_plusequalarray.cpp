@@ -11,7 +11,7 @@ namespace MFM {
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","element A { typedef Int Foo [2]; Int test() { d[0] = 1; Foo e; e[0] = 6; e[1] = 3; d += e; return d[0]; /* match return type */}\nFoo d; }");  // want d[0] == 7. NOTE: requires 'operator+=' in c-code to add arrays
+      bool rtn1 = fms->add("A.ulam","element A {\n typedef Int Foo [2];\n Int test() {\n d[0] = 1;\n Foo e;\n e[0] = 6;\n e[1] = 3;\n d += e;\n return d[0];\n /* match return type */}\nFoo d;\n }");  // want d[0] == 7. NOTE: requires 'operator+=' in c-code to add arrays
 
       
       if(rtn1)

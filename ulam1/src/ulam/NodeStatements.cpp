@@ -139,20 +139,38 @@ namespace MFM {
 
   void NodeStatements::genCode(File * fp, UlamValue& uvpass)
   {
+    m_state.outputTextAsComment(fp, getNodeLocation());
+#if 0
+    Locator nodeloc = getNodeLocation();
+
     fp->write("\n");
     m_state.indent(fp);
-    fp->write("//");
-    fp->write(m_state.getLineOfText(getNodeLocation()).c_str());
+    fp->write("//! ");
 
-    //m_state.indent(fp);
-    //fp->write("{\n");    //open for tmpvar arg's
-    //m_state.m_currentIndentLevel++;
+    //fp->write(m_state.getFullLocationAsString(nodeloc).c_str()); //includes byte no.
+    fp->write(m_state.getPathFromLocator(nodeloc).c_str());
+    fp->write(58);  // : ascii decimal
+    fp->write_decimal(nodeloc.getLineNo());
+    fp->write(58);  // : ascii decimal
+    fp->write(" ");
 
+    fp->write(m_state.getLineOfText(nodeloc).c_str());
+#endif
+
+
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");    //open for tmpvar arg's
+    m_state.m_currentIndentLevel++;
+#endif
+    
     m_node->genCode(fp, uvpass);
 
-    //    m_state.m_currentIndentLevel--;
-    //m_state.indent(fp);
-    //fp->write("}\n");  //close for tmpVar
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");  //close for tmpVar
+#endif
 
     if(m_nextNode)
       m_nextNode->genCode(fp, uvpass);

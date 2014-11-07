@@ -28,8 +28,10 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <assert.h>
 #include "itype.h"
 #include "math.h"
+
 
 namespace MFM {
 

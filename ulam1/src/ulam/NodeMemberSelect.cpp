@@ -27,6 +27,10 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  const std::string NodeMemberSelect::methodNameForCodeGen()
+  {
+    return "_MemberSelect_Stub";
+  }
 
   UTI NodeMemberSelect::checkAndLabelType()
   { 
@@ -213,12 +217,15 @@ namespace MFM {
     Symbol * lsym = NULL;
     if(!getSymbolPtr(lsym))
       {
-	//error!
-	assert(0);
+	assert(0); 	//error!
       }
-    m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
+    m_state.m_currentObjSymbolForCodeGen = lsym;     //***********************
 
-    m_nodeRight->genCode(fp, uvpass);  // with readInto
+    m_nodeRight->genCodeToStoreInto(fp, uvpass);     // w/o readInto to reset COS
+
+    m_state.m_currentObjSymbolForCodeGen = lsym;     //*******set again before read
+
+    m_nodeRight->genCodeReadIntoATmpVar(fp, uvpass); //e.g. in case of func calls 
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ****
     m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
@@ -230,11 +237,10 @@ namespace MFM {
   void NodeMemberSelect::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-
+ 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-    m_state.m_currentObjPtr = uvpass; //updated by lhs for rhs **************
+    m_state.m_currentObjPtr = uvpass; //also updated by lhs for rhs **************
 
-#if 1
     //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
     Symbol * lsym = NULL;
     if(!getSymbolPtr(lsym))
@@ -242,10 +248,11 @@ namespace MFM {
 	//error!
 	assert(0);
       }
-    m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
-#endif
+    m_state.m_currentObjSymbolForCodeGen = lsym;    //***********************
 
-    m_nodeRight->genCodeToStoreInto(fp, uvpass);
+    m_nodeRight->genCodeToStoreInto(fp, uvpass);   //uvpass contains the member selected
+
+    m_state.m_currentObjSymbolForCodeGen = lsym;    //***********************
   } //genCodeToStoreInto
 
 } //end MFM

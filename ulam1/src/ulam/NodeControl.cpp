@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "NodeControl.h"
 #include "CompilerState.h"
+#include "UlamTypeBool.h"
 
 namespace MFM {
 
@@ -74,7 +75,7 @@ namespace MFM {
     UTI newType = Bool;
     ULAMTYPE newEnumTyp = Bool;
 
-    // condition should be a bool, cast if necessary
+    // condition should be a bool, always cast
     UTI cuti = m_nodeCondition->checkAndLabelType();
     assert(m_state.isScalar(cuti));
 
@@ -83,21 +84,21 @@ namespace MFM {
 
     if(ctypEnum != newEnumTyp)
       {
-	//m_nodeCondition = new NodeCast(m_nodeCondition, newType, m_state);
-	//m_nodeCondition->setNodeLocation(getNodeLocation());
-	//m_nodeCondition->checkAndLabelType();
 	m_nodeCondition = makeCastingNode(m_nodeCondition, newType);
       }
     else
-      newType = cuti;
+      {
+	//always cast: Bools are maintained as unsigned in gen code, until c-bool is needed
+	m_nodeCondition = makeCastingNode(m_nodeCondition, cuti);
+	newType = cuti;
+      }
 
-    m_nodeBody->checkAndLabelType(); //side-effect
-    
+    m_nodeBody->checkAndLabelType(); //side-effect    
     setNodeType(newType);  //stays the same
     
     setStoreIntoAble(false);
     return getNodeType(); 
-  }
+  } //checkAndLabelType
 
 
   void NodeControl::genCode(File * fp, UlamValue& uvpass)
@@ -125,21 +126,28 @@ namespace MFM {
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     m_state.indent(fp);
-    fp->write(getName());
+    fp->write(getName());  //if, while
     fp->write("(");
 
     if(isTerminal)
       {
+	// fp->write("(bool) ");
 	// write out terminal explicitly
 	u32 data = uvpass.getImmediateData(m_state);
 	char dstr[40];
 	cut->getDataAsString(data, dstr, 'z', m_state);
 	fp->write(dstr);
-	fp->write(");\n");
       }
     else
-      fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
-
+      {
+	assert(cut->getUlamTypeEnum() == Bool);
+	fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
+	fp->write(", ");
+	fp->write_decimal(cut->getBitSize());
+	fp->write(")");
+      }
     fp->write(")\n");
 
     m_state.indent(fp);
@@ -154,23 +162,5 @@ namespace MFM {
     fp->write(getName()); //end
     fp->write("\n");
   } //genCode
-
-
-#if 0
-  void NodeControl::GENCODE(File * fp, UlamValue& uvpass)
-  {
-    assert(m_nodeCondition && m_nodeBody);
-    
-    m_state.indent(fp);
-    fp->write(getName());
-    fp->write("(");
-    m_nodeCondition->genCode(fp, uvpass);
-    fp->write(")\n");
-
-    m_state.m_currentIndentLevel++;
-    m_nodeBody->genCode(fp, uvpass);
-    m_state.m_currentIndentLevel--;
-  }
-#endif
 
 } //end MFM

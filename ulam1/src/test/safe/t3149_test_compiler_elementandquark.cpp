@@ -11,9 +11,9 @@ namespace MFM {
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("Foo.ulam","ulam 1; use Bar; element Foo { Int m_i; Bar m_bar; Bool check(Int v) { return true; } Int test() { Foo f; m_bar.val_b[0] = f.check(1); return 7; } }\n"); 
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use Bar;\n element Foo {\n Int m_i;\n Bar m_bar;\n Bool check(Int v) {\n return true;\n }\n Int test() {\n Foo f;\n m_bar.val_b[0] = f.check(1);\n return 7;\n }\n }\n"); 
 
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1; quark Bar { Bool val_b[3];  Void reset(Bool b) { b = 0; } }\n");
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = 0;\n }\n }\n");
       
       if(rtn1 & rtn2)
 	return std::string("Foo.ulam");
