@@ -74,7 +74,7 @@ namespace MFM{
 
     void packBitsForVariableDataMembers();
     
-    u32 countNativeFuncDecls();
+    virtual u32 countNativeFuncDecls();
 
     void generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 

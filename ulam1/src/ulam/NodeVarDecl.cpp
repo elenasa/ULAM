@@ -175,14 +175,24 @@ namespace MFM {
 
     m_state.indent(fp);
 
-    // use typedef rather than atomic parameter for quarks within elements
+    // use typedef rather than atomic parameter for quarks within elements,
+    // except if an array of quarks.
     //if(nclasstype == UC_QUARK)
-    if(nclasstype == UC_QUARK && classtype == UC_ELEMENT)
+    //if(nclasstype == UC_QUARK && classtype == UC_ELEMENT)
+    //if(nclasstype == UC_QUARK && classtype == UC_ELEMENT && nut->isScalar())
+    if(nclasstype == UC_QUARK && nut->isScalar())
       {
 	fp->write("typedef ");
 	fp->write(nut->getUlamTypeMangledName(&m_state).c_str()); //for C++
-	fp->write("<CC, ");  
-	fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	fp->write("<CC, ");
+	if(classtype == UC_ELEMENT)
+	  fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	else
+	  {
+	    //inside a quark
+	    fp->write("POS + ");
+	    fp->write_decimal(m_varSymbol->getPosOffset());
+	  }
       }
     else
       {

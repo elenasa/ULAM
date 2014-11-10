@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_Foo { Int(4) m_i(3);  Bool(1) m_b(false);  Int(32) test() {  m_b true cast = m_b ( ( 7 cast 7 cast )max )check = m_i cast return } }\nExit status: 3");
+      //Ue_Foo { Int(4) m_i(3);  Bool(1) m_b(false);  Int(32) test() {  m_b true cast = m_b ( ( 7 cast 7 cast )max )check = m_i cast return } }\nExit status: 3
+      return std::string("Ue_Foo { System s();  Bool(3) m_b(false);  Int(4) m_i(3);  Int(32) test() {  m_b true cast = m_b ( ( 7 cast 7 cast )max )check cast = s ( m_b )print . s ( m_i )print . m_i cast return } }\nExit status: 3");
     }
     
     std::string PresetTest(FileManagerString * fms)

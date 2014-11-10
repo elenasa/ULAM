@@ -7,16 +7,16 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //developed by Dave (10092014) in c++ and then converted to Ulam.
-      return std::string("Ue_Foo { Bar bar1( Unsigned(2) x(1);  Unsigned(2) y(2); );  Bar bar2( Unsigned(2) x(3);  Unsigned(2) y(0); );  Int(4) i[2](6,12);  Int(32) test() {  bar1 x . 1 cast = bar1 y . 2 cast = bar2 x . 3 cast = bar2 y . 0 cast = i 0 [] bar1 ( )toInt . cast = i 1 [] bar2 ( )toInt . cast = 0 cast return } }\nExit status: 0");
+      return std::string("Uq_Bar { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }\nExit status: -1");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
       //return expression
       //note: don't have <<2, so substituted *4
-      //bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nreturn (x * 4) + y;\n}\n}\n"); 
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nreturn (x * 4) + y;\n}\n}\n"); 
 
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nreturn (6 / x) + y;\n}\n}\n"); 
+      //bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nreturn (6 / x) + y;\n}\n}\n"); 
 
       
       if(rtn2)

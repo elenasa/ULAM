@@ -120,8 +120,8 @@ namespace MFM{
     Node * makeCastingNode(Node * node, UTI tobeType);
     bool warnOfNarrowingCast(UTI nodeType, UTI tobeType);
 
-    void genMemberNameOfMethod(File * fp, UlamValue uvpass); //helper method to read/write into/from tmpvar
-    void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
+    virtual void genMemberNameOfMethod(File * fp, UlamValue uvpass); //helper method to read/write into/from tmpvar
+    virtual void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
 
     const std::string readMethodForCodeGen(UTI nuti);
     const std::string writeMethodForCodeGen(UTI nuti);
