@@ -75,6 +75,12 @@ namespace MFM{
 
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
+  protected:
+    //helper methods override Node read/write
+    virtual void genMemberNameOfMethod(File * fp, UlamValue uvpass); 
+
+    virtual void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
+
   private:
 
     Token m_functionNameTok;

@@ -187,6 +187,7 @@ namespace MFM {
 	    msg << "Incomplete Class <"  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "> was never defined, fails sizing";
 	    MSG("", msg.str().c_str(), ERR);
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
+	    aok = false;  //moved here;
 	  }
 
 	//else
@@ -198,19 +199,21 @@ namespace MFM {
 	    m_state.m_classBlock = classNode;
 	    m_state.m_currentBlock = m_state.m_classBlock;
 
-	    u32 totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
-	    if(totalbits == 0)	    
+	    s32 totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
+#if 0
+	    //disabled 11082014
+	    if(totalbits == 0)
 	      {
-		//std::ostringstream msg;
-		//msg << "setting zero bit size symbol!! " << sym->getUlamType()->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
+		std::ostringstream msg;
+		msg << "< zero bit size symbol!! " << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "(" << totalbits << ")";
+		m_state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
 		aok = false;
 	      }
 	    else
+#endif
 	      {
 		UTI sut = sym->getUlamTypeIdx();
 		m_state.setBitSize(sut, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
-
 
 		//std::ostringstream msg;
 		//msg << "symbol size is aok (=" << totalbits << ", total= " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
@@ -220,7 +223,7 @@ namespace MFM {
 	it++;
       }
     return aok;
-  }
+  } //setBitSizeOfTableOfClasses
 
 
   // separate pass...after labeling all classes is completed;
@@ -252,10 +255,10 @@ namespace MFM {
   }
 
 
-  u32 SymbolTable::getTotalVariableSymbolsBitSize()
+  s32 SymbolTable::getTotalVariableSymbolsBitSize()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    u32 totalsizes = 0;
+    s32 totalsizes = 0;
 
     while(it != m_idToSymbolPtr.end())
       {
@@ -264,7 +267,7 @@ namespace MFM {
 	if(!sym->isTypedef())
 	  {
 	    UTI sut = sym->getUlamTypeIdx();
-	    s32 symsize = calcVariableSymbolTypeSize(sut);
+	    s32 symsize = calcVariableSymbolTypeSize(sut);  //recursively
 
 	    if(symsize == CYCLEFLAG)  // was < 0
 	      {
@@ -387,7 +390,7 @@ namespace MFM {
 	  } //totbitsize == 0
       } //not primitive, not array
     return CYCLEFLAG;
-  } 
+  } //calcVariableSymbolTypeSize (recurisvely) 
 
 
   void SymbolTable::packBitsForTableOfClasses()

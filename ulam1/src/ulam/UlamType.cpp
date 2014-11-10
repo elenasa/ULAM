@@ -293,7 +293,31 @@ namespace MFM {
     fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
     fp->write(" read() const { return BF::");
     fp->write(readMethodForCodeGen().c_str());
-    fp->write("(m_stg);}\n");
+    //fp->write("(m_stg);}\n");
+
+    if(isScalar())
+      fp->write("(m_stg); }\n");
+    else
+      {
+	fp->write("(m_stg, ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write("u, ");
+	fp->write_decimal(getBitSize());
+	fp->write("u, ");
+	fp->write_decimal(getTotalWordSize() - getBitSize());
+	fp->write("u); }\n");
+
+	state->indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
+	fp->write(" readArray(");
+	fp->write("u32 len, u32 pos) const { return BF::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(m_stg, ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write("u, len, pos");
+	fp->write("); }\n");
+      }
   } //genUlamTypeReadDefinitionForC
 
 
@@ -304,7 +328,28 @@ namespace MFM {
     fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
     fp->write(" v) { BF::");
     fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(m_stg, v); }\n");
+    if(isScalar())
+      fp->write("(m_stg, v); }\n");
+    else
+      {
+	fp->write("(m_stg, v, ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write(", ");
+	fp->write_decimal(getBitSize());
+	fp->write(", ");
+	fp->write_decimal(getTotalWordSize() - getBitSize());
+	fp->write("); }\n");
+
+	state->indent(fp);
+	fp->write("void writeArray(");
+	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
+	fp->write(" v, u32 len, u32 pos) { BF::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(m_stg, v, ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write("u, len, pos");
+	fp->write("); }\n");
+      }
   } //genUlamTypeWriteDefinitionForC
 
 

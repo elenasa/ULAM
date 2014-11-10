@@ -145,8 +145,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-    //fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
-    fp->write("u32"); //always u32
+    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(getNodeType(),tmpVarNum).c_str());

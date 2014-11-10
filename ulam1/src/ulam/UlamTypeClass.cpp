@@ -60,7 +60,8 @@ namespace MFM {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName(state);
 
-    if(m_class == UC_QUARK)
+    //if(m_class == UC_QUARK)
+    if(m_class == UC_QUARK && isScalar())
       ctype << "<CC>";  
 
     return ctype.str();
@@ -288,6 +289,10 @@ namespace MFM {
   {
     assert(m_class == UC_QUARK);
 
+    // immediate quark arrays are treated like immediate primitives, not quarks
+    if(!isScalar())
+      return UlamType::genUlamTypeMangledDefinitionForC(fp, state);
+
     state->m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName(state);
     std::ostringstream  ud;
@@ -336,6 +341,8 @@ namespace MFM {
     fp->write("typedef typename CC::ATOM_TYPE T;\n");
     state->indent(fp);
     fp->write("typedef typename CC::PARAM_CONFIG P;\n");
+    state->indent(fp);
+    fp->write("enum { BPA = P::BITS_PER_ATOM };\n");
     fp->write("\n");
 
     //quark typedef (right-justified)
@@ -396,6 +403,13 @@ namespace MFM {
     //write 'entire quark' method
     genUlamTypeWriteDefinitionForC(fp, state);
 
+    // getBits method for scalar
+    if(isScalar())
+      {
+	state->indent(fp);
+	fp->write("BitVector<BPA>& getBits() { return m_stg.GetBits(); }\n");
+      }
+
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("};\n");
@@ -413,23 +427,76 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp, CompilerState * state)
   {
+  // immediate quark arrays are treated like immediate primitives, not quarks
+    if(!isScalar())
+      return UlamType::genUlamTypeReadDefinitionForC(fp, state);
+
     state->indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
     fp->write(" read() const { return Up_Us::");
     fp->write(readMethodForCodeGen().c_str());
-    fp->write("(m_stg.GetBits() ); }\n");
+
+    if(isScalar())
+      fp->write("(m_stg.GetBits() ); }\n");
+    else
+      {
+	fp->write("(m_stg.GetBits(), ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write(", ");
+	fp->write_decimal(getBitSize());
+	fp->write(", ");
+	fp->write_decimal(BITSPERATOM - getBitSize());
+	fp->write("); }\n");
+
+	state->indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
+	fp->write(" readArray(");
+	fp->write("u32 len, u32 pos) const { return Up_Us::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(m_stg.GetBits(), ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write(", len, pos");
+	fp->write("); }\n");
+      }
   } //genUlamTypeReadDefinitionForC
 
 
   void UlamTypeClass::genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state)
   {
+    // immediate quark arrays are treated like immediate primitives, not quarks
+    if(!isScalar())
+      return UlamType::genUlamTypeWriteDefinitionForC(fp, state);
+
     state->indent(fp);
     fp->write("void write(");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
     fp->write(" v) { Up_Us::");
     fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(m_stg.GetBits(), v); }\n");
+
+    if(isScalar())
+      fp->write("(m_stg.GetBits(), v); }\n");
+    else
+      {
+	fp->write("(m_stg.GetBits(), v, ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write("u, ");
+	fp->write_decimal(getBitSize());
+	fp->write("u, ");
+	fp->write_decimal(BITSPERATOM - getBitSize());
+	fp->write("u); }\n");
+
+	state->indent(fp);
+	fp->write("void writeArray(");
+	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
+	fp->write(" v, u32 len, u32 pos) { Up_Us::");
+	fp->write(writeMethodForCodeGen().c_str());
+	fp->write("(m_stg.GetBits(), v, ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write("u, len, pos");
+	fp->write("); }\n");
+      }
   } //genUlamTypeWriteDefinitionForC
 
 

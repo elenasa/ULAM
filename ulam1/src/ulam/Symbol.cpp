@@ -63,9 +63,12 @@ namespace MFM {
 
   const std::string Symbol::getMangledNameForParameterType()
   {
-    // to distinguish btn an atomic parameter typedef and quark typedef
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
-    bool isaclass = (classtype == UC_QUARK || classtype == UC_ELEMENT);
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    // to distinguish btn an atomic parameter typedef and quark typedef;
+    // use atomic parameter with array of classes
+    ULAMCLASSTYPE classtype = sut->getUlamClass();
+    //bool isaclass = (classtype == UC_QUARK || classtype == UC_ELEMENT);
+    bool isaclass = (( classtype == UC_QUARK || classtype == UC_ELEMENT)  && sut->isScalar());
 
     std::ostringstream pmangled;
     pmangled << Symbol::getParameterTypePrefix(isaclass).c_str() << getMangledName();

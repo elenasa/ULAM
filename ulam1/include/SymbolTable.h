@@ -76,7 +76,7 @@ namespace MFM{
 
     void printBitSizeOfTableOfClasses();
 
-    u32 getTotalVariableSymbolsBitSize();
+    s32 getTotalVariableSymbolsBitSize();
 
     void packBitsForTableOfClasses();
 

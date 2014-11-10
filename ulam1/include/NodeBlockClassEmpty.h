@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeBlockEmpty.h - Node for handling Empty Blocks for ULAM
+ * NodeBlockClassEmpty.h - Node for handling Empty BlockClasss for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeBlockEmpty.h - Node for handling Empty Blocks for ULAM
+  \file NodeBlockClassEmpty.h - Node for handling Empty BlockClasss for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,21 +34,21 @@
 */
 
 
-#ifndef NODEBLOCKEMPTY_H
-#define NODEBLOCKEMPTY_H
+#ifndef NODEBLOCKCLASSEMPTY_H
+#define NODEBLOCKCLASSEMPTY_H
 
-#include "NodeBlock.h"
+#include "NodeBlockClass.h"
 
 
 namespace MFM{
 
-  class NodeBlockEmpty : public NodeBlock
+  class NodeBlockClassEmpty : public NodeBlockClass
   {
   public:
 
-    NodeBlockEmpty(NodeBlock * prevBlockNode, CompilerState & state);
+    NodeBlockClassEmpty(NodeBlock * prevBlockNode, CompilerState & state);
 
-    virtual ~NodeBlockEmpty();
+    virtual ~NodeBlockClassEmpty();
 
     virtual void print(File * fp);
 
@@ -62,8 +62,7 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
-
+    virtual u32 countNativeFuncDecls();
 
   protected:
 
@@ -74,4 +73,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBLOCKEMPTY_H
+#endif //end NODEBLOCKCLASSEMPTY_H

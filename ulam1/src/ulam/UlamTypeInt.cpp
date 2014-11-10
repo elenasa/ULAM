@@ -43,6 +43,7 @@ namespace MFM {
     s32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
       {
+      case 0: 
       case 32:
 	ctype = "s32";
 	break;
@@ -69,6 +70,7 @@ namespace MFM {
   }
 
 
+  // special sign extend for Int on read 
   void UlamTypeInt::genUlamTypeReadDefinitionForC(File * fp, CompilerState * state)
   {
     state->indent(fp);
@@ -81,8 +83,36 @@ namespace MFM {
     fp->write_decimal(getTotalWordSize());
     fp->write("(BF::");
     fp->write(readMethodForCodeGen().c_str());
-    fp->write("(m_stg), ");
-    fp->write_decimal(getBitSize());
+    if(isScalar())
+      fp->write("(m_stg), ");
+    else
+      {
+	fp->write("(m_stg, ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write("u, ");
+	fp->write_decimal(getBitSize());
+	fp->write("u, ");
+	fp->write_decimal(getTotalWordSize() - getBitSize());
+	fp->write("u), ");
+	fp->write_decimal(getBitSize());  //sign extend 2nd arg
+	fp->write("); }\n");
+
+	state->indent(fp);
+	fp->write("const ");
+	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
+	fp->write(" readArray(");
+	fp->write("u32 len, u32 pos) const { ");
+	fp->write("return _SignExtend");
+	fp->write_decimal(getTotalWordSize());
+	fp->write("(BF::");
+	fp->write(readMethodForCodeGen().c_str());
+	fp->write("(m_stg, ");
+	fp->write_decimal(getTotalBitSize());
+	fp->write("u, len, pos");
+	fp->write("), ");
+      }
+
+    fp->write_decimal(getBitSize());  //sign extend 2nd arg
     fp->write("); }\n");
   } //genUlamTypeReadDefinitionForC
 

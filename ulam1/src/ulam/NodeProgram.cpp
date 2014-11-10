@@ -91,7 +91,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
+#define MAX_ITERATIONS 10
   UTI NodeProgram::checkAndLabelType()
   { 
     assert(m_root);
@@ -102,9 +102,21 @@ namespace MFM {
 
     if(m_state.m_err.getErrorCount() == 0)
       {
+	u32 infcounter = 0;
 	// size all the class; sets "current" m_currentClassSymbol in CS
-	while(!m_state.m_programDefST.setBitSizeOfTableOfClasses()){}
-
+	while(!m_state.m_programDefST.setBitSizeOfTableOfClasses())
+	  {	    
+	    if(++infcounter > MAX_ITERATIONS)
+	      {
+		std::ostringstream msg;
+		msg << "Possible empty class found during type labeling, of class <";
+		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+		msg << ">, proceed with caution.";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+		
+		break;
+	      }
+	  }
 	// must happen after type labeling and before code gen; separate pass.
 	m_state.m_programDefST.packBitsForTableOfClasses();
 

@@ -755,6 +755,8 @@ void BitVector<S>::Write(u32 pos, u32 len, u32 val)
   struct BitField {
     static u32 ReadRaw(const BV & bv) ;
     static void WriteRaw(BV & bv, u32 val) ;
+    static u32 ReadArrayRaw(const BV & bv, u32 arraywidth, u32 len, u32 pos);
+    static void WriteArrayRaw(BV & bv, u32 val, u32 arraywidth, u32 len, u32 pos);
   };
   
 //BitField.tcc
@@ -770,6 +772,28 @@ void BitField<BV,VDTYPE,LEN,POS>::WriteRaw(BV & bv, u32 val)
   bv.Write(POS,LEN,val);
 }
 
+template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
+u32 BitField<BV,VDTYPE,LEN,POS>::ReadArrayRaw(const BV & bv, u32 arraywidth, u32 len, u32 pos)
+{
+  if(arraywidth != LEN)
+    FAIL();
+
+  if(pos < POS || pos >= POS+LEN)
+    FAIL();
+
+  return bv.Read(pos,len);
+}
+
+
+template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
+void BitField<BV,VDTYPE,LEN,POS>::WriteArrayRaw(BV & bv, u32 val, u32 arraywidth, u32 len, u32 pos)
+{
+  if(pos < POS || pos > POS+LEN)  //>= ???
+    FAIL();
+
+  bv.Write(pos,len,val);
+}
+
 //AtomicParameterType.h
 //#define AtomicParameterType BitField
 template <class CC, u32 VDTYPE, u32 LEN, u32 POS>
@@ -782,6 +806,11 @@ struct AtomicParameterType
   static u32 ReadRaw(const BitVector<BPA> & bv){ return BitField<BitVector<BPA>, VDTYPE, LEN, POS>::ReadRaw(bv); }
 
   static void WriteRaw(BitVector<BPA> & bv, u32 val) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::WriteRaw(bv, val); }
+
+  static u32 ReadArrayRaw(const BitVector<BPA> & bv, u32 arraywidth, u32 len, u32 pos) { return BitField<BitVector<BPA>, VDTYPE, LEN, POS>::ReadArrayRaw(bv, arraywidth, len, pos); }
+
+
+  static void WriteArrayRaw(BitVector<BPA> & bv, u32 val, u32 arraywidth, u32 len, u32 pos) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::WriteArrayRaw(bv, val, arraywidth, len, pos); }
 
 };
 

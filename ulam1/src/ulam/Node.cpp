@@ -296,8 +296,11 @@ namespace MFM {
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
     vuti = uvpass.getPtrTargetType();  //replaces vuti w target type
 
+    assert(vuti != Void);
+
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     UTI cosuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cosuti)->getUlamClass();		
 
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
     if(!isCurrentObjectALocalVariableOrArgument())
@@ -353,10 +356,11 @@ namespace MFM {
 	  {
 	    fp->write(", ");
 	    fp->write_decimal(m_state.getTotalBitSize(cosuti)); //array size
-	    fp->write(", ");
+	    fp->write("u, ");
 	    fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
-	    fp->write(", ");
+	    fp->write("u, ");
 	    fp->write_decimal(uvpass.getPtrPos()); //item POS (last like others)
+	    fp->write("u");
 	  }
 	
 	fp->write(");\n");
@@ -369,36 +373,72 @@ namespace MFM {
 	//local
 	if(uvpass.getPtrNameId() > 0)
 	  {
-	    m_state.indent(fp);
-	    fp->write("const ");
-	    
-	    fp->write(vut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
-	    //fp->write("u32");  //always read into a u32
-	    
-	    fp->write(" ");
-	    
-	    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
-	    fp->write(" = ");
+	    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+	    //local cos, however, refining UVpass may be a DM;
+	    bool refiningUVpass = (vuti != cosuti && cosut->isScalar());
 
-	    genLocalMemberNameOfMethod(fp, uvpass);
-
-	    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cosuti)->getUlamClass();
-	    
-	    // allow for immediate quarks
-	    //if(classtype == UC_NOTACLASS)
-	    if(classtype != UC_ELEMENT)
+	    if(!refiningUVpass)
 	      {
-		fp->write(readMethodForCodeGen(vuti).c_str());
-		fp->write("();\n");
+		m_state.indent(fp);
+		fp->write("const ");
+		
+		fp->write(vut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+		//fp->write("u32");  //always read into a u32
+		
+		fp->write(" ");
+		
+		fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+		fp->write(" = ");
+		
+		genLocalMemberNameOfMethod(fp, uvpass);
+		
+		// allow for immediate quarks
+		//if(classtype == UC_NOTACLASS)
+		if(classtype != UC_ELEMENT)
+		  {
+		    fp->write(readMethodForCodeGen(vuti).c_str());
+		    fp->write("();\n");
+		  }
+		else
+		  {
+		    fp->write(readMethodForCodeGen(vuti).c_str());
+		    fp->write("(");
+		    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
+		    fp->write(".GetBits()");
+		    fp->write(");\n");
+		    
+		    // specifically to sign extend Int's (a cast)
+		    vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);		
+		  }
 	      }
 	    else
 	      {
+		//local cos with refining uvpass (essentially a data member of local)
+		m_state.indent(fp);
+		fp->write("const ");
+		
+		fp->write(vut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+		//fp->write("u32");  //always read into a u32
+		
+		fp->write(" ");
+		
+		fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+		fp->write(" = ");
+		
+		genLocalMemberNameOfMethod(fp, uvpass);
+		
 		fp->write(readMethodForCodeGen(vuti).c_str());
 		fp->write("(");
+		    
 		fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
-		fp->write(".GetBits()");
-		fp->write(");\n");
+	
+		if(classtype == UC_QUARK)
+		  fp->write(".getBits()");  //m_stg.GetBits
+		else
+		  fp->write(".GetBits()");  //element uses GetBits
 
+		fp->write(");\n");
+		    
 		// specifically to sign extend Int's (a cast)
 		vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);		
 	      }
@@ -534,26 +574,52 @@ namespace MFM {
       }
     else
       {
-	//local
-	m_state.indent(fp);
+	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+	ULAMCLASSTYPE classtype = cosut->getUlamClass();
+
+	//local cos, however, refining UVpass may be a DM;
+	bool refiningUVpass = (luti != cosuti && cosut->isScalar());
+
+	if(!refiningUVpass)
+	  { 
+	    m_state.indent(fp);
 	
-	genLocalMemberNameOfMethod(fp, luvpass);
+	    genLocalMemberNameOfMethod(fp, luvpass);
 
-	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cosuti)->getUlamClass();
-
-	// allow for immediate quarks
-	//if(classtype == UC_NOTACLASS)
-	if(classtype != UC_ELEMENT)
-	  {
-	    fp->write(writeMethodForCodeGen(luti).c_str());
-	    fp->write("(");
+	    // allow for immediate quarks
+	    //if(classtype == UC_NOTACLASS)
+	    if(classtype != UC_ELEMENT)
+	      {
+		fp->write(writeMethodForCodeGen(luti).c_str());
+		fp->write("(");
+	      }
+	    else
+	      {
+		fp->write(writeMethodForCodeGen(luti).c_str());
+		fp->write("(");
+		fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
+		fp->write(".GetBits()");
+		fp->write(", ");
+	      }
 	  }
 	else
 	  {
+	    //local cos with refining luvpass (essentially a data member of local)
+	    m_state.indent(fp);
+	
+	    genLocalMemberNameOfMethod(fp, luvpass);
+
+	    // the WRITE method
+	    //fp->write(writeMethodForCodeGen(ruti).c_str());
 	    fp->write(writeMethodForCodeGen(luti).c_str());
 	    fp->write("(");
 	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
-	    fp->write(".GetBits()");
+	
+	    if(classtype == UC_QUARK)
+	      fp->write(".getBits()");  //m_stg.GetBits
+	    else
+	      fp->write(".GetBits()");  //element uses GetBits
+
 	    fp->write(", ");
 	  }
       }
@@ -596,10 +662,11 @@ namespace MFM {
 	  {
 	    fp->write(", ");
 	    fp->write_decimal(m_state.getTotalBitSize(cosuti)); //array size
-	    fp->write(", ");
+	    fp->write("u, ");
 	    fp->write_decimal(luvpass.getPtrLen()); //BITS_PER_ITEM
-	    fp->write(", ");
-	    fp->write_decimal(luvpass.getPtrPos()); //item POS (last like others)	
+	    fp->write("u, ");
+	    fp->write_decimal(luvpass.getPtrPos()); //item POS (last like others)
+	    fp->write("u");
 	  }
 	
 	fp->write(");\n");
@@ -611,7 +678,8 @@ namespace MFM {
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
 
-    UlamType * ut = m_state.getUlamTypeByIndex(m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx());
+    UTI uti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
     ULAMCLASSTYPE classtype = ut->getUlamClass();
 	
     if(classtype == UC_NOTACLASS)
@@ -623,45 +691,57 @@ namespace MFM {
       }
     else
       {
-	if(m_state.m_currentObjSymbolForCodeGen->isDataMember()) //within an element
-	  {             
+	bool refiningUVpass = (uvpass.getPtrTargetType() != uti && ut->isScalar());
+
+	if(m_state.m_currentObjSymbolForCodeGen->isDataMember()) //quark within an element
+	  {
 	    // Use CSS self symbol? e.g. when COS is an array
 	    // of quarks, we're NOT looking for the primitive within
 	    // the quark, rather the member of the element (CSS). 
-	    // here, it-> does not refer to the 'self'
-	    NodeBlockClass * memberClassNode = NULL;
-	    UlamType * sut = m_state.getUlamTypeByIndex(m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx());
-	    ULAMCLASSTYPE selfclasstype = sut->getUlamClass();
+	    // here, ut-> refers to COS, not to the 'self'
 
-	    //e.g. array of quarks
+	    //UlamType * sut = m_state.getUlamTypeByIndex(m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx());
+	    //ULAMCLASSTYPE selfclasstype = sut->getUlamClass();
+
+	    //e.g. array of quarks, member of a quark, 
 	    //if(ut->isScalar())
-	    if(selfclasstype == UC_QUARK)
+	    //if(selfclasstype == UC_QUARK)
+	    if(refiningUVpass)
 	      {
+		//csym != COS. COS is an instantiation; csym is the class symbol for the type of COS; 
 		SymbolClass * csym = NULL;
 		assert(m_state.alreadyDefinedSymbolClass(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
-		
-		memberClassNode = csym->getClassBlockNode();	  
+	
+		NodeBlockClass * memberClassNode = csym->getClassBlockNode();
 		assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
+		
+		m_state.m_currentMemberClassBlock = memberClassNode;
+		m_state.m_useMemberBlock = true;
+	    
+		Symbol * sym = NULL;
+		assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(),sym)); //failed last time
+		
+		m_state.m_useMemberBlock = false;
+		m_state.m_currentMemberClassBlock = NULL;
+	    
+		// we need the atomicparametertype for this quark's data member m_val_b!!!
+		// unless COS is an array of quarks!!!
+		fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
+		fp->write("::");
+
+		fp->write(sym->getMangledNameForParameterType().c_str());
+		fp->write("::");
 	      }
 	    else
 	      {
-		memberClassNode = ((SymbolClass *) m_state.m_currentSelfSymbolForCodeGen)->getClassBlockNode(); 
+		//COS is a data member quark, or quark array, within element 'self'
+		fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
+		fp->write("::");
+		
+		//entire quark atomic parameter for ReadRaw/WriteRaw (not arrays)
+		if(ut->isScalar())
+		  fp->write("Up_Us::");
 	      }
-
-	    m_state.m_currentMemberClassBlock = memberClassNode;
-	    m_state.m_useMemberBlock = true;
-	    
-	    Symbol * sym = NULL;
-	    assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(),sym)); //failed last time
-	    
-	    m_state.m_useMemberBlock = false;
-	    m_state.m_currentMemberClassBlock = NULL;
-	    
-	    // we need the atomicparametertype for this quark's data member m_val_b!!!
-	    // unless COS is an array of quarks!!!
-	    fp->write(sym->getMangledNameForParameterType().c_str());
-	    fp->write("::");
-	    fp->write("Up_Us::");  //entire quark atomic parameter for ReadRaw/WriteRaw
 	  }
 	else  //cos == css (self) 
 	  {
@@ -683,7 +763,7 @@ namespace MFM {
 
     // hence a primitive type local variable
     //if(classtype == UC_NOTACLASS)
-    if(classtype == UC_NOTACLASS || (classtype == UC_QUARK && ut->isScalar()))
+    if(classtype == UC_NOTACLASS)
       {
 	Symbol * sym;
 	assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(), sym));
@@ -694,35 +774,67 @@ namespace MFM {
     else
       {
 	// since neither a data member nor self:
-	// COS is a local element or array of quarks; 
+	// COS is a local element, quark, or array of quarks; 
 	// use uvpass to get symbol id.
 	assert(!m_state.m_currentObjSymbolForCodeGen->isDataMember()); 
 	
-	NodeBlockClass * memberClassNode = NULL;
-	UlamType * sut = m_state.getUlamTypeByIndex(m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx());
-	SymbolClass * csym = NULL;
-	assert(m_state.alreadyDefinedSymbolClass(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
-		
-	memberClassNode = csym->getClassBlockNode();	  
-	assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
-
-	m_state.m_currentMemberClassBlock = memberClassNode;
-	m_state.m_useMemberBlock = true;
+	bool refiningUVpass = (uvpass.getPtrTargetType() != uti && ut->isScalar());
+	if(refiningUVpass)
+	  {
+	    NodeBlockClass * memberClassNode = NULL;
+	    UlamType * cosut = m_state.getUlamTypeByIndex(m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx());
+	    SymbolClass * csym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(cosut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
 	    
-	assert(uvpass.getPtrNameId()); //not zero!
-	Symbol * sym = NULL;
-	assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(),sym)); //failed last time
+	    memberClassNode = csym->getClassBlockNode();	  
+	    assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
+	    
+	    m_state.m_currentMemberClassBlock = memberClassNode;
+	    m_state.m_useMemberBlock = true;
+	    
+	    assert(uvpass.getPtrNameId()); //not zero!
+	    Symbol * sym = NULL;
+	    assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(),sym)); //failed last time
+	    
+	    m_state.m_useMemberBlock = false;
+	    m_state.m_currentMemberClassBlock = NULL;
 	
-	m_state.m_useMemberBlock = false;
-	m_state.m_currentMemberClassBlock = NULL;
-	    
-	// we need the atomicparametertype for this quark's data member m_val_b!!!
-	// unless COS is an array of quarks!!!
-	fp->write(sym->getMangledNameForParameterType().c_str());
-	fp->write("::");
+	    // we need the atomicparametertype for this quark's data member m_val_b!!!
+	    // unless COS is an array of quarks!!!
+	    if(classtype == UC_QUARK)
+	      {
+		fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+		fp->write("::");
+		fp->write("Us::");
+	      }
+	    else
+	      {
+		//fp->write(ut->getUlamTypeMangledName(&m_state).c_str());
+		//fp->write("::");
+	      }
+
+	    fp->write(sym->getMangledNameForParameterType().c_str());
+	    fp->write("::");
+	  }
+	else
+	  {
+	    //entire immediate quark or element
+	    if(classtype == UC_QUARK)
+	      {
+		//fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+		//fp->write("::");
+		////fp->write("Us::"); not needed for entirety
+		fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
+		fp->write(".");
+	      }
+	    else
+	      {
+		// nothing for element (first arg determines its BV)
+	      }
+	  }
       }
   } //genLocalMemberNameOfMethod
-
+  
 
   void Node::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
@@ -750,11 +862,16 @@ namespace MFM {
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 	ULAMCLASSTYPE classtype = cosut->getUlamClass();	
 
+	bool refiningUV = (nuti != cosuti);
+
 	// allow for immediate quarks
 	//if(classtype == UC_NOTACLASS)
 	if(classtype != UC_ELEMENT)
 	  {
-	    method = readMethodForImmediateBitValueForCodeGen(nuti);
+	    if(!refiningUV)
+	      method = readMethodForImmediateBitValueForCodeGen(nuti);
+	    else
+	      method = nut->readMethodForCodeGen(); //refining UV implies data member within local  
 	  }
 	else
 	  {
@@ -781,11 +898,15 @@ namespace MFM {
 	UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 	ULAMCLASSTYPE classtype = cosut->getUlamClass();	
 
+	bool refiningUV = (nuti != cosuti);
 	// allow for immediate quarks
 	//if(classtype == UC_NOTACLASS)
 	if(classtype != UC_ELEMENT)
 	  {
-	    method = writeMethodForImmediateBitValueForCodeGen(nuti);
+	    if(!refiningUV)
+	      method = writeMethodForImmediateBitValueForCodeGen(nuti);
+	    else
+	      method = nut->writeMethodForCodeGen(); //refining UV implies data member within local
 	  }
 	else
 	  {

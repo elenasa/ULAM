@@ -19,6 +19,7 @@
 #include "NodeBinaryOpEqualBitwiseXor.h"
 #include "NodeBlock.h"
 #include "NodeBlockEmpty.h"
+#include "NodeBlockClassEmpty.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeCast.h"
 #include "NodeControlIf.h"
@@ -150,6 +151,10 @@ namespace MFM {
     if( (pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) )
       {
 	//error!
+	std::ostringstream msg;
+	msg << "Expecting 'quark' or 'element' KEYWORD, NOT <" << pTok.getTokenString() << ">";
+	MSG(&pTok, msg.str().c_str(), ERR);
+
 	return true;  //we're done.
       }
 
@@ -161,6 +166,9 @@ namespace MFM {
     //if(!(iTok.m_type == TOK_IDENTIFIER && Token::isTokenAType(iTok,&m_state)))
     if(iTok.m_type != TOK_TYPE_IDENTIFIER)
       {
+	std::ostringstream msg;
+	msg << "Poorly named class <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">: Identifier must begin with an upper-case letter";;
+	MSG(&iTok, msg.str().c_str(), ERR);
 	//error! 
 	return  true; //we're done unless we can gobble the rest up? 
       }
@@ -177,7 +185,10 @@ namespace MFM {
 	if(cSym->getUlamClass() != UC_INCOMPLETE)
 	  {
 	    //error!! duplicate
-	    
+	    std::ostringstream msg;
+	    msg << "Duplicate or incomplete class <" << m_state.m_pool.getDataAsString(cSym->getId()).c_str() << ">";
+	    MSG(&iTok, msg.str().c_str(), ERR);
+
 	    return  true;  //we're done unless we can gobble the rest up? 
 	  }
       }
@@ -212,6 +223,7 @@ namespace MFM {
       {
 	//error! reset to incomplete
 	cSym->setUlamClass(UC_INCOMPLETE);
+	MSG(&pTok, "Empty/Incomplete Class Definition", WARN);
       }
 
     //return true when we've seen THIS class
@@ -230,7 +242,12 @@ namespace MFM {
 
     if(getExpectedToken(TOK_CLOSE_CURLY))
       {
-	return NULL;
+	rtnNode = new NodeBlockClassEmpty(m_state.m_currentBlock, m_state);
+	rtnNode->setNodeLocation(pTok.m_locator); 
+	//return NULL;  11082014
+	m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
+
+	return rtnNode;  //allow empty class
       }
 
     NodeBlock * prevBlock = m_state.m_currentBlock;

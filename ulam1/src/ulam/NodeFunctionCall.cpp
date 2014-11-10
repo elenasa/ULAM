@@ -295,12 +295,15 @@ namespace MFM {
 
 
   // during genCode of a single function body "self" doesn't change!!!
+  // note: uvpass arg is not equal to m_currentObjPtr; it is blank.
   void NodeFunctionCall::genCode(File * fp, UlamValue& uvpass)
   {
     // generate for value
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     //UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
+    //assert(m_state.m_currentObjPtr.getPtrTargetType() == uvpass.getPtrTargetType());
+    //assert(m_state.m_currentObjPtr.getPtrNameId() == uvpass.getPtrNameId());
 
     std::ostringstream arglist;
 
@@ -315,7 +318,7 @@ namespace MFM {
 #endif
 
     //"hidden" first arg
-    if(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen))
+    if(!isCurrentObjectALocalVariableOrArgument())
       {
 	arglist << m_state.getHiddenArgName();
       }
@@ -372,30 +375,10 @@ namespace MFM {
 
     // static functions..oh yeah.
     //who's function is it? can we use m_cos' type
-    UTI objuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(objuti)->getUlamClass();
-
-    if(m_state.m_currentObjSymbolForCodeGen->isDataMember())
-      {
-	assert(classtype == UC_QUARK);
-	fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
-	fp->write("::");
-      }
-    else if(m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)
-      {
-	//nothing to do?
-      }
+    if(!isCurrentObjectALocalVariableOrArgument())
+      genMemberNameOfMethod(fp, m_state.m_currentObjPtr);
     else
-      {
-	//local (static functions)
-	if(classtype == UC_QUARK)
-	  {
-	    fp->write(m_state.getUlamTypeByIndex(objuti)->getUlamTypeImmediateMangledName(&m_state).c_str());
-	    fp->write("<CC>");
-	    fp->write("::");	    
-	    fp->write("Us::");
-	  }  
-      }
+      genLocalMemberNameOfMethod(fp, m_state.m_currentObjPtr);
 
     fp->write(m_funcSymbol->getMangledName().c_str());
     fp->write("(");
@@ -416,6 +399,83 @@ namespace MFM {
       }
 #endif
   } //codeGen
+
+
+  void NodeFunctionCall::genMemberNameOfMethod(File * fp, UlamValue uvpass)
+  {
+    UTI objuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
+    UlamType * objut = m_state.getUlamTypeByIndex(objuti);
+    ULAMCLASSTYPE classtype = objut->getUlamClass();
+
+    if(m_state.m_currentObjSymbolForCodeGen->isDataMember())
+      {
+	assert(classtype == UC_QUARK);
+	bool refiningUVpass = (uvpass.getPtrTargetType() != objuti && objut->isScalar());
+	if(refiningUVpass)
+	  {
+	    //csym != COS. COS is an instantiation; csym is the class symbol for the type of COS; 
+	    SymbolClass * csym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(objut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
+	    
+	    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+	    assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
+	    
+	    m_state.m_currentMemberClassBlock = memberClassNode;
+	    m_state.m_useMemberBlock = true;
+	    
+	    Symbol * sym = NULL;
+	    assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(),sym)); //failed last time
+	    
+	    m_state.m_useMemberBlock = false;
+	    m_state.m_currentMemberClassBlock = NULL;
+	    
+	    // we need the atomicparametertype for this quark's data member m_val_b!!!
+	    // unless COS is an array of quarks!!!
+	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
+	    fp->write("::");
+	    
+	    fp->write(sym->getMangledNameForParameterType().c_str());
+	    fp->write("::");
+	  }
+	else
+	  {
+	    //COS is a data member quark, or quark array, within element 'self'
+	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
+	    fp->write("::");
+	  }
+      }
+    else if(m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)
+      {
+	//nothing to do?
+      }
+  } //genMemberNameOfMethod
+
+
+  void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp, UlamValue uvpass)
+  {
+    UTI objuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(objuti)->getUlamClass();
+
+    //local (static functions)
+    if(classtype == UC_QUARK)
+      {
+	UlamType * objut = m_state.getUlamTypeByIndex(objuti);
+	if(objut->isScalar())
+	  {
+	    fp->write(objut->getUlamTypeImmediateMangledName(&m_state).c_str());
+	    fp->write("<CC>");
+	    fp->write("::");
+	    fp->write("Us::");
+	  }  
+	else
+	  {
+	    //?? can't call a func on an array!
+	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
+	    fp->write(".");
+	    assert(0);
+	  }
+      } //quark functions
+  } //genLocalMemberNameOfMethod
 
 
   // during genCode of a single function body "self" doesn't change!!!
