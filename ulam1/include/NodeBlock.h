@@ -75,6 +75,8 @@ namespace MFM{
 
     s32 getBitSizesOfVariableSymbolsInTable();
 
+    s32 getMaxBitSizeOfVariableSymbolsInTable();
+
     SymbolTable * getSymbolTablePtr(); //used for print postfix 
 
     virtual void genCode(File * fp, UlamValue& uvpass);

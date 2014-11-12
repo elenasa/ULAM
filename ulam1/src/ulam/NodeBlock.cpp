@@ -121,6 +121,15 @@ namespace MFM {
   }
 
 
+  s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable()
+  {
+    if(m_ST.getTableSize() == 0)
+      return EMPTYSYMBOLTABLE;  //should allow no variable data members
+
+    return m_ST.getMaxVariableSymbolsBitSize();
+  }
+
+
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {
     return &m_ST;

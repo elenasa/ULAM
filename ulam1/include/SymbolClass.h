@@ -63,11 +63,15 @@ namespace MFM{
 
     void setUlamClass(ULAMCLASSTYPE type);
 
+    void setQuarkUnion();
+
+    bool isQuarkUnion();
+
   protected:
 
   private:
     NodeBlockClass * m_classBlock;
-
+    bool m_quarkunion;
   };
 
 }
