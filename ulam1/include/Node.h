@@ -130,7 +130,7 @@ namespace MFM{
     const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
 
     bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self; 
-
+    bool isCurrentObjectAPieceOfAnArray(UTI cosuti, UlamValue uvpass);
 
   private:
     bool m_storeIntoAble;

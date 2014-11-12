@@ -293,7 +293,7 @@ namespace MFM {
 
     assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
    
-    // write out intermediate tmpVar as temp BitVector arg
+    // write out intermediate tmpVar (i.e. terminal) as temp BitVector arg
     if(uvpass.getPtrNameId() == 0)
       {
 	genCodeConvertATmpVarIntoBitVector(fp, uvpass);
@@ -367,7 +367,6 @@ namespace MFM {
       } 
     else
       {
-	//local 
 	m_state.indent(fp);   //local
 	fp->write("const ");
 		
@@ -383,7 +382,8 @@ namespace MFM {
 	//read method based on last cos
 	fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
 
-	//first arg depends on first cos
+	//first arg depends on stgcos
+	// elements have a 'T' atom storage
 	if(stgcosclasstype == UC_ELEMENT)
 	  {
 	    fp->write("(");
@@ -408,13 +408,14 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //used local variable name, and immediate read method
+	    // local quark or primitive (i.e. 'notaclass'); has an immediate type:
+	    // uses local variable name, and immediate read method
 	    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 	    if(cosSize == 1)
 	      {
 		fp->write("(");
 
-		if(!m_state.isScalar(cosuti) && uvpass.getPtrLen() != (s32) m_state.getTotalBitSize(cosuti))
+		if(isCurrentObjectAPieceOfAnArray(cosuti, uvpass))
 		  {
 		    fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
 		    fp->write("u, ");
@@ -426,16 +427,17 @@ namespace MFM {
 	      }
 	    else
 	      {
-		fp->write("(");		    
+		// storage-cos and cos-for-read are different:
+		// use this instance of storage-cos to specify 
+		// its non-static read method
+		fp->write("(");
 		fp->write(stgcos->getMangledName().c_str());
 	
-		if(stgcosclasstype == UC_QUARK)
-		  fp->write(".getBits()");  //m_stg.GetBits
-		else
-		  fp->write(".GetBits()");  //element uses GetBits
+		assert(stgcosclasstype == UC_QUARK);
+		fp->write(".getBits()");  //m_stg.GetBits
 		
 		// use immediate read() for entire array
-		if(!m_state.isScalar(cosuti) && uvpass.getPtrLen() != (s32) m_state.getTotalBitSize(cosuti))
+		if(isCurrentObjectAPieceOfAnArray(cosuti, uvpass))
 		  {
 		    fp->write(", ");
 		    fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
@@ -497,7 +499,14 @@ namespace MFM {
       }
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, 0);  //POS 0 rightjustified.
+    u32 pos = 0;  //pos calculated by makePtr(atom-based) (e.g. quark)
+    if(vut->getUlamClass() == UC_NOTACLASS)
+      {
+	s32 wordsize = vut->getTotalWordSize();
+	pos = wordsize - vut->getTotalBitSize();
+      }
+
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos);  //POS rightjustified.
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeConvertATmpVarIntoBitVector
@@ -531,7 +540,7 @@ namespace MFM {
     
     fp->write("(");
     // use immediate read for entire array
-    if(!m_state.isScalar(vuti) && uvpass.getPtrLen() != (s32) m_state.getTotalBitSize(vuti))
+    if(isCurrentObjectAPieceOfAnArray(vuti, uvpass))
       {
 	fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
 	fp->write("u, ");
@@ -540,7 +549,8 @@ namespace MFM {
       }
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0);  //POS 0 rightjustified.
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0);  //POS 0 rightjustified (atom-based).
+    uvpass.setPtrPos(0); //entire register
 
     // specifically to sign extend Int's (a cast)
     //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);    
@@ -673,7 +683,7 @@ namespace MFM {
 	//if(!m_state.isScalar(ruti))
 	if(!m_state.isScalar(cosuti))
 	  {
-	    if(	cos->isDataMember())
+	    if(cos->isDataMember())
 	      {
 		fp->write(", ");
 		fp->write_decimal(m_state.getTotalBitSize(cosuti)); //array size
@@ -844,44 +854,32 @@ namespace MFM {
 
   const std::string Node::readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass)
   {
-    std::string method;
-    if(m_state.isScalar(nuti))
-      {     
-	method = "read";
-      }
-    else
-      {
-	if(uvpass.getPtrLen() == (s32) m_state.getTotalBitSize(nuti))
-	  method = "read";      //entire array
-	else
-	  method = "readArray"; //TBD
-      }
-    return method;
+    if(isCurrentObjectAPieceOfAnArray(nuti, uvpass))
+      return "readArray"; //TBD
+
+    return "read";
   } //readMethodForImmediateBitValueForCodeGen
 
 
   const std::string Node::writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass)
   {
-    std::string method;
-	if(m_state.isScalar(nuti))
-	  {     
-	    method = "write";
-	  }
-	else
-	  {
-	    if(uvpass.getPtrLen() == (s32) m_state.getTotalBitSize(nuti))
-	      method = "write";        //entire array
-	    else
-	      method = "writeArray";   //TBD
-	  }
-	return method;
+    if(isCurrentObjectAPieceOfAnArray(nuti, uvpass))
+      return "writeArray"; //TBD
+
+    return "write";
   } //writeMethodForImmediateBitValueForCodeGen
 
 
   bool Node::isCurrentObjectALocalVariableOrArgument()
   {
-    //return !(m_state.m_currentObjSymbolForCodeGen->isDataMember() || (m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen));
     return !(m_state.m_currentObjSymbolsForCodeGen.empty() || m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember());
+  }
+
+
+  //false means its the entire array or not an array at all (use read())
+  bool Node::isCurrentObjectAPieceOfAnArray(UTI cosuti, UlamValue uvpass)
+  {
+    return(!m_state.isScalar(cosuti) && uvpass.getPtrLen() != (s32) m_state.getTotalBitSize(cosuti));
   }
 
 

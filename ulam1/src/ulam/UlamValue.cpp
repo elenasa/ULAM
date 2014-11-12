@@ -220,11 +220,22 @@ namespace MFM {
   }
 
 
+  void UlamValue::setPtrPos(u32 pos)
+  { 
+    assert(getUlamValueTypeIdx() == Ptr);
+    assert(pos <= BITSPERATOM && pos >= 0);
+    m_uv.m_ptrValue.m_posInAtom = pos;
+    return;
+  }
+
+
   u32 UlamValue::getPtrPos()
   { 
     assert(getUlamValueTypeIdx() == Ptr);
     u32 pos = m_uv.m_ptrValue.m_posInAtom;
-    assert(pos <= BITSPERATOM && pos >= ATOMFIRSTSTATEBITPOS);
+    // this will blow up the smaller BITVECTORS used in code gen for immmediates.
+    //assert(pos <= BITSPERATOM && pos >= ATOMFIRSTSTATEBITPOS);
+    assert(pos <= BITSPERATOM && pos >= 0);
     return pos;
   }
 

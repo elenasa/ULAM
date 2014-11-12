@@ -130,6 +130,8 @@ namespace MFM{
 
     s32 getPtrSlotIndex();  
 
+    void setPtrPos(u32 pos);
+
     u32 getPtrPos();        
 
     s32 getPtrLen();

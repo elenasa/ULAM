@@ -197,7 +197,7 @@ namespace MFM {
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
 
     //bypass sign extend when entire array is read
-    if(!isScalar() && uvpass.getPtrLen() == getTotalBitSize())
+    if(!isScalar() && uvpass.getPtrLen() == (s32) getTotalBitSize())
       return;
 
     UTI uti = getUlamTypeIndex();
