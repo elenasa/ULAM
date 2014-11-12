@@ -193,7 +193,9 @@ namespace MFM {
     fp->write(";\n");
     
     // substitute Ptr for uvpass to contain the tmpVar number; save id of constant string in Ptr;
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified.
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified (atom-based);
+    uvpass.setPtrPos(0); //entire register
+
   } //genCodeReadIntoATmpVar
 
 } //end MFM
