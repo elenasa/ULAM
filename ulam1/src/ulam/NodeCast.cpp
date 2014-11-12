@@ -61,13 +61,19 @@ namespace MFM {
 	if(!m_state.isScalar(tobeType))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts, elena", DEBUG);
+	    errorsFound++;
 
-	    if(!m_state.isScalar(nodeType))
-	      MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast scalar into array", ERR);
+	    if(m_state.isScalar(nodeType))
+	      {
+		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast scalar into array", ERR);
+		errorsFound++;
+	      }
 
 	    if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
-	      MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Array sizes differ", ERR);
-	    errorsFound++;
+	      {
+		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Array sizes differ", ERR);
+		errorsFound++;
+	      }
 	  }
 	else
 	  {
@@ -146,8 +152,10 @@ namespace MFM {
 	//both arrays the same dimensions
 	//assert(!nodeType->isScalar());
 	if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
-	  MSG(getNodeLocationAsString().c_str(), "Considering implementing array casts!!!", ERR);
-	assert(0);
+	  {
+	    MSG(getNodeLocationAsString().c_str(), "Considering implementing array casts!!!", ERR);
+	    assert(0);
+	  }
       }
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);

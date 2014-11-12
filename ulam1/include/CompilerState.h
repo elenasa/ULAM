@@ -122,7 +122,8 @@ namespace MFM{
     UlamValue m_currentObjPtr;        //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr;       //used in eval of func calls: updated after args, becomes currentObjPtr for args
 
-    Symbol * m_currentObjSymbolForCodeGen;  //used in code generation; parallels m_currentObjPtr
+    std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
+    //Symbol * m_currentObjSymbolForCodeGen;  //used in code generation; parallels m_currentObjPtr
     Symbol * m_currentSelfSymbolForCodeGen; //used in code generation; parallels m_currentSelf
     u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
     s32 m_nextTmpVarNumber;           //used in code gen when a "slot index" is not available

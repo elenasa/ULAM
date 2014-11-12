@@ -31,7 +31,7 @@ namespace MFM {
 
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this), m_currentObjSymbolForCodeGen(NULL), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
   {
     m_err.init(this, debugOn, NULL);
   }
@@ -41,6 +41,7 @@ namespace MFM {
   {
     clearAllDefinedUlamTypes();
     clearAllLinesOfText();
+    m_currentObjSymbolsForCodeGen.clear();
   }
 
 
@@ -1192,13 +1193,15 @@ namespace MFM {
 	else
 	  tmpVar << "Uh_tmpreg_unpacked_" ;
       }
-    else
+    else if(stg == TMPBITVAL)
       {
 	if(WritePacked(packed))
 	  tmpVar << "Uh_tmpval_loadable_" ;
 	else
 	  tmpVar << "Uh_tmpval_unpacked_" ;
       }
+    else
+      assert(0); //remove assumptions about tmpbitval.
 
     tmpVar << DigitCount(num, BASE10) << num;
     

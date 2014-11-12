@@ -52,7 +52,8 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;                //*************
-    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
+    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
 #ifdef TMPVARBRACES
     m_state.indent(fp);
@@ -65,16 +66,23 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // init to self
+    //    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // init to self
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     // lhs should be the new current object: node member select updates them, 
     // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);      //may update m_currentObjSymbol
+
+    //wiped out by left read; need to write back into left
+    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+
     //m_nodeLeft->genCode(fp, luvpass);      //may update m_currentObjSymbol
     Node::genCodeReadIntoATmpVar(fp, luvpass);
+
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore vector after lhs read*************
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -108,7 +116,7 @@ namespace MFM {
 
     fp->write(");\n");
   
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, luvpass.getPtrPos(), luvpass.getPtrNameId());  //P
 
     // current object globals should pertain to lhs for the write
     genCodeWriteFromATmpVar(fp, luvpass, uvpass);        //uses rhs' tmpvar
@@ -119,7 +127,8 @@ namespace MFM {
     fp->write("}\n");  //close for tmpVar
 #endif
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
-    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 
 } //end MFM

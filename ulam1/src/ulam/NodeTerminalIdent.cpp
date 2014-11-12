@@ -157,9 +157,21 @@ namespace MFM {
 
   UlamValue NodeTerminalIdent::makeUlamValuePtrForCodeGen()
   {
-    UlamValue uvpass = makeUlamValuePtr();
-    uvpass.setPtrNameId(m_varSymbol->getId());
-    uvpass.setPtrSlotIndex(m_state.getNextTmpVarNumber());
+    UlamValue uvpass1 = makeUlamValuePtr();
+    //uvpass.setPtrNameId(m_varSymbol->getId());
+    //uvpass.setPtrSlotIndex(m_state.getNextTmpVarNumber());
+    //uvpass.setPtrStorage(TMPREGISTER); //for code gen
+
+    u32 pos = uvpass1.getPtrPos();
+    // this is for "efficiency", e.g. BitVector<32> for immediate primitives
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    if(!m_varSymbol->isDataMember() && nut->getUlamClass() == UC_NOTACLASS)
+      {
+	s32 wordsize = nut->getTotalWordSize();
+	pos = wordsize - (BITSPERATOM - pos); //nut->getTotalBitSize();
+      }
+
+    UlamValue uvpass = UlamValue::makePtr(m_state.getNextTmpVarNumber(), TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, pos, m_varSymbol->getId());
 
     return uvpass;
   } //makeUlamValuePtrForCodeGen
@@ -323,19 +335,20 @@ namespace MFM {
   void NodeTerminalIdent::genCode(File * fp, UlamValue & uvpass)
   {
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
+    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
     uvpass = makeUlamValuePtrForCodeGen();
 
     m_state.m_currentObjPtr = uvpass;                    //*************
-    m_state.m_currentObjSymbolForCodeGen = m_varSymbol;  //************UPDATED GLOBAL; 
-
+    //m_state.m_currentObjSymbolForCodeGen = m_varSymbol;  //************UPDATED GLOBAL; 
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL; 
+ 
     // UNCLEAR: should this be consistent with constants?
     genCodeReadIntoATmpVar(fp, uvpass);
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
-    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
+    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
   } //genCode
 
 
@@ -346,7 +359,8 @@ namespace MFM {
 
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjPtr = uvpass;                   //*********
-    m_state.m_currentObjSymbolForCodeGen = m_varSymbol; //*********
+    //m_state.m_currentObjSymbolForCodeGen = m_varSymbol; //*********
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL; 
   } //genCodeToStoreInto
 
 

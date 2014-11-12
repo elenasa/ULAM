@@ -260,8 +260,8 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;                //*************
-    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
-
+    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
     //UlamValue saveCurrentSelfPtr = m_state.m_currentSelfPtr;                //*************
     //Symbol * saveCurrentSelfSymbol = m_state.m_currentSelfSymbolForCodeGen; //*************
 
@@ -276,8 +276,9 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // restore to self
+    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // restore to self
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     //m_state.m_currentSelfSymbolForCodeGen = saveCurrentSelfSymbol; // restore to self
     // m_state.m_currentSelfPtr = saveCurrentSelfPtr;  //restore *******
@@ -299,7 +300,8 @@ namespace MFM {
     fp->write("}\n");  //close for tmpVar
 #endif
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
-    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     //    m_state.m_currentSelfSymbolForCodeGen = saveCurrentSelfSymbol; // restore to self
     //m_state.m_currentSelfPtr = saveCurrentSelfPtr;  //restore *******
