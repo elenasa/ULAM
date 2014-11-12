@@ -142,8 +142,11 @@ namespace MFM {
 	fp->write(")");
       }
     fp->write(")\n");
+    m_state.m_currentIndentLevel++;
+
     m_state.indent(fp);
     fp->write("break;\n");
+    m_state.m_currentIndentLevel--;
 
     //else do the body
     m_nodeBody->genCode(fp, uvpass);

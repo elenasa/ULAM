@@ -222,7 +222,7 @@ namespace MFM {
   void NodeBlockFunctionDefinition::genCode(File * fp, UlamValue& uvpass)
   {
     // m_currentObjSymbol set up by caller
-    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
+    //    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
     
     m_state.m_currentBlock = this;
 

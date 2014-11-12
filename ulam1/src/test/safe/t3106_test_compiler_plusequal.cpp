@@ -7,6 +7,13 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //Ue_A { Int(32) a(3);  Int(32) b(2);  Int(32) test() {  a 1 cast = b 2 cast = a b += a return } }\nExit status: 3
+
+      /* gen code output:
+	 Int(3) Arg: 0x3
+	 assert: arg is 1
+	 after assert's abort: arg is 1
+      */
+
       return std::string("Ue_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(3);  Int(32) test() {  a 1 cast = b 2 cast = a b += s ( a )print . d a cast = s ( d )assert . a cast return } }\nExit status: 3");
     }
     

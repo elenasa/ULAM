@@ -123,6 +123,7 @@ namespace MFM{
 
     UlamValue getValAt(u32 offset, CompilerState& state) const;   // Ptr only, arrays
 
+
     STORAGE getPtrStorage();
 
     void setPtrSlotIndex(s32 s);  

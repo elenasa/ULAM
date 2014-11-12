@@ -247,6 +247,16 @@ namespace MFM {
     return PopCount(val & _GetNOnes64(srcbitwidth));
   }
 
+  inline u32 _Bits32ToUnsigned32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  {
+    return (val & _GetNOnes32(srcbitwidth));
+  }
+
+  inline u64 _Bits64ToUnsigned64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  {
+    return (val & _GetNOnes64(srcbitwidth)); 
+  }
+
 
   //To BITS:
   inline u32 _Int32ToBits32(s32 val, const u32 srcbitwidth, const u32 destbitwidth) 
@@ -265,6 +275,36 @@ namespace MFM {
   }
 
   inline u64 _Unsigned64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  {
+    return val & _GetNOnes64(srcbitwidth);
+  }
+
+  inline u32 _Bool32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  {
+    return val & _GetNOnes32(srcbitwidth);
+  }
+
+  inline u64 _Bool64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  {
+    return val & _GetNOnes64(srcbitwidth);
+  }
+
+  inline u32 _Unary32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  {
+    return val & _GetNOnes32(srcbitwidth);
+  }
+
+  inline u64 _Unary64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  {
+    return val & _GetNOnes64(srcbitwidth);
+  }
+
+  inline u32 _Bits32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  {
+    return val & _GetNOnes32(srcbitwidth);
+  }
+
+  inline u64 _Bits64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
   {
     return val & _GetNOnes64(srcbitwidth);
   }

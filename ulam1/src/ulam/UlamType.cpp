@@ -293,19 +293,20 @@ namespace MFM {
     fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
     fp->write(" read() const { return BF::");
     fp->write(readMethodForCodeGen().c_str());
-    //fp->write("(m_stg);}\n");
 
     if(isScalar())
       fp->write("(m_stg); }\n");
     else
       {
+	//read entire array
+	s32 totbitsize = getTotalBitSize();
 	fp->write("(m_stg, ");
-	fp->write_decimal(getTotalBitSize());
+	fp->write_decimal(totbitsize);
 	fp->write("u, ");
-	fp->write_decimal(getBitSize());
+	fp->write_decimal(totbitsize);
 	fp->write("u, ");
-	fp->write_decimal(getTotalWordSize() - getBitSize());
-	fp->write("u); }\n");
+	fp->write_decimal(getTotalWordSize() - totbitsize);
+	fp->write("u); }   //reads entire array\n");
 
 	state->indent(fp);
 	fp->write("const ");
@@ -332,13 +333,15 @@ namespace MFM {
       fp->write("(m_stg, v); }\n");
     else
       {
+	//writes entire array
+	s32 totbitsize = getTotalBitSize();
 	fp->write("(m_stg, v, ");
-	fp->write_decimal(getTotalBitSize());
-	fp->write(", ");
-	fp->write_decimal(getBitSize());
-	fp->write(", ");
-	fp->write_decimal(getTotalWordSize() - getBitSize());
-	fp->write("); }\n");
+	fp->write_decimal(totbitsize);
+	fp->write("u, ");
+	fp->write_decimal(totbitsize);
+	fp->write("u, ");
+	fp->write_decimal(getTotalWordSize() - totbitsize);
+	fp->write("u); }   //writes entire array\n");
 
 	state->indent(fp);
 	fp->write("void writeArray(");

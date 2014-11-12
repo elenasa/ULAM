@@ -441,13 +441,16 @@ namespace MFM {
       fp->write("(m_stg.GetBits() ); }\n");
     else
       {
+	//reads entire array
+	s32 totbitsize = getTotalBitSize();
+
 	fp->write("(m_stg.GetBits(), ");
-	fp->write_decimal(getTotalBitSize());
+	fp->write_decimal(totbitsize);
 	fp->write(", ");
-	fp->write_decimal(getBitSize());
+	fp->write_decimal(totbitsize);
 	fp->write(", ");
-	fp->write_decimal(BITSPERATOM - getBitSize());
-	fp->write("); }\n");
+	fp->write_decimal(BITSPERATOM - totbitsize);
+	fp->write("); }   //reads entire array\n");
 
 	state->indent(fp);
 	fp->write("const ");
@@ -457,7 +460,7 @@ namespace MFM {
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(m_stg.GetBits(), ");
 	fp->write_decimal(getTotalBitSize());
-	fp->write(", len, pos");
+	fp->write("u, len, pos");
 	fp->write("); }\n");
       }
   } //genUlamTypeReadDefinitionForC
@@ -479,13 +482,15 @@ namespace MFM {
       fp->write("(m_stg.GetBits(), v); }\n");
     else
       {
+	//writes entire array
+	s32 totbitsize = getTotalBitSize();
 	fp->write("(m_stg.GetBits(), v, ");
-	fp->write_decimal(getTotalBitSize());
+	fp->write_decimal(totbitsize);
 	fp->write("u, ");
-	fp->write_decimal(getBitSize());
+	fp->write_decimal(totbitsize);
 	fp->write("u, ");
-	fp->write_decimal(BITSPERATOM - getBitSize());
-	fp->write("u); }\n");
+	fp->write_decimal(BITSPERATOM - totbitsize);
+	fp->write("u); }   //writes entire array\n");
 
 	state->indent(fp);
 	fp->write("void writeArray(");
@@ -494,7 +499,7 @@ namespace MFM {
 	fp->write(writeMethodForCodeGen().c_str());
 	fp->write("(m_stg.GetBits(), v, ");
 	fp->write_decimal(getTotalBitSize());
-	fp->write("u, len, pos");
+       	fp->write("u, len, pos");
 	fp->write("); }\n");
       }
   } //genUlamTypeWriteDefinitionForC

@@ -301,6 +301,10 @@ namespace MFM {
     // generate for value
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    //wiped out by arg processing; needed to determine owner of called function
+    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+
     //UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
     //assert(m_state.m_currentObjPtr.getPtrTargetType() == uvpass.getPtrTargetType());
     //assert(m_state.m_currentObjPtr.getPtrNameId() == uvpass.getPtrNameId());
@@ -324,10 +328,20 @@ namespace MFM {
       }
     else
       {
-	arglist << m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str();
+	Symbol * stgcos = NULL;
+	if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	  {
+	    stgcos = m_state.m_currentSelfSymbolForCodeGen;
+	  }
+	else
+	  {	
+	    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	  }
 
-	UTI cosuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();       
-	if(m_state.getUlamTypeByIndex(cosuti)->getUlamClass() == UC_QUARK)
+	arglist << stgcos->getMangledName().c_str();
+	
+	UTI stgcosuti = stgcos->getUlamTypeIdx();       
+	if(m_state.getUlamTypeByIndex(stgcosuti)->getUlamClass() == UC_QUARK)
 	  {
 	    arglist << ".m_stg"; //the T storage within the struct for immediate quarks
 	  }
@@ -339,7 +353,8 @@ namespace MFM {
 	UlamValue auvpass;
 	UTI auti;
 	UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-	Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
+	//Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
+	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************???
 
 	m_argumentNodes[i]->genCode(fp, auvpass);
 	Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
@@ -353,16 +368,32 @@ namespace MFM {
 	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
 
 	m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
-	m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
+	//m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
       } //next arg..
     
+
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore vector after args*************
     
-    //non-void return value saved in a tmp var; depends on return type
+    //non-void return value saved in a tmp BitValue; depends on return type
     m_state.indent(fp);
     if(nuti != Void)
       {
+	u32 pos = 0;   //POS 0 rightjustified;
+	if(nut->getUlamClass() == UC_NOTACLASS)
+	  {
+	    s32 wordsize = nut->getTotalWordSize();
+	    pos = wordsize - nut->getTotalBitSize();
+	  }
+
 	s32 rtnSlot = m_state.getNextTmpVarNumber();
-	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0, m_state.m_currentSelfSymbolForCodeGen->getId()); //POS 0 rightjustified; selfsymbol id in Ptr;
+
+	u32 selfid = 0;
+	if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	  selfid = m_state.m_currentSelfSymbolForCodeGen->getId();  //a use for CSS
+	else
+	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
+
+	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, rightjustified; self id in Ptr;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
@@ -370,8 +401,9 @@ namespace MFM {
 	fp->write(nut->getImmediateStorageTypeAsString(&m_state).c_str()); //BitVector<32>
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
-	fp->write(" = ");	
+	fp->write(" = ");
       } //not void return
+
 
     // static functions..oh yeah.
     //who's function is it? can we use m_cos' type
@@ -398,84 +430,9 @@ namespace MFM {
 	fp->write("}\n");  //close for tmpVar
       }
 #endif
+
+    m_state.m_currentObjSymbolsForCodeGen.clear();
   } //codeGen
-
-
-  void NodeFunctionCall::genMemberNameOfMethod(File * fp, UlamValue uvpass)
-  {
-    UTI objuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
-    UlamType * objut = m_state.getUlamTypeByIndex(objuti);
-    ULAMCLASSTYPE classtype = objut->getUlamClass();
-
-    if(m_state.m_currentObjSymbolForCodeGen->isDataMember())
-      {
-	assert(classtype == UC_QUARK);
-	bool refiningUVpass = (uvpass.getPtrTargetType() != objuti && objut->isScalar());
-	if(refiningUVpass)
-	  {
-	    //csym != COS. COS is an instantiation; csym is the class symbol for the type of COS; 
-	    SymbolClass * csym = NULL;
-	    assert(m_state.alreadyDefinedSymbolClass(objut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
-	    
-	    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-	    assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
-	    
-	    m_state.m_currentMemberClassBlock = memberClassNode;
-	    m_state.m_useMemberBlock = true;
-	    
-	    Symbol * sym = NULL;
-	    assert(m_state.alreadyDefinedSymbol(uvpass.getPtrNameId(),sym)); //failed last time
-	    
-	    m_state.m_useMemberBlock = false;
-	    m_state.m_currentMemberClassBlock = NULL;
-	    
-	    // we need the atomicparametertype for this quark's data member m_val_b!!!
-	    // unless COS is an array of quarks!!!
-	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
-	    fp->write("::");
-	    
-	    fp->write(sym->getMangledNameForParameterType().c_str());
-	    fp->write("::");
-	  }
-	else
-	  {
-	    //COS is a data member quark, or quark array, within element 'self'
-	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledNameForParameterType().c_str());
-	    fp->write("::");
-	  }
-      }
-    else if(m_state.m_currentObjSymbolForCodeGen == m_state.m_currentSelfSymbolForCodeGen)
-      {
-	//nothing to do?
-      }
-  } //genMemberNameOfMethod
-
-
-  void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp, UlamValue uvpass)
-  {
-    UTI objuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(objuti)->getUlamClass();
-
-    //local (static functions)
-    if(classtype == UC_QUARK)
-      {
-	UlamType * objut = m_state.getUlamTypeByIndex(objuti);
-	if(objut->isScalar())
-	  {
-	    fp->write(objut->getUlamTypeImmediateMangledName(&m_state).c_str());
-	    fp->write("<CC>");
-	    fp->write("::");
-	    fp->write("Us::");
-	  }  
-	else
-	  {
-	    //?? can't call a func on an array!
-	    fp->write(m_state.m_currentObjSymbolForCodeGen->getMangledName().c_str());
-	    fp->write(".");
-	    assert(0);
-	  }
-      } //quark functions
-  } //genLocalMemberNameOfMethod
 
 
   // during genCode of a single function body "self" doesn't change!!!
@@ -490,5 +447,63 @@ namespace MFM {
   {
     return;  //no-op
   }
+
+  void NodeFunctionCall::genMemberNameOfMethod(File * fp, UlamValue uvpass)
+  {
+    assert(!isCurrentObjectALocalVariableOrArgument());
+
+    //nothing if current object is self
+    //if(m_state.m_currentObjSymbolsForCodeGen.empty())
+    //  return;
+
+    //iterate over COS vector; empty if current object is self
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    for(u32 i = 0; i < cosSize; i++)
+      {
+	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	fp->write(sym->getMangledNameForParameterType().c_str());
+	fp->write("::");
+      }
+
+    //NOT FOR Funccalls
+    //if last cos is a quark, for Read/WriteRaw to work it needs an
+    // atomic Parameter type (i.e. Up_Us);
+  } //genMemberNameOfMethod
+
+
+  void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp, UlamValue uvpass)
+  {
+    assert(isCurrentObjectALocalVariableOrArgument());
+
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0]; 
+
+    UTI uti = cos->getUlamTypeIdx();
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
+
+    if(!ut->isScalar())
+      {    //?? can't call a func on an array!
+	assert(0);
+      }
+
+    //local (static functions)
+    // if local element, first arg of read is all that's req'd for static func
+    if(classtype == UC_QUARK)
+      {
+	fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+	fp->write("::");
+	fp->write("Us::");   //typedef
+      }
+
+    for(u32 i = 1; i < cosSize; i++)
+      {
+	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	fp->write(sym->getMangledNameForParameterType().c_str());
+	fp->write("::");
+      } 
+  } //genLocalMemberNameOfMethod
 
 } //end MFM

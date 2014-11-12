@@ -79,24 +79,31 @@ namespace MFM {
     fp->write(" read() const { ");
     //fp->write("\n");
     //state->indent(fp);
-    fp->write("return _SignExtend");
-    fp->write_decimal(getTotalWordSize());
-    fp->write("(BF::");
-    fp->write(readMethodForCodeGen().c_str());
     if(isScalar())
-      fp->write("(m_stg), ");
+      {
+	fp->write("return _SignExtend");
+	fp->write_decimal(getTotalWordSize());
+	fp->write("(BF::");
+	fp->write(readMethodForCodeGen().c_str());	
+	fp->write("(m_stg), ");
+	fp->write_decimal(getBitSize());  //sign extend 2nd arg
+	fp->write("u); }\n");
+      }
     else
       {
+	//read entire array without signextend
+	s32 totbitsize = getTotalBitSize();
+	fp->write("return BF::");
+	fp->write(readMethodForCodeGen().c_str());	
 	fp->write("(m_stg, ");
-	fp->write_decimal(getTotalBitSize());
+	fp->write_decimal(totbitsize);
 	fp->write("u, ");
-	fp->write_decimal(getBitSize());
+	fp->write_decimal(totbitsize);
 	fp->write("u, ");
-	fp->write_decimal(getTotalWordSize() - getBitSize());
-	fp->write("u), ");
-	fp->write_decimal(getBitSize());  //sign extend 2nd arg
-	fp->write("); }\n");
+	fp->write_decimal(getTotalWordSize() - totbitsize);
+	fp->write("u); }   //reads entire array, no sign extend\n");
 
+	//shouldn't use with entire array because of sign extend!!!
 	state->indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
@@ -110,10 +117,9 @@ namespace MFM {
 	fp->write_decimal(getTotalBitSize());
 	fp->write("u, len, pos");
 	fp->write("), ");
+	fp->write_decimal(getBitSize());  //sign extend 2nd arg
+	fp->write("u); }\n");
       }
-
-    fp->write_decimal(getBitSize());  //sign extend 2nd arg
-    fp->write("); }\n");
   } //genUlamTypeReadDefinitionForC
 
 
@@ -189,6 +195,10 @@ namespace MFM {
   void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state)
   {
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
+
+    //bypass sign extend when entire array is read
+    if(!isScalar() && uvpass.getPtrLen() == getTotalBitSize())
+      return;
 
     UTI uti = getUlamTypeIndex();
     s32 tmpVarNum = uvpass.getPtrSlotIndex();

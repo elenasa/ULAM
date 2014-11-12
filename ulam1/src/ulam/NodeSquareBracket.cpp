@@ -298,12 +298,13 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //********
+    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //********
 
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
     m_state.m_currentObjPtr = luvpass; //updated by lhs
 
+#if 0
     //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
     Symbol * lsym = NULL;
     if(!getSymbolPtr(lsym))
@@ -311,8 +312,9 @@ namespace MFM {
 	//error!
 	assert(0);
       }
-    m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
-
+    //m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
+    m_state.m_currentObjSymbolsForCodeGen.push_back(lsym);
+#endif
 
     UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
 
@@ -328,7 +330,7 @@ namespace MFM {
     uvpass = nextlptr;
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
-    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
   } //genCode
 
 
@@ -341,14 +343,16 @@ namespace MFM {
     m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+#if 0
     Symbol * lsym = NULL;
     if(!getSymbolPtr(lsym))
       {
 	//error!
 	assert(0);
       }
-    m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
-
+    //m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
+    m_state.m_currentObjSymbolsForCodeGen.push_back(lsym);   //***********************
+#endif
 
     UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
 
