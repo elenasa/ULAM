@@ -78,6 +78,8 @@ namespace MFM{
 
     s32 getTotalVariableSymbolsBitSize();
 
+    s32 getMaxVariableSymbolsBitSize();  //for quark union
+
     void packBitsForTableOfClasses();
 
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen

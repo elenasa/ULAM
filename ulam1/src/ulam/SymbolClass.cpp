@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock){}
+  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_quarkunion(false){}
 
   SymbolClass::~SymbolClass()
   {
@@ -49,5 +49,14 @@ namespace MFM {
     ((UlamTypeClass * ) m_state.getUlamTypeByIndex(getUlamTypeIdx()))->setUlamClass(type);
   }
 
+  void SymbolClass::setQuarkUnion()
+  {
+    m_quarkunion = true;
+  }
+
+  bool SymbolClass::isQuarkUnion()
+  {
+    return m_quarkunion;
+  }
 
 } //end MFM

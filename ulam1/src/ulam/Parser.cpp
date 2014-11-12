@@ -148,7 +148,7 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
     
-    if( (pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) )
+    if( (pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) && (pTok.m_type != TOK_KW_QUARKUNION) )
       {
 	//error!
 	std::ostringstream msg;
@@ -205,6 +205,12 @@ namespace MFM {
       case TOK_KW_QUARK:
 	{
 	  cSym->setUlamClass(UC_QUARK);
+	  break;
+	}
+      case TOK_KW_QUARKUNION:
+	{
+	  cSym->setUlamClass(UC_QUARK);
+	  cSym->setQuarkUnion();
 	  break;
 	}
       default:

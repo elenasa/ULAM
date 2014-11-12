@@ -167,7 +167,7 @@ namespace MFM {
 	  }
 	it++;
       }
-  }
+  } //labelTableOfClasses
 
 
   // separate pass...after labeling all classes is completed;
@@ -199,7 +199,11 @@ namespace MFM {
 	    m_state.m_classBlock = classNode;
 	    m_state.m_currentBlock = m_state.m_classBlock;
 
-	    s32 totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
+	    s32 totalbits = 0;
+	    if(((SymbolClass *) sym)->isQuarkUnion())
+	      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
+	    else
+	      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
 #if 0
 	    //disabled 11082014
 	    if(totalbits == 0)
@@ -292,7 +296,49 @@ namespace MFM {
 	it++;
       }
     return totalsizes;
-  }
+  } //getTotalVariableSymbolsBitSize
+
+
+  s32 SymbolTable::getMaxVariableSymbolsBitSize()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    s32 maxsize = 0;
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(!sym->isFunction());
+	if(!sym->isTypedef())
+	  {
+	    UTI sut = sym->getUlamTypeIdx();
+	    s32 symsize = calcVariableSymbolTypeSize(sut);  //recursively
+
+	    if(symsize == CYCLEFLAG)  // was < 0
+	      {
+		std::ostringstream msg;
+		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+		MSG("", msg.str().c_str(),ERR);
+	      }
+	    else if(symsize == EMPTYSYMBOLTABLE)
+	      {
+		symsize = 0;
+		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+	      }
+	    else
+	      {
+		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+		//std::ostringstream msg;
+		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
+		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
+	      }
+
+	    if((s32) m_state.getTotalBitSize(sut) > maxsize)
+	      maxsize = m_state.getTotalBitSize(sut);  //includes arrays
+	  }
+	it++;
+      }
+    return maxsize;
+  } //getMaxVariableSymbolsBitSize
 
 
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
@@ -401,7 +447,9 @@ namespace MFM {
       {
 	Symbol * sym = it->second;  
 	assert(sym->isClass());
-	((SymbolClass *) sym)->getClassBlockNode()->packBitsForVariableDataMembers();	
+	// quark union keep default pos = 0 for each data member, hence skip packing bits.
+	if(!((SymbolClass *) sym)->isQuarkUnion())
+	  ((SymbolClass *) sym)->getClassBlockNode()->packBitsForVariableDataMembers();	
 	it++;
       }
   }
@@ -420,7 +468,8 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;  
-	if(!sym->isTypedef() && sym->isDataMember())
+	//if(!sym->isTypedef() && sym->isDataMember())
+	if(!sym->isTypedef() && sym->isDataMember() && !((SymbolClass *) sym)->isQuarkUnion())
 	  {
 	    //updates the offset with the bit size of sym
 	    ((SymbolVariable *) sym)->setPosOffset(offsetIntoAtom);
