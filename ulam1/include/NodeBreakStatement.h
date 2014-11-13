@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeReturnStatement.h - Node handling the Return Statement for ULAM
+ * NodeBreakStatement.h - Node handling the Break Statement for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeReturnStatement.h - Node handling the Return Statement for ULAM
+  \file NodeBreakStatement.h - Node handling the Break Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,20 +34,20 @@
 */
 
 
-#ifndef NODERETURN_H
-#define NODERETURN_H
+#ifndef NODEBREAKSTATEMENT_H
+#define NODEBREAKSTATEMENT_H
 
 #include "File.h"
 #include "Node.h"
 
 namespace MFM{
 
-  class NodeReturnStatement : public Node
+  class NodeBreakStatement : public Node
   {
   public:
 
-    NodeReturnStatement(Node * s, CompilerState & state);
-    virtual ~NodeReturnStatement();
+    NodeBreakStatement(CompilerState & state);
+    virtual ~NodeBreakStatement();
 
     virtual void print(File * fp);
 
@@ -66,11 +66,9 @@ namespace MFM{
   protected:
 
   private:
-    Node * m_node;
-
 
   };
 
 }
 
-#endif //end NODERETURNSTATEMENT_H
+#endif //end NODEBREAKSTATEMENT_H

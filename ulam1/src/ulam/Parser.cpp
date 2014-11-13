@@ -21,7 +21,9 @@
 #include "NodeBlockEmpty.h"
 #include "NodeBlockClassEmpty.h"
 #include "NodeBlockFunctionDefinition.h"
+#include "NodeBreakStatement.h"
 #include "NodeCast.h"
+#include "NodeContinueStatement.h"
 #include "NodeControlIf.h"
 #include "NodeControlWhile.h"
 #include "NodeMemberSelect.h"
@@ -543,7 +545,11 @@ namespace MFM {
 	rtnNode = parseControlIf(pTok);
 	break;
       case TOK_KW_WHILE:
-	rtnNode = parseControlWhile(pTok);
+	{
+	  m_state.m_parsingControlLoop = true;
+	  rtnNode = parseControlWhile(pTok);
+	  m_state.m_parsingControlLoop = false;
+	}
 	break;
       case TOK_ERROR_CONT:
 	{
@@ -677,6 +683,30 @@ namespace MFM {
       {
 	unreadToken();               // needs location
 	rtnNode = parseReturn();
+      }
+    else if(pTok.m_type == TOK_KW_BREAK)
+      {
+	if(m_state.m_parsingControlLoop)
+	  {
+	    rtnNode = new NodeBreakStatement(m_state);
+	    rtnNode->setNodeLocation(pTok.m_locator);
+	  }
+	else
+	  {
+	    MSG(&pTok,"Break statement not within loop or switch" , ERR);
+	  }
+      }
+    else if(pTok.m_type == TOK_KW_CONTINUE)
+      {
+	if(m_state.m_parsingControlLoop)
+	  {
+	    rtnNode = new NodeContinueStatement(m_state);
+	    rtnNode->setNodeLocation(pTok.m_locator);
+	  }
+	else
+	  {
+	    MSG(&pTok,"Continue statement not within loop" , ERR);
+	  }
       }
     else if(pTok.m_type == TOK_ERROR_CONT)
       {

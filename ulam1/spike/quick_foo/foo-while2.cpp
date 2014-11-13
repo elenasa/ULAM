@@ -18,5 +18,17 @@ int main()
       }
     }
 
+  if(a==3)
+    break;
+  else
+    continue;
+
+  for(int i =0; i < 3; i++)
+    {
+      if(a == 9)
+	continue;
+      else
+	break;
+    }
   return a;
 }
