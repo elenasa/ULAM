@@ -7,6 +7,12 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //Ue_Foo { Bool(3) b(false);  Int(4) i(0);  Int(4) j(15);  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b )update = j cast return } }\nExit status: -1
+
+      /* gen code output:
+	 Int Arg: -1
+	 Int(4) Arg: 0xf
+      */
+
       return std::string("Ue_Foo { Bool(3) b(false);  System s();  Empty e();  Int(4) i(0);  Int(4) j(15);  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b cast )update = s ( j cast )print . s ( j )print . j cast return } }\nExit status: -1");
     }
     
