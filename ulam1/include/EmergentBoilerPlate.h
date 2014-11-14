@@ -599,91 +599,164 @@ typedef signed long s64;
     return ( (vala ^ valb) & mask); 
   }
 
+  inline u32 _BitwiseOrBool32(u32 vala, u32 valb, u32 bitwidth) 
+  {
+    u32 binvala = _Bool32ToBits32(vala, bitwidth, bitwidth);
+    u32 binvalb = _Bool32ToBits32(valb, bitwidth, bitwidth);
+    return _Bits32ToBool32(binvala | binvalb, bitwidth, bitwidth);
+  }
+
+  inline u64 _BitwiseOrBool64(u64 vala, u64 valb, u32 bitwidth) 
+  {
+    u64 binvala = _Bool64ToBits64(vala, bitwidth, bitwidth);
+    u64 binvalb = _Bool64ToBits64(valb, bitwidth, bitwidth);
+    return _Bits64ToBool64(binvala | binvalb, bitwidth, bitwidth);
+  }
+
+  inline u32 _BitwiseAndBool32(u32 vala, u32 valb, u32 bitwidth) 
+  {
+    u32 binvala = _Bool32ToBits32(vala, bitwidth, bitwidth);
+    u32 binvalb = _Bool32ToBits32(valb, bitwidth, bitwidth);
+    return _Bits32ToBool32(binvala & binvalb, bitwidth, bitwidth);
+  }
+
+  inline u64 _BitwiseAndBool64(u64 vala, u64 valb, u32 bitwidth) 
+  {
+    u64 binvala = _Bool64ToBits64(vala, bitwidth, bitwidth);
+    u64 binvalb = _Bool64ToBits64(valb, bitwidth, bitwidth);
+    return _Bits64ToBool64(binvala & binvalb, bitwidth, bitwidth);
+  }
+
+  inline u32 _BitwiseXorBool32(u32 vala, u32 valb, u32 bitwidth) 
+  {
+    u32 binvala = _Bool32ToBits32(vala, bitwidth, bitwidth);
+    u32 binvalb = _Bool32ToBits32(valb, bitwidth, bitwidth);
+    return _Bits32ToBool32(binvala ^ binvalb, bitwidth, bitwidth);
+  }
+
+  inline u64 _BitwiseXorBool64(u64 vala, u64 valb, u32 bitwidth) 
+  {
+    u64 binvala = _Bool64ToBits64(vala, bitwidth, bitwidth);
+    u64 binvalb = _Bool64ToBits64(valb, bitwidth, bitwidth);
+    return _Bits64ToBool64(binvala ^ binvalb, bitwidth, bitwidth);
+  }
 
   // Ariths On INT:
   inline s32 _BinOpAddInt32(s32 vala, s32 valb, u32 bitwidth)
   {
-    return vala + valb; //XXX
+    u32 mask = _GetNOnes32(bitwidth);
+    s32 extvala = _SignExtend32(vala & mask, bitwidth);
+    s32	extvalb = _SignExtend32(valb & mask, bitwidth);
+    return _Int32ToInt32(extvala + extvalb, 32, bitwidth);
   }
 
-  inline s64 _BinOpAddInt64(s64 vala, s32 valb, u32 bitwidth)
+  inline s64 _BinOpAddInt64(s64 vala, s64 valb, u32 bitwidth)
   {
-    return vala + valb; //XXX
+    u64 mask = _GetNOnes64(bitwidth);
+    s64 extvala = _SignExtend64(vala & mask, bitwidth);
+    s64	extvalb = _SignExtend64(valb & mask, bitwidth);
+    return _Int64ToInt64(extvala + extvalb, 64, bitwidth);
   }
 
   inline s32 _BinOpSubtractInt32(s32 vala, s32 valb, u32 bitwidth)
   {
-    return vala - valb; //XXX
+    u32 mask = _GetNOnes32(bitwidth);
+    s32 extvala = _SignExtend32(vala & mask, bitwidth);
+    s32	extvalb = _SignExtend32(valb & mask, bitwidth);
+    return _Int32ToInt32(extvala - extvalb, 32, bitwidth);
   }
 
-  inline s64 _BinOpSubtractInt64(s64 vala, s32 valb, u32 bitwidth)
+  inline s64 _BinOpSubtractInt64(s64 vala, s64 valb, u32 bitwidth)
   {
-    return vala - valb; //XXX
+    u64 mask = _GetNOnes64(bitwidth);
+    s64 extvala = _SignExtend64(vala & mask, bitwidth);
+    s64	extvalb = _SignExtend64(valb & mask, bitwidth);
+    return _Int64ToInt64(extvala - extvalb, 64, bitwidth);
   }
 
   inline s32 _BinOpMultiplyInt32(s32 vala, s32 valb, u32 bitwidth)
   {
-    return vala * valb; //XXX
+    u32 mask = _GetNOnes32(bitwidth);
+    s32 extvala = _SignExtend32(vala & mask, bitwidth);
+    s32	extvalb = _SignExtend32(valb & mask, bitwidth);
+    return _Int32ToInt32(extvala * extvalb, 32, bitwidth);
   }
 
-  inline s64 _BinOpMultiplyInt64(s64 vala, s32 valb, u32 bitwidth)
+  inline s64 _BinOpMultiplyInt64(s64 vala, s64 valb, u32 bitwidth)
   {
-    return vala * valb; //XXX
+    u64 mask = _GetNOnes64(bitwidth);
+    s64 extvala = _SignExtend64(vala & mask, bitwidth);
+    s64	extvalb = _SignExtend64(valb & mask, bitwidth);
+    return _Int64ToInt64(extvala * extvalb, 64, bitwidth);
   }
 
   inline s32 _BinOpDivideInt32(s32 vala, s32 valb, u32 bitwidth)
   {
     if(valb == 0) FAIL();
-    return vala / valb; //XXX
+    u32 mask = _GetNOnes32(bitwidth);
+    s32 extvala = _SignExtend32(vala & mask, bitwidth);
+    s32	extvalb = _SignExtend32(valb & mask, bitwidth);
+    return _Int32ToInt32(extvala / extvalb, 32, bitwidth);
   }
 
   inline s64 _BinOpDivideInt64(s64 vala, s64 valb, u32 bitwidth)
   {
     if(valb == 0) FAIL();
-    return vala / valb; //XXX
+    u64 mask = _GetNOnes64(bitwidth);
+    s64 extvala = _SignExtend64(vala & mask, bitwidth);
+    s64	extvalb = _SignExtend64(valb & mask, bitwidth);
+    return _Int64ToInt64(extvala / extvalb, 64, bitwidth);
   }
 
   // Ariths On UNSIGNED:
   inline u32 _BinOpAddUnsigned32(u32 vala, u32 valb, u32 bitwidth)
   {
-    return vala + valb; //XXX
+    u32 mask = _GetNOnes32(bitwidth);
+    return _Unsigned32ToUnsigned32((vala & mask) + (valb & mask), bitwidth, bitwidth);
   }
 
   inline u64 _BinOpAddUnsigned64(u64 vala, u64 valb, u32 bitwidth)
   {
-    return vala + valb; //XXX
+    u64 mask = _GetNOnes64(bitwidth);
+    return _Unsigned64ToUnsigned64((vala & mask) + (valb & mask), bitwidth, bitwidth);
   }
 
   inline u32 _BinOpSubtractUnsigned32(u32 vala, u32 valb, u32 bitwidth)
   {
-    return vala - valb; //XXX
+    u32 mask = _GetNOnes32(bitwidth);
+    return _Unsigned32ToUnsigned32((vala & mask) - (valb & mask), bitwidth, bitwidth);
   }
 
   inline u64 _BinOpSubtractUnsigned64(u64 vala, u64 valb, u32 bitwidth)
   {
-    return vala - valb; //XXX
+    u64 mask = _GetNOnes64(bitwidth);
+    return _Unsigned64ToUnsigned64((vala & mask) - (valb & mask), bitwidth, bitwidth);
   }
 
   inline u32 _BinOpMultiplyUnsigned32(u32 vala, u32 valb, u32 bitwidth)
   {
-    return vala * valb; //XXX
+    u32 mask = _GetNOnes32(bitwidth);
+    return _Unsigned32ToUnsigned32((vala & mask) * (valb & mask), bitwidth, bitwidth);
   }
 
   inline u64 _BinOpMultiplyUnsigned64(u64 vala, u64 valb, u32 bitwidth)
   {
-    return vala * valb; //XXX
+    u64 mask = _GetNOnes64(bitwidth);
+    return _Unsigned64ToUnsigned64((vala & mask) * (valb & mask), bitwidth, bitwidth);
   }
 
   inline u32 _BinOpDivideUnsigned32(u32 vala, u32 valb, u32 bitwidth)
   {
     if(valb == 0) FAIL();
-    return vala / valb; //XXX
+    u32 mask = _GetNOnes32(bitwidth);
+    return _Unsigned32ToUnsigned32((vala & mask) / (valb & mask), bitwidth, bitwidth);
   }
 
   inline u64 _BinOpDivideUnsigned64(u64 vala, u64 valb, u32 bitwidth)
   {
     if(valb == 0) FAIL();
-    return vala / valb; //XXX
+    u64 mask = _GetNOnes64(bitwidth);
+    return _Unsigned64ToUnsigned64((vala & mask) / (valb & mask), bitwidth, bitwidth);
   }
 
   //Bin Op Arith on Unary (e.g. op equals)
@@ -744,6 +817,67 @@ typedef signed long s64;
     s64 binvala = _Unary64ToInt64(vala, bitwidth, 64);
     s64 binvalb = _Unary64ToInt64(valb, bitwidth, 64);
     return _Int64ToUnary64(binvala / binvalb, 64, bitwidth);
+  }
+
+
+  //Bin Op Arith on Bool (e.g. op equals)
+  //convert to binary before the operation; then convert back to bool
+  inline s32 _BinOpAddBool32(s32 vala, s32 valb, u32 bitwidth)
+  {
+    s32 binvala = _Bool32ToInt32(vala, bitwidth, 32);
+    s32 binvalb = _Bool32ToInt32(valb, bitwidth, 32);
+    return _Int32ToBool32(binvala + binvalb, 32, bitwidth);
+  }
+
+  inline s64 _BinOpAddBool64(s64 vala, s64 valb, u32 bitwidth)
+  {
+    s64 binvala = _Bool64ToInt64(vala, bitwidth, 64);
+    s64 binvalb = _Bool64ToInt64(valb, bitwidth, 64);
+    return _Int64ToBool64(binvala + binvalb, 64, bitwidth);
+  }
+
+  inline s32 _BinOpSubtractBool32(s32 vala, s32 valb, u32 bitwidth)
+  {
+    s32 binvala = _Bool32ToInt32(vala, bitwidth, 32);
+    s32 binvalb = _Bool32ToInt32(valb, bitwidth, 32);
+    return _Int32ToBool32(binvala - binvalb, 32, bitwidth);
+  }
+
+  inline s64 _BinOpSubtractBool64(s64 vala, s64 valb, u32 bitwidth)
+  {
+    s64 binvala = _Bool64ToInt64(vala, bitwidth, 64);
+    s64 binvalb = _Bool64ToInt64(valb, bitwidth, 64);
+    return _Int64ToBool64(binvala - binvalb, 64, bitwidth);
+  }
+
+  inline s32 _BinOpMultiplyBool32(s32 vala, s32 valb, u32 bitwidth)
+  {
+    s32 binvala = _Bool32ToInt32(vala, bitwidth, 32);
+    s32 binvalb = _Bool32ToInt32(valb, bitwidth, 32);
+    return _Int32ToBool32(binvala * binvalb, 32, bitwidth);
+  }
+
+  inline s64 _BinOpMultiplyBool64(s64 vala, s64 valb, u32 bitwidth)
+  {
+    s64 binvala = _Bool64ToInt64(vala, bitwidth, 64);
+    s64 binvalb = _Bool64ToInt64(valb, bitwidth, 64);
+    return _Int64ToBool64(binvala * binvalb, 64, bitwidth);
+  }
+
+  inline s32 _BinOpDivideBool32(s32 vala, s32 valb, u32 bitwidth)
+  {
+    if(valb == 0) FAIL();
+    s32 binvala = _Bool32ToInt32(vala, bitwidth, 32);
+    s32 binvalb = _Bool32ToInt32(valb, bitwidth, 32);
+    return _Int32ToBool32(binvala / binvalb, 32, bitwidth);
+  }
+
+  inline s64 _BinOpDivideBool64(s64 vala, s64 valb, u32 bitwidth)
+  {
+    if(valb == 0) FAIL();
+    s64 binvala = _Bool64ToInt64(vala, bitwidth, 64);
+    s64 binvalb = _Bool64ToInt64(valb, bitwidth, 64);
+    return _Int64ToBool64(binvala / binvalb, 64, bitwidth);
   }
 
   //end Ops.h

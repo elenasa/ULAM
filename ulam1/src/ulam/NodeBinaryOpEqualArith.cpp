@@ -7,6 +7,23 @@ namespace MFM {
 
   NodeBinaryOpEqualArith::~NodeBinaryOpEqualArith(){}
 
+  UTI NodeBinaryOpEqualArith::checkAndLabelType()
+  { 
+    UTI nodeType = NodeBinaryOpEqual::checkAndLabelType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+
+    // common part of name
+    ULAMTYPE enodetyp = nut->getUlamTypeEnum();
+
+    if(enodetyp == Bits)
+      {
+	// can happen with op-equal operations when both sides are the same type
+	MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bits' type", ERR);
+      }
+
+    return nodeType;
+  }
+
 
   const std::string NodeBinaryOpEqualArith::methodNameForCodeGen()
   {
@@ -19,11 +36,12 @@ namespace MFM {
     switch(etyp)
       {
       case Int:
-	methodname << "Int";
-	break;
       case Unsigned:
-	methodname << "Unsigned";
+      case Bool:
+      case Unary:
+	methodname << UlamType::getUlamTypeEnumAsString(etyp);
 	break;
+      case Bits:
       default:
 	assert(0);
 	methodname << "NAV";
