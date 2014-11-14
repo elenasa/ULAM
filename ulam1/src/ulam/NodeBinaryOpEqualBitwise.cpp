@@ -20,16 +20,16 @@ namespace MFM {
     switch(etyp)
       {
       case Int:
-	methodname << "Int";
-	break;
+      case Unsigned:
+      case Bool:
       case Unary:
-	methodname << "Unary";
+      case Bits:
+	methodname << UlamType::getUlamTypeEnumAsString(etyp);
 	break;
       default:
-	methodname << "Bits";
+	assert(0);
 	break;
       };
-
     methodname << nut->getTotalWordSize();
     return methodname.str();
   } // methodNameForCodeGen

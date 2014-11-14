@@ -40,11 +40,14 @@ namespace MFM {
       case Unsigned:
 	rtnUV = UlamValue::makeImmediate(type, _BitwiseOrUnsigned32(ldata, rdata, len), len);
 	break;
-      case Bits:
-	rtnUV = UlamValue::makeImmediate(type, _BitwiseOrBits32(ldata, rdata, len), len);
+      case Bool:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseOrBool32(ldata, rdata, len), len);
 	break;
       case Unary:
 	rtnUV = UlamValue::makeImmediate(type, _BitwiseOrUnary32(ldata, rdata, len), len);
+	break;
+      case Bits:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseOrBits32(ldata, rdata, len), len);
 	break;
       default:
 	assert(0);
@@ -66,11 +69,14 @@ namespace MFM {
       case Unsigned:
 	refUV.putData(pos, len, _BitwiseOrUnsigned32(ldata, rdata, len));
 	break;
-      case Bits:
-	refUV.putData(pos, len, _BitwiseOrBits32(ldata, rdata, len));
+      case Bool:
+	refUV.putData(pos, len, _BitwiseOrBool32(ldata, rdata, len));
 	break;
       case Unary:
 	refUV.putData(pos, len, _BitwiseOrUnary32(ldata, rdata, len));
+	break;
+      case Bits:
+	refUV.putData(pos, len, _BitwiseOrBits32(ldata, rdata, len));
 	break;
       default:
 	assert(0);
