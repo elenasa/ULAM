@@ -31,6 +31,64 @@ namespace MFM {
   UlamValue NodeBinaryOpArithDivide::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;
+
+    if(rdata == 0)
+      {
+	MSG(getNodeLocationAsString().c_str(), "Possible Divide By Zero Attempt", ERR);
+	return rtnUV;
+      }
+
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	rtnUV = UlamValue::makeImmediate(type, _BinOpDivideInt32(ldata, rdata, len), len);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediate(type, _BinOpDivideUnsigned32(ldata, rdata, len), len);
+	break;
+      case Bits:
+      case Unary:
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  }
+
+
+  void NodeBinaryOpArithDivide::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    if(rdata == 0)
+      {
+	MSG(getNodeLocationAsString().c_str(), "Possible Divide By Zero Attempt", ERR);
+	return;
+      }
+
+    UTI type = refUV.getUlamValueTypeIdx();
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	refUV.putData(pos, len, _BinOpDivideInt32(ldata, rdata, len));
+	break;
+      case Unsigned:
+	refUV.putData(pos, len, _BinOpDivideUnsigned32(ldata, rdata, len));
+	break;
+      case Bits:
+      case Unary:
+      default:
+	assert(0);
+	break;
+      };
+    return;
+  }
+
+
+#if 0
+  UlamValue NodeBinaryOpArithDivide::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    UlamValue rtnUV;
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
     switch(typEnum)
       {
@@ -127,5 +185,5 @@ namespace MFM {
       };
     return;
   }
-
+#endif
 } //end MFM

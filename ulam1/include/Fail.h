@@ -36,6 +36,8 @@
 #ifndef FAIL_H
 #define FAIL_H
 
+#include <stdlib.h>
+
 namespace MFM {
 
 #define FAIL(x) abort()
