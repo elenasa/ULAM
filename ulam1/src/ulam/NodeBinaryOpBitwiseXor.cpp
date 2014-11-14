@@ -30,6 +30,59 @@ namespace MFM {
 
   UlamValue NodeBinaryOpBitwiseXor::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
+    UlamValue rtnUV;
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorInt32(ldata, rdata, len), len);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorUnsigned32(ldata, rdata, len), len);
+	break;
+      case Bits:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorBits32(ldata, rdata, len), len);
+	break;
+      case Unary:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorUnary32(ldata, rdata, len), len);
+	break;
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  }
+
+
+  void NodeBinaryOpBitwiseXor::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    UTI type = refUV.getUlamValueTypeIdx();
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	refUV.putData(pos, len, _BitwiseXorInt32(ldata, rdata, len));
+	break;
+      case Unsigned:
+	refUV.putData(pos, len, _BitwiseXorUnsigned32(ldata, rdata, len));
+	break;
+      case Bits:
+	refUV.putData(pos, len, _BitwiseXorBits32(ldata, rdata, len));
+	break;
+      case Unary:
+	refUV.putData(pos, len, _BitwiseXorUnary32(ldata, rdata, len));
+	break;
+      default:
+	assert(0);
+	break;
+      };
+    return;
+  }
+
+
+#if 0
+  UlamValue NodeBinaryOpBitwiseXor::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
     return UlamValue::makeImmediate(type, ldata ^ rdata, len);
   }
 
@@ -38,5 +91,5 @@ namespace MFM {
   {
     refUV.putData(pos, len, ldata ^ rdata);
   }
-
+#endif
 } //end MFM

@@ -45,6 +45,7 @@
 #include "Symbol.h"
 #include "UlamType.h"
 #include "UlamValue.h"
+#include "Ops.h"
 
 namespace MFM{
 

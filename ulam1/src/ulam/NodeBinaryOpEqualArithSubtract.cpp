@@ -28,6 +28,57 @@ namespace MFM {
   } //methodNameForCodeGen
 
 
+  UlamValue NodeBinaryOpEqualArithSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	rtnUV = UlamValue::makeImmediate(type, _BinOpSubtractInt32(ldata, rdata, len), len);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediate(type, _BinOpSubtractUnsigned32(ldata, rdata, len), len);
+	break;
+      case Unary:
+	rtnUV = UlamValue::makeImmediate(type, _BinOpSubtractUnary32(ldata, rdata, len), len);
+	break;
+      case Bool:
+      case Bits:
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  }
+
+
+  void NodeBinaryOpEqualArithSubtract::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    UTI type = refUV.getUlamValueTypeIdx();
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	refUV.putData(pos, len, _BinOpSubtractInt32(ldata, rdata, len));
+	break;
+      case Unsigned:
+	refUV.putData(pos, len, _BinOpSubtractUnsigned32(ldata, rdata, len));
+	break;
+      case Unary:
+	refUV.putData(pos, len, _BinOpSubtractUnary32(ldata, rdata, len));
+	break;
+      case Bool:
+      case Bits:
+      default:
+	assert(0);
+	break;
+      };
+    return;
+  }
+
+
+#if 0
   //same as NodeBinaryOpSubtract
   UlamValue NodeBinaryOpEqualArithSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
@@ -94,5 +145,6 @@ namespace MFM {
       };
     return;
   }
+#endif
 
 } //end MFM

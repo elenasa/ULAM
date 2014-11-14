@@ -551,7 +551,6 @@ typedef signed long s64;
     return ( (vala & valb) & mask);  //"at most min"
   }
 
-
   inline s32 _BitwiseXorInt32(s32 vala, s32 valb, u32 bitwidth) 
   {
     u32 mask = _GetNOnes32(bitwidth);
@@ -563,6 +562,43 @@ typedef signed long s64;
     u64 mask = _GetNOnes64(bitwidth);
     return ( (vala ^ valb) & mask); 
   }
+
+  inline u32 _BitwiseOrUnsigned32(u32 vala, u32 valb, u32 bitwidth) 
+  {
+    u32 mask = _GetNOnes32(bitwidth);
+    return  ( (vala | valb) & mask) ;  // "at least max"
+  }
+
+  inline u64 _BitwiseOrUnsigned64(u64 vala, u64 valb, u32 bitwidth) 
+  {
+    u64 mask = _GetNOnes64(bitwidth);
+    return ( (vala | valb) & mask);  //"at least max"
+  }
+
+  inline u32 _BitwiseAndUnsigned32(u32 vala, u32 valb, u32 bitwidth) 
+  {
+    u32 mask = _GetNOnes32(bitwidth);
+    return ( (vala & valb) & mask);  //"at most min"
+  }
+
+  inline u64 _BitwiseAndUnsigned64(u64 vala, u64 valb, u32 bitwidth) 
+  {
+    u64 mask = _GetNOnes64(bitwidth);
+    return ( (vala & valb) & mask);  //"at most min"
+  }
+
+  inline u32 _BitwiseXorUnsigned32(u32 vala, u32 valb, u32 bitwidth) 
+  {
+    u32 mask = _GetNOnes32(bitwidth);
+    return ( (vala ^ valb) & mask);
+  }
+
+  inline u64 _BitwiseXorUnsigned64(u64 vala, u64 valb, u32 bitwidth) 
+  {
+    u64 mask = _GetNOnes64(bitwidth);
+    return ( (vala ^ valb) & mask); 
+  }
+
 
   // Ariths On INT:
   inline s32 _BinOpAddInt32(s32 vala, s32 valb, u32 bitwidth)
@@ -649,6 +685,67 @@ typedef signed long s64;
     if(valb == 0) FAIL();
     return vala / valb; //XXX
   }
+
+  //Bin Op Arith on Unary (e.g. op equals)
+  //convert to binary before the operation; then convert back to unary
+  inline s32 _BinOpAddUnary32(s32 vala, s32 valb, u32 bitwidth)
+  {
+    s32 binvala = _Unary32ToInt32(vala, bitwidth, 32);
+    s32 binvalb = _Unary32ToInt32(valb, bitwidth, 32);
+    return _Int32ToUnary32(binvala + binvalb, 32, bitwidth);
+  }
+
+  inline s64 _BinOpAddUnary64(s64 vala, s64 valb, u32 bitwidth)
+  {
+    s64 binvala = _Unary64ToInt64(vala, bitwidth, 64);
+    s64 binvalb = _Unary64ToInt64(valb, bitwidth, 64);
+    return _Int64ToUnary64(binvala + binvalb, 64, bitwidth);
+  }
+
+  inline s32 _BinOpSubtractUnary32(s32 vala, s32 valb, u32 bitwidth)
+  {
+    s32 binvala = _Unary32ToInt32(vala, bitwidth, 32);
+    s32 binvalb = _Unary32ToInt32(valb, bitwidth, 32);
+    return _Int32ToUnary32(binvala - binvalb, 32, bitwidth);
+  }
+
+  inline s64 _BinOpSubtractUnary64(s64 vala, s64 valb, u32 bitwidth)
+  {
+    s64 binvala = _Unary64ToInt64(vala, bitwidth, 64);
+    s64 binvalb = _Unary64ToInt64(valb, bitwidth, 64);
+    return _Int64ToUnary64(binvala - binvalb, 64, bitwidth);
+  }
+
+  inline s32 _BinOpMultiplyUnary32(s32 vala, s32 valb, u32 bitwidth)
+  {
+    s32 binvala = _Unary32ToInt32(vala, bitwidth, 32);
+    s32 binvalb = _Unary32ToInt32(valb, bitwidth, 32);
+    return _Int32ToUnary32(binvala * binvalb, 32, bitwidth);
+  }
+
+  inline s64 _BinOpMultiplyUnary64(s64 vala, s64 valb, u32 bitwidth)
+  {
+    s64 binvala = _Unary64ToInt64(vala, bitwidth, 64);
+    s64 binvalb = _Unary64ToInt64(valb, bitwidth, 64);
+    return _Int64ToUnary64(binvala * binvalb, 64, bitwidth);
+  }
+
+  inline s32 _BinOpDivideUnary32(s32 vala, s32 valb, u32 bitwidth)
+  {
+    if(valb == 0) FAIL();
+    s32 binvala = _Unary32ToInt32(vala, bitwidth, 32);
+    s32 binvalb = _Unary32ToInt32(valb, bitwidth, 32);
+    return _Int32ToUnary32(binvala / binvalb, 32, bitwidth);
+  }
+
+  inline s64 _BinOpDivideUnary64(s64 vala, s64 valb, u32 bitwidth)
+  {
+    if(valb == 0) FAIL();
+    s64 binvala = _Unary64ToInt64(vala, bitwidth, 64);
+    s64 binvalb = _Unary64ToInt64(valb, bitwidth, 64);
+    return _Int64ToUnary64(binvala / binvalb, 64, bitwidth);
+  }
+
   //end Ops.h
 
 //BitVector.h

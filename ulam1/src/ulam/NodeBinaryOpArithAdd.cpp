@@ -42,8 +42,54 @@ namespace MFM {
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
     switch(typEnum)
       {
+      case Int:
+	rtnUV = UlamValue::makeImmediate(type, _BinOpAddInt32(ldata, rdata, len), len);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediate(type, _BinOpAddUnsigned32(ldata, rdata, len), len);
+	break;
+      case Bits:
+      case Unary:
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  }
+
+
+  void NodeBinaryOpArithAdd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    UTI type = refUV.getUlamValueTypeIdx();
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	refUV.putData(pos, len, _BinOpAddInt32(ldata, rdata, len));
+	break;
+      case Unsigned:
+	refUV.putData(pos, len, _BinOpAddUnsigned32(ldata, rdata, len));
+	break;
+      case Bits:
+      case Unary:
+      default:
+	assert(0);
+	break;
+      };
+    return;
+  }
+
+
+#if 0
+  UlamValue NodeBinaryOpArithAdd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
       case Unary:
 	{
+	assert(0);
 	  //convert to binary before the operation; then convert back to unary
 	  u32 leftCount1s = PopCount(ldata);
 	  u32 rightCount1s = PopCount(rdata);
@@ -92,5 +138,5 @@ namespace MFM {
       };
     return;
   }
-  
+#endif  
 } //end MFM
