@@ -9,7 +9,8 @@ namespace MFM {
 
   UlamTypeBool::UlamTypeBool(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
   {
-    m_wordLength = calcWordSize(getTotalBitSize());
+    m_wordLengthTotal = calcWordSize(getTotalBitSize());
+    m_wordLengthItem = calcWordSize(getBitSize());
   }
 
 
@@ -33,13 +34,6 @@ namespace MFM {
     //return getImmediateStorageTypeAsString(state);  //"bool" inf loop
     //return getTmpStorageTypeAsString(state); 
     return UlamType::getUlamTypeImmediateMangledName(state); //? for constants
-  }
-
-
-  const std::string UlamTypeBool::getTmpStorageTypeAsString(CompilerState * state)
-  {
-    //return "bool";
-    return "u32";
   }
 
 

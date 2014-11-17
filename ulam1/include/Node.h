@@ -124,6 +124,9 @@ namespace MFM{
     virtual void genMemberNameOfMethod(File * fp, UlamValue uvpass); //helper method to read/write into/from tmpvar
     virtual void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
 
+    virtual void genElementParameterMemberNameOfMethod(File * fp, UlamValue uvpass);
+
+
     const std::string readMethodForCodeGen(UTI nuti, UlamValue uvpass);
     const std::string writeMethodForCodeGen(UTI nuti, UlamValue uvpass);
 
@@ -131,8 +134,11 @@ namespace MFM{
     const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
 
     bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self; 
+    bool isCurrentObjectsContainingAnElementParameter(); //checks entire vector for a "static" element parameter
+
     bool isCurrentObjectAPieceOfAnArray(UTI cosuti, UlamValue uvpass);
 
+    u32 adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass);
   private:
     bool m_storeIntoAble;
     UTI m_nodeUType;

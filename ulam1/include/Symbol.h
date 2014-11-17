@@ -61,6 +61,9 @@ namespace MFM{
     void setDataMember();
     bool isDataMember();
 
+    void setElementParameter();
+    bool isElementParameter();
+
     const std::string getMangledName();
 
     static const std::string getParameterTypePrefix(bool isaclass);
@@ -80,7 +83,7 @@ namespace MFM{
     UTI m_utypeIdx;      // may seem redundant, but not; from NodeVarDecl, before m_value known.
                          // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
     bool m_dataMember;
-
+    bool m_elementParameter;
   };
 
 }
