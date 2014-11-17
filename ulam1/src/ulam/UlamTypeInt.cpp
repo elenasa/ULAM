@@ -10,7 +10,8 @@ namespace MFM {
 
   UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
   {
-    m_wordLength = calcWordSize(getTotalBitSize());
+    m_wordLengthTotal = calcWordSize(getTotalBitSize());
+    m_wordLengthItem = calcWordSize(getBitSize());
   }
 
 
@@ -37,11 +38,21 @@ namespace MFM {
   }
 
 
+  const std::string UlamTypeInt::getArrayItemTmpStorageTypeAsString(CompilerState * state)
+  {
+    return getTmpStorageTypeAsString(state, getItemWordSize());
+  }
+
   const std::string UlamTypeInt::getTmpStorageTypeAsString(CompilerState * state)
   {
+    return getTmpStorageTypeAsString(state, getTotalWordSize());
+  }
+
+
+  const std::string UlamTypeInt::getTmpStorageTypeAsString(CompilerState * state, s32 sizebyints)
+  {
     std::string ctype;
-    s32 sizeByIntBits = getTotalWordSize();
-    switch(sizeByIntBits)
+    switch(sizebyints)
       {
       case 0: 
       case 32:
@@ -53,7 +64,7 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Need UNPACKED ARRAY for " << sizeByIntBits << " bits; s32[" << getArraySize() << "]";
+	  msg << "Need UNPACKED ARRAY for " << sizebyints << " bits; s32[" << getArraySize() << "]";
 	  state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
 	  ctype = "s32*"; //array
 	  assert(0);
@@ -73,41 +84,46 @@ namespace MFM {
   // special sign extend for Int on read 
   void UlamTypeInt::genUlamTypeReadDefinitionForC(File * fp, CompilerState * state)
   {
-    state->indent(fp);
-    fp->write("const ");
-    fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
-    fp->write(" read() const { ");
-    //fp->write("\n");
-    //state->indent(fp);
-    if(isScalar())
+    if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
-	fp->write("return _SignExtend");
-	fp->write_decimal(getTotalWordSize());
-	fp->write("(BF::");
-	fp->write(readMethodForCodeGen().c_str());	
-	fp->write("(m_stg), ");
-	fp->write_decimal(getBitSize());  //sign extend 2nd arg
-	fp->write("u); }\n");
-      }
-    else
-      {
-	//read entire array without signextend
-	s32 totbitsize = getTotalBitSize();
-	fp->write("return BF::");
-	fp->write(readMethodForCodeGen().c_str());	
-	fp->write("(m_stg, ");
-	fp->write_decimal(totbitsize);
-	fp->write("u, ");
-	fp->write_decimal(totbitsize);
-	fp->write("u, ");
-	fp->write_decimal(getTotalWordSize() - totbitsize);
-	fp->write("u); }   //reads entire array, no sign extend\n");
-
-	//shouldn't use with entire array because of sign extend!!!
 	state->indent(fp);
 	fp->write("const ");
 	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
-	fp->write(" readArray(");
+	fp->write(" read() const { ");
+
+	if(isScalar())
+	  {
+	    fp->write("return _SignExtend");
+	    fp->write_decimal(getTotalWordSize());
+	    fp->write("(BF::");
+	    fp->write(readMethodForCodeGen().c_str());	
+	    fp->write("(m_stg), ");
+	    fp->write_decimal(getBitSize());  //sign extend 2nd arg
+	    fp->write("u); }\n");
+	  }
+	else
+	  {
+	    //read entire array without signextend
+	    s32 totbitsize = getTotalBitSize();
+	    fp->write("return BF::");
+	    fp->write(readMethodForCodeGen().c_str());	
+	    fp->write("(m_stg, ");
+	    fp->write_decimal(totbitsize);
+	    fp->write("u, ");
+	    fp->write_decimal(totbitsize);
+	    fp->write("u, ");
+	    fp->write_decimal(getTotalWordSize() - totbitsize);
+	    fp->write("u); }   //reads entire array, no sign extend\n");
+	  }
+      }
+
+    if(!isScalar())
+      {
+	//shouldn't use with entire array because of sign extend!!!
+	state->indent(fp);
+	fp->write("const ");
+	fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
+	fp->write(" readArrayItem(");
 	fp->write("u32 len, u32 pos) const { ");
 	fp->write("return _SignExtend");
 	fp->write_decimal(getTotalWordSize());
@@ -200,11 +216,14 @@ namespace MFM {
     if(!isScalar() && uvpass.getPtrLen() == (s32) getTotalBitSize())
       return;
 
+    if(!isScalar())
+      return genCodeAfterReadingArrayItemIntoATmpVar(fp, uvpass, state);
+
     UTI uti = getUlamTypeIndex();
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
     s32 tmpVarCastNum = state.getNextTmpVarNumber(); 
     s32 totWords = getTotalWordSize();
-	
+    
     state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString(&state).c_str()); //i.e. s32, s64
@@ -227,16 +246,60 @@ namespace MFM {
     UTI newuti = uti;
 #if 0
     UTI newuti = Int;
-
+    
     if(totWords > MAXBITSPERINT)
       {
 	UlamKeyTypeSignature ikey(state.m_pool.getIndexForDataString("Int"), totWords);
 	newuti = state.makeUlamType(ikey, Int);
       }
 #endif
+    
+    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
 
-    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, state.determinePackable(newuti), state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
   } //genCodeAfterReadingIntoATmpVar
+  
+
+  // private helper
+  void UlamTypeInt::genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state)
+  {
+    UTI uti = getUlamTypeIndex();
+    s32 tmpVarNum = uvpass.getPtrSlotIndex();
+    s32 tmpVarCastNum = state.getNextTmpVarNumber(); 
+    s32 itemWords = getItemWordSize();
+    
+    state.indent(fp);
+    fp->write("const ");
+    fp->write(getArrayItemTmpStorageTypeAsString(&state).c_str()); //i.e. s32, s64
+    fp->write(" ");
+    fp->write(state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
+    fp->write(" = ");
+    
+    // write the cast method (e.g. _SignExtend32)
+    //fp->write(castMethodForCodeGen(uti, state).c_str());
+    fp->write("_SignExtend");
+    fp->write_decimal(itemWords);
+    
+    fp->write("(");
+    fp->write(state.getTmpVarAsString(uti, tmpVarNum).c_str());
+    fp->write(", ");
+    fp->write_decimal(getBitSize());
+    fp->write(")");
+    fp->write(";\n");
+    
+    UTI newuti = uti;
+#if 0
+    UTI newuti = Int;
+    
+    if(itemWords > MAXBITSPERINT)
+      {
+	UlamKeyTypeSignature ikey(state.m_pool.getIndexForDataString("Int"), itemWords);
+	newuti = state.makeUlamType(ikey, Int);
+      }
+#endif
+    
+    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
+
+  } //genCodeAfterReadingArrayItemIntoATmpVar
 
 
   void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)

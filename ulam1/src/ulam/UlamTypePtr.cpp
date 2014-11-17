@@ -26,4 +26,9 @@ namespace MFM {
     return false;
   }
 
+  PACKFIT UlamTypePtr::getPackable()
+  {
+    return UNPACKED;
+  }
+
 } //end MFM

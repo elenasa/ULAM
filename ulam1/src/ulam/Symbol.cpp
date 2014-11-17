@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false) {}
+  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false) {}
   Symbol::~Symbol(){}
 
   u32 Symbol::getId()
@@ -42,12 +42,25 @@ namespace MFM {
   void Symbol::setDataMember()
   {
     m_dataMember = true;
+    if(m_state.m_parsingElementParameterVariable)
+      m_elementParameter = true;
   }
 
 
   bool Symbol::isDataMember()
   {
     return m_dataMember;
+  }
+
+
+  void Symbol::setElementParameter()
+  {
+      m_elementParameter = true;
+  }
+
+  bool Symbol::isElementParameter()
+  {
+    return m_elementParameter;
   }
 
 
@@ -61,13 +74,26 @@ namespace MFM {
   }
 
 
+  //atomic parameter type, not element parameter.
   const std::string Symbol::getMangledNameForParameterType()
   {
+    assert(!m_elementParameter);  //maybe do it some other way XXX
+
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    ULAMCLASSTYPE classtype = sut->getUlamClass();
+
+    //another way, like this?
+    if(m_elementParameter)  
+      {
+	std::ostringstream epmangled;
+	epmangled << sut->getImmediateStorageTypeAsString(&m_state);
+	if(classtype == UC_QUARK)
+	  epmangled << "::Us";
+	return epmangled.str();
+      }
+
     // to distinguish btn an atomic parameter typedef and quark typedef;
     // use atomic parameter with array of classes
-    ULAMCLASSTYPE classtype = sut->getUlamClass();
-    //bool isaclass = (classtype == UC_QUARK || classtype == UC_ELEMENT);
     bool isaclass = (( classtype == UC_QUARK || classtype == UC_ELEMENT)  && sut->isScalar());
 
     std::ostringstream pmangled;

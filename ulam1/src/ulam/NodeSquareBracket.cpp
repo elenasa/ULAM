@@ -304,27 +304,15 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
     m_state.m_currentObjPtr = luvpass; //updated by lhs
 
-#if 0
-    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
-    Symbol * lsym = NULL;
-    if(!getSymbolPtr(lsym))
-      {
-	//error!
-	assert(0);
-      }
-    //m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
-    m_state.m_currentObjSymbolsForCodeGen.push_back(lsym);
-#endif
-
-    UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
+    UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass, m_state);  //for incrementPtr
+    nextlptr.setPtrNameId(luvpass.getPtrNameId());
 
     UlamValue offset;
     //m_nodeRight->genCode(fp, offset);
     m_nodeRight->genCodeToStoreInto(fp, offset); //for immediate value
-
+    
     s32 offsetInt = offset.getImmediateData(m_state);
     nextlptr.incrementPtr(m_state, offsetInt);
-    nextlptr.setPtrNameId(luvpass.getPtrNameId());
 
     genCodeReadIntoATmpVar(fp, nextlptr);  // more consistent, ok?
     uvpass = nextlptr;
@@ -342,19 +330,8 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
     m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
 
-    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
-#if 0
-    Symbol * lsym = NULL;
-    if(!getSymbolPtr(lsym))
-      {
-	//error!
-	assert(0);
-      }
-    //m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
-    m_state.m_currentObjSymbolsForCodeGen.push_back(lsym);   //***********************
-#endif
-
     UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
+    nextlptr.setPtrNameId(luvpass.getPtrNameId());
 
     UlamValue offset;
     //m_nodeRight->genCode(fp, offset);  
@@ -364,7 +341,6 @@ namespace MFM {
     nextlptr.incrementPtr(m_state, offsetInt);
 
     uvpass = nextlptr; //return
-    uvpass.setPtrNameId(luvpass.getPtrNameId());
 
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto

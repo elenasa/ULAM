@@ -139,11 +139,15 @@ namespace MFM {
       }
     else
       {
+	//if(m_varSymbol->isDataMember())
 	if(m_varSymbol->isDataMember())
 	  {
-	    // return ptr to this data member within the m_currentObjPtr
-	    // 'pos' modified by this data member symbol's packed bit position
-	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset());
+	    if(!m_varSymbol->isElementParameter())
+	      // return ptr to this data member within the m_currentObjPtr
+	      // 'pos' modified by this data member symbol's packed bit position
+	      ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset());
+	    else //same or not???
+	      ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset());
 	  }
 	else
 	  {
@@ -154,7 +158,7 @@ namespace MFM {
     return ptr;
   } //makeUlamValuePtr
   
-
+#if 0
   UlamValue NodeTerminalIdent::makeUlamValuePtrForCodeGen()
   {
     UlamValue uvpass1 = makeUlamValuePtr();
@@ -165,7 +169,7 @@ namespace MFM {
     u32 pos = uvpass1.getPtrPos();
     // this is for "efficiency", e.g. BitVector<32> for immediate primitives
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-    if(!m_varSymbol->isDataMember() && nut->getUlamClass() == UC_NOTACLASS)
+    if((!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter()) && nut->getUlamClass() == UC_NOTACLASS)
       {
 	s32 wordsize = nut->getTotalWordSize();
 	pos = wordsize - (BITSPERATOM - pos); //nut->getTotalBitSize();
@@ -174,6 +178,38 @@ namespace MFM {
     UlamValue uvpass = UlamValue::makePtr(m_state.getNextTmpVarNumber(), TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, pos, m_varSymbol->getId());
 
     return uvpass;
+  } //makeUlamValuePtrForCodeGen
+#endif
+
+  //new
+  UlamValue NodeTerminalIdent::makeUlamValuePtrForCodeGen()
+  {
+    s32 tmpnum = m_state.getNextTmpVarNumber();
+
+    UlamValue ptr;
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    ULAMCLASSTYPE classtype = nut->getUlamClass();
+    if(classtype == UC_ELEMENT)
+      {
+	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;) to become new m_currentObjPtr
+	ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, getNodeType(), UNPACKED, m_state, 0, m_varSymbol->getId()); 
+      }
+    else
+      {
+	//if(m_varSymbol->isDataMember())
+	if(m_varSymbol->isDataMember() && !m_varSymbol->isElementParameter())
+	  {
+	    // return ptr to this data member within the m_currentObjPtr
+	    // 'pos' modified by this data member symbol's packed bit position
+	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	  }
+	else
+	    {
+	      //local variable on the stack; could be array ptr! or element parameter
+	      ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+	    }
+      }
+    return ptr;
   } //makeUlamValuePtrForCodeGen
 
 

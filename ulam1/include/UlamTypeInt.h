@@ -56,7 +56,11 @@ namespace MFM{
 
     virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
 
+    virtual const std::string getArrayItemTmpStorageTypeAsString(CompilerState * state);
+
     virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state, s32 sizebyints);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
@@ -71,6 +75,8 @@ namespace MFM{
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 
   private:
+
+    void genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
 
   };
 

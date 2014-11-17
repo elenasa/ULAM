@@ -57,6 +57,8 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
+    virtual PACKFIT getPackable();
+
     virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
 
     virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
