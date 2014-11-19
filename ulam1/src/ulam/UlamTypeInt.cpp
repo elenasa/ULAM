@@ -93,13 +93,15 @@ namespace MFM {
 
 	if(isScalar())
 	  {
-	    fp->write("return _SignExtend");
-	    fp->write_decimal(getTotalWordSize());
-	    fp->write("(BF::");
+	    fp->write("return ");
+	    //fp->write("return _SignExtend");
+	    //fp->write_decimal(getTotalWordSize());
+	    fp->write("BF::");
 	    fp->write(readMethodForCodeGen().c_str());	
-	    fp->write("(m_stg), ");
-	    fp->write_decimal(getBitSize());  //sign extend 2nd arg
-	    fp->write("u); }\n");
+	    //fp->write("(m_stg), ");
+	    //fp->write_decimal(getBitSize());  //sign extend 2nd arg
+	    //fp->write("u); }\n");
+	    fp->write("(m_stg); }\n");
 	  }
 	else
 	  {
@@ -108,11 +110,9 @@ namespace MFM {
 	    fp->write("return BF::");
 	    fp->write(readMethodForCodeGen().c_str());	
 	    fp->write("(m_stg, ");
-	    fp->write_decimal(totbitsize);
+	    fp->write_decimal(0); //index [0]
 	    fp->write("u, ");
 	    fp->write_decimal(totbitsize);
-	    fp->write("u, ");
-	    fp->write_decimal(getTotalWordSize() - totbitsize);
 	    fp->write("u); }   //reads entire array, no sign extend\n");
 	  }
       }
@@ -124,17 +124,18 @@ namespace MFM {
 	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
-	fp->write("u32 len, u32 pos) const { ");
-	fp->write("return _SignExtend");
-	fp->write_decimal(getTotalWordSize());
-	fp->write("(BF::");
+	fp->write("u32 index, u32 unitsize) const { ");
+	//fp->write("return _SignExtend");
+	//fp->write_decimal(getTotalWordSize());
+	fp->write("return ");
+	fp->write("BF::");
 	fp->write(readMethodForCodeGen().c_str());
 	fp->write("(m_stg, ");
-	fp->write_decimal(getTotalBitSize());
-	fp->write("u, len, pos");
-	fp->write("), ");
-	fp->write_decimal(getBitSize());  //sign extend 2nd arg
-	fp->write("u); }\n");
+	fp->write("index, unitsize");
+	//fp->write("), ");
+	//fp->write_decimal(getBitSize());  //sign extend 2nd arg
+	//fp->write("u); }\n");
+	fp->write("); }\n");
       }
   } //genUlamTypeReadDefinitionForC
 

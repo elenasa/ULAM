@@ -53,8 +53,9 @@ namespace MFM {
     UTI it = Nav;  // init return type
     u32 numErrorsFound = 0;
 
-    //might be related to m_currentSelfPtr..???
-    bool saveUseMemberBlock = m_state.m_useMemberBlock; //doesn't apply to arguments
+    //might be related to m_currentSelfPtr?
+    //member selection doesn't apply to arguments
+    bool saveUseMemberBlock = m_state.m_useMemberBlock; 
 
     //look up in class block, and match argument types to parameters
     //assert(m_funcSymbol == NULL);
@@ -354,7 +355,7 @@ namespace MFM {
 	UTI auti;
 	UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 	//Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
-	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************???
+	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
 	m_argumentNodes[i]->genCode(fp, auvpass);
 	Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
