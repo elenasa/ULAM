@@ -6,12 +6,15 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_A { Int x(4);  Int test() {  typedef Int Bar[2];  Int e[2];  { e 0 [] 4 = } x e 0 [] = x return } }\nExit status: 4");
+      return std::string("Ue_A { Int(32) x(4);  Int(32) test() {  typedef Int(32) Bar[2];  Int(32) e[2];  { e 0 [] 4 cast = } x e 0 [] = x return } }\nExit status: 4");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","element A { Int x; Int test() { typedef Int Bar[2]; Bar e; { e[0] = 4; } /* match int return type */ x= e[0]; return x; } }");  
+      //bool rtn1 = fms->add("A.ulam","element A { Int x; Int test() { typedef Int Bar[2]; Bar e; { e[0] = 4; } /* match int return type */ x= e[0]; return x; } }");  
+
+      // needs newlines
+      bool rtn1 = fms->add("A.ulam","element A {\n Int x;\n Int test() {\n typedef Int Bar[2];\n Bar e;\n {\n e[0] = 4;\n }\n /* match int return type */\n x= e[0];\n return x;\n }\n }\n");  
       
       if(rtn1)
 	return std::string("A.ulam");

@@ -10,36 +10,36 @@ namespace MFM {
   {}
 
 
-  void UlamTypeNav::newValue(UlamValue & val){}
-
-
-  void UlamTypeNav::deleteValue(UlamValue * val){}
-
-
    ULAMTYPE UlamTypeNav::getUlamTypeEnum()
    {
      return Nav;
    }
 
 
-  bool UlamTypeNav::cast(UlamValue & val)
+  const std::string UlamTypeNav::getUlamTypeAsStringForC()
   {
     assert(0);
-    //std::cerr << "UlamTypeNav (cast) error! " << std::endl;
+    return "nav";
+  }
+
+
+  bool UlamTypeNav::needsImmediateType()
+  {
     return false;
   }
 
 
-  void UlamTypeNav::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
+  const std::string UlamTypeNav::getImmediateStorageTypeAsString(CompilerState * state)
   {
-    sprintf(valstr,"%s", getUlamTypeName(state).c_str());
+    assert(0);
+    return "nav";
   }
 
 
-  bool UlamTypeNav::isZero(const UlamValue & val)
+  const std::string UlamTypeNav::castMethodForCodeGen(UTI nodetype, CompilerState& state)
   {
-    return true; 
+    assert(0);
+    return "nav";
   }
-
 
 } //end MFM

@@ -2,7 +2,8 @@
 #include "NodeVarDecl.h"
 #include "Token.h"
 #include "CompilerState.h"
-#include "SymbolVariableStatic.h"
+#include "SymbolVariableDataMember.h"
+#include "SymbolVariableStack.h"
 
 namespace MFM {
 
@@ -13,26 +14,16 @@ namespace MFM {
   void NodeVarDecl::printPostfix(File * fp)
   {
     fp->write(" ");
-    fp->write(m_varSymbol->getUlamType()->getUlamTypeNameBrief(&m_state).c_str()); //short type name
+    fp->write(m_state.getUlamTypeNameBriefByIndex(m_varSymbol->getUlamTypeIdx()).c_str()); //short type name
     fp->write(" ");
     fp->write(getName());
 
-    u32 arraysize = m_varSymbol->getUlamType()->getUlamKeyTypeSignature().getUlamKeyTypeSignatureArraySize();
-    if(arraysize > 0)
+    s32 arraysize = m_state.getArraySize(m_varSymbol->getUlamTypeIdx());
+    if(arraysize > NONARRAYSIZE)
       {
 	fp->write("[");
 	fp->write_decimal(arraysize);
 	fp->write("]");
-      }
-
-    if(m_varSymbol->isDataMember())
-      {
-	char * myval = new char[arraysize * 8 + 32];	
-	m_varSymbol->getUlamValue(m_state).getUlamValueAsString(myval, &m_state);
-	fp->write("(");
-	fp->write(myval);
-	fp->write(")");
-	delete [] myval;
       }
 
     fp->write("; ");
@@ -51,24 +42,26 @@ namespace MFM {
   }
 
 
-  UlamType * NodeVarDecl::checkAndLabelType()
+  UTI NodeVarDecl::checkAndLabelType()
   {
-    UlamType * it;
+    UTI it;
     if(!m_varSymbol)
       {
 	MSG("","Variable symbol is missing",ERR);
-	it = m_state.getUlamTypeByIndex(Nav);
+	it = Nav;
       }
     else
       {
-	it = m_varSymbol->getUlamType();  //base type has arraysize
+	it = m_varSymbol->getUlamTypeIdx();  //base type has arraysize
 	//check for incomplete Classes
-	if(it->getUlamClassType() == UC_INCOMPLETE)
+	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_INCOMPLETE)
 	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete Var Decl for type: <" << m_state.getUlamTypeNameByIndex(m_state.getUlamTypeIndex(it)).c_str() << "> used with variable symbol name <" << getName() << ">";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_state.completeIncompleteClassSymbol(it);
+	    if(! m_state.completeIncompleteClassSymbol(it))
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Var Decl for type: <" << m_state.getUlamTypeNameByIndex(it).c_str() << "> used with variable symbol name <" << getName() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
 	  }
       }
     setNodeType(it);
@@ -83,21 +76,32 @@ namespace MFM {
     //copy result UV to stack, -1 relative to current frame pointer
     //    assignReturnValueToStack(m_varSymbol->getUlamValue(m_state));
     //evalNodeEpilog();
+    if(getNodeType() == Atom || m_state.getUlamTypeByIndex(getNodeType())->getUlamClass() == UC_ELEMENT)
+      {
+	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
+	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+      }
+    else
+      {
+	if(!m_varSymbol->isDataMember())
+	  {
+	    //local variable to a function
+	    UlamValue immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableDataMember *) m_varSymbol)->getStackFrameSlotIndex());
+	  }
+	else
+	  {
+	    assert(0);
+	  }
+      }
     return NORMAL;
   }
   
 
   EvalStatus  NodeVarDecl::evalToStoreInto()
   {
-    assert(m_varSymbol);
-
-    evalNodeProlog(0); //new current frame pointer
-
-    //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(m_varSymbol->getUlamValueToStoreInto());
-
-    evalNodeEpilog();
-    return NORMAL;
+    assert(0);  //no way to get here!
+    return ERROR;
   }
 
 
@@ -110,49 +114,111 @@ namespace MFM {
 
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
   {
+    assert((s32) offset >= 0); //neg is invalid
     m_varSymbol->setPosOffset(offset);
-    offset += m_varSymbol->getUlamType()->getTotalBitSize();
+    offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
   }
 
 
-  void NodeVarDecl::genCode(File * fp)
+  // parse tree in order declared, unlike the ST.
+  void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
   {
-    //like ST version: genCodeForTableOfVariableDataMembers, except in order declared
-    UlamType * vut = m_varSymbol->getUlamType(); 
-    ULAMCLASSTYPE vclasstype = vut->getUlamClassType();
+    if(m_varSymbol->isDataMember())
+      return genCodedBitFieldTypedef(fp, uvpass);
+
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
     m_state.indent(fp);
-    fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
-    
+    if(!m_varSymbol->isDataMember())
+      {
+	fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++ local vars, ie non-data members
+      }
+    else
+      {
+	fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+	assert(0); //doesn't happen anymore..
+      }
+
+    fp->write(" ");
+    fp->write(m_varSymbol->getMangledName().c_str());
+
+    //initialize T to default atom (might need "OurAtom" if data member ?)
+    if(vclasstype == UC_ELEMENT)
+      {
+	fp->write(" = ");
+	//UTI selfuti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
+	//fp->write(m_state.getUlamTypeByIndex(selfuti)->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>");
+	fp->write("::THE_INSTANCE");
+	fp->write(".GetDefaultAtom()");  //returns object of type T
+      }
+
     if(vclasstype == UC_QUARK)
       {
-	if(m_varSymbol->isDataMember())
+	//right-justified?
+      }
+
+    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
+  }
+
+
+  // variable is a data member; not an element
+  void NodeVarDecl::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
+    ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
+
+    m_state.indent(fp);
+
+    // use typedef rather than atomic parameter for quarks within elements,
+    // except if an array of quarks.
+    //if(nclasstype == UC_QUARK)
+    //if(nclasstype == UC_QUARK && classtype == UC_ELEMENT)
+    //if(nclasstype == UC_QUARK && classtype == UC_ELEMENT && nut->isScalar())
+    if(nclasstype == UC_QUARK && nut->isScalar())
+      {
+	fp->write("typedef ");
+	fp->write(nut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+	fp->write("<CC, ");
+	if(classtype == UC_ELEMENT)
+	  fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	else
 	  {
-	    // position determined by previous data member bit lengths
-	    fp->write("<");
+	    //inside a quark
+	    fp->write("POS + ");
 	    fp->write_decimal(m_varSymbol->getPosOffset());
-	    fp->write(">");
+	  }
+      }
+    else
+      {
+	fp->write("typedef AtomicParameterType<");
+	fp->write("CC");  //BITSPERATOM
+	fp->write(", ");
+	fp->write(nut->getUlamTypeVDAsStringForC().c_str());
+	fp->write(", ");
+	fp->write_decimal(nut->getTotalBitSize());   //include arraysize
+	fp->write(", ");
+	if(classtype == UC_QUARK)
+	  {
+	    fp->write("POS + ");
+	    fp->write_decimal(m_varSymbol->getPosOffset());
 	  }
 	else
 	  {
-	    fp->write(vut->getBitSizeTemplateString().c_str());  //for quark templates
+	    assert(classtype == UC_ELEMENT);
+	    fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
 	  }
       }
     
-    fp->write(" ");
-    fp->write(m_varSymbol->getMangledName(&m_state).c_str());
-    
-#if 0
-    u32 arraysize = vut->getArraySize();
-    if(arraysize > 0)
-      {
-	fp->write("[");
-	fp->write_decimal(arraysize);
-	fp->write("]");
-      }
-#endif
-    
+    fp->write("> ");
+    fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
-  }
+  } //genCodedBitFieldTypedef
 
 } //end MFM
 

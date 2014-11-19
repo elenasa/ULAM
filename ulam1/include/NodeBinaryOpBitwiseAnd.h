@@ -36,26 +36,28 @@
 #ifndef NODEBINARYOPBITWISEAND_H
 #define NODEBINARYOPBITWISEAND_H
 
-#include "NodeBinaryOp.h"
+#include "NodeBinaryOpBitwise.h"
 
 namespace MFM{
 
-  class NodeBinaryOpBitwiseAnd : public NodeBinaryOp
+  class NodeBinaryOpBitwiseAnd : public NodeBinaryOpBitwise
   {
   public:
     
     NodeBinaryOpBitwiseAnd(Node * left, Node * right, CompilerState & state);
     ~NodeBinaryOpBitwiseAnd();
 
-    virtual UlamType * checkAndLabelType();
-
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
+    virtual const std::string methodNameForCodeGen();
+
   protected:
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
+    virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+
+    virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
   };
 

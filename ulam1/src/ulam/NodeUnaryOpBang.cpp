@@ -20,44 +20,51 @@ namespace MFM {
   }
 
 
-  UlamType * NodeUnaryOpBang::checkAndLabelType()
+  const std::string NodeUnaryOpBang::methodNameForCodeGen()
+  {
+    s32 sizeByInts = m_state.getUlamTypeByIndex(getNodeType())->getTotalWordSize();
+
+    std::ostringstream methodname;
+    methodname << "_LogicalBang" << "Bool" << sizeByInts;
+    return methodname.str();
+  }
+
+
+  UTI NodeUnaryOpBang::checkAndLabelType()
   { 
     assert(m_node);
-
-    UlamType * but = m_state.getUlamTypeByIndex(Bool);
-    UlamType * ut  = m_node->checkAndLabelType(); 
+    UTI ut = m_node->checkAndLabelType();
+    UTI newType = ut;         // init to stay the same
     
-    assert(ut->isScalar());
-
-    if(ut != but)
+    if(!m_state.isScalar(ut)) //array unsupported at this time
       {
-	m_node = new NodeCast(m_node, but, m_state);
-	m_node->setNodeLocation(getNodeLocation());
-	m_node->checkAndLabelType();
+	std::ostringstream msg;
+	msg << "Incompatible (nonscalar) type: <" << m_state.getUlamTypeNameByIndex(ut).c_str() << "> for unary operator" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);	
+	newType = Nav;
       }
-    
-    setNodeType(but);
+    else
+      {
+	ULAMTYPE eut = m_state.getUlamTypeByIndex(ut)->getUlamTypeEnum();
+	if(eut != Bool)
+	  {
+	    newType = Bool;
+	    m_node = makeCastingNode(m_node, newType);  //insert node/s
+	  }
+      }
+
+    setNodeType(newType);
+
     setStoreIntoAble(false);
 
-    return getNodeType();
-  }
+    return newType; 
+  } //checkAndLabelType
 
 
-  void NodeUnaryOpBang::doUnaryOperation(u32 slot, u32 nslots)
+  UlamValue NodeUnaryOpBang::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {
-    UlamType * nut = getNodeType();
-    UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
-
-    for(u32 i = 0; i < nslots; i++)
-      {
-	UlamValue uv = m_state.m_nodeEvalStack.getFrameSlotAt(slot+i); //immediate scalar
-	
-	//assumes bool; invert uv.
-	uv.init(scalartype, !uv.m_valBool);
-	
-	//copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(uv, -nslots + i);	
-      }
+    //return UlamValue::makeImmediate(type, !((bool) data), len);
+    return UlamValue::makeImmediate(type, _LogicalBangBool32(data, len), len);
   }
-  
+
 } //end MFM

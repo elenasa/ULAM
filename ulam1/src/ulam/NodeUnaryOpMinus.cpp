@@ -20,35 +20,64 @@ namespace MFM {
   }
 
 
-
-  void NodeUnaryOpMinus::doUnaryOperation(u32 slot, u32 nslots)
+  const std::string NodeUnaryOpMinus::methodNameForCodeGen()
   {
-    UlamType * nut = getNodeType();
-    UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
-    UTI typidx = m_state.getUlamTypeIndex(scalartype);
-    
-    for(u32 i = 0; i < nslots; i++)
-      {
-	UlamValue uv = m_state.m_nodeEvalStack.getFrameSlotAt(slot+i); //immediate scalar
-	
-	switch(typidx)
-	  {
-	  case Int:
-	    uv.m_valInt = - uv.m_valInt;
-	    break;
-	  case Float:
-	    uv.m_valFloat = - uv.m_valFloat;
-	    break;
-	  case Bool:
-	    // cast to an Int.
-	  default:
-	    break;
-	  };
-	
-	//copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(uv, -nslots + i);	
-      }
+    s32 sizeByInts = m_state.getUlamTypeByIndex(getNodeType())->getTotalWordSize();
+
+    std::ostringstream methodname;
+    methodname << "_UnaryMinus" << "Int" << sizeByInts ;
+    return methodname.str();
   }
 
+
+  UTI NodeUnaryOpMinus::checkAndLabelType()
+  { 
+    assert(m_node);
+    UTI ut = m_node->checkAndLabelType();
+    UTI newType = ut;         // init to stay the same
+    
+    if(!m_state.isScalar(ut)) //array unsupported at this time
+      {
+	std::ostringstream msg;
+	msg << "Incompatible (nonscalar) type: <" << m_state.getUlamTypeNameByIndex(ut).c_str() << "> for unary operator" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);	
+	newType = Nav;
+      }
+    else
+      {
+	ULAMTYPE eut = m_state.getUlamTypeByIndex(ut)->getUlamTypeEnum();
+	// implicit cast for Bool only
+	if(eut == Bool)
+	  {
+	    newType = Int;
+	    m_node = makeCastingNode(m_node, newType);  //insert node/s
+	  }
+	else if(eut != Int)
+	  {
+	    std::ostringstream msg;
+	    msg << "Unary operator" << getName() << " applied to type <" << m_state.getUlamTypeNameByIndex(ut) << "> requires an explicit cast";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);	
+	    newType = Nav;
+	  }
+	else if(ut != Int) //bitsize < 32
+	  {
+	    newType = Int;
+	    m_node = makeCastingNode(m_node, newType);  //insert node/s
+	  }	    
+      }
+
+    setNodeType(newType);
+
+    setStoreIntoAble(false);
+
+    return newType; 
+  } //checkAndLabelType
+
+
+  UlamValue NodeUnaryOpMinus::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
+  {
+    //return UlamValue::makeImmediate(type, (s32) -data, len); 
+    return UlamValue::makeImmediate(type, _UnaryMinusInt32(data, len), len); 
+  }
 
 } //end MFM

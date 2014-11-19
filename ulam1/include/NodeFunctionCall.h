@@ -53,19 +53,33 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
+
+    virtual EvalStatus evalToStoreInto();
 
     void addArgument(Node * n);
 
     u32 getNumberOfArguments();
 
-    virtual const char * getName();
+    virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual const std::string prettyNodeName();
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCode(File * fp);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
+
+  protected:
+    //helper methods override Node read/write
+    virtual void genMemberNameOfMethod(File * fp, UlamValue uvpass); 
+
+    virtual void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
 
   private:
 

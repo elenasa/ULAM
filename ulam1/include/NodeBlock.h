@@ -55,7 +55,7 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -73,9 +73,13 @@ namespace MFM{
     
     u32 getSizeOfSymbolsInTable();
 
-    u32 getBitSizesOfVariableSymbolsInTable();
+    s32 getBitSizesOfVariableSymbolsInTable();
 
-    virtual void genCode(File * fp);
+    s32 getMaxBitSizeOfVariableSymbolsInTable();
+
+    SymbolTable * getSymbolTablePtr(); //used for print postfix 
+
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
     SymbolTable m_ST;

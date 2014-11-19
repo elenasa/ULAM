@@ -1,0 +1,32 @@
+#include "TestCase_EndToEndCompiler.h"
+
+namespace MFM {
+
+  BEGINTESTCASECOMPILER(t3203_test_compiler_elementandquark_funccallargexpression)
+  {
+    std::string GetAnswerKey()
+    {
+      //developed by Dave (10092014) in c++ and then converted to Ulam.
+      return std::string("Ue_Foo { Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = 0 cast return } }\nExit status: 0");
+    }
+    
+    std::string PresetTest(FileManagerString * fms)
+    {      
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nBar bar1;\nBar bar2;\nInt(4) i, j;\nInt update(Int x)\n{\nreturn x;\n}\nInt test(){\nInt d;\nd = 1;\nbar1.set(d,2);\nbar2.set(3,0);\ni = bar1;\nj = bar2;\nj = update(i + 7);\n\nreturn 0;}\n}\n");
+
+      // use set function; test bool to avoid divide by zero
+      //note: don't have <<2, so substituted *4; use 3 bits so not to cross word boundary
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nif(b)\nreturn (x * 4) / y;\nelse\nreturn 0;\n}\nVoid set(Int xarg, Int yarg){\nx=xarg;\ny=yarg;\nif(yarg){\nb=true;\n}\nelse{\nb=false;\n}\n}\n}\n");
+
+      if(rtn1 & rtn2)
+	return std::string("Foo.ulam");
+      
+      return std::string("");
+    }
+  }
+  
+  ENDTESTCASECOMPILER(t3203_test_compiler_elementandquark_funccallargexpression)
+  
+} //end MFM
+
+

@@ -55,7 +55,7 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -74,8 +74,14 @@ namespace MFM{
     NodeBlockClass * m_root;
     u32 m_compileThisId;
 
-    void genMangledTypeHeaderFile(FileManager * fm);
+    void generateHeaderPreamble(File * fp);
+    void genAllCapsIfndefForHeaderFile(File * fp);
+    void genAllCapsEndifForHeaderFile(File * fp);
+    void generateHeaderIncludes(File * fp);
+
+    void genMangledTypeHeaderFile(FileManager * fm);  //obsolete
     void generateMain(FileManager * fm);
+
   };
 
 }

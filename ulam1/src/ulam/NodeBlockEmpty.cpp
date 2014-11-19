@@ -37,9 +37,9 @@ namespace MFM {
   }
 
 
-  UlamType * NodeBlockEmpty::checkAndLabelType()
+  UTI NodeBlockEmpty::checkAndLabelType()
   {
-    setNodeType(m_state.getUlamTypeByIndex(Void));
+    setNodeType(Void);
     return getNodeType();
   }
 
@@ -47,6 +47,13 @@ namespace MFM {
   EvalStatus NodeBlockEmpty::eval()
   {
     return NORMAL;
+  }
+
+
+  void NodeBlockEmpty::genCode(File * fp, UlamValue& uvpass)
+  {
+    m_state.indent(fp);
+    fp->write("{ /* empty */ }\n");
   }
 
 } //end MFM

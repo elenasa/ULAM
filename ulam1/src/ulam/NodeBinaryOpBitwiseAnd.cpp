@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  NodeBinaryOpBitwiseAnd::NodeBinaryOpBitwiseAnd(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
+  NodeBinaryOpBitwiseAnd::NodeBinaryOpBitwiseAnd(Node * left, Node * right, CompilerState & state) : NodeBinaryOpBitwise(left,right,state) {}
 
   NodeBinaryOpBitwiseAnd::~NodeBinaryOpBitwiseAnd(){}
 
@@ -17,75 +17,85 @@ namespace MFM {
   const std::string NodeBinaryOpBitwiseAnd::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
-  }
+  }   
 
 
-  UlamType * NodeBinaryOpBitwiseAnd::checkAndLabelType()
-  { 
-    assert(m_nodeLeft && m_nodeRight);
-
-    UlamType * leftType = m_nodeLeft->checkAndLabelType();
-    UlamType * rightType = m_nodeRight->checkAndLabelType();	
-    UlamType * newType = calcNodeTypeBitwise(leftType, rightType);
-
-    if(newType !=  m_state.getUlamTypeByIndex(Nav))  //Nav
-      {
-	if(newType != leftType)
-	  {
-	    m_nodeLeft = new NodeCast(m_nodeLeft, newType, m_state);
-	    m_nodeLeft->setNodeLocation(getNodeLocation());
-	    m_nodeLeft->checkAndLabelType();
-	  }
-	
-	if(newType != rightType)
-	  {
-	    m_nodeRight = new NodeCast(m_nodeRight, newType, m_state);
-	    m_nodeRight->setNodeLocation(getNodeLocation());
-	    m_nodeRight->checkAndLabelType();
-	  }
-      }
-    
-    setNodeType(newType);
-    setStoreIntoAble(false);
-    return newType;
-  }
-
-    
-  void NodeBinaryOpBitwiseAnd::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  const std::string NodeBinaryOpBitwiseAnd::methodNameForCodeGen()
   {
-    UlamType * nut = getNodeType();
-    UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
-
-    UTI typidx = scalartype->getUlamTypeIndex();    
-    UlamValue rtnUV;  //immediate scalar
-
-    for(u32 i = 0; i < slots; i++)
-      {
-	UlamValue luv = m_state.m_nodeEvalStack.getFrameSlotAt(lslot+i);
-	UlamValue ruv = m_state.m_nodeEvalStack.getFrameSlotAt(rslot+i);
-
-	switch(typidx)
-	  {
-	  case Int:
-	    rtnUV.init(scalartype, (luv.m_valInt & ruv.m_valInt));
-	    break;
-	  case Bool:
-	    rtnUV.init(scalartype, (luv.m_valBool & ruv.m_valBool));
-	    break;
-	  case Float:
-	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(typidx) << "> used with binary operator" << getName();
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	      rtnUV.init(m_state.getUlamTypeByIndex(Nav), 0);
-	      assert(0);
-	    }
-	  };
-
-	//copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
-      }
+    std::ostringstream methodname;
+    methodname << "_BitwiseAnd" << NodeBinaryOpBitwise::methodNameForCodeGen();
+    return methodname.str();
   }
+  
+
+  UlamValue NodeBinaryOpBitwiseAnd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseAndInt32(ldata, rdata, len), len);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseAndUnsigned32(ldata, rdata, len), len);
+	break;
+      case Bool:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseAndBool32(ldata, rdata, len), len);
+	break;
+      case Unary:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseAndUnary32(ldata, rdata, len), len);
+	break;
+      case Bits:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseAndBits32(ldata, rdata, len), len);
+	break;
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  }
+
+
+  void NodeBinaryOpBitwiseAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    UTI type = refUV.getUlamValueTypeIdx();
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	refUV.putData(pos, len, _BitwiseAndInt32(ldata, rdata, len));
+	break;
+      case Unsigned:
+	refUV.putData(pos, len, _BitwiseAndUnsigned32(ldata, rdata, len));
+	break;
+      case Bool:
+	refUV.putData(pos, len, _BitwiseAndBool32(ldata, rdata, len));
+	break;
+      case Unary:
+	refUV.putData(pos, len, _BitwiseAndUnary32(ldata, rdata, len));
+	break;
+      case Bits:
+	refUV.putData(pos, len, _BitwiseAndBits32(ldata, rdata, len));
+	break;
+      default:
+	assert(0);
+	break;
+      };
+    return;
+  }
+
+#if 0
+  UlamValue NodeBinaryOpBitwiseAnd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    return UlamValue::makeImmediate(type, ldata & rdata, len);
+  }
+
+
+  void NodeBinaryOpBitwiseAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    refUV.putData(pos, len, ldata & rdata);
+  }
+#endif
 
 } //end MFM

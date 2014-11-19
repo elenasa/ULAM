@@ -45,6 +45,7 @@
 #include "Symbol.h"
 #include "UlamType.h"
 #include "UlamValue.h"
+#include "Ops.h"
 
 namespace MFM{
 
@@ -63,13 +64,13 @@ namespace MFM{
     virtual void print(File * fp);
     virtual void printPostfix(File * fp) = 0;
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval() = 0;
     virtual EvalStatus evalToStoreInto();
 
-    UlamType * getNodeType();
-    void setNodeType(UlamType * ut);
+    UTI getNodeType();
+    void setNodeType(UTI ut);
 
     bool isStoreIntoAble();
     void setStoreIntoAble(bool s);
@@ -80,8 +81,8 @@ namespace MFM{
     std::string getNodeLocationAsString();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
-    virtual bool installSymbolTypedef(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr);
-    virtual bool installSymbolVariable(Token atok, u32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
     virtual const char * getName() = 0;
 
@@ -90,22 +91,51 @@ namespace MFM{
 
     void evalNodeProlog(u32 depth);
     void evalNodeEpilog();
-    u32 makeRoomForNodeType(UlamType * type, STORAGE where = EVALRETURN);
-    u32 makeRoomForSlots(u32 slots);
+
+    u32 makeRoomForNodeType(UTI type, STORAGE where = EVALRETURN);
+    u32 makeRoomForSlots(u32 slots, STORAGE where = EVALRETURN);
+
     void assignReturnValueToStack(UlamValue rtnUV, STORAGE where = EVALRETURN);
     void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
+    virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+
+    void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
+
+    void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
+
+    /**
+     * Returns converted const argument to all capital letters as a string
+     */
+    static std::string allCAPS(const char * s);
+
 
   protected:
 
     CompilerState & m_state;  //for printing error messages with path
+    Node * makeCastingNode(Node * node, UTI tobeType);
+    bool warnOfNarrowingCast(UTI nodeType, UTI tobeType);
+
+    virtual void genMemberNameOfMethod(File * fp, UlamValue uvpass); //helper method to read/write into/from tmpvar
+    virtual void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
+
+    const std::string readMethodForCodeGen(UTI nuti, UlamValue uvpass);
+    const std::string writeMethodForCodeGen(UTI nuti, UlamValue uvpass);
+
+    const std::string readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
+    const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
+
+    bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self; 
+    bool isCurrentObjectAPieceOfAnArray(UTI cosuti, UlamValue uvpass);
 
   private:
     bool m_storeIntoAble;
-    UlamType * m_nodeUType;
+    UTI m_nodeUType;
     Locator m_nodeLoc;
 
   };

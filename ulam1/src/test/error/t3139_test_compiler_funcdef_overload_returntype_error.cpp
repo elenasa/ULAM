@@ -11,11 +11,11 @@ namespace MFM {
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("a.ulam","ulam { typedef Int Foo [8]; Foo foo(Bool b) { Foo m; if(b) m[0]=1; else m[0]=2; return m;} Int foo(Int i) { Foo e; e[3] = 3; e[4] = 4; e[0] = i; return i; } Int test() { Bool mybool; mybool= true;\nd = foo(mybool); d[0] = foo(6);\n return d[0]; /* match return type */}\nFoo d; }");  // note: overloaded foo has different return types, error!
+      bool rtn1 = fms->add("A.ulam","element A { typedef Int(4) Foo [8]; Foo foo(Bool b) { Foo m; if(b) m[0]=1; else m[0]=2; return m;} Int foo(Int i) { Foo e; e[3] = 3; e[4] = 4; e[0] = i; return i; } Int test() { Bool mybool; mybool= true;\nd = foo(mybool); d[0] = foo(6);\n return d[0]; /* match return type */}\nFoo d; }");  // note: overloaded foo has different return types, error!
 
       
       if(rtn1)
-	return std::string("a.ulam");
+	return std::string("A.ulam");
       
       return std::string("");
     }

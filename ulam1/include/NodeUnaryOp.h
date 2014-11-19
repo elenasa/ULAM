@@ -54,16 +54,23 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
+
+    virtual const std::string methodNameForCodeGen();
 
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
+
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
     
     Node * m_node;
-    virtual void doUnaryOperation(u32 slot, u32 nslots) = 0;    
+    virtual void doUnaryOperation(s32 slot, u32 nslots);
+    virtual void doUnaryOperationImmediate(s32 slot, u32 nslots);
+    virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len) = 0;
+
   };
 
 }

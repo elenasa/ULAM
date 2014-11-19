@@ -50,23 +50,30 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
+    virtual const std::string methodNameForCodeGen();
+
+    virtual void packBitsInOrderOfDeclaration(u32& offset);
+
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
-
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
-
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
 
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots){}
+    virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+    virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len){}
+
+    virtual UTI calcNodeType(UTI lt, UTI rt); //stub
+
   };
 
 }

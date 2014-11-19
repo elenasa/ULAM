@@ -48,20 +48,20 @@ namespace MFM{
     NodeUnaryOpBang(Node * n, CompilerState & state);
     ~NodeUnaryOpBang();
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
+    virtual const std::string methodNameForCodeGen();
+
   protected:
-    virtual void doUnaryOperation(u32 slot, u32 nslots);    
-    
+    virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len);
+
   private:
-   
-
+  
   };
+} //MFM
 
-}
-
-#endif //end NODEUNARYOP_H
+#endif //end NODEUNARYOPBANG_H

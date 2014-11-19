@@ -1,8 +1,9 @@
 #include "SymbolVariable.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
-  SymbolVariable::SymbolVariable(u32 id, UlamType * utype) : Symbol(id, utype), m_posOffset(0){}
+  SymbolVariable::SymbolVariable(u32 id, UTI utype, PACKFIT packed, CompilerState& state) : Symbol(id, utype, state), m_posOffset(0), m_packed(packed){}
 
   SymbolVariable::~SymbolVariable()
   {}
@@ -18,10 +19,11 @@ namespace MFM {
   u32 SymbolVariable::getDataMemberSlotIndex()
   {
     assert(0);
-    return 0;  //== not a dta member
+    return 0;  //== not a data member
   }
 
 
+  //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS
   u32 SymbolVariable::getPosOffset()
   {
     return m_posOffset;
@@ -33,5 +35,16 @@ namespace MFM {
     m_posOffset = offsetIntoAtom;
   }
 
+
+  PACKFIT SymbolVariable::isPacked()
+  {
+    return m_packed;
+  }
+
+
+  void SymbolVariable::setPacked(PACKFIT p)
+  {
+    m_packed = p;
+  }
 
 } //end MFM

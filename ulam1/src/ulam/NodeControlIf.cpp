@@ -54,7 +54,7 @@ namespace MFM {
   }
 
 
-  UlamType * NodeControlIf::checkAndLabelType()
+  UTI NodeControlIf::checkAndLabelType()
   { 
     NodeControl::checkAndLabelType();  //does condition and true
 
@@ -82,7 +82,7 @@ namespace MFM {
 
     UlamValue cuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 	
-    if(cuv.m_valBool == false)
+    if((bool) cuv.getImmediateData(m_state) == false)
       {
 	if(m_nodeElse)  //not necessarily
 	  {
@@ -107,20 +107,36 @@ namespace MFM {
     return evs;
   }
 
-
-  void NodeControlIf::genCode(File * fp)
+  void NodeControlIf::genCode(File * fp, UlamValue& uvpass)
   {
-    NodeControl::genCode(fp);
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");  //for overall tmpvars
+    m_state.m_currentIndentLevel++;
+#endif
+
+    NodeControl::genCode(fp, uvpass);  //condition and body
 
     if(m_nodeElse)
       {
 	m_state.indent(fp);
 	fp->write("else\n");
+	m_state.indent(fp);
+	fp->write("{\n");
+	m_state.m_currentIndentLevel++;	
 
-	m_state.m_currentIndentLevel++;
-	m_nodeElse->genCode(fp);
+	m_nodeElse->genCode(fp, uvpass);
+
 	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("} //end else\n");
       }
-  }
+
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");  //overall tmpvar
+#endif
+  } //genCode
 
 } //end MFM

@@ -19,12 +19,12 @@ namespace MFM {
   void NodeStatements::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)    
+    if(myut == Nav)    
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     if(m_node) 
@@ -56,7 +56,7 @@ namespace MFM {
 
 
 
-  UlamType * NodeStatements::checkAndLabelType()
+  UTI NodeStatements::checkAndLabelType()
   {
     assert(m_node);
 
@@ -67,7 +67,7 @@ namespace MFM {
       m_nextNode->checkAndLabelType(); //side-effect
 
     //statements don't have types 
-    setNodeType(m_state.getUlamTypeByIndex(Void));
+    setNodeType(Void);
     return getNodeType();
   }
 
@@ -137,12 +137,53 @@ namespace MFM {
   }
 
 
-  void NodeStatements::genCode(File * fp)
+  void NodeStatements::genCode(File * fp, UlamValue& uvpass)
   {
-    m_node->genCode(fp);
+    m_state.outputTextAsComment(fp, getNodeLocation());
+#if 0
+    Locator nodeloc = getNodeLocation();
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("//! ");
+
+    //fp->write(m_state.getFullLocationAsString(nodeloc).c_str()); //includes byte no.
+    fp->write(m_state.getPathFromLocator(nodeloc).c_str());
+    fp->write(58);  // : ascii decimal
+    fp->write_decimal(nodeloc.getLineNo());
+    fp->write(58);  // : ascii decimal
+    fp->write(" ");
+
+    fp->write(m_state.getLineOfText(nodeloc).c_str());
+#endif
+
+
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");    //open for tmpvar arg's
+    m_state.m_currentIndentLevel++;
+#endif
+    
+    m_node->genCode(fp, uvpass);
+
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");  //close for tmpVar
+#endif
 
     if(m_nextNode)
-      m_nextNode->genCode(fp);
-  }
+      m_nextNode->genCode(fp, uvpass);
+
+  } //genCode
+
+
+  void NodeStatements::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    m_node->genCodeToStoreInto(fp, uvpass);
+
+    if(m_nextNode)
+      m_nextNode->genCodeToStoreInto(fp, uvpass);
+  } //genCodeToStoreInto
 
 } //end MFM

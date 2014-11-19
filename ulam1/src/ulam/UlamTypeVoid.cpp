@@ -3,21 +3,12 @@
 #include <string.h>
 #include "UlamTypeVoid.h"
 #include "UlamValue.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
   UlamTypeVoid::UlamTypeVoid(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
   {}
-
-
-  void UlamTypeVoid::newValue(UlamValue & val)
-  {
-    assert((val.isArraySize() == m_key.m_arraySize) && (m_key.m_arraySize == 0));
-    val.m_valInt = 0;  //init to zero
-  }
-
-
-  void UlamTypeVoid::deleteValue(UlamValue * val){}
 
 
    ULAMTYPE UlamTypeVoid::getUlamTypeEnum()
@@ -32,6 +23,36 @@ namespace MFM {
   }
 
 
+  const std::string UlamTypeVoid::getUlamTypeMangledName(CompilerState * state)
+  {
+    return "void";
+  }
+
+
+  const std::string UlamTypeVoid::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    return getImmediateStorageTypeAsString(state); //"void";
+  }
+
+
+  bool UlamTypeVoid::needsImmediateType()
+  {
+    return false;
+  }
+
+
+  const std::string UlamTypeVoid::getImmediateStorageTypeAsString(CompilerState * state)
+  {
+    return "void";
+  }
+
+
+  const std::string UlamTypeVoid::getTmpStorageTypeAsString(CompilerState * state)
+  {
+    return "void";
+  }
+
+
   const char * UlamTypeVoid::getUlamTypeAsSingleLowercaseLetter()
   {
     return "v";
@@ -39,49 +60,37 @@ namespace MFM {
 
 
   //anything can be cast to a void
-  bool UlamTypeVoid::cast(UlamValue & val)
-    {
-      UTI valtypidx = val.getUlamValueType()->getUlamTypeIndex();
-      bool brtn = true;
-
-      u32 valarraysize = val.getUlamValueType()->getArraySize();
-      u32 myarraysize = getArraySize();
-
-      if(valarraysize == 0 && myarraysize == 0)
-	{
-	  switch(valtypidx)
-	    {
-	    case Void:
-	    case Int:
-	    case Float:
-	    case Bool:
-	      val.init(this, 0);
-	      break;
-	    default:
-	      //std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;
-	      brtn = false;
-	    };
-	}
-      else
-	{
-	  assert(0);
-	  brtn=false;
-	}
-
-      return brtn;
-    }
-
-
-  void UlamTypeVoid::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
+  bool UlamTypeVoid::cast(UlamValue & val, CompilerState& state)
   {
-    assert(m_key.m_arraySize == 0);      
-    sprintf(valstr,"0");
-  }
+    bool brtn = true;    
+    UTI valtypidx = val.getUlamValueTypeIdx();    
+    s32 arraysize = getArraySize();
+    if(arraysize != state.getArraySize(valtypidx))
+      {
+	std::ostringstream msg;
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
+	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	return false;
+      }
+    
+    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
+    switch(valtypEnum)
+      {
+      case Void:
+      case Int:
+      case Unsigned:
+      case Unary:
+      case Bool:
+      case Bits:
+	val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val, no data
+	break;
+      default:
+	//std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
 
-  bool UlamTypeVoid::isZero(const UlamValue & val)
-  {
-    return true;
-  }
+    return brtn;
+  } //end cast    
 
 } //end MFM

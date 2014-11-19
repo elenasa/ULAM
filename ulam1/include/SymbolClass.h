@@ -48,7 +48,7 @@ namespace MFM{
   class SymbolClass : public Symbol
   {
   public:
-    SymbolClass(u32 id, UlamType * utype, NodeBlockClass * classblock);
+    SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
     ~SymbolClass();
 
     virtual bool isClass();
@@ -59,15 +59,19 @@ namespace MFM{
     
     virtual const std::string getMangledPrefix();
 
-    ULAMCLASSTYPE getUlamClassType();
+    ULAMCLASSTYPE getUlamClass();
 
-    void setUlamClassType(ULAMCLASSTYPE type);
+    void setUlamClass(ULAMCLASSTYPE type);
+
+    void setQuarkUnion();
+
+    bool isQuarkUnion();
 
   protected:
 
   private:
     NodeBlockClass * m_classBlock;
-
+    bool m_quarkunion;
   };
 
 }

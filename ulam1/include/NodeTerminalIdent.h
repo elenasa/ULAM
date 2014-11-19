@@ -51,10 +51,9 @@ namespace MFM{
     NodeTerminalIdent(Token tok, SymbolVariable * symptr, CompilerState & state);
     ~NodeTerminalIdent();
 
-
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -62,19 +61,25 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual bool installSymbolTypedef(Token atok, u32 bitsize, u32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
-    virtual bool installSymbolVariable(Token atok, u32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
+
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
   private:
     SymbolVariable * m_varSymbol;
-    SymbolVariable *  makeSymbol(UlamType * aut);
+    SymbolVariable *  makeSymbol(UTI aut);
+    UlamValue makeUlamValuePtr();
+    UlamValue makeUlamValuePtrForCodeGen();
 
   };
 

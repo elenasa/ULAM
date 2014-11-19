@@ -52,7 +52,7 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -60,12 +60,19 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
+
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
+    /** reads into a tmp BitVector */
+    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
   protected:
     Token m_token;
 
   private:
+    EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
+
   };
 
 }

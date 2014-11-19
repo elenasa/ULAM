@@ -55,9 +55,9 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
     

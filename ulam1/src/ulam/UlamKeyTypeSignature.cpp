@@ -2,14 +2,14 @@
 #include <string.h>
 #include <assert.h>
 #include "UlamKeyTypeSignature.h"
-#include "util.h"
 #include "CompilerState.h"
+#include "Util.h"
 
 namespace MFM {
 
   UlamKeyTypeSignature::UlamKeyTypeSignature(){}
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, u32 bitsize, u32 arraysize ): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize) {}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize ): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize) {}
 
   UlamKeyTypeSignature::~UlamKeyTypeSignature(){}
 
@@ -27,15 +27,23 @@ namespace MFM {
   }
 
 
-  u32 UlamKeyTypeSignature::getUlamKeyTypeSignatureBitSize()
+  s32 UlamKeyTypeSignature::getUlamKeyTypeSignatureBitSize()
   {
     return m_bits;
   }
 
 
-  u32 UlamKeyTypeSignature::getUlamKeyTypeSignatureArraySize()
+  s32 UlamKeyTypeSignature::getUlamKeyTypeSignatureArraySize()
   {
     return m_arraySize;
+  }
+
+
+  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state)
+  {
+    std::ostringstream key;
+    key << getUlamKeyTypeSignatureName(state) << "(" << m_bits << ")";
+    return key.str();
   }
 
 
@@ -52,17 +60,6 @@ namespace MFM {
     std::ostringstream key;
     key << utk.getUlamKeyTypeSignatureName(state) << "." << utk.m_bits << "." << utk.m_arraySize;
     return key.str();
-  }
-
-
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureMangledName(CompilerState * state)
-  {
-    //Ut_18232Int  == Int[8]
-    std::ostringstream mangled;
-    std::string nstr = state->m_pool.getDataAsString(m_typeNameId);
-    u32 nstrlen = nstr.length();
-    mangled << "Ut_" << countDigits(m_arraySize) << m_arraySize << countDigits(m_bits) << m_bits << countDigits(nstrlen) << nstrlen << nstr.c_str();
-    return mangled.str();
   }
 
 

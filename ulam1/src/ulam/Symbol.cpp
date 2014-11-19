@@ -2,11 +2,11 @@
 #include <string.h>
 #include "CompilerState.h"
 #include "Symbol.h"
-#include "util.h"
+#include "Util.h"
 
 namespace MFM {
 
-  Symbol::Symbol(u32 id, UlamType * utype) : m_id(id), m_utype(utype), m_dataMember(false){}
+  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false) {}
   Symbol::~Symbol(){}
 
   u32 Symbol::getId()
@@ -15,9 +15,9 @@ namespace MFM {
   }
 
 
-  UlamType * Symbol::getUlamType()
+  UTI Symbol::getUlamTypeIdx()
   {
-    return m_utype;
+    return m_utypeIdx;
   }
 
 
@@ -51,14 +51,41 @@ namespace MFM {
   }
 
 
-  const std::string Symbol::getMangledName(CompilerState * state)
+  const std::string Symbol::getMangledName()
   {
        std::ostringstream mangled;
-       std::string nstr = state->m_pool.getDataAsString(getId());
-       u32 nstrlen = nstr.length();
+       std::string nstr = m_state.getDataAsStringMangled(getId());
 
-       mangled << getMangledPrefix() << countDigits(nstrlen) << nstrlen << nstr.c_str();
+       mangled << getMangledPrefix() << nstr.c_str();
        return mangled.str();
   }
+
+
+  const std::string Symbol::getMangledNameForParameterType()
+  {
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    // to distinguish btn an atomic parameter typedef and quark typedef;
+    // use atomic parameter with array of classes
+    ULAMCLASSTYPE classtype = sut->getUlamClass();
+    //bool isaclass = (classtype == UC_QUARK || classtype == UC_ELEMENT);
+    bool isaclass = (( classtype == UC_QUARK || classtype == UC_ELEMENT)  && sut->isScalar());
+
+    std::ostringstream pmangled;
+    pmangled << Symbol::getParameterTypePrefix(isaclass).c_str() << getMangledName();
+    return pmangled.str();
+  } //getMangledNameForParameterType
+
+
+  const std::string Symbol::getParameterTypePrefix(bool isaclass)  //static method
+  {
+    return (isaclass ? "Ut_" : "Up_");
+    //    return "Up_";
+  }
+
+
+  void Symbol::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
+    {
+      assert(0);
+    }
 
 } //end MFM

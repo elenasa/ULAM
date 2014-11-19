@@ -8,17 +8,9 @@
 namespace MFM {
 
   UlamTypeBool::UlamTypeBool(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
-  {}
-
-  void UlamTypeBool::newValue(UlamValue & val)
   {
-    assert((val.isArraySize() == m_key.m_arraySize) && (m_key.m_arraySize == 0));
-    val.m_valBool = false;  //init to zero
+    m_wordLength = calcWordSize(getTotalBitSize());
   }
-
-
-  void UlamTypeBool::deleteValue(UlamValue * val)
-  {}
 
 
    ULAMTYPE UlamTypeBool::getUlamTypeEnum()
@@ -27,9 +19,27 @@ namespace MFM {
    }
 
 
-  const std::string UlamTypeBool::getUlamTypeAsStringForC()
+  const std::string UlamTypeBool::getUlamTypeVDAsStringForC()
   {
-    return "bool";
+    return "VD::BOOL";
+  }
+
+
+  const std::string UlamTypeBool::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    if(needsImmediateType())
+      return UlamType::getUlamTypeImmediateMangledName(state);
+
+    //return getImmediateStorageTypeAsString(state);  //"bool" inf loop
+    //return getTmpStorageTypeAsString(state); 
+    return UlamType::getUlamTypeImmediateMangledName(state); //? for constants
+  }
+
+
+  const std::string UlamTypeBool::getTmpStorageTypeAsString(CompilerState * state)
+  {
+    //return "bool";
+    return "u32";
   }
 
 
@@ -39,54 +49,92 @@ namespace MFM {
   }
 
 
-  bool UlamTypeBool::cast(UlamValue & val)
-    {
-      UTI valtypidx = val.getUlamValueType()->getUlamTypeIndex();
-      bool brtn = true;
-
-      switch(valtypidx)
-	{
-	case Int:
-	  val.init(this, (bool) val.m_valInt);
-	  break;
-	case Float:
-	  val.init(this, (bool) val.m_valFloat);
-	  break;
-	case Bool:
-	  break;
-	default:
-	  //std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
-	  brtn = false;
-	};
-
-      return brtn;
-    }
-
-
-  void UlamTypeBool::getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state)
+  bool UlamTypeBool::cast(UlamValue & val, CompilerState& state)
   {
-    if(m_key.m_arraySize == 0)
-      sprintf(valstr,"%s", val.m_valBool ? "true" : "false");
+    bool brtn = true;
+    UTI typidx = getUlamTypeIndex();
+    UTI valtypidx = val.getUlamValueTypeIdx();
+    s32 arraysize = getArraySize();
+    if(arraysize != state.getArraySize(valtypidx))
+      {
+	std::ostringstream msg;
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
+	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	return false;
+      }
+    
+    //change the size first of tobe, if necessary
+    s32 bitsize = getBitSize();
+    s32 valbitsize = state.getBitSize(valtypidx);
+    
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    //ULAMTYPE typEnum = getUlamTypeEnum();
+    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+
+    u32 newdata = 0;
+    u32 data = val.getImmediateData(state);    
+    switch(valtypEnum)
+      {
+      case Int:
+	{
+	  s32 sdata = _SignExtend32(data, valbitsize);
+	  newdata = _Int32ToBool32(sdata, valbitsize, bitsize);
+	}
+	break;
+      case Unsigned:
+	newdata = _Unsigned32ToBool32(data, valbitsize, bitsize);
+	break;
+      case Unary:
+	newdata = _Unary32ToBool32(data, valbitsize, bitsize); //all ones if true
+	break;
+      case Bool:
+	newdata = _Bool32ToBool32(data, valbitsize, bitsize); //all ones if true
+	break;
+      case Bits:
+	newdata = _Bits32ToBool32(data, valbitsize, bitsize);  //no change to Bits data
+	break;
+      case Void:
+      default:
+	//std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+    
+    if(brtn)
+      val = UlamValue::makeImmediate(typidx, newdata, state); //overwrite val
+    
+    return brtn;
+  } //end cast
+  
+
+  void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+  {
+    UTI typidx = getUlamTypeIndex();
+    bool dataAsBool = false;
+    if(state.isConstant(typidx))
+      {
+	dataAsBool = (bool) data;
+      }
     else
       {
-	UlamValue ival = val.getValAt(0, state);
-	char tmpstr[8];
-	sprintf(valstr,"%s", ival.m_valBool ? "true" : "false"); 
-	for(s32 i = 1; i < (s32) m_key.m_arraySize ; i++)
-	  {
-	    ival = val.getValAt(i, state);
-	    sprintf(tmpstr,",%s", ival.m_valBool ? "true" : "false"); 
-	    strcat(valstr,tmpstr);
-	  }
+	s32 bitsize = state.getBitSize(typidx);
+	s32 count1s = PopCount(data);
+
+	if(count1s > (s32) (bitsize - count1s))  // == when even number bits is ignored (warning at def)
+	  dataAsBool = true;        
       }
+
+    if(prefix == 'z')
+      sprintf(valstr,"%s", dataAsBool ? "true" : "false");
+    else
+      sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   }
+  
 
-
-  bool UlamTypeBool::isZero(const UlamValue & val)
+  const std::string UlamTypeBool::getConvertToCboolMethod()
   {
-    return (! val.m_valBool); 
-  }
-
-      
-      
+    std::ostringstream rtnMethod;
+    rtnMethod << "_Bool" << getTotalWordSize() << "ToCbool";
+    return rtnMethod.str();
+  } //getCovertToCBoolMethod
+  
 } //end MFM

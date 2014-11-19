@@ -46,7 +46,7 @@
 namespace MFM{
 
 
-#define XX(a,b) a,
+#define XX(a,b,c) a,
 
   enum ULAMTYPE
   {
@@ -58,11 +58,12 @@ namespace MFM{
   struct UlamValue; //forward
 
 
-#define UTI u32
+#define UTI u16
 
   class CompilerState; //forward
 
   enum ULAMCLASSTYPE { UC_INCOMPLETE, UC_QUARK, UC_ELEMENT, UC_NOTACLASS };
+
 
   class UlamType
   {    
@@ -70,63 +71,84 @@ namespace MFM{
     UlamType(const UlamKeyTypeSignature key, const UTI uti);
     ~UlamType(){}
 
-    virtual void newValue(UlamValue & val) = 0;
-    
-    virtual void deleteValue(UlamValue * val) = 0;
-
     /** returns a pointer to UlamType */
     UlamType * getUlamType();
     
     const std::string getUlamTypeName(CompilerState * state);
 
-    const std::string getUlamTypeNameBrief(CompilerState * state);
+    virtual const std::string getUlamTypeNameBrief(CompilerState * state);
 
     UTI getUlamTypeIndex();
 
     UlamKeyTypeSignature getUlamKeyTypeSignature();
 
-    virtual bool cast(UlamValue& val) = 0;
+    virtual bool cast(UlamValue& val, CompilerState& state);
 
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state) = 0;
+    virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 
-    virtual bool isZero(const UlamValue & val) = 0;
-
-    virtual ULAMCLASSTYPE getUlamClassType();
+    virtual ULAMCLASSTYPE getUlamClass();
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
 
     virtual const std::string getUlamTypeAsStringForC();
 
-    virtual const std::string getUlamTypeUPrefix();
-
-    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+    virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual const std::string getUlamTypeMangledName(CompilerState * state);
 
+    virtual const std::string getUlamTypeUPrefix();
+
+    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+
+    virtual bool needsImmediateType();
+
+    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+
+    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+
     virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+
+    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp, CompilerState * state);
+
+    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
+
 
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
 
     static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
 
     //for name by index see CompilerState::getUlamTypeNameByIndex
+    virtual bool isConstant();
 
-    bool isScalar(); //arraysize == 0 is scalar
+    bool isScalar();   //arraysize == NOTARRAYSIZE is scalar
 
-    u32 getArraySize();
+    s32 getArraySize();
 
-    u32 getTotalBitSize();  // arraysize * bitsize
+    virtual s32 getBitSize();  //'class' type calculated after type labeling; default size for constants
 
-    virtual s32 getBitSize();  //'class' type calculates its size after type labeling
+    u32 getTotalBitSize();  //bitsize * arraysize, accounting for constants and scalars
 
-    virtual void setBitSize(s32 bits, CompilerState* state);  //'class' type calculates its size after type labeling
+    /** Number of bits (rounded up to nearest 32 bits) required to
+    hold the total bit size  */
+    u32 getTotalWordSize();   
 
-    virtual const std::string getBitSizeTemplateString();
+    const std::string readMethodForCodeGen();
+
+    const std::string writeMethodForCodeGen();
+
+    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+
+    virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
+
 
   protected:
     UlamKeyTypeSignature m_key;
-    UTI m_index;
-    u32 m_bitLength;   // calculated total of "data member" bits for quark type
+    UTI m_uti;
+    u32 m_wordLength;
 
   private:
   };
