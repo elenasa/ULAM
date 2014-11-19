@@ -62,7 +62,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "(2) <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }	  
+	  }
       }
 
     if(m_varSymbol)

@@ -312,11 +312,9 @@ namespace MFM {
 	    //read entire packed array
 	    s32 totbitsize = getTotalBitSize();
 	    fp->write("(m_stg, ");
-	    fp->write_decimal(totbitsize);
+	    fp->write_decimal(0);  //index [0]
 	    fp->write("u, ");
 	    fp->write_decimal(totbitsize);
-	    fp->write("u, ");
-	    fp->write_decimal(getTotalWordSize() - totbitsize);
 	    fp->write("u); }   //reads entire array\n");
 	  }
       }
@@ -328,11 +326,10 @@ namespace MFM {
 	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
-	fp->write("u32 len, u32 pos) const { return BF::");
+	fp->write("u32 index, u32 unitsize) const { return BF::");
 	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(m_stg, ");
-	fp->write_decimal(getTotalBitSize());
-	fp->write("u, len, pos");
+	fp->write("(m_stg, index, unitsize");
+	//fp->write_decimal(getBitSize());
 	fp->write("); }\n");
       }
   } //genUlamTypeReadDefinitionForC
@@ -354,11 +351,9 @@ namespace MFM {
 	    //writes entire array
 	    s32 totbitsize = getTotalBitSize();
 	    fp->write("(m_stg, v, ");
-	    fp->write_decimal(totbitsize);
+	    fp->write_decimal(0);  //index [0]
 	    fp->write("u, ");
 	    fp->write_decimal(totbitsize);
-	    fp->write("u, ");
-	    fp->write_decimal(getTotalWordSize() - totbitsize);
 	    fp->write("u); }   //writes entire array\n");
 	  }
       }
@@ -369,11 +364,9 @@ namespace MFM {
 	state->indent(fp);
 	fp->write("void writeArrayItem(");
 	fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
-	fp->write(" v, u32 len, u32 pos) { BF::");
+	fp->write(" v, u32 index, u32 unitsize) { BF::");
 	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(m_stg, v, ");
-	fp->write_decimal(getTotalBitSize());
-	fp->write("u, len, pos");
+	fp->write("(m_stg, v, index, unitsize");
 	fp->write("); }\n");
       }
   } //genUlamTypeWriteDefinitionForC
