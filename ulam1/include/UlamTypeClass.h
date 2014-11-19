@@ -51,41 +51,42 @@ namespace MFM{
 
     virtual ~UlamTypeClass(){}
 
-    virtual void newValue(UlamValue & val);
-    
-    virtual void deleteValue(UlamValue * val);
-
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool cast(UlamValue & val);
+    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+
+    virtual bool needsImmediateType();
+
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+
+    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
 
-    //virtual const std::string getUlamTypeAsStringForC();
+    virtual const std::string getUlamTypeVDAsStringForC();
+    
+    virtual const std::string getUlamTypeAsStringForC();
     
     virtual const std::string getUlamTypeUPrefix();
     
-    virtual const std::string getUlamTypeMangledName(CompilerState * state);
+    virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state);
-    
-    virtual bool isZero(const UlamValue & val);
+    virtual ULAMCLASSTYPE getUlamClass();
 
-    virtual ULAMCLASSTYPE getUlamClassType();
+    void setUlamClass(ULAMCLASSTYPE type);
 
-    void setUlamClassType(ULAMCLASSTYPE type);
+    virtual bool isConstant();
+    virtual s32 getBitSize();
 
-    virtual s32 getBitSize();      //'class' type calculates its size after type labeling
-
-    virtual void setBitSize(s32 bits, CompilerState * state);  //'class' type calculates its size after type labeling
-
-    virtual const std::string getBitSizeTemplateString();
+    virtual const std::string getUlamTypeNameBrief(CompilerState * state);
 
    private:
 
-    ULAMCLASSTYPE m_classType;
+    ULAMCLASSTYPE m_class;
 
 
     void genArrayMangledDefinitionForC(File * fp, CompilerState * state);

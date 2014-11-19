@@ -6,12 +6,12 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_A { Int a(0);  Int b(2);  Int test() {  a 1 = b 0 = a a 1 -b = cast cond b 1 = if b 2 = else a return } }\n");
+      return std::string("Ue_A { Int(32) a(0);  Int(32) b(2);  Int(32) test() {  a 1 cast = b 0 cast = a a 1 cast -b = cast cond b 1 cast = if b 2 cast = else a return } }\n");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","element A { Int a, b; Int test() { a = 1; b = 0; if( a = a - 1 ) b = 1; else b = 2; return a; } }");
+      bool rtn1 = fms->add("A.ulam","element A {\n Int a, b;\n Int test() {\n a = 1;\n b = 0;\n if( a = a - 1 )\n b = 1;\n else\n b = 2;\n return a;\n }\n }\n");
       
       if(rtn1)
 	return std::string("A.ulam");

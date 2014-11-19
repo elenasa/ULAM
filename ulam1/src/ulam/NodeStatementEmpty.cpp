@@ -41,9 +41,9 @@ namespace MFM {
   }
 
 
-  UlamType * NodeStatementEmpty::checkAndLabelType()
+  UTI NodeStatementEmpty::checkAndLabelType()
   {
-    setNodeType(m_state.getUlamTypeByIndex(Void));
+    setNodeType(Void);
     return getNodeType();
   }
 
@@ -51,6 +51,12 @@ namespace MFM {
   EvalStatus NodeStatementEmpty::eval()
   {
     return NORMAL;
+  }
+
+
+  void NodeStatementEmpty::genCode(File * fp, UlamValue& uvpass)
+  {
+    return;
   }
 
 } //end MFM

@@ -6,16 +6,16 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string(" { typedef Int Foo[8];  Int d[8](1,0,0,0,0,0,0,0);  Int test() {  Bool mybool;  mybool true = d ( mybool )foo = d 0 [] } }\n");
+      return std::string("Ue_D { typedef Int(3) Foo[8];  Int(3) d[8](1,0,0,0,0,0,0,0);  Int test() {  Bool mybool;  mybool true = d ( mybool )foo = d 0 [] } }\n");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("a.ulam","ulam { typedef Int Foo [8]; Foo foo() { Foo m; m[0]=1; return m[0];} Int test() {d = foo();\nreturn d[0]; /* match return type */}\nFoo d; }");  // want d[0] == 1. simplified from original; needs 1 return, 1 differ in arraysize
+      bool rtn1 = fms->add("D.ulam","element D { typedef Int(3) Foo [8]; Foo foo() { Foo m; m[0]=1; return m[0];} Int test() {d = foo();\nreturn d[0]; /* match return type */}\nFoo d; }");  // want d[0] == 1. simplified from original; needs 1 return, 1 differ in arraysize
 
       
       if(rtn1)
-	return std::string("a.ulam");
+	return std::string("D.ulam");
       
       return std::string("");
     }

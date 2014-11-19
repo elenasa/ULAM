@@ -39,7 +39,7 @@
 
 #include <string>
 #include "itype.h"
-
+#include "Constants.h"
 
 namespace MFM{
   
@@ -48,21 +48,22 @@ namespace MFM{
   struct UlamKeyTypeSignature
   {
     u32 m_typeNameId;
-    u32 m_bits;
-    u32 m_arraySize;
+    s32 m_bits;
+    s32 m_arraySize;
 
     UlamKeyTypeSignature();
-    UlamKeyTypeSignature(u32 nameid, u32 bitsize, u32 arraysize=0);
+    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize=NONARRAYSIZE);
     ~UlamKeyTypeSignature();
     
     const std::string getUlamKeyTypeSignatureName(CompilerState * state);
     u32 getUlamKeyTypeSignatureNameId();
-    u32 getUlamKeyTypeSignatureBitSize();
-    u32 getUlamKeyTypeSignatureArraySize();
+    s32 getUlamKeyTypeSignatureBitSize();
+    s32 getUlamKeyTypeSignatureArraySize();
+
+    const std::string getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state);
+
     const std::string getUlamKeyTypeSignatureAsString(CompilerState * state);
     static const std::string getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState * state);
-
-    const std::string getUlamKeyTypeSignatureMangledName(CompilerState * state);
 
     bool operator<(const UlamKeyTypeSignature & key2);
     bool operator==(const UlamKeyTypeSignature & key2);

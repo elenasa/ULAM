@@ -2,7 +2,8 @@
 #include "NodeTerminalIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
-#include "SymbolVariableStatic.h"
+#include "NodeTypeBitsize.h"
+#include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "SymbolTypedef.h"
 
@@ -32,9 +33,9 @@ namespace MFM {
   }
 
 
-  UlamType * NodeTerminalIdent::checkAndLabelType()
+  UTI NodeTerminalIdent::checkAndLabelType()
   {
-    UlamType * it = m_state.getUlamTypeByIndex(Nav);  //Nav
+    UTI it = Nav;  //init
 
     //use was before def, look up in class block
     if(m_varSymbol == NULL)
@@ -66,7 +67,7 @@ namespace MFM {
 
     if(m_varSymbol)
       {
-	it = m_varSymbol->getUlamType();
+	it = m_varSymbol->getUlamTypeIdx();
       }
     
     setNodeType(it);
@@ -82,9 +83,28 @@ namespace MFM {
   {
     assert(m_varSymbol);
     evalNodeProlog(0); //new current frame pointer
+    UTI nuti = getNodeType();
+
+    //return the ptr for an array; square bracket will resolve down to the immediate data
+    UlamValue uv;
+    UlamValue uvp = makeUlamValuePtr();
+    if(m_state.isScalar(nuti))
+      {
+	uv = m_state.getPtrTarget(uvp);
+	
+	// redo what getPtrTarget use to do, when types didn't match due to
+	// an element/quark or a requested scalar of an arraytype
+	if(uv.getUlamValueTypeIdx() != nuti)
+	  {
+	    u32 datavalue = uv.getDataFromAtom(uvp, m_state); 
+	    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+	  }
+      }
+    else
+      uv = uvp;
 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValueToStack(m_varSymbol->getUlamValue(m_state));
+    assignReturnValueToStack(uv);
 
     evalNodeEpilog();
     return NORMAL;
@@ -96,14 +116,65 @@ namespace MFM {
     assert(m_varSymbol);
     assert(isStoreIntoAble());
 
-    evalNodeProlog(0); //new current frame pointer
+    evalNodeProlog(0);         //new current node eval frame pointer
 
+    UlamValue rtnUVPtr = makeUlamValuePtr();
+ 
     //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(m_varSymbol->getUlamValueToStoreInto());
+    assignReturnValuePtrToStack(rtnUVPtr);
 
     evalNodeEpilog();
     return NORMAL;
   }
+    
+
+  UlamValue NodeTerminalIdent::makeUlamValuePtr()
+  {
+    UlamValue ptr;
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
+    if(classtype == UC_ELEMENT)
+      {
+	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;) to become new m_currentObjPtr
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), UNPACKED, m_state); 
+      }
+    else
+      {
+	if(m_varSymbol->isDataMember())
+	  {
+	    // return ptr to this data member within the m_currentObjPtr
+	    // 'pos' modified by this data member symbol's packed bit position
+	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset());
+	  }
+	else
+	  {
+	    //local variable on the stack; could be array ptr!
+	    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state);
+	  }
+      }
+    return ptr;
+  } //makeUlamValuePtr
+  
+
+  UlamValue NodeTerminalIdent::makeUlamValuePtrForCodeGen()
+  {
+    UlamValue uvpass1 = makeUlamValuePtr();
+    //uvpass.setPtrNameId(m_varSymbol->getId());
+    //uvpass.setPtrSlotIndex(m_state.getNextTmpVarNumber());
+    //uvpass.setPtrStorage(TMPREGISTER); //for code gen
+
+    u32 pos = uvpass1.getPtrPos();
+    // this is for "efficiency", e.g. BitVector<32> for immediate primitives
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    if(!m_varSymbol->isDataMember() && nut->getUlamClass() == UC_NOTACLASS)
+      {
+	s32 wordsize = nut->getTotalWordSize();
+	pos = wordsize - (BITSPERATOM - pos); //nut->getTotalBitSize();
+      }
+
+    UlamValue uvpass = UlamValue::makePtr(m_state.getNextTmpVarNumber(), TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, pos, m_varSymbol->getId());
+
+    return uvpass;
+  } //makeUlamValuePtrForCodeGen
 
 
   bool NodeTerminalIdent::getSymbolPtr(Symbol *& symptrref)
@@ -113,7 +184,7 @@ namespace MFM {
   }
 
 
-  bool NodeTerminalIdent::installSymbolTypedef(Token aTok, u32 bitsize, u32 arraysize, Symbol *& asymptr)
+  bool NodeTerminalIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there; 
     // if so, nothing to install return symbol and false
@@ -124,19 +195,20 @@ namespace MFM {
       }
 
     ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
-    bitsize = ((bitsize == 0 && bUT != Class) ? (bUT == Bool ? BITSPERBOOL : 32) : bitsize); //temporary!!!
-
+    if(bitsize == 0)
+      bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+    
     //type names begin with capital letter..and the rest can be either case
-    u32 basetypeNameId  = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
+    u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
 
     UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
 
     // o.w. build symbol, first the base type (with array size)
     UTI uti = m_state.makeUlamType(key, bUT);  
-    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    //UlamType * ut = m_state.getUlamTypeByIndex(uti);
 
     //create a symbol for this new ulam type, a typedef, with its type
-    SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, ut);
+    SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, uti, m_state);
     m_state.addSymbolToCurrentScope(symtypedef);
 
     //gets the symbol just created by makeUlamType
@@ -144,10 +216,10 @@ namespace MFM {
   }
 
 
-  //see also NodeBinaryOpSquareBracket
-  bool NodeTerminalIdent::installSymbolVariable(Token aTok, u32 arraysize, Symbol *& asymptr)
+  //see also NodeSquareBracket
+  bool NodeTerminalIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
-    // ask current scope block if this variable name is there; 
+    // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
     if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
@@ -160,11 +232,10 @@ namespace MFM {
     // verify typedef exists for this scope; or is a primitive keyword type
     // if a primitive (array size 0), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
-    std::string typeName  = m_state.getTokenAsATypeName(aTok); //Foo, Int, etc
-    UlamType * aut = NULL;
+    UTI aut = Nav;
     bool brtn = false;
 
-    if(m_state.getUlamTypeByTypedefName(typeName.c_str(), aut))
+    if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, aut))
       {
 	brtn = true;
       }
@@ -174,9 +245,14 @@ namespace MFM {
 	  {
 	    //UlamTypes automatically created for the base types with different array sizes.
 	    //but with typedef's "scope" of use, typedef needs to be checked first.
+	    if(bitsize == 0)
+	      {
+		ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
+		bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+	      }
 	    
-	    // o.w. build symbol, first base type (with array size)
-	    aut = m_state.makeUlamType(aTok, 0, arraysize);
+	    // o.w. build symbol (with bit and array sizes)
+	    aut = m_state.makeUlamType(aTok, bitsize, arraysize);
 	    brtn = true;
 	  }
 	else 
@@ -200,43 +276,45 @@ namespace MFM {
   }
 
 
-  SymbolVariable *  NodeTerminalIdent::makeSymbol(UlamType * aut)
+  SymbolVariable *  NodeTerminalIdent::makeSymbol(UTI aut)
   {
     //adjust decl count and max_depth, used for function definitions
-    u32 arraysize = aut->getArraySize();
-   
+    PACKFIT packit = m_state.determinePackable(aut);
 
     if(m_state.m_currentFunctionBlockDeclSize == 0)
       {
+	// s32 arraysize = m_state.getArraySize(aut);
 	// when current block and class block are the same, this is a data member
 	// assert(m_state.m_currentBlock == (NodeBlock *) m_state.m_classBlock);
-	// fails when using a data member inside a function block!!!
-	UlamType * but = aut;
-
+	// assert fails when using a data member inside a function block!!!
+	//UTI but = aut;
+	//
 	// get UlamType for arrays
-	if(arraysize > 0)
-	  {
-	    but = m_state.getUlamTypeAsScalar(aut);
-	  }
-
+	//if(arraysize > NONARRAYSIZE)
+	//  {
+	//    but = m_state.getUlamTypeAsScalar(aut);
+	//  }
+	//
 	//UlamValue val(aut, but);  //array, base ulamtype args
-	u32 baseslot = m_state.m_selectedAtom.pushDataMember(aut,but);
+	//u32 baseslot = m_state.m_eventWindow.pushDataMember(aut,but);
+	u32 baseslot = 1;  //no longer stored unpacked
 
-	//variable-index, ulamtype, ulamvalue(ownership to symbol)    
-	return (new SymbolVariableStatic(m_token.m_dataindex, aut, baseslot)); 
+	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
+	return (new SymbolVariableDataMember(m_token.m_dataindex, aut, packit, baseslot, m_state)); 
       }
 
     //Symbol is a parameter; always on the stack
     if(m_state.m_currentFunctionBlockDeclSize < 0)
       {
-	m_state.m_currentFunctionBlockDeclSize -= (arraysize > 0 ? arraysize : 1);   //1 slot for scalar
-	return (new SymbolVariableStack(m_token.m_dataindex, aut, m_state.m_currentFunctionBlockDeclSize + 1)); //slot after adjust, plus 1
+	  m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(aut); //1 slot for scalar or packed array
+	
+	return (new SymbolVariableStack(m_token.m_dataindex, aut, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
       }
 
-    //Symbol is a local variable, always on the stack 
-    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token.m_dataindex, aut, m_state.m_currentFunctionBlockDeclSize); //slot before adjustment
+    //(else) Symbol is a local variable, always on the stack 
+    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token.m_dataindex, aut, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
 
-    m_state.m_currentFunctionBlockDeclSize += (arraysize > 0 ? arraysize : 1);
+    m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(aut);
     
     //adjust max depth, excluding parameters and initial start value (=1)
     if(m_state.m_currentFunctionBlockDeclSize - 1 > m_state.m_currentFunctionBlockMaxDepth)
@@ -246,9 +324,51 @@ namespace MFM {
   }
 
 
-  void NodeTerminalIdent::genCode(File * fp)
+#if 0
+  void NodeTerminalIdent::GENCODE(File * fp)
   {
-    fp->write(m_varSymbol->getMangledName(&m_state).c_str());
+    fp->write(m_varSymbol->getMangledName().c_str());
   }
+#endif
+
+
+  void NodeTerminalIdent::genCode(File * fp, UlamValue & uvpass)
+  {
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
+
+    //return the ptr for an array; square bracket will resolve down to the immediate data
+    uvpass = makeUlamValuePtrForCodeGen();
+
+    m_state.m_currentObjPtr = uvpass;                    //*************
+    //m_state.m_currentObjSymbolForCodeGen = m_varSymbol;  //************UPDATED GLOBAL; 
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL; 
+ 
+    // UNCLEAR: should this be consistent with constants?
+    genCodeReadIntoATmpVar(fp, uvpass);
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
+    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
+  } //genCode
+
+
+  void NodeTerminalIdent::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    //e.g. return the ptr for an array; square bracket will resolve down to the immediate data
+    uvpass = makeUlamValuePtrForCodeGen();
+
+    //******UPDATED GLOBAL; no restore!!!**************************
+    m_state.m_currentObjPtr = uvpass;                   //*********
+    //m_state.m_currentObjSymbolForCodeGen = m_varSymbol; //*********
+    m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL; 
+  } //genCodeToStoreInto
+
+
+  // overrides NodeTerminal that reads into a tmp var BitVector
+  void NodeTerminalIdent::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
+  {
+    Node::genCodeReadIntoATmpVar(fp, uvpass);
+  }
+
 
 } //end MFM

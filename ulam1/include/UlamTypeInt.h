@@ -50,22 +50,26 @@ namespace MFM{
     UlamTypeInt(const UlamKeyTypeSignature key, const UTI uti);
     virtual ~UlamTypeInt(){}
 
-    virtual void newValue(UlamValue & val);
-
-    virtual void deleteValue(UlamValue * val);
-
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual const std::string getUlamTypeAsStringForC();
+    virtual const std::string getUlamTypeVDAsStringForC();
+
+    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual bool cast(UlamValue & val);
+    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
 
-    virtual void getUlamValueAsString(const UlamValue & val, char * valstr, CompilerState * state);
+    virtual bool cast(UlamValue & val, CompilerState& state);
 
-    virtual bool isZero(const UlamValue & val);
-    
+    //    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+
+    virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
+
+    virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
+
   private:
 
   };

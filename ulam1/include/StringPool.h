@@ -57,6 +57,7 @@ namespace MFM
     ~StringPool();
 
     u32 getIndexForDataString(std::string str);    //< makes a new entry in map, vector if nonexistent
+
     std::string getDataAsString(u32 dataindex);
 
   private: 

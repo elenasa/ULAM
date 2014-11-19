@@ -54,13 +54,15 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
-
-    virtual EvalStatus eval();
-
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
+
+    virtual UTI checkAndLabelType();
+
+    virtual EvalStatus eval();
+
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
 
   protected:

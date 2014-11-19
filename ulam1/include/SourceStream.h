@@ -147,6 +147,8 @@ namespace MFM{
     /** sets Ulam version of the most recently pushed filename */
     void setFileUlamVersion(u32 ver);
 
+    /** retrieves original text by file id and line */
+    bool getLineOfTextAsString(Locator loc, std::string & str);
 
   private:
   
@@ -154,12 +156,12 @@ namespace MFM{
     {
       Locator m_loc;
       File * m_fp;
-      //std::string m_path;
       u32 m_path;
       Locator m_unreadLoc;
       s32 m_unreadByte;
       bool m_haveUnreadByte;            
       u32 m_version;
+      std::string m_lineText; //e.g. ulam original source as documentation
 
       filerec() : m_fp(NULL), m_haveUnreadByte(false), m_version(0){}
     
@@ -230,6 +232,22 @@ namespace MFM{
       {
 	return m_version;
       }
+
+      std::string getLineOfText() const
+      {
+	return m_lineText;
+      }
+
+      void appendToLineOfText(char c)
+      {
+	m_lineText.append(1,c);
+      }
+
+      void clearLineOfText()
+      {
+	m_lineText.clear();
+      }
+
     };  //filerec
   
     //std::map<std::string, u16> m_registeredFilenames; //maps filenames to id (1..n)
@@ -250,6 +268,17 @@ namespace MFM{
 
     /** return false when stack is empty; o.w. true */
     bool discardTop();
+
+    /** helper to get file id from path index in locator */
+    bool getFileIdFromLocator(Locator loc, u32& idref);
+
+    /** returns the accumulated line from the source */
+    std::string getLineOfTextAsString(u32 id) const;
+
+    /** updates the current line of text; if newline ships current
+	line and current locator to CompilerState before clearing it;
+	Locator has not been updated yet, so lines range from 0 to n-1. */
+    void updateLineOfText(u32 id, char c);
   };
 
 }

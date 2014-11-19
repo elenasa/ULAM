@@ -37,6 +37,11 @@ namespace MFM {
 
 		if(cs.m_err.getErrorCount() == 0)
 		  {
+		    // for parser tests (compiler.cc bypassed)
+		    // set up an atom in eventWindow; init m_currentObjPtr to point to it
+		    // set up STACK since func call not called
+		    cs.setupCenterSiteForTesting();
+
 		    programme->eval();   //side-effect
 
 		    if(cs.m_err.getErrorCount() == 0)

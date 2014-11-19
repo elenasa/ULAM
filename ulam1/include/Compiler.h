@@ -61,7 +61,7 @@ namespace MFM{
 
   private:
 
-    CompilerState m_state;
+    CompilerState m_state;  //owner
 
   };
 

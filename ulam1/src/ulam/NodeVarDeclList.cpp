@@ -27,12 +27,27 @@ namespace MFM {
   }
 
 
-  UlamType * NodeVarDeclList::checkAndLabelType()
+  const std::string NodeVarDeclList::methodNameForCodeGen()
+  {
+    return "_VarDeclList_Stub";
+  }
+
+
+  void NodeVarDeclList::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    //each VarDecl is output separately, not as a list.
+    m_nodeLeft->packBitsInOrderOfDeclaration(offset); //updates offset first
+    m_nodeRight->packBitsInOrderOfDeclaration(offset); //updates offset next
+  }
+
+
+  UTI NodeVarDeclList::checkAndLabelType()
   { 
     assert(m_nodeLeft && m_nodeRight);
 
     m_nodeLeft->checkAndLabelType();  //for side-effect
-    UlamType * newType = m_nodeRight->checkAndLabelType();  //for side-effect
+    UTI newType = m_nodeRight->checkAndLabelType();  //for side-effect
 
     //let it be the type of the last var decl on the right.
     //Comma Node has no type since leaves can be different array sizes
@@ -40,6 +55,13 @@ namespace MFM {
     
     setStoreIntoAble(false);
     return newType;
+  }
+
+
+  UTI NodeVarDeclList::calcNodeType(UTI lt, UTI rt)
+  {
+    assert(0);
+    return Nav;
   }
 
 
@@ -66,51 +88,24 @@ namespace MFM {
 
   EvalStatus NodeVarDeclList::evalToStoreInto()
   {
-    assert(m_nodeLeft && m_nodeRight);
-
-    evalNodeProlog(0); //new current frame pointer
-
-    u32 slots = makeRoomForSlots(1); 
-    EvalStatus evs = m_nodeLeft->evalToStoreInto();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    makeRoomForSlots(1);
-    evs = m_nodeRight->evalToStoreInto();  
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    UlamValue ruvPtr(getNodeType(), slots + 1, true, EVALRETURN); //positive to current frame pointer
-
-    //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(ruvPtr);  //convention is to return the right
-    
-    evalNodeEpilog();
-    return NORMAL;
+    assert(0);  //no way to get here!
+    return ERROR;
   }
 
 
-  void NodeVarDeclList::packBitsInOrderOfDeclaration(u32& offset)
+  UlamValue NodeVarDeclList::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
-    assert(m_nodeLeft && m_nodeRight);
-    //each VarDecl is output separately, not as a list.
-    m_nodeLeft->packBitsInOrderOfDeclaration(offset); //updates offset first
-    m_nodeRight->packBitsInOrderOfDeclaration(offset); //updates offset next
+    assert(0); //unused
+    return UlamValue();
   }
 
 
-  void NodeVarDeclList::genCode(File * fp)
+  void NodeVarDeclList::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
     //each VarDecl is output separately, not as a list.
-    m_nodeLeft->genCode(fp);
-    m_nodeRight->genCode(fp);
+    m_nodeLeft->genCode(fp, uvpass);
+    m_nodeRight->genCode(fp, uvpass);
   }
 
 } //end MFM

@@ -6,15 +6,15 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string(" a.ulam:1:25: ERROR: (2) <fact> is not a defined function, and cannot be called.\na.ulam:1:1: fyi: 1 TOO MANY TYPELABEL ERRORS.\n");
+      return std::string(" D.ulam:1:25: ERROR: (2) <fact> is not a defined function, and cannot be called.\nD.ulam:1:1: fyi: 1 TOO MANY TYPELABEL ERRORS.\n");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("a.ulam","ulam { Int test() { a = fact(3); return a; } Int a;  }");  // 6
+      bool rtn1 = fms->add("D.ulam","element D { Int test() { a = fact(3); return a; } Int a;  }");  // 6
       
       if(rtn1)
-	return std::string("a.ulam");
+	return std::string("D.ulam");
       
       return std::string("");
     }

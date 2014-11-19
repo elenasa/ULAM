@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  NodeBinaryOpBitwiseXor::NodeBinaryOpBitwiseXor(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
+  NodeBinaryOpBitwiseXor::NodeBinaryOpBitwiseXor(Node * left, Node * right, CompilerState & state) : NodeBinaryOpBitwise(left,right,state) {}
 
   NodeBinaryOpBitwiseXor::~NodeBinaryOpBitwiseXor(){}
 
@@ -20,73 +20,82 @@ namespace MFM {
   }
 
 
-  UlamType * NodeBinaryOpBitwiseXor::checkAndLabelType()
-  { 
-    assert(m_nodeLeft && m_nodeRight);
-
-    UlamType * leftType = m_nodeLeft->checkAndLabelType();
-    UlamType * rightType = m_nodeRight->checkAndLabelType();	
-    UlamType * newType = calcNodeTypeBitwise(leftType, rightType);
-
-    if(newType !=  m_state.getUlamTypeByIndex(Nav))  //Nav
-      {
-	if(newType != leftType)
-	  {
-	    m_nodeLeft = new NodeCast(m_nodeLeft, newType, m_state);
-	    m_nodeLeft->setNodeLocation(getNodeLocation());
-	    m_nodeLeft->checkAndLabelType();
-	  }
-	
-	if(newType != rightType)
-	  {
-	    m_nodeRight = new NodeCast(m_nodeRight, newType, m_state);
-	    m_nodeRight->setNodeLocation(getNodeLocation());
-	    m_nodeRight->checkAndLabelType();
-	  }
-      }
-    
-    setNodeType(newType);
-    setStoreIntoAble(false);
-    return newType;
-  }
-
-
-  void NodeBinaryOpBitwiseXor::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  const std::string NodeBinaryOpBitwiseXor::methodNameForCodeGen()
   {
-    UlamType * nut = getNodeType();
-    UlamType * scalartype = m_state.getUlamTypeAsScalar(nut);
-
-    UTI typidx = scalartype->getUlamTypeIndex();    
-    UlamValue rtnUV;  //immediate scalar
-
-    for(u32 i = 0; i < slots; i++)
-      {
-	UlamValue luv = m_state.m_nodeEvalStack.getFrameSlotAt(lslot+i);
-	UlamValue ruv = m_state.m_nodeEvalStack.getFrameSlotAt(rslot+i);
-
-	switch(typidx)
-	  {
-	  case Int:
-	    rtnUV.init(scalartype, (luv.m_valInt ^ ruv.m_valInt));
-	    break;
-	  case Bool:
-	    rtnUV.init(scalartype, (luv.m_valBool ^ ruv.m_valBool));
-	    break;
-	  case Float:
-	  default:
-	    {
-	      std::ostringstream msg;
-	      msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(typidx) << "> used with binary operator" << getName();
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	      rtnUV.init(m_state.getUlamTypeByIndex(Nav), 0);
-	      assert(0);
-	    }
-	  };
-
-	//copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
-      }
+    std::ostringstream methodname;
+    methodname << "_BitwiseXor" << NodeBinaryOpBitwise::methodNameForCodeGen();
+    return methodname.str();
   }
 
-  
+
+  UlamValue NodeBinaryOpBitwiseXor::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorInt32(ldata, rdata, len), len);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorUnsigned32(ldata, rdata, len), len);
+	break;
+      case Bool:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorBool32(ldata, rdata, len), len);
+	break;
+      case Unary:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorUnary32(ldata, rdata, len), len);
+	break;
+      case Bits:
+	rtnUV = UlamValue::makeImmediate(type, _BitwiseXorBits32(ldata, rdata, len), len);
+	break;
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  }
+
+
+  void NodeBinaryOpBitwiseXor::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    UTI type = refUV.getUlamValueTypeIdx();
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	refUV.putData(pos, len, _BitwiseXorInt32(ldata, rdata, len));
+	break;
+      case Unsigned:
+	refUV.putData(pos, len, _BitwiseXorUnsigned32(ldata, rdata, len));
+	break;
+      case Bool:
+	refUV.putData(pos, len, _BitwiseXorBool32(ldata, rdata, len));
+	break;
+      case Unary:
+	refUV.putData(pos, len, _BitwiseXorUnary32(ldata, rdata, len));
+	break;
+      case Bits:
+	refUV.putData(pos, len, _BitwiseXorBits32(ldata, rdata, len));
+	break;
+      default:
+	assert(0);
+	break;
+      };
+    return;
+  }
+
+
+#if 0
+  UlamValue NodeBinaryOpBitwiseXor::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    return UlamValue::makeImmediate(type, ldata ^ rdata, len);
+  }
+
+
+  void NodeBinaryOpBitwiseXor::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
+  {
+    refUV.putData(pos, len, ldata ^ rdata);
+  }
+#endif
 } //end MFM

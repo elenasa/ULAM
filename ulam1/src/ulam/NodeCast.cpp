@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeCast::NodeCast(Node * n, UlamType * typeToBe, CompilerState & state): NodeUnaryOp(n, state) 
+  NodeCast::NodeCast(Node * n, UTI typeToBe, CompilerState & state): NodeUnaryOp(n, state), m_explicit(false) 
   {
     setNodeType(typeToBe);
   }
@@ -28,34 +28,101 @@ namespace MFM {
   }
 
 
-  UlamType * NodeCast::checkAndLabelType()
+  void NodeCast::setExplicitCast()
+  {
+    m_explicit = true;
+  }
+
+
+  bool NodeCast::isExplicitCast()
+  {
+    return m_explicit;
+  }
+
+
+  UTI NodeCast::checkAndLabelType()
   { 
     // unlike the other nodes, nodecast knows its type at construction time;
     // this is for checking for errors, before eval happens.
-    UlamType * tobeType = getNodeType();
-    UlamType * nodeType = m_node->checkAndLabelType(); //user cast 
+    u32 errorsFound = 0;
+    UTI tobeType = getNodeType();
+    UTI nodeType = m_node->checkAndLabelType(); //user cast 
+    ULAMCLASSTYPE tobeClass = m_state.getUlamTypeByIndex(tobeType)->getUlamClass();
 
-    if(tobeType == m_state.getUlamTypeByIndex(Nav))
-      MSG(getNodeLocationAsString().c_str(), "Cannot cast to Nav.", ERR);
-    else
+    if(tobeType == Nav || tobeClass != UC_NOTACLASS)
       {
-	if(!tobeType->isScalar())
+	std::ostringstream msg;
+	msg << "Cannot cast to type <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	errorsFound++;
+      }
+    else 
+      {
+	if(!m_state.isScalar(tobeType))
 	  {
-	    MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts, elena", ERR);
+	    MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts, elena", DEBUG);
+	    errorsFound++;
 
-	    if(!nodeType->isScalar())
-	      MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast scalar into array", ERR);
+	    if(m_state.isScalar(nodeType))
+	      {
+		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast scalar into array", ERR);
+		errorsFound++;
+	      }
 
-	    if(tobeType->getArraySize() != nodeType->getArraySize())
-	      MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Array sizes differ", ERR);
+	    if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
+	      {
+		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Array sizes differ", ERR);
+		errorsFound++;
+	      }
 	  }
 	else
 	  {
-	    if(!nodeType->isScalar())
-	      MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast array into scalar", ERR);
-	  }
+	    if(!m_state.isScalar(nodeType))
+	      {
+		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast array into scalar", ERR);
+		errorsFound++;
+	      }
+	  } // end not scalar errors
+
+	// needs commandline arg..lots of non-explicit warning.
+	// reserve for user requested casts; arithmetic operations
+	// cast to Int32 all the time causing this to happend often. 
+	////if(isExplicitCast())
+	//  Node::warnOfNarrowingCast(nodeType, tobeType);
       }
 
+    // special case: user casting a quark to an Int; 
+    if(errorsFound == 0)  
+      {
+	ULAMCLASSTYPE nodeClass = m_state.getUlamTypeByIndex(nodeType)->getUlamClass();
+	if(nodeClass == UC_QUARK)
+	  {
+	    ULAMTYPE tobeTypEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
+	    if(tobeTypEnum != Int)
+	      {
+		std::ostringstream msg;
+		msg << "Cannot cast quark type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to non-Int <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++;		//error!
+	      }
+	    else
+	      {
+		// update to NodeMemberSelect + NodeFunctionCall
+		m_node = makeCastingNode(m_node, tobeType);
+	      }
+	  }
+	else
+	  {
+	    if(nodeClass == UC_ELEMENT || nodeClass == UC_INCOMPLETE)
+	      {
+		std::ostringstream msg;
+		msg << "Cannot cast type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorsFound++;	    //error!
+	      }
+	  }
+      }
+    
     return getNodeType(); 
   }
 
@@ -65,8 +132,8 @@ namespace MFM {
     assert(m_node); //has to be
 
     evalNodeProlog(0); //new current frame pointer
-    UlamType * tobeType = getNodeType();
-    UlamType * nodeType = m_node->getNodeType(); //uv.getUlamValueType()
+    UTI tobeType = getNodeType();
+    UTI nodeType = m_node->getNodeType(); //uv.getUlamValueType()
 
     makeRoomForNodeType(nodeType);
     EvalStatus evs = m_node->eval();
@@ -78,25 +145,27 @@ namespace MFM {
 
     //do we believe these to be scalars, only?
     //possibly an array that needs to be casted, per elenemt
-    if(tobeType->isScalar())
-      assert(nodeType->isScalar());
+    if(m_state.isScalar(tobeType))
+      assert(m_state.isScalar(nodeType));
     else
       {
 	//both arrays the same dimensions
 	//assert(!nodeType->isScalar());
-	if(tobeType->getArraySize() != nodeType->getArraySize())
-	  MSG(getNodeLocationAsString().c_str(), "Considering implementing array casts!!!", ERR);
-	assert(0);
+	if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
+	  {
+	    MSG(getNodeLocationAsString().c_str(), "Considering implementing array casts!!!", ERR);
+	    assert(0);
+	  }
       }
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 
     if(nodeType != tobeType)
       {
-	if(!(tobeType->cast(uv)))
+	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, m_state)))
 	  {
 	    std::ostringstream msg;
-	    msg << "Cast problem! Value type <" << uv.getUlamValueType()->getUlamTypeName(&m_state).c_str() << "> failed to be cast as type: <" << tobeType->getUlamTypeName(&m_state).c_str() << ">";
+	    msg << "Cast problem! Value type <" << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str() << "> failed to be cast as type: <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
@@ -109,14 +178,145 @@ namespace MFM {
   }
 
 
-  void NodeCast::genCode(File * fp)
+  UlamValue NodeCast::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {
+    assert(0); // n/a
+    return UlamValue();
+  }
+
+
+  void NodeCast::genCode(File * fp, UlamValue& uvpass)
+  {
+    m_node->genCode(fp, uvpass);
+    if(needsACast())
+      {
+	genCodeReadIntoATmpVar(fp, uvpass);     // cast.
+      }
+  } //genCode
+
+
+ void NodeCast::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    m_node->genCodeToStoreInto(fp, uvpass);
+    if(needsACast())
+      {
+	m_node->genCodeReadIntoATmpVar(fp, uvpass);
+	genCodeReadIntoATmpVar(fp, uvpass);     // cast.
+      }
+  }
+
+
+  void NodeCast::genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass)
+  {
+    //assert(needsACast());
+    // e.g. called by NodeFunctionCall on a NodeTerminal..
+    if(!needsACast())
+      {
+	return m_node->genCodeReadIntoATmpVar(fp, uvpass);
+      }
+
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    //UTI nodetype = m_node->getNodeType();
+    UTI vuti = uvpass.getUlamValueTypeIdx();
+    bool isTerminal = false;
+    s32 tmpVarNum = 0;
+
+   if(vuti == Ptr)
+      {
+	tmpVarNum = uvpass.getPtrSlotIndex();
+	vuti = uvpass.getPtrTargetType();  //replace
+      }
+    else
+      {
+	// an immediate terminal value
+	isTerminal = true;
+      }
+
+   UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+   //ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+   s32 tmpVarCastNum = m_state.getNextTmpVarNumber(); 
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarCastNum).c_str());
+    fp->write(" = ");
+
+    // write the cast method (e.g. _Unsigned32ToInt32, _Int32ToUnary32, etc..)
+    fp->write(nut->castMethodForCodeGen(vuti, m_state).c_str());
     fp->write("(");
-    fp->write(getNodeType()->getUlamTypeMangledName(&m_state).c_str());
-    fp->write(") ");
-    fp->write("(");
-    m_node->genCode(fp);
+
+    if(isTerminal)
+      {
+	u32 data = uvpass.getImmediateData(m_state);
+	char dstr[40];
+	vut->getDataAsString(data, dstr, 'z', m_state);
+	fp->write(dstr);
+      }
+    else
+      {
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());
+      }
+
+    fp->write(", ");
+    //LENGTH of node being casted (Uh_AP_mi::LENGTH ?)
+    //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());    
+    fp->write_decimal(m_state.getTotalBitSize(vuti)); //src length
+
+    fp->write(", ");
+    fp->write_decimal(m_state.getTotalBitSize(nuti)); //tobe length
+
     fp->write(")");
+    fp->write(";\n");
+
+
+    //PROBLEM is that funccall checks for 0 nameid to use the tmp var!
+    // but then if we don't pass it along Node::genMemberNameForMethod fails..
+    if(isTerminal)
+      uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified.
+    else
+      uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+  } //genCodeReadIntoTmp
+
+
+  void NodeCast::genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
+  {
+    assert(0);
+    genCodeWriteFromATmpVar(fp, luvpass, ruvpass);
+  }    
+
+
+  bool NodeCast::needsACast()
+  {
+    //return true;  //debug
+
+    UTI tobeType = getNodeType();
+    UTI nodeType = m_node->getNodeType();
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
+    ULAMTYPE nodetypEnum = m_state.getUlamTypeByIndex(nodeType)->getUlamTypeEnum();
+    //s32 arraysize = m_state.getArraySize(tobeType);
+    //s32 nodearraysize = m_state.getArraySize(nodeType);
+
+    //  consider user requested first; broadening (e.g. from Int(4) to Int(32)) requires SignExtension, except for constants(i.e. bitsize default); Always Bools (e.g. control condition).
+    //return(isExplicitCast() || typEnum != nodetypEnum || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)  && !m_state.isConstant(nodeType)));
+    //return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)) || (typEnum == Bool && !m_state.isConstant(nodeType)) );
+
+    // consider user requested first, then size independent (except constants) 
+    //return(isExplicitCast() || typEnum != nodetypEnum || !m_state.isConstant(nodeType));
+
+    // fails when putting s32 constant into an unsigned var
+    //return(isExplicitCast() || (!m_state.isConstant(nodeType) && (tobeType != nodeType || typEnum == Bool)));
+
+    //    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType) && !m_state.isConstant(nodeType)) || (typEnum == Bool && !m_state.isConstant(nodeType)) );
+
+    // even constant may need casting (e.g. narrowing for saturation)
+    // Bool constants require casts to generate "full" true UlamValue.
+    //return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType) && !m_state.isConstant(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType)) );
+    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType)) );
+
   }
 
 } //end MFM

@@ -55,7 +55,7 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -74,8 +74,13 @@ namespace MFM{
 
     void packBitsForVariableDataMembers();
     
-    virtual void genCode(File * fp);
-    void genCodeBody(File * fp);  //specific for this class
+    virtual u32 countNativeFuncDecls();
+
+    void generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
+    virtual void genCode(File * fp, UlamValue& uvpass);
+
+    void genCodeBody(File * fp, UlamValue& uvpass);  //specific for this class
 
   protected:
     SymbolTable m_functionST;  
@@ -83,6 +88,11 @@ namespace MFM{
   private:
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
+    void genCodeHeaderQuark(File * fp);
+    void genCodeHeaderElement(File * fp);
+
+    void genImmediateMangledTypesForHeaderFile(File * fp);
+    void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
   };
 
 }

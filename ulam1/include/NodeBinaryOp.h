@@ -36,6 +36,7 @@
 #ifndef NODEBINARYOP_H
 #define NODEBINARYOP_H
 
+#include <assert.h>
 #include "Node.h"
 #include "NodeCast.h"
 
@@ -54,19 +55,29 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
+    virtual const std::string methodNameForCodeGen() = 0;
+
+    virtual UTI checkAndLabelType();
+
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
+
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
-
     Node * m_nodeLeft;
     Node * m_nodeRight;
 
-    UlamType * calcNodeType(UlamType * lt, UlamType * rt);
-    UlamType * calcNodeTypeBitwise(UlamType * lt, UlamType * rt);
-
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots) = 0;
+
+    virtual void doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots);
+    virtual void doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
+
+    virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len) = 0;
+    virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len) = 0;
+
+    virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
 
   };
 

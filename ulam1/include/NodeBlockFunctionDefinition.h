@@ -55,7 +55,7 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
-    virtual UlamType * checkAndLabelType();
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
@@ -70,9 +70,13 @@ namespace MFM{
     void setMaxDepth(u32 depth);
     u32 getMaxDepth();
 
+    // for keyword 'native'; has empty block (i.e. not defined in Ulam); eval skipped
+    void setNative();
+    bool isNative();
+
     SymbolFunction * getFuncSymbolPtr();
 
-    virtual void genCode(File * fp);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
 
@@ -81,6 +85,7 @@ namespace MFM{
     SymbolFunction * m_funcSymbol;
     bool m_isDefinition;
     u32 m_maxDepth;
+    bool m_native;  //false by default, requires keyword
   };
 
 }

@@ -6,6 +6,7 @@ namespace MFM {
 
   NodeBinaryOp::NodeBinaryOp(Node * left, Node * right, CompilerState & state) : Node(state), m_nodeLeft(left), m_nodeRight(right) {}
 
+
   NodeBinaryOp::~NodeBinaryOp()
   {
     delete m_nodeLeft;
@@ -18,12 +19,12 @@ namespace MFM {
   void NodeBinaryOp::print(File * fp)
   {
     printNodeLocation(fp);
-    UlamType * myut = getNodeType();
+    UTI myut = getNodeType();
     char id[255];
-    if(!myut)
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), myut->getUlamTypeName(&m_state).c_str());
+      sprintf(id,"%s<%s>\n",prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     if(m_nodeLeft)
@@ -66,6 +67,35 @@ namespace MFM {
   }
 
 
+  UTI NodeBinaryOp::checkAndLabelType()
+  { 
+    assert(m_nodeLeft && m_nodeRight);
+
+    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType();	
+    UTI newType = calcNodeType(leftType, rightType);
+    
+    if(newType != Nav)
+      {
+	if(newType != leftType)
+	  {
+	    m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
+	  }
+	
+	if(newType != rightType)
+	  {
+	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
+	  }
+      }
+    
+    setNodeType(newType);
+    
+    setStoreIntoAble(false);
+
+    return newType;
+  } //checkAndLabelType
+
+
   EvalStatus NodeBinaryOp::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -80,7 +110,7 @@ namespace MFM {
 	return evs;
       }
 
-    makeRoomForNodeType(getNodeType());
+    u32 slot2 = makeRoomForNodeType(getNodeType());
     evs = m_nodeRight->eval();
     if(evs != NORMAL)
       {
@@ -89,101 +119,221 @@ namespace MFM {
       }
 
     //copies return UV to stack, -1 relative to current frame pointer
-    doBinaryOperation(1, 1+slot, slot);
+    if(slot && slot2)
+      doBinaryOperation(1, 1+slot, slot2);
 
     evalNodeEpilog();
     return NORMAL;
   }
 
 
-
-  UlamType * NodeBinaryOp::calcNodeType(UlamType * lt, UlamType * rt)
+  void NodeBinaryOp::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
   {
-    UlamType * newType = m_state.getUlamTypeByIndex(Nav);  //Nav
+    assert(slots == 1);
+    UTI nuti = getNodeType();
+    u32 len = m_state.getTotalBitSize(nuti);
 
-    if(!(lt->isScalar()) || !(rt->isScalar()))
-      {
-	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: <" << lt->getUlamTypeName(&m_state).c_str() << ">, RHS: <" << rt->getUlamTypeName(&m_state).c_str() << "> for binary operator" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return newType;
-      }
-    
-    UlamType * utInt = m_state.getUlamTypeByIndex(Int);
-    UlamType * utFloat = m_state.getUlamTypeByIndex(Float);
-    UlamType * utBool = m_state.getUlamTypeByIndex(Bool);
+    UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value                  
+    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value                  
 
-    if(lt == utFloat || rt == utFloat)
+    u32 ldata = luv.getImmediateData(len);
+    u32 rdata = ruv.getImmediateData(len);
+    UlamValue rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
+    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+  } //end dobinaryopImmediate
+
+
+  void NodeBinaryOp::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
+  { 
+    UlamValue rtnUV;
+
+    UTI nuti = getNodeType();
+    s32 arraysize = m_state.getArraySize(nuti);
+    s32 bitsize = m_state.getBitSize(nuti);
+    UTI scalartypidx = m_state.getUlamTypeAsScalar(nuti);
+    PACKFIT packRtn = m_state.determinePackable(nuti);
+
+    if(WritePacked(packRtn))
       {
-	newType = utFloat;
-      }
-    else if(lt == utInt && rt == utInt)
-      {
-	newType = utInt;
-      }
-    else if(lt == utBool || rt == utBool)
-      {
-	newType = utInt;
-      }
-    else
-      {
-	  std::ostringstream msg;
-	  msg << "Undefined type to use for " << lt->getUlamTypeName(&m_state) << " op " << rt->getUlamTypeName(&m_state);
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	// pack result too. (slot size known ahead of time)
+	rtnUV = UlamValue::makeAtom(nuti); //accumulate result here
       }
 
-    return newType;
-  }
+    // point to base array slots, packedness determines its 'pos'
+    UlamValue lArrayPtr = UlamValue::makePtr(lslot, EVALRETURN, nuti, packRtn, m_state);
+    UlamValue rArrayPtr = UlamValue::makePtr(rslot, EVALRETURN, nuti, packRtn, m_state);
 
+    // to use incrementPtr(), 'pos' depends on packedness
+    UlamValue lp = UlamValue::makeScalarPtr(lArrayPtr, m_state);
+    UlamValue rp = UlamValue::makeScalarPtr(rArrayPtr, m_state);
 
-  UlamType * NodeBinaryOp::calcNodeTypeBitwise(UlamType * lt, UlamType * rt)
-  {
-    UlamType * newType = m_state.getUlamTypeByIndex(Nav);  //Nav
-
-    if(!(lt->isScalar()) || !(rt->isScalar()))
+    //make immediate result for each element inside loop
+    for(s32 i = 0; i < arraysize; i++)
       {
-	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: <" << lt->getUlamTypeName(&m_state).c_str() << ">, RHS: <" << rt->getUlamTypeName(&m_state).c_str() << "> for binary bitwise operator" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return newType;
-      }
+	UlamValue luv = m_state.getPtrTarget(lp);
+	UlamValue ruv = m_state.getPtrTarget(rp);
 
-
-    UlamType * utFloat = m_state.getUlamTypeByIndex(Float);
-
-    if(rt == utFloat || lt == utFloat)
-      {
-	std::ostringstream msg;
-	msg << "Invalid Operands of Types: " << lt->getUlamTypeNameBrief(&m_state).c_str() << " and " << rt->getUlamTypeNameBrief(&m_state)  << " to binary operator" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//error
-      }
-    else
-      {    
-	if(rt == lt)
-	  {
-	    //maintain type
-	    newType = rt;
-	  }
+	u32 ldata = luv.getData(lp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
+	u32 rdata = ruv.getData(rp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
+		
+	if(WritePacked(packRtn))
+	  // use calc position where base [0] is furthest from the end.
+	  appendBinaryOp(rtnUV, ldata, rdata, (BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
 	else
 	  {
-	    //default is Int
-	    newType = m_state.getUlamTypeByIndex(Int);
+	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
+	    
+	    //copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
+	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i); 
 	  }
+	
+	lp.incrementPtr(m_state); 
+	rp.incrementPtr(m_state);
+      } //forloop
+    
+    if(WritePacked(packRtn))
+      m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result
+    
+  } //end dobinaryoparray
+
+#if 0
+  void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    assert(m_nodeLeft && m_nodeRight);
+    UlamValue luvpass;
+    m_nodeLeft->genCode(fp, luvpass);
+    UlamValue ruvpass;
+    m_nodeRight->genCode(fp, ruvpass);
+
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write(" ");
+
+    fp->write(m_state.getTmpVarAsString(getNodeType(),tmpVarNum).c_str());
+    fp->write(" = ");
+
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    if(luti == Ptr)
+      {
+	fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), luvpass.getPtrSlotIndex()).c_str());
+      }
+    else
+      {
+	//immediate
+	u32 data = luvpass.getImmediateData(m_state);
+	char dstr[40];
+	m_state.getUlamTypeByIndex(luti)->getDataAsString(data, dstr, 'z', m_state);
+	fp->write(dstr);
       }
 
-    return newType;
-  }
-
-
-  void NodeBinaryOp::genCode(File * fp)
-  {
-    assert(m_nodeLeft && m_nodeRight);
-    m_nodeLeft->genCode(fp);
     fp->write(" ");
     fp->write(getName());
     fp->write(" ");
-    m_nodeRight->genCode(fp);
+
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
+    if(ruti == Ptr)
+      {
+	fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+      }
+    else
+      {
+	//immediate
+	u32 data = ruvpass.getImmediateData(m_state);
+	char dstr[40];
+	m_state.getUlamTypeByIndex(ruti)->getDataAsString(data, dstr, 'z', m_state);
+	fp->write(dstr);
+      }
+
+    fp->write(";\n");
+  
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified.
+  } //genCode
+#endif
+
+  void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;                //*************
+    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+
+#ifdef TMPVARBRACES
+    m_state.indent(fp);
+    fp->write("{\n");
+    m_state.m_currentIndentLevel++;
+#endif
+
+    // generate rhs first; may update current object globals (e.g. function call)
+    UlamValue ruvpass;
+    m_nodeRight->genCode(fp, ruvpass);
+
+    // restore current object globals
+    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // init to self
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+
+    // lhs should be the new current object: node member select updates them, 
+    // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
+    // to mean "don't read into a TmpVar" (e.g. by NodeCast).
+    UlamValue luvpass;
+    m_nodeLeft->genCode(fp, luvpass);      //may update m_currentObjSymbol
+
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 tmpVarNum = m_state.getNextTmpVarNumber();
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write(" ");
+
+    fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
+    fp->write(" = ");
+
+    fp->write(methodNameForCodeGen().c_str());
+    fp->write("(");
+
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    assert(luti == Ptr);
+      
+    fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), luvpass.getPtrSlotIndex()).c_str());
+
+    fp->write(", ");
+
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
+    assert(ruti == Ptr);
+    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+
+    fp->write(", ");
+
+    fp->write_decimal(nut->getBitSize());
+
+    fp->write(");\n");
+  
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
+
+    // current object globals should pertain to lhs for the write
+    //genCodeWriteFromATmpVar(fp, luvpass, uvpass);        //uses rhs' tmpvar
+
+#ifdef TMPVARBRACES
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");  //close for tmpVar
+#endif
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
+    //    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+  } //genCode
+
+
+  void NodeBinaryOp::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    genCode(fp,uvpass);
   }
 
 } //end MFM

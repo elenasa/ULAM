@@ -7,13 +7,13 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //return std::string(" a x +b PI *\n2\n");
-      return std::string("Ue_A { Int a(0);  <NOMAIN> }\n");
+      return std::string("Ue_A { Int(32) a(0);  <NOMAIN> }\n");
     }
     
     std::string PresetTest(FileManagerString * fms)
     {
       //bool rtn1 = fms->add("a.ulam","( a + x ) * PI;"); 
-      bool rtn1 = fms->add("A.ulam","element A{Int a;}"); 
+      bool rtn1 = fms->add("A.ulam","element A{\nInt a;\n}\n"); 
       
       if(rtn1)
 	return std::string("A.ulam");
