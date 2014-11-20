@@ -367,21 +367,20 @@ namespace MFM {
 	fp->write("(");	
 	if(cos->isDataMember() && !cos->isElementParameter())
 	  {
+	    Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
+	    UTI selfuti = css->getUlamTypeIdx();
+	    UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
+	    fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write("<CC>::THE_INSTANCE");
+	    fp->write(".");
+	    fp->write(stgcos->getMangledName().c_str());
+	    
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str()); 
-		fp->write("<CC>::THE_INSTANCE");
 		fp->write(".GetBits()");
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
 	      {
-		Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
-		UTI selfuti = css->getUlamTypeIdx();
-		UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
-		fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
-		fp->write("<CC>::THE_INSTANCE");
-		fp->write(".");
-		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".getBits()");  //m_stg.GetBits
 	      }
 	    else
@@ -510,24 +509,21 @@ namespace MFM {
 	fp->write("(");
 	if(cos->isDataMember() && !cos->isElementParameter())
 	  {
+	    Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
+	    UTI selfuti = css->getUlamTypeIdx();
+	    UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
+	    fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write("<CC>::THE_INSTANCE");
+	    fp->write(".");
+	    fp->write(stgcos->getMangledName().c_str());
+	    
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str()); 
-		fp->write("<CC>::THE_INSTANCE");
-		//fp->write(".");
-		//fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
 	      {
-		Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
-		UTI selfuti = css->getUlamTypeIdx();
-		UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
-		fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
-		fp->write("<CC>::THE_INSTANCE");
-		fp->write(".");
-		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".getBits()");  //m_stg.GetBits
 		fp->write(", ");   //...rest of args
 	      }
@@ -698,24 +694,21 @@ namespace MFM {
 	fp->write("(");	
 	if(cos->isDataMember() && !cos->isElementParameter())
 	  {
+	    Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
+	    UTI selfuti = css->getUlamTypeIdx();
+	    UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
+	    fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write("<CC>::THE_INSTANCE");
+	    fp->write(".");
+	    fp->write(stgcos->getMangledName().c_str());
+	    
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str()); 
-		fp->write("<CC>::THE_INSTANCE");
-		//fp->write(".");
-		//fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
 	      {
-		Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
-		UTI selfuti = css->getUlamTypeIdx();
-		UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
-		fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
-		fp->write("<CC>::THE_INSTANCE");
-		fp->write(".");
-		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".getBits()");  //m_stg.GetBits
 		fp->write(", ");   //...rest of args
 	      }
@@ -1027,23 +1020,22 @@ namespace MFM {
 	fp->write("(");
 
 	if(cos->isDataMember() && !cos->isElementParameter())
-	  {	    
+	  {	
+	    Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
+	    UTI selfuti = css->getUlamTypeIdx();
+	    UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
+	    fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write("<CC>::THE_INSTANCE");
+	    fp->write(".");
+	    fp->write(stgcos->getMangledName().c_str());
+	    
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str()); 
-		fp->write("<CC>::THE_INSTANCE");
 		fp->write(".GetBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
 	      {
-		Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
-		UTI selfuti = css->getUlamTypeIdx();
-		UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
-		fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
-		fp->write("<CC>::THE_INSTANCE");
-		fp->write(".");
-		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".getBits()");  //m_stg.GetBits
 		fp->write(", ");          //...rest of args
 	      }
@@ -1200,24 +1192,21 @@ namespace MFM {
 
 	if(cos->isDataMember() && !cos->isElementParameter())
 	  {	    
+	    Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
+	    UTI selfuti = css->getUlamTypeIdx();
+	    UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
+	    fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write("<CC>::THE_INSTANCE");
+	    fp->write(".");
+	    fp->write(stgcos->getMangledName().c_str());
+	    
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str()); 
-		fp->write("<CC>::THE_INSTANCE");
-		//fp->write(".");
-		//fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
 	      {
-		Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
-		UTI selfuti = css->getUlamTypeIdx();
-		UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
-		fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
-		fp->write("<CC>::THE_INSTANCE");
-		fp->write(".");
-		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".getBits()");  //m_stg.GetBits
 		fp->write(", ");          //...rest of args
 	      }
@@ -1379,24 +1368,21 @@ namespace MFM {
 
 	if(cos->isDataMember() && !cos->isElementParameter())
 	  {	    
+	    Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
+	    UTI selfuti = css->getUlamTypeIdx();
+	    UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
+	    fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write("<CC>::THE_INSTANCE");
+	    fp->write(".");
+	    fp->write(stgcos->getMangledName().c_str());
+
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str()); 
-		fp->write("<CC>::THE_INSTANCE");
-		//fp->write(".");
-		//fp->write(stgcos->getMangledName().c_str());
 		fp->write(".GetBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
 	      {
-		Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
-		UTI selfuti = css->getUlamTypeIdx();
-		UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
-		fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
-		fp->write("<CC>::THE_INSTANCE");
-		fp->write(".");
-		fp->write(stgcos->getMangledName().c_str());
 		fp->write(".getBits()");  //m_stg.GetBits
 		fp->write(", ");          //...rest of args
 	      }
@@ -1609,8 +1595,7 @@ namespace MFM {
     else if(classtype == UC_ELEMENT)  //??
       {
 	fp->write(ut->getUlamTypeMangledName(&m_state).c_str()); 
-	fp->write("<CC>::THE_INSTANCE");
-	fp->write(".");
+	fp->write("<CC>::");
       }
 
     for(u32 i = 1; i < cosSize; i++)
