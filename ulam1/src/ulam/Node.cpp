@@ -314,7 +314,8 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    //ULAMCLASSTYPE cosclasstype = m_state.getUlamTypeByIndex(cosuti)->getUlamClass();		
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();		
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -428,7 +429,11 @@ namespace MFM {
     fp->write(");\n");
     
     // specifically to sign extend Int's (a cast)
-    vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
+    // problem! for arrays, the vut is an Int, regardless of the array typeXXX
+    // but not arrays here. hmm..
+
+    //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
+    cosut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
     
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadIntoTmp
@@ -473,7 +478,7 @@ namespace MFM {
 
     assert(isCurrentObjectAnArrayItem(cosuti, uvpass));
     UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
-    //UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
+    UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
 
     m_state.indent(fp);
     fp->write("const ");
@@ -586,7 +591,8 @@ namespace MFM {
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0);  //POS 0 rightjustified (atom-based).
 
     // specifically to sign extend Int's (a cast)
-    vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
+    //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
+    scalarcosut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadArrayItemIntoTmp
@@ -1616,13 +1622,15 @@ namespace MFM {
 		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
 		fp->write("::");
 		if( ((i + 1) < cosSize))  //still another cos refiner, use
-		  fp->write("Us::");   //typedef	    
+		  fp->write("Us::");   //typedef
 	      }
 	  }
 	else
 	  {
 	    fp->write(sym->getMangledNameForParameterType().c_str());
 	    fp->write("::");
+	    if(sclasstype == UC_QUARK && (i + 1 == cosSize)) // last i
+	      fp->write("Up_Us::");   //atomic parameter needed
 	  }
       }
   } //genElementParameterMemberNameOfMethod
