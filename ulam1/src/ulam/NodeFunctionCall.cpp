@@ -327,8 +327,60 @@ namespace MFM {
       {
 	arglist << m_state.getHiddenArgName();
       }
-    else
+    else if(isCurrentObjectsContainingAnElementParameter())
       {
+	
+	// here, cos is symbol used to determine read method: either self or last of cos.
+	// stgcos is symbol used to determine first "hidden" arg
+	Symbol * cos = NULL;
+	Symbol * stgcos = NULL;
+	if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	  {
+	    stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
+	  }
+	else
+	  {	
+	    cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	  }
+
+	UTI stgcosuti = stgcos->getUlamTypeIdx();
+	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+	ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();		
+     
+	Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
+	UTI selfuti = css->getUlamTypeIdx();
+	UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
+	arglist << selfut->getUlamTypeMangledName(&m_state).c_str();
+	arglist << "<CC>::THE_INSTANCE.";
+	arglist << stgcos->getMangledName().c_str();
+
+	//element parameter (could be array?)
+	if(cos->isDataMember() && !cos->isElementParameter())
+	  {	    
+	    if(stgcosclasstype == UC_ELEMENT)
+	      {
+		arglist << ".GetBits()";
+	      }
+	    else if(stgcosclasstype == UC_QUARK)
+	      {
+		arglist << ".getBits()"; 
+	      }
+	    else
+	      {
+		//NOT A CLASS
+	      }
+	  }
+	else //default
+	  {
+	    if(stgcosclasstype == UC_QUARK)
+	      {
+		arglist << ".m_stg"; //the T storage within the struct for immediate quarks
+	      }
+	  }
+      }
+    else  //local var
+      { 
 	Symbol * stgcos = NULL;
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  {
@@ -410,6 +462,8 @@ namespace MFM {
     //who's function is it? can we use m_cos' type
     if(!isCurrentObjectALocalVariableOrArgument())
       genMemberNameOfMethod(fp, m_state.m_currentObjPtr);
+    else if(isCurrentObjectsContainingAnElementParameter())
+      genElementParameterMemberNameOfMethod(fp);
     else
       genLocalMemberNameOfMethod(fp, m_state.m_currentObjPtr);
 
@@ -506,5 +560,63 @@ namespace MFM {
 	fp->write("::");
       } 
   } //genLocalMemberNameOfMethod
+
+
+  void NodeFunctionCall::genElementParameterMemberNameOfMethod(File * fp)
+  {
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0]; 
+
+    UTI uti = cos->getUlamTypeIdx();
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
+
+    if(!ut->isScalar())
+      {    //?? can't call a func on an array!
+	assert(0);
+      }
+
+    if(classtype == UC_QUARK)
+      {
+	fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+	fp->write("::");
+	fp->write("Us::");   //typedef
+      }
+    else if(classtype == UC_ELEMENT)  //??
+      {
+	fp->write(ut->getUlamTypeMangledName(&m_state).c_str()); 
+	fp->write("<CC>::");
+      }
+
+    for(u32 i = 1; i < cosSize; i++)
+      {
+	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	UTI suti = sym->getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
+	if(sym->isElementParameter())
+	  {
+	    if(sclasstype == UC_NOTACLASS)
+	      {
+		fp->write(sym->getMangledName().c_str());
+		fp->write(".");
+	      }
+	    else
+	      {
+		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
+		fp->write("::");
+		if( ((i + 1) < cosSize))  //still another cos refiner, use
+		  fp->write("Us::");   //typedef	    
+	      }
+	  }
+	else
+	  {
+	    fp->write(sym->getMangledNameForParameterType().c_str());
+	    fp->write("::");
+	  }
+      }
+  } //genElementParamenterMemberNameOfMethod
 
 } //end MFM

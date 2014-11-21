@@ -81,6 +81,8 @@ namespace MFM{
 
     virtual void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
 
+    virtual void genElementParameterMemberNameOfMethod(File * fp);
+
   private:
 
     Token m_functionNameTok;
