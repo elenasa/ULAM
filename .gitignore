@@ -1,0 +1,26 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+# Ignore emacs backup and autosave files
+*~
+.#*
+
+# Ignore executables
+**/bin/*
+
+# Ignore build dirs
+**/build/*
+
+# Ignore doxygen-generated output
+doc/ref
