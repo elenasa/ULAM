@@ -56,6 +56,8 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
+    virtual PACKFIT getPackable();
+
   private:
     
   };

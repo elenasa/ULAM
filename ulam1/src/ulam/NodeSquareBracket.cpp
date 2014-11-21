@@ -51,7 +51,14 @@ namespace MFM {
 	errorCount++;
       }
 
+    //for example, f.chance[i] where i is local, same as f.func(i);
+    bool saveUseMemberBlock = m_state.m_useMemberBlock;
+    m_state.m_useMemberBlock = false;
+
     UTI rightType = m_nodeRight->checkAndLabelType();
+
+    m_state.m_useMemberBlock = saveUseMemberBlock;
+
 
     //must be some kind of Int..of any bit size
     if(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Int)
@@ -300,31 +307,71 @@ namespace MFM {
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
     //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //********
 
+    //wipe out before getting item within sq brackets
+    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+    m_state.m_currentObjSymbolsForCodeGen.clear();
+
+    UlamValue offset;
+    m_nodeRight->genCode(fp, offset); //read into tmp var
+
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
+
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
     m_state.m_currentObjPtr = luvpass; //updated by lhs
 
-#if 0
-    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
-    Symbol * lsym = NULL;
-    if(!getSymbolPtr(lsym))
-      {
-	//error!
-	assert(0);
-      }
-    //m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
-    m_state.m_currentObjSymbolsForCodeGen.push_back(lsym);
-#endif
+    uvpass = offset;
 
-    UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
+    genCodeReadArrayItemIntoATmpVar(fp, uvpass);     //new!!!
+
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
+    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+  } //genCode
+
+
+  void NodeSquareBracket::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+
+    //wipe out before getting item within sq brackets
+    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+    m_state.m_currentObjSymbolsForCodeGen.clear();
+
+    UlamValue offset;
+    m_nodeRight->genCode(fp, offset);  
+
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
+
+    UlamValue luvpass;
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+    m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
+
+    uvpass = offset; //return
+
+    // NO RESTORE -- up to caller for lhs.
+  } //genCodeToStoreInto
+
+#if 0
+  void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
+  {
+    assert(m_nodeLeft && m_nodeRight);
+
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //********
+
+    UlamValue luvpass;
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
+    m_state.m_currentObjPtr = luvpass; //updated by lhs
+
+    UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass, m_state);  //for incrementPtr
+    nextlptr.setPtrNameId(luvpass.getPtrNameId());
 
     UlamValue offset;
     //m_nodeRight->genCode(fp, offset);
     m_nodeRight->genCodeToStoreInto(fp, offset); //for immediate value
-
+    
     s32 offsetInt = offset.getImmediateData(m_state);
     nextlptr.incrementPtr(m_state, offsetInt);
-    nextlptr.setPtrNameId(luvpass.getPtrNameId());
 
     genCodeReadIntoATmpVar(fp, nextlptr);  // more consistent, ok?
     uvpass = nextlptr;
@@ -342,19 +389,8 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
     m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
 
-    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
-#if 0
-    Symbol * lsym = NULL;
-    if(!getSymbolPtr(lsym))
-      {
-	//error!
-	assert(0);
-      }
-    //m_state.m_currentObjSymbolForCodeGen = lsym;   //***********************
-    m_state.m_currentObjSymbolsForCodeGen.push_back(lsym);   //***********************
-#endif
-
     UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
+    nextlptr.setPtrNameId(luvpass.getPtrNameId());
 
     UlamValue offset;
     //m_nodeRight->genCode(fp, offset);  
@@ -364,9 +400,9 @@ namespace MFM {
     nextlptr.incrementPtr(m_state, offsetInt);
 
     uvpass = nextlptr; //return
-    uvpass.setPtrNameId(luvpass.getPtrNameId());
 
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
+#endif
 
 } //end MFM
