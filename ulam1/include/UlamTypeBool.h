@@ -56,7 +56,7 @@ namespace MFM{
 
     virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
 
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+    //virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 

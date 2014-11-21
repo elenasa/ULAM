@@ -31,7 +31,7 @@ namespace MFM {
 
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(false), m_parsingElementParameterVariable(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
   {
     m_err.init(this, debugOn, NULL);
   }
@@ -1032,6 +1032,12 @@ namespace MFM {
 
   PACKFIT CompilerState::determinePackable(UTI aut)
   {
+    return getUlamTypeByIndex(aut)->getPackable();
+  }
+
+#if 0
+  PACKFIT CompilerState::determinePackable(UTI aut)
+  {
     PACKFIT rtn = UNPACKED;            //was false == 0
     s32 arraysize = getArraySize(aut); //negative for scalars
     s32 bitsize = getBitSize(aut);     //default size for constants
@@ -1040,7 +1046,8 @@ namespace MFM {
     if(arraysize > NONARRAYSIZE)
       {
 	u32 len = (arraysize * bitsize);  //could be 0
-	if(len <= MAXBITSPERINT)
+	//if(len <= MAXBITSPERINT)
+	if(len <= MAXBITSPERINT || len <= MAXBITSPERLONG)
 	  rtn = PACKEDLOADABLE;
 	else
 	  if(len <= MAXSTATEBITS)
@@ -1051,13 +1058,15 @@ namespace MFM {
 	ULAMCLASSTYPE classtype = getUlamTypeByIndex(aut)->getUlamClass();
 	if(classtype == UC_NOTACLASS || classtype == UC_QUARK)
 	  {
-	    if(bitsize <= MAXBITSPERINT)  //32
+	    //if(bitsize <= MAXBITSPERINT)  //32
+	    if(bitsize <= MAXBITSPERINT || bitsize <= MAXBITSPERLONG)
 	      rtn = PACKEDLOADABLE;
 	  }
       }
 
     return rtn;
   }
+#endif
 
 
   void CompilerState::setupCenterSiteForTesting()
