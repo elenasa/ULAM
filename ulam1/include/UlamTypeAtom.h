@@ -65,7 +65,7 @@ namespace MFM{
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     //virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
-
+    virtual PACKFIT getPackable();
 
   private:
    

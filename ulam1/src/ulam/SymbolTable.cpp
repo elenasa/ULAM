@@ -60,7 +60,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;  
-	if(!sym->isTypedef() && sym->isDataMember())
+	if(!sym->isTypedef() && sym->isDataMember()) //including element parameters
 	  {
 	    ((SymbolVariable *) sym)->generateCodedVariableDeclarations(fp, classtype);
 	  }
@@ -79,8 +79,9 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
-	if(sym->isTypedef() || sym->isDataMember())
+	Symbol * sym = it->second;
+	//if(sym->isTypedef() || sym->isDataMember())
+	if(sym->isTypedef() || (sym->isDataMember() && !sym->isElementParameter()))
 	{
 	  sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
 	}
@@ -268,7 +269,10 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
-	if(!sym->isTypedef())
+
+	// don't count typedef's or element parameters toward total
+	//if(!sym->isTypedef())
+	if(!sym->isTypedef() && !sym->isElementParameter())
 	  {
 	    UTI sut = sym->getUlamTypeIdx();
 	    s32 symsize = calcVariableSymbolTypeSize(sut);  //recursively
@@ -308,7 +312,10 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
-	if(!sym->isTypedef())
+
+	// don't count typedef's or element parameters toward max
+	//if(!sym->isTypedef())
+	if(!sym->isTypedef() && !sym->isElementParameter())
 	  {
 	    UTI sut = sym->getUlamTypeIdx();
 	    s32 symsize = calcVariableSymbolTypeSize(sut);  //recursively
@@ -449,7 +456,9 @@ namespace MFM {
 	assert(sym->isClass());
 	// quark union keep default pos = 0 for each data member, hence skip packing bits.
 	if(!((SymbolClass *) sym)->isQuarkUnion())
-	  ((SymbolClass *) sym)->getClassBlockNode()->packBitsForVariableDataMembers();	
+	  {
+	    ((SymbolClass *) sym)->getClassBlockNode()->packBitsForVariableDataMembers(); 
+	  }
 	it++;
       }
   }
@@ -469,7 +478,8 @@ namespace MFM {
       {
 	Symbol * sym = it->second;  
 	//if(!sym->isTypedef() && sym->isDataMember())
-	if(!sym->isTypedef() && sym->isDataMember() && !((SymbolClass *) sym)->isQuarkUnion())
+	//if(!sym->isTypedef() && sym->isDataMember() && !((SymbolClass *) sym)->isQuarkUnion())
+	if(!sym->isTypedef() && sym->isDataMember() && !sym->isElementParameter() && !((SymbolClass *) sym)->isQuarkUnion())
 	  {
 	    //updates the offset with the bit size of sym
 	    ((SymbolVariable *) sym)->setPosOffset(offsetIntoAtom);

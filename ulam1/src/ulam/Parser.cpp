@@ -328,10 +328,18 @@ namespace MFM {
 	  return brtn;
       }
 
+    m_state.m_parsingElementParameterVariable = false;
+    //static element parameter
+    if(pTok.m_type == TOK_KW_ELEMENT)
+      {
+	m_state.m_parsingElementParameterVariable = true;
+	getNextToken(pTok);
+      }	
     
     if(! Token::isTokenAType(pTok))
       {
 	unreadToken();
+	m_state.m_parsingElementParameterVariable = false;  //clear on error
 	return false;
       }
 
@@ -400,6 +408,8 @@ namespace MFM {
 
 	unreadToken();
       }
+
+    m_state.m_parsingElementParameterVariable = false;
     return brtn;  //parseDataMember
   }
 

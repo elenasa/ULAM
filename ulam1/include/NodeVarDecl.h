@@ -71,6 +71,7 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
 
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
+    void genCodedElementParameter(File * fp, UlamValue uvpass);
   };
 
 }
