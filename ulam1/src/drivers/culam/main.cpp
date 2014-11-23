@@ -31,7 +31,7 @@ namespace MFM
     {
       std::cerr << "Error: " << msg << std::endl;
       std::cerr << "Usage: " << progname << " PATH/TO/FILE.ulam"  << std::endl;
-      exit(1);
+      throw 1;
     }
 
     /** Internal error abort */
@@ -39,7 +39,7 @@ namespace MFM
     {
       std::cerr << "INTERNAL ERROR: " << msg << std::endl;
       std::cerr << "Exiting"  << std::endl;
-      exit(1);
+      throw 1;
     }
 
     void SetTarget(char * path)
@@ -96,16 +96,21 @@ namespace MFM
 
 int main(int argc, char ** argv)
 {
-  MFM::DriverState ds;
+  try {
+    MFM::DriverState ds;
 
-  progname = argv[0];
-  --argc; ++argv;
-  if (argc != 1)
-    ds.UDie("Need just one argument");
+    progname = argv[0];
+    --argc; ++argv;
+    if (argc != 1)
+      ds.UDie("Need just one argument");
 
-  ds.SetTarget(argv[0]);
+    ds.SetTarget(argv[0]);
 
-  return ds.RunCompilation();
+    return ds.RunCompilation();
+  }
+  catch (int status) {
+    return status;
+  }
 }
 
 #if 0
