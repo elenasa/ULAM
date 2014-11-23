@@ -66,14 +66,14 @@ namespace MFM{
 
 
   class UlamType
-  {    
-  public: 
+  {
+  public:
     UlamType(const UlamKeyTypeSignature key, const UTI uti);
-    ~UlamType(){}
+    virtual ~UlamType(){}
 
     /** returns a pointer to UlamType */
     UlamType * getUlamType();
-    
+
     const std::string getUlamTypeName(CompilerState * state);
 
     virtual const std::string getUlamTypeNameBrief(CompilerState * state);
@@ -134,7 +134,7 @@ namespace MFM{
 
     /** Number of bits (rounded up to nearest 32 bits) required to
     hold the total bit size  */
-    u32 getTotalWordSize();   
+    u32 getTotalWordSize();
 
     const std::string readMethodForCodeGen();
 
