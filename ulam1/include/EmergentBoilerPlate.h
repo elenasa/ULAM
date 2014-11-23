@@ -895,6 +895,8 @@ struct BitVector {
   BitVector(const BitVector & other); //copy constructor
   BitVector(const u32 value);
   BitVector(const s32 value);
+  BitVector(const u64 value);
+  BitVector(const s64 value);
 
   u32 Read(u32 pos, u32 len) const;  
   void Write(u32 pos, u32 len, u32 val) ;
@@ -985,6 +987,18 @@ BitVector<S>::BitVector() {
   BitVector<S>::BitVector(const s32 value)
   {
     m_stg[WORDS-1] = (u32) value;
+  }
+
+  template <u32 S>
+  BitVector<S>::BitVector(const u64 value)
+  {
+    m_stg[WORDS-1] = value;
+  }
+
+  template <u32 S>
+  BitVector<S>::BitVector(const s64 value)
+  {
+    m_stg[WORDS-1] = (u64) value;
   }
 
   template<u32 S>

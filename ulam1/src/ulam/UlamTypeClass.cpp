@@ -10,7 +10,8 @@ namespace MFM {
 
   UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type) : UlamType(key, uti), m_class(type)
   {
-    m_wordLength = calcWordSize(getTotalBitSize());
+    m_wordLengthTotal = calcWordSize(getTotalBitSize());
+    m_wordLengthItem = calcWordSize(getBitSize());
   }
 
 
@@ -233,6 +234,15 @@ namespace MFM {
   }
 
 
+  PACKFIT UlamTypeClass::getPackable()
+  {
+    if(m_class == UC_ELEMENT)
+      return PACKED;
+
+    return UlamType::getPackable();  //quarks depend their size
+  }
+
+
   //quarks are right-justified in an atom space
   const std::string UlamTypeClass::getUlamTypeAsStringForC()
   {
@@ -431,38 +441,13 @@ namespace MFM {
     if(!isScalar())
       return UlamType::genUlamTypeReadDefinitionForC(fp, state);
 
+    //not an array
     state->indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
     fp->write(" read() const { return Up_Us::");
     fp->write(readMethodForCodeGen().c_str());
-
-    if(isScalar())
-      fp->write("(m_stg.GetBits() ); }\n");
-    else
-      {
-	//reads entire array
-	s32 totbitsize = getTotalBitSize();
-
-	fp->write("(m_stg.GetBits(), ");
-	fp->write_decimal(totbitsize);
-	fp->write(", ");
-	fp->write_decimal(totbitsize);
-	fp->write(", ");
-	fp->write_decimal(BITSPERATOM - totbitsize);
-	fp->write("); }   //reads entire array\n");
-
-	state->indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
-	fp->write(" readArray(");
-	fp->write("u32 len, u32 pos) const { return Up_Us::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(m_stg.GetBits(), ");
-	fp->write_decimal(getTotalBitSize());
-	fp->write("u, len, pos");
-	fp->write("); }\n");
-      }
+    fp->write("(m_stg.GetBits() ); }\n");
   } //genUlamTypeReadDefinitionForC
 
 
@@ -472,37 +457,13 @@ namespace MFM {
     if(!isScalar())
       return UlamType::genUlamTypeWriteDefinitionForC(fp, state);
 
+    // here, must be scalar
     state->indent(fp);
     fp->write("void write(");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
     fp->write(" v) { Up_Us::");
     fp->write(writeMethodForCodeGen().c_str());
-
-    if(isScalar())
-      fp->write("(m_stg.GetBits(), v); }\n");
-    else
-      {
-	//writes entire array
-	s32 totbitsize = getTotalBitSize();
-	fp->write("(m_stg.GetBits(), v, ");
-	fp->write_decimal(totbitsize);
-	fp->write("u, ");
-	fp->write_decimal(totbitsize);
-	fp->write("u, ");
-	fp->write_decimal(BITSPERATOM - totbitsize);
-	fp->write("u); }   //writes entire array\n");
-
-	state->indent(fp);
-	fp->write("void writeArray(");
-	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
-	fp->write(" v, u32 len, u32 pos) { Up_Us::");
-	fp->write(writeMethodForCodeGen().c_str());
-	fp->write("(m_stg.GetBits(), v, ");
-	fp->write_decimal(getTotalBitSize());
-       	fp->write("u, len, pos");
-	fp->write("); }\n");
-      }
+    fp->write("(m_stg.GetBits(), v); }\n");
   } //genUlamTypeWriteDefinitionForC
-
 
 } //end MFM

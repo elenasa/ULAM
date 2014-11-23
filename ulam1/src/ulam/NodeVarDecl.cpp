@@ -83,7 +83,8 @@ namespace MFM {
       }
     else
       {
-	if(!m_varSymbol->isDataMember())
+	//if(!m_varSymbol->isDataMember())
+	if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
 	  {
 	    //local variable to a function
 	    UlamValue immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
@@ -115,23 +116,37 @@ namespace MFM {
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert((s32) offset >= 0); //neg is invalid
-    m_varSymbol->setPosOffset(offset);
-    offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
+
+    //skip element parameter variables
+    if(!m_varSymbol->isElementParameter())
+      {
+	m_varSymbol->setPosOffset(offset);
+	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
+      }
   }
 
 
   // parse tree in order declared, unlike the ST.
   void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
   {
+    // use immediate storage for "static" element parameters
+    if(m_varSymbol->isElementParameter())
+      {
+	return genCodedElementParameter(fp, uvpass);
+      }
+
     if(m_varSymbol->isDataMember())
-      return genCodedBitFieldTypedef(fp, uvpass);
+      {
+	return genCodedBitFieldTypedef(fp, uvpass);
+      }
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
-    if(!m_varSymbol->isDataMember())
+    //    if(!m_varSymbol->isDataMember())
+    if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
       {
 	fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++ local vars, ie non-data members
       }
@@ -174,14 +189,10 @@ namespace MFM {
     ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
 
     m_state.indent(fp);
-
-    // use typedef rather than atomic parameter for quarks within elements,
-    // except if an array of quarks.
-    //if(nclasstype == UC_QUARK)
-    //if(nclasstype == UC_QUARK && classtype == UC_ELEMENT)
-    //if(nclasstype == UC_QUARK && classtype == UC_ELEMENT && nut->isScalar())
     if(nclasstype == UC_QUARK && nut->isScalar())
       {
+	// use typedef rather than atomic parameter for quarks within elements,
+	// except if an array of quarks.
 	fp->write("typedef ");
 	fp->write(nut->getUlamTypeMangledName(&m_state).c_str()); //for C++
 	fp->write("<CC, ");
@@ -219,6 +230,29 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   } //genCodedBitFieldTypedef
+
+
+  void NodeVarDecl::genCodedElementParameter(File * fp, UlamValue uvpass)
+  {
+    assert(m_varSymbol->isDataMember());
+
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+    m_state.indent(fp);
+    /*
+    if(vclasstype == UC_ELEMENT)
+      {
+	fp->write("static ");
+      }
+    */
+
+    fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++ local vars, ie non-data members
+    fp->write(" ");
+    fp->write(m_varSymbol->getMangledName().c_str());
+    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
+  }  //genCodedElementParameter
 
 } //end MFM
 

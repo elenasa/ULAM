@@ -104,7 +104,11 @@ namespace MFM{
 
     virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
 
+    virtual const std::string getArrayItemTmpStorageTypeAsString(CompilerState * state);
+
     virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state, s32 sizebyints);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
@@ -136,9 +140,15 @@ namespace MFM{
     hold the total bit size  */
     u32 getTotalWordSize();
 
+    u32 getItemWordSize();   
+
+    virtual PACKFIT getPackable();
+
     const std::string readMethodForCodeGen();
+    const std::string readArrayItemMethodForCodeGen();
 
     const std::string writeMethodForCodeGen();
+    const std::string writeArrayItemMethodForCodeGen();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
 
@@ -148,7 +158,8 @@ namespace MFM{
   protected:
     UlamKeyTypeSignature m_key;
     UTI m_uti;
-    u32 m_wordLength;
+    u32 m_wordLengthTotal;
+    u32 m_wordLengthItem;
 
   private:
   };

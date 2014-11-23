@@ -94,6 +94,9 @@ namespace MFM {
 #define EMPTYSYMBOLTABLE (-1)
 #endif //EMPTYSYMBOLTABLE
 
+#ifndef STATICSYMBOL
+#define STATICSYMBOL (-3)
+#endif //STATICSYMBOL
 
 #ifndef ULAMTYPE_DEFAULTBITSIZE
 #define XX(a,b,c) c,
@@ -109,6 +112,10 @@ namespace MFM {
   /** Number of bits (rounded up to nearest 32 bits) required to
       hold the bit size argument l */
 #define calcWordSize(l) ((l / MAXBITSPERINT) * MAXBITSPERINT + ( (l % MAXBITSPERINT) > 0 ? MAXBITSPERINT : 0))
+
+  /** Number of bits (rounded up to nearest 64 bits) required to
+      hold the bit size argument l */
+#define calcWordSizeLong(l) ((l / MAXBITSPERLONG) * MAXBITSPERLONG + ( (l % MAXBITSPERLONG) > 0 ? MAXBITSPERLONG : 0))
 
 } //MFM
 

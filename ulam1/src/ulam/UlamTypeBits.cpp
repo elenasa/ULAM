@@ -10,7 +10,8 @@ namespace MFM {
 
   UlamTypeBits::UlamTypeBits(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
   {
-    m_wordLength = calcWordSize(getTotalBitSize());
+    m_wordLengthTotal = calcWordSize(getTotalBitSize());
+    m_wordLengthItem = calcWordSize(getBitSize());
   }
 
 

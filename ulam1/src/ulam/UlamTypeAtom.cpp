@@ -8,7 +8,8 @@ namespace MFM {
 
   UlamTypeAtom::UlamTypeAtom(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
   {
-    m_wordLength = calcWordSize(getTotalBitSize());
+    m_wordLengthTotal = calcWordSize(getTotalBitSize());
+    m_wordLengthItem = calcWordSize(getBitSize());
   }
 
 
@@ -53,5 +54,11 @@ namespace MFM {
   {
     return "a";  //self ???
   }
- 
+
+
+  PACKFIT UlamTypeAtom::getPackable()
+  {
+    return UNPACKED;
+  }
+
 } //end MFM

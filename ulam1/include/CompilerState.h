@@ -106,7 +106,9 @@ namespace MFM{
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
 
-    bool m_parsingControlLoop;   // used for break/control statement parsing
+    bool m_parsingControlLoop;               // used for break/control statement parsing
+    bool m_parsingElementParameterVariable;  // used for static 'element' variables
+
     CallStack m_funcCallStack;    //local variables and arguments
     //UlamAtom  m_selectedAtom;   //storage for data member (static/global) variables
     EventWindow  m_eventWindow;   //storage for 41 atoms (elements)
