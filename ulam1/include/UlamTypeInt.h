@@ -64,11 +64,7 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
-
     virtual bool cast(UlamValue & val, CompilerState& state);
-
-    //    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
 
     virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
 

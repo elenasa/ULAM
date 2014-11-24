@@ -5,6 +5,7 @@
 #include "FileManagerStdio.h"
 #include "FileStdio.h"
 #include "FileString.h"
+#include "Compiler.h"
 
 static const char * progname;
 
@@ -66,10 +67,11 @@ namespace MFM
         UDie("Couldn't init file manager - bad directory?");
       }
 
-      m_sourceFile = m_fileManager->open(file, MFM::READ);
-      if(!m_sourceFile) {
-        UDie("Couldn't open source file - bad filename?");
-      }
+      //m_sourceFile = m_fileManager->open(file, MFM::READ);
+      //if(!m_sourceFile) {
+      //  UDie("Couldn't open source file - bad filename?");
+      // }
+      m_filename = file;
     }
 
     /** return exit status:
@@ -83,7 +85,9 @@ namespace MFM
       m_stderr->write("Writing to:   ?? locations inside m_fileManager\n");
       m_stderr->write("Errors to:    m_stderr\n");
       m_stderr->write("Returning:    0 iff compilation should continue on to C-level\n");
-      return 1;
+
+      Compiler C;
+      return C.compileProgram(m_fileManager, m_filename, m_fileManager, m_stderr);
     }
 
   private:
@@ -91,6 +95,7 @@ namespace MFM
     File * m_sourceFile;
     File * m_stdout;
     File * m_stderr;
+    std::string m_filename;
   };
 } /* namespace MFM */
 

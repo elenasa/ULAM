@@ -81,65 +81,6 @@ namespace MFM {
   }
 
 
-  // special sign extend for Int on read 
-  void UlamTypeInt::genUlamTypeReadDefinitionForC(File * fp, CompilerState * state)
-  {
-    if(isScalar() || getPackable() == PACKEDLOADABLE)
-      {
-	state->indent(fp);
-	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
-	fp->write(" read() const { ");
-
-	if(isScalar())
-	  {
-	    fp->write("return ");
-	    //fp->write("return _SignExtend");
-	    //fp->write_decimal(getTotalWordSize());
-	    fp->write("BF::");
-	    fp->write(readMethodForCodeGen().c_str());	
-	    //fp->write("(m_stg), ");
-	    //fp->write_decimal(getBitSize());  //sign extend 2nd arg
-	    //fp->write("u); }\n");
-	    fp->write("(m_stg); }\n");
-	  }
-	else
-	  {
-	    //read entire array without signextend
-	    s32 totbitsize = getTotalBitSize();
-	    fp->write("return BF::");
-	    fp->write(readMethodForCodeGen().c_str());	
-	    fp->write("(m_stg, ");
-	    fp->write_decimal(0); //index [0]
-	    fp->write("u, ");
-	    fp->write_decimal(totbitsize);
-	    fp->write("u); }   //reads entire array, no sign extend\n");
-	  }
-      }
-
-    if(!isScalar())
-      {
-	//shouldn't use with entire array because of sign extend!!!
-	state->indent(fp);
-	fp->write("const ");
-	fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
-	fp->write(" readArrayItem(");
-	fp->write("u32 index, u32 unitsize) const { ");
-	//fp->write("return _SignExtend");
-	//fp->write_decimal(getTotalWordSize());
-	fp->write("return ");
-	fp->write("BF::");
-	fp->write(readMethodForCodeGen().c_str());
-	fp->write("(m_stg, ");
-	fp->write("index, unitsize");
-	//fp->write("), ");
-	//fp->write_decimal(getBitSize());  //sign extend 2nd arg
-	//fp->write("u); }\n");
-	fp->write("); }\n");
-      }
-  } //genUlamTypeReadDefinitionForC
-
-
   bool UlamTypeInt::cast(UlamValue & val, CompilerState& state)
   {
     bool brtn = true;
