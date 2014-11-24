@@ -6,7 +6,16 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_Foo { Bool(1) b(false);  System m_s();  Int(3) i(0);  Int(3) j(4);  Bar m_bar( Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(2);  Int(3) d(6); ); );  Int(32) test() {  m_bar m_gah ( 2 cast 2 cast - )set . . j m_bar m_gah . ( )toInt . cast = m_s ( j )print . 0 cast return } }\nExit status: 0");
+      //Ue_Foo { Bool(1) b(false);  System m_s();  Int(3) i(0);  Int(3) j(4);  Bar m_bar( Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(2);  Int(3) d(6); ); );  Int(32) test() {  m_bar m_gah ( 2 cast 2 cast - )set . . j m_bar m_gah . ( )toInt . cast = m_s ( j )print . 0 cast return } }\nExit status: 0
+
+      /* generated code output:
+	 Int(3) Arg: 0x2
+	 Int Arg: -2
+	 Int(3) Arg: 0x4
+      */
+
+      return std::string("Ue_Foo { Bool(1) b(false);  System m_s();  Int(3) i(0);  Int(3) j(4);  Bar m_bar( Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(2);  Int(3) d(6); ); );  Int(32) test() {  m_bar m_gah ( 2 cast 2 cast - )set . . j m_bar m_gah . ( )toInt . cast = m_s ( j )print . 0 cast return } }
+Exit status: 0");
     }
     
     std::string PresetTest(FileManagerString * fms)

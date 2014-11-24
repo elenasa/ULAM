@@ -19,6 +19,48 @@ namespace MFM {
   Compiler::~Compiler()
   {  }
 
+ 
+  u32 Compiler::compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput)
+  {
+    SourceStream ss(infm, m_state);    
+    
+    Lexer * Lex = new Lexer(ss, m_state);
+    Preparser * PP =  new Preparser(Lex, m_state);
+    Parser * P = new Parser(PP, m_state);
+    Node * programme = NULL;
+
+    if (ss.push(startstr))
+      {
+	programme = P->parseProgram(startstr, errput); //will be compared to answer
+
+	if(checkAndTypeLabelProgram(programme, errput) == 0)
+	  {
+	    //generateCodedProgram(programme, output);
+	    // setup for codeGen
+	    m_state.m_currentSelfSymbolForCodeGen = m_state.m_programDefST.getSymbolPtr(m_state.m_compileThisId);
+	    m_state.m_currentObjSymbolsForCodeGen.clear(); 
+
+	    m_state.setupCenterSiteForTesting();  //temporary!!!
+
+	    ((NodeProgram *) programme)->generateCode(outfm);
+
+	  }
+	else
+	  errput->write("Unrecoverable Program Type Label FAILURE.\n");
+      }
+    else
+      {
+	errput->write("parseProgram failed to start SourceStream.");
+      }
+   
+    delete P;
+    delete PP;
+    delete Lex;    
+    delete programme;  
+    return m_state.m_err.getErrorCount();  
+  } //compileProgram
+
+
   //returns parse tree..
   u32 Compiler::parseProgram(FileManager * fm, std::string startstr, File * output, Node * & rtnNode)
   {
@@ -32,7 +74,6 @@ namespace MFM {
     if (ss.push(startstr))
       {
 	programme = P->parseProgram(startstr, output); //will be compared to answer
-	//programme =  P->parseProgram();
       }
     else
       {
@@ -138,12 +179,10 @@ namespace MFM {
 
 
     // setup for codeGen
-    //m_state.m_currentObjSymbolForCodeGen = m_state.m_programDefST.getSymbolPtr(m_state.m_compileThisId);
-    //m_state.m_currentSelfSymbolForCodeGen = m_state.m_currentObjSymbolForCodeGen;
     m_state.m_currentSelfSymbolForCodeGen = m_state.m_programDefST.getSymbolPtr(m_state.m_compileThisId);
     m_state.m_currentObjSymbolsForCodeGen.clear(); 
 
-    m_state.setupCenterSiteForTesting();
+    m_state.setupCenterSiteForTesting();  //temporary!!!
 
     ((NodeProgram *) root)->generateCode(fm);
 

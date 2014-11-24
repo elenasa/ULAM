@@ -1650,10 +1650,14 @@ namespace MFM {
   {
     std::string method;
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    bool isArrayItem = isCurrentObjectAnArrayItem(nuti, uvpass);
 
     if(!isCurrentObjectALocalVariableOrArgument())
       { 
-	method = nut->readMethodForCodeGen();
+	if(isArrayItem)
+	  method = nut->readArrayItemMethodForCodeGen();
+	else
+	  method = nut->readMethodForCodeGen();
       }
     else
       {
@@ -1663,7 +1667,10 @@ namespace MFM {
 	// allow for immediate quarks
 	if(classtype == UC_ELEMENT)
 	  {
-	    method = nut->readMethodForCodeGen();
+	    if(isArrayItem)
+	      method = nut->readArrayItemMethodForCodeGen();
+	    else
+	      method = nut->readMethodForCodeGen();
 	  }
 	else
 	  {
@@ -1674,7 +1681,13 @@ namespace MFM {
 		if(m_state.m_currentObjSymbolsForCodeGen.back()->isElementParameter())
 		  method = readMethodForImmediateBitValueForCodeGen(nuti, uvpass);
 		else
-		  method = nut->readMethodForCodeGen(); //refining implies data member within local
+		  {
+		    //refining implies data member within local
+		    if(isArrayItem)
+		      method = nut->readArrayItemMethodForCodeGen();
+		    else
+		      method = nut->readMethodForCodeGen();
+		  }
 	      }
 	  }
       }
@@ -1686,10 +1699,14 @@ namespace MFM {
   {
     std::string method;
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    bool isArrayItem = isCurrentObjectAnArrayItem(nuti, uvpass);
 
     if(!isCurrentObjectALocalVariableOrArgument())
       {
-	method = nut->writeMethodForCodeGen();
+	if(isArrayItem)
+	  method = nut->writeArrayItemMethodForCodeGen();
+	else
+	  method = nut->writeMethodForCodeGen();
       }
     else
       {
@@ -1698,7 +1715,10 @@ namespace MFM {
 
 	if(classtype == UC_ELEMENT)
 	  {
-	    method = nut->writeMethodForCodeGen();
+	    if(isArrayItem)
+	      method = nut->writeArrayItemMethodForCodeGen();
+	    else
+	      method = nut->writeMethodForCodeGen();
 	  }
 	else
 	  {
@@ -1709,7 +1729,13 @@ namespace MFM {
 		if(m_state.m_currentObjSymbolsForCodeGen.back()->isElementParameter())
 		  method = writeMethodForImmediateBitValueForCodeGen(nuti, uvpass);
 		else
-		  method = nut->writeMethodForCodeGen(); //refining implies data member within local
+		  {
+		    //refining implies data member within local
+		    if(isArrayItem)
+		      method = nut->writeArrayItemMethodForCodeGen();
+		    else
+		      method = nut->writeMethodForCodeGen();
+		  }
 	      }
 	  }
       }

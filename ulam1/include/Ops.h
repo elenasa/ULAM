@@ -69,13 +69,14 @@ namespace MFM {
     return -val;  //assumes sign extended ???
   }
 
-  //Bitwise Binary Ops:
+  //Bitwise Binary Ops: scalar only for Unary and Bools
   inline u32 _BitwiseOrUnary32(u32 vala, u32 valb, u32 bitwidth) 
   {
     u32 mask = _GetNOnes32(bitwidth);
     u32 maska = _GetNOnes32(PopCount(vala & mask));
     u32 maskb = _GetNOnes32(PopCount(valb & mask));
     return maska | maskb;  // "max"
+    //return (vala | valb) & mask;
   }
 
   inline u64 _BitwiseOrUnary64(u64 vala, u64 valb, u32 bitwidth) 

@@ -196,71 +196,12 @@ namespace MFM {
     
   } //end dobinaryoparray
 
-#if 0
-  void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    assert(m_nodeLeft && m_nodeRight);
-    UlamValue luvpass;
-    m_nodeLeft->genCode(fp, luvpass);
-    UlamValue ruvpass;
-    m_nodeRight->genCode(fp, ruvpass);
-
-    s32 tmpVarNum = m_state.getNextTmpVarNumber();
-
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
-    fp->write(" ");
-
-    fp->write(m_state.getTmpVarAsString(getNodeType(),tmpVarNum).c_str());
-    fp->write(" = ");
-
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    if(luti == Ptr)
-      {
-	fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), luvpass.getPtrSlotIndex()).c_str());
-      }
-    else
-      {
-	//immediate
-	u32 data = luvpass.getImmediateData(m_state);
-	char dstr[40];
-	m_state.getUlamTypeByIndex(luti)->getDataAsString(data, dstr, 'z', m_state);
-	fp->write(dstr);
-      }
-
-    fp->write(" ");
-    fp->write(getName());
-    fp->write(" ");
-
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
-    if(ruti == Ptr)
-      {
-	fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
-      }
-    else
-      {
-	//immediate
-	u32 data = ruvpass.getImmediateData(m_state);
-	char dstr[40];
-	m_state.getUlamTypeByIndex(ruti)->getDataAsString(data, dstr, 'z', m_state);
-	fp->write(dstr);
-      }
-
-    fp->write(";\n");
-  
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified.
-  } //genCode
-#endif
 
   void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;                //*************
-    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;  //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty());     //*************
 
 #ifdef TMPVARBRACES
     m_state.indent(fp);
@@ -273,15 +214,11 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // init to self
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore *******
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
-    // lhs should be the new current object: node member select updates them, 
-    // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
-    // to mean "don't read into a TmpVar" (e.g. by NodeCast).
     UlamValue luvpass;
-    m_nodeLeft->genCode(fp, luvpass);      //may update m_currentObjSymbol
+    m_nodeLeft->genCode(fp, luvpass);     //updates m_currentObjSymbol
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -311,22 +248,18 @@ namespace MFM {
 
     fp->write(", ");
 
-    fp->write_decimal(nut->getBitSize());
+    fp->write_decimal(nut->getTotalBitSize());  //if scalar, it's just the bitsize
 
     fp->write(");\n");
   
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
-
-    // current object globals should pertain to lhs for the write
-    //genCodeWriteFromATmpVar(fp, luvpass, uvpass);        //uses rhs' tmpvar
 
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");  //close for tmpVar
 #endif
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
-    //    m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore current object ptr
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

@@ -308,15 +308,7 @@ namespace MFM {
 	if(isScalar())
 	  fp->write("(m_stg); }\n");   //done
 	else
-	  {
-	    //read entire packed array
-	    s32 totbitsize = getTotalBitSize();
-	    fp->write("(m_stg, ");
-	    fp->write_decimal(0);  //index [0]
-	    fp->write("u, ");
-	    fp->write_decimal(totbitsize);
-	    fp->write("u); }   //reads entire array\n");
-	  }
+	  fp->write("(m_stg); }   //reads entire array\n");
       }
     
     if(!isScalar())
@@ -327,9 +319,8 @@ namespace MFM {
 	fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
 	fp->write("u32 index, u32 unitsize) const { return BF::");
-	fp->write(readMethodForCodeGen().c_str());
+	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(m_stg, index, unitsize");
-	//fp->write_decimal(getBitSize());
 	fp->write("); }\n");
       }
   } //genUlamTypeReadDefinitionForC
@@ -344,18 +335,11 @@ namespace MFM {
 	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
 	fp->write(" v) { BF::");
 	fp->write(writeMethodForCodeGen().c_str());
+
 	if(isScalar())
 	  fp->write("(m_stg, v); }\n");
 	else
-	  {
-	    //writes entire array
-	    s32 totbitsize = getTotalBitSize();
-	    fp->write("(m_stg, v, ");
-	    fp->write_decimal(0);  //index [0]
-	    fp->write("u, ");
-	    fp->write_decimal(totbitsize);
-	    fp->write("u); }   //writes entire array\n");
-	  }
+	  fp->write("(m_stg, v); }   //writes entire array\n");
       }
     
     if(!isScalar())
@@ -365,7 +349,7 @@ namespace MFM {
 	fp->write("void writeArrayItem(");
 	fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
 	fp->write(" v, u32 index, u32 unitsize) { BF::");
-	fp->write(writeMethodForCodeGen().c_str());
+	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(m_stg, v, index, unitsize");
 	fp->write("); }\n");
       }
@@ -474,8 +458,8 @@ namespace MFM {
 
   const std::string UlamType::readMethodForCodeGen()
   {
-    if(!isScalar())
-      return readArrayItemMethodForCodeGen();
+    //    if(!isScalar())
+    //  return readArrayItemMethodForCodeGen();
 
     std::string method;    
     s32 sizeByIntBits = getTotalWordSize();
@@ -524,8 +508,8 @@ namespace MFM {
 
   const std::string UlamType::writeMethodForCodeGen()
   {
-    if(!isScalar())
-      return writeArrayItemMethodForCodeGen();
+    //if(!isScalar())
+    //  return writeArrayItemMethodForCodeGen();
 
     std::string method;
     s32 sizeByIntBits = getTotalWordSize();
