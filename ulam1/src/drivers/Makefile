@@ -9,8 +9,6 @@ SUB_DIRS+=test
 ####
 # Assume all drivers depend on ulam..
 ALLDEP+=$(ROOT_DIR)/src/ulam
-$(info DRIVERY $(ALLDEP))
-
 
 $(SRC_TARGETS):	$(SUB_DIRS)
 
