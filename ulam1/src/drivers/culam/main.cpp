@@ -56,9 +56,13 @@ namespace MFM
         *lastSlash = '\0';
         dir = path;
         file = lastSlash + 1;
+        if (file == "")
+        {
+          UDie("Missing .ulam file after last slash");
+        }
       }
 
-      std::cout << "IN DIRECTORY: " << dir << " COMPILE: " << file << std::endl;
+      std::cout << "BASE DIRECTORY: " << dir << " TARGET FILE: " << file << std::endl;
 
       if (m_fileManager) IDie("SetDirectory");
 
@@ -80,11 +84,13 @@ namespace MFM
     */
     int RunCompilation()
     {
-      m_stderr->write("RUN COMPILATION HERE\n");
+      m_stderr->write("BEGINNING COMPILATION\n");
+      /*
       m_stderr->write("Reading from: m_sourceFile\n");
       m_stderr->write("Writing to:   ?? locations inside m_fileManager\n");
       m_stderr->write("Errors to:    m_stderr\n");
       m_stderr->write("Returning:    0 iff compilation should continue on to C-level\n");
+      */
 
       Compiler C;
       return C.compileProgram(m_fileManager, m_filename, m_fileManager, m_stderr);
