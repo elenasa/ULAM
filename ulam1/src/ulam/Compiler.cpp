@@ -19,11 +19,11 @@ namespace MFM {
   Compiler::~Compiler()
   {  }
 
- 
+
   u32 Compiler::compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput)
   {
-    SourceStream ss(infm, m_state);    
-    
+    SourceStream ss(infm, m_state);
+
     Lexer * Lex = new Lexer(ss, m_state);
     Preparser * PP =  new Preparser(Lex, m_state);
     Parser * P = new Parser(PP, m_state);
@@ -32,13 +32,16 @@ namespace MFM {
     if (ss.push(startstr))
       {
 	programme = P->parseProgram(startstr, errput); //will be compared to answer
-
-	if(checkAndTypeLabelProgram(programme, errput) == 0)
-	  {
+        if (programme == 0)
+          {
+            errput->write("Unrecoverable Program Parse FAILURE.\n");
+          }
+        else if(checkAndTypeLabelProgram(programme, errput) == 0)
+          {
 	    //generateCodedProgram(programme, output);
 	    // setup for codeGen
 	    m_state.m_currentSelfSymbolForCodeGen = m_state.m_programDefST.getSymbolPtr(m_state.m_compileThisId);
-	    m_state.m_currentObjSymbolsForCodeGen.clear(); 
+	    m_state.m_currentObjSymbolsForCodeGen.clear();
 
 	    m_state.setupCenterSiteForTesting();  //temporary!!!
 
@@ -50,22 +53,22 @@ namespace MFM {
       }
     else
       {
-	errput->write("parseProgram failed to start SourceStream.");
+	errput->write("Compilation initialization FAILURE.\n");
       }
-   
+
     delete P;
     delete PP;
-    delete Lex;    
-    delete programme;  
-    return m_state.m_err.getErrorCount();  
+    delete Lex;
+    delete programme;
+    return m_state.m_err.getErrorCount();
   } //compileProgram
 
 
   //returns parse tree..
   u32 Compiler::parseProgram(FileManager * fm, std::string startstr, File * output, Node * & rtnNode)
   {
-    SourceStream ss(fm, m_state);    
-    
+    SourceStream ss(fm, m_state);
+
     Lexer * Lex = new Lexer(ss, m_state);
     Preparser * PP =  new Preparser(Lex, m_state);
     Parser * P = new Parser(PP, m_state);
@@ -79,12 +82,12 @@ namespace MFM {
       {
 	output->write("parseProgram failed to start SourceStream.");
       }
-   
+
     delete P;
     delete PP;
-    delete Lex;    
+    delete Lex;
     rtnNode = programme;  //ownership transferred to caller
-    return m_state.m_err.getErrorCount();  
+    return m_state.m_err.getErrorCount();
   }
 
 
@@ -135,7 +138,7 @@ namespace MFM {
       MSG("",msg.str().c_str() , INFO);
     }
 #endif
-    
+
     m_state.m_nodeEvalStack.returnFrame();       //epilog
     return m_state.m_err.getErrorCount();
   }
@@ -180,7 +183,7 @@ namespace MFM {
 
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = m_state.m_programDefST.getSymbolPtr(m_state.m_compileThisId);
-    m_state.m_currentObjSymbolsForCodeGen.clear(); 
+    m_state.m_currentObjSymbolsForCodeGen.clear();
 
     m_state.setupCenterSiteForTesting();  //temporary!!!
 
