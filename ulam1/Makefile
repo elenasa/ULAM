@@ -51,9 +51,13 @@ ULAM_LANGUAGE_VERSION:=1
 export CFLAGS
 CFLAGS+=-g
 
+# Root of source tree
+ROOT_DIR := $(shell pwd)
+export ROOT_DIR
+
 # Things that all builds should depend on
 export ALLDEP
-ALLDEP += $(shell find `pwd` -name 'Makefile')
+ALLDEP += $(shell find $(ROOT_DIR) -name 'Makefile')
 
 export BUILD_DATE BUILD_TIME BUILD_DATE_TIME
 BUILD_DATE := $(shell date -u +%Y%m%d)
