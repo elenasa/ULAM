@@ -22,5 +22,8 @@
 # Ignore build dirs
 **/build/*
 
+# Ignore internal dirs
+**/internal/*
+
 # Ignore doxygen-generated output
 doc/ref
