@@ -687,7 +687,8 @@ namespace MFM {
 
     if(m_currentFunctionReturnNodes.empty()) 
       {
-	if(it != Void)
+	//if(it != Void)
+	if(it != Void && !fsym->isNativeFunctionDeclaration())
 	  {
 	    std::ostringstream msg;
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return Statement is missing; Return type <" << getUlamTypeNameByIndex(it).c_str() << ">";

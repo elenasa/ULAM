@@ -531,7 +531,10 @@ namespace MFM {
     fp->write("OurAtom fooAtom = foo.GetDefaultAtom();\n");
 
     m_state.indent(fp);
-    fp->write("OurFoo::Uf_4test(fooAtom);\n");  //hardcoded mangled test name
+    fp->write("MFM::Ui_Ut_102323Int rtn;\n");
+
+    m_state.indent(fp);
+    fp->write("rtn = OurFoo::Uf_4test(fooAtom);\n");  //hardcoded mangled test name
 
 #if 0
     // output for t3200..
@@ -542,7 +545,8 @@ namespace MFM {
 #endif
 
     m_state.indent(fp);
-    fp->write("return 0;\n");
+    //fp->write("return 0;\n");
+    fp->write("return rtn.read();\n");         // useful to return result of test
 	
     m_state.m_currentIndentLevel--;
 

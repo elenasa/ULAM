@@ -1296,6 +1296,7 @@ namespace MFM {
 	{
 	  unreadToken();
 	  rtnNode = makeTermNode(leftNode);
+	  //rtnNode = parseRestOfTerm(rtnNode);
 	  rtnNode = parseRestOfTerm(rtnNode);
 	  break;
 	}
@@ -1796,7 +1797,8 @@ namespace MFM {
       case TOK_STAR:
       case TOK_SLASH:
 	unreadToken();
-	rtnNode = parseRestOfTerm(leftNode);  //mulOp
+	rtnNode = parseRestOfTerm(leftNode);       //mulOp
+	rtnNode = parseRestOfExpression(rtnNode);  //any more?
 	break;
       case TOK_SEMICOLON:
       case TOK_CLOSE_PAREN:
@@ -1961,7 +1963,7 @@ namespace MFM {
       }
 
     return rtnNode;
-  }
+  } //makeTermNode
 
 
   NodeUnaryOp * Parser::makeFactorNode()
