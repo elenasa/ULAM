@@ -1,0 +1,326 @@
+#!/usr/bin/perl -Tw
+# -*- perl -*-
+
+####TEMPLATE SUBSTITUTIONS
+
+my $CULAM_PATH='@CULAM_PATH@';
+my $MFM_ROOT_DIR='@MFM_ROOT_DIR@';
+
+IDie("Templates have not been substituted -- this is not the script you are looking for.\n")
+    if $CULAM_PATH =~ /@/ or $MFM_ROOT_DIR =~ /@/;
+
+####COMMAND LINE PROCESSING
+
+use Getopt::Long;
+use Pod::Usage;
+
+Getopt::Long::Configure ("gnu_getopt");    # Mostly for bundling + permute
+Getopt::Long::Configure ("noauto_abbrev"); # I find auto_abbrev unnerving
+#Getopt::Long::Configure ("debug");
+
+sub UDie {
+    my $msg = shift;
+    print STDERR "\nError: $msg";
+    print STDERR "Type '$0 -h' for help\n";
+    exit(1);
+}
+
+sub IDie {
+    my $msg = shift;
+    print STDERR "\nInternal Error: $msg";
+    print STDERR "Gah sorry!\n";
+    exit(2);
+}
+
+my @sections;
+my %secCounts;
+sub getSectionId {
+    my $section = shift;
+    if (!defined $secCounts{$section}) {
+        $secCounts{$section} = 0;
+        push @sections, $section;
+    }
+    my $count = $secCounts{$section}++;
+    return $section.".".length($count).$count;
+}
+
+sub getSectionNames {
+    return @sections;
+}
+
+my %swinfo = (
+    "help" => {
+        aliases => "h|?",
+        desc => "Print this help, then exit",
+        id => getSectionId("Information"),
+        handler => \&entryOcmd
+    },
+    "version" => {
+        aliases => "V",
+        desc => "Print version information, then exit",
+        id => getSectionId("Information"),
+        handler => \&entryOcmd
+    },
+    "test" => {
+        aliases => "t",
+        desc => "Run the test() function of target (implies --link)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "link" => {
+        aliases => "l",
+        desc => "Generate executables from target .ulam (implies --compile)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "compile" => {
+        aliases => "c",
+        desc => "Compile target .ulam into object files",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "sourceDirectory" => {
+        aliases => "s",
+        type => "s",
+        desc => "Directory containing source .ulam files",
+        default => ".",
+        id => getSectionId("Option"),
+        handler => \&entryOpt
+    },
+    "ulamcompile" => {
+        aliases => "U",
+        desc => "Compile target .ulam into C++ and stop",
+        id => getSectionId("Special-purpose"),
+        handler => \&entryCmd
+    },
+    );
+
+my $maxSwitchNameSize;
+sub ComputeMaxSwitchNameSize {
+    my $max = 0;
+    for my $key (keys %swinfo) {
+        my $swnames = getSwNameList($key);
+        my $len = length($swnames);
+        if ($len > $max) {
+            $max = $len;
+        }
+    }
+    $maxSwitchNameSize = $max;
+}
+ComputeMaxSwitchNameSize();
+
+sub printSummaryHelp
+{
+    print STDERR "\nThis is the top-level ulam compilation driver\n";
+    print STDERR "\nBasic command forms:\n";
+    print STDERR "  $0 INFOSWITCH\n";
+    print STDERR "  $0 [OPTIONSWITCHES] COMMANDSWITCH File1.ulam File2.ulam...\n";
+    print STDERR "\n";
+}
+
+sub printHelp {
+    printSummaryHelp();
+    printSectionsHelp();
+}
+
+sub printSectionsHelp
+{
+    my @sections = @_;
+    @sections = getSectionNames()
+        unless scalar(@sections) > 0;
+    for my $section (@sections) {
+        printSectionHelp($section);
+    }
+}
+
+sub getSectionSwitchList {
+    my $section = shift or IDie;
+    my %secs;
+    for my $key (keys %swinfo) {
+        my $rinfo = $swinfo{$key};
+        my $id = $rinfo->{"id"};
+        my ($sect,$num) = split(/[.]/, $id);
+        next unless $sect eq $section;
+        $secs{$num} = $key;
+    }
+    my @ret;
+    for my $key (sort keys %secs) {
+        push @ret, $secs{$key}
+    }
+    return @ret;
+}
+
+sub printSwitchHelp {
+    my $switch = shift or IDie;
+    my $swnames = getSwNameList($switch);
+    my $rinfo = getSwinfo($switch);
+    my $desc = $rinfo->{"desc"} or die "No desc for '$switch' you moke";
+    my $default = $rinfo->{"default"};
+    if (defined($default)) {
+        my $delim = "";
+        my $type = $rinfo->{"type"};
+        $delim = "'" if $type eq "s";
+        $desc .= "; default: $delim$default$delim";
+    }
+    my $width = $maxSwitchNameSize + 2;
+    printf STDERR "%${width}s  %s\n",$swnames,$desc;
+}
+
+sub printSectionHelp {
+    my $section = shift or IDie;
+    print STDERR "$section switches:\n";
+    for my $switch (getSectionSwitchList($section)) {
+        printSwitchHelp($switch);
+    }
+    print STDERR "\n";
+}
+
+sub getSwinfo {
+    my $key = shift;
+    my $rinfo = $swinfo{$key};
+    IDie "No '$key' info"
+        unless defined $rinfo;
+    return $rinfo;
+}
+
+sub getSwNameList {
+    my $key = shift;
+    my $joiner = shift;
+    $joiner = "," unless defined $joiner;
+    my $rinfo = getSwinfo($key);
+    my $ret = "--$key";
+    my $aliases = $rinfo->{"aliases"} || "";
+    for my $key (split /\|/, $aliases) {
+        if (length($key)==1) {
+            $ret .= "$joiner -$key";
+        } else {
+            $ret .= "$joiner --$key";
+        }
+    }
+    return $ret;
+}
+
+sub entryOpt {
+    my ($key, $val) = @_;
+    print "entryOpt($key,$val)\n";
+}
+
+sub entryCmd {
+    my ($key, $val) = @_;
+    UDie "Cannot specify "
+        .getSwNameList($key," or")
+        ." with "
+        .getSwNameList($cmd," or")
+        ."\n"
+        if defined($cmd) && $cmd ne $key;
+    $cmd = $key;
+}
+
+sub entryOcmd {
+    my ($key, $val) = @_;
+    if ($key eq "help") {
+        printHelp();
+        exit;
+    }
+    if ($key eq "version") {
+        printVersion();
+        exit;
+    }
+    IDie "unknown $key";
+}
+
+sub genOpts {
+    my @list;
+    for my $key (keys %swinfo) {
+        my $r = $swinfo{$key};
+        my $optkey = $key;
+        $optkey .= "|$r->{aliases}"
+            if defined($r->{"aliases"});
+        $optkey .= "=$r->{type}"
+            if defined($r->{"type"});
+        my $optval = $r->{"handler"};
+        unshift @list, $optkey, $optval;
+    }
+#    print join(" ",@list);
+    return @list;
+}
+
+sub natatime ($@)
+{
+    my $n = shift;
+    my @list = @_;
+
+    return sub
+    {
+        return splice @list, 0, $n;
+    }
+}
+
+GetOptions(genOpts())
+     or UDie("Command line switch processing failed\n");
+
+sub process {
+    my $foo = shift;
+    print "PROCESS($foo)\n";
+}
+
+sub getArgHref {
+    my $matching = shift;
+    my %ret;
+    for my $key (keys %{$o}) {
+        next unless $key =~ /^$matching/;
+        my $val = defined $o->{$key};
+        next unless $val;
+        $ret{$key} = $val;
+    }
+    return \%ret;
+}
+
+my @ulamFiles = @ARGV;
+UDie("No input files\n") unless @ulamFiles;
+
+####ACTION SELECTION
+
+for my $key (keys %{$o}) {
+    next unless defined $o->{$key};
+    print " $key='$o->{$key}'\n"
+}
+
+
+####EXECUTION ENGINE
+
+
+####POD
+#pod2usage(1) if $help;
+#pod2usage(-exitstatus => 0, -verbose => 2) if $man;
+
+=head1 NAME
+
+sample - Using Getopt::Long and Pod::Usage
+
+=head1 SYNOPSIS
+
+sample [options] [file ...]
+
+ Options:
+   -help            brief help message
+   -man             full documentation
+
+=head1 OPTIONS
+
+=over 8
+
+=item B
+
+Print a brief help message and exits.
+
+=item B
+
+Prints the manual page and exits.
+
+=back
+
+=head1 DESCRIPTION
+
+B will read the given input file(s) and do something
+useful with the contents thereof.
