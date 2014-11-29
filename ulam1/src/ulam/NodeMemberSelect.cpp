@@ -208,18 +208,16 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty());    //*************?
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
 
-    m_nodeRight->genCodeToStoreInto(fp, uvpass);     // w/o readInto to reset COS
+    m_nodeRight->genCodeToStoreInto(fp, uvpass);       // w/o readInto to reset COS
 
     if(m_nodeRight->getNodeType() != Void)
       m_nodeRight->genCodeReadIntoATmpVar(fp, uvpass); //e.g. in case of func calls 
 
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ****
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+    m_state.m_currentObjPtr = saveCurrentObjectPtr;    //restore current object ptr ****
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 
@@ -229,13 +227,8 @@ namespace MFM {
   void NodeMemberSelect::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
-
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-
     m_nodeRight->genCodeToStoreInto(fp, uvpass);   //uvpass contains the member selected
-
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;    //***********************
   } //genCodeToStoreInto
 
 } //end MFM

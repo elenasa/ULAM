@@ -81,155 +81,155 @@ typedef signed long s64;
   //Casts.h
 
 
-  inline u32 _GetNOnes32(const u32 bitwidth) 
+  inline u32 _GetNOnes32(const u32 bitwidth)
   {
     return (bitwidth >= 32) ? (u32) -1 : (((u32)1)<<bitwidth)-1;
   }
 
-  inline u64 _GetNOnes64(const u32 bitwidth) 
+  inline u64 _GetNOnes64(const u32 bitwidth)
   {
     return (bitwidth >= 64) ? (u64) -1L : (((u64)1)<<bitwidth)-1;
   }
 
 
-  inline s32 _SignExtend32(u32 val, const u32 bitwidth) 
+  inline s32 _SignExtend32(u32 val, const u32 bitwidth)
   {
     return ((bitwidth < 32) ? (((s32)(val<<(32-bitwidth)))>>(32-bitwidth)) : (s32) val);
   }
 
-  inline s64 _SignExtend64(u64 val, const u32 bitwidth) 
+  inline s64 _SignExtend64(u64 val, const u32 bitwidth)
   {
     return ((bitwidth < 64) ? (((s64)(val<<(64-bitwidth)))>>(64-bitwidth)) : (s64) val);
   }
 
   //To INT:
-  inline s32 _Int32ToInt32(s32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s32 _Int32ToInt32(s32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const s32 maxdestval = _GetNOnes32(destbitwidth-1);  //positive
     const s32 mindestval = ~maxdestval;
     return CLAMP<s32>(mindestval, maxdestval, val);
   }
 
-  inline s64 _Int64ToInt64(s64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s64 _Int64ToInt64(s64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const s64 maxdestval = _GetNOnes64(srcbitwidth-1);
     const s64 mindestval = ~maxdestval;
     return CLAMP<s64>(mindestval, maxdestval, val);
   }
 
-  inline s32 _Unsigned32ToInt32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s32 _Unsigned32ToInt32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     u32 maxdestval = _GetNOnes32(destbitwidth - 1);
     return (s32) MIN<u32>(val, maxdestval);
   }
 
-  inline s64 _Unsigned64ToInt64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s64 _Unsigned64ToInt64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     u64 maxdestval = _GetNOnes64(destbitwidth - 1);
     return (s64) MIN<u64>(val, maxdestval);
   }
 
-  inline s32 _Bool32ToInt32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s32 _Bool32ToInt32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes32(srcbitwidth));
     return (s32) ((count1s > (s32) (srcbitwidth - count1s)) ? 1 : 0);
   }
 
-  inline s64 _Bool64ToInt64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s64 _Bool64ToInt64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes64(srcbitwidth));
     return (s64) ((count1s > (s32) (srcbitwidth - count1s)) ? 1 : 0);
   }
 
-  inline s32 _Unary32ToInt32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s32 _Unary32ToInt32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return PopCount(val & _GetNOnes32(srcbitwidth));
   }
 
-  inline s64 _Unary64ToInt64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s64 _Unary64ToInt64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (s64) PopCount(val & _GetNOnes64(srcbitwidth));
   }
 
-  inline s32 _Bits32ToInt32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s32 _Bits32ToInt32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (s32) (val & _GetNOnes32(srcbitwidth)); // no sign extend
   }
 
-  inline s64 _Bits64ToInt64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline s64 _Bits64ToInt64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (s64) (val & _GetNOnes64(srcbitwidth)); // no sign extend
   }
 
 //To BOOL:
-  inline u32 _Bool32ToBool32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Bool32ToBool32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes32(srcbitwidth));
     // == when even number bits is ignored (warning at def)
-    return (u32) ((count1s > (s32) (srcbitwidth - count1s)) ? _GetNOnes32(destbitwidth) : 0); 
+    return (u32) ((count1s > (s32) (srcbitwidth - count1s)) ? _GetNOnes32(destbitwidth) : 0);
   }
 
-  inline u32 _Bool64ToBool64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Bool64ToBool64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes64(srcbitwidth));
     // == when even number bits is ignored (warning at def)
-    return (u64) ((count1s > (s32) (srcbitwidth - count1s)) ? _GetNOnes64(destbitwidth) : 0); 
+    return (u64) ((count1s > (s32) (srcbitwidth - count1s)) ? _GetNOnes64(destbitwidth) : 0);
   }
 
-  inline u32 _Int32ToBool32(s32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Int32ToBool32(s32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return  (u32) (((val & _GetNOnes32(srcbitwidth)) != 0) ? _GetNOnes32(destbitwidth) : 0);
   }
 
-  inline u64 _Int64ToBool64(s64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Int64ToBool64(s64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return  (u64) (((val & _GetNOnes64(srcbitwidth)) != 0) ? _GetNOnes64(destbitwidth) : 0);
   }
 
-  inline u32 _Unsigned32ToBool32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Unsigned32ToBool32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return  (u32) (((val & _GetNOnes32(srcbitwidth)) != 0) ? _GetNOnes32(destbitwidth) : 0);
   }
 
-  inline u64 _Unsigned64ToBool64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Unsigned64ToBool64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return  (u64) (((val & _GetNOnes64(srcbitwidth)) != 0) ? _GetNOnes64(destbitwidth) : 0);
   }
 
-  inline u32 _Unary32ToBool32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Unary32ToBool32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return  (u32) (((val & _GetNOnes32(srcbitwidth)) != 0) ? _GetNOnes32(destbitwidth) : 0);
   }
 
-  inline u64 _Unary64ToBool64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Unary64ToBool64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return  (u64) (((val & _GetNOnes64(srcbitwidth)) != 0) ? _GetNOnes64(destbitwidth) : 0);
   }
 
-  inline u32 _Bits32ToBool32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Bits32ToBool32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (val & _GetNOnes32(MIN<u32>(srcbitwidth, destbitwidth))); //no change to Bit data
   }
 
-  inline u64 _Bits64ToBool64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Bits64ToBool64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (val & _GetNOnes64(MIN<u32>(srcbitwidth, destbitwidth))); //no change to Bit data
   }
 
-  inline bool _Bool32ToCbool(u32 val, const u32 srcbitwidth) 
+  inline bool _Bool32ToCbool(u32 val, const u32 srcbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes32(srcbitwidth));
     return (count1s > (s32) (srcbitwidth - count1s));  // == when even number bits is ignored (warning at def)
   }
 
-  inline bool _Bool64ToCbool(u64 val, const u32 srcbitwidth) 
+  inline bool _Bool64ToCbool(u64 val, const u32 srcbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes64(srcbitwidth));
     return (count1s > (s32) (srcbitwidth - count1s));  // == when even number bits is ignored (warning at def)
   }
 
   //To UNSIGNED:
-  inline u32 _Int32ToUnsigned32(s32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Int32ToUnsigned32(s32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     if(val <= 0)
       return 0;
@@ -239,7 +239,7 @@ typedef signed long s64;
     return CLAMP<u32>(mindestval, maxdestval, (u32) val);
   }
 
-  inline u64 _Int64ToUnsigned64(s64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Int64ToUnsigned64(s64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     if(val <= 0)
       return 0;
@@ -249,145 +249,145 @@ typedef signed long s64;
     return CLAMP<u64>(mindestval, maxdestval, (u64) val);
   }
 
-  inline u32 _Unsigned32ToUnsigned32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Unsigned32ToUnsigned32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const u32 maxdestval = _GetNOnes32(destbitwidth);
     const u32 mindestval = 0;
     return CLAMP<u32>(mindestval, maxdestval, val);
   }
 
-  inline u64 _Unsigned64ToUnsigned64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Unsigned64ToUnsigned64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const u64 maxdestval = _GetNOnes64(destbitwidth);
     const u64 mindestval = 0;
     return CLAMP<u64>(mindestval, maxdestval, val);
   }
 
-  inline u32 _Bool32ToUnsigned32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Bool32ToUnsigned32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes32(srcbitwidth));
     return ((count1s > (s32) (srcbitwidth - count1s)) ? 1 : 0);
   }
 
-  inline u64 _Bool64ToUnsigned64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Bool64ToUnsigned64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes64(srcbitwidth));
     return ((count1s > (s32) (srcbitwidth - count1s)) ? 1 : 0);
   }
 
-  inline u32 _Unary32ToUnsigned32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Unary32ToUnsigned32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return PopCount(val & _GetNOnes32(srcbitwidth));
   }
 
-  inline u64 _Unary64ToUnsigned64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Unary64ToUnsigned64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return PopCount(val & _GetNOnes64(srcbitwidth));
   }
 
-  inline u32 _Bits32ToUnsigned32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Bits32ToUnsigned32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (val & _GetNOnes32(srcbitwidth));
   }
 
-  inline u64 _Bits64ToUnsigned64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Bits64ToUnsigned64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
-    return (val & _GetNOnes64(srcbitwidth)); 
+    return (val & _GetNOnes64(srcbitwidth));
   }
 
   //To BITS:
-  inline u32 _Int32ToBits32(s32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Int32ToBits32(s32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (u32) (val & _GetNOnes32(srcbitwidth));
   }
 
-  inline u64 _Int64ToBits64(s64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Int64ToBits64(s64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (u64) (val & _GetNOnes64(srcbitwidth));
   }
 
-  inline u32 _Unsigned32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Unsigned32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return val & _GetNOnes32(srcbitwidth);
   }
 
-  inline u64 _Unsigned64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Unsigned64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return val & _GetNOnes64(srcbitwidth);
   }
 
-  inline u32 _Bool32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Bool32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return val & _GetNOnes32(srcbitwidth);
   }
 
-  inline u64 _Bool64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Bool64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return val & _GetNOnes64(srcbitwidth);
   }
 
-  inline u32 _Unary32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Unary32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return val & _GetNOnes32(srcbitwidth);
   }
 
-  inline u64 _Unary64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Unary64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return val & _GetNOnes64(srcbitwidth);
   }
 
-  inline u32 _Bits32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Bits32ToBits32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return val & _GetNOnes32(srcbitwidth);
   }
 
-  inline u64 _Bits64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Bits64ToBits64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return val & _GetNOnes64(srcbitwidth);
   }
 
   //To UNARY:
-  inline u32 _Int32ToUnary32(s32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Int32ToUnary32(s32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const s32 maxdestval = destbitwidth;
     const s32 mindestval = 0;
     return (u32) _GetNOnes32(CLAMP<s32>(mindestval, maxdestval, val));
   }
 
-  inline u64 _Int64ToUnary64(s64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Int64ToUnary64(s64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const s64 maxdestval = destbitwidth;
     const s64 mindestval = 0;
     return (u64) _GetNOnes64(CLAMP<s64>(mindestval, maxdestval, val));
   }
 
-  inline u32 _Unsigned32ToUnary32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Unsigned32ToUnary32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const u32 maxdestval = destbitwidth;
     const u32 mindestval = 0;
     return _GetNOnes32(CLAMP<u32>(mindestval, maxdestval, val));
   }
 
-  inline u64 _Unsigned64ToUnary64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Unsigned64ToUnary64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const u64 maxdestval = destbitwidth;
     const u64 mindestval = 0;
     return _GetNOnes64(CLAMP<u64>(mindestval, maxdestval, val));
   }
 
-  inline u32 _Bool32ToUnary32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Bool32ToUnary32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes32(srcbitwidth));
     return ((count1s > (s32) (srcbitwidth - count1s)) ? 1 : 0);
   }
 
-  inline u64 _Bool64ToUnary64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Bool64ToUnary64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     s32 count1s = PopCount(val & _GetNOnes64(srcbitwidth));
     return ((count1s > (s32) (srcbitwidth - count1s)) ? 1 : 0);
   }
 
-  inline u32 _Unary32ToUnary32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Unary32ToUnary32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const u32 maxdestval = destbitwidth;
     const u32 mindestval = 0;
@@ -395,7 +395,7 @@ typedef signed long s64;
     return _GetNOnes32(CLAMP<u32>(mindestval, maxdestval, count1s));
   }
 
-  inline u64 _Unary64ToUnary64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Unary64ToUnary64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     const u32 maxdestval = destbitwidth;
     const u32 mindestval = 0;
@@ -403,12 +403,12 @@ typedef signed long s64;
     return _GetNOnes64(CLAMP<u32>(mindestval, maxdestval, count1s));
   }
 
-  inline u32 _Bits32ToUnary32(u32 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u32 _Bits32ToUnary32(u32 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (val & _GetNOnes32(MIN<u32>(srcbitwidth, destbitwidth)));
   }
 
-  inline u64 _Bits64ToUnary64(u64 val, const u32 srcbitwidth, const u32 destbitwidth) 
+  inline u64 _Bits64ToUnary64(u64 val, const u32 srcbitwidth, const u32 destbitwidth)
   {
     return (val & _GetNOnes64(MIN<u32>(srcbitwidth, destbitwidth)));
   }
@@ -416,14 +416,14 @@ typedef signed long s64;
   //Ops.h
 
   //LOGICAL BANG:
-  inline u32 _LogicalBangBool32(u32 val, u32 bitwidth) 
+  inline u32 _LogicalBangBool32(u32 val, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     s32 count1s = PopCount(val & mask);
     return ((count1s > (s32) (bitwidth - count1s)) ? 0 : mask);  // == when even number bits is ignored (warning at def)
   }
 
-  inline u64 _LogicalBangBool64(u64 val, u32 bitwidth) 
+  inline u64 _LogicalBangBool64(u64 val, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     s32 count1s = PopCount(val & mask);
@@ -431,18 +431,18 @@ typedef signed long s64;
   }
 
 
-  inline s32 _UnaryMinusInt32(s32 val, u32 bitwidth) 
+  inline s32 _UnaryMinusInt32(s32 val, u32 bitwidth)
   {
     return -val;  //assumes sign extended ???
   }
 
-  inline s64 _UnaryMinusInt64(s64 val, u32 bitwidth) 
+  inline s64 _UnaryMinusInt64(s64 val, u32 bitwidth)
   {
     return -val;  //assumes sign extended ???
   }
 
   //Bitwise Binary Ops:
-  inline u32 _BitwiseOrUnary32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseOrUnary32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     u32 maska = _GetNOnes32(PopCount(vala & mask));
@@ -450,7 +450,7 @@ typedef signed long s64;
     return maska | maskb;  // "max"
   }
 
-  inline u64 _BitwiseOrUnary64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseOrUnary64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     u64 maska = _GetNOnes64(PopCount(vala & mask));
@@ -458,7 +458,7 @@ typedef signed long s64;
     return maska | maskb;  //"max"
   }
 
-  inline u32 _BitwiseAndUnary32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseAndUnary32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     u32 maska = _GetNOnes32(PopCount(vala & mask));
@@ -466,7 +466,7 @@ typedef signed long s64;
     return maska & maskb;  //"min"
   }
 
-  inline u64 _BitwiseAndUnary64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseAndUnary64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     u64 maska = _GetNOnes64(PopCount(vala & mask));
@@ -474,7 +474,7 @@ typedef signed long s64;
     return maska & maskb;  //"min"
   }
 
-  inline u32 _BitwiseXorUnary32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseXorUnary32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     u32 counta = PopCount(vala & mask);
@@ -482,7 +482,7 @@ typedef signed long s64;
     return _GetNOnes32(MAX<u32>(counta, countb) - MIN<u32>(counta, countb)); //right-justified ^
   }
 
-  inline u64 _BitwiseXorUnary64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseXorUnary64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     u32 counta = PopCount(vala & mask);
@@ -490,151 +490,151 @@ typedef signed long s64;
     return _GetNOnes64(MAX<u32>(counta, countb) - MIN<u32>(counta, countb)); //right-justified ^
   }
 
-  inline u32 _BitwiseOrBits32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseOrBits32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     return  ( (vala | valb) & mask) ;  // "at least max"
   }
 
-  inline u64 _BitwiseOrBits64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseOrBits64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     return ( (vala | valb) & mask);  //"at least max"
   }
 
-  inline u32 _BitwiseAndBits32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseAndBits32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     return ( (vala & valb) & mask);  //"at most min"
   }
 
-  inline u64 _BitwiseAndBits64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseAndBits64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     return ( (vala & valb) & mask);  //"at most min"
   }
 
 
-  inline u32 _BitwiseXorBits32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseXorBits32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     return ( (vala ^ valb) & mask);
   }
 
-  inline u64 _BitwiseXorBits64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseXorBits64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
-    return ( (vala ^ valb) & mask); 
+    return ( (vala ^ valb) & mask);
   }
 
-  inline s32 _BitwiseOrInt32(s32 vala, s32 valb, u32 bitwidth) 
+  inline s32 _BitwiseOrInt32(s32 vala, s32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     return  ( (vala | valb) & mask) ;  // "at least max"
   }
 
-  inline s64 _BitwiseOrInt64(s64 vala, s64 valb, u32 bitwidth) 
+  inline s64 _BitwiseOrInt64(s64 vala, s64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     return ( (vala | valb) & mask);  //"at least max"
   }
 
-  inline s32 _BitwiseAndInt32(s32 vala, s32 valb, u32 bitwidth) 
+  inline s32 _BitwiseAndInt32(s32 vala, s32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     return ( (vala & valb) & mask);  //"at most min"
   }
 
-  inline s64 _BitwiseAndInt64(s64 vala, s64 valb, u32 bitwidth) 
+  inline s64 _BitwiseAndInt64(s64 vala, s64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     return ( (vala & valb) & mask);  //"at most min"
   }
 
-  inline s32 _BitwiseXorInt32(s32 vala, s32 valb, u32 bitwidth) 
+  inline s32 _BitwiseXorInt32(s32 vala, s32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     return ( (vala ^ valb) & mask);
   }
 
-  inline s64 _BitwiseXorInt64(s64 vala, s64 valb, u32 bitwidth) 
+  inline s64 _BitwiseXorInt64(s64 vala, s64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
-    return ( (vala ^ valb) & mask); 
+    return ( (vala ^ valb) & mask);
   }
 
-  inline u32 _BitwiseOrUnsigned32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseOrUnsigned32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     return  ( (vala | valb) & mask) ;  // "at least max"
   }
 
-  inline u64 _BitwiseOrUnsigned64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseOrUnsigned64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     return ( (vala | valb) & mask);  //"at least max"
   }
 
-  inline u32 _BitwiseAndUnsigned32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseAndUnsigned32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     return ( (vala & valb) & mask);  //"at most min"
   }
 
-  inline u64 _BitwiseAndUnsigned64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseAndUnsigned64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
     return ( (vala & valb) & mask);  //"at most min"
   }
 
-  inline u32 _BitwiseXorUnsigned32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseXorUnsigned32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 mask = _GetNOnes32(bitwidth);
     return ( (vala ^ valb) & mask);
   }
 
-  inline u64 _BitwiseXorUnsigned64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseXorUnsigned64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 mask = _GetNOnes64(bitwidth);
-    return ( (vala ^ valb) & mask); 
+    return ( (vala ^ valb) & mask);
   }
 
-  inline u32 _BitwiseOrBool32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseOrBool32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 binvala = _Bool32ToBits32(vala, bitwidth, bitwidth);
     u32 binvalb = _Bool32ToBits32(valb, bitwidth, bitwidth);
     return _Bits32ToBool32(binvala | binvalb, bitwidth, bitwidth);
   }
 
-  inline u64 _BitwiseOrBool64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseOrBool64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 binvala = _Bool64ToBits64(vala, bitwidth, bitwidth);
     u64 binvalb = _Bool64ToBits64(valb, bitwidth, bitwidth);
     return _Bits64ToBool64(binvala | binvalb, bitwidth, bitwidth);
   }
 
-  inline u32 _BitwiseAndBool32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseAndBool32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 binvala = _Bool32ToBits32(vala, bitwidth, bitwidth);
     u32 binvalb = _Bool32ToBits32(valb, bitwidth, bitwidth);
     return _Bits32ToBool32(binvala & binvalb, bitwidth, bitwidth);
   }
 
-  inline u64 _BitwiseAndBool64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseAndBool64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 binvala = _Bool64ToBits64(vala, bitwidth, bitwidth);
     u64 binvalb = _Bool64ToBits64(valb, bitwidth, bitwidth);
     return _Bits64ToBool64(binvala & binvalb, bitwidth, bitwidth);
   }
 
-  inline u32 _BitwiseXorBool32(u32 vala, u32 valb, u32 bitwidth) 
+  inline u32 _BitwiseXorBool32(u32 vala, u32 valb, u32 bitwidth)
   {
     u32 binvala = _Bool32ToBits32(vala, bitwidth, bitwidth);
     u32 binvalb = _Bool32ToBits32(valb, bitwidth, bitwidth);
     return _Bits32ToBool32(binvala ^ binvalb, bitwidth, bitwidth);
   }
 
-  inline u64 _BitwiseXorBool64(u64 vala, u64 valb, u32 bitwidth) 
+  inline u64 _BitwiseXorBool64(u64 vala, u64 valb, u32 bitwidth)
   {
     u64 binvala = _Bool64ToBits64(vala, bitwidth, bitwidth);
     u64 binvalb = _Bool64ToBits64(valb, bitwidth, bitwidth);
@@ -891,14 +891,14 @@ struct BitVector {
   enum { WORDS = (SIZE + BPW - 1)/BPW };
   u32 m_stg[WORDS];
   BitVector() ;
-  BitVector(const u32 * const values); 
+  BitVector(const u32 * const values);
   BitVector(const BitVector & other); //copy constructor
   BitVector(const u32 value);
   BitVector(const s32 value);
   BitVector(const u64 value);
   BitVector(const s64 value);
 
-  u32 Read(u32 pos, u32 len) const;  
+  u32 Read(u32 pos, u32 len) const;
   void Write(u32 pos, u32 len, u32 val) ;
 };
 
@@ -964,7 +964,7 @@ BitVector<S>::BitVector() {
     m_stg[i] = 0;
   }
 }
-  
+
   template <u32 S>
   BitVector<S>::BitVector(const u32 * const values)
   {
@@ -976,7 +976,7 @@ BitVector<S>::BitVector() {
   {
     memcpy(m_stg,other.m_stg,sizeof(m_stg));
   }
-  
+
   template <u32 S>
   BitVector<S>::BitVector(const u32 value)
   {
@@ -1038,11 +1038,11 @@ void BitVector<S>::Write(u32 pos, u32 len, u32 val)
   template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
   struct BitField {
     static u32 ReadRaw(const BV & bv) ;
-    static void WriteRaw(BV & bv, u32 val) ;
-    static u32 ReadArrayRaw(const BV & bv, u32 arraywidth, u32 len, u32 pos);
-    static void WriteArrayRaw(BV & bv, u32 val, u32 arraywidth, u32 len, u32 pos);
+    static void WriteRaw(BV & bv, const u32 val) ;
+    static u32 ReadArrayRaw(const BV & bv, const u32 index, const u32 unitsize);
+    static void WriteArrayRaw(BV & bv, const u32 val, const u32 index, const u32 unitsize);
   };
-  
+
 //BitField.tcc
 template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
 u32 BitField<BV,VDTYPE,LEN,POS>::ReadRaw(const BV & bv)
@@ -1051,31 +1051,22 @@ u32 BitField<BV,VDTYPE,LEN,POS>::ReadRaw(const BV & bv)
 }
 
 template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
-void BitField<BV,VDTYPE,LEN,POS>::WriteRaw(BV & bv, u32 val)
+void BitField<BV,VDTYPE,LEN,POS>::WriteRaw(BV & bv, const u32 val)
 {
   bv.Write(POS,LEN,val);
 }
 
 template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
-u32 BitField<BV,VDTYPE,LEN,POS>::ReadArrayRaw(const BV & bv, u32 arraywidth, u32 len, u32 pos)
+u32 BitField<BV,VDTYPE,LEN,POS>::ReadArrayRaw(const BV & bv, const u32 index, const u32 unitsize)
 {
-  if(arraywidth != LEN)
-    FAIL();
-
-  if(pos < POS || pos >= POS+LEN)
-    FAIL();
-
-  return bv.Read(pos,len);
+  return bv.Read((index * unitsize) + POS, unitsize);
 }
 
 
 template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
-void BitField<BV,VDTYPE,LEN,POS>::WriteArrayRaw(BV & bv, u32 val, u32 arraywidth, u32 len, u32 pos)
+void BitField<BV,VDTYPE,LEN,POS>::WriteArrayRaw(BV & bv, const u32 val, const u32 index, const u32 unitsize)
 {
-  if(pos < POS || pos > POS+LEN)  //>= ???
-    FAIL();
-
-  bv.Write(pos,len,val);
+  bv.Write((index * unitsize) + POS, unitsize, val);
 }
 
 //AtomicParameterType.h
@@ -1089,12 +1080,12 @@ struct AtomicParameterType
 
   static u32 ReadRaw(const BitVector<BPA> & bv){ return BitField<BitVector<BPA>, VDTYPE, LEN, POS>::ReadRaw(bv); }
 
-  static void WriteRaw(BitVector<BPA> & bv, u32 val) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::WriteRaw(bv, val); }
+  static void WriteRaw(BitVector<BPA> & bv, const u32 val) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::WriteRaw(bv, val); }
 
-  static u32 ReadArrayRaw(const BitVector<BPA> & bv, u32 arraywidth, u32 len, u32 pos) { return BitField<BitVector<BPA>, VDTYPE, LEN, POS>::ReadArrayRaw(bv, arraywidth, len, pos); }
+  static u32 ReadArrayRaw(const BitVector<BPA> & bv, const u32 index, const u32 unitsize) { return BitField<BitVector<BPA>, VDTYPE, LEN, POS>::ReadArrayRaw(bv, index, unitsize); }
 
 
-  static void WriteArrayRaw(BitVector<BPA> & bv, u32 val, u32 arraywidth, u32 len, u32 pos) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::WriteArrayRaw(bv, val, arraywidth, len, pos); }
+  static void WriteArrayRaw(BitVector<BPA> & bv, const u32 val, const u32 index, const u32 unitsize) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::WriteArrayRaw(bv, val, index, unitsize); }
 
 };
 
@@ -1129,6 +1120,9 @@ struct ParamConfig
 //P3Atom.h
 template <class PC>
 struct P3Atom : Atom<CoreConfig <P3Atom<PC>, PC> > {
+  u32 GetType() const {
+    return 3;
+  }
 };
 
 //Element.h
@@ -1163,6 +1157,46 @@ struct Element
       FAIL();
     return m_defaultAtom;
   }
+};
+
+//EventWindow.h
+#define MFM_EVENT_WINDOW_SITES(radius) ((((radius)*2+1)*((radius)*2+1))/2+1)
+template <class CC>
+struct EventWindow
+{
+  typedef typename CC::ATOM_TYPE T;
+  typedef typename CC::PARAM_CONFIG P;
+  enum { R = 4/*P::EVENT_WINDOW_RADIUS*/ };
+  enum { SITE_COUNT = MFM_EVENT_WINDOW_SITES(R) };
+
+  static EventWindow & Get() {
+    static EventWindow THE_EVENT_WINDOW;
+    return THE_EVENT_WINDOW;
+  }
+
+  ////
+  //subscript operation, for reading and writing
+  T& GetAtom(u32 siteNumber)
+  {
+    if (siteNumber >= SITE_COUNT) FAIL();
+    return m_atomBuffer[siteNumber];
+  }
+
+  ////
+  //Other ulam-programmer-accessible window methods
+  bool IsLiveSite(u32 siteNumber) const
+  {
+    if (siteNumber >= SITE_COUNT) abort();
+    return m_liveSite[siteNumber];
+  }
+
+  void Diffuse() {
+    // Not yet implemented
+  }
+
+private:
+  T m_atomBuffer[SITE_COUNT];
+  bool m_liveSite[SITE_COUNT];
 };
 
 } //MFM

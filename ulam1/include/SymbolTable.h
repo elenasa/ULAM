@@ -66,6 +66,8 @@ namespace MFM{
 
     void labelTableOfFunctions();
 
+    bool checkForAndInitializeClassCustomArrayType();
+
     u32 countNativeFuncDeclsForTableOfFunctions();
     
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
@@ -81,6 +83,8 @@ namespace MFM{
     s32 getMaxVariableSymbolsBitSize();  //for quark union
 
     void packBitsForTableOfClasses();
+
+    void initializeCustomArraysForTableOfClasses();
 
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 

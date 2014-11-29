@@ -230,7 +230,7 @@ namespace MFM {
       };
 
 
-    NodeBlockClass * classNode = parseClassBlock();
+    NodeBlockClass * classNode = parseClassBlock(cSym->getUlamTypeIdx()); //we know its type..sweeter?
 
     if(classNode)
       {
@@ -248,7 +248,7 @@ namespace MFM {
   }
 
 
-  NodeBlockClass * Parser::parseClassBlock()
+  NodeBlockClass * Parser::parseClassBlock(UTI utype)
   {
     Token pTok;
     NodeBlockClass * rtnNode = NULL;
@@ -261,6 +261,8 @@ namespace MFM {
       {
 	rtnNode = new NodeBlockClassEmpty(m_state.m_currentBlock, m_state);
 	rtnNode->setNodeLocation(pTok.m_locator);
+	rtnNode->setNodeType(utype); 
+
 	//return NULL;  11082014
 	m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
 
@@ -272,6 +274,7 @@ namespace MFM {
 
     rtnNode = new NodeBlockClass(prevBlock, m_state);
     rtnNode->setNodeLocation(pTok.m_locator);
+    rtnNode->setNodeType(utype); 
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
@@ -1483,6 +1486,16 @@ namespace MFM {
 
     // symbol will have pointer to body (or just decl for 'use');
     fsymptr->setFunctionNode(rtnNode); // tfr ownership
+
+    // set class type to custom array; the current class block 
+    // node type was set to its class symbol type after checkAndLabelType
+    if(m_state.getCustomArrayGetFunctionNameId() == identTok.m_dataindex)
+      {
+	UTI cuti = m_state.m_classBlock->getNodeType();  //prevBlock
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	((UlamTypeClass *) cut)->setCustomArrayType(uti);
+      }
+
 
     m_state.m_currentBlock = rtnNode;  //before parsing the args
 

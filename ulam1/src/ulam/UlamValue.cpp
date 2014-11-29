@@ -169,7 +169,19 @@ namespace MFM {
   UlamValue UlamValue::getValAt(u32 offset, CompilerState& state) const
   { 
     assert(getUlamValueTypeIdx() == Ptr);
-    assert(state.getArraySize(m_uv.m_ptrValue.m_targetType) > 0);
+    
+    UTI auti = m_uv.m_ptrValue.m_targetType;
+    UlamType * aut = state.getUlamTypeByIndex(auti);
+    if(aut->isCustomArray())
+      {
+	UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
+	UlamType * caut = state.getUlamTypeByIndex(caType);
+	if(caut->getBitSize() > 32)
+	  return UlamValue::makeAtom(caType);
+	return UlamValue::makeImmediate(caType, 0, state);  //quietly skip for now XXX
+      }
+
+    assert(state.getArraySize(auti) > 0);
     
     UlamValue scalarPtr = UlamValue::makeScalarPtr(*this, state);
   
@@ -353,7 +365,8 @@ namespace MFM {
     else
       {
 	ULAMCLASSTYPE dclasstype = state.getUlamTypeByIndex(duti)->getUlamClass();
-	if(dclasstype == UC_NOTACLASS)
+	//if(dclasstype == UC_NOTACLASS)
+	if(dclasstype == UC_NOTACLASS && duti != Atom)
 	  datavalue = getImmediateData(p.getPtrLen());
 	else
 	  datavalue = getData(p.getPtrPos(), p.getPtrLen());
