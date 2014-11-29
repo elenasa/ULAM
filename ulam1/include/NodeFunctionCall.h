@@ -79,9 +79,10 @@ namespace MFM{
     //helper methods override Node read/write
     virtual void genMemberNameOfMethod(File * fp, UlamValue uvpass); 
 
+    virtual void genElementParameterMemberNameOfMethod(File * fp);
+
     virtual void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
 
-    virtual void genElementParameterMemberNameOfMethod(File * fp);
 
   private:
 

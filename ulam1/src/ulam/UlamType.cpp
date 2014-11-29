@@ -125,7 +125,7 @@ namespace MFM {
     mangled << state->getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
 
     return mangled.str();
-  }
+  } //getUlamTypeMangledName
 
 
   const std::string UlamType::getUlamTypeUPrefix()
@@ -318,7 +318,7 @@ namespace MFM {
 	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
-	fp->write("u32 index, u32 unitsize) const { return BF::");
+	fp->write("const u32 index, const u32 unitsize) const { return BF::");
 	fp->write(readArrayItemMethodForCodeGen().c_str());
 	fp->write("(m_stg, index, unitsize");
 	fp->write("); }\n");
@@ -331,7 +331,7 @@ namespace MFM {
     if(isScalar() || getPackable() == PACKEDLOADABLE)
       {
 	state->indent(fp);
-	fp->write("void write(");
+	fp->write("void write(const ");
 	fp->write(getTmpStorageTypeAsString(state).c_str()); //s32 or u32
 	fp->write(" v) { BF::");
 	fp->write(writeMethodForCodeGen().c_str());
@@ -346,9 +346,9 @@ namespace MFM {
       {
 	// writes an element of array
 	state->indent(fp);
-	fp->write("void writeArrayItem(");
+	fp->write("void writeArrayItem(const ");
 	fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
-	fp->write(" v, u32 index, u32 unitsize) { BF::");
+	fp->write(" v, const u32 index, const u32 unitsize) { BF::");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
 	fp->write("(m_stg, v, index, unitsize");
 	fp->write("); }\n");
@@ -401,6 +401,12 @@ namespace MFM {
   bool UlamType::isScalar()
   {
     return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);
+  }
+
+
+  bool UlamType::isCustomArray()
+  {
+    return false;
   }
 
 
@@ -481,31 +487,6 @@ namespace MFM {
   } //readMethodForCodeGen
 
 
-  const std::string UlamType::readArrayItemMethodForCodeGen()
-  {
-    std::string method;
-    if(getPackable() == UNPACKED)
-	method = "ReadArrayUnpackedRaw";  //TBD
-    else
-      {
-	s32 sizeByIntBits = getItemWordSize();
-	switch(sizeByIntBits)
-	  {
-	  case 0:    //e.g. empty quarks
-	  case 32:
-	    method = "ReadArrayRaw";
-	    break;
-	  case 64:
-	    method = "ReadArrayLongRaw";
-	    break;
-	  default:
-	    assert(0);
-	  };
-      }
-    return method;
-  } //readArrayItemMethodForCodeGen()
-
-
   const std::string UlamType::writeMethodForCodeGen()
   {
     //if(!isScalar())
@@ -530,6 +511,31 @@ namespace MFM {
     return method;
   } //writeMethodForCodeGen
   
+
+  const std::string UlamType::readArrayItemMethodForCodeGen()
+  {
+    std::string method;
+    if(getPackable() == UNPACKED)
+	method = "ReadArrayUnpackedRaw";  //TBD
+    else
+      {
+	s32 sizeByIntBits = getItemWordSize();
+	switch(sizeByIntBits)
+	  {
+	  case 0:    //e.g. empty quarks
+	  case 32:
+	    method = "ReadArrayRaw";
+	    break;
+	  case 64:
+	    method = "ReadArrayLongRaw";
+	    break;
+	  default:
+	    assert(0);
+	  };
+      }
+    return method;
+  } //readArrayItemMethodForCodeGen()
+
 
   const std::string UlamType::writeArrayItemMethodForCodeGen()
   {

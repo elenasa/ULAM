@@ -48,6 +48,8 @@ namespace MFM{
     NodeBinaryOpEqualBitwise(Node * left, Node * right, CompilerState & state);
     ~NodeBinaryOpEqualBitwise();
 
+    UTI checkAndLabelType();
+
     virtual const std::string methodNameForCodeGen();
 
     virtual void genCode(File * fp, UlamValue& uvpass);

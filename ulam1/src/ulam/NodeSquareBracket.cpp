@@ -43,12 +43,19 @@ namespace MFM {
     UTI newType = Nav; //init
     UTI leftType = m_nodeLeft->checkAndLabelType(); 
     
+    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+    bool isCustomArray = lut->isCustomArray();
+
+    //if(m_state.isScalar(leftType))
     if(m_state.isScalar(leftType))
       {
-	std::ostringstream msg;
-	msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << "> used with " << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	errorCount++;
+	if(!isCustomArray)
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << "> used with " << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errorCount++;
+	  }
       }
 
     //for example, f.chance[i] where i is local, same as f.func(i);
@@ -59,49 +66,20 @@ namespace MFM {
 
     m_state.m_useMemberBlock = saveUseMemberBlock;
 
-
     //must be some kind of Int..of any bit size
     if(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Int)
       {
-
 	m_nodeRight = makeCastingNode(m_nodeRight, Int);  //refactored
-
-#if 0
-	//"cast" Quark to return an Int by
-	//inserting NodeMemberSelect and NodeFunctionCall to 'castToInt' method.
-	if(m_state.getUlamTypeByIndex(rightType)->getUlamClass() == UC_QUARK)
-	  {
-	    Token identTok;	 
-	    u32 castId = m_state.m_pool.getIndexForDataString("toInt");	 
-	    identTok.init(TOK_IDENTIFIER, getNodeLocation(), castId);
-	    
-	    //fill in func symbol during type labeling;
-	    Node * fcallNode = new NodeFunctionCall(identTok,NULL, m_state);
-	    fcallNode->setNodeLocation(identTok.m_locator);
-	    Node * mselectNode = new NodeMemberSelect(m_nodeRight,fcallNode,m_state);
-	    mselectNode->setNodeLocation(identTok.m_locator);
-	    
-	    m_nodeRight=mselectNode;  //replace right node with new branch
-	    
-	    //redo check and type labeling
-	    rightType = m_nodeRight->checkAndLabelType(); 
-	    assert(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() == Int);
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(rightType).c_str() << "> used within " << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    errorCount++;
-	  }
-#endif
-
       }
     
     if(errorCount == 0)
       {
-	// sq bracket purpose in life is to account for array elements;    
-	newType = m_state.getUlamTypeAsScalar(leftType);
+	// sq bracket purpose in life is to account for array elements;
+	if(isCustomArray)
+	  newType = ((UlamTypeClass *) lut)->getCustomArrayType();
+	else
+	  newType = m_state.getUlamTypeAsScalar(leftType);
+
 	setNodeType(newType);
 	
 	// multi-dimensional possible
@@ -135,7 +113,12 @@ namespace MFM {
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     UTI ltype = pluv.getPtrTargetType();
 
-    assert(!m_state.isScalar(ltype));                //already checked, must be array
+    // could be a custom array which is a scalar quark. already checked.
+    UlamType * lut = m_state.getUlamTypeByIndex(ltype);
+    bool isCustomArray = lut->isCustomArray();
+
+    //assert(!m_state.isScalar(ltype));                //already checked, must be array
+    assert(!m_state.isScalar(ltype) || isCustomArray); //already checked, must be array
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
     evs = m_nodeRight->eval();
@@ -151,7 +134,7 @@ namespace MFM {
     s32 arraysize = m_state.getArraySize(ltype);
     s32 offsetInt = offset.getImmediateData(m_state);
 
-    if(offsetInt >= arraysize)
+    if((offsetInt >= arraysize) && !isCustomArray)
       {
 	Symbol * lsymptr;
 	u32 lid = 0;
@@ -200,12 +183,40 @@ namespace MFM {
     //assert(offset.getUlamValueTypeIdx() == m_state.getUlamTypeOfConstant(Int));
     u32 offsetInt = offset.getImmediateData(m_state);
 
-    //adjust pos by offset * len, according to its scalar type 
-    UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
-    scalarPtr.incrementPtr(m_state, offsetInt);
-   
-    //copy result UV to stack, -1 relative to current frame pointer
-    assignReturnValuePtrToStack(scalarPtr);
+    UTI auti = pluv.getPtrTargetType();
+    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    if(aut->isCustomArray())
+      {
+	UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
+	UlamType * caut = m_state.getUlamTypeByIndex(caType);
+	u32 pos = pluv.getPtrPos();
+	if(caut->getBitSize() > 32)
+	  pos = 0;
+	//  itemUV = UlamValue::makeAtom(caType);
+	//else
+	//  itemUV = UlamValue::makeImmediate(caType, 0, m_state);  //quietly skip for now XXX
+
+	//use CA type, not the left ident's type
+	UlamValue scalarPtr = UlamValue::makePtr(pluv.getPtrSlotIndex(),
+						 pluv.getPtrStorage(),
+						 caType,
+						 m_state.determinePackable(caType), //PACKEDLOADABLE
+						 m_state,
+						 pos /* base pos of array */
+						 );
+	
+	//copy result UV to stack, -1 relative to current frame pointer
+	assignReturnValuePtrToStack(scalarPtr);
+      }
+    else
+      {
+	//adjust pos by offset * len, according to its scalar type 
+	UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
+	scalarPtr.incrementPtr(m_state, offsetInt);
+	
+	//copy result UV to stack, -1 relative to current frame pointer
+	assignReturnValuePtrToStack(scalarPtr);
+      }
 
     evalNodeEpilog();
     return NORMAL;
@@ -322,7 +333,12 @@ namespace MFM {
 
     uvpass = offset;
 
-    genCodeReadArrayItemIntoATmpVar(fp, uvpass);     //new!!!
+    //    UTI luti = m_nodeLeft->getNodeType();
+    //UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    //if(lut->getUlamClass() == UC_QUARK && ((UlamTypeClass *) lut)->isCustomArray())
+    //  genCodeReadIntoATmpVar(fp, uvpass);      //since left node is a scalar
+    //else
+      genCodeReadArrayItemIntoATmpVar(fp, uvpass);     //new!!!
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
     //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******

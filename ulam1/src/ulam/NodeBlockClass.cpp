@@ -87,7 +87,7 @@ namespace MFM {
       m_nextNode->checkAndLabelType();   
 
 
-    // label all the function definition bodies first. why?
+    // label all the function definition bodies
     m_functionST.labelTableOfFunctions();
 
     // check that a 'test' function returns Int (ulam convention)
@@ -102,10 +102,17 @@ namespace MFM {
 	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
-    setNodeType(Void);     //will be reset to reflect the Class type
+    // already set during parsing
+    //setNodeType(Void);     //will be reset to reflect the Class type
     return getNodeType();
-  }
+  } //checkAndLabelType
   
+
+  void NodeBlockClass::checkForAndInitializeCustomArrayType()
+  {
+    m_functionST.checkForAndInitializeClassCustomArrayType();
+  }
+
 
   EvalStatus NodeBlockClass::eval()
   {

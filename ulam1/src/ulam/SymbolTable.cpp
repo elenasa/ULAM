@@ -103,7 +103,51 @@ namespace MFM {
 	  }
 	it++;
       }
-  }
+  } //labelTableOfFunctions
+
+
+  void SymbolTable::initializeCustomArraysForTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;  
+	assert(sym && sym->isClass());
+	
+	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	assert(classNode);
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+	    
+	classNode->checkForAndInitializeCustomArrayType();
+	it++;
+      }
+  } //initializeCustomArraysForTableOfClasses()
+  
+
+  //called by current Class block on function ST
+  bool SymbolTable::checkForAndInitializeClassCustomArrayType()
+  {
+    bool rtnBool = false;
+    Symbol * fnsym = NULL;
+    if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsym))
+      {
+	// though not necessarily a native function..tis prudent to remember
+	// (SymbolFunction *) fnsym->isNativeFunctionDeclaration() 
+	// failed because we were one layer removed from the SymbolFunction.
+	//assert(((SymbolFunctionName *) fnsym)->countNativeFuncDecls() > 0);
+	UTI futi = fnsym->getUlamTypeIdx();
+	assert(futi != Void);
+	// set class type to custom array; the current class block 
+	// node type was set to its class symbol type after checkAndLabelType
+	UTI cuti = m_state.m_classBlock->getNodeType();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	((UlamTypeClass *) cut)->setCustomArrayType(futi);
+	rtnBool = true;
+      }
+    return rtnBool;
+  } //checkForAndInitializeClassCustomArrayType
 
 
   u32 SymbolTable::countNativeFuncDeclsForTableOfFunctions()
@@ -146,7 +190,7 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	assert(sym->isClass());
 	if( ((SymbolClass *) sym)->getUlamClass() == UC_INCOMPLETE)
 	  {
@@ -164,7 +208,8 @@ namespace MFM {
 	    m_state.m_currentBlock = m_state.m_classBlock;
 
 	    classNode->checkAndLabelType();
-	    classNode->setNodeType(sym->getUlamTypeIdx()); //resets class' type (was Void). sweet.
+	    // type was set during parsing!!!
+	    //classNode->setNodeType(sym->getUlamTypeIdx()); //resets class' type (was Void). sweet.
 	  }
 	it++;
       }
@@ -351,7 +396,7 @@ namespace MFM {
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
     s32 totbitsize = CYCLEFLAG;
-    if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS)
+    if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS) //includes Atom type
       {
 	totbitsize = m_state.getBitSize(argut);
 	assert(totbitsize >= 0);
@@ -453,15 +498,20 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;  
-	assert(sym->isClass());
+	assert(sym && sym->isClass());
 	// quark union keep default pos = 0 for each data member, hence skip packing bits.
 	if(!((SymbolClass *) sym)->isQuarkUnion())
 	  {
-	    ((SymbolClass *) sym)->getClassBlockNode()->packBitsForVariableDataMembers(); 
+	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	    assert(classNode);
+	    m_state.m_classBlock = classNode;
+	    m_state.m_currentBlock = m_state.m_classBlock;
+	    
+	    classNode->packBitsForVariableDataMembers(); 
 	  }
 	it++;
       }
-  }
+  } //packBitsForTableOfClasses()
 
 
   //#define OPTIMIZE_PACKED_BITS
