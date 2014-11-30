@@ -57,6 +57,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    void checkForAndInitializeCustomArrayType();
+
     virtual EvalStatus eval();
 
     virtual const char * getName();

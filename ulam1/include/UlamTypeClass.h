@@ -61,12 +61,16 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
 
+    virtual const std::string getArrayItemTmpStorageTypeAsString(CompilerState * state);
+
     virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+
     virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
+
     virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
 
     virtual const std::string getUlamTypeVDAsStringForC();
@@ -82,16 +86,31 @@ namespace MFM{
     void setUlamClass(ULAMCLASSTYPE type);
 
     virtual bool isConstant();
+
+    virtual bool isScalar();
+
+    virtual bool isCustomArray();
+
+    void setCustomArrayType(UTI type);
+
+    UTI getCustomArrayType();
+
     virtual s32 getBitSize();
 
     virtual const std::string getUlamTypeNameBrief(CompilerState * state);
 
+    virtual const std::string readArrayItemMethodForCodeGen();
+
+    virtual const std::string writeArrayItemMethodForCodeGen();
+
    private:
 
     ULAMCLASSTYPE m_class;
+    bool m_customArray;
+    UTI m_customArrayType;
 
+    void genCustomArrayMangledDefinitionForC(File * fp, CompilerState * state);
 
-    void genArrayMangledDefinitionForC(File * fp, CompilerState * state);
   };
   
 }

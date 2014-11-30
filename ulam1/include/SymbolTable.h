@@ -66,6 +66,8 @@ namespace MFM{
 
     void labelTableOfFunctions();
 
+    bool checkForAndInitializeClassCustomArrayType();
+
     u32 countNativeFuncDeclsForTableOfFunctions();
     
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
@@ -82,9 +84,14 @@ namespace MFM{
 
     void packBitsForTableOfClasses();
 
+    void initializeCustomArraysForTableOfClasses();
+
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 
     void generateIncludesForTableOfClasses(File * fp);
+
+    void generateForwardDefsForTableOfClasses(File * fp);
+
     //void genCodeForTableOfClasses(FileManager * fm, CompilerState& state); not used???
 
     u32 getTableSize();

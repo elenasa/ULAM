@@ -92,7 +92,7 @@ namespace MFM{
     /** 
 	<CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
     */
-    NodeBlockClass * parseClassBlock();
+    NodeBlockClass * parseClassBlock(UTI utype);
 
 
     /**
