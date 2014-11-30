@@ -2,7 +2,6 @@ BASE_DIR:=../..
 BUILD_DIR:=$(BASE_DIR)/build/ulam
 INCLUDE_DIR:=$(BASE_DIR)/include
 
-CFLAGS += -ansi -Wall -pedantic
 INCLUDES += -I${INCLUDE_DIR}
 
 SRCS := $(wildcard *.cpp)

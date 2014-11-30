@@ -4,7 +4,6 @@ INCLUDE_DIR:=$(BASE_DIR)/include
 ULAM_LIB_DIR:=$(BASE_DIR)/build/ulam
 TGEN_DIR:=./bin
 
-CFLAGS += -ansi -Wall -pedantic
 INCLUDES += -I${INCLUDE_DIR}
 
 SRCS := $(wildcard *.cpp)

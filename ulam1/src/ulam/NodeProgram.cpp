@@ -31,7 +31,7 @@ namespace MFM {
     "*\n"
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
-  
+
   NodeProgram::NodeProgram(u32 id, CompilerState & state) : Node(state), m_root(NULL), m_compileThisId(id) {}
 
   NodeProgram::~NodeProgram()
@@ -60,7 +60,7 @@ namespace MFM {
     //overrides NodeBlock print, has m_root, no m_node or m_nextNode.
     if(m_root)
       m_root->print(fp);
-    else 
+    else
       fp->write("<NULL>\n");
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
@@ -75,7 +75,7 @@ namespace MFM {
 
     if(m_root)
 	m_root->printPostfix(fp);
-    else 
+    else
       fp->write("<NULL>\n");
   }
 
@@ -93,7 +93,7 @@ namespace MFM {
 
 #define MAX_ITERATIONS 10
   UTI NodeProgram::checkAndLabelType()
-  { 
+  {
     assert(m_root);
     m_state.m_err.clearCounts();
 
@@ -108,7 +108,7 @@ namespace MFM {
 	u32 infcounter = 0;
 	// size all the class; sets "current" m_currentClassSymbol in CS
 	while(!m_state.m_programDefST.setBitSizeOfTableOfClasses())
-	  {	    
+	  {
 	    if(++infcounter > MAX_ITERATIONS)
 	      {
 		std::ostringstream msg;
@@ -116,7 +116,7 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
 		msg << ">, proceed with caution.";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-		
+
 		break;
 	      }
 	  }
@@ -204,7 +204,7 @@ namespace MFM {
       m_state.m_currentBlock = m_state.m_classBlock;
 
       // mangled types and forward class declarations
-      genMangledTypesHeaderFile(fm);    
+      genMangledTypesHeaderFile(fm);
 
       // this class header
       {
@@ -245,7 +245,7 @@ namespace MFM {
 
 	m_state.m_currentIndentLevel = 0;
 	fp->write(CModeForHeaderFiles);  //needed for .tcc files too
- 
+
 	UlamValue uvpass;
 	m_root->genCodeBody(fp, uvpass);  //compileThisId only, MFM namespace
 
@@ -258,11 +258,11 @@ namespace MFM {
 	assert(fp);
 
 	m_state.m_currentIndentLevel = 0;
-	
+
 	// include .h in the .cpp
 	m_state.indent(fp);
 	fp->write("#include \"");
-	fp->write(m_state.getFileNameForThisClassHeader().c_str());  
+	fp->write(m_state.getFileNameForThisClassHeader().c_str());
 	fp->write("\"\n");
 	fp->write("\n");
 
@@ -272,7 +272,7 @@ namespace MFM {
       //separate main.cpp for elements only
       if(m_state.getUlamTypeByIndex(m_root->getNodeType())->getUlamClass() == UC_ELEMENT)
 	{
-	  generateMain(fm);  	  
+	  generateMain(fm);
 	}
 
     }  //generateCode
@@ -332,16 +332,16 @@ namespace MFM {
 #if 0
     // moved to _types.h
     //use -I ../../../include in g++ command
-    fp->write("//#include \"itype.h\"\n"); 
-    fp->write("//#include \"BitVector.h\"\n"); 
-    fp->write("//#include \"BitField.h\"\n"); 
+    fp->write("//#include \"itype.h\"\n");
+    fp->write("//#include \"BitVector.h\"\n");
+    fp->write("//#include \"BitField.h\"\n");
 #endif
     fp->write("#include \"UlamDefs.h\"\n\n");
 
     //using the _Types.h file
     m_state.indent(fp);
     fp->write("#include \"");
-    fp->write(m_state.getFileNameForThisTypesHeader().c_str());  
+    fp->write(m_state.getFileNameForThisTypesHeader().c_str());
     fp->write("\"\n");
     fp->write("\n");
 
@@ -357,15 +357,15 @@ namespace MFM {
   {
     File * fp = fm->open(m_state.getFileNameForThisTypesHeader().c_str(), WRITE);
     assert(fp);
-    
+
     m_state.m_currentIndentLevel = 0;
     fp->write(CModeForHeaderFiles);
 
     m_state.indent(fp);
     //use -I ../../../include in g++ command
-    fp->write("//#include \"itype.h\"\n"); 
-    fp->write("//#include \"BitVector.h\"\n"); 
-    fp->write("//#include \"BitField.h\"\n"); 
+    fp->write("//#include \"itype.h\"\n");
+    fp->write("//#include \"BitVector.h\"\n");
+    fp->write("//#include \"BitField.h\"\n");
     fp->write("\n");
 
     m_state.indent(fp);
@@ -393,7 +393,7 @@ namespace MFM {
 
     delete fp;
   } //genMangledTypeHeaderFile
- 
+
 
   // append main to .cpp for debug useage
   // outside the MFM namespace !!!
@@ -401,9 +401,9 @@ namespace MFM {
   {
     File * fp = fm->open(m_state.getFileNameForThisClassMain().c_str(), WRITE);
     assert(fp);
-    
+
     m_state.m_currentIndentLevel = 0;
-    
+
     m_state.indent(fp);
     fp->write("#include <stdio.h>\n\n");
 
@@ -471,7 +471,7 @@ namespace MFM {
     fp->write("\n");
     m_state.indent(fp);
     fp->write("int main()\n");
-    
+
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -503,7 +503,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("OurFoo& foo = OurFoo::THE_INSTANCE;\n");
-    
+
     m_state.indent(fp);
     fp->write("foo.SetType(23); //This is actually done by code code in a complicated way\n");
 
@@ -527,7 +527,7 @@ namespace MFM {
     m_state.indent(fp);
     //fp->write("return 0;\n");
     fp->write("return rtn.read();\n");         // useful to return result of test
-	
+
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);

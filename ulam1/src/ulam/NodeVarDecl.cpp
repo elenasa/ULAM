@@ -97,7 +97,7 @@ namespace MFM {
       }
     return NORMAL;
   }
-  
+
 
   EvalStatus  NodeVarDecl::evalToStoreInto()
   {
@@ -225,7 +225,7 @@ namespace MFM {
 	    fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
 	  }
       }
-    
+
     fp->write("> ");
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
@@ -255,5 +255,3 @@ namespace MFM {
   }  //genCodedElementParameter
 
 } //end MFM
-
-

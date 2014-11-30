@@ -20,6 +20,11 @@ namespace MFM {
   {  }
 
 
+  std::string Compiler::getMangledTarget()
+  {
+    return m_state.getFileNameForThisClassCPP();
+  }
+
   u32 Compiler::compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput)
   {
     SourceStream ss(infm, m_state);

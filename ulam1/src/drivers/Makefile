@@ -5,6 +5,7 @@ SUB_DIRS:=
 SUB_DIRS+=culam
 SUB_DIRS+=eulam
 SUB_DIRS+=test
+SUB_DIRS+=ulam
 
 ####
 # Assume all drivers depend on ulam..

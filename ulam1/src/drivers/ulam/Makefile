@@ -13,12 +13,9 @@ $(BIN_DIR):
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(TARGET): $(SRC) $(ALLDEP) | $(BIN_DIR)
-	sed -e "s/@CULAM_PATH@/$(CULAM_PATH)/" -e "s/@MFM_ROOT_DIR@/$(@MFM_ROOT_DIR@)/" $< >$@
+$(TARGET): $(SRC) FORCE | $(BIN_DIR) # just always do this -- depends on ENV vars
+	sed -e "s|@CULAM_PATH@|$(ROOT_DIR)/bin/culam|" -e "s|@MFM_ROOT_DIR@|$(MFM_ROOT_DIR)|" $< >$@
 	chmod 755 $@
-
-$(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
-	g++ -c ${CFLAGS} ${INCLUDES} $< -o $@
 
 clean:	FORCE
 	@rm -f *~
