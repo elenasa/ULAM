@@ -336,7 +336,7 @@ namespace MFM {
     fp->write("//#include \"BitVector.h\"\n"); 
     fp->write("//#include \"BitField.h\"\n"); 
 #endif
-    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+    fp->write("#include \"UlamDefs.h\"\n\n");
 
     //using the _Types.h file
     m_state.indent(fp);
@@ -346,7 +346,7 @@ namespace MFM {
     fp->write("\n");
 
     //generate includes for all the other classes that have appeared
-    m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
+    m_state.m_programDefST.generateForwardDefsForTableOfClasses(fp);
   } //generateHeaderIncludes
 
 
@@ -369,7 +369,7 @@ namespace MFM {
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+    fp->write("#include \"UlamDefs.h\"\n\n");
 
     // do primitive types before classes so that immediate
     // Quarks/Elements can use them (e.g. immediate index for aRef)
@@ -409,7 +409,7 @@ namespace MFM {
 
 
     m_state.indent(fp);
-    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+    fp->write("#include \"UlamDefs.h\"\n\n");
 
 #if 0
     m_state.indent(fp);

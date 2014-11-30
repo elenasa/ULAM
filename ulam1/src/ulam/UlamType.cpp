@@ -473,13 +473,13 @@ namespace MFM {
       {
       case 0:    //e.g. empty quarks
       case 32:
-	method = "ReadRaw";
+	method = "Read";
 	break;
       case 64:
-	method = "ReadLongRaw";
+	method = "ReadLong";
 	break;
       default:
-	method = "ReadUnpackedRaw";  //TBD
+	method = "ReadUnpacked";  //TBD
 	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	assert(0);
       };
@@ -498,13 +498,13 @@ namespace MFM {
       {
       case 0:    //e.g. empty quarks
       case 32:
-	method = "WriteRaw";
+	method = "Write";
 	break;
       case 64:
-	method = "WriteLongRaw";
+	method = "WriteLong";
 	break;
       default:
-	method = "WriteUnpackedRaw";  //TBD
+	method = "WriteUnpacked";  //TBD
 	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	assert(0);	 
       };
@@ -516,7 +516,7 @@ namespace MFM {
   {
     std::string method;
     if(getPackable() == UNPACKED)
-	method = "ReadArrayUnpackedRaw";  //TBD
+	method = "ReadArrayUnpacked";  //TBD
     else
       {
 	s32 sizeByIntBits = getItemWordSize();
@@ -524,10 +524,10 @@ namespace MFM {
 	  {
 	  case 0:    //e.g. empty quarks
 	  case 32:
-	    method = "ReadArrayRaw";
+	    method = "ReadArray";
 	    break;
 	  case 64:
-	    method = "ReadArrayLongRaw";
+	    method = "ReadArrayLong";
 	    break;
 	  default:
 	    assert(0);
@@ -541,7 +541,7 @@ namespace MFM {
   {
     std::string method;
     if(getPackable() == UNPACKED)
-	method = "WriteArrayUnpackedRaw";  //TBD
+	method = "WriteArrayUnpacked";  //TBD
     else
       {
 	s32 sizeByIntBits = getItemWordSize();
@@ -549,10 +549,10 @@ namespace MFM {
 	  {
 	  case 0:    //e.g. empty quarks
 	  case 32:
-	    method = "WriteArrayRaw";
+	    method = "WriteArray";
 	    break;
 	  case 64:
-	    method = "WriteArrayLongRaw";
+	    method = "WriteArrayLong";
 	    break;
 	  default:
 	    assert(0);

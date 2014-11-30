@@ -520,7 +520,7 @@ namespace MFM {
       }
 
     //NOT FOR Funccalls
-    //if last cos is a quark, for Read/WriteRaw to work it needs an
+    //if last cos is a quark, for Read/Write to work it needs an
     // atomic Parameter type (i.e. Up_Us);
   } //genMemberNameOfMethod
 
