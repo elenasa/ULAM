@@ -5,7 +5,6 @@ BIN_DIR:=$(BASE_DIR)/bin
 INCLUDE_DIR:=$(BASE_DIR)/include
 ULAM_LIB_DIR:=$(BASE_DIR)/build/ulam
 
-CFLAGS += -ansi -Wall -pedantic
 INCLUDES += -I${INCLUDE_DIR}
 
 SRCS := $(wildcard *.cpp)
@@ -24,7 +23,7 @@ $(BIN_DIR)/$(DRIVER_NAME): ${OBJS} | $(BIN_DIR)
 	g++ $(OBJS) -L $(ULAM_LIB_DIR) -lulam -o $@
 
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
-	g++ -c ${CFLAGS} ${INCLUDES} $< -o $@
+	g++ -c ${CFLAGS} ${DEFINES} ${INCLUDES} $< -o $@
 
 clean:	FORCE
 	@rm -f *~

@@ -1,22 +1,141 @@
 #!/usr/bin/perl -Tw
 # -*- perl -*-
 
-####TEMPLATE SUBSTITUTIONS
+####PERL CONFIG
+my $ORIG_PATH = $ENV{'PATH'};
+delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
-my $CULAM_PATH='@CULAM_PATH@';
-my $MFM_ROOT_DIR='@MFM_ROOT_DIR@';
+use Capture::Tiny 'capture';
 
-IDie("Templates have not been substituted -- this is not the script you are looking for.\n")
-    if $CULAM_PATH =~ /@/ or $MFM_ROOT_DIR =~ /@/;
+####DIRECTORY PATHS WITH DEFAULTS
+
+  ##TEMPLATE SUBSTITUTIONS
+  my $CULAM_PATH='@CULAM_PATH@';
+  my $MFM_ROOT_DIR='@MFM_ROOT_DIR@';
+  IDie("Templates have not been substituted -- this is not the script you are looking for.\n")
+      if $CULAM_PATH =~ /@/ or $MFM_ROOT_DIR =~ /@/;
+
+####VARIABLES MODIFIED BY SWITCHES
+my $ULAM_BUILD_DIR=undef;
+my $ULAM_BIN_DIR=undef;
+my $SHOW_COMMANDS = 0;
+my $KEEP_GOING = 0;
+
+####TOOL PATHS
+my $makeTool = "GNU Make system builder";
+my $gppTool = "Compiler for C++ -> native code";
+my $ulamcTool = "Compiler for ulam -> C++";
+my $mfmRootTool = "Movable Feast Machine source distribution";
+
+my %tools;
+$tools{$ulamcTool} =
+    [ $CULAM_PATH,
+      sub {
+          my $p = shift;
+          my $status = runThis("^culam", undef, $p,"-V");
+          return $status;
+      }
+    ];
+configureMSD($MFM_ROOT_DIR);
+
+sub getTool {
+    my $tname = shift;
+    my $r = $tools{$tname};
+    IDie("Not tool name '$tname'")
+        unless defined($r);
+    return $r->[0];
+}
+
+my $gpp = findStandardTool("g++");
+$tools{$gppTool} =
+    [ $gpp,
+      sub {
+          my $p = shift;
+          my $status = runThis("^g[+][+] ", undef, $p,"--version");
+          return $status;
+      }
+    ];
+my $make = findStandardTool("make");
+$tools{$makeTool} =
+    [ $make,
+      sub {
+          my $p = shift;
+          my $status = runThis("^GNU Make", undef, $p,"--version");
+          return $status;
+      }
+    ];
+my @toolNames = ($makeTool, $gppTool, $ulamcTool, $mfmRootTool);
+
+sub matchOrCall {
+    my ($thing, $arg) = @_;
+    my $type = ref($thing);
+    if ($type eq "") {
+        if ($arg !~ /$thing/) {
+            return "Unmatched";
+        }
+        return "";
+    }
+    if ($type eq "CODE") {
+        return &$thing($stdout);
+    }
+    IDie("Unhandled '$thing'\n");
+}
+
+sub runThis {
+    my ($matchout, $matcherr, $cmd, @args) = @_;
+    if ($SHOW_COMMANDS) {
+        print STDERR " ".join(" ",$cmd, @args)."\n";
+    }
+    my $status = "";
+    my ($stdout, $stderr, $exit) = capture {
+        open(HANDLE, "-|", $cmd, @args) or return "Running '$cmd' failed: $!";
+        my $output = "";
+        while (<HANDLE>) {
+            $output .= $_;
+        }
+        print STDOUT $output;
+        if (!close HANDLE) {
+            return "Closing '$cmd' failed: ($!/$?)";
+        }
+        return "";
+    };
+#    print "SOUT($stdout)\nSERR($stderr)\nEXIT($exit)\n";
+    if ($exit ne "") {
+        $status = $exit;
+    } else {
+        if (defined($matchout)) {
+            $status .= matchOrCall($matchout, $stdout);
+        }
+        if (defined($matcherr)) {
+            $status .= matchOrCall($matcherr, $stderr);
+        }
+    }
+    return ($status,$stdout,$stderr);
+}
 
 ####COMMAND LINE PROCESSING
-
 use Getopt::Long;
 use Pod::Usage;
+
+my $actionCmd; # compile, test, etc
 
 Getopt::Long::Configure ("gnu_getopt");    # Mostly for bundling + permute
 Getopt::Long::Configure ("noauto_abbrev"); # I find auto_abbrev unnerving
 #Getopt::Long::Configure ("debug");
+
+sub findStandardTool {
+    my $tname = shift;
+    my $tool = `/usr/bin/which $tname`;
+    chomp($tool);
+    return blessShellReaching($tool);
+}
+
+sub blessShellReaching {
+    my $taintedPath = shift;
+     $taintedPath =~ m!^([-+_/a-zA-Z0-9]+)$!
+         or UDie("'$taintedPath' contains unexpected characters!");
+    return $1;
+}
 
 sub UDie {
     my $msg = shift;
@@ -61,6 +180,12 @@ my %swinfo = (
         id => getSectionId("Information"),
         handler => \&entryOcmd
     },
+    "checktools" => {
+        aliases => "C",
+        desc => "Report tool paths; exit successfully if all are found",
+        id => getSectionId("Information"),
+        handler => \&entryOcmd
+    },
     "test" => {
         aliases => "t",
         desc => "Run the test() function of target (implies --link)",
@@ -79,19 +204,57 @@ my %swinfo = (
         id => getSectionId("Command"),
         handler => \&entryCmd
     },
-    "sourceDirectory" => {
-        aliases => "s",
+    "sourceDir" => {
+        aliases => "sd",
         type => "s",
         desc => "Directory containing source .ulam files",
         default => ".",
         id => getSectionId("Option"),
         handler => \&entryOpt
     },
+    "buildDir" => {
+        aliases => "bd",
+        type => "s",
+        desc => "Directory for compiler intermediate files",
+        variable => \$ULAM_BUILD_DIR,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
+    "outputDir" => {
+        aliases => "od",
+        type => "s",
+        desc => "Directory for final compiled outputs",
+        variable => \$ULAM_BIN_DIR,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
+    "mfmSourceDir" => {
+        aliases => "msd",
+        type => "s",
+        desc => "Root of the MFM source tree",
+        default => "$MFM_ROOT_DIR",
+        id => getSectionId("Option"),
+        handler => \&entryOpt
+    },
     "ulamcompile" => {
-        aliases => "U",
+        aliases => "uc",
         desc => "Compile target .ulam into C++ and stop",
-        id => getSectionId("Special-purpose"),
+        id => getSectionId("Debugging"),
         handler => \&entryCmd
+    },
+    "showcommands" => {
+        aliases => "sc",
+        desc => "Print commands before running them",
+        variable => \$SHOW_COMMANDS,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "keepGoing" => {
+        aliases => "k",
+        desc => "Don't abort overall compilation on errors",
+        variable => \$KEEP_GOING,
+        id => getSectionId("Option"),
+        handler => \&entryVar
     },
     );
 
@@ -113,14 +276,9 @@ sub printSummaryHelp
 {
     print STDERR "\nThis is the top-level ulam compilation driver\n";
     print STDERR "\nBasic command forms:\n";
-    print STDERR "  $0 INFOSWITCH\n";
+    print STDERR "  $0 [OPTIONSWITCHES] INFOSWITCH\n";
     print STDERR "  $0 [OPTIONSWITCHES] COMMANDSWITCH File1.ulam File2.ulam...\n";
     print STDERR "\n";
-}
-
-sub printHelp {
-    printSummaryHelp();
-    printSectionsHelp();
 }
 
 sub printSectionsHelp
@@ -175,10 +333,72 @@ sub printSectionHelp {
     print STDERR "\n";
 }
 
+sub printHelp {
+    printSummaryHelp();
+    printSectionsHelp();
+}
+
+sub printToolPath {
+    my $toolName = shift;
+    return checkTool($toolName,1);
+}
+
+sub checkTool {
+    my ($toolName, $printit) = @_;
+    my $rl = $tools{$toolName};
+    my $toolPath = $rl->[0];
+    my $toolSub = $rl->[1];
+
+    my $status;
+    if (!defined($toolPath) || $toolPath eq "") {
+        $toolPath = "";
+        $status = "Not configured";
+    } else {
+        $status = &$toolSub($toolPath);
+    }
+    my $statName = "OK";
+    my $prefix = "    ";
+    if ($status ne "") {
+        $statName = "PROBLEM: $status";
+        $prefix = "X-> ";
+    }
+    if (defined($printit) && $printit) {
+        print STDERR "  $toolName:\n    Path='$toolPath'\n${prefix}Status=$statName\n";
+    }
+    return $status eq "";
+}
+
+sub printVersion {
+    IDie("printVersion not yet implemented\n");
+}
+
+sub printToolPathsAndExit {
+    my $status = 0;
+    for my $tool (@toolNames) {
+        $status += printToolPath($tool);
+    }
+    exit $status;
+}
+
+sub pISC {
+    return unless $SHOW_COMMANDS;
+    my $arg = shift;
+    print STDERR "$arg\n";
+}
+
+sub checkTools {
+    pISC("## Check tools");
+    my $status = 0;
+    for my $tool (@toolNames) {
+        $status++ unless checkTool($tool)
+    }
+    return $status;
+}
+
 sub getSwinfo {
     my $key = shift;
     my $rinfo = $swinfo{$key};
-    IDie "No '$key' info"
+    IDie("No '$key' info")
         unless defined $rinfo;
     return $rinfo;
 }
@@ -200,9 +420,47 @@ sub getSwNameList {
     return $ret;
 }
 
+sub configureMSD {
+    my $path = shift;
+    $MFM_ROOT_DIR = $path;
+    $tools{$mfmRootTool} =
+        [ $MFM_ROOT_DIR,
+          sub {
+              my $p = shift;
+              my $status = runThis("^MFMsim",undef,
+                                    getTool($makeTool),
+                                   "--no-print-directory",
+                                    "-C",
+                                    "$p",
+                                    "identify"
+                                   );
+              return $status;
+          }
+        ];
+}
+
+sub configureSD {
+    my $path = shift;
+    IDie("configureSD($path) -- how default update/merge etc\n");
+}
+
 sub entryOpt {
     my ($key, $val) = @_;
-    print "entryOpt($key,$val)\n";
+    return configureMSD($val) if $key eq "mfmSourceDir";
+    return configureSD($val) if $key eq "sourceDir";
+    IDie("Unrecognized entryOpt($key,$val)\n");
+}
+
+my %entryVarsAlreadySeen;
+sub entryVar {
+    my ($switch, $val) = @_;
+    my $rinfo = getSwinfo($switch);
+    my $vref = $rinfo->{'variable'};
+    IDie unless defined $vref;
+    UDie getSwNameList($switch," or")." can appear at most once\n"
+        if defined $entryVarsAlreadySeen{$switch};
+    $entryVarsAlreadySeen{$switch} = 1;
+    $$vref = $val;
 }
 
 sub entryCmd {
@@ -210,10 +468,10 @@ sub entryCmd {
     UDie "Cannot specify "
         .getSwNameList($key," or")
         ." with "
-        .getSwNameList($cmd," or")
+        .getSwNameList($actionCmd," or")
         ."\n"
-        if defined($cmd) && $cmd ne $key;
-    $cmd = $key;
+        if defined($actionCmd) && $actionCmd ne $key;
+    $actionCmd = $key;
 }
 
 sub entryOcmd {
@@ -225,6 +483,9 @@ sub entryOcmd {
     if ($key eq "version") {
         printVersion();
         exit;
+    }
+    if ($key eq "checktools") {
+        printToolPathsAndExit();
     }
     IDie "unknown $key";
 }
@@ -276,19 +537,249 @@ sub getArgHref {
     return \%ret;
 }
 
-my @ulamFiles = @ARGV;
-UDie("No input files\n") unless @ulamFiles;
-
-####ACTION SELECTION
-
-for my $key (keys %{$o}) {
-    next unless defined $o->{$key};
-    print " $key='$o->{$key}'\n"
+my $confErrs = checkTools();
+if ($confErrs != 0) {
+    printf(STDERR
+           "%d configuration problem%s detected!\n",
+           $confErrs, $confErrs==1?"":"s");
+    printToolPathsAndExit();
 }
 
+my @files = @ARGV;
+UDie("No input files\n") unless @files;
+my (@ulamFiles, @includeFiles, @otherSrcFiles);
+my %extensionDispatch = (
+    "ulam" => \@ulamFiles,
+    "h" => \@includeFiles,
+    "tcc" => \@includeFiles,
+    "cpp" => \@otherSrcFiles,
+    "c" => \@otherSrcFiles,
+    "S" => \@otherSrcFiles
+    );
+
+
+sub separateFiles {
+    my @f = @_;
+    while (my $file = shift @f) {
+        my $handled = 0;
+        if ($file =~ /[.]([^.]+)$/) {
+            my $ext = $1;
+            my $ar = $extensionDispatch{$ext};
+            if (defined $ar) {
+                push @{$ar}, $file;
+                $handled = 1;
+            }
+        }
+        print STDERR "Warning: Skipping unrecognized file type '$file'\n"
+            unless $handled;
+    }
+}
+separateFiles(@files);
+
+sub positionLiteralFiles {
+    pISC("## Copy files");
+    my $bd = getBuildDir();
+    copyFilesTo("$bd/include",@includeFiles);
+    copyFilesTo("$bd/src",@otherSrcFiles);
+}
+
+sub copyFilesTo {
+    my ($destPath, @files) = @_;
+    for my $file (@files) {
+        copyFileTo($file,$destPath);
+    }
+}
+
+sub copyFileTo {
+    my ($file, $destDir) = @_;
+    -d $destDir or IDie("'$destDir' not dir");
+    my ($status,$stdout,$stderr) = runThis(undef,undef,'/bin/cp',"-p",$file,$destDir);
+    UDie("Can't copy '$file' to '$destDir': $status\n") if $status ne "";
+}
+
+####ACTION SELECTION
+UDie("No command specified\n")
+    unless defined($actionCmd);
 
 ####EXECUTION ENGINE
 
+# Well, let's actually try to do something here
+
+compilationDriver();
+
+sub compilationDriver {
+    prepareBuildDirs();
+    positionLiteralFiles();
+
+    my $buildResults = runUlamCompilations();
+    UDie("$buildResults build problem(s) detected\n")
+        if $buildResults;
+
+    my $makeResults = runGccMake();
+    UDie("$makeResults problem(s) detected during make\n")
+        if $makeResults;
+}
+
+sub myMkdir {
+    my $path = shift;
+    my ($status,$stdout,$stderr) = runThis(undef,undef,'/bin/mkdir',"-p",$path);
+    UDie("Can't make dir '$path': $status\n") if $status ne "";
+}
+
+sub checkOrMakeDir
+{
+    my $bd = shift;
+    if (!-e $bd) {
+        myMkdir($bd);
+    }
+
+    UDie "'$bd' is not a directory\n" unless -d $bd;
+    UDie "'$bd' is not accessible\n" unless -R $bd and -W $bd;
+}
+
+sub prepareBuildDirs
+{
+    pISC("## Make dirs");
+    my $bd = getBuildDir();
+    checkOrMakeDir($bd);
+    checkOrMakeDir("$bd/src");
+    checkOrMakeDir("$bd/include");
+    checkOrMakeDir("$bd/build");
+    checkOrMakeDir("$bd/bin");
+}
+
+sub runGccMake
+{
+    IDie("Implementme\n");
+}
+
+
+sub runUlamCompilations
+{
+    pISC("## Compile files");
+    my $status = 0;
+    for my $file (@ulamFiles) {
+        my ($ulamStatus, $cfile) = runUlamCompile($file);
+        my $gppStatus = 0;
+        if ($ulamStatus == 0 && $actionCmd ne "ulamcompile") {
+            $gppStatus = gppCompile($cfile);
+        }
+        my $fileStatus = $ulamStatus + $gppStatus;
+        $status += $fileStatus;
+        last if $fileStatus != 0 && $KEEP_GOING == 0;
+    }
+    return $status;
+}
+
+sub runUlamCompile {
+    my ($file) = @_;
+    my $culam = getTool($ulamcTool);
+    my @args = ($file);
+    push @args, $ULAM_BUILD_DIR
+        if defined $ULAM_BUILD_DIR;
+    print "Compile $file: ";
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        my $cfile = $stderr;
+        chomp($cfile);
+        print STDOUT "OK\n";
+        UNSAFE_TEMPORARY_MV_FILES($ULAM_BUILD_DIR);
+        return (0, $cfile);
+    }
+    return $status ne "";
+}
+
+sub UNSAFE_TEMPORARY_MV_FILES
+{
+    my $bd = shift;
+    $bd =~ /^(.*)$/ or die;
+    $bd = $1;
+    system("/bin/mv $bd/*.h $bd/*.tcc $bd/include");
+    system("/bin/mv $bd/*.cpp $bd/src");
+}
+
+sub printEnv {
+    my $pref = shift;
+    for my $key (sort keys %ENV) {
+        print "$pref $key=$ENV{$key}\n";
+    }
+}
+
+sub modifyEnv {
+    my @kv = @_;
+    my %OLDENV = %ENV;
+    while (@kv) {
+        my $key = shift @kv;
+        IDie if scalar @kv == 0;
+        my $val = shift @kv;
+        $ENV{$key} = $val;
+    }
+    return \%OLDENV;
+}
+
+sub restoreEnv {
+    my $oldEref = shift;
+    %ENV = %{$oldEref};
+}
+
+sub changeEnv {
+    printEnv("BEFORE");
+    my $save = modifyEnv("iamgod","psfdhfsd","key",43);
+    printEnv("MIDDLE");
+    restoreEnv($save);
+    printEnv("AFTERR");
+    exit(2);
+}
+
+sub getBuildDir {
+    my $dir = ".";
+    $dir = $ULAM_BUILD_DIR
+        if defined $ULAM_BUILD_DIR;
+    return $dir;
+}
+
+sub gppCompile {
+    my ($file) = @_;
+    my $dir = getBuildDir();
+    my $make = getTool($makeTool);
+    my $mfm = getTool($mfmRootTool);
+    my @env =
+        ("ULAM_SRC_DIR", "$dir/src",
+         "ULAM_CPP_FILE", $file,
+         "ULAM_BLD_DIR", "$dir/build",
+         "ULAM_BIN_DIR", "$dir/bin",
+         "MFM_ROOT_DIR", $MFM_ROOT_DIR,
+         "USE_PATH", $ORIG_PATH,
+        );
+    my $oldenv = modifyEnv(@env);
+    my @args = ("-C", "$mfm", "ulam_cppcompile");
+    print "Compile $file: ";
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
+    restoreEnv($oldenv);
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\nstdout=$stdout\nstderr=$stderr\n";
+    } else {
+        print STDOUT "OK\n";
+    }
+    return $status ne "";
+}
+
+sub gppCompileHOLD {
+    my ($file) = @_;
+    my $gpp = getTool($gppTool);
+    my $mfm = getTool($mfmRootTool);
+    my @args = ("-I", "$mfm/src/core/include", "-c", $file);
+    print "Compile $file: ";
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$gpp,@args);
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        print STDOUT "OK\n";
+    }
+    return $status ne "";
+}
 
 ####POD
 #pod2usage(1) if $help;

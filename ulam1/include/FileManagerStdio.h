@@ -26,7 +26,7 @@
  */
 
 /**
-  \file  FileMangerStdio.h - Basic File Management of Standard IO for ULAM
+  \file  FileManagerStdio.h - Basic File Management of Standard IO for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -46,7 +46,7 @@ namespace MFM
   class FileManagerStdio : public FileManager
     {
     public:
-            
+
       FileManagerStdio(std::string directoryPath = ".");
 
       ~FileManagerStdio();
@@ -60,11 +60,11 @@ namespace MFM
       */
       virtual File * open(std::string path, enum Mode mode);
 
-      
+
     private:
       std::string m_dirPath;
   };
 }
 
-    
+
 #endif  /* FILEMANAGERSTDIO_H */

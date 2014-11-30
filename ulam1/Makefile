@@ -47,9 +47,17 @@ export SRC_TARGETS
 export ULAM_LANGUAGE_VERSION
 ULAM_LANGUAGE_VERSION:=1
 
+# Defines from top level
+export DEFINES
+BUILD_DATE := $(shell date -u +%Y%m%d)
+BUILD_TIME := $(shell date -u +%H%M%S)
+BUILD_DATE_TIME := $(BUILD_DATE)$(BUILD_TIME)
+DEFINES+=-DBUILD_DATE="0x$(BUILD_DATE)" -DBUILD_TIME="0x$(BUILD_TIME)" -DBUILD_DATE_TIME="$(BUILD_DATE_TIME)"
+
 # Compilation flags from top level
 export CFLAGS
-CFLAGS+=-g
+CFLAGS+=-g2 -ansi -Wall -pedantic -Werror -Wformat
+
 
 # Root of source tree
 ROOT_DIR := $(shell pwd)
@@ -59,11 +67,6 @@ export ROOT_DIR
 export ALLDEP
 ALLDEP += $(shell find $(ROOT_DIR) -name 'Makefile')
 
-export BUILD_DATE BUILD_TIME BUILD_DATE_TIME
-BUILD_DATE := $(shell date -u +%Y%m%d)
-BUILD_TIME := $(shell date -u +%H%M%S)
-BUILD_DATE_TIME := $(BUILD_DATE)$(BUILD_TIME)
-
 ####
 # Top level rules
 
@@ -72,5 +75,9 @@ $(SRC_TARGETS):	src
 # src rule just passes the make goals down to src
 src:	FORCE
 	@$(MAKE) -C $@ $(MAKECMDGOALS)
+
+# Shortcut to ulam template build
+ulam:	FORCE
+	@$(MAKE) -C src/drivers/ulam
 
 .PHONY:	$(TOP_TARGETS) $(SRC_TARGETS) FORCE

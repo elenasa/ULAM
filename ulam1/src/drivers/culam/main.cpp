@@ -8,30 +8,43 @@
 #include "Compiler.h"
 
 static const char * progname;
+static void doHelp()
+{
+  fprintf(stderr,
+          "Usage:\n"
+          " %s -h              Print this help and exit\n"
+          " %s -V              Print version info and exit\n"
+          " %s FILE.ulam       Compile FILE.ulam in its own dir\n"
+          " %s FILE.ulam DIR   Compile FILE.ulam with results to DIR\n",
+          progname, progname, progname, progname);
+  exit(0);
+}
 
 namespace MFM
 {
   class DriverState {
   public:
     DriverState()
-      : m_fileManager(0)
+      : m_srcFileManager(0)
+      , m_outFileManager(0)
       , m_sourceFile(0)
       , m_stdout(new FileStdio(stdout, MFM::WRITE))
       , m_stderr(new FileStdio(stderr, MFM::WRITE))
     { }
 
     ~DriverState() {
-      delete m_fileManager; m_fileManager = 0;
-      delete m_sourceFile;  m_sourceFile = 0;
-      delete m_stdout;      m_stdout = 0;
-      delete m_stderr;      m_stderr = 0;
+      delete m_srcFileManager; m_srcFileManager = 0;
+      delete m_outFileManager; m_outFileManager = 0;
+      delete m_sourceFile;     m_sourceFile = 0;
+      delete m_stdout;         m_stdout = 0;
+      delete m_stderr;         m_stderr = 0;
     }
 
     /** Usage error abort */
     void UDie(const char * msg)
     {
       std::cerr << "Error: " << msg << std::endl;
-      std::cerr << "Usage: " << progname << " PATH/TO/FILE.ulam"  << std::endl;
+      std::cerr << "Type: '" << progname << " -h'   for help"  << std::endl;
       throw 1;
     }
 
@@ -43,39 +56,60 @@ namespace MFM
       throw 1;
     }
 
-    void SetTarget(char * path)
+    void SplitPath(char * path, std::string & dir, std::string & file)
     {
       char * lastSlash = rindex(path, '/');
 
-      std::string dir;
-      std::string file;
       if (!lastSlash) {
-        dir = ".";
+        dir = "";
         file = path;
       } else {
         *lastSlash = '\0';
         dir = path;
         file = lastSlash + 1;
-        if (file == "")
+      }
+    }
+
+    std::string GetMangledTarget()
+    {
+      return m_mangledTarget;
+    }
+
+    void SetTarget(char * path, char * outpath)
+    {
+      std::string dir;
+      std::string file;
+      SplitPath(path, dir, file);
+
+      if (dir=="")
+        {
+          dir = ".";
+        }
+      if (file == "")
         {
           UDie("Missing .ulam file after last slash");
         }
+
+      std::cout << "SOURCE DIRECTORY: " << dir << " TARGET FILE: " << file << std::endl;
+
+      if (m_srcFileManager) IDie("SetDirectory");
+
+      m_srcFileManager = new FileManagerStdio(dir);
+      if(!m_srcFileManager) {
+        UDie("Couldn't init source file manager - bad directory?");
       }
 
-      std::cout << "BASE DIRECTORY: " << dir << " TARGET FILE: " << file << std::endl;
-
-      if (m_fileManager) IDie("SetDirectory");
-
-      m_fileManager = new FileManagerStdio(dir);
-      if(!m_fileManager) {
-        UDie("Couldn't init file manager - bad directory?");
-      }
-
-      //m_sourceFile = m_fileManager->open(file, MFM::READ);
-      //if(!m_sourceFile) {
-      //  UDie("Couldn't open source file - bad filename?");
-      // }
       m_filename = file;
+
+      std::string outdir = dir;
+      if (outpath)
+        outdir = outpath;
+
+      m_outFileManager = new FileManagerStdio(outdir);
+      if(!m_outFileManager) {
+        UDie("Couldn't init output file manager - bad directory?");
+      }
+
     }
 
     /** return exit status:
@@ -84,8 +118,8 @@ namespace MFM
     */
     int RunCompilation()
     {
-      m_stderr->write("BEGINNING COMPILATION\n");
       /*
+      m_stdout->write("BEGINNING COMPILATION\n");
       m_stderr->write("Reading from: m_sourceFile\n");
       m_stderr->write("Writing to:   ?? locations inside m_fileManager\n");
       m_stderr->write("Errors to:    m_stderr\n");
@@ -93,15 +127,21 @@ namespace MFM
       */
 
       Compiler C;
-      return C.compileProgram(m_fileManager, m_filename, m_fileManager, m_stderr);
+      int status = C.compileProgram(m_srcFileManager, m_filename, m_outFileManager, m_stderr);
+      if (status == 0) {
+        m_mangledTarget = C.getMangledTarget();
+      }
+      return status;
     }
 
   private:
-    FileManagerStdio * m_fileManager;
+    FileManagerStdio * m_srcFileManager;
+    FileManagerStdio * m_outFileManager;
     File * m_sourceFile;
     File * m_stdout;
     File * m_stderr;
     std::string m_filename;
+    std::string m_mangledTarget;
   };
 } /* namespace MFM */
 
@@ -112,12 +152,25 @@ int main(int argc, char ** argv)
 
     progname = argv[0];
     --argc; ++argv;
-    if (argc != 1)
-      ds.UDie("Need just one argument");
+    if (argc < 1)
+      ds.UDie("Need at least one argument");
+    if (argc > 2)
+      ds.UDie("Need at most two arguments");
+    if (!strcmp(argv[0],"-h"))
+      {
+        doHelp();
+      }
+    if (!strcmp(argv[0],"-V"))
+      {
+        fprintf(stdout,"culam-%d.%d.%d %08x%06x\n",
+                1,0,0,BUILD_DATE,BUILD_TIME);
+        exit(0);
+      }
+    ds.SetTarget(argv[0], argc > 1 ? argv[1] : 0);
 
-    ds.SetTarget(argv[0]);
-
-    return ds.RunCompilation();
+    int result = ds.RunCompilation();
+    if (result == 0)
+      std::cerr << ds.GetMangledTarget() << std::endl;
   }
   catch (int status) {
     return status;

@@ -59,6 +59,7 @@ namespace MFM{
     void printPostFix(Node * root, File * output);
     void printProgramForDebug(Node * root, File * output);
     void generateCodedProgram(Node * root, File * output);
+    std::string getMangledTarget();
 
   private:
 
