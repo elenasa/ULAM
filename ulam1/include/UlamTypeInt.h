@@ -62,6 +62,10 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString(CompilerState * state, s32 sizebyints);
 
+    const std::string getArrayItemUnsignedTmpStorageTypeAsString(CompilerState * state);
+
+    const std::string getUnsignedTmpStorageTypeAsString(CompilerState * state);
+
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual bool cast(UlamValue & val, CompilerState& state);

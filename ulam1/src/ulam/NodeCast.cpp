@@ -49,7 +49,7 @@ namespace MFM {
     UTI nodeType = m_node->checkAndLabelType(); //user cast 
     ULAMCLASSTYPE tobeClass = m_state.getUlamTypeByIndex(tobeType)->getUlamClass();
 
-    if(tobeType == Nav || tobeClass != UC_NOTACLASS)
+    if(tobeType == Nav || tobeClass != UC_NOTACLASS || tobeType == Atom)
       {
 	std::ostringstream msg;
 	msg << "Cannot cast to type <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";

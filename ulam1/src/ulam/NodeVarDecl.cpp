@@ -238,7 +238,7 @@ namespace MFM {
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    //ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
     /*

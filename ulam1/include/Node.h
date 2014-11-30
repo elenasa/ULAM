@@ -109,7 +109,6 @@ namespace MFM{
     virtual void genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
-
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
 
     /**
@@ -125,12 +124,17 @@ namespace MFM{
     bool warnOfNarrowingCast(UTI nodeType, UTI tobeType);
 
     virtual void genMemberNameOfMethod(File * fp); //helper method to read/write into/from tmpvar
-    virtual void genLocalMemberNameOfMethod(File * fp);
     virtual void genElementParameterMemberNameOfMethod(File * fp);
+    virtual void genLocalMemberNameOfMethod(File * fp);
 
+    const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
+    const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass);
 
     const std::string readMethodForCodeGen(UTI nuti, UlamValue uvpass);
     const std::string writeMethodForCodeGen(UTI nuti, UlamValue uvpass);
+
+    const std::string readArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
+    const std::string writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
 
     const std::string readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
     const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
@@ -139,8 +143,16 @@ namespace MFM{
     bool isCurrentObjectsContainingAnElementParameter(); //checks entire vector for a "static" element parameter
 
     bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass); //false means its the entire array or not an array at all
+    bool isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass);
+
+    bool isHandlingImmediateType();
+
+    void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
+
+    void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     u32 adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass);
+
   private:
     bool m_storeIntoAble;
     UTI m_nodeUType;

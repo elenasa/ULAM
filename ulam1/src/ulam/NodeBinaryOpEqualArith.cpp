@@ -21,6 +21,13 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bits' type", ERR);
       }
 
+    if(!nut->isScalar())
+      {
+	std::ostringstream msg;
+	msg << "Non-scalars require a loop for operator" << getName() << " on LHS: <" << m_nodeLeft->getName() << ">, type: <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
     return nodeType;
   }
 

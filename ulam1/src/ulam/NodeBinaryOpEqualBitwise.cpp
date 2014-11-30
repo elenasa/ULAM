@@ -8,6 +8,25 @@ namespace MFM {
   NodeBinaryOpEqualBitwise::~NodeBinaryOpEqualBitwise(){}
 
 
+  UTI NodeBinaryOpEqualBitwise::checkAndLabelType()
+  { 
+    UTI nodeType = NodeBinaryOpEqual::checkAndLabelType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+    
+    // common part of name
+    ULAMTYPE enodetyp = nut->getUlamTypeEnum();
+
+    if(!nut->isScalar() && (enodetyp == Bool || enodetyp == Unary))
+      {
+	std::ostringstream msg;
+	msg << "Non-scalar Bool and Unary require a loop for bitwise operator" << getName() << " on LHS: <" << m_nodeLeft->getName() << ">, type: <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    return nodeType;
+  }  //checkandlabeltype
+
+
   const std::string NodeBinaryOpEqualBitwise::methodNameForCodeGen()
   {
     std::ostringstream methodname;
