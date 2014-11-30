@@ -1422,7 +1422,7 @@ namespace MFM {
 	fp->write("::");
       }
 
-    //if last cos is a quark, for Read/WriteRaw to work it needs an
+    //if last cos is a quark, for Read/Write to work it needs an
     // atomic Parameter type (i.e. Up_Us); not so for custom arrays 
     // which are more like a function call
     Symbol * sym = m_state.m_currentObjSymbolsForCodeGen.back();

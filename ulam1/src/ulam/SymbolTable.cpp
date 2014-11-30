@@ -564,6 +564,43 @@ namespace MFM {
   }
 
 
+  //bypasses THIS class being compiled
+  void SymbolTable::generateForwardDefsForTableOfClasses(File * fp)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;  
+	assert(sym->isClass());
+	
+	//namespace MFM { template <class CC, u32 POS> struct Uq_10105MDist;} // FORWARD
+
+	if(sym->getId() != m_state.m_compileThisId)
+	  {
+	    UTI suti = sym->getUlamTypeIdx();
+	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	    ULAMCLASSTYPE sclasstype = sut->getUlamClass();
+
+	    m_state.indent(fp);
+	    fp->write("namespace MFM { template ");
+	    if(sclasstype == UC_QUARK)
+	      fp->write("<class CC, u32 POS> ");
+	    else if(sclasstype == UC_ELEMENT)
+	      fp->write("<class CC> ");
+	    else
+	      assert(0);
+
+	    fp->write("struct ");
+	    fp->write(sut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write("; }  //FORWARD\n");
+	  }
+	it++;
+      }
+    //fp->write("\n");
+  }
+
+
 #if 0
   //not sure we use this; go back and forth between the files that are output
   // if just this class, then NodeProgram can start the ball rolling

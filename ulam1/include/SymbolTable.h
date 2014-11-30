@@ -89,6 +89,9 @@ namespace MFM{
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 
     void generateIncludesForTableOfClasses(File * fp);
+
+    void generateForwardDefsForTableOfClasses(File * fp);
+
     //void genCodeForTableOfClasses(FileManager * fm, CompilerState& state); not used???
 
     u32 getTableSize();

@@ -374,7 +374,7 @@ namespace MFM {
     fp->write("class ");
     fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
     
-    fp->write(" : public Element<CC>");
+    fp->write(" : public DefaultElement<CC>");
 
     fp->write("\n");
 
@@ -473,7 +473,11 @@ namespace MFM {
 
     m_state.m_currentIndentLevel = 0;
 
-    // do not include .h in the .tcc
+    //generate includes for all the other classes that have appeared
+    m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
+    fp->write("\n");
+
+
     m_state.indent(fp);
     fp->write("namespace MFM{\n\n");
 
@@ -490,8 +494,30 @@ namespace MFM {
 	fp->write("<CC>");
 	fp->write("::");
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("(){}\n\n");
-	
+	//fp->write("(){}\n\n");
+	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str();
+	fp->write("() : DefaultElement<CC>(MFM_UUID_FOR(\"");
+	fp->write(namestr.c_str());
+	fp->write("\", 0))\n");
+	m_state.indent(fp);
+	fp->write("{\n");
+
+	m_state.m_currentIndentLevel++;
+
+	m_state.indent(fp);
+	fp->write("//XXXX  Element<CC>::SetAtomicSymbol(\"");
+	fp->write(namestr.substr(0,1).c_str());
+	fp->write("\");  // figure this out later\n");
+
+	m_state.indent(fp);
+	fp->write("Element<CC>::SetName(\"");
+	fp->write(namestr.c_str());
+	fp->write("\");\n");
+
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("}\n\n");
+
 	//default destructor
 	m_state.indent(fp);
 	fp->write("template<class CC>\n");
