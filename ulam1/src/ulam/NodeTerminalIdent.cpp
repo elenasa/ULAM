@@ -88,6 +88,8 @@ namespace MFM {
     //return the ptr for an array; square bracket will resolve down to the immediate data
     UlamValue uv;
     UlamValue uvp = makeUlamValuePtr();
+
+    //    if(m_state.isScalar(nuti))
     if(m_state.isScalar(nuti))
       {
 	uv = m_state.getPtrTarget(uvp);
@@ -96,8 +98,27 @@ namespace MFM {
 	// an element/quark or a requested scalar of an arraytype
 	if(uv.getUlamValueTypeIdx() != nuti)
 	  {
-	    u32 datavalue = uv.getDataFromAtom(uvp, m_state); 
-	    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	    
+	    if(nut->isCustomArray())
+	      {
+		UTI caType = ((UlamTypeClass *) nut)->getCustomArrayType();
+		UlamType * caut = m_state.getUlamTypeByIndex(caType);
+		if(caType == Atom || caut->getBitSize() > 32)
+		  {
+		    uv = uvp; //UlamValue::makeAtom(caType);	//customarray
+		  }
+		else
+		  {
+		    u32 datavalue = uv.getDataFromAtom(uvp, m_state); 
+		    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		  }
+	      }
+	    else
+	      {
+		u32 datavalue = uv.getDataFromAtom(uvp, m_state); 
+		uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+	      }
 	  }
       }
     else
@@ -374,20 +395,17 @@ namespace MFM {
   void NodeTerminalIdent::genCode(File * fp, UlamValue & uvpass)
   {
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen;
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
     uvpass = makeUlamValuePtrForCodeGen();
 
     m_state.m_currentObjPtr = uvpass;                    //*************
-    //m_state.m_currentObjSymbolForCodeGen = m_varSymbol;  //************UPDATED GLOBAL; 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL; 
  
     // UNCLEAR: should this be consistent with constants?
     genCodeReadIntoATmpVar(fp, uvpass);
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
   } //genCode
 
 
@@ -398,7 +416,6 @@ namespace MFM {
 
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjPtr = uvpass;                   //*********
-    //m_state.m_currentObjSymbolForCodeGen = m_varSymbol; //*********
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL; 
   } //genCodeToStoreInto
 

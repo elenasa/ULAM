@@ -195,9 +195,9 @@ namespace MFM {
     fp->write("(");
     
     //first one is always Atom a&
-    UlamType * atomut = m_state.getUlamTypeByIndex(Atom);
-    fp->write(atomut->getUlamTypeMangledName(&m_state).c_str()); //type for C++
-    fp->write("& ");          //only place we use a reference
+    //UlamType * atomut = m_state.getUlamTypeByIndex(Atom);
+    //fp->write(atomut->getUlamTypeMangledName(&m_state).c_str()); //type for C++
+    fp->write("T& ");          //only place we use a reference
     fp->write(m_state.getHiddenArgName());
     
     u32 numparams = getNumberOfParameters();

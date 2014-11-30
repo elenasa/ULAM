@@ -79,7 +79,7 @@ namespace MFM{
     void genAllCapsEndifForHeaderFile(File * fp);
     void generateHeaderIncludes(File * fp);
 
-    void genMangledTypeHeaderFile(FileManager * fm);  //obsolete
+    void genMangledTypesHeaderFile(FileManager * fm);  //obsolete
     void generateMain(FileManager * fm);
 
   };

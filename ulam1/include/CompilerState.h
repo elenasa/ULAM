@@ -203,6 +203,9 @@ namespace MFM{
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
     void indent(File * fp);
     const char * getHiddenArgName();
+    u32 getCustomArrayGetFunctionNameId();
+    u32 getCustomArraySetFunctionNameId();
+
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
 

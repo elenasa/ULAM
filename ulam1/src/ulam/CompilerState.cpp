@@ -28,7 +28,8 @@ namespace MFM {
   static const char * m_indentedSpaceLevel("  ");
 
   static const char * HIDDEN_ARG_NAME = "Uv_4self";
-
+  static const char * CUSTOMARRAY_GET_FUNC_NAME = "aRef";
+  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aSet";
 
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(false), m_parsingElementParameterVariable(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
@@ -323,6 +324,9 @@ namespace MFM {
     if(ut->isScalar())
       return utArg;
 
+    //    if(ut->getUlamClass() != UC_NOTACLASS)
+    //  return Atom;  //e.g. a Window quark ???
+
     // for typedef array, the scalar is the primitive type
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
@@ -385,6 +389,9 @@ namespace MFM {
 	assert((s32) key.getUlamKeyTypeSignatureBitSize() == total);
 	return;
       }
+    
+    bool isCustomArray = ut->isCustomArray();
+    UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);
 
     //verify total bits is within limits for elements and quarks
     if(classtype == UC_ELEMENT)
@@ -422,6 +429,10 @@ namespace MFM {
     m_indexToUlamType[utArg] = newut;
     m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,utArg));
     ((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
+
+    if(isCustomArray)
+      ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+
     assert(isDefined(newkey, utArg));
 #if 0
     {
@@ -687,7 +698,6 @@ namespace MFM {
 
     if(m_currentFunctionReturnNodes.empty()) 
       {
-	//if(it != Void)
 	if(it != Void && !fsym->isNativeFunctionDeclaration())
 	  {
 	    std::ostringstream msg;
@@ -736,7 +746,7 @@ namespace MFM {
       } //next return node
 
     return rtnBool;
-  }
+  } //checkFunctionReturnNodeTypes
 
 
   void CompilerState::indent(File * fp)
@@ -751,6 +761,20 @@ namespace MFM {
   const char * CompilerState::getHiddenArgName()
   {
     return  HIDDEN_ARG_NAME;
+  }
+
+
+  u32 CompilerState::getCustomArrayGetFunctionNameId() 
+  {
+    std::string str(CUSTOMARRAY_GET_FUNC_NAME);
+    return m_pool.getIndexForDataString(str);
+  }
+
+
+  u32 CompilerState::getCustomArraySetFunctionNameId()
+  {
+    std::string str(CUSTOMARRAY_SET_FUNC_NAME);
+    return  m_pool.getIndexForDataString(str);
   }
 
 
@@ -1037,7 +1061,7 @@ namespace MFM {
   }
 
 #if 0
-  PACKFIT CompilerState::determinePackable(UTI aut)
+  PACKFIT CompilerState::DETERMINEPACKABLE(UTI aut)
   {
     PACKFIT rtn = UNPACKED;            //was false == 0
     s32 arraysize = getArraySize(aut); //negative for scalars

@@ -165,7 +165,7 @@ namespace MFM {
   inline s64 _BitwiseOrInt64(s64 vala, s64 valb, u32 bitwidth) 
   {
     u64 mask = _GetNOnes64(bitwidth);
-    return ( (vala | valb) & mask);  //"at least max"
+    return ( (vala | valb) & mask);   // "at least max"
   }
 
   inline s32 _BitwiseAndInt32(s32 vala, s32 valb, u32 bitwidth) 
