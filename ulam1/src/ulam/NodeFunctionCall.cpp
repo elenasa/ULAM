@@ -345,6 +345,15 @@ namespace MFM {
 	  }
 
 	UTI stgcosuti = stgcos->getUlamTypeIdx();
+
+	if(!stgcos->isElementParameter() && stgcosuti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+	  {
+	    //local storage; irrelevant, so let next cos be the storage.
+	    assert(m_state.m_currentObjSymbolsForCodeGen.size() > 1);
+	    stgcos = m_state.m_currentObjSymbolsForCodeGen[1];
+	    stgcosuti = stgcos->getUlamTypeIdx();
+	  }
+
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();		
      
@@ -352,29 +361,20 @@ namespace MFM {
 	UTI selfuti = css->getUlamTypeIdx();
 	UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
 	arglist << selfut->getUlamTypeMangledName(&m_state).c_str();
-	arglist << "<CC>::THE_INSTANCE.";
-	arglist << stgcos->getMangledName().c_str();
+	arglist << "<CC>::THE_INSTANCE";
 
 	//element parameter (could be array?)
 	if(cos->isDataMember() && !cos->isElementParameter())
 	  {	    
-	    if(stgcosclasstype == UC_ELEMENT)
-	      {
-		arglist << ".GetBits()";
-	      }
-	    else if(stgcosclasstype == UC_QUARK)
-	      {
-		arglist << ".getBits()"; 
-	      }
-	    else
-	      {
-		//NOT A CLASS
-	      }
+	    arglist << ".";
+	    arglist << stgcos->getMangledName().c_str();
 	  }
 	else //default
 	  {
 	    if(stgcosclasstype == UC_QUARK)
 	      {
+		arglist << ".";
+		arglist << stgcos->getMangledName().c_str();
 		arglist << ".m_stg"; //the T storage within the struct for immediate quarks
 	      }
 	  }
@@ -530,9 +530,18 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0]; 
+    u32 cosStart = 1;
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0]; 
+    UTI uti = stgcos->getUlamTypeIdx();
 
-    UTI uti = cos->getUlamTypeIdx();
+    //skip first stgcos if a local variable of same type as the 'self' and not the element parameter
+    if(!stgcos->isElementParameter() && uti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+      {
+	stgcos = m_state.m_currentObjSymbolsForCodeGen[1]; //use next one
+	uti = stgcos->getUlamTypeIdx();
+	cosStart++; 
+      }
+
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
     ULAMCLASSTYPE classtype = ut->getUlamClass();
 
@@ -547,13 +556,13 @@ namespace MFM {
 	fp->write("::");
 	fp->write("Us::");   //typedef
       }
-    else if(classtype == UC_ELEMENT)  //??
+    else if(classtype == UC_ELEMENT) //needs testing
       {
 	fp->write(ut->getUlamTypeMangledName(&m_state).c_str()); 
 	fp->write("<CC>::");
       }
 
-    for(u32 i = 1; i < cosSize; i++)
+    for(u32 i = cosStart; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	UTI suti = sym->getUlamTypeIdx();
@@ -566,13 +575,20 @@ namespace MFM {
 		fp->write(sym->getMangledName().c_str());
 		fp->write(".");
 	      }
-	    else
+	    else if(classtype == UC_QUARK)
 	      {
 		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
 		fp->write("::");
 		if( ((i + 1) < cosSize))  //still another cos refiner, use
 		  fp->write("Us::");      //typedef	    
 	      }
+	    else if(classtype == UC_ELEMENT) //test please???
+	      {
+		fp->write(ut->getUlamTypeMangledName(&m_state).c_str()); 
+		fp->write("<CC>::");
+	      }
+	    else
+	      assert(0);  //NOTACLASS
 	  }
 	else
 	  {
@@ -590,9 +606,9 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0]; 
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0]; 
 
-    UTI uti = cos->getUlamTypeIdx();
+    UTI uti = stgcos->getUlamTypeIdx();
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
     ULAMCLASSTYPE classtype = ut->getUlamClass();
 
@@ -609,6 +625,17 @@ namespace MFM {
 	fp->write("::");
 	fp->write("Us::");   //typedef
       }
+    else if(classtype == UC_ELEMENT)
+      {
+	fp->write(ut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>::");
+      }
+    else
+      {
+	assert(0);
+	//NOTACLASS
+      }
+
 
     for(u32 i = 1; i < cosSize; i++)
       {
