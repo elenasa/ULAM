@@ -208,7 +208,9 @@ namespace MFM {
 
       // this class header
       {
-	File * fp = fm->open(m_state.getFileNameForThisClassHeader().c_str(), WRITE);
+	std::ostringstream f;
+	f << "include/" << m_state.getFileNameForThisClassHeader().c_str();
+	File * fp = fm->open(f.str().c_str(), WRITE);
 	assert(fp);
 
 	generateHeaderPreamble(fp);
@@ -240,7 +242,9 @@ namespace MFM {
 
       // this class body
       {
-	File * fp = fm->open(m_state.getFileNameForThisClassBody().c_str(), WRITE);
+	std::ostringstream f;
+	f << "include/" << m_state.getFileNameForThisClassBody().c_str();
+	File * fp = fm->open(f.str().c_str(), WRITE);
 	assert(fp);
 
 	m_state.m_currentIndentLevel = 0;
@@ -254,7 +258,9 @@ namespace MFM {
 
       // "stub" .cpp includes .h (unlike the .tcc body)
       {
-	File * fp = fm->open(m_state.getFileNameForThisClassCPP().c_str(), WRITE);
+	std::ostringstream f;
+	f << "src/" << m_state.getFileNameForThisClassCPP().c_str();
+	File * fp = fm->open(f.str().c_str(), WRITE);
 	assert(fp);
 
 	m_state.m_currentIndentLevel = 0;
@@ -355,7 +361,9 @@ namespace MFM {
   // important for overloading functions
   void NodeProgram::genMangledTypesHeaderFile(FileManager * fm)
   {
-    File * fp = fm->open(m_state.getFileNameForThisTypesHeader().c_str(), WRITE);
+    std::ostringstream f;
+    f << "include/" << m_state.getFileNameForThisTypesHeader().c_str();
+    File * fp = fm->open(f.str().c_str(), WRITE);
     assert(fp);
 
     m_state.m_currentIndentLevel = 0;
@@ -399,7 +407,9 @@ namespace MFM {
   // outside the MFM namespace !!!
   void NodeProgram::generateMain(FileManager * fm)
   {
-    File * fp = fm->open(m_state.getFileNameForThisClassMain().c_str(), WRITE);
+    std::ostringstream f;
+    f << "src/" << m_state.getFileNameForThisClassMain().c_str();
+    File * fp = fm->open(f.str().c_str(), WRITE);
     assert(fp);
 
     m_state.m_currentIndentLevel = 0;

@@ -30,6 +30,7 @@ namespace MFM
       , m_sourceFile(0)
       , m_stdout(new FileStdio(stdout, MFM::WRITE))
       , m_stderr(new FileStdio(stderr, MFM::WRITE))
+      , m_hasTestMethod(false)
     { }
 
     ~DriverState() {
@@ -73,6 +74,11 @@ namespace MFM
     std::string GetMangledTarget()
     {
       return m_mangledTarget;
+    }
+
+    std::string HasTestMethod()
+    {
+      return m_hasTestMethod ? "TEST" : "NOTEST";
     }
 
     void SetTarget(char * path, char * outpath)
@@ -130,6 +136,7 @@ namespace MFM
       int status = C.compileProgram(m_srcFileManager, m_filename, m_outFileManager, m_stderr);
       if (status == 0) {
         m_mangledTarget = C.getMangledTarget();
+	m_hasTestMethod = C.hasTheTestMethod();
       }
       return status;
     }
@@ -142,6 +149,7 @@ namespace MFM
     File * m_stderr;
     std::string m_filename;
     std::string m_mangledTarget;
+    bool m_hasTestMethod;
   };
 } /* namespace MFM */
 
@@ -170,7 +178,7 @@ int main(int argc, char ** argv)
 
     int result = ds.RunCompilation();
     if (result == 0)
-      std::cerr << ds.GetMangledTarget() << std::endl;
+	std::cerr << ds.GetMangledTarget() << " " << ds.HasTestMethod() << std::endl;
   }
   catch (int status) {
     return status;

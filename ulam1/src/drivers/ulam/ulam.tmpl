@@ -685,7 +685,7 @@ sub runUlamCompile {
         my $cfile = $stderr;
         chomp($cfile);
         print STDOUT "OK\n";
-        UNSAFE_TEMPORARY_MV_FILES($ULAM_BUILD_DIR);
+#        UNSAFE_TEMPORARY_MV_FILES($ULAM_BUILD_DIR);
         return (0, $cfile);
     }
     return $status ne "";

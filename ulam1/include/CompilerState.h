@@ -243,6 +243,8 @@ namespace MFM{
     */
     PACKFIT determinePackable(UTI aut);
 
+    bool thisClassHasTheTestMethod();
+
     void setupCenterSiteForTesting();
 
     /** used by SourceStream to build m_textByLinePerFilePath during parsing */
