@@ -1094,6 +1094,16 @@ namespace MFM {
 #endif
 
 
+  bool CompilerState::thisClassHasTheTestMethod()
+  {
+    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
+    NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
+    assert(classNode);
+    NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
+    return (func != NULL);
+  }
+
+
   void CompilerState::setupCenterSiteForTesting()
   {
     // call again for code gen..

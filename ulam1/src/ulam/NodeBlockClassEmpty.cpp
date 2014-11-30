@@ -43,7 +43,7 @@ namespace MFM {
 
   UTI NodeBlockClassEmpty::checkAndLabelType()
   {
-    setNodeType(Void);
+    //setNodeType(Void);
     return getNodeType();
   }
 

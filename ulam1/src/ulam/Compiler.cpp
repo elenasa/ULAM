@@ -25,6 +25,7 @@ namespace MFM {
     return m_state.getFileNameForThisClassCPP();
   }
 
+
   u32 Compiler::compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput)
   {
     SourceStream ss(infm, m_state);
@@ -106,6 +107,12 @@ namespace MFM {
     root->checkAndLabelType();        //side-effects
 
     return m_state.m_err.getErrorCount();
+  }
+
+
+  bool Compiler::hasTheTestMethod()
+  {
+    return m_state.thisClassHasTheTestMethod();
   }
 
 
