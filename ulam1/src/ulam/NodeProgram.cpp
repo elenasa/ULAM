@@ -97,6 +97,9 @@ namespace MFM {
     assert(m_root);
     m_state.m_err.clearCounts();
 
+    // needed before square bracket nodes do their checkandlabelling
+    //m_state.m_programDefST.initializeCustomArraysForTableOfClasses();
+
     // label all the class; sets "current" m_currentClassSymbol in CS
     m_state.m_programDefST.labelTableOfClasses();
 
@@ -201,7 +204,7 @@ namespace MFM {
       m_state.m_currentBlock = m_state.m_classBlock;
 
       // mangled types and forward class declarations
-      genMangledTypeHeaderFile(fm);    
+      genMangledTypesHeaderFile(fm);    
 
       // this class header
       {
@@ -333,7 +336,7 @@ namespace MFM {
     fp->write("//#include \"BitVector.h\"\n"); 
     fp->write("//#include \"BitField.h\"\n"); 
 #endif
-    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+    fp->write("#include \"UlamDefs.h\"\n\n");
 
     //using the _Types.h file
     m_state.indent(fp);
@@ -343,49 +346,14 @@ namespace MFM {
     fp->write("\n");
 
     //generate includes for all the other classes that have appeared
-    m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
+    m_state.m_programDefST.generateForwardDefsForTableOfClasses(fp);
   } //generateHeaderIncludes
 
 
-#if 0
-  // REPLACED BY: genImmediateMangledTypesForHeaderFile
-  // this is for immediate types, and will probably be moved to the element's .h
-  // since template typedefs are not supported in the version of g++ we've selected.
-  void NodeProgram::GENMANGLEDTYPEHEADERFILE(FILEMANAGER * FM)
-  {
-    FILE * fp = fm->open(m_state.getFileNameForThisTypesHeader().c_str(), WRITE);
-    assert(fp);
-    
-    m_state.m_currentIndentLevel = 0;
-    fp->write(CModeForHeaderFiles);
-
-    m_state.indent(fp);
-    //use -I ../../../include in g++ command
-    fp->write("//#include \"itype.h\"\n"); 
-    fp->write("//#include \"BitVector.h\"\n"); 
-    fp->write("//#include \"BitField.h\"\n"); 
-    fp->write("\n");
-
-    m_state.indent(fp);
-    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
-
-    //skip Nav type (0)
-    u32 numTypes = m_state.m_indexToUlamType.size();
-    for(u32 i = 1; i < numTypes; i++)
-      {
-	UlamType * ut = m_state.getUlamTypeByIndex(i);
-	if(!m_state.isConstant(i))   //skip constants
-	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
-      }
-    delete fp;
-  }
-#endif
-
-
-  //redo: create structs with BV, as storage, and typedef
-  //      for primitive types; useful as args and local variables;
-  //      important for overloading functions
-  void NodeProgram::genMangledTypeHeaderFile(FileManager * fm)
+  // create structs with BV, as storage, and typedef
+  // for primitive types; useful as args and local variables;
+  // important for overloading functions
+  void NodeProgram::genMangledTypesHeaderFile(FileManager * fm)
   {
     File * fp = fm->open(m_state.getFileNameForThisTypesHeader().c_str(), WRITE);
     assert(fp);
@@ -401,16 +369,28 @@ namespace MFM {
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+    fp->write("#include \"UlamDefs.h\"\n\n");
 
-    //skip Nav type (0)
+    // do primitive types before classes so that immediate
+    // Quarks/Elements can use them (e.g. immediate index for aRef)
+
     u32 numTypes = m_state.m_indexToUlamType.size();
+    //skip Navs (0)
     for(u32 i = 1; i < numTypes; i++)
       {
 	UlamType * ut = m_state.getUlamTypeByIndex(i);
-	if(ut->needsImmediateType())   //e.g. skip constants
+	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)   //e.g. skip constants, incl atom
 	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
       }
+
+    //same except now for user defined Class types
+    for(u32 i = 1; i < numTypes; i++)
+      {
+	UlamType * ut = m_state.getUlamTypeByIndex(i);
+	if(ut->needsImmediateType() && ut->getUlamClass() != UC_NOTACLASS)
+	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+      }
+
     delete fp;
   } //genMangledTypeHeaderFile
  
@@ -429,7 +409,7 @@ namespace MFM {
 
 
     m_state.indent(fp);
-    fp->write("#include \"EmergentBoilerPlate.h\"\n\n");
+    fp->write("#include \"UlamDefs.h\"\n\n");
 
 #if 0
     m_state.indent(fp);

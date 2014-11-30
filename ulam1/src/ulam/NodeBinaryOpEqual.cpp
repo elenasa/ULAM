@@ -44,16 +44,6 @@ namespace MFM {
 	return newType;  //nav
       }
 
-    if(!m_state.isScalar(leftType) || !m_state.isScalar(rightType))
-      {
-	std::ostringstream msg;
-	msg << "Non-scalars require a loop for operators equal, LHS: <" << m_nodeLeft->getName() << ">, type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << ">";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(newType);
-	setStoreIntoAble(false);
-	return newType;  //nav
-      }
-
     newType = leftType;
 
     //cast RHS if necessary

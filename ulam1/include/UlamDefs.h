@@ -1,5 +1,5 @@
 /*                                              -*- mode:C++ -*-
-  EmergentBoilerPlate.h Early test harness
+  UlamDefs.h Early test harness
   Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
@@ -19,13 +19,13 @@
 */
 
 /**
-  \file EmergentBoilerPlate.h Early test harness
+  \file UlamDefs.h (formerly EmergentBoilerPlate.h - Early test harness) 
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \lgpl
  */
-#ifndef EMERGENTBOILERPLATE_H
-#define EMERGENTBOILERPLATE_H
+#ifndef ULAMDEFS_H
+#define ULAMDEFS_H
 
 namespace MFM {
 
@@ -1037,34 +1037,34 @@ void BitVector<S>::Write(u32 pos, u32 len, u32 val)
 //BitField.h
   template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
   struct BitField {
-    static u32 ReadRaw(const BV & bv) ;
-    static void WriteRaw(BV & bv, const u32 val) ;
-    static u32 ReadArrayRaw(const BV & bv, const u32 index, const u32 unitsize);
-    static void WriteArrayRaw(BV & bv, const u32 val, const u32 index, const u32 unitsize);
+    static u32 Read(const BV & bv) ;
+    static void Write(BV & bv, const u32 val) ;
+    static u32 ReadArray(const BV & bv, const u32 index, const u32 unitsize);
+    static void WriteArray(BV & bv, const u32 val, const u32 index, const u32 unitsize);
   };
 
 //BitField.tcc
 template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
-u32 BitField<BV,VDTYPE,LEN,POS>::ReadRaw(const BV & bv)
+u32 BitField<BV,VDTYPE,LEN,POS>::Read(const BV & bv)
 {
   return bv.Read(POS,LEN);
 }
 
 template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
-void BitField<BV,VDTYPE,LEN,POS>::WriteRaw(BV & bv, const u32 val)
+void BitField<BV,VDTYPE,LEN,POS>::Write(BV & bv, const u32 val)
 {
   bv.Write(POS,LEN,val);
 }
 
 template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
-u32 BitField<BV,VDTYPE,LEN,POS>::ReadArrayRaw(const BV & bv, const u32 index, const u32 unitsize)
+u32 BitField<BV,VDTYPE,LEN,POS>::ReadArray(const BV & bv, const u32 index, const u32 unitsize)
 {
   return bv.Read((index * unitsize) + POS, unitsize);
 }
 
 
 template <class BV, u32 VDTYPE, u32 LEN, u32 POS>
-void BitField<BV,VDTYPE,LEN,POS>::WriteArrayRaw(BV & bv, const u32 val, const u32 index, const u32 unitsize)
+void BitField<BV,VDTYPE,LEN,POS>::WriteArray(BV & bv, const u32 val, const u32 index, const u32 unitsize)
 {
   bv.Write((index * unitsize) + POS, unitsize, val);
 }
@@ -1078,14 +1078,14 @@ struct AtomicParameterType
   typedef typename CC::ATOM_TYPE T;
   enum { BPA = P::BITS_PER_ATOM };
 
-  static u32 ReadRaw(const BitVector<BPA> & bv){ return BitField<BitVector<BPA>, VDTYPE, LEN, POS>::ReadRaw(bv); }
+  static u32 Read(const BitVector<BPA> & bv){ return BitField<BitVector<BPA>, VDTYPE, LEN, POS>::Read(bv); }
 
-  static void WriteRaw(BitVector<BPA> & bv, const u32 val) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::WriteRaw(bv, val); }
+  static void Write(BitVector<BPA> & bv, const u32 val) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::Write(bv, val); }
 
-  static u32 ReadArrayRaw(const BitVector<BPA> & bv, const u32 index, const u32 unitsize) { return BitField<BitVector<BPA>, VDTYPE, LEN, POS>::ReadArrayRaw(bv, index, unitsize); }
+  static u32 ReadArray(const BitVector<BPA> & bv, const u32 index, const u32 unitsize) { return BitField<BitVector<BPA>, VDTYPE, LEN, POS>::ReadArray(bv, index, unitsize); }
 
 
-  static void WriteArrayRaw(BitVector<BPA> & bv, const u32 val, const u32 index, const u32 unitsize) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::WriteArrayRaw(bv, val, index, unitsize); }
+  static void WriteArray(BitVector<BPA> & bv, const u32 val, const u32 index, const u32 unitsize) { BitField<BitVector<BPA>, VDTYPE, LEN, POS>::WriteArray(bv, val, index, unitsize); }
 
 };
 
@@ -1145,7 +1145,7 @@ struct Element
   {
     if (m_hasType)
       FAIL();
-    BFType::WriteRaw(m_defaultAtom.GetBits(), type);
+    BFType::Write(m_defaultAtom.GetBits(), type);
     m_hasType = true;
   }
 
@@ -1201,4 +1201,4 @@ private:
 
 } //MFM
 
-#endif /* EMERGENTBOILERPLATE_H */
+#endif /* ULAMDEFS_H */

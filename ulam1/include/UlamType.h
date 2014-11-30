@@ -128,7 +128,9 @@ namespace MFM{
     //for name by index see CompilerState::getUlamTypeNameByIndex
     virtual bool isConstant();
 
-    bool isScalar();   //arraysize == NOTARRAYSIZE is scalar
+    virtual bool isScalar();   //arraysize == NOTARRAYSIZE is scalar
+
+    virtual bool isCustomArray();
 
     s32 getArraySize();
 
@@ -144,11 +146,11 @@ namespace MFM{
 
     virtual PACKFIT getPackable();
 
-    const std::string readMethodForCodeGen();
-    const std::string readArrayItemMethodForCodeGen();
+    virtual const std::string readMethodForCodeGen();
+    virtual const std::string writeMethodForCodeGen();
 
-    const std::string writeMethodForCodeGen();
-    const std::string writeArrayItemMethodForCodeGen();
+    virtual const std::string readArrayItemMethodForCodeGen();
+    virtual const std::string writeArrayItemMethodForCodeGen();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
 

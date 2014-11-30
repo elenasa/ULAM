@@ -43,9 +43,22 @@ namespace MFM {
     return getTmpStorageTypeAsString(state, getItemWordSize());
   }
 
+
   const std::string UlamTypeInt::getTmpStorageTypeAsString(CompilerState * state)
   {
     return getTmpStorageTypeAsString(state, getTotalWordSize());
+  }
+
+
+  const std::string UlamTypeInt::getArrayItemUnsignedTmpStorageTypeAsString(CompilerState * state)
+  {
+    return UlamType::getTmpStorageTypeAsString(state, getItemWordSize());
+  }
+
+
+  const std::string UlamTypeInt::getUnsignedTmpStorageTypeAsString(CompilerState * state)
+  {
+    return UlamType::getTmpStorageTypeAsString(state, getTotalWordSize());
   }
 
 
