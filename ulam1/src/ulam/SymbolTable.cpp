@@ -625,15 +625,19 @@ namespace MFM {
 	    ULAMCLASSTYPE uct = ((SymbolClass *) sym)->getUlamClass();
 	    if(uct == UC_ELEMENT)
 	      {
+		std::ostringstream f;
+		f << "include/" << state.getFileNameForAClassHeader(sym.getId()).c_str();
 		//output both header and body in separate files
-		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId()).c_str(),WRITE);
+		File * fp = fm->fopen(f.str().c_str(),WRITE);
 		assert(fp);
 
 		classNode->genCode(fp, uvpass);	
 		delete fp;
 
 		// output body for This Class only
-		File * fpb = fm->fopen(m_state.getFileNameForThisClassBody().c_str(),WRITE);
+		std::ostringstream f2;
+		f2 << "include/" << m_state.getFileNameForThisClassBody().c_str();
+		File * fpb = fm->fopen(f2.str().c_str(),WRITE);
 		assert(fpb);
 		
 		classNode->genCodeBody(fpb, uvpass);	
@@ -643,7 +647,9 @@ namespace MFM {
 	      {
 		// for quarks output template struct in .h
 		assert(uct == UC_QUARK);
-		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId()).c_str(),WRITE);
+		std::ostringstream f;
+		f << "include/" << state.getFileNameForAClassHeader(sym.getId()).c_str();
+		File * fp = fm->fopen(f.str().c_str(),WRITE);
 		assert(fp);
 
 		classNode->genCodeBody(fp, uvpass);	

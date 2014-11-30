@@ -84,11 +84,14 @@ namespace MFM{
 
     void genCodeBody(File * fp, UlamValue& uvpass);  //specific for this class
 
+    NodeBlockFunctionDefinition * findTestFunctionNode();
+
+
   protected:
     SymbolTable m_functionST;  
 
   private:
-    NodeBlockFunctionDefinition * findTestFunctionNode();
+
 
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);
