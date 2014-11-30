@@ -1437,10 +1437,12 @@ namespace MFM {
   } //genMemberNameOfMethod
 
 
+  // "static" data member, a mixture of local variable and dm;
+  // requires THE_INSTANCE, and local variables are superfluous.
   void Node::genElementParameterMemberNameOfMethod(File * fp)
   {
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0]; 
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0]; 
     if(cosSize == 1)
       {
 	Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
@@ -1449,18 +1451,19 @@ namespace MFM {
 	fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("<CC>::THE_INSTANCE");
 	fp->write(".");
-	fp->write(cos->getMangledName().c_str());
+	fp->write(stgcos->getMangledName().c_str());
 	fp->write(".");
 	return;
       }
     
     u32 cosStart = 1;
-    UTI uti = cos->getUlamTypeIdx();
-    //skip first cos if a local variable
-    if(!cos->isElementParameter() && uti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+    UTI uti = stgcos->getUlamTypeIdx();
+
+    //skip first stgcos if a local variable of same type as the 'self' and not the element parameter
+    if(!stgcos->isElementParameter() && uti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
       {
-	cos = m_state.m_currentObjSymbolsForCodeGen[1]; //use next one
-	uti = cos->getUlamTypeIdx();
+	stgcos = m_state.m_currentObjSymbolsForCodeGen[1]; //use next one
+	uti = stgcos->getUlamTypeIdx();
 	cosStart++;
       }
 
@@ -1475,6 +1478,7 @@ namespace MFM {
       }
     else if(classtype == UC_ELEMENT)  
       {
+	// if data member or element parameter (i.e. not a local var)
 	//if(!isCurrentObjectALocalVariableOrArgument() || isCurrentObjectsContainingAnElementParameter())
 	  {
 	    fp->write(ut->getUlamTypeMangledName(&m_state).c_str()); 
@@ -1512,9 +1516,11 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //not the element parameter, but a data member..
 	    fp->write(sym->getMangledNameForParameterType().c_str());
 	    fp->write("::");
-	    if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray()) // last i
+	    // if its the last cos, a quark, and not a custom array...
+	    if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray()) 
 	      fp->write("Up_Us::");   //atomic parameter needed
 	  }
       }
@@ -1531,16 +1537,16 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[0]; 
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0]; 
 
     if(cosSize == 1)
       {
-	fp->write(cos->getMangledName().c_str());
+	fp->write(stgcos->getMangledName().c_str());
 	fp->write(".");
 	return;
       }
     
-    UTI uti = cos->getUlamTypeIdx();
+    UTI uti = stgcos->getUlamTypeIdx();
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
     ULAMCLASSTYPE classtype = ut->getUlamClass();
 
@@ -1551,8 +1557,16 @@ namespace MFM {
 	fp->write("::");
 	fp->write("Us::");   //typedef
       }
-
-    //what if it's UC_ELEMENT? shows up as hidden arg, i think
+    else if(classtype == UC_ELEMENT)
+      {
+	fp->write(ut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>::");
+      }
+    else
+      {
+	assert(0);
+	//NOTACLASS
+      }
 
     for(u32 i = 1; i < cosSize; i++)
       {
