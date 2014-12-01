@@ -686,10 +686,11 @@ sub runUlamCompile {
     } else {
         my $info = $stderr;
         chomp($info);
+#        print STDOUT "INFO($info)\n";
         my ($cfile, $hastest) = split(/ /, $info);
         print STDOUT "OK\n";
 #        UNSAFE_TEMPORARY_MV_FILES($ULAM_BUILD_DIR);
-        return (0, $cfile, $hasTest eq 'TEST');
+        return (0, $cfile, $hastest eq 'TEST');
     }
     return $status ne "";
 }
