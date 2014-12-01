@@ -30,6 +30,7 @@ clean:	FORCE
 	@rm -f *~
 	@rm -f $(OBJS)
 	@rm -f $(BUILD_DIR)/libtests.a
-	@rm -f $(TGEN_DIR)/*.*
+	@rm -f $(TGEN_DIR)/src/*.*
+	@rm -f $(TGEN_DIR)/include/*.*
 
 .PHONY:	FORCE

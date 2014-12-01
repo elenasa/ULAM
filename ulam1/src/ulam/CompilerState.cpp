@@ -778,63 +778,81 @@ namespace MFM {
   }
 
 
-  std::string CompilerState::getFileNameForAClassHeader(u32 id)
+  std::string CompilerState::getFileNameForAClassHeader(u32 id, bool wSubDir)
   {
     std::ostringstream f;
     Symbol * csym = m_programDefST.getSymbolPtr(id);
     UTI cuti = csym->getUlamTypeIdx();
+    if(wSubDir)
+      f << "include/";
+
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".h";
     return f.str();
   }
 
 
-  std::string CompilerState::getFileNameForThisClassHeader()
+  std::string CompilerState::getFileNameForThisClassHeader(bool wSubDir)
   {
-    return getFileNameForAClassHeader(m_compileThisId);
+    return getFileNameForAClassHeader(m_compileThisId, wSubDir);
   }
 
 
-  std::string CompilerState::getFileNameForThisClassBody()
+  std::string CompilerState::getFileNameForThisClassBody(bool wSubDir)
   {
     std::ostringstream f;
     UTI cuti = getUlamTypeForThisClass();
+    if(wSubDir)
+      f << "include/";
+
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".tcc";
     return f.str();
   }
 
 
-  std::string CompilerState::getFileNameForThisClassBodyNative()
+  std::string CompilerState::getFileNameForThisClassBodyNative(bool wSubDir)
   {
     std::ostringstream f;
     UTI cuti = getUlamTypeForThisClass();
+    if(wSubDir)
+      f << "include/";
+
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_native.tcc";
     return f.str();
   }
 
 
-  std::string CompilerState::getFileNameForThisClassCPP()
+  std::string CompilerState::getFileNameForThisClassCPP(bool wSubDir)
   {
     std::ostringstream f;
     UTI cuti = getUlamTypeForThisClass();
+    if(wSubDir)
+      f << "src/";
+
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".cpp";
     return f.str();
   }
 
 
-  std::string CompilerState::getFileNameForThisTypesHeader()
+  std::string CompilerState::getFileNameForThisTypesHeader(bool wSubDir)
   {
     std::ostringstream f;
     UTI cuti = getUlamTypeForThisClass();
+    if(wSubDir)
+      f << "include/";
+
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_Types.h";
     return f.str();
   }
 
 
   //separate file for element compilations, avoid multiple mains, select the one to test during linking
-  std::string CompilerState::getFileNameForThisClassMain()
+  std::string CompilerState::getFileNameForThisClassMain(bool wSubDir)
   {
     std::ostringstream f;
     UTI cuti = getUlamTypeForThisClass();
+    if(wSubDir)
+      f << "src/";
+
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_main.cpp";
     return f.str();
   }
@@ -1059,39 +1077,6 @@ namespace MFM {
   {
     return getUlamTypeByIndex(aut)->getPackable();
   }
-
-#if 0
-  PACKFIT CompilerState::DETERMINEPACKABLE(UTI aut)
-  {
-    PACKFIT rtn = UNPACKED;            //was false == 0
-    s32 arraysize = getArraySize(aut); //negative for scalars
-    s32 bitsize = getBitSize(aut);     //default size for constants
-
-    //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
-    if(arraysize > NONARRAYSIZE)
-      {
-	u32 len = (arraysize * bitsize);  //could be 0
-	//if(len <= MAXBITSPERINT)
-	if(len <= MAXBITSPERINT || len <= MAXBITSPERLONG)
-	  rtn = PACKEDLOADABLE;
-	else
-	  if(len <= MAXSTATEBITS)
-	    rtn = PACKED;
-      }
-    else
-      {  //scalar, immediate only...must also allow quark!
-	ULAMCLASSTYPE classtype = getUlamTypeByIndex(aut)->getUlamClass();
-	if(classtype == UC_NOTACLASS || classtype == UC_QUARK)
-	  {
-	    //if(bitsize <= MAXBITSPERINT)  //32
-	    if(bitsize <= MAXBITSPERINT || bitsize <= MAXBITSPERLONG)
-	      rtn = PACKEDLOADABLE;
-	  }
-      }
-
-    return rtn;
-  }
-#endif
 
 
   bool CompilerState::thisClassHasTheTestMethod()
