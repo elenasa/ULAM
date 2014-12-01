@@ -502,6 +502,7 @@ namespace MFM {
     return;  //no-op
   }
 
+
   void NodeFunctionCall::genMemberNameOfMethod(File * fp, UlamValue uvpass)
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
@@ -535,7 +536,7 @@ namespace MFM {
     UTI uti = stgcos->getUlamTypeIdx();
 
     //skip first stgcos if a local variable of same type as the 'self' and not the element parameter
-    if(!stgcos->isElementParameter() && uti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+    if(Node::isCurrentStorageObjectIrrelevantForElementParameter())
       {
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[1]; //use next one
 	uti = stgcos->getUlamTypeIdx();

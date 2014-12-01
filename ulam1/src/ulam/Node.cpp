@@ -101,7 +101,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
     return rtnB;
-  } //x`warnOfNarrowingCast
+  } //warnOfNarrowingCast
 
 
   UTI Node::getNodeType()
@@ -126,6 +126,7 @@ namespace MFM {
   {
     m_storeIntoAble = s;
   }
+
 
   // any node above assignexpr is not storeintoable
   EvalStatus Node::evalToStoreInto()
@@ -155,6 +156,7 @@ namespace MFM {
     fp->write(getNodeLocationAsString().c_str());
   }
 
+
   std::string Node::getNodeLocationAsString()
   {
     return m_state.getFullLocationAsString(m_nodeLoc);
@@ -165,6 +167,7 @@ namespace MFM {
   {
     return false;
   }
+
 
   bool Node::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
@@ -472,16 +475,13 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
-    //split if custom array, storage is a data member
-    //if(cosut->isCustomArray() && !isCurrentObjectALocalVariableOrArgument())
+    // split if custom array; like a function call instead
     if(cosut->isCustomArray() && !isHandlingImmediateType())
-      return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass); //like a function call instead
+      return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass); 
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();
-
-    //assert(isCurrentObjectAnArrayItem(cosuti, uvpass));
 
     UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
     UlamType *	scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
@@ -512,7 +512,7 @@ namespace MFM {
       }
     else if (isCurrentObjectsContainingAnElementParameter())
       {
-	if(!stgcos->isElementParameter() && stgcosuti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+	if(isCurrentStorageObjectIrrelevantForElementParameter())
 	  {
 	    //local storage; irrelevant, so let next cos be the storage.
 	    assert(m_state.m_currentObjSymbolsForCodeGen.size() > 1);
@@ -681,7 +681,7 @@ namespace MFM {
       }
     else if(isCurrentObjectsContainingAnElementParameter())
       {
-	if(!stgcos->isElementParameter() && stgcosuti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+	if(isCurrentStorageObjectIrrelevantForElementParameter())
 	  {
 	    //local storage; irrelevant, so let next cos be the storage.
 	    assert(m_state.m_currentObjSymbolsForCodeGen.size() > 1);
@@ -1109,7 +1109,7 @@ namespace MFM {
       }
     else if(isCurrentObjectsContainingAnElementParameter())
       {
-	if(!stgcos->isElementParameter() && stgcosuti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+	if(isCurrentStorageObjectIrrelevantForElementParameter())
 	  {
 	    //local storage; irrelevant, so let next cos be the storage.
 	    assert(m_state.m_currentObjSymbolsForCodeGen.size() > 1);
@@ -1295,7 +1295,7 @@ namespace MFM {
       }
     else if(isCurrentObjectsContainingAnElementParameter())
       {
-	if(!stgcos->isElementParameter() && stgcosuti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+	if(isCurrentStorageObjectIrrelevantForElementParameter())
 	  {
 	    //local storage; irrelevant, so let next cos be the storage.
 	    assert(m_state.m_currentObjSymbolsForCodeGen.size() > 1);
@@ -1459,7 +1459,7 @@ namespace MFM {
     UTI uti = stgcos->getUlamTypeIdx();
 
     //skip first stgcos if a local variable of same type as the 'self' and not the element parameter
-    if(!stgcos->isElementParameter() && uti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+    if(isCurrentStorageObjectIrrelevantForElementParameter())
       {
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[1]; //use next one
 	uti = stgcos->getUlamTypeIdx();
@@ -1598,6 +1598,7 @@ namespace MFM {
     return nut->getTmpStorageTypeAsString(&m_state);
   } //tmpStorageTypeForRead
 
+
   const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -1685,7 +1686,6 @@ namespace MFM {
 
   bool Node::isCurrentObjectALocalVariableOrArgument()
   {
-    //return !(m_state.m_currentObjSymbolsForCodeGen.empty() || m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember());
     // include element parameters as LocalVariableOrArgument, since more alike XXX
     return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && !isCurrentObjectsContainingAnElementParameter()));
   }
@@ -1705,6 +1705,15 @@ namespace MFM {
 	  }
       }
     return hasEP;
+  } //isCurrentObjectsContainingAnElementParameter
+
+
+  bool Node::isCurrentStorageObjectIrrelevantForElementParameter()
+  {
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    return (!stgcos->isElementParameter() && stgcosuti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx());
   }
 
 
@@ -1720,12 +1729,11 @@ namespace MFM {
   bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass)
   {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    bool isCustomArray = cosut->isCustomArray();
-    // a cosuti as a scalar customarray may be used as a regular array,
+    // a cosuti as a scalar, customarray, may be used as a regular array,
     //     but at this point cosuti would be a scalar in either case (sigh);
     // uvpass would be an array index (an int of sorts), not an array; types would not be the same;
     //    return(m_state.isScalar(cosuti) && isCustomArray && m_state.isScalar(uvpass.getPtrTargetType()) );
-    return(m_state.isScalar(cosuti) && isCustomArray && uvpass.getPtrTargetType() != cosuti);
+    return(m_state.isScalar(cosuti) && cosut->isCustomArray() && uvpass.getPtrTargetType() != cosuti);
   }
 
 
