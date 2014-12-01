@@ -754,7 +754,8 @@ sub gppCompile {
          "USE_PATH", $ORIG_PATH,
         );
     my $oldenv = modifyEnv(@env);
-    my @args = ("-C", "$mfm", "ulam_cppcompile");
+    my @args = (#"-d",
+		"-C", "$mfm", "ulam_cppcompile");
     print "Compile $file: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
     restoreEnv($oldenv);

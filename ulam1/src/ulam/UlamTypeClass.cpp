@@ -39,9 +39,11 @@ namespace MFM {
 
   bool UlamTypeClass::needsImmediateType()
   {
-    // now allowing right-justified naked quarks
-    // no "naked" quarks; all living within an atom somehwere.
-    return (m_class == UC_ELEMENT || m_class == UC_INCOMPLETE || getBitSize() == 0 ? false : true);
+    // simply test for quarks..since..
+    //   also needed for 'empty' quarks without data
+    // NOW allowing right-justified naked quarks
+    //return (m_class == UC_ELEMENT || m_class == UC_INCOMPLETE || getBitSize() == 0 ? false : true);
+    return (m_class == UC_QUARK);
   }
 
 
@@ -49,17 +51,6 @@ namespace MFM {
   {
     if(m_class == UC_QUARK)
       {
-#if 0
-	if(!isScalar())
-	  return UlamType::getTmpStorageTypeAsString(state); // entire, u32 or u64
-	else
-	  {
-	    if(isCustomArray())
-	      return getArrayItemTmpStorageTypeAsString(state);
-	    else
-	      UlamType::getTmpStorageTypeAsString(state); // u32 or u64
-	  }
-#endif
 	return UlamType::getTmpStorageTypeAsString(state); // entire, u32 or u64
       }
     else if(m_class == UC_ELEMENT)
@@ -79,7 +70,6 @@ namespace MFM {
       
     assert(isCustomArray());
     return state->getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString(state);
-    //return "T";  //Atom, a vcustom array?
   }
 
 
@@ -88,7 +78,6 @@ namespace MFM {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName(state);
 
-    //if(m_class == UC_QUARK)
     if(m_class == UC_QUARK && isScalar())
       ctype << "<CC>";  // not ,POS> because immediates know their position
 
@@ -139,10 +128,12 @@ namespace MFM {
     return false;   //e.g. zero-size quark is not a constant
   }
 
+
   bool UlamTypeClass::isScalar()
   {
     return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);
   }
+
 
   bool UlamTypeClass::isCustomArray()
   {
