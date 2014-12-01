@@ -6,6 +6,7 @@
 
 namespace MFM {
 
+
   static const char * CModeForHeaderFiles = "/**                                      -*- mode:C++ -*- */\n\n";
 
   // First line something like: "/* NodeProgram.h - Root Node of Programs for ULAM\n"
@@ -208,9 +209,7 @@ namespace MFM {
 
       // this class header
       {
-	std::ostringstream f;
-	f << "include/" << m_state.getFileNameForThisClassHeader().c_str();
-	File * fp = fm->open(f.str().c_str(), WRITE);
+	File * fp = fm->open(m_state.getFileNameForThisClassHeader(WSUBDIR).c_str(), WRITE);
 	assert(fp);
 
 	generateHeaderPreamble(fp);
@@ -242,9 +241,7 @@ namespace MFM {
 
       // this class body
       {
-	std::ostringstream f;
-	f << "include/" << m_state.getFileNameForThisClassBody().c_str();
-	File * fp = fm->open(f.str().c_str(), WRITE);
+	File * fp = fm->open(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(), WRITE);
 	assert(fp);
 
 	m_state.m_currentIndentLevel = 0;
@@ -258,9 +255,7 @@ namespace MFM {
 
       // "stub" .cpp includes .h (unlike the .tcc body)
       {
-	std::ostringstream f;
-	f << "src/" << m_state.getFileNameForThisClassCPP().c_str();
-	File * fp = fm->open(f.str().c_str(), WRITE);
+	File * fp = fm->open(m_state.getFileNameForThisClassCPP(WSUBDIR).c_str(), WRITE);
 	assert(fp);
 
 	m_state.m_currentIndentLevel = 0;
@@ -361,9 +356,7 @@ namespace MFM {
   // important for overloading functions
   void NodeProgram::genMangledTypesHeaderFile(FileManager * fm)
   {
-    std::ostringstream f;
-    f << "include/" << m_state.getFileNameForThisTypesHeader().c_str();
-    File * fp = fm->open(f.str().c_str(), WRITE);
+    File * fp = fm->open(m_state.getFileNameForThisTypesHeader(WSUBDIR).c_str(), WRITE);
     assert(fp);
 
     m_state.m_currentIndentLevel = 0;
@@ -407,9 +400,7 @@ namespace MFM {
   // outside the MFM namespace !!!
   void NodeProgram::generateMain(FileManager * fm)
   {
-    std::ostringstream f;
-    f << "src/" << m_state.getFileNameForThisClassMain().c_str();
-    File * fp = fm->open(f.str().c_str(), WRITE);
+    File * fp = fm->open(m_state.getFileNameForThisClassMain(WSUBDIR).c_str(), WRITE);
     assert(fp);
 
     m_state.m_currentIndentLevel = 0;

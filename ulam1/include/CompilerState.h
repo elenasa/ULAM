@@ -209,13 +209,13 @@ namespace MFM{
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
 
-    std::string getFileNameForAClassHeader(u32 id);
-    std::string getFileNameForThisClassHeader();
-    std::string getFileNameForThisClassBody();
-    std::string getFileNameForThisClassBodyNative();
-    std::string getFileNameForThisClassCPP();
-    std::string getFileNameForThisTypesHeader();
-    std::string getFileNameForThisClassMain();
+    std::string getFileNameForAClassHeader(u32 id, bool wSubDir = false);
+    std::string getFileNameForThisClassHeader(bool wSubDir = false);
+    std::string getFileNameForThisClassBody(bool wSubDir = false);
+    std::string getFileNameForThisClassBodyNative(bool wSubDir = false);
+    std::string getFileNameForThisClassCPP(bool wSubDir = false);
+    std::string getFileNameForThisTypesHeader(bool wSubDir = false);
+    std::string getFileNameForThisClassMain(bool wSubDir = false);
 
     ULAMCLASSTYPE getUlamClassForThisClass();
     UTI getUlamTypeForThisClass();

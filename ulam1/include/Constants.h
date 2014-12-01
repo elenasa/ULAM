@@ -117,6 +117,9 @@ namespace MFM {
       hold the bit size argument l */
 #define calcWordSizeLong(l) ((l / MAXBITSPERLONG) * MAXBITSPERLONG + ( (l % MAXBITSPERLONG) > 0 ? MAXBITSPERLONG : 0))
 
+
+#define WSUBDIR true
+
 } //MFM
 
 #endif //CONSTANTS_H

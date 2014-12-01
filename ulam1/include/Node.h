@@ -142,6 +142,8 @@ namespace MFM{
     bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self; 
     bool isCurrentObjectsContainingAnElementParameter(); //checks entire vector for a "static" element parameter
 
+    bool isCurrentStorageObjectIrrelevantForElementParameter();  //should drop local var if true
+
     bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass); //false means its the entire array or not an array at all
     bool isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass);
 
