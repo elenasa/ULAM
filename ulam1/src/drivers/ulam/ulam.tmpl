@@ -653,15 +653,17 @@ sub runGccMake
     IDie("Implementme\n");
 }
 
+my %testableFiles;
 
 sub runUlamCompilations
 {
     pISC("## Compile files");
     my $status = 0;
     for my $file (@ulamFiles) {
-        my ($ulamStatus, $cfile) = runUlamCompile($file);
+        my ($ulamStatus, $cfile, $testable) = runUlamCompile($file);
         my $gppStatus = 0;
         if ($ulamStatus == 0 && $actionCmd ne "ulamcompile") {
+            $testableFiles{$file} = $cfile;
             $gppStatus = gppCompile($cfile);
         }
         my $fileStatus = $ulamStatus + $gppStatus;
@@ -682,11 +684,12 @@ sub runUlamCompile {
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
     } else {
-        my $cfile = $stderr;
-        chomp($cfile);
+        my $info = $stderr;
+        chomp($info);
+        my ($cfile, $hastest) = split(/ /, $info);
         print STDOUT "OK\n";
 #        UNSAFE_TEMPORARY_MV_FILES($ULAM_BUILD_DIR);
-        return (0, $cfile);
+        return (0, $cfile, $hasTest eq 'TEST');
     }
     return $status ne "";
 }
