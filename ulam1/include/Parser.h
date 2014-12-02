@@ -221,6 +221,9 @@ namespace MFM{
     */
     Node * parseExpression();    
     
+    Node * parseBitExpression();
+    Node * parseEqExpression();
+    Node * parseCompareExpression();
     
     /** 
 	<TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
@@ -287,7 +290,12 @@ namespace MFM{
     */
     Node * parseRestOfExpression(Node * leftNode);
     
-
+    Node * parseRestOfBitExpression(Node * leftNode);    
+    
+    Node * parseRestOfEqExpression(Node * leftNode);
+    
+    Node * parseRestOfCompareExpression(Node * leftNode);
+    
     /** 
 	<MULOP> := '*' | '/'
      */
@@ -317,6 +325,9 @@ namespace MFM{
     */
     NodeBinaryOp * makeExpressionNode(Node * leftNode);
 
+    NodeBinaryOp * makeBitExpressionNode(Node * leftNode);
+    NodeBinaryOp * makeEqExpressionNode(Node * leftNode);
+    NodeBinaryOp * makeCompareExpressionNode(Node * leftNode);
 
     /**
        helper method to make binary term nodes

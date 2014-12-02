@@ -189,6 +189,20 @@ namespace MFM {
     return (count1s > (s32) (srcbitwidth - count1s));  // == when even number bits is ignored (warning at def)
   }
 
+  inline u32 _CboolToBool32(bool val, const u32 destbitwidth) 
+  {
+    if(val)
+      return _GetNOnes32(destbitwidth); //saturate
+    return 0;  
+  }
+
+  inline u64 _CboolToBool64(bool val, const u32 destbitwidth) 
+  {
+    if(val)
+      return _GetNOnes32(destbitwidth); //saturate
+    return 0;  
+  }
+
   //To UNSIGNED:
   inline u32 _Int32ToUnsigned32(s32 val, const u32 srcbitwidth, const u32 destbitwidth) 
   {
