@@ -236,7 +236,7 @@ namespace MFM {
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
   }
 
-
+  //#define DEBUGGING_WITHOUT_DEFAULTELEMENT
   //header .h file
   void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
   {
@@ -374,7 +374,11 @@ namespace MFM {
     fp->write("class ");
     fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
     
+#ifdef DEBUGGING_WITHOUT_DEFAULTELEMENT
+    fp->write(" : public Element<CC>");
+#else
     fp->write(" : public DefaultElement<CC>");
+#endif
 
     fp->write("\n");
 
@@ -494,7 +498,10 @@ namespace MFM {
 	fp->write("<CC>");
 	fp->write("::");
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
-	//fp->write("(){}\n\n");
+
+#ifdef DEBUGGING_WITHOUT_DEFAULTELEMENT
+	fp->write("(){}\n\n");
+#else
 	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str();
 	fp->write("() : DefaultElement<CC>(MFM_UUID_FOR(\"");
 	fp->write(namestr.c_str());
@@ -517,6 +524,7 @@ namespace MFM {
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
 	fp->write("}\n\n");
+#endif
 
 	//default destructor
 	m_state.indent(fp);

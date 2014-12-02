@@ -54,7 +54,7 @@ namespace MFM {
 	break;
       };
     return rtnUV;
-  }
+  } //makeImmediateBinaryOp
 
 
   void NodeBinaryOpBitwiseAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
@@ -83,19 +83,6 @@ namespace MFM {
 	break;
       };
     return;
-  }
-
-#if 0
-  UlamValue NodeBinaryOpBitwiseAnd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
-  {
-    return UlamValue::makeImmediate(type, ldata & rdata, len);
-  }
-
-
-  void NodeBinaryOpBitwiseAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
-  {
-    refUV.putData(pos, len, ldata & rdata);
-  }
-#endif
+  } //appendBinaryOp
 
 } //end MFM
