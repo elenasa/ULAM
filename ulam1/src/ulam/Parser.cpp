@@ -6,10 +6,17 @@
 #include "NodeBinaryOpArithAdd.h"
 #include "NodeBinaryOpArithDivide.h"
 #include "NodeBinaryOpArithMultiply.h"
+#include "NodeBinaryOpArithRemainder.h"
 #include "NodeBinaryOpArithSubtract.h"
 #include "NodeBinaryOpBitwiseAnd.h"
 #include "NodeBinaryOpBitwiseOr.h"
 #include "NodeBinaryOpBitwiseXor.h"
+#include "NodeBinaryOpCompareEqualEqual.h"
+#include "NodeBinaryOpCompareNotEqual.h"
+#include "NodeBinaryOpCompareLessThan.h"
+#include "NodeBinaryOpCompareGreaterThan.h"
+#include "NodeBinaryOpCompareLessEqual.h"
+#include "NodeBinaryOpCompareGreaterEqual.h"
 #include "NodeBinaryOpEqual.h"
 #include "NodeBinaryOpEqualArithAdd.h"
 #include "NodeBinaryOpEqualArithMultiply.h"
@@ -1106,7 +1113,7 @@ namespace MFM {
 
   Node * Parser::parseExpression()
   {
-    Node * rtnNode = parseTerm();
+    Node * rtnNode = parseBitExpression();
 
     if(!rtnNode)
       return NULL;  //stop this maddness
@@ -1116,6 +1123,42 @@ namespace MFM {
   }
 
 
+  Node * Parser::parseBitExpression()
+  {
+    Node * rtnNode = parseEqExpression();
+
+    if(!rtnNode)
+      return NULL;  //stop this maddness
+
+    // if not addop, parseRestOfExpression returns its arg
+    return parseRestOfBitExpression(rtnNode);  //parseExpression
+  }
+
+
+  Node * Parser::parseEqExpression()
+  {
+    Node * rtnNode = parseCompareExpression();
+
+    if(!rtnNode)
+      return NULL;  //stop this maddness
+
+    // if not addop, parseRestOfExpression returns its arg
+    return parseRestOfEqExpression(rtnNode);  //parseExpression
+  }
+
+
+  Node * Parser::parseCompareExpression()
+  {
+    Node * rtnNode = parseTerm();
+
+    if(!rtnNode)
+      return NULL;  //stop this maddness
+
+    // if not addop, parseRestOfExpression returns its arg
+    return parseRestOfCompareExpression(rtnNode);  //parseExpression
+  }
+
+  
   Node * Parser::parseTerm()
   {
     Node * rtnNode = parseFactor();
@@ -1174,9 +1217,9 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">";
-	  MSG(&pTok, msg.str().c_str(),ERR);
-	  //unreadToken(); eat the error token
+	  msg << "Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">, unreading it";
+	  MSG(&pTok, msg.str().c_str(), DEBUG);
+	  unreadToken(); //eat the error token
 	}
       };
 
@@ -1291,15 +1334,14 @@ namespace MFM {
     Token pTok;
 
     getNextToken(pTok);
-
     switch(pTok.m_type)
       {
       case TOK_STAR:
       case TOK_SLASH:
+      case TOK_PERCENTSIGN:
 	{
 	  unreadToken();
 	  rtnNode = makeTermNode(leftNode);
-	  //rtnNode = parseRestOfTerm(rtnNode);
 	  rtnNode = parseRestOfTerm(rtnNode);
 	  break;
 	}
@@ -1309,8 +1351,140 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-
     return rtnNode;  //parseRestOfTerm
+  }
+
+
+  Node * Parser::parseRestOfCompareExpression(Node * leftNode)
+  {
+    Node * rtnNode = NULL;
+    Token pTok;
+
+    getNextToken(pTok);
+
+    switch(pTok.m_type)
+      {
+      case TOK_PLUS:
+      case TOK_MINUS:
+	unreadToken();
+	rtnNode = makeCompareExpressionNode(leftNode);
+	rtnNode = parseRestOfCompareExpression(rtnNode);  //recursion of left-associativity
+	break;
+      case TOK_ERROR_CONT:
+	{
+	  std::ostringstream msg;
+	  msg << "Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">";
+	  MSG(&pTok, msg.str().c_str(),ERR);
+	  rtnNode = parseRestOfCompareExpression(leftNode);  //redo
+	}
+	break;
+      default:
+	{
+	  unreadToken();
+	  rtnNode = leftNode;
+	}
+      };
+    return rtnNode;  //parseRestOfCompareExpression
+  }
+
+
+  Node * Parser::parseRestOfEqExpression(Node * leftNode)
+  {
+    Node * rtnNode = NULL;
+    Token pTok;
+
+    getNextToken(pTok);
+    switch(pTok.m_type)
+      {
+      case TOK_LESS_THAN:
+      case TOK_GREATER_THAN:
+      case TOK_LESS_EQUAL:
+      case TOK_GREATER_EQUAL:
+	unreadToken();
+	rtnNode = makeEqExpressionNode(leftNode);
+	rtnNode = parseRestOfEqExpression(rtnNode);  //recursion of left-associativity
+	break;
+      case TOK_ERROR_CONT:
+	{
+	  std::ostringstream msg;
+	  msg << "Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">";
+	  MSG(&pTok, msg.str().c_str(),ERR);
+	  rtnNode = parseRestOfEqExpression(leftNode);  //redo
+	}
+	break;
+      default:
+	{
+	  unreadToken();
+	  rtnNode = leftNode;
+	}
+      };
+    return rtnNode;  //parseRestOfEQExpression
+  }
+
+
+  Node * Parser::parseRestOfBitExpression(Node * leftNode)
+  {
+    Node * rtnNode = NULL;
+    Token pTok;
+
+    getNextToken(pTok);
+    switch(pTok.m_type)
+      {
+      case TOK_EQUAL_EQUAL:
+      case TOK_NOT_EQUAL:
+	unreadToken();
+	rtnNode = makeBitExpressionNode(leftNode);
+	rtnNode = parseRestOfBitExpression(rtnNode);  //recursion of left-associativity
+	break;
+      case TOK_ERROR_CONT:
+	{
+	  std::ostringstream msg;
+	  msg << "Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">";
+	  MSG(&pTok, msg.str().c_str(),ERR);
+	  rtnNode = parseRestOfBitExpression(leftNode);  //redo
+	}
+	break;
+      default:
+	{
+	  unreadToken();
+	  rtnNode = leftNode;
+	}
+      };
+    return rtnNode;  //parseRestOfBitExpression
+  }
+
+
+  Node * Parser::parseRestOfExpression(Node * leftNode)
+  {
+    Node * rtnNode = NULL;
+    Token pTok;
+
+    getNextToken(pTok);
+
+    switch(pTok.m_type)
+      {
+      case TOK_AMP:
+      case TOK_PIPE:
+      case TOK_HAT:
+	unreadToken();
+	rtnNode = makeExpressionNode(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);  //recursion of left-associativity
+	break;
+      case TOK_ERROR_CONT:
+	{
+	  std::ostringstream msg;
+	  msg << "Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">";
+	  MSG(&pTok, msg.str().c_str(),ERR);
+	  rtnNode = parseRestOfExpression(leftNode);  //redo
+	}
+	break;
+      default:
+	{
+	  unreadToken();
+	  rtnNode = leftNode;
+	}
+      };
+    return rtnNode;  //parseRestOfExpression
   }
 
 
@@ -1419,10 +1593,8 @@ namespace MFM {
 	    rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, m_state);
 	    rtnNode->setNodeLocation(typeTok.m_locator);
 	  }
-
 	delete lvalNode;  //done with it
       }
-
     return rtnNode;  //makeVariableSymbol
   }
 
@@ -1742,44 +1914,6 @@ namespace MFM {
   }
 
 
-
-  Node * Parser::parseRestOfExpression(Node * leftNode)
-  {
-    Node * rtnNode = NULL;
-    Token pTok;
-
-    getNextToken(pTok);
-
-    switch(pTok.m_type)
-      {
-      case TOK_PLUS:
-      case TOK_MINUS:
-      case TOK_AMP:
-      case TOK_PIPE:
-      case TOK_HAT:
-	unreadToken();
-	rtnNode = makeExpressionNode(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);  //recursion of left-associativity
-	break;
-      case TOK_ERROR_CONT:
-	{
-	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">";
-	  MSG(&pTok, msg.str().c_str(),ERR);
-	  rtnNode = parseRestOfExpression(leftNode);  //redo
-	}
-	break;
-      default:
-	{
-	  unreadToken();
-	  rtnNode = leftNode;
-	}
-      };
-
-    return rtnNode;  //parseRestOfExpression
-  }
-
-
   Node * Parser::parseRestOfAssignExpr(Node * leftNode)
   {
     Node * rtnNode = NULL;
@@ -1801,6 +1935,10 @@ namespace MFM {
 	break;
       case TOK_PLUS:
       case TOK_MINUS:
+	unreadToken();
+	rtnNode = parseRestOfCompareExpression(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);  //any more?
+	break;
       case TOK_AMP:
       case TOK_PIPE:
       case TOK_HAT:
@@ -1809,9 +1947,24 @@ namespace MFM {
 	break;
       case TOK_STAR:
       case TOK_SLASH:
+      case TOK_PERCENTSIGN:
 	unreadToken();
 	rtnNode = parseRestOfTerm(leftNode);       //mulOp
 	rtnNode = parseRestOfExpression(rtnNode);  //any more?
+	break;
+      case TOK_EQUAL_EQUAL:
+      case TOK_NOT_EQUAL:
+	unreadToken();
+	rtnNode = parseRestOfBitExpression(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);
+	break;
+      case TOK_LESS_THAN:
+      case TOK_LESS_EQUAL:
+      case TOK_GREATER_THAN:
+      case TOK_GREATER_EQUAL:
+	unreadToken();
+	rtnNode = parseRestOfEqExpression(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);
 	break;
       case TOK_SEMICOLON:
       case TOK_CLOSE_PAREN:
@@ -1891,7 +2044,8 @@ namespace MFM {
 
     getNextToken(pTok);
 
-    Node * rightNode = parseTerm();
+    //    Node * rightNode = parseTerm();
+    Node * rightNode = parseBitExpression();
     if(!rightNode)
       {
 	std::ostringstream msg;
@@ -1903,12 +2057,6 @@ namespace MFM {
       {
 	switch(pTok.m_type)
 	  {
-	  case TOK_PLUS:
-	    rtnNode = new NodeBinaryOpArithAdd(leftNode, rightNode, m_state);
-	    break;
-	  case TOK_MINUS:
-	    rtnNode = new NodeBinaryOpArithSubtract(leftNode, rightNode, m_state);
-	    break;
 	  case TOK_AMP:
 	    rtnNode = new NodeBinaryOpBitwiseAnd(leftNode, rightNode, m_state);
 	    break;
@@ -1927,13 +2075,141 @@ namespace MFM {
 	    }
 	    break;
 	  };
-
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
-
     return rtnNode;
-  }
+  } //makeExpressionNode
+
+
+  NodeBinaryOp * Parser::makeBitExpressionNode(Node * leftNode)
+  {
+    NodeBinaryOp * rtnNode = NULL;
+    Token pTok;
+
+    getNextToken(pTok);
+
+    Node * rightNode = parseEqExpression();
+    if(!rightNode)
+      {
+	std::ostringstream msg;
+	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	MSG(&pTok, msg.str().c_str(), DEBUG);
+	delete leftNode;
+      }
+    else
+      {
+	switch(pTok.m_type)
+	  {
+	  case TOK_EQUAL_EQUAL:
+	    rtnNode = new NodeBinaryOpCompareEqualEqual(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_NOT_EQUAL:
+	    rtnNode = new NodeBinaryOpCompareNotEqual(leftNode, rightNode, m_state);
+	    break;
+	  default:
+	    {
+	      std::ostringstream msg;
+	      msg << " Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">, aborting";
+	      MSG(&pTok, msg.str().c_str(), DEBUG);
+	      assert(0);
+	    }
+	    break;
+	  };
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+      }
+    return rtnNode;
+  } //makeBitExpressionNode
+
+
+  NodeBinaryOp * Parser::makeEqExpressionNode(Node * leftNode)
+  {
+    NodeBinaryOp * rtnNode = NULL;
+    Token pTok;
+
+    getNextToken(pTok);
+
+    Node * rightNode = parseCompareExpression();
+    if(!rightNode)
+      {
+	std::ostringstream msg;
+	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	MSG(&pTok, msg.str().c_str(), DEBUG);
+	delete leftNode;
+      }
+    else
+      {
+	switch(pTok.m_type)
+	  {
+	  case TOK_LESS_THAN:
+	    rtnNode = new NodeBinaryOpCompareLessThan(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_GREATER_THAN:
+	    rtnNode = new NodeBinaryOpCompareGreaterThan(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_LESS_EQUAL:
+	    rtnNode = new NodeBinaryOpCompareLessEqual(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_GREATER_EQUAL:
+	    rtnNode = new NodeBinaryOpCompareGreaterEqual(leftNode, rightNode, m_state);
+	    break;
+	  default:
+	    {
+	      std::ostringstream msg;
+	      msg << " Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">, aborting";
+	      MSG(&pTok, msg.str().c_str(), DEBUG);
+	      assert(0);
+	    }
+	    break;
+	  };
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+      }
+    return rtnNode;
+
+  } //makeEqExpressionNode
+
+
+  NodeBinaryOp * Parser::makeCompareExpressionNode(Node * leftNode)
+  {
+    NodeBinaryOp * rtnNode = NULL;
+    Token pTok;
+
+    getNextToken(pTok);
+
+    Node * rightNode = parseTerm();
+    if(!rightNode)
+      {
+	std::ostringstream msg;
+	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	MSG(&pTok, msg.str().c_str(), DEBUG);
+	delete leftNode;
+      }
+    else
+      {
+	switch(pTok.m_type)
+	  {
+	  case TOK_PLUS:
+	    rtnNode = new NodeBinaryOpArithAdd(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_MINUS:
+	    rtnNode = new NodeBinaryOpArithSubtract(leftNode, rightNode, m_state);
+	    break;
+	  default:
+	    {
+	      std::ostringstream msg;
+	      msg << " Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">, aborting";
+	      MSG(&pTok, msg.str().c_str(), DEBUG);
+	      assert(0);
+	    }
+	    break;
+	  };
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+      }
+    return rtnNode;
+  } //makeCompareExpressionNode
 
 
   NodeBinaryOp * Parser::makeTermNode(Node * leftNode)
@@ -1961,6 +2237,9 @@ namespace MFM {
 	  case TOK_SLASH:
 	    rtnNode = new NodeBinaryOpArithDivide(leftNode, rightNode, m_state);
 	    break;
+	  case TOK_PERCENTSIGN:
+	    rtnNode = new NodeBinaryOpArithRemainder(leftNode, rightNode, m_state);
+	    break;
 	  default:
 	    {
 	      std::ostringstream msg;
@@ -1970,11 +2249,9 @@ namespace MFM {
 	    }
 	    break;
 	  };
-
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
-
     return rtnNode;
   } //makeTermNode
 
@@ -2015,7 +2292,6 @@ namespace MFM {
 	    }
 	    break;
 	  };
-
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
