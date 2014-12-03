@@ -6,6 +6,7 @@
 #include "NodeBinaryOpArithAdd.h"
 #include "NodeBinaryOpArithDivide.h"
 #include "NodeBinaryOpArithMultiply.h"
+#include "NodeBinaryOpArithRemainder.h"
 #include "NodeBinaryOpArithSubtract.h"
 #include "NodeBinaryOpBitwiseAnd.h"
 #include "NodeBinaryOpBitwiseOr.h"
@@ -1337,6 +1338,7 @@ namespace MFM {
       {
       case TOK_STAR:
       case TOK_SLASH:
+      case TOK_PERCENTSIGN:
 	{
 	  unreadToken();
 	  rtnNode = makeTermNode(leftNode);
@@ -1945,6 +1947,7 @@ namespace MFM {
 	break;
       case TOK_STAR:
       case TOK_SLASH:
+      case TOK_PERCENTSIGN:
 	unreadToken();
 	rtnNode = parseRestOfTerm(leftNode);       //mulOp
 	rtnNode = parseRestOfExpression(rtnNode);  //any more?
@@ -2233,6 +2236,9 @@ namespace MFM {
 	    break;
 	  case TOK_SLASH:
 	    rtnNode = new NodeBinaryOpArithDivide(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_PERCENTSIGN:
+	    rtnNode = new NodeBinaryOpArithRemainder(leftNode, rightNode, m_state);
 	    break;
 	  default:
 	    {
