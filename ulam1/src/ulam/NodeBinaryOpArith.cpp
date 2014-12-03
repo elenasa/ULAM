@@ -50,7 +50,6 @@ namespace MFM {
 #else
 	assert(0);
 #endif //defined below...
-
       }
   } //end dobinaryop
 
@@ -112,6 +111,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return newType;
-  }
+  } //calcNodeType
 
 } //end MFM
