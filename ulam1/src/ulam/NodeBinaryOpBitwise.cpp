@@ -69,7 +69,7 @@ namespace MFM {
 	  }
       }
     return newType;
-  }
+  } //calcNodeType
 
 
   const std::string NodeBinaryOpBitwise::methodNameForCodeGen()
