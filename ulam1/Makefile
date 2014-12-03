@@ -63,12 +63,15 @@ CFLAGS+=-g2 -ansi -Wall -pedantic -Werror -Wformat
 ROOT_DIR := $(shell pwd)
 export ROOT_DIR
 
-MFM_ROOT_DIR := /home/elenas/WORK/ulam/repo/MFMv2
+# Root of MFM simulator tree (configure in Makefile.local.mk if known)
 export MFM_ROOT_DIR
 
 # Things that all builds should depend on
 export ALLDEP
 ALLDEP += $(shell find $(ROOT_DIR) -name 'Makefile')
+
+# Allow local configuration, if any, to override us:
+-include Makefile.local.mk
 
 ####
 # Top level rules
