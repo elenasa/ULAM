@@ -54,7 +54,7 @@
 <COMPARE_EXPRESSION> := <TERM> | <COMPARE_EXPRESSION> <ADDOP> <TERM>
 <ADDOP> := '+' | '-'
 <TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
-<MULOP> := '*' | '/'
+<MULOP> := '*' | '/' | '%'
 <FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP> + <FACTOR>
 <UNOP> := '-' | '+' | '!' | <CAST>
 <CAST> := '(' + <TYPE> + ')'
