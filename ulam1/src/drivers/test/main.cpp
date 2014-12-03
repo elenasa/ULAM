@@ -21,6 +21,9 @@ namespace MFM {
 #define XX(a) #a,
   static const char * m_test_strings[] = {
 #include "../../../build/test/tests.inc"
+    0   // Avoid zero-sized array w/o tests (the
+        // test loop uses m_tests.size(), below,
+        //so this null pointer doesn't get dereffed)
   };
 #undef XX
 
@@ -43,7 +46,7 @@ void initTests()
 
 
 int main(int argc, char ** argv)
-{  
+{
 
   std::string testdir = ".";
 
@@ -64,7 +67,7 @@ int main(int argc, char ** argv)
   for(unsigned int i=0; i < MFM::m_tests.size(); i++)
     {
       //File to accumulate test results
-      MFM::File * errorOutput = fm->open("results", MFM::WRITE);      
+      MFM::File * errorOutput = fm->open("results", MFM::WRITE);
       if(!errorOutput)
 	{
 	  delete fm;
@@ -78,7 +81,7 @@ int main(int argc, char ** argv)
 	  failed++;
 	  std::string results;
 	  fm->get("results", results);
-	  std::cerr << "TestCase: <" << MFM::m_test_strings[i] << "> FAILED!!\n" << results << std::endl; 
+	  std::cerr << "TestCase: <" << MFM::m_test_strings[i] << "> FAILED!!\n" << results << std::endl;
 	  std::cerr << "--------------------------------------------------------------------------------" << std::endl;
 	}
 
@@ -90,9 +93,8 @@ int main(int argc, char ** argv)
     {
       std::cerr << "TestCase Summary: " << passed << " passed, " << failed << " failed." << std::endl;
     }
-  
+
   delete fm;
   MFM::m_tests.clear();
   return (failed > 0);
 }
-
