@@ -6,8 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Uq_Bar { Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(0); );  <NOMAIN> }\nExit status: -1
-");
+      return std::string("Uq_Bar { Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(0); );  <NOMAIN> }\nExit status: -1");
     }
     
     std::string PresetTest(FileManagerString * fms)
