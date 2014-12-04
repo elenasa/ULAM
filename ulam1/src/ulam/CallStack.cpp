@@ -96,9 +96,14 @@ namespace MFM {
       {
 	m_frames[m_currentFrame + leftbaseslot] = ruv;  //must be immediate
       }
+    else if(pluv.isTargetPacked() == PACKED && state.isScalar(pluv.getPtrTargetType()))
+      {
+	m_frames[m_currentFrame + leftbaseslot] = ruv;  //entire element, perhaps?
+      }
     else
       {
-	//target is packed, use pos & len in ptr, unless there's no type
+	//target is either packed array or packedloadable into a single int, 
+	// use pos & len in ptr, unless there's no type
 	UlamValue lvalAtIdx = loadUlamValueFromSlot(leftbaseslot);
 
 	// if uninitialized, set the type

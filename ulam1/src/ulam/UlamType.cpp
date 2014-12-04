@@ -452,7 +452,8 @@ namespace MFM {
     u32 len = getTotalBitSize();       //could be 0
     
     //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
-    if(len <= MAXBITSPERINT || len <= MAXBITSPERLONG)
+    //if(len <= MAXBITSPERINT || len <= MAXBITSPERLONG)
+    if(len <= MAXBITSPERINT)
       rtn = PACKEDLOADABLE;
     else
       if(len <= MAXSTATEBITS)
