@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_Foo { Bool(1) b[3](false,false,false);  System s();  Int(4) m_i(0);  Int(32) test() {  Poo spoon;  Bar boo;  boo spoon mbar 0 [] . = spoon mbar 1 [] . boo = Atom(96) a;  a spoon sbar 0 [] . = spoon sbar 1 [] . a = 0 cast return } }\nExit status: 0");
+      return std::string("Ue_Foo { Bool(1) b[3](false,false,false);  System s();  Int(4) m_i(0);  Int(32) test() {  Poo spoon;  Bar boo;  boo spoon mbar 0 [] . = spoon mbar 1 [] . boo = Atom(96) a;  a spoon sbar 0 [] . = spoon sbar 1 [] . a = spoon sbar ( true cast )reset . . 0 cast return } }\nExit status: 0");
     }
     
     std::string PresetTest(FileManagerString * fms)
