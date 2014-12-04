@@ -561,7 +561,7 @@ namespace MFM {
 	it++;
       }
     //fp->write("\n");
-  }
+  } //generateIncludesForTableOfClasses
 
 
   //bypasses THIS class being compiled
@@ -598,7 +598,80 @@ namespace MFM {
 	it++;
       }
     //fp->write("\n");
-  }
+  } //generateForwardDefsForTableOfClasses
+
+
+  std::string SymbolTable::generateTestInstancesForTableOfClasses(File * fp)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    s32 idcounter = 1;
+    std::ostringstream runThisTest;
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;  
+	assert(sym->isClass());
+	
+	UTI suti = sym->getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
+
+	if(sclasstype == UC_QUARK)
+	  {
+	    it++;
+	    continue;
+	  }
+
+	std::string namestr = sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+	std::string lowercasename = firstletterTolowercase(namestr);
+	std::ostringstream ourname;
+	ourname << "Our" << namestr;
+
+
+	// only for elements
+	fp->write("\n");
+	m_state.indent(fp);
+	fp->write("typedef ");
+	fp->write("MFM::");
+	fp->write(sut->getUlamTypeMangledName(&m_state).c_str());
+
+	fp->write("<OurCoreConfig> ");
+	fp->write(ourname.str().c_str());
+	fp->write(";\n");
+
+	m_state.indent(fp);
+	fp->write(ourname.str().c_str());
+	fp->write("& ");
+	fp->write(lowercasename.c_str());
+	fp->write(" = ");
+	fp->write(ourname.str().c_str());
+	fp->write("::THE_INSTANCE;\n");
+
+	m_state.indent(fp);
+	fp->write(lowercasename.c_str());
+	fp->write(".SetType(");
+	fp->write_decimal(idcounter);
+	fp->write("); //This is actually done by code code in a complicated way\n");
+	
+	if(sym->getId() == m_state.m_compileThisId)
+	  {
+	    m_state.indent(fp);
+	    fp->write("OurAtom ");
+	    fp->write(lowercasename.c_str());
+	    fp->write("Atom = ");
+	    fp->write(lowercasename.c_str());
+	    fp->write(".GetDefaultAtom();\n");
+
+	    runThisTest << ourname.str().c_str() << "::Uf_4test(" << lowercasename.c_str() << "Atom)";	    
+	  }
+
+	it++;
+	idcounter++;
+      }
+    fp->write("\n");
+
+    return runThisTest.str();
+  } //generateTestInstancesForTableOfClasses
 
 
 #if 0
@@ -688,5 +761,14 @@ namespace MFM {
       }
     return totalsizes;
   }
+
+  std::string SymbolTable::firstletterTolowercase(const std::string s) //static method
+  {
+    std::ostringstream up;
+    assert(!s.empty());    
+    std::string c(1,(s[0] >= 'A' && s[0] <= 'Z') ? s[0]-('A'-'a') : s[0]);
+    up << c << s.substr(1,s.length());
+    return up.str();
+  } //firstletterTolowercase
 
 } //end MFM

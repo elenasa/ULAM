@@ -502,7 +502,7 @@ namespace MFM {
 #ifdef DEBUGGING_WITHOUT_DEFAULTELEMENT
 	fp->write("(){}\n\n");
 #else
-	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str();
+	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
 	fp->write("() : DefaultElement<CC>(MFM_UUID_FOR(\"");
 	fp->write(namestr.c_str());
 	fp->write("\", 0))\n");
