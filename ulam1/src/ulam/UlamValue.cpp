@@ -418,6 +418,11 @@ namespace MFM {
 	//must get data piecemeal, too big to fit into one int
 	putPackedArrayDataIntoAtom(p, data, state);
       }
+    else if(p.isTargetPacked() == PACKED)
+      {
+	// e.g. an element, take wholesale
+	assert(0); 
+      }
     else 
 	{
 	  assert(p.isTargetPacked() == PACKEDLOADABLE);
@@ -515,7 +520,8 @@ namespace MFM {
     fp->write(",");
     fp->write_decimal(vut->getTotalBitSize());
     fp->write(",");
-    fp->write_decimal(getPtrPos());
+    //fp->write_decimal(getPtrPos());
+    fp->write_decimal(m_uv.m_ptrValue.m_posInAtom);  //use directly for smaller bitvectors in gen code.
     fp->write(">");
   }
 
