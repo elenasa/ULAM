@@ -1082,6 +1082,12 @@ namespace MFM {
   bool CompilerState::thisClassHasTheTestMethod()
   {
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
+
+    // test methods reported only for Elements
+    UTI cuti = csym->getUlamTypeIdx();
+    if(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
+      return false;
+
     NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
     assert(classNode);
     NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();

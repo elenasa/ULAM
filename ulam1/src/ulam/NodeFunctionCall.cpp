@@ -371,7 +371,8 @@ namespace MFM {
 	  }
 	else //default
 	  {
-	    if(stgcosclasstype == UC_QUARK)
+	    //if(stgcosclasstype == UC_QUARK)
+	    if(stgcosclasstype == UC_QUARK || stgcosclasstype == UC_ELEMENT)
 	      {
 		arglist << ".";
 		arglist << stgcos->getMangledName().c_str();
@@ -393,8 +394,9 @@ namespace MFM {
 
 	arglist << stgcos->getMangledName().c_str();
 	
-	UTI stgcosuti = stgcos->getUlamTypeIdx();       
-	if(m_state.getUlamTypeByIndex(stgcosuti)->getUlamClass() == UC_QUARK)
+	// for both immediate quarks and elements now..
+	//	UTI stgcosuti = stgcos->getUlamTypeIdx();       
+	//if(m_state.getUlamTypeByIndex(stgcosuti)->getUlamClass() == UC_QUARK)
 	  {
 	    arglist << ".m_stg"; //the T storage within the struct for immediate quarks
 	  }
@@ -544,13 +546,19 @@ namespace MFM {
       }
 
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    ULAMCLASSTYPE classtype = ut->getUlamClass();
 
     if(!ut->isScalar())
       {    //?? can't call a func on an array!
 	assert(0);
       }
+    
+    // now for both immediate quarks and elements..
+    fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+    fp->write("::");
+    fp->write("Us::");   //typedef
 
+#if 0
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
     if(classtype == UC_QUARK)
       {
 	fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
@@ -562,6 +570,7 @@ namespace MFM {
 	fp->write(ut->getUlamTypeMangledName(&m_state).c_str()); 
 	fp->write("<CC>::");
       }
+#endif
 
     for(u32 i = cosStart; i < cosSize; i++)
       {
@@ -576,6 +585,15 @@ namespace MFM {
 		fp->write(sym->getMangledName().c_str());
 		fp->write(".");
 	      }
+	    else
+	      {
+		// now for both immediate quarks and elements..
+		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
+		fp->write("::");
+		if( ((i + 1) < cosSize))  //still another cos refiner, use
+		  fp->write("Us::");      //typedef	    
+	      }
+#if 0
 	    else if(classtype == UC_QUARK)
 	      {
 		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
@@ -590,6 +608,8 @@ namespace MFM {
 	      }
 	    else
 	      assert(0);  //NOTACLASS
+#endif
+
 	  }
 	else
 	  {
@@ -611,13 +631,19 @@ namespace MFM {
 
     UTI uti = stgcos->getUlamTypeIdx();
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    ULAMCLASSTYPE classtype = ut->getUlamClass();
 
     if(!ut->isScalar())
       {    //?? can't call a func on an array!
 	assert(0);
       }
 
+    // now for both immediate quark and elements..
+    fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+    fp->write("::");
+    fp->write("Us::");   //typedef
+
+#if 0
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
     //local (static functions)
     // if local element, first arg of read is all that's req'd for static func
     if(classtype == UC_QUARK)
@@ -636,7 +662,7 @@ namespace MFM {
 	assert(0);
 	//NOTACLASS
       }
-
+#endif
 
     for(u32 i = 1; i < cosSize; i++)
       {

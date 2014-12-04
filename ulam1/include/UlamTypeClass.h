@@ -111,6 +111,14 @@ namespace MFM{
 
     void genCustomArrayMangledDefinitionForC(File * fp, CompilerState * state);
 
+    void genUlamTypeQuarkMangledDefinitionForC(File * fp, CompilerState * state);
+    void genUlamTypeQuarkReadDefinitionForC(File * fp, CompilerState * state);
+    void genUlamTypeQuarkWriteDefinitionForC(File * fp, CompilerState * state);
+    
+    void genUlamTypeElementMangledDefinitionForC(File * fp, CompilerState * state);
+    void genUlamTypeElementReadDefinitionForC(File * fp, CompilerState * state);
+    void genUlamTypeElementWriteDefinitionForC(File * fp, CompilerState * state);
+
   };
   
 }
