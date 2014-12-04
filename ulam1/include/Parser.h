@@ -220,7 +220,7 @@ namespace MFM{
        <EXPRESSION> := <TERM> | <EXPRESSION> <ADDOP> <TERM>
     */
     Node * parseExpression();    
-    
+    Node * parseLogicalExpression();
     Node * parseBitExpression();
     Node * parseEqExpression();
     Node * parseCompareExpression();
@@ -290,6 +290,8 @@ namespace MFM{
     */
     Node * parseRestOfExpression(Node * leftNode);
     
+    Node * parseRestOfLogicalExpression(Node * leftNode);    
+
     Node * parseRestOfBitExpression(Node * leftNode);    
     
     Node * parseRestOfEqExpression(Node * leftNode);
@@ -324,7 +326,7 @@ namespace MFM{
        helper method to make binary expression nodes
     */
     NodeBinaryOp * makeExpressionNode(Node * leftNode);
-
+    NodeBinaryOp * makeLogicalExpressionNode(Node * leftNode);
     NodeBinaryOp * makeBitExpressionNode(Node * leftNode);
     NodeBinaryOp * makeEqExpressionNode(Node * leftNode);
     NodeBinaryOp * makeCompareExpressionNode(Node * leftNode);

@@ -6,8 +6,10 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      //Ue_Foo { System s();  Bool(7) sp(false);  Bool(1) last(false);  Int(32) test() {  Foo f;  f chance 1 [] . 1 cast = s ( chance 1 [] )print . chance 1 [] return } }\nExit status: 1
+
       //fails because no eval storage for element parameters (e.g. chance)
-      return std::string("Ue_Foo { System s();  Bool(7) sp(false);  Bool(1) last(false);  Int(32) test() {  Foo f;  f chance 1 [] . 1 cast = s ( chance 1 [] )print . chance 1 [] return } }\nExit status: 1");
+      return std::string("Ue_Foo { System s();  Bool(7) sp(false);  Bool(1) last(false);  Int(32) test() {  Foo f;  f chance 1 [] . 3 cast = s ( chance 1 [] )print . chance 1 [] return } }\nExit status: 0");
     }
     
     std::string PresetTest(FileManagerString * fms)

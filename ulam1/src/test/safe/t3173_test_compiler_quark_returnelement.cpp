@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3229_test_compiler_quarkarray)
+  BEGINTESTCASECOMPILER(t3173_test_compiler_quark_returnelement)
   {
     std::string GetAnswerKey()
     {
@@ -11,8 +11,8 @@ namespace MFM {
     
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = 0;\n }\n Atom aRef(Int index) native;\n Void aSet(Int index, Atom v) native;\n }\n");
-
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = 0;\n }\n }\n");
+      
       if(rtn2)
 	return std::string("Bar.ulam");
       
@@ -20,7 +20,7 @@ namespace MFM {
     }
   }
   
-  ENDTESTCASECOMPILER(t3229_test_compiler_quarkarray)
+  ENDTESTCASECOMPILER(t3173_test_compiler_quark_returnelement)
   
 } //end MFM
 
