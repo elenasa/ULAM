@@ -30,3 +30,6 @@ doc/ref
 
 # Ignore local makefiles
 **/*local.mk
+
+# Ignore *-hold files
+*-hold

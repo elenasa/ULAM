@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeTerminal.h - Basic Node handling Terminals for ULAM
+ * NodeBinaryOpShift.h - Basic Node for handling Bitwise Shift Operations for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,61 +26,42 @@
  */
 
 /**
-  \file NodeTerminal.h - Basic Node handling Terminals for ULAM
+  \file NodeBinaryOpShift.h - Basic Node for handling Bitwise Shift Operations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
+#ifndef NODEBINARYOPSHIFT_H
+#define NODEBINARYOPSHIFT_H
 
-#ifndef NODETERMINAL_H
-#define NODETERMINAL_H
-
-#include "Node.h"
-#include "Token.h"
-
+#include <assert.h>
+#include "NodeBinaryOp.h"
+#include "NodeCast.h"
 
 namespace MFM{
 
-  class NodeTerminal : public Node
+  class NodeBinaryOpShift : public NodeBinaryOp
   {
   public:
-
-    NodeTerminal(Token tok, CompilerState & state);
-    ~NodeTerminal();
-
-    virtual void printPostfix(File * f);
+    
+    NodeBinaryOpShift(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpShift();
 
     virtual UTI checkAndLabelType();
 
-    virtual bool fitsInBits(UTI fituti);
+    virtual   EvalStatus eval();
 
-    virtual bool isNegativeConstant();
-
-    virtual bool isWordSizeConstant();
-
-    virtual EvalStatus eval();
-
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
-
-    virtual void genCode(File * fp, UlamValue& uvpass);
-
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
-
-    /** reads into a tmp BitVector */
-    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
+    virtual const std::string methodNameForCodeGen();
 
   protected:
-    Token m_token;
+    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
 
-  private:
-    EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
+    virtual UTI calcNodeType(UTI lt, UTI rt);
 
   };
 
 }
 
-#endif //end NODETERMINAL_H
+#endif //NODEBINARYOPSHIFT_H
