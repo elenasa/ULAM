@@ -34,6 +34,13 @@ namespace MFM {
     return m_nodeUType;
   }
 
+  // only for constants (NodeTerminal)
+  bool Node::fitsInBits(UTI fituti)
+  {
+    assert(0);
+    return false;
+  }
+
 
   Node * Node::makeCastingNode(Node * node, UTI tobeType)
   {

@@ -141,6 +141,57 @@ namespace MFM {
   } //makeTerminalValue
 
 
+  bool NodeTerminal::fitsInBits(UTI fituti)
+  {
+    bool rtnb = false;
+    ULAMTYPE fitEnum = m_state.getUlamTypeByIndex(fituti)->getUlamTypeEnum();
+    u32 fitbitsize = m_state.getBitSize(fituti);
+
+    switch(m_token.m_type)
+      {
+      case TOK_NUMBER:
+	{
+	  std::string numstr = getName();
+	  const char * numlist = numstr.c_str();
+	  char * nEnd;
+	  
+	  UTI typidx = getNodeType();
+	  ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+	  if (typEnum == Int)
+	    {
+	      s32 numval = strtol(numlist, &nEnd, 10);   //base 10
+	      if(fitEnum == Int)
+		{
+		  rtnb = (numval <= ((1 << (fitbitsize - 1)) - 1)) && (numval >= (1 << fitbitsize));
+		}
+	      else
+		{
+		  // unsigned
+		  rtnb = (numval <= ((1 << fitbitsize) - 1)) && (numval >= 0);
+		}
+	      break;
+	    }
+ 
+	    std::ostringstream msg;
+	    msg << "Token not a number: <" << m_token.getTokenString() << ">";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	}
+	break;
+      case TOK_KW_TRUE:
+      case TOK_KW_FALSE:
+	rtnb = true;
+	break;
+      default:
+	{
+	    std::ostringstream msg;
+	    msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << ">";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	}
+      };
+
+    return rtnb;
+  } //makeTerminalValue
+
 #if 0
   void NodeTerminal::GENCODE(File * fp, UlamValue& uvpass)
   {
