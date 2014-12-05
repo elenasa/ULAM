@@ -26,6 +26,8 @@
 #include "NodeBinaryOpEqualBitwiseXor.h"
 #include "NodeBinaryOpLogicalAnd.h"
 #include "NodeBinaryOpLogicalOr.h"
+#include "NodeBinaryOpShiftLeft.h"
+#include "NodeBinaryOpShiftRight.h"
 #include "NodeBlock.h"
 #include "NodeBlockEmpty.h"
 #include "NodeBlockClassEmpty.h"
@@ -1163,13 +1165,25 @@ namespace MFM {
 
   Node * Parser::parseCompareExpression()
   {
-    Node * rtnNode = parseTerm();
+    Node * rtnNode = parseShiftExpression();
 
     if(!rtnNode)
       return NULL;  //stop this maddness
 
     // if not addop, parseRestOfExpression returns its arg
     return parseRestOfCompareExpression(rtnNode);  //parseExpression
+  }
+
+
+  Node * Parser::parseShiftExpression()
+  {
+    Node * rtnNode = parseTerm();
+
+    if(!rtnNode)
+      return NULL;  //stop this maddness
+
+    // if not addop, parseRestOfExpression returns its arg
+    return parseRestOfShiftExpression(rtnNode);  //parseShiftExpression
   }
 
   
@@ -1369,7 +1383,7 @@ namespace MFM {
   }
 
 
-  Node * Parser::parseRestOfCompareExpression(Node * leftNode)
+  Node * Parser::parseRestOfShiftExpression(Node * leftNode)
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -1380,6 +1394,39 @@ namespace MFM {
       {
       case TOK_PLUS:
       case TOK_MINUS:
+	unreadToken();
+	rtnNode = makeShiftExpressionNode(leftNode);
+	rtnNode = parseRestOfShiftExpression(rtnNode);  //recursion of left-associativity
+	break;
+      case TOK_ERROR_CONT:
+	{
+	  std::ostringstream msg;
+	  msg << "Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">";
+	  MSG(&pTok, msg.str().c_str(),ERR);
+	  rtnNode = parseRestOfShiftExpression(leftNode);  //redo
+	}
+	break;
+      default:
+	{
+	  unreadToken();
+	  rtnNode = leftNode;
+	}
+      };
+    return rtnNode;  //parseRestOfShiftExpression
+  }
+
+
+  Node * Parser::parseRestOfCompareExpression(Node * leftNode)
+  {
+    Node * rtnNode = NULL;
+    Token pTok;
+
+    getNextToken(pTok);
+
+    switch(pTok.m_type)
+      {
+      case TOK_SHIFT_LEFT:
+      case TOK_SHIFT_RIGHT:
 	unreadToken();
 	rtnNode = makeCompareExpressionNode(leftNode);
 	rtnNode = parseRestOfCompareExpression(rtnNode);  //recursion of left-associativity
@@ -2006,10 +2053,16 @@ namespace MFM {
 	rtnNode = parseRestOfEqExpression(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode);
 	break;
+      case TOK_SHIFT_LEFT:
+      case TOK_SHIFT_RIGHT:
+	unreadToken();
+	rtnNode = parseRestOfCompareExpression(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);
+	break;
       case TOK_PLUS:
       case TOK_MINUS:
 	unreadToken();
-	rtnNode = parseRestOfCompareExpression(leftNode);
+	rtnNode = parseRestOfShiftExpression(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode);  //any more?
 	break;
       case TOK_STAR:
@@ -2271,6 +2324,47 @@ namespace MFM {
 
     getNextToken(pTok);
 
+    Node * rightNode = parseShiftExpression();
+    if(!rightNode)
+      {
+	std::ostringstream msg;
+	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	MSG(&pTok, msg.str().c_str(), DEBUG);
+	delete leftNode;
+      }
+    else
+      {
+	switch(pTok.m_type)
+	  {
+	  case TOK_SHIFT_LEFT:
+	    rtnNode = new NodeBinaryOpShiftLeft(leftNode, rightNode, m_state);
+	    break;
+	  case TOK_SHIFT_RIGHT:
+	    rtnNode = new NodeBinaryOpShiftRight(leftNode, rightNode, m_state);
+	    break;
+	  default:
+	    {
+	      std::ostringstream msg;
+	      msg << " Unexpected input!! Token: <" << pTok.getTokenEnumName() << ">, aborting";
+	      MSG(&pTok, msg.str().c_str(), DEBUG);
+	      assert(0);
+	    }
+	    break;
+	  };
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+      }
+    return rtnNode;
+  } //makeCompareExpressionNode
+
+
+  NodeBinaryOp * Parser::makeShiftExpressionNode(Node * leftNode)
+  {
+    NodeBinaryOp * rtnNode = NULL;
+    Token pTok;
+
+    getNextToken(pTok);
+
     Node * rightNode = parseTerm();
     if(!rightNode)
       {
@@ -2302,7 +2396,7 @@ namespace MFM {
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
     return rtnNode;
-  } //makeCompareExpressionNode
+  } //makeShiftExpressionNode
 
 
   NodeBinaryOp * Parser::makeTermNode(Node * leftNode)

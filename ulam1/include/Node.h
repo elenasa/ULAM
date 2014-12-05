@@ -45,7 +45,7 @@
 #include "Symbol.h"
 #include "UlamType.h"
 #include "UlamValue.h"
-#include "Ops.h"
+#include "CastOps.h"
 
 namespace MFM{
 
@@ -67,6 +67,8 @@ namespace MFM{
     virtual UTI checkAndLabelType();
 
     virtual bool fitsInBits(UTI fituti);
+    virtual bool isNegativeConstant();
+    virtual bool isWordSizeConstant();
 
     virtual EvalStatus eval() = 0;
     virtual EvalStatus evalToStoreInto();
@@ -141,7 +143,7 @@ namespace MFM{
     const std::string readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
     const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
 
-    bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self; 
+    bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self;
     bool isCurrentObjectsContainingAnElementParameter(); //checks entire vector for a "static" element parameter
 
     bool isCurrentStorageObjectIrrelevantForElementParameter();  //should drop local var if true

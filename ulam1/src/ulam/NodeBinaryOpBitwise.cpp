@@ -31,7 +31,7 @@ namespace MFM {
 	    doBinaryOperationImmediate(lslot, rslot, slots);
 	  }
 	else
-	  { 
+	  {
 	    doBinaryOperationArray(lslot, rslot, slots);
 	  }
       }
@@ -47,7 +47,7 @@ namespace MFM {
       {
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	if(!m_state.isScalar(lt) && (etyp == Unary || etyp == Bool))
-	  {	    
+	  {
 	    std::ostringstream msg;
 	    msg << "Nonscalar types Bool and Unary are not currently supported for binary bitwise operator" << getName() << "; suggest writing a loop for <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -84,10 +84,8 @@ namespace MFM {
     switch(etyp)
       {
       case Int:
-	methodname << "Int";
-	break;
       case Unary:
-	methodname << "Unary";
+	methodname << UlamType::getUlamTypeEnumAsString(etyp);
 	break;
       default:
 	methodname << "Bits";
