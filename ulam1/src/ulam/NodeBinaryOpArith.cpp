@@ -64,7 +64,7 @@ namespace MFM {
  
     if( m_state.isScalar(lt) && m_state.isScalar(rt))
       {
-	//return constant expressions as constants; 
+	//return constant expressions as constants;  
 	if(lt == rt && m_state.isConstant(lt))
 	  return lt;   // or perhaps return constant Int? what's an unsigned constant?
 
@@ -81,12 +81,23 @@ namespace MFM {
 	  {
 	    // not both unsigned, but one is, so mixing signed and
 	    // unsigned gets a warning, but still uses signed Int.
+	    // if one is a constant, check for value to fit in bits.
 	    if(ltypEnum == Unsigned || rtypEnum == Unsigned)
 	      {
-		std::ostringstream msg;
-		msg << "Attempting to mix signed and unsigned types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary operator" << getName() << " ";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		//output warning
+		bool doErrMsg = true;
+		if(m_state.isConstant(lt) && m_nodeLeft->fitsInBits(rt))
+		  doErrMsg = false;
+		 
+		if(m_state.isConstant(rt) && m_nodeRight->fitsInBits(lt))
+		  doErrMsg = false;
+
+		if(doErrMsg)
+		  {
+		    std::ostringstream msg;
+		    msg << "Attempting to mix signed and unsigned types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary operator" << getName() << " ";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		    //output warning
+		  }
 	      }
 	  }
       } //both scalars

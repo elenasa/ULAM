@@ -236,7 +236,7 @@ namespace MFM {
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
   }
 
-  #define DEBUGGING_WITHOUT_DEFAULTELEMENT
+  //#define DEBUGGING_WITHOUT_DEFAULTELEMENT
   //header .h file
   void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
   {

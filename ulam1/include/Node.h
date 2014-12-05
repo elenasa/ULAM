@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual bool fitsInBits(UTI fituti);
+
     virtual EvalStatus eval() = 0;
     virtual EvalStatus evalToStoreInto();
 
