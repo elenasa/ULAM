@@ -178,12 +178,13 @@ int main(int argc, char ** argv)
 
     int result = ds.RunCompilation();
     if (result == 0)
-	std::cerr << ds.GetMangledTarget() << " " << ds.HasTestMethod() << std::endl;
+      std::cerr << ds.GetMangledTarget() << " " << ds.HasTestMethod() << std::endl;
+    return result;
   }
   catch (int status) {
     return status;
   }
-}
+} //main
 
 #if 0
   MFM::initTests();

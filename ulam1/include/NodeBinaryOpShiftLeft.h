@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeTerminal.h - Basic Node handling Terminals for ULAM
+ * NodeBinaryOpShiftLeft.h - Node for handling Shift Left Operation for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,61 +26,39 @@
  */
 
 /**
-  \file NodeTerminal.h - Basic Node handling Terminals for ULAM
+  \file NodeBinaryOpShiftLeft.h - Node for handling Shift Left Operation for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
   \gpl
 */
 
+#ifndef NODEBINARYOPSHIFTLEFT_H
+#define NODEBINARYOPSHIFTLEFT_H
 
-#ifndef NODETERMINAL_H
-#define NODETERMINAL_H
-
-#include "Node.h"
-#include "Token.h"
-
+#include "NodeBinaryOpShift.h"
 
 namespace MFM{
 
-  class NodeTerminal : public Node
+  class NodeBinaryOpShiftLeft : public NodeBinaryOpShift
   {
   public:
 
-    NodeTerminal(Token tok, CompilerState & state);
-    ~NodeTerminal();
-
-    virtual void printPostfix(File * f);
-
-    virtual UTI checkAndLabelType();
-
-    virtual bool fitsInBits(UTI fituti);
-
-    virtual bool isNegativeConstant();
-
-    virtual bool isWordSizeConstant();
-
-    virtual EvalStatus eval();
+    NodeBinaryOpShiftLeft(Node * left, Node * right, CompilerState & state);
+    ~NodeBinaryOpShiftLeft();
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
-
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
-
-    /** reads into a tmp BitVector */
-    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
+    virtual const std::string methodNameForCodeGen();
 
   protected:
-    Token m_token;
 
-  private:
-    EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
-
+    virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+    virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
   };
 
-}
+} //MFM
 
-#endif //end NODETERMINAL_H
+#endif //NODEBINARYOPSHIFTLEFT_H

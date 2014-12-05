@@ -28,10 +28,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <assert.h>
 #include "itype.h"
 #include "math.h"
-
 
 namespace MFM {
 
@@ -51,31 +49,101 @@ namespace MFM {
    * (likely, though not actually necessarily, expressed as hex
    * constants).
    */
-  inline static u64 HexU64(const u32 hi, const u32 lo) {
+  inline u64 HexU64(const u32 hi, const u32 lo) {
     return ((((u64) hi)<<32)|lo);
   }
 
   /**
    * Generate a u64 constant that works on i386 and amd64, without
    * using the 'ULL' suffix that -ansi rejects, from two pieces
-   * representing the bottom nine decimal digits in 'millions', and
+   * representing the bottom nine decimal digits in 'ones', and
    * the remaining upper decimal digits in 'billions'.  For example:
-   * DecU64(123456,789101,112) == 123456789101112ULL
+   * DecU64(123456,789101112) == 123456789101112ULL
    */
-  inline static u64 DecU64(const u32 billions, const u32 millions) {
-    return ((((u64) billions)*1000000000) + millions);
+  inline u64 DecU64(const u32 billions, const u32 ones) {
+    return ((((u64) billions)*1000000000) + ones);
+  }
+
+  inline s32 _SignExtend32(u32 val, const u32 bitwidth) {
+    return ((bitwidth < 32) ? (((s32)(val<<(32-bitwidth)))>>(32-bitwidth)) : (s32) val);
+  }
+
+  inline s64 _SignExtend64(u64 val, const u32 bitwidth) {
+    return ((bitwidth < 64) ? (((s64)(val<<(64-bitwidth)))>>(64-bitwidth)) : (s64) val);
+  }
+
+  inline u32 _GetNOnes32(const u32 bitwidth) {
+    return (bitwidth >= 32) ? (u32) -1 : (((u32)1)<<bitwidth)-1;
+  }
+
+  inline u64 _GetNOnes64(const u32 bitwidth) {
+    return (bitwidth >= 64) ? HexU64((u32)-1,(u32)-1) : (((u64)1)<<bitwidth)-1;
+  }
+
+  inline u32 _ShiftToBitNumber32(u32 value, u32 bitpos) {
+    return value<<bitpos;
+  }
+
+  inline u64 _ShiftToBitNumber64(u32 value, u32 bitpos) {
+    return ((u64) value)<<bitpos;
+  }
+
+  inline u32 _ShiftFromBitNumber32(u32 value, u32 bitpos) {
+    return value>>bitpos;
+  }
+
+  inline u64 _ShiftFromBitNumber64(u64 value, u32 bitpos) {
+    return value>>bitpos;
+  }
+
+  inline u32 _GetMask32(u32 bitpos, u32 bitwidth) {
+    return _ShiftToBitNumber32(_GetNOnes32(bitwidth),bitpos);
+  }
+
+  inline u64 _GetMask64(u32 bitpos, u32 bitwidth) {
+    return _ShiftToBitNumber64(_GetNOnes64(bitwidth),bitpos);
+  }
+
+  inline u32  _ExtractField32(u32 val, u32 bitpos,u32 bitwidth) {
+    return _ShiftFromBitNumber32(val,bitpos)&_GetNOnes32(bitwidth);
+  }
+
+  inline u32  _ExtractUint32(u32 val, u32 bitpos,u32 bitwidth) {
+    return _ExtractField32(val,bitpos,bitwidth);
+  }
+
+  inline s32  _ExtractSint32(u32 val, u32 bitpos,u32 bitwidth) {
+    return _SignExtend32(_ExtractField32(val,bitpos,bitwidth),bitwidth);
+  }
+
+  inline u32 _getParity32(u32 v) {
+    v ^= v >> 16;
+    v ^= v >> 8;
+    v ^= v >> 4;
+    v &= 0xf;
+    return (0x6996 >> v) & 1;
+  }
+
+  // v must be <= 0x7fffffff
+  inline u32 _getNextPowerOf2(u32 v) {
+    v |= v >> 16;
+    v |= v >> 8;
+    v |= v >> 4;
+    v |= v >> 2;
+    v |= v >> 1;
+    return v+1;
   }
 
   /**
    * Right-aligned mask generation.  Returns 0xFFFFFFFF if \a length
    * >= 32
    */
-  inline static u32 MakeMaskClip(const u32 length) {
+  inline u32 MakeMaskClip(const u32 length) {
     if (length<32) return (1u << length) - 1;
     return -1;
   }
 
-  inline static u32 PopCount(const u32 bits) {
+  inline u32 PopCount(const u32 bits) {
     return __builtin_popcount(bits); // GCC
   }
 
@@ -99,6 +167,11 @@ namespace MFM {
   inline T ABS(T val)
   {
     return val > 0 ? val : (-val);
+  }
+
+  template <class T>
+  inline T SGN(T x) {
+    return (T) ((x > 0) ? 1 : (x < 0 ? -1 : 0));
   }
 
   template <class T>
@@ -231,13 +304,18 @@ namespace MFM {
   extern u32 DigitCount(u32 num, u32 base);
 
   /**
-   * Encodes an integral number as a series of bytes.
+   * Encodes an integral number as a series of alphabetic bytes.
    *
    * @param num The number to encode
    *
-   * @param output The char buffer to output the encoded number to.
+   * @param output The char buffer to output the encoded number to,
+   * which must be at least 8 bytes long
+   *
+   * @return the first up-to-8 bytes that output points at are
+   * modified to contain a null-terminated string of alphabetic
+   * characters.
    */
-  extern void IntLexEncode(u32 num, char* output);
+  extern void IntAlphaEncode(u32 num, char* output);
 
   /**
    * Pauses the calling thread for a specified amount of time, using
@@ -254,6 +332,31 @@ namespace MFM {
    */
   extern void Sleep(u32 seconds, u64 nanos) ;
 
+  /**
+   * Pauses the calling thread for more or less a specified number of
+   * milliseconds.
+   *
+   * @param milliseconds The number of milliseconds that the calling thread
+   *                should sleep for.
+   */
+  inline void SleepMsec(u32 milliseconds) {
+    const u32 K = 1000;
+    const u32 M = K*K;
+    Sleep(milliseconds/K, (milliseconds%K)*DecU64(0,M));
+  }
+
+  /**
+   * Pauses the calling thread for more or less a specified number of
+   * microseconds.
+   *
+   * @param microseconds The number of microseconds that the calling
+   *                thread should sleep for.
+   */
+  inline void SleepUsec(u32 microseconds) {
+    const u32 K = 1000;
+    const u32 M = K*K;
+    Sleep(microseconds/M, (microseconds%M)*DecU64(0,K));
+  }
 }
 
 #endif /* UTIL_H */

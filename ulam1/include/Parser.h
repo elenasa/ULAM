@@ -217,13 +217,40 @@ namespace MFM{
 
 
     /**
-       <EXPRESSION> := <TERM> | <EXPRESSION> <ADDOP> <TERM>
+       <EXPRESSION> := <LOGICAL_EXPRESSION> | <EXPRESSION> <LOGICALOP> <LOGICAL_EXPRESSION>
     */
-    Node * parseExpression();    
+    Node * parseExpression();
+
+    
+    /**
+       <LOGICAL_EXPRESSION> := <BIT_EXPRESSION> | <LOGICAL_EXPRESSION> <BITOP> <BIT_EXPRESSION>
+    */
     Node * parseLogicalExpression();
+
+
+    /**
+       <BIT_EXPRESSION> := <EQ_EXPRESSION> | <BIT_EXPRESSION> <EQOP> <EQ_EXPRESSION>
+    */
     Node * parseBitExpression();
+
+
+    /**
+       <EQ_EXPRESSION> := <COMPARE_EXPRESSION> | <EQ_EXPRESSION> <COMPOP> <COMPARE_EXPRESSION>
+    */
     Node * parseEqExpression();
+
+
+    /**
+       <COMPARE_EXPRESSION> := <SHIFT_EXPRESSION> | <COMPARE_EXPRESSION> <SHIFTOP> <SHIFT_EXPRESSION>
+    */
     Node * parseCompareExpression();
+
+
+    /**
+       <SHIFT_EXPRESSION> := <TERM> | <SHIFT_EXPRESSION> <ADDOP> <TERM>
+    */
+    Node * parseShiftExpression();
+
     
     /** 
 	<TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
@@ -286,20 +313,43 @@ namespace MFM{
 
 
     /** 
-	<ADDOP> := '+' | '-'
+	<LOGICALOP> := '&&' | '||'
     */
     Node * parseRestOfExpression(Node * leftNode);
     
+
+    /**
+       <BITOP> := '&' | '|' | '^'
+    */
     Node * parseRestOfLogicalExpression(Node * leftNode);    
 
+
+    /** 
+	<EQOP> := '==' | '!='
+    */    
     Node * parseRestOfBitExpression(Node * leftNode);    
-    
+
+
+    /** 
+	<COMPOP> := '<' | '>' | '<=' | '>='
+    */    
     Node * parseRestOfEqExpression(Node * leftNode);
-    
-    Node * parseRestOfCompareExpression(Node * leftNode);
+
     
     /** 
-	<MULOP> := '*' | '/'
+	<SHIFTOP> := '<<' | '>>'
+    */
+    Node * parseRestOfCompareExpression(Node * leftNode);
+
+
+    /** 
+	<ADDOP> := '+' | '-'
+    */
+    Node * parseRestOfShiftExpression(Node * leftNode);
+
+    
+    /** 
+	<MULOP> := '*' | '/' | '%'
      */
     Node * parseRestOfTerm(Node * leftNode);
 
@@ -323,13 +373,14 @@ namespace MFM{
 
 
     /**
-       helper method to make binary expression nodes
+       helper methods to make binary expression nodes
     */
     NodeBinaryOp * makeExpressionNode(Node * leftNode);
     NodeBinaryOp * makeLogicalExpressionNode(Node * leftNode);
     NodeBinaryOp * makeBitExpressionNode(Node * leftNode);
     NodeBinaryOp * makeEqExpressionNode(Node * leftNode);
     NodeBinaryOp * makeCompareExpressionNode(Node * leftNode);
+    NodeBinaryOp * makeShiftExpressionNode(Node * leftNode);
 
     /**
        helper method to make binary term nodes

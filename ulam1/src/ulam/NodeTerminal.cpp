@@ -22,7 +22,7 @@ namespace MFM {
       {
 	return Token::getTokenAsString(m_token.m_type);  //true or false
       }
-    
+
     return m_state.getDataAsString(&m_token).c_str();
   }
 
@@ -56,7 +56,7 @@ namespace MFM {
 	    }
 	}
 	break;
-	
+
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
 	{
@@ -70,9 +70,9 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
-    
+
     setNodeType(newType);
-    
+
     setStoreIntoAble(false);
     return newType;
   }
@@ -80,7 +80,7 @@ namespace MFM {
 
   EvalStatus NodeTerminal::eval()
   {
-    EvalStatus evs = NORMAL; //init ok 
+    EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
 
     UlamValue rtnUV;
@@ -92,12 +92,12 @@ namespace MFM {
     evalNodeEpilog();
     return evs;
   }
-  
+
 
   EvalStatus NodeTerminal::makeTerminalValue(UlamValue& uvarg)
   {
     UlamValue rtnUV;         //init to Nav error case
-    EvalStatus evs = NORMAL; //init ok 
+    EvalStatus evs = NORMAL; //init ok
 
     switch(m_token.m_type)
       {
@@ -106,26 +106,26 @@ namespace MFM {
 	  std::string numstr = getName();
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
-	  
+
 	  UTI typidx = getNodeType();
 	  ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
 	  if (typEnum == Int)
 	    {
 	      s32 numval = strtol(numlist, &nEnd, 10);   //base 10
-	      rtnUV = UlamValue::makeImmediate(typidx, numval, m_state); 
+	      rtnUV = UlamValue::makeImmediate(typidx, numval, m_state);
 	      break;
 	    }
- 
+
 	    std::ostringstream msg;
 	    msg << "Token not a number: <" << m_token.getTokenString() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	}
 	break;
       case TOK_KW_TRUE:
-	rtnUV = UlamValue::makeImmediate(getNodeType(), true, m_state); 
+	rtnUV = UlamValue::makeImmediate(getNodeType(), true, m_state);
 	break;
       case TOK_KW_FALSE:
-	rtnUV = UlamValue::makeImmediate(getNodeType(), false, m_state); 
+	rtnUV = UlamValue::makeImmediate(getNodeType(), false, m_state);
 	break;
       default:
 	{
@@ -144,8 +144,11 @@ namespace MFM {
   bool NodeTerminal::fitsInBits(UTI fituti)
   {
     bool rtnb = false;
-    ULAMTYPE fitEnum = m_state.getUlamTypeByIndex(fituti)->getUlamTypeEnum();
+    UlamType * fit = m_state.getUlamTypeByIndex(fituti);
+    ULAMTYPE fitEnum = fit->getUlamTypeEnum();
     u32 fitbitsize = m_state.getBitSize(fituti);
+
+    assert(fit->getTotalWordSize() == 32);
 
     switch(m_token.m_type)
       {
@@ -154,7 +157,7 @@ namespace MFM {
 	  std::string numstr = getName();
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
-	  
+
 	  UTI typidx = getNodeType();
 	  ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
 	  if (typEnum == Int)
@@ -162,16 +165,22 @@ namespace MFM {
 	      s32 numval = strtol(numlist, &nEnd, 10);   //base 10
 	      if(fitEnum == Int)
 		{
-		  rtnb = (numval <= ((1 << (fitbitsize - 1)) - 1)) && (numval >= (1 << fitbitsize));
+		  if(fitbitsize == m_state.getDefaultBitSize(Int))
+		    rtnb = (numval <= S32_MAX) && (numval >= S32_MIN);
+		  else
+		    rtnb = (numval <= ((1 << (fitbitsize - 1)) - 1)) && (numval >= (1 << fitbitsize));
 		}
 	      else
 		{
 		  // unsigned
-		  rtnb = (numval <= ((1 << fitbitsize) - 1)) && (numval >= 0);
+		  if(fitbitsize == m_state.getDefaultBitSize(Unsigned))
+		    rtnb = ((u32) numval <= U32_MAX) && ((u32) numval >= U32_MIN);
+		  else
+		    rtnb = (numval <= ((1 << fitbitsize) - 1)) && (numval >= 0);
 		}
 	      break;
 	    }
- 
+
 	    std::ostringstream msg;
 	    msg << "Token not a number: <" << m_token.getTokenString() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -190,21 +199,57 @@ namespace MFM {
       };
 
     return rtnb;
-  } //makeTerminalValue
+  } //fitsInBits
 
-#if 0
-  void NodeTerminal::GENCODE(File * fp, UlamValue& uvpass)
+
+  bool NodeTerminal::isNegativeConstant()
   {
-    fp->write(getName());
-  }
-#endif
+    bool rtnb = false;
+
+    if(m_token.m_type == TOK_NUMBER)
+      {
+	std::string numstr = getName();
+	const char * numlist = numstr.c_str();
+	char * nEnd;
+
+	UTI typidx = getNodeType();
+	ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+	if (typEnum == Int)
+	  {
+	    s32 numval = strtol(numlist, &nEnd, 10);   //base 10
+	    rtnb = (numval < 0);
+	  }
+      }
+    return rtnb;
+  } //isNegativeConstant
+
+
+  bool NodeTerminal::isWordSizeConstant()
+  {
+    bool rtnb = false;
+    if(m_token.m_type == TOK_NUMBER)
+      {
+	std::string numstr = getName();
+	const char * numlist = numstr.c_str();
+	char * nEnd;
+
+	UTI typidx = getNodeType();
+	ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+	if (typEnum == Int)
+	  {
+	    s32 numval = strtol(numlist, &nEnd, 10);   //base 10
+	    rtnb = (numval >= (s32) m_state.getDefaultBitSize(Int));
+	  }
+      }
+    return rtnb;
+  } //isWordSizeConstant
 
 
   void NodeTerminal::genCode(File * fp, UlamValue& uvpass)
   {
-    UlamValue tv; 
+    UlamValue tv;
     assert(makeTerminalValue(tv) == NORMAL);
-    
+
     // unclear to do this read or not; squarebracket not happy, or cast not happy ?
     genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
     uvpass = tv;
@@ -214,14 +259,14 @@ namespace MFM {
 
   void NodeTerminal::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
-    UlamValue tv; 
+    UlamValue tv;
     assert(makeTerminalValue(tv) == NORMAL);
     uvpass = tv;
     return; //uvpass is an immediate UV, not a PTR
   }
 
 
-  // reads into a tmp var 
+  // reads into a tmp var
   // (for BitVector use Node::genCodeConvertATmpVarIntoBitVector)
   void NodeTerminal::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
   {
@@ -229,20 +274,20 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32	tmpVarNum = m_state.getNextTmpVarNumber();
-    
+
     m_state.indent(fp);
     fp->write("const ");
 
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); 
+    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str());
     fp->write(" ");
-    
+
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());
 
     fp->write(" = ");
 
     fp->write(getName());
     fp->write(";\n");
-    
+
     // substitute Ptr for uvpass to contain the tmpVar number; save id of constant string in Ptr;
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified (atom-based);
     uvpass.setPtrPos(0); //entire register

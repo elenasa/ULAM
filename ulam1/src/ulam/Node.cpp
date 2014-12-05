@@ -25,6 +25,7 @@ namespace MFM {
     fp->write(id);
   }
 
+
   // any node above assignexpr is not storeintoable;
   // and has no type (e.g. statements, statement, block, program)
   UTI Node::checkAndLabelType()
@@ -34,8 +35,24 @@ namespace MFM {
     return m_nodeUType;
   }
 
+
   // only for constants (NodeTerminal)
   bool Node::fitsInBits(UTI fituti)
+  {
+    assert(0);
+    return false;
+  }
+
+
+  // only for constants (NodeTerminal)
+  bool Node::isNegativeConstant()
+  {
+    assert(0);
+    return false;
+  }
+
+
+  bool Node::isWordSizeConstant()
   {
     assert(0);
     return false;
@@ -487,7 +504,7 @@ namespace MFM {
 
     // split if custom array; like a function call instead
     if(cosut->isCustomArray() && !isHandlingImmediateType())
-      return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass); 
+      return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -1233,7 +1250,7 @@ namespace MFM {
 	  }
 	else
 #endif
-	  
+
 	  fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
       } //value not a terminal
 
