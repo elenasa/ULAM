@@ -27,3 +27,6 @@
 
 # Ignore doxygen-generated output
 doc/ref
+
+# Ignore local makefiles
+**/*local.mk
