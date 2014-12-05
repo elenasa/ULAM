@@ -41,7 +41,7 @@ namespace MFM {
 
 
   // same as Arith Ops for casting lhs & rhs, however node type is Bool
-  //punt on arrays at this time..
+  // punt on arrays at this time..
   UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt) 
   {
     UTI newType = Nav; //init
@@ -52,10 +52,6 @@ namespace MFM {
  
     if( m_state.isScalar(lt) && m_state.isScalar(rt))
       {
-	//return constant expressions as constants; 
-	//if(lt == rt && m_state.isConstant(lt))
-	//  return lt;   // or perhaps return constant Int? what's an unsigned constant?
-
 	newType = Int;
 
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
@@ -63,30 +59,33 @@ namespace MFM {
 
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
 	  {
-	    newType = Unsigned;   //check if isConstant?
+	    newType = Unsigned;        //constants are not unsigned
 	  }
-	else
+	else if(m_state.isConstant(lt) || m_state.isConstant(rt))
+	  {
+	    // if one is a constant, check for value to fit in bits.
+	    bool doErrMsg = true;
+	    if(m_state.isConstant(lt) && m_nodeLeft->fitsInBits(rt))
+	      doErrMsg = false;
+	    
+	    if(m_state.isConstant(rt) && m_nodeRight->fitsInBits(lt))
+	      doErrMsg = false;
+	    
+	    if(doErrMsg)
+	      {
+		std::ostringstream msg;
+		msg << "Attempting to fit a constant into a smaller bit size, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary comparison operator" << getName() << " ";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);    //output warning
+	      }
+	  } //a constant
+	else if(ltypEnum == Unsigned || rtypEnum == Unsigned)
 	  {
 	    // not both unsigned, but one is, so mixing signed and
 	    // unsigned gets a warning, but still uses signed Int.
 	    // if one is a constant, check for value to fit in bits.
-	    if(ltypEnum == Unsigned || rtypEnum == Unsigned)
-	      {
-		bool doErrMsg = true;
-		if(m_state.isConstant(lt) && m_nodeLeft->fitsInBits(rt))
-		  doErrMsg = false;
-		 
-		if(m_state.isConstant(rt) && m_nodeRight->fitsInBits(lt))
-		  doErrMsg = false;
-
-		if(doErrMsg)
-		  {	    
-		    std::ostringstream msg;
-		    msg << "Attempting to mix signed and unsigned types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary comparison operator" << getName() << " ";
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		    //output warning
-		  }
-	      }
+	    std::ostringstream msg;
+	    msg << "Attempting to mix signed and unsigned types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary comparison operator" << getName() << " ";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);	    //output warning
 	  }
       } //both scalars
     else
