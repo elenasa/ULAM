@@ -39,11 +39,13 @@ namespace MFM {
 
   bool UlamTypeClass::needsImmediateType()
   {
+    // NOW allowing complete immediate elements (like atoms)
     // simply test for quarks..since..
     //   also needed for 'empty' quarks without data
     // NOW allowing right-justified naked quarks
     //return (m_class == UC_ELEMENT || m_class == UC_INCOMPLETE || getBitSize() == 0 ? false : true);
-    return (m_class == UC_QUARK);
+    //return (m_class == UC_QUARK);
+    return (m_class == UC_QUARK || m_class == UC_ELEMENT);
   }
 
 
@@ -80,6 +82,9 @@ namespace MFM {
 
     if(m_class == UC_QUARK && isScalar())
       ctype << "<CC>";  // not ,POS> because immediates know their position
+
+    if(m_class == UC_ELEMENT)
+      ctype << "<CC>";
 
     return ctype.str();
   } //getImmediateStorageTypeAsString
@@ -219,6 +224,39 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
   {
+    if(m_class == UC_QUARK)
+      return genUlamTypeQuarkMangledDefinitionForC(fp,state);
+    else if(m_class == UC_ELEMENT)
+      return genUlamTypeElementMangledDefinitionForC(fp,state);
+    else
+      assert(0);
+  } //genUlamTypeMangledDefinitionForC
+
+
+  void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp, CompilerState * state)
+  {
+    if(m_class == UC_QUARK)
+      return genUlamTypeQuarkReadDefinitionForC(fp,state);
+    else if(m_class == UC_ELEMENT)
+      return genUlamTypeElementReadDefinitionForC(fp,state);
+    else
+      assert(0);
+  } //genUlamTypeReadDefinitionForC
+
+
+  void UlamTypeClass::genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state)
+  {
+    if(m_class == UC_QUARK)
+      return genUlamTypeQuarkWriteDefinitionForC(fp,state);
+    else if(m_class == UC_ELEMENT)
+      return genUlamTypeElementWriteDefinitionForC(fp,state);
+    else
+      assert(0);
+  } //genUlamTypeWriteDefinitionForC
+
+
+  void UlamTypeClass::genUlamTypeQuarkMangledDefinitionForC(File * fp, CompilerState * state)
+  {
     assert(m_class == UC_QUARK);
 
     if(!isScalar())
@@ -331,10 +369,10 @@ namespace MFM {
     fp->write("() {}\n");
 
     //read 'entire quark' method
-    genUlamTypeReadDefinitionForC(fp, state);
+    genUlamTypeQuarkReadDefinitionForC(fp, state);
 
     //write 'entire quark' method
-    genUlamTypeWriteDefinitionForC(fp, state);
+    genUlamTypeQuarkWriteDefinitionForC(fp, state);
 
     // getBits method for scalar
     state->indent(fp);
@@ -355,10 +393,10 @@ namespace MFM {
     fp->write("#endif /*");
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
-  } //genUlamTypeMangledDefinitionForC
+  } //genUlamTypeQuarkMangledDefinitionForC
 
 
-  void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp, CompilerState * state)
+  void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp, CompilerState * state)
   {
     // arrays are handled separately
     if(!isScalar())
@@ -371,10 +409,10 @@ namespace MFM {
     fp->write(" read() const { return Up_Us::");
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(m_stg.GetBits() ); }\n");
-  } //genUlamTypeReadDefinitionForC
+  } //genUlamTypeQuarkReadDefinitionForC
 
 
-  void UlamTypeClass::genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state)
+  void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp, CompilerState * state)
   {
     // arrays are handled separately
     if(!isScalar())
@@ -387,7 +425,7 @@ namespace MFM {
     fp->write(" v) { Up_Us::");
     fp->write(writeMethodForCodeGen().c_str());
     fp->write("(m_stg.GetBits(), v); }\n");
-  } //genUlamTypeWriteDefinitionForC
+  } //genUlamTypeQuarkWriteDefinitionForC
 
 
   void UlamTypeClass::genCustomArrayMangledDefinitionForC(File * fp, CompilerState * state)
@@ -421,6 +459,156 @@ namespace MFM {
     fp->write(state->getUlamTypeByIndex(Atom)->getImmediateStorageTypeAsString(state).c_str());
     fp->write("(v)); }\n");
   } //genCustomArrayMangledDefinitionForC
+
+
+  //whole element (based on atom)
+  void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp, CompilerState * state)
+  {
+    assert(isScalar());
+
+    state->m_currentIndentLevel = 0;
+    const std::string mangledName = getUlamTypeImmediateMangledName(state);
+    std::ostringstream  ud;
+    ud << "Ud_" << mangledName;  //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
+
+    //s32 len = getTotalBitSize();  //BITSPERATOM
+
+    state->indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+    
+    state->indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+    
+    state->indent(fp);
+    fp->write("namespace MFM{\n");
+    fp->write("\n");
+
+    state->m_currentIndentLevel++;
+
+    //forward declaration of element (before struct!)
+    state->indent(fp);
+    fp->write("template<class CC> class ");
+    fp->write(getUlamTypeMangledName(state).c_str());
+    fp->write(";  //forward\n\n");
+
+    state->indent(fp);
+    fp->write("template<class CC>\n");
+
+    state->indent(fp);
+    fp->write("struct ");
+    fp->write(mangledName.c_str());
+    fp->write("\n");
+    state->indent(fp);
+    fp->write("{\n");
+
+    state->m_currentIndentLevel++;
+    
+    //typedef atomic parameter type inside struct
+    state->indent(fp);
+    fp->write("typedef typename CC::ATOM_TYPE T;\n");
+    state->indent(fp);
+    fp->write("typedef typename CC::PARAM_CONFIG P;\n");
+    state->indent(fp);
+    fp->write("enum { BPA = P::BITS_PER_ATOM };\n");
+
+    //element typedef
+    state->indent(fp);
+    fp->write("typedef ");
+    fp->write(getUlamTypeMangledName(state).c_str());
+    fp->write("<CC> Us;\n");
+
+    //storage here in atom
+    state->indent(fp);
+    fp->write("T m_stg;  //storage here!\n");
+
+    //default constructor (used by local vars)
+    state->indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("() : m_stg() { }\n");
+#if 0
+    fp->write("() : m_stg(");
+    //    fp->write(getUlamTypeMangledName(state).c_str());
+    //fp->write("<CC>");
+    fp->write("Us::THE_INSTANCE");
+    fp->write(".GetDefaultAtom()");  //returns object of type T
+    fp->write(") { }\n");
+#endif
+
+    //constructor here (used by const tmpVars)
+    state->indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(getTmpStorageTypeAsString(state).c_str()); //T
+    fp->write(" d) : m_stg(d) {}\n");
+    
+    //copy constructor here (used by func call return values)
+    state->indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("(const ");
+    fp->write(getImmediateStorageTypeAsString(state).c_str());
+    fp->write("& d) : m_stg(d.m_stg) {}\n");
+
+    //default destructor (for completeness)
+    state->indent(fp);
+    fp->write("~");
+    fp->write(mangledName.c_str());
+    fp->write("() {}\n");
+
+    //read 'entire atom' method
+    genUlamTypeElementReadDefinitionForC(fp, state);
+
+    //write 'entire atom' method
+    genUlamTypeElementWriteDefinitionForC(fp, state);
+
+    // getBits method for scalar
+    state->indent(fp);
+    //fp->write("T& getBits() { return m_stg; }\n"); , unlike read, not const
+    fp->write("BitVector<BPA>& getBits() { return m_stg.GetBits(); }\n");
+
+    state->m_currentIndentLevel--;
+    state->indent(fp);
+    fp->write("};\n");
+    
+    state->m_currentIndentLevel--;
+    state->indent(fp);
+    fp->write("} //MFM\n");
+    
+    state->indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  } //genUlamTypeElementMangledDefinitionForC
+
+
+  void UlamTypeClass::genUlamTypeElementReadDefinitionForC(File * fp, CompilerState * state)
+  {
+    // arrays are handled separately
+    assert(isScalar());
+
+    //not an array
+    state->indent(fp);
+    fp->write("const ");
+    fp->write(getTmpStorageTypeAsString(state).c_str()); //T
+    fp->write(" read() const { return m_stg; }\n");
+  } //genUlamTypeElementReadDefinitionForC
+
+
+  void UlamTypeClass::genUlamTypeElementWriteDefinitionForC(File * fp, CompilerState * state)
+  {
+    // arrays are handled separately
+    assert(isScalar());
+
+    // here, must be scalar
+    state->indent(fp);
+    fp->write("void write(const ");
+    fp->write(getTmpStorageTypeAsString(state).c_str()); //T
+    fp->write(" v) { m_stg = v; }\n");
+  } //genUlamTypeElementWriteDefinitionForC
 
 
   const std::string UlamTypeClass::readArrayItemMethodForCodeGen()

@@ -142,7 +142,6 @@ namespace MFM {
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
     //    if(!m_varSymbol->isDataMember())
@@ -159,6 +158,9 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName().c_str());
 
+#if 1
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    // done by immediate now.
     //initialize T to default atom (might need "OurAtom" if data member ?)
     if(vclasstype == UC_ELEMENT)
       {
@@ -175,6 +177,7 @@ namespace MFM {
       {
 	//right-justified?
       }
+#endif
 
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   }
