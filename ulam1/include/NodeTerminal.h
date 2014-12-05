@@ -54,6 +54,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual bool fitsInBits(UTI fituti);
+
     virtual EvalStatus eval();
 
     virtual const char * getName();
