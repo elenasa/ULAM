@@ -92,6 +92,8 @@ namespace MFM{
 
     void generateForwardDefsForTableOfClasses(File * fp);
 
+    std::string generateTestInstancesForTableOfClasses(File * fp);
+
     //void genCodeForTableOfClasses(FileManager * fm, CompilerState& state); not used???
 
     u32 getTableSize();
@@ -105,7 +107,7 @@ namespace MFM{
   private:
     CompilerState & m_state;
     s32 calcVariableSymbolTypeSize(UTI ut);
-
+    static std::string firstletterTolowercase(const std::string s);
   };
 
 }
