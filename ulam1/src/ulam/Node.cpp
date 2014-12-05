@@ -383,7 +383,8 @@ namespace MFM {
 
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(".GetBits()");
+		//fp->write(".GetBits()"); //like quark?
+		fp->write(".getBits()");
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
 	      {
@@ -405,13 +406,16 @@ namespace MFM {
 	// allow for immediate quarks; not element parameters
 	// first arg depends on stgcos
 	// elements have a 'T' atom storage
+#if 0
 	if(stgcosclasstype == UC_ELEMENT)
 	  {
-	    fp->write("(");
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".GetBits()");
+	    fp->write("(");  //no args to local element read()
+	    //fp->write(stgcos->getMangledName().c_str());
+	    ////fp->write(".GetBits()");
+	    //fp->write(".getBits()");
 	  }
 	else
+#endif
 	  {
 	    // local quark or primitive (i.e. 'notaclass'); has an immediate type:
 	    // uses local variable name, and immediate read method
@@ -422,10 +426,9 @@ namespace MFM {
 		// storage-cos and cos-for-read are different:
 		// use this instance of storage-cos to specify
 		// its non-static read method
-		fp->write("(");
 		fp->write(stgcos->getMangledName().c_str());
 
-		assert(stgcosclasstype == UC_QUARK);
+		//assert(stgcosclasstype == UC_QUARK);
 		fp->write(".getBits()");  //m_stg.GetBits
 	      }
 	  }
@@ -542,7 +545,8 @@ namespace MFM {
 
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(".GetBits()");
+		//fp->write(".GetBits()");  like quark?
+		fp->write(".getBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
@@ -572,7 +576,8 @@ namespace MFM {
 	  {
 	    fp->write("(");
 	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".GetBits()");
+	    //fp->write(".GetBits()");
+	    fp->write(".getBits()");
 	    fp->write(", ");
 	  }
 	else
@@ -676,7 +681,6 @@ namespace MFM {
 
 	// a data member quark, or the element itself should both getBits from self
 	fp->write(m_state.getHiddenArgName());
-	//fp->write(".GetBits()");
 	fp->write(", ");  	//rest of arg's
       }
     else if(isCurrentObjectsContainingAnElementParameter())
@@ -708,7 +712,8 @@ namespace MFM {
 	    fp->write(".");
 
 	    fp->write(stgcos->getMangledName().c_str()); //XXXX
-	    fp->write(", ");   //...rest of args
+	    fp->write(".m_stg");     //immediate EP needs the T storage within the struct
+	    fp->write(", ");         //...rest of args
 	  }
       }
     else  //local var
@@ -727,6 +732,8 @@ namespace MFM {
 	  {
 	    fp->write("(");
 	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(".m_stg");     //immediate EP needs the T storage within the struct
+	    //fp->write(".getBits()"); //???
 	    fp->write(", ");
 	  }
 	else
@@ -747,6 +754,7 @@ namespace MFM {
 		fp->write(stgcos->getMangledName().c_str());
 
 		assert(stgcosclasstype == UC_QUARK);
+		//assert(stgcosclasstype == UC_QUARK || stgcosclasstype == UC_ELEMENT);
 		fp->write(", ");
 	      }
 	  }
@@ -954,7 +962,8 @@ namespace MFM {
 
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(".GetBits()");
+		//		fp->write(".GetBits()"); like quark?
+		fp->write(".getBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
@@ -984,7 +993,8 @@ namespace MFM {
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
 		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".GetBits()");
+		//fp->write(".GetBits()");
+		fp->write(".getBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
@@ -1012,9 +1022,10 @@ namespace MFM {
       }
     else
       {
-	ULAMCLASSTYPE vclasstype = rut->getUlamClass();
-
 	// with immediate quarks, they are read into a tmpreg as other immediates
+	// with immediate elements, too!
+#if 0
+	ULAMCLASSTYPE vclasstype = rut->getUlamClass();
 	if(vclasstype == UC_ELEMENT)
 	  {
 	    //need to read from the tmpVar ??? (need a test case!)
@@ -1027,9 +1038,8 @@ namespace MFM {
 	    fp->write(")");
 	  }
 	else
-	  {
-	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-	  }
+#endif
+	  fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
       } //value not a terminal
 
     fp->write(");\n");
@@ -1138,7 +1148,8 @@ namespace MFM {
 
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		fp->write(".GetBits()");
+		//fp->write(".GetBits()"); like quark?
+		fp->write(".getBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
@@ -1169,7 +1180,8 @@ namespace MFM {
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
 		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".GetBits()");
+		//fp->write(".GetBits()");
+		fp->write(".getBits()");
 		fp->write(", ");   //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
@@ -1197,9 +1209,10 @@ namespace MFM {
       }
     else
       {
-	ULAMCLASSTYPE vclasstype = rut->getUlamClass();
-
 	// with immediate quarks, they are read into a tmpreg as other immediates
+	// with immediate elements, too!
+#if 0
+	ULAMCLASSTYPE vclasstype = rut->getUlamClass();
 	if(vclasstype == UC_ELEMENT)
 	  {
 	    //need to read from the tmpVar ??? (need a test case!)
@@ -1212,9 +1225,9 @@ namespace MFM {
 	    fp->write(")");
 	  }
 	else
-	  {
-	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-	  }
+#endif
+	  
+	  fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
       } //value not a terminal
 
     // rest of array write args..
@@ -1321,7 +1334,8 @@ namespace MFM {
 	    fp->write("<CC>::THE_INSTANCE");
 	    fp->write(".");
 	    fp->write(stgcos->getMangledName().c_str());  //XXX
-	    fp->write(", ");   //...rest of args
+	    fp->write(".m_stg");     //immediate EP needs the T storage within the struct
+	    fp->write(", ");         //...rest of args
 	  }
 	// (what if array?)
       }
@@ -1341,12 +1355,14 @@ namespace MFM {
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
 		fp->write(stgcos->getMangledName().c_str());
-		fp->write(", ");   //...rest of args
+		fp->write(".m_stg");     //immediate EP needs the T storage within the struct
+		//fp->write(".getBits()");  //???
+		fp->write(", ");         //...rest of args
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
 	      {
 		fp->write(stgcos->getMangledName().c_str());
-		fp->write(", ");   //...rest of args
+		fp->write(", ");         //...rest of args
 	      }
 	    else
 	      {
@@ -1376,9 +1392,11 @@ namespace MFM {
       }
     else
       {
-	ULAMCLASSTYPE vclasstype = rut->getUlamClass();
-
 	// with immediate quarks, they are read into a tmpreg as other immediates
+	// with immediate elements, too!
+#if 0
+
+	ULAMCLASSTYPE vclasstype = rut->getUlamClass();
 	if(vclasstype == UC_ELEMENT)
 	  {
 	    //need to read from the tmpVar ??? (need a test case!)
@@ -1391,6 +1409,7 @@ namespace MFM {
 	    fp->write(")");
 	  }
 	else
+#endif
 	  {
 	    fp->write(rut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
 	    fp->write("(");
@@ -1467,8 +1486,14 @@ namespace MFM {
       }
 
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    ULAMCLASSTYPE classtype = ut->getUlamClass();
 
+    // since elements are also immediate..
+    fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+    fp->write("::");
+    fp->write("Us::");   //typedef
+
+#if 0
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
     if(classtype == UC_QUARK)
       {
 	fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
@@ -1485,6 +1510,7 @@ namespace MFM {
 	  }
 	//otherwise a local var which we can skip since EP's are static
       }
+#endif
 
     for(u32 i = cosStart; i < cosSize; i++)
       {
@@ -1499,6 +1525,15 @@ namespace MFM {
 		fp->write(sym->getMangledName().c_str());
 		fp->write(".");
 	      }
+	    else
+	      {
+		//now for both immmediate elements and quarks..
+		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
+		fp->write("::");
+		if( ((i + 1) < cosSize))  //still another cos refiner, use
+		  fp->write("Us::");      //typedef
+	      }
+#if 0
 	    else if(sclasstype == UC_QUARK)
 	      {
 		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
@@ -1512,6 +1547,8 @@ namespace MFM {
 		fp->write(sut->getUlamTypeMangledName(&m_state).c_str());
 		fp->write("<CC>::");
 	      }
+#endif
+
 	  }
 	else
 	  {
@@ -1547,8 +1584,14 @@ namespace MFM {
 
     UTI uti = stgcos->getUlamTypeIdx();
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    ULAMCLASSTYPE classtype = ut->getUlamClass();
 
+    // now for both immediate elements and quarks..
+    fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+    fp->write("::");
+    fp->write("Us::");   //typedef
+
+#if 0
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
     // if local element, first arg of read is all that's req'd?
     if(classtype == UC_QUARK)
       {
@@ -1566,6 +1609,7 @@ namespace MFM {
 	assert(0);
 	//NOTACLASS
       }
+#endif
 
     for(u32 i = 1; i < cosSize; i++)
       {

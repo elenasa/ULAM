@@ -467,6 +467,7 @@ namespace MFM {
     fp->write(m_state.getFileNameForThisClassHeader().c_str());
     fp->write("\"\n");
 
+    m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
     //MAIN STARTS HERE !!!
     fp->write("\n");
@@ -492,6 +493,10 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef MFM::CoreConfig<OurAtom, OurParamConfig> OurCoreConfig;\n");
 
+    //declare an instance of all element classes; supports immediate types constructors 
+    std::string runThisTest = m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
+
+#if 0
     //declare an instance of This class
     Symbol * csym = m_state.m_programDefST.getSymbolPtr(m_compileThisId);
     UTI cuti = csym->getUlamTypeIdx();
@@ -510,12 +515,15 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("OurAtom fooAtom = foo.GetDefaultAtom();\n");
+#endif
 
     m_state.indent(fp);
     fp->write("MFM::Ui_Ut_102323Int rtn;\n");
 
     m_state.indent(fp);
-    fp->write("rtn = OurFoo::Uf_4test(fooAtom);\n");  //hardcoded mangled test name
+    fp->write("rtn = ");
+    fp->write(runThisTest.c_str());  //uses hardcoded mangled test name
+    fp->write(";\n");  
 
 #if 0
     // output for t3200..
