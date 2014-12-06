@@ -46,7 +46,7 @@ namespace MFM {
 
     fp->write(" {");
     // has no m_node!
-    // use Symbol Table of variables instead of parse tree; only want the EventWindow storage
+    // use Symbol Table of variables instead of parse tree; only want the UEventWindow storage
     // since the two stack-type storage are all gone by now.
     //    if(m_nextNode)
     //  m_nextNode->printPostfix(fp);  //datamember vardecls

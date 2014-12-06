@@ -272,7 +272,7 @@ namespace MFM {
       {
 	rtnNode = new NodeBlockClassEmpty(m_state.m_currentBlock, m_state);
 	rtnNode->setNodeLocation(pTok.m_locator);
-	rtnNode->setNodeType(utype); 
+	rtnNode->setNodeType(utype);
 
 	//return NULL;  11082014
 	m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
@@ -285,7 +285,7 @@ namespace MFM {
 
     rtnNode = new NodeBlockClass(prevBlock, m_state);
     rtnNode->setNodeLocation(pTok.m_locator);
-    rtnNode->setNodeType(utype); 
+    rtnNode->setNodeType(utype);
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
@@ -1186,7 +1186,7 @@ namespace MFM {
     return parseRestOfShiftExpression(rtnNode);  //parseShiftExpression
   }
 
-  
+
   Node * Parser::parseTerm()
   {
     Node * rtnNode = parseFactor();
@@ -1753,7 +1753,7 @@ namespace MFM {
     // symbol will have pointer to body (or just decl for 'use');
     fsymptr->setFunctionNode(rtnNode); // tfr ownership
 
-    // set class type to custom array; the current class block 
+    // set class type to custom array; the current class block
     // node type was set to its class symbol type after checkAndLabelType
     if(m_state.getCustomArrayGetFunctionNameId() == identTok.m_dataindex)
       {
@@ -2591,9 +2591,9 @@ namespace MFM {
     UTI cidx = m_state.makeUlamType(ckey, Class);
     assert(cidx == Class);
 
-    UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[Atom]);
-    UTI aidx = m_state.makeUlamType(akey, Atom);
-    assert(aidx == Atom);
+    UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom]);
+    UTI aidx = m_state.makeUlamType(akey, UAtom);
+    assert(aidx == UAtom);
 
     UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("Ut_Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr]);
     UTI pidx = m_state.makeUlamType(pkey, Ptr);
