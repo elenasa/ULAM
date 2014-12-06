@@ -58,6 +58,8 @@ DEFINES+=-DBUILD_DATE="0x$(BUILD_DATE)" -DBUILD_TIME="0x$(BUILD_TIME)" -DBUILD_D
 export CFLAGS
 CFLAGS+=-g2 -ansi -Wall -pedantic -Werror -Wformat
 
+# Libs from top level
+export LIBS
 
 # Root of source tree
 ROOT_DIR := $(shell pwd)
@@ -80,6 +82,15 @@ ${info  =>  MFM_ROOT_DIR := /path/to/source/dir/of/MFMv2}
 ${info  =>to avoid this message}
 else
 ${info Local configuration: MFM_ROOT_DIR=$(MFM_ROOT_DIR)}
+## This wants to be rethought and refactored!
+COMPONENTNAME:=ulamic
+MFM_TARGET:=linux
+BASEDIR:=$(MFM_ROOT_DIR)
+include $(BASEDIR)/config/Makecommon.mk
+CFLAGS += -I $(BASEDIR)/src/core/include
+CFLAGS += $(DEFINES)
+LIBS := -L $(BASEDIR)/build/core $(LIBS)
+${info (top-level) LIBS='$(LIBS)'}
 endif
 
 ####

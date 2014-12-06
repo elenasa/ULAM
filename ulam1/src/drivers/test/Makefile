@@ -3,9 +3,9 @@ DRIVER_NAME:=test
 BUILD_DIR:=$(BASE_DIR)/build/drivers/$(DRIVER_NAME)
 BIN_DIR:=$(BASE_DIR)/bin
 INCLUDE_DIR:=$(BASE_DIR)/include
-ULAM_LIB_DIR:=$(BASE_DIR)/build/ulam
 TEST_LIB_DIR:=$(BASE_DIR)/build/test
 
+LIBS:= -L $(TEST_LIB_DIR) -ltests $(LIBS)
 INCLUDES += -I${INCLUDE_DIR}
 
 SRCS := $(wildcard *.cpp)
@@ -21,7 +21,7 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(BIN_DIR)/$(DRIVER_NAME): ${OBJS} | $(BIN_DIR)
-	g++ $(OBJS) -L $(TEST_LIB_DIR) -ltests -L $(ULAM_LIB_DIR) -lulam  -o $@
+	g++ $(OBJS) $(LIBS) -o $@
 ##	$(BIN_DIR)/test
 
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
