@@ -941,11 +941,9 @@ namespace MFM {
       case EVALRETURN:
 	valAtIdx = m_nodeEvalStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
 	break;
-#if 0
       case EVENTWINDOW:
 	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex());
 	break;
-#endif
       default:
 	//error!
 	assert(0);
@@ -975,11 +973,9 @@ namespace MFM {
       case EVALRETURN:
 	m_nodeEvalStack.assignUlamValue(lptr, ruv, *this);
 	break;
-#if 0
       case EVENTWINDOW:
 	m_eventWindow.assignUlamValue(lptr, ruv);
 	break;
-#endif
       default:
 	assert(0);
       };
