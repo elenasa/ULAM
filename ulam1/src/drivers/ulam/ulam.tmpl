@@ -24,6 +24,7 @@ my $KEEP_GOING = 0;
 ####TOOL PATHS
 my $makeTool = "GNU Make system builder";
 my $gppTool = "Compiler for C++ -> native code";
+my $arTool = "Archive maker for .o files";
 my $ulamcTool = "Compiler for ulam -> C++";
 my $mfmRootTool = "Movable Feast Machine source distribution";
 
@@ -55,6 +56,15 @@ $tools{$gppTool} =
           return $status;
       }
     ];
+my $ar = findStandardTool("ar");
+$tools{$arTool} =
+    [ $ar,
+      sub {
+          my $p = shift;
+          my $status = runThis("^GNU ar ", undef, $p,"--version");
+          return $status;
+      }
+    ];
 my $make = findStandardTool("make");
 $tools{$makeTool} =
     [ $make,
@@ -64,7 +74,7 @@ $tools{$makeTool} =
           return $status;
       }
     ];
-my @toolNames = ($makeTool, $gppTool, $ulamcTool, $mfmRootTool);
+my @toolNames = ($makeTool, $gppTool, $arTool, $ulamcTool, $mfmRootTool);
 
 sub matchOrCall {
     my ($thing, $arg) = @_;
@@ -95,11 +105,11 @@ sub runThis {
         }
         print STDOUT $output;
         if (!close HANDLE) {
-            return "Closing '$cmd' failed: ($!/$?)";
+            $status = "Close failed: $?";
         }
-        return "";
+#        return "";
     };
-#    print "SOUT($stdout)\nSERR($stderr)\nEXIT($exit)\n";
+    print "SOUT($stdout)\nSERR($stderr)\nEXIT($exit)\n";
     if ($exit ne "") {
         $status = $exit;
     } else {
@@ -605,7 +615,7 @@ UDie("No command specified\n")
 
 # Well, let's actually try to do something here
 
-compilationDriver();
+exit compilationDriver();
 
 sub compilationDriver {
     prepareBuildDirs();
@@ -615,7 +625,12 @@ sub compilationDriver {
     UDie("$buildResults build problem(s) detected\n")
         if $buildResults;
 
-    my $makeResults = runGccMake();
+    return 0 if $actionCmd eq "compile";
+
+    IDie("UNIMPLEMENTED: $actionCmd\n")
+        if $actionCmd ne "test";
+
+    my $makeResults = runGccMakeForTests();
     UDie("$makeResults problem(s) detected during make\n")
         if $makeResults;
 }
@@ -648,18 +663,31 @@ sub prepareBuildDirs
     checkOrMakeDir("$bd/bin");
 }
 
-sub runGccMake
-{
-    IDie("Implementme\n");
-}
-
 my %testableFiles;
+
+sub runGccMakeForTests
+{
+    my @testables = map { s/[.]cpp$//; $_} sort values %testableFiles;
+    print "TEST:".join(",", @testables)."\n";
+    my $body = "";
+    for my $test (@testables) {
+        $body .= <<EOM;
+  {
+    Ui_Ut_102323Int ret = Uq_10109211EventWindow<TestCC, POS>::Uf_4test(T& Uv_4self)
+  template<class CC, u32 POS>
+  Ui_Ut_102323Int Uq_10109211EventWindow<CC, POS>::Uf_4test(T& Uv_4self)
+EOM
+    }
+
+    IDie("Implementme $actionCmd:$body\n");
+}
 
 sub runUlamCompilations
 {
     pISC("## Compile files");
     my $status = 0;
     for my $file (@ulamFiles) {
+        pISC("## Compiling '$file'");
         my ($ulamStatus, $cfile, $testable) = runUlamCompile($file);
         my $gppStatus = 0;
         if ($ulamStatus == 0 && $actionCmd ne "ulamcompile") {
