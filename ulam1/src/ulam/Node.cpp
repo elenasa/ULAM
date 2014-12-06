@@ -39,8 +39,7 @@ namespace MFM {
   // only for constants (NodeTerminal)
   bool Node::fitsInBits(UTI fituti)
   {
-    assert(0);
-    return false;
+    return true;
   }
 
 
@@ -67,7 +66,7 @@ namespace MFM {
 
     if(nclasstype == UC_NOTACLASS)
       {
-	assert(nuti != Atom);
+	assert(nuti != UAtom);
 	rtnNode = new NodeCast(node, tobeType, m_state);
 	rtnNode->setNodeLocation(getNodeLocation());
 	rtnNode->checkAndLabelType();
@@ -1818,7 +1817,7 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     if(cosut->getUlamClass() == UC_NOTACLASS)
       {
-	assert(cosuti != Atom);  //atom too??? let's find out..
+	assert(cosuti != UAtom);  //atom too??? let's find out..
 	s32 wordsize = cosut->getTotalWordSize();
 	pos = wordsize - (BITSPERATOM - pos); //cosut->getTotalBitSize();
       }
