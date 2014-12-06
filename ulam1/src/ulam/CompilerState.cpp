@@ -18,7 +18,7 @@
 
 namespace MFM {
 
-#define _DEBUG_OUTPUT 
+#define _DEBUG_OUTPUT
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
 #else
@@ -92,7 +92,7 @@ namespace MFM {
     if(!isDefined(key,uti))
       {
 	//no key, make new type, how to know baseUT? bitsize?
-	uti = makeUlamType(key,bUT);    
+	uti = makeUlamType(key,bUT);
       }
     return uti;
   }
@@ -123,7 +123,7 @@ namespace MFM {
       {
 	if(key == it->first)
 	  {
-	    foundUTI = it->second;  
+	    foundUTI = it->second;
 	    rtnBool = true;
 	    break;
 	  }
@@ -140,34 +140,34 @@ namespace MFM {
     switch(utype)
       {
       case Nav:
-	ut = new UlamTypeNav(key, uti);      
+	ut = new UlamTypeNav(key, uti);
 	break;
       case Void:
-	ut = new UlamTypeVoid(key, uti);      
+	ut = new UlamTypeVoid(key, uti);
 	break;
       case Int:
-	ut = new UlamTypeInt(key, uti);      
+	ut = new UlamTypeInt(key, uti);
 	break;
       case Unsigned:
-	ut = new UlamTypeUnsigned(key, uti);      
+	ut = new UlamTypeUnsigned(key, uti);
 	break;
       case Bool:
-	ut = new UlamTypeBool(key, uti);      
+	ut = new UlamTypeBool(key, uti);
 	break;
       case Unary:
-	ut = new UlamTypeUnary(key, uti);      
+	ut = new UlamTypeUnary(key, uti);
 	break;
       case Bits:
-	ut = new UlamTypeBits(key, uti);      
+	ut = new UlamTypeBits(key, uti);
 	break;
       case Class:
-	ut = new UlamTypeClass(key, uti);      
+	ut = new UlamTypeClass(key, uti);
 	break;
-      case Atom:
-	ut = new UlamTypeAtom(key, uti);      
+      case UAtom:
+	ut = new UlamTypeAtom(key, uti);
 	break;
       case Ptr:
-	ut = new UlamTypePtr(key, uti);      
+	ut = new UlamTypePtr(key, uti);
 	break;
       default:
 	{
@@ -279,7 +279,7 @@ namespace MFM {
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    uti = makeUlamType(tok, typebitsize, NONARRAYSIZE); //assume scalar		
+	    uti = makeUlamType(tok, typebitsize, NONARRAYSIZE); //assume scalar
 	  }
 	else
 	  {
@@ -310,7 +310,7 @@ namespace MFM {
 	if(asymptr->isTypedef())
 	  {
 	    rtnType = asymptr->getUlamTypeIdx();
-	    rtnBool = true; 
+	    rtnBool = true;
 	  }
       }
 
@@ -343,7 +343,7 @@ namespace MFM {
   {
     u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
     UlamKeyTypeSignature ckey(enumStrIdx, ANYBITSIZECONSTANT, NONARRAYSIZE);
-    return makeUlamType(ckey, etype); //may not exist yet, create  
+    return makeUlamType(ckey, etype); //may not exist yet, create
   }
 
 
@@ -351,7 +351,7 @@ namespace MFM {
   {
     UlamType * ut = getUlamTypeByIndex(uti);
     return (ut->isConstant());
-    //    return getBitSize(uti) == ANYBITSIZECONSTANT; Wed Oct 22 14:00:18 2014 
+    //    return getBitSize(uti) == ANYBITSIZECONSTANT; Wed Oct 22 14:00:18 2014
   }
 
 
@@ -367,7 +367,7 @@ namespace MFM {
     UlamType * ut = getUlamTypeByIndex(utArg);
     return (ut->getArraySize());
   }
-  
+
 
   s32 CompilerState::getBitSize(UTI utArg)
   {
@@ -389,7 +389,7 @@ namespace MFM {
 	assert((s32) key.getUlamKeyTypeSignatureBitSize() == total);
 	return;
       }
-    
+
     bool isCustomArray = ut->isCustomArray();
     UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);
 
@@ -402,7 +402,7 @@ namespace MFM {
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
 	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
 	    return;
-	  } 
+	  }
       }
 
     if(classtype == UC_QUARK)
@@ -485,7 +485,7 @@ namespace MFM {
   {
     bool rtnBool = false;
     SymbolClass * csymptr = NULL;
-    
+
     if(alreadyDefinedSymbolClass(idx, csymptr) || (addIncompleteClassSymbolToProgramTable(idx, csymptr), true) )
       {
 	rtnType = csymptr->getUlamTypeIdx();
@@ -493,7 +493,7 @@ namespace MFM {
       }
 
     assert(rtnBool);  //no way it's false!
-    return rtnBool;  
+    return rtnBool;
   }
 
 
@@ -504,20 +504,20 @@ namespace MFM {
 
 
   //temporary UlamType which will be updated during type labeling.
-  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr) 
+  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr)
   {
     assert(!alreadyDefinedSymbolClass(dataindex,symptr));
 
     UlamKeyTypeSignature key(dataindex, 0);  //and scalar default
     UTI cuti = makeUlamType(key, Class);
-    
-    // symbol ownership goes to the programDefST; 
+
+    // symbol ownership goes to the programDefST;
     symptr = new SymbolClass(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
     m_programDefST.addToTable(dataindex, symptr);
   }
 
 
-  bool CompilerState::completeIncompleteClassSymbol(UTI incomplete) 
+  bool CompilerState::completeIncompleteClassSymbol(UTI incomplete)
   {
     bool rtnB = false;
     SymbolClass * csym = NULL;
@@ -527,7 +527,7 @@ namespace MFM {
 	UTI but = csym->getUlamTypeIdx();
 	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
 
-	//e.g. out-of-scope typedef is not a class, return false 
+	//e.g. out-of-scope typedef is not a class, return false
 	if(bc == UC_ELEMENT || bc == UC_QUARK)
 	  {
 	    ((UlamTypeClass *) ict)->setUlamClass(bc);
@@ -569,13 +569,13 @@ namespace MFM {
 	blockNode = blockNode->getPreviousBlockPointer();  //traverse the chain
       }
 
-    // data member variables in class block; function symbols are linked to their 
+    // data member variables in class block; function symbols are linked to their
     // function def block; check function data members separately.
     if(!brtn)
       {
 	brtn = isFuncIdInClassScope(dataindex, symptr);
       }
- 
+
     return brtn;
   }
 
@@ -590,10 +590,10 @@ namespace MFM {
       }
     else
       brtn = m_classBlock->isFuncIdInScope(dataindex,symptr);
-   
+
     return brtn;
   }
-  
+
 
   bool CompilerState::isIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
@@ -605,13 +605,13 @@ namespace MFM {
       }
     else
       brtn = m_classBlock->isIdInScope(dataindex,symptr);
-   
+
     return brtn;
   }
 
 
   //symbol ownership goes to the current block (end of vector)
-  void CompilerState::addSymbolToCurrentScope(Symbol * symptr) 
+  void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
   {
     m_currentBlock->addIdToScope(symptr->getId(), symptr);
   }
@@ -653,14 +653,14 @@ namespace MFM {
   {
     std::ostringstream mangled;
     std::string nstr = m_pool.getDataAsString(dataindex);
-    u32 nstrlen = nstr.length();    
+    u32 nstrlen = nstr.length();
 
     if(nstrlen < BASE10 - 1)
       {
 	mangled << nstrlen << nstr.c_str();
       }
     else
-      {	
+      {
 	mangled << 9 << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
       }
     return mangled.str();
@@ -676,7 +676,7 @@ namespace MFM {
 	  {
 	    return std::string(Token::getTokenAsString(tok.m_type));
 	  }
-	
+
  	return getDataAsString(&tok);
       }
 
@@ -696,7 +696,7 @@ namespace MFM {
     bool rtnBool = true;
     UTI it = fsym->getUlamTypeIdx();
 
-    if(m_currentFunctionReturnNodes.empty()) 
+    if(m_currentFunctionReturnNodes.empty())
       {
 	if(it != Void && !fsym->isNativeFunctionDeclaration())
 	  {
@@ -707,13 +707,13 @@ namespace MFM {
 	  }
 	return true;  //okay to skip return statement for void function
       }
-    
+
 
     for(u32 i = 0; i < m_currentFunctionReturnNodes.size(); i++)
       {
 	NodeReturnStatement * rNode = m_currentFunctionReturnNodes.at(i);
 	UTI rType = rNode->getNodeType();
-	
+
 	if(rType != it)
 	  {
 	    rtnBool = false;
@@ -753,7 +753,7 @@ namespace MFM {
   {
     for(u32 i = 0; i < m_currentIndentLevel; i++)
       {
-	fp->write(m_indentedSpaceLevel); 
+	fp->write(m_indentedSpaceLevel);
       }
   }
 
@@ -764,7 +764,7 @@ namespace MFM {
   }
 
 
-  u32 CompilerState::getCustomArrayGetFunctionNameId() 
+  u32 CompilerState::getCustomArrayGetFunctionNameId()
   {
     std::string str(CUSTOMARRAY_GET_FUNC_NAME);
     return m_pool.getIndexForDataString(str);
@@ -872,7 +872,7 @@ namespace MFM {
   }
 
 
-  const std::string CompilerState::getBitSizeTemplateString(UTI uti) 
+  const std::string CompilerState::getBitSizeTemplateString(UTI uti)
   {
     ULAMCLASSTYPE classtype = getUlamTypeByIndex(uti)->getUlamClass();
     assert(classtype == UC_QUARK || classtype == UC_ELEMENT);
@@ -886,8 +886,8 @@ namespace MFM {
   }
 
   //unfortunately, the uti did not reveal a Class symbol; already down to primitive types
-  // for casting. 
-  const std::string CompilerState::getBitVectorLengthAsStringForCodeGen(UTI uti) 
+  // for casting.
+  const std::string CompilerState::getBitVectorLengthAsStringForCodeGen(UTI uti)
   {
     ULAMCLASSTYPE classtype = getUlamTypeByIndex(uti)->getUlamClass();
 
@@ -903,7 +903,7 @@ namespace MFM {
 	if(alreadyDefinedSymbolClass(ict->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
 	  {
 	    lenstr << csym->getMangledNameForParameterType();
-	    
+
 	    if(classtype == UC_QUARK)
 	      {
 		lenstr << "::QUARK_SIZE";
@@ -921,16 +921,16 @@ namespace MFM {
 	    assert(0);
 	  }
       }
-    
+
     return lenstr.str();
   } //getBitVectorLengthAsStringForCodeGen
-  
+
 
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
     assert(ptr.getUlamValueTypeIdx() == Ptr);
 
-    // slot + storage 
+    // slot + storage
     UlamValue valAtIdx;
 
     switch(ptr.getPtrStorage())
@@ -941,9 +941,11 @@ namespace MFM {
       case EVALRETURN:
 	valAtIdx = m_nodeEvalStack.loadUlamValueFromSlot(ptr.getPtrSlotIndex());
 	break;
+#if 0
       case EVENTWINDOW:
 	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex());
 	break;
+#endif
       default:
 	//error!
 	assert(0);
@@ -960,7 +962,7 @@ namespace MFM {
 
     if(ruv.getUlamValueTypeIdx() == Ptr)
       return assignArrayValues(lptr, ruv);
-    
+
     // r is data (includes packed arrays), store it into where lptr is pointing
     assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx());
 
@@ -973,15 +975,17 @@ namespace MFM {
       case EVALRETURN:
 	m_nodeEvalStack.assignUlamValue(lptr, ruv, *this);
 	break;
+#if 0
       case EVENTWINDOW:
 	m_eventWindow.assignUlamValue(lptr, ruv);
 	break;
+#endif
       default:
 	assert(0);
       };
   }
 
-  
+
   void CompilerState::assignArrayValues(UlamValue lptr, UlamValue rptr)
   {
     assert(lptr.getUlamValueTypeIdx() == Ptr);
@@ -1012,10 +1016,10 @@ namespace MFM {
 	if(atval.getUlamValueTypeIdx() != tuti)
 	  {
 	    UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
-	    assignValue(lptr, atvalUV); 
+	    assignValue(lptr, atvalUV);
 	  }
 	else
-	  assignValue(lptr, atval); 
+	  assignValue(lptr, atval);
       }
     else
       {
@@ -1035,14 +1039,14 @@ namespace MFM {
 	    if(atval.getUlamValueTypeIdx() != tuti)
 	      {
 		UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
-		assignValue(nextlptr, atvalUV); 
+		assignValue(nextlptr, atvalUV);
 	      }
 	    else
-	      assignValue(nextlptr, atval); 
-	    
+	      assignValue(nextlptr, atval);
+
 	    nextlptr.incrementPtr(*this);
 	    nextrptr.incrementPtr(*this);
-	  }	
+	  }
       }
   }
 
@@ -1104,7 +1108,7 @@ namespace MFM {
     Coord c0(0,0);
 
     //m_classBlock ok now, reset by NodeProgram after type label done
-    //UTI cuti = m_state.m_classBlock->getNodeType(); 
+    //UTI cuti = m_state.m_classBlock->getNodeType();
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
     UTI cuti = csym->getUlamTypeIdx();
 
@@ -1146,7 +1150,7 @@ namespace MFM {
       {
 	// get index for string of text in string pool
 	u32 blankid = m_pool.getIndexForDataString("\n");
-	
+
 	textOfLines->insert(textOfLines->end(), linenum - textOfLines->size(), blankid);
       }
     assert(linenum >= 0 && linenum <= textOfLines->size());
@@ -1239,7 +1243,7 @@ namespace MFM {
       assert(0); //remove assumptions about tmpbitval.
 
     tmpVar << DigitCount(num, BASE10) << num;
-    
+
     return tmpVar.str();
   } //getTmpVarAsString
 

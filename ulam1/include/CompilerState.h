@@ -45,7 +45,7 @@
 #include "CallStack.h"
 #include "Constants.h"
 #include "ErrorMessageHandler.h"
-#include "EventWindow.h"
+#include "UEventWindow.h"
 #include "File.h"
 #include "NodeBlock.h"
 #include "NodeCast.h"
@@ -64,16 +64,16 @@ namespace MFM{
   struct less_than_key
   {
     inline bool operator() (const UlamKeyTypeSignature key1, const UlamKeyTypeSignature key2)
-    { 
+    {
       //if(strcmp(key1.m_typeName, key2.m_typeName) < 0) return true;
-      //if(strcmp(key1.m_typeName, key2.m_typeName) > 0) return false;  
+      //if(strcmp(key1.m_typeName, key2.m_typeName) > 0) return false;
       if(key1.m_typeNameId < key2.m_typeNameId) return true;
-      if(key1.m_typeNameId > key2.m_typeNameId) return false;  
+      if(key1.m_typeNameId > key2.m_typeNameId) return false;
       if(key1.m_bits < key2.m_bits) return true;
       if(key1.m_bits > key2.m_bits) return false;
       if(key1.m_arraySize < key2.m_arraySize) return true;
       if(key1.m_arraySize > key2.m_arraySize) return false;
-      return false; 
+      return false;
     }
   };
 
@@ -84,7 +84,7 @@ namespace MFM{
 
   struct CompilerState
   {
-    // tokenizer ptr replace by StringPool, service for deferencing strings 
+    // tokenizer ptr replace by StringPool, service for deferencing strings
     // e.g., Token identifiers that are variables, path names read by SS, etc.)
     StringPool m_pool;
 
@@ -101,7 +101,7 @@ namespace MFM{
     NodeBlockClass * m_classBlock;       //holds ST with function defs
 
     bool m_useMemberBlock;               // used during parsing member select expression
-    NodeBlockClass * m_currentMemberClassBlock;  
+    NodeBlockClass * m_currentMemberClassBlock;
 
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
@@ -111,17 +111,17 @@ namespace MFM{
 
     CallStack m_funcCallStack;    //local variables and arguments
     //UlamAtom  m_selectedAtom;   //storage for data member (static/global) variables
-    EventWindow  m_eventWindow;   //storage for 41 atoms (elements)
-    CallStack m_nodeEvalStack;    //for node eval return values, 
+    UEventWindow  m_eventWindow;   //storage for 41 atoms (elements)
+    CallStack m_nodeEvalStack;    //for node eval return values,
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
 
     ErrorMessageHandler m_err;
 
     std::vector<UlamType *> m_indexToUlamType;   //ulamtype ptr by index
-    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_definedUlamTypes;   //key -> index of ulamtype (UTI) 
+    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_definedUlamTypes;   //key -> index of ulamtype (UTI)
 
-    std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type 
-    UTI m_currentFunctionReturnType;  //used during type labeling to check return types 
+    std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
+    UTI m_currentFunctionReturnType;  //used during type labeling to check return types
     UlamValue m_currentObjPtr;        //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr;       //used in eval of func calls: updated after args, becomes currentObjPtr for args
 
@@ -153,7 +153,7 @@ namespace MFM{
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType);
 
     /** turns array into its single element type */
-    UTI getUlamTypeAsScalar(UTI utArg); 
+    UTI getUlamTypeAsScalar(UTI utArg);
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     bool isConstant(UTI uti);
 
@@ -174,7 +174,7 @@ namespace MFM{
     bool isIdInClassScope(u32 dataindex, Symbol * & symptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
 
-    
+
     /** searches table of class defs for specific name, by token or idx,
         returns a place-holder type if class def not yet seen */
     bool getUlamTypeByClassToken(Token ctok, UTI & rtnType);
@@ -237,7 +237,7 @@ namespace MFM{
     void assignValuePtr(UlamValue lptr, UlamValue rptr);
 
     /** determinePackable: returns true
-	if entire array can fit within an atom (including type); 
+	if entire array can fit within an atom (including type);
 	or if a 32-bit immediate scalar (non-Classes);
 	discovered when installing a variable symbol
     */
@@ -256,7 +256,7 @@ namespace MFM{
     void outputTextAsComment(File * fp, Locator nodeloc);
 
   };
-  
+
 }
 
 #endif //end COMPILERSTATE_H

@@ -76,7 +76,7 @@ namespace MFM {
     //copy result UV to stack, -1 relative to current frame pointer
     //    assignReturnValueToStack(m_varSymbol->getUlamValue(m_state));
     //evalNodeEpilog();
-    if(getNodeType() == Atom || m_state.getUlamTypeByIndex(getNodeType())->getUlamClass() == UC_ELEMENT)
+    if(getNodeType() == UAtom || m_state.getUlamTypeByIndex(getNodeType())->getUlamClass() == UC_ELEMENT)
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
 	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());

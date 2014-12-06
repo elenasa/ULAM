@@ -15,7 +15,7 @@ namespace MFM {
 
    ULAMTYPE UlamTypeAtom::getUlamTypeEnum()
    {
-     return Atom;
+     return UAtom;
    }
 
 
@@ -38,7 +38,7 @@ namespace MFM {
       {
 	return UlamType::getUlamTypeImmediateMangledName(state);
       }
-    
+
     return "T";
   }
 #endif
@@ -86,12 +86,12 @@ namespace MFM {
     fp->write("#ifndef ");
     fp->write(udstr.c_str());
     fp->write("\n");
-    
+
     state->indent(fp);
     fp->write("#define ");
     fp->write(udstr.c_str());
     fp->write("\n");
-    
+
     state->indent(fp);
     fp->write("namespace MFM{\n");
     fp->write("\n");
@@ -109,7 +109,7 @@ namespace MFM {
     fp->write("{\n");
 
     state->m_currentIndentLevel++;
-    
+
     //typedef atomic parameter type inside struct
     state->indent(fp);
     fp->write("typedef typename CC::ATOM_TYPE T;\n");
@@ -133,7 +133,7 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //T
     fp->write(" d) : m_stg(d) {}\n");
-    
+
     //copy constructor here (used by func call return values)
     state->indent(fp);
     fp->write(mangledName.c_str());
@@ -157,11 +157,11 @@ namespace MFM {
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("};\n");
-    
+
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("} //MFM\n");
-    
+
     state->indent(fp);
     fp->write("#endif /*");
     fp->write(udstr.c_str());

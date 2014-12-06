@@ -4,13 +4,13 @@
 
 namespace MFM {
 
-  NodeCast::NodeCast(Node * n, UTI typeToBe, CompilerState & state): NodeUnaryOp(n, state), m_explicit(false) 
+  NodeCast::NodeCast(Node * n, UTI typeToBe, CompilerState & state): NodeUnaryOp(n, state), m_explicit(false)
   {
     setNodeType(typeToBe);
   }
 
   NodeCast::~NodeCast()
-  { 
+  {
     delete m_node;
     m_node = NULL;
   }
@@ -41,22 +41,22 @@ namespace MFM {
 
 
   UTI NodeCast::checkAndLabelType()
-  { 
+  {
     // unlike the other nodes, nodecast knows its type at construction time;
     // this is for checking for errors, before eval happens.
     u32 errorsFound = 0;
     UTI tobeType = getNodeType();
-    UTI nodeType = m_node->checkAndLabelType(); //user cast 
+    UTI nodeType = m_node->checkAndLabelType(); //user cast
     ULAMCLASSTYPE tobeClass = m_state.getUlamTypeByIndex(tobeType)->getUlamClass();
 
-    if(tobeType == Nav || tobeClass != UC_NOTACLASS || tobeType == Atom)
+    if(tobeType == Nav || tobeClass != UC_NOTACLASS || tobeType == UAtom)
       {
 	std::ostringstream msg;
 	msg << "Cannot cast to type <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
-    else 
+    else
       {
 	if(!m_state.isScalar(tobeType))
 	  {
@@ -86,13 +86,13 @@ namespace MFM {
 
 	// needs commandline arg..lots of non-explicit warning.
 	// reserve for user requested casts; arithmetic operations
-	// cast to Int32 all the time causing this to happend often. 
+	// cast to Int32 all the time causing this to happend often.
 	////if(isExplicitCast())
 	//  Node::warnOfNarrowingCast(nodeType, tobeType);
       }
 
-    // special case: user casting a quark to an Int; 
-    if(errorsFound == 0)  
+    // special case: user casting a quark to an Int;
+    if(errorsFound == 0)
       {
 	ULAMCLASSTYPE nodeClass = m_state.getUlamTypeByIndex(nodeType)->getUlamClass();
 	if(nodeClass == UC_QUARK)
@@ -122,8 +122,8 @@ namespace MFM {
 	      }
 	  }
       }
-    
-    return getNodeType(); 
+
+    return getNodeType();
   }
 
 
@@ -236,7 +236,7 @@ namespace MFM {
 
    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
    //ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-   s32 tmpVarCastNum = m_state.getNextTmpVarNumber(); 
+   s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);
     fp->write("const ");
@@ -263,7 +263,7 @@ namespace MFM {
 
     fp->write(", ");
     //LENGTH of node being casted (Uh_AP_mi::LENGTH ?)
-    //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());    
+    //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());
     fp->write_decimal(m_state.getTotalBitSize(vuti)); //src length
 
     fp->write(", ");
@@ -286,7 +286,7 @@ namespace MFM {
   {
     assert(0);
     genCodeWriteFromATmpVar(fp, luvpass, ruvpass);
-  }    
+  }
 
 
   bool NodeCast::needsACast()
@@ -304,7 +304,7 @@ namespace MFM {
     //return(isExplicitCast() || typEnum != nodetypEnum || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)  && !m_state.isConstant(nodeType)));
     //return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)) || (typEnum == Bool && !m_state.isConstant(nodeType)) );
 
-    // consider user requested first, then size independent (except constants) 
+    // consider user requested first, then size independent (except constants)
     //return(isExplicitCast() || typEnum != nodetypEnum || !m_state.isConstant(nodeType));
 
     // fails when putting s32 constant into an unsigned var

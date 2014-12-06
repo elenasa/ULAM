@@ -69,7 +69,7 @@ namespace MFM {
   {
     if(!isScalar())
       return UlamType::getArrayItemTmpStorageTypeAsString(state);
-      
+
     assert(isCustomArray());
     return state->getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString(state);
   }
@@ -164,7 +164,7 @@ namespace MFM {
   s32 UlamTypeClass::getBitSize()
   {
     s32 bitsize = m_key.getUlamKeyTypeSignatureBitSize();
-    return bitsize < 0 ? 0 : bitsize; //allow for empty quarks 
+    return bitsize < 0 ? 0 : bitsize; //allow for empty quarks
   }
 
 
@@ -185,7 +185,7 @@ namespace MFM {
       {
 	return UlamType::getUlamTypeAsStringForC();
       }
-   
+
     return "T"; //for elements
   }
 
@@ -279,12 +279,12 @@ namespace MFM {
     fp->write("#ifndef ");
     fp->write(udstr.c_str());
     fp->write("\n");
-    
+
     state->indent(fp);
     fp->write("#define ");
     fp->write(udstr.c_str());
     fp->write("\n");
-    
+
     state->indent(fp);
     fp->write("namespace MFM{\n");
     fp->write("\n");
@@ -308,7 +308,7 @@ namespace MFM {
     fp->write("{\n");
 
     state->m_currentIndentLevel++;
-    
+
     //typedef atomic parameter type inside struct
     state->indent(fp);
     fp->write("typedef typename CC::ATOM_TYPE T;\n");
@@ -334,7 +334,7 @@ namespace MFM {
     fp->write(", ");
     fp->write_decimal(len);   //include arraysize
     fp->write(", ");
-    fp->write_decimal(BITSPERATOM - len); //right-justified    
+    fp->write_decimal(BITSPERATOM - len); //right-justified
     fp->write("> ");
     fp->write(" Up_Us;\n");
 
@@ -384,11 +384,11 @@ namespace MFM {
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("};\n");
-    
+
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("} //MFM\n");
-    
+
     state->indent(fp);
     fp->write("#endif /*");
     fp->write(udstr.c_str());
@@ -438,7 +438,7 @@ namespace MFM {
     fp->write("//CustomArray accessor methods:\n");
     // reads an element of array
     state->indent(fp);
-    fp->write("const "); 
+    fp->write("const ");
     fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //T
     fp->write(" readArrayItem(");
     fp->write("const u32 index, const u32 unitsize) { return Us::"); //const unhappy w first arg
@@ -456,7 +456,7 @@ namespace MFM {
     fp->write("(m_stg, ");
     fp->write(state->getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString(state).c_str());
     fp->write("((const s32) index), ");
-    fp->write(state->getUlamTypeByIndex(Atom)->getImmediateStorageTypeAsString(state).c_str());
+    fp->write(state->getUlamTypeByIndex(UAtom)->getImmediateStorageTypeAsString(state).c_str());
     fp->write("(v)); }\n");
   } //genCustomArrayMangledDefinitionForC
 
@@ -478,12 +478,12 @@ namespace MFM {
     fp->write("#ifndef ");
     fp->write(udstr.c_str());
     fp->write("\n");
-    
+
     state->indent(fp);
     fp->write("#define ");
     fp->write(udstr.c_str());
     fp->write("\n");
-    
+
     state->indent(fp);
     fp->write("namespace MFM{\n");
     fp->write("\n");
@@ -507,7 +507,7 @@ namespace MFM {
     fp->write("{\n");
 
     state->m_currentIndentLevel++;
-    
+
     //typedef atomic parameter type inside struct
     state->indent(fp);
     fp->write("typedef typename CC::ATOM_TYPE T;\n");
@@ -545,7 +545,7 @@ namespace MFM {
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //T
     fp->write(" d) : m_stg(d) {}\n");
-    
+
     //copy constructor here (used by func call return values)
     state->indent(fp);
     fp->write(mangledName.c_str());
@@ -573,11 +573,11 @@ namespace MFM {
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("};\n");
-    
+
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("} //MFM\n");
-    
+
     state->indent(fp);
     fp->write("#endif /*");
     fp->write(udstr.c_str());

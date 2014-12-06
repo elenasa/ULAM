@@ -31,7 +31,7 @@ namespace MFM {
   void UnpackedStorage::storeDataMemberAt(UlamValue uv, u32 idx)
   {
     assert((idx < m_values.size()) && (idx >= 0));
-    m_values[idx] = uv; 
+    m_values[idx] = uv;
   }
 
 
@@ -50,7 +50,7 @@ namespace MFM {
       {
 	//target is packed or packedloadable, use pos & len in ptr
 	UlamValue lvalAtIdx = loadDataMemberAt(leftbaseslot);
-	assert(lvalAtIdx.getUlamValueTypeIdx() == Atom);  //?
+	assert(lvalAtIdx.getUlamValueTypeIdx() == UAtom);  //?
 	lvalAtIdx.putDataIntoAtom(pluv, ruv, m_state);
 	storeDataMemberAt(lvalAtIdx, leftbaseslot);
       }
@@ -59,10 +59,10 @@ namespace MFM {
 
   void UnpackedStorage::assignUlamValuePtr(UlamValue pluv, UlamValue puv)
   {
-    assert(pluv.getPtrTargetType() == puv.getPtrTargetType());   
+    assert(pluv.getPtrTargetType() == puv.getPtrTargetType());
 
     s32 leftbaseslot = pluv.getPtrSlotIndex(); //even for scalars
-    m_values[leftbaseslot] = puv;  
+    m_values[leftbaseslot] = puv;
   }
 
 
