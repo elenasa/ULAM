@@ -3,7 +3,6 @@ DRIVER_NAME:=eulam
 BUILD_DIR:=$(BASE_DIR)/build/drivers/$(DRIVER_NAME)
 BIN_DIR:=$(BASE_DIR)/bin
 INCLUDE_DIR:=$(BASE_DIR)/include
-ULAM_LIB_DIR:=$(BASE_DIR)/build/ulam
 
 INCLUDES += -I${INCLUDE_DIR}
 
@@ -20,7 +19,7 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(BIN_DIR)/$(DRIVER_NAME): ${OBJS} | $(BIN_DIR)
-	g++ $(OBJS) -L $(ULAM_LIB_DIR) -lulam -o $@
+	g++ $(OBJS) $(LIBS) -o $@
 
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
 	g++ -c ${CFLAGS} ${INCLUDES} $< -o $@

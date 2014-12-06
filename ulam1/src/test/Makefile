@@ -1,7 +1,6 @@
 BASE_DIR:=../..
 BUILD_DIR:=$(BASE_DIR)/build/test
 INCLUDE_DIR:=$(BASE_DIR)/include
-ULAM_LIB_DIR:=$(BASE_DIR)/build/ulam
 TGEN_DIR:=./bin
 
 INCLUDES += -I${INCLUDE_DIR}
