@@ -493,10 +493,10 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef MFM::CoreConfig<OurAtom, OurParamConfig> OurCoreConfig;\n");
 
-    //declare an instance of all element classes; supports immediate types constructors 
+    //declare an instance of all element classes; supports immediate types constructors
     std::string runThisTest = m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
-#if 0
+#if 0 //Sun Dec  7 14:18:38 2014 Leaving this to rot..
     //declare an instance of This class
     Symbol * csym = m_state.m_programDefST.getSymbolPtr(m_compileThisId);
     UTI cuti = csym->getUlamTypeIdx();
@@ -523,7 +523,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("rtn = ");
     fp->write(runThisTest.c_str());  //uses hardcoded mangled test name
-    fp->write(";\n");  
+    fp->write(";\n");
 
 #if 0
     // output for t3200..
