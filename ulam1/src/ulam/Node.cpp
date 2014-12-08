@@ -60,16 +60,21 @@ namespace MFM {
 
   Node * Node::makeCastingNode(Node * node, UTI tobeType)
   {
+    bool doErrMsg = false;
     Node * rtnNode = NULL;
     UTI nuti = node->getNodeType();
     ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
 
     if(nclasstype == UC_NOTACLASS)
       {
-	assert(nuti != UAtom);
-	rtnNode = new NodeCast(node, tobeType, m_state);
-	rtnNode->setNodeLocation(getNodeLocation());
-	rtnNode->checkAndLabelType();
+	if((nuti == UAtom) && (m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_ELEMENT))
+	  doErrMsg = true;
+	else
+	  {
+	    rtnNode = new NodeCast(node, tobeType, m_state);
+	    rtnNode->setNodeLocation(getNodeLocation());
+	    rtnNode->checkAndLabelType();
+	  }
       }
     else if (nclasstype == UC_QUARK)
       {
@@ -99,7 +104,19 @@ namespace MFM {
 	//assert(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Int);
 	assert(newType == tobeType);
       }
-    else
+    else if (nclasstype == UC_ELEMENT)
+      {
+	if(tobeType != UAtom)
+	  doErrMsg = true;
+	else
+	  {
+	    rtnNode = new NodeCast(node, tobeType, m_state);
+	    rtnNode->setNodeLocation(getNodeLocation());
+	    rtnNode->checkAndLabelType();
+	  }
+      }
+
+    if(doErrMsg)
       {
 	std::ostringstream msg;
 	msg << "Cannot CAST type <" << m_state.getUlamTypeNameByIndex(nuti).c_str() << "> as a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
@@ -273,7 +290,8 @@ namespace MFM {
     if(rtnUVtype == Void)  //check after Ptr target type
       return;
 
-    assert(rtnUVtype == getNodeType());
+    //assert(rtnUVtype == getNodeType());
+    assert(rtnUVtype == getNodeType() || rtnUVtype == UAtom || getNodeType() == UAtom);
 
     // save results in the stackframe for caller;
     // copies each element of the 'unpacked' array by value,
@@ -283,7 +301,7 @@ namespace MFM {
     //where to put the return value..'return' statement uses STACK
     UlamValue rtnPtr = UlamValue::makePtr(-slots, where, rtnUVtype, m_state.determinePackable(rtnUVtype), m_state);
     m_state.assignValue(rtnPtr, rtnUV);
-  }
+  } //assignReturnValueToStack
 
 
   //in case of arrays, rtnUV is a ptr.

@@ -216,13 +216,6 @@ namespace MFM {
 	//fp->write(aut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++
 	//fp->write(aut->getBitSizeTemplateString().c_str());  //for quark templates
 
-        /*
-	if(aut->getUlamClass() == UC_QUARK)
-	  {
-	    fp->write("<CC,POS>");
-	  }
-        */
-
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());
       }

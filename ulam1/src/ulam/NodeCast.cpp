@@ -47,9 +47,9 @@ namespace MFM {
     u32 errorsFound = 0;
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->checkAndLabelType(); //user cast
-    ULAMCLASSTYPE tobeClass = m_state.getUlamTypeByIndex(tobeType)->getUlamClass();
-
-    if(tobeType == Nav || tobeClass != UC_NOTACLASS || tobeType == UAtom)
+    //ULAMCLASSTYPE tobeClass = m_state.getUlamTypeByIndex(tobeType)->getUlamClass();
+    //if(tobeType == Nav || tobeClass != UC_NOTACLASS || tobeType == UAtom)
+    if(tobeType == Nav)
       {
 	std::ostringstream msg;
 	msg << "Cannot cast to type <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
@@ -113,7 +113,8 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(nodeClass == UC_ELEMENT || nodeClass == UC_INCOMPLETE)
+	    //if(nodeClass == UC_ELEMENT || nodeClass == UC_INCOMPLETE)
+	    if(nodeClass == UC_INCOMPLETE)
 	      {
 		std::ostringstream msg;
 		msg << "Cannot cast type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
@@ -218,7 +219,6 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    //UTI nodetype = m_node->getNodeType();
     UTI vuti = uvpass.getUlamValueTypeIdx();
     bool isTerminal = false;
     s32 tmpVarNum = 0;
@@ -232,6 +232,12 @@ namespace MFM {
       {
 	// an immediate terminal value
 	isTerminal = true;
+      }
+
+   //handle element-atom and atom-element casting differently
+    if(nuti == UAtom || vuti == UAtom)
+      {
+	return genCodeCastAtomAndElement(fp, uvpass);
       }
 
    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -262,6 +268,8 @@ namespace MFM {
       }
 
     fp->write(", ");
+
+    assert(!(nuti == UAtom || vuti == UAtom));
     //LENGTH of node being casted (Uh_AP_mi::LENGTH ?)
     //fp->write(m_state.getBitVectorLengthAsStringForCodeGen(nodetype).c_str());
     fp->write_decimal(m_state.getTotalBitSize(vuti)); //src length
@@ -271,7 +279,6 @@ namespace MFM {
 
     fp->write(")");
     fp->write(";\n");
-
 
     //PROBLEM is that funccall checks for 0 nameid to use the tmp var!
     // but then if we don't pass it along Node::genMemberNameForMethod fails..
@@ -289,6 +296,34 @@ namespace MFM {
   }
 
 
+  void NodeCast::genCodeCastAtomAndElement(File * fp, UlamValue & uvpass)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    UTI vuti = uvpass.getUlamValueTypeIdx();
+    s32 tmpVarNum = 0;
+
+    if(vuti == Ptr)
+      {
+	tmpVarNum = uvpass.getPtrSlotIndex();
+	vuti = uvpass.getPtrTargetType();  //replace
+      }
+
+    // "downcast" might not be true; compare to be sure the atom is an element "Foo"
+    if(vuti == UAtom)
+      {
+	m_state.indent(fp);
+	fp->write("if(!");
+	fp->write(nut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>::");
+	fp->write(".Uf_2is(");
+	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+	fp->write(")) FAIL(BAD_CAST);\n");
+      }
+    return;  //no change to uvpass, as if no casting
+  }
+
   bool NodeCast::needsACast()
   {
     //return true;  //debug
@@ -297,26 +332,12 @@ namespace MFM {
     UTI nodeType = m_node->getNodeType();
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
     ULAMTYPE nodetypEnum = m_state.getUlamTypeByIndex(nodeType)->getUlamTypeEnum();
-    //s32 arraysize = m_state.getArraySize(tobeType);
-    //s32 nodearraysize = m_state.getArraySize(nodeType);
 
-    //  consider user requested first; broadening (e.g. from Int(4) to Int(32)) requires SignExtension, except for constants(i.e. bitsize default); Always Bools (e.g. control condition).
-    //return(isExplicitCast() || typEnum != nodetypEnum || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)  && !m_state.isConstant(nodeType)));
-    //return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) > m_state.getBitSize(nodeType)) || (typEnum == Bool && !m_state.isConstant(nodeType)) );
-
-    // consider user requested first, then size independent (except constants)
-    //return(isExplicitCast() || typEnum != nodetypEnum || !m_state.isConstant(nodeType));
-
-    // fails when putting s32 constant into an unsigned var
-    //return(isExplicitCast() || (!m_state.isConstant(nodeType) && (tobeType != nodeType || typEnum == Bool)));
-
-    //    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType) && !m_state.isConstant(nodeType)) || (typEnum == Bool && !m_state.isConstant(nodeType)) );
-
+    // consider user requested first, then size independent;
     // even constant may need casting (e.g. narrowing for saturation)
     // Bool constants require casts to generate "full" true UlamValue.
-    //return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType) && !m_state.isConstant(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType)) );
-    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType)) );
 
+    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType)) );
   }
 
 } //end MFM

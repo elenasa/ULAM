@@ -75,7 +75,7 @@ namespace MFM{
     u32 getSizeOfFuncSymbolsInTable();
 
     void packBitsForVariableDataMembers();
-    
+
     virtual u32 countNativeFuncDecls();
 
     void generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
@@ -88,7 +88,7 @@ namespace MFM{
 
 
   protected:
-    SymbolTable m_functionST;  
+    SymbolTable m_functionST;
 
   private:
 
@@ -98,6 +98,8 @@ namespace MFM{
 
     void genImmediateMangledTypesForHeaderFile(File * fp);
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
+
+    virtual void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
   };
 
 }

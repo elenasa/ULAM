@@ -958,11 +958,14 @@ namespace MFM {
   {
     assert(lptr.getUlamValueTypeIdx() == Ptr);
 
-    if(ruv.getUlamValueTypeIdx() == Ptr)
+    //if(ruv.getUlamValueTypeIdx() == Ptr)
+    // handle UAtom assignment as a singleton (not array values)
+    if(ruv.getUlamValueTypeIdx() == Ptr && (ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom))
       return assignArrayValues(lptr, ruv);
 
     // r is data (includes packed arrays), store it into where lptr is pointing
-    assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx());
+    //assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx());
+    assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx() || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
 
     STORAGE place = lptr.getPtrStorage();
     switch(place)
