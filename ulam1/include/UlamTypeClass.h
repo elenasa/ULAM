@@ -46,12 +46,14 @@ namespace MFM{
   class UlamTypeClass : public UlamType
   {
   public:
-    
+
     UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type = UC_INCOMPLETE);
 
     virtual ~UlamTypeClass(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
+
+    virtual bool cast(UlamValue& val, CompilerState& state);
 
     virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
 
@@ -74,11 +76,11 @@ namespace MFM{
     virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
 
     virtual const std::string getUlamTypeVDAsStringForC();
-    
+
     virtual const std::string getUlamTypeAsStringForC();
-    
+
     virtual const std::string getUlamTypeUPrefix();
-    
+
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 
     virtual ULAMCLASSTYPE getUlamClass();
@@ -103,6 +105,8 @@ namespace MFM{
 
     virtual const std::string writeArrayItemMethodForCodeGen();
 
+    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+
    private:
 
     ULAMCLASSTYPE m_class;
@@ -114,13 +118,13 @@ namespace MFM{
     void genUlamTypeQuarkMangledDefinitionForC(File * fp, CompilerState * state);
     void genUlamTypeQuarkReadDefinitionForC(File * fp, CompilerState * state);
     void genUlamTypeQuarkWriteDefinitionForC(File * fp, CompilerState * state);
-    
+
     void genUlamTypeElementMangledDefinitionForC(File * fp, CompilerState * state);
     void genUlamTypeElementReadDefinitionForC(File * fp, CompilerState * state);
     void genUlamTypeElementWriteDefinitionForC(File * fp, CompilerState * state);
 
   };
-  
+
 }
 
 #endif //end ULAMTYPECLASS_H

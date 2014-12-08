@@ -235,6 +235,7 @@ namespace MFM {
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
   }
 
+
   //#define DEBUGGING_WITHOUT_DEFAULTELEMENT
   //header .h file
   void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
@@ -263,6 +264,8 @@ namespace MFM {
     //gencode declarations only for all the function definitions
     bool declOnly = true;
     generateCodeForFunctions(fp, declOnly, classtype);
+
+    generateCodeForBuiltInClassFunctions(fp, declOnly, classtype);
 
     m_state.m_currentIndentLevel--;
 
@@ -525,11 +528,63 @@ namespace MFM {
 
     generateCodeForFunctions(fp, false, classtype);
 
+    generateCodeForBuiltInClassFunctions(fp, false, classtype);
+
     m_state.m_currentIndentLevel--;
 
 
     m_state.indent(fp);
     fp->write("} //MFM\n\n");
   } //genCodeBody
+
+
+  void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    NodeBlock::generateCodeForBuiltInClassFunctions(fp, declOnly, classtype);
+
+    if(classtype != UC_ELEMENT)
+      return;
+
+    //UlamType * but = m_state.getUlamTypeByIndex(Bool);
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("//helper method not called directly\n");
+
+	m_state.indent(fp);
+	fp->write("static ");
+	//fp->write(but->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
+	fp->write("bool");
+	fp->write(" Uf_2is(const T& targ);\n\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class CC>\n");
+    m_state.indent(fp);
+    fp->write("bool ");  //return pos offset, or -1 if not found
+    //fp->write(but->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
+    //fp->write(" ");
+
+    UTI cuti = getNodeType();
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
+
+    fp->write("<CC>::Uf_2is");  //mangled name
+    fp->write("(const T& targ)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("return ");
+    //fp->write(but->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
+    fp->write("(THE_INSTANCE.GetType() == targ.GetType());\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}   //is\n\n");
+  } //generateCodeForBuiltInClassFunctions
 
 } //end MFM

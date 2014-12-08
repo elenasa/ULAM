@@ -10,8 +10,8 @@ namespace MFM {
   }
 
   NodeBlock::~NodeBlock()
-  { 
-    //do not delete prevBlockNode  
+  {
+    //do not delete prevBlockNode
   }
 
 
@@ -20,14 +20,14 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)    
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
     m_nextNode->print(fp);
-    
+
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
   }
@@ -36,7 +36,7 @@ namespace MFM {
   void NodeBlock::printPostfix(File * fp)
   {
     fp->write(" {");
-    // has no m_node! 
+    // has no m_node!
     if(m_nextNode)
       m_nextNode->printPostfix(fp);
     else
@@ -59,14 +59,14 @@ namespace MFM {
 
 
   UTI NodeBlock::checkAndLabelType()
-  { 
+  {
     assert(m_nextNode);
 
     m_state.m_currentBlock = this;
 
     m_nextNode->checkAndLabelType();
 
-    //blocks don't have types 
+    //blocks don't have types
     setNodeType(Void);
     return getNodeType();
   }
@@ -140,6 +140,11 @@ namespace MFM {
   {
     assert(0); //using the NodeVarDecl:genCode approach instead.
     m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
+  }
+
+  void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    m_ST.genCodeBuiltInFunctionsOverTableOfVariableDataMember(fp, declOnly, classtype);
   }
 
   void NodeBlock::genCode(File * fp, UlamValue& uvpass)

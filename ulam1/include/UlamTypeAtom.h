@@ -46,12 +46,14 @@ namespace MFM{
   class UlamTypeAtom : public UlamType
   {
   public:
-    
+
     UlamTypeAtom(const UlamKeyTypeSignature key, const UTI uti);
     virtual ~UlamTypeAtom(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
-    
+
+    //virtual ULAMCLASSTYPE getUlamClass();
+
     virtual const std::string getUlamTypeVDAsStringForC();
 
     //    virtual const std::string getUlamTypeMangledName(CompilerState * state);
@@ -66,6 +68,8 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
+    virtual bool cast(UlamValue & val, CompilerState& state);
+
     virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
@@ -74,11 +78,13 @@ namespace MFM{
 
     virtual PACKFIT getPackable();
 
+    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+
   private:
-   
+
 
   };
-  
+
 }
 
 #endif //end ULAMTYPEATOM_H

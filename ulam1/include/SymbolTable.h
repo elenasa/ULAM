@@ -60,7 +60,9 @@ namespace MFM{
     Symbol * getSymbolPtr(u32 id);
 
 
-    void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
+    void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
+
+    void genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
@@ -69,7 +71,7 @@ namespace MFM{
     bool checkForAndInitializeClassCustomArrayType();
 
     u32 countNativeFuncDeclsForTableOfFunctions();
-    
+
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void labelTableOfClasses();
