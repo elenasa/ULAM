@@ -70,14 +70,14 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     u32 getNumberOfSymbolsInTable();
-    
+
     u32 getSizeOfSymbolsInTable();
 
     s32 getBitSizesOfVariableSymbolsInTable();
 
     s32 getMaxBitSizeOfVariableSymbolsInTable();
 
-    SymbolTable * getSymbolTablePtr(); //used for print postfix 
+    SymbolTable * getSymbolTablePtr(); //used for print postfix
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
@@ -85,6 +85,8 @@ namespace MFM{
     SymbolTable m_ST;
 
     void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
+
+    virtual void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
   private:
     NodeBlock * m_prevBlockNode;

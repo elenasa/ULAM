@@ -66,7 +66,83 @@ namespace MFM {
 	  }
 	it++;
       }
-  }
+  } //genCodeForTableOfVariableDataMembers (unused)
+
+
+  void SymbolTable::genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    if(classtype != UC_ELEMENT)
+      return;
+
+    //UlamType * iut = m_state.getUlamTypeByIndex(Int);
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("//helper method not called directly\n");
+
+	m_state.indent(fp);
+	fp->write("static ");
+	//fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
+	fp->write("s32");
+	fp->write(" Uf_3has(const char * namearg);\n\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class CC>\n");
+    m_state.indent(fp);
+
+    fp->write("s32 ");  //return pos offset, or -1 if not found
+    //fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
+    //fp->write(" ");
+
+    UTI cuti = m_state.m_classBlock->getNodeType();
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
+
+    fp->write("<CC>::Uf_3has");  //mangled name
+    fp->write("(const char * namearg)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(!sym->isTypedef() && sym->isDataMember() && !sym->isElementParameter())
+	  {
+	    UTI suti = sym->getUlamTypeIdx();
+	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	    if(sut->getUlamClass() == UC_QUARK)
+	      {
+		m_state.indent(fp);
+		fp->write("if(!strcmp(namearg,\"");
+		fp->write(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+		fp->write("\")) return ");
+		//fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+		fp->write("(");
+		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
+		fp->write(");   //pos offset\n");
+	      }
+	  }
+	it++;
+      }
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("return ");
+    //fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+    fp->write("(-1);   //not found\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}  //has\n\n");
+  } //genCodeBuiltInFunctionsOverTableOfVariableDataMember
+
+
 
   // storage for class members persists, so we give up preserving
   // order of declaration that the NodeVarDecl in the parseTree

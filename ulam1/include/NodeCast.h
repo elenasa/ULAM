@@ -44,7 +44,7 @@ namespace MFM{
   class NodeCast : public NodeUnaryOp
   {
   public:
-    
+
     NodeCast(Node * n, UTI typeToBe, CompilerState & state);
     ~NodeCast();
 
@@ -65,15 +65,15 @@ namespace MFM{
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
     virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
-  protected:    
+  protected:
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len); //noop
 
   private:
-    bool m_explicit;  //requested by user (not automatic)
+    bool m_explicit;   // requested by user (not automatic)
 
-    //cast if the base types are different OR the arraysizes differ (i.e. one's scalar)
-    // --- trying to avoid extraneous casting.
-    bool needsACast();  
+    bool needsACast(); // trying to avoid extraneous casting.
+
+    void genCodeCastAtomAndElement(File * fp, UlamValue & uvpass);
   };
 
 }

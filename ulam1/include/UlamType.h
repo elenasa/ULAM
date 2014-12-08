@@ -62,7 +62,7 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  enum ULAMCLASSTYPE { UC_INCOMPLETE, UC_QUARK, UC_ELEMENT, UC_NOTACLASS };
+  enum ULAMCLASSTYPE { UC_INCOMPLETE, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM };
 
 
   class UlamType
@@ -142,7 +142,11 @@ namespace MFM{
     hold the total bit size  */
     u32 getTotalWordSize();
 
-    u32 getItemWordSize();   
+    u32 getItemWordSize();
+
+    void setTotalWordSize(u32 tw);
+
+    void setItemWordSize(u32 iw);
 
     virtual PACKFIT getPackable();
 
@@ -152,10 +156,9 @@ namespace MFM{
     virtual const std::string readArrayItemMethodForCodeGen();
     virtual const std::string writeArrayItemMethodForCodeGen();
 
-    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
-
     virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
 
+    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
 
   protected:
     UlamKeyTypeSignature m_key;
