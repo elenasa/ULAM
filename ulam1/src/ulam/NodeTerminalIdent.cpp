@@ -116,8 +116,15 @@ namespace MFM {
 	      }
 	    else
 	      {
-		u32 datavalue = uv.getDataFromAtom(uvp, m_state);
-		uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		if(nuti == UAtom || nut->getUlamClass() == UC_ELEMENT)
+		  {
+		    uv = m_state.getPtrTarget(uvp); //UlamValue::makeAtom(caType);
+		  }
+		else
+		  {
+		    u32 datavalue = uv.getDataFromAtom(uvp, m_state);
+		    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		  }
 	      }
 	  }
       }

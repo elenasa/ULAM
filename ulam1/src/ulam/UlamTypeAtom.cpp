@@ -18,30 +18,18 @@ namespace MFM {
      return UAtom;
    }
 
+#if 0
+  ULAMCLASSTYPE UlamTypeAtom::getUlamClass()
+  {
+    return UC_ATOM;  //???
+  }
+#endif
 
   const std::string UlamTypeAtom::getUlamTypeVDAsStringForC()
   {
     return "VD::ATOM";
   }
 
-#if 0
-  const std::string UlamTypeAtom::getUlamTypeMangledName(CompilerState * state)
-  {
-    //return "T";
-  }
-#endif
-
-#if 0
-  const std::string UlamTypeAtom::getUlamTypeImmediateMangledName(CompilerState * state)
-  {
-    if(needsImmediateType())
-      {
-	return UlamType::getUlamTypeImmediateMangledName(state);
-      }
-
-    return "T";
-  }
-#endif
 
   bool UlamTypeAtom::needsImmediateType()
   {
@@ -199,5 +187,41 @@ namespace MFM {
   {
     return UNPACKED;
   }
+
+
+  bool UlamTypeAtom::cast(UlamValue & val, CompilerState& state)
+  {
+    bool brtn = true;
+    //UTI typidx = getUlamTypeIndex();
+    UTI valtypidx = val.getUlamValueTypeIdx();
+    UlamType * vut = state.getUlamTypeByIndex(valtypidx);
+    assert(vut->isScalar() && isScalar());
+
+    assert(vut->getUlamClass() == UC_ELEMENT);
+    // what change is to be made ????
+    // atom type vs. class type
+    // how can it be both in an UlamValue?
+    // what of its contents?
+    // val = UlamValue::makeAtom(valtypidx);
+
+    return brtn;
+  } //end cast
+
+  const std::string UlamTypeAtom::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  {
+    std::ostringstream rtnMethod;
+    UlamType * nut = state.getUlamTypeByIndex(nodetype);
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    ULAMTYPE typEnum = getUlamTypeEnum();
+    //ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
+    s32 sizeByIntBitsToBe = getTotalWordSize();
+    s32 sizeByIntBits = nut->getTotalWordSize();
+
+    assert(sizeByIntBitsToBe == sizeByIntBits);
+    assert(nut->getUlamClass() == UC_ELEMENT);  //quarks only cast toInt
+
+    rtnMethod << "_" << "Element"  << sizeByIntBits << "To" << UlamType::getUlamTypeEnumAsString(typEnum) << sizeByIntBitsToBe;
+    return rtnMethod.str();
+  } //castMethodForCodeGen
 
 } //end MFM

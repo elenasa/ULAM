@@ -13,14 +13,14 @@ namespace MFM {
   static const char * utype_string[] = {
 #include "UlamType.inc"
   };
-  
-#undef XX 
+
+#undef XX
 
 
 
   UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti), m_wordLengthTotal(0), m_wordLengthItem(0)
   {}
- 
+
 
   UlamType * UlamType::getUlamType()
   {
@@ -32,7 +32,7 @@ namespace MFM {
   {
     return m_key.getUlamKeyTypeSignatureAsString(state);
     // REMINDER!! error due to disappearing string:
-    //    return m_key.getUlamKeyTypeSignatureAsString().c_str();  
+    //    return m_key.getUlamKeyTypeSignatureAsString().c_str();
   }
 
 
@@ -52,7 +52,7 @@ namespace MFM {
    UlamKeyTypeSignature UlamType::getUlamKeyTypeSignature()
   {
     return m_key;
-  }    
+  }
 
 
   bool UlamType::cast(UlamValue & val, CompilerState& state)
@@ -80,7 +80,7 @@ namespace MFM {
     assert(!isConstant());
 
     s32 len = getTotalBitSize(); // includes arrays
-    assert(len >= 0);             
+    assert(len >= 0);
     s32 roundUpSize = getTotalWordSize();
 
     std::ostringstream ctype;
@@ -88,7 +88,7 @@ namespace MFM {
 
     if(isScalar())
       ctype << getUlamTypeVDAsStringForC() << ", ";
-    else      
+    else
       ctype << "VD::BITS, ";  //use BITS for arrays
 
     ctype << len << ", " << roundUpSize - len << ">";
@@ -108,7 +108,7 @@ namespace MFM {
     std::ostringstream mangled;
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
-    //    arraysize = (arraysize == NONARRAYSIZE ? 0 : arraysize); 
+    //    arraysize = (arraysize == NONARRAYSIZE ? 0 : arraysize);
 
     mangled << getUlamTypeUPrefix().c_str();
 
@@ -191,7 +191,7 @@ namespace MFM {
 	}
 	//error!
       };
-    
+
     return ctype;
   } //getTmpStorageTypeAsString
 
@@ -200,31 +200,31 @@ namespace MFM {
   {
     return "x";
   }
-   
+
 
   void UlamType::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
   {
     state->m_currentIndentLevel = 0;
-    const std::string mangledName = getUlamTypeImmediateMangledName(state);	
+    const std::string mangledName = getUlamTypeImmediateMangledName(state);
     std::ostringstream  ud;
     ud << "Ud_" << mangledName;  //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
     s32 sizeByIntBits = getTotalWordSize();
-    
+
     state->indent(fp);
     fp->write("#ifndef ");
     fp->write(udstr.c_str());
     fp->write("\n");
-    
+
     state->indent(fp);
     fp->write("#define ");
     fp->write(udstr.c_str());
     fp->write("\n");
-    
+
     state->indent(fp);
     fp->write("namespace MFM{\n");
-    
+
     state->m_currentIndentLevel++;
 
     state->indent(fp);
@@ -233,7 +233,7 @@ namespace MFM {
     fp->write("\n");
     state->indent(fp);
     fp->write("{\n");
-    
+
     //typedef bitfield inside struct
     state->m_currentIndentLevel++;
     state->indent(fp);
@@ -283,11 +283,11 @@ namespace MFM {
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("};\n");
-    
+
     state->m_currentIndentLevel--;
     state->indent(fp);
     fp->write("} //MFM\n");
-    
+
     state->indent(fp);
     fp->write("#endif /*");
     fp->write(udstr.c_str());
@@ -310,7 +310,7 @@ namespace MFM {
 	else
 	  fp->write("(m_stg); }   //reads entire array\n");
       }
-    
+
     if(!isScalar())
       {
 	// reads an element of array
@@ -341,7 +341,7 @@ namespace MFM {
 	else
 	  fp->write("(m_stg, v); }   //writes entire array\n");
       }
-    
+
     if(!isScalar())
       {
 	// writes an element of array
@@ -358,14 +358,14 @@ namespace MFM {
 
   void UlamType::genUlamTypeMangledImmediateDefinitionForC(File * fp, CompilerState * state)
   {
-    const std::string mangledName = getUlamTypeImmediateMangledName(state);	
+    const std::string mangledName = getUlamTypeImmediateMangledName(state);
     std::ostringstream  up;
 
     state->indent(fp);
     fp->write("typedef ");
     fp->write(getUlamTypeAsStringForC().c_str());  //e.g. BitVector
     fp->write(" ");
-    fp->write(mangledName.c_str());	
+    fp->write(mangledName.c_str());
     fp->write(";\n");
   }
 
@@ -421,7 +421,7 @@ namespace MFM {
     if(isConstant())
       return ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()];
 
-    return m_key.getUlamKeyTypeSignatureBitSize(); 
+    return m_key.getUlamKeyTypeSignatureBitSize();
   }
 
 
@@ -429,7 +429,7 @@ namespace MFM {
   {
     s32 arraysize = getArraySize();
     arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
-    
+
     s32 bitsize = getBitSize();
     return bitsize * arraysize;
   }
@@ -445,12 +445,21 @@ namespace MFM {
     return m_wordLengthItem;  //e.g. 32, 64, 96
   }
 
+  void UlamType::setTotalWordSize(u32 tw)
+  {
+    m_wordLengthTotal = tw;  //e.g. 32, 64, 96
+  }
+
+  void UlamType::setItemWordSize(u32 iw)
+  {
+    m_wordLengthItem = iw;  //e.g. 32, 64, 96
+  }
 
   PACKFIT UlamType::getPackable()
   {
     PACKFIT rtn = UNPACKED;            //was false == 0
     u32 len = getTotalBitSize();       //could be 0
-    
+
     //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
     //if(len <= MAXBITSPERINT || len <= MAXBITSPERLONG)
     if(len <= MAXBITSPERINT)
@@ -468,7 +477,7 @@ namespace MFM {
     //    if(!isScalar())
     //  return readArrayItemMethodForCodeGen();
 
-    std::string method;    
+    std::string method;
     s32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
       {
@@ -507,11 +516,11 @@ namespace MFM {
       default:
 	method = "WriteUnpacked";  //TBD
 	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
-	assert(0);	 
+	assert(0);
       };
     return method;
   } //writeMethodForCodeGen
-  
+
 
   const std::string UlamType::readArrayItemMethodForCodeGen()
   {

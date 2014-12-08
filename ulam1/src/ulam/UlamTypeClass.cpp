@@ -25,6 +25,25 @@ namespace MFM {
      return Class;
    }
 
+  bool UlamTypeClass::cast(UlamValue & val, CompilerState& state)
+  {
+    bool brtn = true;
+    UTI typidx = getUlamTypeIndex();
+    UTI valtypidx = val.getUlamValueTypeIdx();
+    UlamType * vut = state.getUlamTypeByIndex(valtypidx);
+    assert(vut->isScalar() && isScalar());
+
+    assert(m_class == UC_ELEMENT);
+    assert(valtypidx == UAtom || valtypidx == typidx);
+    // what change is to be made ????
+    // atom type vs. class type
+    // how can it be both in an UlamValue?
+    // what of its contents?
+    // val = UlamValue::makeAtom(valtypidx);
+
+    return brtn;
+  } //end cast
+
 
   const std::string UlamTypeClass::getUlamTypeImmediateMangledName(CompilerState * state)
   {
@@ -125,6 +144,11 @@ namespace MFM {
   void UlamTypeClass::setUlamClass(ULAMCLASSTYPE type)
   {
     m_class = type;
+    if(m_class == UC_ELEMENT)
+      {
+	setTotalWordSize(BITSPERATOM);
+	setItemWordSize(BITSPERATOM);
+      }
   }
 
 
@@ -625,5 +649,23 @@ namespace MFM {
       return CUSTOMARRAY_SET_MANGLEDNAME;
     return UlamType::writeArrayItemMethodForCodeGen();
   }
+
+
+  const std::string UlamTypeClass::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  {
+    std::ostringstream rtnMethod;
+    UlamType * nut = state.getUlamTypeByIndex(nodetype);
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    //ULAMTYPE typEnum = getUlamTypeEnum();
+    ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
+    s32 sizeByIntBitsToBe = getTotalWordSize();
+    s32 sizeByIntBits = nut->getTotalWordSize();
+
+    assert(sizeByIntBitsToBe == sizeByIntBits);
+    assert(m_class == UC_ELEMENT);  //quarks only cast toInt
+
+    rtnMethod << "_" << UlamType::getUlamTypeEnumAsString(nodetypEnum)  << sizeByIntBits << "ToElement" << sizeByIntBitsToBe;
+    return rtnMethod.str();
+  } //castMethodForCodeGen
 
 } //end MFM
