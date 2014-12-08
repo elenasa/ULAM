@@ -5,14 +5,14 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(u32 id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL) 
-  { 
+  SymbolFunction::SymbolFunction(u32 id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL)
+  {
     setDataMember(); // by definition all function definitions are data members
   }
 
   SymbolFunction::~SymbolFunction()
   {
-    delete m_functionNode; 
+    delete m_functionNode;
     // symbols belong to  NodeBlockFunctionDefinition's ST; deleted there.
     m_parameterSymbols.clear();
   }
@@ -44,7 +44,7 @@ namespace MFM {
 	Symbol * sym = m_parameterSymbols[i];
 	totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
       }
-    return totalsizes; 
+    return totalsizes;
   }
 
 
@@ -136,7 +136,7 @@ namespace MFM {
   u32 SymbolFunction::isNativeFunctionDeclaration()
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
-    assert(func); 
+    assert(func);
 
     return (func->isNative() ? 1 : 0);
   }
@@ -158,7 +158,7 @@ namespace MFM {
     //else
     //	generateQuarkFunctionDeclaration(fp, declOnly, classtype);
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
-    
+
     m_state.indent(fp);
     if(declOnly)
       fp->write("static ");
@@ -170,63 +170,65 @@ namespace MFM {
 	  fp->write("template<class CC>\n");
 	m_state.indent(fp);
       }
-    
+
     //fp->write(sut->getTmpStorageTypeAsString(&m_state).c_str()); //return type for C++
     fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++
     //fp->write(sut->getUlamTypeImmediateMangledName(&m_state).c_str()); //return type for C++
     //fp->write(getUlamType()->getBitSizeTemplateString().c_str());  //for quark templates
-    
+
     fp->write(" ");
     if(!declOnly)
       {
 	UTI cuti = m_state.m_classBlock->getNodeType();
 	//include the mangled class::
 	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
-	
+
 	if(classtype == UC_QUARK)
 	  fp->write("<CC, POS>");
 	else
 	  fp->write("<CC>");
-	
+
 	fp->write("::");
       }
-    
+
     fp->write(getMangledName().c_str());
     fp->write("(");
-    
+
     //first one is always Atom a&
     //UlamType * atomut = m_state.getUlamTypeByIndex(Atom);
     //fp->write(atomut->getUlamTypeMangledName(&m_state).c_str()); //type for C++
     fp->write("T& ");          //only place we use a reference
     fp->write(m_state.getHiddenArgName());
-    
+
     u32 numparams = getNumberOfParameters();
-    
+
     for(u32 i = 0; i < numparams; i++)
       {
 	//if(i > 0)
 	fp->write(", ");
-	
+
 	Symbol * asym = getParameterSymbolPtr(i);
 	assert(asym);
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	
+
 	fp->write(aut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++
 	//fp->write(aut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++
 	//fp->write(aut->getBitSizeTemplateString().c_str());  //for quark templates
-	
-	if(aut->getUlamClass() == UC_QUARK) 
+
+        /*
+	if(aut->getUlamClass() == UC_QUARK)
 	  {
 	    fp->write("<CC,POS>");
 	  }
-	
+        */
+
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());
       }
-    
+
     fp->write(")");
-    
+
     if(declOnly)
       {
 	if(func->isNative())
