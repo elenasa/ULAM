@@ -59,7 +59,7 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	if(!sym->isTypedef() && sym->isDataMember()) //including element parameters
 	  {
 	    ((SymbolVariable *) sym)->generateCodedVariableDeclarations(fp, classtype);
@@ -96,7 +96,7 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
 	    ((SymbolFunctionName *) sym)->labelFunctions();
@@ -112,19 +112,19 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-	
+
 	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	assert(classNode);
 	m_state.m_classBlock = classNode;
 	m_state.m_currentBlock = m_state.m_classBlock;
-	    
+
 	classNode->checkForAndInitializeCustomArrayType();
 	it++;
       }
   } //initializeCustomArraysForTableOfClasses()
-  
+
 
   //called by current Class block on function ST
   bool SymbolTable::checkForAndInitializeClassCustomArrayType()
@@ -134,12 +134,12 @@ namespace MFM {
     if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsym))
       {
 	// though not necessarily a native function..tis prudent to remember
-	// (SymbolFunction *) fnsym->isNativeFunctionDeclaration() 
+	// (SymbolFunction *) fnsym->isNativeFunctionDeclaration()
 	// failed because we were one layer removed from the SymbolFunction.
 	//assert(((SymbolFunctionName *) fnsym)->countNativeFuncDecls() > 0);
 	UTI futi = fnsym->getUlamTypeIdx();
 	assert(futi != Void);
-	// set class type to custom array; the current class block 
+	// set class type to custom array; the current class block
 	// node type was set to its class symbol type after checkAndLabelType
 	UTI cuti = m_state.m_classBlock->getNodeType();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -157,7 +157,7 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	assert(sym->isFunction());
 
 	nativeCount += ((SymbolFunctionName *) sym)->countNativeFuncDecls();
@@ -174,7 +174,7 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
 	    ((SymbolFunctionName *) sym)->generateCodedFunctions(fp, declOnly, classtype);
@@ -288,9 +288,9 @@ namespace MFM {
 
 	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	assert(classNode);
-	
+
 	UTI suti = sym->getUlamTypeIdx();
-	u32 total = m_state.getTotalBitSize(suti);  
+	u32 total = m_state.getTotalBitSize(suti);
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE classtype = sut->getUlamClass();
 	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS - total : MAXBITSPERQUARK - total);
@@ -458,7 +458,7 @@ namespace MFM {
 	      {
 		UTI cut = csym->getUlamTypeIdx();
 		s32 csize;
-		
+
 		if((csize = m_state.getBitSize(cut)) > 0)
 		  {
 		    return csize;
@@ -477,10 +477,10 @@ namespace MFM {
 		    // ==0, redo variable total
 		    NodeBlockClass * classblock = csym->getClassBlockNode();
 		    assert(classblock);
-		    
+
 		    //quark cannot contain a copy of itself!
 		    assert(classblock != m_state.m_classBlock);
-		    
+
 		    csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
 		    return csize;
 		  }
@@ -488,7 +488,7 @@ namespace MFM {
 	  } //totbitsize == 0
       } //not primitive, not array
     return CYCLEFLAG;
-  } //calcVariableSymbolTypeSize (recurisvely) 
+  } //calcVariableSymbolTypeSize (recurisvely)
 
 
   void SymbolTable::packBitsForTableOfClasses()
@@ -497,7 +497,7 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 	// quark union keep default pos = 0 for each data member, hence skip packing bits.
 	if(!((SymbolClass *) sym)->isQuarkUnion())
@@ -506,8 +506,8 @@ namespace MFM {
 	    assert(classNode);
 	    m_state.m_classBlock = classNode;
 	    m_state.m_currentBlock = m_state.m_classBlock;
-	    
-	    classNode->packBitsForVariableDataMembers(); 
+
+	    classNode->packBitsForVariableDataMembers();
 	  }
 	it++;
       }
@@ -517,7 +517,7 @@ namespace MFM {
   //#define OPTIMIZE_PACKED_BITS
 #ifdef OPTIMIZE_PACKED_BITS
   // currently, packing is done by Nodes since the order of declaration is available;
-  // but in case we may want to optimize the layout someday, 
+  // but in case we may want to optimize the layout someday,
   // we keep this here since all the symbols are available in one place.
   void SymbolTable::packBitsForTableOfVariableDataMembers()
   {
@@ -526,7 +526,7 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	//if(!sym->isTypedef() && sym->isDataMember())
 	//if(!sym->isTypedef() && sym->isDataMember() && !((SymbolClass *) sym)->isQuarkUnion())
 	if(!sym->isTypedef() && sym->isDataMember() && !sym->isElementParameter() && !((SymbolClass *) sym)->isQuarkUnion())
@@ -534,7 +534,7 @@ namespace MFM {
 	    //updates the offset with the bit size of sym
 	    ((SymbolVariable *) sym)->setPosOffset(offsetIntoAtom);
 
-	    offsetIntoAtom += m_state.getTotalBitSize(sym->getUlamTypeIdx());  // times array size 
+	    offsetIntoAtom += m_state.getTotalBitSize(sym->getUlamTypeIdx());  // times array size
 	  }
 	it++;
       }
@@ -548,9 +548,9 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	assert(sym->isClass());
-	
+
 	if(sym->getId() != m_state.m_compileThisId)
 	  {
 	    m_state.indent(fp);
@@ -571,9 +571,9 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	assert(sym->isClass());
-	
+
 	//namespace MFM { template <class CC, u32 POS> struct Uq_10105MDist;} // FORWARD
 
 	if(sym->getId() != m_state.m_compileThisId)
@@ -609,9 +609,9 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	assert(sym->isClass());
-	
+
 	UTI suti = sym->getUlamTypeIdx();
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
@@ -649,10 +649,8 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write(lowercasename.c_str());
-	fp->write(".SetType(");
-	fp->write_decimal(idcounter);
-	fp->write("); //This is actually done by code code in a complicated way\n");
-	
+	fp->write(".AllocateType();  // Force element type allocation now\n");
+
 	if(sym->getId() == m_state.m_compileThisId)
 	  {
 	    m_state.indent(fp);
@@ -662,7 +660,7 @@ namespace MFM {
 	    fp->write(lowercasename.c_str());
 	    fp->write(".GetDefaultAtom();\n");
 
-	    runThisTest << ourname.str().c_str() << "::Uf_4test(" << lowercasename.c_str() << "Atom)";	    
+	    runThisTest << ourname.str().c_str() << "::Uf_4test(" << lowercasename.c_str() << "Atom)";
 	  }
 
 	it++;
@@ -683,7 +681,7 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;  
+	Symbol * sym = it->second;
 	assert(sym->isClass());
 
 	//output header/body for THIS class only
@@ -702,14 +700,14 @@ namespace MFM {
 		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
 		assert(fp);
 
-		classNode->genCode(fp, uvpass);	
+		classNode->genCode(fp, uvpass);
 		delete fp;
 
 		// output body for This Class only
 		File * fpb = fm->fopen(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(),WRITE);
 		assert(fpb);
-		
-		classNode->genCodeBody(fpb, uvpass);	
+
+		classNode->genCodeBody(fpb, uvpass);
 		delete fpb;
 	      }
 	    else
@@ -719,7 +717,7 @@ namespace MFM {
 		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
 		assert(fp);
 
-		classNode->genCodeBody(fp, uvpass);	
+		classNode->genCodeBody(fp, uvpass);
 		delete fp;
 	      }
 	  }
@@ -744,7 +742,7 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
-	  {	    
+	  {
 	    u32 depth = ((SymbolFunctionName *) sym)->getDepthSumOfFunctions();
 	    totalsizes += depth;
 	    assert(0); //function symbols are not in same table as variables
@@ -765,7 +763,7 @@ namespace MFM {
   std::string SymbolTable::firstletterTolowercase(const std::string s) //static method
   {
     std::ostringstream up;
-    assert(!s.empty());    
+    assert(!s.empty());
     std::string c(1,(s[0] >= 'A' && s[0] <= 'Z') ? s[0]-('A'-'a') : s[0]);
     up << c << s.substr(1,s.length());
     return up.str();
