@@ -6,6 +6,7 @@ my $ORIG_PATH = $ENV{'PATH'};
 delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
 use Capture::Tiny 'capture';
+use Cwd 'abs_path';
 
 ####DIRECTORY PATHS WITH DEFAULTS
 
@@ -109,7 +110,7 @@ sub runThis {
         }
 #        return "";
     };
-    print "SOUT($stdout)\nSERR($stderr)\nEXIT($exit)\n";
+#    print "SOUT($stdout)\nSERR($stderr)\nEXIT($exit)\n";
     if ($exit ne "") {
         $status = $exit;
     } else {
@@ -385,7 +386,7 @@ sub printVersion {
 sub printToolPathsAndExit {
     my $status = 0;
     for my $tool (@toolNames) {
-        $status += printToolPath($tool);
+        $status++ unless printToolPath($tool);
     }
     exit $status;
 }
@@ -400,7 +401,8 @@ sub checkTools {
     pISC("## Check tools");
     my $status = 0;
     for my $tool (@toolNames) {
-        $status++ unless checkTool($tool)
+        my $r = checkTool($tool);
+        $status++ unless $r;
     }
     return $status;
 }
@@ -622,7 +624,13 @@ sub compilationDriver {
     positionLiteralFiles();
 
     my $buildResults = runUlamCompilations();
-    UDie("$buildResults build problem(s) detected\n")
+    UDie("$buildResults ulam build problem(s) detected\n")
+        if $buildResults;
+
+    return 0 if $actionCmd eq "ulamcompile";
+
+    $buildResults = runGccCompilations();
+    UDie("$buildResults g++ build problem(s) detected\n")
         if $buildResults;
 
     return 0 if $actionCmd eq "compile";
@@ -646,6 +654,8 @@ sub checkOrMakeDir
     my $bd = shift;
     if (!-e $bd) {
         myMkdir($bd);
+    } else {
+        pISC(" # Exists: $bd");
     }
 
     UDie "'$bd' is not a directory\n" unless -d $bd;
@@ -654,6 +664,7 @@ sub checkOrMakeDir
 
 sub prepareBuildDirs
 {
+    defaultBuildDir();
     pISC("## Make dirs");
     my $bd = getBuildDir();
     checkOrMakeDir($bd);
@@ -672,29 +683,47 @@ sub runGccMakeForTests
     my $body = "";
     for my $test (@testables) {
         $body .= <<EOM;
-  {
-    Ui_Ut_102323Int ret = Uq_10109211EventWindow<TestCC, POS>::Uf_4test(T& Uv_4self)
-  template<class CC, u32 POS>
-  Ui_Ut_102323Int Uq_10109211EventWindow<CC, POS>::Uf_4test(T& Uv_4self)
+ XXX
 EOM
     }
 
     IDie("Implementme $actionCmd:$body\n");
 }
 
+my @cppFromUlam;
+
 sub runUlamCompilations
 {
-    pISC("## Compile files");
+    pISC("## Compile ulam");
     my $status = 0;
     for my $file (@ulamFiles) {
-        pISC("## Compiling '$file'");
+        pISC(" # Compiling '$file'");
         my ($ulamStatus, $cfile, $testable) = runUlamCompile($file);
         my $gppStatus = 0;
-        if ($ulamStatus == 0 && $actionCmd ne "ulamcompile") {
-            $testableFiles{$file} = $cfile;
-            $gppStatus = gppCompile($cfile);
+#        print STDERR "RUC($ulamStatus, $cfile, $testable) = runUlamCompile($file);\n";
+        if ($ulamStatus == 0) {
+            if ($testable) {
+                $testableFiles{$file} = $cfile;
+            }
+            push @cppFromUlam, $cfile;
+#            $gppStatus = gppCompile($cfile);
         }
         my $fileStatus = $ulamStatus + $gppStatus;
+        $status += $fileStatus;
+        last if $fileStatus != 0 && $KEEP_GOING == 0;
+    }
+    return $status;
+}
+
+sub runGccCompilations
+{
+    pISC("## Compile C++");
+    my $status = 0;
+    for my $cfile (@cppFromUlam) {
+        pISC(" # Compiling '$cfile'");
+        my $gppStatus = 0;
+        $gppStatus = gppCompile($cfile);
+        my $fileStatus = $gppStatus;
         $status += $fileStatus;
         last if $fileStatus != 0 && $KEEP_GOING == 0;
     }
@@ -707,7 +736,7 @@ sub runUlamCompile {
     my @args = ($file);
     push @args, $ULAM_BUILD_DIR
         if defined $ULAM_BUILD_DIR;
-    print "Compile $file: ";
+    print " Compile $file: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
@@ -765,11 +794,15 @@ sub changeEnv {
     exit(2);
 }
 
+sub defaultBuildDir {
+    $ULAM_BUILD_DIR = "./.gen"
+        unless defined $ULAM_BUILD_DIR;
+    $ULAM_BUILD_DIR = abs_path($ULAM_BUILD_DIR);
+}
+
 sub getBuildDir {
-    my $dir = ".";
-    $dir = $ULAM_BUILD_DIR
-        if defined $ULAM_BUILD_DIR;
-    return $dir;
+    die unless defined $ULAM_BUILD_DIR;
+    return $ULAM_BUILD_DIR;
 }
 
 sub gppCompile {
@@ -788,7 +821,7 @@ sub gppCompile {
     my $oldenv = modifyEnv(@env);
     my @args = (#"-d",
 		"-C", "$mfm", "ulam_cppcompile");
-    print "Compile $file: ";
+    print " Compile $file: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
     restoreEnv($oldenv);
     if ($status ne "") {
