@@ -53,7 +53,7 @@
 #include "NodeFunctionCall.h"
 
 namespace MFM{
-  /** 
+  /**
       Preparser wrapper class for tokenizer's (e.g. Lexer), within CompilerState.
    */
   class Parser
@@ -62,34 +62,34 @@ namespace MFM{
     //    Parser(Tokenizer * izer);
     Parser(Tokenizer * izer, CompilerState & state);
     ~Parser();
-      
-    /** 
+
+    /**
 	<PROGRAM> := <PROGRAM_DEF>* + <EOF>
 
 	Ends when subject of compile (i.e. startstr) has been parsed
 	(takes an optional error output arg).
      */
-    Node * parseProgram(std::string startstr, File * errOutput = NULL); 
+    Node * parseProgram(std::string startstr, File * errOutput = NULL);
 
 
   private:
-    
-    // owned by parent, e.g. Compiler object.  
+
+    // owned by parent, e.g. Compiler object.
     CompilerState & m_state;
 
     // owned by parent, e.g. Compiler object.  used to get Tokens
     Tokenizer * m_tokenizer;
 
 
-    /** 
+    /**
 	<PROGRAM_DEF> := <QUARK_DEF> | <ELEMENT_DEF>
 	<ELEMENT_DEF> := 'element' + <TYPE_IDENT> + <CLASS_BLOCK>
-	<QUARK_DEF>   := 'quark'   + <TYPE_IDENT> + <CLASS_BLOCK> 
+	<QUARK_DEF>   := 'quark'   + <TYPE_IDENT> + <CLASS_BLOCK>
     */
     bool parseThisClass();
 
 
-    /** 
+    /**
 	<CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
     */
     NodeBlockClass * parseClassBlock(UTI utype);
@@ -101,31 +101,31 @@ namespace MFM{
     bool parseDataMember(NodeStatements *& nextNode);
 
 
-    /** 
-	<BLOCK> := '{' + <STATEMENTS> + '}' 
+    /**
+	<BLOCK> := '{' + <STATEMENTS> + '}'
     */
     Node * parseBlock();
 
 
-    /** 
-	<STATEMENTS> := NULL | <STATEMENT> + <STATEMENTS> 
+    /**
+	<STATEMENTS> := NULL | <STATEMENT> + <STATEMENTS>
     */
     Node * parseStatements();
 
 
-    /** 
+    /**
 	<STATEMENT> := <SIMPLE_STATEMENT> | <BLOCK> | <CONTROL_STATEMENTS> | <FUNC_DEF>
      */
     Node * parseStatement();
 
 
-    /** 
+    /**
 	<CONTROL_STATEMENT> := <IF_STATEMENT> | <WHILE_STATEMENT>
     */
     Node * parseControlStatement();
 
 
-    /** 
+    /**
 	<IF_STATEMENT> := 'if' + '(' + <ASSIGN_EXPR> + ')' + <STATEMENT> + <OPT_ELSE_STATEMENT>
 	<OPT_ELSE_STATEMENT> := 0 | 'else' + <STATEMENT>
     */
@@ -139,7 +139,7 @@ namespace MFM{
 
 
 
-    /** 
+    /**
 	<SIMPLE_STATEMENT> := ( 0 | <DECL> | <FUNC_DECL> | <TYPE_DEF> | <ASSIGNEXPR> ) + ';'
      */
     Node * parseSimpleStatement();
@@ -148,7 +148,7 @@ namespace MFM{
 
     /**
        <TYPEDEF> := 'typedef' + <TYPE> + <TYPE_EXPRESSION>
-       <TYPE_EXPRESSION> := ( <TYPE_IDENT> | <TYPE_IDENT> + '[' + <EXPRESSION> + ']') 
+       <TYPE_EXPRESSION> := ( <TYPE_IDENT> | <TYPE_IDENT> + '[' + <EXPRESSION> + ']')
     */
     Node * parseTypedef();
 
@@ -176,9 +176,11 @@ namespace MFM{
     Node * parseReturn();
 
 
+    Node * parseConditionalExpr();
+
     /**
        <ASSIGNEXPR> := <EXPRESSION> | <LVAL_EXPRESSION> + '=' + <ASSIGNEXPR>
-    */ 
+    */
     Node * parseAssignExpr();
 
 
@@ -195,12 +197,12 @@ namespace MFM{
     Node * parseIdentExpr(Token identTok);
 
 
-    /** 
+    /**
 	<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + <IDENT_EXPRESSION>
     */
     Node * parseMemberSelectExpr(Token memberTok);
 
-    Node * parseRestOfMemberSelectExpr(Node * classInstanceNode); 
+    Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 
 
     /**
@@ -221,7 +223,7 @@ namespace MFM{
     */
     Node * parseExpression();
 
-    
+
     /**
        <LOGICAL_EXPRESSION> := <BIT_EXPRESSION> | <LOGICAL_EXPRESSION> <BITOP> <BIT_EXPRESSION>
     */
@@ -251,8 +253,8 @@ namespace MFM{
     */
     Node * parseShiftExpression();
 
-    
-    /** 
+
+    /**
 	<TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
     */
     Node * parseTerm();
@@ -264,11 +266,13 @@ namespace MFM{
     Node * parseFactor();
 
 
-    /** 
+    /**
 	<EQOP> := '='
     */
     Node * parseRestOfAssignExpr(Node * leftNode);
 
+
+    Node * makeConditionalExprNode(Node * leftNode);
 
     /**
        '['
@@ -276,7 +280,7 @@ namespace MFM{
     Node * parseRestOfLvalExpr(Node * leftNode);
 
 
-    /** 
+    /**
 	<VAR_DECLS> := <VAR_DECL> | <VAR_DECL> + ',' + <VAR_DECLS>
 	<VAR_DECL> := <LVAL_EXPRESSION>
     */
@@ -287,7 +291,7 @@ namespace MFM{
     Node * makeVariableSymbol(Token typeTok, u32 typebitsize, Token identTok);
 
 
-    /** 
+    /**
 	<FUNC_DEF>  := <FUNC_DECL> + <BLOCK>
 	<FUNC_DECL> := <TYPE> + <IDENT> + '(' + <FUNC_PARAMS> + ')'
      */
@@ -296,65 +300,65 @@ namespace MFM{
 
     /** helper method */
     NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok);
-    
+
 
     /**
 	<FUNC_PARAMS> := 0 | <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
-	<FUNC_PARAM>  := <TYPE> + <VAR_DECL> | <FUNC_DECL>  	
+	<FUNC_PARAM>  := <TYPE> + <VAR_DECL> | <FUNC_DECL>
     */
     void parseRestOfFunctionParameters(SymbolFunction * sym);
 
 
-    /** 
+    /**
 	helper method for function definition, populates funcNode,
-	returns true if body parsed 
+	returns true if body parsed
     */
     bool parseFunctionBody(NodeBlockFunctionDefinition *& funcNode);
 
 
-    /** 
+    /**
 	<LOGICALOP> := '&&' | '||'
     */
     Node * parseRestOfExpression(Node * leftNode);
-    
+
 
     /**
        <BITOP> := '&' | '|' | '^'
     */
-    Node * parseRestOfLogicalExpression(Node * leftNode);    
+    Node * parseRestOfLogicalExpression(Node * leftNode);
 
 
-    /** 
+    /**
 	<EQOP> := '==' | '!='
-    */    
-    Node * parseRestOfBitExpression(Node * leftNode);    
+    */
+    Node * parseRestOfBitExpression(Node * leftNode);
 
 
-    /** 
+    /**
 	<COMPOP> := '<' | '>' | '<=' | '>='
-    */    
+    */
     Node * parseRestOfEqExpression(Node * leftNode);
 
-    
-    /** 
+
+    /**
 	<SHIFTOP> := '<<' | '>>'
     */
     Node * parseRestOfCompareExpression(Node * leftNode);
 
 
-    /** 
+    /**
 	<ADDOP> := '+' | '-'
     */
     Node * parseRestOfShiftExpression(Node * leftNode);
 
-    
-    /** 
+
+    /**
 	<MULOP> := '*' | '/' | '%'
      */
     Node * parseRestOfTerm(Node * leftNode);
 
 
-    /** 
+    /**
 	<UNOP> := '-' | '+' | '!' | <CAST>
     */
     Node * parseRestOfFactor();
@@ -407,20 +411,20 @@ namespace MFM{
     void unreadToken();
 
 
-    /** 
-	helper, bypasses token until end reached 
+    /**
+	helper, bypasses token until end reached
 	if EOF reached, it will unread it before returning
      */
     void getTokensUntil(TokenType lastTok);
 
 
-    /** 
+    /**
 	initializes primitive UlamTypes into classBlock Symbol Table
      */
     void initPrimitiveUlamTypes();
 
   };
-  
+
 }
 
 #endif //end PARSER_H

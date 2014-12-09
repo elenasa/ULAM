@@ -34,6 +34,8 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeBreakStatement.h"
 #include "NodeCast.h"
+#include "NodeConditionalIs.h"
+#include "NodeConditionalHas.h"
 #include "NodeContinueStatement.h"
 #include "NodeControlIf.h"
 #include "NodeControlWhile.h"
@@ -359,7 +361,7 @@ namespace MFM {
 	getNextToken(pTok);
       }
 
-    if(! Token::isTokenAType(pTok))
+    if(!Token::isTokenAType(pTok))
       {
 	unreadToken();
 	m_state.m_parsingElementParameterVariable = false;  //clear on error
@@ -614,7 +616,9 @@ namespace MFM {
 	return NULL;
       }
 
-    Node * condNode = parseAssignExpr();
+    //Node * condNode = parseAssignExpr();
+    Node * condNode = parseConditionalExpr();
+
     if(!condNode)
       return NULL;  //stop this maddness
 
@@ -918,6 +922,40 @@ namespace MFM {
 
     return rtnNode;
   } //parseReturn
+
+
+  Node * Parser::parseConditionalExpr()
+  {
+    Node * rtnNode = NULL;
+
+    Token iTok;
+    if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
+      {
+
+	if(!(rtnNode = parseIdentExpr(iTok)))
+	  return parseExpression();  	//continue as parseAssignExpr
+
+	//next check for is-has-as
+	Token cTok;
+	getNextToken(cTok);
+	switch(cTok.m_type)
+	  {
+	  case TOK_KW_IS:
+	  case TOK_KW_HAS:
+	    unreadToken();
+	    return makeConditionalExprNode(rtnNode);  //done
+	  case TOK_KW_AS:
+	    // needs makeControlAs
+	  default:
+	    unreadToken();
+	  };
+      }
+    else
+      return parseExpression();   //perhaps a number, true or false, cast..
+
+    // if nothing else follows, parseRestOfAssignExpr returns its argument
+    return parseRestOfAssignExpr(rtnNode);  //parseAssignExpr
+  } //parseConditionalExpr
 
 
   Node * Parser::parseAssignExpr()
@@ -2083,6 +2121,54 @@ namespace MFM {
 
     return rtnNode;  //parseRestOfAssignExpr
   }
+
+
+  Node * Parser::makeConditionalExprNode(Node * leftNode)
+  {
+    Node * rtnNode = NULL;
+
+    //reparse (is-has-as) function token
+    Token fTok;
+    getNextToken(fTok);
+
+    //parse Type
+    Token tTok;
+    getNextToken(tTok);
+
+    if(!Token::isTokenAType(tTok))
+      {
+	std::ostringstream msg;
+	msg << "RHS of operator <" << fTok.getTokenString() << "> is not a Type: " << tTok.getTokenString() << ", operation deleted";
+	MSG(&tTok, msg.str().c_str(), ERR);
+	delete leftNode;
+	return NULL;
+      }
+
+    switch(fTok.m_type)
+      {
+      case TOK_KW_IS:
+	rtnNode = new NodeConditionalIs(leftNode, tTok, m_state);
+	break;
+      case TOK_KW_HAS:
+	rtnNode = new NodeConditionalHas(leftNode, tTok, m_state);
+	break;
+      case TOK_KW_AS:
+	//rtnNode = new NodeConditionalAs(leftNode, tTok, m_state);
+	//break;
+      default:
+	{
+	  std::ostringstream msg;
+	  msg << " Unexpected input!! Token: <" << fTok.getTokenEnumName() << ">, aborting";
+	  MSG(&fTok, msg.str().c_str(), DEBUG);
+	  assert(0);
+	}
+	break;
+      };
+
+    assert(rtnNode);
+    rtnNode->setNodeLocation(fTok.m_locator);
+    return rtnNode;
+  } //makeCondtionalExprNode
 
 
   NodeBinaryOpEqual * Parser::makeAssignExprNode(Node * leftNode)

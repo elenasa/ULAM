@@ -205,6 +205,8 @@ namespace MFM{
     const char * getHiddenArgName();
     u32 getCustomArrayGetFunctionNameId();
     u32 getCustomArraySetFunctionNameId();
+    const char * getIsMangledFunctionName();
+    const char * getHasMangledFunctionName();
 
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);

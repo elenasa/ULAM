@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeUnaryOp.h -  Basic Node handling Unary Operations for ULAM
+ * NodeConditional.h - Basic Node for handling Conditional Expressions for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeUnaryOp.h -  Basic Node handling Unary Operations for ULAM
+  \file NodeConditional.h - Basic Node for handling Conditional Expressions for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,19 +34,20 @@
 */
 
 
-#ifndef NODEUNARYOP_H
-#define NODEUNARYOP_H
+#ifndef NODECONDITIONAL_H
+#define NODECONDITIONAL_H
 
 #include "Node.h"
+#include "NodeCast.h"
 
 namespace MFM{
 
-  class NodeUnaryOp : public Node
+  class NodeConditional : public Node
   {
   public:
 
-    NodeUnaryOp(Node * n, CompilerState & state);
-    ~NodeUnaryOp();
+    NodeConditional(Node * leftNode, Token typeTok, CompilerState & state);
+    ~NodeConditional();
 
     virtual void print(File * fp);
 
@@ -54,25 +55,26 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
-    virtual UTI checkAndLabelType();
+    virtual const char * getName() = 0;
 
-    virtual const std::string methodNameForCodeGen();
+    virtual const std::string prettyNodeName() = 0;
 
-    virtual EvalStatus eval();
+    virtual const std::string methodNameForCodeGen() = 0;
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    //virtual EvalStatus eval();
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    //virtual void genCode(File * fp, UlamValue& uvpass);
+
+    //TODO:
+    //virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
 
   protected:
-
-    Node * m_node;
-    virtual void doUnaryOperation(s32 slot, u32 nslots);
-    virtual void doUnaryOperationImmediate(s32 slot, u32 nslots);
-    virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len) = 0;
-
+    Node * m_nodeLeft;
+    Token m_typeTok;  //right
+    UTI m_utypeRight;
   };
 
 }
 
-#endif //end NODEUNARYOP_H
+#endif //end NODECONDITIONAL_H

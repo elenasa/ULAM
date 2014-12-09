@@ -29,7 +29,7 @@
 <CONDITIONAL_EXPRESSION> := <COND_DECL> | <ASSIGN_EXPESSION>
 
 <COND_DECL> := <SIMPLE_COND_DECL>              /* | <DECL> unimplemented */
-<SIMPLE_COND_DECL> := <IDENT> + ('as' | 'is' | 'has') + <TYPE_IDENT>
+<SIMPLE_COND_DECL> := <IDENT> + 'as' + <TYPE_IDENT>
 
 <WHILE_STATEMENT> := 'while' + '(' + <CONDITIONAL_EXPRESSION> + ')' + <STATEMENT>
 <BREAK_STATEMENT> := 'break' + ';'
@@ -66,7 +66,8 @@
 <ADDOP> := '+' | '-'
 <TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
 <MULOP> := '*' | '/' | '%'
-<FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP> + <FACTOR>
+<FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP_EXPRESSION>
+<UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT> + ('is' | 'has') + <TYPE_IDENT>
 <UNOP> := '-' | '+' | '!' | <CAST>
 <CAST> := '(' + <TYPE> + ')'
 
