@@ -30,6 +30,8 @@ namespace MFM {
   static const char * HIDDEN_ARG_NAME = "Uv_4self";
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aRef";
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aSet";
+  static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is;
+  static const char * HAS_MANGLED_FUNC_NAME = "internalCMethodImplementingHas"; //"Uf_3has";
 
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(false), m_parsingElementParameterVariable(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
@@ -775,6 +777,17 @@ namespace MFM {
   {
     std::string str(CUSTOMARRAY_SET_FUNC_NAME);
     return  m_pool.getIndexForDataString(str);
+  }
+
+  const char * CompilerState::getIsMangledFunctionName()
+  {
+    return IS_MANGLED_FUNC_NAME;
+  }
+
+
+  const char * CompilerState::getHasMangledFunctionName()
+  {
+    return HAS_MANGLED_FUNC_NAME;
   }
 
 
