@@ -55,7 +55,7 @@ namespace MFM {
 
     //might be related to m_currentSelfPtr?
     //member selection doesn't apply to arguments
-    bool saveUseMemberBlock = m_state.m_useMemberBlock; 
+    bool saveUseMemberBlock = m_state.m_useMemberBlock;
 
     //look up in class block, and match argument types to parameters
     //assert(m_funcSymbol == NULL);
@@ -75,10 +75,10 @@ namespace MFM {
 	    UTI argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
 	    argTypes.push_back(argtype);
 	    // track constants and potential casting to be handled
-	    if(m_state.isConstant(argtype)) 
+	    if(m_state.isConstant(argtype))
 	      constantArgs++;
 	  }
-	
+
 	// still need to pinpoint the SymbolFunction for m_funcSymbol! currently requires exact match
 	// (let constant match any size of same type)
 	if(!((SymbolFunctionName *) fnsymptr)->findMatchingFunction(argTypes, funcSymbol))
@@ -96,7 +96,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	numErrorsFound++;
       }
-    
+
 
     if(!numErrorsFound)
       {
@@ -128,7 +128,7 @@ namespace MFM {
 	    assert(argsWithCast == constantArgs);
 	  }
       }
-   
+
     m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
 
     return it;
@@ -146,7 +146,7 @@ namespace MFM {
     assert(func);
 
     // before processing arguments, get the "self" atom ptr,
-    // so that arguments will be relative to it, and not the possible 
+    // so that arguments will be relative to it, and not the possible
     // selected member instance this function body could effect.
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*********
     m_state.m_currentObjPtr = m_state.m_currentSelfPtr;
@@ -163,7 +163,7 @@ namespace MFM {
 	// extra slot for a Ptr to unpacked array;
 	// arrays are handled by CS/callstack, and passed by value
 	u32 slots = makeRoomForNodeType(argType); //for eval return
-	
+
 	evs = m_argumentNodes[i]->eval();
 	if(evs != NORMAL)
 	  {
@@ -191,8 +191,8 @@ namespace MFM {
 	    //both either unpacked or packed
 	    UlamValue basePtr = UlamValue::makePtr(baseSlot, STACK, argType, packed, m_state);
 
-	    //positive to current frame pointer  
-	    UlamValue auvPtr = UlamValue::makePtr(1, EVALRETURN, argType, packed, m_state); 
+	    //positive to current frame pointer
+	    UlamValue auvPtr = UlamValue::makePtr(1, EVALRETURN, argType, packed, m_state);
 
 	    m_state.assignValue(basePtr, auvPtr);
 	    m_state.m_nodeEvalStack.popArgs(slots);
@@ -200,13 +200,13 @@ namespace MFM {
       } //done with args
 
 
-    //before pushing return slot(s) last (on both STACKS for now) 
+    //before pushing return slot(s) last (on both STACKS for now)
     UTI rtnType = m_funcSymbol->getUlamTypeIdx();
     s32 rtnslots = makeRoomForNodeType(rtnType);
 
     // insert "first" hidden arg (adjusted index pointing to atom);
-    // atom index (negative) relative new frame, includes ALL the pushed args, 
-    // and upcoming rtnslots: current_atom_index - relative_top_index (+ returns) 
+    // atom index (negative) relative new frame, includes ALL the pushed args,
+    // and upcoming rtnslots: current_atom_index - relative_top_index (+ returns)
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  // RESTORE *********
     UlamValue atomPtr = m_state.m_currentObjPtr;              //*********
     if(saveCurrentObjectPtr.getPtrStorage() == STACK)
@@ -225,12 +225,12 @@ namespace MFM {
     UlamValue saveSelfPtr = m_state.m_currentSelfPtr;      // restore upon return from func *****
     m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls *****
 
-    //(con't) push return slot(s) last (on both STACKS for now) 
+    //(con't) push return slot(s) last (on both STACKS for now)
     makeRoomForNodeType(rtnType, STACK);
 
     assert(rtnslots == m_state.slotsNeeded(rtnType));
 
-    //********************************************    
+    //********************************************
     //*  FUNC CALL HERE!!
     //*
     evs = func->eval();   //NodeBlockFunctionDefinition..
@@ -249,7 +249,7 @@ namespace MFM {
     // ANY return value placed on the STACK by a Return Statement,
     // was copied to EVALRETURN by the NodeBlockFunctionDefinition
     // before arriving here! And may be ignored at this point.
- 
+
     //positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
     UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
 
@@ -329,7 +329,7 @@ namespace MFM {
       }
     else if(isCurrentObjectsContainingAnElementParameter())
       {
-	
+
 	// here, cos is symbol used to determine read method: either self or last of cos.
 	// stgcos is symbol used to determine first "hidden" arg
 	Symbol * cos = NULL;
@@ -339,7 +339,7 @@ namespace MFM {
 	    stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
 	  }
 	else
-	  {	
+	  {
 	    cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	  }
@@ -355,8 +355,8 @@ namespace MFM {
 	  }
 
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-	ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();		
-     
+	ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();
+
 	Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
 	UTI selfuti = css->getUlamTypeIdx();
 	UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
@@ -365,7 +365,7 @@ namespace MFM {
 
 	//element parameter (could be array?)
 	if(cos->isDataMember() && !cos->isElementParameter())
-	  {	    
+	  {
 	    arglist << ".";
 	    arglist << stgcos->getMangledName().c_str();
 	  }
@@ -381,27 +381,27 @@ namespace MFM {
 	  }
       }
     else  //local var
-      { 
+      {
 	Symbol * stgcos = NULL;
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	  {
 	    stgcos = m_state.m_currentSelfSymbolForCodeGen;
 	  }
 	else
-	  {	
+	  {
 	    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	  }
 
 	arglist << stgcos->getMangledName().c_str();
-	
+
 	// for both immediate quarks and elements now..
-	//	UTI stgcosuti = stgcos->getUlamTypeIdx();       
+	//	UTI stgcosuti = stgcos->getUlamTypeIdx();
 	//if(m_state.getUlamTypeByIndex(stgcosuti)->getUlamClass() == UC_QUARK)
 	  {
 	    arglist << ".m_stg"; //the T storage within the struct for immediate quarks
 	  }
       }
-    
+
     // since non-datamember variables can modify globals, save/restore before/after each
     for(u32 i = 0; i < m_argumentNodes.size(); i++)
       {
@@ -424,10 +424,10 @@ namespace MFM {
 	m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
 	//m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
       } //next arg..
-    
+
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore vector after args*************
-    
+
     //non-void return value saved in a tmp BitValue; depends on return type
     m_state.indent(fp);
     if(nuti != Void)
@@ -460,7 +460,7 @@ namespace MFM {
 
 
     // static functions..oh yeah.
-    // who's function is it? 
+    // who's function is it?
     if(!isCurrentObjectALocalVariableOrArgument())
       genMemberNameOfMethod(fp, m_state.m_currentObjPtr);
     else if(isCurrentObjectsContainingAnElementParameter())
@@ -534,7 +534,7 @@ namespace MFM {
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     u32 cosStart = 1;
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0]; 
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     UTI uti = stgcos->getUlamTypeIdx();
 
     //skip first stgcos if a local variable of same type as the 'self' and not the element parameter
@@ -542,7 +542,7 @@ namespace MFM {
       {
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[1]; //use next one
 	uti = stgcos->getUlamTypeIdx();
-	cosStart++; 
+	cosStart++;
       }
 
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
@@ -551,7 +551,7 @@ namespace MFM {
       {    //?? can't call a func on an array!
 	assert(0);
       }
-    
+
     // now for both immediate quarks and elements..
     fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
     fp->write("::");
@@ -567,7 +567,7 @@ namespace MFM {
       }
     else if(classtype == UC_ELEMENT) //needs testing
       {
-	fp->write(ut->getUlamTypeMangledName(&m_state).c_str()); 
+	fp->write(ut->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("<CC>::");
       }
 #endif
@@ -591,7 +591,7 @@ namespace MFM {
 		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
 		fp->write("::");
 		if( ((i + 1) < cosSize))  //still another cos refiner, use
-		  fp->write("Us::");      //typedef	    
+		  fp->write("Us::");      //typedef
 	      }
 #if 0
 	    else if(classtype == UC_QUARK)
@@ -599,11 +599,11 @@ namespace MFM {
 		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
 		fp->write("::");
 		if( ((i + 1) < cosSize))  //still another cos refiner, use
-		  fp->write("Us::");      //typedef	    
+		  fp->write("Us::");      //typedef
 	      }
 	    else if(classtype == UC_ELEMENT) //test please???
 	      {
-		fp->write(ut->getUlamTypeMangledName(&m_state).c_str()); 
+		fp->write(ut->getUlamTypeMangledName(&m_state).c_str());
 		fp->write("<CC>::");
 	      }
 	    else
@@ -627,7 +627,7 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0]; 
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
     UTI uti = stgcos->getUlamTypeIdx();
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
@@ -669,7 +669,7 @@ namespace MFM {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
-      } 
+      }
   } //genLocalMemberNameOfMethod
 
 } //end MFM

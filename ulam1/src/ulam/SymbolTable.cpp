@@ -52,6 +52,29 @@ namespace MFM {
     return NULL;  //impossible!!
   }
 
+
+  s32 SymbolTable::findPosOfUlamTypeInTable(UTI utype)
+  {
+    s32 posfound = -1;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(!sym->isTypedef() && sym->isDataMember() && !sym->isElementParameter())
+	  {
+	    if(sym->getUlamTypeIdx() == utype)
+	      {
+		posfound = ((SymbolVariable *) sym)->getPosOffset();
+		break;
+	      }
+	  }
+	it++;
+      }
+    return posfound;
+  } //findPosOfUlamTypeInTable
+
+
   // replaced with parse tree method to preserve order of declaration
   void SymbolTable::genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {
@@ -71,8 +94,9 @@ namespace MFM {
 
   void SymbolTable::genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    if(classtype != UC_ELEMENT)
-      return;
+    // 'has' applies to both quarks and elements
+    //    if(classtype != UC_ELEMENT)
+    //  return;
 
     //UlamType * iut = m_state.getUlamTypeByIndex(Int);
 
@@ -84,13 +108,20 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("static ");
 	//fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
-	fp->write("s32");
-	fp->write(" Uf_3has(const char * namearg);\n\n");
+	fp->write("s32 ");
+	fp->write(m_state.getHasMangledFunctionName());
+	fp->write("(const char * namearg);\n\n");
 	return;
       }
 
     m_state.indent(fp);
-    fp->write("template<class CC>\n");
+    if(classtype == UC_ELEMENT)
+      fp->write("template<class CC>\n");
+    else if(classtype == UC_QUARK)
+      fp->write("template<class CC, u32 POS>\n");
+    else
+      assert(0);
+
     m_state.indent(fp);
 
     fp->write("s32 ");  //return pos offset, or -1 if not found
@@ -101,7 +132,13 @@ namespace MFM {
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
 
-    fp->write("<CC>::Uf_3has");  //mangled name
+    if(classtype == UC_ELEMENT)
+      fp->write("<CC>");
+    else if(classtype == UC_QUARK)
+      fp->write("<CC, POS>");
+
+    fp->write("::");
+    fp->write(m_state.getHasMangledFunctionName());
     fp->write("(const char * namearg)\n");
     m_state.indent(fp);
     fp->write("{\n");

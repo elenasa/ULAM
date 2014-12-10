@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeUnaryOp.h -  Basic Node handling Unary Operations for ULAM
+ * NodeConditionalIs.h - Node for handling Is Expressions for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeUnaryOp.h -  Basic Node handling Unary Operations for ULAM
+  \file NodeConditionalIs.h - Node for handling Is Expressions for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,45 +34,39 @@
 */
 
 
-#ifndef NODEUNARYOP_H
-#define NODEUNARYOP_H
+#ifndef NODECONDITIONALIS_H
+#define NODECONDITIONALIS_H
 
-#include "Node.h"
+#include "NodeConditional.h"
 
 namespace MFM{
 
-  class NodeUnaryOp : public Node
+  class NodeConditionalIs : public NodeConditional
   {
   public:
 
-    NodeUnaryOp(Node * n, CompilerState & state);
-    ~NodeUnaryOp();
+    NodeConditionalIs(Node * leftNode, Token typeTok, CompilerState & state);
+    ~NodeConditionalIs();
 
-    virtual void print(File * fp);
+    virtual const char * getName();
 
-    virtual void printPostfix(File * fp);
-
-    virtual void printOp(File * fp);
-
-    virtual UTI checkAndLabelType();
+    virtual const std::string prettyNodeName();
 
     virtual const std::string methodNameForCodeGen();
+
+    virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    //TODO:
+    //virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
-
-    Node * m_node;
-    virtual void doUnaryOperation(s32 slot, u32 nslots);
-    virtual void doUnaryOperationImmediate(s32 slot, u32 nslots);
-    virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len) = 0;
 
   };
 
 }
 
-#endif //end NODEUNARYOP_H
+#endif //end NODECONDITIONALIS_H
