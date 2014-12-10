@@ -8,7 +8,7 @@ namespace MFM {
 
 
   NodeControlIf::~NodeControlIf()
-  { 
+  {
     delete m_nodeElse;
     m_nodeElse = NULL;
   }
@@ -37,7 +37,7 @@ namespace MFM {
 	m_nodeElse->printPostfix(fp);
 	fp->write(" else");  //operators last
       }
-    //else 
+    //else
     //  fp->write("<NULLFALSE>");
   }
 
@@ -55,7 +55,7 @@ namespace MFM {
 
 
   UTI NodeControlIf::checkAndLabelType()
-  { 
+  {
     NodeControl::checkAndLabelType();  //does condition and true
 
     if(m_nodeElse)
@@ -81,7 +81,7 @@ namespace MFM {
       }
 
     UlamValue cuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-	
+
     if((bool) cuv.getImmediateData(m_state) == false)
       {
 	if(m_nodeElse)  //not necessarily
@@ -93,7 +93,7 @@ namespace MFM {
     else
       {
 	makeRoomForNodeType(m_nodeBody->getNodeType());
-	evs = m_nodeBody->eval();  
+	evs = m_nodeBody->eval();
       }
 
     // the type of this node is Bool for the condition since the
@@ -105,7 +105,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return evs;
-  }
+  } //eval
 
   void NodeControlIf::genCode(File * fp, UlamValue& uvpass)
   {
@@ -123,7 +123,7 @@ namespace MFM {
 	fp->write("else\n");
 	m_state.indent(fp);
 	fp->write("{\n");
-	m_state.m_currentIndentLevel++;	
+	m_state.m_currentIndentLevel++;
 
 	m_nodeElse->genCode(fp, uvpass);
 

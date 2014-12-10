@@ -34,6 +34,8 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeBreakStatement.h"
 #include "NodeCast.h"
+#include "NodeConditionalIs.h"
+#include "NodeConditionalHas.h"
 #include "NodeContinueStatement.h"
 #include "NodeControlIf.h"
 #include "NodeControlWhile.h"
@@ -359,7 +361,7 @@ namespace MFM {
 	getNextToken(pTok);
       }
 
-    if(! Token::isTokenAType(pTok))
+    if(!Token::isTokenAType(pTok))
       {
 	unreadToken();
 	m_state.m_parsingElementParameterVariable = false;  //clear on error
@@ -614,7 +616,9 @@ namespace MFM {
 	return NULL;
       }
 
-    Node * condNode = parseAssignExpr();
+    //Node * condNode = parseAssignExpr();
+    Node * condNode = parseConditionalExpr();
+
     if(!condNode)
       return NULL;  //stop this maddness
 
@@ -662,7 +666,9 @@ namespace MFM {
 	return NULL;
       }
 
-    Node * condNode = parseAssignExpr();
+    //Node * condNode = parseAssignExpr();
+    Node * condNode = parseConditionalExpr();
+
     if(!condNode)
       return NULL;  //stop this maddness
 
@@ -920,6 +926,38 @@ namespace MFM {
   } //parseReturn
 
 
+  Node * Parser::parseConditionalExpr()
+  {
+    Node * rtnNode = NULL;
+
+    Token iTok;
+    if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
+      {
+
+	if(!(rtnNode = parseIdentExpr(iTok)))
+	  return parseExpression();  	//continue as parseAssignExpr
+
+	//next check for is-has-as
+	Token cTok;
+	getNextToken(cTok);
+	switch(cTok.m_type)
+	  {
+	  case TOK_KW_AS:
+	    // needs makeControlAs
+	    //unreadToken();
+	    //return makeConditionalExprNode(rtnNode);  //done
+	  default:
+	    unreadToken();
+	  };
+      }
+    else
+      return parseExpression();   //perhaps a number, true or false, cast..
+
+    // if nothing else follows, parseRestOfAssignExpr returns its argument
+    return parseRestOfAssignExpr(rtnNode);  //parseAssignExpr
+  } //parseConditionalExpr
+
+
   Node * Parser::parseAssignExpr()
   {
     Node * rtnNode = NULL;
@@ -939,7 +977,7 @@ namespace MFM {
 
     // if nothing else follows, parseRestOfAssignExpr returns its argument
     return parseRestOfAssignExpr(rtnNode);  //parseAssignExpr
-  }
+  } //parseAssignExpr
 
 
   Node * Parser::parseLvalExpr(Token identTok)
@@ -970,7 +1008,7 @@ namespace MFM {
     rtnNode->setNodeLocation(identTok.m_locator);
 
     return parseRestOfLvalExpr(rtnNode);  //in case of arrays
-  }
+  } //parseLvalExpr
 
 
   // lvalExpr + func Calls + member select (dot)
@@ -1060,9 +1098,8 @@ namespace MFM {
 	m_state.m_useMemberBlock = false;
 	m_state.m_currentMemberClassBlock = NULL;
       }
-
     return rtnNode;
-  }
+  } //parseRestOfMemberSelectExpr
 
 
   Node * Parser::parseFunctionCall(Token identTok)
@@ -1090,7 +1127,7 @@ namespace MFM {
 
     // can't do any checking since function may not have been seen yet
     return rtnNode;
-  }
+  } //parseFunctionCall
 
 
   bool Parser::parseRestOfFunctionCallArguments(NodeFunctionCall * callNode)
@@ -1134,8 +1171,8 @@ namespace MFM {
     if(!rtnNode)
       return NULL;  //stop this maddness
 
-    // if not addop, parseRestOfExpression returns its arg
-    return parseRestOfLogicalExpression(rtnNode);  //parseExpression
+    // if not bitop, parseRestOfLogicalExpression returns its arg
+    return parseRestOfLogicalExpression(rtnNode);  //parseLogicalExpression
   }
 
 
@@ -1146,7 +1183,7 @@ namespace MFM {
     if(!rtnNode)
       return NULL;  //stop this maddness
 
-    // if not addop, parseRestOfExpression returns its arg
+    // if not eqop, parseRestOfBitExpression returns its arg
     return parseRestOfBitExpression(rtnNode);  //parseExpression
   }
 
@@ -1158,7 +1195,7 @@ namespace MFM {
     if(!rtnNode)
       return NULL;  //stop this maddness
 
-    // if not addop, parseRestOfExpression returns its arg
+    // if not compop, parseRestOfEqExpression returns its arg
     return parseRestOfEqExpression(rtnNode);  //parseExpression
   }
 
@@ -1170,8 +1207,8 @@ namespace MFM {
     if(!rtnNode)
       return NULL;  //stop this maddness
 
-    // if not addop, parseRestOfExpression returns its arg
-    return parseRestOfCompareExpression(rtnNode);  //parseExpression
+    // if not shiftop, parseRestOfCompareExpression returns its arg
+    return parseRestOfCompareExpression(rtnNode);  //parseCompareExpression
   }
 
 
@@ -1182,7 +1219,7 @@ namespace MFM {
     if(!rtnNode)
       return NULL;  //stop this maddness
 
-    // if not addop, parseRestOfExpression returns its arg
+    // if not addop, parseRestOfShiftExpression returns its arg
     return parseRestOfShiftExpression(rtnNode);  //parseShiftExpression
   }
 
@@ -1209,8 +1246,16 @@ namespace MFM {
     switch(pTok.m_type)
       {
       case TOK_IDENTIFIER:
-	//unreadToken();
-	rtnNode = parseIdentExpr(pTok);
+	{
+	  rtnNode = parseIdentExpr(pTok);
+	  // test ahead for UNOP_EXPRESSION so that any consecutive binary
+	  // ops aren't misinterpreted as a unary operator (e.g. +,-).
+	  Token tTok;
+	  getNextToken(tTok);
+	  unreadToken();
+	  if(tTok.m_type == TOK_KW_IS || tTok.m_type == TOK_KW_HAS)
+	    rtnNode = parseRestOfFactor(rtnNode);
+	}
 	break;
       case TOK_NUMBER:
       case TOK_KW_TRUE:
@@ -1225,7 +1270,7 @@ namespace MFM {
       case TOK_PLUS:
       case TOK_BANG:
 	unreadToken();
-	rtnNode = parseRestOfFactor();  //parseUnop
+	rtnNode = parseRestOfFactor(NULL);  //parseUnop
 	break;
       case TOK_EOF:
       case TOK_CLOSE_CURLY:
@@ -1255,7 +1300,7 @@ namespace MFM {
   }
 
 
-  Node * Parser::parseRestOfFactor()
+  Node * Parser::parseRestOfFactor(Node * leftNode)
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -1268,7 +1313,14 @@ namespace MFM {
       case TOK_PLUS:
       case TOK_BANG:
 	unreadToken();
+	assert(!leftNode);
 	rtnNode = makeFactorNode();
+	break;
+      case TOK_KW_IS:
+      case TOK_KW_HAS:
+	unreadToken();
+	assert(leftNode);
+	rtnNode = makeConditionalExprNode(leftNode);
 	break;
       case TOK_ERROR_CONT:
 	{
@@ -1290,6 +1342,7 @@ namespace MFM {
       default:
 	{
 	  unreadToken();
+	  rtnNode = leftNode;
 	}
       };
 
@@ -1564,6 +1617,52 @@ namespace MFM {
 	rtnNode = makeExpressionNode(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode);  //recursion of left-associativity
 	break;
+      case TOK_AMP:
+      case TOK_PIPE:
+      case TOK_HAT:
+	unreadToken();
+	rtnNode = parseRestOfLogicalExpression(leftNode);  //addOp
+	rtnNode = parseRestOfExpression(rtnNode);
+	break;
+      case TOK_EQUAL_EQUAL:
+      case TOK_NOT_EQUAL:
+	unreadToken();
+	rtnNode = parseRestOfBitExpression(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);
+	break;
+      case TOK_LESS_THAN:
+      case TOK_LESS_EQUAL:
+      case TOK_GREATER_THAN:
+      case TOK_GREATER_EQUAL:
+	unreadToken();
+	rtnNode = parseRestOfEqExpression(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);
+	break;
+      case TOK_SHIFT_LEFT:
+      case TOK_SHIFT_RIGHT:
+	unreadToken();
+	rtnNode = parseRestOfCompareExpression(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);
+	break;
+      case TOK_PLUS:
+      case TOK_MINUS:
+	unreadToken();
+	rtnNode = parseRestOfShiftExpression(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);  //any more?
+	break;
+      case TOK_STAR:
+      case TOK_SLASH:
+      case TOK_PERCENTSIGN:
+	unreadToken();
+	rtnNode = parseRestOfTerm(leftNode);       //mulOp
+	rtnNode = parseRestOfExpression(rtnNode);  //any more?
+	break;
+      case TOK_KW_IS:
+      case TOK_KW_HAS:
+	unreadToken();
+	rtnNode = parseRestOfFactor(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode);  //any more?
+	break;
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
@@ -1616,7 +1715,6 @@ namespace MFM {
 
   Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, Node * dNode)
   {
-
     if(!getExpectedToken(TOK_COMMA, QUIETLY))
       {
 	return dNode;
@@ -1642,7 +1740,7 @@ namespace MFM {
       }
 
     return parseRestOfDecls(typeTok, typebitsize, rtnNode);
-  }
+  } //parseRestOfDecls
 
 
   Node * Parser::makeVariableSymbol(Token typeTok, u32 typebitsize, Token identTok)
@@ -1894,7 +1992,7 @@ namespace MFM {
 
     getExpectedToken(TOK_COMMA, QUIETLY); // if so, get next parameter; o.w. unread
     return parseRestOfFunctionParameters(fsym);
-  }
+  } //parseRestOfFunctionParameters
 
 
   bool Parser::parseFunctionBody(NodeBlockFunctionDefinition *& funcNode)
@@ -1962,7 +2060,7 @@ namespace MFM {
       }
 
     return brtn;
-  }
+  } //parseFunctionBody
 
 
   Node * Parser::makeTypedefSymbol(Token typeTok, u32 typebitsize, Token identTok)
@@ -2027,62 +2125,72 @@ namespace MFM {
 	unreadToken();
 	rtnNode = makeAssignExprNode(leftNode);
 	break;
-      case TOK_AMP_AMP:
-      case TOK_PIPE_PIPE:
-	unreadToken();
-	rtnNode = parseRestOfExpression(leftNode);
-	break;
-      case TOK_AMP:
-      case TOK_PIPE:
-      case TOK_HAT:
-	unreadToken();
-	rtnNode = parseRestOfLogicalExpression(leftNode);  //addOp
-	rtnNode = parseRestOfExpression(rtnNode);
-	break;
-      case TOK_EQUAL_EQUAL:
-      case TOK_NOT_EQUAL:
-	unreadToken();
-	rtnNode = parseRestOfBitExpression(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);
-	break;
-      case TOK_LESS_THAN:
-      case TOK_LESS_EQUAL:
-      case TOK_GREATER_THAN:
-      case TOK_GREATER_EQUAL:
-	unreadToken();
-	rtnNode = parseRestOfEqExpression(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);
-	break;
-      case TOK_SHIFT_LEFT:
-      case TOK_SHIFT_RIGHT:
-	unreadToken();
-	rtnNode = parseRestOfCompareExpression(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);
-	break;
-      case TOK_PLUS:
-      case TOK_MINUS:
-	unreadToken();
-	rtnNode = parseRestOfShiftExpression(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);  //any more?
-	break;
-      case TOK_STAR:
-      case TOK_SLASH:
-      case TOK_PERCENTSIGN:
-	unreadToken();
-	rtnNode = parseRestOfTerm(leftNode);       //mulOp
-	rtnNode = parseRestOfExpression(rtnNode);  //any more?
-	break;
       case TOK_SEMICOLON:
       case TOK_CLOSE_PAREN:
-      default:
+	//default:
 	{
 	  unreadToken();
 	  rtnNode = leftNode;
+	  break;
+	}
+      default:
+	{
+	  //or duplicate restofexpression cases here? seems silly..
+	  unreadToken();
+	  rtnNode = parseRestOfExpression(leftNode); //any more?
+	  break;
 	}
       };
-
     return rtnNode;  //parseRestOfAssignExpr
   }
+
+
+  Node * Parser::makeConditionalExprNode(Node * leftNode)
+  {
+    Node * rtnNode = NULL;
+
+    //reparse (is-has) function token
+    Token fTok;
+    getNextToken(fTok);
+
+    //parse Type
+    Token tTok;
+    getNextToken(tTok);
+
+    if(!Token::isTokenAType(tTok))
+      {
+	std::ostringstream msg;
+	msg << "RHS of operator <" << fTok.getTokenString() << "> is not a Type: " << tTok.getTokenString() << ", operation deleted";
+	MSG(&tTok, msg.str().c_str(), ERR);
+	delete leftNode;
+	return NULL;
+      }
+
+    switch(fTok.m_type)
+      {
+      case TOK_KW_IS:
+	rtnNode = new NodeConditionalIs(leftNode, tTok, m_state);
+	break;
+      case TOK_KW_HAS:
+	rtnNode = new NodeConditionalHas(leftNode, tTok, m_state);
+	break;
+      case TOK_KW_AS:
+	//rtnNode = new NodeConditionalAs(leftNode, tTok, m_state);
+	//break;
+      default:
+	{
+	  std::ostringstream msg;
+	  msg << " Unexpected input!! Token: <" << fTok.getTokenEnumName() << ">, aborting";
+	  MSG(&fTok, msg.str().c_str(), DEBUG);
+	  assert(0);
+	}
+	break;
+      };
+
+    assert(rtnNode);
+    rtnNode->setNodeLocation(fTok.m_locator);
+    return rtnNode;
+  } //makeCondtionalExprNode
 
 
   NodeBinaryOpEqual * Parser::makeAssignExprNode(Node * leftNode)

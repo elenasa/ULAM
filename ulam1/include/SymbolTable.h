@@ -59,6 +59,7 @@ namespace MFM{
 
     Symbol * getSymbolPtr(u32 id);
 
+    s32 findPosOfUlamTypeInTable(UTI utype);
 
     void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
 

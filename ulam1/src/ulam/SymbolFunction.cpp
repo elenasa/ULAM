@@ -215,7 +215,6 @@ namespace MFM {
 	fp->write(aut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++
 	//fp->write(aut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++
 	//fp->write(aut->getBitSizeTemplateString().c_str());  //for quark templates
-
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());
       }

@@ -317,9 +317,15 @@ namespace MFM {
 	fp->write("if(!");
 	fp->write(nut->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("<CC>::");
-	fp->write(".Uf_2is(");
+	fp->write(m_state.getIsMangledFunctionName());
+	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
-	fp->write(")) FAIL(BAD_CAST);\n");
+	fp->write("))\n");
+
+	m_state.m_currentIndentLevel++;
+	m_state.indent(fp);
+	fp->write("FAIL(BAD_CAST);\n");
+	m_state.m_currentIndentLevel--;
       }
     return;  //no change to uvpass, as if no casting
   }
