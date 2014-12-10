@@ -151,7 +151,7 @@ namespace MFM {
 	fp->write("(");
 	fp->write("ElementTable<CC>::Lookup(");
 	Node::genLocalMemberNameOfMethod(fp);  //assume an atom is a local variable (neither dm nor ep)
-	fp->write("getBits().");    //local T storage
+	fp->write("read().");    //local T storage
 	fp->write("GetType())->");
 	fp->write(methodNameForCodeGen().c_str());  //mangled
 	fp->write("(\"");
