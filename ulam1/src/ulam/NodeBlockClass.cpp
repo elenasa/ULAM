@@ -540,8 +540,10 @@ namespace MFM {
 
   void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    // 'has' is for both class types
     NodeBlock::generateCodeForBuiltInClassFunctions(fp, declOnly, classtype);
 
+    // 'is' is only for element/classes
     if(classtype != UC_ELEMENT)
       return;
 
@@ -555,8 +557,9 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("static ");
 	//fp->write(but->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
-	fp->write("bool");
-	fp->write(" Uf_2is(const T& targ);\n\n");
+	fp->write("bool ");
+	fp->write(m_state.getIsMangledFunctionName());
+	fp->write("(const T& targ);\n\n");
 	return;
       }
 
@@ -571,7 +574,8 @@ namespace MFM {
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
 
-    fp->write("<CC>::Uf_2is");  //mangled name
+    fp->write("<CC>::");
+    fp->write(m_state.getIsMangledFunctionName());
     fp->write("(const T& targ)\n");
     m_state.indent(fp);
     fp->write("{\n");

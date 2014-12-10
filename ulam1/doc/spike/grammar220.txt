@@ -29,7 +29,7 @@
 <CONDITIONAL_EXPRESSION> := <COND_DECL> | <ASSIGN_EXPESSION>
 
 <COND_DECL> := <SIMPLE_COND_DECL>              /* | <DECL> unimplemented */
-<SIMPLE_COND_DECL> := <IDENT> + ('as' | 'is' | 'has') + <TYPE_IDENT>
+<SIMPLE_COND_DECL> := <IDENT> + 'as' + <TYPE_IDENT>
 
 <WHILE_STATEMENT> := 'while' + '(' + <CONDITIONAL_EXPRESSION> + ')' + <STATEMENT>
 <BREAK_STATEMENT> := 'break' + ';'
@@ -56,7 +56,6 @@
 <LOGICAL_EXPRESSION> := <BIT_EXPRESSION> | <LOGICAL_EXPRESSION> <BITOP> <BIT_EXPRESSION>
 <BITOP> := '&' | '|' | '^'
 <BIT_EXPRESSION> := <EQ_EXPRESSION> | <BIT_EXPRESSION> <EQOP> <EQ_EXPRESSION>
-
 <EQOP> := '==' | '!='
 <EQ_EXPRESSION> := <COMPARE_EXPRESSION> | <EQ_EXPRESSION> <COMPOP> <COMPARE_EXPRESSION>
 <COMPOP> := '<' | '>' | '<=' | '>='
@@ -66,7 +65,8 @@
 <ADDOP> := '+' | '-'
 <TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
 <MULOP> := '*' | '/' | '%'
-<FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP> + <FACTOR>
+<FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP_EXPRESSION>
+<UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRES> + ('is' | 'has') + <TYPE_IDENT>
 <UNOP> := '-' | '+' | '!' | <CAST>
 <CAST> := '(' + <TYPE> + ')'
 

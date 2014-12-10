@@ -130,6 +130,12 @@ namespace MFM {
   }
 
 
+  s32 NodeBlock::findUlamTypeInTable(UTI utype)
+  {
+    return m_ST.findPosOfUlamTypeInTable(utype);
+  }
+
+
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {
     return &m_ST;
@@ -142,10 +148,12 @@ namespace MFM {
     m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
   }
 
+
   void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     m_ST.genCodeBuiltInFunctionsOverTableOfVariableDataMember(fp, declOnly, classtype);
   }
+
 
   void NodeBlock::genCode(File * fp, UlamValue& uvpass)
   {
