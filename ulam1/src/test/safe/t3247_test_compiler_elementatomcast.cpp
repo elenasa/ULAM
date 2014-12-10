@@ -27,5 +27,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3247_test_compiler_elementatomcast)
 
 } //end MFM
-
-
