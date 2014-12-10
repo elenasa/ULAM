@@ -1,12 +1,7 @@
 <PROGRAM> := <PROGRAM_DEF>* + <EOF>
 <PROGRAM_DEF> := <QUARK_OR_UNION_DEF> | <ELEMENT_DEF>
-<<<<<<< Updated upstream
-<ELEMENT_DEF> := 'element' + <TYPE_> + <CLASS_BLOCK>
-<QUARK_OR_UNION_DEF> := ('quark' | 'union') + <TYPE_IDENT> + <CLASS_BLOCK>
-=======
 <ELEMENT_DEF> := 'element' + <TYPE_IDENT> + <CLASS_BLOCK>
-<QUARK_OR_UNION_DEF> := ('quark' | 'union') + <TYPE_IDENT> + <CLASS_BLOCK> 
->>>>>>> Stashed changes
+<QUARK_OR_UNION_DEF> := ('quark' | 'union') + <TYPE_IDENT> + <CLASS_BLOCK>
 <CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
 <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | ('element' | 0 ) + <DECL> + ';' | <TYPE_DEF> + ';' )*
 

@@ -68,6 +68,9 @@ export ROOT_DIR
 # Root of MFM simulator tree (configure in Makefile.local.mk if known)
 export MFM_ROOT_DIR
 
+# MFM version we're built on
+export MFM_VERSION_NUMBER
+
 # Things that all builds should depend on
 export ALLDEP
 ALLDEP += $(shell find $(ROOT_DIR) -name 'Makefile')
