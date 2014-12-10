@@ -175,7 +175,11 @@ namespace MFM{
     */
     Node * parseReturn();
 
-
+    /**
+       <CONDITIONAL_EXPRESSION> := <COND_DECL> | <ASSIGN_EXPESSION>
+       <COND_DECL> := <SIMPLE_COND_DECL>
+       <SIMPLE_COND_DECL> := <IDENT_EXPR> + 'as' + <TYPE_IDENT>
+    */
     Node * parseConditionalExpr();
 
     /**
@@ -261,7 +265,8 @@ namespace MFM{
 
 
     /**
-       <FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <EXPRESSION> + ')' | <UNOP> + <FACTOR>
+       <FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <EXPRESSION> + ')' | <UNOP_EXPRESSION>
+       <UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRES> + ('is' | 'has') + <TYPE_IDENT>
      */
     Node * parseFactor();
 
@@ -361,7 +366,7 @@ namespace MFM{
     /**
 	<UNOP> := '-' | '+' | '!' | <CAST>
     */
-    Node * parseRestOfFactor();
+    Node * parseRestOfFactor(Node * leftNode);
 
 
     /**

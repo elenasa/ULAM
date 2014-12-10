@@ -56,7 +56,6 @@
 <LOGICAL_EXPRESSION> := <BIT_EXPRESSION> | <LOGICAL_EXPRESSION> <BITOP> <BIT_EXPRESSION>
 <BITOP> := '&' | '|' | '^'
 <BIT_EXPRESSION> := <EQ_EXPRESSION> | <BIT_EXPRESSION> <EQOP> <EQ_EXPRESSION>
-
 <EQOP> := '==' | '!='
 <EQ_EXPRESSION> := <COMPARE_EXPRESSION> | <EQ_EXPRESSION> <COMPOP> <COMPARE_EXPRESSION>
 <COMPOP> := '<' | '>' | '<=' | '>='
@@ -67,7 +66,7 @@
 <TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
 <MULOP> := '*' | '/' | '%'
 <FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP_EXPRESSION>
-<UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT> + ('is' | 'has') + <TYPE_IDENT>
+<UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRES> + ('is' | 'has') + <TYPE_IDENT>
 <UNOP> := '-' | '+' | '!' | <CAST>
 <CAST> := '(' + <TYPE> + ')'
 
