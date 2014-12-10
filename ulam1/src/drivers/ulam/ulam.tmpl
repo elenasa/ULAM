@@ -7,17 +7,22 @@ delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
 use Capture::Tiny 'capture';
 use Cwd 'abs_path';
+use Carp;
 
 ####DIRECTORY PATHS WITH DEFAULTS
 
   ##TEMPLATE SUBSTITUTIONS
   my $CULAM_PATH='@CULAM_PATH@';
+  my $ULAM_BUILD_TIMESTAMP='@ULAM_BUILD_TIMESTAMP@';
+  my $ULAM_BUILD_WHO='@ULAM_BUILD_WHO@';
+  my $ULAM_BUILD_WHERE='@ULAM_BUILD_WHERE@';
+  my $MFM_BUILD_VERSION='@MFM_VERSION_NUMBER@';
   my $MFM_ROOT_DIR='@MFM_ROOT_DIR@';
   IDie("Templates have not been substituted -- this is not the script you are looking for.\n")
       if $CULAM_PATH =~ /@/ or $MFM_ROOT_DIR =~ /@/;
 
 ####VARIABLES MODIFIED BY SWITCHES
-my $ULAM_BUILD_DIR=undef;
+my $ULAM_WORK_DIR=undef;
 my $ULAM_BIN_DIR=undef;
 my $SHOW_COMMANDS = 0;
 my $KEEP_GOING = 0;
@@ -157,9 +162,8 @@ sub UDie {
 
 sub IDie {
     my $msg = shift;
-    print STDERR "\nInternal Error: $msg";
-    print STDERR "Gah sorry!\n";
-    exit(2);
+    print STDERR "\nInternal Error: $msg\n";
+    confess "I suck";
 }
 
 my @sections;
@@ -185,9 +189,15 @@ my %swinfo = (
         id => getSectionId("Information"),
         handler => \&entryOcmd
     },
-    "version" => {
+    "briefversion" => {
         aliases => "V",
-        desc => "Print version information, then exit",
+        desc => "Print minimal version information, then exit",
+        id => getSectionId("Information"),
+        handler => \&entryOcmd
+    },
+    "version" => {
+        aliases => "",
+        desc => "Print full version information, then exit",
         id => getSectionId("Information"),
         handler => \&entryOcmd
     },
@@ -197,21 +207,33 @@ my %swinfo = (
         id => getSectionId("Information"),
         handler => \&entryOcmd
     },
-    "test" => {
-        aliases => "t",
-        desc => "Run the test() function of target (implies --link)",
+    "executables" => {
+        aliases => "e",
+        desc => "Generate executable  binaries from .ulam (implies --library)",
         id => getSectionId("Command"),
         handler => \&entryCmd
     },
-    "link" => {
+    "library" => {
         aliases => "l",
-        desc => "Generate executables from target .ulam (implies --compile)",
+        desc => "Create .a library file .ulam (implies --compile)",
         id => getSectionId("Command"),
         handler => \&entryCmd
     },
     "compile" => {
         aliases => "c",
-        desc => "Compile target .ulam into object files",
+        desc => "Compile .ulam to .o object files (implies --ulamcompile)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "ulamtest" => {
+        aliases => "ut",
+        desc => "Generate the ulamtest binary from .ulam (implies --compile)",
+        id => getSectionId("Command"),
+        handler => \&entryCmd
+    },
+    "test" => {
+        aliases => "t",
+        desc => "Run the ulamtest binary (implies --ulamtest)",
         id => getSectionId("Command"),
         handler => \&entryCmd
     },
@@ -223,11 +245,11 @@ my %swinfo = (
         id => getSectionId("Option"),
         handler => \&entryOpt
     },
-    "buildDir" => {
-        aliases => "bd",
+    "workDir" => {
+        aliases => "wd",
         type => "s",
-        desc => "Directory for compiler intermediate files",
-        variable => \$ULAM_BUILD_DIR,
+        desc => "Work directory for all compiler files",
+        variable => \$ULAM_WORK_DIR,
         id => getSectionId("Option"),
         handler => \&entryVar
     },
@@ -249,7 +271,7 @@ my %swinfo = (
     },
     "ulamcompile" => {
         aliases => "uc",
-        desc => "Compile target .ulam into C++ and stop",
+        desc => "Compile .ulam to intermediate C++ and stop",
         id => getSectionId("Debugging"),
         handler => \&entryCmd
     },
@@ -380,7 +402,11 @@ sub checkTool {
 }
 
 sub printVersion {
-    IDie("printVersion not yet implemented\n");
+    print STDERR "$MFM_BUILD_VERSION\n";
+}
+
+sub printFullVersion {
+    print STDERR "ulam $ULAM_BUILD_TIMESTAMP, built on MFM $MFM_BUILD_VERSION by $ULAM_BUILD_WHO\@$ULAM_BUILD_WHERE\n";
 }
 
 sub printToolPathsAndExit {
@@ -492,14 +518,18 @@ sub entryOcmd {
         printHelp();
         exit;
     }
-    if ($key eq "version") {
+    if ($key eq "briefversion") {
         printVersion();
+        exit;
+    }
+    if ($key eq "version") {
+        printFullVersion();
         exit;
     }
     if ($key eq "checktools") {
         printToolPathsAndExit();
     }
-    IDie "unknown $key";
+    IDie "unknown OCmd($key)\n";
 }
 
 sub genOpts {
@@ -590,7 +620,7 @@ separateFiles(@files);
 
 sub positionLiteralFiles {
     pISC("## Copy files");
-    my $bd = getBuildDir();
+    my $bd = getWorkDir();
     copyFilesTo("$bd/include",@includeFiles);
     copyFilesTo("$bd/src",@otherSrcFiles);
 }
@@ -619,8 +649,10 @@ UDie("No command specified\n")
 
 exit compilationDriver();
 
+my @cppFromUlam;
+
 sub compilationDriver {
-    prepareBuildDirs();
+    prepareWorkDir();
     positionLiteralFiles();
 
     my $buildResults = runUlamCompilations();
@@ -629,18 +661,40 @@ sub compilationDriver {
 
     return 0 if $actionCmd eq "ulamcompile";
 
+    if ($actionCmd eq "test") {
+        ($buildResults, my $testfile) = buildTests();
+        UDie("$buildResults tests creation problem(s) detected\n")
+            if $buildResults;
+#        IDie("Do what with $testfile?");
+        push @cppFromUlam, $testfile;
+    }
+
     $buildResults = runGccCompilations();
     UDie("$buildResults g++ build problem(s) detected\n")
         if $buildResults;
 
     return 0 if $actionCmd eq "compile";
 
-    IDie("UNIMPLEMENTED: $actionCmd\n")
-        if $actionCmd ne "test";
+    ($buildResults, my $libfile) = buildLibrary();
+    UDie("$buildResults library creation problem(s) detected\n")
+        if $buildResults;
 
-    my $makeResults = runGccMakeForTests();
-    UDie("$makeResults problem(s) detected during make\n")
-        if $makeResults;
+    return 0 if $actionCmd eq "library";
+
+    if ($actionCmd eq "executables") {
+        ($buildResults) = buildExecutables();
+        UDie("$buildResults executable creation problem(s) detected\n")
+            if $buildResults;
+        return 0;
+    } else {
+        ($buildResults) = buildTestMain();
+        UDie("$buildResults test main creation problem(s) detected\n")
+            if $buildResults;
+        ($buildResults,my $exefile) = makeProgram("testmain");
+        UDie("$buildResults testdriver linking problem(s) detected\n")
+            if $buildResults;
+        return 0;
+    }
 }
 
 sub myMkdir {
@@ -662,11 +716,11 @@ sub checkOrMakeDir
     UDie "'$bd' is not accessible\n" unless -R $bd and -W $bd;
 }
 
-sub prepareBuildDirs
+sub prepareWorkDir
 {
-    defaultBuildDir();
+    defaultWorkDir();
     pISC("## Make dirs");
-    my $bd = getBuildDir();
+    my $bd = getWorkDir();
     checkOrMakeDir($bd);
     checkOrMakeDir("$bd/src");
     checkOrMakeDir("$bd/include");
@@ -689,8 +743,6 @@ EOM
 
     IDie("Implementme $actionCmd:$body\n");
 }
-
-my @cppFromUlam;
 
 sub runUlamCompilations
 {
@@ -715,6 +767,198 @@ sub runUlamCompilations
     return $status;
 }
 
+sub buildLibrary
+{
+    pISC("## Create library");
+    my $libfile = "$ULAM_WORK_DIR/build/libculam.a";
+    my @args = ("ruc", $libfile);
+    my $status = 0;
+    for my $cfile (@cppFromUlam) {
+        my $ofile = $cfile;
+        if ($ofile !~ s/[.]cpp$/.o/) {
+            IDie("What happened? ($cfile)\n");
+        }
+        $ofile = "$ULAM_WORK_DIR/build/$ofile";
+        push @args, $ofile;
+    }
+
+    print " Create library: ";
+    my $ar = getTool($arTool);
+    ($status,my $stdout,my $stderr) = runThis(undef,undef,$ar,@args);
+
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+#        my $info = $stderr;
+#        chomp($info);
+#        print STDOUT "INFO($info)\n";
+#        my ($cfile, $hastest) = split(/ /, $info);
+        print STDOUT "OK\n";
+        return (0, $libfile);
+    }
+    return $status ne "";
+}
+
+sub buildExecutables
+{
+    pISC("## Create executables");
+    IDie("IMPLEMENTME");
+    my $libfile = "$ULAM_WORK_DIR/build/libculam.a";
+    my @args = ("ruc", $libfile);
+    my $status = 0;
+    for my $cfile (@cppFromUlam) {
+        my $ofile = $cfile;
+        if ($ofile !~ s/[.]cpp$/.o/) {
+            IDie("What happened? ($cfile)\n");
+        }
+        $ofile = "$ULAM_WORK_DIR/build/$ofile";
+        push @args, $ofile;
+    }
+
+    print " Create library: ";
+    my $ar = getTool($arTool);
+    ($status,my $stdout,my $stderr) = runThis(undef,undef,$ar,@args);
+
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+#        my $info = $stderr;
+#        chomp($info);
+#        print STDOUT "INFO($info)\n";
+#        my ($cfile, $hastest) = split(/ /, $info);
+        print STDOUT "OK\n";
+        return (0, $libfile);
+    }
+    return $status ne "";
+}
+
+sub generateTestForTestable {
+    my ($handle, $elementName) = @_;
+    my $elementTestFuncName = "Test_$elementName";
+    print $handle <<EOF;
+
+#include "$elementName.h"
+static int $elementTestFuncName(bool output)
+{
+  enum { SIZE = 96 };
+  typedef MFM::ParamConfig<SIZE> OurParamConfig;
+  typedef MFM::P3Atom<OurParamConfig> OurAtom;
+  typedef MFM::CoreConfig<OurAtom, OurParamConfig> OurCoreConfig;
+  typedef MFM::UlamContext<OurCoreConfig> OurUlamContext;
+  typedef MFM::Tile<OurCoreConfig> OurTile;
+  OurTile theTile;
+  OurUlamContext::Get().SetTile(theTile);
+  typedef MFM::$elementName<OurCoreConfig> OurElement;
+  OurElement& elt = OurElement::THE_INSTANCE;
+  elt.AllocateType();
+  OurAtom atom = elt.GetDefaultAtom();
+  MFM::Ui_Ut_102323Int rtn;
+  rtn = OurElement::Uf_4test(atom);
+  int count = rtn.read();
+  if (output) {
+    if (count == 0)
+      printf("%s: OK\\n","$elementTestFuncName");
+    else
+      printf("%s: ERROR RETURN %d\\n","$elementTestFuncName", count);
+  }
+  return count;
+}
+
+EOF
+    return $elementTestFuncName;
+}
+
+sub buildTests
+{
+    pISC("## Create test driver");
+
+    # Goal 1: Have a prewritten test function that sets up a test
+    #         environment.  Stored where?
+    #
+    # Goal 2: Have a prewritten test driver that has a small amount of
+    #         generated code each testable element, that sets up the
+    #         test environment, puts an instance of the
+    #         element-under-test (EUT) into the center site, and then
+    #         calls Uf_4test appropriately for that element.  This way
+    #         we require no base class declaration of the test function.
+
+    my $testbase = "testdriver";
+    my $testbaseguard = uc($testbase)."_H";
+    my $testhdr = "$testbase.h";
+    my $testcpp = "$testbase.cpp";
+    my $testinc = "$ULAM_WORK_DIR/include/$testhdr";
+    my $testsrc = "$ULAM_WORK_DIR/src/$testcpp";
+
+    my $testdecl = "int RunAllTests(bool output)";
+    open(my $hdrhdl, ">", $testinc)
+        or UDie("Can't write '$testinc': $!\n");
+    print $hdrhdl <<EOF;
+#ifndef $testbaseguard
+#define $testbaseguard
+
+ extern $testdecl;
+
+#endif /* $testbaseguard */
+EOF
+    close $hdrhdl or UDie("Error closing '$testinc': $!\n");
+    open(my $handle, ">", $testsrc)
+        or UDie("Can't write '$testsrc': $!\n");
+    print $handle <<EOF;
+
+#include "$testhdr"
+
+EOF
+
+    my @testables = map { s/[.]cpp$//; $_} sort values %testableFiles;
+
+    my @testfuncs;
+    for my $eltName (@testables) {
+        my $testcpp = generateTestForTestable($handle, $eltName);
+        push @testfuncs, $testcpp;
+    }
+    print $handle <<EOF;
+
+$testdecl
+{
+  int testsFailed = 0;
+
+EOF
+    for my $testfunc (@testfuncs) {
+        print $handle <<EOF;
+  testsFailed += $testfunc(output);
+EOF
+   }
+    print $handle <<EOF;
+  return testsFailed > 99 ? 99 : testsFailed;
+}
+EOF
+    close $handle or UDie("Error closing '$testsrc': $!\n");
+   return (0,$testcpp);
+}
+
+sub buildTestMain
+{
+    pISC("## Create test main");
+
+    my $testbase = "testdriver";
+    my $testhdr = "$testbase.h";
+
+    my $testsrc = "$ULAM_WORK_DIR/src/testmain.cpp";
+
+    open(my $handle, ">", $testsrc)
+        or UDie("Can't write '$testsrc': $!\n");
+    print $handle <<EOF;
+#include "$testhdr"
+
+int main(int argc, char **argv) {
+  return RunAllTests(argc > 1);
+}
+EOF
+    close $handle or UDie("Error closing '$testsrc': $!\n");
+   return (0,$testbase);
+}
+
+
 sub runGccCompilations
 {
     pISC("## Compile C++");
@@ -722,7 +966,7 @@ sub runGccCompilations
     for my $cfile (@cppFromUlam) {
         pISC(" # Compiling '$cfile'");
         my $gppStatus = 0;
-        $gppStatus = gppCompile($cfile);
+        $gppStatus = gppCompile($cfile,"ulam_cppcompile");
         my $fileStatus = $gppStatus;
         $status += $fileStatus;
         last if $fileStatus != 0 && $KEEP_GOING == 0;
@@ -730,12 +974,21 @@ sub runGccCompilations
     return $status;
 }
 
+sub makeProgram
+{
+    my $progname = shift;
+    pISC("## Create program $progname");
+    my $gppStatus = 0;
+    $gppStatus = gppCompile("$progname.cpp","ulam_program");
+    return ($gppStatus,$progname);
+}
+
 sub runUlamCompile {
     my ($file) = @_;
     my $culam = getTool($ulamcTool);
     my @args = ($file);
-    push @args, $ULAM_BUILD_DIR
-        if defined $ULAM_BUILD_DIR;
+    push @args, $ULAM_WORK_DIR
+        if defined $ULAM_WORK_DIR;
     print " Compile $file: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
     if ($status ne "") {
@@ -746,7 +999,6 @@ sub runUlamCompile {
 #        print STDOUT "INFO($info)\n";
         my ($cfile, $hastest) = split(/ /, $info);
         print STDOUT "OK\n";
-#        UNSAFE_TEMPORARY_MV_FILES($ULAM_BUILD_DIR);
         return (0, $cfile, $hastest eq 'TEST');
     }
     return $status ne "";
@@ -794,20 +1046,23 @@ sub changeEnv {
     exit(2);
 }
 
-sub defaultBuildDir {
-    $ULAM_BUILD_DIR = "./.gen"
-        unless defined $ULAM_BUILD_DIR;
-    $ULAM_BUILD_DIR = abs_path($ULAM_BUILD_DIR);
+sub defaultWorkDir {
+    $ULAM_WORK_DIR = "./.gen"
+        unless defined $ULAM_WORK_DIR;
+    $ULAM_WORK_DIR = abs_path($ULAM_WORK_DIR);
+    if ($ULAM_WORK_DIR =~ m!^([-_a-zA-Z0-9./]+)$!) {
+        $ULAM_WORK_DIR = $1;
+    }
 }
 
-sub getBuildDir {
-    die unless defined $ULAM_BUILD_DIR;
-    return $ULAM_BUILD_DIR;
+sub getWorkDir {
+    die unless defined $ULAM_WORK_DIR;
+    return $ULAM_WORK_DIR;
 }
 
 sub gppCompile {
-    my ($file) = @_;
-    my $dir = getBuildDir();
+    my ($file,$makeTarget) = @_;
+    my $dir = getWorkDir();
     my $make = getTool($makeTool);
     my $mfm = getTool($mfmRootTool);
     my @env =
@@ -819,8 +1074,8 @@ sub gppCompile {
          "USE_PATH", $ORIG_PATH,
         );
     my $oldenv = modifyEnv(@env);
-    my @args = (#"-d",
-		"-C", "$mfm", "ulam_cppcompile");
+    my @args = ("-e",
+		"-C", "$mfm", $makeTarget);
     print " Compile $file: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
     restoreEnv($oldenv);
