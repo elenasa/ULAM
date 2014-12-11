@@ -389,9 +389,11 @@ namespace MFM {
       {
 	UlamType * ut = m_state.getUlamTypeByIndex(i);
 	if(ut->needsImmediateType() && ut->getUlamClass() != UC_NOTACLASS)
-	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	  {
+	    ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	    ut->genUlamTypeMangledAutoDefinitionForC(fp, &m_state);
+	  }
       }
-
     delete fp;
   } //genMangledTypeHeaderFile
 

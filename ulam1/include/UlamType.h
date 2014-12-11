@@ -100,6 +100,8 @@ namespace MFM{
 
     virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
 
+    virtual const std::string getUlamTypeImmediateAutoMangledName(CompilerState * state);
+
     virtual bool needsImmediateType();
 
     virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
@@ -159,6 +161,8 @@ namespace MFM{
     virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
 
     virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp, CompilerState * state);
 
   protected:
     UlamKeyTypeSignature m_key;
