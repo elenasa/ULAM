@@ -459,7 +459,7 @@ namespace MFM {
       } //not void return
 
 
-    // static functions..oh yeah.
+    // static functions..oh yeah..but only for quarks
     // who's function is it?
     if(!isCurrentObjectALocalVariableOrArgument())
       genMemberNameOfMethod(fp, m_state.m_currentObjPtr);
@@ -557,8 +557,12 @@ namespace MFM {
     fp->write("::");
     fp->write("Us::");   //typedef
 
-#if 0
+    //for non-static element functions
     ULAMCLASSTYPE classtype = ut->getUlamClass();
+    if(classtype == UC_ELEMENT)
+      fp->write("THE_INSTANCE.");
+
+#if 0
     if(classtype == UC_QUARK)
       {
 	fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
@@ -591,7 +595,12 @@ namespace MFM {
 		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
 		fp->write("::");
 		if( ((i + 1) < cosSize))  //still another cos refiner, use
-		  fp->write("Us::");      //typedef
+		  {
+		    fp->write("Us::");      //typedef
+		    //for non-static element functions
+		    if(sclasstype == UC_ELEMENT)
+		      fp->write("THE_INSTANCE.");
+		  }
 	      }
 #if 0
 	    else if(classtype == UC_QUARK)
@@ -641,6 +650,11 @@ namespace MFM {
     fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
     fp->write("::");
     fp->write("Us::");   //typedef
+
+    //for non-static element functions
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
+    if(classtype == UC_ELEMENT)
+      fp->write("THE_INSTANCE.");
 
 #if 0
     ULAMCLASSTYPE classtype = ut->getUlamClass();
