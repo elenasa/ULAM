@@ -161,7 +161,10 @@ namespace MFM {
 
     m_state.indent(fp);
     if(declOnly)
-      fp->write("static ");
+      {
+	if(classtype == UC_QUARK)
+	  fp->write("static ");   //element functions are not static
+      }
     else
       {
 	if(classtype == UC_QUARK)
