@@ -386,7 +386,8 @@ namespace MFM {
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
 
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+    //fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
     fp->write(" = ");
 
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
@@ -753,8 +754,8 @@ namespace MFM {
 	    fp->write(".");
 
 	    fp->write(stgcos->getMangledName().c_str()); //XXXX
-	    fp->write(".m_stg");     //immediate EP needs the T storage within the struct
-	    fp->write(", ");         //...rest of args
+	    fp->write(".getRef()");     //immediate EP needs the T storage within the struct
+	    fp->write(", ");            //...rest of args
 	  }
       }
     else  //local var
@@ -773,8 +774,7 @@ namespace MFM {
 	  {
 	    fp->write("(");
 	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".m_stg");     //immediate EP needs the T storage within the struct
-	    //fp->write(".getBits()"); //???
+	    fp->write(".getRef()");     //immediate EP needs the T storage within the struct
 	    fp->write(", ");
 	  }
 	else
@@ -1375,8 +1375,8 @@ namespace MFM {
 	    fp->write("<CC>::THE_INSTANCE");
 	    fp->write(".");
 	    fp->write(stgcos->getMangledName().c_str());  //XXX
-	    fp->write(".m_stg");     //immediate EP needs the T storage within the struct
-	    fp->write(", ");         //...rest of args
+	    fp->write(".getRef()");     //immediate EP needs the T storage within the struct
+	    fp->write(", ");            //...rest of args
 	  }
 	// (what if array?)
       }
@@ -1396,7 +1396,7 @@ namespace MFM {
 	    if(stgcosclasstype == UC_ELEMENT)
 	      {
 		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".m_stg");     //immediate EP needs the T storage within the struct
+		fp->write(".getRef()");     //immediate EP needs the T storage within the struct
 		//fp->write(".getBits()");  //???
 		fp->write(", ");         //...rest of args
 	      }

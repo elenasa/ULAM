@@ -376,7 +376,7 @@ namespace MFM {
 	      {
 		arglist << ".";
 		arglist << stgcos->getMangledName().c_str();
-		arglist << ".m_stg"; //the T storage within the struct for immediate quarks
+		arglist << ".getRef()"; //the T storage within the struct for immediate quarks
 	      }
 	  }
       }
@@ -398,7 +398,7 @@ namespace MFM {
 	//	UTI stgcosuti = stgcos->getUlamTypeIdx();
 	//if(m_state.getUlamTypeByIndex(stgcosuti)->getUlamClass() == UC_QUARK)
 	  {
-	    arglist << ".m_stg"; //the T storage within the struct for immediate quarks
+	    arglist << ".getRef()"; //the T storage within the struct for immediate quarks
 	  }
       }
 

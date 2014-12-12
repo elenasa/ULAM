@@ -68,6 +68,7 @@ namespace MFM{
     //TODO:
     //virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
+    Token getTypeToken();
 
   protected:
     Node * m_nodeLeft;

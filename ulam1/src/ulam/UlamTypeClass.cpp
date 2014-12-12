@@ -205,7 +205,7 @@ namespace MFM {
   PACKFIT UlamTypeClass::getPackable()
   {
     if(m_class == UC_ELEMENT)
-      return PACKED;
+      return UNPACKED; //was PACKED, now matches ATOM regardless of its bit size.
 
     return UlamType::getPackable();  //quarks depend their size
   }
@@ -412,6 +412,10 @@ namespace MFM {
     state->indent(fp);
     fp->write("BitVector<BPA>& getBits() { return m_stg.GetBits(); }\n");
 
+    // non-const T ref method for scalar
+    state->indent(fp);
+    fp->write("T& getRef() { return m_stg; }\n");
+
     if(isCustomArray())
       genCustomArrayMangledDefinitionForC(fp, state);
 
@@ -601,8 +605,11 @@ namespace MFM {
 
     // getBits method for scalar
     state->indent(fp);
-    //fp->write("T& getBits() { return m_stg; }\n"); , unlike read, not const
     fp->write("BitVector<BPA>& getBits() { return m_stg.GetBits(); }\n");
+
+    // non-const T ref method for scalar
+    state->indent(fp);
+    fp->write("T& getRef() { return m_stg; }\n");
 
     state->m_currentIndentLevel--;
     state->indent(fp);
@@ -753,7 +760,7 @@ namespace MFM {
 	state->indent(fp);
 	fp->write("~");
 	fp->write(automangledName.c_str());
-	fp->write("() { m_stgToChange.GetBits().Write(m_pos, ");
+	fp->write("() { m_stgToChange.GetBits().Write(m_pos + T::ATOM_FIRST_STATE_BIT, ");
 	fp->write_decimal(len);
 	fp->write(", ");
 	fp->write(mangledName.c_str());
@@ -776,6 +783,14 @@ namespace MFM {
       }
     else
       assert(0);
+
+#if 0
+    // non-const T ref method for scalar
+    state->indent(fp);
+    fp->write("T& getRef() { return ");
+    fp->write(mangledName.c_str());
+    fp->write("<CC>::getRef(); }\n");
+#endif
 
     state->m_currentIndentLevel--;
     state->indent(fp);
