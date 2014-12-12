@@ -54,6 +54,7 @@
 #include "SymbolClass.h"
 #include "SymbolFunction.h"
 #include "SymbolTable.h"
+#include "SymbolVariable.h"
 #include "Token.h"
 #include "Tokenizer.h"
 #include "UlamType.h"
@@ -108,6 +109,10 @@ namespace MFM{
 
     bool m_parsingControlLoop;               // used for break/control statement parsing
     bool m_parsingElementParameterVariable;  // used for static 'element' variables
+
+    bool m_parsingConditionalAs;             // used for Conditional-As parsing
+    Token m_identTokenForConditionalAs;      // used for Conditional-As parsing
+    bool m_genCodingConditionalAs;   // used for Conditional-As code gen
 
     CallStack m_funcCallStack;    //local variables and arguments
     //UlamAtom  m_selectedAtom;   //storage for data member (static/global) variables
@@ -207,6 +212,7 @@ namespace MFM{
     u32 getCustomArraySetFunctionNameId();
     const char * getIsMangledFunctionName();
     const char * getHasMangledFunctionName();
+    const char * getAsMangledFunctionName(UTI rtype);
 
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
@@ -257,6 +263,8 @@ namespace MFM{
 
     void outputTextAsComment(File * fp, Locator nodeloc);
 
+    /** for conditional as-magic */
+    void saveIdentTokenForConditionalAs(Token iTok);
   };
 
 }

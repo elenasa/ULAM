@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
+ * NodeConditionalAs.h - Node for handling As Expressions for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
+  \file NodeConditionalAs.h - Node for handling As Expressions for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,48 +34,43 @@
 */
 
 
-#ifndef NODEVARDECL_H
-#define NODEVARDECL_H
+#ifndef NODECONDITIONALAS_H
+#define NODECONDITIONALAS_H
 
-#include "Node.h"
-#include "SymbolVariable.h"
+#include "NodeConditional.h"
 
 namespace MFM{
 
-  class NodeVarDecl : public Node
+  class NodeConditionalAs : public NodeConditional
   {
   public:
 
-    NodeVarDecl(SymbolVariable * sym, CompilerState & state);
-    ~NodeVarDecl();
-
-    virtual void printPostfix(File * f);
-
-    virtual UTI checkAndLabelType();
-
-    virtual EvalStatus eval();
-
-    virtual EvalStatus evalToStoreInto();
+    NodeConditionalAs(Node * leftNode, Token typeTok, CompilerState & state);
+    ~NodeConditionalAs();
 
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
+    virtual const std::string methodNameForCodeGen();
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual UTI checkAndLabelType();
+
+    virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
-  private:
-    SymbolVariable * m_varSymbol;
+    //TODO:
+    //virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
-    void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
-    void genCodedElementParameter(File * fp, UlamValue uvpass);
-    void genCodedAutoLocal(File * fp, UlamValue & uvpass);
+  protected:
+
+  private:
+    void genCodeAsQuark(File * fp, UlamValue& uvpass);
+    void genCodeAsElement(File * fp, UlamValue& uvpass);
 
   };
 
 }
 
-#endif //end NODEVARDECL_H
+#endif //end NODECONDITIONALAS_H

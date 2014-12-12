@@ -40,17 +40,18 @@
 #include <string>
 #include <vector>
 #include "itype.h"
-#include "Tokenizer.h"
+#include "CompilerState.h"
 #include "Node.h"
-#include "NodeBlock.h"
-#include "NodeStatements.h"
 #include "NodeBinaryOpEqual.h"
 #include "NodeBinaryOp.h"
+#include "NodeBlock.h"
+#include "NodeConditionalAs.h"
+#include "NodeFunctionCall.h"
+#include "NodeStatements.h"
 #include "NodeUnaryOp.h"
 #include "Symbol.h"
 #include "SymbolFunction.h"
-#include "CompilerState.h"
-#include "NodeFunctionCall.h"
+#include "Tokenizer.h"
 
 namespace MFM{
   /**
@@ -124,26 +125,27 @@ namespace MFM{
     */
     Node * parseControlStatement();
 
-
     /**
 	<IF_STATEMENT> := 'if' + '(' + <ASSIGN_EXPR> + ')' + <STATEMENT> + <OPT_ELSE_STATEMENT>
 	<OPT_ELSE_STATEMENT> := 0 | 'else' + <STATEMENT>
     */
     Node * parseControlIf(Token ifTok);
 
-
     /**
        <WHILE_STATEMENT> := 'while' + '(' + <ASSIGN_EXPR> + ')' + <STATEMENT>
     */
     Node * parseControlWhile(Token wTok);
 
+    /**
+	helper for 'as' condition in if/while
+    */
+    Node * setupAsConditionalBlockAndParseStatements(NodeConditionalAs * asNode);
 
 
     /**
 	<SIMPLE_STATEMENT> := ( 0 | <DECL> | <FUNC_DECL> | <TYPE_DEF> | <ASSIGNEXPR> ) + ';'
      */
     Node * parseSimpleStatement();
-
 
 
     /**

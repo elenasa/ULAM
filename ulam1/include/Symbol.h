@@ -53,16 +53,19 @@ namespace MFM{
 
     UTI getUlamTypeIdx();
     u32 getId();
-    
+
     virtual bool isFunction();
     virtual bool isTypedef();
     virtual bool isClass();
-    
+
     void setDataMember();
     bool isDataMember();
 
     void setElementParameter();
     bool isElementParameter();
+
+    void setAutoLocal();
+    bool isAutoLocal();
 
     const std::string getMangledName();
 
@@ -84,6 +87,7 @@ namespace MFM{
                          // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
     bool m_dataMember;
     bool m_elementParameter;
+    bool m_autoLocal;
   };
 
 }

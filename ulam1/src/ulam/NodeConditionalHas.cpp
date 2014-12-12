@@ -142,24 +142,33 @@ namespace MFM {
     if(luti == UAtom)
       {
 	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
-	fp->write(" "); //e.g. u32, s32, u64, etc.
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarHas).c_str());
-	fp->write(" = ");
+	fp->write("u32 atomtype = ");
+	Node::genLocalMemberNameOfMethod(fp);  //assume atom is a local var (neither dm nor ep)
+	fp->write("read().GetType();\n");
 
-	fp->write("(");
-	fp->write("ElementTable<CC>::Lookup(");
-	Node::genLocalMemberNameOfMethod(fp);  //assume an atom is a local variable (neither dm nor ep)
-	fp->write("read().");    //local T storage
-	fp->write("GetType())->");
+	m_state.indent(fp);
+	fp->write("Tile<CC> & tile = UlamContext<CC>::Get().GetTile();\n");
+	m_state.indent(fp);
+	fp->write("ElementTable<CC> & et = tile.GetElementTable();\n");
+	m_state.indent(fp);
+	fp->write("const Element<CC> * eltptr = et.Lookup(atomtype);\n");
+	m_state.indent(fp);
+	fp->write("if(!eltptr) FAIL(NULL_POINTER);\n");
+	m_state.indent(fp);
+	fp->write("const UlamElement<CC> * ueltptr = eltptr->AsUlamElement();\n");
+
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32
+	fp->write(" "); //e.g. u32
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarHas).c_str());
+	fp->write(" = ((");
+	fp->write("ueltptr ? ");
+	fp->write("ueltptr->");
 	fp->write(methodNameForCodeGen().c_str());  //mangled
 	fp->write("(\"");
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
-	fp->write("\") >= 0);\n");
-
-	m_state.indent(fp);
-	fp->write("FAIL(INCOMPLETE_CODE);\n");
+	fp->write("\") : -1) >= 0);\n");  //bool as u32
       }
     else
       {

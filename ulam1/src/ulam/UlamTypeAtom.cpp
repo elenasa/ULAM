@@ -141,6 +141,9 @@ namespace MFM {
     //write 'entire atom' method
     genUlamTypeWriteDefinitionForC(fp, state);
 
+    // non-const T ref method for scalar
+    state->indent(fp);
+    fp->write("T& getRef() { return m_stg; }\n");
 
     state->m_currentIndentLevel--;
     state->indent(fp);

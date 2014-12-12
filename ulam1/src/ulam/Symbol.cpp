@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false) {}
+  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false) {}
   Symbol::~Symbol(){}
 
   u32 Symbol::getId()
@@ -64,6 +64,17 @@ namespace MFM {
   }
 
 
+  void Symbol::setAutoLocal()
+  {
+      m_autoLocal = true;
+  }
+
+  bool Symbol::isAutoLocal()
+  {
+    return m_autoLocal;
+  }
+
+
   const std::string Symbol::getMangledName()
   {
        std::ostringstream mangled;
@@ -83,7 +94,7 @@ namespace MFM {
     ULAMCLASSTYPE classtype = sut->getUlamClass();
 
     //another way, like this?
-    if(m_elementParameter)  
+    if(m_elementParameter)
       {
 	std::ostringstream epmangled;
 	epmangled << sut->getImmediateStorageTypeAsString(&m_state);
