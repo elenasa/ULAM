@@ -30,11 +30,11 @@ namespace MFM {
   static const char * HIDDEN_ARG_NAME = "Uv_4self";
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aRef";
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aSet";
-  static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is;
-  static const char * HAS_MANGLED_FUNC_NAME = "internalCMethodImplementingHas"; //"Uf_3has";
+  static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs";   //Uf_2is;
+  static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //"Uf_3has";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(false), m_parsingElementParameterVariable(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(false), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
   {
     m_err.init(this, debugOn, NULL);
   }
@@ -791,6 +791,19 @@ namespace MFM {
   }
 
 
+  const char * CompilerState::getAsMangledFunctionName(UTI rtype)
+  {
+    ULAMCLASSTYPE rclasstype = getUlamTypeByIndex(rtype)->getUlamClass();
+    if(rclasstype == UC_QUARK)
+      return HAS_MANGLED_FUNC_NAME;
+    else if (rclasstype == UC_ELEMENT)
+      return IS_MANGLED_FUNC_NAME;
+    else
+      assert(0);
+    return "AS_ERROR";
+  }
+
+
   std::string CompilerState::getFileNameForAClassHeader(u32 id, bool wSubDir)
   {
     std::ostringstream f;
@@ -1237,6 +1250,11 @@ namespace MFM {
     std::ostringstream tmpVar;  // into
     PACKFIT packed = determinePackable(uti);
 
+    if(uti == UAtom || getUlamTypeByIndex(uti)->getUlamClass() == UC_ELEMENT)
+      {
+	stg = TMPBITVAL; //avoid loading a T into a tmpregister!
+      }
+
     if(stg == TMPREGISTER)
       {
 	if(WritePacked(packed))
@@ -1258,5 +1276,13 @@ namespace MFM {
 
     return tmpVar.str();
   } //getTmpVarAsString
+
+
+  void CompilerState::saveIdentTokenForConditionalAs(Token iTok)
+    {
+      m_identTokenForConditionalAs = iTok;
+      m_parsingConditionalAs = true;    //cleared manually
+    }
+
 
 } //end MFM

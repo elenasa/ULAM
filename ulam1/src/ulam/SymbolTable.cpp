@@ -740,7 +740,6 @@ namespace MFM {
 	std::ostringstream ourname;
 	ourname << "Our" << namestr;
 
-
 	// only for elements
 	fp->write("\n");
 	m_state.indent(fp);
@@ -763,6 +762,10 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write(lowercasename.c_str());
 	fp->write(".AllocateType();  // Force element type allocation now\n");
+	m_state.indent(fp);
+	fp->write("theTile.RegisterElement(");
+	fp->write(lowercasename.c_str());
+	fp->write(");\n");
 
 	if(sym->getId() == m_state.m_compileThisId)
 	  {
@@ -776,7 +779,6 @@ namespace MFM {
 	    //runThisTest << ourname.str().c_str() << "::Uf_4test(" << lowercasename.c_str() << "Atom)";
 	    runThisTest << lowercasename.c_str() << ".Uf_4test(" << lowercasename.c_str() << "Atom)";
 	  }
-
 	it++;
 	idcounter++;
       }

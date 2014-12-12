@@ -390,9 +390,11 @@ namespace MFM {
       {
 	UlamType * ut = m_state.getUlamTypeByIndex(i);
 	if(ut->needsImmediateType() && ut->getUlamClass() != UC_NOTACLASS)
-	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	  {
+	    ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	    ut->genUlamTypeMangledAutoDefinitionForC(fp, &m_state);
+	  }
       }
-
     delete fp;
   } //genMangledTypeHeaderFile
 
@@ -493,6 +495,14 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("typedef MFM::CoreConfig<OurAtom, OurParamConfig> OurCoreConfig;\n");
+    m_state.indent(fp);
+    fp->write("typedef MFM::UlamContext<OurCoreConfig> OurUlamContext;\n");
+    m_state.indent(fp);
+    fp->write("typedef MFM::Tile<OurCoreConfig> OurTile;\n");
+    m_state.indent(fp);
+    fp->write("OurTile theTile;\n");
+    m_state.indent(fp);
+    fp->write("OurUlamContext::Get().SetTile(theTile);\n");
 
     //declare an instance of all element classes; supports immediate types constructors
     std::string runThisTest = m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);

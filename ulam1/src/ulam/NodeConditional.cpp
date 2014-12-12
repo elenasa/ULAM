@@ -58,5 +58,9 @@ namespace MFM {
   }
 
 
+  Token NodeConditional::getTypeToken()
+  {
+    return m_typeTok;
+  }
 
 } //end MFM

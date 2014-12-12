@@ -363,7 +363,7 @@ namespace MFM {
 #ifdef DEBUGGING_WITHOUT_DEFAULTELEMENT
     fp->write(" : public Element<CC>");
 #else
-    fp->write(" : public DefaultElement<CC>");
+    fp->write(" : public UlamElement<CC>");  //was DefaultElement
 #endif
 
     fp->write("\n");
@@ -489,7 +489,7 @@ namespace MFM {
 	fp->write("(){}\n\n");
 #else
 	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	fp->write("() : DefaultElement<CC>(MFM_UUID_FOR(\"");
+	fp->write("() : UlamElement<CC>(MFM_UUID_FOR(\"");
 	fp->write(namestr.c_str());
 	fp->write("\", 0))\n");
 	m_state.indent(fp);

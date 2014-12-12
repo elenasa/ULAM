@@ -340,7 +340,7 @@ namespace MFM {
       }
 
     return brtn;
-  }
+  } //installSymbolVariable
 
 
   SymbolVariable *  NodeTerminalIdent::makeSymbol(UTI aut)
@@ -388,7 +388,7 @@ namespace MFM {
       m_state.m_currentFunctionBlockMaxDepth = m_state.m_currentFunctionBlockDeclSize - 1;
 
     return rtnLocalSym;
-  }
+  } //makeSymbol
 
 
 #if 0

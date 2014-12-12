@@ -142,6 +142,12 @@ namespace MFM {
   }
 
 
+  const std::string UlamType::getUlamTypeImmediateAutoMangledName(CompilerState * state)
+  {
+    assert(0); //only elements and quarks so far
+  }
+
+
   bool UlamType::needsImmediateType()
   {
     return !isConstant();
@@ -592,6 +598,11 @@ namespace MFM {
   void UlamType::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state)
   {
     return; //nothing to do usually
+  }
+
+  void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp, CompilerState * state)
+  {
+    assert(0);  //only quarks and elements so far
   }
 
 } //end MFM

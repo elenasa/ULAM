@@ -4,6 +4,7 @@
 #include "CompilerState.h"
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
+#include "NodeTerminalIdent.h"
 
 namespace MFM {
 
@@ -140,6 +141,11 @@ namespace MFM {
 	return genCodedBitFieldTypedef(fp, uvpass);
       }
 
+    if(m_varSymbol->isAutoLocal())
+      {
+	return genCodedAutoLocal(fp, uvpass);
+      }
+
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
@@ -180,7 +186,7 @@ namespace MFM {
 #endif
 
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
-  }
+  } //genCode
 
 
   // variable is a data member; not an element
@@ -250,5 +256,61 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   }  //genCodedElementParameter
+
+
+  // this is the auto local variable's node, created at parse time,
+  // for Conditional-As case.
+  void NodeVarDecl::genCodedAutoLocal(File * fp, UlamValue & uvpass)
+  {
+    // trying m_state.m_currentObjPtr instead.
+    //    assert(m_state.m_currentObjPtr == uvpass);
+
+    // the uvpass comes from NodeControl, and still has the POS obtained
+    // during the condition statement for As.
+    assert(uvpass.getUlamValueTypeIdx() == Ptr);
+    s32 tmpVarPos = uvpass.getPtrSlotIndex();
+
+    //before shadowing the lhs of the as-conditional variable with its auto,
+    // let's load its storage from the currentSelfSymbol:
+    s32 tmpVarStg = m_state.getNextTmpVarNumber();
+    UTI stguti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
+    UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
+    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT);
+
+    //let Node::genCodeReadIntoTmpVar do this for us:
+    m_state.indent(fp);
+    fp->write(stgut->getTmpStorageTypeAsString(&m_state).c_str());
+    fp->write("& ");
+    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
+    fp->write(" = ");
+    //fp->write(m_state.m_currentSelfSymbolForCodeGen->getMangledName().c_str());
+    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+    fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
+    fp->write(".getRef();\n");
+
+    //now we have our pos in tmpVarPos, and our T in tmpVarStg
+    // time to shadow 'self' with auto local variable:
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+    m_state.indent(fp);
+    fp->write(vut->getUlamTypeImmediateAutoMangledName(&m_state).c_str()); //for C++ local vars, ie non-data members
+
+    fp->write("<CC> ");
+    fp->write(m_varSymbol->getMangledName().c_str());
+    fp->write("(");
+    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
+
+    if(vut->getUlamClass() == UC_QUARK)
+      {
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
+      }
+
+    fp->write(");   //shadows lhs of 'as'\n");
+
+    m_state.m_genCodingConditionalAs = false;       // done
+    m_state.m_currentObjSymbolsForCodeGen.clear();  //clear remnant of lhs ?
+  } //genCodedAutoLocal
 
 } //end MFM

@@ -56,6 +56,16 @@ namespace MFM {
   }
 
 
+  const std::string UlamTypeClass::getUlamTypeImmediateAutoMangledName(CompilerState * state)
+  {
+    assert(needsImmediateType());
+    std::ostringstream  automn;
+    automn << getUlamTypeImmediateMangledName(state).c_str() << "4auto" ;
+
+    return automn.str();
+  }
+
+
   bool UlamTypeClass::needsImmediateType()
   {
     // NOW allowing complete immediate elements (like atoms)
@@ -195,7 +205,7 @@ namespace MFM {
   PACKFIT UlamTypeClass::getPackable()
   {
     if(m_class == UC_ELEMENT)
-      return PACKED;
+      return UNPACKED; //was PACKED, now matches ATOM regardless of its bit size.
 
     return UlamType::getPackable();  //quarks depend their size
   }
@@ -402,6 +412,10 @@ namespace MFM {
     state->indent(fp);
     fp->write("BitVector<BPA>& getBits() { return m_stg.GetBits(); }\n");
 
+    // non-const T ref method for scalar
+    state->indent(fp);
+    fp->write("T& getRef() { return m_stg; }\n");
+
     if(isCustomArray())
       genCustomArrayMangledDefinitionForC(fp, state);
 
@@ -591,8 +605,11 @@ namespace MFM {
 
     // getBits method for scalar
     state->indent(fp);
-    //fp->write("T& getBits() { return m_stg; }\n"); , unlike read, not const
     fp->write("BitVector<BPA>& getBits() { return m_stg.GetBits(); }\n");
+
+    // non-const T ref method for scalar
+    state->indent(fp);
+    fp->write("T& getRef() { return m_stg; }\n");
 
     state->m_currentIndentLevel--;
     state->indent(fp);
@@ -667,5 +684,126 @@ namespace MFM {
     rtnMethod << "_" << UlamType::getUlamTypeEnumAsString(nodetypEnum)  << sizeByIntBits << "ToElement" << sizeByIntBitsToBe;
     return rtnMethod.str();
   } //castMethodForCodeGen
+
+
+  // a special struct for quarks (including zero-size quarks access
+  // their methods) and elements that inherits from their immediates
+  // and have a T ref into a "live" atom/element, and a magical
+  // destructor that updates it; used with Conditional-As.
+  void UlamTypeClass::genUlamTypeMangledAutoDefinitionForC(File * fp, CompilerState * state)
+  {
+    s32 len = getTotalBitSize();
+
+    const std::string mangledName = getUlamTypeImmediateMangledName(state);
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName(state);
+
+    std::ostringstream  ud;
+    ud << "Ud_" << automangledName;  //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
+
+    state->m_currentIndentLevel = 0;
+
+    state->indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    state->indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    state->indent(fp);
+    fp->write("namespace MFM{\n");
+    fp->write("\n");
+
+    state->m_currentIndentLevel++;
+
+    state->indent(fp);
+    fp->write("template<class CC>\n");
+
+    state->indent(fp);
+    fp->write("struct ");
+    fp->write(automangledName.c_str());
+    fp->write(" : public ");
+    fp->write(mangledName.c_str());
+    fp->write("<CC>\n");
+    state->indent(fp);
+    fp->write("{\n");
+
+    state->m_currentIndentLevel++;
+
+    //typedef atomic parameter type inside struct
+    state->indent(fp);
+    fp->write("typedef typename CC::ATOM_TYPE T;\n");
+    state->indent(fp);
+    fp->write("typedef typename CC::PARAM_CONFIG P;\n");
+    state->indent(fp);
+    fp->write("enum { BPA = P::BITS_PER_ATOM };\n");
+    fp->write("\n");
+
+    //reference to storage in atom
+    state->indent(fp);
+    fp->write("T& m_stgToChange;  //ref to storage here!\n");
+
+    if(m_class == UC_QUARK)
+      {
+	state->indent(fp);
+	fp->write("const u32 m_pos;   //pos in atom\n");
+
+	// constructor with args
+	state->indent(fp);
+	fp->write(automangledName.c_str());
+	fp->write("(T & realStg, u32 idx) : m_stgToChange(realStg), m_pos(idx) {}\n");
+
+	// magical destructor
+	state->indent(fp);
+	fp->write("~");
+	fp->write(automangledName.c_str());
+	fp->write("() { m_stgToChange.GetBits().Write(m_pos + T::ATOM_FIRST_STATE_BIT, ");
+	fp->write_decimal(len);
+	fp->write(", ");
+	fp->write(mangledName.c_str());
+	fp->write("<CC>::read()); }\n");
+      }
+    else if(m_class == UC_ELEMENT)
+      {
+	// constructor with args
+	state->indent(fp);
+	fp->write(automangledName.c_str());
+	fp->write("(T & realStg) : m_stgToChange(realStg) {}\n");
+
+	// magical destructor
+	state->indent(fp);
+	fp->write("~");
+	fp->write(automangledName.c_str());
+	fp->write("() { m_stgToChange = ");
+	fp->write(mangledName.c_str());
+	fp->write("<CC>::m_stg; }\n");
+      }
+    else
+      assert(0);
+
+#if 0
+    // non-const T ref method for scalar
+    state->indent(fp);
+    fp->write("T& getRef() { return ");
+    fp->write(mangledName.c_str());
+    fp->write("<CC>::getRef(); }\n");
+#endif
+
+    state->m_currentIndentLevel--;
+    state->indent(fp);
+    fp->write("};\n");
+
+    state->m_currentIndentLevel--;
+    state->indent(fp);
+    fp->write("} //MFM\n");
+
+    state->indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  } //genUlamTypeMangledAutoDefinitionForC
 
 } //end MFM
