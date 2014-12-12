@@ -555,11 +555,11 @@ namespace MFM {
 	fp->write("//helper method not called directly\n");
 
 	m_state.indent(fp);
-	fp->write("static ");
+	//fp->write("static ");
 	//fp->write(but->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
 	fp->write("bool ");
 	fp->write(m_state.getIsMangledFunctionName());
-	fp->write("(const T& targ);\n\n");
+	fp->write("(const T& targ) const;\n\n");
 	return;
       }
 
@@ -576,7 +576,7 @@ namespace MFM {
 
     fp->write("<CC>::");
     fp->write(m_state.getIsMangledFunctionName());
-    fp->write("(const T& targ)\n");
+    fp->write("(const T& targ) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
