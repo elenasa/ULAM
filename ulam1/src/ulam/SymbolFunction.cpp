@@ -229,10 +229,18 @@ namespace MFM {
 	if(func->isNative())
 	  fp->write("; //native\n\n");
 	else
-	  fp->write(";\n\n");
+	  {
+	    if(classtype == UC_ELEMENT)
+	      fp->write(" const");   //element functions are const, not static
+
+	    fp->write(";\n\n");
+	  }
       }
     else
       {
+	if(classtype == UC_ELEMENT)
+	  fp->write(" const");      //element functions are const, not static
+
 	UlamValue uvpass;
 	func->genCode(fp, uvpass);
       }
