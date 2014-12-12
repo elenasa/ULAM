@@ -56,7 +56,7 @@
 #include "NodeVarDeclList.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
-#include "SymbolVariable.h"
+#include "SymbolVariableStack.h"
 #include "SymbolClass.h"
 
 
@@ -253,7 +253,9 @@ namespace MFM {
       {
 	//error! reset to incomplete
 	cSym->setUlamClass(UC_INCOMPLETE);
-	MSG(&pTok, "Empty/Incomplete Class Definition", WARN);
+	std::ostringstream msg;
+	msg << "Empty/Incomplete Class Definition: <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">";
+	MSG(&pTok, msg.str().c_str(), WARN);
       }
 
     //return true when we've seen THIS class
@@ -497,7 +499,7 @@ namespace MFM {
     assert(!rtnNode || rtnNode->getPreviousBlockPointer() == prevBlock);
 
     return rtnNode;  //parseBlock
-  }
+  }  //parseBlock
 
 
   Node * Parser::parseStatements()
@@ -616,7 +618,6 @@ namespace MFM {
 	return NULL;
       }
 
-    //Node * condNode = parseAssignExpr();
     Node * condNode = parseConditionalExpr();
 
     if(!condNode)
@@ -628,7 +629,16 @@ namespace MFM {
 	return NULL;
       }
 
-    Node * trueNode = parseStatement();
+    Node * trueNode = NULL;
+    if(m_state.m_parsingConditionalAs)
+      {
+	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditionalAs *) condNode);
+      }
+    else
+      {
+	trueNode = parseStatement();
+      }
+
     if(!trueNode)
       {
 	delete condNode;
@@ -666,7 +676,6 @@ namespace MFM {
 	return NULL;
       }
 
-    //Node * condNode = parseAssignExpr();
     Node * condNode = parseConditionalExpr();
 
     if(!condNode)
@@ -678,7 +687,16 @@ namespace MFM {
 	return NULL;
       }
 
-    Node * trueNode = parseStatement();
+    Node * trueNode = NULL;
+    if(m_state.m_parsingConditionalAs)
+      {
+	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditionalAs *) condNode);
+      }
+    else
+      {
+	trueNode = parseStatement();
+      }
+
     if(!trueNode)
       {
 	delete condNode;
@@ -694,6 +712,84 @@ namespace MFM {
 
     return rtnNode;
   } //parseControlWhile
+
+
+  Node * Parser::setupAsConditionalBlockAndParseStatements(NodeConditionalAs * asNode)
+  {
+    assert(m_state.m_parsingConditionalAs);
+
+    //requires an open brace to make the block
+    bool singleStmtExpected = false;
+    Token pTok;
+    getNextToken(pTok);
+    if(pTok.m_type != TOK_OPEN_CURLY)
+      {
+	//single statement situation; create a "block" anyway
+	unreadToken();
+	singleStmtExpected = true;
+      }
+
+    // if empty still make auto
+    NodeBlock * blockNode = new NodeBlock(m_state.m_currentBlock, m_state);
+    blockNode->setNodeLocation(asNode->getNodeLocation());
+
+    // current, this block's symbol table added to parse tree stack
+    //          for validating and finding scope of program/block variables
+    NodeBlock * prevBlock = m_state.m_currentBlock;
+    m_state.m_currentBlock = blockNode;
+
+    // after the new block is setup: install the auto symbol into ST, and
+    // make its auto local variable to shadow the lhs of 'as' as rhs type
+    NodeTerminalIdent * tmpnti = new NodeTerminalIdent(m_state.m_identTokenForConditionalAs, NULL, m_state);
+    assert(tmpnti);
+
+    Token typeTok = asNode->getTypeToken();
+    UTI tuti = m_state.getUlamTypeFromToken(typeTok, 0);
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+    Symbol * asymptr = NULL;  //a place to put the new symbol
+    tmpnti->installSymbolVariable(typeTok, tut->getBitSize(), tut->getArraySize(), asymptr);
+    assert(asymptr);
+    asymptr->setAutoLocal();  //set auto flag
+
+    delete tmpnti;            //done with nti
+    tmpnti = NULL;
+    m_state.m_parsingConditionalAs = false;  //done with flag and identToken.
+
+    //insert var decl into NodeStatements..as if parseStatement was called..
+    Node * varNode = new NodeVarDecl((SymbolVariable*) asymptr, m_state);
+    varNode->setNodeLocation(asNode->getNodeLocation());
+
+    NodeStatements * stmtsNode = new NodeStatements(varNode, m_state);
+    stmtsNode->setNodeLocation(varNode->getNodeLocation());
+
+    blockNode->setNextNode(stmtsNode);
+
+    if(!singleStmtExpected)
+      {
+	if(!getExpectedToken(TOK_CLOSE_CURLY, QUIETLY))
+	  {
+	    stmtsNode->setNextNode((NodeStatements *) parseStatements()); // more statements
+	    getExpectedToken(TOK_CLOSE_CURLY);
+	  }
+	//else
+	//  unreadToken();
+      }
+    else
+      {
+	Node * sNode = parseStatement(); //get one statement only
+	NodeStatements * nextNode = new NodeStatements(sNode, m_state);
+	nextNode->setNodeLocation(sNode->getNodeLocation());
+	stmtsNode->setNextNode(nextNode);
+      }
+
+    //this block's ST is no longer in scope
+    if(m_state.m_currentBlock)
+      m_state.m_currentFunctionBlockDeclSize -= m_state.m_currentBlock->getSizeOfSymbolsInTable();
+
+    m_state.m_currentBlock = prevBlock;
+
+    return blockNode;
+  } //setupAsConditionalBlockAndParseStatements
 
 
   Node * Parser::parseSimpleStatement()
@@ -937,21 +1033,25 @@ namespace MFM {
 	if(!(rtnNode = parseIdentExpr(iTok)))
 	  return parseExpression();  	//continue as parseAssignExpr
 
-	//next check for is-has-as
+	//next check for 'as' only (is-has are Factors now)
 	Token cTok;
 	getNextToken(cTok);
 	switch(cTok.m_type)
 	  {
 	  case TOK_KW_AS:
-	    // needs makeControlAs
-	    //unreadToken();
-	    //return makeConditionalExprNode(rtnNode);  //done
+	    m_state.saveIdentTokenForConditionalAs(iTok);
+	    unreadToken();
+	    rtnNode = makeConditionalExprNode(rtnNode);  //done, could be NULL
+	    break;
 	  default:
 	    unreadToken();
 	  };
       }
     else
       return parseExpression();   //perhaps a number, true or false, cast..
+
+    if(m_state.m_parsingConditionalAs)
+      return rtnNode;
 
     // if nothing else follows, parseRestOfAssignExpr returns its argument
     return parseRestOfAssignExpr(rtnNode);  //parseAssignExpr
@@ -2149,7 +2249,7 @@ namespace MFM {
   {
     Node * rtnNode = NULL;
 
-    //reparse (is-has) function token
+    //reparse (is-has-as) function token
     Token fTok;
     getNextToken(fTok);
 
@@ -2163,6 +2263,7 @@ namespace MFM {
 	msg << "RHS of operator <" << fTok.getTokenString() << "> is not a Type: " << tTok.getTokenString() << ", operation deleted";
 	MSG(&tTok, msg.str().c_str(), ERR);
 	delete leftNode;
+	m_state.m_parsingConditionalAs = false;
 	return NULL;
       }
 
@@ -2175,8 +2276,8 @@ namespace MFM {
 	rtnNode = new NodeConditionalHas(leftNode, tTok, m_state);
 	break;
       case TOK_KW_AS:
-	//rtnNode = new NodeConditionalAs(leftNode, tTok, m_state);
-	//break;
+	  rtnNode = new NodeConditionalAs(leftNode, tTok, m_state);
+	break;
       default:
 	{
 	  std::ostringstream msg;
