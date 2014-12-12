@@ -270,10 +270,11 @@ namespace MFM {
 	delete fp;
       }
 
-      //separate main.cpp for elements only
+      //separate main.cpp for elements only; that have the test method.
       if(m_state.getUlamTypeByIndex(m_root->getNodeType())->getUlamClass() == UC_ELEMENT)
 	{
-	  generateMain(fm);
+	  if(m_state.thisClassHasTheTestMethod())
+	    generateMain(fm);
 	}
 
     }  //generateCode
