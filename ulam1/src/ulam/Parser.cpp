@@ -2116,7 +2116,7 @@ namespace MFM {
 	NodeStatements * nextNode;
 	if(pTok.m_type == TOK_CLOSE_CURLY)
 	  {
-	    MSG(&pTok, "Empty Function Definition", WARN);
+	    //MSG(&pTok, "Empty Function Definition", WARN);
 	    nextNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); //legal
 	    nextNode->setNodeLocation(pTok.m_locator);
 	  }
