@@ -110,7 +110,7 @@ namespace MFM {
 	//fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
 	fp->write("s32 ");
 	fp->write(m_state.getHasMangledFunctionName());
-	fp->write("(const char * namearg);\n\n");
+	fp->write("(const char * namearg) const;\n\n");
 	return;
       }
 
@@ -139,7 +139,7 @@ namespace MFM {
 
     fp->write("::");
     fp->write(m_state.getHasMangledFunctionName());
-    fp->write("(const char * namearg)\n");
+    fp->write("(const char * namearg) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 

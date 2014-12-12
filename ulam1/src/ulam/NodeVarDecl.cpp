@@ -241,15 +241,9 @@ namespace MFM {
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    //ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
-    /*
-    if(vclasstype == UC_ELEMENT)
-      {
-	fp->write("static ");
-      }
-    */
+    fp->write("mutable ");
 
     fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");

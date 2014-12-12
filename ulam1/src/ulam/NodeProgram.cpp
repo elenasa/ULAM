@@ -497,27 +497,6 @@ namespace MFM {
     //declare an instance of all element classes; supports immediate types constructors
     std::string runThisTest = m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
-#if 0 //Sun Dec  7 14:18:38 2014 Leaving this to rot..
-    //declare an instance of This class
-    Symbol * csym = m_state.m_programDefST.getSymbolPtr(m_compileThisId);
-    UTI cuti = csym->getUlamTypeIdx();
-
-    m_state.indent(fp);
-    fp->write("typedef ");
-    fp->write("MFM::");
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
-    fp->write("<OurCoreConfig> OurFoo;\n");
-
-    m_state.indent(fp);
-    fp->write("OurFoo& foo = OurFoo::THE_INSTANCE;\n");
-
-    m_state.indent(fp);
-    fp->write("foo.SetType(23); //This is actually done by code code in a complicated way\n");
-
-    m_state.indent(fp);
-    fp->write("OurAtom fooAtom = foo.GetDefaultAtom();\n");
-#endif
-
     m_state.indent(fp);
     fp->write("MFM::Ui_Ut_102323Int rtn;\n");
 
