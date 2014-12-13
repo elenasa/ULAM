@@ -13,6 +13,11 @@ namespace MFM {
   FileManagerStdio::~FileManagerStdio()
   {}
 
+  void FileManagerStdio::addReadDir(std::string readDir)
+  {
+    m_otherReadDirs.push_back(readDir);
+  }
+
   File * FileManagerStdio::open(std::string path, enum Mode mode)
   {
     FILE * fp;
@@ -25,7 +30,7 @@ namespace MFM {
       }
     else
       {
-	// concatenate to path to m_dirPath 
+	// concatenate to path to m_dirPath
 	fullpath = m_dirPath + "/" + path;
       }
 
@@ -40,9 +45,25 @@ namespace MFM {
 	    fseek(fp,0,SEEK_END); //go to end of file
 	  }
       }
+    else if (mode == READ && path[0] != '/')
+      {
+        //Open for relative path READ failed.  If we have other dirs
+        //to try, try them.  If they all fail, leave errno holding the
+        //error from the last one.
+        for (u32 i = 0; i < m_otherReadDirs.size(); ++i)
+          {
+            fullpath = m_otherReadDirs[i] + "/" + path;
+            fp = fopen(fullpath.c_str(), ModeStr[mode].c_str());
+            if(fp)
+              {
+                stdio = new FileStdio(fp, mode);
+                break;
+              }
+          }
+      }
 
     return stdio;
   }
-      
+
 
 }

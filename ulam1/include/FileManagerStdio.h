@@ -39,6 +39,7 @@
 
 
 #include "FileManager.h"
+#include <vector>
 
 namespace MFM
 {
@@ -60,9 +61,17 @@ namespace MFM
       */
       virtual File * open(std::string path, enum Mode mode);
 
+      void addReadDir(std::string readDir);
 
     private:
       std::string m_dirPath;
+
+      /**
+         Additional directories to search during open for read with a
+         relative path.
+       */
+
+      std::vector<std::string> m_otherReadDirs;
   };
 }
 

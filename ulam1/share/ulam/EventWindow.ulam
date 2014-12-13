@@ -1,0 +1,13 @@
+ulam 1;
+quark EventWindow {
+  Atom aRef(Int index) native;
+  Void aSet(Int index, Atom val) native;
+  Int size() native;
+  Void diffuse() native;
+  Int test() {
+    EventWindow ew;
+    Atom a;
+    a = ew[0];
+    return 0;
+  }
+}
