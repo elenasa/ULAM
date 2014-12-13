@@ -328,7 +328,8 @@ namespace MFM {
 	m_state.m_currentIndentLevel--;
       }
     return;  //no change to uvpass, as if no casting
-  }
+  } //genCodeCastAtomAndElement
+
 
   bool NodeCast::needsACast()
   {
@@ -344,6 +345,6 @@ namespace MFM {
     // Bool constants require casts to generate "full" true UlamValue.
 
     return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType)) );
-  }
+  } //needsACast
 
 } //end MFM

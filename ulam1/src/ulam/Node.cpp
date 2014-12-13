@@ -1321,9 +1321,9 @@ namespace MFM {
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
 
-    //    UTI cosuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
     UTI cosuti = cos->getUlamTypeIdx();
-    //ULAMCLASSTYPE cosclasstype = m_state.getUlamTypeByIndex(cosuti)->getUlamClass();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -1331,6 +1331,7 @@ namespace MFM {
 
 
     assert(isCurrentObjectACustomArrayItem(cosuti, luvpass));
+
 
     // a data member quark, or the element itself should both getBits from self;
     // getbits needed to go from-atom to-BitVector
@@ -1452,9 +1453,10 @@ namespace MFM {
 	else
 #endif
 	  {
-	    // aSet requires an atom as its value:
-	    //fp->write(rut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
-	    fp->write(m_state.getUlamTypeByIndex(UAtom)->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+	    // aSet requires its custom array type (e.g. an atom) as its value:
+	    assert(cosclasstype != UC_NOTACLASS);
+	    UTI catype = ((UlamTypeClass *) cosut)->getCustomArrayType();
+	    fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
 	    fp->write("(");
 	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
 

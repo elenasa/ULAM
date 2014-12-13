@@ -27,7 +27,7 @@ namespace MFM {
 
 
   UTI NodeBinaryOpEqual::checkAndLabelType()
-  { 
+  {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI newType = Nav; //init
@@ -53,7 +53,7 @@ namespace MFM {
       }
 
     setNodeType(newType);
-    
+
     setStoreIntoAble(true);
     return newType;
   }
@@ -67,7 +67,7 @@ namespace MFM {
 
 
   EvalStatus NodeBinaryOpEqual::eval()
-  {    
+  {
     assert(m_nodeLeft && m_nodeRight);
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
@@ -88,8 +88,8 @@ namespace MFM {
 	return evs;
       }
 
-    //assigns rhs to lhs UV pointer (handles arrays);  
-    //also copy result UV to stack, -1 relative to current frame pointer    
+    //assigns rhs to lhs UV pointer (handles arrays);
+    //also copy result UV to stack, -1 relative to current frame pointer
     if(slot)
       doBinaryOperation(1, 2, slot);
 
@@ -104,7 +104,7 @@ namespace MFM {
     evalNodeProlog(0);
 
     makeRoomForSlots(1); //always 1 slot for ptr
-    EvalStatus evs = m_nodeLeft->evalToStoreInto();  
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -114,14 +114,14 @@ namespace MFM {
     UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, getNodeType(), m_state.determinePackable(getNodeType()), m_state);  //positive to current frame pointer
 
     assignReturnValuePtrToStack(luvPtr);
-    
+
     evalNodeEpilog();
     return NORMAL;
   }
 
 
   void NodeBinaryOpEqual::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
-  {    
+  {
     assert(slots);
     UTI nuti = getNodeType();
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot);
@@ -134,7 +134,7 @@ namespace MFM {
     else
       {
 	PACKFIT packed = m_state.determinePackable(nuti);
-	if(WritePacked(packed)) 
+	if(WritePacked(packed))
 	  {
 	    ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //packed/PL array
 	  }
@@ -164,7 +164,7 @@ namespace MFM {
 
     assert(slots == 1);
     UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
-    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value                  
+    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
 
     //u32 ldata = luv.getImmediateData(len);
     u32 ldata = luv.getDataFromAtom(pluv, m_state);
@@ -179,7 +179,7 @@ namespace MFM {
 
 
   void NodeBinaryOpEqual::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
-  { 
+  {
     UlamValue rtnUV;
 
     UTI nuti = getNodeType();
@@ -214,7 +214,7 @@ namespace MFM {
 
 	u32 ldata = luv.getData(lp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
 	u32 rdata = ruv.getData(rp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
-		
+
 	if(WritePacked(packRtn))
 	  // use calc position where base [0] is furthest from the end.
 	  appendBinaryOp(rtnUV, ldata, rdata, (BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
@@ -222,21 +222,21 @@ namespace MFM {
 	  {
 	    // else, unpacked array
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
-	    
-	    // overwrite lhs copy with result UV 
+
+	    // overwrite lhs copy with result UV
 	    m_state.assignValue(lp, rtnUV);
 
 	    //copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
-	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i); 
+	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
-	
-	lp.incrementPtr(m_state); 
+
+	lp.incrementPtr(m_state);
 	rp.incrementPtr(m_state);
       } //forloop
-    
+
     if(WritePacked(packRtn))
       {
-	m_state.assignValue(pluv, rtnUV); 	                  //overwrite lhs copy with result UV 
+	m_state.assignValue(pluv, rtnUV); 	                  //overwrite lhs copy with result UV
 	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result
       }
 
@@ -260,10 +260,7 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;                //*************
-    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
-    //UlamValue saveCurrentSelfPtr = m_state.m_currentSelfPtr;                //*************
-    //Symbol * saveCurrentSelfSymbol = m_state.m_currentSelfSymbolForCodeGen; //*************
 
 #ifdef TMPVARBRACES
     m_state.indent(fp);
@@ -276,14 +273,10 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // restore to self
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
-    //m_state.m_currentSelfSymbolForCodeGen = saveCurrentSelfSymbol; // restore to self
-    // m_state.m_currentSelfPtr = saveCurrentSelfPtr;  //restore *******
-
-    // lhs should be the new current object/self: node member select updates them, 
+    // lhs should be the new current object: node member select updates them,
     // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
     UlamValue luvpass;
@@ -300,11 +293,7 @@ namespace MFM {
     fp->write("}\n");  //close for tmpVar
 #endif
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
-
-    //    m_state.m_currentSelfSymbolForCodeGen = saveCurrentSelfSymbol; // restore to self
-    //m_state.m_currentSelfPtr = saveCurrentSelfPtr;  //restore *******
   } //genCode
 
 } //end MFM
