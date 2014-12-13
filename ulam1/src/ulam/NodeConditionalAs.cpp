@@ -199,7 +199,6 @@ namespace MFM {
     else
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(luti);
-	//ULAMCLASSTYPE lclasstype = lut->getUlamClass();
 
 	m_state.indent(fp);
 	fp->write("const s32 ");
@@ -221,8 +220,6 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
     uvpass = UlamValue::makePtr(tmpVarAs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);  //POS 0 rightjustified (atom-based).
-
-    //m_state.m_currentObjPtr = uvpass;  //saved for auto NodeVarDecl; does it get clobbered???
 
     //indicate to NodeControl that the value returned in uvpass, still needs to be tested >=0,
     //since its value represents the posoffset (+ FIRSTSTATEBIT) into T (in case of a quark).
