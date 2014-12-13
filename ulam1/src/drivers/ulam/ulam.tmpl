@@ -13,6 +13,7 @@ use Carp;
 
   ##TEMPLATE SUBSTITUTIONS
   my $CULAM_PATH='@CULAM_PATH@';
+  my $ULAM_SHARE_DIR='@ULAM_SHARE_DIR@';
   my $ULAM_BUILD_TIMESTAMP='@ULAM_BUILD_TIMESTAMP@';
   my $ULAM_BUILD_WHO='@ULAM_BUILD_WHO@';
   my $ULAM_BUILD_WHERE='@ULAM_BUILD_WHERE@';
@@ -616,7 +617,17 @@ sub separateFiles {
             unless $handled;
     }
 }
-separateFiles(@files);
+my $usdfiles = `ls $ULAM_SHARE_DIR/ulam/*.ulam`;
+chomp($usdfiles);
+my @stdUlamFiles = split(/\s+/,$usdfiles);
+
+my $tsdfiles = `ls $ULAM_SHARE_DIR/tcc/*.tcc`;
+chomp($tsdfiles);
+my @stdTccFiles = split(/\s+/,$tsdfiles);
+
+# Barf; need to compile the stdUlamFiles to get the mangled names into
+# @elementNamesFromUlam, and thence into AllocateEmptyTypes()..
+separateFiles(@files, @stdUlamFiles, @stdTccFiles);
 
 sub positionLiteralFiles {
     pISC("## Copy files");
@@ -650,6 +661,7 @@ UDie("No command specified\n")
 exit compilationDriver();
 
 my @cppFromUlam;
+my @elementNamesFromUlam;
 
 sub compilationDriver {
     prepareWorkDir();
@@ -668,6 +680,10 @@ sub compilationDriver {
 #        IDie("Do what with $testfile?");
         push @cppFromUlam, $testfile;
     }
+
+    ($buildResults, my $allocatorcpp) = writeElementAllocatorStub();
+    UDie("$buildResults stub creation problem(s) detected\n")
+        if $buildResults;
 
     $buildResults = runGccCompilations();
     UDie("$buildResults g++ build problem(s) detected\n")
@@ -758,13 +774,74 @@ sub runUlamCompilations
                 $testableFiles{$file} = $cfile;
             }
             push @cppFromUlam, $cfile;
-#            $gppStatus = gppCompile($cfile);
+            if ($cfile =~ /^(Ue_[^.]+)[.]cpp/) {
+                my $eltName = $1;
+                push @elementNamesFromUlam, $eltName;
+            }
         }
         my $fileStatus = $ulamStatus + $gppStatus;
         $status += $fileStatus;
         last if $fileStatus != 0 && $KEEP_GOING == 0;
     }
     return $status;
+}
+
+sub writeElementAllocatorStub {
+    my $base = "UlamCustomElements";
+    my $baseguard = uc($base)."_H";
+    my $hdr = "$base.h";
+    my $cpp = "$base.cpp";
+    my $inc = "$ULAM_WORK_DIR/include/$hdr";
+    my $src = "$ULAM_WORK_DIR/src/$cpp";
+    my $fname = "DefineNeededUlamCustomElements";
+
+    open(my $hdrhdl, ">", $inc)
+        or UDie("Can't write '$inc': $!\n");
+    print $hdrhdl <<EOF;
+#ifndef $baseguard
+#define $baseguard
+
+#include "AbstractDriver.h"
+EOF
+    for my $en (@elementNamesFromUlam) {
+      print $hdrhdl <<EOF;
+#include "$en.h"
+EOF
+    }
+
+    print $hdrhdl <<EOF;
+
+namespace MFM {
+  template <class GC>
+  void $fname(AbstractDriver<GC> * ad)
+  {
+    typedef typename GC::CORE_CONFIG CC;
+EOF
+    for my $en (@elementNamesFromUlam) {
+        if ($en eq "Ue_10105Empty") {
+          print $hdrhdl <<EOF;
+    MFM::$en<CC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<CC>::THE_INSTANCE);
+EOF
+        } else {
+            print $hdrhdl "    ad->NeedElement(&$en<CC>::THE_INSTANCE);\n";
+        }
+    }
+    print $hdrhdl <<EOF;
+  }
+} // MFM
+#endif /* $baseguard */
+EOF
+
+    close $hdrhdl or UDie("Error closing '$inc': $!\n");
+    open(my $handle, ">", $src)
+        or UDie("Can't write '$src': $!\n");
+    print $handle <<EOF;
+
+#include "$hdr"
+
+EOF
+    close $handle or UDie("Error closing '$src': $!\n");
+    return (0,$cpp);
 }
 
 sub buildLibrary
@@ -802,6 +879,7 @@ sub buildLibrary
 sub buildExecutables
 {
     pISC("## Create executables");
+    return buildSimDriver();
     IDie("IMPLEMENTME");
     my $libfile = "$ULAM_WORK_DIR/build/libculam.a";
     my @args = ("ruc", $libfile);
@@ -844,14 +922,25 @@ static int $elementTestFuncName(bool output)
   typedef MFM::ParamConfig<SIZE> OurParamConfig;
   typedef MFM::P3Atom<OurParamConfig> OurAtom;
   typedef MFM::CoreConfig<OurAtom, OurParamConfig> OurCoreConfig;
+
+  AllocateElementTypes<OurCoreConfig>();
+
   typedef MFM::UlamContext<OurCoreConfig> OurUlamContext;
   typedef MFM::Tile<OurCoreConfig> OurTile;
+  typedef MFM::EventWindow<OurCoreConfig> OurEventWindow;
   OurTile theTile;
-  OurUlamContext::Get().SetTile(theTile);
+  theTile.Init();
+  OurUlamContext & ouc = OurUlamContext::Get();
+  ouc.SetTile(theTile);
+  OurEventWindow & ew = ouc.GetEventWindow();
+  MFM::s32 ctr = theTile.GetTileWidth()/2;
+  if (!ew.InitForEvent(MFM::SPoint(ctr,ctr)))
+    return 99;
   typedef MFM::$elementName<OurCoreConfig> OurElement;
   OurElement& elt = OurElement::THE_INSTANCE;
-  elt.AllocateType();
   OurAtom atom = elt.GetDefaultAtom();
+  ew.SetCenterAtom(atom);
+
   MFM::Ui_Ut_102323Int rtn;
   rtn = OurElement::Uf_4test(atom);
   int count = rtn.read();
@@ -908,7 +997,36 @@ EOF
 #include "$testhdr"
 
 EOF
+    for my $en (@elementNamesFromUlam) {
+      print $handle <<EOF;
+#include "$en.h"
+EOF
+    }
 
+    print $handle <<EOF;
+
+template <class CC>
+static void AllocateElementTypes()
+{
+  static bool initted = false;
+  if (initted) return;
+  initted = true;
+EOF
+    for my $en (@elementNamesFromUlam) {
+        if ($en eq "Ue_10105Empty") {
+          print $handle <<EOF;
+  MFM::$en<CC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<CC>::THE_INSTANCE);
+EOF
+        } else {
+          print $handle <<EOF;
+  MFM::$en<CC>::THE_INSTANCE.AllocateType();
+EOF
+        }
+    }
+    print $handle <<EOF;
+}
+
+EOF
     my @testables = map { s/[.]cpp$//; $_} sort values %testableFiles;
 
     my @testfuncs;
@@ -958,15 +1076,41 @@ EOF
    return (0,$testbase);
 }
 
+sub buildSimDriver
+{
+    pISC("## Build custom simulator");
+    my $dir = getWorkDir();
+
+    my $linkFailed =
+        runMake("all",
+                "DEBUG=1",
+                "EXTERNAL_DEFINES=-Wno-error=unused-variable -DULAM_CUSTOM_ELEMENTS",
+                "EXTERNAL_INCLUDES=-I $dir/include",
+                "EXTERNAL_LIBS=-L $dir/build -l culam",
+        );
+    UDie("What") if $linkFailed;
+}
+
 
 sub runGccCompilations
 {
     pISC("## Compile C++");
     my $status = 0;
+    my $dir = getWorkDir();
     for my $cfile (@cppFromUlam) {
         pISC(" # Compiling '$cfile'");
         my $gppStatus = 0;
-        $gppStatus = gppCompile($cfile,"ulam_cppcompile");
+        $gppStatus =
+            gppCompile($cfile,"ulam_cppcompile",
+                       "COMMANDS","1",
+                       "EXTERNAL_DEFINES", "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc",
+                       "ULAM_SRC_DIR", "$dir/src",
+                       "ULAM_CPP_FILE", $cfile,
+                       "ULAM_BLD_DIR", "$dir/build",
+                       "ULAM_BIN_DIR", "$dir/bin",
+                       "MFM_ROOT_DIR", $MFM_ROOT_DIR,
+                       "USE_PATH", $ORIG_PATH
+            );
         my $fileStatus = $gppStatus;
         $status += $fileStatus;
         last if $fileStatus != 0 && $KEEP_GOING == 0;
@@ -1061,18 +1205,14 @@ sub getWorkDir {
 }
 
 sub gppCompile {
-    my ($file,$makeTarget) = @_;
-    my $dir = getWorkDir();
+    my ($file,$makeTarget,@extraEnvPairs) = @_;
     my $make = getTool($makeTool);
     my $mfm = getTool($mfmRootTool);
-    my @env =
-        ("ULAM_SRC_DIR", "$dir/src",
-         "ULAM_CPP_FILE", $file,
-         "ULAM_BLD_DIR", "$dir/build",
-         "ULAM_BIN_DIR", "$dir/bin",
-         "MFM_ROOT_DIR", $MFM_ROOT_DIR,
-         "USE_PATH", $ORIG_PATH,
-        );
+    my @env;
+    while (my $key = shift @extraEnvPairs) {
+        my $val = shift @extraEnvPairs;
+        push @env, $key, $val;
+    }
     my $oldenv = modifyEnv(@env);
     my @args = ("-e",
 		"-C", "$mfm", $makeTarget);
@@ -1080,22 +1220,28 @@ sub gppCompile {
     my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
     restoreEnv($oldenv);
     if ($status ne "") {
-        print STDOUT "ERROR: $status\nstdout=$stdout\nstderr=$stderr\n";
+        print STDOUT "ERROR: $status\nstdout={$stdout}\nstderr=$stderr\n";
     } else {
         print STDOUT "OK\n";
     }
     return $status ne "";
 }
 
-sub gppCompileHOLD {
-    my ($file) = @_;
-    my $gpp = getTool($gppTool);
+sub runMake {
+    my ($makeTarget,@args) = @_;
+    my $make = getTool($makeTool);
     my $mfm = getTool($mfmRootTool);
-    my @args = ("-I", "$mfm/src/core/include", "-c", $file);
-    print "Compile $file: ";
-    my ($status,$stdout,$stderr) = runThis(undef,undef,$gpp,@args);
+    my @env = ("MFM_ROOT_DIR", $MFM_ROOT_DIR, "USE_PATH", $ORIG_PATH);
+    my $oldenv = modifyEnv(@env);
+    unshift @args,"-e","-C", "$mfm", $makeTarget;
+    print " Make $makeTarget: ";
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
+    restoreEnv($oldenv);
+    if ($SHOW_COMMANDS) {
+        print STDOUT $stdout;
+    }
     if ($status ne "") {
-        print STDOUT "ERROR: $status\n$stderr\n";
+        print STDOUT "runMake ERROR: $status\nstdout={$stdout}\nstderr=$stderr\n";
     } else {
         print STDOUT "OK\n";
     }

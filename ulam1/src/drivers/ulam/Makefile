@@ -22,6 +22,7 @@ $(TARGET): $(SRC) FORCE | $(BIN_DIR) # just always do this -- depends on ENV var
 	    -e "s|@CULAM_PATH@|$(ROOT_DIR)/bin/culam|" \
 	    -e "s|@MFM_ROOT_DIR@|$(MFM_ROOT_DIR)|" \
 	    -e "s|@MFM_VERSION_NUMBER@|$(MFM_VERSION_NUMBER)|" \
+	    -e "s|@ULAM_SHARE_DIR@|$(ULAM_SHARE_DIR)|" \
 	    -e "s|@ULAM_BUILD_TIMESTAMP@|$(ULAM_BUILD_TIMESTAMP)|" \
 	    -e "s|@ULAM_BUILD_WHO@|$(ULAM_BUILD_WHO)|" \
 	    -e "s|@ULAM_BUILD_WHERE@|$(ULAM_BUILD_WHERE)|" \

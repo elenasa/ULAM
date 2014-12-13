@@ -105,6 +105,14 @@ namespace MFM
         UDie("Couldn't init source file manager - bad directory?");
       }
 
+#ifdef ULAM_SHARE_DIR  /* Search shared files if configured for it */
+#define YY(s) XX(s)    /* expand */
+#define XX(s) #s       /* stringify */
+      m_srcFileManager->addReadDir(YY(ULAM_SHARE_DIR) "/ulam");
+#undef XX
+#undef YY
+#endif /* ULAM_SHARE_DIR */
+
       m_filename = file;
 
       std::string outdir = dir;
