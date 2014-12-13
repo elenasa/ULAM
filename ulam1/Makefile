@@ -65,6 +65,12 @@ export LIBS
 ROOT_DIR := $(shell pwd)
 export ROOT_DIR
 
+# Root of shared files tree.
+ifeq ($(ULAM_SHARE_DIR),)
+  ULAM_SHARE_DIR:=$(ROOT_DIR)/share
+endif
+export ULAM_SHARE_DIR
+
 # Root of MFM simulator tree (configure in Makefile.local.mk if known)
 export MFM_ROOT_DIR
 
@@ -92,6 +98,7 @@ BASEDIR:=$(MFM_ROOT_DIR)
 include $(BASEDIR)/config/Makecommon.mk
 CFLAGS += -I $(BASEDIR)/src/core/include
 CFLAGS += $(DEFINES)
+CFLAGS += -D ULAM_SHARE_DIR=$(ULAM_SHARE_DIR)
 LIBS := -L $(BASEDIR)/build/core $(LIBS)
 ${info (top-level) LIBS='$(LIBS)'}
 endif
