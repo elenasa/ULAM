@@ -1452,7 +1452,9 @@ namespace MFM {
 	else
 #endif
 	  {
-	    fp->write(rut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+	    // aSet requires an atom as its value:
+	    //fp->write(rut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+	    fp->write(m_state.getUlamTypeByIndex(UAtom)->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
 	    fp->write("(");
 	    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
 
