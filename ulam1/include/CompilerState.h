@@ -211,8 +211,8 @@ namespace MFM{
     u32 getCustomArrayGetFunctionNameId();
     u32 getCustomArraySetFunctionNameId();
     const char * getIsMangledFunctionName();
-    const char * getHasMangledFunctionName();
-    const char * getAsMangledFunctionName(UTI rtype);
+    const char * getHasMangledFunctionName(UTI ltype);
+    const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
 
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);

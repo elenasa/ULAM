@@ -23,7 +23,7 @@ namespace MFM {
 
   const std::string NodeConditionalAs::methodNameForCodeGen()
   {
-    return  std::string(m_state.getAsMangledFunctionName(m_utypeRight));
+    return  std::string(m_state.getAsMangledFunctionName(m_nodeLeft->getNodeType(), m_utypeRight));
   }
 
 
@@ -169,32 +169,17 @@ namespace MFM {
     if(luti == UAtom)
       {
 	m_state.indent(fp);
-	fp->write("u32 atomtype = ");
-	Node::genLocalMemberNameOfMethod(fp);  //assume atom is a local var (neither dm nor ep)
-	fp->write("read().GetType();\n");
-
-	m_state.indent(fp);
-	fp->write("Tile<CC> & tile = UlamContext<CC>::Get().GetTile();\n");
-	m_state.indent(fp);
-	fp->write("ElementTable<CC> & et = tile.GetElementTable();\n");
-	m_state.indent(fp);
-	fp->write("const Element<CC> * eltptr = et.Lookup(atomtype);\n");
-	m_state.indent(fp);
-	fp->write("if(!eltptr) FAIL(NULL_POINTER);\n");
-	m_state.indent(fp);
-	fp->write("const UlamElement<CC> * ueltptr = eltptr->AsUlamElement();\n");
-
-	m_state.indent(fp);
 	fp->write("const s32 ");
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarAs).c_str());
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarAs).c_str());;
 	fp->write(" = ");
-	fp->write("ueltptr ? ");
-	fp->write("ueltptr->");
-	fp->write(methodNameForCodeGen().c_str());  //mangled
-	fp->write("(\"");
+	//UlamElement<CC> internal method, takes u32 and const char*, returns s32
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	Node::genLocalMemberNameOfMethod(fp);  //assume atom is a local var (neither dm nor ep)
+	fp->write("read().GetType(), ");
+	fp->write("\"");
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
-	//fp->write("\") >= 0);\n");
-	fp->write("\") : -1;\n");  //keeping pos in tmp
+	fp->write("\");\n");  //keeping pos in tmp
       }
     else
       {
@@ -212,7 +197,6 @@ namespace MFM {
 	fp->write(methodNameForCodeGen().c_str());  //mangled-hAs
 	fp->write("(\"");
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
-	//	fp->write("\") >= 0);\n");
 	fp->write("\"));\n");  //keeping pos in tmp
       }
 
