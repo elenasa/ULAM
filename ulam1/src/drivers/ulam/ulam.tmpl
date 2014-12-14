@@ -28,12 +28,13 @@ my $ULAM_BIN_DIR=undef;
 my $SHOW_COMMANDS = 0;
 my $KEEP_GOING = 0;
 
-####TOOL PATHS
+####TOOL PATH NAMES
 my $makeTool = "GNU Make system builder";
 my $gppTool = "Compiler for C++ -> native code";
 my $arTool = "Archive maker for .o files";
 my $ulamcTool = "Compiler for ulam -> C++";
 my $mfmRootTool = "Movable Feast Machine source distribution";
+my $infoTool = "Element metadata parser";
 
 my %tools;
 $tools{$ulamcTool} =
@@ -41,6 +42,14 @@ $tools{$ulamcTool} =
       sub {
           my $p = shift;
           my $status = runThis("^culam", undef, $p,"-V");
+          return $status;
+      }
+    ];
+$tools{$infoTool} =
+    [ "$ULAM_SHARE_DIR/perl/GenerateUlamElementInfo.pl",
+      sub {
+          my $p = shift;
+          my $status = runThis("^GenerateUlamElementInfo", undef, $p,"-V");
           return $status;
       }
     ];
@@ -81,7 +90,7 @@ $tools{$makeTool} =
           return $status;
       }
     ];
-my @toolNames = ($makeTool, $gppTool, $arTool, $ulamcTool, $mfmRootTool);
+my @toolNames = ($makeTool, $gppTool, $arTool, $mfmRootTool, $ulamcTool, $infoTool);
 
 sub matchOrCall {
     my ($thing, $arg) = @_;
@@ -671,6 +680,10 @@ sub compilationDriver {
     UDie("$buildResults ulam build problem(s) detected\n")
         if $buildResults;
 
+    $buildResults = runUlamInfoGeneration();
+    UDie("$buildResults ulam info generation problem(s) detected\n")
+        if $buildResults;
+
     return 0 if $actionCmd eq "ulamcompile";
 
     if ($actionCmd eq "test") {
@@ -745,6 +758,9 @@ sub prepareWorkDir
 }
 
 my %testableFiles;
+my %elementNameToUlamFile;
+my %infoStructName;
+my %infoStructCode;
 
 sub runGccMakeForTests
 {
@@ -777,11 +793,30 @@ sub runUlamCompilations
             if ($cfile =~ /^(Ue_[^.]+)[.]cpp/) {
                 my $eltName = $1;
                 push @elementNamesFromUlam, $eltName;
+                $elementNameToUlamFile{$eltName} = $file;
             }
         }
         my $fileStatus = $ulamStatus + $gppStatus;
         $status += $fileStatus;
         last if $fileStatus != 0 && $KEEP_GOING == 0;
+    }
+    return $status;
+}
+
+sub runUlamInfoGeneration
+{
+    pISC("## Extract ulam element information");
+    my $status = 0;
+    for my $eltName (@elementNamesFromUlam) {
+        my $ufile = $elementNameToUlamFile{$eltName};
+        IDie unless defined $ufile;
+        pISC(" # Processing '$ufile' metadata");
+        my ($ulamStatus, $name, $code) = runUlamElementInfo($ufile);
+        if ($ulamStatus == 0) {
+            $infoForElement{$eltName} = [$name, $code];
+        }
+        $status += $ulamStatus;
+        last if $status != 0 && $KEEP_GOING == 0;
     }
     return $status;
 }
@@ -806,11 +841,19 @@ EOF
     for my $en (@elementNamesFromUlam) {
       print $hdrhdl <<EOF;
 #include "$en.h"
+
 EOF
     }
 
     print $hdrhdl <<EOF;
 
+EOF
+    for my $en (@elementNamesFromUlam) {
+      my ($infoname, $infocode) = @{$infoForElement{$en}};
+      print $hdrhdl "/* Metadata for $infoname */\n$infocode\n";
+    }
+
+    print $hdrhdl <<EOF;
 namespace MFM {
   template <class GC>
   void $fname(AbstractDriver<GC> * ad)
@@ -818,6 +861,11 @@ namespace MFM {
     typedef typename GC::CORE_CONFIG CC;
 EOF
     for my $en (@elementNamesFromUlam) {
+      my ($infoname, $infocode) = @{$infoForElement{$en}};
+      print $hdrhdl <<EOF;
+
+    { static $infoname eltInfo;  $en<CC>::THE_INSTANCE.SetInfo(&eltInfo); }
+EOF
         if ($en eq "Ue_10105Empty") {
           print $hdrhdl <<EOF;
     MFM::$en<CC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<CC>::THE_INSTANCE);
@@ -866,10 +914,6 @@ sub buildLibrary
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
     } else {
-#        my $info = $stderr;
-#        chomp($info);
-#        print STDOUT "INFO($info)\n";
-#        my ($cfile, $hastest) = split(/ /, $info);
         print STDOUT "OK\n";
         return (0, $libfile);
     }
@@ -900,10 +944,6 @@ sub buildExecutables
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
     } else {
-#        my $info = $stderr;
-#        chomp($info);
-#        print STDOUT "INFO($info)\n";
-#        my ($cfile, $hastest) = split(/ /, $info);
         print STDOUT "OK\n";
         return (0, $libfile);
     }
@@ -1083,7 +1123,7 @@ sub buildSimDriver
 
     my $linkFailed =
         runMake("all",
-                "DEBUG=1",
+                "COMMANDS=1",
                 "EXTERNAL_DEFINES=-Wno-error=unused-variable -DULAM_CUSTOM_ELEMENTS",
                 "EXTERNAL_INCLUDES=-I $dir/include",
                 "EXTERNAL_LIBS=-L $dir/build -l culam",
@@ -1144,6 +1184,26 @@ sub runUlamCompile {
         my ($cfile, $hastest) = split(/ /, $info);
         print STDOUT "OK\n";
         return (0, $cfile, $hastest eq 'TEST');
+    }
+    return $status ne "";
+}
+
+sub runUlamElementInfo {
+    my ($file) = @_;
+    my $geninfo = getTool($infoTool);
+    my @args = ($file);
+    print " Element metadating $file: ";
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$geninfo,@args);
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        my $info = $stdout;
+        chomp($info);
+        $info =~ s/^([^\n]+\n)// or IDie("No match '$info'");
+        my $structName = $1;
+        chomp($structName);
+        print STDOUT "OK\n";
+        return (0, $structName, $info);
     }
     return $status ne "";
 }
