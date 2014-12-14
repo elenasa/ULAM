@@ -172,26 +172,12 @@ namespace MFM {
     fp->write("{\n");
     m_state.m_currentIndentLevel++;
 
-    //moot if we don't need to change "self"
-    if(m_state.m_genCodingConditionalAs)
-      {
-	assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-	//assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
-	//m_state.m_currentSelfSymbolForCodeGen = m_state.m_currentObjSymbolsForCodeGen[0];
-	//m_state.m_currentObjSymbolsForCodeGen.clear();  //clear remnant of conditional-as lhs
-      }
-
-
     //note: in case of as-conditional, uvpass still has the tmpvariable containing the pos!
     m_nodeBody->genCode(fp, uvpass);
 
     //probably should have been done within the body, to avoid any
     //subsequent if/whiles from misinterpretting it as there's; if so, again, moot.
-    if(m_state.m_genCodingConditionalAs)
-      {
-	//	m_state.m_currentSelfSymbolForCodeGen = saveCSS;
-	m_state.m_genCodingConditionalAs = false; //done
-      }
+    assert(!m_state.m_genCodingConditionalAs);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

@@ -24,7 +24,7 @@ namespace MFM {
 
   const std::string NodeConditionalHas::methodNameForCodeGen()
   {
-    return  std::string(m_state.getHasMangledFunctionName());
+    return  std::string(m_state.getHasMangledFunctionName(m_nodeLeft->getNodeType()));
   }
 
 
@@ -129,46 +129,33 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UlamType * rut = m_state.getUlamTypeByIndex(m_utypeRight);
 
-    s32 tmpVarHas = m_state.getNextTmpVarNumber();
-
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);  //NO need to load lhs into tmp (T)
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = luvpass.getPtrTargetType();  //replace
 
+    s32 tmpVarHas = m_state.getNextTmpVarNumber();
+
+
     // atom is a special case since we have to learn its element type at runtime
     // before interrogating if it 'has' a particular QuarkName Type.
     if(luti == UAtom)
       {
 	m_state.indent(fp);
-	fp->write("u32 atomtype = ");
-	Node::genLocalMemberNameOfMethod(fp);  //assume atom is a local var (neither dm nor ep)
-	fp->write("read().GetType();\n");
-
-	m_state.indent(fp);
-	fp->write("Tile<CC> & tile = UlamContext<CC>::Get().GetTile();\n");
-	m_state.indent(fp);
-	fp->write("ElementTable<CC> & et = tile.GetElementTable();\n");
-	m_state.indent(fp);
-	fp->write("const Element<CC> * eltptr = et.Lookup(atomtype);\n");
-	m_state.indent(fp);
-	fp->write("if(!eltptr) FAIL(NULL_POINTER);\n");
-	m_state.indent(fp);
-	fp->write("const UlamElement<CC> * ueltptr = eltptr->AsUlamElement();\n");
-
-	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32
 	fp->write(" "); //e.g. u32
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarHas).c_str());
-	fp->write(" = ((");
-	fp->write("ueltptr ? ");
-	fp->write("ueltptr->");
-	fp->write(methodNameForCodeGen().c_str());  //mangled
-	fp->write("(\"");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarHas).c_str());;
+	fp->write(" = (");
+	//UlamElement<CC> internal method, takes u32 and const char*, returns s32
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	Node::genLocalMemberNameOfMethod(fp);  //assume atom is a local var (neither dm nor ep)
+	fp->write("read().GetType(), ");
+	fp->write("\"");
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
-	fp->write("\") : -1) >= 0);\n");  //bool as u32
+	fp->write("\") >= 0);\n");  //bool as u32
       }
     else
       {

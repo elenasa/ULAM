@@ -99,6 +99,7 @@ namespace MFM {
     //  return;
 
     //UlamType * iut = m_state.getUlamTypeByIndex(Int);
+    UTI cuti = m_state.m_classBlock->getNodeType();
 
     if(declOnly)
       {
@@ -106,10 +107,8 @@ namespace MFM {
 	fp->write("//helper method not called directly\n");
 
 	m_state.indent(fp);
-	//fp->write("static ");
-	//fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
 	fp->write("s32 ");
-	fp->write(m_state.getHasMangledFunctionName());
+	fp->write(m_state.getHasMangledFunctionName(cuti));
 	fp->write("(const char * namearg) const;\n\n");
 	return;
       }
@@ -123,22 +122,17 @@ namespace MFM {
       assert(0);
 
     m_state.indent(fp);
-
     fp->write("s32 ");  //return pos offset, or -1 if not found
-    //fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
-    //fp->write(" ");
 
-    UTI cuti = m_state.m_classBlock->getNodeType();
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
-
     if(classtype == UC_ELEMENT)
       fp->write("<CC>");
     else if(classtype == UC_QUARK)
       fp->write("<CC, POS>");
 
     fp->write("::");
-    fp->write(m_state.getHasMangledFunctionName());
+    fp->write(m_state.getHasMangledFunctionName(cuti));
     fp->write("(const char * namearg) const\n");
     m_state.indent(fp);
     fp->write("{\n");
@@ -160,7 +154,6 @@ namespace MFM {
 		fp->write("if(!strcmp(namearg,\"");
 		fp->write(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
 		fp->write("\")) return ");
-		//fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
 		fp->write("(");
 		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
 		fp->write(");   //pos offset\n");
@@ -171,7 +164,6 @@ namespace MFM {
     fp->write("\n");
     m_state.indent(fp);
     fp->write("return ");
-    //fp->write(iut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
     fp->write("(-1);   //not found\n");
 
     m_state.m_currentIndentLevel--;
@@ -193,7 +185,6 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	//if(sym->isTypedef() || sym->isDataMember())
 	if(sym->isTypedef() || (sym->isDataMember() && !sym->isElementParameter()))
 	{
 	  sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
@@ -272,9 +263,7 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isFunction());
-
 	nativeCount += ((SymbolFunctionName *) sym)->countNativeFuncDecls();
-
 	it++;
       }
     return nativeCount;
@@ -429,7 +418,6 @@ namespace MFM {
 	assert(!sym->isFunction());
 
 	// don't count typedef's or element parameters toward total
-	//if(!sym->isTypedef())
 	if(!sym->isTypedef() && !sym->isElementParameter())
 	  {
 	    UTI sut = sym->getUlamTypeIdx();
@@ -472,7 +460,6 @@ namespace MFM {
 	assert(!sym->isFunction());
 
 	// don't count typedef's or element parameters toward max
-	//if(!sym->isTypedef())
 	if(!sym->isTypedef() && !sym->isElementParameter())
 	  {
 	    UTI sut = sym->getUlamTypeIdx();
@@ -525,7 +512,6 @@ namespace MFM {
 	  }
 	if(totbitsize == CYCLEFLAG)  //was < 0
 	  {
-	    //error! cycle
 	    assert(0);
 	    return CYCLEFLAG;
 	  }
@@ -555,8 +541,7 @@ namespace MFM {
 
 	if(totbitsize == CYCLEFLAG) // was < 0
 	  {
-	    //error! cycle
-	    return CYCLEFLAG;
+	    return CYCLEFLAG;       //error! cycle
 	  }
 	else if(totbitsize == EMPTYSYMBOLTABLE)
 	  {
@@ -640,13 +625,10 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	//if(!sym->isTypedef() && sym->isDataMember())
-	//if(!sym->isTypedef() && sym->isDataMember() && !((SymbolClass *) sym)->isQuarkUnion())
 	if(!sym->isTypedef() && sym->isDataMember() && !sym->isElementParameter() && !((SymbolClass *) sym)->isQuarkUnion())
 	  {
 	    //updates the offset with the bit size of sym
 	    ((SymbolVariable *) sym)->setPosOffset(offsetIntoAtom);
-
 	    offsetIntoAtom += m_state.getTotalBitSize(sym->getUlamTypeIdx());  // times array size
 	  }
 	it++;
@@ -673,7 +655,6 @@ namespace MFM {
 	  }
 	it++;
       }
-    //fp->write("\n");
   } //generateIncludesForTableOfClasses
 
 
@@ -686,8 +667,6 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-
-	//namespace MFM { template <class CC, u32 POS> struct Uq_10105MDist;} // FORWARD
 
 	if(sym->getId() != m_state.m_compileThisId)
 	  {
@@ -710,7 +689,6 @@ namespace MFM {
 	  }
 	it++;
       }
-    //fp->write("\n");
   } //generateForwardDefsForTableOfClasses
 
 
@@ -776,7 +754,6 @@ namespace MFM {
 	    fp->write(lowercasename.c_str());
 	    fp->write(".GetDefaultAtom();\n");
 
-	    //runThisTest << ourname.str().c_str() << "::Uf_4test(" << lowercasename.c_str() << "Atom)";
 	    runThisTest << lowercasename.c_str() << ".Uf_4test(" << lowercasename.c_str() << "Atom)";
 	  }
 	it++;
