@@ -254,7 +254,7 @@ namespace MFM {
 	//error! reset to incomplete
 	cSym->setUlamClass(UC_INCOMPLETE);
 	std::ostringstream msg;
-	msg << "Empty/Incomplete Class Definition: <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">";
+	msg << "Empty/Incomplete Class Definition: <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">; possible missing ending curly brace";
 	MSG(&pTok, msg.str().c_str(), WARN);
       }
 
@@ -2032,6 +2032,13 @@ namespace MFM {
 	  {
 	    rtnNode->setDefinition();
 	    rtnNode->setMaxDepth(m_state.m_currentFunctionBlockMaxDepth);
+	    if(fsymptr->takesVariableArgs() && !rtnNode->isNative())
+	      {
+		fsymptr->markForVariableArgs(false);
+		std::ostringstream msg;
+		msg << "Variable args (...) supported for native functions only at this time; not  <" << m_state.m_pool.getDataAsString(fsymptr->getId()).c_str() << ">";
+		MSG(rtnNode->getNodeLocationAsString().c_str(), msg.str().c_str(),ERR);
+	      }
 	  }
 	else
 	  {
@@ -2063,17 +2070,28 @@ namespace MFM {
     // since the function starts a new "block" (i.e. ST);
     // the argument to parseDecl will prevent it from looking
     // for restofdecls
-
-    if(Token::isTokenAType(pTok))
+	// currently only for natives (detected after args done)
+    if(pTok.m_type == TOK_ELLIPSIS)
+      {
+	if(!fsym->takesVariableArgs())
+	  {
+	    fsym->markForVariableArgs();
+	  }
+	else
+	  {
+	    MSG(&pTok, "Variable args (...) indicated multiple times", ERR);
+	  }
+      }
+    else if(Token::isTokenAType(pTok))
       {
 	unreadToken();
 	Node * argNode = parseDecl(true);     //singletons
+	Symbol * argSym = NULL;
 
 	// could be null symbol already in scope
 	if(argNode)
 	  {
 	    //parameter IS a variable (declaration).
-	    Symbol * argSym;
 	    if(argNode->getSymbolPtr(argSym))
 	      fsym->addParameterSymbol(argSym); //ownership stays with NodeBlockFunctionDefinition's ST
 	    else
@@ -2081,6 +2099,12 @@ namespace MFM {
 	  }
 
 	delete argNode;    //no longer needed
+	if(fsym->takesVariableArgs() && argSym)
+	  {
+	    std::ostringstream msg;
+	    msg << "Parameter <" << m_state.m_pool.getDataAsString(argSym->getId()).c_str() << "> appears after ellipses (...)";
+	    MSG(&pTok, msg.str().c_str(),ERR);
+	  }
       }
     else
       {
@@ -2090,7 +2114,12 @@ namespace MFM {
 	//continue or short-circuit???
       }
 
-    getExpectedToken(TOK_COMMA, QUIETLY); // if so, get next parameter; o.w. unread
+    if(getExpectedToken(TOK_COMMA, QUIETLY)) // if so, get next parameter; o.w. unread
+      {
+	if(fsym->takesVariableArgs())
+	  MSG(&pTok, "Variable args indication (...) appears at end of parameter list", ERR);
+      }
+
     return parseRestOfFunctionParameters(fsym);
   } //parseRestOfFunctionParameters
 

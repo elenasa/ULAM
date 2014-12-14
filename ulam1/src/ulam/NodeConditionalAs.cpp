@@ -243,7 +243,7 @@ namespace MFM {
 
     fp->write(rut->getUlamTypeMangledName(&m_state).c_str());
     if(rclasstype == UC_ELEMENT)
-      fp->write("<CC>::");
+      fp->write("<CC>::THE_INSTANCE.");
     else if(rclasstype == UC_QUARK)
       fp->write("<CC,POS>::");
     else

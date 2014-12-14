@@ -172,7 +172,7 @@ namespace MFM {
 	fp->write("(");
 	fp->write(lut->getUlamTypeMangledName(&m_state).c_str());
 	if(lclasstype == UC_ELEMENT)
-	  fp->write("<CC>::");
+	  fp->write("<CC>::THE_INSTANCE.");
 	else if(lclasstype == UC_QUARK)
 	  fp->write("<CC,POS>::");
 	else
