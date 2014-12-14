@@ -112,7 +112,9 @@ namespace MFM {
 	if(constantArgs > 0)
 	  {
 	    u32 argsWithCast = 0;
-	    for(u32 i = 0; i < m_argumentNodes.size(); i++)
+	    u32 numParams = m_funcSymbol->getNumberOfParameters();
+	    //for(u32 i = 0; i < m_argumentNodes.size(); i++)
+	    for(u32 i = 0; i < numParams; i++)
 	      {
 		if(m_state.isConstant(argTypes[i]))
 		  {
@@ -125,14 +127,28 @@ namespace MFM {
 		    argsWithCast++;
 		  }
 	      }
+
+	    // do similar casting on any variable arg constants (without parameters)
+	    if(m_funcSymbol->takesVariableArgs())
+	      {
+		for(u32 i = numParams; i < m_argumentNodes.size(); i++)
+		  {
+		    if(m_state.isConstant(argTypes[i]))
+		      {
+			m_argumentNodes[i] = makeCastingNode(m_argumentNodes[i], m_state.getDefaultUlamTypeOfConstant(argTypes[i]));
+			argsWithCast++;
+		      }
+		  }
+	      } //var args
+
 	    assert(argsWithCast == constantArgs);
-	  }
-      }
+	  } //constants
+      } // no errors found
 
     m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
 
     return it;
-  }
+  } //checkAndLabelType
 
 
   // since functions are defined at the class-level; a function call
@@ -155,8 +171,14 @@ namespace MFM {
     u32 argsPushed = 0;
     EvalStatus evs;
 
+    // for now we're going to bypass variable arguments for eval purposes
+    // since our NodeFunctionDef has no way to know how many extra args to expect!
+    s32 diffInArgs = m_argumentNodes.size() - m_funcSymbol->getNumberOfParameters();
+    assert(diffInArgs == 0 || m_funcSymbol->takesVariableArgs());
+
     // place values of arguments on call stack (reverse order) before calling function
-    for(s32 i= m_argumentNodes.size() - 1; i >= 0; i--)
+    //for(s32 i= m_argumentNodes.size() - 1; i >= 0; i--)
+    for(s32 i= m_argumentNodes.size() - diffInArgs - 1; i >= 0; i--)
       {
 	UTI argType = m_argumentNodes[i]->getNodeType();
 
@@ -402,8 +424,11 @@ namespace MFM {
 	  }
       }
 
+    u32 numParams = m_funcSymbol->getNumberOfParameters();
+    // handle any variable number of args separately
     // since non-datamember variables can modify globals, save/restore before/after each
-    for(u32 i = 0; i < m_argumentNodes.size(); i++)
+    //for(u32 i = 0; i < m_argumentNodes.size(); i++)
+    for(u32 i = 0; i < numParams; i++)
       {
 	UlamValue auvpass;
 	UTI auti;
@@ -425,6 +450,33 @@ namespace MFM {
 	//m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
       } //next arg..
 
+    if(m_funcSymbol->takesVariableArgs())
+      {
+	for(u32 i = numParams; i < m_argumentNodes.size(); i++)
+	  {
+	    UlamValue auvpass;
+	    UTI auti;
+	    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+	    m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
+
+	    m_argumentNodes[i]->genCode(fp, auvpass);
+	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+
+	    auti = auvpass.getUlamValueTypeIdx();
+	    if(auti == Ptr)
+	      {
+		auti = auvpass.getPtrTargetType();
+	      }
+
+	    // use pointer for variable arg's since all the same size that way
+	    arglist << ", &" << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
+
+	    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
+	    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; //restore *******
+	  } //end forloop through variable number of args
+
+	arglist << ", (void *) 0";  //indicates end of args
+      } //end of handling variable arguments
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore vector after args*************
 

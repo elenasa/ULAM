@@ -53,10 +53,13 @@ namespace MFM{
     ~SymbolFunction();
 
     void addParameterSymbol(Symbol * argSym);
-    u32 getNumberOfParameters();    
+    u32 getNumberOfParameters();
     u32 getTotalSizeOfParameters();
 
     Symbol * getParameterSymbolPtr(u32 n);
+
+    void markForVariableArgs(bool m = true);
+    bool takesVariableArgs();
 
     virtual bool isFunction();
     void setFunctionNode(NodeBlockFunctionDefinition * func);
@@ -78,7 +81,7 @@ namespace MFM{
   private:
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
-
+    bool m_hasVariableArgs;
      //void generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     //void generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
   };

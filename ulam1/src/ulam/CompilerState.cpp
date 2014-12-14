@@ -350,11 +350,19 @@ namespace MFM {
   }
 
 
+  UTI CompilerState::getDefaultUlamTypeOfConstant(UTI ctype)
+  {
+    ULAMTYPE etype = getUlamTypeByIndex(ctype)->getUlamTypeEnum();
+    u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
+    UlamKeyTypeSignature ckey(enumStrIdx, getDefaultBitSize(ctype), NONARRAYSIZE);
+    return makeUlamType(ckey, etype); //may not exist yet, create
+  }
+
+
   bool CompilerState::isConstant(UTI uti)
   {
     UlamType * ut = getUlamTypeByIndex(uti);
     return (ut->isConstant());
-    //    return getBitSize(uti) == ANYBITSIZECONSTANT; Wed Oct 22 14:00:18 2014
   }
 
 
