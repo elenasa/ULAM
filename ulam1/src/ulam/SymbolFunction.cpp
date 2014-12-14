@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(u32 id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL)
+  SymbolFunction::SymbolFunction(u32 id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false)
   {
     setDataMember(); // by definition all function definitions are data members
   }
@@ -52,6 +52,18 @@ namespace MFM {
   {
     assert(n < m_parameterSymbols.size());
     return m_parameterSymbols[n];
+  }
+
+
+  void SymbolFunction::markForVariableArgs(bool m)
+  {
+    m_hasVariableArgs = m;
+  }
+
+
+  bool SymbolFunction::takesVariableArgs()
+  {
+    return m_hasVariableArgs;
   }
 
 
@@ -106,15 +118,18 @@ namespace MFM {
   bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes)
   {
     u32 numArgs = argTypes.size();
+    u32 numParams = m_parameterSymbols.size();
 
+    // numArgs could be greater if this function takes variable args
     // check number of args first
-    if(numArgs != m_parameterSymbols.size())
+    //    if(numArgs != m_parameterSymbols.size())
+    if(numArgs < numParams || (numArgs > numParams && !takesVariableArgs()))
       return false;
 
     bool rtnBool = true;
 
     //next match types; order counts!
-    for(u32 i=0; i < numArgs; i++)
+    for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
 	if( puti != argTypes[i])
@@ -174,11 +189,7 @@ namespace MFM {
 	m_state.indent(fp);
       }
 
-    //fp->write(sut->getTmpStorageTypeAsString(&m_state).c_str()); //return type for C++
     fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++
-    //fp->write(sut->getUlamTypeImmediateMangledName(&m_state).c_str()); //return type for C++
-    //fp->write(getUlamType()->getBitSizeTemplateString().c_str());  //for quark templates
-
     fp->write(" ");
     if(!declOnly)
       {
@@ -197,17 +208,14 @@ namespace MFM {
     fp->write(getMangledName().c_str());
     fp->write("(");
 
-    //first one is always Atom a&
-    //UlamType * atomut = m_state.getUlamTypeByIndex(Atom);
-    //fp->write(atomut->getUlamTypeMangledName(&m_state).c_str()); //type for C++
-    fp->write("T& ");          //only place we use a reference
+    //first one is always "self", a T& (atom)
+    fp->write("T& ");          //a reference
     fp->write(m_state.getHiddenArgName());
 
     u32 numparams = getNumberOfParameters();
 
     for(u32 i = 0; i < numparams; i++)
       {
-	//if(i > 0)
 	fp->write(", ");
 
 	Symbol * asym = getParameterSymbolPtr(i);
@@ -216,10 +224,14 @@ namespace MFM {
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
 	fp->write(aut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++
-	//fp->write(aut->getUlamTypeImmediateMangledName(&m_state).c_str()); //for C++
-	//fp->write(aut->getBitSizeTemplateString().c_str());  //for quark templates
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());
+      }
+
+    if(takesVariableArgs())
+      {
+	assert(func->isNative());
+	fp->write(", ...");  //ellipses must be after at least one param
       }
 
     fp->write(")");

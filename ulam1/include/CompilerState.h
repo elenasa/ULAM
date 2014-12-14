@@ -160,6 +160,7 @@ namespace MFM{
     /** turns array into its single element type */
     UTI getUlamTypeAsScalar(UTI utArg);
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
+    UTI getDefaultUlamTypeOfConstant(UTI ctype);
     bool isConstant(UTI uti);
 
     bool isScalar(UTI utArg);
