@@ -33,6 +33,13 @@ namespace MFM {
   }
 
 
+  bool NodeTerminalIdent::getSymbolPtr(Symbol *& symptrref)
+  {
+    symptrref = m_varSymbol;
+    return true;
+  }
+
+
   UTI NodeTerminalIdent::checkAndLabelType()
   {
     UTI it = Nav;  //init
@@ -76,7 +83,7 @@ namespace MFM {
     setStoreIntoAble(true);
 
     return it;
-  }
+  } //checkAndLabelType
 
 
   EvalStatus NodeTerminalIdent::eval()
@@ -189,28 +196,6 @@ namespace MFM {
     return ptr;
   } //makeUlamValuePtr
 
-#if 0
-  UlamValue NodeTerminalIdent::makeUlamValuePtrForCodeGen()
-  {
-    UlamValue uvpass1 = makeUlamValuePtr();
-    //uvpass.setPtrNameId(m_varSymbol->getId());
-    //uvpass.setPtrSlotIndex(m_state.getNextTmpVarNumber());
-    //uvpass.setPtrStorage(TMPREGISTER); //for code gen
-
-    u32 pos = uvpass1.getPtrPos();
-    // this is for "efficiency", e.g. BitVector<32> for immediate primitives
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-    if((!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter()) && nut->getUlamClass() == UC_NOTACLASS)
-      {
-	s32 wordsize = nut->getTotalWordSize();
-	pos = wordsize - (BITSPERATOM - pos); //nut->getTotalBitSize();
-      }
-
-    UlamValue uvpass = UlamValue::makePtr(m_state.getNextTmpVarNumber(), TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, pos, m_varSymbol->getId());
-
-    return uvpass;
-  } //makeUlamValuePtrForCodeGen
-#endif
 
   //new
   UlamValue NodeTerminalIdent::makeUlamValuePtrForCodeGen()
@@ -242,13 +227,6 @@ namespace MFM {
       }
     return ptr;
   } //makeUlamValuePtrForCodeGen
-
-
-  bool NodeTerminalIdent::getSymbolPtr(Symbol *& symptrref)
-  {
-    symptrref = m_varSymbol;
-    return true;
-  }
 
 
   bool NodeTerminalIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
