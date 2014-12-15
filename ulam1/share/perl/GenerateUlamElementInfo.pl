@@ -40,12 +40,26 @@ my %keys = $us->analyzeDoc($className, $doc);
 
 my $stamp = gmtime(time());
 my $cname = $us->makeCString($className);
+
 my $csym = $us->makeCString($keys{'symbol'});
-my $csum = $us->makeCString($keys{'brief'});
-my $cdet = $us->makeCString($keys{'detail'});
+my $csum = $us->makeCString($us->standardizeWhitespace($keys{'brief'}));
+my $cdet = $us->makeCString($us->standardizeWhitespace($keys{'detail'}));
+
+my $movfunc = "";
+my $pct = $keys{'diffusability'};
+if (defined $pct) {
+    $movfunc = <<EOF;
+    virtual const u32 GetPercentDiffusability() const
+    {
+      return $pct;
+    }
+EOF
+}
+
 my $author = $us->makeCString($keys{'author'});
 my $license = $us->makeCString($keys{'license'});
 my $cver = $keys{'version'};
+
 my @colors = split(/,/,$keys{'colors'});
 my $cnum = scalar(@colors);
 my $body = "";
@@ -99,6 +113,7 @@ namespace MFM {
     const char * GetAuthor() const { return $author; }
     const char * GetLicense() const { return $license; }
     const u32 GetVersion() const { return $cver; }
+$movfunc
     const u32 GetNumColors() const { return $cnum; }
     const u32 GetColor(u32 colnum) const {
       switch (colnum) {
