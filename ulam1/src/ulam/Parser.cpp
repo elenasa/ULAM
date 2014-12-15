@@ -53,7 +53,6 @@
 #include "NodeUnaryOpPlus.h"
 #include "NodeUnaryOpBang.h"
 #include "NodeVarDecl.h"
-//#include "NodeVarDeclList.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
 #include "SymbolVariableStack.h"
@@ -937,7 +936,7 @@ namespace MFM {
 
 	if(rtnNode && !parseSingleDecl)
 	  {
-	    // for multi's of same type
+	    // for multi's of same type, and/or its assignment
 	    return parseRestOfDecls(pTok, typebitsize, iTok, rtnNode);
 	  }
       }
@@ -1824,14 +1823,12 @@ namespace MFM {
 	    //rtnNode =  new NodeVarDeclList(dNode, sNode, m_state) ;
 	    rtnNode =  new NodeStatements(dNode, m_state);
 	    rtnNode->setNodeLocation(dNode->getNodeLocation());
-	    //rtnNode->setNodeLocation(typeTok.m_locator);
 
 	    NodeStatements * nextNode = new NodeStatements(sNode, m_state);
 	    nextNode->setNodeLocation(dNode->getNodeLocation());
 	    ((NodeStatements *) rtnNode)->setNextNode(nextNode);
 	  }
-	//else
-	  //error ???
+	//else  error ???
       }
     else
       {
@@ -1851,10 +1848,6 @@ namespace MFM {
     // makeup node for lhs; using same symbol as dNode(could be Null!)
     Symbol * dsymptr = NULL;
     assert(m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr));
-    //    dNode->getSymbolPtr(dsymptr);
-    //Token didTok;
-    //didTok.init(TOK_IDENTIFIER, dNode->getNodeLocation(), dsymptr->getId());
-    //Node * leftNode = new NodeTerminalIdent(didTok, (SymbolVariable *) dsymptr, m_state);
     Node * leftNode = new NodeTerminalIdent(identTok, (SymbolVariable *) dsymptr, m_state);
     assert(leftNode);
     leftNode->setNodeLocation(dNode->getNodeLocation());
@@ -1865,8 +1858,8 @@ namespace MFM {
     NodeStatements * nextNode = new NodeStatements(assignNode, m_state);
     nextNode->setNodeLocation(assignNode->getNodeLocation());
     rtnNode->setNextNode(nextNode);
-    //return rtnNode;
-    return parseRestOfDecls(typeTok, typebitsize, identTok, rtnNode);
+
+    return parseRestOfDecls(typeTok, typebitsize, identTok, rtnNode);  //any more?
   } //parseRestOfDeclAssignment
 
 
