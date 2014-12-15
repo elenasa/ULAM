@@ -26,6 +26,13 @@ use Carp;
 my $ULAM_WORK_DIR=undef;
 my $ULAM_BIN_DIR=undef;
 my $SHOW_COMMANDS = 0;
+my $SHOW_ENVIRONMENT = 0;
+my $SHOW_OUTPUT = 0;
+my $SHOW_TESTS = 0;
+my $SHOW_ALL = 0;
+my $CLEAN_CPP = 0;
+my $DEBUG_CPP = undef;
+my $OPTIMIZE_CPP = undef;
 my $KEEP_GOING = 0;
 
 ####TOOL PATH NAMES
@@ -107,9 +114,14 @@ sub matchOrCall {
     IDie("Unhandled '$thing'\n");
 }
 
+sub showCommands { return $SHOW_COMMANDS || $SHOW_ALL; }
+sub showEnvironment { return $SHOW_COMMANDS || $SHOW_ALL; }
+sub showOutput { return $SHOW_COMMANDS || $SHOW_ALL; }
+sub showTests { return $SHOW_TESTS || $SHOW_ALL; }
+
 sub runThis {
     my ($matchout, $matcherr, $cmd, @args) = @_;
-    if ($SHOW_COMMANDS) {
+    if (showCommands()) {
         print STDERR " ".join(" ",$cmd, @args)."\n";
     }
     my $status = "";
@@ -125,7 +137,6 @@ sub runThis {
         }
 #        return "";
     };
-#    print "SOUT($stdout)\nSERR($stderr)\nEXIT($exit)\n";
     if ($exit ne "") {
         $status = $exit;
     } else {
@@ -135,6 +146,11 @@ sub runThis {
         if (defined($matcherr)) {
             $status .= matchOrCall($matcherr, $stderr);
         }
+    }
+    if (showOutput()) {
+        print " # STDOUT: $stdout";     print "\n" unless $stdout =~ /.*\n$/;
+        print " # STDERR: $stderr";     print "\n" unless $stderr =~ /.*\n$/;
+        print " # STATUS: $status";     print "\n" unless $status =~ /.*\n$/;
     }
     return ($status,$stdout,$stderr);
 }
@@ -247,6 +263,20 @@ my %swinfo = (
         id => getSectionId("Command"),
         handler => \&entryCmd
     },
+    "debug" => {
+        aliases => "g",
+        desc => "Include debugging symbols in compiled binaries",
+        variable => \$DEBUG_CPP,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
+    "optimization" => {
+        aliases => "o",
+        desc => "Turn on compiler optimizations",
+        variable => \$OPTIMIZE_CPP,
+        id => getSectionId("Option"),
+        handler => \&entryVar
+    },
     "sourceDir" => {
         aliases => "sd",
         type => "s",
@@ -292,6 +322,34 @@ my %swinfo = (
         id => getSectionId("Debugging"),
         handler => \&entryVar
     },
+    "showenvironment" => {
+        aliases => "se",
+        desc => "Print environment variables before setting them",
+        variable => \$SHOW_ENVIRONMENT,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "showoutput" => {
+        aliases => "so",
+        desc => "Print command output even when the command succeeds",
+        variable => \$SHOW_OUTPUT,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "showtests" => {
+        aliases => "st",
+        desc => "Print test output even when test succeeds",
+        variable => \$SHOW_TESTS,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
+    "showall" => {
+        aliases => "sa",
+        desc => "Equivalent to --sc --se --so --st",
+        variable => \$SHOW_ALL,
+        id => getSectionId("Debugging"),
+        handler => \&entryVar
+    },
     "keepGoing" => {
         aliases => "k",
         desc => "Don't abort overall compilation on errors",
@@ -320,7 +378,8 @@ sub printSummaryHelp
     print STDERR "\nThis is the top-level ulam compilation driver\n";
     print STDERR "\nBasic command forms:\n";
     print STDERR "  $0 [OPTIONSWITCHES] INFOSWITCH\n";
-    print STDERR "  $0 [OPTIONSWITCHES] COMMANDSWITCH File1.ulam File2.ulam...\n";
+    print STDERR "  $0 [OPTIONSWITCHES] COMMANDSWITCH File1.ext File2.ext .....\n";
+    print STDERR "      Extensions are either .ulam or 'C-like' (.cpp, .h, etc)\n";
     print STDERR "\n";
 }
 
@@ -428,7 +487,7 @@ sub printToolPathsAndExit {
 }
 
 sub pISC {
-    return unless $SHOW_COMMANDS;
+    return unless showCommands();
     my $arg = shift;
     print STDERR "$arg\n";
 }
@@ -558,36 +617,11 @@ sub genOpts {
     return @list;
 }
 
-sub natatime ($@)
-{
-    my $n = shift;
-    my @list = @_;
-
-    return sub
-    {
-        return splice @list, 0, $n;
-    }
-}
+########
+####PROCESS COMMAND LINE ARGUMENTS HERE
 
 GetOptions(genOpts())
      or UDie("Command line switch processing failed\n");
-
-sub process {
-    my $foo = shift;
-    print "PROCESS($foo)\n";
-}
-
-sub getArgHref {
-    my $matching = shift;
-    my %ret;
-    for my $key (keys %{$o}) {
-        next unless $key =~ /^$matching/;
-        my $val = defined $o->{$key};
-        next unless $val;
-        $ret{$key} = $val;
-    }
-    return \%ret;
-}
 
 my $confErrs = checkTools();
 if ($confErrs != 0) {
@@ -686,7 +720,7 @@ sub compilationDriver {
 
     return 0 if $actionCmd eq "ulamcompile";
 
-    if ($actionCmd eq "test") {
+    if ($actionCmd eq "test" || $actionCmd eq "ulamtest" ) {
         ($buildResults, my $testfile) = buildTests();
         UDie("$buildResults tests creation problem(s) detected\n")
             if $buildResults;
@@ -722,6 +756,13 @@ sub compilationDriver {
         ($buildResults,my $exefile) = makeProgram("testmain");
         UDie("$buildResults testdriver linking problem(s) detected\n")
             if $buildResults;
+
+        return 0 if $actionCmd eq "ulamtest";
+
+        ($buildResults) = runTestMain("testmain");
+        UDie("$buildResults test(s) failed\n")
+            if $buildResults;
+
         return 0;
     }
 }
@@ -982,7 +1023,7 @@ static int $elementTestFuncName(bool output)
   ew.SetCenterAtom(atom);
 
   MFM::Ui_Ut_102323Int rtn;
-  rtn = OurElement::Uf_4test(atom);
+  rtn = OurElement::THE_INSTANCE.Uf_4test(atom);
   int count = rtn.read();
   if (output) {
     if (count == 0)
@@ -1123,7 +1164,7 @@ sub buildSimDriver
 
     my $linkFailed =
         runMake("all",
-                "COMMANDS=1",
+                "DEBUG=1",
                 "EXTERNAL_DEFINES=-Wno-error=unused-variable -DULAM_CUSTOM_ELEMENTS",
                 "EXTERNAL_INCLUDES=-I $dir/include",
                 "EXTERNAL_LIBS=-L $dir/build -l culam",
@@ -1142,7 +1183,7 @@ sub runGccCompilations
         my $gppStatus = 0;
         $gppStatus =
             gppCompile($cfile,"ulam_cppcompile",
-                       "COMMANDS","1",
+                       getDebugArgs(),
                        "EXTERNAL_DEFINES", "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc",
                        "ULAM_SRC_DIR", "$dir/src",
                        "ULAM_CPP_FILE", $cfile,
@@ -1163,7 +1204,19 @@ sub makeProgram
     my $progname = shift;
     pISC("## Create program $progname");
     my $gppStatus = 0;
-    $gppStatus = gppCompile("$progname.cpp","ulam_program");
+    my $dir = getWorkDir();
+    my $cfile = "$progname.cpp";
+    $gppStatus =
+        gppCompile($cfile,"ulam_program",
+                   getDebugArgs(),
+                   "EXTERNAL_DEFINES", "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc",
+                   "ULAM_SRC_DIR", "$dir/src",
+                   "ULAM_CPP_FILE", $cfile,
+                   "ULAM_BLD_DIR", "$dir/build",
+                   "ULAM_BIN_DIR", "$dir/bin",
+                   "MFM_ROOT_DIR", $MFM_ROOT_DIR,
+                   "USE_PATH", $ORIG_PATH
+        );
     return ($gppStatus,$progname);
 }
 
@@ -1187,6 +1240,25 @@ sub runUlamCompile {
     }
     return $status ne "";
 }
+
+sub runTestMain {
+    my $prog = shift;
+    my $dir = getWorkDir();
+    my $path = "$dir/bin/$prog";
+    my @args = ();
+    push @args, "output"
+        if showTests();
+    print " Running $prog: ";
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$path,@args);
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        print STDOUT "OK\n";
+    }
+    print STDOUT $stdout if showTests() && !showOutput();
+    return ($status ne "");
+}
+
 
 sub runUlamElementInfo {
     my ($file) = @_;
@@ -1227,12 +1299,17 @@ sub printEnv {
 sub modifyEnv {
     my @kv = @_;
     my %OLDENV = %ENV;
+    print STDOUT " # Environment:" if showEnvironment();
     while (@kv) {
         my $key = shift @kv;
         IDie if scalar @kv == 0;
         my $val = shift @kv;
         $ENV{$key} = $val;
+        my $d = "";
+        $d = "'" if $val =~ /.*\s.*/;
+        print STDOUT " $key=$d$val$d" if showEnvironment();
     }
+    print STDOUT "\n" if showEnvironment();
     return \%OLDENV;
 }
 
@@ -1259,6 +1336,12 @@ sub defaultWorkDir {
     }
 }
 
+sub getDebugArgs {
+    return ("DEBUG",1) if defined $DEBUG_CPP && $DEBUG_CPP;
+    return ("COMMANDS",1) if showCommands();
+    return ();
+}
+
 sub getWorkDir {
     die unless defined $ULAM_WORK_DIR;
     return $ULAM_WORK_DIR;
@@ -1268,12 +1351,7 @@ sub gppCompile {
     my ($file,$makeTarget,@extraEnvPairs) = @_;
     my $make = getTool($makeTool);
     my $mfm = getTool($mfmRootTool);
-    my @env;
-    while (my $key = shift @extraEnvPairs) {
-        my $val = shift @extraEnvPairs;
-        push @env, $key, $val;
-    }
-    my $oldenv = modifyEnv(@env);
+    my $oldenv = modifyEnv(@extraEnvPairs);
     my @args = ("-e",
 		"-C", "$mfm", $makeTarget);
     print " Compile $file: ";
@@ -1297,7 +1375,7 @@ sub runMake {
     print " Make $makeTarget: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$make,@args);
     restoreEnv($oldenv);
-    if ($SHOW_COMMANDS) {
+    if (showCommands()) {
         print STDOUT $stdout;
     }
     if ($status ne "") {
@@ -1314,31 +1392,60 @@ sub runMake {
 
 =head1 NAME
 
-sample - Using Getopt::Long and Pod::Usage
+ulam - Top-level ulam compilation driver
 
 =head1 SYNOPSIS
 
-sample [options] [file ...]
+ulam -h
+ulam [options] [file ...]
 
  Options:
-   -help            brief help message
-   -man             full documentation
+   -h               brief help message
 
 =head1 OPTIONS
 
 =over 8
 
-=item B
+=item -h
 
 Print a brief help message and exits.
-
-=item B
-
-Prints the manual page and exits.
 
 =back
 
 =head1 DESCRIPTION
 
-B will read the given input file(s) and do something
-useful with the contents thereof.
+Non-existent :(
+
+=head1 EXAMPLES
+
+ulam -h
+
+   Print out switch info
+
+ulam -c Foo.ulam Bar.ulam
+
+   Compile Foo.ulam and Bar.ulam with resulting .o files appearing in
+   .gen/build/ in the current directory
+
+ulam --wd /tmp/ulam -c Foo.ulam Bar.ulam
+
+   Same but use '/tmp/ulam/' as the work directory (so .o files go to
+   /tmp/ulam/build/ )
+
+ulam -e *.ulam /some/directory/*.ulam
+
+   Build the simulator executable including all the .ulam files found
+   in both the current directory and in /some/directory/ .  The
+   results appear in the 'bin/' directory inside the MFM simulator
+   source tree (which must have been previously configured to be found
+   now.)
+
+ulam --msd=/home/user/MFMv2/ -e *.ulam /some/directory/*.ulam
+
+   Same but use the MFM simulator source tree in '/home/user/MFMv2'.
+
+ulam -t *.ulam
+
+   Build a testmain program that runs the 'Int test()' methods found
+   in all elements in all the given .ulam files.  If all goes well the
+   driver ends up in .gen/bin/testmain inside the current directory.
