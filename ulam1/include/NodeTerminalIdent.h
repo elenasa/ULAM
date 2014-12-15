@@ -43,15 +43,21 @@
 #include "UlamType.h"
 
 namespace MFM{
-  
+
   class NodeTerminalIdent : public NodeTerminal
   {
   public:
-    
+
     NodeTerminalIdent(Token tok, SymbolVariable * symptr, CompilerState & state);
     ~NodeTerminalIdent();
 
     virtual void printPostfix(File * fp);
+
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
+    virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual UTI checkAndLabelType();
 
@@ -59,15 +65,9 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual bool getSymbolPtr(Symbol *& symptrref);
-
     virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
     virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
-
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
@@ -77,10 +77,10 @@ namespace MFM{
 
   private:
     SymbolVariable * m_varSymbol;
+
     SymbolVariable *  makeSymbol(UTI aut);
     UlamValue makeUlamValuePtr();
     UlamValue makeUlamValuePtrForCodeGen();
-
   };
 
 }

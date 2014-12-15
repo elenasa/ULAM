@@ -26,7 +26,6 @@ namespace MFM {
 	fp->write_decimal(arraysize);
 	fp->write("]");
       }
-
     fp->write("; ");
   }
 
@@ -40,6 +39,13 @@ namespace MFM {
   const std::string NodeVarDecl::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+
+  bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
+  {
+    symptrref = m_varSymbol;
+    return true;
   }
 
 
@@ -67,6 +73,19 @@ namespace MFM {
       }
     setNodeType(it);
     return getNodeType();
+  } //checkAndLabelType
+
+
+  void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    assert((s32) offset >= 0); //neg is invalid
+
+    //skip element parameter variables
+    if(!m_varSymbol->isElementParameter())
+      {
+	m_varSymbol->setPosOffset(offset);
+	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
+      }
   }
 
 
@@ -103,26 +122,6 @@ namespace MFM {
   {
     assert(0);  //no way to get here!
     return ERROR;
-  }
-
-
-  bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
-  {
-    symptrref = m_varSymbol;
-    return true;
-  }
-
-
-  void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
-  {
-    assert((s32) offset >= 0); //neg is invalid
-
-    //skip element parameter variables
-    if(!m_varSymbol->isElementParameter())
-      {
-	m_varSymbol->setPosOffset(offset);
-	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
-      }
   }
 
 
