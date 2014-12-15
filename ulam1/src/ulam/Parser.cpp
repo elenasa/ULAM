@@ -53,7 +53,6 @@
 #include "NodeUnaryOpPlus.h"
 #include "NodeUnaryOpBang.h"
 #include "NodeVarDecl.h"
-#include "NodeVarDeclList.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
 #include "SymbolVariableStack.h"
@@ -407,7 +406,7 @@ namespace MFM {
 	    rtnNode = makeVariableSymbol(pTok, typebitsize, iTok);
 
 	    if(rtnNode)
-	      rtnNode = parseRestOfDecls(pTok, typebitsize, rtnNode);
+	      rtnNode = parseRestOfDecls(pTok, typebitsize, iTok, rtnNode);
 
 	    if(!getExpectedToken(TOK_SEMICOLON))
 	      {
@@ -504,7 +503,7 @@ namespace MFM {
 
   Node * Parser::parseStatements()
   {
-    Node * sNode = (NodeStatements *) parseStatement();
+    Node * sNode = parseStatement();
 
     if(!sNode)  //e.g. due to an invalid token perhaps
       {
@@ -523,7 +522,6 @@ namespace MFM {
 	    return NULL;
 	  }
       }
-
 
     NodeStatements * rtnNode = new NodeStatements(sNode, m_state);
     rtnNode->setNodeLocation(sNode->getNodeLocation());
@@ -605,14 +603,12 @@ namespace MFM {
 	}
 	break;
       };
-
     return rtnNode;
   } //parseControlStatement
 
 
   Node * Parser::parseControlIf(Token ifTok)
   {
-
     if(!getExpectedToken(TOK_OPEN_PAREN))
       {
 	return NULL;
@@ -670,7 +666,6 @@ namespace MFM {
 
   Node * Parser::parseControlWhile(Token wTok)
   {
-
     if(!getExpectedToken(TOK_OPEN_PAREN))
       {
 	return NULL;
@@ -872,7 +867,6 @@ namespace MFM {
 	rtnNode = NULL;
 	getTokensUntil(TOK_SEMICOLON);
       }
-
     return rtnNode;   //parseSimpleStatement
   } //parseSimpleStatement
 
@@ -916,7 +910,6 @@ namespace MFM {
 	msg << "Invalid typedef Base Type <" << m_state.m_pool.getDataAsString(pTok.m_dataindex).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
       }
-
     return rtnNode;
   } //parseTypedef
 
@@ -943,8 +936,8 @@ namespace MFM {
 
 	if(rtnNode && !parseSingleDecl)
 	  {
-	    // for multi's of same type
-	    return parseRestOfDecls(pTok, typebitsize, rtnNode);
+	    // for multi's of same type, and/or its assignment
+	    return parseRestOfDecls(pTok, typebitsize, iTok, rtnNode);
 	  }
       }
     else
@@ -997,7 +990,6 @@ namespace MFM {
       {
 	unreadToken(); //not open paren, bitsize is unspecified
       }
-
     return typebitsize;
   } //parseTypeBitsize
 
@@ -1017,7 +1009,6 @@ namespace MFM {
 
     rtnNode =  new NodeReturnStatement(rtnExprNode, m_state);
     rtnNode->setNodeLocation(pTok.m_locator);
-
     return rtnNode;
   } //parseReturn
 
@@ -1025,11 +1016,9 @@ namespace MFM {
   Node * Parser::parseConditionalExpr()
   {
     Node * rtnNode = NULL;
-
     Token iTok;
     if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
       {
-
 	if(!(rtnNode = parseIdentExpr(iTok)))
 	  return parseExpression();  	//continue as parseAssignExpr
 
@@ -1061,7 +1050,6 @@ namespace MFM {
   Node * Parser::parseAssignExpr()
   {
     Node * rtnNode = NULL;
-
     Token iTok;
     if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
       {
@@ -1162,7 +1150,6 @@ namespace MFM {
       {
 	unreadToken();  // not a member select
       }
-
     return rtnNode;  //parseIdentExpr
   }
 
@@ -1395,7 +1382,6 @@ namespace MFM {
 	  unreadToken(); //eat the error token
 	}
       };
-
     return rtnNode;  //parseFactor
   }
 
@@ -1445,7 +1431,6 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-
     return rtnNode;  //parseRestOfFactor
   }
 
@@ -1504,7 +1489,6 @@ namespace MFM {
 	rtnNode->setNodeLocation(typeTok.m_locator);
 	((NodeCast *) rtnNode)->setExplicitCast();
       }
-
     return rtnNode;
   } //makeCastNode
 
@@ -1802,35 +1786,49 @@ namespace MFM {
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
 
-
     if(!getExpectedToken(TOK_CLOSE_SQUARE))
       {
 	delete rtnNode;
 	rtnNode = NULL;
       }
-
     return rtnNode;  //parseRestOfLValExpr
   }
 
 
-  Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, Node * dNode)
+  Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, Token identTok, Node * dNode)
   {
-    if(!getExpectedToken(TOK_COMMA, QUIETLY))
+    Token pTok;
+    getNextToken(pTok);
+
+    if(pTok.m_type == TOK_EQUAL)
       {
+	unreadToken();
+	return parseRestOfDeclAssignment(typeTok, typebitsize, identTok, dNode); //pass args for more decls
+      }
+    else if(pTok.m_type != TOK_COMMA)
+      {
+	unreadToken();
 	return dNode;
       }
 
     Node * rtnNode = dNode;
     Token iTok;
-    if(getExpectedToken(TOK_IDENTIFIER, iTok))
+    getNextToken(iTok);
+    if(iTok.m_type == TOK_IDENTIFIER)
       {
 	// another decl of same type typeTok
 	Node * sNode = makeVariableSymbol(typeTok, typebitsize, iTok);  //a decl
 	if (sNode)
 	  {
-	    rtnNode =  new NodeVarDeclList(dNode, sNode, m_state) ;
-	    rtnNode->setNodeLocation(typeTok.m_locator);
+	    //rtnNode =  new NodeVarDeclList(dNode, sNode, m_state) ;
+	    rtnNode =  new NodeStatements(dNode, m_state);
+	    rtnNode->setNodeLocation(dNode->getNodeLocation());
+
+	    NodeStatements * nextNode = new NodeStatements(sNode, m_state);
+	    nextNode->setNodeLocation(dNode->getNodeLocation());
+	    ((NodeStatements *) rtnNode)->setNextNode(nextNode);
 	  }
+	//else  error ???
       }
     else
       {
@@ -1838,9 +1836,31 @@ namespace MFM {
 	getTokensUntil(TOK_SEMICOLON);
 	unreadToken();
       }
-
-    return parseRestOfDecls(typeTok, typebitsize, rtnNode);
+    return parseRestOfDecls(typeTok, typebitsize, iTok, rtnNode);  //iTok in case of =
   } //parseRestOfDecls
+
+
+  Node * Parser::parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, Token identTok, Node * dNode)
+  {
+    NodeStatements * rtnNode = new NodeStatements(dNode, m_state);
+    rtnNode->setNodeLocation(dNode->getNodeLocation());
+
+    // makeup node for lhs; using same symbol as dNode(could be Null!)
+    Symbol * dsymptr = NULL;
+    assert(m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr));
+    Node * leftNode = new NodeTerminalIdent(identTok, (SymbolVariable *) dsymptr, m_state);
+    assert(leftNode);
+    leftNode->setNodeLocation(dNode->getNodeLocation());
+
+    Node * assignNode = makeAssignExprNode(leftNode);
+    assert(assignNode);
+
+    NodeStatements * nextNode = new NodeStatements(assignNode, m_state);
+    nextNode->setNodeLocation(assignNode->getNodeLocation());
+    rtnNode->setNextNode(nextNode);
+
+    return parseRestOfDecls(typeTok, typebitsize, identTok, rtnNode);  //any more?
+  } //parseRestOfDeclAssignment
 
 
   Node * Parser::makeVariableSymbol(Token typeTok, u32 typebitsize, Token identTok)
@@ -1960,7 +1980,6 @@ namespace MFM {
 	((UlamTypeClass *) cut)->setCustomArrayType(uti);
       }
 
-
     m_state.m_currentBlock = rtnNode;  //before parsing the args
 
     // use space on funcCallStack for return statement.
@@ -2005,7 +2024,6 @@ namespace MFM {
 	rtnNode = NULL;
       }
 
-
     if(rtnNode)
       {
 	bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr); //transfers ownership, if added
@@ -2019,7 +2037,6 @@ namespace MFM {
 	    rtnNode = NULL;
 	  }
       }
-
 
     if(rtnNode)
       {
@@ -2187,7 +2204,6 @@ namespace MFM {
 	msg << "Unexpected input!! Token: <" << qTok.getTokenEnumName() << "> after function declaration.";
 	MSG(&qTok, msg.str().c_str(),ERR);
       }
-
     return brtn;
   } //parseFunctionBody
 
@@ -2227,10 +2243,8 @@ namespace MFM {
 	    rtnNode =  new NodeTypedef((SymbolTypedef *) asymptr, m_state);
 	    rtnNode->setNodeLocation(typeTok.m_locator);
 	  }
-
 	delete lvalNode;  //done with it
       }
-
     return rtnNode;  //makeTypedefSymbol
   }
 
@@ -2372,11 +2386,9 @@ namespace MFM {
 	    }
 	    break;
 	  };
-
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
-
     return rtnNode;
   } //makeAssignExprNode
 
@@ -2551,7 +2563,6 @@ namespace MFM {
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
     return rtnNode;
-
   } //makeEqExpressionNode
 
 
@@ -2749,7 +2760,6 @@ namespace MFM {
 	  }
 	return false;
       }
-
     myTok = pTok;
     return true;
   }
@@ -2766,7 +2776,6 @@ namespace MFM {
 	MSG(&tok, msg.str().c_str(), ERR);
 	exit(1);
       }
-
     return brtn;
   }
 

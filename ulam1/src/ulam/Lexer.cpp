@@ -236,27 +236,9 @@ namespace MFM {
 	    //special case, confirm 3rd dot
 	    if(ttype == TOK_ELLIPSIS)
 	      {
-		s32 c3 = m_SS.read();
-		if(c3 >= 0)
-		  {
-		    astring.push_back(c3);
-		    if(c3 != '.')
-		      {
-			std::ostringstream msg;
-			msg << "Lexer could not find match for: <" << astring << ">";
-			MSG(m_state.getFullLocationAsString(firstloc).c_str(), msg.str().c_str(), ERR);
-			unread();
-			return false;
-		      }
-		  }
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << "Lexer could not find last dot for ellipsis: <" << astring << ">";
-		    MSG(m_state.getFullLocationAsString(firstloc).c_str(), msg.str().c_str(), ERR);
-		    return false;
-		  }
-	      } //tok ellipsis
+		if(!checkEllipsisToken(astring, firstloc))
+		  return false;
+	      }
 
 	    tok.init(ttype, firstloc, 0);
 	    return true;
@@ -282,6 +264,33 @@ namespace MFM {
 
     return false;
   } //makeOperatorToken
+
+
+  bool Lexer::checkEllipsisToken(std::string& astring, Locator firstloc)
+  {
+    bool bok = true;
+    s32 c3 = m_SS.read();
+    if(c3 >= 0)
+      {
+	astring.push_back(c3);
+	if(c3 != '.')
+	  {
+	    std::ostringstream msg;
+	    msg << "Lexer could not find match for: <" << astring << ">";
+	    MSG(m_state.getFullLocationAsString(firstloc).c_str(), msg.str().c_str(), ERR);
+	    unread();
+	    bok = false;
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Lexer could not find last dot for ellipsis: <" << astring << ">";
+	MSG(m_state.getFullLocationAsString(firstloc).c_str(), msg.str().c_str(), ERR);
+	bok = false;
+      }
+    return bok;
+  } //checkellipsistoken
 
 
   bool Lexer::makeDoubleQuoteToken(std::string& astring, Token & tok)
