@@ -52,6 +52,10 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
     virtual UTI checkAndLabelType();
 
     virtual bool fitsInBits(UTI fituti);
@@ -61,10 +65,6 @@ namespace MFM{
     virtual bool isWordSizeConstant();
 
     virtual EvalStatus eval();
-
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
