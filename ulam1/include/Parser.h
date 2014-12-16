@@ -291,7 +291,7 @@ namespace MFM{
 	<VAR_DECLS> := <VAR_DECL> | <VAR_DECL> + ',' + <VAR_DECLS>
 	<VAR_DECL> := <LVAL_EXPRESSION>
     */
-    Node * parseRestOfDecls(Token typeTok, u32 typebitsize, Token identTok, Node * dNode);
+    Node * parseRestOfDecls(Token typeTok, u32 typebitsize, Token identTok, Node * dNode, bool assignOK = true);
 
     Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, Token identTok, Node * dNode);
 
