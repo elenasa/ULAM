@@ -1890,14 +1890,7 @@ namespace MFM {
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
-	UTI ut;
 	s32 arraysize = NONARRAYSIZE;
-	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, ut))
-	  {
-	    arraysize = m_state.getArraySize(ut); //typedef built-in arraysize, no []
-	    assert(typebitsize == 0);
-	    typebitsize = m_state.getBitSize(ut);
-	  }
 
 	if(!lvalNode->installSymbolVariable(typeTok, typebitsize, arraysize, asymptr))
 	  {
