@@ -761,7 +761,7 @@ namespace MFM {
 	//initialize immediate T in constuctor
 	state->m_currentIndentLevel++;
 	state->indent(fp);
-	fp->write("const u32 val = realStg.Read(m_pos + T::ATOM_FIRST_STATE_BIT, ");
+	fp->write("const u32 val = realStg.GetBits().Read(m_pos + T::ATOM_FIRST_STATE_BIT, ");
 	fp->write_decimal(len);
 	fp->write(");\n");
 	state->indent(fp);
