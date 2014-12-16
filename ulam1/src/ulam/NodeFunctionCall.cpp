@@ -38,7 +38,7 @@ namespace MFM {
 
   const char * NodeFunctionCall::getName()
   {
-    return m_state.getDataAsString(&m_functionNameTok).c_str();
+    return m_state.getTokenDataAsString(&m_functionNameTok).c_str();
   }
 
 
@@ -84,7 +84,7 @@ namespace MFM {
 	if(!((SymbolFunctionName *) fnsymptr)->findMatchingFunction(argTypes, funcSymbol))
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> has no defined function with " << m_argumentNodes.size() << " matching argument types, and cannot be called";
+	    msg << "(1) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str() << "> has no defined function with " << m_argumentNodes.size() << " matching argument types, and cannot be called";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    numErrorsFound++;
 	  }
@@ -92,7 +92,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "(2) <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> is not a defined function, and cannot be called";
+	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str() << "> is not a defined function, and cannot be called";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	numErrorsFound++;
       }
@@ -289,7 +289,7 @@ namespace MFM {
   EvalStatus NodeFunctionCall::evalToStoreInto()
   {
     std::ostringstream msg;
-    msg << "Use of function calls as lefthand values is not currently supported. Save the results of <" << m_state.m_pool.getDataAsString(m_functionNameTok.m_dataindex).c_str() << "> to a variable, type: <" << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str() << ">";
+    msg << "Use of function calls as lefthand values is not currently supported. Save the results of <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str() << "> to a variable, type: <" << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str() << ">";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     assert(!isStoreIntoAble());
     return ERROR;
