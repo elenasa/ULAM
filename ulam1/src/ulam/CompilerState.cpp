@@ -85,6 +85,10 @@ namespace MFM {
     //type names begin with capital letter..and the rest can be either
     u32 typeNameId = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
 
+    //can't be a typedef!! get's the wrong name for type key; use key as arg
+    UTI tmputi;
+    assert(!getUlamTypeByTypedefName(typeTok.m_dataindex, tmputi));
+
     // is this name already a typedef for a complex type?
     ULAMTYPE bUT = getBaseTypeFromToken(typeTok);
     if(bitsize == 0)
@@ -270,7 +274,7 @@ namespace MFM {
 	  }
       }
     return bUT;
-  }
+  } //getBaseTypeFromToken
 
 
   UTI CompilerState::getUlamTypeFromToken(Token tok, u32 typebitsize)
@@ -316,7 +320,6 @@ namespace MFM {
 	    rtnBool = true;
 	  }
       }
-
     return rtnBool;
   }
 
