@@ -281,7 +281,7 @@ namespace MFM {
 
     //gets the symbol just created by makeUlamType
     return (m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr));  //true
-  }
+  } //installSymbolTypedef
 
 
   //see also NodeSquareBracket
@@ -302,6 +302,7 @@ namespace MFM {
     // or if it is a class type (quark, element).
     UTI aut = Nav;
     bool brtn = false;
+    ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
 
     // check typedef types here
     if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, aut))
@@ -342,7 +343,16 @@ namespace MFM {
 	  }
 
 	assert(tdbitsize == bitsize);
-	aut = m_state.makeUlamType(aTok, bitsize, arraysize);
+
+	//type names begin with capital letter..and the rest can be either case
+	//u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
+	u32 basetypeNameId = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(bUT));
+
+	UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
+
+	// o.w. build symbol, first the base type (with array size)
+	aut = m_state.makeUlamType(key, bUT);
+	//aut = m_state.makeUlamType(aTok, bitsize, arraysize);
 	brtn = true;
       }
     else
@@ -353,7 +363,6 @@ namespace MFM {
 	    //but with typedef's "scope" of use, typedef needs to be checked first.
 	    if(bitsize == 0)
 	      {
-		ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
 		bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 	      }
 
