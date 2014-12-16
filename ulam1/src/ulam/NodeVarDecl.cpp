@@ -255,6 +255,7 @@ namespace MFM {
   // for Conditional-As case.
   void NodeVarDecl::genCodedAutoLocal(File * fp, UlamValue & uvpass)
   {
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     // the uvpass comes from NodeControl, and still has the POS obtained
     // during the condition statement for As..unorthodox, but necessary.
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
@@ -263,7 +264,7 @@ namespace MFM {
     // before shadowing the lhs of the as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:
     s32 tmpVarStg = m_state.getNextTmpVarNumber();
-    UTI stguti = m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx();
+    UTI stguti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
     assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT);
 
