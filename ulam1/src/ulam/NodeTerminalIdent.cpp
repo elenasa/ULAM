@@ -303,20 +303,19 @@ namespace MFM {
     UTI aut = Nav;
     bool brtn = false;
 
+    // check typedef types here
     if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, aut))
       {
 	UlamType * tdut = m_state.getUlamTypeByIndex(aut);
 	s32 tdarraysize = tdut->getArraySize();
-
 	if(arraysize >= 0)  //variable's
 	  {
-	    if(tdarraysize >= 0 && arraysize >= 0)  //tdarraysize != arraysize)
+	    if(tdarraysize >= 0)  //tdarraysize != arraysize)
 	      {
 		//error can't support double arrays
 		std::ostringstream msg;
 		msg << "Arraysize (" << tdarraysize << ") is included in typedef: <" <<  m_state.m_pool.getDataAsString(aTok.m_dataindex).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-
 		return false;
 	      }
 	  }
@@ -325,7 +324,24 @@ namespace MFM {
 	    arraysize = tdarraysize; //use whatever typedef is
 	  }
 
-	assert(tdut->getBitSize() == bitsize);
+	s32 tdbitsize = tdut->getBitSize();
+	if(bitsize > 0)  //variable's
+	  {
+	    if(tdbitsize > 0)  //tdarraysize != arraysize)
+	      {
+		//error can't support different bitsizes
+		std::ostringstream msg;
+		msg << "Bitsize (" << tdbitsize << ") is included in typedef: <" <<  m_state.m_pool.getDataAsString(aTok.m_dataindex).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		return false;
+	      }
+	  }
+	else  //variable not array
+	  {
+	    bitsize = tdbitsize; //use whatever typedef is
+	  }
+
+	assert(tdbitsize == bitsize);
 	aut = m_state.makeUlamType(aTok, bitsize, arraysize);
 	brtn = true;
       }
