@@ -62,6 +62,7 @@
 namespace MFM {
 
 #define QUIETLY true
+#define NOASSIGN false
 
   Parser::Parser(Tokenizer * izer, CompilerState & state): m_state(state), m_tokenizer(izer)
   {
@@ -406,7 +407,7 @@ namespace MFM {
 	    rtnNode = makeVariableSymbol(pTok, typebitsize, iTok);
 
 	    if(rtnNode)
-	      rtnNode = parseRestOfDecls(pTok, typebitsize, iTok, rtnNode);
+	      rtnNode = parseRestOfDecls(pTok, typebitsize, iTok, rtnNode, NOASSIGN);
 
 	    if(!getExpectedToken(TOK_SEMICOLON))
 	      {
@@ -1795,15 +1796,28 @@ namespace MFM {
   }
 
 
-  Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, Token identTok, Node * dNode)
+  Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, Token identTok, Node * dNode, bool assignOK)
   {
     Token pTok;
     getNextToken(pTok);
 
     if(pTok.m_type == TOK_EQUAL)
       {
-	unreadToken();
-	return parseRestOfDeclAssignment(typeTok, typebitsize, identTok, dNode); //pass args for more decls
+	if(assignOK)
+	  {
+	    unreadToken();
+	    return parseRestOfDeclAssignment(typeTok, typebitsize, identTok, dNode); //pass args for more decls
+	  }
+	else
+	  {
+	    //error! assignments not permitted
+	    std::ostringstream msg;
+	    msg << "Cannot assign to data member <" << m_state.m_pool.getDataAsString(identTok.m_dataindex).c_str() << "> at the time of its declaration";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	    getTokensUntil(TOK_SEMICOLON);  //rest of statement is ignored.
+	    unreadToken();
+	    return dNode;
+	  }
       }
     else if(pTok.m_type != TOK_COMMA)
       {
@@ -1836,7 +1850,7 @@ namespace MFM {
 	getTokensUntil(TOK_SEMICOLON);
 	unreadToken();
       }
-    return parseRestOfDecls(typeTok, typebitsize, iTok, rtnNode);  //iTok in case of =
+    return parseRestOfDecls(typeTok, typebitsize, iTok, rtnNode, assignOK);  //iTok in case of =
   } //parseRestOfDecls
 
 
@@ -1881,6 +1895,8 @@ namespace MFM {
 	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, ut))
 	  {
 	    arraysize = m_state.getArraySize(ut); //typedef built-in arraysize, no []
+	    assert(typebitsize == 0);
+	    typebitsize = m_state.getBitSize(ut);
 	  }
 
 	if(!lvalNode->installSymbolVariable(typeTok, typebitsize, arraysize, asymptr))
@@ -2220,6 +2236,13 @@ namespace MFM {
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
 	s32 arraysize = NONARRAYSIZE;
+	UTI ut;
+	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, ut))
+	  {
+	    arraysize = m_state.getArraySize(ut); //typedef built-in arraysize, no []
+	    assert(typebitsize == 0);
+	    typebitsize = m_state.getBitSize(ut);
+	  }
 
 	if(!lvalNode->installSymbolTypedef(typeTok, typebitsize, arraysize, asymptr))
 	  {
@@ -2785,7 +2808,7 @@ namespace MFM {
     m_tokenizer->unreadToken();
   }
 
-
+  // and including lastTok
   void Parser::getTokensUntil(TokenType lastTok)
   {
     Token aTok;

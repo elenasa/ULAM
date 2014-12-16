@@ -687,10 +687,8 @@ namespace MFM {
 	  {
 	    return std::string(Token::getTokenAsString(tok.m_type));
 	  }
-
  	return getDataAsString(&tok);
       }
-
     return "Nav";
   }
 
