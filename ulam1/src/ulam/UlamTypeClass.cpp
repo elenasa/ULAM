@@ -577,12 +577,12 @@ namespace MFM {
     fp->write(") { }\n");
 #endif
 
-    //constructor here (used by const tmpVars)
+    //constructor here (used by const tmpVars); ref param to avoid excessive copying
     state->indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //T
-    fp->write(" d) : m_stg(d) {}\n");
+    fp->write("& d) : m_stg(d) {}\n");
 
     //copy constructor here (used by func call return values)
     state->indent(fp);
@@ -644,11 +644,11 @@ namespace MFM {
     // arrays are handled separately
     assert(isScalar());
 
-    // here, must be scalar
+    // here, must be scalar; ref param to avoid excessive copying
     state->indent(fp);
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //T
-    fp->write(" v) { m_stg = v; }\n");
+    fp->write("& v) { m_stg = v; }\n");
   } //genUlamTypeElementWriteDefinitionForC
 
 
@@ -754,24 +754,50 @@ namespace MFM {
 	// constructor with args
 	state->indent(fp);
 	fp->write(automangledName.c_str());
-	fp->write("(T & realStg, u32 idx) : m_stgToChange(realStg), m_pos(idx) {}\n");
+	fp->write("(T & realStg, u32 idx) : m_stgToChange(realStg), m_pos(idx)\n");
+	state->indent(fp);
+	fp->write("{\n");
+
+	//initialize immediate T in constuctor
+	state->m_currentIndentLevel++;
+	state->indent(fp);
+	fp->write("const u32 val = realStg.Read(m_pos + T::ATOM_FIRST_STATE_BIT, ");
+	fp->write_decimal(len);
+	fp->write(");\n");
+	state->indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("<CC>::write(val);\n");
+	state->m_currentIndentLevel--;
+	state->indent(fp);
+	fp->write("}\n");
 
 	// magical destructor
 	state->indent(fp);
 	fp->write("~");
 	fp->write(automangledName.c_str());
-	fp->write("() { m_stgToChange.GetBits().Write(m_pos + T::ATOM_FIRST_STATE_BIT, ");
+	fp->write("()\n");
+	state->indent(fp);
+	fp->write("{\n");
+
+	state->m_currentIndentLevel++;
+  	state->indent(fp);
+	fp->write("m_stgToChange.GetBits().Write(m_pos + T::ATOM_FIRST_STATE_BIT, ");
 	fp->write_decimal(len);
 	fp->write(", ");
 	fp->write(mangledName.c_str());
-	fp->write("<CC>::read()); }\n");
+	fp->write("<CC>::read());\n");
+	state->m_currentIndentLevel--;
+  	state->indent(fp);
+	fp->write("}\n");
       }
     else if(m_class == UC_ELEMENT)
       {
 	// constructor with args
 	state->indent(fp);
 	fp->write(automangledName.c_str());
-	fp->write("(T & realStg) : m_stgToChange(realStg) {}\n");
+	fp->write("(T & realStg) : ");
+	fp->write(mangledName.c_str());
+	fp->write("<CC>(realStg), m_stgToChange(realStg) {}\n");
 
 	// magical destructor
 	state->indent(fp);

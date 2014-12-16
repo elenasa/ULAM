@@ -115,12 +115,12 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("() : m_stg() { }\n");
 
-    //constructor here (used by const tmpVars)
+    //constructor here (used by const tmpVars); ref param to avoid excessive copying
     state->indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //T
-    fp->write(" d) : m_stg(d) {}\n");
+    fp->write("& d) : m_stg(d) {}\n");
 
     //copy constructor here (used by func call return values)
     state->indent(fp);
@@ -178,11 +178,11 @@ namespace MFM {
     // arrays are handled separately
     assert(isScalar());
 
-    // here, must be scalar
+    // here, must be scalar; ref param to avoid excessive copying
     state->indent(fp);
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //T
-    fp->write(" v) { m_stg = v; }\n");
+    fp->write("& v) { m_stg = v; }\n");
   } //genUlamTypeWriteDefinitionForC
 
 
