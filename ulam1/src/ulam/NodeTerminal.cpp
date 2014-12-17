@@ -23,7 +23,7 @@ namespace MFM {
 	return Token::getTokenAsString(m_token.m_type);  //true or false
       }
 
-    return m_state.getDataAsString(&m_token).c_str();
+    return m_state.getTokenDataAsString(&m_token).c_str();
   }
 
 

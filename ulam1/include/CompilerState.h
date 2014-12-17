@@ -201,7 +201,7 @@ namespace MFM{
     const std::string getPathFromLocator(Locator& loc);
 
     /** helper method, uses string pool */
-    const std::string getDataAsString(Token * tok);
+    const std::string getTokenDataAsString(Token * tok);
     std::string getDataAsStringMangled(u32 dataindex);
     const std::string getTokenAsATypeName(Token tok);
     u32 getTokenAsATypeNameId(Token tok);
