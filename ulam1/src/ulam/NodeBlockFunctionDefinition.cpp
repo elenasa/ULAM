@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false) 
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false)
   {}
 
   NodeBlockFunctionDefinition::~NodeBlockFunctionDefinition()
   {
-    // nodes deleted by SymbolTable in BlockClass 
+    // nodes deleted by SymbolTable in BlockClass
   }
 
   void NodeBlockFunctionDefinition::print(File * fp)
@@ -18,7 +18,7 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myut = getNodeType();
     char id[255];
-    if(myut==Nav)    
+    if(myut==Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
@@ -41,7 +41,7 @@ namespace MFM {
     fp->write(m_state.getUlamTypeNameBriefByIndex(m_funcSymbol->getUlamTypeIdx()).c_str()); //short type name
     fp->write(" ");
     fp->write(getName());
-    // has no m_node! 
+    // has no m_node!
     // declaration has no m_nextNode!!
     fp->write("(");
     u32 numparams = m_funcSymbol->getNumberOfParameters();
@@ -50,7 +50,7 @@ namespace MFM {
       {
 	if(i > 0)
 	  fp->write(", ");
-	
+
 	Symbol * asym = m_funcSymbol->getParameterSymbolPtr(i);
 	assert(asym);
 	fp->write(m_state.getUlamTypeNameBriefByIndex(asym->getUlamTypeIdx()).c_str()); //short type name
@@ -97,7 +97,7 @@ namespace MFM {
 
 
   UTI NodeBlockFunctionDefinition::checkAndLabelType()
-  { 
+  {
     UTI it = m_funcSymbol->getUlamTypeIdx();
     setNodeType(it);
 
@@ -118,9 +118,10 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
+    m_state.m_currentBlock = NodeBlock::getPreviousBlockPointer();  //missing?
     return getNodeType();
-  }
-  
+  } //checkAndLabelType
+
 
   EvalStatus NodeBlockFunctionDefinition::eval()
   {
@@ -133,7 +134,7 @@ namespace MFM {
 
     evalNodeProlog(0);                  //new current frame pointer on node eval stack
     makeRoomForNodeType(getNodeType()); //place for return vals node eval stack
-    
+
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth());  //local variables on callstack!
 
     EvalStatus evs = m_nextNode->eval();
@@ -142,9 +143,9 @@ namespace MFM {
     UlamValue rtnUV;
 
     if(evs == RETURN)
-      {	
+      {
 	// save results in the stackframe for caller;
-	// copies each element of the array by value, 
+	// copies each element of the array by value,
 	// in reverse order ([0] is last at bottom)
 	s32 slot = m_state.slotsNeeded(getNodeType());
 	rtnUV = UlamValue::makePtr(-slot, STACK, getNodeType(), packRtn, m_state); //negative to current stack frame pointer
@@ -176,7 +177,7 @@ namespace MFM {
     m_isDefinition = true;
   }
 
-  
+
   bool NodeBlockFunctionDefinition::isDefinition()
   {
     return m_isDefinition;
@@ -223,13 +224,13 @@ namespace MFM {
   {
     // m_currentObjSymbol set up by caller
     //    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
-    
+
     m_state.m_currentBlock = this;
 
     assert(isDefinition());
     assert(m_nextNode);
 
-    assert(!isNative()); 
+    assert(!isNative());
 
     fp->write("\n");
     m_state.indent(fp);
@@ -239,14 +240,16 @@ namespace MFM {
 
     m_nextNode->genCode(fp, uvpass);
 
-    m_state.m_currentIndentLevel--;    
+    m_state.m_currentIndentLevel--;
 
     fp->write("\n");
     m_state.indent(fp);
     fp->write("} // ");
     fp->write(m_funcSymbol->getMangledName().c_str());  //end of function
     fp->write("\n\n\n");
-  }
+
+    m_state.m_currentBlock = NodeBlock::getPreviousBlockPointer();  //missing?
+  } //genCode
 
 
 } //end MFM

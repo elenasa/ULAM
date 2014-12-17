@@ -10,8 +10,8 @@ namespace MFM {
   static const char * tok_string[] = {
 #include "Token.inc"
   };
-  
-#undef XX    
+
+#undef XX
 
 
 #define XX(a,b,c) "TOK_" #a,
@@ -19,8 +19,8 @@ namespace MFM {
   static const char * tok_name[] = {
 #include "Token.inc"
   };
-  
-#undef XX    
+
+#undef XX
 
 
 #define XX(a,b,c) TOKSP_##c,
@@ -103,7 +103,7 @@ namespace MFM {
     if(m_dataindex > 0)
       {
 	fp->write(40); // ( ascii decimal
-	fp->write(state->getDataAsString(this).c_str());
+	fp->write(state->getTokenDataAsString(this).c_str());
 	fp->write(41); // ) ascii decimal
       }
     fp->write(10); // \n ascii decimal for LF

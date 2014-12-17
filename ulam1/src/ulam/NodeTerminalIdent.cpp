@@ -23,7 +23,7 @@ namespace MFM {
 
   const char * NodeTerminalIdent::getName()
   {
-    return m_state.getDataAsString(&m_token).c_str();
+    return m_state.getTokenDataAsString(&m_token).c_str();
   }
 
 
@@ -60,14 +60,14 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "> is not a variable, and cannot be used as one";
+		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a variable, and cannot be used as one";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "> is not defined, and cannot be used";
+	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
@@ -251,7 +251,7 @@ namespace MFM {
 	  {
 	    //error can't support typedefs changing arraysizes
 	    std::ostringstream msg;
-	    msg << "Arraysize (" << tdarraysize << ") is included in typedef: <" <<  m_state.m_pool.getDataAsString(aTok.m_dataindex).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(tduti).c_str() << ">, and cannot be redefined by typedef: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">, to (" << arraysize << ")";
+	    msg << "Arraysize (" << tdarraysize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(tduti).c_str() << ">, and cannot be redefined by typedef: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">, to (" << arraysize << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
@@ -315,7 +315,7 @@ namespace MFM {
 	      {
 		//error can't support double arrays
 		std::ostringstream msg;
-		msg << "Arraysize (" << tdarraysize << ") is included in typedef: <" <<  m_state.m_pool.getDataAsString(aTok.m_dataindex).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+		msg << "Arraysize (" << tdarraysize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		return false;
 	      }
@@ -332,7 +332,7 @@ namespace MFM {
 	      {
 		//error can't support different bitsizes
 		std::ostringstream msg;
-		msg << "Bitsize (" << tdbitsize << ") is included in typedef: <" <<  m_state.m_pool.getDataAsString(aTok.m_dataindex).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+		msg << "Bitsize (" << tdbitsize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		return false;
 	      }
