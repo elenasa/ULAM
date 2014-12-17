@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false) {}
+  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false), m_isSelf(false) {}
   Symbol::~Symbol(){}
 
   u32 Symbol::getId()
@@ -72,6 +72,16 @@ namespace MFM {
   bool Symbol::isAutoLocal()
   {
     return m_autoLocal;
+  }
+
+  void Symbol::setIsSelf()
+  {
+    m_isSelf = true;
+  }
+
+  bool Symbol::isSelf()
+  {
+    return m_isSelf;
   }
 
 

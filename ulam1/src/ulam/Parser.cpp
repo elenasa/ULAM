@@ -63,6 +63,7 @@ namespace MFM {
 
 #define QUIETLY true
 #define NOASSIGN false
+#define SINGLEDECL true
 
   Parser::Parser(Tokenizer * izer, CompilerState & state): m_state(state), m_tokenizer(izer)
   {
@@ -174,7 +175,6 @@ namespace MFM {
 
     if( (pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) && (pTok.m_type != TOK_KW_QUARKUNION) )
       {
-	//error!
 	std::ostringstream msg;
 	msg << "Expecting 'quark' or 'element' KEYWORD, NOT <" << pTok.getTokenString() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
@@ -193,7 +193,6 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Poorly named class <" << m_state.getTokenDataAsString(&iTok).c_str() << ">: Identifier must begin with an upper-case letter";;
 	MSG(&iTok, msg.str().c_str(), ERR);
-	//error!
 	return  true; //we're done unless we can gobble the rest up?
       }
 
@@ -208,7 +207,6 @@ namespace MFM {
 	//if already defined, then must be incomplete, else duplicate!!
 	if(cSym->getUlamClass() != UC_INCOMPLETE)
 	  {
-	    //error!! duplicate
 	    std::ostringstream msg;
 	    msg << "Duplicate or incomplete class <" << m_state.m_pool.getDataAsString(cSym->getId()).c_str() << ">";
 	    MSG(&iTok, msg.str().c_str(), ERR);
@@ -238,7 +236,6 @@ namespace MFM {
 	  break;
 	}
       default:
-	//error!!
 	assert(0);
       };
 
@@ -251,7 +248,7 @@ namespace MFM {
       }
     else
       {
-	//error! reset to incomplete
+	// reset to incomplete
 	cSym->setUlamClass(UC_INCOMPLETE);
 	std::ostringstream msg;
 	msg << "Empty/Incomplete Class Definition: <" << m_state.getTokenDataAsString(&iTok).c_str() << ">; possible missing ending curly brace";
@@ -863,7 +860,7 @@ namespace MFM {
 
     if(!getExpectedToken(TOK_SEMICOLON))
       {
-	MSG(&pTok, "Invalid Statement", ERR);
+	MSG(&pTok, "Invalid Statement (possible missing semicolon)", ERR);
 	delete rtnNode;
 	rtnNode = NULL;
 	getTokensUntil(TOK_SEMICOLON);
@@ -1806,7 +1803,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //error! assignments not permitted
+	    // assignments not permitted
 	    std::ostringstream msg;
 	    msg << "Cannot assign to data member <" << m_state.getTokenDataAsString(&identTok).c_str() << "> at the time of its declaration";
 	    MSG(&pTok, msg.str().c_str(), ERR);
@@ -1925,7 +1922,7 @@ namespace MFM {
 	msg << "Function <" << m_state.getTokenDataAsString(&identTok).c_str() << "> is not a valid (lower case) name";
 	MSG(&identTok, msg.str().c_str(), ERR);
 
-	// eat tokens until end of definition ???
+	// eat tokens until end of definition ?
 	return NULL;
       }
 
@@ -1996,11 +1993,13 @@ namespace MFM {
     m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
-#if 0
+#if 1
     // create "self" symbol whose index is that of the "hidden" first arg (i.e. a Ptr to an Atom);
     // immediately below the return value(s); and belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
-    SymbolVariableStack * selfsym = new SymbolVariableStack(selfid, Atom, false, m_state.m_currentFunctionBlockDeclSize, m_state);
+    UTI cuti = m_state.m_classBlock->getNodeType();  //luckily we know this now for each class used
+    SymbolVariableStack * selfsym = new SymbolVariableStack(selfid, cuti, m_state.determinePackable(cuti), m_state.m_currentFunctionBlockDeclSize, m_state);
+    selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 #endif
 
@@ -2107,7 +2106,7 @@ namespace MFM {
     else if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	Node * argNode = parseDecl(true);     //singletons
+	Node * argNode = parseDecl(SINGLEDECL);     //singletons
 	Symbol * argSym = NULL;
 
 	// could be null symbol already in scope
