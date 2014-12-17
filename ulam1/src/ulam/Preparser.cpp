@@ -14,7 +14,7 @@ namespace MFM {
   }
 
 
-  u32 Preparser::getFileUlamVersion() const 
+  u32 Preparser::getFileUlamVersion() const
   {
     return m_tokenizer->getFileUlamVersion();
   }
@@ -28,7 +28,7 @@ namespace MFM {
 
   bool Preparser::getNextToken(Token & returnTok)
   {
-    
+
     if(m_haveUnreadToken)
       {
 	returnTok = m_lastToken;
@@ -39,7 +39,7 @@ namespace MFM {
 	m_tokenizer->getNextToken(returnTok);
 	m_lastToken = returnTok;
       }
-    
+
 
     if(returnTok.m_type == TOK_KW_USE)
       {
@@ -74,7 +74,7 @@ namespace MFM {
 	    tok.init(TOK_ERROR_ABORT, useTok.m_locator, 0);
 	  }
       }
-    
+
     return false;
   }
 
@@ -95,7 +95,7 @@ namespace MFM {
 	    tok.init(TOK_ERROR_ABORT, loadTok.m_locator, 0);
 	  }
       }
-    
+
     return false;
   }
 
@@ -110,7 +110,7 @@ namespace MFM {
 	      case TOK_TYPE_IDENTIFIER:
 	      case TOK_IDENTIFIER:
 		{
-		  pStr.append(m_state.m_pool.getDataAsString(pTok.m_dataindex));
+		  pStr.append(m_state.getTokenDataAsString(&pTok));
 		  break;
 		}
 	      case TOK_DOT:
@@ -128,9 +128,9 @@ namespace MFM {
 		m_tokenizer->unreadToken();
 		return false;
 	      } //end switch
-	  
+
 	  } //end while
-	
+
 	return false;
   }
 
@@ -145,7 +145,7 @@ namespace MFM {
 
     if(nTok.m_type == TOK_NUMBER)
       {
-	std::string nstr = m_state.getDataAsString(&nTok);
+	std::string nstr = m_state.getTokenDataAsString(&nTok);
 	const char * numlist = nstr.c_str();
 	char * nEnd;
 	s32 numval = strtol(numlist, &nEnd, 10);   //base 10
@@ -172,5 +172,5 @@ namespace MFM {
     return rtnBool;
   }
 
-  
+
 } //end MFM
