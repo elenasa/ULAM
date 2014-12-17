@@ -159,6 +159,9 @@ namespace MFM{
 
     u32 adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass);
 
+    void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+
+
   private:
     bool m_storeIntoAble;
     UTI m_nodeUType;

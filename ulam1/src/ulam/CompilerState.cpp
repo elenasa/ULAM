@@ -910,6 +910,7 @@ namespace MFM {
   UTI CompilerState::getUlamTypeForThisClass()
   {
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    assert(csym);
     return csym->getUlamTypeIdx();
   }
 

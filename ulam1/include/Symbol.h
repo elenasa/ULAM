@@ -67,6 +67,9 @@ namespace MFM{
     void setAutoLocal();
     bool isAutoLocal();
 
+    void setIsSelf();
+    bool isSelf();
+
     const std::string getMangledName();
 
     static const std::string getParameterTypePrefix(bool isaclass);
@@ -88,6 +91,7 @@ namespace MFM{
     bool m_dataMember;
     bool m_elementParameter;
     bool m_autoLocal;
+    bool m_isSelf;       // hidden arg symbol
   };
 
 }
