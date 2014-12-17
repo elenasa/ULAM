@@ -66,6 +66,8 @@ namespace MFM {
 
     m_nextNode->checkAndLabelType();
 
+    m_state.m_currentBlock = m_prevBlockNode;  //missing?
+
     //blocks don't have types
     setNodeType(Void);
     return getNodeType();

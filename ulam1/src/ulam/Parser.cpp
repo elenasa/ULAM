@@ -191,7 +191,7 @@ namespace MFM {
     if(iTok.m_type != TOK_TYPE_IDENTIFIER)
       {
 	std::ostringstream msg;
-	msg << "Poorly named class <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">: Identifier must begin with an upper-case letter";;
+	msg << "Poorly named class <" << m_state.getTokenDataAsString(&iTok).c_str() << ">: Identifier must begin with an upper-case letter";;
 	MSG(&iTok, msg.str().c_str(), ERR);
 	//error!
 	return  true; //we're done unless we can gobble the rest up?
@@ -254,7 +254,7 @@ namespace MFM {
 	//error! reset to incomplete
 	cSym->setUlamClass(UC_INCOMPLETE);
 	std::ostringstream msg;
-	msg << "Empty/Incomplete Class Definition: <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">; possible missing ending curly brace";
+	msg << "Empty/Incomplete Class Definition: <" << m_state.getTokenDataAsString(&iTok).c_str() << ">; possible missing ending curly brace";
 	MSG(&pTok, msg.str().c_str(), WARN);
       }
 
@@ -430,7 +430,7 @@ namespace MFM {
       {
 	//user error!
 	std::ostringstream msg;
-	msg << "Name of variable/function <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">: Identifier must begin with a lower-case letter";
+	msg << "Name of variable/function <" << m_state.getTokenDataAsString(&iTok).c_str() << ">: Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 
 	unreadToken();
@@ -897,18 +897,14 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    if(iTok.m_dataindex == 0)
-	      msg << "Invalid typedef Alias <" << Token::getTokenAsString(iTok.m_type) << ">, try: 'typedef Type Alias <[n]>;'";
-	    else
-		msg << "Invalid typedef Alias <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">, Type Identifier (2nd arg) requires capitalization";
-
+	    msg << "Invalid typedef Alias <" << m_state.getTokenDataAsString(&iTok).c_str() << ">, Type Identifier (2nd arg) requires capitalization";
 	    MSG(&iTok, msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Invalid typedef Base Type <" << m_state.m_pool.getDataAsString(pTok.m_dataindex).c_str() << ">";
+	msg << "Invalid typedef Base Type <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
       }
     return rtnNode;
@@ -945,7 +941,7 @@ namespace MFM {
       {
 	//user error!
 	std::ostringstream msg;
-	msg << "Name of variable <" << m_state.m_pool.getDataAsString(iTok.m_dataindex).c_str() << ">: Identifier must begin with a lower-case letter";
+	msg << "Name of variable <" << m_state.getTokenDataAsString(&iTok).c_str() << ">: Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 
 	unreadToken();
@@ -1116,7 +1112,7 @@ namespace MFM {
 	if(asymptr && !asymptr->isFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "Undefined function <" << m_state.getDataAsString(&identTok).c_str() << "> that has already been declared as a variable";
+	    msg << "Undefined function <" << m_state.getTokenDataAsString(&identTok).c_str() << "> that has already been declared as a variable";
 	    MSG(&identTok, msg.str().c_str(), ERR);
 	    return  NULL; //bail
 	  }
@@ -1812,7 +1808,7 @@ namespace MFM {
 	  {
 	    //error! assignments not permitted
 	    std::ostringstream msg;
-	    msg << "Cannot assign to data member <" << m_state.m_pool.getDataAsString(identTok.m_dataindex).c_str() << "> at the time of its declaration";
+	    msg << "Cannot assign to data member <" << m_state.getTokenDataAsString(&identTok).c_str() << "> at the time of its declaration";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	    getTokensUntil(TOK_SEMICOLON);  //rest of statement is ignored.
 	    unreadToken();
@@ -1905,7 +1901,7 @@ namespace MFM {
 		// installSymbol failed for other reasons (e.g. problem with [])
 		// rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid variable declaration of Type: <" << m_state.getTokenAsATypeName(typeTok).c_str() << "> and Name: <" << m_state.getDataAsString(&identTok).c_str() << "> (missing symbol)";
+		msg << "Invalid variable declaration of Type: <" << m_state.getTokenAsATypeName(typeTok).c_str() << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str() << "> (missing symbol)";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -1926,7 +1922,7 @@ namespace MFM {
     if(Token::isTokenAType(identTok))
       {
 	std::ostringstream msg;
-	msg << "Function <" << m_state.getDataAsString(&identTok).c_str() << "> is not a valid (lower case) name";
+	msg << "Function <" << m_state.getTokenDataAsString(&identTok).c_str() << "> is not a valid (lower case) name";
 	MSG(&identTok, msg.str().c_str(), ERR);
 
 	// eat tokens until end of definition ???
@@ -2250,7 +2246,7 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with []) , error already output.
 		// rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid typedef of Type: <" << m_state.getTokenAsATypeName(typeTok).c_str() << "> and Name: <" << m_state.getDataAsString(&identTok).c_str() << "> (missing symbol)";
+		msg << "Invalid typedef of Type: <" << m_state.getTokenAsATypeName(typeTok).c_str() << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str() << "> (missing symbol)";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	  }

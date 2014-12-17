@@ -656,10 +656,14 @@ namespace MFM {
   }
 
 
-  const std::string CompilerState::getDataAsString(Token * tok)
+  const std::string CompilerState::getTokenDataAsString(Token * tok)
   {
     assert(tok);
-    return m_pool.getDataAsString(tok->m_dataindex);
+    if(tok->m_dataindex > 0)
+      {
+	return m_pool.getDataAsString(tok->m_dataindex);
+      }
+    return std::string(tok->getTokenString());
   }
 
 
@@ -690,7 +694,7 @@ namespace MFM {
 	  {
 	    return std::string(Token::getTokenAsString(tok.m_type));
 	  }
- 	return getDataAsString(&tok);
+ 	return getTokenDataAsString(&tok);
       }
     return "Nav";
   }
