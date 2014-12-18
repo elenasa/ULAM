@@ -210,20 +210,20 @@ namespace MFM {
     return brtn;
   } //end cast
 
+
   const std::string UlamTypeAtom::castMethodForCodeGen(UTI nodetype, CompilerState& state)
   {
     std::ostringstream rtnMethod;
     UlamType * nut = state.getUlamTypeByIndex(nodetype);
+
     //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();
-    //ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
     s32 sizeByIntBitsToBe = getTotalWordSize();
     s32 sizeByIntBits = nut->getTotalWordSize();
 
     assert(sizeByIntBitsToBe == sizeByIntBits);
     assert(nut->getUlamClass() == UC_ELEMENT);  //quarks only cast toInt
 
-    rtnMethod << "_" << "Element"  << sizeByIntBits << "To" << UlamType::getUlamTypeEnumAsString(typEnum) << sizeByIntBitsToBe;
+    rtnMethod << "_" << "Element"  << sizeByIntBits << "To" << getUlamTypeNameOnly(&state).c_str() << sizeByIntBitsToBe;
     return rtnMethod.str();
   } //castMethodForCodeGen
 
