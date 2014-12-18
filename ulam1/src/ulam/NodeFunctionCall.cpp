@@ -56,6 +56,7 @@ namespace MFM {
     //might be related to m_currentSelfPtr?
     //member selection doesn't apply to arguments
     bool saveUseMemberBlock = m_state.m_useMemberBlock;
+    NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
 
     //look up in class block, and match argument types to parameters
     //assert(m_funcSymbol == NULL);
@@ -146,6 +147,7 @@ namespace MFM {
       } // no errors found
 
     m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
+    m_state.m_currentMemberClassBlock = saveMemberClassBlock;
 
     return it;
   } //checkAndLabelType
