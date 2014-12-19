@@ -258,13 +258,14 @@ namespace MFM {
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    std::string typeName = getTokenAsATypeName(tok); //Foo, Int, etc
+	    std::string typeName = getTokenAsATypeName(tok); //Int, etc
 
 	    //no way to get the bUT, except to assume typeName is one of them?
 	    bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
 	  }
 	else
 	  {
+	    // it's an element or quark! base type is Ut_Class?
 	    SymbolClass * csym = NULL;
 	    if(alreadyDefinedSymbolClass(tok.m_dataindex, csym))
 	      {
@@ -694,7 +695,18 @@ namespace MFM {
 	  {
 	    return std::string(Token::getTokenAsString(tok.m_type));
 	  }
- 	return getTokenDataAsString(&tok);
+	else
+	  {
+	    UTI tduti = Nav;
+	    if(getUlamTypeByTypedefName(tok.m_dataindex, tduti))
+	      {
+		UlamType * tdut = getUlamTypeByIndex(tduti);
+		//for typedef quarks return quark name, o.w. base name
+		return tdut->getUlamTypeNameOnly(this);
+	      }
+	    else
+	      return getTokenDataAsString(&tok); //a class
+	  }
       }
     return "Nav";
   }
@@ -910,6 +922,7 @@ namespace MFM {
   UTI CompilerState::getUlamTypeForThisClass()
   {
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    assert(csym);
     return csym->getUlamTypeIdx();
   }
 

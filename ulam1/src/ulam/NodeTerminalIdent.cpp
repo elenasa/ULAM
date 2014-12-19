@@ -267,9 +267,7 @@ namespace MFM {
       bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
     //type names begin with capital letter..and the rest can be either case
-    //u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
-    u32 basetypeNameId = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(bUT));
-
+    u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
     UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
 
     // o.w. build symbol, first the base type (with array size)
@@ -345,9 +343,7 @@ namespace MFM {
 	assert(tdbitsize == bitsize);
 
 	//type names begin with capital letter..and the rest can be either case
-	//u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
-	u32 basetypeNameId = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(bUT));
-
+	u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
 	UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
 
 	// o.w. build symbol, first the base type (with array size)

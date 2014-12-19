@@ -33,7 +33,7 @@ namespace MFM {
   }
 
   UTI NodeMemberSelect::checkAndLabelType()
-  { 
+  {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
@@ -41,12 +41,18 @@ namespace MFM {
     ULAMCLASSTYPE classtype = lut->getUlamClass();
     if(classtype == UC_NOTACLASS || classtype == UC_INCOMPLETE)
       {
-	//error!
 	// must be a 'Class' type, either quark or element
+	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
+	std::ostringstream msg;
+	msg << "Member selected must be either a quark or an element, not type <" << m_state.getUlamTypeNameByIndex(luti).c_str() << ">";
+	if(luti == UAtom)
+	  msg << "; suggest using a Conditional-As";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+
 	setNodeType(Nav);
 	return getNodeType();
-      }
-    
+      } //done
+
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
     SymbolClass * csym = NULL;
@@ -57,15 +63,15 @@ namespace MFM {
     //set up compiler state to use the member class block for symbol searches
     m_state.m_currentMemberClassBlock = memberClassNode;
     m_state.m_useMemberBlock = true;
-    
+
     UTI rightType = m_nodeRight->checkAndLabelType();
-    
+
     //clear up compiler state to no longer use the member class block for symbol searches
     m_state.m_useMemberBlock = false;
     m_state.m_currentMemberClassBlock = NULL;
-    
+
     setNodeType(rightType);
-    
+
     setStoreIntoAble(m_nodeRight->isStoreIntoAble());
     return getNodeType();
   }
@@ -104,7 +110,7 @@ namespace MFM {
     //Symbol * rsymptr = NULL;
     //if(m_nodeRight->getSymbolPtr(rsymptr) && rsymptr->isFunction())
 
-    //assigns rhs to lhs UV pointer (handles arrays);  
+    //assigns rhs to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
 
     if(slot)   //avoid Void's
@@ -116,20 +122,20 @@ namespace MFM {
   } //eval
 
 
-  //for eval, want the value of the rhs 
+  //for eval, want the value of the rhs
   void NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     //the return value of a function call, or value of a data member
-    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); 
+    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot);
 
-    UlamValue rtnUV;    
+    UlamValue rtnUV;
     UTI ruti = getNodeType();
     PACKFIT packFit = m_state.determinePackable(ruti);
 
     if(m_state.isScalar(ruti) || WritePacked(packFit))
       {
-	rtnUV = ruv; 
+	rtnUV = ruv;
       }
     else
       {
@@ -141,7 +147,7 @@ namespace MFM {
     assignReturnValueToStack(rtnUV);
   }
 
-  
+
 
   EvalStatus NodeMemberSelect::evalToStoreInto()
   {
@@ -150,7 +156,7 @@ namespace MFM {
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 
     makeRoomForSlots(1); //always 1 slot for ptr
-    EvalStatus evs = m_nodeLeft->evalToStoreInto();  
+    EvalStatus evs = m_nodeLeft->evalToStoreInto();
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -161,7 +167,7 @@ namespace MFM {
     m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
 
     makeRoomForSlots(1); //always 1 slot for ptr
-    evs = m_nodeRight->evalToStoreInto();  
+    evs = m_nodeRight->evalToStoreInto();
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -174,7 +180,7 @@ namespace MFM {
     assignReturnValuePtrToStack(ruvPtr);
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr *************
-    
+
     evalNodeEpilog();
     return NORMAL;
   } //evalToStoreInto
@@ -197,7 +203,7 @@ namespace MFM {
   {
     if(m_nodeLeft)
       return m_nodeLeft->getSymbolPtr(symptrref);
-    
+
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
     return false;
   }
@@ -215,7 +221,7 @@ namespace MFM {
     m_nodeRight->genCodeToStoreInto(fp, uvpass);       // w/o readInto to reset COS
 
     if(m_nodeRight->getNodeType() != Void)
-      m_nodeRight->genCodeReadIntoATmpVar(fp, uvpass); //e.g. in case of func calls 
+      m_nodeRight->genCodeReadIntoATmpVar(fp, uvpass); //e.g. in case of func calls
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;    //restore current object ptr ****
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
