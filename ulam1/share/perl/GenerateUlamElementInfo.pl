@@ -104,7 +104,8 @@ $structName
 #include "UlamDefs.h"
 
 namespace MFM {
-  struct $structName : public UlamElementInfo
+  template <class CC>
+  struct $structName : public UlamElementInfo<CC>
   {
     const char * GetName() const { return $cname; }
     const char * GetSymbol() const { return $csym; }
@@ -120,7 +121,6 @@ $movfunc
       default: $body
       }
     }
-    template <class CC>
     const u32 GetSymmetry() const {
       $symbody
     }

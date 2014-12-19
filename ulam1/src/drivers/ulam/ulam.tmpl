@@ -905,7 +905,7 @@ EOF
       my ($infoname, $infocode) = @{$infoForElement{$en}};
       print $hdrhdl <<EOF;
 
-    { static $infoname eltInfo;  $en<CC>::THE_INSTANCE.SetInfo(&eltInfo); }
+    { static $infoname<CC> eltInfo;  $en<CC>::THE_INSTANCE.SetInfo(&eltInfo); }
 EOF
         if ($en eq "Ue_10105Empty") {
           print $hdrhdl <<EOF;
@@ -1162,9 +1162,12 @@ sub buildSimDriver
     pISC("## Build custom simulator");
     my $dir = getWorkDir();
 
+    my $var = join("=",getDebugArgs());
+    my @dbgarg;
+    push @dbgarg, $var if $var ne "";
     my $linkFailed =
         runMake("all",
-                "DEBUG=1",
+                @dbgarg,
                 "EXTERNAL_DEFINES=-Wno-error=unused-variable -DULAM_CUSTOM_ELEMENTS",
                 "EXTERNAL_INCLUDES=-I $dir/include",
                 "EXTERNAL_LIBS=-L $dir/build -l culam",
