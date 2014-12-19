@@ -66,7 +66,7 @@ sub analyzeDoc {
     my ($self, $name, $doc) = @_;
     $doc = $2
         if $doc =~ m!\s*(/[*][*]\s*)?(.*?)\s*([*]/)?\s*$!s;
-    my @pieces = split(/\\(?=[A-Za-z])/,$doc); # uneaten lookahead!
+    my @pieces = split(/\\(?=[A-Za-z][A-Za-z])/,$doc); # uneaten lookahead!
     my $text = shift @pieces;
     $text = "" unless defined $text;
 
@@ -95,6 +95,16 @@ sub analyzeDoc {
     }
     $keys{'name'} = $name;
     return %keys;
+}
+
+sub standardizeWhitespace {
+    my ($self, $val) = @_;
+    # Split on w/s runs including at least two newlines
+    my @pieces = split(/\s*\n\s*\n\s*/, $val);
+    # Convert w/s runs within each piece to single space
+    @pieces = map { $_ =~ s/\s+/ /g; $_ } @pieces;
+    # Conjoin pieces with single blank lines between them
+    return join("\n\n",@pieces);
 }
 
 sub normalizeKeys {
@@ -146,7 +156,7 @@ sub normalizeKeys {
         substr($symbol,2) = "";
     }
     substr($symbol,0,1) = uc(substr($symbol,0,1));
-    print STDERR "\nSYMV($symbol)\n";
+#    print STDERR "\nSYMV($symbol)\n";
     $keys{'symbol'} = $symbol;
 
     ###
@@ -170,6 +180,7 @@ sub normalizeKeys {
         "0" => 1<<0, "1" => 1<<1, "2" => 1<<2, "3" => 1<<3,
         "4" => 1<<4, "5" => 1<<5, "6" => 1<<6, "7" => 1<<7,
         "all" => 0xff,
+        "rotations" => 0x0f,
         "0L" => 1<<0, "90L" => 1<<1, "180L" => 1<<2, "270L" => 1<<3,
         "0R" => 1<<4, "90R" => 1<<5, "180R" => 1<<6, "270R" => 1<<7,
         "normal" => 1<<0,
@@ -231,6 +242,18 @@ sub normalizeKeys {
     if (!defined $keys{'license'}) {
         $keys{'license'} = "--none specified--";
     }
+
+    ###
+    # 'diffusability' key analysis
+    my $diffusability;
+    my $inp = $keys{'diffusability'};
+    $inp = $keys{'diffusable'} unless defined $inp;
+    if (defined $inp && $inp =~ /^([0-9]+)$/) {
+        $diffusability = $1;
+        $diffusability = 100 if $diffusability > 100;
+    }
+    $keys{'diffusability'} = $diffusability;
+    delete $keys{'diffusable'};
 
     return %keys;
 }

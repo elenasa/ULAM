@@ -1,0 +1,14 @@
+ulam 1;
+
+quark Once {
+  Bool(1) done;
+  Bool new() {
+    if (done) return false;
+    return done = true;
+  }
+  Bool reset() {
+    Bool was = done;
+    done = false;
+    return done;
+  }
+}
