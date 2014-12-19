@@ -1163,14 +1163,14 @@ namespace MFM {
 
   Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
   {
-    Node * rtnNode = NULL;
+    Node * rtnNode = classInstanceNode;
     Token iTok;
     if(getExpectedToken(TOK_IDENTIFIER, iTok))
       {
 	// set up compiler state to NOT use the current class block
 	// for symbol searches; may be unknown until type label
 	m_state.m_currentMemberClassBlock = NULL;
-	m_state.m_useMemberBlock = false;  //odd, but correct
+	m_state.m_useMemberBlock = false;  //was oddly =true
 
 	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
 	rtnNode->setNodeLocation(iTok.m_locator);
