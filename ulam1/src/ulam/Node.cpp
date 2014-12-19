@@ -81,28 +81,32 @@ namespace MFM {
 	Token identTok;
 	u32 castId = m_state.m_pool.getIndexForDataString("toInt");
 	identTok.init(TOK_IDENTIFIER, getNodeLocation(), castId);
-	assert(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() == Int);
-
-	//fill in func symbol during type labeling;
-	Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-	fcallNode->setNodeLocation(identTok.m_locator);
-	Node * mselectNode = new NodeMemberSelect(node, fcallNode, m_state);
-	mselectNode->setNodeLocation(identTok.m_locator);
-
-	//address the case of different byte sizes here
-	//before asserts start hitting later during assignment
-	if(tobeType != nuti)
-	  {
-	    rtnNode = new NodeCast(mselectNode, tobeType, m_state);
-	    rtnNode->setNodeLocation(getNodeLocation());
-	  }
+	//assert(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() == Int);
+	if(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() != Int)
+	  doErrMsg = true;
 	else
-	  rtnNode = mselectNode;  //replace right node with new branch
+	  {
+	    //fill in func symbol during type labeling;
+	    Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+	    fcallNode->setNodeLocation(identTok.m_locator);
+	    Node * mselectNode = new NodeMemberSelect(node, fcallNode, m_state);
+	    mselectNode->setNodeLocation(identTok.m_locator);
 
-	//redo check and type labeling
-	UTI newType = rtnNode->checkAndLabelType();
-	//assert(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Int);
-	assert(newType == tobeType);
+	    //address the case of different byte sizes here
+	    //before asserts start hitting later during assignment
+	    if(tobeType != nuti)
+	      {
+		rtnNode = new NodeCast(mselectNode, tobeType, m_state);
+		rtnNode->setNodeLocation(getNodeLocation());
+	      }
+	    else
+	      rtnNode = mselectNode;  //replace right node with new branch
+
+	    //redo check and type labeling
+	    UTI newType = rtnNode->checkAndLabelType();
+	    //assert(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Int);
+	    assert(newType == tobeType);
+	  }
       }
     else if (nclasstype == UC_ELEMENT)
       {
