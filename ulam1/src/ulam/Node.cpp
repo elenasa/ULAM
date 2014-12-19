@@ -402,6 +402,7 @@ namespace MFM {
 	// a data member quark, or the element itself should both getBits from self
 	fp->write(m_state.getHiddenArgName());
 	fp->write(".GetBits()");
+	fp->write(");\n");
       }
     else if(isCurrentObjectsContainingAnElementParameter())
       {
@@ -437,28 +438,22 @@ namespace MFM {
 		//NOT A CLASS
 	      }
 	  }
+	fp->write(");\n");
       }
     else  //local var
       {
-	genLocalMemberNameOfMethod(fp);
-
-	//read method based on last cos
-	fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
-
-	// allow for immediate quarks; not element parameters
-	// first arg depends on stgcos
-	// elements have a 'T' atom storage
-#if 0
-	if(stgcosclasstype == UC_ELEMENT)
+	if(stgcos->isSelf())
 	  {
-	    fp->write("(");  //no args to local element read()
-	    //fp->write(stgcos->getMangledName().c_str());
-	    ////fp->write(".GetBits()");
-	    //fp->write(".getBits()");
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(";\n");
 	  }
 	else
-#endif
 	  {
+	    genLocalMemberNameOfMethod(fp);
+
+	    //read method based on last cos
+	    fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
+
 	    // local quark or primitive (i.e. 'notaclass'); has an immediate type:
 	    // uses local variable name, and immediate read method
 	    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
@@ -469,14 +464,11 @@ namespace MFM {
 		// use this instance of storage-cos to specify
 		// its non-static read method
 		fp->write(stgcos->getMangledName().c_str());
-
-		//assert(stgcosclasstype == UC_QUARK);
-		fp->write(".getBits()");  //m_stg.GetBits
+		fp->write(".getBits()");
 	      }
+	    fp->write(");\n");
 	  }
       }
-
-    fp->write(");\n");
 
     // specifically to sign extend Int's (a cast)
     // problem! for arrays, the vut is an Int, regardless of the array typeXXX
@@ -967,6 +959,9 @@ namespace MFM {
     if(isCurrentObjectAnArrayItem(cosuti, luvpass) || isCurrentObjectACustomArrayItem(cosuti, luvpass))
       return genCodeWriteArrayItemFromATmpVar(fp, luvpass, ruvpass);
 
+    if(stgcos->isSelf())
+      return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
+
 
     m_state.indent(fp);
 
@@ -1021,6 +1016,7 @@ namespace MFM {
     else
       {
 	//local
+
 	genLocalMemberNameOfMethod(fp);
 
 	fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());  //was luti
@@ -1088,6 +1084,49 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.clear();
 
   } //genCodeWriteFromATmpVar
+
+
+  void Node::genCodeWriteToSelfFromATmpVar(File * fp, UlamValue & luvpass, UlamValue & ruvpass)
+  {
+    assert(luvpass.getUlamValueTypeIdx() == Ptr);
+    //UTI luti = luvpass.getPtrTargetType();
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
+
+    assert(ruti == Ptr);
+    ruti = ruvpass.getPtrTargetType();
+
+    //rhs could be a constant; or previously cast from Int to Unary variables.
+    //UTI cosuti = m_state.m_currentObjSymbolForCodeGen->getUlamTypeIdx();
+
+    // here, cos is symbol used to determine read method: either self or last of cos.
+    // stgcos is symbol used to determine first "hidden" arg
+    Symbol * cos = NULL;
+    Symbol * stgcos = NULL;
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
+      }
+    else
+      {
+	cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+      }
+
+    //UTI cosuti = cos->getUlamTypeIdx();
+    //ULAMCLASSTYPE cosclasstype = m_state.getUlamTypeByIndex(cosuti)->getUlamClass();
+
+    //UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    //ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
+
+    m_state.indent(fp);
+    fp->write(stgcos->getMangledName().c_str());
+    fp->write(" = ");
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+    fp->write(";\n");
+
+    m_state.m_currentObjSymbolsForCodeGen.clear();
+  } //genCodeWriteToSelfFromATmpVar
 
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;

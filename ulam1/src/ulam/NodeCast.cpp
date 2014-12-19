@@ -103,7 +103,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Cannot cast quark type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to non-Int <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		errorsFound++;		//error!
+		errorsFound++;
 	      }
 	    else
 	      {
@@ -119,7 +119,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Cannot cast type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		errorsFound++;	    //error!
+		errorsFound++;
 	      }
 	  }
       }

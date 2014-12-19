@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(3);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  a f cast = a Foo is cast cond bi true cast = if f a cast = f System has cast cond bh true cast = if b a System has = s ( b ! )assert . d a System has cast 3 cast +b = d return } }\nExit status: 3");
+      return std::string("Uq_Counter4 { Int(32) d(0);  <NOMAIN> }\nExit status: -1");
     }
 
     std::string PresetTest(FileManagerString * fms)

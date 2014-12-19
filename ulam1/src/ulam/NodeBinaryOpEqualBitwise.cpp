@@ -9,10 +9,10 @@ namespace MFM {
 
 
   UTI NodeBinaryOpEqualBitwise::checkAndLabelType()
-  { 
+  {
     UTI nodeType = NodeBinaryOpEqual::checkAndLabelType();
     UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
-    
+
     // common part of name
     ULAMTYPE enodetyp = nut->getUlamTypeEnum();
 
@@ -75,19 +75,18 @@ namespace MFM {
 	    doBinaryOperationImmediate(lslot, rslot, slots);
 	  }
 	else
-	  { 
+	  {
 	    doBinaryOperationArray(lslot, rslot, slots);
 	  }
       }
   } //end dobinaryop
-  
+
 
   void NodeBinaryOpEqualBitwise::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;                //*************
-    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //*************
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;  //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
 #ifdef TMPVARBRACES
     m_state.indent(fp);
@@ -100,11 +99,10 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol; // init to self
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore *******
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
-    // lhs should be the new current object: node member select updates them, 
+    // lhs should be the new current object: node member select updates them,
     // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
     UlamValue luvpass;
@@ -112,9 +110,8 @@ namespace MFM {
 
     //wiped out by left read; need to write back into left
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-
-    Node::genCodeReadIntoATmpVar(fp, luvpass);
-
+    uvpass = luvpass;      //keep luvpass slot untouched
+    Node::genCodeReadIntoATmpVar(fp, uvpass);
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore vector after lhs read*************
 
     UTI nuti = getNodeType();
@@ -132,11 +129,9 @@ namespace MFM {
     fp->write(methodNameForCodeGen().c_str());
     fp->write("(");
 
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
-      
-    fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), luvpass.getPtrSlotIndex()).c_str());
-
+    UTI uti = uvpass.getUlamValueTypeIdx();
+    assert(uti == Ptr);
+    fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex()).c_str());
     fp->write(", ");
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
@@ -144,15 +139,13 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
-
     fp->write_decimal(nut->getBitSize());
-
     fp->write(");\n");
-  
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, luvpass.getPtrPos(), luvpass.getPtrNameId());  //P
+
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos(), uvpass.getPtrNameId());  //P
 
     // current object globals should pertain to lhs for the write
-    genCodeWriteFromATmpVar(fp, luvpass, uvpass);        //uses rhs' tmpvar
+    genCodeWriteFromATmpVar(fp, luvpass, uvpass);        //uses rhs' tmpvar; orig lhs
 
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
@@ -160,8 +153,7 @@ namespace MFM {
     fp->write("}\n");  //close for tmpVar
 #endif
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode
 
 } //end MFM
