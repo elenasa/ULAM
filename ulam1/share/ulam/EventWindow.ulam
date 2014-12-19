@@ -1,13 +1,36 @@
 ulam 1;
+use C2D;
 quark EventWindow {
-  Atom aRef(Int index) native;
-  Void aSet(Int index, Atom val) native;
-  Int size() native;
-  Void diffuse() native;
-  Int test() {
-    EventWindow ew;
-    Atom a;
-    a = ew[0];
-    return 0;
+  typedef Unsigned(6) SiteNum;
+  typedef Unsigned(3) Symmetry;
+
+  Atom aRef(SiteNum index) native;
+  Atom aRef(Int index) { return aRef((SiteNum) index); }
+
+  Void aSet(SiteNum index, Atom val) native;
+  Void aSet(Int index, Atom val) { aSet((SiteNum) index, val); }
+
+  Bool isLive(SiteNum index) native;
+  Bool isLive(Int index) { return isLive((SiteNum) index); }
+
+  Bool swap(SiteNum index1, SiteNum index2)  native;
+  Bool swap(Int index1, Int index2) { return swap((SiteNum) index1, (SiteNum) index2); }
+
+  C2D getCoord(SiteNum siteNum) native;
+  C2D getCoorD(SiteNum siteNum) {
+    C2D ret;
+    ret.x = 1;
+    ret.y = 2;
+    return ret;
   }
+
+  SiteNum getSiteNumber(C2D coord) native;
+
+  Symmetry changeSymmetry(Symmetry newSym) native;
+  Symmetry changeSymmetrY(Symmetry newSym) {
+    return newSym;
+  }
+
+  SiteNum size() native;
+  Void diffuse() native;
 }
