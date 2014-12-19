@@ -31,6 +31,7 @@ namespace MFM
       , m_stdout(new FileStdio(stdout, MFM::WRITE))
       , m_stderr(new FileStdio(stderr, MFM::WRITE))
       , m_hasTestMethod(false)
+      , m_isAQuark(false)
     { }
 
     ~DriverState() {
@@ -78,7 +79,7 @@ namespace MFM
 
     std::string HasTestMethod()
     {
-      return m_hasTestMethod ? "TEST" : "NOTEST";
+      return m_hasTestMethod ? (m_isAQuark ? "QTEST" : "TEST") : "NOTEST";
     }
 
     void SetTarget(char * path, char * outpath)
@@ -145,6 +146,7 @@ namespace MFM
       if (status == 0) {
         m_mangledTarget = C.getMangledTarget();
 	m_hasTestMethod = C.hasTheTestMethod();
+	m_isAQuark = C.targetIsAQuark();
       }
       return status;
     }
@@ -158,6 +160,7 @@ namespace MFM
     std::string m_filename;
     std::string m_mangledTarget;
     bool m_hasTestMethod;
+    bool m_isAQuark;
   };
 } /* namespace MFM */
 
