@@ -1998,6 +1998,9 @@ namespace MFM {
     // immediately below the return value(s); and belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     UTI cuti = m_state.m_classBlock->getNodeType();  //luckily we know this now for each class used
+    if(m_state.getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
+      cuti = UAtom;  //use atom for quark functions
+
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfid, cuti, m_state.determinePackable(cuti), m_state.m_currentFunctionBlockDeclSize, m_state);
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
