@@ -25,14 +25,14 @@ namespace MFM {
 
   const std::string SymbolVariableStack::getMangledPrefix()
   {
-    return "Uv_"; 
+    return "Uv_";
   }
 
 
   void SymbolVariableStack::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
   {
     assert(0);
-    //not sure what this should do for local variables, if anything, 
+    //not sure what this should do for local variables, if anything,
   }
 
 } //end MFM

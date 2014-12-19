@@ -56,6 +56,7 @@ namespace MFM {
     //might be related to m_currentSelfPtr?
     //member selection doesn't apply to arguments
     bool saveUseMemberBlock = m_state.m_useMemberBlock;
+    NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
 
     //look up in class block, and match argument types to parameters
     //assert(m_funcSymbol == NULL);
@@ -146,6 +147,7 @@ namespace MFM {
       } // no errors found
 
     m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
+    m_state.m_currentMemberClassBlock = saveMemberClassBlock;
 
     return it;
   } //checkAndLabelType
@@ -416,12 +418,9 @@ namespace MFM {
 
 	arglist << stgcos->getMangledName().c_str();
 
-	// for both immediate quarks and elements now..
-	//	UTI stgcosuti = stgcos->getUlamTypeIdx();
-	//if(m_state.getUlamTypeByIndex(stgcosuti)->getUlamClass() == UC_QUARK)
-	  {
-	    arglist << ".getRef()"; //the T storage within the struct for immediate quarks
-	  }
+	// for both immediate quarks and elements now..not self.
+	if(!stgcos->isSelf())
+	  arglist << ".getRef()"; //the T storage within the struct for immediate quarks
       }
 
     u32 numParams = m_funcSymbol->getNumberOfParameters();
@@ -689,6 +688,9 @@ namespace MFM {
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+    if(stgcos->isSelf())
+      return;
 
     UTI uti = stgcos->getUlamTypeIdx();
     UlamType * ut = m_state.getUlamTypeByIndex(uti);

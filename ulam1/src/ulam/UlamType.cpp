@@ -38,8 +38,13 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeNameBrief(CompilerState * state)
   {
-    //return m_key.getUlamKeyTypeSignatureName(state);
     return m_key.getUlamKeyTypeSignatureNameAndBitSize(state);
+  }
+
+
+  const std::string UlamType::getUlamTypeNameOnly(CompilerState * state)
+  {
+    return m_key.getUlamKeyTypeSignatureName(state);
   }
 
 
@@ -583,14 +588,12 @@ namespace MFM {
     std::ostringstream rtnMethod;
     UlamType * nut = state.getUlamTypeByIndex(nodetype);
     //base types e.g. Int, Bool, Unary, Foo, Bar..
-    ULAMTYPE typEnum = getUlamTypeEnum();
-    ULAMTYPE nodetypEnum = nut->getUlamTypeEnum();
     s32 sizeByIntBitsToBe = getTotalWordSize();
     s32 sizeByIntBits = nut->getTotalWordSize();
 
     assert(sizeByIntBitsToBe == sizeByIntBits);
 
-    rtnMethod << "_" << UlamType::getUlamTypeEnumAsString(nodetypEnum) << sizeByIntBits << "To" << UlamType::getUlamTypeEnumAsString(typEnum) << sizeByIntBitsToBe;
+    rtnMethod << "_" << nut->getUlamTypeNameOnly(&state).c_str() << sizeByIntBits << "To" << getUlamTypeNameOnly(&state).c_str() << sizeByIntBitsToBe;
     return rtnMethod.str();
   } //castMethodForCodeGen
 
