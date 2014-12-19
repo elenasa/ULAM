@@ -115,6 +115,8 @@ namespace MFM {
 	    rtnNode->checkAndLabelType();
 	  }
       }
+    else
+      doErrMsg = true;
 
     if(doErrMsg)
       {
