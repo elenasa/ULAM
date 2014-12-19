@@ -1,0 +1,8 @@
+ulam 1;
+
+quark Fail {
+  Void fail() {
+    fail(-1);
+  }
+  Void fail(Int code) native;
+}

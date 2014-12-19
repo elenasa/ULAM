@@ -1,0 +1,16 @@
+ulam 1;
+
+/**
+   Access to the MFM simulator 'MDist' methods.  Often some
+   higher-level interface (such as WindowUtils) might be preferable to
+   this.
+
+   \sa WindowUtils
+ */
+quark MDist {
+  typedef Unsigned(3) Radius;
+
+  Unsigned getFirstIndex(Radius radius) native;
+
+  Unsigned getLastIndex(Radius radius) native;
+}
