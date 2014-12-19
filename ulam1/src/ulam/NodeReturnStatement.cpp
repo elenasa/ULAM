@@ -17,15 +17,15 @@ namespace MFM {
     printNodeLocation(fp);  //has same location as it's node
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)    
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    if(m_node) 
+    if(m_node)
       m_node->print(fp);
-    else 
+    else
       fp->write(" <EMPTYSTMT>\n");
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
@@ -39,7 +39,7 @@ namespace MFM {
 
     if(m_node)
       m_node->printPostfix(fp);
-    else 
+    else
       fp->write(" <EMPTYSTMT>");
 
     fp->write(" ");
@@ -56,10 +56,10 @@ namespace MFM {
     if(nodeType != m_state.m_currentFunctionReturnType)
       {
 	m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
-	//m_node = new NodeCast(m_node, m_state.m_currentFunctionReturnType, m_state);
-	//m_node->setNodeLocation(getNodeLocation());
-	//nodeType = m_node->checkAndLabelType(); //update for return node type
-	nodeType = m_node->getNodeType();
+	if(m_node)
+	  nodeType = m_node->getNodeType();
+	else
+	  nodeType = Nav;  //no casting node
       }
 
     setNodeType(nodeType); //return take type of their node
@@ -83,7 +83,7 @@ namespace MFM {
 
   EvalStatus NodeReturnStatement::eval()
   {
-    assert(m_node); 
+    assert(m_node);
 
     evalNodeProlog(0);
     makeRoomForNodeType(getNodeType());
@@ -98,12 +98,12 @@ namespace MFM {
     //end, so copy to -1
     //UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
     UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, getNodeType(), m_state.determinePackable(getNodeType()), m_state);  //positive to current frame pointer
-    
+
     assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
     evalNodeEpilog();
     return RETURN;
   }
-  
+
 #if 0
   void NodeReturnStatement::GENCODE(File * fp)
   {
@@ -169,7 +169,7 @@ namespace MFM {
     else
       {
 	m_state.indent(fp);
-	fp->write("return;\n");   //void 
+	fp->write("return;\n");   //void
       }
   } //genCode
 
