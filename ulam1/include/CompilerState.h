@@ -254,6 +254,8 @@ namespace MFM{
 
     bool thisClassHasTheTestMethod();
 
+    bool thisClassIsAQuark();
+
     void setupCenterSiteForTesting();
 
     /** used by SourceStream to build m_textByLinePerFilePath during parsing */
