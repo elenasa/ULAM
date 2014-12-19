@@ -1549,59 +1549,81 @@ namespace MFM {
   // requires THE_INSTANCE, and local variables are superfluous.
   void Node::genElementParameterMemberNameOfMethod(File * fp)
   {
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    Symbol * cos = NULL;
+    Symbol * stgcos = NULL;
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
     if(cosSize == 1)
       {
-	Symbol * css = m_state.m_currentSelfSymbolForCodeGen;
-	UTI selfuti = css->getUlamTypeIdx();
-	UlamType * selfut = m_state.getUlamTypeByIndex(selfuti);
-	fp->write(selfut->getUlamTypeMangledName(&m_state).c_str());
+	stgcos = m_state.m_currentSelfSymbolForCodeGen; //must be so
+	cos = m_state.m_currentObjSymbolsForCodeGen[0]; //the EP
+      }
+    else
+      {
+	cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+      }
+
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
+
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
+
+
+    if(cosSize == 1)
+      {
+	fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("<CC>::THE_INSTANCE");
 	fp->write(".");
-	fp->write(stgcos->getMangledName().c_str());
+	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
 	return;
       }
 
-    u32 cosStart = 1;
-    UTI uti = stgcos->getUlamTypeIdx();
-
-    //skip first stgcos if a local variable of same type as the 'self' and not the element parameter
-    if(isCurrentStorageObjectIrrelevantForElementParameter())
+    if(cosclasstype == UC_NOTACLASS) //end of the road
       {
-	stgcos = m_state.m_currentObjSymbolsForCodeGen[1]; //use next one
-	uti = stgcos->getUlamTypeIdx();
-	cosStart++;
+	//using immediate quark as instance to get to the primitive EP
+	if(stgcosclasstype == UC_ELEMENT)
+	  {
+	    if(stgcosuti == m_state.m_currentSelfSymbolForCodeGen->getUlamTypeIdx())
+	      {
+		fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str());
+		fp->write("<CC>::THE_INSTANCE");
+		fp->write(".");
+	      }
+	    else
+	      {
+		// since elements are also immediate..
+		fp->write(stgcosut->getImmediateStorageTypeAsString(&m_state).c_str());
+		fp->write("::");
+		fp->write("Us::");   //typedef
+	      }
+	  }
+	else if(stgcosclasstype == UC_QUARK)
+	  {
+	    // since elements are also immediate..
+	    fp->write(stgcosut->getImmediateStorageTypeAsString(&m_state).c_str());
+	    fp->write("::");
+	    fp->write("Us::");   //typedef
+	  }
+	else
+	  {
+	    assert(0);  //must be cossize 1, handled above (could be merged?)
+	  }
       }
-
-    UlamType * ut = m_state.getUlamTypeByIndex(uti);
-
-    // since elements are also immediate..
-    fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
-    fp->write("::");
-    fp->write("Us::");   //typedef
-
-#if 0
-    ULAMCLASSTYPE classtype = ut->getUlamClass();
-    if(classtype == UC_QUARK)
+    else if(stgcosclasstype == UC_ELEMENT || stgcosclasstype == UC_QUARK)
       {
-	fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+	// since elements are also immediate..
+	fp->write(stgcosut->getImmediateStorageTypeAsString(&m_state).c_str());
 	fp->write("::");
 	fp->write("Us::");   //typedef
       }
-    else if(classtype == UC_ELEMENT)
-      {
-	// if data member or element parameter (i.e. not a local var)
-	//if(!isCurrentObjectALocalVariableOrArgument() || isCurrentObjectsContainingAnElementParameter())
-	  {
-	    fp->write(ut->getUlamTypeMangledName(&m_state).c_str());
-	    fp->write("<CC>::");
-	  }
-	//otherwise a local var which we can skip since EP's are static
-      }
-#endif
 
+    u32 cosStart = 1;
     for(u32 i = cosStart; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
@@ -1623,22 +1645,6 @@ namespace MFM {
 		if( ((i + 1) < cosSize))  //still another cos refiner, use
 		  fp->write("Us::");      //typedef
 	      }
-#if 0
-	    else if(sclasstype == UC_QUARK)
-	      {
-		fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str());
-		fp->write("::");
-		if( ((i + 1) < cosSize))  //still another cos refiner, use
-		  fp->write("Us::");      //typedef
-	      }
-	    else
-	      {
-		//UC_ELEMENT
-		fp->write(sut->getUlamTypeMangledName(&m_state).c_str());
-		fp->write("<CC>::");
-	      }
-#endif
-
 	  }
 	else
 	  {
