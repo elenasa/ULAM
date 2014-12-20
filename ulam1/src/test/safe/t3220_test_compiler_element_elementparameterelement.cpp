@@ -6,6 +6,9 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      /* gen code output:
+	 Bool(3) Arg: 0x7 (true)
+      */
       return std::string("Ue_Foo { Bool(3) b(true);  System s();  Bool(1) sp(false);  Bool(3) c(false);  Bool(1) last(false);  Int(32) test() {  Poo p;  p ( sp )reset . poochance ( sp )reset . poochance valb 1 [] . true cast = b poochance valb 1 [] . cast = s ( b )print . b cast return } }\nExit status: 1");
     }
 

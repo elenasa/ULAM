@@ -115,6 +115,10 @@ namespace MFM {
     return m_state.thisClassHasTheTestMethod();
   }
 
+  bool Compiler::targetIsAQuark()
+  {
+    return m_state.thisClassIsAQuark();
+  }
 
   // after checkAndTypeLabelProgram
   u32 Compiler::testProgram(Node * root, File * output, s32& rtnValue)
