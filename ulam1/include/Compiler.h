@@ -56,6 +56,7 @@ namespace MFM{
     u32 parseProgram(FileManager * fm, std::string startstr, File * output, Node *& rtnNode);
     u32 checkAndTypeLabelProgram(Node * root, File * output);
     bool hasTheTestMethod();
+    bool targetIsAQuark();
     u32 testProgram(Node * root, File * output, s32& rtnValue);
     void printPostFix(Node * root, File * output);
     void printProgramForDebug(Node * root, File * output);

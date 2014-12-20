@@ -327,7 +327,11 @@ namespace MFM {
 	fp->write("FAIL(BAD_CAST);\n");
 	m_state.m_currentIndentLevel--;
       }
-    return;  //no change to uvpass, as if no casting
+
+    //update the uvpass to have the casted type
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
+
+    return;
   } //genCodeCastAtomAndElement
 
 
