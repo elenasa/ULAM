@@ -1170,7 +1170,7 @@ namespace MFM {
 	// set up compiler state to NOT use the current class block
 	// for symbol searches; may be unknown until type label
 	m_state.m_currentMemberClassBlock = NULL;
-	m_state.m_useMemberBlock = false;  //was oddly =true
+	m_state.m_useMemberBlock = true;  //was oddly =true
 
 	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
 	rtnNode->setNodeLocation(iTok.m_locator);
@@ -1200,11 +1200,24 @@ namespace MFM {
     NodeFunctionCall * rtnNode = new NodeFunctionCall(identTok, NULL, m_state);
     rtnNode->setNodeLocation(identTok.m_locator);
 
+    //member selection doesn't apply to arguments (during parsing too)
+    bool saveUseMemberBlock = m_state.m_useMemberBlock;
+    NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
+    m_state.m_useMemberBlock = false;
+
     if(!parseRestOfFunctionCallArguments(rtnNode))
       {
 	delete rtnNode;
+
+	m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
+	m_state.m_currentMemberClassBlock = saveMemberClassBlock;
+
 	return NULL;
       }
+
+    //TOO SOON? NOT SOON ENOUGH??
+    m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
+    m_state.m_currentMemberClassBlock = saveMemberClassBlock;
 
     // can't do any checking since function may not have been seen yet
     return rtnNode;
