@@ -584,6 +584,13 @@ namespace MFM {
 	  m_state.m_parsingControlLoop = false;
 	}
 	break;
+      case TOK_KW_FOR:
+	{
+	  m_state.m_parsingControlLoop = true;
+	  rtnNode = parseControlFor(pTok);
+	  m_state.m_parsingControlLoop = false;
+	}
+	break;
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
@@ -705,6 +712,161 @@ namespace MFM {
 
     return rtnNode;
   } //parseControlWhile
+
+
+  Node * Parser::parseControlFor(Token fTok)
+  {
+    if(!getExpectedToken(TOK_OPEN_PAREN))
+      {
+	return NULL;
+      }
+
+    Token pTok;
+    getNextToken(pTok);
+
+    Node * declNode = NULL; //may be empty
+    if(Token::isTokenAType(pTok))
+      {
+	unreadToken();
+	declNode = parseDecl();        //updates symbol table
+	getNextToken(pTok);
+      }
+
+    if(pTok.m_type != TOK_SEMICOLON)
+      {
+	delete declNode;  //stop this maddness
+	return NULL;
+      }
+
+    Node * condNode = NULL;
+    Token qTok;
+    getNextToken(qTok);
+
+    if(qTok.m_type != TOK_SEMICOLON)
+      {
+	unreadToken();
+	condNode = parseConditionalExpr();
+
+	if(!condNode)
+	  {
+	    delete declNode;
+	    return NULL;  //stop this maddness
+	  }
+
+	if(!getExpectedToken(TOK_SEMICOLON))
+	  {
+	    delete declNode;
+	    delete condNode;
+	    return NULL;
+	  }
+      }
+    else
+      {
+	//make a 'true' (default)
+	Token trueTok;
+	trueTok.init(TOK_KW_TRUE, qTok.m_locator, 0);
+	condNode = new NodeTerminal(trueTok, m_state);
+	assert(condNode);
+      } //conditional expres
+
+
+    Node * assignNode = NULL;
+    Token rTok;
+    getNextToken(rTok);
+
+    if(rTok.m_type != TOK_CLOSE_PAREN)
+      {
+	unreadToken();
+	assignNode = parseAssignExpr();
+	if(!assignNode)
+	  {
+	    delete declNode;
+	    delete condNode;
+	    return NULL;  //stop this maddness
+	  }
+
+	if(!getExpectedToken(TOK_CLOSE_PAREN))
+	  {
+	    delete declNode;
+	    delete condNode;
+	    delete assignNode;
+	    return NULL;  //stop this maddness
+	  }
+      } //done with assign expr, could be null
+
+    Node * trueNode = NULL;
+    if(m_state.m_parsingConditionalAs)
+      {
+	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditionalAs *) condNode);
+      }
+    else
+      {
+	trueNode = parseStatement();  //even an empty statement has a node!
+      }
+
+    if(!trueNode)
+      {
+	delete declNode;
+	delete condNode;
+	delete assignNode;
+	return NULL;  //stop this maddness
+      }
+
+    // link the pieces together..
+
+    NodeBlock * rtnNode = new NodeBlock(m_state.m_currentBlock, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(fTok.m_locator);
+
+    // current, this block's symbol table added to parse tree stack
+    //          for validating and finding scope of program/block variables
+    NodeBlock * prevBlock = m_state.m_currentBlock;
+    m_state.m_currentBlock = rtnNode;
+
+    NodeStatements * nextNode = NULL;
+    if(declNode)
+      {
+	nextNode = new NodeStatements(declNode, m_state);
+	assert(nextNode);
+	nextNode->setNodeLocation(declNode->getNodeLocation());
+	rtnNode->setNextNode(nextNode); //***link decl as first in block
+      }
+
+    // wrapping body in NodeStatements produces proper comment for genCode
+    // might need another block here ???
+    NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
+    assert(trueStmtNode);
+    trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
+
+    if(assignNode)
+      {
+	NodeStatements * nextAssignNode = new NodeStatements(assignNode, m_state);
+	assert(nextAssignNode);
+	nextAssignNode->setNodeLocation(assignNode->getNodeLocation());
+	trueStmtNode->setNextNode(nextAssignNode); //***link assign to truestmt
+      }
+
+    Node * whileNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
+    assert(whileNode);
+    whileNode->setNodeLocation(fTok.m_locator);
+
+    NodeStatements * nextControlNode = new NodeStatements(whileNode, m_state);
+    assert(nextControlNode);
+    nextControlNode->setNodeLocation(whileNode->getNodeLocation());
+
+    if(declNode)
+      nextNode->setNextNode(nextControlNode); //***link while to decl
+    else
+      rtnNode->setNextNode(nextControlNode);  //***link while to rtn block (no decl)
+
+    //this block's ST is no longer in scope
+    if(m_state.m_currentBlock)
+      m_state.m_currentFunctionBlockDeclSize -= m_state.m_currentBlock->getSizeOfSymbolsInTable();
+
+    m_state.m_currentBlock = prevBlock;
+
+    return rtnNode;
+  } //parseControlFor
 
 
   Node * Parser::setupAsConditionalBlockAndParseStatements(NodeConditionalAs * asNode)
