@@ -6,7 +6,7 @@ quark Heading {
   // Types
   typedef Unsigned(6) SiteNum;
   typedef Int(4) Delta;
-  //  typedef Unsigned(3) Symmetry;
+  typedef Unsigned(3) Symmetry;
 
   // Services
   EventWindow ew;
@@ -18,8 +18,7 @@ quark Heading {
   Void set(SiteNum vector) {
   }
   Bool move(SiteNum from, SiteNum to) {
-    //    Symmetry old =
-    Unsigned(3) old =
+    Symmetry old =
       ew.changeSymmetry((Unsigned(3)) 0);
     ew.swap(from,to);
     ew.changeSymmetry(old);

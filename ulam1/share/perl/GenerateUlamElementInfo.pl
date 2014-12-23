@@ -64,7 +64,13 @@ my @colors = split(/,/,$keys{'colors'});
 my $cnum = scalar(@colors);
 my $body = "";
 for (my $i = 0; $i < $cnum; ++$i) {
-    $body .= "\n      case $i: return $colors[$i];"
+    my $c = $colors[$i];
+    if ($c eq "function") {
+        $body .= "\n      case $i:   // And woe unto you if you didn't define this!" .
+                 "\n             return m_ulamElement.Uf_8getColor(atom,Ui_Ut_102328Unsigned($i)).read();"
+    } else {
+        $body .= "\n      case $i: return $colors[$i];"
+    }
 }
 my @syms = split(/,/,$keys{'symmetries'});
 my $csyc = scalar(@syms);
@@ -104,9 +110,15 @@ $structName
 #include "UlamDefs.h"
 
 namespace MFM {
-  template <class CC>
+  template <class CC, template <class> class UE>
   struct $structName : public UlamElementInfo<CC>
   {
+    const UE<CC> & m_ulamElement;
+    typedef typename CC::ATOM_TYPE T;
+    $structName(const UE<CC> & ue)
+        : UlamElementInfo<CC>(ue)
+        , m_ulamElement(ue)
+    { }
     const char * GetName() const { return $cname; }
     const char * GetSymbol() const { return $csym; }
     const char * GetSummary() const { return $csum; }
@@ -116,7 +128,7 @@ namespace MFM {
     const u32 GetVersion() const { return $cver; }
 $movfunc
     const u32 GetNumColors() const { return $cnum; }
-    const u32 GetColor(u32 colnum) const {
+    const u32 GetColor(T atom, u32 colnum) const {
       switch (colnum) {
       default: $body
       }

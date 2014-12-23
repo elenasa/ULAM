@@ -17,19 +17,34 @@ quark EventWindow {
   Bool swap(Int index1, Int index2) { return swap((SiteNum) index1, (SiteNum) index2); }
 
   C2D getCoord(SiteNum siteNum) native;
+  /*
   C2D getCoorD(SiteNum siteNum) {
     C2D ret;
     ret.x = 1;
     ret.y = 2;
     return ret;
   }
+  */
 
+  /**
+     Map directCoord through the current symmetry and return the
+     corresponding position.
+   */
+  C2D mapSym(C2D directCoord) native;
+  C2D mapSyM(C2D directCoord) {
+    C2D ret;
+    ret.x = -directCoord.x;
+    ret.y = directCoord.y;
+    return ret;
+  }
   SiteNum getSiteNumber(C2D coord) native;
 
   Symmetry changeSymmetry(Symmetry newSym) native;
+  /*
   Symmetry changeSymmetrY(Symmetry newSym) {
     return newSym;
   }
+  */
 
   SiteNum size() native;
   Void diffuse() native;

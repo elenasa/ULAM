@@ -1,0 +1,23 @@
+ulam 1;
+
+use Random;
+
+quark StochasticTimer4
+{
+  Random r;
+  Unsigned(4) m_time;
+  Void reset() {
+    m_time = 0;
+  }
+
+  Unsigned count() {
+    if (!alarm())
+      if (r.oneIn((Unsigned) 1<<m_time))
+        m_time += 1;
+    return m_time;
+  }
+
+  Bool alarm() {
+    return m_time == (1<<4)-1;
+  }
+}
