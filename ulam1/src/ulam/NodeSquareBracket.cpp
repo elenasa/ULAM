@@ -41,8 +41,8 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     u32 errorCount = 0;
     UTI newType = Nav; //init
-    UTI leftType = m_nodeLeft->checkAndLabelType(); 
-    
+    UTI leftType = m_nodeLeft->checkAndLabelType();
+
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     bool isCustomArray = lut->isCustomArray();
 
@@ -71,7 +71,7 @@ namespace MFM {
       {
 	m_nodeRight = makeCastingNode(m_nodeRight, Int);  //refactored
       }
-    
+
     if(errorCount == 0)
       {
 	// sq bracket purpose in life is to account for array elements;
@@ -81,11 +81,11 @@ namespace MFM {
 	  newType = m_state.getUlamTypeAsScalar(leftType);
 
 	setNodeType(newType);
-	
+
 	// multi-dimensional possible
 	setStoreIntoAble(true);
       }
-    
+
     return newType;
   }
 
@@ -98,7 +98,7 @@ namespace MFM {
 
 
   EvalStatus NodeSquareBracket::eval()
-  {    
+  {
     assert(m_nodeLeft && m_nodeRight);
     evalNodeProlog(0); //new current frame pointer
 
@@ -140,7 +140,7 @@ namespace MFM {
 	u32 lid = 0;
 	if(getSymbolPtr(lsymptr))
 	  lid = lsymptr->getId();
- 
+
 	std::ostringstream msg;
 	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -148,7 +148,7 @@ namespace MFM {
 	return ERROR;
       }
 
-    assignReturnValueToStack(pluv.getValAt(offsetInt, m_state)); 
+    assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
 
     evalNodeEpilog();
     return NORMAL;
@@ -171,7 +171,7 @@ namespace MFM {
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
-    evs = m_nodeRight->eval();  
+    evs = m_nodeRight->eval();
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -204,16 +204,16 @@ namespace MFM {
 						 m_state,
 						 pos /* base pos of array */
 						 );
-	
+
 	//copy result UV to stack, -1 relative to current frame pointer
 	assignReturnValuePtrToStack(scalarPtr);
       }
     else
       {
-	//adjust pos by offset * len, according to its scalar type 
+	//adjust pos by offset * len, according to its scalar type
 	UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
 	scalarPtr.incrementPtr(m_state, offsetInt);
-	
+
 	//copy result UV to stack, -1 relative to current frame pointer
 	assignReturnValuePtrToStack(scalarPtr);
       }
@@ -234,9 +234,9 @@ namespace MFM {
   {
     if(m_nodeLeft)
       return m_nodeLeft->getSymbolPtr(symptrref);
-    
+
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
-    return false;  
+    return false;
   }
 
 
@@ -247,14 +247,20 @@ namespace MFM {
 
     if(!m_nodeLeft)
       {
-	MSG(getNodeLocationAsString().c_str(), "No Identifier to build symbol", ERR);
+	MSG(getNodeLocationAsString().c_str(), "No Identifier to build typedef symbol", ERR);
 	return false;
       }
-    
-    s32 newarraysize = 0;
+
+    if(arraysize > NONARRAYSIZE)
+      {
+	MSG(getNodeLocationAsString().c_str(), "Array size specified twice for typedef symbol", ERR);
+	return false;
+      }
+
+    s32 newarraysize = NONARRAYSIZE;
     if(getArraysizeInBracket(newarraysize))
       return m_nodeLeft->installSymbolTypedef(atok, bitsize, newarraysize, asymptr);
-   
+
     return false;  //error getting array size
   }
 
@@ -266,33 +272,40 @@ namespace MFM {
 
     if(!m_nodeLeft)
       {
-	MSG(getNodeLocationAsString().c_str(), "No Identifier to build symbol", ERR);
+	MSG(getNodeLocationAsString().c_str(), "No Identifier to build array symbol", ERR);
 	return false;
       }
-    
+
+    if(arraysize > NONARRAYSIZE)
+      {
+	MSG(getNodeLocationAsString().c_str(), "Array size specified twice", ERR);
+	return false;
+      }
+
     s32 newarraysize = NONARRAYSIZE;
     if(getArraysizeInBracket(newarraysize))
       return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, asymptr);
-   
+
     return false;  //error getting array size
   }
 
 
+  // eval() performed even before check and label!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
   {
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
-    
+
     // expect a constant integer
     if(sizetype == m_state.getUlamTypeOfConstant(Int))
       {
-	evalNodeProlog(0); //new current frame pointer
+	evalNodeProlog(0);             //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
-	m_nodeRight->eval();  
+	m_nodeRight->eval();
 	UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
-	evalNodeEpilog(); 
-	
+	evalNodeEpilog();
+
 	newarraysize = arrayUV.getImmediateData(m_state);
 	if(newarraysize == NONARRAYSIZE)
 	  {
@@ -308,7 +321,7 @@ namespace MFM {
 
     rtnArraySize = newarraysize;
     return true;
-  } //getArraysizeInBracket 
+  } //getArraysizeInBracket
 
 
   void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
@@ -354,7 +367,7 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.clear();
 
     UlamValue offset;
-    m_nodeRight->genCode(fp, offset);  
+    m_nodeRight->genCode(fp, offset);
 
     m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
 
@@ -385,7 +398,7 @@ namespace MFM {
     UlamValue offset;
     //m_nodeRight->genCode(fp, offset);
     m_nodeRight->genCodeToStoreInto(fp, offset); //for immediate value
-    
+
     s32 offsetInt = offset.getImmediateData(m_state);
     nextlptr.incrementPtr(m_state, offsetInt);
 
@@ -409,7 +422,7 @@ namespace MFM {
     nextlptr.setPtrNameId(luvpass.getPtrNameId());
 
     UlamValue offset;
-    //m_nodeRight->genCode(fp, offset);  
+    //m_nodeRight->genCode(fp, offset);
     m_nodeRight->genCodeToStoreInto(fp, offset); //for immediate value
 
     s32 offsetInt = offset.getImmediateData(m_state);

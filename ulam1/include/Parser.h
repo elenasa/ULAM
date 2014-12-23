@@ -163,7 +163,7 @@ namespace MFM{
 
 
     /** helper for parseTypedef */
-    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, Token identTok);
+    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok);
 
 
     /**
@@ -177,8 +177,8 @@ namespace MFM{
     Node * parseDecl(bool parseSingleDecl = false);
 
     /** helper for parsing type; returns bitsize or 0 */
-    u32 parseTypeBitsize(Token& typeTok);
-    void parseTypeFromAnotherClassesTypedef(Token & typeTok, u32& rtnbitsize);
+    void parseTypeBitsize(Token& typeTok, u32& typebitsize, s32& arraysize);
+    void parseTypeFromAnotherClassesTypedef(Token & typeTok, u32& rtnbitsize, s32& rtnarraysize);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGNEXPR>)
@@ -299,12 +299,12 @@ namespace MFM{
 	<VAR_DECLS> := <VAR_DECL> | <VAR_DECL> + ',' + <VAR_DECLS>
 	<VAR_DECL> := <LVAL_EXPRESSION>
     */
-    Node * parseRestOfDecls(Token typeTok, u32 typebitsize, Token identTok, Node * dNode, bool assignOK = true);
+    Node * parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode, bool assignOK = true);
 
-    Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, Token identTok, Node * dNode);
+    Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode);
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, Token identTok);
+    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok);
 
 
     /**
