@@ -721,6 +721,17 @@ namespace MFM {
 	return NULL;
       }
 
+    //before parsing the for statement, need a new scope
+    NodeBlock * rtnNode = new NodeBlock(m_state.m_currentBlock, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(fTok.m_locator);
+
+    // current, this block's symbol table added to parse tree stack
+    //          for validating and finding scope of program/block variables
+    NodeBlock * prevBlock = m_state.m_currentBlock;
+    m_state.m_currentBlock = rtnNode;
+
+
     Token pTok;
     getNextToken(pTok);
 
@@ -734,6 +745,7 @@ namespace MFM {
 
     if(pTok.m_type != TOK_SEMICOLON)
       {
+	delete rtnNode;
 	delete declNode;  //stop this maddness
 	return NULL;
       }
@@ -749,12 +761,14 @@ namespace MFM {
 
 	if(!condNode)
 	  {
+	    delete rtnNode;
 	    delete declNode;
 	    return NULL;  //stop this maddness
 	  }
 
 	if(!getExpectedToken(TOK_SEMICOLON))
 	  {
+	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
 	    return NULL;
@@ -780,6 +794,7 @@ namespace MFM {
 	assignNode = parseAssignExpr();
 	if(!assignNode)
 	  {
+	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
 	    return NULL;  //stop this maddness
@@ -787,6 +802,7 @@ namespace MFM {
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
+	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
 	    delete assignNode;
@@ -806,6 +822,7 @@ namespace MFM {
 
     if(!trueNode)
       {
+	delete rtnNode;
 	delete declNode;
 	delete condNode;
 	delete assignNode;
@@ -813,15 +830,6 @@ namespace MFM {
       }
 
     // link the pieces together..
-
-    NodeBlock * rtnNode = new NodeBlock(m_state.m_currentBlock, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(fTok.m_locator);
-
-    // current, this block's symbol table added to parse tree stack
-    //          for validating and finding scope of program/block variables
-    NodeBlock * prevBlock = m_state.m_currentBlock;
-    m_state.m_currentBlock = rtnNode;
 
     NodeStatements * nextNode = NULL;
     if(declNode)
