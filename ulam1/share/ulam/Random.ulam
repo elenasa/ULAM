@@ -10,18 +10,27 @@ ulam 1;
  */
 
 quark Random {
+
   Unsigned create(Unsigned max) native;
-  //Int create(Int max) {
   Unsigned create(Int max) {
     if (max <= 0) return 0;
     return create((Unsigned) max);
+  }
+
+  Int between(Int lo, Int hi) {
+    if (lo > hi) {
+      Int t = hi;
+      hi = lo;
+      lo = t;
+    }
+    return lo + (Int) create(hi - lo + 1);
   }
 
   Bool oddsOf(Unsigned thisMany, Unsigned outOfThisMany) {
     return create(outOfThisMany) < thisMany;
   }
   Bool oddsOf(Int thisMany, Int outOfThisMany) {
-    return (Int) create(outOfThisMany) < thisMany;
+    return ((Int) create(outOfThisMany)) < thisMany;
   }
 
   Bool oneIn(Unsigned odds) { return oddsOf((Unsigned) 1, odds); }

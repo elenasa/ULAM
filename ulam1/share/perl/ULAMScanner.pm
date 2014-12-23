@@ -126,7 +126,9 @@ sub normalizeKeys {
     }
     for (my $i = 0; $i < scalar(@colors); ++$i) {
         my $c = $colors[$i];
-        if ($c =~ /^(0x|#)([0-9a-fA-F]{8})$/) {
+        if ($c =~ /^(dynamic|function)$/i) {
+            $c = "function";
+        } elsif ($c =~ /^(0x|#)([0-9a-fA-F]{8})$/) {
             $c = "0x$2";
         } elsif  ($c =~ /^(0x|#)([0-9a-fA-F]{6})$/) {
             $c = "0xff$2";  # add alpha

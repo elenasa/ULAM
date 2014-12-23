@@ -606,8 +606,9 @@ sub genOpts {
     for my $key (keys %swinfo) {
         my $r = $swinfo{$key};
         my $optkey = $key;
-        $optkey .= "|$r->{aliases}"
-            if defined($r->{"aliases"});
+        if (defined($r->{"aliases"}) && $r->{"aliases"} ne "") {
+            $optkey .= "|$r->{aliases}"
+        }
         $optkey .= "=$r->{type}"
             if defined($r->{"type"});
         my $optval = $r->{"handler"};
@@ -905,7 +906,10 @@ EOF
       my ($infoname, $infocode) = @{$infoForElement{$en}};
       print $hdrhdl <<EOF;
 
-    { static $infoname<CC> eltInfo;  $en<CC>::THE_INSTANCE.SetInfo(&eltInfo); }
+    {
+      static $infoname<CC, $en> eltInfo($en<CC>::THE_INSTANCE);
+      $en<CC>::THE_INSTANCE.SetInfo(&eltInfo);
+    }
 EOF
         if ($en eq "Ue_10105Empty") {
           print $hdrhdl <<EOF;
@@ -1020,7 +1024,7 @@ static int $elementTestFuncName(bool output)
   typedef MFM::$elementName<OurCoreConfig> OurElement;
   OurElement& elt = OurElement::THE_INSTANCE;
   OurAtom atom = elt.GetDefaultAtom();
-  ew.SetCenterAtom(atom);
+  ew.SetCenterAtomSym(atom);
 
   MFM::Ui_Ut_102323Int rtn;
   rtn = OurElement::THE_INSTANCE.Uf_4test(atom);
