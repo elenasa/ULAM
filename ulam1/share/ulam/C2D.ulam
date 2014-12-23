@@ -1,5 +1,6 @@
 ulam 1;
 quark C2D {
+  typedef Unsigned(3) Dir;
   typedef Int(16) Coord;
   Coord x;
   Coord y;
@@ -10,6 +11,34 @@ quark C2D {
     ret.y = y;
     return ret;
   }
+
+  C2D add(C2D other) {
+    return make(x + other.x, y + other.y);
+  }
+  C2D subtract(C2D other) {
+    return make(x - other.x, y - other.y);
+  }
+
+  Int dot(C2D other) {
+    return x * other.x + y * other.y;
+  }
+
+  C2D neighbor(Dir d) {
+    if (d==0) return make( 0, 1);
+    if (d==1) return make( 1, 1);
+    if (d==2) return make( 1, 0);
+    if (d==3) return make( 1,-1);
+    if (d==4) return make( 0,-1);
+    if (d==5) return make(-1,-1);
+    if (d==6) return make(-1, 0);
+    /* d==7*/ return make(-1, 1);
+  }
+
+  Unsigned length() {
+    C2D origin;
+    return manhattanDistance(origin);
+  }
+
   Unsigned manhattanDistance(C2D other) {
     Int dx = x - other.x, dy = y - other.y;
     if (dx < 0) dx = -dx;

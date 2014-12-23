@@ -109,10 +109,34 @@ namespace MFM{
     const u32 oldSym = (u32) ew.GetSymmetry();
     const u32 newSym = (u32) Uv_6newSym.read();
     if (newSym < PSYM_SYMMETRY_COUNT)
-      ew.SetSymmetry(newSym);
+      ew.SetSymmetry((PointSymmetry) newSym);
     return Ui_Ut_10138Unsigned(oldSym);
 
   } // Uf_9214changeSymmetry
+
+  //! EventWindow.ulam:34:   C2D mapSym(C2D directCoord) {
+  template<class CC, u32 POS>
+  Ui_Uq_102323C2D<CC> Uq_10109211EventWindow<CC, POS>::Uf_6mapSym(T& Uv_4self, Ui_Uq_102323C2D<CC> Uv_9211directCoord)
+  {
+    UlamContext<CC> & uc = UlamContext<CC>::Get();
+    EventWindow<CC> & ew = uc.GetEventWindow();
+
+    const s32 x = _SignExtend32(Ui_Uq_102323C2D<CC>::Us::Up_Um_1x::Read(Uv_9211directCoord.getBits()), 16);
+    const s32 y = _SignExtend32(Ui_Uq_102323C2D<CC>::Us::Up_Um_1y::Read(Uv_9211directCoord.getBits()), 16);
+    const SPoint direct(x,y);
+
+    SPoint mapped = SymMap(direct,ew.GetSymmetry(),direct);
+
+    Ui_Uq_102323C2D<CC> Uv_3ret;
+
+    Ui_Uq_102323C2D<CC>::Us::Up_Um_1x::Write(Uv_3ret.getBits(), mapped.GetX());
+    Ui_Uq_102323C2D<CC>::Us::Up_Um_1y::Write(Uv_3ret.getBits(), mapped.GetY());
+
+    //! EventWindow.ulam:38:     return ret;
+    return Ui_Uq_102323C2D<CC>(Uv_3ret.read());
+
+  } // Uf_6mapSym
+
 
   template<class CC, u32 POS>
   void Uq_10109211EventWindow<CC,POS>::Uf_7diffuse(T& Uv_4self)	 //native

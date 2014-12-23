@@ -1,7 +1,7 @@
 ulam 1;
 
 /**
-   Access to the MFM simulator 'MDist' methods.  Often some
+   Access to selected MFM simulator 'MDist' methods.  Often some
    higher-level interface (such as WindowUtils) might be preferable to
    this.
 

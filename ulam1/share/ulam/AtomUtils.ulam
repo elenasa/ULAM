@@ -1,0 +1,47 @@
+ulam 1;
+
+use Empty;
+
+quark AtomUtils {
+  /** Get the type of Atom a.
+
+      \returns The type number of a, greater than or equal to 0, or -1
+      if a has a corrupted or unknown type
+   */
+  Int getType(Atom a) native;
+
+  /** Get the type of the empty site
+
+      \returns The type number corresponding to an empty site
+   */
+  Int getEmptyType() {
+    Empty a;
+    return getType((Atom) a);
+  }
+
+  /** Build a default atom of type t.  If au is a AtomUtils and t is a
+      legal type, than the expression
+      <code> (t == au.getType(tu.new(t)) </code>
+      will be true.
+
+      \returns an instance of Empty if t is negative or an unknown or
+      illegal type value, otherwise returns a default atom of the
+      given type.
+   */
+  Atom new(Int t) native;
+
+  /**
+     Read fieldLength (from 0 to 32) contiguous bits starting at
+     stateIndex.
+   */
+  Bits read(Atom a, Unsigned stateIndex, Unsigned fieldLength) native;
+
+  /**
+     Return a copy of \c a, modified so that the fieldLength (from 0
+     to 32) contiguous bits starting at stateIndex contain the
+     rightmost fieldLength bits of \c bits
+   */
+  Atom writeCopy(Atom a, Bits bits, Unsigned stateIndex, Unsigned fieldLength) native;
+
+
+}
