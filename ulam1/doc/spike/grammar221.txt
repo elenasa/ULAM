@@ -31,16 +31,16 @@
 <STATEMENTS> := 0 | <STATEMENT> + <STATEMENTS>
 <STATEMENT> := <SIMPLE_STATEMENT> | <CONTROL_STATEMENT> | <BLOCK>
 
-<CONTROL_STATEMENT> := <IF_STATEMENT> | <WHILE_STATEMENT> | <BREAK_STATEMENT> | <CONTINUE_STATEMENT>
+<CONTROL_STATEMENT> := <IF_STATEMENT> | <WHILE_STATEMENT> | <FOR_STATEMEMT> | <BREAK_STATEMENT> | <CONTINUE_STATEMENT> 
 <IF_STATEMENT> := 'if' + '(' + <CONDITIONAL_EXPRESSION> + ') + <STATEMENT> + <OPT_ELSE_STATEMENT>
 <OPT_ELSE_STATEMENT> := 0 | 'else' + <STATEMENT>
 
 <CONDITIONAL_EXPRESSION> := <SIMPLE_COND_DECL> | <ASSIGN_EXPESSION>
 <SIMPLE_COND_DECL> := <IDENT> + 'as' + <TYPE_IDENT>
 
-<FOR_STATEMENT> := 'for' + '(' + <STATEMENT_DECL> + ';'
-                               + <CONDITIONAL_EXPRESSION> + ';'
-                               + <ASSIGN_EXPRESSION> + ')'
+<FOR_STATEMENT> := 'for' + '(' + ( 0 | <STATEMENT_DECL>) + ';'
+                               + ( 0 | <CONDITIONAL_EXPRESSION>) + ';'
+                               + ( 0 | <ASSIGN_EXPRESSION>) + ')'
                                + <STATEMENT>
 
   => equiv to a parse tree shaped like: { <STATEMENT_DECL>  while ( <CONDITIONAL_EXPRESSION> ) { <STATEMENT> <ASSIGN_EXPRESSION> } }
@@ -49,7 +49,7 @@
 <BREAK_STATEMENT> := 'break' + ';'
 <CONTINUE_STATEMENT> := 'continue' + ';'
 
-<SIMPLE_STATEMENT> := ( 0 | <DECL> | <TYPE_DEF> | <ASSIGN_EXPRESSION>
+<SIMPLE_STATEMENT> := ( 0 | <STATEMENT_DECL> | <TYPE_DEF> | <ASSIGN_EXPRESSION>
                           | <RETURN_STATEMENT> ) + ';'
 <RETURN_STATEMENT> := 'return' + ( 0 | <ASSIGN_EXPRESSION>)
 

@@ -137,6 +137,13 @@ namespace MFM{
     Node * parseControlWhile(Token wTok);
 
     /**
+       <FOR_STATEMENT> := 'for' + '(' + <STATEMENT_DECL> + ';' + <CONDITIONAL_EXPRESSION> + ';'
+                                + <ASSIGN_EXPRESSION> + ')' + <STATEMENT>
+			=> equiv to a parse tree shaped like: { <STATEMENT_DECL>  while ( <CONDITIONAL_EXPRESSION> ) { <STATEMENT> <ASSIGN_EXPRESSION> } }
+     */
+    Node * parseControlFor(Token fTok);
+
+    /**
 	helper for 'as' condition in if/while
     */
     Node * setupAsConditionalBlockAndParseStatements(NodeConditionalAs * asNode);
