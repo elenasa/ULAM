@@ -350,7 +350,7 @@ namespace MFM {
 	      }
 	  }
 	  return brtn;
-      }
+      } //typedef done.
 
     m_state.m_parsingElementParameterVariable = false;
     //static element parameter
@@ -1117,7 +1117,7 @@ namespace MFM {
   }
 
 
-  u32 Parser::parseTypeBitsize(Token typeTok)
+  u32 Parser::parseTypeBitsize(Token & typeTok)
   {
     u32 typebitsize = 0;
 
@@ -1150,12 +1150,89 @@ namespace MFM {
 	    typebitsize = 0;   //?
 	  }
       }
+    else if(bTok.m_type == TOK_DOT)
+      {
+	unreadToken();
+	parseTypeFromAnotherClassesTypedef(typeTok, typebitsize);
+      }
     else
       {
 	unreadToken(); //not open paren, bitsize is unspecified
       }
     return typebitsize;
   } //parseTypeBitsize
+
+
+  //recursively parses classtypes and their typedefs (dot separated)
+  // into their UTI alias; the typeTok and return bitsize ref args
+  // represent the UTI; Admittedly, not the most elegant approach, but
+  // it works with the existing code that installs symbol variables
+  // using the type token, bitsize, and arraysize.
+  void Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, u32& rtnbitsize)
+  {
+    SymbolClass * csym = NULL;
+
+    Token nTok;
+    getNextToken(nTok);
+    if(nTok.m_type != TOK_DOT)
+      {
+	unreadToken();
+	return;  //done.
+      }
+
+    if(m_state.alreadyDefinedSymbolClass(typeTok.m_dataindex, csym))
+      {
+	bool saveUseMemberBlock = m_state.m_useMemberBlock;
+	NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
+	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+	assert(memberClassNode);  // e.g. forgot the closing brace on quark def once
+	//set up compiler state to use the member class block for symbol searches
+	m_state.m_currentMemberClassBlock = memberClassNode;
+	m_state.m_useMemberBlock = true;
+
+	//after the dot
+	getNextToken(typeTok);
+	if(Token::isTokenAType(typeTok))
+	  {
+	    UTI tduti;
+	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti))
+	      {
+		UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
+		ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
+		const std::string tdname = tdut->getUlamTypeNameOnly(&m_state);
+
+		if(tdclasstype == UC_NOTACLASS)
+		  typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), typeTok.m_locator, 0);
+		else
+		  typeTok.init(TOK_TYPE_IDENTIFIER, typeTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
+
+		rtnbitsize = tdut->getBitSize();
+	      }
+	    //else
+	      {
+		//not a typedef, possibly its another class? go again..
+		parseTypeFromAnotherClassesTypedef(typeTok, rtnbitsize);
+	      }
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a type";
+	    MSG(&typeTok, msg.str().c_str(),ERR);
+	  }
+
+	m_state.m_useMemberBlock = saveUseMemberBlock; //restore
+	m_state.m_currentMemberClassBlock = saveMemberClassBlock;
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type";
+	MSG(&typeTok, msg.str().c_str(),ERR);
+	//not a class!
+      }
+    return;
+  } //parseTypeFromAnotherClassesTypedef
 
 
   Node * Parser::parseReturn()
@@ -1340,7 +1417,7 @@ namespace MFM {
 	// set up compiler state to NOT use the current class block
 	// for symbol searches; may be unknown until type label
 	m_state.m_currentMemberClassBlock = NULL;
-	m_state.m_useMemberBlock = true;  //was oddly =true
+	m_state.m_useMemberBlock = true;  //oddly =true
 
 	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
 	rtnNode->setNodeLocation(iTok.m_locator);
@@ -1385,7 +1462,6 @@ namespace MFM {
 	return NULL;
       }
 
-    //TOO SOON? NOT SOON ENOUGH??
     m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
     m_state.m_currentMemberClassBlock = saveMemberClassBlock;
 
@@ -1971,7 +2047,7 @@ namespace MFM {
     return rtnNode;  //parseRestOfLValExpr
   }
 
-
+  //assignOK true by default.
   Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, Token identTok, Node * dNode, bool assignOK)
   {
     Token pTok;
