@@ -1,14 +1,20 @@
 ulam 1;
 
+use Empty;
+use EventWindow;
 use MDist;
 use Random;
 use System;
+use AtomUtils;
+use Fail;
 
 element WindowUtils {
   // Services
   MDist mdist;
   Random random;
   System system;
+  EventWindow ew;
+  Fail fail;
 
   // Types
   typedef Unsigned(3) Radius;
@@ -44,13 +50,51 @@ element WindowUtils {
   }
 
   Void reset() {
-    Int i = 0;
-    while (i < 4) {
+    for (Int i = 0; i < 4; i += 1) {
       hitCount[i] = 0;
       chosenIndex[i] = 0;
-      i += 1;
     }
     currentIndex = (1<<6)-1;  // Unsigned(6).MAX_VAL
+  }
+
+  Bool scan(Int t0) { return scan(t0, -1, -1, -1); }
+  Bool scan(Int t0, Int t1) { return scan(t0, t1, -1, -1); }
+  Bool scan(Int t0, Int t1, Int t2) { return scan(t0, t1, t2, -1); }
+
+  /**
+     Scan the event window from the firstRadius (by default 0) through
+     the lastRadius (by default, 4), looking for instances of up to
+     four types, t1, t2, t3, t4.
+
+     The following special cases apply:
+      - If a type is equal to -1, then no sites sites will be considered hits
+      - if a type is equal to -2, then all empty sites will be considered hits
+      - if a type is equal to -3, then all non-empty sites will be considered hits.
+
+     All other negative type values are reserved and will cause
+     failure if used.
+
+     Use reset(int,int) to specify the firstRadius and
+     lastRadius. Return true if any matches were found.
+   */
+  Bool scan(Int t0, Int t1, Int t2, Int t3) {
+
+    if (t0 < -3 || t1 < -3 || t2 < -3 || t3 < -3)
+      fail.fail();
+
+    AtomUtils tu;
+    Int et = tu.getEmptyType();
+    reset();
+    for (Int slot = next(); slot >= 0; slot = next()) {
+      Atom a = ew[slot];
+      Int at = tu.getType(a);
+      if (at < 0) continue;
+      if ((t0 == -2 && at == et) || (t0 == -3 && at != et) || (at == t0)) hit(0);
+      if ((t1 == -2 && at == et) || (t1 == -3 && at != et) || (at == t1)) hit(1);
+      if ((t2 == -2 && at == et) || (t2 == -3 && at != et) || (at == t2)) hit(2);
+      if ((t3 == -2 && at == et) || (t3 == -3 && at != et) || (at == t3)) hit(3);
+    }
+    return (getHits(0) + getHits(1) + getHits(2) + getHits(3)) > 0;
   }
 
   Int next() {
@@ -100,11 +144,11 @@ element WindowUtils {
 
   Int test() {
     Int count = 0;
-    Int index;
     Int n0 = 0;
 
     init();
-    while ((index = next()) >= 0) {
+
+    for (Int index = next(); index >= 0; index = next()) {
       count += 1;
     }
 
@@ -112,17 +156,15 @@ element WindowUtils {
 
     count = 0;
     init();
-    while ((index = next()) >= 0) {
-      Int idx = 0;
-      while (idx < 4) {
+    for (Int index2 = next(); index2 >= 0; index2 = next()) {
+      for (Int idx = 0; idx < 4; idx += 1) {
         system.print(-1);
         system.print(count);
-        system.print(index);
+        system.print(index2);
         system.print(idx);
         n0 = (count&(1<<idx));
         system.print((Unsigned) (count&(1<<idx)));
         if (count&(1<<idx)) hit((Slot) idx);
-        idx += 1;
       }
       count += 1;
     }
