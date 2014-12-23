@@ -335,7 +335,7 @@ namespace MFM {
 		return false;
 	      }
 	  }
-	else  //variable not array
+	else  //variable unknown bitsize
 	  {
 	    bitsize = tdbitsize; //use whatever typedef is
 	  }
