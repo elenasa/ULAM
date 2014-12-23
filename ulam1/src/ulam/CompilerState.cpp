@@ -278,7 +278,7 @@ namespace MFM {
   } //getBaseTypeFromToken
 
 
-  UTI CompilerState::getUlamTypeFromToken(Token tok, u32 typebitsize)
+  UTI CompilerState::getUlamTypeFromToken(Token tok, u32 typebitsize, s32 arraysize)
   {
     UTI uti = Nav;
 
@@ -287,7 +287,7 @@ namespace MFM {
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    uti = makeUlamType(tok, typebitsize, NONARRAYSIZE); //assume scalar
+	    uti = makeUlamType(tok, typebitsize, arraysize);
 	  }
 	else
 	  {
@@ -300,7 +300,7 @@ namespace MFM {
 	  }
       }
     return uti;
-  }
+  } //getUlamTypeFromToken
 
 
   // new version! uses indexes

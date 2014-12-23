@@ -296,7 +296,7 @@ namespace MFM {
       }
 
     // verify typedef exists for this scope; or is a primitive keyword type
-    // if a primitive (array size 0), we may need to make a new arraysize type for it;
+    // if a primitive (NONARRAYSIZE), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
     UTI aut = Nav;
     bool brtn = false;
