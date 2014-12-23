@@ -148,7 +148,7 @@ namespace MFM {
 	std::string nstr = m_state.getTokenDataAsString(&nTok);
 	const char * numlist = nstr.c_str();
 	char * nEnd;
-	s32 numval = strtol(numlist, &nEnd, 10);   //base 10
+	s32 numval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
 	setFileUlamVersion(numval);
 	rtnBool = true;
 

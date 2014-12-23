@@ -198,7 +198,7 @@ namespace MFM {
 
     s32 c = m_SS.read();
 
-    while(c >= 0 && (isdigit(c) || c=='.') )
+    while(c >= 0 && (isxdigit(c) || c=='.' || c=='x' || c=='X') )
       {
 	anumber.push_back(c);
 	c = m_SS.read();
@@ -432,5 +432,3 @@ namespace MFM {
   }
 
 } //end MFM
-
-

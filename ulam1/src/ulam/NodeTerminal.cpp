@@ -111,7 +111,15 @@ namespace MFM {
 	  ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
 	  if (typEnum == Int)
 	    {
-	      s32 numval = strtol(numlist, &nEnd, 10);   //base 10
+	      s32 numval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
+              if (*numlist == 0 || *nEnd != 0)
+                {
+                  std::ostringstream msg;
+                  msg << "Invalid number: <" << m_token.getTokenString() << ">";
+                  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+                  evs = ERROR;
+                  break;
+                }
 	      rtnUV = UlamValue::makeImmediate(typidx, numval, m_state);
 	      break;
 	    }
@@ -162,7 +170,7 @@ namespace MFM {
 	  ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
 	  if (typEnum == Int)
 	    {
-	      s32 numval = strtol(numlist, &nEnd, 10);   //base 10
+	      s32 numval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
 	      if(fitEnum == Int)
 		{
 		  if(fitbitsize == m_state.getDefaultBitSize(Int))
@@ -216,7 +224,7 @@ namespace MFM {
 	ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
 	if (typEnum == Int)
 	  {
-	    s32 numval = strtol(numlist, &nEnd, 10);   //base 10
+	    s32 numval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
 	    rtnb = (numval < 0);
 	  }
       }
@@ -237,7 +245,7 @@ namespace MFM {
 	ULAMTYPE typEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
 	if (typEnum == Int)
 	  {
-	    s32 numval = strtol(numlist, &nEnd, 10);   //base 10
+	    s32 numval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
 	    rtnb = (numval >= (s32) m_state.getDefaultBitSize(Int));
 	  }
       }
