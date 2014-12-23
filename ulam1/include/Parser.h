@@ -177,7 +177,8 @@ namespace MFM{
     Node * parseDecl(bool parseSingleDecl = false);
 
     /** helper for parsing type; returns bitsize or 0 */
-    u32 parseTypeBitsize(Token typeTok);
+    u32 parseTypeBitsize(Token& typeTok);
+    void parseTypeFromAnotherClassesTypedef(Token & typeTok, u32& rtnbitsize);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGNEXPR>)
