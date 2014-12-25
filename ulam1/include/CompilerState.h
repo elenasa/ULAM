@@ -209,6 +209,7 @@ namespace MFM{
     bool checkFunctionReturnNodeTypes(SymbolFunction * fsym);
     void indent(File * fp);
     const char * getHiddenArgName();
+    const char * getHiddenContextArgName();
     u32 getCustomArrayGetFunctionNameId();
     u32 getCustomArraySetFunctionNameId();
     const char * getIsMangledFunctionName();

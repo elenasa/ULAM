@@ -1276,7 +1276,7 @@ namespace MFM {
 	switch(cTok.m_type)
 	  {
 	  case TOK_KW_AS:
-	    m_state.saveIdentTokenForConditionalAs(iTok);
+	    m_state.saveIdentTokenForConditionalAs(iTok); //sets m_state.m_parsingConditionalAs
 	    unreadToken();
 	    rtnNode = makeConditionalExprNode(rtnNode);  //done, could be NULL
 	    break;

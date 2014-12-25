@@ -28,8 +28,9 @@ namespace MFM {
   static const char * m_indentedSpaceLevel("  ");
 
   static const char * HIDDEN_ARG_NAME = "Uv_4self";
-  static const char * CUSTOMARRAY_GET_FUNC_NAME = "aRef";
-  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aSet";
+  static const char * HIDDEN_CONTEXT_ARG_NAME = "uc";
+  static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref";
+  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset";
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs";   //Uf_2is;
   static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //"Uf_3has";
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<CC>::PositionOfDataMember";
@@ -789,6 +790,12 @@ namespace MFM {
   const char * CompilerState::getHiddenArgName()
   {
     return  HIDDEN_ARG_NAME;
+  }
+
+
+  const char * CompilerState::getHiddenContextArgName()
+  {
+    return  HIDDEN_CONTEXT_ARG_NAME;
   }
 
 

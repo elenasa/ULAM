@@ -8,9 +8,9 @@
 
 namespace MFM {
 
-  static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aRef";
+  static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
 
-  static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aSet";
+  static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
 
 
   UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type) : UlamType(key, uti), m_class(type), m_customArray(false), m_customArrayType(Nav)
@@ -436,7 +436,7 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp, CompilerState * state)
   {
-    // arrays are handled separately
+    // arrays are handled separately, not like a quark, more like a primitive
     if(!isScalar())
       return UlamType::genUlamTypeReadDefinitionForC(fp,state);
 
@@ -452,7 +452,7 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp, CompilerState * state)
   {
-    // arrays are handled separately
+    // arrays are handled separately, not like a quark, more like a primitive
     if(!isScalar())
       return UlamType::genUlamTypeWriteDefinitionForC(fp,state);
 
@@ -479,19 +479,21 @@ namespace MFM {
     fp->write("const ");
     fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //T
     fp->write(" readArrayItem(");
+    fp->write("UlamContext<CC>& uc, ");
     fp->write("const u32 index, const u32 unitsize) { return Us::"); //const unhappy w first arg
-    fp->write(readArrayItemMethodForCodeGen().c_str());
-    fp->write("(m_stg, ");
+    fp->write(readArrayItemMethodForCodeGen().c_str());  //aref
+    fp->write("(uc, m_stg, ");
     fp->write(state->getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString(state).c_str());
     fp->write("((const s32)index)).read(); }\n");
 
     // reads an element of array
     state->indent(fp);
-    fp->write("void writeArrayItem(const ");
+    fp->write("void writeArrayItem(");
+    fp->write("UlamContext<CC>& uc, const ");
     fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
     fp->write(" v, const u32 index, const u32 unitsize) { Us::");
-    fp->write(writeArrayItemMethodForCodeGen().c_str());
-    fp->write("(m_stg, ");
+    fp->write(writeArrayItemMethodForCodeGen().c_str());  //aset
+    fp->write("(uc, m_stg, ");
     fp->write(state->getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString(state).c_str());
     fp->write("((const s32) index), ");
     fp->write(state->getUlamTypeByIndex(UAtom)->getImmediateStorageTypeAsString(state).c_str());
@@ -690,6 +692,9 @@ namespace MFM {
   // destructor that updates it; used with Conditional-As.
   void UlamTypeClass::genUlamTypeMangledAutoDefinitionForC(File * fp, CompilerState * state)
   {
+    if(!isScalar())
+      return;
+
     s32 len = getTotalBitSize();
 
     const std::string mangledName = getUlamTypeImmediateMangledName(state);

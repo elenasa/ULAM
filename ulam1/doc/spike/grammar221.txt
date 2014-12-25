@@ -13,7 +13,7 @@
 <VAR_STATEMENT_DECLS> := <VAR_STATEMENT_DECL> | <VAR_STATEMENT_DECL> + ',' + <VAR_STATEMENT_DECLS>
 <VAR_STATEMENT_DECL> := <LVAL_EXPRESSION> + ( 0 | '=' + <ASSIGN_EXPRESSION> )
 
-<TYPE_NAME> := 'Int' | 'Unsigned' | 'Bool' | 'Unary' | 'Bits' | <TYPE_IDENT>
+<TYPE_NAME> := 'Int' | 'Unsigned' | 'Bool' | 'Unary' | 'Bits' | <TYPE_IDENT> | <TYPE_IDENT> + ( '.' + <TYPE_IDENT>)*
 <TYPE> := <TYPE_NAME> | <TYPE_NAME> + '(' + <EXPRESSION> + ')'
 <TYPE_DEF> := 'typedef' + <TYPE> + <TYPE_EXPRESSION>
 <TYPE_EXPRESSION> := <TYPE_IDENT> | <TYPE_IDENT> + '[' + <EXPRESSION> + ']'
@@ -42,7 +42,6 @@
                                + ( 0 | <CONDITIONAL_EXPRESSION>) + ';'
                                + ( 0 | <ASSIGN_EXPRESSION>) + ')'
                                + <STATEMENT>
-
   => equiv to a parse tree shaped like: { <STATEMENT_DECL>  while ( <CONDITIONAL_EXPRESSION> ) { <STATEMENT> <ASSIGN_EXPRESSION> } }
 
 <WHILE_STATEMENT> := 'while' + '(' + <CONDITIONAL_EXPRESSION> + ')' + <STATEMENT>
