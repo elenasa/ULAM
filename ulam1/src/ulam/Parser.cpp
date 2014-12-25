@@ -356,6 +356,17 @@ namespace MFM {
     //static element parameter
     if(pTok.m_type == TOK_KW_ELEMENT)
       {
+	//currently only permitted in elements, no quarks
+	UTI cuti;
+	assert(m_state.getUlamTypeByClassNameId(m_state.m_compileThisId, cuti));
+	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
+	if(classtype != UC_ELEMENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Only elements may have element parameters: <" << m_state.m_pool.getDataAsString(m_state.m_compileThisId).c_str() << "> is a quark";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
+
 	m_state.m_parsingElementParameterVariable = true;
 	getNextToken(pTok);
       }
