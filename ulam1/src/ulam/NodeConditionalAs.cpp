@@ -46,6 +46,7 @@ namespace MFM {
       }
 
     UTI ruti = m_state.getUlamTypeFromToken(m_typeTok, 0, NONARRAYSIZE);
+    assert(m_state.isScalar(ruti));
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(!(rclasstype == UC_QUARK || rclasstype == UC_ELEMENT))
