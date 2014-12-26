@@ -6,9 +6,9 @@
 namespace MFM{
 
   template<class CC, u32 POS>
-  Ui_Ut_102964Atom<CC> Uq_10109211EventWindow<CC,POS>::Uf_4aRef(T& Uv_4self, Ui_Ut_10168Unsigned Uv_5index)	 //native
+  Ui_Ut_102964Atom<CC> Uq_10109211EventWindow<CC,POS>::Uf_4aref(UlamContext<CC> & uc,
+                                                                T& Uv_4self, Ui_Ut_10168Unsigned Uv_5index)	 //native
   {
-    UlamContext<CC> & uc = UlamContext<CC>::Get();
     u32 siteNumber = Uv_5index.read();
 
     EventWindow<CC> & ew = uc.GetEventWindow();
@@ -18,9 +18,9 @@ namespace MFM{
   }
 
   template<class CC, u32 POS>
-  void Uq_10109211EventWindow<CC,POS>::Uf_4aSet(T& Uv_4self, Ui_Ut_10168Unsigned Uv_5index, Ui_Ut_102964Atom<CC> Uv_1v) //native
+  void Uq_10109211EventWindow<CC,POS>::Uf_4aset(UlamContext<CC> & uc,
+                                                T& Uv_4self, Ui_Ut_10168Unsigned Uv_5index, Ui_Ut_102964Atom<CC> Uv_1v) //native
   {
-    UlamContext<CC> & uc = UlamContext<CC>::Get();
     u32 siteNumber = Uv_5index.read();
 
     EventWindow<CC> & ew = uc.GetEventWindow();
@@ -28,18 +28,18 @@ namespace MFM{
   }
 
   template<class CC, u32 POS>
-  Ui_Ut_10114Bool Uq_10109211EventWindow<CC,POS>::Uf_6isLive(T& Uv_4self, Ui_Ut_10168Unsigned Uv_5index)
+  Ui_Ut_10114Bool Uq_10109211EventWindow<CC,POS>::Uf_6isLive(UlamContext<CC> & uc,
+                                                             T& Uv_4self, Ui_Ut_10168Unsigned Uv_5index)
   {
-    UlamContext<CC> & uc = UlamContext<CC>::Get();
     u32 siteNumber = Uv_5index.read();
     EventWindow<CC> & ew = uc.GetEventWindow();
     return Ui_Ut_10114Bool(ew.IsLiveSiteSym(siteNumber));
   }
 
   template<class CC, u32 POS>
-  Ui_Ut_10114Bool Uq_10109211EventWindow<CC,POS>::Uf_4swap(T& Uv_4self, Ui_Ut_10168Unsigned Uv_6index1, Ui_Ut_10168Unsigned Uv_6index2)
+  Ui_Ut_10114Bool Uq_10109211EventWindow<CC,POS>::Uf_4swap(UlamContext<CC> & uc,
+                                                           T& Uv_4self, Ui_Ut_10168Unsigned Uv_6index1, Ui_Ut_10168Unsigned Uv_6index2)
   {
-    UlamContext<CC> & uc = UlamContext<CC>::Get();
     u32 idx1 = Uv_6index1.read();
     u32 idx2 = Uv_6index2.read();
     EventWindow<CC> & ew = uc.GetEventWindow();
@@ -50,12 +50,12 @@ namespace MFM{
   }
 
   template<class CC, u32 POS>
-  Ui_Uq_102323C2D<CC> Uq_10109211EventWindow<CC, POS>::Uf_8getCoord(T& Uv_4self, Ui_Ut_10168Unsigned Uv_7siteNum)
+  Ui_Uq_102323C2D<CC> Uq_10109211EventWindow<CC, POS>::Uf_8getCoord(UlamContext<CC> & uc,
+                                                                    T& Uv_4self, Ui_Ut_10168Unsigned Uv_7siteNum)
   {
     //! EventWindow.ulam:21:     C2D ret;
     Ui_Uq_102323C2D<CC> Uv_3ret;
 
-    UlamContext<CC> & uc = UlamContext<CC>::Get();
     EventWindow<CC> & ew = uc.GetEventWindow();
 
     u32 idx = Uv_7siteNum.read();
@@ -74,12 +74,12 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  Ui_Ut_10168Unsigned Uq_10109211EventWindow<CC, POS>::Uf_9213getSiteNumber(T& Uv_4self, Ui_Uq_102323C2D<CC> Uv_5coord)
+  Ui_Ut_10168Unsigned Uq_10109211EventWindow<CC, POS>::Uf_9213getSiteNumber(UlamContext<CC> & uc,
+                                                                            T& Uv_4self, Ui_Uq_102323C2D<CC> Uv_5coord)
   {
     typedef typename CC::PARAM_CONFIG P;
     enum { R = P::EVENT_WINDOW_RADIUS };
 
-    UlamContext<CC> & uc = UlamContext<CC>::Get();
     EventWindow<CC> & ew = uc.GetEventWindow();
 
     const s32 x = _SignExtend32(Ui_Uq_102323C2D<CC>::Us::Up_Um_1x::Read(Uv_5coord.getBits()), 16);
@@ -96,14 +96,15 @@ namespace MFM{
 
   //! EventWindow.ulam:28:   SiteNum size() native;
   template<class CC, u32 POS>
-  Ui_Ut_10168Unsigned Uq_10109211EventWindow<CC,POS>::Uf_4size(T& Uv_4self) {
+  Ui_Ut_10168Unsigned Uq_10109211EventWindow<CC,POS>::Uf_4size(UlamContext<CC> & uc,
+                                                               T& Uv_4self) {
     return Ui_Ut_10168Unsigned(EventWindow<CC>::SITE_COUNT);
   }
 
   template<class CC, u32 POS>
-  Ui_Ut_10138Unsigned Uq_10109211EventWindow<CC, POS>::Uf_9214changeSymmetry(T& Uv_4self, Ui_Ut_10138Unsigned Uv_6newSym)
+  Ui_Ut_10138Unsigned Uq_10109211EventWindow<CC, POS>::Uf_9214changeSymmetry(UlamContext<CC> & uc,
+                                                                             T& Uv_4self, Ui_Ut_10138Unsigned Uv_6newSym)
   {
-    UlamContext<CC> & uc = UlamContext<CC>::Get();
     EventWindow<CC> & ew = uc.GetEventWindow();
 
     const u32 oldSym = (u32) ew.GetSymmetry();
@@ -116,9 +117,9 @@ namespace MFM{
 
   //! EventWindow.ulam:34:   C2D mapSym(C2D directCoord) {
   template<class CC, u32 POS>
-  Ui_Uq_102323C2D<CC> Uq_10109211EventWindow<CC, POS>::Uf_6mapSym(T& Uv_4self, Ui_Uq_102323C2D<CC> Uv_9211directCoord)
+  Ui_Uq_102323C2D<CC> Uq_10109211EventWindow<CC, POS>::Uf_6mapSym(UlamContext<CC> & uc,
+                                                                  T& Uv_4self, Ui_Uq_102323C2D<CC> Uv_9211directCoord)
   {
-    UlamContext<CC> & uc = UlamContext<CC>::Get();
     EventWindow<CC> & ew = uc.GetEventWindow();
 
     const s32 x = _SignExtend32(Ui_Uq_102323C2D<CC>::Us::Up_Um_1x::Read(Uv_9211directCoord.getBits()), 16);
@@ -139,9 +140,9 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10109211EventWindow<CC,POS>::Uf_7diffuse(T& Uv_4self)	 //native
+  void Uq_10109211EventWindow<CC,POS>::Uf_7diffuse(UlamContext<CC> & uc,
+                                                   T& Uv_4self)	 //native
   {
-    UlamContext<CC> & uc = UlamContext<CC>::Get();
     EventWindow<CC> & ew = uc.GetEventWindow();
     ew.Diffuse();
   }

@@ -8,7 +8,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(T& Uv_4self, Ui_Ut_10133Int Uv_3arg) //native
+  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_10133Int Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -17,7 +17,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(T& Uv_4self, Ui_Ut_10143Int Uv_3arg) //native
+  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_10143Int Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(4); //mask
@@ -26,7 +26,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(T& Uv_4self, Ui_Ut_102323Int Uv_3arg) //native
+  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_102323Int Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     LOG.Message("print: Int: %d", tmp);
@@ -34,7 +34,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(T& Uv_4self, Ui_Ut_102328Unsigned Uv_3arg) //native
+  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_102328Unsigned Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     LOG.Message("print: Unsigned: %u", tmp);
@@ -42,7 +42,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(T& Uv_4self, Ui_Ut_10135Unary Uv_3arg) //native
+  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_10135Unary Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -52,7 +52,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(T& Uv_4self, Ui_Ut_10134Bool Uv_3arg) //native
+  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_10134Bool Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -62,7 +62,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(T& Uv_4self, Ui_Ut_102964Atom<CC> Uv_3arg) //native
+  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_102964Atom<CC> Uv_3arg) //native
   {
     T atom = Uv_3arg.read();
     AtomSerializer<CC> as(atom);
@@ -71,7 +71,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_6assert(T& Uv_4self, Ui_Ut_10114Bool Uv_1b) //native
+  void Uq_10106System<CC, POS>::Uf_6assert(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_10114Bool Uv_1b) //native
   {
     bool btmp = Uv_1b.read();
     printf("assert: arg is %d\n",btmp);

@@ -1414,7 +1414,7 @@ namespace MFM {
 	//now for both immmediate elements and quarks..
 	fp->write(cosut->getImmediateStorageTypeAsString(&m_state).c_str());
 	fp->write("::");
-	if( ((epi + 1) < cosSize))  //still another cos refiner, use
+	if( ((u32) (epi + 1) < cosSize))  //still another cos refiner, use
 	  fp->write("Us::");      //typedef
       }
 

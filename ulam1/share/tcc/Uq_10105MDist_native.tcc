@@ -4,7 +4,7 @@
 namespace MFM {
 
   template<class CC, u32 POS>
-  Ui_Ut_102328Unsigned Uq_10105MDist<CC,POS>::Uf_9212getLastIndex(T& Uv_4self, Ui_Ut_10138Unsigned Uv_6radius)
+  Ui_Ut_102328Unsigned Uq_10105MDist<CC,POS>::Uf_9212getLastIndex(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_10138Unsigned Uv_6radius)
   {
     enum { R = CC::PARAM_CONFIG::EVENT_WINDOW_RADIUS };
 
@@ -14,7 +14,7 @@ namespace MFM {
   }
 
   template<class CC, u32 POS>
-  Ui_Ut_102328Unsigned Uq_10105MDist<CC,POS>::Uf_9213getFirstIndex(T& Uv_4self, Ui_Ut_10138Unsigned Uv_6radius)
+  Ui_Ut_102328Unsigned Uq_10105MDist<CC,POS>::Uf_9213getFirstIndex(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_10138Unsigned Uv_6radius)
   {
     enum { R = CC::PARAM_CONFIG::EVENT_WINDOW_RADIUS };
 
