@@ -66,8 +66,10 @@ my $body = "";
 for (my $i = 0; $i < $cnum; ++$i) {
     my $c = $colors[$i];
     if ($c eq "function") {
-        $body .= "\n      case $i:   // And woe unto you if you didn't define this!" .
-                 "\n             return m_ulamElement.Uf_8getColor(atom,Ui_Ut_102328Unsigned($i)).read();"
+        $body .= "\n      case $i: {  // And woe unto you if you didn't define this!" .
+                 "\n                 UlamContext<CC> uc;".
+                 "\n                 return m_ulamElement.Uf_8getColor(uc,atom,Ui_Ut_102328Unsigned($i)).read();".
+                 "\n               }"
     } else {
         $body .= "\n      case $i: return $colors[$i];"
     }
