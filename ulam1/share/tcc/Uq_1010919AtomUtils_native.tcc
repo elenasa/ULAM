@@ -4,7 +4,7 @@ namespace MFM {
 
   //! AtomUtils.ulam:10:   Type getType(Atom a) {
   template<class CC, u32 POS>
-  Ui_Ut_102323Int Uq_1010919AtomUtils<CC, POS>::Uf_7getType(T& Uv_4self, Ui_Ut_102964Atom<CC> Uv_1a)
+  Ui_Ut_102323Int Uq_1010919AtomUtils<CC, POS>::Uf_7getType(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_102964Atom<CC> Uv_1a)
   {
     T & atom = Uv_1a.getRef();
     return Ui_Ut_102323Int(atom.GetType());
@@ -14,7 +14,7 @@ namespace MFM {
 
   //! AtomUtils.ulam:13:   Atom new(Type t) {
   template<class CC, u32 POS>
-  Ui_Ut_102964Atom<CC> Uq_1010919AtomUtils<CC, POS>::Uf_3new(T& Uv_4self, Ui_Ut_102323Int Uv_1t)
+  Ui_Ut_102964Atom<CC> Uq_1010919AtomUtils<CC, POS>::Uf_3new(UlamContext<CC> & uc, T& Uv_4self, Ui_Ut_102323Int Uv_1t)
   {
     FAIL(INCOMPLETE_CODE);
     //! AtomUtils.ulam:14:     Atom a;

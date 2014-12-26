@@ -4,11 +4,11 @@ quark EventWindow {
   typedef Unsigned(6) SiteNum;
   typedef Unsigned(3) Symmetry;
 
-  Atom aRef(SiteNum index) native;
-  Atom aRef(Int index) { return aRef((SiteNum) index); }
+  Atom aref(SiteNum index) native;
+  Atom aref(Int index) { return aref((SiteNum) index); }
 
-  Void aSet(SiteNum index, Atom val) native;
-  Void aSet(Int index, Atom val) { aSet((SiteNum) index, val); }
+  Void aset(SiteNum index, Atom val) native;
+  Void aset(Int index, Atom val) { aset((SiteNum) index, val); }
 
   Bool isLive(SiteNum index) native;
   Bool isLive(Int index) { return isLive((SiteNum) index); }
