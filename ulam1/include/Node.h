@@ -128,7 +128,8 @@ namespace MFM{
     bool warnOfNarrowingCast(UTI nodeType, UTI tobeType);
 
     virtual void genMemberNameOfMethod(File * fp); //helper method to read/write into/from tmpvar
-    virtual void genElementParameterMemberNameOfMethod(File * fp);
+    virtual void genElementParameterMemberNameOfMethod(File * fp, s32 epi);
+    void genElementParameterHiddenArgs(File * fp, s32 epi);
     virtual void genLocalMemberNameOfMethod(File * fp);
 
     const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
@@ -144,9 +145,7 @@ namespace MFM{
     const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
 
     bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self;
-    bool isCurrentObjectsContainingAnElementParameter(); //checks entire vector for a "static" element parameter
-
-    bool isCurrentStorageObjectIrrelevantForElementParameter();  //should drop local var if true
+    s32 isCurrentObjectsContainingAnElementParameter(); //index of last "static" EP object; o.w.-1
 
     bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass); //false means its the entire array or not an array at all
     bool isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass);

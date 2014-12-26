@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3225_test_compiler_quarkarray)
+  BEGINTESTCASECOMPILER(t3231_test_compiler_quarkarray_elementLocalfunccall)
   {
     std::string GetAnswerKey()
     {
@@ -20,7 +20,7 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3225_test_compiler_quarkarray)
+  ENDTESTCASECOMPILER(t3231_test_compiler_quarkarray_elementLocalfunccall)
 
 } //end MFM
 

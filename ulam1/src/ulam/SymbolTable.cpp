@@ -754,7 +754,7 @@ namespace MFM {
 	    fp->write(lowercasename.c_str());
 	    fp->write(".GetDefaultAtom();\n");
 
-	    runThisTest << lowercasename.c_str() << ".Uf_4test(" << lowercasename.c_str() << "Atom)";
+	    runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
 	  }
 	it++;
 	idcounter++;

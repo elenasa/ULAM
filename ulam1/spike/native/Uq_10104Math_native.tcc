@@ -3,7 +3,7 @@
 namespace MFM{
 
   template<class CC, u32 POS>
-  Ui_Ut_102323Int Uq_10104Math<CC, POS>::Uf_5maxof(T& Uv_4self, ...) //native
+  Ui_Ut_102323Int Uq_10104Math<CC, POS>::Uf_5maxof(UlamContext<CC>& uc, T& Uv_4self, ...) //native
   {
     va_list ap;
     va_start(ap, Uv_4self);

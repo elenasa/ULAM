@@ -208,7 +208,9 @@ namespace MFM {
     fp->write(getMangledName().c_str());
     fp->write("(");
 
-    //first one is always "self", a T& (atom)
+    fp->write("UlamContext<CC>& uc, ");  //first arg is unmangled context
+
+    //the hidden arg is "self", a T& (atom)
     fp->write("T& ");          //a reference
     fp->write(m_state.getHiddenArgName());
 
