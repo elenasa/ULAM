@@ -83,6 +83,7 @@ namespace MFM{
     std::string genElementParameterHiddenArgs(s32 epi);
     virtual void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
 
+    void genCodeIntoABitValue(File * fp, UlamValue& uvpass);
 
   private:
 
