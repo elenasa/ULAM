@@ -214,14 +214,15 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());    //*************?
+    //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());    //*************?
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
 
-    m_nodeRight->genCodeToStoreInto(fp, uvpass);       // w/o readInto to reset COS
+    //m_nodeRight->genCodeToStoreInto(fp, uvpass);       // w/o readInto to reset COS
+    ////if(m_nodeRight->getNodeType() != Void)
+    //  m_nodeRight->genCodeReadIntoATmpVar(fp, uvpass); //e.g. in case of func calls
 
-    if(m_nodeRight->getNodeType() != Void)
-      m_nodeRight->genCodeReadIntoATmpVar(fp, uvpass); //e.g. in case of func calls
+    m_nodeRight->genCode(fp, uvpass);  // is this ok???
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;    //restore current object ptr ****
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
