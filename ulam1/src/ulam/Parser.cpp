@@ -1384,6 +1384,7 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_DOT)
       {
+	unreadToken();
 	rtnNode = parseMemberSelectExpr(identTok);
       }
     else
@@ -1403,6 +1404,7 @@ namespace MFM {
 
     if(qTok.m_type == TOK_DOT)
       {
+	unreadToken();
 	rtnNode = parseRestOfMemberSelectExpr(rtnNode);
       }
     else
@@ -1429,6 +1431,15 @@ namespace MFM {
   Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
   {
     Node * rtnNode = classInstanceNode;
+
+    Token pTok;
+    getNextToken(pTok);
+    if(pTok.m_type != TOK_DOT)
+      {
+	unreadToken();
+	return rtnNode;
+      }
+
     Token iTok;
     if(getExpectedToken(TOK_IDENTIFIER, iTok))
       {
@@ -1444,7 +1455,8 @@ namespace MFM {
 	m_state.m_useMemberBlock = false;
 	m_state.m_currentMemberClassBlock = NULL;
       }
-    return rtnNode;
+    //return rtnNode;
+    return parseRestOfMemberSelectExpr(rtnNode); //recurse
   } //parseRestOfMemberSelectExpr
 
 

@@ -323,6 +323,25 @@ namespace MFM {
   // note: uvpass arg is not equal to m_currentObjPtr; it is blank.
   void NodeFunctionCall::genCode(File * fp, UlamValue& uvpass)
   {
+
+    genCodeIntoABitValue(fp, uvpass);
+
+    if(getNodeType() != Void)
+      {
+	Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //inc uvpass slot
+      }
+  } //codeGen
+
+
+  // during genCode of a single function body "self" doesn't change!!!
+  void NodeFunctionCall::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    return genCodeIntoABitValue(fp,uvpass);
+  } //codeGenToStoreInto
+
+
+  void NodeFunctionCall::genCodeIntoABitValue(File * fp, UlamValue& uvpass)
+  {
     // generate for value
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -369,6 +388,7 @@ namespace MFM {
 	      }
 
 	    arglist << stgcos->getMangledName().c_str();
+
 
 	    // for both immediate quarks and elements now..not self.
 	    if(!stgcos->isSelf())
@@ -477,11 +497,6 @@ namespace MFM {
     fp->write(arglist.str().c_str());
     fp->write(");\n");
 
-    if(nuti != Void)
-      {
-	Node::genCodeConvertABitVectorIntoATmpVar(fp, uvpass);
-      }
-
 #ifdef TMPVARBRACES
     if(nuti == Void)
       {
@@ -492,15 +507,7 @@ namespace MFM {
 #endif
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
-  } //codeGen
-
-
-  // during genCode of a single function body "self" doesn't change!!!
-  void NodeFunctionCall::genCodeToStoreInto(File * fp, UlamValue& uvpass)
-  {
-    return genCode(fp,uvpass);
-  } //codeGenToStoreInto
-
+  } //codeGenIntoABitValue
 
   // overrides Node in case of memberselect genCode
   void NodeFunctionCall::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
@@ -534,7 +541,7 @@ namespace MFM {
     assert(epi >= 0);
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi];
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi]; //the EP
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
@@ -548,10 +555,19 @@ namespace MFM {
       }
     else
       {
-	//now for both immmediate elements and quarks..
-	fp->write(cosut->getImmediateStorageTypeAsString(&m_state).c_str());
-	fp->write("::");
-	fp->write("Us::");      //typedef, always for funccalls
+	if(cosclasstype == UC_ELEMENT)
+	  {
+	    fp->write(cosut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write("<CC>::");
+	    fp->write("THE_INSTANCE.");
+	  }
+	else
+	  {
+	    //for immmediate quark EP..???
+	    fp->write(cosut->getImmediateStorageTypeAsString(&m_state).c_str());
+	    fp->write("::");
+	    fp->write("Us::");      //typedef, always for funccalls
+	  }
       }
 
     u32 cosStart = epi + 1;
@@ -586,10 +602,6 @@ namespace MFM {
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-
     Symbol * epcos = m_state.m_currentObjSymbolsForCodeGen[epi];  //***
     UTI epcosuti = epcos->getUlamTypeIdx();
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
@@ -603,10 +615,7 @@ namespace MFM {
 
     if(epcosclasstype != UC_NOTACLASS)
       {
-	if(cosut->isCustomArray())
-	  hiddenlist << ".getRef()";
-	else
-	  hiddenlist << ".getBits()";
+	hiddenlist << ".getRef()";
       }
 
     return hiddenlist.str();
@@ -619,25 +628,33 @@ namespace MFM {
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
-    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
     if(stgcos->isSelf())
       return;
 
-    UTI uti = stgcos->getUlamTypeIdx();
-    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
-    if(!ut->isScalar())
+    if(!stgcosut->isScalar())
       {    //?? can't call a func on an array!
 	assert(0);
       }
 
-    // now for both immediate quark and elements..
-    fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
-    fp->write("::");
-    fp->write("Us::");   //typedef
+    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
+    if(stgclasstype == UC_ELEMENT)
+      {
+	fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write("<CC>::");
+      }
+    else
+      {
+	// immediate quark..
+	fp->write(stgcosut->getImmediateStorageTypeAsString(&m_state).c_str());
+	fp->write("::Us::");     //typedef
+      }
 
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     for(u32 i = 1; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
