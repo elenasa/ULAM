@@ -374,7 +374,7 @@ namespace MFM {
     fp->write("#include \"UlamDefs.h\"\n\n");
 
     // do primitive types before classes so that immediate
-    // Quarks/Elements can use them (e.g. immediate index for aRef)
+    // Quarks/Elements can use them (e.g. immediate index for aref)
 
     u32 numTypes = m_state.m_indexToUlamType.size();
     //skip Navs (0)
@@ -504,6 +504,9 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("OurUlamContext::Get().SetTile(theTile);\n");
 
+    m_state.indent(fp);
+    fp->write("OurUlamContext uc;\n");
+
     //declare an instance of all element classes; supports immediate types constructors
     std::string runThisTest = m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
@@ -516,11 +519,12 @@ namespace MFM {
     fp->write(";\n");
 
 #if 0
-    // output for t3200..
+    // output for t3200 (before System native), compile gen code & run: ./main
     m_state.indent(fp);
-    fp->write("printf(\"Bar1 toInt = %d\\n\", OurFoo::Ut_Um_4bar1::Uf_5toInt(fooAtom).read());\n");
+    fp->write("printf(\"Bar1 toInt = %d\\n\", OurFoo::Ut_Um_4bar1::Uf_5toInt(uc, fooAtom).read());\n");
     m_state.indent(fp);
-    fp->write("printf(\"Bar2 toInt = %d\\n\", OurFoo::Ut_Um_4bar2::Uf_5toInt(fooAtom).read());\n");
+    fp->write("printf(\"Bar2 toInt = %d\\n\", OurFoo::Ut_Um_4bar2::Uf_5toInt(uc, fooAtom).read());\n");
+    //Int(4) maxes out at 7, not 12.
 #endif
 
     m_state.indent(fp);

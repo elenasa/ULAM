@@ -8,13 +8,13 @@ namespace MFM {
     {
       return std::string("Uq_EventWindow { Int(32) test() {  EventWindow ew;  Atom(96) a;  a ew 0 [] = 0 cast return } }\nExit status: 0");
     }
-    
+
     std::string PresetTest(FileManagerString * fms)
     {
-      /* 
+      /*
      quark EventWindow {
-	Atom aRef(Int index) native;
-	Void aSet(Int index, Atom val) native;
+	Atom aref(Int index) native;
+	Void aset(Int index, Atom val) native;
 	Int test() {
 	  EventWindow ew;
 	  Atom a;
@@ -23,17 +23,20 @@ namespace MFM {
 	}
       }
 */
-      bool rtn2 = fms->add("EventWindow.ulam"," ulam 1;\n quark EventWindow {\nAtom aRef(Int index) native;\nVoid aSet(Int index, Atom v) native;\nInt test() {\nEventWindow ew;\nAtom a;\na=ew[0];\nreturn 0;\n}\n }\n");
+      bool rtn2 = fms->add("EventWindow.ulam"," ulam 1;\n quark EventWindow {\nAtom aref(Int index) native;\nVoid aset(Int index, Atom v) native;\nInt test() {\nEventWindow ew;\nAtom a;\na=ew[0];\nreturn 0;\n}\n }\n");
+
+      //EventWindow.ulam:3:1: ERROR: Only elements may have element parameters: <EventWindow> is a quark.
+      //bool rtn2 = fms->add("EventWindow.ulam"," ulam 1;\n quark EventWindow {\nelement Int nogood;\n Atom aref(Int index) native;\nVoid aset(Int index, Atom v) native;\nInt test() {\nEventWindow ew;\nAtom a;\na=ew[0];\nreturn 0;\n}\n }\n");
 
       if(rtn2)
 	return std::string("EventWindow.ulam");
-      
+
       return std::string("");
     }
   }
-  
+
   ENDTESTCASECOMPILER(t3233_test_compiler_quarkarray_ew)
-  
+
 } //end MFM
 
 
