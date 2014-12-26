@@ -160,7 +160,7 @@ namespace MFM {
 	    assert(cut->getUlamTypeEnum() == Bool);
 	    fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("(");
-	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
+	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 	    fp->write(", ");
 	    fp->write_decimal(cut->getBitSize());
 	    fp->write(")");

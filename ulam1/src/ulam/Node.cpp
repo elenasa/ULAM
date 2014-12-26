@@ -348,8 +348,6 @@ namespace MFM {
     vuti = uvpass.getPtrTargetType();  //replaces vuti w target type
     assert(vuti != Void);
 
-    //UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
     Symbol * cos = NULL;
@@ -366,23 +364,19 @@ namespace MFM {
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    //ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
-
-    //UTI stgcosuti = stgcos->getUlamTypeIdx();
-    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    //ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();
 
     // split off reading array items
     if(isCurrentObjectAnArrayItem(cosuti, uvpass) || isCurrentObjectACustomArrayItem(cosuti, uvpass))
       return genCodeReadArrayItemIntoATmpVar(fp, uvpass);
 
-
+#if 0
     // write out intermediate tmpVar (i.e. terminal) as temp BitVector arg
     if(uvpass.getPtrNameId() == 0)
       {
 	genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 	return;
       }
+#endif
 
     m_state.indent(fp);
     fp->write("const ");
