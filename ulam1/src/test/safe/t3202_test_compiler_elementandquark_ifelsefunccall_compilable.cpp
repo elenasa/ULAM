@@ -11,10 +11,13 @@ namespace MFM {
       // Bar1 toInt = 2
       // Bar2 toInt = 0
       //Ue_Foo { Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = 0 cast return } }\nExit status: 0
-
+      /* gen code output:
+	 Int(4) Arg: 0x2
+	 Int(4) Arg: 0x0
+      */
       return std::string("Ue_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = s ( i )print . s ( j )print . 0 cast return } }\nExit status: 0");
     }
-    
+
     std::string PresetTest(FileManagerString * fms)
     {
       //note: don't have printf's yet so comments for now
@@ -27,7 +30,7 @@ namespace MFM {
 
       // use a variable for rhs of bar1
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nBar bar1;\nBar bar2;\nInt(4) i, j;\nInt test(){\nInt(2) d;\nd = 1;\nbar1.x = d;\nbar1.y = 2;\nbar2.x = 3;\nbar2.y = 0;\ni = bar1;\nj = bar2;\n\nreturn 0;}\n}\n");
-      
+
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nBar bar1;\nBar bar2;\nInt(4) i, j;\nInt test(){\nInt d;\nd = 1;\nbar1.set(d,2);\nbar2.set(3,0);\ni = bar1;\nj = bar2;\n\nreturn 0;}\n}\n");
       bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\nuse Bar;\nelement Foo {\nSystem s;\nBar bar1;\nBar bar2;\nInt(4) i, j;\nInt test(){\nInt d;\nd = 1;\nbar1.set(d,2);\nbar2.set(3,0);\ni = bar1;\nj = bar2;\ns.print(i);\ns.print(j);\nreturn 0;}\n}\n");
 
@@ -36,17 +39,17 @@ namespace MFM {
       bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nif(b)\nreturn (x * 4) / y;\nelse\nreturn 0;\n}\nVoid set(Int xarg, Int yarg){\nx=xarg;\ny=yarg;\nif(yarg){\nb=true;\n}\nelse{\nb=false;\n}\n}\n}\n");
 
       // test system quark with native overloaded print funcs; assert
-      bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");     
+      bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
 
       if(rtn1 && rtn2 && rtn3)
 	return std::string("Foo.ulam");
-      
+
       return std::string("");
     }
   }
-  
+
   ENDTESTCASECOMPILER(t3202_test_compiler_elementandquark_ifelsefunccall_compilable)
-  
+
 } //end MFM
 
 

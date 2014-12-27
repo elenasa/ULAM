@@ -411,8 +411,12 @@ namespace MFM{
     /**
        helper method to make unary factor nodes
     */
-    NodeUnaryOp * makeFactorNode();
+    Node * makeFactorNode();
 
+    /**
+       helper method to make a 'one' terminal node for ++/--
+    */
+    Node * makeTerminalOne(Token& locTok);
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);
