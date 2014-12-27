@@ -6,7 +6,7 @@ quark Heading {
   // Types
   typedef Unsigned(6) SiteNum;
   typedef Int(4) Delta;
-  typedef Unsigned(3) Symmetry;
+  typedef EventWindow.Symmetry Symmetry;
 
   // Services
   EventWindow ew;

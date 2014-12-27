@@ -1027,7 +1027,7 @@ static int $elementTestFuncName(bool output)
   ew.SetCenterAtomSym(atom);
 
   MFM::Ui_Ut_102323Int rtn;
-  rtn = OurElement::THE_INSTANCE.Uf_4test(atom);
+  rtn = OurElement::THE_INSTANCE.Uf_4test(ouc, atom);
   int count = rtn.read();
   if (output) {
     if (count == 0)

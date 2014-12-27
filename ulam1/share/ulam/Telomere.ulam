@@ -4,7 +4,7 @@ use Empty;
 
 quark Telomere {
   typedef Unsigned(3) Tail;
-  typedef Unsigned(6) SiteNum;
+  typedef EventWindow.SiteNum SiteNum;
   EventWindow ew;
   Tail gen;
 
