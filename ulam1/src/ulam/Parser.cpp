@@ -793,6 +793,7 @@ namespace MFM {
 	Token trueTok;
 	trueTok.init(TOK_KW_TRUE, qTok.m_locator, 0);
 	condNode = new NodeTerminal(trueTok, m_state);
+	condNode->setNodeLocation(qTok.m_locator);
 	assert(condNode);
       } //conditional expres
 
@@ -1639,6 +1640,8 @@ namespace MFM {
       case TOK_MINUS:
       case TOK_PLUS:
       case TOK_BANG:
+      case TOK_PLUS_PLUS:
+      case TOK_MINUS_MINUS:
 	unreadToken();
 	rtnNode = parseRestOfFactor(NULL);  //parseUnop
 	break;
@@ -1681,6 +1684,8 @@ namespace MFM {
       case TOK_MINUS:
       case TOK_PLUS:
       case TOK_BANG:
+      case TOK_PLUS_PLUS:
+      case TOK_MINUS_MINUS:
 	unreadToken();
 	assert(!leftNode);
 	rtnNode = makeFactorNode();
@@ -2985,9 +2990,9 @@ namespace MFM {
   } //makeTermNode
 
 
-  NodeUnaryOp * Parser::makeFactorNode()
+  Node * Parser::makeFactorNode()
   {
-    NodeUnaryOp * rtnNode = NULL;
+    Node * rtnNode = NULL;
     Token pTok;
 
     getNextToken(pTok);
@@ -3012,6 +3017,12 @@ namespace MFM {
 	  case TOK_BANG:
 	    rtnNode = new NodeUnaryOpBang(factorNode, m_state);
 	    break;
+	  case TOK_PLUS_PLUS:
+	    rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminalOne(pTok), m_state);
+	    break;
+	  case TOK_MINUS_MINUS:
+	    rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminalOne(pTok), m_state);
+	    break;
 	  default:
 	    {
 	      std::ostringstream msg;
@@ -3025,7 +3036,19 @@ namespace MFM {
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
     return rtnNode;
-  }
+  } //makeFactorNode
+
+
+  Node * Parser::makeTerminalOne(Token& locTok)
+  {
+	//make a '1' node
+	Token oneTok;
+	oneTok.init(TOK_NUMBER, locTok.m_locator, m_state.m_pool.getIndexForDataString("1"));
+	Node * oneNode = new NodeTerminal(oneTok, m_state);
+	oneNode->setNodeLocation(locTok.m_locator);
+	assert(oneNode);
+	return oneNode;
+  } //makeOneTerminal
 
 
   bool Parser::getExpectedToken(TokenType eTokType, bool quietly)

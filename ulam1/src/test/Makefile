@@ -2,6 +2,7 @@ BASE_DIR:=../..
 BUILD_DIR:=$(BASE_DIR)/build/test
 INCLUDE_DIR:=$(BASE_DIR)/include
 TGEN_DIR:=./bin
+SPIKE_DIR:=$(BASE_DIR)/spike
 
 INCLUDES += -I${INCLUDE_DIR}
 
@@ -25,6 +26,13 @@ $(BUILD_DIR)/libtests.a: $(OBJS)
 $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
 	g++ -c $(CFLAGS) $(INCLUDES) $< -o $@
 
+gen: $(TGEN_DIR)
+	cp $(SPIKE_DIR)/native/*.tcc $(TGEN_DIR)/include/.
+	cp $(SPIKE_DIR)/native/makefile $(TGEN_DIR)/.
+	make -C $(TGEN_DIR)
+	$(TGEN_DIR)/main;
+
+
 clean:	FORCE
 	@rm -f *~
 	@rm -f $(OBJS)
@@ -32,5 +40,7 @@ clean:	FORCE
 	@rm -f $(BUILD_DIR)/libtests.a
 	@rm -f $(TGEN_DIR)/src/*.*
 	@rm -f $(TGEN_DIR)/include/*.*
+	@rm -f $(TGEN_DIR)/*.o
+	@rm -f $(TGEN_DIR)/main
 
 .PHONY:	FORCE
