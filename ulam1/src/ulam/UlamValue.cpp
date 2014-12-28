@@ -133,7 +133,8 @@ namespace MFM {
 					 scalarType,
 					 state.determinePackable(scalarType), //PACKEDLOADABLE
 					 state,
-					 arrayPtr.getPtrPos() /* base pos of array */
+					 arrayPtr.getPtrPos(), /* base pos of array */
+					 arrayPtr.getPtrNameId()  /* include name id of array */
 					 );
     return rtnUV;
   }
@@ -181,7 +182,7 @@ namespace MFM {
 	return UlamValue::makeImmediate(caType, 0, state);  //quietly skip for now XXX
       }
 
-    assert(state.getArraySize(auti) > 0);
+    assert(state.getArraySize(auti) >= 0);   //allow zero length arrays ?
 
     UlamValue scalarPtr = UlamValue::makeScalarPtr(*this, state);
 
