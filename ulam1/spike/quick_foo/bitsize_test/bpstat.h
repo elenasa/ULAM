@@ -14,18 +14,18 @@ class bpstat
   private:
 	  int k;
 	  double M,V;
-	  int Min, Max;
+	  double Min, Max;
   public:
     bpstat();
     ~bpstat();
 
     void clear();
-    void update(int x);  //int is sufficient (was double)
+    void update(double x);  //int is sufficient (was double)
     int getNumValues();
     double getMean();
     double getSD();
-    int getMin();
-    int getMax();
+    double getMin();
+    double getMax();
     double calcVar();
   };
 #endif //bpstat
