@@ -96,9 +96,9 @@ namespace MFM {
     UlamValue uv;
     UlamValue uvp = makeUlamValuePtr();
 
-    //    if(m_state.isScalar(nuti))
     if(m_state.isScalar(nuti))
       {
+
 	uv = m_state.getPtrTarget(uvp);
 
 	// redo what getPtrTarget use to do, when types didn't match due to
@@ -129,12 +129,17 @@ namespace MFM {
 		  }
 		else
 		  {
+		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
+		    //while(uv.getUlamValueTypeIdx() == Ptr)
+		    //  uv = m_state.getPtrTarget(uv);
+		    assert(uv.getUlamValueTypeIdx() != Ptr);
+
 		    u32 datavalue = uv.getDataFromAtom(uvp, m_state);
 		    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
 		  }
 	      }
-	  }
-      }
+	  } // not node type
+      } //scalar
     else
       uv = uvp;
 
@@ -166,31 +171,35 @@ namespace MFM {
   UlamValue NodeTerminalIdent::makeUlamValuePtr()
   {
     UlamValue ptr;
+
+    //instead of a ptr to "self" (already a ptr), return "self"
+    if(m_varSymbol->isSelf())
+      return m_state.m_currentSelfPtr;
+
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
     if(classtype == UC_ELEMENT)
       {
 	if(!m_varSymbol->isElementParameter())
 	  // ptr to explicit atom or element, (e.g. 'f' in f.a=1;) to become new m_currentObjPtr
-	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), UNPACKED, m_state);
+	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), UNPACKED, m_state, 0, m_varSymbol->getId());
 	else
-	  ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset()); //???
+	  ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId()); //???
       }
     else
       {
-	//if(m_varSymbol->isDataMember())
 	if(m_varSymbol->isDataMember())
 	  {
 	    if(!m_varSymbol->isElementParameter())
 	      // return ptr to this data member within the m_currentObjPtr
 	      // 'pos' modified by this data member symbol's packed bit position
-	      ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset());
+	      ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	    else //same or not???
-	      ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset());
+	      ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	  }
 	else
 	  {
 	    //local variable on the stack; could be array ptr!
-	    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state);
+	    ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
 	  }
       }
     return ptr;
