@@ -6,6 +6,9 @@
 
 #include "./bpstat.h"
 
+#define DBL_MAX         1.7976931348623158e+308 /* max value */
+#define DBL_MIN         -1.7976931348623158e+308 /* min value */
+
 //! Constructor
 bpstat::bpstat() : k(0) {}
 
@@ -20,11 +23,11 @@ void bpstat::clear()
   //#define S32_MAX    ((s32)2147483647)   /**< Maximum value of signed 32 bit */
   //#define S32_MIN    ((s32)2147483648UL) /**< Minimum value of signed 32 bit */
 
-  Min = (int) 2147483647;
-  Max = (int) 2147483648UL;
+  Min = DBL_MAX;
+  Max = DBL_MIN;
 }
 
-void bpstat::update(int x)
+void bpstat::update(double x)
 {
   k++;
   if(k == 1)
@@ -70,12 +73,12 @@ double bpstat::calcVar()
   return ( (k > 1) ? V/(k-1) : 0.);
 }
 
-int bpstat::getMin()
+double bpstat::getMin()
 {
   return Min;
 }
 
-int bpstat::getMax()
+double bpstat::getMax()
 {
   return Max;
 }

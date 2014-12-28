@@ -3,7 +3,7 @@
 #ifndef ULAMBITSIZETEST_H
 #define ULAMBITSIZETEST_H
 
-#include "../../include/itype.h"
+#include "itype.h"
 #include "/home/elenas/WORK/ulam/repo/MFMv2/src/core/include/Util.h"
 #include "./bpstat.h"
 
@@ -12,6 +12,7 @@ namespace MFM{
   enum TestMode { _byInt, _byUnsigned, _byUnary, _byLast };
 
 #define DOABS 1
+#define TESTCASES 4
 
 class UlamBitsizeTest
 {
@@ -25,13 +26,13 @@ public:
 
 private:
   const u32 m_odds;
-  const u32 m_testval;
+  const u32 m_testval;  //max testvalue, 1 to
   const enum TestMode m_mode;
 
-  bpstat m_bpstatsarray[32];
+  bpstat m_bpstatsarray[TESTCASES];
 
   void init();
-  void playme(u32 bz);
+  void playme(u32 bz, u32 index);
 
 };
 
