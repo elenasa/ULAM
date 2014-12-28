@@ -7,7 +7,10 @@ MFM_BUILD_PLATFORM:=$(MFM_BASE_DIR)/build/platform-linux
 CFLAGS:= -pthread -Wall -ansi -pedantic -Werror
 default: all
 
-all:
-	g++ -c $(CFLAGS) -D MFM_BUILD_DATE=1 -D MFM_BUILD_TIME=2 -I include -I $(MFM_INCLUDES) -I $(MFM_PLATFORM_INCL) ./src/*.cpp
+all:	FORCE
+#	g++ -c $(CFLAGS) -D MFM_BUILD_DATE=1 -D MFM_BUILD_TIME=2 -I include -I $(MFM_INCLUDES) -I $(MFM_PLATFORM_INCL) ./src/*.cpp
+	g++ -c $(CFLAGS) -I include -I $(MFM_INCLUDES) -I $(MFM_PLATFORM_INCL) ./src/*.cpp
 	g++ -L $(MFM_BUILD_CORE) -L $(MFM_BUILD_PLATFORM) ./*.o -l mfmcore -l mfmplatform-linux -l mfmcore -pthread -o main
+
+.PHONY:	FORCE
 
