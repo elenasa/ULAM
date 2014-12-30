@@ -8,8 +8,8 @@ use System;
 use AtomUtils;
 use Fail;
 
-element WindowUtils {
-  // Services
+element WindowServices {
+  // Utilities
   MDist mdist;
   Random random;
   System system;

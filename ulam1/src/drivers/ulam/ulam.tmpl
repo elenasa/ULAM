@@ -1015,7 +1015,7 @@ static int $elementTestFuncName(bool output)
   typedef MFM::EventWindow<OurCoreConfig> OurEventWindow;
   OurTile theTile;
   theTile.Init();
-  OurUlamContext & ouc = OurUlamContext::Get();
+  OurUlamContext ouc;
   ouc.SetTile(theTile);
   OurEventWindow & ew = ouc.GetEventWindow();
   MFM::s32 ctr = theTile.GetTileWidth()/2;
