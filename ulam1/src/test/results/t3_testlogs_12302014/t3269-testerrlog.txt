@@ -1,0 +1,30 @@
+==25749== Memcheck, a memory error detector
+==25749== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==25749== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==25749== Command: ./bin/test
+==25749== 
+==25749== 
+==25749== HEAP SUMMARY:
+==25749==     in use at exit: 0 bytes in 0 blocks
+==25749==   total heap usage: 4,642 allocs, 4,642 frees, 566,344 bytes allocated
+==25749== 
+==25749== All heap blocks were freed -- no leaks are possible
+==25749== 
+==25749== For counts of detected and suppressed errors, rerun with: -v
+==25749== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+==25772== Memcheck, a memory error detector
+==25772== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==25772== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==25772== Command: ./main
+==25772== 
+==25772== 
+==25772== HEAP SUMMARY:
+==25772==     in use at exit: 0 bytes in 0 blocks
+==25772==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==25772== 
+==25772== All heap blocks were freed -- no leaks are possible
+==25772== 
+==25772== For counts of detected and suppressed errors, rerun with: -v
+==25772== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+make[1]: *** [all] Error 1
+make: *** [gen] Error 2

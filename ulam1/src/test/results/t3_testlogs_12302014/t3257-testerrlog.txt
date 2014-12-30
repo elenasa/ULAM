@@ -1,0 +1,28 @@
+==18271== Memcheck, a memory error detector
+==18271== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==18271== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==18271== Command: ./bin/test
+==18271== 
+==18271== 
+==18271== HEAP SUMMARY:
+==18271==     in use at exit: 0 bytes in 0 blocks
+==18271==   total heap usage: 3,032 allocs, 3,032 frees, 388,585 bytes allocated
+==18271== 
+==18271== All heap blocks were freed -- no leaks are possible
+==18271== 
+==18271== For counts of detected and suppressed errors, rerun with: -v
+==18271== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+==18292== Memcheck, a memory error detector
+==18292== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==18292== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==18292== Command: ./main
+==18292== 
+==18292== 
+==18292== HEAP SUMMARY:
+==18292==     in use at exit: 0 bytes in 0 blocks
+==18292==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==18292== 
+==18292== All heap blocks were freed -- no leaks are possible
+==18292== 
+==18292== For counts of detected and suppressed errors, rerun with: -v
+==18292== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
