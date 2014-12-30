@@ -20,4 +20,3 @@ clean: 	FORCE
 	rm -f *~
 
 .PHONY:	FORCE
-
