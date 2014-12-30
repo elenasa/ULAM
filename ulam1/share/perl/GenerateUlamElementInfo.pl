@@ -67,7 +67,6 @@ for (my $i = 0; $i < $cnum; ++$i) {
     my $c = $colors[$i];
     if ($c eq "function") {
         $body .= "\n      case $i: {  // And woe unto you if you didn't define this!" .
-                 "\n                 UlamContext<CC> uc;".
                  "\n                 return m_ulamElement.Uf_8getColor(uc,atom,Ui_Ut_102328Unsigned($i)).read();".
                  "\n               }"
     } else {
@@ -81,7 +80,6 @@ if ($csyc == 1) {
     $symbody .= "return $syms[0];";
 } else {
     $symbody .= <<EOF;
-UlamContext<CC> &uc = UlamContext<CC>::Get();
       Random & r = uc.GetRandom();
 EOF
     if ($csyc == 8) {
@@ -130,12 +128,12 @@ namespace MFM {
     const u32 GetVersion() const { return $cver; }
 $movfunc
     const u32 GetNumColors() const { return $cnum; }
-    const u32 GetColor(T atom, u32 colnum) const {
+    const u32 GetColor(UlamContext<CC>& uc, T atom, u32 colnum) const {
       switch (colnum) {
       default: $body
       }
     }
-    const u32 GetSymmetry() const {
+    const u32 GetSymmetry(UlamContext<CC>& uc) const {
       $symbody
     }
   };
