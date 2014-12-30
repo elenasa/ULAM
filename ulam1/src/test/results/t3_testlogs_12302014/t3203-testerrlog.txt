@@ -1,0 +1,49 @@
+==13204== Memcheck, a memory error detector
+==13204== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==13204== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==13204== Command: ./bin/test
+==13204== 
+Foo.ulam:22:14: (NodeBinaryOpArith.cpp:calcNodeType:94) Warning: Attempting to fit a constant into a smaller bit size, LHS: <Int.4.-1>, RHS: <Int.-1.-1> for binary operator+ .
+Bar.ulam:7:16: (NodeBinaryOpArith.cpp:calcNodeType:103) Warning: Attempting to mix signed and unsigned types, LHS: <Int.32.-1>, RHS: <Unsigned.3.-1> for binary operator/ .
+Foo.ulam:4:13: (NodeProgram.cpp:checkAndLabelType:143) fyi: 2 warnings during type labeling.
+TestCase: <t3203_test_compiler_elementandquark_funccallargexpression> FAILED!!
+INVALID results:
+Foo.ulam:22:14: Warning: Attempting to fit a constant into a smaller bit size, LHS: <Int.4.-1>, RHS: <Int.-1.-1> for binary operator+ .
+Bar.ulam:7:16: Warning: Attempting to mix signed and unsigned types, LHS: <Int.32.-1>, RHS: <Unsigned.3.-1> for binary operator/ .
+Foo.ulam:4:13: fyi: 2 warnings during type labeling.
+Ue_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(7);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = s ( i )print . j bar2 ( )toInt . cast = s ( j )print . j ( i cast 7 cast +b )update = s ( j )print . 0 cast return } }
+Exit status: 0
+--------------------------------------------------------------------------------
+Bar.ulam:7:16: (NodeBinaryOpArith.cpp:calcNodeType:103) Warning: Attempting to mix signed and unsigned types, LHS: <Int.32.-1>, RHS: <Unsigned.3.-1> for binary operator/ .
+Bar.ulam:2:11: (NodeProgram.cpp:checkAndLabelType:143) fyi: 1 warnings during type labeling.
+TestCase: <t3203_test_compiler_quark_funccallargexpression> FAILED!!
+INVALID results:
+Bar.ulam:7:16: Warning: Attempting to mix signed and unsigned types, LHS: <Int.32.-1>, RHS: <Unsigned.3.-1> for binary operator/ .
+Bar.ulam:2:11: fyi: 1 warnings during type labeling.
+Uq_Bar { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(0);  <NOMAIN> }
+Exit status: -1
+--------------------------------------------------------------------------------
+TestCase Summary: 1 passed, 2 failed.
+==13204== 
+==13204== HEAP SUMMARY:
+==13204==     in use at exit: 0 bytes in 0 blocks
+==13204==   total heap usage: 7,123 allocs, 7,123 frees, 856,154 bytes allocated
+==13204== 
+==13204== All heap blocks were freed -- no leaks are possible
+==13204== 
+==13204== For counts of detected and suppressed errors, rerun with: -v
+==13204== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+==13227== Memcheck, a memory error detector
+==13227== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==13227== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==13227== Command: ./main
+==13227== 
+==13227== 
+==13227== HEAP SUMMARY:
+==13227==     in use at exit: 0 bytes in 0 blocks
+==13227==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==13227== 
+==13227== All heap blocks were freed -- no leaks are possible
+==13227== 
+==13227== For counts of detected and suppressed errors, rerun with: -v
+==13227== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)

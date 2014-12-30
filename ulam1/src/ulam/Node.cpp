@@ -414,8 +414,10 @@ namespace MFM {
 	    fp->write("(");
 
 	    //storage based on epi-1
-	    genElementParameterHiddenArgs(fp, epi);
-
+	    if(!isHandlingImmediateType())
+	      {
+		genElementParameterHiddenArgs(fp, epi);
+	      }
 	    fp->write(");\n");
 	  }
 	else  //local var
@@ -691,9 +693,17 @@ namespace MFM {
 	    fp->write("(");
 
 	    //storage based on epi - 1
-	    genElementParameterHiddenArgs(fp, epi);
+	    if(!isHandlingImmediateType())
+	      {
+		genElementParameterHiddenArgs(fp, epi);
+		fp->write(", ");            //...rest of args
+	      }
+	    else
+	      {
+		if(cosut->isCustomArray())
+		  fp->write("uc, "); 	    //rest of arg's
+	      }
 
-	    fp->write(", ");            //...rest of args
 	  }
 	else  //local var
 	  {
@@ -925,9 +935,11 @@ namespace MFM {
 	    fp->write("(");
 
 	    //storage based on epi - 1
-	    genElementParameterHiddenArgs(fp, epi);
-
-	    fp->write(", ");  	//rest of arg's
+	    if(!isHandlingImmediateType())
+	      {
+		genElementParameterHiddenArgs(fp, epi);
+		fp->write(", ");  	//rest of arg's
+	      }
 	  }
 	else
 	  {
@@ -1244,9 +1256,16 @@ namespace MFM {
 	    fp->write("(");
 
 	    //storage based on epi - 1
-	    genElementParameterHiddenArgs(fp, epi);
-
-	    fp->write(", ");  	//rest of arg's
+	    if(!isHandlingImmediateType())
+	      {
+		genElementParameterHiddenArgs(fp, epi);
+		fp->write(", ");  	//rest of arg's
+	      }
+	    else
+	      {
+		if(cosut->isCustomArray())
+		  fp->write("uc, "); 	    //rest of arg's
+	      }
 	  }
 	else
 	  {
@@ -1361,12 +1380,14 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
+
     if(isHandlingImmediateType())
       {
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
 	return;
       }
+
 
     // the EP:
     if(cosclasstype == UC_NOTACLASS)  //atom too???
@@ -1406,6 +1427,9 @@ namespace MFM {
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     assert(epi >= 0);
+
+    if(isHandlingImmediateType())
+      return;  // no args
 
     Symbol * stgcos = NULL;
     if(epi == 0)
@@ -1475,8 +1499,15 @@ namespace MFM {
     for(u32 i = 1; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	UTI suti = sym->getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
+	//not the element parameter, but a data member..
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
+	// if its the last cos, a quark, and not a custom array...
+	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray())
+	  fp->write("Up_Us::");   //atomic parameter needed
       }
   } //genLocalMemberNameOfMethod
 
