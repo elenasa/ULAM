@@ -19,8 +19,8 @@ SRC_TARGETS+=clean     # Light cleaning: ~'s .o's and such
 # Default target
 all:
 
-testone:	FORCE
-	make -k realclean
+testone: FORCE
+#	make -k realclean
 	make -k
 	valgrind ./bin/test
 	make -C ./src/test gen

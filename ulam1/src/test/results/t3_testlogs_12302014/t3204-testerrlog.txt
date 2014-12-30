@@ -1,0 +1,40 @@
+==13894== Memcheck, a memory error detector
+==13894== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==13894== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==13894== Command: ./bin/test
+==13894== 
+Foo.ulam:13:24: (NodeBinaryOpArith.cpp:calcNodeType:94) Warning: Attempting to fit a constant into a smaller bit size, LHS: <Int.4.-1>, RHS: <Int.-1.-1> for binary operator- .
+Foo.ulam:3:13: (NodeProgram.cpp:checkAndLabelType:143) fyi: 1 warnings during type labeling.
+TestCase: <t3204_test_compiler_element_intcast> FAILED!!
+INVALID results:
+Foo.ulam:13:24: Warning: Attempting to fit a constant into a smaller bit size, LHS: <Int.4.-1>, RHS: <Int.-1.-1> for binary operator- .
+Foo.ulam:3:13: fyi: 1 warnings during type labeling.
+Ue_Foo { Bool(3) b(false);  System s();  Int(4) i(0);  Int(4) j(15);  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b cast )update = s ( j cast )print . s ( j )print . j cast return } }
+Exit status: -1
+--------------------------------------------------------------------------------
+TestCase Summary: 1 passed, 1 failed.
+==13894== 
+==13894== HEAP SUMMARY:
+==13894==     in use at exit: 0 bytes in 0 blocks
+==13894==   total heap usage: 4,191 allocs, 4,191 frees, 506,265 bytes allocated
+==13894== 
+==13894== All heap blocks were freed -- no leaks are possible
+==13894== 
+==13894== For counts of detected and suppressed errors, rerun with: -v
+==13894== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+==13921== Memcheck, a memory error detector
+==13921== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==13921== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==13921== Command: ./main
+==13921== 
+==13921== 
+==13921== HEAP SUMMARY:
+==13921==     in use at exit: 0 bytes in 0 blocks
+==13921==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==13921== 
+==13921== All heap blocks were freed -- no leaks are possible
+==13921== 
+==13921== For counts of detected and suppressed errors, rerun with: -v
+==13921== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+make[1]: *** [all] Error 255
+make: *** [gen] Error 2

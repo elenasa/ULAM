@@ -1,0 +1,46 @@
+==11417== Memcheck, a memory error detector
+==11417== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==11417== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==11417== Command: ./bin/test
+==11417== 
+Foo.ulam:20:19: (NodeBinaryOpArith.cpp:calcNodeType:94) Warning: Attempting to fit a constant into a smaller bit size, LHS: <Bool.1.-1>, RHS: <Int.-1.-1> for binary operator+ .
+Foo.ulam:2:13: (NodeProgram.cpp:checkAndLabelType:143) fyi: 1 warnings during type labeling.
+Foo.ulam:10:5: (NodeConditionalHas.cpp:eval:110) fyi: Invalid type for LHS of conditional operator 'has', <Atom.96.-1>; Passing through as UNFOUND for eval.
+Foo.ulam:15:6: (NodeConditionalHas.cpp:eval:110) fyi: Invalid type for LHS of conditional operator 'has', <Atom.96.-1>; Passing through as UNFOUND for eval.
+Foo.ulam:20:8: (NodeConditionalHas.cpp:eval:110) fyi: Invalid type for LHS of conditional operator 'has', <Atom.96.-1>; Passing through as UNFOUND for eval.
+TestCase: <t3247_test_compiler_elementatomcast> FAILED!!
+INVALID results:
+Foo.ulam:20:19: Warning: Attempting to fit a constant into a smaller bit size, LHS: <Bool.1.-1>, RHS: <Int.-1.-1> for binary operator+ .
+Foo.ulam:2:13: fyi: 1 warnings during type labeling.
+Foo.ulam:10:5: fyi: Invalid type for LHS of conditional operator 'has', <Atom.96.-1>; Passing through as UNFOUND for eval.
+Foo.ulam:15:6: fyi: Invalid type for LHS of conditional operator 'has', <Atom.96.-1>; Passing through as UNFOUND for eval.
+Foo.ulam:20:8: fyi: Invalid type for LHS of conditional operator 'has', <Atom.96.-1>; Passing through as UNFOUND for eval.
+Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(3);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  b a System has = s ( b ! )assert . a f cast = a Foo is cast cond bi true cast = if b a System has = s ( b )assert . f a cast = f System has cast cond bh true cast = if d a System has cast 3 cast +b = d return } }
+Exit status: 3
+--------------------------------------------------------------------------------
+TestCase Summary: 1 passed, 1 failed.
+==11417== 
+==11417== HEAP SUMMARY:
+==11417==     in use at exit: 0 bytes in 0 blocks
+==11417==   total heap usage: 4,306 allocs, 4,306 frees, 519,401 bytes allocated
+==11417== 
+==11417== All heap blocks were freed -- no leaks are possible
+==11417== 
+==11417== For counts of detected and suppressed errors, rerun with: -v
+==11417== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+==11438== Memcheck, a memory error detector
+==11438== Copyright (C) 2002-2011, and GNU GPL'd, by Julian Seward et al.
+==11438== Using Valgrind-3.7.0 and LibVEX; rerun with -h for copyright info
+==11438== Command: ./main
+==11438== 
+==11438== 
+==11438== HEAP SUMMARY:
+==11438==     in use at exit: 0 bytes in 0 blocks
+==11438==   total heap usage: 0 allocs, 0 frees, 0 bytes allocated
+==11438== 
+==11438== All heap blocks were freed -- no leaks are possible
+==11438== 
+==11438== For counts of detected and suppressed errors, rerun with: -v
+==11438== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 2 from 2)
+make[1]: *** [all] Error 4
+make: *** [gen] Error 2
