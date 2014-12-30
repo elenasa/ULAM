@@ -3,6 +3,7 @@ BUILD_DIR:=$(BASE_DIR)/build/test
 INCLUDE_DIR:=$(BASE_DIR)/include
 TGEN_DIR:=./bin
 SPIKE_DIR:=$(BASE_DIR)/spike
+SHARE_DIR:=$(BASE_DIR)/share
 
 INCLUDES += -I${INCLUDE_DIR}
 
@@ -27,11 +28,10 @@ $(BUILD_DIR)/%.o: %.cpp $(HDRS) $(ALLDEP) | $(BUILD_DIR)
 	g++ -c $(CFLAGS) $(INCLUDES) $< -o $@
 
 gen: $(TGEN_DIR)
+#	cp $(SHARE_DIR)/tcc/*.tcc $(TGEN_DIR)/include/.
 	cp $(SPIKE_DIR)/native/*.tcc $(TGEN_DIR)/include/.
 	cp $(SPIKE_DIR)/native/makefile $(TGEN_DIR)/.
 	make -C $(TGEN_DIR)
-	$(TGEN_DIR)/main;
-
 
 clean:	FORCE
 	@rm -f *~

@@ -559,7 +559,12 @@ namespace MFM {
 	  {
 	    fp->write(cosut->getUlamTypeMangledName(&m_state).c_str());
 	    fp->write("<CC>::");
-	    fp->write("THE_INSTANCE.");
+
+	    //depending on the "owner" of the func, the instance is needed
+	    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	    UTI cosuti = cos->getUlamTypeIdx();
+	    if(m_state.getUlamTypeByIndex(cosuti)->getUlamClass() == UC_ELEMENT)
+	      fp->write("THE_INSTANCE."); //non-static functions require an instance
 	  }
 	else
 	  {

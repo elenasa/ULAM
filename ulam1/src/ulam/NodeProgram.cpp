@@ -501,11 +501,11 @@ namespace MFM {
     fp->write("typedef MFM::Tile<OurCoreConfig> OurTile;\n");
     m_state.indent(fp);
     fp->write("OurTile theTile;\n");
-    m_state.indent(fp);
-    fp->write("OurUlamContext::Get().SetTile(theTile);\n");
 
     m_state.indent(fp);
     fp->write("OurUlamContext uc;\n");
+    m_state.indent(fp);
+    fp->write("uc.SetTile(theTile);\n");
 
     //declare an instance of all element classes; supports immediate types constructors
     std::string runThisTest = m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);

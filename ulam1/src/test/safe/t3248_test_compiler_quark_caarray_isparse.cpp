@@ -11,7 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aset(Int index, Atom val) native;\n  Int size() native;\n  Void diffuse() native;\n}\n");
+      bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aset(Int index, Atom val) native;\n}\n");
 
       if(rtn2)
 	return std::string("EventWindow.ulam");
