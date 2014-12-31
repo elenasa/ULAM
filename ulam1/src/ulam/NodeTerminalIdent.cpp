@@ -461,18 +461,18 @@ namespace MFM {
 
   void NodeTerminalIdent::genCode(File * fp, UlamValue & uvpass)
   {
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    //UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
     uvpass = makeUlamValuePtrForCodeGen();
 
-    m_state.m_currentObjPtr = uvpass;                    //*************
+    //    m_state.m_currentObjPtr = uvpass;                    //*************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL;
 
     // UNCLEAR: should this be consistent with constants?
     genCodeReadIntoATmpVar(fp, uvpass);
 
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
+    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
   } //genCode
 
 
@@ -482,7 +482,7 @@ namespace MFM {
     uvpass = makeUlamValuePtrForCodeGen();
 
     //******UPDATED GLOBAL; no restore!!!**************************
-    m_state.m_currentObjPtr = uvpass;                   //*********
+    //    m_state.m_currentObjPtr = uvpass;                   //*********
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL;
   } //genCodeToStoreInto
 

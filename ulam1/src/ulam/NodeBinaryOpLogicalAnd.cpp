@@ -141,7 +141,7 @@ namespace MFM {
   void NodeBinaryOpLogicalAnd::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;  //*************
+    //    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;  //*************
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());     //*************
 
 #ifdef TMPVARBRACES
@@ -154,7 +154,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
-    
+
     m_state.indent(fp);
     //fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
@@ -174,7 +174,7 @@ namespace MFM {
     //fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("if(");    
+    fp->write("if(");
     fp->write(((UlamTypeBool *) lut)->getConvertToCboolMethod().c_str());
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str());
@@ -202,7 +202,7 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
-  
+
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
 
 #ifdef TMPVARBRACES
@@ -210,7 +210,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("}\n");  //close for tmpVar
 #endif
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore current object ptr
+    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore current object ptr
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 
