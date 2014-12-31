@@ -63,12 +63,22 @@ namespace MFM {
     bool doErrMsg = false;
     Node * rtnNode = NULL;
     UTI nuti = node->getNodeType();
-    ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
 
+    if(nuti == tobeType)
+      {
+	std::ostringstream msg;
+	msg << "Casting 'like' types: <" << m_state.getUlamTypeNameByIndex(nuti).c_str() << "> as a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	return node;
+      }
+
+    ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
     if(nclasstype == UC_NOTACLASS)
       {
 	if((nuti == UAtom) && (m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_ELEMENT))
 	  doErrMsg = true;
+	else if(nuti == Void)
+	  doErrMsg = true;  //cannot cast a void into anything else (reverse is fine)
 	else
 	  {
 	    rtnNode = new NodeCast(node, tobeType, m_state);
@@ -81,7 +91,6 @@ namespace MFM {
 	Token identTok;
 	u32 castId = m_state.m_pool.getIndexForDataString("toInt");
 	identTok.init(TOK_IDENTIFIER, getNodeLocation(), castId);
-	//assert(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() == Int);
 	if(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() != Int)
 	  doErrMsg = true;
 	else
@@ -104,8 +113,7 @@ namespace MFM {
 
 	    //redo check and type labeling
 	    UTI newType = rtnNode->checkAndLabelType();
-	    //assert(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Int);
-	    assert(newType == tobeType);
+	    if(newType != tobeType) doErrMsg = true; //error msg instead
 	  }
       }
     else if (nclasstype == UC_ELEMENT)
@@ -128,6 +136,7 @@ namespace MFM {
 	msg << "Cannot CAST type <" << m_state.getUlamTypeNameByIndex(nuti).c_str() << "> as a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
+
     return rtnNode;
   } //make casting node
 

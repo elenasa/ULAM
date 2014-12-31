@@ -55,7 +55,9 @@ namespace MFM {
 
 	  }
 	else
-	  errput->write("Unrecoverable Program Type Label FAILURE.\n");
+	  {
+	    errput->write("Unrecoverable Program Type Label FAILURE.\n");
+	  }
       }
     else
       {
