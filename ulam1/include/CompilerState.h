@@ -94,6 +94,7 @@ namespace MFM{
     // code; built by SourceStream during parsing; used for
     // documentation during code generation.
     std::map<u32,std::vector<u32>* > m_textByLinePerFilePath;
+    Locator m_locOfNextLineText;
 
     u32 m_compileThisId;                 // the subject of this compilation; id into m_pool
     SymbolTable m_programDefST;
@@ -266,6 +267,7 @@ namespace MFM{
     std::string getLineOfText(Locator loc);
 
     void outputTextAsComment(File * fp, Locator nodeloc);
+    std::string getTextAsString(Locator nodeloc);
 
     /** for conditional as-magic */
     void saveIdentTokenForConditionalAs(Token iTok);
