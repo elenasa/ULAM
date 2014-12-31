@@ -55,18 +55,27 @@ namespace MFM {
 
     if(nodeType != m_state.m_currentFunctionReturnType)
       {
-	m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
-	if(m_node)
-	  nodeType = m_node->getNodeType();
+	if(m_state.m_currentFunctionReturnType != Void)
+	  {
+	    m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
+	    if(m_node)
+	      nodeType = m_node->getNodeType();
+	    else
+	      nodeType = Nav;  //no casting node
+	  }
 	else
-	  nodeType = Nav;  //no casting node
+	  {
+	    std::ostringstream msg;
+	    msg << "ISO C forbids ‘return’ with expression, in function returning void";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
       }
 
     setNodeType(nodeType); //return take type of their node
 
     m_state.m_currentFunctionReturnNodes.push_back(this); //check later against defined function return type
     return nodeType;
-  }
+  } //checkAndLabelType
 
 
   const char * NodeReturnStatement::getName()
@@ -103,21 +112,6 @@ namespace MFM {
     evalNodeEpilog();
     return RETURN;
   }
-
-#if 0
-  void NodeReturnStatement::GENCODE(File * fp)
-  {
-    m_state.indent(fp);
-    fp->write("return ");
-    if(m_node)
-      {
-	fp->write("(");
-	m_node->genCode(fp, uvpass);
-	fp->write(")");
-      }
-    fp->write(";\n");
-  }
-#endif
 
 
   void NodeReturnStatement::genCode(File * fp, UlamValue& uvpass)
@@ -172,7 +166,5 @@ namespace MFM {
 	fp->write("return;\n");   //void
       }
   } //genCode
-
-
 
 } //end MFM
