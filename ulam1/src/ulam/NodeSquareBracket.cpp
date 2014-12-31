@@ -329,7 +329,6 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //********
 
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
