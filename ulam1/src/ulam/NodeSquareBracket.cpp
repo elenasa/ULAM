@@ -328,8 +328,7 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //********
+    //    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
@@ -342,19 +341,13 @@ namespace MFM {
 
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-    m_state.m_currentObjPtr = luvpass; //updated by lhs
+    //    m_state.m_currentObjPtr = luvpass; //updated by lhs
 
     uvpass = offset;
 
-    //    UTI luti = m_nodeLeft->getNodeType();
-    //UlamType * lut = m_state.getUlamTypeByIndex(luti);
-    //if(lut->getUlamClass() == UC_QUARK && ((UlamTypeClass *) lut)->isCustomArray())
-    //  genCodeReadIntoATmpVar(fp, uvpass);      //since left node is a scalar
-    //else
-      genCodeReadArrayItemIntoATmpVar(fp, uvpass);     //new!!!
+    Node::genCodeReadArrayItemIntoATmpVar(fp, uvpass);     //new!!!
 
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
+    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
   } //genCode
 
 
@@ -373,65 +366,12 @@ namespace MFM {
 
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-    m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
+    //    m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
 
     uvpass = offset; //return
 
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
 
-#if 0
-  void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
-  {
-    assert(m_nodeLeft && m_nodeRight);
-
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
-    //Symbol * saveCurrentObjectSymbol = m_state.m_currentObjSymbolForCodeGen; //********
-
-    UlamValue luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-    m_state.m_currentObjPtr = luvpass; //updated by lhs
-
-    UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass, m_state);  //for incrementPtr
-    nextlptr.setPtrNameId(luvpass.getPtrNameId());
-
-    UlamValue offset;
-    //m_nodeRight->genCode(fp, offset);
-    m_nodeRight->genCodeToStoreInto(fp, offset); //for immediate value
-
-    s32 offsetInt = offset.getImmediateData(m_state);
-    nextlptr.incrementPtr(m_state, offsetInt);
-
-    genCodeReadIntoATmpVar(fp, nextlptr);  // more consistent, ok?
-    uvpass = nextlptr;
-
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
-    //m_state.m_currentObjSymbolForCodeGen = saveCurrentObjectSymbol;  //restore *******
-  } //genCode
-
-
-  void NodeSquareBracket::genCodeToStoreInto(File * fp, UlamValue& uvpass)
-  {
-    assert(m_nodeLeft && m_nodeRight);
-
-    UlamValue luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-    m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
-
-    UlamValue nextlptr = UlamValue::makeScalarPtr(luvpass,m_state);  //for incrementPtr
-    nextlptr.setPtrNameId(luvpass.getPtrNameId());
-
-    UlamValue offset;
-    //m_nodeRight->genCode(fp, offset);
-    m_nodeRight->genCodeToStoreInto(fp, offset); //for immediate value
-
-    s32 offsetInt = offset.getImmediateData(m_state);
-    nextlptr.incrementPtr(m_state, offsetInt);
-
-    uvpass = nextlptr; //return
-
-    // NO RESTORE -- up to caller for lhs.
-  } //genCodeToStoreInto
-#endif
 
 } //end MFM

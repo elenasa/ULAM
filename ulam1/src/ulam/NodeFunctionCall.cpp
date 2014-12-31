@@ -403,7 +403,7 @@ namespace MFM {
       {
 	UlamValue auvpass;
 	UTI auti;
-	UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+	//	UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 	m_state.m_currentObjSymbolsForCodeGen.clear();            //*************
 
 	m_argumentNodes[i]->genCode(fp, auvpass);
@@ -417,7 +417,7 @@ namespace MFM {
 
 	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
 
-	m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
+	//m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
       } //next arg..
 
     if(m_funcSymbol->takesVariableArgs())
@@ -426,7 +426,7 @@ namespace MFM {
 	  {
 	    UlamValue auvpass;
 	    UTI auti;
-	    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+	    //	    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 	    m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
 	    m_argumentNodes[i]->genCode(fp, auvpass);
@@ -441,7 +441,7 @@ namespace MFM {
 	    // use pointer for variable arg's since all the same size that way
 	    arglist << ", &" << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
 
-	    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
+	    //	    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
 	  } //end forloop through variable number of args
 
 	arglist << ", (void *) 0";  //indicates end of args
@@ -483,14 +483,14 @@ namespace MFM {
     // static functions..oh yeah..but only for quarks
     // who's function is it?
     if(!isCurrentObjectALocalVariableOrArgument())
-      genMemberNameOfMethod(fp, m_state.m_currentObjPtr);
+      genMemberNameOfMethod(fp);
     else
       {
 	s32 epi = isCurrentObjectsContainingAnElementParameter();
 	if(epi >= 0)
 	  genElementParameterMemberNameOfMethod(fp,epi);
 	else
-	  genLocalMemberNameOfMethod(fp, m_state.m_currentObjPtr);
+	  genLocalMemberNameOfMethod(fp);
       }
     fp->write(m_funcSymbol->getMangledName().c_str());
     fp->write("(");
@@ -516,7 +516,7 @@ namespace MFM {
   }
 
 
-  void NodeFunctionCall::genMemberNameOfMethod(File * fp, UlamValue uvpass)
+  void NodeFunctionCall::genMemberNameOfMethod(File * fp)
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
 
@@ -627,7 +627,7 @@ namespace MFM {
   } //genElementParameterHiddenArgs
 
 
-  void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp, UlamValue uvpass)
+  void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {
     assert(isCurrentObjectALocalVariableOrArgument());
 

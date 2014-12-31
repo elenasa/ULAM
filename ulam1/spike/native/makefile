@@ -8,11 +8,11 @@ CFLAGS:= -g -pthread -Wall -ansi -pedantic
 #CFLAGS+= -Werror
 default: all
 
-all:	FORCE
+all:
 	g++ -c $(CFLAGS) -D MFM_BUILD_DATE=1 -D MFM_BUILD_TIME=2 -I include -I $(MFM_INCLUDES) -I $(MFM_PLATFORM_INCL) ./src/*.cpp
 #	g++ -c $(CFLAGS) -I include -I $(MFM_INCLUDES) -I $(MFM_PLATFORM_INCL) ./src/*.cpp
 	g++ -L $(MFM_BUILD_CORE) -L $(MFM_BUILD_PLATFORM) ./*.o -l mfmcore -l mfmplatform-linux -l mfmcore -pthread -o main
-	valgrind ./main
+#	valgrind ./main
 
 clean: 	FORCE
 	rm -f *.o

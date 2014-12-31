@@ -12,13 +12,13 @@ namespace MFM {
 
 
   UTI NodeBinaryOpCompare::checkAndLabelType()
-  { 
+  {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();	
+    UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType); //for casting
-    
+
     if(newType != Nav)
       {
 	if(rightType != newType)
@@ -30,11 +30,11 @@ namespace MFM {
 	  {
 	    m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
 	  }
-	
+
 	newType = Bool;  //always Bool (default size) for node
       }
 
-    setNodeType(newType); 
+    setNodeType(newType);
     setStoreIntoAble(false);
     return newType;
   } //checkAndLabelType
@@ -42,14 +42,14 @@ namespace MFM {
 
   // same as Arith Ops for casting lhs & rhs, however node type is Bool
   // punt on arrays at this time..
-  UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt) 
+  UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)
   {
     UTI newType = Nav; //init
 
     // except for 2 Unsigned, all comparison operations are performed as Int.32.-1
     // if one is unsigned, and the other isn't -> output warning, but Signed Int wins.
     // Class (i.e. quark) + anything goes to Int.32
- 
+
     if( m_state.isScalar(lt) && m_state.isScalar(rt))
       {
 	newType = Int;
@@ -67,10 +67,10 @@ namespace MFM {
 	    bool doErrMsg = true;
 	    if(m_state.isConstant(lt) && m_nodeLeft->fitsInBits(rt))
 	      doErrMsg = false;
-	    
+
 	    if(m_state.isConstant(rt) && m_nodeRight->fitsInBits(lt))
 	      doErrMsg = false;
-	    
+
 	    if(doErrMsg)
 	      {
 		std::ostringstream msg;
@@ -89,17 +89,17 @@ namespace MFM {
 	  }
       } //both scalars
     else
-      { 
+      {
 	//#define SUPPORT_ARITHMETIC_ARRAY_OPS
 #ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
 	// Conflicted: we don't like the idea that the type might be
 	// different for arrays than scalars; casting occurring differently.
-	// besides, for arithmetic ops, unlike logical ops, we have to do each 
+	// besides, for arithmetic ops, unlike logical ops, we have to do each
 	// op separately anyway, so no big win (let ulam programmer do the loop).
 	// let arrays of same types through ??? Is SO for op equals, btw.
 	if(lt == rt)
 	  {
-	    return lt;  
+	    return lt;
 	  }
 #endif //SUPPORT_ARITHMETIC_ARRAY_OPS
 
@@ -164,8 +164,8 @@ namespace MFM {
     UTI luti = m_nodeLeft->getNodeType();
     u32 len = m_state.getTotalBitSize(luti);
 
-    UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value                  
-    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value                  
+    UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value
+    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
 
     u32 ldata = luv.getImmediateData(len);
     u32 rdata = ruv.getImmediateData(len);
@@ -177,7 +177,7 @@ namespace MFM {
   //unlike NodeBinaryOp, NodeBinaryOpCompare has a node type that's different from
   // its nodes, where left and right nodes are casted to be the same.
   void NodeBinaryOpCompare::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
-  { 
+  {
     assert(0); //not implemented yet.
     UlamValue rtnUV;
     UTI nuti = getNodeType(); //Bool, same array size as lhs/rhs
@@ -214,32 +214,32 @@ namespace MFM {
 
 	u32 ldata = luv.getData(lp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
 	u32 rdata = ruv.getData(rp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
-		
+
 	if(WritePacked(packRtn))
 	  // use calc position where base [0] is furthest from the end.
 	  appendBinaryOp(rtnUV, ldata, rdata, (BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
 	else
 	  {
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
-	    
+
 	    //copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
-	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i); 
+	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
-	
-	lp.incrementPtr(m_state); 
+
+	lp.incrementPtr(m_state);
 	rp.incrementPtr(m_state);
       } //forloop
-    
+
     if(WritePacked(packRtn))
       m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result
-    
+
   } //end dobinaryoparray
 
 
   void NodeBinaryOpCompare::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;  //*************
+    //UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;  //*************
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());     //*************
 
 #ifdef TMPVARBRACES
@@ -253,7 +253,7 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore *******
+    //m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore *******
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     UlamValue luvpass;
@@ -290,7 +290,7 @@ namespace MFM {
     fp->write_decimal(m_state.getUlamTypeByIndex(luti)->getTotalBitSize());  //compare needs size of left/right nodes (only difference!)
 
     fp->write(");\n");
-  
+
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
 
 #ifdef TMPVARBRACES
@@ -298,7 +298,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("}\n");  //close for tmpVar
 #endif
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore current object ptr
+    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore current object ptr
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

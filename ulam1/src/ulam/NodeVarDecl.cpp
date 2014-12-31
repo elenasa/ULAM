@@ -85,6 +85,14 @@ namespace MFM {
     if(!m_varSymbol->isElementParameter())
       {
 	m_varSymbol->setPosOffset(offset);
+	UTI it = m_varSymbol->getUlamTypeIdx();
+	if(m_state.getTotalBitSize(it) > MAXBITSPERINT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of type: <" << m_state.getUlamTypeNameByIndex(it).c_str() << "> MUST fit into " << MAXBITSPERINT << " bits; Local variables do not have this restriction";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+
 	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
       }
   }
