@@ -1218,7 +1218,9 @@ namespace MFM {
       }
     assert(linenum >= 0 && linenum <= textOfLines->size());
     textOfLines->push_back(textid);
-  }
+
+    m_locOfNextLineText = loc;
+  } //appendNextLineOfText
 
 
   std::string CompilerState::getLineOfText(Locator loc)
@@ -1274,6 +1276,18 @@ namespace MFM {
 
     fp->write(getLineOfText(nodeloc).c_str());
   } //outputTextAsComment
+
+
+  std::string CompilerState::getTextAsString(Locator nodeloc)
+  {
+    std::ostringstream txt;
+    txt << getPathFromLocator(nodeloc).c_str();
+    txt << ":";
+    txt << nodeloc.getLineNo();
+    txt << ": ";
+    txt << getLineOfText(nodeloc).c_str();
+    return txt.str();
+  } //getTextAsString
 
 
   s32 CompilerState::getNextTmpVarNumber()
