@@ -131,9 +131,10 @@ namespace MFM {
     UlamValue rtnUV = UlamValue::makePtr(arrayPtr.getPtrSlotIndex(),
 					 arrayPtr.getPtrStorage(),
 					 scalarType,
-					 state.determinePackable(scalarType), //PACKEDLOADABLE
+					 //state.determinePackable(scalarType), //PACKEDLOADABLE
+					 state.determinePackable(arrayPtr.getPtrTargetType()), //PACKEDLOADABLE, or UNPACKED?
 					 state,
-					 arrayPtr.getPtrPos(), /* base pos of array */
+					 arrayPtr.getPtrPos(),    /* base pos of array */
 					 arrayPtr.getPtrNameId()  /* include name id of array */
 					 );
     return rtnUV;

@@ -96,7 +96,14 @@ namespace MFM {
     else
       ctype << "VD::BITS, ";  //use BITS for arrays
 
-    ctype << len << ", " << roundUpSize - len << ">";
+    if(getPackable() == UNPACKED)
+      {
+	s32 itemlen = getBitSize(); //per item
+	ctype << itemlen << ", " << getItemWordSize() - itemlen << ">";
+      }
+    else
+      ctype << len << ", " << roundUpSize - len << ">";
+
     return ctype.str();
   }
 
@@ -536,24 +543,20 @@ namespace MFM {
   const std::string UlamType::readArrayItemMethodForCodeGen()
   {
     std::string method;
-    if(getPackable() == UNPACKED)
-	method = "ReadArrayUnpacked";  //TBD
-    else
+    s32 sizeByIntBits = getItemWordSize();
+    switch(sizeByIntBits)
       {
-	s32 sizeByIntBits = getItemWordSize();
-	switch(sizeByIntBits)
-	  {
-	  case 0:    //e.g. empty quarks
-	  case 32:
-	    method = "ReadArray";
-	    break;
-	  case 64:
-	    method = "ReadArrayLong";
-	    break;
-	  default:
-	    assert(0);
-	  };
-      }
+      case 0:    //e.g. empty quarks
+      case 32:
+	method = "ReadArray";
+	break;
+      case 64:
+	method = "ReadArrayLong";
+	break;
+      default:
+	method = "ReadArrayUnpacked";  //TBD
+	//assert(0);
+      };
     return method;
   } //readArrayItemMethodForCodeGen()
 
@@ -561,24 +564,19 @@ namespace MFM {
   const std::string UlamType::writeArrayItemMethodForCodeGen()
   {
     std::string method;
-    if(getPackable() == UNPACKED)
-	method = "WriteArrayUnpacked";  //TBD
-    else
+    s32 sizeByIntBits = getItemWordSize();
+    switch(sizeByIntBits)
       {
-	s32 sizeByIntBits = getItemWordSize();
-	switch(sizeByIntBits)
-	  {
-	  case 0:    //e.g. empty quarks
-	  case 32:
-	    method = "WriteArray";
-	    break;
-	  case 64:
-	    method = "WriteArrayLong";
-	    break;
-	  default:
-	    assert(0);
-	  };
-      }
+      case 0:    //e.g. empty quarks
+      case 32:
+	method = "WriteArray";
+	break;
+      case 64:
+	method = "WriteArrayLong";
+	break;
+      default:
+	method = "WriteArrayUnpacked";  //TBD
+      };
     return method;
   } //writeArrayItemMethodForCodeGen()
 

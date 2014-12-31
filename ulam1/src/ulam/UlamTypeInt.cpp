@@ -67,7 +67,7 @@ namespace MFM {
     std::string ctype;
     switch(sizebyints)
       {
-      case 0: 
+      case 0:
       case 32:
 	ctype = "s32";
 	break;
@@ -76,14 +76,13 @@ namespace MFM {
 	break;
       default:
 	{
-	  std::ostringstream msg;
-	  msg << "Need UNPACKED ARRAY for " << sizebyints << " bits; s32[" << getArraySize() << "]";
-	  state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
-	  ctype = "s32*"; //array
-	  assert(0);
+	  //std::ostringstream msg;
+	  //msg << "Need UNPACKED ARRAY for " << sizebyints << " bits; s32[" << getArraySize() << "]";
+	  //state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+	  ctype = "s32"; //array item
+	  //assert(0);
 	}
       };
-    
     return ctype;
   } //getTmpStorageTypeAsString
 
@@ -98,7 +97,7 @@ namespace MFM {
   {
     bool brtn = true;
     UTI typidx = getUlamTypeIndex();
-    UTI valtypidx = val.getUlamValueTypeIdx();    
+    UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
       {
@@ -107,11 +106,11 @@ namespace MFM {
 	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
 	return false;
       }
-    
+
     //change the size first of tobe, if necessary
     s32 bitsize = getBitSize();
-    s32 valbitsize = state.getBitSize(valtypidx);	
-    
+    s32 valbitsize = state.getBitSize(valtypidx);
+
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
@@ -176,82 +175,82 @@ namespace MFM {
 
     UTI uti = getUlamTypeIndex();
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
-    s32 tmpVarCastNum = state.getNextTmpVarNumber(); 
+    s32 tmpVarCastNum = state.getNextTmpVarNumber();
     s32 totWords = getTotalWordSize();
-    
+
     state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString(&state).c_str()); //i.e. s32, s64
     fp->write(" ");
     fp->write(state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
     fp->write(" = ");
-    
+
     // write the cast method (e.g. _SignExtend32)
     //fp->write(castMethodForCodeGen(uti, state).c_str());
     fp->write("_SignExtend");
     fp->write_decimal(totWords);
-    
+
     fp->write("(");
     fp->write(state.getTmpVarAsString(uti, tmpVarNum).c_str());
     fp->write(", ");
     fp->write_decimal(getTotalBitSize());
     fp->write(")");
     fp->write(";\n");
-    
+
     UTI newuti = uti;
 #if 0
     UTI newuti = Int;
-    
+
     if(totWords > MAXBITSPERINT)
       {
 	UlamKeyTypeSignature ikey(state.m_pool.getIndexForDataString("Int"), totWords);
 	newuti = state.makeUlamType(ikey, Int);
       }
 #endif
-    
+
     uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
 
   } //genCodeAfterReadingIntoATmpVar
-  
+
 
   // private helper
   void UlamTypeInt::genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state)
   {
     UTI uti = getUlamTypeIndex();
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
-    s32 tmpVarCastNum = state.getNextTmpVarNumber(); 
+    s32 tmpVarCastNum = state.getNextTmpVarNumber();
     s32 itemWords = getItemWordSize();
-    
+
     state.indent(fp);
     fp->write("const ");
     fp->write(getArrayItemTmpStorageTypeAsString(&state).c_str()); //i.e. s32, s64
     fp->write(" ");
     fp->write(state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
     fp->write(" = ");
-    
+
     // write the cast method (e.g. _SignExtend32)
     //fp->write(castMethodForCodeGen(uti, state).c_str());
     fp->write("_SignExtend");
     fp->write_decimal(itemWords);
-    
+
     fp->write("(");
     fp->write(state.getTmpVarAsString(uti, tmpVarNum).c_str());
     fp->write(", ");
     fp->write_decimal(getBitSize());
     fp->write(")");
     fp->write(";\n");
-    
+
     UTI newuti = uti;
 #if 0
     UTI newuti = Int;
-    
+
     if(itemWords > MAXBITSPERINT)
       {
 	UlamKeyTypeSignature ikey(state.m_pool.getIndexForDataString("Int"), itemWords);
 	newuti = state.makeUlamType(ikey, Int);
       }
 #endif
-    
+
     uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
 
   } //genCodeAfterReadingArrayItemIntoATmpVar
@@ -264,5 +263,5 @@ namespace MFM {
     else
       sprintf(valstr,"%c%d", prefix, (s32) data);
   }
-  
+
 } //end MFM
