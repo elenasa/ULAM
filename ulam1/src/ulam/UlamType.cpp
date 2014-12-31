@@ -96,7 +96,8 @@ namespace MFM {
     else
       ctype << "VD::BITS, ";  //use BITS for arrays
 
-    if(getPackable() == UNPACKED)
+    //    if(getPackable() == UNPACKED)
+    if(!isScalar() && getPackable() != PACKEDLOADABLE)
       {
 	s32 itemlen = getBitSize(); //per item
 	ctype << itemlen << ", " << getItemWordSize() - itemlen << ">";
