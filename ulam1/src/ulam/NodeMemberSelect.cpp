@@ -213,7 +213,7 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    //UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
     //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());    //*************?
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
@@ -224,7 +224,7 @@ namespace MFM {
 
     m_nodeRight->genCode(fp, uvpass);  // is this ok???
 
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;    //restore current object ptr ****
+    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;    //restore current object ptr ****
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 

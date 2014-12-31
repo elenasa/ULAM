@@ -328,7 +328,7 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    //    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
@@ -341,13 +341,13 @@ namespace MFM {
 
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-    m_state.m_currentObjPtr = luvpass; //updated by lhs
+    //    m_state.m_currentObjPtr = luvpass; //updated by lhs
 
     uvpass = offset;
 
     Node::genCodeReadArrayItemIntoATmpVar(fp, uvpass);     //new!!!
 
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
+    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
   } //genCode
 
 
@@ -366,7 +366,7 @@ namespace MFM {
 
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
-    m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
+    //    m_state.m_currentObjPtr = luvpass; //updated by lhs ********** NO RESTORE
 
     uvpass = offset; //return
 
