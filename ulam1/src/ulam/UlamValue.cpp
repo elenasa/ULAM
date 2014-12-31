@@ -131,9 +131,10 @@ namespace MFM {
     UlamValue rtnUV = UlamValue::makePtr(arrayPtr.getPtrSlotIndex(),
 					 arrayPtr.getPtrStorage(),
 					 scalarType,
-					 state.determinePackable(scalarType), //PACKEDLOADABLE
+					 //state.determinePackable(scalarType), //PACKEDLOADABLE
+					 state.determinePackable(arrayPtr.getPtrTargetType()), //PACKEDLOADABLE, or UNPACKED?
 					 state,
-					 arrayPtr.getPtrPos(), /* base pos of array */
+					 arrayPtr.getPtrPos(),    /* base pos of array */
 					 arrayPtr.getPtrNameId()  /* include name id of array */
 					 );
     return rtnUV;
@@ -247,8 +248,8 @@ namespace MFM {
     assert(getUlamValueTypeIdx() == Ptr);
     u32 pos = m_uv.m_ptrValue.m_posInAtom;
     // this will blow up the smaller BITVECTORS used in code gen for immmediates.
-    assert(pos <= BITSPERATOM && pos >= ATOMFIRSTSTATEBITPOS);
-    //assert(pos <= BITSPERATOM && pos >= 0);
+    //assert(pos <= BITSPERATOM && pos >= ATOMFIRSTSTATEBITPOS);
+    assert(pos <= BITSPERATOM && pos >= 0);
     return pos;
   }
 
@@ -337,7 +338,7 @@ namespace MFM {
 	  }
       }
     return rtnUV;
-  }
+  } //getPackedArrayDataFromAtom
 
 
   u32 UlamValue::getDataFromAtom(UlamValue p, CompilerState& state) const
@@ -366,13 +367,11 @@ namespace MFM {
     else
       {
 	ULAMCLASSTYPE dclasstype = state.getUlamTypeByIndex(duti)->getUlamClass();
-	//if(dclasstype == UC_NOTACLASS)
 	if(dclasstype == UC_NOTACLASS && duti != UAtom)
 	  datavalue = getImmediateData(p.getPtrLen());
 	else
 	  datavalue = getData(p.getPtrPos(), p.getPtrLen());
       }
-
     return datavalue;
   } //getDataFromAtom overloaded
 
@@ -414,28 +413,40 @@ namespace MFM {
     UTI duti = data.getUlamValueTypeIdx();
     assert( (duti == p.getPtrTargetType()) || (getUlamValueTypeIdx() == p.getPtrTargetType())); //ALL-PURPOSE!
 
-    if(!state.isScalar(p.getPtrTargetType()) && p.isTargetPacked() == PACKED)
+    if(p.isTargetPacked() == PACKED)
       {
-	//must get data piecemeal, too big to fit into one int
-	putPackedArrayDataIntoAtom(p, data, state);
-      }
-    else if(p.isTargetPacked() == PACKED)
-      {
-	// e.g. an element, take wholesale
-	assert(0);
+	if(!state.isScalar(p.getPtrTargetType()))
+	  {
+	    //must get data piecemeal, too big to fit into one int
+	    putPackedArrayDataIntoAtom(p, data, state);
+	  }
+	else if(state.getUlamTypeByIndex(p.getPtrTargetType())->getPackable() == PACKEDLOADABLE)
+	  {
+	    // array item that's loadable
+	    s32 len = p.getPtrLen();
+
+	    if(len == ANYBITSIZECONSTANT)
+	      len = state.getDefaultBitSize(p.getPtrTargetType());
+
+	    u32 datavalue = data.getImmediateData(len);
+	    putData(p.getPtrPos(), len, datavalue);
+	  }
+	else
+	  // e.g. an element, take wholesale
+	  assert(0);
       }
     else
-	{
-	  assert(p.isTargetPacked() == PACKEDLOADABLE);
-	  s32 len = p.getPtrLen();
+      {
+	assert(p.isTargetPacked() == PACKEDLOADABLE);
+	s32 len = p.getPtrLen();
 
-	  if(len == ANYBITSIZECONSTANT)
-	    len = state.getDefaultBitSize(p.getPtrTargetType());
+	if(len == ANYBITSIZECONSTANT)
+	  len = state.getDefaultBitSize(p.getPtrTargetType());
 
-	  u32 datavalue = data.getImmediateData(len);
-	  putData(p.getPtrPos(), len, datavalue);
-	}
-  }
+	u32 datavalue = data.getImmediateData(len);
+	putData(p.getPtrPos(), len, datavalue);
+      }
+  } //putDataIntoAtom
 
 
   // bigger than an int, yet packable, array data; assume 'data' is
@@ -458,7 +469,7 @@ namespace MFM {
 	putData(nextPPtr.getPtrPos(), nextPPtr.getPtrLen(), datavalue);
 	nextPPtr.incrementPtr(state);
       }
-  }
+  } //putPackedArrayDataIntoAtom
 
 
   u32 UlamValue::getData(u32 pos, s32 len) const
@@ -515,13 +526,11 @@ namespace MFM {
     UTI vuti = getPtrTargetType();
     UlamType * vut = state.getUlamTypeByIndex(vuti);
 
-    //state.indent(fp);
     fp->write("BitField<BPA,");
     fp->write(vut->getUlamTypeVDAsStringForC().c_str());  //VD type
     fp->write(",");
     fp->write_decimal(vut->getTotalBitSize());
     fp->write(",");
-    //fp->write_decimal(getPtrPos());
     fp->write_decimal(m_uv.m_ptrValue.m_posInAtom);  //use directly for smaller bitvectors in gen code.
     fp->write(">");
   }

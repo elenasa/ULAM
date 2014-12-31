@@ -275,7 +275,6 @@ namespace MFM {
 	rtnNode->setNodeLocation(pTok.m_locator);
 	rtnNode->setNodeType(utype);
 
-	//return NULL;  11082014
 	m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
 
 	return rtnNode;  //allow empty class
@@ -357,8 +356,7 @@ namespace MFM {
     if(pTok.m_type == TOK_KW_ELEMENT)
       {
 	//currently only permitted in elements, no quarks
-	UTI cuti;
-	assert(m_state.getUlamTypeByClassNameId(m_state.m_compileThisId, cuti));
+	UTI cuti = m_state.m_classBlock->getNodeType();
 	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
 	if(classtype != UC_ELEMENT)
 	  {
@@ -366,7 +364,6 @@ namespace MFM {
 	    msg << "Only elements may have element parameters: <" << m_state.m_pool.getDataAsString(m_state.m_compileThisId).c_str() << "> is a quark";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
-
 	m_state.m_parsingElementParameterVariable = true;
 	getNextToken(pTok);
       }
@@ -1204,6 +1201,14 @@ namespace MFM {
 	NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
 	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
 	assert(memberClassNode);  // e.g. forgot the closing brace on quark def once
+	if(!memberClassNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Trying to use typedef from another class <" << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">, before it has been defined. Cannot continue";
+	    MSG(&typeTok, msg.str().c_str(),ERR);
+	    return;
+	  }
+
 	//set up compiler state to use the member class block for symbol searches
 	m_state.m_currentMemberClassBlock = memberClassNode;
 	m_state.m_useMemberBlock = true;
@@ -1246,7 +1251,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type";
+	msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type: <" << m_state.getTokenDataAsString(&typeTok).c_str() << ">";
 	MSG(&typeTok, msg.str().c_str(),ERR);
 	//not a class!
       }

@@ -62,7 +62,7 @@ namespace MFM {
 	    evalNodeEpilog();
 	    return evs;
 	  }
-	
+
 	UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot+slot2); //immediate value
 	//copies return UV to stack, -1 relative to current frame pointer
 	m_state.m_nodeEvalStack.storeUlamValueInSlot(ruv, -1);
@@ -140,7 +140,7 @@ namespace MFM {
   void NodeBinaryOpLogicalOr::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;  //*************
+    //    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;  //*************
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());     //*************
 
 #ifdef TMPVARBRACES
@@ -153,7 +153,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 tmpVarNum = m_state.getNextTmpVarNumber();
-    
+
     m_state.indent(fp);
     //fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
@@ -218,7 +218,7 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n");
- 
+
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
 
 #ifdef TMPVARBRACES
@@ -227,7 +227,7 @@ namespace MFM {
     fp->write("}\n");  //close for tmpVar
 #endif
 
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore current object ptr
+    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore current object ptr
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

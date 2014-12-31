@@ -224,9 +224,16 @@ namespace MFM {
 	//if(m_varSymbol->isDataMember())
 	if(m_varSymbol->isDataMember() && !m_varSymbol->isElementParameter())
 	  {
+	    u32 pos = 0;
+	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+	      {
+		SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
+		pos = sym->getPosOffset();
+	      }
+	    // does this apply to codegen???
 	    // return ptr to this data member within the m_currentObjPtr
 	    // 'pos' modified by this data member symbol's packed bit position
-	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, /*m_state.m_currentObjPtr.getPtrPos() +*/ pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	  }
 	else
 	    {
@@ -454,18 +461,18 @@ namespace MFM {
 
   void NodeTerminalIdent::genCode(File * fp, UlamValue & uvpass)
   {
-    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
+    //UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
     uvpass = makeUlamValuePtrForCodeGen();
 
-    m_state.m_currentObjPtr = uvpass;                    //*************
+    //    m_state.m_currentObjPtr = uvpass;                    //*************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL;
 
     // UNCLEAR: should this be consistent with constants?
     genCodeReadIntoATmpVar(fp, uvpass);
 
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
+    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
   } //genCode
 
 
@@ -475,7 +482,7 @@ namespace MFM {
     uvpass = makeUlamValuePtrForCodeGen();
 
     //******UPDATED GLOBAL; no restore!!!**************************
-    m_state.m_currentObjPtr = uvpass;                   //*********
+    //    m_state.m_currentObjPtr = uvpass;                   //*********
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);  //************UPDATED GLOBAL;
   } //genCodeToStoreInto
 

@@ -77,11 +77,11 @@ namespace MFM{
 
   protected:
     //helper methods override Node read/write
-    virtual void genMemberNameOfMethod(File * fp, UlamValue uvpass);
+    virtual void genMemberNameOfMethod(File * fp);
 
     virtual void genElementParameterMemberNameOfMethod(File * fp, s32 epi);
     std::string genElementParameterHiddenArgs(s32 epi);
-    virtual void genLocalMemberNameOfMethod(File * fp, UlamValue uvpass);
+    virtual void genLocalMemberNameOfMethod(File * fp);
 
     void genCodeIntoABitValue(File * fp, UlamValue& uvpass);
 
