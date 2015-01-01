@@ -10,7 +10,7 @@ namespace MFM {
 
       //Ue_TypedefIssue { typedef Int(3) Symmetry;  Int(3) m(0);  Int(32) test() {  TypedefIssue t;  t ( 0 cast )set . t ( 1 cast )set . t m . cast return } }\nExit status: 1
 
-      return std::string("Ue_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Unsigned(3) m(0);  Int(32) test() {  TypedefIssue t;  t ( 0 cast )set . cast cond b true cast = if t ( 1 cast )set . cast cond b true cast = if t m . cast return } }\nExit status: 1");
+      return std::string("Ue_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Unsigned(3) m(0);  Int(32) test() {  TypedefIssue t;  t ( 0 cast )set . cond b true cast = if t ( 1 cast )set . cond b true cast = if t m . cast return } }\nExit status: 1");
     }
 
     std::string PresetTest(FileManagerString * fms)

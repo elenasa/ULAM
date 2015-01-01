@@ -48,6 +48,7 @@ namespace MFM
 
 #define MSG(l,m,t) m_state.m_err.buildMessage(l,m, __FILE__ , __func__ , __LINE__ ,MSG_##t)
 #define MSG2(l,m,t) m_err.buildMessage(l,m, __FILE__ , __func__ , __LINE__ ,MSG_##t)
+#define MSG3(l,m,t) state.m_err.buildMessage(l,m, __FILE__ , __func__ , __LINE__ ,MSG_##t)
 
   class CompilerState; //forward
 
@@ -76,7 +77,7 @@ namespace MFM
     void buildMessage(const char *, const char * message, const char * file, const char * func, u32 atline, MSGTYPE mtype);
 
 
-  private: 
+  private:
     CompilerState * m_state;
     bool m_debugMode;
     File * m_fOut;
