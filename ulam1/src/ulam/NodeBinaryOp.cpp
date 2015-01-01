@@ -200,7 +200,6 @@ namespace MFM {
   void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    //    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr;  //*************
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());     //*************
 
 #ifdef TMPVARBRACES
@@ -214,7 +213,6 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
 
     // restore current object globals
-    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore *******
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     UlamValue luvpass;
@@ -259,7 +257,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("}\n");  //close for tmpVar
 #endif
-    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;        //restore current object ptr
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

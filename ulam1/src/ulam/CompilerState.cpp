@@ -1219,7 +1219,7 @@ namespace MFM {
     assert(linenum >= 0 && linenum <= textOfLines->size());
     textOfLines->push_back(textid);
 
-    m_locOfNextLineText = loc;
+    m_locOfNextLineText = loc;  //during parsing here (see NodeStatements)
   } //appendNextLineOfText
 
 
@@ -1261,24 +1261,7 @@ namespace MFM {
   } //getLineOfText
 
 
-  void CompilerState::outputTextAsComment(File * fp, Locator nodeloc)
-  {
-    fp->write("\n");
-    indent(fp);
-    fp->write("//! ");
-
-    //fp->write(m_state.getFullLocationAsString(nodeloc).c_str()); //includes byte no.
-    fp->write(getPathFromLocator(nodeloc).c_str());
-    fp->write(58);  // : ascii decimal
-    fp->write_decimal(nodeloc.getLineNo());
-    fp->write(58);  // : ascii decimal
-    fp->write(" ");
-
-    fp->write(getLineOfText(nodeloc).c_str());
-  } //outputTextAsComment
-
-
-  std::string CompilerState::getTextAsString(Locator nodeloc)
+  std::string CompilerState::getLocationTextAsString(Locator nodeloc)
   {
     std::ostringstream txt;
     txt << getPathFromLocator(nodeloc).c_str();
@@ -1288,6 +1271,15 @@ namespace MFM {
     txt << getLineOfText(nodeloc).c_str();
     return txt.str();
   } //getTextAsString
+
+
+  void CompilerState::outputTextAsComment(File * fp, Locator nodeloc)
+  {
+    fp->write("\n");
+    indent(fp);
+    fp->write("//! ");
+    fp->write(getLocationTextAsString(nodeloc).c_str());
+  } //outputTextAsComment
 
 
   s32 CompilerState::getNextTmpVarNumber()

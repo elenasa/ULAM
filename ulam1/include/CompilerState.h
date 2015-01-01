@@ -265,9 +265,8 @@ namespace MFM{
 
     /** used during codeGen to document the source Ulam code */
     std::string getLineOfText(Locator loc);
-
+    std::string getLocationTextAsString(Locator nodeloc);
     void outputTextAsComment(File * fp, Locator nodeloc);
-    std::string getTextAsString(Locator nodeloc);
 
     /** for conditional as-magic */
     void saveIdentTokenForConditionalAs(Token iTok);
