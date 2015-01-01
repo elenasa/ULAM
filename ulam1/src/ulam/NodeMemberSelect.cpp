@@ -94,7 +94,6 @@ namespace MFM {
       }
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
-    //UlamValue pluv = m_state.m_nodeEvalStack.popArg(); //Ptr to atom  ???which way???
     m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
 
 
@@ -213,7 +212,6 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    //UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
     //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());    //*************?
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
@@ -224,7 +222,6 @@ namespace MFM {
 
     m_nodeRight->genCode(fp, uvpass);  // is this ok???
 
-    //    m_state.m_currentObjPtr = saveCurrentObjectPtr;    //restore current object ptr ****
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
 

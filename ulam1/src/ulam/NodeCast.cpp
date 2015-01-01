@@ -47,8 +47,6 @@ namespace MFM {
     u32 errorsFound = 0;
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->checkAndLabelType(); //user cast
-    //ULAMCLASSTYPE tobeClass = m_state.getUlamTypeByIndex(tobeType)->getUlamClass();
-    //if(tobeType == Nav || tobeClass != UC_NOTACLASS || tobeType == UAtom)
     if(tobeType == Nav)
       {
 	std::ostringstream msg;
@@ -113,7 +111,6 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //if(nodeClass == UC_ELEMENT || nodeClass == UC_INCOMPLETE)
 	    if(nodeClass == UC_INCOMPLETE)
 	      {
 		std::ostringstream msg;
@@ -122,6 +119,14 @@ namespace MFM {
 		errorsFound++;
 	      }
 	  }
+      }
+
+    //happens too often with Bool.1.-1 for some reason
+    if(tobeType == nodeType && isExplicitCast())
+      {
+	std::ostringstream msg;
+	msg << "Casting 'like' types: <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> as a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
 
     return getNodeType();
@@ -346,9 +351,9 @@ namespace MFM {
 
     // consider user requested first, then size independent;
     // even constant may need casting (e.g. narrowing for saturation)
-    // Bool constants require casts to generate "full" true UlamValue.
+    // Bool constants require casts to generate "full" true UlamValue (>1-bit).
 
-    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType)) );
+    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType) && m_state.getBitSize(tobeType)>1));
   } //needsACast
 
 } //end MFM

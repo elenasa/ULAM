@@ -66,10 +66,7 @@ namespace MFM {
 
     if(nuti == tobeType)
       {
-	std::ostringstream msg;
-	msg << "Casting 'like' types: <" << m_state.getUlamTypeNameByIndex(nuti).c_str() << "> as a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	return node;
+	return node; //warning for explicits checkandlabel
       }
 
     ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
