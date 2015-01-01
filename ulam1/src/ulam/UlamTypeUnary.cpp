@@ -38,16 +38,16 @@ namespace MFM {
     bool brtn = true;
     UTI typidx = getUlamTypeIndex();
     UTI valtypidx = val.getUlamValueTypeIdx();
-    
+
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
 	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
-    
+
     //change the size first of tobe, if necessary
     s32 bitsize = getBitSize();
     s32 valbitsize = state.getBitSize(valtypidx);
@@ -56,14 +56,14 @@ namespace MFM {
     //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
-    u32 data = val.getImmediateData(state);    
+    u32 data = val.getImmediateData(state);
     switch(valtypEnum)
       {
       case Int:
 	{
 	  s32 sdata = _SignExtend32(data, valbitsize);
 	  // cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
-	  sdata = _Int32ToUnary32(sdata, valbitsize, bitsize); 
+	  sdata = _Int32ToUnary32(sdata, valbitsize, bitsize);
 	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
 	}
 	break;
@@ -94,10 +94,10 @@ namespace MFM {
 	//std::cerr << "UlamTypeUnary (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
-  
+
     return brtn;
-  } //end cast    
-  
+  } //end cast
+
 
   void UlamTypeUnary::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {

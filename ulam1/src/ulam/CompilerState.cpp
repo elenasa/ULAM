@@ -416,7 +416,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
-	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
       }
@@ -427,7 +427,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
-	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
       }
@@ -454,7 +454,7 @@ namespace MFM {
     {
       std::ostringstream msg;
       msg << "Bit size set for Class: " << newut->getUlamTypeName(this).c_str();
-      m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
     }
 #endif
   }
@@ -552,7 +552,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Bit size still unknown (0) for Class: " << ict->getUlamTypeName(this).c_str();
-		m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
 	      }
 #endif
 	    rtnB = true;
@@ -731,7 +731,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return Statement is missing; Return type <" << getUlamTypeNameByIndex(it).c_str() << ">";
-	    m_err.buildMessage("", msg.str().c_str(), "MFM::NodeFunctionBlock", "checkAndLabelType", -15, MSG_ERR);
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
 	return true;  //okay to skip return statement for void function
@@ -1065,7 +1065,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "PACKFIT array differ! left packed is " << packed << ", right is " << rptr.isTargetPacked() << " for target type <" << getUlamTypeNameByIndex(rptr.getPtrTargetType()).c_str() << ">";
-	m_err.buildMessage("", msg.str().c_str(), "MFM::CompilerState", "assignArrayValues", 830, MSG_DEBUG);
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
 
     if(WritePacked(packed))
@@ -1240,7 +1240,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Cannot find path index (" << pathidx << ") for line " << linenum << ": " << m_pool.getDataAsString(pathidx).c_str();
-	m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return "<empty path>\n";
       }
 
