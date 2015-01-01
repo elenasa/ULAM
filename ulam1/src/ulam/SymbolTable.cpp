@@ -95,10 +95,6 @@ namespace MFM {
   void SymbolTable::genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     // 'has' applies to both quarks and elements
-    //    if(classtype != UC_ELEMENT)
-    //  return;
-
-    //UlamType * iut = m_state.getUlamTypeByIndex(Int);
     UTI cuti = m_state.m_classBlock->getNodeType();
 
     if(declOnly)

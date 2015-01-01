@@ -6,7 +6,19 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_A { System s();  typedef Int(32) BigSite[10];  Int(32) test() {  Int(32) site[10];  { Int(32) i;  i 0 cast = i 10 cast < cast cond { site i [] i = s ( site i [] )print . } i 1 cast += while } 10 cast return } }\nExit status: 10");
+      /* gen code output:
+	 Int Arg: 0
+	 Int Arg: 1
+	 Int Arg: 2
+	 Int Arg: 3
+	 Int Arg: 4
+	 Int Arg: 5
+	 Int Arg: 6
+	 Int Arg: 7
+	 Int Arg: 8
+	 Int Arg: 9
+      */
+      return std::string("Ue_A { System s();  typedef Int(32) BigSite[10];  Int(32) test() {  Int(32) site[10];  { Int(32) i;  i 0 cast = i 10 cast < cond { site i [] i = s ( site i [] )print . } i 1 cast += while } 10 cast return } }\nExit status: 10");
     }
 
     std::string PresetTest(FileManagerString * fms)

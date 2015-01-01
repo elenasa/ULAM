@@ -6,7 +6,11 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_Foo { Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Counter4 m_c4( Int(32) d(0); );  Int(32) e(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  a Foo as cast cond { Foo a;  a bi . true cast = } if a f cast = a Counter4 as cast cond { Counter4 a;  bh true cast = a ( )incr . e a ( )get . = } if { bh false cast = } else e return } }\nExit status: 0");
+      //Foo.ulam:14:7: fyi: Invalid type for LHS of conditional operator 'as', <Atom.96.-1>; Passing through as UNFOUND for eval.
+
+      // no cast before cond
+      //Ue_Foo { Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Counter4 m_c4( Int(32) d(0); );  Int(32) e(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  a Foo as cast cond { Foo a;  a bi . true cast = } if a f cast = a Counter4 as cast cond { Counter4 a;  bh true cast = a ( )incr . e a ( )get . = } if { bh false cast = } else e return } }\nExit status: 0
+      return std::string("Ue_Foo { Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Counter4 m_c4( Int(32) d(0); );  Int(32) e(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  a Foo as cond { Foo a;  a bi . true cast = } if a f cast = a Counter4 as cond { Counter4 a;  bh true cast = a ( )incr . e a ( )get . = } if { bh false cast = } else e return } }\nExit status: 0");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -121,14 +121,6 @@ namespace MFM {
 	  }
       }
 
-    //happens too often with Bool.1.-1 for some reason
-    if(tobeType == nodeType && isExplicitCast())
-      {
-	std::ostringstream msg;
-	msg << "Casting 'like' types: <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> as a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-      }
-
     return getNodeType();
   }
 
