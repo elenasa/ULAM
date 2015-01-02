@@ -39,6 +39,7 @@
 #include "NodeContinueStatement.h"
 #include "NodeControlIf.h"
 #include "NodeControlWhile.h"
+#include "NodeLabel.h"
 #include "NodeMemberSelect.h"
 #include "NodeProgram.h"
 #include "NodeReturnStatement.h"
@@ -589,16 +590,16 @@ namespace MFM {
 	break;
       case TOK_KW_WHILE:
 	{
-	  m_state.m_parsingControlLoop = true;
+	  m_state.m_parsingControlLoop = m_state.getNextTmpVarNumber();  //true
 	  rtnNode = parseControlWhile(pTok);
-	  m_state.m_parsingControlLoop = false;
+	  m_state.m_parsingControlLoop = 0;
 	}
 	break;
       case TOK_KW_FOR:
 	{
-	  m_state.m_parsingControlLoop = true;
+	  m_state.m_parsingControlLoop = m_state.getNextTmpVarNumber(); //true
 	  rtnNode = parseControlFor(pTok);
-	  m_state.m_parsingControlLoop = false;
+	  m_state.m_parsingControlLoop = 0;
 	}
 	break;
       case TOK_ERROR_CONT:
@@ -686,6 +687,7 @@ namespace MFM {
 	return NULL;
       }
 
+    s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
     Node * condNode = parseConditionalExpr();
 
     if(!condNode)
@@ -717,6 +719,14 @@ namespace MFM {
     NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
     trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
 
+    // end of while loop label, linked to end of body (true statement)
+    Node * labelNode = new NodeLabel(controlLoopLabelNum, m_state);
+    labelNode->setNodeLocation(wTok.m_locator);
+
+    NodeStatements * labelStmtNode = new NodeStatements(labelNode, m_state);
+    labelStmtNode->setNodeLocation(wTok.m_locator);
+    trueStmtNode->setNextNode(labelStmtNode);
+
     Node * rtnNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
     rtnNode->setNodeLocation(wTok.m_locator);
 
@@ -730,6 +740,8 @@ namespace MFM {
       {
 	return NULL;
       }
+
+    s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
 
     //before parsing the for statement, need a new scope
     NodeBlock * rtnNode = new NodeBlock(m_state.m_currentBlock, m_state);
@@ -857,12 +869,20 @@ namespace MFM {
     assert(trueStmtNode);
     trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
 
+    // end of while loop label, linked to end of body, before assign statement
+    Node * labelNode = new NodeLabel(controlLoopLabelNum, m_state);
+    labelNode->setNodeLocation(rTok.m_locator);
+
+    NodeStatements * labelStmtNode = new NodeStatements(labelNode, m_state);
+    labelStmtNode->setNodeLocation(rTok.m_locator);
+    trueStmtNode->setNextNode(labelStmtNode);
+
     if(assignNode)
       {
 	NodeStatements * nextAssignNode = new NodeStatements(assignNode, m_state);
 	assert(nextAssignNode);
 	nextAssignNode->setNodeLocation(assignNode->getNodeLocation());
-	trueStmtNode->setNextNode(nextAssignNode); //***link assign to truestmt
+	labelStmtNode->setNextNode(nextAssignNode); //***link assign to label after truestmt
       }
 
     Node * whileNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
@@ -1009,7 +1029,7 @@ namespace MFM {
       {
 	if(m_state.m_parsingControlLoop)
 	  {
-	    rtnNode = new NodeContinueStatement(m_state);
+	    rtnNode = new NodeContinueStatement(m_state.m_parsingControlLoop, m_state);
 	    rtnNode->setNodeLocation(pTok.m_locator);
 	  }
 	else

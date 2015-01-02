@@ -31,7 +31,8 @@ sub usage_abort
 
 &main(@ARGV);
 
-sub main {
+sub main
+{
     my $arg = $_[0];
     my $query = "t3*.cpp";
 
@@ -50,6 +51,8 @@ sub main {
     else
     {
 	print "ALL t3* tests will be run..logs will be available in /tmp as they complete..your patience is appreciated.\n";
+	# begin from a fresh start
+	`make -C $TOPLEVEL testclean`;
     }
 
     my $dir = getcwd;
@@ -65,58 +68,53 @@ sub main {
     my $f;
     my $lasttestnum = 0;
 
-    foreach $f (sort @files) {
-    if ($f =~ /t(\d{4}).*\.cpp$/ )
+    foreach $f (sort @files)
     {
-	my $testnum = $1;
-	(int($testnum) == int($lasttestnum)) && next;
-	print "$f, $lasttestnum, $testnum\n";
-	$lasttestnum = $testnum;
-
-	my $dest = $TESTDIR;
-	my $testf = "t" . $testnum . "*.cpp";
-	my $src = $TESTDIR . "/safe/". $testf;
-	print "src: <$src> , dest: <$dest> \n";
-
-	my $log = "/tmp/t" . $testnum . "-testlog.txt";
-	my $errlog = "/tmp/t" . $testnum . "-testerrlog.txt";
-
-	# useful System Quark:
-	`cp $TESTDIR/safe/t3207_test_compiler_quarksystem_inside_a_quark.cpp $TESTDIR/.`;
-
-	if($EXEC_TEST_VERBOSE)
+	if ($f =~ /t(\d{4}).*\.cpp$/ )
 	{
-	    `cp $src $dest 1> $log 2> $errlog`;
-	    `COMMANDS=1 make -C $TOPLEVEL realclean 1>> $log 2>> $errlog`;
-	    `COMMANDS=1 make -C $TOPLEVEL 1>> $log 2>> $errlog`;
-	    `valgrind ./bin/test 1>> $log 2>> $errlog`;
-	    `COMMANDS=1 make -C $TESTDIR gen 1>> $log 2>> $errlog`;
-	    `tail -n 10 $errlog`;
-	    `tail -n 10 $log`;
-            #clean up
-	    $dest = $dest . "/" . $testf;
-	    `rm -f $dest`;
+	    my $testnum = $1;
+	    (int($testnum) == int($lasttestnum)) && next;
+	    print "$f, $lasttestnum, $testnum\n";
+	    $lasttestnum = $testnum;
+
+	    my $dest = $TESTDIR;
+	    my $testf = "t" . $testnum . "*.cpp";
+	    my $src = $TESTDIR . "/safe/". $testf;
+	    print "src: <$src> , dest: <$dest> \n";
+
+	    my $log = "/tmp/t" . $testnum . "-testlog.txt";
+	    my $errlog = "/tmp/t" . $testnum . "-testerrlog.txt";
+
+	    # useful System Quark:
+	    `cp $TESTDIR/safe/t3207_test_compiler_quarksystem_inside_a_quark.cpp $TESTDIR/.`;
+
+	    if($EXEC_TEST_VERBOSE)
+	    {
+		`cp $src $dest 1> $log 2> $errlog`;
+		`COMMANDS=1 make -C $TOPLEVEL testclean 1>> $log 2>> $errlog`;
+		`valgrind ./bin/test 1>> $log 2>> $errlog`;
+		`COMMANDS=1 make -C $TESTDIR gen 1>> $log 2>> $errlog`;
+		#clean up
+		$dest = $dest . "/" . $testf;
+		`rm -f $dest`;
+	    }
+	    else
+	    {
+		`cp $src $dest 1> $log 2> $errlog`;
+		`make -C $TOPLEVEL testclean`;
+		`./bin/test 1>> $log 2>> $errlog`;
+		`make -C $TESTDIR gen`;
+		`$TESTDIR/bin/main 1>> $log 2>> $errlog`;
+		#clean up
+		$dest = $dest . "/" . $testf;
+		`rm -f $dest`;
+	    }
+	    print "done with $testnum\n";
 	}
 	else
 	{
-	    `cp $src $dest 1> $log 2> $errlog`;
-	    `make -C $TOPLEVEL realclean`;
-	    `make -C $TOPLEVEL`;
-	    `./bin/test 1>> $log 2>> $errlog`;
-	    `make -C $TESTDIR gen`;
-	    `$TESTDIR/bin/main 1>> $log 2>> $errlog`;
-            #clean up
-	    $dest = $dest . "/" . $testf;
-	    `rm -f $dest`;
+	    print "no match for <$f>\n";
 	}
-
-	print "done with $testnum\n";
-
-    } else {
-	print "no match for <$f>\n";
-    }
-
-    }
+    } # end for loop
     return;
-}
-
+} #end main

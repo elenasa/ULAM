@@ -32,6 +32,13 @@ realclean:	FORCE
 	mkdir -p  $(REALCLEAN_DIRS)
 	$(MAKE) clean
 
+testclean:	FORCE
+	rm -f bin/test
+#	rm -f build/test/test.inc
+	rm -f build/drivers/test/main*
+	$(MAKE) -C src/test all
+	$(MAKE) -C src/drivers
+
 clean:	FORCE
 	@rm -f *~
 
