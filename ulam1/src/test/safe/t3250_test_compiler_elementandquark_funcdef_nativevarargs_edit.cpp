@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3250_test_compiler_elementandquark_funcdef_nativevarargs)
+  BEGINTESTCASECOMPILER(t3250_test_compiler_elementandquark_funcdef_nativevarargs_edit)
   {
     std::string GetAnswerKey()
     {
@@ -33,7 +33,7 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3250_test_compiler_elementandquark_funcdef_nativevarargs)
+  ENDTESTCASECOMPILER(t3250_test_compiler_elementandquark_funcdef_nativevarargs_edit)
 
 } //end MFM
 

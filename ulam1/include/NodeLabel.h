@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeContinueStatement.h - Node handling the Continue Statement for ULAM
+ * NodeLabel.h - Node handling the Label Statement for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,28 +26,28 @@
  */
 
 /**
-  \file NodeContinueStatement.h - Node handling the Continue Statement for ULAM
+  \file NodeLabel.h - Node handling the Label Statement for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODECONTINUESTATEMENT_H
-#define NODECONTINUESTATEMENT_H
+#ifndef NODELABEL_H
+#define NODELABEL_H
 
 #include "File.h"
 #include "Node.h"
 
 namespace MFM{
 
-  class NodeContinueStatement : public Node
+  class NodeLabel : public Node
   {
   public:
 
-    NodeContinueStatement(s32 gotolabelnum, CompilerState & state);
-    virtual ~NodeContinueStatement();
+    NodeLabel(s32 labelnum, CompilerState & state);
+    virtual ~NodeLabel();
 
     virtual void print(File * fp);
 
@@ -66,9 +66,9 @@ namespace MFM{
   protected:
 
   private:
-    s32 m_gotolabelnum;
+    s32 m_labelnum;
   };
 
 }
 
-#endif //end NODECONTINUESTATEMENT_H
+#endif //end NODELABEL_H
