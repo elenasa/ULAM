@@ -24,8 +24,8 @@ namespace MFM {
 
   void NodeLabel::printPostfix(File * fp)
   {
-    fp->write(" ");
-    fp->write(m_state.getLabelNumAsString(m_labelnum).c_str());
+    fp->write(" _");
+    fp->write_decimal(m_labelnum);
     fp->write(getName());
   }
 
