@@ -52,7 +52,8 @@ sub main
     {
 	print "ALL t3* tests will be run..logs will be available in /tmp as they complete..your patience is appreciated.\n";
 	# begin from a fresh start
-	`make -C $TOPLEVEL testclean`;
+	`COMMANDS=1 make -C $TOPLEVEL realclean 1>/tmp/toplevel-log.txt 2>/tmp/toplevel-errlog.txt`;
+	`COMMANDS=1 make -C $TOPLEVEL 1>>/tmp/toplevel-log.txt 2>>/tmp/toplevel-errlog.txt`;
     }
 
     my $dir = getcwd;
