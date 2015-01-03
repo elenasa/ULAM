@@ -74,7 +74,12 @@ namespace MFM {
 	    if(doErrMsg)
 	      {
 		std::ostringstream msg;
-		msg << "Attempting to fit a constant into a smaller bit size, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary comparison operator" << getName() << " ";
+		msg << "Attempting to fit a constant <";
+		if(m_state.isConstant(lt))
+		  msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str();
+		else
+		  msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str();
+		msg << "> for binary comparison operator" << getName() << " ";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);    //output warning
 	      }
 	  } //a constant

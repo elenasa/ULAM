@@ -1653,7 +1653,8 @@ namespace MFM {
 	    rtnNode = parseRestOfFactor(rtnNode);
 	}
 	break;
-      case TOK_NUMBER:
+      case TOK_NUMBER_SIGNED:
+      case TOK_NUMBER_UNSIGNED:
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
 	rtnNode = new NodeTerminal(pTok, m_state);
@@ -2218,8 +2219,8 @@ namespace MFM {
 	  }
 	delete lvalNode;  //done with it
       }
-    return rtnNode;  //makeVariableSymbol
-  }
+    return rtnNode;
+  } //makeVariableSymbol
 
 
   Node * Parser::makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok)
@@ -3064,11 +3065,12 @@ namespace MFM {
   } //makeFactorNode
 
 
+  // used for ++/--
   Node * Parser::makeTerminalOne(Token& locTok)
   {
 	//make a '1' node
 	Token oneTok;
-	oneTok.init(TOK_NUMBER, locTok.m_locator, m_state.m_pool.getIndexForDataString("1"));
+	oneTok.init(TOK_NUMBER_SIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString("1"));
 	Node * oneNode = new NodeTerminal(oneTok, m_state);
 	oneNode->setNodeLocation(locTok.m_locator);
 	assert(oneNode);
