@@ -2184,6 +2184,14 @@ namespace MFM {
   {
     assert(! Token::isTokenAType(identTok));  //capitalization check done by Lexer
 
+    if(identTok.m_dataindex == m_state.m_pool.getIndexForDataString("self"))
+      {
+	std::ostringstream msg;
+	msg << "The keyword 'self' may not be used as a variable name";
+	MSG(&identTok, msg.str().c_str(), ERR);
+	//	return NULL;  keep going?
+      }
+
     NodeVarDecl * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok); //for optional [] array size
 
