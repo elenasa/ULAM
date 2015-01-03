@@ -188,7 +188,7 @@ namespace MFM {
 	tok.init(TOK_IDENTIFIER,firstloc,idx);
       }
     return true;
-  }
+  } //makeWordToken
 
 
   //called because first byte was numeric
@@ -198,21 +198,31 @@ namespace MFM {
 
     s32 c = m_SS.read();
 
-    while(c >= 0 && (isxdigit(c) || c=='.' || c=='x' || c=='X') )
+    //not supporting floats anymore || c=='.'
+    while(c >= 0 && (isxdigit(c) || c=='x' || c=='X') )
       {
 	anumber.push_back(c);
 	c = m_SS.read();
       }
 
-    unread();
-
-    // build a number
-    //data indexed in map, vector
-    u32 idx = m_state.m_pool.getIndexForDataString(anumber);
-    tok.init(TOK_NUMBER,firstloc,idx);
-
+    if(c == 'u' || c == 'U')
+      {
+	anumber.push_back(c);
+	// build a number
+	//data indexed in map, vector
+	u32 idx = m_state.m_pool.getIndexForDataString(anumber);
+	tok.init(TOK_NUMBER_UNSIGNED,firstloc,idx);
+      }
+    else
+      {
+	unread();
+	// build a number
+	//data indexed in map, vector
+	u32 idx = m_state.m_pool.getIndexForDataString(anumber);
+	tok.init(TOK_NUMBER_SIGNED,firstloc,idx);
+      }
     return true;
-  }
+  } //makeNumberToken
 
 
   //starts with a non-alpha or non-digit, so

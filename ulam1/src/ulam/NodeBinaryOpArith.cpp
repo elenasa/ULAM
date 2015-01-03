@@ -61,10 +61,10 @@ namespace MFM {
     // except for 2 Unsigned, all arithmetic operations are performed as Int.32.-1
     // if one is unsigned, and the other isn't -> output warning, but Signed Int wins.
     // Class (i.e. quark) + anything goes to Int.32
- 
+
     if( m_state.isScalar(lt) && m_state.isScalar(rt))
       {
-	//return constant expressions as constants for constant folding (e.g. sq bracket, type bitsize);  
+	//return constant expressions as constants for constant folding (e.g. sq bracket, type bitsize);
 	if(lt == rt && m_state.isConstant(lt))
 	  return lt;
 
@@ -83,14 +83,20 @@ namespace MFM {
 	    bool doErrMsg = true;
 	    if(m_state.isConstant(lt) && m_nodeLeft->fitsInBits(rt))
 	      doErrMsg = false;
-	    
+
 	    if(m_state.isConstant(rt) && m_nodeRight->fitsInBits(lt))
 	      doErrMsg = false;
-	    
+
 	    if(doErrMsg)
 	      {
 		std::ostringstream msg;
-		msg << "Attempting to fit a constant into a smaller bit size, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary operator" << getName() << " ";
+		msg << "Attempting to fit a constant <";
+		if(m_state.isConstant(lt))
+		  msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str();
+		else
+		  msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str();
+		msg << "> for binary operator" << getName() << " ";
+
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);    //output warning
 	      }
 	  } //a constant
@@ -108,17 +114,17 @@ namespace MFM {
 	  }
       } //both scalars
     else
-      { 
+      {
 	//#define SUPPORT_ARITHMETIC_ARRAY_OPS
 #ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
 	// Conflicted: we don't like the idea that the type might be
 	// different for arrays than scalars; casting occurring differently.
-	// besides, for arithmetic ops, unlike logical ops, we have to do each 
+	// besides, for arithmetic ops, unlike logical ops, we have to do each
 	// op separately anyway, so no big win (let ulam programmer do the loop).
 	// let arrays of same types through ??? Is SO for op equals, btw.
 	if(lt == rt)
 	  {
-	    return lt;  
+	    return lt;
 	  }
 #endif //SUPPORT_ARITHMETIC_ARRAY_OPS
 
