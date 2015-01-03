@@ -78,7 +78,7 @@ namespace MFM {
 	{
 	  //std::ostringstream msg;
 	  //msg << "Need UNPACKED ARRAY for " << sizebyints << " bits; s32[" << getArraySize() << "]";
-	  //state->m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+	  //MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),INFO);
 	  ctype = "s32"; //array item
 	  //assert(0);
 	}
@@ -103,7 +103,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
 

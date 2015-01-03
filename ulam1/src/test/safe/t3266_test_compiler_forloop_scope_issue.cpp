@@ -11,7 +11,7 @@ namespace MFM {
 	 Int Arg: 1
 	 Int Arg: 0
       */
-      return std::string("Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  d 3 cast = { Int(32) index;  index 0 cast = index d < cast cond b index cast = index 1 cast += while } { Int(32) index;  index 0 cast = index 3 cast < cast cond { d 1 cast -= s ( d )print . } index 1 cast += while } d return } }\nExit status: 0");
+      return std::string("Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  d 3 cast = { Int(32) index;  index 0 cast = index d < cond b index cast = _1: index 1 cast += while } { Int(32) index;  index 0 cast = index 3 cast < cond { d 1 cast -= s ( d )print . } _2: index 1 cast += while } d return } }\nExit status: 0");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -323,7 +323,6 @@ namespace MFM {
   // note: uvpass arg is not equal to m_currentObjPtr; it is blank.
   void NodeFunctionCall::genCode(File * fp, UlamValue& uvpass)
   {
-
     genCodeIntoABitValue(fp, uvpass);
 
     if(getNodeType() != Void)
@@ -403,21 +402,16 @@ namespace MFM {
       {
 	UlamValue auvpass;
 	UTI auti;
-	//	UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 	m_state.m_currentObjSymbolsForCodeGen.clear();            //*************
 
 	m_argumentNodes[i]->genCode(fp, auvpass);
 	Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
-
 	auti = auvpass.getUlamValueTypeIdx();
 	if(auti == Ptr)
 	  {
 	    auti = auvpass.getPtrTargetType();
 	  }
-
 	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
-
-	//m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
       } //next arg..
 
     if(m_funcSymbol->takesVariableArgs())
@@ -426,7 +420,6 @@ namespace MFM {
 	  {
 	    UlamValue auvpass;
 	    UTI auti;
-	    //	    UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
 	    m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
 	    m_argumentNodes[i]->genCode(fp, auvpass);
@@ -440,8 +433,6 @@ namespace MFM {
 
 	    // use pointer for variable arg's since all the same size that way
 	    arglist << ", &" << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
-
-	    //	    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr ***
 	  } //end forloop through variable number of args
 
 	arglist << ", (void *) 0";  //indicates end of args

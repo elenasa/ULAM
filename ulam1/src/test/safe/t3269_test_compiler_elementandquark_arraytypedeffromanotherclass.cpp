@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_TypedefIssue { Unsigned(3) x[2](2,1);  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](2,1); );  Int(32) test() {  x 0 [] 2 cast = x 1 [] 1 cast = t ( x )set . cast cond b true cast = if t m 1 [] . cast return } }\nExit status: 1");
+      return std::string("Ue_TypedefIssue { Unsigned(3) x[2](2,1);  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](2,1); );  Int(32) test() {  x 0 [] 2 cast = x 1 [] 1 cast = t ( x )set . cond b true cast = if t m 1 [] . cast return } }\nExit status: 1");
     }
 
     std::string PresetTest(FileManagerString * fms)

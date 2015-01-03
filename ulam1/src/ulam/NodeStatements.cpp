@@ -21,20 +21,20 @@ namespace MFM {
     printNodeLocation(fp);  //has same location as it's node
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)    
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    if(m_node) 
+    if(m_node)
       m_node->print(fp);
-    else 
+    else
       fp->write(" <EMPTYSTMT>\n");
 
-    if(m_nextNode) 
+    if(m_nextNode)
       m_nextNode->print(fp);
-    else 
+    else
       fp->write(" <NONEXTSTMT>\n");
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
@@ -47,7 +47,7 @@ namespace MFM {
 
     if(m_node)
       m_node->printPostfix(fp);
-    else 
+    else
       fp->write(" <EMPTYSTMT>");
 
     if(m_nextNode)
@@ -66,7 +66,7 @@ namespace MFM {
     if(m_nextNode)
       m_nextNode->checkAndLabelType(); //side-effect
 
-    //statements don't have types 
+    //statements don't have types
     setNodeType(Void);
     return getNodeType();
   }
@@ -86,7 +86,7 @@ namespace MFM {
 
   EvalStatus NodeStatements::eval()
   {
-    assert(m_node); 
+    assert(m_node);
 
     evalNodeProlog(0);
     makeRoomForNodeType(m_node->getNodeType());
@@ -100,12 +100,12 @@ namespace MFM {
     //not the last one, so thrown out results and continue
     if(m_nextNode)
       {
-	evalNodeEpilog();  //Tue Aug 26 16:18:43 2014 
+	evalNodeEpilog();  //Tue Aug 26 16:18:43 2014
 	evs = m_nextNode->eval();
 	if(evs != NORMAL)
 	  {
 	    ////evalNodeEpilog();
-	    //evalNodeEpilog(); //Tue Aug 26 16:18:56 2014 
+	    //evalNodeEpilog(); //Tue Aug 26 16:18:56 2014
 	    return evs;
 	  }
       }
@@ -139,31 +139,16 @@ namespace MFM {
 
   void NodeStatements::genCode(File * fp, UlamValue& uvpass)
   {
-    m_state.outputTextAsComment(fp, getNodeLocation());
-#if 0
     Locator nodeloc = getNodeLocation();
-
-    fp->write("\n");
-    m_state.indent(fp);
-    fp->write("//! ");
-
-    //fp->write(m_state.getFullLocationAsString(nodeloc).c_str()); //includes byte no.
-    fp->write(m_state.getPathFromLocator(nodeloc).c_str());
-    fp->write(58);  // : ascii decimal
-    fp->write_decimal(nodeloc.getLineNo());
-    fp->write(58);  // : ascii decimal
-    fp->write(" ");
-
-    fp->write(m_state.getLineOfText(nodeloc).c_str());
-#endif
-
+    m_state.outputTextAsComment(fp, nodeloc);
+    m_state.m_locOfNextLineText = nodeloc;  //during gen code here
 
 #ifdef TMPVARBRACES
     m_state.indent(fp);
     fp->write("{\n");    //open for tmpvar arg's
     m_state.m_currentIndentLevel++;
 #endif
-    
+
     m_node->genCode(fp, uvpass);
 
 #ifdef TMPVARBRACES
@@ -174,7 +159,6 @@ namespace MFM {
 
     if(m_nextNode)
       m_nextNode->genCode(fp, uvpass);
-
   } //genCode
 
 

@@ -148,16 +148,17 @@ namespace MFM {
 	fp->write(" "); //e.g. u32
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarHas).c_str());;
 	fp->write(" = (");
-	//UlamElement<CC> internal method, takes u32 and const char*, returns s32
+	//UlamElement<CC> internal method, takes UC, u32 and const char*, returns s32
 	fp->write(methodNameForCodeGen().c_str());
 	fp->write("(");
+	fp->write("uc, ");
 	Node::genLocalMemberNameOfMethod(fp);  //assume atom is a local var (neither dm nor ep)
 	fp->write("read().GetType(), ");
 	fp->write("\"");
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
 	fp->write("\") >= 0);\n");  //bool as u32
       }
-    else
+    else  //not atom
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(luti);
 	ULAMCLASSTYPE lclasstype = lut->getUlamClass();

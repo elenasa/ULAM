@@ -47,16 +47,16 @@ namespace MFM {
   {
     bool brtn = true;
     UTI typidx = getUlamTypeIndex();
-    UTI valtypidx = val.getUlamValueTypeIdx();    
+    UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
 	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
-    
+
     //change the size first of tobe, if necessary
     s32 bitsize = getBitSize();
     s32 valbitsize = state.getBitSize(valtypidx);
@@ -64,7 +64,7 @@ namespace MFM {
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-	
+
     u32 data = val.getImmediateData(state);
     switch(valtypEnum)
       {
@@ -116,5 +116,5 @@ namespace MFM {
     else
       sprintf(valstr,"%c%u", prefix, data);
   }
-  
+
 } //end MFM

@@ -15,7 +15,7 @@ namespace MFM {
 	 Int Arg: 8
 	 Int Arg: 16
       */
-      return std::string("Ue_A { Bool(7) b(false);  System s();  Int(32) d(16);  Int(32) e(0);  Int(32) test() {  Int(32) a;  a 8 cast = Int(32) f;  f 7 cast = Int(32) g;  g f = Int(32) h;  s ( a )print . s ( f )print . s ( g )print . d 1 cast = a cast cond { d d 1 cast << = s ( d )print . a a 1 cast >> = } while d return } }\nExit status: 16");
+      return std::string("Ue_A { Bool(7) b(false);  System s();  Int(32) d(16);  Int(32) e(0);  Int(32) test() {  Int(32) a;  a 8 cast = Int(32) f;  f 7 cast = Int(32) g;  g f = Int(32) h;  s ( a )print . s ( f )print . s ( g )print . d 1 cast = a cast cond { d d 1 cast << = s ( d )print . a a 1 cast >> = } _1: while d return } }\nExit status: 16");
     }
 
     std::string PresetTest(FileManagerString * fms)

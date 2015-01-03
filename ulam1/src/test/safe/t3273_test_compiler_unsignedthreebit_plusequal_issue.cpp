@@ -45,7 +45,7 @@ namespace MFM {
 	 Unsigned Arg: 7
       */
 
-      return std::string("Ue_A { System s();  Int(32) test() {  Unsigned(3) x;  x 0 cast = Unsigned(3) y;  y 0 cast = Unsigned(3) z;  z 0 cast = { Int(32) i;  i 0 cast = i 12 cast < cast cond { x 1 cast += s ( x cast )print . y 1 cast += s ( y cast )print . z z cast 1 cast +b cast = s ( z cast )print . } i 1 cast += while } 0 cast return } }\nExit status: 0");
+      return std::string("Ue_A { System s();  Int(32) test() {  Unsigned(3) x;  x 0 cast = Unsigned(3) y;  y 0 cast = Unsigned(3) z;  z 0 cast = { Int(32) i;  i 0 cast = i 12 cast < cond { x 1 cast += s ( x cast )print . y 1 cast += s ( y cast )print . z z cast 1 cast +b cast = s ( z cast )print . } _1: i 1 cast += while } 0 cast return } }\nExit status: 0");
     }
 
     std::string PresetTest(FileManagerString * fms)

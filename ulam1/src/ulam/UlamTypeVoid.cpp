@@ -59,20 +59,20 @@ namespace MFM {
   }
 
 
-  //anything can be cast to a void
+  //anything can be cast to a void (not the reverse)
   bool UlamTypeVoid::cast(UlamValue & val, CompilerState& state)
   {
-    bool brtn = true;    
-    UTI valtypidx = val.getUlamValueTypeIdx();    
+    bool brtn = true;
+    UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
 	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
-    
+
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
     switch(valtypEnum)
@@ -91,6 +91,6 @@ namespace MFM {
       };
 
     return brtn;
-  } //end cast    
+  } //end cast
 
 } //end MFM
