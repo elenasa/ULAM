@@ -18,7 +18,7 @@
 
 namespace MFM {
 
-#define _DEBUG_OUTPUT
+  //#define _DEBUG_OUTPUT
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
 #else
@@ -32,11 +32,11 @@ namespace MFM {
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref";
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset";
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs";   //Uf_2is;
-  static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //"Uf_3has";
+  static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType";       //"Uf_3has";
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<CC>::PositionOfDataMember";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(false), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
   {
     m_err.init(this, debugOn, NULL);
   }
@@ -416,7 +416,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
-	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
       }
@@ -427,7 +427,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
-	    m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
       }
@@ -454,7 +454,7 @@ namespace MFM {
     {
       std::ostringstream msg;
       msg << "Bit size set for Class: " << newut->getUlamTypeName(this).c_str();
-      m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
     }
 #endif
   }
@@ -552,7 +552,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Bit size still unknown (0) for Class: " << ict->getUlamTypeName(this).c_str();
-		m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
 	      }
 #endif
 	    rtnB = true;
@@ -731,7 +731,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return Statement is missing; Return type <" << getUlamTypeNameByIndex(it).c_str() << ">";
-	    m_err.buildMessage("", msg.str().c_str(), "MFM::NodeFunctionBlock", "checkAndLabelType", -1, MSG_ERR);
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
 	return true;  //okay to skip return statement for void function
@@ -752,8 +752,8 @@ namespace MFM {
 	    if(rBUT != itBUT)
 	      {
 		std::ostringstream msg;
-		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << getUlamTypeNameByIndex(it).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << "> does not match resulting type's <" << getUlamTypeNameByIndex(rType).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
-		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
+		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << getUlamTypeNameByIndex(it).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << ">, does not match resulting type's <" << getUlamTypeNameByIndex(rType).c_str() << "> base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
+		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 	      }
 	    else
 	      {
@@ -761,14 +761,14 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << getUlamTypeNameByIndex(it).c_str() << "> array size: <" << getArraySize(it) << "> does not match resulting type's <" << getUlamTypeNameByIndex(rType).c_str() << "> array size: <" << getArraySize(rType) << ">";
-		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
+		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
 
 		if(getBitSize(rType) != getBitSize(it))
 		  {
 		    std::ostringstream msg;
 		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's <" << getUlamTypeNameByIndex(it).c_str() << "> bit size: <" << getBitSize(it) << "> does not match resulting type's <" << getUlamTypeNameByIndex(rType).c_str() << "> bit size: <" << getBitSize(rType) << ">";
-		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", -1, MSG_ERR);
+		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
 	      } //base types are the same..array and bit size might vary
 	  } //different ulamtype
@@ -1065,7 +1065,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "PACKFIT array differ! left packed is " << packed << ", right is " << rptr.isTargetPacked() << " for target type <" << getUlamTypeNameByIndex(rptr.getPtrTargetType()).c_str() << ">";
-	m_err.buildMessage("", msg.str().c_str(), "MFM::CompilerState", "assignArrayValues", 830, MSG_DEBUG);
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
 
     if(WritePacked(packed))
@@ -1219,7 +1219,7 @@ namespace MFM {
     assert(linenum >= 0 && linenum <= textOfLines->size());
     textOfLines->push_back(textid);
 
-    m_locOfNextLineText = loc;
+    m_locOfNextLineText = loc;  //during parsing here (see NodeStatements)
   } //appendNextLineOfText
 
 
@@ -1240,7 +1240,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Cannot find path index (" << pathidx << ") for line " << linenum << ": " << m_pool.getDataAsString(pathidx).c_str();
-	m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return "<empty path>\n";
       }
 
@@ -1261,24 +1261,7 @@ namespace MFM {
   } //getLineOfText
 
 
-  void CompilerState::outputTextAsComment(File * fp, Locator nodeloc)
-  {
-    fp->write("\n");
-    indent(fp);
-    fp->write("//! ");
-
-    //fp->write(m_state.getFullLocationAsString(nodeloc).c_str()); //includes byte no.
-    fp->write(getPathFromLocator(nodeloc).c_str());
-    fp->write(58);  // : ascii decimal
-    fp->write_decimal(nodeloc.getLineNo());
-    fp->write(58);  // : ascii decimal
-    fp->write(" ");
-
-    fp->write(getLineOfText(nodeloc).c_str());
-  } //outputTextAsComment
-
-
-  std::string CompilerState::getTextAsString(Locator nodeloc)
+  std::string CompilerState::getLocationTextAsString(Locator nodeloc)
   {
     std::ostringstream txt;
     txt << getPathFromLocator(nodeloc).c_str();
@@ -1288,6 +1271,15 @@ namespace MFM {
     txt << getLineOfText(nodeloc).c_str();
     return txt.str();
   } //getTextAsString
+
+
+  void CompilerState::outputTextAsComment(File * fp, Locator nodeloc)
+  {
+    fp->write("\n");
+    indent(fp);
+    fp->write("//! ");
+    fp->write(getLocationTextAsString(nodeloc).c_str());
+  } //outputTextAsComment
 
 
   s32 CompilerState::getNextTmpVarNumber()
@@ -1328,6 +1320,14 @@ namespace MFM {
 
     return tmpVar.str();
   } //getTmpVarAsString
+
+
+  const std::string CompilerState::getLabelNumAsString(s32 num)
+  {
+    std::ostringstream labelname;  // into
+    labelname << "Ul_endcontrolloop_" << DigitCount(num, BASE10) << num;;
+    return labelname.str();
+  }
 
 
   void CompilerState::saveIdentTokenForConditionalAs(Token iTok)

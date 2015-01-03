@@ -6,8 +6,11 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      /* gen code output:
+	 Int Arg: 0
+      */
       //problem with eval answer is that an atom type appears the same as tu.
-      return std::string("Ue_Tu { System s();  Int(32) me(2);  Int(32) test() {  Tu t;  Atom(96) a;  a Tu is cast cond { t a cast = me 2 cast = } if s ( me )print . me return } }\nExit status: 2");
+      return std::string("Ue_Tu { System s();  Int(32) me(2);  Int(32) test() {  Tu t;  Atom(96) a;  a Tu is cond { t a cast = me 2 cast = } if s ( me )print . me return } }\nExit status: 2");
     }
 
     std::string PresetTest(FileManagerString * fms)

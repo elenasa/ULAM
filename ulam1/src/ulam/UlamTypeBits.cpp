@@ -37,16 +37,16 @@ namespace MFM {
   {
     bool brtn = true;
     UTI typidx = getUlamTypeIndex();
-    UTI valtypidx = val.getUlamValueTypeIdx();    
+    UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
 	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
-    
+
     //no changes to data, only type
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
     u32 data = val.getImmediateData(state);
@@ -76,5 +76,5 @@ namespace MFM {
     else
       sprintf(valstr,"%c%u", prefix, data);
   }
-  
+
 } //end MFM

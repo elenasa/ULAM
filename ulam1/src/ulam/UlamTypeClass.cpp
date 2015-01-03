@@ -678,8 +678,29 @@ namespace MFM {
     s32 sizeByIntBitsToBe = getTotalWordSize();
     s32 sizeByIntBits = nut->getTotalWordSize();
 
-    assert(sizeByIntBitsToBe == sizeByIntBits);
-    assert(m_class == UC_ELEMENT);  //quarks only cast toInt
+    //assert(sizeByIntBitsToBe == sizeByIntBits);
+    if(sizeByIntBitsToBe != sizeByIntBits)
+      {
+	std::ostringstream msg;
+	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: <" << nut->getUlamTypeName(&state).c_str() << ">, to be: " << sizeByIntBitsToBe << " for type: <" << getUlamTypeName(&state).c_str() << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+      }
+
+    //assert(m_class == UC_ELEMENT);  //quarks only cast toInt
+    if(m_class != UC_ELEMENT)
+      {
+	std::ostringstream msg;
+	msg << "Quarks only cast 'toInt': value type and size was: <" << nut->getUlamTypeName(&state).c_str() << ">, to be: <" << getUlamTypeName(&state).c_str() << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+      }
+
+    //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
+    if(nodetype != UAtom)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to illegally cast a non-atom type to an element: value type and size was: <" << nut->getUlamTypeName(&state).c_str() << ">, to be: <" << getUlamTypeName(&state).c_str() << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+      }
 
     rtnMethod << "_" << nut->getUlamTypeNameOnly(&state).c_str()  << sizeByIntBits << "ToElement" << sizeByIntBitsToBe;
     return rtnMethod.str();

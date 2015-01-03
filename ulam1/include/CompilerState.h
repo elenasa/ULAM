@@ -108,7 +108,8 @@ namespace MFM{
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
 
-    bool m_parsingControlLoop;               // used for break/control statement parsing
+    s32 m_parsingControlLoop;                // used for break/continue control statement parsing;
+                                             // label num for end of loop, or 0
     bool m_parsingElementParameterVariable;  // used for static 'element' variables
 
     bool m_parsingConditionalAs;             // used for Conditional-As parsing
@@ -219,6 +220,7 @@ namespace MFM{
 
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
+    const std::string getLabelNumAsString(s32 num);
 
     std::string getFileNameForAClassHeader(u32 id, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
@@ -265,9 +267,8 @@ namespace MFM{
 
     /** used during codeGen to document the source Ulam code */
     std::string getLineOfText(Locator loc);
-
+    std::string getLocationTextAsString(Locator nodeloc);
     void outputTextAsComment(File * fp, Locator nodeloc);
-    std::string getTextAsString(Locator nodeloc);
 
     /** for conditional as-magic */
     void saveIdentTokenForConditionalAs(Token iTok);

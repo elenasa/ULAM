@@ -4,8 +4,11 @@ INCLUDE_DIR:=$(BASE_DIR)/include
 TGEN_DIR:=./bin
 SPIKE_DIR:=$(BASE_DIR)/spike
 SHARE_DIR:=$(BASE_DIR)/share
+#MFM_ROOT_DIR:=/home/elenas/WORK/ulam/repo/MFMv2
+MFM_INCLUDE_DIR:=$(MFM_ROOT_DIR)/src/core/include
+MFM_PLATFORM_INCLUDE_DIR:=$(MFM_ROOT_DIR)/src/platform-linux/include
 
-INCLUDES += -I${INCLUDE_DIR}
+INCLUDES += -I${INCLUDE_DIR} -I${MFM_INCLUDE_DIR} -I${MFM_PLATFORM_INCLUDE_DIR}
 
 SRCS := $(wildcard *.cpp)
 OBJS := $(patsubst %.cpp,$(BUILD_DIR)/%.o,$(SRCS))
@@ -38,6 +41,7 @@ clean:	FORCE
 	@rm -f $(OBJS)
 	@rm -f $(BUILD_DIR)/*.o
 	@rm -f $(BUILD_DIR)/libtests.a
+	@rm -f $(BUILD_DIR)/tests.inc
 	@rm -f $(TGEN_DIR)/src/*.*
 	@rm -f $(TGEN_DIR)/include/*.*
 	@rm -f $(TGEN_DIR)/*.o

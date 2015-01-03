@@ -95,10 +95,6 @@ namespace MFM {
   void SymbolTable::genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     // 'has' applies to both quarks and elements
-    //    if(classtype != UC_ELEMENT)
-    //  return;
-
-    //UlamType * iut = m_state.getUlamTypeByIndex(Int);
     UTI cuti = m_state.m_classBlock->getNodeType();
 
     if(declOnly)
@@ -298,7 +294,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class <"  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "> was never defined, fails labeling";
-	    MSG("", msg.str().c_str(),ERR);
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	    //assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 	    break;
 	  }
@@ -333,7 +329,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class <"  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "> was never defined, fails sizing";
-	    MSG("", msg.str().c_str(), ERR);
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false;  //moved here;
 	  }
@@ -358,7 +354,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "< zero bit size symbol!! " << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "(" << totalbits << ")";
-		m_state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 		aok = false;
 	      }
 	    else
@@ -369,7 +365,7 @@ namespace MFM {
 
 		//std::ostringstream msg;
 		//msg << "symbol size is aok (=" << totalbits << ", total= " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
+		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	      }
 	  }
 	it++;
@@ -399,7 +395,7 @@ namespace MFM {
 
 	std::ostringstream msg;
 	msg << "TotalSize of " << (classtype == UC_ELEMENT ? "element <" : "quark   <") << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ">:\t" << total << "\t(" << remaining << " bits available).";
-	//m_state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_INFO);
+	//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),INFO);
 	std::cerr << msg.str().c_str() << std::endl;
 
 	it++;
@@ -427,7 +423,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
-		MSG("", msg.str().c_str(),ERR);
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	      }
 	    else if(symsize == EMPTYSYMBOLTABLE)
 	      {
@@ -439,7 +435,7 @@ namespace MFM {
 		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
 		//std::ostringstream msg;
 		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
+		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	      }
 	    totalsizes += m_state.getTotalBitSize(sut);
 	  }
@@ -469,7 +465,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
-		MSG("", msg.str().c_str(),ERR);
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	      }
 	    else if(symsize == EMPTYSYMBOLTABLE)
 	      {
@@ -481,7 +477,7 @@ namespace MFM {
 		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
 		//std::ostringstream msg;
 		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		//state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_DEBUG);
+		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	      }
 
 	    if((s32) m_state.getTotalBitSize(sut) > maxsize)

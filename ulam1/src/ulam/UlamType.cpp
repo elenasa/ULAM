@@ -594,8 +594,8 @@ namespace MFM {
     if(sizeByIntBitsToBe != sizeByIntBits)
       {
 	std::ostringstream msg;
-	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: <" << nut->getUlamTypeName(&state).c_str() << ">, to be: " << sizeByIntBitsToBe << " for type: <" << getUlamTypeName(&state).c_str() << "> -- [" << state.getTextAsString(state.m_locOfNextLineText).c_str() << "]";
-	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: <" << nut->getUlamTypeName(&state).c_str() << ">, to be: " << sizeByIntBitsToBe << " for type: <" << getUlamTypeName(&state).c_str() << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
       }
 
     rtnMethod << "_" << nut->getUlamTypeNameOnly(&state).c_str() << sizeByIntBits << "To" << getUlamTypeNameOnly(&state).c_str() << sizeByIntBitsToBe;

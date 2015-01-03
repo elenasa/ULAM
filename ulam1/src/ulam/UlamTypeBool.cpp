@@ -32,7 +32,7 @@ namespace MFM {
       return UlamType::getUlamTypeImmediateMangledName(state);
 
     //return getImmediateStorageTypeAsString(state);  //"bool" inf loop
-    //return getTmpStorageTypeAsString(state); 
+    //return getTmpStorageTypeAsString(state);
     return UlamType::getUlamTypeImmediateMangledName(state); //? for constants
   }
 
@@ -53,20 +53,20 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	state.m_err.buildMessage("", msg.str().c_str(),__FILE__, __func__, __LINE__, MSG_ERR);
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
-    
+
     //change the size first of tobe, if necessary
     s32 bitsize = getBitSize();
     s32 valbitsize = state.getBitSize(valtypidx);
-    
+
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
     u32 newdata = 0;
-    u32 data = val.getImmediateData(state);    
+    u32 data = val.getImmediateData(state);
     switch(valtypEnum)
       {
       case Int:
@@ -92,13 +92,13 @@ namespace MFM {
 	//std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
-    
+
     if(brtn)
       val = UlamValue::makeImmediate(typidx, newdata, state); //overwrite val
-    
+
     return brtn;
   } //end cast
-  
+
 
   void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {
@@ -114,7 +114,7 @@ namespace MFM {
 	s32 count1s = PopCount(data);
 
 	if(count1s > (s32) (bitsize - count1s))  // == when even number bits is ignored (warning at def)
-	  dataAsBool = true;        
+	  dataAsBool = true;
       }
 
     if(prefix == 'z')
@@ -122,7 +122,7 @@ namespace MFM {
     else
       sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   }
-  
+
 
   const std::string UlamTypeBool::getConvertToCboolMethod()
   {
@@ -130,5 +130,5 @@ namespace MFM {
     rtnMethod << "_Bool" << getTotalWordSize() << "ToCbool";
     return rtnMethod.str();
   } //getCovertToCBoolMethod
-  
+
 } //end MFM

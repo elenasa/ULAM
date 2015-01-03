@@ -21,6 +21,9 @@ namespace MFM {
 	    //	    C.printProgramForDebug(programme, output);
 
 	    s32 exitReturnValue = 0;
+
+	    //#define SKIP_EVAL
+#ifndef SKIP_EVAL
 	    if(C.testProgram(programme, output, exitReturnValue) == 0)
 	      {
 		C.printPostFix(programme, output);
@@ -28,27 +31,30 @@ namespace MFM {
 	      }
 	    else
 	      output->write("Unrecoverable Program Test FAILURE.\n");
-
+#else
+	    // skip eval..
+	    C.generateCodedProgram(programme, output);
+#endif
 	    output->write("Exit status: " );    //in compared answer
-	    output->write_decimal(exitReturnValue);	      
+	    output->write_decimal(exitReturnValue);
 
 	  }
 	else
 	  output->write("Unrecoverable Program Type Label FAILURE.\n");
       }
     else
-      {	
+      {
 	output->write("Unrecoverable Program Parse FAILURE.\n");
       }
-    
+
     delete programme;
     return rtn;
   }
 
-  
+
 
   bool TestCase_EndToEndCompiler::CheckResults(FileManagerString * fms, File * errorOutput)
-  {    
+  {
     return CompareResultsWithAnswerKey(fms,errorOutput);
   }
 
