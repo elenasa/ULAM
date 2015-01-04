@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 
+use Time::Local;
 use File::Copy;
 use File::Path;
 use strict;
@@ -64,6 +65,9 @@ sub main
 	die;
     }
 
+    my $start = time;
+    my $N = 0; # number of tests run
+
     my @files = <$TESTDIR/safe/$query>;
     chomp @files;
     my $f;
@@ -111,11 +115,16 @@ sub main
 		`rm -f $dest`;
 	    }
 	    print "done with $testnum\n";
+	    $N++;
 	}
 	else
 	{
 	    print "no match for <$f>\n";
 	}
     } # end for loop
+
+    my $lapse = time - $start;
+    my $pertest = int($lapse/$N * 1000) / 1000.;
+    print "ULAM: ran <$N> tests in $lapse seconds ($pertest sec/test)\n";
     return;
 } #end main
