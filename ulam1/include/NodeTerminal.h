@@ -78,6 +78,12 @@ namespace MFM{
 
   private:
     EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
+    bool setConstantValue();
+    union {
+      s32 sval;
+      u32 uval;
+      bool bval;
+    } m_constant;
 
   };
 

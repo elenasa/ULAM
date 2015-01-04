@@ -8,15 +8,15 @@
 
 namespace MFM {
 
-  SourceStream::SourceStream(FileManager * fm, CompilerState & state): m_fileManager(fm), m_state(state) 
+  SourceStream::SourceStream(FileManager * fm, CompilerState & state): m_fileManager(fm), m_state(state)
   {
     filerec frec;
     m_fileRecords.push_back(frec);  // at position 0, null filerec id 0
-    m_lastReadLoc = frec.m_loc;     // copy invalid loc 
+    m_lastReadLoc = frec.m_loc;     // copy invalid loc
   }
 
 
-  SourceStream::~SourceStream() 
+  SourceStream::~SourceStream()
   {
     m_registeredFilenames.clear();
 
@@ -29,9 +29,9 @@ namespace MFM {
   void SourceStream::unread()
   {
     if (m_openFilesStack.empty()) return;  //top behavior undefined when empty
-    
+
     u16 id = m_openFilesStack.top();
-    
+
     if(m_fileRecords[id].getUnreadFlag())
       {
 	std::ostringstream msg;
@@ -55,7 +55,7 @@ namespace MFM {
 	m_fileRecords[id].setUnreadFlag(false);
 	return m_fileRecords[id].getUnreadByte();
       }
-    
+
     File * fp = m_fileRecords[id].m_fp;
     if( fp != NULL)
       {
@@ -66,11 +66,11 @@ namespace MFM {
 	m_fileRecords[id].m_loc.updateLineByteNo(m_lastReadByte); // update access record
 
 	//save this read byte, and  last read loc before updating, in case of future unread;
-	m_fileRecords[id].updateUnread(false, m_lastReadByte, m_lastReadLoc);    
+	m_fileRecords[id].updateUnread(false, m_lastReadByte, m_lastReadLoc);
 
 	m_lastReadLoc = m_fileRecords[id].m_loc;
-	// automatically close and 'pop', and the next byte of the most 
-	//recently suspended file is returned instead, if any remain. 
+	// automatically close and 'pop', and the next byte of the most
+	//recently suspended file is returned instead, if any remain.
 	//if(c < 0)
 	// if error (not EOF) return error, do not pop the stack
 	if(m_lastReadByte == EOF)
@@ -79,7 +79,7 @@ namespace MFM {
 	    return read();
 	  }
       }
-    //else no further 'push'ed files remain, return -1 
+    //else no further 'push'ed files remain, return -1
 
     return m_lastReadByte;
   }
@@ -99,14 +99,14 @@ namespace MFM {
 	    return true;
 	  }
       }
-    
+
     if(!m_fileManager)
       {
 	MSG("", "FileManager not found", ERR);
-	return false;  //FM no good 
+	return false;  //FM no good
       }
 
-    // attempt to open filename for reading; return false if failed.    
+    // attempt to open filename for reading; return false if failed.
     File * fp = m_fileManager->open(filename, READ);
     if(fp == NULL)
       {
@@ -135,10 +135,10 @@ namespace MFM {
   }
 
 
-  bool SourceStream::discardTop() 
+  bool SourceStream::discardTop()
   {
     if (m_openFilesStack.empty()) return false;
-    
+
     u16 id = m_openFilesStack.top();
     m_openFilesStack.pop();
 
@@ -156,7 +156,7 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(idx);
   }
 
-  
+
   Locator SourceStream::getLocator() const
   {
     // If the most recent call to read() returned EOF, return the first
@@ -165,7 +165,7 @@ namespace MFM {
       {
 	if(m_fileRecords.size() > 1)
 	  {
-	    return m_fileRecords[1].m_loc; 
+	    return m_fileRecords[1].m_loc;
 	  }
 	else
 	  {
@@ -174,7 +174,7 @@ namespace MFM {
       }
 
     u16 id = m_openFilesStack.top();
-    
+
     // if top has not yet been read, return the previous one
     if(m_fileRecords[id].m_fp != NULL && ((Locator) m_fileRecords[id].m_loc).hasNeverBeenRead())
       {
@@ -212,20 +212,20 @@ namespace MFM {
       {
 	if(m_fileRecords.size() > 1)
 	  {
-	    return m_fileRecords[1].m_version; 
+	    return m_fileRecords[1].m_version;
 	  }
 	else
 	  {
 	    return 0;
 	  }
       }
-    
+
     u16 id = m_openFilesStack.top();
-    
+
     return m_fileRecords[id].m_version;
   }
 
-    
+
   void SourceStream::setFileUlamVersion(u32 ver)
   {
     // If the most recent call to read() returned EOF, return the first
@@ -234,7 +234,7 @@ namespace MFM {
       {
 	if(m_fileRecords.size() > 1)
 	  {
-	    m_fileRecords[1].m_version = ver; 
+	    m_fileRecords[1].m_version = ver;
 	  }
 	else
 	  {
@@ -242,7 +242,7 @@ namespace MFM {
 	    return;
 	  }
       }
-    u16 id = m_openFilesStack.top(); 
+    u16 id = m_openFilesStack.top();
     m_fileRecords[id].m_version = ver;
   }
 
@@ -251,7 +251,7 @@ namespace MFM {
   {
     bool brtn = false;
     u32 findex = loc.getPathIndex();
- 
+
     // use path index in locator to get id and line to retrieve text
    std::map<u32,u16>::iterator it = m_registeredFilenames.find(findex);
     if(it != m_registeredFilenames.end())
@@ -266,7 +266,7 @@ namespace MFM {
   std::string SourceStream::getLineOfTextAsString(u32 id) const
   {
     assert(id > 0 && id < m_fileRecords.size());
-    
+
     return m_fileRecords[id].getLineOfText();
   }
 

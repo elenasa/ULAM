@@ -291,6 +291,7 @@ namespace MFM {
     // time to shadow 'self' with auto local variable:
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
     fp->write(vut->getUlamTypeImmediateAutoMangledName(&m_state).c_str()); //for C++ local vars, ie non-data members
@@ -300,11 +301,17 @@ namespace MFM {
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
 
-    if(vut->getUlamClass() == UC_QUARK)
+    if(vclasstype == UC_QUARK)
       {
 	fp->write(", ");
 	fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
       }
+    else if(vclasstype == UC_ELEMENT)
+      {
+	fp->write(", true");  //invokes 'badass' constructor
+      }
+    else
+      assert(0);
 
     fp->write(");   //shadows lhs of 'as'\n");
 
