@@ -307,6 +307,9 @@ namespace MFM {
 	vuti = uvpass.getPtrTargetType();  //replace
       }
 
+    if(vuti == UAtom && nuti == vuti)
+      return;  //nothing to do!
+
     // "downcast" might not be true; compare to be sure the atom is an element "Foo"
     if(vuti == UAtom)
       {
@@ -335,17 +338,19 @@ namespace MFM {
   bool NodeCast::needsACast()
   {
     //return true;  //debug
-
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->getNodeType();
+
+    if(nodeType == tobeType)
+      return false;  //short-circuit if same exact type
+
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
     ULAMTYPE nodetypEnum = m_state.getUlamTypeByIndex(nodeType)->getUlamTypeEnum();
 
     // consider user requested first, then size independent;
     // even constant may need casting (e.g. narrowing for saturation)
     // Bool constants require casts to generate "full" true UlamValue (>1-bit).
-
-    return(isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType) && m_state.getBitSize(tobeType)>1));
+    return( isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType) && m_state.getBitSize(tobeType)>1));
   } //needsACast
 
 } //end MFM

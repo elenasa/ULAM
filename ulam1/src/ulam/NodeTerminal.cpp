@@ -162,7 +162,7 @@ namespace MFM {
 	      if(fitbitsize == m_state.getDefaultBitSize(Int))
 		rtnb = (numval <= S32_MAX) && (numval >= 0);
 	      else
-		rtnb = (numval <= ((1 << (fitbitsize - 1)) - 1)) && (numval >= 0);
+		rtnb = (numval <= ((1u << (fitbitsize - 1)) - 1)) && (numval >= 0);
 	    }
 	  else
 	    {
@@ -170,7 +170,7 @@ namespace MFM {
 	      if(fitbitsize == m_state.getDefaultBitSize(Unsigned))
 		rtnb =  (numval <= U32_MAX) && (numval >= U32_MIN);
 	      else
-		rtnb = (numval <= ((1 << fitbitsize) - 1)) && (numval >= 0);
+		rtnb = (numval <= ((1u << fitbitsize) - 1)) && (numval >= 0);
 	    }
 	}
 	break;
