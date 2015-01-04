@@ -28,7 +28,6 @@ namespace MFM {
 
   bool Preparser::getNextToken(Token & returnTok)
   {
-
     if(m_haveUnreadToken)
       {
 	returnTok = m_lastToken;
@@ -39,7 +38,6 @@ namespace MFM {
 	m_tokenizer->getNextToken(returnTok);
 	m_lastToken = returnTok;
       }
-
 
     if(returnTok.m_type == TOK_KW_USE)
       {
@@ -53,9 +51,8 @@ namespace MFM {
       {
 	return preparseKeywordUlam(returnTok);
       }
-
     return true;
-  }
+  } //getNextToken
 
 
   bool Preparser::preparseKeywordUse(Token & tok)
@@ -74,9 +71,8 @@ namespace MFM {
 	    tok.init(TOK_ERROR_ABORT, useTok.m_locator, 0);
 	  }
       }
-
     return false;
-  }
+  } //preparseKeywordUse
 
 
   bool Preparser::preparseKeywordLoad(Token & tok)
@@ -95,44 +91,41 @@ namespace MFM {
 	    tok.init(TOK_ERROR_ABORT, loadTok.m_locator, 0);
 	  }
       }
-
     return false;
-  }
+  } //preparseKeywordLoad
 
 
   bool Preparser::preparsePackageName(std::string & pStr)
   {
-	Token pTok;
-	while(m_tokenizer->getNextToken(pTok))
+    Token pTok;
+    while(m_tokenizer->getNextToken(pTok))
+      {
+	switch(pTok.m_type)
 	  {
-	    switch(pTok.m_type)
-	      {
-	      case TOK_TYPE_IDENTIFIER:
-	      case TOK_IDENTIFIER:
-		{
-		  pStr.append(m_state.getTokenDataAsString(&pTok));
-		  break;
-		}
-	      case TOK_DOT:
-		{
-		  pStr.append(1,'/'); //substitute slash for dot
-		  break;
-		}
-	      case TOK_SEMICOLON:
-		{
-		  pStr.append(".ulam"); // ulam suffix
-		  //m_tokenizer->unreadToken();  // eat it?
-		  return true;       //done
-		}
-	      default:
-		m_tokenizer->unreadToken();
-		return false;
-	      } //end switch
-
-	  } //end while
-
-	return false;
-  }
+	  case TOK_TYPE_IDENTIFIER:
+	  case TOK_IDENTIFIER:
+	    {
+	      pStr.append(m_state.getTokenDataAsString(&pTok));
+	      break;
+	    }
+	  case TOK_DOT:
+	    {
+	      pStr.append(1,'/'); //substitute slash for dot
+	      break;
+	    }
+	  case TOK_SEMICOLON:
+	    {
+	      pStr.append(".ulam"); // ulam suffix
+	      //m_tokenizer->unreadToken();  // eat it?
+	      return true;       //done
+	    }
+	  default:
+	    m_tokenizer->unreadToken();
+	    return false;
+	  } //end switch
+      } //end while
+    return false;
+  } //preparsePackageName
 
 
   bool Preparser::preparseKeywordUlam(Token & tok)
@@ -143,14 +136,22 @@ namespace MFM {
     Token nTok;
     getNextToken(nTok);
 
-    if(nTok.m_type == TOK_NUMBER)
+    if(nTok.m_type == TOK_NUMBER_SIGNED)
       {
 	std::string nstr = m_state.getTokenDataAsString(&nTok);
 	const char * numlist = nstr.c_str();
 	char * nEnd;
 	s32 numval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
-	setFileUlamVersion(numval);
-	rtnBool = true;
+	if (*numlist == 0 || *nEnd != 0)
+	  {
+	    tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, 0);
+	    rtnBool = false;
+	  }
+	else
+	  {
+	    setFileUlamVersion(numval);
+	    rtnBool = true;
+	  }
 
 	getNextToken(nTok);
 	if(nTok.m_type != TOK_SEMICOLON)  //e.g. float used in error
@@ -168,9 +169,8 @@ namespace MFM {
 	tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, 0);
 	rtnBool = false;
       }
-
     return rtnBool;
-  }
+  } //preparseKeywordUlam
 
 
 } //end MFM

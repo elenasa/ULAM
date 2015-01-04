@@ -238,7 +238,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
-    //fp->write("bool"); //e.g. u32, s32, u64, etc.
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs).c_str());
     fp->write(" = ");

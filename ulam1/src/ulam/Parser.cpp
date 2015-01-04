@@ -1653,7 +1653,8 @@ namespace MFM {
 	    rtnNode = parseRestOfFactor(rtnNode);
 	}
 	break;
-      case TOK_NUMBER:
+      case TOK_NUMBER_SIGNED:
+      case TOK_NUMBER_UNSIGNED:
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
 	rtnNode = new NodeTerminal(pTok, m_state);
@@ -2183,6 +2184,14 @@ namespace MFM {
   {
     assert(! Token::isTokenAType(identTok));  //capitalization check done by Lexer
 
+    if(identTok.m_dataindex == m_state.m_pool.getIndexForDataString("self"))
+      {
+	std::ostringstream msg;
+	msg << "The keyword 'self' may not be used as a variable name";
+	MSG(&identTok, msg.str().c_str(), ERR);
+	//	return NULL;  keep going?
+      }
+
     NodeVarDecl * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok); //for optional [] array size
 
@@ -2218,8 +2227,8 @@ namespace MFM {
 	  }
 	delete lvalNode;  //done with it
       }
-    return rtnNode;  //makeVariableSymbol
-  }
+    return rtnNode;
+  } //makeVariableSymbol
 
 
   Node * Parser::makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok)
@@ -3064,11 +3073,12 @@ namespace MFM {
   } //makeFactorNode
 
 
+  // used for ++/--
   Node * Parser::makeTerminalOne(Token& locTok)
   {
 	//make a '1' node
 	Token oneTok;
-	oneTok.init(TOK_NUMBER, locTok.m_locator, m_state.m_pool.getIndexForDataString("1"));
+	oneTok.init(TOK_NUMBER_SIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString("1"));
 	Node * oneNode = new NodeTerminal(oneTok, m_state);
 	oneNode->setNodeLocation(locTok.m_locator);
 	assert(oneNode);
