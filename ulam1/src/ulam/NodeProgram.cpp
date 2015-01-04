@@ -389,10 +389,12 @@ namespace MFM {
     for(u32 i = 1; i < numTypes; i++)
       {
 	UlamType * ut = m_state.getUlamTypeByIndex(i);
-	if(ut->needsImmediateType() && ut->getUlamClass() != UC_NOTACLASS)
+	ULAMCLASSTYPE classtype = ut->getUlamClass();
+	if(ut->needsImmediateType() && classtype != UC_NOTACLASS)
 	  {
 	    ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
-	    ut->genUlamTypeMangledAutoDefinitionForC(fp, &m_state);
+	    if(classtype == UC_QUARK)
+	      ut->genUlamTypeMangledAutoDefinitionForC(fp, &m_state);
 	  }
       }
     delete fp;

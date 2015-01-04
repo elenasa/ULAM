@@ -60,7 +60,10 @@ namespace MFM {
   {
     assert(needsImmediateType());
     std::ostringstream  automn;
-    automn << getUlamTypeImmediateMangledName(state).c_str() << "4auto" ;
+    automn << getUlamTypeImmediateMangledName(state).c_str();
+
+    if(m_class == UC_QUARK)
+      automn << "4auto" ;
 
     return automn.str();
   }
@@ -564,34 +567,42 @@ namespace MFM {
 
     //storage here in atom
     state->indent(fp);
-    fp->write("T m_stg;  //storage here!\n");
+    fp->write("T m_stg;  //possible storage here\n");
+
+    // ref to storage in atom
+    state->indent(fp);
+    fp->write("T& m_stgRef;  //storage ref\n");
 
     //default constructor (used by local vars)
     state->indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() : m_stg() { }\n");
-#if 0
-    fp->write("() : m_stg(");
-    //    fp->write(getUlamTypeMangledName(state).c_str());
-    //fp->write("<CC>");
-    fp->write("Us::THE_INSTANCE");
-    fp->write(".GetDefaultAtom()");  //returns object of type T
-    fp->write(") { }\n");
-#endif
+    fp->write("() : m_stg(), m_stgRef(m_stg) { }\n");
 
     //constructor here (used by const tmpVars); ref param to avoid excessive copying
     state->indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //T
-    fp->write("& d) : m_stg(d) {}\n");
+    fp->write("& d) : m_stg(d), m_stgRef(m_stg) {}\n");
+
+    if(m_class == UC_ELEMENT)
+      {
+	//constructor here (used by As for elements);
+	// ref points directly into an atom; not so for quark
+	// since pos is required for template (uses auto).
+	state->indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(");   //not const
+	fp->write(getTmpStorageTypeAsString(state).c_str()); //T&
+	fp->write("& d, bool badass) : m_stg(), m_stgRef(d) {}\n");
+      }
 
     //copy constructor here (used by func call return values)
     state->indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getImmediateStorageTypeAsString(state).c_str());
-    fp->write("& d) : m_stg(d.m_stg) {}\n");
+    fp->write("& d) : m_stg(d.m_stg), m_stgRef(m_stg) {}\n");
 
     //default destructor (for completeness)
     state->indent(fp);
@@ -607,11 +618,11 @@ namespace MFM {
 
     // getBits method for scalar
     state->indent(fp);
-    fp->write("BitVector<BPA>& getBits() { return m_stg.GetBits(); }\n");
+    fp->write("BitVector<BPA>& getBits() { return m_stgRef.GetBits(); }\n");
 
     // non-const T ref method for scalar
     state->indent(fp);
-    fp->write("T& getRef() { return m_stg; }\n");
+    fp->write("T& getRef() { return m_stgRef; }\n");
 
     state->m_currentIndentLevel--;
     state->indent(fp);
@@ -637,7 +648,7 @@ namespace MFM {
     state->indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //T
-    fp->write(" read() const { return m_stg; }\n");
+    fp->write(" read() const { return m_stgRef; }\n");
   } //genUlamTypeElementReadDefinitionForC
 
 
@@ -650,7 +661,7 @@ namespace MFM {
     state->indent(fp);
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString(state).c_str()); //T
-    fp->write("& v) { m_stg = v; }\n");
+    fp->write("& v) { m_stgRef = v; }\n");
   } //genUlamTypeElementWriteDefinitionForC
 
 
