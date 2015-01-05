@@ -76,10 +76,10 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Attempting to fit a constant <";
 		if(m_state.isConstant(lt))
-		  msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str();
+		  msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
 		else
-		  msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str();
-		msg << "> for binary comparison operator" << getName() << " ";
+		  msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+		msg << ", for binary comparison operator" << getName() << " ";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);    //output warning
 	      }
 	  } //a constant
@@ -89,7 +89,7 @@ namespace MFM {
 	    // unsigned gets a warning, but still uses signed Int.
 	    // if one is a constant, check for value to fit in bits.
 	    std::ostringstream msg;
-	    msg << "Attempting to mix signed and unsigned types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary comparison operator" << getName() << " ";
+	    msg << "Attempting to mix signed and unsigned types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << ", for binary comparison operator" << getName() << " ";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);	    //output warning
 	  }
       } //both scalars
@@ -110,7 +110,7 @@ namespace MFM {
 
 	//array op scalar: defer since the question of matrix operations is unclear at this time.
 	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary comparison operator" << getName();
+	msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary comparison operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return newType;

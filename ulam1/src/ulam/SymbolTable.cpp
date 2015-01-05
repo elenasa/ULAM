@@ -293,7 +293,7 @@ namespace MFM {
 	if( ((SymbolClass *) sym)->getUlamClass() == UC_INCOMPLETE)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Class <"  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "> was never defined, fails labeling";
+	    msg << "Incomplete Class: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " was never defined, fails labeling";
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	    //assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 	    break;
@@ -328,7 +328,7 @@ namespace MFM {
 	if( ((SymbolClass *) sym)->getUlamClass() == UC_INCOMPLETE)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Class <"  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "> was never defined, fails sizing";
+	    msg << "Incomplete Class: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " was never defined, fails sizing";
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false;  //moved here;

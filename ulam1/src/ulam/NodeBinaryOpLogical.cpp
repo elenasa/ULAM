@@ -32,7 +32,7 @@ namespace MFM {
 	    doBinaryOperationImmediate(lslot, rslot, slots);
 	  }
 	else
-	  { 
+	  {
 	    doBinaryOperationArray(lslot, rslot, slots);
 	  }
       }
@@ -44,16 +44,16 @@ namespace MFM {
   {
     UTI newType = Nav; //init
 
-    // all logical operations are performed as Bool.BITSPERBOOL.-1 
+    // all logical operations are performed as Bool.BITSPERBOOL.-1
     if(m_state.isScalar(lt) && m_state.isScalar(rt))
       {
 	newType = Bool;
       } //both scalars
     else
-      { 
+      {
 	//array op scalar: defer since the question of matrix operations is unclear at this time.
 	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary logical operator" << getName();
+	msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary logical operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return newType;

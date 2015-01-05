@@ -52,7 +52,7 @@ namespace MFM {
 	if(!isCustomArray)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << "> used with " << getName();
+	    msg << "Invalid Type: " << m_state.getUlamTypeNameByIndex(leftType).c_str() << " used with " << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorCount++;
 	  }

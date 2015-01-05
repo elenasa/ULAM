@@ -31,16 +31,16 @@ namespace MFM {
 
 
   UTI NodeUnaryOpBang::checkAndLabelType()
-  { 
+  {
     assert(m_node);
     UTI ut = m_node->checkAndLabelType();
     UTI newType = ut;         // init to stay the same
-    
+
     if(!m_state.isScalar(ut)) //array unsupported at this time
       {
 	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) type: <" << m_state.getUlamTypeNameByIndex(ut).c_str() << "> for unary operator" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);	
+	msg << "Incompatible (nonscalar) type: " << m_state.getUlamTypeNameByIndex(ut).c_str() << " for unary operator" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
     else
@@ -57,7 +57,7 @@ namespace MFM {
 
     setStoreIntoAble(false);
 
-    return newType; 
+    return newType;
   } //checkAndLabelType
 
 

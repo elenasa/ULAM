@@ -1476,7 +1476,7 @@ namespace MFM {
 		    else
 		      {
 			std::ostringstream msg;
-			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: <" << m_state.getUlamTypeNameByIndex(duti).c_str() << ">";
+			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(duti).c_str();
 			MSG(&iTok, msg.str().c_str(), ERR);
 		      }
 		  }
@@ -1487,14 +1487,14 @@ namespace MFM {
 		    else
 		      {
 			std::ostringstream msg;
-			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: <" << m_state.getUlamTypeNameByIndex(duti).c_str() << ">";
+			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(duti).c_str();
 			MSG(&iTok, msg.str().c_str(), ERR);
 		      }
 		  }
 		else
 		  {
 		    std::ostringstream msg;
-		    msg << "Undefined request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: <" << m_state.getUlamTypeNameByIndex(duti).c_str() << ">";
+		    msg << "Undefined request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(duti).c_str();
 		    MSG(&iTok, msg.str().c_str(), ERR);
 		  }
 	      }
@@ -1556,7 +1556,7 @@ namespace MFM {
     if(m_state.m_currentBlock->isIdInScope(identTok.m_dataindex,asymptr))
       {
 	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 	MSG(&identTok, msg.str().c_str(), ERR);
 	return NULL;
       }
@@ -2270,7 +2270,7 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -2313,7 +2313,7 @@ namespace MFM {
     if(m_state.m_classBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
-	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
+	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&typeTok, msg.str().c_str(), ERR);
 
 	// eat tokens until end of definition ???
@@ -2405,7 +2405,7 @@ namespace MFM {
     if(fnSym->getUlamTypeIdx() != fsymptr->getUlamTypeIdx())
       {
 	std::ostringstream msg;
-	msg << "Return Type <"  << m_state.getUlamTypeNameByIndex(fsymptr->getUlamTypeIdx()).c_str() << "> does not agree with return type of already defined function '" << m_state.m_pool.getDataAsString(fnSym->getId()) << "' with the same name and return type <" << m_state.getUlamTypeNameByIndex(fnSym->getUlamTypeIdx()).c_str() << ">";
+	msg << "Return Type: "  << m_state.getUlamTypeNameByIndex(fsymptr->getUlamTypeIdx()).c_str() << " does not agree with return type of already defined function '" << m_state.m_pool.getDataAsString(fnSym->getId()) << "' with the same name and return type: " << m_state.getUlamTypeNameByIndex(fnSym->getUlamTypeIdx()).c_str();
 	MSG(&typeTok, msg.str().c_str(),ERR);
 	delete fsymptr;
 	rtnNode = NULL;
@@ -2620,7 +2620,7 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	    else

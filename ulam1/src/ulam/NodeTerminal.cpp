@@ -127,7 +127,7 @@ namespace MFM {
     if(fit->getTotalWordSize() != 32)
       {
 	std::ostringstream msg;
-	msg << "Not supported at this time: <" << m_token.getTokenString() << ">, to fit into type: <" << m_state.getUlamTypeNameByIndex(fituti).c_str() << ">";
+	msg << "Not supported at this time: <" << m_token.getTokenString() << ">, to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       return false;
       }
@@ -135,7 +135,7 @@ namespace MFM {
     if(!fit->isMinMaxAllowed())
       {
 	std::ostringstream msg;
-	msg << "Cannot check: <" << m_token.getTokenString() << ">, fits into type: <" << m_state.getUlamTypeNameByIndex(fituti).c_str() << ">, since Min/Max are not allowed";
+	msg << "Cannot check: <" << m_token.getTokenString() << ">, fits into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str() << ", since Min/Max are not allowed";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
@@ -143,7 +143,7 @@ namespace MFM {
     if(getNodeType() == Nav)
       {
 	std::ostringstream msg;
-	msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << ">, type: <" << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << ">";
+	msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << ">, type: " << m_state.getUlamTypeNameByIndex(getNodeType()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
@@ -176,7 +176,7 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << "> , to fit into type: <" << m_state.getUlamTypeNameByIndex(fituti).c_str() << ">";
+	  msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << "> , to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };

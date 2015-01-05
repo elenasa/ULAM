@@ -264,7 +264,7 @@ namespace MFM {
 	  {
 	    //error can't support typedefs changing arraysizes
 	    std::ostringstream msg;
-	    msg << "Arraysize (" << tdarraysize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(tduti).c_str() << ">, and cannot be redefined by typedef: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">, to (" << arraysize << ")";
+	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(tduti).c_str() << ", and cannot be redefined by typedef: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">, to [" << arraysize << "]";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
@@ -326,7 +326,7 @@ namespace MFM {
 	      {
 		//error can't support double arrays
 		std::ostringstream msg;
-		msg << "Arraysize (" << tdarraysize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+		msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(aut).c_str() << ", and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		return false;
 	      }
@@ -343,7 +343,7 @@ namespace MFM {
 	      {
 		//error can't support different bitsizes
 		std::ostringstream msg;
-		msg << "Bitsize (" << tdbitsize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+		msg << "Bitsize (" << tdbitsize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(aut).c_str() << ", and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		return false;
 	      }
