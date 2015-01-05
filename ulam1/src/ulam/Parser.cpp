@@ -1443,11 +1443,73 @@ namespace MFM {
 
   Node * Parser::parseMemberSelectExpr(Token memberTok)
   {
+    Symbol * dsymptr = NULL;
+    if(m_state.alreadyDefinedSymbol(memberTok.m_dataindex, dsymptr))
+      {
+	UTI duti = dsymptr->getUlamTypeIdx();
+	UlamType * dut = m_state.getUlamTypeByIndex(duti);
+	ULAMCLASSTYPE dclasstype = dut->getUlamClass();
+
+	// only way to use a primitive with a .dot
+	if(dclasstype == UC_NOTACLASS)
+	  {
+	    Token pTok;
+	    getNextToken(pTok);
+	    if(pTok.m_type != TOK_DOT)
+	      {
+		unreadToken();
+		return NULL;
+	      }
+
+	    Node * rtnNode = NULL;
+	    Token iTok;
+	    if(getExpectedToken(TOK_IDENTIFIER, iTok))
+	      {
+		if(iTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
+		  {
+		    rtnNode = makeTerminal(iTok, dut->getTotalBitSize(), Unsigned); //unsigned
+		  }
+		else if (iTok.m_dataindex == m_state.m_pool.getIndexForDataString("max"))
+		  {
+		    if(dut->isMinMaxAllowed())
+		      rtnNode = makeTerminal(iTok, dut->getMax(), dut->getUlamTypeEnum()); //unsigned
+		    else
+		      {
+			std::ostringstream msg;
+			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: <" << m_state.getUlamTypeNameByIndex(duti).c_str() << ">";
+			MSG(&iTok, msg.str().c_str(), ERR);
+		      }
+		  }
+		else if (iTok.m_dataindex == m_state.m_pool.getIndexForDataString("min"))
+		  {
+		    if(dut->isMinMaxAllowed())
+		      rtnNode = makeTerminal(iTok, dut->getMin(), dut->getUlamTypeEnum()); //signed
+		    else
+		      {
+			std::ostringstream msg;
+			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: <" << m_state.getUlamTypeNameByIndex(duti).c_str() << ">";
+			MSG(&iTok, msg.str().c_str(), ERR);
+		      }
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Undefined request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: <" << m_state.getUlamTypeNameByIndex(duti).c_str() << ">";
+		    MSG(&iTok, msg.str().c_str(), ERR);
+		  }
+	      }
+	    else
+	      {
+		unreadToken();		//error!
+	      }
+	    return rtnNode;
+	  } //not a class
+      }  //not defined
+
     // arg is an instance of a class, it will be/was
     // declared as a variable, either as a data member or locally,
     // WAIT To  search back through the block symbol tables during type labeling
-
-    Node * classInstanceNode = new NodeTerminalIdent(memberTok, (SymbolVariable *) NULL, m_state);
+    Node * classInstanceNode = new NodeTerminalIdent(memberTok, (SymbolVariable *) dsymptr, m_state);
     classInstanceNode->setNodeLocation(memberTok.m_locator);
 
     return parseRestOfMemberSelectExpr(classInstanceNode); //parseMemberSelect
@@ -3052,10 +3114,10 @@ namespace MFM {
 	    rtnNode = new NodeUnaryOpBang(factorNode, m_state);
 	    break;
 	  case TOK_PLUS_PLUS:
-	    rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminalOne(pTok), m_state);
+	    rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminal(pTok, 1, Int), m_state);
 	    break;
 	  case TOK_MINUS_MINUS:
-	    rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminalOne(pTok), m_state);
+	    rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminal(pTok, 1, Int), m_state);
 	    break;
 	  default:
 	    {
@@ -3073,17 +3135,49 @@ namespace MFM {
   } //makeFactorNode
 
 
-  // used for ++/--
-  Node * Parser::makeTerminalOne(Token& locTok)
+  Node * Parser::makeTerminal(Token& locTok, s32 val, ULAMTYPE etype)
   {
-	//make a '1' node
-	Token oneTok;
-	oneTok.init(TOK_NUMBER_SIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString("1"));
-	Node * oneNode = new NodeTerminal(oneTok, m_state);
-	oneNode->setNodeLocation(locTok.m_locator);
-	assert(oneNode);
-	return oneNode;
-  } //makeOneTerminal
+    std::ostringstream num;
+    num << val;
+
+    Token tTok;
+    if(etype == Int)
+      {
+	tTok.init(TOK_NUMBER_SIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString(num.str()));
+      }
+    else
+      {
+	num << "u";
+	tTok.init(TOK_NUMBER_UNSIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString(num.str()));
+      }
+
+    Node * termNode = new NodeTerminal(tTok, m_state);
+    assert(termNode);
+    termNode->setNodeLocation(locTok.m_locator);
+    return termNode;
+  } //makeTerminal
+
+
+  Node * Parser::makeTerminal(Token& locTok, u32 val, ULAMTYPE etype)
+  {
+    std::ostringstream num;
+    num << val;
+
+    Token tTok;
+    if(etype == Int)
+      tTok.init(TOK_NUMBER_SIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString(num.str()));
+    else
+      {
+	num << "u";
+	tTok.init(TOK_NUMBER_UNSIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString(num.str()));
+      }
+
+    Node * termNode = new NodeTerminal(tTok, m_state);
+    assert(termNode);
+    termNode->setNodeLocation(locTok.m_locator);
+    return termNode;
+  } //makeTerminal
+
 
 
   bool Parser::getExpectedToken(TokenType eTokType, bool quietly)

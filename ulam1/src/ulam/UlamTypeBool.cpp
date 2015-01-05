@@ -11,6 +11,8 @@ namespace MFM {
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
+    m_max = 1;
+    m_min = 0;
   }
 
 

@@ -61,6 +61,8 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
+    virtual bool isMinMaxAllowed();
+
     virtual PACKFIT getPackable();
 
     virtual const std::string getTmpStorageTypeAsString(CompilerState * state);

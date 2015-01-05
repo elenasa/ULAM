@@ -152,6 +152,12 @@ namespace MFM{
 
     void setItemWordSize(u32 iw);
 
+    virtual bool isMinMaxAllowed();
+
+    u32 getMax();
+
+    s32 getMin();
+
     virtual PACKFIT getPackable();
 
     virtual const std::string readMethodForCodeGen();
@@ -171,6 +177,8 @@ namespace MFM{
     UTI m_uti;
     u32 m_wordLengthTotal;
     u32 m_wordLengthItem;
+    u32 m_max;
+    s32 m_min;
 
   private:
   };
