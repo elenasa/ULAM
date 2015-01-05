@@ -66,7 +66,7 @@ namespace MFM {
 	    if(! m_state.completeIncompleteClassSymbol(it))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Var Decl for type: <" << m_state.getUlamTypeNameByIndex(it).c_str() << "> used with variable symbol name <" << getName() << ">";
+		msg << "Incomplete Var Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		it = Nav;
 	      }
@@ -89,7 +89,7 @@ namespace MFM {
 	if(m_state.getTotalBitSize(it) > MAXBITSPERINT)
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: <" << m_state.getUlamTypeNameByIndex(it).c_str() << "> MUST fit into " << MAXBITSPERINT << " bits; Local variables do not have this restriction";
+	    msg << "Data member <" << getName() << "> of type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " MUST fit into " << MAXBITSPERINT << " bits; Local variables do not have this restriction";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 

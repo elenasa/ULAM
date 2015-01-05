@@ -50,7 +50,7 @@ namespace MFM {
     if(tobeType == Nav)
       {
 	std::ostringstream msg;
-	msg << "Cannot cast to type <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+	msg << "Cannot cast to type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
@@ -99,7 +99,7 @@ namespace MFM {
 	    if(tobeTypEnum != Int)
 	      {
 		std::ostringstream msg;
-		msg << "Cannot cast quark type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to non-Int <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+		msg << "Cannot cast quark type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to non-Int type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
@@ -114,7 +114,7 @@ namespace MFM {
 	    if(nodeClass == UC_INCOMPLETE)
 	      {
 		std::ostringstream msg;
-		msg << "Cannot cast type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+		msg << "Cannot cast type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
@@ -163,7 +163,7 @@ namespace MFM {
 	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, m_state)))
 	  {
 	    std::ostringstream msg;
-	    msg << "Cast problem! Value type <" << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str() << "> failed to be cast as type: <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+	    msg << "Cast problem! Value type: " << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str() << " failed to be cast as type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
