@@ -123,55 +123,42 @@ namespace MFM {
   {
     bool rtnb = false;
     UlamType * fit = m_state.getUlamTypeByIndex(fituti);
-    ULAMTYPE fitEnum = fit->getUlamTypeEnum();
-    u32 fitbitsize = m_state.getBitSize(fituti);
 
     if(fit->getTotalWordSize() != 32)
+      {
+	std::ostringstream msg;
+	msg << "Not supported at this time: <" << m_token.getTokenString() << ">, to fit into type: <" << m_state.getUlamTypeNameByIndex(fituti).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       return false;
+      }
 
     if(getNodeType() == Nav)
-      return false;
+      {
+	std::ostringstream msg;
+	msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << ">, type: <" << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
 
     switch(m_token.m_type)
       {
       case TOK_NUMBER_SIGNED:
 	{
 	  s32 numval = m_constant.sval;
-	  if(fitEnum == Int)
+	  if(fit->getUlamTypeEnum() == Int)
 	    {
-	      if(fitbitsize == m_state.getDefaultBitSize(Int))
-		rtnb = (numval <= S32_MAX) && (numval >= S32_MIN);
-	      else
-		rtnb = (numval <= ((1 << (fitbitsize - 1)) - 1)) && (numval >= _SignExtend32((1 << (fitbitsize - 1)), fitbitsize));
+	      rtnb = (numval <= (s32) fit->getMax()) && (numval >= fit->getMin());
 	    }
 	  else
 	    {
-	      // fit into unsigned
-	      if(fitbitsize == m_state.getDefaultBitSize(Unsigned))
-		rtnb = (numval <= S32_MAX) && (numval >= 0);
-	      else
-		rtnb = (numval <= ((1 << fitbitsize) - 1)) && (numval >= 0);
+	      rtnb = (UABS(numval) <= fit->getMax()) && (numval >= 0);
 	    }
 	}
 	break;
       case TOK_NUMBER_UNSIGNED:
 	{
 	  u32 numval = m_constant.uval;
-	  if(fitEnum == Int)
-	    {
-	      if(fitbitsize == m_state.getDefaultBitSize(Int))
-		rtnb = (numval <= S32_MAX) && (numval >= 0);
-	      else
-		rtnb = (numval <= ((1u << (fitbitsize - 1)) - 1)) && (numval >= 0);
-	    }
-	  else
-	    {
-	      // unsigned fits into unsigned
-	      if(fitbitsize == m_state.getDefaultBitSize(Unsigned))
-		rtnb =  (numval <= U32_MAX) && (numval >= U32_MIN);
-	      else
-		rtnb = (numval <= ((1u << fitbitsize) - 1)) && (numval >= 0);
-	    }
+	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
 	}
 	break;
       case TOK_KW_TRUE:
@@ -181,8 +168,8 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << ">";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << "> , to fit into type: <" << m_state.getUlamTypeNameByIndex(fituti).c_str() << ">";
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
     return rtnb;

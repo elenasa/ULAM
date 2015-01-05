@@ -11,7 +11,12 @@ namespace MFM {
   UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
-    m_wordLengthItem = calcWordSize(getBitSize());
+    s32 bitsize = getBitSize();
+    m_wordLengthItem = calcWordSize(bitsize);
+
+    // consider s64 later...
+    m_max = calcBitsizeSignedMax(bitsize);
+    m_min = calcBitsizeSignedMin(bitsize);
   }
 
 

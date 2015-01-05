@@ -33,6 +33,12 @@ namespace MFM {
   }
 
 
+  bool UlamTypeBits::isMinMaxAllowed()
+  {
+    return false;
+  }
+
+
   bool UlamTypeBits::cast(UlamValue & val, CompilerState& state)
   {
     bool brtn = true;

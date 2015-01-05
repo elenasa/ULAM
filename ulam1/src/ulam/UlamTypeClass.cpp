@@ -204,6 +204,11 @@ namespace MFM {
     return bitsize < 0 ? 0 : bitsize; //allow for empty quarks
   }
 
+  bool UlamTypeClass::isMinMaxAllowed()
+  {
+    return false;
+  }
+
 
   PACKFIT UlamTypeClass::getPackable()
   {
@@ -866,5 +871,6 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
+
 
 } //end MFM
