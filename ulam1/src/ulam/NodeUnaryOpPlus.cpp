@@ -21,16 +21,16 @@ namespace MFM {
 
 
   UTI NodeUnaryOpPlus::checkAndLabelType()
-  { 
+  {
     assert(m_node);
     UTI ut = m_node->checkAndLabelType();
     UTI newType = ut;         // init to stay the same
-    
+
     if(!m_state.isScalar(ut)) //array unsupported at this time
       {
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) type: <" << m_state.getUlamTypeNameByIndex(ut).c_str() << "> for unary operator" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);	
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
     else
@@ -45,18 +45,18 @@ namespace MFM {
 	else if(eut == Bits)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unary operator" << getName() << " applied to type <" << m_state.getUlamTypeNameByIndex(ut) << "> is not defined";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);	
+	    msg << "Unary operator" << getName() << " applied to type <" << m_state.getUlamTypeNameByIndex(ut).c_str() << "> is not defined";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }
-	//else maintain type for NOOP (e.g. Unary, Unsigned, Int) 
+	//else maintain type for NOOP (e.g. Unary, Unsigned, Int)
       }
 
     setNodeType(newType);
 
     setStoreIntoAble(false);
 
-    return newType; 
+    return newType;
   } //checkAndLabelType
 
 
@@ -78,7 +78,7 @@ namespace MFM {
   void NodeUnaryOpPlus::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
-    m_node->genCodeToStoreInto(fp, uvpass); 
+    m_node->genCodeToStoreInto(fp, uvpass);
     //essentially a no-op ?
     return;
   } //genCodeToStoreInto

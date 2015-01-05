@@ -132,6 +132,14 @@ namespace MFM {
       return false;
       }
 
+    if(!fit->isMinMaxAllowed())
+      {
+	std::ostringstream msg;
+	msg << "Cannot check: <" << m_token.getTokenString() << ">, fits into type: <" << m_state.getUlamTypeNameByIndex(fituti).c_str() << ">, since Min/Max are not allowed";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+
     if(getNodeType() == Nav)
       {
 	std::ostringstream msg;
