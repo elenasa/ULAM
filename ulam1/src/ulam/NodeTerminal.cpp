@@ -151,7 +151,7 @@ namespace MFM {
 	    }
 	  else
 	    {
-	      rtnb = (UABS(numval) <= fit->getMax()) && (numval >= 0);
+	      rtnb = (UABS32(numval) <= fit->getMax()) && (numval >= 0);
 	    }
 	}
 	break;
