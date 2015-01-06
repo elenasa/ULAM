@@ -5,7 +5,37 @@
 
 namespace MFM {
 
-  NodeTerminal::NodeTerminal(Token tok, CompilerState & state) : Node(state), m_token(tok) {}
+  NodeTerminal::NodeTerminal(Token tok, CompilerState & state) : Node(state)
+  {
+    Node::setNodeLocation(tok.m_locator); //in case of errors
+    setConstantValue(tok);
+    setConstantTypeForNode(tok);
+  }
+
+
+  NodeTerminal::NodeTerminal(s32 val, CompilerState & state) : Node(state)
+  {
+    m_constant.sval = val;
+    setNodeType(m_state.getUlamTypeOfConstant(Int));
+    //uptocaller to set node location.
+  }
+
+
+  NodeTerminal::NodeTerminal(u32 val, CompilerState & state) : Node(state)
+  {
+    m_constant.uval = val;
+    setNodeType(m_state.getUlamTypeOfConstant(Unsigned));
+    //uptocaller to set node location.
+  }
+
+
+  NodeTerminal::NodeTerminal(bool val, CompilerState & state) : Node(state)
+  {
+    m_constant.bval = val;
+    setNodeType(m_state.getUlamTypeOfConstant(Bool));
+    //uptocaller to set node location.
+  }
+
 
   NodeTerminal::~NodeTerminal(){}
 
@@ -19,12 +49,33 @@ namespace MFM {
 
   const char * NodeTerminal::getName()
   {
-    if(Token::getSpecialTokenWork(m_token.m_type) == TOKSP_KEYWORD)
-      {
-	return Token::getTokenAsString(m_token.m_type);  //true or false
-      }
+    UTI nuti = getNodeType();
+    ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
 
-    return m_state.getTokenDataAsString(&m_token).c_str();
+    std::ostringstream num;
+    switch(etype)
+      {
+      case Bool:
+	num << (m_constant.bval ? "true" : "false");
+	break;
+      case Int:
+	num << m_constant.sval;
+	break;
+      case Unsigned:
+	num << m_constant.uval << "u";
+	break;
+      default:
+	{
+	    std::ostringstream msg;
+	    msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    num << "CONSTANT?";
+	}
+      };
+
+    u32 id = m_state.m_pool.getIndexForDataString(num.str());
+    return m_state.m_pool.getDataAsString(id).c_str();
+    //return m_state.getTokenDataAsString(&m_token).c_str();
   }
 
 
@@ -34,38 +85,37 @@ namespace MFM {
   }
 
 
+  void NodeTerminal::constantFold(Token tok)
+  {
+    if(tok.m_type == TOK_MINUS)
+      {
+	UTI nuti = getNodeType();
+	ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+	if(etype == Int)
+	  {
+	    m_constant.sval = -m_constant.sval;
+	    fitsInBits(nuti);  //check self
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Negating an unsigned constant: <" << getName() <<  ">, type: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Constant Folding Token: <" << m_state.getTokenDataAsString(&tok).c_str() << ">, currently unsupported";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	assert(0);
+      }
+  } //constantFold
+
+
   UTI NodeTerminal::checkAndLabelType()
   {
-    UTI newType = Nav;  //init
-    switch(m_token.m_type)
-      {
-      case TOK_NUMBER_SIGNED:
-	newType = m_state.getUlamTypeOfConstant(Int);  	  // a constant Int
-	break;
-      case TOK_NUMBER_UNSIGNED:
-	newType = m_state.getUlamTypeOfConstant(Unsigned); // an Unsigned constant
-	break;
-      case TOK_KW_TRUE:
-      case TOK_KW_FALSE:
-	newType = m_state.getUlamTypeOfConstant(Bool);  	  // a constant Bool
-	break;
-      default:
-	{
-	  std::ostringstream msg;
-	  msg << "Token not a number or boolean: <" << m_token.getTokenString() << ">";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	}
-      };
-
-    if(newType != Nav)
-      {
-	if(!setConstantValue())
-	  newType = Nav;  //error
-      }
-
-    setNodeType(newType);
-    setStoreIntoAble(false);
-    return newType;
+    return getNodeType(); //done by constructor
   } //checkAndLabelType
 
 
@@ -90,26 +140,26 @@ namespace MFM {
   {
     UlamValue rtnUV;         //init to Nav error case
     EvalStatus evs = NORMAL; //init ok
+    UTI nuti = getNodeType();
+    assert(nuti != Nav);
+    ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
 
-    assert(getNodeType() != Nav);
-
-    switch(m_token.m_type)
+    switch(etype)
       {
-      case TOK_NUMBER_SIGNED:
-	rtnUV = UlamValue::makeImmediate(getNodeType(), m_constant.sval, m_state);
+      case Int:
+	rtnUV = UlamValue::makeImmediate(nuti, m_constant.sval, m_state);
 	break;
-      case TOK_NUMBER_UNSIGNED:
-	rtnUV = UlamValue::makeImmediate(getNodeType(), m_constant.uval, m_state);
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
 	break;
-      case TOK_KW_TRUE:
-      case TOK_KW_FALSE:
-	rtnUV = UlamValue::makeImmediate(getNodeType(), m_constant.bval, m_state);
+      case Bool:
+	rtnUV = UlamValue::makeImmediate(nuti, m_constant.bval, m_state);
 	break;
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Token neither a number, nor a boolean: <" << m_token.getTokenString() << ">";
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  evs = ERROR;
 	}
       };
@@ -123,19 +173,20 @@ namespace MFM {
   {
     bool rtnb = false;
     UlamType * fit = m_state.getUlamTypeByIndex(fituti);
+    UTI nuti = getNodeType(); //constant type
 
     if(fit->getTotalWordSize() != 32)
       {
 	std::ostringstream msg;
-	msg << "Not supported at this time: <" << m_token.getTokenString() << ">, to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	msg << "Not supported at this time, constant type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      return false;
+	return false;
       }
 
     if(!fit->isMinMaxAllowed())
       {
 	std::ostringstream msg;
-	msg << "Cannot check: <" << m_token.getTokenString() << ">, fits into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str() << ", since Min/Max are not allowed";
+	msg << "Cannot check: <" << getName() << ">, fits into a non-arithmetic type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
@@ -143,14 +194,15 @@ namespace MFM {
     if(getNodeType() == Nav)
       {
 	std::ostringstream msg;
-	msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << ">, type: " << m_state.getUlamTypeNameByIndex(getNodeType()).c_str();
+	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
 
-    switch(m_token.m_type)
+    ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+    switch(etype)
       {
-      case TOK_NUMBER_SIGNED:
+      case Int:
 	{
 	  s32 numval = m_constant.sval;
 	  if(fit->getUlamTypeEnum() == Int)
@@ -163,20 +215,19 @@ namespace MFM {
 	    }
 	}
 	break;
-      case TOK_NUMBER_UNSIGNED:
+      case Unsigned:
 	{
 	  u32 numval = m_constant.uval;
 	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
 	}
 	break;
-      case TOK_KW_TRUE:
-      case TOK_KW_FALSE:
+      case Bool:
 	rtnb = true;
 	break;
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Token not a number, or a boolean: <" << m_token.getTokenString() << "> , to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
@@ -188,7 +239,7 @@ namespace MFM {
   bool NodeTerminal::isNegativeConstant()
   {
     bool rtnb = false;
-    if(m_token.m_type == TOK_NUMBER_SIGNED)
+    if(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeEnum() == Int)
       {
 	rtnb = (m_constant.sval < 0);
       }
@@ -201,11 +252,12 @@ namespace MFM {
   bool NodeTerminal::isWordSizeConstant()
   {
     bool rtnb = false;
-    if(m_token.m_type == TOK_NUMBER_SIGNED)
+    ULAMTYPE etype = m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeEnum();
+    if(etype == Int)
       {
 	rtnb = (m_constant.sval >= (s32) m_state.getDefaultBitSize(Int));
       }
-    else if(m_token.m_type == TOK_NUMBER_UNSIGNED)
+    else if(etype == Unsigned)
       {
 	rtnb = (m_constant.uval > m_state.getDefaultBitSize(Unsigned)); // may be ==
       }
@@ -262,14 +314,14 @@ namespace MFM {
   } //genCodeReadIntoATmpVar
 
 
-  bool NodeTerminal::setConstantValue()
+  bool NodeTerminal::setConstantValue(Token tok)
   {
     bool rtnok = false;
-    switch(m_token.m_type)
+    switch(tok.m_type)
       {
       case TOK_NUMBER_SIGNED:
 	{
-	  std::string numstr = getName();
+	  std::string numstr = m_state.getTokenDataAsString(&tok); //getName();
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
 
@@ -286,7 +338,7 @@ namespace MFM {
 	break;
       case TOK_NUMBER_UNSIGNED:
 	{
-	  std::string numstr = getName();
+	  std::string numstr = m_state.getTokenDataAsString(&tok); //getName();
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
 
@@ -312,11 +364,40 @@ namespace MFM {
       default:
 	{
 	    std::ostringstream msg;
-	    msg << "Token neither a number, nor a boolean: <" << m_token.getTokenString() << ">";
+	    msg << "Token neither a number, nor a boolean: <" <<  m_state.getTokenDataAsString(&tok).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	}
       };
     return rtnok;
   } //setConstantValue
+
+
+  UTI NodeTerminal::setConstantTypeForNode(Token tok)
+  {
+    UTI newType = Nav;  //init
+    switch(tok.m_type)
+      {
+      case TOK_NUMBER_SIGNED:
+	newType = m_state.getUlamTypeOfConstant(Int);  	  // a constant Int
+	break;
+      case TOK_NUMBER_UNSIGNED:
+	newType = m_state.getUlamTypeOfConstant(Unsigned); // an Unsigned constant
+	break;
+      case TOK_KW_TRUE:
+      case TOK_KW_FALSE:
+	newType = m_state.getUlamTypeOfConstant(Bool);  	  // a constant Bool
+	break;
+      default:
+	{
+	  std::ostringstream msg;
+	  msg << "Token not a number or boolean: <" << m_state.getTokenDataAsString(&tok).c_str() << ">";
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	}
+      };
+
+    setNodeType(newType);
+    setStoreIntoAble(false);
+    return newType;
+  } //setConstantTypeForNode
 
 } //end MFM
