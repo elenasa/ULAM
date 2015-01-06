@@ -23,7 +23,7 @@ sub BEGIN {
 
 my $TOPLEVEL = "/home/elenas/WORK/ulam/repo/ULAM/ulam1";
 my $TESTDIR =  "/home/elenas/WORK/ulam/repo/ULAM/ulam1/src/test";
-my $EXEC_TEST_VALGRIND = 1;  #=1 produces uncomparable log files
+my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files
 
 sub usage_abort
 {

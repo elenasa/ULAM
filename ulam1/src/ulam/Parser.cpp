@@ -3196,50 +3196,6 @@ namespace MFM {
     return rtnNode;
   } //makeFactorNode
 
-#if 0
-  Node * Parser::MAKETERMINAL(Token& locTok, s32 val, ULAMTYPE etype)
-  {
-    Token tTok;
-    std::ostringstream num;
-    num << val;
-
-    if(etype == Int)
-      {
-	tTok.init(TOK_NUMBER_SIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString(num.str()));
-      }
-    else
-      {
-	num << "u";
-	tTok.init(TOK_NUMBER_UNSIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString(num.str()));
-      }
-
-     Node * termNode = new NodeTerminal(tTok, m_state);
-    assert(termNode);
-    //termNode->setNodeLocation(locTok.m_locator);
-    return termNode;
-  } //makeTerminal
-
-
-  Node * Parser::MAKETERMINAL(Token& locTok, u32 val, ULAMTYPE etype)
-  {
-    std::ostringstream num;
-    num << val;
-
-    Token tTok;
-    if(etype == Int)
-      tTok.init(TOK_NUMBER_SIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString(num.str()));
-    else
-      {
-	num << "u";
-	tTok.init(TOK_NUMBER_UNSIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString(num.str()));
-      }
-
-    Node * termNode = new NodeTerminal(tTok, m_state);
-    assert(termNode);
-    //termNode->setNodeLocation(locTok.m_locator);
-    return termNode;
-  } //makeTerminal
-#endif
 
   Node * Parser::makeTerminal(Token& locTok, s32 val, ULAMTYPE etype)
   {
