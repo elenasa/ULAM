@@ -26,6 +26,13 @@ namespace MFM {
     return false;
   }
 
+
+  bool UlamTypePtr::isMinMaxAllowed()
+  {
+    return false;
+  }
+
+
   PACKFIT UlamTypePtr::getPackable()
   {
     return UNPACKED;

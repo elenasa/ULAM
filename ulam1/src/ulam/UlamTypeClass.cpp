@@ -204,6 +204,11 @@ namespace MFM {
     return bitsize < 0 ? 0 : bitsize; //allow for empty quarks
   }
 
+  bool UlamTypeClass::isMinMaxAllowed()
+  {
+    return false;
+  }
+
 
   PACKFIT UlamTypeClass::getPackable()
   {
@@ -693,7 +698,7 @@ namespace MFM {
     if(sizeByIntBitsToBe != sizeByIntBits)
       {
 	std::ostringstream msg;
-	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: <" << nut->getUlamTypeName(&state).c_str() << ">, to be: " << sizeByIntBitsToBe << " for type: <" << getUlamTypeName(&state).c_str() << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << sizeByIntBitsToBe << " for type: " << getUlamTypeName(&state).c_str();// << " -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
 	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
       }
 
@@ -701,7 +706,7 @@ namespace MFM {
     if(m_class != UC_ELEMENT)
       {
 	std::ostringstream msg;
-	msg << "Quarks only cast 'toInt': value type and size was: <" << nut->getUlamTypeName(&state).c_str() << ">, to be: <" << getUlamTypeName(&state).c_str() << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	msg << "Quarks only cast 'toInt': value type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << getUlamTypeName(&state).c_str(); // << " -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
 	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
       }
 
@@ -709,7 +714,7 @@ namespace MFM {
     if(nodetype != UAtom)
       {
 	std::ostringstream msg;
-	msg << "Attempting to illegally cast a non-atom type to an element: value type and size was: <" << nut->getUlamTypeName(&state).c_str() << ">, to be: <" << getUlamTypeName(&state).c_str() << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	msg << "Attempting to illegally cast a non-atom type to an element: value type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << getUlamTypeName(&state).c_str(); // << " -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
 	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
       }
 
@@ -866,5 +871,6 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
+
 
 } //end MFM

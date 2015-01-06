@@ -37,7 +37,7 @@ namespace MFM {
     if(!m_nodeLeft->isStoreIntoAble())
       {
 	std::ostringstream msg;
-	msg << "Lefthand side of equals is 'Not StoreIntoAble': <" << m_nodeLeft->getName() << ">, type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << ">";
+	msg << "Lefthand side of equals is 'Not StoreIntoAble': <" << m_nodeLeft->getName() << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(newType);
 	setStoreIntoAble(false);
@@ -275,7 +275,7 @@ namespace MFM {
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     // lhs should be the new current object: node member select updates them,
-    // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
+    // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);      //may update m_currentObjSymbol, m_currentSelfSymbol

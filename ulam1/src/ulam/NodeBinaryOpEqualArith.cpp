@@ -24,7 +24,7 @@ namespace MFM {
     if(!nut->isScalar())
       {
 	std::ostringstream msg;
-	msg << "Non-scalars require a loop for operator" << getName() << " on LHS: <" << m_nodeLeft->getName() << ">, type: <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << ">";
+	msg << "Non-scalars require a loop for operator" << getName() << " on LHS: <" << m_nodeLeft->getName() << ">, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
@@ -92,7 +92,7 @@ namespace MFM {
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     // lhs should be the new current object: node member select updates them,
-    // but a plain NodeTerminalIdent does not!!!  because genCodeToStoreInto has been repurposed
+    // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);      //may update m_currentObjSymbol

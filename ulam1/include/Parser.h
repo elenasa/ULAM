@@ -414,9 +414,11 @@ namespace MFM{
     Node * makeFactorNode();
 
     /**
-       helper method to make a 'one' terminal node for ++/--
+       helper method to make a terminal node
+       for a constant value known at parse time (e.g. one for ++/--)
     */
-    Node * makeTerminalOne(Token& locTok);
+    Node * makeTerminal(Token& locTok, s32 val, ULAMTYPE etype);
+    Node * makeTerminal(Token& locTok, u32 val, ULAMTYPE etype);
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);

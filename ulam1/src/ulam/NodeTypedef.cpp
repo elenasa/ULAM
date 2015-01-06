@@ -53,14 +53,14 @@ namespace MFM {
       }
     else
       {
-	it = m_typedefSymbol->getUlamTypeIdx();  
+	it = m_typedefSymbol->getUlamTypeIdx();
 	//check for incomplete Classes
 	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_INCOMPLETE)
 	  {
 	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Typedef for type: <" << m_state.getUlamTypeNameByIndex(it).c_str() << "> used with variable symbol name <" << getName() << ">";
+		msg << "Incomplete Typedef for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }

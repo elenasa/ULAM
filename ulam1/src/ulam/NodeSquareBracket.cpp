@@ -1,7 +1,7 @@
 #include "NodeSquareBracket.h"
 #include "NodeFunctionCall.h"
 #include "NodeMemberSelect.h"
-#include "NodeTerminalIdent.h"
+#include "NodeIdent.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -52,7 +52,7 @@ namespace MFM {
 	if(!isCustomArray)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid Type: <" << m_state.getUlamTypeNameByIndex(leftType).c_str() << "> used with " << getName();
+	    msg << "Invalid Type: " << m_state.getUlamTypeNameByIndex(leftType).c_str() << " used with " << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorCount++;
 	  }
@@ -240,7 +240,7 @@ namespace MFM {
   }
 
 
-  //see also NodeTerminalIdent
+  //see also NodeIdent
   bool NodeSquareBracket::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -265,7 +265,7 @@ namespace MFM {
   }
 
 
-  //see also NodeTerminalIdent
+  //see also NodeIdent
   bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);

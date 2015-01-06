@@ -58,6 +58,11 @@ namespace MFM {
     return "v";
   }
 
+  bool UlamTypeVoid::isMinMaxAllowed()
+  {
+    return false;
+  }
+
 
   //anything can be cast to a void (not the reverse)
   bool UlamTypeVoid::cast(UlamValue & val, CompilerState& state)

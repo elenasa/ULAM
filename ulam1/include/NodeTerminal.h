@@ -48,6 +48,9 @@ namespace MFM{
   public:
 
     NodeTerminal(Token tok, CompilerState & state);
+    NodeTerminal(s32 val, CompilerState & state);
+    NodeTerminal(u32 val, CompilerState & state);
+    NodeTerminal(bool val, CompilerState & state);
     ~NodeTerminal();
 
     virtual void printPostfix(File * f);
@@ -55,6 +58,8 @@ namespace MFM{
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
+
+    virtual void constantFold(Token tok);
 
     virtual UTI checkAndLabelType();
 
@@ -73,12 +78,11 @@ namespace MFM{
     /** reads into a tmp BitVector */
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
-  protected:
-    Token m_token;
-
   private:
     EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
-    bool setConstantValue();
+    bool setConstantValue(Token tok);
+    UTI setConstantTypeForNode(Token tok);
+
     union {
       s32 sval;
       u32 uval;

@@ -46,10 +46,10 @@ namespace MFM{
   class UlamTypePtr : public UlamType
   {
   public:
-    
+
     UlamTypePtr(const UlamKeyTypeSignature key, const UTI uti);
     virtual ~UlamTypePtr(){}
-    
+
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual const std::string getUlamTypeVDAsStringForC();
@@ -58,10 +58,12 @@ namespace MFM{
 
     virtual PACKFIT getPackable();
 
+    virtual bool isMinMaxAllowed();
+
   private:
-    
+
   };
-  
+
 }
 
 #endif //end ULAMTYPEPTR_H

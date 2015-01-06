@@ -56,6 +56,52 @@ namespace MFM {
     return "a";  //self ???
   }
 
+  bool UlamTypeAtom::isMinMaxAllowed()
+  {
+    return false;
+  }
+
+  PACKFIT UlamTypeAtom::getPackable()
+  {
+    return UNPACKED;
+  }
+
+
+  bool UlamTypeAtom::cast(UlamValue & val, CompilerState& state)
+  {
+    bool brtn = true;
+    //UTI typidx = getUlamTypeIndex();
+    UTI valtypidx = val.getUlamValueTypeIdx();
+    UlamType * vut = state.getUlamTypeByIndex(valtypidx);
+    assert(vut->isScalar() && isScalar());
+
+    assert(vut->getUlamClass() == UC_ELEMENT);
+    // what change is to be made ????
+    // atom type vs. class type
+    // how can it be both in an UlamValue?
+    // what of its contents?
+    // val = UlamValue::makeAtom(valtypidx);
+
+    return brtn;
+  } //end cast
+
+
+  const std::string UlamTypeAtom::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  {
+    std::ostringstream rtnMethod;
+    UlamType * nut = state.getUlamTypeByIndex(nodetype);
+
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    s32 sizeByIntBitsToBe = getTotalWordSize();
+    s32 sizeByIntBits = nut->getTotalWordSize();
+
+    assert(sizeByIntBitsToBe == sizeByIntBits);
+    assert(nut->getUlamClass() == UC_ELEMENT);  //quarks only cast toInt
+
+    rtnMethod << "_" << "Element"  << sizeByIntBits << "To" << getUlamTypeNameOnly(&state).c_str() << sizeByIntBitsToBe;
+    return rtnMethod.str();
+  } //castMethodForCodeGen
+
 
   //whole atom
   void UlamTypeAtom::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
@@ -185,46 +231,5 @@ namespace MFM {
     fp->write("& v) { m_stg = v; }\n");
   } //genUlamTypeWriteDefinitionForC
 
-
-  PACKFIT UlamTypeAtom::getPackable()
-  {
-    return UNPACKED;
-  }
-
-
-  bool UlamTypeAtom::cast(UlamValue & val, CompilerState& state)
-  {
-    bool brtn = true;
-    //UTI typidx = getUlamTypeIndex();
-    UTI valtypidx = val.getUlamValueTypeIdx();
-    UlamType * vut = state.getUlamTypeByIndex(valtypidx);
-    assert(vut->isScalar() && isScalar());
-
-    assert(vut->getUlamClass() == UC_ELEMENT);
-    // what change is to be made ????
-    // atom type vs. class type
-    // how can it be both in an UlamValue?
-    // what of its contents?
-    // val = UlamValue::makeAtom(valtypidx);
-
-    return brtn;
-  } //end cast
-
-
-  const std::string UlamTypeAtom::castMethodForCodeGen(UTI nodetype, CompilerState& state)
-  {
-    std::ostringstream rtnMethod;
-    UlamType * nut = state.getUlamTypeByIndex(nodetype);
-
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    s32 sizeByIntBitsToBe = getTotalWordSize();
-    s32 sizeByIntBits = nut->getTotalWordSize();
-
-    assert(sizeByIntBitsToBe == sizeByIntBits);
-    assert(nut->getUlamClass() == UC_ELEMENT);  //quarks only cast toInt
-
-    rtnMethod << "_" << "Element"  << sizeByIntBits << "To" << getUlamTypeNameOnly(&state).c_str() << sizeByIntBitsToBe;
-    return rtnMethod.str();
-  } //castMethodForCodeGen
 
 } //end MFM

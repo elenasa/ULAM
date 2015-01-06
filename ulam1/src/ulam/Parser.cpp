@@ -45,7 +45,7 @@
 #include "NodeReturnStatement.h"
 #include "NodeSquareBracket.h"
 #include "NodeTerminal.h"
-#include "NodeTerminalIdent.h"
+#include "NodeIdent.h"
 #include "NodeTypeBitsize.h"
 #include "NodeTypedef.h"
 #include "NodeSimpleStatement.h"
@@ -131,6 +131,7 @@ namespace MFM {
 	  {
 	    P = new NodeProgram(compileThisId, m_state);
 	    P->setRootNode(rootNode);
+	    assert(P);
 	    P->setNodeLocation(rootNode->getNodeLocation());
 	    assert(m_state.m_classBlock == rootNode);
 	  }
@@ -273,6 +274,7 @@ namespace MFM {
     if(getExpectedToken(TOK_CLOSE_CURLY))
       {
 	rtnNode = new NodeBlockClassEmpty(m_state.m_currentBlock, m_state);
+	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	rtnNode->setNodeType(utype);
 
@@ -285,6 +287,7 @@ namespace MFM {
     assert(prevBlock == NULL); //this is the class' first block
 
     rtnNode = new NodeBlockClass(prevBlock, m_state);
+    assert(rtnNode);
     rtnNode->setNodeLocation(pTok.m_locator);
     rtnNode->setNodeType(utype);
 
@@ -346,6 +349,7 @@ namespace MFM {
 	      {
 		brtn = true;
 		nextNode = new NodeStatements(rtnNode, m_state);
+		assert(nextNode);
 		nextNode->setNodeLocation(rtnNode->getNodeLocation());
 	      }
 	  }
@@ -429,6 +433,7 @@ namespace MFM {
 		  {
 		    brtn = true;
 		    nextNode = new NodeStatements(rtnNode, m_state);
+		    assert(nextNode);
 		    nextNode->setNodeLocation(rtnNode->getNodeLocation());
 		  }
 	      }
@@ -461,11 +466,13 @@ namespace MFM {
     if(getExpectedToken(TOK_CLOSE_CURLY, QUIETLY))
       {
 	rtnNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); // legal
+	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	return rtnNode;
       }
 
     rtnNode = new NodeBlock(m_state.m_currentBlock, m_state);
+    assert(rtnNode);
     rtnNode->setNodeLocation(pTok.m_locator);
 
     // current, this block's symbol table added to parse tree stack
@@ -484,6 +491,7 @@ namespace MFM {
 	rtnNode = NULL;
 
 	rtnNode = new NodeBlockEmpty(prevBlock, m_state);  	// legal
+	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 
 	m_state.m_currentBlock = rtnNode; //very temporary
@@ -533,6 +541,7 @@ namespace MFM {
       }
 
     NodeStatements * rtnNode = new NodeStatements(sNode, m_state);
+    assert(rtnNode);
     rtnNode->setNodeLocation(sNode->getNodeLocation());
 
     if(!getExpectedToken(TOK_CLOSE_CURLY, QUIETLY))
@@ -659,6 +668,7 @@ namespace MFM {
 
     // wrapping body in NodeStatements produces proper comment for genCode
     NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
+    assert(trueStmtNode);
     trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
 
     Node * falseStmtNode = NULL;
@@ -669,11 +679,13 @@ namespace MFM {
 	if(falseNode != NULL)
 	  {
 	    falseStmtNode = new NodeStatements(falseNode, m_state);
+	    assert(falseStmtNode);
 	    falseStmtNode->setNodeLocation(falseNode->getNodeLocation());
 	  }
       }
 
     Node * rtnNode = new NodeControlIf(condNode, trueStmtNode, falseStmtNode, m_state);
+    assert(rtnNode);
     rtnNode->setNodeLocation(ifTok.m_locator);
 
     return rtnNode;
@@ -717,17 +729,21 @@ namespace MFM {
 
     // wrapping body in NodeStatements produces proper comment for genCode
     NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
+    assert(trueStmtNode);
     trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
 
     // end of while loop label, linked to end of body (true statement)
     Node * labelNode = new NodeLabel(controlLoopLabelNum, m_state);
+    assert(labelNode);
     labelNode->setNodeLocation(wTok.m_locator);
 
     NodeStatements * labelStmtNode = new NodeStatements(labelNode, m_state);
+    assert(labelStmtNode);
     labelStmtNode->setNodeLocation(wTok.m_locator);
     trueStmtNode->setNextNode(labelStmtNode);
 
     Node * rtnNode = new NodeControlWhile(condNode, trueStmtNode, m_state);
+    assert(rtnNode);
     rtnNode->setNodeLocation(wTok.m_locator);
 
     return rtnNode;
@@ -802,7 +818,7 @@ namespace MFM {
 	Token trueTok;
 	trueTok.init(TOK_KW_TRUE, qTok.m_locator, 0);
 	condNode = new NodeTerminal(trueTok, m_state);
-	condNode->setNodeLocation(qTok.m_locator);
+	//condNode->setNodeLocation(qTok.m_locator);
 	assert(condNode);
       } //conditional expres
 
@@ -871,9 +887,11 @@ namespace MFM {
 
     // end of while loop label, linked to end of body, before assign statement
     Node * labelNode = new NodeLabel(controlLoopLabelNum, m_state);
+    assert(labelNode);
     labelNode->setNodeLocation(rTok.m_locator);
 
     NodeStatements * labelStmtNode = new NodeStatements(labelNode, m_state);
+    assert(labelStmtNode);
     labelStmtNode->setNodeLocation(rTok.m_locator);
     trueStmtNode->setNextNode(labelStmtNode);
 
@@ -925,6 +943,7 @@ namespace MFM {
 
     // if empty still make auto
     NodeBlock * blockNode = new NodeBlock(m_state.m_currentBlock, m_state);
+    assert(blockNode);
     blockNode->setNodeLocation(asNode->getNodeLocation());
 
     // current, this block's symbol table added to parse tree stack
@@ -934,7 +953,7 @@ namespace MFM {
 
     // after the new block is setup: install the auto symbol into ST, and
     // make its auto local variable to shadow the lhs of 'as' as rhs type
-    NodeTerminalIdent * tmpnti = new NodeTerminalIdent(m_state.m_identTokenForConditionalAs, NULL, m_state);
+    NodeIdent * tmpnti = new NodeIdent(m_state.m_identTokenForConditionalAs, NULL, m_state);
     assert(tmpnti);
 
     Token typeTok = asNode->getTypeToken();
@@ -951,9 +970,11 @@ namespace MFM {
 
     //insert var decl into NodeStatements..as if parseStatement was called..
     Node * varNode = new NodeVarDecl((SymbolVariable*) asymptr, m_state);
+    assert(varNode);
     varNode->setNodeLocation(asNode->getNodeLocation());
 
     NodeStatements * stmtsNode = new NodeStatements(varNode, m_state);
+    assert(stmtsNode);
     stmtsNode->setNodeLocation(varNode->getNodeLocation());
 
     blockNode->setNextNode(stmtsNode);
@@ -972,6 +993,7 @@ namespace MFM {
       {
 	Node * sNode = parseStatement(); //get one statement only
 	NodeStatements * nextNode = new NodeStatements(sNode, m_state);
+	assert(nextNode);
 	nextNode->setNodeLocation(sNode->getNodeLocation());
 	stmtsNode->setNextNode(nextNode);
       }
@@ -997,6 +1019,7 @@ namespace MFM {
       {
 	unreadToken();
 	rtnNode = new NodeStatementEmpty(m_state);  	// empty statement
+	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
     else if(Token::isTokenAType(pTok))
@@ -1018,6 +1041,7 @@ namespace MFM {
 	if(m_state.m_parsingControlLoop)
 	  {
 	    rtnNode = new NodeBreakStatement(m_state);
+	    assert(rtnNode);
 	    rtnNode->setNodeLocation(pTok.m_locator);
 	  }
 	else
@@ -1030,6 +1054,7 @@ namespace MFM {
 	if(m_state.m_parsingControlLoop)
 	  {
 	    rtnNode = new NodeContinueStatement(m_state.m_parsingControlLoop, m_state);
+	    assert(rtnNode);
 	    rtnNode->setNodeLocation(pTok.m_locator);
 	  }
 	else
@@ -1054,6 +1079,7 @@ namespace MFM {
 	if(expNode)
 	  {
 	    rtnNode = new NodeSimpleStatement(expNode,m_state);
+	    assert(rtnNode);
 	    rtnNode->setNodeLocation(expNode->getNodeLocation());
 	  }
       }
@@ -1171,6 +1197,7 @@ namespace MFM {
 	else
 	  {
 	    bitsizeNode = new NodeTypeBitsize(bitsizeNode, m_state);
+	    assert(bitsizeNode);
 	    bitsizeNode->setNodeLocation(typeTok.m_locator);
 
 	    // eval what we need, and delete the node
@@ -1289,10 +1316,12 @@ namespace MFM {
     if(!rtnExprNode)
       {
 	rtnExprNode = new NodeStatementEmpty(m_state); //has Nav type
+	assert(rtnExprNode);
 	rtnExprNode->setNodeLocation(pTok.m_locator);
       }
 
     rtnNode =  new NodeReturnStatement(rtnExprNode, m_state);
+    assert(rtnNode);
     rtnNode->setNodeLocation(pTok.m_locator);
     return rtnNode;
   } //parseReturn
@@ -1376,7 +1405,7 @@ namespace MFM {
     m_state.alreadyDefinedSymbol(identTok.m_dataindex,asymptr);
 
     // make a variable;  symbol could be Null!
-    Node * rtnNode = new NodeTerminalIdent(identTok, (SymbolVariable *) asymptr, m_state);
+    Node * rtnNode = new NodeIdent(identTok, (SymbolVariable *) asymptr, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(identTok.m_locator);
 
@@ -1443,11 +1472,74 @@ namespace MFM {
 
   Node * Parser::parseMemberSelectExpr(Token memberTok)
   {
+    Symbol * dsymptr = NULL;
+    if(m_state.alreadyDefinedSymbol(memberTok.m_dataindex, dsymptr))
+      {
+	UTI duti = dsymptr->getUlamTypeIdx();
+	UlamType * dut = m_state.getUlamTypeByIndex(duti);
+	ULAMCLASSTYPE dclasstype = dut->getUlamClass();
+
+	// only way to use a primitive with a .dot
+	if(dclasstype == UC_NOTACLASS)
+	  {
+	    Token pTok;
+	    getNextToken(pTok);
+	    if(pTok.m_type != TOK_DOT)
+	      {
+		unreadToken();
+		return NULL;
+	      }
+
+	    Node * rtnNode = NULL;
+	    Token iTok;
+	    if(getExpectedToken(TOK_IDENTIFIER, iTok))
+	      {
+		if(iTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
+		  {
+		    rtnNode = makeTerminal(iTok, dut->getTotalBitSize(), Unsigned); //unsigned
+		  }
+		else if (iTok.m_dataindex == m_state.m_pool.getIndexForDataString("max"))
+		  {
+		    if(dut->isMinMaxAllowed())
+		      rtnNode = makeTerminal(iTok, dut->getMax(), dut->getUlamTypeEnum()); //unsigned
+		    else
+		      {
+			std::ostringstream msg;
+			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(duti).c_str();
+			MSG(&iTok, msg.str().c_str(), ERR);
+		      }
+		  }
+		else if (iTok.m_dataindex == m_state.m_pool.getIndexForDataString("min"))
+		  {
+		    if(dut->isMinMaxAllowed())
+		      rtnNode = makeTerminal(iTok, dut->getMin(), dut->getUlamTypeEnum()); //signed
+		    else
+		      {
+			std::ostringstream msg;
+			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(duti).c_str();
+			MSG(&iTok, msg.str().c_str(), ERR);
+		      }
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Undefined request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(duti).c_str();
+		    MSG(&iTok, msg.str().c_str(), ERR);
+		  }
+	      }
+	    else
+	      {
+		unreadToken();		//error!
+	      }
+	    return rtnNode;
+	  } //not a class
+      }  //not defined
+
     // arg is an instance of a class, it will be/was
     // declared as a variable, either as a data member or locally,
     // WAIT To  search back through the block symbol tables during type labeling
-
-    Node * classInstanceNode = new NodeTerminalIdent(memberTok, (SymbolVariable *) NULL, m_state);
+    Node * classInstanceNode = new NodeIdent(memberTok, (SymbolVariable *) dsymptr, m_state);
+    assert(classInstanceNode);
     classInstanceNode->setNodeLocation(memberTok.m_locator);
 
     return parseRestOfMemberSelectExpr(classInstanceNode); //parseMemberSelect
@@ -1475,6 +1567,7 @@ namespace MFM {
 	m_state.m_useMemberBlock = true;  //oddly =true
 
 	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
+	assert(rtnNode);
 	rtnNode->setNodeLocation(iTok.m_locator);
 
 	//clear up compiler state to no longer use the member class block for symbol searches
@@ -1494,13 +1587,14 @@ namespace MFM {
     if(m_state.m_currentBlock->isIdInScope(identTok.m_dataindex,asymptr))
       {
 	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 	MSG(&identTok, msg.str().c_str(), ERR);
 	return NULL;
       }
 
     //fill in func symbol during type labeling; supports function overloading
     NodeFunctionCall * rtnNode = new NodeFunctionCall(identTok, NULL, m_state);
+    assert(rtnNode);
     rtnNode->setNodeLocation(identTok.m_locator);
 
     //member selection doesn't apply to arguments (during parsing too)
@@ -1658,7 +1752,8 @@ namespace MFM {
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
 	rtnNode = new NodeTerminal(pTok, m_state);
-	rtnNode->setNodeLocation(pTok.m_locator);
+	assert(rtnNode);
+	//rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_OPEN_PAREN:
 	rtnNode = parseRestOfCastOrExpression();
@@ -1790,6 +1885,7 @@ namespace MFM {
     if(getExpectedToken(TOK_CLOSE_PAREN))
       {
 	rtnNode = new NodeCast(parseFactor(), typeToBe, m_state);
+	assert(rtnNode);
 	rtnNode->setNodeLocation(typeTok.m_locator);
 	((NodeCast *) rtnNode)->setExplicitCast();
       }
@@ -2087,6 +2183,7 @@ namespace MFM {
     else
       {
 	rtnNode = new NodeSquareBracket(leftNode, rightNode, m_state);
+	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
 
@@ -2139,9 +2236,11 @@ namespace MFM {
 	  {
 	    //rtnNode =  new NodeVarDeclList(dNode, sNode, m_state) ;
 	    rtnNode =  new NodeStatements(dNode, m_state);
+	    assert(rtnNode);
 	    rtnNode->setNodeLocation(dNode->getNodeLocation());
 
 	    NodeStatements * nextNode = new NodeStatements(sNode, m_state);
+	    assert(nextNode);
 	    nextNode->setNodeLocation(dNode->getNodeLocation());
 	    ((NodeStatements *) rtnNode)->setNextNode(nextNode);
 	  }
@@ -2160,12 +2259,13 @@ namespace MFM {
   Node * Parser::parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode)
   {
     NodeStatements * rtnNode = new NodeStatements(dNode, m_state);
+    assert(rtnNode);
     rtnNode->setNodeLocation(dNode->getNodeLocation());
 
     // makeup node for lhs; using same symbol as dNode(could be Null!)
     Symbol * dsymptr = NULL;
     assert(m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr));
-    Node * leftNode = new NodeTerminalIdent(identTok, (SymbolVariable *) dsymptr, m_state);
+    Node * leftNode = new NodeIdent(identTok, (SymbolVariable *) dsymptr, m_state);
     assert(leftNode);
     leftNode->setNodeLocation(dNode->getNodeLocation());
 
@@ -2173,6 +2273,7 @@ namespace MFM {
     assert(assignNode);
 
     NodeStatements * nextNode = new NodeStatements(assignNode, m_state);
+    assert(nextNode);
     nextNode->setNodeLocation(assignNode->getNodeLocation());
     rtnNode->setNextNode(nextNode);
 
@@ -2197,7 +2298,7 @@ namespace MFM {
 
     if(lvalNode)
       {
-	// lvalNode could be either a NodeTerminalIdent or a NodeSquareBracket
+	// lvalNode could be either a NodeIdent or a NodeSquareBracket
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
@@ -2208,7 +2309,7 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -2223,6 +2324,7 @@ namespace MFM {
 	else
 	  {
 	    rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, m_state);
+	    assert(rtnNode);
 	    rtnNode->setNodeLocation(typeTok.m_locator);
 	  }
 	delete lvalNode;  //done with it
@@ -2251,7 +2353,7 @@ namespace MFM {
     if(m_state.m_classBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
-	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
+	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&typeTok, msg.str().c_str(), ERR);
 
 	// eat tokens until end of definition ???
@@ -2286,6 +2388,7 @@ namespace MFM {
     // WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     //m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr);
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, m_state);
+    assert(rtnNode);
     rtnNode->setNodeLocation(typeTok.m_locator);
 
     // symbol will have pointer to body (or just decl for 'use');
@@ -2343,7 +2446,7 @@ namespace MFM {
     if(fnSym->getUlamTypeIdx() != fsymptr->getUlamTypeIdx())
       {
 	std::ostringstream msg;
-	msg << "Return Type <"  << m_state.getUlamTypeNameByIndex(fsymptr->getUlamTypeIdx()).c_str() << "> does not agree with return type of already defined function '" << m_state.m_pool.getDataAsString(fnSym->getId()) << "' with the same name and return type <" << m_state.getUlamTypeNameByIndex(fnSym->getUlamTypeIdx()).c_str() << ">";
+	msg << "Return Type: "  << m_state.getUlamTypeNameByIndex(fsymptr->getUlamTypeIdx()).c_str() << " does not agree with return type of already defined function '" << m_state.m_pool.getDataAsString(fnSym->getId()) << "' with the same name and return type: " << m_state.getUlamTypeNameByIndex(fnSym->getUlamTypeIdx()).c_str();
 	MSG(&typeTok, msg.str().c_str(),ERR);
 	delete fsymptr;
 	rtnNode = NULL;
@@ -2489,6 +2592,7 @@ namespace MFM {
 	  {
 	    //MSG(&pTok, "Empty Function Definition", WARN);
 	    nextNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); //legal
+	    assert(nextNode);
 	    nextNode->setNodeLocation(pTok.m_locator);
 	  }
 	else
@@ -2510,6 +2614,7 @@ namespace MFM {
       {
 	NodeStatements * nextNode;
 	nextNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); //legal
+	assert(nextNode);
 	nextNode->setNodeLocation(qTok.m_locator);
 	funcNode->setNextNode(nextNode);
 
@@ -2540,7 +2645,7 @@ namespace MFM {
 
     if(lvalNode)
       {
-	// lvalNode could be either a NodeTerminalIdent or a NodeSquareBracket
+	// lvalNode could be either a NodeIdent or a NodeSquareBracket
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
@@ -2558,7 +2663,7 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameBriefByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -2573,6 +2678,7 @@ namespace MFM {
 	else
 	  {
 	    rtnNode =  new NodeTypedef((SymbolTypedef *) asymptr, m_state);
+	    assert(rtnNode);
 	    rtnNode->setNodeLocation(typeTok.m_locator);
 	  }
 	delete lvalNode;  //done with it
@@ -2662,7 +2768,6 @@ namespace MFM {
 	}
 	break;
       };
-
     assert(rtnNode);
     rtnNode->setNodeLocation(fTok.m_locator);
     return rtnNode;
@@ -3043,19 +3148,40 @@ namespace MFM {
 	switch(pTok.m_type)
 	  {
 	  case TOK_MINUS:
-	    rtnNode = new NodeUnaryOpMinus(factorNode, m_state);
+	    {
+	      UTI futi = factorNode->getNodeType();
+	      if( (futi != Nav) && m_state.isConstant(futi))
+		{
+		  factorNode->constantFold(pTok);
+		  rtnNode = factorNode;
+		}
+	      else
+		{
+		  rtnNode = new NodeUnaryOpMinus(factorNode, m_state);
+		  assert(rtnNode);
+		  rtnNode->setNodeLocation(pTok.m_locator);
+		}
+	    }
 	    break;
 	  case TOK_PLUS:
 	    rtnNode = new NodeUnaryOpPlus(factorNode, m_state);
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(pTok.m_locator);
 	    break;
 	  case TOK_BANG:
 	    rtnNode = new NodeUnaryOpBang(factorNode, m_state);
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(pTok.m_locator);
 	    break;
 	  case TOK_PLUS_PLUS:
-	    rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminalOne(pTok), m_state);
+	    rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminal(pTok, 1, Int), m_state);
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(pTok.m_locator);
 	    break;
 	  case TOK_MINUS_MINUS:
-	    rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminalOne(pTok), m_state);
+	    rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminal(pTok, 1, Int), m_state);
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(pTok.m_locator);
 	    break;
 	  default:
 	    {
@@ -3066,24 +3192,51 @@ namespace MFM {
 	    }
 	    break;
 	  };
-	assert(rtnNode);
-	rtnNode->setNodeLocation(pTok.m_locator);
       }
     return rtnNode;
   } //makeFactorNode
 
 
-  // used for ++/--
-  Node * Parser::makeTerminalOne(Token& locTok)
+  Node * Parser::makeTerminal(Token& locTok, s32 val, ULAMTYPE etype)
   {
-	//make a '1' node
-	Token oneTok;
-	oneTok.init(TOK_NUMBER_SIGNED, locTok.m_locator, m_state.m_pool.getIndexForDataString("1"));
-	Node * oneNode = new NodeTerminal(oneTok, m_state);
-	oneNode->setNodeLocation(locTok.m_locator);
-	assert(oneNode);
-	return oneNode;
-  } //makeOneTerminal
+    Node * termNode = NULL;
+    if(etype == Int)
+      {
+	termNode = new NodeTerminal(val, m_state);
+      }
+    else if(etype == Bool)
+      {
+	termNode = new NodeTerminal((bool) val, m_state);
+      }
+    else
+      {
+	termNode = new NodeTerminal((u32) val, m_state);
+      }
+    assert(termNode);
+    termNode->setNodeLocation(locTok.m_locator);
+    return termNode;
+  } //makeTerminal
+
+
+  Node * Parser::makeTerminal(Token& locTok, u32 val, ULAMTYPE etype)
+  {
+    Node * termNode = NULL;
+    if(etype == Int)
+      {
+	termNode = new NodeTerminal((s32) val, m_state);
+      }
+    else if(etype == Bool)
+      {
+	termNode = new NodeTerminal((bool) val, m_state);
+      }
+    else
+      {
+	termNode = new NodeTerminal(val, m_state);
+      }
+    assert(termNode);
+    termNode->setNodeLocation(locTok.m_locator);
+    return termNode;
+  } //makeTerminal
 
 
   bool Parser::getExpectedToken(TokenType eTokType, bool quietly)

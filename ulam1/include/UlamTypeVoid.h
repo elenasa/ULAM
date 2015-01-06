@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
+    virtual bool isMinMaxAllowed();
+
     virtual bool cast(UlamValue & val, CompilerState& state);
 
   private:

@@ -18,7 +18,7 @@ namespace MFM {
 
 
 
-  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti), m_wordLengthTotal(0), m_wordLengthItem(0)
+  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
   {}
 
 
@@ -474,6 +474,24 @@ namespace MFM {
     m_wordLengthItem = iw;  //e.g. 32, 64, 96
   }
 
+
+  bool UlamType::isMinMaxAllowed()
+  {
+    return isScalar();
+  }
+
+  u32 UlamType::getMax()
+  {
+    assert(isMinMaxAllowed());
+    return m_max;
+  }
+
+  s32 UlamType::getMin()
+  {
+    assert(isMinMaxAllowed());
+    return m_min;
+  }
+
   PACKFIT UlamType::getPackable()
   {
     PACKFIT rtn = UNPACKED;            //was false == 0
@@ -594,7 +612,7 @@ namespace MFM {
     if(sizeByIntBitsToBe != sizeByIntBits)
       {
 	std::ostringstream msg;
-	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: <" << nut->getUlamTypeName(&state).c_str() << ">, to be: " << sizeByIntBitsToBe << " for type: <" << getUlamTypeName(&state).c_str() << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << sizeByIntBitsToBe << " for type: " << getUlamTypeName(&state).c_str(); // << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
 	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
       }
 
