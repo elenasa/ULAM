@@ -22,7 +22,7 @@ namespace MFM {
     if(!(luti == UAtom || lclasstype == UC_ELEMENT))
       {
 	std::ostringstream msg;
-	msg << "Invalid type for LHS of conditional operator '" << getName() << "'; must be an atom or an element, not <" << m_state.getUlamTypeNameByIndex(luti).c_str() << ">";
+	msg << "Invalid type for LHS of conditional operator '" << getName() << "'; must be an atom or an element, not type: " << m_state.getUlamTypeNameByIndex(luti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
@@ -33,7 +33,7 @@ namespace MFM {
     if(rclasstype != UC_ELEMENT)
       {
 	std::ostringstream msg;
-	msg << "Invalid type for RHS of conditional operator '" << getName() << "'; must be an element name, not <" << m_state.getUlamTypeNameByIndex(ruti).c_str() << ">";
+	msg << "Invalid type for RHS of conditional operator '" << getName() << "'; must be an element name, not type: " << m_state.getUlamTypeNameByIndex(ruti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }

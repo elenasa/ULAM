@@ -25,6 +25,10 @@ namespace MFM {
     fp->write(id);
   }
 
+  void Node::constantFold(Token tok)
+  {
+    assert(0);  //only NodeTerminal has this defined
+  }
 
   // any node above assignexpr is not storeintoable;
   // and has no type (e.g. statements, statement, block, program)
@@ -69,7 +73,7 @@ namespace MFM {
 	//happens too often with Bool.1.-1 for some reason; and Quark toInt special case
 	// handle quietly
 	//std::ostringstream msg;
-	//msg << "Casting 'like' types: <" << m_state.getUlamTypeNameByIndex(nuti).c_str() << "> as a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+	//msg << "Casting 'like' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	//MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 
 	return node;
@@ -136,7 +140,7 @@ namespace MFM {
     if(doErrMsg)
       {
 	std::ostringstream msg;
-	msg << "Cannot CAST type <" << m_state.getUlamTypeNameByIndex(nuti).c_str() << "> as a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << ">";
+	msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
@@ -155,7 +159,7 @@ namespace MFM {
       {
 	rtnB = true;
 	std::ostringstream msg;
-	msg << "Narrowing CAST: type <" << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "> to a <" << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "> may cause data loss";
+	msg << "Narrowing CAST, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to a " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << " may cause data loss";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
     return rtnB;
@@ -1521,7 +1525,7 @@ namespace MFM {
   void Node::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     std::ostringstream msg;
-    msg << "genCodeToStoreInto called on Node type <" << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << "> and failed.";
+    msg << "genCodeToStoreInto called on Node type: " << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << ", and failed.";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     assert(0);
     return;

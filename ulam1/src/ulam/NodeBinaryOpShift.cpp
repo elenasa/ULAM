@@ -73,13 +73,13 @@ namespace MFM {
 	if(m_state.isConstant(rt) && m_nodeRight->isNegativeConstant())
 	  {
 	    std::ostringstream msg;
-	    msg << "Negative shift! Recommend shifting in the opposite direction, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary shift operator" << getName();
+	    msg << "Negative shift! Recommend shifting in the opposite direction, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary shift operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
 	else if(m_state.isConstant(rt) && m_nodeRight->isWordSizeConstant())
 	  {
 	    std::ostringstream msg;
-	    msg << "Bitwise shift by any number greater than or equal to 32 is undefined. LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary shift operator" << getName();
+	    msg << "Bitwise shift by any number greater than or equal to 32 is undefined. LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary shift operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
 
@@ -88,7 +88,7 @@ namespace MFM {
 	if(etyp == Unary || etyp == Bool)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bool and Unary are not currently supported for bitwise shift operator" << getName() << "; suggest casting <" << m_state.getUlamTypeNameByIndex(lt).c_str() << "> to Bits";
+	    msg << "Bool and Unary are not currently supported for bitwise shift operator" << getName() << "; suggest casting " << m_state.getUlamTypeNameByIndex(lt).c_str() << " to Bits";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }
@@ -97,7 +97,7 @@ namespace MFM {
       {
 	//array op scalar: defer since the question of matrix operations is unclear at this time.
 	std::ostringstream msg;
-	msg << "Unsupported (nonscalar) types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for bitwise shift operator" << getName() << " ; suggest writing a loop";
+	msg << "Unsupported (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for bitwise shift operator" << getName() << " ; suggest writing a loop";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return newType;

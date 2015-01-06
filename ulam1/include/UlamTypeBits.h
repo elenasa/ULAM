@@ -56,6 +56,8 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
+    virtual bool isMinMaxAllowed();
+
     virtual bool cast(UlamValue & val, CompilerState& state);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);

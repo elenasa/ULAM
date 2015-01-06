@@ -76,6 +76,8 @@ namespace MFM{
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
 
+    virtual bool isMinMaxAllowed();
+
     virtual PACKFIT getPackable();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);

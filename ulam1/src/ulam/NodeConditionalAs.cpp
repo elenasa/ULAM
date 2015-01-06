@@ -40,7 +40,7 @@ namespace MFM {
     if(!(luti == UAtom || lclasstype == UC_ELEMENT))
       {
 	std::ostringstream msg;
-	msg << "Invalid type for LHS of conditional operator '" << getName() << "'; must be an atom, or element, not <" << m_state.getUlamTypeNameByIndex(luti).c_str() << ">";
+	msg << "Invalid type for LHS of conditional operator '" << getName() << "'; must be an atom, or element, not type: " << m_state.getUlamTypeNameByIndex(luti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
@@ -52,7 +52,7 @@ namespace MFM {
     if(!(rclasstype == UC_QUARK || rclasstype == UC_ELEMENT))
       {
 	std::ostringstream msg;
-	msg << "Invalid type for RHS of conditional operator '" << getName() << "'; must be a quark or element name, not <" << m_state.getUlamTypeNameByIndex(ruti).c_str() << ">";
+	msg << "Invalid type for RHS of conditional operator '" << getName() << "'; must be a quark or element name, not type: " << m_state.getUlamTypeNameByIndex(ruti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
@@ -106,14 +106,14 @@ namespace MFM {
 	    if(luti != UAtom)
 	      {
 		std::ostringstream msg;
-		msg << "Invalid type for LHS of conditional operator '" << getName() << "'; Class Not Found: <"  << m_state.getUlamTypeNameByIndex(luti).c_str() << ">";
+		msg << "Invalid type for LHS of conditional operator '" << getName() << "'; Class Not Found: "  << m_state.getUlamTypeNameByIndex(luti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Invalid type for LHS of conditional operator '" << getName() <<  "', <"  << m_state.getUlamTypeNameByIndex(luti).c_str() << ">; Passing through as UNFOUND for eval";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+		msg << "Invalid type for LHS of conditional operator '" << getName() <<  "', "  << m_state.getUlamTypeNameByIndex(luti).c_str() << "; Passing through as UNFOUND for eval";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
 

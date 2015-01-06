@@ -12,6 +12,9 @@ namespace MFM {
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
+    // consider s64 later...
+    m_max = calcBitsizeUnsignedMax(getBitSize());
+    m_min = 0;
   }
 
 

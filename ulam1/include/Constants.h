@@ -48,7 +48,7 @@ namespace MFM {
 #ifndef BITSPERATOM
 #define BITSPERATOM (96)
 #endif //BITSPERATOM
-  
+
 #ifndef ATOMFIRSTSTATEBITPOS
 #define ATOMFIRSTSTATEBITPOS (25)
 #endif //ATOMFIRSTSTATEBITPOS
@@ -104,8 +104,8 @@ namespace MFM {
   static const u32 ULAMTYPE_DEFAULTBITSIZE[] = {
 #include "UlamType.inc"
   };
-  
-#undef XX 
+
+#undef XX
 #endif //ULAMTYPE_DEFAULTBITSIZE
 
 
@@ -117,6 +117,11 @@ namespace MFM {
       hold the bit size argument l */
 #define calcWordSizeLong(l) ((l / MAXBITSPERLONG) * MAXBITSPERLONG + ( (l % MAXBITSPERLONG) > 0 ? MAXBITSPERLONG : 0))
 
+#define calcBitsizeSignedMax(l) (l == MAXBITSPERINT ? S32_MAX : ((1 << (l - 1)) - 1))
+#define calcBitsizeSignedMin(l) (l == MAXBITSPERINT ? S32_MIN : _SignExtend32((1 << (l - 1)), l))
+
+#define calcBitsizeUnsignedMax(l) (l == MAXBITSPERINT ? U32_MAX : (1u << l) - 1)
+#define calcBitsizeUnsignedMin(l) (0)
 
 #define WSUBDIR true
 

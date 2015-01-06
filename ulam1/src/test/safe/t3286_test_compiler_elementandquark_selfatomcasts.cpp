@@ -7,14 +7,9 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /* gen code output:
-	 assert: arg is 1
-	 after assert's abort: arg is 1
-	 assert: arg is 1
-	 after assert's abort: arg is 1
       */
       // no cast cond
-      //Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(3);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  b a System has = s ( b ! )assert . a f cast = a Foo is cast cond bi true cast = if f a cast = f System has cast cond bh true cast = if d a System has cast 3 cast +b = d return } }\nExit status: 3
-      return std::string("Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(3);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  b a System has = s ( b ! )assert . a f cast = a Foo is cond bi true cast = if b a System has = s ( b )assert . f a cast = f System has cond bh true cast = if d a System has cast 3 cast +b = d return } }\nExit status: 3");
+      return std::string("Ue_Foo { Int(32) test() {  Atom(96) a;  Bar b;  b ( self cast )func . a self cast = 0 cast return } }\nExit status: 0");
     }
 
     std::string PresetTest(FileManagerString * fms)

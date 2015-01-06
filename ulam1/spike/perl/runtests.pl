@@ -23,7 +23,7 @@ sub BEGIN {
 
 my $TOPLEVEL = "/home/elenas/WORK/ulam/repo/ULAM/ulam1";
 my $TESTDIR =  "/home/elenas/WORK/ulam/repo/ULAM/ulam1/src/test";
-my $EXEC_TEST_VERBOSE = 0;  #=1 produces uncomparable log files
+my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files
 
 sub usage_abort
 {
@@ -93,12 +93,13 @@ sub main
 	    # useful System Quark:
 	    `cp $TESTDIR/safe/t3207_test_compiler_quarksystem_inside_a_quark.cpp $TESTDIR/.`;
 
-	    if($EXEC_TEST_VERBOSE)
+	    if($EXEC_TEST_VALGRIND)
 	    {
 		`cp $src $dest 1> $log 2> $errlog`;
 		`COMMANDS=1 make -C $TOPLEVEL testclean 1>> $log 2>> $errlog`;
 		`valgrind ./bin/test 1>> $log 2>> $errlog`;
 		`COMMANDS=1 make -C $TESTDIR gen 1>> $log 2>> $errlog`;
+		`valgrind $TESTDIR/bin/main 1>> $log 2>> $errlog`;
 		#clean up
 		$dest = $dest . "/" . $testf;
 		`rm -f $dest`;

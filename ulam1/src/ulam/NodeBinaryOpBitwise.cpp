@@ -49,7 +49,7 @@ namespace MFM {
 	if(!m_state.isScalar(lt) && (etyp == Unary || etyp == Bool))
 	  {
 	    std::ostringstream msg;
-	    msg << "Nonscalar types Bool and Unary are not currently supported for binary bitwise operator" << getName() << "; suggest writing a loop for <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">";
+	    msg << "Nonscalar types Bool and Unary are not currently supported for binary bitwise operator" << getName() << "; suggest writing a loop for: " << m_state.getUlamTypeNameByIndex(lt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	else
@@ -64,7 +64,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) types, LHS: <" << m_state.getUlamTypeNameByIndex(lt).c_str() << ">, RHS: <" << m_state.getUlamTypeNameByIndex(rt).c_str() << "> for binary bitwise operator" << getName();
+	    msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary bitwise operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }

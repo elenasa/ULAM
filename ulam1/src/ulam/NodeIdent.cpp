@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "NodeTerminalIdent.h"
+#include "NodeIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
 #include "NodeTypeBitsize.h"
@@ -9,38 +9,38 @@
 
 namespace MFM {
 
-  NodeTerminalIdent::NodeTerminalIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : NodeTerminal(tok, state), m_varSymbol(symptr) {}
+  NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr) {}
 
-  NodeTerminalIdent::~NodeTerminalIdent(){}
+  NodeIdent::~NodeIdent(){}
 
 
-  void NodeTerminalIdent::printPostfix(File * fp)
+  void NodeIdent::printPostfix(File * fp)
   {
     fp->write(" ");
     fp->write(getName());
   }
 
 
-  const char * NodeTerminalIdent::getName()
+  const char * NodeIdent::getName()
   {
     return m_state.getTokenDataAsString(&m_token).c_str();
   }
 
 
-  const std::string NodeTerminalIdent::prettyNodeName()
+  const std::string NodeIdent::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
 
-  bool NodeTerminalIdent::getSymbolPtr(Symbol *& symptrref)
+  bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
     return true;
   }
 
 
-  UTI NodeTerminalIdent::checkAndLabelType()
+  UTI NodeIdent::checkAndLabelType()
   {
     UTI it = Nav;  //init
 
@@ -86,7 +86,7 @@ namespace MFM {
   } //checkAndLabelType
 
 
-  EvalStatus NodeTerminalIdent::eval()
+  EvalStatus NodeIdent::eval()
   {
     assert(m_varSymbol);
     evalNodeProlog(0); //new current frame pointer
@@ -151,7 +151,7 @@ namespace MFM {
   }
 
 
-  EvalStatus NodeTerminalIdent::evalToStoreInto()
+  EvalStatus NodeIdent::evalToStoreInto()
   {
     assert(m_varSymbol);
     assert(isStoreIntoAble());
@@ -168,7 +168,7 @@ namespace MFM {
   }
 
 
-  UlamValue NodeTerminalIdent::makeUlamValuePtr()
+  UlamValue NodeIdent::makeUlamValuePtr()
   {
     UlamValue ptr;
 
@@ -207,7 +207,7 @@ namespace MFM {
 
 
   //new
-  UlamValue NodeTerminalIdent::makeUlamValuePtrForCodeGen()
+  UlamValue NodeIdent::makeUlamValuePtrForCodeGen()
   {
     s32 tmpnum = m_state.getNextTmpVarNumber();
 
@@ -242,7 +242,7 @@ namespace MFM {
   } //makeUlamValuePtrForCodeGen
 
 
-  bool NodeTerminalIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  bool NodeIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
@@ -264,7 +264,7 @@ namespace MFM {
 	  {
 	    //error can't support typedefs changing arraysizes
 	    std::ostringstream msg;
-	    msg << "Arraysize (" << tdarraysize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(tduti).c_str() << ">, and cannot be redefined by typedef: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">, to (" << arraysize << ")";
+	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(tduti).c_str() << ", and cannot be redefined by typedef: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">, to [" << arraysize << "]";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
@@ -296,7 +296,7 @@ namespace MFM {
 
 
   //see also NodeSquareBracket
-  bool NodeTerminalIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
@@ -326,7 +326,7 @@ namespace MFM {
 	      {
 		//error can't support double arrays
 		std::ostringstream msg;
-		msg << "Arraysize (" << tdarraysize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+		msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(aut).c_str() << ", and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		return false;
 	      }
@@ -343,7 +343,7 @@ namespace MFM {
 	      {
 		//error can't support different bitsizes
 		std::ostringstream msg;
-		msg << "Bitsize (" << tdbitsize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type <" << m_state.getUlamTypeNameByIndex(aut).c_str() << ">, and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+		msg << "Bitsize (" << tdbitsize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(aut).c_str() << ", and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		return false;
 	      }
@@ -400,7 +400,7 @@ namespace MFM {
   } //installSymbolVariable
 
 
-  SymbolVariable *  NodeTerminalIdent::makeSymbol(UTI aut)
+  SymbolVariable *  NodeIdent::makeSymbol(UTI aut)
   {
     //adjust decl count and max_depth, used for function definitions
     PACKFIT packit = m_state.determinePackable(aut);
@@ -449,14 +449,14 @@ namespace MFM {
 
 
 #if 0
-  void NodeTerminalIdent::GENCODE(File * fp)
+  void NodeIdent::GENCODE(File * fp)
   {
     fp->write(m_varSymbol->getMangledName().c_str());
   }
 #endif
 
 
-  void NodeTerminalIdent::genCode(File * fp, UlamValue & uvpass)
+  void NodeIdent::genCode(File * fp, UlamValue & uvpass)
   {
     //return the ptr for an array; square bracket will resolve down to the immediate data
     uvpass = makeUlamValuePtrForCodeGen();
@@ -468,7 +468,7 @@ namespace MFM {
   } //genCode
 
 
-  void NodeTerminalIdent::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  void NodeIdent::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     //e.g. return the ptr for an array; square bracket will resolve down to the immediate data
     uvpass = makeUlamValuePtrForCodeGen();
@@ -479,7 +479,7 @@ namespace MFM {
 
 
   // overrides NodeTerminal that reads into a tmp var BitVector
-  void NodeTerminalIdent::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
+  void NodeIdent::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
   {
     Node::genCodeReadIntoATmpVar(fp, uvpass);
   }
