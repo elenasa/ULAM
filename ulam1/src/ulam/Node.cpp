@@ -25,6 +25,10 @@ namespace MFM {
     fp->write(id);
   }
 
+  void Node::constantFold(Token tok)
+  {
+    assert(0);  //only NodeTerminal has this defined
+  }
 
   // any node above assignexpr is not storeintoable;
   // and has no type (e.g. statements, statement, block, program)

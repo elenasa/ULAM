@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeTerminalIdent.h - Node handling Terminal Identifiers for ULAM
+ * NodeIdent.h - Node handling Identifiers for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,30 +26,30 @@
  */
 
 /**
-  \file NodeTerminalIdent.h - Node handling Terminal Identifiers for ULAM
+  \file NodeIdent.h - Node handling Identifiers for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014,2015 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODETERMINALIDENT_H
-#define NODETERMINALIDENT_H
+#ifndef NODEIDENT_H
+#define NODEIDENT_H
 
-#include "NodeTerminal.h"
+#include "Node.h"
 #include "Token.h"
 #include "SymbolVariable.h"
 #include "UlamType.h"
 
 namespace MFM{
 
-  class NodeTerminalIdent : public NodeTerminal
+  class NodeIdent : public Node
   {
   public:
 
-    NodeTerminalIdent(Token tok, SymbolVariable * symptr, CompilerState & state);
-    ~NodeTerminalIdent();
+    NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state);
+    ~NodeIdent();
 
     virtual void printPostfix(File * fp);
 
@@ -76,6 +76,7 @@ namespace MFM{
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
   private:
+    Token m_token;
     SymbolVariable * m_varSymbol;
 
     SymbolVariable *  makeSymbol(UTI aut);
@@ -85,4 +86,4 @@ namespace MFM{
 
 }
 
-#endif //end NODETERMINALIDENT_H
+#endif //end NODEIDENT_H

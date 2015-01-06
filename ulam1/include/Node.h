@@ -93,6 +93,8 @@ namespace MFM{
     virtual const std::string prettyNodeName() = 0;
     const std::string nodeName(const std::string& prettyFunction);
 
+    virtual void constantFold(Token tok);
+
     void evalNodeProlog(u32 depth);
     void evalNodeEpilog();
 

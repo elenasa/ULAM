@@ -4,7 +4,7 @@
 #include "CompilerState.h"
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
-#include "NodeTerminalIdent.h"
+#include "NodeIdent.h"
 
 namespace MFM {
 
