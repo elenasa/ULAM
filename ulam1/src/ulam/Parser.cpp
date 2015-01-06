@@ -1278,9 +1278,7 @@ namespace MFM {
 
 		rtnbitsize = tdut->getBitSize();
 		rtnarraysize = tdut->getArraySize();
-	      }
-	    //else
-	      {
+
 		//not a typedef, possibly its another class? go again..
 		parseTypeFromAnotherClassesTypedef(typeTok, rtnbitsize, rtnarraysize);
 	      }
@@ -1297,6 +1295,8 @@ namespace MFM {
       }
     else
       {
+	unreadToken();
+
 	std::ostringstream msg;
 	msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type: <" << m_state.getTokenDataAsString(&typeTok).c_str() << ">";
 	MSG(&typeTok, msg.str().c_str(),ERR);
@@ -1466,8 +1466,8 @@ namespace MFM {
       {
 	unreadToken();  // not a member select
       }
-    return rtnNode;  //parseIdentExpr
-  }
+    return rtnNode;
+  } //parseIdentExpr
 
 
   Node * Parser::parseMemberSelectExpr(Token memberTok)
@@ -1475,65 +1475,9 @@ namespace MFM {
     Symbol * dsymptr = NULL;
     if(m_state.alreadyDefinedSymbol(memberTok.m_dataindex, dsymptr))
       {
-	UTI duti = dsymptr->getUlamTypeIdx();
-	UlamType * dut = m_state.getUlamTypeByIndex(duti);
-	ULAMCLASSTYPE dclasstype = dut->getUlamClass();
-
-	// only way to use a primitive with a .dot
-	if(dclasstype == UC_NOTACLASS)
-	  {
-	    Token pTok;
-	    getNextToken(pTok);
-	    if(pTok.m_type != TOK_DOT)
-	      {
-		unreadToken();
-		return NULL;
-	      }
-
-	    Node * rtnNode = NULL;
-	    Token iTok;
-	    if(getExpectedToken(TOK_IDENTIFIER, iTok))
-	      {
-		if(iTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
-		  {
-		    rtnNode = makeTerminal(iTok, dut->getTotalBitSize(), Unsigned); //unsigned
-		  }
-		else if (iTok.m_dataindex == m_state.m_pool.getIndexForDataString("max"))
-		  {
-		    if(dut->isMinMaxAllowed())
-		      rtnNode = makeTerminal(iTok, dut->getMax(), dut->getUlamTypeEnum()); //unsigned
-		    else
-		      {
-			std::ostringstream msg;
-			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(duti).c_str();
-			MSG(&iTok, msg.str().c_str(), ERR);
-		      }
-		  }
-		else if (iTok.m_dataindex == m_state.m_pool.getIndexForDataString("min"))
-		  {
-		    if(dut->isMinMaxAllowed())
-		      rtnNode = makeTerminal(iTok, dut->getMin(), dut->getUlamTypeEnum()); //signed
-		    else
-		      {
-			std::ostringstream msg;
-			msg << "Unsupported request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(duti).c_str();
-			MSG(&iTok, msg.str().c_str(), ERR);
-		      }
-		  }
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << "Undefined request: '" << m_state.getTokenDataAsString(&iTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(duti).c_str();
-		    MSG(&iTok, msg.str().c_str(), ERR);
-		  }
-	      }
-	    else
-	      {
-		unreadToken();		//error!
-	      }
-	    return rtnNode;
-	  } //not a class
-      }  //not defined
+	Node * rtnNode = parseMinMaxSizeofType(memberTok, dsymptr->getUlamTypeIdx());
+	if(rtnNode) return rtnNode;
+      }  //not defined, or not min/max/sizeof..continue
 
     // arg is an instance of a class, it will be/was
     // declared as a variable, either as a data member or locally,
@@ -1544,6 +1488,68 @@ namespace MFM {
 
     return parseRestOfMemberSelectExpr(classInstanceNode); //parseMemberSelect
   }
+
+
+  Node * Parser::parseMinMaxSizeofType(Token memberTok, UTI utype)
+  {
+    Node * rtnNode = NULL;
+    UlamType * ut = m_state.getUlamTypeByIndex(utype);
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
+
+    // only way to use a primitive with a .dot
+    if(classtype == UC_NOTACLASS)
+      {
+	Token pTok;
+	getNextToken(pTok);
+	if(pTok.m_type != TOK_DOT)
+	  {
+	    unreadToken();
+	    return NULL;
+	  }
+
+	Token fTok;
+	if(getExpectedToken(TOK_IDENTIFIER, fTok))
+	  {
+	    if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
+	      {
+		rtnNode = makeTerminal(fTok, ut->getTotalBitSize(), Unsigned); //unsigned
+	      }
+	    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("max"))
+	      {
+		if(ut->isMinMaxAllowed())
+		  rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum()); //unsigned
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+		    MSG(&fTok, msg.str().c_str(), ERR);
+		  }
+	      }
+	    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("min"))
+	      {
+		if(ut->isMinMaxAllowed())
+		  rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum()); //signed
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+		    MSG(&fTok, msg.str().c_str(), ERR);
+		  }
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+		MSG(&fTok, msg.str().c_str(), ERR);
+	      }
+	  }
+	else
+	  {
+	    unreadToken();  	    // dot goes back
+	  }
+      } //not a class
+    return rtnNode;
+  } //parseMinMaxSizeofType
 
 
   Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
