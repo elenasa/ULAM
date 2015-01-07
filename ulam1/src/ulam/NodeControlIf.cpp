@@ -14,6 +14,14 @@ namespace MFM {
   }
 
 
+  void NodeControlIf::updateLineage(Node * p)
+  {
+    NodeControl::updateLineage(p);
+    if(m_nodeElse)
+      m_nodeElse->updateLineage(this);
+  }
+
+
   void NodeControlIf::print(File * fp)
   {
     NodeControl::print(fp);

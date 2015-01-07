@@ -49,6 +49,8 @@ namespace MFM{
     NodeConditional(Node * leftNode, Token typeTok, CompilerState & state);
     ~NodeConditional();
 
+    virtual void updateLineage(Node * p);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);

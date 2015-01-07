@@ -7,8 +7,17 @@
 
 namespace MFM {
 
-  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav) {}
+  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav), m_parent(NULL) {}
 
+  void Node::setYourParent(Node * parent)
+  {
+    m_parent = parent;
+  }
+
+  void Node::updateLineage(Node * p)
+  {
+    setYourParent(p);  //walk the tree..a leaf.
+  }
 
   void Node::print(File * fp)
   {

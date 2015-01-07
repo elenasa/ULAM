@@ -262,7 +262,7 @@ namespace MFM {
       return m_nodeLeft->installSymbolTypedef(atok, bitsize, newarraysize, asymptr);
 
     return false;  //error getting array size
-  }
+  } //installSymbolTypedef
 
 
   //see also NodeIdent
@@ -287,7 +287,7 @@ namespace MFM {
       return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, asymptr);
 
     return false;  //error getting array size
-  }
+  } //installSymbolVariable
 
 
   // eval() performed even before check and label!
@@ -307,7 +307,7 @@ namespace MFM {
 	evalNodeEpilog();
 
 	newarraysize = arrayUV.getImmediateData(m_state);
-	if(newarraysize == NONARRAYSIZE)
+	if(newarraysize < 0) //== NONARRAYSIZE
 	  {
 	    MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
 	    return false;

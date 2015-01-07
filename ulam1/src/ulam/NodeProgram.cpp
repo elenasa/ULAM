@@ -41,6 +41,13 @@ namespace MFM {
   }
 
 
+  void NodeProgram::updateLineage(Node * p)
+  {
+    setYourParent(p);             //god is null
+    m_root->updateLineage(this);  //walk the tree..
+  }
+
+
   void NodeProgram::setRootNode(NodeBlockClass * root)
   {
     m_root = root;
@@ -97,6 +104,8 @@ namespace MFM {
   {
     assert(m_root);
     m_state.m_err.clearCounts();
+
+    m_root->updateLineage(this);
 
     // needed before square bracket nodes do their checkandlabelling
     //m_state.m_programDefST.initializeCustomArraysForTableOfClasses();
