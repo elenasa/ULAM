@@ -66,8 +66,9 @@ namespace MFM {
 
     m_state.m_useMemberBlock = saveUseMemberBlock;
 
-    //must be some kind of Int..of any bit size
-    if(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Int)
+    //must be some kind of Int or Unsigned..of any bit size
+    ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
+    if(!(retype == Int || retype == Unsigned))
       {
 	m_nodeRight = makeCastingNode(m_nodeRight, Int);  //refactored
       }
@@ -85,9 +86,8 @@ namespace MFM {
 	// multi-dimensional possible
 	setStoreIntoAble(true);
       }
-
     return newType;
-  }
+  } //checkAndLabelType
 
 
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
@@ -152,7 +152,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }
+  } //eval
 
 
   EvalStatus NodeSquareBracket::evalToStoreInto()
@@ -220,7 +220,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }
+  } //evalToStoreInto
 
 
   UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
@@ -297,8 +297,8 @@ namespace MFM {
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
 
-    // expect a constant integer
-    if(sizetype == m_state.getUlamTypeOfConstant(Int))
+    // expect a constant integer or constant unsigned integer
+    if(sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned))
       {
 	evalNodeProlog(0);             //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
