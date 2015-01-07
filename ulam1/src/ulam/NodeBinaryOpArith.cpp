@@ -65,8 +65,13 @@ namespace MFM {
     if( m_state.isScalar(lt) && m_state.isScalar(rt))
       {
 	//return constant expressions as constants for constant folding (e.g. sq bracket, type bitsize);
-	if(lt == rt && m_state.isConstant(lt))
-	  return lt;
+	// could be a signed constant and an unsigned constant, i.e. not equal.
+	//if(lt == rt && m_state.isConstant(lt))
+	if(m_state.isConstant(lt) && m_state.isConstant(rt))
+	  {
+	    if(lt == rt) return lt;
+	    return m_state.getUlamTypeOfConstant(Int);
+	  }
 
 	newType = Int;
 
