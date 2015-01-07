@@ -160,7 +160,7 @@ namespace MFM {
       }
 
     return (P);  //ownership transferred to caller
-  }
+  } //parseProgram
 
 
   bool Parser::parseThisClass()
@@ -189,7 +189,6 @@ namespace MFM {
     getNextToken(iTok);
 
     //insure the class name starts with a capital letter, and is not a primitive (e.g. TOK_TYPE_INT)
-    //if(!(iTok.m_type == TOK_IDENTIFIER && Token::isTokenAType(iTok,&m_state)))
     if(iTok.m_type != TOK_TYPE_IDENTIFIER)
       {
 	std::ostringstream msg;
@@ -258,8 +257,8 @@ namespace MFM {
       }
 
     //return true when we've seen THIS class
-    return (iTok.m_dataindex == m_state.m_compileThisId); //parseThisClass
-  }
+    return (iTok.m_dataindex == m_state.m_compileThisId);
+  } //parseThisClass
 
 
   NodeBlockClass * Parser::parseClassBlock(UTI utype)
@@ -301,8 +300,6 @@ namespace MFM {
     NodeStatements * nextNode = rtnNode;
     NodeStatements * stmtNode = NULL;
 
-    //initPrimitiveUlamTypes();
-
     while( parseDataMember(stmtNode))   //could be false, in case of function def
       {
 	if(stmtNode)
@@ -322,8 +319,8 @@ namespace MFM {
     //this block's ST is no longer in scope
     m_state.m_currentBlock = prevBlock;
 
-    return rtnNode;  //parseBlockClass
-  }
+    return rtnNode;
+  } //parseBlockClass
 
 
   bool Parser::parseDataMember(NodeStatements *& nextNode)
@@ -450,8 +447,8 @@ namespace MFM {
       }
 
     m_state.m_parsingElementParameterVariable = false;
-    return brtn;  //parseDataMember
-  }
+    return brtn;
+  } //parseDataMember
 
 
   Node * Parser::parseBlock()
@@ -514,8 +511,8 @@ namespace MFM {
     //sanity check
     assert(!rtnNode || rtnNode->getPreviousBlockPointer() == prevBlock);
 
-    return rtnNode;  //parseBlock
-  }  //parseBlock
+    return rtnNode;
+  } //parseBlock
 
 
   Node * Parser::parseStatements()
@@ -550,9 +547,8 @@ namespace MFM {
       }
     else
       unreadToken();
-
-    return rtnNode; //parseStatements
-  }
+    return rtnNode;
+  } //parseStatements
 
 
   Node * Parser::parseStatement()
@@ -577,9 +573,8 @@ namespace MFM {
 	unreadToken();
 	rtnNode = parseSimpleStatement(); // may be null (only ;)
       }
-
-    return rtnNode;   //parseStatement
-  }
+    return rtnNode;
+  } //parseStatement
 
 
   Node * Parser::parseControlStatement()
@@ -1084,7 +1079,6 @@ namespace MFM {
 	  }
       }
 
-
     if(!getExpectedToken(TOK_SEMICOLON))
       {
 	MSG(&pTok, "Invalid Statement (possible missing semicolon)", ERR);
@@ -1115,7 +1109,6 @@ namespace MFM {
 	Token iTok;
 	getNextToken(iTok);
 	//insure the typedef name starts with a capital letter
-	//if(iTok.m_type == TOK_IDENTIFIER && Token::isTokenAType(iTok,&m_state))
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
 	    rtnNode = makeTypedefSymbol(pTok, typebitsize, arraysize, iTok);
@@ -1174,14 +1167,12 @@ namespace MFM {
 
 	unreadToken();
       }
-    return rtnNode;  //parseDecl
-  }
+    return rtnNode;
+  } //parseDecl
 
 
   void Parser::parseTypeBitsize(Token & typeTok, u32& typebitsize, s32& arraysize)
   {
-    //u32 typebitsize = 0;
-
     Token bTok;
     getNextToken(bTok);
 
@@ -1232,8 +1223,6 @@ namespace MFM {
   // using the type token, bitsize, and arraysize.
   void Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, u32& rtnbitsize, s32& rtnarraysize)
   {
-    SymbolClass * csym = NULL;
-
     Token nTok;
     getNextToken(nTok);
     if(nTok.m_type != TOK_DOT)
@@ -1242,6 +1231,7 @@ namespace MFM {
 	return;  //done.
       }
 
+    SymbolClass * csym = NULL;
     if(m_state.alreadyDefinedSymbolClass(typeTok.m_dataindex, csym))
       {
 	bool saveUseMemberBlock = m_state.m_useMemberBlock;
@@ -1292,23 +1282,19 @@ namespace MFM {
 	else
 	  {
 	    unreadToken();
-
 	    std::ostringstream msg;
 	    msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&typeTok).c_str() << "> is not a type";
 	    MSG(&typeTok, msg.str().c_str(),ERR);
 	  }
-
 	m_state.m_useMemberBlock = saveUseMemberBlock; //restore
 	m_state.m_currentMemberClassBlock = saveMemberClassBlock;
       }
     else
       {
-	unreadToken();  //put dot back
-
+	unreadToken();  //put dot back, minof or maxof perhaps?
 	//std::ostringstream msg;
 	//msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type: <" << m_state.getTokenDataAsString(&typeTok).c_str() << ">";
 	//MSG(&typeTok, msg.str().c_str(),ERR);
-	//not a class!
       }
     return;
   } //parseTypeFromAnotherClassesTypedef
@@ -1485,7 +1471,7 @@ namespace MFM {
       {
 	Node * rtnNode = parseMinMaxSizeofType(memberTok, dsymptr->getUlamTypeIdx());
 	if(rtnNode) return rtnNode;
-      }  //not defined, or not min/max/sizeof..continue
+      } //not defined, or not min/max/sizeof..continue
 
     // arg is an instance of a class, it will be/was
     // declared as a variable, either as a data member or locally,
@@ -1494,8 +1480,8 @@ namespace MFM {
     assert(classInstanceNode);
     classInstanceNode->setNodeLocation(memberTok.m_locator);
 
-    return parseRestOfMemberSelectExpr(classInstanceNode); //parseMemberSelect
-  }
+    return parseRestOfMemberSelectExpr(classInstanceNode);
+  } //parseMemberSelect
 
 
   Node * Parser::parseMinMaxSizeofType(Token memberTok, UTI utype)
@@ -1653,7 +1639,7 @@ namespace MFM {
     msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
     MSG(&pTok, msg.str().c_str(),ERR);
     return false;
-  }
+  } //parseRestOfFunctionCallArguments
 
 
   Node * Parser::parseExpression()
@@ -1664,8 +1650,8 @@ namespace MFM {
       return NULL;  //stop this maddness
 
     // if not addop, parseRestOfExpression returns its arg
-    return parseRestOfExpression(rtnNode);  //parseExpression
-  }
+    return parseRestOfExpression(rtnNode);
+  } //parseExpression
 
 
   Node * Parser::parseLogicalExpression()
@@ -1676,8 +1662,8 @@ namespace MFM {
       return NULL;  //stop this maddness
 
     // if not bitop, parseRestOfLogicalExpression returns its arg
-    return parseRestOfLogicalExpression(rtnNode);  //parseLogicalExpression
-  }
+    return parseRestOfLogicalExpression(rtnNode);
+  } //parseLogicalExpression
 
 
   Node * Parser::parseBitExpression()
@@ -1688,8 +1674,8 @@ namespace MFM {
       return NULL;  //stop this maddness
 
     // if not eqop, parseRestOfBitExpression returns its arg
-    return parseRestOfBitExpression(rtnNode);  //parseExpression
-  }
+    return parseRestOfBitExpression(rtnNode);
+  } //parseExpression
 
 
   Node * Parser::parseEqExpression()
@@ -1700,8 +1686,8 @@ namespace MFM {
       return NULL;  //stop this maddness
 
     // if not compop, parseRestOfEqExpression returns its arg
-    return parseRestOfEqExpression(rtnNode);  //parseExpression
-  }
+    return parseRestOfEqExpression(rtnNode);
+  } //parseExpression
 
 
   Node * Parser::parseCompareExpression()
@@ -1712,8 +1698,8 @@ namespace MFM {
       return NULL;  //stop this maddness
 
     // if not shiftop, parseRestOfCompareExpression returns its arg
-    return parseRestOfCompareExpression(rtnNode);  //parseCompareExpression
-  }
+    return parseRestOfCompareExpression(rtnNode);
+  } //parseCompareExpression
 
 
   Node * Parser::parseShiftExpression()
@@ -1724,8 +1710,8 @@ namespace MFM {
       return NULL;  //stop this maddness
 
     // if not addop, parseRestOfShiftExpression returns its arg
-    return parseRestOfShiftExpression(rtnNode);  //parseShiftExpression
-  }
+    return parseRestOfShiftExpression(rtnNode);
+  } //parseShiftExpression
 
 
   Node * Parser::parseTerm()
@@ -1736,8 +1722,8 @@ namespace MFM {
       return NULL;  //stop this maddness!
 
     // if not mulop, parseRestOfTerm returns rtnNode
-    return parseRestOfTerm(rtnNode); //parseTerm
-  }
+    return parseRestOfTerm(rtnNode);
+  } //parseTerm
 
 
   Node * Parser::parseFactor()
@@ -1782,7 +1768,7 @@ namespace MFM {
       case TOK_KW_FALSE:
 	rtnNode = new NodeTerminal(pTok, m_state);
 	assert(rtnNode);
-	//rtnNode->setNodeLocation(pTok.m_locator);
+	//rtnNode->setNodeLocation(pTok.m_locator); not needed
 	break;
       case TOK_OPEN_PAREN:
 	rtnNode = parseRestOfCastOrExpression();
@@ -1818,8 +1804,8 @@ namespace MFM {
 	  unreadToken(); //eat the error token
 	}
       };
-    return rtnNode;  //parseFactor
-  }
+    return rtnNode;
+  } //parseFactor
 
 
   Node * Parser::parseRestOfFactor(Node * leftNode)
@@ -1869,8 +1855,8 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-    return rtnNode;  //parseRestOfFactor
-  }
+    return rtnNode;
+  } //parseRestOfFactor
 
 
   Node * Parser::parseRestOfCastOrExpression()
@@ -1887,7 +1873,6 @@ namespace MFM {
     else
       {
 	unreadToken();
-	//rtnNode = parseExpression();  //grammar says assign_expr
 	rtnNode = parseAssignExpr();    //grammar says assign_expr
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
@@ -1896,7 +1881,7 @@ namespace MFM {
 	  }
       }
     return rtnNode;
-  }
+  } //parseRestOfCastOrExpression()
 
 
   Node * Parser::makeCastNode(Token typeTok)
@@ -1945,8 +1930,8 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-    return rtnNode;  //parseRestOfTerm
-  }
+    return rtnNode;
+  } //parseRestOfTerm
 
 
   Node * Parser::parseRestOfShiftExpression(Node * leftNode)
@@ -1978,8 +1963,8 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-    return rtnNode;  //parseRestOfShiftExpression
-  }
+    return rtnNode;
+  } //parseRestOfShiftExpression
 
 
   Node * Parser::parseRestOfCompareExpression(Node * leftNode)
@@ -2011,8 +1996,8 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-    return rtnNode;  //parseRestOfCompareExpression
-  }
+    return rtnNode;
+  } //parseRestOfCompareExpression
 
 
   Node * Parser::parseRestOfEqExpression(Node * leftNode)
@@ -2045,8 +2030,8 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-    return rtnNode;  //parseRestOfEQExpression
-  }
+    return rtnNode;
+  } //parseRestOfEQExpression
 
 
   Node * Parser::parseRestOfBitExpression(Node * leftNode)
@@ -2077,8 +2062,8 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-    return rtnNode;  //parseRestOfBitExpression
-  }
+    return rtnNode;
+  } //parseRestOfBitExpression
 
 
   Node * Parser::parseRestOfLogicalExpression(Node * leftNode)
@@ -2111,8 +2096,8 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-    return rtnNode;  //parseRestOfLogicalExpression
-  }
+    return rtnNode;
+  } //parseRestOfLogicalExpression
 
 
   Node * Parser::parseRestOfExpression(Node * leftNode)
@@ -2190,8 +2175,8 @@ namespace MFM {
 	  rtnNode = leftNode;
 	}
       };
-    return rtnNode;  //parseRestOfExpression
-  }
+    return rtnNode;
+  } //parseRestOfExpression
 
 
   Node * Parser::parseRestOfLvalExpr(Node * leftNode)
@@ -2221,8 +2206,9 @@ namespace MFM {
 	delete rtnNode;
 	rtnNode = NULL;
       }
-    return rtnNode;  //parseRestOfLValExpr
-  }
+    return rtnNode;
+  } //parseRestOfLValExpr
+
 
   //assignOK true by default.
   Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode, bool assignOK)
@@ -2263,7 +2249,6 @@ namespace MFM {
 	Node * sNode = makeVariableSymbol(typeTok, typebitsize, arraysize, iTok);  //a decl
 	if (sNode)
 	  {
-	    //rtnNode =  new NodeVarDeclList(dNode, sNode, m_state) ;
 	    rtnNode =  new NodeStatements(dNode, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(dNode->getNodeLocation());
@@ -2331,7 +2316,6 @@ namespace MFM {
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
-	//s32 arraysize = NONARRAYSIZE;
 
 	if(!lvalNode->installSymbolVariable(typeTok, typebitsize, arraysize, asymptr))
 	  {
@@ -2396,8 +2380,8 @@ namespace MFM {
     // exclude the declaration & definition from the parse tree
     // (since in SymbolFunction) & return NULL.
 
-    return rtnNode;  //makeFunctionSymbol
-  }
+    return rtnNode;
+  } //makeFunctionSymbol
 
 
   NodeBlockFunctionDefinition * Parser::makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok)
@@ -2526,8 +2510,8 @@ namespace MFM {
     m_state.m_currentFunctionBlockDeclSize = 0;  //default zero for datamembers
     m_state.m_currentFunctionBlockMaxDepth = 0;  //reset
 
-    return rtnNode;  //makeFunctionBlock
-  }
+    return rtnNode;
+  } //makeFunctionBlock
 
 
  void Parser::parseRestOfFunctionParameters(SymbolFunction * fsym)
@@ -2619,7 +2603,6 @@ namespace MFM {
 	NodeStatements * nextNode;
 	if(pTok.m_type == TOK_CLOSE_CURLY)
 	  {
-	    //MSG(&pTok, "Empty Function Definition", WARN);
 	    nextNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); //legal
 	    assert(nextNode);
 	    nextNode->setNodeLocation(pTok.m_locator);
@@ -2634,7 +2617,6 @@ namespace MFM {
 	if(!getExpectedToken(TOK_CLOSE_CURLY))
 	  {
 	    MSG(&pTok, "Not close curly", ERR);
-	    assert(0);  //???
 	  }
 	else
 	  unreadToken();
@@ -2678,7 +2660,6 @@ namespace MFM {
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
-	//s32 arraysize = NONARRAYSIZE;
 	UTI ut;
 	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, ut))
 	  {
@@ -2712,8 +2693,8 @@ namespace MFM {
 	  }
 	delete lvalNode;  //done with it
       }
-    return rtnNode;  //makeTypedefSymbol
-  }
+    return rtnNode;
+  } //makeTypedefSymbol
 
 
   Node * Parser::parseRestOfAssignExpr(Node * leftNode)
@@ -2751,8 +2732,8 @@ namespace MFM {
 	  break;
 	}
       };
-    return rtnNode;  //parseRestOfAssignExpr
-  }
+    return rtnNode;
+  } //parseRestOfAssignExpr
 
 
   Node * Parser::makeConditionalExprNode(Node * leftNode)
@@ -3295,7 +3276,7 @@ namespace MFM {
       }
     myTok = pTok;
     return true;
-  }
+  } //getExpectedToken
 
 
   bool Parser::getNextToken(Token & tok)
@@ -3310,7 +3291,7 @@ namespace MFM {
 	exit(1);
       }
     return brtn;
-  }
+  } //getNextToken
 
 
   void Parser::unreadToken()
@@ -3333,7 +3314,7 @@ namespace MFM {
 	getNextToken(aTok);
       }
     return;
-  }
+  } //getTokensUntil
 
 
   void Parser::initPrimitiveUlamTypes()
@@ -3383,7 +3364,6 @@ namespace MFM {
     m_state.m_funcCallStack.init(iidx);
     m_state.m_nodeEvalStack.init(iidx);
     //m_state.m_eventWindow.init(iidx); //necessary?
-  }
-
+  } //initPrimitiveUlamTypes
 
 } //end MFM
