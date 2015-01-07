@@ -13,7 +13,7 @@ namespace MFM {
     {
       // informed by t3258: typedef 'Symmetry' from quark used as data member array, and casted arg in element.
       // must already be parsed! (e.g. couldn't use element yet! because its Class Block doesn't exist).
-      bool rtn1 = fms->add("TypedefIssue.ulam","ulam 1;\nuse Vector;\n element TypedefIssue {\nVector.Vector.Symmetry x[2];\n Bool b;\nVector t;\n Int test() {\nif(t.set((Vector.Symmetry) 2, (Vector.Symmetry) 1))\n b=true;\n x[1]=t.m;\n return x[1];\n}\n}\n");
+      bool rtn1 = fms->add("TypedefIssue.ulam","ulam 1;\nuse Vector;\n element TypedefIssue {\nVector.Symmetry x[2];\n Bool b;\nVector t;\n Int test() {\nif(t.set((Vector.Symmetry) 2, (Vector.Symmetry) 1))\n b=true;\n x[1]=t.m;\n return x[1];\n}\n}\n");
 
       bool rtn2 = fms->add("Vector.ulam","ulam 1;\nquark Vector {\ntypedef Unsigned(3) Symmetry;\n Symmetry m;\nSymmetry n;\n Bool set(Symmetry vector, Symmetry index) {\nm=vector;\nn=index;\n return (m && n);\n }\n}\n");
 
