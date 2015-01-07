@@ -14,6 +14,13 @@ namespace MFM {
   }
 
 
+  void NodeConditional::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    m_nodeLeft->updateLineage(this);
+  }
+
+
   void NodeConditional::print(File * fp)
   {
     printNodeLocation(fp);

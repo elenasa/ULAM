@@ -15,6 +15,12 @@ namespace MFM {
     m_nodeRight = NULL;
   }
 
+  void NodeBinaryOp::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    m_nodeLeft->updateLineage(this);
+    m_nodeRight->updateLineage(this);
+  }
 
   void NodeBinaryOp::print(File * fp)
   {

@@ -61,6 +61,9 @@ namespace MFM{
     Node(CompilerState & state);
     virtual ~Node() {}
 
+    virtual void setYourParent(Node * parent);
+    virtual void updateLineage(Node * p);
+
     virtual void print(File * fp);
     virtual void printPostfix(File * fp) = 0;
 
@@ -162,12 +165,11 @@ namespace MFM{
 
     void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
-
   private:
     bool m_storeIntoAble;
     UTI m_nodeUType;
     Locator m_nodeLoc;
-
+    Node * m_parent;
   };
 
 }

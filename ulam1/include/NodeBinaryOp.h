@@ -45,9 +45,11 @@ namespace MFM{
   class NodeBinaryOp : public Node
   {
   public:
-    
+
     NodeBinaryOp(Node * left, Node * right, CompilerState & state);
     ~NodeBinaryOp();
+
+    virtual void updateLineage(Node * p);
 
     virtual void print(File * fp);
 

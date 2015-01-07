@@ -13,6 +13,13 @@ namespace MFM {
   }
 
 
+  void NodeUnaryOp::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    m_node->updateLineage(this);
+  }
+
+
   void NodeUnaryOp::print(File * fp)
   {
     printNodeLocation(fp);

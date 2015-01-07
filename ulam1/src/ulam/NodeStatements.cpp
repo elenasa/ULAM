@@ -15,6 +15,15 @@ namespace MFM {
     m_node = NULL;
   }
 
+  void NodeStatements::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    if(m_node)
+      m_node->updateLineage(this);
+    if(m_nextNode)
+      m_nextNode->updateLineage(this);
+  }
+
 
   void NodeStatements::print(File * fp)
   {

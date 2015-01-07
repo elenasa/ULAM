@@ -48,6 +48,8 @@ namespace MFM{
     NodeUnaryOp(Node * n, CompilerState & state);
     ~NodeUnaryOp();
 
+    virtual void updateLineage(Node * p);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);

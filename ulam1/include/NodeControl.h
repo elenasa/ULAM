@@ -45,9 +45,11 @@ namespace MFM{
   class NodeControl : public Node
   {
   public:
-    
+
     NodeControl(Node * condNode, Node * trueNode, CompilerState & state);
     ~NodeControl();
+
+    virtual void updateLineage(Node * p);
 
     virtual void print(File * fp);
 
@@ -60,7 +62,7 @@ namespace MFM{
     virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
-    
+
     Node * m_nodeCondition;
     Node * m_nodeBody;
 

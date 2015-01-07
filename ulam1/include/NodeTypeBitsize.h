@@ -40,13 +40,15 @@
 #include "Node.h"
 
 namespace MFM{
-  
+
   class NodeTypeBitsize : public Node
   {
   public:
-    
+
     NodeTypeBitsize(Node * node, CompilerState & state);
     ~NodeTypeBitsize();
+
+    virtual void updateLineage(Node * p);
 
     virtual void printPostfix(File * f);
 

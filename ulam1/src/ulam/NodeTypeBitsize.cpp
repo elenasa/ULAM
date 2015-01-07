@@ -13,6 +13,14 @@ namespace MFM {
     m_node = NULL;
   }
 
+
+  void NodeTypeBitsize::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    m_node->updateLineage(this);
+  }
+
+
   void NodeTypeBitsize::printPostfix(File * fp)
   {
     m_node->printPostfix(fp);

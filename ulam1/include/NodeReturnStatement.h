@@ -49,6 +49,8 @@ namespace MFM{
     NodeReturnStatement(Node * s, CompilerState & state);
     virtual ~NodeReturnStatement();
 
+    virtual void updateLineage(Node * p);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);

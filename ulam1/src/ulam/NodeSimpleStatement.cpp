@@ -12,20 +12,28 @@ namespace MFM {
     m_node = NULL;
   }
 
+
+  void NodeSimpleStatement::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    m_node->updateLineage(this);
+  }
+
+
   void NodeSimpleStatement::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)    
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    if(m_node) 
+    if(m_node)
       m_node->print(fp);
-    else 
+    else
       fp->write(" <EMPTYSTMT>\n");
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
@@ -39,7 +47,7 @@ namespace MFM {
 
     if(m_node)
       m_node->printPostfix(fp);
-    else 
+    else
       fp->write(" <EMPTYSTMT>");
   }
 
@@ -51,7 +59,7 @@ namespace MFM {
 
     m_node->checkAndLabelType();  //side-effect
 
-    //statements don't have types 
+    //statements don't have types
     setNodeType(Void);
     return getNodeType();
   }
@@ -80,7 +88,7 @@ namespace MFM {
     return evs;
   }
 
-  
+
   void NodeSimpleStatement::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
