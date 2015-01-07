@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3287_test_compiler_primitive_minmaxsizeof)
+  BEGINTESTCASECOMPILER(t3289_test_compiler_primitive_minmaxsizeof_bytype)
   {
     std::string GetAnswerKey()
     {
@@ -28,7 +28,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt test(){\nUnsigned u;\nInt(4) z; u = z.sizeof;\n s.print(u);\nInt i = z.minof;\n s.print(i);\n s.print(z.maxof);\nUnsigned(4) y;\n u = y.sizeof;\n s.print(u);\ni = y.minof;\n s.print(i);\n s.print(y.maxof);\nUnary(4) x;\n u = x.sizeof;\n s.print(u);\ni = x.minof;\n s.print(i);\n s.print(x.maxof);\n Bool(3) v;\n u = v.sizeof;\n s.print(u);\ni = v.minof;\n s.print(i);\n s.print(v.maxof);\nBits(2) t;\n u = t.sizeof;\n s.print(u);\n/* i = t.minof;\n */ return 0;\n}\n}\n");
+      bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt test(){\nUnsigned u;\nInt(4) z; u = Int(4).sizeof;\n s.print(u);\nInt i = Int(4).minof;\n s.print(i);\n s.print(Int(4).maxof);\nUnsigned(4) y;\n u = Unsigned(4).sizeof;\n s.print(u);\ni = Unsigned(4).minof;\n s.print(i);\n s.print(Unsigned(4).maxof);\nUnary(4) x;\n u = Unary(4).sizeof;\n s.print(u);\ni = Unary(4).minof;\n s.print(i);\n s.print(Unary(4).maxof);\n Bool(3) v;\n u = Bool(3).sizeof;\n s.print(u);\ni = Bool(3).minof;\n s.print(i);\n s.print(Bool(3).maxof);\nBits(2) t;\n u = Bits(2).sizeof;\n s.print(u);\n/* i = t.minof;\n */ return 0;\n}\n}\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
@@ -40,7 +40,7 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3287_test_compiler_primitive_minmaxsizeof)
+  ENDTESTCASECOMPILER(t3289_test_compiler_primitive_minmaxsizeof_bytype)
 
 } //end MFM
 

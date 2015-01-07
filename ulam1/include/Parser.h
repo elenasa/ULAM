@@ -216,6 +216,8 @@ namespace MFM{
     */
     Node * parseMemberSelectExpr(Token memberTok);
 
+    Node * parseMinMaxSizeofType(Token memberTok, UTI utype);
+
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 
 
