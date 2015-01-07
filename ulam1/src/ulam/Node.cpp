@@ -489,7 +489,8 @@ namespace MFM {
     assert(vuti != Void);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    assert(vut->getUlamTypeEnum() == Int);
+    ULAMTYPE vetype = vut->getUlamTypeEnum();
+    assert( vetype == Int || vetype == Unsigned);
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -647,7 +648,8 @@ namespace MFM {
     assert(vuti != Void);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    assert(vut->getUlamTypeEnum() == Int);
+    ULAMTYPE vetype = vut->getUlamTypeEnum();
+    assert( vetype == Int || vetype == Unsigned);
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
