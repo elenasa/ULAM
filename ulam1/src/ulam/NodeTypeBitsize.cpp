@@ -14,8 +14,8 @@ namespace MFM {
   }
 
   void NodeTypeBitsize::printPostfix(File * fp)
-  { 
-    m_node->printPostfix(fp); 
+  {
+    m_node->printPostfix(fp);
   }
 
 
@@ -35,10 +35,16 @@ namespace MFM {
   {
     UTI it = Nav;
     it = m_node->checkAndLabelType();
-    assert(it == m_state.getUlamTypeOfConstant(Int));
+    if(!(it == m_state.getUlamTypeOfConstant(Int) || it == m_state.getUlamTypeOfConstant(Unsigned)))
+      {
+	std::ostringstream msg;
+	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameByIndex(it) << ", inside (), is not a valid constant expression";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	it = Nav;
+      }
     setNodeType(it);
     return getNodeType();
-  }
+  } //checkAndLabelType
 
 
   EvalStatus NodeTypeBitsize::eval()
@@ -55,21 +61,21 @@ namespace MFM {
   {
     u32 newbitsize = ANYBITSIZECONSTANT;
     UTI sizetype = checkAndLabelType();
-    if(sizetype == m_state.getUlamTypeOfConstant(Int))
+    if(sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned))
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
-	m_node->eval();  
+	m_node->eval();
 	UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
-	evalNodeEpilog();     
-	
+	evalNodeEpilog();
+
 	newbitsize = bitUV.getImmediateData(m_state);
 	//if(newbitsize == 0)
 	//  {
 	//    MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not a constant expression", ERR);
 	//    return false;
 	//  }
-	
+
 	// warn against even Bool bits, and reduce by 1.
 	if(BUT == Bool && ((newbitsize % 2) == 0) )
 	  {
@@ -87,7 +93,7 @@ namespace MFM {
 
     rtnBitSize = newbitsize;
     return true;
-  }
+  } //getTypeBitSizeInParen
 
 } //end MFM
 
