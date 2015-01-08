@@ -3345,8 +3345,7 @@ namespace MFM {
   void Parser::initPrimitiveUlamTypes()
   {
     // initialize primitive UlamTypes, in order!!
-    //UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
-    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), UNKNOWNSIZE);
+    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
     UTI nidx = m_state.makeUlamType(nkey, Nav);
     assert(nidx == Nav);  //true for primitives
 
@@ -3374,8 +3373,7 @@ namespace MFM {
     UTI bitsidx = m_state.makeUlamType(bitskey, Bits);
     assert(bitsidx == Bits);
 
-    //UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), ULAMTYPE_DEFAULTBITSIZE[Class]);  //bits tbd
-    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), UNKNOWNSIZE);  //bits tbd
+    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), ULAMTYPE_DEFAULTBITSIZE[Class]);  //bits tbd
     UTI cidx = m_state.makeUlamType(ckey, Class);
     assert(cidx == Class);
 
