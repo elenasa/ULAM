@@ -43,6 +43,7 @@
 #include "NodeMemberSelect.h"
 #include "NodeProgram.h"
 #include "NodeReturnStatement.h"
+#include "NodeSizeofClass.h"
 #include "NodeSquareBracket.h"
 #include "NodeTerminal.h"
 #include "NodeIdent.h"
@@ -1237,12 +1238,16 @@ namespace MFM {
 	bool saveUseMemberBlock = m_state.m_useMemberBlock;
 	NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
 	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-	assert(memberClassNode);  // e.g. forgot the closing brace on quark def once
-	if(!memberClassNode)
+	if(!memberClassNode)  // e.g. forgot the closing brace on quark def once
 	  {
-	    std::ostringstream msg;
-	    msg << "Trying to use typedef from another class <" << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">, before it has been defined. Cannot continue";
-	    MSG(&typeTok, msg.str().c_str(),ERR);
+	    // hail mary..possibly a sizeof of incomplete class
+	    getNextToken(nTok);
+	    if(nTok.m_dataindex != m_state.m_pool.getIndexForDataString("sizeof"))
+	      {
+		std::ostringstream msg;
+		msg << "Trying to use typedef from another class <" << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">, before it has been defined. Cannot continue";
+		MSG(&typeTok, msg.str().c_str(),ERR);
+	      } //else return without modifying any args
 	    return;
 	  }
 
@@ -1251,29 +1256,30 @@ namespace MFM {
 	m_state.m_useMemberBlock = true;
 
 	//after the dot
-	getNextToken(typeTok);
-	if(Token::isTokenAType(typeTok))
+	getNextToken(nTok);
+	if(Token::isTokenAType(nTok))
 	  {
 	    UTI tduti;
-	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti))
+	    if(m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti))
 	      {
 		UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
 		ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
 		const std::string tdname = tdut->getUlamTypeNameOnly(&m_state);
 
+		//update token argument
 		if(tdclasstype == UC_NOTACLASS)
-		  typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), typeTok.m_locator, 0);
+		  typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), nTok.m_locator, 0);
 		else
-		  typeTok.init(TOK_TYPE_IDENTIFIER, typeTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
-
+		  typeTok.init(TOK_TYPE_IDENTIFIER, nTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
+		//update rest of argument refs
 		rtnbitsize = tdut->getBitSize();
 		rtnarraysize = tdut->getArraySize();
 	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&typeTok).c_str() << "> is not a typedef belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
-		MSG(&typeTok, msg.str().c_str(),ERR);
+		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str() << "> is not a typedef belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+		MSG(&nTok, msg.str().c_str(),ERR);
 	      }
 
 	    //not a typedef, possibly its another class? go again..
@@ -1281,10 +1287,13 @@ namespace MFM {
 	  }
 	else
 	  {
-	    unreadToken();
-	    std::ostringstream msg;
-	    msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&typeTok).c_str() << "> is not a type";
-	    MSG(&typeTok, msg.str().c_str(),ERR);
+	    if(nTok.m_dataindex != m_state.m_pool.getIndexForDataString("sizeof"))
+	      {
+		unreadToken();
+		std::ostringstream msg;
+		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str() << "> is not a type, or 'sizeof'";
+		MSG(&nTok, msg.str().c_str(),ERR);
+	      }
 	  }
 	m_state.m_useMemberBlock = saveUseMemberBlock; //restore
 	m_state.m_currentMemberClassBlock = saveMemberClassBlock;
@@ -1537,10 +1546,6 @@ namespace MFM {
 		MSG(&fTok, msg.str().c_str(), ERR);
 	      }
 	  }
-	else
-	  {
-	    unreadToken();  	    // dot goes back
-	  }
       } //not a class
     return rtnNode;
   } //parseMinMaxSizeofType
@@ -1574,7 +1579,6 @@ namespace MFM {
 	m_state.m_useMemberBlock = false;
 	m_state.m_currentMemberClassBlock = NULL;
       }
-    //return rtnNode;
     return parseRestOfMemberSelectExpr(rtnNode); //recurse
   } //parseRestOfMemberSelectExpr
 
@@ -1743,7 +1747,21 @@ namespace MFM {
 	// could be typedef from another class (pTok, typebitsize, arraysize updated!)
 	parseTypeBitsize(pTok, typebitsize, arraysize); //refs
 	UTI uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize);
-	rtnNode = parseMinMaxSizeofType(pTok, uti); //get's next dot token
+	UlamType * ut = m_state.getUlamTypeByIndex(uti);
+	ULAMCLASSTYPE classtype = ut->getUlamClass();
+	if(classtype == UC_NOTACLASS)
+	  rtnNode = parseMinMaxSizeofType(pTok, uti); //get's next dot token
+	else
+	  {
+	    //apparently even classes without totalled bitsizes, are not INCOMPLETE.
+	    //if(classtype == UC_INCOMPLETE)
+	      rtnNode = new NodeSizeofClass((s32) -uti, m_state); //oob signal
+	      //else
+	      //rtnNode = new NodeSizeofClass(ut->getTotalBitSize(), m_state);
+
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(pTok.m_locator);
+	  }
 	return rtnNode;  //rtnNode could be NULL!
       }
 

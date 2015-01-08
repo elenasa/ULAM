@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeTerminal.h - Basic Node handling Terminals for ULAM
+ * NodeSizeofClass.h - Basic Node handling Sizeof Classes for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,36 +26,29 @@
  */
 
 /**
-  \file NodeTerminal.h - Basic Node handling Terminals for ULAM
+  \file NodeSizeofClass.h - Basic Node handling Sizeof Classes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODETERMINAL_H
-#define NODETERMINAL_H
+#ifndef NODESIZEOFCLASS_H
+#define NODESIZEOFCLASS_H
 
-#include "Node.h"
-#include "Token.h"
+#include "NodeTerminal.h"
 
 
 namespace MFM{
 
-  class NodeTerminal : public Node
+  class NodeSizeofClass : public NodeTerminal
   {
   public:
 
-    NodeTerminal(Token tok, CompilerState & state);
-    NodeTerminal(s32 val, CompilerState & state);
-    NodeTerminal(u32 val, CompilerState & state);
-    NodeTerminal(bool val, CompilerState & state);
-    ~NodeTerminal();
-
-    virtual void printPostfix(File * f);
-
-    virtual const char * getName();
+    NodeSizeofClass(s32 neguti, CompilerState & state);
+    NodeSizeofClass(u32 val, CompilerState & state);
+    ~NodeSizeofClass();
 
     virtual const std::string prettyNodeName();
 
@@ -63,35 +56,9 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual bool fitsInBits(UTI fituti);
-
-    virtual bool isNegativeConstant();
-
-    virtual bool isWordSizeConstant();
-
-    virtual EvalStatus eval();
-
-    virtual void genCode(File * fp, UlamValue& uvpass);
-
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
-
-    /** reads into a tmp BitVector */
-    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
-
   private:
-    EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
-    bool setConstantValue(Token tok);
-    UTI setConstantTypeForNode(Token tok);
-
-  protected:
-    union {
-      s32 sval;
-      u32 uval;
-      bool bval;
-    } m_constant;
-
   };
 
 }
 
-#endif //end NODETERMINAL_H
+#endif //end NODESIZEOFCLASS_H

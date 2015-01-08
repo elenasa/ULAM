@@ -476,10 +476,10 @@ namespace MFM {
 
   s32 CompilerState::slotsNeeded(UTI uti)
   {
-    s32 arraysize = getArraySize(uti);
     if(uti == Void)
       return 0;
 
+    s32 arraysize = getArraySize(uti);
     PACKFIT packed = determinePackable(uti);
 
     if(WritePacked(packed))
@@ -487,7 +487,7 @@ namespace MFM {
     else
       arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
     return arraysize;
-  }
+  } //slotsNeeded
 
 
   bool CompilerState::getUlamTypeByClassToken(Token ctok, UTI & rtnType)
