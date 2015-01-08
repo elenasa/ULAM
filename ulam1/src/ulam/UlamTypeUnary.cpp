@@ -54,6 +54,14 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 valbitsize = state.getBitSize(valtypidx);
 
+    if(bitsize == UNKNOWNSIZE || valbitsize == UNKNOWNSIZE)
+      {
+	std::ostringstream msg;
+	msg << "Casting UNKNOWN sizes; " << bitsize << ", Value Type and size was: " << valtypidx << "," << valbitsize;
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	return false;
+      }
+
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     //ULAMTYPE typEnum = getUlamTypeEnum();
     ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();

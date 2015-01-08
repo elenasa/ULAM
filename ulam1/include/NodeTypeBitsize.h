@@ -60,7 +60,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    bool getTypeBitSizeInParen(u32& rtnBitSize, ULAMTYPE BUT);
+    bool getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT);
 
   private:
     Node * m_node;

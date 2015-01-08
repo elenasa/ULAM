@@ -142,6 +142,8 @@ namespace MFM{
 
     u32 getTotalBitSize();  //bitsize * arraysize, accounting for constants and scalars
 
+    bool isComplete();  //neither bitsize nor arraysize is "unknown"
+
     /** Number of bits (rounded up to nearest 32 bits) required to
     hold the total bit size  */
     u32 getTotalWordSize();

@@ -201,8 +201,10 @@ namespace MFM {
   s32 UlamTypeClass::getBitSize()
   {
     s32 bitsize = m_key.getUlamKeyTypeSignatureBitSize();
-    return bitsize < 0 ? 0 : bitsize; //allow for empty quarks
+    //return bitsize < 0 ? 0 : bitsize; //allow for empty quarks
+    return bitsize;  //could be negative "unknown"
   }
+
 
   bool UlamTypeClass::isMinMaxAllowed()
   {

@@ -65,9 +65,9 @@ namespace MFM {
   // called during parsing Type of variable, typedef, func return val;
   // Requires a constant expression for the bitsize, else error;
   // guards against even Bool's.
-  bool NodeTypeBitsize::getTypeBitSizeInParen(u32& rtnBitSize, ULAMTYPE BUT)
+  bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT)
   {
-    u32 newbitsize = ANYBITSIZECONSTANT;
+    s32 newbitsize = UNKNOWNSIZE; //was ANYBITSIZECONSTANT;
     UTI sizetype = checkAndLabelType();
     if(sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned))
       {
@@ -78,14 +78,14 @@ namespace MFM {
 	evalNodeEpilog();
 
 	newbitsize = bitUV.getImmediateData(m_state);
-	//if(newbitsize == 0)
-	//  {
-	//    MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not a constant expression", ERR);
-	//    return false;
-	//  }
+	if(newbitsize == UNKNOWNSIZE)
+	  {
+	    MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not yet a \"known\" constant expression", WARN);
+	    return false;
+	  }
 
 	// warn against even Bool bits, and reduce by 1.
-	if(BUT == Bool && ((newbitsize % 2) == 0) )
+	if(BUT == Bool  && ((newbitsize % 2) == 0) )
 	  {
 	    newbitsize--;
 	    std::ostringstream msg;

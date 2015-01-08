@@ -379,12 +379,11 @@ namespace MFM {
       }
 
     // check for Type bitsize specifier;
-    u32 typebitsize = 0;
+    s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
     parseTypeBitsize(pTok, typebitsize, arraysize);
 
     getNextToken(iTok);
-    //if(getExpectedToken(TOK_IDENTIFIER, iTok))
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//need another token to distinguish a function from a variable declaration (do so quietly)
@@ -953,7 +952,7 @@ namespace MFM {
     assert(tmpnti);
 
     Token typeTok = asNode->getTypeToken();
-    UTI tuti = m_state.getUlamTypeFromToken(typeTok, 0, NONARRAYSIZE);
+    UTI tuti = m_state.getUlamTypeFromToken(typeTok, 0, NONARRAYSIZE); //name-based, sizes ignored
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
     Symbol * asymptr = NULL;  //a place to put the new symbol
     tmpnti->installSymbolVariable(typeTok, tut->getBitSize(), tut->getArraySize(), asymptr);
@@ -1103,7 +1102,7 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	// check for Type bitsize specifier;
-	u32 typebitsize = 0;
+	s32 typebitsize = 0;
 	s32 arraysize = NONARRAYSIZE;
 	parseTypeBitsize(pTok, typebitsize, arraysize);
 
@@ -1144,7 +1143,7 @@ namespace MFM {
     assert(Token::isTokenAType(pTok));
 
     // check for Type bitsize specifier;
-    u32 typebitsize = 0;
+    s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
     parseTypeBitsize(pTok, typebitsize, arraysize);
 
@@ -1172,7 +1171,7 @@ namespace MFM {
   } //parseDecl
 
 
-  void Parser::parseTypeBitsize(Token & typeTok, u32& typebitsize, s32& arraysize)
+  void Parser::parseTypeBitsize(Token & typeTok, s32& typebitsize, s32& arraysize)
   {
     Token bTok;
     getNextToken(bTok);
@@ -1201,7 +1200,7 @@ namespace MFM {
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
-	    typebitsize = 0;   //?
+	    typebitsize = UNKNOWNSIZE;  //?
 	  }
       }
     else if(bTok.m_type == TOK_DOT)
@@ -1222,7 +1221,7 @@ namespace MFM {
   // represent the UTI; Admittedly, not the most elegant approach, but
   // it works with the existing code that installs symbol variables
   // using the type token, bitsize, and arraysize.
-  void Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, u32& rtnbitsize, s32& rtnarraysize)
+  void Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize)
   {
     Token nTok;
     getNextToken(nTok);
@@ -1247,7 +1246,11 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Trying to use typedef from another class <" << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">, before it has been defined. Cannot continue";
 		MSG(&typeTok, msg.str().c_str(),ERR);
-	      } //else return without modifying any args
+	      }
+	    else
+	      {
+		rtnbitsize = UNKNOWNSIZE;  //t.f. unknown bitsize or arraysize or both?
+	      }
 	    return;
 	  }
 
@@ -1293,6 +1296,10 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str() << "> is not a type, or 'sizeof'";
 		MSG(&nTok, msg.str().c_str(),ERR);
+	      }
+	    else
+	      {
+		rtnbitsize = UNKNOWNSIZE;  //t.f. unknown bitsize or arraysize or both?
 	      }
 	  }
 	m_state.m_useMemberBlock = saveUseMemberBlock; //restore
@@ -1742,7 +1749,7 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	// check for Type bitsize specifier;
-	u32 typebitsize = 0;
+	s32 typebitsize = 0;
 	s32 arraysize = NONARRAYSIZE;
 	// could be typedef from another class (pTok, typebitsize, arraysize updated!)
 	parseTypeBitsize(pTok, typebitsize, arraysize); //refs
@@ -1753,11 +1760,12 @@ namespace MFM {
 	  rtnNode = parseMinMaxSizeofType(pTok, uti); //get's next dot token
 	else
 	  {
-	    //apparently even classes without totalled bitsizes, are not INCOMPLETE.
+	    //apparently even classes without known bitsizes, are NOT INCOMPLETE.
 	    //if(classtype == UC_INCOMPLETE)
-	      rtnNode = new NodeSizeofClass((s32) -uti, m_state); //oob signal
-	      //else
-	      //rtnNode = new NodeSizeofClass(ut->getTotalBitSize(), m_state);
+	    if(ut->isComplete())
+	      rtnNode = new NodeSizeofClass(ut->getTotalBitSize(), m_state);
+	    else
+	      rtnNode = new NodeSizeofClass((s32) -uti, m_state); //oob signal (idea fails when expression)
 
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(pTok.m_locator);
@@ -1907,7 +1915,7 @@ namespace MFM {
     Node * rtnNode = NULL;
 
     // check for Type bitsize specifier;
-    u32 typebitsize = 0;
+    s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
     parseTypeBitsize(typeTok, typebitsize, arraysize);
 
@@ -2413,8 +2421,9 @@ namespace MFM {
     assert(prevBlock == m_state.m_classBlock);
 
     // o.w. build symbol for function: name, return type, plus arg symbols
-    UTI uti = m_state.getUlamTypeFromToken(typeTok, typebitsize, NONARRAYSIZE);
-    SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, uti, m_state);
+    // array return types require a typedef alias; lookup is name-based, indep of size args.
+    UTI rtnuti = m_state.getUlamTypeFromToken(typeTok, typebitsize, NONARRAYSIZE);
+    SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
 
     // WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     //m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr);
@@ -2431,7 +2440,7 @@ namespace MFM {
       {
 	UTI cuti = m_state.m_classBlock->getNodeType();  //prevBlock
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	((UlamTypeClass *) cut)->setCustomArrayType(uti);
+	((UlamTypeClass *) cut)->setCustomArrayType(rtnuti);
       }
 
     m_state.m_currentBlock = rtnNode;  //before parsing the args
@@ -2445,7 +2454,6 @@ namespace MFM {
     m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
-#if 1
     // create "self" symbol whose index is that of the "hidden" first arg (i.e. a Ptr to an Atom);
     // immediately below the return value(s); and belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
@@ -2456,7 +2464,6 @@ namespace MFM {
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfid, cuti, m_state.determinePackable(cuti), m_state.m_currentFunctionBlockDeclSize, m_state);
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
-#endif
 
     // parse and add parameters to function symbol
     parseRestOfFunctionParameters(fsymptr);
@@ -2466,7 +2473,7 @@ namespace MFM {
     if(!m_state.m_classBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
       {
 	// first time name used as a function..add symbol function name/type
-	fnSym = new SymbolFunctionName(identTok.m_dataindex, uti, m_state);
+	fnSym = new SymbolFunctionName(identTok.m_dataindex, rtnuti, m_state);
 
 	// ownership goes to the class block's ST
 	m_state.m_classBlock->addFuncIdToScope(fnSym->getId(), fnSym);
@@ -3338,7 +3345,8 @@ namespace MFM {
   void Parser::initPrimitiveUlamTypes()
   {
     // initialize primitive UlamTypes, in order!!
-    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
+    //UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
+    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), UNKNOWNSIZE);
     UTI nidx = m_state.makeUlamType(nkey, Nav);
     assert(nidx == Nav);  //true for primitives
 
@@ -3366,7 +3374,8 @@ namespace MFM {
     UTI bitsidx = m_state.makeUlamType(bitskey, Bits);
     assert(bitsidx == Bits);
 
-    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), ULAMTYPE_DEFAULTBITSIZE[Class]);  //bits tbd
+    //UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), ULAMTYPE_DEFAULTBITSIZE[Class]);  //bits tbd
+    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), UNKNOWNSIZE);  //bits tbd
     UTI cidx = m_state.makeUlamType(ckey, Class);
     assert(cidx == Class);
 
