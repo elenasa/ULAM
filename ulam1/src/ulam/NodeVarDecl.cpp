@@ -8,9 +8,15 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym) {}
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_bitsizeConstExpr(NULL), m_arraysizeConstExpr(NULL) {}
 
-  NodeVarDecl::~NodeVarDecl(){}
+  NodeVarDecl::~NodeVarDecl()
+  {
+    delete m_bitsizeConstExpr;
+    m_bitsizeConstExpr = NULL;
+    delete m_arraysizeConstExpr;
+    m_arraysizeConstExpr = NULL;
+  }
 
   void NodeVarDecl::printPostfix(File * fp)
   {
@@ -61,14 +67,46 @@ namespace MFM {
       {
 	it = m_varSymbol->getUlamTypeIdx();  //base type has arraysize
 	//check for incomplete Classes
-	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_INCOMPLETE)
+	UlamType * tdut = m_state.getUlamTypeByIndex(it);
+	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
+	if(tdclasstype == UC_INCOMPLETE || (tdclasstype != UC_NOTACLASS && !tdut->isComplete()))
 	  {
 	    if(! m_state.completeIncompleteClassSymbol(it))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Var Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
+		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		it = Nav;
+	      }
+	  }
+	else if(!tdut->isComplete())
+	  {
+	    assert(tdclasstype == UC_NOTACLASS);
+	    s32 bitsize = tdut->getBitSize();
+	    if(bitsize == UNKNOWNSIZE)
+	      {
+		if(m_bitsizeConstExpr)
+		  {
+		    m_bitsizeConstExpr->getTypeBitSizeInParen(bitsize, tdut->getUlamTypeEnum()); //eval
+		  }
+	      }
+	    s32 arraysize = tdut->getArraySize();
+	    if(arraysize == UNKNOWNSIZE)
+	      {
+		if(m_arraysizeConstExpr)
+		  {
+		    m_arraysizeConstExpr->getArraysizeInBracket(arraysize); //eval
+		  }
+	      }
+
+	    // too strong? OR perhaps? delete these nodes if done?
+	    if(bitsize != UNKNOWNSIZE && arraysize != UNKNOWNSIZE)
+	      m_state.setSizesOfNonClass(it, bitsize, arraysize);
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
       }

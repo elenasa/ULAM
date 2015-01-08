@@ -5,7 +5,7 @@
 namespace MFM {
 
   SymbolFunctionName::SymbolFunctionName(u32 id, UTI typetoreturn, CompilerState& state) : Symbol(id,typetoreturn,state)
-  { 
+  {
     setDataMember(); // by definition all function definitions are data members
   }
 
@@ -15,7 +15,7 @@ namespace MFM {
 
     while(it != m_mangledFunctionNames.end())
       {
-	SymbolFunction * foundSym = it->second;  
+	SymbolFunction * foundSym = it->second;
 	delete foundSym;   //further deletes its Node func def
 	++it;
       }
@@ -40,10 +40,11 @@ namespace MFM {
   {
     bool overloaded = false;
 
-    assert(getUlamTypeIdx() == fsym->getUlamTypeIdx());
+    //assert(getUlamTypeIdx() == fsym->getUlamTypeIdx());
+    assert(UlamType::compare(getUlamTypeIdx(), fsym->getUlamTypeIdx(), m_state) == UTIC_SAME);
 
     std::string mangled = fsym->getMangledNameWithTypes();
-   
+
     //if doesn't already exist, potentially overload it by inserting into map.
     SymbolFunction * anyotherSym;
     if(!isDefined(mangled, anyotherSym))
@@ -70,7 +71,7 @@ namespace MFM {
 
     while(it != m_mangledFunctionNames.end())
       {
-	SymbolFunction * fsym = it->second;  
+	SymbolFunction * fsym = it->second;
 	if((rtnBool = fsym->matchingTypes(argTypes)))
 	  {
 	    funcSymbol = fsym;
@@ -90,7 +91,7 @@ namespace MFM {
 
     while(it != m_mangledFunctionNames.end())
       {
-	SymbolFunction * fsym = it->second;  
+	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body?
 	depthsum += func->getMaxDepth();
@@ -106,7 +107,7 @@ namespace MFM {
 
     while(it != m_mangledFunctionNames.end())
       {
-	SymbolFunction * fsym = it->second;  
+	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->checkAndLabelType();
@@ -122,8 +123,8 @@ namespace MFM {
 
     while(it != m_mangledFunctionNames.end())
       {
-	SymbolFunction * fsym = it->second;  
-	count += fsym->isNativeFunctionDeclaration();  
+	SymbolFunction * fsym = it->second;
+	count += fsym->isNativeFunctionDeclaration();
 	++it;
       }
 
@@ -137,8 +138,8 @@ namespace MFM {
 
     while(it != m_mangledFunctionNames.end())
       {
-	SymbolFunction * fsym = it->second;  
-	fsym->generateFunctionDeclaration(fp, declOnly, classtype);  
+	SymbolFunction * fsym = it->second;
+	fsym->generateFunctionDeclaration(fp, declOnly, classtype);
 	++it;
       }
   }
@@ -153,7 +154,7 @@ namespace MFM {
 
     if(it != m_mangledFunctionNames.end())
       {
-	foundSym = it->second;  
+	foundSym = it->second;
 	rtnBool = true;
       }
 

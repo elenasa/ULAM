@@ -169,6 +169,8 @@ namespace MFM{
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
+    void setSizesOfClass(UTI utArg, s32 bitsize, s32 arraysize);
+    void setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
 
     s32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);
