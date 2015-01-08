@@ -39,13 +39,15 @@
 
 #include "Node.h"
 #include "SymbolTypedef.h"
+#include "NodeTypeBitsize.h"
+#include "NodeSquareBracket.h"
 
 namespace MFM{
-  
+
   class NodeTypedef : public Node
   {
   public:
-    
+
     NodeTypedef(SymbolTypedef * sym, CompilerState & state);
     ~NodeTypedef();
 
@@ -67,6 +69,8 @@ namespace MFM{
 
   private:
     SymbolTypedef * m_typedefSymbol;
+    NodeTypeBitsize * m_bitsizeConstExpr;
+    NodeSquareBracket * m_arraysizeConstExpr;
   };
 
 }

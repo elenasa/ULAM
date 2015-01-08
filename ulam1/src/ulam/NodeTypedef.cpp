@@ -5,9 +5,15 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym) {}
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_bitsizeConstExpr(NULL), m_arraysizeConstExpr(NULL) {}
 
-  NodeTypedef::~NodeTypedef(){}
+  NodeTypedef::~NodeTypedef()
+  {
+    delete m_bitsizeConstExpr;
+    m_bitsizeConstExpr = NULL;
+    delete m_arraysizeConstExpr;
+    m_arraysizeConstExpr = NULL;
+  }
 
   void NodeTypedef::printPostfix(File * fp)
   {
@@ -55,9 +61,41 @@ namespace MFM {
       {
 	it = m_typedefSymbol->getUlamTypeIdx();
 	//check for incomplete Classes
-	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_INCOMPLETE)
+	UlamType * tdut = m_state.getUlamTypeByIndex(it);
+	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
+	if(tdclasstype == UC_INCOMPLETE || (tdclasstype != UC_NOTACLASS && !tdut->isComplete()))
 	  {
 	    if(!m_state.completeIncompleteClassSymbol(it))
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Typedef for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	  }
+	else if(!tdut->isComplete())
+	  {
+	    assert(tdclasstype == UC_NOTACLASS);
+	    s32 bitsize = tdut->getBitSize();
+	    if(bitsize == UNKNOWNSIZE)
+	      {
+		if(m_bitsizeConstExpr)
+		  {
+		    m_bitsizeConstExpr->getTypeBitSizeInParen(bitsize, tdut->getUlamTypeEnum()); //eval
+		  }
+	      }
+	    s32 arraysize = tdut->getArraySize();
+	    if(arraysize == UNKNOWNSIZE)
+	      {
+		if(m_arraysizeConstExpr)
+		  {
+		    m_arraysizeConstExpr->getArraysizeInBracket(arraysize); //eval
+		  }
+	      }
+
+	    // too strong? OR perhaps? delete these nodes if done?
+	    if(bitsize != UNKNOWNSIZE && arraysize != UNKNOWNSIZE)
+	      m_state.setSizesOfNonClass(it, bitsize, arraysize);
+	    else
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
@@ -67,7 +105,7 @@ namespace MFM {
       }
     setNodeType(it);
     return getNodeType();
-  }
+  } //checkAndLabelType
 
 
   EvalStatus NodeTypedef::eval()

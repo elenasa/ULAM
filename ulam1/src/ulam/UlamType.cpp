@@ -463,6 +463,19 @@ namespace MFM {
   }
 
 
+  ULAMTYPECOMPARERESULTS UlamType::compare(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    UlamType * ut1 = state.getUlamTypeByIndex(u1);
+    if(!ut1->isComplete()) return UTIC_DONTKNOW;
+    UlamType * ut2 = state.getUlamTypeByIndex(u2);
+    if(!ut2->isComplete()) return UTIC_DONTKNOW;
+
+    //assert both key and ptr are either both equal or not equal; not different
+    assert(!( (ut1->getUlamKeyTypeSignature() == ut2->getUlamKeyTypeSignature()) ^ (ut1 == ut2)));
+    return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
+  } //compare (static)
+
+
    u32 UlamType::getTotalWordSize()
   {
     assert(isComplete());

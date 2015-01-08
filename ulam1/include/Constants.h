@@ -45,6 +45,8 @@ namespace MFM {
 
 #define WritePacked(p) (p == PACKED || p == PACKEDLOADABLE)
 
+  enum ULAMTYPECOMPARERESULTS { UTIC_DONTKNOW = -1, UTIC_NOTSAME = 0, UTIC_SAME = 1};
+
 #ifndef BITSPERATOM
 #define BITSPERATOM (96)
 #endif //BITSPERATOM

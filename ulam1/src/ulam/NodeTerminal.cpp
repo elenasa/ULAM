@@ -172,8 +172,15 @@ namespace MFM {
   bool NodeTerminal::fitsInBits(UTI fituti)
   {
     bool rtnb = false;
-    UlamType * fit = m_state.getUlamTypeByIndex(fituti);
     UTI nuti = getNodeType(); //constant type
+    UlamType * fit = m_state.getUlamTypeByIndex(fituti);
+    if(!fit->isComplete())
+      {
+	std::ostringstream msg;
+	msg << "Unknown size!! constant type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
 
     if(fit->getTotalWordSize() != 32)
       {

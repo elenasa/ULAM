@@ -97,19 +97,21 @@ namespace MFM {
 
     UlamKeyTypeSignature key(typeNameId,bitsize,arraysize);
     UTI uti = Nav;
-    if(!isDefined(key,uti))
+    //    if(!isDefined(key,uti))
+    if(!isDefined(key,uti) || bitsize == UNKNOWNSIZE || arraysize == UNKNOWNSIZE)
       {
 	//no key, make new type, how to know baseUT? bitsize?
 	uti = makeUlamType(key,bUT);
       }
     return uti;
-  }
+  } //makeUlamType
 
 
   UTI CompilerState::makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype)
   {
     UTI uti;
-    if(!isDefined(key, uti))
+    //if(!isDefined(key, uti))
+    if(!isDefined(key,uti) || key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
       {
 	uti = m_indexToUlamType.size();  //custom index based on key
 	UlamType * ut = createUlamType(key, uti, utype);
@@ -118,7 +120,7 @@ namespace MFM {
 	assert(isDefined(key, uti));
       }
     return uti;
-  }
+  } //makeUlamType
 
 
   bool CompilerState::isDefined(UlamKeyTypeSignature key, UTI& foundUTI)
@@ -138,7 +140,7 @@ namespace MFM {
 	it++;
       }
     return rtnBool;
-  }
+  } //isDefined
 
 
   UlamType * CompilerState::createUlamType(UlamKeyTypeSignature key, UTI uti, ULAMTYPE utype)
@@ -187,7 +189,7 @@ namespace MFM {
       };
 
     return ut;
-  }
+  } //createUlamType
 
 
   //used to update Class' calculated bit size (setBitSize)
@@ -208,7 +210,7 @@ namespace MFM {
 	it++;
       }
     return rtnBool;
-  }
+  } //deleteUlamKeyTypeSignature
 
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
@@ -222,7 +224,7 @@ namespace MFM {
 	typidx = 0;
       }
     return m_indexToUlamType[typidx];
-  }
+  } //getUlamTypeByIndex
 
 
   const std::string CompilerState::getUlamTypeNameBriefByIndex(UTI uti)
@@ -243,7 +245,7 @@ namespace MFM {
     UTI rtnUTI = 0;         //Nav
     isDefined(key,rtnUTI);  //updates rtnUTI if found
     return rtnUTI;
-  }
+  } //getUlamTypeIndex
 
 
   ULAMTYPE CompilerState::getBaseTypeFromToken(Token tok)
@@ -323,7 +325,7 @@ namespace MFM {
 	  }
       }
     return rtnBool;
-  }
+  } //getUlamTypeByTypedefName
 
 
   UTI CompilerState::getUlamTypeAsScalar(UTI utArg)
@@ -344,7 +346,7 @@ namespace MFM {
 
     UTI buti = makeUlamType(baseKey, bUT);
     return buti;
-  }
+  } //getUlamTypeAsScalar
 
 
   UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)
@@ -392,19 +394,34 @@ namespace MFM {
   }
 
 
+  // this may go away..
   // updates key. we can do this now that UTI is used and the UlamType * isn't saved
   void CompilerState::setBitSize(UTI utArg, s32 total)
+  {
+    return setSizesOfClass(utArg, total, NONARRAYSIZE);  //formerly
+  }
+
+
+  void CompilerState::setSizesOfClass(UTI utArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     ULAMCLASSTYPE classtype = ut->getUlamClass();
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
-    //skip primitives or Classes already set; insure same bit size
-    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK || key.getUlamKeyTypeSignatureBitSize() == 0))
+    //redirect primitives;
+    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK))
       {
-	assert((s32) key.getUlamKeyTypeSignatureBitSize() == total);
+	return setSizesOfNonClass(utArg, bitsize, arraysize);
+      }
+
+    //allow for zero-sized classes; insure same bit size
+    if(key.getUlamKeyTypeSignatureBitSize() == 0)
+      {
+	assert((s32) key.getUlamKeyTypeSignatureBitSize() == bitsize);
 	return;
       }
+
+    s32 total = bitsize + arraysize; //???
 
     bool isCustomArray = ut->isCustomArray();
     UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);
@@ -433,7 +450,8 @@ namespace MFM {
       }
 
     //continue with valid number of bits for Class UlamTypes only
-    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), total, key.getUlamKeyTypeSignatureArraySize());
+    //UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), total, key.getUlamKeyTypeSignatureArraySize());
+    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
 
     //remove old key from map
     deleteUlamKeyTypeSignature(key, utArg);
@@ -450,14 +468,55 @@ namespace MFM {
       ((UlamTypeClass *) newut)->setCustomArrayType(caType);
 
     assert(isDefined(newkey, utArg));
-#if 0
+#if 1
     {
       std::ostringstream msg;
-      msg << "Bit size set for Class: " << newut->getUlamTypeName(this).c_str();
+      msg << "Sizes set for Class: " << newut->getUlamTypeName(this).c_str();
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
     }
 #endif
-  }
+  } //setSizesOfClass
+
+
+  void CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    ULAMTYPE bUT = ut->getUlamTypeEnum();
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
+    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
+
+    assert(classtype == UC_NOTACLASS && (key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE));
+
+    //disallow zero-sized primitives (no such thing as a BitVector<0u>)
+    if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
+      {
+	assert(0);
+	return;
+      }
+
+    //continue with valid number of bits
+    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
+
+    //remove old key from map
+    deleteUlamKeyTypeSignature(key, utArg);
+    delete ut;  // clear vector
+    m_indexToUlamType[utArg] = NULL;
+    assert(!isDefined(key, utArg));
+
+    UlamType * newut = createUlamType(newkey, utArg, bUT);
+    m_indexToUlamType[utArg] = newut;
+    m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,utArg));
+    ((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
+
+    assert(isDefined(newkey, utArg));
+#if 1
+    {
+      std::ostringstream msg;
+      msg << "Sizes set for nonClass: " << newut->getUlamTypeName(this).c_str();
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
+    }
+#endif
+  } // setSizesOfNonClass
 
 
   s32 CompilerState::getDefaultBitSize(UTI uti)
@@ -524,13 +583,13 @@ namespace MFM {
   {
     assert(!alreadyDefinedSymbolClass(dataindex,symptr));
 
-    UlamKeyTypeSignature key(dataindex, 0);  //and scalar default
-    UTI cuti = makeUlamType(key, Class);
+    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //0 and scalar default
+    UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
 
     // symbol ownership goes to the programDefST;
     symptr = new SymbolClass(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
     m_programDefST.addToTable(dataindex, symptr);
-  }
+  } //addIncompleteClassSymbolToProgramTable
 
 
   bool CompilerState::completeIncompleteClassSymbol(UTI incomplete)
@@ -547,13 +606,14 @@ namespace MFM {
 	if(bc == UC_ELEMENT || bc == UC_QUARK)
 	  {
 	    ((UlamTypeClass *) ict)->setUlamClass(bc);
-#if 0
-	    if(getBitSize(but) == 0)
+#if 1
+	    if(getBitSize(but) == UNKNOWNSIZE || getArraySize(but) == UNKNOWNSIZE)
 	      {
 		std::ostringstream msg;
-		msg << "Bit size still unknown (0) for Class: " << ict->getUlamTypeName(this).c_str();
+		msg << "Sizes still unknown for Class: " << ict->getUlamTypeName(this).c_str();
 		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
 	      }
+	    else
 #endif
 	    rtnB = true;
 	  }
@@ -564,7 +624,7 @@ namespace MFM {
       }
 
     return rtnB;
-  }
+  } //completeIncompleteClassSymbol
 
 
   bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr)

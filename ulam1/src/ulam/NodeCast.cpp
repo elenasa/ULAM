@@ -111,7 +111,8 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(nodeClass == UC_INCOMPLETE)
+	    //if(nodeClass == UC_INCOMPLETE)
+	    if(nodeClass == UC_INCOMPLETE || !m_state.getUlamTypeByIndex(nodeType)->isComplete() || !m_state.getUlamTypeByIndex(tobeType)->isComplete())
 	      {
 		std::ostringstream msg;
 		msg << "Cannot cast type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
@@ -120,9 +121,8 @@ namespace MFM {
 	      }
 	  }
       }
-
     return getNodeType();
-  }
+  } //checkAndLabelType
 
 
   EvalStatus NodeCast::eval()
@@ -341,7 +341,17 @@ namespace MFM {
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->getNodeType();
 
-    if(nodeType == tobeType)
+    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nodeType, tobeType, m_state);
+    if(uticr == UTIC_DONTKNOW)
+      {
+	std::ostringstream msg;
+	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    //if(nodeType == tobeType)
+    if(uticr == UTIC_SAME)
       return false;  //short-circuit if same exact type
 
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
