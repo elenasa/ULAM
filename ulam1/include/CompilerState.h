@@ -156,7 +156,7 @@ namespace MFM{
     UTI getUlamTypeIndex(UlamType * ut);
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
-    UTI getUlamTypeFromToken(Token tok, u32 typebitsize, s32 arraysize);
+    UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType);
 
     /** turns array into its single element type */
@@ -170,7 +170,7 @@ namespace MFM{
     s32 getBitSize(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
 
-    u32 getDefaultBitSize(UTI uti);
+    s32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
 

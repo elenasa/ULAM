@@ -255,11 +255,11 @@ namespace MFM {
     ULAMTYPE etype = m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeEnum();
     if(etype == Int)
       {
-	rtnb = (m_constant.sval >= (s32) m_state.getDefaultBitSize(Int));
+	rtnb = (m_constant.sval >= m_state.getDefaultBitSize(Int));
       }
     else if(etype == Unsigned)
       {
-	rtnb = (m_constant.uval > m_state.getDefaultBitSize(Unsigned)); // may be ==
+	rtnb = (m_constant.uval > (u32) m_state.getDefaultBitSize(Unsigned)); // may be ==
       }
     return rtnb;
   } //isWordSizeConstant

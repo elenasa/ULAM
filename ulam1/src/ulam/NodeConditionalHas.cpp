@@ -46,7 +46,7 @@ namespace MFM {
 	newType = Nav;
       }
 
-    UTI ruti = m_state.getUlamTypeFromToken(m_typeTok, 0, NONARRAYSIZE);
+    UTI ruti = m_state.getUlamTypeFromToken(m_typeTok, 0, NONARRAYSIZE); //name-based, sizes ignored
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(rclasstype != UC_QUARK)

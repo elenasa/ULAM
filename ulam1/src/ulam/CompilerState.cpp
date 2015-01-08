@@ -279,7 +279,7 @@ namespace MFM {
   } //getBaseTypeFromToken
 
 
-  UTI CompilerState::getUlamTypeFromToken(Token tok, u32 typebitsize, s32 arraysize)
+  UTI CompilerState::getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize)
   {
     UTI uti = Nav;
 
@@ -460,7 +460,7 @@ namespace MFM {
   }
 
 
-  u32 CompilerState::getDefaultBitSize(UTI uti)
+  s32 CompilerState::getDefaultBitSize(UTI uti)
   {
     ULAMTYPE et = getUlamTypeByIndex(uti)->getUlamTypeEnum();
     return ULAMTYPE_DEFAULTBITSIZE[et];

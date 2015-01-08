@@ -83,6 +83,7 @@ namespace MFM {
   const std::string UlamType::getUlamTypeAsStringForC()
   {
     assert(!isConstant());
+    assert(isComplete());
 
     s32 len = getTotalBitSize(); // includes arrays
     assert(len >= 0);
@@ -118,6 +119,7 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeMangledName(CompilerState * state)
   {
+    assert(isComplete());
     std::ostringstream mangled;
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
@@ -163,7 +165,7 @@ namespace MFM {
 
   bool UlamType::needsImmediateType()
   {
-    return !isConstant();
+    return !isConstant() && isComplete();
     //return ( (getBitSize() == ANYBITSIZECONSTANT) ? false : true);  //skip constants
   }
 
@@ -431,7 +433,7 @@ namespace MFM {
 
   s32 UlamType::getArraySize()
   {
-    return m_key.getUlamKeyTypeSignatureArraySize();
+    return m_key.getUlamKeyTypeSignatureArraySize(); //could be negative "uknown", or scalar
   }
 
 
@@ -440,7 +442,7 @@ namespace MFM {
     if(isConstant())
       return ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()];
 
-    return m_key.getUlamKeyTypeSignatureBitSize();
+    return m_key.getUlamKeyTypeSignatureBitSize();  //could be negative "unknown"
   }
 
 
@@ -450,17 +452,27 @@ namespace MFM {
     arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
 
     s32 bitsize = getBitSize();
+    bitsize = (bitsize != UNKNOWNSIZE ? bitsize : 0);
     return bitsize * arraysize;
+  }
+
+
+  bool UlamType::isComplete()
+  {
+    return !(m_key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || getArraySize() == UNKNOWNSIZE);
   }
 
 
    u32 UlamType::getTotalWordSize()
   {
+    assert(isComplete());
     return m_wordLengthTotal;  //e.g. 32, 64, 96
   }
 
+
   u32 UlamType::getItemWordSize()
   {
+    assert(isComplete());
     return m_wordLengthItem;  //e.g. 32, 64, 96
   }
 
