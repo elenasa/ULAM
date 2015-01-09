@@ -69,7 +69,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	      }
 	  }
 	else if(!tdut->isComplete())
@@ -99,7 +99,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	      }
 	  }
       }
@@ -119,6 +119,14 @@ namespace MFM {
   {
     symptrref = m_typedefSymbol;
     return true;
+  }
+
+
+  Node * NodeTypedef::findANodeDeclWithType(UTI utype)
+  {
+    if(getNodeType() == utype)
+      return this;
+    return NULL;  //not me
   }
 
 

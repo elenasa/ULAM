@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    virtual Node * findANodeDeclWithType(UTI utype);
+
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void genCode(File * fp, UlamValue& uvpass);

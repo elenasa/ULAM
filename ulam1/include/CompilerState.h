@@ -258,6 +258,8 @@ namespace MFM{
     */
     PACKFIT determinePackable(UTI aut);
 
+    bool findAndSizeANodeDeclWithType(UTI argut);
+
     bool thisClassHasTheTestMethod();
 
     bool thisClassIsAQuark();

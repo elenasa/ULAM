@@ -485,7 +485,12 @@ namespace MFM {
     ULAMCLASSTYPE classtype = ut->getUlamClass();
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
-    assert(classtype == UC_NOTACLASS && (key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE));
+    assert(classtype == UC_NOTACLASS);
+
+    if(!(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE))
+      {
+	return; //nothing to do
+      }
 
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
     if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
@@ -1201,6 +1206,19 @@ namespace MFM {
   PACKFIT CompilerState::determinePackable(UTI aut)
   {
     return getUlamTypeByIndex(aut)->getPackable();
+  }
+
+
+  bool CompilerState::findAndSizeANodeDeclWithType(UTI argut)
+  {
+    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
+    assert(classNode);
+    Node * pnode = classNode->findANodeDeclWithType(argut);
+    if(pnode)
+      pnode->checkAndLabelType();
+
+    return pnode != NULL; //found
   }
 
 
