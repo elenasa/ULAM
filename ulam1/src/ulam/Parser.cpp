@@ -43,7 +43,7 @@
 #include "NodeMemberSelect.h"
 #include "NodeProgram.h"
 #include "NodeReturnStatement.h"
-#include "NodeSizeofClass.h"
+#include "NodeTerminalProxy.h"
 #include "NodeSquareBracket.h"
 #include "NodeTerminal.h"
 #include "NodeIdent.h"
@@ -1539,54 +1539,69 @@ namespace MFM {
     UlamType * ut = m_state.getUlamTypeByIndex(utype);
     ULAMCLASSTYPE classtype = ut->getUlamClass();
 
-    // only way to use a primitive with a .dot
-    if(classtype == UC_NOTACLASS)
+    Token pTok;
+    getNextToken(pTok);
+    if(pTok.m_type != TOK_DOT)
       {
-	Token pTok;
-	getNextToken(pTok);
-	if(pTok.m_type != TOK_DOT)
-	  {
-	    unreadToken();
-	    return NULL;
-	  }
+	unreadToken();
+	return NULL;
+      }
 
-	Token fTok;
-	if(getExpectedToken(TOK_IDENTIFIER, fTok))
+    Token fTok;
+    if(!getExpectedToken(TOK_IDENTIFIER, fTok))
+      {
+	unreadToken(); //?
+	return NULL;
+      }
+
+    if(ut->isComplete())
+      {
+	if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
 	  {
-	    if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
-	      {
-		rtnNode = makeTerminal(fTok, ut->getTotalBitSize(), Unsigned); //unsigned
-	      }
-	    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
-	      {
-		if(ut->isMinMaxAllowed())
-		  rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum()); //unsigned
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-		    MSG(&fTok, msg.str().c_str(), ERR);
-		  }
-	      }
-	    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
-	      {
-		if(ut->isMinMaxAllowed())
-		  rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum()); //signed
-		else
-		  {
-		    std::ostringstream msg;
-		    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-		    MSG(&fTok, msg.str().c_str(), ERR);
-		  }
-	      }
+	    assert(classtype == UC_NOTACLASS); // can't be a class and complete, right?
+	    rtnNode = makeTerminal(fTok, ut->getTotalBitSize(), Unsigned); //unsigned
+	  }
+	else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
+	  {
+	    if(ut->isMinMaxAllowed())
+	      rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum()); //unsigned
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 		MSG(&fTok, msg.str().c_str(), ERR);
 	      }
 	  }
-      } //not a class
+	else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
+	  {
+	    if(ut->isMinMaxAllowed())
+	      rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum()); //signed
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+		MSG(&fTok, msg.str().c_str(), ERR);
+	      }
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	    MSG(&fTok, msg.str().c_str(), ERR);
+	  }
+      } // complete
+    else
+      {
+	//input uti wasn't complete, i.e. based on sizeof some class
+	rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	if(!rtnNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, incomplete type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	    MSG(&fTok, msg.str().c_str(), ERR);
+	  }
+      } // not complete
+
     return rtnNode;
   } //parseMinMaxSizeofType
 
@@ -1786,33 +1801,28 @@ namespace MFM {
 	s32 arraysize = NONARRAYSIZE;
 	// could be typedef from another class (pTok, typebitsize, arraysize updated!)
 	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize); //refs
+
+	//could be an incomplete type (an unknown size), to be completed during checkandlabel
+	UTI uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize);
+
+	//returns either a terminal or proxy
+	rtnNode = parseMinMaxSizeofType(pTok, uti); //get's next dot token
+
 	if(bitsizeNode)
 	  {
 	    // bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	    delete bitsizeNode;
-	    bitsizeNode = NULL;
-	  }
-
-
-	UTI uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize);
-	UlamType * ut = m_state.getUlamTypeByIndex(uti);
-	ULAMCLASSTYPE classtype = ut->getUlamClass();
-	if(classtype == UC_NOTACLASS)
-	  rtnNode = parseMinMaxSizeofType(pTok, uti); //get's next dot token
-	else
-	  {
-	    //apparently even classes without known bitsizes, are NOT INCOMPLETE.
-	    //if(classtype == UC_INCOMPLETE)
-	    if(ut->isComplete())
-	      rtnNode = new NodeSizeofClass(ut->getTotalBitSize(), m_state);
+	    // t.f. rtnNode must be a NodeTerminalProxy
+	    if(rtnNode)
+	      ((NodeTerminalProxy *) rtnNode)->linkConstantExpression(bitsizeNode);
 	    else
-	      rtnNode = new NodeSizeofClass((s32) -uti, m_state); //oob signal (idea fails when expression)
-
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(pTok.m_locator);
+	      {
+		// clean up, some kind of error parsing min/max/sizeof
+		delete bitsizeNode;
+		bitsizeNode = NULL;
+	      }
 	  }
 	return rtnNode;  //rtnNode could be NULL!
-      }
+      } //not a Type
 
     //continue as normal..
     switch(pTok.m_type)

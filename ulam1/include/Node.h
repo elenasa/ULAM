@@ -29,7 +29,7 @@
   \file Node.h - Basic Node of Nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -40,12 +40,12 @@
 #include <sstream>
 #include <stdio.h>
 #include <assert.h>
+#include "CastOps.h"
 #include "File.h"
 #include "Locator.h"
 #include "Symbol.h"
 #include "UlamType.h"
 #include "UlamValue.h"
-#include "CastOps.h"
 
 namespace MFM{
 
@@ -108,6 +108,7 @@ namespace MFM{
     void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
     virtual Node * findANodeDeclWithType(UTI utype);
+
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void genCode(File * fp, UlamValue& uvpass);

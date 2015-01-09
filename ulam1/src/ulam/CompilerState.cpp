@@ -398,11 +398,11 @@ namespace MFM {
   // updates key. we can do this now that UTI is used and the UlamType * isn't saved
   void CompilerState::setBitSize(UTI utArg, s32 total)
   {
-    return setSizesOfClass(utArg, total, NONARRAYSIZE);  //formerly
+    return setSizes(utArg, total, NONARRAYSIZE);  //formerly
   }
 
 
-  void CompilerState::setSizesOfClass(UTI utArg, s32 bitsize, s32 arraysize)
+  void CompilerState::setSizes(UTI utArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     ULAMCLASSTYPE classtype = ut->getUlamClass();

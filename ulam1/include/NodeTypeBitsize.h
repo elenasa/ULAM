@@ -66,6 +66,6 @@ namespace MFM{
     Node * m_node;
   };
 
-}
+} //MFM
 
-#endif //end NODETYPEBITSIZE_H
+#endif //NODETYPEBITSIZE_H
