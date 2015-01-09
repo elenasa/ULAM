@@ -362,6 +362,7 @@ namespace MFM {
 
   Node * Node::findANodeDeclWithType(UTI utype)
   {
+    assert(0); //catch the ones that need to pass
     return NULL;
   }
 

@@ -125,6 +125,12 @@ namespace MFM {
   } //checkAndLabelType
 
 
+  Node * NodeCast::findANodeDeclWithType(UTI utype)
+  {
+    return m_node->findANodeDeclWithType(utype);
+  }
+
+
   EvalStatus NodeCast::eval()
   {
     assert(m_node); //has to be

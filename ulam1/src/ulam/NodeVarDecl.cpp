@@ -117,7 +117,7 @@ namespace MFM {
 
   Node * NodeVarDecl::findANodeDeclWithType(UTI utype)
     {
-      if(getNodeType() == utype)
+      if(getNodeType() == utype && (m_bitsizeConstExpr != NULL || m_arraysizeConstExpr != NULL))
 	return this;
       return NULL;  //not me
     }

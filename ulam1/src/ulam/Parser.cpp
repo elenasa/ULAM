@@ -381,7 +381,13 @@ namespace MFM {
     // check for Type bitsize specifier;
     s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
-    parseTypeBitsize(pTok, typebitsize, arraysize);
+    NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
+    if(bitsizeNode)
+      {
+	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
+	delete bitsizeNode;
+	bitsizeNode = NULL;
+      }
 
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
@@ -1104,7 +1110,13 @@ namespace MFM {
 	// check for Type bitsize specifier;
 	s32 typebitsize = 0;
 	s32 arraysize = NONARRAYSIZE;
-	parseTypeBitsize(pTok, typebitsize, arraysize);
+	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
+	if(bitsizeNode)
+	  {
+	    //bitsize/arraysize is unknown, i.e. based on a Class.sizeof
+	    delete bitsizeNode;
+	    bitsizeNode = NULL;
+	  }
 
 	Token iTok;
 	getNextToken(iTok);
@@ -1145,7 +1157,13 @@ namespace MFM {
     // check for Type bitsize specifier;
     s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
-    parseTypeBitsize(pTok, typebitsize, arraysize);
+    NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
+    if(bitsizeNode)
+      {
+	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
+	delete bitsizeNode;
+	bitsizeNode = NULL;
+      }
 
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
@@ -1171,8 +1189,11 @@ namespace MFM {
   } //parseDecl
 
 
-  void Parser::parseTypeBitsize(Token & typeTok, s32& typebitsize, s32& arraysize)
+  //return NodeTypeBitsize when unsuccessful evaluating its constant expression
+  // up to caller to delete it
+  NodeTypeBitsize * Parser::parseTypeBitsize(Token & typeTok, s32& typebitsize, s32& arraysize)
   {
+    NodeTypeBitsize * rtnNode = NULL;
     Token bTok;
     getNextToken(bTok);
 
@@ -1182,25 +1203,29 @@ namespace MFM {
 	if(!bitsizeNode)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bitsize of Open Paren is missing, type " << bTok.getTokenString() ;
+	    msg << "Bit size after Open Paren is missing, type: " << m_state.getTokenAsATypeName(typeTok).c_str();
 	    MSG(&bTok, msg.str().c_str(), ERR);
 	  }
 	else
 	  {
-	    bitsizeNode = new NodeTypeBitsize(bitsizeNode, m_state);
-	    assert(bitsizeNode);
-	    bitsizeNode->setNodeLocation(typeTok.m_locator);
+	    rtnNode = new NodeTypeBitsize(bitsizeNode, m_state);
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(typeTok.m_locator);
 
-	    // eval what we need, and delete the node
-	    ((NodeTypeBitsize *) bitsizeNode)->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(typeTok));
-
-	    delete bitsizeNode;   //done with them!
-	    bitsizeNode = NULL;
+	    // eval what we need, and delete the node if successful
+	    if(((NodeTypeBitsize *) rtnNode)->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(typeTok)))
+	      {
+		delete rtnNode;   //done with them!
+		rtnNode = NULL;
+	      }
+	    //else returning rtnNode, ownership transferred
 	  }
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
 	    typebitsize = UNKNOWNSIZE;  //?
+	    delete rtnNode;
+	    rtnNode = NULL;
 	  }
       }
     else if(bTok.m_type == TOK_DOT)
@@ -1212,7 +1237,8 @@ namespace MFM {
       {
 	unreadToken(); //not open paren, bitsize is unspecified
       }
-    return; //typebitsize;
+
+    return rtnNode; //typebitsize;
   } //parseTypeBitsize
 
 
@@ -1239,7 +1265,7 @@ namespace MFM {
 	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
 	if(!memberClassNode)  // e.g. forgot the closing brace on quark def once
 	  {
-	    // hail mary..possibly a sizeof of incomplete class
+	    // hail mary pass..possibly a sizeof of incomplete class
 	    getNextToken(nTok);
 	    if(nTok.m_dataindex != m_state.m_pool.getIndexForDataString("sizeof"))
 	      {
@@ -1266,6 +1292,13 @@ namespace MFM {
 	    if(m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti))
 	      {
 		UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
+		if(!tdut->isComplete())
+		  {
+		    std::ostringstream msg;
+		    msg << "Incomplete type!! " << m_state.getUlamTypeNameByIndex(tduti).c_str() << " found for Typedef: <" << m_state.getTokenDataAsString(&nTok).c_str() << ">, belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+		    MSG(&nTok, msg.str().c_str(),WARN);
+		  }
+
 		ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
 		const std::string tdname = tdut->getUlamTypeNameOnly(&m_state);
 
@@ -1752,7 +1785,15 @@ namespace MFM {
 	s32 typebitsize = 0;
 	s32 arraysize = NONARRAYSIZE;
 	// could be typedef from another class (pTok, typebitsize, arraysize updated!)
-	parseTypeBitsize(pTok, typebitsize, arraysize); //refs
+	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize); //refs
+	if(bitsizeNode)
+	  {
+	    // bitsize/arraysize is unknown, i.e. based on a Class.sizeof
+	    delete bitsizeNode;
+	    bitsizeNode = NULL;
+	  }
+
+
 	UTI uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize);
 	UlamType * ut = m_state.getUlamTypeByIndex(uti);
 	ULAMCLASSTYPE classtype = ut->getUlamClass();
@@ -1917,7 +1958,13 @@ namespace MFM {
     // check for Type bitsize specifier;
     s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
-    parseTypeBitsize(typeTok, typebitsize, arraysize);
+    NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeTok, typebitsize, arraysize);
+    if(bitsizeNode)
+      {
+	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
+	delete bitsizeNode;
+	bitsizeNode = NULL;
+      }
 
     // allows for casting to a class (makes class type if newly seen)
     UTI typeToBe = m_state.getUlamTypeFromToken(typeTok, typebitsize, arraysize);

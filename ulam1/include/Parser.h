@@ -48,6 +48,7 @@
 #include "NodeConditionalAs.h"
 #include "NodeFunctionCall.h"
 #include "NodeStatements.h"
+#include "NodeTypeBitsize.h"
 #include "NodeUnaryOp.h"
 #include "Symbol.h"
 #include "SymbolFunction.h"
@@ -176,8 +177,10 @@ namespace MFM{
     */
     Node * parseDecl(bool parseSingleDecl = false);
 
-    /** helper for parsing type; returns bitsize or 0 */
-    void parseTypeBitsize(Token& typeTok, s32& typebitsize, s32& arraysize);
+    /** helper for parsing type; returns bitsize, or UNKNOWNSIZE and node with constant expression */
+    NodeTypeBitsize * parseTypeBitsize(Token& typeTok, s32& typebitsize, s32& arraysize);
+
+    /** helper for parsing type; returns bitsize, or UNKNOWNSIZE */
     void parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize);
 
     /**
