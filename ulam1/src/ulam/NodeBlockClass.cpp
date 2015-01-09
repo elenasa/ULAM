@@ -155,13 +155,11 @@ namespace MFM {
 	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
 	    assignReturnValueToStack(testUV);
 	  }
-
 	setNodeType(saveClassType); //temp, restore
       }
-
     evalNodeEpilog();
     return evs;
-  }
+  } //eval
 
 
   //override to check both variables and function names.

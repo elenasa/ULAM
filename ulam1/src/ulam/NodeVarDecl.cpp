@@ -75,7 +75,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 		it = Nav;
 	      }
 	  }
@@ -106,13 +106,21 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 	      }
 	  }
       }
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
+
+
+  Node * NodeVarDecl::findANodeDeclWithType(UTI utype)
+    {
+      if(getNodeType() == utype)
+	return this;
+      return NULL;  //not me
+    }
 
 
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)

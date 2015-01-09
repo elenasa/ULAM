@@ -360,6 +360,12 @@ namespace MFM {
   }
 
 
+  Node * Node::findANodeDeclWithType(UTI utype)
+  {
+    return NULL;
+  }
+
+
   void Node::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert(0);

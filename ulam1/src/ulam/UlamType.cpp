@@ -453,7 +453,7 @@ namespace MFM {
 
     s32 bitsize = getBitSize();
     bitsize = (bitsize != UNKNOWNSIZE ? bitsize : 0);
-    return bitsize * arraysize;
+    return bitsize * arraysize; // >= 0
   }
 
 

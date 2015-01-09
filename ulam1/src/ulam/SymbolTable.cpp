@@ -495,7 +495,16 @@ namespace MFM {
     if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS) //includes Atom type
       {
 	totbitsize = m_state.getBitSize(argut);
-	assert(totbitsize >= 0);
+	//if(totbitsize == UNKNOWNSIZE)
+	if(totbitsize == UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE)
+	  {
+	    if(m_state.findAndSizeANodeDeclWithType(argut))
+	      {
+		totbitsize = m_state.getBitSize(argut);
+		totbitsize *= (m_state.isScalar(argut) ? 1 : m_state.getArraySize(argut));
+	      }
+	  }
+	//assert(totbitsize >= 0);
 	return totbitsize;
       }
 
