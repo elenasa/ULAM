@@ -382,12 +382,7 @@ namespace MFM {
     s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
     NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
-    if(bitsizeNode)
-      {
-	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	delete bitsizeNode;
-	bitsizeNode = NULL;
-      }
+    bool linkBitsizeNode = false;    //housekeep this node based next tokens..
 
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
@@ -397,6 +392,14 @@ namespace MFM {
 	  {
 	    //eats the '(' when found
 	    rtnNode = makeFunctionSymbol(pTok, typebitsize, iTok); //with params
+	    if(bitsizeNode)
+	      {
+		std::ostringstream msg;
+		msg << "Function return type with 'unknown' bit size is currently unsupported, type: " << m_state.getTokenAsATypeName(pTok).c_str();
+		MSG(&pTok, msg.str().c_str(), INFO);
+		//linkBitsizeNode = true;  ???
+	      }
+
 	    Token qTok;
 	    getNextToken(qTok);
 
@@ -420,6 +423,12 @@ namespace MFM {
 	    // it's a variable, not a function;
 	    // also handles arrays
 	    rtnNode = makeVariableSymbol(pTok, typebitsize, arraysize, iTok);
+	    if(bitsizeNode && rtnNode)
+	      {
+		//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
+		((NodeVarDecl *) rtnNode)->linkConstantExpression(bitsizeNode);
+		linkBitsizeNode = true;
+	      }
 
 	    if(rtnNode)
 	      rtnNode = parseRestOfDecls(pTok, typebitsize, arraysize, iTok, rtnNode, NOASSIGN);
@@ -448,8 +457,13 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Name of variable/function <" << m_state.getTokenDataAsString(&iTok).c_str() << ">: Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
-
 	unreadToken();
+      }
+
+    if(!linkBitsizeNode)
+      {
+	delete bitsizeNode;
+	bitsizeNode = NULL;
       }
 
     m_state.m_parsingElementParameterVariable = false;
@@ -1111,12 +1125,7 @@ namespace MFM {
 	s32 typebitsize = 0;
 	s32 arraysize = NONARRAYSIZE;
 	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
-	if(bitsizeNode)
-	  {
-	    //bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	    delete bitsizeNode;
-	    bitsizeNode = NULL;
-	  }
+	bool linkBitsizeNode = false;    //housekeep this node based next tokens..
 
 	Token iTok;
 	getNextToken(iTok);
@@ -1124,12 +1133,20 @@ namespace MFM {
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
 	    rtnNode = makeTypedefSymbol(pTok, typebitsize, arraysize, iTok);
+	    ((NodeTypedef *) rtnNode)->linkConstantExpression(bitsizeNode);
+	    linkBitsizeNode = true;
 	  }
 	else
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid typedef Alias <" << m_state.getTokenDataAsString(&iTok).c_str() << ">, Type Identifier (2nd arg) requires capitalization";
 	    MSG(&iTok, msg.str().c_str(), ERR);
+	  }
+
+	if(!linkBitsizeNode)
+	  {
+	    delete bitsizeNode;
+	    bitsizeNode = NULL;
 	  }
       }
     else
@@ -1158,17 +1175,18 @@ namespace MFM {
     s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
     NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
-    if(bitsizeNode)
-      {
-	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	delete bitsizeNode;
-	bitsizeNode = NULL;
-      }
+    bool linkBitsizeNode = false;    //housekeep this node based next tokens..
 
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	rtnNode = makeVariableSymbol(pTok, typebitsize, arraysize, iTok);
+	if(bitsizeNode && rtnNode)
+	  {
+	    //bitsize/arraysize is unknown, i.e. based on a Class.sizeof
+	    ((NodeVarDecl *) rtnNode)->linkConstantExpression(bitsizeNode);
+	    linkBitsizeNode = true;
+	  }
 
 	if(rtnNode && !parseSingleDecl)
 	  {
@@ -1185,6 +1203,13 @@ namespace MFM {
 
 	unreadToken();
       }
+
+    if(!linkBitsizeNode)
+      {
+	delete bitsizeNode;
+	bitsizeNode = NULL;
+      }
+
     return rtnNode;
   } //parseDecl
 
@@ -1218,7 +1243,7 @@ namespace MFM {
 		delete rtnNode;   //done with them!
 		rtnNode = NULL;
 	      }
-	    //else returning rtnNode, ownership transferred
+	    //else will be returning rtnNode, ownership transferred
 	  }
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
@@ -1238,7 +1263,7 @@ namespace MFM {
 	unreadToken(); //not open paren, bitsize is unspecified
       }
 
-    return rtnNode; //typebitsize;
+    return rtnNode; //typebitsize const expr
   } //parseTypeBitsize
 
 
@@ -1276,6 +1301,7 @@ namespace MFM {
 	    else
 	      {
 		rtnbitsize = UNKNOWNSIZE;  //t.f. unknown bitsize or arraysize or both?
+		unreadToken(); //put the 'sizeof' back
 	      }
 	    return;
 	  }
@@ -1333,6 +1359,7 @@ namespace MFM {
 	    else
 	      {
 		rtnbitsize = UNKNOWNSIZE;  //t.f. unknown bitsize or arraysize or both?
+		unreadToken(); //put the 'sizeof' back
 	      }
 	  }
 	m_state.m_useMemberBlock = saveUseMemberBlock; //restore
@@ -1515,10 +1542,11 @@ namespace MFM {
 
   Node * Parser::parseMemberSelectExpr(Token memberTok)
   {
+    Node * rtnNode = NULL;
     Symbol * dsymptr = NULL;
     if(m_state.alreadyDefinedSymbol(memberTok.m_dataindex, dsymptr))
       {
-	Node * rtnNode = parseMinMaxSizeofType(memberTok, dsymptr->getUlamTypeIdx());
+	rtnNode = parseMinMaxSizeofType(memberTok, dsymptr->getUlamTypeIdx());
 	if(rtnNode) return rtnNode;
       } //not defined, or not min/max/sizeof..continue
 
@@ -1529,8 +1557,60 @@ namespace MFM {
     assert(classInstanceNode);
     classInstanceNode->setNodeLocation(memberTok.m_locator);
 
-    return parseRestOfMemberSelectExpr(classInstanceNode);
+    // part of restofmemberselectexpr here due to missing dot!
+    Token iTok;
+    if(getExpectedToken(TOK_IDENTIFIER, iTok))
+      {
+	// set up compiler state to NOT use the current class block
+	// for symbol searches; may be unknown until type label
+	m_state.m_currentMemberClassBlock = NULL;
+	m_state.m_useMemberBlock = true;  //oddly =true
+
+	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(iTok.m_locator);
+
+	//clear up compiler state to no longer use the member class block for symbol searches
+	m_state.m_useMemberBlock = false;
+	m_state.m_currentMemberClassBlock = NULL;
+      }
+    else
+      rtnNode = classInstanceNode;
+
+    return parseRestOfMemberSelectExpr(rtnNode);
   } //parseMemberSelect
+
+
+  Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
+  {
+    Node * rtnNode = classInstanceNode;
+
+    Token pTok;
+    getNextToken(pTok);
+    if(pTok.m_type != TOK_DOT)
+      {
+	unreadToken();
+	return rtnNode;
+      }
+
+    Token iTok;
+    if(getExpectedToken(TOK_IDENTIFIER, iTok))
+      {
+	// set up compiler state to NOT use the current class block
+	// for symbol searches; may be unknown until type label
+	m_state.m_currentMemberClassBlock = NULL;
+	m_state.m_useMemberBlock = true;  //oddly =true
+
+	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(iTok.m_locator);
+
+	//clear up compiler state to no longer use the member class block for symbol searches
+	m_state.m_useMemberBlock = false;
+	m_state.m_currentMemberClassBlock = NULL;
+      }
+    return parseRestOfMemberSelectExpr(rtnNode); //recurse
+  } //parseRestOfMemberSelectExpr
 
 
   Node * Parser::parseMinMaxSizeofType(Token memberTok, UTI utype)
@@ -1544,7 +1624,7 @@ namespace MFM {
     if(pTok.m_type != TOK_DOT)
       {
 	unreadToken();
-	return NULL;
+	//return NULL;  //optional, dot might have already been eaten
       }
 
     Token fTok;
@@ -1592,50 +1672,48 @@ namespace MFM {
       } // complete
     else
       {
-	//input uti wasn't complete, i.e. based on sizeof some class
-	rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
+	  {
+	    //input uti wasn't complete, i.e. based on sizeof some class
+	    rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	  }
+	else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
+	  {
+	    if(ut->isMinMaxAllowed())
+	      rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+		MSG(&fTok, msg.str().c_str(), ERR);
+	      }
+	  }
+	else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
+	  {
+	    if(ut->isMinMaxAllowed())
+	      rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+		MSG(&fTok, msg.str().c_str(), ERR);
+	      }
+	  }
+	else
+	  {
+	    unreadToken();
+	  }
+
 	if(!rtnNode)
 	  {
 	    std::ostringstream msg;
 	    msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, incomplete type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	    MSG(&fTok, msg.str().c_str(), ERR);
+	    MSG(&fTok, msg.str().c_str(), INFO);
 	  }
       } // not complete
 
     return rtnNode;
   } //parseMinMaxSizeofType
-
-
-  Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
-  {
-    Node * rtnNode = classInstanceNode;
-
-    Token pTok;
-    getNextToken(pTok);
-    if(pTok.m_type != TOK_DOT)
-      {
-	unreadToken();
-	return rtnNode;
-      }
-
-    Token iTok;
-    if(getExpectedToken(TOK_IDENTIFIER, iTok))
-      {
-	// set up compiler state to NOT use the current class block
-	// for symbol searches; may be unknown until type label
-	m_state.m_currentMemberClassBlock = NULL;
-	m_state.m_useMemberBlock = true;  //oddly =true
-
-	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
-	assert(rtnNode);
-	rtnNode->setNodeLocation(iTok.m_locator);
-
-	//clear up compiler state to no longer use the member class block for symbol searches
-	m_state.m_useMemberBlock = false;
-	m_state.m_currentMemberClassBlock = NULL;
-      }
-    return parseRestOfMemberSelectExpr(rtnNode); //recurse
-  } //parseRestOfMemberSelectExpr
 
 
   Node * Parser::parseFunctionCall(Token identTok)
@@ -1807,19 +1885,17 @@ namespace MFM {
 
 	//returns either a terminal or proxy
 	rtnNode = parseMinMaxSizeofType(pTok, uti); //get's next dot token
-
-	if(bitsizeNode)
+	if(rtnNode)
 	  {
 	    // bitsize/arraysize is unknown, i.e. based on a Class.sizeof
 	    // t.f. rtnNode must be a NodeTerminalProxy
-	    if(rtnNode)
-	      ((NodeTerminalProxy *) rtnNode)->linkConstantExpression(bitsizeNode);
-	    else
-	      {
-		// clean up, some kind of error parsing min/max/sizeof
-		delete bitsizeNode;
-		bitsizeNode = NULL;
-	      }
+	    ((NodeTerminalProxy *) rtnNode)->linkConstantExpression(bitsizeNode);
+	  }
+	else
+	  {
+	    // clean up, some kind of error parsing min/max/sizeof
+	    delete bitsizeNode;
+	    bitsizeNode = NULL;
 	  }
 	return rtnNode;  //rtnNode could be NULL!
       } //not a Type
@@ -1974,6 +2050,9 @@ namespace MFM {
 	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
 	delete bitsizeNode;
 	bitsizeNode = NULL;
+	std::ostringstream msg;
+	msg << "Casting with unknown bit size is currently unsupported, type: " << m_state.getTokenAsATypeName(typeTok).c_str();
+	MSG(&typeTok, msg.str().c_str(), INFO);
       }
 
     // allows for casting to a class (makes class type if newly seen)
