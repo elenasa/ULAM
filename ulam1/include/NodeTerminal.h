@@ -80,8 +80,8 @@ namespace MFM{
 
   private:
     EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
-    bool setConstantValue(Token tok);
-    UTI setConstantTypeForNode(Token tok);
+    virtual bool setConstantValue(Token tok);
+    virtual UTI setConstantTypeForNode(Token tok);
 
   protected:
     union {

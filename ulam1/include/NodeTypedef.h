@@ -38,9 +38,9 @@
 #define NODETYPEDEF_H
 
 #include "Node.h"
-#include "SymbolTypedef.h"
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
+#include "SymbolTypedef.h"
 
 namespace MFM{
 
@@ -64,6 +64,9 @@ namespace MFM{
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual Node * findANodeDeclWithType(UTI utype);
+
+    void linkConstantExpression(NodeTypeBitsize * cenode);
+    void linkConstantExpression(NodeSquareBracket * cenode);
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 

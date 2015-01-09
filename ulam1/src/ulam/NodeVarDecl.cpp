@@ -122,6 +122,17 @@ namespace MFM {
       return NULL;  //not me
     }
 
+  void NodeVarDecl::linkConstantExpression(NodeTypeBitsize * cenode)
+  {
+    m_bitsizeConstExpr = cenode;
+  }
+
+
+  void NodeVarDecl::linkConstantExpression(NodeSquareBracket * cenode)
+  {
+    m_arraysizeConstExpr = cenode;
+  }
+
 
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
   {

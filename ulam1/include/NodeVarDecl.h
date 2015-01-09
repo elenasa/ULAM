@@ -61,6 +61,9 @@ namespace MFM{
 
     virtual Node * findANodeDeclWithType(UTI utype);
 
+    void linkConstantExpression(NodeTypeBitsize * cenode);
+    void linkConstantExpression(NodeSquareBracket * cenode);
+
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual UTI checkAndLabelType();

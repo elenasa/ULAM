@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeSizeofClass.h - Basic Node handling Sizeof Classes for ULAM
+ * NodeTerminalProxy.h - Basic Node handling of unknown type sizes for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeSizeofClass.h - Basic Node handling Sizeof Classes for ULAM
+  \file NodeTerminalProxy.h - Basic Node handling unknown type sizes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -34,21 +34,22 @@
 */
 
 
-#ifndef NODESIZEOFCLASS_H
-#define NODESIZEOFCLASS_H
+#ifndef NODETERMINALPROXY_H
+#define NODETERMINALPROXY_H
 
 #include "NodeTerminal.h"
-
+#include "NodeTypeBitsize.h"
+#include "NodeSquareBracket.h"
+#include "Token.h"
 
 namespace MFM{
 
-  class NodeSizeofClass : public NodeTerminal
+  class NodeTerminalProxy : public NodeTerminal
   {
   public:
 
-    NodeSizeofClass(s32 neguti, CompilerState & state);
-    NodeSizeofClass(u32 val, CompilerState & state);
-    ~NodeSizeofClass();
+    NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state);
+    ~NodeTerminalProxy();
 
     virtual const std::string prettyNodeName();
 
@@ -56,9 +57,22 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual Node * findANodeDeclWithType(UTI utype);
+
+    virtual void linkConstantExpression(NodeTypeBitsize * cenode);
+    virtual void linkConstantExpression(NodeSquareBracket * cenode);
+
+
   private:
+    UTI m_uti;
+    Token m_funcTok; // minof, maxof or sizeof
+    NodeTypeBitsize * m_bitsizeConstExpr;  // in case of incomplete type
+
+    virtual bool setConstantValue(Token tok);
+    virtual UTI setConstantTypeForNode(Token tok);
+
   };
 
-}
+} //MFM
 
-#endif //end NODESIZEOFCLASS_H
+#endif //end NODETERMINALPROXY_H
