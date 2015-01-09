@@ -307,7 +307,7 @@ namespace MFM {
 	evalNodeEpilog();
 
 	newarraysize = arrayUV.getImmediateData(m_state);
-	if(newarraysize < 0) //== NONARRAYSIZE
+	if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //== NONARRAYSIZE or UNKNOWNSIZE
 	  {
 	    MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
 	    return false;

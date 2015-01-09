@@ -331,7 +331,7 @@ namespace MFM {
 		return false;
 	      }
 	  }
-	else  //variable not array
+	else  //variable not array, or unknown
 	  {
 	    arraysize = tdarraysize; //use whatever typedef is
 	  }
@@ -361,7 +361,6 @@ namespace MFM {
 
 	// o.w. build symbol, first the base type (with array size)
 	aut = m_state.makeUlamType(key, bUT);
-	//aut = m_state.makeUlamType(aTok, bitsize, arraysize);
 	brtn = true;
       }
     else
@@ -446,14 +445,6 @@ namespace MFM {
 
     return rtnLocalSym;
   } //makeSymbol
-
-
-#if 0
-  void NodeIdent::GENCODE(File * fp)
-  {
-    fp->write(m_varSymbol->getMangledName().c_str());
-  }
-#endif
 
 
   void NodeIdent::genCode(File * fp, UlamValue & uvpass)

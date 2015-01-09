@@ -2502,7 +2502,20 @@ namespace MFM {
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(typeTok.m_locator);
 	  }
-	delete lvalNode;  //done with it
+
+	//link square bracket for constant expression to new node, if unknown size
+	if(rtnNode)
+	  {
+	    UlamType * aut = m_state.getUlamTypeByIndex(asymptr->getUlamTypeIdx());
+	    if(!aut->isComplete() && aut->getArraySize() == UNKNOWNSIZE)
+	      {
+		((NodeVarDecl *) rtnNode)->linkConstantExpression((NodeSquareBracket *) lvalNode); //tfr owner
+	      }
+	    else
+	      delete lvalNode;  //done with it
+	  }
+	else
+	  delete lvalNode;  //done with it
       }
     return rtnNode;
   } //makeVariableSymbol
@@ -2852,7 +2865,20 @@ namespace MFM {
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(typeTok.m_locator);
 	  }
-	delete lvalNode;  //done with it
+
+	//link square bracket for constant expression to new node, if unknown size
+	if(rtnNode)
+	  {
+	    UlamType * aut = m_state.getUlamTypeByIndex(asymptr->getUlamTypeIdx());
+	    if(!aut->isComplete() && aut->getArraySize() == UNKNOWNSIZE)
+	      {
+		((NodeTypedef *) rtnNode)->linkConstantExpression((NodeSquareBracket *)lvalNode); //tfr owner
+	      }
+	    else
+	      delete lvalNode;  //done with it
+	  }
+	else
+	  delete lvalNode;  //done with it
       }
     return rtnNode;
   } //makeTypedefSymbol
