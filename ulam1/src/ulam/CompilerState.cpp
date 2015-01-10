@@ -421,7 +421,7 @@ namespace MFM {
 	return;
       }
 
-    s32 total = bitsize + arraysize; //???
+    s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
 
     bool isCustomArray = ut->isCustomArray();
     UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);

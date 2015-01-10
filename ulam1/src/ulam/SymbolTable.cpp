@@ -334,40 +334,48 @@ namespace MFM {
 	    aok = false;  //moved here;
 	  }
 
-	//else
+	if(! m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->isComplete())
 	  {
-	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	    assert(classNode);
-	    //if(!classNode) continue; //infinite loop "Incomplete Class <> was never defined, fails sizing"
+	    std::ostringstream msg;
+	    msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " has 'unknown' sizes, fails sizing";
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),INFO);
+	    aok = false;  //moved here;
+	  }
 
-	    m_state.m_classBlock = classNode;
-	    m_state.m_currentBlock = m_state.m_classBlock;
+	//else
+	{
+	  NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	  assert(classNode);
+	  //if(!classNode) continue; //infinite loop "Incomplete Class <> was never defined, fails sizing"
 
-	    s32 totalbits = 0;
-	    if(((SymbolClass *) sym)->isQuarkUnion())
-	      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
-	    else
-	      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
-#if 0
-	    //disabled 11082014
-	    if(totalbits == 0)
+	  m_state.m_classBlock = classNode;
+	  m_state.m_currentBlock = m_state.m_classBlock;
+
+	  s32 totalbits = 0;
+	  if(((SymbolClass *) sym)->isQuarkUnion())
+	    totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
+	  else
+	    totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
+
+	  //check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
+	  if(totalbits == CYCLEFLAG)  // was < 0
 	      {
 		std::ostringstream msg;
-		msg << "< zero bit size symbol!! " << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "(" << totalbits << ")";
-		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
-		aok = false;
+		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str();
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	      }
-	    else
-#endif
-	      {
-		UTI sut = sym->getUlamTypeIdx();
-		m_state.setBitSize(sut, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	  else if(totalbits == EMPTYSYMBOLTABLE)
+	    {
+	      totalbits = 0;
+	      aok = true;
+	    }
+	  else
+	    aok = true;
 
-		//std::ostringstream msg;
-		//msg << "symbol size is aok (=" << totalbits << ", total= " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
-	      }
-	  }
+	  UTI sut = sym->getUlamTypeIdx();
+	  m_state.setBitSize(sut, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	  aok = true;
+	}
 	it++;
       }
     return aok;
@@ -831,6 +839,7 @@ namespace MFM {
   }
 
 
+  //called by NodeBlock.
   u32 SymbolTable::getTotalSymbolSize()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -856,7 +865,8 @@ namespace MFM {
 	it++;
       }
     return totalsizes;
-  }
+  } //getTotalSymbolSize
+
 
   std::string SymbolTable::firstletterTolowercase(const std::string s) //static method
   {

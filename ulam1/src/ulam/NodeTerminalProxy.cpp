@@ -53,7 +53,7 @@ namespace MFM {
     if(!cut->isComplete())
       {
 	std::ostringstream msg;
-	msg << "Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown";
+	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
     else
