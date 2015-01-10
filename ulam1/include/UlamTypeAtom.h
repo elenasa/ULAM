@@ -47,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeAtom(const UlamKeyTypeSignature key, const UTI uti);
+    UlamTypeAtom(const UlamKeyTypeSignature key);
     virtual ~UlamTypeAtom(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
@@ -68,7 +68,7 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual bool cast(UlamValue & val, CompilerState& state);
+    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
 

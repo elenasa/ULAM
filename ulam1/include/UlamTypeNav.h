@@ -46,10 +46,10 @@ namespace MFM{
   class UlamTypeNav : public UlamType
   {
   public:
-    
-    UlamTypeNav(const UlamKeyTypeSignature key, const UTI uti);
+
+    UlamTypeNav(const UlamKeyTypeSignature key);
     virtual ~UlamTypeNav(){}
-    
+
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual bool needsImmediateType();
@@ -61,9 +61,9 @@ namespace MFM{
     virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
 
   private:
-    
+
   };
-  
+
 }
 
 #endif //end ULAMTYPENAV_H

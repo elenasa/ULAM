@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
+  UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key) : UlamType(key)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     s32 bitsize = getBitSize();
@@ -98,10 +98,11 @@ namespace MFM {
   }
 
 
-  bool UlamTypeInt::cast(UlamValue & val, CompilerState& state)
+  bool UlamTypeInt::cast(UlamValue & val, UTI typidx, CompilerState& state)
   {
     bool brtn = true;
-    UTI typidx = getUlamTypeIndex();
+    //UTI typidx = getUlamTypeIndex();
+    assert(state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
@@ -186,7 +187,7 @@ namespace MFM {
     if(!isScalar())
       return genCodeAfterReadingArrayItemIntoATmpVar(fp, uvpass, state);
 
-    UTI uti = getUlamTypeIndex();
+    UTI uti = uvpass.getPtrTargetType(); // == getUlamTypeIndex()?
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
     s32 tmpVarCastNum = state.getNextTmpVarNumber();
     s32 totWords = getTotalWordSize();
@@ -198,8 +199,6 @@ namespace MFM {
     fp->write(state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
     fp->write(" = ");
 
-    // write the cast method (e.g. _SignExtend32)
-    //fp->write(castMethodForCodeGen(uti, state).c_str());
     fp->write("_SignExtend");
     fp->write_decimal(totWords);
 
@@ -229,7 +228,7 @@ namespace MFM {
   // private helper
   void UlamTypeInt::genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state)
   {
-    UTI uti = getUlamTypeIndex();
+    UTI uti = uvpass.getPtrTargetType(); //getUlamTypeIndex();
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
     s32 tmpVarCastNum = state.getNextTmpVarNumber();
     s32 itemWords = getItemWordSize();
@@ -241,8 +240,6 @@ namespace MFM {
     fp->write(state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
     fp->write(" = ");
 
-    // write the cast method (e.g. _SignExtend32)
-    //fp->write(castMethodForCodeGen(uti, state).c_str());
     fp->write("_SignExtend");
     fp->write_decimal(itemWords);
 

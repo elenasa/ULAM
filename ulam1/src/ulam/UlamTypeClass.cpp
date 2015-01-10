@@ -13,7 +13,7 @@ namespace MFM {
   static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
 
 
-  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type) : UlamType(key, uti), m_class(type), m_customArray(false), m_customArrayType(Nav)
+  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, ULAMCLASSTYPE type) : UlamType(key), m_class(type), m_customArray(false), m_customArrayType(Nav)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -25,10 +25,11 @@ namespace MFM {
      return Class;
    }
 
-  bool UlamTypeClass::cast(UlamValue & val, CompilerState& state)
+  bool UlamTypeClass::cast(UlamValue & val, UTI typidx, CompilerState& state)
   {
     bool brtn = true;
-    UTI typidx = getUlamTypeIndex();
+    //    UTI typidx = getUlamTypeIndex();
+    assert(state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * vut = state.getUlamTypeByIndex(valtypidx);
     assert(vut->isScalar() && isScalar());

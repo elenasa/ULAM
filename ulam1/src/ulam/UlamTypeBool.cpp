@@ -7,7 +7,7 @@
 
 namespace MFM {
 
-  UlamTypeBool::UlamTypeBool(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
+  UlamTypeBool::UlamTypeBool(const UlamKeyTypeSignature key) : UlamType(key)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -45,10 +45,11 @@ namespace MFM {
   }
 
 
-  bool UlamTypeBool::cast(UlamValue & val, CompilerState& state)
+  bool UlamTypeBool::cast(UlamValue & val, UTI typidx, CompilerState& state)
   {
     bool brtn = true;
-    UTI typidx = getUlamTypeIndex();
+    //UTI typidx = getUlamTypeIndex();
+    assert(state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
@@ -112,19 +113,18 @@ namespace MFM {
 
   void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
   {
-    UTI typidx = getUlamTypeIndex();
     bool dataAsBool = false;
     if(!isComplete())
       {
 	sprintf(valstr,"%s", "unknown");
       }
-    else if(state.isConstant(typidx))
+    else if(isConstant())
       {
 	dataAsBool = (bool) data;
       }
     else
       {
-	s32 bitsize = state.getBitSize(typidx);
+	s32 bitsize = getBitSize();
 	s32 count1s = PopCount(data);
 
 	if(count1s > (s32) (bitsize - count1s))  // == when even number bits is ignored (warning at def)
@@ -135,7 +135,7 @@ namespace MFM {
       sprintf(valstr,"%s", dataAsBool ? "true" : "false");
     else
       sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
-  }
+  } //getDataAsString
 
 
   const std::string UlamTypeBool::getConvertToCboolMethod()

@@ -18,7 +18,7 @@ namespace MFM {
 
 
 
-  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
+  UlamType::UlamType(const UlamKeyTypeSignature key) : m_key(key), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
   {}
 
 
@@ -48,19 +48,13 @@ namespace MFM {
   }
 
 
-  UTI UlamType::getUlamTypeIndex()
-  {
-    return m_uti;
-  }
-
-
    UlamKeyTypeSignature UlamType::getUlamKeyTypeSignature()
   {
     return m_key;
   }
 
 
-  bool UlamType::cast(UlamValue & val, CompilerState& state)
+  bool UlamType::cast(UlamValue & val, UTI typidx, CompilerState& state)
   {
     assert(0);
     //std::cerr << "UlamTypeClass (cast) error! " << std::endl;
@@ -471,7 +465,8 @@ namespace MFM {
     if(!ut2->isComplete()) return UTIC_DONTKNOW;
 
     //assert both key and ptr are either both equal or not equal; not different
-    assert(!( (ut1->getUlamKeyTypeSignature() == ut2->getUlamKeyTypeSignature()) ^ (ut1 == ut2)));
+    //assert(!( (ut1->getUlamKeyTypeSignature() == ut2->getUlamKeyTypeSignature()) ^ (ut1 == ut2)));
+    assert((ut1->getUlamKeyTypeSignature() == ut2->getUlamKeyTypeSignature()) == (ut1 == ut2));
     return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
   } //compare (static)
 

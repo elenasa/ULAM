@@ -166,7 +166,7 @@ namespace MFM {
 
     if(nodeType != tobeType)
       {
-	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, m_state)))
+	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType, m_state)))
 	  {
 	    std::ostringstream msg;
 	    msg << "Cast problem! Value type: " << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str() << " failed to be cast as type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();

@@ -1,6 +1,7 @@
 #include "SymbolFunctionName.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
+#include "CompilerState.h"
 
 namespace MFM {
 
@@ -39,9 +40,15 @@ namespace MFM {
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
   {
     bool overloaded = false;
-
     //assert(getUlamTypeIdx() == fsym->getUlamTypeIdx());
-    assert(UlamType::compare(getUlamTypeIdx(), fsym->getUlamTypeIdx(), m_state) == UTIC_SAME);
+    if(UlamType::compare(getUlamTypeIdx(), fsym->getUlamTypeIdx(), m_state) != UTIC_SAME)
+      {
+	std::ostringstream msg;
+	msg << "Overloading Function: " << m_state.m_pool.getDataAsString(fsym->getId()).c_str() << " Returns DIFFERENT type: '" << m_state.getUlamTypeNameByIndex(fsym->getUlamTypeIdx()).c_str() << "' (" << fsym->getUlamTypeIdx() << ") than " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << "' (" << getUlamTypeIdx() << ")";
+	MSG("", msg.str().c_str(), ERR);
+	assert(0);
+      }
+    //assert(UlamType::compare(getUlamTypeIdx(), fsym->getUlamTypeIdx(), m_state) == UTIC_SAME);
 
     std::string mangled = fsym->getMangledNameWithTypes();
 

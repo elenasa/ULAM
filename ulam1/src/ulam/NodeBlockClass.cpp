@@ -421,16 +421,16 @@ namespace MFM {
     fp->write("// immediate values\n");
 
     //skip Nav type (0)
-    u32 numTypes = m_state.m_indexToUlamType.size();
-    for(u32 i = 1; i < numTypes; i++)
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
+    while(it != m_state.m_definedUlamTypes.end())
       {
-	UlamType * ut = m_state.getUlamTypeByIndex(i);
+	UlamType * ut = it->second;
 	//skip constants, atoms, ptrs, elements, void and nav
 	if(ut->needsImmediateType())
 	  ut->genUlamTypeMangledImmediateDefinitionForC(fp, &m_state);
+	it++;
       }
   } //genImmediateMangledTypesForHeaderFile
-
 
 
   void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)
