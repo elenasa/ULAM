@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  UlamTypePtr::UlamTypePtr(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
+  UlamTypePtr::UlamTypePtr(const UlamKeyTypeSignature key) : UlamType(key)
   {}
 
 

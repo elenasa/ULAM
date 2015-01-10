@@ -50,6 +50,8 @@
 #include "NodeBlock.h"
 #include "NodeCast.h"
 #include "NodeReturnStatement.h"
+#include "NodeTypeBitsize.h"
+#include "NodeSquareBracket.h"
 #include "StringPool.h"
 #include "SymbolClass.h"
 #include "SymbolFunction.h"
@@ -66,8 +68,6 @@ namespace MFM{
   {
     inline bool operator() (const UlamKeyTypeSignature key1, const UlamKeyTypeSignature key2)
     {
-      //if(strcmp(key1.m_typeName, key2.m_typeName) < 0) return true;
-      //if(strcmp(key1.m_typeName, key2.m_typeName) > 0) return false;
       if(key1.m_typeNameId < key2.m_typeNameId) return true;
       if(key1.m_typeNameId > key2.m_typeNameId) return false;
       if(key1.m_bits < key2.m_bits) return true;
@@ -81,7 +81,6 @@ namespace MFM{
   class Symbol;         //forward
   class NodeBlockClass; //forward
   class SymbolTable;    //forward
-
 
   struct CompilerState
   {
@@ -124,8 +123,14 @@ namespace MFM{
 
     ErrorMessageHandler m_err;
 
-    std::vector<UlamType *> m_indexToUlamType;   //ulamtype ptr by index
-    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_definedUlamTypes;   //key -> index of ulamtype (UTI)
+    //std::vector<UlamType *> m_indexToUlamType;   //ulamtype ptr by index
+    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToAUlamTypeIndex;   //key -> index of ulamtype (UTI)
+    std::vector<UlamKeyTypeSignature> m_indexToUlamKey;   //UTI -> ulamkey, many-to-one
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes;   //key -> ulamtype *
+
+    std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
+    std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
+
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -146,14 +151,16 @@ namespace MFM{
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
-    bool isDefined(UlamKeyTypeSignature key, UTI& foundUTI);
-    UlamType * createUlamType(UlamKeyTypeSignature key, UTI uti, ULAMTYPE utype);
-    bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI uti);
+    //bool isDefined(UlamKeyTypeSignature key, UTI& foundUTI);
+    bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
+    bool justOneDefined(UlamKeyTypeSignature key, UTI& foundUTI);
+    UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
+    bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
     const std::string getUlamTypeNameByIndex(UTI uti);
-    UTI getUlamTypeIndex(UlamType * ut);
+    //UTI getUlamTypeIndex(UlamType * ut);  can't be done
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
     UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);

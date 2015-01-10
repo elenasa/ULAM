@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  UlamTypeBits::UlamTypeBits(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
+  UlamTypeBits::UlamTypeBits(const UlamKeyTypeSignature key) : UlamType(key)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -39,10 +39,11 @@ namespace MFM {
   }
 
 
-  bool UlamTypeBits::cast(UlamValue & val, CompilerState& state)
+  bool UlamTypeBits::cast(UlamValue & val, UTI typidx, CompilerState& state)
   {
     bool brtn = true;
-    UTI typidx = getUlamTypeIndex();
+    //UTI typidx = getUlamTypeIndex();
+    assert(state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))

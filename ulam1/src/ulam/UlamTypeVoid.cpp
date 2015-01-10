@@ -7,7 +7,7 @@
 
 namespace MFM {
 
-  UlamTypeVoid::UlamTypeVoid(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
+  UlamTypeVoid::UlamTypeVoid(const UlamKeyTypeSignature key) : UlamType(key)
   {}
 
 
@@ -65,7 +65,7 @@ namespace MFM {
 
 
   //anything can be cast to a void (not the reverse)
-  bool UlamTypeVoid::cast(UlamValue & val, CompilerState& state)
+  bool UlamTypeVoid::cast(UlamValue & val, UTI typidx, CompilerState& state)
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
@@ -88,7 +88,7 @@ namespace MFM {
       case Unary:
       case Bool:
       case Bits:
-	val = UlamValue::makeImmediate(getUlamTypeIndex(), 0, state); //overwrite val, no data
+	val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val, no data
 	break;
       default:
 	//std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;

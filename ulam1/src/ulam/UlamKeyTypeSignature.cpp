@@ -7,7 +7,7 @@
 
 namespace MFM {
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(){}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(): m_typeNameId(0), m_bits(UNKNOWNSIZE), m_arraySize(UNKNOWNSIZE) {}
 
   UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize ): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize) {}
 

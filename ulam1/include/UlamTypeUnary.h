@@ -47,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeUnary(const UlamKeyTypeSignature key, const UTI uti);
+    UlamTypeUnary(const UlamKeyTypeSignature key);
     virtual ~UlamTypeUnary(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
@@ -56,7 +56,7 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual bool cast(UlamValue & val, CompilerState& state);
+    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 

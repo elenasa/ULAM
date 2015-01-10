@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  UlamTypeAtom::UlamTypeAtom(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
+  UlamTypeAtom::UlamTypeAtom(const UlamKeyTypeSignature key) : UlamType(key)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -67,10 +67,11 @@ namespace MFM {
   }
 
 
-  bool UlamTypeAtom::cast(UlamValue & val, CompilerState& state)
+  bool UlamTypeAtom::cast(UlamValue & val, UTI typidx, CompilerState& state)
   {
     bool brtn = true;
     //UTI typidx = getUlamTypeIndex();
+    assert(state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * vut = state.getUlamTypeByIndex(valtypidx);
     assert(vut->isScalar() && isScalar());

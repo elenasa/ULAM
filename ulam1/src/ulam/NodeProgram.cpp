@@ -385,19 +385,20 @@ namespace MFM {
     // do primitive types before classes so that immediate
     // Quarks/Elements can use them (e.g. immediate index for aref)
 
-    u32 numTypes = m_state.m_indexToUlamType.size();
-    //skip Navs (0)
-    for(u32 i = 1; i < numTypes; i++)
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
+    while(it != m_state.m_definedUlamTypes.end())
       {
-	UlamType * ut = m_state.getUlamTypeByIndex(i);
+	UlamType * ut = it->second;
 	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)   //e.g. skip constants, incl atom
 	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	it++;
       }
 
     //same except now for user defined Class types
-    for(u32 i = 1; i < numTypes; i++)
+    it = m_state.m_definedUlamTypes.begin();
+    while(it != m_state.m_definedUlamTypes.end())
       {
-	UlamType * ut = m_state.getUlamTypeByIndex(i);
+	UlamType * ut = it->second;
 	ULAMCLASSTYPE classtype = ut->getUlamClass();
 	if(ut->needsImmediateType() && classtype != UC_NOTACLASS)
 	  {
@@ -405,6 +406,7 @@ namespace MFM {
 	    if(classtype == UC_QUARK)
 	      ut->genUlamTypeMangledAutoDefinitionForC(fp, &m_state);
 	  }
+	it++;
       }
     delete fp;
   } //genMangledTypeHeaderFile
