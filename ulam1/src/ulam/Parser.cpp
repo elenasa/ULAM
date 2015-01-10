@@ -1704,12 +1704,16 @@ namespace MFM {
 	    unreadToken();
 	  }
 
+	//rtnNode may be null if not minof, maxof, sizeof, but a member or func selected
+#if 0
 	if(!rtnNode)
 	  {
 	    std::ostringstream msg;
 	    msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, incomplete type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 	    MSG(&fTok, msg.str().c_str(), INFO);
 	  }
+#endif
+
       } // not complete
 
     return rtnNode;

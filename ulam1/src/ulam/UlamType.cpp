@@ -520,7 +520,7 @@ namespace MFM {
   PACKFIT UlamType::getPackable()
   {
     PACKFIT rtn = UNPACKED;            //was false == 0
-    u32 len = getTotalBitSize();       //could be 0
+    u32 len = getTotalBitSize();       //could be 0, e.g. 'unknown'
 
     //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
     //if(len <= MAXBITSPERINT || len <= MAXBITSPERLONG)
