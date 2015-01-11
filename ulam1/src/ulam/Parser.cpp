@@ -2483,6 +2483,9 @@ namespace MFM {
 	    delete constExprForBitSize; //done with it
 	  }
       }
+    else
+      delete constExprForBitSize;
+
     return rtnNode;
   } //makeVariableSymbol
 
@@ -2848,6 +2851,9 @@ namespace MFM {
 	    delete constExprForBitSize; //done with it
 	  }
       }
+    else
+      delete constExprForBitSize;
+
     return rtnNode;
   } //makeTypedefSymbol
 
@@ -3411,6 +3417,9 @@ namespace MFM {
       {
 	if(aut->getArraySize() == UNKNOWNSIZE)
 	  m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner
+	else
+	  delete ceForArraySize;
+
 	if(aut->getBitSize() == UNKNOWNSIZE)
 	  m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
       }

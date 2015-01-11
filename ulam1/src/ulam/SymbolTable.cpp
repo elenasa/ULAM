@@ -333,7 +333,8 @@ namespace MFM {
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false;  //moved here;
 	  }
-
+#if 0
+	//of course they always are!
 	if(! m_state.isComplete(sym->getUlamTypeIdx()))
 	  {
 	    std::ostringstream msg;
@@ -341,7 +342,7 @@ namespace MFM {
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),INFO);
 	    aok = false;  //moved here;
 	  }
-
+#endif
 	//else
 	{
 	  NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
