@@ -382,7 +382,6 @@ namespace MFM {
     s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
     NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
-    bool linkBitsizeNode = false;    //housekeep this node based next tokens..
 
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
@@ -391,13 +390,12 @@ namespace MFM {
 	if(getExpectedToken(TOK_OPEN_PAREN, QUIETLY))
 	  {
 	    //eats the '(' when found
-	    rtnNode = makeFunctionSymbol(pTok, typebitsize, iTok); //with params
+	    rtnNode = makeFunctionSymbol(pTok, typebitsize, iTok, bitsizeNode); //with params
 	    if(bitsizeNode)
 	      {
 		std::ostringstream msg;
 		msg << "Function return type with 'unknown' bit size is currently unsupported, type: " << m_state.getTokenAsATypeName(pTok).c_str();
 		MSG(&pTok, msg.str().c_str(), INFO);
-		//linkBitsizeNode = true;  ???
 	      }
 
 	    Token qTok;
@@ -422,13 +420,7 @@ namespace MFM {
 	    // not '(', so token is unread, and we know
 	    // it's a variable, not a function;
 	    // also handles arrays
-	    rtnNode = makeVariableSymbol(pTok, typebitsize, arraysize, iTok);
-	    if(bitsizeNode && rtnNode)
-	      {
-		//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-		((NodeVarDecl *) rtnNode)->linkConstantExpression(bitsizeNode);
-		linkBitsizeNode = true;
-	      }
+	    rtnNode = makeVariableSymbol(pTok, typebitsize, arraysize, iTok, bitsizeNode);
 
 	    if(rtnNode)
 	      rtnNode = parseRestOfDecls(pTok, typebitsize, arraysize, iTok, rtnNode, NOASSIGN);
@@ -458,12 +450,6 @@ namespace MFM {
 	msg << "Name of variable/function <" << m_state.getTokenDataAsString(&iTok).c_str() << ">: Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	unreadToken();
-      }
-
-    if(!linkBitsizeNode)
-      {
-	delete bitsizeNode;
-	bitsizeNode = NULL;
       }
 
     m_state.m_parsingElementParameterVariable = false;
@@ -1125,28 +1111,19 @@ namespace MFM {
 	s32 typebitsize = 0;
 	s32 arraysize = NONARRAYSIZE;
 	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
-	bool linkBitsizeNode = false;    //housekeep this node based next tokens..
 
 	Token iTok;
 	getNextToken(iTok);
 	//insure the typedef name starts with a capital letter
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
-	    rtnNode = makeTypedefSymbol(pTok, typebitsize, arraysize, iTok);
-	    ((NodeTypedef *) rtnNode)->linkConstantExpression(bitsizeNode);
-	    linkBitsizeNode = true;
+	    rtnNode = makeTypedefSymbol(pTok, typebitsize, arraysize, iTok, bitsizeNode);
 	  }
 	else
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid typedef Alias <" << m_state.getTokenDataAsString(&iTok).c_str() << ">, Type Identifier (2nd arg) requires capitalization";
 	    MSG(&iTok, msg.str().c_str(), ERR);
-	  }
-
-	if(!linkBitsizeNode)
-	  {
-	    delete bitsizeNode;
-	    bitsizeNode = NULL;
 	  }
       }
     else
@@ -1175,18 +1152,11 @@ namespace MFM {
     s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
     NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
-    bool linkBitsizeNode = false;    //housekeep this node based next tokens..
 
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-	rtnNode = makeVariableSymbol(pTok, typebitsize, arraysize, iTok);
-	if(bitsizeNode && rtnNode)
-	  {
-	    //bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	    ((NodeVarDecl *) rtnNode)->linkConstantExpression(bitsizeNode);
-	    linkBitsizeNode = true;
-	  }
+	rtnNode = makeVariableSymbol(pTok, typebitsize, arraysize, iTok, bitsizeNode);
 
 	if(rtnNode && !parseSingleDecl)
 	  {
@@ -1202,12 +1172,6 @@ namespace MFM {
 	MSG(&iTok, msg.str().c_str(), ERR);
 
 	unreadToken();
-      }
-
-    if(!linkBitsizeNode)
-      {
-	delete bitsizeNode;
-	bitsizeNode = NULL;
       }
 
     return rtnNode;
@@ -1892,8 +1856,7 @@ namespace MFM {
 	if(rtnNode)
 	  {
 	    // bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	    // t.f. rtnNode must be a NodeTerminalProxy
-	    ((NodeTerminalProxy *) rtnNode)->linkConstantExpression(bitsizeNode);
+	    linkOrFreeConstantExpressions(uti, bitsizeNode, NULL);
 	  }
 	else
 	  {
@@ -2461,7 +2424,7 @@ namespace MFM {
   } //parseRestOfDeclAssignment
 
 
-  Node * Parser::makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok)
+  Node * Parser::makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     assert(! Token::isTokenAType(identTok));  //capitalization check done by Lexer
 
@@ -2507,25 +2470,24 @@ namespace MFM {
 	    rtnNode->setNodeLocation(typeTok.m_locator);
 	  }
 
-	//link square bracket for constant expression to new node, if unknown size
+	//link square bracket for constant expression, if unknown array size
+	//link last arg for constant expression, if unknown bit size
+	// o.w. clean up!
 	if(rtnNode)
 	  {
-	    UlamType * aut = m_state.getUlamTypeByIndex(asymptr->getUlamTypeIdx());
-	    if(!aut->isComplete() && aut->getArraySize() == UNKNOWNSIZE)
-	      {
-		((NodeVarDecl *) rtnNode)->linkConstantExpression((NodeSquareBracket *) lvalNode); //tfr owner
-	      }
-	    else
-	      delete lvalNode;  //done with it
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
-	  delete lvalNode;  //done with it
+	  {
+	    delete lvalNode;  //done with it
+	    delete constExprForBitSize; //done with it
+	  }
       }
     return rtnNode;
   } //makeVariableSymbol
 
 
-  Node * Parser::makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok)
+  Node * Parser::makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     // first check that the function name begins with a lower case letter
     if(Token::isTokenAType(identTok))
@@ -2535,6 +2497,7 @@ namespace MFM {
 	MSG(&identTok, msg.str().c_str(), ERR);
 
 	// eat tokens until end of definition ?
+	delete constExprForBitSize;
 	return NULL;
       }
 
@@ -2554,7 +2517,7 @@ namespace MFM {
 
     // not in scope, or not yet defined, or possible overloading
     // o.w. build symbol for function: return type + name + parameter symbols
-    Node * rtnNode = makeFunctionBlock(typeTok, typebitsize, identTok);
+    Node * rtnNode = makeFunctionBlock(typeTok, typebitsize, identTok, constExprForBitSize);
 
     // exclude the declaration & definition from the parse tree
     // (since in SymbolFunction) & return NULL.
@@ -2563,7 +2526,7 @@ namespace MFM {
   } //makeFunctionSymbol
 
 
-  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok)
+  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     NodeBlockFunctionDefinition * rtnNode = NULL;
 
@@ -2577,6 +2540,8 @@ namespace MFM {
     // array return types require a typedef alias; lookup is name-based, indep of size args.
     UTI rtnuti = m_state.getUlamTypeFromToken(typeTok, typebitsize, NONARRAYSIZE);
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
+
+    linkOrFreeConstantExpressions(rtnuti, constExprForBitSize, NULL);
 
     // WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     //m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr);
@@ -2827,7 +2792,7 @@ namespace MFM {
   } //parseFunctionBody
 
 
-  Node * Parser::makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok)
+  Node * Parser::makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     NodeTypedef * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok);
@@ -2870,19 +2835,18 @@ namespace MFM {
 	    rtnNode->setNodeLocation(typeTok.m_locator);
 	  }
 
-	//link square bracket for constant expression to new node, if unknown size
+	//link square bracket for constant expression, if unknown array size
+	//link last arg for constant expression, if unknown bit size
+	// o.w. clean up!
 	if(rtnNode)
 	  {
-	    UlamType * aut = m_state.getUlamTypeByIndex(asymptr->getUlamTypeIdx());
-	    if(!aut->isComplete() && aut->getArraySize() == UNKNOWNSIZE)
-	      {
-		((NodeTypedef *) rtnNode)->linkConstantExpression((NodeSquareBracket *)lvalNode); //tfr owner
-	      }
-	    else
-	      delete lvalNode;  //done with it
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
-	  delete lvalNode;  //done with it
+	  {
+	    delete lvalNode;  //done with it
+	    delete constExprForBitSize; //done with it
+	  }
       }
     return rtnNode;
   } //makeTypedefSymbol
@@ -3438,6 +3402,24 @@ namespace MFM {
     termNode->setNodeLocation(locTok.m_locator);
     return termNode;
   } //makeTerminal
+
+
+  void Parser::linkOrFreeConstantExpressions(UTI auti, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
+  {
+    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    if(!aut->isComplete())
+      {
+	if(aut->getArraySize() == UNKNOWNSIZE)
+	  m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner
+	if(aut->getBitSize() == UNKNOWNSIZE)
+	  m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
+      }
+    else
+      {
+	delete ceForArraySize;  //done with it
+	delete ceForBitSize; //done with it
+      }
+  } //linkConstantExpressions
 
 
   bool Parser::getExpectedToken(TokenType eTokType, bool quietly)

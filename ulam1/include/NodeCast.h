@@ -57,8 +57,6 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual Node * findANodeDeclWithType(UTI utype);
-
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);

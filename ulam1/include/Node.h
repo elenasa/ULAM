@@ -107,8 +107,6 @@ namespace MFM{
     void assignReturnValueToStack(UlamValue rtnUV, STORAGE where = EVALRETURN);
     void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
-    virtual Node * findANodeDeclWithType(UTI utype);
-
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void genCode(File * fp, UlamValue& uvpass);

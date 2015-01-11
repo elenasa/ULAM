@@ -34,6 +34,7 @@ namespace MFM {
     fp->write(id);
   }
 
+
   void Node::constantFold(Token tok)
   {
     assert(0);  //only NodeTerminal has this defined
@@ -357,13 +358,6 @@ namespace MFM {
 
     UlamValue rtnPtr = UlamValue::makePtr(-1, EVALRETURN, rtnUVtype, rtnUVptr.isTargetPacked(), m_state);
     m_state.m_nodeEvalStack.assignUlamValuePtr(rtnPtr, rtnUVptr);
-  }
-
-
-  Node * Node::findANodeDeclWithType(UTI utype)
-  {
-    assert(0); //catch the ones that need to pass
-    return NULL;
   }
 
 

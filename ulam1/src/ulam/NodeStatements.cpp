@@ -137,15 +137,6 @@ namespace MFM {
   }
 
 
-  Node * NodeStatements::findANodeDeclWithType(UTI utype)
-  {
-    Node * rtnNode = m_node->findANodeDeclWithType(utype);
-    if(rtnNode) return rtnNode; //done
-
-    return m_nextNode->findANodeDeclWithType(utype);
-  }
-
-
   void NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_node->packBitsInOrderOfDeclaration(offset); //updates offset

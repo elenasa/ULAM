@@ -79,8 +79,6 @@ namespace MFM{
 
     s32 findUlamTypeInTable(UTI utype);
 
-    virtual Node * findANodeDeclWithType(UTI utype);
-
     SymbolTable * getSymbolTablePtr(); //used for print postfix
 
     virtual void genCode(File * fp, UlamValue& uvpass);

@@ -4,18 +4,12 @@
 
 namespace MFM {
 
-  NodeTerminalProxy::NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, state), m_uti(memberType), m_funcTok(funcTok), m_bitsizeConstExpr(NULL)
+  NodeTerminalProxy::NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, state), m_uti(memberType), m_funcTok(funcTok)
   {
     Node::setNodeLocation(funcTok.m_locator);
   }
 
-
-  NodeTerminalProxy::~NodeTerminalProxy()
-  {
-    delete m_bitsizeConstExpr;
-    m_bitsizeConstExpr = NULL;
-  }
-
+  NodeTerminalProxy::~NodeTerminalProxy() {}
 
   const std::string NodeTerminalProxy::prettyNodeName()
   {
@@ -23,34 +17,14 @@ namespace MFM {
   }
 
 
-  void NodeTerminalProxy::constantFold(Token tok)
-  {
-    assert(0);  //override NodeTerminal
-  } //constantFold
-
-
   UTI NodeTerminalProxy::checkAndLabelType()
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(m_uti);
-
     if(m_constant.sval == UNKNOWNSIZE)
       {
-	s32 bitsize = cut->getBitSize();
-	if(bitsize == UNKNOWNSIZE)
-	  {
-	    if(m_bitsizeConstExpr)
-	      {
-		m_bitsizeConstExpr->getTypeBitSizeInParen(bitsize, cut->getUlamTypeEnum()); //eval
-
-		if(bitsize != UNKNOWNSIZE)
-		  {
-		    m_state.setSizes(m_uti, bitsize, cut->getArraySize()); //update UlamType
-		  }
-	      }
-	  }
+	m_state.constantFoldIncompleteUTI(m_uti); //update if possible
       }
 
-    if(!cut->isComplete())
+    if(!m_state.isComplete(m_uti))
       {
 	std::ostringstream msg;
 	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown";
@@ -71,27 +45,6 @@ namespace MFM {
       }
     return getNodeType(); //updated to Unsigned, hopefully
   }  //checkandLabelType
-
-
-  Node * NodeTerminalProxy::findANodeDeclWithType(UTI utype)
-  {
-    if(m_uti == utype && m_bitsizeConstExpr != NULL)
-      return this;
-    return NULL;  //not me
-  }
-
-
-  void NodeTerminalProxy::linkConstantExpression(NodeTypeBitsize * cenode)
-  {
-    m_bitsizeConstExpr = cenode;
-  }
-
-
-  void NodeTerminalProxy::linkConstantExpression(NodeSquareBracket * cenode)
-  {
-    //m_arraysizeConstExpr = cenode;
-    assert(0);
-  }
 
 
   bool NodeTerminalProxy::setConstantValue(Token tok)

@@ -138,12 +138,6 @@ namespace MFM {
   }
 
 
-  Node * NodeBlock::findANodeDeclWithType(UTI utype)
-  {
-    return m_nextNode->findANodeDeclWithType(utype);
-  }
-
-
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {
     return &m_ST;

@@ -334,7 +334,7 @@ namespace MFM {
 	    aok = false;  //moved here;
 	  }
 
-	if(! m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->isComplete())
+	if(! m_state.isComplete(sym->getUlamTypeIdx()))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " has 'unknown' sizes, fails sizing";
@@ -430,7 +430,7 @@ namespace MFM {
 	    if(symsize == CYCLEFLAG)  // was < 0
 	      {
 		std::ostringstream msg;
-		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+		msg << "cycle error!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
 		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	      }
 	    else if(symsize == EMPTYSYMBOLTABLE)
@@ -472,7 +472,7 @@ namespace MFM {
 	    if(symsize == CYCLEFLAG)  // was < 0
 	      {
 		std::ostringstream msg;
-		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+		msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
 		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	      }
 	    else if(symsize == EMPTYSYMBOLTABLE)
@@ -506,9 +506,10 @@ namespace MFM {
 	//if(totbitsize == UNKNOWNSIZE)
 	if(totbitsize == UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE)
 	  {
-	    if(m_state.findAndSizeANodeDeclWithType(argut))
+	    m_state.constantFoldIncompleteUTI(argut);
+	    totbitsize = m_state.getBitSize(argut);
+	    if(m_state.isComplete(argut))
 	      {
-		totbitsize = m_state.getBitSize(argut);
 		totbitsize *= (m_state.isScalar(argut) ? 1 : m_state.getArraySize(argut));
 	      }
 	  }

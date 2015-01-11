@@ -38,8 +38,6 @@
 #define NODETERMINALPROXY_H
 
 #include "NodeTerminal.h"
-#include "NodeTypeBitsize.h"
-#include "NodeSquareBracket.h"
 #include "Token.h"
 
 namespace MFM{
@@ -53,20 +51,11 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void constantFold(Token tok);
-
     virtual UTI checkAndLabelType();
-
-    virtual Node * findANodeDeclWithType(UTI utype);
-
-    virtual void linkConstantExpression(NodeTypeBitsize * cenode);
-    virtual void linkConstantExpression(NodeSquareBracket * cenode);
-
 
   private:
     UTI m_uti;
     Token m_funcTok; // minof, maxof or sizeof
-    NodeTypeBitsize * m_bitsizeConstExpr;  // in case of incomplete type
 
     virtual bool setConstantValue(Token tok);
     virtual UTI setConstantTypeForNode(Token tok);

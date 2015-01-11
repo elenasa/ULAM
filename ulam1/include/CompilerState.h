@@ -124,7 +124,7 @@ namespace MFM{
     ErrorMessageHandler m_err;
 
     //std::vector<UlamType *> m_indexToUlamType;   //ulamtype ptr by index
-    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToAUlamTypeIndex;   //key -> index of ulamtype (UTI)
+    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key -> index of ulamtype (UTI)
     std::vector<UlamKeyTypeSignature> m_indexToUlamKey;   //UTI -> ulamkey, many-to-one
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes;   //key -> ulamtype *
 
@@ -153,9 +153,14 @@ namespace MFM{
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     //bool isDefined(UlamKeyTypeSignature key, UTI& foundUTI);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
-    bool justOneDefined(UlamKeyTypeSignature key, UTI& foundUTI);
+    bool aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
+    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
+    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    void constantFoldIncompleteUTI(UTI uti);
+    bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
+    bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
@@ -175,8 +180,9 @@ namespace MFM{
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
+    bool isComplete(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
-    void setSizes(UTI utArg, s32 bitsize, s32 arraysize);
+    void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
 
     s32 getDefaultBitSize(UTI uti);
