@@ -48,6 +48,7 @@
 #include "NodeConditionalAs.h"
 #include "NodeFunctionCall.h"
 #include "NodeStatements.h"
+#include "NodeSquareBracket.h"
 #include "NodeTypeBitsize.h"
 #include "NodeUnaryOp.h"
 #include "Symbol.h"
@@ -164,7 +165,7 @@ namespace MFM{
 
 
     /** helper for parseTypedef */
-    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok);
+    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
 
     /**
@@ -308,18 +309,18 @@ namespace MFM{
     Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode);
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok);
+    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize=NULL);
 
 
     /**
 	<FUNC_DEF>  := <FUNC_DECL> + <BLOCK>
 	<FUNC_DECL> := <TYPE> + <IDENT> + '(' + <FUNC_PARAMS> + ')'
      */
-    Node * makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok);
+    Node * makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
 
     /** helper method */
-    NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok);
+    NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
 
     /**
@@ -423,6 +424,11 @@ namespace MFM{
     */
     Node * makeTerminal(Token& locTok, s32 val, ULAMTYPE etype);
     Node * makeTerminal(Token& locTok, u32 val, ULAMTYPE etype);
+
+    /**
+       helper method to save subtrees for unknown UTIs
+    */
+    void linkOrFreeConstantExpressions(UTI auti, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize);
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);

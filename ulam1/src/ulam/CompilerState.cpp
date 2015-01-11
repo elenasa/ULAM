@@ -63,7 +63,7 @@ namespace MFM {
 
     m_definedUlamTypes.clear();
     m_indexToUlamKey.clear();
-    m_keyToAUlamTypeIndex.clear();
+    m_keyToaUTI.clear();
 
     std::map<UTI, NodeTypeBitsize *>::iterator itb = m_unknownBitsizeSubtrees.begin();
     s32 unknownB = 0;
@@ -148,7 +148,7 @@ namespace MFM {
 	uti = makeUlamType(key,bUT);
       }
     else
-      justOneDefined(key,uti);
+      aDefinedUTI(key,uti);
 
     return uti;
   } //makeUlamType
@@ -166,11 +166,11 @@ namespace MFM {
 	ut = createUlamType(key, utype);
 	m_indexToUlamKey.push_back(key);
 	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature,UlamType*>(key,ut)); //map owns ut
-	m_keyToAUlamTypeIndex.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
+	m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
 	assert(isDefined(key, ut));
       }
     else
-      justOneDefined(key,uti);
+      aDefinedUTI(key,uti);
 
     return uti;
   } //makeUlamType
@@ -196,13 +196,13 @@ namespace MFM {
   } //isDefined
 
 
-  bool CompilerState::justOneDefined(UlamKeyTypeSignature key, UTI& foundUTI)
+  bool CompilerState::aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI)
   {
     bool rtnBool= false;
 
-    std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToAUlamTypeIndex.begin();
+    std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToaUTI.begin();
 
-    while(it != m_keyToAUlamTypeIndex.end())
+    while(it != m_keyToaUTI.end())
       {
 	if(key == it->first)
 	  {
@@ -213,7 +213,7 @@ namespace MFM {
 	it++;
       }
     return rtnBool;
-  } //justOneDefined
+  } //aDefinedUTI
 
 
   UlamType * CompilerState::createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype)
@@ -286,6 +286,71 @@ namespace MFM {
       }
     return rtnBool;
   } //deleteUlamKeyTypeSignature
+
+
+  void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
+  {
+    if(ceNode)
+      m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
+  }
+
+
+  void CompilerState::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
+  {
+    if(ceNode)
+      m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
+  }
+
+
+  void CompilerState::constantFoldIncompleteUTI(UTI uti)
+  {
+    s32 bitsize = getBitSize(uti);
+    s32 arraysize = getArraySize(uti);
+    bool bs = (bitsize != UNKNOWNSIZE || constantFoldUnknownBitsize(uti,bitsize));
+    bool as = (arraysize != UNKNOWNSIZE || constantFoldUnknownArraysize(uti, arraysize));
+    if(bs && as)
+      setUTISizes(uti, bitsize, arraysize); //update UlamType
+  } //constantFoldIncompleteUTI
+
+
+  bool CompilerState::constantFoldUnknownBitsize(UTI auti, s32& bitsize)
+  {
+    bool rtnBool = true; //unfound
+    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
+
+    while(it != m_unknownBitsizeSubtrees.end())
+      {
+	if(auti == it->first)
+	  {
+	    NodeTypeBitsize * ceNode = it->second;
+	    assert(ceNode);
+	    rtnBool = ceNode->getTypeBitSizeInParen(bitsize, getUlamTypeByIndex(auti)->getUlamTypeEnum()); //eval
+	    break;
+	  }
+	it++;
+      }
+    return rtnBool;
+  } //constantFoldUnknownBitsize
+
+
+  bool CompilerState::constantFoldUnknownArraysize(UTI auti, s32& arraysize)
+  {
+    bool rtnBool = true;  //unfound
+    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.begin();
+
+    while(it != m_unknownArraysizeSubtrees.end())
+      {
+	if(auti == it->first)
+	  {
+	    NodeSquareBracket * ceNode = it->second;
+	    assert(ceNode);
+	    rtnBool = ceNode->getArraysizeInBracket(arraysize); //eval
+	    break;
+	  }
+	it++;
+      }
+    return rtnBool;
+  } //constantFoldUnknownArraysize
 
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
@@ -478,15 +543,22 @@ namespace MFM {
   }
 
 
+  bool CompilerState::isComplete(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->isComplete());
+  }
+
+
   // this may go away..
   // updates key. we can do this now that UTI is used and the UlamType * isn't saved
   void CompilerState::setBitSize(UTI utArg, s32 total)
   {
-    return setSizes(utArg, total, NONARRAYSIZE);  //formerly
+    return setUTISizes(utArg, total, NONARRAYSIZE);  //formerly
   }
 
 
-  void CompilerState::setSizes(UTI utArg, s32 bitsize, s32 arraysize)
+  void CompilerState::setUTISizes(UTI utArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     ULAMCLASSTYPE classtype = ut->getUlamClass();
@@ -1293,19 +1365,6 @@ namespace MFM {
   PACKFIT CompilerState::determinePackable(UTI aut)
   {
     return getUlamTypeByIndex(aut)->getPackable();
-  }
-
-
-  bool CompilerState::findAndSizeANodeDeclWithType(UTI argut)
-  {
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
-    assert(classNode);
-    Node * pnode = classNode->findANodeDeclWithType(argut);
-    if(pnode)
-      pnode->checkAndLabelType();
-
-    return pnode != NULL; //found
   }
 
 

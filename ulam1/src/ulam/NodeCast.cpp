@@ -112,7 +112,7 @@ namespace MFM {
 	else
 	  {
 	    //if(nodeClass == UC_INCOMPLETE)
-	    if(nodeClass == UC_INCOMPLETE || !m_state.getUlamTypeByIndex(nodeType)->isComplete() || !m_state.getUlamTypeByIndex(tobeType)->isComplete())
+	    if(nodeClass == UC_INCOMPLETE || !m_state.isComplete(nodeType) || !m_state.isComplete(tobeType))
 	      {
 		std::ostringstream msg;
 		msg << "Cannot cast type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
@@ -123,12 +123,6 @@ namespace MFM {
       }
     return getNodeType();
   } //checkAndLabelType
-
-
-  Node * NodeCast::findANodeDeclWithType(UTI utype)
-  {
-    return m_node->findANodeDeclWithType(utype);
-  }
 
 
   EvalStatus NodeCast::eval()

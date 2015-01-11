@@ -5,15 +5,9 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_bitsizeConstExpr(NULL), m_arraysizeConstExpr(NULL) {}
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym) {}
 
-  NodeTypedef::~NodeTypedef()
-  {
-    delete m_bitsizeConstExpr;
-    m_bitsizeConstExpr = NULL;
-    delete m_arraysizeConstExpr;
-    m_arraysizeConstExpr = NULL;
-  }
+  NodeTypedef::~NodeTypedef(){}
 
   void NodeTypedef::printPostfix(File * fp)
   {
@@ -63,7 +57,8 @@ namespace MFM {
 	//check for incomplete Classes
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
 	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-	if(tdclasstype == UC_INCOMPLETE || (tdclasstype != UC_NOTACLASS && !tdut->isComplete()))
+	//	if(tdclasstype == UC_INCOMPLETE || (tdclasstype != UC_NOTACLASS && !tdut->isComplete()))
+	if(tdclasstype == UC_INCOMPLETE)
 	  {
 	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {
@@ -74,28 +69,9 @@ namespace MFM {
 	  }
 	else if(!tdut->isComplete())
 	  {
-	    assert(tdclasstype == UC_NOTACLASS);
-	    s32 bitsize = tdut->getBitSize();
-	    if(bitsize == UNKNOWNSIZE)
-	      {
-		if(m_bitsizeConstExpr)
-		  {
-		    m_bitsizeConstExpr->getTypeBitSizeInParen(bitsize, tdut->getUlamTypeEnum()); //eval
-		  }
-	      }
-	    s32 arraysize = tdut->getArraySize();
-	    if(arraysize == UNKNOWNSIZE)
-	      {
-		if(m_arraysizeConstExpr)
-		  {
-		    m_arraysizeConstExpr->getArraysizeInBracket(arraysize); //eval
-		  }
-	      }
-
-	    // too strong? OR perhaps? delete these nodes if done?
-	    if(bitsize != UNKNOWNSIZE && arraysize != UNKNOWNSIZE)
-	      m_state.setSizesOfNonClass(it, bitsize, arraysize);
-	    else
+	    m_state.constantFoldIncompleteUTI(it); //update if possible
+	    tdut = m_state.getUlamTypeByIndex(it); //reload
+	    if(!tdut->isComplete())
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
@@ -119,26 +95,6 @@ namespace MFM {
   {
     symptrref = m_typedefSymbol;
     return true;
-  }
-
-
-  Node * NodeTypedef::findANodeDeclWithType(UTI utype)
-  {
-    if(getNodeType() == utype && (m_bitsizeConstExpr != NULL || m_arraysizeConstExpr != NULL))
-      return this;
-    return NULL;  //not me
-  }
-
-
-  void NodeTypedef::linkConstantExpression(NodeTypeBitsize * cenode)
-  {
-    m_bitsizeConstExpr = cenode;
-  }
-
-
-  void NodeTypedef::linkConstantExpression(NodeSquareBracket * cenode)
-  {
-    m_arraysizeConstExpr = cenode;
   }
 
 

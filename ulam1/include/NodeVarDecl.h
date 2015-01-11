@@ -29,7 +29,7 @@
   \file NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -39,8 +39,6 @@
 
 #include "Node.h"
 #include "SymbolVariable.h"
-#include "NodeTypeBitsize.h"
-#include "NodeSquareBracket.h"
 
 namespace MFM{
 
@@ -59,11 +57,6 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual Node * findANodeDeclWithType(UTI utype);
-
-    void linkConstantExpression(NodeTypeBitsize * cenode);
-    void linkConstantExpression(NodeSquareBracket * cenode);
-
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual UTI checkAndLabelType();
@@ -76,8 +69,6 @@ namespace MFM{
 
   private:
     SymbolVariable * m_varSymbol;
-    NodeTypeBitsize * m_bitsizeConstExpr;
-    NodeSquareBracket * m_arraysizeConstExpr;
 
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
     void genCodedElementParameter(File * fp, UlamValue uvpass);

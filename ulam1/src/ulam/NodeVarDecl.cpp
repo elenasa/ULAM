@@ -8,15 +8,9 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_bitsizeConstExpr(NULL), m_arraysizeConstExpr(NULL) {}
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym) {}
 
-  NodeVarDecl::~NodeVarDecl()
-  {
-    delete m_bitsizeConstExpr;
-    m_bitsizeConstExpr = NULL;
-    delete m_arraysizeConstExpr;
-    m_arraysizeConstExpr = NULL;
-  }
+  NodeVarDecl::~NodeVarDecl(){}
 
   void NodeVarDecl::printPostfix(File * fp)
   {
@@ -69,9 +63,10 @@ namespace MFM {
 	//check for incomplete Classes
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
 	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-	if(tdclasstype == UC_INCOMPLETE || (tdclasstype != UC_NOTACLASS && !tdut->isComplete()))
+	//if(tdclasstype == UC_INCOMPLETE || (tdclasstype != UC_NOTACLASS && !tdut->isComplete()))
+	if(tdclasstype == UC_INCOMPLETE)
 	  {
-	    if(! m_state.completeIncompleteClassSymbol(it))
+	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
@@ -81,28 +76,10 @@ namespace MFM {
 	  }
 	else if(!tdut->isComplete())
 	  {
-	    assert(tdclasstype == UC_NOTACLASS);
-	    s32 bitsize = tdut->getBitSize();
-	    if(bitsize == UNKNOWNSIZE)
-	      {
-		if(m_bitsizeConstExpr)
-		  {
-		    m_bitsizeConstExpr->getTypeBitSizeInParen(bitsize, tdut->getUlamTypeEnum()); //eval
-		  }
-	      }
-	    s32 arraysize = tdut->getArraySize();
-	    if(arraysize == UNKNOWNSIZE)
-	      {
-		if(m_arraysizeConstExpr)
-		  {
-		    m_arraysizeConstExpr->getArraysizeInBracket(arraysize); //eval
-		  }
-	      }
+	    m_state.constantFoldIncompleteUTI(it); //update if possible
 
-	    // too strong? OR perhaps? delete these nodes if done?
-	    if(bitsize != UNKNOWNSIZE && arraysize != UNKNOWNSIZE)
-	      m_state.setSizesOfNonClass(it, bitsize, arraysize);
-	    else
+	    tdut = m_state.getUlamTypeByIndex(it); //reload
+	    if(!tdut->isComplete())
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
@@ -110,28 +87,10 @@ namespace MFM {
 	      }
 	  }
       }
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
-
-
-  Node * NodeVarDecl::findANodeDeclWithType(UTI utype)
-    {
-      if(getNodeType() == utype && (m_bitsizeConstExpr != NULL || m_arraysizeConstExpr != NULL))
-	return this;
-      return NULL;  //not me
-    }
-
-  void NodeVarDecl::linkConstantExpression(NodeTypeBitsize * cenode)
-  {
-    m_bitsizeConstExpr = cenode;
-  }
-
-
-  void NodeVarDecl::linkConstantExpression(NodeSquareBracket * cenode)
-  {
-    m_arraysizeConstExpr = cenode;
-  }
 
 
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
