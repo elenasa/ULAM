@@ -83,7 +83,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
       }

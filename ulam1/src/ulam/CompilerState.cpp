@@ -308,7 +308,7 @@ namespace MFM {
     s32 arraysize = getArraySize(uti);
     bool bs = (bitsize != UNKNOWNSIZE || constantFoldUnknownBitsize(uti,bitsize));
     bool as = (arraysize != UNKNOWNSIZE || constantFoldUnknownArraysize(uti, arraysize));
-    if(bs && as)
+    if(bs || as)
       setUTISizes(uti, bitsize, arraysize); //update UlamType
   } //constantFoldIncompleteUTI
 
@@ -325,6 +325,12 @@ namespace MFM {
 	    NodeTypeBitsize * ceNode = it->second;
 	    assert(ceNode);
 	    rtnBool = ceNode->getTypeBitSizeInParen(bitsize, getUlamTypeByIndex(auti)->getUlamTypeEnum()); //eval
+	    if(rtnBool)
+	      {
+		delete ceNode;
+		it->second = NULL;
+		m_unknownBitsizeSubtrees.erase(it);
+	      }
 	    break;
 	  }
 	it++;
@@ -345,6 +351,12 @@ namespace MFM {
 	    NodeSquareBracket * ceNode = it->second;
 	    assert(ceNode);
 	    rtnBool = ceNode->getArraysizeInBracket(arraysize); //eval
+	    if(rtnBool)
+	      {
+		delete ceNode;
+		it->second = NULL;
+		m_unknownArraysizeSubtrees.erase(it);
+	      }
 	    break;
 	  }
 	it++;
@@ -564,18 +576,24 @@ namespace MFM {
     ULAMCLASSTYPE classtype = ut->getUlamClass();
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
+    if(ut->isComplete())
+      return;
+
     //redirect primitives;
     if(!(classtype == UC_ELEMENT || classtype == UC_QUARK))
       {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
       }
 
+#if 0
+    // now that we have UNKNOWNSIZE, this ambiguity is gone.
     //allow for zero-sized classes; insure same bit size
     if(key.getUlamKeyTypeSignatureBitSize() == 0)
       {
 	assert((s32) key.getUlamKeyTypeSignatureBitSize() == bitsize);
-	return;
+	//return;
       }
+#endif
 
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
 
@@ -628,8 +646,8 @@ namespace MFM {
 #if 1
     {
       std::ostringstream msg;
-      msg << "Sizes set for Class: " << newut->getUlamTypeName(this).c_str();
-      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
+      msg << "Sizes set for Class: <" << newut->getUlamTypeNameBrief(this).c_str() << "." << newut->getBitSize() << "." << newut->getArraySize() << ">";
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 #endif
   } //setSizesOfClass
@@ -644,15 +662,15 @@ namespace MFM {
 
     assert(classtype == UC_NOTACLASS);
 
-    if(!(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE))
-      {
-	return; //nothing to do
-      }
+    if(ut->isComplete())
+      return;  //nothing to do
 
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
     if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
       {
-	assert(0);
+	std::ostringstream msg;
+	msg << "Invalid zero sizes to set for nonClass: <" << ut->getUlamTypeNameBrief(this).c_str() << "." << ut->getBitSize() << "." << ut->getArraySize() << ">";
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return;
       }
 
@@ -676,8 +694,8 @@ namespace MFM {
 #if 1
     {
       std::ostringstream msg;
-      msg << "Sizes set for nonClass: " << newut->getUlamTypeName(this).c_str();
-      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
+      msg << "Sizes set for nonClass: <" << newut->getUlamTypeNameBrief(this).c_str() << "." << newut->getBitSize() << "." << newut->getArraySize() << ">";
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 #endif
   } // setSizesOfNonClass

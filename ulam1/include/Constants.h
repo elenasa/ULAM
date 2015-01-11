@@ -97,11 +97,11 @@ namespace MFM {
 #endif //BASE10
 
 #ifndef CYCLEFLAG
-#define CYCLEFLAG (-2)
+#define CYCLEFLAG (-12)
 #endif //CYCLEFLAG
 
 #ifndef EMPTYSYMBOLTABLE
-#define EMPTYSYMBOLTABLE (-1)
+#define EMPTYSYMBOLTABLE (-11)
 #endif //EMPTYSYMBOLTABLE
 
 #ifndef STATICSYMBOL
