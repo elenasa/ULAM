@@ -345,7 +345,7 @@ namespace MFM {
     if(uticr == UTIC_DONTKNOW)
       {
 	std::ostringstream msg;
-	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "(UTI" << nodeType << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }

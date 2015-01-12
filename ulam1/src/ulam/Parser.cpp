@@ -391,12 +391,6 @@ namespace MFM {
 	  {
 	    //eats the '(' when found
 	    rtnNode = makeFunctionSymbol(pTok, typebitsize, iTok, bitsizeNode); //with params
-	    if(bitsizeNode)
-	      {
-		std::ostringstream msg;
-		msg << "Function return type with 'unknown' bit size is currently unsupported, type: " << m_state.getTokenAsATypeName(pTok).c_str();
-		MSG(&pTok, msg.str().c_str(), INFO);
-	      }
 
 	    Token qTok;
 	    getNextToken(qTok);
@@ -1521,7 +1515,14 @@ namespace MFM {
     assert(classInstanceNode);
     classInstanceNode->setNodeLocation(memberTok.m_locator);
 
-    // part of restofmemberselectexpr here due to missing dot!
+    // part of (recursive) restofmemberselectexpr here due to possible missing dot!
+    Token pTok;
+    getNextToken(pTok);
+    if(pTok.m_type != TOK_DOT)
+      {
+	unreadToken();
+      }
+
     Token iTok;
     if(getExpectedToken(TOK_IDENTIFIER, iTok))
       {
@@ -2012,18 +2013,15 @@ namespace MFM {
     s32 typebitsize = 0;
     s32 arraysize = NONARRAYSIZE;
     NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeTok, typebitsize, arraysize);
-    if(bitsizeNode)
-      {
-	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	delete bitsizeNode;
-	bitsizeNode = NULL;
-	std::ostringstream msg;
-	msg << "Casting with unknown bit size is currently unsupported, type: " << m_state.getTokenAsATypeName(typeTok).c_str();
-	MSG(&typeTok, msg.str().c_str(), INFO);
-      }
 
     // allows for casting to a class (makes class type if newly seen)
     UTI typeToBe = m_state.getUlamTypeFromToken(typeTok, typebitsize, arraysize);
+
+    if(bitsizeNode)
+      {
+	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
+	linkOrFreeConstantExpressions(typeToBe, bitsizeNode, NULL);
+      }
 
     if(getExpectedToken(TOK_CLOSE_PAREN))
       {
@@ -3422,6 +3420,8 @@ namespace MFM {
 
 	if(aut->getBitSize() == UNKNOWNSIZE)
 	  m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
+	else
+	  delete ceForBitSize; //missing?
       }
     else
       {

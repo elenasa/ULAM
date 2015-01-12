@@ -132,20 +132,21 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	if( puti != argTypes[i])
+	//if( puti != argTypes[i])
+	if(UlamType::compare(puti, argTypes[i], m_state) == UTIC_NOTSAME)
 	  {
 	    //constants can match any bit size
 	    ULAMTYPE ptypEnum = m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum();
-	    if(argTypes[i] != m_state.getUlamTypeOfConstant(ptypEnum))
+	    //if(argTypes[i] != m_state.getUlamTypeOfConstant(ptypEnum))
+	    if(UlamType::compare(argTypes[i], m_state.getUlamTypeOfConstant(ptypEnum), m_state) == UTIC_NOTSAME)
 	      {
 		rtnBool = false;
 		break;
 	      }
 	  }
       }
-
     return rtnBool;
-  }
+  } //matchingTypes
 
 
   u32 SymbolFunction::isNativeFunctionDeclaration()
