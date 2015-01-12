@@ -58,10 +58,26 @@ namespace MFM {
     std::ostringstream key;
     //key << utk.getUlamKeyTypeSignatureName(state) << "." << utk.m_bits << "." << utk.m_arraySize;
     key << utk.getUlamKeyTypeSignatureName(state);
-    if(utk.m_bits > 0)
+    if(utk.m_bits >= 0)
       key << "(" << utk.m_bits << ")";
+    else if(utk.m_bits == ANYBITSIZECONSTANT)
+      key << "(" << "CONSTANT" << ")";
+    else if(utk.m_bits == UNKNOWNSIZE)
+      key << "(" << "UNKNOWN" << ")";
+    else if(utk.m_bits == CYCLEFLAG)
+      key << "(" << "CYCLEFLAG" << ")";
+    else
+      key << "(" << utk.m_bits << "?)";
+
     if(utk.m_arraySize >= 0)
       key << "[" << utk.m_arraySize << "]";
+    else if(utk.m_arraySize == NONARRAYSIZE)
+      key << "[" << "]";
+    else if(utk.m_arraySize == UNKNOWNSIZE)
+      key << "[" << "UNKNOWN" << "]";
+    else
+      key << "[" << utk.m_arraySize << "?]";
+
     return key.str();
   }
 

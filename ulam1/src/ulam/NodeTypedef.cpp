@@ -63,8 +63,8 @@ namespace MFM {
 	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Typedef for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+		msg << "Incomplete Typedef for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ")";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
 	else if(!tdut->isComplete())

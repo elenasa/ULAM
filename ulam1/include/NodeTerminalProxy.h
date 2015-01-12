@@ -53,6 +53,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual EvalStatus eval();
+
   private:
     UTI m_uti;
     Token m_funcTok; // minof, maxof or sizeof
