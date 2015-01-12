@@ -453,7 +453,7 @@ namespace MFM {
 
   bool UlamType::isComplete()
   {
-    return !(m_key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || getArraySize() == UNKNOWNSIZE);
+    return !(m_key.getUlamKeyTypeSignatureBitSize() <= UNKNOWNSIZE || getArraySize() == UNKNOWNSIZE);
   }
 
 

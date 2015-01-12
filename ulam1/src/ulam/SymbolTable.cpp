@@ -333,13 +333,13 @@ namespace MFM {
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false;  //moved here;
 	  }
-#if 0
-	//of course they always are!
+#if 1
+	//of course they always are! but we know to keep looping..
 	if(! m_state.isComplete(sym->getUlamTypeIdx()))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " has 'unknown' sizes, fails sizing";
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),INFO);
+	    msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " (UTI" << sym->getUlamTypeIdx() << ") has 'unknown' sizes, fails sizing pre-test";
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	    aok = false;  //moved here;
 	  }
 #endif
@@ -363,7 +363,8 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str();
-		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+		aok = false;
 	      }
 	  else if(totalbits == EMPTYSYMBOLTABLE)
 	    {
@@ -441,7 +442,14 @@ namespace MFM {
 	      }
 	    else
 	      {
-		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+		if(m_state.isScalar(sut))
+		  m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+		else
+		  {
+		    s32 arraysize = m_state.getArraySize(sut);
+		    //arraysize = (arraysize > 0 ? arraysize : 1);
+		    m_state.setUTISizes(sut, symsize, arraysize);  //total bits including arrays
+		  }
 		//std::ostringstream msg;
 		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
 		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
@@ -483,7 +491,14 @@ namespace MFM {
 	      }
 	    else
 	      {
-		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+		if(m_state.isScalar(sut))
+		  m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+		else
+		  {
+		    s32 arraysize = m_state.getArraySize(sut);
+		    //arraysize = (arraysize > 0 ? arraysize : 1);
+		    m_state.setUTISizes(sut, symsize, arraysize);  //total bits including arrays
+		  }
 		//std::ostringstream msg;
 		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
 		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
@@ -500,28 +515,24 @@ namespace MFM {
 
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
-    s32 totbitsize = CYCLEFLAG;
+    if(!m_state.isComplete(argut))
+       m_state.constantFoldIncompleteUTI(argut);
+
+    s32 totbitsize = m_state.getBitSize(argut);
+
     if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS) //includes Atom type
       {
-	totbitsize = m_state.getBitSize(argut);
-	//if(totbitsize == UNKNOWNSIZE)
-	if(totbitsize == UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE)
-	  {
-	    m_state.constantFoldIncompleteUTI(argut);
-	    totbitsize = m_state.getBitSize(argut);
-	    if(m_state.isComplete(argut))
-	      {
-		totbitsize *= (m_state.isScalar(argut) ? 1 : m_state.getArraySize(argut));
-	      }
-	  }
-	//assert(totbitsize >= 0);
+	//if(m_state.isComplete(argut))
+	//  {
+	//    totbitsize *= (m_state.isScalar(argut) ? 1 : m_state.getArraySize(argut));
+	//  }
 	return totbitsize;
       }
 
-    //not a primitive
+    //not a primitive, array
     if(m_state.getArraySize(argut) > 0)
       {
-	if((totbitsize = m_state.getBitSize(argut)) > 0)
+	if(totbitsize >= 0)
 	  {
 	    return totbitsize;
 	  }
@@ -534,9 +545,12 @@ namespace MFM {
 	  {
 	    return 0;  //empty, ok
 	  }
-	else // totbitsize == 0
+	else // totbitsize == UNKNOWNSIZE (was thought to be 0)
 	  {
+	    assert(totbitsize == UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE);
+
 	    m_state.setBitSize(argut, CYCLEFLAG);  //before the recusive call..
+
 	    //get base type
 	    SymbolClass * csym = NULL;
 	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
@@ -549,7 +563,7 @@ namespace MFM {
       }
     else  // not primitive type, not array
       {
-	if((totbitsize = m_state.getBitSize(argut)) > 0)
+	if(totbitsize >= 0)
 	  {
 	    return totbitsize;
 	  }
@@ -562,8 +576,10 @@ namespace MFM {
 	  {
 	    return 0;  //empty, ok
 	  }
-	else //totbitsize == 0
+	else //totbitsize == UNKNOWNSIZE
 	  {
+	    assert(totbitsize == UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE);
+
 	    //get base type
 	    SymbolClass * csym = NULL;
 	    UlamType * aut = m_state.getUlamTypeByIndex(argut);

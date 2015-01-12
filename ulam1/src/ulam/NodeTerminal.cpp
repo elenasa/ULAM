@@ -129,7 +129,7 @@ namespace MFM {
 
     //copy result UV to stack, -1 relative to current frame pointer
     if(evs == NORMAL)
-      assignReturnValueToStack(rtnUV);
+      Node::assignReturnValueToStack(rtnUV);
 
     evalNodeEpilog();
     return evs;

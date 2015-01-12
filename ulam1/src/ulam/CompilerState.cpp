@@ -160,7 +160,7 @@ namespace MFM {
     UlamType * ut = NULL;
 
     //if(!isDefined(key, uti))
-    if(!isDefined(key,ut) || key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+    if(!isDefined(key,ut) || (utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
       {
 	uti = m_indexToUlamKey.size();  //next index based on key
 	ut = createUlamType(key, utype);
@@ -305,7 +305,9 @@ namespace MFM {
   void CompilerState::constantFoldIncompleteUTI(UTI uti)
   {
     s32 bitsize = getBitSize(uti);
+    assert(bitsize >= UNKNOWNSIZE);
     s32 arraysize = getArraySize(uti);
+    assert(arraysize >= UNKNOWNSIZE);
     bool bs = (bitsize != UNKNOWNSIZE || constantFoldUnknownBitsize(uti,bitsize));
     bool as = (arraysize != UNKNOWNSIZE || constantFoldUnknownArraysize(uti, arraysize));
     if(bs || as)
@@ -564,9 +566,9 @@ namespace MFM {
 
   // this may go away..
   // updates key. we can do this now that UTI is used and the UlamType * isn't saved
-  void CompilerState::setBitSize(UTI utArg, s32 total)
+  void CompilerState::setBitSize(UTI utArg, s32 bits)
   {
-    return setUTISizes(utArg, total, NONARRAYSIZE);  //formerly
+    return setUTISizes(utArg, bits, getArraySize(utArg));  //keep current arraysize
   }
 
 
@@ -575,6 +577,9 @@ namespace MFM {
     UlamType * ut = getUlamTypeByIndex(utArg);
     ULAMCLASSTYPE classtype = ut->getUlamClass();
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
+
+    //assert(bitsize >= UNKNOWNSIZE);
+    //assert(arraysize >= UNKNOWNSIZE);
 
     if(ut->isComplete())
       return;
@@ -646,7 +651,7 @@ namespace MFM {
 #if 1
     {
       std::ostringstream msg;
-      msg << "Sizes set for Class: <" << newut->getUlamTypeNameBrief(this).c_str() << "." << newut->getBitSize() << "." << newut->getArraySize() << ">";
+      msg << "Sizes set for Class: " << newut->getUlamTypeName(this).c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 #endif
@@ -669,7 +674,7 @@ namespace MFM {
     if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
       {
 	std::ostringstream msg;
-	msg << "Invalid zero sizes to set for nonClass: <" << ut->getUlamTypeNameBrief(this).c_str() << "." << ut->getBitSize() << "." << ut->getArraySize() << ">";
+	msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName(this).c_str() << "> (UTI" << utArg << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return;
       }
@@ -694,7 +699,7 @@ namespace MFM {
 #if 1
     {
       std::ostringstream msg;
-      msg << "Sizes set for nonClass: <" << newut->getUlamTypeNameBrief(this).c_str() << "." << newut->getBitSize() << "." << newut->getArraySize() << ">";
+      msg << "Sizes set for nonClass: " << newut->getUlamTypeName(this).c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 #endif
@@ -792,8 +797,8 @@ namespace MFM {
 	    if(getBitSize(but) == UNKNOWNSIZE || getArraySize(but) == UNKNOWNSIZE)
 	      {
 		std::ostringstream msg;
-		msg << "Sizes still unknown for Class: " << ict->getUlamTypeName(this).c_str();
-		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), INFO);
+		msg << "Sizes still unknown for Class: " << ict->getUlamTypeName(this).c_str() << "(UTI" << but << ")";
+		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else
 #endif

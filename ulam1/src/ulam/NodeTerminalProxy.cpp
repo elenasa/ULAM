@@ -40,11 +40,39 @@ namespace MFM {
 	    MSG(&m_funcTok, msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	  }
-	else
-	  setConstantTypeForNode(m_funcTok);
       }
+
+    setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
+
     return getNodeType(); //updated to Unsigned, hopefully
   }  //checkandLabelType
+
+
+    EvalStatus NodeTerminalProxy::eval()
+  {
+    EvalStatus evs = NORMAL; //init ok
+    evalNodeProlog(0); //new current frame pointer
+
+    UlamType * cut = m_state.getUlamTypeByIndex(m_uti);
+    if(m_constant.sval == UNKNOWNSIZE)
+      {
+	if(!cut->isComplete())
+	  m_state.constantFoldIncompleteUTI(m_uti); //update if possible
+
+	if(m_constant.sval != UNKNOWNSIZE)
+	  setConstantValue(m_funcTok);
+      }
+
+    UlamValue rtnUV;
+    evs = NodeTerminal::makeTerminalValue(rtnUV);
+
+    //copy result UV to stack, -1 relative to current frame pointer
+    if(evs == NORMAL)
+      Node::assignReturnValueToStack(rtnUV);
+
+    evalNodeEpilog();
+    return evs;
+  } //eval
 
 
   bool NodeTerminalProxy::setConstantValue(Token tok)
@@ -87,6 +115,7 @@ namespace MFM {
 	newType = m_state.getUlamTypeOfConstant(Unsigned);
     else
       {
+	// not a class! since sizeof is only func that applies to classes
 	ULAMTYPE etype = m_state.getUlamTypeByIndex(m_uti)->getUlamTypeEnum();
 	newType = m_state.getUlamTypeOfConstant(etype);
       }
