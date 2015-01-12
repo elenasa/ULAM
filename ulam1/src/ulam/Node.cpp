@@ -83,12 +83,12 @@ namespace MFM {
     if(uticr == UTIC_DONTKNOW)
       {
 	std::ostringstream msg;
-	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return node;
+	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	//return node;
       }
 
-    if( uticr == UTIC_SAME)
+    if(uticr == UTIC_SAME)
       {
 	//happens too often with Bool.1.-1 for some reason; and Quark toInt special case
 	// handle quietly
@@ -129,8 +129,9 @@ namespace MFM {
 
 	    //address the case of different byte sizes here
 	    //before asserts start hitting later during assignment
+	    //quarks are likely unknown size at checkandlabel time
 	    //if(tobeType != nuti)
-	    if(uticr == UTIC_NOTSAME)
+	    if(uticr == UTIC_NOTSAME || uticr == UTIC_DONTKNOW)
 	      {
 		rtnNode = new NodeCast(mselectNode, tobeType, m_state);
 		assert(rtnNode);
