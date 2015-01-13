@@ -311,7 +311,12 @@ namespace MFM {
 
     //insert new key to same UTI.
     if(rtnBool)
-      m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); // just one!
+      {
+	m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); // just one!
+	std::ostringstream msg;
+	msg << "Updated Key to A UTI: " << getUlamTypeNameByIndex(uti).c_str() << " (UTI" << uti << ")";
+	MSG2("", msg.str().c_str(), DEBUG);
+      }
 
     return rtnBool;
   } //updateUlamKeyTypeSignatureToaUTI
@@ -420,17 +425,6 @@ namespace MFM {
     return ut->getUlamTypeName(this);
   }
 
-
-#if 0
-  //one-to-many, cannot dothis any more; does anyone care???
-  UTI CompilerState::getUlamTypeIndex(UlamType * ut)
-  {
-    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-    UTI rtnUTI = 0;         //Nav
-    isDefined(key,rtnUTI);  //updates rtnUTI if found
-    return rtnUTI;
-  } //getUlamTypeIndex
-#endif
 
   ULAMTYPE CompilerState::getBaseTypeFromToken(Token tok)
   {
@@ -610,16 +604,6 @@ namespace MFM {
       {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
       }
-
-#if 0
-    // now that we have UNKNOWNSIZE, this ambiguity is gone.
-    //allow for zero-sized classes; insure same bit size
-    if(key.getUlamKeyTypeSignatureBitSize() == 0)
-      {
-	assert((s32) key.getUlamKeyTypeSignatureBitSize() == bitsize);
-	//return;
-      }
-#endif
 
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
 

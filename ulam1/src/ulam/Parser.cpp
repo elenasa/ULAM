@@ -1283,7 +1283,7 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Incomplete type!! " << m_state.getUlamTypeNameByIndex(tduti).c_str() << " found for Typedef: <" << m_state.getTokenDataAsString(&nTok).c_str() << ">, belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
-		    MSG(&nTok, msg.str().c_str(),WARN);
+		    MSG(&nTok, msg.str().c_str(),DEBUG);
 		  }
 
 		ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
