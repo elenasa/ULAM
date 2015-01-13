@@ -148,7 +148,7 @@ namespace MFM {
 	uti = makeUlamType(key,bUT);
       }
     else
-      aDefinedUTI(key,uti);
+	assert(aDefinedUTI(key,uti));
 
     return uti;
   } //makeUlamType
@@ -165,12 +165,30 @@ namespace MFM {
 	uti = m_indexToUlamKey.size();  //next index based on key
 	ut = createUlamType(key, utype);
 	m_indexToUlamKey.push_back(key);
-	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature,UlamType*>(key,ut)); //map owns ut
-	m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
+	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(key,ut)); //map owns ut
+
+	//m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
+#if 1
+	std::pair<std::map<UlamKeyTypeSignature,UTI, less_than_key>::iterator, bool> ret;
+	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
+	bool notdup = ret.second; //false if already existed, i.e. not added
+	if(!notdup)
+	  {
+	    std::ostringstream msg;
+	    msg << "Key to A UTI already exists: " << ut->getUlamTypeName(this).c_str() << " (UTI" << uti << ")";
+	    MSG2("", msg.str().c_str(), DEBUG);
+	  }
+	else
+#endif
+	  {
+	    std::ostringstream msg;
+	    msg << "Added Key to A UTI: " << ut->getUlamTypeName(this).c_str() << " (UTI" << uti << ")";
+	    MSG2("", msg.str().c_str(), DEBUG);
+	  }
 	assert(isDefined(key, ut));
       }
     else
-      aDefinedUTI(key,uti);
+      assert(aDefinedUTI(key,uti));
 
     return uti;
   } //makeUlamType
@@ -179,18 +197,13 @@ namespace MFM {
   bool CompilerState::isDefined(UlamKeyTypeSignature key, UlamType *& foundUT)
   {
     bool rtnBool= false;
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.find(key);
 
-    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.begin();
-
-    while(it != m_definedUlamTypes.end())
+    if(it != m_definedUlamTypes.end())
       {
-	if(key == it->first)
-	  {
-	    foundUT = it->second;
-	    rtnBool = true;
-	    break;
-	  }
-	it++;
+	assert(key == it->first);
+	foundUT = it->second;
+	rtnBool = true;
       }
     return rtnBool;
   } //isDefined
@@ -200,17 +213,13 @@ namespace MFM {
   {
     bool rtnBool= false;
 
-    std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToaUTI.begin();
+    std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToaUTI.find(key);
 
-    while(it != m_keyToaUTI.end())
+    if(it != m_keyToaUTI.end())
       {
-	if(key == it->first)
-	  {
-	    foundUTI = it->second;
-	    rtnBool = true;
-	    break;
-	  }
-	it++;
+	assert(key == it->first);
+	foundUTI = it->second;
+	rtnBool = true;
       }
     return rtnBool;
   } //aDefinedUTI
@@ -269,23 +278,43 @@ namespace MFM {
   {
     bool rtnBool= false;
 
-    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.begin();
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.find(key);
 
-    while(it != m_definedUlamTypes.end())
+    if(it != m_definedUlamTypes.end())
       {
-	if(key == it->first)
-	  {
-	    UlamType * ut = it->second;
-	    delete ut;
-	    it->second = NULL;
-	    m_definedUlamTypes.erase(it);
-	    rtnBool = true;
-	    break;
-	  }
-	it++;
+	assert(key == it->first);
+	UlamType * ut = it->second;
+	delete ut;
+	it->second = NULL;
+	m_definedUlamTypes.erase(it);
+	rtnBool = true;
       }
     return rtnBool;
   } //deleteUlamKeyTypeSignature
+
+
+  //used to update Class' calculated bit size (setBitSize)
+  bool CompilerState::updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey)
+  {
+    bool rtnBool= false;
+    UTI uti;
+
+    std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToaUTI.find(oldkey);
+
+    if(it != m_keyToaUTI.end())
+      {
+	assert(oldkey == it->first);
+	uti = it->second;
+	m_keyToaUTI.erase(it);
+	rtnBool = true;
+      }
+
+    //insert new key to same UTI.
+    if(rtnBool)
+      m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); // just one!
+
+    return rtnBool;
+  } //updateUlamKeyTypeSignatureToaUTI
 
 
   void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
@@ -318,24 +347,20 @@ namespace MFM {
   bool CompilerState::constantFoldUnknownBitsize(UTI auti, s32& bitsize)
   {
     bool rtnBool = true; //unfound
-    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
+    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.find(auti);
 
-    while(it != m_unknownBitsizeSubtrees.end())
+    if(it != m_unknownBitsizeSubtrees.end())
       {
-	if(auti == it->first)
+	assert(auti == it->first);
+	NodeTypeBitsize * ceNode = it->second;
+	assert(ceNode);
+	rtnBool = ceNode->getTypeBitSizeInParen(bitsize, getUlamTypeByIndex(auti)->getUlamTypeEnum()); //eval
+	if(rtnBool)
 	  {
-	    NodeTypeBitsize * ceNode = it->second;
-	    assert(ceNode);
-	    rtnBool = ceNode->getTypeBitSizeInParen(bitsize, getUlamTypeByIndex(auti)->getUlamTypeEnum()); //eval
-	    if(rtnBool)
-	      {
-		delete ceNode;
-		it->second = NULL;
-		m_unknownBitsizeSubtrees.erase(it);
-	      }
-	    break;
+	    delete ceNode;
+	    it->second = NULL;
+	    m_unknownBitsizeSubtrees.erase(it);
 	  }
-	it++;
       }
     return rtnBool;
   } //constantFoldUnknownBitsize
@@ -344,24 +369,20 @@ namespace MFM {
   bool CompilerState::constantFoldUnknownArraysize(UTI auti, s32& arraysize)
   {
     bool rtnBool = true;  //unfound
-    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.begin();
+    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.find(auti);
 
-    while(it != m_unknownArraysizeSubtrees.end())
+    if(it != m_unknownArraysizeSubtrees.end())
       {
-	if(auti == it->first)
+	assert(auti == it->first);
+	NodeSquareBracket * ceNode = it->second;
+	assert(ceNode);
+	rtnBool = ceNode->getArraysizeInBracket(arraysize); //eval
+	if(rtnBool)
 	  {
-	    NodeSquareBracket * ceNode = it->second;
-	    assert(ceNode);
-	    rtnBool = ceNode->getArraysizeInBracket(arraysize); //eval
-	    if(rtnBool)
-	      {
-		delete ceNode;
-		it->second = NULL;
-		m_unknownArraysizeSubtrees.erase(it);
-	      }
-	    break;
+	    delete ceNode;
+	    it->second = NULL;
+	    m_unknownArraysizeSubtrees.erase(it);
 	  }
-	it++;
       }
     return rtnBool;
   } //constantFoldUnknownArraysize
@@ -641,7 +662,7 @@ namespace MFM {
 
     newut = createUlamType(newkey, Class);
     m_indexToUlamKey[utArg] = newkey;
-    m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature,UlamType *>(newkey,newut));
+    m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType *>(newkey,newut));
     ((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
 
     if(isCustomArray)
@@ -655,6 +676,8 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 #endif
+
+    assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
   } //setSizesOfClass
 
 
@@ -692,7 +715,7 @@ namespace MFM {
 
     newut = createUlamType(newkey, bUT);
     m_indexToUlamKey[utArg] = newkey;
-    m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature,UlamType*>(newkey,newut));
+    m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(newkey,newut));
     ((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
 
     assert(isDefined(newkey, newut));
@@ -703,6 +726,8 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 #endif
+
+    assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
   } // setSizesOfNonClass
 
 
@@ -1486,7 +1511,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Cannot find path index (" << pathidx << ") for line " << linenum << ": " << m_pool.getDataAsString(pathidx).c_str();
+	msg << "Cannot find path index (" << pathidx << ") for line: " << linenum;
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return "<empty path>\n";
       }

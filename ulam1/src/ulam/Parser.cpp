@@ -389,25 +389,28 @@ namespace MFM {
 	//need another token to distinguish a function from a variable declaration (do so quietly)
 	if(getExpectedToken(TOK_OPEN_PAREN, QUIETLY))
 	  {
-	    //eats the '(' when found
+	    //eats the '(' when found; NULL if error occurred
 	    rtnNode = makeFunctionSymbol(pTok, typebitsize, iTok, bitsizeNode); //with params
 
 	    Token qTok;
 	    getNextToken(qTok);
 
-	    if((qTok.m_type != TOK_CLOSE_CURLY) && (((NodeBlockFunctionDefinition *) rtnNode)->isNative() && qTok.m_type != TOK_SEMICOLON))
+	    if(rtnNode)
 	      {
-		//first remove the pointer to this node from its symbol
-		if(rtnNode)
-		  ((NodeBlockFunctionDefinition *) rtnNode)->getFuncSymbolPtr()->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
-		rtnNode = NULL;
-		MSG(&pTok, "INCOMPLETE Function Definition", ERR);
+		if((qTok.m_type != TOK_CLOSE_CURLY) && (((NodeBlockFunctionDefinition *) rtnNode)->isNative() && qTok.m_type != TOK_SEMICOLON))
+		  {
+		    //first remove the pointer to this node from its symbol
+		    ((NodeBlockFunctionDefinition *) rtnNode)->getFuncSymbolPtr()->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
+		    rtnNode = NULL;
+		    MSG(&pTok, "INCOMPLETE Function Definition", ERR);
+		  }
+		else
+		  {
+		    brtn = true;  //rtnNode belongs to the symbolFunction
+		  }
 	      }
-	    else
-	      {
-		if(rtnNode)
-		  brtn = true;  //rtnNode belongs to the symbolFunction
-	      }
+	    //else
+	    //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
 	  }
 	else
 	  {

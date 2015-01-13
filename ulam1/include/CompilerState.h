@@ -156,6 +156,7 @@ namespace MFM{
     bool aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
+    bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void constantFoldIncompleteUTI(UTI uti);

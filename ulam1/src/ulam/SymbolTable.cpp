@@ -410,7 +410,7 @@ namespace MFM {
 
 	it++;
       }
-  }
+  } //printBitSizeOfTableOfClasses
 
 
   s32 SymbolTable::getTotalVariableSymbolsBitSize()
