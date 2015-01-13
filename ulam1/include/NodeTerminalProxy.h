@@ -55,13 +55,17 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
+    virtual void genCode(File * fp, UlamValue& uvpass);
+
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
   private:
     UTI m_uti;
     Token m_funcTok; // minof, maxof or sizeof
 
     virtual bool setConstantValue(Token tok);
     virtual UTI setConstantTypeForNode(Token tok);
-
+    bool updateProxy();
   };
 
 } //MFM

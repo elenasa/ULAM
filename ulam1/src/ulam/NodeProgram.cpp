@@ -285,7 +285,6 @@ namespace MFM {
 	  if(m_state.thisClassHasTheTestMethod())
 	    generateMain(fm);
 	}
-
     }  //generateCode
 
 

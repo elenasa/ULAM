@@ -76,7 +76,6 @@ namespace MFM {
   UlamValue NodeBinaryOpLogicalAnd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;
-
 #if 0
     UTI nuti = getNodeType(); //Bool
     u32 nodelen = m_state.getBitSize(nuti);

@@ -19,30 +19,10 @@ namespace MFM {
 
   UTI NodeTerminalProxy::checkAndLabelType()
   {
-    if(m_constant.sval == UNKNOWNSIZE)
-      {
-	m_state.constantFoldIncompleteUTI(m_uti); //update if possible
-      }
-
-    if(!m_state.isComplete(m_uti))
-      {
-	std::ostringstream msg;
-	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-      }
+    if(!updateProxy())
+      setNodeType(Nav);  //invalid func
     else
-      {
-	//depending on the of-func, update our constant
-	if(!setConstantValue(m_funcTok))
-	  {
-	    std::ostringstream msg;
-	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&m_funcTok).c_str() << "' of type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
-	    MSG(&m_funcTok, msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	  }
-      }
-
-    setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
+      setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
 
     return getNodeType(); //updated to Unsigned, hopefully
   }  //checkandLabelType
@@ -53,26 +33,39 @@ namespace MFM {
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
 
-    UlamType * cut = m_state.getUlamTypeByIndex(m_uti);
-    if(m_constant.sval == UNKNOWNSIZE)
+    updateProxy();
+
+    if(!m_state.isComplete(m_uti))
+      evs = ERROR;
+    else
       {
-	if(!cut->isComplete())
-	  m_state.constantFoldIncompleteUTI(m_uti); //update if possible
+	UlamValue rtnUV;
+	evs = NodeTerminal::makeTerminalValue(rtnUV);
 
-	if(m_constant.sval != UNKNOWNSIZE)
-	  setConstantValue(m_funcTok);
+	//copy result UV to stack, -1 relative to current frame pointer
+	if(evs == NORMAL)
+	  Node::assignReturnValueToStack(rtnUV);
       }
-
-    UlamValue rtnUV;
-    evs = NodeTerminal::makeTerminalValue(rtnUV);
-
-    //copy result UV to stack, -1 relative to current frame pointer
-    if(evs == NORMAL)
-      Node::assignReturnValueToStack(rtnUV);
 
     evalNodeEpilog();
     return evs;
   } //eval
+
+
+  void NodeTerminalProxy::genCode(File * fp, UlamValue& uvpass)
+  {
+    updateProxy();
+
+    return NodeTerminal::genCode(fp, uvpass);
+  }
+
+
+  void NodeTerminalProxy::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    updateProxy();
+
+    return NodeTerminal::genCodeToStoreInto(fp, uvpass);
+  }
 
 
   bool NodeTerminalProxy::setConstantValue(Token tok)
@@ -124,5 +117,35 @@ namespace MFM {
     setStoreIntoAble(false);
     return newType;
   } //setConstantTypeForNode
+
+
+  bool NodeTerminalProxy::updateProxy()
+  {
+    bool rtnb = true;
+    if(m_constant.sval == UNKNOWNSIZE)
+      {
+	m_state.constantFoldIncompleteUTI(m_uti); //update if possible
+      }
+
+    if(!m_state.isComplete(m_uti))
+      {
+	std::ostringstream msg;
+	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	//rtnb = false;
+      }
+    else
+      {
+	//depending on the of-func, update our constant
+	if(!setConstantValue(m_funcTok))
+	  {
+	    std::ostringstream msg;
+	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&m_funcTok).c_str() << "' of type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    MSG(&m_funcTok, msg.str().c_str(), ERR);
+	    rtnb = false;
+	  }
+      }
+    return rtnb;
+  } //updateProxy
 
 } //end MFM

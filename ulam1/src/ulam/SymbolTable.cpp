@@ -31,9 +31,8 @@ namespace MFM {
 
 	return true;
       }
-
     return false;
-  }
+  } //isInTable
 
   void SymbolTable::addToTable(u32 id, Symbol* sptr)
   {
@@ -48,9 +47,8 @@ namespace MFM {
       {
 	return it->second;
       }
-
     return NULL;  //impossible!!
-  }
+  } //getSymbolPtr
 
 
   s32 SymbolTable::findPosOfUlamTypeInTable(UTI utype)
@@ -168,7 +166,6 @@ namespace MFM {
   } //genCodeBuiltInFunctionsOverTableOfVariableDataMember
 
 
-
   // storage for class members persists, so we give up preserving
   // order of declaration that the NodeVarDecl in the parseTree
   // provides, in order to distinguish between an instance's data
@@ -187,7 +184,7 @@ namespace MFM {
 	}
 	it++;
       }
-  }
+  } //printPostfixValuesForTableOfVariableDataMembers
 
 
   void SymbolTable::labelTableOfFunctions()
@@ -263,7 +260,7 @@ namespace MFM {
 	it++;
       }
     return nativeCount;
-  }
+  } //countNativeFuncDeclsForTableOfFunctions
 
 
   void SymbolTable::genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -279,7 +276,7 @@ namespace MFM {
 	  }
 	it++;
       }
-  }
+  } //genCodeForTableOfFunctions
 
 
   void SymbolTable::labelTableOfClasses()
@@ -334,7 +331,7 @@ namespace MFM {
 	    aok = false;  //moved here;
 	  }
 #if 1
-	//of course they always are! but we know to keep looping..
+	//of course they always aren't! but we know to keep looping..
 	if(! m_state.isComplete(sym->getUlamTypeIdx()))
 	  {
 	    std::ostringstream msg;
@@ -529,7 +526,7 @@ namespace MFM {
 	return totbitsize;
       }
 
-    //not a primitive, array
+    //not a primitive (class), array
     if(m_state.getArraySize(argut) > 0)
       {
 	if(totbitsize >= 0)
@@ -551,7 +548,7 @@ namespace MFM {
 
 	    m_state.setBitSize(argut, CYCLEFLAG);  //before the recusive call..
 
-	    //get base type
+	    //get base type, scalar type of class
 	    SymbolClass * csym = NULL;
 	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
 	    if(m_state.alreadyDefinedSymbolClass(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
@@ -561,7 +558,7 @@ namespace MFM {
 	      }
 	  }
       }
-    else  // not primitive type, not array
+    else  // not primitive type (class), and not array (scalar)
       {
 	if(totbitsize >= 0)
 	  {
@@ -578,17 +575,17 @@ namespace MFM {
 	  }
 	else //totbitsize == UNKNOWNSIZE
 	  {
-	    assert(totbitsize == UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE);
+	    assert(totbitsize == UNKNOWNSIZE);
 
 	    //get base type
 	    SymbolClass * csym = NULL;
 	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
 	    if(m_state.alreadyDefinedSymbolClass(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
 	      {
-		UTI cut = csym->getUlamTypeIdx();
+		UTI cuti = csym->getUlamTypeIdx();
 		s32 csize;
 
-		if((csize = m_state.getBitSize(cut)) > 0)
+		if((csize = m_state.getBitSize(cuti)) >= 0)
 		  {
 		    return csize;
 		  }
@@ -610,7 +607,10 @@ namespace MFM {
 		    //quark cannot contain a copy of itself!
 		    assert(classblock != m_state.m_classBlock);
 
-		    csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
+		    if(csym->isQuarkUnion())
+		      csize = classblock->getMaxBitSizeOfVariableSymbolsInTable();
+		    else
+		      csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
 		    return csize;
 		  }
 	      }
@@ -640,7 +640,7 @@ namespace MFM {
 	  }
 	it++;
       }
-  } //packBitsForTableOfClasses()
+  } //packBitsForTableOfClasses
 
 
   //#define OPTIMIZE_PACKED_BITS
@@ -666,6 +666,7 @@ namespace MFM {
       }
   }
 #endif
+
 
   //bypasses THIS class being compiled
   void SymbolTable::generateIncludesForTableOfClasses(File * fp)
@@ -801,6 +802,8 @@ namespace MFM {
   // if just this class, then NodeProgram can start the ball rolling
   void SymbolTable::genCodeForTableOfClasses(FileManager * fm)
   {
+    u32 saveCompileThisId = m_state.m_compileThisId;
+
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
     while(it != m_idToSymbolPtr.end())
@@ -809,44 +812,47 @@ namespace MFM {
 	assert(sym->isClass());
 
 	//output header/body for THIS class only
-	if(sym.getId() == m_state.m_compileThisId)
-	  {
-	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	    assert(classNode);
+	//if(sym.getId() == m_state.m_compileThisId)
+	m_state.m_compileThisId == sym.getId();
+	{
+	  NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	  assert(classNode);
 
-	    m_state.m_classBlock = classNode;
-	    m_state.m_currentBlock = m_state.m_classBlock;
+	  m_state.m_classBlock = classNode;
+	  m_state.m_currentBlock = m_state.m_classBlock;
 
-	    ULAMCLASSTYPE uct = ((SymbolClass *) sym)->getUlamClass();
-	    if(uct == UC_ELEMENT)
-	      {
-		//output both header and body in separate files
-		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
-		assert(fp);
+	  ULAMCLASSTYPE uct = ((SymbolClass *) sym)->getUlamClass();
+	  if(uct == UC_ELEMENT)
+	    {
+	      //output both header and body in separate files
+	      File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
+	      assert(fp);
 
-		classNode->genCode(fp, uvpass);
-		delete fp;
+	      classNode->genCode(fp, uvpass);
+	      delete fp;
 
-		// output body for This Class only
-		File * fpb = fm->fopen(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(),WRITE);
-		assert(fpb);
+	      // output body for This Class only
+	      File * fpb = fm->fopen(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(),WRITE);
+	      assert(fpb);
 
-		classNode->genCodeBody(fpb, uvpass);
-		delete fpb;
-	      }
-	    else
-	      {
-		// for quarks output template struct in .h
-		assert(uct == UC_QUARK);
-		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
-		assert(fp);
+	      classNode->genCodeBody(fpb, uvpass);
+	      delete fpb;
+	    }
+	  else
+	    {
+	      // for quarks output template struct in .h
+	      assert(uct == UC_QUARK);
+	      File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
+	      assert(fp);
 
-		classNode->genCodeBody(fp, uvpass);
-		delete fp;
-	      }
-	  }
+	      classNode->genCodeBody(fp, uvpass);
+	      delete fp;
+	    }
+	}
 	it++;
-      }
+      } //while
+
+    m_state.m_compileThisId = saveCompileThisId;  //restore
   }
 #endif
 
