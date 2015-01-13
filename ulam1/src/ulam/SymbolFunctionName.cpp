@@ -44,11 +44,10 @@ namespace MFM {
     if(UlamType::compare(getUlamTypeIdx(), fsym->getUlamTypeIdx(), m_state) != UTIC_SAME)
       {
 	std::ostringstream msg;
-	msg << "Overloading Function: " << m_state.m_pool.getDataAsString(fsym->getId()).c_str() << " Returns DIFFERENT type: '" << m_state.getUlamTypeNameByIndex(fsym->getUlamTypeIdx()).c_str() << "' (" << fsym->getUlamTypeIdx() << ") than " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << "' (" << getUlamTypeIdx() << ")";
+	msg << "Overloading Function: " << m_state.m_pool.getDataAsString(fsym->getId()).c_str() << " Returns DIFFERENT type: '" << m_state.getUlamTypeNameByIndex(fsym->getUlamTypeIdx()).c_str() << "' (UTI" << fsym->getUlamTypeIdx() << ") than " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << "' (UTI" << getUlamTypeIdx() << ")";
 	MSG("", msg.str().c_str(), ERR);
-	assert(0);
+	return false;
       }
-    //assert(UlamType::compare(getUlamTypeIdx(), fsym->getUlamTypeIdx(), m_state) == UTIC_SAME);
 
     std::string mangled = fsym->getMangledNameWithTypes();
 
@@ -61,9 +60,8 @@ namespace MFM {
 	overloaded = ret.second; //false if already existed, i.e. not added
 	assert(overloaded); //shouldn't be a duplicate, we've checked by now.
       }
-
     return overloaded;
-  }
+  } //overloadFunction
 
 
   bool SymbolFunctionName::findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol)
@@ -86,9 +84,8 @@ namespace MFM {
 	  }
 	++it;
       }
-
     return rtnBool;
-  }
+  } //findMatchingFunction
 
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()
@@ -105,7 +102,7 @@ namespace MFM {
 	++it;
       }
     return depthsum;
-  }
+  } //getDepthSumOfFunctions
 
 
   void SymbolFunctionName::labelFunctions()
@@ -120,7 +117,7 @@ namespace MFM {
 	func->checkAndLabelType();
 	++it;
       }
-  }
+  } //labelFunctions
 
 
   u32 SymbolFunctionName::countNativeFuncDecls()
@@ -134,9 +131,8 @@ namespace MFM {
 	count += fsym->isNativeFunctionDeclaration();
 	++it;
       }
-
     return count;
-  }
+  } //countNativeFuncDecls
 
 
   void SymbolFunctionName::generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -149,7 +145,7 @@ namespace MFM {
 	fsym->generateFunctionDeclaration(fp, declOnly, classtype);
 	++it;
       }
-  }
+  } //generateCodedFunctions
 
 
   //private method:
@@ -164,9 +160,7 @@ namespace MFM {
 	foundSym = it->second;
 	rtnBool = true;
       }
-
     return rtnBool;
-  }
-
+  } //isDefined
 
 } //end MFM

@@ -110,9 +110,8 @@ namespace MFM {
 	UlamType * sut = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx());
 	mangled << sut->getUlamTypeMangledName(&m_state).c_str();
       }
-
     return mangled.str();
-  }
+  } //getMangledNameWithTypes
 
 
   bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes)
@@ -155,7 +154,7 @@ namespace MFM {
     assert(func);
 
     return (func->isNative() ? 1 : 0);
-  }
+  } //isNativeFunctionDeclaration
 
 
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
