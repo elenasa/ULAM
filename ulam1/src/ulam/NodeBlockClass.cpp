@@ -86,7 +86,6 @@ namespace MFM {
     if(m_nextNode)
       m_nextNode->checkAndLabelType();
 
-
     // label all the function definition bodies
     m_functionST.labelTableOfFunctions();
 
@@ -230,6 +229,10 @@ namespace MFM {
 
   void NodeBlockClass::generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    // check all the function names for duplicate definitions
+    m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
+
+
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
   }
 

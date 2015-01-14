@@ -61,6 +61,8 @@ namespace MFM{
 
     u32 getDepthSumOfFunctions();
 
+    u32 checkFunctionNames();
+
     void labelFunctions();
 
     u32 countNativeFuncDecls();
@@ -70,7 +72,7 @@ namespace MFM{
   protected:
 
   private:
-    std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr	 
+    std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr
     bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
 
 

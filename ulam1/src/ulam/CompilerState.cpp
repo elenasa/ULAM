@@ -312,12 +312,16 @@ namespace MFM {
     //insert new key to same UTI.
     if(rtnBool)
       {
-	m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); // just one!
-	std::ostringstream msg;
-	msg << "Updated Key to A UTI: " << getUlamTypeNameByIndex(uti).c_str() << " (UTI" << uti << ")";
-	MSG2("", msg.str().c_str(), DEBUG);
+	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
+	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); // just one!
+	bool notdup = ret.second; //false if already existed, i.e. not added
+	if(!notdup)
+	  {
+	    std::ostringstream msg;
+	    msg << "Updated Key to A UTI: " << getUlamTypeNameByIndex(uti).c_str() << " (UTI" << uti << ")";
+	    MSG2("", msg.str().c_str(), DEBUG);
+	  }
       }
-
     return rtnBool;
   } //updateUlamKeyTypeSignatureToaUTI
 
@@ -391,6 +395,46 @@ namespace MFM {
       }
     return rtnBool;
   } //constantFoldUnknownArraysize
+
+
+  bool CompilerState::statusUnknownBitsizeUTI()
+  {
+    bool rtnstat = true; //ok, empty
+    if(!m_unknownBitsizeSubtrees.empty())
+      {
+	std::vector<UTI> lostUTIs;
+	u32 lostsize = m_unknownBitsizeSubtrees.size();
+
+	std::ostringstream msg;
+	msg << "Found non-empty unknown bitsize subtrees, of class <";
+	msg << m_pool.getDataAsString(m_compileThisId);
+	msg << ">, size " << lostsize << ":";
+
+	std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
+
+	while(it != m_unknownBitsizeSubtrees.end())
+	  {
+	    UTI auti = it->first;
+	    msg << " (UTI" << auti << ") " << getUlamTypeNameByIndex(auti).c_str() << ",";
+	    lostUTIs.push_back(auti);
+	    it++;
+	  }
+
+	msg << " trying to update now";
+	MSG2("", msg.str().c_str(), DEBUG);
+	rtnstat = false;
+
+	assert(lostUTIs.size() == lostsize);
+	while(!lostUTIs.empty())
+	  {
+	    UTI auti = lostUTIs.back();
+	    constantFoldIncompleteUTI(auti);
+	    lostUTIs.pop_back();
+	  }
+	lostUTIs.clear();
+      }
+    return rtnstat;
+  } //statusUnknownBitsizeUTI
 
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
@@ -591,7 +635,6 @@ namespace MFM {
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     ULAMCLASSTYPE classtype = ut->getUlamClass();
-    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
     //assert(bitsize >= UNKNOWNSIZE);
     //assert(arraysize >= UNKNOWNSIZE);
@@ -633,26 +676,29 @@ namespace MFM {
 	  }
       }
 
+    // old key
+    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
+
     //continue with valid number of bits for Class UlamTypes only
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
 
     //remove old key, and its ulamtype from map
     deleteUlamKeyTypeSignature(key);
-    //delete ut;  // clear vector
 
-    m_indexToUlamKey[utArg] = UlamKeyTypeSignature();
-    UlamType * newut;
-    assert(!isDefined(key, newut));
+    UlamType * newut = NULL;
+    assert(!isDefined(key, newut) && !newut);
 
-    newut = createUlamType(newkey, Class);
+    if(!isDefined(newkey, newut))
+      {
+	newut = createUlamType(newkey, Class);
+	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType *>(newkey,newut));
+	((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
+
+	if(isCustomArray)
+	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+      }
     m_indexToUlamKey[utArg] = newkey;
-    m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType *>(newkey,newut));
-    ((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
 
-    if(isCustomArray)
-      ((UlamTypeClass *) newut)->setCustomArrayType(caType);
-
-    assert(isDefined(newkey, newut));
 #if 1
     {
       std::ostringstream msg;
@@ -670,7 +716,6 @@ namespace MFM {
     UlamType * ut = getUlamTypeByIndex(utArg);
     ULAMTYPE bUT = ut->getUlamTypeEnum();
     ULAMCLASSTYPE classtype = ut->getUlamClass();
-    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
     assert(classtype == UC_NOTACLASS);
 
@@ -678,6 +723,7 @@ namespace MFM {
       return;  //nothing to do
 
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
+    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
     if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
       {
 	std::ostringstream msg;
@@ -691,18 +737,18 @@ namespace MFM {
 
     //remove old key from map
     deleteUlamKeyTypeSignature(key);
-    //delete ut;  // clear vector
-    m_indexToUlamKey[utArg] = UlamKeyTypeSignature();
 
-    UlamType * newut;
-    assert(!isDefined(key, newut));
+    UlamType * newut = NULL;
+    assert(!isDefined(key, newut) && !newut);
 
-    newut = createUlamType(newkey, bUT);
+    if(!isDefined(newkey, newut))
+      {
+	newut = createUlamType(newkey, bUT);
+	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(newkey,newut));
+      }
+
     m_indexToUlamKey[utArg] = newkey;
-    m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(newkey,newut));
-    ((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
 
-    assert(isDefined(newkey, newut));
 #if 1
     {
       std::ostringstream msg;

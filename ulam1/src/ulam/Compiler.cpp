@@ -52,7 +52,6 @@ namespace MFM {
 	    m_state.setupCenterSiteForTesting();  //temporary!!!
 
 	    ((NodeProgram *) programme)->generateCode(outfm);
-
 	  }
 	else
 	  {
@@ -96,7 +95,7 @@ namespace MFM {
     delete Lex;
     rtnNode = programme;  //ownership transferred to caller
     return m_state.m_err.getErrorCount();
-  }
+  } //parseProgram
 
 
   // call before eval parse tree; return zero when no errors
@@ -109,7 +108,7 @@ namespace MFM {
     root->checkAndLabelType();        //side-effects
 
     return m_state.m_err.getErrorCount();
-  }
+  } //checkAndTypeLabelProgram
 
 
   bool Compiler::hasTheTestMethod()
@@ -159,7 +158,7 @@ namespace MFM {
 
     m_state.m_nodeEvalStack.returnFrame();       //epilog
     return m_state.m_err.getErrorCount();
-  }
+  } //testProgram
 
 
   void Compiler::printPostFix(Node * root, File * output)
@@ -171,7 +170,7 @@ namespace MFM {
     root->printPostfix(output);
 
     output->write("\n");
-  }
+  } //printPostFix
 
 
   void Compiler::printProgramForDebug(Node * root, File * output)
@@ -183,7 +182,7 @@ namespace MFM {
     root->print(output);
 
     output->write("\n");
-  }
+  } //printProgramForDebug
 
 
   void Compiler::generateCodedProgram(Node * root, File * errorOutput)
@@ -198,7 +197,6 @@ namespace MFM {
 	return;
       }
 
-
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = m_state.m_programDefST.getSymbolPtr(m_state.m_compileThisId);
     m_state.m_currentObjSymbolsForCodeGen.clear();
@@ -208,6 +206,6 @@ namespace MFM {
     ((NodeProgram *) root)->generateCode(fm);
 
     delete fm;
-  }
+  } //generateCodedProgram
 
 } //MFM

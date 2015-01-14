@@ -1,3 +1,4 @@
+#include <set>
 #include "SymbolFunctionName.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
@@ -20,7 +21,6 @@ namespace MFM {
 	delete foundSym;   //further deletes its Node func def
 	++it;
       }
-
     m_mangledFunctionNames.clear();
   }
 
@@ -49,7 +49,8 @@ namespace MFM {
 	return false;
       }
 
-    std::string mangled = fsym->getMangledNameWithTypes();
+    //std::string mangled = fsym->getMangledNameWithTypes();
+    std::string mangled = fsym->getMangledNameWithUTIparameters();
 
     //if doesn't already exist, potentially overload it by inserting into map.
     SymbolFunction * anyotherSym;
@@ -103,6 +104,55 @@ namespace MFM {
       }
     return depthsum;
   } //getDepthSumOfFunctions
+
+
+  u32 SymbolFunctionName::checkFunctionNames()
+  {
+    u32 probcount = 0;
+    std::set<std::string>mangledFunctionSet; //detect duplicated UTI parameters
+    std::vector<std::string>dupfuncs;
+
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+
+    while(it != m_mangledFunctionNames.end())
+      {
+	std::string fkey = it->first;
+	SymbolFunction * fsym = it->second;
+	std::string fmangled = fsym->getMangledNameWithTypes();
+	std::pair<std::set<std::string>::iterator, bool> ret;
+	ret = mangledFunctionSet.insert(fmangled);
+	bool overloaded = ret.second; //false if already existed, i.e. not added
+	if(!overloaded) //shouldn't be a duplicate
+	  {
+	    std::ostringstream msg;
+	    msg << "Check overloading function: <" << m_state.m_pool.getDataAsString(fsym->getId()).c_str() << "> (" << fkey.c_str() << "), has a duplicate definition: " << fmangled.c_str();
+	    MSG("", msg.str().c_str(), ERR);
+	    probcount++;
+	    dupfuncs.push_back(fkey);
+	  }
+	++it;
+      }
+    mangledFunctionSet.clear(); //strings only
+
+    while(!dupfuncs.empty())
+      {
+	std::string dupkey = dupfuncs.back();
+	std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.find(dupkey);
+
+	if(it != m_mangledFunctionNames.end())
+	  {
+	    assert(dupkey == it->first);
+	    SymbolFunction * fsym = it->second;
+	    delete fsym;
+	    it->second = NULL;
+	    m_mangledFunctionNames.erase(it);
+	  }
+	dupfuncs.pop_back();
+      }
+
+    dupfuncs.clear();
+    return probcount;
+  } //labelFunctions
 
 
   void SymbolFunctionName::labelFunctions()

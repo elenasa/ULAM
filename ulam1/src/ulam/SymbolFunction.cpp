@@ -88,6 +88,34 @@ namespace MFM {
   }
 
 
+  //supports overloading functions with SymbolFunctionName;
+  // join function name with comma-delimited UTI parameters
+  const std::string SymbolFunction::getMangledNameWithUTIparameters()
+  {
+    std::ostringstream mangled;
+    mangled << Symbol::getMangledName();  //e.g. Uf_14name, with lexNumbers
+
+    // use void type when no parameters
+    if(m_parameterSymbols.empty())
+      {
+	UlamType * vit = m_state.getUlamTypeByIndex(Void);
+	UTI avuti;
+	assert(m_state.aDefinedUTI(vit->getUlamKeyTypeSignature(), avuti));
+	mangled << "," << avuti;
+      }
+
+    // append UTI for each parameter
+    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == 0),
+    //        during this parse stage, the key remains consistent.
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+      {
+	Symbol * sym = m_parameterSymbols[i];
+	mangled << "," << sym->getUlamTypeIdx();
+      }
+    return mangled.str();
+  } //getMangledNameWithUTIparameters
+
+
   //supports overloading functions with SymbolFunctionName
   const std::string SymbolFunction::getMangledNameWithTypes()
   {

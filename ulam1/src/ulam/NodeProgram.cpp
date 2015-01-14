@@ -124,12 +124,26 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Possible empty class found during type labeling, of class <";
 		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-		msg << ">, proceed with caution.";
+		msg << ">, after " << infcounter << " iterations, proceed with caution";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-
 		break;
 	      }
 	  }
+
+	u32 statcounter = 0;
+	while(!m_state.statusUnknownBitsizeUTI())
+	  {
+	    if(++statcounter > MAX_ITERATIONS)
+	      {
+		std::ostringstream msg;
+		msg << "Before bit packing unknown types remain, of class <";
+		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+		msg << ">, after " << statcounter << " iterations, proceed with caution";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+		break;
+	      }
+	  }
+
 	// must happen after type labeling and before code gen; separate pass.
 	m_state.m_programDefST.packBitsForTableOfClasses();
 
@@ -245,7 +259,7 @@ namespace MFM {
 
 	genAllCapsEndifForHeaderFile(fp);
 
-	delete fp;
+	delete fp; //close
       }
 
       // this class body
@@ -259,7 +273,7 @@ namespace MFM {
 	UlamValue uvpass;
 	m_root->genCodeBody(fp, uvpass);  //compileThisId only, MFM namespace
 
-	delete fp;
+	delete fp;  //close
       }
 
       // "stub" .cpp includes .h (unlike the .tcc body)
@@ -276,7 +290,7 @@ namespace MFM {
 	fp->write("\"\n");
 	fp->write("\n");
 
-	delete fp;
+	delete fp; //close
       }
 
       //separate main.cpp for elements only; that have the test method.

@@ -162,6 +162,7 @@ namespace MFM{
     void constantFoldIncompleteUTI(UTI uti);
     bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
     bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
+    bool statusUnknownBitsizeUTI();
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
