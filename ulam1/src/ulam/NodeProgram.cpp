@@ -148,7 +148,7 @@ namespace MFM {
 	m_state.m_programDefST.packBitsForTableOfClasses();
 
 	// let Ulam programmer know the bits used/available
-	//m_state.m_programDefST.printBitSizeOfTableOfClasses();
+	m_state.m_programDefST.printBitSizeOfTableOfClasses();
       }
 
     UTI rtnType =  m_root->getNodeType();

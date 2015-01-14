@@ -6,7 +6,7 @@
 namespace MFM {
 
 
-  ErrorMessageHandler::ErrorMessageHandler(): m_state(NULL), m_debugMode(true), m_fOut(NULL), m_errorCount(0), m_warningCount(0)
+  ErrorMessageHandler::ErrorMessageHandler(): m_state(NULL), m_debugMode(true), m_infoMode(true), m_warnMode(true), m_fOut(NULL), m_errorCount(0), m_warningCount(0)
   {
     //awaits init() call by owner
   }
@@ -14,11 +14,13 @@ namespace MFM {
   ErrorMessageHandler::~ErrorMessageHandler(){}
 
 
-  void  ErrorMessageHandler::init(CompilerState * state, bool debugMode, File * fp)
+  void  ErrorMessageHandler::init(CompilerState * state, bool debugMode, bool infoMode, bool warnMode, File * fp)
   {
     assert(state);
     m_state = state;
     m_debugMode = debugMode;
+    m_infoMode = infoMode;
+    m_warnMode = warnMode;
     m_fOut = fp;
   }
 
@@ -31,7 +33,7 @@ namespace MFM {
   void ErrorMessageHandler::buildMessage(const char * loc, const char * message, const char * file, const char * func, u32 atline, MSGTYPE mtype)
   {
     std::ostringstream srcDebug;
-    srcDebug << file << ":"  << func << ":" << atline; 
+    srcDebug << file << ":"  << func << ":" << atline;
 
     switch(mtype)
       {
@@ -40,11 +42,13 @@ namespace MFM {
 	incErrorCount();
 	break;
       case MSG_WARN:
-    	outputMsg(loc,message,srcDebug.str().c_str(), "Warning");
+	if(m_warnMode)
+	  outputMsg(loc,message,srcDebug.str().c_str(), "Warning");
 	incWarningCount();
 	break;
       case MSG_INFO:
-    	outputMsg(loc,message,srcDebug.str().c_str(), "fyi");
+	if(m_infoMode)
+	  outputMsg(loc,message,srcDebug.str().c_str(), "fyi");
 	break;
       case MSG_DEBUG:
 	if(m_debugMode)
@@ -88,7 +92,7 @@ namespace MFM {
     m_errorCount = 0;
     m_warningCount = 0;
   }
-  
+
 
   void ErrorMessageHandler::outputMsg(const char * ulamloc, const char * message, const char * debugMethod, const char * label, bool toUser)
   {
@@ -97,7 +101,7 @@ namespace MFM {
 	//okay to use cerr here!
 	std::cerr <<ulamloc << " (" << debugMethod << ") " << label << ": " << message << "." << std::endl;
       }
-    
+
     // debugMethod not given to user
     if(m_fOut && toUser)
       {

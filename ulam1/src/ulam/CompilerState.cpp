@@ -25,6 +25,23 @@ namespace MFM {
   static const bool debugOn = false;
 #endif
 
+
+#define _INFO_OUTPUT
+#ifdef _INFO_OUTPUT
+  static const bool infoOn = true;
+#else
+  static const bool infoOn = false;
+#endif
+
+
+  //#define _WARN_OUTPUT
+#ifdef _WARN_OUTPUT
+  static const bool warnOn = true;
+#else
+  static const bool warnOn = false;
+#endif
+
+
   static const char * m_indentedSpaceLevel("  ");
 
   static const char * HIDDEN_ARG_NAME = "Uv_4self";
@@ -38,7 +55,7 @@ namespace MFM {
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
   {
-    m_err.init(this, debugOn, NULL);
+    m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
 
 
