@@ -71,6 +71,8 @@ namespace MFM{
 
     void labelTableOfFunctions();
 
+    void countNavNodesAcrossTableOfFunctions();
+
     bool checkCustomArrayTypeFuncs();
 
     u32 countNativeFuncDeclsForTableOfFunctions();
@@ -78,6 +80,8 @@ namespace MFM{
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void labelTableOfClasses();
+
+    void countNavNodesAcrossTableOfClasses();
 
     bool setBitSizeOfTableOfClasses();
 

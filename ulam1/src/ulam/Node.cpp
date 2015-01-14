@@ -19,6 +19,12 @@ namespace MFM {
     setYourParent(p);  //walk the tree..a leaf.
   }
 
+  void Node::countNavNodes(u32& cnt)
+  {
+    if(getNodeType() == Nav)
+      cnt += 1;
+  }
+
   void Node::print(File * fp)
   {
     printNodeLocation(fp);

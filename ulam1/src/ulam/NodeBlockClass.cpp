@@ -107,6 +107,14 @@ namespace MFM {
   } //checkAndLabelType
 
 
+  void NodeBlockClass::countNavNodes(u32& cnt)
+  {
+    if(m_nextNode) //may not have data members
+      NodeBlock::countNavNodes(cnt);
+    m_functionST.countNavNodesAcrossTableOfFunctions();
+  }
+
+
   void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     m_functionST.checkCustomArrayTypeFuncs();

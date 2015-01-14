@@ -152,7 +152,7 @@ namespace MFM {
 
     dupfuncs.clear();
     return probcount;
-  } //labelFunctions
+  } //checkFunctionNames
 
 
   void SymbolFunctionName::labelFunctions()
@@ -168,6 +168,52 @@ namespace MFM {
 	++it;
       }
   } //labelFunctions
+
+
+  void SymbolFunctionName::countNavNodesInFunctionDefs()
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    u32 countNavs = 0;
+
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func);
+
+	u32 fcntnavs = 0;
+	func->countNavNodes(fcntnavs);
+	if(fcntnavs > 0)
+	  {
+	    std::string fkey = it->first;
+	    std::ostringstream msg;
+	    msg << countNavs << " nodes with illegal 'Nav' types remain in function <";
+	    msg << m_state.m_pool.getDataAsString(getId());
+	    msg << "> (" << fkey.c_str() << ")";
+	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	countNavs += fcntnavs;
+	++it;
+      }
+
+    if(countNavs > 0)
+      {
+	std::ostringstream msg;
+	msg << countNavs << " nodes with illegal 'Nav' types remain in functions <";
+	msg << m_state.m_pool.getDataAsString(getId());
+	msg << ">";
+	MSG("", msg.str().c_str(), ERR);
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << countNavs << " nodes with illegal 'Nav' types remain in functions <";
+	msg << m_state.m_pool.getDataAsString(getId());
+	msg << "> --- good to go!";
+	MSG("", msg.str().c_str(), DEBUG);
+      }
+
+  } //countNavNodesInFunctionDefs
 
 
   u32 SymbolFunctionName::countNativeFuncDecls()

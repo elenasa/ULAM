@@ -15,7 +15,6 @@ namespace MFM {
     setYourParent(p);
   }
 
-
   void NodeStatementEmpty::print(File * fp)
   {
     printNodeLocation(fp);
