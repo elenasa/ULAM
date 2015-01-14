@@ -107,9 +107,9 @@ namespace MFM {
   } //checkAndLabelType
 
 
-  void NodeBlockClass::checkForAndInitializeCustomArrayType()
+  void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
-    m_functionST.checkForAndInitializeClassCustomArrayType();
+    m_functionST.checkCustomArrayTypeFuncs();
   }
 
 

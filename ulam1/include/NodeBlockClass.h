@@ -57,7 +57,7 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    void checkForAndInitializeCustomArrayType();
+    void checkCustomArrayTypeFunctions();
 
     virtual EvalStatus eval();
 
