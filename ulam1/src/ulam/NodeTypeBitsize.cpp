@@ -69,7 +69,7 @@ namespace MFM {
   {
     s32 newbitsize = UNKNOWNSIZE; //was ANYBITSIZECONSTANT;
     UTI sizetype = checkAndLabelType();
-    if(sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned))
+    if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
@@ -77,7 +77,10 @@ namespace MFM {
 	UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog();
 
-	newbitsize = bitUV.getImmediateData(m_state);
+	if(bitUV.getUlamValueTypeIdx() == Nav)
+	  newbitsize = UNKNOWNSIZE;
+	else
+	  newbitsize = bitUV.getImmediateData(m_state);
 	if(newbitsize == UNKNOWNSIZE)
 	  {
 	    MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not yet a \"known\" constant expression", WARN);

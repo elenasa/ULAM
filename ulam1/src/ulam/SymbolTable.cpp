@@ -187,6 +187,23 @@ namespace MFM {
   } //printPostfixValuesForTableOfVariableDataMembers
 
 
+  // convert UTI to mangled strings to insure overload uniqueness
+  void SymbolTable::checkTableOfFunctions()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isFunction())
+	  {
+	    ((SymbolFunctionName *) sym)->checkFunctionNames();
+	  }
+	it++;
+      }
+  } //checkTableOfFunctions
+
+
   void SymbolTable::labelTableOfFunctions()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

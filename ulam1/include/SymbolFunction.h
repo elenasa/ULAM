@@ -68,6 +68,7 @@ namespace MFM{
     virtual const std::string getMangledPrefix();
 
     const std::string getMangledNameWithTypes();
+    const std::string getMangledNameWithUTIparameters();
 
     bool matchingTypes(std::vector<UTI> argTypes);
 

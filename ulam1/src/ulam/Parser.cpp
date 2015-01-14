@@ -1204,6 +1204,8 @@ namespace MFM {
 		delete rtnNode;   //done with them!
 		rtnNode = NULL;
 	      }
+	    else
+	      typebitsize = UNKNOWNSIZE;
 	    //else will be returning rtnNode, ownership transferred
 	  }
 

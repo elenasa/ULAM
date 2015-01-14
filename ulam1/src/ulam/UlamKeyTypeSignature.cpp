@@ -65,18 +65,18 @@ namespace MFM {
     else if(utk.m_bits == UNKNOWNSIZE)
       key << "(" << "UNKNOWN" << ")";
     else if(utk.m_bits == CYCLEFLAG)
-      key << "(" << "CYCLEFLAG" << ")";
+      key << "(" << "CYCLE" << ")";
     else
       key << "(" << utk.m_bits << "?)";
 
+    //arraysize
     if(utk.m_arraySize >= 0)
       key << "[" << utk.m_arraySize << "]";
-    else if(utk.m_arraySize == NONARRAYSIZE)
-      key << "[" << "]";
     else if(utk.m_arraySize == UNKNOWNSIZE)
       key << "[" << "UNKNOWN" << "]";
-    else
+    else if(utk.m_arraySize != NONARRAYSIZE)
       key << "[" << utk.m_arraySize << "?]";
+    //key << "[" << "]";
 
     return key.str();
   }
