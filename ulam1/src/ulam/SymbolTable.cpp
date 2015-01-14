@@ -329,8 +329,11 @@ namespace MFM {
 
 
   // separate pass...after labeling all classes is completed;
+  // purpose is to set the size of all the classes, by totalling the size
+  // of their data members; returns true if all class sizes complete.
   bool SymbolTable::setBitSizeOfTableOfClasses()
   {
+    std::vector<UTI> lostClasses;
     bool aok = true;
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -349,51 +352,79 @@ namespace MFM {
 	  }
 #if 1
 	//of course they always aren't! but we know to keep looping..
-	if(! m_state.isComplete(sym->getUlamTypeIdx()))
+	UTI suti = sym->getUlamTypeIdx();
+	if(! m_state.isComplete(suti))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " (UTI" << sym->getUlamTypeIdx() << ") has 'unknown' sizes, fails sizing pre-test";
+	    msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test";
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	    aok = false;  //moved here;
 	  }
 #endif
-	//else
-	{
-	  NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	  assert(classNode);
-	  //if(!classNode) continue; //infinite loop "Incomplete Class <> was never defined, fails sizing"
+	// try..
 
-	  m_state.m_classBlock = classNode;
-	  m_state.m_currentBlock = m_state.m_classBlock;
+	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	assert(classNode);
+	//if(!classNode) continue; //infinite loop "Incomplete Class <> was never defined, fails sizing"
 
-	  s32 totalbits = 0;
-	  if(((SymbolClass *) sym)->isQuarkUnion())
-	    totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
-	  else
-	    totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+
+	s32 totalbits = 0;
+	if(((SymbolClass *) sym)->isQuarkUnion())
+	  totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
+	else
+	  totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
 
 	  //check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
-	  if(totalbits == CYCLEFLAG)  // was < 0
-	      {
-		std::ostringstream msg;
-		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str();
-		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
-		aok = false;
-	      }
-	  else if(totalbits == EMPTYSYMBOLTABLE)
-	    {
-	      totalbits = 0;
-	      aok = true;
-	    }
-	  else
+	if(totalbits == CYCLEFLAG)  // was < 0
+	  {
+	    std::ostringstream msg;
+	    msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	    aok = false;
+	  }
+	else if(totalbits == EMPTYSYMBOLTABLE)
+	  {
+	    totalbits = 0;
 	    aok = true;
+	  }
+	else if(totalbits != UNKNOWNSIZE)
+	  aok = true;  //not UNKNOWN
 
-	  UTI sut = sym->getUlamTypeIdx();
-	  m_state.setBitSize(sut, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
-	  aok = true;
-	}
+	//track classes that fail to be sized.
+	if(aok)
+	  {
+	    m_state.setBitSize(suti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	  }
+	else
+	  lostClasses.push_back(suti);
+
+	aok = true; //reset for next class
 	it++;
+      } //next class
+
+    aok = lostClasses.empty();
+
+    if(!aok)
+      {
+	std::ostringstream msg;
+	msg << lostClasses.size() << " Classes without sizes";
+	while(!lostClasses.empty())
+	  {
+	    UTI cuti = lostClasses.back();
+	    msg << ", " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    lostClasses.pop_back();
+	  }
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
       }
+    else
+      {
+	std::ostringstream msg;
+	msg << m_idToSymbolPtr.size() << " Class" <<( m_idToSymbolPtr.size() > 1 ? "es ALL " : " ") << "sized SUCCESSFULLY";
+	MSG("", msg.str().c_str(),INFO);
+      }
+    lostClasses.clear();
     return aok;
   } //setBitSizeOfTableOfClasses
 
@@ -418,9 +449,9 @@ namespace MFM {
 	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS - total : MAXBITSPERQUARK - total);
 
 	std::ostringstream msg;
-	msg << "TotalSize of " << (classtype == UC_ELEMENT ? "element <" : "quark   <") << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ">:\t" << total << "\t(" << remaining << " bits available).";
-	//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),INFO);
-	std::cerr << msg.str().c_str() << std::endl;
+	msg << "Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ">: " << total << "/" << remaining;
+	MSG("", msg.str().c_str(),INFO);
+	//std::cerr << msg.str().c_str() << std::endl;
 
 	it++;
       }

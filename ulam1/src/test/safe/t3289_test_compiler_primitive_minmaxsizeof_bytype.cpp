@@ -9,7 +9,7 @@ namespace MFM {
       /* gen output:
 	 Unsigned Arg: 4
 	 Int Arg: -8
-	 Int(3) Arg: 0x3
+	 Int(4) Arg: 0x7
 	 Unsigned Arg: 4
 	 Int Arg: 0
 	 Unsigned Arg: 15
