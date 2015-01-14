@@ -22,6 +22,14 @@ namespace MFM {
     m_nodeRight->updateLineage(this);
   }
 
+
+  void NodeBinaryOp::countNavNodes(u32& cnt)
+  {
+    m_nodeLeft->countNavNodes(cnt);
+    m_nodeRight->countNavNodes(cnt);
+  }
+
+
   void NodeBinaryOp::print(File * fp)
   {
     printNodeLocation(fp);

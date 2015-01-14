@@ -64,6 +64,8 @@ namespace MFM{
     virtual void setYourParent(Node * parent);
     virtual void updateLineage(Node * p);
 
+    virtual void countNavNodes(u32& cnt);
+
     virtual void print(File * fp);
     virtual void printPostfix(File * fp) = 0;
 
@@ -124,7 +126,6 @@ namespace MFM{
      * Returns converted const argument to all capital letters as a string
      */
     static std::string allCAPS(const char * s);
-
 
   protected:
 

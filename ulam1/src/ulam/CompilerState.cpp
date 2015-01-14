@@ -18,7 +18,7 @@
 
 namespace MFM {
 
-#define _DEBUG_OUTPUT
+  //#define _DEBUG_OUTPUT
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
 #else
@@ -34,7 +34,7 @@ namespace MFM {
 #endif
 
 
-#define _WARN_OUTPUT
+  //#define _WARN_OUTPUT
 #ifdef _WARN_OUTPUT
   static const bool warnOn = true;
 #else
@@ -651,15 +651,12 @@ namespace MFM {
   void CompilerState::setUTISizes(UTI utArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    ULAMCLASSTYPE classtype = ut->getUlamClass();
-
-    //assert(bitsize >= UNKNOWNSIZE);
-    //assert(arraysize >= UNKNOWNSIZE);
 
     if(ut->isComplete())
       return;
 
     //redirect primitives;
+    ULAMCLASSTYPE classtype = ut->getUlamClass();
     if(!(classtype == UC_ELEMENT || classtype == UC_QUARK))
       {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
@@ -698,6 +695,9 @@ namespace MFM {
 
     //continue with valid number of bits for Class UlamTypes only
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
+
+    if(key == newkey)
+      return;
 
     //remove old key, and its ulamtype from map
     deleteUlamKeyTypeSignature(key);
@@ -751,6 +751,9 @@ namespace MFM {
 
     //continue with valid number of bits
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
+
+    if(key == newkey)
+      return;
 
     //remove old key from map
     deleteUlamKeyTypeSignature(key);

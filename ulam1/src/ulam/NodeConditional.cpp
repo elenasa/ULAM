@@ -21,6 +21,12 @@ namespace MFM {
   }
 
 
+  void NodeConditional::countNavNodes(u32& cnt)
+  {
+    m_nodeLeft->countNavNodes(cnt);
+  }
+
+
   void NodeConditional::print(File * fp)
   {
     printNodeLocation(fp);

@@ -21,6 +21,13 @@ namespace MFM {
   }
 
 
+  void NodeTypeBitsize::countNavNodes(u32& cnt)
+  {
+    Node::countNavNodes(cnt);
+    m_node->countNavNodes(cnt);
+  }
+
+
   void NodeTypeBitsize::printPostfix(File * fp)
   {
     m_node->printPostfix(fp);
@@ -83,7 +90,9 @@ namespace MFM {
 	  newbitsize = bitUV.getImmediateData(m_state);
 	if(newbitsize == UNKNOWNSIZE)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not yet a \"known\" constant expression", WARN);
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "(), is not yet a \"known\" constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    return false;
 	  }
 
@@ -98,7 +107,9 @@ namespace MFM {
       }
     else
       {
-	MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not a constant expression", ERR);
+	std::ostringstream msg;
+	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "() is not a constant expression";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
 

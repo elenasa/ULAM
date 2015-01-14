@@ -22,6 +22,14 @@ namespace MFM {
   }
 
 
+  void NodeControlIf::countNavNodes(u32& cnt)
+  {
+    if(m_nodeElse)
+      m_nodeElse->countNavNodes(cnt);
+    NodeControl::countNavNodes(cnt);
+  }
+
+
   void NodeControlIf::print(File * fp)
   {
     NodeControl::print(fp);

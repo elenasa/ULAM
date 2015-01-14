@@ -125,6 +125,13 @@ namespace MFM {
   } //checkAndLabelType
 
 
+  void NodeCast::countNavNodes(u32& cnt)
+  {
+    m_node->countNavNodes(cnt);
+    Node::countNavNodes(cnt);
+  }
+
+
   EvalStatus NodeCast::eval()
   {
     assert(m_node); //has to be

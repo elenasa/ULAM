@@ -20,6 +20,12 @@ namespace MFM {
   }
 
 
+  void NodeSimpleStatement::countNavNodes(u32& cnt)
+  {
+    m_node->countNavNodes(cnt);
+  }
+
+
   void NodeSimpleStatement::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node

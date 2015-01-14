@@ -90,6 +90,13 @@ namespace MFM {
   } //checkAndLabelType
 
 
+  void NodeSquareBracket::countNavNodes(u32& cnt)
+  {
+    m_nodeLeft->countNavNodes(cnt);
+    m_nodeRight->countNavNodes(cnt);
+  }
+
+
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
   {
     assert(0);

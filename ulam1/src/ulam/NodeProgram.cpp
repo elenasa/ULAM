@@ -48,6 +48,31 @@ namespace MFM {
   }
 
 
+  void NodeProgram::countNavNodes(u32& cnt)
+  {
+#if 0
+    m_root->countNavNodes(cnt);
+
+    if(cnt > 0)
+      {
+	std::ostringstream msg;
+	msg << cnt << " nodes with illegal 'Nav' types remain in class <";
+	msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+	msg << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << cnt << " nodes with illegal 'Nav' types remain in class <";
+	msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+	msg << "> --- good to go!";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+      }
+#endif
+  } //countNavNodes
+
+
   void NodeProgram::setRootNode(NodeBlockClass * root)
   {
     m_root = root;
@@ -123,10 +148,10 @@ namespace MFM {
 	    if(++infcounter > MAX_ITERATIONS)
 	      {
 		std::ostringstream msg;
-		msg << "Possible empty class found during type labeling class <";
+		msg << "Possible INCOMPLETE class detected during type labeling class <";
 		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-		msg << ">, after " << infcounter << " iterations, proceed with caution";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		msg << ">, after " << infcounter << " iterations";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		break;
 	      }
 	  }
@@ -137,13 +162,17 @@ namespace MFM {
 	    if(++statcounter > MAX_ITERATIONS)
 	      {
 		std::ostringstream msg;
-		msg << "Before bit packing, unknown types remain in class <";
+		msg << "Before bit packing, UNKNOWN types remain in class <";
 		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-		msg << ">, after " << statcounter << " iterations, proceed with caution";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		msg << ">, after " << statcounter << " iterations";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		break;
 	      }
 	  }
+
+	//u32 countNavs = 0;
+	//m_root->countNavNodes(countNavs);
+	m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
 
 	// must happen after type labeling and before code gen; separate pass.
 	m_state.m_programDefST.packBitsForTableOfClasses();
@@ -176,7 +205,7 @@ namespace MFM {
       }
 
     return rtnType;
-  }
+  } //checkAndLabelType
 
 
    EvalStatus NodeProgram::eval()
@@ -217,90 +246,90 @@ namespace MFM {
 
     evalNodeEpilog();
     return evs;
-  }
+  } //eval
 
 
   void NodeProgram::generateCode(FileManager * fm)
+  {
+    assert(m_root);
+    m_state.m_err.clearCounts();
+
+    m_state.m_classBlock = m_root;  //reset to compileThis' class block
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    // mangled types and forward class declarations
+    genMangledTypesHeaderFile(fm);
+
+    // this class header
     {
-      assert(m_root);
-      m_state.m_err.clearCounts();
+      File * fp = fm->open(m_state.getFileNameForThisClassHeader(WSUBDIR).c_str(), WRITE);
+      assert(fp);
 
-      m_state.m_classBlock = m_root;  //reset to compileThis' class block
-      m_state.m_currentBlock = m_state.m_classBlock;
+      generateHeaderPreamble(fp);
+      genAllCapsIfndefForHeaderFile(fp);
+      generateHeaderIncludes(fp);
 
-      // mangled types and forward class declarations
-      genMangledTypesHeaderFile(fm);
+      UlamValue uvpass;
+      m_root->genCode(fp, uvpass);      //compileThisId only, class block
 
-      // this class header
-      {
-	File * fp = fm->open(m_state.getFileNameForThisClassHeader(WSUBDIR).c_str(), WRITE);
-	assert(fp);
+      // include this .tcc
+      m_state.indent(fp);
+      fp->write("#include \"");
+      fp->write(m_state.getFileNameForThisClassBody().c_str());
+      fp->write("\"\n\n");
 
-	generateHeaderPreamble(fp);
-	genAllCapsIfndefForHeaderFile(fp);
-	generateHeaderIncludes(fp);
-
-	UlamValue uvpass;
-	m_root->genCode(fp, uvpass);      //compileThisId only, class block
-
-	// include this .tcc
-	m_state.indent(fp);
-	fp->write("#include \"");
-	fp->write(m_state.getFileNameForThisClassBody().c_str());
-	fp->write("\"\n\n");
-
-	// include native .tcc for this class if any declared
-	if(m_root->countNativeFuncDecls() > 0)
-	  {
-	    m_state.indent(fp);
-	    fp->write("#include \"");
-	    fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
-	    fp->write("\"\n\n");
-	  }
-
-	genAllCapsEndifForHeaderFile(fp);
-
-	delete fp; //close
-      }
-
-      // this class body
-      {
-	File * fp = fm->open(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(), WRITE);
-	assert(fp);
-
-	m_state.m_currentIndentLevel = 0;
-	fp->write(CModeForHeaderFiles);  //needed for .tcc files too
-
-	UlamValue uvpass;
-	m_root->genCodeBody(fp, uvpass);  //compileThisId only, MFM namespace
-
-	delete fp;  //close
-      }
-
-      // "stub" .cpp includes .h (unlike the .tcc body)
-      {
-	File * fp = fm->open(m_state.getFileNameForThisClassCPP(WSUBDIR).c_str(), WRITE);
-	assert(fp);
-
-	m_state.m_currentIndentLevel = 0;
-
-	// include .h in the .cpp
-	m_state.indent(fp);
-	fp->write("#include \"");
-	fp->write(m_state.getFileNameForThisClassHeader().c_str());
-	fp->write("\"\n");
-	fp->write("\n");
-
-	delete fp; //close
-      }
-
-      //separate main.cpp for elements only; that have the test method.
-      if(m_state.getUlamTypeByIndex(m_root->getNodeType())->getUlamClass() == UC_ELEMENT)
+      // include native .tcc for this class if any declared
+      if(m_root->countNativeFuncDecls() > 0)
 	{
-	  if(m_state.thisClassHasTheTestMethod())
-	    generateMain(fm);
+	  m_state.indent(fp);
+	  fp->write("#include \"");
+	  fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
+	  fp->write("\"\n\n");
 	}
-    }  //generateCode
+
+      genAllCapsEndifForHeaderFile(fp);
+
+      delete fp; //close
+    }
+
+    // this class body
+    {
+      File * fp = fm->open(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(), WRITE);
+      assert(fp);
+
+      m_state.m_currentIndentLevel = 0;
+      fp->write(CModeForHeaderFiles);  //needed for .tcc files too
+
+      UlamValue uvpass;
+      m_root->genCodeBody(fp, uvpass);  //compileThisId only, MFM namespace
+
+      delete fp;  //close
+    }
+
+    // "stub" .cpp includes .h (unlike the .tcc body)
+    {
+      File * fp = fm->open(m_state.getFileNameForThisClassCPP(WSUBDIR).c_str(), WRITE);
+      assert(fp);
+
+      m_state.m_currentIndentLevel = 0;
+
+      // include .h in the .cpp
+      m_state.indent(fp);
+      fp->write("#include \"");
+      fp->write(m_state.getFileNameForThisClassHeader().c_str());
+      fp->write("\"\n");
+      fp->write("\n");
+
+      delete fp; //close
+    }
+
+    //separate main.cpp for elements only; that have the test method.
+    if(m_state.getUlamTypeByIndex(m_root->getNodeType())->getUlamClass() == UC_ELEMENT)
+      {
+	if(m_state.thisClassHasTheTestMethod())
+	  generateMain(fm);
+      }
+  }  //generateCode
 
 
   void NodeProgram::generateHeaderPreamble(File * fp)

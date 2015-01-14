@@ -219,6 +219,22 @@ namespace MFM {
   } //labelTableOfFunctions
 
 
+  void SymbolTable::countNavNodesAcrossTableOfFunctions()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isFunction())
+	  {
+	    ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs();
+	  }
+	it++;
+      }
+  } //countNavNodesAcrossTableOfFunctions
+
+
   void SymbolTable::checkCustomArraysForTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -382,6 +398,35 @@ namespace MFM {
   } //labelTableOfClasses
 
 
+  void SymbolTable::countNavNodesAcrossTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	{
+	  NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	  assert(classNode);
+	  m_state.m_classBlock = classNode;
+	  m_state.m_currentBlock = m_state.m_classBlock;
+	  u32 datamembercnt = 0;
+	  classNode->countNavNodes(datamembercnt);
+	  if(datamembercnt > 0)
+	    {
+	      std::ostringstream msg;
+	      msg << datamembercnt << " data member nodes with illegal 'Nav' types remain in class <";
+	      msg << m_state.m_pool.getDataAsString(sym->getId());
+	      msg << ">";
+	      MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    }
+	}
+	it++;
+      }
+  } //countNavNodesAcrossTableOfClasses
+
+
   // separate pass...after labeling all classes is completed;
   // purpose is to set the size of all the classes, by totalling the size
   // of their data members; returns true if all class sizes complete.
@@ -500,10 +545,21 @@ namespace MFM {
 	u32 total = m_state.getTotalBitSize(suti);
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE classtype = sut->getUlamClass();
-	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS - total : MAXBITSPERQUARK - total);
 
 	std::ostringstream msg;
-	msg << "Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ">: " << total << "/" << remaining;
+	msg << "Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ">: ";
+
+	if(m_state.isComplete(suti))
+	  {
+	    s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS - total : MAXBITSPERQUARK - total);
+	    msg << total << "/" << remaining;
+	  }
+	else
+	  {
+	    total = UNKNOWNSIZE;
+	    s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS : MAXBITSPERQUARK);
+	    msg << "UNKNOWN" << "/" << remaining;
+	  }
 	MSG("", msg.str().c_str(),INFO);
 	//std::cerr << msg.str().c_str() << std::endl;
 
@@ -539,6 +595,14 @@ namespace MFM {
 		symsize = 0;
 		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
 	      }
+	    else if(symsize <= UNKNOWNSIZE)
+	      {
+		std::ostringstream msg;
+		msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+		totalsizes = UNKNOWNSIZE;
+		break;
+	      }
 	    else
 	      {
 		if(m_state.isScalar(sut))
@@ -553,7 +617,8 @@ namespace MFM {
 		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
 		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	      }
-	    totalsizes += m_state.getTotalBitSize(sut);
+
+	    totalsizes += m_state.getTotalBitSize(sut); //covers up any unknown sizes BAD
 	  }
 	it++;
       }
@@ -646,7 +711,7 @@ namespace MFM {
 	  }
 	else // totbitsize == UNKNOWNSIZE (was thought to be 0)
 	  {
-	    assert(totbitsize == UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE);
+	    assert(totbitsize <= UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE);
 
 	    m_state.setBitSize(argut, CYCLEFLAG);  //before the recusive call..
 
