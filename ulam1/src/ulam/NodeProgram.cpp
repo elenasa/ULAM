@@ -107,8 +107,9 @@ namespace MFM {
 
     m_root->updateLineage(this);
 
-    // needed before square bracket nodes do their checkandlabelling
-    //m_state.m_programDefST.initializeCustomArraysForTableOfClasses();
+    // type set at parse time (needed for square bracket checkandlabel);
+    // so, here we just check for matching arg types.
+    m_state.m_programDefST.checkCustomArraysForTableOfClasses();
 
     // label all the class; sets "current" m_currentClassSymbol in CS
     m_state.m_programDefST.labelTableOfClasses();
@@ -122,10 +123,10 @@ namespace MFM {
 	    if(++infcounter > MAX_ITERATIONS)
 	      {
 		std::ostringstream msg;
-		msg << "Possible empty class found during type labeling, of class <";
+		msg << "Possible empty class found during type labeling class <";
 		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
 		msg << ">, after " << infcounter << " iterations, proceed with caution";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		break;
 	      }
 	  }
@@ -136,10 +137,10 @@ namespace MFM {
 	    if(++statcounter > MAX_ITERATIONS)
 	      {
 		std::ostringstream msg;
-		msg << "Before bit packing unknown types remain, of class <";
+		msg << "Before bit packing, unknown types remain in class <";
 		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
 		msg << ">, after " << statcounter << " iterations, proceed with caution";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		break;
 	      }
 	  }
@@ -147,7 +148,7 @@ namespace MFM {
 	// must happen after type labeling and before code gen; separate pass.
 	m_state.m_programDefST.packBitsForTableOfClasses();
 
-	// let Ulam programmer know the bits used/available
+	// let Ulam programmer know the bits used/available (needs infoOn)
 	m_state.m_programDefST.printBitSizeOfTableOfClasses();
       }
 

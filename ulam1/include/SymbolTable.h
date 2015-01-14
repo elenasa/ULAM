@@ -71,7 +71,7 @@ namespace MFM{
 
     void labelTableOfFunctions();
 
-    bool checkForAndInitializeClassCustomArrayType();
+    bool checkCustomArrayTypeFuncs();
 
     u32 countNativeFuncDeclsForTableOfFunctions();
 
@@ -89,7 +89,7 @@ namespace MFM{
 
     void packBitsForTableOfClasses();
 
-    void initializeCustomArraysForTableOfClasses();
+    void checkCustomArraysForTableOfClasses();
 
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 

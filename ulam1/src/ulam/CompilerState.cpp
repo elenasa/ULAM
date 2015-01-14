@@ -18,7 +18,7 @@
 
 namespace MFM {
 
-  //#define _DEBUG_OUTPUT
+#define _DEBUG_OUTPUT
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
 #else
@@ -34,7 +34,7 @@ namespace MFM {
 #endif
 
 
-  //#define _WARN_OUTPUT
+#define _WARN_OUTPUT
 #ifdef _WARN_OUTPUT
   static const bool warnOn = true;
 #else
@@ -42,14 +42,14 @@ namespace MFM {
 #endif
 
 
-  static const char * m_indentedSpaceLevel("  ");
+  static const char * m_indentedSpaceLevel("  ");  //2 spaces per level
 
   static const char * HIDDEN_ARG_NAME = "Uv_4self";
-  static const char * HIDDEN_CONTEXT_ARG_NAME = "uc";
-  static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref";
-  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset";
-  static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs";   //Uf_2is;
-  static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType";       //"Uf_3has";
+  static const char * HIDDEN_CONTEXT_ARG_NAME = "uc";      //unmangled
+  static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref";  //unmangled
+  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset";  //unmangled
+  static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs";  //Uf_2is
+  static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType";      //Uf_3has
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<CC>::PositionOfDataMember";
 
   //use of this in the initialization list seems to be okay;

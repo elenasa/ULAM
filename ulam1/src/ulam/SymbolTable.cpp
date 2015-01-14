@@ -16,7 +16,6 @@ namespace MFM {
       {
 	delete m_idToSymbolPtr[i];
       }
-
     m_idToSymbolPtr.clear();
   }
 
@@ -27,12 +26,12 @@ namespace MFM {
     if(it != m_idToSymbolPtr.end())
       {
 	symptrref = it->second;
-	assert( symptrref->getId() == id);  //overkill?
-
+	assert( symptrref->getId() == id);
 	return true;
       }
     return false;
   } //isInTable
+
 
   void SymbolTable::addToTable(u32 id, Symbol* sptr)
   {
@@ -220,7 +219,7 @@ namespace MFM {
   } //labelTableOfFunctions
 
 
-  void SymbolTable::initializeCustomArraysForTableOfClasses()
+  void SymbolTable::checkCustomArraysForTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
@@ -231,34 +230,89 @@ namespace MFM {
 
 	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
 
-	classNode->checkForAndInitializeCustomArrayType();
+	// custom array flag set at parse time
+	UTI cuti = classNode->getNodeType();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	if(((UlamTypeClass *) cut)->isCustomArray())
+	  {
+	    m_state.m_classBlock = classNode;
+	    m_state.m_currentBlock = m_state.m_classBlock;
+	    classNode->checkCustomArrayTypeFunctions();
+	  }
 	it++;
       }
-  } //initializeCustomArraysForTableOfClasses()
+  } //checkCustomArraysForTableOfClasses()
 
 
-  //called by current Class block on function ST
-  bool SymbolTable::checkForAndInitializeClassCustomArrayType()
+  //called by current Class block on its function ST
+  bool SymbolTable::checkCustomArrayTypeFuncs()
   {
     bool rtnBool = false;
     Symbol * fnsym = NULL;
     if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsym))
       {
-	// though not necessarily a native function..tis prudent to remember
-	// (SymbolFunction *) fnsym->isNativeFunctionDeclaration()
-	// failed because we were one layer removed from the SymbolFunction.
-	//assert(((SymbolFunctionName *) fnsym)->countNativeFuncDecls() > 0);
+	// not necessarily a native function..tis prudent to remember
 	UTI futi = fnsym->getUlamTypeIdx();
 	assert(futi != Void);
+
 	// set class type to custom array; the current class block
-	// node type was set to its class symbol type after checkAndLabelType
+	// node type was set to its class symbol type at start of parsing it.
 	UTI cuti = m_state.m_classBlock->getNodeType();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	((UlamTypeClass *) cut)->setCustomArrayType(futi);
+	assert(((UlamTypeClass *) cut)->isCustomArray());
 	rtnBool = true;
+
+	{
+	  std::ostringstream msg;
+	  msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+	  MSG("", msg.str().c_str(), DEBUG);
+	}
+
+	// check that its 'set' function has a matching parameter type
+	fnsym = NULL;
+	if(isInTable(m_state.getCustomArraySetFunctionNameId(), fnsym))
+	  {
+	    SymbolFunction * funcSymbol = NULL;
+	    std::vector<UTI> argTypes;
+	    argTypes.push_back(Int);
+	    argTypes.push_back(futi);
+	    if(!((SymbolFunctionName *) fnsym)->findMatchingFunction(argTypes, funcSymbol))
+	      {
+		std::ostringstream msg;
+		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(fnsym->getId()).c_str() << "' does not match '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' argument types: ";
+		for(u32 i = 0; i < argTypes.size(); i++)
+		  {
+		    msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
+		  }
+		msg << "and cannot be called in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+		MSG("", msg.str().c_str(), ERR);
+		rtnBool = false;
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+		MSG("", msg.str().c_str(), DEBUG);
+	      }
+	    argTypes.clear();
+	  }//set found
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+	    MSG("", msg.str().c_str(), WARN);
+	  }
+      } //get found
+    else
+      {
+	UTI cuti = m_state.m_classBlock->getNodeType();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+	std::ostringstream msg;
+	msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+	MSG("", msg.str().c_str(), DEBUG);
+	rtnBool = false;
       }
     return rtnBool;
   } //checkForAndInitializeClassCustomArrayType
