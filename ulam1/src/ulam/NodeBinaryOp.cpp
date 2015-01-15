@@ -84,12 +84,12 @@ namespace MFM {
 
     if(newType != Nav)
       {
-	if(newType != leftType)
+	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
 	    m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
 	  }
 
-	if(newType != rightType)
+	if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
 	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
 	  }

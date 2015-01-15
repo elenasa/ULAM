@@ -138,7 +138,7 @@ namespace MFM {
 	    //before asserts start hitting later during assignment
 	    //quarks are likely unknown size at checkandlabel time
 	    //if(tobeType != nuti)
-	    if(uticr == UTIC_NOTSAME || uticr == UTIC_DONTKNOW)
+	    if(uticr != UTIC_SAME)
 	      {
 		rtnNode = new NodeCast(mselectNode, tobeType, m_state);
 		assert(rtnNode);

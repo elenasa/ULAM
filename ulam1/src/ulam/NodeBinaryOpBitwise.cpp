@@ -51,7 +51,6 @@ namespace MFM {
 	return Nav;
       }
 
-    //if(rt == lt)
     if(uticr == UTIC_SAME)
       {
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();

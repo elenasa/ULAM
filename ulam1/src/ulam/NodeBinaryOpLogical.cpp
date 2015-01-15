@@ -10,32 +10,10 @@ namespace MFM {
   {}
 
 
-  // third arg is the slots for the rtype; slots for the left is
-  // rslot-lslot; they should be equal, unless one is a packed array
-  // and the other isn't; however, currently, according to
-  // CompilerState determinePackable, they should always be the same
-  // since their types must be identical.
+  // not used for logical op
   void NodeBinaryOpLogical::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(0);
-    assert(slots);
-    UTI nuti = getNodeType();
-    if(m_state.isScalar(nuti))  //not an array
-      {
-	doBinaryOperationImmediate(lslot, rslot, slots);
-      }
-    else
-      { //array
-	// leverage case when both are packed, for logical operations
-	if(m_state.determinePackable(nuti) == PACKEDLOADABLE)
-	  {
-	    doBinaryOperationImmediate(lslot, rslot, slots);
-	  }
-	else
-	  {
-	    doBinaryOperationArray(lslot, rslot, slots);
-	  }
-      }
   } //end dobinaryop
 
 
@@ -47,7 +25,12 @@ namespace MFM {
     // all logical operations are performed as Bool.BITSPERBOOL.-1
     if(m_state.isScalar(lt) && m_state.isScalar(rt))
       {
-	newType = Bool;
+	if(m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum() == Bool)
+	  newType = lt; //any size bool
+	else if(m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum() == Bool)
+	  newType = rt; //any size bool
+	else
+	  newType = Bool; //default
       } //both scalars
     else
       {
@@ -62,29 +45,8 @@ namespace MFM {
 
   const std::string NodeBinaryOpLogical::methodNameForCodeGen()
   {
-    std::ostringstream methodname;
-    //methodname << "_LogicalOr";  determined by each op
-
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
-
-    // common part of name
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-    switch(etyp)
-      {
-      case Int:
-	methodname << "Int";
-	break;
-      case Unsigned:
-	methodname << "Unsigned";
-	break;
-      default:
-	assert(0);
-	methodname << "NAV";
-	break;
-      };
-    methodname << nut->getTotalWordSize();
-    return methodname.str();
+    assert(0);
+    return "notapplicable_logicalops";
   } // methodNameForCodeGen
-
 
 } //end MFM

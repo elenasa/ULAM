@@ -73,7 +73,7 @@ namespace MFM {
     //statements don't have types
     setNodeType(Void);
     return getNodeType();
-  }
+  } //checkAndLabelType
 
 
   void NodeSimpleStatement::countNavNodes(u32& cnt)

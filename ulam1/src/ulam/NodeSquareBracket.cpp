@@ -46,7 +46,6 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     bool isCustomArray = lut->isCustomArray();
 
-    //if(m_state.isScalar(leftType))
     if(m_state.isScalar(leftType))
       {
 	if(!isCustomArray)
