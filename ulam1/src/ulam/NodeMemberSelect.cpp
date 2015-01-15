@@ -74,7 +74,7 @@ namespace MFM {
 
     setStoreIntoAble(m_nodeRight->isStoreIntoAble());
     return getNodeType();
-  }
+  } //checkAndLabelType
 
 
   EvalStatus NodeMemberSelect::eval()

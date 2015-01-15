@@ -48,14 +48,11 @@ namespace MFM {
     if(m_varSymbol == NULL)
       {
 	Symbol * asymptr = NULL;
-	//if(m_state.m_classBlock->isIdInScope(m_token.m_dataindex,asymptr))
-	//if(m_state.isIdInClassScope(m_token.m_dataindex,asymptr))
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
 	  {
 	    if(!asymptr->isFunction())
 	      {
 		m_varSymbol = (SymbolVariable *) asymptr;
-		//assert(m_varSymbol->isDataMember()); //could be a local variable
 	      }
 	    else
 	      {
@@ -78,10 +75,7 @@ namespace MFM {
       }
 
     setNodeType(it);
-
-    //if(it->isScalar())
     setStoreIntoAble(true);
-
     return it;
   } //checkAndLabelType
 

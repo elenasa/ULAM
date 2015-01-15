@@ -72,7 +72,7 @@ namespace MFM {
       }
 
     return getNodeType();  //Bool
-  }
+  } //checkAndLabelType
 
 
   void NodeControlIf::countNavNodes(u32& cnt)

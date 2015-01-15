@@ -59,7 +59,6 @@ namespace MFM {
     NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
 
     //look up in class block, and match argument types to parameters
-    //assert(m_funcSymbol == NULL);
     SymbolFunction * funcSymbol = NULL;
     Symbol * fnsymptr = NULL;
 
@@ -119,16 +118,12 @@ namespace MFM {
 	  {
 	    u32 argsWithCast = 0;
 	    u32 numParams = m_funcSymbol->getNumberOfParameters();
-	    //for(u32 i = 0; i < m_argumentNodes.size(); i++)
 	    for(u32 i = 0; i < numParams; i++)
 	      {
 		if(m_state.isConstant(argTypes[i]))
 		  {
 		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
 		    UTI ptype = psym->getUlamTypeIdx();
-		    //m_argumentNodes[i] = new NodeCast(m_argumentNodes[i], ptype, m_state);
-		    //m_argumentNodes[i]->setNodeLocation(getNodeLocation());
-		    //m_argumentNodes[i]->checkAndLabelType();
 		    m_argumentNodes[i] = makeCastingNode(m_argumentNodes[i], ptype);
 		    argsWithCast++;
 		  }
