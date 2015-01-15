@@ -117,13 +117,12 @@ namespace MFM{
 
     CallStack m_funcCallStack;    //local variables and arguments
     //UlamAtom  m_selectedAtom;   //storage for data member (static/global) variables
-    UEventWindow  m_eventWindow;   //storage for 41 atoms (elements)
+    UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
     CallStack m_nodeEvalStack;    //for node eval return values,
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
 
     ErrorMessageHandler m_err;
 
-    //std::vector<UlamType *> m_indexToUlamType;   //ulamtype ptr by index
     std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key -> index of ulamtype (UTI)
     std::vector<UlamKeyTypeSignature> m_indexToUlamKey;   //UTI -> ulamkey, many-to-one
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes;   //key -> ulamtype *
@@ -138,7 +137,6 @@ namespace MFM{
     UlamValue m_currentSelfPtr;       //used in eval of func calls: updated after args, becomes currentObjPtr for args
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
-    //Symbol * m_currentObjSymbolForCodeGen;  //used in code generation; parallels m_currentObjPtr
     Symbol * m_currentSelfSymbolForCodeGen; //used in code generation; parallels m_currentSelf
     u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
     s32 m_nextTmpVarNumber;           //used in code gen when a "slot index" is not available
@@ -151,7 +149,6 @@ namespace MFM{
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
-    //bool isDefined(UlamKeyTypeSignature key, UTI& foundUTI);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
@@ -163,11 +160,11 @@ namespace MFM{
     bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
     bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
     bool statusUnknownBitsizeUTI();
+    bool statusUnknownArraysizeUTI();
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
     const std::string getUlamTypeNameByIndex(UTI uti);
-    //UTI getUlamTypeIndex(UlamType * ut);  can't be done
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
     UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);

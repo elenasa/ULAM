@@ -38,6 +38,12 @@ namespace MFM {
   }
 
 
+  void NodeLabel::countNavNodes(u32& cnt)
+  {
+    return;
+  }
+
+
   const char * NodeLabel::getName()
   {
     return ":";

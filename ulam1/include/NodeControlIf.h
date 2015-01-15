@@ -50,13 +50,13 @@ namespace MFM{
 
     virtual void updateLineage(Node * p);
 
-    virtual void countNavNodes(u32& cnt);
-
     virtual void printPostfix(File * fp);
 
     virtual void print(File * fp);
 
     virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 

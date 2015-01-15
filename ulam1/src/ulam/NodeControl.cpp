@@ -24,13 +24,6 @@ namespace MFM {
   }
 
 
-  void NodeControl::countNavNodes(u32& cnt)
-  {
-    m_nodeCondition->countNavNodes(cnt);
-    m_nodeBody->countNavNodes(cnt);
-  }
-
-
   void NodeControl::print(File * fp)
   {
     printNodeLocation(fp);
@@ -114,6 +107,13 @@ namespace MFM {
     setStoreIntoAble(false);
     return getNodeType();
   } //checkAndLabelType
+
+
+  void NodeControl::countNavNodes(u32& cnt)
+  {
+    m_nodeCondition->countNavNodes(cnt);
+    m_nodeBody->countNavNodes(cnt);
+  }
 
 
   void NodeControl::genCode(File * fp, UlamValue& uvpass)

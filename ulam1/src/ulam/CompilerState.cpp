@@ -26,7 +26,7 @@ namespace MFM {
 #endif
 
 
-#define _INFO_OUTPUT
+  //#define _INFO_OUTPUT
 #ifdef _INFO_OUTPUT
   static const bool infoOn = true;
 #else
@@ -96,7 +96,7 @@ namespace MFM {
     if(unknownB > 0)
       {
 	std::ostringstream msg;
-	msg << "Unknown bitsize subtrees cleared:" << unknownB;
+	msg << "Unknown bitsize subtrees cleared: " << unknownB;
 	MSG2("",msg.str().c_str(),DEBUG);
       }
 
@@ -114,7 +114,7 @@ namespace MFM {
     if(unknownA > 0)
       {
 	std::ostringstream msg;
-	msg << "Unknown arraysize subtrees cleared:" << unknownA;
+	msg << "Unknown arraysize subtrees cleared: " << unknownA;
 	MSG2("",msg.str().c_str(),DEBUG);
       }
 
@@ -452,6 +452,46 @@ namespace MFM {
       }
     return rtnstat;
   } //statusUnknownBitsizeUTI
+
+
+  bool CompilerState::statusUnknownArraysizeUTI()
+  {
+    bool rtnstat = true; //ok, empty
+    if(!m_unknownArraysizeSubtrees.empty())
+      {
+	std::vector<UTI> lostUTIs;
+	u32 lostsize = m_unknownArraysizeSubtrees.size();
+
+	std::ostringstream msg;
+	msg << "Found non-empty unknown arraysize subtrees, of class <";
+	msg << m_pool.getDataAsString(m_compileThisId);
+	msg << ">, size " << lostsize << ":";
+
+	std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.begin();
+
+	while(it != m_unknownArraysizeSubtrees.end())
+	  {
+	    UTI auti = it->first;
+	    msg << " (UTI" << auti << ") " << getUlamTypeNameByIndex(auti).c_str() << ",";
+	    lostUTIs.push_back(auti);
+	    it++;
+	  }
+
+	msg << " trying to update now";
+	MSG2("", msg.str().c_str(), DEBUG);
+	rtnstat = false;
+
+	assert(lostUTIs.size() == lostsize);
+	while(!lostUTIs.empty())
+	  {
+	    UTI auti = lostUTIs.back();
+	    constantFoldIncompleteUTI(auti);
+	    lostUTIs.pop_back();
+	  }
+	lostUTIs.clear();
+      }
+    return rtnstat;
+  } //statusUnknownArraysizeUTI
 
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)

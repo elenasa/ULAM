@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <map>
-
 #include "NodeProgram.h"
 #include "CompilerState.h"
 
@@ -46,31 +45,6 @@ namespace MFM {
     setYourParent(p);             //god is null
     m_root->updateLineage(this);  //walk the tree..
   }
-
-
-  void NodeProgram::countNavNodes(u32& cnt)
-  {
-#if 0
-    m_root->countNavNodes(cnt);
-
-    if(cnt > 0)
-      {
-	std::ostringstream msg;
-	msg << cnt << " nodes with illegal 'Nav' types remain in class <";
-	msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-	msg << ">";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-    else
-      {
-	std::ostringstream msg;
-	msg << cnt << " nodes with illegal 'Nav' types remain in class <";
-	msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-	msg << "> --- good to go!";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-      }
-#endif
-  } //countNavNodes
 
 
   void NodeProgram::setRootNode(NodeBlockClass * root)
@@ -124,6 +98,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+
 #define MAX_ITERATIONS 10
   UTI NodeProgram::checkAndLabelType()
   {
@@ -170,8 +145,21 @@ namespace MFM {
 	      }
 	  }
 
-	//u32 countNavs = 0;
-	//m_root->countNavNodes(countNavs);
+	statcounter = 0;
+	while(!m_state.statusUnknownArraysizeUTI())
+	  {
+	    if(++statcounter > MAX_ITERATIONS)
+	      {
+		std::ostringstream msg;
+		msg << "Before bit packing, types with UNKNOWN arraysizes remain in class <";
+		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+		msg << ">, after " << statcounter << " iterations";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		break;
+	      }
+	  }
+
+	// count Nodes with illegal Nav types; walk each class' data members and funcdefs.
 	m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
 
 	// must happen after type labeling and before code gen; separate pass.
@@ -206,6 +194,14 @@ namespace MFM {
 
     return rtnType;
   } //checkAndLabelType
+
+
+  //performed across classes starting at NodeBlockClass
+  void NodeProgram::countNavNodes(u32& cnt)
+  {
+    assert(0);
+    return;
+  }
 
 
    EvalStatus NodeProgram::eval()
@@ -329,7 +325,7 @@ namespace MFM {
 	if(m_state.thisClassHasTheTestMethod())
 	  generateMain(fm);
       }
-  }  //generateCode
+  } //generateCode
 
 
   void NodeProgram::generateHeaderPreamble(File * fp)
@@ -352,7 +348,7 @@ namespace MFM {
     fp->write(" header for ULAM\n");
 
     fp->write(CopyrightAndLicenseForUlamHeader);
-  }
+  } //generateHeaderPreamble
 
 
   void NodeProgram::genAllCapsIfndefForHeaderFile(File * fp)
@@ -367,13 +363,12 @@ namespace MFM {
     fp->write("#define ");
     fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n\n");
-  }
+  } //genAllCapsIfndefForHeaderFile
 
 
   void NodeProgram::genAllCapsEndifForHeaderFile(File * fp)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(m_root->getNodeType());
-    //m_state.indent(fp);
     fp->write("#endif //");
     fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n");
@@ -383,13 +378,6 @@ namespace MFM {
   void NodeProgram::generateHeaderIncludes(File * fp)
   {
     m_state.indent(fp);
-#if 0
-    // moved to _types.h
-    //use -I ../../../include in g++ command
-    fp->write("//#include \"itype.h\"\n");
-    fp->write("//#include \"BitVector.h\"\n");
-    fp->write("//#include \"BitField.h\"\n");
-#endif
     fp->write("#include \"UlamDefs.h\"\n\n");
 
     //using the _Types.h file
@@ -451,7 +439,7 @@ namespace MFM {
 	  }
 	it++;
       }
-    delete fp;
+    delete fp; //close
   } //genMangledTypeHeaderFile
 
 
@@ -467,57 +455,8 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include <stdio.h>\n\n");
 
-
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");
-
-#if 0
-    m_state.indent(fp);
-    fp->write("#include \"Atom.h\"\n\n");
-
-    m_state.indent(fp);
-    fp->write("//CoreConfig.h\n");
-    m_state.indent(fp);
-    fp->write("template <class A, class P>\n");
-    m_state.indent(fp);
-    fp->write("struct CoreConfig\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("typedef A ATOM_TYPE;\n");
-    m_state.indent(fp);
-    fp->write("typedef A PARAM_CONFIG;\n");
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("};\n\n");
-
-    m_state.indent(fp);
-    fp->write("//ParamConfig.h\n");
-    m_state.indent(fp);
-    fp->write("template <u32 BPA>\n");
-    m_state.indent(fp);
-    fp->write("struct ParamConfig\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("enum { BITS_PER_ATOM = BPA };\n");
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("};\n\n");
-
-
-    m_state.indent(fp);
-    fp->write("//P3Atom.h\n");
-    m_state.indent(fp);
-    fp->write("template <class PC>\n");
-    m_state.indent(fp);
-    fp->write("struct P3Atom : Atom<CoreConfig <P3Atom<PC>, PC> > {\n");
-    m_state.indent(fp);
-    fp->write("};\n");
-    fp->write("\n");
-#endif
 
     m_state.indent(fp);
     fp->write("//includes Element.h\n");
@@ -591,8 +530,8 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("}\n");
-    delete fp;
-  }
+    delete fp; //close
+  } //generateMain
 
 
 

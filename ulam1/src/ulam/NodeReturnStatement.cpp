@@ -21,13 +21,6 @@ namespace MFM {
   }
 
 
-  void NodeReturnStatement::countNavNodes(u32& cnt)
-  {
-    if(m_node)
-      m_node->countNavNodes(cnt);
-  }
-
-
   void NodeReturnStatement::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node
@@ -63,6 +56,18 @@ namespace MFM {
   }
 
 
+  const char * NodeReturnStatement::getName()
+  {
+    return "return";
+  }
+
+
+  const std::string NodeReturnStatement::prettyNodeName()
+  {
+    return nodeName(__PRETTY_FUNCTION__);
+  }
+
+
   UTI NodeReturnStatement::checkAndLabelType()
   {
     assert(m_node);
@@ -94,15 +99,10 @@ namespace MFM {
   } //checkAndLabelType
 
 
-  const char * NodeReturnStatement::getName()
+  void NodeReturnStatement::countNavNodes(u32& cnt)
   {
-    return "return";
-  }
-
-
-  const std::string NodeReturnStatement::prettyNodeName()
-  {
-    return nodeName(__PRETTY_FUNCTION__);
+    if(m_node)
+      m_node->countNavNodes(cnt);
   }
 
 

@@ -29,14 +29,6 @@ namespace MFM {
   }
 
 
-  UTI NodeContinueStatement::checkAndLabelType()
-  {
-    UTI nodeType = Nav;
-    setNodeType(nodeType);
-    return nodeType;
-  }
-
-
   const char * NodeContinueStatement::getName()
   {
     //return "continue";
@@ -50,6 +42,20 @@ namespace MFM {
   const std::string NodeContinueStatement::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+
+  UTI NodeContinueStatement::checkAndLabelType()
+  {
+    UTI nodeType = Nav;
+    setNodeType(nodeType);
+    return nodeType;
+  }
+
+
+  void NodeContinueStatement::countNavNodes(u32& cnt)
+  {
+    return;
   }
 
 
