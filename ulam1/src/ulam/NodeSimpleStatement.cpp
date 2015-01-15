@@ -20,12 +20,6 @@ namespace MFM {
   }
 
 
-  void NodeSimpleStatement::countNavNodes(u32& cnt)
-  {
-    m_node->countNavNodes(cnt);
-  }
-
-
   void NodeSimpleStatement::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node
@@ -58,6 +52,17 @@ namespace MFM {
   }
 
 
+  const char * NodeSimpleStatement::getName()
+  {
+    return "simple";  //?
+  }
+
+
+  const std::string NodeSimpleStatement::prettyNodeName()
+  {
+    return nodeName(__PRETTY_FUNCTION__);
+  }
+
 
   UTI NodeSimpleStatement::checkAndLabelType()
   {
@@ -71,15 +76,9 @@ namespace MFM {
   }
 
 
-  const char * NodeSimpleStatement::getName()
+  void NodeSimpleStatement::countNavNodes(u32& cnt)
   {
-    return "simple";  //?
-  }
-
-
-  const std::string NodeSimpleStatement::prettyNodeName()
-  {
-    return nodeName(__PRETTY_FUNCTION__);
+    m_node->countNavNodes(cnt);
   }
 
 

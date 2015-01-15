@@ -76,7 +76,6 @@ namespace MFM {
 
   void NodeBlock::countNavNodes(u32& cnt)
   {
-    // if(m_nextNode)
       m_nextNode->countNavNodes(cnt);
   }
 

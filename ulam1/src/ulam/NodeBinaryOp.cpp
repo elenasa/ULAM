@@ -23,13 +23,6 @@ namespace MFM {
   }
 
 
-  void NodeBinaryOp::countNavNodes(u32& cnt)
-  {
-    m_nodeLeft->countNavNodes(cnt);
-    m_nodeRight->countNavNodes(cnt);
-  }
-
-
   void NodeBinaryOp::print(File * fp)
   {
     printNodeLocation(fp);
@@ -108,6 +101,13 @@ namespace MFM {
 
     return newType;
   } //checkAndLabelType
+
+
+  void NodeBinaryOp::countNavNodes(u32& cnt)
+  {
+    m_nodeLeft->countNavNodes(cnt);
+    m_nodeRight->countNavNodes(cnt);
+  }
 
 
   EvalStatus NodeBinaryOp::eval()

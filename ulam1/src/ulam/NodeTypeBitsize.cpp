@@ -21,13 +21,6 @@ namespace MFM {
   }
 
 
-  void NodeTypeBitsize::countNavNodes(u32& cnt)
-  {
-    Node::countNavNodes(cnt);
-    m_node->countNavNodes(cnt);
-  }
-
-
   void NodeTypeBitsize::printPostfix(File * fp)
   {
     m_node->printPostfix(fp);
@@ -60,6 +53,13 @@ namespace MFM {
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
+
+
+  void NodeTypeBitsize::countNavNodes(u32& cnt)
+  {
+    Node::countNavNodes(cnt);
+    m_node->countNavNodes(cnt);
+  }
 
 
   EvalStatus NodeTypeBitsize::eval()

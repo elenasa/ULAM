@@ -20,12 +20,6 @@ namespace MFM {
   }
 
 
-  void NodeUnaryOp::countNavNodes(u32& cnt)
-  {
-    m_node->countNavNodes(cnt);
-  }
-
-
   void NodeUnaryOp::print(File * fp)
   {
     printNodeLocation(fp);
@@ -102,6 +96,12 @@ namespace MFM {
 
     return newType;
   } //checkAndLabelType
+
+
+  void NodeUnaryOp::countNavNodes(u32& cnt)
+  {
+    m_node->countNavNodes(cnt);
+  }
 
 
   EvalStatus NodeUnaryOp::eval()

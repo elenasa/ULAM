@@ -51,8 +51,6 @@ namespace MFM{
 
     virtual void updateLineage(Node * p);
 
-    virtual void countNavNodes(u32& cnt);
-
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
@@ -62,6 +60,8 @@ namespace MFM{
     virtual const std::string methodNameForCodeGen() = 0;
 
     virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 

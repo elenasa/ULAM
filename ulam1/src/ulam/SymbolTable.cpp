@@ -551,7 +551,7 @@ namespace MFM {
 
 	if(m_state.isComplete(suti))
 	  {
-	    s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS - total : MAXBITSPERQUARK - total);
+	    s32 remaining = (classtype == UC_ELEMENT ? (MAXSTATEBITS - total) : (MAXBITSPERQUARK - total));
 	    msg << total << "/" << remaining;
 	  }
 	else
@@ -610,7 +610,6 @@ namespace MFM {
 		else
 		  {
 		    s32 arraysize = m_state.getArraySize(sut);
-		    //arraysize = (arraysize > 0 ? arraysize : 1);
 		    m_state.setUTISizes(sut, symsize, arraysize);  //total bits including arrays
 		  }
 		//std::ostringstream msg;
@@ -660,7 +659,6 @@ namespace MFM {
 		else
 		  {
 		    s32 arraysize = m_state.getArraySize(sut);
-		    //arraysize = (arraysize > 0 ? arraysize : 1);
 		    m_state.setUTISizes(sut, symsize, arraysize);  //total bits including arrays
 		  }
 		//std::ostringstream msg;

@@ -51,8 +51,6 @@ namespace MFM{
 
     virtual void updateLineage(Node * p);
 
-    virtual void countNavNodes(u32& cnt);
-
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
@@ -60,6 +58,8 @@ namespace MFM{
     virtual void printOp(File * fp);
 
     virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
