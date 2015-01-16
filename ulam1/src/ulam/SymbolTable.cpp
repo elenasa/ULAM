@@ -962,7 +962,6 @@ namespace MFM {
   } //generateTestInstancesForTableOfClasses
 
 
-#if 0
   //not sure we use this; go back and forth between the files that are output
   // if just this class, then NodeProgram can start the ball rolling
   void SymbolTable::genCodeForTableOfClasses(FileManager * fm)
@@ -976,50 +975,14 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
 
-	//output header/body for THIS class only
-	//if(sym.getId() == m_state.m_compileThisId)
-	m_state.m_compileThisId == sym.getId();
-	{
-	  NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	  assert(classNode);
-
-	  m_state.m_classBlock = classNode;
-	  m_state.m_currentBlock = m_state.m_classBlock;
-
-	  ULAMCLASSTYPE uct = ((SymbolClass *) sym)->getUlamClass();
-	  if(uct == UC_ELEMENT)
-	    {
-	      //output both header and body in separate files
-	      File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
-	      assert(fp);
-
-	      classNode->genCode(fp, uvpass);
-	      delete fp;
-
-	      // output body for This Class only
-	      File * fpb = fm->fopen(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(),WRITE);
-	      assert(fpb);
-
-	      classNode->genCodeBody(fpb, uvpass);
-	      delete fpb;
-	    }
-	  else
-	    {
-	      // for quarks output template struct in .h
-	      assert(uct == UC_QUARK);
-	      File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
-	      assert(fp);
-
-	      classNode->genCodeBody(fp, uvpass);
-	      delete fp;
-	    }
-	}
+	//output header/body for this class next
+	m_state.m_compileThisId = sym->getId();
+	((SymbolClass *) sym)->generateCode(fm);
 	it++;
       } //while
 
     m_state.m_compileThisId = saveCompileThisId;  //restore
   }
-#endif
 
 
   u32 SymbolTable::getTableSize()

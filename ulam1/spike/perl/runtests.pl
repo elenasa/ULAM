@@ -91,7 +91,7 @@ sub main
 	    my $errlog = "/tmp/t" . $testnum . "-testerrlog.txt";
 
 	    # useful System Quark:
-	    `cp $TESTDIR/safe/t3207_test_compiler_quarksystem_inside_a_quark.cpp $TESTDIR/.`;
+	    #`cp $TESTDIR/safe/t3207_test_compiler_quarksystem_inside_a_quark.cpp $TESTDIR/.`;
 
 	    if($EXEC_TEST_VALGRIND)
 	    {
