@@ -40,7 +40,9 @@ namespace MFM {
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
   {
     bool overloaded = false;
+    // return types may differ, as long as params are different
     //assert(getUlamTypeIdx() == fsym->getUlamTypeIdx());
+#if 0
     if(UlamType::compare(getUlamTypeIdx(), fsym->getUlamTypeIdx(), m_state) != UTIC_SAME)
       {
 	std::ostringstream msg;
@@ -48,6 +50,7 @@ namespace MFM {
 	MSG("", msg.str().c_str(), ERR);
 	return false;
       }
+#endif
 
     //std::string mangled = fsym->getMangledNameWithTypes();
     std::string mangled = fsym->getMangledNameWithUTIparameters();
