@@ -44,9 +44,11 @@ namespace MFM{
   class NodeStatementEmpty : public Node
   {
   public:
-    
+
     NodeStatementEmpty(CompilerState & state);
     ~NodeStatementEmpty();
+
+    virtual void updateLineage(Node * p);
 
     virtual void print(File * fp);
 
@@ -62,9 +64,9 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);    
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-  protected:    
+  protected:
 
   };
 

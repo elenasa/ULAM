@@ -64,6 +64,7 @@ namespace MFM {
   UlamValue UlamValue::makeImmediate(UTI utype, u32 v, CompilerState& state)
   {
     s32 len = state.getBitSize(utype);
+    assert(len != UNKNOWNSIZE);
     return UlamValue::makeImmediate(utype, v, len);
   }
 
@@ -388,6 +389,8 @@ namespace MFM {
   {
     s32 len = state.getBitSize(getUlamValueTypeIdx());
 
+    assert(len != UNKNOWNSIZE);
+
     if(len == 0)
       return 0;
 
@@ -424,6 +427,7 @@ namespace MFM {
 	  {
 	    // array item that's loadable
 	    s32 len = p.getPtrLen();
+	    assert(len != UNKNOWNSIZE);
 
 	    if(len == ANYBITSIZECONSTANT)
 	      len = state.getDefaultBitSize(p.getPtrTargetType());
@@ -439,6 +443,7 @@ namespace MFM {
       {
 	assert(p.isTargetPacked() == PACKEDLOADABLE);
 	s32 len = p.getPtrLen();
+	assert(len != UNKNOWNSIZE);
 
 	if(len == ANYBITSIZECONSTANT)
 	  len = state.getDefaultBitSize(p.getPtrTargetType());

@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  UlamTypeUnsigned::UlamTypeUnsigned(const UlamKeyTypeSignature key, const UTI uti) : UlamType(key, uti)
+  UlamTypeUnsigned::UlamTypeUnsigned(const UlamKeyTypeSignature key) : UlamType(key)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -46,10 +46,11 @@ namespace MFM {
   }
 
 
-  bool UlamTypeUnsigned::cast(UlamValue & val, CompilerState& state)
+  bool UlamTypeUnsigned::cast(UlamValue & val, UTI typidx, CompilerState& state)
   {
     bool brtn = true;
-    UTI typidx = getUlamTypeIndex();
+    //UTI typidx = getUlamTypeIndex();
+    assert(state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != state.getArraySize(valtypidx))
@@ -63,6 +64,14 @@ namespace MFM {
     //change the size first of tobe, if necessary
     s32 bitsize = getBitSize();
     s32 valbitsize = state.getBitSize(valtypidx);
+
+    if(bitsize == UNKNOWNSIZE || valbitsize == UNKNOWNSIZE)
+      {
+	std::ostringstream msg;
+	msg << "Casting UNKNOWN sizes; " << bitsize << ", Value Type and size was: " << valtypidx << "," << valbitsize;
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	return false;
+      }
 
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     //ULAMTYPE typEnum = getUlamTypeEnum();

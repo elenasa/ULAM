@@ -88,6 +88,34 @@ namespace MFM {
   }
 
 
+  //supports overloading functions with SymbolFunctionName;
+  // join function name with comma-delimited UTI parameters
+  const std::string SymbolFunction::getMangledNameWithUTIparameters()
+  {
+    std::ostringstream mangled;
+    mangled << Symbol::getMangledName();  //e.g. Uf_14name, with lexNumbers
+
+    // use void type when no parameters
+    if(m_parameterSymbols.empty())
+      {
+	UlamType * vit = m_state.getUlamTypeByIndex(Void);
+	UTI avuti;
+	assert(m_state.aDefinedUTI(vit->getUlamKeyTypeSignature(), avuti));
+	mangled << "," << avuti;
+      }
+
+    // append UTI for each parameter
+    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == 0),
+    //        during this parse stage, the key remains consistent.
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+      {
+	Symbol * sym = m_parameterSymbols[i];
+	mangled << "," << sym->getUlamTypeIdx();
+      }
+    return mangled.str();
+  } //getMangledNameWithUTIparameters
+
+
   //supports overloading functions with SymbolFunctionName
   const std::string SymbolFunction::getMangledNameWithTypes()
   {
@@ -110,9 +138,8 @@ namespace MFM {
 	UlamType * sut = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx());
 	mangled << sut->getUlamTypeMangledName(&m_state).c_str();
       }
-
     return mangled.str();
-  }
+  } //getMangledNameWithTypes
 
 
   bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes)
@@ -132,20 +159,21 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	if( puti != argTypes[i])
+	//if( puti != argTypes[i])
+	if(UlamType::compare(puti, argTypes[i], m_state) == UTIC_NOTSAME)
 	  {
 	    //constants can match any bit size
 	    ULAMTYPE ptypEnum = m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum();
-	    if(argTypes[i] != m_state.getUlamTypeOfConstant(ptypEnum))
+	    //if(argTypes[i] != m_state.getUlamTypeOfConstant(ptypEnum))
+	    if(UlamType::compare(argTypes[i], m_state.getUlamTypeOfConstant(ptypEnum), m_state) == UTIC_NOTSAME)
 	      {
 		rtnBool = false;
 		break;
 	      }
 	  }
       }
-
     return rtnBool;
-  }
+  } //matchingTypes
 
 
   u32 SymbolFunction::isNativeFunctionDeclaration()
@@ -154,7 +182,7 @@ namespace MFM {
     assert(func);
 
     return (func->isNative() ? 1 : 0);
-  }
+  } //isNativeFunctionDeclaration
 
 
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)

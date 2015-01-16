@@ -47,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeInt(const UlamKeyTypeSignature key, const UTI uti);
+    UlamTypeInt(const UlamKeyTypeSignature key);
     virtual ~UlamTypeInt(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
@@ -68,7 +68,7 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual bool cast(UlamValue & val, CompilerState& state);
+    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
 
     virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
 

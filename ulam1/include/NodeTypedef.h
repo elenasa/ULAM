@@ -41,11 +41,11 @@
 #include "SymbolTypedef.h"
 
 namespace MFM{
-  
+
   class NodeTypedef : public Node
   {
   public:
-    
+
     NodeTypedef(SymbolTypedef * sym, CompilerState & state);
     ~NodeTypedef();
 

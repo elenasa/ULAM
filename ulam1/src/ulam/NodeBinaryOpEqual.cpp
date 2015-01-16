@@ -47,7 +47,7 @@ namespace MFM {
     newType = leftType;
 
     //cast RHS if necessary
-    if(newType != rightType)
+    if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
 	m_nodeRight = makeCastingNode(m_nodeRight, newType);
       }
@@ -56,7 +56,7 @@ namespace MFM {
 
     setStoreIntoAble(true);
     return newType;
-  }
+  } //checkAndLabelType
 
 
   UTI NodeBinaryOpEqual::calcNodeType(UTI lt, UTI rt)

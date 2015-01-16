@@ -46,7 +46,6 @@ namespace MFM {
     UlamType * lut = m_state.getUlamTypeByIndex(leftType);
     bool isCustomArray = lut->isCustomArray();
 
-    //if(m_state.isScalar(leftType))
     if(m_state.isScalar(leftType))
       {
 	if(!isCustomArray)
@@ -88,6 +87,13 @@ namespace MFM {
       }
     return newType;
   } //checkAndLabelType
+
+
+  void NodeSquareBracket::countNavNodes(u32& cnt)
+  {
+    m_nodeLeft->countNavNodes(cnt);
+    m_nodeRight->countNavNodes(cnt);
+  }
 
 
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
@@ -262,7 +268,7 @@ namespace MFM {
       return m_nodeLeft->installSymbolTypedef(atok, bitsize, newarraysize, asymptr);
 
     return false;  //error getting array size
-  }
+  } //installSymbolTypedef
 
 
   //see also NodeIdent
@@ -287,7 +293,7 @@ namespace MFM {
       return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, asymptr);
 
     return false;  //error getting array size
-  }
+  } //installSymbolVariable
 
 
   // eval() performed even before check and label!
@@ -307,7 +313,7 @@ namespace MFM {
 	evalNodeEpilog();
 
 	newarraysize = arrayUV.getImmediateData(m_state);
-	if(newarraysize == NONARRAYSIZE)
+	if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //== NONARRAYSIZE or UNKNOWNSIZE
 	  {
 	    MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
 	    return false;

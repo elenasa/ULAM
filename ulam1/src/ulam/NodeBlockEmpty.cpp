@@ -44,6 +44,12 @@ namespace MFM {
   }
 
 
+  void NodeBlockEmpty::countNavNodes(u32& cnt)
+  {
+    return;
+  }
+
+
   EvalStatus NodeBlockEmpty::eval()
   {
     return NORMAL;

@@ -69,7 +69,17 @@ namespace MFM {
 	//if(lt == rt && m_state.isConstant(lt))
 	if(m_state.isConstant(lt) && m_state.isConstant(rt))
 	  {
-	    if(lt == rt) return lt;
+	    //if(lt == rt) return lt;
+	    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(lt, rt, m_state);
+	    if(uticr == UTIC_DONTKNOW)
+	      {
+		std::ostringstream msg;
+		msg << "Calculating 'incomplete' arithmetic node types: " << m_state.getUlamTypeNameByIndex(lt).c_str() << " and " << m_state.getUlamTypeNameByIndex(rt).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		return Nav;
+	      }
+
+	    if(uticr == UTIC_SAME) return lt;
 	    return m_state.getUlamTypeOfConstant(Int);
 	  }
 

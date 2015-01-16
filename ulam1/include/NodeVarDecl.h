@@ -29,7 +29,7 @@
   \file NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 

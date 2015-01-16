@@ -40,6 +40,7 @@
 #include <string>
 #include <assert.h>
 #include "itype.h"
+#include "Constants.h"
 #include "File.h"
 #include "UlamKeyTypeSignature.h"
 
@@ -57,9 +58,6 @@ namespace MFM{
 
   struct UlamValue; //forward
 
-
-#define UTI u16
-
   class CompilerState; //forward
 
   enum ULAMCLASSTYPE { UC_INCOMPLETE, UC_QUARK, UC_ELEMENT, UC_NOTACLASS, UC_ATOM };
@@ -68,7 +66,7 @@ namespace MFM{
   class UlamType
   {
   public:
-    UlamType(const UlamKeyTypeSignature key, const UTI uti);
+    UlamType(const UlamKeyTypeSignature key);
     virtual ~UlamType(){}
 
     /** returns a pointer to UlamType */
@@ -80,11 +78,11 @@ namespace MFM{
 
     virtual const std::string getUlamTypeNameOnly(CompilerState * state);
 
-    UTI getUlamTypeIndex();
+    //    UTI getUlamTypeIndex();
 
     UlamKeyTypeSignature getUlamKeyTypeSignature();
 
-    virtual bool cast(UlamValue& val, CompilerState& state);
+    virtual bool cast(UlamValue& val, UTI typidx, CompilerState& state);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 
@@ -142,6 +140,10 @@ namespace MFM{
 
     u32 getTotalBitSize();  //bitsize * arraysize, accounting for constants and scalars
 
+    bool isComplete();  //neither bitsize nor arraysize is "unknown"
+
+    static ULAMTYPECOMPARERESULTS compare(UTI u1, UTI u2, CompilerState& state);
+
     /** Number of bits (rounded up to nearest 32 bits) required to
     hold the total bit size  */
     u32 getTotalWordSize();
@@ -174,7 +176,7 @@ namespace MFM{
 
   protected:
     UlamKeyTypeSignature m_key;
-    UTI m_uti;
+    //    UTI m_uti;
     u32 m_wordLengthTotal;
     u32 m_wordLengthItem;
     u32 m_max;

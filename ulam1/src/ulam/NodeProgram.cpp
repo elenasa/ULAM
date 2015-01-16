@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <map>
-
 #include "NodeProgram.h"
 #include "CompilerState.h"
 
@@ -38,6 +37,13 @@ namespace MFM {
   NodeProgram::~NodeProgram()
   {
     //m_root deletion handled by m_programDefST;
+  }
+
+
+  void NodeProgram::updateLineage(Node * p)
+  {
+    setYourParent(p);             //god is null
+    m_root->updateLineage(this);  //walk the tree..
   }
 
 
@@ -92,14 +98,18 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+
 #define MAX_ITERATIONS 10
   UTI NodeProgram::checkAndLabelType()
   {
     assert(m_root);
     m_state.m_err.clearCounts();
 
-    // needed before square bracket nodes do their checkandlabelling
-    //m_state.m_programDefST.initializeCustomArraysForTableOfClasses();
+    m_root->updateLineage(this);
+
+    // type set at parse time (needed for square bracket checkandlabel);
+    // so, here we just check for matching arg types.
+    m_state.m_programDefST.checkCustomArraysForTableOfClasses();
 
     // label all the class; sets "current" m_currentClassSymbol in CS
     m_state.m_programDefST.labelTableOfClasses();
@@ -113,19 +123,50 @@ namespace MFM {
 	    if(++infcounter > MAX_ITERATIONS)
 	      {
 		std::ostringstream msg;
-		msg << "Possible empty class found during type labeling, of class <";
+		msg << "Possible INCOMPLETE class detected during type labeling class <";
 		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-		msg << ">, proceed with caution.";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
-
+		msg << ">, after " << infcounter << " iterations";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		break;
 	      }
 	  }
+
+	u32 statcounter = 0;
+	while(!m_state.statusUnknownBitsizeUTI())
+	  {
+	    if(++statcounter > MAX_ITERATIONS)
+	      {
+		std::ostringstream msg;
+		msg << "Before bit packing, UNKNOWN types remain in class <";
+		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+		msg << ">, after " << statcounter << " iterations";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		break;
+	      }
+	  }
+
+	statcounter = 0;
+	while(!m_state.statusUnknownArraysizeUTI())
+	  {
+	    if(++statcounter > MAX_ITERATIONS)
+	      {
+		std::ostringstream msg;
+		msg << "Before bit packing, types with UNKNOWN arraysizes remain in class <";
+		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+		msg << ">, after " << statcounter << " iterations";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		break;
+	      }
+	  }
+
+	// count Nodes with illegal Nav types; walk each class' data members and funcdefs.
+	m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
+
 	// must happen after type labeling and before code gen; separate pass.
 	m_state.m_programDefST.packBitsForTableOfClasses();
 
-	// let Ulam programmer know the bits used/available
-	//m_state.m_programDefST.printBitSizeOfTableOfClasses();
+	// let Ulam programmer know the bits used/available (needs infoOn)
+	m_state.m_programDefST.printBitSizeOfTableOfClasses();
       }
 
     UTI rtnType =  m_root->getNodeType();
@@ -152,6 +193,14 @@ namespace MFM {
       }
 
     return rtnType;
+  } //checkAndLabelType
+
+
+  //performed across classes starting at NodeBlockClass
+  void NodeProgram::countNavNodes(u32& cnt)
+  {
+    assert(0);
+    return;
   }
 
 
@@ -193,91 +242,90 @@ namespace MFM {
 
     evalNodeEpilog();
     return evs;
-  }
+  } //eval
 
 
   void NodeProgram::generateCode(FileManager * fm)
+  {
+    assert(m_root);
+    m_state.m_err.clearCounts();
+
+    m_state.m_classBlock = m_root;  //reset to compileThis' class block
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    // mangled types and forward class declarations
+    genMangledTypesHeaderFile(fm);
+
+    // this class header
     {
-      assert(m_root);
-      m_state.m_err.clearCounts();
+      File * fp = fm->open(m_state.getFileNameForThisClassHeader(WSUBDIR).c_str(), WRITE);
+      assert(fp);
 
-      m_state.m_classBlock = m_root;  //reset to compileThis' class block
-      m_state.m_currentBlock = m_state.m_classBlock;
+      generateHeaderPreamble(fp);
+      genAllCapsIfndefForHeaderFile(fp);
+      generateHeaderIncludes(fp);
 
-      // mangled types and forward class declarations
-      genMangledTypesHeaderFile(fm);
+      UlamValue uvpass;
+      m_root->genCode(fp, uvpass);      //compileThisId only, class block
 
-      // this class header
-      {
-	File * fp = fm->open(m_state.getFileNameForThisClassHeader(WSUBDIR).c_str(), WRITE);
-	assert(fp);
+      // include this .tcc
+      m_state.indent(fp);
+      fp->write("#include \"");
+      fp->write(m_state.getFileNameForThisClassBody().c_str());
+      fp->write("\"\n\n");
 
-	generateHeaderPreamble(fp);
-	genAllCapsIfndefForHeaderFile(fp);
-	generateHeaderIncludes(fp);
-
-	UlamValue uvpass;
-	m_root->genCode(fp, uvpass);      //compileThisId only, class block
-
-	// include this .tcc
-	m_state.indent(fp);
-	fp->write("#include \"");
-	fp->write(m_state.getFileNameForThisClassBody().c_str());
-	fp->write("\"\n\n");
-
-	// include native .tcc for this class if any declared
-	if(m_root->countNativeFuncDecls() > 0)
-	  {
-	    m_state.indent(fp);
-	    fp->write("#include \"");
-	    fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
-	    fp->write("\"\n\n");
-	  }
-
-	genAllCapsEndifForHeaderFile(fp);
-
-	delete fp;
-      }
-
-      // this class body
-      {
-	File * fp = fm->open(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(), WRITE);
-	assert(fp);
-
-	m_state.m_currentIndentLevel = 0;
-	fp->write(CModeForHeaderFiles);  //needed for .tcc files too
-
-	UlamValue uvpass;
-	m_root->genCodeBody(fp, uvpass);  //compileThisId only, MFM namespace
-
-	delete fp;
-      }
-
-      // "stub" .cpp includes .h (unlike the .tcc body)
-      {
-	File * fp = fm->open(m_state.getFileNameForThisClassCPP(WSUBDIR).c_str(), WRITE);
-	assert(fp);
-
-	m_state.m_currentIndentLevel = 0;
-
-	// include .h in the .cpp
-	m_state.indent(fp);
-	fp->write("#include \"");
-	fp->write(m_state.getFileNameForThisClassHeader().c_str());
-	fp->write("\"\n");
-	fp->write("\n");
-
-	delete fp;
-      }
-
-      //separate main.cpp for elements only; that have the test method.
-      if(m_state.getUlamTypeByIndex(m_root->getNodeType())->getUlamClass() == UC_ELEMENT)
+      // include native .tcc for this class if any declared
+      if(m_root->countNativeFuncDecls() > 0)
 	{
-	  if(m_state.thisClassHasTheTestMethod())
-	    generateMain(fm);
+	  m_state.indent(fp);
+	  fp->write("#include \"");
+	  fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
+	  fp->write("\"\n\n");
 	}
 
-    }  //generateCode
+      genAllCapsEndifForHeaderFile(fp);
+
+      delete fp; //close
+    }
+
+    // this class body
+    {
+      File * fp = fm->open(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(), WRITE);
+      assert(fp);
+
+      m_state.m_currentIndentLevel = 0;
+      fp->write(CModeForHeaderFiles);  //needed for .tcc files too
+
+      UlamValue uvpass;
+      m_root->genCodeBody(fp, uvpass);  //compileThisId only, MFM namespace
+
+      delete fp;  //close
+    }
+
+    // "stub" .cpp includes .h (unlike the .tcc body)
+    {
+      File * fp = fm->open(m_state.getFileNameForThisClassCPP(WSUBDIR).c_str(), WRITE);
+      assert(fp);
+
+      m_state.m_currentIndentLevel = 0;
+
+      // include .h in the .cpp
+      m_state.indent(fp);
+      fp->write("#include \"");
+      fp->write(m_state.getFileNameForThisClassHeader().c_str());
+      fp->write("\"\n");
+      fp->write("\n");
+
+      delete fp; //close
+    }
+
+    //separate main.cpp for elements only; that have the test method.
+    if(m_state.getUlamTypeByIndex(m_root->getNodeType())->getUlamClass() == UC_ELEMENT)
+      {
+	if(m_state.thisClassHasTheTestMethod())
+	  generateMain(fm);
+      }
+  } //generateCode
 
 
   void NodeProgram::generateHeaderPreamble(File * fp)
@@ -300,7 +348,7 @@ namespace MFM {
     fp->write(" header for ULAM\n");
 
     fp->write(CopyrightAndLicenseForUlamHeader);
-  }
+  } //generateHeaderPreamble
 
 
   void NodeProgram::genAllCapsIfndefForHeaderFile(File * fp)
@@ -315,13 +363,12 @@ namespace MFM {
     fp->write("#define ");
     fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n\n");
-  }
+  } //genAllCapsIfndefForHeaderFile
 
 
   void NodeProgram::genAllCapsEndifForHeaderFile(File * fp)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(m_root->getNodeType());
-    //m_state.indent(fp);
     fp->write("#endif //");
     fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
     fp->write("_H\n");
@@ -331,13 +378,6 @@ namespace MFM {
   void NodeProgram::generateHeaderIncludes(File * fp)
   {
     m_state.indent(fp);
-#if 0
-    // moved to _types.h
-    //use -I ../../../include in g++ command
-    fp->write("//#include \"itype.h\"\n");
-    fp->write("//#include \"BitVector.h\"\n");
-    fp->write("//#include \"BitField.h\"\n");
-#endif
     fp->write("#include \"UlamDefs.h\"\n\n");
 
     //using the _Types.h file
@@ -376,19 +416,20 @@ namespace MFM {
     // do primitive types before classes so that immediate
     // Quarks/Elements can use them (e.g. immediate index for aref)
 
-    u32 numTypes = m_state.m_indexToUlamType.size();
-    //skip Navs (0)
-    for(u32 i = 1; i < numTypes; i++)
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
+    while(it != m_state.m_definedUlamTypes.end())
       {
-	UlamType * ut = m_state.getUlamTypeByIndex(i);
+	UlamType * ut = it->second;
 	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)   //e.g. skip constants, incl atom
 	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	it++;
       }
 
     //same except now for user defined Class types
-    for(u32 i = 1; i < numTypes; i++)
+    it = m_state.m_definedUlamTypes.begin();
+    while(it != m_state.m_definedUlamTypes.end())
       {
-	UlamType * ut = m_state.getUlamTypeByIndex(i);
+	UlamType * ut = it->second;
 	ULAMCLASSTYPE classtype = ut->getUlamClass();
 	if(ut->needsImmediateType() && classtype != UC_NOTACLASS)
 	  {
@@ -396,8 +437,9 @@ namespace MFM {
 	    if(classtype == UC_QUARK)
 	      ut->genUlamTypeMangledAutoDefinitionForC(fp, &m_state);
 	  }
+	it++;
       }
-    delete fp;
+    delete fp; //close
   } //genMangledTypeHeaderFile
 
 
@@ -413,57 +455,8 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include <stdio.h>\n\n");
 
-
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");
-
-#if 0
-    m_state.indent(fp);
-    fp->write("#include \"Atom.h\"\n\n");
-
-    m_state.indent(fp);
-    fp->write("//CoreConfig.h\n");
-    m_state.indent(fp);
-    fp->write("template <class A, class P>\n");
-    m_state.indent(fp);
-    fp->write("struct CoreConfig\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("typedef A ATOM_TYPE;\n");
-    m_state.indent(fp);
-    fp->write("typedef A PARAM_CONFIG;\n");
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("};\n\n");
-
-    m_state.indent(fp);
-    fp->write("//ParamConfig.h\n");
-    m_state.indent(fp);
-    fp->write("template <u32 BPA>\n");
-    m_state.indent(fp);
-    fp->write("struct ParamConfig\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("enum { BITS_PER_ATOM = BPA };\n");
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("};\n\n");
-
-
-    m_state.indent(fp);
-    fp->write("//P3Atom.h\n");
-    m_state.indent(fp);
-    fp->write("template <class PC>\n");
-    m_state.indent(fp);
-    fp->write("struct P3Atom : Atom<CoreConfig <P3Atom<PC>, PC> > {\n");
-    m_state.indent(fp);
-    fp->write("};\n");
-    fp->write("\n");
-#endif
 
     m_state.indent(fp);
     fp->write("//includes Element.h\n");
@@ -537,8 +530,8 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("}\n");
-    delete fp;
-  }
+    delete fp; //close
+  } //generateMain
 
 
 

@@ -14,6 +14,14 @@ namespace MFM {
   }
 
 
+  void NodeControlIf::updateLineage(Node * p)
+  {
+    NodeControl::updateLineage(p);
+    if(m_nodeElse)
+      m_nodeElse->updateLineage(this);
+  }
+
+
   void NodeControlIf::print(File * fp)
   {
     NodeControl::print(fp);
@@ -64,6 +72,14 @@ namespace MFM {
       }
 
     return getNodeType();  //Bool
+  } //checkAndLabelType
+
+
+  void NodeControlIf::countNavNodes(u32& cnt)
+  {
+    if(m_nodeElse)
+      m_nodeElse->countNavNodes(cnt);
+    NodeControl::countNavNodes(cnt);
   }
 
 

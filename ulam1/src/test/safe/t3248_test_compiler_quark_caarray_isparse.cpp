@@ -13,6 +13,10 @@ namespace MFM {
     {
       bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aset(Int index, Atom val) native;\n}\n");
 
+      // playing with errors..
+      //bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aset(Int index, Int val) native;\n}\n");
+      //bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aSet(Int index, Atom val) native;\n}\n");
+
       if(rtn2)
 	return std::string("EventWindow.ulam");
 

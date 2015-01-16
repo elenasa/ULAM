@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual void countNavNodes(u32& cnt);
+
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);

@@ -47,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeVoid(const UlamKeyTypeSignature key, const UTI uti);
+    UlamTypeVoid(const UlamKeyTypeSignature key);
     virtual ~UlamTypeVoid(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
@@ -68,7 +68,7 @@ namespace MFM{
 
     virtual bool isMinMaxAllowed();
 
-    virtual bool cast(UlamValue & val, CompilerState& state);
+    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
 
   private:
 

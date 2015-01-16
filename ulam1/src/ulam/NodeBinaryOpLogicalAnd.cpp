@@ -22,12 +22,12 @@ namespace MFM {
 
   const std::string NodeBinaryOpLogicalAnd::methodNameForCodeGen()
   {
-    std::ostringstream methodname;
-    methodname << "_BinOpLogicalAnd" << NodeBinaryOpLogical::methodNameForCodeGen();
-    return methodname.str();
+    assert(0);
+    return "notapplicable_logicalAnd";
   } //methodNameForCodeGen
 
 
+  //overrides parent due to short-circuiting requirement
   EvalStatus NodeBinaryOpLogicalAnd::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -76,63 +76,14 @@ namespace MFM {
   UlamValue NodeBinaryOpLogicalAnd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;
-
-#if 0
-    UTI nuti = getNodeType(); //Bool
-    u32 nodelen = m_state.getBitSize(nuti);
-
-    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum(); // left/right node type
-    switch(typEnum)
-      {
-      case Int:
-	rtnUV = UlamValue::makeImmediate(nuti, _BinOpLogicalAndInt32(ldata, rdata, len), nodelen);
-	break;
-      case Unsigned:
-	rtnUV = UlamValue::makeImmediate(nuti, _BinOpLogicalAndUnsigned32(ldata, rdata, len), nodelen);
-	break;
-      case Bool:
-	rtnUV = UlamValue::makeImmediate(nuti, _BinOpLogicalAndBool32(ldata, rdata, len), nodelen);
-	break;
-      case Unary:
-	rtnUV = UlamValue::makeImmediate(nuti, _BinOpLogicalAndUnary32(ldata, rdata, len), nodelen);
-	break;
-      case Bits:
-      default:
-	assert(0);
-	break;
-      };
-#endif
-    assert(0);
+    assert(0);  // overridden by eval
     return rtnUV;
   } //makeImmediateBinaryOp
 
 
   void NodeBinaryOpLogicalAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
-    assert(0); //not implemented yet!
-#if 0
-    UTI type = refUV.getUlamValueTypeIdx();
-    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
-    switch(typEnum)
-      {
-      case Int:
-	refUV.putData(pos, len, _BinOpLogicalAndInt32(ldata, rdata, len));
-	break;
-      case Unsigned:
-	refUV.putData(pos, len, _BinOpLogicalAndUnsigned32(ldata, rdata, len));
-	break;
-      case Bool:
-	refUV.putData(pos, len, _BinOpLogicalAndBool32(ldata, rdata, len));
-	break;
-      case Unary:
-	refUV.putData(pos, len, _BinOpLogicalAndUnary32(ldata, rdata, len));
-	break;
-      case Bits:
-      default:
-	assert(0);
-	break;
-      };
-#endif
+    assert(0); //not implemented for arrays
     return;
   }
 

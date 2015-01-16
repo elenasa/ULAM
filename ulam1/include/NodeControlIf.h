@@ -44,15 +44,19 @@ namespace MFM{
   class NodeControlIf : public NodeControl
   {
   public:
-    
+
     NodeControlIf(Node * condNode, Node * trueNode, Node * falseNode, CompilerState & state);
     ~NodeControlIf();
+
+    virtual void updateLineage(Node * p);
 
     virtual void printPostfix(File * fp);
 
     virtual void print(File * fp);
 
     virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
@@ -63,7 +67,7 @@ namespace MFM{
     virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
-    
+
     Node * m_nodeElse;
 
   };

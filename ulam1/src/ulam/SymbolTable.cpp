@@ -16,7 +16,6 @@ namespace MFM {
       {
 	delete m_idToSymbolPtr[i];
       }
-
     m_idToSymbolPtr.clear();
   }
 
@@ -27,13 +26,12 @@ namespace MFM {
     if(it != m_idToSymbolPtr.end())
       {
 	symptrref = it->second;
-	assert( symptrref->getId() == id);  //overkill?
-
+	assert( symptrref->getId() == id);
 	return true;
       }
-
     return false;
-  }
+  } //isInTable
+
 
   void SymbolTable::addToTable(u32 id, Symbol* sptr)
   {
@@ -48,9 +46,8 @@ namespace MFM {
       {
 	return it->second;
       }
-
     return NULL;  //impossible!!
-  }
+  } //getSymbolPtr
 
 
   s32 SymbolTable::findPosOfUlamTypeInTable(UTI utype)
@@ -168,7 +165,6 @@ namespace MFM {
   } //genCodeBuiltInFunctionsOverTableOfVariableDataMember
 
 
-
   // storage for class members persists, so we give up preserving
   // order of declaration that the NodeVarDecl in the parseTree
   // provides, in order to distinguish between an instance's data
@@ -187,7 +183,24 @@ namespace MFM {
 	}
 	it++;
       }
-  }
+  } //printPostfixValuesForTableOfVariableDataMembers
+
+
+  // convert UTI to mangled strings to insure overload uniqueness
+  void SymbolTable::checkTableOfFunctions()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isFunction())
+	  {
+	    ((SymbolFunctionName *) sym)->checkFunctionNames();
+	  }
+	it++;
+      }
+  } //checkTableOfFunctions
 
 
   void SymbolTable::labelTableOfFunctions()
@@ -206,7 +219,23 @@ namespace MFM {
   } //labelTableOfFunctions
 
 
-  void SymbolTable::initializeCustomArraysForTableOfClasses()
+  void SymbolTable::countNavNodesAcrossTableOfFunctions()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isFunction())
+	  {
+	    ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs();
+	  }
+	it++;
+      }
+  } //countNavNodesAcrossTableOfFunctions
+
+
+  void SymbolTable::checkCustomArraysForTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
@@ -217,34 +246,89 @@ namespace MFM {
 
 	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
 
-	classNode->checkForAndInitializeCustomArrayType();
+	// custom array flag set at parse time
+	UTI cuti = classNode->getNodeType();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	if(((UlamTypeClass *) cut)->isCustomArray())
+	  {
+	    m_state.m_classBlock = classNode;
+	    m_state.m_currentBlock = m_state.m_classBlock;
+	    classNode->checkCustomArrayTypeFunctions();
+	  }
 	it++;
       }
-  } //initializeCustomArraysForTableOfClasses()
+  } //checkCustomArraysForTableOfClasses()
 
 
-  //called by current Class block on function ST
-  bool SymbolTable::checkForAndInitializeClassCustomArrayType()
+  //called by current Class block on its function ST
+  bool SymbolTable::checkCustomArrayTypeFuncs()
   {
     bool rtnBool = false;
     Symbol * fnsym = NULL;
     if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsym))
       {
-	// though not necessarily a native function..tis prudent to remember
-	// (SymbolFunction *) fnsym->isNativeFunctionDeclaration()
-	// failed because we were one layer removed from the SymbolFunction.
-	//assert(((SymbolFunctionName *) fnsym)->countNativeFuncDecls() > 0);
+	// not necessarily a native function..tis prudent to remember
 	UTI futi = fnsym->getUlamTypeIdx();
 	assert(futi != Void);
+
 	// set class type to custom array; the current class block
-	// node type was set to its class symbol type after checkAndLabelType
+	// node type was set to its class symbol type at start of parsing it.
 	UTI cuti = m_state.m_classBlock->getNodeType();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	((UlamTypeClass *) cut)->setCustomArrayType(futi);
+	assert(((UlamTypeClass *) cut)->isCustomArray());
 	rtnBool = true;
+
+	{
+	  std::ostringstream msg;
+	  msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+	  MSG("", msg.str().c_str(), DEBUG);
+	}
+
+	// check that its 'set' function has a matching parameter type
+	fnsym = NULL;
+	if(isInTable(m_state.getCustomArraySetFunctionNameId(), fnsym))
+	  {
+	    SymbolFunction * funcSymbol = NULL;
+	    std::vector<UTI> argTypes;
+	    argTypes.push_back(Int);
+	    argTypes.push_back(futi);
+	    if(!((SymbolFunctionName *) fnsym)->findMatchingFunction(argTypes, funcSymbol))
+	      {
+		std::ostringstream msg;
+		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(fnsym->getId()).c_str() << "' does not match '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' argument types: ";
+		for(u32 i = 0; i < argTypes.size(); i++)
+		  {
+		    msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
+		  }
+		msg << "and cannot be called in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+		MSG("", msg.str().c_str(), ERR);
+		rtnBool = false;
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+		MSG("", msg.str().c_str(), DEBUG);
+	      }
+	    argTypes.clear();
+	  }//set found
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+	    MSG("", msg.str().c_str(), WARN);
+	  }
+      } //get found
+    else
+      {
+	UTI cuti = m_state.m_classBlock->getNodeType();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+	std::ostringstream msg;
+	msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+	MSG("", msg.str().c_str(), DEBUG);
+	rtnBool = false;
       }
     return rtnBool;
   } //checkForAndInitializeClassCustomArrayType
@@ -263,7 +347,7 @@ namespace MFM {
 	it++;
       }
     return nativeCount;
-  }
+  } //countNativeFuncDeclsForTableOfFunctions
 
 
   void SymbolTable::genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -279,7 +363,7 @@ namespace MFM {
 	  }
 	it++;
       }
-  }
+  } //genCodeForTableOfFunctions
 
 
   void SymbolTable::labelTableOfClasses()
@@ -314,9 +398,41 @@ namespace MFM {
   } //labelTableOfClasses
 
 
+  void SymbolTable::countNavNodesAcrossTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	{
+	  NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	  assert(classNode);
+	  m_state.m_classBlock = classNode;
+	  m_state.m_currentBlock = m_state.m_classBlock;
+	  u32 datamembercnt = 0;
+	  classNode->countNavNodes(datamembercnt);
+	  if(datamembercnt > 0)
+	    {
+	      std::ostringstream msg;
+	      msg << datamembercnt << " data member nodes with illegal 'Nav' types remain in class <";
+	      msg << m_state.m_pool.getDataAsString(sym->getId());
+	      msg << ">";
+	      MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    }
+	}
+	it++;
+      }
+  } //countNavNodesAcrossTableOfClasses
+
+
   // separate pass...after labeling all classes is completed;
+  // purpose is to set the size of all the classes, by totalling the size
+  // of their data members; returns true if all class sizes complete.
   bool SymbolTable::setBitSizeOfTableOfClasses()
   {
+    std::vector<UTI> lostClasses;
     bool aok = true;
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -333,43 +449,81 @@ namespace MFM {
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false;  //moved here;
 	  }
-
-	//else
+#if 1
+	//of course they always aren't! but we know to keep looping..
+	UTI suti = sym->getUlamTypeIdx();
+	if(! m_state.isComplete(suti))
 	  {
-	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	    assert(classNode);
-	    //if(!classNode) continue; //infinite loop "Incomplete Class <> was never defined, fails sizing"
-
-	    m_state.m_classBlock = classNode;
-	    m_state.m_currentBlock = m_state.m_classBlock;
-
-	    s32 totalbits = 0;
-	    if(((SymbolClass *) sym)->isQuarkUnion())
-	      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
-	    else
-	      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
-#if 0
-	    //disabled 11082014
-	    if(totalbits == 0)
-	      {
-		std::ostringstream msg;
-		msg << "< zero bit size symbol!! " << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << "(" << totalbits << ")";
-		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
-		aok = false;
-	      }
-	    else
-#endif
-	      {
-		UTI sut = sym->getUlamTypeIdx();
-		m_state.setBitSize(sut, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
-
-		//std::ostringstream msg;
-		//msg << "symbol size is aok (=" << totalbits << ", total= " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
-	      }
+	    std::ostringstream msg;
+	    msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test";
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	    aok = false;  //moved here;
 	  }
+#endif
+	// try..
+
+	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	assert(classNode);
+	//if(!classNode) continue; //infinite loop "Incomplete Class <> was never defined, fails sizing"
+
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+
+	s32 totalbits = 0;
+	if(((SymbolClass *) sym)->isQuarkUnion())
+	  totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
+	else
+	  totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
+
+	  //check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
+	if(totalbits == CYCLEFLAG)  // was < 0
+	  {
+	    std::ostringstream msg;
+	    msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	    aok = false;
+	  }
+	else if(totalbits == EMPTYSYMBOLTABLE)
+	  {
+	    totalbits = 0;
+	    aok = true;
+	  }
+	else if(totalbits != UNKNOWNSIZE)
+	  aok = true;  //not UNKNOWN
+
+	//track classes that fail to be sized.
+	if(aok)
+	  {
+	    m_state.setBitSize(suti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	  }
+	else
+	  lostClasses.push_back(suti);
+
+	aok = true; //reset for next class
 	it++;
+      } //next class
+
+    aok = lostClasses.empty();
+
+    if(!aok)
+      {
+	std::ostringstream msg;
+	msg << lostClasses.size() << " Classes without sizes";
+	while(!lostClasses.empty())
+	  {
+	    UTI cuti = lostClasses.back();
+	    msg << ", " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    lostClasses.pop_back();
+	  }
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
       }
+    else
+      {
+	std::ostringstream msg;
+	msg << m_idToSymbolPtr.size() << " Class" <<( m_idToSymbolPtr.size() > 1 ? "es ALL " : " ") << "sized SUCCESSFULLY";
+	MSG("", msg.str().c_str(),INFO);
+      }
+    lostClasses.clear();
     return aok;
   } //setBitSizeOfTableOfClasses
 
@@ -391,16 +545,27 @@ namespace MFM {
 	u32 total = m_state.getTotalBitSize(suti);
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE classtype = sut->getUlamClass();
-	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS - total : MAXBITSPERQUARK - total);
 
 	std::ostringstream msg;
-	msg << "TotalSize of " << (classtype == UC_ELEMENT ? "element <" : "quark   <") << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ">:\t" << total << "\t(" << remaining << " bits available).";
-	//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),INFO);
-	std::cerr << msg.str().c_str() << std::endl;
+	msg << "Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ">: ";
+
+	if(m_state.isComplete(suti))
+	  {
+	    s32 remaining = (classtype == UC_ELEMENT ? (MAXSTATEBITS - total) : (MAXBITSPERQUARK - total));
+	    msg << total << "/" << remaining;
+	  }
+	else
+	  {
+	    total = UNKNOWNSIZE;
+	    s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS : MAXBITSPERQUARK);
+	    msg << "UNKNOWN" << "/" << remaining;
+	  }
+	MSG("", msg.str().c_str(),INFO);
+	//std::cerr << msg.str().c_str() << std::endl;
 
 	it++;
       }
-  }
+  } //printBitSizeOfTableOfClasses
 
 
   s32 SymbolTable::getTotalVariableSymbolsBitSize()
@@ -422,7 +587,7 @@ namespace MFM {
 	    if(symsize == CYCLEFLAG)  // was < 0
 	      {
 		std::ostringstream msg;
-		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+		msg << "cycle error!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
 		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	      }
 	    else if(symsize == EMPTYSYMBOLTABLE)
@@ -430,14 +595,29 @@ namespace MFM {
 		symsize = 0;
 		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
 	      }
+	    else if(symsize <= UNKNOWNSIZE)
+	      {
+		std::ostringstream msg;
+		msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+		totalsizes = UNKNOWNSIZE;
+		break;
+	      }
 	    else
 	      {
-		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+		if(m_state.isScalar(sut))
+		  m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+		else
+		  {
+		    s32 arraysize = m_state.getArraySize(sut);
+		    m_state.setUTISizes(sut, symsize, arraysize);  //total bits including arrays
+		  }
 		//std::ostringstream msg;
 		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
 		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	      }
-	    totalsizes += m_state.getTotalBitSize(sut);
+
+	    totalsizes += m_state.getTotalBitSize(sut); //covers up any unknown sizes BAD
 	  }
 	it++;
       }
@@ -464,7 +644,7 @@ namespace MFM {
 	    if(symsize == CYCLEFLAG)  // was < 0
 	      {
 		std::ostringstream msg;
-		msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+		msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
 		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	      }
 	    else if(symsize == EMPTYSYMBOLTABLE)
@@ -474,7 +654,13 @@ namespace MFM {
 	      }
 	    else
 	      {
-		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+		if(m_state.isScalar(sut))
+		  m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
+		else
+		  {
+		    s32 arraysize = m_state.getArraySize(sut);
+		    m_state.setUTISizes(sut, symsize, arraysize);  //total bits including arrays
+		  }
 		//std::ostringstream msg;
 		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
 		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
@@ -491,18 +677,24 @@ namespace MFM {
 
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
-    s32 totbitsize = CYCLEFLAG;
+    if(!m_state.isComplete(argut))
+       m_state.constantFoldIncompleteUTI(argut);
+
+    s32 totbitsize = m_state.getBitSize(argut);
+
     if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS) //includes Atom type
       {
-	totbitsize = m_state.getBitSize(argut);
-	assert(totbitsize >= 0);
+	//if(m_state.isComplete(argut))
+	//  {
+	//    totbitsize *= (m_state.isScalar(argut) ? 1 : m_state.getArraySize(argut));
+	//  }
 	return totbitsize;
       }
 
-    //not a primitive
+    //not a primitive (class), array
     if(m_state.getArraySize(argut) > 0)
       {
-	if((totbitsize = m_state.getBitSize(argut)) > 0)
+	if(totbitsize >= 0)
 	  {
 	    return totbitsize;
 	  }
@@ -515,10 +707,13 @@ namespace MFM {
 	  {
 	    return 0;  //empty, ok
 	  }
-	else // totbitsize == 0
+	else // totbitsize == UNKNOWNSIZE (was thought to be 0)
 	  {
+	    assert(totbitsize <= UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE);
+
 	    m_state.setBitSize(argut, CYCLEFLAG);  //before the recusive call..
-	    //get base type
+
+	    //get base type, scalar type of class
 	    SymbolClass * csym = NULL;
 	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
 	    if(m_state.alreadyDefinedSymbolClass(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
@@ -528,9 +723,9 @@ namespace MFM {
 	      }
 	  }
       }
-    else  // not primitive type, not array
+    else  // not primitive type (class), and not array (scalar)
       {
-	if((totbitsize = m_state.getBitSize(argut)) > 0)
+	if(totbitsize >= 0)
 	  {
 	    return totbitsize;
 	  }
@@ -543,17 +738,19 @@ namespace MFM {
 	  {
 	    return 0;  //empty, ok
 	  }
-	else //totbitsize == 0
+	else //totbitsize == UNKNOWNSIZE
 	  {
+	    assert(totbitsize == UNKNOWNSIZE);
+
 	    //get base type
 	    SymbolClass * csym = NULL;
 	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
 	    if(m_state.alreadyDefinedSymbolClass(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
 	      {
-		UTI cut = csym->getUlamTypeIdx();
+		UTI cuti = csym->getUlamTypeIdx();
 		s32 csize;
 
-		if((csize = m_state.getBitSize(cut)) > 0)
+		if((csize = m_state.getBitSize(cuti)) >= 0)
 		  {
 		    return csize;
 		  }
@@ -575,7 +772,10 @@ namespace MFM {
 		    //quark cannot contain a copy of itself!
 		    assert(classblock != m_state.m_classBlock);
 
-		    csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
+		    if(csym->isQuarkUnion())
+		      csize = classblock->getMaxBitSizeOfVariableSymbolsInTable();
+		    else
+		      csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
 		    return csize;
 		  }
 	      }
@@ -605,7 +805,7 @@ namespace MFM {
 	  }
 	it++;
       }
-  } //packBitsForTableOfClasses()
+  } //packBitsForTableOfClasses
 
 
   //#define OPTIMIZE_PACKED_BITS
@@ -631,6 +831,7 @@ namespace MFM {
       }
   }
 #endif
+
 
   //bypasses THIS class being compiled
   void SymbolTable::generateIncludesForTableOfClasses(File * fp)
@@ -766,6 +967,8 @@ namespace MFM {
   // if just this class, then NodeProgram can start the ball rolling
   void SymbolTable::genCodeForTableOfClasses(FileManager * fm)
   {
+    u32 saveCompileThisId = m_state.m_compileThisId;
+
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
     while(it != m_idToSymbolPtr.end())
@@ -774,44 +977,47 @@ namespace MFM {
 	assert(sym->isClass());
 
 	//output header/body for THIS class only
-	if(sym.getId() == m_state.m_compileThisId)
-	  {
-	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	    assert(classNode);
+	//if(sym.getId() == m_state.m_compileThisId)
+	m_state.m_compileThisId == sym.getId();
+	{
+	  NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	  assert(classNode);
 
-	    m_state.m_classBlock = classNode;
-	    m_state.m_currentBlock = m_state.m_classBlock;
+	  m_state.m_classBlock = classNode;
+	  m_state.m_currentBlock = m_state.m_classBlock;
 
-	    ULAMCLASSTYPE uct = ((SymbolClass *) sym)->getUlamClass();
-	    if(uct == UC_ELEMENT)
-	      {
-		//output both header and body in separate files
-		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
-		assert(fp);
+	  ULAMCLASSTYPE uct = ((SymbolClass *) sym)->getUlamClass();
+	  if(uct == UC_ELEMENT)
+	    {
+	      //output both header and body in separate files
+	      File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
+	      assert(fp);
 
-		classNode->genCode(fp, uvpass);
-		delete fp;
+	      classNode->genCode(fp, uvpass);
+	      delete fp;
 
-		// output body for This Class only
-		File * fpb = fm->fopen(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(),WRITE);
-		assert(fpb);
+	      // output body for This Class only
+	      File * fpb = fm->fopen(m_state.getFileNameForThisClassBody(WSUBDIR).c_str(),WRITE);
+	      assert(fpb);
 
-		classNode->genCodeBody(fpb, uvpass);
-		delete fpb;
-	      }
-	    else
-	      {
-		// for quarks output template struct in .h
-		assert(uct == UC_QUARK);
-		File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
-		assert(fp);
+	      classNode->genCodeBody(fpb, uvpass);
+	      delete fpb;
+	    }
+	  else
+	    {
+	      // for quarks output template struct in .h
+	      assert(uct == UC_QUARK);
+	      File * fp = fm->fopen(state.getFileNameForAClassHeader(sym.getId(), WSUBDIR).c_str(),WRITE);
+	      assert(fp);
 
-		classNode->genCodeBody(fp, uvpass);
-		delete fp;
-	      }
-	  }
+	      classNode->genCodeBody(fp, uvpass);
+	      delete fp;
+	    }
+	}
 	it++;
-      }
+      } //while
+
+    m_state.m_compileThisId = saveCompileThisId;  //restore
   }
 #endif
 
@@ -822,6 +1028,7 @@ namespace MFM {
   }
 
 
+  //called by NodeBlock.
   u32 SymbolTable::getTotalSymbolSize()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -847,7 +1054,8 @@ namespace MFM {
 	it++;
       }
     return totalsizes;
-  }
+  } //getTotalSymbolSize
+
 
   std::string SymbolTable::firstletterTolowercase(const std::string s) //static method
   {

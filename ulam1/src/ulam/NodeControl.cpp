@@ -16,6 +16,14 @@ namespace MFM {
   }
 
 
+  void NodeControl::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    m_nodeCondition->updateLineage(this);
+    m_nodeBody->updateLineage(this);
+  }
+
+
   void NodeControl::print(File * fp)
   {
     printNodeLocation(fp);
@@ -99,6 +107,13 @@ namespace MFM {
     setStoreIntoAble(false);
     return getNodeType();
   } //checkAndLabelType
+
+
+  void NodeControl::countNavNodes(u32& cnt)
+  {
+    m_nodeCondition->countNavNodes(cnt);
+    m_nodeBody->countNavNodes(cnt);
+  }
 
 
   void NodeControl::genCode(File * fp, UlamValue& uvpass)

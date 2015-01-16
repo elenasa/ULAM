@@ -71,6 +71,12 @@ namespace MFM {
     //blocks don't have types
     setNodeType(Void);
     return getNodeType();
+  } //checkAndLabelType
+
+
+  void NodeBlock::countNavNodes(u32& cnt)
+  {
+      m_nextNode->countNavNodes(cnt);
   }
 
 

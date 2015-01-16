@@ -14,7 +14,7 @@ namespace MFM {
     printNodeLocation(fp);  //has same location as it's node
     UTI myut = getNodeType();
     char id[255];
-    if(myut == Nav)    
+    if(myut == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
@@ -26,14 +26,6 @@ namespace MFM {
   {
     fp->write(" ");
     fp->write(getName());
-  }
-
-
-  UTI NodeBreakStatement::checkAndLabelType()
-  {
-    UTI nodeType = Nav;
-    setNodeType(nodeType);
-    return nodeType;
   }
 
 
@@ -49,11 +41,25 @@ namespace MFM {
   }
 
 
+  UTI NodeBreakStatement::checkAndLabelType()
+  {
+    UTI nodeType = Nav;
+    setNodeType(nodeType);
+    return nodeType;
+  }
+
+
+  void NodeBreakStatement::countNavNodes(u32& cnt)
+  {
+    return;
+  }
+
+
   EvalStatus NodeBreakStatement::eval()
   {
     return BREAK;
   }
-  
+
 
   void NodeBreakStatement::genCode(File * fp, UlamValue& uvpass)
   {

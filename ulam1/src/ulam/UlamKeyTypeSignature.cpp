@@ -7,7 +7,7 @@
 
 namespace MFM {
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(){}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(): m_typeNameId(0), m_bits(UNKNOWNSIZE), m_arraySize(UNKNOWNSIZE) {}
 
   UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize ): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize) {}
 
@@ -58,10 +58,26 @@ namespace MFM {
     std::ostringstream key;
     //key << utk.getUlamKeyTypeSignatureName(state) << "." << utk.m_bits << "." << utk.m_arraySize;
     key << utk.getUlamKeyTypeSignatureName(state);
-    if(utk.m_bits > 0)
+    if(utk.m_bits >= 0)
       key << "(" << utk.m_bits << ")";
+    else if(utk.m_bits == ANYBITSIZECONSTANT)
+      key << "(" << "CONSTANT" << ")";
+    else if(utk.m_bits == UNKNOWNSIZE)
+      key << "(" << "UNKNOWN" << ")";
+    else if(utk.m_bits == CYCLEFLAG)
+      key << "(" << "CYCLE" << ")";
+    else
+      key << "(" << utk.m_bits << "?)";
+
+    //arraysize
     if(utk.m_arraySize >= 0)
       key << "[" << utk.m_arraySize << "]";
+    else if(utk.m_arraySize == UNKNOWNSIZE)
+      key << "[" << "UNKNOWN" << "]";
+    else if(utk.m_arraySize != NONARRAYSIZE)
+      key << "[" << utk.m_arraySize << "?]";
+    //key << "[" << "]";
+
     return key.str();
   }
 

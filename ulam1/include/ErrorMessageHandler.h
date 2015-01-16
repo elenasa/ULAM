@@ -63,7 +63,7 @@ namespace MFM
 
     ~ErrorMessageHandler();
 
-    void init(CompilerState * state, bool debugMode, File * fp);
+    void init(CompilerState * state, bool debugMode, bool infoMode, bool warnMode, File * fp);
 
     void setFileOutput(File * fp);
 
@@ -80,6 +80,8 @@ namespace MFM
   private:
     CompilerState * m_state;
     bool m_debugMode;
+    bool m_infoMode;
+    bool m_warnMode;
     File * m_fOut;
 
     u32 m_errorCount;

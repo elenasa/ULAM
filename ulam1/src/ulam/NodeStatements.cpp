@@ -15,6 +15,15 @@ namespace MFM {
     m_node = NULL;
   }
 
+  void NodeStatements::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    if(m_node)
+      m_node->updateLineage(this);
+    if(m_nextNode)
+      m_nextNode->updateLineage(this);
+  }
+
 
   void NodeStatements::print(File * fp)
   {
@@ -55,6 +64,17 @@ namespace MFM {
   }
 
 
+  const char * NodeStatements::getName()
+  {
+    return "Stmts";  //?
+  }
+
+
+  const std::string NodeStatements::prettyNodeName()
+  {
+    return nodeName(__PRETTY_FUNCTION__);
+  }
+
 
   UTI NodeStatements::checkAndLabelType()
   {
@@ -69,18 +89,15 @@ namespace MFM {
     //statements don't have types
     setNodeType(Void);
     return getNodeType();
-  }
+  } //checkAndLabelType
 
 
-  const char * NodeStatements::getName()
+  void NodeStatements::countNavNodes(u32& cnt)
   {
-    return "Stmts";  //?
-  }
-
-
-  const std::string NodeStatements::prettyNodeName()
-  {
-    return nodeName(__PRETTY_FUNCTION__);
+    if(m_node)
+      m_node->countNavNodes(cnt);
+    if(m_nextNode)
+      m_nextNode->countNavNodes(cnt);
   }
 
 

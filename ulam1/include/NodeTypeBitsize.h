@@ -40,17 +40,21 @@
 #include "Node.h"
 
 namespace MFM{
-  
+
   class NodeTypeBitsize : public Node
   {
   public:
-    
+
     NodeTypeBitsize(Node * node, CompilerState & state);
     ~NodeTypeBitsize();
+
+    virtual void updateLineage(Node * p);
 
     virtual void printPostfix(File * f);
 
     virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
@@ -58,12 +62,12 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    bool getTypeBitSizeInParen(u32& rtnBitSize, ULAMTYPE BUT);
+    bool getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT);
 
   private:
     Node * m_node;
   };
 
-}
+} //MFM
 
-#endif //end NODETYPEBITSIZE_H
+#endif //NODETYPEBITSIZE_H

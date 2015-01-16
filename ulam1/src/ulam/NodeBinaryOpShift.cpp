@@ -21,7 +21,7 @@ namespace MFM {
       {
 	assert(newType == leftType);
 
-	if(rightType != Int)
+	if(UlamType::compare(rightType, Int, m_state) != UTIC_SAME) //notsame or dontknow
 	  {
 	    m_nodeRight = makeCastingNode(m_nodeRight, Int);
 	  }
