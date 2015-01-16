@@ -10,7 +10,7 @@ namespace MFM {
 	 Unsigned Arg: 9
       */
 
-      return std::string("Ue_Efoo { typedef Unsigned(3) PortId;  Bool(1) heardFrom[8](false,false,false,false,false,false,false,false);  Int(32) test() {  typedef Bool(3) B3;  Bool(3) b;  b true cast = b cast return } }\nExit status: 1");
+      return std::string("Exit status: 1\nUe_Efoo { typedef Unsigned(3) PortId;  Bool(1) heardFrom[8](false,false,false,false,false,false,false,false);  Int(32) test() {  typedef Bool(3) B3;  Bool(3) b;  b true cast = b cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

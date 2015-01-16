@@ -85,18 +85,23 @@ namespace MFM {
     return m_quarkunion;
   }
 
+
+
   /////////////////////////////////////////////////////////////////////////////////
-  //copied from NodeProgram
+  // from NodeProgram
   /////////////////////////////////////////////////////////////////////////////////
 
   void SymbolClass::generateCode(FileManager * fm)
   {
-    //m_state.m_err.clearCounts();
-
     assert(m_classBlock);
-
     m_state.m_classBlock = m_classBlock;
     m_state.m_currentBlock = m_state.m_classBlock;
+
+    // setup for codeGen
+    m_state.m_currentSelfSymbolForCodeGen = this;
+    m_state.m_currentObjSymbolsForCodeGen.clear();
+
+    m_state.setupCenterSiteForTesting();  //temporary!!!
 
     // mangled types and forward class declarations
     genMangledTypesHeaderFile(fm);

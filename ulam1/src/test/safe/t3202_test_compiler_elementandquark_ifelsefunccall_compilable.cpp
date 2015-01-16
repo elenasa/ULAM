@@ -10,16 +10,14 @@ namespace MFM {
       // with printf in NodePrograms enabled for this test:
       // Bar1 toInt = 2
       // Bar2 toInt = 0
-      //Ue_Foo { Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = 0 cast return } }\nExit status: 0
 
       /* gen code output:
 	 Int(4) Arg: 0x2
 	 Int(4) Arg: 0x0
       */
 
-      //Ue_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = s ( i )print . s ( j )print . 0 cast return } }\nExit status: 0
       // constant fold minus
-      return std::string("Ue_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = s ( i )print . s ( j )print . 0 cast return } }\nExit status: 0");
+      return std::string("Exit status: 0\nUe_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(0);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = j bar2 ( )toInt . cast = s ( i )print . s ( j )print . 0 cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

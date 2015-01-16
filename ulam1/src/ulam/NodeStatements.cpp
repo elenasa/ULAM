@@ -15,6 +15,7 @@ namespace MFM {
     m_node = NULL;
   }
 
+
   void NodeStatements::updateLineage(Node * p)
   {
     setYourParent(p);

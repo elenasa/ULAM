@@ -12,7 +12,7 @@ namespace MFM {
 	 Bool(3) Arg: 0x0 (false)
       */
       //note: in eval, last case, uninitialized atom case is wrong!!
-      return std::string("Ue_S { System s();  Bool(1) sp(false);  Bool(3) b1(true);  Bool(3) b2(true);  Int(32) test() {  Atom(96) a;  Atom(96) t;  a self cast = a S as cond { S a;  b2 a ( )func . cast = } if s ( b2 )print . b1 ( a )func cast = s ( b1 )print . b1 ( t )func cast = s ( b1 )print . b2 cast return } }\nExit status: 1");
+      return std::string("Exit status: 1\nUe_S { System s();  Bool(1) sp(false);  Bool(3) b1(true);  Bool(3) b2(true);  Int(32) test() {  Atom(96) a;  Atom(96) t;  a self cast = a S as cond { S a;  b2 a ( )func . cast = } if s ( b2 )print . b1 ( a )func cast = s ( b1 )print . b1 ( t )func cast = s ( b1 )print . b2 cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

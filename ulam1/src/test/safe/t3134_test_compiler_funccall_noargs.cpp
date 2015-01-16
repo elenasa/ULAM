@@ -7,10 +7,8 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //updated to even word boundary
-      //Ue_A { Int(32) a(0);  Int(32) test() {  ( )foo return } }\nExit status: 1
-      //return std::string("Ue_A { Bool(7) b(false);  Int(32) a(0);  Int(32) test() {  ( )foo return } }\nExit status: 1");
       //updated to print a in gencode
-      return std::string("Ue_A { Bool(7) b(false);  System s();  Int(32) a(1);  Int(32) test() {  a ( )foo = s ( a )print . a return } }\nExit status: 1");
+      return std::string("Exit status: 1\nUe_A { Bool(7) b(false);  System s();  Int(32) a(1);  Int(32) test() {  a ( )foo = s ( a )print . a return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

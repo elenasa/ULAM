@@ -11,7 +11,7 @@ namespace MFM {
 	 Int Arg: 3  (without edit)
 	 Int Arg: 4  (after edit)
       */
-      return std::string("Ue_A { System s();  Math math();  Int(32) test() {  Int(32) m;  Bool(1) evalling;  evalling true cast = evalling cond m 3 cast = if m math ( 1 cast 4 cast 2 cast )max . = else s ( m )print . m return } }\nExit status: 3");
+      return std::string("Exit status: 3\nUe_A { System s();  Math math();  Int(32) test() {  Int(32) m;  Bool(1) evalling;  evalling true cast = evalling cond m 3 cast = if m math ( 1 cast 4 cast 2 cast )max . = else s ( m )print . m return } }\nUq_System { <NOMAIN> }\nUq_Math { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -72,7 +72,6 @@ namespace MFM {
   }
 
 
-#define MAX_ITERATIONS 10
   UTI NodeProgram::checkAndLabelType()
   {
     assert(m_root);
