@@ -172,7 +172,7 @@ namespace MFM {
     if(pTok.m_type == TOK_EOF)
       {
         // Nothing else (but haven't found startstr yet)
-	MSG(&pTok, "EOF before finding compilation target", ERR);
+	MSG(&pTok, "EOF before finding compilation target", WARN);
         return true;
       }
 
@@ -185,7 +185,7 @@ namespace MFM {
 	return true;  //we're done.
       }
 
-    //each class has its own parse tree; only compileThis has code generated later.
+    //each class has its own parse tree; each "compileThis", in turn, has code generated later.
     Token iTok;
     getNextToken(iTok);
 
@@ -219,6 +219,7 @@ namespace MFM {
 
 
     //set class type in UlamType (through its class symbol) since we know it
+    // no longer (UC_INCOMPLETE)
     switch(pTok.m_type)
       {
       case TOK_KW_ELEMENT:
@@ -242,7 +243,7 @@ namespace MFM {
       };
 
 
-    NodeBlockClass * classNode = parseClassBlock(cSym->getUlamTypeIdx()); //we know its type..sweeter?
+    NodeBlockClass * classNode = parseClassBlock(cSym->getUlamTypeIdx()); //we know its type..sweeter
 
     if(classNode)
       {

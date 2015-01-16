@@ -41,6 +41,7 @@
 #include "Symbol.h"
 #include "itype.h"
 #include "File.h"
+#include "FileManager.h"
 #include "UlamTypeClass.h"
 
 namespace MFM{
@@ -103,7 +104,7 @@ namespace MFM{
 
     std::string generateTestInstancesForTableOfClasses(File * fp);
 
-    //void genCodeForTableOfClasses(FileManager * fm, CompilerState& state); not used???
+    void genCodeForTableOfClasses(FileManager * fm);
 
     u32 getTableSize();
 

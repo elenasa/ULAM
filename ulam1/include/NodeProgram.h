@@ -78,13 +78,13 @@ namespace MFM{
     NodeBlockClass * m_root;
     u32 m_compileThisId;
 
-    void generateHeaderPreamble(File * fp);
-    void genAllCapsIfndefForHeaderFile(File * fp);
-    void genAllCapsEndifForHeaderFile(File * fp);
-    void generateHeaderIncludes(File * fp);
+    //void generateHeaderPreamble(File * fp);
+    //void genAllCapsIfndefForHeaderFile(File * fp);
+    //void genAllCapsEndifForHeaderFile(File * fp);
+    //void generateHeaderIncludes(File * fp);
 
-    void genMangledTypesHeaderFile(FileManager * fm);  //obsolete
-    void generateMain(FileManager * fm);
+    //void genMangledTypesHeaderFile(FileManager * fm);  //obsolete
+    //void generateMain(FileManager * fm);
 
   };
 
