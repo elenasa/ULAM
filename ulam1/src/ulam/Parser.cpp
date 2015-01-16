@@ -2597,14 +2597,14 @@ namespace MFM {
     Symbol * fnSym = NULL;
     if(!m_state.m_classBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
       {
-	// first time name used as a function..add symbol function name/type
-	fnSym = new SymbolFunctionName(identTok.m_dataindex, rtnuti, m_state);
+	// first time name used as a function..add symbol function name/typeNav
+	fnSym = new SymbolFunctionName(identTok.m_dataindex, Nav, m_state);
 
 	// ownership goes to the class block's ST
 	m_state.m_classBlock->addFuncIdToScope(fnSym->getId(), fnSym);
       }
 
-
+#if 0
     // verify return types agree (definitely when new name) --- o.w. error!
     if(fnSym->getUlamTypeIdx() != fsymptr->getUlamTypeIdx())
       {
@@ -2614,6 +2614,7 @@ namespace MFM {
 	delete fsymptr;
 	rtnNode = NULL;
       }
+#endif
 
     if(rtnNode)
       {
