@@ -11,12 +11,8 @@ namespace MFM {
 	 Bool(3) Arg: 0x7 (true)
       */
 
-      //Ue_Foo { Unary(4) m_u[5](1,0,3,2,0);  Int(4) m_i(2);  Bool(1) m_b(true);  Int(32) test() {  m_u 0 [] true cast = m_u 1 [] false cast = m_u 2 [] 3 cast = m_u 3 [] 2 cast = m_u 4 [] 1 - cast = m_i m_u 3 [] cast = m_b m_u 3 [] cast = m_u 3 [] cast return } }\nExit status: 2
-
-      //Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i(2);  Unary(4) m_u[5](1,0,3,2,0);  Int(32) test() {  m_u 0 [] true cast = m_u 1 [] false cast = m_u 2 [] 3 cast = m_u 3 [] 2 cast = m_u 4 [] 1 cast - cast = m_i m_u 3 [] cast = s ( m_i )print . m_b m_u 3 [] cast = s ( m_b )print . m_u 3 [] cast return } }\nExit status: 2
-
       //constant fold negative
-      return std::string("Ue_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i(2);  Unary(4) m_u[5](1,0,3,2,0);  Int(32) test() {  m_u 0 [] true cast = m_u 1 [] false cast = m_u 2 [] 3 cast = m_u 3 [] 2 cast = m_u 4 [] -1 cast = m_i m_u 3 [] cast = s ( m_i )print . m_b m_u 3 [] cast = s ( m_b )print . m_u 3 [] cast return } }\nExit status: 2");
+      return std::string("Exit status: 2\nUe_Foo { System s();  Bool(3) m_b(true);  Int(4) m_i(2);  Unary(4) m_u[5](1,0,3,2,0);  Int(32) test() {  m_u 0 [] true cast = m_u 1 [] false cast = m_u 2 [] 3 cast = m_u 3 [] 2 cast = m_u 4 [] -1 cast = m_i m_u 3 [] cast = s ( m_i )print . m_b m_u 3 [] cast = s ( m_b )print . m_u 3 [] cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

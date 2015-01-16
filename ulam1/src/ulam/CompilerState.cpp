@@ -1533,7 +1533,6 @@ namespace MFM {
     Coord c0(0,0);
 
     //m_classBlock ok now, reset by NodeProgram after type label done
-    //UTI cuti = m_state.m_classBlock->getNodeType();
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
     UTI cuti = csym->getUlamTypeIdx();
 

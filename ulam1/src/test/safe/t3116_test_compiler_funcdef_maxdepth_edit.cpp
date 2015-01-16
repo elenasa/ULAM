@@ -9,7 +9,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //A.ulam:1:13: (NodeBlockFunctionDefinition.cpp:setMaxDepth:193) fyi: Max Depth is: <9>.
-      return std::string("Ue_A { Bool(1) c(true);  Int(32) test() {  c ( 1 cast true cast )foo = c cast return } }\nExit status: 1");
+      return std::string("Exit status: 1\nUe_A { Bool(1) c(true);  Int(32) test() {  c ( 1 cast true cast )foo = c cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

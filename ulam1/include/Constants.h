@@ -96,6 +96,10 @@ namespace MFM {
 #define BASE10 (10)
 #endif //BASE10
 
+#ifndef MAX_ITERATIONS
+#define MAX_ITERATIONS 10
+#endif //MAX_ITERATIONS
+
 #ifndef CYCLEFLAG
 #define CYCLEFLAG (-12)
 #endif //CYCLEFLAG

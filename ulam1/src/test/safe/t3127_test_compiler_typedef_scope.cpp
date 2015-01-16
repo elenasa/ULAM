@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_A { typedef Int(16) Bar[2];  Int(16) d[2](1,0);  Int(32) test() {  Int(16) myb[2];  myb 0 [] 1 cast = myb 1 [] 0 cast = d ( myb )bar = d 0 [] cast return } }\nExit status: 1");
+      return std::string("Exit status: 1\nUe_A { typedef Int(16) Bar[2];  Int(16) d[2](1,0);  Int(32) test() {  Int(16) myb[2];  myb 0 [] 1 cast = myb 1 [] 0 cast = d ( myb )bar = d 0 [] cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

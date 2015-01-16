@@ -14,7 +14,7 @@ namespace MFM {
 	 after assert's abort: arg is 1
       */
 
-      return std::string("Ue_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(3);  Int(32) test() {  a 1 cast = b 2 cast = a b += s ( a )print . d a cast = s ( d )assert . a cast return } }\nExit status: 3");
+      return std::string("Exit status: 3\nUe_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(3);  Int(32) test() {  a 1 cast = b 2 cast = a b += s ( a )print . d a cast = s ( d )assert . a cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

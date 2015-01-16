@@ -18,12 +18,8 @@ namespace MFM {
       //Int(3) Arg: 0x3
       //Int Arg: 3
 
-      //Ue_Foo { Bool(3) b(false);  Int(4) i(0);  Int(4) j(15);  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b )update = j cast return } }\nExit status: -1
-
-      //Ue_Foo { Bool(1) b(false);  System m_s();  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(3);  Int(3) d(3); );  Int(3) i(0);  Int(3) j(7);  Bar m_bar( Bool(1) b(true);  System m_s();  Unsigned(3) x(3);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(0); ); );  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b )update = m_s ( j cast )print . m_s ( j cast )print . m_bar ( 3 cast 1 cast - )set . m_gah ( 4 cast 4 cast )set . j cast return } }\nExit status: -1
-
       //constant fold minus
-      return std::string("Ue_Foo { Bool(1) b(false);  System m_s();  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(3);  Int(3) d(3); );  Int(3) i(0);  Int(3) j(7);  Bar m_bar( Bool(1) b(true);  System m_s();  Unsigned(3) x(3);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(0); ); );  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b )update = m_s ( j cast )print . m_s ( j cast )print . m_bar ( 3 cast -1 cast )set . m_gah ( 4 cast 4 cast )set . j cast return } }\nExit status: -1");
+      return std::string("Exit status: -1\nUe_Foo { Bool(1) b(false);  System m_s();  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(3);  Int(3) d(3); );  Int(3) i(0);  Int(3) j(7);  Bar m_bar( Bool(1) b(true);  System m_s();  Unsigned(3) x(3);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(0); ); );  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b )update = m_s ( j cast )print . m_s ( j cast )print . m_bar ( 3 cast -1 cast )set . m_gah ( 4 cast 4 cast )set . j cast return } }\nUq_Bar { Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(7);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(3);  Int(3) d(3); );  <NOMAIN> }\nUq_System { <NOMAIN> }\nUq_Gah { Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(7);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

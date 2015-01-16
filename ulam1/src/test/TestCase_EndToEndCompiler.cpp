@@ -16,28 +16,28 @@ namespace MFM {
     if(C.parseProgram(fm, startstr, output, programme) == 0)
       {
 	rtn = true;
-	if(C.checkAndTypeLabelProgram(programme, output) == 0)
+	if(C.checkAndTypeLabelProgram(output) == 0)
 	  {
-	    //	    C.printProgramForDebug(programme, output);
+	    //	    C.printProgramForDebug(output);
 
-	    s32 exitReturnValue = 0;
+	    //   s32 exitReturnValue = 0;
 
 	    //#define SKIP_EVAL
 #ifndef SKIP_EVAL
-	    if(C.testProgram(programme, output, exitReturnValue) == 0)
+	    //	    if(C.testProgram(programme, output, exitReturnValue) == 0)
+	    if(C.testProgram(output) == 0)
 	      {
-		C.printPostFix(programme, output);
-		C.generateCodedProgram(programme, output);
+		C.printPostFix(output);
+		C.generateCodedProgram(output);
 	      }
 	    else
 	      output->write("Unrecoverable Program Test FAILURE.\n");
 #else
 	    // skip eval..
-	    C.generateCodedProgram(programme, output);
+	    C.generateCodedProgram(output);
 #endif
-	    output->write("Exit status: " );    //in compared answer
-	    output->write_decimal(exitReturnValue);
-
+	    //	    output->write("Exit status: " );    //in compared answer
+	    //output->write_decimal(exitReturnValue);
 	  }
 	else
 	  output->write("Unrecoverable Program Type Label FAILURE.\n");
@@ -49,8 +49,7 @@ namespace MFM {
 
     delete programme;
     return rtn;
-  }
-
+  } //GetTestResults
 
 
   bool TestCase_EndToEndCompiler::CheckResults(FileManagerString * fms, File * errorOutput)

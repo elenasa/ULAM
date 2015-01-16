@@ -7,8 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       // before error about data members limited to 32-bits
-      //Ue_B { Bool(1) m_bSites[41](false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false,false);  Int(32) test() {  m_bSites 20 [] true cast = m_bSites 20 [] cast return } }\nExit status: 1
-      return std::string("Ue_B { Int(32) test() {  Bool(1) m_bSites[41];  m_bSites 20 [] true cast = m_bSites 20 [] cast return } }\nExit status: 1");
+      return std::string("Exit status: 1\nUe_B { Int(32) test() {  Bool(1) m_bSites[41];  m_bSites 20 [] true cast = m_bSites 20 [] cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

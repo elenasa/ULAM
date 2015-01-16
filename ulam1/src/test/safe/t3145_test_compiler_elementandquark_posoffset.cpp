@@ -7,10 +7,8 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       // rearranged to avoid Word Boundary constraints
-      //Ue_Foo { Bool(1) b(false);  typedef Bar Pop[2];  Bool(1) a(false);  Bar m_bar1( Bool(1) val_b[3](false,false,false); );  Int(32) m_i(7);  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Bar m_bar3( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Foo f;  f ( 1 cast )check . m_i 7 cast = m_i return } }\nExit status: 7
-
       //note: order of appearance of 'Bool b' first; not in parse-tree order to print their values.
-      return std::string("Ue_Foo { Bool(1) b(false);  typedef Bar Pop[2];  Bool(1) a(false);  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Int(32) m_i(7);  Bar m_bar1( Bool(1) val_b[3](false,false,false); );  Bar m_bar3( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Foo f;  f ( 1 cast )check . m_i 7 cast = m_i return } }\nExit status: 7");
+      return std::string("Exit status: 7\nUe_Foo { Bool(1) b(false);  typedef Bar Pop[2];  Bool(1) a(false);  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Int(32) m_i(7);  Bar m_bar1( Bool(1) val_b[3](false,false,false); );  Bar m_bar3( Bool(1) val_b[3](false,false,false); );  Int(32) test() {  Foo f;  f ( 1 cast )check . m_i 7 cast = m_i return } }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
