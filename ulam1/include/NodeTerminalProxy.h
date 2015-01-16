@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeBool.h -  Basic handling of the Bool UlamType for ULAM
+ * NodeTerminalProxy.h - Basic Node handling of unknown type sizes for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,50 +26,48 @@
  */
 
 /**
-  \file UlamTypeBool.h -  Basic handling of the Bool UlamType for ULAM
+  \file NodeTerminalProxy.h - Basic Node handling unknown type sizes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
 
-#ifndef ULAMTYPEBOOL_H
-#define ULAMTYPEBOOL_H
+#ifndef NODETERMINALPROXY_H
+#define NODETERMINALPROXY_H
 
-#include "UlamType.h"
+#include "NodeTerminal.h"
+#include "Token.h"
 
 namespace MFM{
 
-  class CompilerState; //forward
-
-  class UlamTypeBool : public UlamType
+  class NodeTerminalProxy : public NodeTerminal
   {
   public:
 
-    UlamTypeBool(const UlamKeyTypeSignature key);
-    virtual ~UlamTypeBool(){}
+    NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state);
+    ~NodeTerminalProxy();
 
-    virtual ULAMTYPE getUlamTypeEnum();
+    virtual const std::string prettyNodeName();
 
-    virtual const std::string getUlamTypeVDAsStringForC();
+    virtual UTI checkAndLabelType();
 
-    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+    virtual EvalStatus eval();
 
-    //virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
-    virtual bool cast(UlamValue& val, UTI typidx, CompilerState& state);
-
-    virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
-
-    //const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
-    const std::string getConvertToCboolMethod();
   private:
+    UTI m_uti;
+    Token m_funcTok; // minof, maxof or sizeof
 
+    virtual bool setConstantValue(Token tok);
+    virtual UTI setConstantTypeForNode(Token tok);
+    bool updateProxy();
   };
 
-}
+} //MFM
 
-#endif //end ULAMTYPEBOOL_H
+#endif //end NODETERMINALPROXY_H

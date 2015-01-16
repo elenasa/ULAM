@@ -40,10 +40,16 @@
 
 namespace MFM {
 
+#ifndef UTI
+#define UTI u16
+#endif
+
   enum STORAGE { IMMEDIATE = 0, EVENTWINDOW, STACK, EVALRETURN, UNPACKEDSTRUCT, TMPREGISTER, TMPBITVAL};
   enum PACKFIT { UNPACKED = 0, PACKED, PACKEDLOADABLE};
 
 #define WritePacked(p) (p == PACKED || p == PACKEDLOADABLE)
+
+  enum ULAMTYPECOMPARERESULTS { UTIC_DONTKNOW = -1, UTIC_NOTSAME = 0, UTIC_SAME = 1, UTIC_MUSTBESAME = 2};
 
 #ifndef BITSPERATOM
 #define BITSPERATOM (96)
@@ -77,6 +83,10 @@ namespace MFM {
 #define ANYBITSIZECONSTANT (-1)
 #endif //ANYBITSIZECONSTANT
 
+#ifndef UNKNOWNSIZE
+#define UNKNOWNSIZE (-2)
+#endif //UNKNOWNSIZE
+
 #ifndef NONARRAYSIZE
 #define NONARRAYSIZE (-1)
 #endif //NONARRAYSIZE
@@ -87,11 +97,11 @@ namespace MFM {
 #endif //BASE10
 
 #ifndef CYCLEFLAG
-#define CYCLEFLAG (-2)
+#define CYCLEFLAG (-12)
 #endif //CYCLEFLAG
 
 #ifndef EMPTYSYMBOLTABLE
-#define EMPTYSYMBOLTABLE (-1)
+#define EMPTYSYMBOLTABLE (-11)
 #endif //EMPTYSYMBOLTABLE
 
 #ifndef STATICSYMBOL
@@ -101,7 +111,7 @@ namespace MFM {
 #ifndef ULAMTYPE_DEFAULTBITSIZE
 #define XX(a,b,c) c,
 
-  static const u32 ULAMTYPE_DEFAULTBITSIZE[] = {
+  static const s32 ULAMTYPE_DEFAULTBITSIZE[] = {
 #include "UlamType.inc"
   };
 

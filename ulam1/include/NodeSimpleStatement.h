@@ -49,11 +49,15 @@ namespace MFM{
     NodeSimpleStatement(Node * s, CompilerState & state);
     virtual ~NodeSimpleStatement();
 
+    virtual void updateLineage(Node * p);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
 
     virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 

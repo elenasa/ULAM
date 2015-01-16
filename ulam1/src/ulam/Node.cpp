@@ -7,7 +7,17 @@
 
 namespace MFM {
 
-  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav) {}
+  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav), m_parent(NULL) {}
+
+  void Node::setYourParent(Node * parent)
+  {
+    m_parent = parent;
+  }
+
+  void Node::updateLineage(Node * p)
+  {
+    setYourParent(p);  //walk the tree..a leaf.
+  }
 
 
   void Node::print(File * fp)
@@ -25,6 +35,7 @@ namespace MFM {
     fp->write(id);
   }
 
+
   void Node::constantFold(Token tok)
   {
     assert(0);  //only NodeTerminal has this defined
@@ -37,6 +48,12 @@ namespace MFM {
     m_nodeUType = Nav;
     m_storeIntoAble = false;
     return m_nodeUType;
+  }
+
+  void Node::countNavNodes(u32& cnt)
+  {
+    if(getNodeType() == Nav)
+      cnt += 1;
   }
 
 
@@ -68,14 +85,20 @@ namespace MFM {
     Node * rtnNode = NULL;
     UTI nuti = node->getNodeType();
 
-    if(nuti == tobeType)
+    //if(nuti == tobeType)
+    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
+    if(uticr == UTIC_DONTKNOW)
+      {
+	std::ostringstream msg;
+	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	//return node;
+      }
+
+    if(uticr == UTIC_SAME)
       {
 	//happens too often with Bool.1.-1 for some reason; and Quark toInt special case
 	// handle quietly
-	//std::ostringstream msg;
-	//msg << "Casting 'like' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	//MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-
 	return node;
       }
 
@@ -89,6 +112,7 @@ namespace MFM {
 	else
 	  {
 	    rtnNode = new NodeCast(node, tobeType, m_state);
+	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
 	    rtnNode->checkAndLabelType();
 	  }
@@ -104,15 +128,20 @@ namespace MFM {
 	  {
 	    //fill in func symbol during type labeling;
 	    Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+	    assert(fcallNode);
 	    fcallNode->setNodeLocation(identTok.m_locator);
 	    Node * mselectNode = new NodeMemberSelect(node, fcallNode, m_state);
+	    assert(mselectNode);
 	    mselectNode->setNodeLocation(identTok.m_locator);
 
 	    //address the case of different byte sizes here
 	    //before asserts start hitting later during assignment
-	    if(tobeType != nuti)
+	    //quarks are likely unknown size at checkandlabel time
+	    //if(tobeType != nuti)
+	    if(uticr != UTIC_SAME)
 	      {
 		rtnNode = new NodeCast(mselectNode, tobeType, m_state);
+		assert(rtnNode);
 		rtnNode->setNodeLocation(getNodeLocation());
 	      }
 	    else
@@ -120,7 +149,9 @@ namespace MFM {
 
 	    //redo check and type labeling
 	    UTI newType = rtnNode->checkAndLabelType();
-	    if(newType != tobeType) doErrMsg = true; //error msg instead
+	    //if(newType != tobeType)
+	    if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
+	      doErrMsg = true; //error msg instead
 	  }
       }
     else if (nclasstype == UC_ELEMENT)
@@ -130,6 +161,7 @@ namespace MFM {
 	else
 	  {
 	    rtnNode = new NodeCast(node, tobeType, m_state);
+	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
 	    rtnNode->checkAndLabelType();
 	  }
@@ -143,7 +175,6 @@ namespace MFM {
 	msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-
     return rtnNode;
   } //make casting node
 
@@ -312,8 +343,7 @@ namespace MFM {
     if(rtnUVtype == Void)  //check after Ptr target type
       return;
 
-    //assert(rtnUVtype == getNodeType());
-    assert(rtnUVtype == getNodeType() || rtnUVtype == UAtom || getNodeType() == UAtom);
+    assert((UlamType::compare(rtnUVtype, getNodeType(), m_state) == UTIC_SAME) || rtnUVtype == UAtom || getNodeType() == UAtom);
 
     // save results in the stackframe for caller;
     // copies each element of the 'unpacked' array by value,

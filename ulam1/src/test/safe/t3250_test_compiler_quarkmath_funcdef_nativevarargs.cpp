@@ -13,7 +13,7 @@ namespace MFM {
     {
       // maxof with variable number of args...
       //with final void * 0 instead of nargs as first arg.
-      bool rtn2 = fms->add("Math.ulam", "ulam 1;\nquark Math {\nInt maxof(...) native;\n}\n");
+      bool rtn2 = fms->add("Math.ulam", "ulam 1;\nquark Math {\nInt max(...) native;\n}\n");
 
       if(rtn2)
 	return std::string("Math.ulam");

@@ -15,6 +15,13 @@ namespace MFM {
     m_nodeRight = NULL;
   }
 
+  void NodeBinaryOp::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    m_nodeLeft->updateLineage(this);
+    m_nodeRight->updateLineage(this);
+  }
+
 
   void NodeBinaryOp::print(File * fp)
   {
@@ -77,12 +84,12 @@ namespace MFM {
 
     if(newType != Nav)
       {
-	if(newType != leftType)
+	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
 	    m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
 	  }
 
-	if(newType != rightType)
+	if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
 	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
 	  }
@@ -94,6 +101,13 @@ namespace MFM {
 
     return newType;
   } //checkAndLabelType
+
+
+  void NodeBinaryOp::countNavNodes(u32& cnt)
+  {
+    m_nodeLeft->countNavNodes(cnt);
+    m_nodeRight->countNavNodes(cnt);
+  }
 
 
   EvalStatus NodeBinaryOp::eval()

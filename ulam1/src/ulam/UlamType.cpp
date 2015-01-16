@@ -18,7 +18,7 @@ namespace MFM {
 
 
 
-  UlamType::UlamType(const UlamKeyTypeSignature key, const UTI uti) : m_key(key), m_uti(uti), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
+  UlamType::UlamType(const UlamKeyTypeSignature key) : m_key(key), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
   {}
 
 
@@ -48,19 +48,13 @@ namespace MFM {
   }
 
 
-  UTI UlamType::getUlamTypeIndex()
-  {
-    return m_uti;
-  }
-
-
    UlamKeyTypeSignature UlamType::getUlamKeyTypeSignature()
   {
     return m_key;
   }
 
 
-  bool UlamType::cast(UlamValue & val, CompilerState& state)
+  bool UlamType::cast(UlamValue & val, UTI typidx, CompilerState& state)
   {
     assert(0);
     //std::cerr << "UlamTypeClass (cast) error! " << std::endl;
@@ -83,6 +77,7 @@ namespace MFM {
   const std::string UlamType::getUlamTypeAsStringForC()
   {
     assert(!isConstant());
+    assert(isComplete());
 
     s32 len = getTotalBitSize(); // includes arrays
     assert(len >= 0);
@@ -118,6 +113,8 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeMangledName(CompilerState * state)
   {
+    // e.g. parsing overloaded functions, may not be complete.
+    //assert(isComplete());
     std::ostringstream mangled;
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
@@ -163,7 +160,7 @@ namespace MFM {
 
   bool UlamType::needsImmediateType()
   {
-    return !isConstant();
+    return !isConstant() && isComplete();
     //return ( (getBitSize() == ANYBITSIZECONSTANT) ? false : true);  //skip constants
   }
 
@@ -431,7 +428,7 @@ namespace MFM {
 
   s32 UlamType::getArraySize()
   {
-    return m_key.getUlamKeyTypeSignatureArraySize();
+    return m_key.getUlamKeyTypeSignatureArraySize(); //could be negative "uknown", or scalar
   }
 
 
@@ -440,7 +437,7 @@ namespace MFM {
     if(isConstant())
       return ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()];
 
-    return m_key.getUlamKeyTypeSignatureBitSize();
+    return m_key.getUlamKeyTypeSignatureBitSize();  //could be negative "unknown"
   }
 
 
@@ -450,17 +447,50 @@ namespace MFM {
     arraysize = (arraysize > NONARRAYSIZE ? arraysize : 1);
 
     s32 bitsize = getBitSize();
-    return bitsize * arraysize;
+    bitsize = (bitsize != UNKNOWNSIZE ? bitsize : 0);
+    return bitsize * arraysize; // >= 0
   }
+
+
+  bool UlamType::isComplete()
+  {
+    return !(m_key.getUlamKeyTypeSignatureBitSize() <= UNKNOWNSIZE || getArraySize() == UNKNOWNSIZE);
+  }
+
+
+  ULAMTYPECOMPARERESULTS UlamType::compare(UTI u1, UTI u2, CompilerState& state)  //static
+  {
+    UlamType * ut1 = state.getUlamTypeByIndex(u1);
+    //classes with unknown bitsizes are essentially as complete as they can be during parse time;
+    // and will have the same UTIs.
+    if(!ut1->isComplete())
+      {
+	if(ut1->getUlamClass() == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
+	  return UTIC_DONTKNOW;
+      }
+    UlamType * ut2 = state.getUlamTypeByIndex(u2);
+    if(!ut2->isComplete())
+      {
+	if(ut2->getUlamClass() == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
+	return UTIC_DONTKNOW;
+      }
+
+    //assert both key and ptr are either both equal or not equal; not different ('!^' eq '==')
+    assert((ut1->getUlamKeyTypeSignature() == ut2->getUlamKeyTypeSignature()) == (ut1 == ut2));
+    return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
+  } //compare (static)
 
 
    u32 UlamType::getTotalWordSize()
   {
+    assert(isComplete());
     return m_wordLengthTotal;  //e.g. 32, 64, 96
   }
 
+
   u32 UlamType::getItemWordSize()
   {
+    assert(isComplete());
     return m_wordLengthItem;  //e.g. 32, 64, 96
   }
 
@@ -495,7 +525,7 @@ namespace MFM {
   PACKFIT UlamType::getPackable()
   {
     PACKFIT rtn = UNPACKED;            //was false == 0
-    u32 len = getTotalBitSize();       //could be 0
+    u32 len = getTotalBitSize();       //could be 0, e.g. 'unknown'
 
     //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
     //if(len <= MAXBITSPERINT || len <= MAXBITSPERLONG)

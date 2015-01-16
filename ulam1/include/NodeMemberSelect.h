@@ -43,7 +43,7 @@ namespace MFM{
   class NodeMemberSelect : public NodeBinaryOpEqual
   {
   public:
-    
+
     NodeMemberSelect(Node * left, Node * right, CompilerState & state);
     ~NodeMemberSelect();
 

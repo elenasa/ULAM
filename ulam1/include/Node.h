@@ -29,7 +29,7 @@
   \file Node.h - Basic Node of Nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -40,12 +40,12 @@
 #include <sstream>
 #include <stdio.h>
 #include <assert.h>
+#include "CastOps.h"
 #include "File.h"
 #include "Locator.h"
 #include "Symbol.h"
 #include "UlamType.h"
 #include "UlamValue.h"
-#include "CastOps.h"
 
 namespace MFM{
 
@@ -61,10 +61,15 @@ namespace MFM{
     Node(CompilerState & state);
     virtual ~Node() {}
 
+    virtual void setYourParent(Node * parent);
+    virtual void updateLineage(Node * p);
+
     virtual void print(File * fp);
     virtual void printPostfix(File * fp) = 0;
 
     virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual bool fitsInBits(UTI fituti);
     virtual bool isNegativeConstant();
@@ -122,7 +127,6 @@ namespace MFM{
      */
     static std::string allCAPS(const char * s);
 
-
   protected:
 
     CompilerState & m_state;  //for printing error messages with path
@@ -162,12 +166,11 @@ namespace MFM{
 
     void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
-
   private:
     bool m_storeIntoAble;
     UTI m_nodeUType;
     Locator m_nodeLoc;
-
+    Node * m_parent;
   };
 
 }

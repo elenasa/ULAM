@@ -50,6 +50,8 @@
 #include "NodeBlock.h"
 #include "NodeCast.h"
 #include "NodeReturnStatement.h"
+#include "NodeTypeBitsize.h"
+#include "NodeSquareBracket.h"
 #include "StringPool.h"
 #include "SymbolClass.h"
 #include "SymbolFunction.h"
@@ -66,8 +68,6 @@ namespace MFM{
   {
     inline bool operator() (const UlamKeyTypeSignature key1, const UlamKeyTypeSignature key2)
     {
-      //if(strcmp(key1.m_typeName, key2.m_typeName) < 0) return true;
-      //if(strcmp(key1.m_typeName, key2.m_typeName) > 0) return false;
       if(key1.m_typeNameId < key2.m_typeNameId) return true;
       if(key1.m_typeNameId > key2.m_typeNameId) return false;
       if(key1.m_bits < key2.m_bits) return true;
@@ -81,7 +81,6 @@ namespace MFM{
   class Symbol;         //forward
   class NodeBlockClass; //forward
   class SymbolTable;    //forward
-
 
   struct CompilerState
   {
@@ -118,14 +117,19 @@ namespace MFM{
 
     CallStack m_funcCallStack;    //local variables and arguments
     //UlamAtom  m_selectedAtom;   //storage for data member (static/global) variables
-    UEventWindow  m_eventWindow;   //storage for 41 atoms (elements)
+    UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
     CallStack m_nodeEvalStack;    //for node eval return values,
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
 
     ErrorMessageHandler m_err;
 
-    std::vector<UlamType *> m_indexToUlamType;   //ulamtype ptr by index
-    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_definedUlamTypes;   //key -> index of ulamtype (UTI)
+    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key -> index of ulamtype (UTI)
+    std::vector<UlamKeyTypeSignature> m_indexToUlamKey;   //UTI -> ulamkey, many-to-one
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes;   //key -> ulamtype *
+
+    std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
+    std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
+
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -133,7 +137,6 @@ namespace MFM{
     UlamValue m_currentSelfPtr;       //used in eval of func calls: updated after args, becomes currentObjPtr for args
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
-    //Symbol * m_currentObjSymbolForCodeGen;  //used in code generation; parallels m_currentObjPtr
     Symbol * m_currentSelfSymbolForCodeGen; //used in code generation; parallels m_currentSelf
     u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
     s32 m_nextTmpVarNumber;           //used in code gen when a "slot index" is not available
@@ -146,17 +149,25 @@ namespace MFM{
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
-    bool isDefined(UlamKeyTypeSignature key, UTI& foundUTI);
-    UlamType * createUlamType(UlamKeyTypeSignature key, UTI uti, ULAMTYPE utype);
-    bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI uti);
+    bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
+    bool aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
+    UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
+    bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
+    bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
+    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
+    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    void constantFoldIncompleteUTI(UTI uti);
+    bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
+    bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
+    bool statusUnknownBitsizeUTI();
+    bool statusUnknownArraysizeUTI();
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
     const std::string getUlamTypeNameByIndex(UTI uti);
-    UTI getUlamTypeIndex(UlamType * ut);
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
-    UTI getUlamTypeFromToken(Token tok, u32 typebitsize, s32 arraysize);
+    UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType);
 
     /** turns array into its single element type */
@@ -168,9 +179,12 @@ namespace MFM{
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
+    bool isComplete(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
+    void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
+    void setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
 
-    u32 getDefaultBitSize(UTI uti);
+    s32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
 
@@ -255,6 +269,8 @@ namespace MFM{
 	discovered when installing a variable symbol
     */
     PACKFIT determinePackable(UTI aut);
+
+    bool findAndSizeANodeDeclWithType(UTI argut);
 
     bool thisClassHasTheTestMethod();
 

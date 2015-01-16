@@ -47,13 +47,13 @@ namespace MFM{
   {
   public:
 
-    UlamTypeClass(const UlamKeyTypeSignature key, const UTI uti, ULAMCLASSTYPE type = UC_INCOMPLETE);
+    UlamTypeClass(const UlamKeyTypeSignature key, ULAMCLASSTYPE type = UC_INCOMPLETE);
 
     virtual ~UlamTypeClass(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool cast(UlamValue& val, CompilerState& state);
+    virtual bool cast(UlamValue& val, UTI typidx, CompilerState& state);
 
     virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
 

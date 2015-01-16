@@ -10,6 +10,10 @@ namespace MFM {
   NodeStatementEmpty::~NodeStatementEmpty()
   {}
 
+  void NodeStatementEmpty::updateLineage(Node * p)
+  {
+    setYourParent(p);
+  }
 
   void NodeStatementEmpty::print(File * fp)
   {

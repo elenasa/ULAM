@@ -57,7 +57,9 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    void checkForAndInitializeCustomArrayType();
+    virtual void countNavNodes(u32& cnt);
+
+    void checkCustomArrayTypeFunctions();
 
     virtual EvalStatus eval();
 

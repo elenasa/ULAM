@@ -47,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeBits(const UlamKeyTypeSignature key, const UTI uti);
+    UlamTypeBits(const UlamKeyTypeSignature key);
     virtual ~UlamTypeBits(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
@@ -58,7 +58,7 @@ namespace MFM{
 
     virtual bool isMinMaxAllowed();
 
-    virtual bool cast(UlamValue & val, CompilerState& state);
+    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 

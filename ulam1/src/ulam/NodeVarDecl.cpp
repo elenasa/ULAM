@@ -61,17 +61,33 @@ namespace MFM {
       {
 	it = m_varSymbol->getUlamTypeIdx();  //base type has arraysize
 	//check for incomplete Classes
-	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_INCOMPLETE)
+	UlamType * tdut = m_state.getUlamTypeByIndex(it);
+	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
+	//if(tdclasstype == UC_INCOMPLETE || (tdclasstype != UC_NOTACLASS && !tdut->isComplete()))
+	if(tdclasstype == UC_INCOMPLETE)
 	  {
-	    if(! m_state.completeIncompleteClassSymbol(it))
+	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Var Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ")";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 		it = Nav;
 	      }
 	  }
+	else if(!tdut->isComplete())
+	  {
+	    m_state.constantFoldIncompleteUTI(it); //update if possible
+
+	    tdut = m_state.getUlamTypeByIndex(it); //reload
+	    if(!tdut->isComplete())
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ")" ;
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      }
+	  }
       }
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -86,16 +102,22 @@ namespace MFM {
       {
 	m_varSymbol->setPosOffset(offset);
 	UTI it = m_varSymbol->getUlamTypeIdx();
+
+	if(!m_state.isComplete(it))
+	  {
+	    m_state.constantFoldIncompleteUTI(it); //update if possible
+	  }
+
 	if(m_state.getTotalBitSize(it) > MAXBITSPERINT)
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " MUST fit into " << MAXBITSPERINT << " bits; Local variables do not have this restriction";
+	    msg << "Data member <" << getName() << "> of type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it << ") total size: " << (s32) m_state.getTotalBitSize(it) << " MUST fit into " << MAXBITSPERINT << " bits; Local variables do not have this restriction";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 
 	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
       }
-  }
+  } //packBitsInOrderOfDeclaration
 
 
   EvalStatus NodeVarDecl::eval()

@@ -67,15 +67,21 @@ namespace MFM{
 
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
+    void checkTableOfFunctions();
+
     void labelTableOfFunctions();
 
-    bool checkForAndInitializeClassCustomArrayType();
+    void countNavNodesAcrossTableOfFunctions();
+
+    bool checkCustomArrayTypeFuncs();
 
     u32 countNativeFuncDeclsForTableOfFunctions();
 
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void labelTableOfClasses();
+
+    void countNavNodesAcrossTableOfClasses();
 
     bool setBitSizeOfTableOfClasses();
 
@@ -87,7 +93,7 @@ namespace MFM{
 
     void packBitsForTableOfClasses();
 
-    void initializeCustomArraysForTableOfClasses();
+    void checkCustomArraysForTableOfClasses();
 
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 

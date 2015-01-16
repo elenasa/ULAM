@@ -86,7 +86,6 @@ namespace MFM {
     if(m_nextNode)
       m_nextNode->checkAndLabelType();
 
-
     // label all the function definition bodies
     m_functionST.labelTableOfFunctions();
 
@@ -108,9 +107,17 @@ namespace MFM {
   } //checkAndLabelType
 
 
-  void NodeBlockClass::checkForAndInitializeCustomArrayType()
+  void NodeBlockClass::countNavNodes(u32& cnt)
   {
-    m_functionST.checkForAndInitializeClassCustomArrayType();
+    if(m_nextNode) //may not have data members
+      NodeBlock::countNavNodes(cnt);
+    m_functionST.countNavNodesAcrossTableOfFunctions();
+  }
+
+
+  void NodeBlockClass::checkCustomArrayTypeFunctions()
+  {
+    m_functionST.checkCustomArrayTypeFuncs();
   }
 
 
@@ -155,13 +162,11 @@ namespace MFM {
 	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
 	    assignReturnValueToStack(testUV);
 	  }
-
 	setNodeType(saveClassType); //temp, restore
       }
-
     evalNodeEpilog();
     return evs;
-  }
+  } //eval
 
 
   //override to check both variables and function names.
@@ -232,6 +237,10 @@ namespace MFM {
 
   void NodeBlockClass::generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    // check all the function names for duplicate definitions
+    m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
+
+
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
   }
 
@@ -423,16 +432,16 @@ namespace MFM {
     fp->write("// immediate values\n");
 
     //skip Nav type (0)
-    u32 numTypes = m_state.m_indexToUlamType.size();
-    for(u32 i = 1; i < numTypes; i++)
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
+    while(it != m_state.m_definedUlamTypes.end())
       {
-	UlamType * ut = m_state.getUlamTypeByIndex(i);
+	UlamType * ut = it->second;
 	//skip constants, atoms, ptrs, elements, void and nav
 	if(ut->needsImmediateType())
 	  ut->genUlamTypeMangledImmediateDefinitionForC(fp, &m_state);
+	it++;
       }
   } //genImmediateMangledTypesForHeaderFile
-
 
 
   void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)

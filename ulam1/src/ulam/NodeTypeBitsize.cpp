@@ -13,6 +13,14 @@ namespace MFM {
     m_node = NULL;
   }
 
+
+  void NodeTypeBitsize::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    m_node->updateLineage(this);
+  }
+
+
   void NodeTypeBitsize::printPostfix(File * fp)
   {
     m_node->printPostfix(fp);
@@ -47,6 +55,13 @@ namespace MFM {
   } //checkAndLabelType
 
 
+  void NodeTypeBitsize::countNavNodes(u32& cnt)
+  {
+    Node::countNavNodes(cnt);
+    m_node->countNavNodes(cnt);
+  }
+
+
   EvalStatus NodeTypeBitsize::eval()
   {
     assert(0);  //not in parse tree; part of symbol's type
@@ -57,11 +72,11 @@ namespace MFM {
   // called during parsing Type of variable, typedef, func return val;
   // Requires a constant expression for the bitsize, else error;
   // guards against even Bool's.
-  bool NodeTypeBitsize::getTypeBitSizeInParen(u32& rtnBitSize, ULAMTYPE BUT)
+  bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT)
   {
-    u32 newbitsize = ANYBITSIZECONSTANT;
+    s32 newbitsize = UNKNOWNSIZE; //was ANYBITSIZECONSTANT;
     UTI sizetype = checkAndLabelType();
-    if(sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned))
+    if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
@@ -69,15 +84,20 @@ namespace MFM {
 	UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog();
 
-	newbitsize = bitUV.getImmediateData(m_state);
-	//if(newbitsize == 0)
-	//  {
-	//    MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not a constant expression", ERR);
-	//    return false;
-	//  }
+	if(bitUV.getUlamValueTypeIdx() == Nav)
+	  newbitsize = UNKNOWNSIZE;
+	else
+	  newbitsize = bitUV.getImmediateData(m_state);
+	if(newbitsize == UNKNOWNSIZE)
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "(), is not yet a \"known\" constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    return false;
+	  }
 
 	// warn against even Bool bits, and reduce by 1.
-	if(BUT == Bool && ((newbitsize % 2) == 0) )
+	if(BUT == Bool  && ((newbitsize % 2) == 0) )
 	  {
 	    newbitsize--;
 	    std::ostringstream msg;
@@ -87,7 +107,9 @@ namespace MFM {
       }
     else
       {
-	MSG(getNodeLocationAsString().c_str(), "Type Bitsize specifier in () is not a constant expression", ERR);
+	std::ostringstream msg;
+	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "() is not a constant expression";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
 

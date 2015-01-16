@@ -79,10 +79,11 @@ namespace MFM{
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
   private:
-    EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
-    bool setConstantValue(Token tok);
-    UTI setConstantTypeForNode(Token tok);
+    virtual bool setConstantValue(Token tok);
+    virtual UTI setConstantTypeForNode(Token tok);
 
+  protected:
+    virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
     union {
       s32 sval;
       u32 uval;

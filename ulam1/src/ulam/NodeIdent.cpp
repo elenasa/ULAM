@@ -48,14 +48,11 @@ namespace MFM {
     if(m_varSymbol == NULL)
       {
 	Symbol * asymptr = NULL;
-	//if(m_state.m_classBlock->isIdInScope(m_token.m_dataindex,asymptr))
-	//if(m_state.isIdInClassScope(m_token.m_dataindex,asymptr))
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
 	  {
 	    if(!asymptr->isFunction())
 	      {
 		m_varSymbol = (SymbolVariable *) asymptr;
-		//assert(m_varSymbol->isDataMember()); //could be a local variable
 	      }
 	    else
 	      {
@@ -78,10 +75,7 @@ namespace MFM {
       }
 
     setNodeType(it);
-
-    //if(it->isScalar())
     setStoreIntoAble(true);
-
     return it;
   } //checkAndLabelType
 
@@ -331,7 +325,7 @@ namespace MFM {
 		return false;
 	      }
 	  }
-	else  //variable not array
+	else  //variable not array, or unknown
 	  {
 	    arraysize = tdarraysize; //use whatever typedef is
 	  }
@@ -361,7 +355,6 @@ namespace MFM {
 
 	// o.w. build symbol, first the base type (with array size)
 	aut = m_state.makeUlamType(key, bUT);
-	//aut = m_state.makeUlamType(aTok, bitsize, arraysize);
 	brtn = true;
       }
     else
@@ -446,14 +439,6 @@ namespace MFM {
 
     return rtnLocalSym;
   } //makeSymbol
-
-
-#if 0
-  void NodeIdent::GENCODE(File * fp)
-  {
-    fp->write(m_varSymbol->getMangledName().c_str());
-  }
-#endif
 
 
   void NodeIdent::genCode(File * fp, UlamValue & uvpass)

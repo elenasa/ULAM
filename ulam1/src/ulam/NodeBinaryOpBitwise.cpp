@@ -42,8 +42,16 @@ namespace MFM {
   UTI NodeBinaryOpBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
   {
     UTI newType = Nav;  //init
+    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(lt, rt, m_state);
+    if(uticr == UTIC_DONTKNOW)
+      {
+	std::ostringstream msg;
+	msg << "Calculating 'incomplete' bitwise node types: " << m_state.getUlamTypeNameByIndex(lt).c_str() << " and " << m_state.getUlamTypeNameByIndex(rt).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav;
+      }
 
-    if(rt == lt)
+    if(uticr == UTIC_SAME)
       {
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	if(!m_state.isScalar(lt) && (etyp == Unary || etyp == Bool))

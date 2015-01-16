@@ -111,6 +111,7 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //classes are not surprisingly unknown bit sizes at this point
 	    if(nodeClass == UC_INCOMPLETE)
 	      {
 		std::ostringstream msg;
@@ -120,8 +121,14 @@ namespace MFM {
 	      }
 	  }
       }
-
     return getNodeType();
+  } //checkAndLabelType
+
+
+  void NodeCast::countNavNodes(u32& cnt)
+  {
+    m_node->countNavNodes(cnt);
+    Node::countNavNodes(cnt);
   }
 
 
@@ -160,7 +167,7 @@ namespace MFM {
 
     if(nodeType != tobeType)
       {
-	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, m_state)))
+	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType, m_state)))
 	  {
 	    std::ostringstream msg;
 	    msg << "Cast problem! Value type: " << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str() << " failed to be cast as type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
@@ -341,7 +348,17 @@ namespace MFM {
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->getNodeType();
 
-    if(nodeType == tobeType)
+    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nodeType, tobeType, m_state);
+    if(uticr == UTIC_DONTKNOW)
+      {
+	std::ostringstream msg;
+	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "(UTI" << nodeType << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    //if(nodeType == tobeType)
+    if(uticr == UTIC_SAME)
       return false;  //short-circuit if same exact type
 
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();

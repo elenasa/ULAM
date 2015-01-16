@@ -129,7 +129,7 @@ namespace MFM {
 
     //copy result UV to stack, -1 relative to current frame pointer
     if(evs == NORMAL)
-      assignReturnValueToStack(rtnUV);
+      Node::assignReturnValueToStack(rtnUV);
 
     evalNodeEpilog();
     return evs;
@@ -172,8 +172,15 @@ namespace MFM {
   bool NodeTerminal::fitsInBits(UTI fituti)
   {
     bool rtnb = false;
-    UlamType * fit = m_state.getUlamTypeByIndex(fituti);
     UTI nuti = getNodeType(); //constant type
+    UlamType * fit = m_state.getUlamTypeByIndex(fituti);
+    if(!fit->isComplete())
+      {
+	std::ostringstream msg;
+	msg << "Unknown size!! constant type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
 
     if(fit->getTotalWordSize() != 32)
       {
@@ -255,11 +262,11 @@ namespace MFM {
     ULAMTYPE etype = m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeEnum();
     if(etype == Int)
       {
-	rtnb = (m_constant.sval >= (s32) m_state.getDefaultBitSize(Int));
+	rtnb = (m_constant.sval >= m_state.getDefaultBitSize(Int));
       }
     else if(etype == Unsigned)
       {
-	rtnb = (m_constant.uval > m_state.getDefaultBitSize(Unsigned)); // may be ==
+	rtnb = (m_constant.uval > (u32) m_state.getDefaultBitSize(Unsigned)); // may be ==
       }
     return rtnb;
   } //isWordSizeConstant
