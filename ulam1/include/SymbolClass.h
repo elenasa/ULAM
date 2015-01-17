@@ -56,7 +56,7 @@ namespace MFM{
     void setClassBlockNode(NodeBlockClass * node);
 
     NodeBlockClass * getClassBlockNode();
-    
+
     virtual const std::string getMangledPrefix();
 
     ULAMCLASSTYPE getUlamClass();
@@ -67,11 +67,22 @@ namespace MFM{
 
     bool isQuarkUnion();
 
+    void generateCode(FileManager * fm);
+
   protected:
 
   private:
     NodeBlockClass * m_classBlock;
     bool m_quarkunion;
+
+    void generateHeaderPreamble(File * fp);
+    void genAllCapsIfndefForHeaderFile(File * fp);
+    void genAllCapsEndifForHeaderFile(File * fp);
+    void generateHeaderIncludes(File * fp);
+
+    void genMangledTypesHeaderFile(FileManager * fm);  //obsolete
+    void generateMain(FileManager * fm);
+
   };
 
 }

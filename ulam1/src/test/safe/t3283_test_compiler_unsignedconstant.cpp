@@ -13,10 +13,8 @@ namespace MFM {
 	 Unsigned Arg: 4294967295
 	 Int Arg: 2147483647
       */
-      //Ue_Fu { System s();  Int(32) test() {  Unsigned(32) u;  u 0xffffffffu cast = s ( u )print . 0 cast return } }\nExit status: 0
-      //Ue_Fu { System s();  Int(32) i(2147483647);  Int(32) test() {  Unsigned(32) u;  u 0xffffffffu cast = s ( u )print . i 2147483648u cast = s ( i )print . 0 cast return } }\nExit status: 0
       //now printing from saved value
-      return std::string("Ue_Fu { System s();  Int(32) i(2147483647);  Int(32) test() {  Unsigned(32) u;  u 4294967295u cast = s ( u )print . i 2147483648u cast = s ( i )print . 0 cast return } }\nExit status: 0");
+      return std::string("Exit status: 0\nUe_Fu { System s();  Int(32) i(2147483647);  Int(32) test() {  Unsigned(32) u;  u 4294967295u cast = s ( u )print . i 2147483648u cast = s ( i )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

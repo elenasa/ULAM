@@ -12,7 +12,7 @@ namespace MFM {
 	 Int Arg: 3
 	 Unsigned Arg: 4
       */
-      return std::string("Ue_Fu { System s();  Int(3) n(4);  Unsigned(3) u(4);  Int(32) test() {  n -4 cast = s ( n )print . s ( -4 cast )print . s ( 3 cast )print . u n cast - cast = s ( u cast )print . 0 cast return } }\nExit status: 0");
+      return std::string("Exit status: 0\nUe_Fu { System s();  Int(3) n(4);  Unsigned(3) u(4);  Int(32) test() {  n -4 cast = s ( n )print . s ( -4 cast )print . s ( 3 cast )print . u n cast - cast = s ( u cast )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

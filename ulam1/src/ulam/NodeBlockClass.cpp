@@ -36,7 +36,8 @@ namespace MFM {
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
-  }
+    fp->write("\n");
+  } //print (debug)
 
 
   void NodeBlockClass::printPostfix(File * fp)
@@ -64,7 +65,8 @@ namespace MFM {
       fp->write(" <NOMAIN>");  //not an error
 
     fp->write(" }");
-  }
+    fp->write("\n");
+  } //printPostfix
 
 
   const char * NodeBlockClass::getName()
@@ -142,9 +144,7 @@ namespace MFM {
     // NodeVarDecl's make UlamValue storage now, so don't want their
     // side-effects for the class definition, rather the instance.
     if(m_nextNode)
-      {
-	m_nextNode->eval();  //side-effect for datamember vardecls
-      }
+      m_nextNode->eval();  //side-effect for datamember vardecls
 #endif
 
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
@@ -161,6 +161,7 @@ namespace MFM {
 	  {
 	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
 	    assignReturnValueToStack(testUV);
+	    //rtnValue = rtnUV.getImmediateData(32);
 	  }
 	setNodeType(saveClassType); //temp, restore
       }

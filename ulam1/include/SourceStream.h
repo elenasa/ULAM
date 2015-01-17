@@ -70,6 +70,13 @@ namespace MFM{
     */
     s32 read();
 
+
+    /** If the given filename has been push'ed before, since this
+	SourceStream was constructed, return true.
+    */
+    bool isPushed(std::string filename);
+    bool isPushed(u32 findex);
+
     /** If onlyOnce is true, cause the SourceStream, first, to check
 	if the given filename has been push'ed before, since this
 	SourceStream was constructed; If so, the push does nothing and
@@ -143,7 +150,7 @@ namespace MFM{
 
     /** returns Ulam version of the most recently pushed filename; where 0 is unknown */
     u32 getFileUlamVersion() const;
-    
+
     /** sets Ulam version of the most recently pushed filename */
     void setFileUlamVersion(u32 ver);
 
@@ -151,29 +158,29 @@ namespace MFM{
     bool getLineOfTextAsString(Locator loc, std::string & str);
 
   private:
-  
-    struct filerec 
+
+    struct filerec
     {
       Locator m_loc;
       File * m_fp;
       u32 m_path;
       Locator m_unreadLoc;
       s32 m_unreadByte;
-      bool m_haveUnreadByte;            
+      bool m_haveUnreadByte;
       u32 m_version;
       std::string m_lineText; //e.g. ulam original source as documentation
 
       filerec() : m_fp(NULL), m_haveUnreadByte(false), m_version(0){}
-    
+
       ~filerec()
       {
 	//closeFile(); //done by File class.
       }
-    
+
       //void init(u16 idarg, File * fparg, std::string patharg)
       void init(u16 idarg, File * fparg, u32 pathindexarg)
       {
-	//m_loc.setFileId(idarg);  no longer the FileID, use m_registeredFileNames 
+	//m_loc.setFileId(idarg);  no longer the FileID, use m_registeredFileNames
 	// to go from path index to file id.
 	m_loc.setPathIndex(pathindexarg);
 	m_fp = fparg;
@@ -249,12 +256,12 @@ namespace MFM{
       }
 
     };  //filerec
-  
+
     //std::map<std::string, u16> m_registeredFilenames; //maps filenames to id (1..n)
     std::map<u32, u16> m_registeredFilenames; //maps stringpool index of filename  to id (1..n)
     std::stack<u16> m_openFilesStack;                 //id to get open file pointer from m_fileRecords
     std::vector<struct filerec> m_fileRecords;        //indexed by id ([0] is "Invalid" ~ NULL)
-  
+
     FileManager * m_fileManager;                      //owner of this stream
     s32 m_lastReadByte;
     Locator m_lastReadLoc;
@@ -262,8 +269,8 @@ namespace MFM{
     CompilerState & m_state;
 
     // esa, 06072014 moved unread data members into filerec
-    //               to be multi-file capable 
-    //Locator m_lastUnreadLoc;    
+    //               to be multi-file capable
+    //Locator m_lastUnreadLoc;
     //bool m_haveUnreadByte;
 
     /** return false when stack is empty; o.w. true */

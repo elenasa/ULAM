@@ -9,7 +9,7 @@ namespace MFM {
       /* gen code output:
       */
       // no cast cond
-      return std::string("Ue_Foo { Int(32) test() {  Atom(96) a;  Bar b;  b ( self cast )func . a self cast = 0 cast return } }\nExit status: 0");
+      return std::string("Exit status: 0\nUe_Foo { Int(32) test() {  Atom(96) a;  Bar b;  b ( self cast )func . a self cast = 0 cast return } }\nUq_Bar { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
