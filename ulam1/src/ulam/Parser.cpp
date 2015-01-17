@@ -41,7 +41,6 @@
 #include "NodeControlWhile.h"
 #include "NodeLabel.h"
 #include "NodeMemberSelect.h"
-#include "NodeProgram.h"
 #include "NodeReturnStatement.h"
 #include "NodeTerminalProxy.h"
 #include "NodeSquareBracket.h"
@@ -69,16 +68,17 @@ namespace MFM {
 
   Parser::Parser(Tokenizer * izer, CompilerState & state): m_state(state), m_tokenizer(izer)
   {
-    // need a block for ST of UlamType names; do this in classblock
-    //    init();
+    //moved here since parse can be called multiple times
+    initPrimitiveUlamTypes();
   }
 
   Parser::~Parser()
   {}
 
 
+  // return changed to number of errors
   // change to return Node * rather than vector; change tests
-  Node * Parser::parseProgram(std::string startstr, File * errOutput)
+  u32 Parser::parseProgram(std::string startstr, File * errOutput)
   {
     if(errOutput)
       m_state.m_err.setFileOutput(errOutput);
@@ -93,7 +93,7 @@ namespace MFM {
 	std::ostringstream msg;
         msg << "File name <" << startstr << "> doesn't end with '.ulam'";
 	MSG("",msg.str().c_str() , ERR);
-	return NULL;
+	return 1; // 1 error
       }
 
     std::string compileThis = startstr.substr(0,foundSuffix);
@@ -105,13 +105,13 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "File name <" << startstr << "> must match a valid class name (uppercase) to compile";
 	MSG("", msg.str().c_str() , ERR);
-	return  NULL;
+	return  1; // 1 error
       }
 
     u32 compileThisId = m_state.m_pool.getIndexForDataString(compileThis);
     m_state.m_compileThisId = compileThisId;  // for everyone
 
-    initPrimitiveUlamTypes();
+    //    initPrimitiveUlamTypes();
 
     // here's the start (first token)!!  preparser will handle the VERSION_DECL,
     // as well as USE and LOAD keywords. so the first thing we see may not be
@@ -122,24 +122,15 @@ namespace MFM {
     } while(!parseThisClass());
 
     // here when THIS class is done, or there was an error
-    NodeProgram * P = NULL;
     Symbol * thisClassSymbol = NULL;
+    NodeBlockClass * rootNode = NULL;
 
     if(m_state.m_programDefST.isInTable(compileThisId, thisClassSymbol))
       {
-	NodeBlockClass * rootNode = ((SymbolClass *) thisClassSymbol)->getClassBlockNode();
-	if(rootNode)
-	  {
-	    P = new NodeProgram(compileThisId, m_state);
-	    P->setRootNode(rootNode);
-	    assert(P);
-	    P->setNodeLocation(rootNode->getNodeLocation());
-	    assert(m_state.m_classBlock == rootNode);
-	  }
+	rootNode = ((SymbolClass *) thisClassSymbol)->getClassBlockNode();
       }
 
-
-    if(!P)
+    if(!rootNode)
       {
 	MSG("", "No parse tree", ERR);
       }
@@ -148,19 +139,19 @@ namespace MFM {
     if(warns > 0)
       {
 	std::ostringstream msg;
-	msg << warns << " warnings during parsing";
-	MSG((P ? P->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
+	msg << warns << " warnings during parsing: " << compileThis;
+	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
 
     u32 errs = m_state.m_err.getErrorCount();
     if(errs > 0)
       {
 	std::ostringstream msg;
-	msg << errs << " TOO MANY PARSE ERRORS";
-	MSG((P ? P->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
+	msg << errs << " TOO MANY PARSE ERRORS: " << compileThis;
+	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
 
-    return (P);  //ownership transferred to caller
+    return (errs);
   } //parseProgram
 
 
