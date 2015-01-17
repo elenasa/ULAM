@@ -8,7 +8,6 @@
 #include "Preparser.h"
 #include "Parser.h"
 #include "Token.h"
-#include "NodeProgram.h"
 #include "FileManagerStdio.h"
 
 namespace MFM {
@@ -43,7 +42,7 @@ namespace MFM {
     Lexer * Lex = new Lexer(ss, m_state);
     Preparser * PP =  new Preparser(Lex, m_state);
     Parser * P = new Parser(PP, m_state);
-    Node * programme = NULL;
+    u32 perrs = 0;
 
     std::vector<std::string>::iterator it = filesToCompile.begin();
 
@@ -66,31 +65,28 @@ namespace MFM {
 
 
 	// continue with Parser's parseProgram
-	programme = P->parseProgram(startstr, errput); //will be compared to answer
-	if (programme == 0)
+	perrs += P->parseProgram(startstr, errput); //will be compared to answer
+	if (perrs)
 	  {
 	    std::ostringstream msg;
 	    msg << "Unrecoverable Program Parse FAILURE: <" << startstr.c_str() << ">\n";
 	    errput->write(msg.str().c_str());
 	  }
-	else
-	  {
-	    delete programme; //parse tree contained in m_programDef. no root.
-	    programme = NULL;
-	  }
 	it++;
       } //while, parse all files
 
-
-    //across ALL parsed files
-    if(checkAndTypeLabelProgram(errput) == 0)
+    if(!perrs)
       {
-	m_state.m_programDefST.genCodeForTableOfClasses(outfm);
-      }
-    else
-      {
-	std::ostringstream msg;
-	errput->write("Unrecoverable Program Type Label FAILURE.\n");
+	//across ALL parsed files
+	if(checkAndTypeLabelProgram(errput) == 0)
+	  {
+	    m_state.m_programDefST.genCodeForTableOfClasses(outfm);
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    errput->write("Unrecoverable Program Type Label FAILURE.\n");
+	  }
       }
 
     delete P;
@@ -100,19 +96,18 @@ namespace MFM {
   } //compileFiles
 
 
-  //returns parse tree..(tests)
-  u32 Compiler::parseProgram(FileManager * fm, std::string startstr, File * output, Node * & rtnNode)
+  u32 Compiler::parseProgram(FileManager * fm, std::string startstr, File * output)
   {
     SourceStream ss(fm, m_state);
 
     Lexer * Lex = new Lexer(ss, m_state);
     Preparser * PP =  new Preparser(Lex, m_state);
     Parser * P = new Parser(PP, m_state);
-    Node * programme = NULL;
+    u32 perrs = 0;
 
     if (ss.push(startstr))
       {
-	programme = P->parseProgram(startstr, output); //will be compared to answer
+	perrs = P->parseProgram(startstr, output); //will be compared to answer
       }
     else
       {
@@ -122,8 +117,8 @@ namespace MFM {
     delete P;
     delete PP;
     delete Lex;
-    rtnNode = programme;  //ownership transferred to caller, TestCase_EndToEndCompiler
-    return m_state.m_err.getErrorCount();
+
+    return perrs;
   } //parseProgram
 
 
@@ -132,7 +127,6 @@ namespace MFM {
   {
     m_state.m_err.setFileOutput(output);
 
-    //    root->checkAndLabelType();        //side-effects
     m_state.m_err.clearCounts();
 
     m_state.m_programDefST.updateLineageForTableOfClasses();
@@ -234,42 +228,8 @@ namespace MFM {
   //u32 Compiler::testProgram(Node * root, File * output, s32& rtnValue)
   u32 Compiler::testProgram(File * output)
   {
-    //    assert(root);
     m_state.m_err.setFileOutput(output);
     m_state.m_programDefST.testForTableOfClasses(output);
-
-#if 0
-    // set up an atom in eventWindow; init m_currentObjPtr to point to it
-    // set up STACK since func call not called
-    m_state.setupCenterSiteForTesting();
-
-    m_state.m_nodeEvalStack.addFrameSlots(1);     //prolog, 1 for return
-    EvalStatus evs = root->eval();
-    if(evs != NORMAL)
-      {
-	rtnValue =  -1;   //error!
-      }
-    else
-      {
-	 UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-	 rtnValue = rtnUV.getImmediateData(32);
-      }
-
-    //#define CURIOUS_T3146
-#ifdef CURIOUS_T3146
-    //curious..
-    {
-      UlamValue objUV = m_state.m_eventWindow.loadAtomFromSite(c0.convertCoordToIndex());
-      u32 data = objUV.getData(25,32);  //Int f.m_i (t3146)
-      std::ostringstream msg;
-      msg << "Output for m_i = <" << data << "> (expecting 4 for t3146)";
-      MSG("",msg.str().c_str() , INFO);
-    }
-#endif
-
-    m_state.m_nodeEvalStack.returnFrame();       //epilog
-#endif
-
     return m_state.m_err.getErrorCount();
   } //testProgram
 

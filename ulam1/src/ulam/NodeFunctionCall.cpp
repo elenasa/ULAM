@@ -1,7 +1,6 @@
 #include "NodeFunctionCall.h"
 #include "CompilerState.h"
 #include "NodeBlockFunctionDefinition.h"
-#include "NodeProgram.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
 #include "SymbolVariableDataMember.h"
