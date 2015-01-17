@@ -2604,24 +2604,14 @@ namespace MFM {
 	m_state.m_classBlock->addFuncIdToScope(fnSym->getId(), fnSym);
       }
 
-#if 0
-    // verify return types agree (definitely when new name) --- o.w. error!
-    if(fnSym->getUlamTypeIdx() != fsymptr->getUlamTypeIdx())
-      {
-	std::ostringstream msg;
-	msg << "Return Type: "  << m_state.getUlamTypeNameByIndex(fsymptr->getUlamTypeIdx()).c_str() << " does not agree with return type of already defined function '" << m_state.m_pool.getDataAsString(fnSym->getId()) << "' with the same name and return type: " << m_state.getUlamTypeNameByIndex(fnSym->getUlamTypeIdx()).c_str();
-	MSG(&typeTok, msg.str().c_str(),ERR);
-	delete fsymptr;
-	rtnNode = NULL;
-      }
-#endif
 
     if(rtnNode)
       {
 	bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr); //transfers ownership, if added
 	if(!isAdded)
 	  {
-	    //this is a duplicate function definition with same parameters and given name!!
+	    // this is a duplicate function definition with same parameters and given name!!
+	    // return types may differ
 	    std::ostringstream msg;
 	    msg << "Duplicate defined function '" << m_state.m_pool.getDataAsString(fsymptr->getId()) << "' with the same parameters" ;
 	    MSG(&typeTok, msg.str().c_str(),ERR);
