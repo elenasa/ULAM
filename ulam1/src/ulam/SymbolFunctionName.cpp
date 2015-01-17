@@ -42,17 +42,7 @@ namespace MFM {
     bool overloaded = false;
     // return types may differ, as long as params are different
     //assert(getUlamTypeIdx() == fsym->getUlamTypeIdx());
-#if 0
-    if(UlamType::compare(getUlamTypeIdx(), fsym->getUlamTypeIdx(), m_state) != UTIC_SAME)
-      {
-	std::ostringstream msg;
-	msg << "Overloading Function: " << m_state.m_pool.getDataAsString(fsym->getId()).c_str() << " Returns DIFFERENT type: '" << m_state.getUlamTypeNameByIndex(fsym->getUlamTypeIdx()).c_str() << "' (UTI" << fsym->getUlamTypeIdx() << ") than " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << "' (UTI" << getUlamTypeIdx() << ")";
-	MSG("", msg.str().c_str(), ERR);
-	return false;
-      }
-#endif
 
-    //std::string mangled = fsym->getMangledNameWithTypes();
     std::string mangled = fsym->getMangledNameWithUTIparameters();
 
     //if doesn't already exist, potentially overload it by inserting into map.
