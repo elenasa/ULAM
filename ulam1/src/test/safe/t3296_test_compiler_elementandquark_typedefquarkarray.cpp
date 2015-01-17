@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //node terminal proxy
-      return std::string("Ue_Foo { typedef Bar Pop[2];  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Int(32) test() {  0 cast return } }\nExit status: 0");
+      return std::string("Exit status: 0\nUe_Foo { typedef Bar Pop[2];  Bar m_bar2[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Int(32) test() {  0 cast return } }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

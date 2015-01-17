@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //problem with eval answer is that an atom type appears the same as tu.
-      return std::string("Ue_Ebar { System s();  Int(32) test() {  s ( shouldBeOK )print . 0 cast return } }\nExit status: 0");
+      return std::string("Exit status: 0\nUe_Ebar { System s();  Int(32) test() {  s ( shouldBeOK )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

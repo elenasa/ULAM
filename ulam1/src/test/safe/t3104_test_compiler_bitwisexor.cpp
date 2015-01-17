@@ -6,29 +6,28 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //Ue_A { Int(32) a(1);  Int(32) b(2);  Bool(1) d(true);  Int(32) test() {  a 3 cast = b 2 cast = d a a b ^ = cast = a return } }\nExit status: 1");
-
-      //Ue_A { Bool(1) d(true);  Int(3) a(1);  Int(3) b(2);  Int(32) test() {  a 3 cast = b 2 cast = d a a b ^ = cast = a cast return } }\nExit status: 1
-      return std::string("Ue_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(1);  Int(32) test() {  a 3 cast = b 2 cast = d a a b ^ = cast = s ( a )print . a cast return } }\nExit status: 1");
+      return std::string("Exit status: 1\nUe_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(1);  Int(32) test() {  a 3 cast = b 2 cast = d a a b ^ = cast = s ( a )print . a cast return } }\nUq_System { <NOMAIN> }\n");
     }
-    
+
     std::string PresetTest(FileManagerString * fms)
     {
       //bool rtn1 = fms->add("A.ulam","element A {Bool d;\nInt(3) a, b;\nuse test;\na = 3;\nb = 2;\nd = a = a ^ b;\nreturn a;\n}\n}\n");
       bool rtn1 = fms->add("A.ulam","ulam 1; use System; element A {System s;\nBool d;\nInt(3) a, b;\nuse test;\na = 3;\nb = 2;\nd = a = a ^ b;\ns.print(a);\nreturn a;\n}\n}\n");
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 
-      bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {Void print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
+      // test system quark with native overloaded print funcs; assert
+      bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
+
 
       if(rtn1 && rtn2 && rtn3)
 	return std::string("A.ulam");
-      
+
       return std::string("");
     }
   }
-  
+
   ENDTESTCASECOMPILER(t3104_test_compiler_bitwisexor)
-  
+
 } //end MFM
 
 

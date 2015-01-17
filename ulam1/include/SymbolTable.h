@@ -41,6 +41,7 @@
 #include "Symbol.h"
 #include "itype.h"
 #include "File.h"
+#include "FileManager.h"
 #include "UlamTypeClass.h"
 
 namespace MFM{
@@ -59,6 +60,19 @@ namespace MFM{
 
     Symbol * getSymbolPtr(u32 id);
 
+    u32 getTableSize();
+
+
+    //Table of Variable Data Members:
+
+    u32 getTotalSymbolSize();
+
+    s32 getTotalVariableSymbolsBitSize();
+
+    s32 getMaxVariableSymbolsBitSize();  //for quark union
+
+    //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
+
     s32 findPosOfUlamTypeInTable(UTI utype);
 
     void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
@@ -66,6 +80,11 @@ namespace MFM{
     void genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
+
+
+
+
+    //Table Of Functions:
 
     void checkTableOfFunctions();
 
@@ -79,6 +98,19 @@ namespace MFM{
 
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
+
+
+    // TableOfClasses:
+    void testForTableOfClasses(File * fp);
+
+    void printPostfixForTableOfClasses(File * fp);
+
+    void printForDebugForTableOfClasses(File * fp);
+
+    void updateLineageForTableOfClasses();
+
+    void checkCustomArraysForTableOfClasses();
+
     void labelTableOfClasses();
 
     void countNavNodesAcrossTableOfClasses();
@@ -87,15 +119,7 @@ namespace MFM{
 
     void printBitSizeOfTableOfClasses();
 
-    s32 getTotalVariableSymbolsBitSize();
-
-    s32 getMaxVariableSymbolsBitSize();  //for quark union
-
     void packBitsForTableOfClasses();
-
-    void checkCustomArraysForTableOfClasses();
-
-    //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 
     void generateIncludesForTableOfClasses(File * fp);
 
@@ -103,11 +127,7 @@ namespace MFM{
 
     std::string generateTestInstancesForTableOfClasses(File * fp);
 
-    //void genCodeForTableOfClasses(FileManager * fm, CompilerState& state); not used???
-
-    u32 getTableSize();
-
-    u32 getTotalSymbolSize();
+    void genCodeForTableOfClasses(FileManager * fm);
 
 
   protected:

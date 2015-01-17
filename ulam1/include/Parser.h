@@ -70,14 +70,14 @@ namespace MFM{
 	<PROGRAM> := <PROGRAM_DEF>* + <EOF>
 
 	Ends when subject of compile (i.e. startstr) has been parsed
-	(takes an optional error output arg).
+	(takes an optional error output arg). Returns number of errors.
      */
-    Node * parseProgram(std::string startstr, File * errOutput = NULL);
+    u32 parseProgram(std::string startstr, File * errOutput = NULL);
 
 
   private:
 
-    // owned by parent, e.g. Compiler object.
+    // owned by parent, e.g. Compiler object. Has Tables of Classes.
     CompilerState & m_state;
 
     // owned by parent, e.g. Compiler object.  used to get Tokens

@@ -12,7 +12,7 @@ namespace MFM {
       */
 
       //node terminal proxy
-      return std::string("Ue_Fu { System s();  Int(32) u(0);  Int(32) v(64);  Int(32) test() {  u 0u cast = s ( u )print . v 64u cast = s ( v )print . v return } }\nExit status: 64");
+      return std::string("Exit status: 64\nUe_Fu { System s();  Int(32) u(0);  Int(32) v(64);  Int(32) test() {  u 0u cast = s ( u )print . v 64u cast = s ( v )print . v return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

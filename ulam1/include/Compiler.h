@@ -38,6 +38,7 @@
 #define COMPILER_H
 
 #include <string>
+#include <vector>
 #include "CompilerState.h"
 #include "Node.h"
 #include "FileManager.h"
@@ -53,14 +54,17 @@ namespace MFM{
     ~Compiler();
 
     u32 compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput);
-    u32 parseProgram(FileManager * fm, std::string startstr, File * output, Node *& rtnNode);
-    u32 checkAndTypeLabelProgram(Node * root, File * output);
+    u32 compileFiles(FileManager * infm, std::vector<std::string> filesToCompile, FileManager * outfm, File * errput);
+    //u32 parseProgram(FileManager * fm, std::string startstr, File * output, Node *& rtnNode);
+    u32 parseProgram(FileManager * fm, std::string startstr, File * output); //for tests
+    u32 checkAndTypeLabelProgram(File * output);
     bool hasTheTestMethod();
     bool targetIsAQuark();
-    u32 testProgram(Node * root, File * output, s32& rtnValue);
-    void printPostFix(Node * root, File * output);
-    void printProgramForDebug(Node * root, File * output);
-    void generateCodedProgram(Node * root, File * output);
+    //u32 testProgram(Node * root, File * output, s32& rtnValue);
+    u32 testProgram(File * output);
+    void printPostFix(File * output);
+    void printProgramForDebug(File * output);
+    void generateCodedProgram(File * output);
     std::string getMangledTarget();
 
   private:
