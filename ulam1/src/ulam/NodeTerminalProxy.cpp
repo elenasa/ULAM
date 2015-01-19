@@ -28,7 +28,7 @@ namespace MFM {
   }  //checkandLabelType
 
 
-    EvalStatus NodeTerminalProxy::eval()
+  EvalStatus NodeTerminalProxy::eval()
   {
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
@@ -77,7 +77,6 @@ namespace MFM {
     if(tok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
       {
 	m_constant.uval =  cut->getTotalBitSize(); //unsigned
-
 	rtnB = true;
       }
     else if(tok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
@@ -132,7 +131,6 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	//rtnb = false;
       }
     else
       {

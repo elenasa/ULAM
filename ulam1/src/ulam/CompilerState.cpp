@@ -908,7 +908,7 @@ namespace MFM {
 	if(bc == UC_ELEMENT || bc == UC_QUARK)
 	  {
 	    ((UlamTypeClass *) ict)->setUlamClass(bc);
-#if 1
+
 	    if(getBitSize(but) == UNKNOWNSIZE || getArraySize(but) == UNKNOWNSIZE)
 	      {
 		std::ostringstream msg;
@@ -916,15 +916,13 @@ namespace MFM {
 		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else
-#endif
-	    rtnB = true;
+	      rtnB = true;
 	  }
       }
     else
       {
 	assert(0);
       }
-
     return rtnB;
   } //completeIncompleteClassSymbol
 
@@ -953,7 +951,6 @@ namespace MFM {
       {
 	brtn = isFuncIdInClassScope(dataindex, symptr);
       }
-
     return brtn;
   }
 
@@ -1372,9 +1369,8 @@ namespace MFM {
 	//error!
 	assert(0);
       };
-
     return valAtIdx;  //return as-is
-  }
+  } //getPtrTarget
 
 
   //general purpose store
@@ -1385,7 +1381,9 @@ namespace MFM {
     //if(ruv.getUlamValueTypeIdx() == Ptr)
     // handle UAtom assignment as a singleton (not array values)
     if(ruv.getUlamValueTypeIdx() == Ptr && (ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom))
-      return assignArrayValues(lptr, ruv);
+      {
+	return assignArrayValues(lptr, ruv);
+      }
 
     // r is data (includes packed arrays), store it into where lptr is pointing
     //assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx());
@@ -1406,7 +1404,7 @@ namespace MFM {
       default:
 	assert(0);
       };
-  }
+  } //assignValue
 
 
   void CompilerState::assignArrayValues(UlamValue lptr, UlamValue rptr)
@@ -1471,7 +1469,7 @@ namespace MFM {
 	    nextrptr.incrementPtr(*this);
 	  }
       }
-  }
+  } //assignArrayValues
 
 
   //store pointer (rptr) as value to where lptr is pointing
@@ -1497,7 +1495,7 @@ namespace MFM {
       default:
 	assert(0);
       };
-  }
+  } //assignValuePtr
 
 
   PACKFIT CompilerState::determinePackable(UTI aut)
