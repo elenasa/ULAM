@@ -32,15 +32,9 @@ namespace MFM {
 
   UTI NodeLabel::checkAndLabelType()
   {
-    UTI nodeType = Nav;
+    UTI nodeType = Void;
     setNodeType(nodeType);
     return nodeType;
-  }
-
-
-  void NodeLabel::countNavNodes(u32& cnt)
-  {
-    return;
   }
 
 

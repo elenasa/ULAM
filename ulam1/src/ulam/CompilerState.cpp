@@ -26,7 +26,7 @@ namespace MFM {
 #endif
 
 
-  //#define _INFO_OUTPUT
+#define _INFO_OUTPUT
 #ifdef _INFO_OUTPUT
   static const bool infoOn = true;
 #else
