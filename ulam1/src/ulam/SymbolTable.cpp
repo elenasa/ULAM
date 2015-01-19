@@ -49,6 +49,7 @@ namespace MFM {
     return NULL;  //impossible!!
   } //getSymbolPtr
 
+
   u32 SymbolTable::getTableSize()
   {
     return (m_idToSymbolPtr.empty() ? 0 : m_idToSymbolPtr.size());
@@ -82,6 +83,7 @@ namespace MFM {
       }
     return totalsizes;
   } //getTotalSymbolSize
+
 
   s32 SymbolTable::getTotalVariableSymbolsBitSize()
   {
@@ -120,19 +122,9 @@ namespace MFM {
 	      }
 	    else
 	      {
-		if(m_state.isScalar(sut))
-		  m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
-		else
-		  {
-		    s32 arraysize = m_state.getArraySize(sut);
-		    m_state.setUTISizes(sut, symsize, arraysize);  //total bits including arrays
-		  }
-		//std::ostringstream msg;
-		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+		m_state.setBitSize(sut, symsize);  //symsize does not include arrays
 	      }
-
-	    totalsizes += m_state.getTotalBitSize(sut); //covers up any unknown sizes BAD
+	    totalsizes += m_state.getTotalBitSize(sut); //covers up any unknown sizes; includes arrays
 	  }
 	it++;
       }
@@ -169,16 +161,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		if(m_state.isScalar(sut))
-		  m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
-		else
-		  {
-		    s32 arraysize = m_state.getArraySize(sut);
-		    m_state.setUTISizes(sut, symsize, arraysize);  //total bits including arrays
-		  }
-		//std::ostringstream msg;
-		//msg << "symbol size is " << symsize << " (total = " << sut->getTotalBitSize() << ") " << sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureAsString(&state).c_str();
-		//MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+		m_state.setBitSize(sut, symsize);  //symsize does not include arrays
 	      }
 
 	    if((s32) m_state.getTotalBitSize(sut) > maxsize)
@@ -528,7 +511,6 @@ namespace MFM {
 	    m_state.setupCenterSiteForTesting();
 
 	    m_state.m_nodeEvalStack.addFrameSlots(1);     //prolog, 1 for return
-	    //EvalStatus evs = root->eval();
 	    s32 rtnValue = 0;
 	    EvalStatus evs = classNode->eval();
 	    if(evs != NORMAL)
@@ -559,7 +541,6 @@ namespace MFM {
 	    fp->write_decimal(rtnValue);
 	    fp->write("\n");
 	  } //test eval
-
 	it++;
       } //while
 
@@ -753,7 +734,7 @@ namespace MFM {
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false;  //moved here;
 	  }
-#if 1
+
 	//of course they always aren't! but we know to keep looping..
 	UTI suti = sym->getUlamTypeIdx();
 	if(! m_state.isComplete(suti))
@@ -763,9 +744,8 @@ namespace MFM {
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	    aok = false;  //moved here;
 	  }
-#endif
-	// try..
 
+	// try..
 	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	assert(classNode);
 	//if(!classNode) continue; //infinite loop "Incomplete Class <> was never defined, fails sizing"
@@ -779,7 +759,7 @@ namespace MFM {
 	else
 	  totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
 
-	  //check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
+	//check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
 	if(totalbits == CYCLEFLAG)  // was < 0
 	  {
 	    std::ostringstream msg;
@@ -1050,10 +1030,7 @@ namespace MFM {
   } //genCodeForTableOfClasses
 
 
-
-  // Private helper methods:
-
-
+  // PRIVATE HELPER METHODS:
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
     if(!m_state.isComplete(argut))
@@ -1063,11 +1040,7 @@ namespace MFM {
 
     if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS) //includes Atom type
       {
-	//if(m_state.isComplete(argut))
-	//  {
-	//    totbitsize *= (m_state.isScalar(argut) ? 1 : m_state.getArraySize(argut));
-	//  }
-	return totbitsize;
+	return totbitsize;  //arrays handled by caller, just bits here
       }
 
     //not a primitive (class), array
@@ -1086,7 +1059,7 @@ namespace MFM {
 	  {
 	    return 0;  //empty, ok
 	  }
-	else // totbitsize == UNKNOWNSIZE (was thought to be 0)
+	else
 	  {
 	    assert(totbitsize <= UNKNOWNSIZE || m_state.getArraySize(argut) == UNKNOWNSIZE);
 
@@ -1117,7 +1090,7 @@ namespace MFM {
 	  {
 	    return 0;  //empty, ok
 	  }
-	else //totbitsize == UNKNOWNSIZE
+	else
 	  {
 	    assert(totbitsize == UNKNOWNSIZE);
 
