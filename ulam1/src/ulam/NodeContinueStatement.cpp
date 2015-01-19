@@ -47,15 +47,9 @@ namespace MFM {
 
   UTI NodeContinueStatement::checkAndLabelType()
   {
-    UTI nodeType = Nav;
+    UTI nodeType = Void;
     setNodeType(nodeType);
     return nodeType;
-  }
-
-
-  void NodeContinueStatement::countNavNodes(u32& cnt)
-  {
-    return;
   }
 
 

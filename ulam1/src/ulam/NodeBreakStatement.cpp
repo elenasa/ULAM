@@ -43,15 +43,9 @@ namespace MFM {
 
   UTI NodeBreakStatement::checkAndLabelType()
   {
-    UTI nodeType = Nav;
+    UTI nodeType = Void;
     setNodeType(nodeType);
     return nodeType;
-  }
-
-
-  void NodeBreakStatement::countNavNodes(u32& cnt)
-  {
-    return;
   }
 
 
