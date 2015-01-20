@@ -33,6 +33,12 @@ namespace MFM {
   }
 
 
+  bool Symbol::isConstant()
+  {
+    return false;
+  }
+
+
   bool Symbol::isClass()
   {
     return false;

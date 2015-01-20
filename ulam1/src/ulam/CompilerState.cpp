@@ -26,7 +26,7 @@ namespace MFM {
 #endif
 
 
-#define _INFO_OUTPUT
+  //#define _INFO_OUTPUT
 #ifdef _INFO_OUTPUT
   static const bool infoOn = true;
 #else
@@ -117,6 +117,16 @@ namespace MFM {
 	msg << "Unknown arraysize subtrees cleared: " << unknownA;
 	MSG2("",msg.str().c_str(),DEBUG);
       }
+
+    s32 nonreadyC = m_nonreadyNamedConstantSubtrees.size();
+    if(nonreadyC > 0)
+      {
+	std::ostringstream msg;
+	msg << "Nonready named constant subtrees cleared: " << nonreadyC;
+	MSG2("",msg.str().c_str(),DEBUG);
+      }
+
+    m_nonreadyNamedConstantSubtrees.clear();
 
     m_currentFunctionReturnNodes.clear();
   } //clearAllDefinedUlamTypes()
@@ -492,6 +502,76 @@ namespace MFM {
       }
     return rtnstat;
   } //statusUnknownArraysizeUTI
+
+
+  void CompilerState::linkConstantExpression(SymbolConstantValue * ceNode)
+  {
+    if(ceNode)
+      m_nonreadyNamedConstantSubtrees.insert(ceNode);
+  }
+
+
+  bool CompilerState::constantFoldNonreadyNamedConstant(SymbolConstantValue * scvptr)
+  {
+    bool rtnBool = true; //unfound
+    std::set<SymbolConstantValue *>::iterator it = m_nonreadyNamedConstantSubtrees.find(scvptr);
+
+    if(it != m_nonreadyNamedConstantSubtrees.end())
+      {
+	SymbolConstantValue * ceNode = *it;
+	assert(ceNode);
+	rtnBool = ceNode->foldConstantExpression(); //eval;
+	if(rtnBool) //must be ready!
+	  {
+	    //don't delete ceNode;
+	    m_nonreadyNamedConstantSubtrees.erase(it);
+	  }
+      }
+    return rtnBool;
+  } //constantFoldNonreadyNamedConstant
+
+
+  bool CompilerState::statusNonreadyNamedConstants()
+  {
+    bool rtnstat = true; //ok, empty
+    if(!m_nonreadyNamedConstantSubtrees.empty())
+      {
+	std::vector<SymbolConstantValue *> lostCs;
+	u32 lostsize = m_nonreadyNamedConstantSubtrees.size();
+
+	std::ostringstream msg;
+	msg << "Found non-empty non-ready named constant subtrees, of class <";
+	msg << m_pool.getDataAsString(m_compileThisId);
+	msg << ">, size " << lostsize << ":";
+
+	std::set<SymbolConstantValue *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
+
+	while(it != m_nonreadyNamedConstantSubtrees.end())
+	  {
+	    SymbolConstantValue * scv = *it;
+	    u32 id = scv->getId();
+	    msg << " (Id" << id << ") " << m_pool.getDataAsString(id).c_str() << ",";
+	    lostCs.push_back(scv);
+	    it++;
+	  }
+
+	msg << " trying to update now";
+	MSG2("", msg.str().c_str(), DEBUG);
+	rtnstat = false;
+
+	assert(lostCs.size() == lostsize);
+	while(!lostCs.empty())
+	  {
+	    SymbolConstantValue * scv = lostCs.back();
+	    scv->foldConstantExpression();
+	    //if(scv->isReady())
+	      lostCs.pop_back();
+	  }
+	lostCs.clear();
+      }
+    return rtnstat;
+  } //statusNonreadyNamedConstants
+
 
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)

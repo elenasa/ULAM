@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeTerminalProxy.h - Node handling of Unknown Type Sizes for ULAM
+ * NodeConstantExpr.h - Node handling Constant Expression for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeTerminalProxy.h - Node handling Unknown Type Sizes for ULAM
+  \file NodeConstantExpr.h - Node handling Constant Expression for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -34,40 +34,42 @@
 */
 
 
-#ifndef NODETERMINALPROXY_H
-#define NODETERMINALPROXY_H
+#ifndef NODECONSTANTEXPR_H
+#define NODECONSTANTEXPR_H
 
-#include "NodeTerminal.h"
-#include "Token.h"
+#include "Node.h"
 
 namespace MFM{
 
-  class NodeTerminalProxy : public NodeTerminal
+  class NodeConstantExpr : public Node
   {
   public:
 
-    NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state);
-    ~NodeTerminalProxy();
+    NodeConstantExpr(Node * node, CompilerState & state);
+    ~NodeConstantExpr();
 
-    virtual const std::string prettyNodeName();
+    virtual void updateLineage(Node * p);
+
+    virtual void printPostfix(File * f);
 
     virtual UTI checkAndLabelType();
 
+    virtual void countNavNodes(u32& cnt);
+
     virtual EvalStatus eval();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual const char * getName();
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+    virtual const std::string prettyNodeName();
+
+    bool foldConstantExpr(s32& rtnBitSize, ULAMTYPE BUT);
+    bool foldConstantExpr(u32& rtnBitSize, ULAMTYPE BUT);
+    bool foldConstantExpr(bool& rtnBitSize, ULAMTYPE BUT);
 
   private:
-    UTI m_uti;       // lhs type of func
-    Token m_funcTok; // minof, maxof or sizeof
-
-    virtual bool setConstantValue(Token tok);
-    virtual UTI setConstantTypeForNode(Token tok);
-    bool updateProxy();
+    Node * m_node;
   };
 
 } //MFM
 
-#endif //end NODETERMINALPROXY_H
+#endif //NODECONSTANTEXPR_H

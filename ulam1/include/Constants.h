@@ -83,6 +83,10 @@ namespace MFM {
 #define ANYBITSIZECONSTANT (-1)
 #endif //ANYBITSIZECONSTANT
 
+#ifndef NONREADYCONST
+#define NONREADYCONST (-2)
+#endif //NONREADYCONST
+
 #ifndef UNKNOWNSIZE
 #define UNKNOWNSIZE (-2)
 #endif //UNKNOWNSIZE

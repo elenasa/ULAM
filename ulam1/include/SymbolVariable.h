@@ -43,7 +43,7 @@ namespace MFM{
 
   class CompilerState;  //forward
 
-  //distinguish between SymbolFunction
+  //distinguishes between SymbolFunction, SymbolTypedef, SymbolConstantValue
   class SymbolVariable : public Symbol
   {
   public:

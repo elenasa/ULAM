@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeTerminalProxy.h - Node handling of Unknown Type Sizes for ULAM
+ * SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,48 +26,57 @@
  */
 
 /**
-  \file NodeTerminalProxy.h - Node handling Unknown Type Sizes for ULAM
+  \file SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
   \gpl
 */
 
+#ifndef SYMBOLCONSTANTVALUE_H
+#define SYMBOLCONSTANTVALUE_H
 
-#ifndef NODETERMINALPROXY_H
-#define NODETERMINALPROXY_H
-
-#include "NodeTerminal.h"
-#include "Token.h"
+#include "Symbol.h"
+#include "NodeConstantExpr.h"
 
 namespace MFM{
 
-  class NodeTerminalProxy : public NodeTerminal
+  class CompilerState;  //forward
+
+  //distinguish between Symbols
+  class SymbolConstantValue : public Symbol
   {
   public:
+    SymbolConstantValue(u32 id, UTI utype, CompilerState& state);
+    ~SymbolConstantValue();
 
-    NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state);
-    ~NodeTerminalProxy();
+    virtual bool isConstant();
 
-    virtual const std::string prettyNodeName();
+    virtual bool isReady();
 
-    virtual UTI checkAndLabelType();
+    bool foldConstantExpression();
 
-    virtual EvalStatus eval();
+    virtual const std::string getMangledPrefix();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
+  protected:
 
   private:
-    UTI m_uti;       // lhs type of func
-    Token m_funcTok; // minof, maxof or sizeof
+    bool m_isReady;
 
-    virtual bool setConstantValue(Token tok);
-    virtual UTI setConstantTypeForNode(Token tok);
-    bool updateProxy();
+    union {
+      s32 sval;
+      u32 uval;
+      bool bval;
+    } m_constant;
+
+    NodeConstantExpr * m_expr;
+
+
   };
 
-} //MFM
+}
 
-#endif //end NODETERMINALPROXY_H
+#endif //end SYMBOLCONSTANTVALUE_H
