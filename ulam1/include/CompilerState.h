@@ -41,6 +41,7 @@
 #include <string.h>
 #include <vector>
 #include <map>
+#include <set>
 #include "itype.h"
 #include "CallStack.h"
 #include "Constants.h"
@@ -54,6 +55,7 @@
 #include "NodeSquareBracket.h"
 #include "StringPool.h"
 #include "SymbolClass.h"
+#include "SymbolConstantValue.h"
 #include "SymbolFunction.h"
 #include "SymbolTable.h"
 #include "SymbolVariable.h"
@@ -129,7 +131,7 @@ namespace MFM{
 
     std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
     std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
-
+    std::set<SymbolConstantValue *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -161,6 +163,10 @@ namespace MFM{
     bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
     bool statusUnknownBitsizeUTI();
     bool statusUnknownArraysizeUTI();
+
+    void linkConstantExpression(SymbolConstantValue * ceNode);
+    bool constantFoldNonreadyNamedConstant(SymbolConstantValue * scvptr);
+    bool statusNonreadyNamedConstants();
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
