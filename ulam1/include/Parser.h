@@ -46,6 +46,7 @@
 #include "NodeBinaryOp.h"
 #include "NodeBlock.h"
 #include "NodeConditionalAs.h"
+#include "NodeConstantDef.h"
 #include "NodeFunctionCall.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
@@ -167,6 +168,15 @@ namespace MFM{
     /** helper for parseTypedef */
     Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
+    /**
+       <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
+    */
+    Node * parseConstdef();
+
+    /** helper for parseConstdef */
+    Node * makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize);
+
+    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode);
 
     /**
        <DECL> := <TYPE> + <VAR_DECLS>

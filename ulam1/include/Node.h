@@ -90,7 +90,9 @@ namespace MFM{
     std::string getNodeLocationAsString();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
+
     virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
     virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
     virtual const char * getName() = 0;

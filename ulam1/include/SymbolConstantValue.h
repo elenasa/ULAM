@@ -37,11 +37,11 @@
 #define SYMBOLCONSTANTVALUE_H
 
 #include "Symbol.h"
-#include "NodeConstantExpr.h"
 
 namespace MFM{
 
   class CompilerState;  //forward
+  class NodeConstantDef;  //forward
 
   //distinguish between Symbols
   class SymbolConstantValue : public Symbol
@@ -53,6 +53,14 @@ namespace MFM{
     virtual bool isConstant();
 
     virtual bool isReady();
+
+
+    bool getValue(s32& val);
+    bool getValue(u32& val);
+    bool getValue(bool& val);
+    void setValue(s32 val);
+    void setValue(u32 val);
+    void setValue(bool val);
 
     bool foldConstantExpression();
 
@@ -72,9 +80,7 @@ namespace MFM{
       bool bval;
     } m_constant;
 
-    NodeConstantExpr * m_expr;
-
-
+    NodeConstantDef * m_defnode;
   };
 
 }

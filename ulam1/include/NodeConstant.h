@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeIdent.h - Node handling Identifiers for ULAM
+ * NodeConstant.h - Node handling NamedConstants for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,30 +26,30 @@
  */
 
 /**
-  \file NodeIdent.h - Node handling Identifiers for ULAM
+  \file NodeConstant.h - Node handling Named Constants for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014,2015 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
 
-#ifndef NODEIDENT_H
-#define NODEIDENT_H
+#ifndef NODECONSTANT_H
+#define NODECONSTANT_H
 
-#include "Node.h"
+#include "NodeTerminal.h"
 #include "Token.h"
-#include "SymbolVariable.h"
+#include "SymbolConstantValue.h"
 #include "UlamType.h"
 
 namespace MFM{
 
-  class NodeIdent : public Node
+  class NodeConstant : public NodeTerminal
   {
   public:
 
-    NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state);
-    ~NodeIdent();
+    NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state);
+    ~NodeConstant();
 
     virtual void printPostfix(File * fp);
 
@@ -57,35 +57,23 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual void constantFold(Token tok);
+
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
 
-    virtual EvalStatus evalToStoreInto();
-
-    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
-
-    virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
-
-    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
-
     virtual void genCode(File * fp, UlamValue& uvpass);
-
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
-
-    virtual void genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass);
 
   private:
     Token m_token;
-    SymbolVariable * m_varSymbol;
+    SymbolConstantValue * m_constSymbol;
 
-    SymbolVariable *  makeSymbol(UTI aut);
-    UlamValue makeUlamValuePtr();
-    UlamValue makeUlamValuePtrForCodeGen();
+    bool updateConstant();
   };
 
 }
 
-#endif //end NODEIDENT_H
+#endif //end NODECONSTANT_H
