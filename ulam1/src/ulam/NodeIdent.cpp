@@ -301,36 +301,8 @@ namespace MFM {
 
     ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
 
-    //typedef might have bitsize and arraysize info..
-    UTI tduti = Nav;
-    if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, tduti))
-      {
-	s32 tdarraysize = m_state.getArraySize(tduti);
-	if(tdarraysize >= 0 || arraysize >= 0)
-	  {
-	    //error can't support arrays
-	    std::ostringstream msg;
-	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(tduti).c_str() << ", and cannot be used in NAME CONSTANT: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return false;
-	  }
-
-	if(m_state.getBitSize(tduti) > 0 && bitsize == 0)
-	  {
-	    //ok to use typedef bitsize
-	    bitsize = m_state.getBitSize(tduti);
-	  }
-      } //end if typedef
-
-    if(bitsize == 0)
-      bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
-
-    //ulike typedefs, constant names begin with lowercase letter..and the rest can be either case
-    u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
-    UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
-
-    // o.w. build symbol, first the base type (with array size)
-    UTI uti = m_state.makeUlamType(key, bUT);
+    // use constant type for base type for constants
+    UTI uti = m_state.getUlamTypeOfConstant(bUT);
 
     //create a symbol for this new named constant, a constant-def, with its value
     SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token.m_dataindex, uti, m_state);

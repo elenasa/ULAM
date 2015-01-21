@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr)
+  NodeConstant::NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false)
   {
     assert(symptr);
     updateConstant();
@@ -55,7 +55,8 @@ namespace MFM {
     setStoreIntoAble(false);
 
     //copy m_constant from Symbol into NodeTerminal parent.
-    updateConstant();
+    if(!m_ready)
+      m_ready = updateConstant();
 
     return it;
   } //checkAndLabelType
@@ -63,26 +64,25 @@ namespace MFM {
 
   EvalStatus NodeConstant::eval()
   {
-    updateConstant();
+    if(!m_ready)
+      m_ready = updateConstant();
     return NodeTerminal::eval();
   } //eval
 
 
   void NodeConstant::genCode(File * fp, UlamValue& uvpass)
   {
-    updateConstant();
+    if(!m_ready)
+      m_ready = updateConstant();
     NodeTerminal::genCode(fp, uvpass);
   } //genCode
 
 
   bool NodeConstant::updateConstant()
   {
-    //if(!m_constSymbol->isReady())
-      {
-	u32 val;
-	m_constSymbol->getValue(val);
-	m_constant.uval = val;
-      }
+    u32 val;
+    m_constSymbol->getValue(val);
+    m_constant.uval = val;
     return m_constSymbol->isReady();
   } //updateConstant
 

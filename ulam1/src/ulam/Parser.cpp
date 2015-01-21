@@ -140,7 +140,7 @@ namespace MFM {
     if(warns > 0)
       {
 	std::ostringstream msg;
-	msg << warns << " warnings during parsing: " << compileThis;
+	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during parsing: " << compileThis;
 	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
 
@@ -3011,7 +3011,7 @@ namespace MFM {
 	    if(!constNode->foldConstantExpression())
 	      {
 		std::ostringstream msg;
-		msg << "Named constant <" << constNode->getName() << "> is not 'ready'";
+		msg << "Named constant <" << constNode->getName() << "> is not 'ready' while parsing";
 		MSG(constNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 
 		// add to non-ready list of subtrees
