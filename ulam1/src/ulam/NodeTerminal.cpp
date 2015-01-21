@@ -5,6 +5,9 @@
 
 namespace MFM {
 
+  NodeTerminal::NodeTerminal(CompilerState & state) : Node(state)
+  {}
+
   NodeTerminal::NodeTerminal(Token tok, CompilerState & state) : Node(state)
   {
     Node::setNodeLocation(tok.m_locator); //in case of errors
@@ -133,7 +136,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return evs;
-  }
+  } //eval
 
 
   EvalStatus NodeTerminal::makeTerminalValue(UlamValue& uvarg)

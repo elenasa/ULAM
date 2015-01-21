@@ -69,6 +69,8 @@ namespace MFM{
 
     virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
+    virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+
     virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
     //helper method to install symbol

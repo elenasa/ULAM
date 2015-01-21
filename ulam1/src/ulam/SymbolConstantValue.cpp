@@ -1,17 +1,19 @@
 #include "SymbolConstantValue.h"
+#include "NodeConstantDef.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  SymbolConstantValue::SymbolConstantValue(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_expr(NULL)
+  SymbolConstantValue::SymbolConstantValue(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_defnode(NULL)
   {
     m_constant.sval = NONREADYCONST;
   }
 
   SymbolConstantValue::~SymbolConstantValue()
   {
-    delete m_expr;
-    m_expr = NULL;
+    //belongs to parse tree
+    //delete m_defnode;
+    //m_defnode = NULL;
   }
 
 
@@ -26,6 +28,45 @@ namespace MFM {
     return m_isReady;
   }
 
+
+  bool SymbolConstantValue::getValue(s32& val)
+  {
+    val = m_constant.sval;
+    return m_isReady;
+  }
+
+
+  bool SymbolConstantValue::getValue(u32& val)
+  {
+    val = m_constant.uval;
+    return m_isReady;
+  }
+
+
+  bool SymbolConstantValue::getValue(bool& val)
+  {
+    val = m_constant.bval;
+    return m_isReady;
+  }
+
+
+  void SymbolConstantValue::setValue(s32 val)
+  {
+    m_constant.sval = val;
+    m_isReady = true;
+  }
+
+  void SymbolConstantValue::setValue(u32 val)
+  {
+    m_constant.uval = val;
+    m_isReady = true;
+  }
+
+  void SymbolConstantValue::setValue(bool val)
+  {
+    m_constant.bval = val;
+    m_isReady = true;
+  }
 
   bool SymbolConstantValue::foldConstantExpression()
   {

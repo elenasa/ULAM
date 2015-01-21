@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeConstantExpr.h - Node handling Constant Expression for ULAM
+ * NodeConstantDef.h - Node handling Constant Definition for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeConstantExpr.h - Node handling Constant Expression for ULAM
+  \file NodeConstantDef.h - Node handling Constant Definition for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -34,42 +34,48 @@
 */
 
 
-#ifndef NODECONSTANTEXPR_H
-#define NODECONSTANTEXPR_H
+#ifndef NODECONSTANTDEF_H
+#define NODECONSTANTDEF_H
 
 #include "Node.h"
+#include "NodeBlock.h"
+#include "SymbolConstantValue.h"
 
 namespace MFM{
 
-  class NodeConstantExpr : public Node
+  class NodeConstantDef : public Node
   {
   public:
 
-    NodeConstantExpr(Node * node, CompilerState & state);
-    ~NodeConstantExpr();
+    NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state);
+    ~NodeConstantDef();
 
     virtual void updateLineage(Node * p);
 
     virtual void printPostfix(File * f);
 
-    virtual UTI checkAndLabelType();
-
-    virtual void countNavNodes(u32& cnt);
-
-    virtual EvalStatus eval();
-
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
-    bool foldConstantExpr(s32& rtnBitSize, ULAMTYPE BUT);
-    bool foldConstantExpr(u32& rtnBitSize, ULAMTYPE BUT);
-    bool foldConstantExpr(bool& rtnBitSize, ULAMTYPE BUT);
+    virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
+
+    void setConstantExpr(Node * node);
+
+    bool foldConstantExpression();
+
+    virtual EvalStatus eval();
+
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   private:
-    Node * m_node;
+    SymbolConstantValue * m_constSymbol;
+    Node * m_exprnode;
+    NodeBlock * m_currBlock;
   };
 
 } //MFM
 
-#endif //NODECONSTANTEXPR_H
+#endif //NODECONSTANTDEF_H

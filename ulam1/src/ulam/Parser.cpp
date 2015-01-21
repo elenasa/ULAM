@@ -36,6 +36,7 @@
 #include "NodeCast.h"
 #include "NodeConditionalIs.h"
 #include "NodeConditionalHas.h"
+#include "NodeConstant.h"
 #include "NodeContinueStatement.h"
 #include "NodeControlIf.h"
 #include "NodeControlWhile.h"
@@ -345,6 +346,29 @@ namespace MFM {
 	  }
 	  return brtn;
       } //typedef done.
+
+    //parse Named Constant starting with keyword first
+    if(pTok.m_type == TOK_KW_CONSTDEF)
+      {
+	if((rtnNode = parseConstdef()) )
+	  {
+	    if(!getExpectedToken(TOK_SEMICOLON))
+	      {
+		delete rtnNode;
+		rtnNode = NULL;
+		getTokensUntil(TOK_SEMICOLON);  //does this help?
+	      }
+	    else
+	      {
+		brtn = true;
+		nextNode = new NodeStatements(rtnNode, m_state);
+		assert(nextNode);
+		nextNode->setNodeLocation(rtnNode->getNodeLocation());
+	      }
+	  }
+	return brtn;
+      } //constdef done.
+
 
     m_state.m_parsingElementParameterVariable = false;
     //static element parameter
@@ -1021,6 +1045,10 @@ namespace MFM {
       {
 	rtnNode = parseTypedef();
       }
+    else if(pTok.m_type == TOK_KW_CONSTDEF)
+      {
+	rtnNode = parseConstdef();
+      }
     else if(pTok.m_type == TOK_KW_RETURN)
       {
 	unreadToken();               // needs location
@@ -1123,6 +1151,46 @@ namespace MFM {
       }
     return rtnNode;
   } //parseTypedef
+
+
+  // Named constants (constdefs) are not transferred to generated code;
+  // they are a short-hand for scalar constant expressions (e.g. terminals),
+  // that are not 'storeintoable'; scope-specific.
+  Node * Parser::parseConstdef()
+  {
+    Node * rtnNode = NULL;
+    Token pTok;
+    getNextToken(pTok);
+
+    if(Token::isTokenAType(pTok))
+      {
+	// check for Type bitsize specifier;
+	s32 typebitsize = 0;
+	s32 arraysize = NONARRAYSIZE;
+	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
+
+	Token iTok;
+	getNextToken(iTok);
+	//insure the typedef name starts with a lower case letter
+	if(iTok.m_type == TOK_IDENTIFIER)
+	  {
+	    rtnNode = makeConstdefSymbol(pTok, typebitsize, arraysize, iTok, bitsizeNode);
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid constant-def Alias <" << m_state.getTokenDataAsString(&iTok).c_str() << ">, Constant Identifier (2nd arg) requires lower-case";
+	    MSG(&iTok, msg.str().c_str(), ERR);
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Invalid constant-def Type <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	MSG(&pTok, msg.str().c_str(), ERR);
+      }
+    return rtnNode;
+  } //parseConstdef
 
 
   // used for data members or local function variables; or
@@ -1870,6 +1938,20 @@ namespace MFM {
       {
       case TOK_IDENTIFIER:
 	{
+	  Symbol * asymptr = NULL;
+	  if(m_state.alreadyDefinedSymbol(pTok.m_dataindex,asymptr))
+	    {
+	      // if its an already defined named constant, in current block,
+	      // then return a NodeConstant, instead of NodeIdent, without arrays.
+	      if(asymptr->isConstant())
+		{
+		  NodeConstant * rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
+		  assert(rtnNode);
+		  rtnNode->setNodeLocation(pTok.m_locator);
+		  return rtnNode; //done.
+		}
+	    }
+
 	  rtnNode = parseIdentExpr(pTok);
 	  // test ahead for UNOP_EXPRESSION so that any consecutive binary
 	  // ops aren't misinterpreted as a unary operator (e.g. +,-).
@@ -2842,6 +2924,112 @@ namespace MFM {
 
     return rtnNode;
   } //makeTypedefSymbol
+
+
+  Node * Parser::makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize)
+  {
+    NodeConstantDef * rtnNode = NULL;
+    Node * lvalNode = parseLvalExpr(identTok);
+
+    if(lvalNode)
+      {
+	// lvalNode could be either a NodeIdent or a NodeSquareBracket
+	//though arrays not legal in this context!!!
+	// process identifier...check if already defined in current scope; if not, add it;
+	// return a SymbolConstantValue.
+
+	Symbol * asymptr = NULL;
+	UTI uti;
+	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, uti))
+	  {
+	    arraysize = m_state.getArraySize(uti); //typedef built-in arraysize, no []
+	    assert(typebitsize == 0);
+	    typebitsize = m_state.getBitSize(uti);
+	  }
+	//else some sort of primitive
+
+	if(!lvalNode->installSymbolConstantValue(typeTok, typebitsize, arraysize, asymptr))
+	  {
+	    if(asymptr)
+	      {
+		std::ostringstream msg;
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "' and cannot be used as a named constant";
+		MSG(&typeTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		//installSymbol failed for other reasons (e.g. problem with []) , error already output.
+		// rtnNode is NULL;
+		std::ostringstream msg;
+		msg << "Invalid constant-def of Type: <" << m_state.getTokenAsATypeName(typeTok).c_str() << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str() << "> (problem with [])";
+		MSG(&typeTok, msg.str().c_str(), ERR);
+	      }
+
+	    //perhaps read until semi-colon
+	    getTokensUntil(TOK_SEMICOLON);
+	    unreadToken();
+	  }
+	else
+	  {
+	    NodeConstantDef * constNode =  new NodeConstantDef((SymbolConstantValue *) asymptr, m_state);
+	    assert(constNode);
+	    constNode->setNodeLocation(typeTok.m_locator);
+
+	    rtnNode = parseRestOfConstantDef(constNode); //refactored for readability
+
+	  }
+
+	//link square bracket for constant expression, if unknown array size
+	//link last arg for constant expression, if unknown bit size
+	// o.w. clean up!
+	if(rtnNode)
+	  {
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	  }
+	else
+	  {
+	    delete lvalNode;  //done with it
+	    delete constExprForBitSize; //done with it
+	  }
+      }
+    else
+      delete constExprForBitSize;
+
+    return rtnNode;
+  } //makeConstdefSymbol
+
+
+  NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode)
+  {
+    NodeConstantDef * rtnNode = constNode;
+    if(getExpectedToken(TOK_EQUAL))
+      {
+	Node * exprNode = parseExpression();
+	if(exprNode)
+	  {
+	    constNode->setConstantExpr(exprNode);
+	    if(!constNode->foldConstantExpression())
+	      {
+		std::ostringstream msg;
+		msg << "Named constant <" << constNode->getName() << "> is not 'ready'";
+		MSG(constNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+
+		// add to non-ready list of subtrees
+		m_state.linkConstantExpression(constNode);
+	      }
+	  }
+      }
+    else
+      {
+	//perhaps read until semi-colon
+	getTokensUntil(TOK_SEMICOLON);
+	unreadToken();
+	delete constNode;  //does this also delete the symbol?
+	constNode = NULL;
+	rtnNode = NULL;
+      }
+    return rtnNode;
+  } //parseRestOfConstantDef
 
 
   Node * Parser::parseRestOfAssignExpr(Node * leftNode)

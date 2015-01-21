@@ -289,6 +289,58 @@ namespace MFM {
   } //installSymbolTypedef
 
 
+  bool NodeIdent::installSymbolConstantValue(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  {
+    // ask current scope block if this variable name is there;
+    // if so, nothing to install return symbol and false
+    // function names also checked when currentBlock is the classblock.
+    if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
+      {
+	return false;    //already there
+      }
+
+    ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
+
+    //typedef might have bitsize and arraysize info..
+    UTI tduti = Nav;
+    if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, tduti))
+      {
+	s32 tdarraysize = m_state.getArraySize(tduti);
+	if(tdarraysize >= 0 || arraysize >= 0)
+	  {
+	    //error can't support arrays
+	    std::ostringstream msg;
+	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(tduti).c_str() << ", and cannot be used in NAME CONSTANT: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return false;
+	  }
+
+	if(m_state.getBitSize(tduti) > 0 && bitsize == 0)
+	  {
+	    //ok to use typedef bitsize
+	    bitsize = m_state.getBitSize(tduti);
+	  }
+      } //end if typedef
+
+    if(bitsize == 0)
+      bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+
+    //ulike typedefs, constant names begin with lowercase letter..and the rest can be either case
+    u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
+    UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
+
+    // o.w. build symbol, first the base type (with array size)
+    UTI uti = m_state.makeUlamType(key, bUT);
+
+    //create a symbol for this new named constant, a constant-def, with its value
+    SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token.m_dataindex, uti, m_state);
+    m_state.addSymbolToCurrentScope(symconstdef);
+
+    //gets the symbol just created by makeUlamType
+    return (m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr));  //true
+  } //installSymbolConstantValue
+
+
   //see also NodeSquareBracket
   bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {

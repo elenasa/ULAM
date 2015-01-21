@@ -504,31 +504,11 @@ namespace MFM {
   } //statusUnknownArraysizeUTI
 
 
-  void CompilerState::linkConstantExpression(SymbolConstantValue * ceNode)
+  void CompilerState::linkConstantExpression(NodeConstantDef * ceNode)
   {
     if(ceNode)
       m_nonreadyNamedConstantSubtrees.insert(ceNode);
   }
-
-
-  bool CompilerState::constantFoldNonreadyNamedConstant(SymbolConstantValue * scvptr)
-  {
-    bool rtnBool = true; //unfound
-    std::set<SymbolConstantValue *>::iterator it = m_nonreadyNamedConstantSubtrees.find(scvptr);
-
-    if(it != m_nonreadyNamedConstantSubtrees.end())
-      {
-	SymbolConstantValue * ceNode = *it;
-	assert(ceNode);
-	rtnBool = ceNode->foldConstantExpression(); //eval;
-	if(rtnBool) //must be ready!
-	  {
-	    //don't delete ceNode;
-	    m_nonreadyNamedConstantSubtrees.erase(it);
-	  }
-      }
-    return rtnBool;
-  } //constantFoldNonreadyNamedConstant
 
 
   bool CompilerState::statusNonreadyNamedConstants()
@@ -536,7 +516,7 @@ namespace MFM {
     bool rtnstat = true; //ok, empty
     if(!m_nonreadyNamedConstantSubtrees.empty())
       {
-	std::vector<SymbolConstantValue *> lostCs;
+	std::vector<NodeConstantDef *> lostCs;
 	u32 lostsize = m_nonreadyNamedConstantSubtrees.size();
 
 	std::ostringstream msg;
@@ -544,28 +524,25 @@ namespace MFM {
 	msg << m_pool.getDataAsString(m_compileThisId);
 	msg << ">, size " << lostsize << ":";
 
-	std::set<SymbolConstantValue *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
+	std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
 
 	while(it != m_nonreadyNamedConstantSubtrees.end())
 	  {
-	    SymbolConstantValue * scv = *it;
-	    u32 id = scv->getId();
-	    msg << " (Id" << id << ") " << m_pool.getDataAsString(id).c_str() << ",";
-	    lostCs.push_back(scv);
+	    NodeConstantDef * constNode = *it;
+	    msg << constNode->getName() << ",";
+	    lostCs.push_back(constNode);
 	    it++;
 	  }
 
 	msg << " trying to update now";
 	MSG2("", msg.str().c_str(), DEBUG);
 	rtnstat = false;
-
 	assert(lostCs.size() == lostsize);
 	while(!lostCs.empty())
 	  {
-	    SymbolConstantValue * scv = lostCs.back();
-	    scv->foldConstantExpression();
-	    //if(scv->isReady())
-	      lostCs.pop_back();
+	    NodeConstantDef * ncd = lostCs.back();
+	    ncd->foldConstantExpression();
+	    lostCs.pop_back();
 	  }
 	lostCs.clear();
       }

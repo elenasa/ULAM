@@ -47,6 +47,7 @@ namespace MFM{
   {
   public:
 
+    NodeTerminal(CompilerState & state); //for NodeConstant
     NodeTerminal(Token tok, CompilerState & state);
     NodeTerminal(s32 val, CompilerState & state);
     NodeTerminal(u32 val, CompilerState & state);
