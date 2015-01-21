@@ -197,6 +197,7 @@ namespace MFM {
 	msg << ">";
 	MSG("", msg.str().c_str(), ERR);
       }
+#if 0
     else
       {
 	std::ostringstream msg;
@@ -205,7 +206,7 @@ namespace MFM {
 	msg << "> --- good to go!";
 	MSG("", msg.str().c_str(), DEBUG);
       }
-
+#endif
   } //countNavNodesInFunctionDefs
 
 

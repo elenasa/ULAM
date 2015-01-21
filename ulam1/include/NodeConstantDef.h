@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool getSymbolPtr(Symbol *& symptrref);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);

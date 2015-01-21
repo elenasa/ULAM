@@ -41,6 +41,13 @@ namespace MFM {
   }
 
 
+  bool NodeConstantDef::getSymbolPtr(Symbol *& symptrref)
+  {
+    symptrref = m_constSymbol;
+    return true;
+  }
+
+
   UTI NodeConstantDef::checkAndLabelType()
   {
     UTI it = Nav;
@@ -76,13 +83,11 @@ namespace MFM {
   bool NodeConstantDef::foldConstantExpression()
   {
     //    NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
-
-    s32 newconst = NONREADYCONST;
-    UTI uti = checkAndLabelType();
+    s32 newconst = NONREADYCONST;  //always signed?
+    UTI uti = checkAndLabelType(); //getNodeType()
     if((uti == m_state.getUlamTypeOfConstant(Int) || uti == m_state.getUlamTypeOfConstant(Unsigned)))
-      {
+    {
 	//	m_state.m_currentBlock = m_currBlock;
-
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
 	m_exprnode->eval();
@@ -127,16 +132,7 @@ namespace MFM {
 
 
   void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
-  {
-#if 0
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(m_state.getUlamTypeByIndex(m_constSymbol->getUlamTypeIdx())->getUlamTypeMangledName().c_str()); //for C++
-    fp->write(" ");
-    fp->write(getName());
-    fp->write(";\n");
-#endif
-  }
+  {}
 
 
 

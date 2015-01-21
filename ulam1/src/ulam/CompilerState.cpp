@@ -19,22 +19,21 @@
 namespace MFM {
 
   //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
+
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
 #else
   static const bool debugOn = false;
 #endif
 
-
-  //#define _INFO_OUTPUT
 #ifdef _INFO_OUTPUT
   static const bool infoOn = true;
 #else
   static const bool infoOn = false;
 #endif
 
-
-  //#define _WARN_OUTPUT
 #ifdef _WARN_OUTPUT
   static const bool warnOn = true;
 #else
@@ -194,8 +193,6 @@ namespace MFM {
 	m_indexToUlamKey.push_back(key);
 	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(key,ut)); //map owns ut
 
-	//m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
-#if 1
 	std::pair<std::map<UlamKeyTypeSignature,UTI, less_than_key>::iterator, bool> ret;
 	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
 	bool notdup = ret.second; //false if already existed, i.e. not added
@@ -206,7 +203,6 @@ namespace MFM {
 	    MSG2("", msg.str().c_str(), DEBUG);
 	  }
 	else
-#endif
 	  {
 	    std::ostringstream msg;
 	    msg << "Added Key to A UTI: " << ut->getUlamTypeName(this).c_str() << " (UTI" << uti << ")";
@@ -529,26 +525,37 @@ namespace MFM {
 	while(it != m_nonreadyNamedConstantSubtrees.end())
 	  {
 	    NodeConstantDef * constNode = *it;
-	    msg << constNode->getName() << ",";
-	    lostCs.push_back(constNode);
+	    Symbol * csym;
+	    if(constNode->getSymbolPtr(csym) && !((SymbolConstantValue *) csym)->isReady())
+	      {
+		msg << constNode->getName() << ",";
+		lostCs.push_back(constNode);
+	      }
 	    it++;
 	  }
 
-	msg << " trying to update now";
-	MSG2("", msg.str().c_str(), DEBUG);
-	rtnstat = false;
-	assert(lostCs.size() == lostsize);
-	while(!lostCs.empty())
+	if(!lostCs.empty())
 	  {
-	    NodeConstantDef * ncd = lostCs.back();
-	    ncd->foldConstantExpression();
-	    lostCs.pop_back();
+	    msg << " trying to update now";
+	    rtnstat = false;
+	    assert(lostCs.size() == lostsize);
+	    while(!lostCs.empty())
+	      {
+		NodeConstantDef * ncd = lostCs.back();
+		ncd->foldConstantExpression();
+		lostCs.pop_back();
+	      }
+	    lostCs.clear();
 	  }
-	lostCs.clear();
+	else
+	  {
+	    msg << " all ready";
+	    m_nonreadyNamedConstantSubtrees.clear();  //all ready
+	  }
+	MSG2("", msg.str().c_str(), DEBUG);
       }
     return rtnstat;
   } //statusNonreadyNamedConstants
-
 
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)

@@ -212,7 +212,7 @@ namespace MFM {
     if(warns > 0)
       {
 	std::ostringstream msg;
-	msg << warns << " warnings during type labeling";
+	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during type labeling";
 	MSG("", msg.str().c_str(), INFO);
       }
 

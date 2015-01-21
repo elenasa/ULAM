@@ -70,7 +70,7 @@ namespace MFM{
   private:
     Token m_token;
     SymbolConstantValue * m_constSymbol;
-
+    bool m_ready;
     bool updateConstant();
   };
 
