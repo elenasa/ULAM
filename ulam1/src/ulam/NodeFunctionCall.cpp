@@ -101,7 +101,6 @@ namespace MFM {
 	numErrorsFound++;
       }
 
-
     if(!numErrorsFound)
       {
 	if(m_funcSymbol == NULL)
@@ -178,7 +177,6 @@ namespace MFM {
     assert(diffInArgs == 0 || m_funcSymbol->takesVariableArgs());
 
     // place values of arguments on call stack (reverse order) before calling function
-    //for(s32 i= m_argumentNodes.size() - 1; i >= 0; i--)
     for(s32 i= m_argumentNodes.size() - diffInArgs - 1; i >= 0; i--)
       {
 	UTI argType = m_argumentNodes[i]->getNodeType();
@@ -222,7 +220,6 @@ namespace MFM {
 	  }
       } //done with args
 
-
     //before pushing return slot(s) last (on both STACKS for now)
     UTI rtnType = m_funcSymbol->getUlamTypeIdx();
     s32 rtnslots = makeRoomForNodeType(rtnType);
@@ -262,7 +259,7 @@ namespace MFM {
 	assert(evs != RETURN);
 	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
 	m_state.m_currentObjPtr = saveCurrentObjectPtr;    //restore current object ptr *************
-	m_state.m_currentSelfPtr = saveSelfPtr;                  //restore previous self      *****
+	m_state.m_currentSelfPtr = saveSelfPtr;            //restore previous self      *****
 	evalNodeEpilog();
 	return evs;
       }
@@ -284,7 +281,7 @@ namespace MFM {
     m_state.m_currentSelfPtr = saveSelfPtr;                     //restore previous self      *************
     evalNodeEpilog();                                     //clears out the node eval stack
     return NORMAL;
-  }
+  } //eval
 
 
   EvalStatus NodeFunctionCall::evalToStoreInto()
@@ -469,7 +466,6 @@ namespace MFM {
 	fp->write(" = ");
       } //not void return
 
-
     // static functions..oh yeah..but only for quarks
     // who's function is it?
     if(!isCurrentObjectALocalVariableOrArgument())
@@ -495,7 +491,6 @@ namespace MFM {
 	fp->write("}\n");  //close for tmpVar
       }
 #endif
-
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //codeGenIntoABitValue
 
@@ -538,7 +533,7 @@ namespace MFM {
     ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
     // the EP:
-    if(cosclasstype == UC_NOTACLASS)  //atom too???
+    if(cosclasstype == UC_NOTACLASS)  //atom too?
       {
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
@@ -558,10 +553,10 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //for immmediate quark EP..???
+	    //for immmediate quark EP..?
 	    fp->write(cosut->getImmediateStorageTypeAsString(&m_state).c_str());
 	    fp->write("::");
-	    fp->write("Us::");      //typedef, always for funccalls
+	    fp->write("Us::"); //typedef, always for funccalls
 	  }
       }
 

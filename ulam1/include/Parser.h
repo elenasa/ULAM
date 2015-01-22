@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * Parser.h -  Basic Parse handling for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file Parser.h -  Basic Parse handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -46,6 +46,7 @@
 #include "NodeBinaryOp.h"
 #include "NodeBlock.h"
 #include "NodeConditionalAs.h"
+#include "NodeConstantDef.h"
 #include "NodeFunctionCall.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
@@ -62,118 +63,123 @@ namespace MFM{
   class Parser
   {
   public:
-    //    Parser(Tokenizer * izer);
     Parser(Tokenizer * izer, CompilerState & state);
     ~Parser();
 
     /**
-	<PROGRAM> := <PROGRAM_DEF>* + <EOF>
+	<LIBRARY> := <PROGRAM_DEF>* + <EOF>
 
-	Ends when subject of compile (i.e. startstr) has been parsed
-	(takes an optional error output arg). Returns number of errors.
+	Ends when each subject of compile (i.e. startstr) has been parsed
+	(takes an optional error output arg), until EOF; Returns number of errors.
      */
     u32 parseProgram(std::string startstr, File * errOutput = NULL);
 
-
   private:
-
     // owned by parent, e.g. Compiler object. Has Tables of Classes.
     CompilerState & m_state;
 
     // owned by parent, e.g. Compiler object.  used to get Tokens
     Tokenizer * m_tokenizer;
 
-
     /**
-	<PROGRAM_DEF> := <QUARK_DEF> | <ELEMENT_DEF>
+	<PROGRAM_DEF> := <QUARK_OR_UNION_DEF> | <ELEMENT_DEF>
 	<ELEMENT_DEF> := 'element' + <TYPE_IDENT> + <CLASS_BLOCK>
-	<QUARK_DEF>   := 'quark'   + <TYPE_IDENT> + <CLASS_BLOCK>
+	<QUARK_OR_UNION_DEF> := ('quark' | 'union')   + <TYPE_IDENT> + <CLASS_BLOCK>
     */
     bool parseThisClass();
-
 
     /**
 	<CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
     */
     NodeBlockClass * parseClassBlock(UTI utype);
 
-
     /**
-       <DATA_MEMBERS> := ( <FUNC_DEF> | <DECL> + ';' | <TYPE_DEF> + ';' )*
+       <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | ('element' | 0) + <DECL> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
      */
     bool parseDataMember(NodeStatements *& nextNode);
-
 
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'
     */
     Node * parseBlock();
 
-
     /**
 	<STATEMENTS> := NULL | <STATEMENT> + <STATEMENTS>
     */
     Node * parseStatements();
 
-
     /**
-	<STATEMENT> := <SIMPLE_STATEMENT> | <BLOCK> | <CONTROL_STATEMENTS> | <FUNC_DEF>
+	<STATEMENT> := <SIMPLE_STATEMENT> | <CONTROL_STATEMENT> | <BLOCK>
      */
     Node * parseStatement();
 
-
     /**
-	<CONTROL_STATEMENT> := <IF_STATEMENT> | <WHILE_STATEMENT>
+	<CONTROL_STATEMENT> := <IF_STATEMENT> | <WHILE_STATEMENT> | <FOR_STATEMENT> |
+                               <BREAK_STATEMENT> | <CONTINUE_STATEMENT>
+	<BREAK_STATEMENT> := 'break' + ';'
+	<CONTINUE_STATEMENT> := 'continue' + ';'
     */
     Node * parseControlStatement();
 
     /**
-	<IF_STATEMENT> := 'if' + '(' + <ASSIGN_EXPR> + ')' + <STATEMENT> + <OPT_ELSE_STATEMENT>
+	<IF_STATEMENT> := 'if' + '(' + <CONDITIONAL_EXPR> + ')' + <STATEMENT> + <OPT_ELSE_STATEMENT>
 	<OPT_ELSE_STATEMENT> := 0 | 'else' + <STATEMENT>
     */
     Node * parseControlIf(Token ifTok);
 
     /**
-       <WHILE_STATEMENT> := 'while' + '(' + <ASSIGN_EXPR> + ')' + <STATEMENT>
+       <WHILE_STATEMENT> := 'while' + '(' + <CONDITIONAL_EXPR> + ')' + <STATEMENT>
+       => equiv to a parse tree shaped like: while(true) { if(! <CONDITIONAL_EXPR) break; <STATEMENT> }
     */
     Node * parseControlWhile(Token wTok);
 
     /**
-       <FOR_STATEMENT> := 'for' + '(' + <STATEMENT_DECL> + ';' + <CONDITIONAL_EXPRESSION> + ';'
-                                + <ASSIGN_EXPRESSION> + ')' + <STATEMENT>
-			=> equiv to a parse tree shaped like: { <STATEMENT_DECL>  while ( <CONDITIONAL_EXPRESSION> ) { <STATEMENT> <ASSIGN_EXPRESSION> } }
+       <FOR_STATEMENT> := 'for' + '(' + ( 0 | <STATEMENT_DECL>) + ';' + ( 0 | <CONDITIONAL_EXPRESSION>)
+                                + ';' + ( 0 | <ASSIGN_EXPRESSION>) + ')' + <STATEMENT>
+			=> equiv to a parse tree shaped like: { <STATEMENT_DECL>  while ( <CONDITIONAL_EXPR> ) { <STATEMENT> <ASSIGN_EXPRESSION> } }
      */
     Node * parseControlFor(Token fTok);
 
     /**
-	helper for 'as' condition in if/while
+       <CONDITIONAL_EXPR> := <SIMPLE_COND_DECL> | <ASSIGN_EXPR>
+       <SIMPLE_COND_DECL> := <IDENT_EXPR> + 'as' + <TYPE_IDENT>
+    */
+    Node * parseConditionalExpr();
+
+    /**
+       (helper for 'as' condition in if/while)
     */
     Node * setupAsConditionalBlockAndParseStatements(NodeConditionalAs * asNode);
 
-
     /**
-	<SIMPLE_STATEMENT> := ( 0 | <DECL> | <FUNC_DECL> | <TYPE_DEF> | <ASSIGNEXPR> ) + ';'
+	<SIMPLE_STATEMENT> := ( 0 | <STATEMENT_DECL> | <TYPE_DEF> | <CONST_DEF> | <ASSIGN_EXPR> |
+                                <RETURN_STATEMENT> ) + ';'
      */
     Node * parseSimpleStatement();
 
-
     /**
+       <TYPE_NAME> := 'Int' | 'Unsigned' | 'Bool' | 'Unary' | 'Bits | <TYPE_IDENT> | <Type_IdENT> + ( '.' + <TYPE_IDENT>)*
+       <TYPE> := <TYPE_NAME> | <TYPE_NAME> + '(' + <EXPRESSION> + ')'
+       <TYPE_IDENT> := /^[A-Z][A-Za-z0-9\_]*
        <TYPEDEF> := 'typedef' + <TYPE> + <TYPE_EXPRESSION>
        <TYPE_EXPRESSION> := ( <TYPE_IDENT> | <TYPE_IDENT> + '[' + <EXPRESSION> + ']')
     */
     Node * parseTypedef();
 
-
-    /** helper for parseTypedef */
-    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize);
-
+    /**
+       <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
+    */
+    Node * parseConstdef();
 
     /**
        <DECL> := <TYPE> + <VAR_DECLS>
-       <TYPE_NAME> := 'Int' | 'Float' | 'Bool' | <TYPE_IDENT>
-       <TYPE> := <TYPE_NAME> | <TYPE_NAME> + '(' + <EXPRESSION> + ')'
+       <VAR_DECLS> := <VAR_DECL> | <VAR_DECL> + ',' + <VAR_DECLS>
+       <VAR_DECL> := <LVAL_EXPR>
 
-       <TYPE_IDENT> := /^[A-Z][A-Za-z0-9\_]*
+       <STATEMEMT_DEC> := <TYPE> + <VAR_STATEMENT_DECLS>
+       <VAR_STATEMENT_DECLS> := <VAR_STATEMENT_DECL> | <VAR_STATEMENT_DECL> + ',' + <VAR_STATEMENT_DECLS>
+       <VAR_STATEMENT_DECL> := <LVAL_EXPR> + ( 0 | '=' + ASSIGN_EXPR>)
+
        (when flag is true stops after one decl for function parameters).
     */
     Node * parseDecl(bool parseSingleDecl = false);
@@ -185,22 +191,15 @@ namespace MFM{
     void parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize);
 
     /**
-       <RETURN_STATMENT> := 'return' + (0 | <ASSIGNEXPR>)
+       <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)
     */
     Node * parseReturn();
 
     /**
-       <CONDITIONAL_EXPRESSION> := <COND_DECL> | <ASSIGN_EXPESSION>
-       <COND_DECL> := <SIMPLE_COND_DECL>
-       <SIMPLE_COND_DECL> := <IDENT_EXPR> + 'as' + <TYPE_IDENT>
-    */
-    Node * parseConditionalExpr();
-
-    /**
-       <ASSIGNEXPR> := <EXPRESSION> | <LVAL_EXPRESSION> + '=' + <ASSIGNEXPR>
+       <ASSIGNEXPR> := <EXPRESSION> | <LVAL_EXPRESSION> + <ASSIGN_OP> + <ASSIGNEXPR>
+       <ASSIGN_OP> := '=' | '+=' | '-=' | '*=' | '&=' | '|=' | '^='
     */
     Node * parseAssignExpr();
-
 
     /**
        <LVAL_EXPRESSION> := <IDENT> | <IDENT> + '[' + <EXPRESSION> + ']'
@@ -208,12 +207,10 @@ namespace MFM{
     */
     Node * parseLvalExpr(Token identTok);
 
-
     /**
-       <IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <FUNC_CALL> | <MEMBER_SELECT_EXPRESSION>
+       <IDENT_EXPRESSION> := <LVAL_EXPRESSION> | <MEMBER_SELECT_EXPRESSION> | <FUNC_CALL>
     */
     Node * parseIdentExpr(Token identTok);
-
 
     /**
 	<MEMBER_SELECT_EXPRESSION> := <IDENT_EXPRESSION> + '.' + <IDENT_EXPRESSION>
@@ -229,106 +226,102 @@ namespace MFM{
     */
     Node * parseFunctionCall(Token identTok);
 
-
     /**
        <ARGS>    := 0 | <ARG> | <ARG> + ',' + <ARGS>
        <ARG>     := <ASSIGNEXPR>
     */
     bool parseRestOfFunctionCallArguments(NodeFunctionCall * callNode);
 
-
     /**
        <EXPRESSION> := <LOGICAL_EXPRESSION> | <EXPRESSION> <LOGICALOP> <LOGICAL_EXPRESSION>
+       <LOGICALOP> := '&&' | '||'
     */
     Node * parseExpression();
 
-
     /**
        <LOGICAL_EXPRESSION> := <BIT_EXPRESSION> | <LOGICAL_EXPRESSION> <BITOP> <BIT_EXPRESSION>
+       <BITOP> := '&' | '|' | '^'
     */
     Node * parseLogicalExpression();
 
-
     /**
        <BIT_EXPRESSION> := <EQ_EXPRESSION> | <BIT_EXPRESSION> <EQOP> <EQ_EXPRESSION>
+       <EQOP> := '==' | '!='
     */
     Node * parseBitExpression();
 
-
     /**
        <EQ_EXPRESSION> := <COMPARE_EXPRESSION> | <EQ_EXPRESSION> <COMPOP> <COMPARE_EXPRESSION>
+       <COMPOP> := '<' | '>' | '<=' | '>='
     */
     Node * parseEqExpression();
 
-
     /**
        <COMPARE_EXPRESSION> := <SHIFT_EXPRESSION> | <COMPARE_EXPRESSION> <SHIFTOP> <SHIFT_EXPRESSION>
+       <SHIFTOP> := '<<' | '>>'
     */
     Node * parseCompareExpression();
 
-
     /**
        <SHIFT_EXPRESSION> := <TERM> | <SHIFT_EXPRESSION> <ADDOP> <TERM>
+       <ADDOP> := '+' | ' -'
     */
     Node * parseShiftExpression();
 
-
     /**
 	<TERM> := <FACTOR> | <TERM> <MULOP> <FACTOR>
+	<MULOP> := '*' | '/' | '%'
     */
     Node * parseTerm();
 
-
     /**
-       <FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <EXPRESSION> + ')' | <UNOP_EXPRESSION>
+       <FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPR> + ')' | <UNOP_EXPRESSION>
        <UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRES> + ('is' | 'has') + <TYPE_IDENT>
+       <UNOP> := '-' | '+' | '!' | <CAST>
      */
     Node * parseFactor();
 
+    Node * parseRestOfFactor(Node * leftNode);
 
-    /**
-	<EQOP> := '='
-    */
-    Node * parseRestOfAssignExpr(Node * leftNode);
+    Node * parseRestOfCastOrExpression();
 
+    Node * parseRestOfTerm(Node * leftNode);
 
-    Node * makeConditionalExprNode(Node * leftNode);
+    Node * parseRestOfShiftExpression(Node * leftNode);
 
-    /**
-       '['
-    */
+    Node * parseRestOfCompareExpression(Node * leftNode);
+
+    Node * parseRestOfEqExpression(Node * leftNode);
+
+    Node * parseRestOfBitExpression(Node * leftNode);
+
+    Node * parseRestOfLogicalExpression(Node * leftNode);
+
+    Node * parseRestOfExpression(Node * leftNode);
+
     Node * parseRestOfLvalExpr(Node * leftNode);
 
+    Node * parseRestOfAssignExpr(Node * leftNode);
 
-    /**
-	<VAR_DECLS> := <VAR_DECL> | <VAR_DECL> + ',' + <VAR_DECLS>
-	<VAR_DECL> := <LVAL_EXPRESSION>
-    */
     Node * parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode, bool assignOK = true);
 
     Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode);
 
-    /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize=NULL);
-
+    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode);
 
     /**
-	<FUNC_DEF>  := <FUNC_DECL> + <BLOCK>
-	<FUNC_DECL> := <TYPE> + <IDENT> + '(' + <FUNC_PARAMS> + ')'
+	<FUNC_DEF>  := <ULAM_FUNC_DEF> | <NATIVE_FUNC_DEF>
+	<ULAM_FUNC_DEF> := <FUNC_DECL> + <BLOCK>
+	<NATIVE_FUNC_DEF> := <FUNC_DECL> + 'native' + ';'
+
+	<FUNC_DECL> := <TYPE> + <IDENT> + '(' + <FUNC_PARAM_DECLS> + ')'
+	<FUNC_PARAM_DECLS> := 0 | '...' | <FUNC_PARAMS> | <FUNC_PARAMS> + ',' + '...'
+	<FUNC_PARAMS> := <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
+	<FUNC_PARAM>  := <TYPE> + <VAR_DECL>
      */
-    Node * makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, NodeTypeBitsize * constExprForBitSize);
-
-
-    /** helper method */
     NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
-
-    /**
-	<FUNC_PARAMS> := 0 | <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
-	<FUNC_PARAM>  := <TYPE> + <VAR_DECL> | <FUNC_DECL>
-    */
     void parseRestOfFunctionParameters(SymbolFunction * sym);
-
 
     /**
 	helper method for function definition, populates funcNode,
@@ -337,65 +330,25 @@ namespace MFM{
     bool parseFunctionBody(NodeBlockFunctionDefinition *& funcNode);
 
 
-    /**
-	<LOGICALOP> := '&&' | '||'
-    */
-    Node * parseRestOfExpression(Node * leftNode);
+    /** helper for parseDataMember */
+    Node * makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
+    /** helper for parseDecl and parseRestOfDecls */
+    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize=NULL);
 
-    /**
-       <BITOP> := '&' | '|' | '^'
-    */
-    Node * parseRestOfLogicalExpression(Node * leftNode);
+    /** helper for parseTypedef */
+    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
+    /** helper for parseConstdef */
+    Node * makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
-    /**
-	<EQOP> := '==' | '!='
-    */
-    Node * parseRestOfBitExpression(Node * leftNode);
-
-
-    /**
-	<COMPOP> := '<' | '>' | '<=' | '>='
-    */
-    Node * parseRestOfEqExpression(Node * leftNode);
-
-
-    /**
-	<SHIFTOP> := '<<' | '>>'
-    */
-    Node * parseRestOfCompareExpression(Node * leftNode);
-
-
-    /**
-	<ADDOP> := '+' | '-'
-    */
-    Node * parseRestOfShiftExpression(Node * leftNode);
-
-
-    /**
-	<MULOP> := '*' | '/' | '%'
-     */
-    Node * parseRestOfTerm(Node * leftNode);
-
-
-    /**
-	<UNOP> := '-' | '+' | '!' | <CAST>
-    */
-    Node * parseRestOfFactor(Node * leftNode);
-
-
-    /**
-       <CAST> := '(' + <TYPE> + ')'
-    */
-    Node * makeCastNode(Token typeTok);
-    Node * parseRestOfCastOrExpression();
+    /** helper method for parseConditionalExpr */
+    Node * makeConditionalExprNode(Node * leftNode);
 
     /**
        helper method to make assigment nodes
     */
     NodeBinaryOpEqual * makeAssignExprNode(Node * leftNode);
-
 
     /**
        helper methods to make binary expression nodes
@@ -412,17 +365,20 @@ namespace MFM{
     */
     NodeBinaryOp * makeTermNode(Node * leftNode);
 
-
     /**
        helper method to make unary factor nodes
     */
     Node * makeFactorNode();
+
+    /** helper for parseRestOfCastOrExpression via parseFactor*/
+    Node * makeCastNode(Token typeTok);
 
     /**
        helper method to make a terminal node
        for a constant value known at parse time (e.g. one for ++/--)
     */
     Node * makeTerminal(Token& locTok, s32 val, ULAMTYPE etype);
+
     Node * makeTerminal(Token& locTok, u32 val, ULAMTYPE etype);
 
     /**
@@ -434,14 +390,11 @@ namespace MFM{
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);
     bool getExpectedToken(TokenType closeTokType, bool quietly = false);
 
-
     /** helper , passes through to tokenizer */
     bool getNextToken(Token & tok);
 
-
     /** helper , passes through to tokenizer */
     void unreadToken();
-
 
     /**
 	helper, bypasses token until end reached
@@ -449,14 +402,12 @@ namespace MFM{
      */
     void getTokensUntil(TokenType lastTok);
 
-
     /**
 	initializes primitive UlamTypes into classBlock Symbol Table
      */
     void initPrimitiveUlamTypes();
-
   };
 
-}
+} //MFM
 
 #endif //end PARSER_H

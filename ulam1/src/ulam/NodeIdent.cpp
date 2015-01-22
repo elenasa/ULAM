@@ -289,6 +289,30 @@ namespace MFM {
   } //installSymbolTypedef
 
 
+  bool NodeIdent::installSymbolConstantValue(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  {
+    // ask current scope block if this variable name is there;
+    // if so, nothing to install return symbol and false
+    // function names also checked when currentBlock is the classblock.
+    if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
+      {
+	return false;    //already there
+      }
+
+    ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
+
+    // use constant type for base type for constants
+    UTI uti = m_state.getUlamTypeOfConstant(bUT);
+
+    //create a symbol for this new named constant, a constant-def, with its value
+    SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token.m_dataindex, uti, m_state);
+    m_state.addSymbolToCurrentScope(symconstdef);
+
+    //gets the symbol just created by makeUlamType
+    return (m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr));  //true
+  } //installSymbolConstantValue
+
+
   //see also NodeSquareBracket
   bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {

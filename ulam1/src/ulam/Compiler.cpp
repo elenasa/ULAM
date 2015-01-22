@@ -183,6 +183,20 @@ namespace MFM {
 	      }
 	  }
 
+	statcounter = 0;
+	while(!m_state.statusNonreadyNamedConstants())
+	  {
+	    if(++statcounter > MAX_ITERATIONS)
+	      {
+		std::ostringstream msg;
+		msg << "Before bit packing, non-ready Named Constants remain in class <";
+		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+		msg << ">, after " << statcounter << " iterations";
+		MSG("", msg.str().c_str(), ERR);
+		break;
+	      }
+	  }
+
 	// count Nodes with illegal Nav types; walk each class' data members and funcdefs.
 	m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
 
@@ -198,7 +212,7 @@ namespace MFM {
     if(warns > 0)
       {
 	std::ostringstream msg;
-	msg << warns << " warnings during type labeling";
+	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during type labeling";
 	MSG("", msg.str().c_str(), INFO);
       }
 

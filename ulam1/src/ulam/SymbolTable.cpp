@@ -549,7 +549,7 @@ namespace MFM {
     if(warns > 0)
       {
 	std::ostringstream msg;
-	msg << warns << " warnings during eval";
+	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during eval";
 	MSG("", msg.str().c_str(), INFO);
       }
 

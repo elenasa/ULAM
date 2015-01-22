@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamKeyTypeSignature.h -  Basic handling of UlamType Keys for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamKeyTypeSignature.h -  Basic handling of UlamType Keys for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -42,9 +42,9 @@
 #include "Constants.h"
 
 namespace MFM{
-  
+
   struct CompilerState;  //forward
-  
+
   struct UlamKeyTypeSignature
   {
     u32 m_typeNameId;
@@ -54,7 +54,7 @@ namespace MFM{
     UlamKeyTypeSignature();
     UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize=NONARRAYSIZE);
     ~UlamKeyTypeSignature();
-    
+
     const std::string getUlamKeyTypeSignatureName(CompilerState * state);
     u32 getUlamKeyTypeSignatureNameId();
     s32 getUlamKeyTypeSignatureBitSize();
@@ -68,8 +68,8 @@ namespace MFM{
     bool operator<(const UlamKeyTypeSignature & key2);
     bool operator==(const UlamKeyTypeSignature & key2);
   };
-  
-  
+
+
 }
 
 #endif //end ULAMKEYTYPESIGNATURE_H
