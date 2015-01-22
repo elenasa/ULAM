@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeUnsigned.h -  Basic handling of the Unsigned Integer UlamType for ULAM
+ * NodeConstant.h - Node handling NamedConstants for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,46 +26,54 @@
  */
 
 /**
-  \file UlamTypeUnsigned.h -  Basic handling of the Unsigned Integer UlamType for ULAM
+  \file NodeConstant.h - Node handling Named Constants for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
 
-#ifndef ULAMTYPEUNSIGNED_H
-#define ULAMTYPEUNSIGNED_H
+#ifndef NODECONSTANT_H
+#define NODECONSTANT_H
 
+#include "NodeTerminal.h"
+#include "Token.h"
+#include "SymbolConstantValue.h"
 #include "UlamType.h"
 
 namespace MFM{
 
-  class CompilerState; //forward
-
-  class UlamTypeUnsigned : public UlamType
+  class NodeConstant : public NodeTerminal
   {
   public:
 
-    UlamTypeUnsigned(const UlamKeyTypeSignature key);
-    virtual ~UlamTypeUnsigned(){}
+    NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state);
+    ~NodeConstant();
 
-    virtual ULAMTYPE getUlamTypeEnum();
+    virtual void printPostfix(File * fp);
 
-    virtual const std::string getUlamTypeVDAsStringForC();
+    virtual const char * getName();
 
-    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+    virtual const std::string prettyNodeName();
 
-    virtual const char * getUlamTypeAsSingleLowercaseLetter();
+    virtual void constantFold(Token tok);
 
-    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
+    virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
+    virtual UTI checkAndLabelType();
+
+    virtual EvalStatus eval();
+
+    virtual void genCode(File * fp, UlamValue& uvpass);
 
   private:
-
+    Token m_token;
+    SymbolConstantValue * m_constSymbol;
+    bool m_ready;
+    bool updateConstant();
   };
 
 }
 
-#endif //end ULAMTYPEUNSIGNED_H
+#endif //end NODECONSTANT_H

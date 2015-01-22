@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * File.h - Basic File handling for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file File.h - Basic File handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -55,12 +55,12 @@ namespace MFM
 
     s32 consume();
 
-    
+
     /** Return the next byte of the file, as a non-negative int.  If EOF is
 	encountered, read() returns -1.  If this File is not open, or is
 	not open for reading, or some other I/O problem occurs, read()
 	returns a negative number less than -1 according to some scheme you
-	devise. 
+	devise.
     */
     virtual s32 read() = 0;
 
@@ -68,7 +68,7 @@ namespace MFM
     /** Write the bottom 8 bits of ch to this File, and return 0 if
      successful.  If this File is not open, or is not open for output,
      or some other I/O problem occurs, write() returns a negative number
-     according to some scheme you devise. 
+     according to some scheme you devise.
     */
     virtual s32 write(s32 ch) = 0;
 
@@ -89,11 +89,11 @@ namespace MFM
      File is has already been closed, or some I/O problem occurs,
      close() returns a negative number according to some scheme you
      devise.  Except for the possibly changing return value, it should
-     be harmless to call close() on an already-closed file. 
+     be harmless to call close() on an already-closed file.
     */
     virtual s32 close() = 0;
 
-  private: 
+  private:
 
     s32 m_lastRead;
     bool m_haveLastRead;  // true when m_lastRead is valid

@@ -2,8 +2,8 @@
 /**                                        -*- mode:C++ -*-
  * CompilerState.h - Global Compiler State for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file CompilerState.h - Global Compiler State for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -41,6 +41,7 @@
 #include <string.h>
 #include <vector>
 #include <map>
+#include <set>
 #include "itype.h"
 #include "CallStack.h"
 #include "Constants.h"
@@ -49,6 +50,7 @@
 #include "File.h"
 #include "NodeBlock.h"
 #include "NodeCast.h"
+#include "NodeConstantDef.h"
 #include "NodeReturnStatement.h"
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
@@ -129,7 +131,7 @@ namespace MFM{
 
     std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
     std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
-
+    std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -161,6 +163,9 @@ namespace MFM{
     bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
     bool statusUnknownBitsizeUTI();
     bool statusUnknownArraysizeUTI();
+
+    void linkConstantExpression(NodeConstantDef * ceNode);
+    bool statusNonreadyNamedConstants();
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);

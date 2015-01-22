@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeTerminalProxy.h - Basic Node handling of unknown type sizes for ULAM
+ * NodeTerminalProxy.h - Node handling of Unknown Type Sizes for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeTerminalProxy.h - Basic Node handling unknown type sizes for ULAM
+  \file NodeTerminalProxy.h - Node handling Unknown Type Sizes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -60,7 +60,7 @@ namespace MFM{
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   private:
-    UTI m_uti;
+    UTI m_uti;       // lhs type of func
     Token m_funcTok; // minof, maxof or sizeof
 
     virtual bool setConstantValue(Token tok);

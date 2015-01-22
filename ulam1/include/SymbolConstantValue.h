@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * SymbolVariable.h -  Basic handling of Variable Symbols for ULAM
+ * SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,51 +26,63 @@
  */
 
 /**
-  \file SymbolVariable.h -  Basic handling of Variable Symbols for ULAM
+  \file SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
-#ifndef SYMBOLVARIABLE_H
-#define SYMBOLVARIABLE_H
+#ifndef SYMBOLCONSTANTVALUE_H
+#define SYMBOLCONSTANTVALUE_H
 
-#include "UlamValue.h"
 #include "Symbol.h"
 
 namespace MFM{
 
   class CompilerState;  //forward
+  class NodeConstantDef;  //forward
 
-  //distinguishes between SymbolFunction, SymbolTypedef, SymbolConstantValue
-  class SymbolVariable : public Symbol
+  //distinguish between Symbols
+  class SymbolConstantValue : public Symbol
   {
   public:
-    SymbolVariable(u32 id, UTI utype, PACKFIT packed, CompilerState& state);
-    ~SymbolVariable();
+    SymbolConstantValue(u32 id, UTI utype, CompilerState& state);
+    ~SymbolConstantValue();
 
-    virtual s32 getStackFrameSlotIndex();
-    virtual u32 getDataMemberSlotIndex();
+    virtual bool isConstant();
 
-    virtual s32 getBaseArrayIndex() = 0;
+    virtual bool isReady();
 
-    u32 getPosOffset();
-    void setPosOffset(u32 offsetIntoAtom);
 
-    PACKFIT isPacked();
-    void setPacked(PACKFIT p);
+    bool getValue(s32& val);
+    bool getValue(u32& val);
+    bool getValue(bool& val);
+    void setValue(s32 val);
+    void setValue(u32 val);
+    void setValue(bool val);
 
-    virtual void generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype) = 0;
+    bool foldConstantExpression();
+
+    virtual const std::string getMangledPrefix();
+
+    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
+
 
   protected:
-    u32 m_posOffset;
-    PACKFIT m_packed;
 
   private:
+    bool m_isReady;
 
+    union {
+      s32 sval;
+      u32 uval;
+      bool bval;
+    } m_constant;
+
+    NodeConstantDef * m_defnode;
   };
 
 }
 
-#endif //end SYMBOLVARIABLE_H
+#endif //end SYMBOLCONSTANTVALUE_H

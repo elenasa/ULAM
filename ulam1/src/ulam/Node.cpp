@@ -267,6 +267,10 @@ namespace MFM {
     return false;
   }
 
+  bool Node::installSymbolConstantValue(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  {
+    return false;
+  }
 
   bool Node::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {

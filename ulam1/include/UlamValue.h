@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * UlamValue.h -  Basic handling of UlamValues for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file UlamValue.h -  Basic handling of UlamValues for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -78,13 +78,13 @@ namespace MFM{
       } m_ptrValue;
 
       struct Storage {
-	//AtomBitVector m_atom;  //0-15 UTI, 16-24 errcorr. 25-96 designed by element data members	
+	//AtomBitVector m_atom;  //0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
 	u32 m_atom[AtomBitVector::ARRAY_LENGTH];
       } m_storage;
 
     } m_uv;
 
-    
+
     UlamValue();   //requires init to avoid Null ptr for type
     ~UlamValue();
 
@@ -126,17 +126,17 @@ namespace MFM{
 
     STORAGE getPtrStorage();
 
-    void setPtrSlotIndex(s32 s);  
+    void setPtrSlotIndex(s32 s);
 
-    s32 getPtrSlotIndex();  
+    s32 getPtrSlotIndex();
 
     void setPtrPos(u32 pos);
 
-    u32 getPtrPos();        
+    u32 getPtrPos();
 
     s32 getPtrLen();
 
-    UTI getPtrTargetType(); 
+    UTI getPtrTargetType();
 
     void setPtrTargetType(UTI type);
 
@@ -145,7 +145,7 @@ namespace MFM{
     void setPtrNameId(u32 id);
 
     void incrementPtr(CompilerState& state, s32 offset = 1);
-    
+
     static UlamValue getPackedArrayDataFromAtom(UlamValue p, UlamValue data, CompilerState& state);
 
     u32 getDataFromAtom(UlamValue p, CompilerState& state) const;
@@ -164,7 +164,7 @@ namespace MFM{
     //void putPackedArrayDataIntoAtom(UlamValue srcPtr, UlamValue srcData, UlamValue destPtr, CompilerState& state);
 
     u32 getData(u32 pos, s32 len) const;
-    
+
     void putData(u32 pos, s32 len, u32 data);
 
     UlamValue& operator=(const UlamValue& rhs);
