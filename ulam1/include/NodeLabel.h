@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeLabel.h - Node handling the Label Statement for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *

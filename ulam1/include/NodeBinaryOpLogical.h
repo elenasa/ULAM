@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBinaryOpLogical.h - Basic Node for handling Binary Logical Operations for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBinaryOpLogical.h - Basic Node for handling Binary Logical Operations for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -46,7 +46,7 @@ namespace MFM{
   class NodeBinaryOpLogical : public NodeBinaryOp
   {
   public:
-    
+
     NodeBinaryOpLogical(Node * left, Node * right, CompilerState & state);
     ~NodeBinaryOpLogical();
 
