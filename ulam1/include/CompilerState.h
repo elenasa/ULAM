@@ -132,6 +132,8 @@ namespace MFM{
     std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
     std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
     std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
+    std::map<UTI, std::vector<NodeConstantDef *> > m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
+
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -156,16 +158,22 @@ namespace MFM{
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
-    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
-    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+
     void constantFoldIncompleteUTI(UTI uti);
-    bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
-    bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
+    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
     bool statusUnknownBitsizeUTI();
+    bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
+    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
     bool statusUnknownArraysizeUTI();
 
     void linkConstantExpression(NodeConstantDef * ceNode);
     bool statusNonreadyNamedConstants();
+
+    void constantFoldIncompleteClassUTI(UTI uti);
+    void linkConstantExpression(UTI uti, NodeConstantDef * ceNode);
+    bool constantFoldNonreadyClassArgs(UTI auti);
+    bool statusNonreadyClassArguments();
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);

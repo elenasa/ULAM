@@ -2,6 +2,7 @@
 #include <iostream>
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "SymbolClassName.h"
 #include "SymbolTable.h"
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
@@ -349,20 +350,6 @@ namespace MFM {
   } //updateUlamKeyTypeSignatureToaUTI
 
 
-  void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
-  {
-    if(ceNode)
-      m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
-  }
-
-
-  void CompilerState::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
-  {
-    if(ceNode)
-      m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
-  }
-
-
   void CompilerState::constantFoldIncompleteUTI(UTI uti)
   {
     s32 bitsize = getBitSize(uti);
@@ -375,6 +362,11 @@ namespace MFM {
       setUTISizes(uti, bitsize, arraysize); //update UlamType
   } //constantFoldIncompleteUTI
 
+  void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
+  {
+    if(ceNode)
+      m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
+  }
 
   bool CompilerState::constantFoldUnknownBitsize(UTI auti, s32& bitsize)
   {
@@ -396,29 +388,6 @@ namespace MFM {
       }
     return rtnBool;
   } //constantFoldUnknownBitsize
-
-
-  bool CompilerState::constantFoldUnknownArraysize(UTI auti, s32& arraysize)
-  {
-    bool rtnBool = true;  //unfound
-    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.find(auti);
-
-    if(it != m_unknownArraysizeSubtrees.end())
-      {
-	assert(auti == it->first);
-	NodeSquareBracket * ceNode = it->second;
-	assert(ceNode);
-	rtnBool = ceNode->getArraysizeInBracket(arraysize); //eval
-	if(rtnBool)
-	  {
-	    delete ceNode;
-	    it->second = NULL;
-	    m_unknownArraysizeSubtrees.erase(it);
-	  }
-      }
-    return rtnBool;
-  } //constantFoldUnknownArraysize
-
 
   bool CompilerState::statusUnknownBitsizeUTI()
   {
@@ -459,6 +428,32 @@ namespace MFM {
     return rtnstat;
   } //statusUnknownBitsizeUTI
 
+  void CompilerState::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
+  {
+    if(ceNode)
+      m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
+  }
+
+  bool CompilerState::constantFoldUnknownArraysize(UTI auti, s32& arraysize)
+  {
+    bool rtnBool = true;  //unfound
+    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.find(auti);
+
+    if(it != m_unknownArraysizeSubtrees.end())
+      {
+	assert(auti == it->first);
+	NodeSquareBracket * ceNode = it->second;
+	assert(ceNode);
+	rtnBool = ceNode->getArraysizeInBracket(arraysize); //eval
+	if(rtnBool)
+	  {
+	    delete ceNode;
+	    it->second = NULL;
+	    m_unknownArraysizeSubtrees.erase(it);
+	  }
+      }
+    return rtnBool;
+  } //constantFoldUnknownArraysize
 
   bool CompilerState::statusUnknownArraysizeUTI()
   {
@@ -505,7 +500,6 @@ namespace MFM {
     if(ceNode)
       m_nonreadyNamedConstantSubtrees.insert(ceNode);
   }
-
 
   bool CompilerState::statusNonreadyNamedConstants()
   {
@@ -557,6 +551,34 @@ namespace MFM {
     return rtnstat;
   } //statusNonreadyNamedConstants
 
+
+  void CompilerState::constantFoldIncompleteClassUTI(UTI auti)
+  {
+
+  } //constantFoldIncompleteClassUTI
+
+  void CompilerState::linkConstantExpression(UTI uti, NodeConstantDef * ceNode)
+  {
+    if(!ceNode)
+      return;
+
+    std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.find(uti);
+    if(it != m_nonreadyClassArgSubtrees.end())
+      {
+	assert(uti == it->first);
+	std::vector<NodeConstantDef *> ceVector = it->second;
+	ceVector.push_back(ceNode);
+      }
+    else
+      {
+	std::vector<NodeConstantDef *> ceVector;
+	ceVector.push_back(ceNode);
+	m_nonreadyClassArgSubtrees.insert(std::pair<UTI, std::vector<NodeConstantDef *> >(uti, ceVector));
+      }
+  } //linkConstantExpression
+
+  bool constantFoldNonreadyClassArgs(UTI auti) { return true; }
+  bool statusNonreadyClassArguments(){ return true; }
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {
@@ -953,7 +975,7 @@ namespace MFM {
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
 
     // symbol ownership goes to the programDefST;
-    symptr = new SymbolClass(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
+    symptr = new SymbolClassName(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
 
@@ -966,6 +988,8 @@ namespace MFM {
     if(alreadyDefinedSymbolClass(ict->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
       {
 	UTI but = csym->getUlamTypeIdx();
+	assert(but == incomplete); //needs work with next level of class symbol!!!
+
 	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
 
 	//e.g. out-of-scope typedef is not a class, return false

@@ -91,7 +91,9 @@ namespace MFM{
     /**
 	<CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
     */
-    NodeBlockClass * parseClassBlock(UTI utype);
+    NodeBlockClass * parseClassBlock(SymbolClass * csym);
+
+    void parseRestOfClassParameters(SymbolClass * csym);
 
     /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | ('element' | 0) + <DECL> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
