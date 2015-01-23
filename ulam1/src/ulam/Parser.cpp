@@ -59,6 +59,7 @@
 #include "SymbolFunctionName.h"
 #include "SymbolVariableStack.h"
 #include "SymbolClass.h"
+#include "SymbolClassName.h"
 
 
 namespace MFM {
@@ -232,9 +233,7 @@ namespace MFM {
 	assert(0);
       };
 
-
-    NodeBlockClass * classNode = parseClassBlock(cSym->getUlamTypeIdx()); //we know its type..sweeter
-
+    NodeBlockClass * classNode = parseClassBlock(cSym); //we know its type too..sweeter
     if(classNode)
       {
 	cSym->setClassBlockNode(classNode);
@@ -252,25 +251,13 @@ namespace MFM {
     return (iTok.m_dataindex == m_state.m_compileThisId);
   } //parseThisClass
 
-  NodeBlockClass * Parser::parseClassBlock(UTI utype)
+  NodeBlockClass * Parser::parseClassBlock(SymbolClass * csym)
   {
+    UTI utype = csym->getUlamTypeIdx(); //we know its type..sweeter
     Token pTok;
+    getNextToken(pTok); //loc needed
+
     NodeBlockClass * rtnNode = NULL;
-
-    if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
-      return NULL;
-
-    if(getExpectedToken(TOK_CLOSE_CURLY))
-      {
-	rtnNode = new NodeBlockClassEmpty(m_state.m_currentBlock, m_state);
-	assert(rtnNode);
-	rtnNode->setNodeLocation(pTok.m_locator);
-	rtnNode->setNodeType(utype);
-
-	m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
-	return rtnNode;  //allow empty class
-      }
-
     NodeBlock * prevBlock = m_state.m_currentBlock;
     assert(prevBlock == NULL); //this is the class' first block
 
@@ -283,6 +270,34 @@ namespace MFM {
     //          for validating and finding scope of program/block variables
     m_state.m_currentBlock = rtnNode;
     m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
+
+    //need class block's ST before parsing any class parameters (i.e. decls);
+    if(pTok.m_type == TOK_OPEN_PAREN)
+      {
+	//starts with negative one for parameter
+	m_state.m_currentFunctionBlockDeclSize = -1;
+	m_state.m_currentFunctionBlockMaxDepth = 0;
+	parseRestOfClassParameters(csym);
+
+	m_state.m_currentFunctionBlockDeclSize = 0;
+	m_state.m_currentFunctionBlockMaxDepth = 0;
+      }
+
+    if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
+      {
+	delete rtnNode;
+	return NULL;
+      }
+
+    if(getExpectedToken(TOK_CLOSE_CURLY))
+      {
+	//rtnNode = new NodeBlockClassEmpty(m_state.m_currentBlock, m_state);
+	//assert(rtnNode);
+	//rtnNode->setNodeLocation(pTok.m_locator);
+	//rtnNode->setNodeType(utype);
+	//m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
+	return rtnNode;  //allow empty class
+      }
 
     //keep the data member var decls, starting with NodeBlockClass, keeping it for return
     NodeStatements * nextNode = rtnNode;
@@ -308,7 +323,52 @@ namespace MFM {
     m_state.m_currentBlock = prevBlock;
 
     return rtnNode;
-  } //parseBlockClass
+  } //parseClassBlock
+
+ void Parser::parseRestOfClassParameters(SymbolClass * csym)
+  {
+    Token pTok;
+    getNextToken(pTok);
+
+    if(pTok.m_type == TOK_CLOSE_PAREN)
+      {
+	return;  //done with parameters
+      }
+
+    assert(csym);
+    // allows class name to be same as parameter name
+    // since the class starts a new "block" (i.e. ST);
+    // the argument to parseDecl will prevent it from looking
+    // for restofdecls
+    if(Token::isTokenAType(pTok))
+      {
+	unreadToken();
+	Node * argNode = parseConstdef(); //named constants
+	Symbol * argSym = NULL;
+
+	// could be null symbol already in scope
+	if(argNode)
+	  {
+	    //parameter IS a NodeConstantdef
+	    if(argNode->getSymbolPtr(argSym))
+	      ((SymbolClassName * ) csym)->addParameterSymbol((SymbolConstantValue *) argSym); //ownership stays with NodeBlockClass's ST
+	    else
+	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
+	  }
+	delete argNode;    //no longer needed
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Expected 'A Type' Token!! got Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << "> instead for class parameter declaration";
+	MSG(&pTok, msg.str().c_str(),ERR);
+	//continue or short-circuit???
+      }
+
+    getExpectedToken(TOK_COMMA, QUIETLY); // if so, get next parameter; o.w. unread
+
+    return parseRestOfClassParameters(csym);
+  } //parseRestOfClassParameters
 
   bool Parser::parseDataMember(NodeStatements *& nextNode)
   {
@@ -2434,14 +2494,19 @@ namespace MFM {
 	      }
 	  }
       }
+    // let the = constant expr be optional for class params, for now XXX
+    // need a flag to know it's ok.
     else
       {
+	unreadToken();
+#if 0
 	//perhaps read until semi-colon
 	getTokensUntil(TOK_SEMICOLON);
 	unreadToken();
 	delete constNode;  //does this also delete the symbol?
 	constNode = NULL;
 	rtnNode = NULL;
+#endif
       }
     return rtnNode;
   } //parseRestOfConstantDef
@@ -2579,7 +2644,7 @@ namespace MFM {
     // since the function starts a new "block" (i.e. ST);
     // the argument to parseDecl will prevent it from looking
     // for restofdecls
-	// currently only for natives (detected after args done)
+    // currently only for natives (detected after args done)
     if(pTok.m_type == TOK_ELLIPSIS)
       {
 	if(!fsym->takesVariableArgs())
@@ -2906,6 +2971,7 @@ namespace MFM {
 	    NodeConstantDef * constNode =  new NodeConstantDef((SymbolConstantValue *) asymptr, m_state);
 	    assert(constNode);
 	    constNode->setNodeLocation(typeTok.m_locator);
+
 	    rtnNode = parseRestOfConstantDef(constNode); //refactored for readability
 	  }
 

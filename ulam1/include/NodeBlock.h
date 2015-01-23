@@ -55,6 +55,10 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
@@ -66,10 +70,6 @@ namespace MFM{
     void addIdToScope(u32 id, Symbol * symptr);
 
     NodeBlock * getPreviousBlockPointer();
-
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
 
     u32 getNumberOfSymbolsInTable();
 

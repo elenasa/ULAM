@@ -39,36 +39,30 @@ namespace MFM {
     m_classBlock = NULL;
   }
 
-
   void SymbolClass::setClassBlockNode(NodeBlockClass * node)
   {
     m_classBlock = node;
   }
-
 
   NodeBlockClass * SymbolClass::getClassBlockNode()
   {
     return m_classBlock;
   }
 
-
   bool SymbolClass::isClass()
   {
     return true;
   }
-
 
   const std::string SymbolClass::getMangledPrefix()
   {
     return m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamTypeUPrefix();
   }
 
-
   ULAMCLASSTYPE SymbolClass::getUlamClass()
   {
     return  m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
   }
-
 
   void SymbolClass::setUlamClass(ULAMCLASSTYPE type)
   {
@@ -84,7 +78,6 @@ namespace MFM {
   {
     return m_quarkunion;
   }
-
 
 
   /////////////////////////////////////////////////////////////////////////////////

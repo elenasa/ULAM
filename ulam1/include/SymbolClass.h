@@ -67,7 +67,7 @@ namespace MFM{
 
     bool isQuarkUnion();
 
-    void generateCode(FileManager * fm);
+    virtual void generateCode(FileManager * fm);
 
   protected:
 
