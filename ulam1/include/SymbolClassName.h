@@ -54,8 +54,8 @@ namespace MFM{
     u32 getTotalSizeOfParameters();
     Symbol * getParameterSymbolPtr(u32 n);
 
-    bool isClassInstanceInTable(UTI uti, Symbol * & symptrref);
-    void addClassInstanceToTable(UTI uti, Symbol * symptr);
+    bool isClassInstanceInTable(UTI uti, SymbolClass * & symptrref);
+    void addClassInstanceToTable(UTI uti, SymbolClass * symptr);
 
    protected:
 

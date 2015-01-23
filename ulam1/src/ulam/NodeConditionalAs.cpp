@@ -90,13 +90,12 @@ namespace MFM {
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(m_utypeRight)->getUlamClass();
     if(rclasstype == UC_QUARK)
       {
-	UlamType * lut = m_state.getUlamTypeByIndex(luti);
 	SymbolClass * csym = NULL;
 	s32 posFound = -1;
 
-	if(m_state.alreadyDefinedSymbolClass(lut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+	if(m_state.alreadyDefinedSymbolClass(luti, csym))
 	  {
-	    NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
 	    posFound = classNode->findUlamTypeInTable(m_utypeRight);
 	  }

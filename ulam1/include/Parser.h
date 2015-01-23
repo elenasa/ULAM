@@ -171,7 +171,7 @@ namespace MFM{
     /**
        <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
-    Node * parseConstdef();
+    Node * parseConstdef(bool assignOK = true);
 
     /**
        <DECL> := <TYPE> + <VAR_DECLS>
@@ -309,7 +309,7 @@ namespace MFM{
 
     Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode);
 
-    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode);
+    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK = true);
 
     /**
 	<FUNC_DEF>  := <ULAM_FUNC_DEF> | <NATIVE_FUNC_DEF>
@@ -342,7 +342,7 @@ namespace MFM{
     Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
     /** helper for parseConstdef */
-    Node * makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize, bool assignOK = true);
 
     /** helper method for parseConditionalExpr */
     Node * makeConditionalExprNode(Node * leftNode);

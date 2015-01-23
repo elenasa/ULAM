@@ -2,7 +2,6 @@
 #include <iostream>
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
-#include "SymbolClassName.h"
 #include "SymbolTable.h"
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
@@ -633,12 +632,13 @@ namespace MFM {
 	  }
 	else
 	  {
-	    // it's an element or quark! base type is Ut_Class?
-	    SymbolClass * csym = NULL;
-	    if(alreadyDefinedSymbolClass(tok.m_dataindex, csym))
+	    // it's an element or quark! base type is Class.
+	    SymbolClassName * cnsym = NULL;
+	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	      {
-		UTI ut = csym->getUlamTypeIdx();
-		bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
+		//UTI ut = cnsym->getUlamTypeIdx();
+		//bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
+		bUT = Class;
 	      }
 	  }
       }
@@ -660,10 +660,10 @@ namespace MFM {
 	else
 	  {
 	    //check for a Class type, or make one if doesn't exist yet, while parsing.
-	    SymbolClass * csym = NULL;
-	    if(alreadyDefinedSymbolClass(tok.m_dataindex, csym))
+	    SymbolClassName * cnsym = NULL;
+	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	      {
-		uti = csym->getUlamTypeIdx();
+		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
 	      }
 	  }
       }
@@ -944,12 +944,13 @@ namespace MFM {
   }
 
 
+  //returns the "template" UTI..is this what's needed???
   bool CompilerState::getUlamTypeByClassNameId(u32 idx, UTI & rtnType)
   {
     bool rtnBool = false;
-    SymbolClass * csymptr = NULL;
+    SymbolClassName * csymptr = NULL;
 
-    if(alreadyDefinedSymbolClass(idx, csymptr) || (addIncompleteClassSymbolToProgramTable(idx, csymptr), true) )
+    if(alreadyDefinedSymbolClassName(idx, csymptr) || (addIncompleteClassSymbolToProgramTable(idx, csymptr), true) )
       {
 	rtnType = csymptr->getUlamTypeIdx();
 	rtnBool = true;
@@ -960,18 +961,43 @@ namespace MFM {
   }
 
 
-  bool CompilerState::alreadyDefinedSymbolClass(u32 dataindex, SymbolClass * & symptr)
+  bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {
     return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
   }
 
+  //if necessary, searches for instance of class "template" with matching uti
+  bool CompilerState::alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr)
+  {
+    bool rtnb = false;
+    UlamType * ut = getUlamTypeByIndex(uti);
+    SymbolClassName * cnsym = NULL;
+    if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
+      {
+	if(cnsym->getUlamTypeIdx() != uti)
+	  {
+	    SymbolClass * csym = NULL;
+	    if(cnsym->isClassInstanceInTable(uti, csym))
+	      {
+		symptr = csym;
+		rtnb = true;
+	      }
+	  }
+	else
+	  {
+	    symptr = cnsym;
+	    rtnb = true;
+	  }
+      }
+    return rtnb;
+  } //alreadyDefinedSymbolClass (overloaded)
 
   //temporary UlamType which will be updated during type labeling.
-  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr)
+  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassName * & symptr)
   {
-    assert(!alreadyDefinedSymbolClass(dataindex,symptr));
+    assert(!alreadyDefinedSymbolClassName(dataindex,symptr));
 
-    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //0 and scalar default
+    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
 
     // symbol ownership goes to the programDefST;
@@ -985,13 +1011,12 @@ namespace MFM {
     bool rtnB = false;
     SymbolClass * csym = NULL;
     UlamType * ict = getUlamTypeByIndex(incomplete);
-    if(alreadyDefinedSymbolClass(ict->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+    if(alreadyDefinedSymbolClass(incomplete, csym))
       {
 	UTI but = csym->getUlamTypeIdx();
-	assert(but == incomplete); //needs work with next level of class symbol!!!
+	assert(but == incomplete);
 
 	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
-
 	//e.g. out-of-scope typedef is not a class, return false
 	if(bc == UC_ELEMENT || bc == UC_QUARK)
 	  {
@@ -1008,9 +1033,7 @@ namespace MFM {
 	  }
       }
     else
-      {
-	assert(0);
-      }
+      assert(0);
     return rtnB;
   } //completeIncompleteClassSymbol
 
@@ -1040,7 +1063,7 @@ namespace MFM {
 	brtn = isFuncIdInClassScope(dataindex, symptr);
       }
     return brtn;
-  }
+  } //alreadyDefinedSymbol
 
 
   bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
@@ -1055,7 +1078,7 @@ namespace MFM {
       brtn = m_classBlock->isFuncIdInScope(dataindex,symptr);
 
     return brtn;
-  }
+  } //isFuncIdInClassScope
 
 
   bool CompilerState::isIdInClassScope(u32 dataindex, Symbol * & symptr)
@@ -1070,7 +1093,7 @@ namespace MFM {
       brtn = m_classBlock->isIdInScope(dataindex,symptr);
 
     return brtn;
-  }
+  } //isIdInClassScope
 
 
   //symbol ownership goes to the current block (end of vector)
@@ -1408,8 +1431,7 @@ namespace MFM {
     else
       {
 	SymbolClass * csym = NULL;
-	UlamType * ict = getUlamTypeByIndex(uti);
-	if(alreadyDefinedSymbolClass(ict->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+	if(alreadyDefinedSymbolClass(uti, csym))
 	  {
 	    lenstr << csym->getMangledNameForParameterType();
 
@@ -1422,15 +1444,11 @@ namespace MFM {
 		lenstr << "::LENGTH";
 	      }
 	    else
-	      assert(0);  	    //error!! neither quark nor element
+	      assert(0); //error!! neither quark nor element
 	  }
 	else
-	  {
-	    //error!! no class symbol for this type
-	    assert(0);
-	  }
+	    assert(0); //error!! no class symbol for this type
       }
-
     return lenstr.str();
   } //getBitVectorLengthAsStringForCodeGen
 

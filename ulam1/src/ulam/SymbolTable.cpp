@@ -1067,11 +1067,9 @@ namespace MFM {
 
 	    //get base type, scalar type of class
 	    SymbolClass * csym = NULL;
-	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
-	    if(m_state.alreadyDefinedSymbolClass(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+	    if(m_state.alreadyDefinedSymbolClass(argut, csym))
 	      {
-		UTI cut = csym->getUlamTypeIdx();
-		return calcVariableSymbolTypeSize(cut);  // NEEDS CORRECTION
+		return calcVariableSymbolTypeSize(argut);  // NEEDS CORRECTION
 	      }
 	  }
       }
@@ -1093,16 +1091,12 @@ namespace MFM {
 	else
 	  {
 	    assert(totbitsize == UNKNOWNSIZE);
-
 	    //get base type
 	    SymbolClass * csym = NULL;
-	    UlamType * aut = m_state.getUlamTypeByIndex(argut);
-	    if(m_state.alreadyDefinedSymbolClass(aut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+	    if(m_state.alreadyDefinedSymbolClass(argut, csym))
 	      {
-		UTI cuti = csym->getUlamTypeIdx();
 		s32 csize;
-
-		if((csize = m_state.getBitSize(cuti)) >= 0)
+		if((csize = m_state.getBitSize(argut)) >= 0)
 		  {
 		    return csize;
 		  }
