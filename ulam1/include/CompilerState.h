@@ -56,6 +56,7 @@
 #include "NodeSquareBracket.h"
 #include "StringPool.h"
 #include "SymbolClass.h"
+#include "SymbolClassName.h"
 #include "SymbolFunction.h"
 #include "SymbolTable.h"
 #include "SymbolVariable.h"
@@ -215,11 +216,14 @@ namespace MFM{
     bool getUlamTypeByClassToken(Token ctok, UTI & rtnType);
     bool getUlamTypeByClassNameId(u32 idx, UTI & rtnType);
 
-    /** return true and the Symbol pointer in 2nd arg if found; */
-    bool alreadyDefinedSymbolClass(u32 dataindex, SymbolClass * & symptr);
+    /** return true and the SymbolClassName pointer in 2nd arg if found; */
+    bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);
+
+    /** return true and the SymbolClass pointer in 2nd arg if uti found; */
+    bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
-    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr);
+    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassName * & symptr);
 
     /** during type labeling, sets the ULAMCLASSTYPE and bitsize for typedefs that involved incomplete Class types */
     bool completeIncompleteClassSymbol(UTI incomplete) ;

@@ -41,13 +41,13 @@ namespace MFM {
   }
 
 
-  bool SymbolClassName::isClassInstanceInTable(UTI uti, Symbol * & symptrref)
+  bool SymbolClassName::isClassInstanceInTable(UTI uti, SymbolClass * & symptrref)
   {
-    return m_classInstanceST.isInTable(uti, symptrref);
+    return m_classInstanceST.isInTable(uti, (Symbol * &) symptrref);
   }
 
 
-  void SymbolClassName::addClassInstanceToTable(UTI uti, Symbol * symptr)
+  void SymbolClassName::addClassInstanceToTable(UTI uti, SymbolClass * symptr)
   {
     m_classInstanceST.addToTable(uti, symptr);
   }

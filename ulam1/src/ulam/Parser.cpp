@@ -189,19 +189,18 @@ namespace MFM {
 	return  true; //we're done unless we can gobble the rest up?
       }
 
-
-    SymbolClass * cSym = NULL;
-    if(!m_state.alreadyDefinedSymbolClass(iTok.m_dataindex, cSym))
+    SymbolClassName * cnSym = NULL;
+    if(!m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, cnSym))
       {
-	m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, cSym);
+	m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, cnSym);
       }
     else
       {
 	//if already defined, then must be incomplete, else duplicate!!
-	if(cSym->getUlamClass() != UC_INCOMPLETE)
+	if(cnSym->getUlamClass() != UC_INCOMPLETE)
 	  {
 	    std::ostringstream msg;
-	    msg << "Duplicate or incomplete class <" << m_state.m_pool.getDataAsString(cSym->getId()).c_str() << ">";
+	    msg << "Duplicate or incomplete class <" << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
 	    MSG(&iTok, msg.str().c_str(), ERR);
 
 	    return  true;  //we're done unless we can gobble the rest up?
@@ -215,33 +214,33 @@ namespace MFM {
       {
       case TOK_KW_ELEMENT:
 	{
-	  cSym->setUlamClass(UC_ELEMENT);
+	  cnSym->setUlamClass(UC_ELEMENT);
 	  break;
 	}
       case TOK_KW_QUARK:
 	{
-	  cSym->setUlamClass(UC_QUARK);
+	  cnSym->setUlamClass(UC_QUARK);
 	  break;
 	}
       case TOK_KW_QUARKUNION:
 	{
-	  cSym->setUlamClass(UC_QUARK);
-	  cSym->setQuarkUnion();
+	  cnSym->setUlamClass(UC_QUARK);
+	  cnSym->setQuarkUnion();
 	  break;
 	}
       default:
 	assert(0);
       };
 
-    NodeBlockClass * classNode = parseClassBlock(cSym); //we know its type too..sweeter
+    NodeBlockClass * classNode = parseClassBlock(cnSym); //we know its type too..sweeter
     if(classNode)
       {
-	cSym->setClassBlockNode(classNode);
+	cnSym->setClassBlockNode(classNode);
       }
     else
       {
 	// reset to incomplete
-	cSym->setUlamClass(UC_INCOMPLETE);
+	cnSym->setUlamClass(UC_INCOMPLETE);
 	std::ostringstream msg;
 	msg << "Empty/Incomplete Class Definition: <" << m_state.getTokenDataAsString(&iTok).c_str() << ">; possible missing ending curly brace";
 	MSG(&pTok, msg.str().c_str(), WARN);
@@ -271,16 +270,10 @@ namespace MFM {
     m_state.m_currentBlock = rtnNode;
     m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
 
-    //need class block's ST before parsing any class parameters (i.e. decls);
+    //need class block's ST before parsing any class parameters (i.e. named constants);
     if(pTok.m_type == TOK_OPEN_PAREN)
       {
-	//starts with negative one for parameter
-	m_state.m_currentFunctionBlockDeclSize = -1;
-	m_state.m_currentFunctionBlockMaxDepth = 0;
 	parseRestOfClassParameters(csym);
-
-	m_state.m_currentFunctionBlockDeclSize = 0;
-	m_state.m_currentFunctionBlockMaxDepth = 0;
       }
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
@@ -343,7 +336,7 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	Node * argNode = parseConstdef(); //named constants
+	Node * argNode = parseConstdef(NOASSIGN); //named constants
 	Symbol * argSym = NULL;
 
 	// could be null symbol already in scope
@@ -1210,7 +1203,8 @@ namespace MFM {
   // Named constants (constdefs) are not transferred to generated code;
   // they are a short-hand for scalar constant expressions (e.g. terminals),
   // that are not 'storeintoable'; scope-specific.
-  Node * Parser::parseConstdef()
+  // doubles as class parameter without keyword or assignment.
+  Node * Parser::parseConstdef(bool assignOK)
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -1228,7 +1222,7 @@ namespace MFM {
 	//insure the typedef name starts with a lower case letter
 	if(iTok.m_type == TOK_IDENTIFIER)
 	  {
-	    rtnNode = makeConstdefSymbol(pTok, typebitsize, arraysize, iTok, bitsizeNode);
+	    rtnNode = makeConstdefSymbol(pTok, typebitsize, arraysize, iTok, bitsizeNode, assignOK);
 	  }
 	else
 	  {
@@ -1352,8 +1346,8 @@ namespace MFM {
 	return;  //done.
       }
 
-    SymbolClass * csym = NULL;
-    if(m_state.alreadyDefinedSymbolClass(typeTok.m_dataindex, csym))
+    SymbolClassName * csym = NULL;
+    if(m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, csym))
       {
 	bool saveUseMemberBlock = m_state.m_useMemberBlock;
 	NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
@@ -2474,10 +2468,10 @@ namespace MFM {
     return parseRestOfDecls(typeTok, typebitsize, arraysize, identTok, rtnNode);  //any more?
   } //parseRestOfDeclAssignment
 
-  NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode)
+  NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK)
   {
     NodeConstantDef * rtnNode = constNode;
-    if(getExpectedToken(TOK_EQUAL))
+    if(assignOK && getExpectedToken(TOK_EQUAL))
       {
 	Node * exprNode = parseExpression();
 	if(exprNode)
@@ -2494,19 +2488,22 @@ namespace MFM {
 	      }
 	  }
       }
-    // let the = constant expr be optional for class params, for now XXX
-    // need a flag to know it's ok.
     else
       {
-	unreadToken();
-#if 0
-	//perhaps read until semi-colon
-	getTokensUntil(TOK_SEMICOLON);
-	unreadToken();
-	delete constNode;  //does this also delete the symbol?
-	constNode = NULL;
-	rtnNode = NULL;
-#endif
+	// let the = constant expr be optional for class params
+	if(assignOK)
+	  {
+	    //perhaps read until semi-colon
+	    getTokensUntil(TOK_SEMICOLON);
+	    unreadToken();
+	    delete constNode;  //does this also delete the symbol?
+	    constNode = NULL;
+	    rtnNode = NULL;
+	  }
+	else
+	  {
+	    unreadToken(); //class param doesn't have equal; wait for the class arg
+	  }
       }
     return rtnNode;
   } //parseRestOfConstantDef
@@ -2925,7 +2922,7 @@ namespace MFM {
     return rtnNode;
   } //makeTypedefSymbol
 
-  Node * Parser::makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize)
+  Node * Parser::makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize, bool assignOK)
   {
     NodeConstantDef * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok);
@@ -2972,7 +2969,7 @@ namespace MFM {
 	    assert(constNode);
 	    constNode->setNodeLocation(typeTok.m_locator);
 
-	    rtnNode = parseRestOfConstantDef(constNode); //refactored for readability
+	    rtnNode = parseRestOfConstantDef(constNode, assignOK); //refactored for readability
 	  }
 
 	//link square bracket for constant expression, if unknown array size

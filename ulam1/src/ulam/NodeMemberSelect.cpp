@@ -56,7 +56,7 @@ namespace MFM {
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(lut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
+    assert(m_state.alreadyDefinedSymbolClass(luti, csym));
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
     assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
