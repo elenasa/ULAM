@@ -77,6 +77,8 @@ namespace MFM{
       if(key1.m_bits > key2.m_bits) return false;
       if(key1.m_arraySize < key2.m_arraySize) return true;
       if(key1.m_arraySize > key2.m_arraySize) return false;
+      if(key1.m_classInstanceId < key2.m_classInstanceId) return true;
+      if(key1.m_classInstanceId > key2.m_classInstanceId) return false;
       return false;
     }
   };

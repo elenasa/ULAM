@@ -186,9 +186,15 @@ namespace MFM {
     UlamType * ut = NULL;
 
     //if(!isDefined(key, uti))
-    if(!isDefined(key,ut) || (utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+    if(!isDefined(key,ut) || utype == Class || (utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
       {
 	uti = m_indexToUlamKey.size();  //next index based on key
+	if(utype == Class)
+	  {
+	    //this is a class instance! add uti to key
+	    key.append(uti);
+	  }
+
 	ut = createUlamType(key, utype);
 	m_indexToUlamKey.push_back(key);
 	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(key,ut)); //map owns ut
@@ -821,6 +827,7 @@ namespace MFM {
 
     //continue with valid number of bits for Class UlamTypes only
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
+    newkey.append(key.getUlamKeyTypeSignatureClassInstanceId());
 
     if(key == newkey)
       return;
