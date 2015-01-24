@@ -186,6 +186,11 @@ namespace MFM{
     */
     Node * parseDecl(bool parseSingleDecl = false);
 
+
+
+    UTI parseClassArguments(Token& typeTok);
+    void parseRestOfClassArguments(SymbolClass * csym, SymbolClassName * cnsym, u32& parmIdx);
+
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE and node with constant expression */
     NodeTypeBitsize * parseTypeBitsize(Token& typeTok, s32& typebitsize, s32& arraysize);
 

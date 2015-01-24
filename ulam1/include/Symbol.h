@@ -85,10 +85,11 @@ namespace MFM{
   protected:
     CompilerState & m_state;
 
-  private:
     u32 m_id;            // id to its name (string) in lexer; also in ST
     UTI m_utypeIdx;      // may seem redundant, but not; from NodeVarDecl, before m_value known.
                          // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
+
+  private:
     bool m_dataMember;
     bool m_elementParameter;
     bool m_autoLocal;
