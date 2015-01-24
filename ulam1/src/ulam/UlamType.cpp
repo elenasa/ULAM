@@ -461,18 +461,31 @@ namespace MFM {
   ULAMTYPECOMPARERESULTS UlamType::compare(UTI u1, UTI u2, CompilerState& state)  //static
   {
     UlamType * ut1 = state.getUlamTypeByIndex(u1);
-    //classes with unknown bitsizes are essentially as complete as they can be during parse time;
+    UlamType * ut2 = state.getUlamTypeByIndex(u2);
+
+    // no longer the case given class arguments! may end up with different sizes given different
+    // argument values which may or may not be known while parsing! t.f. classes are much more like
+    // the primitive ulamtypes now.
+    // was: classes with unknown bitsizes are essentially as complete as they can be during parse time;
     // and will have the same UTIs.
     if(!ut1->isComplete())
       {
 	if(ut1->getUlamClass() == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
 	  return UTIC_DONTKNOW;
+
+	UTI classid1 = ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceId();
+	if(classid1 != Nav && classid1 != ut2->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceId())
+	  return UTIC_DONTKNOW;
       }
-    UlamType * ut2 = state.getUlamTypeByIndex(u2);
+
     if(!ut2->isComplete())
       {
 	if(ut2->getUlamClass() == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
 	return UTIC_DONTKNOW;
+
+	UTI classid2 = ut2->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceId();
+	if(classid2 != Nav && classid2 != ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceId())
+	  return UTIC_DONTKNOW;
       }
 
     //assert both key and ptr are either both equal or not equal; not different ('!^' eq '==')

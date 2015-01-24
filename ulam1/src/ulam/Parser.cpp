@@ -1315,6 +1315,7 @@ namespace MFM {
 	else
 	  {
 	    unreadToken();
+
 	    //should we make a new UTI first?
 	    cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE);
 	    NodeBlockClass * classBlock = new NodeBlockClass(cnsym->getClassBlockNode(), m_state);
