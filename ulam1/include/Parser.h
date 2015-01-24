@@ -310,9 +310,9 @@ namespace MFM{
 
     Node * parseRestOfAssignExpr(Node * leftNode);
 
-    Node * parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode, bool assignOK = true);
+    Node * parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, Node * dNode, bool assignOK = true);
 
-    Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, Node * dNode);
+    Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, Node * dNode);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK = true);
 
@@ -326,7 +326,7 @@ namespace MFM{
 	<FUNC_PARAMS> := <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
 	<FUNC_PARAM>  := <TYPE> + <VAR_DECL>
      */
-    NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    NodeBlockFunctionDefinition * makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize);
 
     void parseRestOfFunctionParameters(SymbolFunction * sym);
 
@@ -338,13 +338,13 @@ namespace MFM{
 
 
     /** helper for parseDataMember */
-    Node * makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize);
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize=NULL);
+    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize=NULL);
 
     /** helper for parseTypedef */
-    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize);
 
     /** helper for parseConstdef */
     Node * makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize, bool assignOK = true);

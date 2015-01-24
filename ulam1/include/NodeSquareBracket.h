@@ -67,11 +67,11 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceId, Symbol *& asymptr);
 
     virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
-    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceId, Symbol *& asymptr);
 
     //helper method to install symbol
     bool getArraysizeInBracket(s32 & rtnArraySize);

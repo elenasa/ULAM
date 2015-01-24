@@ -46,7 +46,7 @@ namespace MFM{
   {
   public:
 
-    NodeConditional(Node * leftNode, Token typeTok, CompilerState & state);
+    NodeConditional(Node * leftNode, UTI classInstanceId, CompilerState & state);
     ~NodeConditional();
 
     virtual void updateLineage(Node * p);
@@ -74,11 +74,12 @@ namespace MFM{
     //TODO:
     //virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
-    Token getTypeToken();
+    //Token getTypeToken();
+    UTI getRightType();
 
   protected:
     Node * m_nodeLeft;
-    Token m_typeTok;  //right
+    //Token m_typeTok;  //right
     UTI m_utypeRight;
   };
 

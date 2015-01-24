@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConditionalIs.h - Node for handling Is Expressions for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConditionalIs.h - Node for handling Is Expressions for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -45,7 +45,7 @@ namespace MFM{
   {
   public:
 
-    NodeConditionalIs(Node * leftNode, Token typeTok, CompilerState & state);
+    NodeConditionalIs(Node * leftNode, UTI classInstanceId, CompilerState & state);
     ~NodeConditionalIs();
 
     virtual const char * getName();

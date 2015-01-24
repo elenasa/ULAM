@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeConditionalAs::NodeConditionalAs(Node * leftNode, Token typeTok, CompilerState & state): NodeConditional(leftNode, typeTok, state) {}
+  NodeConditionalAs::NodeConditionalAs(Node * leftNode, UTI classInstanceId, CompilerState & state): NodeConditional(leftNode, classInstanceId, state) {}
 
   NodeConditionalAs::~NodeConditionalAs()
   {}
@@ -45,7 +45,8 @@ namespace MFM {
 	newType = Nav;
       }
 
-    UTI ruti = m_state.getUlamTypeFromToken(m_typeTok, 0, NONARRAYSIZE);  //name-based, sizes ignored
+    //UTI ruti = m_state.getUlamTypeFromToken(m_typeTok, 0, NONARRAYSIZE);  //name-based, sizes ignored
+    UTI ruti = m_utypeRight;
     assert(m_state.isScalar(ruti));
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
@@ -57,7 +58,7 @@ namespace MFM {
 	newType = Nav;
       }
 
-    m_utypeRight = ruti;
+    //m_utypeRight = ruti;
 
     setNodeType(newType);
     setStoreIntoAble(false);

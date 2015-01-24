@@ -236,7 +236,7 @@ namespace MFM {
   } //makeUlamValuePtrForCodeGen
 
 
-  bool NodeIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  bool NodeIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceId, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
@@ -276,6 +276,7 @@ namespace MFM {
     //type names begin with capital letter..and the rest can be either case
     u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
     UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
+    key.append(classInstanceId);
 
     // o.w. build symbol, first the base type (with array size)
     UTI uti = m_state.makeUlamType(key, bUT);
@@ -314,14 +315,14 @@ namespace MFM {
 
 
   //see also NodeSquareBracket
-  bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceId, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
     if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
       {
-	if(!(asymptr->isFunction()) && !(asymptr->isTypedef()))
+	if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
 	  m_varSymbol = (SymbolVariable *) asymptr;  //updates Node's symbol, if is variable
 	return false;    //already there
       }
@@ -399,7 +400,8 @@ namespace MFM {
 	else
 	  {
 	    // will substitute placeholder class type if it hasn't been seen yet
-	    m_state.getUlamTypeByClassToken(aTok, aut);
+	    //m_state.getUlamTypeByClassToken(aTok, aut);
+	    aut = classInstanceId;
 	    brtn = true;
 	  }
       }
