@@ -368,7 +368,6 @@ namespace MFM {
     bool brtn = false;
     Node * rtnNode = NULL;
     Token pTok, iTok;
-
     getNextToken(pTok);
 
     //parse Typedef's starting with keyword first
@@ -415,7 +414,6 @@ namespace MFM {
 	return brtn;
       } //constdef done.
 
-
     m_state.m_parsingElementParameterVariable = false;
     //static element parameter
     if(pTok.m_type == TOK_KW_ELEMENT)
@@ -440,10 +438,26 @@ namespace MFM {
 	return false;
       }
 
-    // check for Type bitsize specifier;
-    s32 typebitsize = 0;
+    s32 typebitsize = UNKNOWNSIZE;
     s32 arraysize = NONARRAYSIZE;
-    NodeTypeBitsize * bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
+    NodeTypeBitsize * bitsizeNode = NULL;
+    if(m_state.getBaseTypeFromToken(pTok) == Class)
+      {
+	Token bTok;
+	getNextToken(bTok);
+	if(bTok.m_type == TOK_OPEN_PAREN)
+	  {
+	    UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI???
+	  }
+	else
+	  unreadToken();
+      }
+    else
+      {
+	// check for Type bitsize specifier;
+	typebitsize = 0;
+	bitsizeNode = parseTypeBitsize(pTok, typebitsize, arraysize);
+      }
 
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
@@ -1276,6 +1290,124 @@ namespace MFM {
       }
     return rtnNode;
   } //parseDecl
+
+  UTI Parser::parseClassArguments(Token& typeTok)
+  {
+    NodeBlock * saveCurrentBlock = m_state.m_currentBlock;
+    UTI cuti = Nav;
+    u32 numParams = 0;
+    SymbolClassName * cnsym = NULL;
+    if(m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
+      {
+	cuti = cnsym->getUlamTypeIdx();
+	numParams = cnsym->getNumberOfParameters();
+	Token pTok;
+	getNextToken(pTok);
+	if(pTok.m_type == TOK_CLOSE_PAREN)
+	  {
+	    if(numParams > 0)
+	      {
+		//error! no args so trying to use the "template" as an instance?
+	      }
+	    //m_state.m_currentBlock = cnsym->getClassBlockNode();
+	    //ok to return.
+	  }
+	else
+	  {
+	    unreadToken();
+	    //should we make a new UTI first?
+	    cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE);
+	    NodeBlockClass * classBlock = new NodeBlockClass(cnsym->getClassBlockNode(), m_state);
+	    assert(classBlock);
+	    classBlock->setNodeLocation(typeTok.m_locator);
+	    classBlock->setNodeType(cuti);
+
+	    SymbolClass * csym = new SymbolClass(typeTok.m_dataindex, cuti, classBlock, m_state);
+	    assert(csym);
+	    // copy constructor???
+	    csym->setUlamClass(cnsym->getUlamClass());
+	    if(cnsym->isQuarkUnion()) csym->setQuarkUnion();
+	    UlamType * cnut = m_state.getUlamTypeByIndex(cnsym->getUlamTypeIdx());
+	    if(cnut->isCustomArray())
+	      {
+		UlamType * cut = m_state.getUlamTypeByIndex(csym->getUlamTypeIdx());
+		((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
+	      }
+	    cnsym->addClassInstanceToTable(cuti, csym);
+
+	    m_state.m_currentBlock = classBlock; //reset here for new arg's
+
+	    u32 parmidx = 0;
+	    parseRestOfClassArguments(csym, cnsym, parmidx);
+	  }
+      }
+    else
+      {
+	//trying to instantiate a class that hasn't been seen yet!
+	// what to do? we don't know the required parameters!!!
+	assert(0);
+      }
+    m_state.m_currentBlock = saveCurrentBlock; //restore
+    return cuti;
+  } //parseClassArguments
+
+
+  void Parser::parseRestOfClassArguments(SymbolClass * csym, SymbolClassName * cnsym, u32& parmIdx)
+  {
+    Token pTok;
+    getNextToken(pTok);
+    if(pTok.m_type == TOK_CLOSE_PAREN)
+      return;
+
+    unreadToken();
+
+    Node * exprNode = parseExpression();  //constant expression req'd
+    if(!exprNode)
+      {
+	std::ostringstream msg;
+	msg << "Class Argument after Open Paren is missing, type: " << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+	MSG(&pTok, msg.str().c_str(), ERR);
+	return;
+      }
+
+    if(parmIdx >= cnsym->getNumberOfParameters())
+      {
+	std::ostringstream msg;
+	msg << "Too many Class Arguments, " << "(" << parmIdx << "), type: " << m_state.m_pool.getDataAsString(cnsym->getId()).c_str() ;
+	MSG(&pTok, msg.str().c_str(), ERR);
+	return;
+      }
+
+    SymbolConstantValue * paramSym = (SymbolConstantValue * ) (cnsym->getParameterSymbolPtr(parmIdx));
+    assert(paramSym);
+    SymbolConstantValue * argSym = new SymbolConstantValue(paramSym);
+
+    m_state.addSymbolToCurrentScope(argSym); // scope updated to new class instance in parseClassArguments
+
+    // make Node with argument symbol to try to fold const expr; o.w. add to list of unsolved for this uti
+    NodeConstantDef * constNode = new NodeConstantDef(argSym, m_state);
+    assert(constNode);
+    constNode->setNodeLocation(pTok.m_locator);
+    constNode->setConstantExpr(exprNode);
+
+    // eval what we need, and delete the node if successful
+    if(((NodeConstantDef *) constNode)->foldConstantExpression())
+      {
+	delete constNode;   //done with them!
+	constNode = NULL;
+      }
+    else
+      {
+	m_state.linkConstantExpression(csym->getUlamTypeIdx(), constNode);
+      }
+
+    getNextToken(pTok);
+    if(pTok.m_type != TOK_COMMA)
+      unreadToken();
+
+    return parseRestOfClassArguments(csym, cnsym, ++parmIdx);  //recurse
+  } //parseRestOfClassArguments
+
 
   //return NodeTypeBitsize when unsuccessful evaluating its constant expression
   // up to caller to delete it
