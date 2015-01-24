@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeConditional::NodeConditional(Node * leftNode, Token typeTok, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_typeTok(typeTok) {}
+  NodeConditional::NodeConditional(Node * leftNode, UTI classInstanceId, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_utypeRight(classInstanceId) {}
 
   NodeConditional::~NodeConditional()
   {
@@ -39,9 +39,10 @@ namespace MFM {
     sprintf(id," %s ",getName());
     fp->write(id);
 
-    fp->write(m_typeTok.getTokenString());
+    //fp->write(m_typeTok.getTokenString());
+    fp->write(m_state.getUlamTypeByIndex(m_utypeRight)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
     fp->write("\n");
-  }
+  } //print
 
 
   void NodeConditional::printPostfix(File * fp)
@@ -70,11 +71,9 @@ namespace MFM {
     m_nodeLeft->countNavNodes(cnt);
   }
 
-
-  Token NodeConditional::getTypeToken()
+  UTI NodeConditional::getRightType()
   {
-    return m_typeTok;
+    return m_utypeRight;
   }
-
 
 } //end MFM
