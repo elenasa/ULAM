@@ -104,9 +104,20 @@ namespace MFM {
     m_ST.addToTable(id, symptr);
   }
 
+  void NodeBlock::replaceIdInScope(u32 oldid, u32 newid, Symbol * symptr)
+  {
+    m_ST.replaceInTable(oldid, newid, symptr);
+  }
+
   NodeBlock * NodeBlock::getPreviousBlockPointer()
   {
     return m_prevBlockNode;
+  }
+
+  void NodeBlock::setPreviousBlockPointer(NodeBlock * b)
+  {
+    assert(m_prevBlockNode == NULL);
+    m_prevBlockNode = b;
   }
 
   u32 NodeBlock::getNumberOfSymbolsInTable()

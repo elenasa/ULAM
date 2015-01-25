@@ -57,6 +57,7 @@ namespace MFM{
 
     bool isInTable(u32 id, Symbol * & symptrref);
     void addToTable(u32 id, Symbol * s);
+    void replaceInTable(u32 oldid, u32 newid, Symbol * s);
 
     Symbol * getSymbolPtr(u32 id);
 

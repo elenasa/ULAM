@@ -1,17 +1,22 @@
 #include "SymbolClassName.h"
-#include "SymbolTable.h"
 #include "CompilerState.h"
-
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, state), m_classInstanceST(state){}
+  SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, state){}
 
   SymbolClassName::~SymbolClassName()
   {
     // symbols belong to  NodeBlockClass's ST; deleted there.
     m_parameterSymbols.clear();
-  }
+
+    // need to delete class instance symbols; ownership belongs here!
+    for(std::size_t i = 0; i < m_classInstanceIdToSymbolPtr.size(); i++)
+      {
+	delete m_classInstanceIdToSymbolPtr[i];
+      }
+    m_classInstanceIdToSymbolPtr.clear();
+  } //destructor
 
   void SymbolClassName::addParameterSymbol(SymbolConstantValue * sym)
   {
@@ -40,17 +45,74 @@ namespace MFM {
     return m_parameterSymbols[n];
   }
 
-
-  bool SymbolClassName::isClassInstanceInTable(UTI uti, SymbolClass * & symptrref)
+  bool SymbolClassName::isClassInstance(UTI uti, SymbolClass * & symptrref)
   {
-    return m_classInstanceST.isInTable(uti, (Symbol * &) symptrref);
+    std::map<UTI, SymbolClass* >::iterator it = m_classInstanceIdToSymbolPtr.find(uti);
+    if(it != m_classInstanceIdToSymbolPtr.end())
+      {
+	symptrref = it->second;
+	assert( symptrref->getUlamTypeIdx() == uti);
+	return true;
+      }
+    return false;
+  } //isClassInstance
+
+
+  void SymbolClassName::addClassInstance(UTI uti, SymbolClass * symptr)
+  {
+    m_classInstanceIdToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr));
   }
 
-
-  void SymbolClassName::addClassInstanceToTable(UTI uti, SymbolClass * symptr)
+  void SymbolClassName::fixAnyClassInstances()
   {
-    m_classInstanceST.addToTable(uti, symptr);
-  }
+    ULAMCLASSTYPE classtype = getUlamClass();
+    assert( classtype != UC_INCOMPLETE);
 
+    //furthermore, this must exist by now, or else this is the wrong time to be fixing
+    assert(getClassBlockNode());
+
+    if(m_classInstanceIdToSymbolPtr.size() > 0)
+      {
+	u32 numparams = getNumberOfParameters();
+	std::map<UTI, SymbolClass* >::iterator it = m_classInstanceIdToSymbolPtr.begin();
+	while(it != m_classInstanceIdToSymbolPtr.end())
+	  {
+	    SymbolClass * csym = it->second;
+	    assert(csym->getUlamClass() == UC_INCOMPLETE);
+	    csym->setUlamClass(classtype);
+
+	    NodeBlockClass * cblock = csym->getClassBlockNode();
+	    assert(cblock);
+	    u32 cargs = cblock->getNumberOfSymbolsInTable();
+	    if(cargs != numparams)
+	      {
+		//error! number of arguments in class instance does not match the number of parameters
+		std::ostringstream msg;
+		msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(csym->getId()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
+		MSG("", msg.str().c_str(),ERR);
+		continue;
+	      }
+
+	    //replace the temporary id with the official parameter name id; update the class instance's ST.
+	    for(u32 i = 0; i < numparams; i++)
+	      {
+		Symbol * argsym = NULL;
+		std::ostringstream sname;
+		sname << "_" << i;
+		u32 sid = m_state.m_pool.getIndexForDataString(sname.str());
+		if(cblock->isIdInScope(sid,argsym))
+		  {
+		    assert(argsym->isConstant());
+		    ((SymbolConstantValue *) argsym)->changeConstantId(sid, m_parameterSymbols[i]->getId());
+		    cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
+		  }
+	      }
+
+	    //importantly, also link the class instance's class block to the classsymbolname's.
+	    cblock->setPreviousBlockPointer(getClassBlockNode());
+	    it++;
+	  } //while
+      } //any class instances
+  } //fixAnyClassInstances
 
 } //end MFM

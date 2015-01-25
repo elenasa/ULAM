@@ -21,18 +21,15 @@ namespace MFM {
     //m_defnode = NULL;
   }
 
-
   bool SymbolConstantValue::isConstant()
   {
     return true;
   }
 
-
   bool SymbolConstantValue::isReady()
   {
     return m_isReady;
   }
-
 
   bool SymbolConstantValue::getValue(s32& val)
   {
@@ -40,20 +37,17 @@ namespace MFM {
     return m_isReady;
   }
 
-
   bool SymbolConstantValue::getValue(u32& val)
   {
     val = m_constant.uval;
     return m_isReady;
   }
 
-
   bool SymbolConstantValue::getValue(bool& val)
   {
     val = m_constant.bval;
     return m_isReady;
   }
-
 
   void SymbolConstantValue::setValue(s32 val)
   {
@@ -78,12 +72,10 @@ namespace MFM {
     return true; //stub
   }
 
-
   const std::string SymbolConstantValue::getMangledPrefix()
   {
     return "Uc_";  //?
   }
-
 
   // replaces NodeConstantValue:printPostfix to learn the values of Class' storage in center site
   void SymbolConstantValue::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
@@ -104,6 +96,14 @@ namespace MFM {
     else
       fp->write("NONREADYCONST");
     fp->write("; ");
+  } //printPostfixValuesOfVariableDeclarations
+
+
+  //warning: this change also requires an update to the ST's key.
+  void SymbolConstantValue::changeConstantId(u32 fmid, u32 toid)
+  {
+    assert(m_id == fmid);
+    m_id = toid;
   }
 
 } //end MFM

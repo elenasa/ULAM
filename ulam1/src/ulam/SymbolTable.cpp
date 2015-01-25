@@ -38,6 +38,17 @@ namespace MFM {
     m_idToSymbolPtr.insert(std::pair<u32,Symbol*> (id,sptr));
   }
 
+  void SymbolTable::replaceInTable(u32 oldid, u32 newid, Symbol * s)
+  {
+    std::map<u32,Symbol*>::iterator it = m_idToSymbolPtr.find(oldid);
+    if(it != m_idToSymbolPtr.end())
+      {
+	Symbol * oldsym = it->second;
+	assert(oldsym == s);
+	m_idToSymbolPtr.erase(it);
+	addToTable(newid, s);
+      }
+  } //replaceInTable
 
   Symbol * SymbolTable::getSymbolPtr(u32 id)
   {
