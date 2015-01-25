@@ -55,7 +55,6 @@ namespace MFM{
 
     virtual bool isReady();
 
-
     bool getValue(s32& val);
     bool getValue(u32& val);
     bool getValue(bool& val);
@@ -69,6 +68,7 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
+    void changeConstantId(u32 fmid, u32 toid);
 
   protected:
 

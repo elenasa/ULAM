@@ -41,8 +41,6 @@
 
 namespace MFM{
 
-  class SymbolTable;  //forward
-
   class SymbolClassName : public SymbolClass
   {
   public:
@@ -54,15 +52,18 @@ namespace MFM{
     u32 getTotalSizeOfParameters();
     Symbol * getParameterSymbolPtr(u32 n);
 
-    bool isClassInstanceInTable(UTI uti, SymbolClass * & symptrref);
-    void addClassInstanceToTable(UTI uti, SymbolClass * symptr);
+    bool isClassInstance(UTI uti, SymbolClass * & symptrref);
+    void addClassInstance(UTI uti, SymbolClass * symptr);
+
+    /** replaces temporary class argument names, updates the ST, and the class type */
+    void fixAnyClassInstances();
 
    protected:
 
   private:
     //ordered class parameters
     std::vector<SymbolConstantValue *> m_parameterSymbols;  // like named constants; symbols owned by m_ST.
-    SymbolTable m_classInstanceST; //owner of class symbols; indexed by UTI (not name id)
+    std::map<UTI, SymbolClass* > m_classInstanceIdToSymbolPtr;
   };
 
 }

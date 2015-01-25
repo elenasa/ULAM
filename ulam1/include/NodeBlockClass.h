@@ -71,9 +71,11 @@ namespace MFM{
     virtual bool isIdInScope(u32 id, Symbol * & symptrref);
 
     bool isFuncIdInScope(u32 id, Symbol * & symptrref);
+
     void addFuncIdToScope(u32 id, Symbol * symptr);
 
     u32 getNumberOfFuncSymbolsInTable();
+
     u32 getSizeOfFuncSymbolsInTable();
 
     void packBitsForVariableDataMembers();

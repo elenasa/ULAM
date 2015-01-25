@@ -163,7 +163,7 @@ namespace MFM {
     if(pTok.m_type == TOK_EOF)
       {
         // Nothing else (but haven't found startstr yet)
-	MSG(&pTok, "EOF before finding compilation target", WARN);
+	MSG(&pTok, "EOF before finding compilation target", DEBUG);
         return true;
       }
 
@@ -190,6 +190,7 @@ namespace MFM {
       }
 
     SymbolClassName * cnSym = NULL;
+    bool wasIncomplete = false;
     if(!m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, cnSym))
       {
 	m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, cnSym);
@@ -205,6 +206,7 @@ namespace MFM {
 
 	    return  true;  //we're done unless we can gobble the rest up?
 	  }
+	wasIncomplete = true;
       }
 
     // set class type in UlamType (through its class symbol) since we know it;
@@ -235,6 +237,8 @@ namespace MFM {
     if(classNode)
       {
 	cnSym->setClassBlockNode(classNode);
+	if(wasIncomplete)
+	  cnSym->fixAnyClassInstances();
       }
     else
       {
@@ -246,7 +250,8 @@ namespace MFM {
       }
 
     //return true when we've seen THIS class
-    return (iTok.m_dataindex == m_state.m_compileThisId);
+    //return (iTok.m_dataindex == m_state.m_compileThisId);
+    return false; //keep going until EOF is reached
   } //parseThisClass
 
   NodeBlockClass * Parser::parseClassBlock(SymbolClass * csym)
@@ -1363,7 +1368,7 @@ namespace MFM {
 	UlamType * cut = m_state.getUlamTypeByIndex(csym->getUlamTypeIdx());
 	((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
       }
-    cnsym->addClassInstanceToTable(cuti, csym);
+    cnsym->addClassInstance(cuti, csym);
 
     m_state.m_currentBlock = classBlock; //reset here for new arg's
     u32 parmidx = 0;

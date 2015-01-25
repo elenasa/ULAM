@@ -69,7 +69,11 @@ namespace MFM{
 
     void addIdToScope(u32 id, Symbol * symptr);
 
+    void replaceIdInScope(u32 oldid, u32 newid, Symbol * symptr);
+
     NodeBlock * getPreviousBlockPointer();
+
+    void setPreviousBlockPointer(NodeBlock *);
 
     u32 getNumberOfSymbolsInTable();
 

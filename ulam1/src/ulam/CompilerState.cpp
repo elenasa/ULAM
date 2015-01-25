@@ -1053,7 +1053,7 @@ namespace MFM {
 	if(cnsym->getUlamTypeIdx() != uti)
 	  {
 	    SymbolClass * csym = NULL;
-	    if(cnsym->isClassInstanceInTable(uti, csym))
+	    if(cnsym->isClassInstance(uti, csym))
 	      {
 		symptr = csym;
 		rtnb = true;
@@ -1089,8 +1089,9 @@ namespace MFM {
     UlamType * ict = getUlamTypeByIndex(incomplete);
     if(alreadyDefinedSymbolClass(incomplete, csym))
       {
-	UTI but = csym->getUlamTypeIdx();
-	assert(but == incomplete);
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
+	UTI but = cnsym->getUlamTypeIdx();
 
 	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
 	//e.g. out-of-scope typedef is not a class, return false
@@ -1101,7 +1102,7 @@ namespace MFM {
 	    if(getBitSize(but) == UNKNOWNSIZE || getArraySize(but) == UNKNOWNSIZE)
 	      {
 		std::ostringstream msg;
-		msg << "Sizes still unknown for Class: " << ict->getUlamTypeName(this).c_str() << "(UTI" << but << ")";
+		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName(this).c_str() << "(UTI" << but << ")";
 		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else
