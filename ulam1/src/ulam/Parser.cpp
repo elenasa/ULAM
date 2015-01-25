@@ -151,7 +151,6 @@ namespace MFM {
 	msg << errs << " TOO MANY PARSE ERRORS: " << compileThis;
 	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
-
     return (errs);
   } //parseProgram
 
@@ -288,11 +287,7 @@ namespace MFM {
 
     if(getExpectedToken(TOK_CLOSE_CURLY))
       {
-	//rtnNode = new NodeBlockClassEmpty(m_state.m_currentBlock, m_state);
-	//assert(rtnNode);
-	//rtnNode->setNodeLocation(pTok.m_locator);
-	//rtnNode->setNodeType(utype);
-	//m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
+	rtnNode->setEmpty();
 	return rtnNode;  //allow empty class
       }
 
