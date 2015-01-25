@@ -557,11 +557,6 @@ namespace MFM {
   } //statusNonreadyNamedConstants
 
 
-  void CompilerState::constantFoldIncompleteClassUTI(UTI auti)
-  {
-
-  } //constantFoldIncompleteClassUTI
-
   void CompilerState::linkConstantExpression(UTI uti, NodeConstantDef * ceNode)
   {
     if(!ceNode)
@@ -582,8 +577,82 @@ namespace MFM {
       }
   } //linkConstantExpression
 
-  bool constantFoldNonreadyClassArgs(UTI auti) { return true; }
-  bool statusNonreadyClassArguments(){ return true; }
+  bool CompilerState::constantFoldNonreadyClassArgs(UTI cuti)
+  {
+    bool rtnb = true;
+    std::vector<NodeConstantDef *> leftCArgs;
+    std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.find(cuti);
+
+    if(it != m_nonreadyClassArgSubtrees.end())
+      {
+	assert(cuti == it->first);
+	std::vector<NodeConstantDef *> ceVector = it->second;
+	std::vector<NodeConstantDef *>::iterator vit = ceVector.begin();
+	while(vit != ceVector.end())
+	  {
+	    NodeConstantDef * ceNode = *vit;
+	    if(ceNode && ceNode->foldConstantExpression())
+	      {
+		delete ceNode;
+		*vit = NULL;
+	      }
+	    else
+	      leftCArgs.push_back(ceNode);
+	    vit++;
+	  } //while thru vector of arg's
+
+	// clean up, replace vector with vector of those still unresolved
+	ceVector.clear();
+	if(leftCArgs.empty())
+	  {
+	    it->second.clear();
+	    m_nonreadyClassArgSubtrees.erase(it);
+	  }
+	else
+	  {
+	    it->second = leftCArgs;
+	    rtnb = false;
+	  }
+      }
+    return rtnb;
+  } //constantFoldNonreadyClassArgs(UTI cuti)
+
+  bool CompilerState::statusNonreadyClassArguments()
+  {
+    bool rtnstat = true; //ok, empty
+    if(!m_nonreadyClassArgSubtrees.empty())
+      {
+	u32 lostsize = m_nonreadyClassArgSubtrees.size();
+
+	std::ostringstream msg;
+	msg << "Found " << lostsize << " incomplete class instances with nonready arguments:";
+
+	std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.begin();
+	std::vector<UTI> lostCUTIs;
+
+	while(it != m_nonreadyClassArgSubtrees.end())
+	  {
+	    UTI cuti = it->first;
+	    msg << " (UTI" << cuti << ") " << getUlamTypeNameByIndex(cuti).c_str() << ",";
+	    lostCUTIs.push_back(cuti);
+	    it++;
+	  }
+
+	msg << " trying to update now";
+	MSG2("", msg.str().c_str(), DEBUG);
+	rtnstat = false;
+
+	assert(lostCUTIs.size() == lostsize);
+	while(!lostCUTIs.empty())
+	  {
+	    UTI cuti = lostCUTIs.back();
+	    constantFoldNonreadyClassArgs(cuti);
+	    lostCUTIs.pop_back();
+	  }
+	lostCUTIs.clear();
+      }
+    return rtnstat;
+  } //statusNonreadyClassArguments
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {

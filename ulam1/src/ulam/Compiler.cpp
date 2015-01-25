@@ -131,13 +131,26 @@ namespace MFM {
 
     m_state.m_programDefST.updateLineageForTableOfClasses();
 
+    // resolve any class args
+    u32 infcounter2 = 0;
+    while(!m_state.statusNonreadyNamedConstants())
+      {
+	if(++infcounter2 > MAX_ITERATIONS)
+	  {
+	    std::ostringstream msg;
+	    msg << "Before setting size of classes, " << m_state.m_nonreadyClassArgSubtrees.size() << " class instances with non-ready arguments remain";
+	    msg << ", after " << infcounter2 << " iterations";
+	    MSG("", msg.str().c_str(), ERR);
+	    break;
+	  }
+      }
+
     // type set at parse time (needed for square bracket checkandlabel);
     // so, here we just check for matching arg types.
     m_state.m_programDefST.checkCustomArraysForTableOfClasses();
 
     // label all the class; sets "current" m_currentClassSymbol in CS
     m_state.m_programDefST.labelTableOfClasses();
-
     if(m_state.m_err.getErrorCount() == 0)
       {
 	u32 infcounter = 0;

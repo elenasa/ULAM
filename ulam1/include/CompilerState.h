@@ -173,9 +173,8 @@ namespace MFM{
     void linkConstantExpression(NodeConstantDef * ceNode);
     bool statusNonreadyNamedConstants();
 
-    void constantFoldIncompleteClassUTI(UTI uti);
     void linkConstantExpression(UTI uti, NodeConstantDef * ceNode);
-    bool constantFoldNonreadyClassArgs(UTI auti);
+    bool constantFoldNonreadyClassArgs(UTI cuti);
     bool statusNonreadyClassArguments();
 
     UlamType * getUlamTypeByIndex(UTI uti);
