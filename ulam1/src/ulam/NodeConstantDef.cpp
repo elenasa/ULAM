@@ -120,7 +120,7 @@ namespace MFM {
     m_constSymbol->setValue(newconst); //isReady now
 
     return true;
-  } //foldConstantExpr
+  } //foldConstantExpression
 
 
   EvalStatus NodeConstantDef::eval()
