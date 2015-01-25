@@ -51,9 +51,16 @@ namespace MFM{
 
     virtual ~NodeBlockClass();
 
+    bool isEmpty();
+    void setEmpty();
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
+
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
 
     virtual UTI checkAndLabelType();
 
@@ -62,10 +69,6 @@ namespace MFM{
     void checkCustomArrayTypeFunctions();
 
     virtual EvalStatus eval();
-
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
 
     //checks both function and variable symbol names
     virtual bool isIdInScope(u32 id, Symbol * & symptrref);
@@ -96,6 +99,7 @@ namespace MFM{
 
   private:
 
+    bool m_isEmpty; //replaces separate node
 
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);

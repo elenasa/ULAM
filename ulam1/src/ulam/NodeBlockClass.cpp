@@ -9,12 +9,21 @@ namespace MFM {
 
   //static const char * CModeForHeaderFiles = "/**                                        -*- mode:C++ -*/\n\n";
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false)
   {}
 
   NodeBlockClass::~NodeBlockClass()
   {}
 
+  bool NodeBlockClass::isEmpty()
+  {
+    return m_isEmpty;
+  }
+
+  void NodeBlockClass::setEmpty()
+  {
+    m_isEmpty = true;
+  }
 
   void NodeBlockClass::print(File * fp)
   {
@@ -44,6 +53,12 @@ namespace MFM {
   {
     fp->write(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
+
+    if(isEmpty())
+      {
+	fp->write(" { /* empty class block */ }");
+	return;
+      }
 
     fp->write(" {");
     // has no m_node!
@@ -84,6 +99,9 @@ namespace MFM {
 
   UTI NodeBlockClass::checkAndLabelType()
   {
+    if(isEmpty())
+      return getNodeType();
+
     //side-effect DataMember VAR DECLS
     if(m_nextNode)
       m_nextNode->checkAndLabelType();
@@ -103,8 +121,7 @@ namespace MFM {
 	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
-    // already set during parsing
-    //setNodeType(Void);     //will be reset to reflect the Class type
+    // type already set during parsing
     return getNodeType();
   } //checkAndLabelType
 
@@ -119,12 +136,16 @@ namespace MFM {
 
   void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
-    m_functionST.checkCustomArrayTypeFuncs();
+    if(!isEmpty())
+      m_functionST.checkCustomArrayTypeFuncs();
   }
 
 
   EvalStatus NodeBlockClass::eval()
   {
+    if(isEmpty())
+      return NORMAL;
+
 #if 0
     //determine size of stackframe (enable for test t3116)
     u32 stackframetotal = getSizeOfFuncSymbolsInTable();
@@ -217,8 +238,7 @@ namespace MFM {
 	  }
       }
     return func;
-  }
-
+  } //findTestFunctionNode()
 
   void NodeBlockClass::packBitsForVariableDataMembers()
   {
@@ -229,24 +249,20 @@ namespace MFM {
     m_nextNode->packBitsInOrderOfDeclaration(offset);
   }
 
-
   u32 NodeBlockClass::countNativeFuncDecls()
   {
+    if(isEmpty())
+      return 0;
     return m_functionST.countNativeFuncDeclsForTableOfFunctions();
   }
-
 
   void NodeBlockClass::generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     // check all the function names for duplicate definitions
     m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
-
-
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
   }
 
-
-  //#define DEBUGGING_WITHOUT_DEFAULTELEMENT
   //header .h file
   void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
   {
@@ -294,11 +310,10 @@ namespace MFM {
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("<CC>::THE_INSTANCE;\n\n");
       }
-
     m_state.m_currentIndentLevel = 0;
     fp->write("} //MFM\n\n");
 
-    //leave endif to NodeProgram
+    //leave class' endif to caller
   } //genCode
 
 
@@ -337,7 +352,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("};\n");
 
-
     fp->write("\n");
 
     // where to put these???
@@ -355,7 +369,6 @@ namespace MFM {
 	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
-
     //default constructor/destructor
   } //genCodeHeaderQuark
 
@@ -370,13 +383,7 @@ namespace MFM {
     fp->write("class ");
     fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
 
-#ifdef DEBUGGING_WITHOUT_DEFAULTELEMENT
-    fp->write(" : public Element<CC>");
-#else
-    fp->write(" : public UlamElement<CC>");  //was DefaultElement
-#endif
-
-    fp->write("\n");
+    fp->write(" : public UlamElement<CC>\n");
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -400,7 +407,6 @@ namespace MFM {
     fp->write("static ");
     fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
     fp->write(" THE_INSTANCE;\n");
-
 
     //DataMember VAR DECLS
     if(m_nextNode)
@@ -462,7 +468,7 @@ namespace MFM {
     fp->write("typedef BitVector<BPA> BV;\n");
 
     fp->write("\n");
-  }
+  } //genShortNameParameterTypesExtractedForHeaderFile
 
 
   //Body for This Class only; practically empty if quark (.tcc)
@@ -495,9 +501,6 @@ namespace MFM {
 	fp->write("::");
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
 
-#ifdef DEBUGGING_WITHOUT_DEFAULTELEMENT
-	fp->write("(){}\n\n");
-#else
 	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
 	fp->write("() : UlamElement<CC>(MFM_UUID_FOR(\"");
 	fp->write(namestr.c_str());
@@ -520,7 +523,6 @@ namespace MFM {
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
 	fp->write("}\n\n");
-#endif
 
 	//default destructor
 	m_state.indent(fp);
@@ -542,7 +544,6 @@ namespace MFM {
 
     m_state.m_currentIndentLevel--;
 
-
     m_state.indent(fp);
     fp->write("} //MFM\n\n");
   } //genCodeBody
@@ -557,16 +558,12 @@ namespace MFM {
     if(classtype != UC_ELEMENT)
       return;
 
-    //UlamType * but = m_state.getUlamTypeByIndex(Bool);
-
     if(declOnly)
       {
 	m_state.indent(fp);
 	fp->write("//helper method not called directly\n");
 
 	m_state.indent(fp);
-	//fp->write("static ");
-	//fp->write(but->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
 	fp->write("bool ");
 	fp->write(m_state.getIsMangledFunctionName());
 	fp->write("(const T& targ) const;\n\n");
@@ -577,8 +574,6 @@ namespace MFM {
     fp->write("template<class CC>\n");
     m_state.indent(fp);
     fp->write("bool ");  //return pos offset, or -1 if not found
-    //fp->write(but->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
-    //fp->write(" ");
 
     UTI cuti = getNodeType();
     //include the mangled class::
@@ -593,7 +588,6 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
     fp->write("return ");
-    //fp->write(but->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
     fp->write("(THE_INSTANCE.GetType() == targ.GetType());\n");
 
     m_state.m_currentIndentLevel--;
