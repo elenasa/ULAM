@@ -89,41 +89,61 @@ namespace MFM {
 
   void CompilerState::clearLeftoverSubtrees()
   {
-    std::map<UTI, NodeTypeBitsize *>::iterator itb = m_unknownBitsizeSubtrees.begin();
-    s32 unknownB = 0;
-    while(itb != m_unknownBitsizeSubtrees.end())
-      {
-	NodeTypeBitsize * bitsizeNode = itb->second;
-	delete bitsizeNode;
-	itb->second = NULL;
-	unknownB++;
-	itb++;
-      }
-    m_unknownBitsizeSubtrees.clear();
+    s32 unknownB = m_unknownBitsizeSubtrees.size();
     if(unknownB > 0)
       {
 	std::ostringstream msg;
 	msg << "Unknown bitsize subtrees cleared: " << unknownB;
 	MSG2("",msg.str().c_str(),DEBUG);
-      }
 
-    std::map<UTI, NodeSquareBracket *>::iterator ita = m_unknownArraysizeSubtrees.begin();
-    s32 unknownA = 0;
-    while(ita != m_unknownArraysizeSubtrees.end())
-      {
-	NodeSquareBracket * arraysizeNode = ita->second;
-	delete arraysizeNode;
-	ita->second = NULL;
-	unknownA++;
-	ita++;
+	std::map<UTI, NodeTypeBitsize *>::iterator itb = m_unknownBitsizeSubtrees.begin();
+	while(itb != m_unknownBitsizeSubtrees.end())
+	  {
+	    NodeTypeBitsize * bitsizeNode = itb->second;
+	    delete bitsizeNode;
+	    itb->second = NULL;
+	    itb++;
+	  }
       }
-    m_unknownArraysizeSubtrees.clear();
+    m_unknownBitsizeSubtrees.clear();
+
+
+    s32 unknownA = m_unknownArraysizeSubtrees.size();
     if(unknownA > 0)
       {
 	std::ostringstream msg;
 	msg << "Unknown arraysize subtrees cleared: " << unknownA;
 	MSG2("",msg.str().c_str(),DEBUG);
+
+	std::map<UTI, NodeSquareBracket *>::iterator ita = m_unknownArraysizeSubtrees.begin();
+
+	while(ita != m_unknownArraysizeSubtrees.end())
+	  {
+	    NodeSquareBracket * arraysizeNode = ita->second;
+	    delete arraysizeNode;
+	    ita->second = NULL;
+	    ita++;
+	  }
       }
+    m_unknownArraysizeSubtrees.clear();
+
+    u32 linkedUnknownA = m_scalarUTItoArrayUTIs.size();
+    if(linkedUnknownA > 0)
+      {
+	std::ostringstream msg;
+	msg << "Linked arrays to Unknown scalars cleared: " << linkedUnknownA;
+	MSG2("",msg.str().c_str(),DEBUG);
+
+	std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.begin();
+	while(it != m_scalarUTItoArrayUTIs.end())
+	  {
+	    std::set<UTI> aset = it->second;
+	    aset.clear();
+	    it++;
+	  }
+      }
+    m_scalarUTItoArrayUTIs.clear();
+
 
     s32 nonreadyC = m_nonreadyNamedConstantSubtrees.size();
     if(nonreadyC > 0)
@@ -157,8 +177,8 @@ namespace MFM {
 	    ceVector.clear();
 	    it++;
 	  }
-	m_nonreadyClassArgSubtrees.clear();
       }
+    m_nonreadyClassArgSubtrees.clear();
 
     s32 unknownKeyC = m_unknownKeyUTICounter.size();
     if(unknownKeyC > 0)
@@ -167,6 +187,7 @@ namespace MFM {
 	msg << "Remaining Unknown Keys with UTI counts, cleared: " << unknownKeyC;
 	MSG2("",msg.str().c_str(),DEBUG);
       }
+    m_unknownKeyUTICounter.clear();
   } //clearLeftoverSubtrees()
 
 
@@ -233,12 +254,14 @@ namespace MFM {
 	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
 		//keep classinstanceid of scalar in key
-		assert(key.getUlamKeyTypeSignatureClassInstanceIdx() > 0);
+		UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
+		assert(suti > 0 && !isComplete(suti));
+		linkArrayUTItoScalarUTI(suti,uti);
 	      }
 	    else
 	      //this is a new class instance! add uti to key
 	      key.append(uti);
-	  }
+	  } //else can't do primitive until after UlamType is defined
 
 	ut = createUlamType(key, utype);
 	m_indexToUlamKey.push_back(key);
@@ -247,6 +270,14 @@ namespace MFM {
 	if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
 	  {
 	    incrementUnknownKeyUTICounter(key);
+	  }
+
+	// can do this now for primitives arrays with unknown bitsizes
+	if(utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE && key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE)
+	  {
+	    UTI suti = getUlamTypeAsScalar(uti);
+	    assert(suti > 0 && !isComplete(suti));
+	    linkArrayUTItoScalarUTI(suti,uti);
 	  }
 
 	std::pair<std::map<UlamKeyTypeSignature,UTI, less_than_key>::iterator, bool> ret;
@@ -579,6 +610,50 @@ namespace MFM {
       }
     return rtnstat;
   } //statusUnknownArraysizeUTI
+
+
+  void CompilerState::linkArrayUTItoScalarUTI(UTI suti, UTI auti)
+  {
+    assert(getUlamTypeByIndex(auti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx() == suti);
+
+    std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.find(suti);
+    if(it != m_scalarUTItoArrayUTIs.end())
+      {
+	assert(it->first == suti);
+	std::set<UTI> aset = it->second;
+	aset.insert(auti);
+      }
+    else
+      {
+	std::set<UTI> aset;
+	aset.insert(auti);
+	m_scalarUTItoArrayUTIs.insert(std::pair<UTI,std::set<UTI> >(suti, aset));
+      }
+  } //linkArrayUTItoScalarUTI
+
+
+  void CompilerState::updatelinkedArrayUTIsWithKnownBitsize(UTI suti)
+  {
+    s32 scalarbitsize = getBitSize(suti);
+    assert(scalarbitsize > UNKNOWNSIZE); //could be a constant?
+
+    std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.find(suti);
+    if(it != m_scalarUTItoArrayUTIs.end())
+      {
+	assert(it->first == suti);
+	std::set<UTI> aset = it->second;
+	std::set<UTI>::iterator sit = aset.begin();
+	while(sit != aset.end())
+	  {
+	    UTI auti = *sit;
+	    setBitSize(auti, scalarbitsize); //keeps current arraysize
+	    sit++;
+	  }
+	//no longer needed since bitsize is known?
+	aset.clear();
+	m_scalarUTItoArrayUTIs.erase(it);
+      }
+  } //updatelinkedArrayUTIsWithKnownBitsize
 
 
   void CompilerState::linkConstantExpression(NodeConstantDef * ceNode)
@@ -951,6 +1026,7 @@ namespace MFM {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
       }
 
+    // bitsize could be UNKNOWN or CONSTANT (negative)
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
 
     bool isCustomArray = ut->isCustomArray();
@@ -989,7 +1065,7 @@ namespace MFM {
     if(key == newkey)
       return;
 
-    //remove old key, if no longer pointed to, and its ulamtype from map
+    //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(key);
 
     UlamType * newut = NULL;
@@ -1016,6 +1092,10 @@ namespace MFM {
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
     incrementUnknownKeyUTICounter(newkey);  //here???
+    if(bitsize > UNKNOWNSIZE && arraysize == NONARRAYSIZE)
+      {
+	updatelinkedArrayUTIsWithKnownBitsize(utArg);
+      }
   } //setUTISizes
 
 
@@ -1070,6 +1150,10 @@ namespace MFM {
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
     incrementUnknownKeyUTICounter(newkey);
+    if(bitsize > UNKNOWNSIZE && arraysize == NONARRAYSIZE)
+      {
+	updatelinkedArrayUTIsWithKnownBitsize(utArg);
+      }
   } // setSizesOfNonClass
 
 
