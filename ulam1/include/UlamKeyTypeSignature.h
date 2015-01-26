@@ -50,7 +50,7 @@ namespace MFM{
     u32 m_typeNameId;
     s32 m_bits;
     s32 m_arraySize;
-    UTI m_classInstanceId;
+    UTI m_classInstanceIdx;
 
     UlamKeyTypeSignature();
     UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize=NONARRAYSIZE);
@@ -62,7 +62,7 @@ namespace MFM{
     u32 getUlamKeyTypeSignatureNameId();
     s32 getUlamKeyTypeSignatureBitSize();
     s32 getUlamKeyTypeSignatureArraySize();
-    UTI getUlamKeyTypeSignatureClassInstanceId();
+    UTI getUlamKeyTypeSignatureClassInstanceIdx();
 
     const std::string getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state);
 

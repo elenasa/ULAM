@@ -1080,7 +1080,7 @@ namespace MFM {
 	    SymbolClass * csym = NULL;
 	    if(m_state.alreadyDefinedSymbolClass(argut, csym))
 	      {
-		return calcVariableSymbolTypeSize(argut);  // NEEDS CORRECTION
+		return calcVariableSymbolTypeSize(csym->getUlamTypeIdx());  // NEEDS CORRECTION
 	      }
 	  }
       }
@@ -1107,7 +1107,7 @@ namespace MFM {
 	    if(m_state.alreadyDefinedSymbolClass(argut, csym))
 	      {
 		s32 csize;
-		if((csize = m_state.getBitSize(argut)) >= 0)
+		if((csize = m_state.getBitSize(csym->getUlamTypeIdx())) >= 0)
 		  {
 		    return csize;
 		  }

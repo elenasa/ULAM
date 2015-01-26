@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeConditional::NodeConditional(Node * leftNode, UTI classInstanceId, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_utypeRight(classInstanceId) {}
+  NodeConditional::NodeConditional(Node * leftNode, UTI classInstanceIdx, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_utypeRight(classInstanceIdx) {}
 
   NodeConditional::~NodeConditional()
   {

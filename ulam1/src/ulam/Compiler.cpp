@@ -133,7 +133,7 @@ namespace MFM {
 
     // resolve any class args
     u32 infcounter2 = 0;
-    while(!m_state.statusNonreadyNamedConstants())
+    while(!m_state.statusNonreadyClassArguments())
       {
 	if(++infcounter2 > MAX_ITERATIONS)
 	  {

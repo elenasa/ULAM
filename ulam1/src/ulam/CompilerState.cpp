@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-  //#define _DEBUG_OUTPUT
-  //#define _INFO_OUTPUT
-  //#define _WARN_OUTPUT
+  #define _DEBUG_OUTPUT
+  #define _INFO_OUTPUT
+  #define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -61,6 +61,7 @@ namespace MFM {
   CompilerState::~CompilerState()
   {
     clearAllDefinedUlamTypes();
+    clearLeftoverSubtrees();
     clearAllLinesOfText();
     m_currentObjSymbolsForCodeGen.clear();
   }
@@ -81,6 +82,13 @@ namespace MFM {
     m_indexToUlamKey.clear();
     m_keyToaUTI.clear();
 
+    m_currentFunctionReturnNodes.clear();
+
+  } //clearAllDefinedUlamTypes()
+
+
+  void CompilerState::clearLeftoverSubtrees()
+  {
     std::map<UTI, NodeTypeBitsize *>::iterator itb = m_unknownBitsizeSubtrees.begin();
     s32 unknownB = 0;
     while(itb != m_unknownBitsizeSubtrees.end())
@@ -124,11 +132,34 @@ namespace MFM {
 	msg << "Nonready named constant subtrees cleared: " << nonreadyC;
 	MSG2("",msg.str().c_str(),DEBUG);
       }
-
     m_nonreadyNamedConstantSubtrees.clear();
 
-    m_currentFunctionReturnNodes.clear();
-  } //clearAllDefinedUlamTypes()
+
+    s32 nonreadyG = m_nonreadyClassArgSubtrees.size();
+    if(nonreadyG > 0)
+      {
+	std::ostringstream msg;
+	msg << "Class Instances with non-ready argument constant subtrees cleared: " << nonreadyG;
+	MSG2("",msg.str().c_str(),DEBUG);
+
+	std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.begin();
+	while(it != m_nonreadyClassArgSubtrees.end())
+	  {
+	    std::vector<NodeConstantDef *> ceVector = it->second;
+	    std::vector<NodeConstantDef *>::iterator vit = ceVector.begin();
+	    while(vit != ceVector.end())
+	      {
+		NodeConstantDef * ceNode = *vit;
+		delete ceNode;
+		*vit = NULL;
+		vit++;
+	      }
+	    ceVector.clear();
+	    it++;
+	  }
+	m_nonreadyClassArgSubtrees.clear();
+      }
+  } //clearLeftoverSubtrees()
 
 
   void CompilerState::clearAllLinesOfText()
@@ -191,8 +222,14 @@ namespace MFM {
 	uti = m_indexToUlamKey.size();  //next index based on key
 	if(utype == Class)
 	  {
-	    //this is a class instance! add uti to key
-	    key.append(uti);
+	    if(key.getUlamKeyTypeSignatureArraySize() >= 0) //array type
+	      {
+		//keep classinstanceid of scalar in key
+		assert(key.getUlamKeyTypeSignatureClassInstanceIdx() > 0);
+	      }
+	    else
+	      //this is a new class instance! add uti to key
+	      key.append(uti);
 	  }
 
 	ut = createUlamType(key, utype);
@@ -837,8 +874,15 @@ namespace MFM {
   bool CompilerState::isComplete(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    return (ut->isComplete());
-  }
+    //for arrays, check if scalar is complete
+    if(!ut->isComplete() && !ut->isScalar())
+      {
+	UTI scalarUTI = ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+	assert(isScalar(scalarUTI));
+	return isComplete(scalarUTI);
+      }
+    return ut->isComplete();
+  } //isComplete
 
 
   // this may go away..
@@ -896,7 +940,7 @@ namespace MFM {
 
     //continue with valid number of bits for Class UlamTypes only
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
-    newkey.append(key.getUlamKeyTypeSignatureClassInstanceId());
+    newkey.append(key.getUlamKeyTypeSignatureClassInstanceIdx());
 
     if(key == newkey)
       return;
@@ -927,7 +971,7 @@ namespace MFM {
 #endif
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
-  } //setSizesOfClass
+  } //setUTISizes
 
 
   void CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
@@ -1042,18 +1086,24 @@ namespace MFM {
     return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
   }
 
-  //if necessary, searches for instance of class "template" with matching uti
+  //if necessary, searches for instance of class "template" with matching SCALAR uti
   bool CompilerState::alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr)
   {
     bool rtnb = false;
     UlamType * ut = getUlamTypeByIndex(uti);
+    UTI scalarUTI;
+    if(ut->isScalar())
+      scalarUTI = uti;
+    else
+      scalarUTI = ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
       {
-	if(cnsym->getUlamTypeIdx() != uti)
+	if(cnsym->getUlamTypeIdx() != scalarUTI)
 	  {
 	    SymbolClass * csym = NULL;
-	    if(cnsym->isClassInstance(uti, csym))
+	    if(cnsym->isClassInstance(scalarUTI, csym))
 	      {
 		symptr = csym;
 		rtnb = true;
@@ -1066,7 +1116,7 @@ namespace MFM {
 	  }
       }
     return rtnb;
-  } //alreadyDefinedSymbolClass (overloaded)
+  } //alreadyDefinedSymbolClass
 
   //temporary UlamType which will be updated during type labeling.
   void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassName * & symptr)

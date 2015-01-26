@@ -74,11 +74,15 @@ namespace MFM{
       if(key1.m_typeNameId < key2.m_typeNameId) return true;
       if(key1.m_typeNameId > key2.m_typeNameId) return false;
       if(key1.m_bits < key2.m_bits) return true;
-      if(key1.m_bits > key2.m_bits) return false;
+      if(key1.m_bits > key2.m_bits ) return false;
       if(key1.m_arraySize < key2.m_arraySize) return true;
       if(key1.m_arraySize > key2.m_arraySize) return false;
-      if(key1.m_classInstanceId < key2.m_classInstanceId) return true;
-      if(key1.m_classInstanceId > key2.m_classInstanceId) return false;
+      //if(key1.m_bits < key2.m_bits && key1.m_bits > UNKNOWNSIZE) return true;
+      //if(key1.m_bits > key2.m_bits && key2.m_bits > UNKNOWNSIZE) return false;
+      //if(key1.m_arraySize < key2.m_arraySize && key1.m_arraySize > UNKNOWNSIZE) return true;
+      //if(key1.m_arraySize > key2.m_arraySize && key2.m_arraySize > UNKNOWNSIZE) return false;
+      if(key1.m_classInstanceIdx < key2.m_classInstanceIdx) return true;
+      if(key1.m_classInstanceIdx > key2.m_classInstanceIdx) return false;
       return false;
     }
   };
@@ -152,6 +156,7 @@ namespace MFM{
     ~CompilerState();
 
     void clearAllDefinedUlamTypes();
+    void clearLeftoverSubtrees();
     void clearAllLinesOfText();
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize);

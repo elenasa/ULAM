@@ -11,11 +11,11 @@ namespace MFM {
     m_parameterSymbols.clear();
 
     // need to delete class instance symbols; ownership belongs here!
-    for(std::size_t i = 0; i < m_classInstanceIdToSymbolPtr.size(); i++)
+    for(std::size_t i = 0; i < m_scalarClassInstanceIdxToSymbolPtr.size(); i++)
       {
-	delete m_classInstanceIdToSymbolPtr[i];
+	delete m_scalarClassInstanceIdxToSymbolPtr[i];
       }
-    m_classInstanceIdToSymbolPtr.clear();
+    m_scalarClassInstanceIdxToSymbolPtr.clear();
   } //destructor
 
   void SymbolClassName::addParameterSymbol(SymbolConstantValue * sym)
@@ -47,8 +47,8 @@ namespace MFM {
 
   bool SymbolClassName::isClassInstance(UTI uti, SymbolClass * & symptrref)
   {
-    std::map<UTI, SymbolClass* >::iterator it = m_classInstanceIdToSymbolPtr.find(uti);
-    if(it != m_classInstanceIdToSymbolPtr.end())
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);
+    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	symptrref = it->second;
 	assert( symptrref->getUlamTypeIdx() == uti);
@@ -60,7 +60,7 @@ namespace MFM {
 
   void SymbolClassName::addClassInstance(UTI uti, SymbolClass * symptr)
   {
-    m_classInstanceIdToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr));
+    m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr));
   }
 
   void SymbolClassName::fixAnyClassInstances()
@@ -71,11 +71,11 @@ namespace MFM {
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     assert(getClassBlockNode());
 
-    if(m_classInstanceIdToSymbolPtr.size() > 0)
+    if(m_scalarClassInstanceIdxToSymbolPtr.size() > 0)
       {
 	u32 numparams = getNumberOfParameters();
-	std::map<UTI, SymbolClass* >::iterator it = m_classInstanceIdToSymbolPtr.begin();
-	while(it != m_classInstanceIdToSymbolPtr.end())
+	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+	while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
 	  {
 	    SymbolClass * csym = it->second;
 	    assert(csym->getUlamClass() == UC_INCOMPLETE);
