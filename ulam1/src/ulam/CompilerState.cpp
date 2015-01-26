@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-  #define _DEBUG_OUTPUT
-  #define _INFO_OUTPUT
-  #define _WARN_OUTPUT
+  //  #define _DEBUG_OUTPUT
+  //  #define _INFO_OUTPUT
+  //  #define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -185,7 +185,19 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Remaining Unknown Keys with UTI counts, cleared: " << unknownKeyC;
-	MSG2("",msg.str().c_str(),DEBUG);
+	MSG2("", msg.str().c_str(),DEBUG);
+
+	std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.begin();
+
+	while(it != m_unknownKeyUTICounter.end())
+	  {
+	    UlamKeyTypeSignature key = it->first;
+	    u32 count = it->second;
+	    std::ostringstream msg;
+	    msg << "Key: " << key.getUlamKeyTypeSignatureAsString(this).c_str() << ", " << count << " counted";
+	    MSG2("", msg.str().c_str(),DEBUG);
+	    it++;
+	  }
       }
     m_unknownKeyUTICounter.clear();
   } //clearLeftoverSubtrees()
@@ -256,43 +268,57 @@ namespace MFM {
 		//keep classinstanceid of scalar in key
 		UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
 		assert(suti > 0 && !isComplete(suti));
-		linkArrayUTItoScalarUTI(suti,uti);
 	      }
 	    else
 	      //this is a new class instance! add uti to key
 	      key.append(uti);
-	  } //else can't do primitive until after UlamType is defined
+	  }
 
 	ut = createUlamType(key, utype);
 	m_indexToUlamKey.push_back(key);
-	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(key,ut)); //map owns ut
-
-	if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+	std::pair<std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator, bool> reti;
+	reti = m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(key,ut)); //map owns ut
+	bool notdupi = reti.second; //false if already existed, i.e. not added
+	if(!notdupi)
 	  {
-	    incrementUnknownKeyUTICounter(key);
+	    std::ostringstream msg;
+	    msg << "Key to UlamType record already exists: " << ut->getUlamTypeName(this).c_str() << " (UTI" << uti << ")";
+	    MSG2("", msg.str().c_str(), DEBUG);
+	    delete ut;
+	    ut = NULL;
 	  }
 
-	// can do this now for primitives arrays with unknown bitsizes
-	if(utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE && key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE)
+	incrementUnknownKeyUTICounter(key);
+
+	// can do this now after new uti is defined
+	if(utype == Class)
+	  {
+	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
+	      {
+		UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
+		linkArrayUTItoScalarUTI(suti,uti);
+	      }
+	  }
+	else if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE && key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE)
 	  {
 	    UTI suti = getUlamTypeAsScalar(uti);
 	    assert(suti > 0 && !isComplete(suti));
 	    linkArrayUTItoScalarUTI(suti,uti);
 	  }
 
-	std::pair<std::map<UlamKeyTypeSignature,UTI, less_than_key>::iterator, bool> ret;
+	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
 	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
 	bool notdup = ret.second; //false if already existed, i.e. not added
 	if(!notdup)
 	  {
 	    std::ostringstream msg;
-	    msg << "Key to A UTI already exists: " << ut->getUlamTypeName(this).c_str() << " (UTI" << uti << ")";
+	    msg << "Key to A UTI already exists: " << key.getUlamKeyTypeSignatureAsString(this).c_str() << " (UTI" << uti << ")";
 	    MSG2("", msg.str().c_str(), DEBUG);
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Added Key to A UTI: " << ut->getUlamTypeName(this).c_str() << " (UTI" << uti << ")";
+	    msg << "Added Key to A UTI: " << key.getUlamKeyTypeSignatureAsString(this).c_str() << " (UTI" << uti << ")";
 	    MSG2("", msg.str().c_str(), DEBUG);
 	  }
 	assert(isDefined(key, ut));
@@ -384,16 +410,19 @@ namespace MFM {
 
   void CompilerState::incrementUnknownKeyUTICounter(UlamKeyTypeSignature key)
   {
-    std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
+    if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+      {
+	std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
 
-    if(it != m_unknownKeyUTICounter.end())
-      {
-	assert(key == it->first);
-	it->second++;
-      }
-    else
-      {
-	m_unknownKeyUTICounter.insert(std::pair<UlamKeyTypeSignature,u32>(key,1));
+	if(it != m_unknownKeyUTICounter.end())
+	  {
+	    assert(key == it->first);
+	    it->second++;
+	  }
+	else
+	  {
+	    m_unknownKeyUTICounter.insert(std::pair<UlamKeyTypeSignature,u32>(key,1));
+	  }
       }
   } //incrementUnknownKeyUTICounter
 
@@ -407,9 +436,24 @@ namespace MFM {
 	assert(key == it->first);
 	it->second--;
 	count = it->second;
+	if(count == 0)
+	  m_unknownKeyUTICounter.erase(it);
       }
     return count;
   } //decrementUnknownKeyUTICounter
+
+
+  u32 CompilerState::findUnknownKeyUTICounter(UlamKeyTypeSignature key)
+  {
+    std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
+    u32 count = 0;
+    if(it != m_unknownKeyUTICounter.end())
+      {
+	assert(key == it->first);
+	count = it->second;
+      }
+    return count;
+  } //findUnknownKeyUTICounter
 
 
   //used to update Class' calculated bit size (setBitSize)
@@ -439,6 +483,10 @@ namespace MFM {
   {
     bool rtnBool= false;
     UTI uti;
+
+    //skip happily if no others use the old key; new key was added by makeulamtype
+    if(findUnknownKeyUTICounter(oldkey) == 0)
+      return true;
 
     std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToaUTI.find(oldkey);
 
@@ -1079,6 +1127,8 @@ namespace MFM {
 
 	if(isCustomArray)
 	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+
+	incrementUnknownKeyUTICounter(newkey);  //here???
       }
     m_indexToUlamKey[utArg] = newkey;
 
@@ -1091,7 +1141,6 @@ namespace MFM {
 #endif
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
-    incrementUnknownKeyUTICounter(newkey);  //here???
     if(bitsize > UNKNOWNSIZE && arraysize == NONARRAYSIZE)
       {
 	updatelinkedArrayUTIsWithKnownBitsize(utArg);
@@ -1136,6 +1185,7 @@ namespace MFM {
       {
 	newut = createUlamType(newkey, bUT);
 	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(newkey,newut));
+	incrementUnknownKeyUTICounter(newkey);
       }
 
     m_indexToUlamKey[utArg] = newkey;
@@ -1149,7 +1199,6 @@ namespace MFM {
 #endif
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
-    incrementUnknownKeyUTICounter(newkey);
     if(bitsize > UNKNOWNSIZE && arraysize == NONARRAYSIZE)
       {
 	updatelinkedArrayUTIsWithKnownBitsize(utArg);
