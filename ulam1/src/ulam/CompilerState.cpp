@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-  //  #define _DEBUG_OUTPUT
-  //  #define _INFO_OUTPUT
-  //  #define _WARN_OUTPUT
+//  #define _DEBUG_OUTPUT
+//  #define _INFO_OUTPUT
+//  #define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -983,7 +983,13 @@ namespace MFM {
 
     // for typedef array, the scalar is the primitive type
     ULAMTYPE bUT = ut->getUlamTypeEnum();
+
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
+
+    if(bUT == Class)
+      {
+	return keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
+      }
 
     u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize);  //default array size is zero
