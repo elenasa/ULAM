@@ -167,6 +167,7 @@ namespace MFM{
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     void incrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
     u32 decrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
+    u32 findUnknownKeyUTICounter(UlamKeyTypeSignature key);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
 
