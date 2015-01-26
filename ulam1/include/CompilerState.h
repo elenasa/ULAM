@@ -140,6 +140,7 @@ namespace MFM{
     std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
     std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
     std::map<UTI, std::vector<NodeConstantDef *> > m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
+    std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
 
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
@@ -164,6 +165,8 @@ namespace MFM{
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
+    void incrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
+    u32 decrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
 

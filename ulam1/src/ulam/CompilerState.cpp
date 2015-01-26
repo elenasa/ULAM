@@ -159,6 +159,14 @@ namespace MFM {
 	  }
 	m_nonreadyClassArgSubtrees.clear();
       }
+
+    s32 unknownKeyC = m_unknownKeyUTICounter.size();
+    if(unknownKeyC > 0)
+      {
+	std::ostringstream msg;
+	msg << "Remaining Unknown Keys with UTI counts, cleared: " << unknownKeyC;
+	MSG2("",msg.str().c_str(),DEBUG);
+      }
   } //clearLeftoverSubtrees()
 
 
@@ -222,7 +230,7 @@ namespace MFM {
 	uti = m_indexToUlamKey.size();  //next index based on key
 	if(utype == Class)
 	  {
-	    if(key.getUlamKeyTypeSignatureArraySize() >= 0) //array type
+	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
 		//keep classinstanceid of scalar in key
 		assert(key.getUlamKeyTypeSignatureClassInstanceIdx() > 0);
@@ -235,6 +243,11 @@ namespace MFM {
 	ut = createUlamType(key, utype);
 	m_indexToUlamKey.push_back(key);
 	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(key,ut)); //map owns ut
+
+	if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+	  {
+	    incrementUnknownKeyUTICounter(key);
+	  }
 
 	std::pair<std::map<UlamKeyTypeSignature,UTI, less_than_key>::iterator, bool> ret;
 	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
@@ -338,22 +351,53 @@ namespace MFM {
     return ut;
   } //createUlamType
 
+  void CompilerState::incrementUnknownKeyUTICounter(UlamKeyTypeSignature key)
+  {
+    std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
+
+    if(it != m_unknownKeyUTICounter.end())
+      {
+	assert(key == it->first);
+	it->second++;
+      }
+    else
+      {
+	m_unknownKeyUTICounter.insert(std::pair<UlamKeyTypeSignature,u32>(key,1));
+      }
+  } //incrementUnknownKeyUTICounter
+
+
+  u32 CompilerState::decrementUnknownKeyUTICounter(UlamKeyTypeSignature key)
+  {
+    std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
+    u32 count = 0;
+    if(it != m_unknownKeyUTICounter.end())
+      {
+	assert(key == it->first);
+	it->second--;
+	count = it->second;
+      }
+    return count;
+  } //decrementUnknownKeyUTICounter
+
 
   //used to update Class' calculated bit size (setBitSize)
   bool CompilerState::deleteUlamKeyTypeSignature(UlamKeyTypeSignature key)
   {
     bool rtnBool= false;
-
-    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.find(key);
-
-    if(it != m_definedUlamTypes.end())
+    if(decrementUnknownKeyUTICounter(key) == 0)
       {
-	assert(key == it->first);
-	UlamType * ut = it->second;
-	delete ut;
-	it->second = NULL;
-	m_definedUlamTypes.erase(it);
-	rtnBool = true;
+	std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.find(key);
+
+	if(it != m_definedUlamTypes.end())
+	  {
+	    assert(key == it->first);
+	    UlamType * ut = it->second;
+	    delete ut;
+	    it->second = NULL;
+	    m_definedUlamTypes.erase(it);
+	    rtnBool = true;
+	  }
       }
     return rtnBool;
   } //deleteUlamKeyTypeSignature
@@ -945,11 +989,11 @@ namespace MFM {
     if(key == newkey)
       return;
 
-    //remove old key, and its ulamtype from map
+    //remove old key, if no longer pointed to, and its ulamtype from map
     deleteUlamKeyTypeSignature(key);
 
     UlamType * newut = NULL;
-    assert(!isDefined(key, newut) && !newut);
+    //assert(!isDefined(key, newut) && !newut);
 
     if(!isDefined(newkey, newut))
       {
@@ -971,6 +1015,7 @@ namespace MFM {
 #endif
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
+    incrementUnknownKeyUTICounter(newkey);  //here???
   } //setUTISizes
 
 
@@ -1001,11 +1046,11 @@ namespace MFM {
     if(key == newkey)
       return;
 
-    //remove old key from map
+    //remove old key from map, if no longer pointed to by any UTIs
     deleteUlamKeyTypeSignature(key);
 
     UlamType * newut = NULL;
-    assert(!isDefined(key, newut) && !newut);
+    //    assert(!isDefined(key, newut) && !newut);
 
     if(!isDefined(newkey, newut))
       {
@@ -1024,6 +1069,7 @@ namespace MFM {
 #endif
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
+    incrementUnknownKeyUTICounter(newkey);
   } // setSizesOfNonClass
 
 
