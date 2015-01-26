@@ -141,7 +141,7 @@ namespace MFM{
     std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
     std::map<UTI, std::vector<NodeConstantDef *> > m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
     std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
-
+    std::map<UTI, std::set<UTI> > m_scalarUTItoArrayUTIs; //help update array's bitsizes when scalar's is known
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -177,6 +177,8 @@ namespace MFM{
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
     bool statusUnknownArraysizeUTI();
+    void linkArrayUTItoScalarUTI(UTI suti, UTI auti);
+    void updatelinkedArrayUTIsWithKnownBitsize(UTI suti);
 
     void linkConstantExpression(NodeConstantDef * ceNode);
     bool statusNonreadyNamedConstants();
