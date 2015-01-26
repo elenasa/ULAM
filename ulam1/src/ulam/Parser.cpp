@@ -445,6 +445,13 @@ namespace MFM {
     if(m_state.getBaseTypeFromToken(pTok) == Class)
       {
 	cuti = parseClassArguments(pTok); //not sure what to do with the UTI???
+	Token dTok;
+	getNextToken(dTok);
+	unreadToken();
+	if(dTok.m_type == TOK_DOT)
+	  {
+	    parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize);
+	  }
       }
     else
       {
@@ -1190,6 +1197,13 @@ namespace MFM {
 	if(m_state.getBaseTypeFromToken(pTok) == Class)
 	  {
 	    cuti = parseClassArguments(pTok); //not sure what to do with the UTI???
+	    Token dTok;
+	    getNextToken(dTok);
+	    unreadToken();
+	    if(dTok.m_type == TOK_DOT)
+	      {
+		parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize);
+	      }
 	  }
 	else
 	  {
@@ -1279,6 +1293,13 @@ namespace MFM {
     if(m_state.getBaseTypeFromToken(pTok) == Class)
       {
 	cuti = parseClassArguments(pTok); //not sure what to do with the UTI???
+	Token dTok;
+	getNextToken(dTok);
+	unreadToken();
+	if(dTok.m_type == TOK_DOT)
+	  {
+	    parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize);
+	  }
       }
     else
       {
@@ -2074,14 +2095,17 @@ namespace MFM {
 	UTI uti = Nav;
 	if(m_state.getBaseTypeFromToken(pTok) == Class)
 	  {
-	    Token bTok;
-	    getNextToken(bTok);
-	    if(bTok.m_type == TOK_OPEN_PAREN)
+	    UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI?
+	    Token dTok;
+	    getNextToken(dTok);
+	    unreadToken();
+	    if(dTok.m_type == TOK_DOT)
 	      {
-		uti = parseClassArguments(pTok); //not sure what to do with the UTI???
+		parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize);
+		uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize);
 	      }
 	    else
-	      unreadToken();
+	      uti = cuti;
 	  }
 	else
 	  {
@@ -3654,7 +3678,17 @@ namespace MFM {
     UTI typeToBe = Nav;
     if(m_state.getBaseTypeFromToken(typeTok) == Class)
       {
-	typeToBe = parseClassArguments(typeTok); //not sure what to do with the UTI???
+	UTI cuti = parseClassArguments(typeTok); //not sure what to do with the UTI?
+	Token dTok;
+	getNextToken(dTok);
+	unreadToken();
+	if(dTok.m_type == TOK_DOT)
+	  {
+	    parseTypeFromAnotherClassesTypedef(typeTok, typebitsize, arraysize);
+	    typeToBe = m_state.getUlamTypeFromToken(typeTok, typebitsize, arraysize);
+	  }
+	else
+	  typeToBe = cuti;
       }
     else
       {
