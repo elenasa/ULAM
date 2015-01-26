@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeConditionalAs::NodeConditionalAs(Node * leftNode, UTI classInstanceId, CompilerState & state): NodeConditional(leftNode, classInstanceId, state) {}
+  NodeConditionalAs::NodeConditionalAs(Node * leftNode, UTI classInstanceIdx, CompilerState & state): NodeConditional(leftNode, classInstanceIdx, state) {}
 
   NodeConditionalAs::~NodeConditionalAs()
   {}

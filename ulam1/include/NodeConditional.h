@@ -46,7 +46,7 @@ namespace MFM{
   {
   public:
 
-    NodeConditional(Node * leftNode, UTI classInstanceId, CompilerState & state);
+    NodeConditional(Node * leftNode, UTI classInstanceIdx, CompilerState & state);
     ~NodeConditional();
 
     virtual void updateLineage(Node * p);

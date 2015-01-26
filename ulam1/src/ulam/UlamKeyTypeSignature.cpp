@@ -7,15 +7,15 @@
 
 namespace MFM {
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(): m_typeNameId(0), m_bits(UNKNOWNSIZE), m_arraySize(UNKNOWNSIZE), m_classInstanceId(Nav) {}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(): m_typeNameId(0), m_bits(UNKNOWNSIZE), m_arraySize(UNKNOWNSIZE), m_classInstanceIdx(Nav) {}
 
-  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize ): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceId(Nav) {}
+  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize ): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(Nav) {}
 
   UlamKeyTypeSignature::~UlamKeyTypeSignature(){}
 
   void UlamKeyTypeSignature::append(UTI cuti)
   {
-    m_classInstanceId = cuti;
+    m_classInstanceIdx = cuti;
   }
 
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureName(CompilerState * state)
@@ -43,9 +43,9 @@ namespace MFM {
   }
 
 
-  UTI UlamKeyTypeSignature::getUlamKeyTypeSignatureClassInstanceId()
+  UTI UlamKeyTypeSignature::getUlamKeyTypeSignatureClassInstanceIdx()
   {
-    return m_classInstanceId;
+    return m_classInstanceIdx;
   }
 
 
@@ -88,8 +88,8 @@ namespace MFM {
       key << "[" << utk.m_arraySize << "?]";
     //key << "[" << "]";
 
-    if(utk.m_classInstanceId != Nav)
-      key << "<" << utk.m_classInstanceId << ">";
+    if(utk.m_classInstanceIdx != Nav)
+      key << "<" << utk.m_classInstanceIdx << ">";
 
     return key.str();
   } //getUlamKeyTypeSignatureAsString
@@ -105,15 +105,15 @@ namespace MFM {
     if(m_arraySize < key2.m_arraySize) return true;
     if(m_arraySize > key2.m_arraySize) return false;
 
-    if(m_classInstanceId < key2.m_classInstanceId) return true;
-    if(m_classInstanceId > key2.m_classInstanceId) return false;
+    if(m_classInstanceIdx < key2.m_classInstanceIdx) return true;
+    if(m_classInstanceIdx > key2.m_classInstanceIdx) return false;
     return false;
   }
 
 
   bool UlamKeyTypeSignature::operator==(const UlamKeyTypeSignature & key2)
   {
-    return ((m_typeNameId == key2.m_typeNameId) && (m_bits == key2.m_bits) && (m_arraySize == key2.m_arraySize) && m_classInstanceId == key2.m_classInstanceId);
+    return ((m_typeNameId == key2.m_typeNameId) && (m_bits == key2.m_bits) && (m_arraySize == key2.m_arraySize) && m_classInstanceIdx == key2.m_classInstanceIdx);
   }
 
 } //end MFM

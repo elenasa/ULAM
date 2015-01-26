@@ -473,8 +473,8 @@ namespace MFM {
 	if(ut1->getUlamClass() == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
 	  return UTIC_DONTKNOW;
 
-	UTI classid1 = ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceId();
-	if(classid1 != Nav && classid1 != ut2->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceId())
+	UTI classid1 = ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+	if(classid1 != Nav && classid1 != ut2->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx())
 	  return UTIC_DONTKNOW;
       }
 
@@ -483,8 +483,8 @@ namespace MFM {
 	if(ut2->getUlamClass() == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
 	return UTIC_DONTKNOW;
 
-	UTI classid2 = ut2->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceId();
-	if(classid2 != Nav && classid2 != ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceId())
+	UTI classid2 = ut2->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+	if(classid2 != Nav && classid2 != ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx())
 	  return UTIC_DONTKNOW;
       }
 

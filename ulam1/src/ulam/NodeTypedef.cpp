@@ -67,14 +67,15 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
-	else if(!tdut->isComplete())
+
+	if(!tdut->isComplete())
 	  {
 	    m_state.constantFoldIncompleteUTI(it); //update if possible
 	    tdut = m_state.getUlamTypeByIndex(it); //reload
 	    if(!tdut->isComplete())
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Typedef for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << ">";
+		msg << "Incomplete Typedef for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }

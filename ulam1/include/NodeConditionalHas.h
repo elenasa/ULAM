@@ -45,7 +45,7 @@ namespace MFM{
   {
   public:
 
-    NodeConditionalHas(Node * leftNode, UTI classInstanceId, CompilerState & state);
+    NodeConditionalHas(Node * leftNode, UTI classInstanceIdx, CompilerState & state);
     ~NodeConditionalHas();
 
     virtual const char * getName();

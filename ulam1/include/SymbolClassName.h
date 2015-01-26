@@ -63,7 +63,7 @@ namespace MFM{
   private:
     //ordered class parameters
     std::vector<SymbolConstantValue *> m_parameterSymbols;  // like named constants; symbols owned by m_ST.
-    std::map<UTI, SymbolClass* > m_classInstanceIdToSymbolPtr;
+    std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtr;
   };
 
 }

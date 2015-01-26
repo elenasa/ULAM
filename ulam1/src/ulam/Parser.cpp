@@ -30,7 +30,6 @@
 #include "NodeBinaryOpShiftRight.h"
 #include "NodeBlock.h"
 #include "NodeBlockEmpty.h"
-#include "NodeBlockClassEmpty.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeBreakStatement.h"
 #include "NodeCast.h"
@@ -278,6 +277,8 @@ namespace MFM {
       {
 	parseRestOfClassParameters(csym);
       }
+    else
+      unreadToken();
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
       {
@@ -1315,20 +1316,31 @@ namespace MFM {
     SymbolClassName * cnsym = NULL;
     if(!m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
       {
-	//trying to instantiate a class that hasn't been seen yet!
-	// what to do? we don't know the required parameters!!!
+	//check if a typedef first..if so, return its SCALAR uti
+	UTI tduti;
+	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti))
+	  {
+	    if(m_state.isScalar(tduti))
+	      return tduti;
+
+	    return m_state.getUlamTypeByIndex(tduti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+	  }
+
+	// trying to instantiate a class that hasn't been seen yet!
+	// what to do? we don't know the required parameters!
 	// assume correct, verify later..
-	// but no Class Block..is this going to bite us???
 	m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, cnsym);
       }
-
 
     cuti = cnsym->getUlamTypeIdx();
     numParams = cnsym->getNumberOfParameters();
     Token pTok;
     getNextToken(pTok);
     if(pTok.m_type != TOK_OPEN_PAREN)
-      return cuti;
+      {
+	unreadToken();
+	return cuti;
+      }
 
     getNextToken(pTok);
     if(pTok.m_type == TOK_CLOSE_PAREN)
@@ -1350,6 +1362,7 @@ namespace MFM {
     assert(classBlock);
     classBlock->setNodeLocation(typeTok.m_locator);
     classBlock->setNodeType(cuti);
+    classBlock->setEmpty(); //???
 
     SymbolClass * csym = new SymbolClass(typeTok.m_dataindex, cuti, classBlock, m_state);
     assert(csym);
@@ -2571,7 +2584,7 @@ namespace MFM {
   } //parseRestOfAssignExpr
 
   //assignOK true by default.
-  Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, Node * dNode, bool assignOK)
+  Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, Node * dNode, bool assignOK)
   {
     Token pTok;
     getNextToken(pTok);
@@ -2581,7 +2594,7 @@ namespace MFM {
 	if(assignOK)
 	  {
 	    unreadToken();
-	    return parseRestOfDeclAssignment(typeTok, typebitsize, arraysize, identTok, classInstanceId, dNode); //pass args for more decls
+	    return parseRestOfDeclAssignment(typeTok, typebitsize, arraysize, identTok, classInstanceIdx, dNode); //pass args for more decls
 	  }
 	else
 	  {
@@ -2606,7 +2619,7 @@ namespace MFM {
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	// another decl of same type typeTok
-	Node * sNode = makeVariableSymbol(typeTok, typebitsize, arraysize, iTok, classInstanceId);  //a decl
+	Node * sNode = makeVariableSymbol(typeTok, typebitsize, arraysize, iTok, classInstanceIdx);  //a decl
 	if (sNode)
 	  {
 	    rtnNode =  new NodeStatements(dNode, m_state);
@@ -2626,10 +2639,10 @@ namespace MFM {
 	getTokensUntil(TOK_SEMICOLON);
 	unreadToken();
       }
-    return parseRestOfDecls(typeTok, typebitsize, arraysize, iTok, classInstanceId, rtnNode, assignOK);  //iTok in case of =
+    return parseRestOfDecls(typeTok, typebitsize, arraysize, iTok, classInstanceIdx, rtnNode, assignOK);  //iTok in case of =
   } //parseRestOfDecls
 
-  Node * Parser::parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, Node * dNode)
+  Node * Parser::parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, Node * dNode)
   {
     NodeStatements * rtnNode = new NodeStatements(dNode, m_state);
     assert(rtnNode);
@@ -2650,7 +2663,7 @@ namespace MFM {
     nextNode->setNodeLocation(assignNode->getNodeLocation());
     rtnNode->setNextNode(nextNode);
 
-    return parseRestOfDecls(typeTok, typebitsize, arraysize, identTok, classInstanceId, rtnNode);  //any more?
+    return parseRestOfDecls(typeTok, typebitsize, arraysize, identTok, classInstanceIdx, rtnNode);  //any more?
   } //parseRestOfDeclAssignment
 
   NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK)
@@ -2693,7 +2706,7 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfConstantDef
 
-  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize)
+  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok, UTI classInstanceIdx, NodeTypeBitsize * constExprForBitSize)
   {
     NodeBlockFunctionDefinition * rtnNode = NULL;
 
@@ -2945,7 +2958,7 @@ namespace MFM {
     return brtn;
   } //parseFunctionBody
 
-  Node * Parser::makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize)
+  Node * Parser::makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, UTI classInstanceIdx, NodeTypeBitsize * constExprForBitSize)
   {
     // first check that the function name begins with a lower case letter
     if(Token::isTokenAType(identTok))
@@ -2975,7 +2988,7 @@ namespace MFM {
 
     // not in scope, or not yet defined, or possible overloading
     // o.w. build symbol for function: return type + name + parameter symbols
-    Node * rtnNode = makeFunctionBlock(typeTok, typebitsize, identTok, classInstanceId, constExprForBitSize);
+    Node * rtnNode = makeFunctionBlock(typeTok, typebitsize, identTok, classInstanceIdx, constExprForBitSize);
 
     // exclude the declaration & definition from the parse tree
     // (since in SymbolFunction) & return NULL.
@@ -2983,7 +2996,7 @@ namespace MFM {
     return rtnNode;
   } //makeFunctionSymbol
 
-  Node * Parser::makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize)
+  Node * Parser::makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, NodeTypeBitsize * constExprForBitSize)
   {
     assert(! Token::isTokenAType(identTok));  //capitalization check done by Lexer
 
@@ -3003,7 +3016,7 @@ namespace MFM {
 	// process identifier...check if already defined in current scope; if not, add it;
 	// returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
-	if(!lvalNode->installSymbolVariable(typeTok, typebitsize, arraysize, classInstanceId, asymptr))
+	if(!lvalNode->installSymbolVariable(typeTok, typebitsize, arraysize, classInstanceIdx, asymptr))
 	  {
 	    if(asymptr)
 	      {
@@ -3046,7 +3059,7 @@ namespace MFM {
     return rtnNode;
   } //makeVariableSymbol
 
-  Node * Parser::makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize)
+  Node * Parser::makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, NodeTypeBitsize * constExprForBitSize)
   {
     NodeTypedef * rtnNode = NULL;
     Node * lvalNode = parseLvalExpr(identTok);
@@ -3064,7 +3077,7 @@ namespace MFM {
 	    typebitsize = m_state.getBitSize(ut);
 	  }
 
-	if(!lvalNode->installSymbolTypedef(typeTok, typebitsize, arraysize, classInstanceId, asymptr))
+	if(!lvalNode->installSymbolTypedef(typeTok, typebitsize, arraysize, classInstanceIdx, asymptr))
 	  {
 	    if(asymptr)
 	      {

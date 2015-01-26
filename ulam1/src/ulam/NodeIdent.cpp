@@ -236,7 +236,7 @@ namespace MFM {
   } //makeUlamValuePtrForCodeGen
 
 
-  bool NodeIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceId, Symbol *& asymptr)
+  bool NodeIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
@@ -276,7 +276,7 @@ namespace MFM {
     //type names begin with capital letter..and the rest can be either case
     u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
     UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
-    key.append(classInstanceId);
+    key.append(classInstanceIdx);
 
     // o.w. build symbol, first the base type (with array size)
     UTI uti = m_state.makeUlamType(key, bUT);
@@ -315,7 +315,7 @@ namespace MFM {
 
 
   //see also NodeSquareBracket
-  bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceId, Symbol *& asymptr)
+  bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
@@ -377,6 +377,7 @@ namespace MFM {
 	//type names begin with capital letter..and the rest can be either case
 	u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
 	UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
+	key.append(classInstanceIdx);
 
 	// o.w. build symbol, first the base type (with array size)
 	aut = m_state.makeUlamType(key, bUT);
@@ -401,7 +402,7 @@ namespace MFM {
 	  {
 	    // will substitute placeholder class type if it hasn't been seen yet
 	    //m_state.getUlamTypeByClassToken(aTok, aut);
-	    aut = classInstanceId;
+	    aut = classInstanceIdx;
 	    brtn = true;
 	  }
       }
