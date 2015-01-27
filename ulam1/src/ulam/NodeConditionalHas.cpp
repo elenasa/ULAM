@@ -38,7 +38,7 @@ namespace MFM {
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
-    if(!(luti == UAtom || lclasstype == UC_ELEMENT || lclasstype == UC_QUARK))
+    if(!(luti == UAtom || lclasstype == UC_ELEMENT || lclasstype == UC_QUARK || lclasstype == UC_INCOMPLETE))
       {
 	std::ostringstream msg;
 	msg << "Invalid type for LHS of conditional operator '" << getName() << "'; must be an atom, element or quark, not type: " << m_state.getUlamTypeNameByIndex(luti).c_str();

@@ -50,7 +50,7 @@ namespace MFM {
     assert(m_state.isScalar(ruti));
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(!(rclasstype == UC_QUARK || rclasstype == UC_ELEMENT))
+    if(!(rclasstype == UC_QUARK || rclasstype == UC_ELEMENT || rclasstype == UC_INCOMPLETE))
       {
 	std::ostringstream msg;
 	msg << "Invalid type for RHS of conditional operator '" << getName() << "'; must be a quark or element name, not type: " << m_state.getUlamTypeNameByIndex(ruti).c_str();

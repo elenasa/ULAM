@@ -72,6 +72,7 @@ namespace MFM {
 
   bool UlamTypeClass::needsImmediateType()
   {
+    // gencode is too late for UC_INCOMPLETE
     // NOW allowing complete immediate elements (like atoms)
     // simply test for quarks..since..
     //   also needed for 'empty' quarks without data
