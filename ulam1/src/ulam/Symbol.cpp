@@ -121,7 +121,7 @@ namespace MFM {
 
     // to distinguish btn an atomic parameter typedef and quark typedef;
     // use atomic parameter with array of classes
-    bool isaclass = (( classtype == UC_QUARK || classtype == UC_ELEMENT)  && sut->isScalar());
+    bool isaclass = (( classtype == UC_QUARK || classtype == UC_ELEMENT || classtype == UC_INCOMPLETE) && sut->isScalar());
 
     std::ostringstream pmangled;
     pmangled << Symbol::getParameterTypePrefix(isaclass).c_str() << getMangledName();

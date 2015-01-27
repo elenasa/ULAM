@@ -1075,7 +1075,7 @@ namespace MFM {
 
     //redirect primitives;
     ULAMCLASSTYPE classtype = ut->getUlamClass();
-    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK))
+    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK || classtype == UC_INCOMPLETE))
       {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
       }
@@ -1343,9 +1343,19 @@ namespace MFM {
 	    else
 	      rtnB = true;
 	  }
+	else //else uc_incomplete
+	  {
+	    std::ostringstream msg;
+	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName(this).c_str() << "(UTI" << incomplete << ") - Incomplete";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	  }
       }
     else
-      assert(0);
+      {
+	std::ostringstream msg;
+	msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName(this).c_str() << "(UTI" << incomplete << ") - NOT YET DEFINED";
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+      }
     return rtnB;
   } //completeIncompleteClassSymbol
 
