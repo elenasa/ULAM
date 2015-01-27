@@ -58,12 +58,24 @@ namespace MFM{
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
 
+    void checkAndLabelClassInstances(); // needed?
+
+    bool setBitSizeOfClassInstances();
+    void printBitSizeOfClassInstances();
+    void packBitsForClassInstances();
+
    protected:
 
   private:
     //ordered class parameters
     std::vector<SymbolConstantValue *> m_parameterSymbols;  // like named constants; symbols owned by m_ST.
     std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtr;
+
+    bool trySetBitsizeWithUTIValues(UTI suti, s32& totalbits);
+    bool takeAnInstancesArgValues(UTI instance);
+    void resetParameterValuesUnknown();
+
+    void printBitSizeOfClass(UTI suti);
   };
 
 }

@@ -344,7 +344,10 @@ namespace MFM {
 	  {
 	    //parameter IS a NodeConstantdef
 	    if(argNode->getSymbolPtr(argSym))
-	      ((SymbolClassName * ) csym)->addParameterSymbol((SymbolConstantValue *) argSym); //ownership stays with NodeBlockClass's ST
+	      {
+		((SymbolConstantValue *) argSym)->setParameterFlag();
+		((SymbolClassName * ) csym)->addParameterSymbol((SymbolConstantValue *) argSym); //ownership stays with NodeBlockClass's ST
+	      }
 	    else
 	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
 	  }
@@ -1383,7 +1386,7 @@ namespace MFM {
     assert(classBlock);
     classBlock->setNodeLocation(typeTok.m_locator);
     classBlock->setNodeType(cuti);
-    classBlock->setEmpty(); //???
+    //classBlock->setEmpty(); //???
 
     SymbolClass * csym = new SymbolClass(typeTok.m_dataindex, cuti, classBlock, m_state);
     assert(csym);
@@ -1397,7 +1400,9 @@ namespace MFM {
 	UlamType * cut = m_state.getUlamTypeByIndex(csym->getUlamTypeIdx());
 	((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
       }
+
     cnsym->addClassInstance(cuti, csym);
+    classBlock->setClassTemplateParent(cuti); //so it knows it's an instance with a template parent
 
     m_state.m_currentBlock = classBlock; //reset here for new arg's
     u32 parmidx = 0;

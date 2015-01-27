@@ -134,6 +134,7 @@ namespace MFM{
   private:
     CompilerState & m_state;
     s32 calcVariableSymbolTypeSize(UTI ut);
+    bool variableSymbolWithCountableSize(Symbol * sym);
     static std::string firstletterTolowercase(const std::string s);
   };
 

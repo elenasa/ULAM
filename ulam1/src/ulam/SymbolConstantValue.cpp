@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolConstantValue::SymbolConstantValue(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_defnode(NULL)
+  SymbolConstantValue::SymbolConstantValue(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_parameter(false), m_defnode(NULL)
   {
     m_constant.sval = NONREADYCONST;
   }
@@ -104,6 +104,17 @@ namespace MFM {
   {
     assert(m_id == fmid);
     m_id = toid;
+  }
+
+  void SymbolConstantValue::setParameterFlag()
+  {
+    m_parameter = true;
+  }
+
+
+  bool SymbolConstantValue::isParameter()
+  {
+    return m_parameter;
   }
 
 } //end MFM

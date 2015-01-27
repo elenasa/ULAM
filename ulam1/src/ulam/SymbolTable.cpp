@@ -106,8 +106,8 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
 
-	// don't count typedef's or element parameters toward total
-	if(!sym->isTypedef() && !sym->isElementParameter())
+	// don't count typedef's or element parameters toward total, nor named constants
+	if(variableSymbolWithCountableSize(sym))
 	  {
 	    UTI sut = sym->getUlamTypeIdx();
 	    s32 symsize = calcVariableSymbolTypeSize(sut);  //recursively
@@ -154,7 +154,7 @@ namespace MFM {
 	assert(!sym->isFunction());
 
 	// don't count typedef's or element parameters toward max
-	if(!sym->isTypedef() && !sym->isElementParameter())
+	if(variableSymbolWithCountableSize(sym))
 	  {
 	    UTI sut = sym->getUlamTypeIdx();
 	    s32 symsize = calcVariableSymbolTypeSize(sut);  //recursively
@@ -197,7 +197,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(!sym->isTypedef() && sym->isDataMember() && !sym->isElementParameter() && !((SymbolClass *) sym)->isQuarkUnion())
+	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !((SymbolClass *) sym)->isQuarkUnion())
 	  {
 	    //updates the offset with the bit size of sym
 	    ((SymbolVariable *) sym)->setPosOffset(offsetIntoAtom);
@@ -217,7 +217,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(!sym->isTypedef() && sym->isDataMember() && !sym->isElementParameter())
+	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
 	  {
 	    if(sym->getUlamTypeIdx() == utype)
 	      {
@@ -296,7 +296,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(!sym->isTypedef() && sym->isDataMember() && !sym->isElementParameter())
+	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
 	  {
 	    UTI suti = sym->getUlamTypeIdx();
 	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
@@ -336,7 +336,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(sym->isTypedef() || (sym->isDataMember() && !sym->isElementParameter()))
+	if(sym->isTypedef() || sym->isConstant() || (sym->isDataMember() && !sym->isElementParameter()))
 	{
 	  sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
 	}
@@ -667,26 +667,19 @@ namespace MFM {
 
     while(it != m_idToSymbolPtr.end())
       {
-	Symbol * sym = it->second;
-	assert(sym->isClass());
-	if( ((SymbolClass *) sym)->getUlamClass() == UC_INCOMPLETE)
+	SymbolClassName * cnsym = (SymbolClassName *) (it->second);
+	assert(cnsym->isClass());
+	if( ((SymbolClass *) cnsym)->getUlamClass() == UC_INCOMPLETE)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Class: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " was never defined, fails labeling";
+	    msg << "Incomplete Class: "  << m_state.getUlamTypeNameByIndex(cnsym->getUlamTypeIdx()).c_str() << " was never defined, fails labeling";
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	    //assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 	    break;
 	  }
 	else
 	  {
-	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	    assert(classNode);
-	    m_state.m_classBlock = classNode;
-	    m_state.m_currentBlock = m_state.m_classBlock;
-
-	    classNode->checkAndLabelType();
-	    // type was set during parsing!!!
-	    //classNode->setNodeType(sym->getUlamTypeIdx()); //resets class' type (was Void). sweet.
+	    cnsym->checkAndLabelClassInstances();
 	  }
 	it++;
       }
@@ -730,9 +723,7 @@ namespace MFM {
   {
     std::vector<UTI> lostClasses;
     bool aok = true;
-
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -757,41 +748,10 @@ namespace MFM {
 	  }
 
 	// try..
-	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	assert(classNode);
-	//if(!classNode) continue; //infinite loop "Incomplete Class <> was never defined, fails sizing"
-
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-
-	s32 totalbits = 0;
-	if(((SymbolClass *) sym)->isQuarkUnion())
-	  totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
-	else
-	  totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
-
-	//check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
-	if(totalbits == CYCLEFLAG)  // was < 0
-	  {
-	    std::ostringstream msg;
-	    msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
-	    aok = false;
-	  }
-	else if(totalbits == EMPTYSYMBOLTABLE)
-	  {
-	    totalbits = 0;
-	    aok = true;
-	  }
-	else if(totalbits != UNKNOWNSIZE)
-	  aok = true;  //not UNKNOWN
+	aok = ((SymbolClassName *) sym)->setBitSizeOfClassInstances();
 
 	//track classes that fail to be sized.
-	if(aok)
-	  {
-	    m_state.setBitSize(suti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
-	  }
-	else
+	if(!aok)
 	  lostClasses.push_back(suti);
 
 	aok = true; //reset for next class
@@ -799,7 +759,6 @@ namespace MFM {
       } //next class
 
     aok = lostClasses.empty();
-
     if(!aok)
       {
 	std::ostringstream msg;
@@ -822,71 +781,35 @@ namespace MFM {
     return aok;
   } //setBitSizeOfTableOfClasses
 
-
   // separate pass...after labeling all classes is completed;
   void SymbolTable::printBitSizeOfTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-
-	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-
-	UTI suti = sym->getUlamTypeIdx();
-	u32 total = m_state.getTotalBitSize(suti);
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	ULAMCLASSTYPE classtype = sut->getUlamClass();
-
-	std::ostringstream msg;
-	msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ">: ";
-
-	if(m_state.isComplete(suti))
-	  {
-	    s32 remaining = (classtype == UC_ELEMENT ? (MAXSTATEBITS - total) : (MAXBITSPERQUARK - total));
-	    msg << total << "/" << remaining;
-	  }
-	else
-	  {
-	    total = UNKNOWNSIZE;
-	    s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS : MAXBITSPERQUARK);
-	    msg << "UNKNOWN" << "/" << remaining;
-	  }
-	MSG("", msg.str().c_str(),INFO);
-	//std::cerr << msg.str().c_str() << std::endl;
-
+	((SymbolClassName *) sym)->printBitSizeOfClassInstances();
 	it++;
       }
   } //printBitSizeOfTableOfClasses
 
-
   void SymbolTable::packBitsForTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
+
 	// quark union keep default pos = 0 for each data member, hence skip packing bits.
 	if(!((SymbolClass *) sym)->isQuarkUnion())
 	  {
-	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	    assert(classNode);
-	    m_state.m_classBlock = classNode;
-	    m_state.m_currentBlock = m_state.m_classBlock;
-
-	    classNode->packBitsForVariableDataMembers();
+	    ((SymbolClassName *) sym)->packBitsForClassInstances();
 	  }
 	it++;
       }
   } //packBitsForTableOfClasses
-
 
   //bypasses THIS class being compiled
   void SymbolTable::generateIncludesForTableOfClasses(File * fp)
@@ -1141,6 +1064,10 @@ namespace MFM {
     return CYCLEFLAG;
   } //calcVariableSymbolTypeSize (recursively)
 
+  bool SymbolTable::variableSymbolWithCountableSize(Symbol * sym)
+  {
+    return (!sym->isTypedef() && !sym->isElementParameter() && !sym->isConstant());
+  }
 
   std::string SymbolTable::firstletterTolowercase(const std::string s) //static method
   {
