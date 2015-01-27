@@ -9,7 +9,7 @@ namespace MFM {
 
   //static const char * CModeForHeaderFiles = "/**                                        -*- mode:C++ -*/\n\n";
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false), m_templateClassParent(Nav)
   {}
 
   NodeBlockClass::~NodeBlockClass()
@@ -23,6 +23,11 @@ namespace MFM {
   void NodeBlockClass::setEmpty()
   {
     m_isEmpty = true;
+  }
+
+  void NodeBlockClass::setClassTemplateParent(UTI cuti)
+  {
+    m_templateClassParent = cuti;
   }
 
   void NodeBlockClass::print(File * fp)
@@ -101,6 +106,14 @@ namespace MFM {
   {
     if(isEmpty())
       return getNodeType();
+
+#if 0
+    // redo checkAndLabel with class arg values?
+    if(m_templateClassParent != Nav)
+      {
+	return getPreviousBlockPointer()->checkAndLabelType();
+      }
+#endif
 
     //side-effect DataMember VAR DECLS
     if(m_nextNode)

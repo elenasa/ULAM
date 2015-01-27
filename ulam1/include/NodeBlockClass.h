@@ -52,7 +52,10 @@ namespace MFM{
     virtual ~NodeBlockClass();
 
     bool isEmpty();
+
     void setEmpty();
+
+    void setClassTemplateParent(UTI cuti);
 
     virtual void print(File * fp);
 
@@ -100,6 +103,7 @@ namespace MFM{
   private:
 
     bool m_isEmpty; //replaces separate node
+    UTI m_templateClassParent;
 
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);

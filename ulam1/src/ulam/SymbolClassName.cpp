@@ -115,4 +115,260 @@ namespace MFM {
       } //any class instances
   } //fixAnyClassInstances
 
+
+  void SymbolClassName::checkAndLabelClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.m_classBlock = classNode;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	classNode->checkAndLabelType();
+	return;
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx(); //this instance
+
+	takeAnInstancesArgValues(suti);
+
+	classNode->checkAndLabelType(); //redo ???
+	it++;
+      }
+    resetParameterValuesUnknown();
+  } //checkAndLabelClassInstances
+
+
+  bool SymbolClassName::setBitSizeOfClassInstances()
+  {
+    bool aok = true;
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
+    m_state.m_classBlock = classNode;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    //check for class instances
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	s32 totalbits = 0;
+	UTI cuti = getUlamTypeIdx();
+	aok = trySetBitsizeWithUTIValues(cuti, totalbits);
+	if(aok)
+	  m_state.setBitSize(cuti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	return aok;
+      }
+
+    std::vector<UTI> lostClasses;
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx(); //this instance
+
+	//do we need to pretend to be the instance type too???
+	takeAnInstancesArgValues(suti);
+	s32 totalbits = 0;
+	aok = trySetBitsizeWithUTIValues(suti, totalbits);
+
+	//track classes that fail to be sized.
+	if(aok)
+	  {
+	    m_state.setBitSize(suti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	  }
+	else
+	  lostClasses.push_back(suti);
+
+	aok = true; //reset for next class
+	it++;
+      } //next class instance
+
+    aok = lostClasses.empty();
+
+    if(!aok)
+      {
+	std::ostringstream msg;
+	msg << lostClasses.size() << " Class Instances without sizes";
+	while(!lostClasses.empty())
+	  {
+	    UTI cuti = lostClasses.back();
+	    msg << ", " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    lostClasses.pop_back();
+	  }
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << m_scalarClassInstanceIdxToSymbolPtr.size() << " Class Instance" << (m_scalarClassInstanceIdxToSymbolPtr.size() > 1 ? "s ALL " : " ") << "sized SUCCESSFULLY";
+	MSG("", msg.str().c_str(),INFO);
+      }
+    lostClasses.clear();
+    resetParameterValuesUnknown();
+    return aok;
+  } //setBitSizeOfClassInstances()
+
+
+  bool SymbolClassName::trySetBitsizeWithUTIValues(UTI suti, s32& totalbits)
+  {
+    NodeBlockClass * classNode = getClassBlockNode(); //main
+    bool aok = true;
+    if(isQuarkUnion())
+      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
+    else
+      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
+
+    //check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
+    if(totalbits == CYCLEFLAG)  // was < 0
+      {
+	std::ostringstream msg;
+	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	    aok = false;
+	  }
+	else if(totalbits == EMPTYSYMBOLTABLE)
+	  {
+	    totalbits = 0;
+	    aok = true;
+	  }
+	else if(totalbits != UNKNOWNSIZE)
+	  aok = true;  //not UNKNOWN
+    return aok;
+  } //trySetBitSize
+
+
+  // separate pass...after labeling all classes is completed;
+  void SymbolClassName::printBitSizeOfClassInstances()
+  {
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	return printBitSizeOfClass(getUlamTypeIdx());
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx(); //this instance
+	printBitSizeOfClass(suti);
+	it++;
+      }
+  } //printBitSizeOfClassInstances
+
+  void SymbolClassName::printBitSizeOfClass(UTI suti)
+  {
+    u32 total = m_state.getTotalBitSize(suti);
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    ULAMCLASSTYPE classtype = sut->getUlamClass();
+
+    std::ostringstream msg;
+    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(getId()).c_str() << ">: ";
+
+    if(m_state.isComplete(suti))
+      {
+	s32 remaining = (classtype == UC_ELEMENT ? (MAXSTATEBITS - total) : (MAXBITSPERQUARK - total));
+	msg << total << "/" << remaining;
+      }
+    else
+      {
+	total = UNKNOWNSIZE;
+	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS : MAXBITSPERQUARK);
+	msg << "UNKNOWN" << "/" << remaining;
+      }
+    MSG("", msg.str().c_str(),INFO);
+  } //printBitSizeOfClass
+
+
+  void SymbolClassName::packBitsForClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.m_classBlock = classNode;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	return classNode->packBitsForVariableDataMembers();
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx(); //this instance
+
+	takeAnInstancesArgValues(suti);
+
+	classNode->packBitsForVariableDataMembers();
+	it++;
+      }
+    resetParameterValuesUnknown();
+  } //packBitsForClassInstances
+
+
+
+
+
+
+  bool SymbolClassName::takeAnInstancesArgValues(UTI instance)
+  {
+    bool rtnb = false;
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	assert(it->first == instance);
+	SymbolClass * csym = it->second;
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+
+	//copy values into template's SymbolConstantValues
+	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+	while(pit != m_parameterSymbols.end())
+	  {
+	    SymbolConstantValue * psym = *pit;
+	    //get 'instance's value
+	    Symbol * asym = NULL;
+	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
+	    UTI auti = asym->getUlamTypeIdx();
+	    if(m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum() == Int)
+	      {
+		s32 sval;
+		assert(((SymbolConstantValue *) asym)->getValue(sval));
+		psym->setValue(sval);
+	      }
+	    else
+	      {
+		u32 uval;
+		assert(((SymbolConstantValue *) asym)->getValue(uval));
+		psym->setValue(uval);
+	      }
+	    pit++;
+	  } //next param
+	rtnb = true;
+      }
+
+    //restore
+    m_state.m_classBlock = getClassBlockNode();
+    m_state.m_currentBlock = m_state.m_classBlock;
+    return rtnb;
+  } //takeAnInstancesArgValues
+
+
+  void SymbolClassName::resetParameterValuesUnknown()
+  {
+    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+    while(pit != m_parameterSymbols.end())
+      {
+	SymbolConstantValue * psym = *pit;
+	psym->setValue(UNKNOWNSIZE);
+	pit++;
+      } //next param
+  } //resetParameterValues
+
 } //end MFM

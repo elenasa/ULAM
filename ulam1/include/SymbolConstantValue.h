@@ -55,6 +55,9 @@ namespace MFM{
 
     virtual bool isReady();
 
+    bool isParameter();
+    void setParameterFlag();
+
     bool getValue(s32& val);
     bool getValue(u32& val);
     bool getValue(bool& val);
@@ -68,12 +71,13 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
-    void changeConstantId(u32 fmid, u32 toid);
+    void changeConstantId(u32 fmid, u32 toid); //for premature class instances
 
   protected:
 
   private:
     bool m_isReady;
+    bool m_parameter; //i.e. no value, look at instance
 
     union {
       s32 sval;
