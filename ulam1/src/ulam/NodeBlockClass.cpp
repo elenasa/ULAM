@@ -279,7 +279,9 @@ namespace MFM {
   //header .h file
   void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    //use the instance UTI instead of the node's original type
+    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.m_compileThisIdx);
     ULAMCLASSTYPE classtype = cut->getUlamClass();
     assert(cut->getUlamTypeEnum() == Class);
 
@@ -318,9 +320,9 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("template<class CC>\n");
 	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("<CC> ");
-	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("<CC>::THE_INSTANCE;\n\n");
       }
     m_state.m_currentIndentLevel = 0;
@@ -332,14 +334,16 @@ namespace MFM {
 
   void NodeBlockClass::genCodeHeaderQuark(File * fp)
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    //use the instance UTI instead of the node's original type
+    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.m_compileThisIdx);
 
     m_state.indent(fp);
     fp->write("template <class CC, u32 POS>\n");
 
     m_state.indent(fp);
     fp->write("struct ");
-    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
 
     //tbd inheritance
 
@@ -388,13 +392,16 @@ namespace MFM {
 
   void NodeBlockClass::genCodeHeaderElement(File * fp)
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    //use the instance UTI instead of the node's original type
+    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.m_compileThisIdx);
+
     m_state.indent(fp);
     fp->write("template<class CC>\n");
 
     m_state.indent(fp);
     fp->write("class ");
-    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
 
     fp->write(" : public UlamElement<CC>\n");
 
@@ -418,7 +425,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("static ");
-    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write(" THE_INSTANCE;\n");
 
     //DataMember VAR DECLS
@@ -432,12 +439,12 @@ namespace MFM {
 
     //default constructor/destructor
     m_state.indent(fp);
-    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("();\n");
 
     m_state.indent(fp);
     fp->write("~");
-    fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(cut->getUlamTypeMangledName().c_str());
     fp->write("();\n\n");
 
     // if this 'element' contains more than one template (quark) data members,
@@ -458,7 +465,7 @@ namespace MFM {
 	UlamType * ut = it->second;
 	//skip constants, atoms, ptrs, elements, void and nav
 	if(ut->needsImmediateType())
-	  ut->genUlamTypeMangledImmediateDefinitionForC(fp, &m_state);
+	  ut->genUlamTypeMangledImmediateDefinitionForC(fp);
 	it++;
       }
   } //genImmediateMangledTypesForHeaderFile
@@ -487,7 +494,9 @@ namespace MFM {
   //Body for This Class only; practically empty if quark (.tcc)
   void NodeBlockClass::genCodeBody(File * fp, UlamValue& uvpass)
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    //use the instance UTI instead of the node's original type
+    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.m_compileThisIdx);
     ULAMCLASSTYPE classtype = cut->getUlamClass();
 
     m_state.m_currentIndentLevel = 0;
@@ -509,10 +518,10 @@ namespace MFM {
 	fp->write("template<class CC>\n");
 
 	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("<CC>");
 	fp->write("::");
-	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(cut->getUlamTypeMangledName().c_str());
 
 	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
 	fp->write("() : UlamElement<CC>(MFM_UUID_FOR(\"");
@@ -542,10 +551,10 @@ namespace MFM {
 	fp->write("template<class CC>\n");
 
 	m_state.indent(fp);
-	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("<CC>");
 	fp->write("::~");
-	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("(){}\n\n");
 
 	assert(m_state.m_compileThisId == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
@@ -588,9 +597,10 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("bool ");  //return pos offset, or -1 if not found
 
-    UTI cuti = getNodeType();
+    //UTI cuti = getNodeType();
+    UTI cuti = m_state.m_compileThisIdx;
     //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 
     fp->write("<CC>::");
     fp->write(m_state.getIsMangledFunctionName());

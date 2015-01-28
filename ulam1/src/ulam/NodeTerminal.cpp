@@ -306,7 +306,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
 
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str());
+    fp->write(nut->getTmpStorageTypeAsString().c_str());
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());

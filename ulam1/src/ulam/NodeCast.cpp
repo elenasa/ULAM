@@ -167,7 +167,7 @@ namespace MFM {
 
     if(nodeType != tobeType)
       {
-	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType, m_state)))
+	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	  {
 	    std::ostringstream msg;
 	    msg << "Cast problem! Value type: " << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str() << " failed to be cast as type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
@@ -250,20 +250,20 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64, etc.
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarCastNum).c_str());
     fp->write(" = ");
 
     // write the cast method (e.g. _Unsigned32ToInt32, _Int32ToUnary32, etc..)
-    fp->write(nut->castMethodForCodeGen(vuti, m_state).c_str());
+    fp->write(nut->castMethodForCodeGen(vuti).c_str());
     fp->write("(");
 
     if(isTerminal)
       {
 	u32 data = uvpass.getImmediateData(m_state);
 	char dstr[40];
-	vut->getDataAsString(data, dstr, 'z', m_state);
+	vut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
       }
     else
@@ -322,7 +322,7 @@ namespace MFM {
       {
 	m_state.indent(fp);
 	fp->write("if(!");
-	fp->write(nut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(nut->getUlamTypeMangledName().c_str());
 	fp->write("<CC>::THE_INSTANCE.");
 	fp->write(m_state.getIsMangledFunctionName());
 	fp->write("(");

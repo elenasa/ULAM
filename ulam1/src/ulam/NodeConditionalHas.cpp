@@ -144,7 +144,7 @@ namespace MFM {
       {
 	m_state.indent(fp);
 	fp->write("const ");
-	fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32
+	fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32
 	fp->write(" "); //e.g. u32
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarHas).c_str());;
 	fp->write(" = (");
@@ -165,13 +165,13 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write("const ");
-	fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+	fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64, etc.
 	fp->write(" "); //e.g. u32, s32, u64, etc.
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarHas).c_str());
 	fp->write(" = ");
 
 	fp->write("(");
-	fp->write(lut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(lut->getUlamTypeMangledName().c_str());
 	if(lclasstype == UC_ELEMENT)
 	  fp->write("<CC>::THE_INSTANCE.");
 	else if(lclasstype == UC_QUARK)

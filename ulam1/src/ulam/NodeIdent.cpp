@@ -376,8 +376,7 @@ namespace MFM {
 
 	//type names begin with capital letter..and the rest can be either case
 	u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
-	UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
-	key.append(classInstanceIdx);
+	UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize, classInstanceIdx);
 
 	// o.w. build symbol, first the base type (with array size)
 	aut = m_state.makeUlamType(key, bUT);
@@ -394,8 +393,9 @@ namespace MFM {
 		bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 	      }
 
-	    // o.w. build symbol (with bit and array sizes)
-	    aut = m_state.makeUlamType(aTok, bitsize, arraysize);
+	    // o.w. build symbol (with bit and array sizes);
+	    // can array's have their scalar as classInstance??? if so, no longer findable by token.
+	    aut = m_state.makeUlamType(aTok, bitsize, arraysize, Nav);
 	    brtn = true;
 	  }
 	else

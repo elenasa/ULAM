@@ -46,7 +46,7 @@ namespace MFM {
 
     UlamValue cuv = m_state.m_nodeEvalStack.popArg();
 
-    while((bool) cuv.getImmediateData(m_state) == true) 
+    while((bool) cuv.getImmediateData(m_state) == true)
       {
 	u32 slots = makeRoomForNodeType(m_nodeBody->getNodeType());
  	evs = m_nodeBody->eval();  //side-effect
@@ -73,7 +73,7 @@ namespace MFM {
 
 	cuv = m_state.m_nodeEvalStack.popArg();
       }
-    
+
     //also copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(cuv); //always false
 
@@ -94,7 +94,7 @@ namespace MFM {
 
     //while true..
     m_state.indent(fp);
-    fp->write(getName());  
+    fp->write(getName());
     fp->write("(true)\n");
 
     m_state.indent(fp);
@@ -103,7 +103,7 @@ namespace MFM {
 
     //if !condition break;
     m_nodeCondition->genCode(fp, uvpass);
-    
+
     bool isTerminal = false;
     UTI cuti = uvpass.getUlamValueTypeIdx();
 
@@ -128,7 +128,7 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = uvpass.getImmediateData(m_state);
 	char dstr[40];
-	cut->getDataAsString(data, dstr, 'z', m_state);
+	cut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
       }
     else

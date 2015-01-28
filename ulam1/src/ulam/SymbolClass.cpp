@@ -54,6 +54,11 @@ namespace MFM {
     return true;
   }
 
+  bool SymbolClass::isClassTemplate()
+  {
+    return false;
+  }
+
   const std::string SymbolClass::getMangledPrefix()
   {
     return m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamTypeUPrefix();
@@ -163,7 +168,8 @@ namespace MFM {
     }
 
     //separate main.cpp for elements only; that have the test method.
-    if(m_state.getUlamTypeByIndex(m_classBlock->getNodeType())->getUlamClass() == UC_ELEMENT)
+    //if(m_state.getUlamTypeByIndex(m_classBlock->getNodeType())->getUlamClass() == UC_ELEMENT)
+    if(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass() == UC_ELEMENT)
       {
 	if(m_state.thisClassHasTheTestMethod())
 	  generateMain(fm);
@@ -180,7 +186,8 @@ namespace MFM {
     fp->write("* ");
     fp->write(m_state.m_pool.getDataAsString(m_state.m_compileThisId).c_str());
     fp->write(".h - ");
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(m_classBlock->getNodeType())->getUlamClass();
+    //ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(m_classBlock->getNodeType())->getUlamClass();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
     if(classtype == UC_ELEMENT)
       fp->write("Element");
     else if(classtype == UC_QUARK)
@@ -196,24 +203,26 @@ namespace MFM {
 
   void SymbolClass::genAllCapsIfndefForHeaderFile(File * fp)
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(m_classBlock->getNodeType());
+    //UlamType * cut = m_state.getUlamTypeByIndex(m_classBlock->getNodeType());
+    UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     m_state.indent(fp);
     fp->write("#ifndef ");
-    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
     fp->write("_H\n");
 
     m_state.indent(fp);
     fp->write("#define ");
-    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
     fp->write("_H\n\n");
   } //genAllCapsIfndefForHeaderFile
 
 
   void SymbolClass::genAllCapsEndifForHeaderFile(File * fp)
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(m_classBlock->getNodeType());
+    //UlamType * cut = m_state.getUlamTypeByIndex(m_classBlock->getNodeType());
+    UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     fp->write("#endif //");
-    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
     fp->write("_H\n");
   }
 
@@ -264,7 +273,7 @@ namespace MFM {
       {
 	UlamType * ut = it->second;
 	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)   //e.g. skip constants, incl atom
-	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	  ut->genUlamTypeMangledDefinitionForC(fp);
 	it++;
       }
 
@@ -276,9 +285,9 @@ namespace MFM {
 	ULAMCLASSTYPE classtype = ut->getUlamClass();
 	if(ut->needsImmediateType() && classtype != UC_NOTACLASS)
 	  {
-	    ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	    ut->genUlamTypeMangledDefinitionForC(fp);
 	    if(classtype == UC_QUARK)
-	      ut->genUlamTypeMangledAutoDefinitionForC(fp, &m_state);
+	      ut->genUlamTypeMangledAutoDefinitionForC(fp);
 	  }
 	it++;
       }

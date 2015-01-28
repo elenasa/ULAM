@@ -23,15 +23,15 @@ namespace MFM {
   }
 
 
-  const std::string UlamTypeVoid::getUlamTypeMangledName(CompilerState * state)
+  const std::string UlamTypeVoid::getUlamTypeMangledName()
   {
     return "void";
   }
 
 
-  const std::string UlamTypeVoid::getUlamTypeImmediateMangledName(CompilerState * state)
+  const std::string UlamTypeVoid::getUlamTypeImmediateMangledName()
   {
-    return getImmediateStorageTypeAsString(state); //"void";
+    return getImmediateStorageTypeAsString(); //"void";
   }
 
 
@@ -41,13 +41,13 @@ namespace MFM {
   }
 
 
-  const std::string UlamTypeVoid::getImmediateStorageTypeAsString(CompilerState * state)
+  const std::string UlamTypeVoid::getImmediateStorageTypeAsString()
   {
     return "void";
   }
 
 
-  const std::string UlamTypeVoid::getTmpStorageTypeAsString(CompilerState * state)
+  const std::string UlamTypeVoid::getTmpStorageTypeAsString()
   {
     return "void";
   }
@@ -65,20 +65,20 @@ namespace MFM {
 
 
   //anything can be cast to a void (not the reverse)
-  bool UlamTypeVoid::cast(UlamValue & val, UTI typidx, CompilerState& state)
+  bool UlamTypeVoid::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
-    if(arraysize != state.getArraySize(valtypidx))
+    if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << m_state.getArraySize(valtypidx);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
 
-    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
     switch(valtypEnum)
       {
@@ -88,7 +88,7 @@ namespace MFM {
       case Unary:
       case Bool:
       case Bits:
-	val = UlamValue::makeImmediate(typidx, 0, state); //overwrite val, no data
+	val = UlamValue::makeImmediate(typidx, 0, m_state); //overwrite val, no data
 	break;
       default:
 	//std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;

@@ -54,6 +54,7 @@ namespace MFM{
 
     UlamKeyTypeSignature();
     UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize=NONARRAYSIZE);
+    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, UTI classinstanceIdx);
     ~UlamKeyTypeSignature();
 
     void append(UTI cuti);

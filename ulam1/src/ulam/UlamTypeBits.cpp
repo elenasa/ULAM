@@ -39,24 +39,24 @@ namespace MFM {
   }
 
 
-  bool UlamTypeBits::cast(UlamValue & val, UTI typidx, CompilerState& state)
+  bool UlamTypeBits::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     //UTI typidx = getUlamTypeIndex();
-    assert(state.getUlamTypeByIndex(typidx) == this);
+    assert(m_state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
-    if(arraysize != state.getArraySize(valtypidx))
+    if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << m_state.getArraySize(valtypidx);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
 
     //no changes to data, only type
-    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
-    u32 data = val.getImmediateData(state);
+    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+    u32 data = val.getImmediateData(m_state);
     switch(valtypEnum)
       {
       case Void:
@@ -65,7 +65,7 @@ namespace MFM {
       case Bool:
       case Unary:
       case Bits:
-	val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
+	val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
 	break;
       default:
 	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
@@ -76,7 +76,7 @@ namespace MFM {
   } //end cast
 
 
-  void UlamTypeBits::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+  void UlamTypeBits::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
       sprintf(valstr,"%u", data);

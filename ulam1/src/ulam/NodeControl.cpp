@@ -150,7 +150,7 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = uvpass.getImmediateData(m_state);
 	char dstr[40];
-	cut->getDataAsString(data, dstr, 'z', m_state);
+	cut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
       }
     else

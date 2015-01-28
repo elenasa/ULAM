@@ -193,7 +193,7 @@ namespace MFM {
 	fp->write(" = ");
 
 	fp->write("(");
-	fp->write(lut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(lut->getUlamTypeMangledName().c_str());
 	fp->write("<CC>::");
 
 	fp->write(methodNameForCodeGen().c_str());  //mangled-hAs
@@ -237,12 +237,12 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64, etc.
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64, etc.
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs).c_str());
     fp->write(" = ");
 
-    fp->write(rut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(rut->getUlamTypeMangledName().c_str());
     if(rclasstype == UC_ELEMENT)
       fp->write("<CC>::THE_INSTANCE.");
     else if(rclasstype == UC_QUARK)

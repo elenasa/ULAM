@@ -221,7 +221,7 @@ namespace MFM {
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it;
   // trick to know the base ULAMTYPE
-  UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize)
+  UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx)
   {
     //type names begin with capital letter..and the rest can be either
     u32 typeNameId = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
@@ -235,7 +235,8 @@ namespace MFM {
     if(bitsize == 0)
       bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-    UlamKeyTypeSignature key(typeNameId,bitsize,arraysize);
+    UlamKeyTypeSignature key(typeNameId,bitsize,arraysize,classinstanceidx);
+
     UTI uti = Nav;
     UlamType * ut = NULL; //for isDefined.
 
@@ -263,15 +264,18 @@ namespace MFM {
 	uti = m_indexToUlamKey.size();  //next index based on key
 	if(utype == Class)
 	  {
+	    //keep classinstanceid of scalar in key
+	    UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
 	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
-		//keep classinstanceid of scalar in key
-		UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
 		assert(suti > 0 && !isComplete(suti));
 	      }
 	    else
-	      //this is a new class instance! add uti to key
-	      key.append(uti);
+	      {
+		assert(suti == Nav);
+		//this is a new class! add uti to key
+		key.append(uti);
+	      }
 	  }
 
 	ut = createUlamType(key, utype);
@@ -282,7 +286,7 @@ namespace MFM {
 	if(!notdupi)
 	  {
 	    std::ostringstream msg;
-	    msg << "Key to UlamType record already exists: " << ut->getUlamTypeName(this).c_str() << " (UTI" << uti << ")";
+	    msg << "Key to UlamType record already exists: " << ut->getUlamTypeName().c_str() << " (UTI" << uti << ")";
 	    MSG2("", msg.str().c_str(), DEBUG);
 	    delete ut;
 	    ut = NULL;
@@ -879,7 +883,7 @@ namespace MFM {
   {
     UlamType * ut = NULL;
     assert(isDefined(m_indexToUlamKey[uti], ut));
-    return ut->getUlamTypeNameBrief(this);
+    return ut->getUlamTypeNameBrief();
   }
 
 
@@ -887,7 +891,7 @@ namespace MFM {
   {
     UlamType * ut = NULL;
     assert(isDefined(m_indexToUlamKey[uti], ut));
-    return ut->getUlamTypeName(this);
+    return ut->getUlamTypeName();
   }
 
 
@@ -934,7 +938,7 @@ namespace MFM {
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    uti = makeUlamType(tok, typebitsize, arraysize);
+	    uti = makeUlamType(tok, typebitsize, arraysize, Nav);
 	  }
 	else
 	  {
@@ -1092,7 +1096,7 @@ namespace MFM {
 	if(total > MAXSTATEBITS)
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
+	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -1103,7 +1107,7 @@ namespace MFM {
 	if(total > MAXBITSPERQUARK)
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
+	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << ut->getUlamTypeName().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -1141,7 +1145,7 @@ namespace MFM {
 #if 1
     {
       std::ostringstream msg;
-      msg << "Sizes set for Class: " << newut->getUlamTypeName(this).c_str() << " (UTI" << utArg << ")";
+      msg << "Sizes set for Class: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 #endif
@@ -1170,7 +1174,7 @@ namespace MFM {
     if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
       {
 	std::ostringstream msg;
-	msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName(this).c_str() << "> (UTI" << utArg << ")";
+	msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str() << "> (UTI" << utArg << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return;
       }
@@ -1199,7 +1203,7 @@ namespace MFM {
 #if 1
     {
       std::ostringstream msg;
-      msg << "Sizes set for nonClass: " << newut->getUlamTypeName(this).c_str() << " (UTI" << utArg << ")";
+      msg << "Sizes set for nonClass: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 #endif
@@ -1337,7 +1341,7 @@ namespace MFM {
 	    if(getBitSize(but) == UNKNOWNSIZE || getArraySize(but) == UNKNOWNSIZE)
 	      {
 		std::ostringstream msg;
-		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName(this).c_str() << "(UTI" << but << ")";
+		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str() << "(UTI" << but << ")";
 		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else
@@ -1346,14 +1350,14 @@ namespace MFM {
 	else //else uc_incomplete
 	  {
 	    std::ostringstream msg;
-	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName(this).c_str() << "(UTI" << incomplete << ") - Incomplete";
+	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str() << "(UTI" << incomplete << ") - Incomplete";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName(this).c_str() << "(UTI" << incomplete << ") - NOT YET DEFINED";
+	msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str() << "(UTI" << incomplete << ") - NOT YET DEFINED";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return rtnB;
@@ -1495,7 +1499,7 @@ namespace MFM {
 	      {
 		UlamType * tdut = getUlamTypeByIndex(tduti);
 		//for typedef quarks return quark name, o.w. base name
-		return tdut->getUlamTypeNameOnly(this);
+		return tdut->getUlamTypeNameOnly();
 	      }
 	    else
 	      return getTokenDataAsString(&tok); //a class
@@ -1636,7 +1640,7 @@ namespace MFM {
     if(wSubDir)
       f << "include/";
 
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".h";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << ".h";
     return f.str();
   } //getFileNameForAClassHeader
 
@@ -1651,7 +1655,7 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "include/";
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".tcc";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << ".tcc";
     return f.str();
   } //getFileNameForThisClassBody
 
@@ -1662,7 +1666,7 @@ namespace MFM {
     if(wSubDir)
       f << "include/";
 
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_native.tcc";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_native.tcc";
     return f.str();
   } //getFileNameForThisClassBodyNative
 
@@ -1672,7 +1676,7 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "src/";
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".cpp";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << ".cpp";
     return f.str();
   } //getFileNameForThisClassCPP
 
@@ -1682,7 +1686,7 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "include/";
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_Types.h";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_Types.h";
     return f.str();
   } //getFileNameForThisTypesHeader
 
@@ -1693,7 +1697,7 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "src/";
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_main.cpp";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";
     return f.str();
   } //getFileNameForThisClassMain
 
