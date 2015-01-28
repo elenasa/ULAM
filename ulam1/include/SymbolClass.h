@@ -53,7 +53,7 @@ namespace MFM{
 
     virtual bool isClass();
 
-    virtual bool isClassTemplate();
+    virtual bool isClassTemplate(UTI cuti);
 
     void setClassBlockNode(NodeBlockClass * node);
 

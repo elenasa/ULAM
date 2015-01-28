@@ -54,7 +54,7 @@ namespace MFM {
     return true;
   }
 
-  bool SymbolClass::isClassTemplate()
+  bool SymbolClass::isClassTemplate(UTI cuti)
   {
     return false;
   }

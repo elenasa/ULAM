@@ -46,9 +46,15 @@ namespace MFM {
   }
 
 
-  bool SymbolClassName::isClassTemplate()
+  bool SymbolClassName::isClassTemplate(UTI cuti)
   {
-    return (getNumberOfParameters() > 0);
+    bool rtnb = false;
+    if(getNumberOfParameters() > 0)
+      {
+	SymbolClass * csym = NULL;
+	rtnb = !isClassInstance(cuti, csym);
+      }
+    return rtnb;
   }
 
   bool SymbolClassName::isClassInstance(UTI uti, SymbolClass * & symptrref)
