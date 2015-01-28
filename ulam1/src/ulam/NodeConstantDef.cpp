@@ -76,7 +76,6 @@ namespace MFM {
     m_exprnode = node;
   }
 
-
   // called during parsing rhs of named constant
   // Requires a constant expression, else error;
   // (scope of eval is based on the block of const def.)
@@ -118,18 +117,15 @@ namespace MFM {
       }
     // passed
     m_constSymbol->setValue(newconst); //isReady now
-
     return true;
   } //foldConstantExpression
-
 
   EvalStatus NodeConstantDef::eval()
   {
     if(m_constSymbol->isReady())
       return NORMAL;
     return ERROR;
-  }
-
+  } //eval
 
   void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
   {}

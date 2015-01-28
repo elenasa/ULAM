@@ -821,11 +821,13 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
 
-	if(sym->getId() != m_state.m_compileThisId)
+	UTI suti = sym->getUlamTypeIdx();
+	//if(sym->getId() != m_state.m_compileThisId)
+	if(suti != m_state.m_compileThisIdx)
 	  {
 	    m_state.indent(fp);
 	    fp->write("#include \"");
-	    fp->write(m_state.getFileNameForAClassHeader(sym->getId()).c_str());
+	    fp->write(m_state.getFileNameForAClassHeader(sym->getId(), suti).c_str());
 	    fp->write("\"\n");
 	  }
 	it++;
@@ -945,6 +947,7 @@ namespace MFM {
   void SymbolTable::genCodeForTableOfClasses(FileManager * fm)
   {
     u32 saveCompileThisId = m_state.m_compileThisId;
+    UTI saveCompileThisIdx = m_state.m_compileThisIdx;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
     //m_state.m_err.clearCounts();
@@ -956,11 +959,13 @@ namespace MFM {
 
 	//output header/body for this class next
 	m_state.m_compileThisId = sym->getId();
-	((SymbolClass *) sym)->generateCode(fm);
+	m_state.m_compileThisIdx = sym->getUlamTypeIdx();
+	((SymbolClassName *) sym)->generateCodeForClassInstances(fm);
 	it++;
       } //while
 
     m_state.m_compileThisId = saveCompileThisId;  //restore
+    m_state.m_compileThisIdx = saveCompileThisIdx;  //restore
   } //genCodeForTableOfClasses
 
 

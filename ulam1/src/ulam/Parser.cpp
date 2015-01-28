@@ -207,6 +207,9 @@ namespace MFM {
 	wasIncomplete = true;
       }
 
+    //mostly needed for code gen later, but this is where we first know it!
+    m_state.m_compileThisIdx = cnSym->getUlamTypeIdx();
+
     // set class type in UlamType (through its class symbol) since we know it;
     // UC_INCOMPLETE if unseen so far.
     switch(pTok.m_type)
@@ -234,7 +237,7 @@ namespace MFM {
     NodeBlockClass * classNode = parseClassBlock(cnSym); //we know its type too..sweeter
     if(classNode)
       {
-	cnSym->setClassBlockNode(classNode);
+	//cnSym->setClassBlockNode(classNode);
 	if(wasIncomplete)
 	  cnSym->fixAnyClassInstances();
       }
@@ -242,6 +245,7 @@ namespace MFM {
       {
 	// reset to incomplete
 	cnSym->setUlamClass(UC_INCOMPLETE);
+	cnSym->setClassBlockNode(NULL);
 	std::ostringstream msg;
 	msg << "Empty/Incomplete Class Definition: <" << m_state.getTokenDataAsString(&iTok).c_str() << ">; possible missing ending curly brace";
 	MSG(&pTok, msg.str().c_str(), WARN);
@@ -266,6 +270,9 @@ namespace MFM {
     assert(rtnNode);
     rtnNode->setNodeLocation(pTok.m_locator);
     rtnNode->setNodeType(utype);
+
+    //set block before returning, so future class instances can link back to it
+    csym->setClassBlockNode(rtnNode);
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables

@@ -105,6 +105,7 @@ namespace MFM{
     Locator m_locOfNextLineText;
 
     u32 m_compileThisId;                 // the subject of this compilation; id into m_pool
+    UTI m_compileThisIdx;                // the subject of this compilation; various class instances
     SymbolTable m_programDefST;
 
     NodeBlock *      m_currentBlock;     //replaces m_stackOfBlocks
@@ -265,7 +266,7 @@ namespace MFM{
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
     const std::string getLabelNumAsString(s32 num);
 
-    std::string getFileNameForAClassHeader(u32 id, bool wSubDir = false);
+    std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
     std::string getFileNameForThisClassBody(bool wSubDir = false);
     std::string getFileNameForThisClassBodyNative(bool wSubDir = false);

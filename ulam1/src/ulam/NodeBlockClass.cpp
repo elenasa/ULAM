@@ -492,7 +492,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel = 0;
 
-    //generate includes for all the other classes that have appeared
+    //generate include statements for all the other classes that have appeared
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
     fp->write("\n");
 

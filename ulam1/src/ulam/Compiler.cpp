@@ -288,6 +288,6 @@ namespace MFM {
 
     m_state.m_programDefST.genCodeForTableOfClasses(fm);
     delete fm;
-  } //generateCodedProgram
+  } //generateCodedProgram (tests)
 
 } //MFM

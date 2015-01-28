@@ -19,7 +19,6 @@ namespace MFM {
     m_wordLengthItem = calcWordSize(getBitSize());
   }
 
-
    ULAMTYPE UlamTypeClass::getUlamTypeEnum()
    {
      return Class;
@@ -45,85 +44,6 @@ namespace MFM {
     return brtn;
   } //end cast
 
-
-  const std::string UlamTypeClass::getUlamTypeImmediateMangledName(CompilerState * state)
-  {
-    if(needsImmediateType())
-      {
-	return UlamType::getUlamTypeImmediateMangledName(state);
-      }
-
-    return "T";
-  }
-
-
-  const std::string UlamTypeClass::getUlamTypeImmediateAutoMangledName(CompilerState * state)
-  {
-    assert(needsImmediateType());
-    std::ostringstream  automn;
-    automn << getUlamTypeImmediateMangledName(state).c_str();
-
-    if(m_class == UC_QUARK)
-      automn << "4auto" ;
-
-    return automn.str();
-  }
-
-
-  bool UlamTypeClass::needsImmediateType()
-  {
-    // gencode is too late for UC_INCOMPLETE
-    // NOW allowing complete immediate elements (like atoms)
-    // simply test for quarks..since..
-    //   also needed for 'empty' quarks without data
-    // NOW allowing right-justified naked quarks
-    //return (m_class == UC_ELEMENT || m_class == UC_INCOMPLETE || getBitSize() == 0 ? false : true);
-    //return (m_class == UC_QUARK);
-    return (m_class == UC_QUARK || m_class == UC_ELEMENT);
-  }
-
-
-  const std::string UlamTypeClass::getTmpStorageTypeAsString(CompilerState * state)
-  {
-    if(m_class == UC_QUARK)
-      {
-	return UlamType::getTmpStorageTypeAsString(state); // entire, u32 or u64
-      }
-    else if(m_class == UC_ELEMENT)
-      {
- 	return "T";
-      }
-    else
-      assert(0);
-    return ""; //error!
-  }
-
-
-  const std::string UlamTypeClass::getArrayItemTmpStorageTypeAsString(CompilerState * state)
-  {
-    if(!isScalar())
-      return UlamType::getArrayItemTmpStorageTypeAsString(state);
-
-    assert(isCustomArray());
-    return state->getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString(state);
-  }
-
-
-  const std::string UlamTypeClass::getImmediateStorageTypeAsString(CompilerState * state)
-  {
-    std::ostringstream ctype;
-    ctype << getUlamTypeImmediateMangledName(state);
-
-    if(m_class == UC_QUARK && isScalar())
-      ctype << "<CC>";  // not ,POS> because immediates know their position
-
-    if(m_class == UC_ELEMENT)
-      ctype << "<CC>";
-
-    return ctype.str();
-  } //getImmediateStorageTypeAsString
-
-
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
     switch(m_class)
@@ -137,91 +57,25 @@ namespace MFM {
 	assert(0);
       };
     return "?";
-  }
+  } //getUlamTypeAsSingleLowercaseLetter()
 
-
-  //see SymbolVariableDataMember printPostfix for recursive output
-  void UlamTypeClass::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+  const std::string UlamTypeClass::getUlamTypeVDAsStringForC()
   {
-    if(prefix == 'z')
-      sprintf(valstr,"%d", data);
-    else
-      sprintf(valstr,"%c%d", prefix, data);
+    return "VD::BITS";  //for quark use bits
   }
 
-
-  ULAMCLASSTYPE UlamTypeClass::getUlamClass()
+  const std::string UlamTypeClass::getUlamTypeMangledName(CompilerState * state)
   {
-    return m_class;
-  }
+    std::ostringstream mangledclassname;
+    mangledclassname << UlamType::getUlamTypeMangledName(state);
 
-
-  void UlamTypeClass::setUlamClass(ULAMCLASSTYPE type)
-  {
-    m_class = type;
-    if(m_class == UC_ELEMENT)
-      {
-	setTotalWordSize(BITSPERATOM);
-	setItemWordSize(BITSPERATOM);
-      }
-  }
-
-
-  bool UlamTypeClass::isConstant()
-  {
-    return false;   //e.g. zero-size quark is not a constant
-  }
-
-
-  bool UlamTypeClass::isScalar()
-  {
-    return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);
-  }
-
-
-  bool UlamTypeClass::isCustomArray()
-  {
-    return m_customArray;
-  }
-
-
-  void UlamTypeClass::setCustomArrayType(UTI type)
-  {
-    assert(isScalar());
-    m_customArray = true;
-    m_customArrayType = type;
-  }
-
-
-  UTI UlamTypeClass::getCustomArrayType()
-  {
-    assert(m_customArray);
-    return m_customArrayType;
-  }
-
-
-  s32 UlamTypeClass::getBitSize()
-  {
-    s32 bitsize = m_key.getUlamKeyTypeSignatureBitSize();
-    //return bitsize < 0 ? 0 : bitsize; //allow for empty quarks
-    return bitsize;  //could be negative "unknown"
-  }
-
-
-  bool UlamTypeClass::isMinMaxAllowed()
-  {
-    return false;
-  }
-
-
-  PACKFIT UlamTypeClass::getPackable()
-  {
-    if(m_class == UC_ELEMENT)
-      return UNPACKED; //was PACKED, now matches ATOM regardless of its bit size.
-
-    return UlamType::getPackable();  //quarks depend their size
-  }
-
+    //append 0, or each digi-encoded: numberOfParameters, (enum) types and values
+    u32 id = m_key.getUlamKeyTypeSignatureNameId();
+    UTI cuti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    SymbolClassName * cnsym = (SymbolClassName *) state->m_programDefST.getSymbolPtr(id);
+    mangledclassname << cnsym->formatAnInstancesArgValuesAsAString(cuti);
+    return mangledclassname.str();
+  } //getUlamTypeMangledName
 
   //quarks are right-justified in an atom space
   const std::string UlamTypeClass::getUlamTypeAsStringForC()
@@ -231,16 +85,8 @@ namespace MFM {
       {
 	return UlamType::getUlamTypeAsStringForC();
       }
-
     return "T"; //for elements
-  }
-
-
-  const std::string UlamTypeClass::getUlamTypeVDAsStringForC()
-  {
-    return "VD::BITS";  //for quark use bits
-  }
-
+  } //getUlamTypeAsStringForC()
 
   const std::string UlamTypeClass::getUlamTypeUPrefix()
   {
@@ -259,25 +105,155 @@ namespace MFM {
 	assert(0);
       };
     return "xx";
-  }
-
+  } //getUlamTypeUPrefix
 
   const std::string UlamTypeClass::getUlamTypeNameBrief(CompilerState * state)
   {
     return m_key.getUlamKeyTypeSignatureName(state);
   }
 
+  //see SymbolVariableDataMember printPostfix for recursive output
+  void UlamTypeClass::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+  {
+    if(prefix == 'z')
+      sprintf(valstr,"%d", data);
+    else
+      sprintf(valstr,"%c%d", prefix, data);
+  }
 
-  void UlamTypeClass::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
+  ULAMCLASSTYPE UlamTypeClass::getUlamClass()
+  {
+    return m_class;
+  }
+
+  void UlamTypeClass::setUlamClass(ULAMCLASSTYPE type)
+  {
+    m_class = type;
+    if(m_class == UC_ELEMENT)
+      {
+	setTotalWordSize(BITSPERATOM);
+	setItemWordSize(BITSPERATOM);
+      }
+  } //setUlamClass
+
+  bool UlamTypeClass::isConstant()
+  {
+    return false;   //e.g. zero-size quark is not a constant
+  }
+
+  bool UlamTypeClass::isScalar()
+  {
+    return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);
+  }
+
+  bool UlamTypeClass::isCustomArray()
+  {
+    return m_customArray;
+  }
+
+  void UlamTypeClass::setCustomArrayType(UTI type)
+  {
+    assert(isScalar());
+    m_customArray = true;
+    m_customArrayType = type;
+  }
+
+  UTI UlamTypeClass::getCustomArrayType()
+  {
+    assert(m_customArray);
+    return m_customArrayType;
+  }
+
+  s32 UlamTypeClass::getBitSize()
+  {
+    s32 bitsize = m_key.getUlamKeyTypeSignatureBitSize();
+    //return bitsize < 0 ? 0 : bitsize; //allow for empty quarks
+    return bitsize;  //could be negative "unknown"
+  }
+
+  bool UlamTypeClass::isMinMaxAllowed()
+  {
+    return false;
+  }
+
+  PACKFIT UlamTypeClass::getPackable()
+  {
+    if(m_class == UC_ELEMENT)
+      return UNPACKED; //was PACKED, now matches ATOM regardless of its bit size.
+
+    return UlamType::getPackable();  //quarks depend their size
+  }
+
+  bool UlamTypeClass::needsImmediateType()
+  {
+    // gencode is too late for UC_INCOMPLETE
+    // NOW allowing complete immediate elements (like atoms)
+    // simply test for quarks..since..
+    //   also needed for 'empty' quarks without data
+    // NOW allowing right-justified naked quarks
+    //return (m_class == UC_ELEMENT || m_class == UC_INCOMPLETE || getBitSize() == 0 ? false : true);
+    //return (m_class == UC_QUARK);
+    return (m_class == UC_QUARK || m_class == UC_ELEMENT);
+  } //needsImmediateType
+
+  const std::string UlamTypeClass::getUlamTypeImmediateMangledName(CompilerState * state)
+  {
+    if(needsImmediateType())
+      {
+	return UlamType::getUlamTypeImmediateMangledName(state);
+      }
+    return "T";
+  } //getUlamTypeImmediateMangledName
+
+  const std::string UlamTypeClass::getUlamTypeImmediateAutoMangledName(CompilerState * state)
+  {
+    assert(needsImmediateType());
+    std::ostringstream  automn;
+    automn << getUlamTypeImmediateMangledName(state).c_str();
+
+    if(m_class == UC_QUARK)
+      automn << "4auto" ;
+
+    return automn.str();
+  } //getUlamTypeImmediateAutoMangledName
+
+  const std::string UlamTypeClass::getTmpStorageTypeAsString(CompilerState * state)
   {
     if(m_class == UC_QUARK)
-      return genUlamTypeQuarkMangledDefinitionForC(fp,state);
+      {
+	return UlamType::getTmpStorageTypeAsString(state); // entire, u32 or u64
+      }
     else if(m_class == UC_ELEMENT)
-      return genUlamTypeElementMangledDefinitionForC(fp,state);
+      {
+ 	return "T";
+      }
     else
       assert(0);
-  } //genUlamTypeMangledDefinitionForC
+    return ""; //error!
+  } //getTmpStorageTypeAsString
 
+  const std::string UlamTypeClass::getArrayItemTmpStorageTypeAsString(CompilerState * state)
+  {
+    if(!isScalar())
+      return UlamType::getArrayItemTmpStorageTypeAsString(state);
+
+    assert(isCustomArray());
+    return state->getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString(state);
+  } //getArrayItemTmpStorageTypeAsString
+
+  const std::string UlamTypeClass::getImmediateStorageTypeAsString(CompilerState * state)
+  {
+    std::ostringstream ctype;
+    ctype << getUlamTypeImmediateMangledName(state);
+
+    if(m_class == UC_QUARK && isScalar())
+      ctype << "<CC>";  // not ,POS> because immediates know their position
+
+    if(m_class == UC_ELEMENT)
+      ctype << "<CC>";
+
+    return ctype.str();
+  } //getImmediateStorageTypeAsString
 
   void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp, CompilerState * state)
   {
@@ -289,7 +265,6 @@ namespace MFM {
       assert(0);
   } //genUlamTypeReadDefinitionForC
 
-
   void UlamTypeClass::genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state)
   {
     if(m_class == UC_QUARK)
@@ -299,6 +274,52 @@ namespace MFM {
     else
       assert(0);
   } //genUlamTypeWriteDefinitionForC
+
+  const std::string UlamTypeClass::castMethodForCodeGen(UTI nodetype, CompilerState& state)
+  {
+    std::ostringstream rtnMethod;
+    UlamType * nut = state.getUlamTypeByIndex(nodetype);
+    //base types e.g. Int, Bool, Unary, Foo, Bar..
+    s32 sizeByIntBitsToBe = getTotalWordSize();
+    s32 sizeByIntBits = nut->getTotalWordSize();
+
+    //assert(sizeByIntBitsToBe == sizeByIntBits);
+    if(sizeByIntBitsToBe != sizeByIntBits)
+      {
+	std::ostringstream msg;
+	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << sizeByIntBitsToBe << " for type: " << getUlamTypeName(&state).c_str();// << " -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+      }
+
+    //assert(m_class == UC_ELEMENT);  //quarks only cast toInt
+    if(m_class != UC_ELEMENT)
+      {
+	std::ostringstream msg;
+	msg << "Quarks only cast 'toInt': value type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << getUlamTypeName(&state).c_str(); // << " -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+      }
+
+    //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
+    if(nodetype != UAtom)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to illegally cast a non-atom type to an element: value type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << getUlamTypeName(&state).c_str(); // << " -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+      }
+
+    rtnMethod << "_" << nut->getUlamTypeNameOnly(&state).c_str()  << sizeByIntBits << "ToElement" << sizeByIntBitsToBe;
+    return rtnMethod.str();
+  } //castMethodForCodeGen
+
+  void UlamTypeClass::genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state)
+  {
+    if(m_class == UC_QUARK)
+      return genUlamTypeQuarkMangledDefinitionForC(fp,state);
+    else if(m_class == UC_ELEMENT)
+      return genUlamTypeElementMangledDefinitionForC(fp,state);
+    else
+      assert(0);
+  } //genUlamTypeMangledDefinitionForC
 
 
   void UlamTypeClass::genUlamTypeQuarkMangledDefinitionForC(File * fp, CompilerState * state)
@@ -445,7 +466,6 @@ namespace MFM {
     fp->write(" */\n\n");
   } //genUlamTypeQuarkMangledDefinitionForC
 
-
   void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp, CompilerState * state)
   {
     // arrays are handled separately, not like a quark, more like a primitive
@@ -460,7 +480,6 @@ namespace MFM {
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(m_stg.GetBits() ); }\n");
   } //genUlamTypeQuarkReadDefinitionForC
-
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp, CompilerState * state)
   {
@@ -512,7 +531,6 @@ namespace MFM {
     fp->write("(v)); }\n");
   } //genCustomArrayMangledDefinitionForC
 
-
   //whole element (based on atom)
   void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp, CompilerState * state)
   {
@@ -525,7 +543,6 @@ namespace MFM {
     std::string udstr = ud.str();
 
     //s32 len = getTotalBitSize();  //BITSPERATOM
-
     state->indent(fp);
     fp->write("#ifndef ");
     fp->write(udstr.c_str());
@@ -688,44 +705,6 @@ namespace MFM {
       return CUSTOMARRAY_SET_MANGLEDNAME;
     return UlamType::writeArrayItemMethodForCodeGen();
   }
-
-
-  const std::string UlamTypeClass::castMethodForCodeGen(UTI nodetype, CompilerState& state)
-  {
-    std::ostringstream rtnMethod;
-    UlamType * nut = state.getUlamTypeByIndex(nodetype);
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    s32 sizeByIntBitsToBe = getTotalWordSize();
-    s32 sizeByIntBits = nut->getTotalWordSize();
-
-    //assert(sizeByIntBitsToBe == sizeByIntBits);
-    if(sizeByIntBitsToBe != sizeByIntBits)
-      {
-	std::ostringstream msg;
-	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << sizeByIntBitsToBe << " for type: " << getUlamTypeName(&state).c_str();// << " -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
-	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-      }
-
-    //assert(m_class == UC_ELEMENT);  //quarks only cast toInt
-    if(m_class != UC_ELEMENT)
-      {
-	std::ostringstream msg;
-	msg << "Quarks only cast 'toInt': value type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << getUlamTypeName(&state).c_str(); // << " -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
-	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-      }
-
-    //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
-    if(nodetype != UAtom)
-      {
-	std::ostringstream msg;
-	msg << "Attempting to illegally cast a non-atom type to an element: value type and size was: " << nut->getUlamTypeName(&state).c_str() << ", to be: " << getUlamTypeName(&state).c_str(); // << " -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
-	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-      }
-
-    rtnMethod << "_" << nut->getUlamTypeNameOnly(&state).c_str()  << sizeByIntBits << "ToElement" << sizeByIntBitsToBe;
-    return rtnMethod.str();
-  } //castMethodForCodeGen
-
 
   // a special struct for quarks (including zero-size quarks access
   // their methods) and elements that inherits from their immediates

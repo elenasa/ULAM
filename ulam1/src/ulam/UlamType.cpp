@@ -114,11 +114,9 @@ namespace MFM {
   const std::string UlamType::getUlamTypeMangledName(CompilerState * state)
   {
     // e.g. parsing overloaded functions, may not be complete.
-    //assert(isComplete());
     std::ostringstream mangled;
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
-    //    arraysize = (arraysize == NONARRAYSIZE ? 0 : arraysize);
 
     mangled << getUlamTypeUPrefix().c_str();
 
