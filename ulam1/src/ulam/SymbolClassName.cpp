@@ -115,6 +115,71 @@ namespace MFM {
       } //any class instances
   } //fixAnyClassInstances
 
+  std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
+  {
+    u32 numParams = getNumberOfParameters();
+    if(numParams == 0)
+      {
+	return "0";
+      }
+    std::ostringstream args;
+    args << DigitCount(numParams, BASE10) << numParams;
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	assert(it->first == instance);
+	SymbolClass * csym = it->second;
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+
+	//format values into stream
+	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+	while(pit != m_parameterSymbols.end())
+	  {
+	    SymbolConstantValue * psym = *pit;
+	    //get 'instance's value
+	    Symbol * asym = NULL;
+	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
+	    UTI auti = asym->getUlamTypeIdx();
+	    ULAMTYPE eutype = m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum();
+	    args << DigitCount(eutype, BASE10) << eutype;
+	    switch(eutype)
+	      {
+	      case Int:
+		{
+		  s32 sval;
+		  assert(((SymbolConstantValue *) asym)->getValue(sval));
+		  args << DigitCount(sval, BASE10) << sval;
+		  break;
+		}
+	      case Unsigned:
+		{
+		  u32 uval;
+		  assert(((SymbolConstantValue *) asym)->getValue(uval));
+		  args << DigitCount(uval, BASE10) << uval;
+		  break;
+		}
+	      case Bool:
+		{
+		  bool bval;
+		  assert(((SymbolConstantValue *) asym)->getValue(bval));
+		  args << DigitCount(bval, BASE10) << bval;
+		  break;
+		}
+	      default:
+		assert(0);
+	      };
+	    pit++;
+	  } //next param
+      }
+    //restore
+    m_state.m_classBlock = getClassBlockNode();
+    m_state.m_currentBlock = m_state.m_classBlock;
+    return args.str();
+  } //formatAnInstancesArgValuesAsAString
 
   void SymbolClassName::checkAndLabelClassInstances()
   {
@@ -123,12 +188,13 @@ namespace MFM {
     m_state.m_classBlock = classNode;
     m_state.m_currentBlock = m_state.m_classBlock;
 
-    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+    //    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
 	classNode->checkAndLabelType();
 	return;
       }
 
+    UTI saveuti = getUlamTypeIdx();
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -136,11 +202,15 @@ namespace MFM {
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 
 	takeAnInstancesArgValues(suti);
+	m_utypeIdx = suti;
+	m_state.m_compileThisIdx = suti;
 
 	classNode->checkAndLabelType(); //redo ???
 	it++;
       }
     resetParameterValuesUnknown();
+    m_utypeIdx = saveuti;
+    m_state.m_compileThisIdx = m_utypeIdx;
   } //checkAndLabelClassInstances
 
 
@@ -163,6 +233,7 @@ namespace MFM {
 	return aok;
       }
 
+    UTI saveuti = getUlamTypeIdx();
     std::vector<UTI> lostClasses;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -172,6 +243,9 @@ namespace MFM {
 
 	//do we need to pretend to be the instance type too???
 	takeAnInstancesArgValues(suti);
+	m_utypeIdx = suti;
+	m_state.m_compileThisIdx = suti;
+
 	s32 totalbits = 0;
 	aok = trySetBitsizeWithUTIValues(suti, totalbits);
 
@@ -209,6 +283,8 @@ namespace MFM {
       }
     lostClasses.clear();
     resetParameterValuesUnknown();
+    m_utypeIdx = saveuti;
+    m_state.m_compileThisIdx = m_utypeIdx;
     return aok;
   } //setBitSizeOfClassInstances()
 
@@ -295,6 +371,7 @@ namespace MFM {
 	return classNode->packBitsForVariableDataMembers();
       }
 
+    UTI saveuti = getUlamTypeIdx();
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -302,16 +379,48 @@ namespace MFM {
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 
 	takeAnInstancesArgValues(suti);
+	m_utypeIdx = suti;
+	m_state.m_compileThisIdx = suti;
 
 	classNode->packBitsForVariableDataMembers();
 	it++;
       }
     resetParameterValuesUnknown();
+    m_utypeIdx = saveuti;
+    m_state.m_compileThisIdx = m_utypeIdx;
   } //packBitsForClassInstances
 
 
+  void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.m_classBlock = classNode;
+    m_state.m_currentBlock = m_state.m_classBlock;
 
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	return SymbolClass::generateCode(fm);
+      }
 
+    UTI saveuti = getUlamTypeIdx();
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx(); //this instance
+
+	takeAnInstancesArgValues(suti);
+	m_utypeIdx = suti;
+	m_state.m_compileThisIdx = suti;
+
+	SymbolClass::generateCode(fm);
+	it++;
+      }
+    resetParameterValuesUnknown();
+    m_utypeIdx = saveuti;
+    m_state.m_compileThisIdx = m_utypeIdx;
+  } //generateCodeForClassInstances
 
 
   bool SymbolClassName::takeAnInstancesArgValues(UTI instance)

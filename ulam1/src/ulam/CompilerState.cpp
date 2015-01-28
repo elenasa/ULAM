@@ -1630,25 +1630,20 @@ namespace MFM {
     return "AS_ERROR";
   }
 
-
-  std::string CompilerState::getFileNameForAClassHeader(u32 id, bool wSubDir)
+  std::string CompilerState::getFileNameForAClassHeader(UTI cuti, bool wSubDir)
   {
     std::ostringstream f;
-    Symbol * csym = m_programDefST.getSymbolPtr(id);
-    UTI cuti = csym->getUlamTypeIdx();
     if(wSubDir)
       f << "include/";
 
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".h";
     return f.str();
-  }
-
+  } //getFileNameForAClassHeader
 
   std::string CompilerState::getFileNameForThisClassHeader(bool wSubDir)
   {
-    return getFileNameForAClassHeader(m_compileThisId, wSubDir);
+    return getFileNameForAClassHeader(m_compileThisIdx, wSubDir);
   }
-
 
   std::string CompilerState::getFileNameForThisClassBody(bool wSubDir)
   {
@@ -1656,11 +1651,9 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "include/";
-
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".tcc";
     return f.str();
-  }
-
+  } //getFileNameForThisClassBody
 
   std::string CompilerState::getFileNameForThisClassBodyNative(bool wSubDir)
   {
@@ -1671,8 +1664,7 @@ namespace MFM {
 
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_native.tcc";
     return f.str();
-  }
-
+  } //getFileNameForThisClassBodyNative
 
   std::string CompilerState::getFileNameForThisClassCPP(bool wSubDir)
   {
@@ -1680,11 +1672,9 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "src/";
-
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".cpp";
     return f.str();
-  }
-
+  } //getFileNameForThisClassCPP
 
   std::string CompilerState::getFileNameForThisTypesHeader(bool wSubDir)
   {
@@ -1692,11 +1682,9 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "include/";
-
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_Types.h";
     return f.str();
-  }
-
+  } //getFileNameForThisTypesHeader
 
   //separate file for element compilations, avoid multiple mains, select the one to test during linking
   std::string CompilerState::getFileNameForThisClassMain(bool wSubDir)
@@ -1705,26 +1693,23 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "src/";
-
     f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_main.cpp";
     return f.str();
-  }
-
+  } //getFileNameForThisClassMain
 
   ULAMCLASSTYPE CompilerState::getUlamClassForThisClass()
   {
     UTI cuti = getUlamTypeForThisClass();
     return getUlamTypeByIndex(cuti)->getUlamClass();
-  }
-
+  } //getUlamClassForThisClass
 
   UTI CompilerState::getUlamTypeForThisClass()
   {
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    assert(csym);
-    return csym->getUlamTypeIdx();
-  }
-
+    return m_compileThisIdx;
+    //Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    //assert(csym);
+    //return csym->getUlamTypeIdx();
+  } //getUlamTypeForThisClass
 
   const std::string CompilerState::getBitSizeTemplateString(UTI uti)
   {
@@ -1737,7 +1722,7 @@ namespace MFM {
 	mangled << "<" << getTotalBitSize(uti) << ">";  //???
       }
     return mangled.str();
-  }
+  } //getBitSizeTemplateString
 
   //unfortunately, the uti did not reveal a Class symbol; already down to primitive types
   // for casting.
@@ -1778,10 +1763,8 @@ namespace MFM {
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
     assert(ptr.getUlamValueTypeIdx() == Ptr);
-
     // slot + storage
     UlamValue valAtIdx;
-
     switch(ptr.getPtrStorage())
       {
       case STACK:
@@ -1806,7 +1789,6 @@ namespace MFM {
   {
     assert(lptr.getUlamValueTypeIdx() == Ptr);
 
-    //if(ruv.getUlamValueTypeIdx() == Ptr)
     // handle UAtom assignment as a singleton (not array values)
     if(ruv.getUlamValueTypeIdx() == Ptr && (ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom))
       {
@@ -1814,7 +1796,6 @@ namespace MFM {
       }
 
     // r is data (includes packed arrays), store it into where lptr is pointing
-    //assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx());
     assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx() || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
 
     STORAGE place = lptr.getPtrStorage();
@@ -1833,7 +1814,6 @@ namespace MFM {
 	assert(0);
       };
   } //assignValue
-
 
   void CompilerState::assignArrayValues(UlamValue lptr, UlamValue rptr)
   {
@@ -1931,7 +1911,6 @@ namespace MFM {
     return getUlamTypeByIndex(aut)->getPackable();
   }
 
-
   bool CompilerState::thisClassHasTheTestMethod()
   {
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
@@ -1939,16 +1918,14 @@ namespace MFM {
     assert(classNode);
     NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
     return (func != NULL);
-  }
-
+  } //thisClassHasTheTestMethod
 
   bool CompilerState::thisClassIsAQuark()
   {
     Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
     UTI cuti = csym->getUlamTypeIdx();
     return(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK);
-  }
-
+  } //thisClassIsAQuark
 
   void CompilerState::setupCenterSiteForTesting()
   {
@@ -1969,7 +1946,6 @@ namespace MFM {
     m_funcCallStack.pushArg(m_currentObjPtr);                        //hidden arg on STACK
     m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1));      //return slot on STACK
   } //setupCenterSiteForTesting
-
 
   // used by SourceStream to build m_textByLinePerFilePath during parsing
   void CompilerState::appendNextLineOfText(Locator loc, std::string textstr)
@@ -2009,7 +1985,6 @@ namespace MFM {
     m_locOfNextLineText = loc;  //during parsing here (see NodeStatements)
   } //appendNextLineOfText
 
-
   std::string CompilerState::getLineOfText(Locator loc)
   {
     std::vector<u32> * textOfLines = NULL;
@@ -2047,7 +2022,6 @@ namespace MFM {
     return m_pool.getDataAsString(textid);
   } //getLineOfText
 
-
   std::string CompilerState::getLocationTextAsString(Locator nodeloc)
   {
     std::ostringstream txt;
@@ -2059,7 +2033,6 @@ namespace MFM {
     return txt.str();
   } //getTextAsString
 
-
   void CompilerState::outputTextAsComment(File * fp, Locator nodeloc)
   {
     fp->write("\n");
@@ -2067,7 +2040,6 @@ namespace MFM {
     fp->write("//! ");
     fp->write(getLocationTextAsString(nodeloc).c_str());
   } //outputTextAsComment
-
 
   s32 CompilerState::getNextTmpVarNumber()
   {
@@ -2108,20 +2080,17 @@ namespace MFM {
     return tmpVar.str();
   } //getTmpVarAsString
 
-
   const std::string CompilerState::getLabelNumAsString(s32 num)
   {
     std::ostringstream labelname;  // into
     labelname << "Ul_endcontrolloop_" << DigitCount(num, BASE10) << num;;
     return labelname.str();
-  }
-
+  } //getLabelNumAsString
 
   void CompilerState::saveIdentTokenForConditionalAs(Token iTok)
-    {
-      m_identTokenForConditionalAs = iTok;
-      m_parsingConditionalAs = true;    //cleared manually
-    }
-
+  {
+    m_identTokenForConditionalAs = iTok;
+    m_parsingConditionalAs = true;    //cleared manually
+  } //saveIdentTokenForConditionalAs
 
 } //end MFM

@@ -52,9 +52,19 @@ namespace MFM {
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state)
   {
     std::ostringstream key;
-    key << getUlamKeyTypeSignatureName(state) << "(" << m_bits << ")";
+    key << getUlamKeyTypeSignatureName(state);
+    if(m_bits >= 0)
+      key << "(" << m_bits << ")";
+    else if(m_bits == ANYBITSIZECONSTANT)
+      key << "(" << "CONSTANT" << ")";
+    else if(m_bits == UNKNOWNSIZE)
+      key << "(" << "UNKNOWN" << ")";
+    else if(m_bits == CYCLEFLAG)
+      key << "(" << "CYCLE" << ")";
+    else
+      key << "(" << m_bits << "?)";
     return key.str();
-  }
+  } //getUlamKeyTypeSignatureNameAndBitSize
 
 
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(CompilerState * state)

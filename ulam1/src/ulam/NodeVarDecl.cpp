@@ -27,27 +27,23 @@ namespace MFM {
 	fp->write("]");
       }
     fp->write("; ");
-  }
-
+  } //printPostfix
 
   const char * NodeVarDecl::getName()
   {
     return m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str();
   }
 
-
   const std::string NodeVarDecl::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   bool NodeVarDecl::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
     return true;
   }
-
 
   UTI NodeVarDecl::checkAndLabelType()
   {
@@ -91,7 +87,6 @@ namespace MFM {
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
-
 
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
   {

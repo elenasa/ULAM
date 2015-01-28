@@ -58,11 +58,15 @@ namespace MFM{
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
 
+    std::string formatAnInstancesArgValuesAsAString(UTI instance);
+
     void checkAndLabelClassInstances(); // needed?
 
     bool setBitSizeOfClassInstances();
     void printBitSizeOfClassInstances();
     void packBitsForClassInstances();
+
+    void generateCodeForClassInstances(FileManager * fm);
 
    protected:
 

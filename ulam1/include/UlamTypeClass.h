@@ -55,35 +55,17 @@ namespace MFM{
 
     virtual bool cast(UlamValue& val, UTI typidx, CompilerState& state);
 
-    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
-
-    virtual const std::string getUlamTypeImmediateAutoMangledName(CompilerState * state);
-
-    virtual bool needsImmediateType();
-
-    virtual bool isMinMaxAllowed();
-
-    virtual PACKFIT getPackable();
-
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
-
-    virtual const std::string getArrayItemTmpStorageTypeAsString(CompilerState * state);
-
-    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
-
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
-
-    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
-
-    virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
-
     virtual const std::string getUlamTypeVDAsStringForC();
+
+    virtual  const std::string getUlamTypeMangledName(CompilerState * state);
 
     virtual const std::string getUlamTypeAsStringForC();
 
     virtual const std::string getUlamTypeUPrefix();
+
+    virtual const std::string getUlamTypeNameBrief(CompilerState * state);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
 
@@ -103,13 +85,33 @@ namespace MFM{
 
     virtual s32 getBitSize();
 
-    virtual const std::string getUlamTypeNameBrief(CompilerState * state);
+    virtual bool isMinMaxAllowed();
+
+    virtual PACKFIT getPackable();
+
+    virtual bool needsImmediateType();
+
+    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+
+    virtual const std::string getUlamTypeImmediateAutoMangledName(CompilerState * state);
+
+    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+
+    virtual const std::string getArrayItemTmpStorageTypeAsString(CompilerState * state);
+
+    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+
+    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
+
+    virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
 
     virtual const std::string readArrayItemMethodForCodeGen();
 
     virtual const std::string writeArrayItemMethodForCodeGen();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+
+    virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp, CompilerState * state);
 

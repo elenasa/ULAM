@@ -78,16 +78,14 @@ namespace MFM {
 
     u32 id = m_state.m_pool.getIndexForDataString(num.str());
     return m_state.m_pool.getDataAsString(id).c_str();
-    //return m_state.getTokenDataAsString(&m_token).c_str();
-  }
-
+  } //getName
 
   const std::string NodeTerminal::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
+  // this is the application of unary minus to produce a negative number
   void NodeTerminal::constantFold(Token tok)
   {
     if(tok.m_type == TOK_MINUS)
