@@ -9,12 +9,21 @@ namespace MFM {
     setNodeType(typeToBe);
   }
 
+  NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_explicit(ref.m_explicit)
+  {
+    m_node = ref.m_node->clone();
+  }
+
   NodeCast::~NodeCast()
   {
     delete m_node;
     m_node = NULL;
   }
 
+  Node * NodeCast::clone()
+  {
+    return new NodeCast(*this);
+  }
 
   const char * NodeCast::getName()
   {

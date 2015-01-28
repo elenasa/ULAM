@@ -5,9 +5,13 @@
 namespace MFM {
 
   NodeLabel::NodeLabel(s32 labelnum, CompilerState & state) : Node(state), m_labelnum(labelnum) {}
+  NodeLabel::NodeLabel(const NodeLabel& ref) : Node(ref), m_labelnum(ref.m_labelnum) {}
+  NodeLabel::~NodeLabel() {}
 
-  NodeLabel::~NodeLabel()
-  {}
+  Node * NodeLabel::clone()
+  {
+    return new NodeLabel(*this);
+  }
 
   void NodeLabel::print(File * fp)
   {

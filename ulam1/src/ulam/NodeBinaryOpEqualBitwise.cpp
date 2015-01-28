@@ -4,9 +4,8 @@
 namespace MFM {
 
   NodeBinaryOpEqualBitwise::NodeBinaryOpEqualBitwise(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
-
+  NodeBinaryOpEqualBitwise::NodeBinaryOpEqualBitwise(const NodeBinaryOpEqualBitwise& ref) : NodeBinaryOpEqual(ref) {}
   NodeBinaryOpEqualBitwise::~NodeBinaryOpEqualBitwise(){}
-
 
   UTI NodeBinaryOpEqualBitwise::checkAndLabelType()
   {

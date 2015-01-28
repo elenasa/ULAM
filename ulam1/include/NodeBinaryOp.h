@@ -47,7 +47,8 @@ namespace MFM{
   public:
 
     NodeBinaryOp(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOp();
+    NodeBinaryOp(const NodeBinaryOp& ref);
+    virtual ~NodeBinaryOp();
 
     virtual void updateLineage(Node * p);
 

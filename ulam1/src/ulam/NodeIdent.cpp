@@ -10,9 +10,13 @@
 namespace MFM {
 
   NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr) {}
-
+  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(ref.m_varSymbol) /* deep copy */ {}
   NodeIdent::~NodeIdent(){}
 
+  Node * NodeIdent::clone()
+  {
+    return new NodeIdent(*this);
+  }
 
   void NodeIdent::printPostfix(File * fp)
   {

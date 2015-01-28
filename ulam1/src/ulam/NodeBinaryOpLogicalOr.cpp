@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpLogicalOr::NodeBinaryOpLogicalOr(Node * left, Node * right, CompilerState & state) : NodeBinaryOpLogical(left,right,state) {}
-
+  NodeBinaryOpLogicalOr::NodeBinaryOpLogicalOr(const NodeBinaryOpLogicalOr& ref) : NodeBinaryOpLogical(ref) {}
   NodeBinaryOpLogicalOr::~NodeBinaryOpLogicalOr(){}
+
+  Node * NodeBinaryOpLogicalOr::clone()
+  {
+    return new NodeBinaryOpLogicalOr(*this);
+  }
 
 
   const char * NodeBinaryOpLogicalOr::getName()

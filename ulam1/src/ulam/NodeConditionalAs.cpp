@@ -5,9 +5,13 @@
 namespace MFM {
 
   NodeConditionalAs::NodeConditionalAs(Node * leftNode, UTI classInstanceIdx, CompilerState & state): NodeConditional(leftNode, classInstanceIdx, state) {}
+  NodeConditionalAs::NodeConditionalAs(const NodeConditionalAs& ref) : NodeConditional(ref) {}
+  NodeConditionalAs::~NodeConditionalAs() {}
 
-  NodeConditionalAs::~NodeConditionalAs()
-  {}
+  Node * NodeConditionalAs::clone()
+  {
+    return new NodeConditionalAs(*this);
+  }
 
   const char * NodeConditionalAs::getName()
   {

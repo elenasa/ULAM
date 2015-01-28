@@ -9,8 +9,13 @@
 namespace MFM {
 
   NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym) {}
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(ref.m_varSymbol) /* deep copy */ {}
+  NodeVarDecl::~NodeVarDecl() {}
 
-  NodeVarDecl::~NodeVarDecl(){}
+  Node * NodeVarDecl::clone()
+  {
+    return new NodeVarDecl(*this);
+  }
 
   void NodeVarDecl::printPostfix(File * fp)
   {

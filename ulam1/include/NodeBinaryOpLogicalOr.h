@@ -45,7 +45,10 @@ namespace MFM{
   public:
 
     NodeBinaryOpLogicalOr(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpLogicalOr();
+    NodeBinaryOpLogicalOr(const NodeBinaryOpLogicalOr& ref);
+    virtual ~NodeBinaryOpLogicalOr();
+
+    virtual Node * clone();
 
     virtual const char * getName();
 

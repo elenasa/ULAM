@@ -5,6 +5,10 @@
 namespace MFM {
 
   NodeUnaryOp::NodeUnaryOp(Node * n, CompilerState & state): Node(state), m_node(n) {}
+  NodeUnaryOp::NodeUnaryOp(const NodeUnaryOp& ref) : Node(ref)
+  {
+    m_node = ref.m_node->clone();
+  }
 
   NodeUnaryOp::~NodeUnaryOp()
   {
@@ -12,13 +16,11 @@ namespace MFM {
     m_node = NULL;
   }
 
-
   void NodeUnaryOp::updateLineage(Node * p)
   {
     setYourParent(p);
     m_node->updateLineage(this);
   }
-
 
   void NodeUnaryOp::print(File * fp)
   {

@@ -47,7 +47,10 @@ namespace MFM{
   public:
 
     NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state);
-    ~NodeTerminalProxy();
+    NodeTerminalProxy(const NodeTerminalProxy& ref);
+    virtual ~NodeTerminalProxy();
+
+    virtual Node * clone();
 
     virtual const std::string prettyNodeName();
 

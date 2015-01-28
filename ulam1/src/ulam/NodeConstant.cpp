@@ -10,8 +10,14 @@ namespace MFM {
     updateConstant();
   }
 
+  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(ref.m_constSymbol) /* deep copy */, m_ready(ref.m_ready) {}
+
   NodeConstant::~NodeConstant(){}
 
+  Node * NodeConstant::clone()
+  {
+    return new NodeConstant(*this);
+  }
 
   void NodeConstant::printPostfix(File * fp)
   {

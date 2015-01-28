@@ -5,11 +5,9 @@
 namespace MFM {
 
   NodeBinaryOpCompare::NodeBinaryOpCompare(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
-
-
+  NodeBinaryOpCompare::NodeBinaryOpCompare(const NodeBinaryOpCompare& ref) : NodeBinaryOp(ref) {}
   NodeBinaryOpCompare::~NodeBinaryOpCompare()
   {}
-
 
   UTI NodeBinaryOpCompare::checkAndLabelType()
   {

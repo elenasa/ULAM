@@ -46,7 +46,10 @@ namespace MFM{
   public:
 
     NodeStatementEmpty(CompilerState & state);
-    ~NodeStatementEmpty();
+    NodeStatementEmpty(const NodeStatementEmpty& ref);
+    virtual ~NodeStatementEmpty();
+
+    virtual Node * clone();
 
     virtual void updateLineage(Node * p);
 

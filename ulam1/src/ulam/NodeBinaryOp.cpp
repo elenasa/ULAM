@@ -5,7 +5,11 @@
 namespace MFM {
 
   NodeBinaryOp::NodeBinaryOp(Node * left, Node * right, CompilerState & state) : Node(state), m_nodeLeft(left), m_nodeRight(right) {}
-
+  NodeBinaryOp::NodeBinaryOp(const NodeBinaryOp& ref) : Node(ref)
+  {
+    m_nodeLeft = ref.m_nodeLeft->clone();
+    m_nodeRight = ref.m_nodeRight->clone();
+  }
 
   NodeBinaryOp::~NodeBinaryOp()
   {
@@ -21,7 +25,6 @@ namespace MFM {
     m_nodeLeft->updateLineage(this);
     m_nodeRight->updateLineage(this);
   }
-
 
   void NodeBinaryOp::print(File * fp)
   {

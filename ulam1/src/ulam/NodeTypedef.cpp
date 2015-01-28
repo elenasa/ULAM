@@ -6,8 +6,13 @@
 namespace MFM {
 
   NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym) {}
+  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(ref.m_typedefSymbol) /* deep copy */ {}
+  NodeTypedef::~NodeTypedef() {}
 
-  NodeTypedef::~NodeTypedef(){}
+  Node * NodeTypedef::clone()
+  {
+    return new NodeTypedef(*this);
+  }
 
   void NodeTypedef::printPostfix(File * fp)
   {

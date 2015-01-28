@@ -5,10 +5,8 @@
 namespace MFM {
 
   NodeBinaryOpBitwise::NodeBinaryOpBitwise(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
-
-  NodeBinaryOpBitwise::~NodeBinaryOpBitwise()
-  {}
-
+  NodeBinaryOpBitwise::NodeBinaryOpBitwise(const NodeBinaryOpBitwise& ref) : NodeBinaryOp(ref) {}
+  NodeBinaryOpBitwise::~NodeBinaryOpBitwise() {}
 
   // third arg is the slots for the rtype; slots for the left is
   // rslot-lslot; they should be equal, unless one is a packed array

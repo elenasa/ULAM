@@ -5,7 +5,13 @@
 namespace MFM {
 
   NodeControlIf::NodeControlIf(Node * condNode, Node * trueNode, Node * falseNode, CompilerState & state): NodeControl(condNode, trueNode, state), m_nodeElse(falseNode) {}
-
+  NodeControlIf::NodeControlIf(const NodeControlIf& ref) : NodeControl(ref)
+  {
+    if(ref.m_nodeElse)
+      m_nodeElse = ref.m_nodeElse->clone();
+    else
+      m_nodeElse = NULL;
+  }
 
   NodeControlIf::~NodeControlIf()
   {
@@ -13,6 +19,10 @@ namespace MFM {
     m_nodeElse = NULL;
   }
 
+  Node * NodeControlIf::clone()
+  {
+    return new NodeControlIf(*this);
+  }
 
   void NodeControlIf::updateLineage(Node * p)
   {

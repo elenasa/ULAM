@@ -49,7 +49,10 @@ namespace MFM{
   public:
 
     NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state);
-    ~NodeIdent();
+    NodeIdent(const NodeIdent& ref);
+    virtual ~NodeIdent();
+
+    virtual Node * clone();
 
     virtual void printPostfix(File * fp);
 

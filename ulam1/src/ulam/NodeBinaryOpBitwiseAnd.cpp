@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpBitwiseAnd::NodeBinaryOpBitwiseAnd(Node * left, Node * right, CompilerState & state) : NodeBinaryOpBitwise(left,right,state) {}
-
+  NodeBinaryOpBitwiseAnd::NodeBinaryOpBitwiseAnd(const NodeBinaryOpBitwiseAnd& ref) : NodeBinaryOpBitwise(ref) {}
   NodeBinaryOpBitwiseAnd::~NodeBinaryOpBitwiseAnd(){}
+
+  Node * NodeBinaryOpBitwiseAnd::clone()
+  {
+    return new NodeBinaryOpBitwiseAnd(*this);
+  }
 
 
   const char * NodeBinaryOpBitwiseAnd::getName()
@@ -17,7 +22,7 @@ namespace MFM {
   const std::string NodeBinaryOpBitwiseAnd::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
-  }   
+  }
 
 
   const std::string NodeBinaryOpBitwiseAnd::methodNameForCodeGen()
@@ -26,7 +31,7 @@ namespace MFM {
     methodname << "_BitwiseAnd" << NodeBinaryOpBitwise::methodNameForCodeGen();
     return methodname.str();
   }
-  
+
 
   UlamValue NodeBinaryOpBitwiseAnd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {

@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpBitwiseXor::NodeBinaryOpBitwiseXor(Node * left, Node * right, CompilerState & state) : NodeBinaryOpBitwise(left,right,state) {}
-
+  NodeBinaryOpBitwiseXor::NodeBinaryOpBitwiseXor(const NodeBinaryOpBitwiseXor& ref) : NodeBinaryOpBitwise(ref) {}
   NodeBinaryOpBitwiseXor::~NodeBinaryOpBitwiseXor(){}
+
+  Node * NodeBinaryOpBitwiseXor::clone()
+  {
+    return new NodeBinaryOpBitwiseXor(*this);
+  }
 
 
   const char * NodeBinaryOpBitwiseXor::getName()

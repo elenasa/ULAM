@@ -48,7 +48,10 @@ namespace MFM{
   public:
 
     NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state);
-    ~NodeConstantDef();
+    NodeConstantDef(const NodeConstantDef& ref);
+    virtual ~NodeConstantDef();
+
+    virtual Node * clone();
 
     virtual void updateLineage(Node * p);
 

@@ -46,7 +46,8 @@ namespace MFM{
   public:
 
     NodeUnaryOp(Node * n, CompilerState & state);
-    ~NodeUnaryOp();
+    NodeUnaryOp(const NodeUnaryOp& ref);
+    virtual ~NodeUnaryOp();
 
     virtual void updateLineage(Node * p);
 

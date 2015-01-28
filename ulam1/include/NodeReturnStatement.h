@@ -47,7 +47,10 @@ namespace MFM{
   public:
 
     NodeReturnStatement(Node * s, CompilerState & state);
+    NodeReturnStatement(const NodeReturnStatement& ref);
     virtual ~NodeReturnStatement();
+
+    virtual Node * clone();
 
     virtual void updateLineage(Node * p);
 

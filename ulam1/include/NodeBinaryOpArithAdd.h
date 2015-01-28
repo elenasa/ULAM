@@ -45,7 +45,10 @@ namespace MFM{
   public:
 
     NodeBinaryOpArithAdd(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpArithAdd();
+    NodeBinaryOpArithAdd(const NodeBinaryOpArithAdd & ref);
+    virtual ~NodeBinaryOpArithAdd();
+
+    virtual Node * clone();
 
     virtual void printOp(File * f);
 

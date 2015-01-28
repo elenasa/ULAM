@@ -46,7 +46,10 @@ namespace MFM{
   public:
 
     NodeTypeBitsize(Node * node, CompilerState & state);
-    ~NodeTypeBitsize();
+    NodeTypeBitsize(const NodeTypeBitsize& ref);
+    virtual ~NodeTypeBitsize();
+
+    virtual Node * clone();
 
     virtual void updateLineage(Node * p);
 

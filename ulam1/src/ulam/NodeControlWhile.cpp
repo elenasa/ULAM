@@ -6,10 +6,13 @@
 namespace MFM {
 
   NodeControlWhile::NodeControlWhile(Node * condNode, Node * trueNode, CompilerState & state): NodeControl(condNode, trueNode, state) {}
+  NodeControlWhile::NodeControlWhile(const NodeControlWhile& ref) : NodeControl(ref) {}
+  NodeControlWhile::~NodeControlWhile() {}
 
-  NodeControlWhile::~NodeControlWhile()
-  { }
-
+  Node * NodeControlWhile::clone()
+  {
+    return new NodeControlWhile(*this);
+  }
 
   void NodeControlWhile::print(File * fp)
   {

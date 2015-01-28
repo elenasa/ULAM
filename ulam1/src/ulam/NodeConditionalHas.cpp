@@ -5,10 +5,13 @@
 namespace MFM {
 
   NodeConditionalHas::NodeConditionalHas(Node * leftNode, UTI classInstanceIdx, CompilerState & state): NodeConditional(leftNode, classInstanceIdx, state) {}
+  NodeConditionalHas::NodeConditionalHas(const NodeConditionalHas& ref) : NodeConditional(ref) {}
+  NodeConditionalHas::~NodeConditionalHas() {}
 
-  NodeConditionalHas::~NodeConditionalHas()
-  {}
-
+  Node * NodeConditionalHas::clone()
+  {
+    return new NodeConditionalHas(*this);
+  }
 
   const char * NodeConditionalHas::getName()
   {

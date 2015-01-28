@@ -4,9 +4,14 @@
 namespace MFM {
 
   NodeBinaryOpArithAdd::NodeBinaryOpArithAdd(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
+  NodeBinaryOpArithAdd::NodeBinaryOpArithAdd(const NodeBinaryOpArithAdd& ref) : NodeBinaryOpArith(ref) {}
 
   NodeBinaryOpArithAdd::~NodeBinaryOpArithAdd(){}
 
+  Node * NodeBinaryOpArithAdd::clone()
+  {
+    return new NodeBinaryOpArithAdd(*this);
+  }
 
   void NodeBinaryOpArithAdd::printOp(File * fp)
   {

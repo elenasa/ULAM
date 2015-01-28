@@ -5,6 +5,10 @@
 namespace MFM {
 
   NodeSimpleStatement::NodeSimpleStatement(Node * s, CompilerState & state) : Node(state), m_node(s) {}
+  NodeSimpleStatement::NodeSimpleStatement(const NodeSimpleStatement& ref) : Node(ref)
+  {
+    m_node = ref.m_node->clone();
+  }
 
   NodeSimpleStatement::~NodeSimpleStatement()
   {
@@ -12,6 +16,10 @@ namespace MFM {
     m_node = NULL;
   }
 
+  Node * NodeSimpleStatement::clone()
+  {
+    return new NodeSimpleStatement(*this);
+  }
 
   void NodeSimpleStatement::updateLineage(Node * p)
   {

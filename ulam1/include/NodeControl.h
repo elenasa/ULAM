@@ -47,7 +47,8 @@ namespace MFM{
   public:
 
     NodeControl(Node * condNode, Node * trueNode, CompilerState & state);
-    ~NodeControl();
+    NodeControl(const NodeControl& ref);
+    virtual ~NodeControl();
 
     virtual void updateLineage(Node * p);
 
