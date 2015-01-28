@@ -1050,7 +1050,7 @@ namespace MFM {
 
     UTI tuti = asNode->getRightType();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
-    const std::string tdname = tut->getUlamTypeNameOnly(&m_state);
+    const std::string tdname = tut->getUlamTypeNameOnly();
     Token typeTok;
     typeTok.init(TOK_TYPE_IDENTIFIER, asNode->getNodeLocation(), m_state.m_pool.getIndexForDataString(tdname));
 
@@ -1388,8 +1388,8 @@ namespace MFM {
 
     unreadToken();
 
-    // make a new Class Instance cUTI
-    cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE);
+    // make a new Class Instance; its own uti will become part of its key
+    cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nav);
     NodeBlockClass * classBlock = new NodeBlockClass(cnsym->getClassBlockNode(), m_state); //1st arg could be NULL if UC_INCOMPLETE
     assert(classBlock);
     classBlock->setNodeLocation(typeTok.m_locator);
@@ -1606,7 +1606,7 @@ namespace MFM {
 		  }
 
 		ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-		const std::string tdname = tdut->getUlamTypeNameOnly(&m_state);
+		const std::string tdname = tdut->getUlamTypeNameOnly();
 
 		//update token argument
 		if(tdclasstype == UC_NOTACLASS)

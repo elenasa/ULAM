@@ -126,7 +126,7 @@ namespace MFM {
     if(m_parameterSymbols.empty())
       {
 	UlamType * vit = m_state.getUlamTypeByIndex(Void);
-	mangled << vit->getUlamTypeMangledName(&m_state).c_str();
+	mangled << vit->getUlamTypeMangledName().c_str();
       }
 
     // append mangled type name, e.g. 1023213Int, for each parameter
@@ -136,7 +136,7 @@ namespace MFM {
       {
 	Symbol * sym = m_parameterSymbols[i];
 	UlamType * sut = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx());
-	mangled << sut->getUlamTypeMangledName(&m_state).c_str();
+	mangled << sut->getUlamTypeMangledName().c_str();
       }
     return mangled.str();
   } //getMangledNameWithTypes
@@ -217,13 +217,13 @@ namespace MFM {
 	m_state.indent(fp);
       }
 
-    fp->write(sut->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++
+    fp->write(sut->getImmediateStorageTypeAsString().c_str()); //return type for C++
     fp->write(" ");
     if(!declOnly)
       {
 	UTI cuti = m_state.m_classBlock->getNodeType();
 	//include the mangled class::
-	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 
 	if(classtype == UC_QUARK)
 	  fp->write("<CC, POS>");
@@ -253,7 +253,7 @@ namespace MFM {
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
-	fp->write(aut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++
+	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());
       }

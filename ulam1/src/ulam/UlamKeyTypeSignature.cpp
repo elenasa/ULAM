@@ -11,6 +11,8 @@ namespace MFM {
 
   UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize ): m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(Nav) {}
 
+  UlamKeyTypeSignature::UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, UTI classinstanceidx) : m_typeNameId(nameid), m_bits(bitsize), m_arraySize(arraysize), m_classInstanceIdx(classinstanceidx) {}
+
   UlamKeyTypeSignature::~UlamKeyTypeSignature(){}
 
   void UlamKeyTypeSignature::append(UTI cuti)

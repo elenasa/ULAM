@@ -53,6 +53,8 @@ namespace MFM{
 
     virtual bool isClass();
 
+    virtual bool isClassTemplate();
+
     void setClassBlockNode(NodeBlockClass * node);
 
     NodeBlockClass * getClassBlockNode();

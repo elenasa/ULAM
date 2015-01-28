@@ -52,35 +52,29 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    //virtual ULAMCLASSTYPE getUlamClass();
-
     virtual const std::string getUlamTypeVDAsStringForC();
-
-    //    virtual const std::string getUlamTypeMangledName(CompilerState * state);
-
-    //virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getTmpStorageTypeAsString();
 
-    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+    virtual const std::string getImmediateStorageTypeAsString();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
+    virtual bool cast(UlamValue & val, UTI typidx);
 
-    virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
-    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
 
-    virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
     virtual bool isMinMaxAllowed();
 
     virtual PACKFIT getPackable();
 
-    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+    virtual const std::string castMethodForCodeGen(UTI nodetype);
 
   private:
 

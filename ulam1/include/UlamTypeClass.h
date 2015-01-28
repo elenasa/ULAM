@@ -53,21 +53,21 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
-    virtual bool cast(UlamValue& val, UTI typidx, CompilerState& state);
+    virtual bool cast(UlamValue& val, UTI typidx);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
-    virtual  const std::string getUlamTypeMangledName(CompilerState * state);
+    virtual  const std::string getUlamTypeMangledName();
 
     virtual const std::string getUlamTypeAsStringForC();
 
     virtual const std::string getUlamTypeUPrefix();
 
-    virtual const std::string getUlamTypeNameBrief(CompilerState * state);
+    virtual const std::string getUlamTypeNameBrief();
 
-    virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
+    virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
     virtual ULAMCLASSTYPE getUlamClass();
 
@@ -91,29 +91,29 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeImmediateMangledName();
 
-    virtual const std::string getUlamTypeImmediateAutoMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeImmediateAutoMangledName();
 
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getTmpStorageTypeAsString();
 
-    virtual const std::string getArrayItemTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getArrayItemTmpStorageTypeAsString();
 
-    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+    virtual const std::string getImmediateStorageTypeAsString();
 
-    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
 
-    virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
     virtual const std::string readArrayItemMethodForCodeGen();
 
     virtual const std::string writeArrayItemMethodForCodeGen();
 
-    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+    virtual const std::string castMethodForCodeGen(UTI nodetype);
 
-    virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
    private:
 
@@ -121,15 +121,15 @@ namespace MFM{
     bool m_customArray;
     UTI m_customArrayType;
 
-    void genCustomArrayMangledDefinitionForC(File * fp, CompilerState * state);
+    void genCustomArrayMangledDefinitionForC(File * fp);
 
-    void genUlamTypeQuarkMangledDefinitionForC(File * fp, CompilerState * state);
-    void genUlamTypeQuarkReadDefinitionForC(File * fp, CompilerState * state);
-    void genUlamTypeQuarkWriteDefinitionForC(File * fp, CompilerState * state);
+    void genUlamTypeQuarkMangledDefinitionForC(File * fp);
+    void genUlamTypeQuarkReadDefinitionForC(File * fp);
+    void genUlamTypeQuarkWriteDefinitionForC(File * fp);
 
-    void genUlamTypeElementMangledDefinitionForC(File * fp, CompilerState * state);
-    void genUlamTypeElementReadDefinitionForC(File * fp, CompilerState * state);
-    void genUlamTypeElementWriteDefinitionForC(File * fp, CompilerState * state);
+    void genUlamTypeElementMangledDefinitionForC(File * fp);
+    void genUlamTypeElementReadDefinitionForC(File * fp);
+    void genUlamTypeElementWriteDefinitionForC(File * fp);
 
   };
 

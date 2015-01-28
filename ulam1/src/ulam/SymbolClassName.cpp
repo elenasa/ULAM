@@ -45,6 +45,12 @@ namespace MFM {
     return m_parameterSymbols[n];
   }
 
+
+  bool SymbolClassName::isClassTemplate()
+  {
+    return (getNumberOfParameters() > 0);
+  }
+
   bool SymbolClassName::isClassInstance(UTI uti, SymbolClass * & symptrref)
   {
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);

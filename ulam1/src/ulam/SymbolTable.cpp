@@ -277,7 +277,7 @@ namespace MFM {
     fp->write("s32 ");  //return pos offset, or -1 if not found
 
     //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
     if(classtype == UC_ELEMENT)
       fp->write("<CC>");
     else if(classtype == UC_QUARK)
@@ -414,7 +414,7 @@ namespace MFM {
 
 	{
 	  std::ostringstream msg;
-	  msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+	  msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	  MSG("", msg.str().c_str(), DEBUG);
 	}
 
@@ -434,14 +434,14 @@ namespace MFM {
 		  {
 		    msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
 		  }
-		msg << "and cannot be called in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+		msg << "and cannot be called in class: " << cut->getUlamTypeNameOnly().c_str();
 		MSG("", msg.str().c_str(), ERR);
 		rtnBool = false;
 	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 		MSG("", msg.str().c_str(), DEBUG);
 	      }
 	    argTypes.clear();
@@ -449,7 +449,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+	    msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	    MSG("", msg.str().c_str(), WARN);
 	  }
       } //get found
@@ -459,7 +459,7 @@ namespace MFM {
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
 	std::ostringstream msg;
-	msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly(&m_state).c_str();
+	msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	MSG("", msg.str().c_str(), DEBUG);
 	rtnBool = false;
       }
@@ -861,7 +861,7 @@ namespace MFM {
 	      assert(0);
 
 	    fp->write("struct ");
-	    fp->write(sut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write(sut->getUlamTypeMangledName().c_str());
 	    fp->write("; }  //FORWARD\n");
 	  }
 	it++;
@@ -900,7 +900,7 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("typedef ");
 	fp->write("MFM::");
-	fp->write(sut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(sut->getUlamTypeMangledName().c_str());
 
 	fp->write("<OurCoreConfig> ");
 	fp->write(ourname.str().c_str());

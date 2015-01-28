@@ -113,7 +113,7 @@ namespace MFM {
     if(m_elementParameter)
       {
 	std::ostringstream epmangled;
-	epmangled << sut->getImmediateStorageTypeAsString(&m_state);
+	epmangled << sut->getImmediateStorageTypeAsString();
 	if(classtype == UC_QUARK)
 	  epmangled << "::Us";
 	return epmangled.str();

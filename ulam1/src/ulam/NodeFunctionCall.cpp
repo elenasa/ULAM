@@ -460,7 +460,7 @@ namespace MFM {
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	fp->write("const ");
-	fp->write(nut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32>
+	fp->write(nut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32>
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
 	fp->write(" = ");
@@ -542,7 +542,7 @@ namespace MFM {
       {
 	if(cosclasstype == UC_ELEMENT)
 	  {
-	    fp->write(cosut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write(cosut->getUlamTypeMangledName().c_str());
 	    fp->write("<CC>::");
 
 	    //depending on the "owner" of the func, the instance is needed
@@ -554,7 +554,7 @@ namespace MFM {
 	else
 	  {
 	    //for immmediate quark EP..?
-	    fp->write(cosut->getImmediateStorageTypeAsString(&m_state).c_str());
+	    fp->write(cosut->getImmediateStorageTypeAsString().c_str());
 	    fp->write("::");
 	    fp->write("Us::"); //typedef, always for funccalls
 	  }
@@ -597,7 +597,7 @@ namespace MFM {
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
     ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClass();
 
-    hiddenlist << stgcosut->getUlamTypeMangledName(&m_state).c_str();
+    hiddenlist << stgcosut->getUlamTypeMangledName().c_str();
     hiddenlist << "<CC>::THE_INSTANCE.";
 
     // the EP (an element, quark, or primitive):
@@ -634,7 +634,7 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
-	fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	fp->write("<CC>::");
 	//depending on the "owner" of the func, the instance is needed
 	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
@@ -645,7 +645,7 @@ namespace MFM {
     else
       {
 	// immediate quark..
-	fp->write(stgcosut->getImmediateStorageTypeAsString(&m_state).c_str());
+	fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
 	fp->write("::Us::");     //typedef
       }
 

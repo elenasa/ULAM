@@ -161,7 +161,7 @@ namespace MFM{
     void clearLeftoverSubtrees();
     void clearAllLinesOfText();
 
-    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize);
+    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);

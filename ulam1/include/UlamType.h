@@ -72,19 +72,19 @@ namespace MFM{
     /** returns a pointer to UlamType */
     UlamType * getUlamType();
 
-    const std::string getUlamTypeName(CompilerState * state);
+    const std::string getUlamTypeName();
 
-    virtual const std::string getUlamTypeNameBrief(CompilerState * state);
+    virtual const std::string getUlamTypeNameBrief();
 
-    virtual const std::string getUlamTypeNameOnly(CompilerState * state);
+    virtual const std::string getUlamTypeNameOnly();
 
     //    UTI getUlamTypeIndex();
 
     UlamKeyTypeSignature getUlamKeyTypeSignature();
 
-    virtual bool cast(UlamValue& val, UTI typidx, CompilerState& state);
+    virtual bool cast(UlamValue& val, UTI typidx);
 
-    virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
+    virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
     virtual ULAMCLASSTYPE getUlamClass();
 
@@ -94,33 +94,33 @@ namespace MFM{
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
-    virtual const std::string getUlamTypeMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeMangledName();
 
     virtual const std::string getUlamTypeUPrefix();
 
-    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeImmediateMangledName();
 
-    virtual const std::string getUlamTypeImmediateAutoMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeImmediateAutoMangledName();
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+    virtual const std::string getImmediateStorageTypeAsString();
 
-    virtual const std::string getArrayItemTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getArrayItemTmpStorageTypeAsString();
 
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getTmpStorageTypeAsString();
 
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state, s32 sizebyints);
+    virtual const std::string getTmpStorageTypeAsString(s32 sizebyints);
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual void genUlamTypeMangledDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
 
-    virtual void genUlamTypeReadDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeReadDefinitionForC(File * fp);
 
-    virtual void genUlamTypeWriteDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
 
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
@@ -168,11 +168,11 @@ namespace MFM{
     virtual const std::string readArrayItemMethodForCodeGen();
     virtual const std::string writeArrayItemMethodForCodeGen();
 
-    virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
+    virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass);
 
-    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+    virtual const std::string castMethodForCodeGen(UTI nodetype);
 
-    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp, CompilerState * state);
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
   protected:
     UlamKeyTypeSignature m_key;

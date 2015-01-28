@@ -54,21 +54,21 @@ namespace MFM{
 
     virtual const std::string getUlamTypeAsStringForC();
 
-    virtual const std::string getUlamTypeMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeMangledName();
 
-    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeImmediateMangledName();
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+    virtual const std::string getImmediateStorageTypeAsString();
 
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getTmpStorageTypeAsString();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual bool isMinMaxAllowed();
 
-    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
+    virtual bool cast(UlamValue & val, UTI typidx);
 
   private:
 

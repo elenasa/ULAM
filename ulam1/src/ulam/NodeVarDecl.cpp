@@ -176,11 +176,11 @@ namespace MFM {
     m_state.indent(fp);
     if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
       {
-	fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++ local vars, ie non-data members
+	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
       }
     else
       {
-	fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+	fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
 	assert(0); //doesn't happen anymore..
       }
 
@@ -193,7 +193,7 @@ namespace MFM {
     if(vclasstype == UC_ELEMENT)
       {
 	fp->write(" = ");
-	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
 	fp->write("<CC>");
 	fp->write("::THE_INSTANCE");
 	fp->write(".GetDefaultAtom()");  //returns object of type T
@@ -222,7 +222,7 @@ namespace MFM {
 	// use typedef rather than atomic parameter for quarks within elements,
 	// except if an array of quarks.
 	fp->write("typedef ");
-	fp->write(nut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
 	fp->write("<CC, ");
 	if(classtype == UC_ELEMENT)
 	  fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
@@ -270,7 +270,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("mutable ");
 
-    fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //for C++ local vars, ie non-data members
+    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
@@ -297,7 +297,7 @@ namespace MFM {
     // can't let Node::genCodeReadIntoTmpVar do this for us:
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
     m_state.indent(fp);
-    fp->write(stgut->getTmpStorageTypeAsString(&m_state).c_str());
+    fp->write(stgut->getTmpStorageTypeAsString().c_str());
     fp->write("& ");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
     fp->write(" = ");
@@ -311,7 +311,7 @@ namespace MFM {
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
-    fp->write(vut->getUlamTypeImmediateAutoMangledName(&m_state).c_str()); //for C++ local vars, ie non-data members
+    fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
 
     fp->write("<CC> ");
     fp->write(m_varSymbol->getMangledName().c_str());

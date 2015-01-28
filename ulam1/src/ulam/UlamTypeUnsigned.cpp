@@ -30,13 +30,13 @@ namespace MFM {
   }
 
 
-  const std::string UlamTypeUnsigned::getUlamTypeImmediateMangledName(CompilerState * state)
+  const std::string UlamTypeUnsigned::getUlamTypeImmediateMangledName()
   {
     if(needsImmediateType())
-      return UlamType::getUlamTypeImmediateMangledName(state);
+      return UlamType::getUlamTypeImmediateMangledName();
 
     //return getImmediateStorageTypeAsString(state); //"u32"; inf loop
-    return UlamType::getUlamTypeImmediateMangledName(state); //? for constants
+    return UlamType::getUlamTypeImmediateMangledName(); //? for constants
   }
 
 
@@ -46,38 +46,38 @@ namespace MFM {
   }
 
 
-  bool UlamTypeUnsigned::cast(UlamValue & val, UTI typidx, CompilerState& state)
+  bool UlamTypeUnsigned::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     //UTI typidx = getUlamTypeIndex();
-    assert(state.getUlamTypeByIndex(typidx) == this);
+    assert(m_state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
-    if(arraysize != state.getArraySize(valtypidx))
+    if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << m_state.getArraySize(valtypidx);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
 
     //change the size first of tobe, if necessary
     s32 bitsize = getBitSize();
-    s32 valbitsize = state.getBitSize(valtypidx);
+    s32 valbitsize = m_state.getBitSize(valtypidx);
 
     if(bitsize == UNKNOWNSIZE || valbitsize == UNKNOWNSIZE)
       {
 	std::ostringstream msg;
 	msg << "Casting UNKNOWN sizes; " << bitsize << ", Value Type and size was: " << valtypidx << "," << valbitsize;
-	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
 
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     //ULAMTYPE typEnum = getUlamTypeEnum();
-    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
-    u32 data = val.getImmediateData(state);
+    u32 data = val.getImmediateData(m_state);
     switch(valtypEnum)
       {
       case Int:
@@ -85,30 +85,30 @@ namespace MFM {
 	  // casting Int to Unsigned to change type
 	  const s32 sdata = _SignExtend32(data,valbitsize);
 	  data = _Int32ToUnsigned32(sdata, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
 	}
 	break;
       case Unsigned:
 	{
 	  // casting UnsignedInt to UnsignedInt to change bits size
 	  data = _Unsigned32ToUnsigned32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
 	}
 	break;
       case Bits:
 	// casting to Bits Unsigned to change type
-	val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
+	val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
 	break;
       case Bool:
 	{
 	  data = _Bool32ToUnsigned32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
 	}
 	break;
       case Unary:
 	{
 	  data = _Unary32ToUnsigned32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, data, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, data, m_state); //overwrite val
 	}
 	break;
       case Void:
@@ -121,7 +121,7 @@ namespace MFM {
   } //end cast
 
 
-  void UlamTypeUnsigned::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+  void UlamTypeUnsigned::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
       sprintf(valstr,"%u", data);

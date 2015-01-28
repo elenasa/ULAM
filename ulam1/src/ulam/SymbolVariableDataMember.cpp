@@ -43,7 +43,7 @@ namespace MFM {
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
-    fp->write(vut->getUlamTypeMangledName(&m_state).c_str()); //for C++
+    fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
 
     if(vclasstype == UC_QUARK)       // called on classtype elements only
       {
@@ -131,7 +131,7 @@ namespace MFM {
 
 	    UlamValue atval = m_state.getPtrTarget(nextPtr);
 	    u32 data = atval.getDataFromAtom(nextPtr, m_state);
-	    vut->getDataAsString(data, valstr, 'z', m_state); //'z' -> no preceeding ','
+	    vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
 
 	    for(s32 i = 1; i < size; i++)
 	      {
@@ -139,7 +139,7 @@ namespace MFM {
 		nextPtr.incrementPtr(m_state);
 		atval = m_state.getPtrTarget(nextPtr);
 		data = atval.getDataFromAtom(nextPtr, m_state);
-		vut->getDataAsString(data, tmpstr, ',', m_state);
+		vut->getDataAsString(data, tmpstr, ',');
 		strcat(valstr,tmpstr);
 	      }
 	  } //end arrays > 0, and scalar

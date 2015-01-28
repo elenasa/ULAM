@@ -505,7 +505,7 @@ namespace MFM {
     // problem! for arrays, the vut is an Int, regardless of the array typeXXX
     // but not arrays here. hmm..
     //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
-    cosut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
+    cosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadIntoTmp
@@ -665,7 +665,7 @@ namespace MFM {
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0);  //POS 0 rightjustified (atom-based).
 
     // specifically to sign extend Int's (a cast)
-    scalarcosut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
+    scalarcosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadArrayItemIntoTmp
@@ -714,7 +714,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
 
-    fp->write(itemut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+    fp->write(itemut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(itemuti, tmpVarNum2, TMPBITVAL).c_str());
@@ -796,7 +796,7 @@ namespace MFM {
 
     //index is immediate Int arg
     UlamType * intut = m_state.getUlamTypeByIndex(Int);
-    fp->write(intut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+    fp->write(intut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
     fp->write("));\n");
@@ -833,7 +833,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
 
-    fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPBITVAL).c_str());
@@ -842,7 +842,7 @@ namespace MFM {
       {
 	u32 data = uvpass.getImmediateData(m_state);
 	char dstr[40];
-	vut->getDataAsString(data, dstr, 'z', m_state);
+	vut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
       }
     else
@@ -880,7 +880,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
 
-    fp->write(vut->getTmpStorageTypeAsString(&m_state).c_str()); //u32
+    fp->write(vut->getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2).c_str());
     fp->write(" = ");
@@ -904,7 +904,7 @@ namespace MFM {
     uvpass.setPtrPos(0); //entire register
 
     // specifically to sign extend Int's (a cast)
-    vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state); //why was this commented out?
+    vut->genCodeAfterReadingIntoATmpVar(fp, uvpass); //why was this commented out?
   } //genCodeConvertABitVectorIntoATmpVar
 
 
@@ -1028,7 +1028,7 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = ruvpass.getImmediateData(m_state);
 	char dstr[40];
-	rut->getDataAsString(data, dstr, 'z', m_state);
+	rut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
 	fp->write(");\n");
       }
@@ -1208,7 +1208,7 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = ruvpass.getImmediateData(m_state);
 	char dstr[40];
-	rut->getDataAsString(data, dstr, 'z', m_state);
+	rut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
 	fp->write(");\n");
       }
@@ -1351,7 +1351,7 @@ namespace MFM {
 
     //index is immediate Int arg
     UlamType * intut = m_state.getUlamTypeByIndex(Int);
-    fp->write(intut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+    fp->write(intut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
     fp->write("), ");
@@ -1362,7 +1362,7 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = ruvpass.getImmediateData(m_state);
 	char dstr[40];
-	rut->getDataAsString(data, dstr, 'z', m_state);
+	rut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
 	fp->write(");\n");
       }
@@ -1373,7 +1373,7 @@ namespace MFM {
 	// aset requires its custom array type (e.g. an atom) as its value:
 	assert(cosclasstype != UC_NOTACLASS);
 	UTI catype = ((UlamTypeClass *) cosut)->getCustomArrayType();
-	fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+	fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
 	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
 	fp->write(") );\n");
@@ -1444,7 +1444,7 @@ namespace MFM {
     else
       {
 	//now for both immmediate elements and quarks..
-	fp->write(cosut->getImmediateStorageTypeAsString(&m_state).c_str());
+	fp->write(cosut->getImmediateStorageTypeAsString().c_str());
 	fp->write("::");
 	if( ((u32) (epi + 1) < cosSize))  //still another cos refiner, use
 	  fp->write("Us::");      //typedef
@@ -1498,7 +1498,7 @@ namespace MFM {
     if(cosut->isCustomArray())
       fp->write("uc, ");  //not for regular READs and WRITEs
 
-    fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(stgcosut->getUlamTypeMangledName().c_str());
     fp->write("<CC>::THE_INSTANCE");
     fp->write(".");
 
@@ -1538,7 +1538,7 @@ namespace MFM {
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
 
     // now for both immediate elements and quarks..
-    fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+    fp->write(ut->getImmediateStorageTypeAsString().c_str());
     fp->write("::");
     fp->write("Us::");   //typedef
 
@@ -1575,9 +1575,9 @@ namespace MFM {
 
     //special case, u32/u64 desired before AfterReadingIntoATmpVar
     if(etyp == Int)
-      return ((UlamTypeInt *) nut)->getUnsignedTmpStorageTypeAsString(&m_state);
+      return ((UlamTypeInt *) nut)->getUnsignedTmpStorageTypeAsString();
 
-    return nut->getTmpStorageTypeAsString(&m_state);
+    return nut->getTmpStorageTypeAsString();
   } //tmpStorageTypeForRead
 
 
@@ -1588,9 +1588,9 @@ namespace MFM {
 
     //special case, u32/u64 desired before AfterReadingIntoATmpVar
     if(etyp == Int)
-      return ((UlamTypeInt *) nut)->getArrayItemUnsignedTmpStorageTypeAsString(&m_state);
+      return ((UlamTypeInt *) nut)->getArrayItemUnsignedTmpStorageTypeAsString();
 
-    return nut->getArrayItemTmpStorageTypeAsString(&m_state);
+    return nut->getArrayItemTmpStorageTypeAsString();
   } //tmpStorageTypeForReadArrayItem
 
 
