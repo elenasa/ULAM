@@ -193,8 +193,7 @@ namespace MFM {
 	u32 id = m_key.getUlamKeyTypeSignatureNameId();
 	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
 	SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
-	SymbolClass * csym = NULL;
-	if(cnsym->isClassTemplate() && !cnsym->isClassInstance(cuti, csym))
+	if(cnsym->isClassTemplate(cuti))
 	  rtnb = false; //the "template" has no immediate, only instances
       }
     return rtnb;

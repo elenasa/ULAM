@@ -52,7 +52,7 @@ namespace MFM{
     u32 getTotalSizeOfParameters();
     Symbol * getParameterSymbolPtr(u32 n);
 
-    virtual bool isClassTemplate();
+    virtual bool isClassTemplate(UTI cuti);
 
     bool isClassInstance(UTI uti, SymbolClass * & symptrref);
     void addClassInstance(UTI uti, SymbolClass * symptr);
