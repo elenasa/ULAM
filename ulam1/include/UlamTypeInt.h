@@ -47,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeInt(const UlamKeyTypeSignature key);
+    UlamTypeInt(const UlamKeyTypeSignature key, CompilerState& state);
     virtual ~UlamTypeInt(){}
 
     virtual ULAMTYPE getUlamTypeEnum();

@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  UlamTypeNav::UlamTypeNav(const UlamKeyTypeSignature key) : UlamType(key)
+  UlamTypeNav::UlamTypeNav(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
   {}
 
 

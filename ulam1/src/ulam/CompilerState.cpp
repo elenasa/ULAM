@@ -368,34 +368,34 @@ namespace MFM {
     switch(utype)
       {
       case Nav:
-	ut = new UlamTypeNav(key);
+	ut = new UlamTypeNav(key, *this);
 	break;
       case Void:
-	ut = new UlamTypeVoid(key);
+	ut = new UlamTypeVoid(key, *this);
 	break;
       case Int:
-	ut = new UlamTypeInt(key);
+	ut = new UlamTypeInt(key, *this);
 	break;
       case Unsigned:
-	ut = new UlamTypeUnsigned(key);
+	ut = new UlamTypeUnsigned(key, *this);
 	break;
       case Bool:
-	ut = new UlamTypeBool(key);
+	ut = new UlamTypeBool(key, *this);
 	break;
       case Unary:
-	ut = new UlamTypeUnary(key);
+	ut = new UlamTypeUnary(key, *this);
 	break;
       case Bits:
-	ut = new UlamTypeBits(key);
+	ut = new UlamTypeBits(key, *this);
 	break;
       case Class:
-	ut = new UlamTypeClass(key);
+	ut = new UlamTypeClass(key, *this);
 	break;
       case UAtom:
-	ut = new UlamTypeAtom(key);
+	ut = new UlamTypeAtom(key, *this);
 	break;
       case Ptr:
-	ut = new UlamTypePtr(key);
+	ut = new UlamTypePtr(key, *this);
 	break;
       default:
 	{

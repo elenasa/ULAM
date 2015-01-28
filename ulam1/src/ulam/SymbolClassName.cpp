@@ -120,6 +120,7 @@ namespace MFM {
     u32 numParams = getNumberOfParameters();
     if(numParams == 0)
       {
+	assert(instance == Nav);
 	return "0";
       }
     std::ostringstream args;

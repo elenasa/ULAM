@@ -66,7 +66,7 @@ namespace MFM{
   class UlamType
   {
   public:
-    UlamType(const UlamKeyTypeSignature key);
+    UlamType(const UlamKeyTypeSignature key, CompilerState& state);
     virtual ~UlamType(){}
 
     /** returns a pointer to UlamType */
@@ -176,7 +176,7 @@ namespace MFM{
 
   protected:
     UlamKeyTypeSignature m_key;
-    //    UTI m_uti;
+    CompilerState& m_state;
     u32 m_wordLengthTotal;
     u32 m_wordLengthItem;
     u32 m_max;

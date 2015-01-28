@@ -285,7 +285,8 @@ namespace MFM {
 	parseRestOfClassParameters(csym);
       }
     else
-      unreadToken();
+	unreadToken();
+
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
       {

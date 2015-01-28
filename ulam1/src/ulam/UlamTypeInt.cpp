@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key) : UlamType(key)
+  UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     s32 bitsize = getBitSize();
