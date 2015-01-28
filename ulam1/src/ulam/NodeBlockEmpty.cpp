@@ -4,12 +4,14 @@
 
 namespace MFM {
 
-  NodeBlockEmpty::NodeBlockEmpty(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL)
-  {}
+  NodeBlockEmpty::NodeBlockEmpty(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL) {}
+  NodeBlockEmpty::NodeBlockEmpty(const NodeBlockEmpty& ref) : NodeBlock(ref) {}
+  NodeBlockEmpty::~NodeBlockEmpty() {}
 
-  NodeBlockEmpty::~NodeBlockEmpty()
-  {}
-
+  Node * NodeBlockEmpty::clone()
+  {
+    return new NodeBlockEmpty(*this);
+  }
 
   void NodeBlockEmpty::print(File * fp)
   {

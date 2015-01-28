@@ -47,7 +47,10 @@ namespace MFM{
   public:
 
     NodeSimpleStatement(Node * s, CompilerState & state);
+    NodeSimpleStatement(const NodeSimpleStatement& ref);
     virtual ~NodeSimpleStatement();
+
+    virtual Node * clone();
 
     virtual void updateLineage(Node * p);
 

@@ -47,7 +47,10 @@ namespace MFM{
   public:
 
     NodeBreakStatement(CompilerState & state);
+    NodeBreakStatement(const NodeBreakStatement& ref);
     virtual ~NodeBreakStatement();
+
+    virtual Node * clone();
 
     virtual void print(File * fp);
 

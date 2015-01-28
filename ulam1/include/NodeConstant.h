@@ -49,7 +49,10 @@ namespace MFM{
   public:
 
     NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state);
-    ~NodeConstant();
+    NodeConstant(const NodeConstant& ref);
+    virtual ~NodeConstant();
+
+    virtual Node * clone();
 
     virtual void printPostfix(File * fp);
 

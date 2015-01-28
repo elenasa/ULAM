@@ -10,6 +10,13 @@
 namespace MFM {
 
   NodeFunctionCall::NodeFunctionCall(Token tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym) {}
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(ref.m_funcSymbol) /* deep copy */
+  {
+    for(u32 i = 0; i < ref.m_argumentNodes.size(); i++)
+      {
+	m_argumentNodes.push_back(ref.m_argumentNodes[i]->clone());
+      }
+  }
 
   NodeFunctionCall::~NodeFunctionCall()
   {
@@ -21,6 +28,10 @@ namespace MFM {
     m_argumentNodes.clear();
   }
 
+  Node * NodeFunctionCall::clone()
+  {
+    return new NodeFunctionCall(*this);
+  }
 
   void NodeFunctionCall::printPostfix(File * fp)
   {

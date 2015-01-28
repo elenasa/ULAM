@@ -4,7 +4,7 @@
 namespace MFM {
 
   NodeBinaryOpEqualArith::NodeBinaryOpEqualArith(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
-
+  NodeBinaryOpEqualArith::NodeBinaryOpEqualArith(const NodeBinaryOpEqualArith& ref) : NodeBinaryOpEqual(ref) {}
   NodeBinaryOpEqualArith::~NodeBinaryOpEqualArith(){}
 
   UTI NodeBinaryOpEqualArith::checkAndLabelType()

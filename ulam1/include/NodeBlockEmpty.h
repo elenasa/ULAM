@@ -47,8 +47,10 @@ namespace MFM{
   public:
 
     NodeBlockEmpty(NodeBlock * prevBlockNode, CompilerState & state);
-
+    NodeBlockEmpty(const NodeBlockEmpty& ref);
     virtual ~NodeBlockEmpty();
+
+    virtual Node * clone();
 
     virtual void print(File * fp);
 

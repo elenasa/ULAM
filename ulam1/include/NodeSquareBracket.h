@@ -47,7 +47,10 @@ namespace MFM{
   public:
 
     NodeSquareBracket(Node * left, Node * right, CompilerState & state);
-    ~NodeSquareBracket();
+    NodeSquareBracket(const NodeSquareBracket& ref);
+    virtual ~NodeSquareBracket();
+
+    virtual Node * clone();
 
     virtual void printOp(File * fp);
 

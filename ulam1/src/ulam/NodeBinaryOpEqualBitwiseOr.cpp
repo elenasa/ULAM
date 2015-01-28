@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpEqualBitwiseOr::NodeBinaryOpEqualBitwiseOr(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualBitwise(left,right,state) {}
-
+  NodeBinaryOpEqualBitwiseOr::NodeBinaryOpEqualBitwiseOr(const NodeBinaryOpEqualBitwiseOr& ref) : NodeBinaryOpEqualBitwise(ref) {}
   NodeBinaryOpEqualBitwiseOr::~NodeBinaryOpEqualBitwiseOr(){}
+
+  Node * NodeBinaryOpEqualBitwiseOr::clone()
+  {
+    return new NodeBinaryOpEqualBitwiseOr(*this);
+  }
 
 
   const char * NodeBinaryOpEqualBitwiseOr::getName()

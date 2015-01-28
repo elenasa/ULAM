@@ -6,6 +6,10 @@
 namespace MFM {
 
   NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node) {}
+  NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref)
+  {
+    m_node = ref.m_node->clone();
+  }
 
   NodeTypeBitsize::~NodeTypeBitsize()
   {
@@ -13,6 +17,10 @@ namespace MFM {
     m_node = NULL;
   }
 
+  Node * NodeTypeBitsize::clone()
+  {
+    return new NodeTypeBitsize(*this);
+  }
 
   void NodeTypeBitsize::updateLineage(Node * p)
   {

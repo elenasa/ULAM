@@ -8,12 +8,16 @@ namespace MFM {
   {
     setNextNode(s);
   }
-
+  NodeBlock::NodeBlock(const NodeBlock& ref) : NodeStatements(ref), m_ST(ref.m_ST) /* deep copy */, m_prevBlockNode(NULL) {}
   NodeBlock::~NodeBlock()
   {
     //do not delete prevBlockNode
   }
 
+  Node * NodeBlock::clone()
+  {
+    return new NodeBlock(*this);
+  }
 
   void NodeBlock::print(File * fp)
   {

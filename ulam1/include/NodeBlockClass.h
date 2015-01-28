@@ -48,8 +48,10 @@ namespace MFM{
   public:
 
     NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
-
+    NodeBlockClass(const NodeBlockClass& ref);
     virtual ~NodeBlockClass();
+
+    virtual Node * clone();
 
     bool isEmpty();
 

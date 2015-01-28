@@ -45,7 +45,10 @@ namespace MFM{
   public:
 
     NodeMemberSelect(Node * left, Node * right, CompilerState & state);
-    ~NodeMemberSelect();
+    NodeMemberSelect(const NodeMemberSelect& ref);
+    virtual ~NodeMemberSelect();
+
+    virtual Node * clone();
 
     virtual void printOp(File * f);
 

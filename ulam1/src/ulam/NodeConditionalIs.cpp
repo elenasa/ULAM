@@ -5,10 +5,13 @@
 namespace MFM {
 
   NodeConditionalIs::NodeConditionalIs(Node * leftNode, UTI classInstanceIdx, CompilerState & state): NodeConditional(leftNode, classInstanceIdx, state) {}
+  NodeConditionalIs::NodeConditionalIs(const NodeConditionalIs& ref) : NodeConditional(ref) {}
+  NodeConditionalIs::~NodeConditionalIs() {}
 
-  NodeConditionalIs::~NodeConditionalIs()
-  {}
-
+  Node * NodeConditionalIs::clone()
+  {
+    return new NodeConditionalIs(*this);
+  }
 
   UTI NodeConditionalIs::checkAndLabelType()
   {

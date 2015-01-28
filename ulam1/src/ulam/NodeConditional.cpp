@@ -6,6 +6,10 @@
 namespace MFM {
 
   NodeConditional::NodeConditional(Node * leftNode, UTI classInstanceIdx, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_utypeRight(classInstanceIdx) {}
+  NodeConditional::NodeConditional(const NodeConditional& ref) : Node(ref), m_utypeRight(ref.m_utypeRight)
+  {
+    m_nodeLeft = ref.m_nodeLeft->clone();
+  }
 
   NodeConditional::~NodeConditional()
   {
@@ -13,13 +17,11 @@ namespace MFM {
     m_nodeLeft = NULL;
   }
 
-
   void NodeConditional::updateLineage(Node * p)
   {
     setYourParent(p);
     m_nodeLeft->updateLineage(this);
   }
-
 
   void NodeConditional::print(File * fp)
   {

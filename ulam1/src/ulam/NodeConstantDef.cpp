@@ -6,11 +6,23 @@
 namespace MFM {
 
   NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(state.m_currentBlock) {}
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(ref.m_constSymbol) /* deep copy */, m_currBlock(ref.m_currBlock) /* ??? */
+  {
+    if(ref.m_exprnode)
+      m_exprnode = ref.m_exprnode->clone();
+    else
+      m_exprnode = NULL;
+  }
 
   NodeConstantDef::~NodeConstantDef()
   {
     delete m_exprnode;
     m_exprnode = NULL;
+  }
+
+  Node * NodeConstantDef::clone()
+  {
+    return new NodeConstantDef(*this);
   }
 
   void NodeConstantDef::updateLineage(Node * p)

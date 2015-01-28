@@ -47,7 +47,10 @@ namespace MFM{
   public:
 
     NodeVarDecl(SymbolVariable * sym, CompilerState & state);
-    ~NodeVarDecl();
+    NodeVarDecl(const NodeVarDecl& ref);
+    virtual ~NodeVarDecl();
+
+    virtual Node * clone();
 
     virtual void printPostfix(File * f);
 

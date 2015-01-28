@@ -5,12 +5,16 @@
 
 namespace MFM {
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false)
-  {}
-
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false){}
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(ref.m_funcSymbol) /* deep copy */, m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native) {}
   NodeBlockFunctionDefinition::~NodeBlockFunctionDefinition()
   {
     // nodes deleted by SymbolTable in BlockClass
+  }
+
+  Node * NodeBlockFunctionDefinition::clone()
+  {
+    return new NodeBlockFunctionDefinition(*this);
   }
 
   void NodeBlockFunctionDefinition::print(File * fp)

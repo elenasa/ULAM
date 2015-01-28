@@ -5,6 +5,18 @@
 namespace MFM {
 
   NodeStatements::NodeStatements(Node * s, CompilerState & state) : Node(state), m_node(s), m_nextNode(NULL) {}
+  NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref)
+  {
+    if(ref.m_node)
+      m_node = ref.m_node->clone();
+    else
+      m_node = NULL;
+
+    if(ref.m_nextNode)
+      m_nextNode = (NodeStatements *) ref.m_nextNode->clone();
+    else
+      m_nextNode = NULL;
+  }
 
   NodeStatements::~NodeStatements()
   {
@@ -15,6 +27,11 @@ namespace MFM {
     m_node = NULL;
   }
 
+
+  Node * NodeStatements::clone()
+  {
+    return new NodeStatements(*this);
+  }
 
   void NodeStatements::updateLineage(Node * p)
   {

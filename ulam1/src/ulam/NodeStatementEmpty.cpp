@@ -4,11 +4,14 @@
 
 namespace MFM {
 
-  NodeStatementEmpty::NodeStatementEmpty(CompilerState & state): Node(state)
-  {}
+  NodeStatementEmpty::NodeStatementEmpty(CompilerState & state): Node(state) {}
+  NodeStatementEmpty::NodeStatementEmpty(const NodeStatementEmpty& ref) : Node(ref) {}
+  NodeStatementEmpty::~NodeStatementEmpty() {}
 
-  NodeStatementEmpty::~NodeStatementEmpty()
-  {}
+  Node * NodeStatementEmpty::clone()
+  {
+    return new NodeStatementEmpty(*this);
+  }
 
   void NodeStatementEmpty::updateLineage(Node * p)
   {

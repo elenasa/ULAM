@@ -7,8 +7,13 @@
 namespace MFM {
 
   NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
-
+  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref) {}
   NodeSquareBracket::~NodeSquareBracket(){}
+
+  Node * NodeSquareBracket::clone()
+  {
+    return new NodeSquareBracket(*this);
+  }
 
 
   void NodeSquareBracket::printOp(File * fp)

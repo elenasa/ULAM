@@ -5,8 +5,7 @@
 
 namespace MFM {
 
-  NodeTerminal::NodeTerminal(CompilerState & state) : Node(state)
-  {}
+  NodeTerminal::NodeTerminal(CompilerState & state) : Node(state) {}
 
   NodeTerminal::NodeTerminal(Token tok, CompilerState & state) : Node(state)
   {
@@ -15,14 +14,12 @@ namespace MFM {
     setConstantTypeForNode(tok);
   }
 
-
   NodeTerminal::NodeTerminal(s32 val, CompilerState & state) : Node(state)
   {
     m_constant.sval = val;
     setNodeType(m_state.getUlamTypeOfConstant(Int));
     //uptocaller to set node location.
   }
-
 
   NodeTerminal::NodeTerminal(u32 val, CompilerState & state) : Node(state)
   {
@@ -31,7 +28,6 @@ namespace MFM {
     //uptocaller to set node location.
   }
 
-
   NodeTerminal::NodeTerminal(bool val, CompilerState & state) : Node(state)
   {
     m_constant.bval = val;
@@ -39,9 +35,14 @@ namespace MFM {
     //uptocaller to set node location.
   }
 
+  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_constant(ref.m_constant) {}
 
   NodeTerminal::~NodeTerminal(){}
 
+  Node * NodeTerminal::clone()
+  {
+    return new NodeTerminal(*this);
+  }
 
   void NodeTerminal::printPostfix(File * fp)
   {

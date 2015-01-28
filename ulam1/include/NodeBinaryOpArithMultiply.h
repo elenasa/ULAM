@@ -2,8 +2,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBinaryOpArithMultiply.h - Node for handling Multiplication for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeBinaryOpArithMultiply.h - Node for handling Multiplication for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -44,9 +44,12 @@ namespace MFM{
   class NodeBinaryOpArithMultiply : public NodeBinaryOpArith
   {
   public:
-    
+
     NodeBinaryOpArithMultiply(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpArithMultiply();
+    NodeBinaryOpArithMultiply(const NodeBinaryOpArithMultiply& ref);
+    virtual ~NodeBinaryOpArithMultiply();
+
+    virtual Node * clone();
 
     virtual const char * getName();
 

@@ -48,8 +48,10 @@ namespace MFM{
   public:
 
     NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
-
+    NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref);
     virtual ~NodeBlockFunctionDefinition();
+
+    virtual Node * clone();
 
     virtual void print(File * fp);
 

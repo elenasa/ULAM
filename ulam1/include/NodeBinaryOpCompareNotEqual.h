@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeBinaryOpCompareNotEqual.h - Node for handling Not Equal Comparison for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeBinaryOpCompareNotEqual.h - Node for handling Not Equal Comparison for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -43,9 +43,12 @@ namespace MFM{
   class NodeBinaryOpCompareNotEqual : public NodeBinaryOpCompare
   {
   public:
-    
+
     NodeBinaryOpCompareNotEqual(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpCompareNotEqual();
+    NodeBinaryOpCompareNotEqual(const NodeBinaryOpCompareNotEqual& ref);
+    virtual ~NodeBinaryOpCompareNotEqual();
+
+    virtual Node * clone();
 
     virtual const char * getName();
 

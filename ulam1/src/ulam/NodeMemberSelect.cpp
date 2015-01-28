@@ -4,9 +4,13 @@
 namespace MFM {
 
   NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
-
+  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
   NodeMemberSelect::~NodeMemberSelect(){}
 
+  Node * NodeMemberSelect::clone()
+  {
+    return new NodeMemberSelect(*this);
+  }
 
   void NodeMemberSelect::printOp(File * fp)
   {

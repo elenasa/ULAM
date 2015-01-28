@@ -6,6 +6,11 @@
 namespace MFM {
 
   NodeControl::NodeControl(Node * condNode, Node * trueNode, CompilerState & state): Node(state), m_nodeCondition(condNode), m_nodeBody(trueNode) {}
+  NodeControl::NodeControl(const NodeControl& ref) : Node(ref)
+  {
+    m_nodeCondition = ref.m_nodeCondition->clone();
+    m_nodeBody = ref.m_nodeBody->clone();
+  }
 
   NodeControl::~NodeControl()
   {
@@ -15,14 +20,12 @@ namespace MFM {
     m_nodeBody = NULL;
   }
 
-
   void NodeControl::updateLineage(Node * p)
   {
     setYourParent(p);
     m_nodeCondition->updateLineage(this);
     m_nodeBody->updateLineage(this);
   }
-
 
   void NodeControl::print(File * fp)
   {

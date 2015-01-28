@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
-
+  NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& ref) : NodeBinaryOpArith(ref) {}
   NodeBinaryOpArithDivide::~NodeBinaryOpArithDivide(){}
+
+  Node * NodeBinaryOpArithDivide::clone()
+  {
+    return new NodeBinaryOpArithDivide(*this);
+  }
 
 
   const char * NodeBinaryOpArithDivide::getName()

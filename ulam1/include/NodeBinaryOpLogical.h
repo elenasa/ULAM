@@ -48,7 +48,8 @@ namespace MFM{
   public:
 
     NodeBinaryOpLogical(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpLogical();
+    NodeBinaryOpLogical(const NodeBinaryOpLogical& ref);
+    virtual ~NodeBinaryOpLogical();
 
     virtual const std::string methodNameForCodeGen();
 

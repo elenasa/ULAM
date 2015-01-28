@@ -4,15 +4,18 @@
 namespace MFM {
 
   NodeBinaryOpCompareGreaterThan::NodeBinaryOpCompareGreaterThan(Node * left, Node * right, CompilerState & state) : NodeBinaryOpCompare(left,right,state) {}
-
+  NodeBinaryOpCompareGreaterThan::NodeBinaryOpCompareGreaterThan(const NodeBinaryOpCompareGreaterThan& ref) : NodeBinaryOpCompare(ref) {}
   NodeBinaryOpCompareGreaterThan::~NodeBinaryOpCompareGreaterThan(){}
 
+  Node * NodeBinaryOpCompareGreaterThan::clone()
+  {
+    return new NodeBinaryOpCompareGreaterThan(*this);
+  }
 
   const char * NodeBinaryOpCompareGreaterThan::getName()
   {
     return ">";
   }
-
 
   const std::string NodeBinaryOpCompareGreaterThan::prettyNodeName()
   {

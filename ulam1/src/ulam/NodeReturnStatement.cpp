@@ -5,6 +5,13 @@
 namespace MFM {
 
   NodeReturnStatement::NodeReturnStatement(Node * s, CompilerState & state) : Node(state), m_node(s) {}
+  NodeReturnStatement::NodeReturnStatement(const NodeReturnStatement& ref) : Node(ref)
+  {
+    if(ref.m_node)
+      m_node = ref.m_node->clone();
+    else
+      m_node = NULL;
+  }
 
   NodeReturnStatement::~NodeReturnStatement()
   {
@@ -12,6 +19,10 @@ namespace MFM {
     m_node = NULL;
   }
 
+  Node * NodeReturnStatement::clone()
+  {
+    return new NodeReturnStatement(*this);
+  }
 
   void NodeReturnStatement::updateLineage(Node * p)
   {

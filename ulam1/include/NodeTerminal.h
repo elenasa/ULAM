@@ -52,7 +52,10 @@ namespace MFM{
     NodeTerminal(s32 val, CompilerState & state);
     NodeTerminal(u32 val, CompilerState & state);
     NodeTerminal(bool val, CompilerState & state);
-    ~NodeTerminal();
+    NodeTerminal(const NodeTerminal& ref);
+    virtual ~NodeTerminal();
+
+    virtual Node * clone();
 
     virtual void printPostfix(File * f);
 
