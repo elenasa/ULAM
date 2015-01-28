@@ -18,7 +18,7 @@ namespace MFM {
 
 
 
-  UlamType::UlamType(const UlamKeyTypeSignature key) : m_key(key), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
+  UlamType::UlamType(const UlamKeyTypeSignature key, CompilerState & state) : m_key(key), m_state(state), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
   {}
 
 

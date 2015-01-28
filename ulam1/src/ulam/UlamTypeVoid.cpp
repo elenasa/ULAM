@@ -7,7 +7,7 @@
 
 namespace MFM {
 
-  UlamTypeVoid::UlamTypeVoid(const UlamKeyTypeSignature key) : UlamType(key)
+  UlamTypeVoid::UlamTypeVoid(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
   {}
 
 

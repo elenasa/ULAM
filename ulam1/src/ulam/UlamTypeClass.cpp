@@ -13,7 +13,7 @@ namespace MFM {
   static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
 
 
-  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, ULAMCLASSTYPE type) : UlamType(key), m_class(type), m_customArray(false), m_customArrayType(Nav)
+  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state, ULAMCLASSTYPE type) : UlamType(key, state), m_class(type), m_customArray(false), m_customArrayType(Nav)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -186,14 +186,21 @@ namespace MFM {
 
   bool UlamTypeClass::needsImmediateType()
   {
-    // gencode is too late for UC_INCOMPLETE
-    // NOW allowing complete immediate elements (like atoms)
-    // simply test for quarks..since..
-    //   also needed for 'empty' quarks without data
-    // NOW allowing right-justified naked quarks
-    //return (m_class == UC_ELEMENT || m_class == UC_INCOMPLETE || getBitSize() == 0 ? false : true);
-    //return (m_class == UC_QUARK);
-    return (m_class == UC_QUARK || m_class == UC_ELEMENT);
+    bool rtnb = false;
+    if(m_class == UC_QUARK || m_class == UC_ELEMENT)
+      {
+	rtnb = true;
+	//u32 id = m_key.getUlamKeyTypeSignatureNameId();
+	// FIX THIS!!!!!
+	assert(0);
+	//	SymbolClassName * cnsym = (SymbolClassName *) state->m_programDefST.getSymbolPtr(id);
+	//if(cnsym->getNumberOfParameters() > 0)
+	  {
+	    if(m_key.getUlamKeyTypeSignatureClassInstanceIdx() == Nav)
+	      rtnb = false;
+	  }
+      }
+    return rtnb;
   } //needsImmediateType
 
   const std::string UlamTypeClass::getUlamTypeImmediateMangledName(CompilerState * state)

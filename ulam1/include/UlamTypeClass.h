@@ -47,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeClass(const UlamKeyTypeSignature key, ULAMCLASSTYPE type = UC_INCOMPLETE);
+    UlamTypeClass(const UlamKeyTypeSignature key, CompilerState& state, ULAMCLASSTYPE type = UC_INCOMPLETE);
 
     virtual ~UlamTypeClass(){}
 
