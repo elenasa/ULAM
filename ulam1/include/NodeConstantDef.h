@@ -79,6 +79,7 @@ namespace MFM{
     SymbolConstantValue * m_constSymbol;
     Node * m_exprnode;
     NodeBlock * m_currBlock;
+    u32 m_cid; //for clones
   };
 
 } //MFM

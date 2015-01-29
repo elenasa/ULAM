@@ -18,6 +18,7 @@ namespace MFM {
       {
 	SymbolFunction * foundSym = it->second;
 	SymbolFunction * clonefound = (SymbolFunction *) foundSym->clone();
+	assert(foundSym != clonefound && foundSym->getUlamTypeIdx() == clonefound->getUlamTypeIdx());
 	std::string clonemangled(it->first);
 	m_mangledFunctionNames.insert(std::pair<std::string,SymbolFunction *>(clonemangled,clonefound));
 	++it;

@@ -27,7 +27,6 @@ namespace MFM {
     m_node = NULL;
   }
 
-
   Node * NodeStatements::clone()
   {
     return new NodeStatements(*this);

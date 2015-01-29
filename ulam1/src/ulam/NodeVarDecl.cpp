@@ -8,13 +8,15 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym) {}
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym)
   {
-    Symbol * asymptr = NULL;
-    assert(m_state.alreadyDefinedSymbol(ref.m_varSymbol->getId(),asymptr));
-    m_varSymbol = (SymbolVariable *) asymptr;
+    if(sym)
+      m_vid = sym->getId();
+    else
+      m_vid = 0; //error
   }
+
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid) {}
 
   NodeVarDecl::~NodeVarDecl() {}
 
@@ -58,19 +60,38 @@ namespace MFM {
 
   UTI NodeVarDecl::checkAndLabelType()
   {
-    UTI it;
-    if(!m_varSymbol)
+    UTI it = Nav;
+    // clone, look up in current block
+    if(m_varSymbol == NULL)
       {
-	MSG("","Variable symbol is missing",ERR);
-	it = Nav;
-      }
-    else
+	Symbol * asymptr = NULL;
+	if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
+	  {
+	    if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isFunction())
+	      {
+		m_varSymbol = (SymbolVariable *) asymptr;
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "(1) <" << m_state.m_pool.getDataAsString(m_vid).c_str() << "> is not a variable, and cannot be used as one";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str() << "> is not defined, and cannot be used";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      } //for clones
+
+    if(m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx();  //base type has arraysize
 	//check for incomplete Classes
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
 	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-	//if(tdclasstype == UC_INCOMPLETE || (tdclasstype != UC_NOTACLASS && !tdut->isComplete()))
 	if(tdclasstype == UC_INCOMPLETE)
 	  {
 	    if(!m_state.completeIncompleteClassSymbol(it))
@@ -94,7 +115,6 @@ namespace MFM {
 	      }
 	  }
       }
-
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType

@@ -45,10 +45,9 @@ namespace MFM{
   {
   public:
     SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
-    SymbolClassName(const SymbolClassName& sref);
     virtual ~SymbolClassName();
 
-    virtual Symbol * clone();
+    SymbolClass * cloneAnInstance(UTI cuti);
 
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();
@@ -80,11 +79,8 @@ namespace MFM{
     std::vector<SymbolConstantValue *> m_parameterSymbols;  // like named constants; symbols owned by m_ST.
     std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtr;
 
-    bool trySetBitsizeWithUTIValues(UTI suti, s32& totalbits);
     bool takeAnInstancesArgValues(UTI instance);
     void resetParameterValuesUnknown();
-
-    void printBitSizeOfClass(UTI suti);
   };
 
 }

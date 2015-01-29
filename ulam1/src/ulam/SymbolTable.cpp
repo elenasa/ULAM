@@ -61,6 +61,10 @@ namespace MFM {
 	m_idToSymbolPtr.erase(it);
 	addToTable(newid, s);
       }
+    else
+      {
+	addToTable(newid, s);
+      }
   } //replaceInTable
 
   Symbol * SymbolTable::getSymbolPtr(u32 id)

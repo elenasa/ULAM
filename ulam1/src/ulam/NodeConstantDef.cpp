@@ -5,13 +5,16 @@
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(state.m_currentBlock) {}
-  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_currBlock(m_state.m_currentBlock)
+  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(state.m_currentBlock)
   {
-    Symbol * asymptr = NULL;
-    assert(m_state.alreadyDefinedSymbol(ref.m_constSymbol->getId(),asymptr));
-    m_constSymbol = (SymbolConstantValue *) asymptr; //shallow
+    if(symptr)
+      m_cid = symptr->getId();
+    else
+      m_cid = 0; //error
+  }
 
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlock(m_state.m_currentBlock), m_cid(ref.m_cid)
+  {
     if(ref.m_exprnode)
       m_exprnode = ref.m_exprnode->clone();
     else
@@ -35,7 +38,6 @@ namespace MFM {
     m_exprnode->updateLineage(this);
   }
 
-
   void NodeConstantDef::printPostfix(File * fp)
   {
     m_exprnode->printPostfix(fp);
@@ -44,18 +46,15 @@ namespace MFM {
     fp->write(" const");
   }
 
-
   const char * NodeConstantDef::getName()
   {
     return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
   }
 
-
   const std::string NodeConstantDef::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   bool NodeConstantDef::getSymbolPtr(Symbol *& symptrref)
   {
@@ -63,15 +62,40 @@ namespace MFM {
     return true;
   }
 
-
   UTI NodeConstantDef::checkAndLabelType()
   {
     UTI it = Nav;
+    // clone, look up in current block
+    if(m_constSymbol == NULL)
+      {
+	Symbol * asymptr = NULL;
+	if(m_state.alreadyDefinedSymbol(m_cid, asymptr))
+	  {
+	    if(asymptr->isConstant())
+	      {
+		m_constSymbol = (SymbolConstantValue *) asymptr;
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "(1) <" << m_state.m_pool.getDataAsString(m_cid).c_str() << "> is not a constant, and cannot be used as one";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str() << "> is not defined, and cannot be used";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      } //for clones
+
+    assert(m_exprnode);
     it = m_exprnode->checkAndLabelType();
     if(!(it == m_state.getUlamTypeOfConstant(Int) || it == m_state.getUlamTypeOfConstant(Unsigned)))
       {
 	std::ostringstream msg;
-	msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", has an invalid type: <" << m_state.getUlamTypeNameByIndex(it) << ">";
+	msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_cid).c_str() << ", has an invalid type: <" << m_state.getUlamTypeNameByIndex(it) << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
@@ -79,13 +103,11 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-
   void NodeConstantDef::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);
     m_exprnode->countNavNodes(cnt);
   }
-
 
   void NodeConstantDef::setConstantExpr(Node * node)
   {

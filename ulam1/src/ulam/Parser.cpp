@@ -1390,34 +1390,25 @@ namespace MFM {
 
     // make a new Class Instance; its own uti will become part of its key
     cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nav);
-    NodeBlockClass * classBlock = new NodeBlockClass(cnsym->getClassBlockNode(), m_state); //1st arg could be NULL if UC_INCOMPLETE
-    assert(classBlock);
-    classBlock->setNodeLocation(typeTok.m_locator);
-    classBlock->setNodeType(cuti);
-    //classBlock->setEmpty(); //???
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    ((UlamTypeClass *) cut)->setUlamClass(cnsym->getUlamClass()); //possibly UC_INCOMPLETE
 
-    SymbolClass * csym = new SymbolClass(typeTok.m_dataindex, cuti, classBlock, m_state);
-    assert(csym);
-    // copy constructor?
-    csym->setUlamClass(cnsym->getUlamClass()); //possibly UC_INCOMPLETE
-    if(cnsym->isQuarkUnion())
-      csym->setQuarkUnion();
     UlamType * cnut = m_state.getUlamTypeByIndex(cnsym->getUlamTypeIdx());
     if(cnut->isCustomArray())
-      {
-	UlamType * cut = m_state.getUlamTypeByIndex(csym->getUlamTypeIdx());
-	((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
-      }
+      ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
 
-    cnsym->addClassInstance(cuti, csym);
-    classBlock->setClassTemplateParent(cuti); //so it knows it's an instance with a template parent
+    UTI saveCompileThisIdx = m_state.m_compileThisIdx;
+    m_state.m_compileThisIdx = cuti;
+    SymbolClass * csym = cnsym->cloneAnInstance(cuti);
 
-    m_state.m_currentBlock = classBlock; //reset here for new arg's
+    cnsym->addClassInstance(cuti, csym); //needed????
+    m_state.m_currentBlock = csym->getClassBlockNode(); //reset here for new arg's
     u32 parmidx = 0;
 
     parseRestOfClassArguments(csym, cnsym, parmidx);
 
     m_state.m_currentBlock = saveCurrentBlock; //restore
+    m_state.m_compileThisIdx = saveCompileThisIdx; //restore
     return cuti;
   } //parseClassArguments
 
@@ -1452,11 +1443,16 @@ namespace MFM {
 
     // try to continue..
     SymbolConstantValue * argSym;
+    bool argCloneFound = false;
     if(!cnIsStub)
       {
 	SymbolConstantValue * paramSym = (SymbolConstantValue * ) (cnsym->getParameterSymbolPtr(parmIdx));
 	assert(paramSym);
-	argSym = new SymbolConstantValue(*paramSym);
+
+	if(m_state.alreadyDefinedSymbol(paramSym->getId(), (Symbol *&) argSym))
+	  argCloneFound = true;
+	else
+	  argSym = new SymbolConstantValue(*paramSym);
       }
     else
       {
@@ -1466,7 +1462,8 @@ namespace MFM {
 	argSym = new SymbolConstantValue(snameid, m_state.getUlamTypeOfConstant(Int), m_state); //stub id, stub type, state
       }
 
-    m_state.addSymbolToCurrentScope(argSym); // scope updated to new class instance in parseClassArguments
+    if(!argCloneFound)
+      m_state.addSymbolToCurrentScope(argSym); // scope updated to new class instance in parseClassArguments
 
     // make Node with argument symbol to try to fold const expr; o.w. add to list of unsolved for this uti
     NodeConstantDef * constNode = new NodeConstantDef(argSym, m_state);
@@ -1482,6 +1479,7 @@ namespace MFM {
       }
     else
       {
+	// none ready expressions saved by UTI in m_nonreadyClassArgSubtrees (not previously cloned!)
 	m_state.linkConstantExpression(csym->getUlamTypeIdx(), constNode);
       }
 
