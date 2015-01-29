@@ -72,7 +72,7 @@ namespace MFM{
 
   private:
     SymbolVariable * m_varSymbol;
-
+    u32 m_vid; // for clones
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
     void genCodedElementParameter(File * fp, UlamValue uvpass);
     void genCodedAutoLocal(File * fp, UlamValue & uvpass);

@@ -5,13 +5,15 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym) {}
-  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref)
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym)
   {
-    Symbol * asymptr = NULL;
-    assert(m_state.alreadyDefinedSymbol(ref.m_typedefSymbol->getId(),asymptr));
-    m_typedefSymbol = (SymbolTypedef *) asymptr;
+    if(m_tdid)
+      m_tdid = sym->getId();
+    else
+      m_tdid = 0; //error
   }
+
+  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref) {}
 
   NodeTypedef::~NodeTypedef() {}
 
@@ -36,10 +38,8 @@ namespace MFM {
 	fp->write_decimal(arraysize);
 	fp->write("]");
       }
-
     fp->write("; ");
-  }
-
+  } //printPostfix
 
   const char * NodeTypedef::getName()
   {
@@ -47,22 +47,41 @@ namespace MFM {
     return m_state.m_pool.getDataAsString(m_typedefSymbol->getId()).c_str();
   }
 
-
   const std::string NodeTypedef::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   UTI NodeTypedef::checkAndLabelType()
   {
-    UTI it;
-    if(!m_typedefSymbol)
+    UTI it = Nav;
+
+    // clone, look up in current block
+    if(m_typedefSymbol == NULL)
       {
-	MSG("","Typedef symbol is missing",ERR);
-	it = Nav;
-      }
-    else
+	Symbol * asymptr = NULL;
+	if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
+	  {
+	    if(asymptr->isTypedef())
+	      {
+		m_typedefSymbol = (SymbolTypedef *) asymptr;
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str() << "> is not a typedef, and cannot be used as one";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str() << "> is not defined, and cannot be used";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      } //for clones
+
+    if(m_typedefSymbol)
       {
 	it = m_typedefSymbol->getUlamTypeIdx();
 	//check for incomplete Classes
@@ -95,13 +114,11 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-
   EvalStatus NodeTypedef::eval()
   {
     assert(m_typedefSymbol);
     return NORMAL;
   }
-
 
   bool NodeTypedef::getSymbolPtr(Symbol *& symptrref)
   {
@@ -109,12 +126,10 @@ namespace MFM {
     return true;
   }
 
-
   void NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
   {
     //do nothing ???
   }
-
 
   void NodeTypedef::genCode(File * fp, UlamValue& uvpass)
   {

@@ -88,6 +88,7 @@ namespace MFM{
     bool m_isDefinition;
     u32 m_maxDepth;
     bool m_native;  //false by default, requires keyword
+    SymbolFunction * m_fsymTemplate; //for clones
   };
 
 }

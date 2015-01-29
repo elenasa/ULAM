@@ -32,7 +32,16 @@ namespace MFM {
     "*/\n\n";
 
   SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_quarkunion(false){}
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_classBlock(sref.m_state.m_classBlock), m_quarkunion(sref.m_quarkunion){}
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_quarkunion(sref.m_quarkunion)
+  {
+    if(sref.m_classBlock)
+      {
+	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->clone(); //note: wasn't correct uti during cloning ?
+	m_classBlock->setNodeType(sref.m_utypeIdx);
+      }
+    else
+      m_classBlock = NULL; //i.e. UC_INCOMPLETE
+  }
 
   SymbolClass::~SymbolClass()
   {
@@ -42,6 +51,7 @@ namespace MFM {
 
   Symbol * SymbolClass::clone()
   {
+    assert(0);
     return new SymbolClass(*this);
   }
 
@@ -89,6 +99,58 @@ namespace MFM {
   {
     return m_quarkunion;
   }
+
+  bool SymbolClass::trySetBitsizeWithUTIValues(s32& totalbits)
+  {
+    NodeBlockClass * classNode = getClassBlockNode(); //instance
+    bool aok = true;
+    if(isQuarkUnion())
+      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
+    else
+      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
+
+    //check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
+    if(totalbits == CYCLEFLAG)  // was < 0
+      {
+	std::ostringstream msg;
+	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	    aok = false;
+	  }
+	else if(totalbits == EMPTYSYMBOLTABLE)
+	  {
+	    totalbits = 0;
+	    aok = true;
+	  }
+	else if(totalbits != UNKNOWNSIZE)
+	  aok = true;  //not UNKNOWN
+    return aok;
+  } //trySetBitSize
+
+
+  void SymbolClass::printBitSizeOfClass()
+  {
+    UTI suti = getUlamTypeIdx();
+    u32 total = m_state.getTotalBitSize(suti);
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    ULAMCLASSTYPE classtype = sut->getUlamClass();
+
+    std::ostringstream msg;
+    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(getId()).c_str() << ">: ";
+
+    if(m_state.isComplete(suti))
+      {
+	s32 remaining = (classtype == UC_ELEMENT ? (MAXSTATEBITS - total) : (MAXBITSPERQUARK - total));
+	msg << total << "/" << remaining;
+      }
+    else
+      {
+	total = UNKNOWNSIZE;
+	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS : MAXBITSPERQUARK);
+	msg << "UNKNOWN" << "/" << remaining;
+      }
+    MSG("", msg.str().c_str(),INFO);
+  } //printBitSizeOfClass
 
 
   /////////////////////////////////////////////////////////////////////////////////

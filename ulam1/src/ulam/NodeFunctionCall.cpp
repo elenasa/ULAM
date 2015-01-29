@@ -40,23 +40,19 @@ namespace MFM {
       {
 	m_argumentNodes[i]->printPostfix(fp);
       }
-
     fp->write(" )");
     fp->write(getName());
-  }
-
+  } //printPostfix
 
   const char * NodeFunctionCall::getName()
   {
     return m_state.getTokenDataAsString(&m_functionNameTok).c_str();
   }
 
-
   const std::string NodeFunctionCall::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeFunctionCall::checkAndLabelType()
   {

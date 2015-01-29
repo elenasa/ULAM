@@ -1428,6 +1428,11 @@ namespace MFM {
     m_currentBlock->addIdToScope(symptr->getId(), symptr);
   }
 
+  //symbol ownership goes to the current block (end of vector)
+  void CompilerState::replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr)
+  {
+    m_currentBlock->replaceIdInScope(oldid, symptr->getId(), symptr);
+  }
 
   //Token to location as string:
   const std::string CompilerState::getTokenLocationAsString(Token * tok)

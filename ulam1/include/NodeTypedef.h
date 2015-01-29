@@ -70,6 +70,7 @@ namespace MFM{
 
   private:
     SymbolTypedef * m_typedefSymbol;
+    u32 m_tdid; //for clones
   };
 
 }

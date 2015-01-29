@@ -74,6 +74,9 @@ namespace MFM{
 
     virtual void generateCode(FileManager * fm);
 
+    bool trySetBitsizeWithUTIValues(s32& totalbits);
+    void printBitSizeOfClass();
+
   protected:
 
   private:
