@@ -11,10 +11,22 @@ namespace MFM {
     setDataMember(); // by definition all function definitions are data members
   }
 
+  SymbolFunctionName::SymbolFunctionName(const SymbolFunctionName& sref) : Symbol(sref)
+  {
+    std::map<std::string, SymbolFunction *>::const_iterator it = sref.m_mangledFunctionNames.begin();
+    while(it != sref.m_mangledFunctionNames.end())
+      {
+	SymbolFunction * foundSym = it->second;
+	SymbolFunction * clonefound = (SymbolFunction *) foundSym->clone();
+	std::string clonemangled(it->first);
+	m_mangledFunctionNames.insert(std::pair<std::string,SymbolFunction *>(clonemangled,clonefound));
+	++it;
+      }
+  }
+
   SymbolFunctionName::~SymbolFunctionName()
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * foundSym = it->second;
@@ -24,12 +36,15 @@ namespace MFM {
     m_mangledFunctionNames.clear();
   }
 
+  Symbol * SymbolFunctionName::clone()
+  {
+    return new SymbolFunctionName(*this);
+  }
 
   bool SymbolFunctionName::isFunction()
   {
     return true;
   }
-
 
   const std::string SymbolFunctionName::getMangledPrefix()
   {

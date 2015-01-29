@@ -32,11 +32,17 @@ namespace MFM {
     "*/\n\n";
 
   SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_quarkunion(false){}
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_classBlock(sref.m_state.m_classBlock), m_quarkunion(sref.m_quarkunion){}
 
   SymbolClass::~SymbolClass()
   {
     delete m_classBlock;
     m_classBlock = NULL;
+  }
+
+  Symbol * SymbolClass::clone()
+  {
+    return new SymbolClass(*this);
   }
 
   void SymbolClass::setClassBlockNode(NodeBlockClass * node)

@@ -6,8 +6,12 @@
 namespace MFM {
 
   NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(state.m_currentBlock) {}
-  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(ref.m_constSymbol) /* deep copy */, m_currBlock(ref.m_currBlock) /* ??? */
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_currBlock(m_state.m_currentBlock)
   {
+    Symbol * asymptr = NULL;
+    assert(m_state.alreadyDefinedSymbol(ref.m_constSymbol->getId(),asymptr));
+    m_constSymbol = (SymbolConstantValue *) asymptr; //shallow
+
     if(ref.m_exprnode)
       m_exprnode = ref.m_exprnode->clone();
     else

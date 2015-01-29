@@ -45,7 +45,10 @@ namespace MFM{
   {
   public:
     SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
-    ~SymbolClassName();
+    SymbolClassName(const SymbolClassName& sref);
+    virtual ~SymbolClassName();
+
+    virtual Symbol * clone();
 
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();

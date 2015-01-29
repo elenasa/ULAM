@@ -49,7 +49,10 @@ namespace MFM{
   {
   public:
     SymbolTypedef(u32 id, UTI utype, CompilerState& state);
+    SymbolTypedef(const SymbolTypedef& sref);
     ~SymbolTypedef();
+
+    virtual Symbol * clone();
 
     virtual bool isTypedef();
 

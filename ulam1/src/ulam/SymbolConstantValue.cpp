@@ -9,9 +9,9 @@ namespace MFM {
     m_constant.sval = NONREADYCONST;
   }
 
-  SymbolConstantValue::SymbolConstantValue(SymbolConstantValue * s) : Symbol(s->m_id, s->m_utypeIdx, s->m_state), m_isReady(s->m_isReady), m_defnode(NULL)
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_defnode(NULL)
   {
-    m_constant = s->m_constant;
+    m_constant = sref.m_constant;
   }
 
   SymbolConstantValue::~SymbolConstantValue()
@@ -19,6 +19,11 @@ namespace MFM {
     //belongs to parse tree
     //delete m_defnode;
     //m_defnode = NULL;
+  }
+
+  Symbol * SymbolConstantValue::clone()
+  {
+    return new SymbolConstantValue(*this);
   }
 
   bool SymbolConstantValue::isConstant()

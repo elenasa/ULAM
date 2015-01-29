@@ -10,12 +10,17 @@ namespace MFM {
       setElementParameter();
   }
 
+  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) {}
 
   SymbolVariableDataMember::~SymbolVariableDataMember()
   {
     //   m_static.clearAllocatedMemory(); //clean up arrays,etc.
   }
 
+  Symbol * SymbolVariableDataMember::clone()
+  {
+    return new SymbolVariableDataMember(*this);
+  }
 
   u32  SymbolVariableDataMember::getDataMemberUnpackedSlotIndex()
   {
