@@ -18,7 +18,6 @@ namespace MFM {
     m_scalarClassInstanceIdxToSymbolPtr.clear();
   } //destructor
 
-
   SymbolClass * SymbolClassName::cloneAnInstance(UTI cuti)
   {
     UTI savemyuti = getUlamTypeIdx();
@@ -26,10 +25,27 @@ namespace MFM {
     SymbolClass * newclassinstance = new SymbolClass(*this);
     assert(newclassinstance);
     // may not be needed anymore; besides class block could be null (if UC_INCOMPLETE)
-    //newclassinstance->getClassBlockNode()->setClassTemplateParent(savemyuti); //so it knows it's an instance with a template parent
+
     m_utypeIdx = savemyuti; //restore it
     return newclassinstance;
-  }
+  } //cloneAnInstance
+
+  SymbolClass * SymbolClassName::makeAShallowClassInstance(Token typeTok, UTI cuti)
+  {
+    NodeBlockClass * newblockclass = new NodeBlockClass(getClassBlockNode(), m_state);
+    assert(newblockclass);
+    newblockclass->setNodeLocation(typeTok.m_locator);
+    newblockclass->setNodeType(cuti);
+    newblockclass->setClassTemplateParent(getUlamTypeIdx()); //so it knows it's an instance with a template parent
+
+    SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, m_state);
+    assert(newclassinstance);
+    if(isQuarkUnion())
+      newclassinstance->setQuarkUnion();
+
+    addClassInstance(cuti, newclassinstance); //link here
+    return newclassinstance;
+  } //makeAShallowClassInstance
 
   void SymbolClassName::addParameterSymbol(SymbolConstantValue * sym)
   {

@@ -32,6 +32,7 @@ namespace MFM {
     "*/\n\n";
 
   SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_quarkunion(false){}
+
   SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_quarkunion(sref.m_quarkunion)
   {
     if(sref.m_classBlock)
