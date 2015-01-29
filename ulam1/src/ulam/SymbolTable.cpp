@@ -631,6 +631,22 @@ namespace MFM {
   } //printForDebugForTableOfClasses
 
 
+  void SymbolTable::cloneInstancesInTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	((SymbolClassName *) sym)->cloneInstances();
+	it++;
+      } //while
+  } //cloneInstancesInTableOfClasses
+
+  // done after cloning and before checkandlabel;
+  // blocks without prevblocks set, are linked to prev block;
+  // used for searching for missing symbols in STs during c&l.
   void SymbolTable::updateLineageForTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

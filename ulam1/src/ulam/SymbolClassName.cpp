@@ -104,6 +104,15 @@ namespace MFM {
     m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr));
   }
 
+  void SymbolClassName::cloneInstances()
+  {
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      return;
+
+  }
+
+  //called by parseThisClass, if wasIncomplete is parsed; class arg names
+  // are fixed to match the params
   void SymbolClassName::fixAnyClassInstances()
   {
     ULAMCLASSTYPE classtype = getUlamClass();
@@ -222,6 +231,30 @@ namespace MFM {
     m_state.m_currentBlock = m_state.m_classBlock;
     return args.str();
   } //formatAnInstancesArgValuesAsAString
+
+
+  void SymbolClassName::updateLineageOfClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.m_classBlock = classNode;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	classNode->updateLineage(NULL);
+	return;
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	csym->getClassBlockNode()->updateLineage(NULL); //do each instance
+	it++;
+      }
+  } //updateLineageOfClassInstances
+
 
   void SymbolClassName::checkAndLabelClassInstances()
   {

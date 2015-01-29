@@ -106,6 +106,8 @@ namespace MFM{
 
     void printForDebugForTableOfClasses(File * fp);
 
+    void cloneInstancesInTableOfClasses();
+
     void updateLineageForTableOfClasses();
 
     void checkCustomArraysForTableOfClasses();

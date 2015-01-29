@@ -21,6 +21,26 @@ namespace MFM {
     return new NodeBlock(*this);
   }
 
+  void NodeBlock::updateLineage(Node * p)
+  {
+    bool clonepass = false;
+    if(m_prevBlockNode == NULL)
+      {
+	clonepass = true;
+	m_prevBlockNode = m_state.m_currentBlock;
+	m_state.m_currentBlock = this;
+      }
+
+    setYourParent(p);
+    if(m_node)
+      m_node->updateLineage(this);
+    if(m_nextNode)
+      m_nextNode->updateLineage(this);
+
+    if(clonepass)
+      m_state.m_currentBlock = m_prevBlockNode; //restore
+  } //updateLineage(Node * p)
+
   void NodeBlock::print(File * fp)
   {
     printNodeLocation(fp);
@@ -36,8 +56,7 @@ namespace MFM {
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
-  }
-
+  } //print
 
   void NodeBlock::printPostfix(File * fp)
   {
@@ -49,20 +68,17 @@ namespace MFM {
       fp->write(" <EMPTYSTMT>");  //not an error
 
     fp->write(" }");
-  }
-
+  } //printPostifx
 
   const char * NodeBlock::getName()
   {
     return "{}";
   }
 
-
   const std::string NodeBlock::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeBlock::checkAndLabelType()
   {
