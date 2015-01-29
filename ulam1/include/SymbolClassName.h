@@ -48,6 +48,7 @@ namespace MFM{
     virtual ~SymbolClassName();
 
     SymbolClass * cloneAnInstance(UTI cuti);
+    SymbolClass * makeAShallowClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
 
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();

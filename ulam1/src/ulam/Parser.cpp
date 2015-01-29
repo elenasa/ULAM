@@ -1388,7 +1388,8 @@ namespace MFM {
 
     unreadToken();
 
-    // make a new Class Instance; its own uti will become part of its key
+    // make a shallow Class Instance to collect class args as SymbolConstantValues;
+    // has its own uti that will become part of its key; (too soon for a deep copy!)
     cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nav);
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     ((UlamTypeClass *) cut)->setUlamClass(cnsym->getUlamClass()); //possibly UC_INCOMPLETE
@@ -1397,18 +1398,14 @@ namespace MFM {
     if(cnut->isCustomArray())
       ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
 
-    UTI saveCompileThisIdx = m_state.m_compileThisIdx;
-    m_state.m_compileThisIdx = cuti;
-    SymbolClass * csym = cnsym->cloneAnInstance(cuti);
+    SymbolClass * csym = cnsym->makeAShallowClassInstance(typeTok, cuti); //was cloneAnInstance(cuti)
 
-    cnsym->addClassInstance(cuti, csym); //needed????
     m_state.m_currentBlock = csym->getClassBlockNode(); //reset here for new arg's
     u32 parmidx = 0;
 
     parseRestOfClassArguments(csym, cnsym, parmidx);
 
     m_state.m_currentBlock = saveCurrentBlock; //restore
-    m_state.m_compileThisIdx = saveCompileThisIdx; //restore
     return cuti;
   } //parseClassArguments
 
