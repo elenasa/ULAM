@@ -18,35 +18,6 @@ namespace MFM {
     m_scalarClassInstanceIdxToSymbolPtr.clear();
   } //destructor
 
-  SymbolClass * SymbolClassName::cloneAnInstance(UTI cuti)
-  {
-    UTI savemyuti = getUlamTypeIdx();
-    m_utypeIdx = cuti; //fudge it
-    SymbolClass * newclassinstance = new SymbolClass(*this);
-    assert(newclassinstance);
-    // may not be needed anymore; besides class block could be null (if UC_INCOMPLETE)
-
-    m_utypeIdx = savemyuti; //restore it
-    return newclassinstance;
-  } //cloneAnInstance
-
-  SymbolClass * SymbolClassName::makeAShallowClassInstance(Token typeTok, UTI cuti)
-  {
-    NodeBlockClass * newblockclass = new NodeBlockClass(getClassBlockNode(), m_state);
-    assert(newblockclass);
-    newblockclass->setNodeLocation(typeTok.m_locator);
-    newblockclass->setNodeType(cuti);
-    newblockclass->setClassTemplateParent(getUlamTypeIdx()); //so it knows it's an instance with a template parent
-
-    SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, m_state);
-    assert(newclassinstance);
-    if(isQuarkUnion())
-      newclassinstance->setQuarkUnion();
-
-    addClassInstance(cuti, newclassinstance); //link here
-    return newclassinstance;
-  } //makeAShallowClassInstance
-
   void SymbolClassName::addParameterSymbol(SymbolConstantValue * sym)
   {
     m_parameterSymbols.push_back(sym);
@@ -98,18 +69,27 @@ namespace MFM {
     return false;
   } //isClassInstance
 
-
   void SymbolClassName::addClassInstance(UTI uti, SymbolClass * symptr)
   {
     m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr));
   }
 
-  void SymbolClassName::cloneInstances()
+  SymbolClass * SymbolClassName::makeAShallowClassInstance(Token typeTok, UTI cuti)
   {
-    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
-      return;
+    NodeBlockClass * newblockclass = new NodeBlockClass(getClassBlockNode(), m_state);
+    assert(newblockclass);
+    newblockclass->setNodeLocation(typeTok.m_locator);
+    newblockclass->setNodeType(cuti);
+    newblockclass->setClassTemplateParent(getUlamTypeIdx()); //so it knows it's an instance with a template parent
 
-  }
+    SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, m_state);
+    assert(newclassinstance);
+    if(isQuarkUnion())
+      newclassinstance->setQuarkUnion();
+
+    addClassInstance(cuti, newclassinstance); //link here
+    return newclassinstance;
+  } //makeAShallowClassInstance
 
   //called by parseThisClass, if wasIncomplete is parsed; class arg names
   // are fixed to match the params
@@ -233,6 +213,27 @@ namespace MFM {
   } //formatAnInstancesArgValuesAsAString
 
 
+  void SymbolClassName::cloneInstances()
+  {
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      return;
+
+    UTI saveTemplateUTI = getUlamTypeIdx();
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	m_utypeIdx = csym->getUlamTypeIdx(); //fudge..
+	SymbolClass * clone = new SymbolClass(*this);
+	m_utypeIdx = saveTemplateUTI; //restore
+	takeAnInstancesArgValues(csym, clone);
+	delete csym;
+	csym = NULL;
+	it->second = clone;
+	it++;
+      } //while
+  } //cloneInstances
+
   void SymbolClassName::updateLineageOfClassInstances()
   {
     NodeBlockClass * classNode = getClassBlockNode();
@@ -279,15 +280,19 @@ namespace MFM {
 	//	takeAnInstancesArgValues(suti);
 	//m_utypeIdx = suti;
 	m_state.m_compileThisIdx = suti;
-
-	csym->getClassBlockNode()->checkAndLabelType(); //do each instance
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+	classNode->checkAndLabelType(); //do each instance
 	it++;
       }
     //resetParameterValuesUnknown();
     //m_utypeIdx = saveuti;
+    //restore
     m_state.m_compileThisIdx = m_utypeIdx;
+    m_state.m_classBlock = getClassBlockNode();
+    m_state.m_currentBlock = m_state.m_classBlock;
   } //checkAndLabelClassInstances
-
 
   bool SymbolClassName::setBitSizeOfClassInstances()
   {
@@ -320,6 +325,8 @@ namespace MFM {
 	//	takeAnInstancesArgValues(suti);
 	//m_utypeIdx = suti;
 	m_state.m_compileThisIdx = suti;
+	m_state.m_classBlock = csym->getClassBlockNode();
+	m_state.m_currentBlock = m_state.m_classBlock;
 
 	s32 totalbits = 0;
 	aok = csym->trySetBitsizeWithUTIValues(totalbits);
@@ -359,12 +366,12 @@ namespace MFM {
     lostClasses.clear();
     //resetParameterValuesUnknown();
     //m_utypeIdx = saveuti;
+    //restore
     m_state.m_compileThisIdx = m_utypeIdx;
+    m_state.m_classBlock = getClassBlockNode();
+    m_state.m_currentBlock = m_state.m_classBlock;
     return aok;
   } //setBitSizeOfClassInstances()
-
-
-
 
   // separate pass...after labeling all classes is completed;
   void SymbolClassName::printBitSizeOfClassInstances()
@@ -422,6 +429,7 @@ namespace MFM {
     //m_utypeIdx = saveuti;
     m_state.m_compileThisIdx = m_utypeIdx;
     m_state.m_classBlock = saveclassBlock; //restore
+    m_state.m_currentBlock = m_state.m_classBlock;
   } //packBitsForClassInstances
 
 
@@ -447,6 +455,8 @@ namespace MFM {
 	//takeAnInstancesArgValues(suti);
 	//m_utypeIdx = suti;
 	m_state.m_compileThisIdx = suti;
+	m_state.m_classBlock = csym->getClassBlockNode();
+	m_state.m_currentBlock = m_state.m_classBlock;
 
 	//SymbolClass::generateCode(fm);
 	csym->generateCode(fm);
@@ -499,13 +509,119 @@ namespace MFM {
 	  } //next param
 	rtnb = true;
       }
-
     //restore
     m_state.m_classBlock = getClassBlockNode();
     m_state.m_currentBlock = m_state.m_classBlock;
     return rtnb;
   } //takeAnInstancesArgValues
 
+  bool SymbolClassName::takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to)
+  {
+    NodeBlockClass * saveClassBlock = m_state.m_classBlock;
+    NodeBlockClass * fmclassblock = fm->getClassBlockNode();
+    assert(fmclassblock);
+    u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
+    u32 numparams = getNumberOfParameters();
+    if(cargs != numparams)
+      {
+	//error! number of arguments in shallow class instance does not match the number of parameters
+	std::ostringstream msg;
+	msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(fm->getId()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
+	MSG("", msg.str().c_str(),ERR);
+	return false;
+      }
+
+    m_state.m_classBlock = fmclassblock;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    //copy values from shallow instance into template's parameter list temp
+    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+    while(pit != m_parameterSymbols.end())
+      {
+	SymbolConstantValue * psym = *pit;
+	//get 'instance's value save in template's parameter list temporarily
+	Symbol * asym = NULL;
+	assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
+	UTI auti = asym->getUlamTypeIdx();
+	ULAMTYPE eutype = m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum();
+	switch(eutype)
+	  {
+	  case Int:
+	    {
+	      s32 sval;
+	      assert(((SymbolConstantValue *) asym)->getValue(sval));
+	      psym->setValue(sval);
+	      break;
+	    }
+	  case Unsigned:
+	    {
+	      u32 uval;
+	      assert(((SymbolConstantValue *) asym)->getValue(uval));
+	      psym->setValue(uval);
+	      break;
+	    }
+	  case Bool:
+	    {
+	      bool bval;
+	      assert(((SymbolConstantValue *) asym)->getValue(bval));
+	      psym->setValue(bval);
+	      break;
+	    }
+	  default:
+	    assert(0);
+	  };
+	pit++;
+      } //next param
+
+    NodeBlockClass * toclassblock = to->getClassBlockNode();
+    m_state.m_classBlock = toclassblock;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    //set values from template's parameter list into clone
+    pit = m_parameterSymbols.begin();
+    while(pit != m_parameterSymbols.end())
+      {
+	SymbolConstantValue * psym = *pit;
+	//get 'instance's value save in template's parameter list temporarily
+	Symbol * asym = NULL;
+	assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
+	UTI auti = asym->getUlamTypeIdx();
+	ULAMTYPE eutype = m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum();
+	switch(eutype)
+	  {
+	  case Int:
+	    {
+	      s32 sval;
+	      psym->getValue(sval);
+	      ((SymbolConstantValue *) asym)->setValue(sval);
+	      break;
+	    }
+	  case Unsigned:
+	    {
+	      u32 uval;
+	      psym->getValue(uval);
+	      ((SymbolConstantValue *) asym)->setValue(uval);
+	      break;
+	    }
+	  case Bool:
+	    {
+	      bool bval;
+	      psym->getValue(bval);
+	      ((SymbolConstantValue *) asym)->setValue(bval);
+	      break;
+	    }
+	  default:
+	    assert(0);
+	  };
+	pit++;
+      } //next param
+
+    //restore
+    resetParameterValuesUnknown();
+    m_state.m_classBlock = saveClassBlock;
+    m_state.m_currentBlock = m_state.m_classBlock;
+    return true;
+  } //takeAnInstancesArgValues
 
   void SymbolClassName::resetParameterValuesUnknown()
   {

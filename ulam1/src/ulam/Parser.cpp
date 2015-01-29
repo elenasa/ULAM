@@ -1440,16 +1440,11 @@ namespace MFM {
 
     // try to continue..
     SymbolConstantValue * argSym;
-    bool argCloneFound = false;
     if(!cnIsStub)
       {
 	SymbolConstantValue * paramSym = (SymbolConstantValue * ) (cnsym->getParameterSymbolPtr(parmIdx));
 	assert(paramSym);
-
-	if(m_state.alreadyDefinedSymbol(paramSym->getId(), (Symbol *&) argSym))
-	  argCloneFound = true;
-	else
-	  argSym = new SymbolConstantValue(*paramSym);
+	argSym = new SymbolConstantValue(*paramSym);
       }
     else
       {
@@ -1459,8 +1454,7 @@ namespace MFM {
 	argSym = new SymbolConstantValue(snameid, m_state.getUlamTypeOfConstant(Int), m_state); //stub id, stub type, state
       }
 
-    if(!argCloneFound)
-      m_state.addSymbolToCurrentScope(argSym); // scope updated to new class instance in parseClassArguments
+    m_state.addSymbolToCurrentScope(argSym); // scope updated to new class instance in parseClassArguments
 
     // make Node with argument symbol to try to fold const expr; o.w. add to list of unsolved for this uti
     NodeConstantDef * constNode = new NodeConstantDef(argSym, m_state);

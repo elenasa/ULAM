@@ -47,26 +47,22 @@ namespace MFM{
     SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
     virtual ~SymbolClassName();
 
-    SymbolClass * cloneAnInstance(UTI cuti);
-    SymbolClass * makeAShallowClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
-
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();
     u32 getTotalSizeOfParameters();
     Symbol * getParameterSymbolPtr(u32 n);
 
     virtual bool isClassTemplate(UTI cuti);
-
     bool isClassInstance(UTI uti, SymbolClass * & symptrref);
     void addClassInstance(UTI uti, SymbolClass * symptr);
 
-    void cloneInstances();
-
+    SymbolClass * makeAShallowClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
 
     std::string formatAnInstancesArgValuesAsAString(UTI instance);
 
+    void cloneInstances();
     void updateLineageOfClassInstances();
     void checkAndLabelClassInstances();
 
@@ -84,6 +80,7 @@ namespace MFM{
     std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtr;
 
     bool takeAnInstancesArgValues(UTI instance);
+    bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void resetParameterValuesUnknown();
   };
 
