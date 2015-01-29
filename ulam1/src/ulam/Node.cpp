@@ -20,7 +20,6 @@ namespace MFM {
     setYourParent(p);  //walk the tree..a leaf.
   }
 
-
   void Node::print(File * fp)
   {
     printNodeLocation(fp);

@@ -60,12 +60,15 @@ namespace MFM{
     bool isClassInstance(UTI uti, SymbolClass * & symptrref);
     void addClassInstance(UTI uti, SymbolClass * symptr);
 
+    void cloneInstances();
+
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
 
     std::string formatAnInstancesArgValuesAsAString(UTI instance);
 
-    void checkAndLabelClassInstances(); // needed?
+    void updateLineageOfClassInstances();
+    void checkAndLabelClassInstances();
 
     bool setBitSizeOfClassInstances();
     void printBitSizeOfClassInstances();
