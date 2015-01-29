@@ -7,6 +7,7 @@
 namespace MFM {
 
   Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false), m_isSelf(false) {}
+  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_id(sref.m_id), m_utypeIdx(sref.m_utypeIdx), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf){}
   Symbol::~Symbol(){}
 
   u32 Symbol::getId()

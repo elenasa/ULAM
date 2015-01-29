@@ -1456,7 +1456,7 @@ namespace MFM {
       {
 	SymbolConstantValue * paramSym = (SymbolConstantValue * ) (cnsym->getParameterSymbolPtr(parmIdx));
 	assert(paramSym);
-	argSym = new SymbolConstantValue(paramSym);
+	argSym = new SymbolConstantValue(*paramSym);
       }
     else
       {

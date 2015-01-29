@@ -49,7 +49,10 @@ namespace MFM{
   {
   public:
     SymbolFunctionName(u32 id, UTI typetoreturn, CompilerState& state);
-    ~SymbolFunctionName();
+    SymbolFunctionName(const SymbolFunctionName& sref);
+    virtual ~SymbolFunctionName();
+
+    virtual Symbol * clone();
 
     virtual bool isFunction();
 
@@ -75,6 +78,7 @@ namespace MFM{
 
   private:
     std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr
+
     bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
 
 

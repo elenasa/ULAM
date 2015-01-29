@@ -9,6 +9,19 @@
 namespace MFM {
 
   SymbolTable::SymbolTable(CompilerState& state): m_state(state){}
+  SymbolTable::SymbolTable(const SymbolTable& ref) : m_state(ref.m_state)
+  {
+    std::map<u32, Symbol* >::const_iterator it = ref.m_idToSymbolPtr.begin();
+    while(it != ref.m_idToSymbolPtr.end())
+      {
+	u32 fid = it->first;
+	Symbol * found = it->second;
+	Symbol * cloned = found->clone();
+	addToTable(fid, cloned);
+	it++;
+      }
+  }
+
   SymbolTable::~SymbolTable()
   {
     // need to delete contents; ownership transferred here!!

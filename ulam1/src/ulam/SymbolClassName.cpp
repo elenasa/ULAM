@@ -4,6 +4,7 @@
 namespace MFM {
 
   SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, state){}
+  SymbolClassName::SymbolClassName(const SymbolClassName& sref) : SymbolClass(sref) { /* something */ }
 
   SymbolClassName::~SymbolClassName()
   {
@@ -17,6 +18,12 @@ namespace MFM {
       }
     m_scalarClassInstanceIdxToSymbolPtr.clear();
   } //destructor
+
+
+  Symbol * SymbolClassName::clone()
+  {
+    return new SymbolClassName(*this);
+  }
 
   void SymbolClassName::addParameterSymbol(SymbolConstantValue * sym)
   {

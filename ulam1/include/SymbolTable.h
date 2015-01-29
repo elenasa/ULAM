@@ -53,6 +53,7 @@ namespace MFM{
   public:
 
     SymbolTable(CompilerState& state);
+    SymbolTable(const SymbolTable& ref);
     ~SymbolTable();
 
     bool isInTable(u32 id, Symbol * & symptrref);

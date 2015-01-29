@@ -10,6 +10,19 @@ namespace MFM {
     setDataMember(); // by definition all function definitions are data members
   }
 
+  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs)
+  {
+    for(u32 i = 0; i < sref.m_parameterSymbols.size(); i++)
+      {
+	m_parameterSymbols[i] = sref.m_parameterSymbols[i]->clone();
+      }
+
+    if(sref.m_functionNode)
+      m_functionNode = (NodeBlockFunctionDefinition *) sref.m_functionNode->clone();
+    else
+      m_functionNode = NULL;
+  }
+
   SymbolFunction::~SymbolFunction()
   {
     delete m_functionNode;
@@ -17,6 +30,10 @@ namespace MFM {
     m_parameterSymbols.clear();
   }
 
+  Symbol * SymbolFunction::clone()
+  {
+    return new SymbolFunction(*this);
+  }
 
   bool SymbolFunction::isFunction()
   {

@@ -48,8 +48,10 @@ namespace MFM{
   {
   public:
     SymbolConstantValue(u32 id, UTI utype, CompilerState& state);
-    SymbolConstantValue(SymbolConstantValue * s);
-    ~SymbolConstantValue();
+    SymbolConstantValue(const SymbolConstantValue& sref);
+    virtual ~SymbolConstantValue();
+
+    virtual Symbol * clone();
 
     virtual bool isConstant();
 

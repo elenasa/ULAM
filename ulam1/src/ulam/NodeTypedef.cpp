@@ -6,7 +6,13 @@
 namespace MFM {
 
   NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym) {}
-  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(ref.m_typedefSymbol) /* deep copy */ {}
+  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref)
+  {
+    Symbol * asymptr = NULL;
+    assert(m_state.alreadyDefinedSymbol(ref.m_typedefSymbol->getId(),asymptr));
+    m_typedefSymbol = (SymbolTypedef *) asymptr;
+  }
+
   NodeTypedef::~NodeTypedef() {}
 
   Node * NodeTypedef::clone()

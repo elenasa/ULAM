@@ -4,10 +4,8 @@
 namespace MFM {
 
   SymbolVariable::SymbolVariable(u32 id, UTI utype, PACKFIT packed, CompilerState& state) : Symbol(id, utype, state), m_posOffset(0), m_packed(packed){}
-
-  SymbolVariable::~SymbolVariable()
-  {}
-
+  SymbolVariable::SymbolVariable(const SymbolVariable& sref) : Symbol(sref), m_posOffset(sref.m_posOffset), m_packed(sref.m_packed) {}
+  SymbolVariable::~SymbolVariable() {}
 
   s32 SymbolVariable::getStackFrameSlotIndex()
   {

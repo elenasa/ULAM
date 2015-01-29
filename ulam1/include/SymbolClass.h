@@ -49,7 +49,10 @@ namespace MFM{
   {
   public:
     SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
-    ~SymbolClass();
+    SymbolClass(const SymbolClass& sref);
+    virtual ~SymbolClass();
+
+    virtual Symbol * clone();
 
     virtual bool isClass();
 

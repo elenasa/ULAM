@@ -49,7 +49,10 @@ namespace MFM{
   {
   public:
     Symbol(u32 id, UTI utype, CompilerState& state);
+    Symbol(const Symbol& sref);
     virtual ~Symbol();    //abstract
+
+    virtual Symbol * clone() = 0;
 
     UTI getUlamTypeIdx();
     u32 getId();

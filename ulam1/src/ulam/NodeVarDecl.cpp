@@ -9,7 +9,13 @@
 namespace MFM {
 
   NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym) {}
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(ref.m_varSymbol) /* deep copy */ {}
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL)
+  {
+    Symbol * asymptr = NULL;
+    assert(m_state.alreadyDefinedSymbol(ref.m_varSymbol->getId(),asymptr));
+    m_varSymbol = (SymbolVariable *) asymptr;
+  }
+
   NodeVarDecl::~NodeVarDecl() {}
 
   Node * NodeVarDecl::clone()
