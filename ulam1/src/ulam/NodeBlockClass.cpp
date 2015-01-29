@@ -10,10 +10,8 @@ namespace MFM {
   //static const char * CModeForHeaderFiles = "/**                                        -*- mode:C++ -*/\n\n";
 
   NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false), m_templateClassParent(Nav) {}
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_templateClassParent(Nav) /* no longer needed? */
-  {
-    //setNodeType(m_state.m_compileThisIdx); //too late???
-  }
+
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_templateClassParent(Nav) /* no longer needed? */{}
 
   NodeBlockClass::~NodeBlockClass() {}
 
