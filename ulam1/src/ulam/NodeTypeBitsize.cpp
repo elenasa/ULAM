@@ -99,7 +99,7 @@ namespace MFM {
 	if(newbitsize == UNKNOWNSIZE)
 	  {
 	    std::ostringstream msg;
-	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "(), is not yet a \"known\" constant expression";
+	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "(), is not yet a \"known\" constant expression for class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    return false;
 	  }
@@ -116,7 +116,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "() is not a constant expression";
+	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "() is not a constant expression for class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }

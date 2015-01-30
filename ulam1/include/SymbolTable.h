@@ -47,6 +47,7 @@
 namespace MFM{
 
   struct CompilerState; //forward
+  class NodeBlockClass; //forward
 
   class SymbolTable
   {
@@ -59,6 +60,7 @@ namespace MFM{
     bool isInTable(u32 id, Symbol * & symptrref);
     void addToTable(u32 id, Symbol * s);
     void replaceInTable(u32 oldid, u32 newid, Symbol * s);
+    void replaceInTable(Symbol * oldsym, Symbol * newsym);
 
     Symbol * getSymbolPtr(u32 id);
 
@@ -88,9 +90,11 @@ namespace MFM{
 
     void checkTableOfFunctions();
 
+    void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);
+
     void labelTableOfFunctions();
 
-    void countNavNodesAcrossTableOfFunctions();
+    u32 countNavNodesAcrossTableOfFunctions();
 
     bool checkCustomArrayTypeFuncs();
 
@@ -114,7 +118,7 @@ namespace MFM{
 
     void labelTableOfClasses();
 
-    void countNavNodesAcrossTableOfClasses();
+    u32 countNavNodesAcrossTableOfClasses();
 
     bool setBitSizeOfTableOfClasses();
 

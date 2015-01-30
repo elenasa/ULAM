@@ -222,7 +222,8 @@ namespace MFM{
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr);
     bool isIdInClassScope(u32 dataindex, Symbol * & symptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
-    void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr);
+    void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
+    void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
 
     /** searches table of class defs for specific name, by token or idx,
         returns a place-holder type if class def not yet seen */

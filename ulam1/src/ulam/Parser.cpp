@@ -1444,7 +1444,8 @@ namespace MFM {
       {
 	SymbolConstantValue * paramSym = (SymbolConstantValue * ) (cnsym->getParameterSymbolPtr(parmIdx));
 	assert(paramSym);
-	argSym = new SymbolConstantValue(*paramSym);
+	//argSym = new SymbolConstantValue(*paramSym);
+	argSym = new SymbolConstantValue(paramSym->getId(), paramSym->getUlamTypeIdx(), m_state); //like param, not copy
       }
     else
       {

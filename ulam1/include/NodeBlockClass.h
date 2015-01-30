@@ -59,6 +59,8 @@ namespace MFM{
 
     void setClassTemplateParent(UTI cuti);
 
+    virtual void updateLineage(Node * p);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);

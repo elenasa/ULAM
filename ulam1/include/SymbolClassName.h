@@ -66,6 +66,7 @@ namespace MFM{
     void updateLineageOfClassInstances();
     void checkAndLabelClassInstances();
 
+    u32 countNavNodesInClassInstances();
     bool setBitSizeOfClassInstances();
     void printBitSizeOfClassInstances();
     void packBitsForClassInstances();

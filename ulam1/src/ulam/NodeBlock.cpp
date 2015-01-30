@@ -131,6 +131,11 @@ namespace MFM {
     m_ST.replaceInTable(oldid, newid, symptr);
   }
 
+  void NodeBlock::replaceIdInScope(Symbol * oldsym, Symbol * newsym)
+  {
+    m_ST.replaceInTable(oldsym, newsym);
+  }
+
   NodeBlock * NodeBlock::getPreviousBlockPointer()
   {
     return m_prevBlockNode;

@@ -105,6 +105,17 @@ namespace MFM {
   {
     NodeBlockClass * classNode = getClassBlockNode(); //instance
     bool aok = true;
+
+    //of course they always aren't! but we know to keep looping..
+    UTI suti = getUlamTypeIdx();
+    if(! m_state.isComplete(suti))
+      {
+	std::ostringstream msg;
+	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test";
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	aok = false;  //moved here;
+      }
+
     if(isQuarkUnion())
       totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
     else

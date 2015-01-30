@@ -568,7 +568,7 @@ namespace MFM {
 
 	std::ostringstream msg;
 	msg << "Found non-empty unknown bitsize subtrees, of class <";
-	msg << m_pool.getDataAsString(m_compileThisId);
+	msg << getUlamTypeNameByIndex(m_compileThisIdx).c_str();
 	msg << ">, size " << lostsize << ":";
 
 	std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
@@ -1428,10 +1428,17 @@ namespace MFM {
     m_currentBlock->addIdToScope(symptr->getId(), symptr);
   }
 
-  //symbol ownership goes to the current block (end of vector)
+  //symbol ownership goes to the current block (end of vector);
+  // symbol is same, just id changed
   void CompilerState::replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr)
   {
     m_currentBlock->replaceIdInScope(oldid, symptr->getId(), symptr);
+  }
+
+  //deletes the oldsym, id's must be identical
+  void CompilerState::replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym)
+  {
+    m_currentBlock->replaceIdInScope(oldsym, newsym);
   }
 
   //Token to location as string:
