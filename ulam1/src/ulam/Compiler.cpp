@@ -156,62 +156,26 @@ namespace MFM {
     m_state.m_programDefST.labelTableOfClasses();
     if(m_state.m_err.getErrorCount() == 0)
       {
+	bool sumbrtn = true;
 	u32 infcounter = 0;
 	// size all the class; sets "current" m_currentClassSymbol in CS
-	while(!m_state.m_programDefST.setBitSizeOfTableOfClasses())
-	  {
-	    if(++infcounter > MAX_ITERATIONS)
-	      {
-		std::ostringstream msg;
-		msg << "Possible INCOMPLETE class detected during type labeling class <";
-		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-		msg << ">, after " << infcounter << " iterations";
-		MSG("", msg.str().c_str(), ERR);
-		break;
-	      }
-	  }
+	do{
+	  sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
+	  sumbrtn &= m_state.statusUnknownBitsizeUTI();
+	  sumbrtn &= m_state.statusUnknownArraysizeUTI();
+	  sumbrtn &= m_state.statusNonreadyNamedConstants();
+	  sumbrtn &= m_state.statusNonreadyClassArguments();
 
-	u32 statcounter = 0;
-	while(!m_state.statusUnknownBitsizeUTI())
-	  {
-	    if(++statcounter > MAX_ITERATIONS)
-	      {
-		std::ostringstream msg;
-		msg << "Before bit packing, UNKNOWN types remain in class <";
-		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-		msg << ">, after " << statcounter << " iterations";
-		MSG("", msg.str().c_str(), ERR);
-		break;
-	      }
-	  }
-
-	statcounter = 0;
-	while(!m_state.statusUnknownArraysizeUTI())
-	  {
-	    if(++statcounter > MAX_ITERATIONS)
-	      {
-		std::ostringstream msg;
-		msg << "Before bit packing, types with UNKNOWN arraysizes remain in class <";
-		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-		msg << ">, after " << statcounter << " iterations";
-		MSG("", msg.str().c_str(), ERR);
-		break;
-	      }
-	  }
-
-	statcounter = 0;
-	while(!m_state.statusNonreadyNamedConstants())
-	  {
-	    if(++statcounter > MAX_ITERATIONS)
-	      {
-		std::ostringstream msg;
-		msg << "Before bit packing, non-ready Named Constants remain in class <";
-		msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-		msg << ">, after " << statcounter << " iterations";
-		MSG("", msg.str().c_str(), ERR);
-		break;
-	      }
-	  }
+	  if(++infcounter > MAX_ITERATIONS)
+	    {
+	      std::ostringstream msg;
+	      msg << "Possible INCOMPLETE class detected during type labeling class <";
+	      msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+	      msg << ">, after " << infcounter << " iterations";
+	      MSG("", msg.str().c_str(), ERR);
+	      break;
+	    }
+	} while(!sumbrtn);
 
 	// count Nodes with illegal Nav types; walk each class' data members and funcdefs.
 	m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
@@ -222,7 +186,6 @@ namespace MFM {
 	// let Ulam programmer know the bits used/available (needs infoOn)
 	m_state.m_programDefST.printBitSizeOfTableOfClasses();
       }
-
 
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)

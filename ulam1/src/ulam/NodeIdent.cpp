@@ -68,7 +68,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used";
+	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx) << ", current class nodetype: " << m_state.getUlamTypeNameByIndex(m_state.m_classBlock->getNodeType());
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }

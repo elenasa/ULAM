@@ -656,12 +656,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 
-	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-
-	classNode->updateLineage(NULL);
+	((SymbolClassName *) sym)->updateLineageOfClassInstances();
 	it++;
       } //while
   } //updateLineageForTableOfClasses

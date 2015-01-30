@@ -137,7 +137,8 @@ namespace MFM {
     ULAMCLASSTYPE classtype = sut->getUlamClass();
 
     std::ostringstream msg;
-    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(getId()).c_str() << ">: ";
+    //msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(getId()).c_str() << ">: ";
+    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.getUlamTypeNameByIndex(suti).c_str() << ">: ";
 
     if(m_state.isComplete(suti))
       {
