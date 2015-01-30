@@ -97,7 +97,7 @@ namespace MFM {
 	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ")";
+		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ") while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
 		it = Nav;
 	      }
