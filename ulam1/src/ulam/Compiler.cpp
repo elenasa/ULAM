@@ -152,40 +152,45 @@ namespace MFM {
     // so, here we just check for matching arg types.
     m_state.m_programDefST.checkCustomArraysForTableOfClasses();
 
+    u32 navcountertries = 0;
     // label all the class; sets "current" m_currentClassSymbol in CS
-    m_state.m_programDefST.labelTableOfClasses();
-    if(m_state.m_err.getErrorCount() == 0)
+    do
       {
-	bool sumbrtn = true;
-	u32 infcounter = 0;
-	// size all the class; sets "current" m_currentClassSymbol in CS
-	do{
-	  sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
-	  sumbrtn &= m_state.statusUnknownBitsizeUTI();
-	  sumbrtn &= m_state.statusUnknownArraysizeUTI();
-	  sumbrtn &= m_state.statusNonreadyNamedConstants();
-	  sumbrtn &= m_state.statusNonreadyClassArguments();
+	if(navcountertries++ > 2)
+	  break;
 
-	  if(++infcounter > MAX_ITERATIONS)
-	    {
-	      std::ostringstream msg;
-	      msg << "Possible INCOMPLETE class detected during type labeling class <";
-	      msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-	      msg << ">, after " << infcounter << " iterations";
-	      MSG("", msg.str().c_str(), ERR);
-	      break;
-	    }
-	} while(!sumbrtn);
+	m_state.m_programDefST.labelTableOfClasses();
+	if(m_state.m_err.getErrorCount() == 0)
+	  {
+	    bool sumbrtn = true;
+	    u32 infcounter = 0;
+	    // size all the class; sets "current" m_currentClassSymbol in CS
+	    do{
+	      sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
+	      sumbrtn &= m_state.statusUnknownBitsizeUTI();
+	      sumbrtn &= m_state.statusUnknownArraysizeUTI();
+	      sumbrtn &= m_state.statusNonreadyNamedConstants();
+	      sumbrtn &= m_state.statusNonreadyClassArguments();
 
+	      if(++infcounter > MAX_ITERATIONS)
+		{
+		  std::ostringstream msg;
+		  msg << "Possible INCOMPLETE class detected during type labeling class <";
+		  msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+		  msg << ">, after " << infcounter << " iterations";
+		  MSG("", msg.str().c_str(), ERR);
+		  break;
+		}
+	    } while(!sumbrtn);
+	  }
 	// count Nodes with illegal Nav types; walk each class' data members and funcdefs.
-	m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
+      }while(m_state.m_programDefST.countNavNodesAcrossTableOfClasses() > 0);
 
-	// must happen after type labeling and before code gen; separate pass.
-	m_state.m_programDefST.packBitsForTableOfClasses();
+    // must happen after type labeling and before code gen; separate pass.
+    m_state.m_programDefST.packBitsForTableOfClasses();
 
-	// let Ulam programmer know the bits used/available (needs infoOn)
-	m_state.m_programDefST.printBitSizeOfTableOfClasses();
-      }
+    // let Ulam programmer know the bits used/available (needs infoOn)
+    m_state.m_programDefST.printBitSizeOfTableOfClasses();
 
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)

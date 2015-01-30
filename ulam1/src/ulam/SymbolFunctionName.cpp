@@ -1,5 +1,6 @@
 #include <set>
 #include "SymbolFunctionName.h"
+#include "NodeBlockClass.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
 #include "CompilerState.h"
@@ -163,6 +164,19 @@ namespace MFM {
     return probcount;
   } //checkFunctionNames
 
+  void SymbolFunctionName::linkToParentNodesInFunctionDefs(NodeBlockClass * p)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+	func->updateLineage(p);
+	++it;
+      }
+  } //linkToParentNodesInFunctionDefs
 
   void SymbolFunctionName::labelFunctions()
   {
@@ -179,7 +193,7 @@ namespace MFM {
   } //labelFunctions
 
 
-  void SymbolFunctionName::countNavNodesInFunctionDefs()
+  u32 SymbolFunctionName::countNavNodesInFunctionDefs()
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     u32 countNavs = 0;
@@ -196,10 +210,10 @@ namespace MFM {
 	  {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
-	    msg << countNavs << " nodes with illegal 'Nav' types remain in function <";
+	    msg << fcntnavs << " nodes with illegal 'Nav' types remain in function <";
 	    msg << m_state.m_pool.getDataAsString(getId());
 	    msg << "> (" << fkey.c_str() << ")";
-	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
 	countNavs += fcntnavs;
 	++it;
@@ -208,10 +222,10 @@ namespace MFM {
     if(countNavs > 0)
       {
 	std::ostringstream msg;
-	msg << countNavs << " nodes with illegal 'Nav' types remain in functions <";
+	msg << countNavs << " nodes with illegal 'Nav' types remain in all functions <";
 	msg << m_state.m_pool.getDataAsString(getId());
-	msg << ">";
-	MSG("", msg.str().c_str(), ERR);
+	msg << "> in class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	MSG("", msg.str().c_str(), WARN);
       }
 #if 0
     else
@@ -223,6 +237,7 @@ namespace MFM {
 	MSG("", msg.str().c_str(), DEBUG);
       }
 #endif
+    return countNavs;
   } //countNavNodesInFunctionDefs
 
 

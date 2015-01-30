@@ -5,6 +5,7 @@
 #include "SymbolFunctionName.h"
 #include "SymbolVariable.h"
 #include "CompilerState.h"
+#include "NodeBlockClass.h"
 
 namespace MFM {
 
@@ -66,6 +67,19 @@ namespace MFM {
 	addToTable(newid, s);
       }
   } //replaceInTable
+
+  void SymbolTable::replaceInTable(Symbol * oldsym, Symbol * newsym)
+  {
+    assert(oldsym->getId() == newsym->getId());
+    std::map<u32,Symbol*>::iterator it = m_idToSymbolPtr.find(oldsym->getId());
+    if(it != m_idToSymbolPtr.end())
+      {
+	Symbol * oldsymptr = it->second;
+	assert(oldsymptr == oldsym);
+	it->second = newsym;
+	delete(oldsymptr);
+      }
+  } //replaceInTable (overload)
 
   Symbol * SymbolTable::getSymbolPtr(u32 id)
   {
@@ -378,6 +392,20 @@ namespace MFM {
       }
   } //checkTableOfFunctions
 
+  void SymbolTable::linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isFunction())
+	  {
+	    ((SymbolFunctionName *) sym)->linkToParentNodesInFunctionDefs(p);
+	  }
+	it++;
+      }
+  } //linkToParentNodesAcrossTableOfFunctions
 
   void SymbolTable::labelTableOfFunctions()
   {
@@ -395,8 +423,9 @@ namespace MFM {
   } //labelTableOfFunctions
 
 
-  void SymbolTable::countNavNodesAcrossTableOfFunctions()
+  u32 SymbolTable::countNavNodesAcrossTableOfFunctions()
   {
+    u32 totalNavCount = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
     while(it != m_idToSymbolPtr.end())
@@ -404,10 +433,11 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs();
+	    totalNavCount += ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs();
 	  }
 	it++;
       }
+    return totalNavCount;
   } //countNavNodesAcrossTableOfFunctions
 
 
@@ -713,43 +743,27 @@ namespace MFM {
       }
   } //labelTableOfClasses
 
-
-  void SymbolTable::countNavNodesAcrossTableOfClasses()
+  u32 SymbolTable::countNavNodesAcrossTableOfClasses()
   {
+    u32 navcount = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-	{
-	  NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	  assert(classNode);
-	  m_state.m_classBlock = classNode;
-	  m_state.m_currentBlock = m_state.m_classBlock;
-
-	  u32 datamembercnt = 0;
-	  classNode->countNavNodes(datamembercnt);
-	  if(datamembercnt > 0)
-	    {
-	      std::ostringstream msg;
-	      msg << datamembercnt << " data member nodes with illegal 'Nav' types remain in class <";
-	      msg << m_state.m_pool.getDataAsString(sym->getId());
-	      msg << ">";
-	      MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    }
-	}
+	navcount += ((SymbolClassName *) sym)->countNavNodesInClassInstances();
 	it++;
       }
+    return navcount;
   } //countNavNodesAcrossTableOfClasses
-
 
   // separate pass...after labeling all classes is completed;
   // purpose is to set the size of all the classes, by totalling the size
   // of their data members; returns true if all class sizes complete.
   bool SymbolTable::setBitSizeOfTableOfClasses()
   {
-    std::vector<UTI> lostClasses;
+    std::vector<u32> lostClassesIds;
     bool aok = true;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -765,37 +779,27 @@ namespace MFM {
 	    aok = false;  //moved here;
 	  }
 
-	//of course they always aren't! but we know to keep looping..
-	UTI suti = sym->getUlamTypeIdx();
-	if(! m_state.isComplete(suti))
-	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test";
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
-	    aok = false;  //moved here;
-	  }
-
 	// try..
 	aok = ((SymbolClassName *) sym)->setBitSizeOfClassInstances();
 
 	//track classes that fail to be sized.
 	if(!aok)
-	  lostClasses.push_back(suti);
+	  lostClassesIds.push_back(sym->getId());
 
 	aok = true; //reset for next class
 	it++;
       } //next class
 
-    aok = lostClasses.empty();
+    aok = lostClassesIds.empty();
     if(!aok)
       {
 	std::ostringstream msg;
-	msg << lostClasses.size() << " Classes without sizes";
-	while(!lostClasses.empty())
+	msg << lostClassesIds.size() << " Classes without sizes";
+	while(!lostClassesIds.empty())
 	  {
-	    UTI cuti = lostClasses.back();
-	    msg << ", " << m_state.getUlamTypeNameByIndex(cuti).c_str();
-	    lostClasses.pop_back();
+	    u32 cid = lostClassesIds.back();
+	    msg << ", " << m_state.m_pool.getDataAsString(cid).c_str();
+	    lostClassesIds.pop_back();
 	  }
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
       }
@@ -805,7 +809,7 @@ namespace MFM {
 	msg << m_idToSymbolPtr.size() << " Class" <<( m_idToSymbolPtr.size() > 1 ? "es ALL " : " ") << "sized SUCCESSFULLY";
 	MSG("", msg.str().c_str(),INFO);
       }
-    lostClasses.clear();
+    lostClassesIds.clear();
     return aok;
   } //setBitSizeOfTableOfClasses
 

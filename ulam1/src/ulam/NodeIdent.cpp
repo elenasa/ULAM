@@ -10,7 +10,9 @@
 namespace MFM {
 
   NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr) {}
+
   NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL) /* shallow */ {}
+
   NodeIdent::~NodeIdent(){}
 
   Node * NodeIdent::clone()
@@ -24,25 +26,21 @@ namespace MFM {
     fp->write(getName());
   }
 
-
   const char * NodeIdent::getName()
   {
     return m_state.getTokenDataAsString(&m_token).c_str();
   }
-
 
   const std::string NodeIdent::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_varSymbol;
     return true;
   }
-
 
   UTI NodeIdent::checkAndLabelType()
   {
@@ -54,21 +52,21 @@ namespace MFM {
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
 	  {
-	    if(!asymptr->isFunction())
+	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant())
 	      {
 		m_varSymbol = (SymbolVariable *) asymptr;
 	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a variable, and cannot be used as one";
+		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a variable, and cannot be used as one with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx) << ", current class nodetype: " << m_state.getUlamTypeNameByIndex(m_state.m_classBlock->getNodeType());
+	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }

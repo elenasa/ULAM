@@ -44,6 +44,7 @@
 
 namespace MFM{
 
+  class NodeBlockClass; //forward
 
   class SymbolFunctionName : public Symbol
   {
@@ -66,9 +67,11 @@ namespace MFM{
 
     u32 checkFunctionNames();
 
+    void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
+
     void labelFunctions();
 
-    void countNavNodesInFunctionDefs();
+    u32 countNavNodesInFunctionDefs();
 
     u32 countNativeFuncDecls();
 

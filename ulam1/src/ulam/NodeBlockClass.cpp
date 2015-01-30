@@ -35,6 +35,12 @@ namespace MFM {
     m_templateClassParent = cuti;
   }
 
+  void NodeBlockClass::updateLineage(Node * p)
+  {
+    NodeBlock::setYourParent(p);  //walk the tree..set current block
+    m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs
+  }
+
   void NodeBlockClass::print(File * fp)
   {
     printNodeLocation(fp);

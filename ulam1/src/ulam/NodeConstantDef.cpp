@@ -13,7 +13,7 @@ namespace MFM {
       m_cid = 0; //error
   }
 
-  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlock(m_state.m_currentBlock), m_cid(ref.m_cid)
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlock(NULL), m_cid(ref.m_cid)
   {
     if(ref.m_exprnode)
       m_exprnode = ref.m_exprnode->clone();
@@ -35,6 +35,7 @@ namespace MFM {
   void NodeConstantDef::updateLineage(Node * p)
   {
     setYourParent(p);
+    m_currBlock = m_state.m_currentBlock; //do it now
     m_exprnode->updateLineage(this);
   }
 

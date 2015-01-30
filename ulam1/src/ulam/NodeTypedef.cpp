@@ -13,7 +13,7 @@ namespace MFM {
       m_tdid = 0; //error
   }
 
-  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref) {}
+  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid) {}
 
   NodeTypedef::~NodeTypedef() {}
 
