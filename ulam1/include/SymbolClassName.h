@@ -84,6 +84,7 @@ namespace MFM{
     void generateForwardDefsForClassInstances(File * fp);
 
     std::string generateTestInstanceForClassInstances(File * fp);
+    std::string generateTestInstanceForClassInstance(File * fp, UTI instance);
 
    protected:
 

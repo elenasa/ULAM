@@ -849,6 +849,7 @@ namespace MFM {
       }
   } //generateForwardDefsForTableOfClasses
 
+  //test for the current compileThisIdx, with test method
   std::string SymbolTable::generateTestInstancesForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -867,7 +868,7 @@ namespace MFM {
 	    continue;
 	  }
 	//accumulate test strings
-	runThisTest << ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp);
+	runThisTest << ((SymbolClassName *) sym)->generateTestInstanceForClassInstance(fp, m_state.m_compileThisIdx);
 	it++;
 	idcounter++;
       }
