@@ -212,6 +212,45 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsAString
 
+  //    std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
+  bool SymbolClassName::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
+  {
+    bool brtn = false;
+    std::map<UTI, std::map<UTI,UTI> >::iterator it = m_mapOfTemplateUTIToInstanceUTIPerClassInstance.find(instance);
+    if(it != m_mapOfTemplateUTIToInstanceUTIPerClassInstance.end())
+      {
+	assert(it->first == instance);
+	std::map<UTI, UTI> amap = it->second;
+	std::map<UTI, UTI>::iterator mit = amap.find(auti);
+	if(mit != amap.end())
+	  {
+	    brtn = true;
+	    assert(mit->first == auti);
+	    mappedUTI = mit->second;
+	  }
+      }
+    return brtn;
+  } //hasInstanceMappedUTI
+
+
+  void SymbolClassName::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
+  {
+    std::map<UTI, std::map<UTI,UTI> >::iterator it = m_mapOfTemplateUTIToInstanceUTIPerClassInstance.find(instance);
+    if(it != m_mapOfTemplateUTIToInstanceUTIPerClassInstance.end())
+      {
+	assert(it->first == instance);
+	std::map<UTI, UTI> amap = it->second;
+
+	amap.insert(std::pair<UTI, UTI>(auti, mappeduti));
+      }
+    else
+      {
+	std::map<UTI, UTI> amap;
+	amap.insert(std::pair<UTI, UTI>(auti, mappeduti));
+	m_mapOfTemplateUTIToInstanceUTIPerClassInstance.insert(std::pair <UTI, std::map<UTI, UTI> >(instance, amap));
+      }
+  } //mapInstanceUTI
+
 
   void SymbolClassName::cloneInstances()
   {
@@ -223,13 +262,15 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	m_utypeIdx = csym->getUlamTypeIdx(); //fudge..
+	m_state.m_compileThisIdx = csym->getUlamTypeIdx();
+	m_utypeIdx =  csym->getUlamTypeIdx(); //fudge..
 	SymbolClass * clone = new SymbolClass(*this);
 	m_utypeIdx = saveTemplateUTI; //restore
 	takeAnInstancesArgValues(csym, clone);
 	delete csym;
 	csym = NULL;
 	it->second = clone;
+	//repairClassParameterBasedSymbols(clone);
 	it++;
       } //while
   } //cloneInstances
@@ -467,6 +508,34 @@ namespace MFM {
     m_state.m_currentBlock = m_state.m_classBlock;
   } //packBitsForClassInstances
 
+  void SymbolClassName::testForClassInstances(File * fp)
+  {
+    NodeBlockClass * saveclassBlock = m_state.m_classBlock;
+    m_state.m_classBlock = getClassBlockNode();
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	SymbolClass::testThisClass(fp);
+	m_state.m_classBlock = saveclassBlock; //restore
+	return;
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	assert(csym);
+	csym->testThisClass(fp); //this instance
+	it++;
+      }
+    //restore
+    m_state.m_compileThisIdx = m_utypeIdx;
+    m_state.m_classBlock = saveclassBlock;
+    m_state.m_currentBlock = m_state.m_classBlock;
+  } //testForClassInstances
+
+
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {
     NodeBlockClass * classNode = getClassBlockNode();
@@ -607,5 +676,24 @@ namespace MFM {
 	pit++;
       } //next param
   } //resetParameterValues
+
+#if 0
+  void SymbolClassName::repairClassParameterBasedSymbols(SymbolClass * cisym)
+  {
+    NodeBlockClass * saveClassBlock = m_state.m_classBlock;
+    NodeBlockClass * classblock = cisym->getClassBlockNode();
+    assert(classblock);
+    m_state.m_classBlock = classblock;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    //???
+
+
+    //restore
+    m_state.m_classBlock = saveClassBlock;
+    m_state.m_currentBlock = m_state.m_classBlock;
+    return;
+  } //repairClassParameterBasedSymbols
+#endif
 
 } //end MFM

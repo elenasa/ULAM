@@ -556,49 +556,7 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-
-	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-
-	if(classNode->findTestFunctionNode())
-	  {
-	    // set up an atom in eventWindow; init m_currentObjPtr to point to it
-	    // set up STACK since func call not called
-	    m_state.setupCenterSiteForTesting();
-
-	    m_state.m_nodeEvalStack.addFrameSlots(1);     //prolog, 1 for return
-	    s32 rtnValue = 0;
-	    EvalStatus evs = classNode->eval();
-	    if(evs != NORMAL)
-	      {
-		rtnValue =  -1;   //error!
-	      }
-	    else
-	      {
-		UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-		rtnValue = rtnUV.getImmediateData(32);
-	      }
-
-	    //#define CURIOUS_T3146
-#ifdef CURIOUS_T3146
-	    //curious..
-	    {
-	      UlamValue objUV = m_state.m_eventWindow.loadAtomFromSite(c0.convertCoordToIndex());
-	      u32 data = objUV.getData(25,32);  //Int f.m_i (t3146)
-	      std::ostringstream msg;
-	      msg << "Output for m_i = <" << data << "> (expecting 4 for t3146)";
-	      MSG("",msg.str().c_str() , INFO);
-	    }
-#endif
-
-	    m_state.m_nodeEvalStack.returnFrame();       //epilog
-
-	    fp->write("Exit status: " );    //in compared answer
-	    fp->write_decimal(rtnValue);
-	    fp->write("\n");
-	  } //test eval
+	((SymbolClassName *) sym)->testForClassInstances(fp);
 	it++;
       } //while
 
