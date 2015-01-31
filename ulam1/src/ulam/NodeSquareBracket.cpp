@@ -6,8 +6,8 @@
 
 namespace MFM {
 
-  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
-  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref) {}
+  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_currBlock(m_state.m_currentBlock), m_currBlockNo(m_state.getCurrentBlockNo()) {}
+  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
   NodeSquareBracket::~NodeSquareBracket(){}
 
   Node * NodeSquareBracket::clone()
@@ -15,30 +15,33 @@ namespace MFM {
     return new NodeSquareBracket(*this);
   }
 
+  void NodeSquareBracket::updateLineage(Node * p)
+  {
+    setYourParent(p);
+    m_currBlock = m_state.m_currentBlock; //do it now
+    assert(m_state.getCurrentBlockNo() == m_currBlockNo);
+    NodeBinaryOp::updateLineage(this);
+  }//updateLineage
 
   void NodeSquareBracket::printOp(File * fp)
   {
-	NodeBinaryOp::printOp(fp);
+    NodeBinaryOp::printOp(fp);
   }
-
 
   const char * NodeSquareBracket::getName()
   {
     return "[]";
   }
 
-
   const std::string NodeSquareBracket::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   const std::string NodeSquareBracket::methodNameForCodeGen()
   {
     return "_SquareBracket_Stub";
   }
-
 
   // used to select an array element; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
@@ -93,20 +96,28 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-
   void NodeSquareBracket::countNavNodes(u32& cnt)
   {
     m_nodeLeft->countNavNodes(cnt);
     m_nodeRight->countNavNodes(cnt);
   }
 
+  NNO NodeSquareBracket::getBlockNo()
+  {
+    return m_currBlockNo;
+  }
+
+  void NodeSquareBracket::setBlock()
+  {
+    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(m_currBlock);
+  }
 
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
   {
     assert(0);
     return Int;
   }
-
 
   EvalStatus NodeSquareBracket::eval()
   {
@@ -158,13 +169,10 @@ namespace MFM {
 	evalNodeEpilog();
 	return ERROR;
       }
-
     assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
-
     evalNodeEpilog();
     return NORMAL;
   } //eval
-
 
   EvalStatus NodeSquareBracket::evalToStoreInto()
   {
@@ -233,13 +241,11 @@ namespace MFM {
     return NORMAL;
   } //evalToStoreInto
 
-
   UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     assert(0); //unused
     return UlamValue();
   }
-
 
   bool NodeSquareBracket::getSymbolPtr(Symbol *& symptrref)
   {
@@ -249,7 +255,6 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
     return false;
   }
-
 
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
@@ -275,14 +280,12 @@ namespace MFM {
     return false;  //error getting array size
   } //installSymbolTypedef
 
-
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
     MSG(getNodeLocationAsString().c_str(), "Array size specified for named constant", ERR);
     return false;
   } //installSymbolConstantValue
-
 
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
@@ -308,10 +311,11 @@ namespace MFM {
     return false;  //error getting array size
   } //installSymbolVariable
 
-
   // eval() performed even before check and label!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
   {
+    NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
@@ -319,11 +323,13 @@ namespace MFM {
     // expect a constant integer or constant unsigned integer
     if(sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned))
       {
+	m_state.m_currentBlock = m_currBlock;
 	evalNodeProlog(0);             //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
 	m_nodeRight->eval();
 	UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog();
+	m_state.m_currentBlock = savecurrentblock; //restore
 
 	newarraysize = arrayUV.getImmediateData(m_state);
 	if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //== NONARRAYSIZE or UNKNOWNSIZE
@@ -337,11 +343,9 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a constant integer", ERR);
 	return false;
       }
-
     rtnArraySize = newarraysize;
     return true;
   } //getArraysizeInBracket
-
 
   void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
   {
@@ -364,7 +368,6 @@ namespace MFM {
     Node::genCodeReadArrayItemIntoATmpVar(fp, uvpass);     //new!!!
   } //genCode
 
-
   void NodeSquareBracket::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -385,6 +388,5 @@ namespace MFM {
 
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
-
 
 } //end MFM

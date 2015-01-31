@@ -16,7 +16,12 @@ namespace MFM {
   void NodeStatementEmpty::updateLineage(Node * p)
   {
     setYourParent(p);
-  }
+  }//updateLineage
+
+  bool NodeStatementEmpty::findNodeNo(NNO n, Node *& foundNode)
+  {
+    return Node::findNodeNo(n, foundNode);
+  } //findNodeNo
 
   void NodeStatementEmpty::print(File * fp)
   {

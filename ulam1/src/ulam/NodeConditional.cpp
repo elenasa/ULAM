@@ -21,7 +21,14 @@ namespace MFM {
   {
     setYourParent(p);
     m_nodeLeft->updateLineage(this);
-  }
+  } //updateLineage
+
+  bool NodeConditional::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    return m_nodeLeft->findNodeNo(n, foundNode);
+  } //findNodeNo
 
   void NodeConditional::print(File * fp)
   {

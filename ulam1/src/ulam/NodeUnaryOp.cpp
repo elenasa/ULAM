@@ -20,7 +20,16 @@ namespace MFM {
   {
     setYourParent(p);
     m_node->updateLineage(this);
-  }
+  }//updateLineage
+
+  bool NodeUnaryOp::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_node && m_node->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeUnaryOp::print(File * fp)
   {

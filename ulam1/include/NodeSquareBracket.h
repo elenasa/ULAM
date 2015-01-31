@@ -39,6 +39,7 @@
 #define NODEBINARYOPSQUAREBRACKET_H
 
 #include "NodeBinaryOp.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
@@ -52,6 +53,8 @@ namespace MFM{
 
     virtual Node * clone();
 
+    virtual void updateLineage(Node * p);
+
     virtual void printOp(File * fp);
 
     virtual const char * getName();
@@ -63,6 +66,9 @@ namespace MFM{
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
+
+    NNO getBlockNo();
+    void setBlock();
 
     virtual EvalStatus eval();
 
@@ -87,6 +93,8 @@ namespace MFM{
   protected:
 
   private:
+    NodeBlock * m_currBlock;
+    NNO m_currBlockNo;
 
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots){}
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);

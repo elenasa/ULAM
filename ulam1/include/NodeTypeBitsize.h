@@ -38,6 +38,7 @@
 #define NODETYPEBITSIZE_H
 
 #include "Node.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
@@ -53,11 +54,16 @@ namespace MFM{
 
     virtual void updateLineage(Node * p);
 
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void printPostfix(File * f);
 
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
+
+    NNO getBlockNo();
+    void setBlock();
 
     virtual EvalStatus eval();
 
@@ -69,6 +75,8 @@ namespace MFM{
 
   private:
     Node * m_node;
+    NodeBlock * m_currBlock;
+    NNO m_currBlockNo;
   };
 
 } //MFM

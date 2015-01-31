@@ -37,9 +37,20 @@ namespace MFM {
 
   void NodeBlockClass::updateLineage(Node * p)
   {
-    NodeBlock::setYourParent(p);  //walk the tree..set current block
+    setYourParent(p);
+    if(m_node)
+      m_node->updateLineage(this);
+    if(m_nextNode)
+      m_nextNode->updateLineage(this);
     m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs
-  }
+  } //updateLineage
+
+  bool NodeBlockClass::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(NodeBlock::findNodeNo(n, foundNode))
+      return true;
+    return m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode); //all the function defs
+  } //findNodeNo
 
   void NodeBlockClass::print(File * fp)
   {
@@ -63,7 +74,6 @@ namespace MFM {
     fp->write(id);
     fp->write("\n");
   } //print (debug)
-
 
   void NodeBlockClass::printPostfix(File * fp)
   {
@@ -99,19 +109,16 @@ namespace MFM {
     fp->write("\n");
   } //printPostfix
 
-
   const char * NodeBlockClass::getName()
   {
     return m_state.getUlamTypeByIndex(getNodeType())->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str();
     //return "{}";
   }
 
-
   const std::string NodeBlockClass::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeBlockClass::checkAndLabelType()
   {

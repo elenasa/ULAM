@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(state.m_currentBlock)
+  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(state.m_currentBlock), m_currBlockNo(m_state.getCurrentBlockNo())
   {
     if(symptr)
       m_cid = symptr->getId();
@@ -13,7 +13,7 @@ namespace MFM {
       m_cid = 0; //error
   }
 
-  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlock(NULL), m_cid(ref.m_cid)
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo), m_cid(ref.m_cid)
   {
     if(ref.m_exprnode)
       m_exprnode = ref.m_exprnode->clone();
@@ -36,8 +36,16 @@ namespace MFM {
   {
     setYourParent(p);
     m_currBlock = m_state.m_currentBlock; //do it now
+    assert(m_state.getCurrentBlockNo() == m_currBlockNo);
     m_exprnode->updateLineage(this);
-  }
+  }//updateLineage
+
+  bool NodeConstantDef::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    return m_exprnode->findNodeNo(n, foundNode);
+  } //findNodeNo
 
   void NodeConstantDef::printPostfix(File * fp)
   {
@@ -110,6 +118,17 @@ namespace MFM {
     m_exprnode->countNavNodes(cnt);
   }
 
+  NNO NodeConstantDef::getBlockNo()
+  {
+    return m_currBlockNo;
+  }
+
+  void NodeConstantDef::setBlock()
+  {
+    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(m_currBlock);
+  }
+
   void NodeConstantDef::setConstantExpr(Node * node)
   {
     m_exprnode = node;
@@ -120,24 +139,24 @@ namespace MFM {
   // (scope of eval is based on the block of const def.)
   bool NodeConstantDef::foldConstantExpression()
   {
-    //    NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+    NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+
     s32 newconst = NONREADYCONST;  //always signed?
     UTI uti = checkAndLabelType(); //getNodeType()
     if((uti == m_state.getUlamTypeOfConstant(Int) || uti == m_state.getUlamTypeOfConstant(Unsigned)))
-    {
-	//	m_state.m_currentBlock = m_currBlock;
+      {
+	m_state.m_currentBlock = m_currBlock;
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
 	m_exprnode->eval();
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog();
+	m_state.m_currentBlock = savecurrentblock; //restore
 
 	if(cnstUV.getUlamValueTypeIdx() == Nav)
 	  newconst = NONREADYCONST;
 	else
 	  newconst = cnstUV.getImmediateData(m_state);
-
-	//m_state.m_currentBlock = savecurrentblock; //restore
 
 	if(newconst == NONREADYCONST)
 	  {

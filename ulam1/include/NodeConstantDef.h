@@ -55,6 +55,8 @@ namespace MFM{
 
     virtual void updateLineage(Node * p);
 
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void printPostfix(File * f);
 
     virtual const char * getName();
@@ -66,6 +68,9 @@ namespace MFM{
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
+
+    NNO getBlockNo();
+    void setBlock();
 
     void setConstantExpr(Node * node);
 
@@ -79,6 +84,7 @@ namespace MFM{
     SymbolConstantValue * m_constSymbol;
     Node * m_exprnode;
     NodeBlock * m_currBlock;
+    NNO m_currBlockNo;
     u32 m_cid; //for clones
   };
 

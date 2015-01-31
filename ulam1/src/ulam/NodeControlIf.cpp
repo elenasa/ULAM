@@ -29,8 +29,16 @@ namespace MFM {
     NodeControl::updateLineage(p);
     if(m_nodeElse)
       m_nodeElse->updateLineage(this);
-  }
+  }//updateLineage
 
+  bool NodeControlIf::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(NodeControl::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeElse && m_nodeElse->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeControlIf::print(File * fp)
   {

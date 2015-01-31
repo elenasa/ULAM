@@ -52,7 +52,7 @@ namespace MFM {
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<CC>::PositionOfDataMember";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
@@ -538,7 +538,9 @@ namespace MFM {
     UlamKeyTypeSignature newkey(sut->getUlamKeyTypeSignature());
     //    if(bUT == Class) newkey.append(Nav); //avoid assertion
     UTI newuti = makeUlamType(newkey,bUT);
+
     cloneConstantExpressionSubtrees(suti, newuti);
+
     cnsym->mapInstanceUTI(m_compileThisIdx, suti, newuti);
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
@@ -553,6 +555,7 @@ namespace MFM {
 	NodeTypeBitsize * ceNode = bit->second;
 	assert(ceNode);
 	NodeTypeBitsize * cloneNode = new NodeTypeBitsize(*ceNode);
+	cloneNode->setBlock(); //sets its local currblock
 	linkConstantExpression(newuti, cloneNode);
       }
 
@@ -564,6 +567,7 @@ namespace MFM {
 	NodeSquareBracket * ceNode = qit->second;
 	assert(ceNode);
 	NodeSquareBracket * cloneNode = new NodeSquareBracket(*ceNode);
+	cloneNode->setBlock(); //sets its local currblock
 	linkConstantExpression(newuti, cloneNode);
       }
     //m_nonreadyNamedConstantSubtrees ???
@@ -572,6 +576,7 @@ namespace MFM {
 
   void CompilerState::constantFoldIncompleteUTI(UTI uti)
   {
+    //should we short-circuit if a template class?
     s32 bitsize = getBitSize(uti);
     assert(bitsize >= UNKNOWNSIZE);
     s32 arraysize = getArraySize(uti);
@@ -2159,5 +2164,22 @@ namespace MFM {
     m_identTokenForConditionalAs = iTok;
     m_parsingConditionalAs = true;    //cleared manually
   } //saveIdentTokenForConditionalAs
+
+  NNO CompilerState::getNextNodeNo()
+  {
+    return ++m_nextNodeNumber;
+  }
+
+  NNO CompilerState::getCurrentBlockNo()
+  {
+    return m_currentBlock->getNodeNo();
+  }
+
+  Node * CompilerState::findNodeNoInThisClass(NNO n)
+  {
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    return cnsym->findNodeNoInAClassInstance(m_compileThisIdx, n);
+  } //findNodeNo
 
 } //end MFM
