@@ -66,6 +66,7 @@ namespace MFM{
     void mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
 
     void cloneInstances(); //i.e. instantiate
+    Node * findNodeNoInAClassInstance(UTI instance, NNO n);
     void updateLineageOfClassInstances();
     void checkAndLabelClassInstances();
 
@@ -77,6 +78,12 @@ namespace MFM{
     void testForClassInstances(File * fp);
 
     void generateCodeForClassInstances(FileManager * fm);
+
+    void generateIncludesForClassInstances(File * fp);
+
+    void generateForwardDefsForClassInstances(File * fp);
+
+    std::string generateTestInstanceForClassInstances(File * fp);
 
    protected:
 

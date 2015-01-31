@@ -44,6 +44,7 @@
 
 namespace MFM{
 
+  class Node; //forward
   class NodeBlockClass; //forward
 
   class SymbolFunctionName : public Symbol
@@ -68,6 +69,8 @@ namespace MFM{
     u32 checkFunctionNames();
 
     void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
+
+    bool findNodeNoInFunctionDefs(NNO n, Node*& foundNode);
 
     void labelFunctions();
 

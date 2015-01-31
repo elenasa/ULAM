@@ -49,6 +49,7 @@ namespace MFM{
 
     NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
     NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref);
+
     virtual ~NodeBlockFunctionDefinition();
 
     virtual Node * clone();

@@ -1,5 +1,6 @@
 #include <set>
 #include "SymbolFunctionName.h"
+#include "Node.h"
 #include "NodeBlockClass.h"
 #include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
@@ -177,6 +178,26 @@ namespace MFM {
 	++it;
       }
   } //linkToParentNodesInFunctionDefs
+
+  bool SymbolFunctionName::findNodeNoInFunctionDefs(NNO n, Node*& foundNode)
+  {
+    bool rtnfound = false;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+	if(func->findNodeNo(n, foundNode))
+	  {
+	    rtnfound = true;
+	    break;
+	  }
+	++it;
+      }
+    return rtnfound;
+  }//findNodeNoInFunctionDefs
 
   void SymbolFunctionName::labelFunctions()
   {

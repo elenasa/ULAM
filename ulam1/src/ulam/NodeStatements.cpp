@@ -39,7 +39,18 @@ namespace MFM {
       m_node->updateLineage(this);
     if(m_nextNode)
       m_nextNode->updateLineage(this);
-  }
+  }//updateLineage
+
+  bool NodeStatements::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_node && m_node->findNodeNo(n, foundNode))
+      return true;
+    if(m_nextNode && m_nextNode->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeStatements::print(File * fp)
   {

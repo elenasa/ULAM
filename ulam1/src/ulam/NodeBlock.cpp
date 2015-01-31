@@ -39,7 +39,16 @@ namespace MFM {
 
     if(clonepass)
       m_state.m_currentBlock = m_prevBlockNode; //restore
-  } //updateLineage(Node * p)
+  } //updateLineage
+
+  bool NodeBlock::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nextNode && m_nextNode->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeBlock::print(File * fp)
   {
@@ -95,31 +104,25 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-
   void NodeBlock::countNavNodes(u32& cnt)
   {
       m_nextNode->countNavNodes(cnt);
   }
 
-
   EvalStatus NodeBlock::eval()
   {
     assert(m_nextNode);
     //evalNodeProlog(0);
-
     //makeRoomForNodeType(m_nextNode->getNodeType());
     EvalStatus evs = m_nextNode->eval();    //no return value
-
     //evalNodeEpilog();
     return evs;
   }
-
 
   bool NodeBlock::isIdInScope(u32 id, Symbol * & symptrref)
   {
     return m_ST.isInTable(id, symptrref);
   }
-
 
   void NodeBlock::addIdToScope(u32 id, Symbol * symptr)
   {
@@ -157,7 +160,6 @@ namespace MFM {
     return m_ST.getTotalSymbolSize();
   }
 
-
   s32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
   {
     if(m_ST.getTableSize() == 0)
@@ -165,7 +167,6 @@ namespace MFM {
 
     return m_ST.getTotalVariableSymbolsBitSize();
   }
-
 
   s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable()
   {
@@ -175,18 +176,15 @@ namespace MFM {
     return m_ST.getMaxVariableSymbolsBitSize();
   }
 
-
   s32 NodeBlock::findUlamTypeInTable(UTI utype)
   {
     return m_ST.findPosOfUlamTypeInTable(utype);
   }
 
-
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {
     return &m_ST;
   }
-
 
   void NodeBlock::genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {
@@ -194,12 +192,10 @@ namespace MFM {
     m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
   }
 
-
   void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     m_ST.genCodeBuiltInFunctionsOverTableOfVariableDataMember(fp, declOnly, classtype);
   }
-
 
   void NodeBlock::genCode(File * fp, UlamValue& uvpass)
   {

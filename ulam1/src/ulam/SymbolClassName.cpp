@@ -16,6 +16,7 @@ namespace MFM {
 	delete m_scalarClassInstanceIdxToSymbolPtr[i];
       }
     m_scalarClassInstanceIdxToSymbolPtr.clear();
+    m_mapOfTemplateUTIToInstanceUTIPerClassInstance.clear();
   } //destructor
 
   void SymbolClassName::addParameterSymbol(SymbolConstantValue * sym)
@@ -45,7 +46,6 @@ namespace MFM {
     return m_parameterSymbols[n];
   }
 
-
   bool SymbolClassName::isClassTemplate(UTI cuti)
   {
     bool rtnb = false;
@@ -55,7 +55,7 @@ namespace MFM {
 	rtnb = !isClassInstance(cuti, csym);
       }
     return rtnb;
-  }
+  } //isClassTemplate
 
   bool SymbolClassName::isClassInstance(UTI uti, SymbolClass * & symptrref)
   {
@@ -212,7 +212,6 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsAString
 
-  //    std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
   bool SymbolClassName::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
     bool brtn = false;
@@ -232,7 +231,6 @@ namespace MFM {
     return brtn;
   } //hasInstanceMappedUTI
 
-
   void SymbolClassName::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
   {
     std::map<UTI, std::map<UTI,UTI> >::iterator it = m_mapOfTemplateUTIToInstanceUTIPerClassInstance.find(instance);
@@ -240,7 +238,6 @@ namespace MFM {
       {
 	assert(it->first == instance);
 	std::map<UTI, UTI> amap = it->second;
-
 	amap.insert(std::pair<UTI, UTI>(auti, mappeduti));
       }
     else
@@ -250,7 +247,6 @@ namespace MFM {
 	m_mapOfTemplateUTIToInstanceUTIPerClassInstance.insert(std::pair <UTI, std::map<UTI, UTI> >(instance, amap));
       }
   } //mapInstanceUTI
-
 
   void SymbolClassName::cloneInstances()
   {
@@ -275,6 +271,38 @@ namespace MFM {
       } //while
   } //cloneInstances
 
+  Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
+  {
+    Node * foundNode = NULL;
+
+    NodeBlockClass * saveclassblock = m_state.m_classBlock;
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.m_classBlock = classNode;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    if(getUlamTypeIdx() == instance)
+      {
+	classNode->findNodeNo(n, foundNode);
+	m_state.m_classBlock = saveclassblock; //restore
+	return foundNode;
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+	classNode->findNodeNo(n, foundNode);
+      }
+
+    m_state.m_classBlock = saveclassblock; //restore
+    return foundNode;
+  } //findNodeNoInAClassInstance
+
   void SymbolClassName::updateLineageOfClassInstances()
   {
     NodeBlockClass * classNode = getClassBlockNode();
@@ -296,7 +324,6 @@ namespace MFM {
 	it++;
       }
   } //updateLineageOfClassInstances
-
 
   void SymbolClassName::checkAndLabelClassInstances()
   {
@@ -535,7 +562,6 @@ namespace MFM {
     m_state.m_currentBlock = m_state.m_classBlock;
   } //testForClassInstances
 
-
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {
     NodeBlockClass * classNode = getClassBlockNode();
@@ -566,6 +592,60 @@ namespace MFM {
     m_state.m_classBlock = getClassBlockNode();
     m_state.m_currentBlock = m_state.m_classBlock;
   } //generateCodeForClassInstances
+
+  void SymbolClassName::generateIncludesForClassInstances(File * fp)
+  {
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	return SymbolClass::generateAsOtherInclude(fp);
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	csym->generateAsOtherInclude(fp);
+	it++;
+      }
+  } //generateIncludesForClassInstances
+
+  void SymbolClassName::generateForwardDefsForClassInstances(File * fp)
+  {
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	return SymbolClass::generateAsOtherForwardDef(fp);
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	csym->generateAsOtherForwardDef(fp);
+	it++;
+      }
+  } //generateForwardDefsForClassInstances
+
+  std::string SymbolClassName::generateTestInstanceForClassInstances(File * fp)
+  {
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	return SymbolClass::generateTestInstance(fp);
+      }
+
+    std::ostringstream runThisTest;
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	if(csym->getUlamTypeIdx() == m_state.m_compileThisIdx)
+	  {
+	    runThisTest << csym->generateTestInstance(fp);
+	    break;
+	  }
+	it++;
+      }
+    return runThisTest.str();
+  } //generateTestInstanceForClassInstances
 
   //unused, hopefully
   bool SymbolClassName::takeAnInstancesArgValues(UTI instance)
@@ -676,24 +756,5 @@ namespace MFM {
 	pit++;
       } //next param
   } //resetParameterValues
-
-#if 0
-  void SymbolClassName::repairClassParameterBasedSymbols(SymbolClass * cisym)
-  {
-    NodeBlockClass * saveClassBlock = m_state.m_classBlock;
-    NodeBlockClass * classblock = cisym->getClassBlockNode();
-    assert(classblock);
-    m_state.m_classBlock = classblock;
-    m_state.m_currentBlock = m_state.m_classBlock;
-
-    //???
-
-
-    //restore
-    m_state.m_classBlock = saveClassBlock;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    return;
-  } //repairClassParameterBasedSymbols
-#endif
 
 } //end MFM

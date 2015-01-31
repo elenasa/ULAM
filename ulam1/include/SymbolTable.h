@@ -47,6 +47,7 @@
 namespace MFM{
 
   struct CompilerState; //forward
+  class Node; //forward
   class NodeBlockClass; //forward
 
   class SymbolTable
@@ -91,6 +92,8 @@ namespace MFM{
     void checkTableOfFunctions();
 
     void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);
+
+    bool findNodeNoAcrossTableOfFunctions(NNO n, Node*& foundNode);
 
     void labelTableOfFunctions();
 
@@ -142,7 +145,6 @@ namespace MFM{
     CompilerState & m_state;
     s32 calcVariableSymbolTypeSize(UTI ut);
     bool variableSymbolWithCountableSize(Symbol * sym);
-    static std::string firstletterTolowercase(const std::string s);
   };
 
 }

@@ -72,12 +72,19 @@ namespace MFM{
 
     bool isQuarkUnion();
 
-    virtual void generateCode(FileManager * fm);
-
     bool trySetBitsizeWithUTIValues(s32& totalbits);
+
     void printBitSizeOfClass();
 
-    void testThisClass(File * fp);
+    void testThisClass(File * fp); //eval-land
+
+    virtual void generateCode(FileManager * fm);
+
+    void generateAsOtherInclude(File * fp);
+
+    void generateAsOtherForwardDef(File * fp);
+
+    std::string generateTestInstance(File * fp);
 
   protected:
 
@@ -93,6 +100,7 @@ namespace MFM{
     void genMangledTypesHeaderFile(FileManager * fm);  //obsolete
     void generateMain(FileManager * fm);
 
+    static std::string firstletterTolowercase(const std::string s);
   };
 
 }

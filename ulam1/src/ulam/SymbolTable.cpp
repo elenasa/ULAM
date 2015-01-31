@@ -6,6 +6,7 @@
 #include "SymbolVariable.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "Node.h"
 
 namespace MFM {
 
@@ -282,7 +283,7 @@ namespace MFM {
   void SymbolTable::genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     // 'has' applies to both quarks and elements
-    UTI cuti = m_state.m_classBlock->getNodeType();
+    UTI cuti = m_state.m_compileThisIdx;
 
     if(declOnly)
       {
@@ -407,6 +408,27 @@ namespace MFM {
       }
   } //linkToParentNodesAcrossTableOfFunctions
 
+  bool SymbolTable::findNodeNoAcrossTableOfFunctions(NNO n, Node*& foundNode)
+  {
+    bool rtnfound = false;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isFunction())
+	  {
+	    if(((SymbolFunctionName *) sym)->findNodeNoInFunctionDefs(n, foundNode))
+	      {
+		rtnfound = true;
+		break;
+	      }
+	  }
+	it++;
+      }
+    return rtnfound;
+  }//findNodeNoAcrossTableOfFunctions
+
   void SymbolTable::labelTableOfFunctions()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -454,7 +476,7 @@ namespace MFM {
 
 	// set class type to custom array; the current class block
 	// node type was set to its class symbol type at start of parsing it.
-	UTI cuti = m_state.m_classBlock->getNodeType();
+	UTI cuti = m_state.m_compileThisIdx;
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	assert(((UlamTypeClass *) cut)->isCustomArray());
 	rtnBool = true;
@@ -502,7 +524,7 @@ namespace MFM {
       } //get found
     else
       {
-	UTI cuti = m_state.m_classBlock->getNodeType();
+	UTI cuti = m_state.m_compileThisIdx;
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
 	std::ostringstream msg;
@@ -805,59 +827,27 @@ namespace MFM {
   void SymbolTable::generateIncludesForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-
-	UTI suti = sym->getUlamTypeIdx();
-	//if(sym->getId() != m_state.m_compileThisId)
-	if(suti != m_state.m_compileThisIdx)
-	  {
-	    m_state.indent(fp);
-	    fp->write("#include \"");
-	    fp->write(m_state.getFileNameForAClassHeader(sym->getId(), suti).c_str());
-	    fp->write("\"\n");
-	  }
+	((SymbolClassName *) sym)->generateIncludesForClassInstances(fp);
 	it++;
       }
   } //generateIncludesForTableOfClasses
-
 
   //bypasses THIS class being compiled
   void SymbolTable::generateForwardDefsForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-
-	if(sym->getId() != m_state.m_compileThisId)
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	    ULAMCLASSTYPE sclasstype = sut->getUlamClass();
-
-	    m_state.indent(fp);
-	    fp->write("namespace MFM { template ");
-	    if(sclasstype == UC_QUARK)
-	      fp->write("<class CC, u32 POS> ");
-	    else if(sclasstype == UC_ELEMENT)
-	      fp->write("<class CC> ");
-	    else
-	      assert(0);
-
-	    fp->write("struct ");
-	    fp->write(sut->getUlamTypeMangledName().c_str());
-	    fp->write("; }  //FORWARD\n");
-	  }
+	((SymbolClassName *) sym)->generateForwardDefsForClassInstances(fp);
 	it++;
       }
   } //generateForwardDefsForTableOfClasses
-
 
   std::string SymbolTable::generateTestInstancesForTableOfClasses(File * fp)
   {
@@ -869,68 +859,21 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-
 	UTI suti = sym->getUlamTypeIdx();
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
-
-	if(sclasstype == UC_QUARK)
+	//skips quarks
+	if(m_state.getUlamTypeByIndex(suti)->getUlamClass() == UC_QUARK)
 	  {
 	    it++;
 	    continue;
 	  }
-
-	std::string namestr = sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	std::string lowercasename = firstletterTolowercase(namestr);
-	std::ostringstream ourname;
-	ourname << "Our" << namestr;
-
-	// only for elements
-	fp->write("\n");
-	m_state.indent(fp);
-	fp->write("typedef ");
-	fp->write("MFM::");
-	fp->write(sut->getUlamTypeMangledName().c_str());
-
-	fp->write("<OurCoreConfig> ");
-	fp->write(ourname.str().c_str());
-	fp->write(";\n");
-
-	m_state.indent(fp);
-	fp->write(ourname.str().c_str());
-	fp->write("& ");
-	fp->write(lowercasename.c_str());
-	fp->write(" = ");
-	fp->write(ourname.str().c_str());
-	fp->write("::THE_INSTANCE;\n");
-
-	m_state.indent(fp);
-	fp->write(lowercasename.c_str());
-	fp->write(".AllocateType();  // Force element type allocation now\n");
-	m_state.indent(fp);
-	fp->write("theTile.RegisterElement(");
-	fp->write(lowercasename.c_str());
-	fp->write(");\n");
-
-	if(sym->getId() == m_state.m_compileThisId)
-	  {
-	    m_state.indent(fp);
-	    fp->write("OurAtom ");
-	    fp->write(lowercasename.c_str());
-	    fp->write("Atom = ");
-	    fp->write(lowercasename.c_str());
-	    fp->write(".GetDefaultAtom();\n");
-
-	    runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
-	  }
+	//accumulate test strings
+	runThisTest << ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp);
 	it++;
 	idcounter++;
       }
     fp->write("\n");
-
     return runThisTest.str();
   } //generateTestInstancesForTableOfClasses
-
 
   //not sure we use this; go back and forth between the files that are output
   // if just this class, then NodeProgram can start the ball rolling
@@ -1063,14 +1006,5 @@ namespace MFM {
   {
     return (!sym->isTypedef() && !sym->isElementParameter() && !sym->isConstant());
   }
-
-  std::string SymbolTable::firstletterTolowercase(const std::string s) //static method
-  {
-    std::ostringstream up;
-    assert(!s.empty());
-    std::string c(1,(s[0] >= 'A' && s[0] <= 'Z') ? s[0]-('A'-'a') : s[0]);
-    up << c << s.substr(1,s.length());
-    return up.str();
-  } //firstletterTolowercase
 
 } //end MFM

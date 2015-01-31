@@ -303,6 +303,88 @@ namespace MFM {
       }
   } //generateCode
 
+  void SymbolClass::generateAsOtherInclude(File * fp)
+  {
+    UTI suti = getUlamTypeIdx();
+    if(suti != m_state.m_compileThisIdx)
+      {
+	m_state.indent(fp);
+	fp->write("#include \"");
+	fp->write(m_state.getFileNameForAClassHeader(suti).c_str());
+	fp->write("\"\n");
+      }
+  } //generateAsOtherInclude
+
+  void SymbolClass::generateAsOtherForwardDef(File * fp)
+  {
+    UTI suti = getUlamTypeIdx();
+    if(suti != m_state.m_compileThisIdx)
+      {
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
+
+	m_state.indent(fp);
+	fp->write("namespace MFM { template ");
+	if(sclasstype == UC_QUARK)
+	  fp->write("<class CC, u32 POS> ");
+	else if(sclasstype == UC_ELEMENT)
+	  fp->write("<class CC> ");
+	else
+	  assert(0);
+
+	fp->write("struct ");
+	fp->write(sut->getUlamTypeMangledName().c_str());
+	fp->write("; }  //FORWARD\n");
+      }
+  } //generateAsOtherForwardDef
+
+  std::string SymbolClass::generateTestInstance(File * fp)
+  {
+    std::ostringstream runThisTest;
+    UTI suti = getUlamTypeIdx();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    std::string namestr = sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+    std::string lowercasename = firstletterTolowercase(namestr);
+    std::ostringstream ourname;
+    ourname << "Our" << namestr;
+
+    // only for elements, thisCompileIdx, restricted by caller
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("typedef ");
+    fp->write("MFM::");
+    fp->write(sut->getUlamTypeMangledName().c_str());
+
+    fp->write("<OurCoreConfig> ");
+    fp->write(ourname.str().c_str());
+    fp->write(";\n");
+
+    m_state.indent(fp);
+    fp->write(ourname.str().c_str());
+    fp->write("& ");
+    fp->write(lowercasename.c_str());
+    fp->write(" = ");
+    fp->write(ourname.str().c_str());
+    fp->write("::THE_INSTANCE;\n");
+
+    m_state.indent(fp);
+    fp->write(lowercasename.c_str());
+    fp->write(".AllocateType();  // Force element type allocation now\n");
+    m_state.indent(fp);
+    fp->write("theTile.RegisterElement(");
+    fp->write(lowercasename.c_str());
+    fp->write(");\n");
+
+    m_state.indent(fp);
+    fp->write("OurAtom ");
+    fp->write(lowercasename.c_str());
+    fp->write("Atom = ");
+    fp->write(lowercasename.c_str());
+    fp->write(".GetDefaultAtom();\n");
+
+    runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
+    return runThisTest.str();
+  } //generateTestInstance
 
   void SymbolClass::generateHeaderPreamble(File * fp)
   {
@@ -353,7 +435,6 @@ namespace MFM {
     fp->write("_H\n");
   }
 
-
   void SymbolClass::generateHeaderIncludes(File * fp)
   {
     m_state.indent(fp);
@@ -369,7 +450,6 @@ namespace MFM {
     //generate includes for all the other classes that have appeared
     m_state.m_programDefST.generateForwardDefsForTableOfClasses(fp);
   } //generateHeaderIncludes
-
 
   // create structs with BV, as storage, and typedef
   // for primitive types; useful as args and local variables;
@@ -420,7 +500,6 @@ namespace MFM {
       }
     delete fp; //close
   } //genMangledTypeHeaderFile
-
 
   // append main to .cpp for debug useage
   // outside the MFM namespace !!!
@@ -508,10 +587,17 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("}\n");
+    fp->write("} //main \n");
     delete fp; //close
   } //generateMain
 
-
+  std::string SymbolClass::firstletterTolowercase(const std::string s) //static method
+  {
+    std::ostringstream up;
+    assert(!s.empty());
+    std::string c(1,(s[0] >= 'A' && s[0] <= 'Z') ? s[0]-('A'-'a') : s[0]);
+    up << c << s.substr(1,s.length());
+    return up.str();
+  } //firstletterTolowercase
 
 } //end MFM

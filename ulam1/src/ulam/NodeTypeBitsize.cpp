@@ -5,8 +5,8 @@
 
 namespace MFM {
 
-  NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node) {}
-  NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref)
+  NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node), m_currBlock(m_state.m_currentBlock), m_currBlockNo(m_state.getCurrentBlockNo()) {}
+  NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo)
   {
     m_node = ref.m_node->clone();
   }
@@ -25,27 +25,34 @@ namespace MFM {
   void NodeTypeBitsize::updateLineage(Node * p)
   {
     setYourParent(p);
+    m_currBlock = m_state.m_currentBlock; //do it now
+    assert(m_state.getCurrentBlockNo() == m_currBlockNo);
     m_node->updateLineage(this);
-  }
+  }//updateLineage
 
+  bool NodeTypeBitsize::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_node && m_node->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeTypeBitsize::printPostfix(File * fp)
   {
     m_node->printPostfix(fp);
   }
 
-
   const char * NodeTypeBitsize::getName()
   {
     return "(bitsize)";
   }
 
-
   const std::string NodeTypeBitsize::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeTypeBitsize::checkAndLabelType()
   {
@@ -62,13 +69,22 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-
   void NodeTypeBitsize::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);
     m_node->countNavNodes(cnt);
   }
 
+  NNO NodeTypeBitsize::getBlockNo()
+  {
+    return m_currBlockNo;
+  }
+
+  void NodeTypeBitsize::setBlock()
+  {
+    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(m_currBlock);
+  }
 
   EvalStatus NodeTypeBitsize::eval()
   {
@@ -76,26 +92,30 @@ namespace MFM {
     return NORMAL;
   }
 
-
   // called during parsing Type of variable, typedef, func return val;
   // Requires a constant expression for the bitsize, else error;
   // guards against even Bool's.
   bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT)
   {
+    NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+
     s32 newbitsize = UNKNOWNSIZE; //was ANYBITSIZECONSTANT;
     UTI sizetype = checkAndLabelType();
     if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
       {
+	m_state.m_currentBlock = m_currBlock;
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
 	m_node->eval();
 	UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog();
+	m_state.m_currentBlock = savecurrentblock; //restore
 
 	if(bitUV.getUlamValueTypeIdx() == Nav)
 	  newbitsize = UNKNOWNSIZE;
 	else
 	  newbitsize = bitUV.getImmediateData(m_state);
+
 	if(newbitsize == UNKNOWNSIZE)
 	  {
 	    std::ostringstream msg;
@@ -120,7 +140,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
-
     rtnBitSize = newbitsize;
     return true;
   } //getTypeBitSizeInParen

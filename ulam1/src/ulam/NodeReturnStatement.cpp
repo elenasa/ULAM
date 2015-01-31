@@ -29,8 +29,16 @@ namespace MFM {
     setYourParent(p);
     if(m_node)
       m_node->updateLineage(this);
-  }
+  }//updateLineage
 
+  bool NodeReturnStatement::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_node && m_node->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeReturnStatement::print(File * fp)
   {

@@ -153,6 +153,7 @@ namespace MFM{
     Symbol * m_currentSelfSymbolForCodeGen; //used in code generation; parallels m_currentSelf
     u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
     s32 m_nextTmpVarNumber;           //used in code gen when a "slot index" is not available
+    NNO m_nextNodeNumber;             //used to identify blocks in clone classes with unknown subtrees
 
     CompilerState();
     ~CompilerState();
@@ -265,10 +266,6 @@ namespace MFM{
     const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
 
-    s32 getNextTmpVarNumber();
-    const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
-    const std::string getLabelNumAsString(s32 num);
-
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
     std::string getFileNameForThisClassBody(bool wSubDir = false);
@@ -303,7 +300,7 @@ namespace MFM{
     */
     PACKFIT determinePackable(UTI aut);
 
-    bool findAndSizeANodeDeclWithType(UTI argut);
+    //bool findAndSizeANodeDeclWithType(UTI argut);
 
     bool thisClassHasTheTestMethod();
 
@@ -319,8 +316,18 @@ namespace MFM{
     std::string getLocationTextAsString(Locator nodeloc);
     void outputTextAsComment(File * fp, Locator nodeloc);
 
+
+    s32 getNextTmpVarNumber();
+    const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
+    const std::string getLabelNumAsString(s32 num);
+
     /** for conditional as-magic */
     void saveIdentTokenForConditionalAs(Token iTok);
+
+    /** to identify each node */
+    NNO getNextNodeNo();
+    NNO getCurrentBlockNo();
+    Node * findNodeNoInThisClass(NNO n);
   };
 
 }
