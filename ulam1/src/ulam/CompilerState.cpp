@@ -264,10 +264,10 @@ namespace MFM {
 	uti = m_indexToUlamKey.size();  //next index based on key
 	if(utype == Class)
 	  {
-	    //keep classinstanceid of scalar in key
 	    UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
 	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
+		//keep classinstanceid of scalar in key
 		assert(suti > 0 && !isComplete(suti));
 	      }
 	    else
@@ -481,7 +481,6 @@ namespace MFM {
     return rtnBool;
   } //deleteUlamKeyTypeSignature
 
-
   //used to update Class' calculated bit size (setBitSize)
   bool CompilerState::updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey)
   {
@@ -489,16 +488,14 @@ namespace MFM {
     UTI uti;
 
     //skip happily if no others use the old key; new key was added by makeulamtype
-    if(findUnknownKeyUTICounter(oldkey) == 0)
-      return true;
-
+    u32 counter = findUnknownKeyUTICounter(oldkey);
     std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToaUTI.find(oldkey);
-
     if(it != m_keyToaUTI.end())
       {
 	assert(oldkey == it->first);
 	uti = it->second;
-	m_keyToaUTI.erase(it);
+	if(counter == 0)
+	  m_keyToaUTI.erase(it);
 	rtnBool = true;
       }
 
@@ -518,6 +515,60 @@ namespace MFM {
     return rtnBool;
   } //updateUlamKeyTypeSignatureToaUTI
 
+  //please set m_compileThisIdx to the instance's UTI.
+  UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
+  {
+    UlamType * sut = getUlamTypeByIndex(suti);
+    if(sut->isComplete())
+      return suti;
+
+    ULAMTYPE bUT = sut->getUlamTypeEnum();
+    if(bUT == Class)
+      return suti;
+
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    UTI mappedUTI;
+    if(cnsym->hasInstanceMappedUTI(m_compileThisIdx, suti, mappedUTI))
+      return mappedUTI;
+
+    // first time we've seen this incomplete UTI for this class instance:
+    // get a new UTI, clone and update all the 'subtree' table references,
+    // and add to cnsym's map in case we see it again.
+    UlamKeyTypeSignature newkey(sut->getUlamKeyTypeSignature());
+    //    if(bUT == Class) newkey.append(Nav); //avoid assertion
+    UTI newuti = makeUlamType(newkey,bUT);
+    cloneConstantExpressionSubtrees(suti, newuti);
+    cnsym->mapInstanceUTI(m_compileThisIdx, suti, newuti);
+    return newuti;
+  }//mapIncompleteUTIForCurrentClassInstance
+
+  void CompilerState::cloneConstantExpressionSubtrees(UTI olduti, UTI newuti)
+  {
+    //Type bitsize UNKNOWN:
+    std::map<UTI, NodeTypeBitsize *>::iterator bit = m_unknownBitsizeSubtrees.find(olduti);
+    if(bit != m_unknownBitsizeSubtrees.end())
+      {
+	assert(olduti == bit->first);
+	NodeTypeBitsize * ceNode = bit->second;
+	assert(ceNode);
+	NodeTypeBitsize * cloneNode = new NodeTypeBitsize(*ceNode);
+	linkConstantExpression(newuti, cloneNode);
+      }
+
+    //Arraysize UNKNOWN:
+    std::map<UTI, NodeSquareBracket *>::iterator qit = m_unknownArraysizeSubtrees.find(olduti);
+    if(qit != m_unknownArraysizeSubtrees.end())
+      {
+	assert(olduti == qit->first);
+	NodeSquareBracket * ceNode = qit->second;
+	assert(ceNode);
+	NodeSquareBracket * cloneNode = new NodeSquareBracket(*ceNode);
+	linkConstantExpression(newuti, cloneNode);
+      }
+    //m_nonreadyNamedConstantSubtrees ???
+    //m_nonreadyClassArgSubtrees ???
+  }//cloneConstantExpressionSubtrees
 
   void CompilerState::constantFoldIncompleteUTI(UTI uti)
   {

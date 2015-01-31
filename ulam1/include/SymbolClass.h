@@ -77,6 +77,8 @@ namespace MFM{
     bool trySetBitsizeWithUTIValues(s32& totalbits);
     void printBitSizeOfClass();
 
+    void testThisClass(File * fp);
+
   protected:
 
   private:

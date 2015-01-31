@@ -129,13 +129,8 @@ namespace MFM {
 
     m_state.m_err.clearCounts();
 
-    m_state.m_programDefST.cloneInstancesInTableOfClasses();
-
-    m_state.m_programDefST.updateLineageForTableOfClasses();
-
-    // resolve any class args
+    // resolve any class args..before instantiation?
     u32 infcounter2 = 0;
-
     while(!m_state.statusNonreadyClassArguments())
       {
 	if(++infcounter2 > MAX_ITERATIONS)
@@ -143,10 +138,14 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Before setting size of classes, " << m_state.m_nonreadyClassArgSubtrees.size() << " class instances with non-ready arguments remain";
 	    msg << ", after " << infcounter2 << " iterations";
-	    MSG("", msg.str().c_str(), ERR);
+	    MSG("", msg.str().c_str(), ERR); //? or warn
 	    break;
 	  }
       }
+
+    m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate
+
+    m_state.m_programDefST.updateLineageForTableOfClasses();
 
     // type set at parse time (needed for square bracket checkandlabel);
     // so, here we just check for matching arg types.
@@ -178,7 +177,7 @@ namespace MFM {
 		  msg << "Possible INCOMPLETE class detected during type labeling class <";
 		  msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
 		  msg << ">, after " << infcounter << " iterations";
-		  MSG("", msg.str().c_str(), ERR);
+		  MSG("", msg.str().c_str(), WARN);
 		  break;
 		}
 	    } while(!sumbrtn);

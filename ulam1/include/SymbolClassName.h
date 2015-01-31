@@ -62,7 +62,10 @@ namespace MFM{
 
     std::string formatAnInstancesArgValuesAsAString(UTI instance);
 
-    void cloneInstances();
+    bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
+    void mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
+
+    void cloneInstances(); //i.e. instantiate
     void updateLineageOfClassInstances();
     void checkAndLabelClassInstances();
 
@@ -70,6 +73,8 @@ namespace MFM{
     bool setBitSizeOfClassInstances();
     void printBitSizeOfClassInstances();
     void packBitsForClassInstances();
+
+    void testForClassInstances(File * fp);
 
     void generateCodeForClassInstances(FileManager * fm);
 
@@ -79,6 +84,7 @@ namespace MFM{
     //ordered class parameters
     std::vector<SymbolConstantValue *> m_parameterSymbols;  // like named constants; symbols owned by m_ST.
     std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtr;
+    std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
     bool takeAnInstancesArgValues(UTI instance);
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
