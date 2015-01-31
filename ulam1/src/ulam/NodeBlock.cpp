@@ -23,13 +23,14 @@ namespace MFM {
 
   void NodeBlock::updateLineage(Node * p)
   {
-    bool clonepass = false;
     if(m_prevBlockNode == NULL)
       {
-	clonepass = true;
 	m_prevBlockNode = m_state.m_currentBlock;
-	m_state.m_currentBlock = this;
       }
+    else
+      assert(m_prevBlockNode == m_state.m_currentBlock);
+
+    m_state.m_currentBlock = this;
 
     setYourParent(p);
     if(m_node)
@@ -37,8 +38,7 @@ namespace MFM {
     if(m_nextNode)
       m_nextNode->updateLineage(this);
 
-    if(clonepass)
-      m_state.m_currentBlock = m_prevBlockNode; //restore
+    m_state.m_currentBlock = m_prevBlockNode; //restore
   } //updateLineage
 
   bool NodeBlock::findNodeNo(NNO n, Node *& foundNode)

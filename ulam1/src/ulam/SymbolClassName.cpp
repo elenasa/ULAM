@@ -150,7 +150,6 @@ namespace MFM {
     u32 numParams = getNumberOfParameters();
     if(numParams == 0)
       {
-	assert(instance == Nav);
 	return "0";
       }
     std::ostringstream args;
@@ -646,6 +645,26 @@ namespace MFM {
       }
     return runThisTest.str();
   } //generateTestInstanceForClassInstances
+
+  std::string SymbolClassName::generateTestInstanceForClassInstance(File * fp, UTI instance)
+  {
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	if(getUlamTypeIdx() == instance)
+	  return SymbolClass::generateTestInstance(fp);
+	return "";
+      }
+
+    std::ostringstream runThisTest;
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	assert(csym->getUlamTypeIdx() == m_state.m_compileThisIdx);
+	runThisTest << csym->generateTestInstance(fp);
+      }
+    return runThisTest.str();
+  } //generateTestInstanceForClassInstance
 
   //unused, hopefully
   bool SymbolClassName::takeAnInstancesArgValues(UTI instance)
