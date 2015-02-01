@@ -68,6 +68,8 @@ namespace MFM{
     void cloneInstances(); //i.e. instantiate
     Node * findNodeNoInAClassInstance(UTI instance, NNO n);
     void updateLineageOfClassInstances();
+    void checkCustomArraysOfClassInstances();
+
     void checkAndLabelClassInstances();
 
     u32 countNavNodesInClassInstances();

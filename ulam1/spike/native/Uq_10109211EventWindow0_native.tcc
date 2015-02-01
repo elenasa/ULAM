@@ -11,7 +11,7 @@ namespace MFM{
   {
     u32 siteNumber = Uv_5index.read();
 
-    EventWindow0<CC> & ew = uc.GetEventWindow();
+    EventWindow<CC> & ew = uc.GetEventWindow();
     const T & a = ew.GetAtomSym(siteNumber);
 
     return Ui_Ut_102964Atom<CC>(a);
@@ -23,7 +23,7 @@ namespace MFM{
   {
     u32 siteNumber = Uv_5index.read();
 
-    EventWindow0<CC> & ew = uc.GetEventWindow();
+    EventWindow<CC> & ew = uc.GetEventWindow();
     ew.SetAtomSym(siteNumber, Uv_1v.read());
   }
 

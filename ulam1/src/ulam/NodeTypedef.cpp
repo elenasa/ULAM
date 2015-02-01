@@ -7,7 +7,7 @@ namespace MFM {
 
   NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym)
   {
-    if(m_tdid)
+    if(sym)
       m_tdid = sym->getId();
     else
       m_tdid = 0; //error

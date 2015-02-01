@@ -476,7 +476,7 @@ namespace MFM {
 
 	// set class type to custom array; the current class block
 	// node type was set to its class symbol type at start of parsing it.
-	UTI cuti = m_state.m_compileThisIdx;
+	UTI cuti = m_state.m_classBlock->getNodeType();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	assert(((UlamTypeClass *) cut)->isCustomArray());
 	rtnBool = true;

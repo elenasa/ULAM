@@ -275,6 +275,7 @@ namespace MFM {
     Node * foundNode = NULL;
 
     NodeBlockClass * saveclassblock = m_state.m_classBlock;
+    NodeBlock * savecurrentblock = m_state.m_currentBlock;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     m_state.m_classBlock = classNode;
@@ -284,6 +285,7 @@ namespace MFM {
       {
 	classNode->findNodeNo(n, foundNode);
 	m_state.m_classBlock = saveclassblock; //restore
+	m_state.m_currentBlock = savecurrentblock;
 	return foundNode;
       }
 
@@ -299,6 +301,7 @@ namespace MFM {
       }
 
     m_state.m_classBlock = saveclassblock; //restore
+    m_state.m_currentBlock = savecurrentblock;
     return foundNode;
   } //findNodeNoInAClassInstance
 
@@ -323,6 +326,38 @@ namespace MFM {
 	it++;
       }
   } //updateLineageOfClassInstances
+
+  void SymbolClassName::checkCustomArraysOfClassInstances()
+  {
+    NodeBlockClass * saveClassNode = m_state.m_classBlock;
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.m_classBlock = classNode;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	classNode->checkCustomArrayTypeFunctions();
+	m_state.m_classBlock = saveClassNode; //restore
+	return;
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+
+	classNode->checkCustomArrayTypeFunctions(); //do each instance
+	it++;
+      }
+    m_state.m_classBlock = saveClassNode; //restore
+  } //checkCustomArraysOfClassInstances()
+
 
   void SymbolClassName::checkAndLabelClassInstances()
   {
