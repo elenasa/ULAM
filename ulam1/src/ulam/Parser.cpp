@@ -3129,7 +3129,7 @@ namespace MFM {
 	  }
 
 	//link square bracket for constant expression, if unknown array size
-	//link last arg for constant expression, if unknown bit size
+	//link 2nd arg for constant expression, if unknown bit size
 	// o.w. clean up!
 	if(rtnNode)
 	  {
