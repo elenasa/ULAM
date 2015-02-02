@@ -850,30 +850,35 @@ namespace MFM {
   } //generateForwardDefsForTableOfClasses
 
   //test for the current compileThisIdx, with test method
-  std::string SymbolTable::generateTestInstancesForTableOfClasses(File * fp)
+  //  std::string SymbolTable::generateTestInstancesForTableOfClasses(File * fp)
+  void SymbolTable::generateTestInstancesForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    s32 idcounter = 1;
-    std::ostringstream runThisTest;
-
+    //std::ostringstream runThisTest;
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-	UTI suti = sym->getUlamTypeIdx();
-	//skips quarks
-	if(m_state.getUlamTypeByIndex(suti)->getUlamClass() == UC_QUARK)
-	  {
-	    it++;
-	    continue;
-	  }
-	//accumulate test strings
-	runThisTest << ((SymbolClassName *) sym)->generateTestInstanceForClassInstance(fp, m_state.m_compileThisIdx);
+	//first output all the element typedefs that are different than m_compileThisId, skipping quarks
+	if(sym->getId() != m_state.m_compileThisId && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
+	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp);
+	it++;
+      } //while
+
+    it = m_idToSymbolPtr.begin();
+    s32 idcounter = 1;
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	//next output all the element typedefs that are m_compileThisId; skipping quarks
+	if(sym->getId() == m_state.m_compileThisId && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
+	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp);
 	it++;
 	idcounter++;
-      }
+      } //while
     fp->write("\n");
-    return runThisTest.str();
+    //return runThisTest.str();
   } //generateTestInstancesForTableOfClasses
 
   //not sure we use this; go back and forth between the files that are output

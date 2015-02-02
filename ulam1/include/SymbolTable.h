@@ -133,7 +133,7 @@ namespace MFM{
 
     void generateForwardDefsForTableOfClasses(File * fp);
 
-    std::string generateTestInstancesForTableOfClasses(File * fp);
+    void generateTestInstancesForTableOfClasses(File * fp);
 
     void genCodeForTableOfClasses(FileManager * fm);
 

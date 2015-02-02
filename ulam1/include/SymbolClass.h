@@ -84,7 +84,7 @@ namespace MFM{
 
     void generateAsOtherForwardDef(File * fp);
 
-    std::string generateTestInstance(File * fp);
+    void generateTestInstance(File * fp);
 
   protected:
 

@@ -579,6 +579,7 @@ namespace MFM {
       {
 	SymbolClass::testThisClass(fp);
 	m_state.m_classBlock = saveclassBlock; //restore
+	m_state.m_currentBlock = m_state.m_classBlock;
 	return;
       }
 
@@ -659,47 +660,26 @@ namespace MFM {
       }
   } //generateForwardDefsForClassInstances
 
-  std::string SymbolClassName::generateTestInstanceForClassInstances(File * fp)
+  //  std::string SymbolClassName::generateTestInstanceForClassInstances(File * fp)
+  void SymbolClassName::generateTestInstanceForClassInstances(File * fp)
   {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
-	return SymbolClass::generateTestInstance(fp);
+	SymbolClass::generateTestInstance(fp);
+	return;
       }
 
-    std::ostringstream runThisTest;
+    //std::ostringstream norunThisTest;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	if(csym->getUlamTypeIdx() == m_state.m_compileThisIdx)
-	  {
-	    runThisTest << csym->generateTestInstance(fp);
-	    break;
-	  }
+	assert(csym);
+	csym->generateTestInstance(fp);
 	it++;
       }
-    return runThisTest.str();
+    //return runThisTest.str();
   } //generateTestInstanceForClassInstances
-
-  std::string SymbolClassName::generateTestInstanceForClassInstance(File * fp, UTI instance)
-  {
-    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
-      {
-	if(getUlamTypeIdx() == instance)
-	  return SymbolClass::generateTestInstance(fp);
-	return "";
-      }
-
-    std::ostringstream runThisTest;
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
-    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
-      {
-	SymbolClass * csym = it->second;
-	assert(csym->getUlamTypeIdx() == m_state.m_compileThisIdx);
-	runThisTest << csym->generateTestInstance(fp);
-      }
-    return runThisTest.str();
-  } //generateTestInstanceForClassInstance
 
   //unused, hopefully
   bool SymbolClassName::takeAnInstancesArgValues(UTI instance)
