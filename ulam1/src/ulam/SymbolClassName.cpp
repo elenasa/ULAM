@@ -609,7 +609,6 @@ namespace MFM {
 	return SymbolClass::generateCode(fm);
       }
 
-    //UTI saveuti = getUlamTypeIdx();
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -660,7 +659,6 @@ namespace MFM {
       }
   } //generateForwardDefsForClassInstances
 
-  //  std::string SymbolClassName::generateTestInstanceForClassInstances(File * fp)
   void SymbolClassName::generateTestInstanceForClassInstances(File * fp)
   {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
@@ -668,8 +666,6 @@ namespace MFM {
 	SymbolClass::generateTestInstance(fp);
 	return;
       }
-
-    //std::ostringstream norunThisTest;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -678,7 +674,6 @@ namespace MFM {
 	csym->generateTestInstance(fp);
 	it++;
       }
-    //return runThisTest.str();
   } //generateTestInstanceForClassInstances
 
   //unused, hopefully

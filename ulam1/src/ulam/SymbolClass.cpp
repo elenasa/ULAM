@@ -338,7 +338,6 @@ namespace MFM {
       }
   } //generateAsOtherForwardDef
 
-  //  std::string SymbolClass::generateTestInstance(File * fp)
   void SymbolClass::generateTestInstance(File * fp)
   {
     std::ostringstream runThisTest;
@@ -349,25 +348,14 @@ namespace MFM {
     SymbolClassName * cnsym = NULL;
     assert(m_state.alreadyDefinedSymbolClassName(getId(), cnsym));
     std::string tail = cnsym->formatAnInstancesArgValuesAsAString(suti);
-
     std::ostringstream namestr;
     namestr << m_state.m_pool.getDataAsString(getId()) << tail;
 
     std::string lowercasename = firstletterTolowercase(namestr.str());
-
     std::ostringstream ourname;
     ourname << "Our" << namestr.str();
 
     fp->write("\n");
-
-#if 0
-    if(getId() == m_state.m_compileThisId)
-      {
-	m_state.indent(fp);
-	fp->write("{\n");
-	m_state.m_currentIndentLevel++;
-      }
-#endif
 
     // only for elements, as restricted by caller
     m_state.indent(fp);
@@ -406,9 +394,6 @@ namespace MFM {
 
 	runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
 
-	//m_state.indent(fp);
-	//fp->write("MFM::Ui_Ut_102323Int rtn;\n");
-
 	m_state.indent(fp);
 	fp->write("rtn = ");
 	fp->write(runThisTest.str().c_str()); //uses hardcoded mangled test name
@@ -416,14 +401,6 @@ namespace MFM {
 
 	m_state.indent(fp);
 	fp->write("//return rtn.read();\n"); //was useful to return result of test
-
-#if 0
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("} //testmain for ");
-	fp->write(sut->getUlamTypeMangledName().c_str());
-	fp->write("\n");
-#endif
       }
   } //generateTestInstance
 
