@@ -1398,7 +1398,7 @@ namespace MFM {
     if(cnut->isCustomArray())
       ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
 
-    SymbolClass * csym = cnsym->makeAShallowClassInstance(typeTok, cuti); //was cloneAnInstance(cuti)
+    SymbolClass * csym = cnsym->makeAShallowClassInstance(typeTok, cuti);
 
     m_state.m_currentBlock = csym->getClassBlockNode(); //reset here for new arg's
     u32 parmidx = 0;
