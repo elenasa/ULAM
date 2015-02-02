@@ -850,11 +850,9 @@ namespace MFM {
   } //generateForwardDefsForTableOfClasses
 
   //test for the current compileThisIdx, with test method
-  //  std::string SymbolTable::generateTestInstancesForTableOfClasses(File * fp)
   void SymbolTable::generateTestInstancesForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    //std::ostringstream runThisTest;
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -863,7 +861,7 @@ namespace MFM {
 	if(sym->getId() != m_state.m_compileThisId && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
 	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp);
 	it++;
-      } //while
+      } //while1
 
     it = m_idToSymbolPtr.begin();
     s32 idcounter = 1;
@@ -876,9 +874,8 @@ namespace MFM {
 	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp);
 	it++;
 	idcounter++;
-      } //while
+      } //while2
     fp->write("\n");
-    //return runThisTest.str();
   } //generateTestInstancesForTableOfClasses
 
   //not sure we use this; go back and forth between the files that are output
