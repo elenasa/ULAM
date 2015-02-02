@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpShiftRight::NodeBinaryOpShiftRight(const NodeBinaryOpShiftRight& ref) : NodeBinaryOpShift(ref) {}
   NodeBinaryOpShiftRight::~NodeBinaryOpShiftRight(){}
 
-  Node * NodeBinaryOpShiftRight::clone()
+  Node * NodeBinaryOpShiftRight::instantiate()
   {
     return new NodeBinaryOpShiftRight(*this);
   }

@@ -14,7 +14,7 @@ namespace MFM {
 
   NodeConstant::~NodeConstant(){}
 
-  Node * NodeConstant::clone()
+  Node * NodeConstant::instantiate()
   {
     return new NodeConstant(*this);
   }
@@ -52,7 +52,7 @@ namespace MFM {
     //impossible to use before def; o.w. it would be a NodeIdent
     //assert(m_constSymbol);
 
-    //cloned, look up in class block
+    //instantiate, look up in class block
     if(m_constSymbol == NULL)
       {
 	Symbol * asymptr = NULL;

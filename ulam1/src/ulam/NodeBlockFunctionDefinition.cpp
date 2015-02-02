@@ -16,7 +16,7 @@ namespace MFM {
     // nodes deleted by SymbolTable in BlockClass
   }
 
-  Node * NodeBlockFunctionDefinition::clone()
+  Node * NodeBlockFunctionDefinition::instantiate()
   {
     return new NodeBlockFunctionDefinition(*this);
   }
@@ -101,7 +101,7 @@ namespace MFM {
 
   UTI NodeBlockFunctionDefinition::checkAndLabelType()
   {
-    // clone, look up in class block
+    // instantiate, look up in class block
     if(m_funcSymbol == NULL && m_fsymTemplate != NULL)
       {
 	Symbol * asymptr = NULL;
@@ -136,7 +136,7 @@ namespace MFM {
 	  }
 	if(!m_funcSymbol)
 	  return Nav;
-      } //for clones
+      } //toinstantiate
 
     UTI it = m_funcSymbol->getUlamTypeIdx();
     setNodeType(it);

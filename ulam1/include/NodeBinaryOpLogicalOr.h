@@ -48,7 +48,7 @@ namespace MFM{
     NodeBinaryOpLogicalOr(const NodeBinaryOpLogicalOr& ref);
     virtual ~NodeBinaryOpLogicalOr();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

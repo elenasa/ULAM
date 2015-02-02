@@ -18,7 +18,7 @@ namespace MFM {
       }
 
     if(sref.m_functionNode)
-      m_functionNode = (NodeBlockFunctionDefinition *) sref.m_functionNode->clone();
+      m_functionNode = (NodeBlockFunctionDefinition *) sref.m_functionNode->instantiate();
     else
       m_functionNode = NULL;
   }

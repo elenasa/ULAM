@@ -8,7 +8,7 @@ namespace MFM {
   NodeBlockEmpty::NodeBlockEmpty(const NodeBlockEmpty& ref) : NodeBlock(ref) {}
   NodeBlockEmpty::~NodeBlockEmpty() {}
 
-  Node * NodeBlockEmpty::clone()
+  Node * NodeBlockEmpty::instantiate()
   {
     return new NodeBlockEmpty(*this);
   }

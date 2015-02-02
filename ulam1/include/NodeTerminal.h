@@ -55,7 +55,7 @@ namespace MFM{
     NodeTerminal(const NodeTerminal& ref);
     virtual ~NodeTerminal();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void printPostfix(File * f);
 

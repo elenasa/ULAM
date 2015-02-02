@@ -10,7 +10,7 @@ namespace MFM {
   NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
   NodeSquareBracket::~NodeSquareBracket(){}
 
-  Node * NodeSquareBracket::clone()
+  Node * NodeSquareBracket::instantiate()
   {
     return new NodeSquareBracket(*this);
   }

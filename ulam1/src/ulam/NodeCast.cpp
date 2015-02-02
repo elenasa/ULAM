@@ -11,7 +11,7 @@ namespace MFM {
 
   NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_explicit(ref.m_explicit)
   {
-    m_node = ref.m_node->clone();
+    m_node = ref.m_node->instantiate();
   }
 
   NodeCast::~NodeCast()
@@ -20,7 +20,7 @@ namespace MFM {
     m_node = NULL;
   }
 
-  Node * NodeCast::clone()
+  Node * NodeCast::instantiate()
   {
     return new NodeCast(*this);
   }

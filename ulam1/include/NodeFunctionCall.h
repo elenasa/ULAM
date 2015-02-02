@@ -52,7 +52,7 @@ namespace MFM{
     NodeFunctionCall(const NodeFunctionCall& ref);
     virtual ~NodeFunctionCall();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void printPostfix(File * fp);
 

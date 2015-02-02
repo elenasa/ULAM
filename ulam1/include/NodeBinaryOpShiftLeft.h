@@ -48,7 +48,7 @@ namespace MFM{
     NodeBinaryOpShiftLeft(const NodeBinaryOpShiftLeft& ref);
     virtual ~NodeBinaryOpShiftLeft();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

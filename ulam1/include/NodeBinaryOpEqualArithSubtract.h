@@ -48,7 +48,7 @@ namespace MFM{
     NodeBinaryOpEqualArithSubtract(const NodeBinaryOpEqualArithSubtract& ref);
     virtual ~NodeBinaryOpEqualArithSubtract();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

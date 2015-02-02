@@ -20,7 +20,7 @@ namespace MFM {
 
   NodeVarDecl::~NodeVarDecl() {}
 
-  Node * NodeVarDecl::clone()
+  Node * NodeVarDecl::instantiate()
   {
     return new NodeVarDecl(*this);
   }
@@ -61,7 +61,7 @@ namespace MFM {
   UTI NodeVarDecl::checkAndLabelType()
   {
     UTI it = Nav;
-    // clone, look up in current block
+    // instantiate, look up in current block
     if(m_varSymbol == NULL)
       {
 	Symbol * asymptr = NULL;
@@ -84,7 +84,7 @@ namespace MFM {
 	    msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      } //for clones
+      } //to instantiate
 
     if(m_varSymbol)
       {

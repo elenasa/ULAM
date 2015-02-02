@@ -48,7 +48,7 @@ namespace MFM{
     NodeBinaryOpEqualArithMultiply(const NodeBinaryOpEqualArithMultiply& ref);
     virtual ~NodeBinaryOpEqualArithMultiply();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

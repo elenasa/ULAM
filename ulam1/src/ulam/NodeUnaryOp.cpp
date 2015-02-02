@@ -7,7 +7,7 @@ namespace MFM {
   NodeUnaryOp::NodeUnaryOp(Node * n, CompilerState & state): Node(state), m_node(n) {}
   NodeUnaryOp::NodeUnaryOp(const NodeUnaryOp& ref) : Node(ref)
   {
-    m_node = ref.m_node->clone();
+    m_node = ref.m_node->instantiate();
   }
 
   NodeUnaryOp::~NodeUnaryOp()

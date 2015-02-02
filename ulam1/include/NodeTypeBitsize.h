@@ -50,7 +50,7 @@ namespace MFM{
     NodeTypeBitsize(const NodeTypeBitsize& ref);
     virtual ~NodeTypeBitsize();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void updateLineage(Node * p);
 

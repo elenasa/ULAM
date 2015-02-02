@@ -8,7 +8,7 @@ namespace MFM {
   NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node), m_currBlock(m_state.m_currentBlock), m_currBlockNo(m_state.getCurrentBlockNo()) {}
   NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo)
   {
-    m_node = ref.m_node->clone();
+    m_node = ref.m_node->instantiate();
   }
 
   NodeTypeBitsize::~NodeTypeBitsize()
@@ -17,7 +17,7 @@ namespace MFM {
     m_node = NULL;
   }
 
-  Node * NodeTypeBitsize::clone()
+  Node * NodeTypeBitsize::instantiate()
   {
     return new NodeTypeBitsize(*this);
   }

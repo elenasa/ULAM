@@ -8,7 +8,7 @@ namespace MFM {
   NodeContinueStatement::NodeContinueStatement(const NodeContinueStatement& ref) : Node(ref), m_gotolabelnum(ref.m_gotolabelnum) {}
   NodeContinueStatement::~NodeContinueStatement() {}
 
-  Node * NodeContinueStatement::clone()
+  Node * NodeContinueStatement::instantiate()
   {
     return new NodeContinueStatement(*this);
   }

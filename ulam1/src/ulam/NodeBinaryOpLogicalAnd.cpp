@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpLogicalAnd::NodeBinaryOpLogicalAnd(const NodeBinaryOpLogicalAnd& ref) : NodeBinaryOpLogical(ref) {}
   NodeBinaryOpLogicalAnd::~NodeBinaryOpLogicalAnd(){}
 
-  Node * NodeBinaryOpLogicalAnd::clone()
+  Node * NodeBinaryOpLogicalAnd::instantiate()
   {
     return new NodeBinaryOpLogicalAnd(*this);
   }

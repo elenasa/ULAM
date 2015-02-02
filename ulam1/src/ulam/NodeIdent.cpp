@@ -15,7 +15,7 @@ namespace MFM {
 
   NodeIdent::~NodeIdent(){}
 
-  Node * NodeIdent::clone()
+  Node * NodeIdent::instantiate()
   {
     return new NodeIdent(*this);
   }

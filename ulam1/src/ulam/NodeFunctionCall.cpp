@@ -14,7 +14,7 @@ namespace MFM {
   {
     for(u32 i = 0; i < ref.m_argumentNodes.size(); i++)
       {
-	m_argumentNodes.push_back(ref.m_argumentNodes[i]->clone()); //deep copy
+	m_argumentNodes.push_back(ref.m_argumentNodes[i]->instantiate()); //deep copy
       }
   }
 
@@ -28,7 +28,7 @@ namespace MFM {
     m_argumentNodes.clear();
   }
 
-  Node * NodeFunctionCall::clone()
+  Node * NodeFunctionCall::instantiate()
   {
     return new NodeFunctionCall(*this);
   }

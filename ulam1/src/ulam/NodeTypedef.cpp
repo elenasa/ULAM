@@ -17,7 +17,7 @@ namespace MFM {
 
   NodeTypedef::~NodeTypedef() {}
 
-  Node * NodeTypedef::clone()
+  Node * NodeTypedef::instantiate()
   {
     return new NodeTypedef(*this);
   }
@@ -56,7 +56,7 @@ namespace MFM {
   {
     UTI it = Nav;
 
-    // clone, look up in current block
+    // instantiate, look up in current block
     if(m_typedefSymbol == NULL)
       {
 	Symbol * asymptr = NULL;
@@ -79,7 +79,7 @@ namespace MFM {
 	    msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      } //for clones
+      } //toinstantiate
 
     if(m_typedefSymbol)
       {

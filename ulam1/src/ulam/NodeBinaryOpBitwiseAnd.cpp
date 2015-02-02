@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpBitwiseAnd::NodeBinaryOpBitwiseAnd(const NodeBinaryOpBitwiseAnd& ref) : NodeBinaryOpBitwise(ref) {}
   NodeBinaryOpBitwiseAnd::~NodeBinaryOpBitwiseAnd(){}
 
-  Node * NodeBinaryOpBitwiseAnd::clone()
+  Node * NodeBinaryOpBitwiseAnd::instantiate()
   {
     return new NodeBinaryOpBitwiseAnd(*this);
   }

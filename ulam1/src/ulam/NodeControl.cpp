@@ -8,8 +8,8 @@ namespace MFM {
   NodeControl::NodeControl(Node * condNode, Node * trueNode, CompilerState & state): Node(state), m_nodeCondition(condNode), m_nodeBody(trueNode) {}
   NodeControl::NodeControl(const NodeControl& ref) : Node(ref)
   {
-    m_nodeCondition = ref.m_nodeCondition->clone();
-    m_nodeBody = ref.m_nodeBody->clone();
+    m_nodeCondition = ref.m_nodeCondition->instantiate();
+    m_nodeBody = ref.m_nodeBody->instantiate();
   }
 
   NodeControl::~NodeControl()

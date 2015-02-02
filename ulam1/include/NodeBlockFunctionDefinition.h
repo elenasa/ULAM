@@ -52,7 +52,7 @@ namespace MFM{
 
     virtual ~NodeBlockFunctionDefinition();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void print(File * fp);
 
@@ -89,9 +89,9 @@ namespace MFM{
     bool m_isDefinition;
     u32 m_maxDepth;
     bool m_native;  //false by default, requires keyword
-    SymbolFunction * m_fsymTemplate; //for clones
+    SymbolFunction * m_fsymTemplate; //to instantiate
   };
 
 }
 
-#endif //end NODEBLOCKFUNCTIONDEFINITION_H
+#endif //NODEBLOCKFUNCTIONDEFINITION_H

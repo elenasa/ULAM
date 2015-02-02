@@ -16,7 +16,7 @@ namespace MFM {
     //do not delete prevBlockNode
   }
 
-  Node * NodeBlock::clone()
+  Node * NodeBlock::instantiate()
   {
     return new NodeBlock(*this);
   }

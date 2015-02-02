@@ -8,7 +8,7 @@ namespace MFM {
   NodeLabel::NodeLabel(const NodeLabel& ref) : Node(ref), m_labelnum(ref.m_labelnum) {}
   NodeLabel::~NodeLabel() {}
 
-  Node * NodeLabel::clone()
+  Node * NodeLabel::instantiate()
   {
     return new NodeLabel(*this);
   }

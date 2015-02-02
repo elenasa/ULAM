@@ -49,7 +49,7 @@ namespace MFM{
     NodeBinaryOpEqual(const NodeBinaryOpEqual& ref);
     virtual ~NodeBinaryOpEqual();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

@@ -8,7 +8,7 @@ namespace MFM {
   NodeConditionalHas::NodeConditionalHas(const NodeConditionalHas& ref) : NodeConditional(ref) {}
   NodeConditionalHas::~NodeConditionalHas() {}
 
-  Node * NodeConditionalHas::clone()
+  Node * NodeConditionalHas::instantiate()
   {
     return new NodeConditionalHas(*this);
   }

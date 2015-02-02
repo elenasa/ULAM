@@ -49,7 +49,7 @@ namespace MFM{
     NodeBinaryOpArithRemainder(const NodeBinaryOpArithRemainder& ref);
     virtual ~NodeBinaryOpArithRemainder();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

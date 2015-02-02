@@ -8,7 +8,7 @@ namespace MFM {
   NodeBinaryOpEqualArithAdd::NodeBinaryOpEqualArithAdd(const NodeBinaryOpEqualArithAdd& ref) : NodeBinaryOpEqualArith(ref) {}
   NodeBinaryOpEqualArithAdd::~NodeBinaryOpEqualArithAdd(){}
 
-  Node * NodeBinaryOpEqualArithAdd::clone()
+  Node * NodeBinaryOpEqualArithAdd::instantiate()
   {
     return new NodeBinaryOpEqualArithAdd(*this);
   }

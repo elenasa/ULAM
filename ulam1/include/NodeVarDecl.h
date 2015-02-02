@@ -50,7 +50,7 @@ namespace MFM{
     NodeVarDecl(const NodeVarDecl& ref);
     virtual ~NodeVarDecl();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void printPostfix(File * f);
 
@@ -72,7 +72,7 @@ namespace MFM{
 
   private:
     SymbolVariable * m_varSymbol;
-    u32 m_vid; // for clones
+    u32 m_vid; // to instantiate
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
     void genCodedElementParameter(File * fp, UlamValue uvpass);
     void genCodedAutoLocal(File * fp, UlamValue & uvpass);

@@ -48,7 +48,7 @@ namespace MFM{
     NodeMemberSelect(const NodeMemberSelect& ref);
     virtual ~NodeMemberSelect();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void printOp(File * f);
 

@@ -50,7 +50,7 @@ namespace MFM{
     NodeBinaryOpEqualBitwiseAnd(const NodeBinaryOpEqualBitwiseAnd& ref);
     virtual ~NodeBinaryOpEqualBitwiseAnd();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

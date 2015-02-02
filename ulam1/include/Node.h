@@ -62,7 +62,7 @@ namespace MFM{
     Node(const Node& ref);
     virtual ~Node() {}
 
-    virtual Node * clone() = 0;
+    virtual Node * instantiate() = 0;
 
     virtual void setYourParent(Node * parent);
     virtual void updateLineage(Node * p);

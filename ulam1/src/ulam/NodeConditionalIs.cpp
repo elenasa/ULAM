@@ -8,7 +8,7 @@ namespace MFM {
   NodeConditionalIs::NodeConditionalIs(const NodeConditionalIs& ref) : NodeConditional(ref) {}
   NodeConditionalIs::~NodeConditionalIs() {}
 
-  Node * NodeConditionalIs::clone()
+  Node * NodeConditionalIs::instantiate()
   {
     return new NodeConditionalIs(*this);
   }

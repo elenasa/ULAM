@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpEqualBitwiseOr::NodeBinaryOpEqualBitwiseOr(const NodeBinaryOpEqualBitwiseOr& ref) : NodeBinaryOpEqualBitwise(ref) {}
   NodeBinaryOpEqualBitwiseOr::~NodeBinaryOpEqualBitwiseOr(){}
 
-  Node * NodeBinaryOpEqualBitwiseOr::clone()
+  Node * NodeBinaryOpEqualBitwiseOr::instantiate()
   {
     return new NodeBinaryOpEqualBitwiseOr(*this);
   }

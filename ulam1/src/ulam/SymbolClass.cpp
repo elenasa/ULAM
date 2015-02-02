@@ -37,7 +37,7 @@ namespace MFM {
   {
     if(sref.m_classBlock)
       {
-	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->clone(); //note: wasn't correct uti during cloning
+	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
 	m_classBlock->setNodeType(sref.m_utypeIdx);
       }
     else

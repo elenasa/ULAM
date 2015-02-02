@@ -9,7 +9,7 @@ namespace MFM {
   NodeControlWhile::NodeControlWhile(const NodeControlWhile& ref) : NodeControl(ref) {}
   NodeControlWhile::~NodeControlWhile() {}
 
-  Node * NodeControlWhile::clone()
+  Node * NodeControlWhile::instantiate()
   {
     return new NodeControlWhile(*this);
   }

@@ -50,7 +50,7 @@ namespace MFM{
     NodeBreakStatement(const NodeBreakStatement& ref);
     virtual ~NodeBreakStatement();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void print(File * fp);
 

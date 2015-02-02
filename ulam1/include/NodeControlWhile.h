@@ -49,7 +49,7 @@ namespace MFM{
     NodeControlWhile(const NodeControlWhile& ref);
     virtual ~NodeControlWhile();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void print(File * fp);
 

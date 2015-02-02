@@ -8,7 +8,7 @@ namespace MFM {
   NodeControlIf::NodeControlIf(const NodeControlIf& ref) : NodeControl(ref)
   {
     if(ref.m_nodeElse)
-      m_nodeElse = ref.m_nodeElse->clone();
+      m_nodeElse = ref.m_nodeElse->instantiate();
     else
       m_nodeElse = NULL;
   }
@@ -19,7 +19,7 @@ namespace MFM {
     m_nodeElse = NULL;
   }
 
-  Node * NodeControlIf::clone()
+  Node * NodeControlIf::instantiate()
   {
     return new NodeControlIf(*this);
   }

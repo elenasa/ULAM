@@ -50,7 +50,7 @@ namespace MFM{
     NodeBlockEmpty(const NodeBlockEmpty& ref);
     virtual ~NodeBlockEmpty();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void print(File * fp);
 

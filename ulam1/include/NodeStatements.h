@@ -50,7 +50,7 @@ namespace MFM{
     NodeStatements(const NodeStatements& ref);
     virtual ~NodeStatements();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void updateLineage(Node * p);
 

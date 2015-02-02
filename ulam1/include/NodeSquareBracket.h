@@ -51,7 +51,7 @@ namespace MFM{
     NodeSquareBracket(const NodeSquareBracket& ref);
     virtual ~NodeSquareBracket();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void updateLineage(Node * p);
 
