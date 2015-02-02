@@ -338,7 +338,8 @@ namespace MFM {
       }
   } //generateAsOtherForwardDef
 
-  std::string SymbolClass::generateTestInstance(File * fp)
+  //  std::string SymbolClass::generateTestInstance(File * fp)
+  void SymbolClass::generateTestInstance(File * fp)
   {
     std::ostringstream runThisTest;
     UTI suti = getUlamTypeIdx();
@@ -348,8 +349,16 @@ namespace MFM {
     std::ostringstream ourname;
     ourname << "Our" << namestr;
 
-    // only for elements, thisCompileIdx, restricted by caller
     fp->write("\n");
+
+    if(getId() == m_state.m_compileThisId)
+      {
+	m_state.indent(fp);
+	fp->write("{\n");
+	m_state.m_currentIndentLevel++;
+      }
+
+    // only for elements, as restricted by caller
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write("MFM::");
@@ -375,15 +384,35 @@ namespace MFM {
     fp->write(lowercasename.c_str());
     fp->write(");\n");
 
-    m_state.indent(fp);
-    fp->write("OurAtom ");
-    fp->write(lowercasename.c_str());
-    fp->write("Atom = ");
-    fp->write(lowercasename.c_str());
-    fp->write(".GetDefaultAtom();\n");
+    if(getId() == m_state.m_compileThisId)
+      {
+	m_state.indent(fp);
+	fp->write("OurAtom ");
+	fp->write(lowercasename.c_str());
+	fp->write("Atom = ");
+	fp->write(lowercasename.c_str());
+	fp->write(".GetDefaultAtom();\n");
 
-    runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
-    return runThisTest.str();
+	runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
+
+	m_state.indent(fp);
+	fp->write("MFM::Ui_Ut_102323Int rtn;\n");
+
+	m_state.indent(fp);
+	fp->write("rtn = ");
+	fp->write(runThisTest.str().c_str()); //uses hardcoded mangled test name
+	fp->write(";\n");
+
+	m_state.indent(fp);
+	fp->write("//return rtn.read();\n"); //was useful to return result of test
+
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("} //testmain for ");
+	fp->write(sut->getUlamTypeMangledName().c_str());
+	fp->write("\n");
+      }
+    //return runThisTest.str();
   } //generateTestInstance
 
   void SymbolClass::generateHeaderPreamble(File * fp)
@@ -560,34 +589,15 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("uc.SetTile(theTile);\n");
 
-    //declare an instance of all element classes; supports immediate types constructors
-    std::string runThisTest = m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
+    m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
     m_state.indent(fp);
-    fp->write("MFM::Ui_Ut_102323Int rtn;\n");
-
-    m_state.indent(fp);
-    fp->write("rtn = ");
-    fp->write(runThisTest.c_str());  //uses hardcoded mangled test name
-    fp->write(";\n");
-
-#if 0
-    // output for t3200 (before System native), compile gen code & run: ./main
-    m_state.indent(fp);
-    fp->write("printf(\"Bar1 toInt = %d\\n\", OurFoo::Ut_Um_4bar1::Uf_5toInt(uc, fooAtom).read());\n");
-    m_state.indent(fp);
-    fp->write("printf(\"Bar2 toInt = %d\\n\", OurFoo::Ut_Um_4bar2::Uf_5toInt(uc, fooAtom).read());\n");
-    //Int(4) maxes out at 7, not 12.
-#endif
-
-    m_state.indent(fp);
-    //fp->write("return 0;\n");
-    fp->write("return rtn.read();\n");         // useful to return result of test
+    fp->write("return 0;\n");
 
     m_state.m_currentIndentLevel--;
-
     m_state.indent(fp);
     fp->write("} //main \n");
+
     delete fp; //close
   } //generateMain
 

@@ -1731,7 +1731,14 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "src/";
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";
+
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    u32 numParams = cnsym->getNumberOfParameters();
+    if( numParams > 0)
+      f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << m_pool.getDataAsString(m_compileThisId).c_str() << DigitCount(numParams, BASE10) << numParams << "_main.cpp";
+    else
+      f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";
     return f.str();
   } //getFileNameForThisClassMain
 
