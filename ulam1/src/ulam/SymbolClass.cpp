@@ -344,19 +344,30 @@ namespace MFM {
     std::ostringstream runThisTest;
     UTI suti = getUlamTypeIdx();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
-    std::string namestr = sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-    std::string lowercasename = firstletterTolowercase(namestr);
+
+    // this could be us! should know our parent!!! XXX
+    SymbolClassName * cnsym = NULL;
+    assert(m_state.alreadyDefinedSymbolClassName(getId(), cnsym));
+    std::string tail = cnsym->formatAnInstancesArgValuesAsAString(suti);
+
+    std::ostringstream namestr;
+    namestr << m_state.m_pool.getDataAsString(getId()) << tail;
+
+    std::string lowercasename = firstletterTolowercase(namestr.str());
+
     std::ostringstream ourname;
-    ourname << "Our" << namestr;
+    ourname << "Our" << namestr.str();
 
     fp->write("\n");
 
+#if 0
     if(getId() == m_state.m_compileThisId)
       {
 	m_state.indent(fp);
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
       }
+#endif
 
     // only for elements, as restricted by caller
     m_state.indent(fp);
@@ -395,8 +406,8 @@ namespace MFM {
 
 	runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
 
-	m_state.indent(fp);
-	fp->write("MFM::Ui_Ut_102323Int rtn;\n");
+	//m_state.indent(fp);
+	//fp->write("MFM::Ui_Ut_102323Int rtn;\n");
 
 	m_state.indent(fp);
 	fp->write("rtn = ");
@@ -406,13 +417,14 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("//return rtn.read();\n"); //was useful to return result of test
 
+#if 0
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
 	fp->write("} //testmain for ");
 	fp->write(sut->getUlamTypeMangledName().c_str());
 	fp->write("\n");
+#endif
       }
-    //return runThisTest.str();
   } //generateTestInstance
 
   void SymbolClass::generateHeaderPreamble(File * fp)
@@ -588,6 +600,9 @@ namespace MFM {
     fp->write("OurUlamContext uc;\n");
     m_state.indent(fp);
     fp->write("uc.SetTile(theTile);\n");
+
+    m_state.indent(fp);
+    fp->write("MFM::Ui_Ut_102323Int rtn;\n");
 
     m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
