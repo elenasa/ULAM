@@ -145,7 +145,7 @@ namespace MFM {
 
     m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate
 
-    m_state.m_programDefST.updateLineageForTableOfClasses();
+    m_state.m_programDefST.updateLineageForTableOfClasses(); //includes prev blocks for class instances
 
     // type set at parse time (needed for square bracket checkandlabel);
     // so, here we just check for matching arg types.
@@ -158,7 +158,9 @@ namespace MFM {
 	if(navcountertries++ > 2)
 	  break;
 
+	//checkAndLabelTypes:
 	m_state.m_programDefST.labelTableOfClasses();
+
 	if(m_state.m_err.getErrorCount() == 0)
 	  {
 	    bool sumbrtn = true;
