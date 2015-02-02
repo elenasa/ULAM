@@ -344,7 +344,7 @@ namespace MFM {
       }
   } //generateAsOtherForwardDef
 
-  void SymbolClass::generateTestInstance(File * fp)
+  void SymbolClass::generateTestInstance(File * fp, bool runtest)
   {
     std::ostringstream runThisTest;
     UTI suti = getUlamTypeIdx();
@@ -352,7 +352,6 @@ namespace MFM {
 
     SymbolClassName * cnsym = m_parentTemplate;
     assert(cnsym);
-    //assert(m_state.alreadyDefinedSymbolClassName(getId(), cnsym));
     std::string tail = cnsym->formatAnInstancesArgValuesAsAString(suti);
     std::ostringstream namestr;
     namestr << m_state.m_pool.getDataAsString(getId()) << tail;
@@ -361,52 +360,59 @@ namespace MFM {
     std::ostringstream ourname;
     ourname << "Our" << namestr.str();
 
-    fp->write("\n");
-
-    // only for elements, as restricted by caller
-    m_state.indent(fp);
-    fp->write("typedef ");
-    fp->write("MFM::");
-    fp->write(sut->getUlamTypeMangledName().c_str());
-
-    fp->write("<OurCoreConfig> ");
-    fp->write(ourname.str().c_str());
-    fp->write(";\n");
-
-    m_state.indent(fp);
-    fp->write(ourname.str().c_str());
-    fp->write("& ");
-    fp->write(lowercasename.c_str());
-    fp->write(" = ");
-    fp->write(ourname.str().c_str());
-    fp->write("::THE_INSTANCE;\n");
-
-    m_state.indent(fp);
-    fp->write(lowercasename.c_str());
-    fp->write(".AllocateType();  // Force element type allocation now\n");
-    m_state.indent(fp);
-    fp->write("theTile.RegisterElement(");
-    fp->write(lowercasename.c_str());
-    fp->write(");\n");
-
-    if(getId() == m_state.m_compileThisId)
+    if(!runtest)
       {
+	fp->write("\n");
+	// only for elements, as restricted by caller
 	m_state.indent(fp);
-	fp->write("OurAtom ");
-	fp->write(lowercasename.c_str());
-	fp->write("Atom = ");
-	fp->write(lowercasename.c_str());
-	fp->write(".GetDefaultAtom();\n");
+	fp->write("typedef ");
+	fp->write("MFM::");
+	fp->write(sut->getUlamTypeMangledName().c_str());
 
-	runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
-
-	m_state.indent(fp);
-	fp->write("rtn = ");
-	fp->write(runThisTest.str().c_str()); //uses hardcoded mangled test name
+	fp->write("<OurCoreConfig> ");
+	fp->write(ourname.str().c_str());
 	fp->write(";\n");
 
 	m_state.indent(fp);
-	fp->write("//return rtn.read();\n"); //was useful to return result of test
+	fp->write(ourname.str().c_str());
+	fp->write("& ");
+	fp->write(lowercasename.c_str());
+	fp->write(" = ");
+	fp->write(ourname.str().c_str());
+	fp->write("::THE_INSTANCE;\n");
+
+	m_state.indent(fp);
+	fp->write(lowercasename.c_str());
+	fp->write(".AllocateType();  // Force element type allocation now\n");
+	m_state.indent(fp);
+	fp->write("theTile.RegisterElement(");
+	fp->write(lowercasename.c_str());
+	fp->write(");\n");
+      }
+    else
+      {
+	if(getId() == m_state.m_compileThisId)
+	  {
+	    fp->write("\n");
+	    m_state.indent(fp);
+	    fp->write("OurAtom ");
+	    fp->write(lowercasename.c_str());
+	    fp->write("Atom = ");
+	    fp->write(lowercasename.c_str());
+	    fp->write(".GetDefaultAtom();\n");
+
+	    runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
+
+	    m_state.indent(fp);
+	    fp->write("rtn = ");
+	    fp->write(runThisTest.str().c_str()); //uses hardcoded mangled test name
+	    fp->write(";\n");
+
+	    m_state.indent(fp);
+	    fp->write("//return rtn.read();\n"); //was useful to return result of test
+	    m_state.indent(fp);
+	    fp->write("//std::cerr << rtn.read() << std::endl;\n"); //useful to return result of test?
+	  }
       }
   } //generateTestInstance
 
@@ -535,7 +541,9 @@ namespace MFM {
     m_state.m_currentIndentLevel = 0;
 
     m_state.indent(fp);
-    fp->write("#include <stdio.h>\n\n");
+    fp->write("#include <stdio.h>\n");
+    m_state.indent(fp);
+    fp->write("#include <iostream>\n\n"); //to cout/cerr rtn
 
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");

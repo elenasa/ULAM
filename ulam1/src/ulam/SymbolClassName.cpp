@@ -730,11 +730,11 @@ namespace MFM {
       }
   } //generateForwardDefsForClassInstances
 
-  void SymbolClassName::generateTestInstanceForClassInstances(File * fp)
+  void SymbolClassName::generateTestInstanceForClassInstances(File * fp, bool runtest)
   {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
-	SymbolClass::generateTestInstance(fp);
+	SymbolClass::generateTestInstance(fp, runtest);
 	return;
       }
 
@@ -748,7 +748,7 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 	assert(csym);
-	csym->generateTestInstance(fp);
+	csym->generateTestInstance(fp, runtest);
 	it++;
       }
   } //generateTestInstanceForClassInstances
