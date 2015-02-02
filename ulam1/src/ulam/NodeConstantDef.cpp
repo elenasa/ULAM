@@ -16,7 +16,7 @@ namespace MFM {
   NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo), m_cid(ref.m_cid)
   {
     if(ref.m_exprnode)
-      m_exprnode = ref.m_exprnode->clone();
+      m_exprnode = ref.m_exprnode->instantiate();
     else
       m_exprnode = NULL;
   }
@@ -27,7 +27,7 @@ namespace MFM {
     m_exprnode = NULL;
   }
 
-  Node * NodeConstantDef::clone()
+  Node * NodeConstantDef::instantiate()
   {
     return new NodeConstantDef(*this);
   }
@@ -74,7 +74,7 @@ namespace MFM {
   UTI NodeConstantDef::checkAndLabelType()
   {
     UTI it = Nav;
-    // clone, look up in current block
+    // instantiate, look up in current block
     if(m_constSymbol == NULL)
       {
 	Symbol * asymptr = NULL;
@@ -97,7 +97,7 @@ namespace MFM {
 	    msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      } //for clones
+      } //toinstantiate
 
     assert(m_exprnode);
     it = m_exprnode->checkAndLabelType();

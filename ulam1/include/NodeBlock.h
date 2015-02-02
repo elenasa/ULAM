@@ -51,7 +51,7 @@ namespace MFM{
     NodeBlock(const NodeBlock& ref);
     virtual ~NodeBlock();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void updateLineage(Node * p);
 

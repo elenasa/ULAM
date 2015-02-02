@@ -48,7 +48,7 @@ namespace MFM{
     NodeBinaryOpCompareGreaterThan(const NodeBinaryOpCompareGreaterThan& ref);
     virtual ~NodeBinaryOpCompareGreaterThan();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

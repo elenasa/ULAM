@@ -52,7 +52,7 @@ namespace MFM{
     NodeConstant(const NodeConstant& ref);
     virtual ~NodeConstant();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void printPostfix(File * fp);
 

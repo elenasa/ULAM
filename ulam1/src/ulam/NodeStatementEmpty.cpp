@@ -8,7 +8,7 @@ namespace MFM {
   NodeStatementEmpty::NodeStatementEmpty(const NodeStatementEmpty& ref) : Node(ref) {}
   NodeStatementEmpty::~NodeStatementEmpty() {}
 
-  Node * NodeStatementEmpty::clone()
+  Node * NodeStatementEmpty::instantiate()
   {
     return new NodeStatementEmpty(*this);
   }

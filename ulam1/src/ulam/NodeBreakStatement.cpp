@@ -8,7 +8,7 @@ namespace MFM {
   NodeBreakStatement::NodeBreakStatement(const NodeBreakStatement& ref) : Node(ref) {}
   NodeBreakStatement::~NodeBreakStatement() {}
 
-  Node * NodeBreakStatement::clone()
+  Node * NodeBreakStatement::instantiate()
   {
     return new NodeBreakStatement(*this);
   }

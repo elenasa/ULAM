@@ -49,7 +49,7 @@ namespace MFM{
     NodeConditionalAs(const NodeConditionalAs& ref);
     virtual ~NodeConditionalAs();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

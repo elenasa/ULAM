@@ -8,7 +8,7 @@ namespace MFM {
   NodeReturnStatement::NodeReturnStatement(const NodeReturnStatement& ref) : Node(ref)
   {
     if(ref.m_node)
-      m_node = ref.m_node->clone();
+      m_node = ref.m_node->instantiate();
     else
       m_node = NULL;
   }
@@ -19,7 +19,7 @@ namespace MFM {
     m_node = NULL;
   }
 
-  Node * NodeReturnStatement::clone()
+  Node * NodeReturnStatement::instantiate()
   {
     return new NodeReturnStatement(*this);
   }

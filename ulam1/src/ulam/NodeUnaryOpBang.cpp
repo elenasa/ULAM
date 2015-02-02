@@ -7,7 +7,7 @@ namespace MFM {
   NodeUnaryOpBang::NodeUnaryOpBang(const NodeUnaryOpBang& ref) : NodeUnaryOp(ref) {}
   NodeUnaryOpBang::~NodeUnaryOpBang(){}
 
-  Node * NodeUnaryOpBang::clone()
+  Node * NodeUnaryOpBang::instantiate()
   {
     return new NodeUnaryOpBang(*this);
   }

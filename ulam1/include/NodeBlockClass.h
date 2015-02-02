@@ -51,7 +51,7 @@ namespace MFM{
     NodeBlockClass(const NodeBlockClass& ref);
     virtual ~NodeBlockClass();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     bool isEmpty();
 

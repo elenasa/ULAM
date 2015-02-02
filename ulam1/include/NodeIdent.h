@@ -52,7 +52,7 @@ namespace MFM{
     NodeIdent(const NodeIdent& ref);
     virtual ~NodeIdent();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void printPostfix(File * fp);
 

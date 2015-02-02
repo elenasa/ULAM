@@ -8,12 +8,12 @@ namespace MFM {
   NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref)
   {
     if(ref.m_node)
-      m_node = ref.m_node->clone();
+      m_node = ref.m_node->instantiate();
     else
       m_node = NULL;
 
     if(ref.m_nextNode)
-      m_nextNode = (NodeStatements *) ref.m_nextNode->clone();
+      m_nextNode = (NodeStatements *) ref.m_nextNode->instantiate();
     else
       m_nextNode = NULL;
   }
@@ -27,7 +27,7 @@ namespace MFM {
     m_node = NULL;
   }
 
-  Node * NodeStatements::clone()
+  Node * NodeStatements::instantiate()
   {
     return new NodeStatements(*this);
   }

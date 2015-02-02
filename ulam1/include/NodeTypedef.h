@@ -50,7 +50,7 @@ namespace MFM{
     NodeTypedef(const NodeTypedef& ref);
     virtual ~NodeTypedef();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void printPostfix(File * f);
 
@@ -70,7 +70,7 @@ namespace MFM{
 
   private:
     SymbolTypedef * m_typedefSymbol;
-    u32 m_tdid; //for clones
+    u32 m_tdid; //to instantiate
   };
 
 }

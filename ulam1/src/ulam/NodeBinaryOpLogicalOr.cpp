@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpLogicalOr::NodeBinaryOpLogicalOr(const NodeBinaryOpLogicalOr& ref) : NodeBinaryOpLogical(ref) {}
   NodeBinaryOpLogicalOr::~NodeBinaryOpLogicalOr(){}
 
-  Node * NodeBinaryOpLogicalOr::clone()
+  Node * NodeBinaryOpLogicalOr::instantiate()
   {
     return new NodeBinaryOpLogicalOr(*this);
   }

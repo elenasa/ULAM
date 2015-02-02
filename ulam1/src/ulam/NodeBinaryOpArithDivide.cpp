@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& ref) : NodeBinaryOpArith(ref) {}
   NodeBinaryOpArithDivide::~NodeBinaryOpArithDivide(){}
 
-  Node * NodeBinaryOpArithDivide::clone()
+  Node * NodeBinaryOpArithDivide::instantiate()
   {
     return new NodeBinaryOpArithDivide(*this);
   }

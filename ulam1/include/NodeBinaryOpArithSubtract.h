@@ -49,7 +49,7 @@ namespace MFM{
     NodeBinaryOpArithSubtract(const NodeBinaryOpArithSubtract& ref);
     virtual ~NodeBinaryOpArithSubtract();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void printOp(File * fp);
 

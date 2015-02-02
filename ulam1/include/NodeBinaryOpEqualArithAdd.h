@@ -49,7 +49,7 @@ namespace MFM{
     NodeBinaryOpEqualArithAdd(const NodeBinaryOpEqualArithAdd& ref);
     virtual ~NodeBinaryOpEqualArithAdd();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

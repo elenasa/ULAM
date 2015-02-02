@@ -49,7 +49,7 @@ namespace MFM{
     NodeUnaryOpBang(const NodeUnaryOpBang& ref);
     virtual ~NodeUnaryOpBang();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual UTI checkAndLabelType();
 

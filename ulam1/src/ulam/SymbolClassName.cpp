@@ -265,7 +265,6 @@ namespace MFM {
 	delete csym;
 	csym = NULL;
 	it->second = clone;
-	//repairClassParameterBasedSymbols(clone);
 	it++;
       } //while
   } //cloneInstances

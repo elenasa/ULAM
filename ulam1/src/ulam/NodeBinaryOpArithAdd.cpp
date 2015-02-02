@@ -8,7 +8,7 @@ namespace MFM {
 
   NodeBinaryOpArithAdd::~NodeBinaryOpArithAdd(){}
 
-  Node * NodeBinaryOpArithAdd::clone()
+  Node * NodeBinaryOpArithAdd::instantiate()
   {
     return new NodeBinaryOpArithAdd(*this);
   }

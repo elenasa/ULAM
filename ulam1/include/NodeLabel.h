@@ -50,7 +50,7 @@ namespace MFM{
     NodeLabel(const NodeLabel& ref);
     virtual ~NodeLabel();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void print(File * fp);
 

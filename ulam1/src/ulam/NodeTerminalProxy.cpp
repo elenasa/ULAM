@@ -14,7 +14,7 @@ namespace MFM {
   NodeTerminalProxy::~NodeTerminalProxy() {}
 
 
-  Node * NodeTerminalProxy::clone()
+  Node * NodeTerminalProxy::instantiate()
   {
     return new NodeTerminalProxy(*this);
   }

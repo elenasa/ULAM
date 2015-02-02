@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpCompareNotEqual::NodeBinaryOpCompareNotEqual(const NodeBinaryOpCompareNotEqual& ref) : NodeBinaryOpCompare(ref) {}
   NodeBinaryOpCompareNotEqual::~NodeBinaryOpCompareNotEqual(){}
 
-  Node * NodeBinaryOpCompareNotEqual::clone()
+  Node * NodeBinaryOpCompareNotEqual::instantiate()
   {
     return new NodeBinaryOpCompareNotEqual(*this);
   }

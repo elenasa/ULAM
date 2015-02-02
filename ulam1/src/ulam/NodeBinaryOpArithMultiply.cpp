@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpArithMultiply::NodeBinaryOpArithMultiply(const NodeBinaryOpArithMultiply& ref) : NodeBinaryOpArith(ref) {}
   NodeBinaryOpArithMultiply::~NodeBinaryOpArithMultiply() {}
 
-  Node * NodeBinaryOpArithMultiply::clone()
+  Node * NodeBinaryOpArithMultiply::instantiate()
   {
     return new NodeBinaryOpArithMultiply(*this);
   }

@@ -51,7 +51,7 @@ namespace MFM{
     NodeConstantDef(const NodeConstantDef& ref);
     virtual ~NodeConstantDef();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void updateLineage(Node * p);
 
@@ -85,7 +85,7 @@ namespace MFM{
     Node * m_exprnode;
     NodeBlock * m_currBlock;
     NNO m_currBlockNo;
-    u32 m_cid; //for clones
+    u32 m_cid; //to instantiate
   };
 
 } //MFM

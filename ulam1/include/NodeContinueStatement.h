@@ -50,7 +50,7 @@ namespace MFM{
     NodeContinueStatement(const NodeContinueStatement& ref);
     virtual ~NodeContinueStatement();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void print(File * fp);
 

@@ -49,7 +49,7 @@ namespace MFM{
     NodeCast(const NodeCast& ref);
     virtual ~NodeCast();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

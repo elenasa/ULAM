@@ -49,7 +49,7 @@ namespace MFM{
     NodeStatementEmpty(const NodeStatementEmpty& ref);
     virtual ~NodeStatementEmpty();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void updateLineage(Node * p);
 

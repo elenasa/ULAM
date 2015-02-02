@@ -49,7 +49,7 @@ namespace MFM{
     NodeControlIf(const NodeControlIf& ref);
     virtual ~NodeControlIf();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual void updateLineage(Node * p);
 

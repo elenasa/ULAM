@@ -7,7 +7,7 @@ namespace MFM {
   NodeUnaryOpMinus::NodeUnaryOpMinus(const NodeUnaryOpMinus& ref) : NodeUnaryOp(ref) {}
   NodeUnaryOpMinus::~NodeUnaryOpMinus(){}
 
-  Node * NodeUnaryOpMinus::clone()
+  Node * NodeUnaryOpMinus::instantiate()
   {
     return new NodeUnaryOpMinus(*this);
   }

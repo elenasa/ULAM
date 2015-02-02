@@ -49,7 +49,7 @@ namespace MFM{
     NodeUnaryOpPlus(const NodeUnaryOpPlus& ref);
     virtual ~NodeUnaryOpPlus();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

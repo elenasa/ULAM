@@ -7,7 +7,7 @@ namespace MFM {
   NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
   NodeMemberSelect::~NodeMemberSelect(){}
 
-  Node * NodeMemberSelect::clone()
+  Node * NodeMemberSelect::instantiate()
   {
     return new NodeMemberSelect(*this);
   }

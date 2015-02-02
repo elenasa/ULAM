@@ -15,7 +15,7 @@ namespace MFM {
 
   NodeBlockClass::~NodeBlockClass() {}
 
-  Node * NodeBlockClass::clone()
+  Node * NodeBlockClass::instantiate()
   {
     return new NodeBlockClass(*this);
   }

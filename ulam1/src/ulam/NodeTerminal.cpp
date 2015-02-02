@@ -39,7 +39,7 @@ namespace MFM {
 
   NodeTerminal::~NodeTerminal(){}
 
-  Node * NodeTerminal::clone()
+  Node * NodeTerminal::instantiate()
   {
     return new NodeTerminal(*this);
   }

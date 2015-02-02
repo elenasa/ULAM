@@ -7,7 +7,7 @@ namespace MFM {
   NodeSimpleStatement::NodeSimpleStatement(Node * s, CompilerState & state) : Node(state), m_node(s) {}
   NodeSimpleStatement::NodeSimpleStatement(const NodeSimpleStatement& ref) : Node(ref)
   {
-    m_node = ref.m_node->clone();
+    m_node = ref.m_node->instantiate();
   }
 
   NodeSimpleStatement::~NodeSimpleStatement()
@@ -16,7 +16,7 @@ namespace MFM {
     m_node = NULL;
   }
 
-  Node * NodeSimpleStatement::clone()
+  Node * NodeSimpleStatement::instantiate()
   {
     return new NodeSimpleStatement(*this);
   }

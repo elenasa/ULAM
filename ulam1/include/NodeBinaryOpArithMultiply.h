@@ -49,7 +49,7 @@ namespace MFM{
     NodeBinaryOpArithMultiply(const NodeBinaryOpArithMultiply& ref);
     virtual ~NodeBinaryOpArithMultiply();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

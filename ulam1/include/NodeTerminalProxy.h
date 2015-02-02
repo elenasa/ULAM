@@ -50,7 +50,7 @@ namespace MFM{
     NodeTerminalProxy(const NodeTerminalProxy& ref);
     virtual ~NodeTerminalProxy();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const std::string prettyNodeName();
 

@@ -49,7 +49,7 @@ namespace MFM{
     NodeBinaryOpBitwiseXor(const NodeBinaryOpBitwiseXor& ref);
     virtual ~NodeBinaryOpBitwiseXor();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

@@ -49,7 +49,7 @@ namespace MFM{
     NodeBinaryOpEqualBitwiseOr(const NodeBinaryOpEqualBitwiseOr& ref);
     virtual ~NodeBinaryOpEqualBitwiseOr();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
 
     virtual const char * getName();

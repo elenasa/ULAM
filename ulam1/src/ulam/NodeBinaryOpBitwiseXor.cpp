@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpBitwiseXor::NodeBinaryOpBitwiseXor(const NodeBinaryOpBitwiseXor& ref) : NodeBinaryOpBitwise(ref) {}
   NodeBinaryOpBitwiseXor::~NodeBinaryOpBitwiseXor(){}
 
-  Node * NodeBinaryOpBitwiseXor::clone()
+  Node * NodeBinaryOpBitwiseXor::instantiate()
   {
     return new NodeBinaryOpBitwiseXor(*this);
   }

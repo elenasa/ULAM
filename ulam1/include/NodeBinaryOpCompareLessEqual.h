@@ -48,7 +48,7 @@ namespace MFM{
     NodeBinaryOpCompareLessEqual(const NodeBinaryOpCompareLessEqual& ref);
     virtual ~NodeBinaryOpCompareLessEqual();
 
-    virtual Node * clone();
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

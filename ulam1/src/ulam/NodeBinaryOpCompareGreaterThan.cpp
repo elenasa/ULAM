@@ -7,7 +7,7 @@ namespace MFM {
   NodeBinaryOpCompareGreaterThan::NodeBinaryOpCompareGreaterThan(const NodeBinaryOpCompareGreaterThan& ref) : NodeBinaryOpCompare(ref) {}
   NodeBinaryOpCompareGreaterThan::~NodeBinaryOpCompareGreaterThan(){}
 
-  Node * NodeBinaryOpCompareGreaterThan::clone()
+  Node * NodeBinaryOpCompareGreaterThan::instantiate()
   {
     return new NodeBinaryOpCompareGreaterThan(*this);
   }
