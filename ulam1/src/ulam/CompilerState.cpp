@@ -981,8 +981,6 @@ namespace MFM {
 	    SymbolClassName * cnsym = NULL;
 	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	      {
-		//UTI ut = cnsym->getUlamTypeIdx();
-		//bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
 		bUT = Class;
 	      }
 	  }
@@ -1371,8 +1369,9 @@ namespace MFM {
     UlamType * ict = getUlamTypeByIndex(incomplete);
     if(alreadyDefinedSymbolClass(incomplete, csym))
       {
-	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
+	SymbolClassName * cnsym = csym->getParentClassTemplate();
+	assert(cnsym);
+	//assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
 	UTI but = cnsym->getUlamTypeIdx();
 
 	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();

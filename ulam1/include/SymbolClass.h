@@ -44,11 +44,12 @@ namespace MFM{
 
 
   class CompilerState;  //forward
+  class SymbolClassName;  //forward
 
   class SymbolClass : public Symbol
   {
   public:
-    SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
+    SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassName * parent, CompilerState& state);
     SymbolClass(const SymbolClass& sref);
     virtual ~SymbolClass();
 
@@ -61,6 +62,8 @@ namespace MFM{
     void setClassBlockNode(NodeBlockClass * node);
 
     NodeBlockClass * getClassBlockNode();
+
+    SymbolClassName * getParentClassTemplate();
 
     virtual const std::string getMangledPrefix();
 
@@ -90,6 +93,7 @@ namespace MFM{
 
   private:
     NodeBlockClass * m_classBlock;
+    SymbolClassName * m_parentTemplate;
     bool m_quarkunion;
 
     void generateHeaderPreamble(File * fp);

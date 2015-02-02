@@ -2,6 +2,7 @@
 #include <string.h>
 #include "CompilerState.h"
 #include "SymbolClass.h"
+#include "SymbolClassName.h"
 
 namespace MFM {
 
@@ -31,9 +32,9 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_quarkunion(false){}
+  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassName * parent, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false){}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_quarkunion(sref.m_quarkunion)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion)
   {
     if(sref.m_classBlock)
       {
@@ -64,6 +65,11 @@ namespace MFM {
   NodeBlockClass * SymbolClass::getClassBlockNode()
   {
     return m_classBlock;
+  }
+
+  SymbolClassName * SymbolClass::getParentClassTemplate()
+  {
+    return m_parentTemplate; //could be self
   }
 
   bool SymbolClass::isClass()
@@ -344,9 +350,9 @@ namespace MFM {
     UTI suti = getUlamTypeIdx();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
 
-    // this could be us! should know our parent!!! XXX
-    SymbolClassName * cnsym = NULL;
-    assert(m_state.alreadyDefinedSymbolClassName(getId(), cnsym));
+    SymbolClassName * cnsym = m_parentTemplate;
+    assert(cnsym);
+    //assert(m_state.alreadyDefinedSymbolClassName(getId(), cnsym));
     std::string tail = cnsym->formatAnInstancesArgValuesAsAString(suti);
     std::ostringstream namestr;
     namestr << m_state.m_pool.getDataAsString(getId()) << tail;

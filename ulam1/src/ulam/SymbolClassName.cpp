@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, state){}
+  SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, this, state){}
 
   SymbolClassName::~SymbolClassName()
   {
@@ -82,7 +82,7 @@ namespace MFM {
     newblockclass->setNodeType(cuti);
     newblockclass->setClassTemplateParent(getUlamTypeIdx()); //so it knows it's an instance with a template parent
 
-    SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, m_state);
+    SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, this, m_state);
     assert(newclassinstance);
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
