@@ -460,6 +460,10 @@ namespace MFM {
   {
     UlamType * ut1 = state.getUlamTypeByIndex(u1);
     UlamType * ut2 = state.getUlamTypeByIndex(u2);
+    ULAMCLASSTYPE ct1 = ut1->getUlamClass();
+    ULAMCLASSTYPE ct2 = ut2->getUlamClass();
+    UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
+    UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
 
     // no longer the case given class arguments! may end up with different sizes given different
     // argument values which may or may not be known while parsing! t.f. classes are much more like
@@ -468,26 +472,27 @@ namespace MFM {
     // and will have the same UTIs.
     if(!ut1->isComplete())
       {
-	if(ut1->getUlamClass() == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
+	if(ct1 == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
 	  return UTIC_DONTKNOW;
 
-	UTI classid1 = ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
-	if(classid1 != Nav && classid1 != ut2->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx())
+	//class with known arraysize(scalar or o.w.); no more Nav ids.
+	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
 	  return UTIC_DONTKNOW;
       }
 
     if(!ut2->isComplete())
       {
-	if(ut2->getUlamClass() == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
-	return UTIC_DONTKNOW;
+	if(ct2 == UC_NOTACLASS || ut2->getArraySize() == UNKNOWNSIZE)
+	  return UTIC_DONTKNOW;
 
-	UTI classid2 = ut2->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
-	if(classid2 != Nav && classid2 != ut1->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx())
+	//class with known arraysize(scalar or o.w.); no more Nav ids.
+	if(key1.getUlamKeyTypeSignatureClassInstanceIdx() != key2.getUlamKeyTypeSignatureClassInstanceIdx())
 	  return UTIC_DONTKNOW;
       }
 
+    //both complete!
     //assert both key and ptr are either both equal or not equal; not different ('!^' eq '==')
-    assert((ut1->getUlamKeyTypeSignature() == ut2->getUlamKeyTypeSignature()) == (ut1 == ut2));
+    assert((key1 == key2) == (ut1 == ut2));
     return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
   } //compare (static)
 

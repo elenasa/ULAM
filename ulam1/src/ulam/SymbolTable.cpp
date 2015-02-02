@@ -878,15 +878,13 @@ namespace MFM {
     fp->write("\n");
   } //generateTestInstancesForTableOfClasses
 
-  //not sure we use this; go back and forth between the files that are output
-  // if just this class, then NodeProgram can start the ball rolling
   void SymbolTable::genCodeForTableOfClasses(FileManager * fm)
   {
+    mergeInstancesBeforeCodeGenForTableOfClasses();
+
     u32 saveCompileThisId = m_state.m_compileThisId;
     UTI saveCompileThisIdx = m_state.m_compileThisIdx;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
-    //m_state.m_err.clearCounts();
 
     while(it != m_idToSymbolPtr.end())
       {
@@ -904,6 +902,25 @@ namespace MFM {
     m_state.m_compileThisIdx = saveCompileThisIdx;  //restore
   } //genCodeForTableOfClasses
 
+  void SymbolTable::mergeInstancesBeforeCodeGenForTableOfClasses()
+  {
+    u32 saveCompileThisId = m_state.m_compileThisId;
+    UTI saveCompileThisIdx = m_state.m_compileThisIdx;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	m_state.m_compileThisId = sym->getId();
+	m_state.m_compileThisIdx = sym->getUlamTypeIdx();
+	((SymbolClassName *) sym)->mergeClassInstancesBeforeCodeGen();
+	it++;
+      } //while
+
+    m_state.m_compileThisId = saveCompileThisId;  //restore
+    m_state.m_compileThisIdx = saveCompileThisIdx;  //restore
+  } //mergeInstancesBeforeCodeGenForTableOfClasses
 
   // PRIVATE HELPER METHODS:
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
