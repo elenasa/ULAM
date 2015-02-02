@@ -128,7 +128,7 @@ namespace MFM {
     m_state.m_err.setFileOutput(output);
 
     m_state.m_err.clearCounts();
-
+#if 0
     // resolve any class args..before instantiation?
     u32 infcounter2 = 0;
     while(!m_state.statusNonreadyClassArguments())
@@ -142,6 +142,15 @@ namespace MFM {
 	    break;
 	  }
       }
+#else
+    loopUnknownsOnceAround();
+    if(!m_state.statusNonreadyClassArguments())
+      {
+	std::ostringstream msg;
+	msg << "Before setting size of classes, " << m_state.m_nonreadyClassArgSubtrees.size() << " class instances with non-ready arguments remain";
+	MSG("", msg.str().c_str(), WARN); //? or warn
+      }
+#endif
 
     m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate
 
@@ -167,12 +176,7 @@ namespace MFM {
 	    u32 infcounter = 0;
 	    // size all the class; sets "current" m_currentClassSymbol in CS
 	    do{
-	      sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
-	      sumbrtn &= m_state.statusUnknownBitsizeUTI();
-	      sumbrtn &= m_state.statusUnknownArraysizeUTI();
-	      sumbrtn &= m_state.statusNonreadyNamedConstants();
-	      sumbrtn &= m_state.statusNonreadyClassArguments();
-
+	      sumbrtn = loopUnknownsOnceAround();
 	      if(++infcounter > MAX_ITERATIONS)
 		{
 		  std::ostringstream msg;
@@ -212,6 +216,16 @@ namespace MFM {
     return m_state.m_err.getErrorCount();
   } //checkAndTypeLabelProgram
 
+  bool Compiler::loopUnknownsOnceAround()
+  {
+    bool sumbrtn = true;
+    sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
+    sumbrtn &= m_state.statusUnknownBitsizeUTI();
+    sumbrtn &= m_state.statusUnknownArraysizeUTI();
+    sumbrtn &= m_state.statusNonreadyNamedConstants();
+    sumbrtn &= m_state.statusNonreadyClassArguments();
+    return sumbrtn;
+  } //loopUnknownsOnceAround
 
   bool Compiler::hasTheTestMethod()
   {
