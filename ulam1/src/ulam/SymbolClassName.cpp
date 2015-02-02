@@ -3,6 +3,8 @@
 
 namespace MFM {
 
+  //#define _DEBUG_DONT_MERGE
+
   SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, this, state){}
 
   SymbolClassName::~SymbolClassName()
@@ -595,9 +597,13 @@ namespace MFM {
 	return;
       }
 
-    //    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+#ifdef _DEBUG_DONT_MERGE
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
+#endif
       {
 	SymbolClass * csym = it->second;
 	assert(csym);
@@ -612,6 +618,10 @@ namespace MFM {
 
   void SymbolClassName::mergeClassInstancesBeforeCodeGen()
   {
+#ifdef _DEBUG_DONT_MERGE
+    return;
+#endif
+
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return;
 
@@ -656,9 +666,13 @@ namespace MFM {
 	return;
       }
 
-    //std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+#ifdef _DEBUG_DONT_MERGE
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
+#endif
       {
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
@@ -681,9 +695,13 @@ namespace MFM {
 	return SymbolClass::generateAsOtherInclude(fp);
       }
 
-    //std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+#ifdef _DEBUG_DONT_MERGE
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
+#endif
       {
 	SymbolClass * csym = it->second;
 	csym->generateAsOtherInclude(fp);
@@ -698,8 +716,13 @@ namespace MFM {
 	return SymbolClass::generateAsOtherForwardDef(fp);
       }
 
+#ifdef _DEBUG_DONT_MERGE
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
+#endif
       {
 	SymbolClass * csym = it->second;
 	csym->generateAsOtherForwardDef(fp);
@@ -714,8 +737,14 @@ namespace MFM {
 	SymbolClass::generateTestInstance(fp);
 	return;
       }
+
+#ifdef _DEBUG_DONT_MERGE
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
+#endif
       {
 	SymbolClass * csym = it->second;
 	assert(csym);
