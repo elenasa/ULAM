@@ -87,7 +87,7 @@ namespace MFM{
 
     void generateAsOtherForwardDef(File * fp);
 
-    void generateTestInstance(File * fp);
+    void generateTestInstance(File * fp, bool runtest);
 
   protected:
 

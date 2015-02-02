@@ -849,6 +849,8 @@ namespace MFM {
       }
   } //generateForwardDefsForTableOfClasses
 
+  enum { NORUNTEST = 0, RUNTEST = 1  };
+
   //test for the current compileThisIdx, with test method
   void SymbolTable::generateTestInstancesForTableOfClasses(File * fp)
   {
@@ -857,11 +859,11 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-	//first output all the element typedefs that are different than m_compileThisId, skipping quarks
-	if(sym->getId() != m_state.m_compileThisId && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
-	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp);
+	//first output all the element typedefs, skipping quarks
+	if(((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
+	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, NORUNTEST);
 	it++;
-      } //while1
+      } //while for typedefs only
 
     it = m_idToSymbolPtr.begin();
     s32 idcounter = 1;
@@ -871,10 +873,10 @@ namespace MFM {
 	assert(sym->isClass());
 	//next output all the element typedefs that are m_compileThisId; skipping quarks
 	if(sym->getId() == m_state.m_compileThisId && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
-	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp);
+	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, RUNTEST);
 	it++;
 	idcounter++;
-      } //while2
+      } //while to run this test
     fp->write("\n");
   } //generateTestInstancesForTableOfClasses
 
