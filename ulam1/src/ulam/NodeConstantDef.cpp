@@ -141,8 +141,13 @@ namespace MFM {
   {
     NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
 
+    //in case of a cloned unknown
+    if(m_currBlock == NULL)
+      setBlock();
+
     s32 newconst = NONREADYCONST;  //always signed?
-    UTI uti = checkAndLabelType(); //getNodeType()
+    UTI uti = checkAndLabelType(); //find any missing symbol
+
     if((uti == m_state.getUlamTypeOfConstant(Int) || uti == m_state.getUlamTypeOfConstant(Unsigned)))
       {
 	m_state.m_currentBlock = m_currBlock;
@@ -161,7 +166,7 @@ namespace MFM {
 	if(newconst == NONREADYCONST)
 	  {
 	    std::ostringstream msg;
-	    msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not yet \"ready\"";
+	    msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not yet ready";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    return false;
 	  }

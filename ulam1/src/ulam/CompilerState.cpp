@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-//#define _DEBUG_OUTPUT
-//#define _INFO_OUTPUT
-//#define _WARN_OUTPUT
+#define _DEBUG_OUTPUT
+#define _INFO_OUTPUT
+#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -92,10 +92,11 @@ namespace MFM {
     s32 unknownB = m_unknownBitsizeSubtrees.size();
     if(unknownB > 0)
       {
+#if 0
 	std::ostringstream msg;
 	msg << "Unknown bitsize subtrees cleared: " << unknownB;
 	MSG2("",msg.str().c_str(),DEBUG);
-
+#endif
 	std::map<UTI, NodeTypeBitsize *>::iterator itb = m_unknownBitsizeSubtrees.begin();
 	while(itb != m_unknownBitsizeSubtrees.end())
 	  {
@@ -107,16 +108,34 @@ namespace MFM {
       }
     m_unknownBitsizeSubtrees.clear();
 
+    s32 unknownBfci = m_unknownBitsizeSubtreesForClassInstances.size();
+    if(unknownBfci > 0)
+      {
+	std::ostringstream msg;
+	msg << "Unknown bitsize subtrees for class instances cleared: " << unknownBfci;
+	MSG2("",msg.str().c_str(),DEBUG);
+
+	std::map<UTI, NodeTypeBitsize *>::iterator itb = m_unknownBitsizeSubtreesForClassInstances.begin();
+	while(itb != m_unknownBitsizeSubtreesForClassInstances.end())
+	  {
+	    NodeTypeBitsize * bitsizeNode = itb->second;
+	    delete bitsizeNode;
+	    itb->second = NULL;
+	    itb++;
+	  }
+      }
+    m_unknownBitsizeSubtreesForClassInstances.clear();
+
 
     s32 unknownA = m_unknownArraysizeSubtrees.size();
     if(unknownA > 0)
       {
+#if 0
 	std::ostringstream msg;
 	msg << "Unknown arraysize subtrees cleared: " << unknownA;
 	MSG2("",msg.str().c_str(),DEBUG);
-
+#endif
 	std::map<UTI, NodeSquareBracket *>::iterator ita = m_unknownArraysizeSubtrees.begin();
-
 	while(ita != m_unknownArraysizeSubtrees.end())
 	  {
 	    NodeSquareBracket * arraysizeNode = ita->second;
@@ -126,6 +145,26 @@ namespace MFM {
 	  }
       }
     m_unknownArraysizeSubtrees.clear();
+
+    s32 unknownAfci = m_unknownArraysizeSubtreesForClassInstances.size();
+    if(unknownAfci > 0)
+      {
+	std::ostringstream msg;
+	msg << "Unknown arraysize subtrees for class instances cleared: " << unknownAfci;
+	MSG2("",msg.str().c_str(),DEBUG);
+
+	std::map<UTI, NodeSquareBracket *>::iterator ita = m_unknownArraysizeSubtreesForClassInstances.begin();
+
+	while(ita != m_unknownArraysizeSubtreesForClassInstances.end())
+	  {
+	    NodeSquareBracket * arraysizeNode = ita->second;
+	    delete arraysizeNode;
+	    ita->second = NULL;
+	    ita++;
+	  }
+      }
+    m_unknownArraysizeSubtreesForClassInstances.clear();
+
 
     u32 linkedUnknownA = m_scalarUTItoArrayUTIs.size();
     if(linkedUnknownA > 0)
@@ -297,9 +336,11 @@ namespace MFM {
 	bool notdupi = reti.second; //false if already existed, i.e. not added
 	if(!notdupi)
 	  {
+#if 0
 	    std::ostringstream msg;
 	    msg << "Key to UlamType record already exists: " << ut->getUlamTypeName().c_str() << " (UTI" << uti << ")";
 	    MSG2("", msg.str().c_str(), DEBUG);
+#endif
 	    delete ut;
 	    ut = NULL;
 	  }
@@ -324,6 +365,7 @@ namespace MFM {
 
 	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
 	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
+#if 0
 	bool notdup = ret.second; //false if already existed, i.e. not added
 	if(!notdup)
 	  {
@@ -337,6 +379,7 @@ namespace MFM {
 	    msg << "Added Key to A UTI: " << key.getUlamKeyTypeSignatureAsString(this).c_str() << " (UTI" << uti << ")";
 	    MSG2("", msg.str().c_str(), DEBUG);
 	  }
+#endif
 	assert(isDefined(key, ut));
       }
     else
@@ -567,8 +610,10 @@ namespace MFM {
 	NodeTypeBitsize * ceNode = bit->second;
 	assert(ceNode);
 	NodeTypeBitsize * cloneNode = new NodeTypeBitsize(*ceNode);
-	cloneNode->setBlock(); //sets its local currblock
-	linkConstantExpression(newuti, cloneNode);
+	//very possible this can't be found while mid-ST copy; wait until we try to fold it.
+	//	cloneNode->setBlock(); //sets its local cuorrblock
+
+	linkConstantExpressionForClassInstances(newuti, cloneNode);
       }
 
     //Arraysize UNKNOWN:
@@ -579,10 +624,34 @@ namespace MFM {
 	NodeSquareBracket * ceNode = qit->second;
 	assert(ceNode);
 	NodeSquareBracket * cloneNode = new NodeSquareBracket(*ceNode);
-	cloneNode->setBlock(); //sets its local currblock
-	linkConstantExpression(newuti, cloneNode);
+	//cloneNode->setBlock(); //sets its local currblock
+	linkConstantExpressionForClassInstances(newuti, cloneNode);
       }
-    //m_nonreadyNamedConstantSubtrees ???
+
+    if(!m_nonreadyNamedConstantSubtrees.empty())
+      {
+	u32 lostsize = m_nonreadyNamedConstantSubtrees.size();
+
+	std::ostringstream msg;
+	msg << "Found non-empty non-ready named constant subtrees, while cloning class <";
+	msg << getUlamTypeNameByIndex(m_compileThisIdx).c_str();
+	msg << ">, size " << lostsize << ":";
+
+	std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
+
+	while(it != m_nonreadyNamedConstantSubtrees.end())
+	  {
+	    NodeConstantDef * constNode = *it;
+	    Symbol * csym;
+	    if(constNode->getSymbolPtr(csym) && !((SymbolConstantValue *) csym)->isReady())
+	      {
+		msg << constNode->getName() << ",";
+	      }
+	    it++;
+	  }
+	MSG2("", msg.str().c_str(), DEBUG);
+      } //m_nonreadyNamedConstantSubtrees ???
+
     //m_nonreadyClassArgSubtrees ???
   }//cloneConstantExpressionSubtrees
 
@@ -605,12 +674,18 @@ namespace MFM {
       m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
   }
 
+  void CompilerState::linkConstantExpressionForClassInstances(UTI uti, NodeTypeBitsize * ceNode)
+  {
+    if(ceNode)
+      m_unknownBitsizeSubtreesForClassInstances.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
+  }
+
   bool CompilerState::constantFoldUnknownBitsize(UTI auti, s32& bitsize)
   {
     bool rtnBool = true; //unfound
-    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.find(auti);
+    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtreesForClassInstances.find(auti);
 
-    if(it != m_unknownBitsizeSubtrees.end())
+    if(it != m_unknownBitsizeSubtreesForClassInstances.end())
       {
 	assert(auti == it->first);
 	NodeTypeBitsize * ceNode = it->second;
@@ -620,28 +695,28 @@ namespace MFM {
 	  {
 	    delete ceNode;
 	    it->second = NULL;
-	    m_unknownBitsizeSubtrees.erase(it);
+	    m_unknownBitsizeSubtreesForClassInstances.erase(it);
 	  }
       }
     return rtnBool;
   } //constantFoldUnknownBitsize
 
+  //warning: could remain UNKNOWN in case of template's use
   bool CompilerState::statusUnknownBitsizeUTI()
   {
     bool rtnstat = true; //ok, empty
-    if(!m_unknownBitsizeSubtrees.empty())
+    if(!m_unknownBitsizeSubtreesForClassInstances.empty())
       {
 	std::vector<UTI> lostUTIs;
-	u32 lostsize = m_unknownBitsizeSubtrees.size();
+	u32 lostsize = m_unknownBitsizeSubtreesForClassInstances.size();
 
 	std::ostringstream msg;
 	msg << "Found non-empty unknown bitsize subtrees, of class <";
 	msg << getUlamTypeNameByIndex(m_compileThisIdx).c_str();
 	msg << ">, size " << lostsize << ":";
 
-	std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
-
-	while(it != m_unknownBitsizeSubtrees.end())
+	std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtreesForClassInstances.begin();
+	while(it != m_unknownBitsizeSubtreesForClassInstances.end())
 	  {
 	    UTI auti = it->first;
 	    msg << " (UTI" << auti << ") " << getUlamTypeNameByIndex(auti).c_str() << ",";
@@ -671,12 +746,18 @@ namespace MFM {
       m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
   }
 
+  void CompilerState::linkConstantExpressionForClassInstances(UTI uti, NodeSquareBracket * ceNode)
+  {
+    if(ceNode)
+      m_unknownArraysizeSubtreesForClassInstances.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
+  }
+
   bool CompilerState::constantFoldUnknownArraysize(UTI auti, s32& arraysize)
   {
     bool rtnBool = true;  //unfound
-    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.find(auti);
+    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtreesForClassInstances.find(auti);
 
-    if(it != m_unknownArraysizeSubtrees.end())
+    if(it != m_unknownArraysizeSubtreesForClassInstances.end())
       {
 	assert(auti == it->first);
 	NodeSquareBracket * ceNode = it->second;
@@ -686,7 +767,7 @@ namespace MFM {
 	  {
 	    delete ceNode;
 	    it->second = NULL;
-	    m_unknownArraysizeSubtrees.erase(it);
+	    m_unknownArraysizeSubtreesForClassInstances.erase(it);
 	  }
       }
     return rtnBool;
@@ -695,19 +776,19 @@ namespace MFM {
   bool CompilerState::statusUnknownArraysizeUTI()
   {
     bool rtnstat = true; //ok, empty
-    if(!m_unknownArraysizeSubtrees.empty())
+    if(!m_unknownArraysizeSubtreesForClassInstances.empty())
       {
 	std::vector<UTI> lostUTIs;
-	u32 lostsize = m_unknownArraysizeSubtrees.size();
+	u32 lostsize = m_unknownArraysizeSubtreesForClassInstances.size();
 
 	std::ostringstream msg;
-	msg << "Found non-empty unknown arraysize subtrees, of class <";
-	msg << m_pool.getDataAsString(m_compileThisId);
+	msg << "Found non-empty unknown arraysize subtrees, of class instance<";
+	msg << getUlamTypeNameByIndex(m_compileThisIdx).c_str();
 	msg << ">, size " << lostsize << ":";
 
-	std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.begin();
+	std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtreesForClassInstances.begin();
 
-	while(it != m_unknownArraysizeSubtrees.end())
+	while(it != m_unknownArraysizeSubtreesForClassInstances.end())
 	  {
 	    UTI auti = it->first;
 	    msg << " (UTI" << auti << ") " << getUlamTypeNameByIndex(auti).c_str() << ",";
@@ -895,6 +976,8 @@ namespace MFM {
     bool rtnstat = true; //ok, empty
     if(!m_nonreadyClassArgSubtrees.empty())
       {
+	rtnstat = false;
+
 	u32 lostsize = m_nonreadyClassArgSubtrees.size();
 
 	std::ostringstream msg;
@@ -913,7 +996,6 @@ namespace MFM {
 
 	msg << " trying to update now";
 	MSG2("", msg.str().c_str(), DEBUG);
-	rtnstat = false;
 
 	assert(lostCUTIs.size() == lostsize);
 	while(!lostCUTIs.empty())
@@ -926,6 +1008,17 @@ namespace MFM {
       }
     return rtnstat;
   } //statusNonreadyClassArguments
+
+  bool CompilerState::pendingClassArgumentsForUTI(UTI cuti)
+  {
+    bool pending = false;
+    std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.find(cuti);
+    if(it != m_nonreadyClassArgSubtrees.end())
+      {
+	pending = true;
+      }
+    return pending;
+  } //pendingClassArgumentsForUTI
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {
@@ -1194,7 +1287,7 @@ namespace MFM {
 #if 1
     {
       std::ostringstream msg;
-      msg << "Sizes set for Class: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
+      msg << "Sizes SET for Class: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 #endif
@@ -1205,6 +1298,29 @@ namespace MFM {
 	updatelinkedArrayUTIsWithKnownBitsize(utArg);
       }
   } //setUTISizes
+
+  void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
+  {
+    UlamType * ut1 = getUlamTypeByIndex(olduti);
+    UlamType * ut2 = getUlamTypeByIndex(cuti);
+    assert(ut1 && ut2);
+    UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
+    UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
+    assert(key1.getUlamKeyTypeSignatureNameId() == key2.getUlamKeyTypeSignatureNameId() && key1.getUlamKeyTypeSignatureBitSize() == key2.getUlamKeyTypeSignatureBitSize() && key1.getUlamKeyTypeSignatureArraySize() == key2.getUlamKeyTypeSignatureArraySize());
+
+    //removes old key and its ulamtype from map, if no longer pointed to
+    deleteUlamKeyTypeSignature(key1);
+    m_indexToUlamKey[olduti] = key2;
+    incrementUnknownKeyUTICounter(key2);
+
+#if 1
+    {
+      std::ostringstream msg;
+      msg << "MERGED keys for duplicate Class (UTI" << olduti << ") WITH: " << ut2->getUlamTypeName().c_str() << " (UTI" << cuti << ")";
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+    }
+#endif
+  } //mergeClassUTI
 
   void CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
   {
@@ -1334,7 +1450,7 @@ namespace MFM {
 	if(cnsym->getUlamTypeIdx() != scalarUTI)
 	  {
 	    SymbolClass * csym = NULL;
-	    if(cnsym->isClassInstance(scalarUTI, csym))
+	    if(cnsym->findClassInstanceByUTI(scalarUTI, csym))
 	      {
 		symptr = csym;
 		rtnb = true;
@@ -1477,6 +1593,12 @@ namespace MFM {
   void CompilerState::replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym)
   {
     m_currentBlock->replaceIdInScope(oldsym, newsym);
+  }
+
+  //symbol ownership goes to the caller;
+  bool CompilerState::takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr)
+  {
+    return m_currentBlock->removeIdFromScope(id, rtnsymptr);
   }
 
   //Token to location as string:

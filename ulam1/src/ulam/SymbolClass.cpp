@@ -32,9 +32,9 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassName * parent, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false){}
+  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassName * parent, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_deep(false){}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_deep(true)
   {
     if(sref.m_classBlock)
       {
@@ -107,6 +107,16 @@ namespace MFM {
     return m_quarkunion;
   }
 
+  bool SymbolClass::isDeep()
+  {
+    return m_deep;
+  }
+
+  void SymbolClass::setDeep()
+  {
+    m_deep = true;
+  }
+
   bool SymbolClass::trySetBitsizeWithUTIValues(s32& totalbits)
   {
     NodeBlockClass * classNode = getClassBlockNode(); //instance
@@ -154,8 +164,7 @@ namespace MFM {
     ULAMCLASSTYPE classtype = sut->getUlamClass();
 
     std::ostringstream msg;
-    //msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.m_pool.getDataAsString(getId()).c_str() << ">: ";
-    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element <" : "quark <") << m_state.getUlamTypeNameByIndex(suti).c_str() << ">: ";
+    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element " : "quark ") << m_state.getUlamTypeNameByIndex(suti).c_str() << " : ";
 
     if(m_state.isComplete(suti))
       {

@@ -53,8 +53,11 @@ namespace MFM{
     Symbol * getParameterSymbolPtr(u32 n);
 
     virtual bool isClassTemplate(UTI cuti);
-    bool isClassInstance(UTI uti, SymbolClass * & symptrref);
-    void addClassInstance(UTI uti, SymbolClass * symptr);
+    bool findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref);
+    bool findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr);
+
+    void addClassInstanceUTI(UTI uti, SymbolClass * symptr);
+    void addClassInstanceByArgString(UTI uti, SymbolClass * symptr);
 
     SymbolClass * makeAShallowClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
     /** replaces temporary class argument names, updates the ST, and the class type */
@@ -65,9 +68,9 @@ namespace MFM{
     bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
     void mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
 
-    void cloneInstances(); //i.e. instantiate
+    bool cloneInstances(); //i.e. instantiate
     Node * findNodeNoInAClassInstance(UTI instance, NNO n);
-    void updateLineageOfClassInstances();
+    void updateLineageOfClassInstanceUTI(UTI cuti);
     void checkCustomArraysOfClassInstances();
 
     void checkAndLabelClassInstances();
@@ -79,7 +82,7 @@ namespace MFM{
 
     void testForClassInstances(File * fp);
 
-    void mergeClassInstancesBeforeCodeGen();
+    //void mergeClassInstancesBeforeCodeGen(); //used?
 
     void generateCodeForClassInstances(FileManager * fm);
 

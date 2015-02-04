@@ -75,6 +75,10 @@ namespace MFM{
 
     bool isQuarkUnion();
 
+    bool isDeep();
+
+    void setDeep();
+
     bool trySetBitsizeWithUTIValues(s32& totalbits);
 
     void printBitSizeOfClass();
@@ -95,6 +99,7 @@ namespace MFM{
     NodeBlockClass * m_classBlock;
     SymbolClassName * m_parentTemplate;
     bool m_quarkunion;
+    bool m_deep;
 
     void generateHeaderPreamble(File * fp);
     void genAllCapsIfndefForHeaderFile(File * fp);

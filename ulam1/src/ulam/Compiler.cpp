@@ -126,72 +126,44 @@ namespace MFM {
   u32 Compiler::checkAndTypeLabelProgram(File * output)
   {
     m_state.m_err.setFileOutput(output);
-
     m_state.m_err.clearCounts();
-#if 0
-    // resolve any class args..before instantiation?
-    u32 infcounter2 = 0;
-    while(!m_state.statusNonreadyClassArguments())
-      {
-	if(++infcounter2 > MAX_ITERATIONS)
-	  {
-	    std::ostringstream msg;
-	    msg << "Before setting size of classes, " << m_state.m_nonreadyClassArgSubtrees.size() << " class instances with non-ready arguments remain";
-	    msg << ", after " << infcounter2 << " iterations";
-	    MSG("", msg.str().c_str(), ERR); //? or warn
-	    break;
-	  }
-      }
-#else
-    loopUnknownsOnceAround();
-    if(!m_state.statusNonreadyClassArguments())
+
+    // label all the class; sets "current" m_currentClassSymbol in CS
+    bool sumbrtn = true;
+    u32 infcounter = 0;
+    // size all the class; sets "current" m_currentClassSymbol in CS
+    do{
+      sumbrtn = loopUnknownsOnceAround();
+      if(++infcounter > MAX_ITERATIONS)
+	{
+	  std::ostringstream msg;
+	  msg << "Possible INCOMPLETE class detected during type labeling class <";
+	  msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+	  msg << ">, after " << infcounter << " iterations";
+	  MSG("", msg.str().c_str(), WARN);
+	  //note: not an error because template uses remain unresolved
+	  break;
+	}
+    } while(!sumbrtn);
+
+    //checkAndLabelTypes: lineage updated incrementally
+    m_state.m_err.clearCounts();
+    bool labelok = m_state.m_programDefST.labelTableOfClasses();
+    // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
+    u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
+    if(!labelok || navcount > 0)
       {
 	std::ostringstream msg;
-	msg << "Before setting size of classes, " << m_state.m_nonreadyClassArgSubtrees.size() << " class instances with non-ready arguments remain";
-	MSG("", msg.str().c_str(), WARN); //? or warn
+	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class <";
+	msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
+	MSG("", msg.str().c_str(), ERR);
       }
-#endif
-
-    m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate
-
-    m_state.m_programDefST.updateLineageForTableOfClasses(); //includes prev blocks for class instances
 
     // type set at parse time (needed for square bracket checkandlabel);
     // so, here we just check for matching arg types.
     m_state.m_programDefST.checkCustomArraysForTableOfClasses();
 
-    u32 navcountertries = 0;
-    // label all the class; sets "current" m_currentClassSymbol in CS
-    do
-      {
-	if(navcountertries++ > 2)
-	  break;
-
-	//checkAndLabelTypes:
-	m_state.m_programDefST.labelTableOfClasses();
-
-	if(m_state.m_err.getErrorCount() == 0)
-	  {
-	    bool sumbrtn = true;
-	    u32 infcounter = 0;
-	    // size all the class; sets "current" m_currentClassSymbol in CS
-	    do{
-	      sumbrtn = loopUnknownsOnceAround();
-	      if(++infcounter > MAX_ITERATIONS)
-		{
-		  std::ostringstream msg;
-		  msg << "Possible INCOMPLETE class detected during type labeling class <";
-		  msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-		  msg << ">, after " << infcounter << " iterations";
-		  MSG("", msg.str().c_str(), WARN);
-		  break;
-		}
-	    } while(!sumbrtn);
-	  }
-	// count Nodes with illegal Nav types; walk each class' data members and funcdefs.
-      }while(m_state.m_programDefST.countNavNodesAcrossTableOfClasses() > 0);
-
-    // must happen after type labeling and before code gen; separate pass.
+    // must happen after type labeling and before code gen; separate pass. want UNKNOWNS reported
     m_state.m_programDefST.packBitsForTableOfClasses();
 
     // let Ulam programmer know the bits used/available (needs infoOn)
@@ -224,6 +196,7 @@ namespace MFM {
     sumbrtn &= m_state.statusUnknownArraysizeUTI();
     sumbrtn &= m_state.statusNonreadyNamedConstants();
     sumbrtn &= m_state.statusNonreadyClassArguments();
+    sumbrtn &= m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate classes w ready args
     return sumbrtn;
   } //loopUnknownsOnceAround
 

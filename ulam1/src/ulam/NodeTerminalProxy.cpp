@@ -146,9 +146,15 @@ namespace MFM {
 	if(!setConstantValue(m_funcTok))
 	  {
 	    std::ostringstream msg;
-	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&m_funcTok).c_str() << "' of type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown";
 	    MSG(&m_funcTok, msg.str().c_str(), ERR);
 	    rtnb = false;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Yippee! Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " (UTI" << getNodeType() << ") is KNOWN (=" << m_constant.uval << ")";
+	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
 	  }
       }
     return rtnb;

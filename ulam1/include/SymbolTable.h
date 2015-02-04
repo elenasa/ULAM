@@ -62,6 +62,7 @@ namespace MFM{
     void addToTable(u32 id, Symbol * s);
     void replaceInTable(u32 oldid, u32 newid, Symbol * s);
     void replaceInTable(Symbol * oldsym, Symbol * newsym);
+    bool removeFromTable(u32 id, Symbol *& rtnsymptr);
 
     Symbol * getSymbolPtr(u32 id);
 
@@ -113,13 +114,13 @@ namespace MFM{
 
     void printForDebugForTableOfClasses(File * fp);
 
-    void cloneInstancesInTableOfClasses();
+    bool cloneInstancesInTableOfClasses();
 
-    void updateLineageForTableOfClasses();
+    //void updateLineageForTableOfClasses(); done incrementally
 
     void checkCustomArraysForTableOfClasses();
 
-    void labelTableOfClasses();
+    bool labelTableOfClasses();
 
     u32 countNavNodesAcrossTableOfClasses();
 
@@ -142,7 +143,7 @@ namespace MFM{
 
   private:
     CompilerState & m_state;
-    void mergeInstancesBeforeCodeGenForTableOfClasses();
+    //    void mergeInstancesBeforeCodeGenForTableOfClasses();
     s32 calcVariableSymbolTypeSize(UTI ut);
     bool variableSymbolWithCountableSize(Symbol * sym);
   };

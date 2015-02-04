@@ -49,6 +49,7 @@ namespace MFM{
   public:
     SymbolConstantValue(u32 id, UTI utype, CompilerState& state);
     SymbolConstantValue(const SymbolConstantValue& sref);
+    SymbolConstantValue(const SymbolConstantValue& sref, bool keepType);
     virtual ~SymbolConstantValue();
 
     virtual Symbol * clone();

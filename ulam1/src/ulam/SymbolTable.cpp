@@ -82,6 +82,19 @@ namespace MFM {
       }
   } //replaceInTable (overload)
 
+  bool SymbolTable::removeFromTable(u32 id, Symbol *& rtnsymptr)
+  {
+    bool rtnok = false;
+    std::map<u32,Symbol*>::iterator it = m_idToSymbolPtr.find(id);
+    if(it != m_idToSymbolPtr.end())
+      {
+	rtnsymptr = it->second;
+	m_idToSymbolPtr.erase(it);
+	rtnok = true;
+      }
+    return rtnok;
+  } //removeFromTable
+
   Symbol * SymbolTable::getSymbolPtr(u32 id)
   {
     std::map<u32,Symbol*>::iterator it = m_idToSymbolPtr.find(id);
@@ -138,39 +151,43 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
 
-	// don't count typedef's or element parameters toward total, nor named constants
-	if(variableSymbolWithCountableSize(sym))
-	  {
-	    UTI sut = sym->getUlamTypeIdx();
-	    s32 symsize = calcVariableSymbolTypeSize(sut);  //recursively
+	UTI suti = sym->getUlamTypeIdx();
+	s32 symsize = calcVariableSymbolTypeSize(suti);  //recursively
 
-	    if(symsize == CYCLEFLAG)  // was < 0
+	if(symsize == CYCLEFLAG)  // was < 0
+	  {
+	    std::ostringstream msg;
+	    msg << "cycle error!!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	  }
+	else if(symsize == EMPTYSYMBOLTABLE)
+	  {
+	    symsize = 0;
+	    m_state.setBitSize(suti, symsize);  //total bits NOT including arrays
+	  }
+	else if(symsize <= UNKNOWNSIZE)
+	  {
+	    std::ostringstream msg;
+	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str() << " UTI" << suti;
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	    if(variableSymbolWithCountableSize(sym))
 	      {
-		std::ostringstream msg;
-		msg << "cycle error!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
-		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
-	      }
-	    else if(symsize == EMPTYSYMBOLTABLE)
-	      {
-		symsize = 0;
-		m_state.setBitSize(sut, symsize);  //total bits NOT including arrays
-	      }
-	    else if(symsize <= UNKNOWNSIZE)
-	      {
-		std::ostringstream msg;
-		msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
-		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 		totalsizes = UNKNOWNSIZE;
 		break;
 	      }
-	    else
-	      {
-		m_state.setBitSize(sut, symsize);  //symsize does not include arrays
-	      }
-	    totalsizes += m_state.getTotalBitSize(sut); //covers up any unknown sizes; includes arrays
+	  }
+	else
+	  {
+	    m_state.setBitSize(suti, symsize);  //symsize does not include arrays
+	  }
+
+	// don't count typedef's or element parameters toward total, nor named constants
+	if(variableSymbolWithCountableSize(sym))
+	  {
+	    totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
 	  }
 	it++;
-      }
+      } //while
     return totalsizes;
   } //getTotalVariableSymbolsBitSize
 
@@ -641,19 +658,22 @@ namespace MFM {
   } //printForDebugForTableOfClasses
 
 
-  void SymbolTable::cloneInstancesInTableOfClasses()
+  bool SymbolTable::cloneInstancesInTableOfClasses()
   {
+    bool aok = true;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-	((SymbolClassName *) sym)->cloneInstances();
+	aok &= ((SymbolClassName *) sym)->cloneInstances();
 	it++;
       } //while
+    return aok;
   } //cloneInstancesInTableOfClasses
 
+#if 0
   // done after cloning and before checkandlabel;
   // blocks without prevblocks set, are linked to prev block;
   // used for searching for missing symbols in STs during c&l.
@@ -670,7 +690,7 @@ namespace MFM {
 	it++;
       } //while
   } //updateLineageForTableOfClasses
-
+#endif
 
   void SymbolTable::checkCustomArraysForTableOfClasses()
   {
@@ -699,7 +719,7 @@ namespace MFM {
 
 
 
-  void SymbolTable::labelTableOfClasses()
+  bool SymbolTable::labelTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
@@ -721,6 +741,7 @@ namespace MFM {
 	  }
 	it++;
       }
+    return (m_state.m_err.getErrorCount() == 0);
   } //labelTableOfClasses
 
   u32 SymbolTable::countNavNodesAcrossTableOfClasses()
@@ -787,7 +808,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << m_idToSymbolPtr.size() << " Class" <<( m_idToSymbolPtr.size() > 1 ? "es ALL " : " ") << "sized SUCCESSFULLY";
-	MSG("", msg.str().c_str(),INFO);
+	MSG("", msg.str().c_str(),DEBUG);
       }
     lostClassesIds.clear();
     return aok;
@@ -882,7 +903,7 @@ namespace MFM {
 
   void SymbolTable::genCodeForTableOfClasses(FileManager * fm)
   {
-    mergeInstancesBeforeCodeGenForTableOfClasses();
+    //    mergeInstancesBeforeCodeGenForTableOfClasses();
 
     u32 saveCompileThisId = m_state.m_compileThisId;
     UTI saveCompileThisIdx = m_state.m_compileThisIdx;
@@ -904,6 +925,7 @@ namespace MFM {
     m_state.m_compileThisIdx = saveCompileThisIdx;  //restore
   } //genCodeForTableOfClasses
 
+#if 0
   void SymbolTable::mergeInstancesBeforeCodeGenForTableOfClasses()
   {
     u32 saveCompileThisId = m_state.m_compileThisId;
@@ -923,7 +945,7 @@ namespace MFM {
     m_state.m_compileThisId = saveCompileThisId;  //restore
     m_state.m_compileThisIdx = saveCompileThisIdx;  //restore
   } //mergeInstancesBeforeCodeGenForTableOfClasses
-
+#endif
   // PRIVATE HELPER METHODS:
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
