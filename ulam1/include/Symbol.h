@@ -50,6 +50,7 @@ namespace MFM{
   public:
     Symbol(u32 id, UTI utype, CompilerState& state);
     Symbol(const Symbol& sref);
+    Symbol(const Symbol& sref, bool keepType);
     virtual ~Symbol();    //abstract
 
     virtual Symbol * clone() = 0;

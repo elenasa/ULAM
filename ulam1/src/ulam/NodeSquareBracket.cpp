@@ -316,6 +316,10 @@ namespace MFM {
   {
     NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
 
+    //in case of a cloned unknown
+    if(m_currBlock == NULL)
+      setBlock();
+
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();

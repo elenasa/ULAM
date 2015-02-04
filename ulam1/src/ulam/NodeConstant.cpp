@@ -109,6 +109,8 @@ namespace MFM {
   bool NodeConstant::updateConstant()
   {
     u32 val;
+    if(!m_constSymbol)
+      return false;
     m_constSymbol->getValue(val);
     m_constant.uval = val;
     return m_constSymbol->isReady();

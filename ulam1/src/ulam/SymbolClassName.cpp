@@ -3,8 +3,6 @@
 
 namespace MFM {
 
-  //#define _DEBUG_DONT_MERGE
-
   SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, this, state){}
 
   SymbolClassName::~SymbolClassName()
@@ -13,12 +11,16 @@ namespace MFM {
     m_parameterSymbols.clear();
 
     // need to delete class instance symbols; ownership belongs here!
-    for(std::size_t i = 0; i < m_scalarClassInstanceIdxToSymbolPtr.size(); i++)
+    std::map<std::string, SymbolClass* >::iterator mit = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(mit != m_scalarClassArgStringsToSymbolPtr.end())
       {
-	delete m_scalarClassInstanceIdxToSymbolPtr[i];
+	SymbolClass * msym = mit->second;
+	delete msym;
+	mit->second = NULL;
+	mit++;
       }
-    m_scalarClassInstanceIdxToSymbolPtr.clear();
     m_scalarClassArgStringsToSymbolPtr.clear();
+    m_scalarClassInstanceIdxToSymbolPtr.clear(); //many-to-1 (possible after deep clone)
     m_mapOfTemplateUTIToInstanceUTIPerClassInstance.clear();
   } //destructor
 
@@ -55,26 +57,49 @@ namespace MFM {
     if(getNumberOfParameters() > 0)
       {
 	SymbolClass * csym = NULL;
-	rtnb = !isClassInstance(cuti, csym);
+	rtnb = !findClassInstanceByUTI(cuti, csym);
       }
     return rtnb;
   } //isClassTemplate
 
-  bool SymbolClassName::isClassInstance(UTI uti, SymbolClass * & symptrref)
+  bool SymbolClassName::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	symptrref = it->second;
-	assert( symptrref->getUlamTypeIdx() == uti);
+	UTI suti = symptrref->getUlamTypeIdx();
+	//expensive assert; isClassTemplate not so critical to check?
+	assert( suti == uti || formatAnInstancesArgValuesAsAString(suti).compare(formatAnInstancesArgValuesAsAString(uti)) == 0);
 	return true;
       }
     return false;
-  } //isClassInstance
+  } //findClassInstanceByUTI
 
-  void SymbolClassName::addClassInstance(UTI uti, SymbolClass * symptr)
+  bool SymbolClassName::findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr)
   {
-    m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr));
+    bool found = false;
+    std::string argstring = formatAnInstancesArgValuesAsAString(cuti);
+
+    std::map<std::string, SymbolClass* >::iterator mit = m_scalarClassArgStringsToSymbolPtr.find(argstring);
+    if(mit != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	csymptr = mit->second;
+	found = true;
+      }
+    return found;
+  } //findClassInstanceByArgString
+
+  void SymbolClassName::addClassInstanceUTI(UTI uti, SymbolClass * symptr)
+  {
+    m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr)); //shallow
+  }
+
+  void SymbolClassName::addClassInstanceByArgString(UTI uti, SymbolClass * symptr)
+  {
+    //new (deep) entry, and owner of symbol class for class instances with args
+    std::string argstring = formatAnInstancesArgValuesAsAString(uti);
+    m_scalarClassArgStringsToSymbolPtr.insert(std::pair<std::string,SymbolClass*>(argstring,symptr));
   }
 
   SymbolClass * SymbolClassName::makeAShallowClassInstance(Token typeTok, UTI cuti)
@@ -90,7 +115,7 @@ namespace MFM {
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
-    addClassInstance(cuti, newclassinstance); //link here
+    addClassInstanceUTI(cuti, newclassinstance); //link here
     return newclassinstance;
   } //makeAShallowClassInstance
 
@@ -250,26 +275,68 @@ namespace MFM {
       }
   } //mapInstanceUTI
 
-  void SymbolClassName::cloneInstances()
+  bool SymbolClassName::cloneInstances()
   {
+    bool aok = true; //all done
+
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
-      return;
+      {
+	if(!isDeep())
+	  {
+	    updateLineageOfClassInstanceUTI(getUlamTypeIdx());
+	    setDeep(); //i.e. seen
+	  }
+	return true;
+      }
 
     UTI saveTemplateUTI = getUlamTypeIdx();
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	m_state.m_compileThisIdx = csym->getUlamTypeIdx();
-	m_utypeIdx =  csym->getUlamTypeIdx(); //fudge..
-	SymbolClass * clone = new SymbolClass(*this);
+	if(csym->isDeep())
+	  {
+	    it++;
+	    continue; //already done
+	  }
+
+	UTI cuti = csym->getUlamTypeIdx();
+	if(m_state.pendingClassArgumentsForUTI(cuti))
+	  {
+	    aok = false;
+	    it++;
+	    continue; //have to wait
+	  }
+
+	//have we seen these args before?
+	SymbolClass * dupsym = NULL;
+	if(findClassInstanceByArgString(cuti, dupsym))
+	  {
+	    UTI duti = dupsym->getUlamTypeIdx();
+	    //sanity check, keys should be identical except for the classInstanceIdx
+	    //assert(csym->getId() == dupsym->getId() && m_state.getBitSize(cuti) == m_state.getBitSize(duti) && m_state.getArraySize(cuti) == m_state.getArraySize(duti));
+	    m_state.mergeClassUTI(cuti,duti);
+	    delete csym;
+	    csym = NULL;
+	    it->second = dupsym; //duplicate! except different UTIs
+	    it++;
+	    continue;
+	  }
+
+	// first time for this cuti, and ready args!
+	m_state.m_compileThisIdx = cuti;
+	m_utypeIdx =  cuti; //fudge..
+	SymbolClass * clone = new SymbolClass(*this); //sets deep flag
 	m_utypeIdx = saveTemplateUTI; //restore
 	takeAnInstancesArgValues(csym, clone);
 	delete csym;
 	csym = NULL;
 	it->second = clone;
+	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
+	updateLineageOfClassInstanceUTI(cuti);
 	it++;
       } //while
+    return aok;
   } //cloneInstances
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
@@ -306,27 +373,39 @@ namespace MFM {
     return foundNode;
   } //findNodeNoInAClassInstance
 
-  void SymbolClassName::updateLineageOfClassInstances()
+  void SymbolClassName::updateLineageOfClassInstanceUTI(UTI cuti)
   {
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    NodeBlockClass * saveclassnode = m_state.m_classBlock;
+    NodeBlock * saveblocknode = m_state.m_currentBlock;
+
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	NodeBlockClass * classNode = getClassBlockNode();
+	assert(classNode);
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
 	classNode->updateLineage(NULL);
+	m_state.m_classBlock = saveclassnode; //restore
+	m_state.m_currentBlock = saveblocknode;
 	return;
       }
 
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(cuti);
+    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	csym->getClassBlockNode()->updateLineage(NULL); //do each instance
+	assert(it->first == cuti);
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+	classNode->updateLineage(NULL); //do this instance
 	it++;
       }
-  } //updateLineageOfClassInstances
+    m_state.m_classBlock = saveclassnode; //restore
+    m_state.m_currentBlock = saveblocknode;
+  } //updateLineageOfClassInstanceUTI
 
   void SymbolClassName::checkCustomArraysOfClassInstances()
   {
@@ -378,8 +457,9 @@ namespace MFM {
 	return;
       }
 
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+    // only need to c&l the unique class instances
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
@@ -467,7 +547,12 @@ namespace MFM {
 	UTI cuti = getUlamTypeIdx();
 	aok = SymbolClass::trySetBitsizeWithUTIValues(totalbits);
 	if(aok)
-	  m_state.setBitSize(cuti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	  {
+	    m_state.setBitSize(cuti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	    std::ostringstream msg;
+	    msg << "CLASS (without instances): " << m_state.getUlamTypeNameByIndex(cuti).c_str() << " SIZED: " << totalbits;
+	    MSG("", msg.str().c_str(),DEBUG);
+	  }
 	m_state.m_classBlock = saveClassNode; //restore
 	m_state.m_currentBlock = m_state.m_classBlock;
 	return aok;
@@ -479,21 +564,52 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
+	UTI uti = it->first; //this instance entry; may not match Symbol class' uti
+	if(m_state.getUlamTypeByIndex(uti)->isComplete())
+	  {
+	    it++;
+	    continue; //already set
+	  }
 
-	m_state.m_compileThisIdx = suti;
-	m_state.m_classBlock = csym->getClassBlockNode();
-	m_state.m_currentBlock = m_state.m_classBlock;
+	if(m_state.pendingClassArgumentsForUTI(uti))
+	  {
+	    aok = false;
+	    it++;
+	    continue; //have to wait
+	  }
+
+	if(!csym->isDeep())
+	  {
+	    aok = false;
+	    it++;
+	    continue; //have to wait
+	  }
 
 	s32 totalbits = 0;
-	aok = csym->trySetBitsizeWithUTIValues(totalbits);
-
-	//track classes that fail to be sized.
-	if(aok)
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	if(suti != uti && sut->isComplete())
 	  {
-	    m_state.setBitSize(suti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	    totalbits = sut->getBitSize();
+	    aok = true;
 	  }
 	else
-	  lostClasses.push_back(suti);
+	  {
+	    m_state.m_compileThisIdx = suti;
+	    m_state.m_classBlock = csym->getClassBlockNode();
+	    m_state.m_currentBlock = m_state.m_classBlock;
+
+	    aok = csym->trySetBitsizeWithUTIValues(totalbits);
+	  }
+
+	if(aok)
+	  {
+	    m_state.setBitSize(uti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	    std::ostringstream msg;
+	    msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameByIndex(uti).c_str() << " SIZED: " << totalbits;
+	    MSG("", msg.str().c_str(),DEBUG);
+	  }
+	else
+	  lostClasses.push_back(suti); 	//track classes that fail to be sized.
 
 	aok = true; //reset for next class
 	it++;
@@ -516,8 +632,8 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << m_scalarClassInstanceIdxToSymbolPtr.size() << " Class Instance" << (m_scalarClassInstanceIdxToSymbolPtr.size() > 1 ? "s ALL " : " ") << "sized SUCCESSFULLY";
-	MSG("", msg.str().c_str(),INFO);
+	msg << m_scalarClassInstanceIdxToSymbolPtr.size() << " Class Instance" << (m_scalarClassInstanceIdxToSymbolPtr.size() > 1 ? "s ALL " : " ") << "sized SUCCESSFULLY for template: " << m_state.m_pool.getDataAsString(getId()).c_str();
+	MSG("", msg.str().c_str(),DEBUG);
       }
     lostClasses.clear();
 
@@ -533,11 +649,12 @@ namespace MFM {
   {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
-	return SymbolClass::printBitSizeOfClass();
+	SymbolClass::printBitSizeOfClass(); //skip templates
+	return;
       }
 
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
 	csym->printBitSizeOfClass(); //this instance
@@ -548,7 +665,6 @@ namespace MFM {
   void SymbolClassName::packBitsForClassInstances()
   {
     NodeBlockClass * saveclassBlock = m_state.m_classBlock;
-
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
 	NodeBlockClass * classNode = getClassBlockNode();
@@ -561,11 +677,10 @@ namespace MFM {
 	return;
       }
 
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
 	m_state.m_classBlock = classNode;
@@ -596,14 +711,8 @@ namespace MFM {
 	m_state.m_currentBlock = m_state.m_classBlock;
 	return;
       }
-
-#ifdef _DEBUG_DONT_MERGE
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
-#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
-#endif
       {
 	SymbolClass * csym = it->second;
 	assert(csym);
@@ -616,12 +725,9 @@ namespace MFM {
     m_state.m_currentBlock = m_state.m_classBlock;
   } //testForClassInstances
 
+#if 0
   void SymbolClassName::mergeClassInstancesBeforeCodeGen()
   {
-#ifdef _DEBUG_DONT_MERGE
-    return;
-#endif
-
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return;
 
@@ -648,6 +754,7 @@ namespace MFM {
 	it++;
       }
   } //mergeClassInstancesBeforeCodeGen
+#endif
 
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {
@@ -666,13 +773,8 @@ namespace MFM {
 	return;
       }
 
-#ifdef _DEBUG_DONT_MERGE
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
-#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
-#endif
       {
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
@@ -695,13 +797,8 @@ namespace MFM {
 	return SymbolClass::generateAsOtherInclude(fp);
       }
 
-#ifdef _DEBUG_DONT_MERGE
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
-#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
-#endif
       {
 	SymbolClass * csym = it->second;
 	csym->generateAsOtherInclude(fp);
@@ -716,13 +813,8 @@ namespace MFM {
 	return SymbolClass::generateAsOtherForwardDef(fp);
       }
 
-#ifdef _DEBUG_DONT_MERGE
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
-#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
-#endif
       {
 	SymbolClass * csym = it->second;
 	csym->generateAsOtherForwardDef(fp);
@@ -738,13 +830,8 @@ namespace MFM {
 	return;
       }
 
-#ifdef _DEBUG_DONT_MERGE
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
-#else
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
-#endif
       {
 	SymbolClass * csym = it->second;
 	assert(csym);
@@ -780,7 +867,7 @@ namespace MFM {
 	SymbolConstantValue * psym = *pit;
 	//save 'instance's arg constant symbols in a temporary list
 	Symbol * asym = NULL;
-	assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
+	assert(m_state.takeSymbolFromCurrentScope(psym->getId(), asym)); //ownership transferred to temp list
 	instancesArgs.push_back((SymbolConstantValue *) asym);
 	pit++;
       } //next param
@@ -792,11 +879,13 @@ namespace MFM {
     //replace the clone's arg symbols
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
-	SymbolConstantValue * asym = new SymbolConstantValue(*instancesArgs[i]); //copy it
+	//	SymbolConstantValue * asym = new SymbolConstantValue(*instancesArgs[i], true); //copy it; same uti
+	SymbolConstantValue * asym = instancesArgs[i];
 	u32 aid = asym->getId();
 	//get 'instance's value save in template's parameter list temporarily
 	Symbol * clonesym = NULL;
 	assert(m_state.alreadyDefinedSymbol(aid, clonesym));
+	//m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
 	m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
       } //next arg
 

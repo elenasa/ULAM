@@ -10,6 +10,8 @@ namespace MFM {
 
   Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_id(sref.m_id), m_utypeIdx(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_utypeIdx)), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf) {}
 
+  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_id(sref.m_id), m_utypeIdx(sref.m_utypeIdx), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf) {}
+
   Symbol::~Symbol(){}
 
   u32 Symbol::getId()

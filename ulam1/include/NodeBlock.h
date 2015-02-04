@@ -79,6 +79,8 @@ namespace MFM{
 
     void replaceIdInScope(Symbol * oldsym, Symbol * newsym);
 
+    bool removeIdFromScope(u32 id, Symbol *& rtnsymptr);
+
     NodeBlock * getPreviousBlockPointer();
 
     void setPreviousBlockPointer(NodeBlock *);

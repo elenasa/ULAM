@@ -139,6 +139,11 @@ namespace MFM {
     m_ST.replaceInTable(oldsym, newsym);
   }
 
+  bool NodeBlock::removeIdFromScope(u32 id, Symbol *& rtnsymptr)
+  {
+    return m_ST.removeFromTable(id, rtnsymptr);
+  }
+
   NodeBlock * NodeBlock::getPreviousBlockPointer()
   {
     return m_prevBlockNode;

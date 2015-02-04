@@ -139,6 +139,9 @@ namespace MFM{
 
     std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
     std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
+    std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtreesForClassInstances; //constant expr to resolve, and empty
+    std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtreesForClassInstances;  //constant expr to resolve, and empty
+
     std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
     std::map<UTI, std::vector<NodeConstantDef *> > m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
     std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
@@ -175,13 +178,18 @@ namespace MFM{
 
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
     void cloneConstantExpressionSubtrees(UTI olduti, UTI newuti);
+
     void constantFoldIncompleteUTI(UTI uti);
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
+    void linkConstantExpressionForClassInstances(UTI uti, NodeTypeBitsize * ceNode);
     bool statusUnknownBitsizeUTI();
     bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
+
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    void linkConstantExpressionForClassInstances(UTI uti, NodeSquareBracket * ceNode);
     bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
     bool statusUnknownArraysizeUTI();
+
     void linkArrayUTItoScalarUTI(UTI suti, UTI auti);
     void updatelinkedArrayUTIsWithKnownBitsize(UTI suti);
 
@@ -191,6 +199,7 @@ namespace MFM{
     void linkConstantExpression(UTI uti, NodeConstantDef * ceNode);
     bool constantFoldNonreadyClassArgs(UTI cuti);
     bool statusNonreadyClassArguments();
+    bool pendingClassArgumentsForUTI(UTI cuti);
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
@@ -212,6 +221,7 @@ namespace MFM{
     bool isComplete(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
     void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
+    void mergeClassUTI(UTI olduti, UTI cuti);
     void setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
 
     s32 getDefaultBitSize(UTI uti);
@@ -227,6 +237,7 @@ namespace MFM{
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
+    bool takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr); //ownership to the caller
 
     /** searches table of class defs for specific name, by token or idx,
         returns a place-holder type if class def not yet seen */

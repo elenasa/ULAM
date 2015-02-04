@@ -11,7 +11,10 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b,c;\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\nreturn 0;\n }\n }\n");
+      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b,c;\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\n/*sp = (f.sizeof == p.sizeof);\n*/ return 0;\n }\n }\n");
+
+      // try without decl list
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b;\nBool(y) c;\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\n/*sp = (f.sizeof == p.sizeof);\n*/ return 0;\n }\n }\n");
 
       bool rtn2 = fms->add("Poo.ulam"," ulam 1;\n element Poo {\n Bool valb[3];\n  Void reset(Bool b) {\n b = 0;\n }\n }\n");
 

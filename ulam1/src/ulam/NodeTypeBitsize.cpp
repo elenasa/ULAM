@@ -99,6 +99,10 @@ namespace MFM {
   {
     NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
 
+    //in case of a cloned unknown
+    if(m_currBlock == NULL)
+      setBlock();
+
     s32 newbitsize = UNKNOWNSIZE; //was ANYBITSIZECONSTANT;
     UTI sizetype = checkAndLabelType();
     if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
@@ -119,7 +123,7 @@ namespace MFM {
 	if(newbitsize == UNKNOWNSIZE)
 	  {
 	    std::ostringstream msg;
-	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "(), is not yet a \"known\" constant expression for class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "()UTI" << sizetype << ", is not yet a \"known\" constant expression for class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    return false;
 	  }

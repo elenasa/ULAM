@@ -14,6 +14,11 @@ namespace MFM {
     m_constant = sref.m_constant;
   }
 
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_defnode(NULL)
+  {
+    m_constant = sref.m_constant;
+  }
+
   SymbolConstantValue::~SymbolConstantValue()
   {
     //belongs to parse tree
