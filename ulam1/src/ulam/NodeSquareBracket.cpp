@@ -6,8 +6,8 @@
 
 namespace MFM {
 
-  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state), m_currBlock(m_state.m_currentBlock), m_currBlockNo(m_state.getCurrentBlockNo()) {}
-  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
+  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref) {}
   NodeSquareBracket::~NodeSquareBracket(){}
 
   Node * NodeSquareBracket::instantiate()
@@ -18,8 +18,6 @@ namespace MFM {
   void NodeSquareBracket::updateLineage(Node * p)
   {
     setYourParent(p);
-    m_currBlock = m_state.m_currentBlock; //do it now
-    assert(m_state.getCurrentBlockNo() == m_currBlockNo);
     NodeBinaryOp::updateLineage(this);
   }//updateLineage
 
@@ -100,18 +98,6 @@ namespace MFM {
   {
     m_nodeLeft->countNavNodes(cnt);
     m_nodeRight->countNavNodes(cnt);
-  }
-
-  NNO NodeSquareBracket::getBlockNo()
-  {
-    return m_currBlockNo;
-  }
-
-  void NodeSquareBracket::setBlock()
-  {
-    assert(m_currBlockNo);
-    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(m_currBlock);
   }
 
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
@@ -315,12 +301,6 @@ namespace MFM {
   // eval() performed even before check and label!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
   {
-    NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
-
-    //in case of a cloned unknown
-    if(m_currBlock == NULL)
-      setBlock();
-
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
@@ -328,13 +308,11 @@ namespace MFM {
     // expect a constant integer or constant unsigned integer
     if(sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned))
       {
-	m_state.m_currentBlock = m_currBlock;
 	evalNodeProlog(0);             //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
 	m_nodeRight->eval();
 	UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog();
-	m_state.m_currentBlock = savecurrentblock; //restore
 
 	newarraysize = arrayUV.getImmediateData(m_state);
 	if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //== NONARRAYSIZE or UNKNOWNSIZE

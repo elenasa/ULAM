@@ -38,7 +38,6 @@
 #define NODETYPEBITSIZE_H
 
 #include "Node.h"
-#include "NodeBlock.h"
 
 namespace MFM{
 
@@ -62,9 +61,6 @@ namespace MFM{
 
     virtual void countNavNodes(u32& cnt);
 
-    NNO getBlockNo();
-    void setBlock();
-
     virtual EvalStatus eval();
 
     virtual const char * getName();
@@ -75,8 +71,6 @@ namespace MFM{
 
   private:
     Node * m_node; //constant expression subtree
-    NodeBlock * m_currBlock;
-    NNO m_currBlockNo;
   };
 
 } //MFM
