@@ -46,6 +46,7 @@ namespace MFM{
 
   class Node; //forward
   class NodeBlockClass; //forward
+  class SymbolTable; //forward
 
   class SymbolFunctionName : public Symbol
   {
@@ -67,6 +68,8 @@ namespace MFM{
     u32 getDepthSumOfFunctions();
 
     u32 checkFunctionNames();
+
+    u32 checkCustomArrayFunctions(SymbolTable & fST);
 
     void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
 

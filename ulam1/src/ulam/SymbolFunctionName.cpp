@@ -5,6 +5,7 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "SymbolVariable.h"
 #include "CompilerState.h"
+#include "SymbolTable.h"
 
 namespace MFM {
 
@@ -164,6 +165,58 @@ namespace MFM {
     dupfuncs.clear();
     return probcount;
   } //checkFunctionNames
+
+  u32 SymbolFunctionName::checkCustomArrayFunctions(SymbolTable & fST)
+  {
+    u32 probcount = 0;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    //loop over 'aref's for return type; then check for 'aset' existence/correctness
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	UTI futi = fsym->getUlamTypeIdx();
+	assert(futi != Void);
+
+	// CANT use UTI directly, must key to compare as they may change.???
+	// check that its 'set' function has a matching parameter type
+	Symbol * fnsymset = NULL;
+	if(fST.isInTable(m_state.getCustomArraySetFunctionNameId(), fnsymset))
+	  {
+	    SymbolFunction * funcSymbol = NULL;
+	    std::vector<UTI> argTypes;
+	    argTypes.push_back(Int);
+	    argTypes.push_back(futi);
+	    if(!((SymbolFunctionName *) fnsymset)->findMatchingFunction(argTypes, funcSymbol))
+	      {
+		std::ostringstream msg;
+		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(fnsymset->getId()).c_str() << "' does not match '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' argument types: ";
+		for(u32 i = 0; i < argTypes.size(); i++)
+		  {
+		    msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
+		  }
+		msg << "and cannot be called in class: " << m_state.getUlamTypeByIndex(m_state.m_compileThisIdx)->getUlamTypeNameOnly().c_str();
+		MSG("", msg.str().c_str(), ERR);
+		probcount++;
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' FOUND in class: " << m_state.getUlamTypeByIndex(m_state.m_compileThisIdx)->getUlamTypeNameOnly().c_str();
+		MSG("", msg.str().c_str(), DEBUG);
+	      }
+	    argTypes.clear();
+	  }//aset found
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' NOT FOUND in class: " << m_state.getUlamTypeByIndex(m_state.m_compileThisIdx)->getUlamTypeNameOnly().c_str();
+	    MSG("", msg.str().c_str(), WARN);
+	  }
+	++it;
+      } //while get found
+    return probcount;
+  } //checkCustomArrayFunctions
+
 
   void SymbolFunctionName::linkToParentNodesInFunctionDefs(NodeBlockClass * p)
   {
