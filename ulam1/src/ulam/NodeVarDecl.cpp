@@ -8,15 +8,16 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlock(NULL), m_currBlockNo(0)
   {
     if(sym)
-      m_vid = sym->getId();
-    else
-      m_vid = 0; //error
+      {
+	m_vid = sym->getId();
+	m_currBlockNo = sym->getBlockNoOfST();
+      }
   }
 
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid) {}
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeVarDecl::~NodeVarDecl() {}
 
@@ -64,6 +65,12 @@ namespace MFM {
     // instantiate, look up in current block
     if(m_varSymbol == NULL)
       {
+	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+	//in case of a cloned unknown
+	if(m_currBlock == NULL)
+	  setBlock();
+	m_state.m_currentBlock = m_currBlock; //before lookup
+
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
 	  {
@@ -84,6 +91,7 @@ namespace MFM {
 	    msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+      	m_state.m_currentBlock = savecurrentblock; //restore
       } //to instantiate
 
     if(m_varSymbol)
@@ -119,9 +127,22 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  NNO NodeVarDecl::getBlockNo()
+  {
+    return m_currBlockNo;
+  }
+
+  void NodeVarDecl::setBlock()
+  {
+    assert(m_currBlockNo);
+    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(m_currBlock);
+  }
+
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert((s32) offset >= 0); //neg is invalid
+    assert(m_varSymbol);
 
     //skip element parameter variables
     if(!m_varSymbol->isElementParameter())
@@ -140,11 +161,9 @@ namespace MFM {
 	    msg << "Data member <" << getName() << "> of type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it << ") total size: " << (s32) m_state.getTotalBitSize(it) << " MUST fit into " << MAXBITSPERINT << " bits; Local variables do not have this restriction";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-
 	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
       }
   } //packBitsInOrderOfDeclaration
-
 
   EvalStatus NodeVarDecl::eval()
   {
@@ -174,17 +193,17 @@ namespace MFM {
     return NORMAL;
   } //eval
 
-
   EvalStatus  NodeVarDecl::evalToStoreInto()
   {
     assert(0);  //no way to get here!
     return ERROR;
   }
 
-
   // parse tree in order declared, unlike the ST.
   void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
   {
+    assert(m_varSymbol);
+
     // use immediate storage for "static" element parameters
     if(m_varSymbol->isElementParameter())
       {
@@ -284,12 +303,10 @@ namespace MFM {
 	    fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
 	  }
       }
-
     fp->write("> ");
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   } //genCodedBitFieldTypedef
-
 
   void NodeVarDecl::genCodedElementParameter(File * fp, UlamValue uvpass)
   {
@@ -306,7 +323,6 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write(";\n");  //func call parameters aren't NodeVarDecl's
   }  //genCodedElementParameter
-
 
   // this is the auto local variable's node, created at parse time,
   // for Conditional-As case.

@@ -9,9 +9,13 @@
 
 namespace MFM {
 
-  NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr) {}
+  NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlock(NULL), m_currBlockNo(0)
+  {
+    if(symptr)
+      m_currBlockNo = symptr->getBlockNoOfST();
+  }
 
-  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL) /* shallow */ {}
+  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL) /* shallow */, m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeIdent::~NodeIdent(){}
 
@@ -42,19 +46,41 @@ namespace MFM {
     return true;
   }
 
+  void NodeIdent::setSymbolPtr(SymbolVariable * vsymptr)
+  {
+    assert(vsymptr);
+    m_varSymbol = vsymptr;
+    m_currBlockNo = vsymptr->getBlockNoOfST();
+    assert(m_currBlockNo);
+  }
+
   UTI NodeIdent::checkAndLabelType()
   {
     UTI it = Nav;  //init
 
-    //use was before def, look up in class block
+    //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
       {
+	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+
+	//used before defined, start search with current block
+	if(m_currBlockNo == 0)
+	    m_currBlockNo = m_state.m_currentBlock->getNodeNo();
+
+	//in case of a cloned unknown
+	if(m_currBlock == NULL)
+	  setBlock();
+
+	m_state.m_currentBlock = m_currBlock; //before lookup
+
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant())
 	      {
-		m_varSymbol = (SymbolVariable *) asymptr;
+		setSymbolPtr((SymbolVariable *) asymptr);
+		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
+		// e.g. var used before defined, and then is a data member outside current func block.
 	      }
 	    else
 	      {
@@ -69,7 +95,8 @@ namespace MFM {
 	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      }
+      	m_state.m_currentBlock = savecurrentblock; //restore
+      } //lookup symbol
 
     if(m_varSymbol)
       {
@@ -81,6 +108,17 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
+  NNO NodeIdent::getBlockNo()
+  {
+    return m_currBlockNo;
+  }
+
+  void NodeIdent::setBlock()
+  {
+    assert(m_currBlockNo);
+    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(m_currBlock);
+  }
 
   EvalStatus NodeIdent::eval()
   {
@@ -94,7 +132,6 @@ namespace MFM {
 
     if(m_state.isScalar(nuti))
       {
-
 	uv = m_state.getPtrTarget(uvp);
 
 	// redo what getPtrTarget use to do, when types didn't match due to
@@ -126,8 +163,6 @@ namespace MFM {
 		else
 		  {
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    //while(uv.getUlamValueTypeIdx() == Ptr)
-		    //  uv = m_state.getPtrTarget(uv);
 		    assert(uv.getUlamValueTypeIdx() != Ptr);
 
 		    u32 datavalue = uv.getDataFromAtom(uvp, m_state);
@@ -144,8 +179,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }
-
+  } //eval
 
   EvalStatus NodeIdent::evalToStoreInto()
   {
@@ -325,7 +359,7 @@ namespace MFM {
     if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
       {
 	if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
-	  m_varSymbol = (SymbolVariable *) asymptr;  //updates Node's symbol, if is variable
+	  setSymbolPtr((SymbolVariable *) asymptr);  //updates Node's symbol, if is variable
 	return false;    //already there
       }
 
@@ -413,8 +447,7 @@ namespace MFM {
       {
 	SymbolVariable * sym = makeSymbol(aut);
 	m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
-
-	m_varSymbol = sym;
+	setSymbolPtr(sym); //sets m_varSymbol and st block no.
 	asymptr = sym;
       }
 

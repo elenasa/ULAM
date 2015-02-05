@@ -5,15 +5,16 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym)
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlock(NULL), m_currBlockNo(0)
   {
     if(sym)
-      m_tdid = sym->getId();
-    else
-      m_tdid = 0; //error
+      {
+	m_tdid = sym->getId();
+	m_currBlockNo = sym->getBlockNoOfST();
+      }
   }
 
-  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid) {}
+  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeTypedef::~NodeTypedef() {}
 
@@ -59,6 +60,12 @@ namespace MFM {
     // instantiate, look up in current block
     if(m_typedefSymbol == NULL)
       {
+	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+	//in case of a cloned unknown
+	if(m_currBlock == NULL)
+	  setBlock();
+	m_state.m_currentBlock = m_currBlock; //before lookup
+
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
 	  {
@@ -79,6 +86,7 @@ namespace MFM {
 	    msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+      	m_state.m_currentBlock = savecurrentblock; //restore
       } //toinstantiate
 
     if(m_typedefSymbol)
@@ -87,7 +95,6 @@ namespace MFM {
 	//check for incomplete Classes
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
 	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-	//	if(tdclasstype == UC_INCOMPLETE || (tdclasstype != UC_NOTACLASS && !tdut->isComplete()))
 	if(tdclasstype == UC_INCOMPLETE)
 	  {
 	    if(!m_state.completeIncompleteClassSymbol(it))
@@ -113,6 +120,18 @@ namespace MFM {
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
+
+  NNO NodeTypedef::getBlockNo()
+  {
+    return m_currBlockNo;
+  }
+
+  void NodeTypedef::setBlock()
+  {
+    assert(m_currBlockNo);
+    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(m_currBlock);
+  }
 
   EvalStatus NodeTypedef::eval()
   {
@@ -151,7 +170,6 @@ namespace MFM {
     fp->write(";\n");
 #endif
   }
-
 
 } //end MFM
 

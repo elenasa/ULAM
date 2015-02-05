@@ -40,18 +40,15 @@ namespace MFM {
     return true;
   }
 
-
   void SymbolFunction::addParameterSymbol(Symbol * sym)
   {
     m_parameterSymbols.push_back(sym);
   }
 
-
   u32 SymbolFunction::getNumberOfParameters()
   {
     return m_parameterSymbols.size();
   }
-
 
   u32 SymbolFunction::getTotalSizeOfParameters()
   {
@@ -64,25 +61,21 @@ namespace MFM {
     return totalsizes;
   }
 
-
   Symbol * SymbolFunction::getParameterSymbolPtr(u32 n)
   {
     assert(n < m_parameterSymbols.size());
     return m_parameterSymbols[n];
   }
 
-
   void SymbolFunction::markForVariableArgs(bool m)
   {
     m_hasVariableArgs = m;
   }
 
-
   bool SymbolFunction::takesVariableArgs()
   {
     return m_hasVariableArgs;
   }
-
 
   void SymbolFunction::setFunctionNode(NodeBlockFunctionDefinition * func)
   {
@@ -90,20 +83,18 @@ namespace MFM {
       delete m_functionNode;  //clean up any previous declarations
 
     m_functionNode = func;
+    Symbol::setBlockNoOfST(func->getNodeNo());
   }
-
 
   NodeBlockFunctionDefinition *  SymbolFunction::getFunctionNode()
   {
     return m_functionNode;
   }
 
-
   const std::string SymbolFunction::getMangledPrefix()
   {
     return "Uf_";
   }
-
 
   //supports overloading functions with SymbolFunctionName;
   // join function name with comma-delimited UTI parameters
@@ -122,8 +113,9 @@ namespace MFM {
       }
 
     // append UTI for each parameter
-    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == 0),
+    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
     //        during this parse stage, the key remains consistent.
+    // many UTI -to- one key, how does this impact the scheme?
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
@@ -131,7 +123,6 @@ namespace MFM {
       }
     return mangled.str();
   } //getMangledNameWithUTIparameters
-
 
   //supports overloading functions with SymbolFunctionName
   const std::string SymbolFunction::getMangledNameWithTypes()
@@ -147,7 +138,7 @@ namespace MFM {
       }
 
     // append mangled type name, e.g. 1023213Int, for each parameter
-    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == 0),
+    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
     //        during this parse stage, the key remains consistent.
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
@@ -166,7 +157,6 @@ namespace MFM {
 
     // numArgs could be greater if this function takes variable args
     // check number of args first
-    //    if(numArgs != m_parameterSymbols.size())
     if(numArgs < numParams || (numArgs > numParams && !takesVariableArgs()))
       return false;
 
@@ -176,12 +166,10 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	//if( puti != argTypes[i])
 	if(UlamType::compare(puti, argTypes[i], m_state) == UTIC_NOTSAME)
 	  {
 	    //constants can match any bit size
 	    ULAMTYPE ptypEnum = m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum();
-	    //if(argTypes[i] != m_state.getUlamTypeOfConstant(ptypEnum))
 	    if(UlamType::compare(argTypes[i], m_state.getUlamTypeOfConstant(ptypEnum), m_state) == UTIC_NOTSAME)
 	      {
 		rtnBool = false;
@@ -192,7 +180,6 @@ namespace MFM {
     return rtnBool;
   } //matchingTypes
 
-
   u32 SymbolFunction::isNativeFunctionDeclaration()
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
@@ -200,7 +187,6 @@ namespace MFM {
 
     return (func->isNative() ? 1 : 0);
   } //isNativeFunctionDeclaration
-
 
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -213,10 +199,6 @@ namespace MFM {
 
     m_state.outputTextAsComment(fp, func->getNodeLocation());
 
-    //if(classtype == UC_ELEMENT)
-    //	generateElementFunctionDeclaration(fp, declOnly, classtype);
-    //else
-    //	generateQuarkFunctionDeclaration(fp, declOnly, classtype);
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
 
     m_state.indent(fp);

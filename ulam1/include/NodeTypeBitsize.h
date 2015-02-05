@@ -74,7 +74,7 @@ namespace MFM{
     bool getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT);
 
   private:
-    Node * m_node;
+    Node * m_node; //constant expression subtree
     NodeBlock * m_currBlock;
     NNO m_currBlockNo;
   };

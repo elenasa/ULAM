@@ -2256,16 +2256,21 @@ namespace MFM {
 
   NNO CompilerState::getNextNodeNo()
   {
-    return ++m_nextNodeNumber;
+    return ++m_nextNodeNumber; //first one is 1
   }
 
   NNO CompilerState::getCurrentBlockNo()
   {
-    return m_currentBlock->getNodeNo();
+    if(m_currentBlock)
+      return m_currentBlock->getNodeNo();
+    return 0; //genesis of class
   }
 
   Node * CompilerState::findNodeNoInThisClass(NNO n)
   {
+    if(m_currentBlock->getNodeNo() == n)
+      return m_currentBlock; //avoid chix-n-egg with functiondefs
+
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
     return cnsym->findNodeNoInAClassInstance(m_compileThisIdx, n);

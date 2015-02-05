@@ -4,13 +4,14 @@
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false)
+  NodeConstant::NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_currBlock(NULL), m_currBlockNo(0)
   {
     assert(symptr);
+    m_currBlockNo = symptr->getBlockNoOfST();
     m_ready = updateConstant();
   }
 
-  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL) /* shallow */, m_ready(false) {}
+  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL) /* shallow */, m_ready(false), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeConstant::~NodeConstant(){}
 
@@ -55,6 +56,12 @@ namespace MFM {
     //instantiate, look up in class block
     if(m_constSymbol == NULL)
       {
+	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+	//in case of a cloned unknown
+	if(m_currBlock == NULL)
+	  setBlock();
+	m_state.m_currentBlock = m_currBlock; //before lookup
+
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
 	  {
@@ -75,7 +82,8 @@ namespace MFM {
 	    msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      }
+	m_state.m_currentBlock = savecurrentblock; //restore
+      } //lookup symbol
 
     if(m_constSymbol)
       it = m_constSymbol->getUlamTypeIdx();
@@ -89,6 +97,17 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
+  NNO NodeConstant::getBlockNo()
+  {
+    return m_currBlockNo;
+  }
+
+  void NodeConstant::setBlock()
+  {
+    assert(m_currBlockNo);
+    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(m_currBlock);
+  }
 
   EvalStatus NodeConstant::eval()
   {
