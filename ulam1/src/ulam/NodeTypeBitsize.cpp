@@ -5,8 +5,8 @@
 
 namespace MFM {
 
-  NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node), m_currBlock(m_state.m_currentBlock), m_currBlockNo(m_state.getCurrentBlockNo()) {}
-  NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo)
+  NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node) {}
+  NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref)
   {
     m_node = ref.m_node->instantiate();
   }
@@ -25,8 +25,6 @@ namespace MFM {
   void NodeTypeBitsize::updateLineage(Node * p)
   {
     setYourParent(p);
-    m_currBlock = m_state.m_currentBlock; //do it now
-    assert(m_state.getCurrentBlockNo() == m_currBlockNo);
     m_node->updateLineage(this);
   }//updateLineage
 
@@ -75,18 +73,6 @@ namespace MFM {
     m_node->countNavNodes(cnt);
   }
 
-  NNO NodeTypeBitsize::getBlockNo()
-  {
-    return m_currBlockNo;
-  }
-
-  void NodeTypeBitsize::setBlock()
-  {
-    assert(m_currBlockNo);
-    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(m_currBlock);
-  }
-
   EvalStatus NodeTypeBitsize::eval()
   {
     assert(0);  //not in parse tree; part of symbol's type
@@ -98,23 +84,15 @@ namespace MFM {
   // guards against even Bool's.
   bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT)
   {
-    NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
-
-    //in case of a cloned unknown
-    if(m_currBlock == NULL)
-      setBlock();
-
     s32 newbitsize = UNKNOWNSIZE; //was ANYBITSIZECONSTANT;
     UTI sizetype = checkAndLabelType();
     if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
       {
-	m_state.m_currentBlock = m_currBlock;
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
 	m_node->eval();
 	UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog();
-	m_state.m_currentBlock = savecurrentblock; //restore
 
 	if(bitUV.getUlamValueTypeIdx() == Nav)
 	  newbitsize = UNKNOWNSIZE;
