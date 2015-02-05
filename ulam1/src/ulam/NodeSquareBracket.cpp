@@ -109,6 +109,7 @@ namespace MFM {
 
   void NodeSquareBracket::setBlock()
   {
+    assert(m_currBlockNo);
     m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
     assert(m_currBlock);
   }

@@ -2790,7 +2790,7 @@ namespace MFM {
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 
-    // parse and add parameters to function symbol
+    // parse and add parameters to function symbol (not in ST yet!)
     parseRestOfFunctionParameters(fsymptr);
 
     // Now, look specifically for a function with the same given name defined

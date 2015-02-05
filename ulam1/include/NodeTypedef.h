@@ -39,6 +39,7 @@
 
 #include "Node.h"
 #include "SymbolTypedef.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
@@ -56,6 +57,9 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    NNO getBlockNo();
+    void setBlock();
+
     virtual EvalStatus eval();
 
     virtual const char * getName();
@@ -71,6 +75,8 @@ namespace MFM{
   private:
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate
+    NodeBlock * m_currBlock;
+    NNO m_currBlockNo;
   };
 
 }

@@ -41,6 +41,7 @@
 #include "Token.h"
 #include "SymbolConstantValue.h"
 #include "UlamType.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
@@ -66,6 +67,9 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    NNO getBlockNo();
+    void setBlock();
+
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
@@ -74,6 +78,8 @@ namespace MFM{
     Token m_token;
     SymbolConstantValue * m_constSymbol;
     bool m_ready;
+    NodeBlock * m_currBlock;
+    NNO m_currBlockNo;
     bool updateConstant();
   };
 

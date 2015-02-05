@@ -75,6 +75,9 @@ namespace MFM{
     void setIsSelf();
     bool isSelf();
 
+    NNO getBlockNoOfST();
+    void setBlockNoOfST(NNO n);
+
     const std::string getMangledName();
 
     static const std::string getParameterTypePrefix(bool isaclass);
@@ -98,6 +101,7 @@ namespace MFM{
     bool m_elementParameter;
     bool m_autoLocal;
     bool m_isSelf;       // hidden arg symbol
+    NNO m_stBlockNo;
   };
 
 }

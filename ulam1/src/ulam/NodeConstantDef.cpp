@@ -5,10 +5,13 @@
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(state.m_currentBlock), m_currBlockNo(m_state.getCurrentBlockNo())
+  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(NULL), m_currBlockNo(0)
   {
     if(symptr)
-      m_cid = symptr->getId();
+      {
+	m_cid = symptr->getId();
+	m_currBlockNo = symptr->getBlockNoOfST();
+      }
     else
       m_cid = 0; //error
   }
@@ -77,6 +80,12 @@ namespace MFM {
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
       {
+	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+	//in case of a cloned unknown
+	if(m_currBlock == NULL)
+	  setBlock();
+	m_state.m_currentBlock = m_currBlock; //before lookup
+
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_cid, asymptr))
 	  {
@@ -97,6 +106,7 @@ namespace MFM {
 	    msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+      	m_state.m_currentBlock = savecurrentblock; //restore
       } //toinstantiate
 
     assert(m_exprnode);
@@ -125,6 +135,7 @@ namespace MFM {
 
   void NodeConstantDef::setBlock()
   {
+    assert(m_currBlockNo);
     m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
     assert(m_currBlock);
   }
@@ -145,18 +156,18 @@ namespace MFM {
     if(m_currBlock == NULL)
       setBlock();
 
+    m_state.m_currentBlock = m_currBlock; //before c&l
+
     s32 newconst = NONREADYCONST;  //always signed?
     UTI uti = checkAndLabelType(); //find any missing symbol
 
     if((uti == m_state.getUlamTypeOfConstant(Int) || uti == m_state.getUlamTypeOfConstant(Unsigned)))
       {
-	m_state.m_currentBlock = m_currBlock;
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
 	m_exprnode->eval();
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
 	evalNodeEpilog();
-	m_state.m_currentBlock = savecurrentblock; //restore
 
 	if(cnstUV.getUlamValueTypeIdx() == Nav)
 	  newconst = NONREADYCONST;
@@ -168,6 +179,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not yet ready";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    m_state.m_currentBlock = savecurrentblock; //restore
 	    return false;
 	  }
       }
@@ -176,10 +188,12 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not a constant expression";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	m_state.m_currentBlock = savecurrentblock; //restore
 	return false;
       }
     // passed
     m_constSymbol->setValue(newconst); //isReady now
+    m_state.m_currentBlock = savecurrentblock; //restore
     return true;
   } //foldConstantExpression
 

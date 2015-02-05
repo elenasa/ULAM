@@ -60,6 +60,7 @@ namespace MFM {
   void SymbolClass::setClassBlockNode(NodeBlockClass * node)
   {
     m_classBlock = node;
+    Symbol::setBlockNoOfST(node->getNodeNo());
   }
 
   NodeBlockClass * SymbolClass::getClassBlockNode()

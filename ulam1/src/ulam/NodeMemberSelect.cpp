@@ -19,12 +19,10 @@ namespace MFM {
     fp->write(myname);
   }
 
-
   const char * NodeMemberSelect::getName()
   {
     return ".";
   }
-
 
   const std::string NodeMemberSelect::prettyNodeName()
   {
@@ -80,7 +78,6 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-
   EvalStatus NodeMemberSelect::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -100,7 +97,6 @@ namespace MFM {
     //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
     m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
 
-
     u32 slot = makeRoomForNodeType(getNodeType());
     evs = m_nodeRight->eval();   //a Node Function Call here, or data member eval
     if(evs != NORMAL)
@@ -109,13 +105,8 @@ namespace MFM {
 	return evs;
       }
 
-
-    //Symbol * rsymptr = NULL;
-    //if(m_nodeRight->getSymbolPtr(rsymptr) && rsymptr->isFunction())
-
     //assigns rhs to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
-
     if(slot)   //avoid Void's
       doBinaryOperation(1, 1+slot, slot);  //????????
 
@@ -123,7 +114,6 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //eval
-
 
   //for eval, want the value of the rhs
   void NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
@@ -148,9 +138,7 @@ namespace MFM {
 
     //copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnUV);
-  }
-
-
+  }//doBinaryOperation
 
   EvalStatus NodeMemberSelect::evalToStoreInto()
   {
@@ -177,7 +165,6 @@ namespace MFM {
 	return evs;
       }
 
-    //UlamValue ruvPtr = m_state.m_nodeEvalStack.popArg();
     UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2);
 
     assignReturnValuePtrToStack(ruvPtr);
@@ -188,19 +175,16 @@ namespace MFM {
     return NORMAL;
   } //evalToStoreInto
 
-
   UlamValue NodeMemberSelect::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     assert(0); //unused
     return UlamValue();
   }
 
-
   void NodeMemberSelect::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     assert(0); //unused
   }
-
 
   bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
   {
@@ -209,26 +193,19 @@ namespace MFM {
 
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
     return false;
-  }
+  } //getSymbolPtr
 
 
   void NodeMemberSelect::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-
     //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());    //*************?
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-
-    //m_nodeRight->genCodeToStoreInto(fp, uvpass);       // w/o readInto to reset COS
-    ////if(m_nodeRight->getNodeType() != Void)
-    //  m_nodeRight->genCodeReadIntoATmpVar(fp, uvpass); //e.g. in case of func calls
-
     m_nodeRight->genCode(fp, uvpass);  // is this ok???
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
-
 
   // presumably called by e.g. a binary op equal (lhs); caller saves
   // currentObjPtr/Symbol, unlike genCode (rhs)
