@@ -1,54 +1,54 @@
 #include <assert.h>
-#include "Site.h"
+#include "USite.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  Site::Site(): m_live(false)
-  { 
-    init(); 
+  USite::USite(): m_live(false)
+  {
+    init();
   }
 
 
-  Site::~Site()
+  USite::~USite()
   {}
 
 
-  void Site::init()
+  void USite::init()
   {
     m_site = UlamValue::makeAtom(); //type set 'Atom'; clears to zeros
   }
 
 
-  UTI Site::getElementTypeNumber()
+  UTI USite::getElementTypeNumber()
   {
     return m_site.getAtomElementTypeIdx();
   }
 
 
-  void Site::setElementTypeNumber(UTI type)
+  void USite::setElementTypeNumber(UTI type)
   {
     m_site.setAtomElementTypeIdx(type);
   }
 
 
-  bool Site::isSiteLive()
+  bool USite::isSiteLive()
   {
     return m_live;
   }
 
-  void Site::setSiteLive(bool b)
+  void USite::setSiteLive(bool b)
   {
     m_live = b;
   }
 
 
-  UlamValue Site::getSiteUlamValue()
+  UlamValue USite::getSiteUlamValue()
   {
     return m_site;
   }
 
-  void Site::setSiteUlamValue(UlamValue uv)
+  void USite::setSiteUlamValue(UlamValue uv)
   {
     m_site = uv;
   }
