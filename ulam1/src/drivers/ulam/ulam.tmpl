@@ -5,6 +5,7 @@
 my $ORIG_PATH = $ENV{'PATH'};
 delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
+
 use Capture::Tiny 'capture';
 use Cwd 'abs_path';
 use Carp;
@@ -34,6 +35,8 @@ my $CLEAN_CPP = 0;
 my $DEBUG_CPP = undef;
 my $OPTIMIZE_CPP = undef;
 my $KEEP_GOING = 0;
+
+my $ROLLUP_FILE_STEM = "UlamCustomElements";
 
 ####TOOL PATH NAMES
 my $makeTool = "GNU Make system builder";
@@ -148,8 +151,8 @@ sub runThis {
         }
     }
     if (showOutput()) {
-        print " # STDOUT: $stdout";     print "\n" unless $stdout =~ /.*\n$/;
-        print " # STDERR: $stderr";     print "\n" unless $stderr =~ /.*\n$/;
+        print " # STDOUT:\n$stdout";     print "\n" unless $stdout =~ /.*\n$/;
+        print " # STDERR:\n$stderr";     print "\n" unless $stderr =~ /.*\n$/;
         print " # STATUS: $status";     print "\n" unless $status =~ /.*\n$/;
     }
     return ($status,$stdout,$stderr);
@@ -235,13 +238,13 @@ my %swinfo = (
     },
     "executables" => {
         aliases => "e",
-        desc => "Generate executable  binaries from .ulam (implies --library)",
+        desc => "Generate executable binaries from .ulam (implies --library)",
         id => getSectionId("Command"),
         handler => \&entryCmd
     },
     "library" => {
         aliases => "l",
-        desc => "Create .a library file .ulam (implies --compile)",
+        desc => "Create .so library file .ulam (implies --compile)",
         id => getSectionId("Command"),
         handler => \&entryCmd
     },
@@ -739,7 +742,8 @@ sub compilationDriver {
 
     return 0 if $actionCmd eq "compile";
 
-    ($buildResults, my $libfile) = buildLibrary();
+#    ($buildResults, my $libfile) = buildLibrary();
+    ($buildResults, my $libfile) = buildSharedLibrary();
     UDie("$buildResults library creation problem(s) detected\n")
         if $buildResults;
 
@@ -774,9 +778,21 @@ sub myMkdir {
     UDie("Can't make dir '$path': $status\n") if $status ne "";
 }
 
+sub myRmRf {
+    my $path = shift;
+    my ($status,$stdout,$stderr);
+
+    ($status,$stdout,$stderr) = runThis(undef,undef,'/bin/rm',"-rf",$path);
+    UDie("Can't remove '$path': $status\n") if $status ne "";
+}
+
 sub checkOrMakeDir
 {
-    my $bd = shift;
+    my ($bd,$forceEmpty) = @_;
+    if (defined($forceEmpty) && $forceEmpty && -e $bd && -d $bd) {
+        myRmRf($bd);
+    }
+
     if (!-e $bd) {
         myMkdir($bd);
     } else {
@@ -791,12 +807,12 @@ sub prepareWorkDir
 {
     defaultWorkDir();
     pISC("## Make dirs");
-    my $bd = getWorkDir();
-    checkOrMakeDir($bd);
-    checkOrMakeDir("$bd/src");
-    checkOrMakeDir("$bd/include");
-    checkOrMakeDir("$bd/build");
-    checkOrMakeDir("$bd/bin");
+    my $wd = getWorkDir();
+    checkOrMakeDir($wd,1);
+    checkOrMakeDir("$wd/src");
+    checkOrMakeDir("$wd/include");
+    checkOrMakeDir("$wd/build");
+    checkOrMakeDir("$wd/bin");
 }
 
 my %testableFiles;
@@ -826,7 +842,7 @@ sub runUlamCompilations
         pISC(" # Compiling '$file'");
         my ($ulamStatus, $cfile, $testable) = runUlamCompile($file);
         my $gppStatus = 0;
-#        print STDERR "RUC($ulamStatus, $cfile, $testable) = runUlamCompile($file);\n";
+        print STDERR "RUC($ulamStatus, $cfile, $testable) = runUlamCompile($file);\n";
         if ($ulamStatus == 0) {
             if ($testable) {
                 $testableFiles{$file} = $cfile;
@@ -864,7 +880,7 @@ sub runUlamInfoGeneration
 }
 
 sub writeElementAllocatorStub {
-    my $base = "UlamCustomElements";
+    my $base = $ROLLUP_FILE_STEM;
     my $baseguard = uc($base)."_H";
     my $hdr = "$base.h";
     my $cpp = "$base.cpp";
@@ -900,23 +916,23 @@ namespace MFM {
   template <class GC>
   void $fname(AbstractDriver<GC> * ad)
   {
-    typedef typename GC::CORE_CONFIG CC;
+    typedef typename GC::EVENT_CONFIG EC;
 EOF
     for my $en (@elementNamesFromUlam) {
       my ($infoname, $infocode) = @{$infoForElement{$en}};
       print $hdrhdl <<EOF;
 
     {
-      static $infoname<CC, $en> eltInfo($en<CC>::THE_INSTANCE);
-      $en<CC>::THE_INSTANCE.SetInfo(&eltInfo);
+      static $infoname<EC> eltInfo;
+      $en<EC>::THE_INSTANCE.SetInfo(&eltInfo);
     }
 EOF
         if ($en eq "Ue_10105Empty") {
           print $hdrhdl <<EOF;
-    MFM::$en<CC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<CC>::THE_INSTANCE);
+    MFM::$en<EC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<EC>::THE_INSTANCE);
 EOF
         } else {
-            print $hdrhdl "    ad->NeedElement(&$en<CC>::THE_INSTANCE);\n";
+            print $hdrhdl "    ad->NeedElement(&$en<EC>::THE_INSTANCE);\n";
         }
     }
     print $hdrhdl <<EOF;
@@ -926,18 +942,82 @@ EOF
 EOF
 
     close $hdrhdl or UDie("Error closing '$inc': $!\n");
+    my $libraryStubPtrArrayInits = "";
+    my $libraryStubPtrArrayCount = 0;
+    for my $en (@elementNamesFromUlam) {
+        next if $en eq "Ue_10105Empty";
+        $libraryStubPtrArrayInits .= "," if $libraryStubPtrArrayInits ne "";
+        $libraryStubPtrArrayInits .= "\n    &MFM::$en<MFM::StdEventConfig>::THE_INSTANCE";
+        ++$libraryStubPtrArrayCount;
+    }
     open(my $handle, ">", $src)
         or UDie("Can't write '$src': $!\n");
     print $handle <<EOF;
 
 #include "$hdr"
 
+#ifdef ELEMENT_PLUG_IN
+
+#include "StdEventConfig.h"
+#include "ElementLibraryLoader.h"
+
+extern "C" {
+  static MFM::Element<MFM::StdEventConfig> * (_elementPtrArray_[]) = {$libraryStubPtrArrayInits
+  };
+  static MFM::ElementLibrary<MFM::StdEventConfig> el = {
+    MFM::ELEMENT_LIBRARY_MAGIC,
+    MFM::ELEMENT_LIBRARY_VERSION,
+    0,
+    $libraryStubPtrArrayCount,
+    MFM_BUILD_DATE,
+    MFM_BUILD_TIME,
+    _elementPtrArray_
+  };
+  void * MFM_ELEMENT_LIBRARY_LOADER_SYMBOL =  &el;
+}
+
+#endif /* ELEMENT_PLUG_IN */
+
 EOF
     close $handle or UDie("Error closing '$src': $!\n");
     return (0,$cpp);
 }
 
-sub buildLibrary
+sub buildSharedLibrary
+{
+    pISC("## Create library");
+    my $libfile = "$ULAM_WORK_DIR/build/libcue.so";
+    my $rollupObject = "$ULAM_WORK_DIR/build/$ROLLUP_FILE_STEM.o";
+    my @args = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject);
+    my $status = 0;
+    for my $cfile (@cppFromUlam) {
+        my $ofile = $cfile;
+        if ($ofile !~ s/[.]cpp$/.o/) {
+            IDie("What happened? ($cfile)\n");
+        }
+        $ofile = "$ULAM_WORK_DIR/build/$ofile";
+        push @args, $ofile;
+    }
+
+## g++ -shared -rdynamic foo1.o foo2.o -o foosh.so
+    print " Create shared library: ";
+    my $gpp = getTool($gppTool);
+
+    my $HOLD_PATH = $ENV{PATH};
+    $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+    ($status,my $stdout,my $stderr) = runThis(undef,undef,$gpp,@args);
+    $ENV{PATH} = $HOLD_PATH;
+
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        print STDOUT "OK\n";
+        return (0, $libfile);
+    }
+    return $status ne "";
+}
+
+sub buildArchiveLibrary
 {
     pISC("## Create library");
     my $libfile = "$ULAM_WORK_DIR/build/libculam.a";
@@ -954,6 +1034,7 @@ sub buildLibrary
 
     print " Create library: ";
     my $ar = getTool($arTool);
+# g++ -shared -rdynamic foo1.o foo2.o -o foosh.so
     ($status,my $stdout,my $stderr) = runThis(undef,undef,$ar,@args);
 
     if ($status ne "") {
@@ -984,7 +1065,10 @@ sub buildExecutables
 
     print " Create library: ";
     my $ar = getTool($arTool);
+    my $HOLD_PATH = $ENV{PATH};
+    $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
     ($status,my $stdout,my $stderr) = runThis(undef,undef,$ar,@args);
+    $ENV{PATH} = $HOLD_PATH;
 
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
@@ -1090,7 +1174,7 @@ EOF
 
     print $handle <<EOF;
 
-template <class CC>
+template <class EC>
 static void AllocateElementTypes()
 {
   static bool initted = false;
@@ -1100,11 +1184,11 @@ EOF
     for my $en (@elementNamesFromUlam) {
         if ($en eq "Ue_10105Empty") {
           print $handle <<EOF;
-  MFM::$en<CC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<CC>::THE_INSTANCE);
+  MFM::$en<EC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<EC>::THE_INSTANCE);
 EOF
         } else {
           print $handle <<EOF;
-  MFM::$en<CC>::THE_INSTANCE.AllocateType();
+  MFM::$en<EC>::THE_INSTANCE.AllocateType();
 EOF
         }
     }
@@ -1169,13 +1253,17 @@ sub buildSimDriver
     my $var = join("=",getDebugArgs());
     my @dbgarg;
     push @dbgarg, $var if $var ne "";
+    my $HOLD_PATH = $ENV{PATH};
+    $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+
     my $linkFailed =
         runMake("all",
                 @dbgarg,
                 "EXTERNAL_DEFINES=-Wno-error=unused-variable -DULAM_CUSTOM_ELEMENTS",
                 "EXTERNAL_INCLUDES=-I $dir/include",
-                "EXTERNAL_LIBS=-L $dir/build -l culam",
+                "EXTERNAL_LIBS=-L $dir/build -l cue"
         );
+    $ENV{PATH} = $HOLD_PATH;
     UDie("What") if $linkFailed;
 }
 
@@ -1185,13 +1273,18 @@ sub runGccCompilations
     pISC("## Compile C++");
     my $status = 0;
     my $dir = getWorkDir();
-    for my $cfile (@cppFromUlam) {
+    my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
+    for my $cfile ($rollupFile, @cppFromUlam) {
         pISC(" # Compiling '$cfile'");
-        my $gppStatus = 0;
+        my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc";
+        if ($cfile eq $rollupFile) {
+             $extraDefines .= " -I $MFM_ROOT_DIR/src/sim/include -I $MFM_ROOT_DIR/src/elements/include";
+        }
+       my $gppStatus = 0;
         $gppStatus =
             gppCompile($cfile,"ulam_cppcompile",
                        getDebugArgs(),
-                       "EXTERNAL_DEFINES", "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc",
+                       "EXTERNAL_DEFINES", $extraDefines,
                        "ULAM_SRC_DIR", "$dir/src",
                        "ULAM_CPP_FILE", $cfile,
                        "ULAM_BLD_DIR", "$dir/build",
