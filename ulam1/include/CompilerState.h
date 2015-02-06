@@ -144,6 +144,8 @@ namespace MFM{
 
     std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
     std::map<UTI, std::vector<NodeConstantDef *> > m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
+
+
     std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
     std::map<UTI, std::set<UTI> > m_scalarUTItoArrayUTIs; //help update array's bitsizes when scalar's is known
 
@@ -162,7 +164,7 @@ namespace MFM{
     ~CompilerState();
 
     void clearAllDefinedUlamTypes();
-    void clearLeftoverSubtrees();
+    //void clearLeftoverSubtrees();
     void clearAllLinesOfText();
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
@@ -177,29 +179,15 @@ namespace MFM{
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
 
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
-    void cloneConstantExpressionSubtrees(UTI olduti, UTI newuti);
 
-    void constantFoldIncompleteUTI(UTI uti);
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
-    void linkConstantExpressionForClassInstances(UTI uti, NodeTypeBitsize * ceNode);
-    bool statusUnknownBitsizeUTI();
-    bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
-
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
-    void linkConstantExpressionForClassInstances(UTI uti, NodeSquareBracket * ceNode);
-    bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
-    bool statusUnknownArraysizeUTI();
+    void linkConstantExpression(NodeConstantDef * ceNode);
+
+    void constantFoldIncompleteUTI(UTI auti);
 
     void linkArrayUTItoScalarUTI(UTI suti, UTI auti);
     void updatelinkedArrayUTIsWithKnownBitsize(UTI suti);
-
-    void linkConstantExpression(NodeConstantDef * ceNode);
-    bool statusNonreadyNamedConstants();
-
-    void linkConstantExpression(UTI uti, NodeConstantDef * ceNode);
-    bool constantFoldNonreadyClassArgs(UTI cuti);
-    bool statusNonreadyClassArguments();
-    bool pendingClassArgumentsForUTI(UTI cuti);
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);

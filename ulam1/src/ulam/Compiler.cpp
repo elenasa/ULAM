@@ -192,10 +192,8 @@ namespace MFM {
   {
     bool sumbrtn = true;
     sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
-    sumbrtn &= m_state.statusUnknownBitsizeUTI();
-    sumbrtn &= m_state.statusUnknownArraysizeUTI();
-    sumbrtn &= m_state.statusNonreadyNamedConstants();
-    sumbrtn &= m_state.statusNonreadyClassArguments();
+    sumbrtn &= m_state.m_programDefST.statusUnknownConstantExpressionsInTableOfClasses();
+    sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses();
     sumbrtn &= m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate classes w ready args
     return sumbrtn;
   } //loopUnknownsOnceAround

@@ -1472,7 +1472,8 @@ namespace MFM {
     else
       {
 	// none ready expressions saved by UTI in m_nonreadyClassArgSubtrees (not previously cloned!)
-	m_state.linkConstantExpression(csym->getUlamTypeIdx(), constNode);
+	//m_state.linkConstantExpression(csym->getUlamTypeIdx(), constNode);
+	csym->linkConstantExpressionForPendingArg(constNode);
       }
 
     getNextToken(pTok);

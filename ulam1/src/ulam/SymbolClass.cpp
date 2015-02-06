@@ -3,6 +3,7 @@
 #include "CompilerState.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
+#include "Resolver.h"
 
 namespace MFM {
 
@@ -32,9 +33,9 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassName * parent, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_deep(false){}
+  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassName * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_deep(false){}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_deep(true)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_deep(true)
   {
     if(sref.m_classBlock)
       {
@@ -43,12 +44,21 @@ namespace MFM {
       }
     else
       m_classBlock = NULL; //i.e. UC_INCOMPLETE
+
+    if(sref.m_resolver)
+      m_resolver = new Resolver(m_utypeIdx, m_state); //not a clone, populated later
   }
 
   SymbolClass::~SymbolClass()
   {
     delete m_classBlock;
     m_classBlock = NULL;
+
+    if(m_resolver)
+      {
+	delete m_resolver;
+	m_resolver = NULL;
+      }
   }
 
   Symbol * SymbolClass::clone()
@@ -227,6 +237,69 @@ namespace MFM {
 	fp->write("\n");
       } //test eval
   }//testClass
+
+
+  void SymbolClass::cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr)
+  {
+    assert(m_resolver);
+    m_resolver->cloneConstantExpressionSubtreesByUTI(olduti, newuti, templateRslvr);
+  }
+
+  void SymbolClass::cloneNamedConstantExpressionSubtrees(const Resolver &templateRslvr)
+  {
+    assert(m_resolver);
+    m_resolver->cloneNamedConstantExpressionSubtrees(templateRslvr);
+  }
+
+  bool SymbolClass::statusUnknownConstantExpressions()
+  {
+    assert(m_resolver);
+    return m_resolver->statusUnknownConstantExpressions();
+  }
+
+  bool SymbolClass::statusNonreadyClassArguments()
+  {
+    assert(m_resolver);
+    return m_resolver->statusNonreadyClassArguments();
+  }
+
+  void SymbolClass::constantFoldIncompleteUTI(UTI auti)
+  {
+    assert(m_resolver);
+    m_resolver->constantFoldIncompleteUTI(auti);
+  }
+
+  void SymbolClass::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
+  {
+    assert(m_resolver);
+    m_resolver->linkConstantExpression(uti, ceNode);
+  }
+
+  void SymbolClass::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
+  {
+    assert(m_resolver);
+    m_resolver->linkConstantExpression(uti, ceNode);
+  }
+
+  void SymbolClass::linkConstantExpression(NodeConstantDef * ceNode)
+  {
+    assert(m_resolver);
+    m_resolver->linkConstantExpression(ceNode);
+  }
+
+  void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
+  {
+    if(!m_resolver) //shallow clone only!
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    assert(m_resolver);
+    m_resolver->linkConstantExpressionForPendingArg(constNode);
+  }
+
+  bool SymbolClass::pendingClassArgumentsForClassInstance()
+  {
+    assert(m_resolver);
+    return m_resolver->pendingClassArgumentsForClassInstance();
+  }
 
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram

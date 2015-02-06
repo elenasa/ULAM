@@ -622,6 +622,35 @@ namespace MFM {
       } //while
   } //printForDebugForTableOfClasses
 
+  bool SymbolTable::statusUnknownConstantExpressionsInTableOfClasses()
+  {
+    bool aok = true;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	aok &= ((SymbolClassName *) sym)->statusUnknownConstantExpressionsInClassInstances();
+	it++;
+      } //while
+    return aok;
+  } //statusUnknownConstantExpressionsInTableOfClasses()
+
+  bool SymbolTable::statusNonreadyClassArgumentsInTableOfClasses()
+  {
+    bool aok = true;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	aok &= ((SymbolClassName *) sym)->statusNonreadyClassArgumentsInShallowClassInstances();
+	it++;
+      } //while
+    return aok;
+  }//statusNonreadyClassArgumentsInTableOfClasses
 
   bool SymbolTable::cloneInstancesInTableOfClasses()
   {

@@ -173,6 +173,53 @@ namespace MFM {
       } //any class instances
   } //fixAnyClassInstances
 
+
+  void SymbolClassName::linkUnknownBitsizeConstantExpression(UTI auti, NodeTypeBitsize * ceNode)
+  {
+    SymbolClass::linkConstantExpression(auti, ceNode);
+  }
+
+  void SymbolClassName::linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode)
+  {
+    SymbolClass::linkConstantExpression(auti, ceNode);
+  }
+
+  void SymbolClassName::linkUnknownNamedConstantExpression(NodeConstantDef * ceNode)
+  {
+    SymbolClass::linkConstantExpression(ceNode);
+  }
+
+  bool SymbolClassName::statusUnknownConstantExpressionsInClassInstances()
+  {
+    bool aok = true; //all done
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	return SymbolClass::statusUnknownConstantExpressions();
+      }
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	aok &= csym->statusUnknownConstantExpressions();
+	it++;
+      }
+    return aok;
+  } //statusUnknownConstantExpressionsInClassInstances
+
+  bool SymbolClassName::statusNonreadyClassArgumentsInShallowClassInstances()
+  {
+    bool aok = true;
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	aok &= csym->statusNonreadyClassArguments();
+	it++;
+      }
+    return aok;
+  }//statusNonreadyClassArgumentsInShallowClassInstances
+
   std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
   {
     u32 numParams = getNumberOfParameters();
@@ -300,8 +347,8 @@ namespace MFM {
 	    continue; //already done
 	  }
 
-	UTI cuti = csym->getUlamTypeIdx();
-	if(m_state.pendingClassArgumentsForUTI(cuti))
+	//ask shallow class symbol..
+	if(csym->pendingClassArgumentsForClassInstance())
 	  {
 	    aok = false;
 	    it++;
@@ -309,6 +356,7 @@ namespace MFM {
 	  }
 
 	//have we seen these args before?
+	UTI cuti = csym->getUlamTypeIdx();
 	SymbolClass * dupsym = NULL;
 	if(findClassInstanceByArgString(cuti, dupsym))
 	  {
@@ -334,6 +382,7 @@ namespace MFM {
 	it->second = clone;
 	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
 	updateLineageOfClassInstanceUTI(cuti);
+	cloneResolverForClassInstance(clone);
 	it++;
       } //while
     return aok;
@@ -377,7 +426,6 @@ namespace MFM {
   {
     NodeBlockClass * saveclassnode = m_state.m_classBlock;
     NodeBlock * saveblocknode = m_state.m_currentBlock;
-
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
@@ -571,7 +619,7 @@ namespace MFM {
 	    continue; //already set
 	  }
 
-	if(m_state.pendingClassArgumentsForUTI(uti))
+	if(csym->pendingClassArgumentsForClassInstance())
 	  {
 	    aok = false;
 	    it++;
@@ -879,13 +927,11 @@ namespace MFM {
     //replace the clone's arg symbols
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
-	//	SymbolConstantValue * asym = new SymbolConstantValue(*instancesArgs[i], true); //copy it; same uti
 	SymbolConstantValue * asym = instancesArgs[i];
 	u32 aid = asym->getId();
 	//get 'instance's value save in template's parameter list temporarily
 	Symbol * clonesym = NULL;
 	assert(m_state.alreadyDefinedSymbol(aid, clonesym));
-	//m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
 	m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
       } //next arg
 
@@ -895,5 +941,35 @@ namespace MFM {
     m_state.m_currentBlock = m_state.m_classBlock;
     return true;
   } //takeAnInstancesArgValues
+
+  // done after the deep clone
+  void SymbolClassName::cloneResolverForClassInstance(SymbolClass * csym)
+  {
+    if(!m_resolver)
+      return; //nothing to do
+
+    UTI cuti = csym->getUlamTypeIdx();
+
+    //populate empty resolver, for each unknown UTI
+    std::map<UTI, std::map<UTI,UTI> >::iterator mit = m_mapOfTemplateUTIToInstanceUTIPerClassInstance.find(cuti);
+    if(mit != m_mapOfTemplateUTIToInstanceUTIPerClassInstance.end())
+      {
+	assert(cuti == mit->first);
+	std::map<UTI,UTI> utimap = mit->second;
+	std::map<UTI,UTI>::iterator it = utimap.begin();
+
+	while(it != utimap.end())
+	  {
+	    UTI olduti = it->first;
+	    UTI newuti = it->second;
+	    csym->cloneConstantExpressionSubtreesByUTI(olduti, newuti, *m_resolver);
+	  }
+      }
+    else
+      assert(0);
+
+    //next, named constants separately
+    csym->cloneNamedConstantExpressionSubtrees(*m_resolver);
+  }//cloneResolverForClassInstance
 
 } //end MFM
