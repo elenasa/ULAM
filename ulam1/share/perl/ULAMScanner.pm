@@ -246,6 +246,16 @@ sub normalizeKeys {
     }
 
     ###
+    # 'placeable' key analysis
+    if (!defined $keys{'placeable'}) {
+        $keys{'placeable'} = "yes";
+    }
+    $keys{'placeable'} = lc($keys{'placeable'});
+    $keys{'placeable'} = "no" if $keys{'placeable'} =~ /off|false|0/;
+    $keys{'placeable'} = "yes" if $keys{'placeable'} =~ /on|true|1/;
+    $keys{'placeable'} = "yes" unless $keys{'placeable'} eq "no";
+
+    ###
     # 'diffusability' key analysis
     my $diffusability;
     my $inp = $keys{'diffusability'};
