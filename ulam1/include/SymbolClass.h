@@ -39,12 +39,16 @@
 #include "Symbol.h"
 #include "NodeBlockClass.h"
 #include "UlamTypeClass.h"
+#include "NodeTypeBitsize.h"
+#include "NodeSquareBracket.h"
+#include "NodeConstantDef.h"
 
 namespace MFM{
 
 
   class CompilerState;  //forward
   class SymbolClassName;  //forward
+  class Resolver; //forward
 
   class SymbolClass : public Symbol
   {
@@ -85,6 +89,23 @@ namespace MFM{
 
     void testThisClass(File * fp); //eval-land
 
+    void cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr);
+
+    void cloneNamedConstantExpressionSubtrees(const Resolver &templateRslvr);
+
+    bool statusUnknownConstantExpressions();
+
+    bool statusNonreadyClassArguments();
+
+    virtual void constantFoldIncompleteUTI(UTI auti);
+
+    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
+    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    void linkConstantExpression(NodeConstantDef * ceNode);
+    void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
+
+    bool pendingClassArgumentsForClassInstance();
+
     virtual void generateCode(FileManager * fm);
 
     void generateAsOtherInclude(File * fp);
@@ -94,6 +115,7 @@ namespace MFM{
     void generateTestInstance(File * fp, bool runtest);
 
   protected:
+    Resolver * m_resolver;
 
   private:
     NodeBlockClass * m_classBlock;

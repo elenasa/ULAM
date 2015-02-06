@@ -61,11 +61,9 @@ namespace MFM {
   CompilerState::~CompilerState()
   {
     clearAllDefinedUlamTypes();
-    clearLeftoverSubtrees();
     clearAllLinesOfText();
     m_currentObjSymbolsForCodeGen.clear();
   }
-
 
   void CompilerState::clearAllDefinedUlamTypes()
   {
@@ -84,88 +82,6 @@ namespace MFM {
 
     m_currentFunctionReturnNodes.clear();
 
-  } //clearAllDefinedUlamTypes()
-
-
-  void CompilerState::clearLeftoverSubtrees()
-  {
-    s32 unknownB = m_unknownBitsizeSubtrees.size();
-    if(unknownB > 0)
-      {
-#if 0
-	std::ostringstream msg;
-	msg << "Unknown bitsize subtrees cleared: " << unknownB;
-	MSG2("",msg.str().c_str(),DEBUG);
-#endif
-	std::map<UTI, NodeTypeBitsize *>::iterator itb = m_unknownBitsizeSubtrees.begin();
-	while(itb != m_unknownBitsizeSubtrees.end())
-	  {
-	    NodeTypeBitsize * bitsizeNode = itb->second;
-	    delete bitsizeNode;
-	    itb->second = NULL;
-	    itb++;
-	  }
-      }
-    m_unknownBitsizeSubtrees.clear();
-
-    s32 unknownBfci = m_unknownBitsizeSubtreesForClassInstances.size();
-    if(unknownBfci > 0)
-      {
-	std::ostringstream msg;
-	msg << "Unknown bitsize subtrees for class instances cleared: " << unknownBfci;
-	MSG2("",msg.str().c_str(),DEBUG);
-
-	std::map<UTI, NodeTypeBitsize *>::iterator itb = m_unknownBitsizeSubtreesForClassInstances.begin();
-	while(itb != m_unknownBitsizeSubtreesForClassInstances.end())
-	  {
-	    NodeTypeBitsize * bitsizeNode = itb->second;
-	    delete bitsizeNode;
-	    itb->second = NULL;
-	    itb++;
-	  }
-      }
-    m_unknownBitsizeSubtreesForClassInstances.clear();
-
-
-    s32 unknownA = m_unknownArraysizeSubtrees.size();
-    if(unknownA > 0)
-      {
-#if 0
-	std::ostringstream msg;
-	msg << "Unknown arraysize subtrees cleared: " << unknownA;
-	MSG2("",msg.str().c_str(),DEBUG);
-#endif
-	std::map<UTI, NodeSquareBracket *>::iterator ita = m_unknownArraysizeSubtrees.begin();
-	while(ita != m_unknownArraysizeSubtrees.end())
-	  {
-	    NodeSquareBracket * arraysizeNode = ita->second;
-	    delete arraysizeNode;
-	    ita->second = NULL;
-	    ita++;
-	  }
-      }
-    m_unknownArraysizeSubtrees.clear();
-
-    s32 unknownAfci = m_unknownArraysizeSubtreesForClassInstances.size();
-    if(unknownAfci > 0)
-      {
-	std::ostringstream msg;
-	msg << "Unknown arraysize subtrees for class instances cleared: " << unknownAfci;
-	MSG2("",msg.str().c_str(),DEBUG);
-
-	std::map<UTI, NodeSquareBracket *>::iterator ita = m_unknownArraysizeSubtreesForClassInstances.begin();
-
-	while(ita != m_unknownArraysizeSubtreesForClassInstances.end())
-	  {
-	    NodeSquareBracket * arraysizeNode = ita->second;
-	    delete arraysizeNode;
-	    ita->second = NULL;
-	    ita++;
-	  }
-      }
-    m_unknownArraysizeSubtreesForClassInstances.clear();
-
-
     u32 linkedUnknownA = m_scalarUTItoArrayUTIs.size();
     if(linkedUnknownA > 0)
       {
@@ -182,42 +98,6 @@ namespace MFM {
 	  }
       }
     m_scalarUTItoArrayUTIs.clear();
-
-
-    s32 nonreadyC = m_nonreadyNamedConstantSubtrees.size();
-    if(nonreadyC > 0)
-      {
-	std::ostringstream msg;
-	msg << "Nonready named constant subtrees cleared: " << nonreadyC;
-	MSG2("",msg.str().c_str(),DEBUG);
-      }
-    m_nonreadyNamedConstantSubtrees.clear();
-
-
-    s32 nonreadyG = m_nonreadyClassArgSubtrees.size();
-    if(nonreadyG > 0)
-      {
-	std::ostringstream msg;
-	msg << "Class Instances with non-ready argument constant subtrees cleared: " << nonreadyG;
-	MSG2("",msg.str().c_str(),DEBUG);
-
-	std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.begin();
-	while(it != m_nonreadyClassArgSubtrees.end())
-	  {
-	    std::vector<NodeConstantDef *> ceVector = it->second;
-	    std::vector<NodeConstantDef *>::iterator vit = ceVector.begin();
-	    while(vit != ceVector.end())
-	      {
-		NodeConstantDef * ceNode = *vit;
-		delete ceNode;
-		*vit = NULL;
-		vit++;
-	      }
-	    ceVector.clear();
-	    it++;
-	  }
-      }
-    m_nonreadyClassArgSubtrees.clear();
 
     s32 unknownKeyC = m_unknownKeyUTICounter.size();
     if(unknownKeyC > 0)
@@ -239,8 +119,7 @@ namespace MFM {
 	  }
       }
     m_unknownKeyUTICounter.clear();
-  } //clearLeftoverSubtrees()
-
+  } //clearAllDefinedUlamTypes()
 
   void CompilerState::clearAllLinesOfText()
   {
@@ -254,8 +133,7 @@ namespace MFM {
       }
 
     m_textByLinePerFilePath.clear();
-  }
-
+  } //clearAllLinesOfText
 
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it;
@@ -570,6 +448,7 @@ namespace MFM {
     return rtnBool;
   } //updateUlamKeyTypeSignatureToaUTI
 
+  // called by Symbol's copy constructor with ref's 'incomplete' uti
   //please set m_compileThisIdx to the instance's UTI.
   UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
   {
@@ -588,230 +467,50 @@ namespace MFM {
       return mappedUTI;
 
     // first time we've seen this incomplete UTI for this class instance:
-    // get a new UTI, clone and update all the 'subtree' table references,
-    // and add to cnsym's map in case we see it again.
+    // get a new UTI and add to cnsym's map in case we see it again.
+    // Later, clone and update all the 'subtree' table references,
     UlamKeyTypeSignature newkey(sut->getUlamKeyTypeSignature());
-    //    if(bUT == Class) newkey.append(Nav); //avoid assertion
     UTI newuti = makeUlamType(newkey,bUT);
-
-    cloneConstantExpressionSubtrees(suti, newuti);
-
     cnsym->mapInstanceUTI(m_compileThisIdx, suti, newuti);
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
 
-  void CompilerState::cloneConstantExpressionSubtrees(UTI olduti, UTI newuti)
-  {
-    //Type bitsize UNKNOWN:
-    std::map<UTI, NodeTypeBitsize *>::iterator bit = m_unknownBitsizeSubtrees.find(olduti);
-    if(bit != m_unknownBitsizeSubtrees.end())
-      {
-	assert(olduti == bit->first);
-	NodeTypeBitsize * ceNode = bit->second;
-	assert(ceNode);
-	NodeTypeBitsize * cloneNode = new NodeTypeBitsize(*ceNode);
-	//very possible this can't be found while mid-ST copy; wait until we try to fold it.
-	//	cloneNode->setBlock(); //sets its local cuorrblock
-
-	linkConstantExpressionForClassInstances(newuti, cloneNode);
-      }
-
-    //Arraysize UNKNOWN:
-    std::map<UTI, NodeSquareBracket *>::iterator qit = m_unknownArraysizeSubtrees.find(olduti);
-    if(qit != m_unknownArraysizeSubtrees.end())
-      {
-	assert(olduti == qit->first);
-	NodeSquareBracket * ceNode = qit->second;
-	assert(ceNode);
-	NodeSquareBracket * cloneNode = new NodeSquareBracket(*ceNode);
-	//cloneNode->setBlock(); //sets its local currblock
-	linkConstantExpressionForClassInstances(newuti, cloneNode);
-      }
-
-    if(!m_nonreadyNamedConstantSubtrees.empty())
-      {
-	u32 lostsize = m_nonreadyNamedConstantSubtrees.size();
-
-	std::ostringstream msg;
-	msg << "Found non-empty non-ready named constant subtrees, while cloning class <";
-	msg << getUlamTypeNameByIndex(m_compileThisIdx).c_str();
-	msg << ">, size " << lostsize << ":";
-
-	std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
-
-	while(it != m_nonreadyNamedConstantSubtrees.end())
-	  {
-	    NodeConstantDef * constNode = *it;
-	    Symbol * csym;
-	    if(constNode->getSymbolPtr(csym) && !((SymbolConstantValue *) csym)->isReady())
-	      {
-		msg << constNode->getName() << ",";
-	      }
-	    it++;
-	  }
-	MSG2("", msg.str().c_str(), DEBUG);
-      } //m_nonreadyNamedConstantSubtrees ???
-
-    //m_nonreadyClassArgSubtrees ???
-  }//cloneConstantExpressionSubtrees
-
-  void CompilerState::constantFoldIncompleteUTI(UTI uti)
-  {
-    //should we short-circuit if a template class?
-    s32 bitsize = getBitSize(uti);
-    assert(bitsize >= UNKNOWNSIZE);
-    s32 arraysize = getArraySize(uti);
-    assert(arraysize >= UNKNOWNSIZE);
-    bool bs = (bitsize != UNKNOWNSIZE || constantFoldUnknownBitsize(uti,bitsize));
-    bool as = (arraysize != UNKNOWNSIZE || constantFoldUnknownArraysize(uti, arraysize));
-    if(bs || as)
-      setUTISizes(uti, bitsize, arraysize); //update UlamType
-  } //constantFoldIncompleteUTI
-
   void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
   {
     if(ceNode)
-      m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
-  }
-
-  void CompilerState::linkConstantExpressionForClassInstances(UTI uti, NodeTypeBitsize * ceNode)
-  {
-    if(ceNode)
-      m_unknownBitsizeSubtreesForClassInstances.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
-  }
-
-  bool CompilerState::constantFoldUnknownBitsize(UTI auti, s32& bitsize)
-  {
-    bool rtnBool = true; //unfound
-    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtreesForClassInstances.find(auti);
-
-    if(it != m_unknownBitsizeSubtreesForClassInstances.end())
       {
-	assert(auti == it->first);
-	NodeTypeBitsize * ceNode = it->second;
-	assert(ceNode);
-	rtnBool = ceNode->getTypeBitSizeInParen(bitsize, getUlamTypeByIndex(auti)->getUlamTypeEnum()); //eval
-	if(rtnBool)
-	  {
-	    delete ceNode;
-	    it->second = NULL;
-	    m_unknownBitsizeSubtreesForClassInstances.erase(it);
-	  }
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+	cnsym->linkUnknownBitsizeConstantExpression(uti, ceNode);
       }
-    return rtnBool;
-  } //constantFoldUnknownBitsize
-
-  //warning: could remain UNKNOWN in case of template's use
-  bool CompilerState::statusUnknownBitsizeUTI()
-  {
-    bool rtnstat = true; //ok, empty
-    if(!m_unknownBitsizeSubtreesForClassInstances.empty())
-      {
-	std::vector<UTI> lostUTIs;
-	u32 lostsize = m_unknownBitsizeSubtreesForClassInstances.size();
-
-	std::ostringstream msg;
-	msg << "Found non-empty unknown bitsize subtrees, of class <";
-	msg << getUlamTypeNameByIndex(m_compileThisIdx).c_str();
-	msg << ">, size " << lostsize << ":";
-
-	std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtreesForClassInstances.begin();
-	while(it != m_unknownBitsizeSubtreesForClassInstances.end())
-	  {
-	    UTI auti = it->first;
-	    msg << " (UTI" << auti << ") " << getUlamTypeNameByIndex(auti).c_str() << ",";
-	    lostUTIs.push_back(auti);
-	    it++;
-	  }
-
-	msg << " trying to update now";
-	MSG2("", msg.str().c_str(), DEBUG);
-	rtnstat = false;
-
-	assert(lostUTIs.size() == lostsize);
-	while(!lostUTIs.empty())
-	  {
-	    UTI auti = lostUTIs.back();
-	    constantFoldIncompleteUTI(auti);
-	    lostUTIs.pop_back();
-	  }
-	lostUTIs.clear();
-      }
-    return rtnstat;
-  } //statusUnknownBitsizeUTI
+  } //linkConstantExpression (bitsize)
 
   void CompilerState::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
   {
     if(ceNode)
-      m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
-  }
+      {
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+	cnsym->linkUnknownArraysizeConstantExpression(uti, ceNode);
+      }
+  } //linkConstantExpression (arraysize)
 
-  void CompilerState::linkConstantExpressionForClassInstances(UTI uti, NodeSquareBracket * ceNode)
+  void CompilerState::linkConstantExpression(NodeConstantDef * ceNode)
   {
     if(ceNode)
-      m_unknownArraysizeSubtreesForClassInstances.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
+      {
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+	cnsym->linkUnknownNamedConstantExpression(ceNode);
+      }
+  } //linkConstantExpression (named constant)
+
+  void CompilerState::constantFoldIncompleteUTI(UTI auti)
+  {
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    cnsym->constantFoldIncompleteUTI(auti);
   }
-
-  bool CompilerState::constantFoldUnknownArraysize(UTI auti, s32& arraysize)
-  {
-    bool rtnBool = true;  //unfound
-    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtreesForClassInstances.find(auti);
-
-    if(it != m_unknownArraysizeSubtreesForClassInstances.end())
-      {
-	assert(auti == it->first);
-	NodeSquareBracket * ceNode = it->second;
-	assert(ceNode);
-	rtnBool = ceNode->getArraysizeInBracket(arraysize); //eval
-	if(rtnBool)
-	  {
-	    delete ceNode;
-	    it->second = NULL;
-	    m_unknownArraysizeSubtreesForClassInstances.erase(it);
-	  }
-      }
-    return rtnBool;
-  } //constantFoldUnknownArraysize
-
-  bool CompilerState::statusUnknownArraysizeUTI()
-  {
-    bool rtnstat = true; //ok, empty
-    if(!m_unknownArraysizeSubtreesForClassInstances.empty())
-      {
-	std::vector<UTI> lostUTIs;
-	u32 lostsize = m_unknownArraysizeSubtreesForClassInstances.size();
-
-	std::ostringstream msg;
-	msg << "Found non-empty unknown arraysize subtrees, of class instance<";
-	msg << getUlamTypeNameByIndex(m_compileThisIdx).c_str();
-	msg << ">, size " << lostsize << ":";
-
-	std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtreesForClassInstances.begin();
-
-	while(it != m_unknownArraysizeSubtreesForClassInstances.end())
-	  {
-	    UTI auti = it->first;
-	    msg << " (UTI" << auti << ") " << getUlamTypeNameByIndex(auti).c_str() << ",";
-	    lostUTIs.push_back(auti);
-	    it++;
-	  }
-
-	msg << " trying to update now";
-	MSG2("", msg.str().c_str(), DEBUG);
-	rtnstat = false;
-
-	assert(lostUTIs.size() == lostsize);
-	while(!lostUTIs.empty())
-	  {
-	    UTI auti = lostUTIs.back();
-	    constantFoldIncompleteUTI(auti);
-	    lostUTIs.pop_back();
-	  }
-	lostUTIs.clear();
-      }
-    return rtnstat;
-  } //statusUnknownArraysizeUTI
-
 
   void CompilerState::linkArrayUTItoScalarUTI(UTI suti, UTI auti)
   {
@@ -855,170 +554,6 @@ namespace MFM {
       }
   } //updatelinkedArrayUTIsWithKnownBitsize
 
-  void CompilerState::linkConstantExpression(NodeConstantDef * ceNode)
-  {
-    if(ceNode)
-      m_nonreadyNamedConstantSubtrees.insert(ceNode);
-  }
-
-  bool CompilerState::statusNonreadyNamedConstants()
-  {
-    bool rtnstat = true; //ok, empty
-    if(!m_nonreadyNamedConstantSubtrees.empty())
-      {
-	std::vector<NodeConstantDef *> lostCs;
-	u32 lostsize = m_nonreadyNamedConstantSubtrees.size();
-
-	std::ostringstream msg;
-	msg << "Found non-empty non-ready named constant subtrees, of class <";
-	msg << m_pool.getDataAsString(m_compileThisId);
-	msg << ">, size " << lostsize << ":";
-
-	std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
-
-	while(it != m_nonreadyNamedConstantSubtrees.end())
-	  {
-	    NodeConstantDef * constNode = *it;
-	    Symbol * csym;
-	    if(constNode->getSymbolPtr(csym) && !((SymbolConstantValue *) csym)->isReady())
-	      {
-		msg << constNode->getName() << ",";
-		lostCs.push_back(constNode);
-	      }
-	    it++;
-	  }
-
-	if(!lostCs.empty())
-	  {
-	    msg << " trying to update now";
-	    rtnstat = false;
-	    assert(lostCs.size() == lostsize);
-	    while(!lostCs.empty())
-	      {
-		NodeConstantDef * ncd = lostCs.back();
-		ncd->foldConstantExpression();
-		lostCs.pop_back();
-	      }
-	    lostCs.clear();
-	  }
-	else
-	  {
-	    msg << " all ready";
-	    m_nonreadyNamedConstantSubtrees.clear();  //all ready
-	  }
-	MSG2("", msg.str().c_str(), DEBUG);
-      }
-    return rtnstat;
-  } //statusNonreadyNamedConstants
-
-  void CompilerState::linkConstantExpression(UTI uti, NodeConstantDef * ceNode)
-  {
-    if(!ceNode)
-      return;
-
-    std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.find(uti);
-    if(it != m_nonreadyClassArgSubtrees.end())
-      {
-	assert(uti == it->first);
-	std::vector<NodeConstantDef *> ceVector = it->second;
-	ceVector.push_back(ceNode);
-      }
-    else
-      {
-	std::vector<NodeConstantDef *> ceVector;
-	ceVector.push_back(ceNode);
-	m_nonreadyClassArgSubtrees.insert(std::pair<UTI, std::vector<NodeConstantDef *> >(uti, ceVector));
-      }
-  } //linkConstantExpression
-
-  bool CompilerState::constantFoldNonreadyClassArgs(UTI cuti)
-  {
-    bool rtnb = true;
-    std::vector<NodeConstantDef *> leftCArgs;
-    std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.find(cuti);
-
-    if(it != m_nonreadyClassArgSubtrees.end())
-      {
-	assert(cuti == it->first);
-	std::vector<NodeConstantDef *> ceVector = it->second;
-	std::vector<NodeConstantDef *>::iterator vit = ceVector.begin();
-	while(vit != ceVector.end())
-	  {
-	    NodeConstantDef * ceNode = *vit;
-	    if(ceNode && ceNode->foldConstantExpression())
-	      {
-		delete ceNode;
-		*vit = NULL;
-	      }
-	    else
-	      leftCArgs.push_back(ceNode);
-	    vit++;
-	  } //while thru vector of arg's
-
-	// clean up, replace vector with vector of those still unresolved
-	ceVector.clear();
-	if(leftCArgs.empty())
-	  {
-	    it->second.clear();
-	    m_nonreadyClassArgSubtrees.erase(it);
-	  }
-	else
-	  {
-	    it->second = leftCArgs;
-	    rtnb = false;
-	  }
-      }
-    return rtnb;
-  } //constantFoldNonreadyClassArgs(UTI cuti)
-
-  bool CompilerState::statusNonreadyClassArguments()
-  {
-    bool rtnstat = true; //ok, empty
-    if(!m_nonreadyClassArgSubtrees.empty())
-      {
-	rtnstat = false;
-
-	u32 lostsize = m_nonreadyClassArgSubtrees.size();
-
-	std::ostringstream msg;
-	msg << "Found " << lostsize << " incomplete class instances with nonready arguments:";
-
-	std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.begin();
-	std::vector<UTI> lostCUTIs;
-
-	while(it != m_nonreadyClassArgSubtrees.end())
-	  {
-	    UTI cuti = it->first;
-	    msg << " (UTI" << cuti << ") " << getUlamTypeNameByIndex(cuti).c_str() << ",";
-	    lostCUTIs.push_back(cuti);
-	    it++;
-	  }
-
-	msg << " trying to update now";
-	MSG2("", msg.str().c_str(), DEBUG);
-
-	assert(lostCUTIs.size() == lostsize);
-	while(!lostCUTIs.empty())
-	  {
-	    UTI cuti = lostCUTIs.back();
-	    constantFoldNonreadyClassArgs(cuti);
-	    lostCUTIs.pop_back();
-	  }
-	lostCUTIs.clear();
-      }
-    return rtnstat;
-  } //statusNonreadyClassArguments
-
-  bool CompilerState::pendingClassArgumentsForUTI(UTI cuti)
-  {
-    bool pending = false;
-    std::map<UTI, std::vector<NodeConstantDef *> >::iterator it = m_nonreadyClassArgSubtrees.find(cuti);
-    if(it != m_nonreadyClassArgSubtrees.end())
-      {
-	pending = true;
-      }
-    return pending;
-  } //pendingClassArgumentsForUTI
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {

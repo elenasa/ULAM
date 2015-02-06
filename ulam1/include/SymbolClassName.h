@@ -63,8 +63,16 @@ namespace MFM{
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
 
+    void linkUnknownBitsizeConstantExpression(UTI auti, NodeTypeBitsize * ceNode);
+    void linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode);
+    void linkUnknownNamedConstantExpression(NodeConstantDef * ceNode);
+
+    bool statusUnknownConstantExpressionsInClassInstances();
+    bool statusNonreadyClassArgumentsInShallowClassInstances();
+
     std::string formatAnInstancesArgValuesAsAString(UTI instance);
 
+    //helpers while deep instantiation
     bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
     void mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
 
@@ -101,8 +109,9 @@ namespace MFM{
     std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
-
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
+    //void cloneConstantExpressionSubtreesForClassInstance(UTI instance, UTI auti, UTI newuti); //clone resolver!!
+    void cloneResolverForClassInstance(SymbolClass * csym);
   };
 
 }

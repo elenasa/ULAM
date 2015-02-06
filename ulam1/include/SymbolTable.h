@@ -114,6 +114,10 @@ namespace MFM{
 
     void printForDebugForTableOfClasses(File * fp);
 
+    bool statusUnknownConstantExpressionsInTableOfClasses();
+
+    bool statusNonreadyClassArgumentsInTableOfClasses();
+
     bool cloneInstancesInTableOfClasses();
 
     //void updateLineageForTableOfClasses(); done incrementally
