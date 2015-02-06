@@ -29,8 +29,8 @@ namespace MFM {
       for(s32 j = 0; j <= MAXMANHATTANDIST - i; j++)
 	{
 	  Coord c(i,j);
-	  Site s;
-	  m_diamondOfSites.insert(std::pair<Coord,Site>(c,s));
+	  USite s;
+	  m_diamondOfSites.insert(std::pair<Coord,USite>(c,s));
 	  count++;
 	}
 
@@ -38,8 +38,8 @@ namespace MFM {
       for(s32 j = 0; j <= MAXMANHATTANDIST - i; j++)
 	{
 	  Coord c(-i,j);
-	  Site s;
-	  m_diamondOfSites.insert(std::pair<Coord,Site>(c,s));
+	  USite s;
+	  m_diamondOfSites.insert(std::pair<Coord,USite>(c,s));
 	  count++;
 	}
 
@@ -47,8 +47,8 @@ namespace MFM {
       for(s32 j = 1; j <= MAXMANHATTANDIST - i; j++)
 	{
 	  Coord c(i,-j);
-	  Site s;
-	  m_diamondOfSites.insert(std::pair<Coord,Site>(c,s));
+	  USite s;
+	  m_diamondOfSites.insert(std::pair<Coord,USite>(c,s));
 	  count++;
 	}
 
@@ -56,8 +56,8 @@ namespace MFM {
       for(s32 j = 1; j <= MAXMANHATTANDIST - i; j++)
 	{
 	  Coord c(-i,-j);
-	  Site s;
-	  m_diamondOfSites.insert(std::pair<Coord,Site>(c,s));
+	  USite s;
+	  m_diamondOfSites.insert(std::pair<Coord,USite>(c,s));
 	  count++;
 	}
 
@@ -91,10 +91,10 @@ namespace MFM {
   }
 
 
-  bool UEventWindow::getSite(Coord c, Site* & sref)
+  bool UEventWindow::getSite(Coord c, USite* & sref)
   {
     bool rtnB = false;
-    std::map<Coord, Site, less_than_coord>::iterator it = m_diamondOfSites.find(c);
+    std::map<Coord, USite, less_than_coord>::iterator it = m_diamondOfSites.find(c);
     if(it != m_diamondOfSites.end())
       {
 	sref = &(it->second);
@@ -109,7 +109,7 @@ namespace MFM {
     Coord c;
     assert(isValidSite(index, c));
     UTI uti = Nav;  //init
-    Site * s;
+    USite * s;
     if(getSite(c,s))
       uti = s->getElementTypeNumber();
 
@@ -127,7 +127,7 @@ namespace MFM {
 
   void UEventWindow::setSiteElementType(Coord c, UTI type)
   {
-    Site * s;
+    USite * s;
     if(getSite(c,s))
       s->setElementTypeNumber(type);
   }
@@ -135,7 +135,7 @@ namespace MFM {
 
   bool UEventWindow::isSiteLive(Coord c)
   {
-    Site * s;
+    USite * s;
     if(getSite(c,s))
       return s->isSiteLive();
 
@@ -146,7 +146,7 @@ namespace MFM {
 
   void UEventWindow::setSiteLive(Coord c, bool b)
   {
-    Site * s;
+    USite * s;
     if(getSite(c,s))
       s->setSiteLive(b);
 
@@ -159,7 +159,7 @@ namespace MFM {
   {
     Coord c;
     assert(isValidSite(index, c));
-    Site * s;
+    USite * s;
     if(getSite(c,s))
       return s->getSiteUlamValue();
 
@@ -179,7 +179,7 @@ namespace MFM {
   bool UEventWindow::storeAtomIntoSite(Coord c, UlamValue v)
   {
     bool rtnB = false;
-    Site * s;
+    USite * s;
     if(getSite(c,s))
       {
 	s->setSiteUlamValue(v);
