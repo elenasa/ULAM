@@ -3,16 +3,20 @@ use Random;
 
 quark Timexp4
 {
+  typedef Unsigned(4) Counter;
   Random r;
-  Unsigned(4) t;
-  Void reset() { t = 0; }
+  Counter time;
 
-  Unsigned count() {
+  Void reset() { time = 0; }
+  Void trigger() { time = time.maxof; }
+
+  Bool alarm() { return time == time.maxof; }
+
+  Counter current() { return time; }
+  Counter count() {
     Unsigned k = 1;
-    if (!alarm() && r.oneIn(k<<t))
-      t += 1;
-    return t;
+    if (!alarm() && r.oneIn(k<<time))
+      ++time;
+    return time;
   }
-
-  Bool alarm() { return t == (1<<4)-1; }
 }

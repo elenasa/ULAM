@@ -27,4 +27,7 @@ quark Telomere {
   Void setGen(Tail generation) {
     gen = generation;
   }
+  Tail getGen() {
+    return gen;
+  }
 }
