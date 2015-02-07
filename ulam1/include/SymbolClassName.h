@@ -78,6 +78,8 @@ namespace MFM{
 
     bool cloneInstances(); //i.e. instantiate
     Node * findNodeNoInAClassInstance(UTI instance, NNO n);
+    void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
+
     void updateLineageOfClassInstanceUTI(UTI cuti);
     void checkCustomArraysOfClassInstances();
 

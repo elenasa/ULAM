@@ -198,6 +198,7 @@ namespace MFM {
     assert(classNode);
     m_state.m_classBlock = classNode;
     m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.m_compileThisIdx = getUlamTypeIdx();
 
     if(classNode->findTestFunctionNode())
       {
@@ -238,7 +239,6 @@ namespace MFM {
       } //test eval
   }//testClass
 
-
   void SymbolClass::cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr)
   {
     assert(m_resolver);
@@ -253,37 +253,46 @@ namespace MFM {
 
   bool SymbolClass::statusUnknownConstantExpressions()
   {
-    assert(m_resolver);
+    if(!m_resolver)
+      return isDeep();
     return m_resolver->statusUnknownConstantExpressions();
   }
 
   bool SymbolClass::statusNonreadyClassArguments()
   {
-    assert(m_resolver);
+    if(!m_resolver) //shallow clone only!
+      return true;
     return m_resolver->statusNonreadyClassArguments();
   }
 
   void SymbolClass::constantFoldIncompleteUTI(UTI auti)
   {
-    assert(m_resolver);
+    if(!m_resolver)
+      return; //nothing to do
     m_resolver->constantFoldIncompleteUTI(auti);
   }
 
   void SymbolClass::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
   {
-    assert(m_resolver);
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    //assert(m_deep);
     m_resolver->linkConstantExpression(uti, ceNode);
   }
 
   void SymbolClass::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
   {
-    assert(m_resolver);
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    //assert(m_deep);
     m_resolver->linkConstantExpression(uti, ceNode);
   }
 
   void SymbolClass::linkConstantExpression(NodeConstantDef * ceNode)
   {
-    assert(m_resolver);
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    //assert(m_deep);
     m_resolver->linkConstantExpression(ceNode);
   }
 
@@ -291,13 +300,14 @@ namespace MFM {
   {
     if(!m_resolver) //shallow clone only!
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    assert(m_resolver);
+    assert(!m_deep);
     m_resolver->linkConstantExpressionForPendingArg(constNode);
   }
 
   bool SymbolClass::pendingClassArgumentsForClassInstance()
   {
-    assert(m_resolver);
+    if(!m_resolver) //shallow clone only!
+      return false; //ok, none pending
     return m_resolver->pendingClassArgumentsForClassInstance();
   }
 
