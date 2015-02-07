@@ -195,6 +195,11 @@ sub IDie {
     confess "I suck";
 }
 
+sub lexEncode {
+    my ($prefix, $num) = @_;
+    return $prefix.length($num).$num;
+}
+
 my @sections;
 my %secCounts;
 sub getSectionId {
@@ -204,7 +209,7 @@ sub getSectionId {
         push @sections, $section;
     }
     my $count = $secCounts{$section}++;
-    return $section.".".length($count).$count;
+    return lexEncode("$section.",$count);
 }
 
 sub getSectionNames {
@@ -842,7 +847,7 @@ sub runUlamCompilations
         pISC(" # Compiling '$file'");
         my ($ulamStatus, $cfile, $testable) = runUlamCompile($file);
         my $gppStatus = 0;
-        print STDERR "RUC($ulamStatus, $cfile, $testable) = runUlamCompile($file);\n";
+#        print STDERR "RUC($ulamStatus, $cfile, $testable) = runUlamCompile($file);\n";
         if ($ulamStatus == 0) {
             if ($testable) {
                 $testableFiles{$file} = $cfile;
@@ -895,11 +900,11 @@ sub writeElementAllocatorStub {
 #define $baseguard
 
 #include "AbstractDriver.h"
+
 EOF
     for my $en (@elementNamesFromUlam) {
       print $hdrhdl <<EOF;
 #include "$en.h"
-
 EOF
     }
 
@@ -911,44 +916,66 @@ EOF
       print $hdrhdl "/* Metadata for $infoname */\n$infocode\n";
     }
 
-    print $hdrhdl <<EOF;
-namespace MFM {
-  template <class GC>
-  void $fname(AbstractDriver<GC> * ad)
-  {
-    typedef typename GC::EVENT_CONFIG EC;
-EOF
-    for my $en (@elementNamesFromUlam) {
-      my ($infoname, $infocode) = @{$infoForElement{$en}};
-      print $hdrhdl <<EOF;
+#     print $hdrhdl <<EOF;
+# namespace MFM {
+#   template <class GC>
+#   void $fname(AbstractDriver<GC> * ad)
+#   {
+#     typedef typename GC::EVENT_CONFIG EC;
+# EOF
+#     for my $en (@elementNamesFromUlam) {
+#       my ($infoname, $infocode) = @{$infoForElement{$en}};
+#       print $hdrhdl <<EOF;
 
-    {
-      static $infoname<EC> eltInfo;
-      $en<EC>::THE_INSTANCE.SetInfo(&eltInfo);
-    }
-EOF
-        if ($en eq "Ue_10105Empty") {
-          print $hdrhdl <<EOF;
-    MFM::$en<EC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<EC>::THE_INSTANCE);
-EOF
-        } else {
-            print $hdrhdl "    ad->NeedElement(&$en<EC>::THE_INSTANCE);\n";
-        }
-    }
+#     {
+#       static $infoname<EC> eltInfo;
+#       $en<EC>::THE_INSTANCE.SetInfo(&eltInfo);
+#     }
+# EOF
+#         if ($en eq "Ue_10105Empty") {
+#           print $hdrhdl <<EOF;
+#     MFM::$en<EC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<EC>::THE_INSTANCE);
+# EOF
+#         } else {
+#             print $hdrhdl "    ad->NeedElement(&$en<EC>::THE_INSTANCE);\n";
+#         }
+#     }
+#  }
+#} // MFM
     print $hdrhdl <<EOF;
-  }
-} // MFM
 #endif /* $baseguard */
 EOF
 
     close $hdrhdl or UDie("Error closing '$inc': $!\n");
+    my $libraryStubPtrArrayStatics = "";
     my $libraryStubPtrArrayInits = "";
     my $libraryStubPtrArrayCount = 0;
     for my $en (@elementNamesFromUlam) {
-        next if $en eq "Ue_10105Empty";
-        $libraryStubPtrArrayInits .= "," if $libraryStubPtrArrayInits ne "";
-        $libraryStubPtrArrayInits .= "\n    &MFM::$en<MFM::StdEventConfig>::THE_INSTANCE";
-        ++$libraryStubPtrArrayCount;
+        my ($infoname, $infocode) = @{$infoForElement{$en}};
+        my $infoinstancename = lexEncode("_ueinfo",$libraryStubPtrArrayCount);
+        my $stubname = lexEncode("_uelstub",$libraryStubPtrArrayCount);
+        my $elsname = "UlamElementLibraryStub";
+        my $putinarray = 1;
+        if ($en eq "Ue_10105Empty") {
+            $infoinstancename = "_ueinfoEmpty";
+            $stubname = "_uelstubEmpty";
+            $elsname = "UlamEmptyElementLibraryStub";
+            $putinarray = 0;
+        }
+        $libraryStubPtrArrayStatics .= <<EOF;
+
+  static MFM::$infoname<MFM::StdEventConfig> $infoinstancename(MFM::$en<MFM::StdEventConfig>::THE_INSTANCE);
+  static MFM::$elsname<MFM::StdEventConfig> $stubname (
+      MFM::$en<MFM::StdEventConfig>::THE_INSTANCE,
+      &$infoinstancename);
+EOF
+        if ($putinarray) {
+            $libraryStubPtrArrayInits .= "," if $libraryStubPtrArrayInits ne "";
+            $libraryStubPtrArrayInits .= "\n    &$stubname";
+            ++$libraryStubPtrArrayCount;
+         }
+#        print STDERR "IIFFI($infoname, $infocode,$libraryStubPtrArrayStatics,$libraryStubPtrArrayInits)\n";
+#        die;
     }
     open(my $handle, ">", $src)
         or UDie("Can't write '$src': $!\n");
@@ -962,7 +989,8 @@ EOF
 #include "ElementLibraryLoader.h"
 
 extern "C" {
-  static MFM::Element<MFM::StdEventConfig> * (_elementPtrArray_[]) = {$libraryStubPtrArrayInits
+$libraryStubPtrArrayStatics
+  static MFM::ElementLibraryStub<MFM::StdEventConfig> * (_elementStubPtrArray_[]) = {$libraryStubPtrArrayInits
   };
   static MFM::ElementLibrary<MFM::StdEventConfig> el = {
     MFM::ELEMENT_LIBRARY_MAGIC,
@@ -971,7 +999,7 @@ extern "C" {
     $libraryStubPtrArrayCount,
     MFM_BUILD_DATE,
     MFM_BUILD_TIME,
-    _elementPtrArray_
+    _elementStubPtrArray_
   };
   void * MFM_ELEMENT_LIBRARY_LOADER_SYMBOL =  &el;
 }
@@ -986,7 +1014,7 @@ EOF
 sub buildSharedLibrary
 {
     pISC("## Create library");
-    my $libfile = "$ULAM_WORK_DIR/build/libcue.so";
+    my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
     my $rollupObject = "$ULAM_WORK_DIR/build/$ROLLUP_FILE_STEM.o";
     my @args = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject);
     my $status = 0;
@@ -1000,7 +1028,7 @@ sub buildSharedLibrary
     }
 
 ## g++ -shared -rdynamic foo1.o foo2.o -o foosh.so
-    print " Create shared library: ";
+    print " Create $libfile shared library: ";
     my $gpp = getTool($gppTool);
 
     my $HOLD_PATH = $ENV{PATH};
