@@ -97,7 +97,7 @@ namespace MFM{
 
     bool statusNonreadyClassArguments();
 
-    virtual void constantFoldIncompleteUTI(UTI auti);
+    void constantFoldIncompleteUTI(UTI auti);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);

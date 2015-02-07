@@ -3,7 +3,10 @@
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, this, state){}
+  SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, this, state)
+  {
+    setDeep();
+  }
 
   SymbolClassName::~SymbolClassName()
   {
@@ -148,6 +151,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(csym->getId()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
 		MSG("", msg.str().c_str(),ERR);
+		it++;
 		continue;
 	      }
 
@@ -414,13 +418,52 @@ namespace MFM {
 	assert(classNode);
 	m_state.m_classBlock = classNode;
 	m_state.m_currentBlock = m_state.m_classBlock;
-	classNode->findNodeNo(n, foundNode);
+
+	// classblock node no is NOT the same across instances,
+	// unlike ALL the other node blocks. sigh.
+	if(n == getClassBlockNode()->getNodeNo())
+	  foundNode = classNode;
+	else
+	  classNode->findNodeNo(n, foundNode);
       }
 
     m_state.m_classBlock = saveclassblock; //restore
     m_state.m_currentBlock = savecurrentblock;
     return foundNode;
   } //findNodeNoInAClassInstance
+
+  void SymbolClassName::constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti)
+  {
+    NodeBlockClass * saveclassnode = m_state.m_classBlock;
+    NodeBlock * saveblocknode = m_state.m_currentBlock;
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	assert(instance == getUlamTypeIdx());
+	NodeBlockClass * classNode = getClassBlockNode();
+	assert(classNode);
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+	SymbolClass::constantFoldIncompleteUTI(auti);
+	m_state.m_classBlock = saveclassnode; //restore
+	m_state.m_currentBlock = saveblocknode;
+	return;
+      }
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	assert(it->first == instance);
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+	csym->constantFoldIncompleteUTI(auti); //do this instance
+      }
+    m_state.m_classBlock = saveclassnode; //restore
+    m_state.m_currentBlock = saveblocknode;
+  } //constantFoldIncompleteUTIOfClassInstance
 
   void SymbolClassName::updateLineageOfClassInstanceUTI(UTI cuti)
   {
@@ -449,7 +492,6 @@ namespace MFM {
 	m_state.m_classBlock = classNode;
 	m_state.m_currentBlock = m_state.m_classBlock;
 	classNode->updateLineage(NULL); //do this instance
-	it++;
       }
     m_state.m_classBlock = saveclassnode; //restore
     m_state.m_currentBlock = saveblocknode;
@@ -963,6 +1005,7 @@ namespace MFM {
 	    UTI olduti = it->first;
 	    UTI newuti = it->second;
 	    csym->cloneConstantExpressionSubtreesByUTI(olduti, newuti, *m_resolver);
+	    it++;
 	  }
       }
     else

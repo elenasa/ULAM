@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-//#define _DEBUG_OUTPUT
-//#define _INFO_OUTPUT
-//#define _WARN_OUTPUT
+  //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -509,7 +509,7 @@ namespace MFM {
   {
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
-    cnsym->constantFoldIncompleteUTI(auti);
+    cnsym->constantFoldIncompleteUTIOfClassInstance(m_compileThisIdx, auti);
   }
 
   void CompilerState::linkArrayUTItoScalarUTI(UTI suti, UTI auti)
@@ -1803,7 +1803,8 @@ namespace MFM {
 
   Node * CompilerState::findNodeNoInThisClass(NNO n)
   {
-    if(m_currentBlock->getNodeNo() == n)
+    // beware the classblock is the only block with different node no in instances
+    if(m_currentBlock->getNodeNo() == n && m_classBlock->getNodeType() == m_compileThisIdx)
       return m_currentBlock; //avoid chix-n-egg with functiondefs
 
     SymbolClassName * cnsym = NULL;
