@@ -199,7 +199,7 @@ namespace MFM {
       {
 	fp->write(" = ");
 	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>");
+	fp->write("<EC>");
 	fp->write("::THE_INSTANCE");
 	fp->write(".GetDefaultAtom()");  //returns object of type T
       }
@@ -228,7 +228,7 @@ namespace MFM {
 	// except if an array of quarks.
 	fp->write("typedef ");
 	fp->write(nut->getUlamTypeMangledName(&m_state).c_str()); //for C++
-	fp->write("<CC, ");
+	fp->write("<EC, ");
 	if(classtype == UC_ELEMENT)
 	  fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
 	else
@@ -241,7 +241,7 @@ namespace MFM {
     else
       {
 	fp->write("typedef AtomicParameterType<");
-	fp->write("CC");  //BITSPERATOM
+	fp->write("EC");  //BITSPERATOM
 	fp->write(", ");
 	fp->write(nut->getUlamTypeVDAsStringForC().c_str());
 	fp->write(", ");
@@ -318,7 +318,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(vut->getUlamTypeImmediateAutoMangledName(&m_state).c_str()); //for C++ local vars, ie non-data members
 
-    fp->write("<CC> ");
+    fp->write("<EC> ");
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());

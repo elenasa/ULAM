@@ -123,9 +123,9 @@ namespace MFM {
 
     fp->write(rut->getUlamTypeMangledName(&m_state).c_str());
     if(rclasstype == UC_ELEMENT)
-      fp->write("<CC>::THE_INSTANCE.");
+      fp->write("<EC>::THE_INSTANCE.");
     else if(rclasstype == UC_QUARK)
-      fp->write("<CC,POS>::");
+      fp->write("<EC,POS>::");
     else
       assert(0);
 
