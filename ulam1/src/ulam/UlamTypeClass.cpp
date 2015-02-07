@@ -114,10 +114,10 @@ namespace MFM {
     ctype << getUlamTypeImmediateMangledName(state);
 
     if(m_class == UC_QUARK && isScalar())
-      ctype << "<CC>";  // not ,POS> because immediates know their position
+      ctype << "<EC>";  // not ,POS> because immediates know their position
 
     if(m_class == UC_ELEMENT)
-      ctype << "<CC>";
+      ctype << "<EC>";
 
     return ctype.str();
   } //getImmediateStorageTypeAsString
@@ -338,12 +338,12 @@ namespace MFM {
 
     //forward declaration of quark (before struct!)
     state->indent(fp);
-    fp->write("template<class CC, u32 POS> class ");
+    fp->write("template<class EC, u32 POS> class ");
     fp->write(getUlamTypeMangledName(state).c_str());
     fp->write(";  //forward\n\n");
 
     state->indent(fp);
-    fp->write("template<class CC>\n");
+    fp->write("template<class EC>\n");
 
     state->indent(fp);
     fp->write("struct ");
@@ -356,24 +356,24 @@ namespace MFM {
 
     //typedef atomic parameter type inside struct
     state->indent(fp);
-    fp->write("typedef typename CC::ATOM_TYPE T;\n");
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
     state->indent(fp);
-    fp->write("typedef typename CC::PARAM_CONFIG P;\n");
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
     state->indent(fp);
-    fp->write("enum { BPA = P::BITS_PER_ATOM };\n");
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
     //quark typedef (right-justified)
     state->indent(fp);
     fp->write("typedef ");
     fp->write(getUlamTypeMangledName(state).c_str());
-    fp->write("<CC, ");
+    fp->write("<EC, ");
     fp->write_decimal(BITSPERATOM - len);
     fp->write("> Us;\n");
 
     state->indent(fp);
     fp->write("typedef AtomicParameterType<");
-    fp->write("CC");  //BITSPERATOM
+    fp->write("EC");  //BITSPERATOM
     fp->write(", ");
     fp->write(getUlamTypeVDAsStringForC().c_str());
     fp->write(", ");
@@ -490,7 +490,7 @@ namespace MFM {
     fp->write("const ");
     fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //T
     fp->write(" readArrayItem(");
-    fp->write("UlamContext<CC>& uc, ");
+    fp->write("UlamContext<EC>& uc, ");
     fp->write("const u32 index, const u32 unitsize) { return Us::"); //const unhappy w first arg
     fp->write(readArrayItemMethodForCodeGen().c_str());  //aref
     fp->write("(uc, m_stg, ");
@@ -500,7 +500,7 @@ namespace MFM {
     // reads an element of array
     state->indent(fp);
     fp->write("void writeArrayItem(");
-    fp->write("UlamContext<CC>& uc, const ");
+    fp->write("UlamContext<EC>& uc, const ");
     fp->write(getArrayItemTmpStorageTypeAsString(state).c_str()); //s32 or u32
     fp->write(" v, const u32 index, const u32 unitsize) { Us::");
     fp->write(writeArrayItemMethodForCodeGen().c_str());  //aset
@@ -543,12 +543,12 @@ namespace MFM {
 
     //forward declaration of element (before struct!)
     state->indent(fp);
-    fp->write("template<class CC> class ");
+    fp->write("template<class EC> class ");
     fp->write(getUlamTypeMangledName(state).c_str());
     fp->write(";  //forward\n\n");
 
     state->indent(fp);
-    fp->write("template<class CC>\n");
+    fp->write("template<class EC>\n");
 
     state->indent(fp);
     fp->write("struct ");
@@ -561,17 +561,17 @@ namespace MFM {
 
     //typedef atomic parameter type inside struct
     state->indent(fp);
-    fp->write("typedef typename CC::ATOM_TYPE T;\n");
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
     state->indent(fp);
-    fp->write("typedef typename CC::PARAM_CONFIG P;\n");
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
     state->indent(fp);
-    fp->write("enum { BPA = P::BITS_PER_ATOM };\n");
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
 
     //element typedef
     state->indent(fp);
     fp->write("typedef ");
     fp->write(getUlamTypeMangledName(state).c_str());
-    fp->write("<CC> Us;\n");
+    fp->write("<EC> Us;\n");
 
     //storage here in atom
     state->indent(fp);
@@ -763,14 +763,14 @@ namespace MFM {
     state->m_currentIndentLevel++;
 
     state->indent(fp);
-    fp->write("template<class CC>\n");
+    fp->write("template<class EC>\n");
 
     state->indent(fp);
     fp->write("struct ");
     fp->write(automangledName.c_str());
     fp->write(" : public ");
     fp->write(mangledName.c_str());
-    fp->write("<CC>\n");
+    fp->write("<EC>\n");
     state->indent(fp);
     fp->write("{\n");
 
@@ -778,11 +778,11 @@ namespace MFM {
 
     //typedef atomic parameter type inside struct
     state->indent(fp);
-    fp->write("typedef typename CC::ATOM_TYPE T;\n");
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
     state->indent(fp);
-    fp->write("typedef typename CC::PARAM_CONFIG P;\n");
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
     state->indent(fp);
-    fp->write("enum { BPA = P::BITS_PER_ATOM };\n");
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
     //reference to storage in atom
@@ -809,7 +809,7 @@ namespace MFM {
 	fp->write(");\n");
 	state->indent(fp);
 	fp->write(mangledName.c_str());
-	fp->write("<CC>::write(val);\n");
+	fp->write("<EC>::write(val);\n");
 	state->m_currentIndentLevel--;
 	state->indent(fp);
 	fp->write("}\n");
@@ -828,7 +828,7 @@ namespace MFM {
 	fp->write_decimal(len);
 	fp->write(", ");
 	fp->write(mangledName.c_str());
-	fp->write("<CC>::read());\n");
+	fp->write("<EC>::read());\n");
 	state->m_currentIndentLevel--;
   	state->indent(fp);
 	fp->write("}\n");
@@ -840,7 +840,7 @@ namespace MFM {
 	fp->write(automangledName.c_str());
 	fp->write("(T & realStg) : ");
 	fp->write(mangledName.c_str());
-	fp->write("<CC>(realStg), m_stgToChange(realStg) {}\n");
+	fp->write("<EC>(realStg), m_stgToChange(realStg) {}\n");
 
 	// magical destructor
 	state->indent(fp);
@@ -848,7 +848,7 @@ namespace MFM {
 	fp->write(automangledName.c_str());
 	fp->write("() { m_stgToChange = ");
 	fp->write(mangledName.c_str());
-	fp->write("<CC>::m_stg; }\n");
+	fp->write("<EC>::m_stg; }\n");
       }
     else
       assert(0);
@@ -858,7 +858,7 @@ namespace MFM {
     state->indent(fp);
     fp->write("T& getRef() { return ");
     fp->write(mangledName.c_str());
-    fp->write("<CC>::getRef(); }\n");
+    fp->write("<EC>::getRef(); }\n");
 #endif
 
     state->m_currentIndentLevel--;

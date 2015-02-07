@@ -46,7 +46,7 @@ namespace MFM {
   const std::string UlamTypeAtom::getImmediateStorageTypeAsString(CompilerState * state)
   {
     std::ostringstream ctype;
-    ctype << getUlamTypeImmediateMangledName(state) << "<CC>";
+    ctype << getUlamTypeImmediateMangledName(state) << "<EC>";
     return ctype.str();
   } //getImmediateStorageTypeAsString
 
@@ -134,7 +134,7 @@ namespace MFM {
     state->m_currentIndentLevel++;
 
     state->indent(fp);
-    fp->write("template<class CC>\n");
+    fp->write("template<class EC>\n");
 
     state->indent(fp);
     fp->write("struct ");
@@ -147,11 +147,11 @@ namespace MFM {
 
     //typedef atomic parameter type inside struct
     state->indent(fp);
-    fp->write("typedef typename CC::ATOM_TYPE T;\n");
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
     state->indent(fp);
-    fp->write("typedef typename CC::PARAM_CONFIG P;\n");
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
     state->indent(fp);
-    fp->write("enum { BPA = P::BITS_PER_ATOM };\n");
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
 
     //storage here in atom
     state->indent(fp);

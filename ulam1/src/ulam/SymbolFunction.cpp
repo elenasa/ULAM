@@ -211,9 +211,9 @@ namespace MFM {
     else
       {
 	if(classtype == UC_QUARK)
-	  fp->write("template<class CC, u32 POS>\n");
+	  fp->write("template<class EC, u32 POS>\n");
 	else
-	  fp->write("template<class CC>\n");
+	  fp->write("template<class EC>\n");
 	m_state.indent(fp);
       }
 
@@ -226,9 +226,9 @@ namespace MFM {
 	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
 
 	if(classtype == UC_QUARK)
-	  fp->write("<CC, POS>");
+	  fp->write("<EC, POS>");
 	else
-	  fp->write("<CC>");
+	  fp->write("<EC>");
 
 	fp->write("::");
       }
@@ -236,7 +236,7 @@ namespace MFM {
     fp->write(getMangledName().c_str());
     fp->write("(");
 
-    fp->write("UlamContext<CC>& uc, ");  //first arg is unmangled context
+    fp->write("UlamContext<EC>& uc, ");  //first arg is unmangled context
 
     //the hidden arg is "self", a T& (atom)
     fp->write("T& ");          //a reference
