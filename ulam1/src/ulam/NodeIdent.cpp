@@ -65,11 +65,23 @@ namespace MFM {
 
 	//used before defined, start search with current block
 	if(m_currBlockNo == 0)
-	    m_currBlockNo = m_state.m_currentBlock->getNodeNo();
+	  {
+	    if(m_state.m_useMemberBlock)
+	      {
+		assert(m_state.m_currentMemberClassBlock);
+		m_currBlockNo = m_state.m_currentMemberClassBlock->getNodeNo();
+	      }
+	    else
+	      m_currBlockNo = m_state.m_currentBlock->getNodeNo();
+	  }
 
 	//in case of a cloned unknown
 	if(m_currBlock == NULL)
 	  setBlock();
+
+	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
+	bool saveUseMemberBlock = m_state.m_useMemberBlock;
+	m_state.m_useMemberBlock = false;
 
 	m_state.m_currentBlock = m_currBlock; //before lookup
 
@@ -96,6 +108,8 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       	m_state.m_currentBlock = savecurrentblock; //restore
+	m_state.m_useMemberBlock = saveUseMemberBlock;
+	m_state.m_currentMemberClassBlock = savememberclassblock;
       } //lookup symbol
 
     if(m_varSymbol)

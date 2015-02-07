@@ -64,12 +64,14 @@ namespace MFM {
       }
 
     //for example, f.chance[i] where i is local, same as f.func(i);
+    NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
     bool saveUseMemberBlock = m_state.m_useMemberBlock;
     m_state.m_useMemberBlock = false;
 
     UTI rightType = m_nodeRight->checkAndLabelType();
 
     m_state.m_useMemberBlock = saveUseMemberBlock;
+    m_state.m_currentMemberClassBlock = savememberclassblock; //was missing
 
     //must be some kind of Int or Unsigned..of any bit size
     ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();

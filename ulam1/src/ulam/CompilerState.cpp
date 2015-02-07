@@ -1803,7 +1803,16 @@ namespace MFM {
 
   Node * CompilerState::findNodeNoInThisClass(NNO n)
   {
-    // beware the classblock is the only block with different node no in instances
+    if(m_useMemberBlock)
+      {
+	UTI mbuti = m_currentMemberClassBlock->getNodeType();
+	u32 mbid = getUlamTypeByIndex(mbuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(mbid, cnsym));
+	return cnsym->findNodeNoInAClassInstance(mbuti, n);
+      }
+
+    // beware the classblock is the only block with different node no in SHALLOW instances
     if(m_currentBlock->getNodeNo() == n && m_classBlock->getNodeType() == m_compileThisIdx)
       return m_currentBlock; //avoid chix-n-egg with functiondefs
 
