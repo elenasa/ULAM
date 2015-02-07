@@ -8,7 +8,8 @@
 namespace MFM {
 
   Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav), m_parent(NULL), m_nodeNo(m_state.getNextNodeNo()) {}
-  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_nodeUType(ref.m_nodeUType), m_nodeLoc(ref.m_nodeLoc), m_parent(NULL), m_nodeNo(ref.m_nodeNo) {}
+
+  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_nodeUType(ref.m_nodeUType), m_nodeLoc(ref.m_nodeLoc), m_parent(NULL), m_nodeNo(ref.m_nodeNo) /* same NNO */ {}
 
   void Node::setYourParent(Node * parent)
   {

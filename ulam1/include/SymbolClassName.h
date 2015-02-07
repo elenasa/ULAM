@@ -92,8 +92,6 @@ namespace MFM{
 
     void testForClassInstances(File * fp);
 
-    //void mergeClassInstancesBeforeCodeGen(); //used?
-
     void generateCodeForClassInstances(FileManager * fm);
 
     void generateIncludesForClassInstances(File * fp);

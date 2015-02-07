@@ -84,6 +84,11 @@ namespace MFM {
 	//in case of a cloned unknown
 	if(m_currBlock == NULL)
 	  setBlock();
+
+	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
+	bool saveUseMemberBlock = m_state.m_useMemberBlock;
+	m_state.m_useMemberBlock = false;
+
 	m_state.m_currentBlock = m_currBlock; //before lookup
 
 	Symbol * asymptr = NULL;
@@ -107,6 +112,8 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       	m_state.m_currentBlock = savecurrentblock; //restore
+	m_state.m_useMemberBlock = saveUseMemberBlock;
+	m_state.m_currentMemberClassBlock = savememberclassblock;
       } //toinstantiate
 
     assert(m_exprnode);

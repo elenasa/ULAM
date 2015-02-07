@@ -126,16 +126,20 @@ namespace MFM {
 
   void NodeBlock::addIdToScope(u32 id, Symbol * symptr)
   {
+    assert(symptr->getBlockNoOfST() == getNodeNo());
     m_ST.addToTable(id, symptr);
   }
 
   void NodeBlock::replaceIdInScope(u32 oldid, u32 newid, Symbol * symptr)
   {
+    assert(symptr->getBlockNoOfST() == getNodeNo());
     m_ST.replaceInTable(oldid, newid, symptr);
   }
 
   void NodeBlock::replaceIdInScope(Symbol * oldsym, Symbol * newsym)
   {
+    assert(oldsym->getBlockNoOfST() == getNodeNo());
+    newsym->setBlockNoOfST(getNodeNo()); //update ST block no in new symbol
     m_ST.replaceInTable(oldsym, newsym);
   }
 
