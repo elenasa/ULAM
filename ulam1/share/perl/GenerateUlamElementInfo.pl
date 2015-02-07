@@ -126,6 +126,12 @@ namespace MFM {
   {
     typedef typename EC::ATOM_CONFIG AC;
     typedef typename AC::ATOM_TYPE T;
+
+    const UlamElement<EC> & m_ulamElement;
+    $structName(const UlamElement<EC> & ue)
+        : m_ulamElement(ue)
+    { }
+
     $structName() { }
     const char * GetName() const { return $cname; }
     const char * GetSymbol() const { return $csym; }
