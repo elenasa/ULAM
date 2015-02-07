@@ -1,0 +1,12 @@
+ulam 1;
+
+quark DebugUtils {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void print(Atom arg) native;
+  Void assert(Bool b) native;
+}
