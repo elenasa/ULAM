@@ -1,7 +1,11 @@
 ulam 1;
+use EventWindow;
 quark C2D {
   typedef Unsigned(3) Dir;
   typedef Int(16) Coord;
+
+  EventWindow ew;
+
   Coord x;
   Coord y;
 
@@ -12,9 +16,14 @@ quark C2D {
     return ret;
   }
 
+  Bool equals(C2D other) {
+    return x == other.x && y == other.y;
+  }
+
   C2D add(C2D other) {
     return make(x + other.x, y + other.y);
   }
+
   C2D subtract(C2D other) {
     return make(x - other.x, y - other.y);
   }
@@ -23,6 +32,14 @@ quark C2D {
     return x * other.x + y * other.y;
   }
 
+  Int toInt() {
+    // XXX SHOULD WORK? return ew.getSiteNumber(self);
+    return (Int) ew.getSiteNumber(make((Int) x,(Int) y));
+  }
+
+  /**
+     Return the von Neumann neighbor in the direction d
+   */
   C2D neighbor(Dir d) {
     if (d==0) return make( 0, 1);
     if (d==1) return make( 1, 1);
@@ -32,6 +49,20 @@ quark C2D {
     if (d==5) return make(-1,-1);
     if (d==6) return make(-1, 0);
     /* d==7*/ return make(-1, 1);
+  }
+
+  /**
+     Return the event window point at distance 4 in the direction d.
+   */
+  C2D corner(Dir d) {
+    if (d==0) return make( 0, 4);
+    if (d==1) return make( 2, 2);
+    if (d==2) return make( 4, 0);
+    if (d==3) return make( 2,-2);
+    if (d==4) return make( 0,-4);
+    if (d==5) return make(-2,-2);
+    if (d==6) return make(-4, 0);
+    /* d==7*/ return make(-2, 2);
   }
 
   Unsigned length() {
