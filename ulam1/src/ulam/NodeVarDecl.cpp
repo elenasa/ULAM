@@ -112,21 +112,21 @@ namespace MFM {
 	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ") while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		it = Nav;
 	      }
 	  }
 	else if(!tdut->isComplete())
 	  {
 	    m_state.constantFoldIncompleteUTI(it); //update if possible
-
 	    tdut = m_state.getUlamTypeByIndex(it); //reload
 	    if(!tdut->isComplete())
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ")" ;
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		it = Nav;
 	      }
 	  }
       }

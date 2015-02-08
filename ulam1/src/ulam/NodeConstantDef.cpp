@@ -184,7 +184,7 @@ namespace MFM {
 	if(newconst == NONREADYCONST)
 	  {
 	    std::ostringstream msg;
-	    msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not yet ready";
+	    msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not yet ready while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    m_state.m_currentBlock = savecurrentblock; //restore
 	    return false;

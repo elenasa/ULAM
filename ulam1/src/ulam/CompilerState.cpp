@@ -520,8 +520,7 @@ namespace MFM {
     if(it != m_scalarUTItoArrayUTIs.end())
       {
 	assert(it->first == suti);
-	std::set<UTI> aset = it->second;
-	aset.insert(auti); //add array to its list
+	it->second.insert(auti); //add array to its list
       }
     else
       {
@@ -1494,7 +1493,8 @@ namespace MFM {
 	return assignArrayValues(lptr, ruv);
       }
     // r is data (includes packed arrays), store it into where lptr is pointing
-    assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx() || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
+    //assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx() || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
+    assert(UlamType::compare(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
 
     STORAGE place = lptr.getPtrStorage();
     switch(place)

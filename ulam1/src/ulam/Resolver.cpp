@@ -206,6 +206,7 @@ namespace MFM {
     return rtnstat;
   } //statusUnknownBitsizeUTI
 
+#if 0
   bool Resolver::constantFoldUnknownBitsize(UTI auti, s32& bitsize)
   {
     bool rtnBool = true; //unfound
@@ -224,6 +225,33 @@ namespace MFM {
 	    m_unknownBitsizeSubtrees.erase(it);
 	  }
       }
+    return rtnBool;
+  } //constantFoldUnknownBitsize
+#endif
+
+  //redo as while for debugging
+  bool Resolver::constantFoldUnknownBitsize(UTI auti, s32& bitsize)
+  {
+    bool rtnBool = true; //unfound
+    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
+
+    while(it != m_unknownBitsizeSubtrees.end())
+      {
+	if(auti == it->first)
+	  {
+	    NodeTypeBitsize * ceNode = it->second;
+	    assert(ceNode);
+	    rtnBool = ceNode->getTypeBitSizeInParen(bitsize, m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum()); //eval
+	    if(rtnBool)
+	      {
+		delete ceNode;
+		it->second = NULL;
+		m_unknownBitsizeSubtrees.erase(it);
+	      }
+	    break;
+	  }
+	it++;
+      } //while
     return rtnBool;
   } //constantFoldUnknownBitsize
 
@@ -293,18 +321,13 @@ namespace MFM {
     return rtnstat;
   } //statusUnknownArraysizeUTI
 
+  void Resolver::linkConstantExpression(NodeConstantDef * ceNode)
+  {
+    if(ceNode)
+      m_nonreadyNamedConstantSubtrees.insert(ceNode);
+  }
 
-  //not sure if this stays global or not????
-    //    void linkArrayUTItoScalarUTI(UTI suti, UTI auti);
-    //void updatelinkedArrayUTIsWithKnownBitsize(UTI suti);
-
-    void Resolver::linkConstantExpression(NodeConstantDef * ceNode)
-    {
-      if(ceNode)
-	m_nonreadyNamedConstantSubtrees.insert(ceNode);
-    }
-
-    bool Resolver::statusNonreadyNamedConstants()
+  bool Resolver::statusNonreadyNamedConstants()
   {
     bool rtnstat = true; //ok, empty
     if(!m_nonreadyNamedConstantSubtrees.empty())

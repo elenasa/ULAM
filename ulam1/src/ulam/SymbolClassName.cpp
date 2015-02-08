@@ -349,8 +349,7 @@ namespace MFM {
     if(it != m_mapOfTemplateUTIToInstanceUTIPerClassInstance.end())
       {
 	assert(it->first == instance);
-	std::map<UTI, UTI> amap = it->second;
-	amap.insert(std::pair<UTI, UTI>(auti, mappeduti));
+	it->second.insert(std::pair<UTI, UTI>(auti, mappeduti));
       }
     else
       {
@@ -358,6 +357,10 @@ namespace MFM {
 	amap.insert(std::pair<UTI, UTI>(auti, mappeduti));
 	m_mapOfTemplateUTIToInstanceUTIPerClassInstance.insert(std::pair <UTI, std::map<UTI, UTI> >(instance, amap));
       }
+    //sanity check please..
+    UTI checkuti;
+    assert(hasInstanceMappedUTI(instance,auti,checkuti));
+    assert(checkuti == mappeduti);
   } //mapInstanceUTI
 
   bool SymbolClassName::cloneInstances()
@@ -600,10 +603,21 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.m_compileThisIdx = csym->getUlamTypeIdx(); //this instance
-	classNode->checkAndLabelType(); //do each instance
+	if(csym->isDeep())
+	  {
+	    m_state.m_classBlock = classNode;
+	    m_state.m_currentBlock = m_state.m_classBlock;
+	    m_state.m_compileThisIdx = csym->getUlamTypeIdx(); //this instance
+	    classNode->checkAndLabelType(); //do each instance
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << " Class instance: ";
+	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << " is still shallow, so check and label error";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
 	it++;
       }
     //restore
@@ -707,40 +721,34 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 	UTI uti = it->first; //this instance entry; may not match Symbol class' uti
+	s32 totalbits = 0;
+
 	if(m_state.getUlamTypeByIndex(uti)->isComplete())
 	  {
 	    it++;
 	    continue; //already set
 	  }
 
-	if(csym->pendingClassArgumentsForClassInstance())
+	if(csym->pendingClassArgumentsForClassInstance() || !csym->isDeep())
 	  {
 	    aok = false;
-	    it++;
-	    continue; //have to wait
-	  }
-
-	if(!csym->isDeep())
-	  {
-	    aok = false;
-	    it++;
-	    continue; //have to wait
-	  }
-
-	s32 totalbits = 0;
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	if(suti != uti && sut->isComplete())
-	  {
-	    totalbits = sut->getBitSize();
-	    aok = true;
 	  }
 	else
 	  {
-	    m_state.m_compileThisIdx = suti;
-	    m_state.m_classBlock = csym->getClassBlockNode();
-	    m_state.m_currentBlock = m_state.m_classBlock;
+	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	    if(suti != uti && sut->isComplete())
+	      {
+		totalbits = sut->getBitSize();
+		aok = true;
+	      }
+	    else
+	      {
+		m_state.m_compileThisIdx = suti;
+		m_state.m_classBlock = csym->getClassBlockNode();
+		m_state.m_currentBlock = m_state.m_classBlock;
 
-	    aok = csym->trySetBitsizeWithUTIValues(totalbits);
+		aok = csym->trySetBitsizeWithUTIValues(totalbits);
+	      }
 	  }
 
 	if(aok)
