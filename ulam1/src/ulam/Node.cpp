@@ -1284,7 +1284,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ") in class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	//return node;
       }
 

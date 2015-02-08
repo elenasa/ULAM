@@ -168,7 +168,7 @@ namespace MFM {
 	else if(symsize <= UNKNOWNSIZE)
 	  {
 	    std::ostringstream msg;
-	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str() << " UTI" << suti;
+	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str() << " UTI" << suti << " while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	    if(variableSymbolWithCountableSize(sym))
 	      {
@@ -800,9 +800,10 @@ namespace MFM {
       }
     else
       {
-	std::ostringstream msg;
-	msg << m_idToSymbolPtr.size() << " Class" <<( m_idToSymbolPtr.size() > 1 ? "es ALL " : " ") << "sized SUCCESSFULLY";
-	MSG("", msg.str().c_str(),DEBUG);
+	// misleading..
+	//	std::ostringstream msg;
+	//msg << m_idToSymbolPtr.size() << " Class" <<( m_idToSymbolPtr.size() > 1 ? "es ALL " : " ") << "sized SUCCESSFULLY";
+	//MSG("", msg.str().c_str(),DEBUG);
       }
     lostClassesIds.clear();
     return aok;
@@ -940,6 +941,7 @@ namespace MFM {
     m_state.m_compileThisIdx = saveCompileThisIdx;  //restore
   } //mergeInstancesBeforeCodeGenForTableOfClasses
 #endif
+
   // PRIVATE HELPER METHODS:
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {

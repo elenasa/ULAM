@@ -147,11 +147,12 @@ namespace MFM {
     } while(!sumbrtn);
 
     //checkAndLabelTypes: lineage updated incrementally
-    m_state.m_err.clearCounts();
-    bool labelok = m_state.m_programDefST.labelTableOfClasses();
+    //m_state.m_err.clearCounts();
+    //bool labelok = m_state.m_programDefST.labelTableOfClasses();
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
     u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
-    if(!labelok || navcount > 0)
+    //if(!labelok || navcount > 0)
+    if(navcount > 0)
       {
 	std::ostringstream msg;
 	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class <";
@@ -195,6 +196,10 @@ namespace MFM {
     sumbrtn &= m_state.m_programDefST.statusUnknownConstantExpressionsInTableOfClasses();
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses();
     sumbrtn &= m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate classes w ready args
+    //checkAndLabelTypes: lineage updated incrementally
+    m_state.m_err.clearCounts();
+    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok
+
     return sumbrtn;
   } //loopUnknownsOnceAround
 
