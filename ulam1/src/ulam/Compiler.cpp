@@ -128,31 +128,31 @@ namespace MFM {
     m_state.m_err.setFileOutput(output);
     m_state.m_err.clearCounts();
 
-    // label all the class; sets "current" m_currentClassSymbol in CS
     bool sumbrtn = true;
     u32 infcounter = 0;
-    // size all the class; sets "current" m_currentClassSymbol in CS
     do{
+
+      // resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
       sumbrtn = loopUnknownsOnceAround();
       if(++infcounter > MAX_ITERATIONS)
 	{
 	  std::ostringstream msg;
-	  msg << "Possible INCOMPLETE class detected during type labeling class <";
-	  msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId);
-	  msg << ">, after " << infcounter << " iterations";
+	  msg << "Possible INCOMPLETE (or Template) class detected during resolving loop";
+	  msg << " after " << infcounter << " iterations";
 	  MSG("", msg.str().c_str(), WARN);
 	  //note: not an error because template uses remain unresolved
 	  break;
 	}
     } while(!sumbrtn);
 
-    //checkAndLabelTypes: lineage updated incrementally
-    //m_state.m_err.clearCounts();
-    //bool labelok = m_state.m_programDefST.labelTableOfClasses();
+    //checkAndLabelTypes: lineage updated incrementally at cloning step
+    // label all the class; sets "current" m_currentClassSymbol in CS
+    m_state.m_err.clearCounts();
+    bool labelok = m_state.m_programDefST.labelTableOfClasses();
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
     u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
-    //if(!labelok || navcount > 0)
-    if(navcount > 0)
+    if(!labelok || navcount > 0)
+      //if(navcount > 0)
       {
 	std::ostringstream msg;
 	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class <";
@@ -189,6 +189,7 @@ namespace MFM {
     return m_state.m_err.getErrorCount();
   } //checkAndTypeLabelProgram
 
+  //resolving innerloop
   bool Compiler::loopUnknownsOnceAround()
   {
     bool sumbrtn = true;
@@ -197,9 +198,8 @@ namespace MFM {
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses();
     sumbrtn &= m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate classes w ready args
     //checkAndLabelTypes: lineage updated incrementally
-    m_state.m_err.clearCounts();
-    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok
-
+    //m_state.m_err.clearCounts();
+    //sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok
     return sumbrtn;
   } //loopUnknownsOnceAround
 
