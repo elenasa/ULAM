@@ -277,7 +277,7 @@ namespace MFM {
   } //installSymbolConstantValue
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -295,7 +295,7 @@ namespace MFM {
 
     s32 newarraysize = NONARRAYSIZE;
     if(getArraysizeInBracket(newarraysize))
-      return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, classInstanceIdx, asymptr);
+      return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, classInstanceIdx, declListScalarType, asymptr);
 
     return false;  //error getting array size
   } //installSymbolVariable

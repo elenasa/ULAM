@@ -157,7 +157,7 @@ namespace MFM {
     return false;
   }
 
-  bool Node::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
+  bool Node::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr)
   {
     return false;
   }
