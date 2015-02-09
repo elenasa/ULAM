@@ -365,7 +365,7 @@ namespace MFM {
 
 
   //see also NodeSquareBracket
-  bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
+  bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
@@ -384,9 +384,25 @@ namespace MFM {
     bool brtn = false;
     ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
 
-    // check typedef types here
-    if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, aut))
+    //list of decls can use the same 'scalar' type (arg); adjusted for arrays
+    if(declListScalarType)
       {
+	if(arraysize != NONARRAYSIZE)
+	  {
+	    UlamType * dlut = m_state.getUlamTypeByIndex(declListScalarType);
+	    ULAMTYPE dlbUT = dlut->getUlamTypeEnum();
+	    UlamKeyTypeSignature dlkey = dlut->getUlamKeyTypeSignature();
+	    UlamKeyTypeSignature newdlarraykey(dlkey.getUlamKeyTypeSignatureNameId(), dlkey.getUlamKeyTypeSignatureBitSize(), arraysize);
+	    newdlarraykey.append(declListScalarType);
+	    aut = m_state.makeUlamType(newdlarraykey, dlbUT); //also takes care of arrayUTItoScalarUTI link
+	  }
+	else
+	  aut = declListScalarType;
+	brtn = true;
+      }
+    else if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, aut))
+      {
+	// check typedef types here..
 	UlamType * tdut = m_state.getUlamTypeByIndex(aut);
 	s32 tdarraysize = tdut->getArraySize();
 	if(arraysize >= 0)  //variable's
@@ -432,29 +448,26 @@ namespace MFM {
 	aut = m_state.makeUlamType(key, bUT);
 	brtn = true;
       }
+    else if(Token::getSpecialTokenWork(aTok.m_type) == TOKSP_TYPEKEYWORD)
+      {
+	//UlamTypes automatically created for the base types with different array sizes.
+	//but with typedef's "scope" of use, typedef needed to be checked first.
+	if(bitsize == 0)
+	  {
+	    bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+	  }
+
+	// o.w. build symbol (with bit and array sizes);
+	// can array's have their scalar as classInstance? if so, no longer findable by token.
+	aut = m_state.makeUlamType(aTok, bitsize, arraysize, Nav);
+	brtn = true;
+      }
     else
       {
-	if(Token::getSpecialTokenWork(aTok.m_type) == TOKSP_TYPEKEYWORD)
-	  {
-	    //UlamTypes automatically created for the base types with different array sizes.
-	    //but with typedef's "scope" of use, typedef needs to be checked first.
-	    if(bitsize == 0)
-	      {
-		bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
-	      }
-
-	    // o.w. build symbol (with bit and array sizes);
-	    // can array's have their scalar as classInstance??? if so, no longer findable by token.
-	    aut = m_state.makeUlamType(aTok, bitsize, arraysize, Nav);
-	    brtn = true;
-	  }
-	else
-	  {
-	    // will substitute placeholder class type if it hasn't been seen yet
-	    //m_state.getUlamTypeByClassToken(aTok, aut);
-	    aut = classInstanceIdx;
-	    brtn = true;
-	  }
+	// will substitute placeholder class type if it hasn't been seen yet
+	//m_state.getUlamTypeByClassToken(aTok, aut);
+	aut = classInstanceIdx;
+	brtn = true;
       }
 
     if(brtn)

@@ -174,6 +174,7 @@ namespace MFM {
   {
     UTI uti;
     UlamType * ut = NULL;
+    UTI saveNonClassScalarUTIForArrayUTI = Nav;
 
     //if(!isDefined(key, uti))
     if(!isDefined(key,ut) || utype == Class || (utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
@@ -206,6 +207,16 @@ namespace MFM {
 		  }
 	      }
 	  }
+	else
+	  { //not a class
+	    UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
+	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
+	      {
+		//save scalar in key
+		saveNonClassScalarUTIForArrayUTI = suti;
+	      }
+	    key.append(Nav); //clear
+	  }
 
 	ut = createUlamType(key, utype);
 	m_indexToUlamKey.push_back(key);
@@ -236,7 +247,11 @@ namespace MFM {
 	  }
 	else if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE && key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE)
 	  {
-	    UTI suti = getUlamTypeAsScalar(uti);
+	    UTI suti;
+	    if(saveNonClassScalarUTIForArrayUTI)
+	      suti = saveNonClassScalarUTIForArrayUTI;
+	    else
+	      suti = getUlamTypeAsScalar(uti); //possibly a new uti
 	    assert(suti > 0 && !isComplete(suti));
 	    linkArrayUTItoScalarUTI(suti,uti);
 	  }
@@ -514,7 +529,8 @@ namespace MFM {
 
   void CompilerState::linkArrayUTItoScalarUTI(UTI suti, UTI auti)
   {
-    assert(getUlamTypeByIndex(auti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx() == suti);
+    // only needed for Classes
+    assert(getUlamTypeByIndex(auti)->getUlamTypeEnum() != Class || getUlamTypeByIndex(auti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx() == suti);
 
     std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.find(suti); //scalar
     if(it != m_scalarUTItoArrayUTIs.end())
@@ -539,16 +555,15 @@ namespace MFM {
     if(it != m_scalarUTItoArrayUTIs.end())
       {
 	assert(it->first == suti);
-	std::set<UTI> aset = it->second;
-	std::set<UTI>::iterator sit = aset.begin();
-	while(sit != aset.end())
+	std::set<UTI>::iterator sit = it->second.begin();
+	while(sit != it->second.end())
 	  {
 	    UTI auti = *sit;
 	    setBitSize(auti, scalarbitsize); //keeps current arraysize
 	    sit++;
 	  }
-	//no longer needed since bitsize is known?
-	aset.clear();
+	//no longer needed since bitsize is known
+	it->second.clear();
 	m_scalarUTItoArrayUTIs.erase(it);
       }
   } //updatelinkedArrayUTIsWithKnownBitsize
