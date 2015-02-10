@@ -71,6 +71,7 @@ namespace MFM
     void constantFoldIncompleteUTI(UTI uti);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
+    void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
 

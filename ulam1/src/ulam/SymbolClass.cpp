@@ -280,6 +280,12 @@ namespace MFM {
     m_resolver->linkConstantExpression(uti, ceNode);
   }
 
+  void SymbolClass::cloneAndLinkConstantExpression(UTI fromtype, UTI totype)
+  {
+    assert(m_resolver);
+    m_resolver->cloneAndLinkConstantExpression(fromtype, totype);
+  }
+
   void SymbolClass::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
   {
     if(!m_resolver)

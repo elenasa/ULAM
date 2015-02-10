@@ -182,6 +182,7 @@ namespace MFM{
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
+    void cloneAndLinkConstantExpression(UTI fromuti, UTI touti);
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
 
