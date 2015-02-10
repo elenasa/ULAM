@@ -44,7 +44,7 @@ namespace MFM {
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
+	totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx()); //types could be incomplete, sizes unknown for template
       }
     return totalsizes;
   }
@@ -151,7 +151,7 @@ namespace MFM {
 	      {
 		//error! number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
-		msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(csym->getId()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
+		msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
 		MSG("", msg.str().c_str(),ERR);
 		it++;
 		continue;
@@ -178,7 +178,6 @@ namespace MFM {
 	  } //while
       } //any class instances
   } //fixAnyClassInstances
-
 
   void SymbolClassName::linkUnknownBitsizeConstantExpression(UTI auti, NodeTypeBitsize * ceNode)
   {
@@ -208,6 +207,14 @@ namespace MFM {
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	if(getNumberOfParameters() > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; No status of unknown constant expressions";
+	    MSG("", msg.str().c_str(), DEBUG);
+	    return true;
+	  }
+
 	NodeBlockClass * classNode = getClassBlockNode();
 	m_state.m_classBlock = classNode;
 	m_state.m_currentBlock = m_state.m_classBlock;
@@ -273,6 +280,14 @@ namespace MFM {
       }
     std::ostringstream args;
     args << DigitCount(numParams, BASE10) << numParams;
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	std::ostringstream msg;
+	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; args format is number of parameters";
+	MSG("", msg.str().c_str(), DEBUG);
+	return args.str(); //short-circuit when argument is template's UTI
+      }
 
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -485,6 +500,15 @@ namespace MFM {
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	if(getNumberOfParameters() > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; Constant Fold of Incomplete UTI"
+ << auti << " will not be tried";
+	    MSG("", msg.str().c_str(), DEBUG);
+	    return;
+	  }
+
 	assert(instance == getUlamTypeIdx());
 	NodeBlockClass * classNode = getClassBlockNode();
 	assert(classNode);
@@ -517,7 +541,8 @@ namespace MFM {
     NodeBlock * saveblocknode = m_state.m_currentBlock;
     UTI savecompilethisidx = m_state.m_compileThisIdx;
 
-    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+    //if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+    if(getUlamTypeIdx() == cuti)
       {
 	NodeBlockClass * classNode = getClassBlockNode();
 	assert(classNode);
@@ -555,6 +580,14 @@ namespace MFM {
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	if(getNumberOfParameters() > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; Custom Array check will not be done";
+	    MSG("", msg.str().c_str(), DEBUG);
+	    return;
+	  }
+
 	NodeBlockClass * classNode = getClassBlockNode();
 	assert(classNode);
 	m_state.m_classBlock = classNode;
@@ -593,6 +626,14 @@ namespace MFM {
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	if(getNumberOfParameters() > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; Check & Type Labelomg will not be done";
+	    MSG("", msg.str().c_str(), DEBUG);
+	    return;
+	  }
+
 	NodeBlockClass * classNode = getClassBlockNode();
 	assert(classNode);
 	m_state.m_classBlock = classNode;
@@ -642,6 +683,14 @@ namespace MFM {
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	if(getNumberOfParameters() > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; Nav nodes will not be counted";
+	    MSG("", msg.str().c_str(), DEBUG);
+	    return 0;
+	  }
+
 	NodeBlockClass * classNode = getClassBlockNode();
 	assert(classNode);
 	m_state.m_classBlock = classNode;
@@ -701,6 +750,14 @@ namespace MFM {
     //check for class instances
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	if(getNumberOfParameters() > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; Bit sizing will not be determined";
+	    MSG("", msg.str().c_str(), DEBUG);
+	    return true;
+	  }
+
 	NodeBlockClass * classNode = getClassBlockNode();
 	assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
 	m_state.m_classBlock = classNode;
@@ -811,7 +868,10 @@ namespace MFM {
   {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
-	SymbolClass::printBitSizeOfClass(); //skip templates
+	if(getNumberOfParameters() > 0)
+	    return; //skip templates
+
+	SymbolClass::printBitSizeOfClass();
 	return;
       }
 
@@ -831,6 +891,14 @@ namespace MFM {
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	if(getNumberOfParameters() > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; Packed bits will not be done";
+	    MSG("", msg.str().c_str(), DEBUG);
+	    return;
+	  }
+
 	NodeBlockClass * classNode = getClassBlockNode();
 	assert(classNode);
 	m_state.m_classBlock = getClassBlockNode();
@@ -870,9 +938,16 @@ namespace MFM {
     NodeBlockClass * saveclassBlock = m_state.m_classBlock;
     UTI savecompilethisidx = m_state.m_compileThisIdx;
 
-
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	if(getNumberOfParameters() > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; No test will be generated";
+	    MSG("", msg.str().c_str(), DEBUG);
+	    return;
+	  }
+
 	m_state.m_classBlock = getClassBlockNode();
 	m_state.m_currentBlock = m_state.m_classBlock;
 	m_state.setCompileThisIdx(getUlamTypeIdx());
@@ -907,6 +982,13 @@ namespace MFM {
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
+	if(getNumberOfParameters() > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; No C++ code will be generated";
+	    MSG("", msg.str().c_str(), DEBUG);
+	    return;
+	  }
 	NodeBlockClass * classNode = getClassBlockNode();
 	assert(classNode);
 	m_state.m_classBlock = classNode;
