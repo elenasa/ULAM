@@ -84,20 +84,23 @@ namespace MFM {
   // guards against even Bool's.
   bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT)
   {
-    s32 newbitsize = UNKNOWNSIZE; //was ANYBITSIZECONSTANT;
+    s32 newbitsize = UNKNOWNSIZE;
     UTI sizetype = checkAndLabelType();
     if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
-	m_node->eval();
-	UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
-	evalNodeEpilog();
+	if(m_node->eval() == NORMAL)
+	  {
+	    UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
 
-	if(bitUV.getUlamValueTypeIdx() == Nav)
-	  newbitsize = UNKNOWNSIZE;
-	else
-	  newbitsize = bitUV.getImmediateData(m_state);
+	    if(bitUV.getUlamValueTypeIdx() == Nav)
+	      newbitsize = UNKNOWNSIZE;
+	    else
+	      newbitsize = bitUV.getImmediateData(m_state);
+	  }
+
+	evalNodeEpilog();
 
 	if(newbitsize == UNKNOWNSIZE)
 	  {
