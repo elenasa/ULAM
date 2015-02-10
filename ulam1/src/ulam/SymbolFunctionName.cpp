@@ -20,10 +20,12 @@ namespace MFM {
     while(it != sref.m_mangledFunctionNames.end())
       {
 	SymbolFunction * foundSym = it->second;
-	SymbolFunction * clonefound = (SymbolFunction *) foundSym->clone();
-	assert(foundSym != clonefound && foundSym->getUlamTypeIdx() == clonefound->getUlamTypeIdx());
-	std::string clonemangled(it->first);
-	m_mangledFunctionNames.insert(std::pair<std::string,SymbolFunction *>(clonemangled,clonefound));
+	SymbolFunction * cloneOf = (SymbolFunction *) foundSym->clone();
+	// return types could be mapped UTI, and not the same
+	//assert(foundSym != cloneOf && foundSym->getUlamTypeIdx() == cloneOf->getUlamTypeIdx());
+	//std::string clonemangled(it->first);
+	//m_mangledFunctionNames.insert(std::pair<std::string,SymbolFunction *>(clonemangled,cloneOf));
+	overloadFunction(cloneOf);
 	++it;
       }
   }
