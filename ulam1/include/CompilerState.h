@@ -137,17 +137,18 @@ namespace MFM{
     std::vector<UlamKeyTypeSignature> m_indexToUlamKey;   //UTI -> ulamkey, many-to-one
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes;   //key -> ulamtype *
 
-    std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
-    std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
-    std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtreesForClassInstances; //constant expr to resolve, and empty
-    std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtreesForClassInstances;  //constant expr to resolve, and empty
+    //std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
+    //std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
+    //std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtreesForClassInstances; //constant expr to resolve, and empty
+    //std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtreesForClassInstances;  //constant expr to resolve, and empty
 
-    std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
-    std::map<UTI, std::vector<NodeConstantDef *> > m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
+    //std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
+    //std::map<UTI, std::vector<NodeConstantDef *> > m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
 
+    //std::map<UTI, std::set<UTI> > m_scalarUTItoArrayUTIs; //help update array's bitsizes when scalar's is known
 
     std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
-    std::map<UTI, std::set<UTI> > m_scalarUTItoArrayUTIs; //help update array's bitsizes when scalar's is known
+
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -234,6 +235,9 @@ namespace MFM{
 
     /** return true and the SymbolClassName pointer in 2nd arg if found; */
     bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);
+
+    /** use when changing m_compileThisIdx to keep id and idx in sync */
+    void setCompileThisIdx(UTI idx);
 
     /** return true and the SymbolClass pointer in 2nd arg if uti found; */
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);

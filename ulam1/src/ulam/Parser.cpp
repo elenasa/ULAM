@@ -208,7 +208,7 @@ namespace MFM {
       }
 
     //mostly needed for code gen later, but this is where we first know it!
-    m_state.m_compileThisIdx = cnSym->getUlamTypeIdx();
+    m_state.setCompileThisIdx(cnSym->getUlamTypeIdx());
 
     // set class type in UlamType (through its class symbol) since we know it;
     // UC_INCOMPLETE if unseen so far.
