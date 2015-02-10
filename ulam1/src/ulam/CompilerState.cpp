@@ -218,27 +218,6 @@ namespace MFM {
 	  }
 
 	incrementUnknownKeyUTICounter(key);
-#if 0
-	// can do this now after new uti is defined
-	if(utype == Class)
-	  {
-	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
-	      {
-		UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
-		linkArrayUTItoScalarUTI(suti,uti);
-	      }
-	  }
-	else if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE && key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE)
-	  {
-	    UTI suti;
-	    if(saveNonClassScalarUTIForArrayUTI)
-	      suti = saveNonClassScalarUTIForArrayUTI;
-	    else
-	      suti = getUlamTypeAsScalar(uti); //possibly a new uti
-	    assert(suti > 0 && !isComplete(suti));
-	    linkArrayUTItoScalarUTI(suti,uti);
-	  }
-#endif
 
 	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
 	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
@@ -518,29 +497,6 @@ namespace MFM {
     assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
     cnsym->constantFoldIncompleteUTIOfClassInstance(m_compileThisIdx, auti);
   }
-
-  void CompilerState::linkArrayUTItoScalarUTI(UTI suti, UTI auti)
-  {
-    assert(getUlamTypeByIndex(auti)->getUlamTypeEnum() != Class || getUlamTypeByIndex(auti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx() == suti);
-
-    SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
-    // only update for templates, and non-parametric classes
-    if(m_compileThisIdx == cnsym->getUlamTypeIdx())
-      cnsym->linkArrayUTItoScalarUTIOfClassInstance(m_compileThisIdx, suti, auti);
-  } //linkArrayUTItoScalarUTI
-
-
-  void CompilerState::updatelinkedArrayUTIsWithKnownBitsize(UTI suti)
-  {
-    s32 scalarbitsize = getBitSize(suti);
-    assert(scalarbitsize > UNKNOWNSIZE); //could be a constant?
-
-    SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
-    cnsym->updatelinkedArrayUTIsWithKnownBitsizeOfClassInstance(m_compileThisIdx, suti);
-  } //updatelinkedArrayUTIsWithKnownBitsize
-
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {

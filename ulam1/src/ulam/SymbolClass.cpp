@@ -302,20 +302,6 @@ namespace MFM {
     m_resolver->linkConstantExpression(ceNode);
   }
 
-  void SymbolClass::linkArrayUTItoScalarUTI(UTI suti, UTI auti)
-  {
-    if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    //assert(m_deep);
-    m_resolver->linkArrayUTItoScalarUTI(suti, auti);
-  }
-
-  void SymbolClass::updatelinkedArrayUTIsWithKnownBitsize(UTI suti)
-  {
-    if(m_resolver)
-      m_resolver->updatelinkedArrayUTIsWithKnownBitsize(suti);
-  }
-
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
     if(!m_resolver) //shallow clone only!

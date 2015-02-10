@@ -58,24 +58,6 @@ namespace MFM {
     m_nonreadyNamedConstantSubtrees.clear();
 
 
-    u32 linkedUnknownA = m_scalarUTItoArrayUTIs.size();
-    if(linkedUnknownA > 0)
-      {
-	std::ostringstream msg;
-	msg << "Linked arrays to Unknown scalars cleared: " << linkedUnknownA;
-	MSG("",msg.str().c_str(),DEBUG);
-
-	std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.begin();
-	while(it != m_scalarUTItoArrayUTIs.end())
-	  {
-	    std::set<UTI> aset = it->second;
-	    it->second.clear();
-	    it++;
-	  }
-      }
-    m_scalarUTItoArrayUTIs.clear();
-
-
     s32 nonreadyG = m_nonreadyClassArgSubtrees.size();
     if(nonreadyG > 0)
       {
@@ -396,56 +378,6 @@ namespace MFM {
       }
     return rtnstat;
   } //statusNonreadyNamedConstants
-
-
-  void Resolver::linkArrayUTItoScalarUTI(UTI suti, UTI auti)
-  {
-    std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.find(suti); //scalar
-    if(it != m_scalarUTItoArrayUTIs.end())
-      {
-	assert(it->first == suti);
-	it->second.insert(auti); //add array to its list
-      }
-    else
-      {
-	std::set<UTI> aset;
-	aset.insert(auti);
-	m_scalarUTItoArrayUTIs.insert(std::pair<UTI,std::set<UTI> >(suti, aset)); //new entry
-      }
-  } //linkArrayUTItoScalarUTI
-
-  void Resolver::updatelinkedArrayUTIsWithKnownBitsize(UTI suti)
-  {
-    s32 scalarbitsize = m_state.getBitSize(suti);
-    assert(scalarbitsize > UNKNOWNSIZE); //could be a constant?
-
-    std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.find(suti);
-    if(it != m_scalarUTItoArrayUTIs.end())
-      {
-	assert(it->first == suti);
-	std::set<UTI>::iterator sit = it->second.begin();
-	while(sit != it->second.end())
-	  {
-	    UTI auti = *sit;
-	    m_state.setBitSize(auti, scalarbitsize); //keeps current arraysize
-	    sit++;
-	  }
-	//no longer needed since bitsize is known
-	it->second.clear();
-	m_scalarUTItoArrayUTIs.erase(it);
-      }
-  } //updatelinkedArrayUTIsWithKnownBitsize
-
-  std::map<UTI, std::set<UTI> >::iterator Resolver::getLinkedArrayIterator()
-  {
-    std::map<UTI, std::set<UTI> >::iterator rit = m_scalarUTItoArrayUTIs.begin();
-    return rit;
-  }
-
-  bool Resolver::isLinkedArrayEnd(std::map<UTI, std::set<UTI> >::iterator it)
-  {
-    return (it == m_scalarUTItoArrayUTIs.end());
-  }
 
   //called while parsing this shallow class instance use;
   void Resolver::linkConstantExpressionForPendingArg(NodeConstantDef * ceNode)
