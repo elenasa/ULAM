@@ -172,14 +172,17 @@ namespace MFM {
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
-	m_exprnode->eval();
-	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	evalNodeEpilog();
+	if(m_exprnode->eval() == NORMAL)
+	  {
+	    UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
 
-	if(cnstUV.getUlamValueTypeIdx() == Nav)
-	  newconst = NONREADYCONST;
-	else
-	  newconst = cnstUV.getImmediateData(m_state);
+	    if(cnstUV.getUlamValueTypeIdx() == Nav)
+	      newconst = NONREADYCONST;
+	    else
+	      newconst = cnstUV.getImmediateData(m_state);
+	  }
+
+	evalNodeEpilog();
 
 	if(newconst == NONREADYCONST)
 	  {

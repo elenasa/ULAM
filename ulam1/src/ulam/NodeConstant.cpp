@@ -120,6 +120,8 @@ namespace MFM {
   {
     if(!m_ready)
       m_ready = updateConstant();
+    if(!m_ready)
+      return ERROR;
     return NodeTerminal::eval();
   } //eval
 

@@ -312,16 +312,22 @@ namespace MFM {
       {
 	evalNodeProlog(0);             //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
-	m_nodeRight->eval();
-	UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
-	evalNodeEpilog();
-
-	newarraysize = arrayUV.getImmediateData(m_state);
-	if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //== NONARRAYSIZE or UNKNOWNSIZE
+	if(m_nodeRight->eval() == NORMAL)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
-	    return false;
+	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
+
+	    newarraysize = arrayUV.getImmediateData(m_state);
+	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //== NONARRAYSIZE or UNKNOWNSIZE
+	      {
+		MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
+		evalNodeEpilog();
+		return false;
+	      }
 	  }
+	else
+	  newarraysize = UNKNOWNSIZE; //error
+
+	evalNodeEpilog();
       }
     else
       {
