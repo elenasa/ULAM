@@ -14,7 +14,9 @@ namespace MFM {
   {
     for(u32 i = 0; i < sref.m_parameterSymbols.size(); i++)
       {
-	m_parameterSymbols[i] = sref.m_parameterSymbols[i]->clone();
+	//m_parameterSymbols[i] = sref.m_parameterSymbols[i]->clone();
+	Symbol * sym = sref.m_parameterSymbols[i]->clone();
+	m_parameterSymbols.push_back(sym);
       }
 
     if(sref.m_functionNode)
