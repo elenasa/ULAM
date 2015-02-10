@@ -183,8 +183,28 @@ namespace MFM {
   void Resolver::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
   {
     if(ceNode)
-      m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
-  }
+      {
+	std::pair<std::map<UTI, NodeTypeBitsize *>::iterator, bool> ret;
+	ret = m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
+	bool notdupi = ret.second; //false if already existed, i.e. not added
+	if(!notdupi)
+	  {
+	    delete ceNode; //prevent leaks
+	    ceNode = NULL;
+	  }
+      }
+  } //linkConstantExpression
+
+  void Resolver::cloneAndLinkConstantExpression(UTI fromtype, UTI totype)
+  {
+    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.find(fromtype);
+    assert(it != m_unknownBitsizeSubtrees.end());
+    assert(it->first == fromtype);
+    NodeTypeBitsize * ceNode = it->second;
+    NodeTypeBitsize * cloneSubtree = new NodeTypeBitsize(*ceNode); //any symbols will be null until c&l
+    assert(cloneSubtree);
+    linkConstantExpression(totype, cloneSubtree);
+  } //linkConstantExpression (bitsize, decllist)
 
   bool Resolver::statusUnknownBitsizeUTI()
   {
@@ -249,8 +269,17 @@ namespace MFM {
   void Resolver::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
   {
     if(ceNode)
-      m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
-  }
+      {
+	std::pair<std::map<UTI, NodeSquareBracket * >::iterator, bool> ret;
+	ret = m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
+	bool notdupi = ret.second; //false if already existed, i.e. not added
+	if(!notdupi)
+	  {
+	    delete ceNode; //prevent leaks
+	    ceNode = NULL;
+	  }
+      }
+  } //linkConstantExpression (arraysize)
 
   bool Resolver::constantFoldUnknownArraysize(UTI auti, s32& arraysize)
   {

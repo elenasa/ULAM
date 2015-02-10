@@ -391,7 +391,7 @@ namespace MFM{
     /**
        helper method to save subtrees for unknown UTIs
     */
-    void linkOrFreeConstantExpressions(UTI auti, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize);
+    void linkOrFreeConstantExpressions(UTI auti, UTI scalardecllisttype, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize);
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);

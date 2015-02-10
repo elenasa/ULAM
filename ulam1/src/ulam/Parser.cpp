@@ -2128,7 +2128,7 @@ namespace MFM {
 	if(rtnNode)
 	  {
 	    // bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	    linkOrFreeConstantExpressions(uti, bitsizeNode, NULL);
+	    linkOrFreeConstantExpressions(uti, Nav, bitsizeNode, NULL);
 	  }
 	else
 	  {
@@ -2751,7 +2751,7 @@ namespace MFM {
     UTI rtnuti = m_state.getUlamTypeFromToken(typeTok, typebitsize, NONARRAYSIZE);
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
 
-    linkOrFreeConstantExpressions(rtnuti, constExprForBitSize, NULL);
+    linkOrFreeConstantExpressions(rtnuti, Nav, constExprForBitSize, NULL);
 
     // WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     //m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr);
@@ -3071,7 +3071,8 @@ namespace MFM {
 
 	    // in case of decl list, returm type of symbol
 	    assert(asymptr);
-	    rtnType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
+	    if(rtnType == Nav)
+	      rtnType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
 	  }
 
 	//link square bracket for constant expression, if unknown array size
@@ -3079,7 +3080,7 @@ namespace MFM {
 	// o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), rtnType, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3140,7 +3141,7 @@ namespace MFM {
 	// o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), Nav, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3209,7 +3210,7 @@ namespace MFM {
 	// o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), Nav, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3713,7 +3714,7 @@ namespace MFM {
     if(bitsizeNode)
       {
 	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	linkOrFreeConstantExpressions(typeToBe, bitsizeNode, NULL);
+	linkOrFreeConstantExpressions(typeToBe, Nav, bitsizeNode, NULL);
       }
 
     if(getExpectedToken(TOK_CLOSE_PAREN))
@@ -3766,20 +3767,41 @@ namespace MFM {
     return termNode;
   } //makeTerminal
 
-  void Parser::linkOrFreeConstantExpressions(UTI auti, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
+  void Parser::linkOrFreeConstantExpressions(UTI auti, UTI scalardecllisttype, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
   {
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     if(!aut->isComplete())
       {
+	//applies to classes as well, no subtree clones needed
 	if(aut->getArraySize() == UNKNOWNSIZE)
 	  m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner
 	else
 	  delete ceForArraySize;
 
-	if(aut->getBitSize() == UNKNOWNSIZE)
-	  m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
+	//possibly decl list that's shared;
+	//scalarUTI of array type should also be included, if not a class
+	if(aut->getBitSize() == UNKNOWNSIZE && aut->getUlamClass() == UC_NOTACLASS)
+	  {
+	    if(ceForBitSize == NULL)
+	      {
+		assert(scalardecllisttype != Nav);
+		// find the scalardecllist, clone the ceNode for this auti
+		// if auti is arraytype, its scalartype should already have been added
+		m_state.cloneAndLinkConstantExpression(scalardecllisttype, auti);
+	      }
+	    else
+	      {
+		m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
+		// also, insure its scalar type has the same subtree for unknown bitsize
+		if(aut->getArraySize() != NONARRAYSIZE)
+		  {
+		    UTI scalarUTI = m_state.getUlamTypeAsScalar(auti);
+		    m_state.cloneAndLinkConstantExpression(auti, scalarUTI); //tfr owner, checks for dups
+		  }
+	      }
+	  }
 	else
-	  delete ceForBitSize; //missing?
+	  delete ceForBitSize;
       }
     else
       {

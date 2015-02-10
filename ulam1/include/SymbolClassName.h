@@ -64,6 +64,7 @@ namespace MFM{
     void fixAnyClassInstances();
 
     void linkUnknownBitsizeConstantExpression(UTI auti, NodeTypeBitsize * ceNode);
+    void linkUnknownBitsizeConstantExpression(UTI fromtype, UTI totype); // for decllist
     void linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode);
     void linkUnknownNamedConstantExpression(NodeConstantDef * ceNode);
 

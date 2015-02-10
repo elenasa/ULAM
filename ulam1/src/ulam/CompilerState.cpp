@@ -157,7 +157,7 @@ namespace MFM {
   {
     UTI uti;
     UlamType * ut = NULL;
-    UTI saveNonClassScalarUTIForArrayUTI = Nav;
+    //UTI saveNonClassScalarUTIForArrayUTI = Nav;
 
     //if(!isDefined(key, uti))
     if(!isDefined(key,ut) || utype == Class || (utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
@@ -192,11 +192,11 @@ namespace MFM {
 	  }
 	else
 	  { //not a class
-	    UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
+	    //   UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
 	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
 		//save scalar in key
-		saveNonClassScalarUTIForArrayUTI = suti;
+		//	saveNonClassScalarUTIForArrayUTI = suti;
 	      }
 	    key.append(Nav); //clear
 	  }
@@ -218,7 +218,7 @@ namespace MFM {
 	  }
 
 	incrementUnknownKeyUTICounter(key);
-
+#if 0
 	// can do this now after new uti is defined
 	if(utype == Class)
 	  {
@@ -238,6 +238,7 @@ namespace MFM {
 	    assert(suti > 0 && !isComplete(suti));
 	    linkArrayUTItoScalarUTI(suti,uti);
 	  }
+#endif
 
 	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
 	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
@@ -484,6 +485,13 @@ namespace MFM {
       }
   } //linkConstantExpression (bitsize)
 
+  void CompilerState::cloneAndLinkConstantExpression(UTI fromuti, UTI touti)
+  {
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    cnsym->linkUnknownBitsizeConstantExpression(fromuti, touti);
+  } //linkConstantExpression (bitsize in decllist)
+
   void CompilerState::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
   {
     if(ceNode)
@@ -519,7 +527,7 @@ namespace MFM {
     assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
     // only update for templates, and non-parametric classes
     if(m_compileThisIdx == cnsym->getUlamTypeIdx())
-      cnsym->linkArrayUTItoScalarUTIOfClassInstance(m_compileThisIdx, suti, auti); //only for template and non-parametric classes???
+      cnsym->linkArrayUTItoScalarUTIOfClassInstance(m_compileThisIdx, suti, auti);
   } //linkArrayUTItoScalarUTI
 
 
@@ -807,10 +815,12 @@ namespace MFM {
 #endif
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
-    if(bitsize > UNKNOWNSIZE && arraysize == NONARRAYSIZE)
+#if 0
+   if(bitsize > UNKNOWNSIZE && arraysize == NONARRAYSIZE)
       {
 	updatelinkedArrayUTIsWithKnownBitsize(utArg);
       }
+#endif
   } //setUTISizes
 
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
@@ -887,10 +897,12 @@ namespace MFM {
 #endif
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
-    if(bitsize > UNKNOWNSIZE && arraysize == NONARRAYSIZE)
+#if 0
+   if(bitsize > UNKNOWNSIZE && arraysize == NONARRAYSIZE)
       {
 	updatelinkedArrayUTIsWithKnownBitsize(utArg);
       }
+#endif
   } // setSizesOfNonClass
 
   s32 CompilerState::getDefaultBitSize(UTI uti)

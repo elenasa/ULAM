@@ -185,6 +185,11 @@ namespace MFM {
     SymbolClass::linkConstantExpression(auti, ceNode);
   }
 
+  void SymbolClassName::linkUnknownBitsizeConstantExpression(UTI fromtype, UTI totype)
+  {
+    SymbolClass::cloneAndLinkConstantExpression(fromtype, totype);
+  }
+
   void SymbolClassName::linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode)
   {
     SymbolClass::linkConstantExpression(auti, ceNode);
@@ -1148,7 +1153,7 @@ namespace MFM {
     csym->cloneNamedConstantExpressionSubtrees(*m_resolver);
 
     //next, map of scalar to array UTIs (using class instance mapped uti)
-    cloneAndMapScalarUTItoArrayUTIsForClassInstance(csym);
+    //cloneAndMapScalarUTItoArrayUTIsForClassInstance(csym);
 
   }//cloneResolverForClassInstance
 
