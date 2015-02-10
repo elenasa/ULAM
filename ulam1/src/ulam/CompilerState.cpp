@@ -82,23 +82,6 @@ namespace MFM {
 
     m_currentFunctionReturnNodes.clear();
 
-    u32 linkedUnknownA = m_scalarUTItoArrayUTIs.size();
-    if(linkedUnknownA > 0)
-      {
-	std::ostringstream msg;
-	msg << "Linked arrays to Unknown scalars cleared: " << linkedUnknownA;
-	MSG2("",msg.str().c_str(),DEBUG);
-
-	std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.begin();
-	while(it != m_scalarUTItoArrayUTIs.end())
-	  {
-	    std::set<UTI> aset = it->second;
-	    aset.clear();
-	    it++;
-	  }
-      }
-    m_scalarUTItoArrayUTIs.clear();
-
     s32 unknownKeyC = m_unknownKeyUTICounter.size();
     if(unknownKeyC > 0)
       {
@@ -471,15 +454,16 @@ namespace MFM {
     if(sut->isComplete())
       return suti;
 
-    ULAMTYPE bUT = sut->getUlamTypeEnum();
-    if(bUT == Class)
-      return suti;
-
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
     UTI mappedUTI;
     if(cnsym->hasInstanceMappedUTI(m_compileThisIdx, suti, mappedUTI))
       return mappedUTI;
+
+    // move this test after looking for the mapped class symbol type
+    ULAMTYPE bUT = sut->getUlamTypeEnum();
+    if(bUT == Class)
+      return suti;
 
     // first time we've seen this incomplete UTI for this class instance:
     // get a new UTI and add to cnsym's map in case we see it again.
@@ -529,43 +513,24 @@ namespace MFM {
 
   void CompilerState::linkArrayUTItoScalarUTI(UTI suti, UTI auti)
   {
-    // only needed for Classes
     assert(getUlamTypeByIndex(auti)->getUlamTypeEnum() != Class || getUlamTypeByIndex(auti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx() == suti);
 
-    std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.find(suti); //scalar
-    if(it != m_scalarUTItoArrayUTIs.end())
-      {
-	assert(it->first == suti);
-	it->second.insert(auti); //add array to its list
-      }
-    else
-      {
-	std::set<UTI> aset;
-	aset.insert(auti);
-	m_scalarUTItoArrayUTIs.insert(std::pair<UTI,std::set<UTI> >(suti, aset)); //new entry
-      }
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    // only update for templates, and non-parametric classes
+    if(m_compileThisIdx == cnsym->getUlamTypeIdx())
+      cnsym->linkArrayUTItoScalarUTIOfClassInstance(m_compileThisIdx, suti, auti); //only for template and non-parametric classes???
   } //linkArrayUTItoScalarUTI
+
 
   void CompilerState::updatelinkedArrayUTIsWithKnownBitsize(UTI suti)
   {
     s32 scalarbitsize = getBitSize(suti);
     assert(scalarbitsize > UNKNOWNSIZE); //could be a constant?
 
-    std::map<UTI, std::set<UTI> >::iterator it = m_scalarUTItoArrayUTIs.find(suti);
-    if(it != m_scalarUTItoArrayUTIs.end())
-      {
-	assert(it->first == suti);
-	std::set<UTI>::iterator sit = it->second.begin();
-	while(sit != it->second.end())
-	  {
-	    UTI auti = *sit;
-	    setBitSize(auti, scalarbitsize); //keeps current arraysize
-	    sit++;
-	  }
-	//no longer needed since bitsize is known
-	it->second.clear();
-	m_scalarUTItoArrayUTIs.erase(it);
-      }
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    cnsym->updatelinkedArrayUTIsWithKnownBitsizeOfClassInstance(m_compileThisIdx, suti);
   } //updatelinkedArrayUTIsWithKnownBitsize
 
 
@@ -980,6 +945,13 @@ namespace MFM {
   bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {
     return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
+  }
+
+  void CompilerState::setCompileThisIdx(UTI idx)
+  {
+    // keep in sync
+    m_compileThisIdx = idx;
+    m_compileThisId = getUlamTypeByIndex(idx)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
   }
 
   //if necessary, searches for instance of class "template" with matching SCALAR uti

@@ -17,7 +17,7 @@ namespace MFM {
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b,c;\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\n f.sp = (f.sizeof == p.sizeof);\n return 0;\n }\n }\n");
 
       //decl list with array, first c[1], then try c[x]
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b,c[1];\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\n f.sp = (f.sizeof == p.sizeof);\n return 0;\n }\n }\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b,c[x];\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\n f.sp = (f.sizeof == p.sizeof);\n return 0;\n }\n }\n");
 
       // try without decl list
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b;\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\n f.sp = (f.sizeof == p.sizeof);\n return 0;\n }\n }\n");

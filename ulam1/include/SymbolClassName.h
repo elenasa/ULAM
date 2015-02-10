@@ -67,6 +67,9 @@ namespace MFM{
     void linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode);
     void linkUnknownNamedConstantExpression(NodeConstantDef * ceNode);
 
+    void linkArrayUTItoScalarUTIOfClassInstance(UTI instance, UTI suti, UTI auti);
+    void updatelinkedArrayUTIsWithKnownBitsizeOfClassInstance(UTI instance, UTI suti);
+
     bool statusUnknownConstantExpressionsInClassInstances();
     bool statusNonreadyClassArgumentsInShallowClassInstances();
 
@@ -110,8 +113,8 @@ namespace MFM{
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
-    //void cloneConstantExpressionSubtreesForClassInstance(UTI instance, UTI auti, UTI newuti); //clone resolver!!
     void cloneResolverForClassInstance(SymbolClass * csym);
+    void cloneAndMapScalarUTItoArrayUTIsForClassInstance(SymbolClass * csym);
   };
 
 }

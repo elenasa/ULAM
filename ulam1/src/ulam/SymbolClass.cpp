@@ -40,7 +40,7 @@ namespace MFM {
     if(sref.m_classBlock)
       {
 	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
-	m_classBlock->setNodeType(sref.m_utypeIdx);
+	//m_classBlock->setNodeType(sref.m_utypeIdx);
       }
     else
       m_classBlock = NULL; //i.e. UC_INCOMPLETE
@@ -198,7 +198,7 @@ namespace MFM {
     assert(classNode);
     m_state.m_classBlock = classNode;
     m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.m_compileThisIdx = getUlamTypeIdx();
+    m_state.setCompileThisIdx(getUlamTypeIdx());
 
     if(classNode->findTestFunctionNode())
       {
@@ -294,6 +294,20 @@ namespace MFM {
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
     //assert(m_deep);
     m_resolver->linkConstantExpression(ceNode);
+  }
+
+  void SymbolClass::linkArrayUTItoScalarUTI(UTI suti, UTI auti)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    //assert(m_deep);
+    m_resolver->linkArrayUTItoScalarUTI(suti, auti);
+  }
+
+  void SymbolClass::updatelinkedArrayUTIsWithKnownBitsize(UTI suti)
+  {
+    if(m_resolver)
+      m_resolver->updatelinkedArrayUTIsWithKnownBitsize(suti);
   }
 
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
