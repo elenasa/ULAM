@@ -394,7 +394,7 @@ namespace MFM {
 	    UlamKeyTypeSignature dlkey = dlut->getUlamKeyTypeSignature();
 	    UlamKeyTypeSignature newdlarraykey(dlkey.getUlamKeyTypeSignatureNameId(), dlkey.getUlamKeyTypeSignatureBitSize(), arraysize);
 	    newdlarraykey.append(declListScalarType);
-	    aut = m_state.makeUlamType(newdlarraykey, dlbUT); //also takes care of arrayUTItoScalarUTI link
+	    aut = m_state.makeUlamType(newdlarraykey, dlbUT);
 	  }
 	else
 	  aut = declListScalarType;

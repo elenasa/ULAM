@@ -75,17 +75,11 @@ namespace MFM
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
 
-    void linkArrayUTItoScalarUTI(UTI suti, UTI auti);
-    void updatelinkedArrayUTIsWithKnownBitsize(UTI suti);
-    std::map<UTI, std::set<UTI> >::iterator getLinkedArrayIterator();
-    bool isLinkedArrayEnd(std::map<UTI, std::set<UTI> >::iterator it);
-
     //these exist in a shallow class only!
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
     bool pendingClassArgumentsForClassInstance();
 
   protected:
-    std::map<UTI, std::set<UTI> > m_scalarUTItoArrayUTIs; //help update array's bitsizes when scalar's is known
 
   private:
     std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty

@@ -104,9 +104,6 @@ namespace MFM{
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
 
-    void linkArrayUTItoScalarUTI(UTI suti, UTI auti);
-    void updatelinkedArrayUTIsWithKnownBitsize(UTI suti);
-
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
 

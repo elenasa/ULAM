@@ -200,88 +200,6 @@ namespace MFM {
     SymbolClass::linkConstantExpression(ceNode);
   }
 
-  void SymbolClassName::linkArrayUTItoScalarUTIOfClassInstance(UTI instance, UTI suti, UTI auti)
-  {
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
-    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
-      {
-	assert(instance == getUlamTypeIdx());
-	NodeBlockClass * classNode = getClassBlockNode();
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(getUlamTypeIdx());
-
-	SymbolClass::linkArrayUTItoScalarUTI(suti, auti);
-	m_state.m_classBlock = saveClassNode; //restore
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(savecompilethisidx); //restore
-	return;
-      }
-
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
-    assert(it != m_scalarClassInstanceIdxToSymbolPtr.end());
-
-    SymbolClass * csym = it->second;
-    UTI cuti = csym->getUlamTypeIdx(); //this instance
-    m_state.setCompileThisIdx(cuti);
-    NodeBlockClass * classNode = csym->getClassBlockNode();
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-
-    csym->linkArrayUTItoScalarUTI(suti, auti);
-    //restore
-    m_state.m_classBlock = saveClassNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
-    return;
-  } //linkArrayUTItoScalarUTIOfClassInstance
-
-  void SymbolClassName::updatelinkedArrayUTIsWithKnownBitsizeOfClassInstance(UTI instance, UTI suti)
-  {
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
-    //if(m_scalarClassInstanceIdxToSymbolPtr.empty())
-    if(instance == getUlamTypeIdx())
-      {
-	NodeBlockClass * classNode = getClassBlockNode();
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(getUlamTypeIdx());
-
-	SymbolClass::updatelinkedArrayUTIsWithKnownBitsize(suti);
-	m_state.m_classBlock = saveClassNode; //restore
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(savecompilethisidx); //restore
-	return;
-      }
-
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
-    assert(it != m_scalarClassInstanceIdxToSymbolPtr.end());
-
-    SymbolClass * csym = it->second;
-    UTI cuti = csym->getUlamTypeIdx(); //this instance
-    m_state.setCompileThisIdx(cuti);
-    NodeBlockClass * classNode = csym->getClassBlockNode();
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-
-    UTI mappedScalarUTI;
-    //assert(hasInstanceMappedUTI(cuti, suti, mappedScalarUTI)); //????
-    if(hasInstanceMappedUTI(cuti, suti, mappedScalarUTI))
-      csym->updatelinkedArrayUTIsWithKnownBitsize(mappedScalarUTI);
-    else
-      csym->updatelinkedArrayUTIsWithKnownBitsize(suti);
-
-    //restore
-    m_state.m_classBlock = saveClassNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
-    return;
-  } //updatelinkedArrayUTIsWithKnownBitsizeOfClassInstance
-
   bool SymbolClassName::statusUnknownConstantExpressionsInClassInstances()
   {
     bool aok = true; //all done
@@ -1152,37 +1070,6 @@ namespace MFM {
     //next, named constants separately
     csym->cloneNamedConstantExpressionSubtrees(*m_resolver);
 
-    //next, map of scalar to array UTIs (using class instance mapped uti)
-    //cloneAndMapScalarUTItoArrayUTIsForClassInstance(csym);
-
   }//cloneResolverForClassInstance
-
-  void SymbolClassName::cloneAndMapScalarUTItoArrayUTIsForClassInstance(SymbolClass * csym)
-  {
-    UTI cuti = csym->getUlamTypeIdx();
-    assert(m_resolver);
-
-    std::map<UTI, std::set<UTI> >::iterator rit = m_resolver->getLinkedArrayIterator();
-    while(!m_resolver->isLinkedArrayEnd(rit))
-      {
-	UTI scalarUTI = rit->first;
-	UTI mappedscalarUTI;
-	if(hasInstanceMappedUTI(cuti, scalarUTI, mappedscalarUTI))
-	  {
-	    //for each linked array UTI to this scalar UTI, find mapped UTI then link for instance:
-	    std::set<UTI>::iterator sit = rit->second.begin();
-	    while(sit != rit->second.end())
-	      {
-		UTI auti = *sit;
-		UTI mappedauti;
-		assert(hasInstanceMappedUTI(cuti, auti, mappedauti));
-		csym->linkArrayUTItoScalarUTI(mappedscalarUTI, mappedauti); //builds the instance's mapped copy
-		sit++;
-	      }
-	  }
-	rit++;
-      }
-  } //cloneAndMapScalarUTItoArrayUTIsForClassInstance
-
 
 } //end MFM
