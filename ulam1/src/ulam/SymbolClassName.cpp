@@ -310,32 +310,52 @@ namespace MFM {
 	    UTI auti = asym->getUlamTypeIdx();
 	    ULAMTYPE eutype = m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum();
 	    args << DigitCount(eutype, BASE10) << eutype;
+
+	    bool isok = false;
 	    switch(eutype)
 	      {
 	      case Int:
 		{
 		  s32 sval;
-		  assert(((SymbolConstantValue *) asym)->getValue(sval));
-		  args << DigitCount(sval, BASE10) << sval;
+		  //assert(((SymbolConstantValue *) asym)->getValue(sval));
+		  if(((SymbolConstantValue *) asym)->getValue(sval))
+		    {
+		      args << DigitCount(sval, BASE10) << sval;
+		      isok = true;
+		    }
 		  break;
 		}
 	      case Unsigned:
 		{
 		  u32 uval;
-		  assert(((SymbolConstantValue *) asym)->getValue(uval));
-		  args << DigitCount(uval, BASE10) << uval;
+		  //assert(((SymbolConstantValue *) asym)->getValue(uval));
+		  if(((SymbolConstantValue *) asym)->getValue(uval))
+		    {
+		      args << DigitCount(uval, BASE10) << uval;
+		      isok = true;
+		    }
 		  break;
 		}
 	      case Bool:
 		{
 		  bool bval;
-		  assert(((SymbolConstantValue *) asym)->getValue(bval));
-		  args << DigitCount(bval, BASE10) << bval;
+		  //assert(((SymbolConstantValue *) asym)->getValue(bval));
+		  if(((SymbolConstantValue *) asym)->getValue(bval))
+		    {
+		      args << DigitCount(bval, BASE10) << bval;
+		      isok = true;
+		    }
 		  break;
 		}
 	      default:
 		assert(0);
 	      };
+
+	    if(!isok)
+	      {
+		std::string astr = m_state.m_pool.getDataAsString(asym->getId());
+		args << DigitCount(astr.length(), BASE10) << astr.c_str();
+	      }
 	    pit++;
 	  } //next param
       }

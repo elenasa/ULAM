@@ -403,7 +403,7 @@ namespace MFM {
 	else
 	  leftCArgs.push_back(ceNode);
 	vit++;
-      } //while thru vector of arg's
+      } //while thru vector of incomplete args only
 
     //clean up, replace vector with vector of those still unresolved
     m_nonreadyClassArgSubtrees.clear();
