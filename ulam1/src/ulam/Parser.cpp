@@ -1046,8 +1046,8 @@ namespace MFM {
 
     // after the new block is setup: install the auto symbol into ST, and
     // make its auto local variable to shadow the lhs of 'as' as rhs type
-    NodeIdent * tmpnti = new NodeIdent(m_state.m_identTokenForConditionalAs, NULL, m_state);
-    assert(tmpnti);
+    NodeIdent * tmpni = new NodeIdent(m_state.m_identTokenForConditionalAs, NULL, m_state);
+    assert(tmpni);
 
     UTI tuti = asNode->getRightType();
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
@@ -1056,12 +1056,12 @@ namespace MFM {
     typeTok.init(TOK_TYPE_IDENTIFIER, asNode->getNodeLocation(), m_state.m_pool.getIndexForDataString(tdname));
 
     Symbol * asymptr = NULL;  //a place to put the new symbol; not a decl list
-    tmpnti->installSymbolVariable(typeTok, tut->getBitSize(), tut->getArraySize(), tuti, Nav, asymptr);
+    tmpni->installSymbolVariable(typeTok, tut->getBitSize(), tut->getArraySize(), tuti, Nav, asymptr);
     assert(asymptr);
     asymptr->setAutoLocal();  //set auto flag
 
-    delete tmpnti;            //done with nti
-    tmpnti = NULL;
+    delete tmpni;            //done with nti
+    tmpni = NULL;
     m_state.m_parsingConditionalAs = false;  //done with flag and identToken.
 
     //insert var decl into NodeStatements..as if parseStatement was called..
@@ -1354,10 +1354,7 @@ namespace MFM {
 	UTI tduti;
 	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti))
 	  {
-	    if(m_state.isScalar(tduti))
-	      return tduti;
-
-	    return m_state.getUlamTypeByIndex(tduti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+	    return m_state.getUlamTypeAsScalar(tduti);
 	  }
 
 	// trying to instantiate a class that hasn't been seen yet!
@@ -1381,11 +1378,9 @@ namespace MFM {
       {
 	if(numParams > 0)
 	  {
-	    //error! no args so trying to use the "template" as an instance?
+	    //no args so trying to use the "template" as an instance?
 	  }
-	//m_state.m_currentBlock = cnsym->getClassBlockNode();
-	//ok to return.
-	return cuti;
+	return cuti; //ok to return.
       }
 
     unreadToken();
@@ -1430,7 +1425,7 @@ namespace MFM {
 	return;
       }
 
-    // this is possible if cnsym is UC_INCOMPLETE, must check later..
+    // this is possible if cnsym is UC_INCOMPLETE, must check args later..
     bool cnIsStub = (cnsym->getUlamClass() == UC_INCOMPLETE);
     if(parmIdx >= cnsym->getNumberOfParameters() && !cnIsStub)
       {
@@ -1446,7 +1441,6 @@ namespace MFM {
       {
 	SymbolConstantValue * paramSym = (SymbolConstantValue * ) (cnsym->getParameterSymbolPtr(parmIdx));
 	assert(paramSym);
-	//argSym = new SymbolConstantValue(*paramSym);
 	argSym = new SymbolConstantValue(paramSym->getId(), paramSym->getUlamTypeIdx(), m_state); //like param, not copy
       }
     else
@@ -1465,7 +1459,7 @@ namespace MFM {
     constNode->setNodeLocation(pTok.m_locator);
     constNode->setConstantExpr(exprNode);
 
-    // eval what we need, and delete the node if successful
+    // eval what we need, and delete the node if folding successful
     if(((NodeConstantDef *) constNode)->foldConstantExpression())
       {
 	delete constNode;   //done with them!
@@ -1473,8 +1467,7 @@ namespace MFM {
       }
     else
       {
-	// none ready expressions saved by UTI in m_nonreadyClassArgSubtrees (not previously cloned!)
-	//m_state.linkConstantExpression(csym->getUlamTypeIdx(), constNode);
+	// none ready expressions saved by UTI in m_nonreadyClassArgSubtrees (shallow instance)
 	csym->linkConstantExpressionForPendingArg(constNode);
       }
 
