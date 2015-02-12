@@ -1396,8 +1396,8 @@ namespace MFM {
       ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
 
     SymbolClass * csym = cnsym->makeAShallowClassInstance(typeTok, cuti);
+    m_state.m_currentBlock = csym->getClassBlockNode(); //reset here for new arg's ST
 
-    m_state.m_currentBlock = csym->getClassBlockNode(); //reset here for new arg's
     u32 parmidx = 0;
 
     parseRestOfClassArguments(csym, cnsym, parmidx);
@@ -1666,6 +1666,17 @@ namespace MFM {
     Token iTok;
     if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
       {
+	// check for a named constant already defined (e.g. class
+	//parameter) and continue parsing expression instead of ident.
+	Symbol * sym = NULL;
+	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex,sym))
+	  {
+	    if(sym->isConstant())
+	      {
+		unreadToken();
+		return parseExpression();
+	      }
+	  }
 	// though function calls are not proper lhs values in assign
 	// expression; they are parsed here (due to the two token look
 	// ahead, which drops the Identifier Token before parseExpression) and is
