@@ -35,12 +35,11 @@ namespace MFM {
 
   SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassName * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_deep(false){}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_deep(true)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_deep(sref.m_deep)
   {
     if(sref.m_classBlock)
       {
 	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
-	//m_classBlock->setNodeType(sref.m_utypeIdx);
       }
     else
       m_classBlock = NULL; //i.e. UC_INCOMPLETE
@@ -265,6 +264,13 @@ namespace MFM {
     return m_resolver->statusNonreadyClassArguments();
   }
 
+  bool SymbolClass::constantFoldNonreadyClassArguments()
+  {
+    if(!m_resolver)
+      return true; //nothing to do
+    return m_resolver->constantFoldNonreadyClassArgs();
+  }
+
   void SymbolClass::constantFoldIncompleteUTI(UTI auti)
   {
     if(!m_resolver)
@@ -316,6 +322,13 @@ namespace MFM {
       return false; //ok, none pending
     return m_resolver->pendingClassArgumentsForClassInstance();
   }
+
+  void SymbolClass::cloneResolverForShallowClassInstance(const SymbolClass * csym)
+  {
+    assert(m_resolver);
+    m_resolver->clonePendingClassArgumentsForShallowClassInstance(*(csym->m_resolver));
+  } //cloneResolverForShallowClassInstance
+
 
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram

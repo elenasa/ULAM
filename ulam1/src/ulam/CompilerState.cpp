@@ -442,15 +442,39 @@ namespace MFM {
 
     // move this test after looking for the mapped class symbol type
     ULAMTYPE bUT = sut->getUlamTypeEnum();
+    UlamKeyTypeSignature skey = sut->getUlamKeyTypeSignature();
+    SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
     if(bUT == Class)
-      return suti;
+      {
+	assert(alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
+	if(!cnsymOfIncomplete->pendingClassArgumentsForShallowClassInstance(suti))
+	  return suti;
+      }
 
-    // first time we've seen this incomplete UTI for this class instance:
-    // get a new UTI and add to cnsym's map in case we see it again.
-    // Later, clone and update all the 'subtree' table references,
-    UlamKeyTypeSignature newkey(sut->getUlamKeyTypeSignature());
+    // first time we've seen this 'incomplete' UTI for this class instance (deeply being copied):
+    // get a new UTI and add to cnsym's map for this instance in case we see it again;
+    // Later, also update all its resolver's 'subtree' table references; For classes with
+    // pending args, make a copy of the shallow class including its resolver with pending args, so
+    // pending args can be resolved within the context of this class instance (e.g. dependent on
+    // instances arg values which makes it different than others', like "self").
+
+    UlamKeyTypeSignature newkey(skey); //default constructor makes copy
     UTI newuti = makeUlamType(newkey,bUT);
     cnsym->mapInstanceUTI(m_compileThisIdx, suti, newuti);
+
+    if(bUT == Class)
+      {
+	UlamType * ut = getUlamTypeByIndex(suti);
+	ULAMCLASSTYPE classtype = ut->getUlamClass();
+	bool isCustomArray = ut->isCustomArray();
+	UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);
+	UlamType * newut = getUlamTypeByIndex(newuti);
+	((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
+	if(isCustomArray)
+	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+
+	cnsymOfIncomplete->copyAShallowClassInstance(suti, newuti);
+      }
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
 
@@ -497,6 +521,25 @@ namespace MFM {
     assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
     cnsym->constantFoldIncompleteUTIOfClassInstance(m_compileThisIdx, auti);
   }
+
+  bool CompilerState::constantFoldPendingArgs(UTI cuti)
+  {
+    bool rtnok = true;
+    bool saveusememberblock = m_useMemberBlock;
+    NodeBlockClass * savememberclassblock = m_currentMemberClassBlock;
+    m_useMemberBlock = true;
+    m_currentMemberClassBlock = m_classBlock;
+
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
+    SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
+    assert(alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
+    rtnok = cnsymOfIncomplete->constantFoldClassArgumentsInAShallowClassInstance(cuti);
+
+    m_useMemberBlock = saveusememberblock; //restore
+    m_currentMemberClassBlock = savememberclassblock;
+    return rtnok;
+  } //constantFoldPendingArgs
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {

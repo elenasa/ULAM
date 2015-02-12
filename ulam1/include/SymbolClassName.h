@@ -59,7 +59,11 @@ namespace MFM{
     void addClassInstanceUTI(UTI uti, SymbolClass * symptr);
     void addClassInstanceByArgString(UTI uti, SymbolClass * symptr);
 
+    bool pendingClassArgumentsForShallowClassInstance(UTI instance);
+
     SymbolClass * makeAShallowClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
+    void copyAShallowClassInstance(UTI instance, UTI newuti);
+
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
 
@@ -70,6 +74,7 @@ namespace MFM{
 
     bool statusUnknownConstantExpressionsInClassInstances();
     bool statusNonreadyClassArgumentsInShallowClassInstances();
+    bool constantFoldClassArgumentsInAShallowClassInstance(UTI instance);
 
     std::string formatAnInstancesArgValuesAsAString(UTI instance);
 

@@ -106,6 +106,21 @@ namespace MFM {
     m_scalarClassArgStringsToSymbolPtr.insert(std::pair<std::string,SymbolClass*>(argstring,symptr));
   }
 
+  bool SymbolClassName::pendingClassArgumentsForShallowClassInstance(UTI instance)
+  {
+    bool rtnpending = false;
+    if(getNumberOfParameters() > 0)
+      {
+	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+	assert(it != m_scalarClassInstanceIdxToSymbolPtr.end());
+	assert(it->first == instance);
+	SymbolClass * csym = it->second;
+	rtnpending = csym->pendingClassArgumentsForClassInstance();
+	if(rtnpending) assert(!csym->isDeep());
+      }
+    return rtnpending;
+  } //pendingClassArgumentsForShallowClassInstance
+
   SymbolClass * SymbolClassName::makeAShallowClassInstance(Token typeTok, UTI cuti)
   {
     //previous block is template's class block, and new NNO here!
@@ -123,6 +138,40 @@ namespace MFM {
     addClassInstanceUTI(cuti, newclassinstance); //link here
     return newclassinstance;
   } //makeAShallowClassInstance
+
+  void SymbolClassName::copyAShallowClassInstance(UTI instance, UTI newuti)
+  {
+    assert(getNumberOfParameters() > 0);
+
+    UTI savecompilethisidx = m_state.m_compileThisIdx;
+    NodeBlockClass * saveclassblock = m_state.m_classBlock;
+    NodeBlock * savecurrentblock = m_state.m_currentBlock;
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+    assert(it != m_scalarClassInstanceIdxToSymbolPtr.end());
+    assert(it->first == instance);
+    SymbolClass * csym = it->second;
+    assert(csym->pendingClassArgumentsForClassInstance());
+    assert(!csym->isDeep());
+
+    m_state.setCompileThisIdx(newuti);
+    mapInstanceUTI(newuti, instance, newuti); // map instance->instance instead of fudging.
+    SymbolClass * shallowcopy = new SymbolClass(*csym);
+
+    //NodeBlockClass * shclassNode = shallowcopy->getClassBlockNode();
+    //assert(shclassNode);
+    //shclassNode->setPreviousBlockPointer(saveclassblock); //can we do this???
+
+    addClassInstanceUTI(newuti, shallowcopy); //link here
+
+    shallowcopy->cloneResolverForShallowClassInstance(csym);
+
+    m_state.setCompileThisIdx(savecompilethisidx); //restore
+    m_state.m_classBlock = saveclassblock; //restore
+    m_state.m_currentBlock = savecurrentblock;
+
+  } //copyAShallowClassInstance
+
 
   //called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
   // are fixed to match the params
@@ -270,6 +319,35 @@ namespace MFM {
     m_state.setCompileThisIdx(savecompilethisidx);
     return aok;
   }//statusNonreadyClassArgumentsInShallowClassInstances
+
+  bool SymbolClassName::constantFoldClassArgumentsInAShallowClassInstance(UTI instance)
+  {
+    bool aok = true;
+    //NodeBlockClass * saveClassNode = m_state.m_classBlock;
+    //UTI savecompilethisidx = m_state.m_compileThisIdx;
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	assert(it->first == instance);
+	SymbolClass * csym = it->second;
+
+	//CAN WE KEEP OUR CURRENT CONTEXT TO RESOLVE THESE ARGS???
+
+	//UTI cuti = csym->getUlamTypeIdx(); //this instance
+	//m_state.setCompileThisIdx(cuti);
+	//	NodeBlockClass * classNode = csym->getClassBlockNode();
+	//m_state.m_classBlock = classNode;
+	//m_state.m_currentBlock = m_state.m_classBlock;
+
+	aok = csym->constantFoldNonreadyClassArguments();
+      }
+    //restore
+    //m_state.m_classBlock = saveClassNode; //restore
+    //m_state.m_currentBlock = m_state.m_classBlock;
+    //m_state.setCompileThisIdx(savecompilethisidx);
+    return aok;
+  }//constantFoldClassArgumentsInAShallowClassInstance
 
   std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
   {
@@ -419,7 +497,6 @@ namespace MFM {
       }
 
     UTI savecompilethisidx = m_state.m_compileThisIdx;
-    //UTI saveTemplateUTI = getUlamTypeIdx();
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -454,22 +531,22 @@ namespace MFM {
 
 	// first time for this cuti, and ready args!
 	m_state.setCompileThisIdx(cuti);
-	// m_utypeIdx =  cuti; //fudge..
 	mapInstanceUTI(cuti, getUlamTypeIdx(), cuti); // map template->instance instead of fudging.
 	SymbolClass * clone = new SymbolClass(*this); //sets deep flag
-	// m_utypeIdx = saveTemplateUTI; //restore
-	//clone->getClassBlockNode()->setNodeType(cuti);
-	takeAnInstancesArgValues(csym, clone);
-	delete csym;
+
+	takeAnInstancesArgValues(csym, clone); //instead of keeping template's unknown values
+
+	delete csym; //done with shallow copy
 	csym = NULL;
-	it->second = clone;
+	it->second = clone; //replace with the deep copy
+
 	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
 	updateLineageOfClassInstanceUTI(cuti);
 	cloneResolverForClassInstance(clone);
 	it++;
       } //while
 
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.setCompileThisIdx(savecompilethisidx); //restore
     return aok;
   } //cloneInstances
 

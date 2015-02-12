@@ -117,6 +117,16 @@ namespace MFM {
 		it = Nav;
 	      }
 	  }
+	else if(tdclasstype != UC_NOTACLASS)
+	  {
+	    if(!m_state.constantFoldPendingArgs(it))
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str() << ", class arguments pending";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		it = Nav;
+	      }
+	  }
 	else if(!tdut->isComplete())
 	  {
 	    m_state.constantFoldIncompleteUTI(it); //update if possible

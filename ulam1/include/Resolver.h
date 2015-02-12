@@ -66,8 +66,6 @@ namespace MFM
     void cloneNamedConstantExpressionSubtrees(const Resolver& templateRslvr);
 
     bool statusUnknownConstantExpressions();
-    bool statusNonreadyClassArguments();
-
     void constantFoldIncompleteUTI(UTI uti);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
@@ -76,8 +74,11 @@ namespace MFM
     void linkConstantExpression(NodeConstantDef * ceNode);
 
     //these exist in a shallow class only!
+    bool statusNonreadyClassArguments();
+    bool constantFoldNonreadyClassArgs();
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
     bool pendingClassArgumentsForClassInstance();
+    void clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr);
 
   protected:
 
@@ -97,8 +98,6 @@ namespace MFM
 
     bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
     bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
-
-    bool constantFoldNonreadyClassArgs();
 
     void clearLeftoverSubtrees();
   };

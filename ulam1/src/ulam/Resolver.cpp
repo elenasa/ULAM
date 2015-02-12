@@ -116,7 +116,7 @@ namespace MFM {
   {
     if(!templateRslvr.m_nonreadyNamedConstantSubtrees.empty())
       {
-	u32 lostsize = m_nonreadyNamedConstantSubtrees.size();
+	u32 lostsize = templateRslvr.m_nonreadyNamedConstantSubtrees.size();
 	std::ostringstream msg;
 	msg << "Found non-empty non-ready named constant subtrees, while cloning class <";
 	msg << m_state.getUlamTypeNameByIndex(m_classUTI).c_str();
@@ -379,13 +379,26 @@ namespace MFM {
     return rtnstat;
   } //statusNonreadyNamedConstants
 
-  //called while parsing this shallow class instance use;
-  void Resolver::linkConstantExpressionForPendingArg(NodeConstantDef * ceNode)
+  bool Resolver::statusNonreadyClassArguments()
   {
-    if(!ceNode)
-      return;
-    m_nonreadyClassArgSubtrees.push_back(ceNode);
-  } //linkConstantExpressionForPendingArg
+    bool rtnstat = true; //ok, empty
+    if(!m_nonreadyClassArgSubtrees.empty())
+      {
+	rtnstat = false;
+
+	u32 lostsize = m_nonreadyClassArgSubtrees.size();
+
+	std::ostringstream msg;
+	msg << "Found " << lostsize << " nonready arguments for class instance: ";
+	msg << " (UTI" << m_classUTI << ") " << m_state.getUlamTypeNameByIndex(m_classUTI).c_str();
+
+	msg << " trying to update now";
+	MSG("", msg.str().c_str(), DEBUG);
+
+	constantFoldNonreadyClassArgs();
+      }
+    return rtnstat;
+  } //statusNonreadyClassArguments
 
   bool Resolver::constantFoldNonreadyClassArgs()
   {
@@ -415,30 +428,29 @@ namespace MFM {
     return rtnb;
   } //constantFoldNonreadyClassArgs
 
-  bool Resolver::statusNonreadyClassArguments()
+  //called while parsing this shallow class instance use;
+  void Resolver::linkConstantExpressionForPendingArg(NodeConstantDef * ceNode)
   {
-    bool rtnstat = true; //ok, empty
-    if(!m_nonreadyClassArgSubtrees.empty())
-      {
-	rtnstat = false;
-
-	u32 lostsize = m_nonreadyClassArgSubtrees.size();
-
-	std::ostringstream msg;
-	msg << "Found " << lostsize << " nonready arguments for class instance: ";
-	msg << " (UTI" << m_classUTI << ") " << m_state.getUlamTypeNameByIndex(m_classUTI).c_str();
-
-	msg << " trying to update now";
-	MSG("", msg.str().c_str(), DEBUG);
-
-	constantFoldNonreadyClassArgs();
-      }
-    return rtnstat;
-  } //statusNonreadyClassArguments
+    if(!ceNode)
+      return;
+    m_nonreadyClassArgSubtrees.push_back(ceNode);
+  } //linkConstantExpressionForPendingArg
 
   bool Resolver::pendingClassArgumentsForClassInstance()
   {
     return !m_nonreadyClassArgSubtrees.empty();
   } //pendingClassArgumentsForClassInstance
+
+  void Resolver::clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr)
+  {
+    std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
+    while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
+      {
+	NodeConstantDef * ceNode = *vit;
+	NodeConstantDef * cloneNode = new NodeConstantDef(*ceNode);
+	linkConstantExpressionForPendingArg(cloneNode);
+	vit++;
+      }
+  } //clonePendingClassArgumentsForShallowClassInstance
 
 } //MFM

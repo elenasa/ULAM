@@ -143,7 +143,12 @@ namespace MFM {
   void NodeConstantDef::setBlock()
   {
     assert(m_currBlockNo);
-    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+
+    //circumvent c&l's bypassing member block here!
+    if(m_state.m_useMemberBlock)
+      m_currBlock = m_state.m_currentMemberClassBlock;
+    else
+      m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
     assert(m_currBlock);
   }
 
@@ -159,11 +164,13 @@ namespace MFM {
   {
     NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
 
+#if 0
     //in case of a cloned unknown
     if(m_currBlock == NULL)
       setBlock();
 
     m_state.m_currentBlock = m_currBlock; //before c&l
+#endif
 
     s32 newconst = NONREADYCONST;  //always signed?
     UTI uti = checkAndLabelType(); //find any missing symbol
