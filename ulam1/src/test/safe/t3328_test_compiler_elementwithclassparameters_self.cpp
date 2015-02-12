@@ -22,7 +22,7 @@ namespace MFM {
       //bool rtn1 = fms->add("S.ulam"," ulam 1;\n element S(Int x, Int y){\nBool sp;\n Bool(x+y) b1, b2;\n Int test() {\nS(1,2) s;\n/*Atom a;\n a = self;\n self = a;\n*/ return 0;\n }\n }\n");
 
       //"(self is S(x,y)" doesn't work!
-      bool rtn1 = fms->add("S.ulam"," ulam 1;\n element S(Int x, Int y){\nBool sp;\n Bool(3) b1, b2;\n Bool func() {\n return (self is S(x,y));\n}\n Int test() {\nS(1,2) s12;\n s12.sp = s12.func();\n return 0;\n }\n }\n");
+      bool rtn1 = fms->add("S.ulam"," ulam 1;\n element S(Int x, Int y){\nBool sp;\n Bool func() {\n return (self is S(x,y));\n}\n Int test() {\nS(1,2) s12;\n s12.sp = s12.func();\n return 0;\n }\n }\n");
 
       // works, BUT "return (self is S(x,y))" doesn't work!
       //bool rtn1 = fms->add("S.ulam"," ulam 1;\n element S(Int x, Int y){\nBool sp;\n Bool(x) b1, b2;\n Bool func() {\n return (self is S(x,y));\n}\n  Bool func(Atom d) {\n return (d is S(x,y));\n}\n Int test() {\nAtom a;\nS(x,y) s12;\n s12.b2 = s12.func();\n s12.b1 = s12.func(a);\n return s12.b2;\n }\n }\n");

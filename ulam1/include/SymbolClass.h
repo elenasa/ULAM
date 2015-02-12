@@ -97,6 +97,8 @@ namespace MFM{
 
     bool statusNonreadyClassArguments();
 
+    bool constantFoldNonreadyClassArguments();
+
     void constantFoldIncompleteUTI(UTI auti);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
@@ -106,6 +108,7 @@ namespace MFM{
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
+    void cloneResolverForShallowClassInstance(const SymbolClass* csym);
 
     virtual void generateCode(FileManager * fm);
 

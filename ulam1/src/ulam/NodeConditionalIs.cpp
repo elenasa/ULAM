@@ -30,9 +30,7 @@ namespace MFM {
 	newType = Nav;
       }
 
-    //UTI ruti = m_state.getUlamTypeFromToken(m_typeTok, 0, NONARRAYSIZE); //name-based, sizes ignored
     UTI ruti = m_utypeRight;
-
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(rclasstype != UC_ELEMENT)
       {
@@ -42,7 +40,14 @@ namespace MFM {
 	newType = Nav;
       }
 
-    //m_utypeRight = ruti;
+    if(!m_state.constantFoldPendingArgs(ruti))
+      {
+	std::ostringstream msg;
+	msg << "RHS of conditional operator '" << getName() << "' type: " << m_state.getUlamTypeNameByIndex(ruti).c_str() << "; has pending arguments found while labeling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	newType = Nav;
+      }
+
     setNodeType(newType);
 
     setStoreIntoAble(false);
