@@ -4,10 +4,10 @@
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_currBlock(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
+  NodeConstant::NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_currBlock(NULL), m_currBlockNo(0)
   {
     assert(symptr);
-    //m_currBlockNo = symptr->getBlockNoOfST();
+    m_currBlockNo = symptr->getBlockNoOfST();
     m_ready = updateConstant();
   }
 

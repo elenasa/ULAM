@@ -52,7 +52,7 @@ namespace MFM {
 	return "e";
       case UC_QUARK:
 	return "q";
-      case UC_INCOMPLETE:
+      case UC_UNSEEN:
       default:
 	assert(0);
       };
@@ -80,7 +80,7 @@ namespace MFM {
   //quarks are right-justified in an atom space
   const std::string UlamTypeClass::getUlamTypeAsStringForC()
   {
-    assert(m_class != UC_INCOMPLETE);
+    assert(m_class != UC_UNSEEN);
     if(m_class == UC_QUARK)
       {
 	return UlamType::getUlamTypeAsStringForC();
@@ -99,7 +99,7 @@ namespace MFM {
 	return "Ue_";
       case UC_QUARK:
 	return "Uq_";
-      case UC_INCOMPLETE:
+      case UC_UNSEEN:
 	return "U?_";
      default:
 	assert(0);

@@ -42,7 +42,7 @@ namespace MFM {
 	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
       }
     else
-      m_classBlock = NULL; //i.e. UC_INCOMPLETE
+      m_classBlock = NULL; //i.e. UC_UNSEEN
 
     if(sref.m_resolver)
       m_resolver = new Resolver(m_utypeIdx, m_state); //not a clone, populated later

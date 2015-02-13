@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-  #define _DEBUG_OUTPUT
-  #define _INFO_OUTPUT
-  #define _WARN_OUTPUT
+//  #define _DEBUG_OUTPUT
+//  #define _INFO_OUTPUT
+//  #define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -732,7 +732,7 @@ namespace MFM {
 
     //redirect primitives;
     ULAMCLASSTYPE classtype = ut->getUlamClass();
-    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK || classtype == UC_INCOMPLETE))
+    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK || classtype == UC_UNSEEN))
       {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
       }
@@ -1791,6 +1791,7 @@ namespace MFM {
 
   Node * CompilerState::findNodeNoInThisClass(NNO n)
   {
+#if 1
     if(m_useMemberBlock)
       {
 	UTI mbuti = m_currentMemberClassBlock->getNodeType();
@@ -1799,6 +1800,7 @@ namespace MFM {
 	assert(alreadyDefinedSymbolClassName(mbid, cnsym));
 	return cnsym->findNodeNoInAClassInstance(mbuti, n);
       }
+#endif
 
     // beware the classblock is the only block with different node no in SHALLOW instances
     if(m_currentBlock->getNodeNo() == n && m_classBlock->getNodeType() == m_compileThisIdx)
