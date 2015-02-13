@@ -14,6 +14,21 @@ namespace MFM {
     // symbols belong to  NodeBlockClass's ST; deleted there.
     m_parameterSymbols.clear();
 
+    // possible shallow instances that were never deeply instantiated
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	SymbolClass * sym = it->second;
+	if(sym && !sym->isDeep())
+	  {
+	    delete sym;
+	    it->second = NULL;
+	  }
+	it++;
+      }
+    m_scalarClassInstanceIdxToSymbolPtr.clear(); //many-to-1 (possible after deep clone)
+    m_scalarClassInstanceIdxToSymbolPtrTEMP.clear(); //should be empty after each cloneInstance attempt
+
     // need to delete class instance symbols; ownership belongs here!
     std::map<std::string, SymbolClass* >::iterator mit = m_scalarClassArgStringsToSymbolPtr.begin();
     while(mit != m_scalarClassArgStringsToSymbolPtr.end())
@@ -24,7 +39,7 @@ namespace MFM {
 	mit++;
       }
     m_scalarClassArgStringsToSymbolPtr.clear();
-    m_scalarClassInstanceIdxToSymbolPtr.clear(); //many-to-1 (possible after deep clone)
+
     m_mapOfTemplateUTIToInstanceUTIPerClassInstance.clear();
   } //destructor
 
@@ -139,9 +154,10 @@ namespace MFM {
     return newclassinstance;
   } //makeAShallowClassInstance
 
-  void SymbolClassName::copyAShallowClassInstance(UTI instance, UTI newuti)
+  void SymbolClassName::copyAShallowClassInstance(UTI instance, UTI newuti, UTI context)
   {
     assert(getNumberOfParameters() > 0);
+    assert(instance != newuti);
 
     UTI savecompilethisidx = m_state.m_compileThisIdx;
     NodeBlockClass * saveclassblock = m_state.m_classBlock;
@@ -158,18 +174,14 @@ namespace MFM {
     mapInstanceUTI(newuti, instance, newuti); // map instance->instance instead of fudging.
     SymbolClass * shallowcopy = new SymbolClass(*csym);
 
-    //NodeBlockClass * shclassNode = shallowcopy->getClassBlockNode();
-    //assert(shclassNode);
-    //shclassNode->setPreviousBlockPointer(saveclassblock); //can we do this???
+    //addClassInstanceUTI(newuti, shallowcopy); //link here *** BUT ITERATION IN PROGRESS!!!
+    m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,shallowcopy));
 
-    addClassInstanceUTI(newuti, shallowcopy); //link here
-
-    shallowcopy->cloneResolverForShallowClassInstance(csym);
+    shallowcopy->cloneResolverForShallowClassInstance(csym, context);
 
     m_state.setCompileThisIdx(savecompilethisidx); //restore
     m_state.m_classBlock = saveclassblock; //restore
     m_state.m_currentBlock = savecurrentblock;
-
   } //copyAShallowClassInstance
 
 
@@ -297,26 +309,26 @@ namespace MFM {
   bool SymbolClassName::statusNonreadyClassArgumentsInShallowClassInstances()
   {
     bool aok = true;
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
+    //NodeBlockClass * saveClassNode = m_state.m_classBlock;
+    //UTI savecompilethisidx = m_state.m_compileThisIdx;
 
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	UTI suti = csym->getUlamTypeIdx(); //this instance
-	m_state.setCompileThisIdx(suti);
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	//UTI suti = csym->getUlamTypeIdx(); //this instance
+	//m_state.setCompileThisIdx(suti);
+	//NodeBlockClass * classNode = csym->getClassBlockNode();
+	//m_state.m_classBlock = classNode;
+	//m_state.m_currentBlock = m_state.m_classBlock;
 
-	aok &= csym->statusNonreadyClassArguments();
+	aok &= csym->statusNonreadyClassArguments(); //could bypass if deep
 	it++;
       }
-    //restore
-    m_state.m_classBlock = saveClassNode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    ////restore
+    //m_state.m_classBlock = saveClassNode;
+    //m_state.m_currentBlock = m_state.m_classBlock;
+    //m_state.setCompileThisIdx(savecompilethisidx);
     return aok;
   }//statusNonreadyClassArgumentsInShallowClassInstances
 
@@ -546,6 +558,14 @@ namespace MFM {
 	it++;
       } //while
 
+    // done with iteration; go ahead and merge these entries into the non-temp map
+    if(!m_scalarClassInstanceIdxToSymbolPtrTEMP.empty())
+      {
+	m_scalarClassInstanceIdxToSymbolPtr.insert(m_scalarClassInstanceIdxToSymbolPtrTEMP.begin(), m_scalarClassInstanceIdxToSymbolPtrTEMP.end());
+	m_scalarClassInstanceIdxToSymbolPtrTEMP.erase(m_scalarClassInstanceIdxToSymbolPtrTEMP.begin(), m_scalarClassInstanceIdxToSymbolPtrTEMP.end());
+	m_scalarClassInstanceIdxToSymbolPtrTEMP.clear();
+      }
+
     m_state.setCompileThisIdx(savecompilethisidx); //restore
     return aok;
   } //cloneInstances
@@ -743,7 +763,7 @@ namespace MFM {
 	return;
       }
 
-    // only need to c&l the unique class instances
+    // only need to c&l the unique class instances that have been deeply copied
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
@@ -1103,6 +1123,7 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	assert(csym->isDeep());
 	m_state.m_classBlock = csym->getClassBlockNode();
 	m_state.m_currentBlock = m_state.m_classBlock;
 	m_state.setCompileThisIdx(csym->getUlamTypeIdx()); //this instance
@@ -1245,10 +1266,8 @@ namespace MFM {
       }
     else
       assert(0);
-
     //next, named constants separately
     csym->cloneNamedConstantExpressionSubtrees(*m_resolver);
-
   }//cloneResolverForClassInstance
 
 } //end MFM

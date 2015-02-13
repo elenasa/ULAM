@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance) {}
+  Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgs(m_state.m_compileThisIdx) /*default*/ {}
   Resolver::~Resolver()
   {
     clearLeftoverSubtrees();
@@ -403,11 +403,31 @@ namespace MFM {
   bool Resolver::constantFoldNonreadyClassArgs()
   {
     bool rtnb = true;
+    NodeBlockClass * saveclassblock = m_state.m_classBlock;
+    NodeBlock * savecurrentblock = m_state.m_currentBlock;
+    UTI savecompilethisidx = m_state.m_compileThisIdx;
+
+    // before trying to resolve class args, reset the context responsible for its existence
+    // during resolving loop the current context may be its shallow self rather than the deep
+    // instantiation with the needed values for the constants used in these pending args.
+    if(m_classContextUTIForPendingArgs != m_state.m_compileThisIdx)
+      {
+
+	SymbolClass * csymptr = NULL;
+	assert(m_state.alreadyDefinedSymbolClass(m_classContextUTIForPendingArgs, csymptr));
+
+	m_state.setCompileThisIdx(m_classContextUTIForPendingArgs);
+	NodeBlockClass * classNode = csymptr->getClassBlockNode();
+	m_state.m_classBlock = classNode;
+	m_state.m_currentBlock = m_state.m_classBlock;
+      }
+
     std::vector<NodeConstantDef *> leftCArgs;
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
     while(vit != m_nonreadyClassArgSubtrees.end())
       {
 	NodeConstantDef * ceNode = *vit;
+
 	if(ceNode && ceNode->foldConstantExpression())
 	  {
 	    delete ceNode;
@@ -425,6 +445,11 @@ namespace MFM {
 	m_nonreadyClassArgSubtrees = leftCArgs; //replace
 	rtnb = false;
       }
+
+    //restore
+    m_state.m_classBlock = saveclassblock;
+    m_state.m_currentBlock = savecurrentblock;
+    m_state.setCompileThisIdx(savecompilethisidx);
     return rtnb;
   } //constantFoldNonreadyClassArgs
 
@@ -441,7 +466,7 @@ namespace MFM {
     return !m_nonreadyClassArgSubtrees.empty();
   } //pendingClassArgumentsForClassInstance
 
-  void Resolver::clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr)
+  void Resolver::clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr, UTI context)
   {
     std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
     while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
@@ -451,6 +476,7 @@ namespace MFM {
 	linkConstantExpressionForPendingArg(cloneNode);
 	vit++;
       }
+    m_classContextUTIForPendingArgs = context; //update
   } //clonePendingClassArgumentsForShallowClassInstance
 
 } //MFM

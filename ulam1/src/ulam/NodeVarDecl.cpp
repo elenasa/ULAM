@@ -8,12 +8,12 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlock(NULL), m_currBlockNo(0)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlock(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
   {
     if(sym)
       {
 	m_vid = sym->getId();
-	m_currBlockNo = sym->getBlockNoOfST();
+	//m_currBlockNo = sym->getBlockNoOfST();
       }
   }
 

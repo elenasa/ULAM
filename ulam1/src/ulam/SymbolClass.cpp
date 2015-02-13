@@ -257,20 +257,6 @@ namespace MFM {
     return m_resolver->statusUnknownConstantExpressions();
   }
 
-  bool SymbolClass::statusNonreadyClassArguments()
-  {
-    if(!m_resolver) //shallow clone only!
-      return true;
-    return m_resolver->statusNonreadyClassArguments();
-  }
-
-  bool SymbolClass::constantFoldNonreadyClassArguments()
-  {
-    if(!m_resolver)
-      return true; //nothing to do
-    return m_resolver->constantFoldNonreadyClassArgs();
-  }
-
   void SymbolClass::constantFoldIncompleteUTI(UTI auti)
   {
     if(!m_resolver)
@@ -323,12 +309,25 @@ namespace MFM {
     return m_resolver->pendingClassArgumentsForClassInstance();
   }
 
-  void SymbolClass::cloneResolverForShallowClassInstance(const SymbolClass * csym)
+  void SymbolClass::cloneResolverForShallowClassInstance(const SymbolClass * csym, UTI context)
   {
     assert(m_resolver);
-    m_resolver->clonePendingClassArgumentsForShallowClassInstance(*(csym->m_resolver));
+    m_resolver->clonePendingClassArgumentsForShallowClassInstance(*(csym->m_resolver), context);
   } //cloneResolverForShallowClassInstance
 
+  bool SymbolClass::statusNonreadyClassArguments()
+  {
+    if(!m_resolver) //shallow clone only!
+      return true;
+    return m_resolver->statusNonreadyClassArguments();
+  }
+
+  bool SymbolClass::constantFoldNonreadyClassArguments()
+  {
+    if(!m_resolver)
+      return true; //nothing to do
+    return m_resolver->constantFoldNonreadyClassArgs();
+  }
 
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram

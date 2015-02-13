@@ -9,10 +9,10 @@
 
 namespace MFM {
 
-  NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlock(NULL), m_currBlockNo(0)
+  NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlock(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
   {
-    if(symptr)
-      m_currBlockNo = symptr->getBlockNoOfST();
+    //if(symptr)
+    //  m_currBlockNo = symptr->getBlockNoOfST();
   }
 
   NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL) /* shallow */, m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}

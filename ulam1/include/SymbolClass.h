@@ -108,7 +108,7 @@ namespace MFM{
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
-    void cloneResolverForShallowClassInstance(const SymbolClass* csym);
+    void cloneResolverForShallowClassInstance(const SymbolClass* csym, UTI context);
 
     virtual void generateCode(FileManager * fm);
 

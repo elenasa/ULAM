@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(NULL), m_currBlockNo(0)
+  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
   {
     if(symptr)
       {
+	// node uses current block no, not the one saved in the symbol (e.g. pending class args)
 	m_cid = symptr->getId();
-	m_currBlockNo = symptr->getBlockNoOfST();
       }
     else
       m_cid = 0; //error
@@ -143,12 +143,7 @@ namespace MFM {
   void NodeConstantDef::setBlock()
   {
     assert(m_currBlockNo);
-
-    //circumvent c&l's bypassing member block here!
-    if(m_state.m_useMemberBlock)
-      m_currBlock = m_state.m_currentMemberClassBlock;
-    else
-      m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
     assert(m_currBlock);
   }
 
