@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlock(NULL), m_currBlockNo(0)
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlock(NULL),  m_currBlockNo(m_state.getCurrentBlockNo())
   {
     if(sym)
       {
 	m_tdid = sym->getId();
-	m_currBlockNo = sym->getBlockNoOfST();
+	//m_currBlockNo = sym->getBlockNoOfST();
       }
   }
 

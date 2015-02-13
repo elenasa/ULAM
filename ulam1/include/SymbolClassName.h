@@ -62,7 +62,7 @@ namespace MFM{
     bool pendingClassArgumentsForShallowClassInstance(UTI instance);
 
     SymbolClass * makeAShallowClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
-    void copyAShallowClassInstance(UTI instance, UTI newuti);
+    void copyAShallowClassInstance(UTI instance, UTI newuti, UTI context);
 
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
@@ -112,6 +112,7 @@ namespace MFM{
     //ordered class parameters
     std::vector<SymbolConstantValue *> m_parameterSymbols;  // like named constants; symbols owned by m_ST.
     std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtr;
+    std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtrTEMP; //iteration in progress
     std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 

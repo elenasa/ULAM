@@ -65,7 +65,7 @@ namespace MFM
     void cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr);
     void cloneNamedConstantExpressionSubtrees(const Resolver& templateRslvr);
 
-    bool statusUnknownConstantExpressions();
+    bool statusUnknownConstantExpressions(); //excluding pending class args
     void constantFoldIncompleteUTI(UTI uti);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
@@ -78,7 +78,7 @@ namespace MFM
     bool constantFoldNonreadyClassArgs();
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
     bool pendingClassArgumentsForClassInstance();
-    void clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr);
+    void clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr, UTI context);
 
   protected:
 
@@ -91,6 +91,7 @@ namespace MFM
 
     CompilerState& m_state;
     UTI m_classUTI;
+    UTI m_classContextUTIForPendingArgs; //used to evaluate pending class args in context
 
     bool statusUnknownBitsizeUTI();
     bool statusUnknownArraysizeUTI();

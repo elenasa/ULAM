@@ -304,8 +304,9 @@ namespace MFM {
     NodeStatements * nextNode = rtnNode;
     NodeStatements * stmtNode = NULL;
 
-    while(parseDataMember(stmtNode))   //could be false, in case of function def
+    while(parseDataMember(stmtNode))
       {
+	//stmtNode could be false, in case of function def
 	if(stmtNode)
 	  {
 	    nextNode->setNextNode(stmtNode);
@@ -1344,7 +1345,6 @@ namespace MFM {
 
   UTI Parser::parseClassArguments(Token& typeTok)
   {
-    NodeBlock * saveCurrentBlock = m_state.m_currentBlock;
     UTI cuti = Nav;
     u32 numParams = 0;
     SymbolClassName * cnsym = NULL;
@@ -1396,13 +1396,9 @@ namespace MFM {
       ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
 
     SymbolClass * csym = cnsym->makeAShallowClassInstance(typeTok, cuti);
-    m_state.m_currentBlock = csym->getClassBlockNode(); //reset here for new arg's ST
 
     u32 parmidx = 0;
-
     parseRestOfClassArguments(csym, cnsym, parmidx);
-
-    m_state.m_currentBlock = saveCurrentBlock; //restore
     return cuti;
   } //parseClassArguments
 
@@ -1436,6 +1432,9 @@ namespace MFM {
       }
 
     // try to continue..
+    NodeBlock * saveCurrentBlock = m_state.m_currentBlock;
+    m_state.m_currentBlock = csym->getClassBlockNode(); //reset here for new arg's ST
+
     SymbolConstantValue * argSym;
     if(!cnIsStub)
       {
@@ -1451,9 +1450,12 @@ namespace MFM {
 	argSym = new SymbolConstantValue(snameid, m_state.getUlamTypeOfConstant(Int), m_state); //stub id, stub type, state
       }
 
+    argSym->setParameterFlag();
     m_state.addSymbolToCurrentScope(argSym); // scope updated to new class instance in parseClassArguments
 
-    // make Node with argument symbol to try to fold const expr; o.w. add to list of unsolved for this uti
+    m_state.m_currentBlock = saveCurrentBlock; //restore before making NodeConstantDef so that it has current context
+
+    // make Node with argument symbol to try to fold const expr; o.w. add to list of unresolved for this uti
     NodeConstantDef * constNode = new NodeConstantDef(argSym, m_state);
     assert(constNode);
     constNode->setNodeLocation(pTok.m_locator);
@@ -1467,7 +1469,7 @@ namespace MFM {
       }
     else
       {
-	// none ready expressions saved by UTI in m_nonreadyClassArgSubtrees (shallow instance)
+	// non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (shallow instance)
 	csym->linkConstantExpressionForPendingArg(constNode);
       }
 

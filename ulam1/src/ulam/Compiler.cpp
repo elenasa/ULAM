@@ -195,11 +195,11 @@ namespace MFM {
     bool sumbrtn = true;
     sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
     sumbrtn &= m_state.m_programDefST.statusUnknownConstantExpressionsInTableOfClasses();
-    sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses();
+    sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context
     sumbrtn &= m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate classes w ready args
     //checkAndLabelTypes: lineage updated incrementally
     m_state.m_err.clearCounts();
-    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok
+    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, shallows not labeled
     return sumbrtn;
   } //loopUnknownsOnceAround
 

@@ -438,7 +438,7 @@ namespace MFM {
     assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
     UTI mappedUTI;
     if(cnsym->hasInstanceMappedUTI(m_compileThisIdx, suti, mappedUTI))
-      return mappedUTI;
+      return mappedUTI;  //e.g. decl list
 
     // move this test after looking for the mapped class symbol type
     ULAMTYPE bUT = sut->getUlamTypeEnum();
@@ -473,7 +473,7 @@ namespace MFM {
 	if(isCustomArray)
 	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
 
-	cnsymOfIncomplete->copyAShallowClassInstance(suti, newuti);
+	cnsymOfIncomplete->copyAShallowClassInstance(suti, newuti, m_compileThisIdx);
       }
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
@@ -524,22 +524,12 @@ namespace MFM {
 
   bool CompilerState::constantFoldPendingArgs(UTI cuti)
   {
-    bool rtnok = true;
-    bool saveusememberblock = m_useMemberBlock;
-    NodeBlockClass * savememberclassblock = m_currentMemberClassBlock;
-    m_useMemberBlock = true;
-    m_currentMemberClassBlock = m_classBlock;
-
     UlamType * cut = getUlamTypeByIndex(cuti);
     UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
     SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
     assert(alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
-    rtnok = cnsymOfIncomplete->constantFoldClassArgumentsInAShallowClassInstance(cuti);
-
-    m_useMemberBlock = saveusememberblock; //restore
-    m_currentMemberClassBlock = savememberclassblock;
-    return rtnok;
-  } //constantFoldPendingArgs
+    return cnsymOfIncomplete->constantFoldClassArgumentsInAShallowClassInstance(cuti);
+  } //constantFoldPendingArgsInCurrentContext
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {

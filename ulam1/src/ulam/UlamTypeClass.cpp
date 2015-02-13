@@ -186,6 +186,9 @@ namespace MFM {
 
   bool UlamTypeClass::needsImmediateType()
   {
+    if(!isComplete())
+      return false;
+
     bool rtnb = false;
     if(m_class == UC_QUARK || m_class == UC_ELEMENT)
       {

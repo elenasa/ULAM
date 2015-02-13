@@ -278,10 +278,10 @@ namespace MFM {
   {
     if(m_ST.getTableSize() == 0) return;
     u32 offset = 0; //relative to ATOMFIRSTSTATEBITPOS
-    //m_ST.packBitsForTableOfVariableDataMembers();
-    assert(m_nextNode);
-    m_nextNode->packBitsInOrderOfDeclaration(offset);
-  }
+    //m_ST.packBitsForTableOfVariableDataMembers(); //ST order not as declared
+    if(m_nextNode)
+      m_nextNode->packBitsInOrderOfDeclaration(offset);
+  } //packBitsForVariableDataMembers
 
   u32 NodeBlockClass::countNativeFuncDecls()
   {
