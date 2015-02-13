@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlock(NULL),  m_currBlockNo(m_state.getCurrentBlockNo())
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlock(NULL),  m_currBlockNo(0)
   {
     if(sym)
       {
 	m_tdid = sym->getId();
-	//m_currBlockNo = sym->getBlockNoOfST();
+	m_currBlockNo = sym->getBlockNoOfST();
       }
   }
 
@@ -102,7 +102,7 @@ namespace MFM {
 	//check for incomplete Classes
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
 	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-	if(tdclasstype == UC_INCOMPLETE)
+	if(tdclasstype == UC_UNSEEN)
 	  {
 	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {

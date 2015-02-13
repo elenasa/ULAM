@@ -196,7 +196,7 @@ namespace MFM {
     else
       {
 	//if already defined, then must be incomplete, else duplicate!!
-	if(cnSym->getUlamClass() != UC_INCOMPLETE)
+	if(cnSym->getUlamClass() != UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
 	    msg << "Duplicate or incomplete class <" << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
@@ -211,7 +211,7 @@ namespace MFM {
     m_state.setCompileThisIdx(cnSym->getUlamTypeIdx());
 
     // set class type in UlamType (through its class symbol) since we know it;
-    // UC_INCOMPLETE if unseen so far.
+    // UC_UNSEEN if unseen so far.
     switch(pTok.m_type)
       {
       case TOK_KW_ELEMENT:
@@ -244,7 +244,7 @@ namespace MFM {
     else
       {
 	// reset to incomplete
-	cnSym->setUlamClass(UC_INCOMPLETE);
+	cnSym->setUlamClass(UC_UNSEEN);
 	cnSym->setClassBlockNode(NULL);
 	std::ostringstream msg;
 	msg << "Empty/Incomplete Class Definition: <" << m_state.getTokenDataAsString(&iTok).c_str() << ">; possible missing ending curly brace";
@@ -1389,7 +1389,7 @@ namespace MFM {
     // has its own uti that will become part of its key; (too soon for a deep copy!)
     cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nav);
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    ((UlamTypeClass *) cut)->setUlamClass(cnsym->getUlamClass()); //possibly UC_INCOMPLETE
+    ((UlamTypeClass *) cut)->setUlamClass(cnsym->getUlamClass()); //possibly UC_UNSEEN
 
     UlamType * cnut = m_state.getUlamTypeByIndex(cnsym->getUlamTypeIdx());
     if(cnut->isCustomArray())
@@ -1421,8 +1421,8 @@ namespace MFM {
 	return;
       }
 
-    // this is possible if cnsym is UC_INCOMPLETE, must check args later..
-    bool cnIsStub = (cnsym->getUlamClass() == UC_INCOMPLETE);
+    // this is possible if cnsym is UC_UNSEEN, must check args later..
+    bool cnIsStub = (cnsym->getUlamClass() == UC_UNSEEN);
     if(parmIdx >= cnsym->getNumberOfParameters() && !cnIsStub)
       {
 	std::ostringstream msg;

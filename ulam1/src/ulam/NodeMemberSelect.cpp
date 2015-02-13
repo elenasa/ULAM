@@ -41,7 +41,7 @@ namespace MFM {
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE classtype = lut->getUlamClass();
-    if(classtype == UC_NOTACLASS || classtype == UC_INCOMPLETE)
+    if(classtype == UC_NOTACLASS || classtype == UC_UNSEEN)
       {
 	// must be a 'Class' type, either quark or element
 	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)

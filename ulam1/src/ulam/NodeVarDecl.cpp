@@ -8,12 +8,12 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlock(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlock(NULL), m_currBlockNo(0)
   {
     if(sym)
       {
 	m_vid = sym->getId();
-	//m_currBlockNo = sym->getBlockNoOfST();
+	m_currBlockNo = sym->getBlockNoOfST();
       }
   }
 
@@ -107,7 +107,7 @@ namespace MFM {
 	//check for incomplete Classes
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
 	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-	if(tdclasstype == UC_INCOMPLETE)
+	if(tdclasstype == UC_UNSEEN)
 	  {
 	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {

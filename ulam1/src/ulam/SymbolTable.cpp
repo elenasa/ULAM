@@ -721,7 +721,7 @@ namespace MFM {
       {
 	SymbolClassName * cnsym = (SymbolClassName *) (it->second);
 	assert(cnsym->isClass());
-	if( ((SymbolClass *) cnsym)->getUlamClass() == UC_INCOMPLETE)
+	if( ((SymbolClass *) cnsym)->getUlamClass() == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class: "  << m_state.getUlamTypeNameByIndex(cnsym->getUlamTypeIdx()).c_str() << " was never defined, fails labeling";
@@ -765,7 +765,7 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-	if( ((SymbolClass *) sym)->getUlamClass() == UC_INCOMPLETE)
+	if( ((SymbolClass *) sym)->getUlamClass() == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " was never defined, fails sizing";

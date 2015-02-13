@@ -190,7 +190,7 @@ namespace MFM {
   void SymbolClassName::fixAnyClassInstances()
   {
     ULAMCLASSTYPE classtype = getUlamClass();
-    assert( classtype != UC_INCOMPLETE);
+    assert( classtype != UC_UNSEEN);
 
     //furthermore, this must exist by now, or else this is the wrong time to be fixing
     assert(getClassBlockNode());
@@ -202,7 +202,7 @@ namespace MFM {
 	while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
 	  {
 	    SymbolClass * csym = it->second;
-	    assert(csym->getUlamClass() == UC_INCOMPLETE);
+	    assert(csym->getUlamClass() == UC_UNSEEN);
 	    csym->setUlamClass(classtype);
 
 	    NodeBlockClass * cblock = csym->getClassBlockNode();

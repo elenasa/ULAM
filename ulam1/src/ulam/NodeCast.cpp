@@ -121,7 +121,7 @@ namespace MFM {
 	else
 	  {
 	    //classes are not surprisingly unknown bit sizes at this point
-	    if(nodeClass == UC_INCOMPLETE)
+	    if(nodeClass == UC_UNSEEN)
 	      {
 		std::ostringstream msg;
 		msg << "Cannot cast type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
