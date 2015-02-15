@@ -51,6 +51,7 @@ namespace MFM
 {
 
   class CompilerState;  //forward
+  class SymbolClass; //forward
 
   //formerly a global in CompilerState; now class-specific (see SymbolClass)
   class Resolver
@@ -78,7 +79,8 @@ namespace MFM
     bool constantFoldNonreadyClassArgs();
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
     bool pendingClassArgumentsForClassInstance();
-    void clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr, UTI context);
+    void clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym);
+    UTI getContextForPendingArgs();
 
   protected:
 

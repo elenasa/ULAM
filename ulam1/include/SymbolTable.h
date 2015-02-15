@@ -58,6 +58,7 @@ namespace MFM{
     SymbolTable(const SymbolTable& ref);
     ~SymbolTable();
 
+    void clearTheTable();
     bool isInTable(u32 id, Symbol * & symptrref);
     void addToTable(u32 id, Symbol * s);
     void replaceInTable(u32 oldid, u32 newid, Symbol * s);

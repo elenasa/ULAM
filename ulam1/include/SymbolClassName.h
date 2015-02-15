@@ -83,6 +83,8 @@ namespace MFM{
     void mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
 
     bool cloneInstances(); //i.e. instantiate
+    bool findAClassInstance(UTI instance, SymbolClass *& csymref);
+
     Node * findNodeNoInAClassInstance(UTI instance, NNO n);
     void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
 
@@ -117,6 +119,7 @@ namespace MFM{
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
+    bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneResolverForClassInstance(SymbolClass * csym);
   };
 

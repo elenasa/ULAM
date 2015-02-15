@@ -154,7 +154,56 @@ namespace MFM {
     return newclassinstance;
   } //makeAShallowClassInstance
 
+
+  //instead of a copy, let's start new
   void SymbolClassName::copyAShallowClassInstance(UTI instance, UTI newuti, UTI context)
+  {
+    assert(getNumberOfParameters() > 0);
+    assert(instance != newuti);
+
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+    assert(it != m_scalarClassInstanceIdxToSymbolPtr.end());
+    assert(it->first == instance);
+    SymbolClass * csym = it->second;
+    assert(csym->pendingClassArgumentsForClassInstance());
+    assert(!csym->isDeep());
+    NodeBlockClass * blockclass = csym->getClassBlockNode();
+
+    //previous block is template's class block, and new NNO here!
+    NodeBlockClass * newblockclass = new NodeBlockClass(getClassBlockNode(), m_state);
+    assert(newblockclass);
+    newblockclass->setNodeLocation(blockclass->getNodeLocation());
+    newblockclass->setNodeType(newuti);
+    newblockclass->setClassTemplateParent(getUlamTypeIdx()); //so it knows it's an instance with a template parent
+
+    SymbolClass * newclassinstance = new SymbolClass(getId(), newuti, newblockclass, this, m_state);
+    assert(newclassinstance);
+    if(isQuarkUnion())
+      newclassinstance->setQuarkUnion();
+
+    //addClassInstanceUTI(newuti, newclassinstance); //link here *** BUT ITERATION IN PROGRESS!!!
+    m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,newclassinstance));
+    /////////////////////
+
+    //    UTI savecompilethisidx = m_state.m_compileThisIdx;
+    //NodeBlockClass * saveclassblock = m_state.m_classBlock;
+    //NodeBlock * savecurrentblock = m_state.m_currentBlock;
+
+    // we are in the middle of deeply instantiating (context); with known args that we want to use
+    // to resolve, if possible, these pending args
+    copyAnInstancesArgValues(csym, newclassinstance);
+
+    newclassinstance->cloneResolverForShallowClassInstance(csym, context);
+
+    //assert(shallowcopy->pendingClassArgumentsForClassInstance()); //???
+
+    //m_state.setCompileThisIdx(savecompilethisidx); //restore
+    //m_state.m_classBlock = saveclassblock; //restore
+    //m_state.m_currentBlock = savecurrentblock;
+  } //copyAShallowClassInstance
+
+#if 0
+  void SymbolClassName::COPYASHALLOWCLASSINSTANCE(UTI instance, UTI newuti, UTI context)
   {
     assert(getNumberOfParameters() > 0);
     assert(instance != newuti);
@@ -173,17 +222,29 @@ namespace MFM {
     m_state.setCompileThisIdx(newuti);
     mapInstanceUTI(newuti, instance, newuti); // map instance->instance instead of fudging.
     SymbolClass * shallowcopy = new SymbolClass(*csym);
+    //NodeBlockClass * shclassblock = shallowcopy->getClassBlockNode();
+
+    // middle of changing symbols!! not a good time to do this, maybe later?
+    //    SymbolClass * fromC = NULL;
+    //assert(m_state.alreadyDefinedSymbolClass(context, fromC));
+    //shclassblock->setPreviousBlockPointer(fromC->getClassBlockNode());
+    //shclassblock->removeAllSymbolsFromScope();
+    //takeAnInstancesArgValues(fromC, shallowcopy);
+
+    //remove the Symbols for the class args, so as not to shadow their values in the instance
+    // we are in the middle of deeply instantiating (context).
 
     //addClassInstanceUTI(newuti, shallowcopy); //link here *** BUT ITERATION IN PROGRESS!!!
     m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,shallowcopy));
 
     shallowcopy->cloneResolverForShallowClassInstance(csym, context);
+    assert(shallowcopy->pendingClassArgumentsForClassInstance());
 
     m_state.setCompileThisIdx(savecompilethisidx); //restore
     m_state.m_classBlock = saveclassblock; //restore
     m_state.m_currentBlock = savecurrentblock;
   } //copyAShallowClassInstance
-
+#endif
 
   //called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
   // are fixed to match the params
@@ -212,7 +273,7 @@ namespace MFM {
 	      {
 		//error! number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
-		msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
+		msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str() << ", does not match the required number of parameters (" << numparams << ") to fix";
 		MSG("", msg.str().c_str(),ERR);
 		it++;
 		continue;
@@ -309,55 +370,40 @@ namespace MFM {
   bool SymbolClassName::statusNonreadyClassArgumentsInShallowClassInstances()
   {
     bool aok = true;
-    //NodeBlockClass * saveClassNode = m_state.m_classBlock;
     //UTI savecompilethisidx = m_state.m_compileThisIdx;
+    //NodeBlockClass * saveclassblock = m_state.m_classBlock;
+    //NodeBlock * savecurrentblock = m_state.m_currentBlock;
 
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	//	NodeBlockClass * classNode = csym->getClassBlockNode();
 	//UTI suti = csym->getUlamTypeIdx(); //this instance
 	//m_state.setCompileThisIdx(suti);
-	//NodeBlockClass * classNode = csym->getClassBlockNode();
 	//m_state.m_classBlock = classNode;
 	//m_state.m_currentBlock = m_state.m_classBlock;
 
 	aok &= csym->statusNonreadyClassArguments(); //could bypass if deep
 	it++;
       }
-    ////restore
-    //m_state.m_classBlock = saveClassNode;
-    //m_state.m_currentBlock = m_state.m_classBlock;
-    //m_state.setCompileThisIdx(savecompilethisidx);
+    //m_state.setCompileThisIdx(savecompilethisidx); //restore
+    //m_state.m_classBlock = saveclassblock; //restore
+    //m_state.m_currentBlock = savecurrentblock;
     return aok;
   }//statusNonreadyClassArgumentsInShallowClassInstances
 
   bool SymbolClassName::constantFoldClassArgumentsInAShallowClassInstance(UTI instance)
   {
     bool aok = true;
-    //NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    //UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	assert(it->first == instance);
 	SymbolClass * csym = it->second;
 
-	//CAN WE KEEP OUR CURRENT CONTEXT TO RESOLVE THESE ARGS???
-
-	//UTI cuti = csym->getUlamTypeIdx(); //this instance
-	//m_state.setCompileThisIdx(cuti);
-	//	NodeBlockClass * classNode = csym->getClassBlockNode();
-	//m_state.m_classBlock = classNode;
-	//m_state.m_currentBlock = m_state.m_classBlock;
-
-	aok = csym->constantFoldNonreadyClassArguments();
+	aok = csym->statusNonreadyClassArguments();
       }
-    //restore
-    //m_state.m_classBlock = saveClassNode; //restore
-    //m_state.m_currentBlock = m_state.m_classBlock;
-    //m_state.setCompileThisIdx(savecompilethisidx);
     return aok;
   }//constantFoldClassArgumentsInAShallowClassInstance
 
@@ -445,6 +491,7 @@ namespace MFM {
 	      {
 		std::string astr = m_state.m_pool.getDataAsString(asym->getId());
 		args << DigitCount(astr.length(), BASE10) << astr.c_str();
+		//assert(0); //debugging only
 	      }
 	    pit++;
 	  } //next param
@@ -559,16 +606,50 @@ namespace MFM {
       } //while
 
     // done with iteration; go ahead and merge these entries into the non-temp map
+    // don't know which clone they are associated with, except by their resolvers perhaps
+    // will their block's previous ptrs be updated properly?
     if(!m_scalarClassInstanceIdxToSymbolPtrTEMP.empty())
       {
-	m_scalarClassInstanceIdxToSymbolPtr.insert(m_scalarClassInstanceIdxToSymbolPtrTEMP.begin(), m_scalarClassInstanceIdxToSymbolPtrTEMP.end());
-	m_scalarClassInstanceIdxToSymbolPtrTEMP.erase(m_scalarClassInstanceIdxToSymbolPtrTEMP.begin(), m_scalarClassInstanceIdxToSymbolPtrTEMP.end());
+	//m_scalarClassInstanceIdxToSymbolPtr.insert(m_scalarClassInstanceIdxToSymbolPtrTEMP.begin(), m_scalarClassInstanceIdxToSymbolPtrTEMP.end());
+	//m_scalarClassInstanceIdxToSymbolPtrTEMP.erase(m_scalarClassInstanceIdxToSymbolPtrTEMP.begin(), m_scalarClassInstanceIdxToSymbolPtrTEMP.end());
+	//m_scalarClassInstanceIdxToSymbolPtrTEMP.clear();
+	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtrTEMP.begin();
+	while(it != m_scalarClassInstanceIdxToSymbolPtrTEMP.end())
+	  {
+	    UTI cuti = it->first;
+	    SymbolClass * csym = it->second;
+	    addClassInstanceUTI(cuti, csym); //shallow
+
+	    //update the previous block ptr using the saved context in the resolver
+	    UTI contextUTI = csym->getContextForPendingArgs();
+	    std::map<UTI, SymbolClass* >::iterator cit = m_scalarClassInstanceIdxToSymbolPtr.find(contextUTI);
+	    assert(cit != m_scalarClassInstanceIdxToSymbolPtr.end());
+	    assert(cit->first == contextUTI);
+	    SymbolClass * fromC = cit->second;
+	    NodeBlockClass * classblock = csym->getClassBlockNode();
+	    classblock->setPreviousBlockPointer(fromC->getClassBlockNode());
+	    it++;
+	  }
 	m_scalarClassInstanceIdxToSymbolPtrTEMP.clear();
-      }
+      } //end temp stuff
 
     m_state.setCompileThisIdx(savecompilethisidx); //restore
     return aok;
   } //cloneInstances
+
+  // TODO: modify others to use this method to find a class instance
+  bool SymbolClassName::findAClassInstance(UTI instance, SymbolClass *& csymref)
+  {
+    bool rtnfound = false;
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(instance);
+    if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	assert(it->first == instance);
+	csymref = it->second;
+	rtnfound = true;
+      }
+    return rtnfound;
+  } //findAClassInstance
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
@@ -829,25 +910,35 @@ namespace MFM {
 	return navCounter;
       }
 
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+    // only deep instances need to be counted
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	u32 navclasscnt = 0;
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
-	m_state.setCompileThisIdx(suti);
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-	classNode->countNavNodes(navclasscnt); //do each instance
-	if(navclasscnt > 0)
+	if(m_state.getUlamTypeByIndex(suti)->isComplete())
+	  {
+	    m_state.setCompileThisIdx(suti);
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    m_state.m_classBlock = classNode;
+	    m_state.m_currentBlock = m_state.m_classBlock;
+	    classNode->countNavNodes(navclasscnt); //do each instance
+	    if(navclasscnt > 0)
+	      {
+		std::ostringstream msg;
+		msg << navclasscnt << " data member nodes with illegal 'Nav' types remain in class instance <";
+		msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+		msg << ">";
+		MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		navCounter += navclasscnt;
+	      }
+	  }
+	else
 	  {
 	    std::ostringstream msg;
-	    msg << navclasscnt << " data member nodes with illegal 'Nav' types remain in class instance <";
-	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << ">";
-	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	    navCounter += navclasscnt;
+	    msg << "Class Instance: " << m_state.getUlamTypeNameByIndex(suti).c_str() << ", is incomplete; Navs will not be counted";
+	    MSG("", msg.str().c_str(), DEBUG);
 	  }
 	it++;
       }
@@ -1124,11 +1215,21 @@ namespace MFM {
       {
 	SymbolClass * csym = it->second;
 	assert(csym->isDeep());
-	m_state.m_classBlock = csym->getClassBlockNode();
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(csym->getUlamTypeIdx()); //this instance
+	UTI suti = csym->getUlamTypeIdx();
+	if(m_state.getUlamTypeByIndex(suti)->isComplete())
+	  {
+	    m_state.m_classBlock = csym->getClassBlockNode();
+	    m_state.m_currentBlock = m_state.m_classBlock;
+	    m_state.setCompileThisIdx(suti); //this instance
 
-	csym->generateCode(fm);
+	    csym->generateCode(fm);
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Class Instance: " << m_state.getUlamTypeNameByIndex(suti).c_str() << ", is incomplete; Code will not be generated";
+	    MSG("", msg.str().c_str(), DEBUG);
+	  }
 	it++;
       }
     //restore
@@ -1195,6 +1296,7 @@ namespace MFM {
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
     if(cargs != numparams)
+      //if(cargs < numparams)
       {
 	//error! number of arguments in shallow class instance does not match the number of parameters
 	std::ostringstream msg;
@@ -1239,6 +1341,59 @@ namespace MFM {
     m_state.m_currentBlock = m_state.m_classBlock;
     return true;
   } //takeAnInstancesArgValues
+
+  bool SymbolClassName::copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to)
+  {
+    NodeBlockClass * saveClassBlock = m_state.m_classBlock;
+    NodeBlockClass * fmclassblock = fm->getClassBlockNode();
+    assert(fmclassblock);
+    u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
+    u32 numparams = getNumberOfParameters();
+    if(cargs != numparams)
+      //if(cargs < numparams)
+      {
+	//error! number of arguments in shallow class instance does not match the number of parameters
+	std::ostringstream msg;
+	msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(fm->getId()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
+	MSG("", msg.str().c_str(),ERR);
+	return false;
+      }
+
+    m_state.m_classBlock = fmclassblock;
+    m_state.m_currentBlock = m_state.m_classBlock;
+    std::vector<SymbolConstantValue *> instancesArgs;
+
+    //copy values from shallow instance into temp list
+    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+    while(pit != m_parameterSymbols.end())
+      {
+	SymbolConstantValue * psym = *pit;
+	//save 'instance's arg constant symbols in a temporary list
+	Symbol * asym = NULL;
+	assert(m_state.alreadyDefinedSymbol(psym->getId(), asym)); //no ownership change
+	instancesArgs.push_back((SymbolConstantValue *) asym); //for reference only
+	pit++;
+      } //next param
+
+    NodeBlockClass * toclassblock = to->getClassBlockNode();
+    m_state.m_classBlock = toclassblock;
+    m_state.m_currentBlock = m_state.m_classBlock;
+
+    //make replicas for the clone's arg symbols in its ST; change blockNo.
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+      {
+	SymbolConstantValue * asym = instancesArgs[i];
+	SymbolConstantValue * asym2 = new SymbolConstantValue(*asym);
+	asym2->setBlockNoOfST(toclassblock->getNodeNo());
+	m_state.addSymbolToCurrentScope(asym2);
+      } //next arg
+
+    instancesArgs.clear(); //don't delete the symbols
+    //restore
+    m_state.m_classBlock = saveClassBlock;
+    m_state.m_currentBlock = m_state.m_classBlock;
+    return true;
+  } //copyAnInstancesArgValues
 
   // done promptly after the deep clone
   void SymbolClassName::cloneResolverForClassInstance(SymbolClass * csym)

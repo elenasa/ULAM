@@ -1,4 +1,5 @@
 #include "Resolver.h"
+#include "SymbolClass.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -407,6 +408,9 @@ namespace MFM {
     NodeBlock * savecurrentblock = m_state.m_currentBlock;
     UTI savecompilethisidx = m_state.m_compileThisIdx;
 
+    //HOPEFULLY, all context dependent expressions have been simplified so
+    // this step is no longer required.
+#if 0
     // before trying to resolve class args, reset the context responsible for its existence
     // during resolving loop the current context may be its shallow self rather than the deep
     // instantiation with the needed values for the constants used in these pending args.
@@ -421,6 +425,7 @@ namespace MFM {
 	m_state.m_classBlock = classNode;
 	m_state.m_currentBlock = m_state.m_classBlock;
       }
+#endif
 
     std::vector<NodeConstantDef *> leftCArgs;
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
@@ -466,17 +471,52 @@ namespace MFM {
     return !m_nonreadyClassArgSubtrees.empty();
   } //pendingClassArgumentsForClassInstance
 
-  void Resolver::clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr, UTI context)
+  void Resolver::clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym)
   {
+    UTI savecompilethisidx = m_state.m_compileThisIdx;
+    NodeBlockClass * saveclassblock = m_state.m_classBlock;
+    NodeBlock * savecurrentblock = m_state.m_currentBlock;
+
+    NodeBlockClass * classblock = mycsym->getClassBlockNode();
+    SymbolClassName * templateparent = mycsym->getParentClassTemplate();
+    assert(templateparent);
+    SymbolClass * contextSym = NULL;
+    assert(templateparent->findAClassInstance(context, contextSym));
+
     std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
     while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
       {
 	NodeConstantDef * ceNode = *vit;
 	NodeConstantDef * cloneNode = new NodeConstantDef(*ceNode);
-	linkConstantExpressionForPendingArg(cloneNode);
+
+	Symbol * cvsym = NULL;
+	assert(classblock->isIdInScope(cloneNode->getSymbolId(), cvsym));
+	//cloneNode->setBlockNo(classblock->getNodeNo()); //reset to own ST for its SCV symbol; expression has it's own context.
+	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
+	cloneNode->setBlock(classblock); //reset to own ST for its SCV symbol; expression has it's own context.
+
+	//set context and try to resolve all context-dependent arg expressions..
+	m_state.m_classBlock = contextSym->getClassBlockNode();
+	m_state.m_currentBlock = m_state.m_classBlock;
+	m_state.setCompileThisIdx(context); //probably already the case, deep clone in progress, no???
+
+	if(cloneNode->foldConstantExpression())
+	  delete cloneNode;
+	else
+	  linkConstantExpressionForPendingArg(cloneNode);
+
+	m_state.setCompileThisIdx(savecompilethisidx); //restore
+	m_state.m_classBlock = saveclassblock; //restore
+	m_state.m_currentBlock = savecurrentblock;
+
 	vit++;
       }
-    m_classContextUTIForPendingArgs = context; //update
+    m_classContextUTIForPendingArgs = context; //update (might not be needed anymore?)
   } //clonePendingClassArgumentsForShallowClassInstance
+
+  UTI Resolver::getContextForPendingArgs()
+  {
+    return m_classContextUTIForPendingArgs;
+  }
 
 } //MFM

@@ -60,6 +60,7 @@ namespace MFM {
 
   const char * NodeConstantDef::getName()
   {
+    assert(m_constSymbol);
     return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
   }
 
@@ -72,6 +73,19 @@ namespace MFM {
   {
     symptrref = m_constSymbol;
     return true;
+  }
+
+  void NodeConstantDef::setSymbolPtr(SymbolConstantValue * cvsymptr)
+  {
+    assert(cvsymptr);
+    m_constSymbol = cvsymptr;
+    m_currBlockNo = cvsymptr->getBlockNoOfST();
+    assert(m_currBlockNo);
+  } //setSymbolPtr
+
+  u32 NodeConstantDef::getSymbolId()
+  {
+    return m_cid;
   }
 
   UTI NodeConstantDef::checkAndLabelType()
@@ -140,11 +154,23 @@ namespace MFM {
     return m_currBlockNo;
   }
 
+  void NodeConstantDef::setBlockNo(NNO n)
+  {
+    m_currBlockNo = n;
+  }
+
   void NodeConstantDef::setBlock()
   {
     assert(m_currBlockNo);
     m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
     assert(m_currBlock);
+  }
+
+  void NodeConstantDef::setBlock(NodeBlock * currblock)
+  {
+    assert(currblock);
+    assert(m_currBlockNo == currblock->getNodeNo());
+    m_currBlock = currblock;
   }
 
   void NodeConstantDef::setConstantExpr(Node * node)
@@ -158,17 +184,12 @@ namespace MFM {
   bool NodeConstantDef::foldConstantExpression()
   {
     NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
-
-#if 0
-    //in case of a cloned unknown
-    if(m_currBlock == NULL)
-      setBlock();
-
-    m_state.m_currentBlock = m_currBlock; //before c&l
-#endif
-
     s32 newconst = NONREADYCONST;  //always signed?
+
     UTI uti = checkAndLabelType(); //find any missing symbol
+    assert(m_constSymbol);
+    if(m_constSymbol->isReady())
+      return true;
 
     if((uti == m_state.getUlamTypeOfConstant(Int) || uti == m_state.getUlamTypeOfConstant(Unsigned)))
       {

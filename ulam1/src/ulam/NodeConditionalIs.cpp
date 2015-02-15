@@ -40,7 +40,8 @@ namespace MFM {
 	newType = Nav;
       }
 
-    if(!m_state.constantFoldPendingArgs(ruti))
+    //    if(!m_state.constantFoldPendingArgs(ruti))
+    if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
 	std::ostringstream msg;
 	msg << "RHS of conditional operator '" << getName() << "' type: " << m_state.getUlamTypeNameByIndex(ruti).c_str() << "; has pending arguments found while labeling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
@@ -94,7 +95,8 @@ namespace MFM {
     luti = pluv.getPtrTargetType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
-    bool isit = (luti == UAtom || luti == m_utypeRight);
+    //bool isit = (luti == UAtom || luti == m_utypeRight);
+    bool isit = (luti == UAtom || UlamType::compare(luti,m_utypeRight,m_state) == UTIC_SAME);
     UlamValue rtnuv = UlamValue::makeImmediate(getNodeType(), (u32) isit, m_state);
 
     //also copy result UV to stack, -1 relative to current frame pointer
