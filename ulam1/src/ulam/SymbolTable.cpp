@@ -27,13 +27,17 @@ namespace MFM {
   SymbolTable::~SymbolTable()
   {
     // need to delete contents; ownership transferred here!!
+    clearTheTable();
+  }
+
+  void SymbolTable::clearTheTable()
+  {
     for(std::size_t i = 0; i < m_idToSymbolPtr.size(); i++)
       {
 	delete m_idToSymbolPtr[i];
       }
     m_idToSymbolPtr.clear();
-  }
-
+  } //clearTheTable
 
   bool SymbolTable::isInTable(u32 id, Symbol * & symptrref)
   {

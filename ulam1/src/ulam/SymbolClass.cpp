@@ -311,9 +311,17 @@ namespace MFM {
 
   void SymbolClass::cloneResolverForShallowClassInstance(const SymbolClass * csym, UTI context)
   {
-    assert(m_resolver);
-    m_resolver->clonePendingClassArgumentsForShallowClassInstance(*(csym->m_resolver), context);
+    assert(csym);
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    m_resolver->clonePendingClassArgumentsForShallowClassInstance(*(csym->m_resolver), context, this);
   } //cloneResolverForShallowClassInstance
+
+  UTI SymbolClass::getContextForPendingArgs()
+  {
+    assert(m_resolver);
+    return m_resolver->getContextForPendingArgs();
+  } //getContextForPendingArgs
 
   bool SymbolClass::statusNonreadyClassArguments()
   {
@@ -423,7 +431,7 @@ namespace MFM {
   void SymbolClass::generateAsOtherInclude(File * fp)
   {
     UTI suti = getUlamTypeIdx();
-    if(suti != m_state.m_compileThisIdx)
+    if(suti != m_state.m_compileThisIdx && m_state.getUlamTypeByIndex(suti)->isComplete())
       {
 	m_state.indent(fp);
 	fp->write("#include \"");
@@ -435,7 +443,7 @@ namespace MFM {
   void SymbolClass::generateAsOtherForwardDef(File * fp)
   {
     UTI suti = getUlamTypeIdx();
-    if(suti != m_state.m_compileThisIdx)
+    if(suti != m_state.m_compileThisIdx && m_state.getUlamTypeByIndex(suti)->isComplete())
       {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
@@ -460,6 +468,7 @@ namespace MFM {
     std::ostringstream runThisTest;
     UTI suti = getUlamTypeIdx();
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    if(!sut->isComplete()) return;
 
     SymbolClassName * cnsym = m_parentTemplate;
     assert(cnsym);

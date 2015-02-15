@@ -7,13 +7,7 @@ namespace MFM {
     //informed by t3255
     std::string GetAnswerKey()
     {
-      /* gen code output:
-	 Bool(3) Arg: 0x7 (true)
-	 Bool(3) Arg: 0x7 (true)
-	 Bool(3) Arg: 0x0 (false)
-      */
-      //note: in eval, last case, uninitialized atom case is wrong!!
-      return std::string("Exit status: 0\nUe_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Bool(1) sp(false);  Bool(3) b1(false);  Bool(3) b2(false);  Int(32) test() {  Atom(96) a;  S s12;  s12 b2 . s12 ( )func . = s12 b1 . s12 ( a )func . = s12 b2 . return } }\n");
+      return std::string("Exit status: 1\nUe_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Bool(UNKNOWN) b2(false);  Int(32) test() {  S s12;  s12 b2 . s12 ( )func . = s12 b2 . return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

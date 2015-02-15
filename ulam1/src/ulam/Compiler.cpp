@@ -156,7 +156,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class: ";
-	msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId).c_str();
+	//	msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId).c_str();
+	msg << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
 	MSG("", msg.str().c_str(), ERR);
       }
 

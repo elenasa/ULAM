@@ -9,12 +9,12 @@ namespace MFM {
     m_constant.sval = NONREADYCONST;
   }
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_defnode(NULL)
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_parameter(sref.m_parameter), m_defnode(NULL)
   {
     m_constant = sref.m_constant;
   }
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_defnode(NULL)
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_parameter(sref.m_parameter), m_defnode(NULL)
   {
     m_constant = sref.m_constant;
   }

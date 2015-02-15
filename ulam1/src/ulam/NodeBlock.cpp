@@ -126,7 +126,7 @@ namespace MFM {
 
   void NodeBlock::addIdToScope(u32 id, Symbol * symptr)
   {
-    assert(symptr->getBlockNoOfST() == getNodeNo());
+    assert(symptr->getBlockNoOfST() == getNodeNo()); //set by Symbol constr, based on m_currentBlock
     m_ST.addToTable(id, symptr);
   }
 
@@ -148,6 +148,11 @@ namespace MFM {
     return m_ST.removeFromTable(id, rtnsymptr);
   }
 
+  void NodeBlock::removeAllSymbolsFromScope()
+  {
+    m_ST.clearTheTable();
+  }
+
   NodeBlock * NodeBlock::getPreviousBlockPointer()
   {
     return m_prevBlockNode;
@@ -155,7 +160,8 @@ namespace MFM {
 
   void NodeBlock::setPreviousBlockPointer(NodeBlock * b)
   {
-    assert(m_prevBlockNode == NULL);
+    // during shallow cloning may want to tweak this
+    //assert(m_prevBlockNode == NULL);
     m_prevBlockNode = b;
   }
 

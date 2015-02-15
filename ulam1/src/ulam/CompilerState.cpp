@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-//  #define _DEBUG_OUTPUT
-//  #define _INFO_OUTPUT
-//  #define _WARN_OUTPUT
+  //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -447,6 +447,8 @@ namespace MFM {
     if(bUT == Class)
       {
 	assert(alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
+	if(cnsymOfIncomplete->getNumberOfParameters() == 0)
+	  return suti;
 	if(!cnsymOfIncomplete->pendingClassArgumentsForShallowClassInstance(suti))
 	  return suti;
       }
@@ -455,8 +457,9 @@ namespace MFM {
     // get a new UTI and add to cnsym's map for this instance in case we see it again;
     // Later, also update all its resolver's 'subtree' table references; For classes with
     // pending args, make a copy of the shallow class including its resolver with pending args, so
-    // pending args can be resolved within the context of this class instance (e.g. dependent on
+    // pending args can be resolved XXXX within the context of this class instance (e.g. dependent on
     // instances arg values which makes it different than others', like "self").
+    // XXXX context dependent pending args are resolved before they are added to the resolver's pending args.
 
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
     UTI newuti = makeUlamType(newkey,bUT);
@@ -473,6 +476,7 @@ namespace MFM {
 	if(isCustomArray)
 	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
 
+	//potential for unending process..
 	cnsymOfIncomplete->copyAShallowClassInstance(suti, newuti, m_compileThisIdx);
       }
     return newuti;
@@ -819,7 +823,10 @@ namespace MFM {
     assert(ut1 && ut2);
     UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
     UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
-    assert(key1.getUlamKeyTypeSignatureNameId() == key2.getUlamKeyTypeSignatureNameId() && key1.getUlamKeyTypeSignatureBitSize() == key2.getUlamKeyTypeSignatureBitSize() && key1.getUlamKeyTypeSignatureArraySize() == key2.getUlamKeyTypeSignatureArraySize());
+
+    //bitsize of old could still be "unknown" (before size set, but args known and match 'cuti').
+    //assert(key1.getUlamKeyTypeSignatureNameId() == key2.getUlamKeyTypeSignatureNameId() && key1.getUlamKeyTypeSignatureBitSize() == key2.getUlamKeyTypeSignatureBitSize() && key1.getUlamKeyTypeSignatureArraySize() == key2.getUlamKeyTypeSignatureArraySize());
+    assert(key1.getUlamKeyTypeSignatureNameId() == key2.getUlamKeyTypeSignatureNameId());
 
     //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(key1);
@@ -1791,7 +1798,6 @@ namespace MFM {
 
   Node * CompilerState::findNodeNoInThisClass(NNO n)
   {
-#if 1
     if(m_useMemberBlock)
       {
 	UTI mbuti = m_currentMemberClassBlock->getNodeType();
@@ -1800,7 +1806,6 @@ namespace MFM {
 	assert(alreadyDefinedSymbolClassName(mbid, cnsym));
 	return cnsym->findNodeNoInAClassInstance(mbuti, n);
       }
-#endif
 
     // beware the classblock is the only block with different node no in SHALLOW instances
     if(m_currentBlock->getNodeNo() == n && m_classBlock->getNodeType() == m_compileThisIdx)

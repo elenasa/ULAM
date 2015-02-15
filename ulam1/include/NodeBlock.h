@@ -81,6 +81,8 @@ namespace MFM{
 
     bool removeIdFromScope(u32 id, Symbol *& rtnsymptr);
 
+    void removeAllSymbolsFromScope();
+
     NodeBlock * getPreviousBlockPointer();
 
     void setPreviousBlockPointer(NodeBlock *);
