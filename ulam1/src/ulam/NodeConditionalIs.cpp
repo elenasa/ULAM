@@ -48,31 +48,25 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	newType = Nav;
       }
-
     setNodeType(newType);
-
     setStoreIntoAble(false);
     return getNodeType();
   } //checkAndLabelType
-
 
   const char * NodeConditionalIs::getName()
   {
     return "is";
   }
 
-
   const std::string NodeConditionalIs::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   const std::string NodeConditionalIs::methodNameForCodeGen()
   {
     return  std::string(m_state.getIsMangledFunctionName());
   }
-
 
   EvalStatus  NodeConditionalIs::eval()
   {
@@ -95,7 +89,6 @@ namespace MFM {
     luti = pluv.getPtrTargetType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
-    //bool isit = (luti == UAtom || luti == m_utypeRight);
     bool isit = (luti == UAtom || UlamType::compare(luti,m_utypeRight,m_state) == UTIC_SAME);
     UlamValue rtnuv = UlamValue::makeImmediate(getNodeType(), (u32) isit, m_state);
 
@@ -105,7 +98,6 @@ namespace MFM {
     evalNodeEpilog();
     return evs;
   } //eval
-
 
   void NodeConditionalIs::genCode(File * fp, UlamValue& uvpass)
   {

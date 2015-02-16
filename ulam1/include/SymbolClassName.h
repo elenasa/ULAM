@@ -83,8 +83,6 @@ namespace MFM{
     void mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
 
     bool cloneInstances(); //i.e. instantiate
-    bool findAClassInstance(UTI instance, SymbolClass *& csymref);
-
     Node * findNodeNoInAClassInstance(UTI instance, NNO n);
     void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
 

@@ -268,7 +268,6 @@ namespace MFM {
   {
     if(!m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    //assert(m_deep);
     m_resolver->linkConstantExpression(uti, ceNode);
   }
 
@@ -290,7 +289,6 @@ namespace MFM {
   {
     if(!m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    //assert(m_deep);
     m_resolver->linkConstantExpression(ceNode);
   }
 

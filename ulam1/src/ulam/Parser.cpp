@@ -3164,7 +3164,7 @@ namespace MFM {
   Node * Parser::makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize, bool assignOK)
   {
     NodeConstantDef * rtnNode = NULL;
-    Node * lvalNode = parseLvalExpr(identTok);
+    Node * lvalNode = parseIdentExpr(identTok);//parseLvalExpr(identTok);
     if(lvalNode)
       {
 	// lvalNode could be either a NodeIdent or a NodeSquareBracket
