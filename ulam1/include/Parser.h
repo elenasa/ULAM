@@ -54,6 +54,8 @@
 #include "NodeUnaryOp.h"
 #include "Symbol.h"
 #include "SymbolFunction.h"
+#include "SymbolClassName.h"
+#include "SymbolClassNameTemplate.h"
 #include "Tokenizer.h"
 
 namespace MFM{
@@ -91,9 +93,9 @@ namespace MFM{
     /**
 	<CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
     */
-    NodeBlockClass * parseClassBlock(SymbolClass * csym);
+    NodeBlockClass * parseClassBlock(SymbolClassName * cnsym);
 
-    void parseRestOfClassParameters(SymbolClass * csym);
+    void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym);
 
     /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | ('element' | 0) + <DECL> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
@@ -189,7 +191,7 @@ namespace MFM{
 
 
     UTI parseClassArguments(Token& typeTok);
-    void parseRestOfClassArguments(SymbolClass * csym, SymbolClassName * cnsym, u32& parmIdx);
+    void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);
 
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE and node with constant expression */
     NodeTypeBitsize * parseTypeBitsize(Token& typeTok, s32& typebitsize, s32& arraysize);

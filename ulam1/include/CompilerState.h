@@ -57,6 +57,7 @@
 #include "StringPool.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
+#include "SymbolClassNameTemplate.h"
 #include "SymbolFunction.h"
 #include "SymbolTable.h"
 #include "SymbolVariable.h"
@@ -215,13 +216,11 @@ namespace MFM{
     void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
     bool takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr); //ownership to the caller
 
-    /** searches table of class defs for specific name, by token or idx,
-        returns a place-holder type if class def not yet seen */
-    bool getUlamTypeByClassToken(Token ctok, UTI & rtnType);
-    bool getUlamTypeByClassNameId(u32 idx, UTI & rtnType);
-
     /** return true and the SymbolClassName pointer in 2nd arg if found; */
     bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);
+
+    /** return true and the SymbolClassNameTemplate pointer in 2nd arg if found AND is a template; */
+    bool alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr);
 
     /** use when changing m_compileThisIdx to keep id and idx in sync */
     void setCompileThisIdx(UTI idx);
@@ -231,6 +230,7 @@ namespace MFM{
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
     void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassName * & symptr);
+    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassNameTemplate * & symptr);
 
     /** during type labeling, sets the ULAMCLASSTYPE and bitsize for typedefs that involved incomplete Class types */
     bool completeIncompleteClassSymbol(UTI incomplete) ;

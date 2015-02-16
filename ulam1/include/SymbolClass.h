@@ -47,13 +47,13 @@ namespace MFM{
 
 
   class CompilerState;  //forward
-  class SymbolClassName;  //forward
+  class SymbolClassNameTemplate;  //forward
   class Resolver; //forward
 
   class SymbolClass : public Symbol
   {
   public:
-    SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassName * parent, CompilerState& state);
+    SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state);
     SymbolClass(const SymbolClass& sref);
     virtual ~SymbolClass();
 
@@ -67,7 +67,7 @@ namespace MFM{
 
     NodeBlockClass * getClassBlockNode();
 
-    SymbolClassName * getParentClassTemplate();
+    SymbolClassNameTemplate * getParentClassTemplate();
 
     virtual const std::string getMangledPrefix();
 
@@ -122,9 +122,11 @@ namespace MFM{
   protected:
     Resolver * m_resolver;
 
+    void setParentClassTemplate(SymbolClassNameTemplate *);
+
   private:
     NodeBlockClass * m_classBlock;
-    SymbolClassName * m_parentTemplate;
+    SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_deep;
 

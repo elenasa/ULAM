@@ -464,8 +464,6 @@ namespace MFM {
       }
     else
       {
-	// will substitute placeholder class type if it hasn't been seen yet
-	//m_state.getUlamTypeByClassToken(aTok, aut);
 	aut = classInstanceIdx;
 	brtn = true;
       }

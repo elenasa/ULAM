@@ -33,7 +33,7 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassName * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_deep(false){}
+  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_deep(false){}
 
   SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_deep(sref.m_deep)
   {
@@ -77,9 +77,15 @@ namespace MFM {
     return m_classBlock;
   }
 
-  SymbolClassName * SymbolClass::getParentClassTemplate()
+  SymbolClassNameTemplate * SymbolClass::getParentClassTemplate()
   {
     return m_parentTemplate; //could be self
+  }
+
+  void SymbolClass::setParentClassTemplate(SymbolClassNameTemplate  * p)
+  {
+    assert(p);
+    m_parentTemplate = p;
   }
 
   bool SymbolClass::isClass()
@@ -468,11 +474,15 @@ namespace MFM {
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
     if(!sut->isComplete()) return;
 
-    SymbolClassName * cnsym = m_parentTemplate;
-    assert(cnsym);
-    std::string tail = cnsym->formatAnInstancesArgValuesAsAString(suti);
     std::ostringstream namestr;
-    namestr << m_state.m_pool.getDataAsString(getId()) << tail;
+    namestr << m_state.m_pool.getDataAsString(getId());
+    if(m_parentTemplate)
+      {
+	std::string tail = m_parentTemplate->formatAnInstancesArgValuesAsAString(suti);
+	namestr << tail;
+      }
+    else
+	namestr << "0";
 
     std::string lowercasename = firstletterTolowercase(namestr.str());
     std::ostringstream ourname;
