@@ -50,7 +50,7 @@ namespace MFM{
     NodeControl(const NodeControl& ref);
     virtual ~NodeControl();
 
-    virtual void updateLineage(Node * p);
+    virtual void updateLineage(NNO pno);
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 

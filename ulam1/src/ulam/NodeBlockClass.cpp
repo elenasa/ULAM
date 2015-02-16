@@ -9,9 +9,9 @@ namespace MFM {
 
   //static const char * CModeForHeaderFiles = "/**                                        -*- mode:C++ -*/\n\n";
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false), m_templateClassParent(Nav) {}
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false), m_templateClassParentUTI(Nav) {}
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_templateClassParent(Nav) /* no longer needed? */
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_templateClassParentUTI(Nav) /* no longer needed? */
   {
     setNodeType(m_state.m_compileThisIdx);
   }
@@ -33,18 +33,18 @@ namespace MFM {
     m_isEmpty = true;
   }
 
-  void NodeBlockClass::setClassTemplateParent(UTI cuti)
+  void NodeBlockClass::setClassTemplateParentUTI(UTI cuti)
   {
-    m_templateClassParent = cuti;
+    m_templateClassParentUTI = cuti;
   }
 
-  void NodeBlockClass::updateLineage(Node * p)
+  void NodeBlockClass::updateLineage(NNO pno)
   {
-    setYourParent(p);
+    setYourParentNo(pno);
     if(m_node)
-      m_node->updateLineage(this);
+      m_node->updateLineage(getNodeNo());
     if(m_nextNode)
-      m_nextNode->updateLineage(this);
+      m_nextNode->updateLineage(getNodeNo());
     m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs
   } //updateLineage
 

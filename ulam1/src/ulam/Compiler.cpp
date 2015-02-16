@@ -128,10 +128,12 @@ namespace MFM {
     m_state.m_err.setFileOutput(output);
     m_state.m_err.clearCounts();
 
+    //for regular classes and templates only
+    m_state.m_programDefST.updateLineageForTableOfClasses();
+
     bool sumbrtn = true;
     u32 infcounter = 0;
     do{
-
       // resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
       sumbrtn = loopUnknownsOnceAround();
       if(++infcounter > MAX_ITERATIONS)

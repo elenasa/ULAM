@@ -22,10 +22,10 @@ namespace MFM {
     return new NodeTypeBitsize(*this);
   }
 
-  void NodeTypeBitsize::updateLineage(Node * p)
+  void NodeTypeBitsize::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_node->updateLineage(this);
+    setYourParentNo(pno);
+    m_node->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeTypeBitsize::findNodeNo(NNO n, Node *& foundNode)

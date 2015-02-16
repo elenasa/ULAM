@@ -52,8 +52,6 @@ namespace MFM{
 
     virtual Node * instantiate();
 
-    virtual void updateLineage(Node * p);
-
     virtual void printOp(File * fp);
 
     virtual const char * getName();

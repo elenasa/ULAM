@@ -21,7 +21,7 @@ namespace MFM {
     return new NodeBlock(*this);
   }
 
-  void NodeBlock::updateLineage(Node * p)
+  void NodeBlock::updateLineage(NNO pno)
   {
     if(m_prevBlockNode == NULL)
       {
@@ -32,11 +32,11 @@ namespace MFM {
 
     m_state.m_currentBlock = this;
 
-    setYourParent(p);
+    setYourParentNo(pno);
     if(m_node)
-      m_node->updateLineage(this);
+      m_node->updateLineage(getNodeNo());
     if(m_nextNode)
-      m_nextNode->updateLineage(this);
+      m_nextNode->updateLineage(getNodeNo());
 
     m_state.m_currentBlock = m_prevBlockNode; //restore
   } //updateLineage

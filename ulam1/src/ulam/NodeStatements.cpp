@@ -32,13 +32,13 @@ namespace MFM {
     return new NodeStatements(*this);
   }
 
-  void NodeStatements::updateLineage(Node * p)
+  void NodeStatements::updateLineage(NNO pno)
   {
-    setYourParent(p);
+    setYourParentNo(pno);
     if(m_node)
-      m_node->updateLineage(this);
+      m_node->updateLineage(getNodeNo());
     if(m_nextNode)
-      m_nextNode->updateLineage(this);
+      m_nextNode->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeStatements::findNodeNo(NNO n, Node *& foundNode)

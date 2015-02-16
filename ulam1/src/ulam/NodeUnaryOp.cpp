@@ -16,10 +16,10 @@ namespace MFM {
     m_node = NULL;
   }
 
-  void NodeUnaryOp::updateLineage(Node * p)
+  void NodeUnaryOp::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_node->updateLineage(this);
+    setYourParentNo(pno);
+    m_node->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeUnaryOp::findNodeNo(NNO n, Node *& foundNode)

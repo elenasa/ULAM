@@ -21,10 +21,10 @@ namespace MFM {
     return new NodeSimpleStatement(*this);
   }
 
-  void NodeSimpleStatement::updateLineage(Node * p)
+  void NodeSimpleStatement::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_node->updateLineage(this);
+    setYourParentNo(pno);
+    m_node->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeSimpleStatement::findNodeNo(NNO n, Node *& foundNode)

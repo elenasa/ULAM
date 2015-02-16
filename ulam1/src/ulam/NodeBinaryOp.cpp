@@ -19,11 +19,11 @@ namespace MFM {
     m_nodeRight = NULL;
   }
 
-  void NodeBinaryOp::updateLineage(Node * p)
+  void NodeBinaryOp::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_nodeLeft->updateLineage(this);
-    m_nodeRight->updateLineage(this);
+    setYourParentNo(pno);
+    m_nodeLeft->updateLineage(getNodeNo());
+    m_nodeRight->updateLineage(getNodeNo());
   } //updateLineage
 
   bool NodeBinaryOp::findNodeNo(NNO n, Node *& foundNode)

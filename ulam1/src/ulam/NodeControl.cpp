@@ -20,11 +20,11 @@ namespace MFM {
     m_nodeBody = NULL;
   }
 
-  void NodeControl::updateLineage(Node * p)
+  void NodeControl::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_nodeCondition->updateLineage(this);
-    m_nodeBody->updateLineage(this);
+    setYourParentNo(pno);
+    m_nodeCondition->updateLineage(getNodeNo());
+    m_nodeBody->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeControl::findNodeNo(NNO n, Node *& foundNode)

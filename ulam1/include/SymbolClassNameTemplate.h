@@ -82,7 +82,8 @@ namespace MFM{
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
     virtual void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
 
-    virtual void updateLineageOfClassInstanceUTI(UTI cuti);
+    void updateLineageOfClassInstanceUTI(UTI cuti); //during full instantiateion
+
     virtual void checkCustomArraysOfClassInstances();
     virtual void checkAndLabelClassInstances();
     virtual u32 countNavNodesInClassInstances();

@@ -7,18 +7,20 @@
 
 namespace MFM {
 
-  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav), m_parent(NULL), m_nodeNo(m_state.getNextNodeNo()) {}
+  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav), m_parentNo(0), m_nodeNo(m_state.getNextNodeNo()) {}
 
-  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_nodeUType(ref.m_nodeUType), m_nodeLoc(ref.m_nodeLoc), m_parent(NULL), m_nodeNo(ref.m_nodeNo) /* same NNO */ {}
+  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_nodeUType(ref.m_nodeUType), m_nodeLoc(ref.m_nodeLoc), m_parentNo(ref.m_parentNo), m_nodeNo(ref.m_nodeNo) /* same NNO */ {}
 
-  void Node::setYourParent(Node * parent)
+  void Node::setYourParentNo(NNO pno)
   {
-    m_parent = parent;
+    if(m_parentNo > 0)
+      assert(m_parentNo == pno);
+    m_parentNo = pno;
   }
 
-  void Node::updateLineage(Node * p)
+  void Node::updateLineage(NNO pno)
   {
-    setYourParent(p);  //walk the tree..a leaf.
+    setYourParentNo(pno);  //walk the tree..a leaf.
   }
 
   NNO Node::getNodeNo()

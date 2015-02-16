@@ -15,12 +15,6 @@ namespace MFM {
     return new NodeSquareBracket(*this);
   }
 
-  void NodeSquareBracket::updateLineage(Node * p)
-  {
-    setYourParent(p);
-    NodeBinaryOp::updateLineage(this);
-  }//updateLineage
-
   void NodeSquareBracket::printOp(File * fp)
   {
     NodeBinaryOp::printOp(fp);

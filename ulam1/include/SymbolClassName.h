@@ -59,7 +59,8 @@ namespace MFM{
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
 
-    virtual void updateLineageOfClassInstanceUTI(UTI cuti);
+    virtual void updateLineageOfClass();
+
     virtual void checkCustomArraysOfClassInstances();
     virtual void checkAndLabelClassInstances();
     virtual u32 countNavNodesInClassInstances();

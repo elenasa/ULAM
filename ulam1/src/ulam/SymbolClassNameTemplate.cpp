@@ -143,7 +143,7 @@ namespace MFM {
     assert(newblockclass);
     newblockclass->setNodeLocation(typeTok.m_locator);
     newblockclass->setNodeType(cuti);
-    newblockclass->setClassTemplateParent(getUlamTypeIdx()); //so it knows it's an instance
+    newblockclass->setClassTemplateParentUTI(getUlamTypeIdx()); //so it knows it's an instance
 
     SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, this, m_state);
     assert(newclassinstance);
@@ -172,7 +172,7 @@ namespace MFM {
     assert(newblockclass);
     newblockclass->setNodeLocation(blockclass->getNodeLocation());
     newblockclass->setNodeType(newuti);
-    newblockclass->setClassTemplateParent(getUlamTypeIdx()); //so it knows it's an instance
+    newblockclass->setClassTemplateParentUTI(getUlamTypeIdx()); //so it knows it's an instance
 
     SymbolClass * newclassinstance = new SymbolClass(getId(), newuti, newblockclass, this, m_state);
     assert(newclassinstance);
@@ -479,7 +479,7 @@ namespace MFM {
 	it->second = clone; //replace with the deep copy
 
 	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
-	updateLineageOfClassInstanceUTI(cuti);
+	//updateLineageOfClassInstanceUTI(cuti); nno-based now
 	cloneResolverForClassInstance(clone);
 	it++;
       } //while
@@ -584,7 +584,7 @@ namespace MFM {
 	m_state.m_classBlock = classNode;
 	m_state.m_currentBlock = m_state.m_classBlock;
 	m_state.setCompileThisIdx(instance);
-	classNode->updateLineage(NULL); //do this instance
+	classNode->updateLineage(0); //do this instance
       }
     m_state.m_classBlock = saveclassnode; //restore
     m_state.m_currentBlock = saveblocknode;

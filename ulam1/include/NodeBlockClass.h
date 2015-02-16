@@ -57,9 +57,9 @@ namespace MFM{
 
     void setEmpty();
 
-    void setClassTemplateParent(UTI cuti);
+    void setClassTemplateParentUTI(UTI cuti);
 
-    virtual void updateLineage(Node * p);
+    virtual void updateLineage(NNO pno);
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
@@ -109,7 +109,7 @@ namespace MFM{
   private:
 
     bool m_isEmpty; //replaces separate node
-    UTI m_templateClassParent;
+    UTI m_templateClassParentUTI;
 
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);

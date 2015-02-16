@@ -35,12 +35,12 @@ namespace MFM {
     return new NodeConstantDef(*this);
   }
 
-  void NodeConstantDef::updateLineage(Node * p)
+  void NodeConstantDef::updateLineage(NNO pno)
   {
-    setYourParent(p);
+    setYourParentNo(pno);
     m_currBlock = m_state.m_currentBlock; //do it now
     assert(m_state.getCurrentBlockNo() == m_currBlockNo);
-    m_exprnode->updateLineage(this);
+    m_exprnode->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeConstantDef::findNodeNo(NNO n, Node *& foundNode)

@@ -64,8 +64,9 @@ namespace MFM{
 
     virtual Node * instantiate() = 0;
 
-    virtual void setYourParent(Node * parent);
-    virtual void updateLineage(Node * p);
+    virtual void setYourParentNo(NNO pno);
+
+    virtual void updateLineage(NNO pno);
 
     NNO getNodeNo();
     virtual bool findNodeNo(NNO n, Node *& foundNode);
@@ -176,7 +177,8 @@ namespace MFM{
     bool m_storeIntoAble;
     UTI m_nodeUType;
     Locator m_nodeLoc;
-    Node * m_parent;
+    //Node * m_parent;
+    NNO m_parentNo;
     NNO m_nodeNo;
   };
 
