@@ -189,23 +189,54 @@ namespace MFM {
 
     SymbolClassName * cnSym = NULL;
     bool wasIncomplete = false;
-    if(!m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, cnSym))
+
+    Token qTok;
+    getNextToken(qTok);
+    unreadToken();
+    bool isTemplate = (qTok.m_type == TOK_OPEN_PAREN);
+
+    if(!isTemplate)
       {
-	m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, cnSym);
+	if(!m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, cnSym))
+	  {
+	    m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, cnSym);
+	  }
+	else
+	  {
+	    //if already defined, then must be incomplete, else duplicate!!
+	    if(cnSym->getUlamClass() != UC_UNSEEN)
+	      {
+		std::ostringstream msg;
+		msg << "Duplicate or incomplete class <" << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
+		MSG(&iTok, msg.str().c_str(), ERR);
+
+		return  true;  //we're done unless we can gobble the rest up?
+	      }
+	    wasIncomplete = true;
+	  }
       }
     else
       {
-	//if already defined, then must be incomplete, else duplicate!!
-	if(cnSym->getUlamClass() != UC_UNSEEN)
+	SymbolClassNameTemplate * ctSym;
+	if(!m_state.alreadyDefinedSymbolClassNameTemplate(iTok.m_dataindex, ctSym))
 	  {
-	    std::ostringstream msg;
-	    msg << "Duplicate or incomplete class <" << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
-	    MSG(&iTok, msg.str().c_str(), ERR);
-
-	    return  true;  //we're done unless we can gobble the rest up?
+	    m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, ctSym);
 	  }
-	wasIncomplete = true;
-      }
+	else
+	  {
+	    //if already defined, then must be incomplete, else duplicate!!
+	    if(ctSym->getUlamClass() != UC_UNSEEN)
+	      {
+		std::ostringstream msg;
+		msg << "Duplicate or incomplete template class <" << m_state.m_pool.getDataAsString(ctSym->getId()).c_str() << ">";
+		MSG(&iTok, msg.str().c_str(), ERR);
+
+		return  true;  //we're done unless we can gobble the rest up?
+	      }
+	    wasIncomplete = true;
+	  }
+	cnSym = ctSym;
+      } //template
 
     //mostly needed for code gen later, but this is where we first know it!
     m_state.setCompileThisIdx(cnSym->getUlamTypeIdx());
@@ -238,8 +269,8 @@ namespace MFM {
     if(classNode)
       {
 	//cnSym->setClassBlockNode(classNode);
-	if(wasIncomplete)
-	  cnSym->fixAnyClassInstances();
+	if(wasIncomplete && isTemplate)
+	  ((SymbolClassNameTemplate *) cnSym)->fixAnyClassInstances();
       }
     else
       {
@@ -256,9 +287,9 @@ namespace MFM {
     return false; //keep going until EOF is reached
   } //parseThisClass
 
-  NodeBlockClass * Parser::parseClassBlock(SymbolClass * csym)
+  NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym)
   {
-    UTI utype = csym->getUlamTypeIdx(); //we know its type..sweeter
+    UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
     Token pTok;
     getNextToken(pTok); //loc needed
 
@@ -272,7 +303,7 @@ namespace MFM {
     rtnNode->setNodeType(utype);
 
     //set block before returning, so future class instances can link back to it
-    csym->setClassBlockNode(rtnNode);
+    cnsym->setClassBlockNode(rtnNode);
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
@@ -282,7 +313,7 @@ namespace MFM {
     //need class block's ST before parsing any class parameters (i.e. named constants);
     if(pTok.m_type == TOK_OPEN_PAREN)
       {
-	parseRestOfClassParameters(csym);
+	parseRestOfClassParameters((SymbolClassNameTemplate *) cnsym);
       }
     else
 	unreadToken();
@@ -327,17 +358,23 @@ namespace MFM {
     return rtnNode;
   } //parseClassBlock
 
- void Parser::parseRestOfClassParameters(SymbolClass * csym)
+ void Parser::parseRestOfClassParameters(SymbolClassNameTemplate * cntsym)
   {
+    assert(cntsym);
+
     Token pTok;
     getNextToken(pTok);
-
     if(pTok.m_type == TOK_CLOSE_PAREN)
       {
+	if(cntsym->getNumberOfParameters() == 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Class Template has NO parameters: <" << m_state.getUlamTypeNameByIndex(cntsym->getUlamTypeIdx()).c_str();
+	    MSG(&pTok, msg.str().c_str(),ERR);
+	  }
 	return;  //done with parameters
       }
 
-    assert(csym);
     // allows class name to be same as parameter name
     // since the class starts a new "block" (i.e. ST);
     // the argument to parseDecl will prevent it from looking
@@ -355,7 +392,7 @@ namespace MFM {
 	    if(argNode->getSymbolPtr(argSym))
 	      {
 		((SymbolConstantValue *) argSym)->setParameterFlag();
-		((SymbolClassName * ) csym)->addParameterSymbol((SymbolConstantValue *) argSym); //ownership stays with NodeBlockClass's ST
+		cntsym->addParameterSymbol((SymbolConstantValue *) argSym); //ownership stays with NodeBlockClass's ST
 	      }
 	    else
 	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
@@ -372,7 +409,7 @@ namespace MFM {
 
     getExpectedToken(TOK_COMMA, QUIETLY); // if so, get next parameter; o.w. unread
 
-    return parseRestOfClassParameters(csym);
+    return parseRestOfClassParameters(cntsym);
   } //parseRestOfClassParameters
 
   bool Parser::parseDataMember(NodeStatements *& nextNode)
@@ -1345,65 +1382,82 @@ namespace MFM {
 
   UTI Parser::parseClassArguments(Token& typeTok)
   {
-    UTI cuti = Nav;
-    u32 numParams = 0;
-    SymbolClassName * cnsym = NULL;
-    if(!m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
+    Token pTok;
+    getNextToken(pTok);
+    if(pTok.m_type != TOK_OPEN_PAREN)
       {
-	//check if a typedef first..if so, return its SCALAR uti
+	//regular class, not a template
+	unreadToken();
+	SymbolClassName * cnsym = NULL;
+	if(!m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
+	  {
+	    //check if a typedef first..if so, return its SCALAR uti
+	    UTI tduti;
+	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti))
+	      {
+		return m_state.getUlamTypeAsScalar(tduti);
+	      }
+	    else
+	      m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, cnsym);
+	  }
+	assert(cnsym);
+	return cnsym->getUlamTypeIdx();
+      }
+
+    //must be a template class
+    SymbolClassNameTemplate * ctsym = NULL;
+    if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
+      {
+	//check if a typedef first..if so, return its SCALAR uti?
 	UTI tduti;
 	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti))
 	  {
 	    return m_state.getUlamTypeAsScalar(tduti);
 	  }
-
-	// trying to instantiate a class that hasn't been seen yet!
-	// what to do? we don't know the required parameters!
-	// assume correct, verify later..
-	m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, cnsym);
+	else
+	  m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, ctsym);
       }
+    assert(ctsym);
 
-    cuti = cnsym->getUlamTypeIdx();
-    numParams = cnsym->getNumberOfParameters();
-    Token pTok;
-    getNextToken(pTok);
-    if(pTok.m_type != TOK_OPEN_PAREN)
-      {
-	unreadToken();
-	return cuti;
-      }
+    u32 numParams = 0;
+    UTI cuti = ctsym->getUlamTypeIdx();
+    numParams = ctsym->getNumberOfParameters();
 
     getNextToken(pTok);
     if(pTok.m_type == TOK_CLOSE_PAREN)
       {
 	if(numParams > 0)
 	  {
-	    //no args so trying to use the "template" as an instance?
+	    //params but no args
+	    std::ostringstream msg;
+	    msg << "NO class arguments for a class template instance stub, template : <" << m_state.getUlamTypeNameByIndex(ctsym->getUlamTypeIdx()).c_str() << " has " << numParams << " parameters";
+	    MSG(&pTok, msg.str().c_str(),ERR);
+	    cuti = Nav;
 	  }
-	return cuti; //ok to return.
+	return cuti; //ok to return
       }
 
     unreadToken();
 
-    // make a shallow Class Instance to collect class args as SymbolConstantValues;
+    // make a (shallow) Class Instance Stub to collect class args as SymbolConstantValues;
     // has its own uti that will become part of its key; (too soon for a deep copy!)
     cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nav);
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    ((UlamTypeClass *) cut)->setUlamClass(cnsym->getUlamClass()); //possibly UC_UNSEEN
+    ((UlamTypeClass *) cut)->setUlamClass(ctsym->getUlamClass()); //possibly UC_UNSEEN
 
-    UlamType * cnut = m_state.getUlamTypeByIndex(cnsym->getUlamTypeIdx());
-    if(cnut->isCustomArray())
-      ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) cnut)->getCustomArrayType());
+    UlamType * ctut = m_state.getUlamTypeByIndex(ctsym->getUlamTypeIdx());
+    if(ctut->isCustomArray())
+      ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) ctut)->getCustomArrayType());
 
-    SymbolClass * csym = cnsym->makeAShallowClassInstance(typeTok, cuti);
+    SymbolClass * csym = ctsym->makeAShallowClassInstance(typeTok, cuti);
 
     u32 parmidx = 0;
-    parseRestOfClassArguments(csym, cnsym, parmidx);
+    parseRestOfClassArguments(csym, ctsym, parmidx);
     return cuti;
   } //parseClassArguments
 
 
-  void Parser::parseRestOfClassArguments(SymbolClass * csym, SymbolClassName * cnsym, u32& parmIdx)
+  void Parser::parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx)
   {
     Token pTok;
     getNextToken(pTok);
@@ -1422,11 +1476,11 @@ namespace MFM {
       }
 
     // this is possible if cnsym is UC_UNSEEN, must check args later..
-    bool cnIsStub = (cnsym->getUlamClass() == UC_UNSEEN);
-    if(parmIdx >= cnsym->getNumberOfParameters() && !cnIsStub)
+    bool ctUnseen = (ctsym->getUlamClass() == UC_UNSEEN);
+    if(parmIdx >= ctsym->getNumberOfParameters() && !ctUnseen)
       {
 	std::ostringstream msg;
-	msg << "Too many Class Arguments, " << "(" << parmIdx << "), type: " << m_state.m_pool.getDataAsString(cnsym->getId()).c_str() ;
+	msg << "Too many Class Arguments, " << "(" << parmIdx << "), type: " << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	MSG(&pTok, msg.str().c_str(), ERR);
 	return;
       }
@@ -1436,9 +1490,9 @@ namespace MFM {
     m_state.m_currentBlock = csym->getClassBlockNode(); //reset here for new arg's ST
 
     SymbolConstantValue * argSym;
-    if(!cnIsStub)
+    if(!ctUnseen)
       {
-	SymbolConstantValue * paramSym = (SymbolConstantValue * ) (cnsym->getParameterSymbolPtr(parmIdx));
+	SymbolConstantValue * paramSym = (SymbolConstantValue * ) (ctsym->getParameterSymbolPtr(parmIdx));
 	assert(paramSym);
 	argSym = new SymbolConstantValue(paramSym->getId(), paramSym->getUlamTypeIdx(), m_state); //like param, not copy
       }
@@ -1477,7 +1531,7 @@ namespace MFM {
     if(pTok.m_type != TOK_COMMA)
       unreadToken();
 
-    return parseRestOfClassArguments(csym, cnsym, ++parmIdx);  //recurse
+    return parseRestOfClassArguments(csym, ctsym, ++parmIdx);  //recurse
   } //parseRestOfClassArguments
 
 

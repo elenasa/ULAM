@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolClassName.h -  Class Symbol "Template" for ULAM
+ * SymbolClassName.h -  Basic Class Symbol Name for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file SymbolClassName.h -  Class Symbol "Template" for ULAM
+  \file SymbolClassName.h -  Basic Class Symbol Name for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -47,78 +47,39 @@ namespace MFM{
     SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
     virtual ~SymbolClassName();
 
-    void addParameterSymbol(SymbolConstantValue * argSym);
-    u32 getNumberOfParameters();
-    u32 getTotalSizeOfParameters();
-    Symbol * getParameterSymbolPtr(u32 n);
+    virtual bool isClassTemplate();
+    virtual void linkUnknownBitsizeConstantExpression(UTI auti, NodeTypeBitsize * ceNode);
+    virtual void linkUnknownBitsizeConstantExpression(UTI fromtype, UTI totype); // for decllist
+    virtual void linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode);
+    virtual void linkUnknownNamedConstantExpression(NodeConstantDef * ceNode);
+    virtual bool statusUnknownConstantExpressionsInClassInstances();
 
-    virtual bool isClassTemplate(UTI cuti);
-    bool findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref);
-    bool findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr);
+    virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
+    virtual void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
 
-    void addClassInstanceUTI(UTI uti, SymbolClass * symptr);
-    void addClassInstanceByArgString(UTI uti, SymbolClass * symptr);
+    virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
 
-    bool pendingClassArgumentsForShallowClassInstance(UTI instance);
+    virtual void updateLineageOfClassInstanceUTI(UTI cuti);
+    virtual void checkCustomArraysOfClassInstances();
+    virtual void checkAndLabelClassInstances();
+    virtual u32 countNavNodesInClassInstances();
+    virtual bool setBitSizeOfClassInstances();
+    virtual void printBitSizeOfClassInstances();
+    virtual void packBitsForClassInstances();
 
-    SymbolClass * makeAShallowClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
-    void copyAShallowClassInstance(UTI instance, UTI newuti, UTI context);
+    virtual void testForClassInstances(File * fp);
 
-    /** replaces temporary class argument names, updates the ST, and the class type */
-    void fixAnyClassInstances();
+    virtual void generateCodeForClassInstances(FileManager * fm);
 
-    void linkUnknownBitsizeConstantExpression(UTI auti, NodeTypeBitsize * ceNode);
-    void linkUnknownBitsizeConstantExpression(UTI fromtype, UTI totype); // for decllist
-    void linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode);
-    void linkUnknownNamedConstantExpression(NodeConstantDef * ceNode);
+    virtual void generateIncludesForClassInstances(File * fp);
 
-    bool statusUnknownConstantExpressionsInClassInstances();
-    bool statusNonreadyClassArgumentsInShallowClassInstances();
-    bool constantFoldClassArgumentsInAShallowClassInstance(UTI instance);
+    virtual void generateForwardDefsForClassInstances(File * fp);
 
-    std::string formatAnInstancesArgValuesAsAString(UTI instance);
-
-    //helpers while deep instantiation
-    bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
-    void mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
-
-    bool cloneInstances(); //i.e. instantiate
-    Node * findNodeNoInAClassInstance(UTI instance, NNO n);
-    void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
-
-    void updateLineageOfClassInstanceUTI(UTI cuti);
-    void checkCustomArraysOfClassInstances();
-
-    void checkAndLabelClassInstances();
-
-    u32 countNavNodesInClassInstances();
-    bool setBitSizeOfClassInstances();
-    void printBitSizeOfClassInstances();
-    void packBitsForClassInstances();
-
-    void testForClassInstances(File * fp);
-
-    void generateCodeForClassInstances(FileManager * fm);
-
-    void generateIncludesForClassInstances(File * fp);
-
-    void generateForwardDefsForClassInstances(File * fp);
-
-    void generateTestInstanceForClassInstances(File * fp, bool runtest);
+    virtual void generateTestInstanceForClassInstances(File * fp, bool runtest);
 
    protected:
 
   private:
-    //ordered class parameters
-    std::vector<SymbolConstantValue *> m_parameterSymbols;  // like named constants; symbols owned by m_ST.
-    std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtr;
-    std::map<UTI, SymbolClass* > m_scalarClassInstanceIdxToSymbolPtrTEMP; //iteration in progress
-    std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set
-    std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
-
-    bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
-    bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
-    void cloneResolverForClassInstance(SymbolClass * csym);
   };
 
 }

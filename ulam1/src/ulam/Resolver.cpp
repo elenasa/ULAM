@@ -478,7 +478,7 @@ namespace MFM {
     NodeBlock * savecurrentblock = m_state.m_currentBlock;
 
     NodeBlockClass * classblock = mycsym->getClassBlockNode();
-    SymbolClassName * templateparent = mycsym->getParentClassTemplate();
+    SymbolClassNameTemplate * templateparent = mycsym->getParentClassTemplate();
     assert(templateparent);
     SymbolClass * contextSym = NULL;
     assert(templateparent->findClassInstanceByUTI(context, contextSym));

@@ -183,7 +183,7 @@ namespace MFM {
 		    SymbolClassName * cnsym = NULL;
 		    UlamType * sut = getUlamTypeByIndex(suti);
 		    assert(alreadyDefinedSymbolClassName(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym));
-		    if(cnsym->getNumberOfParameters() > 0)
+		    if(cnsym->isClassTemplate())
 		      key.append(uti);
 		    else
 		      return suti; //nothing to be done.
@@ -434,8 +434,8 @@ namespace MFM {
     if(sut->isComplete())
       return suti;
 
-    SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    SymbolClassNameTemplate * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassNameTemplate(m_compileThisId, cnsym));
     UTI mappedUTI;
     if(cnsym->hasInstanceMappedUTI(m_compileThisIdx, suti, mappedUTI))
       return mappedUTI;  //e.g. decl list
@@ -447,9 +447,9 @@ namespace MFM {
     if(bUT == Class)
       {
 	assert(alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
-	if(cnsymOfIncomplete->getNumberOfParameters() == 0)
+	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
-	if(!cnsymOfIncomplete->pendingClassArgumentsForShallowClassInstance(suti))
+	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForShallowClassInstance(suti))
 	  return suti;
       }
 
@@ -477,7 +477,7 @@ namespace MFM {
 	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
 
 	//potential for unending process..
-	cnsymOfIncomplete->copyAShallowClassInstance(suti, newuti, m_compileThisIdx);
+	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAShallowClassInstance(suti, newuti, m_compileThisIdx);
       }
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
@@ -530,9 +530,12 @@ namespace MFM {
   {
     UlamType * cut = getUlamTypeByIndex(cuti);
     UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
-    SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
-    assert(alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
-    return cnsymOfIncomplete->constantFoldClassArgumentsInAShallowClassInstance(cuti);
+
+    SymbolClassName * cnsym = NULL; //could be a different class than being compiled
+    assert(alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsym));
+    if(cnsym->isClassTemplate())
+      return ((SymbolClassNameTemplate *) cnsym)->constantFoldClassArgumentsInAShallowClassInstance(cuti);
+    return true; //ok
   } //constantFoldPendingArgsInCurrentContext
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
@@ -928,31 +931,15 @@ namespace MFM {
     return arraysize;
   } //slotsNeeded
 
-  bool CompilerState::getUlamTypeByClassToken(Token ctok, UTI & rtnType)
-  {
-    u32 cidx = getTokenAsATypeNameId(ctok);
-    return getUlamTypeByClassNameId(cidx, rtnType);
-  }
-
-  //returns the "template" UTI
-  bool CompilerState::getUlamTypeByClassNameId(u32 idx, UTI & rtnType)
-  {
-    bool rtnBool = false;
-    SymbolClassName * csymptr = NULL;
-
-    if(alreadyDefinedSymbolClassName(idx, csymptr) || (addIncompleteClassSymbolToProgramTable(idx, csymptr), true) )
-      {
-	rtnType = csymptr->getUlamTypeIdx();
-	rtnBool = true;
-      }
-
-    assert(rtnBool);  //no way it's false!
-    return rtnBool;
-  } //getUlamTypeByClassNameId
-
   bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {
     return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
+  }
+
+  bool CompilerState::alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr)
+  {
+    bool rtnb = m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
+    return rtnb && symptr->isClassTemplate();
   }
 
   void CompilerState::setCompileThisIdx(UTI idx)
@@ -976,10 +963,11 @@ namespace MFM {
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
       {
-	if(cnsym->getUlamTypeIdx() != scalarUTI)
+	// what???
+	if(cnsym->getUlamTypeIdx() != scalarUTI && cnsym->isClassTemplate())
 	  {
 	    SymbolClass * csym = NULL;
-	    if(cnsym->findClassInstanceByUTI(scalarUTI, csym))
+	    if(((SymbolClassNameTemplate *) cnsym)->findClassInstanceByUTI(scalarUTI, csym))
 	      {
 		symptr = csym;
 		rtnb = true;
@@ -1002,8 +990,21 @@ namespace MFM {
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
 
-    // symbol ownership goes to the programDefST;
+    // symbol ownership goes to the programDefST; distinguish between template and regular classes here:
     symptr = new SymbolClassName(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
+    m_programDefST.addToTable(dataindex, symptr);
+  } //addIncompleteClassSymbolToProgramTable
+
+  //temporary UlamType which will be updated during type labeling.
+  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassNameTemplate * & symptr)
+  {
+    assert(!alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
+
+    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
+    UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
+
+    // symbol ownership goes to the programDefST; distinguish between template and regular classes here:
+    symptr = new SymbolClassNameTemplate(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
 
@@ -1014,9 +1015,10 @@ namespace MFM {
     UlamType * ict = getUlamTypeByIndex(incomplete);
     if(alreadyDefinedSymbolClass(incomplete, csym))
       {
-	SymbolClassName * cnsym = csym->getParentClassTemplate();
-	assert(cnsym);
-	//assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
+	//SymbolClassName * cnsym = csym->getParentClassTemplate();
+	//assert(cnsym);
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
 	UTI but = cnsym->getUlamTypeIdx();
 
 	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
@@ -1384,9 +1386,11 @@ namespace MFM {
 
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
-    u32 numParams = cnsym->getNumberOfParameters();
-    if( numParams > 0)
-      f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << m_pool.getDataAsString(m_compileThisId).c_str() << DigitCount(numParams, BASE10) << numParams << "_main.cpp";
+    if(cnsym->isClassTemplate())
+      {
+	u32 numParams = ((SymbolClassNameTemplate *) cnsym)->getNumberOfParameters();
+	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << m_pool.getDataAsString(m_compileThisId).c_str() << DigitCount(numParams, BASE10) << numParams << "_main.cpp";
+      }
     else
       f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";
     return f.str();

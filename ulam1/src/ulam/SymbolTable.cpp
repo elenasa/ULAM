@@ -650,7 +650,8 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-	aok &= ((SymbolClassName *) sym)->statusNonreadyClassArgumentsInShallowClassInstances();
+	if(((SymbolClassName *) sym)->isClassTemplate())
+	  aok &= ((SymbolClassNameTemplate *) sym)->statusNonreadyClassArgumentsInShallowClassInstances();
 	it++;
       } //while
     return aok;
@@ -665,7 +666,8 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-	aok &= ((SymbolClassName *) sym)->cloneInstances();
+	if(((SymbolClassName *) sym)->isClassTemplate())
+	  aok &= ((SymbolClassNameTemplate *) sym)->cloneInstances();
 	it++;
       } //while
     return aok;
