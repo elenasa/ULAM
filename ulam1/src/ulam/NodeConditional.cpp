@@ -17,10 +17,10 @@ namespace MFM {
     m_nodeLeft = NULL;
   }
 
-  void NodeConditional::updateLineage(Node * p)
+  void NodeConditional::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_nodeLeft->updateLineage(this);
+    setYourParentNo(pno);
+    m_nodeLeft->updateLineage(getNodeNo());
   } //updateLineage
 
   bool NodeConditional::findNodeNo(NNO n, Node *& foundNode)

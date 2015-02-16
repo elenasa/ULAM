@@ -50,7 +50,7 @@ namespace MFM{
     NodeBinaryOp(const NodeBinaryOp& ref);
     virtual ~NodeBinaryOp();
 
-    virtual void updateLineage(Node * p);
+    virtual void updateLineage(NNO pno);
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 

@@ -121,7 +121,7 @@ namespace MFM{
 
     bool cloneInstancesInTableOfClasses();
 
-    //void updateLineageForTableOfClasses(); done incrementally
+    void updateLineageForTableOfClasses(); //done incrementally for stubs
 
     void checkCustomArraysForTableOfClasses();
 

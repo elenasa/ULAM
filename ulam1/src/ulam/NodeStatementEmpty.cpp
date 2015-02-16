@@ -13,9 +13,9 @@ namespace MFM {
     return new NodeStatementEmpty(*this);
   }
 
-  void NodeStatementEmpty::updateLineage(Node * p)
+  void NodeStatementEmpty::updateLineage(NNO pno)
   {
-    setYourParent(p);
+    setYourParentNo(pno);
   }//updateLineage
 
   bool NodeStatementEmpty::findNodeNo(NNO n, Node *& foundNode)

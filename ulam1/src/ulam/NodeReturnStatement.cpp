@@ -24,11 +24,11 @@ namespace MFM {
     return new NodeReturnStatement(*this);
   }
 
-  void NodeReturnStatement::updateLineage(Node * p)
+  void NodeReturnStatement::updateLineage(NNO pno)
   {
-    setYourParent(p);
+    setYourParentNo(pno);
     if(m_node)
-      m_node->updateLineage(this);
+      m_node->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeReturnStatement::findNodeNo(NNO n, Node *& foundNode)

@@ -673,7 +673,7 @@ namespace MFM {
     return aok;
   } //cloneInstancesInTableOfClasses
 
-#if 0
+
   // done after cloning and before checkandlabel;
   // blocks without prevblocks set, are linked to prev block;
   // used for searching for missing symbols in STs during c&l.
@@ -686,11 +686,11 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 
-	((SymbolClassName *) sym)->updateLineageOfClassInstances();
+	((SymbolClassName *) sym)->updateLineageOfClass();
 	it++;
       } //while
   } //updateLineageForTableOfClasses
-#endif
+
 
   void SymbolTable::checkCustomArraysForTableOfClasses()
   {

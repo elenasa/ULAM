@@ -89,9 +89,8 @@ namespace MFM {
     return "0";
   }
 
-  void SymbolClassName::updateLineageOfClassInstanceUTI(UTI instance)
+  void SymbolClassName::updateLineageOfClass()
   {
-    assert(getUlamTypeIdx() == instance);
     NodeBlockClass * saveclassnode = m_state.m_classBlock;
     NodeBlock * saveblocknode = m_state.m_currentBlock;
     UTI savecompilethisidx = m_state.m_compileThisIdx;
@@ -100,11 +99,11 @@ namespace MFM {
     m_state.m_classBlock = classNode;
     m_state.m_currentBlock = m_state.m_classBlock;
     m_state.setCompileThisIdx(getUlamTypeIdx());
-    classNode->updateLineage(NULL);
+    classNode->updateLineage(0);
     m_state.m_classBlock = saveclassnode; //restore
     m_state.m_currentBlock = saveblocknode;
     m_state.setCompileThisIdx(savecompilethisidx);
-  } //updateLineageOfClassInstanceUTI
+  } //updateLineageOfClass
 
   void SymbolClassName::checkCustomArraysOfClassInstances()
   {

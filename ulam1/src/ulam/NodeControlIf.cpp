@@ -24,11 +24,11 @@ namespace MFM {
     return new NodeControlIf(*this);
   }
 
-  void NodeControlIf::updateLineage(Node * p)
+  void NodeControlIf::updateLineage(NNO pno)
   {
-    NodeControl::updateLineage(p);
+    NodeControl::updateLineage(pno);
     if(m_nodeElse)
-      m_nodeElse->updateLineage(this);
+      m_nodeElse->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeControlIf::findNodeNo(NNO n, Node *& foundNode)

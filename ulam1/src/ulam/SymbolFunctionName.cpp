@@ -222,14 +222,14 @@ namespace MFM {
 
   void SymbolFunctionName::linkToParentNodesInFunctionDefs(NodeBlockClass * p)
   {
+    NNO pno = p->getNodeNo();
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
-	func->updateLineage(p);
+	func->updateLineage(pno);
 	++it;
       }
   } //linkToParentNodesInFunctionDefs
