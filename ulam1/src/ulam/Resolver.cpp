@@ -481,7 +481,7 @@ namespace MFM {
     SymbolClassName * templateparent = mycsym->getParentClassTemplate();
     assert(templateparent);
     SymbolClass * contextSym = NULL;
-    assert(templateparent->findAClassInstance(context, contextSym));
+    assert(templateparent->findClassInstanceByUTI(context, contextSym));
 
     std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
     while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
@@ -491,7 +491,6 @@ namespace MFM {
 
 	Symbol * cvsym = NULL;
 	assert(classblock->isIdInScope(cloneNode->getSymbolId(), cvsym));
-	//cloneNode->setBlockNo(classblock->getNodeNo()); //reset to own ST for its SCV symbol; expression has it's own context.
 	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
 	cloneNode->setBlock(classblock); //reset to own ST for its SCV symbol; expression has it's own context.
 
@@ -506,7 +505,7 @@ namespace MFM {
 	  linkConstantExpressionForPendingArg(cloneNode);
 
 	m_state.setCompileThisIdx(savecompilethisidx); //restore
-	m_state.m_classBlock = saveclassblock; //restore
+	m_state.m_classBlock = saveclassblock;
 	m_state.m_currentBlock = savecurrentblock;
 
 	vit++;

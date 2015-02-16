@@ -18,18 +18,15 @@ namespace MFM {
     return "as";
   }
 
-
   const std::string NodeConditionalAs::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   const std::string NodeConditionalAs::methodNameForCodeGen()
   {
     return  std::string(m_state.getAsMangledFunctionName(m_nodeLeft->getNodeType(), m_utypeRight));
   }
-
 
   UTI NodeConditionalAs::checkAndLabelType()
   {
@@ -49,7 +46,6 @@ namespace MFM {
 	newType = Nav;
       }
 
-    //UTI ruti = m_state.getUlamTypeFromToken(m_typeTok, 0, NONARRAYSIZE);  //name-based, sizes ignored
     UTI ruti = m_utypeRight;
     assert(m_state.isScalar(ruti));
 
@@ -62,13 +58,19 @@ namespace MFM {
 	newType = Nav;
       }
 
-    //m_utypeRight = ruti;
+    //    if(!m_state.constantFoldPendingArgs(ruti))
+    if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
+      {
+	std::ostringstream msg;
+	msg << "RHS of conditional operator '" << getName() << "' type: " << m_state.getUlamTypeNameByIndex(ruti).c_str() << "; has pending arguments found while labeling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	newType = Nav;
+      }
 
     setNodeType(newType);
     setStoreIntoAble(false);
     return getNodeType();
   } //checkAndLabelType
-
 
   EvalStatus  NodeConditionalAs::eval()
   {
@@ -138,7 +140,6 @@ namespace MFM {
     return evs;
   } //eval
 
-
   void NodeConditionalAs::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft);
@@ -154,13 +155,10 @@ namespace MFM {
     return;
   } //genCode
 
-
   void NodeConditionalAs::genCodeAsQuark(File * fp, UlamValue& uvpass)
   {
     UTI nuti = getNodeType();
     UlamType * rut = m_state.getUlamTypeByIndex(m_utypeRight);
-    //ULAMCLASSTYPE rclasstype = rut->getUlamClass();
-
     s32 tmpVarAs = m_state.getNextTmpVarNumber();
 
     UlamValue luvpass;
@@ -216,7 +214,6 @@ namespace MFM {
     m_state.m_genCodingConditionalAs = true;
     //m_state.m_currentObjSymbolsForCodeGen.clear();  //clear remnant of lhs ???
   } //genCodeAsQuark
-
 
   void NodeConditionalAs::genCodeAsElement(File * fp, UlamValue& uvpass)
   {
