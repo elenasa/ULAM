@@ -58,7 +58,7 @@ namespace MFM{
     virtual UTI checkAndLabelType();
 
     NNO getBlockNo();
-    void setBlock();
+    NodeBlock * getBlock();
 
     virtual EvalStatus eval();
 
@@ -75,7 +75,6 @@ namespace MFM{
   private:
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate
-    NodeBlock * m_currBlock;
     NNO m_currBlockNo;
   };
 

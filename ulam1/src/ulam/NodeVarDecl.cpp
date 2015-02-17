@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlock(NULL), m_currBlockNo(0)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlockNo(0)
   {
     if(sym)
       {
@@ -17,7 +17,7 @@ namespace MFM {
       }
   }
 
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeVarDecl::~NodeVarDecl() {}
 
@@ -67,14 +67,13 @@ namespace MFM {
       {
 	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
 	//in case of a cloned unknown
-	if(m_currBlock == NULL)
-	  setBlock();
+	NodeBlock * currBlock = getBlock();
 
 	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
 	bool saveUseMemberBlock = m_state.m_useMemberBlock;
 	m_state.m_useMemberBlock = false;
 
-	m_state.m_currentBlock = m_currBlock; //before lookup
+	m_state.m_currentBlock = currBlock; //before lookup
 
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
@@ -158,11 +157,12 @@ namespace MFM {
     return m_currBlockNo;
   }
 
-  void NodeVarDecl::setBlock()
+  NodeBlock * NodeVarDecl::getBlock()
   {
     assert(m_currBlockNo);
-    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(m_currBlock);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(currBlock);
+    return currBlock;
   }
 
   void NodeVarDecl::packBitsInOrderOfDeclaration(u32& offset)

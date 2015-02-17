@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlock(NULL),  m_currBlockNo(0)
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlockNo(0)
   {
     if(sym)
       {
@@ -14,7 +14,7 @@ namespace MFM {
       }
   }
 
-  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeTypedef::~NodeTypedef() {}
 
@@ -62,14 +62,13 @@ namespace MFM {
       {
 	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
 	//in case of a cloned unknown
-	if(m_currBlock == NULL)
-	  setBlock();
+	NodeBlock * currBlock = getBlock();
 
 	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
 	bool saveUseMemberBlock = m_state.m_useMemberBlock;
 	m_state.m_useMemberBlock = false;
 
-	m_state.m_currentBlock = m_currBlock; //before lookup
+	m_state.m_currentBlock = currBlock; //before lookup
 
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
@@ -133,11 +132,12 @@ namespace MFM {
     return m_currBlockNo;
   }
 
-  void NodeTypedef::setBlock()
+  NodeBlock * NodeTypedef::getBlock()
   {
     assert(m_currBlockNo);
-    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(m_currBlock);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(currBlock);
+    return currBlock;
   }
 
   EvalStatus NodeTypedef::eval()

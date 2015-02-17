@@ -492,7 +492,7 @@ namespace MFM {
 	Symbol * cvsym = NULL;
 	assert(classblock->isIdInScope(cloneNode->getSymbolId(), cvsym));
 	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
-	cloneNode->setBlock(classblock); //reset to own ST for its SCV symbol; expression has it's own context.
+	//cloneNode->setBlock(classblock); //reset to own ST for its SCV symbol; expression has it's own context.
 
 	//set context and try to resolve all context-dependent arg expressions..
 	m_state.m_classBlock = contextSym->getClassBlockNode();

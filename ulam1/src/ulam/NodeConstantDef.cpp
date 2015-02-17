@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlock(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
+  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
   {
     if(symptr)
       {
@@ -16,7 +16,7 @@ namespace MFM {
       m_cid = 0; //error
   }
 
-  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo), m_cid(ref.m_cid)
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlockNo(ref.m_currBlockNo), m_cid(ref.m_cid)
   {
     if(ref.m_exprnode)
       m_exprnode = ref.m_exprnode->instantiate();
@@ -38,7 +38,7 @@ namespace MFM {
   void NodeConstantDef::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    m_currBlock = m_state.m_currentBlock; //do it now
+    //    m_currBlock = m_state.m_currentBlock; //do it now
     assert(m_state.getCurrentBlockNo() == m_currBlockNo);
     m_exprnode->updateLineage(getNodeNo());
   }//updateLineage
@@ -95,15 +95,15 @@ namespace MFM {
     if(m_constSymbol == NULL)
       {
 	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
+
 	//in case of a cloned unknown
-	if(m_currBlock == NULL)
-	  setBlock();
+	NodeBlock * currBlock = getBlock();
 
 	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
 	bool saveUseMemberBlock = m_state.m_useMemberBlock;
 	m_state.m_useMemberBlock = false;
 
-	m_state.m_currentBlock = m_currBlock; //before lookup
+	m_state.m_currentBlock = currBlock; //before lookup
 
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_cid, asymptr))
@@ -159,18 +159,12 @@ namespace MFM {
     m_currBlockNo = n;
   }
 
-  void NodeConstantDef::setBlock()
+  NodeBlock * NodeConstantDef::getBlock()
   {
     assert(m_currBlockNo);
-    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(m_currBlock);
-  }
-
-  void NodeConstantDef::setBlock(NodeBlock * currblock)
-  {
-    assert(currblock);
-    assert(m_currBlockNo == currblock->getNodeNo());
-    m_currBlock = currblock;
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(currBlock);
+    return currBlock;
   }
 
   void NodeConstantDef::setConstantExpr(Node * node)

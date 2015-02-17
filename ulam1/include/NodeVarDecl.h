@@ -66,7 +66,7 @@ namespace MFM{
     virtual UTI checkAndLabelType();
 
     NNO getBlockNo();
-    void setBlock();
+    NodeBlock * getBlock();
 
     virtual EvalStatus eval();
 
@@ -77,7 +77,6 @@ namespace MFM{
   private:
     SymbolVariable * m_varSymbol;
     u32 m_vid; // to instantiate
-    NodeBlock * m_currBlock;
     NNO m_currBlockNo;
 
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);

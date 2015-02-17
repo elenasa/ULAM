@@ -9,13 +9,13 @@
 
 namespace MFM {
 
-  NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlock(NULL), m_currBlockNo(0)
+  NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlockNo(0)
   {
     if(symptr)
       m_currBlockNo = symptr->getBlockNoOfST();
   }
 
-  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL) /* shallow */, m_currBlock(NULL), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL) /* shallow */, m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeIdent::~NodeIdent(){}
 
@@ -75,15 +75,13 @@ namespace MFM {
 	      m_currBlockNo = m_state.m_currentBlock->getNodeNo();
 	  }
 
-	//in case of a cloned unknown
-	if(m_currBlock == NULL)
-	  setBlock();
+	NodeBlock * currBlock = getBlock();
 
 	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
 	bool saveUseMemberBlock = m_state.m_useMemberBlock;
 	m_state.m_useMemberBlock = false;
 
-	m_state.m_currentBlock = m_currBlock; //before lookup
+	m_state.m_currentBlock = currBlock; //before lookup
 
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
@@ -127,11 +125,12 @@ namespace MFM {
     return m_currBlockNo;
   }
 
-  void NodeIdent::setBlock()
+  NodeBlock * NodeIdent::getBlock()
   {
     assert(m_currBlockNo);
-    m_currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
-    assert(m_currBlock);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(currBlock);
+    return currBlock;
   }
 
   EvalStatus NodeIdent::eval()

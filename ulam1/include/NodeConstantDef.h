@@ -64,7 +64,9 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
+
     void setSymbolPtr(SymbolConstantValue * cvsymptr);
+
     u32 getSymbolId();
 
     virtual UTI checkAndLabelType();
@@ -72,10 +74,10 @@ namespace MFM{
     virtual void countNavNodes(u32& cnt);
 
     NNO getBlockNo();
+
     void setBlockNo(NNO n);
 
-    void setBlock();
-    void setBlock(NodeBlock * currblock);
+    NodeBlock * getBlock();
 
     void setConstantExpr(Node * node);
 
@@ -88,7 +90,6 @@ namespace MFM{
   private:
     SymbolConstantValue * m_constSymbol;
     Node * m_exprnode;
-    NodeBlock * m_currBlock;
     NNO m_currBlockNo;
     u32 m_cid; //to instantiate
   };
