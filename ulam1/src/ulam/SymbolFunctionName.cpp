@@ -196,14 +196,14 @@ namespace MFM {
 		  {
 		    msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
 		  }
-		msg << "and cannot be called in class: " << m_state.getUlamTypeByIndex(m_state.m_compileThisIdx)->getUlamTypeNameOnly().c_str();
+		msg << "and cannot be called in class: " << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
 		MSG("", msg.str().c_str(), ERR);
 		probcount++;
 	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' FOUND in class: " << m_state.getUlamTypeByIndex(m_state.m_compileThisIdx)->getUlamTypeNameOnly().c_str();
+		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' FOUND in class: " << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
 		MSG("", msg.str().c_str(), DEBUG);
 	      }
 	    argTypes.clear();
@@ -211,7 +211,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' NOT FOUND in class: " << m_state.getUlamTypeByIndex(m_state.m_compileThisIdx)->getUlamTypeNameOnly().c_str();
+	    msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' NOT FOUND in class: " << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
 	    MSG("", msg.str().c_str(), WARN);
 	  }
 	++it;
@@ -300,7 +300,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << countNavs << " nodes with illegal 'Nav' types remain in all functions <";
 	msg << m_state.m_pool.getDataAsString(getId());
-	msg << "> in class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	msg << "> in class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG("", msg.str().c_str(), WARN);
       }
 #if 0

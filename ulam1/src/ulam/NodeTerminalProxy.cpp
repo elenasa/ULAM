@@ -137,7 +137,7 @@ namespace MFM {
     if(!m_state.isComplete(m_uti))
       {
 	std::ostringstream msg;
-	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown for its <" << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str() << "> while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown for its <" << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str() << "> while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	//rtnb = false; don't want to stop after parsing.
       }
@@ -147,14 +147,14 @@ namespace MFM {
 	if(!setConstantValue(m_funcTok))
 	  {
 	    std::ostringstream msg;
-	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " constant value for its <" << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str() << "> is still incomplete and unknown while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " constant value for its <" << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str() << "> is still incomplete and unknown while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Yippee! Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " (UTI" << getNodeType() << ") is KNOWN (=" << m_constant.uval << ") while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	    msg << "Yippee! Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " (UTI" << getNodeType() << ") is KNOWN (=" << m_constant.uval << ") while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
 	  }
       }

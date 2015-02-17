@@ -65,15 +65,9 @@ namespace MFM {
     // instantiate, look up in current block
     if(m_varSymbol == NULL)
       {
-	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
 	//in case of a cloned unknown
 	NodeBlock * currBlock = getBlock();
-
-	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
-	bool saveUseMemberBlock = m_state.m_useMemberBlock;
-	m_state.m_useMemberBlock = false;
-
-	m_state.m_currentBlock = currBlock; //before lookup
+	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
@@ -95,9 +89,7 @@ namespace MFM {
 	    msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      	m_state.m_currentBlock = savecurrentblock; //restore
-	m_state.m_useMemberBlock = saveUseMemberBlock;
-	m_state.m_currentMemberClassBlock = savememberclassblock;
+	m_state.popClassContext(); //restore
       } //to instantiate
 
     if(m_varSymbol)
@@ -110,9 +102,10 @@ namespace MFM {
 	  {
 	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {
+		UTI cuti = m_state.getCompileThisIdx();
 		std::ostringstream msg;
-		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
-		if(m_state.getUlamTypeByIndex(m_state.m_compileThisIdx)->isComplete())
+		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+		if(m_state.getUlamTypeByIndex(cuti)->isComplete())
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
@@ -123,9 +116,10 @@ namespace MFM {
 	  {
 	    if(!m_state.constantFoldPendingArgs(it))
 	      {
+		UTI cuti = m_state.getCompileThisIdx();
 		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str() << ", class arguments pending";
-		if(m_state.getUlamTypeByIndex(m_state.m_compileThisIdx)->isComplete())
+		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(cuti).c_str() << ", class arguments pending";
+		if(m_state.getUlamTypeByIndex(cuti)->isComplete())
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
@@ -138,9 +132,10 @@ namespace MFM {
 	    tdut = m_state.getUlamTypeByIndex(it); //reload
 	    if(!tdut->isComplete())
 	      {
+		UTI cuti = m_state.getCompileThisIdx();
 		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
-		if(m_state.getUlamTypeByIndex(m_state.m_compileThisIdx)->isComplete())
+		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+		if(m_state.getUlamTypeByIndex(cuti)->isComplete())
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);

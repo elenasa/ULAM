@@ -61,9 +61,6 @@ namespace MFM {
 
     //might be related to m_currentSelfPtr?
     //member selection doesn't apply to arguments
-    bool saveUseMemberBlock = m_state.m_useMemberBlock;
-    NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
-
     //look up in class block, and match argument types to parameters
     SymbolFunction * funcSymbol = NULL;
     Symbol * fnsymptr = NULL;
@@ -74,7 +71,8 @@ namespace MFM {
 
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
-	m_state.m_useMemberBlock = false;   //doesn't apply to arguments!
+        //use member block doesn't apply to arguments; no change to current block
+	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock());
 
 	for(u32 i = 0; i < m_argumentNodes.size(); i++)
 	  {
@@ -84,6 +82,8 @@ namespace MFM {
 	    if(m_state.isConstant(argtype))
 	      constantArgs++;
 	  }
+
+	m_state.popClassContext(); //restore here
 
 	// still need to pinpoint the SymbolFunction for m_funcSymbol! currently requires exact match
 	// (let constant match any size of same type)
@@ -150,10 +150,6 @@ namespace MFM {
 	    assert(argsWithCast == constantArgs);
 	  } //constants
       } // no errors found
-
-    m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
-    m_state.m_currentMemberClassBlock = saveMemberClassBlock;
-
     return it;
   } //checkAndLabelType
 

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include "ClassContext.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
 #include "SymbolTable.h"
@@ -52,7 +53,7 @@ namespace MFM {
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<CC>::PositionOfDataMember";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
@@ -427,7 +428,7 @@ namespace MFM {
   } //updateUlamKeyTypeSignatureToaUTI
 
   // called by Symbol's copy constructor with ref's 'incomplete' uti
-  //please set m_compileThisIdx to the instance's UTI.
+  //please set getCompileThisIdx() to the instance's UTI.
   UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
   {
     UlamType * sut = getUlamTypeByIndex(suti);
@@ -435,9 +436,9 @@ namespace MFM {
       return suti;
 
     SymbolClassNameTemplate * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassNameTemplate(m_compileThisId, cnsym));
+    assert(alreadyDefinedSymbolClassNameTemplate(getCompileThisId(), cnsym));
     UTI mappedUTI;
-    if(cnsym->hasInstanceMappedUTI(m_compileThisIdx, suti, mappedUTI))
+    if(cnsym->hasInstanceMappedUTI(getCompileThisIdx(), suti, mappedUTI))
       return mappedUTI;  //e.g. decl list
 
     // move this test after looking for the mapped class symbol type
@@ -463,7 +464,7 @@ namespace MFM {
 
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
     UTI newuti = makeUlamType(newkey,bUT);
-    cnsym->mapInstanceUTI(m_compileThisIdx, suti, newuti);
+    cnsym->mapInstanceUTI(getCompileThisIdx(), suti, newuti);
 
     if(bUT == Class)
       {
@@ -477,7 +478,7 @@ namespace MFM {
 	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
 
 	//potential for unending process..
-	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAShallowClassInstance(suti, newuti, m_compileThisIdx);
+	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAShallowClassInstance(suti, newuti, getCompileThisIdx());
       }
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
@@ -487,7 +488,7 @@ namespace MFM {
     if(ceNode)
       {
 	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
 	cnsym->linkUnknownBitsizeConstantExpression(uti, ceNode);
       }
   } //linkConstantExpression (bitsize)
@@ -495,7 +496,7 @@ namespace MFM {
   void CompilerState::cloneAndLinkConstantExpression(UTI fromuti, UTI touti)
   {
     SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     cnsym->linkUnknownBitsizeConstantExpression(fromuti, touti);
   } //linkConstantExpression (bitsize in decllist)
 
@@ -504,7 +505,7 @@ namespace MFM {
     if(ceNode)
       {
 	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
 	cnsym->linkUnknownArraysizeConstantExpression(uti, ceNode);
       }
   } //linkConstantExpression (arraysize)
@@ -514,7 +515,7 @@ namespace MFM {
     if(ceNode)
       {
 	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
 	cnsym->linkUnknownNamedConstantExpression(ceNode);
       }
   } //linkConstantExpression (named constant)
@@ -522,8 +523,8 @@ namespace MFM {
   void CompilerState::constantFoldIncompleteUTI(UTI auti)
   {
     SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
-    cnsym->constantFoldIncompleteUTIOfClassInstance(m_compileThisIdx, auti);
+    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+    cnsym->constantFoldIncompleteUTIOfClassInstance(getCompileThisIdx(), auti);
   }
 
   bool CompilerState::constantFoldPendingArgs(UTI cuti)
@@ -942,13 +943,6 @@ namespace MFM {
     return rtnb && symptr->isClassTemplate();
   }
 
-  void CompilerState::setCompileThisIdx(UTI idx)
-  {
-    // keep in sync
-    m_compileThisIdx = idx;
-    m_compileThisId = getUlamTypeByIndex(idx)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-  }
-
   //if necessary, searches for instance of class "template" with matching SCALAR uti
   bool CompilerState::alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr)
   {
@@ -1058,11 +1052,11 @@ namespace MFM {
 
     // start with the current "top" block and look down the stack
     // until the 'variable id' is found.
-    NodeBlock * blockNode = m_currentBlock;
+    NodeBlock * blockNode = getCurrentBlock();
 
     // substitute another selected class block to search for data member
-    if(m_useMemberBlock)
-      blockNode = m_currentMemberClassBlock;
+    if(useMemberBlock())
+      blockNode = getCurrentMemberClassBlock();
 
     while(!brtn && blockNode)
       {
@@ -1082,13 +1076,14 @@ namespace MFM {
   bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
-    if(m_useMemberBlock)
+    if(useMemberBlock())
       {
-	if(m_currentMemberClassBlock)
-	  brtn = m_currentMemberClassBlock->isFuncIdInScope(dataindex,symptr);
+	NodeBlockClass * memberblock = getCurrentMemberClassBlock();
+	if(memberblock)
+	  brtn = memberblock->isFuncIdInScope(dataindex,symptr);
       }
     else
-      brtn = m_classBlock->isFuncIdInScope(dataindex,symptr);
+      brtn = getClassBlock()->isFuncIdInScope(dataindex,symptr);
 
     return brtn;
   } //isFuncIdInClassScope
@@ -1096,13 +1091,14 @@ namespace MFM {
   bool CompilerState::isIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
-    if(m_useMemberBlock)
+    if(useMemberBlock())
       {
-	if(m_currentMemberClassBlock)
-	  brtn = m_currentMemberClassBlock->isIdInScope(dataindex,symptr);
+	NodeBlockClass * memberblock = getCurrentMemberClassBlock();
+	if(memberblock)
+	  brtn = memberblock->isIdInScope(dataindex,symptr);
       }
     else
-      brtn = m_classBlock->isIdInScope(dataindex,symptr);
+      brtn = getClassBlock()->isIdInScope(dataindex,symptr);
 
     return brtn;
   } //isIdInClassScope
@@ -1110,26 +1106,26 @@ namespace MFM {
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
   {
-    m_currentBlock->addIdToScope(symptr->getId(), symptr);
+    getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
   }
 
   //symbol ownership goes to the current block (end of vector);
   // symbol is same, just id changed
   void CompilerState::replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr)
   {
-    m_currentBlock->replaceIdInScope(oldid, symptr->getId(), symptr);
+    getCurrentBlock()->replaceIdInScope(oldid, symptr->getId(), symptr);
   }
 
   //deletes the oldsym, id's must be identical
   void CompilerState::replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym)
   {
-    m_currentBlock->replaceIdInScope(oldsym, newsym);
+    getCurrentBlock()->replaceIdInScope(oldsym, newsym);
   }
 
   //symbol ownership goes to the caller;
   bool CompilerState::takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr)
   {
-    return m_currentBlock->removeIdFromScope(id, rtnsymptr);
+    return getCurrentBlock()->removeIdFromScope(id, rtnsymptr);
   }
 
   //Token to location as string:
@@ -1332,7 +1328,7 @@ namespace MFM {
 
   std::string CompilerState::getFileNameForThisClassHeader(bool wSubDir)
   {
-    return getFileNameForAClassHeader(m_compileThisIdx, wSubDir);
+    return getFileNameForAClassHeader(getCompileThisIdx(), wSubDir);
   }
 
   std::string CompilerState::getFileNameForThisClassBody(bool wSubDir)
@@ -1385,11 +1381,11 @@ namespace MFM {
       f << "src/";
 
     SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
+    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     if(cnsym->isClassTemplate())
       {
 	u32 numParams = ((SymbolClassNameTemplate *) cnsym)->getNumberOfParameters();
-	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << m_pool.getDataAsString(m_compileThisId).c_str() << DigitCount(numParams, BASE10) << numParams << "_main.cpp";
+	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << m_pool.getDataAsString(getCompileThisId()).c_str() << DigitCount(numParams, BASE10) << numParams << "_main.cpp";
       }
     else
       f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";
@@ -1404,8 +1400,8 @@ namespace MFM {
 
   UTI CompilerState::getUlamTypeForThisClass()
   {
-    return m_compileThisIdx;
-    //Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    return getCompileThisIdx();
+    //Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId());
     //assert(csym);
     //return csym->getUlamTypeIdx();
   } //getUlamTypeForThisClass
@@ -1608,7 +1604,7 @@ namespace MFM {
 
   bool CompilerState::thisClassHasTheTestMethod()
   {
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
+    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
     NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
     assert(classNode);
     NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
@@ -1617,7 +1613,7 @@ namespace MFM {
 
   bool CompilerState::thisClassIsAQuark()
   {
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId());
     UTI cuti = csym->getUlamTypeIdx();
     return(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK);
   } //thisClassIsAQuark
@@ -1631,7 +1627,7 @@ namespace MFM {
     Coord c0(0,0);
 
     //m_classBlock ok now, reset by NodeProgram after type label done
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
+    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
     UTI cuti = csym->getUlamTypeIdx();
 
     m_eventWindow.setSiteElementType(c0, cuti);
@@ -1795,16 +1791,16 @@ namespace MFM {
 
   NNO CompilerState::getCurrentBlockNo()
   {
-    if(m_currentBlock)
-      return m_currentBlock->getNodeNo();
+    if(getCurrentBlock())
+      return getCurrentBlock()->getNodeNo();
     return 0; //genesis of class
   }
 
   Node * CompilerState::findNodeNoInThisClass(NNO n)
   {
-    if(m_useMemberBlock)
+    if(useMemberBlock())
       {
-	UTI mbuti = m_currentMemberClassBlock->getNodeType();
+	UTI mbuti = getCurrentMemberClassBlock()->getNodeType();
 	u32 mbid = getUlamTypeByIndex(mbuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
 	SymbolClassName * cnsym = NULL;
 	assert(alreadyDefinedSymbolClassName(mbid, cnsym));
@@ -1812,12 +1808,92 @@ namespace MFM {
       }
 
     // beware the classblock is the only block with different node no in SHALLOW instances
-    if(m_currentBlock->getNodeNo() == n && m_classBlock->getNodeType() == m_compileThisIdx)
-      return m_currentBlock; //avoid chix-n-egg with functiondefs
+    if(getCurrentBlock()->getNodeNo() == n && getClassBlock()->getNodeType() == getCompileThisIdx())
+      return getCurrentBlock(); //avoid chix-n-egg with functiondefs
 
     SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(m_compileThisId, cnsym));
-    return cnsym->findNodeNoInAClassInstance(m_compileThisIdx, n);
+    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+    return cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
   } //findNodeNo
+
+  u32 CompilerState::getCompileThisId()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getCompileThisId();
+  }
+
+  UTI CompilerState::getCompileThisIdx()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getCompileThisIdx();
+  }
+
+  NodeBlock * CompilerState::getCurrentBlock()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getCurrentBlock();
+  }
+
+  NodeBlockClass * CompilerState::getClassBlock()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getClassBlock();
+  }
+
+  bool CompilerState::useMemberBlock()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.useMemberBlock();
+  }
+
+  NodeBlockClass * CompilerState::getCurrentMemberClassBlock()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getCurrentMemberClassBlock();
+  }
+
+  void CompilerState::pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockClass * classblock, bool usemember, NodeBlockClass * memberblock)
+  {
+    u32 id = getUlamTypeByIndex(idx)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+    ClassContext cc(id, idx, currblock, classblock, usemember, memberblock); //new
+    m_classContextStack.pushClassContext(cc);
+  }
+
+  void CompilerState::popClassContext()
+  {
+    m_classContextStack.popClassContext();
+  }
+
+  void CompilerState::pushCurrentBlock(NodeBlock * currblock)
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    cc.setCurrentBlock(currblock); //could be NULL
+    m_classContextStack.pushClassContext(cc);
+  }
+
+  void CompilerState::pushCurrentBlockAndDontUseMemberBlock(NodeBlock * currblock)
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    cc.setCurrentBlock(currblock);
+    cc.useMemberBlock(false);
+    m_classContextStack.pushClassContext(cc);
+  }
+
+  void CompilerState::pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock)
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    cc.setCurrentMemberClassBlock(memberblock);
+    cc.useMemberBlock(true);
+    m_classContextStack.pushClassContext(cc);
+  }
 
 } //end MFM

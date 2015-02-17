@@ -247,26 +247,19 @@ namespace MFM {
   bool SymbolClassNameTemplate::statusUnknownConstantExpressionsInClassInstances()
   {
     bool aok = true; //all done
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	UTI suti = csym->getUlamTypeIdx(); //this instance
-	m_state.setCompileThisIdx(suti);
+	assert(csym);
 	NodeBlockClass * classNode = csym->getClassBlockNode();
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	assert(classNode);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	aok &= csym->statusUnknownConstantExpressions();
+	m_state.popClassContext(); //restore
 	it++;
       }
-    //restore
-    m_state.m_classBlock = saveClassNode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
     return aok;
   } //statusUnknownConstantExpressionsInClassInstances
 
@@ -315,8 +308,7 @@ namespace MFM {
       {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	//format values into stream
 	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
@@ -374,10 +366,9 @@ namespace MFM {
 	      }
 	    pit++;
 	  } //next param
+
+	m_state.popClassContext(); //restore
       }
-    //restore
-    m_state.m_classBlock = getClassBlockNode();
-    m_state.m_currentBlock = m_state.m_classBlock;
     return args.str();
   } //formatAnInstancesArgValuesAsAString
 
@@ -427,7 +418,7 @@ namespace MFM {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return true;
 
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
+    //UTI savecompilethisidx = m_state.m_compileThisIdx;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -461,9 +452,16 @@ namespace MFM {
 	  }
 
 	// first time for this cuti, and ready args!
-	m_state.setCompileThisIdx(cuti);
+	//m_state.setCompileThisIdx(cuti);
+	m_state.pushClassContext(cuti, NULL, NULL, false, NULL);
 	mapInstanceUTI(cuti, getUlamTypeIdx(), cuti); // map template->instance instead of fudging.
 	SymbolClass * clone = new SymbolClass(*this); //sets deep flag
+
+	//at this point we have a NodeBlockClass! update the context
+	NodeBlockClass * classNode = clone->getClassBlockNode();
+	assert(classNode);
+	m_state.popClassContext();
+	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	takeAnInstancesArgValues(csym, clone); //instead of keeping template's unknown values
 
@@ -474,6 +472,7 @@ namespace MFM {
 	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
 	//updateLineageOfClassInstanceUTI(cuti); nno-based now
 	cloneResolverForClassInstance(clone);
+	m_state.popClassContext(); //restore
 	it++;
       } //while
 
@@ -504,25 +503,22 @@ namespace MFM {
 	m_scalarClassInstanceIdxToSymbolPtrTEMP.clear();
       } //end temp stuff
 
-    m_state.setCompileThisIdx(savecompilethisidx); //restore
+    //m_state.setCompileThisIdx(savecompilethisidx); //restore
     return aok;
   } //cloneInstances
 
   Node * SymbolClassNameTemplate::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
     Node * foundNode = NULL;
-    NodeBlockClass * saveclassblock = m_state.m_classBlock;
-    NodeBlock * savecurrentblock = m_state.m_currentBlock;
 
     if(getUlamTypeIdx() == instance)
       {
 	NodeBlockClass * classNode = getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
 	classNode->findNodeNo(n, foundNode);
-	m_state.m_classBlock = saveclassblock; //restore
-	m_state.m_currentBlock = savecurrentblock;
+	m_state.popClassContext(); //restore
 	return foundNode;
       }
 
@@ -531,8 +527,7 @@ namespace MFM {
       {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	// classblock node no is NOT the same across instances,
 	// unlike ALL the other node blocks. sigh.
@@ -540,90 +535,72 @@ namespace MFM {
 	  foundNode = classNode;
 	else
 	  classNode->findNodeNo(n, foundNode);
-      }
 
-    m_state.m_classBlock = saveclassblock; //restore
-    m_state.m_currentBlock = savecurrentblock;
+	m_state.popClassContext(); //restore
+      }
     return foundNode;
   } //findNodeNoInAClassInstance
 
   void SymbolClassNameTemplate::constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti)
   {
-    NodeBlockClass * saveclassnode = m_state.m_classBlock;
-    NodeBlock * saveblocknode = m_state.m_currentBlock;
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
       {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
 	csym->constantFoldIncompleteUTI(auti); //do this instance
+	m_state.popClassContext(); //restore
       }
-    m_state.m_classBlock = saveclassnode; //restore
-    m_state.m_currentBlock = saveblocknode;
   } //constantFoldIncompleteUTIOfClassInstance
 
   void SymbolClassNameTemplate::updateLineageOfClassInstanceUTI(UTI instance)
   {
-    NodeBlockClass * saveclassnode = m_state.m_classBlock;
-    NodeBlock * saveblocknode = m_state.m_currentBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
       {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(instance);
+	assert(csym->getUlamTypeIdx() == instance);
+	m_state.pushClassContext(instance, classNode, classNode, false, NULL);
+
 	classNode->updateLineage(0); //do this instance
+	m_state.popClassContext(); //restore
       }
-    m_state.m_classBlock = saveclassnode; //restore
-    m_state.m_currentBlock = saveblocknode;
-    m_state.setCompileThisIdx(savecompilethisidx);
   } //updateLineageOfClassInstanceUTI
 
   void SymbolClassNameTemplate::checkCustomArraysOfClassInstances()
   {
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(csym->getUlamTypeIdx());
 	classNode->checkCustomArrayTypeFunctions(); //do each instance
+	m_state.popClassContext(); //restore
 	it++;
       }
-    m_state.m_classBlock = saveClassNode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
   } //checkCustomArraysOfClassInstances()
 
   void SymbolClassNameTemplate::checkAndLabelClassInstances()
   {
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     // only need to c&l the unique class instances that have been deeply copied
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
 	if(csym->isDeep())
 	  {
-	    m_state.m_classBlock = classNode;
-	    m_state.m_currentBlock = m_state.m_classBlock;
-	    m_state.setCompileThisIdx(csym->getUlamTypeIdx()); //this instance
+	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
 	    classNode->checkAndLabelType(); //do each instance
+	    m_state.popClassContext(); //restore
 	  }
 	else
 	  {
@@ -635,17 +612,11 @@ namespace MFM {
 	  }
 	it++;
       }
-    //restore
-    m_state.m_classBlock = saveClassNode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
   } //checkAndLabelClassInstances
 
   u32 SymbolClassNameTemplate::countNavNodesInClassInstances()
   {
     u32 navCounter = 0;
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
 
     // only deep instances need to be counted
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
@@ -656,10 +627,10 @@ namespace MFM {
 	UTI suti = csym->getUlamTypeIdx(); //this instance
 	if(m_state.getUlamTypeByIndex(suti)->isComplete())
 	  {
-	    m_state.setCompileThisIdx(suti);
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    m_state.m_classBlock = classNode;
-	    m_state.m_currentBlock = m_state.m_classBlock;
+	    assert(classNode);
+	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
+
 	    classNode->countNavNodes(navclasscnt); //do each instance
 	    if(navclasscnt > 0)
 	      {
@@ -670,6 +641,7 @@ namespace MFM {
 		MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		navCounter += navclasscnt;
 	      }
+	    m_state.popClassContext(); //restore
 	  }
 	else
 	  {
@@ -679,19 +651,12 @@ namespace MFM {
 	  }
 	it++;
       }
-    //restore
-    m_state.m_classBlock = saveClassNode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
     return navCounter;
   } //countNavNodesInClassInstances
 
   bool SymbolClassNameTemplate::setBitSizeOfClassInstances()
   {
     bool aok = true;
-    NodeBlockClass * saveclassnode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     std::vector<UTI> lostClasses;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
@@ -721,11 +686,12 @@ namespace MFM {
 	      }
 	    else
 	      {
-		m_state.setCompileThisIdx(cuti);
-		m_state.m_classBlock = csym->getClassBlockNode();
-		m_state.m_currentBlock = m_state.m_classBlock;
+		NodeBlockClass * classNode = csym->getClassBlockNode();
+		assert(classNode);
+		m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 		aok = csym->trySetBitsizeWithUTIValues(totalbits);
+		m_state.popClassContext(); //restore
 	      }
 	  }
 
@@ -740,10 +706,6 @@ namespace MFM {
 	  lostClasses.push_back(cuti); 	//track classes that fail to be sized.
 
 	aok = true; //reset for next class
-	m_state.m_classBlock = saveclassnode; //restore
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(savecompilethisidx);
-
 	it++;
       } //next class instance
 
@@ -768,11 +730,6 @@ namespace MFM {
 	MSG("", msg.str().c_str(),DEBUG);
       }
     lostClasses.clear();
-
-    //restore
-    m_state.m_classBlock = saveclassnode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
     return aok;
   } //setBitSizeOfClassInstances()
 
@@ -790,58 +747,40 @@ namespace MFM {
 
   void SymbolClassNameTemplate::packBitsForClassInstances()
   {
-    NodeBlockClass * saveclassBlock = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-
-	UTI suti = csym->getUlamTypeIdx(); //this instance
-	m_state.setCompileThisIdx(suti);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	classNode->packBitsForVariableDataMembers(); //this instance
+	m_state.popClassContext();
 	it++;
       }
-    //restore
-    m_state.m_classBlock = saveclassBlock;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
   } //packBitsForClassInstances
 
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {
-    NodeBlockClass * saveclassBlock = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
 	assert(csym);
-	m_state.m_classBlock = csym->getClassBlockNode();
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(csym->getUlamTypeIdx());
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
 	csym->testThisClass(fp); //this instance
+	m_state.popClassContext(); //restore
 	it++;
       }
-    //restore
-    m_state.m_classBlock = saveclassBlock; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
   } //testForClassInstances
 
   void SymbolClassNameTemplate::generateCodeForClassInstances(FileManager * fm)
   {
-    NodeBlockClass * saveclassBlock = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
-
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
@@ -849,11 +788,12 @@ namespace MFM {
 	UTI suti = csym->getUlamTypeIdx();
 	if(m_state.getUlamTypeByIndex(suti)->isComplete())
 	  {
-	    m_state.m_classBlock = csym->getClassBlockNode();
-	    m_state.m_currentBlock = m_state.m_classBlock;
-	    m_state.setCompileThisIdx(suti); //this instance
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
 
-	    csym->generateCode(fm);
+	    csym->generateCode(fm); //this instance
+	    m_state.popClassContext(); //restore
 	  }
 	else
 	  {
@@ -863,10 +803,6 @@ namespace MFM {
 	  }
 	it++;
       }
-    //restore
-    m_state.m_classBlock = saveclassBlock; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
   } //generateCodeForClassInstances
 
   void SymbolClassNameTemplate::generateIncludesForClassInstances(File * fp)
@@ -905,7 +841,6 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to)
   {
-    NodeBlockClass * saveClassBlock = m_state.m_classBlock;
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
     assert(fmclassblock);
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
@@ -919,8 +854,7 @@ namespace MFM {
 	return false;
       }
 
-    m_state.m_classBlock = fmclassblock;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.pushClassContext(fm->getUlamTypeIdx(), fmclassblock, fmclassblock, false, NULL);
     std::vector<SymbolConstantValue *> instancesArgs;
 
     //copy values from shallow instance into temp list
@@ -935,9 +869,10 @@ namespace MFM {
 	pit++;
       } //next param
 
+    m_state.popClassContext(); //restore
+
     NodeBlockClass * toclassblock = to->getClassBlockNode();
-    m_state.m_classBlock = toclassblock;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.pushClassContext(to->getUlamTypeIdx(), toclassblock, toclassblock, false, NULL);
 
     //replace the clone's arg symbols
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
@@ -950,15 +885,12 @@ namespace MFM {
       } //next arg
 
     instancesArgs.clear(); //don't delete the symbols
-    //restore
-    m_state.m_classBlock = saveClassBlock;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.popClassContext(); //restore
     return true;
   } //takeAnInstancesArgValues
 
   bool SymbolClassNameTemplate::copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to)
   {
-    NodeBlockClass * saveClassBlock = m_state.m_classBlock;
     NodeBlockClass * fmclassblock = fm->getClassBlockNode();
     assert(fmclassblock);
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
@@ -972,8 +904,7 @@ namespace MFM {
 	return false;
       }
 
-    m_state.m_classBlock = fmclassblock;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.pushClassContext(fm->getUlamTypeIdx(), fmclassblock, fmclassblock, false, NULL);
     std::vector<SymbolConstantValue *> instancesArgs;
 
     //copy values from shallow instance into temp list
@@ -988,9 +919,10 @@ namespace MFM {
 	pit++;
       } //next param
 
+    m_state.popClassContext(); //restore
+
     NodeBlockClass * toclassblock = to->getClassBlockNode();
-    m_state.m_classBlock = toclassblock;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.pushClassContext(to->getUlamTypeIdx(), toclassblock, toclassblock, false, NULL);
 
     //make replicas for the clone's arg symbols in its ST; change blockNo.
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
@@ -1002,9 +934,7 @@ namespace MFM {
       } //next arg
 
     instancesArgs.clear(); //don't delete the symbols
-    //restore
-    m_state.m_classBlock = saveClassBlock;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.popClassContext(); //restore
     return true;
   } //copyAnInstancesArgValues
 

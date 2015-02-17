@@ -60,15 +60,9 @@ namespace MFM {
     // instantiate, look up in current block
     if(m_typedefSymbol == NULL)
       {
-	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
 	//in case of a cloned unknown
 	NodeBlock * currBlock = getBlock();
-
-	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
-	bool saveUseMemberBlock = m_state.m_useMemberBlock;
-	m_state.m_useMemberBlock = false;
-
-	m_state.m_currentBlock = currBlock; //before lookup
+	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
@@ -90,9 +84,7 @@ namespace MFM {
 	    msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      	m_state.m_currentBlock = savecurrentblock; //restore
-	m_state.m_useMemberBlock = saveUseMemberBlock;
-	m_state.m_currentMemberClassBlock = savememberclassblock;
+	m_state.popClassContext(); //restore
       } //toinstantiate
 
     if(m_typedefSymbol)

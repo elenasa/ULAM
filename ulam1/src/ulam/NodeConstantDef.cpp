@@ -38,7 +38,6 @@ namespace MFM {
   void NodeConstantDef::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    //    m_currBlock = m_state.m_currentBlock; //do it now
     assert(m_state.getCurrentBlockNo() == m_currBlockNo);
     m_exprnode->updateLineage(getNodeNo());
   }//updateLineage
@@ -94,16 +93,9 @@ namespace MFM {
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
       {
-	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
-
 	//in case of a cloned unknown
 	NodeBlock * currBlock = getBlock();
-
-	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
-	bool saveUseMemberBlock = m_state.m_useMemberBlock;
-	m_state.m_useMemberBlock = false;
-
-	m_state.m_currentBlock = currBlock; //before lookup
+	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_cid, asymptr))
@@ -125,9 +117,7 @@ namespace MFM {
 	    msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str() << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      	m_state.m_currentBlock = savecurrentblock; //restore
-	m_state.m_useMemberBlock = saveUseMemberBlock;
-	m_state.m_currentMemberClassBlock = savememberclassblock;
+	m_state.popClassContext(); //restore
       } //toinstantiate
 
     assert(m_exprnode);
@@ -177,7 +167,6 @@ namespace MFM {
   // (scope of eval is based on the block of const def.)
   bool NodeConstantDef::foldConstantExpression()
   {
-    NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
     s32 newconst = NONREADYCONST;  //always signed?
 
     UTI uti = checkAndLabelType(); //find any missing symbol
@@ -204,9 +193,8 @@ namespace MFM {
 	if(newconst == NONREADYCONST)
 	  {
 	    std::ostringstream msg;
-	    msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not yet ready while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	    msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not yet ready while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	    m_state.m_currentBlock = savecurrentblock; //restore
 	    return false;
 	  }
       }
@@ -215,12 +203,9 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not a constant expression";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	m_state.m_currentBlock = savecurrentblock; //restore
 	return false;
       }
-    // passed
     m_constSymbol->setValue(newconst); //isReady now
-    m_state.m_currentBlock = savecurrentblock; //restore
     return true;
   } //foldConstantExpression
 

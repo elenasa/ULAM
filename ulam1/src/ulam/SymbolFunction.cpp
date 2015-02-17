@@ -222,7 +222,7 @@ namespace MFM {
     fp->write(" ");
     if(!declOnly)
       {
-	UTI cuti = m_state.m_compileThisIdx;
+	UTI cuti = m_state.getCompileThisIdx();
 	//include the mangled class::
 	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 

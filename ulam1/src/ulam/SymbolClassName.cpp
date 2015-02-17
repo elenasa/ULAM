@@ -39,16 +39,10 @@ namespace MFM {
   bool SymbolClassName::statusUnknownConstantExpressionsInClassInstances()
   {
     bool aok = true; //all done
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
     NodeBlockClass * classNode = getClassBlockNode();
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
     aok = SymbolClass::statusUnknownConstantExpressions();
-    m_state.m_classBlock = saveClassNode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.popClassContext(); //restore
     return aok;
   } //statusUnknownConstantExpressionsInClassInstances
 
@@ -57,30 +51,24 @@ namespace MFM {
     assert(getUlamTypeIdx() == instance);
 
     Node * foundNode = NULL;
-    NodeBlockClass * saveclassblock = m_state.m_classBlock;
-    NodeBlock * savecurrentblock = m_state.m_currentBlock;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
     classNode->findNodeNo(n, foundNode);
-    m_state.m_classBlock = saveclassblock; //restore
-    m_state.m_currentBlock = savecurrentblock;
+    m_state.popClassContext(); //restore
     return foundNode;
   } //findNodeNoInAClassInstance
 
   void SymbolClassName::constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti)
   {
     assert(instance == getUlamTypeIdx());
-    NodeBlockClass * saveclassnode = m_state.m_classBlock;
-    NodeBlock * saveblocknode = m_state.m_currentBlock;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
     SymbolClass::constantFoldIncompleteUTI(auti);
-    m_state.m_classBlock = saveclassnode; //restore
-    m_state.m_currentBlock = saveblocknode;
+    m_state.popClassContext(); //restore
   } //constantFoldIncompleteUTIOfClassInstance
 
   std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
@@ -91,63 +79,41 @@ namespace MFM {
 
   void SymbolClassName::updateLineageOfClass()
   {
-    NodeBlockClass * saveclassnode = m_state.m_classBlock;
-    NodeBlock * saveblocknode = m_state.m_currentBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
     classNode->updateLineage(0);
-    m_state.m_classBlock = saveclassnode; //restore
-    m_state.m_currentBlock = saveblocknode;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.popClassContext(); //restore
   } //updateLineageOfClass
 
   void SymbolClassName::checkCustomArraysOfClassInstances()
   {
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
     classNode->checkCustomArrayTypeFunctions();
-    m_state.m_classBlock = saveClassNode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.popClassContext(); //restore
   } //checkCustomArraysOfClassInstances()
 
 
   void SymbolClassName::checkAndLabelClassInstances()
   {
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
     classNode->checkAndLabelType();
-    m_state.m_classBlock = saveClassNode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.popClassContext(); //restore
   } //checkAndLabelClassInstances
 
   u32 SymbolClassName::countNavNodesInClassInstances()
   {
     u32 navCounter = 0;
-    NodeBlockClass * saveClassNode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->countNavNodes(navCounter);
     if(navCounter > 0)
@@ -158,23 +124,17 @@ namespace MFM {
 	msg << ">";
 	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
-    m_state.m_classBlock = saveClassNode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.popClassContext(); //restore
     return navCounter;
   } //countNavNodesInClassInstances
 
   bool SymbolClassName::setBitSizeOfClassInstances()
   {
     bool aok = true;
-    NodeBlockClass * saveclassnode = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
     s32 totalbits = 0;
     aok = SymbolClass::trySetBitsizeWithUTIValues(totalbits);
     if(aok)
@@ -185,9 +145,7 @@ namespace MFM {
 	msg << "CLASS (without instances): " << m_state.getUlamTypeNameByIndex(cuti).c_str() << " SIZED: " << totalbits;
 	MSG("", msg.str().c_str(),DEBUG);
       }
-    m_state.m_classBlock = saveclassnode; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.popClassContext(); //restore
     return aok;
   } //setBitSizeOfClassInstances()
 
@@ -199,51 +157,32 @@ namespace MFM {
 
   void SymbolClassName::packBitsForClassInstances()
   {
-    NodeBlockClass * saveclassBlock = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.m_classBlock = getClassBlockNode();
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->packBitsForVariableDataMembers();
-    m_state.m_classBlock = saveclassBlock; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.popClassContext(); //restore
   } //packBitsForClassInstances
 
   void SymbolClassName::testForClassInstances(File * fp)
   {
-    NodeBlockClass * saveclassBlock = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
-    m_state.m_classBlock = getClassBlockNode();
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     SymbolClass::testThisClass(fp);
-    m_state.m_classBlock = saveclassBlock; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.popClassContext(); //restore
   } //testForClassInstances
 
   void SymbolClassName::generateCodeForClassInstances(FileManager * fm)
   {
-    NodeBlockClass * saveclassBlock = m_state.m_classBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     SymbolClass::generateCode(fm);
-    m_state.m_classBlock = saveclassBlock; //restore
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(savecompilethisidx);
+    m_state.popClassContext(); //restore
   } //generateCodeForClassInstances
 
   void SymbolClassName::generateIncludesForClassInstances(File * fp)
