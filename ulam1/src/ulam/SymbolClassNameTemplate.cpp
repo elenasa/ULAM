@@ -425,14 +425,7 @@ namespace MFM {
     bool aok = true; //all done
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
-      {
-	if(!isDeep())
-	  {
-	    updateLineageOfClassInstanceUTI(getUlamTypeIdx());
-	    setDeep(); //i.e. seen
-	  }
-	return true;
-      }
+      return true;
 
     UTI savecompilethisidx = m_state.m_compileThisIdx;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();

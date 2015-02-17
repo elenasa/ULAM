@@ -68,7 +68,7 @@ namespace MFM{
     virtual UTI checkAndLabelType();
 
     NNO getBlockNo();
-    void setBlock();
+    NodeBlock * getBlock();
 
     virtual EvalStatus eval();
 
@@ -78,7 +78,6 @@ namespace MFM{
     Token m_token;
     SymbolConstantValue * m_constSymbol;
     bool m_ready;
-    NodeBlock * m_currBlock;
     NNO m_currBlockNo;
     bool updateConstant();
   };
