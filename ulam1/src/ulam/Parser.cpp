@@ -109,16 +109,14 @@ namespace MFM {
       }
 
     u32 compileThisId = m_state.m_pool.getIndexForDataString(compileThis);
-    m_state.m_compileThisId = compileThisId;  // for everyone
-
-    //    initPrimitiveUlamTypes();
+    //m_state.m_compileThisId = compileThisId;  // for everyone
 
     // here's the start (first token)!!  preparser will handle the VERSION_DECL,
     // as well as USE and LOAD keywords. so the first thing we see may not be
     // "our guy"..but we'll know.
 
     do{
-      m_state.m_currentBlock = NULL;  //reset for each new class block
+      //m_state.pushCurrentBlock(NULL);  //reset for each new class block
     } while(!parseThisClass());
 
     // here when THIS class is done, or there was an error
@@ -239,7 +237,9 @@ namespace MFM {
       } //template
 
     //mostly needed for code gen later, but this is where we first know it!
-    m_state.setCompileThisIdx(cnSym->getUlamTypeIdx());
+    //m_state.setCompileThisIdx(cnSym->getUlamTypeIdx());
+    //m_state.popClassContext(); //reset for each before still? or here?
+    m_state.pushClassContext(cnSym->getUlamTypeIdx(), cnSym->getClassBlockNode(), cnSym->getClassBlockNode(), false, NULL); //null blocks likely
 
     // set class type in UlamType (through its class symbol) since we know it;
     // UC_UNSEEN if unseen so far.
@@ -294,7 +294,7 @@ namespace MFM {
     getNextToken(pTok); //loc needed
 
     NodeBlockClass * rtnNode = NULL;
-    NodeBlock * prevBlock = m_state.m_currentBlock;
+    NodeBlock * prevBlock = m_state.getCurrentBlock();
     assert(prevBlock == NULL); //this is the class' first block
 
     rtnNode = new NodeBlockClass(prevBlock, m_state);
@@ -307,8 +307,9 @@ namespace MFM {
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
-    m_state.m_currentBlock = rtnNode;
-    m_state.m_classBlock = rtnNode;    //2 ST:functions and data member decls, separate
+    ////class block has 2 ST:functions and data member decls, separate
+    m_state.popClassContext();
+    m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL);
 
     //need class block's ST before parsing any class parameters (i.e. named constants);
     if(pTok.m_type == TOK_OPEN_PAREN)
@@ -353,7 +354,7 @@ namespace MFM {
       }
 
     //this block's ST is no longer in scope
-    m_state.m_currentBlock = prevBlock;
+    m_state.popClassContext(); //m_currentBlock = prevBlock;
 
     return rtnNode;
   } //parseClassBlock
@@ -468,12 +469,12 @@ namespace MFM {
     if(pTok.m_type == TOK_KW_ELEMENT)
       {
 	//currently only permitted in elements, no quarks
-	UTI cuti = m_state.m_classBlock->getNodeType();
+	UTI cuti = m_state.getClassBlock()->getNodeType();
 	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
 	if(classtype != UC_ELEMENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "Only elements may have element parameters: <" << m_state.m_pool.getDataAsString(m_state.m_compileThisId).c_str() << "> is a quark";
+	    msg << "Only elements may have element parameters: <" << m_state.m_pool.getDataAsString(m_state.getCompileThisIdx()).c_str() << "> is a quark";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
 	m_state.m_parsingElementParameterVariable = true;
@@ -584,26 +585,26 @@ namespace MFM {
   {
     Token pTok;
     NodeBlock * rtnNode = NULL;
+    NodeBlock * prevBlock = m_state.getCurrentBlock();
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
       return NULL;
 
     if(getExpectedToken(TOK_CLOSE_CURLY, QUIETLY))
       {
-	rtnNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); // legal
+	rtnNode = new NodeBlockEmpty(prevBlock, m_state); // legal
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	return rtnNode;
       }
 
-    rtnNode = new NodeBlock(m_state.m_currentBlock, m_state);
+    rtnNode = new NodeBlock(prevBlock, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(pTok.m_locator);
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
-    NodeBlock * prevBlock = m_state.m_currentBlock;
-    m_state.m_currentBlock = rtnNode;
+    m_state.pushCurrentBlock(rtnNode);
 
     NodeStatements * nextNode = (NodeStatements *) parseStatements();
 
@@ -618,8 +619,8 @@ namespace MFM {
 	rtnNode = new NodeBlockEmpty(prevBlock, m_state);  	// legal
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
-
-	m_state.m_currentBlock = rtnNode; //very temporary
+	m_state.popClassContext();
+	m_state.pushCurrentBlock(rtnNode); //very temporary
       }
 
     if(!getExpectedToken(TOK_CLOSE_CURLY))
@@ -627,14 +628,17 @@ namespace MFM {
 	delete rtnNode;
 	rtnNode = NULL;
 	getTokensUntil(TOK_CLOSE_CURLY);
-	m_state.m_currentBlock = NULL;   //very temporary
+	m_state.popClassContext();
+	m_state.pushCurrentBlock(rtnNode); //very temporary
       }
 
     //this block's ST is no longer in scope
-    if(m_state.m_currentBlock)
-      m_state.m_currentFunctionBlockDeclSize -= m_state.m_currentBlock->getSizeOfSymbolsInTable();
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    if(currBlock)
+      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
-    m_state.m_currentBlock = prevBlock;
+    m_state.popClassContext();
+    currBlock = NULL; //no longer valid; don't need
 
     //sanity check
     assert(!rtnNode || rtnNode->getPreviousBlockPointer() == prevBlock);
@@ -868,14 +872,15 @@ namespace MFM {
     s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
 
     //before parsing the for statement, need a new scope
-    NodeBlock * rtnNode = new NodeBlock(m_state.m_currentBlock, m_state);
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    NodeBlock * rtnNode = new NodeBlock(currBlock, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(fTok.m_locator);
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
-    NodeBlock * prevBlock = m_state.m_currentBlock;
-    m_state.m_currentBlock = rtnNode;
+    //    NodeBlock * prevBlock = currBlock;
+    m_state.pushCurrentBlock(rtnNode); //without pop first
 
     Token pTok;
     getNextToken(pTok);
@@ -1021,10 +1026,11 @@ namespace MFM {
       rtnNode->setNextNode(nextControlNode);  //***link while to rtn block (no decl)
 
     //this block's ST is no longer in scope
-    if(m_state.m_currentBlock)
-      m_state.m_currentFunctionBlockDeclSize -= m_state.m_currentBlock->getSizeOfSymbolsInTable();
+    currBlock = m_state.getCurrentBlock(); //reload
+    if(currBlock)
+      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
-    m_state.m_currentBlock = prevBlock;
+    m_state.popClassContext(); // = prevBlock;
     return rtnNode;
   } //parseControlFor
 
@@ -1073,14 +1079,15 @@ namespace MFM {
       }
 
     // if empty still make auto
-    NodeBlock * blockNode = new NodeBlock(m_state.m_currentBlock, m_state);
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    NodeBlock * blockNode = new NodeBlock(currBlock, m_state);
     assert(blockNode);
     blockNode->setNodeLocation(asNode->getNodeLocation());
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
-    NodeBlock * prevBlock = m_state.m_currentBlock;
-    m_state.m_currentBlock = blockNode;
+    //NodeBlock * prevBlock = m_state.m_currentBlock;
+    m_state.pushCurrentBlock(blockNode);
 
     // after the new block is setup: install the auto symbol into ST, and
     // make its auto local variable to shadow the lhs of 'as' as rhs type
@@ -1133,10 +1140,11 @@ namespace MFM {
       }
 
     //this block's ST is no longer in scope
-    if(m_state.m_currentBlock)
-      m_state.m_currentFunctionBlockDeclSize -= m_state.m_currentBlock->getSizeOfSymbolsInTable();
+    currBlock = m_state.getCurrentBlock();
+    if(currBlock)
+      m_state.m_currentFunctionBlockDeclSize -= currBlock->getSizeOfSymbolsInTable();
 
-    m_state.m_currentBlock = prevBlock;
+    m_state.popClassContext(); // = prevBlock;
     return blockNode;
   } //setupAsConditionalBlockAndParseStatements
 
@@ -1486,8 +1494,7 @@ namespace MFM {
       }
 
     // try to continue..
-    NodeBlock * saveCurrentBlock = m_state.m_currentBlock;
-    m_state.m_currentBlock = csym->getClassBlockNode(); //reset here for new arg's ST
+    m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST
 
     SymbolConstantValue * argSym;
     if(!ctUnseen)
@@ -1507,7 +1514,7 @@ namespace MFM {
     argSym->setParameterFlag();
     m_state.addSymbolToCurrentScope(argSym); // scope updated to new class instance in parseClassArguments
 
-    m_state.m_currentBlock = saveCurrentBlock; //restore before making NodeConstantDef so that it has current context
+    m_state.popClassContext(); //restore before making NodeConstantDef so that it has current context
 
     // make Node with argument symbol to try to fold const expr; o.w. add to list of unresolved for this uti
     NodeConstantDef * constNode = new NodeConstantDef(argSym, m_state);
@@ -1607,8 +1614,6 @@ namespace MFM {
     SymbolClassName * csym = NULL;
     if(m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, csym))
       {
-	bool saveUseMemberBlock = m_state.m_useMemberBlock;
-	NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
 	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
 	if(!memberClassNode)  // e.g. forgot the closing brace on quark def once
 	  {
@@ -1629,8 +1634,7 @@ namespace MFM {
 	  }
 
 	//set up compiler state to use the member class block for symbol searches
-	m_state.m_currentMemberClassBlock = memberClassNode;
-	m_state.m_useMemberBlock = true;
+	m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
 	//after the dot
 	getNextToken(nTok);
@@ -1684,8 +1688,7 @@ namespace MFM {
 		unreadToken(); //put the 'sizeof' back
 	      }
 	  }
-	m_state.m_useMemberBlock = saveUseMemberBlock; //restore
-	m_state.m_currentMemberClassBlock = saveMemberClassBlock;
+	m_state.popClassContext(); //restore
       }
     else
       {
@@ -1862,16 +1865,14 @@ namespace MFM {
       {
 	// set up compiler state to NOT use the current class block
 	// for symbol searches; may be unknown until type label
-	m_state.m_currentMemberClassBlock = NULL;
-	m_state.m_useMemberBlock = true;  //oddly =true
+	m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
 
 	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
 	assert(rtnNode);
 	rtnNode->setNodeLocation(iTok.m_locator);
 
 	//clear up compiler state to no longer use the member class block for symbol searches
-	m_state.m_useMemberBlock = false;
-	m_state.m_currentMemberClassBlock = NULL;
+	m_state.popClassContext();
       }
     else
       rtnNode = classInstanceNode;
@@ -1895,16 +1896,14 @@ namespace MFM {
       {
 	// set up compiler state to NOT use the current class block
 	// for symbol searches; may be unknown until type label
-	m_state.m_currentMemberClassBlock = NULL;
-	m_state.m_useMemberBlock = true;  //oddly =true
+	m_state.pushClassContextUsingMemberClassBlock(NULL); //oddly =true
 
 	rtnNode = new NodeMemberSelect(classInstanceNode, parseIdentExpr(iTok), m_state);
 	assert(rtnNode);
 	rtnNode->setNodeLocation(iTok.m_locator);
 
 	//clear up compiler state to no longer use the member class block for symbol searches
-	m_state.m_useMemberBlock = false;
-	m_state.m_currentMemberClassBlock = NULL;
+	m_state.popClassContext(); //restore
       }
     return parseRestOfMemberSelectExpr(rtnNode); //recurse
   } //parseRestOfMemberSelectExpr
@@ -2017,9 +2016,10 @@ namespace MFM {
   Node * Parser::parseFunctionCall(Token identTok)
   {
     Symbol * asymptr = NULL;
+    NodeBlock * currBlock = m_state.getCurrentBlock();
 
     // cannot call a function if a local variable name shadows it
-    if(m_state.m_currentBlock->isIdInScope(identTok.m_dataindex,asymptr))
+    if(currBlock->isIdInScope(identTok.m_dataindex,asymptr))
       {
 	std::ostringstream msg;
 	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
@@ -2033,22 +2033,16 @@ namespace MFM {
     rtnNode->setNodeLocation(identTok.m_locator);
 
     //member selection doesn't apply to arguments (during parsing too)
-    bool saveUseMemberBlock = m_state.m_useMemberBlock;
-    NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
-    m_state.m_useMemberBlock = false;
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     if(!parseRestOfFunctionCallArguments(rtnNode))
       {
 	delete rtnNode;
-
-	m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
-	m_state.m_currentMemberClassBlock = saveMemberClassBlock;
-
+	m_state.popClassContext();
 	return NULL;
       }
 
-    m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
-    m_state.m_currentMemberClassBlock = saveMemberClassBlock;
+    m_state.popClassContext();
 
     // can't do any checking since function may not have been seen yet
     return rtnNode;
@@ -2803,8 +2797,9 @@ namespace MFM {
     // all functions are defined in this "class" block;
     // or external 'use' for declarations.
     // this is a block with its own ST
-    NodeBlock * prevBlock = m_state.m_currentBlock;  //restore before returning
-    assert(prevBlock == m_state.m_classBlock);
+    NodeBlockClass * currClassBlock = m_state.getClassBlock();
+    NodeBlock * prevBlock = m_state.getCurrentBlock();
+    assert(prevBlock == currClassBlock);
 
     // o.w. build symbol for function: name, return type, plus arg symbols
     // array return types require a typedef alias; lookup is name-based, indep of size args.
@@ -2826,12 +2821,12 @@ namespace MFM {
     // node type was set to its class symbol type after checkAndLabelType
     if(m_state.getCustomArrayGetFunctionNameId() == identTok.m_dataindex)
       {
-	UTI cuti = m_state.m_classBlock->getNodeType();  //prevBlock
+	UTI cuti = currClassBlock->getNodeType();  //prevBlock
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	((UlamTypeClass *) cut)->setCustomArrayType(rtnuti);
       }
 
-    m_state.m_currentBlock = rtnNode;  //before parsing the args
+    m_state.pushCurrentBlock(rtnNode);  //before parsing the args
 
     // use space on funcCallStack for return statement.
     // negative for parameters; allot space at top for the return value
@@ -2845,7 +2840,7 @@ namespace MFM {
     // create "self" symbol whose index is that of the "hidden" first arg (i.e. a Ptr to an Atom);
     // immediately below the return value(s); and belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
-    UTI cuti = m_state.m_classBlock->getNodeType();  //luckily we know this now for each class used
+    UTI cuti = currClassBlock->getNodeType();  //luckily we know this now for each class used
     if(m_state.getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
       cuti = UAtom;  //use atom for quark functions
 
@@ -2858,13 +2853,13 @@ namespace MFM {
 
     // Now, look specifically for a function with the same given name defined
     Symbol * fnSym = NULL;
-    if(!m_state.m_classBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
+    if(!currClassBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
       {
 	// first time name used as a function..add symbol function name/typeNav
 	fnSym = new SymbolFunctionName(identTok.m_dataindex, Nav, m_state);
 
 	// ownership goes to the class block's ST
-	m_state.m_classBlock->addFuncIdToScope(fnSym->getId(), fnSym);
+	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
       }
 
     if(rtnNode)
@@ -2909,7 +2904,7 @@ namespace MFM {
       }
 
     // this block's ST is no longer in scope
-    m_state.m_currentBlock = prevBlock;
+    m_state.popClassContext(); //= prevBlock;
     m_state.m_currentFunctionBlockDeclSize = 0;  //default zero for datamembers
     m_state.m_currentFunctionBlockMaxDepth = 0;  //reset
     return rtnNode;
@@ -3003,7 +2998,7 @@ namespace MFM {
 	NodeStatements * nextNode;
 	if(pTok.m_type == TOK_CLOSE_CURLY)
 	  {
-	    nextNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); //legal
+	    nextNode = new NodeBlockEmpty(m_state.getCurrentBlock(), m_state); //legal
 	    assert(nextNode);
 	    nextNode->setNodeLocation(pTok.m_locator);
 	  }
@@ -3024,7 +3019,7 @@ namespace MFM {
     else if(qTok.m_type == TOK_KW_NATIVE)
       {
 	NodeStatements * nextNode;
-	nextNode = new NodeBlockEmpty(m_state.m_currentBlock, m_state); //legal
+	nextNode = new NodeBlockEmpty(m_state.getCurrentBlock(), m_state); //legal
 	assert(nextNode);
 	nextNode->setNodeLocation(qTok.m_locator);
 	funcNode->setNextNode(nextNode);
@@ -3066,7 +3061,7 @@ namespace MFM {
     // ask current scope class block if this identifier name is there (no embedded funcs)
     // (checks functions and variables and typedefs); if not a function, BAIL;
     // check for overloaded function, after parameter types available
-    if(m_state.m_classBlock->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
+    if(m_state.getClassBlock()->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
 	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";

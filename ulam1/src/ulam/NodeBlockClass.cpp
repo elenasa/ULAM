@@ -13,7 +13,7 @@ namespace MFM {
 
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_templateClassParentUTI(Nav) /* no longer needed? */
   {
-    setNodeType(m_state.m_compileThisIdx);
+    setNodeType(m_state.getCompileThisIdx());
   }
 
   NodeBlockClass::~NodeBlockClass() {}
@@ -302,7 +302,7 @@ namespace MFM {
   {
     //use the instance UTI instead of the node's original type
     //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
-    UlamType * cut = m_state.getUlamTypeByIndex(m_state.m_compileThisIdx);
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
     ULAMCLASSTYPE classtype = cut->getUlamClass();
     assert(cut->getUlamTypeEnum() == Class);
 
@@ -357,7 +357,7 @@ namespace MFM {
   {
     //use the instance UTI instead of the node's original type
     //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
-    UlamType * cut = m_state.getUlamTypeByIndex(m_state.m_compileThisIdx);
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
 
     m_state.indent(fp);
     fp->write("template <class CC, u32 POS>\n");
@@ -415,7 +415,7 @@ namespace MFM {
   {
     //use the instance UTI instead of the node's original type
     //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
-    UlamType * cut = m_state.getUlamTypeByIndex(m_state.m_compileThisIdx);
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
 
     m_state.indent(fp);
     fp->write("template<class CC>\n");
@@ -517,7 +517,7 @@ namespace MFM {
   {
     //use the instance UTI instead of the node's original type
     //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
-    UlamType * cut = m_state.getUlamTypeByIndex(m_state.m_compileThisIdx);
+    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
     ULAMCLASSTYPE classtype = cut->getUlamClass();
 
     m_state.m_currentIndentLevel = 0;
@@ -578,7 +578,7 @@ namespace MFM {
 	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("(){}\n\n");
 
-	assert(m_state.m_compileThisId == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
 
     generateCodeForFunctions(fp, false, classtype);
@@ -619,7 +619,7 @@ namespace MFM {
     fp->write("bool ");  //return pos offset, or -1 if not found
 
     //UTI cuti = getNodeType();
-    UTI cuti = m_state.m_compileThisIdx;
+    UTI cuti = m_state.getCompileThisIdx();
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 

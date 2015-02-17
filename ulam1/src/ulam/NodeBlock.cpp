@@ -25,12 +25,12 @@ namespace MFM {
   {
     if(m_prevBlockNode == NULL)
       {
-	m_prevBlockNode = m_state.m_currentBlock;
+	m_prevBlockNode = m_state.getCurrentBlock();
       }
     else
-      assert(m_prevBlockNode == m_state.m_currentBlock);
+      assert(m_prevBlockNode == m_state.getCurrentBlock());
 
-    m_state.m_currentBlock = this;
+    m_state.pushCurrentBlock(this);
 
     setYourParentNo(pno);
     if(m_node)
@@ -38,7 +38,7 @@ namespace MFM {
     if(m_nextNode)
       m_nextNode->updateLineage(getNodeNo());
 
-    m_state.m_currentBlock = m_prevBlockNode; //restore
+    m_state.popClassContext(); //restores previousBlockNode
   } //updateLineage
 
   bool NodeBlock::findNodeNo(NNO n, Node *& foundNode)
@@ -93,11 +93,11 @@ namespace MFM {
   {
     assert(m_nextNode);
 
-    m_state.m_currentBlock = this;
+    m_state.pushCurrentBlock(this);
 
     m_nextNode->checkAndLabelType();
 
-    m_state.m_currentBlock = m_prevBlockNode;  //missing?
+    m_state.popClassContext();  //restores m_prevBlockNode
 
     //blocks don't have types
     setNodeType(Void);

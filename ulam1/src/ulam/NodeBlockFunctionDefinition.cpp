@@ -141,7 +141,7 @@ namespace MFM {
     UTI it = m_funcSymbol->getUlamTypeIdx();
     setNodeType(it);
 
-    m_state.m_currentBlock = this;
+    m_state.pushCurrentBlock(this);
 
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
     m_state.m_currentFunctionReturnType = it;
@@ -157,7 +157,7 @@ namespace MFM {
 	msg << "Undefined function block: <" << getName() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-    m_state.m_currentBlock = NodeBlock::getPreviousBlockPointer();  //missing?
+    m_state.popClassContext();  //restores previous block ptr
     return getNodeType();
   } //checkAndLabelType
 
@@ -254,7 +254,7 @@ namespace MFM {
   {
     // m_currentObjSymbol set up by caller
     //    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
-    m_state.m_currentBlock = this;
+    m_state.pushCurrentBlock(this);
 
     assert(isDefinition());
     assert(m_nextNode);
@@ -277,7 +277,7 @@ namespace MFM {
     fp->write(m_funcSymbol->getMangledName().c_str());  //end of function
     fp->write("\n\n\n");
 
-    m_state.m_currentBlock = NodeBlock::getPreviousBlockPointer();  //missing?
+    m_state.popClassContext();  //restores NodeBlock::getPreviousBlockPointer()
   } //genCode
 
 } //end MFM

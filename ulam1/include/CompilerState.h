@@ -45,6 +45,7 @@
 #include "itype.h"
 #include "CallStack.h"
 #include "Constants.h"
+#include "ClassContextStack.h"
 #include "ErrorMessageHandler.h"
 #include "UEventWindow.h"
 #include "File.h"
@@ -105,15 +106,7 @@ namespace MFM{
     std::map<u32,std::vector<u32>* > m_textByLinePerFilePath;
     Locator m_locOfNextLineText;
 
-    u32 m_compileThisId;                 // the subject of this compilation; id into m_pool
-    UTI m_compileThisIdx;                // the subject of this compilation; various class instances
-    SymbolTable m_programDefST;
-
-    NodeBlock *      m_currentBlock;     //replaces m_stackOfBlocks
-    NodeBlockClass * m_classBlock;       //holds ST with function defs
-
-    bool m_useMemberBlock;               // used during parsing member select expression
-    NodeBlockClass * m_currentMemberClassBlock;
+    SymbolTable m_programDefST;          // holds SymbolClassName and SymbolClassNameTemplate
 
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
@@ -134,13 +127,13 @@ namespace MFM{
 
     ErrorMessageHandler m_err;
 
-    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key -> index of ulamtype (UTI)
-    std::vector<UlamKeyTypeSignature> m_indexToUlamKey;   //UTI -> ulamkey, many-to-one
-    std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes;   //key -> ulamtype *
+    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key->index of ulamtype (UTI)
+    std::vector<UlamKeyTypeSignature> m_indexToUlamKey; //UTI->ulamkey, many-to-one
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes; //key->ulamtype *
 
     std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
 
-    std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
+    std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
     UlamValue m_currentObjPtr;        //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr;       //used in eval of func calls: updated after args, becomes currentObjPtr for args
@@ -155,7 +148,6 @@ namespace MFM{
     ~CompilerState();
 
     void clearAllDefinedUlamTypes();
-    //void clearLeftoverSubtrees();
     void clearAllLinesOfText();
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
@@ -221,9 +213,6 @@ namespace MFM{
 
     /** return true and the SymbolClassNameTemplate pointer in 2nd arg if found AND is a template; */
     bool alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr);
-
-    /** use when changing m_compileThisIdx to keep id and idx in sync */
-    void setCompileThisIdx(UTI idx);
 
     /** return true and the SymbolClass pointer in 2nd arg if uti found; */
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
@@ -318,6 +307,42 @@ namespace MFM{
     NNO getNextNodeNo();
     NNO getCurrentBlockNo();
     Node * findNodeNoInThisClass(NNO n);
+
+    /** for context switching */
+    u32 getCompileThisId();
+
+    UTI getCompileThisIdx();
+
+    /** use when changing m_compileThisIdx to keep id and idx in sync */
+    //void setCompileThisIdx(UTI idx);
+
+    NodeBlock * getCurrentBlock();
+    //void setCurrentBlock(NodeBlock * nb);
+
+    NodeBlockClass * getClassBlock();
+    //    void setClassBlock(NodeBlockClass * nbc);
+
+    bool useMemberBlock();
+    //void useMemberBlock(bool use);
+
+    NodeBlockClass * getCurrentMemberClassBlock();
+    //void setCurrentMemberClassBlock(NodeBlockClass * nbc);
+
+    void pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockClass * classblock, bool usemember, NodeBlockClass * memberblock);
+
+    void popClassContext();
+
+    void pushCurrentBlock(NodeBlock * currblock);
+
+    void pushCurrentBlockAndDontUseMemberBlock(NodeBlock * currblock);
+
+    void pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock);
+
+  private:
+
+    //coming soon..
+    ClassContextStack m_classContextStack;         // the current subject of this compilation
+
   };
 
 }

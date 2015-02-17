@@ -143,7 +143,7 @@ namespace MFM {
     if(! m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	aok = false;  //moved here;
       }
@@ -201,9 +201,7 @@ namespace MFM {
   {
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    m_state.m_classBlock = classNode;
-    m_state.m_currentBlock = m_state.m_classBlock;
-    m_state.setCompileThisIdx(getUlamTypeIdx());
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     if(classNode->findTestFunctionNode())
       {
@@ -235,13 +233,13 @@ namespace MFM {
 	  MSG("",msg.str().c_str() , INFO);
 	}
 #endif
-
 	m_state.m_nodeEvalStack.returnFrame();       //epilog
 
 	fp->write("Exit status: " );    //in compared answer
 	fp->write_decimal(rtnValue);
 	fp->write("\n");
       } //test eval
+    m_state.popClassContext(); //missing?
   }//testClass
 
   void SymbolClass::cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr)
@@ -348,8 +346,7 @@ namespace MFM {
   void SymbolClass::generateCode(FileManager * fm)
   {
     assert(m_classBlock);
-    m_state.m_classBlock = m_classBlock;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.pushClassContext(getUlamTypeIdx(), m_classBlock, m_classBlock, false, NULL);
 
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
@@ -386,7 +383,6 @@ namespace MFM {
 	  fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
 	  fp->write("\"\n\n");
 	}
-
       genAllCapsEndifForHeaderFile(fp);
 
       delete fp; //close
@@ -430,12 +426,14 @@ namespace MFM {
 	if(m_state.thisClassHasTheTestMethod())
 	  generateMain(fm);
       }
+
+    m_state.popClassContext(); //missing?
   } //generateCode
 
   void SymbolClass::generateAsOtherInclude(File * fp)
   {
     UTI suti = getUlamTypeIdx();
-    if(suti != m_state.m_compileThisIdx && m_state.getUlamTypeByIndex(suti)->isComplete())
+    if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
       {
 	m_state.indent(fp);
 	fp->write("#include \"");
@@ -447,7 +445,7 @@ namespace MFM {
   void SymbolClass::generateAsOtherForwardDef(File * fp)
   {
     UTI suti = getUlamTypeIdx();
-    if(suti != m_state.m_compileThisIdx && m_state.getUlamTypeByIndex(suti)->isComplete())
+    if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
       {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
@@ -519,7 +517,7 @@ namespace MFM {
       }
     else
       {
-	if(getId() == m_state.m_compileThisId)
+	if(getId() == m_state.getCompileThisId())
 	  {
 	    fp->write("\n");
 	    m_state.indent(fp);
@@ -551,7 +549,7 @@ namespace MFM {
     fp->write("/***********************         DO NOT EDIT        ******************************\n");
     fp->write("*\n");
     fp->write("* ");
-    fp->write(m_state.m_pool.getDataAsString(m_state.m_compileThisId).c_str());
+    fp->write(m_state.m_pool.getDataAsString(m_state.getCompileThisId()).c_str());
     fp->write(".h - ");
     //ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(m_classBlock->getNodeType())->getUlamClass();
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();

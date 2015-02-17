@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgs(m_state.m_compileThisIdx) /*default*/ {}
+  Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgs(m_state.getCompileThisIdx()) /*default*/ {}
   Resolver::~Resolver()
   {
     clearLeftoverSubtrees();
@@ -404,10 +404,6 @@ namespace MFM {
   bool Resolver::constantFoldNonreadyClassArgs()
   {
     bool rtnb = true;
-    NodeBlockClass * saveclassblock = m_state.m_classBlock;
-    NodeBlock * savecurrentblock = m_state.m_currentBlock;
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-
     //HOPEFULLY, all context dependent expressions have been simplified so
     // this step is no longer required.
 #if 0
@@ -450,11 +446,6 @@ namespace MFM {
 	m_nonreadyClassArgSubtrees = leftCArgs; //replace
 	rtnb = false;
       }
-
-    //restore
-    m_state.m_classBlock = saveclassblock;
-    m_state.m_currentBlock = savecurrentblock;
-    m_state.setCompileThisIdx(savecompilethisidx);
     return rtnb;
   } //constantFoldNonreadyClassArgs
 
@@ -473,10 +464,6 @@ namespace MFM {
 
   void Resolver::clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym)
   {
-    UTI savecompilethisidx = m_state.m_compileThisIdx;
-    NodeBlockClass * saveclassblock = m_state.m_classBlock;
-    NodeBlock * savecurrentblock = m_state.m_currentBlock;
-
     NodeBlockClass * classblock = mycsym->getClassBlockNode();
     SymbolClassNameTemplate * templateparent = mycsym->getParentClassTemplate();
     assert(templateparent);
@@ -492,22 +479,16 @@ namespace MFM {
 	Symbol * cvsym = NULL;
 	assert(classblock->isIdInScope(cloneNode->getSymbolId(), cvsym));
 	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
-	//cloneNode->setBlock(classblock); //reset to own ST for its SCV symbol; expression has it's own context.
 
 	//set context and try to resolve all context-dependent arg expressions..
-	m_state.m_classBlock = contextSym->getClassBlockNode();
-	m_state.m_currentBlock = m_state.m_classBlock;
-	m_state.setCompileThisIdx(context); //probably already the case, deep clone in progress, no???
+	m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
 
 	if(cloneNode->foldConstantExpression())
 	  delete cloneNode;
 	else
 	  linkConstantExpressionForPendingArg(cloneNode);
 
-	m_state.setCompileThisIdx(savecompilethisidx); //restore
-	m_state.m_classBlock = saveclassblock;
-	m_state.m_currentBlock = savecurrentblock;
-
+	m_state.popClassContext(); //restore previous context
 	vit++;
       }
     m_classContextUTIForPendingArgs = context; //update (might not be needed anymore?)

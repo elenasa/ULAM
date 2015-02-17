@@ -51,7 +51,6 @@ namespace MFM {
     return false;
   } //isInTable
 
-
   void SymbolTable::addToTable(u32 id, Symbol* sptr)
   {
     m_idToSymbolPtr.insert(std::pair<u32,Symbol*> (id,sptr));
@@ -109,19 +108,16 @@ namespace MFM {
     return NULL;  //impossible!!
   } //getSymbolPtr
 
-
   u32 SymbolTable::getTableSize()
   {
     return (m_idToSymbolPtr.empty() ? 0 : m_idToSymbolPtr.size());
   }
 
-
   //called by NodeBlock.
   u32 SymbolTable::getTotalSymbolSize()
   {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     u32 totalsizes = 0;
-
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -144,12 +140,10 @@ namespace MFM {
     return totalsizes;
   } //getTotalSymbolSize
 
-
   s32 SymbolTable::getTotalVariableSymbolsBitSize()
   {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     s32 totalsizes = 0;
-
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -172,7 +166,7 @@ namespace MFM {
 	else if(symsize <= UNKNOWNSIZE)
 	  {
 	    std::ostringstream msg;
-	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str() << " UTI" << suti << " while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str() << " UTI" << suti << " while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	    if(variableSymbolWithCountableSize(sym))
 	      {
@@ -195,12 +189,10 @@ namespace MFM {
     return totalsizes;
   } //getTotalVariableSymbolsBitSize
 
-
   s32 SymbolTable::getMaxVariableSymbolsBitSize()
   {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     s32 maxsize = 0;
-
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -236,7 +228,6 @@ namespace MFM {
     return maxsize;
   } //getMaxVariableSymbolsBitSize
 
-
   //#define OPTIMIZE_PACKED_BITS
 #ifdef OPTIMIZE_PACKED_BITS
   // currently, packing is done by Nodes since the order of declaration is available;
@@ -261,12 +252,10 @@ namespace MFM {
   }
 #endif
 
-
   s32 SymbolTable::findPosOfUlamTypeInTable(UTI utype)
   {
     s32 posfound = -1;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -283,12 +272,10 @@ namespace MFM {
     return posfound;
   } //findPosOfUlamTypeInTable
 
-
   // replaced with parse tree method to preserve order of declaration
   void SymbolTable::genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -300,11 +287,10 @@ namespace MFM {
       }
   } //genCodeForTableOfVariableDataMembers (unused)
 
-
   void SymbolTable::genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     // 'has' applies to both quarks and elements
-    UTI cuti = m_state.m_compileThisIdx;
+    UTI cuti = m_state.getCompileThisIdx();
 
     if(declOnly)
       {
@@ -345,7 +331,6 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -376,7 +361,6 @@ namespace MFM {
     fp->write("}  //has\n\n");
   } //genCodeBuiltInFunctionsOverTableOfVariableDataMember
 
-
   // storage for class members persists, so we give up preserving
   // order of declaration that the NodeVarDecl in the parseTree
   // provides, in order to distinguish between an instance's data
@@ -385,7 +369,6 @@ namespace MFM {
   void SymbolTable::printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -397,12 +380,10 @@ namespace MFM {
       }
   } //printPostfixValuesForTableOfVariableDataMembers
 
-
   // convert UTI to mangled strings to insure overload uniqueness
   void SymbolTable::checkTableOfFunctions()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -417,7 +398,6 @@ namespace MFM {
   void SymbolTable::linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -433,7 +413,6 @@ namespace MFM {
   {
     bool rtnfound = false;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -453,7 +432,6 @@ namespace MFM {
   void SymbolTable::labelTableOfFunctions()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -465,12 +443,10 @@ namespace MFM {
       }
   } //labelTableOfFunctions
 
-
   u32 SymbolTable::countNavNodesAcrossTableOfFunctions()
   {
     u32 totalNavCount = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -482,7 +458,6 @@ namespace MFM {
       }
     return totalNavCount;
   } //countNavNodesAcrossTableOfFunctions
-
 
   //called by current Class block on its function ST
   bool SymbolTable::checkCustomArrayTypeFuncs()
@@ -498,7 +473,7 @@ namespace MFM {
 
 	// set class type to custom array; the current class block
 	// node type was set to its class symbol type at start of parsing it.
-	UTI cuti = m_state.m_classBlock->getNodeType();
+	UTI cuti = m_state.getClassBlock()->getNodeType();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	assert(((UlamTypeClass *) cut)->isCustomArray());
 	{
@@ -512,7 +487,7 @@ namespace MFM {
       } //get found
     else
       {
-	UTI cuti = m_state.m_compileThisIdx;
+	UTI cuti = m_state.getCompileThisIdx();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
 	std::ostringstream msg;
@@ -524,9 +499,8 @@ namespace MFM {
 
   u32 SymbolTable::countNativeFuncDeclsForTableOfFunctions()
   {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     u32 nativeCount = 0;
-
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -537,11 +511,9 @@ namespace MFM {
     return nativeCount;
   } //countNativeFuncDeclsForTableOfFunctions
 
-
   void SymbolTable::genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -552,7 +524,6 @@ namespace MFM {
 	it++;
       }
   } //genCodeForTableOfFunctions
-
 
   void SymbolTable::testForTableOfClasses(File * fp)
   {
@@ -586,11 +557,9 @@ namespace MFM {
       }
   } //testForTableOfClasses
 
-
   void SymbolTable::printPostfixForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -598,19 +567,17 @@ namespace MFM {
 
 	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	classNode->printPostfix(fp);
+	m_state.popClassContext(); //restore
 	it++;
       } //while
   } //printPostfixForTableOfClasses
 
-
   void SymbolTable::printForDebugForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -618,10 +585,10 @@ namespace MFM {
 
 	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	classNode->print(fp);
+	m_state.popClassContext(); //restore
 	it++;
       } //while
   } //printForDebugForTableOfClasses
@@ -630,7 +597,6 @@ namespace MFM {
   {
     bool aok = true;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -645,7 +611,6 @@ namespace MFM {
   {
     bool aok = true;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -661,7 +626,6 @@ namespace MFM {
   {
     bool aok = true;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -673,14 +637,12 @@ namespace MFM {
     return aok;
   } //cloneInstancesInTableOfClasses
 
-
   // done after cloning and before checkandlabel;
   // blocks without prevblocks set, are linked to prev block;
   // used for searching for missing symbols in STs during c&l.
   void SymbolTable::updateLineageForTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -691,11 +653,9 @@ namespace MFM {
       } //while
   } //updateLineageForTableOfClasses
 
-
   void SymbolTable::checkCustomArraysForTableOfClasses()
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
@@ -703,8 +663,7 @@ namespace MFM {
 
 	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
 	assert(classNode);
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
 	// custom array flag set at parse time
 	UTI cuti = classNode->getNodeType();
@@ -713,6 +672,7 @@ namespace MFM {
 	  {
 	    classNode->checkCustomArrayTypeFunctions();
 	  }
+	m_state.popClassContext(); //restore
 	it++;
       }
   } //checkCustomArraysForTableOfClasses()
@@ -894,7 +854,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
 	//next output all the element typedefs that are m_compileThisId; skipping quarks
-	if(sym->getId() == m_state.m_compileThisId && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
+	if(sym->getId() == m_state.getCompileThisId() && ((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
 	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, RUNTEST);
 	it++;
 	idcounter++;
@@ -905,21 +865,21 @@ namespace MFM {
   void SymbolTable::genCodeForTableOfClasses(FileManager * fm)
   {
     //    mergeInstancesBeforeCodeGenForTableOfClasses();
-    UTI saveCompileThisIdx = m_state.m_compileThisIdx;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
 
 	//output header/body for this class next
-	m_state.setCompileThisIdx(sym->getUlamTypeIdx());
+	NodeBlockClass * classblock = ((SymbolClassName *) sym)->getClassBlockNode();
+	assert(classblock);
+	m_state.pushClassContext(sym->getUlamTypeIdx(), classblock, classblock, false, NULL);
+
 	((SymbolClassName *) sym)->generateCodeForClassInstances(fm);
+	m_state.popClassContext(); //restore
 	it++;
       } //while
-
-    m_state.setCompileThisIdx(saveCompileThisIdx);  //restore
   } //genCodeForTableOfClasses
 
 #if 0
@@ -1027,7 +987,7 @@ namespace MFM {
 		    assert(classblock);
 
 		    //quark cannot contain a copy of itself!
-		    assert(classblock != m_state.m_classBlock);
+		    assert(classblock != m_state.getClassBlock());
 
 		    if(csym->isQuarkUnion())
 		      csize = classblock->getMaxBitSizeOfVariableSymbolsInTable();

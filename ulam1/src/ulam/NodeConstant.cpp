@@ -56,15 +56,9 @@ namespace MFM {
     //instantiate, look up in class block
     if(m_constSymbol == NULL)
       {
-	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
 	//in case of a cloned unknown
 	NodeBlock * currBlock = getBlock();
-
-	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
-	bool saveUseMemberBlock = m_state.m_useMemberBlock;
-	m_state.m_useMemberBlock = false;
-
-	m_state.m_currentBlock = currBlock; //before lookup
+	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
@@ -76,19 +70,17 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a constnat, and cannot be used as one with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a constnat, and cannot be used as one with class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	    msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-	m_state.m_currentBlock = savecurrentblock; //restore
-	m_state.m_useMemberBlock = saveUseMemberBlock;
-	m_state.m_currentMemberClassBlock = savememberclassblock;
+	m_state.popClassContext(); //restore
       } //lookup symbol
 
     if(m_constSymbol)

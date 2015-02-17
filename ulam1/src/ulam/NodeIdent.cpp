@@ -61,27 +61,21 @@ namespace MFM {
     //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
       {
-	NodeBlock * savecurrentblock = m_state.m_currentBlock; //**********
-
 	//used before defined, start search with current block
 	if(m_currBlockNo == 0)
 	  {
-	    if(m_state.m_useMemberBlock)
+	    if(m_state.useMemberBlock())
 	      {
-		assert(m_state.m_currentMemberClassBlock);
-		m_currBlockNo = m_state.m_currentMemberClassBlock->getNodeNo();
+		NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+		assert(memberclass);
+		m_currBlockNo = memberclass->getNodeNo();
 	      }
 	    else
-	      m_currBlockNo = m_state.m_currentBlock->getNodeNo();
+	      m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
 	  }
 
 	NodeBlock * currBlock = getBlock();
-
-	NodeBlockClass * savememberclassblock = m_state.m_currentMemberClassBlock;
-	bool saveUseMemberBlock = m_state.m_useMemberBlock;
-	m_state.m_useMemberBlock = false;
-
-	m_state.m_currentBlock = currBlock; //before lookup
+	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
@@ -95,19 +89,17 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a variable, and cannot be used as one with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a variable, and cannot be used as one with class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.m_compileThisIdx).c_str();
+	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      	m_state.m_currentBlock = savecurrentblock; //restore
-	m_state.m_useMemberBlock = saveUseMemberBlock;
-	m_state.m_currentMemberClassBlock = savememberclassblock;
+	m_state.popClassContext(); //restore
       } //lookup symbol
 
     if(m_varSymbol)
@@ -290,7 +282,7 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
+    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
 	return false;    //already there
       }
@@ -335,7 +327,7 @@ namespace MFM {
     m_state.addSymbolToCurrentScope(symtypedef);
 
     //gets the symbol just created by makeUlamType
-    return (m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr));  //true
+    return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr));  //true
   } //installSymbolTypedef
 
 
@@ -344,7 +336,7 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
+    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
 	return false;    //already there
       }
@@ -359,7 +351,7 @@ namespace MFM {
     m_state.addSymbolToCurrentScope(symconstdef);
 
     //gets the symbol just created by makeUlamType
-    return (m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr));  //true
+    return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr));  //true
   } //installSymbolConstantValue
 
 
@@ -369,7 +361,7 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
+    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
 	if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
 	  setSymbolPtr((SymbolVariable *) asymptr);  //updates Node's symbol, if is variable
