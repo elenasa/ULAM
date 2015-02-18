@@ -338,6 +338,8 @@ namespace MFM{
 
     void pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock);
 
+    std::string getClassContextAsStringForDebugging();
+
   private:
 
     //coming soon..

@@ -270,7 +270,12 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
 	aok &= csym->statusNonreadyClassArguments(); //could bypass if deep
+	m_state.popClassContext();
 	it++;
       }
     return aok;
@@ -281,7 +286,14 @@ namespace MFM {
     bool aok = true;
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
-      aok = csym->statusNonreadyClassArguments();
+      {
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+	aok = csym->statusNonreadyClassArguments();
+	m_state.popClassContext();
+      }
     return aok;
   }//constantFoldClassArgumentsInAShallowClassInstance
 
