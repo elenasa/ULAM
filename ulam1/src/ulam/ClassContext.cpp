@@ -67,6 +67,11 @@ namespace MFM {
     m_currentMemberClassBlock = nbc; //could be null
   }
 
-
+  std::string ClassContext::getClassContextAsString()
+  {
+    std::ostringstream str;
+    str << m_compileThisId << ", " << m_compileThisIdx << ", <" << m_currentBlock << "> , <" << m_classBlock << ">, " << (m_useMemberBlock ? "true" : "false") << ", <" << m_currentMemberClassBlock << ">";
+    return str.str();
+  }
 
 } //end MFM

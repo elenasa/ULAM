@@ -523,7 +523,12 @@ namespace MFM {
   void CompilerState::constantFoldIncompleteUTI(UTI auti)
   {
     SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+    if(!alreadyDefinedSymbolClassName(getCompileThisId(), cnsym))
+      {
+	std::string debugme = getClassContextAsStringForDebugging();
+	assert(0);
+      }
+       //assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     cnsym->constantFoldIncompleteUTIOfClassInstance(getCompileThisIdx(), auti);
   }
 
@@ -1894,6 +1899,13 @@ namespace MFM {
     cc.setCurrentMemberClassBlock(memberblock);
     cc.useMemberBlock(true);
     m_classContextStack.pushClassContext(cc);
+  }
+
+  std::string CompilerState::getClassContextAsStringForDebugging()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getClassContextAsString();
   }
 
 } //end MFM

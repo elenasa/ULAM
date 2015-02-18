@@ -41,7 +41,7 @@
 #include "NodeBlock.h"
 #include "NodeBlockClass.h"
 #include "Constants.h"
-
+#include <string.h>
 namespace MFM{
 
 class ClassContext
@@ -70,6 +70,8 @@ class ClassContext
 
   NodeBlockClass * getCurrentMemberClassBlock();
   void setCurrentMemberClassBlock(NodeBlockClass * nbc);
+
+  std::string getClassContextAsString(); //debugging
 
  private:
     u32 m_compileThisId;                 // the subject of this compilation; id into m_pool
