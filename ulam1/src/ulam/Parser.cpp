@@ -2019,7 +2019,7 @@ namespace MFM {
     NodeBlock * currBlock = m_state.getCurrentBlock();
 
     // cannot call a function if a local variable name shadows it
-    if(currBlock->isIdInScope(identTok.m_dataindex,asymptr))
+    if(currBlock && currBlock->isIdInScope(identTok.m_dataindex,asymptr))
       {
 	std::ostringstream msg;
 	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";

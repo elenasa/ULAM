@@ -57,8 +57,6 @@ namespace MFM{
 
     void setEmpty();
 
-    void setClassTemplateParentUTI(UTI cuti);
-
     virtual void updateLineage(NNO pno);
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
