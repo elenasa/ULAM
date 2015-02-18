@@ -526,7 +526,7 @@ namespace MFM {
     if(!alreadyDefinedSymbolClassName(getCompileThisId(), cnsym))
       {
 	std::string debugme = getClassContextAsStringForDebugging();
-	assert(0);
+	assert(0); //forgot a pushClassContext somewhere!
       }
        //assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     cnsym->constantFoldIncompleteUTIOfClassInstance(getCompileThisIdx(), auti);
