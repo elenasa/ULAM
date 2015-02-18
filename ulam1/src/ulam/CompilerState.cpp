@@ -450,14 +450,14 @@ namespace MFM {
 	assert(alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
 	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
-	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForShallowClassInstance(suti))
+	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
 	  return suti;
       }
 
     // first time we've seen this 'incomplete' UTI for this class instance (being fully instantiated):
     // get a new UTI and add to cnsym's map for this instance in case we see it again;
     // Later, also update all its resolver's 'subtree' table references; For classes with
-    // pending args, make a copy of the shallow class including its resolver with pending args, so
+    // pending args, make a copy of the stub including its resolver with pending args, so
     // pending args can be resolved XXXX within the context of this class instance (e.g. dependent on
     // instances arg values which makes it different than others', like "self").
     // XXXX context dependent pending args are resolved before they are added to the resolver's pending args.
@@ -478,7 +478,7 @@ namespace MFM {
 	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
 
 	//potential for unending process..
-	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAShallowClassInstance(suti, newuti, getCompileThisIdx());
+	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx());
       }
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
@@ -540,7 +540,7 @@ namespace MFM {
     SymbolClassName * cnsym = NULL; //could be a different class than being compiled
     assert(alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsym));
     if(cnsym->isClassTemplate())
-      return ((SymbolClassNameTemplate *) cnsym)->constantFoldClassArgumentsInAShallowClassInstance(cuti);
+      return ((SymbolClassNameTemplate *) cnsym)->constantFoldClassArgumentsInAStubClassInstance(cuti);
     return true; //ok
   } //constantFoldPendingArgsInCurrentContext
 

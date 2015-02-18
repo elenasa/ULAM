@@ -15,7 +15,7 @@ namespace MFM {
       m_currBlockNo = symptr->getBlockNoOfST();
   }
 
-  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL) /* shallow */, m_currBlockNo(ref.m_currBlockNo) {}
+  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeIdent::~NodeIdent(){}
 

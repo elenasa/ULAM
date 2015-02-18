@@ -128,14 +128,14 @@ namespace MFM {
     m_state.m_err.setFileOutput(output);
     m_state.m_err.clearCounts();
 
-    //for regular classes and templates only
+    //for regular classes and templates, only; onlce since NNOs used
     m_state.m_programDefST.updateLineageForTableOfClasses();
 
     bool sumbrtn = true;
     u32 infcounter = 0;
     do{
       // resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
-      sumbrtn = loopUnknownsOnceAround();
+      sumbrtn = resolvingLoop();
       if(++infcounter > MAX_ITERATIONS)
 	{
 	  std::ostringstream msg;
@@ -192,19 +192,18 @@ namespace MFM {
     return m_state.m_err.getErrorCount();
   } //checkAndTypeLabelProgram
 
-  //resolving innerloop
-  bool Compiler::loopUnknownsOnceAround()
+  bool Compiler::resolvingLoop()
   {
     bool sumbrtn = true;
     sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
     sumbrtn &= m_state.m_programDefST.statusUnknownConstantExpressionsInTableOfClasses();
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context
-    sumbrtn &= m_state.m_programDefST.cloneInstancesInTableOfClasses(); //i.e. instantiate classes w ready args
+    sumbrtn &= m_state.m_programDefST.fullyInstantiateTableOfClasses(); //with ready args
     //checkAndLabelTypes: lineage updated incrementally
     m_state.m_err.clearCounts();
-    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, shallows not labeled
+    sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled
     return sumbrtn;
-  } //loopUnknownsOnceAround
+  } //resolvingLoop
 
   bool Compiler::hasTheTestMethod()
   {

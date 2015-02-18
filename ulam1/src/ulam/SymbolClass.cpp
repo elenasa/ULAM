@@ -305,18 +305,18 @@ namespace MFM {
 
   bool SymbolClass::pendingClassArgumentsForClassInstance()
   {
-    if(!m_resolver) //shallow clone only!
+    if(!m_resolver) //stubs only!
       return false; //ok, none pending
     return m_resolver->pendingClassArgumentsForClassInstance();
   }
 
-  void SymbolClass::cloneResolverForShallowClassInstance(const SymbolClass * csym, UTI context)
+  void SymbolClass::cloneResolverForStubClassInstance(const SymbolClass * csym, UTI context)
   {
     assert(csym);
     if(!m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    m_resolver->clonePendingClassArgumentsForShallowClassInstance(*(csym->m_resolver), context, this);
-  } //cloneResolverForShallowClassInstance
+    m_resolver->clonePendingClassArgumentsForStubClassInstance(*(csym->m_resolver), context, this);
+  } //cloneResolverForStubClassInstance
 
   UTI SymbolClass::getContextForPendingArgs()
   {
@@ -326,7 +326,7 @@ namespace MFM {
 
   bool SymbolClass::statusNonreadyClassArguments()
   {
-    if(!m_resolver) //shallow clone only!
+    if(!m_resolver) //stubs only!
       return true;
     return m_resolver->statusNonreadyClassArguments();
   }

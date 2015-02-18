@@ -11,7 +11,7 @@ namespace MFM {
     m_ready = updateConstant();
   }
 
-  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL) /* shallow */, m_ready(false), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeConstant::~NodeConstant(){}
 

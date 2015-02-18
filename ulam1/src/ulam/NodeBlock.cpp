@@ -160,8 +160,6 @@ namespace MFM {
 
   void NodeBlock::setPreviousBlockPointer(NodeBlock * b)
   {
-    // during shallow cloning may want to tweak this
-    //assert(m_prevBlockNode == NULL);
     m_prevBlockNode = b;
   }
 

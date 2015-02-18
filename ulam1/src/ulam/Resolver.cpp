@@ -449,7 +449,7 @@ namespace MFM {
     return rtnb;
   } //constantFoldNonreadyClassArgs
 
-  //called while parsing this shallow class instance use;
+  //called while parsing this stub instance use;
   void Resolver::linkConstantExpressionForPendingArg(NodeConstantDef * ceNode)
   {
     if(!ceNode)
@@ -462,7 +462,7 @@ namespace MFM {
     return !m_nonreadyClassArgSubtrees.empty();
   } //pendingClassArgumentsForClassInstance
 
-  void Resolver::clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym)
+  void Resolver::clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym)
   {
     NodeBlockClass * classblock = mycsym->getClassBlockNode();
     SymbolClassNameTemplate * templateparent = mycsym->getParentClassTemplate();
@@ -492,7 +492,7 @@ namespace MFM {
 	vit++;
       }
     m_classContextUTIForPendingArgs = context; //update (might not be needed anymore?)
-  } //clonePendingClassArgumentsForShallowClassInstance
+  } //clonePendingClassArgumentsForStubClassInstance
 
   UTI Resolver::getContextForPendingArgs()
   {
