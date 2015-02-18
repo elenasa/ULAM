@@ -6,7 +6,7 @@ namespace MFM {
 
   SymbolClassName::SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL, state)
   {
-    //    setDeep();
+    unsetStub();
   }
 
   SymbolClassName::~SymbolClassName(){}

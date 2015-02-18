@@ -7,7 +7,6 @@ namespace MFM {
   SymbolClassNameTemplate::SymbolClassNameTemplate(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClassName(id, utype, classblock, state)
   {
     //setParentClassTemplate(this);
-    setDeep();
   }
 
   SymbolClassNameTemplate::~SymbolClassNameTemplate()
@@ -15,19 +14,19 @@ namespace MFM {
     // symbols belong to  NodeBlockClass's ST; deleted there.
     m_parameterSymbols.clear();
 
-    // possible shallow instances that were never deeply instantiated
+    // possible stub instances that were never fully instantiated
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * sym = it->second;
-	if(sym && !sym->isDeep())
+	if(sym && sym->isStub())
 	  {
 	    delete sym;
 	    it->second = NULL;
 	  }
 	it++;
       }
-    m_scalarClassInstanceIdxToSymbolPtr.clear(); //many-to-1 (possible after deep clone)
+    m_scalarClassInstanceIdxToSymbolPtr.clear(); //many-to-1 (possible after fully instantiated)
     m_scalarClassInstanceIdxToSymbolPtrTEMP.clear(); //should be empty after each cloneInstance attempt
 
     // need to delete class instance symbols; ownership belongs here!
@@ -118,7 +117,7 @@ namespace MFM {
 
   void SymbolClassNameTemplate::addClassInstanceByArgString(UTI uti, SymbolClass * symptr)
   {
-    //new (deep) entry, and owner of symbol class for class instances with args
+    //new (full) entry, and owner of symbol class for class instances with args
     std::string argstring = formatAnInstancesArgValuesAsAString(uti);
     m_scalarClassArgStringsToSymbolPtr.insert(std::pair<std::string,SymbolClass*>(argstring,symptr));
   }
@@ -131,7 +130,7 @@ namespace MFM {
 	SymbolClass * csym = NULL;
 	assert(findClassInstanceByUTI(instance, csym));
 	rtnpending = csym->pendingClassArgumentsForClassInstance();
-	if(rtnpending) assert(!csym->isDeep());
+	if(rtnpending) assert(csym->isStub());
       }
     return rtnpending;
   } //pendingClassArgumentsForShallowClassInstance
@@ -143,7 +142,6 @@ namespace MFM {
     assert(newblockclass);
     newblockclass->setNodeLocation(typeTok.m_locator);
     newblockclass->setNodeType(cuti);
-    newblockclass->setClassTemplateParentUTI(getUlamTypeIdx()); //so it knows it's an instance
 
     SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, this, m_state);
     assert(newclassinstance);
@@ -164,7 +162,7 @@ namespace MFM {
     assert(findClassInstanceByUTI(instance, csym));
 
     assert(csym->pendingClassArgumentsForClassInstance());
-    assert(!csym->isDeep());
+    assert(csym->isStub());
     NodeBlockClass * blockclass = csym->getClassBlockNode();
 
     //previous block is template's class block, and new NNO here!
@@ -172,7 +170,6 @@ namespace MFM {
     assert(newblockclass);
     newblockclass->setNodeLocation(blockclass->getNodeLocation());
     newblockclass->setNodeType(newuti);
-    newblockclass->setClassTemplateParentUTI(getUlamTypeIdx()); //so it knows it's an instance
 
     SymbolClass * newclassinstance = new SymbolClass(getId(), newuti, newblockclass, this, m_state);
     assert(newclassinstance);
@@ -274,7 +271,7 @@ namespace MFM {
 	assert(classNode);
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	aok &= csym->statusNonreadyClassArguments(); //could bypass if deep
+	aok &= csym->statusNonreadyClassArguments(); //could bypass if fully instantiated
 	m_state.popClassContext();
 	it++;
       }
@@ -435,7 +432,7 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	if(csym->isDeep())
+	if(!csym->isStub())
 	  {
 	    it++;
 	    continue; //already done
@@ -464,10 +461,9 @@ namespace MFM {
 	  }
 
 	// first time for this cuti, and ready args!
-	//m_state.setCompileThisIdx(cuti);
 	m_state.pushClassContext(cuti, NULL, NULL, false, NULL);
 	mapInstanceUTI(cuti, getUlamTypeIdx(), cuti); // map template->instance instead of fudging.
-	SymbolClass * clone = new SymbolClass(*this); //sets deep flag
+	SymbolClass * clone = new SymbolClass(*this);
 
 	//at this point we have a NodeBlockClass! update the context
 	NodeBlockClass * classNode = clone->getClassBlockNode();
@@ -477,9 +473,9 @@ namespace MFM {
 
 	takeAnInstancesArgValues(csym, clone); //instead of keeping template's unknown values
 
-	delete csym; //done with shallow copy
+	delete csym; //done with stub
 	csym = NULL;
-	it->second = clone; //replace with the deep copy
+	it->second = clone; //replace with the full copy
 
 	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
 	//updateLineageOfClassInstanceUTI(cuti); nno-based now
@@ -607,7 +603,7 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	if(csym->isDeep())
+	if(!csym->isStub())
 	  {
 	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
@@ -630,7 +626,7 @@ namespace MFM {
   {
     u32 navCounter = 0;
 
-    // only deep instances need to be counted
+    // only full instances need to be counted
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
@@ -684,7 +680,7 @@ namespace MFM {
 	    continue; //already set
 	  }
 
-	if(csym->pendingClassArgumentsForClassInstance() || !csym->isDeep())
+	if(csym->pendingClassArgumentsForClassInstance() || csym->isStub())
 	  {
 	    aok = false;
 	  }
@@ -796,7 +792,7 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	assert(csym->isDeep());
+	assert(!csym->isStub());
 	UTI suti = csym->getUlamTypeIdx();
 	if(m_state.getUlamTypeByIndex(suti)->isComplete())
 	  {
@@ -950,7 +946,7 @@ namespace MFM {
     return true;
   } //copyAnInstancesArgValues
 
-  // done promptly after the deep clone
+  // done promptly after the full instantiation
   void SymbolClassNameTemplate::cloneResolverForClassInstance(SymbolClass * csym)
   {
     if(!m_resolver)

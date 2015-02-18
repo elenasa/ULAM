@@ -454,7 +454,7 @@ namespace MFM {
 	  return suti;
       }
 
-    // first time we've seen this 'incomplete' UTI for this class instance (deeply being copied):
+    // first time we've seen this 'incomplete' UTI for this class instance (being fully instantiated):
     // get a new UTI and add to cnsym's map for this instance in case we see it again;
     // Later, also update all its resolver's 'subtree' table references; For classes with
     // pending args, make a copy of the shallow class including its resolver with pending args, so
@@ -1088,8 +1088,11 @@ namespace MFM {
 	  brtn = memberblock->isFuncIdInScope(dataindex,symptr);
       }
     else
-      brtn = getClassBlock()->isFuncIdInScope(dataindex,symptr);
-
+      {
+	NodeBlockClass * classblock = getClassBlock();
+	if(classblock)
+	  brtn = classblock->isFuncIdInScope(dataindex,symptr);
+      }
     return brtn;
   } //isFuncIdInClassScope
 

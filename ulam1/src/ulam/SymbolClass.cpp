@@ -33,9 +33,9 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_deep(false){}
+  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true) /* default */{}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_deep(sref.m_deep)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub)
   {
     if(sref.m_classBlock)
       {
@@ -123,14 +123,14 @@ namespace MFM {
     return m_quarkunion;
   }
 
-  bool SymbolClass::isDeep()
+  bool SymbolClass::isStub()
   {
-    return m_deep;
+    return m_stub;
   }
 
-  void SymbolClass::setDeep()
+  void SymbolClass::unsetStub()
   {
-    m_deep = true;
+    m_stub = false;
   }
 
   bool SymbolClass::trySetBitsizeWithUTIValues(s32& totalbits)
@@ -257,7 +257,7 @@ namespace MFM {
   bool SymbolClass::statusUnknownConstantExpressions()
   {
     if(!m_resolver)
-      return isDeep();
+      return !isStub();
     return m_resolver->statusUnknownConstantExpressions();
   }
 
@@ -285,7 +285,6 @@ namespace MFM {
   {
     if(!m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    //assert(m_deep);
     m_resolver->linkConstantExpression(uti, ceNode);
   }
 
@@ -298,9 +297,9 @@ namespace MFM {
 
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
-    if(!m_resolver) //shallow clone only!
+    if(!m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    assert(!m_deep);
+    assert(m_stub); //stubs only have pending args
     m_resolver->linkConstantExpressionForPendingArg(constNode);
   }
 
