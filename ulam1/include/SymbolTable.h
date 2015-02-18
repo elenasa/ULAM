@@ -119,7 +119,7 @@ namespace MFM{
 
     bool statusNonreadyClassArgumentsInTableOfClasses();
 
-    bool cloneInstancesInTableOfClasses();
+    bool fullyInstantiateTableOfClasses();
 
     void updateLineageForTableOfClasses(); //done incrementally for stubs
 

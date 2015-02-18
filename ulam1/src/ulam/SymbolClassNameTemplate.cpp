@@ -112,7 +112,7 @@ namespace MFM {
 
   void SymbolClassNameTemplate::addClassInstanceUTI(UTI uti, SymbolClass * symptr)
   {
-    m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr)); //shallow
+    m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr)); //stub
   }
 
   void SymbolClassNameTemplate::addClassInstanceByArgString(UTI uti, SymbolClass * symptr)
@@ -122,7 +122,7 @@ namespace MFM {
     m_scalarClassArgStringsToSymbolPtr.insert(std::pair<std::string,SymbolClass*>(argstring,symptr));
   }
 
-  bool SymbolClassNameTemplate::pendingClassArgumentsForShallowClassInstance(UTI instance)
+  bool SymbolClassNameTemplate::pendingClassArgumentsForStubClassInstance(UTI instance)
   {
     bool rtnpending = false;
     if(getNumberOfParameters() > 0)
@@ -133,9 +133,9 @@ namespace MFM {
 	if(rtnpending) assert(csym->isStub());
       }
     return rtnpending;
-  } //pendingClassArgumentsForShallowClassInstance
+  } //pendingClassArgumentsForStubClassInstance
 
-  SymbolClass * SymbolClassNameTemplate::makeAShallowClassInstance(Token typeTok, UTI cuti)
+  SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(Token typeTok, UTI cuti)
   {
     //previous block is template's class block, and new NNO here!
     NodeBlockClass * newblockclass = new NodeBlockClass(getClassBlockNode(), m_state);
@@ -150,10 +150,10 @@ namespace MFM {
 
     addClassInstanceUTI(cuti, newclassinstance); //link here
     return newclassinstance;
-  } //makeAShallowClassInstance
+  } //makeAStubClassInstance
 
   //instead of a copy, let's start new
-  void SymbolClassNameTemplate::copyAShallowClassInstance(UTI instance, UTI newuti, UTI context)
+  void SymbolClassNameTemplate::copyAStubClassInstance(UTI instance, UTI newuti, UTI context)
   {
     assert(getNumberOfParameters() > 0);
     assert(instance != newuti);
@@ -183,8 +183,8 @@ namespace MFM {
     // to resolve, if possible, these pending args:
     copyAnInstancesArgValues(csym, newclassinstance);
 
-    newclassinstance->cloneResolverForShallowClassInstance(csym, context);
-  } //copyAShallowClassInstance
+    newclassinstance->cloneResolverForStubClassInstance(csym, context);
+  } //copyAStubClassInstance
 
   //called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
   // are fixed to match the params
@@ -260,7 +260,7 @@ namespace MFM {
     return aok;
   } //statusUnknownConstantExpressionsInClassInstances
 
-  bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInShallowClassInstances()
+  bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
   {
     bool aok = true;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
@@ -276,9 +276,9 @@ namespace MFM {
 	it++;
       }
     return aok;
-  }//statusNonreadyClassArgumentsInShallowClassInstances
+  }//statusNonreadyClassArgumentsInStubClassInstances
 
-  bool SymbolClassNameTemplate::constantFoldClassArgumentsInAShallowClassInstance(UTI instance)
+  bool SymbolClassNameTemplate::constantFoldClassArgumentsInAStubClassInstance(UTI instance)
   {
     bool aok = true;
     SymbolClass * csym = NULL;
@@ -292,7 +292,7 @@ namespace MFM {
 	m_state.popClassContext();
       }
     return aok;
-  }//constantFoldClassArgumentsInAShallowClassInstance
+  }//constantFoldClassArgumentsInAStubClassInstance
 
   std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsAString(UTI instance)
   {
@@ -420,7 +420,7 @@ namespace MFM {
     assert(checkuti == mappeduti);
   } //mapInstanceUTI
 
-  bool SymbolClassNameTemplate::cloneInstances()
+  bool SymbolClassNameTemplate::fullyInstantiate()
   {
     bool aok = true; //all done
 
@@ -438,7 +438,7 @@ namespace MFM {
 	    continue; //already done
 	  }
 
-	//ask shallow class symbol..
+	//ask stub class symbol..
 	if(csym->pendingClassArgumentsForClassInstance())
 	  {
 	    aok = false;
@@ -497,7 +497,7 @@ namespace MFM {
 	  {
 	    UTI cuti = it->first;
 	    SymbolClass * csym = it->second;
-	    addClassInstanceUTI(cuti, csym); //shallow
+	    addClassInstanceUTI(cuti, csym); //stub
 
 	    //update the previous block ptr using the saved context in the resolver
 	    UTI contextUTI = csym->getContextForPendingArgs();
@@ -615,7 +615,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << " Class instance: ";
 	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
-	    msg << " is still shallow, so check and label error";
+	    msg << " is still a stub, so check and label error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	it++;
@@ -855,7 +855,7 @@ namespace MFM {
     u32 numparams = getNumberOfParameters();
     if(cargs != numparams)
       {
-	//error! number of arguments in shallow class instance does not match the number of parameters
+	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
 	msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(fm->getId()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
 	MSG("", msg.str().c_str(),ERR);
@@ -865,7 +865,7 @@ namespace MFM {
     m_state.pushClassContext(fm->getUlamTypeIdx(), fmclassblock, fmclassblock, false, NULL);
     std::vector<SymbolConstantValue *> instancesArgs;
 
-    //copy values from shallow instance into temp list
+    //copy values from stub into temp list
     std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
     while(pit != m_parameterSymbols.end())
       {
@@ -905,7 +905,7 @@ namespace MFM {
     u32 numparams = getNumberOfParameters();
     if(cargs != numparams)
       {
-	//error! number of arguments in shallow class instance does not match the number of parameters
+	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
 	msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(fm->getId()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
 	MSG("", msg.str().c_str(),ERR);
@@ -915,7 +915,7 @@ namespace MFM {
     m_state.pushClassContext(fm->getUlamTypeIdx(), fmclassblock, fmclassblock, false, NULL);
     std::vector<SymbolConstantValue *> instancesArgs;
 
-    //copy values from shallow instance into temp list
+    //copy values from stub into temp list
     std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
     while(pit != m_parameterSymbols.end())
       {

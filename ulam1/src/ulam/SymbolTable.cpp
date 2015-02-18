@@ -616,13 +616,13 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 	if(((SymbolClassName *) sym)->isClassTemplate())
-	  aok &= ((SymbolClassNameTemplate *) sym)->statusNonreadyClassArgumentsInShallowClassInstances();
+	  aok &= ((SymbolClassNameTemplate *) sym)->statusNonreadyClassArgumentsInStubClassInstances();
 	it++;
       } //while
     return aok;
   }//statusNonreadyClassArgumentsInTableOfClasses
 
-  bool SymbolTable::cloneInstancesInTableOfClasses()
+  bool SymbolTable::fullyInstantiateTableOfClasses()
   {
     bool aok = true;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -631,11 +631,11 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 	if(((SymbolClassName *) sym)->isClassTemplate())
-	  aok &= ((SymbolClassNameTemplate *) sym)->cloneInstances();
+	  aok &= ((SymbolClassNameTemplate *) sym)->fullyInstantiate();
 	it++;
       } //while
     return aok;
-  } //cloneInstancesInTableOfClasses
+  } //fullyInstantiateTableOfClasses
 
   // done after cloning and before checkandlabel;
   // blocks without prevblocks set, are linked to prev block;

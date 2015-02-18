@@ -59,25 +59,25 @@ namespace MFM{
     void addClassInstanceUTI(UTI uti, SymbolClass * symptr);
     void addClassInstanceByArgString(UTI uti, SymbolClass * symptr);
 
-    bool pendingClassArgumentsForShallowClassInstance(UTI instance);
+    bool pendingClassArgumentsForStubClassInstance(UTI instance);
 
-    SymbolClass * makeAShallowClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
-    void copyAShallowClassInstance(UTI instance, UTI newuti, UTI context);
+    SymbolClass * makeAStubClassInstance(Token typeTok, UTI cuti); //to hold class args, and cUTI
+    void copyAStubClassInstance(UTI instance, UTI newuti, UTI context);
 
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
 
     virtual bool statusUnknownConstantExpressionsInClassInstances();
 
-    bool statusNonreadyClassArgumentsInShallowClassInstances();
-    bool constantFoldClassArgumentsInAShallowClassInstance(UTI instance);
+    bool statusNonreadyClassArgumentsInStubClassInstances();
+    bool constantFoldClassArgumentsInAStubClassInstance(UTI instance);
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
 
     //helpers while deep instantiation
     bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
     void mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
-    bool cloneInstances(); //i.e. instantiate
+    bool fullyInstantiate();
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
     virtual void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);

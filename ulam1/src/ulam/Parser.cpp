@@ -1457,7 +1457,7 @@ namespace MFM {
     if(ctut->isCustomArray())
       ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) ctut)->getCustomArrayType());
 
-    SymbolClass * csym = ctsym->makeAShallowClassInstance(typeTok, cuti);
+    SymbolClass * csym = ctsym->makeAStubClassInstance(typeTok, cuti);
 
     u32 parmidx = 0;
     parseRestOfClassArguments(csym, ctsym, parmidx);
@@ -1530,7 +1530,7 @@ namespace MFM {
       }
     else
       {
-	// non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (shallow instance)
+	// non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
 	csym->linkConstantExpressionForPendingArg(constNode);
       }
 

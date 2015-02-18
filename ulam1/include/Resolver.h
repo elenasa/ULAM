@@ -74,12 +74,12 @@ namespace MFM
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
 
-    //these exist in a shallow class only!
+    //these exist in a stubs only!
     bool statusNonreadyClassArguments();
     bool constantFoldNonreadyClassArgs();
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
     bool pendingClassArgumentsForClassInstance();
-    void clonePendingClassArgumentsForShallowClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym);
+    void clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym);
     UTI getContextForPendingArgs();
 
   protected:
