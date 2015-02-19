@@ -73,6 +73,7 @@ namespace MFM{
     bool constantFoldClassArgumentsInAStubClassInstance(UTI instance);
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
+    std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
 
     //helpers while deep instantiation
     bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);

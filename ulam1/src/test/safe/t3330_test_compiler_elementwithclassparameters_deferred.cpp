@@ -8,7 +8,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //note: in eval, last case, uninitialized atom case is wrong!!
-      return std::string("Exit status: 0\nUe_T { S m( constant Int(CONSTANT) x = 1;  constant Int(CONSTANT) y = 2; );  Int(32) test() {  m ( )func . 0 cast return } }\nUq_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_T { S(1,2) m( constant Int(CONSTANT) x = 1;  constant Int(CONSTANT) y = 2; );  Int(32) test() {  m ( )func . 0 cast return } }\nUq_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

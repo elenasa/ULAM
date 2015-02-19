@@ -381,6 +381,99 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsAString
 
+  std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance)
+  {
+    u32 numParams = getNumberOfParameters();
+    if(numParams == 0)
+      {
+	return "";
+      }
+
+    std::ostringstream args;
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	std::ostringstream msg;
+	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; args format is number of parameters";
+	MSG("", msg.str().c_str(), DEBUG);
+	args << DigitCount(numParams, BASE10) << numParams;
+	return args.str(); //short-circuit when argument is template's UTI
+      }
+
+    args << "(";
+
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      {
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+	u32 n = 0;
+	//format values into stream
+	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+	while(pit != m_parameterSymbols.end())
+	  {
+	    if(n++ > 0)
+	      args << ",";
+
+	    SymbolConstantValue * psym = *pit;
+	    //get 'instance's value
+	    Symbol * asym = NULL;
+	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
+	    UTI auti = asym->getUlamTypeIdx();
+	    ULAMTYPE eutype = m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum();
+
+	    bool isok = false;
+	    switch(eutype)
+	      {
+	      case Int:
+		{
+		  s32 sval;
+		  if(((SymbolConstantValue *) asym)->getValue(sval))
+		    {
+		      args << sval;
+		      isok = true;
+		    }
+		  break;
+		}
+	      case Unsigned:
+		{
+		  u32 uval;
+		  if(((SymbolConstantValue *) asym)->getValue(uval))
+		    {
+		      args << uval << "u";
+		      isok = true;
+		    }
+		  break;
+		}
+	      case Bool:
+		{
+		  bool bval;
+		  if(((SymbolConstantValue *) asym)->getValue(bval))
+		    {
+		      args << (bval ? "true" : "false");
+		      isok = true;
+		    }
+		  break;
+		}
+	      default:
+		assert(0);
+	      };
+
+	    if(!isok)
+	      {
+		std::string astr = m_state.m_pool.getDataAsString(asym->getId());
+		args << astr.c_str();
+	      }
+	    pit++;
+	  } //next param
+	args << ")";
+
+	m_state.popClassContext(); //restore
+      }
+    return args.str();
+  } //formatAnInstancesArgValuesAsCommaDelimitedString
+
   bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
     bool brtn = false;
