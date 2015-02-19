@@ -9,7 +9,7 @@ namespace MFM {
       //before decllist:
       //Exit status: 0\nUe_Foo { Bool(UNKNOWN) b(false);  constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Bool(UNKNOWN) sp(false);  Int(32) test() {  Foo f;  Foo p;  f sp . -2 -2 == = 0 return } }\nUe_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }
 
-      return std::string("Exit status: 0\nUe_Foo { Bool(UNKNOWN) b(false);  constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Bool(UNKNOWN) sp(false);  Bool(UNKNOWN) c(false);  Int(32) test() {  Foo f;  Foo p;  f sp . -2 -2 == = 0 return } }\nUe_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { Bool(UNKNOWN) b(false);  constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Bool(UNKNOWN) sp(false);  Bool(UNKNOWN) c(false);  Int(32) test() {  Foo(1,3) f;  Foo(1,3) p;  f sp . -2 -2 == = 0 return } }\nUe_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

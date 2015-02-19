@@ -109,8 +109,17 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeNameBrief()
   {
-    return m_key.getUlamKeyTypeSignatureName(&m_state);
-  }
+    //return m_key.getUlamKeyTypeSignatureName(&m_state);
+    std::ostringstream namestr;
+    namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str();
+
+    u32 id = m_key.getUlamKeyTypeSignatureNameId();
+    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
+    if(cnsym->isClassTemplate())
+      namestr << ((SymbolClassNameTemplate *) cnsym)->formatAnInstancesArgValuesAsCommaDelimitedString(cuti).c_str();
+    return namestr.str();
+  } //getUlamTypeNameBrief
 
   //see SymbolVariableDataMember printPostfix for recursive output
   void UlamTypeClass::getDataAsString(const u32 data, char * valstr, char prefix)
