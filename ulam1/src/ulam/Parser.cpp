@@ -166,7 +166,7 @@ namespace MFM {
     if( (pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) && (pTok.m_type != TOK_KW_QUARKUNION) )
       {
 	std::ostringstream msg;
-	msg << "Expecting 'quark' or 'element' KEYWORD, NOT <" << pTok.getTokenString() << ">";
+	msg << "Expecting 'quark' or 'element' KEYWORD, NOT <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
 
 	return true;  //we're done.
@@ -494,13 +494,19 @@ namespace MFM {
     UTI cuti = Nav;
     if(m_state.getBaseTypeFromToken(pTok) == Class)
       {
-	cuti = parseClassArguments(pTok); //not sure what to do with the UTI???
+	cuti = parseClassArguments(pTok); //not sure what to do with the UTI?
 	Token dTok;
 	getNextToken(dTok);
 	unreadToken();
 	if(dTok.m_type == TOK_DOT)
 	  {
-	    parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize);
+	    bool brtn = true;
+	    parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti, brtn);
+	    if(!brtn)
+	      {
+		m_state.m_parsingElementParameterVariable = false;  //clear on error
+		return false; //expecting a type, not sizeof, probably an error
+	      }
 	  }
       }
     else
@@ -989,7 +995,7 @@ namespace MFM {
       }
 
     // wrapping body in NodeStatements produces proper comment for genCode
-    // might need another block here ???
+    // might need another block here ?
     NodeStatements * trueStmtNode = new NodeStatements(trueNode, m_state);
     assert(trueStmtNode);
     trueStmtNode->setNodeLocation(trueNode->getNodeLocation());
@@ -1254,13 +1260,16 @@ namespace MFM {
 	UTI cuti = Nav;
 	if(m_state.getBaseTypeFromToken(pTok) == Class)
 	  {
-	    cuti = parseClassArguments(pTok); //not sure what to do with the UTI???
+	    cuti = parseClassArguments(pTok); //not sure what to do with the UTI
 	    Token dTok;
 	    getNextToken(dTok);
 	    unreadToken();
 	    if(dTok.m_type == TOK_DOT)
 	      {
-		parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize);
+		bool brtn = true;
+		parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti, brtn);
+		if(!brtn)
+		  return rtnNode; //error if not a typedef, right?
 	      }
 	  }
 	else
@@ -1350,13 +1359,16 @@ namespace MFM {
     UTI cuti = Nav;
     if(m_state.getBaseTypeFromToken(pTok) == Class)
       {
-	cuti = parseClassArguments(pTok); //not sure what to do with the UTI???
+	cuti = parseClassArguments(pTok); //not sure what to do with the UTI?
 	Token dTok;
 	getNextToken(dTok);
 	unreadToken();
 	if(dTok.m_type == TOK_DOT)
 	  {
-	    parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize);
+	    bool brtn = true;
+	    parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti, brtn);
+	    if(!brtn)
+	      return rtnNode; //decl with sizeof in type, not good.
 	  }
       }
     else
@@ -1449,7 +1461,7 @@ namespace MFM {
 
     // make a (shallow) Class Instance Stub to collect class args as SymbolConstantValues;
     // has its own uti that will become part of its key; (too soon for a deep copy!)
-    cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nav);
+    cuti = m_state.makeUlamType(typeTok, UNKNOWNSIZE, NONARRAYSIZE, Nav); //overwrites the template type here.
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     ((UlamTypeClass *) cut)->setUlamClass(ctsym->getUlamClass()); //possibly UC_UNSEEN
 
@@ -1586,7 +1598,8 @@ namespace MFM {
     else if(bTok.m_type == TOK_DOT)
       {
 	unreadToken();
-	parseTypeFromAnotherClassesTypedef(typeTok, typebitsize, arraysize);
+	bool brtn;
+	parseTypeFromAnotherClassesTypedef(typeTok, typebitsize, arraysize, Nav, brtn); //what does false return mean?
       }
     else
       {
@@ -1598,10 +1611,9 @@ namespace MFM {
 
   //recursively parses classtypes and their typedefs (dot separated)
   // into their UTI alias; the typeTok and return bitsize ref args
-  // represent the UTI; Admittedly, not the most elegant approach, but
-  // it works with the existing code that installs symbol variables
-  // using the type token, bitsize, and arraysize.
-  void Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize)
+  // represent the UTI; false if 'sizeof' or something other than a type
+  // was found after the dot.
+  void Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, bool& rtnb)
   {
     Token nTok;
     getNextToken(nTok);
@@ -1611,9 +1623,18 @@ namespace MFM {
 	return;  //done.
       }
 
-    SymbolClassName * csym = NULL;
-    if(m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, csym))
+    SymbolClassName * cnsym = NULL;
+    if(m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
       {
+	SymbolClass * csym = NULL;
+	if(cnsym->isClassTemplate() && classInstanceIdx)
+	  {
+	    ((SymbolClassNameTemplate *) cnsym)->findClassInstanceByUTI(classInstanceIdx, csym);
+	    assert(csym);
+	  }
+	else
+	  csym = cnsym;
+
 	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
 	if(!memberClassNode)  // e.g. forgot the closing brace on quark def once
 	  {
@@ -1622,14 +1643,16 @@ namespace MFM {
 	    if(nTok.m_dataindex != m_state.m_pool.getIndexForDataString("sizeof"))
 	      {
 		std::ostringstream msg;
-		msg << "Trying to use typedef from another class <" << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">, before it has been defined. Cannot continue";
+		msg << "Trying to use typedef from another class <" << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">, before it has been defined. Cannot continue with (token) " << m_state.getTokenDataAsString(&nTok).c_str();
 		MSG(&typeTok, msg.str().c_str(),ERR);
+		//unreadToken(); //???
 	      }
 	    else
 	      {
 		rtnbitsize = UNKNOWNSIZE;  //t.f. unknown bitsize or arraysize or both?
 		unreadToken(); //put the 'sizeof' back
 	      }
+	    rtnb = false;
 	    return;
 	  }
 
@@ -1641,6 +1664,7 @@ namespace MFM {
 	if(Token::isTokenAType(nTok))
 	  {
 	    UTI tduti;
+	    bool isclasstd = false;
 	    if(m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti))
 	      {
 		UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
@@ -1658,20 +1682,25 @@ namespace MFM {
 		if(tdclasstype == UC_NOTACLASS)
 		  typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), nTok.m_locator, 0);
 		else
-		  typeTok.init(TOK_TYPE_IDENTIFIER, nTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
+		  {
+		    typeTok.init(TOK_TYPE_IDENTIFIER, nTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
+		    isclasstd = true;
+		  }
 		//update rest of argument refs
 		rtnbitsize = tdut->getBitSize();
 		rtnarraysize = tdut->getArraySize();
+		rtnb = true;
 	      }
 	    else
 	      {
 		std::ostringstream msg;
 		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str() << "> is not a typedef belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
 		MSG(&nTok, msg.str().c_str(),ERR);
+		rtnb = false;
 	      }
 
 	    //not a typedef, possibly its another class? go again..
-	    parseTypeFromAnotherClassesTypedef(typeTok, rtnbitsize, rtnarraysize);
+	    parseTypeFromAnotherClassesTypedef(typeTok, rtnbitsize, rtnarraysize, (isclasstd ? tduti : Nav), rtnb);
 	  }
 	else
 	  {
@@ -1687,15 +1716,17 @@ namespace MFM {
 		rtnbitsize = UNKNOWNSIZE;  //t.f. unknown bitsize or arraysize or both?
 		unreadToken(); //put the 'sizeof' back
 	      }
+	    rtnb = false;
 	  }
 	m_state.popClassContext(); //restore
       }
     else
       {
 	unreadToken();  //put dot back, minof or maxof perhaps?
-	//std::ostringstream msg;
-	//msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type: <" << m_state.getTokenDataAsString(&typeTok).c_str() << ">";
-	//MSG(&typeTok, msg.str().c_str(),ERR);
+	std::ostringstream msg;
+	msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type: <" << m_state.getTokenDataAsString(&typeTok).c_str() << ">";
+	MSG(&typeTok, msg.str().c_str(),DEBUG);
+	//	rtnb = false;
       }
     return;
   } //parseTypeFromAnotherClassesTypedef
@@ -1979,7 +2010,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of incomplete variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 		MSG(&fTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -1990,7 +2021,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of incomplete variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 		MSG(&fTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -2161,8 +2192,12 @@ namespace MFM {
 	    unreadToken();
 	    if(dTok.m_type == TOK_DOT)
 	      {
-		parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize);
-		uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize);
+		bool brtn = true;
+		parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti, brtn);
+		if(brtn)
+		  uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize);
+		else
+		  uti = cuti;
 	      }
 	    else
 	      uti = cuti;
@@ -3750,8 +3785,12 @@ namespace MFM {
 	unreadToken();
 	if(dTok.m_type == TOK_DOT)
 	  {
-	    parseTypeFromAnotherClassesTypedef(typeTok, typebitsize, arraysize);
-	    typeToBe = m_state.getUlamTypeFromToken(typeTok, typebitsize, arraysize);
+	    bool brtn = true;
+	    parseTypeFromAnotherClassesTypedef(typeTok, typebitsize, arraysize, cuti, brtn);
+	    if(brtn)
+	      typeToBe = m_state.getUlamTypeFromToken(typeTok, typebitsize, arraysize);
+	    else
+	      typeToBe = cuti; //probably an error if not a type
 	  }
 	else
 	  typeToBe = cuti;

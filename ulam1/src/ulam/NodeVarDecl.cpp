@@ -26,6 +26,7 @@ namespace MFM {
     return new NodeVarDecl(*this);
   }
 
+  // see SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
   {
     fp->write(" ");
