@@ -500,9 +500,7 @@ namespace MFM {
 	unreadToken();
 	if(dTok.m_type == TOK_DOT)
 	  {
-	    bool brtn = true;
-	    parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti, brtn);
-	    if(!brtn)
+	    if(!parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti))
 	      {
 		m_state.m_parsingElementParameterVariable = false;  //clear on error
 		return false; //expecting a type, not sizeof, probably an error
@@ -1266,9 +1264,7 @@ namespace MFM {
 	    unreadToken();
 	    if(dTok.m_type == TOK_DOT)
 	      {
-		bool brtn = true;
-		parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti, brtn);
-		if(!brtn)
+		if(!parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti))
 		  return rtnNode; //error if not a typedef, right?
 	      }
 	  }
@@ -1365,9 +1361,7 @@ namespace MFM {
 	unreadToken();
 	if(dTok.m_type == TOK_DOT)
 	  {
-	    bool brtn = true;
-	    parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti, brtn);
-	    if(!brtn)
+	    if(!parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti))
 	      return rtnNode; //decl with sizeof in type, not good.
 	  }
       }
@@ -1598,8 +1592,7 @@ namespace MFM {
     else if(bTok.m_type == TOK_DOT)
       {
 	unreadToken();
-	bool brtn;
-	parseTypeFromAnotherClassesTypedef(typeTok, typebitsize, arraysize, Nav, brtn); //what does false return mean?
+	parseTypeFromAnotherClassesTypedef(typeTok, typebitsize, arraysize, Nav); //what does false return mean?
       }
     else
       {
@@ -1609,11 +1602,23 @@ namespace MFM {
     return rtnNode; //typebitsize const expr
   } //parseTypeBitsize
 
+  bool Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx)
+  {
+    u32 numDots = 0;
+    bool foundTypedef = true;
+    parseTypeFromAnotherClassesTypedef(typeTok, rtnbitsize, rtnarraysize, classInstanceIdx, foundTypedef, numDots);
+
+    if(numDots > 1)
+      return true; //definitely found a typedef
+
+    return foundTypedef; //one time through only
+  } //parseTypeFromAnotherClassesTypedef (call)
+
   //recursively parses classtypes and their typedefs (dot separated)
   // into their UTI alias; the typeTok and return bitsize ref args
   // represent the UTI; false if 'sizeof' or something other than a type
-  // was found after the dot.
-  void Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, bool& rtnb)
+  // was found after the first dot; countDots.
+  void Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, bool& rtnb, u32& numDots)
   {
     Token nTok;
     getNextToken(nTok);
@@ -1622,6 +1627,7 @@ namespace MFM {
 	unreadToken();
 	return;  //done.
       }
+    numDots++;
 
     SymbolClassName * cnsym = NULL;
     if(m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
@@ -1700,7 +1706,7 @@ namespace MFM {
 	      }
 
 	    //not a typedef, possibly its another class? go again..
-	    parseTypeFromAnotherClassesTypedef(typeTok, rtnbitsize, rtnarraysize, (isclasstd ? tduti : Nav), rtnb);
+	    parseTypeFromAnotherClassesTypedef(typeTok, rtnbitsize, rtnarraysize, (isclasstd ? tduti : Nav), rtnb, numDots);
 	  }
 	else
 	  {
@@ -1726,7 +1732,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type: <" << m_state.getTokenDataAsString(&typeTok).c_str() << ">";
 	MSG(&typeTok, msg.str().c_str(),DEBUG);
-	//	rtnb = false;
+	rtnb = false;
       }
     return;
   } //parseTypeFromAnotherClassesTypedef
@@ -2192,9 +2198,7 @@ namespace MFM {
 	    unreadToken();
 	    if(dTok.m_type == TOK_DOT)
 	      {
-		bool brtn = true;
-		parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti, brtn);
-		if(brtn)
+		if(parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti))
 		  uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize);
 		else
 		  uti = cuti;
@@ -3785,9 +3789,7 @@ namespace MFM {
 	unreadToken();
 	if(dTok.m_type == TOK_DOT)
 	  {
-	    bool brtn = true;
-	    parseTypeFromAnotherClassesTypedef(typeTok, typebitsize, arraysize, cuti, brtn);
-	    if(brtn)
+	    if(parseTypeFromAnotherClassesTypedef(typeTok, typebitsize, arraysize, cuti))
 	      typeToBe = m_state.getUlamTypeFromToken(typeTok, typebitsize, arraysize);
 	    else
 	      typeToBe = cuti; //probably an error if not a type
