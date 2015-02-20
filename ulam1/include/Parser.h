@@ -199,7 +199,8 @@ namespace MFM{
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE
 	false when possible 'sizeof' found instead of a type;
      */
-    void parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, bool& rtnb);
+    bool parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx);
+    void parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, bool& rtnb, u32& numDots);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)
