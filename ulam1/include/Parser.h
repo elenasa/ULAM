@@ -196,8 +196,10 @@ namespace MFM{
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE and node with constant expression */
     NodeTypeBitsize * parseTypeBitsize(Token& typeTok, s32& typebitsize, s32& arraysize);
 
-    /** helper for parsing type; returns bitsize, or UNKNOWNSIZE */
-    void parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize);
+    /** helper for parsing type; returns bitsize, or UNKNOWNSIZE
+	false when possible 'sizeof' found instead of a type;
+     */
+    void parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, bool& rtnb);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)

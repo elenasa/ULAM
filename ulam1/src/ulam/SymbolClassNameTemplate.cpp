@@ -112,7 +112,9 @@ namespace MFM {
 
   void SymbolClassNameTemplate::addClassInstanceUTI(UTI uti, SymbolClass * symptr)
   {
-    m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr)); //stub
+    std::pair<std::map<UTI,SymbolClass *>::iterator,bool> ret;
+    ret = m_scalarClassInstanceIdxToSymbolPtr.insert(std::pair<UTI,SymbolClass*> (uti,symptr)); //stub
+    assert(ret.second); //false if already existed, i.e. not added
   }
 
   void SymbolClassNameTemplate::addClassInstanceByArgString(UTI uti, SymbolClass * symptr)

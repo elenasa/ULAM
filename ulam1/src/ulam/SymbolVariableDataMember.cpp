@@ -131,7 +131,7 @@ namespace MFM {
 	    //u32 slot = c0.convertCoordToIndex();
 
 	    //build the string of values (for both scalar and packed array)
-	    UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, packFit, m_state, startpos + getPosOffset());
+	    UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, packFit, m_state, startpos + getPosOffset(), getId());
 	    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
 
 	    UlamValue atval = m_state.getPtrTarget(nextPtr);

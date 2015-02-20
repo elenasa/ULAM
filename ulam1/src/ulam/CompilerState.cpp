@@ -145,7 +145,7 @@ namespace MFM {
     if(!isDefined(key,ut) || bitsize == UNKNOWNSIZE || arraysize == UNKNOWNSIZE)
       {
 	//no key, make new type, how to know baseUT? bitsize?
-	uti = makeUlamType(key,bUT);
+	uti = makeUlamType(key,bUT); //returns uti
       }
     else
 	assert(aDefinedUTI(key,uti));
@@ -1207,7 +1207,7 @@ namespace MFM {
 	  }
       }
     return "Nav";
-  }
+  } //getTokenAsATypeName
 
   u32 CompilerState::getTokenAsATypeNameId(Token tok)
   {
