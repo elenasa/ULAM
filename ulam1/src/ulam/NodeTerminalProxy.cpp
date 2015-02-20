@@ -9,7 +9,7 @@ namespace MFM {
     Node::setNodeLocation(funcTok.m_locator);
   }
 
-  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_uti(ref.m_uti), m_funcTok(ref.m_funcTok) {}
+  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok) {}
 
   NodeTerminalProxy::~NodeTerminalProxy() {}
 

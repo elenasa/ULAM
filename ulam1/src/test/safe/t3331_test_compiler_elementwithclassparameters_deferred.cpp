@@ -25,11 +25,14 @@ namespace MFM {
       //bool rtn1 = fms->add("S.ulam"," ulam 1;\nquark S(Int x, Int y){\nInt(x+y) i,j;\n Int func(){\nreturn (x + y);\n}\n }\n");
 
       // here we set i using S(1,2).sizeof
-      bool rtn2 = fms->add("T.ulam"," ulam 1;\nuse System;\nuse S;\n element T{\nSystem s;\nUnsigned i,j;\nBool(3) b,c;\n Int test(){\nUnsigned x,y;\n S(1,2) m;\ni = S(1,2).sizeof;\n x = m.func(); b = (i == x);\n s.print(i);\ns.print(x);\n s.print(b);\n j = self.sizeof;\ny = T.sizeof;\n c = (j == y);\n s.print(j);\n s.print(y);\n s.print(c);\n /* c = true;\n bug */ return i;\n}\n }\n");
+      bool rtn2 = fms->add("T.ulam"," ulam 1;\nuse System;\nuse S;\n element T{\nSystem s;\nUnsigned i,j;\nBool(3) b,c;\n Int test(){\nUnsigned x,y;\n S(1,2) m;\ni = S(1,2).sizeof;\n x = m.func(); b = (i == x);\n s.print(i);\ns.print(x);\n s.print(b);\n j = self.sizeof;\ny = T.sizeof;\n c = (j == y);\n s.print(j);\n s.print(y);\n s.print(c);\nreturn i;\n}\n }\n");
 
       //infinite loop 'S(x+y,n) s;' with x+y as class arg!
       //note: quark self.sizeof returns 96 (an atom's size).
-      bool rtn1 = fms->add("S.ulam"," ulam 1;\nquark S(Int x, Int y){\nInt(x+y) i,j;\n Int func(){\nreturn /* S(x,y).sizeof */  (x + y);\n}\n }\n");
+      //note: S(x,y).sizeof in S returns UNKNOWN (-2 == 2147483647).
+      //i.sizeof "Invalid Statement (possible missing semicolon)"; though in T, b.sizeof returns 3;
+      //Int(x+y).sizeof "Invalid Statement (possible missing semicolon)"; though in T, Bool(3) returns 3;
+      bool rtn1 = fms->add("S.ulam"," ulam 1;\nquark S(Int x, Int y){\nInt(x+y) i,j;\n Int func(){\nreturn  /* S(x,y).sizeof*/ (x + y) /* Int(x+y).sizeof */ /* i.sizeof*/;\n}\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
