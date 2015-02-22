@@ -2962,7 +2962,7 @@ namespace MFM {
     // allows function name to be same as arg name
     // since the function starts a new "block" (i.e. ST);
     // the argument to parseDecl will prevent it from looking
-    // for restofdecls
+    // for restofdecls (i.e. singledecl)
     // currently only for natives (detected after args done)
     if(pTok.m_type == TOK_ELLIPSIS)
       {

@@ -12,17 +12,29 @@ namespace MFM {
 
   SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs)
   {
-    for(u32 i = 0; i < sref.m_parameterSymbols.size(); i++)
-      {
-	//m_parameterSymbols[i] = sref.m_parameterSymbols[i]->clone();
-	Symbol * sym = sref.m_parameterSymbols[i]->clone();
-	m_parameterSymbols.push_back(sym);
-      }
-
+    //parameters belong to functiondefinition block's ST; do not clone them again here!
     if(sref.m_functionNode)
-      m_functionNode = (NodeBlockFunctionDefinition *) sref.m_functionNode->instantiate();
+      {
+	m_functionNode = (NodeBlockFunctionDefinition *) sref.m_functionNode->instantiate();
+	m_state.pushCurrentBlockAndDontUseMemberBlock(m_functionNode);
+	for(u32 i = 0; i < sref.m_parameterSymbols.size(); i++)
+	  {
+	    u32 pid = sref.m_parameterSymbols[i]->getId();
+	    Symbol * sym = NULL; //NOT here: sref.m_parameterSymbols[i]->clone();
+	    assert(m_state.alreadyDefinedSymbol(pid, sym));
+	    m_parameterSymbols.push_back(sym);
+	  }
+	m_state.popClassContext();
+	m_functionNode->setFuncSymbolPtr(this); //might as well
+      }
     else
-      m_functionNode = NULL;
+      {
+	m_functionNode = NULL; //is this possible?
+	std::ostringstream msg;
+	msg << "Undefined function block: <" << m_state.getDataAsString(getId()).c_str() << ">";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	//assert(0);
+      }
   }
 
   SymbolFunction::~SymbolFunction()
@@ -85,8 +97,8 @@ namespace MFM {
       delete m_functionNode;  //clean up any previous declarations
 
     m_functionNode = func;
-    Symbol::setBlockNoOfST(func->getNodeNo());
-  }
+    func && Symbol::setBlockNoOfST(func->getNodeNo()); //could be NULL if error occurs while parsing the body (reset)
+  } //setFunctionNode
 
   NodeBlockFunctionDefinition *  SymbolFunction::getFunctionNode()
   {
