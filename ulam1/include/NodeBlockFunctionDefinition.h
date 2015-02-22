@@ -78,6 +78,7 @@ namespace MFM{
     bool isNative();
 
     SymbolFunction * getFuncSymbolPtr();
+    void setFuncSymbolPtr(SymbolFunction * fsymptr); //during instantiation
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
@@ -89,7 +90,7 @@ namespace MFM{
     bool m_isDefinition;
     u32 m_maxDepth;
     bool m_native;  //false by default, requires keyword
-    SymbolFunction * m_fsymTemplate; //to instantiate
+    //    SymbolFunction * m_fsymTemplate; //to instantiate; uses its id and parameter list
   };
 
 }

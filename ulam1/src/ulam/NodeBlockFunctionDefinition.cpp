@@ -6,10 +6,10 @@
 
 namespace MFM {
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false), m_fsymTemplate(NULL)
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false)
   {}
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native), m_fsymTemplate(ref.m_funcSymbol) {}
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)/*, m_fsymTemplate(ref.m_funcSymbol)*/ {}
 
   NodeBlockFunctionDefinition::~NodeBlockFunctionDefinition()
   {
@@ -101,6 +101,7 @@ namespace MFM {
 
   UTI NodeBlockFunctionDefinition::checkAndLabelType()
   {
+#if 0
     // instantiate, look up in class block
     if(m_funcSymbol == NULL && m_fsymTemplate != NULL)
       {
@@ -115,7 +116,8 @@ namespace MFM {
 		for(u32 i = 0; i < m_fsymTemplate->getNumberOfParameters(); i++)
 		  {
 		    Symbol * psym = m_fsymTemplate->getParameterSymbolPtr(i);
-		    m_paramTypes.push_back(psym->getUlamTypeIdx());
+		    UTI puti = psym->getUlamTypeIdx();
+		    m_paramTypes.push_back(m_state.mapIncompleteUTIForCurrentClassInstance(puti));
 		  }
 		SymbolFunction * fsymclone = NULL;
 		if(((SymbolFunctionName *) asymptr)->findMatchingFunction(m_paramTypes, fsymclone))
@@ -137,7 +139,8 @@ namespace MFM {
 	if(!m_funcSymbol)
 	  return Nav;
       } //toinstantiate
-
+#endif
+    assert(m_funcSymbol);
     UTI it = m_funcSymbol->getUlamTypeIdx();
     setNodeType(it);
 
@@ -248,6 +251,12 @@ namespace MFM {
   SymbolFunction * NodeBlockFunctionDefinition::getFuncSymbolPtr()
   {
     return m_funcSymbol;
+  }
+
+  void NodeBlockFunctionDefinition::setFuncSymbolPtr(SymbolFunction * fsymptr)
+  {
+    assert(fsymptr);
+    m_funcSymbol = fsymptr;
   }
 
   void NodeBlockFunctionDefinition::genCode(File * fp, UlamValue& uvpass)
