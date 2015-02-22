@@ -105,7 +105,7 @@ namespace MFM {
 	if(newbitsize == UNKNOWNSIZE)
 	  {
 	    std::ostringstream msg;
-	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "()UTI" << sizetype << ", is not yet a \"known\" constant expression for class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "()UTI" << sizetype << ", is not yet a \"known\" constant expression for class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    return false;
 	  }
@@ -122,7 +122,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "() is not a constant expression for class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "() is not a constant expression for class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
@@ -131,5 +131,3 @@ namespace MFM {
   } //getTypeBitSizeInParen
 
 } //end MFM
-
-

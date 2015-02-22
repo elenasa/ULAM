@@ -105,7 +105,7 @@ namespace MFM {
 	      {
 		UTI cuti = m_state.getCompileThisIdx();
 		std::ostringstream msg;
-		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+		msg << "Incomplete Var Decl for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ") while labeling class: " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		if(m_state.getUlamTypeByIndex(cuti)->isComplete())
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
@@ -119,7 +119,7 @@ namespace MFM {
 	      {
 		UTI cuti = m_state.getCompileThisIdx();
 		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(cuti).c_str() << ", class arguments pending";
+		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str() << ", class arguments pending";
 		if(m_state.getUlamTypeByIndex(cuti)->isComplete())
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
@@ -135,7 +135,7 @@ namespace MFM {
 	      {
 		UTI cuti = m_state.getCompileThisIdx();
 		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		if(m_state.getUlamTypeByIndex(cuti)->isComplete())
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else
