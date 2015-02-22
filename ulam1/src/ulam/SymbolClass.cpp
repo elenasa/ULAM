@@ -146,7 +146,7 @@ namespace MFM {
     if(! m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	aok = false;  //moved here;
       }

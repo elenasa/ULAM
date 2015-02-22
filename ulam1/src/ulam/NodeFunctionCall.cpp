@@ -95,7 +95,7 @@ namespace MFM {
 	      {
 		msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
 	      }
-	    msg << "and cannot be called";
+	    msg << "and cannot be called, while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    numErrorsFound++;
 	  }
@@ -103,9 +103,20 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str() << "> is not a defined function, and cannot be called";
+	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str() << "> is not a defined function, and cannot be called; compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	numErrorsFound++;
+      }
+
+    if(m_funcSymbol && m_funcSymbol != funcSymbol)
+      {
+	std::ostringstream msg;
+	if(funcSymbol)
+	  {
+	    msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str() << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str() << "> , while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    m_funcSymbol = funcSymbol;
+	  }
       }
 
     if(!numErrorsFound)
@@ -113,7 +124,7 @@ namespace MFM {
 	if(m_funcSymbol == NULL)
 	  m_funcSymbol = funcSymbol;
 
-	assert(m_funcSymbol == funcSymbol);
+	assert(m_funcSymbol && m_funcSymbol == funcSymbol);
 
 	it = m_funcSymbol->getUlamTypeIdx();
 	setNodeType(it);

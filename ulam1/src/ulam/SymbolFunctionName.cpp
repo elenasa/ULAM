@@ -120,6 +120,7 @@ namespace MFM {
   } //getDepthSumOfFunctions
 
 
+  // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
   u32 SymbolFunctionName::checkFunctionNames()
   {
     u32 probcount = 0;
@@ -136,11 +137,11 @@ namespace MFM {
 	std::pair<std::set<std::string>::iterator, bool> ret;
 	ret = mangledFunctionSet.insert(fmangled);
 	bool overloaded = ret.second; //false if already existed, i.e. not added
-	if(!overloaded) //shouldn't be a duplicate
+	if(!overloaded) //shouldn't be a duplicate, but if it is handle it
 	  {
 	    std::ostringstream msg;
-	    msg << "Check overloading function: <" << m_state.m_pool.getDataAsString(fsym->getId()).c_str() << "> (" << fkey.c_str() << "), has a duplicate definition: " << fmangled.c_str();
-	    MSG("", msg.str().c_str(), ERR);
+	    msg << "Check overloading function: <" << m_state.m_pool.getDataAsString(fsym->getId()).c_str() << "> has a duplicate definition: " << fmangled.c_str() << ", while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG("", msg.str().c_str(), WARN);
 	    probcount++;
 	    dupfuncs.push_back(fkey);
 	  }
@@ -148,6 +149,7 @@ namespace MFM {
       }
     mangledFunctionSet.clear(); //strings only
 
+    //unclear which dup function is found/removed; case of more than one dup is handled similarly;
     while(!dupfuncs.empty())
       {
 	std::string dupkey = dupfuncs.back();
@@ -163,7 +165,6 @@ namespace MFM {
 	  }
 	dupfuncs.pop_back();
       }
-
     dupfuncs.clear();
     return probcount;
   } //checkFunctionNames
@@ -300,7 +301,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << countNavs << " nodes with illegal 'Nav' types remain in all functions <";
 	msg << m_state.m_pool.getDataAsString(getId());
-	msg << "> in class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "> in class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG("", msg.str().c_str(), WARN);
       }
 #if 0

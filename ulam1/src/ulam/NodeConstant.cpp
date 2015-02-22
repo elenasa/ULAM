@@ -70,14 +70,14 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a constnat, and cannot be used as one with class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
+		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a constnat, and cannot be used as one with class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	m_state.popClassContext(); //restore
