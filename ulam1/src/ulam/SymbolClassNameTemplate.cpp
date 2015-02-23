@@ -694,7 +694,7 @@ namespace MFM {
 	    msg << " Class instance: ";
 	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << " is still a stub, so no check for custom arrays error";
-	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
       }
@@ -722,7 +722,7 @@ namespace MFM {
 	    msg << " Class instance: ";
 	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << " is still a stub, so no check for duplication function error";
-	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
 	it++;
       }
