@@ -57,7 +57,6 @@ namespace MFM {
     return "Uz_";  //?
   }
 
-
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
   {
     bool overloaded = false;
@@ -77,7 +76,6 @@ namespace MFM {
       }
     return overloaded;
   } //overloadFunction
-
 
   bool SymbolFunctionName::findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol)
   {
@@ -102,7 +100,6 @@ namespace MFM {
     return rtnBool;
   } //findMatchingFunction
 
-
   u32 SymbolFunctionName::getDepthSumOfFunctions()
   {
     u32 depthsum = 0;
@@ -118,7 +115,6 @@ namespace MFM {
       }
     return depthsum;
   } //getDepthSumOfFunctions
-
 
   // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
   u32 SymbolFunctionName::checkFunctionNames()

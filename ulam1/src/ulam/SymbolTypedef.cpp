@@ -18,12 +18,10 @@ namespace MFM {
     return true;
   }
 
-
   const std::string SymbolTypedef::getMangledPrefix()
   {
     return "Ut_";  //?
   }
-
 
   // replaces NodeTypedef:printPostfix to learn the values of Class' storage in center site
   void SymbolTypedef::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
@@ -46,6 +44,6 @@ namespace MFM {
       }
 
     fp->write("; ");
-  }
+  } //printPostfixValuesOfVariableDeclarations
 
 } //end MFM

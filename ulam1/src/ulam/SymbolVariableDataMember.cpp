@@ -27,18 +27,15 @@ namespace MFM {
     return m_dataMemberUnpackedSlotIndex;
   }
 
-
   s32 SymbolVariableDataMember::getBaseArrayIndex()
   {
     return (s32) getDataMemberUnpackedSlotIndex();
   }
 
-
   const std::string SymbolVariableDataMember::getMangledPrefix()
   {
     return "Um_";
   }
-
 
   // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
   void SymbolVariableDataMember::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
@@ -69,8 +66,7 @@ namespace MFM {
       }
 #endif
     fp->write(";\n");
-  }
-
+  } //generateCodedVariableDeclarations
 
   // replaces NodeVarDecl:printPostfix to learn the values of Class' storage in center site
   void SymbolVariableDataMember::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
@@ -113,8 +109,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //error!
-	    assert(0);
+	    assert(0); //error!
 	  }
       }
     else
@@ -156,8 +151,7 @@ namespace MFM {
 	fp->write(valstr);  //results out here!
 	delete [] valstr;
       } //not a quark
-
     fp->write("); ");
-  }
+  } //printPostfixValuesOfVariableDeclarations
 
 } //end MFM

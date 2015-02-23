@@ -105,7 +105,6 @@ namespace MFM {
        return mangled.str();
   }
 
-
   //atomic parameter type, not element parameter.
   const std::string Symbol::getMangledNameForParameterType()
   {
@@ -133,13 +132,10 @@ namespace MFM {
     return pmangled.str();
   } //getMangledNameForParameterType
 
-
   const std::string Symbol::getParameterTypePrefix(bool isaclass)  //static method
   {
     return (isaclass ? "Ut_" : "Up_");
-    //    return "Up_";
   }
-
 
   void Symbol::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
     {

@@ -13,13 +13,11 @@ namespace MFM {
     return 0;  //not on stack
   }
 
-
   u32 SymbolVariable::getDataMemberSlotIndex()
   {
     assert(0);
     return 0;  //not a data member
   }
-
 
   //packed bit position of data members; relative to ATOMFIRSTSTATEBITPOS
   u32 SymbolVariable::getPosOffset()
@@ -27,18 +25,15 @@ namespace MFM {
     return m_posOffset;
   }
 
-
   void SymbolVariable::setPosOffset(u32 offsetIntoAtom)
   {
     m_posOffset = offsetIntoAtom;
   }
 
-
   PACKFIT SymbolVariable::isPacked()
   {
     return m_packed;
   }
-
 
   void SymbolVariable::setPacked(PACKFIT p)
   {

@@ -1,30 +1,25 @@
 #include "SymbolConstantValue.h"
-#include "NodeConstantDef.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  SymbolConstantValue::SymbolConstantValue(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_parameter(false), m_defnode(NULL)
+  SymbolConstantValue::SymbolConstantValue(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_parameter(false)
   {
     m_constant.sval = NONREADYCONST;
   }
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_parameter(sref.m_parameter), m_defnode(NULL)
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_parameter(sref.m_parameter)
   {
     m_constant = sref.m_constant;
   }
 
-  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_parameter(sref.m_parameter), m_defnode(NULL)
+  SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_parameter(sref.m_parameter)
   {
     m_constant = sref.m_constant;
   }
 
   SymbolConstantValue::~SymbolConstantValue()
-  {
-    //belongs to parse tree
-    //delete m_defnode;
-    //m_defnode = NULL;
-  }
+  { }
 
   Symbol * SymbolConstantValue::clone()
   {
@@ -108,7 +103,6 @@ namespace MFM {
     fp->write("; ");
   } //printPostfixValuesOfVariableDeclarations
 
-
   //warning: this change also requires an update to the ST's key.
   void SymbolConstantValue::changeConstantId(u32 fmid, u32 toid)
   {
@@ -120,7 +114,6 @@ namespace MFM {
   {
     m_parameter = true;
   }
-
 
   bool SymbolConstantValue::isParameter()
   {

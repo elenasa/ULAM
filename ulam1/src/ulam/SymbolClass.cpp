@@ -174,7 +174,6 @@ namespace MFM {
     return aok;
   } //trySetBitSize
 
-
   void SymbolClass::printBitSizeOfClass()
   {
     UTI suti = getUlamTypeIdx();
@@ -198,7 +197,6 @@ namespace MFM {
       }
     MSG("", msg.str().c_str(),INFO);
   } //printBitSizeOfClass
-
 
   void SymbolClass::testThisClass(File * fp)
   {
@@ -422,7 +420,6 @@ namespace MFM {
     }
 
     //separate main.cpp for elements only; that have the test method.
-    //if(m_state.getUlamTypeByIndex(m_classBlock->getNodeType())->getUlamClass() == UC_ELEMENT)
     if(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass() == UC_ELEMENT)
       {
 	if(m_state.thisClassHasTheTestMethod())
@@ -553,7 +550,6 @@ namespace MFM {
     fp->write("* ");
     fp->write(m_state.m_pool.getDataAsString(m_state.getCompileThisId()).c_str());
     fp->write(".h - ");
-    //ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(m_classBlock->getNodeType())->getUlamClass();
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
     if(classtype == UC_ELEMENT)
       fp->write("Element");
@@ -567,10 +563,8 @@ namespace MFM {
     fp->write(CopyrightAndLicenseForUlamHeader);
   } //generateHeaderPreamble
 
-
   void SymbolClass::genAllCapsIfndefForHeaderFile(File * fp)
   {
-    //UlamType * cut = m_state.getUlamTypeByIndex(m_classBlock->getNodeType());
     UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     m_state.indent(fp);
     fp->write("#ifndef ");
@@ -583,10 +577,8 @@ namespace MFM {
     fp->write("_H\n\n");
   } //genAllCapsIfndefForHeaderFile
 
-
   void SymbolClass::genAllCapsEndifForHeaderFile(File * fp)
   {
-    //UlamType * cut = m_state.getUlamTypeByIndex(m_classBlock->getNodeType());
     UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     fp->write("#endif //");
     fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
@@ -632,7 +624,6 @@ namespace MFM {
 
     // do primitive types before classes so that immediate
     // Quarks/Elements can use them (e.g. immediate index for aref)
-
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
     while(it != m_state.m_definedUlamTypes.end())
       {
