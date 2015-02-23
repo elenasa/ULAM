@@ -381,18 +381,20 @@ namespace MFM {
   } //printPostfixValuesForTableOfVariableDataMembers
 
   // convert UTI to mangled strings to insure overload uniqueness
-  void SymbolTable::checkTableOfFunctions()
+  bool SymbolTable::checkTableOfFunctions()
   {
+    u32 probcnt = 0;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    ((SymbolFunctionName *) sym)->checkFunctionNames();
+	    probcnt += ((SymbolFunctionName *) sym)->checkFunctionNames();
 	  }
 	it++;
       }
+    return (probcnt > 0);
   } //checkTableOfFunctions
 
   void SymbolTable::linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p)
@@ -677,7 +679,18 @@ namespace MFM {
       }
   } //checkCustomArraysForTableOfClasses()
 
+  void SymbolTable::checkDuplicateFunctionsForTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
 
+	((SymbolClassName *) sym)->checkDuplicateFunctionsForClassInstances();
+	it++;
+      }
+  } //checkDuplicateFunctionsForTableOfClasses
 
   bool SymbolTable::labelTableOfClasses()
   {

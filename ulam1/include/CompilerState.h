@@ -279,8 +279,6 @@ namespace MFM{
     */
     PACKFIT determinePackable(UTI aut);
 
-    //bool findAndSizeANodeDeclWithType(UTI argut);
-
     bool thisClassHasTheTestMethod();
 
     bool thisClassIsAQuark();
@@ -295,7 +293,6 @@ namespace MFM{
     std::string getLocationTextAsString(Locator nodeloc);
     void outputTextAsComment(File * fp, Locator nodeloc);
 
-
     s32 getNextTmpVarNumber();
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
     const std::string getLabelNumAsString(s32 num);
@@ -305,28 +302,25 @@ namespace MFM{
 
     /** to identify each node */
     NNO getNextNodeNo();
-    NNO getCurrentBlockNo();
+
     Node * findNodeNoInThisClass(NNO n);
 
-    /** for context switching */
+    /** methods for context switching */
     u32 getCompileThisId();
 
     UTI getCompileThisIdx();
 
-    /** use when changing m_compileThisIdx to keep id and idx in sync */
-    //void setCompileThisIdx(UTI idx);
-
     NodeBlock * getCurrentBlock();
-    //void setCurrentBlock(NodeBlock * nb);
+
+    NNO getCurrentBlockNo();
 
     NodeBlockClass * getClassBlock();
-    //    void setClassBlock(NodeBlockClass * nbc);
+
+    NNO getClassBlockNo();
 
     bool useMemberBlock();
-    //void useMemberBlock(bool use);
 
     NodeBlockClass * getCurrentMemberClassBlock();
-    //void setCurrentMemberClassBlock(NodeBlockClass * nbc);
 
     void pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockClass * classblock, bool usemember, NodeBlockClass * memberblock);
 
@@ -341,8 +335,6 @@ namespace MFM{
     std::string getClassContextAsStringForDebugging();
 
   private:
-
-    //coming soon..
     ClassContextStack m_classContextStack;         // the current subject of this compilation
 
   };

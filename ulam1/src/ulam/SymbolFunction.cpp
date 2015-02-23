@@ -31,8 +31,8 @@ namespace MFM {
       {
 	m_functionNode = NULL; //is this possible?
 	std::ostringstream msg;
-	msg << "Undefined function block: <" << m_state.getDataAsString(getId()).c_str() << ">";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	msg << "Undefined function block: <" << m_state.m_pool.getDataAsString(getId()).c_str() << ">";
+	MSG("", msg.str().c_str(), ERR);
 	//assert(0);
       }
   }
@@ -96,8 +96,8 @@ namespace MFM {
     if(m_functionNode)
       delete m_functionNode;  //clean up any previous declarations
 
-    m_functionNode = func;
-    func && Symbol::setBlockNoOfST(func->getNodeNo()); //could be NULL if error occurs while parsing the body (reset)
+    m_functionNode = func; //could be null if error occurs while parsing func body
+    Symbol::setBlockNoOfST(m_state.getClassBlockNo()); //SF not in the func def ST
   } //setFunctionNode
 
   NodeBlockFunctionDefinition *  SymbolFunction::getFunctionNode()

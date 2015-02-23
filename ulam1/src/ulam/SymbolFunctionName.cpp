@@ -128,7 +128,6 @@ namespace MFM {
     std::vector<std::string>dupfuncs;
 
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
     while(it != m_mangledFunctionNames.end())
       {
 	std::string fkey = it->first;
@@ -141,7 +140,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Check overloading function: <" << m_state.m_pool.getDataAsString(fsym->getId()).c_str() << "> has a duplicate definition: " << fmangled.c_str() << ", while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG("", msg.str().c_str(), WARN);
+	    MSG("", msg.str().c_str(), ERR);  //Dave says better to start as error
 	    probcount++;
 	    dupfuncs.push_back(fkey);
 	  }
@@ -220,7 +219,6 @@ namespace MFM {
     return probcount;
   } //checkCustomArrayFunctions
 
-
   void SymbolFunctionName::linkToParentNodesInFunctionDefs(NodeBlockClass * p)
   {
     NNO pno = p->getNodeNo();
@@ -269,7 +267,6 @@ namespace MFM {
       }
   } //labelFunctions
 
-
   u32 SymbolFunctionName::countNavNodesInFunctionDefs()
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
@@ -317,7 +314,6 @@ namespace MFM {
     return countNavs;
   } //countNavNodesInFunctionDefs
 
-
   u32 SymbolFunctionName::countNativeFuncDecls()
   {
     u32 count = 0;
@@ -332,7 +328,6 @@ namespace MFM {
     return count;
   } //countNativeFuncDecls
 
-
   void SymbolFunctionName::generateCodedFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
@@ -344,7 +339,6 @@ namespace MFM {
 	++it;
       }
   } //generateCodedFunctions
-
 
   //private method:
   bool SymbolFunctionName::isDefined(std::string mangledFName, SymbolFunction * & foundSym)

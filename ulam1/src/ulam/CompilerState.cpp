@@ -1797,13 +1797,6 @@ namespace MFM {
     return ++m_nextNodeNumber; //first one is 1
   }
 
-  NNO CompilerState::getCurrentBlockNo()
-  {
-    if(getCurrentBlock())
-      return getCurrentBlock()->getNodeNo();
-    return 0; //genesis of class
-  }
-
   Node * CompilerState::findNodeNoInThisClass(NNO n)
   {
     if(useMemberBlock())
@@ -1845,11 +1838,27 @@ namespace MFM {
     return cc.getCurrentBlock();
   }
 
+  NNO CompilerState::getCurrentBlockNo()
+  {
+    if(getCurrentBlock())
+      return getCurrentBlock()->getNodeNo();
+    return 0; //genesis of class
+  }
+
   NodeBlockClass * CompilerState::getClassBlock()
   {
     ClassContext cc;
     m_classContextStack.getCurrentClassContext(cc);
     return cc.getClassBlock();
+  }
+
+  NNO CompilerState::getClassBlockNo()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    if(cc.getClassBlock())
+      return cc.getClassBlock()->getNodeNo();
+    return 0;
   }
 
   bool CompilerState::useMemberBlock()
