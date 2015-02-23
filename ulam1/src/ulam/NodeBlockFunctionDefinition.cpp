@@ -2,15 +2,23 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "CompilerState.h"
 #include "SymbolVariable.h"
+#include "SymbolFunctionName.h"
 
 namespace MFM {
 
   NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false)
   {}
 
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)/*, m_fsymTemplate(ref.m_funcSymbol)*/ {}
+
   NodeBlockFunctionDefinition::~NodeBlockFunctionDefinition()
   {
     // nodes deleted by SymbolTable in BlockClass
+  }
+
+  Node * NodeBlockFunctionDefinition::instantiate()
+  {
+    return new NodeBlockFunctionDefinition(*this);
   }
 
   void NodeBlockFunctionDefinition::print(File * fp)
@@ -32,8 +40,7 @@ namespace MFM {
 
     sprintf(id,"maxdepth=%d ----------------%s\n", m_maxDepth, prettyNodeName().c_str());
     fp->write(id);
-  }
-
+  } //print
 
   void NodeBlockFunctionDefinition::printPostfix(File * fp)
   {
@@ -80,28 +87,25 @@ namespace MFM {
       }
     else
       fp->write(";");
-
-  }
-
+  } //printPostfix
 
   const char * NodeBlockFunctionDefinition::getName()
   {
     return m_state.m_pool.getDataAsString(m_funcSymbol->getId()).c_str();
   }
 
-
   const std::string NodeBlockFunctionDefinition::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   UTI NodeBlockFunctionDefinition::checkAndLabelType()
   {
+    assert(m_funcSymbol);
     UTI it = m_funcSymbol->getUlamTypeIdx();
     setNodeType(it);
 
-    m_state.m_currentBlock = this;
+    m_state.pushCurrentBlock(this);
 
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
     m_state.m_currentFunctionReturnType = it;
@@ -117,11 +121,9 @@ namespace MFM {
 	msg << "Undefined function block: <" << getName() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-
-    m_state.m_currentBlock = NodeBlock::getPreviousBlockPointer();  //missing?
+    m_state.popClassContext();  //restores previous block ptr
     return getNodeType();
   } //checkAndLabelType
-
 
   EvalStatus NodeBlockFunctionDefinition::eval()
   {
@@ -171,18 +173,15 @@ namespace MFM {
     return NORMAL;
   }
 
-
   void NodeBlockFunctionDefinition::setDefinition()
   {
     m_isDefinition = true;
   }
 
-
   bool NodeBlockFunctionDefinition::isDefinition()
   {
     return m_isDefinition;
   }
-
 
   void NodeBlockFunctionDefinition::setMaxDepth(u32 depth)
   {
@@ -195,37 +194,37 @@ namespace MFM {
 #endif
   }
 
-
   u32 NodeBlockFunctionDefinition::getMaxDepth()
   {
     return m_maxDepth;
   }
-
 
   void NodeBlockFunctionDefinition::setNative()
   {
     m_native = true;
   }
 
-
   bool NodeBlockFunctionDefinition::isNative()
   {
     return m_native;
   }
-
 
   SymbolFunction * NodeBlockFunctionDefinition::getFuncSymbolPtr()
   {
     return m_funcSymbol;
   }
 
+  void NodeBlockFunctionDefinition::setFuncSymbolPtr(SymbolFunction * fsymptr)
+  {
+    assert(fsymptr);
+    m_funcSymbol = fsymptr;
+  }
 
   void NodeBlockFunctionDefinition::genCode(File * fp, UlamValue& uvpass)
   {
     // m_currentObjSymbol set up by caller
     //    assert(m_state.m_currentObjSymbolForCodeGen != NULL);
-
-    m_state.m_currentBlock = this;
+    m_state.pushCurrentBlock(this);
 
     assert(isDefinition());
     assert(m_nextNode);
@@ -248,8 +247,7 @@ namespace MFM {
     fp->write(m_funcSymbol->getMangledName().c_str());  //end of function
     fp->write("\n\n\n");
 
-    m_state.m_currentBlock = NodeBlock::getPreviousBlockPointer();  //missing?
+    m_state.popClassContext();  //restores NodeBlock::getPreviousBlockPointer()
   } //genCode
-
 
 } //end MFM

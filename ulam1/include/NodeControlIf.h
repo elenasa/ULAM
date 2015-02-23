@@ -46,9 +46,14 @@ namespace MFM{
   public:
 
     NodeControlIf(Node * condNode, Node * trueNode, Node * falseNode, CompilerState & state);
-    ~NodeControlIf();
+    NodeControlIf(const NodeControlIf& ref);
+    virtual ~NodeControlIf();
 
-    virtual void updateLineage(Node * p);
+    virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * fp);
 

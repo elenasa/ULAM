@@ -8,7 +8,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10133Int Uv_3arg) //native
+  void Uq_10106System0<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10133Int Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -17,7 +17,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10143Int Uv_3arg) //native
+  void Uq_10106System0<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10143Int Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(4); //mask
@@ -25,7 +25,7 @@ namespace MFM{
   }
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_102323Int Uv_3arg) //native
+  void Uq_10106System0<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_102323Int Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     printf("Int Arg: %d\n", tmp);
@@ -33,14 +33,14 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_102328Unsigned Uv_3arg) //native
+  void Uq_10106System0<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_102328Unsigned Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     printf("Unsigned Arg: %u\n", tmp);
   }
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10135Unary Uv_3arg) //native
+  void Uq_10106System0<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10135Unary Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -50,7 +50,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10134Bool Uv_3arg) //native
+  void Uq_10106System0<CC, POS>::Uf_5print(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10134Bool Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -60,7 +60,7 @@ namespace MFM{
 
 
   template<class CC, u32 POS>
-  void Uq_10106System<CC, POS>::Uf_6assert(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10114Bool Uv_1b) //native
+  void Uq_10106System0<CC, POS>::Uf_6assert(UlamContext<CC>& uc, T& Uv_4self, Ui_Ut_10114Bool Uv_1b) //native
   {
     bool btmp = Uv_1b.read();
     printf("assert: arg is %d\n",btmp);

@@ -4,9 +4,13 @@
 namespace MFM {
 
   NodeUnaryOpMinus::NodeUnaryOpMinus(Node * n, CompilerState & state): NodeUnaryOp(n, state) {}
-
+  NodeUnaryOpMinus::NodeUnaryOpMinus(const NodeUnaryOpMinus& ref) : NodeUnaryOp(ref) {}
   NodeUnaryOpMinus::~NodeUnaryOpMinus(){}
 
+  Node * NodeUnaryOpMinus::instantiate()
+  {
+    return new NodeUnaryOpMinus(*this);
+  }
 
   const char * NodeUnaryOpMinus::getName()
   {

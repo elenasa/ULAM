@@ -48,8 +48,11 @@ namespace MFM{
   public:
 
     NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
+    NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref);
 
     virtual ~NodeBlockFunctionDefinition();
+
+    virtual Node * instantiate();
 
     virtual void print(File * fp);
 
@@ -75,6 +78,7 @@ namespace MFM{
     bool isNative();
 
     SymbolFunction * getFuncSymbolPtr();
+    void setFuncSymbolPtr(SymbolFunction * fsymptr); //during instantiation
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
@@ -86,8 +90,9 @@ namespace MFM{
     bool m_isDefinition;
     u32 m_maxDepth;
     bool m_native;  //false by default, requires keyword
+    //    SymbolFunction * m_fsymTemplate; //to instantiate; uses its id and parameter list
   };
 
 }
 
-#endif //end NODEBLOCKFUNCTIONDEFINITION_H
+#endif //NODEBLOCKFUNCTIONDEFINITION_H

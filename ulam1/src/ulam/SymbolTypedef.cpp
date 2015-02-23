@@ -4,21 +4,24 @@
 namespace MFM {
 
   SymbolTypedef::SymbolTypedef(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state){}
-
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref) {}
   SymbolTypedef::~SymbolTypedef()
   {}
+
+  Symbol * SymbolTypedef::clone()
+  {
+    return new SymbolTypedef(*this);
+  }
 
   bool SymbolTypedef::isTypedef()
   {
     return true;
   }
 
-
   const std::string SymbolTypedef::getMangledPrefix()
   {
     return "Ut_";  //?
   }
-
 
   // replaces NodeTypedef:printPostfix to learn the values of Class' storage in center site
   void SymbolTypedef::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
@@ -41,6 +44,6 @@ namespace MFM {
       }
 
     fp->write("; ");
-  }
+  } //printPostfixValuesOfVariableDeclarations
 
 } //end MFM

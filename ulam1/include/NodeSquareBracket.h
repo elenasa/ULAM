@@ -47,7 +47,10 @@ namespace MFM{
   public:
 
     NodeSquareBracket(Node * left, Node * right, CompilerState & state);
-    ~NodeSquareBracket();
+    NodeSquareBracket(const NodeSquareBracket& ref);
+    virtual ~NodeSquareBracket();
+
+    virtual Node * instantiate();
 
     virtual void printOp(File * fp);
 
@@ -67,11 +70,11 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr);
 
     virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
-    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr);
 
     //helper method to install symbol
     bool getArraysizeInBracket(s32 & rtnArraySize);
@@ -80,11 +83,9 @@ namespace MFM{
 
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
-
   protected:
 
   private:
-
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots){}
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len){}

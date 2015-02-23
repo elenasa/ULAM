@@ -47,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    UlamTypeNav(const UlamKeyTypeSignature key);
+    UlamTypeNav(const UlamKeyTypeSignature key, CompilerState& state);
     virtual ~UlamTypeNav(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
@@ -56,9 +56,9 @@ namespace MFM{
 
     virtual const std::string getUlamTypeAsStringForC();
 
-    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+    virtual const std::string getImmediateStorageTypeAsString();
 
-    virtual const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
+    virtual const std::string castMethodForCodeGen(UTI nodetype);
 
   private:
 

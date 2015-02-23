@@ -7,18 +7,36 @@
 
 namespace MFM {
 
-  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav), m_parent(NULL) {}
+  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav), m_parentNo(0), m_nodeNo(m_state.getNextNodeNo()) {}
 
-  void Node::setYourParent(Node * parent)
+  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_nodeUType(ref.m_nodeUType), m_nodeLoc(ref.m_nodeLoc), m_parentNo(ref.m_parentNo), m_nodeNo(ref.m_nodeNo) /* same NNO */ {}
+
+  void Node::setYourParentNo(NNO pno)
   {
-    m_parent = parent;
+    if(m_parentNo > 0)
+      assert(m_parentNo == pno);
+    m_parentNo = pno;
   }
 
-  void Node::updateLineage(Node * p)
+  void Node::updateLineage(NNO pno)
   {
-    setYourParent(p);  //walk the tree..a leaf.
+    setYourParentNo(pno);  //walk the tree..a leaf.
   }
 
+  NNO Node::getNodeNo()
+  {
+    return m_nodeNo;
+  }
+
+  bool Node::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(m_nodeNo == n) //leaf
+      {
+	foundNode = this;
+	return true;
+      }
+    return false;
+  } //findNodeNo
 
   void Node::print(File * fp)
   {
@@ -33,8 +51,64 @@ namespace MFM {
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
+  } //print
+
+  const std::string Node::nodeName(const std::string& prettyFunction)
+  {
+    size_t colons = prettyFunction.find("::");
+    if (colons == std::string::npos)
+      return "::";
+    size_t begin = colons + 2;
+    size_t colons2 = prettyFunction.find("::", begin);
+    size_t end = colons2 - colons - 2;
+    std::string nodename = prettyFunction.substr(begin,end);
+    return nodename;
   }
 
+  UTI Node::getNodeType()
+  {
+    return m_nodeUType;
+  }
+
+  void Node::setNodeType(UTI ut)
+  {
+    m_nodeUType = ut;
+  }
+
+  bool Node::isStoreIntoAble()
+  {
+    return m_storeIntoAble;
+  }
+
+  void Node::setStoreIntoAble(bool s)
+  {
+    m_storeIntoAble = s;
+  }
+
+  Locator Node::getNodeLocation()
+  {
+    return m_nodeLoc;
+  }
+
+  void Node::setNodeLocation(Locator loc)
+  {
+    m_nodeLoc = loc;
+  }
+
+  void Node::printNodeLocation(File * fp)
+  {
+    fp->write(getNodeLocationAsString().c_str());
+  }
+
+  std::string Node::getNodeLocationAsString()
+  {
+    return m_state.getFullLocationAsString(m_nodeLoc);
+  }
+
+  bool Node::getSymbolPtr(Symbol *& symptrref)
+  {
+    return false;
+  }
 
   void Node::constantFold(Token tok)
   {
@@ -56,13 +130,11 @@ namespace MFM {
       cnt += 1;
   }
 
-
   // only for constants (NodeTerminal)
   bool Node::fitsInBits(UTI fituti)
   {
     return true;
   }
-
 
   // only for constants (NodeTerminal)
   bool Node::isNegativeConstant()
@@ -71,155 +143,26 @@ namespace MFM {
     return false;
   }
 
-
   bool Node::isWordSizeConstant()
   {
     assert(0);
     return false;
   }
 
-
-  Node * Node::makeCastingNode(Node * node, UTI tobeType)
+  bool Node::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
   {
-    bool doErrMsg = false;
-    Node * rtnNode = NULL;
-    UTI nuti = node->getNodeType();
-
-    //if(nuti == tobeType)
-    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
-    if(uticr == UTIC_DONTKNOW)
-      {
-	std::ostringstream msg;
-	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ")";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	//return node;
-      }
-
-    if(uticr == UTIC_SAME)
-      {
-	//happens too often with Bool.1.-1 for some reason; and Quark toInt special case
-	// handle quietly
-	return node;
-      }
-
-    ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
-    if(nclasstype == UC_NOTACLASS)
-      {
-	if((nuti == UAtom) && (m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_ELEMENT))
-	  doErrMsg = true;
-	else if(nuti == Void)
-	  doErrMsg = true;  //cannot cast a void into anything else (reverse is fine)
-	else
-	  {
-	    rtnNode = new NodeCast(node, tobeType, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(getNodeLocation());
-	    rtnNode->checkAndLabelType();
-	  }
-      }
-    else if (nclasstype == UC_QUARK)
-      {
-	Token identTok;
-	u32 castId = m_state.m_pool.getIndexForDataString("toInt");
-	identTok.init(TOK_IDENTIFIER, getNodeLocation(), castId);
-	if(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() != Int)
-	  doErrMsg = true;
-	else
-	  {
-	    //fill in func symbol during type labeling;
-	    Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
-	    assert(fcallNode);
-	    fcallNode->setNodeLocation(identTok.m_locator);
-	    Node * mselectNode = new NodeMemberSelect(node, fcallNode, m_state);
-	    assert(mselectNode);
-	    mselectNode->setNodeLocation(identTok.m_locator);
-
-	    //address the case of different byte sizes here
-	    //before asserts start hitting later during assignment
-	    //quarks are likely unknown size at checkandlabel time
-	    //if(tobeType != nuti)
-	    if(uticr != UTIC_SAME)
-	      {
-		rtnNode = new NodeCast(mselectNode, tobeType, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-	      }
-	    else
-	      rtnNode = mselectNode;  //replace right node with new branch
-
-	    //redo check and type labeling
-	    UTI newType = rtnNode->checkAndLabelType();
-	    //if(newType != tobeType)
-	    if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
-	      doErrMsg = true; //error msg instead
-	  }
-      }
-    else if (nclasstype == UC_ELEMENT)
-      {
-	if(tobeType != UAtom)
-	  doErrMsg = true;
-	else
-	  {
-	    rtnNode = new NodeCast(node, tobeType, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(getNodeLocation());
-	    rtnNode->checkAndLabelType();
-	  }
-      }
-    else
-      doErrMsg = true;
-
-    if(doErrMsg)
-      {
-	std::ostringstream msg;
-	msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-    return rtnNode;
-  } //make casting node
-
-
-  bool Node::warnOfNarrowingCast(UTI nodeType, UTI tobeType)
-  {
-    bool rtnB = false;
-    s32 nodesize = m_state.getBitSize(nodeType);
-    s32 tobesize = m_state.getBitSize(tobeType);
-
-    // warn of narrowing cast
-    if(nodesize > tobesize)
-      {
-	rtnB = true;
-	std::ostringstream msg;
-	msg << "Narrowing CAST, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to a " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << " may cause data loss";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-      }
-    return rtnB;
-  } //warnOfNarrowingCast
-
-
-  UTI Node::getNodeType()
-  {
-    return m_nodeUType;
+    return false;
   }
 
-
-  void Node::setNodeType(UTI ut)
+  bool Node::installSymbolConstantValue(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
   {
-    m_nodeUType = ut;
+    return false;
   }
 
-
-  bool Node::isStoreIntoAble()
+  bool Node::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr)
   {
-    return m_storeIntoAble;
+    return false;
   }
-
-
-  void Node::setStoreIntoAble(bool s)
-  {
-    m_storeIntoAble = s;
-  }
-
 
   // any node above assignexpr is not storeintoable
   EvalStatus Node::evalToStoreInto()
@@ -231,79 +174,17 @@ namespace MFM {
     return ERROR;
   }
 
-
-  Locator Node::getNodeLocation()
-  {
-    return m_nodeLoc;
-  }
-
-
-  void Node::setNodeLocation(Locator loc)
-  {
-    m_nodeLoc = loc;
-  }
-
-
-  void Node::printNodeLocation(File * fp)
-  {
-    fp->write(getNodeLocationAsString().c_str());
-  }
-
-
-  std::string Node::getNodeLocationAsString()
-  {
-    return m_state.getFullLocationAsString(m_nodeLoc);
-  }
-
-
-  bool Node::getSymbolPtr(Symbol *& symptrref)
-  {
-    return false;
-  }
-
-
-  bool Node::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
-  {
-    return false;
-  }
-
-  bool Node::installSymbolConstantValue(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
-  {
-    return false;
-  }
-
-  bool Node::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
-  {
-    return false;
-  }
-
-
-  const std::string Node::nodeName(const std::string& prettyFunction)
-  {
-    size_t colons = prettyFunction.find("::");
-    if (colons == std::string::npos)
-      return "::";
-    size_t begin = colons + 2;
-    size_t colons2 = prettyFunction.find("::", begin);
-    size_t end = colons2 - colons - 2;
-    std::string nodename = prettyFunction.substr(begin,end);
-    return nodename;
-  }
-
-
   void Node::evalNodeProlog(u32 depth)
   {
     //space for local variables on node eval stack; adjusts current fp;
     m_state.m_nodeEvalStack.addFrameSlots(depth);
   }
 
-
   void Node::evalNodeEpilog()
   {
     //includes any return value and args; adjusts current fp;
     m_state.m_nodeEvalStack.returnFrame();
   }
-
 
   //default storage type is the EVALRETURN stack
   u32 Node::makeRoomForNodeType(UTI type, STORAGE where)
@@ -315,7 +196,6 @@ namespace MFM {
     makeRoomForSlots(slots, where);  //=1 for scalar or packed array
     return slots;
   }
-
 
   u32 Node::makeRoomForSlots(u32 slots, STORAGE where)
   {
@@ -332,7 +212,6 @@ namespace MFM {
       }
     return slots;
   }
-
 
   //in case of arrays, rtnUV is a ptr; default STORAGE is EVALRETURN
   void Node::assignReturnValueToStack(UlamValue rtnUV, STORAGE where)
@@ -372,12 +251,10 @@ namespace MFM {
     m_state.m_nodeEvalStack.assignUlamValuePtr(rtnPtr, rtnUVptr);
   }
 
-
   void Node::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert(0);
   }
-
 
   void Node::genCode(File * fp, UlamValue& uvpass)
   {
@@ -387,6 +264,14 @@ namespace MFM {
     fp->write("::genCode(File * fp){} is needed!!\n");  //sweet.
   }
 
+  void Node::genCodeToStoreInto(File * fp, UlamValue& uvpass)
+  {
+    std::ostringstream msg;
+    msg << "genCodeToStoreInto called on Node type: " << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << ", and failed.";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+    assert(0);
+    return;
+  } //genCodeToStoreInto
 
   void Node::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
   {
@@ -505,11 +390,10 @@ namespace MFM {
     // problem! for arrays, the vut is an Int, regardless of the array typeXXX
     // but not arrays here. hmm..
     //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
-    cosut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
+    cosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadIntoTmp
-
 
   void Node::genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
   {
@@ -665,11 +549,10 @@ namespace MFM {
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0);  //POS 0 rightjustified (atom-based).
 
     // specifically to sign extend Int's (a cast)
-    scalarcosut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
+    scalarcosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadArrayItemIntoTmp
-
 
   void Node::genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
   {
@@ -714,7 +597,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
 
-    fp->write(itemut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+    fp->write(itemut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(itemuti, tmpVarNum2, TMPBITVAL).c_str());
@@ -796,7 +679,7 @@ namespace MFM {
 
     //index is immediate Int arg
     UlamType * intut = m_state.getUlamTypeByIndex(Int);
-    fp->write(intut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+    fp->write(intut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
     fp->write("));\n");
@@ -808,105 +691,6 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadCustomArrayItemIntoTmp
-
-
-  // write out intermediate tmpVar, or immediate terminal, as temp BitVector
-  void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass)
-  {
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-    bool isTerminal = false;
-
-    if(vuti == Ptr)
-      {
-	vuti = uvpass.getPtrTargetType();
-      }
-    else
-      {
-	isTerminal = true;
-      }
-
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
-    // write out intermediate tmpVar, or immediate terminal, as temp BitVector arg
-    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-
-    m_state.indent(fp);
-    fp->write("const ");
-
-    fp->write(vut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
-    fp->write(" ");
-
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPBITVAL).c_str());
-    fp->write("("); // use constructor (not equals)
-    if(isTerminal)
-      {
-	u32 data = uvpass.getImmediateData(m_state);
-	char dstr[40];
-	vut->getDataAsString(data, dstr, 'z', m_state);
-	fp->write(dstr);
-      }
-    else
-      {
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str());
-      }
-    fp->write(");\n");
-
-    u32 pos = 0;  //pos calculated by makePtr(atom-based) (e.g. quark, atom)
-    if(vut->getUlamClass() == UC_NOTACLASS)
-      {
-	s32 wordsize = vut->getTotalWordSize();
-	pos = wordsize - vut->getTotalBitSize();
-      }
-
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos);  //POS rightjustified.
-
-    m_state.m_currentObjSymbolsForCodeGen.clear();
-  } //genCodeConvertATmpVarIntoBitVector
-
-
-  // write out immediate tmp BitValue as an intermediate tmpVar
-  void Node::genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass)
-  {
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-    assert(vuti == Ptr);
-    vuti = uvpass.getPtrTargetType();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
-    assert(uvpass.getPtrStorage() == TMPBITVAL);
-
-    // write out immediate tmp BitValue as an intermediate tmpVar
-    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-
-    m_state.indent(fp);
-    fp->write("const ");
-
-    fp->write(vut->getTmpStorageTypeAsString(&m_state).c_str()); //u32
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2).c_str());
-    fp->write(" = ");
-
-    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), TMPBITVAL).c_str());
-    fp->write(".");
-    fp->write(readMethodForImmediateBitValueForCodeGen(vuti, uvpass).c_str());
-
-    fp->write("(");
-    // use immediate read for entire array
-    if(isCurrentObjectAnArrayItem(vuti, uvpass))
-      {
-	fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
-	fp->write("u, ");
-	fp->write_decimal(adjustedImmediateArrayItemPtrPos(vuti, uvpass)); //item POS (last like others) ?
-	fp->write("u");
-      }
-    fp->write(");\n");
-
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0);  //POS 0 rightjustified (atom-based).
-    uvpass.setPtrPos(0); //entire register
-
-    // specifically to sign extend Int's (a cast)
-    vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state); //why was this commented out?
-  } //genCodeConvertABitVectorIntoATmpVar
-
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
   // ruvpass is the ptr to value to write
@@ -954,7 +738,6 @@ namespace MFM {
 
     if(stgcos->isSelf())
       return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
-
 
     m_state.indent(fp);
 
@@ -1028,7 +811,7 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = ruvpass.getImmediateData(m_state);
 	char dstr[40];
-	rut->getDataAsString(data, dstr, 'z', m_state);
+	rut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
 	fp->write(");\n");
       }
@@ -1042,9 +825,7 @@ namespace MFM {
     fp->write(");\n");
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
-
   } //genCodeWriteFromATmpVar
-
 
   void Node::genCodeWriteToSelfFromATmpVar(File * fp, UlamValue & luvpass, UlamValue & ruvpass)
   {
@@ -1076,7 +857,6 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeWriteToSelfFromATmpVar
-
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
   // ruvpass is the ptr to value to write
@@ -1208,7 +988,7 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = ruvpass.getImmediateData(m_state);
 	char dstr[40];
-	rut->getDataAsString(data, dstr, 'z', m_state);
+	rut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
 	fp->write(");\n");
       }
@@ -1351,7 +1131,7 @@ namespace MFM {
 
     //index is immediate Int arg
     UlamType * intut = m_state.getUlamTypeByIndex(Int);
-    fp->write(intut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+    fp->write(intut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
     fp->write("), ");
@@ -1362,7 +1142,7 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = ruvpass.getImmediateData(m_state);
 	char dstr[40];
-	rut->getDataAsString(data, dstr, 'z', m_state);
+	rut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
 	fp->write(");\n");
       }
@@ -1373,7 +1153,7 @@ namespace MFM {
 	// aset requires its custom array type (e.g. an atom) as its value:
 	assert(cosclasstype != UC_NOTACLASS);
 	UTI catype = ((UlamTypeClass *) cosut)->getCustomArrayType();
-	fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32> exception
+	fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
 	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
 	fp->write(") );\n");
@@ -1382,6 +1162,235 @@ namespace MFM {
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeWriteCustomArrayItemFromATmpVar
 
+  // write out intermediate tmpVar, or immediate terminal, as temp BitVector
+  void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass)
+  {
+    UTI vuti = uvpass.getUlamValueTypeIdx();
+    bool isTerminal = false;
+
+    if(vuti == Ptr)
+      {
+	vuti = uvpass.getPtrTargetType();
+      }
+    else
+      {
+	isTerminal = true;
+      }
+
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+    // write out intermediate tmpVar, or immediate terminal, as temp BitVector arg
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
+
+    m_state.indent(fp);
+    fp->write("const ");
+
+    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
+    fp->write(" ");
+
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPBITVAL).c_str());
+    fp->write("("); // use constructor (not equals)
+    if(isTerminal)
+      {
+	u32 data = uvpass.getImmediateData(m_state);
+	char dstr[40];
+	vut->getDataAsString(data, dstr, 'z');
+	fp->write(dstr);
+      }
+    else
+      {
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str());
+      }
+    fp->write(");\n");
+
+    u32 pos = 0;  //pos calculated by makePtr(atom-based) (e.g. quark, atom)
+    if(vut->getUlamClass() == UC_NOTACLASS)
+      {
+	s32 wordsize = vut->getTotalWordSize();
+	pos = wordsize - vut->getTotalBitSize();
+      }
+
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos);  //POS rightjustified.
+
+    m_state.m_currentObjSymbolsForCodeGen.clear();
+  } //genCodeConvertATmpVarIntoBitVector
+
+
+  // write out immediate tmp BitValue as an intermediate tmpVar
+  void Node::genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass)
+  {
+    UTI vuti = uvpass.getUlamValueTypeIdx();
+    assert(vuti == Ptr);
+    vuti = uvpass.getPtrTargetType();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
+    assert(uvpass.getPtrStorage() == TMPBITVAL);
+
+    // write out immediate tmp BitValue as an intermediate tmpVar
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
+
+    m_state.indent(fp);
+    fp->write("const ");
+
+    fp->write(vut->getTmpStorageTypeAsString().c_str()); //u32
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2).c_str());
+    fp->write(" = ");
+
+    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), TMPBITVAL).c_str());
+    fp->write(".");
+    fp->write(readMethodForImmediateBitValueForCodeGen(vuti, uvpass).c_str());
+
+    fp->write("(");
+    // use immediate read for entire array
+    if(isCurrentObjectAnArrayItem(vuti, uvpass))
+      {
+	fp->write_decimal(uvpass.getPtrLen()); //BITS_PER_ITEM
+	fp->write("u, ");
+	fp->write_decimal(adjustedImmediateArrayItemPtrPos(vuti, uvpass)); //item POS (last like others) ?
+	fp->write("u");
+      }
+    fp->write(");\n");
+
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0);  //POS 0 rightjustified (atom-based).
+    uvpass.setPtrPos(0); //entire register
+
+    // specifically to sign extend Int's (a cast)
+    vut->genCodeAfterReadingIntoATmpVar(fp, uvpass); //why was this commented out?
+  } //genCodeConvertABitVectorIntoATmpVar
+
+  std::string Node::allCAPS(const char * s) //static method
+  {
+    u32 len = strlen(s);
+    std::ostringstream up;
+
+    for(u32 i = 0; i < len; ++i)
+      {
+      std::string c(1,(s[i] >= 'a' && s[i] <= 'z') ? s[i]-('a'-'A') : s[i]);
+      up << c;
+    }
+    return up.str();
+  } //allCAPS
+
+
+  //PROTECTED METHODS:
+  Node * Node::makeCastingNode(Node * node, UTI tobeType)
+  {
+    bool doErrMsg = false;
+    Node * rtnNode = NULL;
+    UTI nuti = node->getNodeType();
+
+    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
+    if(uticr == UTIC_DONTKNOW)
+      {
+	std::ostringstream msg;
+	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ") in class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	if(m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->isComplete())
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	// continue on..
+      }
+
+    if(uticr == UTIC_SAME)
+      {
+	//happens too often with Bool.1.-1 for some reason; and Quark toInt special case
+	// handle quietly
+	return node;
+      }
+
+    ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
+    if(nclasstype == UC_NOTACLASS)
+      {
+	if((nuti == UAtom) && (m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_ELEMENT))
+	  doErrMsg = true;
+	else if(nuti == Void)
+	  doErrMsg = true;  //cannot cast a void into anything else (reverse is fine)
+	else
+	  {
+	    rtnNode = new NodeCast(node, tobeType, m_state);
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(getNodeLocation());
+	    rtnNode->checkAndLabelType();
+	  }
+      }
+    else if (nclasstype == UC_QUARK)
+      {
+	Token identTok;
+	u32 castId = m_state.m_pool.getIndexForDataString("toInt");
+	identTok.init(TOK_IDENTIFIER, getNodeLocation(), castId);
+	if(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() != Int)
+	  doErrMsg = true;
+	else
+	  {
+	    //fill in func symbol during type labeling;
+	    Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
+	    assert(fcallNode);
+	    fcallNode->setNodeLocation(identTok.m_locator);
+	    Node * mselectNode = new NodeMemberSelect(node, fcallNode, m_state);
+	    assert(mselectNode);
+	    mselectNode->setNodeLocation(identTok.m_locator);
+
+	    //address the case of different byte sizes here
+	    //before asserts start hitting later during assignment
+	    //quarks are likely unknown size at checkandlabel time
+	    //if(tobeType != nuti)
+	    if(uticr != UTIC_SAME)
+	      {
+		rtnNode = new NodeCast(mselectNode, tobeType, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(getNodeLocation());
+	      }
+	    else
+	      rtnNode = mselectNode;  //replace right node with new branch
+
+	    //redo check and type labeling
+	    UTI newType = rtnNode->checkAndLabelType();
+	    //if(newType != tobeType)
+	    if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
+	      doErrMsg = true; //error msg instead
+	  }
+      }
+    else if (nclasstype == UC_ELEMENT)
+      {
+	if(tobeType != UAtom)
+	  doErrMsg = true;
+	else
+	  {
+	    rtnNode = new NodeCast(node, tobeType, m_state);
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(getNodeLocation());
+	    rtnNode->checkAndLabelType();
+	  }
+      }
+    else
+      doErrMsg = true;
+
+    if(doErrMsg)
+      {
+	std::ostringstream msg;
+	msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    return rtnNode;
+  } //make casting node
+
+  bool Node::warnOfNarrowingCast(UTI nodeType, UTI tobeType)
+  {
+    bool rtnB = false;
+    s32 nodesize = m_state.getBitSize(nodeType);
+    s32 tobesize = m_state.getBitSize(tobeType);
+
+    // warn of narrowing cast
+    if(nodesize > tobesize)
+      {
+	rtnB = true;
+	std::ostringstream msg;
+	msg << "Narrowing CAST, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to a " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << " may cause data loss";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+      }
+    return rtnB;
+  } //warnOfNarrowingCast
 
   void Node::genMemberNameOfMethod(File * fp)
   {
@@ -1413,7 +1422,6 @@ namespace MFM {
       }
   } //genMemberNameOfMethod
 
-
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.
   void Node::genElementParameterMemberNameOfMethod(File * fp, s32 epi)
@@ -1444,7 +1452,7 @@ namespace MFM {
     else
       {
 	//now for both immmediate elements and quarks..
-	fp->write(cosut->getImmediateStorageTypeAsString(&m_state).c_str());
+	fp->write(cosut->getImmediateStorageTypeAsString().c_str());
 	fp->write("::");
 	if( ((u32) (epi + 1) < cosSize))  //still another cos refiner, use
 	  fp->write("Us::");      //typedef
@@ -1465,7 +1473,6 @@ namespace MFM {
 	  fp->write("Up_Us::");   //atomic parameter needed
       }
   } //genElementParameterMemberNameOfMethod
-
 
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.
@@ -1498,7 +1505,7 @@ namespace MFM {
     if(cosut->isCustomArray())
       fp->write("uc, ");  //not for regular READs and WRITEs
 
-    fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(stgcosut->getUlamTypeMangledName().c_str());
     fp->write("<EC>::THE_INSTANCE");
     fp->write(".");
 
@@ -1513,7 +1520,6 @@ namespace MFM {
 	  fp->write(".getBits()");
       }
   } //genElementParameterHiddenArgs
-
 
   void Node::genLocalMemberNameOfMethod(File * fp)
   {
@@ -1538,7 +1544,7 @@ namespace MFM {
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
 
     // now for both immediate elements and quarks..
-    fp->write(ut->getImmediateStorageTypeAsString(&m_state).c_str());
+    fp->write(ut->getImmediateStorageTypeAsString().c_str());
     fp->write("::");
     fp->write("Us::");   //typedef
 
@@ -1557,17 +1563,6 @@ namespace MFM {
       }
   } //genLocalMemberNameOfMethod
 
-
-  void Node::genCodeToStoreInto(File * fp, UlamValue& uvpass)
-  {
-    std::ostringstream msg;
-    msg << "genCodeToStoreInto called on Node type: " << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << ", and failed.";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-    assert(0);
-    return;
-  } //genCodeToStoreInto
-
-
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -1575,11 +1570,10 @@ namespace MFM {
 
     //special case, u32/u64 desired before AfterReadingIntoATmpVar
     if(etyp == Int)
-      return ((UlamTypeInt *) nut)->getUnsignedTmpStorageTypeAsString(&m_state);
+      return ((UlamTypeInt *) nut)->getUnsignedTmpStorageTypeAsString();
 
-    return nut->getTmpStorageTypeAsString(&m_state);
+    return nut->getTmpStorageTypeAsString();
   } //tmpStorageTypeForRead
-
 
   const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass)
   {
@@ -1588,11 +1582,10 @@ namespace MFM {
 
     //special case, u32/u64 desired before AfterReadingIntoATmpVar
     if(etyp == Int)
-      return ((UlamTypeInt *) nut)->getArrayItemUnsignedTmpStorageTypeAsString(&m_state);
+      return ((UlamTypeInt *) nut)->getArrayItemUnsignedTmpStorageTypeAsString();
 
-    return nut->getArrayItemTmpStorageTypeAsString(&m_state);
+    return nut->getArrayItemTmpStorageTypeAsString();
   } //tmpStorageTypeForReadArrayItem
-
 
   const std::string Node::readMethodForCodeGen(UTI nuti, UlamValue uvpass)
   {
@@ -1603,7 +1596,6 @@ namespace MFM {
       method = m_state.getUlamTypeByIndex(nuti)->readMethodForCodeGen();
     return method;
   } //readMethodForCodeGen
-
 
   const std::string Node::readArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass)
   {
@@ -1617,7 +1609,6 @@ namespace MFM {
     return method;
   } //readArrayItemMethodForCodeGen
 
-
   const std::string Node::writeMethodForCodeGen(UTI nuti, UlamValue uvpass)
   {
     std::string method;
@@ -1627,7 +1618,6 @@ namespace MFM {
       method = m_state.getUlamTypeByIndex(nuti)->writeMethodForCodeGen();
     return method;
   } //writeMethodForCodeGen
-
 
   const std::string Node::writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass)
   {
@@ -1640,7 +1630,6 @@ namespace MFM {
       method = m_state.getUlamTypeByIndex(nuti)->writeArrayItemMethodForCodeGen();
     return method;
   } //writeArrayItemMethodForCodeGen
-
 
   //each knows which ReadXXX method to use based on their key(arraysize, bitsize, type);
   const std::string Node::readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass)
@@ -1656,7 +1645,6 @@ namespace MFM {
     return "read";
   } //readMethodForImmediateBitValueForCodeGen
 
-
   const std::string Node::writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass)
   {
     if(isCurrentObjectAnArrayItem(nuti, uvpass) || isCurrentObjectACustomArrayItem(nuti, uvpass))
@@ -1665,13 +1653,11 @@ namespace MFM {
     return "write";
   } //writeMethodForImmediateBitValueForCodeGen
 
-
   bool Node::isCurrentObjectALocalVariableOrArgument()
   {
     // include element parameters as LocalVariableOrArgument, since more alike XXX
     return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAnElementParameter() == -1));
   }
-
 
   // returns the index to the last object that's an EP; o.w. -1 none found;
   // preceeding object is the "owner", others before it are irrelevant;
@@ -1691,7 +1677,6 @@ namespace MFM {
     return indexOfLastEP;
   } //isCurrentObjectsContainingAnElementParameter
 
-
   //false means its the entire array or not an array at all (use read() if PACKEDLOADABLE)
   bool Node::isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass)
   {
@@ -1699,7 +1684,6 @@ namespace MFM {
     //return(!m_state.isScalar(cosuti) && uvpass.getPtrLen() != (s32) m_state.getTotalBitSize(cosuti));
     return(!m_state.isScalar(cosuti) && m_state.isScalar(uvpass.getPtrTargetType()) );
   }
-
 
   bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass)
   {
@@ -1718,7 +1702,6 @@ namespace MFM {
     return (isCurrentObjectALocalVariableOrArgument() && ( (m_state.m_currentObjSymbolsForCodeGen.size() == 1) || (m_state.m_currentObjSymbolsForCodeGen.back()->isElementParameter())));
   }
 
-
   u32 Node::adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass)
   {
     u32 pos = uvpass.getPtrPos();
@@ -1731,19 +1714,5 @@ namespace MFM {
       }
     return pos;
   }
-
-
-  std::string Node::allCAPS(const char * s) //static method
-  {
-    u32 len = strlen(s);
-    std::ostringstream up;
-
-    for(u32 i = 0; i < len; ++i)
-      {
-      std::string c(1,(s[i] >= 'a' && s[i] <= 'z') ? s[i]-('a'-'A') : s[i]);
-      up << c;
-    }
-    return up.str();
-  } //allCAPS
 
 } //end MFM

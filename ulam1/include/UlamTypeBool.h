@@ -47,24 +47,21 @@ namespace MFM{
   {
   public:
 
-    UlamTypeBool(const UlamKeyTypeSignature key);
+    UlamTypeBool(const UlamKeyTypeSignature key, CompilerState& state);
     virtual ~UlamTypeBool(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
-    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
-
-    //virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getUlamTypeImmediateMangledName();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual bool cast(UlamValue& val, UTI typidx, CompilerState& state);
+    virtual bool cast(UlamValue& val, UTI typidx);
 
-    virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
+    virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
-    //const std::string castMethodForCodeGen(UTI nodetype, CompilerState& state);
     const std::string getConvertToCboolMethod();
   private:
 

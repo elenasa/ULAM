@@ -47,7 +47,8 @@ namespace MFM{
   public:
 
     NodeBinaryOpArith(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpArith();
+    NodeBinaryOpArith(const NodeBinaryOpArith& ref);
+    virtual ~NodeBinaryOpArith();
 
     virtual const std::string methodNameForCodeGen();
 
