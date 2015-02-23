@@ -405,7 +405,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Expected 'A Type' Token!! got Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << "> instead for class parameter declaration";
 	MSG(&pTok, msg.str().c_str(),ERR);
-	//continue or short-circuit???
+	//continue or short-circuit?
       }
 
     getExpectedToken(TOK_COMMA, QUIETLY); // if so, get next parameter; o.w. unread
@@ -1651,7 +1651,6 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Trying to use typedef from another class <" << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">, before it has been defined. Cannot continue with (token) " << m_state.getTokenDataAsString(&nTok).c_str();
 		MSG(&typeTok, msg.str().c_str(),ERR);
-		//unreadToken(); //???
 	      }
 	    else
 	      {
@@ -2037,14 +2036,12 @@ namespace MFM {
 	  }
 
 	//rtnNode may be null if not minof, maxof, sizeof, but a member or func selected
-#if 0
 	if(!rtnNode)
 	  {
 	    std::ostringstream msg;
 	    msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, incomplete type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 	    MSG(&fTok, msg.str().c_str(), INFO);
 	  }
-#endif
       } // not complete
 
     return rtnNode;
@@ -2754,7 +2751,7 @@ namespace MFM {
 	    nextNode->setNodeLocation(dNode->getNodeLocation());
 	    ((NodeStatements *) rtnNode)->setNextNode(nextNode);
 	  }
-	//else  error ???
+	//else  error?
       }
     else
       {
@@ -3004,7 +3001,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Expected 'A Type' Token!! got Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << "> instead";
 	MSG(&pTok, msg.str().c_str(),ERR);
-	//continue or short-circuit???
+	//continue or short-circuit?
       }
 
     if(getExpectedToken(TOK_COMMA, QUIETLY)) // if so, get next parameter; o.w. unread
@@ -3064,12 +3061,12 @@ namespace MFM {
 	funcNode->setNextNode(nextNode);
 
 	funcNode->setNative();
-#if 0
+
 	//output messes up test answer comparison
 	std::ostringstream msg;
 	msg << "Native Function Definition: <" << funcNode->getName() << ">";
 	MSG(&qTok, msg.str().c_str(), INFO);
-#endif
+
 	brtn = true;
       }
     else
@@ -3106,7 +3103,7 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&typeTok, msg.str().c_str(), ERR);
 
-	// eat tokens until end of definition ???
+	// eat tokens until end of definition?
 	return NULL;
       }
 

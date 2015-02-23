@@ -163,7 +163,6 @@ namespace MFM {
     return mangled.str();
   } //getMangledNameWithTypes
 
-
   bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes)
   {
     u32 numArgs = argTypes.size();
@@ -198,7 +197,6 @@ namespace MFM {
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func);
-
     return (func->isNative() ? 1 : 0);
   } //isNativeFunctionDeclaration
 

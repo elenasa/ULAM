@@ -41,7 +41,6 @@
 namespace MFM{
 
   class CompilerState;  //forward
-  class NodeConstantDef;  //forward
 
   //distinguish between Symbols
   class SymbolConstantValue : public Symbol
@@ -87,10 +86,7 @@ namespace MFM{
       u32 uval;
       bool bval;
     } m_constant;
-
-    NodeConstantDef * m_defnode; //unused
   };
-
-}
+} //MFM
 
 #endif //end SYMBOLCONSTANTVALUE_H

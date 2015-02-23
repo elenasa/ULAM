@@ -101,45 +101,6 @@ namespace MFM {
 
   UTI NodeBlockFunctionDefinition::checkAndLabelType()
   {
-#if 0
-    // instantiate, look up in class block
-    if(m_funcSymbol == NULL && m_fsymTemplate != NULL)
-      {
-	Symbol * asymptr = NULL;
-	if(m_state.alreadyDefinedSymbol(m_fsymTemplate->getId(), asymptr))
-	  {
-	    if(asymptr->isFunction())
-	      {
-		// still need the SymbolFunction, this is the SymbolFunctionName
-		// build parameter types list from saved template FunctionSymbol
-		std::vector<UTI> m_paramTypes;
-		for(u32 i = 0; i < m_fsymTemplate->getNumberOfParameters(); i++)
-		  {
-		    Symbol * psym = m_fsymTemplate->getParameterSymbolPtr(i);
-		    UTI puti = psym->getUlamTypeIdx();
-		    m_paramTypes.push_back(m_state.mapIncompleteUTIForCurrentClassInstance(puti));
-		  }
-		SymbolFunction * fsymclone = NULL;
-		if(((SymbolFunctionName *) asymptr)->findMatchingFunction(m_paramTypes, fsymclone))
-		  m_funcSymbol = (SymbolFunction *) fsymclone;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.m_pool.getDataAsString(m_fsymTemplate->getId()).c_str() << "> is not a function, and cannot be used as one";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "(2) Function <" << m_state.m_pool.getDataAsString(m_fsymTemplate->getId()).c_str() << "> is not defined, and cannot be used";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	if(!m_funcSymbol)
-	  return Nav;
-      } //toinstantiate
-#endif
     assert(m_funcSymbol);
     UTI it = m_funcSymbol->getUlamTypeIdx();
     setNodeType(it);

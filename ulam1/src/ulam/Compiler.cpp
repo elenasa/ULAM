@@ -18,12 +18,10 @@ namespace MFM {
   Compiler::~Compiler()
   {  }
 
-
   std::string Compiler::getMangledTarget()
   {
     return m_state.getFileNameForThisClassCPP();
   }
-
 
   //compile one set of related Ulam files, as before.
   u32 Compiler::compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput)
@@ -33,19 +31,16 @@ namespace MFM {
     return compileFiles(infm, afileToCompile, outfm, errput);
   }
 
-
   //compiles many unrelated Ulam files
   u32 Compiler::compileFiles(FileManager * infm, std::vector<std::string> filesToCompile, FileManager * outfm, File * errput)
   {
     SourceStream ss(infm, m_state);
-
     Lexer * Lex = new Lexer(ss, m_state);
     Preparser * PP =  new Preparser(Lex, m_state);
     Parser * P = new Parser(PP, m_state);
     u32 perrs = 0;
 
     std::vector<std::string>::iterator it = filesToCompile.begin();
-
     while(it != filesToCompile.end())
       {
 	std::string startstr = *it;
@@ -62,7 +57,6 @@ namespace MFM {
 	    msg << "Compilation initialization FAILURE: <" << startstr.c_str() << ">\n";
 	    errput->write(msg.str().c_str());
 	  }
-
 
 	// continue with Parser's parseProgram
 	perrs += P->parseProgram(startstr, errput); //will be compared to answer
@@ -88,18 +82,15 @@ namespace MFM {
 	    errput->write("Unrecoverable Program Type Label FAILURE.\n");
 	  }
       }
-
     delete P;
     delete PP;
     delete Lex;
     return m_state.m_err.getErrorCount();
   } //compileFiles
 
-
   u32 Compiler::parseProgram(FileManager * fm, std::string startstr, File * output)
   {
     SourceStream ss(fm, m_state);
-
     Lexer * Lex = new Lexer(ss, m_state);
     Preparser * PP =  new Preparser(Lex, m_state);
     Parser * P = new Parser(PP, m_state);
@@ -113,14 +104,11 @@ namespace MFM {
       {
 	output->write("parseProgram failed to start SourceStream.");
       }
-
     delete P;
     delete PP;
     delete Lex;
-
     return perrs;
   } //parseProgram
-
 
   // call before eval parse tree; return zero when no errors
   u32 Compiler::checkAndTypeLabelProgram(File * output)
@@ -128,7 +116,7 @@ namespace MFM {
     m_state.m_err.setFileOutput(output);
     m_state.m_err.clearCounts();
 
-    //for regular classes and templates, only; onlce since NNOs used
+    //for regular classes and templates, only; since NNOs used
     m_state.m_programDefST.updateLineageForTableOfClasses();
 
     bool sumbrtn = true;
@@ -147,10 +135,6 @@ namespace MFM {
 	}
     } while(!sumbrtn);
 
-    //checkAndLabelTypes: lineage updated incrementally at cloning step
-    // label all the class; sets "current" m_currentClassSymbol in CS
-    //m_state.m_err.clearCounts();
-    //bool labelok = m_state.m_programDefST.labelTableOfClasses();
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
     u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
     //if(!labelok || navcount > 0)
@@ -158,7 +142,6 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class: ";
-	//	msg << m_state.m_pool.getDataAsString(m_state.m_compileThisId).c_str();
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG("", msg.str().c_str(), ERR);
       }
@@ -218,7 +201,6 @@ namespace MFM {
   }
 
   // after checkAndTypeLabelProgram
-  //u32 Compiler::testProgram(Node * root, File * output, s32& rtnValue)
   u32 Compiler::testProgram(File * output)
   {
     m_state.m_err.setFileOutput(output);
@@ -233,13 +215,11 @@ namespace MFM {
     m_state.m_programDefST.printPostfixForTableOfClasses(output);
   } //printPostFix
 
-
   void Compiler::printProgramForDebug(File * output)
   {
     m_state.m_err.setFileOutput(output);
     m_state.m_programDefST.printForDebugForTableOfClasses(output);
   } //printProgramForDebug
-
 
   void Compiler::generateCodedProgram(File * errorOutput)
   {

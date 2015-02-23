@@ -21,18 +21,15 @@ namespace MFM {
     return m_stackFrameSlotIndex;
   }
 
-
   s32 SymbolVariableStack::getBaseArrayIndex()
   {
     return getStackFrameSlotIndex();
   }
 
-
   const std::string SymbolVariableStack::getMangledPrefix()
   {
     return "Uv_";
   }
-
 
   void SymbolVariableStack::generateCodedVariableDeclarations(File * fp, ULAMCLASSTYPE classtype)
   {
