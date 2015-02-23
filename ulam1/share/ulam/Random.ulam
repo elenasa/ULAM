@@ -11,6 +11,12 @@ ulam 1;
 
 quark Random {
 
+  Unsigned bits(Unsigned bitCount) native;
+  Unsigned bits(Int max) {
+    if (max <= 0) return 0;
+    return bits((Unsigned) max);
+  }
+
   Unsigned create(Unsigned max) native;
   Unsigned create(Int max) {
     if (max <= 0) return 0;

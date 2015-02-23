@@ -1,0 +1,8 @@
+ulam 1;
+/** Wall.  A thing that doesn't want to move or be moved
+    \symbol W
+    \color #fff
+    \symmetries none
+    \diffusability 0
+*/
+element Wall { Void behave() { } }

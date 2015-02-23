@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * Site.h -  Basic handling of a Site for ULAM
+ * USite.h -  Basic handling of a Site for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file Site.h -  Basic handling of a Site for ULAM
+  \file USite.h -  Basic handling of a Site for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,29 +34,29 @@
 */
 
 
-#ifndef SITE_H
-#define SITE_H
+#ifndef USITE_H
+#define USITE_H
 
 #include "itype.h"
 #include "UlamValue.h"
 
 namespace MFM
 {
- 
+
   class CompilerState;  //forward
 
   //single site storage within an event window
-  class Site
+  class USite
   {
   public:
-    Site();
-    ~Site();
+    USite();
+    ~USite();
 
     void init();
 
     UTI getElementTypeNumber(); //passes through to AtomValue at site
     void setElementTypeNumber(UTI type);
-    
+
     bool isSiteLive();
     void setSiteLive(bool b);
 
@@ -70,4 +70,4 @@ namespace MFM
 
 }
 
-#endif //SITE_H
+#endif //USITE_H

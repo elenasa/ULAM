@@ -4,15 +4,18 @@ use Empty;
 use EventWindow;
 use MDist;
 use Random;
-use System;
+use DebugUtils;
 use AtomUtils;
 use Fail;
 
+/**
+   \placeable no
+*/
 element WindowServices {
   // Utilities
   MDist mdist;
   Random random;
-  System system;
+  DebugUtils debug;
   EventWindow ew;
   Fail fail;
 
@@ -159,29 +162,29 @@ element WindowServices {
     init();
     for (Int index2 = next(); index2 >= 0; index2 = next()) {
       for (Int idx = 0; idx < 4; idx += 1) {
-        system.print(-1);
-        system.print(count);
-        system.print(index2);
-        system.print(idx);
+        debug.print(-1);
+        debug.print(count);
+        debug.print(index2);
+        debug.print(idx);
         n0 = (count&(1<<idx));
-        system.print((Unsigned) (count&(1<<idx)));
+        debug.print((Unsigned) (count&(1<<idx)));
         if (count&(1<<idx)) hit((Slot) idx);
       }
       count += 1;
     }
-    system.print(-2);
+    debug.print(-2);
 
     n0 = getHits((Slot) 0);                // This works
-    system.print(n0);
+    debug.print(n0);
 
     n0 = getHits((Slot) 1);
-    system.print(n0);
+    debug.print(n0);
 
     n0 = getHits((Slot) 2);
-    system.print(n0);
+    debug.print(n0);
 
     n0 = getHits((Slot) 3);
-    system.print(n0);
+    debug.print(n0);
 
     return 0;
   }

@@ -543,7 +543,7 @@ namespace MFM {
 	if(cosclasstype == UC_ELEMENT)
 	  {
 	    fp->write(cosut->getUlamTypeMangledName(&m_state).c_str());
-	    fp->write("<CC>::");
+	    fp->write("<EC>::");
 
 	    //depending on the "owner" of the func, the instance is needed
 	    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
@@ -598,7 +598,7 @@ namespace MFM {
     ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClass();
 
     hiddenlist << stgcosut->getUlamTypeMangledName(&m_state).c_str();
-    hiddenlist << "<CC>::THE_INSTANCE.";
+    hiddenlist << "<EC>::THE_INSTANCE.";
 
     // the EP (an element, quark, or primitive):
     hiddenlist << epcos->getMangledName().c_str();
@@ -635,7 +635,7 @@ namespace MFM {
     if(stgclasstype == UC_ELEMENT)
       {
 	fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>::");
+	fp->write("<EC>::");
 	//depending on the "owner" of the func, the instance is needed
 	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	UTI cosuti = cos->getUlamTypeIdx();

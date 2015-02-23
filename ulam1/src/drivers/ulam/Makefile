@@ -1,3 +1,6 @@
+ifndef ROOT_DIR
+$(error ROOT_DIR is unset.  (To make here, run 'make ulam' from the ulam tree toplevel))
+endif
 BASE_DIR:=../../..
 DRIVER_NAME:=ulam
 BIN_DIR:=$(BASE_DIR)/bin

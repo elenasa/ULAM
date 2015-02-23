@@ -39,7 +39,7 @@
 
 #include <map>
 #include "itype.h"
-#include "Site.h"
+#include "USite.h"
 
 namespace MFM
 {
@@ -105,10 +105,10 @@ namespace MFM
     UlamValue makePtrToSite(Coord c);
 
   private:
-    std::map<Coord, Site, less_than_coord> m_diamondOfSites;
+    std::map<Coord, USite, less_than_coord> m_diamondOfSites;
     CompilerState & m_state;
 
-    bool getSite(Coord c, Site * & sref);
+    bool getSite(Coord c, USite * & sref);
 
   };
 }
