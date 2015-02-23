@@ -681,10 +681,21 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+	if(!csym->isStub())
+	  {
+	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	classNode->checkCustomArrayTypeFunctions(); //do each instance
-	m_state.popClassContext(); //restore
+	    classNode->checkCustomArrayTypeFunctions(); //do each instance
+	    m_state.popClassContext(); //restore
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << " Class instance: ";
+	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << " is still a stub, so no check for custom arrays error";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
 	it++;
       }
   } //checkCustomArraysOfClassInstances()
@@ -710,7 +721,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << " Class instance: ";
 	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
-	    msg << " is still a stub, so check for duplication function error";
+	    msg << " is still a stub, so no check for duplication function error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	it++;
