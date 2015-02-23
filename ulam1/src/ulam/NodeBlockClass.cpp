@@ -287,12 +287,12 @@ namespace MFM {
       {
 	fp->write("\n");
 	m_state.indent(fp);
-	fp->write("template<class CC>\n");
+	fp->write("template<class EC>\n");
 	m_state.indent(fp);
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC> ");
+	fp->write("<EC> ");
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>::THE_INSTANCE;\n\n");
+	fp->write("<EC>::THE_INSTANCE;\n\n");
       }
 
     m_state.m_currentIndentLevel = 0;
@@ -307,7 +307,7 @@ namespace MFM {
     UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
 
     m_state.indent(fp);
-    fp->write("template <class CC, u32 POS>\n");
+    fp->write("template <class EC, u32 POS>\n");
 
     m_state.indent(fp);
     fp->write("struct ");
@@ -343,7 +343,7 @@ namespace MFM {
     // where to put these???
     //genImmediateMangledTypesForHeaderFile(fp);
     m_state.indent(fp);
-    fp->write("typedef AtomicParameterType <CC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n");
+    fp->write("typedef AtomicParameterType <EC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n");
 
     fp->write("\n");
 
@@ -364,16 +364,16 @@ namespace MFM {
   {
     UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
     m_state.indent(fp);
-    fp->write("template<class CC>\n");
+    fp->write("template<class EC>\n");
 
     m_state.indent(fp);
     fp->write("class ");
     fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
 
 #ifdef DEBUGGING_WITHOUT_DEFAULTELEMENT
-    fp->write(" : public Element<CC>");
+    fp->write(" : public Element<EC>");
 #else
-    fp->write(" : public UlamElement<CC>");  //was DefaultElement
+    fp->write(" : public UlamElement<EC>");  //was DefaultElement
 #endif
 
     fp->write("\n");
@@ -450,13 +450,11 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("// Extract short names for parameter types\n");
     m_state.indent(fp);
-    fp->write("typedef typename CC::ATOM_TYPE T;\n");
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
     m_state.indent(fp);
-    fp->write("typedef typename CC::PARAM_CONFIG P;\n");
-    fp->write("\n");
-
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
     m_state.indent(fp);
-    fp->write("enum { BPA = P::BITS_PER_ATOM };\n");
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
 
     m_state.indent(fp);
     fp->write("typedef BitVector<BPA> BV;\n");
@@ -487,11 +485,11 @@ namespace MFM {
       {
 	//default constructor
 	m_state.indent(fp);
-	fp->write("template<class CC>\n");
+	fp->write("template<class EC>\n");
 
 	m_state.indent(fp);
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>");
+	fp->write("<EC>");
 	fp->write("::");
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
 
@@ -499,7 +497,7 @@ namespace MFM {
 	fp->write("(){}\n\n");
 #else
 	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
-	fp->write("() : UlamElement<CC>(MFM_UUID_FOR(\"");
+	fp->write("() : UlamElement<EC>(MFM_UUID_FOR(\"");
 	fp->write(namestr.c_str());
 	fp->write("\", 0))\n");
 	m_state.indent(fp);
@@ -508,12 +506,12 @@ namespace MFM {
 	m_state.m_currentIndentLevel++;
 
 	m_state.indent(fp);
-	fp->write("//XXXX  Element<CC>::SetAtomicSymbol(\"");
+	fp->write("//XXXX  Element<EC>::SetAtomicSymbol(\"");
 	fp->write(namestr.substr(0,1).c_str());
 	fp->write("\");  // figure this out later\n");
 
 	m_state.indent(fp);
-	fp->write("Element<CC>::SetName(\"");
+	fp->write("Element<EC>::SetName(\"");
 	fp->write(namestr.c_str());
 	fp->write("\");\n");
 
@@ -524,11 +522,11 @@ namespace MFM {
 
 	//default destructor
 	m_state.indent(fp);
-	fp->write("template<class CC>\n");
+	fp->write("template<class EC>\n");
 
 	m_state.indent(fp);
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>");
+	fp->write("<EC>");
 	fp->write("::~");
 	fp->write(cut->getUlamTypeMangledName(&m_state).c_str());
 	fp->write("(){}\n\n");
@@ -574,7 +572,7 @@ namespace MFM {
       }
 
     m_state.indent(fp);
-    fp->write("template<class CC>\n");
+    fp->write("template<class EC>\n");
     m_state.indent(fp);
     fp->write("bool ");  //return pos offset, or -1 if not found
     //fp->write(but->getImmediateStorageTypeAsString(&m_state).c_str()); //return type for C++);  //return pos offset, or -1 if not found
@@ -584,7 +582,7 @@ namespace MFM {
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
 
-    fp->write("<CC>::");
+    fp->write("<EC>::");
     fp->write(m_state.getIsMangledFunctionName());
     fp->write("(const T& targ) const\n");
     m_state.indent(fp);

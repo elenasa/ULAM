@@ -59,15 +59,26 @@ EOF
 my $author = $us->makeCString($keys{'author'});
 my $license = $us->makeCString($keys{'license'});
 my $cver = $keys{'version'};
+my $cplaceable = "true";
+$cplaceable = "false" if $keys{'placeable'} eq "no";
 
 my @colors = split(/,/,$keys{'colors'});
 my $cnum = scalar(@colors);
 my $body = "";
+## If any color slots say 'function', use 'function' for all missing slots as well
+my $haveFunction = 0;
 for (my $i = 0; $i < $cnum; ++$i) {
     my $c = $colors[$i];
     if ($c eq "function") {
+        $haveFunction = 1;
+    }
+}
+$cnum = 5 if ($haveFunction && $cnum < 5);
+for (my $i = 0; $i < $cnum; ++$i) {
+    my $c = $colors[$i];
+    if (!defined($c) || $c eq "function") {
         $body .= "\n      case $i: {  // And woe unto you if you didn't define this!" .
-                 "\n                 return m_ulamElement.Uf_8getColor(uc,atom,Ui_Ut_102328Unsigned($i)).read();".
+                 "\n                 return m_ulamElement.Uf_8getColor(uc,atom,Ui_Ut_102328Unsigned(colnum)).read();".
                  "\n               }"
     } else {
         $body .= "\n      case $i: return $colors[$i];"
@@ -110,30 +121,34 @@ $structName
 #include "UlamDefs.h"
 
 namespace MFM {
-  template <class CC, template <class> class UE>
-  struct $structName : public UlamElementInfo<CC>
+  template <class EC>
+  struct $structName : public UlamElementInfo<EC>
   {
-    const UE<CC> & m_ulamElement;
-    typedef typename CC::ATOM_TYPE T;
-    $structName(const UE<CC> & ue)
-        : UlamElementInfo<CC>(ue)
-        , m_ulamElement(ue)
+    typedef typename EC::ATOM_CONFIG AC;
+    typedef typename AC::ATOM_TYPE T;
+
+    const UlamElement<EC> & m_ulamElement;
+    $structName(const UlamElement<EC> & ue)
+        : m_ulamElement(ue)
     { }
+
+    $structName() { }
     const char * GetName() const { return $cname; }
     const char * GetSymbol() const { return $csym; }
     const char * GetSummary() const { return $csum; }
     const char * GetDetails() const { return $cdet; }
     const char * GetAuthor() const { return $author; }
     const char * GetLicense() const { return $license; }
+    bool GetPlaceable() const { return $cplaceable; }
     const u32 GetVersion() const { return $cver; }
 $movfunc
     const u32 GetNumColors() const { return $cnum; }
-    const u32 GetColor(UlamContext<CC>& uc, T atom, u32 colnum) const {
+    const u32 GetColor(UlamContext<EC>& uc, T atom, u32 colnum) const {
       switch (colnum) {
       default: $body
       }
     }
-    const u32 GetSymmetry(UlamContext<CC>& uc) const {
+    const u32 GetSymmetry(UlamContext<EC>& uc) const {
       $symbody
     }
   };

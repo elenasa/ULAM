@@ -256,9 +256,9 @@ namespace MFM {
 
     m_state.indent(fp);
     if(classtype == UC_ELEMENT)
-      fp->write("template<class CC>\n");
+      fp->write("template<class EC>\n");
     else if(classtype == UC_QUARK)
-      fp->write("template<class CC, u32 POS>\n");
+      fp->write("template<class EC, u32 POS>\n");
     else
       assert(0);
 
@@ -268,9 +268,9 @@ namespace MFM {
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName(&m_state).c_str());
     if(classtype == UC_ELEMENT)
-      fp->write("<CC>");
+      fp->write("<EC>");
     else if(classtype == UC_QUARK)
-      fp->write("<CC, POS>");
+      fp->write("<EC, POS>");
 
     fp->write("::");
     fp->write(m_state.getHasMangledFunctionName(cuti));
@@ -918,9 +918,9 @@ namespace MFM {
 	    m_state.indent(fp);
 	    fp->write("namespace MFM { template ");
 	    if(sclasstype == UC_QUARK)
-	      fp->write("<class CC, u32 POS> ");
+	      fp->write("<class EC, u32 POS> ");
 	    else if(sclasstype == UC_ELEMENT)
-	      fp->write("<class CC> ");
+	      fp->write("<class EC> ");
 	    else
 	      assert(0);
 

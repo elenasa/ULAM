@@ -173,7 +173,7 @@ namespace MFM {
 	fp->write("const s32 ");
 	fp->write(m_state.getTmpVarAsString(nuti, tmpVarAs).c_str());;
 	fp->write(" = ");
-	//UlamElement<CC> internal method, takes uc, u32 and const char*, returns s32
+	//UlamElement<EC> internal method, takes uc, u32 and const char*, returns s32
 	fp->write(methodNameForCodeGen().c_str());
 	fp->write("(");
 	fp->write("uc, ");
@@ -194,7 +194,7 @@ namespace MFM {
 
 	fp->write("(");
 	fp->write(lut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>::");
+	fp->write("<EC>::");
 
 	fp->write(methodNameForCodeGen().c_str());  //mangled-hAs
 	fp->write("(\"");
@@ -244,9 +244,9 @@ namespace MFM {
 
     fp->write(rut->getUlamTypeMangledName(&m_state).c_str());
     if(rclasstype == UC_ELEMENT)
-      fp->write("<CC>::THE_INSTANCE.");
+      fp->write("<EC>::THE_INSTANCE.");
     else if(rclasstype == UC_QUARK)
-      fp->write("<CC,POS>::");
+      fp->write("<EC,POS>::");
     else
       assert(0);
 

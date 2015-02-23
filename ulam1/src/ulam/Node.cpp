@@ -1499,7 +1499,7 @@ namespace MFM {
       fp->write("uc, ");  //not for regular READs and WRITEs
 
     fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str());
-    fp->write("<CC>::THE_INSTANCE");
+    fp->write("<EC>::THE_INSTANCE");
     fp->write(".");
 
     // the EP (an element, quark, or primitive):

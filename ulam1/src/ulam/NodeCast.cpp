@@ -323,7 +323,7 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("if(!");
 	fp->write(nut->getUlamTypeMangledName(&m_state).c_str());
-	fp->write("<CC>::THE_INSTANCE.");
+	fp->write("<EC>::THE_INSTANCE.");
 	fp->write(m_state.getIsMangledFunctionName());
 	fp->write("(");
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());

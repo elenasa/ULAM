@@ -1,6 +1,6 @@
 ulam 1;
 
-quark System {
+quark DebugUtils {
   Void print(Unsigned arg) native;
   Void print(Int arg) native;
   Void print(Int(4) arg) native;

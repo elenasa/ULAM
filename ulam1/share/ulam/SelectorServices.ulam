@@ -1,0 +1,69 @@
+ulam 1;
+
+use Random;
+use Fail;
+
+/**
+   \placeable no
+ */
+element SelectorServices {
+  typedef Unsigned(16) Count;
+  typedef Int(16) Key;
+
+  Random r;
+  Fail fail;
+
+  Count c;
+  Key k;
+  Int v;
+
+  Void reset() { c = 0; }
+
+  Void take(Int key, Int value) {
+    k = (Key) key;
+    v = value;
+  }
+
+  /**
+     Return true if value needs to be checked for being a new extreme.
+  */
+  Bool check(Int key, Int value, Int weight) {
+    if (weight <= 0)
+      return false;
+
+    if (c == 0) {
+      c = weight;
+      take(key, value);
+      return false;
+    }
+
+    if (v == value) {
+      if (r.oddsOf((Unsigned) weight, (Unsigned) (c += (Count) weight)))
+        take(key, value);
+      return false;
+    }
+    return true;
+  }
+  Void count(Int key, Int weight) { check(key, 1, weight); }
+
+  Void minimize(Int value) { minimize(0, value); }
+  Void minimize(Int key, Int value) {
+    if (check(key, value, 1) && value < v) take(key, value);
+  }
+
+  Void maximize(Int value) { maximize(0, value); }
+  Void maximize(Int key, Int value) {
+    if (check(key, value, 1) && value > v) take(key, value);
+  }
+
+  Unsigned getCount() { return c; }
+  Bool selectionMade() { return getCount() > 0; }
+  Int getSelectedKey() {
+    if (!selectionMade()) fail.fail();
+    return k;
+  }
+  Int getSelectedValue() {
+    if (!selectionMade()) fail.fail();
+    return v;
+  }
+}
