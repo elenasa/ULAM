@@ -5,7 +5,11 @@
 
 namespace MFM {
 
-  NodeConditional::NodeConditional(Node * leftNode, Token typeTok, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_typeTok(typeTok) {}
+  NodeConditional::NodeConditional(Node * leftNode, UTI classInstanceIdx, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_utypeRight(classInstanceIdx) {}
+  NodeConditional::NodeConditional(const NodeConditional& ref) : Node(ref), m_utypeRight(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_utypeRight))
+  {
+    m_nodeLeft = ref.m_nodeLeft->instantiate();
+  }
 
   NodeConditional::~NodeConditional()
   {
@@ -13,13 +17,18 @@ namespace MFM {
     m_nodeLeft = NULL;
   }
 
-
-  void NodeConditional::updateLineage(Node * p)
+  void NodeConditional::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_nodeLeft->updateLineage(this);
-  }
+    setYourParentNo(pno);
+    m_nodeLeft->updateLineage(getNodeNo());
+  } //updateLineage
 
+  bool NodeConditional::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    return m_nodeLeft->findNodeNo(n, foundNode);
+  } //findNodeNo
 
   void NodeConditional::print(File * fp)
   {
@@ -39,9 +48,10 @@ namespace MFM {
     sprintf(id," %s ",getName());
     fp->write(id);
 
-    fp->write(m_typeTok.getTokenString());
+    //fp->write(m_typeTok.getTokenString());
+    fp->write(m_state.getUlamTypeByIndex(m_utypeRight)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
     fp->write("\n");
-  }
+  } //print
 
 
   void NodeConditional::printPostfix(File * fp)
@@ -70,11 +80,9 @@ namespace MFM {
     m_nodeLeft->countNavNodes(cnt);
   }
 
-
-  Token NodeConditional::getTypeToken()
+  UTI NodeConditional::getRightType()
   {
-    return m_typeTok;
+    return m_utypeRight;
   }
-
 
 } //end MFM

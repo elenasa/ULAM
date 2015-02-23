@@ -41,19 +41,24 @@
 namespace MFM{
 
   class CompilerState;  //forward
-  class NodeConstantDef;  //forward
 
   //distinguish between Symbols
   class SymbolConstantValue : public Symbol
   {
   public:
     SymbolConstantValue(u32 id, UTI utype, CompilerState& state);
-    ~SymbolConstantValue();
+    SymbolConstantValue(const SymbolConstantValue& sref);
+    SymbolConstantValue(const SymbolConstantValue& sref, bool keepType);
+    virtual ~SymbolConstantValue();
+
+    virtual Symbol * clone();
 
     virtual bool isConstant();
 
     virtual bool isReady();
 
+    bool isParameter();
+    void setParameterFlag();
 
     bool getValue(s32& val);
     bool getValue(u32& val);
@@ -68,21 +73,20 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
+    void changeConstantId(u32 fmid, u32 toid); //for premature class instances
 
   protected:
 
   private:
     bool m_isReady;
+    bool m_parameter; //i.e. no value, look at instance
 
     union {
       s32 sval;
       u32 uval;
       bool bval;
     } m_constant;
-
-    NodeConstantDef * m_defnode;
   };
-
-}
+} //MFM
 
 #endif //end SYMBOLCONSTANTVALUE_H

@@ -48,7 +48,8 @@ namespace MFM{
   {
   public:
     SymbolVariable(u32 id, UTI utype, PACKFIT packed, CompilerState& state);
-    ~SymbolVariable();
+    SymbolVariable(const SymbolVariable& sref);
+    virtual ~SymbolVariable();
 
     virtual s32 getStackFrameSlotIndex();
     virtual u32 getDataMemberSlotIndex();

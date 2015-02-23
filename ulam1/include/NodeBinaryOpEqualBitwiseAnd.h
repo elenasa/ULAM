@@ -1,9 +1,9 @@
 /**                                        -*- mode:C++ -*-
- * NodeBinaryOpEqualBitwiseAnd.h - Node for handling Bitwise 
+ * NodeBinaryOpEqualBitwiseAnd.h - Node for handling Bitwise
  *                                 And Equal Operation for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -30,7 +30,7 @@
   \file NodeBinaryOpEqualBitwiseAnd.h - Node for handling Bitwise And Equal for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -45,9 +45,12 @@ namespace MFM{
   class NodeBinaryOpEqualBitwiseAnd : public NodeBinaryOpEqualBitwise
   {
   public:
-    
+
     NodeBinaryOpEqualBitwiseAnd(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpEqualBitwiseAnd();
+    NodeBinaryOpEqualBitwiseAnd(const NodeBinaryOpEqualBitwiseAnd& ref);
+    virtual ~NodeBinaryOpEqualBitwiseAnd();
+
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

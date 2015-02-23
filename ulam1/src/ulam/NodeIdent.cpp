@@ -9,10 +9,20 @@
 
 namespace MFM {
 
-  NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr) {}
+  NodeIdent::NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state) : Node(state), m_token(tok), m_varSymbol(symptr), m_currBlockNo(0)
+  {
+    if(symptr)
+      m_currBlockNo = symptr->getBlockNoOfST();
+  }
+
+  NodeIdent::NodeIdent(const NodeIdent& ref) : Node(ref), m_token(ref.m_token), m_varSymbol(NULL), m_currBlockNo(ref.m_currBlockNo) {}
 
   NodeIdent::~NodeIdent(){}
 
+  Node * NodeIdent::instantiate()
+  {
+    return new NodeIdent(*this);
+  }
 
   void NodeIdent::printPostfix(File * fp)
   {
@@ -20,18 +30,15 @@ namespace MFM {
     fp->write(getName());
   }
 
-
   const char * NodeIdent::getName()
   {
     return m_state.getTokenDataAsString(&m_token).c_str();
   }
 
-
   const std::string NodeIdent::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   bool NodeIdent::getSymbolPtr(Symbol *& symptrref)
   {
@@ -39,35 +46,61 @@ namespace MFM {
     return true;
   }
 
+  void NodeIdent::setSymbolPtr(SymbolVariable * vsymptr)
+  {
+    assert(vsymptr);
+    m_varSymbol = vsymptr;
+    m_currBlockNo = vsymptr->getBlockNoOfST();
+    assert(m_currBlockNo);
+  }
 
   UTI NodeIdent::checkAndLabelType()
   {
     UTI it = Nav;  //init
 
-    //use was before def, look up in class block
+    //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
       {
+	//used before defined, start search with current block
+	if(m_currBlockNo == 0)
+	  {
+	    if(m_state.useMemberBlock())
+	      {
+		NodeBlockClass * memberclass = m_state.getCurrentMemberClassBlock();
+		assert(memberclass);
+		m_currBlockNo = memberclass->getNodeNo();
+	      }
+	    else
+	      m_currBlockNo = m_state.getCurrentBlock()->getNodeNo();
+	  }
+
+	NodeBlock * currBlock = getBlock();
+	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
 	  {
-	    if(!asymptr->isFunction())
+	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant())
 	      {
-		m_varSymbol = (SymbolVariable *) asymptr;
+		setSymbolPtr((SymbolVariable *) asymptr);
+		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
+		// e.g. var used before defined, and then is a data member outside current func block.
 	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a variable, and cannot be used as one";
+		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a variable, and cannot be used as one with class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used";
+	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-      }
+	m_state.popClassContext(); //restore
+      } //lookup symbol
 
     if(m_varSymbol)
       {
@@ -79,6 +112,18 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
+  NNO NodeIdent::getBlockNo()
+  {
+    return m_currBlockNo;
+  }
+
+  NodeBlock * NodeIdent::getBlock()
+  {
+    assert(m_currBlockNo);
+    NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
+    assert(currBlock);
+    return currBlock;
+  }
 
   EvalStatus NodeIdent::eval()
   {
@@ -92,7 +137,6 @@ namespace MFM {
 
     if(m_state.isScalar(nuti))
       {
-
 	uv = m_state.getPtrTarget(uvp);
 
 	// redo what getPtrTarget use to do, when types didn't match due to
@@ -124,8 +168,6 @@ namespace MFM {
 		else
 		  {
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    //while(uv.getUlamValueTypeIdx() == Ptr)
-		    //  uv = m_state.getPtrTarget(uv);
 		    assert(uv.getUlamValueTypeIdx() != Ptr);
 
 		    u32 datavalue = uv.getDataFromAtom(uvp, m_state);
@@ -142,8 +184,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }
-
+  } //eval
 
   EvalStatus NodeIdent::evalToStoreInto()
   {
@@ -236,12 +277,12 @@ namespace MFM {
   } //makeUlamValuePtrForCodeGen
 
 
-  bool NodeIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  bool NodeIdent::installSymbolTypedef(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
+    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
 	return false;    //already there
       }
@@ -276,6 +317,7 @@ namespace MFM {
     //type names begin with capital letter..and the rest can be either case
     u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
     UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
+    key.append(classInstanceIdx);
 
     // o.w. build symbol, first the base type (with array size)
     UTI uti = m_state.makeUlamType(key, bUT);
@@ -285,7 +327,7 @@ namespace MFM {
     m_state.addSymbolToCurrentScope(symtypedef);
 
     //gets the symbol just created by makeUlamType
-    return (m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr));  //true
+    return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr));  //true
   } //installSymbolTypedef
 
 
@@ -294,7 +336,7 @@ namespace MFM {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
+    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
 	return false;    //already there
       }
@@ -309,20 +351,20 @@ namespace MFM {
     m_state.addSymbolToCurrentScope(symconstdef);
 
     //gets the symbol just created by makeUlamType
-    return (m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr));  //true
+    return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr));  //true
   } //installSymbolConstantValue
 
 
   //see also NodeSquareBracket
-  bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  bool NodeIdent::installSymbolVariable(Token aTok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
-    if(m_state.m_currentBlock->isIdInScope(m_token.m_dataindex,asymptr))
+    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
-	if(!(asymptr->isFunction()) && !(asymptr->isTypedef()))
-	  m_varSymbol = (SymbolVariable *) asymptr;  //updates Node's symbol, if is variable
+	if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
+	  setSymbolPtr((SymbolVariable *) asymptr);  //updates Node's symbol, if is variable
 	return false;    //already there
       }
 
@@ -333,9 +375,25 @@ namespace MFM {
     bool brtn = false;
     ULAMTYPE bUT = m_state.getBaseTypeFromToken(aTok);
 
-    // check typedef types here
-    if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, aut))
+    //list of decls can use the same 'scalar' type (arg); adjusted for arrays
+    if(declListScalarType)
       {
+	if(arraysize != NONARRAYSIZE)
+	  {
+	    UlamType * dlut = m_state.getUlamTypeByIndex(declListScalarType);
+	    ULAMTYPE dlbUT = dlut->getUlamTypeEnum();
+	    UlamKeyTypeSignature dlkey = dlut->getUlamKeyTypeSignature();
+	    UlamKeyTypeSignature newdlarraykey(dlkey.getUlamKeyTypeSignatureNameId(), dlkey.getUlamKeyTypeSignatureBitSize(), arraysize);
+	    newdlarraykey.append(declListScalarType);
+	    aut = m_state.makeUlamType(newdlarraykey, dlbUT);
+	  }
+	else
+	  aut = declListScalarType;
+	brtn = true;
+      }
+    else if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, aut))
+      {
+	// check typedef types here..
 	UlamType * tdut = m_state.getUlamTypeByIndex(aut);
 	s32 tdarraysize = tdut->getArraySize();
 	if(arraysize >= 0)  //variable's
@@ -375,41 +433,37 @@ namespace MFM {
 
 	//type names begin with capital letter..and the rest can be either case
 	u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
-	UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize);
+	UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize, classInstanceIdx);
 
 	// o.w. build symbol, first the base type (with array size)
 	aut = m_state.makeUlamType(key, bUT);
 	brtn = true;
       }
+    else if(Token::getSpecialTokenWork(aTok.m_type) == TOKSP_TYPEKEYWORD)
+      {
+	//UlamTypes automatically created for the base types with different array sizes.
+	//but with typedef's "scope" of use, typedef needed to be checked first.
+	if(bitsize == 0)
+	  {
+	    bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+	  }
+
+	// o.w. build symbol (with bit and array sizes);
+	// can array's have their scalar as classInstance? if so, no longer findable by token.
+	aut = m_state.makeUlamType(aTok, bitsize, arraysize, Nav);
+	brtn = true;
+      }
     else
       {
-	if(Token::getSpecialTokenWork(aTok.m_type) == TOKSP_TYPEKEYWORD)
-	  {
-	    //UlamTypes automatically created for the base types with different array sizes.
-	    //but with typedef's "scope" of use, typedef needs to be checked first.
-	    if(bitsize == 0)
-	      {
-		bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
-	      }
-
-	    // o.w. build symbol (with bit and array sizes)
-	    aut = m_state.makeUlamType(aTok, bitsize, arraysize);
-	    brtn = true;
-	  }
-	else
-	  {
-	    // will substitute placeholder class type if it hasn't been seen yet
-	    m_state.getUlamTypeByClassToken(aTok, aut);
-	    brtn = true;
-	  }
+	aut = classInstanceIdx;
+	brtn = true;
       }
 
     if(brtn)
       {
 	SymbolVariable * sym = makeSymbol(aut);
 	m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
-
-	m_varSymbol = sym;
+	setSymbolPtr(sym); //sets m_varSymbol and st block no.
 	asymptr = sym;
       }
 

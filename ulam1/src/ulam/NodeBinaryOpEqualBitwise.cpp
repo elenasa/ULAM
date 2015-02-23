@@ -4,9 +4,8 @@
 namespace MFM {
 
   NodeBinaryOpEqualBitwise::NodeBinaryOpEqualBitwise(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
-
+  NodeBinaryOpEqualBitwise::NodeBinaryOpEqualBitwise(const NodeBinaryOpEqualBitwise& ref) : NodeBinaryOpEqual(ref) {}
   NodeBinaryOpEqualBitwise::~NodeBinaryOpEqualBitwise(){}
-
 
   UTI NodeBinaryOpEqualBitwise::checkAndLabelType()
   {
@@ -118,7 +117,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());

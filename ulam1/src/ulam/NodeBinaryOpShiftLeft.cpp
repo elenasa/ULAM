@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpShiftLeft::NodeBinaryOpShiftLeft(Node * left, Node * right, CompilerState & state) : NodeBinaryOpShift(left,right,state) {}
-
+  NodeBinaryOpShiftLeft::NodeBinaryOpShiftLeft(const NodeBinaryOpShiftLeft& ref) : NodeBinaryOpShift(ref) {}
   NodeBinaryOpShiftLeft::~NodeBinaryOpShiftLeft(){}
+
+  Node * NodeBinaryOpShiftLeft::instantiate()
+  {
+    return new NodeBinaryOpShiftLeft(*this);
+  }
 
 
   const char * NodeBinaryOpShiftLeft::getName()

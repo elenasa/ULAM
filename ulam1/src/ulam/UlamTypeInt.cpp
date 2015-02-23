@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key) : UlamType(key)
+  UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     s32 bitsize = getBitSize();
@@ -33,41 +33,41 @@ namespace MFM {
 
 
   //As it stands, this can refer to base class code now.
-  const std::string UlamTypeInt::getUlamTypeImmediateMangledName(CompilerState * state)
+  const std::string UlamTypeInt::getUlamTypeImmediateMangledName()
   {
     if(needsImmediateType())
-      return UlamType::getUlamTypeImmediateMangledName(state);
+      return UlamType::getUlamTypeImmediateMangledName();
 
     //return getImmediateStorageTypeAsString(state); //BV<32>, not "s32" ? inf loop
-    return UlamType::getUlamTypeImmediateMangledName(state); //? for constants
+    return UlamType::getUlamTypeImmediateMangledName(); //? for constants
   }
 
 
-  const std::string UlamTypeInt::getArrayItemTmpStorageTypeAsString(CompilerState * state)
+  const std::string UlamTypeInt::getArrayItemTmpStorageTypeAsString()
   {
-    return getTmpStorageTypeAsString(state, getItemWordSize());
+    return getTmpStorageTypeAsString(getItemWordSize());
   }
 
 
-  const std::string UlamTypeInt::getTmpStorageTypeAsString(CompilerState * state)
+  const std::string UlamTypeInt::getTmpStorageTypeAsString()
   {
-    return getTmpStorageTypeAsString(state, getTotalWordSize());
+    return getTmpStorageTypeAsString(getTotalWordSize());
   }
 
 
-  const std::string UlamTypeInt::getArrayItemUnsignedTmpStorageTypeAsString(CompilerState * state)
+  const std::string UlamTypeInt::getArrayItemUnsignedTmpStorageTypeAsString()
   {
-    return UlamType::getTmpStorageTypeAsString(state, getItemWordSize());
+    return UlamType::getTmpStorageTypeAsString(getItemWordSize());
   }
 
 
-  const std::string UlamTypeInt::getUnsignedTmpStorageTypeAsString(CompilerState * state)
+  const std::string UlamTypeInt::getUnsignedTmpStorageTypeAsString()
   {
-    return UlamType::getTmpStorageTypeAsString(state, getTotalWordSize());
+    return UlamType::getTmpStorageTypeAsString(getTotalWordSize());
   }
 
 
-  const std::string UlamTypeInt::getTmpStorageTypeAsString(CompilerState * state, s32 sizebyints)
+  const std::string UlamTypeInt::getTmpStorageTypeAsString(s32 sizebyints)
   {
     std::string ctype;
     switch(sizebyints)
@@ -98,38 +98,38 @@ namespace MFM {
   }
 
 
-  bool UlamTypeInt::cast(UlamValue & val, UTI typidx, CompilerState& state)
+  bool UlamTypeInt::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
     //UTI typidx = getUlamTypeIndex();
-    assert(state.getUlamTypeByIndex(typidx) == this);
+    assert(m_state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
-    if(arraysize != state.getArraySize(valtypidx))
+    if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << state.getArraySize(valtypidx);
-	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << m_state.getArraySize(valtypidx);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
 
     //change the size first of tobe, if necessary
     s32 bitsize = getBitSize();
-    s32 valbitsize = state.getBitSize(valtypidx);
+    s32 valbitsize = m_state.getBitSize(valtypidx);
 
     if(bitsize == UNKNOWNSIZE || valbitsize == UNKNOWNSIZE)
       {
 	std::ostringstream msg;
 	msg << "Casting UNKNOWN sizes; " << bitsize << ", Value Type and size was: " << valtypidx << "," << valbitsize;
-	MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
 
     //base types e.g. Int, Bool, Unary, Foo, Bar..
     //ULAMTYPE typEnum = getUlamTypeEnum();
-    ULAMTYPE valtypEnum = state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
 
-    u32 data = val.getImmediateData(state);
+    u32 data = val.getImmediateData(m_state);
 
     switch(valtypEnum)
       {
@@ -138,33 +138,33 @@ namespace MFM {
 	  // casting Int to Int to change bits size
 	  s32 sdata = _SignExtend32(data, valbitsize);
 	  sdata = _Int32ToInt32(sdata, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
 	}
 	break;
       case Unsigned:
 	{
 	  // casting Unsigned to Int to change type
 	  s32 sdata = _Unsigned32ToInt32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
 	}
 	break;
       case Bits:
 	{
 	  // casting Bits to Int to change type
 	  s32 sdata = _Bits32ToInt32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
 	}
 	break;
       case Unary:
 	{
 	  s32 sdata = _Unary32ToInt32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
 	}
 	break;
       case Bool:
 	{
 	  s32 sdata = _Bool32ToInt32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, state); //overwrite val
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
 	}
 	break;
       case Void:
@@ -176,7 +176,7 @@ namespace MFM {
   } //end cast
 
 
-  void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state)
+  void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)
   {
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
 
@@ -185,25 +185,25 @@ namespace MFM {
       return;
 
     if(!isScalar())
-      return genCodeAfterReadingArrayItemIntoATmpVar(fp, uvpass, state);
+      return genCodeAfterReadingArrayItemIntoATmpVar(fp, uvpass);
 
     UTI uti = uvpass.getPtrTargetType(); // == getUlamTypeIndex()?
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
-    s32 tmpVarCastNum = state.getNextTmpVarNumber();
+    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
     s32 totWords = getTotalWordSize();
 
-    state.indent(fp);
+    m_state.indent(fp);
     fp->write("const ");
-    fp->write(getTmpStorageTypeAsString(&state).c_str()); //i.e. s32, s64
+    fp->write(getTmpStorageTypeAsString().c_str()); //i.e. s32, s64
     fp->write(" ");
-    fp->write(state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
+    fp->write(m_state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
     fp->write(" = ");
 
     fp->write("_SignExtend");
     fp->write_decimal(totWords);
 
     fp->write("(");
-    fp->write(state.getTmpVarAsString(uti, tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(uti, tmpVarNum).c_str());
     fp->write(", ");
     fp->write_decimal(getTotalBitSize());
     fp->write(")");
@@ -216,35 +216,35 @@ namespace MFM {
     if(totWords > MAXBITSPERINT)
       {
 	UlamKeyTypeSignature ikey(state.m_pool.getIndexForDataString("Int"), totWords);
-	newuti = state.makeUlamType(ikey, Int);
+	newuti = m_state.makeUlamType(ikey, Int);
       }
 #endif
 
-    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
+    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
 
   } //genCodeAfterReadingIntoATmpVar
 
 
   // private helper
-  void UlamTypeInt::genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state)
+  void UlamTypeInt::genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
   {
     UTI uti = uvpass.getPtrTargetType(); //getUlamTypeIndex();
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
-    s32 tmpVarCastNum = state.getNextTmpVarNumber();
+    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
     s32 itemWords = getItemWordSize();
 
-    state.indent(fp);
+    m_state.indent(fp);
     fp->write("const ");
-    fp->write(getArrayItemTmpStorageTypeAsString(&state).c_str()); //i.e. s32, s64
+    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //i.e. s32, s64
     fp->write(" ");
-    fp->write(state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
+    fp->write(m_state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
     fp->write(" = ");
 
     fp->write("_SignExtend");
     fp->write_decimal(itemWords);
 
     fp->write("(");
-    fp->write(state.getTmpVarAsString(uti, tmpVarNum).c_str());
+    fp->write(m_state.getTmpVarAsString(uti, tmpVarNum).c_str());
     fp->write(", ");
     fp->write_decimal(getBitSize());
     fp->write(")");
@@ -257,16 +257,16 @@ namespace MFM {
     if(itemWords > MAXBITSPERINT)
       {
 	UlamKeyTypeSignature ikey(state.m_pool.getIndexForDataString("Int"), itemWords);
-	newuti = state.makeUlamType(ikey, Int);
+	newuti = m_state.makeUlamType(ikey, Int);
       }
 #endif
 
-    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
+    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
 
   } //genCodeAfterReadingArrayItemIntoATmpVar
 
 
-  void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state)
+  void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
       sprintf(valstr,"%d", (s32) data);

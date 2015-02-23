@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpEqualArithSubtract::NodeBinaryOpEqualArithSubtract(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
-
+  NodeBinaryOpEqualArithSubtract::NodeBinaryOpEqualArithSubtract(const NodeBinaryOpEqualArithSubtract& ref) : NodeBinaryOpEqualArith(ref) {}
   NodeBinaryOpEqualArithSubtract::~NodeBinaryOpEqualArithSubtract(){}
+
+  Node * NodeBinaryOpEqualArithSubtract::instantiate()
+  {
+    return new NodeBinaryOpEqualArithSubtract(*this);
+  }
 
 
   const char * NodeBinaryOpEqualArithSubtract::getName()

@@ -47,7 +47,8 @@ namespace MFM{
   public:
 
     NodeBinaryOpShift(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpShift();
+    NodeBinaryOpShift(const NodeBinaryOpShift& ref);
+    virtual ~NodeBinaryOpShift();
 
     virtual UTI checkAndLabelType();
 

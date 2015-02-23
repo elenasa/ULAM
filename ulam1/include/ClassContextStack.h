@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * NodeBlockClassEmpty.h - Node for handling Empty BlockClasss for ULAM
+ * ClassContextStack.h - Class Context Stack handling for ULAM
  *
- * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
- * Copyright (C) 2014-2015 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,51 +26,42 @@
  */
 
 /**
-  \file NodeBlockClassEmpty.h - Node for handling Empty BlockClasss for ULAM
+  \file ClassContextStack.h - Class Context Stack handling for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014-2015 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
+#ifndef CLASSCONTEXTSTACK_H
+#define CLASSCONTEXTSTACK_H
 
-#ifndef NODEBLOCKCLASSEMPTY_H
-#define NODEBLOCKCLASSEMPTY_H
+#include <vector>
+#include "itype.h"
+#include "ClassContext.h"
 
-#include "NodeBlockClass.h"
-
-
-namespace MFM{
-
-  class NodeBlockClassEmpty : public NodeBlockClass
+namespace MFM
+{
+  class ClassContextStack
   {
   public:
 
-    NodeBlockClassEmpty(NodeBlock * prevBlockNode, CompilerState & state);
+    ClassContextStack();
+    ~ClassContextStack();
 
-    virtual ~NodeBlockClassEmpty();
+    void getCurrentClassContext(ClassContext & contextref); //no change to stack
 
-    virtual void print(File * fp);
+    void pushClassContext(ClassContext context);
 
-    virtual void printPostfix(File * fp);
+    bool popClassContext(ClassContext & contextref);
 
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
-
-    virtual UTI checkAndLabelType();
-
-    virtual EvalStatus eval();
-
-    virtual u32 countNativeFuncDecls();
-
-  protected:
+    void popClassContext();
 
 
   private:
-
+    std::vector<ClassContext> m_contexts;
   };
 
-}
+} //MFM
 
-#endif //end NODEBLOCKCLASSEMPTY_H
+#endif  /* CLASSCONTEXTSTACK_H */

@@ -48,9 +48,14 @@ namespace MFM{
   public:
 
     NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state);
-    ~NodeConstantDef();
+    NodeConstantDef(const NodeConstantDef& ref);
+    virtual ~NodeConstantDef();
 
-    virtual void updateLineage(Node * p);
+    virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * f);
 
@@ -60,9 +65,19 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    void setSymbolPtr(SymbolConstantValue * cvsymptr);
+
+    u32 getSymbolId();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
+
+    NNO getBlockNo();
+
+    void setBlockNo(NNO n);
+
+    NodeBlock * getBlock();
 
     void setConstantExpr(Node * node);
 
@@ -75,7 +90,8 @@ namespace MFM{
   private:
     SymbolConstantValue * m_constSymbol;
     Node * m_exprnode;
-    NodeBlock * m_currBlock;
+    NNO m_currBlockNo;
+    u32 m_cid; //to instantiate
   };
 
 } //MFM

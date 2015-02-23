@@ -4,9 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpArithMultiply::NodeBinaryOpArithMultiply(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
+  NodeBinaryOpArithMultiply::NodeBinaryOpArithMultiply(const NodeBinaryOpArithMultiply& ref) : NodeBinaryOpArith(ref) {}
+  NodeBinaryOpArithMultiply::~NodeBinaryOpArithMultiply() {}
 
-  NodeBinaryOpArithMultiply::~NodeBinaryOpArithMultiply(){}
-
+  Node * NodeBinaryOpArithMultiply::instantiate()
+  {
+    return new NodeBinaryOpArithMultiply(*this);
+  }
 
   const char * NodeBinaryOpArithMultiply::getName()
   {

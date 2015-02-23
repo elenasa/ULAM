@@ -5,6 +5,10 @@
 namespace MFM {
 
   NodeSimpleStatement::NodeSimpleStatement(Node * s, CompilerState & state) : Node(state), m_node(s) {}
+  NodeSimpleStatement::NodeSimpleStatement(const NodeSimpleStatement& ref) : Node(ref)
+  {
+    m_node = ref.m_node->instantiate();
+  }
 
   NodeSimpleStatement::~NodeSimpleStatement()
   {
@@ -12,13 +16,25 @@ namespace MFM {
     m_node = NULL;
   }
 
-
-  void NodeSimpleStatement::updateLineage(Node * p)
+  Node * NodeSimpleStatement::instantiate()
   {
-    setYourParent(p);
-    m_node->updateLineage(this);
+    return new NodeSimpleStatement(*this);
   }
 
+  void NodeSimpleStatement::updateLineage(NNO pno)
+  {
+    setYourParentNo(pno);
+    m_node->updateLineage(getNodeNo());
+  }//updateLineage
+
+  bool NodeSimpleStatement::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_node && m_node->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeSimpleStatement::print(File * fp)
   {

@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpCompareLessEqual::NodeBinaryOpCompareLessEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOpCompare(left,right,state) {}
-
+  NodeBinaryOpCompareLessEqual::NodeBinaryOpCompareLessEqual(const NodeBinaryOpCompareLessEqual& ref) : NodeBinaryOpCompare(ref) {}
   NodeBinaryOpCompareLessEqual::~NodeBinaryOpCompareLessEqual(){}
+
+  Node * NodeBinaryOpCompareLessEqual::instantiate()
+  {
+    return new NodeBinaryOpCompareLessEqual(*this);
+  }
 
 
   const char * NodeBinaryOpCompareLessEqual::getName()

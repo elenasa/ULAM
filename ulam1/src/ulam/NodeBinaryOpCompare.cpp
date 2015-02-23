@@ -5,11 +5,9 @@
 namespace MFM {
 
   NodeBinaryOpCompare::NodeBinaryOpCompare(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
-
-
+  NodeBinaryOpCompare::NodeBinaryOpCompare(const NodeBinaryOpCompare& ref) : NodeBinaryOp(ref) {}
   NodeBinaryOpCompare::~NodeBinaryOpCompare()
   {}
-
 
   UTI NodeBinaryOpCompare::checkAndLabelType()
   {
@@ -269,7 +267,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());

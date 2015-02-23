@@ -6,6 +6,11 @@
 namespace MFM {
 
   NodeControl::NodeControl(Node * condNode, Node * trueNode, CompilerState & state): Node(state), m_nodeCondition(condNode), m_nodeBody(trueNode) {}
+  NodeControl::NodeControl(const NodeControl& ref) : Node(ref)
+  {
+    m_nodeCondition = ref.m_nodeCondition->instantiate();
+    m_nodeBody = ref.m_nodeBody->instantiate();
+  }
 
   NodeControl::~NodeControl()
   {
@@ -15,14 +20,21 @@ namespace MFM {
     m_nodeBody = NULL;
   }
 
-
-  void NodeControl::updateLineage(Node * p)
+  void NodeControl::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_nodeCondition->updateLineage(this);
-    m_nodeBody->updateLineage(this);
-  }
+    setYourParentNo(pno);
+    m_nodeCondition->updateLineage(getNodeNo());
+    m_nodeBody->updateLineage(getNodeNo());
+  }//updateLineage
 
+  bool NodeControl::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeCondition->findNodeNo(n, foundNode))
+      return true;
+    return m_nodeBody->findNodeNo(n, foundNode);
+  } //findNodeNo
 
   void NodeControl::print(File * fp)
   {
@@ -150,7 +162,7 @@ namespace MFM {
 	// write out terminal explicitly
 	u32 data = uvpass.getImmediateData(m_state);
 	char dstr[40];
-	cut->getDataAsString(data, dstr, 'z', m_state);
+	cut->getDataAsString(data, dstr, 'z');
 	fp->write(dstr);
       }
     else

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <iostream>
+#include "ClassContext.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
 #include "SymbolTable.h"
@@ -15,12 +16,11 @@
 #include "UlamTypeVoid.h"
 #include "UlamTypePtr.h"
 
-
 namespace MFM {
 
-  //#define _DEBUG_OUTPUT
-  //#define _INFO_OUTPUT
-  //#define _WARN_OUTPUT
+//#define _DEBUG_OUTPUT
+//#define _INFO_OUTPUT
+//#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -40,7 +40,6 @@ namespace MFM {
   static const bool warnOn = false;
 #endif
 
-
   static const char * m_indentedSpaceLevel("  ");  //2 spaces per level
 
   static const char * HIDDEN_ARG_NAME = "Uv_4self";
@@ -52,11 +51,10 @@ namespace MFM {
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentBlock(NULL), m_classBlock(NULL), m_useMemberBlock(false), m_currentMemberClassBlock(NULL), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
-
 
   CompilerState::~CompilerState()
   {
@@ -64,7 +62,6 @@ namespace MFM {
     clearAllLinesOfText();
     m_currentObjSymbolsForCodeGen.clear();
   }
-
 
   void CompilerState::clearAllDefinedUlamTypes()
   {
@@ -81,55 +78,29 @@ namespace MFM {
     m_indexToUlamKey.clear();
     m_keyToaUTI.clear();
 
-    std::map<UTI, NodeTypeBitsize *>::iterator itb = m_unknownBitsizeSubtrees.begin();
-    s32 unknownB = 0;
-    while(itb != m_unknownBitsizeSubtrees.end())
-      {
-	NodeTypeBitsize * bitsizeNode = itb->second;
-	delete bitsizeNode;
-	itb->second = NULL;
-	unknownB++;
-	itb++;
-      }
-    m_unknownBitsizeSubtrees.clear();
-    if(unknownB > 0)
-      {
-	std::ostringstream msg;
-	msg << "Unknown bitsize subtrees cleared: " << unknownB;
-	MSG2("",msg.str().c_str(),DEBUG);
-      }
-
-    std::map<UTI, NodeSquareBracket *>::iterator ita = m_unknownArraysizeSubtrees.begin();
-    s32 unknownA = 0;
-    while(ita != m_unknownArraysizeSubtrees.end())
-      {
-	NodeSquareBracket * arraysizeNode = ita->second;
-	delete arraysizeNode;
-	ita->second = NULL;
-	unknownA++;
-	ita++;
-      }
-    m_unknownArraysizeSubtrees.clear();
-    if(unknownA > 0)
-      {
-	std::ostringstream msg;
-	msg << "Unknown arraysize subtrees cleared: " << unknownA;
-	MSG2("",msg.str().c_str(),DEBUG);
-      }
-
-    s32 nonreadyC = m_nonreadyNamedConstantSubtrees.size();
-    if(nonreadyC > 0)
-      {
-	std::ostringstream msg;
-	msg << "Nonready named constant subtrees cleared: " << nonreadyC;
-	MSG2("",msg.str().c_str(),DEBUG);
-      }
-
-    m_nonreadyNamedConstantSubtrees.clear();
-
     m_currentFunctionReturnNodes.clear();
-  } //clearAllDefinedUlamTypes()
 
+    s32 unknownKeyC = m_unknownKeyUTICounter.size();
+    if(unknownKeyC > 0)
+      {
+	std::ostringstream msg;
+	msg << "Remaining Unknown Keys with UTI counts, cleared: " << unknownKeyC;
+	MSG2("", msg.str().c_str(),DEBUG);
+
+	std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.begin();
+
+	while(it != m_unknownKeyUTICounter.end())
+	  {
+	    UlamKeyTypeSignature key = it->first;
+	    u32 count = it->second;
+	    std::ostringstream msg;
+	    msg << "Key: " << key.getUlamKeyTypeSignatureAsString(this).c_str() << ", " << count << " counted";
+	    MSG2("", msg.str().c_str(),DEBUG);
+	    it++;
+	  }
+      }
+    m_unknownKeyUTICounter.clear();
+  } //clearAllDefinedUlamTypes()
 
   void CompilerState::clearAllLinesOfText()
   {
@@ -143,13 +114,12 @@ namespace MFM {
       }
 
     m_textByLinePerFilePath.clear();
-  }
-
+  } //clearAllLinesOfText
 
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it;
   // trick to know the base ULAMTYPE
-  UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize)
+  UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx)
   {
     //type names begin with capital letter..and the rest can be either
     u32 typeNameId = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
@@ -163,15 +133,15 @@ namespace MFM {
     if(bitsize == 0)
       bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-    UlamKeyTypeSignature key(typeNameId,bitsize,arraysize);
+    UlamKeyTypeSignature key(typeNameId,bitsize,arraysize,classinstanceidx);
+
     UTI uti = Nav;
     UlamType * ut = NULL; //for isDefined.
 
-    //    if(!isDefined(key,uti))
     if(!isDefined(key,ut) || bitsize == UNKNOWNSIZE || arraysize == UNKNOWNSIZE)
       {
 	//no key, make new type, how to know baseUT? bitsize?
-	uti = makeUlamType(key,bUT);
+	uti = makeUlamType(key,bUT); //returns uti
       }
     else
 	assert(aDefinedUTI(key,uti));
@@ -179,35 +149,66 @@ namespace MFM {
     return uti;
   } //makeUlamType
 
-
   UTI CompilerState::makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype)
   {
     UTI uti;
     UlamType * ut = NULL;
 
-    //if(!isDefined(key, uti))
-    if(!isDefined(key,ut) || (utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+    if(!isDefined(key,ut) || utype == Class || (utype != Class && key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
       {
 	uti = m_indexToUlamKey.size();  //next index based on key
+	if(utype == Class)
+	  {
+	    UTI suti = key.getUlamKeyTypeSignatureClassInstanceIdx();
+	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
+	      {
+		//keep classinstanceid of scalar in key
+		assert(suti > 0 && !isComplete(suti));
+	      }
+	    else
+	      {
+		if(suti == Nav)
+		  //this is a new class! add uti to key
+		  key.append(uti);
+		else
+		  {
+		    // if this classInstanceIdx (suti) is a template with parameters
+		    // then make a new uti; o.w. no need for a new uti, it's defined.
+		    SymbolClassName * cnsym = NULL;
+		    UlamType * sut = getUlamTypeByIndex(suti);
+		    assert(alreadyDefinedSymbolClassName(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym));
+		    if(cnsym->isClassTemplate())
+		      key.append(uti);
+		    else
+		      return suti; //nothing to be done.
+		  }
+	      }
+	  }
+	else //not a class
+	  {
+	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
+	      {
+		//save scalar in key
+		//saveNonClassScalarUTIForArrayUTI = suti;
+	      }
+	    key.append(Nav); //clear
+	  }
+
 	ut = createUlamType(key, utype);
 	m_indexToUlamKey.push_back(key);
-	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(key,ut)); //map owns ut
+	std::pair<std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator, bool> reti;
+	reti = m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(key,ut)); //map owns ut
+	bool notdupi = reti.second; //false if already existed, i.e. not added
+	if(!notdupi)
+	  {
+	    delete ut;
+	    ut = NULL;
+	  }
 
-	std::pair<std::map<UlamKeyTypeSignature,UTI, less_than_key>::iterator, bool> ret;
+	incrementUnknownKeyUTICounter(key);
+
+	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
 	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
-	bool notdup = ret.second; //false if already existed, i.e. not added
-	if(!notdup)
-	  {
-	    std::ostringstream msg;
-	    msg << "Key to A UTI already exists: " << ut->getUlamTypeName(this).c_str() << " (UTI" << uti << ")";
-	    MSG2("", msg.str().c_str(), DEBUG);
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Added Key to A UTI: " << ut->getUlamTypeName(this).c_str() << " (UTI" << uti << ")";
-	    MSG2("", msg.str().c_str(), DEBUG);
-	  }
 	assert(isDefined(key, ut));
       }
     else
@@ -215,7 +216,6 @@ namespace MFM {
 
     return uti;
   } //makeUlamType
-
 
   bool CompilerState::isDefined(UlamKeyTypeSignature key, UlamType *& foundUT)
   {
@@ -230,7 +230,6 @@ namespace MFM {
       }
     return rtnBool;
   } //isDefined
-
 
   bool CompilerState::aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI)
   {
@@ -247,42 +246,40 @@ namespace MFM {
     return rtnBool;
   } //aDefinedUTI
 
-
   UlamType * CompilerState::createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype)
   {
     UlamType * ut = NULL;
-
     switch(utype)
       {
       case Nav:
-	ut = new UlamTypeNav(key);
+	ut = new UlamTypeNav(key, *this);
 	break;
       case Void:
-	ut = new UlamTypeVoid(key);
+	ut = new UlamTypeVoid(key, *this);
 	break;
       case Int:
-	ut = new UlamTypeInt(key);
+	ut = new UlamTypeInt(key, *this);
 	break;
       case Unsigned:
-	ut = new UlamTypeUnsigned(key);
+	ut = new UlamTypeUnsigned(key, *this);
 	break;
       case Bool:
-	ut = new UlamTypeBool(key);
+	ut = new UlamTypeBool(key, *this);
 	break;
       case Unary:
-	ut = new UlamTypeUnary(key);
+	ut = new UlamTypeUnary(key, *this);
 	break;
       case Bits:
-	ut = new UlamTypeBits(key);
+	ut = new UlamTypeBits(key, *this);
 	break;
       case Class:
-	ut = new UlamTypeClass(key);
+	ut = new UlamTypeClass(key, *this);
 	break;
       case UAtom:
-	ut = new UlamTypeAtom(key);
+	ut = new UlamTypeAtom(key, *this);
 	break;
       case Ptr:
-	ut = new UlamTypePtr(key);
+	ut = new UlamTypePtr(key, *this);
 	break;
       default:
 	{
@@ -295,26 +292,69 @@ namespace MFM {
     return ut;
   } //createUlamType
 
+  void CompilerState::incrementUnknownKeyUTICounter(UlamKeyTypeSignature key)
+  {
+    if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+      {
+	std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
+	if(it != m_unknownKeyUTICounter.end())
+	  {
+	    assert(key == it->first);
+	    it->second++;
+	  }
+	else
+	  {
+	    m_unknownKeyUTICounter.insert(std::pair<UlamKeyTypeSignature,u32>(key,1));
+	  }
+      }
+  } //incrementUnknownKeyUTICounter
+
+  u32 CompilerState::decrementUnknownKeyUTICounter(UlamKeyTypeSignature key)
+  {
+    std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
+    u32 count = 0;
+    if(it != m_unknownKeyUTICounter.end())
+      {
+	assert(key == it->first);
+	it->second--;
+	count = it->second;
+	if(count == 0)
+	  m_unknownKeyUTICounter.erase(it);
+      }
+    return count;
+  } //decrementUnknownKeyUTICounter
+
+  u32 CompilerState::findUnknownKeyUTICounter(UlamKeyTypeSignature key)
+  {
+    std::map<UlamKeyTypeSignature, u32, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
+    u32 count = 0;
+    if(it != m_unknownKeyUTICounter.end())
+      {
+	assert(key == it->first);
+	count = it->second;
+      }
+    return count;
+  } //findUnknownKeyUTICounter
 
   //used to update Class' calculated bit size (setBitSize)
   bool CompilerState::deleteUlamKeyTypeSignature(UlamKeyTypeSignature key)
   {
     bool rtnBool= false;
-
-    std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.find(key);
-
-    if(it != m_definedUlamTypes.end())
+    if(decrementUnknownKeyUTICounter(key) == 0)
       {
-	assert(key == it->first);
-	UlamType * ut = it->second;
-	delete ut;
-	it->second = NULL;
-	m_definedUlamTypes.erase(it);
-	rtnBool = true;
+	std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.find(key);
+	if(it != m_definedUlamTypes.end())
+	  {
+	    assert(key == it->first);
+	    UlamType * ut = it->second;
+	    delete ut;
+	    it->second = NULL;
+	    m_definedUlamTypes.erase(it);
+	    rtnBool = true;
+	  }
       }
     return rtnBool;
   } //deleteUlamKeyTypeSignature
-
 
   //used to update Class' calculated bit size (setBitSize)
   bool CompilerState::updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey)
@@ -322,13 +362,15 @@ namespace MFM {
     bool rtnBool= false;
     UTI uti;
 
+    //skip happily if no others use the old key; new key was added by makeulamtype
+    u32 counter = findUnknownKeyUTICounter(oldkey);
     std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToaUTI.find(oldkey);
-
     if(it != m_keyToaUTI.end())
       {
 	assert(oldkey == it->first);
 	uti = it->second;
-	m_keyToaUTI.erase(it);
+	if(counter == 0)
+	  m_keyToaUTI.erase(it);
 	rtnBool = true;
       }
 
@@ -348,220 +390,124 @@ namespace MFM {
     return rtnBool;
   } //updateUlamKeyTypeSignatureToaUTI
 
+  // called by Symbol's copy constructor with ref's 'incomplete' uti
+  //please set getCompileThisIdx() to the instance's UTI.
+  UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
+  {
+    UlamType * sut = getUlamTypeByIndex(suti);
+    if(sut->isComplete())
+      return suti;
+
+    SymbolClassNameTemplate * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassNameTemplate(getCompileThisId(), cnsym));
+    UTI mappedUTI;
+    if(cnsym->hasInstanceMappedUTI(getCompileThisIdx(), suti, mappedUTI))
+      return mappedUTI;  //e.g. decl list
+
+    // move this test after looking for the mapped class symbol type
+    ULAMTYPE bUT = sut->getUlamTypeEnum();
+    UlamKeyTypeSignature skey = sut->getUlamKeyTypeSignature();
+    SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
+    if(bUT == Class)
+      {
+	assert(alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
+	if(!cnsymOfIncomplete->isClassTemplate())
+	  return suti;
+	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
+	  return suti;
+      }
+
+    // first time we've seen this 'incomplete' UTI for this class instance (being fully instantiated):
+    // get a new UTI and add to cnsym's map for this instance in case we see it again;
+    // Later, also update all its resolver's 'subtree' table references; For classes with
+    // pending args, make a copy of the stub including its resolver with pending args, so
+    // pending args can be resolved XXXX within the context of this class instance (e.g. dependent on
+    // instances arg values which makes it different than others', like "self").
+    // Context dependent pending args are resolved before they are added to the resolver's pending args.
+    UlamKeyTypeSignature newkey(skey); //default constructor makes copy
+    UTI newuti = makeUlamType(newkey,bUT);
+    cnsym->mapInstanceUTI(getCompileThisIdx(), suti, newuti);
+
+    if(bUT == Class)
+      {
+	UlamType * ut = getUlamTypeByIndex(suti);
+	ULAMCLASSTYPE classtype = ut->getUlamClass();
+	bool isCustomArray = ut->isCustomArray();
+	UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);
+	UlamType * newut = getUlamTypeByIndex(newuti);
+	((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
+	if(isCustomArray)
+	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+
+	//potential for unending process..
+	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx());
+      }
+    return newuti;
+  }//mapIncompleteUTIForCurrentClassInstance
 
   void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
   {
     if(ceNode)
-      m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
-  }
+      {
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+	cnsym->linkUnknownBitsizeConstantExpression(uti, ceNode);
+      }
+  } //linkConstantExpression (bitsize)
 
+  void CompilerState::cloneAndLinkConstantExpression(UTI fromuti, UTI touti)
+  {
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+    cnsym->linkUnknownBitsizeConstantExpression(fromuti, touti);
+  } //linkConstantExpression (bitsize in decllist)
 
   void CompilerState::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
   {
     if(ceNode)
-      m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
-  }
-
-
-  void CompilerState::constantFoldIncompleteUTI(UTI uti)
-  {
-    s32 bitsize = getBitSize(uti);
-    assert(bitsize >= UNKNOWNSIZE);
-    s32 arraysize = getArraySize(uti);
-    assert(arraysize >= UNKNOWNSIZE);
-    bool bs = (bitsize != UNKNOWNSIZE || constantFoldUnknownBitsize(uti,bitsize));
-    bool as = (arraysize != UNKNOWNSIZE || constantFoldUnknownArraysize(uti, arraysize));
-    if(bs || as)
-      setUTISizes(uti, bitsize, arraysize); //update UlamType
-  } //constantFoldIncompleteUTI
-
-
-  bool CompilerState::constantFoldUnknownBitsize(UTI auti, s32& bitsize)
-  {
-    bool rtnBool = true; //unfound
-    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.find(auti);
-
-    if(it != m_unknownBitsizeSubtrees.end())
       {
-	assert(auti == it->first);
-	NodeTypeBitsize * ceNode = it->second;
-	assert(ceNode);
-	rtnBool = ceNode->getTypeBitSizeInParen(bitsize, getUlamTypeByIndex(auti)->getUlamTypeEnum()); //eval
-	if(rtnBool)
-	  {
-	    delete ceNode;
-	    it->second = NULL;
-	    m_unknownBitsizeSubtrees.erase(it);
-	  }
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+	cnsym->linkUnknownArraysizeConstantExpression(uti, ceNode);
       }
-    return rtnBool;
-  } //constantFoldUnknownBitsize
-
-
-  bool CompilerState::constantFoldUnknownArraysize(UTI auti, s32& arraysize)
-  {
-    bool rtnBool = true;  //unfound
-    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.find(auti);
-
-    if(it != m_unknownArraysizeSubtrees.end())
-      {
-	assert(auti == it->first);
-	NodeSquareBracket * ceNode = it->second;
-	assert(ceNode);
-	rtnBool = ceNode->getArraysizeInBracket(arraysize); //eval
-	if(rtnBool)
-	  {
-	    delete ceNode;
-	    it->second = NULL;
-	    m_unknownArraysizeSubtrees.erase(it);
-	  }
-      }
-    return rtnBool;
-  } //constantFoldUnknownArraysize
-
-
-  bool CompilerState::statusUnknownBitsizeUTI()
-  {
-    bool rtnstat = true; //ok, empty
-    if(!m_unknownBitsizeSubtrees.empty())
-      {
-	std::vector<UTI> lostUTIs;
-	u32 lostsize = m_unknownBitsizeSubtrees.size();
-
-	std::ostringstream msg;
-	msg << "Found non-empty unknown bitsize subtrees, of class <";
-	msg << m_pool.getDataAsString(m_compileThisId);
-	msg << ">, size " << lostsize << ":";
-
-	std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
-
-	while(it != m_unknownBitsizeSubtrees.end())
-	  {
-	    UTI auti = it->first;
-	    msg << " (UTI" << auti << ") " << getUlamTypeNameByIndex(auti).c_str() << ",";
-	    lostUTIs.push_back(auti);
-	    it++;
-	  }
-
-	msg << " trying to update now";
-	MSG2("", msg.str().c_str(), DEBUG);
-	rtnstat = false;
-
-	assert(lostUTIs.size() == lostsize);
-	while(!lostUTIs.empty())
-	  {
-	    UTI auti = lostUTIs.back();
-	    constantFoldIncompleteUTI(auti);
-	    lostUTIs.pop_back();
-	  }
-	lostUTIs.clear();
-      }
-    return rtnstat;
-  } //statusUnknownBitsizeUTI
-
-
-  bool CompilerState::statusUnknownArraysizeUTI()
-  {
-    bool rtnstat = true; //ok, empty
-    if(!m_unknownArraysizeSubtrees.empty())
-      {
-	std::vector<UTI> lostUTIs;
-	u32 lostsize = m_unknownArraysizeSubtrees.size();
-
-	std::ostringstream msg;
-	msg << "Found non-empty unknown arraysize subtrees, of class <";
-	msg << m_pool.getDataAsString(m_compileThisId);
-	msg << ">, size " << lostsize << ":";
-
-	std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.begin();
-
-	while(it != m_unknownArraysizeSubtrees.end())
-	  {
-	    UTI auti = it->first;
-	    msg << " (UTI" << auti << ") " << getUlamTypeNameByIndex(auti).c_str() << ",";
-	    lostUTIs.push_back(auti);
-	    it++;
-	  }
-
-	msg << " trying to update now";
-	MSG2("", msg.str().c_str(), DEBUG);
-	rtnstat = false;
-
-	assert(lostUTIs.size() == lostsize);
-	while(!lostUTIs.empty())
-	  {
-	    UTI auti = lostUTIs.back();
-	    constantFoldIncompleteUTI(auti);
-	    lostUTIs.pop_back();
-	  }
-	lostUTIs.clear();
-      }
-    return rtnstat;
-  } //statusUnknownArraysizeUTI
-
+  } //linkConstantExpression (arraysize)
 
   void CompilerState::linkConstantExpression(NodeConstantDef * ceNode)
   {
     if(ceNode)
-      m_nonreadyNamedConstantSubtrees.insert(ceNode);
-  }
-
-
-  bool CompilerState::statusNonreadyNamedConstants()
-  {
-    bool rtnstat = true; //ok, empty
-    if(!m_nonreadyNamedConstantSubtrees.empty())
       {
-	std::vector<NodeConstantDef *> lostCs;
-	u32 lostsize = m_nonreadyNamedConstantSubtrees.size();
-
-	std::ostringstream msg;
-	msg << "Found non-empty non-ready named constant subtrees, of class <";
-	msg << m_pool.getDataAsString(m_compileThisId);
-	msg << ">, size " << lostsize << ":";
-
-	std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
-
-	while(it != m_nonreadyNamedConstantSubtrees.end())
-	  {
-	    NodeConstantDef * constNode = *it;
-	    Symbol * csym;
-	    if(constNode->getSymbolPtr(csym) && !((SymbolConstantValue *) csym)->isReady())
-	      {
-		msg << constNode->getName() << ",";
-		lostCs.push_back(constNode);
-	      }
-	    it++;
-	  }
-
-	if(!lostCs.empty())
-	  {
-	    msg << " trying to update now";
-	    rtnstat = false;
-	    assert(lostCs.size() == lostsize);
-	    while(!lostCs.empty())
-	      {
-		NodeConstantDef * ncd = lostCs.back();
-		ncd->foldConstantExpression();
-		lostCs.pop_back();
-	      }
-	    lostCs.clear();
-	  }
-	else
-	  {
-	    msg << " all ready";
-	    m_nonreadyNamedConstantSubtrees.clear();  //all ready
-	  }
-	MSG2("", msg.str().c_str(), DEBUG);
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+	cnsym->linkUnknownNamedConstantExpression(ceNode);
       }
-    return rtnstat;
-  } //statusNonreadyNamedConstants
+  } //linkConstantExpression (named constant)
 
+  void CompilerState::constantFoldIncompleteUTI(UTI auti)
+  {
+    SymbolClassName * cnsym = NULL;
+    if(!alreadyDefinedSymbolClassName(getCompileThisId(), cnsym))
+      {
+	std::string debugme = getClassContextAsStringForDebugging();
+	assert(0); //forgot a pushClassContext somewhere!
+      }
+    cnsym->constantFoldIncompleteUTIOfClassInstance(getCompileThisIdx(), auti);
+  } //constantFoldIncompleteUTI
+
+  bool CompilerState::constantFoldPendingArgs(UTI cuti)
+  {
+    UlamType * cut = getUlamTypeByIndex(cuti);
+    UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
+
+    SymbolClassName * cnsym = NULL; //could be a different class than being compiled
+    assert(alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsym));
+    if(cnsym->isClassTemplate())
+      return ((SymbolClassNameTemplate *) cnsym)->constantFoldClassArgumentsInAStubClassInstance(cuti);
+    return true; //ok
+  } //constantFoldPendingArgsInCurrentContext
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {
     UlamType * rtnUT = NULL;
-
     if(typidx >= m_indexToUlamKey.size())
       {
 	std::ostringstream msg;
@@ -574,22 +520,19 @@ namespace MFM {
     return rtnUT;
   } //getUlamTypeByIndex
 
-
   const std::string CompilerState::getUlamTypeNameBriefByIndex(UTI uti)
   {
     UlamType * ut = NULL;
     assert(isDefined(m_indexToUlamKey[uti], ut));
-    return ut->getUlamTypeNameBrief(this);
+    return ut->getUlamTypeNameBrief();
   }
-
 
   const std::string CompilerState::getUlamTypeNameByIndex(UTI uti)
   {
     UlamType * ut = NULL;
     assert(isDefined(m_indexToUlamKey[uti], ut));
-    return ut->getUlamTypeName(this);
+    return ut->getUlamTypeName();
   }
-
 
   ULAMTYPE CompilerState::getBaseTypeFromToken(Token tok)
   {
@@ -611,43 +554,39 @@ namespace MFM {
 	  }
 	else
 	  {
-	    // it's an element or quark! base type is Ut_Class?
-	    SymbolClass * csym = NULL;
-	    if(alreadyDefinedSymbolClass(tok.m_dataindex, csym))
+	    // it's an element or quark! base type is Class.
+	    SymbolClassName * cnsym = NULL;
+	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	      {
-		UTI ut = csym->getUlamTypeIdx();
-		bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
+		bUT = Class;
 	      }
 	  }
       }
     return bUT;
   } //getBaseTypeFromToken
 
-
   UTI CompilerState::getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize)
   {
     UTI uti = Nav;
-
     // is this name already a typedef for a complex type?
     if(!getUlamTypeByTypedefName(tok.m_dataindex, uti))
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    uti = makeUlamType(tok, typebitsize, arraysize);
+	    uti = makeUlamType(tok, typebitsize, arraysize, Nav);
 	  }
 	else
 	  {
 	    //check for a Class type, or make one if doesn't exist yet, while parsing.
-	    SymbolClass * csym = NULL;
-	    if(alreadyDefinedSymbolClass(tok.m_dataindex, csym))
+	    SymbolClassName * cnsym = NULL;
+	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	      {
-		uti = csym->getUlamTypeIdx();
+		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
 	      }
 	  }
       }
     return uti;
   } //getUlamTypeFromToken
-
 
   // new version! uses indexes
   bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType)
@@ -670,19 +609,21 @@ namespace MFM {
     return rtnBool;
   } //getUlamTypeByTypedefName
 
-
   UTI CompilerState::getUlamTypeAsScalar(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     if(ut->isScalar())
       return utArg;
 
-    //    if(ut->getUlamClass() != UC_NOTACLASS)
-    //  return Atom;  //e.g. a Window quark ???
-
     // for typedef array, the scalar is the primitive type
     ULAMTYPE bUT = ut->getUlamTypeEnum();
+
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
+
+    if(bUT == Class)
+      {
+	return keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
+      }
 
     u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize);  //default array size is zero
@@ -691,14 +632,12 @@ namespace MFM {
     return buti;
   } //getUlamTypeAsScalar
 
-
   UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)
   {
     u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
     UlamKeyTypeSignature ckey(enumStrIdx, ANYBITSIZECONSTANT, NONARRAYSIZE);
     return makeUlamType(ckey, etype); //may not exist yet, create
   }
-
 
   UTI CompilerState::getDefaultUlamTypeOfConstant(UTI ctype)
   {
@@ -708,13 +647,11 @@ namespace MFM {
     return makeUlamType(ckey, etype); //may not exist yet, create
   }
 
-
   bool CompilerState::isConstant(UTI uti)
   {
     UlamType * ut = getUlamTypeByIndex(uti);
     return (ut->isConstant());
   }
-
 
   bool CompilerState::isScalar(UTI utArg)
   {
@@ -722,13 +659,11 @@ namespace MFM {
     return (ut->isScalar());
   }
 
-
   s32 CompilerState::getArraySize(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     return (ut->getArraySize());
   }
-
 
   s32 CompilerState::getBitSize(UTI utArg)
   {
@@ -736,13 +671,18 @@ namespace MFM {
     return (ut->getBitSize());
   }
 
-
   bool CompilerState::isComplete(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    return (ut->isComplete());
-  }
-
+    //for arrays, check if scalar is complete
+    if(!ut->isComplete() && !ut->isScalar())
+      {
+	UTI scalarUTI = ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+	assert(isScalar(scalarUTI));
+	return isComplete(scalarUTI);
+      }
+    return ut->isComplete();
+  } //isComplete
 
   // this may go away..
   // updates key. we can do this now that UTI is used and the UlamType * isn't saved
@@ -750,7 +690,6 @@ namespace MFM {
   {
     return setUTISizes(utArg, bits, getArraySize(utArg));  //keep current arraysize
   }
-
 
   void CompilerState::setUTISizes(UTI utArg, s32 bitsize, s32 arraysize)
   {
@@ -761,11 +700,12 @@ namespace MFM {
 
     //redirect primitives;
     ULAMCLASSTYPE classtype = ut->getUlamClass();
-    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK))
+    if(!(classtype == UC_ELEMENT || classtype == UC_QUARK || classtype == UC_UNSEEN))
       {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
       }
 
+    // bitsize could be UNKNOWN or CONSTANT (negative)
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
 
     bool isCustomArray = ut->isCustomArray();
@@ -777,7 +717,7 @@ namespace MFM {
 	if(total > MAXSTATEBITS)
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
+	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -788,7 +728,7 @@ namespace MFM {
 	if(total > MAXBITSPERQUARK)
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << ut->getUlamTypeName(this).c_str() << " with " << total << " bits";
+	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << ut->getUlamTypeName().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -799,15 +739,16 @@ namespace MFM {
 
     //continue with valid number of bits for Class UlamTypes only
     UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key.getUlamKeyTypeSignatureNameId(), bitsize, arraysize);
+    newkey.append(key.getUlamKeyTypeSignatureClassInstanceIdx());
 
     if(key == newkey)
       return;
 
-    //remove old key, and its ulamtype from map
+    //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(key);
 
     UlamType * newut = NULL;
-    assert(!isDefined(key, newut) && !newut);
+    //assert(!isDefined(key, newut) && !newut);
 
     if(!isDefined(newkey, newut))
       {
@@ -817,20 +758,41 @@ namespace MFM {
 
 	if(isCustomArray)
 	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+
+	incrementUnknownKeyUTICounter(newkey);  //here???
       }
     m_indexToUlamKey[utArg] = newkey;
 
-#if 1
     {
       std::ostringstream msg;
-      msg << "Sizes set for Class: " << newut->getUlamTypeName(this).c_str() << " (UTI" << utArg << ")";
+      msg << "Sizes SET for Class: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
-#endif
 
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
-  } //setSizesOfClass
+  } //setUTISizes
 
+  void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
+  {
+    UlamType * ut1 = getUlamTypeByIndex(olduti);
+    UlamType * ut2 = getUlamTypeByIndex(cuti);
+    assert(ut1 && ut2);
+    UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
+    UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
+
+    //bitsize of old could still be "unknown" (before size set, but args known and match 'cuti').
+    assert(key1.getUlamKeyTypeSignatureNameId() == key2.getUlamKeyTypeSignatureNameId());
+
+    //removes old key and its ulamtype from map, if no longer pointed to
+    deleteUlamKeyTypeSignature(key1);
+    m_indexToUlamKey[olduti] = key2;
+    incrementUnknownKeyUTICounter(key2);
+    {
+      std::ostringstream msg;
+      msg << "MERGED keys for duplicate Class (UTI" << olduti << ") WITH: " << ut2->getUlamTypeName().c_str() << " (UTI" << cuti << ")";
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+    }
+  } //mergeClassUTI
 
   void CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
   {
@@ -848,7 +810,7 @@ namespace MFM {
     if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
       {
 	std::ostringstream msg;
-	msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName(this).c_str() << "> (UTI" << utArg << ")";
+	msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str() << "> (UTI" << utArg << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return;
       }
@@ -859,31 +821,28 @@ namespace MFM {
     if(key == newkey)
       return;
 
-    //remove old key from map
+    //remove old key from map, if no longer pointed to by any UTIs
     deleteUlamKeyTypeSignature(key);
 
     UlamType * newut = NULL;
-    assert(!isDefined(key, newut) && !newut);
+    //    assert(!isDefined(key, newut) && !newut);
 
     if(!isDefined(newkey, newut))
       {
 	newut = createUlamType(newkey, bUT);
 	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(newkey,newut));
+	incrementUnknownKeyUTICounter(newkey);
       }
 
     m_indexToUlamKey[utArg] = newkey;
 
-#if 1
     {
       std::ostringstream msg;
-      msg << "Sizes set for nonClass: " << newut->getUlamTypeName(this).c_str() << " (UTI" << utArg << ")";
+      msg << "Sizes set for nonClass: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
-#endif
-
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
   } // setSizesOfNonClass
-
 
   s32 CompilerState::getDefaultBitSize(UTI uti)
   {
@@ -891,13 +850,11 @@ namespace MFM {
     return ULAMTYPE_DEFAULTBITSIZE[et];
   }
 
-
   u32 CompilerState::getTotalBitSize(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     return (ut->getTotalBitSize());
   }
-
 
   s32 CompilerState::slotsNeeded(UTI uti)
   {
@@ -914,60 +871,88 @@ namespace MFM {
     return arraysize;
   } //slotsNeeded
 
-
-  bool CompilerState::getUlamTypeByClassToken(Token ctok, UTI & rtnType)
-  {
-    u32 cidx = getTokenAsATypeNameId(ctok);
-    return getUlamTypeByClassNameId(cidx, rtnType);
-  }
-
-
-  bool CompilerState::getUlamTypeByClassNameId(u32 idx, UTI & rtnType)
-  {
-    bool rtnBool = false;
-    SymbolClass * csymptr = NULL;
-
-    if(alreadyDefinedSymbolClass(idx, csymptr) || (addIncompleteClassSymbolToProgramTable(idx, csymptr), true) )
-      {
-	rtnType = csymptr->getUlamTypeIdx();
-	rtnBool = true;
-      }
-
-    assert(rtnBool);  //no way it's false!
-    return rtnBool;
-  }
-
-
-  bool CompilerState::alreadyDefinedSymbolClass(u32 dataindex, SymbolClass * & symptr)
+  bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {
     return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
   }
 
+  bool CompilerState::alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr)
+  {
+    bool rtnb = m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
+    return rtnb && symptr->isClassTemplate();
+  }
+
+  //if necessary, searches for instance of class "template" with matching SCALAR uti
+  bool CompilerState::alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr)
+  {
+    bool rtnb = false;
+    UlamType * ut = getUlamTypeByIndex(uti);
+    UTI scalarUTI;
+    if(ut->isScalar())
+      scalarUTI = uti;
+    else
+      scalarUTI = ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+
+    SymbolClassName * cnsym = NULL;
+    if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
+      {
+	// what???
+	if(cnsym->getUlamTypeIdx() != scalarUTI && cnsym->isClassTemplate())
+	  {
+	    SymbolClass * csym = NULL;
+	    if(((SymbolClassNameTemplate *) cnsym)->findClassInstanceByUTI(scalarUTI, csym))
+	      {
+		symptr = csym;
+		rtnb = true;
+	      }
+	  }
+	else
+	  {
+	    symptr = cnsym;
+	    rtnb = true;
+	  }
+      }
+    return rtnb;
+  } //alreadyDefinedSymbolClass
 
   //temporary UlamType which will be updated during type labeling.
-  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr)
+  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassName * & symptr)
   {
-    assert(!alreadyDefinedSymbolClass(dataindex,symptr));
+    assert(!alreadyDefinedSymbolClassName(dataindex,symptr));
 
-    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //0 and scalar default
+    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
 
-    // symbol ownership goes to the programDefST;
-    symptr = new SymbolClass(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
+    // symbol ownership goes to the programDefST; distinguish between template and regular classes here:
+    symptr = new SymbolClassName(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
 
+  //temporary UlamType which will be updated during type labeling.
+  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassNameTemplate * & symptr)
+  {
+    assert(!alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
+
+    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
+    UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
+
+    // symbol ownership goes to the programDefST; distinguish between template and regular classes here:
+    symptr = new SymbolClassNameTemplate(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
+    m_programDefST.addToTable(dataindex, symptr);
+  } //addIncompleteClassSymbolToProgramTable
 
   bool CompilerState::completeIncompleteClassSymbol(UTI incomplete)
   {
     bool rtnB = false;
     SymbolClass * csym = NULL;
     UlamType * ict = getUlamTypeByIndex(incomplete);
-    if(alreadyDefinedSymbolClass(ict->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+    if(alreadyDefinedSymbolClass(incomplete, csym))
       {
-	UTI but = csym->getUlamTypeIdx();
-	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
+	UTI but = cnsym->getUlamTypeIdx();
 
+	ULAMCLASSTYPE bc = getUlamTypeByIndex(but)->getUlamClass();
 	//e.g. out-of-scope typedef is not a class, return false
 	if(bc == UC_ELEMENT || bc == UC_QUARK)
 	  {
@@ -976,20 +961,27 @@ namespace MFM {
 	    if(getBitSize(but) == UNKNOWNSIZE || getArraySize(but) == UNKNOWNSIZE)
 	      {
 		std::ostringstream msg;
-		msg << "Sizes still unknown for Class: " << ict->getUlamTypeName(this).c_str() << "(UTI" << but << ")";
+		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str() << "(UTI" << but << ")";
 		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else
 	      rtnB = true;
 	  }
+	else //else uc_incomplete
+	  {
+	    std::ostringstream msg;
+	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str() << "(UTI" << incomplete << ") - Incomplete";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	  }
       }
     else
       {
-	assert(0);
+	std::ostringstream msg;
+	msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str() << "(UTI" << incomplete << ") - NOT YET DEFINED";
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return rtnB;
   } //completeIncompleteClassSymbol
-
 
   bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr)
   {
@@ -997,11 +989,11 @@ namespace MFM {
 
     // start with the current "top" block and look down the stack
     // until the 'variable id' is found.
-    NodeBlock * blockNode = m_currentBlock;
+    NodeBlock * blockNode = getCurrentBlock();
 
     // substitute another selected class block to search for data member
-    if(m_useMemberBlock)
-      blockNode = m_currentMemberClassBlock;
+    if(useMemberBlock())
+      blockNode = getCurrentMemberClassBlock();
 
     while(!brtn && blockNode)
       {
@@ -1016,55 +1008,73 @@ namespace MFM {
 	brtn = isFuncIdInClassScope(dataindex, symptr);
       }
     return brtn;
-  }
-
+  } //alreadyDefinedSymbol
 
   bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
-    if(m_useMemberBlock)
+    if(useMemberBlock())
       {
-	if(m_currentMemberClassBlock)
-	  brtn = m_currentMemberClassBlock->isFuncIdInScope(dataindex,symptr);
+	NodeBlockClass * memberblock = getCurrentMemberClassBlock();
+	if(memberblock)
+	  brtn = memberblock->isFuncIdInScope(dataindex,symptr);
       }
     else
-      brtn = m_classBlock->isFuncIdInScope(dataindex,symptr);
-
+      {
+	NodeBlockClass * classblock = getClassBlock();
+	if(classblock)
+	  brtn = classblock->isFuncIdInScope(dataindex,symptr);
+      }
     return brtn;
-  }
-
+  } //isFuncIdInClassScope
 
   bool CompilerState::isIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
-    if(m_useMemberBlock)
+    if(useMemberBlock())
       {
-	if(m_currentMemberClassBlock)
-	  brtn = m_currentMemberClassBlock->isIdInScope(dataindex,symptr);
+	NodeBlockClass * memberblock = getCurrentMemberClassBlock();
+	if(memberblock)
+	  brtn = memberblock->isIdInScope(dataindex,symptr);
       }
     else
-      brtn = m_classBlock->isIdInScope(dataindex,symptr);
+      brtn = getClassBlock()->isIdInScope(dataindex,symptr);
 
     return brtn;
-  }
-
+  } //isIdInClassScope
 
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
   {
-    m_currentBlock->addIdToScope(symptr->getId(), symptr);
+    getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
   }
 
+  //symbol ownership goes to the current block (end of vector);
+  // symbol is same, just id changed
+  void CompilerState::replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr)
+  {
+    getCurrentBlock()->replaceIdInScope(oldid, symptr->getId(), symptr);
+  }
+
+  //deletes the oldsym, id's must be identical
+  void CompilerState::replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym)
+  {
+    getCurrentBlock()->replaceIdInScope(oldsym, newsym);
+  }
+
+  //symbol ownership goes to the caller;
+  bool CompilerState::takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr)
+  {
+    return getCurrentBlock()->removeIdFromScope(id, rtnsymptr);
+  }
 
   //Token to location as string:
   const std::string CompilerState::getTokenLocationAsString(Token * tok)
   {
     if(!tok)
       return std::string("");
-
     return getFullLocationAsString(tok->m_locator);
   }
-
 
   /** combines path, line, and byte number for error messages */
   const std::string CompilerState::getFullLocationAsString(Locator& loc)
@@ -1074,12 +1084,10 @@ namespace MFM {
     return ss.str();
   }
 
-
   const std::string CompilerState::getPathFromLocator(Locator& loc)
   {
     return m_pool.getDataAsString(loc.getPathIndex());
   }
-
 
   const std::string CompilerState::getTokenDataAsString(Token * tok)
   {
@@ -1090,7 +1098,6 @@ namespace MFM {
       }
     return std::string(tok->getTokenString());
   }
-
 
   std::string CompilerState::getDataAsStringMangled(u32 dataindex)
   {
@@ -1109,7 +1116,6 @@ namespace MFM {
     return mangled.str();
   } //getDataAsStringMangled
 
-
   //does it check for existence?
   const std::string CompilerState::getTokenAsATypeName(Token tok)
   {
@@ -1126,22 +1132,20 @@ namespace MFM {
 	      {
 		UlamType * tdut = getUlamTypeByIndex(tduti);
 		//for typedef quarks return quark name, o.w. base name
-		return tdut->getUlamTypeNameOnly(this);
+		return tdut->getUlamTypeNameOnly();
 	      }
 	    else
 	      return getTokenDataAsString(&tok); //a class
 	  }
       }
     return "Nav";
-  }
-
+  } //getTokenAsATypeName
 
   u32 CompilerState::getTokenAsATypeNameId(Token tok)
   {
     std::string nstr = getTokenAsATypeName(tok);
     return m_pool.getIndexForDataString(nstr);
   }
-
 
   bool CompilerState::checkFunctionReturnNodeTypes(SymbolFunction * fsym)
   {
@@ -1159,7 +1163,6 @@ namespace MFM {
 	  }
 	return true;  //okay to skip return statement for void function
       }
-
 
     for(u32 i = 0; i < m_currentFunctionReturnNodes.size(); i++)
       {
@@ -1196,10 +1199,8 @@ namespace MFM {
 	      } //base types are the same..array and bit size might vary
 	  } //different ulamtype
       } //next return node
-
     return rtnBool;
   } //checkFunctionReturnNodeTypes
-
 
   void CompilerState::indent(File * fp)
   {
@@ -1207,27 +1208,23 @@ namespace MFM {
       {
 	fp->write(m_indentedSpaceLevel);
       }
-  }
-
+  } //indent
 
   const char * CompilerState::getHiddenArgName()
   {
     return  HIDDEN_ARG_NAME;
   }
 
-
   const char * CompilerState::getHiddenContextArgName()
   {
     return  HIDDEN_CONTEXT_ARG_NAME;
   }
-
 
   u32 CompilerState::getCustomArrayGetFunctionNameId()
   {
     std::string str(CUSTOMARRAY_GET_FUNC_NAME);
     return m_pool.getIndexForDataString(str);
   }
-
 
   u32 CompilerState::getCustomArraySetFunctionNameId()
   {
@@ -1240,14 +1237,12 @@ namespace MFM {
     return IS_MANGLED_FUNC_NAME;
   }
 
-
   const char * CompilerState::getHasMangledFunctionName(UTI ltype)
   {
     if(ltype == UAtom)
       return HAS_MANGLED_FUNC_NAME_FOR_ATOM;
     return HAS_MANGLED_FUNC_NAME;
   }
-
 
   const char * CompilerState::getAsMangledFunctionName(UTI ltype, UTI rtype)
   {
@@ -1259,27 +1254,22 @@ namespace MFM {
     else
       assert(0);
     return "AS_ERROR";
-  }
+  } //getAsMangledFunctionName
 
-
-  std::string CompilerState::getFileNameForAClassHeader(u32 id, bool wSubDir)
+  std::string CompilerState::getFileNameForAClassHeader(UTI cuti, bool wSubDir)
   {
     std::ostringstream f;
-    Symbol * csym = m_programDefST.getSymbolPtr(id);
-    UTI cuti = csym->getUlamTypeIdx();
     if(wSubDir)
       f << "include/";
 
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".h";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << ".h";
     return f.str();
-  }
-
+  } //getFileNameForAClassHeader
 
   std::string CompilerState::getFileNameForThisClassHeader(bool wSubDir)
   {
-    return getFileNameForAClassHeader(m_compileThisId, wSubDir);
+    return getFileNameForAClassHeader(getCompileThisIdx(), wSubDir);
   }
-
 
   std::string CompilerState::getFileNameForThisClassBody(bool wSubDir)
   {
@@ -1287,11 +1277,9 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "include/";
-
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".tcc";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << ".tcc";
     return f.str();
-  }
-
+  } //getFileNameForThisClassBody
 
   std::string CompilerState::getFileNameForThisClassBodyNative(bool wSubDir)
   {
@@ -1300,10 +1288,9 @@ namespace MFM {
     if(wSubDir)
       f << "include/";
 
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_native.tcc";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_native.tcc";
     return f.str();
-  }
-
+  } //getFileNameForThisClassBodyNative
 
   std::string CompilerState::getFileNameForThisClassCPP(bool wSubDir)
   {
@@ -1311,11 +1298,9 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "src/";
-
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << ".cpp";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << ".cpp";
     return f.str();
-  }
-
+  } //getFileNameForThisClassCPP
 
   std::string CompilerState::getFileNameForThisTypesHeader(bool wSubDir)
   {
@@ -1323,11 +1308,9 @@ namespace MFM {
     UTI cuti = getUlamTypeForThisClass();
     if(wSubDir)
       f << "include/";
-
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_Types.h";
+    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_Types.h";
     return f.str();
-  }
-
+  } //getFileNameForThisTypesHeader
 
   //separate file for element compilations, avoid multiple mains, select the one to test during linking
   std::string CompilerState::getFileNameForThisClassMain(bool wSubDir)
@@ -1337,25 +1320,28 @@ namespace MFM {
     if(wSubDir)
       f << "src/";
 
-    f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName(this).c_str() << "_main.cpp";
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+    if(cnsym->isClassTemplate())
+      {
+	u32 numParams = ((SymbolClassNameTemplate *) cnsym)->getNumberOfParameters();
+	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << m_pool.getDataAsString(getCompileThisId()).c_str() << DigitCount(numParams, BASE10) << numParams << "_main.cpp";
+      }
+    else
+      f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";
     return f.str();
-  }
-
+  } //getFileNameForThisClassMain
 
   ULAMCLASSTYPE CompilerState::getUlamClassForThisClass()
   {
     UTI cuti = getUlamTypeForThisClass();
     return getUlamTypeByIndex(cuti)->getUlamClass();
-  }
-
+  } //getUlamClassForThisClass
 
   UTI CompilerState::getUlamTypeForThisClass()
   {
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
-    assert(csym);
-    return csym->getUlamTypeIdx();
-  }
-
+    return getCompileThisIdx();
+  } //getUlamTypeForThisClass
 
   const std::string CompilerState::getBitSizeTemplateString(UTI uti)
   {
@@ -1368,7 +1354,7 @@ namespace MFM {
 	mangled << "<" << getTotalBitSize(uti) << ">";  //???
       }
     return mangled.str();
-  }
+  } //getBitSizeTemplateString
 
   //unfortunately, the uti did not reveal a Class symbol; already down to primitive types
   // for casting.
@@ -1384,8 +1370,7 @@ namespace MFM {
     else
       {
 	SymbolClass * csym = NULL;
-	UlamType * ict = getUlamTypeByIndex(uti);
-	if(alreadyDefinedSymbolClass(ict->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym))
+	if(alreadyDefinedSymbolClass(uti, csym))
 	  {
 	    lenstr << csym->getMangledNameForParameterType();
 
@@ -1398,26 +1383,19 @@ namespace MFM {
 		lenstr << "::LENGTH";
 	      }
 	    else
-	      assert(0);  	    //error!! neither quark nor element
+	      assert(0); //error!! neither quark nor element
 	  }
 	else
-	  {
-	    //error!! no class symbol for this type
-	    assert(0);
-	  }
+	    assert(0); //error!! no class symbol for this type
       }
-
     return lenstr.str();
   } //getBitVectorLengthAsStringForCodeGen
-
 
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
     assert(ptr.getUlamValueTypeIdx() == Ptr);
-
     // slot + storage
     UlamValue valAtIdx;
-
     switch(ptr.getPtrStorage())
       {
       case STACK:
@@ -1436,22 +1414,18 @@ namespace MFM {
     return valAtIdx;  //return as-is
   } //getPtrTarget
 
-
   //general purpose store
   void CompilerState::assignValue(UlamValue lptr, UlamValue ruv)
   {
     assert(lptr.getUlamValueTypeIdx() == Ptr);
 
-    //if(ruv.getUlamValueTypeIdx() == Ptr)
     // handle UAtom assignment as a singleton (not array values)
     if(ruv.getUlamValueTypeIdx() == Ptr && (ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom))
       {
 	return assignArrayValues(lptr, ruv);
       }
-
     // r is data (includes packed arrays), store it into where lptr is pointing
-    //assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx());
-    assert(lptr.getPtrTargetType() == ruv.getUlamValueTypeIdx() || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
+    assert(UlamType::compare(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
 
     STORAGE place = lptr.getPtrStorage();
     switch(place)
@@ -1469,7 +1443,6 @@ namespace MFM {
 	assert(0);
       };
   } //assignValue
-
 
   void CompilerState::assignArrayValues(UlamValue lptr, UlamValue rptr)
   {
@@ -1535,7 +1508,6 @@ namespace MFM {
       }
   } //assignArrayValues
 
-
   //store pointer (rptr) as value to where lptr is pointing
   void CompilerState::assignValuePtr(UlamValue lptr, UlamValue rptr)
   {
@@ -1561,41 +1533,36 @@ namespace MFM {
       };
   } //assignValuePtr
 
-
   PACKFIT CompilerState::determinePackable(UTI aut)
   {
     return getUlamTypeByIndex(aut)->getPackable();
   }
 
-
   bool CompilerState::thisClassHasTheTestMethod()
   {
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
+    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
     NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
     assert(classNode);
     NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
     return (func != NULL);
-  }
-
+  } //thisClassHasTheTestMethod
 
   bool CompilerState::thisClassIsAQuark()
   {
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId);
+    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId());
     UTI cuti = csym->getUlamTypeIdx();
     return(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK);
-  }
-
+  } //thisClassIsAQuark
 
   void CompilerState::setupCenterSiteForTesting()
   {
     // call again for code gen..
-    // assert(m_currentObjPtr.getUlamValueTypeIdx() == Nav);
     // set up an atom in eventWindow; init m_currentObjPtr to point to it
     // set up stacks since func call not called
     Coord c0(0,0);
 
     //m_classBlock ok now, reset by NodeProgram after type label done
-    Symbol * csym = m_programDefST.getSymbolPtr(m_compileThisId); //safer approach
+    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
     UTI cuti = csym->getUlamTypeIdx();
 
     m_eventWindow.setSiteElementType(c0, cuti);
@@ -1605,7 +1572,6 @@ namespace MFM {
     m_funcCallStack.pushArg(m_currentObjPtr);                        //hidden arg on STACK
     m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1));      //return slot on STACK
   } //setupCenterSiteForTesting
-
 
   // used by SourceStream to build m_textByLinePerFilePath during parsing
   void CompilerState::appendNextLineOfText(Locator loc, std::string textstr)
@@ -1645,7 +1611,6 @@ namespace MFM {
     m_locOfNextLineText = loc;  //during parsing here (see NodeStatements)
   } //appendNextLineOfText
 
-
   std::string CompilerState::getLineOfText(Locator loc)
   {
     std::vector<u32> * textOfLines = NULL;
@@ -1683,7 +1648,6 @@ namespace MFM {
     return m_pool.getDataAsString(textid);
   } //getLineOfText
 
-
   std::string CompilerState::getLocationTextAsString(Locator nodeloc)
   {
     std::ostringstream txt;
@@ -1695,7 +1659,6 @@ namespace MFM {
     return txt.str();
   } //getTextAsString
 
-
   void CompilerState::outputTextAsComment(File * fp, Locator nodeloc)
   {
     fp->write("\n");
@@ -1703,7 +1666,6 @@ namespace MFM {
     fp->write("//! ");
     fp->write(getLocationTextAsString(nodeloc).c_str());
   } //outputTextAsComment
-
 
   s32 CompilerState::getNextTmpVarNumber()
   {
@@ -1744,20 +1706,145 @@ namespace MFM {
     return tmpVar.str();
   } //getTmpVarAsString
 
-
   const std::string CompilerState::getLabelNumAsString(s32 num)
   {
     std::ostringstream labelname;  // into
     labelname << "Ul_endcontrolloop_" << DigitCount(num, BASE10) << num;;
     return labelname.str();
-  }
-
+  } //getLabelNumAsString
 
   void CompilerState::saveIdentTokenForConditionalAs(Token iTok)
-    {
-      m_identTokenForConditionalAs = iTok;
-      m_parsingConditionalAs = true;    //cleared manually
-    }
+  {
+    m_identTokenForConditionalAs = iTok;
+    m_parsingConditionalAs = true;    //cleared manually
+  } //saveIdentTokenForConditionalAs
 
+  NNO CompilerState::getNextNodeNo()
+  {
+    return ++m_nextNodeNumber; //first one is 1
+  }
+
+  Node * CompilerState::findNodeNoInThisClass(NNO n)
+  {
+    if(useMemberBlock())
+      {
+	UTI mbuti = getCurrentMemberClassBlock()->getNodeType();
+	u32 mbid = getUlamTypeByIndex(mbuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(mbid, cnsym));
+	return cnsym->findNodeNoInAClassInstance(mbuti, n);
+      }
+
+    // beware the classblock is the only block with different node no in SHALLOW instances
+    if(getCurrentBlock()->getNodeNo() == n && getClassBlock()->getNodeType() == getCompileThisIdx())
+      return getCurrentBlock(); //avoid chix-n-egg with functiondefs
+
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+    return cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
+  } //findNodeNo
+
+  u32 CompilerState::getCompileThisId()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getCompileThisId();
+  }
+
+  UTI CompilerState::getCompileThisIdx()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getCompileThisIdx();
+  }
+
+  NodeBlock * CompilerState::getCurrentBlock()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getCurrentBlock();
+  }
+
+  NNO CompilerState::getCurrentBlockNo()
+  {
+    if(getCurrentBlock())
+      return getCurrentBlock()->getNodeNo();
+    return 0; //genesis of class
+  }
+
+  NodeBlockClass * CompilerState::getClassBlock()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getClassBlock();
+  }
+
+  NNO CompilerState::getClassBlockNo()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    if(cc.getClassBlock())
+      return cc.getClassBlock()->getNodeNo();
+    return 0;
+  }
+
+  bool CompilerState::useMemberBlock()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.useMemberBlock();
+  }
+
+  NodeBlockClass * CompilerState::getCurrentMemberClassBlock()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getCurrentMemberClassBlock();
+  }
+
+  void CompilerState::pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockClass * classblock, bool usemember, NodeBlockClass * memberblock)
+  {
+    u32 id = getUlamTypeByIndex(idx)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+    ClassContext cc(id, idx, currblock, classblock, usemember, memberblock); //new
+    m_classContextStack.pushClassContext(cc);
+  }
+
+  void CompilerState::popClassContext()
+  {
+    m_classContextStack.popClassContext();
+  }
+
+  void CompilerState::pushCurrentBlock(NodeBlock * currblock)
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    cc.setCurrentBlock(currblock); //could be NULL
+    m_classContextStack.pushClassContext(cc);
+  }
+
+  void CompilerState::pushCurrentBlockAndDontUseMemberBlock(NodeBlock * currblock)
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    cc.setCurrentBlock(currblock);
+    cc.useMemberBlock(false);
+    m_classContextStack.pushClassContext(cc);
+  }
+
+  void CompilerState::pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock)
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    cc.setCurrentMemberClassBlock(memberblock);
+    cc.useMemberBlock(true);
+    m_classContextStack.pushClassContext(cc);
+  }
+
+  std::string CompilerState::getClassContextAsStringForDebugging()
+  {
+    ClassContext cc;
+    m_classContextStack.getCurrentClassContext(cc);
+    return cc.getClassContextAsString();
+  }
 
 } //end MFM

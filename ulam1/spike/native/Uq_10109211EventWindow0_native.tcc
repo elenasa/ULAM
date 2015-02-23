@@ -6,7 +6,7 @@
 namespace MFM{
 
   template<class CC, u32 POS>
-  Ui_Ut_102964Atom<CC> Uq_10109211EventWindow<CC,POS>::Uf_4aref(UlamContext<CC> & uc,
+  Ui_Ut_102964Atom<CC> Uq_10109211EventWindow0<CC,POS>::Uf_4aref(UlamContext<CC> & uc,
                                                                 T& Uv_4self, Ui_Ut_102323Int Uv_5index)	 //native
   {
     u32 siteNumber = Uv_5index.read();
@@ -18,7 +18,7 @@ namespace MFM{
   }
 
   template<class CC, u32 POS>
-  void Uq_10109211EventWindow<CC,POS>::Uf_4aset(UlamContext<CC> & uc,
+  void Uq_10109211EventWindow0<CC,POS>::Uf_4aset(UlamContext<CC> & uc,
                                                 T& Uv_4self, Ui_Ut_102323Int Uv_5index, Ui_Ut_102964Atom<CC> Uv_1v) //native
   {
     u32 siteNumber = Uv_5index.read();

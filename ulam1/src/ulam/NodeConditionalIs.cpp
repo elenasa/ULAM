@@ -4,11 +4,14 @@
 
 namespace MFM {
 
-  NodeConditionalIs::NodeConditionalIs(Node * leftNode, Token typeTok, CompilerState & state): NodeConditional(leftNode, typeTok, state) {}
+  NodeConditionalIs::NodeConditionalIs(Node * leftNode, UTI classInstanceIdx, CompilerState & state): NodeConditional(leftNode, classInstanceIdx, state) {}
+  NodeConditionalIs::NodeConditionalIs(const NodeConditionalIs& ref) : NodeConditional(ref) {}
+  NodeConditionalIs::~NodeConditionalIs() {}
 
-  NodeConditionalIs::~NodeConditionalIs()
-  {}
-
+  Node * NodeConditionalIs::instantiate()
+  {
+    return new NodeConditionalIs(*this);
+  }
 
   UTI NodeConditionalIs::checkAndLabelType()
   {
@@ -27,8 +30,7 @@ namespace MFM {
 	newType = Nav;
       }
 
-    UTI ruti = m_state.getUlamTypeFromToken(m_typeTok, 0, NONARRAYSIZE); //name-based, sizes ignored
-
+    UTI ruti = m_utypeRight;
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(rclasstype != UC_ELEMENT)
       {
@@ -38,31 +40,33 @@ namespace MFM {
 	newType = Nav;
       }
 
-    m_utypeRight = ruti;
+    //    if(!m_state.constantFoldPendingArgs(ruti))
+    if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
+      {
+	std::ostringstream msg;
+	msg << "RHS of conditional operator '" << getName() << "' type: " << m_state.getUlamTypeNameByIndex(ruti).c_str() << "; has pending arguments found while labeling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	newType = Nav;
+      }
     setNodeType(newType);
-
     setStoreIntoAble(false);
     return getNodeType();
   } //checkAndLabelType
-
 
   const char * NodeConditionalIs::getName()
   {
     return "is";
   }
 
-
   const std::string NodeConditionalIs::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   const std::string NodeConditionalIs::methodNameForCodeGen()
   {
     return  std::string(m_state.getIsMangledFunctionName());
   }
-
 
   EvalStatus  NodeConditionalIs::eval()
   {
@@ -85,7 +89,7 @@ namespace MFM {
     luti = pluv.getPtrTargetType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
-    bool isit = (luti == UAtom || luti == m_utypeRight);
+    bool isit = (luti == UAtom || UlamType::compare(luti,m_utypeRight,m_state) == UTIC_SAME);
     UlamValue rtnuv = UlamValue::makeImmediate(getNodeType(), (u32) isit, m_state);
 
     //also copy result UV to stack, -1 relative to current frame pointer
@@ -94,7 +98,6 @@ namespace MFM {
     evalNodeEpilog();
     return evs;
   } //eval
-
 
   void NodeConditionalIs::genCode(File * fp, UlamValue& uvpass)
   {
@@ -116,12 +119,12 @@ namespace MFM {
 
      m_state.indent(fp);
     fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs).c_str());
     fp->write(" = ");
 
-    fp->write(rut->getUlamTypeMangledName(&m_state).c_str());
+    fp->write(rut->getUlamTypeMangledName().c_str());
     if(rclasstype == UC_ELEMENT)
       fp->write("<EC>::THE_INSTANCE.");
     else if(rclasstype == UC_QUARK)

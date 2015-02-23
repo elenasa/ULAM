@@ -47,7 +47,8 @@ namespace MFM{
   public:
 
     NodeBinaryOpBitwise(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpBitwise();
+    NodeBinaryOpBitwise(const NodeBinaryOpBitwise& ref);
+    virtual ~NodeBinaryOpBitwise();
 
     virtual const std::string methodNameForCodeGen();
 

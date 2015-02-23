@@ -4,9 +4,13 @@
 namespace MFM {
 
   NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
-
+  NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
   NodeMemberSelect::~NodeMemberSelect(){}
 
+  Node * NodeMemberSelect::instantiate()
+  {
+    return new NodeMemberSelect(*this);
+  }
 
   void NodeMemberSelect::printOp(File * fp)
   {
@@ -15,12 +19,10 @@ namespace MFM {
     fp->write(myname);
   }
 
-
   const char * NodeMemberSelect::getName()
   {
     return ".";
   }
-
 
   const std::string NodeMemberSelect::prettyNodeName()
   {
@@ -39,7 +41,7 @@ namespace MFM {
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE classtype = lut->getUlamClass();
-    if(classtype == UC_NOTACLASS || classtype == UC_INCOMPLETE)
+    if(classtype == UC_NOTACLASS || classtype == UC_UNSEEN)
       {
 	// must be a 'Class' type, either quark or element
 	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
@@ -56,26 +58,23 @@ namespace MFM {
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(lut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), csym));
+    assert(m_state.alreadyDefinedSymbolClass(luti, csym));
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
     assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
     //set up compiler state to use the member class block for symbol searches
-    m_state.m_currentMemberClassBlock = memberClassNode;
-    m_state.m_useMemberBlock = true;
+    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
     UTI rightType = m_nodeRight->checkAndLabelType();
 
     //clear up compiler state to no longer use the member class block for symbol searches
-    m_state.m_useMemberBlock = false;
-    m_state.m_currentMemberClassBlock = NULL;
+    m_state.popClassContext();
 
     setNodeType(rightType);
 
     setStoreIntoAble(m_nodeRight->isStoreIntoAble());
     return getNodeType();
   } //checkAndLabelType
-
 
   EvalStatus NodeMemberSelect::eval()
   {
@@ -96,7 +95,6 @@ namespace MFM {
     //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
     m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
 
-
     u32 slot = makeRoomForNodeType(getNodeType());
     evs = m_nodeRight->eval();   //a Node Function Call here, or data member eval
     if(evs != NORMAL)
@@ -105,13 +103,8 @@ namespace MFM {
 	return evs;
       }
 
-
-    //Symbol * rsymptr = NULL;
-    //if(m_nodeRight->getSymbolPtr(rsymptr) && rsymptr->isFunction())
-
     //assigns rhs to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
-
     if(slot)   //avoid Void's
       doBinaryOperation(1, 1+slot, slot);  //????????
 
@@ -119,7 +112,6 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //eval
-
 
   //for eval, want the value of the rhs
   void NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
@@ -144,9 +136,7 @@ namespace MFM {
 
     //copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnUV);
-  }
-
-
+  }//doBinaryOperation
 
   EvalStatus NodeMemberSelect::evalToStoreInto()
   {
@@ -173,7 +163,6 @@ namespace MFM {
 	return evs;
       }
 
-    //UlamValue ruvPtr = m_state.m_nodeEvalStack.popArg();
     UlamValue ruvPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(2);
 
     assignReturnValuePtrToStack(ruvPtr);
@@ -184,19 +173,16 @@ namespace MFM {
     return NORMAL;
   } //evalToStoreInto
 
-
   UlamValue NodeMemberSelect::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     assert(0); //unused
     return UlamValue();
   }
 
-
   void NodeMemberSelect::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     assert(0); //unused
   }
-
 
   bool NodeMemberSelect::getSymbolPtr(Symbol *& symptrref)
   {
@@ -205,26 +191,19 @@ namespace MFM {
 
     MSG(getNodeLocationAsString().c_str(), "No symbol", ERR);
     return false;
-  }
+  } //getSymbolPtr
 
 
   void NodeMemberSelect::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-
     //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());    //*************?
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-
-    //m_nodeRight->genCodeToStoreInto(fp, uvpass);       // w/o readInto to reset COS
-    ////if(m_nodeRight->getNodeType() != Void)
-    //  m_nodeRight->genCodeReadIntoATmpVar(fp, uvpass); //e.g. in case of func calls
-
     m_nodeRight->genCode(fp, uvpass);  // is this ok???
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode
-
 
   // presumably called by e.g. a binary op equal (lhs); caller saves
   // currentObjPtr/Symbol, unlike genCode (rhs)

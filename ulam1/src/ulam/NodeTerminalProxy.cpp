@@ -9,7 +9,15 @@ namespace MFM {
     Node::setNodeLocation(funcTok.m_locator);
   }
 
+  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok) {}
+
   NodeTerminalProxy::~NodeTerminalProxy() {}
+
+
+  Node * NodeTerminalProxy::instantiate()
+  {
+    return new NodeTerminalProxy(*this);
+  }
 
   const std::string NodeTerminalProxy::prettyNodeName()
   {
@@ -129,8 +137,9 @@ namespace MFM {
     if(!m_state.isComplete(m_uti))
       {
 	std::ostringstream msg;
-	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown for its <" << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str() << "> while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	//rtnb = false; don't want to stop after parsing.
       }
     else
       {
@@ -138,9 +147,15 @@ namespace MFM {
 	if(!setConstantValue(m_funcTok))
 	  {
 	    std::ostringstream msg;
-	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&m_funcTok).c_str() << "' of type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " constant value for its <" << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str() << "> is still incomplete and unknown while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), ERR);
 	    rtnb = false;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Yippee! Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " (UTI" << getNodeType() << ") is KNOWN (=" << m_constant.uval << ") while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
 	  }
       }
     return rtnb;

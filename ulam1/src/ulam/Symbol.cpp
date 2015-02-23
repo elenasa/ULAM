@@ -6,7 +6,12 @@
 
 namespace MFM {
 
-  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false), m_isSelf(false) {}
+  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()) {}
+
+  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_id(sref.m_id), m_utypeIdx(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_utypeIdx)), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+
+  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_id(sref.m_id), m_utypeIdx(sref.m_utypeIdx), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+
   Symbol::~Symbol(){}
 
   u32 Symbol::getId()
@@ -14,36 +19,30 @@ namespace MFM {
     return m_id;
   }
 
-
   UTI Symbol::getUlamTypeIdx()
   {
     return m_utypeIdx;
   }
-
 
   bool Symbol::isFunction()
   {
     return false;
   }
 
-
   bool Symbol::isTypedef()
   {
     return false;
   }
-
 
   bool Symbol::isConstant()
   {
     return false;
   }
 
-
   bool Symbol::isClass()
   {
     return false;
   }
-
 
   void Symbol::setDataMember()
   {
@@ -52,12 +51,10 @@ namespace MFM {
       m_elementParameter = true;
   }
 
-
   bool Symbol::isDataMember()
   {
     return m_dataMember;
   }
-
 
   void Symbol::setElementParameter()
   {
@@ -68,7 +65,6 @@ namespace MFM {
   {
     return m_elementParameter;
   }
-
 
   void Symbol::setAutoLocal()
   {
@@ -90,6 +86,15 @@ namespace MFM {
     return m_isSelf;
   }
 
+  NNO Symbol::getBlockNoOfST()
+  {
+    return m_stBlockNo;
+  }
+
+  void Symbol::setBlockNoOfST(NNO n)
+  {
+    m_stBlockNo = n;
+  }
 
   const std::string Symbol::getMangledName()
   {
@@ -99,7 +104,6 @@ namespace MFM {
        mangled << getMangledPrefix() << nstr.c_str();
        return mangled.str();
   }
-
 
   //atomic parameter type, not element parameter.
   const std::string Symbol::getMangledNameForParameterType()
@@ -113,7 +117,7 @@ namespace MFM {
     if(m_elementParameter)
       {
 	std::ostringstream epmangled;
-	epmangled << sut->getImmediateStorageTypeAsString(&m_state);
+	epmangled << sut->getImmediateStorageTypeAsString();
 	if(classtype == UC_QUARK)
 	  epmangled << "::Us";
 	return epmangled.str();
@@ -121,20 +125,17 @@ namespace MFM {
 
     // to distinguish btn an atomic parameter typedef and quark typedef;
     // use atomic parameter with array of classes
-    bool isaclass = (( classtype == UC_QUARK || classtype == UC_ELEMENT)  && sut->isScalar());
+    bool isaclass = (( classtype == UC_QUARK || classtype == UC_ELEMENT || classtype == UC_UNSEEN) && sut->isScalar());
 
     std::ostringstream pmangled;
     pmangled << Symbol::getParameterTypePrefix(isaclass).c_str() << getMangledName();
     return pmangled.str();
   } //getMangledNameForParameterType
 
-
   const std::string Symbol::getParameterTypePrefix(bool isaclass)  //static method
   {
     return (isaclass ? "Ut_" : "Up_");
-    //    return "Up_";
   }
-
 
   void Symbol::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
     {

@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeTypedef.h - Basic Node handling Typedefs for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeTypedef.h - Basic Node handling Typedefs for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -39,6 +39,7 @@
 
 #include "Node.h"
 #include "SymbolTypedef.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
@@ -47,11 +48,17 @@ namespace MFM{
   public:
 
     NodeTypedef(SymbolTypedef * sym, CompilerState & state);
-    ~NodeTypedef();
+    NodeTypedef(const NodeTypedef& ref);
+    virtual ~NodeTypedef();
+
+    virtual Node * instantiate();
 
     virtual void printPostfix(File * f);
 
     virtual UTI checkAndLabelType();
+
+    NNO getBlockNo();
+    NodeBlock * getBlock();
 
     virtual EvalStatus eval();
 
@@ -67,6 +74,8 @@ namespace MFM{
 
   private:
     SymbolTypedef * m_typedefSymbol;
+    u32 m_tdid; //to instantiate
+    NNO m_currBlockNo;
   };
 
 }

@@ -46,9 +46,14 @@ namespace MFM{
   public:
 
     NodeTypeBitsize(Node * node, CompilerState & state);
-    ~NodeTypeBitsize();
+    NodeTypeBitsize(const NodeTypeBitsize& ref);
+    virtual ~NodeTypeBitsize();
 
-    virtual void updateLineage(Node * p);
+    virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * f);
 
@@ -65,7 +70,7 @@ namespace MFM{
     bool getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT);
 
   private:
-    Node * m_node;
+    Node * m_node; //constant expression subtree
   };
 
 } //MFM

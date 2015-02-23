@@ -47,16 +47,23 @@
 namespace MFM{
 
   struct CompilerState; //forward
+  class Node; //forward
+  class NodeBlockClass; //forward
 
   class SymbolTable
   {
   public:
 
     SymbolTable(CompilerState& state);
+    SymbolTable(const SymbolTable& ref);
     ~SymbolTable();
 
+    void clearTheTable();
     bool isInTable(u32 id, Symbol * & symptrref);
     void addToTable(u32 id, Symbol * s);
+    void replaceInTable(u32 oldid, u32 newid, Symbol * s);
+    void replaceInTable(Symbol * oldsym, Symbol * newsym);
+    bool removeFromTable(u32 id, Symbol *& rtnsymptr);
 
     Symbol * getSymbolPtr(u32 id);
 
@@ -84,11 +91,15 @@ namespace MFM{
 
     //Table Of Functions:
 
-    void checkTableOfFunctions();
+    bool checkTableOfFunctions();
+
+    void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);
+
+    bool findNodeNoAcrossTableOfFunctions(NNO n, Node*& foundNode);
 
     void labelTableOfFunctions();
 
-    void countNavNodesAcrossTableOfFunctions();
+    u32 countNavNodesAcrossTableOfFunctions();
 
     bool checkCustomArrayTypeFuncs();
 
@@ -104,13 +115,21 @@ namespace MFM{
 
     void printForDebugForTableOfClasses(File * fp);
 
-    void updateLineageForTableOfClasses();
+    bool statusUnknownConstantExpressionsInTableOfClasses();
+
+    bool statusNonreadyClassArgumentsInTableOfClasses();
+
+    bool fullyInstantiateTableOfClasses();
+
+    void updateLineageForTableOfClasses(); //done incrementally for stubs
 
     void checkCustomArraysForTableOfClasses();
 
-    void labelTableOfClasses();
+    void checkDuplicateFunctionsForTableOfClasses();
 
-    void countNavNodesAcrossTableOfClasses();
+    bool labelTableOfClasses();
+
+    u32 countNavNodesAcrossTableOfClasses();
 
     bool setBitSizeOfTableOfClasses();
 
@@ -122,18 +141,18 @@ namespace MFM{
 
     void generateForwardDefsForTableOfClasses(File * fp);
 
-    std::string generateTestInstancesForTableOfClasses(File * fp);
+    void generateTestInstancesForTableOfClasses(File * fp);
 
     void genCodeForTableOfClasses(FileManager * fm);
-
 
   protected:
     std::map<u32, Symbol* > m_idToSymbolPtr;
 
   private:
     CompilerState & m_state;
+    //    void mergeInstancesBeforeCodeGenForTableOfClasses();
     s32 calcVariableSymbolTypeSize(UTI ut);
-    static std::string firstletterTolowercase(const std::string s);
+    bool variableSymbolWithCountableSize(Symbol * sym);
   };
 
 }

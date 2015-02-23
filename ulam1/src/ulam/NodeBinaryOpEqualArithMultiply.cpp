@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpEqualArithMultiply::NodeBinaryOpEqualArithMultiply(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
-
+  NodeBinaryOpEqualArithMultiply::NodeBinaryOpEqualArithMultiply(const NodeBinaryOpEqualArithMultiply& ref) : NodeBinaryOpEqualArith(ref) {}
   NodeBinaryOpEqualArithMultiply::~NodeBinaryOpEqualArithMultiply(){}
+
+  Node * NodeBinaryOpEqualArithMultiply::instantiate()
+  {
+    return new NodeBinaryOpEqualArithMultiply(*this);
+  }
 
 
   const char * NodeBinaryOpEqualArithMultiply::getName()

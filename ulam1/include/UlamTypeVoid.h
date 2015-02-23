@@ -47,28 +47,28 @@ namespace MFM{
   {
   public:
 
-    UlamTypeVoid(const UlamKeyTypeSignature key);
+    UlamTypeVoid(const UlamKeyTypeSignature key, CompilerState& state);
     virtual ~UlamTypeVoid(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual const std::string getUlamTypeAsStringForC();
 
-    virtual const std::string getUlamTypeMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeMangledName();
 
-    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeImmediateMangledName();
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getImmediateStorageTypeAsString(CompilerState * state);
+    virtual const std::string getImmediateStorageTypeAsString();
 
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getTmpStorageTypeAsString();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual bool isMinMaxAllowed();
 
-    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
+    virtual bool cast(UlamValue & val, UTI typidx);
 
   private:
 
