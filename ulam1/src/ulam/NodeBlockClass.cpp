@@ -293,6 +293,7 @@ namespace MFM {
 
   void NodeBlockClass::generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    // done earlier so that problems can be caught before continuing
     // check all the function names for duplicate definitions
     //m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
@@ -353,7 +354,6 @@ namespace MFM {
     //leave class' endif to caller
   } //genCode
 
-
   void NodeBlockClass::genCodeHeaderQuark(File * fp)
   {
     //use the instance UTI instead of the node's original type
@@ -393,8 +393,6 @@ namespace MFM {
 
     fp->write("\n");
 
-    // where to put these???
-    //genImmediateMangledTypesForHeaderFile(fp);
     m_state.indent(fp);
     fp->write("typedef AtomicParameterType <CC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n");
 
@@ -411,11 +409,9 @@ namespace MFM {
     //default constructor/destructor
   } //genCodeHeaderQuark
 
-
   void NodeBlockClass::genCodeHeaderElement(File * fp)
   {
     //use the instance UTI instead of the node's original type
-    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
 
     m_state.indent(fp);
@@ -434,12 +430,9 @@ namespace MFM {
 
     genShortNameParameterTypesExtractedForHeaderFile(fp);
 
-    // where to put these???
-    //genImmediateMangledTypesForHeaderFile(fp);
-
     fp->write("\n");
     m_state.m_currentIndentLevel--;
-    //m_state.m_currentIndentLevel = 0;
+
     m_state.indent(fp);
     fp->write("public:\n\n");
 
@@ -474,7 +467,6 @@ namespace MFM {
     // in case a function has one as a return value and/or parameter.
   } //genCodeHeaderElement
 
-
   void NodeBlockClass::genImmediateMangledTypesForHeaderFile(File * fp)
   {
     m_state.indent(fp);
@@ -491,7 +483,6 @@ namespace MFM {
 	it++;
       }
   } //genImmediateMangledTypesForHeaderFile
-
 
   void NodeBlockClass::genShortNameParameterTypesExtractedForHeaderFile(File * fp)
   {
@@ -512,7 +503,6 @@ namespace MFM {
     fp->write("\n");
   } //genShortNameParameterTypesExtractedForHeaderFile
 
-
   //Body for This Class only; practically empty if quark (.tcc)
   void NodeBlockClass::genCodeBody(File * fp, UlamValue& uvpass)
   {
@@ -526,7 +516,6 @@ namespace MFM {
     //generate include statements for all the other classes that have appeared
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
     fp->write("\n");
-
 
     m_state.indent(fp);
     fp->write("namespace MFM{\n\n");
@@ -592,7 +581,6 @@ namespace MFM {
     fp->write("} //MFM\n\n");
   } //genCodeBody
 
-
   void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     // 'has' is for both class types
@@ -619,7 +607,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("bool ");  //return pos offset, or -1 if not found
 
-    //UTI cuti = getNodeType();
     UTI cuti = m_state.getCompileThisIdx();
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
