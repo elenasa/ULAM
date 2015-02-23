@@ -171,8 +171,16 @@ namespace MFM {
   void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     if(!isEmpty())
-      m_functionST.checkCustomArrayTypeFuncs();
-  }
+      {
+	// custom array flag set at parse time
+	UTI cuti = getNodeType();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	if(((UlamTypeClass *) cut)->isCustomArray())
+	  {
+	    m_functionST.checkCustomArrayTypeFuncs();
+	  }
+      }
+  } //checkCustomArrayTypeFunctions
 
   EvalStatus NodeBlockClass::eval()
   {

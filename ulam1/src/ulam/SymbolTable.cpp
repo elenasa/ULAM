@@ -663,18 +663,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 
-	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-	// custom array flag set at parse time
-	UTI cuti = classNode->getNodeType();
-	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	if(((UlamTypeClass *) cut)->isCustomArray())
-	  {
-	    classNode->checkCustomArrayTypeFunctions();
-	  }
-	m_state.popClassContext(); //restore
+	((SymbolClassName *) sym)->checkCustomArraysOfClassInstances();
 	it++;
       }
   } //checkCustomArraysForTableOfClasses()
