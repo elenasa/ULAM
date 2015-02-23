@@ -97,6 +97,15 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkCustomArraysOfClassInstances()
 
+  void SymbolClassName::checkDuplicateFunctionsForClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    classNode->checkDuplicateFunctions();
+    m_state.popClassContext(); //restore
+  } //checkDuplicateFunctionsForClassInstances
 
   void SymbolClassName::checkAndLabelClassInstances()
   {

@@ -86,6 +86,7 @@ namespace MFM{
     void updateLineageOfClassInstanceUTI(UTI cuti); //during full instantiateion
 
     virtual void checkCustomArraysOfClassInstances();
+    virtual void checkDuplicateFunctionsForClassInstances();
     virtual void checkAndLabelClassInstances();
     virtual u32 countNavNodesInClassInstances();
     virtual bool setBitSizeOfClassInstances();

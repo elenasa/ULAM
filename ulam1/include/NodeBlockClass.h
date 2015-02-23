@@ -75,6 +75,8 @@ namespace MFM{
 
     void checkCustomArrayTypeFunctions();
 
+    void checkDuplicateFunctions();
+
     virtual EvalStatus eval();
 
     //checks both function and variable symbol names

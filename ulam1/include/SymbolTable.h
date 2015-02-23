@@ -91,7 +91,7 @@ namespace MFM{
 
     //Table Of Functions:
 
-    void checkTableOfFunctions();
+    bool checkTableOfFunctions();
 
     void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);
 
@@ -124,6 +124,8 @@ namespace MFM{
     void updateLineageForTableOfClasses(); //done incrementally for stubs
 
     void checkCustomArraysForTableOfClasses();
+
+    void checkDuplicateFunctionsForTableOfClasses();
 
     bool labelTableOfClasses();
 

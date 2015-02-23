@@ -154,7 +154,6 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-
   void NodeBlockClass::countNavNodes(u32& cnt)
   {
     if(m_nextNode) //may not have data members
@@ -162,13 +161,18 @@ namespace MFM {
     m_functionST.countNavNodesAcrossTableOfFunctions();
   }
 
+  void NodeBlockClass::checkDuplicateFunctions()
+  {
+    // check all the function names for duplicate definitions
+    if(!isEmpty())
+      m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
+  }
 
   void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     if(!isEmpty())
       m_functionST.checkCustomArrayTypeFuncs();
   }
-
 
   EvalStatus NodeBlockClass::eval()
   {
@@ -219,37 +223,31 @@ namespace MFM {
     return evs;
   } //eval
 
-
   //override to check both variables and function names.
   bool NodeBlockClass::isIdInScope(u32 id, Symbol * & symptrref)
   {
     return (m_ST.isInTable(id, symptrref) || isFuncIdInScope(id, symptrref));
   }
 
-
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
   {
     return m_functionST.isInTable(id, symptrref);
   }
-
 
   void NodeBlockClass::addFuncIdToScope(u32 id, Symbol * symptr)
   {
     m_functionST.addToTable(id, symptr);
   }
 
-
   u32 NodeBlockClass::getNumberOfFuncSymbolsInTable()
   {
     return m_functionST.getTableSize();
   }
 
-
   u32 NodeBlockClass::getSizeOfFuncSymbolsInTable()
   {
     return m_functionST.getTotalSymbolSize();
   }
-
 
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
@@ -288,7 +286,7 @@ namespace MFM {
   void NodeBlockClass::generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     // check all the function names for duplicate definitions
-    m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
+    //m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
   }
 

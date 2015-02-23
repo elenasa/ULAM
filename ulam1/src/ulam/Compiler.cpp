@@ -164,8 +164,10 @@ namespace MFM {
       }
 
     // type set at parse time (needed for square bracket checkandlabel);
-    // so, here we just check for matching arg types.
+    // so, here we just check for matching arg types (regular and Templates only).
     m_state.m_programDefST.checkCustomArraysForTableOfClasses();
+
+    m_state.m_programDefST.checkDuplicateFunctionsForTableOfClasses();
 
     // must happen after type labeling and before code gen; separate pass. want UNKNOWNS reported
     m_state.m_programDefST.packBitsForTableOfClasses();
