@@ -59,24 +59,26 @@ namespace MFM{
   public:
 
     Node(CompilerState & state);
+    Node(const Node& ref);
     virtual ~Node() {}
 
-    virtual void setYourParent(Node * parent);
-    virtual void updateLineage(Node * p);
+    virtual Node * instantiate() = 0;
+
+    virtual void setYourParentNo(NNO pno);
+
+    virtual void updateLineage(NNO pno);
+
+    NNO getNodeNo();
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void print(File * fp);
     virtual void printPostfix(File * fp) = 0;
 
-    virtual UTI checkAndLabelType();
+    virtual const char * getName() = 0;
 
-    virtual void countNavNodes(u32& cnt);
+    virtual const std::string prettyNodeName() = 0;
 
-    virtual bool fitsInBits(UTI fituti);
-    virtual bool isNegativeConstant();
-    virtual bool isWordSizeConstant();
-
-    virtual EvalStatus eval() = 0;
-    virtual EvalStatus evalToStoreInto();
+    const std::string nodeName(const std::string& prettyFunction);
 
     UTI getNodeType();
     void setNodeType(UTI ut);
@@ -91,16 +93,22 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
-    virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
-    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
-
-    virtual const char * getName() = 0;
-
-    virtual const std::string prettyNodeName() = 0;
-    const std::string nodeName(const std::string& prettyFunction);
-
     virtual void constantFold(Token tok);
+
+    virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
+
+    virtual bool fitsInBits(UTI fituti);
+    virtual bool isNegativeConstant();
+    virtual bool isWordSizeConstant();
+
+    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr);
+    virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr);
+
+    virtual EvalStatus eval() = 0;
+    virtual EvalStatus evalToStoreInto();
 
     void evalNodeProlog(u32 depth);
     void evalNodeEpilog();
@@ -116,10 +124,13 @@ namespace MFM{
     virtual void genCode(File * fp, UlamValue& uvpass);
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
-    virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
-
     virtual void genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue& uvpass);
+    void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
+
+    virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
     virtual void genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
@@ -144,9 +155,9 @@ namespace MFM{
     const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass);
 
     const std::string readMethodForCodeGen(UTI nuti, UlamValue uvpass);
-    const std::string writeMethodForCodeGen(UTI nuti, UlamValue uvpass);
-
     const std::string readArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
+
+    const std::string writeMethodForCodeGen(UTI nuti, UlamValue uvpass);
     const std::string writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
 
     const std::string readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
@@ -160,19 +171,15 @@ namespace MFM{
 
     bool isHandlingImmediateType();
 
-    void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
-
-    void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
-
     u32 adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass);
-
-    void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
   private:
     bool m_storeIntoAble;
     UTI m_nodeUType;
     Locator m_nodeLoc;
-    Node * m_parent;
+    //Node * m_parent;
+    NNO m_parentNo;
+    NNO m_nodeNo;
   };
 
 }

@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeUnaryOpBang::NodeUnaryOpBang(Node * n, CompilerState & state): NodeUnaryOp(n, state) {}
-
+  NodeUnaryOpBang::NodeUnaryOpBang(const NodeUnaryOpBang& ref) : NodeUnaryOp(ref) {}
   NodeUnaryOpBang::~NodeUnaryOpBang(){}
+
+  Node * NodeUnaryOpBang::instantiate()
+  {
+    return new NodeUnaryOpBang(*this);
+  }
 
 
   const char * NodeUnaryOpBang::getName()

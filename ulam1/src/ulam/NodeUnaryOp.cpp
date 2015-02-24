@@ -5,6 +5,10 @@
 namespace MFM {
 
   NodeUnaryOp::NodeUnaryOp(Node * n, CompilerState & state): Node(state), m_node(n) {}
+  NodeUnaryOp::NodeUnaryOp(const NodeUnaryOp& ref) : Node(ref)
+  {
+    m_node = ref.m_node->instantiate();
+  }
 
   NodeUnaryOp::~NodeUnaryOp()
   {
@@ -12,13 +16,20 @@ namespace MFM {
     m_node = NULL;
   }
 
-
-  void NodeUnaryOp::updateLineage(Node * p)
+  void NodeUnaryOp::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_node->updateLineage(this);
-  }
+    setYourParentNo(pno);
+    m_node->updateLineage(getNodeNo());
+  }//updateLineage
 
+  bool NodeUnaryOp::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_node && m_node->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeUnaryOp::print(File * fp)
   {
@@ -158,7 +169,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(getNodeType(),tmpVarNum).c_str());

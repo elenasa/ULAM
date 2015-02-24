@@ -5,8 +5,13 @@
 namespace MFM {
 
   NodeBinaryOpEqualArithAdd::NodeBinaryOpEqualArithAdd(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
-
+  NodeBinaryOpEqualArithAdd::NodeBinaryOpEqualArithAdd(const NodeBinaryOpEqualArithAdd& ref) : NodeBinaryOpEqualArith(ref) {}
   NodeBinaryOpEqualArithAdd::~NodeBinaryOpEqualArithAdd(){}
+
+  Node * NodeBinaryOpEqualArithAdd::instantiate()
+  {
+    return new NodeBinaryOpEqualArithAdd(*this);
+  }
 
 
   const char * NodeBinaryOpEqualArithAdd::getName()

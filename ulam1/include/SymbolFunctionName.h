@@ -44,12 +44,18 @@
 
 namespace MFM{
 
+  class Node; //forward
+  class NodeBlockClass; //forward
+  class SymbolTable; //forward
 
   class SymbolFunctionName : public Symbol
   {
   public:
     SymbolFunctionName(u32 id, UTI typetoreturn, CompilerState& state);
-    ~SymbolFunctionName();
+    SymbolFunctionName(const SymbolFunctionName& sref);
+    virtual ~SymbolFunctionName();
+
+    virtual Symbol * clone();
 
     virtual bool isFunction();
 
@@ -63,9 +69,15 @@ namespace MFM{
 
     u32 checkFunctionNames();
 
+    u32 checkCustomArrayFunctions(SymbolTable & fST);
+
+    void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
+
+    bool findNodeNoInFunctionDefs(NNO n, Node*& foundNode);
+
     void labelFunctions();
 
-    void countNavNodesInFunctionDefs();
+    u32 countNavNodesInFunctionDefs();
 
     u32 countNativeFuncDecls();
 
@@ -75,6 +87,7 @@ namespace MFM{
 
   private:
     std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr
+
     bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
 
 

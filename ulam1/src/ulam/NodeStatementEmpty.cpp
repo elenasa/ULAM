@@ -4,16 +4,24 @@
 
 namespace MFM {
 
-  NodeStatementEmpty::NodeStatementEmpty(CompilerState & state): Node(state)
-  {}
+  NodeStatementEmpty::NodeStatementEmpty(CompilerState & state): Node(state) {}
+  NodeStatementEmpty::NodeStatementEmpty(const NodeStatementEmpty& ref) : Node(ref) {}
+  NodeStatementEmpty::~NodeStatementEmpty() {}
 
-  NodeStatementEmpty::~NodeStatementEmpty()
-  {}
-
-  void NodeStatementEmpty::updateLineage(Node * p)
+  Node * NodeStatementEmpty::instantiate()
   {
-    setYourParent(p);
+    return new NodeStatementEmpty(*this);
   }
+
+  void NodeStatementEmpty::updateLineage(NNO pno)
+  {
+    setYourParentNo(pno);
+  }//updateLineage
+
+  bool NodeStatementEmpty::findNodeNo(NNO n, Node *& foundNode)
+  {
+    return Node::findNodeNo(n, foundNode);
+  } //findNodeNo
 
   void NodeStatementEmpty::print(File * fp)
   {

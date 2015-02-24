@@ -7,33 +7,33 @@
 namespace MFM {
 
   NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
-
+  NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref) {}
   NodeSquareBracket::~NodeSquareBracket(){}
 
+  Node * NodeSquareBracket::instantiate()
+  {
+    return new NodeSquareBracket(*this);
+  }
 
   void NodeSquareBracket::printOp(File * fp)
   {
-	NodeBinaryOp::printOp(fp);
+    NodeBinaryOp::printOp(fp);
   }
-
 
   const char * NodeSquareBracket::getName()
   {
     return "[]";
   }
 
-
   const std::string NodeSquareBracket::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   const std::string NodeSquareBracket::methodNameForCodeGen()
   {
     return "_SquareBracket_Stub";
   }
-
 
   // used to select an array element; not for declaration
   UTI NodeSquareBracket::checkAndLabelType()
@@ -58,12 +58,12 @@ namespace MFM {
       }
 
     //for example, f.chance[i] where i is local, same as f.func(i);
-    bool saveUseMemberBlock = m_state.m_useMemberBlock;
-    m_state.m_useMemberBlock = false;
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
 
     UTI rightType = m_nodeRight->checkAndLabelType();
 
-    m_state.m_useMemberBlock = saveUseMemberBlock;
+    m_state.popClassContext();
 
     //must be some kind of Int or Unsigned..of any bit size
     ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
@@ -88,20 +88,17 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-
   void NodeSquareBracket::countNavNodes(u32& cnt)
   {
     m_nodeLeft->countNavNodes(cnt);
     m_nodeRight->countNavNodes(cnt);
   }
 
-
   UTI NodeSquareBracket::calcNodeType(UTI lt, UTI rt)
   {
     assert(0);
     return Int;
   }
-
 
   EvalStatus NodeSquareBracket::eval()
   {
@@ -153,13 +150,10 @@ namespace MFM {
 	evalNodeEpilog();
 	return ERROR;
       }
-
     assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
-
     evalNodeEpilog();
     return NORMAL;
   } //eval
-
 
   EvalStatus NodeSquareBracket::evalToStoreInto()
   {
@@ -228,13 +222,11 @@ namespace MFM {
     return NORMAL;
   } //evalToStoreInto
 
-
   UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     assert(0); //unused
     return UlamValue();
   }
-
 
   bool NodeSquareBracket::getSymbolPtr(Symbol *& symptrref)
   {
@@ -245,9 +237,8 @@ namespace MFM {
     return false;
   }
 
-
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -265,11 +256,10 @@ namespace MFM {
 
     s32 newarraysize = NONARRAYSIZE;
     if(getArraysizeInBracket(newarraysize))
-      return m_nodeLeft->installSymbolTypedef(atok, bitsize, newarraysize, asymptr);
+      return m_nodeLeft->installSymbolTypedef(atok, bitsize, newarraysize, classInstanceIdx, asymptr);
 
     return false;  //error getting array size
   } //installSymbolTypedef
-
 
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
@@ -278,9 +268,8 @@ namespace MFM {
     return false;
   } //installSymbolConstantValue
 
-
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -298,11 +287,10 @@ namespace MFM {
 
     s32 newarraysize = NONARRAYSIZE;
     if(getArraysizeInBracket(newarraysize))
-      return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, asymptr);
+      return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, classInstanceIdx, declListScalarType, asymptr);
 
     return false;  //error getting array size
   } //installSymbolVariable
-
 
   // eval() performed even before check and label!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
@@ -316,27 +304,31 @@ namespace MFM {
       {
 	evalNodeProlog(0);             //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
-	m_nodeRight->eval();
-	UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
-	evalNodeEpilog();
-
-	newarraysize = arrayUV.getImmediateData(m_state);
-	if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //== NONARRAYSIZE or UNKNOWNSIZE
+	if(m_nodeRight->eval() == NORMAL)
 	  {
-	    MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
-	    return false;
+	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
+
+	    newarraysize = arrayUV.getImmediateData(m_state);
+	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //== NONARRAYSIZE or UNKNOWNSIZE
+	      {
+		MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
+		evalNodeEpilog();
+		return false;
+	      }
 	  }
+	else
+	  newarraysize = UNKNOWNSIZE; //error
+
+	evalNodeEpilog();
       }
     else
       {
 	MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a constant integer", ERR);
 	return false;
       }
-
     rtnArraySize = newarraysize;
     return true;
   } //getArraysizeInBracket
-
 
   void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
   {
@@ -359,7 +351,6 @@ namespace MFM {
     Node::genCodeReadArrayItemIntoATmpVar(fp, uvpass);     //new!!!
   } //genCode
 
-
   void NodeSquareBracket::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -380,6 +371,5 @@ namespace MFM {
 
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
-
 
 } //end MFM

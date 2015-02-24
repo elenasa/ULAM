@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpEqual::NodeBinaryOpEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
-
+  NodeBinaryOpEqual::NodeBinaryOpEqual(const NodeBinaryOpEqual& ref) : NodeBinaryOp(ref) {}
   NodeBinaryOpEqual::~NodeBinaryOpEqual(){}
+
+  Node * NodeBinaryOpEqual::instantiate()
+  {
+    return new NodeBinaryOpEqual(*this);
+  }
 
 
   const char * NodeBinaryOpEqual::getName()

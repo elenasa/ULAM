@@ -46,7 +46,10 @@ namespace MFM{
   public:
 
     NodeBinaryOpEqual(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpEqual();
+    NodeBinaryOpEqual(const NodeBinaryOpEqual& ref);
+    virtual ~NodeBinaryOpEqual();
+
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

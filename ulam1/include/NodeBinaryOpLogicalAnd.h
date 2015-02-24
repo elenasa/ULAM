@@ -45,7 +45,10 @@ namespace MFM{
   public:
 
     NodeBinaryOpLogicalAnd(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpLogicalAnd();
+    NodeBinaryOpLogicalAnd(const NodeBinaryOpLogicalAnd& ref);
+    virtual ~NodeBinaryOpLogicalAnd();
+
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

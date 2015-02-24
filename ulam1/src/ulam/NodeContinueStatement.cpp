@@ -5,9 +5,13 @@
 namespace MFM {
 
   NodeContinueStatement::NodeContinueStatement(s32 gotolabelnum, CompilerState & state) : Node(state), m_gotolabelnum(gotolabelnum) {}
+  NodeContinueStatement::NodeContinueStatement(const NodeContinueStatement& ref) : Node(ref), m_gotolabelnum(ref.m_gotolabelnum) {}
+  NodeContinueStatement::~NodeContinueStatement() {}
 
-  NodeContinueStatement::~NodeContinueStatement()
-  {}
+  Node * NodeContinueStatement::instantiate()
+  {
+    return new NodeContinueStatement(*this);
+  }
 
   void NodeContinueStatement::print(File * fp)
   {

@@ -39,23 +39,35 @@
 #include "Symbol.h"
 #include "NodeBlockClass.h"
 #include "UlamTypeClass.h"
+#include "NodeTypeBitsize.h"
+#include "NodeSquareBracket.h"
+#include "NodeConstantDef.h"
 
 namespace MFM{
 
 
   class CompilerState;  //forward
+  class SymbolClassNameTemplate;  //forward
+  class Resolver; //forward
 
   class SymbolClass : public Symbol
   {
   public:
-    SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
-    ~SymbolClass();
+    SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state);
+    SymbolClass(const SymbolClass& sref);
+    virtual ~SymbolClass();
+
+    virtual Symbol * clone();
 
     virtual bool isClass();
+
+    virtual bool isClassTemplate(UTI cuti);
 
     void setClassBlockNode(NodeBlockClass * node);
 
     NodeBlockClass * getClassBlockNode();
+
+    SymbolClassNameTemplate * getParentClassTemplate();
 
     virtual const std::string getMangledPrefix();
 
@@ -67,13 +79,56 @@ namespace MFM{
 
     bool isQuarkUnion();
 
-    void generateCode(FileManager * fm);
+    bool isStub();
+
+    void unsetStub();
+
+    bool trySetBitsizeWithUTIValues(s32& totalbits);
+
+    void printBitSizeOfClass();
+
+    void testThisClass(File * fp); //eval-land
+
+    void cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr);
+
+    void cloneNamedConstantExpressionSubtrees(const Resolver &templateRslvr);
+
+    bool statusUnknownConstantExpressions();
+
+    bool statusNonreadyClassArguments();
+
+    bool constantFoldNonreadyClassArguments();
+
+    void constantFoldIncompleteUTI(UTI auti);
+
+    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
+    void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
+    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    void linkConstantExpression(NodeConstantDef * ceNode);
+
+    void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
+    bool pendingClassArgumentsForClassInstance();
+    void cloneResolverForStubClassInstance(const SymbolClass* csym, UTI context);
+    UTI getContextForPendingArgs();
+
+    virtual void generateCode(FileManager * fm);
+
+    void generateAsOtherInclude(File * fp);
+
+    void generateAsOtherForwardDef(File * fp);
+
+    void generateTestInstance(File * fp, bool runtest);
 
   protected:
+    Resolver * m_resolver;
+
+    void setParentClassTemplate(SymbolClassNameTemplate *);
 
   private:
     NodeBlockClass * m_classBlock;
+    SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
+    bool m_stub;
 
     void generateHeaderPreamble(File * fp);
     void genAllCapsIfndefForHeaderFile(File * fp);
@@ -83,6 +138,7 @@ namespace MFM{
     void genMangledTypesHeaderFile(FileManager * fm);  //obsolete
     void generateMain(FileManager * fm);
 
+    static std::string firstletterTolowercase(const std::string s);
   };
 
 }

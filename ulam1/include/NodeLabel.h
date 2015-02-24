@@ -47,7 +47,10 @@ namespace MFM{
   public:
 
     NodeLabel(s32 labelnum, CompilerState & state);
+    NodeLabel(const NodeLabel& ref);
     virtual ~NodeLabel();
+
+    virtual Node * instantiate();
 
     virtual void print(File * fp);
 

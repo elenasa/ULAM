@@ -47,36 +47,36 @@ namespace MFM{
   {
   public:
 
-    UlamTypeInt(const UlamKeyTypeSignature key);
+    UlamTypeInt(const UlamKeyTypeSignature key, CompilerState& state);
     virtual ~UlamTypeInt(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
-    virtual const std::string getUlamTypeImmediateMangledName(CompilerState * state);
+    virtual const std::string getUlamTypeImmediateMangledName();
 
-    virtual const std::string getArrayItemTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getArrayItemTmpStorageTypeAsString();
 
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state);
+    virtual const std::string getTmpStorageTypeAsString();
 
-    virtual const std::string getTmpStorageTypeAsString(CompilerState * state, s32 sizebyints);
+    virtual const std::string getTmpStorageTypeAsString(s32 sizebyints);
 
-    const std::string getArrayItemUnsignedTmpStorageTypeAsString(CompilerState * state);
+    const std::string getArrayItemUnsignedTmpStorageTypeAsString();
 
-    const std::string getUnsignedTmpStorageTypeAsString(CompilerState * state);
+    const std::string getUnsignedTmpStorageTypeAsString();
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual bool cast(UlamValue & val, UTI typidx, CompilerState& state);
+    virtual bool cast(UlamValue & val, UTI typidx);
 
-    virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
+    virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass);
 
-    virtual void getDataAsString(const u32 data, char * valstr, char prefix, CompilerState& state);
+    virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
   private:
 
-    void genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass, CompilerState& state);
+    void genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
 
   };
 

@@ -5,7 +5,11 @@
 namespace MFM {
 
   NodeBinaryOp::NodeBinaryOp(Node * left, Node * right, CompilerState & state) : Node(state), m_nodeLeft(left), m_nodeRight(right) {}
-
+  NodeBinaryOp::NodeBinaryOp(const NodeBinaryOp& ref) : Node(ref)
+  {
+    m_nodeLeft = ref.m_nodeLeft->instantiate();
+    m_nodeRight = ref.m_nodeRight->instantiate();
+  }
 
   NodeBinaryOp::~NodeBinaryOp()
   {
@@ -15,13 +19,23 @@ namespace MFM {
     m_nodeRight = NULL;
   }
 
-  void NodeBinaryOp::updateLineage(Node * p)
+  void NodeBinaryOp::updateLineage(NNO pno)
   {
-    setYourParent(p);
-    m_nodeLeft->updateLineage(this);
-    m_nodeRight->updateLineage(this);
-  }
+    setYourParentNo(pno);
+    m_nodeLeft->updateLineage(getNodeNo());
+    m_nodeRight->updateLineage(getNodeNo());
+  } //updateLineage
 
+  bool NodeBinaryOp::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeLeft->findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeRight->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeBinaryOp::print(File * fp)
   {
@@ -46,9 +60,7 @@ namespace MFM {
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
-  }
-
-
+  } //print
 
   void NodeBinaryOp::printPostfix(File * fp)
   {
@@ -63,16 +75,14 @@ namespace MFM {
       fp->write("<NULLRIGHT>");
 
     printOp(fp); //operators last
-  }
-
+  } //printPostfix
 
   void NodeBinaryOp::printOp(File * fp)
   {
     char myname[16];
     sprintf(myname," %s", getName());
     fp->write(myname);
-  }
-
+  } //printOp
 
   UTI NodeBinaryOp::checkAndLabelType()
   {
@@ -94,21 +104,16 @@ namespace MFM {
 	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
 	  }
       }
-
     setNodeType(newType);
-
     setStoreIntoAble(false);
-
     return newType;
   } //checkAndLabelType
-
 
   void NodeBinaryOp::countNavNodes(u32& cnt)
   {
     m_nodeLeft->countNavNodes(cnt);
     m_nodeRight->countNavNodes(cnt);
   }
-
 
   EvalStatus NodeBinaryOp::eval()
   {
@@ -138,8 +143,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }
-
+  } //eval
 
   void NodeBinaryOp::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
   {
@@ -155,7 +159,6 @@ namespace MFM {
     UlamValue rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
   } //end dobinaryopImmediate
-
 
   void NodeBinaryOp::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
   {
@@ -207,9 +210,7 @@ namespace MFM {
 
     if(WritePacked(packRtn))
       m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result
-
   } //end dobinaryoparray
-
 
   void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
   {
@@ -238,7 +239,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
@@ -273,7 +274,6 @@ namespace MFM {
 #endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
-
 
   void NodeBinaryOp::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {

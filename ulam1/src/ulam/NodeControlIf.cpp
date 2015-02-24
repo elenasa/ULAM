@@ -5,7 +5,13 @@
 namespace MFM {
 
   NodeControlIf::NodeControlIf(Node * condNode, Node * trueNode, Node * falseNode, CompilerState & state): NodeControl(condNode, trueNode, state), m_nodeElse(falseNode) {}
-
+  NodeControlIf::NodeControlIf(const NodeControlIf& ref) : NodeControl(ref)
+  {
+    if(ref.m_nodeElse)
+      m_nodeElse = ref.m_nodeElse->instantiate();
+    else
+      m_nodeElse = NULL;
+  }
 
   NodeControlIf::~NodeControlIf()
   {
@@ -13,14 +19,26 @@ namespace MFM {
     m_nodeElse = NULL;
   }
 
-
-  void NodeControlIf::updateLineage(Node * p)
+  Node * NodeControlIf::instantiate()
   {
-    NodeControl::updateLineage(p);
-    if(m_nodeElse)
-      m_nodeElse->updateLineage(this);
+    return new NodeControlIf(*this);
   }
 
+  void NodeControlIf::updateLineage(NNO pno)
+  {
+    NodeControl::updateLineage(pno);
+    if(m_nodeElse)
+      m_nodeElse->updateLineage(getNodeNo());
+  }//updateLineage
+
+  bool NodeControlIf::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(NodeControl::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeElse && m_nodeElse->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeControlIf::print(File * fp)
   {
