@@ -464,7 +464,29 @@ namespace MFM {
       }
   } //generateAsOtherForwardDef
 
+
+
   void SymbolClass::generateTestInstance(File * fp, bool runtest)
+  {
+    std::ostringstream runThisTest;
+    UTI suti = getUlamTypeIdx();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    if(!sut->isComplete()) return;
+
+    m_state.indent(fp);
+    fp->write("typedef MFM::");
+    fp->write(sut->getUlamTypeMangledName().c_str());
+    fp->write("<MFM::OurEventConfigAll> TestElementType;  // for example = \n");
+
+    m_state.indent(fp);
+    fp->write("rtn = "); //return
+    fp->write("MFM::TestSingleElement<MFM::OurGridConfigTest>(TestElementType::THE_INSTANCE) ? 0 : 1;\n");
+    fp->write("\n");
+  } //generateTestInstance
+
+
+#if 0
+  void SymbolClass::GENERATETESTINSTANCE(File * fp, bool runtest)
   {
     std::ostringstream runThisTest;
     UTI suti = getUlamTypeIdx();
@@ -540,6 +562,7 @@ namespace MFM {
 	  }
       }
   } //generateTestInstance
+#endif
 
   void SymbolClass::generateHeaderPreamble(File * fp)
   {
@@ -662,7 +685,14 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include <stdio.h>\n");
     m_state.indent(fp);
-    fp->write("#include <iostream>\n\n"); //to cout/cerr rtn
+    fp->write("#include <iostream>\n"); //to cout/cerr rtn
+    m_state.indent(fp);
+    fp->write("#include \"itype.h\"\n");
+    m_state.indent(fp);
+    fp->write("#include \"P3Atom.h\"\n");
+    m_state.indent(fp);
+    fp->write("#include \"Grid.h\"\n");
+    fp->write("\n");
 
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");
@@ -676,16 +706,95 @@ namespace MFM {
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
+    //namespace MFM
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("namespace MFM\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    //For all models
+    m_state.indent(fp);
+    fp->write("typedef P3Atom OurAtomAll;\n");
+    m_state.indent(fp);
+    fp->write("typedef Site<P3AtomConfig> OurSiteAll;\n");
+    m_state.indent(fp);
+    fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;\n");
+    fp->write("\n");
+
+    //Smallsingle tile model for testing
+    m_state.indent(fp);
+    fp->write("typedef GridConfig<OurEventConfigAll, 20, 1, 1> OurGridConfigTest;\n");
+    m_state.indent(fp);
+    fp->write("typedef Grid<OurGridConfigTest> OurGridTest;\n");
+    m_state.indent(fp);
+    fp->write("typedef OurGridTest::GridTile OurTestTile;\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("typedef ElementTable<OurEventConfigAll> TestElementTable;\n");
+    m_state.indent(fp);
+    fp->write("typedef EventWindow<OurEventConfigAll> TestEventWindow;\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("template<class GC>\n");
+    m_state.indent(fp);
+    fp->write("bool TestSingleElement(Element<typename GC::EVENT_CONFIG> & elt)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("OurTestTile tile;\n");
+    m_state.indent(fp);
+    fp->write("elt.AllocateType();\n");
+    m_state.indent(fp);
+    fp->write("tile.RegisterElement(elt);\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;\n");
+    m_state.indent(fp);
+    fp->write("SPoint center(TILE_SIDE/2, TILE_SIDE/2);  // Hitting no caches, for starters;\n");
+    m_state.indent(fp);
+    fp->write("const u32 THE_TYPE = elt.GetType();\n");
+    m_state.indent(fp);
+    fp->write("tile.PlaceAtom(OurAtomAll(THE_TYPE,0,0,0), center);\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("TestEventWindow ew(tile);\n");
+    m_state.indent(fp);
+    fp->write("bool success = ew.TryEventAtForTesting(center);\n");
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("return success;\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n");
+
+    fp->write("\n");
+
     //MAIN STARTS HERE !!!
     fp->write("\n");
     m_state.indent(fp);
-    fp->write("int main()\n");
+    fp->write("int main(int argc, const char** argv)\n");
 
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
 
+#if 0
     m_state.indent(fp);
     fp->write("enum { SIZE = ");
     fp->write_decimal(BITSPERATOM);
@@ -710,6 +819,7 @@ namespace MFM {
     fp->write("OurUlamContext uc;\n");
     m_state.indent(fp);
     fp->write("uc.SetTile(theTile);\n");
+#endif
 
     m_state.indent(fp);
     fp->write("MFM::Ui_Ut_102323Int rtn;\n");
