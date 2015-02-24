@@ -5,9 +5,13 @@
 namespace MFM {
 
   NodeBreakStatement::NodeBreakStatement(CompilerState & state) : Node(state) {}
+  NodeBreakStatement::NodeBreakStatement(const NodeBreakStatement& ref) : Node(ref) {}
+  NodeBreakStatement::~NodeBreakStatement() {}
 
-  NodeBreakStatement::~NodeBreakStatement()
-  {}
+  Node * NodeBreakStatement::instantiate()
+  {
+    return new NodeBreakStatement(*this);
+  }
 
   void NodeBreakStatement::print(File * fp)
   {

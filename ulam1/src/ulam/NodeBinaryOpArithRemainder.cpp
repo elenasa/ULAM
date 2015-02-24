@@ -4,9 +4,14 @@
 namespace MFM {
 
   NodeBinaryOpArithRemainder::NodeBinaryOpArithRemainder(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
+  NodeBinaryOpArithRemainder::NodeBinaryOpArithRemainder(const NodeBinaryOpArithRemainder& ref) : NodeBinaryOpArith(ref) {}
 
   NodeBinaryOpArithRemainder::~NodeBinaryOpArithRemainder(){}
 
+  Node * NodeBinaryOpArithRemainder::instantiate()
+  {
+    return new NodeBinaryOpArithRemainder(*this);
+  }
 
   const char * NodeBinaryOpArithRemainder::getName()
   {

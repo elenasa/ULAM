@@ -41,6 +41,7 @@
 #include "Token.h"
 #include "SymbolVariable.h"
 #include "UlamType.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
@@ -49,7 +50,10 @@ namespace MFM{
   public:
 
     NodeIdent(Token tok, SymbolVariable * symptr, CompilerState & state);
-    ~NodeIdent();
+    NodeIdent(const NodeIdent& ref);
+    virtual ~NodeIdent();
+
+    virtual Node * instantiate();
 
     virtual void printPostfix(File * fp);
 
@@ -59,17 +63,22 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
+    void setSymbolPtr(SymbolVariable * vsymptr);
+
     virtual UTI checkAndLabelType();
+
+    NNO getBlockNo();
+    NodeBlock * getBlock();
 
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr);
 
     virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
-    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
@@ -80,6 +89,7 @@ namespace MFM{
   private:
     Token m_token;
     SymbolVariable * m_varSymbol;
+    NNO m_currBlockNo;
 
     SymbolVariable *  makeSymbol(UTI aut);
     UlamValue makeUlamValuePtr();

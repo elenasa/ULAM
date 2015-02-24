@@ -48,12 +48,22 @@ namespace MFM{
   public:
 
     NodeBlock(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
-
+    NodeBlock(const NodeBlock& ref);
     virtual ~NodeBlock();
+
+    virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
+
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
 
     virtual UTI checkAndLabelType();
 
@@ -65,11 +75,17 @@ namespace MFM{
 
     void addIdToScope(u32 id, Symbol * symptr);
 
+    void replaceIdInScope(u32 oldid, u32 newid, Symbol * symptr);
+
+    void replaceIdInScope(Symbol * oldsym, Symbol * newsym);
+
+    bool removeIdFromScope(u32 id, Symbol *& rtnsymptr);
+
+    void removeAllSymbolsFromScope();
+
     NodeBlock * getPreviousBlockPointer();
 
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
+    void setPreviousBlockPointer(NodeBlock *);
 
     u32 getNumberOfSymbolsInTable();
 

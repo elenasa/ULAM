@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeConditionalHas.h - Node for handling Has Expressions for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -29,7 +29,7 @@
   \file NodeConditionalHas.h - Node for handling Has Expressions for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2014-2015 All rights reserved.
   \gpl
 */
 
@@ -45,8 +45,11 @@ namespace MFM{
   {
   public:
 
-    NodeConditionalHas(Node * leftNode, Token typeTok, CompilerState & state);
-    ~NodeConditionalHas();
+    NodeConditionalHas(Node * leftNode, UTI classInstanceIdx, CompilerState & state);
+    NodeConditionalHas(const NodeConditionalHas& ref);
+    virtual ~NodeConditionalHas();
+
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

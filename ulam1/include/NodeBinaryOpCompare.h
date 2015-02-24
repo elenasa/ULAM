@@ -47,7 +47,8 @@ namespace MFM{
   public:
 
     NodeBinaryOpCompare(Node * left, Node * right, CompilerState & state);
-    ~NodeBinaryOpCompare();
+    NodeBinaryOpCompare(const NodeBinaryOpCompare& ref);
+    virtual ~NodeBinaryOpCompare();
 
     virtual UTI checkAndLabelType();
 

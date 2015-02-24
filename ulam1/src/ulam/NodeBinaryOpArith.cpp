@@ -5,10 +5,8 @@
 namespace MFM {
 
   NodeBinaryOpArith::NodeBinaryOpArith(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
-
-  NodeBinaryOpArith::~NodeBinaryOpArith()
-  { }
-
+  NodeBinaryOpArith::NodeBinaryOpArith(const NodeBinaryOpArith& ref) : NodeBinaryOp(ref) {}
+  NodeBinaryOpArith::~NodeBinaryOpArith() {}
 
   const std::string NodeBinaryOpArith::methodNameForCodeGen()
   {

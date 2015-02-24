@@ -1,8 +1,12 @@
-MFM_BASE_DIR:=/home/elenas/WORK/ulam/repo/MFMv2
-MFM_INCLUDES:=$(MFM_BASE_DIR)/src/core/include
-MFM_PLATFORM_INCL:=$(MFM_BASE_DIR)/src/platform-linux/include
-MFM_BUILD_CORE:=$(MFM_BASE_DIR)/build/core
-MFM_BUILD_PLATFORM:=$(MFM_BASE_DIR)/build/platform-linux
+#note: tests run from 'rootdir'/src/test/bin
+ROOT_DIR:=../../..
+-include $(ROOT_DIR)/Makefile.local.mk
+
+#MFM_BASE_DIR:=/home/elenas/WORK/ulam/repo/MFMv2
+MFM_INCLUDES:=$(MFM_ROOT_DIR)/src/core/include -I $(MFM_ROOT_DIR)/src/sim/include
+MFM_PLATFORM_INCL:=$(MFM_ROOT_DIR)/src/platform-linux/include
+MFM_BUILD_CORE:=$(MFM_ROOT_DIR)/build/core
+MFM_BUILD_PLATFORM:=$(MFM_ROOT_DIR)/build/platform-linux
 
 CFLAGS:= -g -pthread -Wall -ansi -pedantic
 #CFLAGS+= -Werror

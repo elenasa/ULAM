@@ -46,7 +46,10 @@ namespace MFM{
   public:
 
     NodeCast(Node * n, UTI typeToBe, CompilerState & state);
-    ~NodeCast();
+    NodeCast(const NodeCast& ref);
+    virtual ~NodeCast();
+
+    virtual Node * instantiate();
 
     virtual const char * getName();
 

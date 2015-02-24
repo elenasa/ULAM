@@ -9,11 +9,46 @@ namespace MFM {
     setNextNode(s);
   }
 
+  NodeBlock::NodeBlock(const NodeBlock& ref) : NodeStatements(ref), m_ST(ref.m_ST) /* deep copy */, m_prevBlockNode(NULL) {}
+
   NodeBlock::~NodeBlock()
   {
     //do not delete prevBlockNode
   }
 
+  Node * NodeBlock::instantiate()
+  {
+    return new NodeBlock(*this);
+  }
+
+  void NodeBlock::updateLineage(NNO pno)
+  {
+    if(m_prevBlockNode == NULL)
+      {
+	m_prevBlockNode = m_state.getCurrentBlock();
+      }
+    else
+      assert(m_prevBlockNode == m_state.getCurrentBlock());
+
+    m_state.pushCurrentBlock(this);
+
+    setYourParentNo(pno);
+    if(m_node)
+      m_node->updateLineage(getNodeNo());
+    if(m_nextNode)
+      m_nextNode->updateLineage(getNodeNo());
+
+    m_state.popClassContext(); //restores previousBlockNode
+  } //updateLineage
+
+  bool NodeBlock::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nextNode && m_nextNode->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeBlock::print(File * fp)
   {
@@ -30,8 +65,7 @@ namespace MFM {
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
-  }
-
+  } //print
 
   void NodeBlock::printPostfix(File * fp)
   {
@@ -43,70 +77,90 @@ namespace MFM {
       fp->write(" <EMPTYSTMT>");  //not an error
 
     fp->write(" }");
-  }
-
+  } //printPostifx
 
   const char * NodeBlock::getName()
   {
     return "{}";
   }
 
-
   const std::string NodeBlock::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   UTI NodeBlock::checkAndLabelType()
   {
     assert(m_nextNode);
 
-    m_state.m_currentBlock = this;
+    m_state.pushCurrentBlock(this);
 
     m_nextNode->checkAndLabelType();
 
-    m_state.m_currentBlock = m_prevBlockNode;  //missing?
+    m_state.popClassContext();  //restores m_prevBlockNode
 
     //blocks don't have types
     setNodeType(Void);
     return getNodeType();
   } //checkAndLabelType
 
-
   void NodeBlock::countNavNodes(u32& cnt)
   {
       m_nextNode->countNavNodes(cnt);
   }
 
-
   EvalStatus NodeBlock::eval()
   {
     assert(m_nextNode);
     //evalNodeProlog(0);
-
     //makeRoomForNodeType(m_nextNode->getNodeType());
     EvalStatus evs = m_nextNode->eval();    //no return value
-
     //evalNodeEpilog();
     return evs;
   }
-
 
   bool NodeBlock::isIdInScope(u32 id, Symbol * & symptrref)
   {
     return m_ST.isInTable(id, symptrref);
   }
 
-
   void NodeBlock::addIdToScope(u32 id, Symbol * symptr)
   {
+    assert(symptr->getBlockNoOfST() == getNodeNo()); //set by Symbol constr, based on m_currentBlock
     m_ST.addToTable(id, symptr);
+  }
+
+  void NodeBlock::replaceIdInScope(u32 oldid, u32 newid, Symbol * symptr)
+  {
+    assert(symptr->getBlockNoOfST() == getNodeNo());
+    m_ST.replaceInTable(oldid, newid, symptr);
+  }
+
+  void NodeBlock::replaceIdInScope(Symbol * oldsym, Symbol * newsym)
+  {
+    assert(oldsym->getBlockNoOfST() == getNodeNo());
+    newsym->setBlockNoOfST(getNodeNo()); //update ST block no in new symbol
+    m_ST.replaceInTable(oldsym, newsym);
+  }
+
+  bool NodeBlock::removeIdFromScope(u32 id, Symbol *& rtnsymptr)
+  {
+    return m_ST.removeFromTable(id, rtnsymptr);
+  }
+
+  void NodeBlock::removeAllSymbolsFromScope()
+  {
+    m_ST.clearTheTable();
   }
 
   NodeBlock * NodeBlock::getPreviousBlockPointer()
   {
     return m_prevBlockNode;
+  }
+
+  void NodeBlock::setPreviousBlockPointer(NodeBlock * b)
+  {
+    m_prevBlockNode = b;
   }
 
   u32 NodeBlock::getNumberOfSymbolsInTable()
@@ -119,7 +173,6 @@ namespace MFM {
     return m_ST.getTotalSymbolSize();
   }
 
-
   s32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
   {
     if(m_ST.getTableSize() == 0)
@@ -127,7 +180,6 @@ namespace MFM {
 
     return m_ST.getTotalVariableSymbolsBitSize();
   }
-
 
   s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable()
   {
@@ -137,18 +189,15 @@ namespace MFM {
     return m_ST.getMaxVariableSymbolsBitSize();
   }
 
-
   s32 NodeBlock::findUlamTypeInTable(UTI utype)
   {
     return m_ST.findPosOfUlamTypeInTable(utype);
   }
 
-
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {
     return &m_ST;
   }
-
 
   void NodeBlock::genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype)
   {
@@ -156,12 +205,10 @@ namespace MFM {
     m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
   }
 
-
   void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     m_ST.genCodeBuiltInFunctionsOverTableOfVariableDataMember(fp, declOnly, classtype);
   }
-
 
   void NodeBlock::genCode(File * fp, UlamValue& uvpass)
   {

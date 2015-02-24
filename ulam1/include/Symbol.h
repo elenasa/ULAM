@@ -49,7 +49,11 @@ namespace MFM{
   {
   public:
     Symbol(u32 id, UTI utype, CompilerState& state);
+    Symbol(const Symbol& sref);
+    Symbol(const Symbol& sref, bool keepType);
     virtual ~Symbol();    //abstract
+
+    virtual Symbol * clone() = 0;
 
     UTI getUlamTypeIdx();
     u32 getId();
@@ -71,6 +75,9 @@ namespace MFM{
     void setIsSelf();
     bool isSelf();
 
+    NNO getBlockNoOfST();
+    void setBlockNoOfST(NNO n);
+
     const std::string getMangledName();
 
     static const std::string getParameterTypePrefix(bool isaclass);
@@ -85,14 +92,16 @@ namespace MFM{
   protected:
     CompilerState & m_state;
 
-  private:
     u32 m_id;            // id to its name (string) in lexer; also in ST
     UTI m_utypeIdx;      // may seem redundant, but not; from NodeVarDecl, before m_value known.
                          // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
+
+  private:
     bool m_dataMember;
     bool m_elementParameter;
     bool m_autoLocal;
     bool m_isSelf;       // hidden arg symbol
+    NNO m_stBlockNo;
   };
 
 }

@@ -2,6 +2,8 @@
 #include <string.h>
 #include "CompilerState.h"
 #include "SymbolClass.h"
+#include "SymbolClassName.h"
+#include "Resolver.h"
 
 namespace MFM {
 
@@ -31,44 +33,83 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : Symbol(id, utype, state), m_classBlock(classblock), m_quarkunion(false){}
+  SymbolClass::SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true) /* default */{}
+
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub)
+  {
+    if(sref.m_classBlock)
+      {
+	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
+      }
+    else
+      m_classBlock = NULL; //i.e. UC_UNSEEN
+
+    if(sref.m_resolver)
+      m_resolver = new Resolver(m_utypeIdx, m_state); //not a clone, populated later
+  }
 
   SymbolClass::~SymbolClass()
   {
     delete m_classBlock;
     m_classBlock = NULL;
+
+    if(m_resolver)
+      {
+	delete m_resolver;
+	m_resolver = NULL;
+      }
   }
 
+  Symbol * SymbolClass::clone()
+  {
+    assert(0);
+    return new SymbolClass(*this);
+  }
 
   void SymbolClass::setClassBlockNode(NodeBlockClass * node)
   {
     m_classBlock = node;
+    if(m_classBlock)
+      Symbol::setBlockNoOfST(node->getNodeNo());
+    else
+      Symbol::setBlockNoOfST(0);
   }
-
 
   NodeBlockClass * SymbolClass::getClassBlockNode()
   {
     return m_classBlock;
   }
 
+  SymbolClassNameTemplate * SymbolClass::getParentClassTemplate()
+  {
+    return m_parentTemplate; //could be self
+  }
+
+  void SymbolClass::setParentClassTemplate(SymbolClassNameTemplate  * p)
+  {
+    assert(p);
+    m_parentTemplate = p;
+  }
 
   bool SymbolClass::isClass()
   {
     return true;
   }
 
+  bool SymbolClass::isClassTemplate(UTI cuti)
+  {
+    return false;
+  }
 
   const std::string SymbolClass::getMangledPrefix()
   {
     return m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamTypeUPrefix();
   }
 
-
   ULAMCLASSTYPE SymbolClass::getUlamClass()
   {
     return  m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
   }
-
 
   void SymbolClass::setUlamClass(ULAMCLASSTYPE type)
   {
@@ -85,7 +126,218 @@ namespace MFM {
     return m_quarkunion;
   }
 
+  bool SymbolClass::isStub()
+  {
+    return m_stub;
+  }
 
+  void SymbolClass::unsetStub()
+  {
+    m_stub = false;
+  }
+
+  bool SymbolClass::trySetBitsizeWithUTIValues(s32& totalbits)
+  {
+    NodeBlockClass * classNode = getClassBlockNode(); //instance
+    bool aok = true;
+
+    //of course they always aren't! but we know to keep looping..
+    UTI suti = getUlamTypeIdx();
+    if(! m_state.isComplete(suti))
+      {
+	std::ostringstream msg;
+	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	aok = false;  //moved here;
+      }
+
+    if(isQuarkUnion())
+      totalbits = classNode->getMaxBitSizeOfVariableSymbolsInTable(); //data members only
+    else
+      totalbits = classNode->getBitSizesOfVariableSymbolsInTable(); //data members only
+
+    //check to avoid setting EMPTYSYMBOLTABLE instead of 0 for zero-sized classes
+    if(totalbits == CYCLEFLAG)  // was < 0
+      {
+	std::ostringstream msg;
+	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	    aok = false;
+	  }
+	else if(totalbits == EMPTYSYMBOLTABLE)
+	  {
+	    totalbits = 0;
+	    aok = true;
+	  }
+	else if(totalbits != UNKNOWNSIZE)
+	  aok = true;  //not UNKNOWN
+    return aok;
+  } //trySetBitSize
+
+  void SymbolClass::printBitSizeOfClass()
+  {
+    UTI suti = getUlamTypeIdx();
+    u32 total = m_state.getTotalBitSize(suti);
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    ULAMCLASSTYPE classtype = sut->getUlamClass();
+
+    std::ostringstream msg;
+    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element " : "quark ") << m_state.getUlamTypeNameByIndex(suti).c_str() << " : ";
+
+    if(m_state.isComplete(suti))
+      {
+	s32 remaining = (classtype == UC_ELEMENT ? (MAXSTATEBITS - total) : (MAXBITSPERQUARK - total));
+	msg << total << "/" << remaining;
+      }
+    else
+      {
+	total = UNKNOWNSIZE;
+	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS : MAXBITSPERQUARK);
+	msg << "UNKNOWN" << "/" << remaining;
+      }
+    MSG("", msg.str().c_str(),INFO);
+  } //printBitSizeOfClass
+
+  void SymbolClass::testThisClass(File * fp)
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    if(classNode->findTestFunctionNode())
+      {
+	// set up an atom in eventWindow; init m_currentObjPtr to point to it
+	// set up STACK since func call not called
+	m_state.setupCenterSiteForTesting();
+
+	m_state.m_nodeEvalStack.addFrameSlots(1);     //prolog, 1 for return
+	s32 rtnValue = 0;
+	EvalStatus evs = classNode->eval();
+	if(evs != NORMAL)
+	  {
+	    rtnValue =  -1;   //error!
+	  }
+	else
+	  {
+	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	    rtnValue = rtnUV.getImmediateData(32);
+	  }
+
+	//#define CURIOUS_T3146
+#ifdef CURIOUS_T3146
+	//curious..
+	{
+	  UlamValue objUV = m_state.m_eventWindow.loadAtomFromSite(c0.convertCoordToIndex());
+	  u32 data = objUV.getData(25,32);  //Int f.m_i (t3146)
+	  std::ostringstream msg;
+	  msg << "Output for m_i = <" << data << "> (expecting 4 for t3146)";
+	  MSG("",msg.str().c_str() , INFO);
+	}
+#endif
+	m_state.m_nodeEvalStack.returnFrame();       //epilog
+
+	fp->write("Exit status: " );    //in compared answer
+	fp->write_decimal(rtnValue);
+	fp->write("\n");
+      } //test eval
+    m_state.popClassContext(); //missing?
+  }//testClass
+
+  void SymbolClass::cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr)
+  {
+    assert(m_resolver);
+    m_resolver->cloneConstantExpressionSubtreesByUTI(olduti, newuti, templateRslvr);
+  }
+
+  void SymbolClass::cloneNamedConstantExpressionSubtrees(const Resolver &templateRslvr)
+  {
+    assert(m_resolver);
+    m_resolver->cloneNamedConstantExpressionSubtrees(templateRslvr);
+  }
+
+  bool SymbolClass::statusUnknownConstantExpressions()
+  {
+    if(!m_resolver)
+      return !isStub();
+    return m_resolver->statusUnknownConstantExpressions();
+  }
+
+  void SymbolClass::constantFoldIncompleteUTI(UTI auti)
+  {
+    if(!m_resolver)
+      return; //nothing to do
+    m_resolver->constantFoldIncompleteUTI(auti);
+  }
+
+  void SymbolClass::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    m_resolver->linkConstantExpression(uti, ceNode);
+  }
+
+  void SymbolClass::cloneAndLinkConstantExpression(UTI fromtype, UTI totype)
+  {
+    assert(m_resolver);
+    m_resolver->cloneAndLinkConstantExpression(fromtype, totype);
+  }
+
+  void SymbolClass::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    m_resolver->linkConstantExpression(uti, ceNode);
+  }
+
+  void SymbolClass::linkConstantExpression(NodeConstantDef * ceNode)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    m_resolver->linkConstantExpression(ceNode);
+  }
+
+  void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    assert(m_stub); //stubs only have pending args
+    m_resolver->linkConstantExpressionForPendingArg(constNode);
+  }
+
+  bool SymbolClass::pendingClassArgumentsForClassInstance()
+  {
+    if(!m_resolver) //stubs only!
+      return false; //ok, none pending
+    return m_resolver->pendingClassArgumentsForClassInstance();
+  }
+
+  void SymbolClass::cloneResolverForStubClassInstance(const SymbolClass * csym, UTI context)
+  {
+    assert(csym);
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    m_resolver->clonePendingClassArgumentsForStubClassInstance(*(csym->m_resolver), context, this);
+  } //cloneResolverForStubClassInstance
+
+  UTI SymbolClass::getContextForPendingArgs()
+  {
+    assert(m_resolver);
+    return m_resolver->getContextForPendingArgs();
+  } //getContextForPendingArgs
+
+  bool SymbolClass::statusNonreadyClassArguments()
+  {
+    if(!m_resolver) //stubs only!
+      return true;
+    return m_resolver->statusNonreadyClassArguments();
+  }
+
+  bool SymbolClass::constantFoldNonreadyClassArguments()
+  {
+    if(!m_resolver)
+      return true; //nothing to do
+    return m_resolver->constantFoldNonreadyClassArgs();
+  }
 
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram
@@ -94,8 +346,7 @@ namespace MFM {
   void SymbolClass::generateCode(FileManager * fm)
   {
     assert(m_classBlock);
-    m_state.m_classBlock = m_classBlock;
-    m_state.m_currentBlock = m_state.m_classBlock;
+    m_state.pushClassContext(getUlamTypeIdx(), m_classBlock, m_classBlock, false, NULL);
 
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
@@ -132,7 +383,6 @@ namespace MFM {
 	  fp->write(m_state.getFileNameForThisClassBodyNative().c_str());
 	  fp->write("\"\n\n");
 	}
-
       genAllCapsEndifForHeaderFile(fp);
 
       delete fp; //close
@@ -170,13 +420,149 @@ namespace MFM {
     }
 
     //separate main.cpp for elements only; that have the test method.
-    if(m_state.getUlamTypeByIndex(m_classBlock->getNodeType())->getUlamClass() == UC_ELEMENT)
+    if(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass() == UC_ELEMENT)
       {
 	if(m_state.thisClassHasTheTestMethod())
 	  generateMain(fm);
       }
+
+    m_state.popClassContext(); //missing?
   } //generateCode
 
+  void SymbolClass::generateAsOtherInclude(File * fp)
+  {
+    UTI suti = getUlamTypeIdx();
+    if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
+      {
+	m_state.indent(fp);
+	fp->write("#include \"");
+	fp->write(m_state.getFileNameForAClassHeader(suti).c_str());
+	fp->write("\"\n");
+      }
+  } //generateAsOtherInclude
+
+  void SymbolClass::generateAsOtherForwardDef(File * fp)
+  {
+    UTI suti = getUlamTypeIdx();
+    if(suti != m_state.getCompileThisIdx() && m_state.getUlamTypeByIndex(suti)->isComplete())
+      {
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
+
+	m_state.indent(fp);
+	fp->write("namespace MFM { template ");
+	if(sclasstype == UC_QUARK)
+	  fp->write("<class EC, u32 POS> ");
+	else if(sclasstype == UC_ELEMENT)
+	  fp->write("<class EC> ");
+	else
+	  assert(0);
+
+	fp->write("struct ");
+	fp->write(sut->getUlamTypeMangledName().c_str());
+	fp->write("; }  //FORWARD\n");
+      }
+  } //generateAsOtherForwardDef
+
+
+
+  void SymbolClass::generateTestInstance(File * fp, bool runtest)
+  {
+    std::ostringstream runThisTest;
+    UTI suti = getUlamTypeIdx();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    if(!sut->isComplete()) return;
+
+    m_state.indent(fp);
+    fp->write("typedef MFM::");
+    fp->write(sut->getUlamTypeMangledName().c_str());
+    fp->write("<MFM::OurEventConfigAll> TestElementType;  // for example = \n");
+
+    m_state.indent(fp);
+    fp->write("rtn = "); //return
+    fp->write("MFM::TestSingleElement<MFM::OurGridConfigTest>(TestElementType::THE_INSTANCE) ? 0 : 1;\n");
+    fp->write("\n");
+  } //generateTestInstance
+
+
+#if 0
+  void SymbolClass::GENERATETESTINSTANCE(File * fp, bool runtest)
+  {
+    std::ostringstream runThisTest;
+    UTI suti = getUlamTypeIdx();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+    if(!sut->isComplete()) return;
+
+    std::ostringstream namestr;
+    namestr << m_state.m_pool.getDataAsString(getId());
+    if(m_parentTemplate)
+      {
+	std::string tail = m_parentTemplate->formatAnInstancesArgValuesAsAString(suti);
+	namestr << tail;
+      }
+    else
+	namestr << "0";
+
+    std::string lowercasename = firstletterTolowercase(namestr.str());
+    std::ostringstream ourname;
+    ourname << "Our" << namestr.str();
+
+    if(!runtest)
+      {
+	fp->write("\n");
+	// only for elements, as restricted by caller
+	m_state.indent(fp);
+	fp->write("typedef ");
+	fp->write("MFM::");
+	fp->write(sut->getUlamTypeMangledName().c_str());
+
+	fp->write("<OurCoreConfig> ");
+	fp->write(ourname.str().c_str());
+	fp->write(";\n");
+
+	m_state.indent(fp);
+	fp->write(ourname.str().c_str());
+	fp->write("& ");
+	fp->write(lowercasename.c_str());
+	fp->write(" = ");
+	fp->write(ourname.str().c_str());
+	fp->write("::THE_INSTANCE;\n");
+
+	m_state.indent(fp);
+	fp->write(lowercasename.c_str());
+	fp->write(".AllocateType();  // Force element type allocation now\n");
+	m_state.indent(fp);
+	fp->write("theTile.RegisterElement(");
+	fp->write(lowercasename.c_str());
+	fp->write(");\n");
+      }
+    else
+      {
+	if(getId() == m_state.getCompileThisId())
+	  {
+	    fp->write("\n");
+	    m_state.indent(fp);
+	    fp->write("OurAtom ");
+	    fp->write(lowercasename.c_str());
+	    fp->write("Atom = ");
+	    fp->write(lowercasename.c_str());
+	    fp->write(".GetDefaultAtom();\n");
+
+	    runThisTest << lowercasename.c_str() << ".Uf_4test(" << "uc, " << lowercasename.c_str() << "Atom)";
+
+	    m_state.indent(fp);
+	    fp->write("rtn = ");
+	    fp->write(runThisTest.str().c_str()); //uses hardcoded mangled test name
+	    fp->write(";\n");
+
+	    m_state.indent(fp);
+	    fp->write("//return rtn.read();\n"); //was useful to return result of test
+	    m_state.indent(fp);
+	    fp->write("//std::cerr << rtn.read() << std::endl;\n"); //useful to return result of test?
+	  }
+      }
+  } //generateTestInstance
+#endif
 
   void SymbolClass::generateHeaderPreamble(File * fp)
   {
@@ -185,9 +571,9 @@ namespace MFM {
     fp->write("/***********************         DO NOT EDIT        ******************************\n");
     fp->write("*\n");
     fp->write("* ");
-    fp->write(m_state.m_pool.getDataAsString(m_state.m_compileThisId).c_str());
+    fp->write(m_state.m_pool.getDataAsString(m_state.getCompileThisId()).c_str());
     fp->write(".h - ");
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(m_classBlock->getNodeType())->getUlamClass();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
     if(classtype == UC_ELEMENT)
       fp->write("Element");
     else if(classtype == UC_QUARK)
@@ -200,30 +586,27 @@ namespace MFM {
     fp->write(CopyrightAndLicenseForUlamHeader);
   } //generateHeaderPreamble
 
-
   void SymbolClass::genAllCapsIfndefForHeaderFile(File * fp)
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(m_classBlock->getNodeType());
+    UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     m_state.indent(fp);
     fp->write("#ifndef ");
-    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
     fp->write("_H\n");
 
     m_state.indent(fp);
     fp->write("#define ");
-    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
     fp->write("_H\n\n");
   } //genAllCapsIfndefForHeaderFile
 
-
   void SymbolClass::genAllCapsEndifForHeaderFile(File * fp)
   {
-    UlamType * cut = m_state.getUlamTypeByIndex(m_classBlock->getNodeType());
+    UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     fp->write("#endif //");
-    fp->write(Node::allCAPS(cut->getUlamTypeMangledName(&m_state).c_str()).c_str());
+    fp->write(Node::allCAPS(cut->getUlamTypeMangledName().c_str()).c_str());
     fp->write("_H\n");
   }
-
 
   void SymbolClass::generateHeaderIncludes(File * fp)
   {
@@ -240,7 +623,6 @@ namespace MFM {
     //generate includes for all the other classes that have appeared
     m_state.m_programDefST.generateForwardDefsForTableOfClasses(fp);
   } //generateHeaderIncludes
-
 
   // create structs with BV, as storage, and typedef
   // for primitive types; useful as args and local variables;
@@ -265,13 +647,12 @@ namespace MFM {
 
     // do primitive types before classes so that immediate
     // Quarks/Elements can use them (e.g. immediate index for aref)
-
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_state.m_definedUlamTypes.begin();
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
 	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)   //e.g. skip constants, incl atom
-	  ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	  ut->genUlamTypeMangledDefinitionForC(fp);
 	it++;
       }
 
@@ -283,15 +664,14 @@ namespace MFM {
 	ULAMCLASSTYPE classtype = ut->getUlamClass();
 	if(ut->needsImmediateType() && classtype != UC_NOTACLASS)
 	  {
-	    ut->genUlamTypeMangledDefinitionForC(fp, &m_state);
+	    ut->genUlamTypeMangledDefinitionForC(fp);
 	    if(classtype == UC_QUARK)
-	      ut->genUlamTypeMangledAutoDefinitionForC(fp, &m_state);
+	      ut->genUlamTypeMangledAutoDefinitionForC(fp);
 	  }
 	it++;
       }
     delete fp; //close
   } //genMangledTypeHeaderFile
-
 
   // append main to .cpp for debug useage
   // outside the MFM namespace !!!
@@ -303,7 +683,16 @@ namespace MFM {
     m_state.m_currentIndentLevel = 0;
 
     m_state.indent(fp);
-    fp->write("#include <stdio.h>\n\n");
+    fp->write("#include <stdio.h>\n");
+    m_state.indent(fp);
+    fp->write("#include <iostream>\n"); //to cout/cerr rtn
+    m_state.indent(fp);
+    fp->write("#include \"itype.h\"\n");
+    m_state.indent(fp);
+    fp->write("#include \"P3Atom.h\"\n");
+    m_state.indent(fp);
+    fp->write("#include \"Grid.h\"\n");
+    fp->write("\n");
 
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");
@@ -317,16 +706,95 @@ namespace MFM {
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
+    //namespace MFM
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("namespace MFM\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    //For all models
+    m_state.indent(fp);
+    fp->write("typedef P3Atom OurAtomAll;\n");
+    m_state.indent(fp);
+    fp->write("typedef Site<P3AtomConfig> OurSiteAll;\n");
+    m_state.indent(fp);
+    fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;\n");
+    fp->write("\n");
+
+    //Smallsingle tile model for testing
+    m_state.indent(fp);
+    fp->write("typedef GridConfig<OurEventConfigAll, 20, 1, 1> OurGridConfigTest;\n");
+    m_state.indent(fp);
+    fp->write("typedef Grid<OurGridConfigTest> OurGridTest;\n");
+    m_state.indent(fp);
+    fp->write("typedef OurGridTest::GridTile OurTestTile;\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("typedef ElementTable<OurEventConfigAll> TestElementTable;\n");
+    m_state.indent(fp);
+    fp->write("typedef EventWindow<OurEventConfigAll> TestEventWindow;\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("template<class GC>\n");
+    m_state.indent(fp);
+    fp->write("bool TestSingleElement(Element<typename GC::EVENT_CONFIG> & elt)\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("OurTestTile tile;\n");
+    m_state.indent(fp);
+    fp->write("elt.AllocateType();\n");
+    m_state.indent(fp);
+    fp->write("tile.RegisterElement(elt);\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;\n");
+    m_state.indent(fp);
+    fp->write("SPoint center(TILE_SIDE/2, TILE_SIDE/2);  // Hitting no caches, for starters;\n");
+    m_state.indent(fp);
+    fp->write("const u32 THE_TYPE = elt.GetType();\n");
+    m_state.indent(fp);
+    fp->write("tile.PlaceAtom(OurAtomAll(THE_TYPE,0,0,0), center);\n");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("TestEventWindow ew(tile);\n");
+    m_state.indent(fp);
+    fp->write("bool success = ew.TryEventAtForTesting(center);\n");
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("return success;\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n");
+
+    fp->write("\n");
+
     //MAIN STARTS HERE !!!
     fp->write("\n");
     m_state.indent(fp);
-    fp->write("int main()\n");
+    fp->write("int main(int argc, const char** argv)\n");
 
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
 
+#if 0
     m_state.indent(fp);
     fp->write("enum { SIZE = ");
     fp->write_decimal(BITSPERATOM);
@@ -351,38 +819,30 @@ namespace MFM {
     fp->write("OurUlamContext uc;\n");
     m_state.indent(fp);
     fp->write("uc.SetTile(theTile);\n");
-
-    //declare an instance of all element classes; supports immediate types constructors
-    std::string runThisTest = m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
+#endif
 
     m_state.indent(fp);
     fp->write("MFM::Ui_Ut_102323Int rtn;\n");
 
-    m_state.indent(fp);
-    fp->write("rtn = ");
-    fp->write(runThisTest.c_str());  //uses hardcoded mangled test name
-    fp->write(";\n");
-
-#if 0
-    // output for t3200 (before System native), compile gen code & run: ./main
-    m_state.indent(fp);
-    fp->write("printf(\"Bar1 toInt = %d\\n\", OurFoo::Ut_Um_4bar1::Uf_5toInt(uc, fooAtom).read());\n");
-    m_state.indent(fp);
-    fp->write("printf(\"Bar2 toInt = %d\\n\", OurFoo::Ut_Um_4bar2::Uf_5toInt(uc, fooAtom).read());\n");
-    //Int(4) maxes out at 7, not 12.
-#endif
+    m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
     m_state.indent(fp);
-    //fp->write("return 0;\n");
-    fp->write("return rtn.read();\n");         // useful to return result of test
+    fp->write("return 0;\n");
 
     m_state.m_currentIndentLevel--;
-
     m_state.indent(fp);
-    fp->write("}\n");
+    fp->write("} //main \n");
+
     delete fp; //close
   } //generateMain
 
-
+  std::string SymbolClass::firstletterTolowercase(const std::string s) //static method
+  {
+    std::ostringstream up;
+    assert(!s.empty());
+    std::string c(1,(s[0] >= 'A' && s[0] <= 'Z') ? s[0]-('A'-'a') : s[0]);
+    up << c << s.substr(1,s.length());
+    return up.str();
+  } //firstletterTolowercase
 
 } //end MFM

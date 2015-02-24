@@ -50,7 +50,10 @@ namespace MFM{
   {
   public:
     SymbolFunction(u32 id, UTI typetoreturn, CompilerState& state);
-    ~SymbolFunction();
+    SymbolFunction(const SymbolFunction& sref);
+    virtual ~SymbolFunction();
+
+    virtual Symbol * clone();
 
     void addParameterSymbol(Symbol * argSym);
     u32 getNumberOfParameters();

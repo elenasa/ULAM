@@ -10,6 +10,13 @@
 namespace MFM {
 
   NodeFunctionCall::NodeFunctionCall(Token tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym) {}
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL)
+  {
+    for(u32 i = 0; i < ref.m_argumentNodes.size(); i++)
+      {
+	m_argumentNodes.push_back(ref.m_argumentNodes[i]->instantiate()); //deep copy
+      }
+  }
 
   NodeFunctionCall::~NodeFunctionCall()
   {
@@ -21,6 +28,10 @@ namespace MFM {
     m_argumentNodes.clear();
   }
 
+  Node * NodeFunctionCall::instantiate()
+  {
+    return new NodeFunctionCall(*this);
+  }
 
   void NodeFunctionCall::printPostfix(File * fp)
   {
@@ -29,23 +40,19 @@ namespace MFM {
       {
 	m_argumentNodes[i]->printPostfix(fp);
       }
-
     fp->write(" )");
     fp->write(getName());
-  }
-
+  } //printPostfix
 
   const char * NodeFunctionCall::getName()
   {
     return m_state.getTokenDataAsString(&m_functionNameTok).c_str();
   }
 
-
   const std::string NodeFunctionCall::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeFunctionCall::checkAndLabelType()
   {
@@ -54,9 +61,6 @@ namespace MFM {
 
     //might be related to m_currentSelfPtr?
     //member selection doesn't apply to arguments
-    bool saveUseMemberBlock = m_state.m_useMemberBlock;
-    NodeBlockClass * saveMemberClassBlock = m_state.m_currentMemberClassBlock;
-
     //look up in class block, and match argument types to parameters
     SymbolFunction * funcSymbol = NULL;
     Symbol * fnsymptr = NULL;
@@ -67,7 +71,8 @@ namespace MFM {
 
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
-	m_state.m_useMemberBlock = false;   //doesn't apply to arguments!
+        //use member block doesn't apply to arguments; no change to current block
+	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock());
 
 	for(u32 i = 0; i < m_argumentNodes.size(); i++)
 	  {
@@ -77,6 +82,8 @@ namespace MFM {
 	    if(m_state.isConstant(argtype))
 	      constantArgs++;
 	  }
+
+	m_state.popClassContext(); //restore here
 
 	// still need to pinpoint the SymbolFunction for m_funcSymbol! currently requires exact match
 	// (let constant match any size of same type)
@@ -88,7 +95,7 @@ namespace MFM {
 	      {
 		msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
 	      }
-	    msg << "and cannot be called";
+	    msg << "and cannot be called, while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    numErrorsFound++;
 	  }
@@ -96,9 +103,20 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str() << "> is not a defined function, and cannot be called";
+	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str() << "> is not a defined function, and cannot be called; compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	numErrorsFound++;
+      }
+
+    if(m_funcSymbol && m_funcSymbol != funcSymbol)
+      {
+	std::ostringstream msg;
+	if(funcSymbol)
+	  {
+	    msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str() << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str() << "> , while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    m_funcSymbol = funcSymbol;
+	  }
       }
 
     if(!numErrorsFound)
@@ -106,7 +124,7 @@ namespace MFM {
 	if(m_funcSymbol == NULL)
 	  m_funcSymbol = funcSymbol;
 
-	assert(m_funcSymbol == funcSymbol);
+	assert(m_funcSymbol && m_funcSymbol == funcSymbol);
 
 	it = m_funcSymbol->getUlamTypeIdx();
 	setNodeType(it);
@@ -143,10 +161,6 @@ namespace MFM {
 	    assert(argsWithCast == constantArgs);
 	  } //constants
       } // no errors found
-
-    m_state.m_useMemberBlock = saveUseMemberBlock; //doesn't apply to arguments; restore
-    m_state.m_currentMemberClassBlock = saveMemberClassBlock;
-
     return it;
   } //checkAndLabelType
 
@@ -460,7 +474,7 @@ namespace MFM {
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	fp->write("const ");
-	fp->write(nut->getImmediateStorageTypeAsString(&m_state).c_str()); //e.g. BitVector<32>
+	fp->write(nut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32>
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
 	fp->write(" = ");
@@ -542,7 +556,7 @@ namespace MFM {
       {
 	if(cosclasstype == UC_ELEMENT)
 	  {
-	    fp->write(cosut->getUlamTypeMangledName(&m_state).c_str());
+	    fp->write(cosut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC>::");
 
 	    //depending on the "owner" of the func, the instance is needed
@@ -554,7 +568,7 @@ namespace MFM {
 	else
 	  {
 	    //for immmediate quark EP..?
-	    fp->write(cosut->getImmediateStorageTypeAsString(&m_state).c_str());
+	    fp->write(cosut->getImmediateStorageTypeAsString().c_str());
 	    fp->write("::");
 	    fp->write("Us::"); //typedef, always for funccalls
 	  }
@@ -597,7 +611,7 @@ namespace MFM {
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
     ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClass();
 
-    hiddenlist << stgcosut->getUlamTypeMangledName(&m_state).c_str();
+    hiddenlist << stgcosut->getUlamTypeMangledName().c_str();
     hiddenlist << "<EC>::THE_INSTANCE.";
 
     // the EP (an element, quark, or primitive):
@@ -634,8 +648,9 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
-	fp->write(stgcosut->getUlamTypeMangledName(&m_state).c_str());
+	fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::");
+
 	//depending on the "owner" of the func, the instance is needed
 	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	UTI cosuti = cos->getUlamTypeIdx();
@@ -645,7 +660,7 @@ namespace MFM {
     else
       {
 	// immediate quark..
-	fp->write(stgcosut->getImmediateStorageTypeAsString(&m_state).c_str());
+	fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
 	fp->write("::Us::");     //typedef
       }
 

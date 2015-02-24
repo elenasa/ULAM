@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
  * NodeVarDecl.h -  Basic Node handling Variable Declarations for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2014-2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2014-2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -39,6 +39,7 @@
 
 #include "Node.h"
 #include "SymbolVariable.h"
+#include "NodeBlock.h"
 
 namespace MFM{
 
@@ -47,7 +48,10 @@ namespace MFM{
   public:
 
     NodeVarDecl(SymbolVariable * sym, CompilerState & state);
-    ~NodeVarDecl();
+    NodeVarDecl(const NodeVarDecl& ref);
+    virtual ~NodeVarDecl();
+
+    virtual Node * instantiate();
 
     virtual void printPostfix(File * f);
 
@@ -61,6 +65,9 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    NNO getBlockNo();
+    NodeBlock * getBlock();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
@@ -69,6 +76,8 @@ namespace MFM{
 
   private:
     SymbolVariable * m_varSymbol;
+    u32 m_vid; // to instantiate
+    NNO m_currBlockNo;
 
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
     void genCodedElementParameter(File * fp, UlamValue uvpass);

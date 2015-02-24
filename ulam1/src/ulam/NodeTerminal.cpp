@@ -5,8 +5,7 @@
 
 namespace MFM {
 
-  NodeTerminal::NodeTerminal(CompilerState & state) : Node(state)
-  {}
+  NodeTerminal::NodeTerminal(CompilerState & state) : Node(state) {}
 
   NodeTerminal::NodeTerminal(Token tok, CompilerState & state) : Node(state)
   {
@@ -15,14 +14,12 @@ namespace MFM {
     setConstantTypeForNode(tok);
   }
 
-
   NodeTerminal::NodeTerminal(s32 val, CompilerState & state) : Node(state)
   {
     m_constant.sval = val;
     setNodeType(m_state.getUlamTypeOfConstant(Int));
     //uptocaller to set node location.
   }
-
 
   NodeTerminal::NodeTerminal(u32 val, CompilerState & state) : Node(state)
   {
@@ -31,7 +28,6 @@ namespace MFM {
     //uptocaller to set node location.
   }
 
-
   NodeTerminal::NodeTerminal(bool val, CompilerState & state) : Node(state)
   {
     m_constant.bval = val;
@@ -39,9 +35,14 @@ namespace MFM {
     //uptocaller to set node location.
   }
 
+  NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_constant(ref.m_constant) {}
 
   NodeTerminal::~NodeTerminal(){}
 
+  Node * NodeTerminal::instantiate()
+  {
+    return new NodeTerminal(*this);
+  }
 
   void NodeTerminal::printPostfix(File * fp)
   {
@@ -78,16 +79,14 @@ namespace MFM {
 
     u32 id = m_state.m_pool.getIndexForDataString(num.str());
     return m_state.m_pool.getDataAsString(id).c_str();
-    //return m_state.getTokenDataAsString(&m_token).c_str();
-  }
-
+  } //getName
 
   const std::string NodeTerminal::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
+  // this is the application of unary minus to produce a negative number
   void NodeTerminal::constantFold(Token tok)
   {
     if(tok.m_type == TOK_MINUS)
@@ -308,7 +307,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
 
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str());
+    fp->write(nut->getTmpStorageTypeAsString().c_str());
     fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());

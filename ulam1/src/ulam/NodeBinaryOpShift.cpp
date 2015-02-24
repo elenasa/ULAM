@@ -5,9 +5,8 @@
 namespace MFM {
 
   NodeBinaryOpShift::NodeBinaryOpShift(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
-
-  NodeBinaryOpShift::~NodeBinaryOpShift()
-  {}
+  NodeBinaryOpShift::NodeBinaryOpShift(const NodeBinaryOpShift& ref) : NodeBinaryOp(ref) {}
+  NodeBinaryOpShift::~NodeBinaryOpShift() {}
 
   UTI NodeBinaryOpShift::checkAndLabelType()
   {

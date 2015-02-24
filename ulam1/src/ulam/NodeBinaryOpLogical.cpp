@@ -5,10 +5,8 @@
 namespace MFM {
 
   NodeBinaryOpLogical::NodeBinaryOpLogical(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
-
-  NodeBinaryOpLogical::~NodeBinaryOpLogical()
-  {}
-
+  NodeBinaryOpLogical::NodeBinaryOpLogical(const NodeBinaryOpLogical& ref) : NodeBinaryOp(ref) {}
+  NodeBinaryOpLogical::~NodeBinaryOpLogical()  {}
 
   // not used for logical op
   void NodeBinaryOpLogical::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)

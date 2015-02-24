@@ -4,8 +4,13 @@
 namespace MFM {
 
   NodeBinaryOpLogicalAnd::NodeBinaryOpLogicalAnd(Node * left, Node * right, CompilerState & state) : NodeBinaryOpLogical(left,right,state) {}
-
+  NodeBinaryOpLogicalAnd::NodeBinaryOpLogicalAnd(const NodeBinaryOpLogicalAnd& ref) : NodeBinaryOpLogical(ref) {}
   NodeBinaryOpLogicalAnd::~NodeBinaryOpLogicalAnd(){}
+
+  Node * NodeBinaryOpLogicalAnd::instantiate()
+  {
+    return new NodeBinaryOpLogicalAnd(*this);
+  }
 
 
   const char * NodeBinaryOpLogicalAnd::getName()
@@ -107,7 +112,7 @@ namespace MFM {
 
     m_state.indent(fp);
     //fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString(&m_state).c_str()); //e.g. u32, s32, u64..
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64..
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
     fp->write(" = false;\n");

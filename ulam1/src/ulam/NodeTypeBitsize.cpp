@@ -6,6 +6,10 @@
 namespace MFM {
 
   NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node) {}
+  NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref)
+  {
+    m_node = ref.m_node->instantiate();
+  }
 
   NodeTypeBitsize::~NodeTypeBitsize()
   {
@@ -13,31 +17,40 @@ namespace MFM {
     m_node = NULL;
   }
 
-
-  void NodeTypeBitsize::updateLineage(Node * p)
+  Node * NodeTypeBitsize::instantiate()
   {
-    setYourParent(p);
-    m_node->updateLineage(this);
+    return new NodeTypeBitsize(*this);
   }
 
+  void NodeTypeBitsize::updateLineage(NNO pno)
+  {
+    setYourParentNo(pno);
+    m_node->updateLineage(getNodeNo());
+  }//updateLineage
+
+  bool NodeTypeBitsize::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_node && m_node->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeTypeBitsize::printPostfix(File * fp)
   {
     m_node->printPostfix(fp);
   }
 
-
   const char * NodeTypeBitsize::getName()
   {
     return "(bitsize)";
   }
 
-
   const std::string NodeTypeBitsize::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeTypeBitsize::checkAndLabelType()
   {
@@ -54,13 +67,11 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-
   void NodeTypeBitsize::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);
     m_node->countNavNodes(cnt);
   }
-
 
   EvalStatus NodeTypeBitsize::eval()
   {
@@ -68,30 +79,33 @@ namespace MFM {
     return NORMAL;
   }
 
-
   // called during parsing Type of variable, typedef, func return val;
   // Requires a constant expression for the bitsize, else error;
   // guards against even Bool's.
   bool NodeTypeBitsize::getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT)
   {
-    s32 newbitsize = UNKNOWNSIZE; //was ANYBITSIZECONSTANT;
+    s32 newbitsize = UNKNOWNSIZE;
     UTI sizetype = checkAndLabelType();
     if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
-	m_node->eval();
-	UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
+	if(m_node->eval() == NORMAL)
+	  {
+	    UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
+
+	    if(bitUV.getUlamValueTypeIdx() == Nav)
+	      newbitsize = UNKNOWNSIZE;
+	    else
+	      newbitsize = bitUV.getImmediateData(m_state);
+	  }
+
 	evalNodeEpilog();
 
-	if(bitUV.getUlamValueTypeIdx() == Nav)
-	  newbitsize = UNKNOWNSIZE;
-	else
-	  newbitsize = bitUV.getImmediateData(m_state);
 	if(newbitsize == UNKNOWNSIZE)
 	  {
 	    std::ostringstream msg;
-	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "(), is not yet a \"known\" constant expression";
+	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "()UTI" << sizetype << ", is not yet a \"known\" constant expression for class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    return false;
 	  }
@@ -108,15 +122,12 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "() is not a constant expression";
+	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "() is not a constant expression for class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
-
     rtnBitSize = newbitsize;
     return true;
   } //getTypeBitSizeInParen
 
 } //end MFM
-
-

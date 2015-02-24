@@ -47,7 +47,10 @@ namespace MFM{
   public:
 
     NodeContinueStatement(s32 gotolabelnum, CompilerState & state);
+    NodeContinueStatement(const NodeContinueStatement& ref);
     virtual ~NodeContinueStatement();
+
+    virtual Node * instantiate();
 
     virtual void print(File * fp);
 

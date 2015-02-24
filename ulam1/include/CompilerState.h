@@ -45,6 +45,7 @@
 #include "itype.h"
 #include "CallStack.h"
 #include "Constants.h"
+#include "ClassContextStack.h"
 #include "ErrorMessageHandler.h"
 #include "UEventWindow.h"
 #include "File.h"
@@ -56,6 +57,8 @@
 #include "NodeSquareBracket.h"
 #include "StringPool.h"
 #include "SymbolClass.h"
+#include "SymbolClassName.h"
+#include "SymbolClassNameTemplate.h"
 #include "SymbolFunction.h"
 #include "SymbolTable.h"
 #include "SymbolVariable.h"
@@ -73,9 +76,15 @@ namespace MFM{
       if(key1.m_typeNameId < key2.m_typeNameId) return true;
       if(key1.m_typeNameId > key2.m_typeNameId) return false;
       if(key1.m_bits < key2.m_bits) return true;
-      if(key1.m_bits > key2.m_bits) return false;
+      if(key1.m_bits > key2.m_bits ) return false;
       if(key1.m_arraySize < key2.m_arraySize) return true;
       if(key1.m_arraySize > key2.m_arraySize) return false;
+      //if(key1.m_bits < key2.m_bits && key1.m_bits > UNKNOWNSIZE) return true;
+      //if(key1.m_bits > key2.m_bits && key2.m_bits > UNKNOWNSIZE) return false;
+      //if(key1.m_arraySize < key2.m_arraySize && key1.m_arraySize > UNKNOWNSIZE) return true;
+      //if(key1.m_arraySize > key2.m_arraySize && key2.m_arraySize > UNKNOWNSIZE) return false;
+      if(key1.m_classInstanceIdx < key2.m_classInstanceIdx) return true;
+      if(key1.m_classInstanceIdx > key2.m_classInstanceIdx) return false;
       return false;
     }
   };
@@ -97,14 +106,7 @@ namespace MFM{
     std::map<u32,std::vector<u32>* > m_textByLinePerFilePath;
     Locator m_locOfNextLineText;
 
-    u32 m_compileThisId;                 // the subject of this compilation; id into m_pool
-    SymbolTable m_programDefST;
-
-    NodeBlock *      m_currentBlock;     //replaces m_stackOfBlocks
-    NodeBlockClass * m_classBlock;       //holds ST with function defs
-
-    bool m_useMemberBlock;               // used during parsing member select expression
-    NodeBlockClass * m_currentMemberClassBlock;
+    SymbolTable m_programDefST;          // holds SymbolClassName and SymbolClassNameTemplate
 
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
@@ -125,15 +127,13 @@ namespace MFM{
 
     ErrorMessageHandler m_err;
 
-    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key -> index of ulamtype (UTI)
-    std::vector<UlamKeyTypeSignature> m_indexToUlamKey;   //UTI -> ulamkey, many-to-one
-    std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes;   //key -> ulamtype *
+    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key->index of ulamtype (UTI)
+    std::vector<UlamKeyTypeSignature> m_indexToUlamKey; //UTI->ulamkey, many-to-one
+    std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes; //key->ulamtype *
 
-    std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
-    std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
-    std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
+    std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
 
-    std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes;   //nodes of return nodes in a function; verify type
+    std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
     UlamValue m_currentObjPtr;        //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr;       //used in eval of func calls: updated after args, becomes currentObjPtr for args
@@ -142,6 +142,7 @@ namespace MFM{
     Symbol * m_currentSelfSymbolForCodeGen; //used in code generation; parallels m_currentSelf
     u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
     s32 m_nextTmpVarNumber;           //used in code gen when a "slot index" is not available
+    NNO m_nextNodeNumber;             //used to identify blocks in clone classes with unknown subtrees
 
     CompilerState();
     ~CompilerState();
@@ -149,23 +150,25 @@ namespace MFM{
     void clearAllDefinedUlamTypes();
     void clearAllLinesOfText();
 
-    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize);
+    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
+    void incrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
+    u32 decrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
+    u32 findUnknownKeyUTICounter(UlamKeyTypeSignature key);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
-    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
-    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
-    void constantFoldIncompleteUTI(UTI uti);
-    bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
-    bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
-    bool statusUnknownBitsizeUTI();
-    bool statusUnknownArraysizeUTI();
 
+    UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
+
+    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
+    void cloneAndLinkConstantExpression(UTI fromuti, UTI touti);
+    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
-    bool statusNonreadyNamedConstants();
+    void constantFoldIncompleteUTI(UTI auti);
+    bool constantFoldPendingArgs(UTI cuti);
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
@@ -187,6 +190,7 @@ namespace MFM{
     bool isComplete(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
     void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
+    void mergeClassUTI(UTI olduti, UTI cuti);
     void setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
 
     s32 getDefaultBitSize(UTI uti);
@@ -200,18 +204,22 @@ namespace MFM{
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr);
     bool isIdInClassScope(u32 dataindex, Symbol * & symptr);
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
+    void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
+    void replaceSymbolInCurrentScope(Symbol * oldsym, Symbol * newsym); //same id, new symbol
+    bool takeSymbolFromCurrentScope(u32 id, Symbol *& rtnsymptr); //ownership to the caller
 
+    /** return true and the SymbolClassName pointer in 2nd arg if found; */
+    bool alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr);
 
-    /** searches table of class defs for specific name, by token or idx,
-        returns a place-holder type if class def not yet seen */
-    bool getUlamTypeByClassToken(Token ctok, UTI & rtnType);
-    bool getUlamTypeByClassNameId(u32 idx, UTI & rtnType);
+    /** return true and the SymbolClassNameTemplate pointer in 2nd arg if found AND is a template; */
+    bool alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr);
 
-    /** return true and the Symbol pointer in 2nd arg if found; */
-    bool alreadyDefinedSymbolClass(u32 dataindex, SymbolClass * & symptr);
+    /** return true and the SymbolClass pointer in 2nd arg if uti found; */
+    bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
-    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClass * & symptr);
+    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassName * & symptr);
+    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassNameTemplate * & symptr);
 
     /** during type labeling, sets the ULAMCLASSTYPE and bitsize for typedefs that involved incomplete Class types */
     bool completeIncompleteClassSymbol(UTI incomplete) ;
@@ -237,11 +245,7 @@ namespace MFM{
     const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
 
-    s32 getNextTmpVarNumber();
-    const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
-    const std::string getLabelNumAsString(s32 num);
-
-    std::string getFileNameForAClassHeader(u32 id, bool wSubDir = false);
+    std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
     std::string getFileNameForThisClassBody(bool wSubDir = false);
     std::string getFileNameForThisClassBodyNative(bool wSubDir = false);
@@ -275,8 +279,6 @@ namespace MFM{
     */
     PACKFIT determinePackable(UTI aut);
 
-    bool findAndSizeANodeDeclWithType(UTI argut);
-
     bool thisClassHasTheTestMethod();
 
     bool thisClassIsAQuark();
@@ -291,8 +293,50 @@ namespace MFM{
     std::string getLocationTextAsString(Locator nodeloc);
     void outputTextAsComment(File * fp, Locator nodeloc);
 
+    s32 getNextTmpVarNumber();
+    const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
+    const std::string getLabelNumAsString(s32 num);
+
     /** for conditional as-magic */
     void saveIdentTokenForConditionalAs(Token iTok);
+
+    /** to identify each node */
+    NNO getNextNodeNo();
+
+    Node * findNodeNoInThisClass(NNO n);
+
+    /** methods for context switching */
+    u32 getCompileThisId();
+
+    UTI getCompileThisIdx();
+
+    NodeBlock * getCurrentBlock();
+
+    NNO getCurrentBlockNo();
+
+    NodeBlockClass * getClassBlock();
+
+    NNO getClassBlockNo();
+
+    bool useMemberBlock();
+
+    NodeBlockClass * getCurrentMemberClassBlock();
+
+    void pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockClass * classblock, bool usemember, NodeBlockClass * memberblock);
+
+    void popClassContext();
+
+    void pushCurrentBlock(NodeBlock * currblock);
+
+    void pushCurrentBlockAndDontUseMemberBlock(NodeBlock * currblock);
+
+    void pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock);
+
+    std::string getClassContextAsStringForDebugging();
+
+  private:
+    ClassContextStack m_classContextStack;         // the current subject of this compilation
+
   };
 
 }
