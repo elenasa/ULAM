@@ -465,11 +465,11 @@ namespace MFM {
     UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
     UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
 
-    // no longer the case given class arguments! may end up with different sizes given different
-    // argument values which may or may not be known while parsing! t.f. classes are much more like
-    // the primitive ulamtypes now.
-    // was: classes with unknown bitsizes are essentially as complete as they can be during parse time;
-    // and will have the same UTIs.
+    // Given Class Arguments: we may end up with different sizes given different
+    // argument values which may or may not be known while parsing!
+    // t.f. classes are much more like the primitive ulamtypes now.
+    // Was The Case: classes with unknown bitsizes are essentially as complete
+    // as they can be during parse time; and will have the same UTIs.
     if(!ut1->isComplete())
       {
 	if(ct1 == UC_NOTACLASS || ut1->getArraySize() == UNKNOWNSIZE)
