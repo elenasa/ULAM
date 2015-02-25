@@ -241,7 +241,7 @@ namespace MFM {
 	fp->write("\n");
       } //test eval
     m_state.popClassContext(); //missing?
-  }//testClass
+  }//testThisClass
 
   void SymbolClass::cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr)
   {
@@ -346,7 +346,7 @@ namespace MFM {
   void SymbolClass::generateCode(FileManager * fm)
   {
     assert(m_classBlock);
-    m_state.pushClassContext(getUlamTypeIdx(), m_classBlock, m_classBlock, false, NULL);
+    //    m_state.pushClassContext(getUlamTypeIdx(), m_classBlock, m_classBlock, false, NULL);
 
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
@@ -422,11 +422,11 @@ namespace MFM {
     //separate main.cpp for elements only; that have the test method.
     if(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass() == UC_ELEMENT)
       {
-	if(m_state.thisClassHasTheTestMethod())
+	//if(m_state.thisClassHasTheTestMethod())
+	if(m_classBlock->findTestFunctionNode())
 	  generateMain(fm);
       }
-
-    m_state.popClassContext(); //missing?
+    // m_state.popClassContext(); //missing?
   } //generateCode
 
   void SymbolClass::generateAsOtherInclude(File * fp)
@@ -464,8 +464,8 @@ namespace MFM {
       }
   } //generateAsOtherForwardDef
 
-
-
+#define NEWMAIN
+#ifdef NEWMAIN
   void SymbolClass::generateTestInstance(File * fp, bool runtest)
   {
     std::ostringstream runThisTest;
@@ -479,14 +479,13 @@ namespace MFM {
     fp->write("<MFM::OurEventConfigAll> TestElementType;  // for example = \n");
 
     m_state.indent(fp);
-    fp->write("rtn = "); //return
+    fp->write("return "); //rtn =
     fp->write("MFM::TestSingleElement<MFM::OurGridConfigTest>(TestElementType::THE_INSTANCE) ? 0 : 1;\n");
-    fp->write("\n");
   } //generateTestInstance
+#endif
 
-
-#if 0
-  void SymbolClass::GENERATETESTINSTANCE(File * fp, bool runtest)
+#ifndef NEWMAIN
+  void SymbolClass::generateTestInstance(File * fp, bool runtest)
   {
     std::ostringstream runThisTest;
     UTI suti = getUlamTypeIdx();
@@ -686,6 +685,7 @@ namespace MFM {
     fp->write("#include <stdio.h>\n");
     m_state.indent(fp);
     fp->write("#include <iostream>\n"); //to cout/cerr rtn
+#ifdef NEWMAIN
     m_state.indent(fp);
     fp->write("#include \"itype.h\"\n");
     m_state.indent(fp);
@@ -693,7 +693,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("#include \"Grid.h\"\n");
     fp->write("\n");
-
+#endif
     m_state.indent(fp);
     fp->write("#include \"UlamDefs.h\"\n\n");
 
@@ -706,6 +706,7 @@ namespace MFM {
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
+#ifdef NEWMAIN
     //namespace MFM
     fp->write("\n");
     m_state.indent(fp);
@@ -781,8 +782,7 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //MFM\n");
-
-    fp->write("\n");
+#endif
 
     //MAIN STARTS HERE !!!
     fp->write("\n");
@@ -794,7 +794,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-#if 0
+#ifndef NEWMAIN
     m_state.indent(fp);
     fp->write("enum { SIZE = ");
     fp->write_decimal(BITSPERATOM);
@@ -819,7 +819,6 @@ namespace MFM {
     fp->write("OurUlamContext uc;\n");
     m_state.indent(fp);
     fp->write("uc.SetTile(theTile);\n");
-#endif
 
     m_state.indent(fp);
     fp->write("MFM::Ui_Ut_102323Int rtn;\n");
@@ -828,6 +827,9 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("return 0;\n");
+#else
+    generateTestInstance(fp, true); //returns 0 or 1
+#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
