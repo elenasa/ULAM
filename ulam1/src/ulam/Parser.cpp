@@ -101,7 +101,7 @@ namespace MFM {
     char c = compileThis.at(0);
     if(!Token::isUpper(c))
       {
-	//compileThis.at(0) = 'A' + (c - 'a');  //uppercase
+	//compileThis.at(0) = 'A' + (c - 'a'); //uppercase
 	std::ostringstream msg;
 	msg << "File name <" << startstr << "> must match a valid class name (uppercase) to compile";
 	MSG("", msg.str().c_str() , ERR);
@@ -109,28 +109,23 @@ namespace MFM {
       }
 
     u32 compileThisId = m_state.m_pool.getIndexForDataString(compileThis);
-    //m_state.m_compileThisId = compileThisId;  // for everyone
 
     // here's the start (first token)!!  preparser will handle the VERSION_DECL,
-    // as well as USE and LOAD keywords. so the first thing we see may not be
-    // "our guy"..but we'll know.
+    // as well as USE and LOAD keywords.
+    while(!parseThisClass());
 
-    do{
-      //m_state.pushCurrentBlock(NULL);  //reset for each new class block
-    } while(!parseThisClass());
-
-    // here when THIS class is done, or there was an error
+    // here when no more classes, or there was an error
     Symbol * thisClassSymbol = NULL;
     NodeBlockClass * rootNode = NULL;
 
     if(m_state.m_programDefST.isInTable(compileThisId, thisClassSymbol))
-      {
-	rootNode = ((SymbolClass *) thisClassSymbol)->getClassBlockNode();
-      }
+      rootNode = ((SymbolClass *) thisClassSymbol)->getClassBlockNode();
 
     if(!rootNode)
       {
-	MSG("", "No parse tree", ERR);
+	std::ostringstream msg;
+	msg << "No parse tree for This Class: " << compileThis;
+	MSG("", msg.str().c_str(), ERR);
       }
 
     u32 warns = m_state.m_err.getWarningCount();
@@ -169,7 +164,7 @@ namespace MFM {
 	msg << "Expecting 'quark' or 'element' KEYWORD, NOT <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
 
-	return true;  //we're done.
+	return true; //we're done.
       }
 
     //each class has its own parse tree; each "compileThis", in turn, has code generated later.
@@ -208,7 +203,7 @@ namespace MFM {
 		msg << "Duplicate or incomplete class <" << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
 		MSG(&iTok, msg.str().c_str(), ERR);
 
-		return  true;  //we're done unless we can gobble the rest up?
+		return  true; //we're done unless we can gobble the rest up?
 	      }
 	    wasIncomplete = true;
 	  }
@@ -218,7 +213,7 @@ namespace MFM {
 	SymbolClassNameTemplate * ctSym;
 	if(!m_state.alreadyDefinedSymbolClassNameTemplate(iTok.m_dataindex, ctSym))
 	  {
-	    m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, ctSym);
+	    m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, ctSym); //overloaded
 	  }
 	else
 	  {
@@ -229,7 +224,7 @@ namespace MFM {
 		msg << "Duplicate or incomplete template class <" << m_state.m_pool.getDataAsString(ctSym->getId()).c_str() << ">";
 		MSG(&iTok, msg.str().c_str(), ERR);
 
-		return  true;  //we're done unless we can gobble the rest up?
+		return  true; //we're done unless we can gobble the rest up?
 	      }
 	    wasIncomplete = true;
 	  }
@@ -237,8 +232,6 @@ namespace MFM {
       } //template
 
     //mostly needed for code gen later, but this is where we first know it!
-    //m_state.setCompileThisIdx(cnSym->getUlamTypeIdx());
-    //m_state.popClassContext(); //reset for each before still? or here?
     m_state.pushClassContext(cnSym->getUlamTypeIdx(), cnSym->getClassBlockNode(), cnSym->getClassBlockNode(), false, NULL); //null blocks likely
 
     // set class type in UlamType (through its class symbol) since we know it;
@@ -268,7 +261,6 @@ namespace MFM {
     NodeBlockClass * classNode = parseClassBlock(cnSym); //we know its type too..sweeter
     if(classNode)
       {
-	//cnSym->setClassBlockNode(classNode);
 	if(wasIncomplete && isTemplate)
 	  ((SymbolClassNameTemplate *) cnSym)->fixAnyClassInstances();
       }
@@ -281,9 +273,6 @@ namespace MFM {
 	msg << "Empty/Incomplete Class Definition: <" << m_state.getTokenDataAsString(&iTok).c_str() << ">; possible missing ending curly brace";
 	MSG(&pTok, msg.str().c_str(), WARN);
       }
-
-    //return true when we've seen THIS class
-    //return (iTok.m_dataindex == m_state.m_compileThisId);
     return false; //keep going until EOF is reached
   } //parseThisClass
 
@@ -307,18 +296,15 @@ namespace MFM {
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
-    ////class block has 2 ST:functions and data member decls, separate
+    // class block has 2 ST: functions and data member decls, separate
     m_state.popClassContext();
     m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL);
 
     //need class block's ST before parsing any class parameters (i.e. named constants);
     if(pTok.m_type == TOK_OPEN_PAREN)
-      {
-	parseRestOfClassParameters((SymbolClassNameTemplate *) cnsym);
-      }
+      parseRestOfClassParameters((SymbolClassNameTemplate *) cnsym);
     else
-	unreadToken();
-
+      unreadToken();
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
       {
@@ -329,7 +315,7 @@ namespace MFM {
     if(getExpectedToken(TOK_CLOSE_CURLY))
       {
 	rtnNode->setEmpty();
-	return rtnNode;  //allow empty class
+	return rtnNode; //allow empty class
       }
 
     //keep the data member var decls, starting with NodeBlockClass, keeping it for return
@@ -349,8 +335,8 @@ namespace MFM {
 
     if(!getExpectedToken(TOK_CLOSE_CURLY))
       {
-	    delete rtnNode;
-	    rtnNode = NULL;
+	delete rtnNode;
+	rtnNode = NULL;
       }
 
     //this block's ST is no longer in scope
@@ -373,7 +359,7 @@ namespace MFM {
 	    msg << "Class Template has NO parameters: <" << m_state.getUlamTypeNameByIndex(cntsym->getUlamTypeIdx()).c_str();
 	    MSG(&pTok, msg.str().c_str(),ERR);
 	  }
-	return;  //done with parameters
+	return; //done with parameters
       }
 
     // allows class name to be same as parameter name
@@ -398,7 +384,7 @@ namespace MFM {
 	    else
 	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
 	  }
-	delete argNode;    //no longer needed
+	delete argNode; //no longer needed
       }
     else
       {
@@ -429,7 +415,7 @@ namespace MFM {
 	      {
 		delete rtnNode;
 		rtnNode = NULL;
-		getTokensUntil(TOK_SEMICOLON);  //does this help?
+		getTokensUntil(TOK_SEMICOLON); //does this help?
 	      }
 	    else
 	      {
@@ -451,7 +437,7 @@ namespace MFM {
 	      {
 		delete rtnNode;
 		rtnNode = NULL;
-		getTokensUntil(TOK_SEMICOLON);  //does this help?
+		getTokensUntil(TOK_SEMICOLON); //does this help?
 	      }
 	    else
 	      {
@@ -484,7 +470,7 @@ namespace MFM {
     if(!Token::isTokenAType(pTok))
       {
 	unreadToken();
-	m_state.m_parsingElementParameterVariable = false;  //clear on error
+	m_state.m_parsingElementParameterVariable = false; //clear on error
 	return false;
       }
 
@@ -502,7 +488,7 @@ namespace MFM {
 	  {
 	    if(!parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti))
 	      {
-		m_state.m_parsingElementParameterVariable = false;  //clear on error
+		m_state.m_parsingElementParameterVariable = false; //clear on error
 		return false; //expecting a type, not sizeof, probably an error
 	      }
 	  }
@@ -537,7 +523,7 @@ namespace MFM {
 		  }
 		else
 		  {
-		    brtn = true;  //rtnNode belongs to the symbolFunction
+		    brtn = true; //rtnNode belongs to the symbolFunction
 		  }
 	      }
 	    //else
@@ -580,7 +566,6 @@ namespace MFM {
 	MSG(&iTok, msg.str().c_str(), ERR);
 	unreadToken();
       }
-
     m_state.m_parsingElementParameterVariable = false;
     return brtn;
   } //parseDataMember
@@ -620,7 +605,7 @@ namespace MFM {
 	delete rtnNode;
 	rtnNode = NULL;
 
-	rtnNode = new NodeBlockEmpty(prevBlock, m_state);  	// legal
+	rtnNode = new NodeBlockEmpty(prevBlock, m_state); // legal
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	m_state.popClassContext();
@@ -661,7 +646,7 @@ namespace MFM {
 	if(pTok.m_type != TOK_CLOSE_CURLY && pTok.m_type != TOK_EOF)
 	  {
 	    unreadToken();
-	    return parseStatements();  //try again
+	    return parseStatements(); //try again
 	  }
 	else
 	  {
@@ -722,7 +707,7 @@ namespace MFM {
 	break;
       case TOK_KW_WHILE:
 	{
-	  m_state.m_parsingControlLoop = m_state.getNextTmpVarNumber();  //true
+	  m_state.m_parsingControlLoop = m_state.getNextTmpVarNumber(); //true
 	  rtnNode = parseControlWhile(pTok);
 	  m_state.m_parsingControlLoop = 0;
 	}
@@ -763,7 +748,7 @@ namespace MFM {
 
     Node * condNode = parseConditionalExpr();
     if(!condNode)
-      return NULL;  //stop this maddness
+      return NULL; //stop this maddness
 
     if(!getExpectedToken(TOK_CLOSE_PAREN))
       {
@@ -784,7 +769,7 @@ namespace MFM {
     if(!trueNode)
       {
 	delete condNode;
-	return NULL;  //stop this maddness
+	return NULL; //stop this maddness
       }
 
     // wrapping body in NodeStatements produces proper comment for genCode
@@ -821,7 +806,7 @@ namespace MFM {
     s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
     Node * condNode = parseConditionalExpr();
     if(!condNode)
-      return NULL;  //stop this maddness
+      return NULL; //stop this maddness
 
     if(!getExpectedToken(TOK_CLOSE_PAREN))
       {
@@ -831,18 +816,14 @@ namespace MFM {
 
     Node * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
-      {
-	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditionalAs *) condNode);
-      }
+      trueNode = setupAsConditionalBlockAndParseStatements((NodeConditionalAs *) condNode);
     else
-      {
-	trueNode = parseStatement();
-      }
+      trueNode = parseStatement();
 
     if(!trueNode)
       {
 	delete condNode;
-	return NULL;  //stop this maddness
+	return NULL; //stop this maddness
       }
 
     // wrapping body in NodeStatements produces proper comment for genCode
@@ -869,9 +850,7 @@ namespace MFM {
   Node * Parser::parseControlFor(Token fTok)
   {
     if(!getExpectedToken(TOK_OPEN_PAREN))
-      {
-	return NULL;
-      }
+      return NULL;
 
     s32 controlLoopLabelNum = m_state.m_parsingControlLoop; //save at the top
 
@@ -883,7 +862,6 @@ namespace MFM {
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
-    //    NodeBlock * prevBlock = currBlock;
     m_state.pushCurrentBlock(rtnNode); //without pop first
 
     Token pTok;
@@ -900,7 +878,7 @@ namespace MFM {
     if(pTok.m_type != TOK_SEMICOLON)
       {
 	delete rtnNode;
-	delete declNode;  //stop this maddness
+	delete declNode; //stop this maddness
 	return NULL;
       }
 
@@ -917,7 +895,7 @@ namespace MFM {
 	  {
 	    delete rtnNode;
 	    delete declNode;
-	    return NULL;  //stop this maddness
+	    return NULL; //stop this maddness
 	  }
 
 	if(!getExpectedToken(TOK_SEMICOLON))
@@ -950,7 +928,7 @@ namespace MFM {
 	    delete rtnNode;
 	    delete declNode;
 	    delete condNode;
-	    return NULL;  //stop this maddness
+	    return NULL; //stop this maddness
 	  }
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
@@ -959,7 +937,7 @@ namespace MFM {
 	    delete declNode;
 	    delete condNode;
 	    delete assignNode;
-	    return NULL;  //stop this maddness
+	    return NULL; //stop this maddness
 	  }
       } //done with assign expr, could be null
 
@@ -970,7 +948,7 @@ namespace MFM {
       }
     else
       {
-	trueNode = parseStatement();  //even an empty statement has a node!
+	trueNode = parseStatement(); //even an empty statement has a node!
       }
 
     if(!trueNode)
@@ -979,7 +957,7 @@ namespace MFM {
 	delete declNode;
 	delete condNode;
 	delete assignNode;
-	return NULL;  //stop this maddness
+	return NULL; //stop this maddness
       }
 
     // link the pieces together..
@@ -1027,7 +1005,7 @@ namespace MFM {
     if(declNode)
       nextNode->setNextNode(nextControlNode); //***link while to decl
     else
-      rtnNode->setNextNode(nextControlNode);  //***link while to rtn block (no decl)
+      rtnNode->setNextNode(nextControlNode); //***link while to rtn block (no decl)
 
     //this block's ST is no longer in scope
     currBlock = m_state.getCurrentBlock(); //reload
@@ -1054,11 +1032,11 @@ namespace MFM {
 	if(cTok.m_type == TOK_KW_AS)
 	  {
 	    m_state.saveIdentTokenForConditionalAs(iTok); //sets m_state.m_parsingConditionalAs
-	    rtnNode = makeConditionalExprNode(rtnNode);  //done, could be NULL
+	    rtnNode = makeConditionalExprNode(rtnNode); //done, could be NULL
 	  }
       }
     else
-      return parseExpression();   //perhaps a number, true or false, cast..
+      return parseExpression(); //perhaps a number, true or false, cast..
 
     if(m_state.m_parsingConditionalAs)
       return rtnNode;
@@ -1090,7 +1068,6 @@ namespace MFM {
 
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
-    //NodeBlock * prevBlock = m_state.m_currentBlock;
     m_state.pushCurrentBlock(blockNode);
 
     // after the new block is setup: install the auto symbol into ST, and
@@ -1104,14 +1081,14 @@ namespace MFM {
     Token typeTok;
     typeTok.init(TOK_TYPE_IDENTIFIER, asNode->getNodeLocation(), m_state.m_pool.getIndexForDataString(tdname));
 
-    Symbol * asymptr = NULL;  //a place to put the new symbol; not a decl list
+    Symbol * asymptr = NULL; //a place to put the new symbol; not a decl list
     tmpni->installSymbolVariable(typeTok, tut->getBitSize(), tut->getArraySize(), tuti, Nav, asymptr);
     assert(asymptr);
-    asymptr->setAutoLocal();  //set auto flag
+    asymptr->setAutoLocal(); //set auto flag
 
     delete tmpni;            //done with nti
     tmpni = NULL;
-    m_state.m_parsingConditionalAs = false;  //done with flag and identToken.
+    m_state.m_parsingConditionalAs = false; //done with flag and identToken.
 
     //insert var decl into NodeStatements..as if parseStatement was called..
     Node * varNode = new NodeVarDecl((SymbolVariable*) asymptr, m_state);
@@ -1470,7 +1447,6 @@ namespace MFM {
     return cuti;
   } //parseClassArguments
 
-
   void Parser::parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx)
   {
     Token pTok;
@@ -1480,7 +1456,7 @@ namespace MFM {
 
     unreadToken();
 
-    Node * exprNode = parseExpression();  //constant expression req'd
+    Node * exprNode = parseExpression(); //constant expression req'd
     if(!exprNode)
       {
 	std::ostringstream msg;
@@ -1531,7 +1507,7 @@ namespace MFM {
     // eval what we need, and delete the node if folding successful
     if(((NodeConstantDef *) constNode)->foldConstantExpression())
       {
-	delete constNode;   //done with them!
+	delete constNode; //done with them!
 	constNode = NULL;
       }
     else
@@ -1544,9 +1520,8 @@ namespace MFM {
     if(pTok.m_type != TOK_COMMA)
       unreadToken();
 
-    return parseRestOfClassArguments(csym, ctsym, ++parmIdx);  //recurse
+    return parseRestOfClassArguments(csym, ctsym, ++parmIdx); //recurse
   } //parseRestOfClassArguments
-
 
   //return NodeTypeBitsize when unsuccessful evaluating its constant expression
   // up to caller to delete it
@@ -1558,7 +1533,7 @@ namespace MFM {
 
     if(bTok.m_type == TOK_OPEN_PAREN)
       {
-	Node * bitsizeNode = parseExpression();  //constant expression req'd
+	Node * bitsizeNode = parseExpression(); //constant expression req'd
 	if(!bitsizeNode)
 	  {
 	    std::ostringstream msg;
@@ -1574,7 +1549,7 @@ namespace MFM {
 	    // eval what we need, and delete the node if successful
 	    if(((NodeTypeBitsize *) rtnNode)->getTypeBitSizeInParen(typebitsize, m_state.getBaseTypeFromToken(typeTok)))
 	      {
-		delete rtnNode;   //done with them!
+		delete rtnNode; //done with them!
 		rtnNode = NULL;
 	      }
 	    else
@@ -1584,7 +1559,7 @@ namespace MFM {
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
-	    typebitsize = UNKNOWNSIZE;  //?
+	    typebitsize = UNKNOWNSIZE; //?
 	    delete rtnNode;
 	    rtnNode = NULL;
 	  }
@@ -1625,7 +1600,7 @@ namespace MFM {
     if(nTok.m_type != TOK_DOT)
       {
 	unreadToken();
-	return;  //done.
+	return; //done.
       }
     numDots++;
 
@@ -1642,7 +1617,7 @@ namespace MFM {
 	  csym = cnsym;
 
 	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-	if(!memberClassNode)  // e.g. forgot the closing brace on quark def once
+	if(!memberClassNode)  // e.g. forgot the closing brace on quark def once; or UNSEEN
 	  {
 	    // hail mary pass..possibly a sizeof of incomplete class
 	    getNextToken(nTok);
@@ -1654,7 +1629,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		rtnbitsize = UNKNOWNSIZE;  //t.f. unknown bitsize or arraysize or both?
+		rtnbitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
 		unreadToken(); //put the 'sizeof' back
 	      }
 	    rtnb = false;
@@ -1718,7 +1693,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		rtnbitsize = UNKNOWNSIZE;  //t.f. unknown bitsize or arraysize or both?
+		rtnbitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
 		unreadToken(); //put the 'sizeof' back
 	      }
 	    rtnb = false;
@@ -1727,7 +1702,7 @@ namespace MFM {
       }
     else
       {
-	unreadToken();  //put dot back, minof or maxof perhaps?
+	unreadToken(); //put dot back, minof or maxof perhaps?
 	std::ostringstream msg;
 	msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type: <" << m_state.getTokenDataAsString(&typeTok).c_str() << ">";
 	MSG(&typeTok, msg.str().c_str(),DEBUG);
@@ -1780,7 +1755,7 @@ namespace MFM {
 	  return parseExpression();
       }
     else
-      return parseExpression();   //perhaps a number, true or false, cast..
+      return parseExpression(); //perhaps a number, true or false, cast..
 
     // if nothing else follows, parseRestOfAssignExpr returns its argument
     return parseRestOfAssignExpr(rtnNode);
@@ -1800,10 +1775,9 @@ namespace MFM {
 	return NULL;
       }
 
-    unreadToken();  //put whatever back
+    unreadToken(); //put whatever back
 
     Symbol * asymptr = NULL;
-
     //may continue when symbol not defined yet (e.g. Decl)
     m_state.alreadyDefinedSymbol(identTok.m_dataindex,asymptr);
 
@@ -1812,7 +1786,7 @@ namespace MFM {
     assert(rtnNode);
     rtnNode->setNodeLocation(identTok.m_locator);
 
-    return parseRestOfLvalExpr(rtnNode);  //in case of arrays
+    return parseRestOfLvalExpr(rtnNode); //in case of arrays
   } //parseLvalExpr
 
   // lvalExpr + func Calls + member select (dot)
@@ -1825,7 +1799,6 @@ namespace MFM {
     if(pTok.m_type == TOK_OPEN_PAREN)
       {
 	Symbol * asymptr = NULL;
-
 	//may continue when symbol not defined yet (e.g. FuncCall)
 	m_state.alreadyDefinedSymbol(identTok.m_dataindex,asymptr);
 	if(asymptr && !asymptr->isFunction())
@@ -1835,7 +1808,6 @@ namespace MFM {
 	    MSG(&identTok, msg.str().c_str(), ERR);
 	    return  NULL; //bail
 	  }
-
 	//function call
 	rtnNode = parseFunctionCall(identTok);
       }
@@ -1866,7 +1838,7 @@ namespace MFM {
       }
     else
       {
-	unreadToken();  // not a member select
+	unreadToken(); // not a member select
       }
     return rtnNode;
   } //parseIdentExpr
@@ -1879,7 +1851,7 @@ namespace MFM {
       {
 	rtnNode = parseMinMaxSizeofType(memberTok, dsymptr->getUlamTypeIdx());
 	if(rtnNode) return rtnNode;
-      } //not defined, or not min/max/sizeof..continue
+      } //not defined, OR not min/max/sizeof..continue
 
     // arg is an instance of a class, it will be/was
     // declared as a variable, either as a data member or locally,
@@ -1914,7 +1886,7 @@ namespace MFM {
       rtnNode = classInstanceNode;
 
     return parseRestOfMemberSelectExpr(rtnNode);
-  } //parseMemberSelect
+  } //parseMemberSelectExpr
 
   Node * Parser::parseRestOfMemberSelectExpr(Node * classInstanceNode)
   {
@@ -1955,7 +1927,7 @@ namespace MFM {
     if(pTok.m_type != TOK_DOT)
       {
 	unreadToken();
-	//return NULL;  //optional, dot might have already been eaten
+	//return NULL; //optional, dot might have already been eaten
       }
 
     Token fTok;
@@ -1965,86 +1937,59 @@ namespace MFM {
 	return NULL;
       }
 
-    if(ut->isComplete())
+    if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
       {
-	if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
+	if(ut->isComplete())
 	  {
 	    assert(classtype == UC_NOTACLASS); // can't be a class and complete, right?
 	    rtnNode = makeTerminal(fTok, ut->getTotalBitSize(), Unsigned); //unsigned
 	  }
-	else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
-	  {
-	    if(ut->isMinMaxAllowed())
-	      rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum()); //unsigned
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-		MSG(&fTok, msg.str().c_str(), ERR);
-	      }
-	  }
-	else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
-	  {
-	    if(ut->isMinMaxAllowed())
-	      rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum()); //signed
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-		MSG(&fTok, msg.str().c_str(), ERR);
-	      }
-	  }
 	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	    MSG(&fTok, msg.str().c_str(), ERR);
-	  }
-      } // complete
-    else
-      {
-	if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
 	  {
 	    //input uti wasn't complete, i.e. based on sizeof some class
 	    rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
 	  }
-	else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
+      }
+    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
+      {
+	if(ut->isMinMaxAllowed())
 	  {
-	    if(ut->isMinMaxAllowed())
-	      rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	    if(ut->isComplete())
+	      rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum()); //unsigned
 	    else
-	      {
-		std::ostringstream msg;
-		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of incomplete variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-		MSG(&fTok, msg.str().c_str(), ERR);
-	      }
-	  }
-	else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
-	  {
-	    if(ut->isMinMaxAllowed())
 	      rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of incomplete variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-		MSG(&fTok, msg.str().c_str(), ERR);
-	      }
 	  }
 	else
 	  {
-	    unreadToken();
+	    std::ostringstream msg;
+	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	    MSG(&fTok, msg.str().c_str(), ERR);
 	  }
-
-	//rtnNode may be null if not minof, maxof, sizeof, but a member or func selected
-	if(!rtnNode)
+      }
+    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
+      {
+	if(ut->isMinMaxAllowed())
+	  {
+	    if(ut->isComplete())
+	      rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum()); //signed
+	    else
+	      rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	  }
+	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, incomplete type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	    MSG(&fTok, msg.str().c_str(), INFO);
+	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	    MSG(&fTok, msg.str().c_str(), ERR);
 	  }
-      } // not complete
-
-    return rtnNode;
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	MSG(&fTok, msg.str().c_str(), INFO);
+	unreadToken();
+      }
+    return rtnNode; //may be null if not minof, maxof, sizeof, but a member or func selected
   } //parseMinMaxSizeofType
 
   Node * Parser::parseFunctionCall(Token identTok)
@@ -2107,7 +2052,7 @@ namespace MFM {
   {
     Node * rtnNode = parseLogicalExpression();
     if(!rtnNode)
-      return NULL;  //stop this maddness
+      return NULL; //stop this maddness
 
     // if not addop, parseRestOfExpression returns its arg
     return parseRestOfExpression(rtnNode);
@@ -2117,7 +2062,7 @@ namespace MFM {
   {
     Node * rtnNode = parseBitExpression();
     if(!rtnNode)
-      return NULL;  //stop this maddness
+      return NULL; //stop this maddness
 
     // if not bitop, parseRestOfLogicalExpression returns its arg
     return parseRestOfLogicalExpression(rtnNode);
@@ -2127,7 +2072,7 @@ namespace MFM {
   {
     Node * rtnNode = parseEqExpression();
     if(!rtnNode)
-      return NULL;  //stop this maddness
+      return NULL; //stop this maddness
 
     // if not eqop, parseRestOfBitExpression returns its arg
     return parseRestOfBitExpression(rtnNode);
@@ -2137,7 +2082,7 @@ namespace MFM {
   {
     Node * rtnNode = parseCompareExpression();
     if(!rtnNode)
-      return NULL;  //stop this maddness
+      return NULL; //stop this maddness
 
     // if not compop, parseRestOfEqExpression returns its arg
     return parseRestOfEqExpression(rtnNode);
@@ -2147,7 +2092,7 @@ namespace MFM {
   {
     Node * rtnNode = parseShiftExpression();
     if(!rtnNode)
-      return NULL;  //stop this maddness
+      return NULL; //stop this maddness
 
     // if not shiftop, parseRestOfCompareExpression returns its arg
     return parseRestOfCompareExpression(rtnNode);
@@ -2157,7 +2102,7 @@ namespace MFM {
   {
     Node * rtnNode = parseTerm();
     if(!rtnNode)
-      return NULL;  //stop this maddness
+      return NULL; //stop this maddness
 
     // if not addop, parseRestOfShiftExpression returns its arg
     return parseRestOfShiftExpression(rtnNode);
@@ -2167,7 +2112,7 @@ namespace MFM {
   {
     Node * rtnNode = parseFactor();
     if(!rtnNode)
-      return NULL;  //stop this maddness!
+      return NULL; //stop this maddness!
 
     // if not mulop, parseRestOfTerm returns rtnNode
     return parseRestOfTerm(rtnNode);
@@ -2226,7 +2171,7 @@ namespace MFM {
 	    delete bitsizeNode;
 	    bitsizeNode = NULL;
 	  }
-	return rtnNode;  //rtnNode could be NULL!
+	return rtnNode; //rtnNode could be NULL!
       } //not a Type
 
     //continue as normal..
@@ -2264,7 +2209,6 @@ namespace MFM {
       case TOK_KW_FALSE:
 	rtnNode = new NodeTerminal(pTok, m_state);
 	assert(rtnNode);
-	//rtnNode->setNodeLocation(pTok.m_locator); not needed
 	break;
       case TOK_OPEN_PAREN:
 	rtnNode = parseRestOfCastOrExpression();
@@ -2275,13 +2219,13 @@ namespace MFM {
       case TOK_PLUS_PLUS:
       case TOK_MINUS_MINUS:
 	unreadToken();
-	rtnNode = parseRestOfFactor(NULL);  //parseUnop
+	rtnNode = parseRestOfFactor(NULL); //parseUnop
 	break;
       case TOK_EOF:
       case TOK_CLOSE_CURLY:
       case TOK_SEMICOLON:
       case TOK_CLOSE_PAREN:
-      case TOK_COMMA:  // for functionall args
+      case TOK_COMMA: // for functionall args
 	unreadToken();
 	break;
       case TOK_ERROR_CONT:
@@ -2356,17 +2300,17 @@ namespace MFM {
   {
     Node * rtnNode = NULL;
     // just saw an open paren..
-    //if next token is a type this a user cast, o.w. expression
+    // if next token is a type this a user cast, o.w. expression
     Token tTok;
     getNextToken(tTok);
     if(Token::isTokenAType(tTok))
       {
-	rtnNode = makeCastNode(tTok);   //also parses its child Factor
+	rtnNode = makeCastNode(tTok); //also parses its child Factor
       }
     else
       {
 	unreadToken();
-	rtnNode = parseAssignExpr();    //grammar says assign_expr
+	rtnNode = parseAssignExpr(); //grammar says assign_expr
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
 	    delete rtnNode;
@@ -2374,7 +2318,7 @@ namespace MFM {
 	  }
       }
     return rtnNode;
-  } //parseRestOfCastOrExpression()
+  } //parseRestOfCastOrExpression
 
   Node * Parser::parseRestOfTerm(Node * leftNode)
   {
@@ -2413,14 +2357,14 @@ namespace MFM {
       case TOK_MINUS:
 	unreadToken();
 	rtnNode = makeShiftExpressionNode(leftNode);
-	rtnNode = parseRestOfShiftExpression(rtnNode);  //recursion of left-associativity
+	rtnNode = parseRestOfShiftExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
 	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	  MSG(&pTok, msg.str().c_str(),ERR);
-	  rtnNode = parseRestOfShiftExpression(leftNode);  //redo
+	  rtnNode = parseRestOfShiftExpression(leftNode); //redo
 	}
 	break;
       default:
@@ -2444,14 +2388,14 @@ namespace MFM {
       case TOK_SHIFT_RIGHT:
 	unreadToken();
 	rtnNode = makeCompareExpressionNode(leftNode);
-	rtnNode = parseRestOfCompareExpression(rtnNode);  //recursion of left-associativity
+	rtnNode = parseRestOfCompareExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
 	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	  MSG(&pTok, msg.str().c_str(),ERR);
-	  rtnNode = parseRestOfCompareExpression(leftNode);  //redo
+	  rtnNode = parseRestOfCompareExpression(leftNode); //redo
 	}
 	break;
       default:
@@ -2477,14 +2421,14 @@ namespace MFM {
       case TOK_GREATER_EQUAL:
 	unreadToken();
 	rtnNode = makeEqExpressionNode(leftNode);
-	rtnNode = parseRestOfEqExpression(rtnNode);  //recursion of left-associativity
+	rtnNode = parseRestOfEqExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
 	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	  MSG(&pTok, msg.str().c_str(),ERR);
-	  rtnNode = parseRestOfEqExpression(leftNode);  //redo
+	  rtnNode = parseRestOfEqExpression(leftNode); //redo
 	}
 	break;
       default:
@@ -2508,14 +2452,14 @@ namespace MFM {
       case TOK_NOT_EQUAL:
 	unreadToken();
 	rtnNode = makeBitExpressionNode(leftNode);
-	rtnNode = parseRestOfBitExpression(rtnNode);  //recursion of left-associativity
+	rtnNode = parseRestOfBitExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
 	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	  MSG(&pTok, msg.str().c_str(),ERR);
-	  rtnNode = parseRestOfBitExpression(leftNode);  //redo
+	  rtnNode = parseRestOfBitExpression(leftNode); //redo
 	}
 	break;
       default:
@@ -2540,14 +2484,14 @@ namespace MFM {
       case TOK_HAT:
 	unreadToken();
 	rtnNode = makeLogicalExpressionNode(leftNode);
-	rtnNode = parseRestOfLogicalExpression(rtnNode);  //recursion of left-associativity
+	rtnNode = parseRestOfLogicalExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
 	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	  MSG(&pTok, msg.str().c_str(),ERR);
-	  rtnNode = parseRestOfLogicalExpression(leftNode);  //redo
+	  rtnNode = parseRestOfLogicalExpression(leftNode); //redo
 	}
 	break;
       default:
@@ -2571,13 +2515,13 @@ namespace MFM {
       case TOK_PIPE_PIPE:
 	unreadToken();
 	rtnNode = makeExpressionNode(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);  //recursion of left-associativity
+	rtnNode = parseRestOfExpression(rtnNode); //recursion of left-associativity
 	break;
       case TOK_AMP:
       case TOK_PIPE:
       case TOK_HAT:
 	unreadToken();
-	rtnNode = parseRestOfLogicalExpression(leftNode);  //addOp
+	rtnNode = parseRestOfLogicalExpression(leftNode); //addOp
 	rtnNode = parseRestOfExpression(rtnNode);
 	break;
       case TOK_EQUAL_EQUAL:
@@ -2604,27 +2548,27 @@ namespace MFM {
       case TOK_MINUS:
 	unreadToken();
 	rtnNode = parseRestOfShiftExpression(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);  //any more?
+	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
       case TOK_STAR:
       case TOK_SLASH:
       case TOK_PERCENTSIGN:
 	unreadToken();
-	rtnNode = parseRestOfTerm(leftNode);       //mulOp
-	rtnNode = parseRestOfExpression(rtnNode);  //any more?
+	rtnNode = parseRestOfTerm(leftNode); //mulOp
+	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
       case TOK_KW_IS:
       case TOK_KW_HAS:
 	unreadToken();
 	rtnNode = parseRestOfFactor(leftNode);
-	rtnNode = parseRestOfExpression(rtnNode);  //any more?
+	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
 	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	  MSG(&pTok, msg.str().c_str(),ERR);
-	  rtnNode = parseRestOfExpression(leftNode);  //redo
+	  rtnNode = parseRestOfExpression(leftNode); //redo
 	}
 	break;
       default:
@@ -2686,7 +2630,6 @@ namespace MFM {
 	break;
       case TOK_SEMICOLON:
       case TOK_CLOSE_PAREN:
-	//default:
 	{
 	  unreadToken();
 	  rtnNode = leftNode;
@@ -2722,7 +2665,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Cannot assign to data member <" << m_state.getTokenDataAsString(&identTok).c_str() << "> at the time of its declaration";
 	    MSG(&pTok, msg.str().c_str(), ERR);
-	    getTokensUntil(TOK_SEMICOLON);  //rest of statement is ignored.
+	    getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	    unreadToken();
 	    return dNode;
 	  }
@@ -2739,7 +2682,7 @@ namespace MFM {
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	// another decl of same rtnType typeTok
-	Node * sNode = makeVariableSymbol(typeTok, typebitsize, arraysize, iTok, classInstanceIdx, rtnType);  //a decl
+	Node * sNode = makeVariableSymbol(typeTok, typebitsize, arraysize, iTok, classInstanceIdx, rtnType); //a decl
 	if (sNode)
 	  {
 	    rtnNode =  new NodeStatements(dNode, m_state);
@@ -2759,7 +2702,7 @@ namespace MFM {
 	getTokensUntil(TOK_SEMICOLON);
 	unreadToken();
       }
-    return parseRestOfDecls(typeTok, typebitsize, arraysize, iTok, classInstanceIdx, rtnType, rtnNode, assignOK);  //iTok in case of =
+    return parseRestOfDecls(typeTok, typebitsize, arraysize, iTok, classInstanceIdx, rtnType, rtnNode, assignOK); //iTok in case of =
   } //parseRestOfDecls
 
   Node * Parser::parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, UTI& rtnType, Node * dNode)
@@ -2783,7 +2726,7 @@ namespace MFM {
     nextNode->setNodeLocation(assignNode->getNodeLocation());
     rtnNode->setNextNode(nextNode);
 
-    return parseRestOfDecls(typeTok, typebitsize, arraysize, identTok, classInstanceIdx, rtnType, rtnNode);  //any more?
+    return parseRestOfDecls(typeTok, typebitsize, arraysize, identTok, classInstanceIdx, rtnType, rtnNode); //any more?
   } //parseRestOfDeclAssignment
 
   NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK)
@@ -2814,7 +2757,7 @@ namespace MFM {
 	    //perhaps read until semi-colon
 	    getTokensUntil(TOK_SEMICOLON);
 	    unreadToken();
-	    delete constNode;  //does this also delete the symbol?
+	    delete constNode; //does this also delete the symbol?
 	    constNode = NULL;
 	    rtnNode = NULL;
 	  }
@@ -2845,7 +2788,6 @@ namespace MFM {
     linkOrFreeConstantExpressions(rtnuti, Nav, constExprForBitSize, NULL);
 
     // WAIT for the parameters, so we can add it to the SymbolFunctionName map..
-    //m_state.m_classBlock->addFuncIdToScope(fsymptr->getId(), fsymptr);
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(typeTok.m_locator);
@@ -2857,12 +2799,12 @@ namespace MFM {
     // node type was set to its class symbol type after checkAndLabelType
     if(m_state.getCustomArrayGetFunctionNameId() == identTok.m_dataindex)
       {
-	UTI cuti = currClassBlock->getNodeType();  //prevBlock
+	UTI cuti = currClassBlock->getNodeType(); //prevBlock
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	((UlamTypeClass *) cut)->setCustomArrayType(rtnuti);
       }
 
-    m_state.pushCurrentBlock(rtnNode);  //before parsing the args
+    m_state.pushCurrentBlock(rtnNode); //before parsing the args
 
     // use space on funcCallStack for return statement.
     // negative for parameters; allot space at top for the return value
@@ -2876,9 +2818,9 @@ namespace MFM {
     // create "self" symbol whose index is that of the "hidden" first arg (i.e. a Ptr to an Atom);
     // immediately below the return value(s); and belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
-    UTI cuti = currClassBlock->getNodeType();  //luckily we know this now for each class used
+    UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
     if(m_state.getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
-      cuti = UAtom;  //use atom for quark functions
+      cuti = UAtom; //use atom for quark functions
 
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfid, cuti, m_state.determinePackable(cuti), m_state.m_currentFunctionBlockDeclSize, m_state);
     selfsym->setIsSelf();
@@ -2941,8 +2883,8 @@ namespace MFM {
 
     // this block's ST is no longer in scope
     m_state.popClassContext(); //= prevBlock;
-    m_state.m_currentFunctionBlockDeclSize = 0;  //default zero for datamembers
-    m_state.m_currentFunctionBlockMaxDepth = 0;  //reset
+    m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
+    m_state.m_currentFunctionBlockMaxDepth = 0; //reset
     return rtnNode;
   } //makeFunctionBlock
 
@@ -2951,9 +2893,7 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
     if(pTok.m_type == TOK_CLOSE_PAREN)
-      {
-	return;  //done with parameters
-      }
+      return; //done with parameters
 
     assert(fsym);
     // allows function name to be same as arg name
@@ -2988,7 +2928,7 @@ namespace MFM {
 	      MSG(&pTok, "No symbol from parameter declaration", ERR);
 	  }
 
-	delete argNode;    //no longer needed
+	delete argNode; //no longer needed
 	if(fsym->takesVariableArgs() && argSym)
 	  {
 	    std::ostringstream msg;
@@ -3009,7 +2949,6 @@ namespace MFM {
 	if(fsym->takesVariableArgs())
 	  MSG(&pTok, "Variable args indication (...) appears at end of parameter list", ERR);
       }
-
     return parseRestOfFunctionParameters(fsym);
   } //parseRestOfFunctionParameters
 
@@ -3019,7 +2958,6 @@ namespace MFM {
 
     // if next token is { this is a definition; o.w. a declaration, alone invalid
     // however, keyword 'native' is exception.
-
     Token qTok;
     getNextToken(qTok);
 
@@ -3039,16 +2977,12 @@ namespace MFM {
 	    nextNode->setNodeLocation(pTok.m_locator);
 	  }
 	else
-	  {
-	    nextNode = (NodeStatements *) parseStatements();
-	  }
+	  nextNode = (NodeStatements *) parseStatements();
 
 	funcNode->setNextNode(nextNode);
 
 	if(!getExpectedToken(TOK_CLOSE_CURLY))
-	  {
-	    MSG(&pTok, "Not close curly", ERR);
-	  }
+	  MSG(&pTok, "Not close curly", ERR);
 	else
 	  unreadToken();
       }
@@ -3113,13 +3047,12 @@ namespace MFM {
 
     // exclude the declaration & definition from the parse tree
     // (since in SymbolFunction) & return NULL.
-
     return rtnNode;
   } //makeFunctionSymbol
 
   Node * Parser::makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, UTI& rtnType, NodeTypeBitsize * constExprForBitSize)
   {
-    assert(! Token::isTokenAType(identTok));  //capitalization check done by Lexer
+    assert(! Token::isTokenAType(identTok)); //capitalization check done by Lexer
 
     if(identTok.m_dataindex == m_state.m_pool.getIndexForDataString("self"))
       {
@@ -3175,7 +3108,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    delete lvalNode;  //done with it
+	    delete lvalNode; //done with it
 	    delete constExprForBitSize; //done with it
 	  }
       }
@@ -3236,7 +3169,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    delete lvalNode;  //done with it
+	    delete lvalNode; //done with it
 	    delete constExprForBitSize; //done with it
 	  }
       }
@@ -3249,14 +3182,13 @@ namespace MFM {
   Node * Parser::makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize, bool assignOK)
   {
     NodeConstantDef * rtnNode = NULL;
-    Node * lvalNode = parseIdentExpr(identTok);//parseLvalExpr(identTok);
+    Node * lvalNode = parseIdentExpr(identTok); //parseLvalExpr(identTok);
     if(lvalNode)
       {
 	// lvalNode could be either a NodeIdent or a NodeSquareBracket
 	//though arrays not legal in this context!!!
 	// process identifier...check if already defined in current scope; if not, add it;
 	// return a SymbolConstantValue.
-
 	Symbol * asymptr = NULL;
 	UTI uti;
 	if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, uti))
@@ -3305,7 +3237,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    delete lvalNode;  //done with it
+	    delete lvalNode; //done with it
 	    delete constExprForBitSize; //done with it
 	  }
       }
@@ -3369,7 +3301,7 @@ namespace MFM {
   {
     NodeBinaryOpEqual * rtnNode = NULL;
     Token pTok;
-    getNextToken(pTok);  //some flavor of equal token
+    getNextToken(pTok); //some flavor of equal token
 
     Node * rightNode = parseAssignExpr();
     if(!rightNode)
@@ -3898,7 +3830,7 @@ namespace MFM {
       }
     else
       {
-	delete ceForArraySize;  //done with it
+	delete ceForArraySize; //done with it
 	delete ceForBitSize; //done with it
       }
   } //linkOrFreeConstantExpressions
@@ -3971,11 +3903,11 @@ namespace MFM {
     // initialize primitive UlamTypes, in order!!
     UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
     UTI nidx = m_state.makeUlamType(nkey, Nav);
-    assert(nidx == Nav);  //true for primitives
+    assert(nidx == Nav); //true for primitives
 
     UlamKeyTypeSignature vkey(m_state.m_pool.getIndexForDataString("Void"), ULAMTYPE_DEFAULTBITSIZE[Void]);
     UTI vidx = m_state.makeUlamType(vkey, Void);
-    assert(vidx == Void);  //true for primitives
+    assert(vidx == Void); //true for primitives
 
     UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), ULAMTYPE_DEFAULTBITSIZE[Int]);
     UTI iidx = m_state.makeUlamType(ikey, Int);
@@ -3997,7 +3929,7 @@ namespace MFM {
     UTI bitsidx = m_state.makeUlamType(bitskey, Bits);
     assert(bitsidx == Bits);
 
-    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), ULAMTYPE_DEFAULTBITSIZE[Class]);  //bits tbd
+    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), ULAMTYPE_DEFAULTBITSIZE[Class]); //bits tbd
     UTI cidx = m_state.makeUlamType(ckey, Class);
     assert(cidx == Class);
 

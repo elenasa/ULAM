@@ -874,12 +874,7 @@ namespace MFM {
 	assert(sym->isClass());
 
 	//output header/body for this class next
-	NodeBlockClass * classblock = ((SymbolClassName *) sym)->getClassBlockNode();
-	assert(classblock);
-	m_state.pushClassContext(sym->getUlamTypeIdx(), classblock, classblock, false, NULL);
-
 	((SymbolClassName *) sym)->generateCodeForClassInstances(fm);
-	m_state.popClassContext(); //restore
 	it++;
       } //while
   } //genCodeForTableOfClasses

@@ -43,11 +43,11 @@ namespace MFM {
   static const char * m_indentedSpaceLevel("  ");  //2 spaces per level
 
   static const char * HIDDEN_ARG_NAME = "Uv_4self";
-  static const char * HIDDEN_CONTEXT_ARG_NAME = "uc";      //unmangled
+  static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref";  //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset";  //unmangled
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs";  //Uf_2is
-  static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType";      //Uf_3has
+  static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
   //use of this in the initialization list seems to be okay;
@@ -536,31 +536,26 @@ namespace MFM {
 
   ULAMTYPE CompilerState::getBaseTypeFromToken(Token tok)
   {
-    // is this name already a typedef for a complex type?
     ULAMTYPE bUT = Nav;
     UTI ut = Nav;
+    // is this name already a typedef for a complex type?
     if(getUlamTypeByTypedefName(tok.m_dataindex, ut))
       {
 	bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
       }
+    else if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
+      {
+	std::string typeName = getTokenAsATypeName(tok); //Int, etc
+
+	//no way to get the bUT, except to assume typeName is one of them?
+	bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
+      }
     else
       {
-	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
-	  {
-	    std::string typeName = getTokenAsATypeName(tok); //Int, etc
-
-	    //no way to get the bUT, except to assume typeName is one of them?
-	    bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
-	  }
-	else
-	  {
-	    // it's an element or quark! base type is Class.
-	    SymbolClassName * cnsym = NULL;
-	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
-	      {
-		bUT = Class;
-	      }
-	  }
+	// it's an element or quark! base type is Class.
+	//SymbolClassName * cnsym = NULL;
+	//if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
+	bUT = Class;
       }
     return bUT;
   } //getBaseTypeFromToken
@@ -1570,7 +1565,7 @@ namespace MFM {
 
     // set up STACK since func call not called
     m_funcCallStack.pushArg(m_currentObjPtr);                        //hidden arg on STACK
-    m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1));      //return slot on STACK
+    m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1)); //return slot on STACK
   } //setupCenterSiteForTesting
 
   // used by SourceStream to build m_textByLinePerFilePath during parsing
@@ -1716,7 +1711,7 @@ namespace MFM {
   void CompilerState::saveIdentTokenForConditionalAs(Token iTok)
   {
     m_identTokenForConditionalAs = iTok;
-    m_parsingConditionalAs = true;    //cleared manually
+    m_parsingConditionalAs = true; //cleared manually
   } //saveIdentTokenForConditionalAs
 
   NNO CompilerState::getNextNodeNo()
