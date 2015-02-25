@@ -148,6 +148,11 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
+	if(!variableSymbolWithCountableSize(sym))
+	  {
+	    it++;
+	    continue;
+	  }
 
 	UTI suti = sym->getUlamTypeIdx();
 	s32 symsize = calcVariableSymbolTypeSize(suti);  //recursively
@@ -180,7 +185,7 @@ namespace MFM {
 	  }
 
 	// don't count typedef's or element parameters toward total, nor named constants
-	if(variableSymbolWithCountableSize(sym))
+	//if(variableSymbolWithCountableSize(sym))
 	  {
 	    totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
 	  }

@@ -297,7 +297,7 @@ namespace MFM {
     // current, this block's symbol table added to parse tree stack
     //          for validating and finding scope of program/block variables
     // class block has 2 ST: functions and data member decls, separate
-    m_state.popClassContext();
+    // m_state.popClassContext(); //keep on stack for name id
     m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL);
 
     //need class block's ST before parsing any class parameters (i.e. named constants);
