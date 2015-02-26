@@ -1619,7 +1619,7 @@ namespace MFM {
 	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
 	if(!memberClassNode)  // e.g. forgot the closing brace on quark def once; or UNSEEN
 	  {
-	    // hail mary pass..possibly a sizeof of incomplete class
+	    // hail mary pass..possibly a sizeof of unseen class
 	    getNextToken(nTok);
 	    if(nTok.m_dataindex != m_state.m_pool.getIndexForDataString("sizeof"))
 	      {
@@ -1704,7 +1704,7 @@ namespace MFM {
       {
 	unreadToken(); //put dot back, minof or maxof perhaps?
 	std::ostringstream msg;
-	msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a class type: <" << m_state.getTokenDataAsString(&typeTok).c_str() << ">";
+	msg << "Unexpected input!! Token: <" << typeTok.getTokenEnumName() << "> is not a 'seen' class type: <" << m_state.getTokenDataAsString(&typeTok).c_str() << ">";
 	MSG(&typeTok, msg.str().c_str(),DEBUG);
 	rtnb = false;
       }
@@ -2140,8 +2140,8 @@ namespace MFM {
 	    unreadToken();
 	    if(dTok.m_type == TOK_DOT)
 	      {
-		if(parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti))
-		  uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize);
+		if(parseTypeFromAnotherClassesTypedef(pTok, typebitsize, arraysize, cuti)) //may recurse more dots and change pTok!
+		  uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize); //and, what if from another class? Nav???
 		else
 		  uti = cuti;
 	      }
@@ -2159,7 +2159,7 @@ namespace MFM {
 	  }
 
 	//returns either a terminal or proxy
-	rtnNode = parseMinMaxSizeofType(pTok, uti); //get's next dot token
+	rtnNode = parseMinMaxSizeofType(pTok, uti); //optionally, get's next dot token
 	if(rtnNode)
 	  {
 	    // bitsize/arraysize is unknown, i.e. based on a Class.sizeof
