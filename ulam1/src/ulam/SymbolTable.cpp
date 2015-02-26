@@ -866,7 +866,6 @@ namespace MFM {
 	it++;
 	idcounter++;
       } //while to run this test
-    fp->write("\n");
   } //generateTestInstancesForTableOfClasses
 
   void SymbolTable::genCodeForTableOfClasses(FileManager * fm)
