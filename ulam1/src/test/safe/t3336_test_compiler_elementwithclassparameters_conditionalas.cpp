@@ -20,7 +20,7 @@ namespace MFM {
       //      bool rtn1 = fms->add("Foo.ulam","use Counter4;\nelement Foo {\nBool sp;\n Bool(3) bi, bh;\n Counter4 m_c4;\n Int e;\n Int test(){\n Atom a;\n Foo f;\n Bool b;\nif(a as Foo)\na.bi = true;\n a = f; //easy\n if(a as Counter4){\n bh = true;\n a.incr();\n e=a.get();\n }\n else {\n bh = false;\n}\nreturn e;\n}\n }\n");
 
       //single statement case:
-      bool rtn1 = fms->add("Foo.ulam","use Counter4;\nuse System;\n element Foo {\nSystem s;\nInt e;\n Int test(){\nAtom a;\n if(a as Counter4(3))\n {\n a.incr();\ne = a.get();\n s.print(e);\n}\n return e;\n}\n }\n");
+      bool rtn1 = fms->add("Foo.ulam","use Counter4;\nuse System;\n element Foo {\nSystem s;\nInt e;\n Int test(){\nAtom a;\nif(a as Counter4(3))\n {\n a.incr();\ne = a.get();\n s.print(e);\n}\nelse\n e=7;\n return e;\n}\n }\n");
 
       bool rtn2 = fms->add("Counter4.ulam", "ulam 1;\nquark Counter4(Int x) {\nInt(x) d;\nVoid incr(){\nd+=1;\n}\nInt get(){\nreturn d;\n}\n }\n");
 
