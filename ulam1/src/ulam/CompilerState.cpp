@@ -572,12 +572,12 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //check for a Class type, or make one if doesn't exist yet, while parsing.
+	    //check for existing Class type
 	    SymbolClassName * cnsym = NULL;
 	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	      {
 		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
-	      }
+	      } //else  or make one if doesn't exist yet, while parsing --- do we do this anymore ???
 	  }
       }
     return uti;
