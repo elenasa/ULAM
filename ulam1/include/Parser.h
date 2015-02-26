@@ -199,8 +199,8 @@ namespace MFM{
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE
 	false when possible 'sizeof' found instead of a type;
      */
-    bool parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx);
-    void parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, bool& rtnb, u32& numDots);
+    bool parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, UTI& rtnanothertduti);
+    void parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, UTI& rtnanothertduti, bool& rtnb, u32& numDots);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)
@@ -346,10 +346,10 @@ namespace MFM{
     Node * makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize);
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, UTI& rtnType, NodeTypeBitsize * constExprForBitSize=NULL);
+    Node * makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, UTI anothertduti, UTI& rtnType, NodeTypeBitsize * constExprForBitSize=NULL);
 
     /** helper for parseTypedef */
-    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, NodeTypeBitsize * constExprForBitSize);
+    Node * makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, UTI anothertduti, NodeTypeBitsize * constExprForBitSize);
 
     /** helper for parseConstdef */
     Node * makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, NodeTypeBitsize * constExprForBitSize, bool assignOK = true);
