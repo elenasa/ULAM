@@ -74,11 +74,11 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr);
+    virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, Symbol *& asymptr);
 
     virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
 
-    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr);
+    virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, UTI declListScalarType, Symbol *& asymptr);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
@@ -92,6 +92,8 @@ namespace MFM{
     NNO m_currBlockNo;
 
     SymbolVariable *  makeSymbol(UTI aut);
+    bool checkVariableTypedefSizes(UTI auti, s32& arraysize, s32& bitsize, Token aTok);
+    bool checkTypedefOfTypedefSizes(UTI auti, s32& arraysize, s32& bitsize, Token aTok);
     UlamValue makeUlamValuePtr();
     UlamValue makeUlamValuePtrForCodeGen();
   };
