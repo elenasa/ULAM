@@ -464,8 +464,8 @@ namespace MFM {
       }
   } //generateAsOtherForwardDef
 
-#define NEWMAIN
-#ifdef NEWMAIN
+#define NEWTESTMAIN
+#ifdef NEWTESTMAIN
   void SymbolClass::generateTestInstance(File * fp, bool runtest)
   {
     std::ostringstream runThisTest;
@@ -484,7 +484,7 @@ namespace MFM {
   } //generateTestInstance
 #endif
 
-#ifndef NEWMAIN
+#ifndef NEWTESTMAIN
   void SymbolClass::generateTestInstance(File * fp, bool runtest)
   {
     std::ostringstream runThisTest;
@@ -685,7 +685,7 @@ namespace MFM {
     fp->write("#include <stdio.h>\n");
     m_state.indent(fp);
     fp->write("#include <iostream>\n"); //to cout/cerr rtn
-#ifdef NEWMAIN
+#ifdef NEWTESTMAIN
     m_state.indent(fp);
     fp->write("#include \"itype.h\"\n");
     m_state.indent(fp);
@@ -706,7 +706,7 @@ namespace MFM {
 
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp); //the other classes
 
-#ifdef NEWMAIN
+#ifdef NEWTESTMAIN
     //namespace MFM
     fp->write("\n");
     m_state.indent(fp);
@@ -794,7 +794,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-#ifndef NEWMAIN
+#ifndef NEWTESTMAIN
     m_state.indent(fp);
     fp->write("enum { SIZE = ");
     fp->write_decimal(BITSPERATOM);

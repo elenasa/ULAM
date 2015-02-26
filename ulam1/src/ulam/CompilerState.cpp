@@ -1742,42 +1742,43 @@ namespace MFM {
   u32 CompilerState::getCompileThisId()
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getCompileThisId();
   }
 
   UTI CompilerState::getCompileThisIdx()
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getCompileThisIdx();
   }
 
   NodeBlock * CompilerState::getCurrentBlock()
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getCurrentBlock();
   }
 
   NNO CompilerState::getCurrentBlockNo()
   {
-    if(getCurrentBlock())
+    ClassContext cc;
+    if(m_classContextStack.getCurrentClassContext(cc) && getCurrentBlock())
       return getCurrentBlock()->getNodeNo();
-    return 0; //genesis of class
+    return 0; //genesis of class symbol
   }
 
   NodeBlockClass * CompilerState::getClassBlock()
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getClassBlock();
   }
 
   NNO CompilerState::getClassBlockNo()
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     if(cc.getClassBlock())
       return cc.getClassBlock()->getNodeNo();
     return 0;
@@ -1786,14 +1787,14 @@ namespace MFM {
   bool CompilerState::useMemberBlock()
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.useMemberBlock();
   }
 
   NodeBlockClass * CompilerState::getCurrentMemberClassBlock()
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getCurrentMemberClassBlock();
   }
 
@@ -1812,7 +1813,7 @@ namespace MFM {
   void CompilerState::pushCurrentBlock(NodeBlock * currblock)
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     cc.setCurrentBlock(currblock); //could be NULL
     m_classContextStack.pushClassContext(cc);
   }
@@ -1820,7 +1821,7 @@ namespace MFM {
   void CompilerState::pushCurrentBlockAndDontUseMemberBlock(NodeBlock * currblock)
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     cc.setCurrentBlock(currblock);
     cc.useMemberBlock(false);
     m_classContextStack.pushClassContext(cc);
@@ -1829,7 +1830,7 @@ namespace MFM {
   void CompilerState::pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock)
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     cc.setCurrentMemberClassBlock(memberblock);
     cc.useMemberBlock(true);
     m_classContextStack.pushClassContext(cc);
@@ -1838,7 +1839,7 @@ namespace MFM {
   std::string CompilerState::getClassContextAsStringForDebugging()
   {
     ClassContext cc;
-    m_classContextStack.getCurrentClassContext(cc);
+    assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getClassContextAsString();
   }
 

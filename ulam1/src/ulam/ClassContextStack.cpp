@@ -10,11 +10,12 @@ namespace MFM {
     m_contexts.clear();
   }
 
-  void ClassContextStack::getCurrentClassContext(ClassContext & contextref) //no change to stack
+  bool ClassContextStack::getCurrentClassContext(ClassContext & contextref) //no change to stack
   {
     if(m_contexts.empty())
-      return;
+      return false;
     contextref = m_contexts.back();
+    return true;
   }
 
   void ClassContextStack::pushClassContext(ClassContext context)
@@ -34,6 +35,11 @@ namespace MFM {
     getCurrentClassContext(contextref);
     m_contexts.pop_back();
     return true;
+  }
+
+  u32 ClassContextStack::getClassContextStackSize()
+  {
+    return m_contexts.size();
   }
 
 } //MFM
