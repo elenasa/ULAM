@@ -49,7 +49,7 @@ namespace MFM
     ClassContextStack();
     ~ClassContextStack();
 
-    void getCurrentClassContext(ClassContext & contextref); //no change to stack
+    bool getCurrentClassContext(ClassContext & contextref); //no change to stack
 
     void pushClassContext(ClassContext context);
 
@@ -57,6 +57,7 @@ namespace MFM
 
     void popClassContext();
 
+    u32 getClassContextStackSize();
 
   private:
     std::vector<ClassContext> m_contexts;
