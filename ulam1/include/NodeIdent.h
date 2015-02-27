@@ -76,7 +76,7 @@ namespace MFM{
 
     virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, Symbol *& asymptr);
 
-    virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr);
+    virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, UTI anothertduti, Symbol *& asymptr);
 
     virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, UTI declListScalarType, Symbol *& asymptr);
 
