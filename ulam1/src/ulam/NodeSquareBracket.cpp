@@ -262,7 +262,7 @@ namespace MFM {
   } //installSymbolTypedef
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, UTI anothertduti, Symbol *& asymptr)
   {
     MSG(getNodeLocationAsString().c_str(), "Array size specified for named constant", ERR);
     return false;
