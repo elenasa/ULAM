@@ -501,7 +501,7 @@ namespace MFM {
     s32 tdarraysize = tdut->getArraySize();
     if(arraysize >= 0)  //variable's
       {
-	if(tdarraysize != arraysize)  //was tdarraysize >= 0
+	if(tdarraysize >= 0 && tdarraysize != arraysize)  //was tdarraysize >= 0
 	  {
 	    //error can't support double arrays
 	    std::ostringstream msg;
