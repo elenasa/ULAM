@@ -1674,7 +1674,7 @@ namespace MFM {
 		  }
 		//update rest of argument refs
 		rtnbitsize = tdut->getBitSize();
-		rtnarraysize = tdut->getArraySize();
+		rtnarraysize = tdut->getArraySize(); //becomes arg when installing symbol
 		rtnanothertduti = tduti;
 		rtnb = true;
 	      }

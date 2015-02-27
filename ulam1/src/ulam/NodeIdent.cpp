@@ -295,15 +295,9 @@ namespace MFM {
 	if(!checkTypedefOfTypedefSizes(anothertduti, arraysize, bitsize, aTok))
 	  return false;
 
-	//create a symbol for this ulam type, a typedef, for this scope
-	SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, anothertduti, m_state);
-	m_state.addSymbolToCurrentScope(symtypedef);
-
-	//gets the symbol just created
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr));  //true
+	tduti = anothertduti;
       }
-
-    if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, tduti))
+    else if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, tduti))
       {
 	if(!checkTypedefOfTypedefSizes(tduti, arraysize, bitsize, aTok))
 	  return false;
@@ -397,7 +391,15 @@ namespace MFM {
 	if(!checkVariableTypedefSizes(anothertduti, arraysize, bitsize, aTok))
 	  return false;
 	//use another classes' typedef uti; (is classInstanceIdx relevant???)
-	aut = anothertduti;
+	//aut = anothertduti;
+
+	//type names begin with capital letter..and the rest can be either case
+	u32 basetypeNameId = m_state.getTokenAsATypeNameId(aTok); //Int, etc; 'Nav' if invalid
+	UlamKeyTypeSignature key(basetypeNameId, bitsize, arraysize, classInstanceIdx);
+
+	// o.w. build symbol, first the base type (with array size)
+	aut = m_state.makeUlamType(key, bUT);
+
 	brtn = true;
       }
     else if(m_state.getUlamTypeByTypedefName(aTok.m_dataindex, aut))
@@ -499,7 +501,7 @@ namespace MFM {
     s32 tdarraysize = tdut->getArraySize();
     if(arraysize >= 0)  //variable's
       {
-	if(tdarraysize >= 0)  //tdarraysize != arraysize)
+	if(tdarraysize != arraysize)  //was tdarraysize >= 0
 	  {
 	    //error can't support double arrays
 	    std::ostringstream msg;
@@ -516,11 +518,11 @@ namespace MFM {
     s32 tdbitsize = tdut->getBitSize();
     if(bitsize > 0)  //variable's
       {
-	if(tdbitsize > 0)  //tdarraysize != arraysize)
+	if(tdbitsize != bitsize)  //was (tdbitsize > 0)
 	  {
 	    //error can't support different bitsizes
 	    std::ostringstream msg;
-	    msg << "Bitsize (" << tdbitsize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(auti).c_str() << ", and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+	    msg << "Bit size (" << tdbitsize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&aTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(auti).c_str() << ", and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
@@ -529,8 +531,7 @@ namespace MFM {
       {
 	bitsize = tdbitsize; //use whatever typedef is
       }
-
-    assert(tdbitsize == bitsize);
+    //assert(tdbitsize == bitsize);
     return rtnb;
   } //checkVariableTypedefSizes
 
