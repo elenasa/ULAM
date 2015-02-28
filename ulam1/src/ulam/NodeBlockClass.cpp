@@ -529,8 +529,10 @@ namespace MFM {
 	fp->write(cut->getUlamTypeMangledName().c_str());
 
 	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
 	fp->write("() : UlamElement<EC>(MFM_UUID_FOR(\"");
-	fp->write(namestr.c_str());
+	fp->write(namestrlong.c_str());
 	fp->write("\", 0))\n");
 	m_state.indent(fp);
 	fp->write("{\n");
@@ -620,5 +622,18 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("}   //is\n\n");
   } //generateCodeForBuiltInClassFunctions
+
+
+  std::string NodeBlockClass::removePunct(std::string str)
+  {
+    std::string newstr("");
+    for(u32 i = 0; i < str.length(); i++)
+      {
+	char c = str[i];
+	if(!ispunct(c))
+	  newstr.push_back(c);
+      }
+    return newstr;
+  } //removePunct
 
 } //end MFM

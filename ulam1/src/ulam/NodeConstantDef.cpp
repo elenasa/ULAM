@@ -216,6 +216,11 @@ namespace MFM {
     return ERROR;
   } //eval
 
+  void NodeConstantDef::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    //do nothing, but override
+  }
+
   void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
   {}
 

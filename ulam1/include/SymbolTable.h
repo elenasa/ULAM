@@ -150,7 +150,6 @@ namespace MFM{
 
   private:
     CompilerState & m_state;
-    //    void mergeInstancesBeforeCodeGenForTableOfClasses();
     s32 calcVariableSymbolTypeSize(UTI ut);
     bool variableSymbolWithCountableSize(Symbol * sym);
   };

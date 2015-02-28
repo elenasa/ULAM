@@ -118,6 +118,8 @@ namespace MFM{
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
     virtual void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
+    std::string removePunct(std::string str);
   };
 
 }
