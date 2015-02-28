@@ -1320,7 +1320,7 @@ namespace MFM {
     if(cnsym->isClassTemplate())
       {
 	u32 numParams = ((SymbolClassNameTemplate *) cnsym)->getNumberOfParameters();
-	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << m_pool.getDataAsString(getCompileThisId()).c_str() << DigitCount(numParams, BASE10) << numParams << "_main.cpp";
+	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << getDataAsStringMangled(getCompileThisId()).c_str() << DigitCount(numParams, BASE10) << numParams << "_main.cpp";
       }
     else
       f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";

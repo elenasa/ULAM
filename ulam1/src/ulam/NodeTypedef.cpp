@@ -146,7 +146,7 @@ namespace MFM {
 
   void NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
   {
-    //do nothing ???
+    //do nothing, but override
   }
 
   void NodeTypedef::genCode(File * fp, UlamValue& uvpass)
@@ -171,5 +171,3 @@ namespace MFM {
   }
 
 } //end MFM
-
-
