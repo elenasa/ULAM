@@ -508,7 +508,6 @@ namespace MFM {
 	if(getExpectedToken(TOK_OPEN_PAREN, QUIETLY))
 	  {
 	    //eats the '(' when found; NULL if error occurred
-	    //rtnNode = makeFunctionSymbol(pTok, typebitsize, iTok, cuti, atduti, bitsizeNode); //with params
 	    rtnNode = makeFunctionSymbol(typeargs, iTok, bitsizeNode); //with params
 
 	    Token qTok;
@@ -536,13 +535,12 @@ namespace MFM {
 	    // not '(', so token is unread, and we know
 	    // it's a variable, not a function;
 	    // also handles arrays
-	    UTI rtnType = Nav;
-	    rtnNode = makeVariableSymbol(typeargs, iTok, rtnType, bitsizeNode);
+	    typeargs.declListScalarType = Nav;
+	    rtnNode = makeVariableSymbol(typeargs, iTok, bitsizeNode);
 
 	    if(rtnNode)
 	      {
 		typeargs.assignOK = NOASSIGN;
-		typeargs.declListScalarType = rtnType;
 		rtnNode = parseRestOfDecls(typeargs, iTok, rtnNode);
 	      }
 	    if(!getExpectedToken(TOK_SEMICOLON))
@@ -1270,7 +1268,6 @@ namespace MFM {
 	//insure the typedef name starts with a capital letter
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
-	    //rtnNode = makeTypedefSymbol(pTok, typebitsize, arraysize, iTok, cuti, atduti, bitsizeNode);
 	    rtnNode = makeTypedefSymbol(typeargs, iTok, bitsizeNode);
 	  }
 	else
@@ -1371,11 +1368,10 @@ namespace MFM {
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-	UTI rtnType = Nav; //first one!
-	rtnNode = makeVariableSymbol(typeargs, iTok, rtnType, bitsizeNode);
+	typeargs.declListScalarType = Nav; //first one!
+	rtnNode = makeVariableSymbol(typeargs, iTok, bitsizeNode);
 	if(rtnNode && !parseSingleDecl)
 	  {
-	    typeargs.declListScalarType = rtnType;
 	    // for multi's of same type (rtnType), and/or its assignment
 	    return parseRestOfDecls(typeargs, iTok, rtnNode);
 	  }
@@ -1537,7 +1533,6 @@ namespace MFM {
 
   //return NodeTypeBitsize when unsuccessful evaluating its constant expression
   // up to caller to delete it
-  //  NodeTypeBitsize * Parser::parseTypeBitsize(Token & typeTok, s32& typebitsize, s32& arraysize, UTI& rtnanothertduti)
   NodeTypeBitsize * Parser::parseTypeBitsize(ParserTypeArgs& args)
   {
     NodeTypeBitsize * rtnNode = NULL;
@@ -1564,12 +1559,10 @@ namespace MFM {
 	      {
 		delete rtnNode; //done with them!
 		rtnNode = NULL;
-		//args.bitsizeNode = NULL;
 	      }
 	    else //else will be returning rtnNode, ownership transferred
 	      {
 		args.bitsize = UNKNOWNSIZE;
-		//		args.bitsizeNode = rtnNode; //return set here!
 	      }
 	  }
 
@@ -1578,7 +1571,6 @@ namespace MFM {
 	    args.bitsize = UNKNOWNSIZE; //?
 	    delete rtnNode;
 	    rtnNode = NULL;
-	    //args.bitsizeNode = NULL;
 	  }
       }
     else if(bTok.m_type == TOK_DOT)
@@ -1594,7 +1586,6 @@ namespace MFM {
     return rtnNode; //typebitsize const expr
   } //parseTypeBitsize
 
-  //bool Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, UTI& rtnanothertduti)
   bool Parser::parseTypeFromAnotherClassesTypedef(ParserTypeArgs& args)
   {
     u32 numDots = 0;
@@ -1611,7 +1602,6 @@ namespace MFM {
   // into their UTI alias; the typeTok and return bitsize ref args
   // represent the UTI; false if 'sizeof' or something other than a type
   // was found after the first dot; countDots.
-  //void Parser::parseTypeFromAnotherClassesTypedef(Token & typeTok, s32& rtnbitsize, s32& rtnarraysize, UTI classInstanceIdx, UTI& rtnanothertduti, bool& rtnb, u32& numDots)
   void Parser::parseTypeFromAnotherClassesTypedef(ParserTypeArgs& args, bool& rtnb, u32& numDots)
   {
     Token nTok;
@@ -1946,10 +1936,7 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
     if(pTok.m_type != TOK_DOT)
-      {
-	unreadToken();
-	//return NULL; //optional, dot might have already been eaten
-      }
+	unreadToken(); //optional, dot might have already been eaten
 
     Token fTok;
     if(!getExpectedToken(TOK_IDENTIFIER, fTok))
@@ -2169,7 +2156,6 @@ namespace MFM {
 		if(!parseTypeFromAnotherClassesTypedef(typeargs))
 		  uti = cuti;
 		else
-		  //uti = m_state.getUlamTypeFromToken(pTok, typebitsize, arraysize); //and, what if from another class? Nav???
 		  uti = typeargs.anothertduti;
 	      }
 	    else
@@ -2677,11 +2663,12 @@ namespace MFM {
   } //parseRestOfAssignExpr
 
   //assignOK true by default.
-  //Node * Parser::parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, UTI anothertduti, UTI& rtnType, Node * dNode,  bool assignOK)
   Node * Parser::parseRestOfDecls(ParserTypeArgs& args, Token identTok, Node * dNode)
   {
     Token pTok;
     getNextToken(pTok);
+
+    args.arraysize = NONARRAYSIZE; //clear for decl list (args ref)
 
     if(pTok.m_type == TOK_EQUAL)
       {
@@ -2712,8 +2699,8 @@ namespace MFM {
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-	// another decl of same rtnType typeTok
-	Node * sNode = makeVariableSymbol(args, iTok, args.declListScalarType, NULL); //a decl
+	// another decl of same type
+	Node * sNode = makeVariableSymbol(args, iTok, NULL); //a decl
 	if (sNode)
 	  {
 	    rtnNode =  new NodeStatements(dNode, m_state);
@@ -2736,7 +2723,6 @@ namespace MFM {
     return parseRestOfDecls(args, iTok, rtnNode); //iTok in case of =
   } //parseRestOfDecls
 
-  //Node * Parser::parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, UTI anothertduti, UTI& rtnType, Node * dNode)
   Node * Parser::parseRestOfDeclAssignment(ParserTypeArgs& args, Token identTok, Node * dNode)
   {
     NodeStatements * rtnNode = new NodeStatements(dNode, m_state);
@@ -2801,7 +2787,6 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfConstantDef
 
-  //NodeBlockFunctionDefinition * Parser::makeFunctionBlock(Token typeTok, u32 typebitsize, Token identTok, UTI classInstanceIdx, UTI anothertduti, NodeTypeBitsize * constExprForBitSize)
   NodeBlockFunctionDefinition * Parser::makeFunctionBlock(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     NodeBlockFunctionDefinition * rtnNode = NULL;
@@ -2890,7 +2875,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Duplicate defined function '" << m_state.m_pool.getDataAsString(fsymptr->getId()) << "' with the same parameters" ;
 	    MSG(&args.typeTok, msg.str().c_str(), ERR);
-	    delete fsymptr;         //also deletes the NodeBlockFunctionDefinition
+	    delete fsymptr; //also deletes the NodeBlockFunctionDefinition
 	    rtnNode = NULL;
 	  }
       }
@@ -2920,7 +2905,6 @@ namespace MFM {
 	    rtnNode = NULL;
 	  }
       }
-
     // this block's ST is no longer in scope
     m_state.popClassContext(); //= prevBlock;
     m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
@@ -2936,11 +2920,10 @@ namespace MFM {
       return; //done with parameters
 
     assert(fsym);
-    // allows function name to be same as arg name
-    // since the function starts a new "block" (i.e. ST);
-    // the argument to parseDecl will prevent it from looking
-    // for restofdecls (i.e. singledecl)
-    // currently only for natives (detected after args done)
+
+    // allows function name to be same as arg name since the function starts a new "block" (i.e. ST);
+    // the argument to parseDecl will prevent it from looking for restofdecls (i.e. singledecl);
+    // ellipsis currently only for natives (detected after args done)
     if(pTok.m_type == TOK_ELLIPSIS)
       {
 	if(!fsym->takesVariableArgs())
@@ -2984,7 +2967,7 @@ namespace MFM {
 	//continue or short-circuit?
       }
 
-    if(getExpectedToken(TOK_COMMA, QUIETLY)) // if so, get next parameter; o.w. unread
+    if(getExpectedToken(TOK_COMMA, QUIETLY)) //if so, get next parameter; o.w. unread
       {
 	if(fsym->takesVariableArgs())
 	  MSG(&pTok, "Variable args indication (...) appears at end of parameter list", ERR);
@@ -2995,7 +2978,6 @@ namespace MFM {
   bool Parser::parseFunctionBody(NodeBlockFunctionDefinition *& funcNode)
   {
     bool brtn = false;
-
     // if next token is { this is a definition; o.w. a declaration, alone invalid
     // however, keyword 'native' is exception.
     Token qTok;
@@ -3053,7 +3035,6 @@ namespace MFM {
     return brtn;
   } //parseFunctionBody
 
-  //Node * Parser::makeFunctionSymbol(Token typeTok, u32 typebitsize, Token identTok, UTI classInstanceIdx, UTI anothertduti, NodeTypeBitsize * constExprForBitSize)
   Node * Parser::makeFunctionSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     // first check that the function name begins with a lower case letter
@@ -3075,7 +3056,8 @@ namespace MFM {
     if(m_state.getClassBlock()->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
-	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
+	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '";
+	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&args.typeTok, msg.str().c_str(), ERR);
 
 	// eat tokens until end of definition?
@@ -3091,8 +3073,7 @@ namespace MFM {
     return rtnNode;
   } //makeFunctionSymbol
 
-  //Node * Parser::makeVariableSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, UTI anothertduti, UTI& rtnType, NodeTypeBitsize * constExprForBitSize)
-  Node * Parser::makeVariableSymbol(ParserTypeArgs& args, Token identTok, UTI& rtnType, NodeTypeBitsize * constExprForBitSize)
+  Node * Parser::makeVariableSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     assert(!Token::isTokenAType(identTok)); //capitalization check done by Lexer
 
@@ -3135,10 +3116,10 @@ namespace MFM {
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.typeTok.m_locator);
 
-	    // in case of decl list, return type of symbol
+	    // in case of decl list, set type of symbol in args ref
 	    assert(asymptr);
-	    if(rtnType == Nav)
-	      rtnType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
+	    if(args.declListScalarType == Nav)
+	      args.declListScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
 	  }
 
 	//link square bracket for constant expression, if unknown array size
@@ -3146,7 +3127,7 @@ namespace MFM {
 	// o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), rtnType, constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), args.declListScalarType, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3161,7 +3142,6 @@ namespace MFM {
     return rtnNode;
   } //makeVariableSymbol
 
-  //  Node * Parser::makeTypedefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceIdx, UTI anothertduti, NodeTypeBitsize * constExprForBitSize)
   Node * Parser::makeTypedefSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     NodeTypedef * rtnNode = NULL;
@@ -3224,15 +3204,13 @@ namespace MFM {
     return rtnNode;
   } //makeTypedefSymbol
 
-  //Node * Parser::makeConstdefSymbol(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI anothertduti, NodeTypeBitsize * constExprForBitSize, bool assignOK)
   Node * Parser::makeConstdefSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     NodeConstantDef * rtnNode = NULL;
     Node * lvalNode = parseIdentExpr(identTok); //parseLvalExpr(identTok);
     if(lvalNode)
       {
-	// lvalNode could be either a NodeIdent or a NodeSquareBracket
-	//though arrays not legal in this context!!!
+	// lvalNode could be either a NodeIdent or a NodeSquareBracket though arrays not legal in this context!!!
 	// process identifier...check if already defined in current scope; if not, add it;
 	// return a SymbolConstantValue.
 	UTI uti;
@@ -3249,7 +3227,9 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "' and cannot be used as a named constant";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '";
+		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " ";
+		msg<< m_state.m_pool.getDataAsString(asymptr->getId()) << "' and cannot be used as a named constant";
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -3257,7 +3237,8 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with []) , error already output.
 		// rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid constant-def of Type: <" << m_state.getTokenAsATypeName(args.typeTok).c_str() << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str() << "> (problem with [])";
+		msg << "Invalid constant-def of Type: <" << m_state.getTokenAsATypeName(args.typeTok).c_str();
+		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str() << "> (problem with [])";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 	    //perhaps read until semi-colon
@@ -3273,8 +3254,8 @@ namespace MFM {
 	    rtnNode = parseRestOfConstantDef(constNode, args.assignOK); //refactored for readability
 	  }
 
-	//link square bracket for constant expression, if unknown array size
-	//link last arg for constant expression, if unknown bit size
+	//link square bracket for constant expression, if unknown array size;
+	//link last arg for constant expression, if unknown bit size;
 	// o.w. clean up!
 	if(rtnNode)
 	  {
@@ -3316,7 +3297,7 @@ namespace MFM {
       }
 
     //consider possibility of Class Instance as Type
-    UTI cuti = parseClassArguments(tTok); //not sure what to do with the UTI?
+    UTI cuti = parseClassArguments(tTok);
 
     switch(fTok.m_type)
       {
@@ -3758,20 +3739,17 @@ namespace MFM {
 
     if(m_state.getBaseTypeFromToken(typeTok) == Class)
       {
-	UTI cuti = parseClassArguments(typeTok); //not sure what to do with the UTI?
+	UTI cuti = parseClassArguments(typeTok);
 	typeargs.classInstanceIdx = cuti;
+	typeToBe = cuti; //unless a dot is next
 	Token dTok;
 	getNextToken(dTok);
 	unreadToken();
 	if(dTok.m_type == TOK_DOT)
 	  {
-	    if(!parseTypeFromAnotherClassesTypedef(typeargs))
-	      typeToBe = cuti; //probably an error if not a type
-	    else
+	    if(parseTypeFromAnotherClassesTypedef(typeargs))
 	      typeToBe = typeargs.anothertduti;
 	  }
-	else
-	  typeToBe = cuti;
       }
     else
       {
@@ -3780,7 +3758,6 @@ namespace MFM {
 	bitsizeNode = parseTypeBitsize(typeargs); //refs
 
 	// allows for casting to a class (makes class type if newly seen)
-	//if(typeToBe == Nav)
 	if(typeargs.anothertduti == Nav)
 	  typeToBe = m_state.getUlamTypeFromToken(typeargs.typeTok, typeargs.bitsize, typeargs.arraysize);
 	else
