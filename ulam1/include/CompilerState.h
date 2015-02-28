@@ -89,6 +89,28 @@ namespace MFM{
     }
   };
 
+  struct ParserTypeArgs
+  {
+    Token typeTok;
+    s32 bitsize;
+    s32 arraysize;
+    UTI classInstanceIdx;
+    UTI anothertduti;
+    UTI declListScalarType;
+    bool assignOK;
+
+    void init(Token typetoken)
+    {
+      typeTok = typetoken;
+      bitsize = UNKNOWNSIZE;
+      arraysize = NONARRAYSIZE;
+      classInstanceIdx = Nav;
+      anothertduti = Nav;
+      declListScalarType = Nav;
+      assignOK = true;
+    }
+  };
+
   class Symbol;         //forward
   class NodeBlockClass; //forward
   class SymbolTable;    //forward
@@ -338,42 +360,6 @@ namespace MFM{
     ClassContextStack m_classContextStack;         // the current subject of this compilation
 
   };
-
-  struct ParserTypeArgs
-  {
-    Token typeTok;
-    s32 bitsize;
-    s32 arraysize;
-    UTI classInstanceIdx;
-    UTI anothertduti;
-    UTI declListScalarType;
-    bool assignOK;
-
-    void init(Token typetoken)
-    {
-      typeTok = typetoken;
-      bitsize = UNKNOWNSIZE;
-      arraysize = NONARRAYSIZE;
-      classInstanceIdx = Nav;
-      anothertduti = Nav;
-      declListScalarType = Nav;
-      assignOK = true;
-    }
-
-    ParserTypeArgs& operator=(const struct ParserTypeArgs& arg)
-    {
-      typeTok = arg.typeTok;
-      bitsize = arg.bitsize;
-      arraysize = arg.arraysize;
-      classInstanceIdx = arg.classInstanceIdx;
-      anothertduti = arg.anothertduti;
-      declListScalarType = arg.declListScalarType;
-      assignOK = arg.assignOK;
-      return *this;
-    }
-  };
-
-
 }
 
 #endif //end COMPILERSTATE_H
