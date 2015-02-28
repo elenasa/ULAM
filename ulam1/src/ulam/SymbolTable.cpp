@@ -991,6 +991,10 @@ namespace MFM {
 		  {
 		    return 0;  //empty, ok
 		  }
+		else if(csym->isStub())
+		  {
+		    return csize;
+		  }
 		else
 		  {
 		    // ==0, redo variable total
@@ -1000,10 +1004,14 @@ namespace MFM {
 		    //quark cannot contain a copy of itself!
 		    assert(classblock != m_state.getClassBlock());
 
+		    m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
+
 		    if(csym->isQuarkUnion())
 		      csize = classblock->getMaxBitSizeOfVariableSymbolsInTable();
 		    else
 		      csize = classblock->getBitSizesOfVariableSymbolsInTable(); //data members only
+
+		    m_state.popClassContext(); //restore
 		    return csize;
 		  }
 	      }
