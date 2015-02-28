@@ -85,6 +85,8 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
+    virtual void packBitsInOrderOfDeclaration(u32& offset);
+
     virtual void genCode(File * fp, UlamValue& uvpass);
 
   private:

@@ -238,7 +238,8 @@ namespace MFM {
   }
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, Symbol *& asymptr)
+  //bool NodeSquareBracket::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -248,7 +249,7 @@ namespace MFM {
 	return false;
       }
 
-    if(arraysize > NONARRAYSIZE)
+    if(args.arraysize > NONARRAYSIZE)
       {
 	MSG(getNodeLocationAsString().c_str(), "Array size specified twice for typedef symbol", ERR);
 	return false;
@@ -256,20 +257,25 @@ namespace MFM {
 
     s32 newarraysize = NONARRAYSIZE;
     if(getArraysizeInBracket(newarraysize))
-      return m_nodeLeft->installSymbolTypedef(atok, bitsize, newarraysize, classInstanceIdx, asymptr);
+      {
+	args.arraysize = newarraysize;
+	return m_nodeLeft->installSymbolTypedef(args, asymptr);
+      }
 
     return false;  //error getting array size
   } //installSymbolTypedef
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, Symbol *& asymptr)
+  //bool NodeSquareBracket::installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, UTI anothertduti, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolConstantValue(ParserTypeArgs& args, Symbol *& asymptr)
   {
     MSG(getNodeLocationAsString().c_str(), "Array size specified for named constant", ERR);
     return false;
   } //installSymbolConstantValue
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI declListScalarType, Symbol *& asymptr)
+  //bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, UTI declListScalarType, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolVariable(ParserTypeArgs& args,  Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -279,7 +285,7 @@ namespace MFM {
 	return false;
       }
 
-    if(arraysize > NONARRAYSIZE)
+    if(args.arraysize > NONARRAYSIZE)
       {
 	MSG(getNodeLocationAsString().c_str(), "Array size specified twice", ERR);
 	return false;
@@ -287,8 +293,10 @@ namespace MFM {
 
     s32 newarraysize = NONARRAYSIZE;
     if(getArraysizeInBracket(newarraysize))
-      return m_nodeLeft->installSymbolVariable(atok, bitsize, newarraysize, classInstanceIdx, declListScalarType, asymptr);
-
+      {
+	args.arraysize = newarraysize;
+	return m_nodeLeft->installSymbolVariable(args, asymptr);
+      }
     return false;  //error getting array size
   } //installSymbolVariable
 
