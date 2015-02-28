@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-  //#define _DEBUG_OUTPUT
-  //#define _INFO_OUTPUT
-  //#define _WARN_OUTPUT
+//#define _DEBUG_OUTPUT
+//#define _INFO_OUTPUT
+//#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -117,8 +117,7 @@ namespace MFM {
   } //clearAllLinesOfText
 
   //convenience method (refactors code originally from installSymbol)
-  //if exists, just returns it, o.w. makes it;
-  // trick to know the base ULAMTYPE
+  //if exists, just returns it, o.w. makes it; trick to know the base ULAMTYPE
   UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx)
   {
     //type names begin with capital letter..and the rest can be either
@@ -128,7 +127,7 @@ namespace MFM {
     UTI tmputi;
     assert(!getUlamTypeByTypedefName(typeTok.m_dataindex, tmputi));
 
-    // is this name already a typedef for a complex type?
+    //is this name already a typedef for a complex type?
     ULAMTYPE bUT = getBaseTypeFromToken(typeTok);
     if(bitsize == 0)
       bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
@@ -172,8 +171,8 @@ namespace MFM {
 		  key.append(uti);
 		else
 		  {
-		    // if this classInstanceIdx (suti) is a template with parameters
-		    // then make a new uti; o.w. no need for a new uti, it's defined.
+		    //if this classInstanceIdx (suti) is a template with parameters
+		    //then make a new uti; o.w. no need for a new uti, it's defined.
 		    SymbolClassName * cnsym = NULL;
 		    UlamType * sut = getUlamTypeByIndex(suti);
 		    assert(alreadyDefinedSymbolClassName(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym));
@@ -208,7 +207,7 @@ namespace MFM {
 	incrementUnknownKeyUTICounter(key);
 
 	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
-	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); // just one!
+	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); //just one!
 	assert(isDefined(key, ut));
       }
     else
@@ -378,7 +377,7 @@ namespace MFM {
     if(rtnBool)
       {
 	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
-	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); // just one!
+	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); //just one!
 	bool notdup = ret.second; //false if already existed, i.e. not added
 	if(!notdup)
 	  {
@@ -390,7 +389,7 @@ namespace MFM {
     return rtnBool;
   } //updateUlamKeyTypeSignatureToaUTI
 
-  // called by Symbol's copy constructor with ref's 'incomplete' uti
+  //called by Symbol's copy constructor with ref's 'incomplete' uti
   //please set getCompileThisIdx() to the instance's UTI.
   UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
   {
@@ -404,7 +403,7 @@ namespace MFM {
     if(cnsym->hasInstanceMappedUTI(getCompileThisIdx(), suti, mappedUTI))
       return mappedUTI;  //e.g. decl list
 
-    // move this test after looking for the mapped class symbol type
+    //move this test after looking for the mapped class symbol type
     ULAMTYPE bUT = sut->getUlamTypeEnum();
     UlamKeyTypeSignature skey = sut->getUlamKeyTypeSignature();
     SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
@@ -417,13 +416,13 @@ namespace MFM {
 	  return suti;
       }
 
-    // first time we've seen this 'incomplete' UTI for this class instance (being fully instantiated):
-    // get a new UTI and add to cnsym's map for this instance in case we see it again;
-    // Later, also update all its resolver's 'subtree' table references; For classes with
-    // pending args, make a copy of the stub including its resolver with pending args, so
-    // pending args can be resolved XXXX within the context of this class instance (e.g. dependent on
-    // instances arg values which makes it different than others', like "self").
-    // Context dependent pending args are resolved before they are added to the resolver's pending args.
+    //first time we've seen this 'incomplete' UTI for this class instance (being fully instantiated):
+    //get a new UTI and add to cnsym's map for this instance in case we see it again;
+    //Later, also update all its resolver's 'subtree' table references; For classes with
+    //pending args, make a copy of the stub including its resolver with pending args, so
+    //pending args can be resolved XXXX within the context of this class instance (e.g. dependent on
+    //instances arg values which makes it different than others', like "self").
+    //Context dependent pending args are resolved before they are added to the resolver's pending args.
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
     UTI newuti = makeUlamType(newkey,bUT);
     cnsym->mapInstanceUTI(getCompileThisIdx(), suti, newuti);
@@ -538,7 +537,7 @@ namespace MFM {
   {
     ULAMTYPE bUT = Nav;
     UTI ut = Nav;
-    // is this name already a typedef for a complex type?
+    //is this name already a typedef for a complex type?
     if(getUlamTypeByTypedefName(tok.m_dataindex, ut))
       {
 	bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
@@ -552,7 +551,7 @@ namespace MFM {
       }
     else
       {
-	// it's an element or quark! base type is Class.
+	//it's an element or quark! base type is Class.
 	//SymbolClassName * cnsym = NULL;
 	//if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	bUT = Class;
@@ -563,7 +562,7 @@ namespace MFM {
   UTI CompilerState::getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize)
   {
     UTI uti = Nav;
-    // is this name already a typedef for a complex type?
+    //is this name already a typedef for a complex type?
     if(!getUlamTypeByTypedefName(tok.m_dataindex, uti))
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
@@ -583,13 +582,13 @@ namespace MFM {
     return uti;
   } //getUlamTypeFromToken
 
-  // new version! uses indexes
+  //new version! uses indexes
   bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType)
   {
     bool rtnBool = false;
     Symbol * asymptr = NULL;
 
-    // e.g. KEYWORDS have no m_dataindex (=0); short-circuit
+    //e.g. KEYWORDS have no m_dataindex (=0); short-circuit
     if(nameIdx == 0) return false;
 
     //searched back through all block's ST for idx
@@ -610,7 +609,7 @@ namespace MFM {
     if(ut->isScalar())
       return utArg;
 
-    // for typedef array, the scalar is the primitive type
+    //for typedef array, the scalar is the primitive type
     ULAMTYPE bUT = ut->getUlamTypeEnum();
 
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
@@ -679,8 +678,8 @@ namespace MFM {
     return ut->isComplete();
   } //isComplete
 
-  // this may go away..
-  // updates key. we can do this now that UTI is used and the UlamType * isn't saved
+  //this may go away..
+  //updates key. we can do this now that UTI is used and the UlamType * isn't saved
   void CompilerState::setBitSize(UTI utArg, s32 bits)
   {
     return setUTISizes(utArg, bits, getArraySize(utArg));  //keep current arraysize
@@ -700,7 +699,7 @@ namespace MFM {
 	return setSizesOfNonClass(utArg, bitsize, arraysize);
       }
 
-    // bitsize could be UNKNOWN or CONSTANT (negative)
+    //bitsize could be UNKNOWN or CONSTANT (negative)
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
 
     bool isCustomArray = ut->isCustomArray();
@@ -729,7 +728,7 @@ namespace MFM {
 	  }
       }
 
-    // old key
+    //old key
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
     //continue with valid number of bits for Class UlamTypes only
@@ -820,7 +819,7 @@ namespace MFM {
     deleteUlamKeyTypeSignature(key);
 
     UlamType * newut = NULL;
-    //    assert(!isDefined(key, newut) && !newut);
+    //assert(!isDefined(key, newut) && !newut);
 
     if(!isDefined(newkey, newut))
       {
@@ -837,7 +836,7 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
-  } // setSizesOfNonClass
+  } //setSizesOfNonClass
 
   s32 CompilerState::getDefaultBitSize(UTI uti)
   {
@@ -891,7 +890,7 @@ namespace MFM {
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
       {
-	// what???
+	//what???
 	if(cnsym->getUlamTypeIdx() != scalarUTI && cnsym->isClassTemplate())
 	  {
 	    SymbolClass * csym = NULL;
@@ -918,7 +917,7 @@ namespace MFM {
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
 
-    // symbol ownership goes to the programDefST; distinguish between template and regular classes here:
+    //symbol ownership goes to the programDefST; distinguish between template and regular classes here:
     symptr = new SymbolClassName(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
@@ -931,7 +930,7 @@ namespace MFM {
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
 
-    // symbol ownership goes to the programDefST; distinguish between template and regular classes here:
+    //symbol ownership goes to the programDefST; distinguish between template and regular classes here:
     symptr = new SymbolClassNameTemplate(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
@@ -982,11 +981,11 @@ namespace MFM {
   {
     bool brtn = false;
 
-    // start with the current "top" block and look down the stack
-    // until the 'variable id' is found.
+    //start with the current "top" block and look down the stack
+    //until the 'variable id' is found.
     NodeBlock * blockNode = getCurrentBlock();
 
-    // substitute another selected class block to search for data member
+    //substitute another selected class block to search for data member
     if(useMemberBlock())
       blockNode = getCurrentMemberClassBlock();
 
@@ -996,8 +995,8 @@ namespace MFM {
 	blockNode = blockNode->getPreviousBlockPointer();  //traverse the chain
       }
 
-    // data member variables in class block; function symbols are linked to their
-    // function def block; check function data members separately.
+    //data member variables in class block; function symbols are linked to their
+    //function def block; check function data members separately.
     if(!brtn)
       {
 	brtn = isFuncIdInClassScope(dataindex, symptr);
@@ -1045,7 +1044,7 @@ namespace MFM {
   }
 
   //symbol ownership goes to the current block (end of vector);
-  // symbol is same, just id changed
+  //symbol is same, just id changed
   void CompilerState::replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr)
   {
     getCurrentBlock()->replaceIdInScope(oldid, symptr->getId(), symptr);
@@ -1352,7 +1351,7 @@ namespace MFM {
   } //getBitSizeTemplateString
 
   //unfortunately, the uti did not reveal a Class symbol; already down to primitive types
-  // for casting.
+  //for casting.
   const std::string CompilerState::getBitVectorLengthAsStringForCodeGen(UTI uti)
   {
     ULAMCLASSTYPE classtype = getUlamTypeByIndex(uti)->getUlamClass();
@@ -1389,7 +1388,7 @@ namespace MFM {
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
     assert(ptr.getUlamValueTypeIdx() == Ptr);
-    // slot + storage
+    //slot + storage
     UlamValue valAtIdx;
     switch(ptr.getPtrStorage())
       {
@@ -1414,12 +1413,12 @@ namespace MFM {
   {
     assert(lptr.getUlamValueTypeIdx() == Ptr);
 
-    // handle UAtom assignment as a singleton (not array values)
+    //handle UAtom assignment as a singleton (not array values)
     if(ruv.getUlamValueTypeIdx() == Ptr && (ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom))
       {
 	return assignArrayValues(lptr, ruv);
       }
-    // r is data (includes packed arrays), store it into where lptr is pointing
+    //r is data (includes packed arrays), store it into where lptr is pointing
     assert(UlamType::compare(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
 
     STORAGE place = lptr.getPtrStorage();
@@ -1448,7 +1447,7 @@ namespace MFM {
     assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
     UTI tuti = rptr.getPtrTargetType();
 
-    // unless we're copying from different storage classes, or an element
+    //unless we're copying from different storage classes, or an element
     //assert(!isScalar(lptr.getPtrTargetType()));
 
     //assigned packed or unpacked
@@ -1462,10 +1461,10 @@ namespace MFM {
 
     if(WritePacked(packed))
       {
-	UlamValue atval = getPtrTarget(rptr); // entire array in one slot
+	UlamValue atval = getPtrTarget(rptr); //entire array in one slot
 
-	// redo what getPtrTarget use to do, when types didn't match due to
-	// an element/quark or a requested scalar of an arraytype
+	//redo what getPtrTarget use to do, when types didn't match due to
+	//an element/quark or a requested scalar of an arraytype
 	if(atval.getUlamValueTypeIdx() != tuti)
 	  {
 	    UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
@@ -1481,14 +1480,14 @@ namespace MFM {
 
 	UlamValue nextlptr = UlamValue::makeScalarPtr(lptr,*this);
 	UlamValue nextrptr = UlamValue::makeScalarPtr(rptr,*this);
-	tuti = nextrptr.getPtrTargetType(); // update type
+	tuti = nextrptr.getPtrTargetType(); //update type
 
 	for(u32 i = 0; i < arraysize; i++)
 	  {
 	    UlamValue atval = getPtrTarget(nextrptr);
 
-	    // redo what getPtrTarget use to do, when types didn't match due to
-	    // an element/quark or a requested scalar of an arraytype
+	    //redo what getPtrTarget use to do, when types didn't match due to
+	    //an element/quark or a requested scalar of an arraytype
 	    if(atval.getUlamValueTypeIdx() != tuti)
 	      {
 		UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
@@ -1551,9 +1550,9 @@ namespace MFM {
 
   void CompilerState::setupCenterSiteForTesting()
   {
-    // call again for code gen..
-    // set up an atom in eventWindow; init m_currentObjPtr to point to it
-    // set up stacks since func call not called
+    //call again for code gen..
+    //set up an atom in eventWindow; init m_currentObjPtr to point to it
+    //set up stacks since func call not called
     Coord c0(0,0);
 
     //m_classBlock ok now, reset by NodeProgram after type label done
@@ -1563,23 +1562,23 @@ namespace MFM {
     m_eventWindow.setSiteElementType(c0, cuti);
     m_currentSelfPtr = m_currentObjPtr = m_eventWindow.makePtrToCenter();
 
-    // set up STACK since func call not called
-    m_funcCallStack.pushArg(m_currentObjPtr);                        //hidden arg on STACK
+    //set up STACK since func call not called
+    m_funcCallStack.pushArg(m_currentObjPtr); //hidden arg on STACK
     m_funcCallStack.pushArg(UlamValue::makeImmediate(Int, -1)); //return slot on STACK
   } //setupCenterSiteForTesting
 
-  // used by SourceStream to build m_textByLinePerFilePath during parsing
+  //used by SourceStream to build m_textByLinePerFilePath during parsing
   void CompilerState::appendNextLineOfText(Locator loc, std::string textstr)
   {
     std::vector<u32> * textOfLines = NULL;
 
-    // get index for string of text in string pool; may exist, o.w. new
+    //get index for string of text in string pool; may exist, o.w. new
     u32 textid = m_pool.getIndexForDataString(textstr);
 
     u32 pathidx = loc.getPathIndex();
     u16 linenum = loc.getLineNo();
 
-    // use path index in locator to access its vector of lines
+    //use path index in locator to access its vector of lines
     std::map<u32, std::vector<u32>*>::iterator it = m_textByLinePerFilePath.find(pathidx);
     if(it != m_textByLinePerFilePath.end())
       {
@@ -1592,10 +1591,10 @@ namespace MFM {
 	m_textByLinePerFilePath.insert(std::pair<u32, std::vector<u32>*> (pathidx,textOfLines));
       }
 
-    // may contain "empty" lines
+    //may contain "empty" lines
     if(linenum > textOfLines->size())
       {
-	// get index for string of text in string pool
+	//get index for string of text in string pool
 	u32 blankid = m_pool.getIndexForDataString("\n");
 
 	textOfLines->insert(textOfLines->end(), linenum - textOfLines->size(), blankid);
@@ -1613,7 +1612,7 @@ namespace MFM {
     u32 pathidx = loc.getPathIndex();
     u16 linenum = loc.getLineNo();
 
-    // use path index in locator to access its vector of lines
+    //use path index in locator to access its vector of lines
     std::map<u32, std::vector<u32>*>::iterator it = m_textByLinePerFilePath.find(pathidx);
     if(it != m_textByLinePerFilePath.end())
       {
@@ -1671,7 +1670,7 @@ namespace MFM {
   {
     assert(uti != Void);
 
-    std::ostringstream tmpVar;  // into
+    std::ostringstream tmpVar;  //into
     PACKFIT packed = determinePackable(uti);
 
     if(uti == UAtom || getUlamTypeByIndex(uti)->getUlamClass() == UC_ELEMENT)
@@ -1703,7 +1702,7 @@ namespace MFM {
 
   const std::string CompilerState::getLabelNumAsString(s32 num)
   {
-    std::ostringstream labelname;  // into
+    std::ostringstream labelname;  //into
     labelname << "Ul_endcontrolloop_" << DigitCount(num, BASE10) << num;;
     return labelname.str();
   } //getLabelNumAsString
@@ -1730,7 +1729,7 @@ namespace MFM {
 	return cnsym->findNodeNoInAClassInstance(mbuti, n);
       }
 
-    // beware the classblock is the only block with different node no in SHALLOW instances
+    //beware the classblock is the only block with different node no in SHALLOW instances
     if(getCurrentBlock()->getNodeNo() == n && getClassBlock()->getNodeType() == getCompileThisIdx())
       return getCurrentBlock(); //avoid chix-n-egg with functiondefs
 
