@@ -854,6 +854,12 @@ namespace MFM {
 	it++;
       } //while for typedefs only
 
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("OurAtomAll atom;\n");
+    m_state.indent(fp);
+    fp->write("MFM::Ui_Ut_102323Int rtn;\n");
+
     it = m_idToSymbolPtr.begin();
     s32 idcounter = 1;
     while(it != m_idToSymbolPtr.end())
@@ -866,6 +872,10 @@ namespace MFM {
 	it++;
 	idcounter++;
       } //while to run this test
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("return 0;\n");
   } //generateTestInstancesForTableOfClasses
 
   void SymbolTable::genCodeForTableOfClasses(FileManager * fm)

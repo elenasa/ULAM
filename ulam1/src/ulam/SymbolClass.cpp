@@ -471,10 +471,11 @@ namespace MFM {
     UlamType * sut = m_state.getUlamTypeByIndex(suti);
     if(!sut->isComplete()) return;
 
+    // output for each element before testing; a test may include
+    // one or more of them!
     if(!runtest)
       {
 	fp->write("\n");
-	// only for elements, as restricted by caller
 	m_state.indent(fp);
 	fp->write("{\n");
 
@@ -486,7 +487,7 @@ namespace MFM {
 	fp->write("<EC>::THE_INSTANCE;\n");
 
 	m_state.indent(fp);
-	fp->write("elt.AllocateType(); //Force element type allocation now\n");
+	fp->write("elt.AllocateType(etnm); //Force element type allocation now\n");
 	m_state.indent(fp);
 	fp->write("tile.RegisterElement(elt);\n");
 
@@ -501,23 +502,20 @@ namespace MFM {
 	  {
 	    fp->write("\n");
 	    m_state.indent(fp);
-	    fp->write("OurAtomAll atom = ");
+	    fp->write("atom = "); //OurAtomAll
 	    fp->write(sut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC>::THE_INSTANCE.GetDefaultAtom();\n");
 	    m_state.indent(fp);
 	    fp->write("tile.PlaceAtom(atom, center);\n");
-	    fp->write("\n");
-
 	    m_state.indent(fp);
-	    fp->write("MFM::Ui_Ut_102323Int rtn = ");
+	    fp->write("rtn = "); //MFM::Ui_Ut_102323Int
 	    fp->write(sut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC>::THE_INSTANCE.Uf_4test(uc, atom);\n");
 
 	    m_state.indent(fp);
 	    fp->write("//std::cerr << rtn.read() << std::endl;\n"); //useful to return result of test?
-
 	    m_state.indent(fp);
-	    fp->write("return rtn.read();\n"); //was useful to return result of test
+	    fp->write("//return rtn.read();\n"); //was useful to return result of test
 	  }
       }
   } //generateTestInstance
@@ -679,6 +677,8 @@ namespace MFM {
     fp->write("typedef EventConfig<OurSiteAll,4> OurEventConfigAll;\n");
     m_state.indent(fp);
     fp->write("typedef SizedTile<OurEventConfigAll, 20> OurTestTile;\n");
+    m_state.indent(fp);
+    fp->write("typedef ElementTypeNumberMap<OurEventConfigAll> OurEventTypeNumberMapAll;\n");
     fp->write("\n");
 
     m_state.indent(fp);
@@ -701,15 +701,17 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
+    fp->write("OurEventTypeNumberMapAll etnm;\n");
+    m_state.indent(fp);
     fp->write("OurTestTile tile;\n");
     m_state.indent(fp);
     fp->write("OurUlamContext uc;\n");
     m_state.indent(fp);
-    fp->write("uc.SetTile(tile);\n");
-    m_state.indent(fp);
     fp->write("const u32 TILE_SIDE = tile.TILE_SIDE;\n");
     m_state.indent(fp);
     fp->write("SPoint center(TILE_SIDE/2, TILE_SIDE/2);  // Hitting no caches, for starters;\n");
+    m_state.indent(fp);
+    fp->write("uc.SetTile(tile);\n");
 
     m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 

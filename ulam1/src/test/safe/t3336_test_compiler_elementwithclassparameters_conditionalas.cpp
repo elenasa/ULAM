@@ -6,21 +6,15 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //Foo.ulam:14:7: fyi: Invalid type for LHS of conditional operator 'as', <Atom.96.-1>; Passing through as UNFOUND for eval.
-
-      // no cast before cond
-      return std::string("Exit status: 0\nUe_Foo { Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Counter4 m_c4( Int(32) d(0); );  Int(32) e(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  a Foo as cond { Foo a;  a bi . true cast = } if a f cast = a Counter4 as cond { Counter4 a;  bh true cast = a ( )incr . e a ( )get . = } if { bh false cast = } else e return } }\nUq_Counter4 { Int(32) d(0);  <NOMAIN> }\n");
+      return std::string("Exit status: 7\nUe_Foo { System s();  Int(32) e(7);  constant Int(CONSTANT) v = 3;  Counter4(3) cv( constant Int(CONSTANT) x = 3;  Int(3) d(0); );  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = a Counter4 as cond { Counter4(3) a;  a ( )incr . e a ( )get . = s ( e )print . } if e 7 cast = else e return } }\nUq_Counter4 { constant Int(CONSTANT) x = NONREADYCONST;  Int(UNKNOWN) d(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
       //informed by t3249_test_compiler_elementandquark_conditionalas
-
       // 'a has System' doesn't appy to eval because atoms have no class declarations; but testable for gencode
-      //      bool rtn1 = fms->add("Foo.ulam","use Counter4;\nelement Foo {\nBool sp;\n Bool(3) bi, bh;\n Counter4 m_c4;\n Int e;\n Int test(){\n Atom a;\n Foo f;\n Bool b;\nif(a as Foo)\na.bi = true;\n a = f; //easy\n if(a as Counter4){\n bh = true;\n a.incr();\n e=a.get();\n }\n else {\n bh = false;\n}\nreturn e;\n}\n }\n");
-
-      //single statement case:
-      bool rtn1 = fms->add("Foo.ulam","use Counter4;\nuse System;\n element Foo {\nSystem s;\nInt e;\n Int test(){\nAtom a;\nif(a as Counter4(3))\n {\n a.incr();\ne = a.get();\n s.print(e);\n}\nelse\n e=7;\n return e;\n}\n }\n");
+      // enhanced by a 'named constant', v;
+      bool rtn1 = fms->add("Foo.ulam","use Counter4;\nuse System;\n element Foo {\nSystem s;\nInt e;\nconstant Int v = 3;\nCounter4(v) cv;\n Int test(){\nAtom a;\nFoo f;\n a = f;\nif(a as Counter4(v))\n {\n a.incr();\ne = a.get();\n s.print(e);\n}\nelse\n e=7;\n return e;\n}\n }\n");
 
       bool rtn2 = fms->add("Counter4.ulam", "ulam 1;\nquark Counter4(Int x) {\nInt(x) d;\nVoid incr(){\nd+=1;\n}\nInt get(){\nreturn d;\n}\n }\n");
 
