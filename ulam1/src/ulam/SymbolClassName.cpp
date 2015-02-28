@@ -80,7 +80,16 @@ namespace MFM {
   void SymbolClassName::updateLineageOfClass()
   {
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    if(!classNode)
+      {
+	std::ostringstream msg;
+	msg << "LineageUpdate skipped for a class <";
+	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	msg << "> without a definition, maybe not a class at all";
+	MSG("", msg.str().c_str(), ERR);
+	return;
+      }
+
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->updateLineage(0);
@@ -151,7 +160,7 @@ namespace MFM {
 	UTI cuti = getUlamTypeIdx();
 	m_state.setBitSize(cuti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
 	std::ostringstream msg;
-	msg << "CLASS (without instances): " << m_state.getUlamTypeNameByIndex(cuti).c_str() << " SIZED: " << totalbits;
+	msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str() << " SIZED: " << totalbits;
 	MSG("", msg.str().c_str(),DEBUG);
       }
     m_state.popClassContext(); //restore
