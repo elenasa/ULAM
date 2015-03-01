@@ -183,6 +183,14 @@ namespace MFM {
 	    msg << "Data member <" << getName() << "> of type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it << ") total size: " << (s32) m_state.getTotalBitSize(it) << " MUST fit into " << MAXBITSPERINT << " bits; Local variables do not have this restriction";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+
+	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_ELEMENT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member <" << getName() << "> of type: " << m_state.getUlamTypeNameBriefByIndex(it).c_str() << " (UTI" << it << ") is an element, and is NOT permitted; Local variables, quarks, and Element Parameters do not have this restriction";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+
 	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
       }
   } //packBitsInOrderOfDeclaration
