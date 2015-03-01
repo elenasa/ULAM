@@ -303,6 +303,7 @@ namespace MFM {
       {
 	return "0";
       }
+
     std::ostringstream args;
     args << DigitCount(numParams, BASE10) << numParams;
 
@@ -341,7 +342,14 @@ namespace MFM {
 		  s32 sval;
 		  if(((SymbolConstantValue *) asym)->getValue(sval))
 		    {
-		      args << DigitCount(sval, BASE10) << sval;
+		      if(sval < 0)
+			{
+			  sval = -sval;
+			  args << DigitCount(sval, BASE10) + 1;
+			  args << "n" << sval;
+			}
+		      else
+			args << DigitCount(sval, BASE10) << sval;
 		      isok = true;
 		    }
 		  break;
