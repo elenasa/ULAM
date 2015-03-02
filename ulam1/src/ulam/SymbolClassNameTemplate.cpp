@@ -84,6 +84,25 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
+    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
+      {
+	if(it->first == uti)
+	  {
+	    symptrref = it->second;
+	    //expensive sanity check; isClassTemplate not so critical to check?
+	    //UTI suti = symptrref->getUlamTypeIdx();
+	    //assert( suti == uti || formatAnInstancesArgValuesAsAString(suti).compare(formatAnInstancesArgValuesAsAString(uti)) == 0);
+	    return true;
+	  }
+	it++;
+      }
+    return false;
+  } //findClassInstanceByUTI
+
+#if 0
+  bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
+  {
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -95,6 +114,7 @@ namespace MFM {
       }
     return false;
   } //findClassInstanceByUTI
+#endif
 
   bool SymbolClassNameTemplate::findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr)
   {

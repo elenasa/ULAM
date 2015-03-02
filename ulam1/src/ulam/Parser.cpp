@@ -3840,7 +3840,8 @@ namespace MFM {
 		assert(scalardecllisttype != Nav);
 		//find the scalardecllist, clone the ceNode for this auti
 		//if auti is arraytype, its scalartype should already have been added
-		m_state.cloneAndLinkConstantExpression(scalardecllisttype, auti);
+		if(auti != scalardecllisttype) //not compare, actual uti's equal
+		  m_state.cloneAndLinkConstantExpression(scalardecllisttype, auti);
 	      }
 	    else
 	      {
