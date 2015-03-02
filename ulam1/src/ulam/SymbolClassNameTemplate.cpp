@@ -331,8 +331,11 @@ namespace MFM {
 	    Symbol * asym = NULL;
 	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
 	    UTI auti = asym->getUlamTypeIdx();
-	    ULAMTYPE eutype = m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum();
-	    args << DigitCount(eutype, BASE10) << eutype;
+	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	    ULAMTYPE eutype = aut->getUlamTypeEnum();
+
+	    //args << DigitCount(eutype, BASE10) << eutype;
+	    args << aut->getUlamTypeMangledType().c_str();
 
 	    bool isok = false;
 	    switch(eutype)

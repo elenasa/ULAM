@@ -5,7 +5,7 @@ namespace MFM {
 
   SymbolConstantValue::SymbolConstantValue(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_parameter(false)
   {
-    m_constant.sval = NONREADYCONST;
+    m_constant.sval = 0; //was NONREADYCONST
   }
 
   SymbolConstantValue::SymbolConstantValue(const SymbolConstantValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_parameter(sref.m_parameter)
