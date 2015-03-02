@@ -17,8 +17,6 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\n typedef Bool BA[6];\n BA m_ba;\n BA check(Int v) {\n BA rba;\n rba[1] = rba[3] = rba[5] = true;\n return rba;\n }\n Int test() {\n Foo f;\n f.m_ba[0] = true;\n f.m_ba = f.check(1);\n m_ba = f.m_ba;\n return 0;\n }\n }\n"); //2 basic member select tests: data member, func call
-
       bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n element Foo {\n typedef Bool BA[6];\nSystem s;\n BA m_ba;\n BA check(Int v) {\n BA rba;\n rba[1] = rba[3] = rba[5] = true;\n return rba;\n }\n Int test() {\n Foo f;\n f.m_ba[0] = true;\n f.m_ba = f.check(1);\n m_ba = f.m_ba;\ns.print( (Bool(3)) f.m_ba[0]);\ns.print( (Bool(3)) m_ba[0]);\ns.print( (Bool(3)) f.m_ba[5]);\ns.print( (Bool(3)) m_ba[5]);\n return 0;\n }\n }\n"); //2 basic member select tests: data member, func call
 
       // test system quark with native overloaded print funcs; assert
@@ -34,5 +32,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3148_test_compiler_elementmemberselect_returnarray)
 
 } //end MFM
-
-

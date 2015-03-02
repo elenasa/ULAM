@@ -104,11 +104,8 @@ namespace MFM{
     virtual bool isNegativeConstant();
     virtual bool isWordSizeConstant();
 
-    //virtual bool installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, Symbol *& asymptr);
     virtual bool installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr);
-    //virtual bool installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, UTI anothertduti, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(ParserTypeArgs& args, Symbol *& asymptr);
-    //virtual bool installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, UTI declListScalarType, Symbol *& asymptr);
     virtual bool installSymbolVariable(ParserTypeArgs& args,  Symbol *& asymptr);
 
     virtual EvalStatus eval() = 0;

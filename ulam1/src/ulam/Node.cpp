@@ -154,13 +154,11 @@ namespace MFM {
     return false;
   }
 
-  //bool Node::installSymbolConstantValue(Token aTok, s32 bitsize, s32 arraysize, UTI anothertduti, Symbol *& asymptr)
   bool Node::installSymbolConstantValue(ParserTypeArgs& args, Symbol*& asymptr)
   {
     return false;
   }
 
-  //bool Node::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, UTI declListScalarType, Symbol *& asymptr)
   bool Node::installSymbolVariable(ParserTypeArgs& args, Symbol *& asymptr)
   {
     return false;
