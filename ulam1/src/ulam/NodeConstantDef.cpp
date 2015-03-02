@@ -167,7 +167,7 @@ namespace MFM {
   // (scope of eval is based on the block of const def.)
   bool NodeConstantDef::foldConstantExpression()
   {
-    s32 newconst = NONREADYCONST;  //always signed?
+    s32 newconst = 0; //NONREADYCONST always signed?
 
     UTI uti = checkAndLabelType(); //find any missing symbol
     assert(m_constSymbol);
@@ -182,16 +182,11 @@ namespace MFM {
 	if( evs == NORMAL)
 	  {
 	    UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-
-	    if(cnstUV.getUlamValueTypeIdx() == Nav)
-	      newconst = NONREADYCONST;
-	    else
-	      newconst = cnstUV.getImmediateData(m_state);
+	    newconst = cnstUV.getImmediateData(m_state);
 	  }
 
 	evalNodeEpilog();
 
-	//if(newconst == NONREADYCONST)
 	if(evs == ERROR)
 	  {
 	    std::ostringstream msg;

@@ -53,7 +53,6 @@ namespace MFM {
     fp->write("\n");
   } //print
 
-
   void NodeConditional::printPostfix(File * fp)
   {
     assert(m_nodeLeft);
@@ -61,11 +60,11 @@ namespace MFM {
 
     fp->write(" ");
     //fp->write(m_typeTok.getTokenString());
-    fp->write(m_state.getUlamTypeByIndex(m_utypeRight)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+    //fp->write(m_state.getUlamTypeByIndex(m_utypeRight)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+    fp->write(m_state.getUlamTypeNameBriefByIndex(m_utypeRight).c_str());
 
     printOp(fp);  //operators last
-  }
-
+  } //printPostfix
 
   void NodeConditional::printOp(File * fp)
   {
@@ -73,7 +72,6 @@ namespace MFM {
     sprintf(myname," %s", getName());
     fp->write(myname);
   }
-
 
   void NodeConditional::countNavNodes(u32& cnt)
   {
