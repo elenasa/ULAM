@@ -1690,7 +1690,9 @@ namespace MFM {
 	      }
 
 	    //possibly another class? go again..
-	    args.classInstanceIdx = isclasstd ? tduti : Nav;
+	    if(isclasstd)
+	      args.classInstanceIdx = tduti;
+	    //o.w. keep any previous classInstanceIdx for future reference
 	    parseTypeFromAnotherClassesTypedef(args, rtnb, numDots);
 	  }
 	else
@@ -3152,6 +3154,8 @@ namespace MFM {
 	//process identifier...check if already defined in current scope; if not, add it;
 	//returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
+
+#if 0
 	UTI ut;
 	if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, ut)) //ut or anothertduti ???
 	  {
@@ -3159,6 +3163,7 @@ namespace MFM {
 	    assert(args.bitsize == 0);
 	    args.bitsize = m_state.getBitSize(ut);
 	  }
+#endif
 
 	if(!lvalNode->installSymbolTypedef(args, asymptr))
 	  {
@@ -3213,6 +3218,7 @@ namespace MFM {
 	//lvalNode could be either a NodeIdent or a NodeSquareBracket though arrays not legal in this context!!!
 	//process identifier...check if already defined in current scope; if not, add it;
 	//return a SymbolConstantValue.
+#if 0
 	UTI uti;
 	if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, uti))
 	  {
@@ -3220,6 +3226,7 @@ namespace MFM {
 	    assert(args.bitsize == 0);
 	    args.bitsize = m_state.getBitSize(uti);
 	  }
+#endif
 	//else some sort of primitive
 	Symbol * asymptr = NULL;
 	if(!lvalNode->installSymbolConstantValue(args, asymptr))

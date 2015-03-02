@@ -501,7 +501,6 @@ namespace MFM {
     return rtnLocalSym;
   } //makeSymbol
 
-  //bool NodeIdent::checkVariableTypedefSizes(UTI auti, s32& arraysize, s32& bitsize, Token aTok)
   bool NodeIdent::checkVariableTypedefSizes(ParserTypeArgs& args, UTI auti)
   {
     bool rtnb = true;
@@ -548,14 +547,19 @@ namespace MFM {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
     s32 tdarraysize = tdut->getArraySize();
-    if(tdarraysize >= 0 && args.arraysize != tdarraysize)
+    if(args.arraysize >= 0)
       {
-	//error can't support typedefs changing arraysizes
-	std::ostringstream msg;
-	msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(args.anothertduti).c_str() << ", and cannot be redefined by typedef: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">, to [" << args.arraysize << "]";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	rtnb = false;
+	if(tdarraysize >= 0 && args.arraysize != tdarraysize)
+	  {
+	    //error can't support typedefs changing arraysizes
+	    std::ostringstream msg;
+	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(args.anothertduti).c_str() << ", and cannot be redefined by typedef: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">, to [" << args.arraysize << "]";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnb = false;
+	  }
       }
+    else
+      args.arraysize = tdarraysize; //use whatever typedef is
 
     if(tdut->getBitSize() > 0 && args.bitsize == 0)
       {
