@@ -146,7 +146,9 @@ namespace MFM {
     if(! m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str();
+	msg << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: ";
+	msg  << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	aok = false;  //moved here;
       }
@@ -182,7 +184,8 @@ namespace MFM {
     ULAMCLASSTYPE classtype = sut->getUlamClass();
 
     std::ostringstream msg;
-    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element " : "quark ") << m_state.getUlamTypeNameBriefByIndex(suti).c_str() << " : ";
+    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element " : "quark ");
+    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str() << " : ";
 
     if(m_state.isComplete(suti))
       {
@@ -242,18 +245,6 @@ namespace MFM {
       } //test eval
     m_state.popClassContext(); //missing?
   }//testThisClass
-
-  void SymbolClass::cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr)
-  {
-    assert(m_resolver);
-    m_resolver->cloneConstantExpressionSubtreesByUTI(olduti, newuti, templateRslvr);
-  }
-
-  void SymbolClass::cloneNamedConstantExpressionSubtrees(const Resolver &templateRslvr)
-  {
-    assert(m_resolver);
-    m_resolver->cloneNamedConstantExpressionSubtrees(templateRslvr);
-  }
 
   bool SymbolClass::statusUnknownConstantExpressions()
   {

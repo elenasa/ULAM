@@ -84,25 +84,6 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
-      {
-	if(it->first == uti)
-	  {
-	    symptrref = it->second;
-	    //expensive sanity check; isClassTemplate not so critical to check?
-	    //UTI suti = symptrref->getUlamTypeIdx();
-	    //assert( suti == uti || formatAnInstancesArgValuesAsAString(suti).compare(formatAnInstancesArgValuesAsAString(uti)) == 0);
-	    return true;
-	  }
-	it++;
-      }
-    return false;
-  } //findClassInstanceByUTI
-
-#if 0
-  bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
-  {
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -114,7 +95,6 @@ namespace MFM {
       }
     return false;
   } //findClassInstanceByUTI
-#endif
 
   bool SymbolClassNameTemplate::findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr)
   {
@@ -236,7 +216,9 @@ namespace MFM {
 	      {
 		//error! number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
-		msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str() << ", does not match the required number of parameters (" << numparams << ") to fix";
+		msg << "number of arguments (" << cargs << ") in class instance: ";
+		msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
+		msg << ", does not match the required number of parameters (" << numparams << ") to fix";
 		MSG("", msg.str().c_str(),ERR);
 		it++;
 		continue;
@@ -331,7 +313,8 @@ namespace MFM {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
 	std::ostringstream msg;
-	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; args format is number of parameters";
+	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	msg << ", has no instances; args format is number of parameters";
 	MSG("", msg.str().c_str(), DEBUG);
 	return args.str(); //short-circuit when argument is template's UTI
       }
@@ -428,7 +411,8 @@ namespace MFM {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
 	std::ostringstream msg;
-	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str() << ", has no instances; args format is number of parameters";
+	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	msg << ", has no instances; args format is number of parameters";
 	MSG("", msg.str().c_str(), DEBUG);
 	args << DigitCount(numParams, BASE10) << numParams;
 	return args.str(); //short-circuit when argument is template's UTI
@@ -508,27 +492,6 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsCommaDelimitedString
 
-#if 0
-  bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
-  {
-    bool brtn = false;
-    std::map<UTI, std::map<UTI,UTI> >::iterator it = m_mapOfTemplateUTIToInstanceUTIPerClassInstance.find(instance);
-    if(it != m_mapOfTemplateUTIToInstanceUTIPerClassInstance.end())
-      {
-	assert(it->first == instance);
-	std::map<UTI, UTI> amap = it->second;
-	std::map<UTI, UTI>::iterator mit = amap.find(auti);
-	if(mit != amap.end())
-	  {
-	    brtn = true;
-	    assert(mit->first == auti);
-	    mappedUTI = mit->second;
-	  }
-      }
-    return brtn;
-  } //hasInstanceMappedUTI
-#endif
-
   bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
     SymbolClass * csym = NULL;
@@ -538,28 +501,6 @@ namespace MFM {
       }
     return false;
   } //hasInstanceMappedUTI
-
-#if 0
-  void SymbolClassNameTemplate::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
-  {
-    std::map<UTI, std::map<UTI,UTI> >::iterator it = m_mapOfTemplateUTIToInstanceUTIPerClassInstance.find(instance);
-    if(it != m_mapOfTemplateUTIToInstanceUTIPerClassInstance.end())
-      {
-	assert(it->first == instance);
-	it->second.insert(std::pair<UTI, UTI>(auti, mappeduti));
-      }
-    else
-      {
-	std::map<UTI, UTI> amap;
-	amap.insert(std::pair<UTI, UTI>(auti, mappeduti));
-	m_mapOfTemplateUTIToInstanceUTIPerClassInstance.insert(std::pair <UTI, std::map<UTI, UTI> >(instance, amap));
-      }
-    //sanity check please..
-    UTI checkuti;
-    assert(hasInstanceMappedUTI(instance,auti,checkuti));
-    assert(checkuti == mappeduti);
-  } //mapInstanceUTI
-#endif
 
   bool SymbolClassNameTemplate::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
   {
@@ -846,7 +787,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Instance: " << m_state.getUlamTypeNameByIndex(suti).c_str() << ", is incomplete; Navs will not be counted";
+	    msg << "Class Instance: " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << ", is incomplete; Navs will not be counted";
 	    MSG("", msg.str().c_str(), DEBUG);
 	  }
 	it++;
@@ -926,7 +868,9 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << m_scalarClassInstanceIdxToSymbolPtr.size() << " Class Instance" << (m_scalarClassInstanceIdxToSymbolPtr.size() > 1 ? "s ALL " : " ") << "sized SUCCESSFULLY for template: " << m_state.m_pool.getDataAsString(getId()).c_str();
+	msg << m_scalarClassInstanceIdxToSymbolPtr.size() << " Class Instance";
+	msg << (m_scalarClassInstanceIdxToSymbolPtr.size() > 1 ? "s ALL " : " ");
+	msg << "sized SUCCESSFULLY for template: " << m_state.m_pool.getDataAsString(getId()).c_str();
 	MSG("", msg.str().c_str(),DEBUG);
       }
     lostClasses.clear();
@@ -998,7 +942,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Instance: " << m_state.getUlamTypeNameByIndex(suti).c_str() << ", is incomplete; Code will not be generated";
+	    msg << "Class Instance: " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << ", is incomplete; Code will not be generated";
 	    MSG("", msg.str().c_str(), DEBUG);
 	  }
 	it++;
@@ -1049,7 +994,9 @@ namespace MFM {
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
-	msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(fm->getId()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
+	msg << "number of arguments (" << cargs << ") in class instance: ";
+	msg << m_state.getUlamTypeNameByIndex(fm->getId()).c_str();
+	msg << ", does not match the required number of parameters (" << numparams << ")";
 	MSG("", msg.str().c_str(),ERR);
 	return false;
       }
@@ -1138,48 +1085,13 @@ namespace MFM {
     return true;
   } //copyAnInstancesArgValues
 
-#if 0
   // done promptly after the full instantiation
-  void SymbolClassNameTemplate::cloneResolverForClassInstance(SymbolClass * csym, SymbolClass * stub)
-  {
-    if(!m_resolver)
-      return; //nothing to do
-
-    UTI cuti = csym->getUlamTypeIdx();
-
-    //populate csym's empty resolver, for each unknown UTI in its template, mapped in its stub
-    std::map<UTI, std::map<UTI,UTI> >::iterator mit = m_mapOfTemplateUTIToInstanceUTIPerClassInstance.find(cuti);
-    if(mit != m_mapOfTemplateUTIToInstanceUTIPerClassInstance.end())
-      {
-	assert(cuti == mit->first);
-	std::map<UTI,UTI> utimap = mit->second;
-	std::map<UTI,UTI>::iterator it = utimap.begin();
-
-	while(it != utimap.end())
-	  {
-	    UTI olduti = it->first;
-	    UTI newuti = it->second;
-	    csym->cloneConstantExpressionSubtreesByUTI(olduti, newuti, *m_resolver);
-	    it++;
-	  }
-      }
-    else
-      assert(0);
-    //next, named constants separately
-    csym->cloneNamedConstantExpressionSubtrees(*m_resolver);
-
-    // probably, unknown typedefs from another class XXX
-
-  }//cloneResolverForClassInstance
-#endif
-
   void SymbolClassNameTemplate::cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to)
   {
     fm->cloneResolverUTImap(to);
   }
 
-
-  // done promptly after the full instantiation
+  // done promptly after the full instantiation; after cloneAnInstancesUTImap
   void SymbolClassNameTemplate::cloneTemplateResolverForClassInstance(SymbolClass * csym)
   {
     if(!m_resolver)

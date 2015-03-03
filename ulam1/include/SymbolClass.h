@@ -89,10 +89,6 @@ namespace MFM{
 
     void testThisClass(File * fp); //eval-land
 
-    void cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr);
-
-    void cloneNamedConstantExpressionSubtrees(const Resolver &templateRslvr);
-
     bool statusUnknownConstantExpressions();
 
     bool statusNonreadyClassArguments();
