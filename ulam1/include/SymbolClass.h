@@ -110,6 +110,8 @@ namespace MFM{
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
     void cloneResolverForStubClassInstance(const SymbolClass* csym, UTI context);
+    void cloneResolverUTImap(SymbolClass * csym);
+
     UTI getContextForPendingArgs();
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);

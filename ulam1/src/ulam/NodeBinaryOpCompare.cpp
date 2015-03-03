@@ -17,7 +17,7 @@ namespace MFM {
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType); //for casting
 
-    if(newType != Nav)
+    if(newType != Nav && m_state.isComplete(newType))
       {
 	if(UlamType::compare(rightType, newType, m_state) != UTIC_SAME)
 	  {

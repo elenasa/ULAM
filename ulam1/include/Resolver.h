@@ -61,7 +61,7 @@ namespace MFM
     ~Resolver();
 
     //clones template's resolver, mapping uti's as needed
-    void cloneTemplateResolver(SymbolClass * to, SymbolClass * stub);
+    void cloneTemplateResolver(SymbolClass * to);
 
     NodeTypeBitsize * findUnknownBitsizeUTI(UTI auti) const;
     NodeSquareBracket * findUnknownArraysizeUTI(UTI auti) const;
@@ -88,6 +88,7 @@ namespace MFM
 
     bool mapUTItoUTI(UTI fmuti, UTI touti);
     bool findMappedUTI(UTI auti, UTI& mappedUTI);
+    void cloneUTImap(SymbolClass * csym);
 
   protected:
 

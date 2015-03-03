@@ -115,7 +115,8 @@ namespace MFM{
 
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
-    void cloneResolverForClassInstance(SymbolClass * csym, SymbolClass * stub);
+    void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
+    void cloneTemplateResolverForClassInstance(SymbolClass * csym);
   };
 
 }

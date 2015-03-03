@@ -55,6 +55,7 @@ namespace MFM{
 
     virtual Symbol * clone() = 0;
 
+    void resetUlamType(UTI newuti); //e.g. mappedUTI
     UTI getUlamTypeIdx();
     u32 getId();
 

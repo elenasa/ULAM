@@ -63,6 +63,13 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
+    else if(!m_state.isComplete(tobeType))
+      {
+	std::ostringstream msg;
+	msg << "Cannot cast to incomplete type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	errorsFound++;
+      }
     else
       {
 	if(!m_state.isScalar(tobeType))
@@ -132,7 +139,6 @@ namespace MFM {
       }
     return getNodeType();
   } //checkAndLabelType
-
 
   void NodeCast::countNavNodes(u32& cnt)
   {
@@ -362,7 +368,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "(UTI" << nodeType << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ")";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	return false;
       }
 

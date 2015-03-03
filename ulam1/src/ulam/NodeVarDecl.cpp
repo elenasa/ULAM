@@ -121,7 +121,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str() << ", class arguments pending";
 		if(m_state.getUlamTypeByIndex(cuti)->isComplete())
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //ERR?
 		else
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		it = Nav;
@@ -134,13 +134,28 @@ namespace MFM {
 	    if(!tdut->isComplete())
 	      {
 		UTI cuti = m_state.getCompileThisIdx();
-		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		if(m_state.getUlamTypeByIndex(cuti)->isComplete())
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		else
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		it = Nav;
+		UTI mappedUTI = Nav;
+		if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+		  {
+		    std::ostringstream msg;
+		    msg << "Substituting Mapped UTI" << mappedUTI << " for incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    it = mappedUTI;
+		    tdut = m_state.getUlamTypeByIndex(it); //reload
+		    //m_varSymbol's type is inconsistent!!!!
+		    m_varSymbol->resetUlamType(it);
+		  }
+
+		if(!tdut->isComplete())
+		  {
+		    std::ostringstream msg;
+		    msg << "Incomplete Variable Decl for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> UTI(" << it << ") while labeling class: " << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    if(m_state.getUlamTypeByIndex(cuti)->isComplete())
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //ERR?
+		    else
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		    it = Nav;
+		  }
 	      }
 	  }
       }
