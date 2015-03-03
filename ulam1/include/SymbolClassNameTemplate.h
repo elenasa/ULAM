@@ -77,7 +77,7 @@ namespace MFM{
 
     //helpers while deep instantiation
     bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
-    void mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
+    bool mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti);
     bool fullyInstantiate();
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
@@ -115,7 +115,7 @@ namespace MFM{
 
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
-    void cloneResolverForClassInstance(SymbolClass * csym);
+    void cloneResolverForClassInstance(SymbolClass * csym, SymbolClass * stub);
   };
 
 }

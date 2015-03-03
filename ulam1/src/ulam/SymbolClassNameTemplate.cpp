@@ -507,6 +507,7 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsCommaDelimitedString
 
+#if 0
   bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
     bool brtn = false;
@@ -525,7 +526,19 @@ namespace MFM {
       }
     return brtn;
   } //hasInstanceMappedUTI
+#endif
 
+  bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
+  {
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      {
+	return csym->hasMappedUTI(auti, mappedUTI);
+      }
+    return false;
+  } //hasInstanceMappedUTI
+
+#if 0
   void SymbolClassNameTemplate::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
   {
     std::map<UTI, std::map<UTI,UTI> >::iterator it = m_mapOfTemplateUTIToInstanceUTIPerClassInstance.find(instance);
@@ -544,6 +557,17 @@ namespace MFM {
     UTI checkuti;
     assert(hasInstanceMappedUTI(instance,auti,checkuti));
     assert(checkuti == mappeduti);
+  } //mapInstanceUTI
+#endif
+
+  bool SymbolClassNameTemplate::mapInstanceUTI(UTI instance, UTI auti, UTI mappeduti)
+  {
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      {
+	return csym->mapUTItoUTI(auti, mappeduti);
+      }
+    return false;
   } //mapInstanceUTI
 
   bool SymbolClassNameTemplate::fullyInstantiate()
@@ -599,13 +623,14 @@ namespace MFM {
 
 	takeAnInstancesArgValues(csym, clone); //instead of keeping template's unknown values
 
-	delete csym; //done with stub
-	csym = NULL;
 	it->second = clone; //replace with the full copy
-
 	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
 	//updateLineageOfClassInstanceUTI(cuti); nno-based now
-	cloneResolverForClassInstance(clone);
+	cloneResolverForClassInstance(clone, csym);
+
+	delete csym; //done with stub
+	csym = NULL;
+
 	m_state.popClassContext(); //restore
 	it++;
       } //while
@@ -1111,15 +1136,16 @@ namespace MFM {
     return true;
   } //copyAnInstancesArgValues
 
+#if 0
   // done promptly after the full instantiation
-  void SymbolClassNameTemplate::cloneResolverForClassInstance(SymbolClass * csym)
+  void SymbolClassNameTemplate::cloneResolverForClassInstance(SymbolClass * csym, SymbolClass * stub)
   {
     if(!m_resolver)
       return; //nothing to do
 
     UTI cuti = csym->getUlamTypeIdx();
 
-    //populate empty resolver, for each unknown UTI
+    //populate csym's empty resolver, for each unknown UTI in its template, mapped in its stub
     std::map<UTI, std::map<UTI,UTI> >::iterator mit = m_mapOfTemplateUTIToInstanceUTIPerClassInstance.find(cuti);
     if(mit != m_mapOfTemplateUTIToInstanceUTIPerClassInstance.end())
       {
@@ -1139,6 +1165,21 @@ namespace MFM {
       assert(0);
     //next, named constants separately
     csym->cloneNamedConstantExpressionSubtrees(*m_resolver);
+
+    // probably, unknown typedefs from another class XXX
+
   }//cloneResolverForClassInstance
+#endif
+
+  // done promptly after the full instantiation
+  void SymbolClassNameTemplate::cloneResolverForClassInstance(SymbolClass * csym, SymbolClass * stub)
+  {
+    if(!m_resolver)
+      return; //nothing to do
+
+    m_resolver->cloneTemplateResolver(csym, stub);
+  }//cloneResolverForClassInstance
+
+
 
 } //end MFM

@@ -481,6 +481,13 @@ namespace MFM {
       }
   } //linkConstantExpression (named constant)
 
+  void CompilerState::linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubuti)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(getCompileThisIdx(), csym));
+    csym->linkTypedefFromAnotherClass(tduti, stubuti); //directly into the SC
+  } //linkUnknownTypedefFromAnotherClass
+
   void CompilerState::constantFoldIncompleteUTI(UTI auti)
   {
     SymbolClassName * cnsym = NULL;
@@ -881,16 +888,14 @@ namespace MFM {
   {
     bool rtnb = false;
     UlamType * ut = getUlamTypeByIndex(uti);
-    UTI scalarUTI;
-    if(ut->isScalar())
-      scalarUTI = uti;
-    else
-      scalarUTI = ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI scalarUTI = uti;
+    if(!ut->isScalar())
+      scalarUTI = getUlamTypeAsScalar(uti);
 
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
       {
-	//what???
+	//not a regular class, and not the template, so dig deeper for the stub
 	if(cnsym->getUlamTypeIdx() != scalarUTI && cnsym->isClassTemplate())
 	  {
 	    SymbolClass * csym = NULL;

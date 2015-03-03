@@ -296,6 +296,13 @@ namespace MFM {
     m_resolver->linkConstantExpression(ceNode);
   }
 
+  void SymbolClass::linkTypedefFromAnotherClass(UTI tduti, UTI stubuti)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    m_resolver->linkUnknownTypedefFromAnotherClass(tduti, stubuti);
+  }
+
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
     if(!m_resolver)
@@ -338,6 +345,22 @@ namespace MFM {
       return true; //nothing to do
     return m_resolver->constantFoldNonreadyClassArgs();
   }
+
+  bool SymbolClass::mapUTItoUTI(UTI auti, UTI mappedUTI)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+
+    return m_resolver->mapUTItoUTI(auti, mappedUTI);
+  } //mapUTItoUTI
+
+  bool SymbolClass::hasMappedUTI(UTI auti, UTI& mappedUTI)
+  {
+    if(!m_resolver)
+      return false; //not found
+
+    return m_resolver->findMappedUTI(auti, mappedUTI);
+  } //hasMappedUTI
 
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram
