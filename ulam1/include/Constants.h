@@ -87,10 +87,6 @@ namespace MFM {
 #define ANYBITSIZECONSTANT (-1)
 #endif //ANYBITSIZECONSTANT
 
-#ifndef NONREADYCONST
-#define NONREADYCONST (-2)
-#endif //NONREADYCONST
-
 #ifndef UNKNOWNSIZE
 #define UNKNOWNSIZE (-2)
 #endif //UNKNOWNSIZE
@@ -116,9 +112,6 @@ namespace MFM {
 #define EMPTYSYMBOLTABLE (-11)
 #endif //EMPTYSYMBOLTABLE
 
-#ifndef STATICSYMBOL
-#define STATICSYMBOL (-3)
-#endif //STATICSYMBOL
 
 #ifndef ULAMTYPE_DEFAULTBITSIZE
 #define XX(a,b,c) c,

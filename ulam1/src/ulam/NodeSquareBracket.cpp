@@ -238,7 +238,6 @@ namespace MFM {
   }
 
   //see also NodeIdent
-  //bool NodeSquareBracket::installSymbolTypedef(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, Symbol *& asymptr)
   bool NodeSquareBracket::installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -266,7 +265,6 @@ namespace MFM {
   } //installSymbolTypedef
 
   //see also NodeIdent
-  //bool NodeSquareBracket::installSymbolConstantValue(Token atok, s32 bitsize, s32 arraysize, UTI anothertduti, Symbol *& asymptr)
   bool NodeSquareBracket::installSymbolConstantValue(ParserTypeArgs& args, Symbol *& asymptr)
   {
     MSG(getNodeLocationAsString().c_str(), "Array size specified for named constant", ERR);
@@ -274,7 +272,6 @@ namespace MFM {
   } //installSymbolConstantValue
 
   //see also NodeIdent
-  //bool NodeSquareBracket::installSymbolVariable(Token atok, s32 bitsize, s32 arraysize, UTI classInstanceIdx, UTI anothertduti, UTI declListScalarType, Symbol *& asymptr)
   bool NodeSquareBracket::installSymbolVariable(ParserTypeArgs& args,  Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);

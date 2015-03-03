@@ -10,7 +10,7 @@ namespace MFM {
 	 Int Arg: 1
       */
       //eval can't test 'as' since atoms have no types.
-      return std::string("Exit status: 7\nUe_Foo { System s();  Int(32) e(7);  constant Int(CONSTANT) v = 3;  Counter4(3) cv( constant Int(CONSTANT) x = 3;  Int(3) d(0); );  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = a Counter4 as cast cond { Counter4(3) a;  a ( )incr . e a ( )get . = s ( e )print . } if e 7 cast = else e return } }\nUq_Counter4 { constant Int(CONSTANT) x = NONREADYCONST;  Int(UNKNOWN) d(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 7\nUe_Foo { System s();  Int(32) e(7);  constant Int(CONSTANT) v = 3;  Counter4(3) cv( constant Int(CONSTANT) x = 3;  Int(3) d(0); );  Int(32) test() {  Atom(96) a;  Foo f;  a f cast = a Counter4(3) as cast cond { Counter4(3) a;  a ( )incr . e a ( )get . cast = s ( e )print . } if e 7 cast = else e return } }\nUq_Counter4 { constant Int(CONSTANT) x = NONREADYCONST;  Int(UNKNOWN) d(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

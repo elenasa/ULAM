@@ -103,22 +103,18 @@ namespace MFM {
     return ctype.str();
   }
 
-
   const std::string UlamType::getUlamTypeVDAsStringForC()
   {
     assert(0);
     return "VD::NOTDEFINED";
   }
 
-
-  const std::string UlamType::getUlamTypeMangledName()
+  const std::string UlamType::getUlamTypeMangledType()
   {
     // e.g. parsing overloaded functions, may not be complete.
     std::ostringstream mangled;
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
-
-    mangled << getUlamTypeUPrefix().c_str();
 
     if(arraysize > 0)
       mangled << DigitCount(arraysize, BASE10) << arraysize;
@@ -133,14 +129,21 @@ namespace MFM {
     mangled << m_state.getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
 
     return mangled.str();
-  } //getUlamTypeMangledName
+  } //getUlamTypeMangledType
 
+  const std::string UlamType::getUlamTypeMangledName()
+  {
+    // e.g. parsing overloaded functions, may not be complete.
+    std::ostringstream mangled;
+    mangled << getUlamTypeUPrefix().c_str();
+    mangled << getUlamTypeMangledType();
+    return mangled.str();
+  } //getUlamTypeMangledName
 
   const std::string UlamType::getUlamTypeUPrefix()
   {
     return "Ut_";
   }
-
 
   const std::string UlamType::getUlamTypeImmediateMangledName()
   {
@@ -149,42 +152,32 @@ namespace MFM {
     return  imangled.str();
   }
 
-
   const std::string UlamType::getUlamTypeImmediateAutoMangledName()
   {
     assert(0); //only elements and quarks so far
   }
 
-
   bool UlamType::needsImmediateType()
   {
     return !isConstant() && isComplete();
-    //return ( (getBitSize() == ANYBITSIZECONSTANT) ? false : true);  //skip constants
   }
-
 
   const std::string UlamType::getImmediateStorageTypeAsString()
   {
     std::ostringstream ctype;
-    //ctype << "BitVector<" << getTotalWordSize() << ">";
-
     ctype << getUlamTypeImmediateMangledName();  // name of struct w typedef(bf) and storage(bv);
-
     return ctype.str();
   } //getImmediateStorageTypeAsString
-
 
   const std::string UlamType::getArrayItemTmpStorageTypeAsString()
   {
     return getTmpStorageTypeAsString(getItemWordSize());
   }
 
-
   const std::string UlamType::getTmpStorageTypeAsString()
   {
     return getTmpStorageTypeAsString(getTotalWordSize());
   }
-
 
   const std::string UlamType::getTmpStorageTypeAsString(s32 sizebyints)
   {
@@ -203,18 +196,14 @@ namespace MFM {
 	  assert(0);
 	  //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	}
-	//error!
       };
-
     return ctype;
   } //getTmpStorageTypeAsString
-
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
   {
     return "x";
   }
-
 
   void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
   {
@@ -287,7 +276,6 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write("() {}\n");
 
-
     //read BV method
     genUlamTypeReadDefinitionForC(fp);
 
@@ -307,7 +295,6 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledDefinitionForC
-
 
   void UlamType::genUlamTypeReadDefinitionForC(File * fp)
   {
@@ -339,7 +326,6 @@ namespace MFM {
       }
   } //genUlamTypeReadDefinitionForC
 
-
   void UlamType::genUlamTypeWriteDefinitionForC(File * fp)
   {
     if(isScalar() || getPackable() == PACKEDLOADABLE)
@@ -369,7 +355,6 @@ namespace MFM {
       }
   } //genUlamTypeWriteDefinitionForC
 
-
   void UlamType::genUlamTypeMangledImmediateDefinitionForC(File * fp)
   {
     const std::string mangledName = getUlamTypeImmediateMangledName();
@@ -383,12 +368,10 @@ namespace MFM {
     fp->write(";\n");
   }
 
-
   const char * UlamType::getUlamTypeEnumAsString(ULAMTYPE etype)
   {
     return utype_string[etype];
   }
-
 
   ULAMTYPE UlamType::getEnumFromUlamTypeString(const char * typestr)
   {
@@ -405,30 +388,25 @@ namespace MFM {
     return rtnUT;
   }
 
-
   bool UlamType::isConstant()
   {
     return m_key.getUlamKeyTypeSignatureBitSize() == ANYBITSIZECONSTANT;
   }
-
 
   bool UlamType::isScalar()
   {
     return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);
   }
 
-
   bool UlamType::isCustomArray()
   {
     return false;
   }
 
-
   s32 UlamType::getArraySize()
   {
     return m_key.getUlamKeyTypeSignatureArraySize(); //could be negative "uknown", or scalar
   }
-
 
   s32 UlamType::getBitSize()
   {
@@ -437,7 +415,6 @@ namespace MFM {
 
     return m_key.getUlamKeyTypeSignatureBitSize();  //could be negative "unknown"
   }
-
 
   u32 UlamType::getTotalBitSize()
   {
@@ -449,12 +426,10 @@ namespace MFM {
     return bitsize * arraysize; // >= 0
   }
 
-
   bool UlamType::isComplete()
   {
     return !(m_key.getUlamKeyTypeSignatureBitSize() <= UNKNOWNSIZE || getArraySize() == UNKNOWNSIZE);
   }
-
 
   ULAMTYPECOMPARERESULTS UlamType::compare(UTI u1, UTI u2, CompilerState& state)  //static
   {
@@ -496,13 +471,11 @@ namespace MFM {
     return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
   } //compare (static)
 
-
    u32 UlamType::getTotalWordSize()
   {
     assert(isComplete());
     return m_wordLengthTotal;  //e.g. 32, 64, 96
   }
-
 
   u32 UlamType::getItemWordSize()
   {
@@ -519,7 +492,6 @@ namespace MFM {
   {
     m_wordLengthItem = iw;  //e.g. 32, 64, 96
   }
-
 
   bool UlamType::isMinMaxAllowed()
   {
@@ -554,12 +526,8 @@ namespace MFM {
     return rtn;
   } //getPackable
 
-
   const std::string UlamType::readMethodForCodeGen()
   {
-    //    if(!isScalar())
-    //  return readArrayItemMethodForCodeGen();
-
     std::string method;
     s32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
@@ -579,12 +547,8 @@ namespace MFM {
     return method;
   } //readMethodForCodeGen
 
-
   const std::string UlamType::writeMethodForCodeGen()
   {
-    //if(!isScalar())
-    //  return writeArrayItemMethodForCodeGen();
-
     std::string method;
     s32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
@@ -603,7 +567,6 @@ namespace MFM {
       };
     return method;
   } //writeMethodForCodeGen
-
 
   const std::string UlamType::readArrayItemMethodForCodeGen()
   {
@@ -625,7 +588,6 @@ namespace MFM {
     return method;
   } //readArrayItemMethodForCodeGen()
 
-
   const std::string UlamType::writeArrayItemMethodForCodeGen()
   {
     std::string method;
@@ -645,7 +607,6 @@ namespace MFM {
     return method;
   } //writeArrayItemMethodForCodeGen()
 
-
   const std::string UlamType::castMethodForCodeGen(UTI nodetype)
   {
     std::ostringstream rtnMethod;
@@ -658,14 +619,16 @@ namespace MFM {
     if(sizeByIntBitsToBe != sizeByIntBits)
       {
 	std::ostringstream msg;
-	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: " << nut->getUlamTypeName().c_str() << ", to be: " << sizeByIntBitsToBe << " for type: " << getUlamTypeName().c_str(); // << "> -- [" << state.getLocationTextAsString(state.m_locOfNextLineText).c_str() << "]";
+	msg << "Casting different word sizes; " << sizeByIntBits;
+	msg << ", Value Type and size was: " << nut->getUlamTypeName().c_str();
+	msg << ", to be: " << sizeByIntBitsToBe << " for type: ";
+	msg << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
       }
 
     rtnMethod << "_" << nut->getUlamTypeNameOnly().c_str() << sizeByIntBits << "To" << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;
     return rtnMethod.str();
   } //castMethodForCodeGen
-
 
   void UlamType::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)
   {
