@@ -170,53 +170,6 @@ namespace MFM {
     return NULL;
   }
 
-  void Resolver::cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr)
-  {
-    //Type bitsize UNKNOWN:
-    NodeTypeBitsize * tbceNode = templateRslvr.findUnknownBitsizeUTI(olduti);
-    if(tbceNode)
-      {
-	NodeTypeBitsize * cloneNode = new NodeTypeBitsize(*tbceNode);
-	linkConstantExpression(newuti, cloneNode);
-      }
-
-    //Arraysize UNKNOWN:
-    NodeSquareBracket * asceNode = templateRslvr.findUnknownArraysizeUTI(olduti);
-    if(asceNode)
-      {
-	NodeSquareBracket * cloneNode = new NodeSquareBracket(*asceNode);
-	linkConstantExpression(newuti, cloneNode);
-      }
-  }//cloneConstantExpressionSubtreesByUTI
-
-  void Resolver::cloneNamedConstantExpressionSubtrees(const Resolver& templateRslvr)
-  {
-    if(!templateRslvr.m_nonreadyNamedConstantSubtrees.empty())
-      {
-	u32 lostsize = templateRslvr.m_nonreadyNamedConstantSubtrees.size();
-	std::ostringstream msg;
-	msg << "Found non-empty non-ready named constant subtrees, while cloning class <";
-	msg << m_state.getUlamTypeNameByIndex(m_classUTI).c_str();
-	msg << ">, size " << lostsize << ":";
-
-	std::set<NodeConstantDef *>::iterator it = templateRslvr.m_nonreadyNamedConstantSubtrees.begin();
-
-	while(it != templateRslvr.m_nonreadyNamedConstantSubtrees.end())
-	  {
-	    NodeConstantDef * constNode = *it;
-	    Symbol * sym;
-	    if(constNode->getSymbolPtr(sym) && !((SymbolConstantValue *) sym)->isReady())
-	      {
-		msg << constNode->getName() << ",";
-		NodeConstantDef * cloneNode = new NodeConstantDef(*constNode);
-		linkConstantExpression(cloneNode);
-	      }
-	    it++;
-	  }
-	MSG("", msg.str().c_str(), DEBUG);
-      }
-  } //cloneNamedConstantExpressionSubtrees
-
   bool Resolver::statusUnknownConstantExpressions()
   {
     bool sumbrtn = true;
@@ -324,7 +277,6 @@ namespace MFM {
       }
     return rtnBool;
   } //constantFoldUnknownBitsize
-
 
   void Resolver::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
   {
@@ -491,7 +443,8 @@ namespace MFM {
 		UTI mappedUTI;
 		if(acsym->hasMappedUTI(tduti, mappedUTI))
 		  {
-		    msg << tduti << "-maps-to-" << mappedUTI << " in class " << m_state.getUlamTypeNameBriefByIndex(aclassuti).c_str() << "; ";
+		    msg << tduti << "-maps-to-" << mappedUTI << " in class ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(aclassuti).c_str() << "; ";
 
 		    mapUTItoUTI(tduti, mappedUTI);
 		    foundTs.push_back(tduti); //to be deleted

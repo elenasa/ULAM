@@ -66,9 +66,6 @@ namespace MFM
     NodeTypeBitsize * findUnknownBitsizeUTI(UTI auti) const;
     NodeSquareBracket * findUnknownArraysizeUTI(UTI auti) const;
 
-    void cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr);
-    void cloneNamedConstantExpressionSubtrees(const Resolver& templateRslvr);
-
     bool statusUnknownConstantExpressions(); //excluding pending class args
     void constantFoldIncompleteUTI(UTI uti);
 
