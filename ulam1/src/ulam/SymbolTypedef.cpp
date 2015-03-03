@@ -5,8 +5,8 @@ namespace MFM {
 
   SymbolTypedef::SymbolTypedef(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state){}
   SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref) {}
-  SymbolTypedef::~SymbolTypedef()
-  {}
+
+  SymbolTypedef::~SymbolTypedef() {}
 
   Symbol * SymbolTypedef::clone()
   {

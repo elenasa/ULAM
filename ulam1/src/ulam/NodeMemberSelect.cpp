@@ -46,10 +46,23 @@ namespace MFM {
 	// must be a 'Class' type, either quark or element
 	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
 	std::ostringstream msg;
-	msg << "Member selected must be either a quark or an element, not type: " << m_state.getUlamTypeNameByIndex(luti).c_str();
+	msg << "Member selected must be either a quark or an element, not type: ";
+	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
 	if(luti == UAtom)
 	  msg << "; suggest using a Conditional-As";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+
+	setNodeType(Nav);
+	return getNodeType();
+      } //done
+
+    if(!lut->isComplete())
+      {
+	std::ostringstream msg;
+	msg << "Member selected is incomplete class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	msg << ", check and label fails this time around";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 
 	setNodeType(Nav);
 	return getNodeType();
@@ -92,11 +105,12 @@ namespace MFM {
 	return evs;
       }
 
-    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+    //UPDATE selected member (i.e. element or quark) before eval of rhs
+    //(i.e. data member or func call)
     m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
 
     u32 slot = makeRoomForNodeType(getNodeType());
-    evs = m_nodeRight->eval();   //a Node Function Call here, or data member eval
+    evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -105,8 +119,8 @@ namespace MFM {
 
     //assigns rhs to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
-    if(slot)   //avoid Void's
-      doBinaryOperation(1, 1+slot, slot);  //????????
+    if(slot) //avoid Void's
+      doBinaryOperation(1, 1+slot, slot); //????????
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
     evalNodeEpilog();
