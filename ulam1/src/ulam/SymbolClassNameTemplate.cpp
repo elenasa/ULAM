@@ -206,6 +206,7 @@ namespace MFM {
     copyAnInstancesArgValues(csym, newclassinstance);
 
     newclassinstance->cloneResolverForStubClassInstance(csym, context);
+    csym->cloneResolverUTImap(newclassinstance);
   } //copyAStubClassInstance
 
   //called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
@@ -622,14 +623,15 @@ namespace MFM {
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	takeAnInstancesArgValues(csym, clone); //instead of keeping template's unknown values
+	cloneAnInstancesUTImap(csym, clone);
 
 	it->second = clone; //replace with the full copy
-	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
-	//updateLineageOfClassInstanceUTI(cuti); nno-based now
-	cloneResolverForClassInstance(clone, csym);
-
 	delete csym; //done with stub
 	csym = NULL;
+
+	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
+	//updateLineageOfClassInstanceUTI(cuti); nno-based now
+	cloneTemplateResolverForClassInstance(clone);
 
 	m_state.popClassContext(); //restore
 	it++;
@@ -1171,13 +1173,19 @@ namespace MFM {
   }//cloneResolverForClassInstance
 #endif
 
+  void SymbolClassNameTemplate::cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to)
+  {
+    fm->cloneResolverUTImap(to);
+  }
+
+
   // done promptly after the full instantiation
-  void SymbolClassNameTemplate::cloneResolverForClassInstance(SymbolClass * csym, SymbolClass * stub)
+  void SymbolClassNameTemplate::cloneTemplateResolverForClassInstance(SymbolClass * csym)
   {
     if(!m_resolver)
       return; //nothing to do
 
-    m_resolver->cloneTemplateResolver(csym, stub);
+    m_resolver->cloneTemplateResolver(csym);
   }//cloneResolverForClassInstance
 
 

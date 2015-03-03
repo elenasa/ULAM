@@ -39,6 +39,9 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
+    if(leftType == Nav || rightType == Nav || !m_state.isComplete(leftType) || !m_state.isComplete(rightType))
+      return Nav;  //quietly ?
+
     if(!m_nodeLeft->isStoreIntoAble())
       {
 	std::ostringstream msg;

@@ -182,7 +182,7 @@ namespace MFM {
     ULAMCLASSTYPE classtype = sut->getUlamClass();
 
     std::ostringstream msg;
-    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element " : "quark ") << m_state.getUlamTypeNameByIndex(suti).c_str() << " : ";
+    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element " : "quark ") << m_state.getUlamTypeNameBriefByIndex(suti).c_str() << " : ";
 
     if(m_state.isComplete(suti))
       {
@@ -320,11 +320,18 @@ namespace MFM {
 
   void SymbolClass::cloneResolverForStubClassInstance(const SymbolClass * csym, UTI context)
   {
-    assert(csym);
+    assert(csym); //from
     if(!m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
     m_resolver->clonePendingClassArgumentsForStubClassInstance(*(csym->m_resolver), context, this);
   } //cloneResolverForStubClassInstance
+
+  void SymbolClass::cloneResolverUTImap(SymbolClass * csym)
+  {
+    assert(csym); //to
+    assert(m_resolver);
+    m_resolver->cloneUTImap(csym);
+  } //cloneResolverUTImap
 
   UTI SymbolClass::getContextForPendingArgs()
   {

@@ -89,7 +89,7 @@ namespace MFM {
     m_mapUTItoUTI.clear();
   } //clearLeftoverSubtrees()
 
-  void Resolver::cloneTemplateResolver(SymbolClass * to, SymbolClass * stub)
+  void Resolver::cloneTemplateResolver(SymbolClass * to)
   {
     // Type bitsize UNKNOW:
     {
@@ -98,7 +98,7 @@ namespace MFM {
 	{
 	  UTI uti = it->first;
 	  UTI mappedUTI = uti;
-	  stub->hasMappedUTI(uti, mappedUTI);
+	  to->hasMappedUTI(uti, mappedUTI);
 	  NodeTypeBitsize * ceNode = it->second;
 	  NodeTypeBitsize * cloneNode = new NodeTypeBitsize(*ceNode);
 	  to->linkConstantExpression(mappedUTI, cloneNode);
@@ -113,7 +113,7 @@ namespace MFM {
 	{
 	  UTI uti = it->first;
 	  UTI mappedUTI = uti;
-	  stub->hasMappedUTI(uti, mappedUTI);
+	  to->hasMappedUTI(uti, mappedUTI);
 	  NodeSquareBracket * ceNode = it->second;
 	  NodeSquareBracket * cloneNode = new NodeSquareBracket(*ceNode);
 	  to->linkConstantExpression(mappedUTI, cloneNode);
@@ -145,9 +145,9 @@ namespace MFM {
 	  UTI tduti = it->first;
 	  UTI aclassuti = it->second;
 	  UTI mappedtd = tduti;
-	  stub->hasMappedUTI(tduti, mappedtd);
+	  to->hasMappedUTI(tduti, mappedtd);
 	  UTI mappedaclass = aclassuti;
-	  stub->hasMappedUTI(aclassuti, mappedaclass);
+	  to->hasMappedUTI(aclassuti, mappedaclass);
 	  to->linkTypedefFromAnotherClass(mappedtd, mappedaclass);
 	  it++;
 	}
@@ -417,7 +417,7 @@ namespace MFM {
 
 	std::ostringstream msg;
 	msg << "Found non-empty non-ready named constant subtrees, of class <";
-	msg << m_state.m_pool.getDataAsString(m_classUTI);
+	msg << m_state.m_pool.getDataAsString(m_classUTI).c_str();
 	msg << ">, size " << lostsize << ":";
 
 	std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
@@ -475,9 +475,8 @@ namespace MFM {
 	u32 uksize = m_unknownTypedefFromAnotherClass.size();
 	std::vector<UTI> foundTs;
 	std::ostringstream msg;
-	msg << "Found unknown typedefs from another class, for class <";
-	msg << m_state.m_pool.getDataAsString(m_classUTI);
-	msg << ">, size " << uksize << ":";
+	msg << "Found " << uksize << " unknown typedef";
+	msg << (uksize > 1 ? "s " : " ") << "from another class: ";
 
 	std::map<UTI, UTI>::iterator it = m_unknownTypedefFromAnotherClass.begin();
 	while(it != m_unknownTypedefFromAnotherClass.end())
@@ -489,11 +488,10 @@ namespace MFM {
 	    assert(m_state.alreadyDefinedSymbolClass(aclassuti, acsym));
 	    if(!acsym->isStub())
 	      {
-		SymbolClassNameTemplate * actsym = acsym->getParentClassTemplate();
 		UTI mappedUTI;
-		if(actsym->hasInstanceMappedUTI(aclassuti, tduti, mappedUTI))
+		if(acsym->hasMappedUTI(tduti, mappedUTI))
 		  {
-		    msg << tduti << " maps-to " << mappedUTI << " in class " << aclassuti << ",";
+		    msg << tduti << "-maps-to-" << mappedUTI << " in class " << m_state.getUlamTypeNameBriefByIndex(aclassuti).c_str() << "; ";
 
 		    mapUTItoUTI(tduti, mappedUTI);
 		    foundTs.push_back(tduti); //to be deleted
@@ -501,6 +499,8 @@ namespace MFM {
 	      }
 	    it++;
 	  }
+	msg << "while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	MSG("", msg.str().c_str(), DEBUG);
 
 	while(!foundTs.empty())
 	  {
@@ -510,8 +510,6 @@ namespace MFM {
 	    foundTs.pop_back();
 	  }
 	foundTs.clear();
-
-	MSG("", msg.str().c_str(), DEBUG);
 	rtnstat = m_unknownTypedefFromAnotherClass.empty();
       }
     return rtnstat;
@@ -663,5 +661,15 @@ namespace MFM {
       }
     return brtn;
   } //findMappedUTI
+
+  void Resolver::cloneUTImap(SymbolClass * csym)
+  {
+    std::map<UTI, UTI>::iterator mit = m_mapUTItoUTI.begin();
+    while(mit != m_mapUTItoUTI.end())
+      {
+	csym->mapUTItoUTI(mit->first, mit->second);
+	mit++;
+      }
+  } //cloneUTImap
 
 } //MFM

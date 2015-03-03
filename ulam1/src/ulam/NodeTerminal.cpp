@@ -180,7 +180,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Unknown size!! constant type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //ERR?
 	return false;
       }
 

@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-  //  #define _DEBUG_OUTPUT
-//#define _INFO_OUTPUT
-//  #define _WARN_OUTPUT
+  //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -388,6 +388,13 @@ namespace MFM {
       }
     return rtnBool;
   } //updateUlamKeyTypeSignatureToaUTI
+
+  bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(cuti, csym));
+    return csym->hasMappedUTI(auti, mappedUTI);
+  }
 
   //called by Symbol's copy constructor with ref's 'incomplete' uti
   //please set getCompileThisIdx() to the instance's UTI.
@@ -1178,7 +1185,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str() << " base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << ">, does not match resulting type's " << getUlamTypeNameByIndex(rType).c_str() << " base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
-		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
+		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_WARN); //ERR?
 	      }
 	    else
 	      {

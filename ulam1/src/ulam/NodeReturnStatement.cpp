@@ -58,8 +58,7 @@ namespace MFM {
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
-  }
-
+  } //print
 
   void NodeReturnStatement::printPostfix(File * fp)
   {
@@ -72,58 +71,53 @@ namespace MFM {
 
     fp->write(" ");
     fp->write(getName());
-  }
-
+  } //printPostfix
 
   const char * NodeReturnStatement::getName()
   {
     return "return";
   }
 
-
   const std::string NodeReturnStatement::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeReturnStatement::checkAndLabelType()
   {
     assert(m_node);
 
     UTI nodeType = m_node->checkAndLabelType();
-
-    if(nodeType != m_state.m_currentFunctionReturnType)
+    if(nodeType != Nav && m_state.isComplete(nodeType))
       {
-	if(m_state.m_currentFunctionReturnType != Void)
+	if(nodeType != m_state.m_currentFunctionReturnType)
 	  {
-	    m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
-	    if(m_node)
-	      nodeType = m_node->getNodeType();
+	    if(m_state.m_currentFunctionReturnType != Void)
+	      {
+		m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
+		if(m_node)
+		  nodeType = m_node->getNodeType();
+		else
+		  nodeType = Nav;  //no casting node
+	      }
 	    else
-	      nodeType = Nav;  //no casting node
+	      {
+		std::ostringstream msg;
+		msg << "ISO C forbids ‘return’ with expression, in function returning void";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
 	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "ISO C forbids ‘return’ with expression, in function returning void";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-      }
-
-    setNodeType(nodeType); //return take type of their node
-
+      } // not nav
     m_state.m_currentFunctionReturnNodes.push_back(this); //check later against defined function return type
+    setNodeType(nodeType); //return take type of their node
     return nodeType;
   } //checkAndLabelType
-
 
   void NodeReturnStatement::countNavNodes(u32& cnt)
   {
     if(m_node)
       m_node->countNavNodes(cnt);
   }
-
 
   EvalStatus NodeReturnStatement::eval()
   {
@@ -146,8 +140,7 @@ namespace MFM {
     assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
     evalNodeEpilog();
     return RETURN;
-  }
-
+  } //eval
 
   void NodeReturnStatement::genCode(File * fp, UlamValue& uvpass)
   {

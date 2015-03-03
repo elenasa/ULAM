@@ -88,7 +88,6 @@ namespace MFM {
     fp->write(myname);
   }
 
-
   UTI NodeControl::checkAndLabelType()
   {
     assert(m_nodeCondition && m_nodeBody);
@@ -97,24 +96,28 @@ namespace MFM {
 
     // condition should be a bool, always cast
     UTI cuti = m_nodeCondition->checkAndLabelType();
-    assert(m_state.isScalar(cuti));
 
-    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-    ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
-
-    if(ctypEnum != newEnumTyp)
+    if(cuti != Nav && m_state.isComplete(cuti))
       {
-	m_nodeCondition = makeCastingNode(m_nodeCondition, newType);
-      }
-    else
-      {
-	//always cast: Bools are maintained as unsigned in gen code, until c-bool is needed
-	m_nodeCondition = makeCastingNode(m_nodeCondition, cuti);
-	newType = cuti;
-      }
+	assert(m_state.isScalar(cuti));
 
-    m_nodeBody->checkAndLabelType(); //side-effect
-    setNodeType(newType);  //stays the same
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
+
+	if(ctypEnum != newEnumTyp)
+	  {
+	    m_nodeCondition = makeCastingNode(m_nodeCondition, newType);
+	  }
+	else
+	  {
+	    //always cast: Bools are maintained as unsigned in gen code, until c-bool is needed
+	    m_nodeCondition = makeCastingNode(m_nodeCondition, cuti);
+	    newType = cuti;
+	  }
+
+	m_nodeBody->checkAndLabelType(); //side-effect
+	setNodeType(newType);  //stays the same
+      }
 
     setStoreIntoAble(false);
     return getNodeType();

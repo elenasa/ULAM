@@ -183,6 +183,7 @@ namespace MFM{
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
 
+    bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
