@@ -189,6 +189,8 @@ namespace MFM{
     void cloneAndLinkConstantExpression(UTI fromuti, UTI touti);
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
+    void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubuti);
+
     void constantFoldIncompleteUTI(UTI auti);
     bool constantFoldPendingArgs(UTI cuti);
 

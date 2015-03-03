@@ -105,11 +105,16 @@ namespace MFM{
     void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
+    void linkTypedefFromAnotherClass(UTI tduti, UTI stubuti);
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
     void cloneResolverForStubClassInstance(const SymbolClass* csym, UTI context);
     UTI getContextForPendingArgs();
+
+    bool mapUTItoUTI(UTI auti, UTI mappedUTI);
+    bool hasMappedUTI(UTI auti, UTI& mappedUTI);
+
 
     virtual void generateCode(FileManager * fm);
 
