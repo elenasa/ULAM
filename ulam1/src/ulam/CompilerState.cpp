@@ -887,8 +887,15 @@ namespace MFM {
   bool CompilerState::alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr)
   {
     bool rtnb = m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
-    return rtnb && symptr->isClassTemplate();
-  }
+    if(rtnb && !symptr->isClassTemplate())
+      {
+	std::ostringstream msg;
+	msg << "Class without parameters already exists with the same name: ";
+	msg << m_pool.getDataAsString(symptr->getId()).c_str() << " <UTI" << symptr->getUlamTypeIdx() << ">";
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+      }
+    return (rtnb && symptr->isClassTemplate());
+  } //alreadyDefinedSymbolClassNameTemplate
 
   //if necessary, searches for instance of class "template" with matching SCALAR uti
   bool CompilerState::alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr)

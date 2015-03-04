@@ -46,6 +46,8 @@ namespace MFM{
     SymbolClassNameTemplate(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
     virtual ~SymbolClassNameTemplate();
 
+    virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
+
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();
     u32 getTotalSizeOfParameters();
