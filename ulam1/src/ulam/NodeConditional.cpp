@@ -6,6 +6,7 @@
 namespace MFM {
 
   NodeConditional::NodeConditional(Node * leftNode, UTI classInstanceIdx, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_utypeRight(classInstanceIdx) {}
+
   NodeConditional::NodeConditional(const NodeConditional& ref) : Node(ref), m_utypeRight(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_utypeRight))
   {
     m_nodeLeft = ref.m_nodeLeft->instantiate();
@@ -59,11 +60,9 @@ namespace MFM {
     m_nodeLeft->printPostfix(fp);
 
     fp->write(" ");
-    //fp->write(m_typeTok.getTokenString());
-    //fp->write(m_state.getUlamTypeByIndex(m_utypeRight)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
     fp->write(m_state.getUlamTypeNameBriefByIndex(m_utypeRight).c_str());
 
-    printOp(fp);  //operators last
+    printOp(fp); //operators last
   } //printPostfix
 
   void NodeConditional::printOp(File * fp)

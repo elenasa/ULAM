@@ -35,7 +35,9 @@ namespace MFM {
 	if(!m_state.isScalar(ut)) //array unsupported at this time
 	  {
 	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) type: " << m_state.getUlamTypeNameByIndex(ut).c_str() << " for unary operator" << getName();
+	    msg << "Incompatible (nonscalar) type: ";
+	    msg << m_state.getUlamTypeNameByIndex(ut).c_str();
+	    msg << " for unary operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }
@@ -51,7 +53,8 @@ namespace MFM {
 	    else if(eut == Bits)
 	      {
 		std::ostringstream msg;
-		msg << "Unary operator" << getName() << " applied to type: " << m_state.getUlamTypeNameByIndex(ut).c_str() << " is not defined";
+		msg << "Unary operator" << getName() << " applied to type: ";
+		msg << m_state.getUlamTypeNameByIndex(ut).c_str() << " is not defined";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		newType = Nav;
 	      }
@@ -72,16 +75,14 @@ namespace MFM {
   {
     assert(m_node);
     m_node->genCode(fp, uvpass);
-    //essentially a no-op
-    return;
+    return; //essentially a no-op
   } //genCode
 
   void NodeUnaryOpPlus::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
     m_node->genCodeToStoreInto(fp, uvpass);
-    //essentially a no-op ?
-    return;
+    return; //essentially a no-op ?
   } //genCodeToStoreInto
 
 } //end MFM

@@ -42,4 +42,9 @@ namespace MFM {
     return "nav";
   }
 
+  bool UlamTypeNav::isComplete()
+  {
+    return false;
+  }
+
 } //end MFM
