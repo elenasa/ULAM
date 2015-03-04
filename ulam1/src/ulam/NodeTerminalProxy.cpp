@@ -134,6 +134,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
 	    msg << " for incomplete Proxy type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -145,9 +146,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
-	msg << " is still incomplete and unknown for its <";
+	msg << " is still incomplete and unknown for its '";
 	msg << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str();
-	msg << "> while compiling class: ";
+	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	//rtnb = false; don't want to stop after parsing.

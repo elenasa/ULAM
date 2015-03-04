@@ -65,10 +65,11 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
 	    msg << " for incomplete Member Selected type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	    msg << " used with variable symbol name <" << getName();
-	    msg << "> UTI(" << luti << ") while labeling class: ";
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' UTI" << luti << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    luti = mappedUTI;

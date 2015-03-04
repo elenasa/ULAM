@@ -86,9 +86,8 @@ namespace MFM {
   UTI NodeReturnStatement::checkAndLabelType()
   {
     assert(m_node);
-
     UTI nodeType = m_node->checkAndLabelType();
-    if(nodeType != Nav && m_state.isComplete(nodeType))
+    if(nodeType != Nav && m_state.isComplete(nodeType) && m_state.isComplete(m_state.m_currentFunctionReturnType))
       {
 	if(nodeType != m_state.m_currentFunctionReturnType)
 	  {
@@ -108,7 +107,39 @@ namespace MFM {
 	      }
 	  }
       } // not nav
-    m_state.m_currentFunctionReturnNodes.push_back(this); //check later against defined function return type
+    else
+      {
+	if(!m_state.isComplete(nodeType))
+	  {
+	    UTI cuti = m_state.getCompileThisIdx();
+	    UTI mappedUTI = Nav;
+	    if(m_state.mappedIncompleteUTI(cuti, nodeType, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		msg << " for incomplete return type: ";
+		msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+		msg << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		nodeType = mappedUTI;
+	      }
+	  }
+
+	if(!m_state.isComplete(nodeType))
+	  {
+	    std::ostringstream msg;
+	    msg << "Function return type is still incomplete: ";
+	    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    nodeType = Nav;
+	  }
+      } //else
+
+    //check later against defined function return type
+    m_state.m_currentFunctionReturnNodes.push_back(this);
+
     setNodeType(nodeType); //return take type of their node
     return nodeType;
   } //checkAndLabelType

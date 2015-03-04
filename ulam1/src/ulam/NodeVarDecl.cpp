@@ -124,10 +124,11 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
 		msg << " for incomplete Variable Decl for type: ";
 		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with variable symbol name <" << getName();
-		msg << "> UTI(" << it << ") while labeling class: ";
+		msg << " used with variable symbol name '" << getName();
+		msg << "' UTI" << it << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		it = mappedUTI;
@@ -140,8 +141,8 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Incomplete Variable Decl for type: ";
 		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with variable symbol name <" << getName();
-		msg << "> UTI(" << it << ") while labeling class: ";
+		msg << " used with variable symbol name '" << getName();
+		msg << "' UTI" << it << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		it = Nav;

@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-  //#define _DEBUG_OUTPUT
-  //#define _INFO_OUTPUT
-  //#define _WARN_OUTPUT
+//#define _DEBUG_OUTPUT
+//#define _INFO_OUTPUT
+//#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -1170,7 +1170,9 @@ namespace MFM {
 	if(it != Void && !fsym->isNativeFunctionDeclaration())
 	  {
 	    std::ostringstream msg;
-	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return Statement is missing; Return type: " << getUlamTypeNameByIndex(it).c_str();
+	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "''s Return Statement is missing; Return type: ";
+	    msg << getUlamTypeNameByIndex(it).c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
@@ -1185,13 +1187,17 @@ namespace MFM {
 	if(rType != it)
 	  {
 	    rtnBool = false;
-
 	    ULAMTYPE rBUT = getUlamTypeByIndex(rType)->getUlamTypeEnum();
 	    ULAMTYPE itBUT = getUlamTypeByIndex(it)->getUlamTypeEnum();
 	    if(rBUT != itBUT)
 	      {
 		std::ostringstream msg;
-		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str() << " base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << ">, does not match resulting type's " << getUlamTypeNameByIndex(rType).c_str() << " base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
+		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
+		msg << " base type: <" << UlamType::getUlamTypeEnumAsString(itBUT);
+		msg << ">, does not match resulting type's ";
+		msg << getUlamTypeNameByIndex(rType).c_str() << " base type: <";
+		msg << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
 		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_WARN); //ERR?
 	      }
 	    else
@@ -1199,14 +1205,24 @@ namespace MFM {
 		if(getArraySize(rType) != getArraySize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str() << " array size: <" << getArraySize(it) << "> does not match resulting type's: " << getUlamTypeNameByIndex(rType).c_str() << " array size: <" << getArraySize(rType) << ">";
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
+		    msg << " array size: <" << getArraySize(it);
+		    msg << "> does not match resulting type's: ";
+		    msg << getUlamTypeNameByIndex(rType).c_str() << " array size: <";
+		    msg << getArraySize(rType) << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
 
 		if(getBitSize(rType) != getBitSize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str() << " bit size: <" << getBitSize(it) << "> does not match resulting type's: " << getUlamTypeNameByIndex(rType).c_str() << " bit size: <" << getBitSize(rType) << ">";
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
+		    msg << " bit size: <" << getBitSize(it);
+		    msg << "> does not match resulting type's: ";
+		    msg << getUlamTypeNameByIndex(rType).c_str() << " bit size: <";
+		    msg << getBitSize(rType) << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
 	      } //base types are the same..array and bit size might vary
