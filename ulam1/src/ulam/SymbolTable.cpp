@@ -720,7 +720,7 @@ namespace MFM {
 	  }
 	it++;
       }
-    return (m_state.m_err.getErrorCount() == 0);
+    return (m_state.m_err.getErrorCount() + m_state.m_err.getWarningCount() == 0);
   } //labelTableOfClasses
 
   u32 SymbolTable::countNavNodesAcrossTableOfClasses()

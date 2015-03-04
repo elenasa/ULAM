@@ -66,7 +66,8 @@ namespace MFM {
     else if(!m_state.isComplete(tobeType))
       {
 	std::ostringstream msg;
-	msg << "Cannot cast to incomplete type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << "Cannot cast to incomplete type: " ;
+	msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	errorsFound++;
       }
@@ -74,12 +75,14 @@ namespace MFM {
       {
 	if(!m_state.isScalar(tobeType))
 	  {
-	    MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts, elena", DEBUG);
+	    MSG(getNodeLocationAsString().c_str(),
+		"Consider implementing array casts, elena", DEBUG);
 	    errorsFound++;
 
 	    if(m_state.isScalar(nodeType))
 	      {
-		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast scalar into array", ERR);
+		MSG(getNodeLocationAsString().c_str(),
+		    "Consider implementing array casts: Cannot cast scalar into array", ERR);
 		errorsFound++;
 	      }
 

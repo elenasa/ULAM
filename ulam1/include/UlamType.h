@@ -142,7 +142,7 @@ namespace MFM{
 
     u32 getTotalBitSize();  //bitsize * arraysize, accounting for constants and scalars
 
-    bool isComplete();  //neither bitsize nor arraysize is "unknown"
+    virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
 
     static ULAMTYPECOMPARERESULTS compare(UTI u1, UTI u2, CompilerState& state);
 

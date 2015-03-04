@@ -44,7 +44,9 @@ namespace MFM {
 	if(!m_state.isScalar(ut)) //array unsupported at this time
 	  {
 	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) type: " << m_state.getUlamTypeNameByIndex(ut).c_str() << " for unary operator" << getName();
+	    msg << "Incompatible (nonscalar) type: ";
+	    msg << m_state.getUlamTypeNameByIndex(ut).c_str();
+	    msg << " for unary operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }

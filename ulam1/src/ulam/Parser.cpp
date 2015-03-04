@@ -3844,10 +3844,11 @@ namespace MFM {
 	  {
 	    if(ceForBitSize == NULL)
 	      {
-		assert(scalardecllisttype != Nav);
+		//assert(scalardecllisttype != Nav); not true for typedefs
 		//find the scalardecllist, clone the ceNode for this auti
 		//if auti is arraytype, its scalartype should already have been added
-		if(auti != scalardecllisttype) //not compare, actual uti's equal
+		//(not compare, actual uti's equal)
+		if(scalardecllisttype != Nav && auti != scalardecllisttype)
 		  m_state.cloneAndLinkConstantExpression(scalardecllisttype, auti);
 		else if(classInstanceIdx != Nav)
 		  m_state.linkUnknownTypedefFromAnotherClass(auti, classInstanceIdx);

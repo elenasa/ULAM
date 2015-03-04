@@ -6,6 +6,7 @@
 namespace MFM {
 
   NodeControl::NodeControl(Node * condNode, Node * trueNode, CompilerState & state): Node(state), m_nodeCondition(condNode), m_nodeBody(trueNode) {}
+
   NodeControl::NodeControl(const NodeControl& ref) : Node(ref)
   {
     m_nodeCondition = ref.m_nodeCondition->instantiate();
@@ -60,8 +61,7 @@ namespace MFM {
       m_nodeBody->print(fp);
     else
       fp->write("<NULLTRUE>\n");
-  }
-
+  } //print
 
   void NodeControl::printPostfix(File * fp)
   {
@@ -78,15 +78,14 @@ namespace MFM {
       fp->write("<NULLTRUE>");
 
     printOp(fp);  //operators last
-  }
-
+  } //printPostfix
 
   void NodeControl::printOp(File * fp)
   {
     char myname[16];
     sprintf(myname," %s", getName());
     fp->write(myname);
-  }
+  } //printOp
 
   UTI NodeControl::checkAndLabelType()
   {
@@ -96,40 +95,34 @@ namespace MFM {
 
     // condition should be a bool, always cast
     UTI cuti = m_nodeCondition->checkAndLabelType();
-
     if(cuti != Nav && m_state.isComplete(cuti))
       {
 	assert(m_state.isScalar(cuti));
-
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
-
 	if(ctypEnum != newEnumTyp)
 	  {
 	    m_nodeCondition = makeCastingNode(m_nodeCondition, newType);
 	  }
 	else
 	  {
-	    //always cast: Bools are maintained as unsigned in gen code, until c-bool is needed
+	    //always cast: Bools are maintained as unsigned in gen code,
+	    //until c-bool is needed
 	    m_nodeCondition = makeCastingNode(m_nodeCondition, cuti);
 	    newType = cuti;
 	  }
-
 	m_nodeBody->checkAndLabelType(); //side-effect
 	setNodeType(newType);  //stays the same
       }
-
     setStoreIntoAble(false);
     return getNodeType();
   } //checkAndLabelType
-
 
   void NodeControl::countNavNodes(u32& cnt)
   {
     m_nodeCondition->countNavNodes(cnt);
     m_nodeBody->countNavNodes(cnt);
   }
-
 
   void NodeControl::genCode(File * fp, UlamValue& uvpass)
   {

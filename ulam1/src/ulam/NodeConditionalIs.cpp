@@ -5,6 +5,7 @@
 namespace MFM {
 
   NodeConditionalIs::NodeConditionalIs(Node * leftNode, UTI classInstanceIdx, CompilerState & state): NodeConditional(leftNode, classInstanceIdx, state) {}
+
   NodeConditionalIs::NodeConditionalIs(const NodeConditionalIs& ref) : NodeConditional(ref) {}
   NodeConditionalIs::~NodeConditionalIs() {}
 
@@ -25,7 +26,9 @@ namespace MFM {
     if(!(luti == UAtom || lclasstype == UC_ELEMENT))
       {
 	std::ostringstream msg;
-	msg << "Invalid type for LHS of conditional operator '" << getName() << "'; must be an atom or an element, not type: " << m_state.getUlamTypeNameByIndex(luti).c_str();
+	msg << "Invalid type for LHS of conditional operator '" << getName();
+	msg << "'; must be an atom or an element, not type: ";
+	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
@@ -35,16 +38,40 @@ namespace MFM {
     if(rclasstype != UC_ELEMENT)
       {
 	std::ostringstream msg;
-	msg << "Invalid type for RHS of conditional operator '" << getName() << "'; must be an element name, not type: " << m_state.getUlamTypeNameByIndex(ruti).c_str();
+	msg << "Invalid type for RHS of conditional operator '" << getName();
+	msg << "'; must be an element name, not type: ";
+	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
+      }
+
+    // fall through to common attempt to map UTI
+    if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, ruti, mappedUTI))
+	  {
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << " for incomplete RHS of conditional operator '";
+	    msg << getName() << "' type: ";
+	    msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
+	    msg << ", while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    ruti = mappedUTI;
+	  }
       }
 
     //    if(!m_state.constantFoldPendingArgs(ruti))
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
 	std::ostringstream msg;
-	msg << "RHS of conditional operator '" << getName() << "' type: " << m_state.getUlamTypeNameByIndex(ruti).c_str() << "; has pending arguments found while labeling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "RHS of conditional operator '" << getName() << "' type: ";
+	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
+	msg << "; is still incomplete while labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	newType = Nav;
       }

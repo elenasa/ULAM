@@ -48,14 +48,12 @@ namespace MFM {
   {
     fp->write(" ");
     fp->write(getName());
-  }
-
+  } //printPostfix
 
   const char * NodeTerminal::getName()
   {
     UTI nuti = getNodeType();
     ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
-
     std::ostringstream num;
     switch(etype)
       {
@@ -70,10 +68,10 @@ namespace MFM {
 	break;
       default:
 	{
-	    std::ostringstream msg;
-	    msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    num << "CONSTANT?";
+	  std::ostringstream msg;
+	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  num << "CONSTANT?";
 	}
       };
 
@@ -101,25 +99,25 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Negating an unsigned constant: <" << getName() <<  ">, type: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << "Negating an unsigned constant: <" << getName() <<  ">, type: ";
+	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Constant Folding Token: <" << m_state.getTokenDataAsString(&tok).c_str() << ">, currently unsupported";
+	msg << "Constant Folding Token: <" << m_state.getTokenDataAsString(&tok).c_str();
+	msg << ">, currently unsupported";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	assert(0);
       }
   } //constantFold
 
-
   UTI NodeTerminal::checkAndLabelType()
   {
     return getNodeType(); //done by constructor
   } //checkAndLabelType
-
 
   EvalStatus NodeTerminal::eval()
   {
@@ -137,15 +135,13 @@ namespace MFM {
     return evs;
   } //eval
 
-
   EvalStatus NodeTerminal::makeTerminalValue(UlamValue& uvarg)
   {
-    UlamValue rtnUV;         //init to Nav error case
+    UlamValue rtnUV; //init to Nav error case
     EvalStatus evs = NORMAL; //init ok
     UTI nuti = getNodeType();
     assert(nuti != Nav);
     ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
-
     switch(etype)
       {
       case Int:
@@ -169,7 +165,6 @@ namespace MFM {
     return evs;
   } //makeTerminalValue
 
-
   //used during check and label for binary arith and compare ops that have a constant term
   bool NodeTerminal::fitsInBits(UTI fituti)
   {
@@ -179,15 +174,19 @@ namespace MFM {
     if(!fit->isComplete())
       {
 	std::ostringstream msg;
-	msg << "Unknown size!! constant type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //ERR?
+	msg << "Unknown size!! constant type: ";
+	msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	msg << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	return false;
       }
 
-    if(fit->getTotalWordSize() != 32)
+    if(fit->getTotalWordSize() != MAXBITSPERINT) //32
       {
 	std::ostringstream msg;
-	msg << "Not supported at this time, constant type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	msg << "Not supported at this time, constant type: ";
+	msg << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: ";
+	msg << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
@@ -195,7 +194,8 @@ namespace MFM {
     if(!fit->isMinMaxAllowed())
       {
 	std::ostringstream msg;
-	msg << "Cannot check: <" << getName() << ">, fits into a non-arithmetic type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	msg << "Cannot check: <" << getName() << ">, fits into a non-arithmetic type: ";
+	msg << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
@@ -236,13 +236,13 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	  msg << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
     return rtnb;
   } //fitsInBits
-
 
   //used during check and label for bitwise shift op that has a negative constant term
   bool NodeTerminal::isNegativeConstant()
@@ -254,7 +254,6 @@ namespace MFM {
       }
     return rtnb;
   } //isNegativeConstant
-
 
   // used during check and label for bitwise shift op that has a constant term gt/ge 32;
   // false is ok.
@@ -273,27 +272,21 @@ namespace MFM {
     return rtnb;
   } //isWordSizeConstant
 
-
   void NodeTerminal::genCode(File * fp, UlamValue& uvpass)
   {
     UlamValue tv;
     assert(makeTerminalValue(tv) == NORMAL);
-
     // unclear to do this read or not; squarebracket not happy, or cast not happy ?
     genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
     uvpass = tv;
-    return;
-  }
-
+  } //genCode
 
   void NodeTerminal::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     UlamValue tv;
     assert(makeTerminalValue(tv) == NORMAL);
-    uvpass = tv;
-    return; //uvpass is an immediate UV, not a PTR
-  }
-
+    uvpass = tv; //uvpass is an immediate UV, not a PTR
+  } //genCodeToStoreInto
 
   // reads into a tmp var
   // (for BitVector use Node::genCodeConvertATmpVarIntoBitVector)
@@ -317,11 +310,11 @@ namespace MFM {
     fp->write(getName());
     fp->write(";\n");
 
-    // substitute Ptr for uvpass to contain the tmpVar number; save id of constant string in Ptr;
+    //substitute Ptr for uvpass to contain the tmpVar number;
+    //save id of constant string in Ptr;
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified (atom-based);
     uvpass.setPtrPos(0); //entire register
   } //genCodeReadIntoATmpVar
-
 
   bool NodeTerminal::setConstantValue(Token tok)
   {
@@ -338,7 +331,8 @@ namespace MFM {
 	  if (*numlist == 0 || *nEnd != 0)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid signed constant: <" << numstr.c_str() << ">, errno=" << errno << " " << strerror(errno);
+	      msg << "Invalid signed constant: <" << numstr.c_str() << ">, errno=";
+	      msg << errno << " " << strerror(errno);
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }
 	  else
@@ -355,7 +349,8 @@ namespace MFM {
 	  if (*numlist == 0 || !(*nEnd == 'u' || *nEnd == 'U') || *(nEnd + 1) != 0)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid unsigned constant: <" << numstr.c_str() << ">, errno=" << errno << " " << strerror(errno);
+	      msg << "Invalid unsigned constant: <" << numstr.c_str() << ">, errno=";
+	      msg << errno << " " << strerror(errno);
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }
 	  else
@@ -373,33 +368,34 @@ namespace MFM {
       default:
 	{
 	    std::ostringstream msg;
-	    msg << "Token neither a number, nor a boolean: <" <<  m_state.getTokenDataAsString(&tok).c_str() << ">";
+	    msg << "Token neither a number, nor a boolean: <";
+	    msg <<  m_state.getTokenDataAsString(&tok).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	}
       };
     return rtnok;
   } //setConstantValue
 
-
   UTI NodeTerminal::setConstantTypeForNode(Token tok)
   {
-    UTI newType = Nav;  //init
+    UTI newType = Nav; //init
     switch(tok.m_type)
       {
       case TOK_NUMBER_SIGNED:
-	newType = m_state.getUlamTypeOfConstant(Int);  	  // a constant Int
+	newType = m_state.getUlamTypeOfConstant(Int); //constant Int
 	break;
       case TOK_NUMBER_UNSIGNED:
-	newType = m_state.getUlamTypeOfConstant(Unsigned); // an Unsigned constant
+	newType = m_state.getUlamTypeOfConstant(Unsigned); //Unsigned constant
 	break;
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
-	newType = m_state.getUlamTypeOfConstant(Bool);  	  // a constant Bool
+	newType = m_state.getUlamTypeOfConstant(Bool); //constant Bool
 	break;
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Token not a number or boolean: <" << m_state.getTokenDataAsString(&tok).c_str() << ">";
+	  msg << "Token not a number or boolean: <";
+	  msg << m_state.getTokenDataAsString(&tok).c_str() << ">";
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
