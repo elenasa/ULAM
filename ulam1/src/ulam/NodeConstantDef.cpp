@@ -156,7 +156,7 @@ namespace MFM {
 	  }
       }
 
-    if(!m_state.isComplete(suti))
+    if(!m_state.isComplete(suti)) //reload
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
@@ -168,7 +168,21 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	it = suti;
       }
-
+    else
+      {
+	ULAMTYPE eit = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
+	ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
+	if(eit != esuti)
+	  {
+	    std::ostringstream msg;
+	    msg << "Named Constant '" << getName();
+	    msg << "' type: <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
+	    msg << "> does not match its value type: <";
+	    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = suti;
+	  }
+      }
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
