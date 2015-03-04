@@ -72,6 +72,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
 	    msg << " for incomplete RHS of conditional operator '";
 	    msg << getName() << "' type: ";
 	    msg << m_state.getUlamTypeNameByIndex(ruti).c_str();

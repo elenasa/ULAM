@@ -120,10 +120,11 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Substituting Mapped UTI" << mappedUTI;
+		    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
 		    msg << " for incomplete Typedef type: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		    msg << " used with typedef symbol name <" << getName();
-		    msg << "> UTI(" << it << ") while labeling class: ";
+		    msg << " used with typedef symbol name '" << getName();
+		    msg << "' UTI" << it << " while labeling class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    it = mappedUTI;
@@ -137,8 +138,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete Typedef for type: ";
 	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " used with typedef symbol name <" << getName();
-	    msg << "> (UTI" << it << ")";
+	    msg << " used with typedef symbol name '" << getName();
+	    msg << "' (UTI" << it << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
       } // got typedef symbol

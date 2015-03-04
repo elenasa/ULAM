@@ -145,14 +145,15 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
 	    msg << " for incomplete Named Constant type: ";
-		msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-		msg << " used with constant symbol name <" << getName();
-		msg << "> UTI(" << suti << ") while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		suti = mappedUTI;
-		m_constSymbol->resetUlamType(mappedUTI); //consistent!
+	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with constant symbol name '" << getName();
+	    msg << "' UTI" << suti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    suti = mappedUTI;
+	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
 	  }
       }
 
@@ -162,8 +163,8 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Incomplete Named Constant for type: ";
 	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	msg << " used with constant symbol name <" << getName();
-	msg << "> UTI(" << suti << ") while labeling class: ";
+	msg << " used with constant symbol name '" << getName();
+	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	it = suti;
