@@ -42,6 +42,7 @@
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
 #include "NodeConstantDef.h"
+#include "TargetMap.h"
 
 namespace MFM{
 
@@ -121,6 +122,8 @@ namespace MFM{
     void generateAsOtherForwardDef(File * fp);
 
     void generateTestInstance(File * fp, bool runtest);
+
+    void addTargetDescriptionMapEntry(TargetMap& classtargets);
 
   protected:
     Resolver * m_resolver;

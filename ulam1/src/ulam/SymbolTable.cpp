@@ -532,6 +532,18 @@ namespace MFM {
       }
   } //genCodeForTableOfFunctions
 
+  void SymbolTable::getTargets(TargetMap& classtargets)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	((SymbolClassName *) sym)->getTargetDescriptorsForClassInstances(classtargets);
+	it++;
+      } //while
+  } //getTargets
+
   void SymbolTable::testForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

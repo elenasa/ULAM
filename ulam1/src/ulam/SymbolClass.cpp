@@ -774,4 +774,22 @@ namespace MFM {
     return up.str();
   } //firstletterTolowercase
 
+  void SymbolClass::addTargetDescriptionMapEntry(TargetMap& classtargets)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    std::string mangledName = cut->getUlamTypeMangledName();
+    struct TargetDesc desc;
+
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
+    desc.hasTest = (func != NULL);
+
+    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    desc.isQuark = (classtype == UC_QUARK);
+
+    desc.bitsize = cut->getTotalBitSize();
+    classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
+  } //getTargetDesciptionMapEntry
+
 } //end MFM

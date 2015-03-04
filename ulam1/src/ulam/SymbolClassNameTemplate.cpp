@@ -43,6 +43,17 @@ namespace MFM {
     m_mapOfTemplateUTIToInstanceUTIPerClassInstance.clear();
   } //destructor
 
+  void SymbolClassNameTemplate::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
+  {
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	csym->addTargetDescriptionMapEntry(classtargets);
+	it++;
+      }
+  } //getTargetDescriptorsForClassInstances()
+
   void SymbolClassNameTemplate::addParameterSymbol(SymbolConstantValue * sym)
   {
     m_parameterSymbols.push_back(sym);

@@ -42,6 +42,7 @@
 #include "itype.h"
 #include "File.h"
 #include "FileManager.h"
+#include "TargetMap.h"
 #include "UlamTypeClass.h"
 
 namespace MFM{
@@ -109,6 +110,8 @@ namespace MFM{
 
 
     // TableOfClasses:
+    void getTargets(TargetMap& classtargets);
+
     void testForTableOfClasses(File * fp);
 
     void printPostfixForTableOfClasses(File * fp);

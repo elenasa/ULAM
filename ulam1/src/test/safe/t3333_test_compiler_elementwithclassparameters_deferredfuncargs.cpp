@@ -11,7 +11,7 @@ namespace MFM {
 	 Int Arg: 7
 	 Int Arg: 3
       */
-      return std::string("Exit status: 7\nUe_T { Int(32) i(7);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,1) m;  i m ( b )func . cast = s ( i )print . j m ( a )func . cast = s ( j )print . i return } }\nUq_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 7\nUe_T { Int(32) i(7);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,1) m;  i m ( b )func . = s ( i )print . j m ( a )func . = s ( j )print . i return } }\nUq_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
