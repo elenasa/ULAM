@@ -31,7 +31,8 @@ namespace MFM {
       {
 	m_functionNode = NULL; //is this possible?
 	std::ostringstream msg;
-	msg << "Undefined function block: <" << m_state.m_pool.getDataAsString(getId()).c_str() << ">";
+	msg << "Undefined function block: <";
+	msg << m_state.m_pool.getDataAsString(getId()).c_str() << ">";
 	MSG("", msg.str().c_str(), ERR);
 	//assert(0);
       }
@@ -163,6 +164,50 @@ namespace MFM {
     return mangled.str();
   } //getMangledNameWithTypes
 
+  bool SymbolFunction::checkParameterTypes()
+  {
+    bool aok = true;
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+      {
+	Symbol * sym = m_parameterSymbols[i];
+	UTI pit = sym->getUlamTypeIdx();
+	if(!m_state.isComplete(pit))
+	  {
+	    UTI cuti = m_state.getCompileThisIdx();
+	    UTI mappedUTI = Nav;
+	    if(m_state.mappedIncompleteUTI(cuti, pit, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		msg << " for incomplete function parameter#" << i+1 << ", type: ";
+		msg << m_state.getUlamTypeNameByIndex(pit).c_str();
+		msg << " used with function symbol name '";
+		msg << m_state.m_pool.getDataAsString(getId()).c_str();
+		msg << "' while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG("", msg.str().c_str(), DEBUG);
+		sym->resetUlamType(mappedUTI); //consistent!
+		pit = mappedUTI;
+	      }
+
+	    if(!m_state.isComplete(pit))
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete function parameter#" << i+1 << ", type: ";
+		msg << m_state.getUlamTypeNameByIndex(pit).c_str();
+		msg << " used with function symbol name '";
+		msg << m_state.m_pool.getDataAsString(getId()).c_str();
+		msg << "' while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG("", msg.str().c_str(), WARN);
+		aok &= false;
+	      }
+	  } //not complete
+      } //next param
+    return aok;
+  } //checkParamterTypes
+
   bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes)
   {
     u32 numArgs = argTypes.size();
@@ -174,7 +219,6 @@ namespace MFM {
       return false;
 
     bool rtnBool = true;
-
     //next match types; order counts!
     for(u32 i=0; i < numParams; i++)
       {
@@ -189,7 +233,7 @@ namespace MFM {
 		break;
 	      }
 	  }
-      }
+      } //next param
     return rtnBool;
   } //matchingTypes
 

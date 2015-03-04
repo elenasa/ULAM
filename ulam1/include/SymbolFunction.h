@@ -73,6 +73,8 @@ namespace MFM{
     const std::string getMangledNameWithTypes();
     const std::string getMangledNameWithUTIparameters();
 
+    bool checkParameterTypes();
+
     bool matchingTypes(std::vector<UTI> argTypes);
 
     u32 isNativeFunctionDeclaration();
