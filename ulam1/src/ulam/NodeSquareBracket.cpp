@@ -7,7 +7,9 @@
 namespace MFM {
 
   NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
+
   NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref) {}
+
   NodeSquareBracket::~NodeSquareBracket(){}
 
   Node * NodeSquareBracket::instantiate()
@@ -72,7 +74,7 @@ namespace MFM {
 	ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
 	if(!(retype == Int || retype == Unsigned))
 	  {
-	    m_nodeRight = makeCastingNode(m_nodeRight, Int);  //refactored
+	    m_nodeRight = makeCastingNode(m_nodeRight, Int);
 	  }
 
 	if(errorCount == 0)
@@ -119,11 +121,10 @@ namespace MFM {
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     UTI ltype = pluv.getPtrTargetType();
 
-    // could be a custom array which is a scalar quark. already checked.
+    //could be a custom array which is a scalar quark. already checked.
     UlamType * lut = m_state.getUlamTypeByIndex(ltype);
     bool isCustomArray = lut->isCustomArray();
 
-    //assert(!m_state.isScalar(ltype));                //already checked, must be array
     assert(!m_state.isScalar(ltype) || isCustomArray); //already checked, must be array
 
     makeRoomForNodeType(m_nodeRight->getNodeType()); //offset a constant expression
@@ -136,10 +137,8 @@ namespace MFM {
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     // constant expression only required for array declaration
-    //assert(offset.getUlamValueTypeIdx() == m_state.getUlamTypeOfConstant(Int));
     s32 arraysize = m_state.getArraySize(ltype);
     s32 offsetInt = offset.getImmediateData(m_state);
-
     if((offsetInt >= arraysize) && !isCustomArray)
       {
 	Symbol * lsymptr;
@@ -148,7 +147,8 @@ namespace MFM {
 	  lid = lsymptr->getId();
 
 	std::ostringstream msg;
-	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
+	msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	evalNodeEpilog();
 	return ERROR;
@@ -183,7 +183,6 @@ namespace MFM {
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     // constant expression only required for array declaration
-    //assert(offset.getUlamValueTypeIdx() == m_state.getUlamTypeOfConstant(Int));
     u32 offsetInt = offset.getImmediateData(m_state);
 
     UTI auti = pluv.getPtrTargetType();
@@ -301,47 +300,49 @@ namespace MFM {
   } //installSymbolVariable
 
   // eval() performed even before check and label!
+  // returns false if error; UNKNOWNSIZE is not an error!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
   {
+    bool noerr = true;
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
+    ULAMTYPE etype = m_state.getUlamTypeByIndex(sizetype)->getUlamTypeEnum();
 
     // expect a constant integer or constant unsigned integer
-    if(sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned))
+    if( (etype == Int || etype == Unsigned) && m_nodeRight->isAConstant())
       {
-	evalNodeProlog(0);             //new current frame pointer
+	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
 	if(m_nodeRight->eval() == NORMAL)
 	  {
 	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
 
 	    newarraysize = arrayUV.getImmediateData(m_state);
-	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //== NONARRAYSIZE or UNKNOWNSIZE
+	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
 	      {
 		MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
-		evalNodeEpilog();
-		return false;
+		noerr = false;
 	      }
 	  }
 	else
-	  newarraysize = UNKNOWNSIZE; //error
-
+	  {
+	    newarraysize = UNKNOWNSIZE; //still true
+	  }
 	evalNodeEpilog();
       }
     else
       {
 	MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a constant integer", ERR);
-	return false;
+	noerr = false;
       }
     rtnArraySize = newarraysize;
-    return true;
+    return noerr;
   } //getArraysizeInBracket
 
   void NodeSquareBracket::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
     m_state.m_currentObjSymbolsForCodeGen.clear();
@@ -349,20 +350,19 @@ namespace MFM {
     UlamValue offset;
     m_nodeRight->genCode(fp, offset); //read into tmp var
 
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore
 
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     uvpass = offset;
 
-    Node::genCodeReadArrayItemIntoATmpVar(fp, uvpass);     //new!!!
+    Node::genCodeReadArrayItemIntoATmpVar(fp, uvpass); //new!!!
   } //genCode
 
   void NodeSquareBracket::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-
     //wipe out before getting item within sq brackets
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
     m_state.m_currentObjSymbolsForCodeGen.clear();
@@ -376,7 +376,6 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     uvpass = offset; //return
-
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
 

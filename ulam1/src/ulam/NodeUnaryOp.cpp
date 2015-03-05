@@ -74,6 +74,12 @@ namespace MFM {
     return "_UNARY_NOOP";
   }
 
+  bool NodeUnaryOp::isAConstant()
+  {
+    assert(m_node);
+    return m_node->isAConstant();
+  }
+
   UTI NodeUnaryOp::checkAndLabelType()
   {
     assert(0);  //see unary operators..

@@ -11,7 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      // recursive typedefs
+      // recursive typedefs as local variable type
       // must already be parsed!
       bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P {\nBool b;\nInt test() {\nV.Woof.Foo var = 3;\n return var;\n}\n}\n");
 

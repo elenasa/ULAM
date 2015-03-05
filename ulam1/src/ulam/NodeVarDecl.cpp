@@ -182,14 +182,33 @@ namespace MFM {
 	  {
 	    UTI cuti = m_state.getCompileThisIdx();
 	    //m_state.constantFoldIncompleteUTI(it); //update if possible
-	    std::ostringstream msg;
-	    msg << "Incomplete Variable Decl for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " used with variable symbol name <" << getName();
-	    msg << "> UTI(" << it << ") while bit packing class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
+	    UTI mappedUTI = Nav;
+	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		msg << " for incomplete Variable Decl for type: ";
+		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << " used with variable symbol name '" << getName();
+		msg << "' UTI" << it << " while bit packing class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
+		m_varSymbol->resetUlamType(it); //consistent!
+	      }
+
+	    if(!m_state.isComplete(it)) //reloads
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Variable Decl for type: ";
+		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << " used with variable symbol name '" << getName();
+		msg << "' UTI" << it << " while bit packing class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	      }
+	  } //not complete
 
 	if(m_state.getTotalBitSize(it) > MAXBITSPERINT)
 	  {

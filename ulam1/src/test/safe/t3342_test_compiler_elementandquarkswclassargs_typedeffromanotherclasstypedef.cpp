@@ -11,8 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //informed by t3339
-      // recursive typedefs
+      //informed by t3339:  recursive typedefs as named constant type
       // must already be parsed!
       bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P {\nBool b;\nInt test() {\nconstant V.Woof.Foo nvar = 3u;\n return nvar;\n}\n}\n");
 

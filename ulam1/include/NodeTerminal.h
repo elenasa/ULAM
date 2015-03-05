@@ -65,6 +65,8 @@ namespace MFM{
 
     virtual void constantFold(Token tok);
 
+    virtual bool isAConstant();
+
     virtual UTI checkAndLabelType();
 
     virtual bool fitsInBits(UTI fituti);
