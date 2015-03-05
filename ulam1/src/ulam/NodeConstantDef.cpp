@@ -124,8 +124,7 @@ namespace MFM {
 
     assert(m_exprnode);
     it = m_exprnode->checkAndLabelType();
-    //if(!(it == m_state.getUlamTypeOfConstant(Int) || it == m_state.getUlamTypeOfConstant(Unsigned)))
-    if(!m_state.isConstant(it))
+    if(!m_exprnode->isAConstant())
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for: ";
@@ -217,61 +216,41 @@ namespace MFM {
     m_exprnode = node;
   }
 
-  // called during parsing rhs of named constant
+  // called during parsing rhs of named constant;
   // Requires a constant expression, else error;
   // (scope of eval is based on the block of const def.)
   bool NodeConstantDef::foldConstantExpression()
   {
-    s32 newconst = 0; //NONREADYCONST
-
+    s32 newconst = 0;
     UTI uti = checkAndLabelType(); //find any missing symbol
+
+    if(uti == Nav)
+      return false; //e.g. not a constant
+
     assert(m_constSymbol);
     if(m_constSymbol->isReady())
       return true;
 
-    if(!m_state.isComplete(uti))
+    // if here, must be a constant..
+    evalNodeProlog(0); //new current frame pointer
+    makeRoomForNodeType(getNodeType()); //offset a constant expression
+    EvalStatus evs = m_exprnode->eval();
+    if( evs == NORMAL)
       {
-	std::ostringstream msg;
-	msg << "Constant symbol type for '";
-	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "' is not yet complete while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	return false;
+	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
+	newconst = cnstUV.getImmediateData(m_state);
       }
 
-    if(m_state.isConstant(uti))
-      {
-	evalNodeProlog(0); //new current frame pointer
-	makeRoomForNodeType(getNodeType()); //offset a constant expression
-	EvalStatus evs = m_exprnode->eval();
-	if( evs == NORMAL)
-	  {
-	    UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	    newconst = cnstUV.getImmediateData(m_state);
-	  }
+    evalNodeEpilog();
 
-	evalNodeEpilog();
-
-	if(evs == ERROR)
-	  {
-	    std::ostringstream msg;
-	    msg << "Constant value expression for '";
-	    msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	    msg << "' is not yet ready while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	    return false;
-	  }
-      }
-    else
+    if(evs == ERROR)
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for '";
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
-	msg << "' is not a constant expression, type: ";
-	msg << m_state.getUlamTypeNameByIndex(uti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	msg << "' is not yet ready while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	return false;
       }
 
@@ -293,7 +272,5 @@ namespace MFM {
 
   void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
   {}
-
-
 
 } //end MFM

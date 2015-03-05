@@ -70,7 +70,7 @@ namespace MFM {
 	{
 	  std::ostringstream msg;
 	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  num << "CONSTANT?";
 	}
       };
@@ -113,6 +113,11 @@ namespace MFM {
 	assert(0);
       }
   } //constantFold
+
+  bool NodeTerminal::isAConstant()
+  {
+    return true;
+  }
 
   UTI NodeTerminal::checkAndLabelType()
   {
@@ -204,7 +209,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	return false;
       }
 

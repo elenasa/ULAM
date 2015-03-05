@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen() = 0;
 
+    virtual bool isAConstant();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);

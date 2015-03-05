@@ -50,9 +50,6 @@ namespace MFM {
   UTI NodeConstant::checkAndLabelType()
   {
     UTI it = Nav;
-    //impossible to use before def; o.w. it would be a NodeIdent
-    //assert(m_constSymbol);
-
     //instantiate, look up in class block
     if(m_constSymbol == NULL)
       {
@@ -70,21 +67,59 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a constnat, and cannot be used as one with class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "> is not a constant, and cannot be used as one with class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << "> is not defined, and cannot be used with class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	m_state.popClassContext(); //restore
       } //lookup symbol
 
     if(m_constSymbol)
-      it = m_constSymbol->getUlamTypeIdx();
+      {
+	it = m_constSymbol->getUlamTypeIdx();
+	if(!m_state.isComplete(it))
+	  {
+	    UTI cuti = m_state.getCompileThisIdx();
+	    UTI mappedUTI = Nav;
+	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		msg << " for incomplete Named Constant type: ";
+		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << " used with constant symbol name '" << getName();
+		msg << "' UTI" << it << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
+		m_constSymbol->resetUlamType(mappedUTI); //consistent!
+	      }
+	  }
+
+	if(!m_state.isComplete(it)) //reloads
+	  {
+	    UTI cuti = m_state.getCompileThisIdx();
+	    std::ostringstream msg;
+	    msg << "Incomplete Named Constant for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with constant symbol name '" << getName();
+	    msg << "' UTI" << it << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	  }
+      } //got const symbol
+
     setNodeType(it);
     setStoreIntoAble(false);
 
@@ -114,9 +149,10 @@ namespace MFM {
       m_ready = updateConstant();
     if(!m_ready)
       return ERROR;
+    if(!m_state.isComplete(getNodeType()))
+      return ERROR;
     return NodeTerminal::eval();
   } //eval
-
 
   void NodeConstant::genCode(File * fp, UlamValue& uvpass)
   {
@@ -124,7 +160,6 @@ namespace MFM {
       m_ready = updateConstant();
     NodeTerminal::genCode(fp, uvpass);
   } //genCode
-
 
   bool NodeConstant::updateConstant()
   {
