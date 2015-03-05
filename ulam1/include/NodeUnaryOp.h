@@ -59,6 +59,8 @@ namespace MFM{
 
     virtual void printOp(File * fp);
 
+    virtual bool isAConstant();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);

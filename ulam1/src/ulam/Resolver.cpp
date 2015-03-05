@@ -304,12 +304,14 @@ namespace MFM {
 	NodeSquareBracket * ceNode = it->second;
 	assert(ceNode);
 	rtnBool = ceNode->getArraysizeInBracket(arraysize); //eval
-	if(rtnBool)
+	if(rtnBool && arraysize != UNKNOWNSIZE)
 	  {
 	    delete ceNode;
 	    it->second = NULL;
 	    m_unknownArraysizeSubtrees.erase(it);
 	  }
+	else
+	  rtnBool = false; //unknown returns false
       }
     return rtnBool;
   } //constantFoldUnknownArraysize
