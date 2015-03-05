@@ -2181,7 +2181,7 @@ namespace MFM {
 	if(rtnNode)
 	  {
 	    //bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	    linkOrFreeConstantExpressions(uti, Nav, bitsizeNode, NULL);
+	    linkOrFreeConstantExpressions(uti, Nav, typeargs.classInstanceIdx, bitsizeNode, NULL);
 	  }
 	else
 	  {
@@ -2812,7 +2812,7 @@ namespace MFM {
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
 
-    linkOrFreeConstantExpressions(rtnuti, Nav, constExprForBitSize, NULL);
+    linkOrFreeConstantExpressions(rtnuti, Nav, args.classInstanceIdx, constExprForBitSize, NULL);
 
     //WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, m_state);
@@ -3129,7 +3129,7 @@ namespace MFM {
 	//o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), args.declListScalarType, constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), args.declListScalarType, args.classInstanceIdx, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3194,7 +3194,7 @@ namespace MFM {
 	//o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), Nav, constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), Nav, args.classInstanceIdx, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3266,7 +3266,7 @@ namespace MFM {
 	//o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), Nav, constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), Nav, args.classInstanceIdx, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3774,7 +3774,7 @@ namespace MFM {
     if(bitsizeNode)
       {
 	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	linkOrFreeConstantExpressions(typeToBe, Nav, bitsizeNode, NULL);
+	linkOrFreeConstantExpressions(typeToBe, Nav, typeargs.classInstanceIdx, bitsizeNode, NULL);
       }
 
     if(getExpectedToken(TOK_CLOSE_PAREN))
@@ -3827,7 +3827,7 @@ namespace MFM {
     return termNode;
   } //makeTerminal
 
-  void Parser::linkOrFreeConstantExpressions(UTI auti, UTI scalardecllisttype, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
+  void Parser::linkOrFreeConstantExpressions(UTI auti, UTI scalardecllisttype, UTI classInstanceIdx, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
   {
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     if(!aut->isComplete())
@@ -3844,11 +3844,14 @@ namespace MFM {
 	  {
 	    if(ceForBitSize == NULL)
 	      {
-		assert(scalardecllisttype != Nav);
+		//assert(scalardecllisttype != Nav); not true for typedefs
 		//find the scalardecllist, clone the ceNode for this auti
 		//if auti is arraytype, its scalartype should already have been added
-		if(auti != scalardecllisttype) //not compare, actual uti's equal
+		//(not compare, actual uti's equal)
+		if(scalardecllisttype != Nav && auti != scalardecllisttype)
 		  m_state.cloneAndLinkConstantExpression(scalardecllisttype, auti);
+		else if(classInstanceIdx != Nav)
+		  m_state.linkUnknownTypedefFromAnotherClass(auti, classInstanceIdx);
 	      }
 	    else
 	      {

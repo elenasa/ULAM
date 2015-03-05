@@ -42,6 +42,7 @@
 #include "NodeTypeBitsize.h"
 #include "NodeSquareBracket.h"
 #include "NodeConstantDef.h"
+#include "TargetMap.h"
 
 namespace MFM{
 
@@ -89,10 +90,6 @@ namespace MFM{
 
     void testThisClass(File * fp); //eval-land
 
-    void cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr);
-
-    void cloneNamedConstantExpressionSubtrees(const Resolver &templateRslvr);
-
     bool statusUnknownConstantExpressions();
 
     bool statusNonreadyClassArguments();
@@ -105,11 +102,18 @@ namespace MFM{
     void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
+    void linkTypedefFromAnotherClass(UTI tduti, UTI stubuti);
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
     void cloneResolverForStubClassInstance(const SymbolClass* csym, UTI context);
+    void cloneResolverUTImap(SymbolClass * csym);
+
     UTI getContextForPendingArgs();
+
+    bool mapUTItoUTI(UTI auti, UTI mappedUTI);
+    bool hasMappedUTI(UTI auti, UTI& mappedUTI);
+
 
     virtual void generateCode(FileManager * fm);
 
@@ -118,6 +122,8 @@ namespace MFM{
     void generateAsOtherForwardDef(File * fp);
 
     void generateTestInstance(File * fp, bool runtest);
+
+    void addTargetDescriptionMapEntry(TargetMap& classtargets);
 
   protected:
     Resolver * m_resolver;

@@ -16,7 +16,7 @@ namespace MFM {
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType); //left, or nav error
 
-    if(newType != Nav)
+    if(newType != Nav && m_state.isComplete(newType))
       {
 	assert(newType == leftType);
 

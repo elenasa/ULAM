@@ -92,7 +92,7 @@ namespace MFM {
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType);
 
-    if(newType != Nav)
+    if(newType != Nav && m_state.isComplete(newType))
       {
 	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {

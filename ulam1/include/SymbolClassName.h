@@ -48,6 +48,9 @@ namespace MFM{
     virtual ~SymbolClassName();
 
     virtual bool isClassTemplate();
+
+    virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
+
     virtual void linkUnknownBitsizeConstantExpression(UTI auti, NodeTypeBitsize * ceNode);
     virtual void linkUnknownBitsizeConstantExpression(UTI fromtype, UTI totype); // for decllist
     virtual void linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode);

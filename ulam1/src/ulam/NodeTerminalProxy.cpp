@@ -13,7 +13,6 @@ namespace MFM {
 
   NodeTerminalProxy::~NodeTerminalProxy() {}
 
-
   Node * NodeTerminalProxy::instantiate()
   {
     return new NodeTerminalProxy(*this);
@@ -24,7 +23,6 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   UTI NodeTerminalProxy::checkAndLabelType()
   {
     if(!updateProxy())
@@ -34,7 +32,6 @@ namespace MFM {
 
     return getNodeType(); //updated to Unsigned, hopefully
   }  //checkandLabelType
-
 
   EvalStatus NodeTerminalProxy::eval()
   {
@@ -54,11 +51,9 @@ namespace MFM {
 	if(evs == NORMAL)
 	  Node::assignReturnValueToStack(rtnUV);
       }
-
     evalNodeEpilog();
     return evs;
   } //eval
-
 
   void NodeTerminalProxy::genCode(File * fp, UlamValue& uvpass)
   {
@@ -67,14 +62,12 @@ namespace MFM {
     return NodeTerminal::genCode(fp, uvpass);
   }
 
-
   void NodeTerminalProxy::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     updateProxy();
 
     return NodeTerminal::genCodeToStoreInto(fp, uvpass);
   }
-
 
   bool NodeTerminalProxy::setConstantValue(Token tok)
   {
@@ -106,7 +99,6 @@ namespace MFM {
     return rtnB;
   } //setConstantValue
 
-
   //minof, maxof should be the same type as the original member token, unsigned for sizeof
   UTI NodeTerminalProxy::setConstantTypeForNode(Token tok)
   {
@@ -125,7 +117,6 @@ namespace MFM {
     return newType;
   } //setConstantTypeForNode
 
-
   bool NodeTerminalProxy::updateProxy()
   {
     bool rtnb = true;
@@ -134,10 +125,31 @@ namespace MFM {
 	m_state.constantFoldIncompleteUTI(m_uti); //update if possible
       }
 
+    //attempt to map UTI
+    if(!m_state.isComplete(m_uti))
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, m_uti, mappedUTI))
+	  {
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete Proxy type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_uti = mappedUTI;
+	  }
+      }
+
     if(!m_state.isComplete(m_uti))
       {
 	std::ostringstream msg;
-	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " is still incomplete and unknown for its <" << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str() << "> while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	msg << " is still incomplete and unknown for its '";
+	msg << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str();
+	msg << "' while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	//rtnb = false; don't want to stop after parsing.
       }
@@ -147,14 +159,21 @@ namespace MFM {
 	if(!setConstantValue(m_funcTok))
 	  {
 	    std::ostringstream msg;
-	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " constant value for its <" << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str() << "> is still incomplete and unknown while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    msg << " constant value for its <";
+	    msg << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str();
+	    msg << "> is still incomplete and unknown while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Yippee! Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str() << " (UTI" << getNodeType() << ") is KNOWN (=" << m_constant.uval << ") while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "Yippee! Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    msg << " (UTI" << getNodeType() << ") is KNOWN (=" << m_constant.uval;
+	    msg << ") while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
 	  }
       }

@@ -135,7 +135,11 @@ namespace MFM {
 	if(!overloaded) //shouldn't be a duplicate, but if it is handle it
 	  {
 	    std::ostringstream msg;
-	    msg << "Check overloading function: <" << m_state.m_pool.getDataAsString(fsym->getId()).c_str() << "> has a duplicate definition: " << fmangled.c_str() << ", while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "Check overloading function: <";
+	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "> has a duplicate definition: " << fmangled.c_str();
+	    msg << ", while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG("", msg.str().c_str(), ERR);  //Dave says better to start as error
 	    probcount++;
 	    dupfuncs.push_back(fkey);
@@ -187,19 +191,27 @@ namespace MFM {
 	    if(!((SymbolFunctionName *) fnsymset)->findMatchingFunction(argTypes, funcSymbol))
 	      {
 		std::ostringstream msg;
-		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(fnsymset->getId()).c_str() << "' does not match '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' argument types: ";
+		msg << "Custom array set method: '";
+		msg << m_state.m_pool.getDataAsString(fnsymset->getId()).c_str();
+		msg << "' does not match '";
+		msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+		msg << "' argument types: ";
 		for(u32 i = 0; i < argTypes.size(); i++)
 		  {
 		    msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
 		  }
-		msg << "and cannot be called in class: " << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
+		msg << "and cannot be called in class: ";
+		msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
 		MSG("", msg.str().c_str(), ERR);
 		probcount++;
 	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' FOUND in class: " << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
+		msg << "Custom array set method: '";
+		msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
+		msg << "' FOUND in class: ";
+		msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
 		MSG("", msg.str().c_str(), DEBUG);
 	      }
 	    argTypes.clear();
@@ -207,7 +219,10 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array set method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str() << "' NOT FOUND in class: " << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
+	    msg << "Custom array set method: '";
+	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
+	    msg << "' NOT FOUND in class: ";
+	    msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
 	    MSG("", msg.str().c_str(), WARN);
 	  }
 	++it;
@@ -256,6 +271,10 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
+
+	// first check for incomplete parameters
+	fsym->checkParameterTypes();
+
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->checkAndLabelType();
@@ -293,8 +312,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << countNavs << " nodes with illegal 'Nav' types remain in all functions <";
-	msg << m_state.m_pool.getDataAsString(getId());
-	msg << "> in class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG("", msg.str().c_str(), WARN);
       }
 #if 0

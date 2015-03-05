@@ -19,6 +19,11 @@ namespace MFM {
     return m_id;
   }
 
+  void Symbol::resetUlamType(UTI newuti) //e.g. mappedUTI
+  {
+    m_utypeIdx = newuti;
+  }
+
   UTI Symbol::getUlamTypeIdx()
   {
     return m_utypeIdx;

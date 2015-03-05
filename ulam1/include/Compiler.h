@@ -39,10 +39,12 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include "CompilerState.h"
-#include "Node.h"
 #include "FileManager.h"
 #include "File.h"
+#include "Node.h"
+#include "TargetMap.h"
 
 namespace MFM{
 
@@ -67,6 +69,7 @@ namespace MFM{
     void printProgramForDebug(File * output);
     void generateCodedProgram(File * output);
     std::string getMangledTarget();
+    TargetMap getMangledTargetsMap();
 
   private:
 
