@@ -84,6 +84,12 @@ namespace MFM {
     fp->write(myname);
   } //printOp
 
+  bool NodeBinaryOp::isAConstant()
+  {
+    assert(m_nodeLeft && m_nodeRight);
+    return m_nodeLeft->isAConstant() && m_nodeRight->isAConstant();
+  }
+
   UTI NodeBinaryOp::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);

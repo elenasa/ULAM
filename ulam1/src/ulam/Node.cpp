@@ -115,6 +115,11 @@ namespace MFM {
     assert(0);  //only NodeTerminal has this defined
   }
 
+  bool Node::isAConstant()
+  {
+    return false;
+  }
+
   // any node above assignexpr is not storeintoable;
   // and has no type (e.g. statements, statement, block, program)
   UTI Node::checkAndLabelType()

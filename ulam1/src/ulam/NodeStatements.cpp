@@ -5,6 +5,7 @@
 namespace MFM {
 
   NodeStatements::NodeStatements(Node * s, CompilerState & state) : Node(state), m_node(s), m_nextNode(NULL) {}
+
   NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref)
   {
     if(ref.m_node)
@@ -74,8 +75,7 @@ namespace MFM {
       fp->write(" <NONEXTSTMT>\n");
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
-  }
-
+  } //print
 
   void NodeStatements::printPostfix(File * fp)
   {
@@ -88,20 +88,17 @@ namespace MFM {
 
     if(m_nextNode)
       m_nextNode->printPostfix(fp);
-  }
-
+  } //printPostfix
 
   const char * NodeStatements::getName()
   {
     return "Stmts";  //?
   }
 
-
   const std::string NodeStatements::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeStatements::checkAndLabelType()
   {
@@ -118,15 +115,13 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-
   void NodeStatements::countNavNodes(u32& cnt)
   {
     if(m_node)
       m_node->countNavNodes(cnt);
     if(m_nextNode)
       m_nextNode->countNavNodes(cnt);
-  }
-
+  } //countNavNodes
 
   EvalStatus NodeStatements::eval()
   {
@@ -160,17 +155,13 @@ namespace MFM {
 	//assignReturnValueToStack(rtnPtr);
 	evalNodeEpilog();
       }
-
     return NORMAL;
-  }
-
-
+  } //eval
 
   void NodeStatements::setNextNode(NodeStatements * s)
   {
     m_nextNode = s;
   }
-
 
   void NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
   {
@@ -178,8 +169,7 @@ namespace MFM {
 
     if(m_nextNode)
       m_nextNode->packBitsInOrderOfDeclaration(offset);
-  }
-
+  } //packBitsInOrderOfDeclaration
 
   void NodeStatements::genCode(File * fp, UlamValue& uvpass)
   {
@@ -204,7 +194,6 @@ namespace MFM {
     if(m_nextNode)
       m_nextNode->genCode(fp, uvpass);
   } //genCode
-
 
   void NodeStatements::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {

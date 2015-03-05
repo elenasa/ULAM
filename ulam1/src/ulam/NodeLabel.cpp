@@ -5,7 +5,9 @@
 namespace MFM {
 
   NodeLabel::NodeLabel(s32 labelnum, CompilerState & state) : Node(state), m_labelnum(labelnum) {}
+
   NodeLabel::NodeLabel(const NodeLabel& ref) : Node(ref), m_labelnum(ref.m_labelnum) {}
+
   NodeLabel::~NodeLabel() {}
 
   Node * NodeLabel::instantiate()
@@ -25,14 +27,12 @@ namespace MFM {
     fp->write(id);
   }
 
-
   void NodeLabel::printPostfix(File * fp)
   {
     fp->write(" _");
     fp->write_decimal(m_labelnum);
     fp->write(getName());
   }
-
 
   UTI NodeLabel::checkAndLabelType()
   {
@@ -41,24 +41,20 @@ namespace MFM {
     return nodeType;
   }
 
-
   const char * NodeLabel::getName()
   {
     return ":";
   }
-
 
   const std::string NodeLabel::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   EvalStatus NodeLabel::eval()
   {
     return NORMAL;
   }
-
 
   void NodeLabel::genCode(File * fp, UlamValue& uvpass)
   {
