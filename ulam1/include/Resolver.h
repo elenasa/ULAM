@@ -60,11 +60,11 @@ namespace MFM
     Resolver(UTI instance, CompilerState& state);
     ~Resolver();
 
+    //clones template's resolver, mapping uti's as needed
+    void cloneTemplateResolver(SymbolClass * to);
+
     NodeTypeBitsize * findUnknownBitsizeUTI(UTI auti) const;
     NodeSquareBracket * findUnknownArraysizeUTI(UTI auti) const;
-
-    void cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr);
-    void cloneNamedConstantExpressionSubtrees(const Resolver& templateRslvr);
 
     bool statusUnknownConstantExpressions(); //excluding pending class args
     void constantFoldIncompleteUTI(UTI uti);
@@ -73,6 +73,7 @@ namespace MFM
     void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
     void linkConstantExpression(NodeConstantDef * ceNode);
+    void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubUTI);
 
     //these exist in a stubs only!
     bool statusNonreadyClassArguments();
@@ -81,6 +82,10 @@ namespace MFM
     bool pendingClassArgumentsForClassInstance();
     void clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym);
     UTI getContextForPendingArgs();
+
+    bool mapUTItoUTI(UTI fmuti, UTI touti);
+    bool findMappedUTI(UTI auti, UTI& mappedUTI);
+    void cloneUTImap(SymbolClass * csym);
 
   protected:
 
@@ -91,6 +96,10 @@ namespace MFM
     std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
     std::vector<NodeConstantDef *> m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
 
+    std::map<UTI, UTI> m_unknownTypedefFromAnotherClass; //typedef uti to its class' uti, for map lookup after full instantiation of its class (while a stub the type is the template's).
+
+    std::map<UTI, UTI> m_mapUTItoUTI; //mult-purpose: instantiating stubs; unknown typedefs from another class
+
     CompilerState& m_state;
     UTI m_classUTI;
     UTI m_classContextUTIForPendingArgs; //used to evaluate pending class args in context
@@ -98,6 +107,7 @@ namespace MFM
     bool statusUnknownBitsizeUTI();
     bool statusUnknownArraysizeUTI();
     bool statusNonreadyNamedConstants();
+    bool statusUnknownTypedefsFromAnotherClass();
 
     bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
     bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);

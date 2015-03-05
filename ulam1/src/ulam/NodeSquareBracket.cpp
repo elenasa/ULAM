@@ -43,47 +43,50 @@ namespace MFM {
     UTI newType = Nav; //init
     UTI leftType = m_nodeLeft->checkAndLabelType();
 
-    UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-    bool isCustomArray = lut->isCustomArray();
-
-    if(m_state.isScalar(leftType))
+    if(leftType != Nav && m_state.isComplete(leftType))
       {
-	if(!isCustomArray)
+	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
+	bool isCustomArray = lut->isCustomArray();
+
+	if(m_state.isScalar(leftType))
 	  {
-	    std::ostringstream msg;
-	    msg << "Invalid Type: " << m_state.getUlamTypeNameByIndex(leftType).c_str() << " used with " << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    errorCount++;
+	    if(!isCustomArray)
+	      {
+		std::ostringstream msg;
+		msg << "Invalid Type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
+		msg << " used with " << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errorCount++;
+	      }
 	  }
-      }
 
-    //for example, f.chance[i] where i is local, same as f.func(i);
-    NodeBlock * currBlock = m_state.getCurrentBlock();
-    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
+	//for example, f.chance[i] where i is local, same as f.func(i);
+	NodeBlock * currBlock = m_state.getCurrentBlock();
+	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
 
-    UTI rightType = m_nodeRight->checkAndLabelType();
+	UTI rightType = m_nodeRight->checkAndLabelType();
 
-    m_state.popClassContext();
+	m_state.popClassContext();
 
-    //must be some kind of Int or Unsigned..of any bit size
-    ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
-    if(!(retype == Int || retype == Unsigned))
-      {
-	m_nodeRight = makeCastingNode(m_nodeRight, Int);  //refactored
-      }
+	//must be some kind of Int or Unsigned..of any bit size
+	ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
+	if(!(retype == Int || retype == Unsigned))
+	  {
+	    m_nodeRight = makeCastingNode(m_nodeRight, Int);  //refactored
+	  }
 
-    if(errorCount == 0)
-      {
-	// sq bracket purpose in life is to account for array elements;
-	if(isCustomArray)
-	  newType = ((UlamTypeClass *) lut)->getCustomArrayType();
-	else
-	  newType = m_state.getUlamTypeAsScalar(leftType);
+	if(errorCount == 0)
+	  {
+	    // sq bracket purpose in life is to account for array elements;
+	    if(isCustomArray)
+	      newType = ((UlamTypeClass *) lut)->getCustomArrayType();
+	    else
+	      newType = m_state.getUlamTypeAsScalar(leftType);
 
-	setNodeType(newType);
-
-	// multi-dimensional possible
-	setStoreIntoAble(true);
+	    setNodeType(newType);
+	    // multi-dimensional possible
+	    setStoreIntoAble(true);
+	  }
       }
     return newType;
   } //checkAndLabelType

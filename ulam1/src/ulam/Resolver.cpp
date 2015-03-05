@@ -76,7 +76,83 @@ namespace MFM {
 	  }
       }
     m_nonreadyClassArgSubtrees.clear();
+
+    s32 tdfromanotherC = m_unknownTypedefFromAnotherClass.size();
+    if(tdfromanotherC > 0)
+      {
+	std::ostringstream msg;
+	msg << "Class Instances with unknown typedefs from another class cleared: " << tdfromanotherC;
+	MSG("",msg.str().c_str(),DEBUG);
+      }
+    m_unknownTypedefFromAnotherClass.clear();
+
+    m_mapUTItoUTI.clear();
   } //clearLeftoverSubtrees()
+
+  void Resolver::cloneTemplateResolver(SymbolClass * to)
+  {
+    // Type bitsize UNKNOW:
+    {
+      std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
+      while(it != m_unknownBitsizeSubtrees.end())
+	{
+	  UTI uti = it->first;
+	  UTI mappedUTI = uti;
+	  to->hasMappedUTI(uti, mappedUTI);
+	  NodeTypeBitsize * ceNode = it->second;
+	  NodeTypeBitsize * cloneNode = new NodeTypeBitsize(*ceNode);
+	  to->linkConstantExpression(mappedUTI, cloneNode);
+	  it++;
+	}
+    }
+
+    // Arraysize UNKNOWN:
+    {
+      std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.begin();
+      while(it != m_unknownArraysizeSubtrees.end())
+	{
+	  UTI uti = it->first;
+	  UTI mappedUTI = uti;
+	  to->hasMappedUTI(uti, mappedUTI);
+	  NodeSquareBracket * ceNode = it->second;
+	  NodeSquareBracket * cloneNode = new NodeSquareBracket(*ceNode);
+	  to->linkConstantExpression(mappedUTI, cloneNode);
+	  it++;
+      }
+    }
+
+    //Named Constants
+    {
+      std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
+      while(it != m_nonreadyNamedConstantSubtrees.end())
+	{
+	  NodeConstantDef * constNode = *it;
+	  Symbol * sym;
+	  if(constNode->getSymbolPtr(sym) && !((SymbolConstantValue *) sym)->isReady())
+	    {
+	      NodeConstantDef * cloneNode = new NodeConstantDef(*constNode);
+	      to->linkConstantExpression(cloneNode);
+	    }
+	  it++;
+	}
+    }
+
+    //typedef from another class
+    {
+      std::map<UTI, UTI>::iterator it = m_unknownTypedefFromAnotherClass.begin();
+      while(it != m_unknownTypedefFromAnotherClass.end())
+	{
+	  UTI tduti = it->first;
+	  UTI aclassuti = it->second;
+	  UTI mappedtd = tduti;
+	  to->hasMappedUTI(tduti, mappedtd);
+	  UTI mappedaclass = aclassuti;
+	  to->hasMappedUTI(aclassuti, mappedaclass);
+	  to->linkTypedefFromAnotherClass(mappedtd, mappedaclass);
+	  it++;
+	}
+    }
+  } //clone
 
   NodeTypeBitsize * Resolver::findUnknownBitsizeUTI(UTI auti) const
   {
@@ -94,59 +170,13 @@ namespace MFM {
     return NULL;
   }
 
-  void Resolver::cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr)
-  {
-    //Type bitsize UNKNOWN:
-    NodeTypeBitsize * tbceNode = templateRslvr.findUnknownBitsizeUTI(olduti);
-    if(tbceNode)
-      {
-	NodeTypeBitsize * cloneNode = new NodeTypeBitsize(*tbceNode);
-	linkConstantExpression(newuti, cloneNode);
-      }
-
-    //Arraysize UNKNOWN:
-    NodeSquareBracket * asceNode = templateRslvr.findUnknownArraysizeUTI(olduti);
-    if(asceNode)
-      {
-	NodeSquareBracket * cloneNode = new NodeSquareBracket(*asceNode);
-	linkConstantExpression(newuti, cloneNode);
-      }
-  }//cloneConstantExpressionSubtreesByUTI
-
-  void Resolver::cloneNamedConstantExpressionSubtrees(const Resolver& templateRslvr)
-  {
-    if(!templateRslvr.m_nonreadyNamedConstantSubtrees.empty())
-      {
-	u32 lostsize = templateRslvr.m_nonreadyNamedConstantSubtrees.size();
-	std::ostringstream msg;
-	msg << "Found non-empty non-ready named constant subtrees, while cloning class <";
-	msg << m_state.getUlamTypeNameByIndex(m_classUTI).c_str();
-	msg << ">, size " << lostsize << ":";
-
-	std::set<NodeConstantDef *>::iterator it = templateRslvr.m_nonreadyNamedConstantSubtrees.begin();
-
-	while(it != templateRslvr.m_nonreadyNamedConstantSubtrees.end())
-	  {
-	    NodeConstantDef * constNode = *it;
-	    Symbol * sym;
-	    if(constNode->getSymbolPtr(sym) && !((SymbolConstantValue *) sym)->isReady())
-	      {
-		msg << constNode->getName() << ",";
-		NodeConstantDef * cloneNode = new NodeConstantDef(*constNode);
-		linkConstantExpression(cloneNode);
-	      }
-	    it++;
-	  }
-	MSG("", msg.str().c_str(), DEBUG);
-      }
-  } //cloneNamedConstantExpressionSubtrees
-
   bool Resolver::statusUnknownConstantExpressions()
   {
     bool sumbrtn = true;
     sumbrtn &= statusUnknownBitsizeUTI();
     sumbrtn &= statusUnknownArraysizeUTI();
     sumbrtn &= statusNonreadyNamedConstants();
+    sumbrtn &= statusUnknownTypedefsFromAnotherClass();
     return sumbrtn;
   }//statusUnknownConstantExpressions
 
@@ -248,7 +278,6 @@ namespace MFM {
     return rtnBool;
   } //constantFoldUnknownBitsize
 
-
   void Resolver::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
   {
     if(ceNode)
@@ -340,11 +369,10 @@ namespace MFM {
 
 	std::ostringstream msg;
 	msg << "Found non-empty non-ready named constant subtrees, of class <";
-	msg << m_state.m_pool.getDataAsString(m_classUTI);
+	msg << m_state.m_pool.getDataAsString(m_classUTI).c_str();
 	msg << ">, size " << lostsize << ":";
 
 	std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
-
 	while(it != m_nonreadyNamedConstantSubtrees.end())
 	  {
 	    NodeConstantDef * constNode = *it;
@@ -379,6 +407,66 @@ namespace MFM {
       }
     return rtnstat;
   } //statusNonreadyNamedConstants
+
+  void Resolver::linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubuti)
+  {
+    std::pair<std::map<UTI, UTI>::iterator, bool> ret;
+    ret = m_unknownTypedefFromAnotherClass.insert(std::pair<UTI, UTI>(tduti,stubuti));
+    bool notdupi = ret.second; //false if already existed, i.e. not added
+    if(!notdupi)
+      {
+	//not added
+      }
+  } //linkUnknownTypedefFromAnotherClass
+
+  bool Resolver::statusUnknownTypedefsFromAnotherClass()
+  {
+    bool rtnstat = true; //ok, empty
+    if(!m_unknownTypedefFromAnotherClass.empty())
+      {
+	u32 uksize = m_unknownTypedefFromAnotherClass.size();
+	std::vector<UTI> foundTs;
+	std::ostringstream msg;
+	msg << "Found " << uksize << " unknown typedef";
+	msg << (uksize > 1 ? "s " : " ") << "from another class: ";
+
+	std::map<UTI, UTI>::iterator it = m_unknownTypedefFromAnotherClass.begin();
+	while(it != m_unknownTypedefFromAnotherClass.end())
+	  {
+	    UTI tduti = it->first;
+	    UTI aclassuti = it->second;
+	    //if aclassuti is not a stub, look up tduti in its map of uti's
+	    SymbolClass * acsym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(aclassuti, acsym));
+	    if(!acsym->isStub())
+	      {
+		UTI mappedUTI;
+		if(acsym->hasMappedUTI(tduti, mappedUTI))
+		  {
+		    msg << tduti << "-maps-to-" << mappedUTI << " in class ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(aclassuti).c_str() << "; ";
+
+		    mapUTItoUTI(tduti, mappedUTI);
+		    foundTs.push_back(tduti); //to be deleted
+		  }
+	      }
+	    it++;
+	  }
+	msg << "while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	MSG("", msg.str().c_str(), DEBUG);
+
+	while(!foundTs.empty())
+	  {
+	    UTI futi = foundTs.back();
+	    it = m_unknownTypedefFromAnotherClass.find(futi);
+	    m_unknownTypedefFromAnotherClass.erase(it);
+	    foundTs.pop_back();
+	  }
+	foundTs.clear();
+	rtnstat = m_unknownTypedefFromAnotherClass.empty();
+      }
+    return rtnstat;
+  } //statusUnknownTypedefsFromAnotherClass
 
   bool Resolver::statusNonreadyClassArguments()
   {
@@ -498,5 +586,43 @@ namespace MFM {
   {
     return m_classContextUTIForPendingArgs;
   }
+
+  bool Resolver::mapUTItoUTI(UTI fmuti, UTI touti)
+  {
+    std::pair<std::map<UTI, UTI>::iterator, bool> ret;
+    ret = m_mapUTItoUTI.insert(std::pair<UTI, UTI>(fmuti,touti));
+    bool notdup = ret.second; //false if already existed, i.e. not added
+    if(notdup)
+      {
+	//sanity check please..
+	UTI checkuti;
+	assert(findMappedUTI(fmuti,checkuti));
+	assert(checkuti == touti);
+      }
+    return notdup;
+  } //mapUTItoUTI
+
+  bool Resolver::findMappedUTI(UTI auti, UTI& mappedUTI)
+  {
+    bool brtn = false;
+    std::map<UTI, UTI>::iterator mit = m_mapUTItoUTI.find(auti);
+    if(mit != m_mapUTItoUTI.end())
+      {
+	brtn = true;
+	assert(mit->first == auti);
+	mappedUTI = mit->second;
+      }
+    return brtn;
+  } //findMappedUTI
+
+  void Resolver::cloneUTImap(SymbolClass * csym)
+  {
+    std::map<UTI, UTI>::iterator mit = m_mapUTItoUTI.begin();
+    while(mit != m_mapUTItoUTI.end())
+      {
+	csym->mapUTItoUTI(mit->first, mit->second);
+	mit++;
+      }
+  } //cloneUTImap
 
 } //MFM

@@ -146,7 +146,9 @@ namespace MFM {
     if(! m_state.isComplete(suti))
       {
 	std::ostringstream msg;
-	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str() << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str();
+	msg << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: ";
+	msg  << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	aok = false;  //moved here;
       }
@@ -182,7 +184,8 @@ namespace MFM {
     ULAMCLASSTYPE classtype = sut->getUlamClass();
 
     std::ostringstream msg;
-    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element " : "quark ") << m_state.getUlamTypeNameByIndex(suti).c_str() << " : ";
+    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element " : "quark ");
+    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str() << " : ";
 
     if(m_state.isComplete(suti))
       {
@@ -243,18 +246,6 @@ namespace MFM {
     m_state.popClassContext(); //missing?
   }//testThisClass
 
-  void SymbolClass::cloneConstantExpressionSubtreesByUTI(UTI olduti, UTI newuti, const Resolver& templateRslvr)
-  {
-    assert(m_resolver);
-    m_resolver->cloneConstantExpressionSubtreesByUTI(olduti, newuti, templateRslvr);
-  }
-
-  void SymbolClass::cloneNamedConstantExpressionSubtrees(const Resolver &templateRslvr)
-  {
-    assert(m_resolver);
-    m_resolver->cloneNamedConstantExpressionSubtrees(templateRslvr);
-  }
-
   bool SymbolClass::statusUnknownConstantExpressions()
   {
     if(!m_resolver)
@@ -296,6 +287,13 @@ namespace MFM {
     m_resolver->linkConstantExpression(ceNode);
   }
 
+  void SymbolClass::linkTypedefFromAnotherClass(UTI tduti, UTI stubuti)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    m_resolver->linkUnknownTypedefFromAnotherClass(tduti, stubuti);
+  }
+
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
     if(!m_resolver)
@@ -313,11 +311,18 @@ namespace MFM {
 
   void SymbolClass::cloneResolverForStubClassInstance(const SymbolClass * csym, UTI context)
   {
-    assert(csym);
+    assert(csym); //from
     if(!m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
     m_resolver->clonePendingClassArgumentsForStubClassInstance(*(csym->m_resolver), context, this);
   } //cloneResolverForStubClassInstance
+
+  void SymbolClass::cloneResolverUTImap(SymbolClass * csym)
+  {
+    assert(csym); //to
+    assert(m_resolver);
+    m_resolver->cloneUTImap(csym);
+  } //cloneResolverUTImap
 
   UTI SymbolClass::getContextForPendingArgs()
   {
@@ -338,6 +343,22 @@ namespace MFM {
       return true; //nothing to do
     return m_resolver->constantFoldNonreadyClassArgs();
   }
+
+  bool SymbolClass::mapUTItoUTI(UTI auti, UTI mappedUTI)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+
+    return m_resolver->mapUTItoUTI(auti, mappedUTI);
+  } //mapUTItoUTI
+
+  bool SymbolClass::hasMappedUTI(UTI auti, UTI& mappedUTI)
+  {
+    if(!m_resolver)
+      return false; //not found
+
+    return m_resolver->findMappedUTI(auti, mappedUTI);
+  } //hasMappedUTI
 
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram
@@ -752,5 +773,23 @@ namespace MFM {
     up << c << s.substr(1,s.length());
     return up.str();
   } //firstletterTolowercase
+
+  void SymbolClass::addTargetDescriptionMapEntry(TargetMap& classtargets)
+  {
+    UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    std::string mangledName = cut->getUlamTypeMangledName();
+    struct TargetDesc desc;
+
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
+    desc.hasTest = (func != NULL);
+
+    ULAMCLASSTYPE classtype = cut->getUlamClass();
+    desc.isQuark = (classtype == UC_QUARK);
+
+    desc.bitsize = cut->getTotalBitSize();
+    classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
+  } //getTargetDesciptionMapEntry
 
 } //end MFM

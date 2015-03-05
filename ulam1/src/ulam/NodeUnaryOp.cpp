@@ -5,6 +5,7 @@
 namespace MFM {
 
   NodeUnaryOp::NodeUnaryOp(Node * n, CompilerState & state): Node(state), m_node(n) {}
+
   NodeUnaryOp::NodeUnaryOp(const NodeUnaryOp& ref) : Node(ref)
   {
     m_node = ref.m_node->instantiate();
@@ -48,8 +49,7 @@ namespace MFM {
       fp->write("<NULL>\n");
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
-  }
-
+  } //print
 
   void NodeUnaryOp::printPostfix(File * fp)
   {
@@ -59,8 +59,7 @@ namespace MFM {
       fp->write("<NULL>");
 
     printOp(fp);  //operators last
-  }
-
+  } //printPostfix
 
   void NodeUnaryOp::printOp(File * fp)
   {
@@ -69,13 +68,11 @@ namespace MFM {
     fp->write(myname);
   }
 
-
   const std::string NodeUnaryOp::methodNameForCodeGen()
   {
     assert(0);
     return "_UNARY_NOOP";
   }
-
 
   UTI NodeUnaryOp::checkAndLabelType()
   {
@@ -84,36 +81,37 @@ namespace MFM {
     UTI ut = m_node->checkAndLabelType();
     UTI newType = ut;         // init to stay the same
 
-    if(!m_state.isScalar(ut)) //array unsupported at this time
+    if(newType != Nav && m_state.isComplete(newType))
       {
-	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) type: " << m_state.getUlamTypeNameByIndex(ut).c_str() << " for unary operator" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
-      }
-    else
-      {
-	ULAMTYPE eut = m_state.getUlamTypeByIndex(ut)->getUlamTypeEnum();
-	if(eut == Bool)
+	if(!m_state.isScalar(ut)) //array unsupported at this time
 	  {
-	    newType = Int;
-	    m_node = makeCastingNode(m_node, newType);  //insert node/s
+	    std::ostringstream msg;
+	    msg << "Incompatible (nonscalar) type: ";
+	    msg << m_state.getUlamTypeNameByIndex(ut).c_str();
+	    msg << " for unary operator" << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
 	  }
-      }
+	else
+	  {
+	    ULAMTYPE eut = m_state.getUlamTypeByIndex(ut)->getUlamTypeEnum();
+	    if(eut == Bool)
+	      {
+		newType = Int;
+		m_node = makeCastingNode(m_node, newType);  //insert node/s
+	      }
+	  }
+      } //not nav
 
     setNodeType(newType);
-
     setStoreIntoAble(false);
-
     return newType;
   } //checkAndLabelType
-
 
   void NodeUnaryOp::countNavNodes(u32& cnt)
   {
     m_node->countNavNodes(cnt);
   }
-
 
   EvalStatus NodeUnaryOp::eval()
   {
@@ -129,8 +127,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return evs;
-  }
-
+  } //eval
 
   void NodeUnaryOp::doUnaryOperation(s32 slot, u32 nslots)
   {
@@ -144,7 +141,6 @@ namespace MFM {
       }
   } //end dobinaryop
 
-
   void NodeUnaryOp::doUnaryOperationImmediate(s32 slot, u32 nslots)
   {
     assert(nslots == 1);
@@ -156,7 +152,6 @@ namespace MFM {
     UlamValue rtnUV = makeImmediateUnaryOp(nuti, data, len);
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
   } //end dounaryopImmediate
-
 
   void NodeUnaryOp::genCode(File * fp, UlamValue& uvpass)
   {
@@ -190,7 +185,6 @@ namespace MFM {
 
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified.
   } //genCode
-
 
   void NodeUnaryOp::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {

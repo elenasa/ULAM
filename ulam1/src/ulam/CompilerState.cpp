@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-  //  #define _DEBUG_OUTPUT
-//#define _INFO_OUTPUT
-//  #define _WARN_OUTPUT
+  //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -389,6 +389,13 @@ namespace MFM {
     return rtnBool;
   } //updateUlamKeyTypeSignatureToaUTI
 
+  bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(cuti, csym));
+    return csym->hasMappedUTI(auti, mappedUTI);
+  }
+
   //called by Symbol's copy constructor with ref's 'incomplete' uti
   //please set getCompileThisIdx() to the instance's UTI.
   UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
@@ -480,6 +487,13 @@ namespace MFM {
 	cnsym->linkUnknownNamedConstantExpression(ceNode);
       }
   } //linkConstantExpression (named constant)
+
+  void CompilerState::linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubuti)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(getCompileThisIdx(), csym));
+    csym->linkTypedefFromAnotherClass(tduti, stubuti); //directly into the SC
+  } //linkUnknownTypedefFromAnotherClass
 
   void CompilerState::constantFoldIncompleteUTI(UTI auti)
   {
@@ -873,24 +887,29 @@ namespace MFM {
   bool CompilerState::alreadyDefinedSymbolClassNameTemplate(u32 dataindex, SymbolClassNameTemplate * & symptr)
   {
     bool rtnb = m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
-    return rtnb && symptr->isClassTemplate();
-  }
+    if(rtnb && !symptr->isClassTemplate())
+      {
+	std::ostringstream msg;
+	msg << "Class without parameters already exists with the same name: ";
+	msg << m_pool.getDataAsString(symptr->getId()).c_str() << " <UTI" << symptr->getUlamTypeIdx() << ">";
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+      }
+    return (rtnb && symptr->isClassTemplate());
+  } //alreadyDefinedSymbolClassNameTemplate
 
   //if necessary, searches for instance of class "template" with matching SCALAR uti
   bool CompilerState::alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr)
   {
     bool rtnb = false;
     UlamType * ut = getUlamTypeByIndex(uti);
-    UTI scalarUTI;
-    if(ut->isScalar())
-      scalarUTI = uti;
-    else
-      scalarUTI = ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
+    UTI scalarUTI = uti;
+    if(!ut->isScalar())
+      scalarUTI = getUlamTypeAsScalar(uti);
 
     SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym))
       {
-	//what???
+	//not a regular class, and not the template, so dig deeper for the stub
 	if(cnsym->getUlamTypeIdx() != scalarUTI && cnsym->isClassTemplate())
 	  {
 	    SymbolClass * csym = NULL;
@@ -1151,7 +1170,9 @@ namespace MFM {
 	if(it != Void && !fsym->isNativeFunctionDeclaration())
 	  {
 	    std::ostringstream msg;
-	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return Statement is missing; Return type: " << getUlamTypeNameByIndex(it).c_str();
+	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "''s Return Statement is missing; Return type: ";
+	    msg << getUlamTypeNameByIndex(it).c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
@@ -1166,28 +1187,42 @@ namespace MFM {
 	if(rType != it)
 	  {
 	    rtnBool = false;
-
 	    ULAMTYPE rBUT = getUlamTypeByIndex(rType)->getUlamTypeEnum();
 	    ULAMTYPE itBUT = getUlamTypeByIndex(it)->getUlamTypeEnum();
 	    if(rBUT != itBUT)
 	      {
 		std::ostringstream msg;
-		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str() << " base type: <" << UlamType::getUlamTypeEnumAsString(itBUT) << ">, does not match resulting type's " << getUlamTypeNameByIndex(rType).c_str() << " base type: <" << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
-		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
+		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
+		msg << " base type: <" << UlamType::getUlamTypeEnumAsString(itBUT);
+		msg << ">, does not match resulting type's ";
+		msg << getUlamTypeNameByIndex(rType).c_str() << " base type: <";
+		msg << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
+		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_WARN); //ERR?
 	      }
 	    else
 	      {
 		if(getArraySize(rType) != getArraySize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str() << " array size: <" << getArraySize(it) << "> does not match resulting type's: " << getUlamTypeNameByIndex(rType).c_str() << " array size: <" << getArraySize(rType) << ">";
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
+		    msg << " array size: <" << getArraySize(it);
+		    msg << "> does not match resulting type's: ";
+		    msg << getUlamTypeNameByIndex(rType).c_str() << " array size: <";
+		    msg << getArraySize(rType) << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
 
 		if(getBitSize(rType) != getBitSize(it))
 		  {
 		    std::ostringstream msg;
-		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str() << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str() << " bit size: <" << getBitSize(it) << "> does not match resulting type's: " << getUlamTypeNameByIndex(rType).c_str() << " bit size: <" << getBitSize(rType) << ">";
+		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+		    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
+		    msg << " bit size: <" << getBitSize(it);
+		    msg << "> does not match resulting type's: ";
+		    msg << getUlamTypeNameByIndex(rType).c_str() << " bit size: <";
+		    msg << getBitSize(rType) << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
 	      } //base types are the same..array and bit size might vary

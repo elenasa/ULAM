@@ -107,14 +107,16 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.m_pool.getDataAsString(m_cid).c_str() << "> is not a constant, and cannot be used as one";
+		msg << "(1) <" << m_state.m_pool.getDataAsString(m_cid).c_str();
+		msg << "> is not a constant, and cannot be used as one";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str() << "> is not defined, and cannot be used";
+	    msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	m_state.popClassContext(); //restore
@@ -122,12 +124,65 @@ namespace MFM {
 
     assert(m_exprnode);
     it = m_exprnode->checkAndLabelType();
-    if(!(it == m_state.getUlamTypeOfConstant(Int) || it == m_state.getUlamTypeOfConstant(Unsigned)))
+    //if(!(it == m_state.getUlamTypeOfConstant(Int) || it == m_state.getUlamTypeOfConstant(Unsigned)))
+    if(!m_state.isConstant(it))
       {
 	std::ostringstream msg;
-	msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_cid).c_str() << ", has an invalid type: <" << m_state.getUlamTypeNameByIndex(it) << ">";
+	msg << "Constant value expression for: ";
+	msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << ", has an invalid type: <" << m_state.getUlamTypeNameByIndex(it) << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
+      }
+
+    assert(m_constSymbol);
+    UTI suti = m_constSymbol->getUlamTypeIdx();
+    if(!m_state.isComplete(suti))
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
+	  {
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete Named Constant type: ";
+	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with constant symbol name '" << getName();
+	    msg << "' UTI" << suti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    suti = mappedUTI;
+	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
+	  }
+      }
+
+    if(!m_state.isComplete(suti)) //reload
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	std::ostringstream msg;
+	msg << "Incomplete Named Constant for type: ";
+	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+	msg << " used with constant symbol name '" << getName();
+	msg << "' UTI" << suti << " while labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	it = suti;
+      }
+    else
+      {
+	ULAMTYPE eit = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
+	ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
+	if(eit != esuti)
+	  {
+	    std::ostringstream msg;
+	    msg << "Named Constant '" << getName();
+	    msg << "' type: <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
+	    msg << "> does not match its value type: <";
+	    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = suti;
+	  }
       }
     setNodeType(it);
     return getNodeType();
@@ -167,14 +222,25 @@ namespace MFM {
   // (scope of eval is based on the block of const def.)
   bool NodeConstantDef::foldConstantExpression()
   {
-    s32 newconst = 0; //NONREADYCONST always signed?
+    s32 newconst = 0; //NONREADYCONST
 
     UTI uti = checkAndLabelType(); //find any missing symbol
     assert(m_constSymbol);
     if(m_constSymbol->isReady())
       return true;
 
-    if((uti == m_state.getUlamTypeOfConstant(Int) || uti == m_state.getUlamTypeOfConstant(Unsigned)))
+    if(!m_state.isComplete(uti))
+      {
+	std::ostringstream msg;
+	msg << "Constant symbol type for '";
+	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+	msg << "' is not yet complete while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	return false;
+      }
+
+    if(m_state.isConstant(uti))
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression
@@ -190,7 +256,10 @@ namespace MFM {
 	if(evs == ERROR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not yet ready while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "Constant value expression for '";
+	    msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+	    msg << "' is not yet ready while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    return false;
 	  }
@@ -198,10 +267,14 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Constant value expression for: " << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str() << ", is not a constant expression";
+	msg << "Constant value expression for '";
+	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+	msg << "' is not a constant expression, type: ";
+	msg << m_state.getUlamTypeNameByIndex(uti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
+
     m_constSymbol->setValue(newconst); //isReady now
     return true;
   } //foldConstantExpression

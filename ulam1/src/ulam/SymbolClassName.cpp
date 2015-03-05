@@ -11,6 +11,11 @@ namespace MFM {
 
   SymbolClassName::~SymbolClassName(){}
 
+  void SymbolClassName::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
+  {
+    SymbolClass::addTargetDescriptionMapEntry(classtargets);
+  } //getTargetDescriptorsForClassInstances
+
   bool SymbolClassName::isClassTemplate()
   {
     return false;

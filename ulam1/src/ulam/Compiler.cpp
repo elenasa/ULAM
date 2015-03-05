@@ -23,6 +23,14 @@ namespace MFM {
     return m_state.getFileNameForThisClassCPP();
   }
 
+  TargetMap Compiler::getMangledTargetsMap()
+  {
+    TargetMap rtnTargets;
+    m_state.m_programDefST.getTargets(rtnTargets);
+    return rtnTargets;
+  }
+
+
   //compile one set of related Ulam files, as before.
   u32 Compiler::compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput)
   {
@@ -174,6 +182,9 @@ namespace MFM {
 	MSG("", msg.str().c_str(), INFO);
       }
 
+    // testing targetmap only
+    //TargetMap tm = getMangledTargetsMap();
+    //std::cerr << "Size of target map is " << tm.size() << std::endl;
     return m_state.m_err.getErrorCount();
   } //checkAndTypeLabelProgram
 

@@ -74,14 +74,16 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str() << "> is not a typedef, and cannot be used as one";
+		msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
+		msg << "> is not a typedef, and cannot be used as one";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str() << "> is not defined, and cannot be used";
+	    msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
+	    msg << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	m_state.popClassContext(); //restore
@@ -98,7 +100,10 @@ namespace MFM {
 	    if(!m_state.completeIncompleteClassSymbol(it))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Typedef for class type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ")";
+		msg << "Incomplete Typedef for class type: ";
+		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << " used with variable symbol name <" << getName();
+		msg << "> (UTI" << it << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
@@ -106,15 +111,39 @@ namespace MFM {
 	if(!tdut->isComplete())
 	  {
 	    m_state.constantFoldIncompleteUTI(it); //update if possible
-	    tdut = m_state.getUlamTypeByIndex(it); //reload
-	    if(!tdut->isComplete())
+	    // fall through to common attempt to map UTI
+	    if(!m_state.isComplete(it))
 	      {
-		std::ostringstream msg;
-		msg << "Incomplete Typedef for type: " << m_state.getUlamTypeNameByIndex(it).c_str() << " used with variable symbol name <" << getName() << "> (UTI" << it << ")";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		UTI cuti = m_state.getCompileThisIdx();
+		UTI mappedUTI = Nav;
+		if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+		  {
+		    std::ostringstream msg;
+		    msg << "Substituting Mapped UTI" << mappedUTI;
+		    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		    msg << " for incomplete Typedef type: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		    msg << " used with typedef symbol name '" << getName();
+		    msg << "' UTI" << it << " while labeling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    it = mappedUTI;
+		    m_typedefSymbol->resetUlamType(mappedUTI); //consistent!
+		  }
 	      }
 	  }
-      }
+
+	if(!m_state.isComplete(it)) //reloads
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete Typedef for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with typedef symbol name '" << getName();
+	    msg << "' (UTI" << it << ")";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	  }
+      } // got typedef symbol
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -130,19 +159,19 @@ namespace MFM {
     NodeBlock * currBlock = (NodeBlock *) m_state.findNodeNoInThisClass(m_currBlockNo);
     assert(currBlock);
     return currBlock;
-  }
+  } //getBlock
 
   EvalStatus NodeTypedef::eval()
   {
     assert(m_typedefSymbol);
     return NORMAL;
-  }
+  } //eval
 
   bool NodeTypedef::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_typedefSymbol;
     return true;
-  }
+  } //getSymbolPtr
 
   void NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
   {
@@ -168,6 +197,6 @@ namespace MFM {
       }
     fp->write(";\n");
 #endif
-  }
+  } //genCode
 
 } //end MFM

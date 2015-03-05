@@ -1,8 +1,8 @@
 /**                                        -*- mode:C++ -*-
- * UlamTypeNav.h -  Basic handling of the Nav UlamType for ULAM
+ * TargetMap.h - Map of class targets for ULAM
  *
- * Copyright (C) 2014 The Regents of the University of New Mexico.
- * Copyright (C) 2014 Ackleyshack LLC.
+ * Copyright (C) 2015 The Regents of the University of New Mexico.
+ * Copyright (C) 2015 Ackleyshack LLC.
  *
  * This file is part of the ULAM programming language compilation system.
  *
@@ -26,46 +26,30 @@
  */
 
 /**
-  \file UlamTypeNav.h -  Basic handling of the Nav UlamType for ULAM
+  \file TargetMap.h -  Map of class targets for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \date (C) 2015 All rights reserved.
   \gpl
 */
 
+#ifndef TARGETMAP_H
+#define TARGETMAP_H
 
-#ifndef ULAMTYPENAV_H
-#define ULAMTYPENAV_H
+#include <map>
+#include <string>
+#include "itype.h"
 
-#include "UlamType.h"
-
-namespace MFM{
-
-  class CompilerState; //forward
-
-  class UlamTypeNav : public UlamType
+namespace MFM
+{
+  struct TargetDesc
   {
-  public:
-
-    UlamTypeNav(const UlamKeyTypeSignature key, CompilerState& state);
-    virtual ~UlamTypeNav(){}
-
-    virtual ULAMTYPE getUlamTypeEnum();
-
-    virtual bool needsImmediateType();
-
-    virtual const std::string getUlamTypeAsStringForC();
-
-    virtual const std::string getImmediateStorageTypeAsString();
-
-    virtual const std::string castMethodForCodeGen(UTI nodetype);
-
-    virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
-
-  private:
-
+    bool hasTest;
+    bool isQuark;
+    u32 bitsize;
   };
 
+  typedef std::map<std::string, struct TargetDesc> TargetMap;
 }
 
-#endif //end ULAMTYPENAV_H
+#endif  /* TARGETMAP_H */
