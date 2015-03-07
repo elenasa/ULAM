@@ -569,6 +569,7 @@ namespace MFM {
 	SymbolClass * clone = new SymbolClass(*this);
 
 	//at this point we have a NodeBlockClass! update the context
+	//keep the template's location (for targetmap)
 	NodeBlockClass * classNode = clone->getClassBlockNode();
 	assert(classNode);
 	m_state.popClassContext();

@@ -46,8 +46,11 @@ namespace MFM{
   {
   public:
 
-    NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state);
+    //NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state);
+    NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state);
+
     NodeTerminalProxy(const NodeTerminalProxy& ref);
+
     virtual ~NodeTerminalProxy();
 
     virtual Node * instantiate();
@@ -63,8 +66,10 @@ namespace MFM{
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   private:
+    Token m_ofTok; //useful when type is not available at parse
     UTI m_uti;       // lhs type of func
     Token m_funcTok; // minof, maxof or sizeof
+
 
     virtual bool setConstantValue(Token tok);
     virtual UTI setConstantTypeForNode(Token tok);
