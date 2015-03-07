@@ -93,7 +93,7 @@ namespace MFM{
     /**
 	<CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
     */
-    NodeBlockClass * parseClassBlock(SymbolClassName * cnsym);
+    NodeBlockClass * parseClassBlock(SymbolClassName * cnsym, Token identTok);
 
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym);
 

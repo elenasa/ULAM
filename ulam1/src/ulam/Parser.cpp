@@ -258,7 +258,7 @@ namespace MFM {
 	assert(0);
       };
 
-    NodeBlockClass * classNode = parseClassBlock(cnSym); //we know its type too..sweeter
+    NodeBlockClass * classNode = parseClassBlock(cnSym, iTok); //we know its type too..sweeter
     if(classNode)
       {
 	if(wasIncomplete && isTemplate)
@@ -276,19 +276,16 @@ namespace MFM {
     return false; //keep going until EOF is reached
   } //parseThisClass
 
-  NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym)
+  NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym, Token identTok)
   {
     UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
-    Token pTok;
-    getNextToken(pTok); //loc needed
-
     NodeBlockClass * rtnNode = NULL;
     NodeBlock * prevBlock = m_state.getCurrentBlock();
     assert(prevBlock == NULL); //this is the class' first block
 
     rtnNode = new NodeBlockClass(prevBlock, m_state);
     assert(rtnNode);
-    rtnNode->setNodeLocation(pTok.m_locator);
+    rtnNode->setNodeLocation(identTok.m_locator);
     rtnNode->setNodeType(utype);
 
     //set block before returning, so future class instances can link back to it
@@ -301,6 +298,9 @@ namespace MFM {
     m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL);
 
     //need class block's ST before parsing any class parameters (i.e. named constants);
+    Token pTok;
+    getNextToken(pTok);
+
     if(pTok.m_type == TOK_OPEN_PAREN)
       parseRestOfClassParameters((SymbolClassNameTemplate *) cnsym);
     else
