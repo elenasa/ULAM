@@ -233,6 +233,8 @@ namespace MFM{
 
     Node * parseMinMaxSizeofType(Token memberTok, UTI utype);
 
+    Node * parseMinMaxSizeofType(Token memberTok); //member selected type unavailable at parse
+
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'
     */
