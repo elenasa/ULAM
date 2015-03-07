@@ -92,6 +92,7 @@ namespace MFM{
     SymbolVariable *  makeSymbol(UTI aut);
     bool checkVariableTypedefSizes(ParserTypeArgs& args, UTI auti);
     bool checkTypedefOfTypedefSizes(ParserTypeArgs& args, UTI tduti);
+    bool checkConstantTypedefSizes(ParserTypeArgs& args, UTI tduti);
     UlamValue makeUlamValuePtr();
     UlamValue makeUlamValuePtrForCodeGen();
   };
