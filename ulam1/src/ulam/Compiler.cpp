@@ -183,8 +183,11 @@ namespace MFM {
       }
 
     // testing targetmap only
-    //TargetMap tm = getMangledTargetsMap();
-    //std::cerr << "Size of target map is " << tm.size() << std::endl;
+    //#define TESTTARGETMAP
+#ifdef TESTTARGETMAP
+    TargetMap tm = getMangledTargetsMap();
+    std::cerr << "Size of target map is " << tm.size() << std::endl;
+#endif
     return m_state.m_err.getErrorCount();
   } //checkAndTypeLabelProgram
 

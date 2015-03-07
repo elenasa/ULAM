@@ -93,7 +93,7 @@ namespace MFM{
     /**
 	<CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
     */
-    NodeBlockClass * parseClassBlock(SymbolClassName * cnsym);
+    NodeBlockClass * parseClassBlock(SymbolClassName * cnsym, Token identTok);
 
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym);
 
@@ -232,6 +232,8 @@ namespace MFM{
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 
     Node * parseMinMaxSizeofType(Token memberTok, UTI utype);
+
+    Node * parseMinMaxSizeofType(Token memberTok); //member selected type unavailable at parse
 
     /**
        <FUNC_CALL> := <IDENT> + '(' + <ARGS> + ')'

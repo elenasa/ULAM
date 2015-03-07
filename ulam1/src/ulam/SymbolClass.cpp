@@ -783,13 +783,15 @@ namespace MFM {
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
     NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
-    desc.hasTest = (func != NULL);
+    desc.m_hasTest = (func != NULL);
 
     ULAMCLASSTYPE classtype = cut->getUlamClass();
-    desc.isQuark = (classtype == UC_QUARK);
+    desc.m_isQuark = (classtype == UC_QUARK);
 
-    desc.bitsize = cut->getTotalBitSize();
+    desc.m_bitsize = cut->getTotalBitSize();
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
+
+    desc.m_loc = classNode->getNodeLocation();
   } //getTargetDesciptionMapEntry
 
 } //end MFM

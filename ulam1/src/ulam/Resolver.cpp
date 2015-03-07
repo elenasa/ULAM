@@ -5,6 +5,7 @@
 namespace MFM {
 
   Resolver::Resolver(UTI instance, CompilerState& state) : m_state(state), m_classUTI(instance), m_classContextUTIForPendingArgs(m_state.getCompileThisIdx()) /*default*/ {}
+
   Resolver::~Resolver()
   {
     clearLeftoverSubtrees();
@@ -63,7 +64,8 @@ namespace MFM {
     if(nonreadyG > 0)
       {
 	std::ostringstream msg;
-	msg << "Class Instances with non-ready argument constant subtrees cleared: " << nonreadyG;
+	msg << "Class Instances with non-ready argument constant subtrees cleared: ";
+	msg << nonreadyG;
 	MSG("",msg.str().c_str(),DEBUG);
 
 	std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
@@ -81,7 +83,8 @@ namespace MFM {
     if(tdfromanotherC > 0)
       {
 	std::ostringstream msg;
-	msg << "Class Instances with unknown typedefs from another class cleared: " << tdfromanotherC;
+	msg << "Class Instances with unknown typedefs from another class cleared: ";
+	msg << tdfromanotherC;
 	MSG("",msg.str().c_str(),DEBUG);
       }
     m_unknownTypedefFromAnotherClass.clear();
@@ -144,15 +147,12 @@ namespace MFM {
 	{
 	  UTI tduti = it->first;
 	  UTI aclassuti = it->second;
-	  UTI mappedtd = tduti;
-	  to->hasMappedUTI(tduti, mappedtd);
-	  UTI mappedaclass = aclassuti;
-	  to->hasMappedUTI(aclassuti, mappedaclass);
-	  to->linkTypedefFromAnotherClass(mappedtd, mappedaclass);
+	  // SHOULDN'T BE mapped at this point; wait until resolution
+	  to->linkTypedefFromAnotherClass(tduti, aclassuti);
 	  it++;
 	}
     }
-  } //clone
+  } //cloneTemplateResolver
 
   NodeTypeBitsize * Resolver::findUnknownBitsizeUTI(UTI auti) const
   {
@@ -168,7 +168,7 @@ namespace MFM {
     if(it != m_unknownArraysizeSubtrees.end())
       return it->second;
     return NULL;
-  }
+  } //findUnknownArraysizeUTI
 
   bool Resolver::statusUnknownConstantExpressions()
   {
@@ -178,7 +178,7 @@ namespace MFM {
     sumbrtn &= statusNonreadyNamedConstants();
     sumbrtn &= statusUnknownTypedefsFromAnotherClass();
     return sumbrtn;
-  }//statusUnknownConstantExpressions
+  } //statusUnknownConstantExpressions
 
   void Resolver::constantFoldIncompleteUTI(UTI uti)
   {
@@ -236,7 +236,8 @@ namespace MFM {
 	while(it != m_unknownBitsizeSubtrees.end())
 	  {
 	    UTI auti = it->first;
-	    msg << " (UTI" << auti << ") " << m_state.getUlamTypeNameByIndex(auti).c_str() << ",";
+	    msg << " (UTI" << auti << ") ";
+	    msg << m_state.getUlamTypeNameByIndex(auti).c_str() << ",";
 	    lostUTIs.push_back(auti);
 	    it++;
 	  }
@@ -334,7 +335,8 @@ namespace MFM {
 	while(it != m_unknownArraysizeSubtrees.end())
 	  {
 	    UTI auti = it->first;
-	    msg << " (UTI" << auti << ") " << m_state.getUlamTypeNameByIndex(auti).c_str() << ",";
+	    msg << " (UTI" << auti << ") ";
+	    msg << m_state.getUlamTypeNameByIndex(auti).c_str() << ",";
 	    lostUTIs.push_back(auti);
 	    it++;
 	  }
@@ -454,7 +456,8 @@ namespace MFM {
 	      }
 	    it++;
 	  }
-	msg << "while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	msg << "while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
 	MSG("", msg.str().c_str(), DEBUG);
 
 	while(!foundTs.empty())
@@ -591,6 +594,19 @@ namespace MFM {
 
   bool Resolver::mapUTItoUTI(UTI fmuti, UTI touti)
   {
+    //if fm already mapped in full instance, (e.g. unknown typedeffromanotherclass)
+    //use its mapped uti as the key to touti instead
+    UTI mappedfmuti = fmuti;
+    if(findMappedUTI(fmuti, mappedfmuti))
+      {
+	std::ostringstream msg;
+	msg << "Substituting previously mapped UTI" << mappedfmuti;
+	msg << " for the fm UTI" << fmuti << " while mapping to: " << touti;
+	msg << " in class " << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	MSG("",msg.str().c_str(),DEBUG);
+	fmuti = mappedfmuti;
+      }
+
     std::pair<std::map<UTI, UTI>::iterator, bool> ret;
     ret = m_mapUTItoUTI.insert(std::pair<UTI, UTI>(fmuti,touti));
     bool notdup = ret.second; //false if already existed, i.e. not added
@@ -622,7 +638,9 @@ namespace MFM {
     std::map<UTI, UTI>::iterator mit = m_mapUTItoUTI.begin();
     while(mit != m_mapUTItoUTI.end())
       {
-	csym->mapUTItoUTI(mit->first, mit->second);
+	UTI a = mit->first;
+	UTI b = mit->second;
+	csym->mapUTItoUTI(a, b);
 	mit++;
       }
   } //cloneUTImap

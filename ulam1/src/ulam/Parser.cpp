@@ -258,7 +258,7 @@ namespace MFM {
 	assert(0);
       };
 
-    NodeBlockClass * classNode = parseClassBlock(cnSym); //we know its type too..sweeter
+    NodeBlockClass * classNode = parseClassBlock(cnSym, iTok); //we know its type too..sweeter
     if(classNode)
       {
 	if(wasIncomplete && isTemplate)
@@ -276,19 +276,16 @@ namespace MFM {
     return false; //keep going until EOF is reached
   } //parseThisClass
 
-  NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym)
+  NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym, Token identTok)
   {
     UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
-    Token pTok;
-    getNextToken(pTok); //loc needed
-
     NodeBlockClass * rtnNode = NULL;
     NodeBlock * prevBlock = m_state.getCurrentBlock();
     assert(prevBlock == NULL); //this is the class' first block
 
     rtnNode = new NodeBlockClass(prevBlock, m_state);
     assert(rtnNode);
-    rtnNode->setNodeLocation(pTok.m_locator);
+    rtnNode->setNodeLocation(identTok.m_locator);
     rtnNode->setNodeType(utype);
 
     //set block before returning, so future class instances can link back to it
@@ -301,6 +298,9 @@ namespace MFM {
     m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL);
 
     //need class block's ST before parsing any class parameters (i.e. named constants);
+    Token pTok;
+    getNextToken(pTok);
+
     if(pTok.m_type == TOK_OPEN_PAREN)
       parseRestOfClassParameters((SymbolClassNameTemplate *) cnsym);
     else
@@ -1861,10 +1861,11 @@ namespace MFM {
     Node * rtnNode = NULL;
     Symbol * dsymptr = NULL;
     if(m_state.alreadyDefinedSymbol(memberTok.m_dataindex, dsymptr))
-      {
-	rtnNode = parseMinMaxSizeofType(memberTok, dsymptr->getUlamTypeIdx());
-	if(rtnNode) return rtnNode;
-      } //not defined, OR not min/max/sizeof..continue
+      rtnNode = parseMinMaxSizeofType(memberTok, dsymptr->getUlamTypeIdx());
+    else
+      rtnNode = parseMinMaxSizeofType(memberTok);
+
+    if(rtnNode) return rtnNode; //not min/max/sizeof..continue
 
     //arg is an instance of a class, it will be/was
     //declared as a variable, either as a data member or locally,
@@ -1957,7 +1958,7 @@ namespace MFM {
 	else
 	  {
 	    //input uti wasn't complete, i.e. based on sizeof some class
-	    rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	    rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	  }
       }
     else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
@@ -1967,7 +1968,7 @@ namespace MFM {
 	    if(ut->isComplete())
 	      rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum()); //unsigned
 	    else
-	      rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	      rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	  }
 	else
 	  {
@@ -1983,7 +1984,7 @@ namespace MFM {
 	    if(ut->isComplete())
 	      rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum()); //signed
 	    else
-	      rtnNode = new NodeTerminalProxy(utype, fTok, m_state);
+	      rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	  }
 	else
 	  {
@@ -2003,6 +2004,47 @@ namespace MFM {
       }
     return rtnNode; //may be null if not minof, maxof, sizeof, but a member or func selected
   } //parseMinMaxSizeofType
+
+  // overloaded for when type is not available
+  Node * Parser::parseMinMaxSizeofType(Token memberTok)
+  {
+    Node * rtnNode = NULL;
+
+    Token pTok;
+    getNextToken(pTok);
+    if(pTok.m_type != TOK_DOT)
+	unreadToken(); //optional, dot might have already been eaten
+
+    Token fTok;
+    if(!getExpectedToken(TOK_IDENTIFIER, fTok))
+      {
+	unreadToken();
+	return NULL;
+      }
+
+    if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
+      {
+	rtnNode = new NodeTerminalProxy(memberTok, Nav, fTok, m_state);
+      }
+    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
+      {
+	rtnNode = new NodeTerminalProxy(memberTok, Nav, fTok, m_state);
+      }
+    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
+      {
+	rtnNode = new NodeTerminalProxy(memberTok, Nav, fTok, m_state);
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	msg << ">, type unavailable";
+	MSG(&fTok, msg.str().c_str(), DEBUG);
+	unreadToken();
+      }
+    return rtnNode; //may be null if not minof, maxof, sizeof, but a member or func selected
+  } //parseMinMaxSizeofType (overloaded, type unavail)
 
   Node * Parser::parseFunctionCall(Token identTok)
   {

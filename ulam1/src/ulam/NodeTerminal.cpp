@@ -319,6 +319,8 @@ namespace MFM {
     //save id of constant string in Ptr;
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified (atom-based);
     uvpass.setPtrPos(0); //entire register
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //missing or just needed by NodeTerminalProxy?
   } //genCodeReadIntoATmpVar
 
   bool NodeTerminal::setConstantValue(Token tok)

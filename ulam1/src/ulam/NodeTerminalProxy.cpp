@@ -4,12 +4,12 @@
 
 namespace MFM {
 
-  NodeTerminalProxy::NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, state), m_uti(memberType), m_funcTok(funcTok)
+  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok)
   {
     Node::setNodeLocation(funcTok.m_locator);
   }
 
-  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok) {}
+  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_ofTok(ref.m_ofTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok) {}
 
   NodeTerminalProxy::~NodeTerminalProxy() {}
 
@@ -25,6 +25,21 @@ namespace MFM {
 
   UTI NodeTerminalProxy::checkAndLabelType()
   {
+    Symbol * asymptr = NULL;
+    if(m_uti == Nav)
+      {
+	if(m_state.alreadyDefinedSymbol(m_ofTok.m_dataindex,asymptr))
+	  {
+	    m_uti = asymptr->getUlamTypeIdx();
+	    std::ostringstream msg;
+	    msg << "Determined incomplete type for member '";
+	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
+	    msg << "'s Proxy, as type: ";
+	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+      }
+
     if(!updateProxy())
       setNodeType(Nav);  //invalid func
     else
@@ -119,6 +134,9 @@ namespace MFM {
 
   bool NodeTerminalProxy::updateProxy()
   {
+    if(m_uti == Nav)
+      return false;
+
     bool rtnb = true;
     if(m_constant.sval == UNKNOWNSIZE)
       {
