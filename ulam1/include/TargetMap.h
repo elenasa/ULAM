@@ -39,14 +39,16 @@
 #include <map>
 #include <string>
 #include "itype.h"
+#include "Locator.h"
 
 namespace MFM
 {
   struct TargetDesc
   {
-    bool hasTest;
-    bool isQuark;
-    u32 bitsize;
+    bool m_hasTest;
+    bool m_isQuark;
+    u32 m_bitsize;
+    Locator m_loc;
   };
 
   typedef std::map<std::string, struct TargetDesc> TargetMap;
