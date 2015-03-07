@@ -56,7 +56,12 @@ namespace MFM {
   {
     UTI it = Nav;
     it = m_node->checkAndLabelType();
-    if(!(it == m_state.getUlamTypeOfConstant(Int) || it == m_state.getUlamTypeOfConstant(Unsigned)))
+
+    ULAMTYPE etype = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
+
+    // expect a constant integer or constant unsigned integer
+    //if(!(it == m_state.getUlamTypeOfConstant(Int) || it == m_state.getUlamTypeOfConstant(Unsigned)))
+    if(!( (etype == Int || etype == Unsigned) && m_node->isAConstant()))
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameByIndex(it) << ", inside (), is not a valid constant expression";
@@ -86,7 +91,8 @@ namespace MFM {
   {
     s32 newbitsize = UNKNOWNSIZE;
     UTI sizetype = checkAndLabelType();
-    if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
+    //if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
+    if(sizetype != Nav)
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(getNodeType()); //offset a constant expression

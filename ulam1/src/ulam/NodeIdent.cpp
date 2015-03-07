@@ -354,22 +354,55 @@ namespace MFM {
 	return false;    //already there
       }
 
+    // maintain specific type (see isAConstant() Node method)
+    // use constant type for base type for constants
+    //uti = m_state.getUlamTypeOfConstant(bUT);
+
+    bool brtn = false;
     UTI uti = Nav;
     if(args.anothertduti)
-      uti = args.anothertduti;
+      {
+	if(checkConstantTypedefSizes(args, args.anothertduti))
+	  {
+	    brtn = true;
+	    uti = args.anothertduti;
+	  }
+      }
+    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, uti))
+      {
+	if(checkConstantTypedefSizes(args, uti))
+	  {
+	    brtn = true;
+	  }
+      }
+    else if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+      {
+	//UlamTypes automatically created for the base types with different array sizes.
+	//but with typedef's "scope" of use, typedef needed to be checked first.
+	// scalar uti
+	uti = m_state.makeUlamType(args.typeTok, args.bitsize, NONARRAYSIZE, Nav);
+	brtn = true;
+      }
     else
       {
-	ULAMTYPE bUT = m_state.getBaseTypeFromToken(args.typeTok);
-	// use constant type for base type for constants
-	uti = m_state.getUlamTypeOfConstant(bUT);
+	// no class types for constants
+	std::ostringstream msg;
+	msg << "Named Constant '" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	msg << "' cannot be based on a class type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(args.classInstanceIdx).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
-    //create a symbol for this new named constant, a constant-def, with its value
-    SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token.m_dataindex, uti, m_state);
-    m_state.addSymbolToCurrentScope(symconstdef);
+    if(brtn)
+      {
+	//create a symbol for this new named constant, a constant-def, with its value
+	SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token.m_dataindex, uti, m_state);
+	m_state.addSymbolToCurrentScope(symconstdef);
 
-    //gets the symbol just created by makeUlamType
-    return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));  //true
+	//gets the symbol just created by makeUlamType
+	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));  //true
+      }
+    return false;
   } //installSymbolConstantValue
 
   //see also NodeSquareBracket
@@ -568,6 +601,41 @@ namespace MFM {
       }
     return rtnb;
   } //checkTypedefOfTypedefSizes
+
+  bool NodeIdent::checkConstantTypedefSizes(ParserTypeArgs& args, UTI tduti)
+  {
+    bool rtnb = true;
+    UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
+    s32 tdarraysize = tdut->getArraySize();
+    if(args.arraysize != NONARRAYSIZE || tdarraysize != NONARRAYSIZE)
+      {
+	//error can't support named constant arrays
+	std::ostringstream msg;
+	msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(args.anothertduti).c_str() << ", and cannot be used by a named constant: '" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnb = false;
+      }
+
+    assert(args.arraysize == NONARRAYSIZE);
+
+    if(tdut->getBitSize() > 0 && args.bitsize == 0)
+      {
+	//ok to use typedef bitsize
+	args.bitsize = tdut->getBitSize();
+      }
+
+    // constants can't be classes either
+    if(tdut->getUlamClass() != UC_NOTACLASS)
+      {
+	std::ostringstream msg;
+	msg << "Named Constant '" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	msg << "' cannot be based on a class type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnb = false;
+      }
+    return rtnb;
+  } //checkConstantTypedefSizes
 
   void NodeIdent::genCode(File * fp, UlamValue & uvpass)
   {
