@@ -10,9 +10,10 @@ my $version = "1.0";
 use ULAMScanner;
 
 my $file = shift @ARGV;
+my $className = shift @ARGV;
 
-die "Usage: $0 Foo.ulam\n"       unless defined $file;
-die "Too many arguments\n"       unless !scalar(@ARGV);
+die "Usage: $0 Foo.ulam FooClassName\n"   unless defined $file;
+die "Too many arguments\n"                unless !scalar(@ARGV);
 
 if ($file eq "-V") {
     print "$FindBin::Script $version\n";
@@ -32,7 +33,9 @@ $us->scan();
 die "Malformed filename '$file'\n"
     unless $file =~ m/^.*?([A-Z][A-Za-z0-9]*)[.]ulam$/;
 
-my $className = $1;
+die "Malformed class name '$className'\n"
+    unless $className =~ m/^[A-Z][A-Za-z0-9]*$/;
+
 my $doc = $us->getClassDoc($className);
 
 my %keys = $us->analyzeDoc($className, $doc);
