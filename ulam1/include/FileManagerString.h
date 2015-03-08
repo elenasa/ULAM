@@ -46,7 +46,7 @@ namespace MFM
   class FileManagerString : public FileManager
     {
     public:
-            
+
 
       /** Create a FileManagerString based on the given directoryPath
 	  A FileManagerString maintains an internal map from paths to file
@@ -66,7 +66,13 @@ namespace MFM
 	   appropriate value.  Otherwise, return a new instance of FileString,
 	   appropriately initialized based on the data from the internal map.
       */
-      virtual File * open(std::string path, enum Mode mode);
+      virtual File * open(const std::string path, Mode mode, std::string & resultpath);
+
+      virtual File * open(const std::string path, Mode mode)
+      {
+        std::string ignored;
+        return open(path, mode, ignored);
+      }
 
       /**  Convenience routine for creating files in a FileManagerString.  May
         be implemented otherwise, but its actions are equivalent to: Opens
@@ -88,5 +94,5 @@ namespace MFM
   };
 }
 
-    
+
 #endif  /* FILEMANAGERSTRING_H */
