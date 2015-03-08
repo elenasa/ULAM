@@ -2,12 +2,18 @@
 
 namespace MFM {
 
-  Locator::Locator(u32 idx) : m_pathIdx(idx), m_lineNo(0), m_byteNo(0) {}
+  Locator::Locator(u32 idx) :
+    m_pathIdx(idx), m_fullPathIdx(0), m_lineNo(0), m_byteNo(0) {}
   Locator::~Locator() {}
 
-  u32 Locator::getPathIndex()
+  u32 Locator::getPathIndex() const
   {
     return m_pathIdx;
+  }
+
+  u32 Locator::getFullPathIndex() const
+  {
+    return m_fullPathIdx;
   }
 
   void Locator::setPathIndex(u32 idx)
@@ -15,12 +21,17 @@ namespace MFM {
     m_pathIdx = idx;
   }
 
-  u16 Locator::getLineNo()
+  void Locator::setFullPathIndex(u32 idx)
+  {
+    m_fullPathIdx = idx;
+  }
+
+  u16 Locator::getLineNo() const
   {
     return m_lineNo;
   }
 
-  u16 Locator::getByteNo()
+  u16 Locator::getByteNo() const
   {
     return m_byteNo;
   }
@@ -31,7 +42,7 @@ namespace MFM {
       {
 	return;
       }
-    
+
     if( c == '\n')
       {
 	m_byteNo = 0;
@@ -48,7 +59,7 @@ namespace MFM {
       }
   }
 
-  bool Locator::hasNeverBeenRead()
+  bool Locator::hasNeverBeenRead() const
   {
     return ( m_lineNo == 0 && m_byteNo == 0);
   }
