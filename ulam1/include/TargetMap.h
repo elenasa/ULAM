@@ -49,6 +49,7 @@ namespace MFM
     bool m_isQuark;
     u32 m_bitsize;
     Locator m_loc;
+    std::string m_className;
   };
 
   typedef std::map<std::string, struct TargetDesc> TargetMap;
