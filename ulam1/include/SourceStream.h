@@ -163,7 +163,6 @@ namespace MFM{
     {
       Locator m_loc;
       File * m_fp;
-      u32 m_path;
       Locator m_unreadLoc;
       s32 m_unreadByte;
       bool m_haveUnreadByte;
@@ -178,13 +177,13 @@ namespace MFM{
       }
 
       //void init(u16 idarg, File * fparg, std::string patharg)
-      void init(u16 idarg, File * fparg, u32 pathindexarg)
+      void init(u16 idarg, File * fparg, u32 pathindexarg, u32 fullpathindex)
       {
 	//m_loc.setFileId(idarg);  no longer the FileID, use m_registeredFileNames
 	// to go from path index to file id.
 	m_loc.setPathIndex(pathindexarg);
+	m_loc.setFullPathIndex(fullpathindex);
 	m_fp = fparg;
-	m_path = pathindexarg;
 	m_unreadLoc = m_loc;
       }
 
