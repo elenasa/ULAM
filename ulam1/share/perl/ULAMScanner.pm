@@ -55,7 +55,7 @@ sub getClassDoc {
         my $val = $self->{'toklist'}->[$idx]->[1];
         my $prevtok = $self->{'toklist'}->[$idx-1];
         next unless $prevtok->[0] eq 'scmt';
-        next unless $val =~ /^(element|quark|union)\s+([A-Z][A-Za-z0-9]*)\s*$/;
+        next unless $val =~ /^(element|quark|union)\s+([A-Z][A-Za-z0-9]*)$/;
         my $className = $2;
         return $prevtok->[1] if $className eq $class;
     }
@@ -332,8 +332,8 @@ sub scanNextItemLL {
         return ('epm', $1, $input);
     }
 
-    # Match quark, union, or element header
-    if ($input =~ s!^((quark|union|element)\s+[^{]*)!!s) {
+    # Match quark, union, or element header with possible template parameters (ignored)
+    if ($input =~ s!^((quark|union|element)\s+([A-Z][A-Za-z0-9]*))[^{]*!!s) {
         return ('hdr', $1, $input);
     }
 

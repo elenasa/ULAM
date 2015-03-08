@@ -554,9 +554,11 @@ sub configureMSD {
         ];
 }
 
+my @sourceDirsConfigured;
 sub configureSD {
     my $path = shift;
-    IDie("configureSD($path) -- how default update/merge etc\n");
+    push @sourceDirsConfigured, $path;
+#    print "CSD:".join(",",@sourceDirsConfigured)."\n";
 }
 
 sub entryOpt {
@@ -825,6 +827,7 @@ sub prepareWorkDir
 
 my %testableClasses;
 my %elementNameToUlamFile;
+my %elementNameToMangledName;
 my %infoStructName;
 my %infoStructCode;
 
@@ -842,39 +845,50 @@ EOM
     IDie("Implementme $actionCmd:$body\n");
 }
 
+sub deHexEscape
+{
+    my $str = shift;
+    $str =~ s/%([A-Fa-f\d]{2})/chr hex $1/eg;
+    return $str;
+}
+
 sub runUlamCompilations
 {
     pISC("## Compile ulam files: ".join(", ",@ulamFiles));
     my $culam = getTool($ulamcTool);
     my @args;
     push @args, "-o", $ULAM_WORK_DIR;
+    for my $sd (@sourceDirsConfigured) {
+        push @args, "-i", $sd;
+    }
     push @args, @ulamFiles;
+    print " Compile ".join(", ",@ulamFiles).": ";
 
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
     } else {
+        print STDOUT "OK\n";
         my $info = $stderr;
         chomp($info);
         my @rows = split(/\n/, $info);
         for my $row (@rows) {
-            my ($name,$size,$testflag,$classtype) = split(/ /,$row);
-            my $cfile = "$name.cpp";
-            print "INFO($name,$size,$testflag,$classtype)\n";
+            my ($path,$name,$cname,$size,$testflag,$classtype) = split(/ /,$row);
+            # For now, strip location info.. :(
+            $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
+            $path = deHexEscape($path);
+            my $cfile = "$cname.cpp";
             if ($testflag eq "test") {
-                $testableClasses{$name} = $cfile;
+                $testableClasses{$cname} = $cfile;
             }
             if ($classtype eq "element") {
                 push @elementNamesFromUlam, $name;
-                $elementNameToUlamFile{$name} = "$ULAM_WORK_DIR/src/$cfile";
+                $elementNameToUlamFile{$name} = $path;
+                $elementNameToMangledName{$name} = $cname;
+#                print "INFO($path,$name,$size,$testflag,$classtype)='$elementNameToUlamFile{$name}'\n";
             }
 
        }
-#       print STDOUT "INFO(".join(";",@rows).")\n";
-
-#        my ($cfile, $hastest) = split(/ /, $info);
-#        print STDOUT "OK\n";
-#        return (0, $cfile, $hastest eq 'TEST');
     }
     return $status ne "";
 }
@@ -885,11 +899,12 @@ sub runUlamInfoGeneration
     my $status = 0;
     for my $eltName (@elementNamesFromUlam) {
         my $ufile = $elementNameToUlamFile{$eltName};
+        my $mangledName = $elementNameToMangledName{$eltName};
         IDie unless defined $ufile;
         pISC(" # Processing '$ufile' metadata");
-        my ($ulamStatus, $name, $code) = runUlamElementInfo($ufile);
+        my ($ulamStatus, $name, $code) = runUlamElementInfo($ufile,$eltName);
         if ($ulamStatus == 0) {
-            $infoForElement{$eltName} = [$name, $code];
+            $infoForElement{$mangledName} = [$name, $code];
         }
         $status += $ulamStatus;
         last if $status != 0 && $KEEP_GOING == 0;
@@ -915,7 +930,8 @@ sub writeElementAllocatorStub {
 #include "AbstractDriver.h"
 
 EOF
-    for my $en (@elementNamesFromUlam) {
+    for my $ue (@elementNamesFromUlam) {
+        my $en = $elementNameToMangledName{$ue};
       print $hdrhdl <<EOF;
 #include "$en.h"
 EOF
@@ -924,7 +940,8 @@ EOF
     print $hdrhdl <<EOF;
 
 EOF
-    for my $en (@elementNamesFromUlam) {
+    for my $ue (@elementNamesFromUlam) {
+      my $en = $elementNameToMangledName{$ue};
       my ($infoname, $infocode) = @{$infoForElement{$en}};
       print $hdrhdl "/* Metadata for $infoname */\n$infocode\n";
     }
@@ -963,7 +980,8 @@ EOF
     my $libraryStubPtrArrayStatics = "";
     my $libraryStubPtrArrayInits = "";
     my $libraryStubPtrArrayCount = 0;
-    for my $en (@elementNamesFromUlam) {
+    for my $ue (@elementNamesFromUlam) {
+        my $en = $elementNameToMangledName{$ue};
         my ($infoname, $infocode) = @{$infoForElement{$en}};
         my $infoinstancename = lexEncode("_ueinfo",$libraryStubPtrArrayCount);
         my $stubname = lexEncode("_uelstub",$libraryStubPtrArrayCount);
@@ -1207,7 +1225,8 @@ EOF
 #include "$testhdr"
 
 EOF
-    for my $en (@elementNamesFromUlam) {
+    for my $ue (@elementNamesFromUlam) {
+      my $en = $elementNameToMangledName{$ue};
       print $handle <<EOF;
 #include "$en.h"
 EOF
@@ -1222,7 +1241,8 @@ static void AllocateElementTypes()
   if (initted) return;
   initted = true;
 EOF
-    for my $en (@elementNamesFromUlam) {
+    for my $ue (@elementNamesFromUlam) {
+        my $en = $elementNameToMangledName{$ue};
         if ($en eq "Ue_10105Empty") {
           print $handle <<EOF;
   MFM::$en<EC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<EC>::THE_INSTANCE);
@@ -1399,10 +1419,10 @@ sub runTestMain {
 
 
 sub runUlamElementInfo {
-    my ($file) = @_;
+    my ($file,$className) = @_;
     my $geninfo = getTool($infoTool);
-    my @args = ($file);
-    print " Element metadating $file: ";
+    my @args = ($file,$className);
+    print " Element metadating $className from $file: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$geninfo,@args);
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
