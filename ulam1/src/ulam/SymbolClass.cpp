@@ -789,9 +789,10 @@ namespace MFM {
     desc.m_isQuark = (classtype == UC_QUARK);
 
     desc.m_bitsize = cut->getTotalBitSize();
+    desc.m_loc = classNode->getNodeLocation();
+
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
 
-    desc.m_loc = classNode->getNodeLocation();
   } //getTargetDesciptionMapEntry
 
 } //end MFM
