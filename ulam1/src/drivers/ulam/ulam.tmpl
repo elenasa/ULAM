@@ -657,6 +657,7 @@ sub separateFiles {
     my @f = @_;
     while (my $file = shift @f) {
         my $handled = 0;
+#        if (-e $file && $file =~ /[.]([^.]+)$/) {
         if ($file =~ /[.]([^.]+)$/) {
             my $ext = $1;
             my $ar = $extensionDispatch{$ext};
@@ -677,9 +678,11 @@ my $tsdfiles = `ls $ULAM_SHARE_DIR/tcc/*.tcc`;
 chomp($tsdfiles);
 my @stdTccFiles = split(/\s+/,$tsdfiles);
 
+# Fri Mar  6 16:05:47 2015 Do we still need this?  Can we work around another way?
 # Barf; need to compile the stdUlamFiles to get the mangled names into
 # @elementNamesFromUlam, and thence into AllocateEmptyTypes()..
-separateFiles(@files, @stdUlamFiles, @stdTccFiles);
+#separateFiles(@files, @stdUlamFiles, @stdTccFiles);
+separateFiles(@files, @stdTccFiles);
 
 sub positionLiteralFiles {
     pISC("## Copy files");
@@ -820,14 +823,14 @@ sub prepareWorkDir
     checkOrMakeDir("$wd/bin");
 }
 
-my %testableFiles;
+my %testableClasses;
 my %elementNameToUlamFile;
 my %infoStructName;
 my %infoStructCode;
 
 sub runGccMakeForTests
 {
-    my @testables = map { s/[.]cpp$//; $_} sort values %testableFiles;
+    my @testables = map { s/[.]cpp$//; $_} sort values %testableClasses;
     print "TEST:".join(",", @testables)."\n";
     my $body = "";
     for my $test (@testables) {
@@ -841,29 +844,39 @@ EOM
 
 sub runUlamCompilations
 {
-    pISC("## Compile ulam");
-    my $status = 0;
-    for my $file (@ulamFiles) {
-        pISC(" # Compiling '$file'");
-        my ($ulamStatus, $cfile, $testable) = runUlamCompile($file);
-        my $gppStatus = 0;
-#        print STDERR "RUC($ulamStatus, $cfile, $testable) = runUlamCompile($file);\n";
-        if ($ulamStatus == 0) {
-            if ($testable) {
-                $testableFiles{$file} = $cfile;
+    pISC("## Compile ulam files: ".join(", ",@ulamFiles));
+    my $culam = getTool($ulamcTool);
+    my @args;
+    push @args, "-o", $ULAM_WORK_DIR;
+    push @args, @ulamFiles;
+
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        my $info = $stderr;
+        chomp($info);
+        my @rows = split(/\n/, $info);
+        for my $row (@rows) {
+            my ($name,$size,$testflag,$classtype) = split(/ /,$row);
+            my $cfile = "$name.cpp";
+            print "INFO($name,$size,$testflag,$classtype)\n";
+            if ($testflag eq "test") {
+                $testableClasses{$name} = $cfile;
             }
-            push @cppFromUlam, $cfile;
-            if ($cfile =~ /^(Ue_[^.]+)[.]cpp/) {
-                my $eltName = $1;
-                push @elementNamesFromUlam, $eltName;
-                $elementNameToUlamFile{$eltName} = $file;
+            if ($classtype eq "element") {
+                push @elementNamesFromUlam, $name;
+                $elementNameToUlamFile{$name} = "$ULAM_WORK_DIR/src/$cfile";
             }
-        }
-        my $fileStatus = $ulamStatus + $gppStatus;
-        $status += $fileStatus;
-        last if $fileStatus != 0 && $KEEP_GOING == 0;
+
+       }
+#       print STDOUT "INFO(".join(";",@rows).")\n";
+
+#        my ($cfile, $hastest) = split(/ /, $info);
+#        print STDOUT "OK\n";
+#        return (0, $cfile, $hastest eq 'TEST');
     }
-    return $status;
+    return $status ne "";
 }
 
 sub runUlamInfoGeneration
@@ -1224,10 +1237,8 @@ EOF
 }
 
 EOF
-    my @testables = map { s/[.]cpp$//; $_} sort values %testableFiles;
-
     my @testfuncs;
-    for my $eltName (@testables) {
+    for my $eltName (sort keys %testableClasses) {
         my $testcpp = generateTestForTestable($handle, $eltName);
         push @testfuncs, $testcpp;
     }
@@ -1352,8 +1363,7 @@ sub runUlamCompile {
     my ($file) = @_;
     my $culam = getTool($ulamcTool);
     my @args = ($file);
-    push @args, $ULAM_WORK_DIR
-        if defined $ULAM_WORK_DIR;
+    push @args, $ULAM_WORK_DIR;
     print " Compile $file: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
     if ($status ne "") {
