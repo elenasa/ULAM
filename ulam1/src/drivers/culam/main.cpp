@@ -6,6 +6,7 @@
 #include "FileStdio.h"
 #include "FileString.h"
 #include "Compiler.h"
+#include "UlamUtil.h"
 
 static const char * progname;
 
@@ -187,11 +188,6 @@ namespace MFM
       int status = C.compileFiles(m_srcFileManager, m_classfiles, m_outFileManager, m_stderr);
       if (status == 0) {
         m_targetMap = C.getMangledTargetsMap();
-        /*
-        m_mangledTarget = C.getMangledTarget();
-	m_hasTestMethod = C.hasTheTestMethod();
-	m_isAQuark = C.targetIsAQuark();
-        */
       }
       return status;
     }
@@ -269,7 +265,8 @@ int main(int argc, char ** argv)
         for(MFM::TargetMap::const_iterator i = ds.TargetMapBegin(); i != ds.TargetMapEnd(); ++i)
           {
             std::cerr
-              << c.getFullPathLocationAsString(i->second.m_loc)
+              << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
+              << " " << i->second.m_className
               << " " << i->first
               << " " << i->second.m_bitsize
               << " " << (i->second.m_hasTest?"test":"notest")
