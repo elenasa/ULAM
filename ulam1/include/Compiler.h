@@ -69,6 +69,11 @@ namespace MFM{
     void printProgramForDebug(File * output);
     void generateCodedProgram(File * output);
     std::string getMangledTarget();
+    const std::string getFullPathLocationAsString(const Locator& loc)
+    {
+      return m_state.getFullLocationAsString(loc);
+    }
+
     TargetMap getMangledTargetsMap();
 
   private:

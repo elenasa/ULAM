@@ -31,6 +31,7 @@ sub scan {
     my $tokidx;
     for ($tokidx = 0; $self->{'input'} ne ""; ++$tokidx) {
         my ($type, $match) = $self->scanNextItem();
+#        print STDERR "SCAN($type,$match)\n";
         push @{$self->{'toklist'}}, [$type, $match];
         push @{$self->{'scmtidx'}}, $tokidx
             if $type eq 'scmt';
@@ -55,7 +56,7 @@ sub getClassDoc {
         my $val = $self->{'toklist'}->[$idx]->[1];
         my $prevtok = $self->{'toklist'}->[$idx-1];
         next unless $prevtok->[0] eq 'scmt';
-        next unless $val =~ /^(element|quark|union)\s+([A-Z][A-Za-z0-9]*)\s*$/;
+        next unless $val =~ /^(element|quark|union)\s+([A-Z][A-Za-z0-9]*)$/;
         my $className = $2;
         return $prevtok->[1] if $className eq $class;
     }
@@ -332,13 +333,13 @@ sub scanNextItemLL {
         return ('epm', $1, $input);
     }
 
-    # Match quark, union, or element header
-    if ($input =~ s!^((quark|union|element)\s+[^{]*)!!s) {
+    # Match quark, union, or element header with possible template parameters (ignored)
+    if ($input =~ s!^((quark|union|element)\s+([A-Z][A-Za-z0-9]*))[^{]*!!s) {
         return ('hdr', $1, $input);
     }
 
     # Match single brackets, operators, and delimiters + ws
-    if ($input =~ s!^([\[\](){};=.<>~\!/*+-])(\s*)!!s) {
+    if ($input =~ s!^([\[\](){};,=.<>~\!/*+-])(\s*)!!s) {
         return ($1, "$1$2", $input);
     }
 
@@ -352,8 +353,8 @@ sub scanNextItemLL {
         return ('number', $1, $input);
     }
 
-    # Match type name
-    if ($input =~ s!^([A-Z][A-Za-z0-9]*)!!s) {
+    # Match type name, with possible template arguments (assuming no nested parens.. true?)
+    if ($input =~ s!^([A-Z][A-Za-z0-9]*(\([^\)]+\))?)!!s) {
         return ('type', $1, $input);
     }
 
