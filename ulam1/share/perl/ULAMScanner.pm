@@ -31,6 +31,7 @@ sub scan {
     my $tokidx;
     for ($tokidx = 0; $self->{'input'} ne ""; ++$tokidx) {
         my ($type, $match) = $self->scanNextItem();
+#        print STDERR "SCAN($type,$match)\n";
         push @{$self->{'toklist'}}, [$type, $match];
         push @{$self->{'scmtidx'}}, $tokidx
             if $type eq 'scmt';
@@ -338,7 +339,7 @@ sub scanNextItemLL {
     }
 
     # Match single brackets, operators, and delimiters + ws
-    if ($input =~ s!^([\[\](){};=.<>~\!/*+-])(\s*)!!s) {
+    if ($input =~ s!^([\[\](){};,=.<>~\!/*+-])(\s*)!!s) {
         return ($1, "$1$2", $input);
     }
 
@@ -352,8 +353,8 @@ sub scanNextItemLL {
         return ('number', $1, $input);
     }
 
-    # Match type name
-    if ($input =~ s!^([A-Z][A-Za-z0-9]*)!!s) {
+    # Match type name, with possible template arguments (assuming no nested parens.. true?)
+    if ($input =~ s!^([A-Z][A-Za-z0-9]*(\([^\)]+\))?)!!s) {
         return ('type', $1, $input);
     }
 
