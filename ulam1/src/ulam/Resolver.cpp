@@ -558,10 +558,8 @@ namespace MFM {
   void Resolver::clonePendingClassArgumentsForStubClassInstance(const Resolver& rslvr, UTI context, SymbolClass * mycsym)
   {
     NodeBlockClass * classblock = mycsym->getClassBlockNode();
-    SymbolClassNameTemplate * templateparent = mycsym->getParentClassTemplate();
-    assert(templateparent);
     SymbolClass * contextSym = NULL;
-    assert(templateparent->findClassInstanceByUTI(context, contextSym));
+    assert(m_state.alreadyDefinedSymbolClass(context,contextSym));
 
     std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
     while(vit != rslvr.m_nonreadyClassArgSubtrees.end())

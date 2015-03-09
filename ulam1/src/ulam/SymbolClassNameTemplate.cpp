@@ -565,7 +565,7 @@ namespace MFM {
 
 	// first time for this cuti, and ready args!
 	m_state.pushClassContext(cuti, NULL, NULL, false, NULL);
-	mapInstanceUTI(cuti, getUlamTypeIdx(), cuti); // map template->instance instead of fudging.
+	mapInstanceUTI(cuti, getUlamTypeIdx(), cuti); //map template->instance, instead of fudging.
 	SymbolClass * clone = new SymbolClass(*this);
 
 	//at this point we have a NodeBlockClass! update the context
@@ -583,7 +583,7 @@ namespace MFM {
 	csym = NULL;
 
 	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
-	//updateLineageOfClassInstanceUTI(cuti); nno-based now
+	//updateLineageOfClassInstanceUTI(cuti); NNO-based now
 	cloneTemplateResolverForClassInstance(clone);
 
 	m_state.popClassContext(); //restore
@@ -591,35 +591,23 @@ namespace MFM {
       } //while
 
     // done with iteration; go ahead and merge these entries into the non-temp map
-    // don't know which clone they are associated with, except by their resolvers perhaps
-    // will their block's previous ptrs be updated properly?
     if(!m_scalarClassInstanceIdxToSymbolPtrTEMP.empty())
       {
-	//m_scalarClassInstanceIdxToSymbolPtr.insert(m_scalarClassInstanceIdxToSymbolPtrTEMP.begin(), m_scalarClassInstanceIdxToSymbolPtrTEMP.end());
-	//m_scalarClassInstanceIdxToSymbolPtrTEMP.erase(m_scalarClassInstanceIdxToSymbolPtrTEMP.begin(), m_scalarClassInstanceIdxToSymbolPtrTEMP.end());
-	//m_scalarClassInstanceIdxToSymbolPtrTEMP.clear();
 	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtrTEMP.begin();
 	while(it != m_scalarClassInstanceIdxToSymbolPtrTEMP.end())
 	  {
 	    UTI cuti = it->first;
 	    SymbolClass * csym = it->second;
-	    addClassInstanceUTI(cuti, csym); //stub
-
-	    //update the previous block ptr using the saved context in the resolver
-	    UTI contextUTI = csym->getContextForPendingArgs();
-	    SymbolClass * fromC = NULL;
-	    assert(findClassInstanceByUTI(contextUTI, fromC));
-
-	    NodeBlockClass * classblock = csym->getClassBlockNode();
-	    classblock->setPreviousBlockPointer(fromC->getClassBlockNode());
+	    SymbolClassNameTemplate * ctsym = NULL;
+	    //possibly a different template than the one currently being instantiated
+	    assert(m_state.alreadyDefinedSymbolClassNameTemplate(csym->getId(), ctsym));
+	    ctsym->addClassInstanceUTI(cuti, csym); //stub
 	    it++;
 	  }
 	m_scalarClassInstanceIdxToSymbolPtrTEMP.clear();
       } //end temp stuff
-
-    //m_state.setCompileThisIdx(savecompilethisidx); //restore
     return aok;
-  } //cloneInstances
+  } //fullyInstantiate
 
   Node * SymbolClassNameTemplate::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
