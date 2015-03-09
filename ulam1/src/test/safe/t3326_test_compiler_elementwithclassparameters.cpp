@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 3\nExit status: 3\nUe_Foo { constant Int(CONSTANT) n = NONREADYCONST;  Unsigned(UNKNOWN) a(0);  Int(32) test() {  Foo(3) e;  Foo(4) f;  f a . 3 = f a . return } }\n");
+      //Constants have explicit types
+      return std::string("Exit status: 3\nExit status: 3\nUe_Foo { constant Int(32) n = NONREADYCONST;  Unsigned(UNKNOWN) a(0);  Int(32) test() {  Foo(3) e;  Foo(4) f;  f a . 3 = f a . return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -31,5 +32,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3326_test_compiler_elementwithclassparameters)
 
 } //end MFM
-
-

@@ -12,7 +12,8 @@ namespace MFM {
 	 Int Arg: 8
 	 Int Arg: 7
        */
-      return std::string("Exit status: 7\nUe_A { System s();  Int(32) j(7);  Int(32) i(7);  Int(32) test() {  3 = cOW const j 1 3 +b cast = s ( j )print . { j j 3 cast +b = s ( j )print . Int(32) j;  4 = cOW const j 2 4 * cast = s ( j )print . } i j = s ( i )print . j return } }\nUq_System { <NOMAIN> }\n");
+      //fewer casts since Constants have explicit types
+      return std::string("Exit status: 7\nUe_A { System s();  Int(32) j(7);  Int(32) i(7);  Int(32) test() {  3 = cOW const j 1 cast 3 +b = s ( j )print . { j j 3 +b = s ( j )print . Int(32) j;  4 = cOW const j 2 cast 4 * = s ( j )print . } i j = s ( i )print . j return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -41,5 +42,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3323_test_compiler_namedconstant_scope)
 
 } //end MFM
-
-

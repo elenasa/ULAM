@@ -1099,7 +1099,9 @@ namespace MFM {
 
   const std::string CompilerState::getPathFromLocator(const Locator& loc)
   {
-    return m_pool.getDataAsString(loc.getPathIndex());
+    if(loc.getPathIndex() > 0)
+      return m_pool.getDataAsString(loc.getPathIndex());
+    return "";
   }
 
   const std::string CompilerState::getFullPathFromLocator(const Locator& loc)
