@@ -5,9 +5,10 @@ namespace MFM {
   BEGINTESTCASECOMPILER(t3332_test_compiler_elementwithclassparameters_deferredsizeofinquark)
   {
     //informed by t3331
+    //Constants have explicit types
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 6\nUe_T { Int(32) i(6);  Int(32) test() {  S(1,2) m;  i m ( )func . = i return } }\nUq_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\n");
+      return std::string("Exit status: 6\nUe_T { Int(32) i(6);  Int(32) test() {  S(1,2) m;  i m ( )func . = i return } }\nUq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

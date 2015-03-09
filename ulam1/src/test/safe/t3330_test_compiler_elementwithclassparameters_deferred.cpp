@@ -7,8 +7,9 @@ namespace MFM {
     //informed by t3255
     std::string GetAnswerKey()
     {
+      //Constants have explicit types
       //note: in eval, last case, uninitialized atom case is wrong!!
-      return std::string("Exit status: 0\nUe_T { S(1,2) m( constant Int(CONSTANT) x = 1;  constant Int(CONSTANT) y = 2; );  Int(32) test() {  m ( )func . 0 cast return } }\nUq_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_T { S(1,2) m( constant Int(32) x = 1;  constant Int(32) y = 2; );  Int(32) test() {  m ( )func . 0 cast return } }\nUq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -29,5 +30,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3330_test_compiler_elementwithclassparameters_deferred)
 
 } //end MFM
-
-

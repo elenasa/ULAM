@@ -7,7 +7,8 @@ namespace MFM {
     //informed by t3255
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Bool(UNKNOWN) b2(false);  Int(32) test() {  S(1,2) s12;  s12 b2 . s12 ( )func . = s12 b2 . return } }\n");
+      //Constants have explicit types
+      return std::string("Exit status: 1\nUe_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Bool(UNKNOWN) b2(false);  Int(32) test() {  S(1,2) s12;  s12 b2 . s12 ( )func . = s12 b2 . return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -44,5 +45,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3328_test_compiler_elementwithclassparameters_self)
 
 } //end MFM
-
-
