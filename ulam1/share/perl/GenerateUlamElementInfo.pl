@@ -10,15 +10,17 @@ my $version = "1.0";
 use ULAMScanner;
 
 my $file = shift @ARGV;
-my $className = shift @ARGV;
 
-die "Usage: $0 Foo.ulam FooClassName\n"   unless defined $file;
-die "Too many arguments\n"                unless !scalar(@ARGV);
-
-if ($file eq "-V") {
+if (defined($file) && $file eq "-V") {
     print "$FindBin::Script $version\n";
     exit(0);
 }
+
+my $className = shift @ARGV;
+my $mangledName = shift @ARGV;
+
+die "Usage: $0 Foo.ulam FooClassName Ue_FooMangledName\n"   unless defined $mangledName;
+die "Too many arguments\n"                unless !scalar(@ARGV);
 
 die "Not an ulam file '$file'\n" unless $file =~ /[.]ulam$/;
 die "Can't read $file: $!\n"     unless open(HANDLE, "<", "$file");
@@ -109,7 +111,7 @@ EOF
     $symbody .= "\n      }";
    }
 }
-    my $structName = "UlamElementInfoFor$className";
+    my $structName = "UlamElementInfoFor$mangledName";
 print <<EOF;
 $structName
 /* This is generated code!  Avoid hand editing!
