@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 3\nUe_P { Bool(1) b(false);  Int(32) test() {  typedef Unsigned(3) Foo;  Unsigned(3) var;  var 3 cast = var cast return } }\nUq_Q { constant Int(CONSTANT) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\n");
+      //Constants have explicit types
+      return std::string("Exit status: 3\nUe_P { Bool(1) b(false);  Int(32) test() {  typedef Unsigned(3) Foo;  Unsigned(3) var;  var 3 cast = var cast return } }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

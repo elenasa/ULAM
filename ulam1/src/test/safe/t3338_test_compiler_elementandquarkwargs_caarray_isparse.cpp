@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: -2\nUe_EventWindowTest { constant Int(CONSTANT) v = -2;  EventWindow(-2) ew( constant Int(CONSTANT) w = -2; );  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ew 0 [] ewt cast = a ew 0 [] = a EventWindowTest is cond -2 cast return if 1 cast return } }\nUq_EventWindow { constant Int(CONSTANT) w = NONREADYCONST;  <NOMAIN> }\n");
+      //Constants have explicit types; a cast changed
+      return std::string("Exit status: -2\nUe_EventWindowTest { constant Int(32) v = -2;  EventWindow(-2) ew( constant Int(32) w = -2; );  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ew 0 [] ewt cast = a ew 0 [] = a EventWindowTest is cond -2 return if 1 cast return } }\nUq_EventWindow { constant Int(32) w = NONREADYCONST;  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
