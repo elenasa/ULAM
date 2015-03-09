@@ -777,6 +777,7 @@ namespace MFM {
   void SymbolClass::addTargetDescriptionMapEntry(TargetMap& classtargets)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    std::string className = cut->getUlamTypeNameOnly();
     std::string mangledName = cut->getUlamTypeMangledName();
     struct TargetDesc desc;
 
@@ -789,9 +790,11 @@ namespace MFM {
     desc.m_isQuark = (classtype == UC_QUARK);
 
     desc.m_bitsize = cut->getTotalBitSize();
+    desc.m_loc = classNode->getNodeLocation();
+    desc.m_className = className;
+
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
 
-    desc.m_loc = classNode->getNodeLocation();
   } //getTargetDesciptionMapEntry
 
 } //end MFM

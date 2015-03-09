@@ -251,8 +251,9 @@ namespace MFM{
 
     /** helper methods for error messaging, uses string pool */
     const std::string getTokenLocationAsString(Token * tok);
-    const std::string getFullLocationAsString(Locator& loc);
-    const std::string getPathFromLocator(Locator& loc);
+    const std::string getFullLocationAsString(const Locator& loc);
+    const std::string getPathFromLocator(const Locator& loc);
+    const std::string getFullPathFromLocator(const Locator& loc);
 
     /** helper method, uses string pool */
     const std::string getTokenDataAsString(Token * tok);

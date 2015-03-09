@@ -18,7 +18,7 @@ namespace MFM {
     m_otherReadDirs.push_back(readDir);
   }
 
-  File * FileManagerStdio::open(std::string path, enum Mode mode)
+  File * FileManagerStdio::open(const std::string path, enum Mode mode, std::string & resultpath)
   {
     FILE * fp;
     FileStdio * stdio = NULL;
@@ -39,6 +39,7 @@ namespace MFM {
     if(fp)
       {
 	//std::cerr << "FileManagerStdio::open creating new FileStdio, path <" << fullpath.c_str() << ">" << std::endl;
+        resultpath = fullpath;
 	stdio = new FileStdio(fp, mode);
 	if(mode == APPEND)
 	  {
@@ -56,6 +57,7 @@ namespace MFM {
             fp = fopen(fullpath.c_str(), ModeStr[mode].c_str());
             if(fp)
               {
+                resultpath = fullpath;
                 stdio = new FileStdio(fp, mode);
                 break;
               }

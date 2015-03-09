@@ -122,7 +122,8 @@ namespace MFM {
       }
 
     // attempt to open filename for reading; return false if failed.
-    File * fp = m_fileManager->open(filename, READ);
+    std::string fullpath;
+    File * fp = m_fileManager->open(filename, READ, fullpath);
     if(fp == NULL)
       {
 	std::ostringstream msg;
@@ -132,6 +133,9 @@ namespace MFM {
       }
 
     // open succeeds !!!
+    // get string pool index for the full file path
+    u32 fullindex = m_state.m_pool.getIndexForDataString(fullpath);
+
     // register new filename
     // push fp onto stack of open fp's
     // suspends reading whatever it is currently reading
@@ -142,7 +146,7 @@ namespace MFM {
     m_openFilesStack.push(newid);
 
     filerec frec;
-    frec.init(newid, fp, findex);
+    frec.init(newid, fp, findex, fullindex);
     m_fileRecords.push_back(frec);  // at position id - 1; init to 0,0
 
     return true;
