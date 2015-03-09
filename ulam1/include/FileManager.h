@@ -55,14 +55,24 @@ namespace MFM
   public:
     FileManager();
     virtual ~FileManager();
-    
+
     /** Attempt to open the path in the given mode.  Return a
 	newly-allocated instance of File, appropriately initialized, on
 	success; return NULL with errno set appropriately on failure.  Note
 	that on a non-NULL return, the return value becomes the caller's
 	responsibility to delete.
     */
-    virtual File * open(std::string path, Mode mode) = 0;
+    virtual File * open(const std::string path, Mode mode) = 0;
+
+    /** Attempt to open the path in the given mode, recording the
+	actual path found.  On success, return a newly-allocated
+	instance of File, appropriately initialized, and also set
+	resultpath to be path that was opened successfully; on
+	failure, return NULL with errno set appropriately, and
+	resultpath is unmodified.  Note that on a non-NULL return, the
+	return value becomes the caller's responsibility to delete.
+    */
+    virtual File * open(const std::string path, Mode mode, std::string & resultpath) = 0;
 
   private:
 

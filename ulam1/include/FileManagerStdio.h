@@ -52,14 +52,36 @@ namespace MFM
 
       ~FileManagerStdio();
 
-      /** First, obtain a complete pathname, which is equal to path if path
-       begins with a '/', or is equal to directoryPath+'/'+path otherwise.
-       Then, use fopen to attempt to open the file in the appropriate mode.
-       If fopen fails, return NULL with errno still set.  Otherwise, return
-       a new instance of FileStdio, appropriately initialized based on the
-       successful fopen.
+      /** Attempt to open the given path.  Operates exactly like
+          open(const std::string, Mode, std::string&) except the
+          resulting path is discarded.
+
+          \sa open(const std::string path, Mode mode, std::string & resultpath)
       */
-      virtual File * open(std::string path, enum Mode mode);
+      virtual File * open(const std::string path, Mode mode)
+      {
+        std::string ignored;
+        return open(path, mode, ignored);
+      }
+
+      /** Attempt to open the given path, and record the resulting
+          path used if the open ultimately succeeds.  The given path
+          is opened either directly (if it is an absolute path), or by
+          prefixing it with a directory path (if it is a relative
+          path).  For relative paths, the following directories are
+          considered in order: (1) The directoryPath supplied in the
+          constructor (default "."), (2) Any directories added via
+          addReadDir, in the order they were added.
+
+          The first resulting filename that can be opened in the
+          appropriate mode is used.  If none work, return NULL with
+          errno set to the (last or only) fopen error.  Otherwise,
+          return a new instance of FileStdio, appropriately
+          initialized based on the successful fopen.
+
+          \sa open(const std::string path, Mode mode)
+      */
+      virtual File * open(const std::string path, Mode mode, std::string & resultpath);
 
       void addReadDir(std::string readDir);
 

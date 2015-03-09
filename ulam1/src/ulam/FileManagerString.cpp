@@ -16,7 +16,7 @@ namespace MFM {
   }
 
 
-  File * FileManagerString::open(std::string path, enum Mode mode)
+  File * FileManagerString::open(const std::string path, Mode mode, std::string & resultpath)
   {
     std::map<std::string,std::string>::iterator sit;
     FileString * fs = NULL;
@@ -29,7 +29,7 @@ namespace MFM {
       }
     else
       {
-	// concatenate to path to m_dirPath 
+	// concatenate to path to m_dirPath
 	fullpath = m_dirPath + "/" + path;
       }
 
@@ -37,7 +37,7 @@ namespace MFM {
 
     if(sit == m_pathToContents.end())  //not found
       {
-	switch(mode) 
+	switch(mode)
 	  {
 	  case READ:
 	  case EXTEND:
@@ -62,22 +62,23 @@ namespace MFM {
 	// clear content string if does exist
 	if(mode == WRITE)
 	  {
-	    sit->second.clear(); 
+	    sit->second.clear();
 	  }
       }
 
     if(!status)
       {
+        resultpath = fullpath;
 	fs = new FileString(m_pathToContents[fullpath], mode);
       }
     else
       {
 	errno = ENOENT;  // no such file or directory
       }
-    
+
     return fs;
   }
-      
+
 
   bool FileManagerString::add(std::string path, std::string data)
   {
@@ -91,7 +92,7 @@ namespace MFM {
 	//std::cerr << "FMS: add() unable to write data, error [" << errno << "] "<< strerror(errno) << std::endl;
 	rtn = false;
       }
-    
+
     delete fs;
     return rtn;
   }
@@ -100,17 +101,17 @@ namespace MFM {
   bool FileManagerString::get(std::string path, std::string& data)
   {
     std::string fullpath;
-    
+
     if(path[0] == '/')
       {
 	fullpath = path;
       }
     else
       {
-	// concatenate to path to m_dirPath 
+	// concatenate to path to m_dirPath
 	fullpath = m_dirPath + "/" + path;
       }
-    
+
     data.assign(m_pathToContents[fullpath]);
     return true;
   }

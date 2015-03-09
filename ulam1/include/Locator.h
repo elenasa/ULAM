@@ -47,18 +47,21 @@ class Locator
   Locator(u32 id=0);
   ~Locator();
 
-  u32 getPathIndex();
-  u16 getLineNo();
-  u16 getByteNo();
+  u32 getPathIndex() const;
+  u32 getFullPathIndex() const;
+  u16 getLineNo() const;
+  u16 getByteNo() const;
 
   void setPathIndex(u32 idx);
+  void setFullPathIndex(u32 idx);
 
   void updateLineByteNo(s32 c);
 
-  bool hasNeverBeenRead();
+  bool hasNeverBeenRead() const;
 
  private:
   u32 m_pathIdx;
+  u32 m_fullPathIdx;
   u16 m_lineNo;
   u16 m_byteNo;
 };
