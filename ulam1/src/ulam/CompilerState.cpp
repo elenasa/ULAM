@@ -1090,18 +1090,23 @@ namespace MFM {
   }
 
   /** combines path, line, and byte number for error messages */
-  const std::string CompilerState::getFullLocationAsString(Locator& loc)
+  const std::string CompilerState::getFullLocationAsString(const Locator& loc)
   {
     std::ostringstream ss;
-    ss << getPathFromLocator(loc) << ":" << loc.getLineNo() << ":" << loc.getByteNo() << ":";
+    ss << getFullPathFromLocator(loc) << ":" << loc.getLineNo() << ":" << loc.getByteNo() << ":";
     return ss.str();
   }
 
-  const std::string CompilerState::getPathFromLocator(Locator& loc)
+  const std::string CompilerState::getPathFromLocator(const Locator& loc)
   {
     if(loc.getPathIndex() > 0)
       return m_pool.getDataAsString(loc.getPathIndex());
     return "";
+  }
+
+  const std::string CompilerState::getFullPathFromLocator(const Locator& loc)
+  {
+    return m_pool.getDataAsString(loc.getFullPathIndex());
   }
 
   const std::string CompilerState::getTokenDataAsString(Token * tok)

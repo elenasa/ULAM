@@ -554,9 +554,11 @@ sub configureMSD {
         ];
 }
 
+my @sourceDirsConfigured;
 sub configureSD {
     my $path = shift;
-    IDie("configureSD($path) -- how default update/merge etc\n");
+    push @sourceDirsConfigured, $path;
+#    print "CSD:".join(",",@sourceDirsConfigured)."\n";
 }
 
 sub entryOpt {
@@ -657,6 +659,7 @@ sub separateFiles {
     my @f = @_;
     while (my $file = shift @f) {
         my $handled = 0;
+#        if (-e $file && $file =~ /[.]([^.]+)$/) {
         if ($file =~ /[.]([^.]+)$/) {
             my $ext = $1;
             my $ar = $extensionDispatch{$ext};
@@ -677,9 +680,11 @@ my $tsdfiles = `ls $ULAM_SHARE_DIR/tcc/*.tcc`;
 chomp($tsdfiles);
 my @stdTccFiles = split(/\s+/,$tsdfiles);
 
+# Fri Mar  6 16:05:47 2015 Do we still need this?  Can we work around another way?
 # Barf; need to compile the stdUlamFiles to get the mangled names into
 # @elementNamesFromUlam, and thence into AllocateEmptyTypes()..
-separateFiles(@files, @stdUlamFiles, @stdTccFiles);
+#separateFiles(@files, @stdUlamFiles, @stdTccFiles);
+separateFiles(@files, @stdTccFiles);
 
 sub positionLiteralFiles {
     pISC("## Copy files");
@@ -712,8 +717,8 @@ UDie("No command specified\n")
 
 exit compilationDriver();
 
-my @cppFromUlam;
-my @elementNamesFromUlam;
+my @testFilesFromUlam;
+my @elementCNamesFromUlam;
 
 sub compilationDriver {
     prepareWorkDir();
@@ -734,7 +739,7 @@ sub compilationDriver {
         UDie("$buildResults tests creation problem(s) detected\n")
             if $buildResults;
 #        IDie("Do what with $testfile?");
-        push @cppFromUlam, $testfile;
+        push @testFilesFromUlam, $testfile;
     }
 
     ($buildResults, my $allocatorcpp) = writeElementAllocatorStub();
@@ -820,14 +825,15 @@ sub prepareWorkDir
     checkOrMakeDir("$wd/bin");
 }
 
-my %testableFiles;
-my %elementNameToUlamFile;
+my %testableClasses;
+my %elementCNameToUlamFile;
+my %elementCNameToUlamName;
 my %infoStructName;
 my %infoStructCode;
 
 sub runGccMakeForTests
 {
-    my @testables = map { s/[.]cpp$//; $_} sort values %testableFiles;
+    my @testables = map { s/[.]cpp$//; $_} sort values %testableClasses;
     print "TEST:".join(",", @testables)."\n";
     my $body = "";
     for my $test (@testables) {
@@ -839,44 +845,66 @@ EOM
     IDie("Implementme $actionCmd:$body\n");
 }
 
+sub deHexEscape
+{
+    my $str = shift;
+    $str =~ s/%([A-Fa-f\d]{2})/chr hex $1/eg;
+    return $str;
+}
+
 sub runUlamCompilations
 {
-    pISC("## Compile ulam");
-    my $status = 0;
-    for my $file (@ulamFiles) {
-        pISC(" # Compiling '$file'");
-        my ($ulamStatus, $cfile, $testable) = runUlamCompile($file);
-        my $gppStatus = 0;
-#        print STDERR "RUC($ulamStatus, $cfile, $testable) = runUlamCompile($file);\n";
-        if ($ulamStatus == 0) {
-            if ($testable) {
-                $testableFiles{$file} = $cfile;
-            }
-            push @cppFromUlam, $cfile;
-            if ($cfile =~ /^(Ue_[^.]+)[.]cpp/) {
-                my $eltName = $1;
-                push @elementNamesFromUlam, $eltName;
-                $elementNameToUlamFile{$eltName} = $file;
-            }
-        }
-        my $fileStatus = $ulamStatus + $gppStatus;
-        $status += $fileStatus;
-        last if $fileStatus != 0 && $KEEP_GOING == 0;
+    pISC("## Compile ulam files: ".join(", ",@ulamFiles));
+    my $culam = getTool($ulamcTool);
+    my @args;
+    push @args, "-o", $ULAM_WORK_DIR;
+    for my $sd (@sourceDirsConfigured) {
+        push @args, "-i", $sd;
     }
-    return $status;
+    push @args, @ulamFiles;
+    print " Compile ".join(", ",@ulamFiles).": ";
+
+    my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        print STDOUT "OK\n";
+        my $info = $stderr;
+        chomp($info);
+        my @rows = split(/\n/, $info);
+        for my $row (@rows) {
+            my ($path,$name,$cname,$size,$testflag,$classtype) = split(/ /,$row);
+            # For now, strip location info.. :(
+            $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
+            $path = deHexEscape($path);
+            my $cfile = "$cname.cpp";
+            if ($testflag eq "test") {
+                $testableClasses{$cname} = $cfile;
+            }
+            if ($classtype eq "element") {
+                push @elementCNamesFromUlam, $cname;
+                $elementCNameToUlamFile{$cname} = $path;
+                $elementCNameToUlamName{$cname} = $name;
+#                print "INFO($path,$name,$size,$testflag,$classtype)='$elementCNameToUlamFile{$cname}'\n";
+            }
+
+       }
+    }
+    return $status ne "";
 }
 
 sub runUlamInfoGeneration
 {
     pISC("## Extract ulam element information");
     my $status = 0;
-    for my $eltName (@elementNamesFromUlam) {
-        my $ufile = $elementNameToUlamFile{$eltName};
+    for my $eltCName (@elementCNamesFromUlam) {
+        my $ufile = $elementCNameToUlamFile{$eltCName};
+        my $uname = $elementCNameToUlamName{$eltCName};
         IDie unless defined $ufile;
         pISC(" # Processing '$ufile' metadata");
-        my ($ulamStatus, $name, $code) = runUlamElementInfo($ufile);
+        my ($ulamStatus, $name, $code) = runUlamElementInfo($ufile,$uname,$eltCName);
         if ($ulamStatus == 0) {
-            $infoForElement{$eltName} = [$name, $code];
+            $infoForElement{$eltCName} = [$name, $code];
         }
         $status += $ulamStatus;
         last if $status != 0 && $KEEP_GOING == 0;
@@ -902,18 +930,28 @@ sub writeElementAllocatorStub {
 #include "AbstractDriver.h"
 
 EOF
-    for my $en (@elementNamesFromUlam) {
-      print $hdrhdl <<EOF;
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+            print $hdrhdl <<EOF;
 #include "$en.h"
 EOF
+        }
     }
 
     print $hdrhdl <<EOF;
 
 EOF
-    for my $en (@elementNamesFromUlam) {
-      my ($infoname, $infocode) = @{$infoForElement{$en}};
-      print $hdrhdl "/* Metadata for $infoname */\n$infocode\n";
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+            my ($infoname, $infocode) = @{$infoForElement{$en}};
+            print $hdrhdl "/* Metadata for $infoname */\n$infocode\n";
+        }
     }
 
 #     print $hdrhdl <<EOF;
@@ -950,7 +988,11 @@ EOF
     my $libraryStubPtrArrayStatics = "";
     my $libraryStubPtrArrayInits = "";
     my $libraryStubPtrArrayCount = 0;
-    for my $en (@elementNamesFromUlam) {
+
+    my %seen;
+    for my $en (@elementCNamesFromUlam) {
+        next if $seen{$en};
+        $seen{$en} = 1;
         my ($infoname, $infocode) = @{$infoForElement{$en}};
         my $infoinstancename = lexEncode("_ueinfo",$libraryStubPtrArrayCount);
         my $stubname = lexEncode("_uelstub",$libraryStubPtrArrayCount);
@@ -1018,84 +1060,13 @@ sub buildSharedLibrary
     my $rollupObject = "$ULAM_WORK_DIR/build/$ROLLUP_FILE_STEM.o";
     my @args = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject);
     my $status = 0;
-    for my $cfile (@cppFromUlam) {
-        my $ofile = $cfile;
-        if ($ofile !~ s/[.]cpp$/.o/) {
-            IDie("What happened? ($cfile)\n");
-        }
-        $ofile = "$ULAM_WORK_DIR/build/$ofile";
-        push @args, $ofile;
-    }
 
-## g++ -shared -rdynamic foo1.o foo2.o -o foosh.so
     print " Create $libfile shared library: ";
     my $gpp = getTool($gppTool);
 
     my $HOLD_PATH = $ENV{PATH};
     $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
     ($status,my $stdout,my $stderr) = runThis(undef,undef,$gpp,@args);
-    $ENV{PATH} = $HOLD_PATH;
-
-    if ($status ne "") {
-        print STDOUT "ERROR: $status\n$stderr\n";
-    } else {
-        print STDOUT "OK\n";
-        return (0, $libfile);
-    }
-    return $status ne "";
-}
-
-sub buildArchiveLibrary
-{
-    pISC("## Create library");
-    my $libfile = "$ULAM_WORK_DIR/build/libculam.a";
-    my @args = ("ruc", $libfile);
-    my $status = 0;
-    for my $cfile (@cppFromUlam) {
-        my $ofile = $cfile;
-        if ($ofile !~ s/[.]cpp$/.o/) {
-            IDie("What happened? ($cfile)\n");
-        }
-        $ofile = "$ULAM_WORK_DIR/build/$ofile";
-        push @args, $ofile;
-    }
-
-    print " Create library: ";
-    my $ar = getTool($arTool);
-# g++ -shared -rdynamic foo1.o foo2.o -o foosh.so
-    ($status,my $stdout,my $stderr) = runThis(undef,undef,$ar,@args);
-
-    if ($status ne "") {
-        print STDOUT "ERROR: $status\n$stderr\n";
-    } else {
-        print STDOUT "OK\n";
-        return (0, $libfile);
-    }
-    return $status ne "";
-}
-
-sub buildExecutables
-{
-    pISC("## Create executables");
-    return buildSimDriver();
-    IDie("IMPLEMENTME");
-    my $libfile = "$ULAM_WORK_DIR/build/libculam.a";
-    my @args = ("ruc", $libfile);
-    my $status = 0;
-    for my $cfile (@cppFromUlam) {
-        my $ofile = $cfile;
-        if ($ofile !~ s/[.]cpp$/.o/) {
-            IDie("What happened? ($cfile)\n");
-        }
-        $ofile = "$ULAM_WORK_DIR/build/$ofile";
-        push @args, $ofile;
-    }
-
-    print " Create library: ";
-    my $ar = getTool($arTool);
-    my $HOLD_PATH = $ENV{PATH};
-    $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
-    ($status,my $stdout,my $stderr) = runThis(undef,undef,$ar,@args);
     $ENV{PATH} = $HOLD_PATH;
 
     if ($status ne "") {
@@ -1194,10 +1165,16 @@ EOF
 #include "$testhdr"
 
 EOF
-    for my $en (@elementNamesFromUlam) {
-      print $handle <<EOF;
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+
+            print $handle <<EOF;
 #include "$en.h"
 EOF
+        }
     }
 
     print $handle <<EOF;
@@ -1209,25 +1186,29 @@ static void AllocateElementTypes()
   if (initted) return;
   initted = true;
 EOF
-    for my $en (@elementNamesFromUlam) {
-        if ($en eq "Ue_10105Empty") {
-          print $handle <<EOF;
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+
+            if ($en eq "Ue_10105Empty") {
+                print $handle <<EOF;
   MFM::$en<EC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<EC>::THE_INSTANCE);
 EOF
-        } else {
-          print $handle <<EOF;
+            } else {
+                print $handle <<EOF;
   MFM::$en<EC>::THE_INSTANCE.AllocateType();
 EOF
+            }
         }
     }
     print $handle <<EOF;
 }
 
 EOF
-    my @testables = map { s/[.]cpp$//; $_} sort values %testableFiles;
-
     my @testfuncs;
-    for my $eltName (@testables) {
+    for my $eltName (sort keys %testableClasses) {
         my $testcpp = generateTestForTestable($handle, $eltName);
         push @testfuncs, $testcpp;
     }
@@ -1302,7 +1283,7 @@ sub runGccCompilations
     my $status = 0;
     my $dir = getWorkDir();
     my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
-    for my $cfile ($rollupFile, @cppFromUlam) {
+    for my $cfile ($rollupFile, @testFilesFromUlam) {
         pISC(" # Compiling '$cfile'");
         my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc";
         if ($cfile eq $rollupFile) {
@@ -1352,8 +1333,7 @@ sub runUlamCompile {
     my ($file) = @_;
     my $culam = getTool($ulamcTool);
     my @args = ($file);
-    push @args, $ULAM_WORK_DIR
-        if defined $ULAM_WORK_DIR;
+    push @args, $ULAM_WORK_DIR;
     print " Compile $file: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
     if ($status ne "") {
@@ -1389,10 +1369,10 @@ sub runTestMain {
 
 
 sub runUlamElementInfo {
-    my ($file) = @_;
+    my ($file,$className,$mangledName) = @_;
     my $geninfo = getTool($infoTool);
-    my @args = ($file);
-    print " Element metadating $file: ";
+    my @args = ($file,$className,$mangledName);
+    print " Element metadating $className from $file: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$geninfo,@args);
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
