@@ -35,8 +35,8 @@ namespace MFM {
     setYourParentNo(pno);
     if(m_node)
       m_node->updateLineage(getNodeNo());
-    if(m_nextNode)
-      m_nextNode->updateLineage(getNodeNo());
+    if(m_nodeNext)
+      m_nodeNext->updateLineage(getNodeNo());
 
     m_state.popClassContext(); //restores previousBlockNode
   } //updateLineage
@@ -45,7 +45,7 @@ namespace MFM {
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
-    if(m_nextNode && m_nextNode->findNodeNo(n, foundNode))
+    if(m_nodeNext && m_nodeNext->findNodeNo(n, foundNode))
       return true;
     return false;
   } //findNodeNo
@@ -61,7 +61,7 @@ namespace MFM {
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    m_nextNode->print(fp);
+    m_nodeNext->print(fp);
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
@@ -71,8 +71,8 @@ namespace MFM {
   {
     fp->write(" {");
     // has no m_node!
-    if(m_nextNode)
-      m_nextNode->printPostfix(fp);
+    if(m_nodeNext)
+      m_nodeNext->printPostfix(fp);
     else
       fp->write(" <EMPTYSTMT>");  //not an error
 
@@ -91,11 +91,11 @@ namespace MFM {
 
   UTI NodeBlock::checkAndLabelType()
   {
-    assert(m_nextNode);
+    assert(m_nodeNext);
 
     m_state.pushCurrentBlock(this);
 
-    m_nextNode->checkAndLabelType();
+    m_nodeNext->checkAndLabelType();
 
     m_state.popClassContext();  //restores m_prevBlockNode
 
@@ -106,15 +106,15 @@ namespace MFM {
 
   void NodeBlock::countNavNodes(u32& cnt)
   {
-      m_nextNode->countNavNodes(cnt);
+      m_nodeNext->countNavNodes(cnt);
   }
 
   EvalStatus NodeBlock::eval()
   {
-    assert(m_nextNode);
+    assert(m_nodeNext);
     //evalNodeProlog(0);
-    //makeRoomForNodeType(m_nextNode->getNodeType());
-    EvalStatus evs = m_nextNode->eval();    //no return value
+    //makeRoomForNodeType(m_nodeNext->getNodeType());
+    EvalStatus evs = m_nodeNext->eval();    //no return value
     //evalNodeEpilog();
     return evs;
   }
@@ -216,7 +216,7 @@ namespace MFM {
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
-    m_nextNode->genCode(fp, uvpass);
+    m_nodeNext->genCode(fp, uvpass);
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);

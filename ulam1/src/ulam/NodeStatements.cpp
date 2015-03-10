@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeStatements::NodeStatements(Node * s, CompilerState & state) : Node(state), m_node(s), m_nextNode(NULL) {}
+  NodeStatements::NodeStatements(Node * s, CompilerState & state) : Node(state), m_node(s), m_nodeNext(NULL) {}
 
   NodeStatements::NodeStatements(const NodeStatements& ref) : Node(ref)
   {
@@ -13,16 +13,16 @@ namespace MFM {
     else
       m_node = NULL;
 
-    if(ref.m_nextNode)
-      m_nextNode = (NodeStatements *) ref.m_nextNode->instantiate();
+    if(ref.m_nodeNext)
+      m_nodeNext = (NodeStatements *) ref.m_nodeNext->instantiate();
     else
-      m_nextNode = NULL;
+      m_nodeNext = NULL;
   }
 
   NodeStatements::~NodeStatements()
   {
-    delete m_nextNode;
-    m_nextNode = NULL;
+    delete m_nodeNext;
+    m_nodeNext = NULL;
 
     delete m_node;
     m_node = NULL;
@@ -38,8 +38,8 @@ namespace MFM {
     setYourParentNo(pno);
     if(m_node)
       m_node->updateLineage(getNodeNo());
-    if(m_nextNode)
-      m_nextNode->updateLineage(getNodeNo());
+    if(m_nodeNext)
+      m_nodeNext->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeStatements::findNodeNo(NNO n, Node *& foundNode)
@@ -48,7 +48,7 @@ namespace MFM {
       return true;
     if(m_node && m_node->findNodeNo(n, foundNode))
       return true;
-    if(m_nextNode && m_nextNode->findNodeNo(n, foundNode))
+    if(m_nodeNext && m_nodeNext->findNodeNo(n, foundNode))
       return true;
     return false;
   } //findNodeNo
@@ -69,8 +69,8 @@ namespace MFM {
     else
       fp->write(" <EMPTYSTMT>\n");
 
-    if(m_nextNode)
-      m_nextNode->print(fp);
+    if(m_nodeNext)
+      m_nodeNext->print(fp);
     else
       fp->write(" <NONEXTSTMT>\n");
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
@@ -86,8 +86,8 @@ namespace MFM {
     else
       fp->write(" <EMPTYSTMT>");
 
-    if(m_nextNode)
-      m_nextNode->printPostfix(fp);
+    if(m_nodeNext)
+      m_nodeNext->printPostfix(fp);
   } //printPostfix
 
   const char * NodeStatements::getName()
@@ -107,8 +107,8 @@ namespace MFM {
     //unlike statements, blocks don't have an m_node
     m_node->checkAndLabelType();       //side-effect
 
-    if(m_nextNode)
-      m_nextNode->checkAndLabelType(); //side-effect
+    if(m_nodeNext)
+      m_nodeNext->checkAndLabelType(); //side-effect
 
     //statements don't have types
     setNodeType(Void);
@@ -119,8 +119,8 @@ namespace MFM {
   {
     if(m_node)
       m_node->countNavNodes(cnt);
-    if(m_nextNode)
-      m_nextNode->countNavNodes(cnt);
+    if(m_nodeNext)
+      m_nodeNext->countNavNodes(cnt);
   } //countNavNodes
 
   EvalStatus NodeStatements::eval()
@@ -137,10 +137,10 @@ namespace MFM {
       }
 
     //not the last one, so thrown out results and continue
-    if(m_nextNode)
+    if(m_nodeNext)
       {
 	evalNodeEpilog();  //Tue Aug 26 16:18:43 2014
-	evs = m_nextNode->eval();
+	evs = m_nodeNext->eval();
 	if(evs != NORMAL)
 	  {
 	    ////evalNodeEpilog();
@@ -160,15 +160,15 @@ namespace MFM {
 
   void NodeStatements::setNextNode(NodeStatements * s)
   {
-    m_nextNode = s;
+    m_nodeNext = s;
   }
 
   void NodeStatements::packBitsInOrderOfDeclaration(u32& offset)
   {
     m_node->packBitsInOrderOfDeclaration(offset); //updates offset
 
-    if(m_nextNode)
-      m_nextNode->packBitsInOrderOfDeclaration(offset);
+    if(m_nodeNext)
+      m_nodeNext->packBitsInOrderOfDeclaration(offset);
   } //packBitsInOrderOfDeclaration
 
   void NodeStatements::genCode(File * fp, UlamValue& uvpass)
@@ -191,16 +191,16 @@ namespace MFM {
     fp->write("}\n");  //close for tmpVar
 #endif
 
-    if(m_nextNode)
-      m_nextNode->genCode(fp, uvpass);
+    if(m_nodeNext)
+      m_nodeNext->genCode(fp, uvpass);
   } //genCode
 
   void NodeStatements::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     m_node->genCodeToStoreInto(fp, uvpass);
 
-    if(m_nextNode)
-      m_nextNode->genCodeToStoreInto(fp, uvpass);
+    if(m_nodeNext)
+      m_nodeNext->genCodeToStoreInto(fp, uvpass);
   } //genCodeToStoreInto
 
 } //end MFM

@@ -36,8 +36,8 @@ namespace MFM {
     setYourParentNo(pno);
     if(m_node)
       m_node->updateLineage(getNodeNo());
-    if(m_nextNode)
-      m_nextNode->updateLineage(getNodeNo());
+    if(m_nodeNext)
+      m_nodeNext->updateLineage(getNodeNo());
     m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs
   } //updateLineage
 
@@ -59,8 +59,8 @@ namespace MFM {
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
 
-    if(m_nextNode)
-      m_nextNode->print(fp);  //datamember var decls
+    if(m_nodeNext)
+      m_nodeNext->print(fp);  //datamember var decls
 
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
@@ -86,8 +86,8 @@ namespace MFM {
     // has no m_node!
     // use Symbol Table of variables instead of parse tree; only want the UEventWindow storage
     // since the two stack-type storage are all gone by now.
-    //    if(m_nextNode)
-    //  m_nextNode->printPostfix(fp);  //datamember vardecls
+    //    if(m_nodeNext)
+    //  m_nodeNext->printPostfix(fp);  //datamember vardecls
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
     //simplifying assumption for testing purposes: center site
     Coord c0(0,0);
@@ -130,8 +130,8 @@ namespace MFM {
 #endif
 
     //side-effect DataMember VAR DECLS
-    if(m_nextNode)
-      m_nextNode->checkAndLabelType();
+    if(m_nodeNext)
+      m_nodeNext->checkAndLabelType();
 
     // label all the function definition bodies
     m_functionST.labelTableOfFunctions();
@@ -154,7 +154,7 @@ namespace MFM {
 
   void NodeBlockClass::countNavNodes(u32& cnt)
   {
-    if(m_nextNode) //may not have data members
+    if(m_nodeNext) //may not have data members
       NodeBlock::countNavNodes(cnt);
     m_functionST.countNavNodesAcrossTableOfFunctions();
   }
@@ -203,8 +203,8 @@ namespace MFM {
 #if 0
     // NodeVarDecl's make UlamValue storage now, so don't want their
     // side-effects for the class definition, rather the instance.
-    if(m_nextNode)
-      m_nextNode->eval();  //side-effect for datamember vardecls
+    if(m_nodeNext)
+      m_nodeNext->eval();  //side-effect for datamember vardecls
 #endif
 
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
@@ -278,8 +278,8 @@ namespace MFM {
     if(m_ST.getTableSize() == 0) return;
     u32 offset = 0; //relative to ATOMFIRSTSTATEBITPOS
     //m_ST.packBitsForTableOfVariableDataMembers(); //ST order not as declared
-    if(m_nextNode)
-      m_nextNode->packBitsInOrderOfDeclaration(offset);
+    if(m_nodeNext)
+      m_nodeNext->packBitsInOrderOfDeclaration(offset);
   } //packBitsForVariableDataMembers
 
   u32 NodeBlockClass::countNativeFuncDecls()
@@ -396,10 +396,10 @@ namespace MFM {
     fp->write("\n");
 
     //DataMember VAR DECLS
-    if(m_nextNode)
+    if(m_nodeNext)
       {
 	UlamValue uvpass;
-	m_nextNode->genCode(fp, uvpass);  //output the BitField typedefs
+	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
 	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
@@ -440,10 +440,10 @@ namespace MFM {
     fp->write(" THE_INSTANCE;\n");
 
     //DataMember VAR DECLS
-    if(m_nextNode)
+    if(m_nodeNext)
       {
 	UlamValue uvpass;
-	m_nextNode->genCode(fp, uvpass);  //output the BitField typedefs
+	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
 	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
