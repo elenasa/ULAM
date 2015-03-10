@@ -5,6 +5,7 @@
 namespace MFM {
 
   NodeControlIf::NodeControlIf(Node * condNode, Node * trueNode, Node * falseNode, CompilerState & state): NodeControl(condNode, trueNode, state), m_nodeElse(falseNode) {}
+
   NodeControlIf::NodeControlIf(const NodeControlIf& ref) : NodeControl(ref)
   {
     if(ref.m_nodeElse)
@@ -31,6 +32,16 @@ namespace MFM {
       m_nodeElse->updateLineage(getNodeNo());
   }//updateLineage
 
+  bool NodeControlIf::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeElse == oldnptr)
+      {
+	m_nodeElse = newnptr;
+	return true;
+      }
+    return NodeControl::exchangeKids(oldnptr, newnptr);
+  } //exhangeKids
+
   bool NodeControlIf::findNodeNo(NNO n, Node *& foundNode)
   {
     if(NodeControl::findNodeNo(n, foundNode))
@@ -51,8 +62,7 @@ namespace MFM {
       fp->write("<NULLFALSE>\n");
 
     fp->write("-----------------NodeControlif\n");
-  }
-
+  } //print
 
   void NodeControlIf::printPostfix(File * fp)
   {
@@ -65,20 +75,17 @@ namespace MFM {
       }
     //else
     //  fp->write("<NULLFALSE>");
-  }
-
+  }//printPostfix
 
   const char * NodeControlIf::getName()
   {
     return "if";
   }
 
-
   const std::string NodeControlIf::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeControlIf::checkAndLabelType()
   {
@@ -92,14 +99,12 @@ namespace MFM {
     return getNodeType();  //Bool
   } //checkAndLabelType
 
-
   void NodeControlIf::countNavNodes(u32& cnt)
   {
     if(m_nodeElse)
       m_nodeElse->countNavNodes(cnt);
     NodeControl::countNavNodes(cnt);
   }
-
 
   EvalStatus  NodeControlIf::eval()
   {
@@ -115,7 +120,6 @@ namespace MFM {
       }
 
     UlamValue cuv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
-
     if((bool) cuv.getImmediateData(m_state) == false)
       {
 	if(m_nodeElse)  //not necessarily

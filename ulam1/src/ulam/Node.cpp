@@ -7,15 +7,20 @@
 
 namespace MFM {
 
-  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav), m_parentNo(0), m_nodeNo(m_state.getNextNodeNo()) {}
+  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_utype(Nav), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
 
-  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_nodeUType(ref.m_nodeUType), m_nodeLoc(ref.m_nodeLoc), m_parentNo(ref.m_parentNo), m_nodeNo(ref.m_nodeNo) /* same NNO */ {}
+  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_utype(ref.m_utype), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */ {}
 
   void Node::setYourParentNo(NNO pno)
   {
     if(m_parentNo > 0)
       assert(m_parentNo == pno);
     m_parentNo = pno;
+  }
+
+  NNO Node::getYourParentNo()
+  {
+    return m_parentNo;
   }
 
   void Node::updateLineage(NNO pno)
@@ -25,12 +30,17 @@ namespace MFM {
 
   NNO Node::getNodeNo()
   {
-    return m_nodeNo;
+    return m_no;
   }
+
+  bool Node::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    return false; //default
+  } //exhangeKids
 
   bool Node::findNodeNo(NNO n, Node *& foundNode)
   {
-    if(m_nodeNo == n) //leaf
+    if(m_no == n) //leaf
       {
 	foundNode = this;
 	return true;
@@ -67,12 +77,12 @@ namespace MFM {
 
   UTI Node::getNodeType()
   {
-    return m_nodeUType;
+    return m_utype;
   }
 
   void Node::setNodeType(UTI ut)
   {
-    m_nodeUType = ut;
+    m_utype = ut;
   }
 
   bool Node::isStoreIntoAble()
@@ -87,12 +97,12 @@ namespace MFM {
 
   Locator Node::getNodeLocation()
   {
-    return m_nodeLoc;
+    return m_loc;
   }
 
   void Node::setNodeLocation(Locator loc)
   {
-    m_nodeLoc = loc;
+    m_loc = loc;
   }
 
   void Node::printNodeLocation(File * fp)
@@ -102,7 +112,7 @@ namespace MFM {
 
   std::string Node::getNodeLocationAsString()
   {
-    return m_state.getFullLocationAsString(m_nodeLoc);
+    return m_state.getFullLocationAsString(m_loc);
   }
 
   bool Node::getSymbolPtr(Symbol *& symptrref)
@@ -124,9 +134,9 @@ namespace MFM {
   // and has no type (e.g. statements, statement, block, program)
   UTI Node::checkAndLabelType()
   {
-    m_nodeUType = Nav;
+    m_utype = Nav;
     m_storeIntoAble = false;
-    return m_nodeUType;
+    return m_utype;
   }
 
   void Node::countNavNodes(u32& cnt)

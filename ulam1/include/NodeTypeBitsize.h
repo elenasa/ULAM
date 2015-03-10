@@ -53,6 +53,8 @@ namespace MFM{
 
     virtual void updateLineage(NNO pno);
 
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * f);

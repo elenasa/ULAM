@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "NodeConstant.h"
 #include "NodeIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
@@ -54,6 +55,11 @@ namespace MFM {
     assert(m_currBlockNo);
   }
 
+  Token NodeIdent::getToken() const
+  {
+    return m_token;
+  }
+
   UTI NodeIdent::checkAndLabelType()
   {
     UTI it = Nav;  //init
@@ -86,17 +92,42 @@ namespace MFM {
 		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
 		// e.g. var used before defined, and then is a data member outside current func block.
 	      }
+	    else if(asymptr->isConstant())
+	      {
+		// replace ourselves with a constant node instead;
+		// same node no, and loc
+		NodeConstant * newnode = new NodeConstant(*this);
+		//newnode->setNodeType(asymptr->getUlamTypeIdx());
+		Node * parentNode = m_state.findNodeNoInThisClass(Node::getYourParentNo());
+		assert(parentNode);
+
+		assert(parentNode->exchangeKids(this, newnode));
+
+		std::ostringstream msg;
+		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "> a named constant, in place of a variable with class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+		delete this; //suicide is painless..
+		//return Nav;
+		return newnode->checkAndLabelType();
+	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not a variable, and cannot be used as one with class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "> is not a variable, and cannot be used as one with class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str() << "> is not defined, and cannot be used with class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << "> is not defined, and cannot be used with class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	m_state.popClassContext(); //restore
@@ -112,7 +143,7 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
-  NNO NodeIdent::getBlockNo()
+  NNO NodeIdent::getBlockNo() const
   {
     return m_currBlockNo;
   }

@@ -66,8 +66,11 @@ namespace MFM{
     virtual Node * instantiate() = 0;
 
     virtual void setYourParentNo(NNO pno);
+    NNO getYourParentNo();
 
     virtual void updateLineage(NNO pno);
+
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
     NNO getNodeNo();
     virtual bool findNodeNo(NNO n, Node *& foundNode);
@@ -165,10 +168,15 @@ namespace MFM{
     const std::string readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
     const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
 
-    bool isCurrentObjectALocalVariableOrArgument();  //i.e. an immediate (right-justified); not a data member or self;
-    s32 isCurrentObjectsContainingAnElementParameter(); //index of last "static" EP object; o.w.-1
+    //i.e. an immediate (right-justified); not a data member or self;
+    bool isCurrentObjectALocalVariableOrArgument();
 
-    bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass); //false means its the entire array or not an array at all
+    //index of last "static" EP object; o.w.-1
+    s32 isCurrentObjectsContainingAnElementParameter();
+
+    //false means its the entire array or not an array at all
+    bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass);
+
     bool isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass);
 
     bool isHandlingImmediateType();
@@ -177,11 +185,10 @@ namespace MFM{
 
   private:
     bool m_storeIntoAble;
-    UTI m_nodeUType;
-    Locator m_nodeLoc;
-    //Node * m_parent;
+    UTI m_utype;
+    Locator m_loc;
     NNO m_parentNo;
-    NNO m_nodeNo;
+    NNO m_no;
   };
 
 }

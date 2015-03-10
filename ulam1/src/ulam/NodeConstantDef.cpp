@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_exprnode(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
+  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_nodeExpr(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
   {
     if(symptr)
       {
@@ -18,16 +18,16 @@ namespace MFM {
 
   NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlockNo(ref.m_currBlockNo), m_cid(ref.m_cid)
   {
-    if(ref.m_exprnode)
-      m_exprnode = ref.m_exprnode->instantiate();
+    if(ref.m_nodeExpr)
+      m_nodeExpr = ref.m_nodeExpr->instantiate();
     else
-      m_exprnode = NULL;
+      m_nodeExpr = NULL;
   }
 
   NodeConstantDef::~NodeConstantDef()
   {
-    delete m_exprnode;
-    m_exprnode = NULL;
+    delete m_nodeExpr;
+    m_nodeExpr = NULL;
   }
 
   Node * NodeConstantDef::instantiate()
@@ -39,19 +39,29 @@ namespace MFM {
   {
     setYourParentNo(pno);
     assert(m_state.getCurrentBlockNo() == m_currBlockNo);
-    m_exprnode->updateLineage(getNodeNo());
+    m_nodeExpr->updateLineage(getNodeNo());
   }//updateLineage
+
+  bool NodeConstantDef::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeExpr == oldnptr)
+      {
+	m_nodeExpr = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
 
   bool NodeConstantDef::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
-    return m_exprnode->findNodeNo(n, foundNode);
+    return m_nodeExpr->findNodeNo(n, foundNode);
   } //findNodeNo
 
   void NodeConstantDef::printPostfix(File * fp)
   {
-    m_exprnode->printPostfix(fp);
+    m_nodeExpr->printPostfix(fp);
     fp->write(" = ");
     fp->write(getName());
     fp->write(" const");
@@ -122,9 +132,9 @@ namespace MFM {
 	m_state.popClassContext(); //restore
       } //toinstantiate
 
-    assert(m_exprnode);
-    it = m_exprnode->checkAndLabelType();
-    if(!m_exprnode->isAConstant())
+    assert(m_nodeExpr);
+    it = m_nodeExpr->checkAndLabelType();
+    if(!m_nodeExpr->isAConstant())
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for: ";
@@ -190,7 +200,7 @@ namespace MFM {
   void NodeConstantDef::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);
-    m_exprnode->countNavNodes(cnt);
+    m_nodeExpr->countNavNodes(cnt);
   }
 
   NNO NodeConstantDef::getBlockNo()
@@ -213,7 +223,7 @@ namespace MFM {
 
   void NodeConstantDef::setConstantExpr(Node * node)
   {
-    m_exprnode = node;
+    m_nodeExpr = node;
   }
 
   // called during parsing rhs of named constant;
@@ -234,7 +244,7 @@ namespace MFM {
     // if here, must be a constant..
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(getNodeType()); //offset a constant expression
-    EvalStatus evs = m_exprnode->eval();
+    EvalStatus evs = m_nodeExpr->eval();
     if( evs == NORMAL)
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();

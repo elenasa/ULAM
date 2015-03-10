@@ -65,9 +65,11 @@ namespace MFM{
 
     void setSymbolPtr(SymbolVariable * vsymptr);
 
+    Token getToken() const;
+
     virtual UTI checkAndLabelType();
 
-    NNO getBlockNo();
+    NNO getBlockNo() const;
     NodeBlock * getBlock();
 
     virtual EvalStatus eval();

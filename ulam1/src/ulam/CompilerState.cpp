@@ -1778,7 +1778,7 @@ namespace MFM {
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     return cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
-  } //findNodeNo
+  } //findNodeNoInThisClass
 
   u32 CompilerState::getCompileThisId()
   {

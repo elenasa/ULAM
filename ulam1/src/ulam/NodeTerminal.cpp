@@ -37,6 +37,8 @@ namespace MFM {
 
   NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_constant(ref.m_constant) {}
 
+  NodeTerminal::NodeTerminal(const NodeIdent& iref) : Node(iref) {}
+
   NodeTerminal::~NodeTerminal(){}
 
   Node * NodeTerminal::instantiate()
