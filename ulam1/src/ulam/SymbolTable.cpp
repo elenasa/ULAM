@@ -668,6 +668,10 @@ namespace MFM {
 	assert(sym && sym->isClass());
 
 	((SymbolClassName *) sym)->updateLineageOfClass();
+
+	//only regular and templates immediate after updating lineages
+	((SymbolClassName *) sym)->checkAndLabelClassInstances();
+
 	it++;
       } //while
   } //updateLineageForTableOfClasses
