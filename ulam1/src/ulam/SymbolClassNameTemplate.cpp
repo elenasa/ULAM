@@ -420,12 +420,15 @@ namespace MFM {
 
     std::ostringstream args;
 
-    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+    if(instance == getUlamTypeIdx())
       {
-	std::ostringstream msg;
-	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	msg << ", has no instances; args format is number of parameters";
-	MSG("", msg.str().c_str(), DEBUG);
+	if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	    msg << ", has no instances; args format is number of parameters";
+	    MSG("", msg.str().c_str(), DEBUG);
+	  }
 	args << DigitCount(numParams, BASE10) << numParams;
 	return args.str(); //short-circuit when argument is template's UTI
       }
