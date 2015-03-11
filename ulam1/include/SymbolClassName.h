@@ -67,6 +67,7 @@ namespace MFM{
     virtual void checkCustomArraysOfClassInstances();
     virtual void checkDuplicateFunctionsForClassInstances();
     virtual void checkAndLabelClassInstances();
+    void checkAndLabelClassFirst();
     virtual u32 countNavNodesInClassInstances();
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();

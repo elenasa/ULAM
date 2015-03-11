@@ -2389,7 +2389,8 @@ namespace MFM {
       case TOK_ERROR_ABORT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, exiting..";
+	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str();
+	  msg << ">, exiting..";
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  //eat token
 	  exit(1);
@@ -3285,8 +3286,10 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with []) , error already output.
 		//rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid typedef of Type: <" << m_state.getTokenAsATypeName(args.typeTok).c_str();
-		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str() << "> (missing symbol)";
+		msg << "Invalid typedef of Type: <";
+		msg << m_state.getTokenAsATypeName(args.typeTok).c_str();
+		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str();
+		msg << "> (missing symbol)";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -3486,7 +3489,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3525,7 +3529,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg  << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3567,7 +3572,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3606,7 +3612,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3651,7 +3658,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3690,7 +3698,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3729,7 +3738,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3771,7 +3781,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }

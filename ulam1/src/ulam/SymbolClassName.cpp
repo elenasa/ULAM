@@ -121,7 +121,7 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkDuplicateFunctionsForClassInstances
 
-  void SymbolClassName::checkAndLabelClassInstances()
+  void SymbolClassName::checkAndLabelClassFirst()
   {
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
@@ -129,6 +129,11 @@ namespace MFM {
 
     classNode->checkAndLabelType();
     m_state.popClassContext(); //restore
+  } //checkAndLabelClassFirst()
+
+  void SymbolClassName::checkAndLabelClassInstances()
+  {
+    checkAndLabelClassFirst();
   } //checkAndLabelClassInstances
 
   u32 SymbolClassName::countNavNodesInClassInstances()
@@ -165,7 +170,8 @@ namespace MFM {
 	UTI cuti = getUlamTypeIdx();
 	m_state.setBitSize(cuti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
 	std::ostringstream msg;
-	msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str() << " SIZED: " << totalbits;
+	msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	msg << " SIZED: " << totalbits;
 	MSG("", msg.str().c_str(),DEBUG);
       }
     m_state.popClassContext(); //restore

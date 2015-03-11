@@ -46,7 +46,6 @@ namespace MFM{
   {
   public:
 
-    //NodeTerminalProxy(UTI memberType, Token funcTok, CompilerState & state);
     NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state);
 
     NodeTerminalProxy(const NodeTerminalProxy& ref);
@@ -54,6 +53,8 @@ namespace MFM{
     virtual ~NodeTerminalProxy();
 
     virtual Node * instantiate();
+
+    virtual void printPostfix(File * fp);
 
     virtual const std::string prettyNodeName();
 
@@ -67,9 +68,9 @@ namespace MFM{
 
   private:
     Token m_ofTok; //useful when type is not available at parse
-    UTI m_uti;       // lhs type of func
-    Token m_funcTok; // minof, maxof or sizeof
-
+    UTI m_uti; //lhs type of func
+    Token m_funcTok; //minof, maxof or sizeof
+    bool m_ready;
 
     virtual bool setConstantValue(Token tok);
     virtual UTI setConstantTypeForNode(Token tok);
