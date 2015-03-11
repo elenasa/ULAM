@@ -229,7 +229,8 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "number of arguments (" << cargs << ") in class instance: ";
 		msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
-		msg << ", does not match the required number of parameters (" << numparams << ") to fix";
+		msg << ", does not match the required number of parameters (";
+		msg << numparams << ") to fix";
 		MSG("", msg.str().c_str(),ERR);
 		it++;
 		continue;
@@ -841,7 +842,8 @@ namespace MFM {
 	  {
 	    m_state.setBitSize(uti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
 	    std::ostringstream msg;
-	    msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameByIndex(uti).c_str() << " SIZED: " << totalbits;
+	    msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameByIndex(uti).c_str();
+	    msg << " SIZED: " << totalbits;
 	    MSG("", msg.str().c_str(),DEBUG);
 	  }
 	else
@@ -1046,7 +1048,9 @@ namespace MFM {
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
-	msg << "number of arguments (" << cargs << ") in class instance: " << m_state.getUlamTypeNameByIndex(fm->getId()).c_str() << ", does not match the required number of parameters (" << numparams << ")";
+	msg << "number of arguments (" << cargs << ") in class instance: ";
+	msg << m_state.getUlamTypeNameByIndex(fm->getId()).c_str();
+	msg << ", does not match the required number of parameters (" << numparams << ")";
 	MSG("", msg.str().c_str(),ERR);
 	return false;
       }

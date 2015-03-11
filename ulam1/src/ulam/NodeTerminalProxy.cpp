@@ -4,12 +4,12 @@
 
 namespace MFM {
 
-  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok)
+  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false)
   {
     Node::setNodeLocation(funcTok.m_locator);
   }
 
-  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_ofTok(ref.m_ofTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok) {}
+  NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_ofTok(ref.m_ofTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok), m_ready(ref.m_ready) {}
 
   NodeTerminalProxy::~NodeTerminalProxy() {}
 
@@ -17,6 +17,19 @@ namespace MFM {
   {
     return new NodeTerminalProxy(*this);
   }
+
+  void NodeTerminalProxy::printPostfix(File * fp)
+  {
+    fp->write(" ");
+    if(m_ready)
+      fp->write(NodeTerminal::getName());
+    else
+      {
+	fp->write(m_state.getTokenDataAsString(&m_ofTok).c_str());
+	fp->write(".");
+	fp->write(m_state.getTokenDataAsString(&m_funcTok).c_str());
+      }
+  } //printPostfix
 
   const std::string NodeTerminalProxy::prettyNodeName()
   {
@@ -137,11 +150,11 @@ namespace MFM {
     if(m_uti == Nav)
       return false;
 
+    if(m_ready)
+      return true;
+
     bool rtnb = true;
-    if(m_constant.sval == UNKNOWNSIZE)
-      {
-	m_state.constantFoldIncompleteUTI(m_uti); //update if possible
-      }
+    m_state.constantFoldIncompleteUTI(m_uti); //update if possible
 
     //attempt to map UTI
     if(!m_state.isComplete(m_uti))
@@ -193,6 +206,7 @@ namespace MFM {
 	    msg << ") while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
+	    m_ready = true;
 	  }
       }
     return rtnb;

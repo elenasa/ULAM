@@ -9,16 +9,9 @@ namespace MFM {
     setNodeType(typeToBe);
   }
 
-  NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_explicit(ref.m_explicit)
-  {
-    m_node = ref.m_node->instantiate();
-  }
+  NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_explicit(ref.m_explicit) {}
 
-  NodeCast::~NodeCast()
-  {
-    delete m_node;
-    m_node = NULL;
-  }
+  NodeCast::~NodeCast() {}
 
   Node * NodeCast::instantiate()
   {
@@ -30,24 +23,20 @@ namespace MFM {
     return "cast";
   }
 
-
   const std::string NodeCast::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   void NodeCast::setExplicitCast()
   {
     m_explicit = true;
   }
 
-
   bool NodeCast::isExplicitCast()
   {
     return m_explicit;
   }
-
 
   UTI NodeCast::checkAndLabelType()
   {
@@ -118,7 +107,8 @@ namespace MFM {
 	    if(tobeTypEnum != Int)
 	      {
 		std::ostringstream msg;
-		msg << "Cannot cast quark type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to non-Int type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+		msg << "Cannot cast quark type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+		msg << " to non-Int type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
@@ -134,7 +124,8 @@ namespace MFM {
 	    if(nodeClass == UC_UNSEEN)
 	      {
 		std::ostringstream msg;
-		msg << "Cannot cast type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+		msg << "Cannot cast type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+		msg << " to: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
@@ -148,7 +139,6 @@ namespace MFM {
     m_node->countNavNodes(cnt);
     Node::countNavNodes(cnt);
   }
-
 
   EvalStatus NodeCast::eval()
   {
@@ -188,7 +178,9 @@ namespace MFM {
 	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	  {
 	    std::ostringstream msg;
-	    msg << "Cast problem! Value type: " << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str() << " failed to be cast as type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    msg << "Cast problem! Value type: ";
+	    msg << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str();
+	    msg << " failed to be cast as type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
@@ -198,15 +190,13 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }
-
+  } //eval
 
   UlamValue NodeCast::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {
     assert(0); // n/a
     return UlamValue();
   }
-
 
   void NodeCast::genCode(File * fp, UlamValue& uvpass)
   {
@@ -217,7 +207,6 @@ namespace MFM {
       }
   } //genCode
 
-
  void NodeCast::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     m_node->genCodeToStoreInto(fp, uvpass);
@@ -227,7 +216,6 @@ namespace MFM {
 	genCodeReadIntoATmpVar(fp, uvpass);     // cast.
       }
   }
-
 
   void NodeCast::genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass)
   {
@@ -310,13 +298,11 @@ namespace MFM {
       uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified; pass along name id
   } //genCodeReadIntoTmp
 
-
   void NodeCast::genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
     assert(0);
     genCodeWriteFromATmpVar(fp, luvpass, ruvpass);
   }
-
 
   void NodeCast::genCodeCastAtomAndElement(File * fp, UlamValue & uvpass)
   {
@@ -359,7 +345,6 @@ namespace MFM {
     return;
   } //genCodeCastAtomAndElement
 
-
   bool NodeCast::needsACast()
   {
     //return true;  //debug
@@ -370,12 +355,13 @@ namespace MFM {
     if(uticr == UTIC_DONTKNOW)
       {
 	std::ostringstream msg;
-	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << "(UTI" << nodeType << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ")";
+	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	msg << "(UTI" << nodeType << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << "(UTI" << tobeType << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	return false;
       }
 
-    //if(nodeType == tobeType)
     if(uticr == UTIC_SAME)
       return false;  //short-circuit if same exact type
 
