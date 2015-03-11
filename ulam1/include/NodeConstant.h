@@ -37,11 +37,13 @@
 #ifndef NODECONSTANT_H
 #define NODECONSTANT_H
 
-#include "NodeTerminal.h"
-#include "Token.h"
-#include "SymbolConstantValue.h"
-#include "UlamType.h"
 #include "NodeBlock.h"
+#include "NodeTerminal.h"
+#include "NodeIdent.h"
+#include "SymbolConstantValue.h"
+#include "Token.h"
+#include "UlamType.h"
+
 
 namespace MFM{
 
@@ -51,6 +53,7 @@ namespace MFM{
 
     NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state);
     NodeConstant(const NodeConstant& ref);
+    NodeConstant(const NodeIdent& iref);
     virtual ~NodeConstant();
 
     virtual Node * instantiate();

@@ -161,7 +161,8 @@ namespace MFM {
     if( (pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) && (pTok.m_type != TOK_KW_QUARKUNION) )
       {
 	std::ostringstream msg;
-	msg << "Expecting 'quark' or 'element' KEYWORD, NOT <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	msg << "Expecting 'quark' or 'element' KEYWORD, NOT <";
+	msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
 
 	return true; //we're done.
@@ -175,7 +176,8 @@ namespace MFM {
     if(iTok.m_type != TOK_TYPE_IDENTIFIER)
       {
 	std::ostringstream msg;
-	msg << "Poorly named class <" << m_state.getTokenDataAsString(&iTok).c_str() << ">: Identifier must begin with an upper-case letter";;
+	msg << "Poorly named class <" << m_state.getTokenDataAsString(&iTok).c_str();
+	msg << ">: Identifier must begin with an upper-case letter";;
 	MSG(&iTok, msg.str().c_str(), ERR);
 	return  true; //we're done unless we can gobble the rest up?
       }
@@ -200,7 +202,8 @@ namespace MFM {
 	    if(cnSym->getUlamClass() != UC_UNSEEN)
 	      {
 		std::ostringstream msg;
-		msg << "Duplicate or incomplete class <" << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
+		msg << "Duplicate or incomplete class <";
+		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
 		MSG(&iTok, msg.str().c_str(), ERR);
 
 		return  true; //we're done unless we can gobble the rest up?
@@ -221,7 +224,8 @@ namespace MFM {
 	    if(ctSym->getUlamClass() != UC_UNSEEN)
 	      {
 		std::ostringstream msg;
-		msg << "Duplicate or incomplete template class <" << m_state.m_pool.getDataAsString(ctSym->getId()).c_str() << ">";
+		msg << "Duplicate or incomplete template class <";
+		msg << m_state.m_pool.getDataAsString(ctSym->getId()).c_str() << ">";
 		MSG(&iTok, msg.str().c_str(), ERR);
 
 		return  true; //we're done unless we can gobble the rest up?
@@ -270,7 +274,9 @@ namespace MFM {
 	cnSym->setUlamClass(UC_UNSEEN);
 	cnSym->setClassBlockNode(NULL);
 	std::ostringstream msg;
-	msg << "Empty/Incomplete Class Definition: <" << m_state.getTokenDataAsString(&iTok).c_str() << ">; possible missing ending curly brace";
+	msg << "Empty/Incomplete Class Definition: <";
+	msg << m_state.getTokenDataAsString(&iTok).c_str();
+	msg << ">; possible missing ending curly brace";
 	MSG(&pTok, msg.str().c_str(), WARN);
       }
     return false; //keep going until EOF is reached
@@ -356,7 +362,8 @@ namespace MFM {
 	if(cntsym->getNumberOfParameters() == 0)
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Template has NO parameters: <" << m_state.getUlamTypeNameByIndex(cntsym->getUlamTypeIdx()).c_str();
+	    msg << "Class Template has NO parameters: <";
+	    msg << m_state.getUlamTypeNameByIndex(cntsym->getUlamTypeIdx()).c_str();
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
 	return; //done with parameters
@@ -379,7 +386,8 @@ namespace MFM {
 	    if(argNode->getSymbolPtr(argSym))
 	      {
 		((SymbolConstantValue *) argSym)->setParameterFlag();
-		cntsym->addParameterSymbol((SymbolConstantValue *) argSym); //ownership stays with NodeBlockClass's ST
+		//ownership stays with NodeBlockClass's ST
+		cntsym->addParameterSymbol((SymbolConstantValue *) argSym);
 	      }
 	    else
 	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
@@ -389,7 +397,9 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Expected 'A Type' Token!! got Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << "> instead for class parameter declaration";
+	msg << "Expected 'A Type' Token!! got Token: <";
+	msg << m_state.getTokenDataAsString(&pTok).c_str();
+	msg << "> instead for class parameter declaration";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	//continue or short-circuit?
       }
@@ -460,7 +470,9 @@ namespace MFM {
 	if(classtype != UC_ELEMENT)
 	  {
 	    std::ostringstream msg;
-	    msg << "Only elements may have element parameters: <" << m_state.m_pool.getDataAsString(m_state.getCompileThisIdx()).c_str() << "> is a quark";
+	    msg << "Only elements may have element parameters: <";
+	    msg << m_state.m_pool.getDataAsString(m_state.getCompileThisIdx()).c_str();
+	    msg << "> is a quark";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
 	m_state.m_parsingElementParameterVariable = true;
@@ -565,7 +577,8 @@ namespace MFM {
       {
 	//user error!
 	std::ostringstream msg;
-	msg << "Name of variable/function <" << m_state.getTokenDataAsString(&iTok).c_str() << ">: Identifier must begin with a lower-case letter";
+	msg << "Name of variable/function <" << m_state.getTokenDataAsString(&iTok).c_str();
+	msg << ">: Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	unreadToken();
       }
@@ -1273,14 +1286,16 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid typedef Alias <" << m_state.getTokenDataAsString(&iTok).c_str() << ">, Type Identifier (2nd arg) requires capitalization";
+	    msg << "Invalid typedef Alias <" << m_state.getTokenDataAsString(&iTok).c_str();
+	    msg << ">, Type Identifier (2nd arg) requires capitalization";
 	    MSG(&iTok, msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Invalid typedef Base Type <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	msg << "Invalid typedef Base Type <";
+	msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
       }
     return rtnNode;
@@ -1317,14 +1332,17 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid constant-def Alias <" << m_state.getTokenDataAsString(&iTok).c_str() << ">, Constant Identifier (2nd arg) requires lower-case";
+	    msg << "Invalid constant-def Alias <";
+	    msg << m_state.getTokenDataAsString(&iTok).c_str();
+	    msg << ">, Constant Identifier (2nd arg) requires lower-case";
 	    MSG(&iTok, msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Invalid constant-def Type <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	msg << "Invalid constant-def Type <";
+	msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
       }
     return rtnNode;
@@ -1380,7 +1398,8 @@ namespace MFM {
       {
 	//user error!
 	std::ostringstream msg;
-	msg << "Name of variable <" << m_state.getTokenDataAsString(&iTok).c_str() << ">: Identifier must begin with a lower-case letter";
+	msg << "Name of variable <" << m_state.getTokenDataAsString(&iTok).c_str();
+	msg << ">: Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	unreadToken();
       }
@@ -1429,7 +1448,9 @@ namespace MFM {
 	  {
 	    //params but no args
 	    std::ostringstream msg;
-	    msg << "NO class arguments for a class template instance stub, template : <" << m_state.getUlamTypeNameByIndex(ctsym->getUlamTypeIdx()).c_str() << " has " << numParams << " parameters";
+	    msg << "NO class arguments for a class template instance stub, template : <";
+	    msg << m_state.getUlamTypeNameByIndex(ctsym->getUlamTypeIdx()).c_str();
+	    msg << " has " << numParams << " parameters";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	    cuti = Nav;
 	  }
@@ -1468,7 +1489,8 @@ namespace MFM {
     if(!exprNode)
       {
 	std::ostringstream msg;
-	msg << "Class Argument after Open Paren is missing, type: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+	msg << "Class Argument after Open Paren is missing, type: ";
+	msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
 	MSG(&pTok, msg.str().c_str(), ERR);
 	return;
       }
@@ -1478,7 +1500,8 @@ namespace MFM {
     if(parmIdx >= ctsym->getNumberOfParameters() && !ctUnseen)
       {
 	std::ostringstream msg;
-	msg << "Too many Class Arguments, " << "(" << parmIdx << "), type: " << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
+	msg << "Too many Class Arguments, " << "(" << parmIdx << "), type: ";
+	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
 	MSG(&pTok, msg.str().c_str(), ERR);
 	return;
       }
@@ -1545,7 +1568,8 @@ namespace MFM {
 	if(!bitsizeNode)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bit size after Open Paren is missing, type: " << m_state.getTokenAsATypeName(args.typeTok).c_str();
+	    msg << "Bit size after Open Paren is missing, type: ";
+	    msg << m_state.getTokenAsATypeName(args.typeTok).c_str();
 	    MSG(&bTok, msg.str().c_str(), ERR);
 	  }
 	else
@@ -1633,7 +1657,10 @@ namespace MFM {
 	    if(nTok.m_dataindex != m_state.m_pool.getIndexForDataString("sizeof"))
 	      {
 		std::ostringstream msg;
-		msg << "Trying to use typedef from another class <" << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">, before it has been defined. Cannot continue with (token) " << m_state.getTokenDataAsString(&nTok).c_str();
+		msg << "Trying to use typedef from another class <";
+		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+		msg << ">, before it has been defined. Cannot continue with (token) ";
+		msg << m_state.getTokenDataAsString(&nTok).c_str();
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -1660,7 +1687,9 @@ namespace MFM {
 		if(!tdut->isComplete())
 		  {
 		    std::ostringstream msg;
-		    msg << "Incomplete type!! " << m_state.getUlamTypeNameByIndex(tduti).c_str() << " found for Typedef: <" << m_state.getTokenDataAsString(&nTok).c_str() << ">, belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+		    msg << "Incomplete type!! " << m_state.getUlamTypeNameByIndex(tduti).c_str();
+		    msg << " found for Typedef: <" << m_state.getTokenDataAsString(&nTok).c_str();
+		    msg << ">, belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
 		    MSG(&nTok, msg.str().c_str(), DEBUG);
 		  }
 
@@ -1684,7 +1713,9 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str() << "> is not a typedef belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str();
+		msg << "> is not a typedef belonging to class: ";
+		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
 		MSG(&nTok, msg.str().c_str(), ERR);
 		rtnb = false;
 	      }
@@ -1701,7 +1732,8 @@ namespace MFM {
 	      {
 		unreadToken();
 		std::ostringstream msg;
-		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str() << "> is not a type, or 'sizeof'";
+		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str();
+		msg << "> is not a type, or 'sizeof'";
 		MSG(&nTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -1717,7 +1749,9 @@ namespace MFM {
       {
 	unreadToken(); //put dot back, minof or maxof perhaps?
 	std::ostringstream msg;
-	msg << "Unexpected input!! Token: <" << args.typeTok.getTokenEnumName() << "> is not a 'seen' class type: <" << m_state.getTokenDataAsString(&args.typeTok).c_str() << ">";
+	msg << "Unexpected input!! Token: <" << args.typeTok.getTokenEnumName();
+	msg << "> is not a 'seen' class type: <";
+	msg << m_state.getTokenDataAsString(&args.typeTok).c_str() << ">";
 	MSG(&args.typeTok, msg.str().c_str(), DEBUG);
 	rtnb = false;
       }
@@ -1782,7 +1816,8 @@ namespace MFM {
     if(pTok.m_type == TOK_OPEN_PAREN)
       {
 	std::ostringstream msg;
-	msg << "Unexpected token <" << m_state.getTokenDataAsString(&pTok).c_str() << "> indicates a function call or definition; neither are valid here";
+	msg << "Unexpected token <" << m_state.getTokenDataAsString(&pTok).c_str();
+	msg << "> indicates a function call or definition; neither are valid here";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	unreadToken();
 	return NULL;
@@ -1792,9 +1827,11 @@ namespace MFM {
 
     Symbol * asymptr = NULL;
     //may continue when symbol not defined yet (e.g. Decl)
+    // don't return a NodeConstant, instead of NodeIdent, without arrays
+    // even if already defined as one.
     m_state.alreadyDefinedSymbol(identTok.m_dataindex,asymptr);
 
-    //make a variable;  symbol could be Null!
+    //o.w. make a variable;  symbol could be Null!
     Node * rtnNode = new NodeIdent(identTok, (SymbolVariable *) asymptr, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(identTok.m_locator);
@@ -1817,7 +1854,8 @@ namespace MFM {
 	if(asymptr && !asymptr->isFunction())
 	  {
 	    std::ostringstream msg;
-	    msg << "Undefined function <" << m_state.getTokenDataAsString(&identTok).c_str() << "> that has already been declared as a variable";
+	    msg << "Undefined function <" << m_state.getTokenDataAsString(&identTok).c_str();
+	    msg << "> that has already been declared as a variable";
 	    MSG(&identTok, msg.str().c_str(), ERR);
 	    return  NULL; //bail
 	  }
@@ -1973,7 +2011,9 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	    msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 	    MSG(&fTok, msg.str().c_str(), ERR);
 	  }
       }
@@ -1989,7 +2029,9 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	    msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 	    MSG(&fTok, msg.str().c_str(), ERR);
 	  }
       }
@@ -1997,8 +2039,10 @@ namespace MFM {
       {
 #if 0
 	std::ostringstream msg;
-	msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str() << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	MSG(&fTok, msg.str().c_str(), INFO);
+	msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	MSG(&fTok, msg.str().c_str(), DEBUG);
 #endif
 	unreadToken();
       }
@@ -2055,7 +2099,10 @@ namespace MFM {
     if(currBlock && currBlock->isIdInScope(identTok.m_dataindex,asymptr))
       {
 	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "' cannot be used as a function, already declared as a variable '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+	msg << "'" << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+	msg << "' cannot be used as a function, already declared as a variable '";
+	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 	MSG(&identTok, msg.str().c_str(), ERR);
 	return NULL;
       }
@@ -2299,7 +2346,8 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, unreading it";
+	  msg << "Unexpected input!! Token: <";
+	  msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, unreading it";
 	  MSG(&pTok, msg.str().c_str(), DEBUG);
 	  unreadToken(); //eat the error token
 	}
@@ -2341,7 +2389,8 @@ namespace MFM {
       case TOK_ERROR_ABORT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, exiting..";
+	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str();
+	  msg << ">, exiting..";
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  //eat token
 	  exit(1);
@@ -2725,7 +2774,8 @@ namespace MFM {
 	  {
 	    //assignments not permitted
 	    std::ostringstream msg;
-	    msg << "Cannot assign to data member <" << m_state.getTokenDataAsString(&identTok).c_str() << "> at the time of its declaration";
+	    msg << "Cannot assign to data member <" << m_state.getTokenDataAsString(&identTok).c_str();
+	    msg << "> at the time of its declaration";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	    getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	    unreadToken();
@@ -2917,7 +2967,8 @@ namespace MFM {
 	    //this is a duplicate function definition with same parameters and given name!!
 	    //return types may differ
 	    std::ostringstream msg;
-	    msg << "Duplicate defined function '" << m_state.m_pool.getDataAsString(fsymptr->getId()) << "' with the same parameters" ;
+	    msg << "Duplicate defined function '" << m_state.m_pool.getDataAsString(fsymptr->getId());
+	    msg << "' with the same parameters" ;
 	    MSG(&args.typeTok, msg.str().c_str(), ERR);
 	    delete fsymptr; //also deletes the NodeBlockFunctionDefinition
 	    rtnNode = NULL;
@@ -2939,7 +2990,8 @@ namespace MFM {
 	      {
 		fsymptr->markForVariableArgs(false);
 		std::ostringstream msg;
-		msg << "Variable args (...) supported for native functions only at this time; not  <" << m_state.m_pool.getDataAsString(fsymptr->getId()).c_str() << ">";
+		msg << "Variable args (...) supported for native functions only at this time; not  <";
+		msg << m_state.m_pool.getDataAsString(fsymptr->getId()).c_str() << ">";
 		MSG(rtnNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	  }
@@ -2999,14 +3051,16 @@ namespace MFM {
 	if(fsym->takesVariableArgs() && argSym)
 	  {
 	    std::ostringstream msg;
-	    msg << "Parameter <" << m_state.m_pool.getDataAsString(argSym->getId()).c_str() << "> appears after ellipses (...)";
+	    msg << "Parameter <" << m_state.m_pool.getDataAsString(argSym->getId()).c_str();
+	    msg << "> appears after ellipses (...)";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Expected 'A Type' Token!! got Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << "> instead";
+	msg << "Expected 'A Type' Token!! got Token: <" << m_state.getTokenDataAsString(&pTok).c_str();
+	msg << "> instead";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	//continue or short-circuit?
       }
@@ -3073,7 +3127,8 @@ namespace MFM {
       {
 	unreadToken();
 	std::ostringstream msg;
-	msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&qTok).c_str() << "> after function declaration.";
+	msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&qTok).c_str();
+	msg << "> after function declaration.";
 	MSG(&qTok, msg.str().c_str(), ERR);
       }
     return brtn;
@@ -3085,7 +3140,8 @@ namespace MFM {
     if(Token::isTokenAType(identTok))
       {
 	std::ostringstream msg;
-	msg << "Function <" << m_state.getTokenDataAsString(&identTok).c_str() << "> is not a valid (lower case) name";
+	msg << "Function <" << m_state.getTokenDataAsString(&identTok).c_str();
+	msg << "> is not a valid (lower case) name";
 	MSG(&identTok, msg.str().c_str(), ERR);
 
 	//eat tokens until end of definition ?
@@ -3100,8 +3156,10 @@ namespace MFM {
     if(m_state.getClassBlock()->isIdInScope(identTok.m_dataindex,asymptr) && !asymptr->isFunction())
       {
 	std::ostringstream msg;
-	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " cannot be used again as a function, it has a previous definition as '";
-	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
+	msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+	msg << " cannot be used again as a function, it has a previous definition as '";
+	msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&args.typeTok, msg.str().c_str(), ERR);
 
 	//eat tokens until end of definition?
@@ -3142,7 +3200,10 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+		msg << " has a previous declaration as '";
+		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -3150,7 +3211,9 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with [])
 		//rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid variable declaration of Type: <" << m_state.getTokenAsATypeName(args.typeTok).c_str() << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str() << "> (missing symbol)";
+		msg << "Invalid variable declaration of Type: <";
+		msg << m_state.getTokenAsATypeName(args.typeTok).c_str() << "> and Name: <";
+		msg << m_state.getTokenDataAsString(&identTok).c_str() << "> (missing symbol)";
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -3212,7 +3275,10 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '" << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+		msg << " has a previous declaration as '";
+		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -3220,7 +3286,10 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with []) , error already output.
 		//rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid typedef of Type: <" << m_state.getTokenAsATypeName(args.typeTok).c_str() << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str() << "> (missing symbol)";
+		msg << "Invalid typedef of Type: <";
+		msg << m_state.getTokenAsATypeName(args.typeTok).c_str();
+		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str();
+		msg << "> (missing symbol)";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -3254,7 +3323,7 @@ namespace MFM {
   Node * Parser::makeConstdefSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   {
     NodeConstantDef * rtnNode = NULL;
-    Node * lvalNode = parseIdentExpr(identTok); //parseLvalExpr(identTok);
+    Node * lvalNode = parseIdentExpr(identTok); //calls parseLvalExpr
     if(lvalNode)
       {
 	//lvalNode could be either a NodeIdent or a NodeSquareBracket though arrays not legal in this context!!!
@@ -3276,9 +3345,11 @@ namespace MFM {
 	    if(asymptr)
 	      {
 		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << " has a previous declaration as '";
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str() << " ";
-		msg<< m_state.m_pool.getDataAsString(asymptr->getId()) << "' and cannot be used as a named constant";
+		msg<< m_state.m_pool.getDataAsString(asymptr->getId());
+		msg << "' and cannot be used as a named constant";
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -3286,8 +3357,10 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with []) , error already output.
 		//rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid constant-def of Type: <" << m_state.getTokenAsATypeName(args.typeTok).c_str();
-		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str() << "> (problem with [])";
+		msg << "Invalid constant-def of Type: <";
+		msg << m_state.getTokenAsATypeName(args.typeTok).c_str();
+		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str();
+		msg << "> (problem with [])";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 	    //perhaps read until semi-colon
@@ -3338,7 +3411,8 @@ namespace MFM {
     if(!Token::isTokenAType(tTok))
       {
 	std::ostringstream msg;
-	msg << "RHS of operator <" << fTok.getTokenString() << "> is not a Type: " << tTok.getTokenString() << ", operation deleted";
+	msg << "RHS of operator <" << fTok.getTokenString() << "> is not a Type: ";
+	msg << tTok.getTokenString() << ", operation deleted";
 	MSG(&tTok, msg.str().c_str(), ERR);
 	delete leftNode;
 	m_state.m_parsingConditionalAs = false;
@@ -3415,7 +3489,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3454,7 +3529,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg  << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3496,7 +3572,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3535,7 +3612,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3580,7 +3658,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3619,7 +3698,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3658,7 +3738,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3700,7 +3781,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <";
+	      msg << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3768,7 +3850,8 @@ namespace MFM {
 	  default:
 	    {
 	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">, aborting";
+	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str();
+	      msg << ">, aborting";
 	      MSG(&pTok, msg.str().c_str(), DEBUG);
 	      assert(0);
 	    }
@@ -3934,7 +4017,8 @@ namespace MFM {
 	if(!quietly)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unexpected token <" << pTok.getTokenEnumName() << ">; Expected <" << Token::getTokenAsString(eTokType) << ">";
+	    msg << "Unexpected token <" << pTok.getTokenEnumName() << ">; Expected <";
+	    msg << Token::getTokenAsString(eTokType) << ">";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
 	return false;
@@ -3950,7 +4034,8 @@ namespace MFM {
     if(tok.m_type == TOK_ERROR_ABORT)
       {
 	std::ostringstream msg;
-	msg << "Unexpected token <" << m_state.getTokenDataAsString(&tok).c_str() << ">, exiting now";
+	msg << "Unexpected token <" << m_state.getTokenDataAsString(&tok).c_str();
+	msg << ">, exiting now";
 	MSG(&tok, msg.str().c_str(), ERR);
 	exit(1);
       }

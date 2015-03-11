@@ -24,9 +24,13 @@ namespace MFM {
       // inside block defined outside then redefined inside;
 
       //basic:
-      //      bool rtn1 = fms->add("A.ulam","use System;\nelement A{\nSystem s;\nInt j;\nInt test () {\nconstant Int cOW = 3;\n j = 1 + cOW;\ns.print(j);\n return j;\n}\n}\n");
+      //bool rtn1 = fms->add("A.ulam","use System;\nelement A{\nSystem s;\nInt j;\nInt test () {\nconstant Int cOW = 3;\n j = 1 + cOW;\ns.print(j);\n return j;\n}\n}\n");
 
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A{\nSystem s;\nInt j;\nInt test () {\nconstant Int cOW = 3;\n j = 1 + cOW;\ns.print(j);\n{\nj = j + cOW;\ns.print(j);\nInt j;\nconstant Int cOW = 4;\nj = 2 * cOW;\ns.print(j);\n}\ni = j;\ns.print(i);\n return j;\n}\n Int i;\n}\n");
+      // fails "ERROR: Invalid constant-def of Type: <Int> and Name: <cOW> (problem with [])."
+      // further breakdown of failure: due to lval parsing returning a constant node since cOW was a found symbol.
+      //bool rtn1 = fms->add("A.ulam","element A{\nInt j;\n Int test () {\nconstant Int cOW = 3;\n  {\nconstant Int cOW = 4;\n}\n return cOW;\n}\n}\n");
+
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A{\nSystem s;\nInt j;\n Int test () {\nconstant Int cOW = 3;\n j = 1 + cOW;\n s.print(j);\n {\nj = j + cOW;\n s.print(j);\n Int j;\n constant Int cOW = 4;\n j = 2 * cOW;\ns.print(j);\n}\n i = j;\ns.print(i);\n return j;\n}\n Int i;\n}\n");
 
 
       // test system quark with native overloaded print funcs; assert

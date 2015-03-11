@@ -31,6 +31,16 @@ namespace MFM {
       m_node->updateLineage(getNodeNo());
   }//updateLineage
 
+  bool NodeReturnStatement::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_node == oldnptr)
+      {
+	m_node = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
+
   bool NodeReturnStatement::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))

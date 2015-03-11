@@ -24,6 +24,16 @@ namespace MFM {
     m_nodeLeft->updateLineage(getNodeNo());
   } //updateLineage
 
+  bool NodeConditional::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeLeft == oldnptr)
+      {
+	m_nodeLeft = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
+
   bool NodeConditional::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))

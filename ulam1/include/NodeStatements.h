@@ -80,7 +80,7 @@ namespace MFM{
 
   protected:
     Node * m_node;
-    NodeStatements * m_nextNode;
+    NodeStatements * m_nodeNext;
 
   private:
 

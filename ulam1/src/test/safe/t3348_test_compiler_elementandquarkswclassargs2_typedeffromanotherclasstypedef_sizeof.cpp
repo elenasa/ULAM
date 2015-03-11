@@ -10,7 +10,7 @@ namespace MFM {
 	 Unsigned Arg: 1
       */
       //Constants have explicit types
-      return std::string("Exit status: 1\nUe_P { Bool(UNKNOWN) b(false);  constant Unsigned(32) a = NONREADYCONST;  Int(32) foo(0);  Int(32) test() {  System s;  3u = var const P(1u) pel;  s ( pel -2 . )print . pel -2 . return } }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_P { Bool(UNKNOWN) b(false);  constant Unsigned(32) a = NONREADYCONST;  Int(32) foo(0);  Int(32) test() {  System s;  3u = var const P(1u) pel;  s ( pel b.sizeof . )print . pel b.sizeof . return } }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

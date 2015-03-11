@@ -26,6 +26,21 @@ namespace MFM {
     m_nodeRight->updateLineage(getNodeNo());
   } //updateLineage
 
+  bool NodeBinaryOp::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeLeft == oldnptr)
+      {
+	m_nodeLeft = newnptr;
+	return true;
+      }
+    if(m_nodeRight == oldnptr)
+      {
+	m_nodeRight = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
+
   bool NodeBinaryOp::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))

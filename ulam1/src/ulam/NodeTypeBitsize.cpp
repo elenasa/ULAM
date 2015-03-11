@@ -28,6 +28,16 @@ namespace MFM {
     m_node->updateLineage(getNodeNo());
   }//updateLineage
 
+  bool NodeTypeBitsize::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_node == oldnptr)
+      {
+	m_node = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
+
   bool NodeTypeBitsize::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))

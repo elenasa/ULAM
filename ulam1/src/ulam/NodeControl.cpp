@@ -28,6 +28,21 @@ namespace MFM {
     m_nodeBody->updateLineage(getNodeNo());
   }//updateLineage
 
+  bool NodeControl::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeCondition == oldnptr)
+      {
+	m_nodeCondition = newnptr;
+	return true;
+      }
+    if(m_nodeBody == oldnptr)
+      {
+	m_nodeBody = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
+
   bool NodeControl::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))

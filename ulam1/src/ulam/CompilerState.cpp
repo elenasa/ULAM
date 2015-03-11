@@ -94,7 +94,8 @@ namespace MFM {
 	    UlamKeyTypeSignature key = it->first;
 	    u32 count = it->second;
 	    std::ostringstream msg;
-	    msg << "Key: " << key.getUlamKeyTypeSignatureAsString(this).c_str() << ", " << count << " counted";
+	    msg << "Key: " << key.getUlamKeyTypeSignatureAsString(this).c_str();
+	    msg << ", " << count << " counted";
 	    MSG2("", msg.str().c_str(),DEBUG);
 	    it++;
 	  }
@@ -382,7 +383,8 @@ namespace MFM {
 	if(!notdup)
 	  {
 	    std::ostringstream msg;
-	    msg << "Updated Key to A UTI: " << getUlamTypeNameByIndex(uti).c_str() << " (UTI" << uti << ")";
+	    msg << "Updated Key to A UTI: " << getUlamTypeNameByIndex(uti).c_str();
+	    msg << " (UTI" << uti << ")";
 	    MSG2("", msg.str().c_str(), DEBUG);
 	  }
       }
@@ -725,7 +727,8 @@ namespace MFM {
 	if(total > MAXSTATEBITS)
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element " << ut->getUlamTypeName().c_str() << " with " << total << " bits";
+	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element ";
+	    msg << ut->getUlamTypeName().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -736,7 +739,8 @@ namespace MFM {
 	if(total > MAXBITSPERQUARK)
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark " << ut->getUlamTypeName().c_str() << " with " << total << " bits";
+	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark ";
+	    msg << ut->getUlamTypeName().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -818,7 +822,8 @@ namespace MFM {
     if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
       {
 	std::ostringstream msg;
-	msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str() << "> (UTI" << utArg << ")";
+	msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str();
+	msg << "> (UTI" << utArg << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return;
       }
@@ -891,7 +896,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Class without parameters already exists with the same name: ";
-	msg << m_pool.getDataAsString(symptr->getId()).c_str() << " <UTI" << symptr->getUlamTypeIdx() << ">";
+	msg << m_pool.getDataAsString(symptr->getId()).c_str() << " <UTI";
+	msg << symptr->getUlamTypeIdx() << ">";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
       }
     return (rtnb && symptr->isClassTemplate());
@@ -974,7 +980,8 @@ namespace MFM {
 	    if(getBitSize(but) == UNKNOWNSIZE || getArraySize(but) == UNKNOWNSIZE)
 	      {
 		std::ostringstream msg;
-		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str() << "(UTI" << but << ")";
+		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
+		msg << "(UTI" << but << ")";
 		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	      }
 	    else
@@ -983,14 +990,16 @@ namespace MFM {
 	else //else uc_incomplete
 	  {
 	    std::ostringstream msg;
-	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str() << "(UTI" << incomplete << ") - Incomplete";
+	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
+	    msg << "(UTI" << incomplete << ") - Incomplete";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str() << "(UTI" << incomplete << ") - NOT YET DEFINED";
+	msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
+	msg << "(UTI" << incomplete << ") - NOT YET DEFINED";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return rtnB;
@@ -1497,7 +1506,9 @@ namespace MFM {
     if(packed != rptr.isTargetPacked())
       {
 	std::ostringstream msg;
-	msg << "PACKFIT array differ! left packed is " << packed << ", right is " << rptr.isTargetPacked() << " for target type: " << getUlamTypeNameByIndex(rptr.getPtrTargetType()).c_str();
+	msg << "PACKFIT array differ! left packed is " << packed << ", right is ";
+	msg << rptr.isTargetPacked() << " for target type: ";
+	msg << getUlamTypeNameByIndex(rptr.getPtrTargetType()).c_str();
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
 
@@ -1778,7 +1789,7 @@ namespace MFM {
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     return cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
-  } //findNodeNo
+  } //findNodeNoInThisClass
 
   u32 CompilerState::getCompileThisId()
   {
