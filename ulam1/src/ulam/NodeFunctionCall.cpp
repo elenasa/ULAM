@@ -109,19 +109,16 @@ namespace MFM {
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
         //use member block doesn't apply to arguments; no change to current block
-	NodeBlock * currBlock = m_state.getCurrentBlock();
-
+	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
 	for(u32 i = 0; i < m_argumentNodes.size(); i++)
 	  {
-	    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); // reset for each arg
 	    UTI argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
 	    argTypes.push_back(argtype);
 	    // track constants and potential casting to be handled
 	    if(m_state.isConstant(argtype))
 	      constantArgs++;
-
-	    m_state.popClassContext(); //restore here
 	  }
+	m_state.popClassContext(); //restore here
 
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
 	// currently requires exact match
