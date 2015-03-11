@@ -34,6 +34,42 @@ namespace MFM {
     return new NodeFunctionCall(*this);
   }
 
+  void NodeFunctionCall::updateLineage(NNO pno)
+  {
+    setYourParentNo(pno);
+    NNO fcno = getNodeNo();
+    for(u32 i = 0; i < m_argumentNodes.size(); i++)
+      {
+	m_argumentNodes[i]->updateLineage(fcno);
+      }
+  } //updateLineage
+
+  bool NodeFunctionCall::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    for(u32 i = 0; i < m_argumentNodes.size(); i++)
+      {
+	if(m_argumentNodes[i] == oldnptr)
+	  {
+	    m_argumentNodes[i] = newnptr;
+	    return true;
+	  }
+      }
+    return false;
+  } //exchangeKids
+
+  bool NodeFunctionCall::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+
+    for(u32 i = 0; i < m_argumentNodes.size(); i++)
+      {
+	if(m_argumentNodes[i]->findNodeNo(n, foundNode))
+	  return true;
+      }
+    return false;
+  } //findNodeNo
+
   void NodeFunctionCall::printPostfix(File * fp)
   {
     fp->write(" (");
@@ -73,18 +109,19 @@ namespace MFM {
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
         //use member block doesn't apply to arguments; no change to current block
-	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock());
+	NodeBlock * currBlock = m_state.getCurrentBlock();
 
 	for(u32 i = 0; i < m_argumentNodes.size(); i++)
 	  {
+	    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); // reset for each arg
 	    UTI argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
 	    argTypes.push_back(argtype);
 	    // track constants and potential casting to be handled
 	    if(m_state.isConstant(argtype))
 	      constantArgs++;
-	  }
 
-	m_state.popClassContext(); //restore here
+	    m_state.popClassContext(); //restore here
+	  }
 
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
 	// currently requires exact match
