@@ -38,6 +38,7 @@
 #define NODETERMINAL_H
 
 #include "Node.h"
+#include "NodeIdent.h"
 #include "Token.h"
 
 
@@ -53,6 +54,8 @@ namespace MFM{
     NodeTerminal(u32 val, CompilerState & state);
     NodeTerminal(bool val, CompilerState & state);
     NodeTerminal(const NodeTerminal& ref);
+    NodeTerminal(const NodeIdent& ref); //passthru for NodeConstant
+
     virtual ~NodeTerminal();
 
     virtual Node * instantiate();

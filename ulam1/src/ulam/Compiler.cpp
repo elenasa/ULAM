@@ -125,6 +125,7 @@ namespace MFM {
     m_state.m_err.clearCounts();
 
     //for regular classes and templates, only; since NNOs used
+    //followed by the first c&l in case of re-orgs
     m_state.m_programDefST.updateLineageForTableOfClasses();
 
     bool sumbrtn = true;

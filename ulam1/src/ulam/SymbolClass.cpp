@@ -163,7 +163,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	    aok = false;
 	  }
 	else if(totalbits == EMPTYSYMBOLTABLE)

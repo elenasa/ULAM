@@ -171,7 +171,9 @@ namespace MFM {
 	else if(symsize <= UNKNOWNSIZE)
 	  {
 	    std::ostringstream msg;
-	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str() << " UTI" << suti << " while compiling class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " UTI" << suti << " while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
 	    if(variableSymbolWithCountableSize(sym))
 	      {
@@ -485,7 +487,9 @@ namespace MFM {
 	assert(((UlamTypeClass *) cut)->isCustomArray());
 	{
 	  std::ostringstream msg;
-	  msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
+	  msg << "Custom array get method: '";
+	  msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+	  msg << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	  MSG("", msg.str().c_str(), DEBUG);
 	}
 
@@ -498,7 +502,9 @@ namespace MFM {
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
 	std::ostringstream msg;
-	msg << "Custom array get method: '" << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str() << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
+	msg << "Custom array get method: '";
+	msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+	msg << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	MSG("", msg.str().c_str(), DEBUG);
       }
     return rtnBool;
@@ -668,6 +674,10 @@ namespace MFM {
 	assert(sym && sym->isClass());
 
 	((SymbolClassName *) sym)->updateLineageOfClass();
+
+	//only regular and templates immediate after updating lineages
+	((SymbolClassName *) sym)->checkAndLabelClassFirst();
+
 	it++;
       } //while
   } //updateLineageForTableOfClasses
@@ -709,7 +719,9 @@ namespace MFM {
 	if( ((SymbolClass *) cnsym)->getUlamClass() == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Class: "  << m_state.getUlamTypeNameByIndex(cnsym->getUlamTypeIdx()).c_str() << " was never defined, fails labeling";
+	    msg << "Incomplete Class: ";
+	    msg << m_state.getUlamTypeNameByIndex(cnsym->getUlamTypeIdx()).c_str();
+	    msg << " was never defined, fails labeling";
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	    //assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 	    break;
@@ -753,7 +765,9 @@ namespace MFM {
 	if( ((SymbolClass *) sym)->getUlamClass() == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Class: "  << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str() << " was never defined, fails sizing";
+	    msg << "Incomplete Class: ";
+	    msg << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str();
+	    msg << " was never defined, fails sizing";
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false; //moved here;

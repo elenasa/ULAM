@@ -55,6 +55,8 @@ namespace MFM{
 
     virtual void updateLineage(NNO pno);
 
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * f);
@@ -91,7 +93,7 @@ namespace MFM{
 
   private:
     SymbolConstantValue * m_constSymbol;
-    Node * m_exprnode;
+    Node * m_nodeExpr;
     NNO m_currBlockNo;
     u32 m_cid; //to instantiate
   };

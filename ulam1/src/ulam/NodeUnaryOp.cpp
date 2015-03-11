@@ -23,6 +23,16 @@ namespace MFM {
     m_node->updateLineage(getNodeNo());
   }//updateLineage
 
+  bool NodeUnaryOp::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_node == oldnptr)
+      {
+	m_node = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
+
   bool NodeUnaryOp::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))

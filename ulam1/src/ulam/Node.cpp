@@ -7,15 +7,21 @@
 
 namespace MFM {
 
-  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_nodeUType(Nav), m_parentNo(0), m_nodeNo(m_state.getNextNodeNo()) {}
+  Node::Node(CompilerState & state): m_state(state), m_storeIntoAble(false), m_utype(Nav), m_parentNo(0), m_no(m_state.getNextNodeNo()) {}
 
-  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_nodeUType(ref.m_nodeUType), m_nodeLoc(ref.m_nodeLoc), m_parentNo(ref.m_parentNo), m_nodeNo(ref.m_nodeNo) /* same NNO */ {}
+  Node::Node(const Node & ref) : m_state(ref.m_state), m_storeIntoAble(ref.m_storeIntoAble), m_utype(ref.m_utype), m_loc(ref.m_loc), m_parentNo(ref.m_parentNo), m_no(ref.m_no) /* same NNO */ {}
 
   void Node::setYourParentNo(NNO pno)
   {
-    if(m_parentNo > 0)
-      assert(m_parentNo == pno);
+    // not true in case of cast insertion
+    //if(m_parentNo > 0)
+    //  assert(m_parentNo == pno);
     m_parentNo = pno;
+  }
+
+  NNO Node::getYourParentNo()
+  {
+    return m_parentNo;
   }
 
   void Node::updateLineage(NNO pno)
@@ -25,12 +31,17 @@ namespace MFM {
 
   NNO Node::getNodeNo()
   {
-    return m_nodeNo;
+    return m_no;
   }
+
+  bool Node::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    return false; //default
+  } //exhangeKids
 
   bool Node::findNodeNo(NNO n, Node *& foundNode)
   {
-    if(m_nodeNo == n) //leaf
+    if(m_no == n) //leaf
       {
 	foundNode = this;
 	return true;
@@ -67,12 +78,12 @@ namespace MFM {
 
   UTI Node::getNodeType()
   {
-    return m_nodeUType;
+    return m_utype;
   }
 
   void Node::setNodeType(UTI ut)
   {
-    m_nodeUType = ut;
+    m_utype = ut;
   }
 
   bool Node::isStoreIntoAble()
@@ -87,12 +98,12 @@ namespace MFM {
 
   Locator Node::getNodeLocation()
   {
-    return m_nodeLoc;
+    return m_loc;
   }
 
   void Node::setNodeLocation(Locator loc)
   {
-    m_nodeLoc = loc;
+    m_loc = loc;
   }
 
   void Node::printNodeLocation(File * fp)
@@ -102,7 +113,7 @@ namespace MFM {
 
   std::string Node::getNodeLocationAsString()
   {
-    return m_state.getFullLocationAsString(m_nodeLoc);
+    return m_state.getFullLocationAsString(m_loc);
   }
 
   bool Node::getSymbolPtr(Symbol *& symptrref)
@@ -124,9 +135,9 @@ namespace MFM {
   // and has no type (e.g. statements, statement, block, program)
   UTI Node::checkAndLabelType()
   {
-    m_nodeUType = Nav;
+    m_utype = Nav;
     m_storeIntoAble = false;
-    return m_nodeUType;
+    return m_utype;
   }
 
   void Node::countNavNodes(u32& cnt)
@@ -272,7 +283,8 @@ namespace MFM {
   void Node::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     std::ostringstream msg;
-    msg << "genCodeToStoreInto called on Node type: " << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << ", and failed.";
+    msg << "genCodeToStoreInto called on Node type: ";
+    msg << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << ", and failed.";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     assert(0);
     return;
@@ -1289,7 +1301,10 @@ namespace MFM {
     if(uticr == UTIC_DONTKNOW)
       {
 	std::ostringstream msg;
-	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << "(UTI" << tobeType << ") in class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	msg << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << "(UTI" << tobeType << ") in class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	// continue on..
       }
@@ -1313,6 +1328,7 @@ namespace MFM {
 	    rtnNode = new NodeCast(node, tobeType, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
+	    rtnNode->updateLineage(getNodeNo());
 	    rtnNode->checkAndLabelType();
 	  }
       }
@@ -1342,6 +1358,7 @@ namespace MFM {
 		rtnNode = new NodeCast(mselectNode, tobeType, m_state);
 		assert(rtnNode);
 		rtnNode->setNodeLocation(getNodeLocation());
+		rtnNode->updateLineage(getNodeNo());
 	      }
 	    else
 	      rtnNode = mselectNode;  //replace right node with new branch
@@ -1362,6 +1379,7 @@ namespace MFM {
 	    rtnNode = new NodeCast(node, tobeType, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
+	    rtnNode->updateLineage(getNodeNo());
 	    rtnNode->checkAndLabelType();
 	  }
       }
@@ -1371,7 +1389,8 @@ namespace MFM {
     if(doErrMsg)
       {
 	std::ostringstream msg;
-	msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str() << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	msg << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return rtnNode;
@@ -1388,7 +1407,8 @@ namespace MFM {
       {
 	rtnB = true;
 	std::ostringstream msg;
-	msg << "Narrowing CAST, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str() << " to a " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << " may cause data loss";
+	msg << "Narrowing CAST, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	msg << " to a " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << " may cause data loss";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
     return rtnB;

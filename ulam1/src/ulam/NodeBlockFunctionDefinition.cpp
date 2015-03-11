@@ -34,9 +34,9 @@ namespace MFM {
 
     //parameters in symbol
 
-    // if just a declaration, m_nextNode is NULL
+    // if just a declaration, m_nodeNext is NULL
     if(isDefinition())
-      m_nextNode->print(fp);
+      m_nodeNext->print(fp);
 
     sprintf(id,"maxdepth=%d ----------------%s\n", m_maxDepth, prettyNodeName().c_str());
     fp->write(id);
@@ -49,7 +49,7 @@ namespace MFM {
     fp->write(" ");
     fp->write(getName());
     // has no m_node!
-    // declaration has no m_nextNode!!
+    // declaration has no m_nodeNext!!
     fp->write("(");
     u32 numparams = m_funcSymbol->getNumberOfParameters();
 
@@ -82,7 +82,7 @@ namespace MFM {
     if(isDefinition())
       {
 	fp->write(" { ");
-	m_nextNode->printPostfix(fp);
+	m_nodeNext->printPostfix(fp);
 	fp->write(" }");
       }
     else
@@ -147,9 +147,9 @@ namespace MFM {
     m_state.m_currentFunctionReturnNodes.clear(); //vector of return nodes
     m_state.m_currentFunctionReturnType = it;
 
-    if(m_nextNode) //non-empty function
+    if(m_nodeNext) //non-empty function
       {
-	m_nextNode->checkAndLabelType();                     //side-effect
+	m_nodeNext->checkAndLabelType();                     //side-effect
 	m_state.checkFunctionReturnNodeTypes(m_funcSymbol);  //gives errors
       }
     else
@@ -165,7 +165,7 @@ namespace MFM {
   EvalStatus NodeBlockFunctionDefinition::eval()
   {
     assert(isDefinition());
-    assert(m_nextNode);
+    assert(m_nodeNext);
 
     // m_currentObjPtr set up by caller
     assert(m_state.m_currentObjPtr.getUlamValueTypeIdx() != Nav);
@@ -176,7 +176,7 @@ namespace MFM {
 
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth());  //local variables on callstack!
 
-    EvalStatus evs = m_nextNode->eval();
+    EvalStatus evs = m_nodeNext->eval();
 
     PACKFIT packRtn = m_state.determinePackable(getNodeType());
     UlamValue rtnUV;
@@ -264,7 +264,7 @@ namespace MFM {
     m_state.pushCurrentBlock(this);
 
     assert(isDefinition());
-    assert(m_nextNode);
+    assert(m_nodeNext);
 
     assert(!isNative());
 
@@ -274,7 +274,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    m_nextNode->genCode(fp, uvpass);
+    m_nodeNext->genCode(fp, uvpass);
 
     m_state.m_currentIndentLevel--;
 
