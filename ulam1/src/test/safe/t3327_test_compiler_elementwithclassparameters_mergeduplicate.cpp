@@ -9,7 +9,7 @@ namespace MFM {
       //before decllist:
       //Exit status: 0\nUe_Foo { Bool(UNKNOWN) b(false);  constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Bool(UNKNOWN) sp(false);  Int(32) test() {  Foo f;  Foo p;  f sp . -2 -2 == = 0 return } }\nUe_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }
       //Constants have explicit types; instead of -2 NodeTerminalProxy outputs 'f.sizeof' for example.
-      return std::string("Exit status: 0\nUe_Foo { Bool(UNKNOWN) b(false);  constant Int(32) x = NONREADYCONST;  constant Unsigned(32) y = NONREADYCONST;  Bool(UNKNOWN) sp(false);  Bool(UNKNOWN) c(false);  Int(32) test() {  Foo(1,3u) f;  Foo(1,3u) p;  f sp . f.sizeof cast p.sizeof cast == = 0 cast return } }\nUe_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { Bool(UNKNOWN) b(false);  constant Int(32) x = NONREADYCONST;  constant Unsigned(32) y = NONREADYCONST;  Bool(UNKNOWN) sp(false);  Bool(UNKNOWN) c(false);  Int(32) test() {  Foo(1,3u) f;  Foo(1,3u) p;  f sp . f sizeof . cast p sizeof . cast == = 0 cast return } }\nUe_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

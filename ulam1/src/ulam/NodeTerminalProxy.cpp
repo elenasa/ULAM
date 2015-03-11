@@ -26,8 +26,9 @@ namespace MFM {
     else
       {
 	fp->write(m_state.getTokenDataAsString(&m_ofTok).c_str());
-	fp->write(".");
+	fp->write(" ");
 	fp->write(m_state.getTokenDataAsString(&m_funcTok).c_str());
+	fp->write(" .");
       }
   } //printPostfix
 
