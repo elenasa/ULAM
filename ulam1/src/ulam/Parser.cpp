@@ -1437,9 +1437,8 @@ namespace MFM {
 
     assert(ctsym);
 
-    u32 numParams = 0;
     UTI cuti = ctsym->getUlamTypeIdx();
-    numParams = ctsym->getNumberOfParameters();
+    u32 numParams = ctsym->getNumberOfParameters();
 
     getNextToken(pTok);
     if(pTok.m_type == TOK_CLOSE_PAREN)
@@ -1497,7 +1496,7 @@ namespace MFM {
 
     //this is possible if cnsym is UC_UNSEEN, must check args later..
     bool ctUnseen = (ctsym->getUlamClass() == UC_UNSEEN);
-    if(parmIdx >= ctsym->getNumberOfParameters() && !ctUnseen)
+    if(!ctUnseen && parmIdx >= ctsym->getNumberOfParameters())
       {
 	std::ostringstream msg;
 	msg << "Too many Class Arguments, " << "(" << parmIdx << "), type: ";
