@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-  //#define _DEBUG_OUTPUT
-  //#define _INFO_OUTPUT
-  //#define _WARN_OUTPUT
+//#define _DEBUG_OUTPUT
+//#define _INFO_OUTPUT
+//#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -40,13 +40,13 @@ namespace MFM {
   static const bool warnOn = false;
 #endif
 
-  static const char * m_indentedSpaceLevel("  ");  //2 spaces per level
+  static const char * m_indentedSpaceLevel("  "); //2 spaces per level
 
   static const char * HIDDEN_ARG_NAME = "Uv_4self";
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
-  static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref";  //unmangled
-  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset";  //unmangled
-  static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs";  //Uf_2is
+  static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
+  static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
+  static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
   static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
@@ -1810,15 +1810,25 @@ namespace MFM {
     ClassContext cc;
     assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getCurrentBlock();
-  }
+  } //getCurrentBlock
 
   NNO CompilerState::getCurrentBlockNo()
   {
+#if 0
+    //unlike getCurrentBlock, here we check for memberselect for symbol construction
+    if(useMemberBlock())
+      {
+	NodeBlockClass * classblock = getCurrentMemberClassBlock();
+	if(classblock)
+	  return classblock->getNodeNo();
+	return 0;
+      }
+#endif
     ClassContext cc;
     if(m_classContextStack.getCurrentClassContext(cc) && getCurrentBlock())
       return getCurrentBlock()->getNodeNo();
     return 0; //genesis of class symbol
-  }
+  } //getCurrentBlockNo
 
   NodeBlockClass * CompilerState::getClassBlock()
   {
@@ -1839,9 +1849,10 @@ namespace MFM {
   bool CompilerState::useMemberBlock()
   {
     ClassContext cc;
-    assert(m_classContextStack.getCurrentClassContext(cc));
-    return cc.useMemberBlock();
-  }
+    if(m_classContextStack.getCurrentClassContext(cc))
+      return cc.useMemberBlock();
+    return false; //genesis of a symbol getting current block no
+  } //useMemberBlock
 
   NodeBlockClass * CompilerState::getCurrentMemberClassBlock()
   {
