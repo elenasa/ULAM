@@ -1132,16 +1132,7 @@ namespace MFM {
   {
     std::ostringstream mangled;
     std::string nstr = m_pool.getDataAsString(dataindex);
-    u32 nstrlen = nstr.length();
-
-    if(nstrlen < BASE10 - 1)
-      {
-	mangled << nstrlen << nstr.c_str();
-      }
-    else
-      {
-	mangled << 9 << DigitCount(nstrlen, BASE10) << nstrlen << nstr.c_str();
-      }
+    mangled << ToLeximited(nstr);
     return mangled.str();
   } //getDataAsStringMangled
 
@@ -1370,7 +1361,7 @@ namespace MFM {
     if(cnsym->isClassTemplate())
       {
 	u32 numParams = ((SymbolClassNameTemplate *) cnsym)->getNumberOfParameters();
-	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << getDataAsStringMangled(getCompileThisId()).c_str() << DigitCount(numParams, BASE10) << numParams << "_main.cpp";
+	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << getDataAsStringMangled(getCompileThisId()).c_str() << ToLeximitedNumber(numParams) << "_main.cpp";
       }
     else
       f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";
@@ -1748,7 +1739,7 @@ namespace MFM {
     else
       assert(0); //remove assumptions about tmpbitval.
 
-    tmpVar << DigitCount(num, BASE10) << num;
+    tmpVar << ToLeximitedNumber(num);
 
     return tmpVar.str();
   } //getTmpVarAsString
@@ -1756,7 +1747,7 @@ namespace MFM {
   const std::string CompilerState::getLabelNumAsString(s32 num)
   {
     std::ostringstream labelname;  //into
-    labelname << "Ul_endcontrolloop_" << DigitCount(num, BASE10) << num;;
+    labelname << "Ul_endcontrolloop_" << ToLeximitedNumber(num);
     return labelname.str();
   } //getLabelNumAsString
 
