@@ -114,15 +114,14 @@ namespace MFM {
 
 
 #ifndef ULAMTYPE_DEFAULTBITSIZE
-#define XX(a,b,c) c,
+#define XY(a,b,c,d) c,
 
   static const s32 ULAMTYPE_DEFAULTBITSIZE[] = {
 #include "UlamType.inc"
   };
 
-#undef XX
+#undef XY
 #endif //ULAMTYPE_DEFAULTBITSIZE
-
 
   /** Number of bits (rounded up to nearest 32 bits) required to
       hold the bit size argument l */

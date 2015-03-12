@@ -43,13 +43,13 @@
 
 
 namespace MFM{
-  
+
   enum SpecialTokenWork { TOKSP_UNCLEAR=0, TOKSP_KEYWORD, TOKSP_TYPEKEYWORD, TOKSP_CTLKEYWORD, TOKSP_SINGLE, TOKSP_COMMENT, TOKSP_DQUOTE, TOKSP_SQUOTE, TOKSP_HASDATA, TOKSP_ERROR};
- 
+
 
 #define XX(a,b,c) TOK_##a,
 
-  enum TokenType 
+  enum TokenType
   {
 #include "Token.inc"
     TOK_LAST_ONE
@@ -59,7 +59,7 @@ namespace MFM{
 
   class CompilerState; //forward
 
-  struct Token 
+  struct Token
   {
     TokenType m_type;
     Locator m_locator;  //fileid, lineno, byteno
@@ -74,16 +74,16 @@ namespace MFM{
     static TokenType getTokenTypeFromString(const char * aname);
     static const char *  getTokenAsString(TokenType ttype);
 
-    /** 
+    /**
 	ulam says an identifier is a Type when it starts with a capital letter
-	or is predefined (e.g. Int, Bool, etc). 
+	or is predefined (e.g. Int, Bool, etc).
     */
     static bool isTokenAType(Token tok);
     static bool isUpper(char c);
 
     void print(File * fp, CompilerState * state);
-    
-  };  
+
+  };
 }
 
 #endif  //end TOKEN_H

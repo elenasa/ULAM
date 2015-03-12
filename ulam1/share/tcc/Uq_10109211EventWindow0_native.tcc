@@ -6,59 +6,55 @@
 namespace MFM{
 
   template<class EC, u32 POS>
-  Ui_Ut_102964Atom<EC> Uq_10109211EventWindow0<EC,POS>::Uf_4aref(UlamContext<EC> & uc,
-                                                                T& Uv_4self, Ui_Ut_10168Unsigned Uv_5index)	 //native
+  Ui_Ut_102961a<EC> Uq_10109211EventWindow0<EC,POS>::Uf_4aref(UlamContext<EC> & uc, T& Uv_4self,
+							      Ui_Ut_10161u Uv_5index) //native
   {
     u32 siteNumber = Uv_5index.read();
-
     EventWindow<EC> & ew = uc.GetEventWindow();
     const T & a = ew.GetAtomSym(siteNumber);
-
-    return Ui_Ut_102964Atom<EC>(a);
+    return Ui_Ut_102961a<EC>(a);
   }
 
   template<class EC, u32 POS>
   void Uq_10109211EventWindow0<EC,POS>::Uf_4aset(UlamContext<EC> & uc,
-                                                T& Uv_4self, Ui_Ut_10168Unsigned Uv_5index,
-                                                Ui_Ut_102964Atom<EC> Uv_1v) //native
+                                                T& Uv_4self, Ui_Ut_10161u Uv_5index,
+                                                Ui_Ut_102961a<EC> Uv_1v) //native
   {
     u32 siteNumber = Uv_5index.read();
-
     EventWindow<EC> & ew = uc.GetEventWindow();
     ew.SetAtomSym(siteNumber, Uv_1v.read());
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_10114Bool Uq_10109211EventWindow0<EC,POS>::Uf_6isLive(UlamContext<EC> & uc,
-                                                             T& Uv_4self, Ui_Ut_10168Unsigned Uv_5index)
+  Ui_Ut_10111b Uq_10109211EventWindow0<EC,POS>::Uf_6isLive(UlamContext<EC> & uc,
+                                                             T& Uv_4self, Ui_Ut_10161u Uv_5index)
   {
     u32 siteNumber = Uv_5index.read();
     EventWindow<EC> & ew = uc.GetEventWindow();
-    return Ui_Ut_10114Bool(ew.IsLiveSiteSym(siteNumber));
+    return Ui_Ut_10111b(ew.IsLiveSiteSym(siteNumber));
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_10114Bool Uq_10109211EventWindow0<EC,POS>::Uf_4swap(UlamContext<EC> & uc,
-                                                           T& Uv_4self, Ui_Ut_10168Unsigned Uv_6index1, Ui_Ut_10168Unsigned Uv_6index2)
+  Ui_Ut_10111b Uq_10109211EventWindow0<EC,POS>::Uf_4swap(UlamContext<EC> & uc, T& Uv_4self,
+							 Ui_Ut_10161u Uv_6index1,
+							 Ui_Ut_10161u Uv_6index2)
   {
     u32 idx1 = Uv_6index1.read();
     u32 idx2 = Uv_6index2.read();
     EventWindow<EC> & ew = uc.GetEventWindow();
     if (!ew.IsLiveSiteSym(idx1) || !ew.IsLiveSiteSym(idx2))
-      return Ui_Ut_10114Bool(false);
+      return Ui_Ut_10111b(false);
     ew.SwapAtomsSym(idx1,idx2);
-    return Ui_Ut_10114Bool(true);
+    return Ui_Ut_10111b(true);
   }
 
   template<class EC, u32 POS>
-  Ui_Uq_102323C2D0<EC> Uq_10109211EventWindow0<EC, POS>::Uf_8getCoord(UlamContext<EC> & uc,
-                                                                    T& Uv_4self, Ui_Ut_10168Unsigned Uv_7siteNum)
+  Ui_Uq_102323C2D0<EC> Uq_10109211EventWindow0<EC, POS>::Uf_8getCoord(UlamContext<EC> & uc, T& Uv_4self,
+								      Ui_Ut_10161u Uv_7siteNum)
   {
     //! EventWindow.ulam:21:     C2D ret;
     Ui_Uq_102323C2D0<EC> Uv_3ret;
-
     EventWindow<EC> & ew = uc.GetEventWindow();
-
     u32 idx = Uv_7siteNum.read();
     SPoint loc = ew.MapToPointSymValid(idx);
 
@@ -69,17 +65,13 @@ namespace MFM{
     const u32 Uh_tmpreg_loadable_240 = Uv_3ret.read();
     const Ui_Uq_102323C2D0<EC> Uh_tmpval_loadable_241(Uh_tmpreg_loadable_240);
     return (Uh_tmpval_loadable_241);
-
   } // Uf_8getCoord
 
-
-
   template<class EC, u32 POS>
-  Ui_Ut_10168Unsigned Uq_10109211EventWindow0<EC, POS>::Uf_9213getSiteNumber(UlamContext<EC> & uc,
-                                                                            T& Uv_4self, Ui_Uq_102323C2D0<EC> Uv_5coord)
+  Ui_Ut_10161u Uq_10109211EventWindow0<EC, POS>::Uf_9213getSiteNumber(UlamContext<EC> & uc, T& Uv_4self,
+								      Ui_Uq_102323C2D0<EC> Uv_5coord)
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
-
     EventWindow<EC> & ew = uc.GetEventWindow();
 
     const s32 x = _SignExtend32(Ui_Uq_102323C2D0<EC>::Us::Up_Um_1x::Read(Uv_5coord.getBits()), 16);
@@ -90,20 +82,19 @@ namespace MFM{
       ret = ew.MapToIndexSymValid(loc);
     else
       ret = EventWindow<EC>::SITE_COUNT;
-
-    return Ui_Ut_10168Unsigned(ret);
+    return Ui_Ut_10161u(ret);
   }
 
   //! EventWindow.ulam:28:   SiteNum size() native;
   template<class EC, u32 POS>
-  Ui_Ut_10168Unsigned Uq_10109211EventWindow0<EC,POS>::Uf_4size(UlamContext<EC> & uc,
+  Ui_Ut_10161u Uq_10109211EventWindow0<EC,POS>::Uf_4size(UlamContext<EC> & uc,
                                                                T& Uv_4self) {
-    return Ui_Ut_10168Unsigned(EventWindow<EC>::SITE_COUNT);
+    return Ui_Ut_10161u(EventWindow<EC>::SITE_COUNT);
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_10138Unsigned Uq_10109211EventWindow0<EC, POS>::Uf_9214changeSymmetry(UlamContext<EC> & uc,
-                                                                             T& Uv_4self, Ui_Ut_10138Unsigned Uv_6newSym)
+  Ui_Ut_10131u Uq_10109211EventWindow0<EC, POS>::Uf_9214changeSymmetry(UlamContext<EC> & uc,T& Uv_4self,
+								       Ui_Ut_10131u Uv_6newSym)
   {
     EventWindow<EC> & ew = uc.GetEventWindow();
 
@@ -111,14 +102,13 @@ namespace MFM{
     const u32 newSym = (u32) Uv_6newSym.read();
     if (newSym < PSYM_SYMMETRY_COUNT)
       ew.SetSymmetry((PointSymmetry) newSym);
-    return Ui_Ut_10138Unsigned(oldSym);
-
+    return Ui_Ut_10131u(oldSym);
   } // Uf_9214changeSymmetry
 
   //! EventWindow.ulam:34:   C2D mapSym(C2D directCoord) {
   template<class EC, u32 POS>
-  Ui_Uq_102323C2D0<EC> Uq_10109211EventWindow0<EC, POS>::Uf_6mapSym(UlamContext<EC> & uc,
-                                                                  T& Uv_4self, Ui_Uq_102323C2D0<EC> Uv_9211directCoord)
+  Ui_Uq_102323C2D0<EC> Uq_10109211EventWindow0<EC, POS>::Uf_6mapSym(UlamContext<EC> & uc, T& Uv_4self,
+								    Ui_Uq_102323C2D0<EC> Uv_9211directCoord)
   {
     EventWindow<EC> & ew = uc.GetEventWindow();
 
@@ -135,7 +125,6 @@ namespace MFM{
 
     //! EventWindow.ulam:38:     return ret;
     return Ui_Uq_102323C2D0<EC>(Uv_3ret.read());
-
   } // Uf_6mapSym
 
 
