@@ -117,12 +117,12 @@ namespace MFM {
     s32 arraysize = getArraySize();
 
     if(arraysize > 0)
-      mangled << DigitCount(arraysize, BASE10) << arraysize;
+      mangled << ToLeximitedNumber(arraysize);
     else
       mangled << 10;
 
     if(bitsize > 0)
-      mangled << DigitCount(bitsize, BASE10) << bitsize;
+      mangled << ToLeximitedNumber(bitsize);
     else
       mangled << 10;
 

@@ -65,6 +65,7 @@
 #include "Token.h"
 #include "Tokenizer.h"
 #include "UlamType.h"
+#include "UlamUtil.h"
 
 
 namespace MFM{
