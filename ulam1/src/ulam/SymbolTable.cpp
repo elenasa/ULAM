@@ -884,7 +884,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("OurAtomAll atom;\n");
     m_state.indent(fp);
-    fp->write("MFM::Ui_Ut_102323Int rtn;\n");
+    fp->write("MFM::Ui_Ut_102321i rtn;\n");
 
     it = m_idToSymbolPtr.begin();
     s32 idcounter = 1;

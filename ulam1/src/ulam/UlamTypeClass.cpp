@@ -63,6 +63,27 @@ namespace MFM {
     return "VD::BITS";  //for quark use bits
   }
 
+  const std::string UlamTypeClass::getUlamTypeMangledType()
+  {
+    // e.g. parsing overloaded functions, may not be complete.
+    std::ostringstream mangled;
+    s32 bitsize = getBitSize();
+    s32 arraysize = getArraySize();
+
+    if(arraysize > 0)
+      mangled << ToLeximitedNumber(arraysize);
+    else
+      mangled << 10;
+
+    if(bitsize > 0)
+      mangled << ToLeximitedNumber(bitsize);
+    else
+      mangled << 10;
+
+    mangled << m_state.getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
+    return mangled.str();
+  } //getUlamTypeMangledType
+
   const std::string UlamTypeClass::getUlamTypeMangledName()
   {
     std::ostringstream mangledclassname;

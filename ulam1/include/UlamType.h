@@ -47,14 +47,14 @@
 namespace MFM{
 
 
-#define XX(a,b,c) a,
+#define XY(a,b,c,d) a,
 
   enum ULAMTYPE
   {
 #include "UlamType.inc"
     LASTTYPE
   };
-#undef XX
+#undef XY
 
   struct UlamValue; //forward
 
@@ -124,6 +124,7 @@ namespace MFM{
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
 
+    static const char * getUlamTypeEnumCodeChar(ULAMTYPE etype);
 
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
 
