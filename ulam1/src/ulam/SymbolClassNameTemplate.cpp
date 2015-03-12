@@ -228,7 +228,7 @@ namespace MFM {
 		//error! number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
 		msg << "number of arguments (" << cargs << ") in class instance: ";
-		msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
+		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
 		msg << ", does not match the required number of parameters (";
 		msg << numparams << ") to fix";
 		MSG("", msg.str().c_str(),ERR);
@@ -420,12 +420,15 @@ namespace MFM {
 
     std::ostringstream args;
 
-    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+    if(instance == getUlamTypeIdx())
       {
-	std::ostringstream msg;
-	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	msg << ", has no instances; args format is number of parameters";
-	MSG("", msg.str().c_str(), DEBUG);
+	if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+	  {
+	    std::ostringstream msg;
+	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	    msg << ", has no instances; args format is number of parameters";
+	    MSG("", msg.str().c_str(), DEBUG);
+	  }
 	args << DigitCount(numParams, BASE10) << numParams;
 	return args.str(); //short-circuit when argument is template's UTI
       }
@@ -692,7 +695,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance: ";
-	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << " is still a stub, so no check for custom arrays error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -720,7 +723,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance: ";
-	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << " is still a stub, so no check for duplication function error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
@@ -748,7 +751,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance: ";
-	    msg << m_state.getUlamTypeNameByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << " is still a stub, so check and label error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -777,8 +780,9 @@ namespace MFM {
 	    if(navclasscnt > 0)
 	      {
 		std::ostringstream msg;
-		msg << navclasscnt << " data member nodes with illegal 'Nav' types remain in class instance <";
-		msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+		msg << navclasscnt;
+		msg << " data member nodes with illegal 'Nav' types remain in class instance <";
+		msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 		msg << ">";
 		MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		navCounter += navclasscnt;
@@ -788,7 +792,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Instance: " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << "Class Instance: " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	    msg << ", is incomplete; Navs will not be counted";
 	    MSG("", msg.str().c_str(), DEBUG);
 	  }
@@ -842,9 +846,9 @@ namespace MFM {
 	  {
 	    m_state.setBitSize(uti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
 	    std::ostringstream msg;
-	    msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameByIndex(uti).c_str();
-	    msg << " SIZED: " << totalbits;
-	    MSG("", msg.str().c_str(),DEBUG);
+	    msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	    msg << " UTI" << uti << ", SIZED: " << totalbits;
+	    MSG("", msg.str().c_str(), DEBUG);
 	  }
 	else
 	  lostClasses.push_back(cuti); 	//track classes that fail to be sized.
@@ -862,10 +866,10 @@ namespace MFM {
 	while(!lostClasses.empty())
 	  {
 	    UTI lcuti = lostClasses.back();
-	    msg << ", " << m_state.getUlamTypeNameByIndex(lcuti).c_str();
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(lcuti).c_str();
 	    lostClasses.pop_back();
 	  }
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     else
       {
@@ -944,7 +948,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Instance: " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << "Class Instance: " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	    msg << ", is incomplete; Code will not be generated";
 	    MSG("", msg.str().c_str(), DEBUG);
 	  }
@@ -997,9 +1001,9 @@ namespace MFM {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
 	msg << "number of arguments (" << cargs << ") in class instance: ";
-	msg << m_state.getUlamTypeNameByIndex(fm->getId()).c_str();
+	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
 	msg << ", does not match the required number of parameters (" << numparams << ")";
-	MSG("", msg.str().c_str(),ERR);
+	MSG("", msg.str().c_str(), ERR);
 	return false;
       }
 
@@ -1049,7 +1053,7 @@ namespace MFM {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
 	msg << "number of arguments (" << cargs << ") in class instance: ";
-	msg << m_state.getUlamTypeNameByIndex(fm->getId()).c_str();
+	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
 	msg << ", does not match the required number of parameters (" << numparams << ")";
 	MSG("", msg.str().c_str(),ERR);
 	return false;
