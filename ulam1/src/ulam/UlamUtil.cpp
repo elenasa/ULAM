@@ -1,31 +1,73 @@
 #include "UlamUtil.h"
+#include "Util.h"
 #include <sstream>  /* For ostringstream */
 #include <cctype>   /* For isgraph */
 #include <time.h>   /* For nanosleep */
+#include <assert.h>
 
 namespace MFM
 {
-  u32 DigitCount(u32 num, u32 base)
+  //note: DigitCount is defined in MFM Util.cpp
+
+  std::string ToLeximitedNumber(s32 num)
   {
-    u32 count = 0;
-    while(num)
-    {
-      count++;
-      num /= base;
-    }
-    return count;
-  }
+    //handles negative numbers greater than the biggest negative number
+    //returns 'n' before a negative num
+    //returns 10 when 'num' is zero
+    bool useneg = false;
+    u32 digits;
+    if(num == 0)
+      digits = 1;
+    else if(num < 0)
+      {
+	//no way convert the biggest negative number to unsigned
+	assert(num > S32_MIN);
+	num = -num;
+	digits = DigitCount((u32) num, 10) + 1;
+	useneg = true;
+      }
+    else //>0
+      {
+	digits = DigitCount((u32) num, 10);
+      }
+
+    std::ostringstream os;
+    if (digits < 9)
+      os << digits;
+    else
+      os << 9 << ToLeximited(digits);
+
+    if(useneg)
+      os << "n";
+    os << num;
+    return os.str();
+  } //ToLeximitedNumber (signed)
+
+
+  std::string ToLeximitedNumber(u32 num)
+  {
+    //returns 10 when 'num' is zero
+    u32 digits = (num == 0 ? 1 : DigitCount(num, 10));
+
+    std::ostringstream os;
+    if (digits < 9)
+      os << digits << num;
+    else
+      os << 9 << ToLeximited(digits) << num;
+
+    return os.str();
+  } //ToLeximitedNumber (unsigned)
+
 
   std::string ToLeximited(u32 len)
   {
     u32 digits = DigitCount(len,10);
 
     std::ostringstream os;
-    if (digits < 9)
-      os << digits << len;
+    if (len < 9)
+      os << len;
     else
       os << 9 << ToLeximited(digits) << len;
-
     return os.str();
   }
 
@@ -59,16 +101,5 @@ namespace MFM
 
     return os.str();
   }
-
-  void Sleep(u32 seconds, u64 nanos)
-  {
-    struct timespec tspec;
-    tspec.tv_sec = seconds;
-    tspec.tv_nsec = nanos;
-
-    nanosleep(&tspec, NULL);
-  }
-
-
 
 }

@@ -59,6 +59,8 @@ namespace MFM{
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
+    virtual const std::string getUlamTypeMangledType();
+
     virtual  const std::string getUlamTypeMangledName();
 
     virtual const std::string getUlamTypeAsStringForC();

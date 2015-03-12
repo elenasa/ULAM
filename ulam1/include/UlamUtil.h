@@ -1,6 +1,6 @@
 /*                                              -*- mode:C++ -*-
   UlamUtil.h Utility methods for ulam
-  Copyright (C) 2014 The Regents of the University of New Mexico.  All rights reserved.
+  Copyright (C) 2014-2015 The Regents of the University of New Mexico.  All rights reserved.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,8 @@
 /**
   \file UlamUtil.h Utility methods for ulam
   \author David H. Ackley.
-  \date (C) 2014 All rights reserved.
+  \author Elena S. Ackley.
+  \date (C) 2014-2015 All rights reserved.
   \lgpl
  */
 #ifndef ULAMUTIL_H
@@ -40,6 +41,24 @@ namespace MFM {
    * @return a string containing the leximited encoding of len.
    */
   extern std::string ToLeximited(u32 len);
+
+  /**
+   * Encodes an signed integer in leximited.
+   *
+   * @param num The number to encode.
+   *
+   * @return a string containing the leximited encoding of num.
+   */
+  extern std::string ToLeximitedNumber(s32 num);
+
+  /**
+   * Encodes an unsigned integer in leximited.
+   *
+   * @param num The number to encode.
+   *
+   * @return a string containing the leximited encoding of num.
+   */
+  extern std::string ToLeximitedNumber(u32 num);
 
   /**
    * Encode an arbitrary string in leximited.

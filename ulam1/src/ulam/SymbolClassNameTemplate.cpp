@@ -320,7 +320,7 @@ namespace MFM {
       }
 
     std::ostringstream args;
-    args << DigitCount(numParams, BASE10) << numParams;
+    args << ToLeximitedNumber(numParams);
 
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
@@ -350,7 +350,6 @@ namespace MFM {
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	    ULAMTYPE eutype = aut->getUlamTypeEnum();
 
-	    //args << DigitCount(eutype, BASE10) << eutype;
 	    args << aut->getUlamTypeMangledType().c_str();
 
 	    bool isok = false;
@@ -361,14 +360,7 @@ namespace MFM {
 		  s32 sval;
 		  if(((SymbolConstantValue *) asym)->getValue(sval))
 		    {
-		      if(sval < 0)
-			{
-			  sval = -sval;
-			  args << DigitCount(sval, BASE10) + 1;
-			  args << "n" << sval;
-			}
-		      else
-			args << DigitCount(sval, BASE10) << sval;
+		      args << ToLeximitedNumber(sval);
 		      isok = true;
 		    }
 		  break;
@@ -378,7 +370,7 @@ namespace MFM {
 		  u32 uval;
 		  if(((SymbolConstantValue *) asym)->getValue(uval))
 		    {
-		      args << DigitCount(uval, BASE10) << uval;
+		      args << ToLeximitedNumber(uval);
 		      isok = true;
 		    }
 		  break;
@@ -388,7 +380,7 @@ namespace MFM {
 		  bool bval;
 		  if(((SymbolConstantValue *) asym)->getValue(bval))
 		    {
-		      args << DigitCount(bval, BASE10) << bval;
+		      args << ToLeximitedNumber((u32) bval);
 		      isok = true;
 		    }
 		  break;
@@ -400,7 +392,7 @@ namespace MFM {
 	    if(!isok)
 	      {
 		std::string astr = m_state.m_pool.getDataAsString(asym->getId());
-		args << DigitCount(astr.length(), BASE10) << astr.c_str();
+		args << ToLeximited(astr);
 	      }
 	    pit++;
 	  } //next param
@@ -429,7 +421,7 @@ namespace MFM {
 	    msg << ", has no instances; args format is number of parameters";
 	    MSG("", msg.str().c_str(), DEBUG);
 	  }
-	args << DigitCount(numParams, BASE10) << numParams;
+	args << ToLeximitedNumber(numParams);
 	return args.str(); //short-circuit when argument is template's UTI
       }
 

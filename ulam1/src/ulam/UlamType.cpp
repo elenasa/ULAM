@@ -8,14 +8,22 @@
 
 namespace MFM {
 
-#define XX(a,b,c) b,
+#define XY(a,b,c,d) b,
 
   static const char * utype_string[] = {
 #include "UlamType.inc"
   };
 
-#undef XX
+#undef XY
 
+
+#define XY(a,b,c,d) d,
+
+  static const char * utype_primitivecode[] = {
+#include "UlamType.inc"
+  };
+
+#undef XY
 
 
   UlamType::UlamType(const UlamKeyTypeSignature key, CompilerState & state) : m_key(key), m_state(state), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
@@ -117,16 +125,18 @@ namespace MFM {
     s32 arraysize = getArraySize();
 
     if(arraysize > 0)
-      mangled << DigitCount(arraysize, BASE10) << arraysize;
+      mangled << ToLeximitedNumber(arraysize);
     else
       mangled << 10;
 
     if(bitsize > 0)
-      mangled << DigitCount(bitsize, BASE10) << bitsize;
+      mangled << ToLeximitedNumber(bitsize);
     else
       mangled << 10;
 
-    mangled << m_state.getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
+    //mangled << m_state.getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
+    std::string ecode(UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum()));
+    mangled << ToLeximited(ecode).c_str();
 
     return mangled.str();
   } //getUlamTypeMangledType
@@ -368,15 +378,19 @@ namespace MFM {
     fp->write(";\n");
   }
 
+  const char * UlamType::getUlamTypeEnumCodeChar(ULAMTYPE etype)
+  {
+    return utype_primitivecode[etype]; //static method
+  }
+
   const char * UlamType::getUlamTypeEnumAsString(ULAMTYPE etype)
   {
-    return utype_string[etype];
+    return utype_string[etype]; //static method
   }
 
   ULAMTYPE UlamType::getEnumFromUlamTypeString(const char * typestr)
   {
     ULAMTYPE rtnUT = Nav;
-
     for(u32 i = 0; i < LASTTYPE; i++)
       {
 	if(strcmp(utype_string[i], typestr) == 0)
@@ -385,8 +399,8 @@ namespace MFM {
 	    break;
 	  }
       }
-    return rtnUT;
-  }
+    return rtnUT; //static method
+  } //getEnumFromUlamTypeString
 
   bool UlamType::isConstant()
   {
