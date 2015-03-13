@@ -455,6 +455,7 @@ namespace MFM {
     //fp->write(" d) : m_t(d) {}\n");
     fp->write(" d) { write(d); }\n");
 
+#if 0 // Fri Mar 13 16:04:59 2015 XXX TESTING GCC CODE GEN IMPACTS
     //copy constructor here (used by func call return values)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
@@ -467,6 +468,7 @@ namespace MFM {
     fp->write("~");
     fp->write(mangledName.c_str());
     fp->write("() {}\n");
+#endif // Fri Mar 13 16:04:59 2015 XXX TESTING GCC CODE GEN IMPACTS
 
     //read 'entire quark' method
     genUlamTypeQuarkReadDefinitionForC(fp);
