@@ -338,8 +338,13 @@ sub scanNextItemLL {
         return ('hdr', $1, $input);
     }
 
+    # Match two char operators + ws
+    if ($input =~ s!^(&&|\|\|)(\s*)!!s) {
+        return ($1, "$1$2", $input);
+    }
+
     # Match single brackets, operators, and delimiters + ws
-    if ($input =~ s!^([\[\](){};,=.<>~\!/*+-])(\s*)!!s) {
+    if ($input =~ s!^([\[\](){};,=.<>~\!/*&|+-])(\s*)!!s) {
         return ($1, "$1$2", $input);
     }
 
@@ -354,12 +359,12 @@ sub scanNextItemLL {
     }
 
     # Match type name, with possible template arguments (assuming no nested parens.. true?)
-    if ($input =~ s!^([A-Z][A-Za-z0-9]*(\([^\)]+\))?)!!s) {
+    if ($input =~ s!^([A-Z][A-Za-z0-9_]*(\([^\)]+\))?)!!s) {
         return ('type', $1, $input);
     }
 
     # Match non-type name (and keywords)
-    if ($input =~ s!^([a-z][A-Za-z0-9]*)!!s) {
+    if ($input =~ s!^([a-z][A-Za-z0-9_]*)!!s) {
         return ('name', $1, $input);
     }
 
