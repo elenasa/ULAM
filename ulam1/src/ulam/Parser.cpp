@@ -158,13 +158,19 @@ namespace MFM {
         return true;
       }
 
-    if( (pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) && (pTok.m_type != TOK_KW_QUARKUNION) )
+    if((pTok.m_type != TOK_KW_ELEMENT) && (pTok.m_type != TOK_KW_QUARK) && (pTok.m_type != TOK_KW_QUARKUNION))
       {
 	std::ostringstream msg;
-	msg << "Expecting 'quark' or 'element' KEYWORD, NOT <";
-	msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	msg << "Invalid Class Type: <";
+	msg << m_state.getTokenDataAsString(&pTok).c_str();
+	msg << ">; KEYWORD should be: '";
+	msg << Token::getTokenAsString(TOK_KW_ELEMENT);
+	msg << "', '";
+	msg << Token::getTokenAsString(TOK_KW_QUARK);
+	msg << "', or '";
+	msg << Token::getTokenAsString(TOK_KW_QUARKUNION);
+	msg << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
-
 	return true; //we're done.
       }
 
@@ -177,9 +183,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Poorly named class <" << m_state.getTokenDataAsString(&iTok).c_str();
-	msg << ">: Identifier must begin with an upper-case letter";;
+	msg << ">: Identifier must begin with an upper-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
-	return  true; //we're done unless we can gobble the rest up?
+	return true; //we're done unless we can gobble the rest up?
       }
 
     SymbolClassName * cnSym = NULL;
@@ -259,7 +265,7 @@ namespace MFM {
 	  break;
 	}
       default:
-	assert(0);
+	assert(0); //checked prior
       };
 
     NodeBlockClass * classNode = parseClassBlock(cnSym, iTok); //we know its type too..sweeter
@@ -279,6 +285,7 @@ namespace MFM {
 	msg << ">; possible missing ending curly brace";
 	MSG(&pTok, msg.str().c_str(), WARN);
       }
+
     return false; //keep going until EOF is reached
   } //parseThisClass
 
@@ -1523,6 +1530,7 @@ namespace MFM {
 	argSym = new SymbolConstantValue(snameid, m_state.getUlamTypeOfConstant(Int), m_state); //stub id, stub type, state
       }
 
+    assert(argSym);
     argSym->setParameterFlag();
     m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
@@ -1642,12 +1650,23 @@ namespace MFM {
 	SymbolClass * csym = NULL;
 	if(cnsym->isClassTemplate() && args.classInstanceIdx)
 	  {
-	    ((SymbolClassNameTemplate *) cnsym)->findClassInstanceByUTI(args.classInstanceIdx, csym);
-	    assert(csym);
+	    if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.classInstanceIdx, csym))
+	      {
+		std::ostringstream msg;
+		msg << "Trying to use typedef from another class template <";
+		msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+		msg << ">, but instance UTI";
+		msg << args.classInstanceIdx << " cannot be found";
+		MSG(&args.typeTok, msg.str().c_str(), ERR);
+		numDots = 0;
+		rtnb = false;
+		return; //failed
+	      }
 	  }
 	else
 	  csym = cnsym; //regular class
 
+	assert(csym);
 	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
 	if(!memberClassNode)  //e.g. forgot the closing brace on quark def once; or UNSEEN
 	  {
@@ -3273,17 +3292,6 @@ namespace MFM {
 	//process identifier...check if already defined in current scope; if not, add it;
 	//returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
-
-#if 0
-	UTI ut;
-	if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, ut)) //ut or anothertduti ???
-	  {
-	    args.arraysize = m_state.getArraySize(ut); //typedef built-in arraysize, no []
-	    assert(args.bitsize == 0);
-	    args.bitsize = m_state.getBitSize(ut);
-	  }
-#endif
-
 	if(!lvalNode->installSymbolTypedef(args, asymptr))
 	  {
 	    if(asymptr)
@@ -3343,15 +3351,6 @@ namespace MFM {
 	//lvalNode could be either a NodeIdent or a NodeSquareBracket though arrays not legal in this context!!!
 	//process identifier...check if already defined in current scope; if not, add it;
 	//return a SymbolConstantValue.
-#if 0
-	UTI uti;
-	if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, uti))
-	  {
-	    args.arraysize = m_state.getArraySize(uti); //typedef built-in arraysize, no []
-	    assert(args.bitsize == 0);
-	    args.bitsize = m_state.getBitSize(uti);
-	  }
-#endif
 	//else some sort of primitive
 	Symbol * asymptr = NULL;
 	if(!lvalNode->installSymbolConstantValue(args, asymptr))
@@ -3820,58 +3819,58 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Factor is missing, unary operation " << pTok.getTokenString() << " deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
+	return NULL;
       }
-    else
+
+    switch(pTok.m_type)
       {
-	switch(pTok.m_type)
-	  {
-	  case TOK_MINUS:
+      case TOK_MINUS:
+	{
+	  UTI futi = factorNode->getNodeType();
+	  if( (futi != Nav) && m_state.isConstant(futi))
 	    {
-	      UTI futi = factorNode->getNodeType();
-	      if( (futi != Nav) && m_state.isConstant(futi))
-		{
-		  factorNode->constantFold(pTok);
-		  rtnNode = factorNode;
-		}
-	      else
-		{
-		  rtnNode = new NodeUnaryOpMinus(factorNode, m_state);
-		  assert(rtnNode);
-		  rtnNode->setNodeLocation(pTok.m_locator);
-		}
+	      factorNode->constantFold(pTok);
+	      rtnNode = factorNode;
 	    }
-	    break;
-	  case TOK_PLUS:
-	    rtnNode = new NodeUnaryOpPlus(factorNode, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(pTok.m_locator);
-	    break;
-	  case TOK_BANG:
-	    rtnNode = new NodeUnaryOpBang(factorNode, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(pTok.m_locator);
-	    break;
-	  case TOK_PLUS_PLUS:
-	    rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminal(pTok, 1, Int), m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(pTok.m_locator);
-	    break;
-	  case TOK_MINUS_MINUS:
-	    rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminal(pTok, 1, Int), m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(pTok.m_locator);
-	    break;
-	  default:
+	  else
 	    {
-	      std::ostringstream msg;
-	      msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str();
-	      msg << ">, aborting";
-	      MSG(&pTok, msg.str().c_str(), DEBUG);
-	      assert(0);
+	      rtnNode = new NodeUnaryOpMinus(factorNode, m_state);
+	      assert(rtnNode);
+	      rtnNode->setNodeLocation(pTok.m_locator);
 	    }
-	    break;
-	  };
-      }
+	}
+	break;
+      case TOK_PLUS:
+	rtnNode = new NodeUnaryOpPlus(factorNode, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+	break;
+      case TOK_BANG:
+	rtnNode = new NodeUnaryOpBang(factorNode, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+	break;
+      case TOK_PLUS_PLUS:
+	rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminal(pTok, 1, Int), m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+	break;
+      case TOK_MINUS_MINUS:
+	rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminal(pTok, 1, Int), m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(pTok.m_locator);
+	break;
+      default:
+	{
+	  std::ostringstream msg;
+	  msg << " Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str();
+	  msg << ">, aborting";
+	  MSG(&pTok, msg.str().c_str(), DEBUG);
+	  assert(0);
+	}
+	break;
+      };
+
     return rtnNode;
   } //makeFactorNode
 
