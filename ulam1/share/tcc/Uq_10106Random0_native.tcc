@@ -10,7 +10,7 @@ namespace MFM{
   {
     u32 max = Uv_3max.read();
     Random & random = uc.GetRandom();
-    return Ui_Ut_102328Unsigned(random.Create(max));
+    return Ui_Ut_102321u(random.Create(max));
   }
 
   template<class EC, u32 POS>
@@ -19,7 +19,7 @@ namespace MFM{
     u32 bits = UvbitCount.read();
     Random & random = uc.GetRandom();
     u32 rbits = random.CreateBits(bits);
-    return Ui_Ut_102328Unsigned(rbits);
+    return Ui_Ut_102321u(rbits);
   }
 
 } //MFM
