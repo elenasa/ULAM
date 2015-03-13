@@ -11,7 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //informed by issue (see 3359): requires 3 conditions:
+      //informed by issue (see 3359): required 3 conditions; caused by missing ClassContext pop after Constant surgery.
       // 1. func call (behave) has at least 2 MEMBER-SELECTED constant args,
       // 2. func call (behave) is also member-selected, and in a member-function (i.e. copy) of Foo (not test);
       // 3. Foo is parametric (not regular).
