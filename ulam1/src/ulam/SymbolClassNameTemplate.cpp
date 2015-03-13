@@ -526,7 +526,16 @@ namespace MFM {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return true;
 
-    //UTI savecompilethisidx = m_state.m_compileThisIdx;
+    if(!getClassBlockNode())
+      {
+	std::ostringstream msg;
+	msg << "Cannot fully instantiate a template class <";
+	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	msg << "> without a definition, maybe not a class at all";
+	MSG("", msg.str().c_str(), ERR);
+	return false;
+      }
+
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
@@ -568,6 +577,7 @@ namespace MFM {
 	//keep the template's location (for targetmap)
 	NodeBlockClass * classNode = clone->getClassBlockNode();
 	assert(classNode);
+
 	m_state.popClassContext();
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 

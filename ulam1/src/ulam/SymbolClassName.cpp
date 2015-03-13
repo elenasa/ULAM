@@ -124,7 +124,16 @@ namespace MFM {
   void SymbolClassName::checkAndLabelClassFirst()
   {
     NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
+    if(!classNode)
+      {
+	std::ostringstream msg;
+	msg << "Check and Label skipped for a class <";
+	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	msg << "> without a definition, maybe not a class at all";
+	MSG("", msg.str().c_str(), ERR);
+	return;
+      }
+
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->checkAndLabelType();
