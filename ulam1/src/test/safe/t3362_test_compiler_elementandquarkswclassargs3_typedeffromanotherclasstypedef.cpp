@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //Constants have explicit types
-      return std::string("Exit status: 3\nUe_P { Bool(1) b(false);  Int(32) test() {  Unsigned(3) var;  var 3 cast = var cast return } }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\n");
+      return std::string("Exit status: 3\nUe_R { Int(32) test() {  P(3) pvar;  3u cast return } }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef P(a) Foo;  <NOMAIN> }\nUe_P { constant Int(32) a = NONREADYCONST;  Bool(UNKNOWN) b(false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -16,13 +16,11 @@ namespace MFM {
       // recursive typedefs as local variable type
       // must already be parsed!
       bool rtn4 = fms->add("R.ulam","ulam 1;\nuse V;\nelement R {\nInt test() {\n V.Woof.Foo pvar;\n return pvar.sizeof;\n}\n}\n");
-      //bool rtn4 = fms->add("R.ulam","ulam 1;\nuse V;\nelement R {\nInt test() {\ntypedef V.Woof.Foo Foo;\n Foo pvar;\n return pvar.sizeof;\n}\n}\n");
 
       bool rtn1 = fms->add("P.ulam","ulam 1;\nelement P(Int a) {\nBool(a) b;\n}\n");
 
+      // as primitive, as regular class, we have no problems.
       bool rtn2 = fms->add("Q.ulam","ulam 1;\nuse P;\nquark Q(Int s) {\ntypedef P(s) Foo;\n}\n");
-
-      //bool rtn2 = fms->add("Q.ulam","ulam 1;\nuse P;\nquark Q(Int s) {\ntypedef Unsigned(s) Foo;\n}\n"); //works!!
 
       bool rtn3 = fms->add("V.ulam","ulam 1;\nuse Q;\n quark V {\ntypedef Q(3) Woof;\n}\n");
 

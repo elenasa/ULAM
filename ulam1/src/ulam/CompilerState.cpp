@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-//#define _DEBUG_OUTPUT
-//#define _INFO_OUTPUT
-//#define _WARN_OUTPUT
+  //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -395,8 +395,26 @@ namespace MFM {
   {
     SymbolClass * csym = NULL;
     assert(alreadyDefinedSymbolClass(cuti, csym));
-    return csym->hasMappedUTI(auti, mappedUTI);
-  }
+    if(csym->hasMappedUTI(auti, mappedUTI))
+      return true;
+
+    //move this test after looking for the mapped class symbol type in "cuti" (always compileThis?)
+    UlamType * aut = getUlamTypeByIndex(auti);
+    ULAMTYPE bUT = aut->getUlamTypeEnum();
+    if(bUT == Class)
+      {
+	UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
+	SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
+	assert(alreadyDefinedSymbolClassName(akey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
+	if(cnsymOfIncomplete->getUlamTypeIdx() != cuti)
+	  {
+	    if(!cnsymOfIncomplete->isClassTemplate())
+	      return false;
+	    return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
+	  }
+      }
+    return false; //for compiler
+  } //mappedIncompleteUTI
 
   //called by Symbol's copy constructor with ref's 'incomplete' uti
   //please set getCompileThisIdx() to the instance's UTI.
@@ -449,6 +467,17 @@ namespace MFM {
 
 	//potential for unending process..
 	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx());
+
+	std::ostringstream msg;
+	msg << "MAPPED!! type: " << getUlamTypeNameBriefByIndex(suti).c_str();
+	msg << "(UTI" << suti << ")";
+	msg << " TO newtype: " << getUlamTypeNameBriefByIndex(newuti).c_str();
+	msg << "(UTI" << newuti << ")";
+	msg << " while compiling class " << getUlamTypeNameBriefByIndex(getCompileThisIdx()).c_str();
+	msg << "(UTI" << getCompileThisIdx() << ")";
+	msg << ", for imcomplete class " << getUlamTypeNameBriefByIndex(cnsymOfIncomplete->getUlamTypeIdx()).c_str();
+	msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
