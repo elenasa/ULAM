@@ -2830,7 +2830,12 @@ namespace MFM {
     leftNode->setNodeLocation(dNode->getNodeLocation());
 
     Node * assignNode = makeAssignExprNode(leftNode);
-    assert(assignNode);
+    if(!assignNode)
+      {
+	//leftnode was deleted; dNode will be.
+	delete rtnNode;
+	return NULL;
+      }
 
     NodeStatements * nextNode = new NodeStatements(assignNode, m_state);
     assert(nextNode);
@@ -3457,7 +3462,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, Assignment deleted";
-	MSG(&pTok, msg.str().c_str(), DEBUG);
+	MSG(&pTok, msg.str().c_str(), ERR);
 	delete leftNode;
       }
     else
