@@ -19,6 +19,14 @@ quark AtomUtils {
     return getType((Atom) a);
   }
 
+  /** Test if an Atom is an empty atom
+
+      \returns true iff a is an empty atom.
+   */
+  Bool isEmpty(Atom a) {
+    return getType(a)==getEmptyType();
+  }
+
   /** Build a default atom of type t.  If au is a AtomUtils and t is a
       legal type, than the expression
       <code> (t == au.getType(tu.new(t)) </code>
