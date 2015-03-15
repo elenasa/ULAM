@@ -69,8 +69,9 @@ namespace MFM {
 
   const char * NodeConstantDef::getName()
   {
-    assert(m_constSymbol);
-    return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+    if(m_constSymbol)
+      return m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
+    return "CONSTDEF?";
   }
 
   const std::string NodeConstantDef::prettyNodeName()
@@ -184,13 +185,16 @@ namespace MFM {
 	ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
 	if(eit != esuti)
 	  {
+	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
 	    msg << "Named Constant '" << getName();
 	    msg << "' type: <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
 	    msg << "> does not match its value type: <";
 	    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    it = suti;
+	    msg << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    it = suti; //default it==Int for temp class args, may not match after seeing the template
 	  }
       }
     setNodeType(it);
