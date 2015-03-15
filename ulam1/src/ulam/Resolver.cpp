@@ -381,7 +381,7 @@ namespace MFM {
 	  {
 	    NodeConstantDef * constNode = *it;
 	    Symbol * csym = NULL;
-	    //if(constNode->getSymbolPtr(csym) && !((SymbolConstantValue *) csym)->isReady())
+	    // symbols can be delayed (i.e. NULL)
 	    if(constNode->getSymbolPtr(csym) && (!csym || !((SymbolConstantValue *) csym)->isReady()))
 	      {
 		msg << constNode->getName() << ",";
