@@ -380,8 +380,9 @@ namespace MFM {
 	while(it != m_nonreadyNamedConstantSubtrees.end())
 	  {
 	    NodeConstantDef * constNode = *it;
-	    Symbol * csym;
-	    if(constNode->getSymbolPtr(csym) && !((SymbolConstantValue *) csym)->isReady())
+	    Symbol * csym = NULL;
+	    // symbols can be delayed (i.e. NULL)
+	    if(constNode->getSymbolPtr(csym) && (!csym || !((SymbolConstantValue *) csym)->isReady()))
 	      {
 		msg << constNode->getName() << ",";
 		lostCs.push_back(constNode);
