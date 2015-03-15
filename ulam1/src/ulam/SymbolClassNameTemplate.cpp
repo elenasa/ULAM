@@ -189,15 +189,19 @@ namespace MFM {
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
 
-    //can't addClassInstanceUTI(newuti, newclassinstance) ITERATION IN PROGRESS!!!
-    m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,newclassinstance));
 
     // we are in the middle of fully instantiating (context); with known args that we want to use
     // to resolve, if possible, these pending args:
-    copyAnInstancesArgValues(csym, newclassinstance);
+    if(copyAnInstancesArgValues(csym, newclassinstance))
+      {
+	//can't addClassInstanceUTI(newuti, newclassinstance) ITERATION IN PROGRESS!!!
+	m_scalarClassInstanceIdxToSymbolPtrTEMP.insert(std::pair<UTI,SymbolClass*> (newuti,newclassinstance));
 
-    newclassinstance->cloneResolverForStubClassInstance(csym, context);
-    csym->cloneResolverUTImap(newclassinstance);
+	newclassinstance->cloneResolverForStubClassInstance(csym, context);
+	csym->cloneResolverUTImap(newclassinstance);
+      }
+    else
+      delete newclassinstance; //failed e.g. wrong number of args
   } //copyAStubClassInstance
 
   //called by parseThisClass, if wasIncomplete is parsed; temporary class arg names
@@ -549,7 +553,7 @@ namespace MFM {
 	//ask stub class symbol..
 	if(csym->pendingClassArgumentsForClassInstance())
 	  {
-	    aok = false;
+	    aok &= false;
 	    it++;
 	    continue; //have to wait
 	  }
@@ -581,17 +585,23 @@ namespace MFM {
 	m_state.popClassContext();
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-	takeAnInstancesArgValues(csym, clone); //instead of keeping template's unknown values
-	cloneAnInstancesUTImap(csym, clone);
+	if(!takeAnInstancesArgValues(csym, clone)) //instead of keeping template's unknown values
+	  {
+	    aok &= false;
+	    delete clone;
+	  }
+	else
+	  {
+	    cloneAnInstancesUTImap(csym, clone);
 
-	it->second = clone; //replace with the full copy
-	delete csym; //done with stub
-	csym = NULL;
+	    it->second = clone; //replace with the full copy
+	    delete csym; //done with stub
+	    csym = NULL;
 
-	addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
-	//updateLineageOfClassInstanceUTI(cuti); NNO-based now
-	cloneTemplateResolverForClassInstance(clone);
-
+	    addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
+	    //updateLineageOfClassInstanceUTI(cuti); NNO-based now
+	    cloneTemplateResolverForClassInstance(clone);
+	  }
 	m_state.popClassContext(); //restore
 	it++;
       } //while
