@@ -1433,6 +1433,17 @@ namespace MFM {
 	    else
 	      m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, cnsym);
 	  }
+	else
+	  {
+	    if(cnsym->isClassTemplate())
+	      {
+		//params but no args
+		std::ostringstream msg;
+		msg << "Missing Class Arguments for an instance stub of class template <";
+		msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str() << ">";
+		MSG(&pTok, msg.str().c_str(), ERR);
+	      }
+	  }
 	assert(cnsym);
 	return cnsym->getUlamTypeIdx();
       } //not open paren
@@ -1454,9 +1465,9 @@ namespace MFM {
 	  {
 	    //params but no args
 	    std::ostringstream msg;
-	    msg << "NO class arguments for a class template instance stub, template : <";
-	    msg << m_state.getUlamTypeNameByIndex(ctsym->getUlamTypeIdx()).c_str();
-	    msg << " has " << numParams << " parameters";
+	    msg << "NO Class Arguments for an instance stub of class template <";
+	    msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str();
+	    msg << "> with " << numParams << " parameters";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	    cuti = Nav;
 	  }
@@ -1479,6 +1490,16 @@ namespace MFM {
 
     u32 parmidx = 0;
     parseRestOfClassArguments(csym, ctsym, parmidx);
+
+    bool ctUnseen = (ctsym->getUlamClass() == UC_UNSEEN);
+    if(!ctUnseen && (parmidx < ctsym->getNumberOfParameters()))
+      {
+	std::ostringstream msg;
+	msg << "Too few Class Arguments parsed, " << "(" << parmidx << "), for template: ";
+	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
+	msg << ", by " << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str() ;
+	MSG(&typeTok, msg.str().c_str(), ERR);
+      }
     return cuti;
   } //parseClassArguments
 
@@ -1495,9 +1516,10 @@ namespace MFM {
     if(!exprNode)
       {
 	std::ostringstream msg;
-	msg << "Class Argument after Open Paren is missing, type: ";
-	msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+	msg << "Class Argument after Open Paren is missing, for template: <";
+	msg << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
+	// what else is missing?
 	return;
       }
 
@@ -1506,53 +1528,56 @@ namespace MFM {
     if(!ctUnseen && parmIdx >= ctsym->getNumberOfParameters())
       {
 	std::ostringstream msg;
-	msg << "Too many Class Arguments, " << "(" << parmIdx << "), type: ";
-	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
+	msg << "Too many Class Arguments " << "(" << parmIdx + 1 << "), class template: ";
+	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str();
+	msg << " expects " << ctsym->getNumberOfParameters();
 	MSG(&pTok, msg.str().c_str(), ERR);
-	return;
-      }
-
-    //try to continue..
-    m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST
-
-    SymbolConstantValue * argSym;
-    if(!ctUnseen)
-      {
-	SymbolConstantValue * paramSym = (SymbolConstantValue * ) (ctsym->getParameterSymbolPtr(parmIdx));
-	assert(paramSym);
-	argSym = new SymbolConstantValue(paramSym->getId(), paramSym->getUlamTypeIdx(), m_state); //like param, not copy
       }
     else
       {
-	std::ostringstream sname;
-	sname << "_" << parmIdx;
-	u32 snameid = m_state.m_pool.getIndexForDataString(sname.str());
-	argSym = new SymbolConstantValue(snameid, m_state.getUlamTypeOfConstant(Int), m_state); //stub id, stub type, state
-      }
+	//try to continue..
+	m_state.pushCurrentBlock(csym->getClassBlockNode()); //reset here for new arg's ST
 
-    assert(argSym);
-    argSym->setParameterFlag();
-    m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
+	SymbolConstantValue * argSym;
+	if(!ctUnseen)
+	  {
+	    SymbolConstantValue * paramSym = (SymbolConstantValue * ) (ctsym->getParameterSymbolPtr(parmIdx));
+	    assert(paramSym);
+	    argSym = new SymbolConstantValue(paramSym->getId(), paramSym->getUlamTypeIdx(), m_state); //like param, not copy
+	  }
+	else
+	  {
+	    std::ostringstream sname;
+	    sname << "_" << parmIdx;
+	    u32 snameid = m_state.m_pool.getIndexForDataString(sname.str());
+	    argSym = new SymbolConstantValue(snameid, m_state.getUlamTypeOfConstant(Int), m_state); //stub id, stub type, state
+	  }
 
-    m_state.popClassContext(); //restore before making NodeConstantDef so that it has current context
+	assert(argSym);
+	argSym->setParameterFlag();
+	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
-    //make Node with argument symbol to try to fold const expr; o.w. add to list of unresolved for this uti
-    NodeConstantDef * constNode = new NodeConstantDef(argSym, m_state);
-    assert(constNode);
-    constNode->setNodeLocation(pTok.m_locator);
-    constNode->setConstantExpr(exprNode);
+	m_state.popClassContext(); //restore before making NodeConstantDef so that it has current context
 
-    //eval what we need, and delete the node if folding successful
-    if(((NodeConstantDef *) constNode)->foldConstantExpression())
-      {
-	delete constNode; //done with them!
-	constNode = NULL;
-      }
-    else
-      {
-	//non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
-	csym->linkConstantExpressionForPendingArg(constNode);
-      }
+	//make Node with argument symbol to try to fold const expr;
+	//o.w. add to list of unresolved for this uti
+	NodeConstantDef * constNode = new NodeConstantDef(argSym, m_state);
+	assert(constNode);
+	constNode->setNodeLocation(pTok.m_locator);
+	constNode->setConstantExpr(exprNode);
+
+	//eval what we need, and delete the node if folding successful
+	if(((NodeConstantDef *) constNode)->foldConstantExpression())
+	  {
+	    delete constNode; //done with them!
+	    constNode = NULL;
+	  }
+	else
+	  {
+	    //non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
+	    csym->linkConstantExpressionForPendingArg(constNode);
+	  }
+      } //too many args
 
     getNextToken(pTok);
     if(pTok.m_type != TOK_COMMA)

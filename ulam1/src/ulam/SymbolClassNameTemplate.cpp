@@ -231,7 +231,7 @@ namespace MFM {
 	      {
 		//error! number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
-		msg << "number of arguments (" << cargs << ") in class instance: ";
+		msg << "Number of Arguments (" << cargs << ") in class instance: ";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
 		msg << ", does not match the required number of parameters (";
 		msg << numparams << ") to fix";
@@ -251,6 +251,7 @@ namespace MFM {
 		  {
 		    assert(argsym->isConstant());
 		    ((SymbolConstantValue *) argsym)->changeConstantId(sid, m_parameterSymbols[i]->getId());
+		    argsym->resetUlamType(m_parameterSymbols[i]->getUlamTypeIdx()); //default was Int
 		    cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 		  }
 	      }
@@ -1012,7 +1013,7 @@ namespace MFM {
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
-	msg << "number of arguments (" << cargs << ") in class instance: ";
+	msg << "Number of Arguments (" << cargs << ") in class instance: ";
 	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
 	msg << ", does not match the required number of parameters (" << numparams << ")";
 	MSG("", msg.str().c_str(), ERR);
@@ -1064,9 +1065,10 @@ namespace MFM {
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
-	msg << "number of arguments (" << cargs << ") in class instance: ";
+	msg << "Number of Arguments (" << cargs << ") in class instance stub: ";
 	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
-	msg << ", does not match the required number of parameters (" << numparams << ")";
+	msg << ", does not match the required number of parameters (" << numparams;
+	msg << ") to copy from";
 	MSG("", msg.str().c_str(),ERR);
 	return false;
       }
