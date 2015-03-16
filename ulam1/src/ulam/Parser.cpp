@@ -1697,7 +1697,7 @@ namespace MFM {
 	  {
 	    //hail mary pass..possibly a sizeof of unseen class
 	    getNextToken(nTok);
-	    if(nTok.m_dataindex != m_state.m_pool.getIndexForDataString("sizeof"))
+	    if(nTok.m_type != TOK_KW_SIZEOF)
 	      {
 		std::ostringstream msg;
 		msg << "Trying to use typedef from another class <";
@@ -1781,7 +1781,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    if(nTok.m_dataindex != m_state.m_pool.getIndexForDataString("sizeof"))
+	    if(nTok.m_type != TOK_KW_SIZEOF)
 	      {
 		unreadToken();
 		std::ostringstream msg;
@@ -2030,75 +2030,75 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
     if(pTok.m_type != TOK_DOT)
-	unreadToken(); //optional, dot might have already been eaten
+      unreadToken(); //optional, dot might have already been eaten
 
     Token fTok;
-    if(!getExpectedToken(TOK_IDENTIFIER, fTok))
-      {
-	unreadToken(); //?
-	return NULL;
-      }
+    getNextToken(fTok);
 
-    if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
+    switch(fTok.m_type)
       {
-	if(ut->isComplete())
-	  {
-	    assert(classtype == UC_NOTACLASS); //can't be a class and complete, right?
-	    rtnNode = makeTerminal(fTok, ut->getTotalBitSize(), Unsigned); //unsigned
-	  }
-	else
-	  {
-	    //input uti wasn't complete, i.e. based on sizeof some class
-	    rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
-	  }
-      }
-    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
-      {
-	if(ut->isMinMaxAllowed())
-	  {
-	    if(ut->isComplete())
-	      rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum()); //unsigned
-	    else
+      case TOK_KW_SIZEOF:
+	{
+	  if(ut->isComplete())
+	    {
+	      assert(classtype == UC_NOTACLASS); //can't be a class and complete, right?
+	      rtnNode = makeTerminal(fTok, ut->getTotalBitSize(), Unsigned); //unsigned
+	    }
+	  else
+	    {
+	      //input uti wasn't complete, i.e. based on sizeof some class
 	      rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	    msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
-	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	    MSG(&fTok, msg.str().c_str(), ERR);
-	  }
-      }
-    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
-      {
-	if(ut->isMinMaxAllowed())
-	  {
-	    if(ut->isComplete())
-	      rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum()); //signed
-	    else
-	      rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	    msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
-	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	    MSG(&fTok, msg.str().c_str(), ERR);
-	  }
-      }
-    else
-      {
-#if 0
-	std::ostringstream msg;
-	msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
-	msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
-	MSG(&fTok, msg.str().c_str(), DEBUG);
-#endif
-	unreadToken();
-      }
+	    }
+	}
+	break;
+      case TOK_KW_MAXOF:
+	{
+	  if(ut->isMinMaxAllowed())
+	    {
+	      if(ut->isComplete())
+		rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum()); //unsigned
+	      else
+		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
+	    }
+	  else
+	    {
+	      std::ostringstream msg;
+	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	      msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	      msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	      MSG(&fTok, msg.str().c_str(), ERR);
+	    }
+	}
+	break;
+      case TOK_KW_MINOF:
+	{
+	  if(ut->isMinMaxAllowed())
+	    {
+	      if(ut->isComplete())
+		rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum()); //signed
+	      else
+		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
+	    }
+	  else
+	    {
+	      std::ostringstream msg;
+	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	      msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	      msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	      MSG(&fTok, msg.str().c_str(), ERR);
+	    }
+	}
+	break;
+      default:
+	{
+	  //std::ostringstream msg;
+	  //msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	  //msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	  //msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
+	  //MSG(&fTok, msg.str().c_str(), DEBUG);
+	  unreadToken(); //?
+	}
+      };
     return rtnNode; //may be null if not minof, maxof, sizeof, but a member or func selected
   } //parseMinMaxSizeofType
 
@@ -2113,33 +2113,29 @@ namespace MFM {
 	unreadToken(); //optional, dot might have already been eaten
 
     Token fTok;
-    if(!getExpectedToken(TOK_IDENTIFIER, fTok))
-      {
-	unreadToken();
-	return NULL;
-      }
+    getNextToken(fTok);
 
-    if(fTok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
+    switch(fTok.m_type)
       {
+      case TOK_KW_SIZEOF:
 	rtnNode = new NodeTerminalProxy(memberTok, Nav, fTok, m_state);
-      }
-    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
-      {
+	break;
+      case TOK_KW_MAXOF:
 	rtnNode = new NodeTerminalProxy(memberTok, Nav, fTok, m_state);
-      }
-    else if (fTok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
-      {
+	break;
+      case TOK_KW_MINOF:
 	rtnNode = new NodeTerminalProxy(memberTok, Nav, fTok, m_state);
-      }
-    else
-      {
-	std::ostringstream msg;
-	msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
-	msg << ">, type unavailable";
-	MSG(&fTok, msg.str().c_str(), DEBUG);
-	unreadToken();
-      }
+	break;
+      default:
+	{
+	  std::ostringstream msg;
+	  msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
+	  msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	  msg << ">, type unavailable";
+	  MSG(&fTok, msg.str().c_str(), DEBUG);
+	  unreadToken();
+	}
+      };
     return rtnNode; //may be null if not minof, maxof, sizeof, but a member or func selected
   } //parseMinMaxSizeofType (overloaded, type unavail)
 
