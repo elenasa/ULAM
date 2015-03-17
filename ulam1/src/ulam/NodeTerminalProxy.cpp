@@ -136,21 +136,21 @@ namespace MFM {
     return rtnB;
   } //setConstantValue
 
-  //minof, maxof should be the same type as the original member token, unsigned for sizeof
+  //type of value minof, maxof, sizeof is not related to the lhs type
   UTI NodeTerminalProxy::setConstantTypeForNode(Token tok)
   {
     UTI newType = Nav;  //init
     switch(tok.m_type)
       {
       case TOK_KW_SIZEOF:
-	newType = m_state.getUlamTypeOfConstant(Unsigned);
+	newType = Unsigned; //m_state.getUlamTypeOfConstant(Unsigned);
 	break;
       case TOK_KW_MAXOF:
+	newType = Unsigned; //more resolution than signed
+	break;
       case TOK_KW_MINOF:
       {
-	// not a class! since sizeof is only func that applies to classes
-	ULAMTYPE etype = m_state.getUlamTypeByIndex(m_uti)->getUlamTypeEnum();
-	newType = m_state.getUlamTypeOfConstant(etype);
+	newType = Int;
 	break;
       }
       default:

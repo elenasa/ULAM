@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 7\nUe_A { typedef Unsigned(6) SiteNum;  Bool(1) sp(true);  Int(32) test() {  sp ( 7 cast )dup = 7 cast return } }\n");
+      return std::string("Exit status: 7\nUe_A { typedef Unsigned(6) SiteNum;  Bool(1) sp(true);  Int(32) test() {  sp ( 7 cast )dup = 7 return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -23,5 +23,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3271_test_compiler_returnbool)
 
 } //end MFM
-
-

@@ -10,7 +10,7 @@ namespace MFM {
       //Bool(3) Arg: 0x7 (true)
       //Bool(3) Arg: 0x7 (true)
 
-      return std::string("Exit status: 0\nUe_Foo { System s();  Bool(1) m_ba[6](false,true,false,false,false,true);  Int(32) test() {  Foo f;  f m_ba 1 [] . true cast = f m_ba 5 [] . f ( 1 cast )check . = m_ba f m_ba . = s ( f m_ba 5 [] . cast )print . s ( m_ba 5 [] cast )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { System s();  Bool(1) m_ba[6](false,true,false,false,false,true);  Int(32) test() {  Foo f;  f m_ba 1 [] . true = f m_ba 5 [] . f ( 1 )check . = m_ba f m_ba . = s ( f m_ba 5 [] . cast )print . s ( m_ba 5 [] cast )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -32,5 +32,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3147_test_compiler_elementmemberselect_witharrays)
 
 } //end MFM
-
-

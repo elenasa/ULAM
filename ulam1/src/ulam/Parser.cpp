@@ -2041,8 +2041,8 @@ namespace MFM {
 	{
 	  if(ut->isComplete())
 	    {
-	      assert(classtype == UC_NOTACLASS); //can't be a class and complete, right?
-	      rtnNode = makeTerminal(fTok, ut->getTotalBitSize(), Unsigned); //unsigned
+	      assert(classtype == UC_NOTACLASS); //can't be a class and complete
+	      rtnNode = makeTerminal(fTok, ut->getTotalBitSize(), Unsigned);
 	    }
 	  else
 	    {
@@ -2056,7 +2056,7 @@ namespace MFM {
 	  if(ut->isMinMaxAllowed())
 	    {
 	      if(ut->isComplete())
-		rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum()); //unsigned
+		rtnNode = makeTerminal(fTok, ut->getMax(), Unsigned);
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	    }
@@ -2075,7 +2075,7 @@ namespace MFM {
 	  if(ut->isMinMaxAllowed())
 	    {
 	      if(ut->isComplete())
-		rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum()); //signed
+		rtnNode = makeTerminal(fTok, ut->getMin(), Int);
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	    }
@@ -3848,7 +3848,7 @@ namespace MFM {
       case TOK_MINUS:
 	{
 	  UTI futi = factorNode->getNodeType();
-	  if( (futi != Nav) && m_state.isConstant(futi))
+	  if( (futi != Nav) && factorNode->isAConstant())
 	    {
 	      factorNode->constantFold(pTok);
 	      rtnNode = factorNode;

@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry;  Unsigned(3) m(1);  Unsigned(3) n(1); );  Int(32) test() {  t ( 0 cast 1 cast )set . cond b true cast = if t ( 1 cast 1 cast )set . cond b true cast = if t m . cast return } }\nUq_Vector { typedef Unsigned(3) Symmetry;  Unsigned(3) m(4);  Unsigned(3) n(4);  <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_TypedefIssue { typedef Unsigned(3) Symmetry;  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry;  Unsigned(3) m(1);  Unsigned(3) n(1); );  Int(32) test() {  t ( 0 cast 1 cast )set . cond b true = if t ( 1 cast 1 cast )set . cond b true = if t m . cast return } }\nUq_Vector { typedef Unsigned(3) Symmetry;  Unsigned(3) m(4);  Unsigned(3) n(4);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -29,5 +29,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3258_test_compiler_elementandquark_funccalltypedefarg_issue)
 
 } //end MFM
-
-

@@ -9,7 +9,7 @@ namespace MFM {
       /* gen output:
 	 Unsigned Arg: 4
 	 Int Arg: -8
-	 Int(3) Arg: 0x3
+	 Unsigned Arg: 7
 	 Unsigned Arg: 4
 	 Int Arg: 0
 	 Unsigned Arg: 15
@@ -18,12 +18,12 @@ namespace MFM {
 	 Unsigned Arg: 4
 	 Unsigned Arg: 3
 	 Int Arg: 0
-	 Bool(3) Arg: 0x7 (true)
+	 Unsigned Arg: 1
 	 Unsigned Arg: 2
       */
 
       //constant fold minus
-      return std::string("Exit status: 0\nUe_Fu { System s();  Int(32) test() {  Unsigned(32) u;  Int(4) z;  u 4u cast = s ( u )print . Int(32) i;  i -8 cast = s ( i )print . s ( 7 cast )print . Unsigned(4) y;  u 4u cast = s ( u )print . i 0u cast = s ( i )print . s ( 15u cast )print . Unary(4) x;  u 4u cast = s ( u )print . i 0u cast = s ( i )print . s ( 4u cast )print . Bool(3) v;  u 3u cast = s ( u )print . i false cast = s ( i )print . s ( true cast )print . Bits(2) t;  u 2u cast = s ( u )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Fu { System s();  Int(32) test() {  Unsigned(32) u;  Int(4) z;  u 4u = s ( u )print . Int(32) i;  i -8 = s ( i )print . s ( 7u )print . Unsigned(4) y;  u 4u = s ( u )print . i 0 = s ( i )print . s ( 15u )print . Unary(4) x;  u 4u = s ( u )print . i 0 = s ( i )print . s ( 4u )print . Bool(3) v;  u 3u = s ( u )print . i 0 = s ( i )print . s ( 1u )print . Bits(2) t;  u 2u = s ( u )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -43,5 +43,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3287_test_compiler_primitive_minmaxsizeof)
 
 } //end MFM
-
-

@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_EWE { Int(32) test() {  EventWindow ew;  Atom(96) a;  a ew 0 [] = 0 cast return } }\nUq_EventWindow { <NOMAIN> }\n");
+      //Exit status: 0\nUe_EWE { Int(32) test() {  EventWindow ew;  Atom(96) a;  a ew 0 [] = 0 cast return } }\nUq_EventWindow { <NOMAIN> }
+      return std::string("Exit status: 0\nUe_EWE { Int(32) test() {  EventWindow ew;  Atom(96) a;  a ew 0 [] = 0 return } }\nUq_EventWindow { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -41,5 +42,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3233_test_compiler_elementandquarkarray_ew)
 
 } //end MFM
-
-

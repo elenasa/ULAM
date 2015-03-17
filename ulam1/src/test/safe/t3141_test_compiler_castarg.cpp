@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_A { typedef Int(16) Foo[2];  Int(16) d[2](1,0);  Int(32) test() {  Int(32) a;  a 1 cast = d ( a cast )foo = d 0 [] cast return } }\n");
+      return std::string("Exit status: 1\nUe_A { typedef Int(16) Foo[2];  Int(16) d[2](1,0);  Int(32) test() {  Int(32) a;  a 1 = d ( a cast )foo = d 0 [] cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -24,5 +24,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3141_test_compiler_castarg)
 
 } //end MFM
-
-

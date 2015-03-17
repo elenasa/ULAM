@@ -130,9 +130,6 @@ namespace MFM{
 
     static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
 
-    //for name by index see CompilerState::getUlamTypeNameByIndex
-    virtual bool isConstant();
-
     virtual bool isScalar();   //arraysize == NOTARRAYSIZE is scalar
 
     virtual bool isCustomArray();

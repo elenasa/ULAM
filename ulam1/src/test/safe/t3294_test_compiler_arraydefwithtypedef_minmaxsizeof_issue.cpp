@@ -10,7 +10,7 @@ namespace MFM {
 	 Unsigned Arg: 8
       */
 
-      return std::string("Exit status: 1\nUe_Efoo { System s();  typedef Unsigned(3) PortId;  Bool(1) heardFrom[8](false,false,false,false,false,false,false,false);  Int(32) test() {  typedef Bool(3) B3;  Bool(3) b;  b true cast = s ( 8u cast )print . b cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_Efoo { System s();  typedef Unsigned(3) PortId;  Bool(1) heardFrom[8](false,false,false,false,false,false,false,false);  Int(32) test() {  typedef Bool(3) B3;  Bool(3) b;  b true cast = s ( 8u )print . b cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -31,5 +31,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3294_test_compiler_arraydefwithtypedef_minmaxsizeof_issue)
 
 } //end MFM
-
-

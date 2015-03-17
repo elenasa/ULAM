@@ -15,7 +15,7 @@ namespace MFM {
       //developed by Dave (10092014) in c++ and then converted to Ulam.
 
       //constant fold minus
-      return std::string("Exit status: 0\nUe_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(7);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast = s ( i )print . j bar2 ( )toInt . cast = s ( j )print . j ( i cast 7 cast +b )update = s ( j )print . 0 cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(7);  Int(32) test() {  Int(32) d;  d 1 = bar1 ( d 2 )set . bar2 ( 3 0 )set . i bar1 ( )toInt . cast = s ( i )print . j bar2 ( )toInt . cast = s ( j )print . j ( i cast 7 +b )update = s ( j )print . 0 return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -42,5 +42,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3203_test_compiler_elementandquark_funccallargexpression)
 
 } //end MFM
-
-

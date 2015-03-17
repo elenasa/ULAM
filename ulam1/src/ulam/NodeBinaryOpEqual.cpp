@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpEqual::NodeBinaryOpEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
+
   NodeBinaryOpEqual::NodeBinaryOpEqual(const NodeBinaryOpEqual& ref) : NodeBinaryOp(ref) {}
+
   NodeBinaryOpEqual::~NodeBinaryOpEqual(){}
 
   Node * NodeBinaryOpEqual::instantiate()
@@ -12,24 +14,20 @@ namespace MFM {
     return new NodeBinaryOpEqual(*this);
   }
 
-
   const char * NodeBinaryOpEqual::getName()
   {
     return "=";
   }
-
 
   const std::string NodeBinaryOpEqual::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   const std::string NodeBinaryOpEqual::methodNameForCodeGen()
   {
     return "_Equal_Stub";
   }
-
 
   UTI NodeBinaryOpEqual::checkAndLabelType()
   {
@@ -40,12 +38,13 @@ namespace MFM {
     UTI rightType = m_nodeRight->checkAndLabelType();
 
     if(leftType == Nav || rightType == Nav || !m_state.isComplete(leftType) || !m_state.isComplete(rightType))
-      return Nav;  //quietly ?
+      return Nav; //quietly ?
 
     if(!m_nodeLeft->isStoreIntoAble())
       {
 	std::ostringstream msg;
-	msg << "Lefthand side of equals is 'Not StoreIntoAble': <" << m_nodeLeft->getName() << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
+	msg << "Lefthand side of equals is 'Not StoreIntoAble': <" << m_nodeLeft->getName();
+	msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
 	if(leftType == Nav)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //likely still resolving
 	else
@@ -53,7 +52,7 @@ namespace MFM {
 
 	setNodeType(newType);
 	setStoreIntoAble(false);
-	return newType;  //nav
+	return newType; //nav
       }
 
     newType = leftType;
@@ -65,18 +64,15 @@ namespace MFM {
       }
 
     setNodeType(newType);
-
     setStoreIntoAble(true);
     return newType;
   } //checkAndLabelType
-
 
   UTI NodeBinaryOpEqual::calcNodeType(UTI lt, UTI rt)
   {
     assert(0);
     return Nav;
   }
-
 
   EvalStatus NodeBinaryOpEqual::eval()
   {
@@ -93,7 +89,7 @@ namespace MFM {
       }
 
     u32 slot = makeRoomForNodeType(getNodeType());
-    evs = m_nodeRight->eval();   //a Node Function Call here
+    evs = m_nodeRight->eval(); //a Node Function Call here
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -107,8 +103,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }
-
+  } //eval
 
   EvalStatus NodeBinaryOpEqual::evalToStoreInto()
   {
@@ -123,14 +118,13 @@ namespace MFM {
 	return evs;
       }
 
-    UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, getNodeType(), m_state.determinePackable(getNodeType()), m_state);  //positive to current frame pointer
+    UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, getNodeType(), m_state.determinePackable(getNodeType()), m_state); //positive to current frame pointer
 
     assignReturnValuePtrToStack(luvPtr);
 
     evalNodeEpilog();
     return NORMAL;
-  }
-
+  } //evalToStoreInto
 
   void NodeBinaryOpEqual::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
@@ -161,8 +155,7 @@ namespace MFM {
 
     //also copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(ruv);
-  } //end dobinaryop
-
+  } //dobinaryoperation
 
   void NodeBinaryOpEqual::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
   {
@@ -187,13 +180,11 @@ namespace MFM {
 
     //also copy result UV to stack, -1 relative to current frame pointer
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
-  } //end dobinaryopImmediate
-
+  } //dobinaryopImmediate
 
   void NodeBinaryOpEqual::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
   {
     UlamValue rtnUV;
-
     UTI nuti = getNodeType();
     s32 arraysize = m_state.getArraySize(nuti); //could be zero length array
     s32 bitsize = m_state.getBitSize(nuti);
@@ -202,7 +193,7 @@ namespace MFM {
 
     if(WritePacked(packRtn))
       {
-	// pack result too. (slot size known ahead of time)
+	//pack result too. (slot size known ahead of time)
 	rtnUV = UlamValue::makeAtom(nuti); //accumulate result here
       }
 
@@ -238,7 +229,7 @@ namespace MFM {
 	    // overwrite lhs copy with result UV
 	    m_state.assignValue(lp, rtnUV);
 
-	    //copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
+	    //copy result UV to stack, -1 (1st array element deepest) relative to current frame pointer
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
 
@@ -248,12 +239,10 @@ namespace MFM {
 
     if(WritePacked(packRtn))
       {
-	m_state.assignValue(pluv, rtnUV); 	                  //overwrite lhs copy with result UV
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result
+	m_state.assignValue(pluv, rtnUV); //overwrite lhs copy with result UV
+	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
       }
-
-  } //end dobinaryoparray
-
+  } //dobinaryoparray
 
   UlamValue NodeBinaryOpEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
@@ -261,12 +250,10 @@ namespace MFM {
     return UlamValue();
   }
 
-
   void NodeBinaryOpEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     assert(0); //unused
   }
-
 
   void NodeBinaryOpEqual::genCode(File * fp, UlamValue& uvpass)
   {
@@ -290,17 +277,17 @@ namespace MFM {
     // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
     UlamValue luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);      //may update m_currentObjSymbol, m_currentSelfSymbol
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass); //may update m_currentObjSymbol, m_currentSelfSymbol
 
     // current object globals should pertain to lhs for the write
-    genCodeWriteFromATmpVar(fp, luvpass, ruvpass);   //uses rhs' tmpvar
+    genCodeWriteFromATmpVar(fp, luvpass, ruvpass); //uses rhs' tmpvar
 
-    uvpass = ruvpass;  // in case we're the rhs of an equals..
+    uvpass = ruvpass; //in case we're the rhs of an equals..
 
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");  //close for tmpVar
+    fp->write("}\n"); //close for tmpVar
 #endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode

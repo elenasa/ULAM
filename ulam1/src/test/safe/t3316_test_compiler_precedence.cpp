@@ -6,7 +6,10 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 7\nUe_A { Bool(7) b(false);  System s();  Int(32) j(7);  Int(32) test() {  j 1 2 3 * +b cast = s ( j )print . j return } }\nUq_System { <NOMAIN> }\n");
+      /* gen code output:
+	 Int Arg: 7
+       */
+      return std::string("Exit status: 7\nUe_A { Bool(7) b(false);  System s();  Int(32) j(7);  Int(32) test() {  j 1 2 3 * +b = s ( j )print . j return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -26,5 +29,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3316_test_compiler_precedence)
 
 } //end MFM
-
-
