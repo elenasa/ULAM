@@ -6,8 +6,13 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-
-      return std::string("Exit status: -1\nUe_Foo { Bool(3) b(false);  System m_s();  Int(4) i(0);  Int(4) j(15);  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b cast )update = m_s ( j cast )print . m_s ( j )print . m_s ( b ! cast )assert . j cast return } }\nUq_System { <NOMAIN> }\n");
+      /* gen code output:
+	 Int Arg: -1
+	 Int(4) Arg: 0xf
+	 assert: arg is 1
+	 after assert's abort: arg is 1
+       */
+      return std::string("Exit status: -1\nUe_Foo { Bool(3) b(false);  System m_s();  Int(4) i(0);  Int(4) j(15);  Int(32) test() {  i 0 cast = j ( i cast 1 -b cast )update = m_s ( j cast )print . m_s ( j )print . m_s ( b ! cast )assert . j cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -30,5 +35,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3206_test_compiler_elementandquark_systemnativefuncs)
 
 } //end MFM
-
-

@@ -6,7 +6,14 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_A { System s();  Bool(7) spb(false);  Int(32) c(0);  Int(32) d(1);  Int(32) test() {  Int(32) a;  Int(32) b;  a b c 1 cast = = = c a b +b = s ( c )print . c c a -b b -b = s ( c )print . a c b * = s ( a )print . b b b / = s ( b )print . d a b +b c +b = s ( d )print . a b +b c +b return } }\nUq_System { <NOMAIN> }\n");
+      /* gen code output:
+	 Int Arg: 2
+	 Int Arg: 0
+	 Int Arg: 0
+	 Int Arg: 1
+	 Int Arg: 1
+      */
+      return std::string("Exit status: 1\nUe_A { System s();  Bool(7) spb(false);  Int(32) c(0);  Int(32) d(1);  Int(32) test() {  Int(32) a;  Int(32) b;  a b c 1 = = = c a b +b = s ( c )print . c c a -b b -b = s ( c )print . a c b * = s ( a )print . b b b / = s ( b )print . d a b +b c +b = s ( d )print . a b +b c +b return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -31,5 +38,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3305_test_compiler_multiplestmts_binaryops)
 
 } //end MFM
-
-

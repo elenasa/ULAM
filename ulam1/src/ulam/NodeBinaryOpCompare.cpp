@@ -5,14 +5,14 @@
 namespace MFM {
 
   NodeBinaryOpCompare::NodeBinaryOpCompare(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
+
   NodeBinaryOpCompare::NodeBinaryOpCompare(const NodeBinaryOpCompare& ref) : NodeBinaryOp(ref) {}
-  NodeBinaryOpCompare::~NodeBinaryOpCompare()
-  {}
+
+  NodeBinaryOpCompare::~NodeBinaryOpCompare() {}
 
   UTI NodeBinaryOpCompare::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);
-
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType); //for casting
@@ -24,20 +24,17 @@ namespace MFM {
 	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
 	  }
 
-	//if(leftType != newType)
 	if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
 	  {
 	    m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
 	  }
 
-	newType = Bool;  //always Bool (default size) for node
+	newType = Bool; //always Bool (default size) for node
       }
-
     setNodeType(newType);
     setStoreIntoAble(false);
     return newType;
   } //checkAndLabelType
-
 
   // same as Arith Ops for casting lhs & rhs, however node type is Bool
   // punt on arrays at this time..
@@ -48,38 +45,45 @@ namespace MFM {
     // except for 2 Unsigned, all comparison operations are performed as Int.32.-1
     // if one is unsigned, and the other isn't -> output warning, but Signed Int wins.
     // Class (i.e. quark) + anything goes to Int.32
-
     if( m_state.isScalar(lt) && m_state.isScalar(rt))
       {
 	newType = Int;
 
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
-
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
 	  {
-	    newType = Unsigned;        //constants are not unsigned
+	    return Unsigned;
 	  }
-	else if(m_state.isConstant(lt) || m_state.isConstant(rt))
+
+	bool lconst = m_nodeLeft->isAConstant();
+	bool rconst = m_nodeRight->isAConstant();
+	if(lconst || rconst)
 	  {
 	    // if one is a constant, check for value to fit in bits.
 	    bool doErrMsg = true;
-	    if(m_state.isConstant(lt) && m_nodeLeft->fitsInBits(rt))
+	    if(lconst && m_nodeLeft->fitsInBits(rt))
 	      doErrMsg = false;
 
-	    if(m_state.isConstant(rt) && m_nodeRight->fitsInBits(lt))
+	    if(rconst && m_nodeRight->fitsInBits(lt))
 	      doErrMsg = false;
 
 	    if(doErrMsg)
 	      {
 		std::ostringstream msg;
 		msg << "Attempting to fit a constant <";
-		if(m_state.isConstant(lt))
-		  msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
+		if(lconst)
+		  {
+		    msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: ";
+		    msg<< m_state.getUlamTypeNameByIndex(rt).c_str();
+		  }
 		else
-		  msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+		  {
+		    msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: ";
+		    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
+		  }
 		msg << ", for binary comparison operator" << getName() << " ";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);    //output warning
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
 	      }
 	  } //a constant
 	else if(ltypEnum == Unsigned || rtypEnum == Unsigned)
@@ -88,8 +92,11 @@ namespace MFM {
 	    // unsigned gets a warning, but still uses signed Int.
 	    // if one is a constant, check for value to fit in bits.
 	    std::ostringstream msg;
-	    msg << "Attempting to mix signed and unsigned types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << ", for binary comparison operator" << getName() << " ";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);	    //output warning
+	    msg << "Attempting to mix signed and unsigned types, LHS: ";
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
+	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << ", for binary comparison operator" << getName() << " ";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
 	  }
       } //both scalars
     else
@@ -109,12 +116,13 @@ namespace MFM {
 
 	//array op scalar: defer since the question of matrix operations is unclear at this time.
 	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary comparison operator" << getName();
+	msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " for binary comparison operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return newType;
   } //calcNodeType
-
 
   const std::string NodeBinaryOpCompare::methodNameForCodeGen()
   {
@@ -141,11 +149,10 @@ namespace MFM {
     return methodname.str();
   } // methodNameForCodeGen
 
-
   void NodeBinaryOpCompare::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
-    if(m_state.isScalar(getNodeType()))  //not an array
+    if(m_state.isScalar(getNodeType())) //not an array
       {
 	doBinaryOperationImmediate(lslot, rslot, slots);
       }
@@ -158,7 +165,6 @@ namespace MFM {
 #endif //defined below...
       }
   } //end dobinaryop
-
 
   //unlike NodeBinaryOp, NodeBinaryOpCompare has a node type that's different from
   // its nodes, where left and right nodes are casted to be the same.
@@ -176,7 +182,6 @@ namespace MFM {
     UlamValue rtnUV = makeImmediateBinaryOp(luti, ldata, rdata, len);
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
   } //end dobinaryopImmediate
-
 
   //unlike NodeBinaryOp, NodeBinaryOpCompare has a node type that's different from
   // its nodes, where left and right nodes are casted to be the same.
@@ -220,30 +225,27 @@ namespace MFM {
 	u32 rdata = ruv.getData(rp.getPtrPos(), bitsize); //'pos' doesn't vary for unpacked
 
 	if(WritePacked(packRtn))
-	  // use calc position where base [0] is furthest from the end.
+	  //use calc position where base [0] is furthest from the end.
 	  appendBinaryOp(rtnUV, ldata, rdata, (BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
 	else
 	  {
 	    rtnUV = makeImmediateBinaryOp(scalartypidx, ldata, rdata, bitsize);
 
-	    //copy result UV to stack, -1 (first array element deepest) relative to current frame pointer
+	    //cp result UV to stack, -1 (first array element deepest) relative to current frame pointer
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
-
 	lp.incrementPtr(m_state);
 	rp.incrementPtr(m_state);
       } //forloop
 
     if(WritePacked(packRtn))
-      m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result
-
+      m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
   } //end dobinaryoparray
-
 
   void NodeBinaryOpCompare::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());     //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
 #ifdef TMPVARBRACES
     m_state.indent(fp);
@@ -259,7 +261,7 @@ namespace MFM {
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     UlamValue luvpass;
-    m_nodeLeft->genCode(fp, luvpass);     //updates m_currentObjSymbol
+    m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -278,7 +280,7 @@ namespace MFM {
 
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
-    luti = luvpass.getPtrTargetType();  //reset
+    luti = luvpass.getPtrTargetType(); //reset
     fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
@@ -289,7 +291,8 @@ namespace MFM {
 
     fp->write(", ");
 
-    fp->write_decimal(m_state.getUlamTypeByIndex(luti)->getTotalBitSize());  //compare needs size of left/right nodes (only difference!)
+    //compare needs size of left/right nodes (only difference!)
+    fp->write_decimal(m_state.getUlamTypeByIndex(luti)->getTotalBitSize());
 
     fp->write(");\n");
 
@@ -298,10 +301,9 @@ namespace MFM {
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");  //close for tmpVar
+    fp->write("}\n"); //close for tmpVar
 #endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
-
 
 } //end MFM

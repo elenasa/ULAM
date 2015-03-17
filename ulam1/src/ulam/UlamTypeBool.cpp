@@ -118,10 +118,6 @@ namespace MFM {
       {
 	sprintf(valstr,"%s", "unknown");
       }
-    else if(isConstant())
-      {
-	dataAsBool = (bool) data;
-      }
     else
       {
 	s32 bitsize = getBitSize();

@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       // element parameter chance not stored (as static variable) for eval
-      return std::string("Exit status: 0\nUe_Foo { System s();  Bool(7) sp(false);  Int(32) a(1);  Int(32) test() {  Foo f;  f chance . 1 cast = s ( chance )print . a f chance . = chance return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { System s();  Bool(7) sp(false);  Int(32) a(1);  Int(32) test() {  Foo f;  f chance . 1 = s ( chance )print . a f chance . = chance return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -27,5 +27,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3215_test_compiler_element_elementparameterint)
 
 } //end MFM
-
-

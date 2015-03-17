@@ -6,8 +6,10 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-
-      return std::string("Exit status: 1\nUe_A { System s();  Int(32) d(1);  Bool(7) sp(false);  Int(32) test() {  Bool(1) mybool[3];  mybool 0 [] true cast = mybool 1 [] false cast = mybool 2 [] false cast = d ( 7 cast mybool )m = s ( d )print . d return } }\nUq_System { <NOMAIN> }\n");
+      /* gen code output:
+	 Int Arg: 1
+      */
+      return std::string("Exit status: 1\nUe_A { System s();  Int(32) d(1);  Bool(7) sp(false);  Int(32) test() {  Bool(1) mybool[3];  mybool 0 [] true = mybool 1 [] false = mybool 2 [] false = d ( 7 mybool )m = s ( d )print . d return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -29,5 +31,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3114_test_compiler_funcdef_arrayarg)
 
 } //end MFM
-
-

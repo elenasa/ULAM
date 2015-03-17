@@ -11,7 +11,7 @@ namespace MFM {
 	 Int(4) Arg: 0x7
       */
 
-      return std::string("Exit status: 7\nUe_Foo { System s();  typedef Bar Pop[2];  Int(4) m_i(0);  Bar m_bar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,true,false); );  Int(32) test() {  Foo f;  f m_i . 15 cast = m_bar 1 [] f ( 1 cast )check . = s ( f m_i . )print . f m_i . cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
+      return std::string("Exit status: 7\nUe_Foo { System s();  typedef Bar Pop[2];  Int(4) m_i(0);  Bar m_bar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,true,false); );  Int(32) test() {  Foo f;  f m_i . 15 cast = m_bar 1 [] f ( 1 )check . = s ( f m_i . )print . f m_i . cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -40,5 +40,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3172_test_compiler_elementandquark_returnquark)
 
 } //end MFM
-
-

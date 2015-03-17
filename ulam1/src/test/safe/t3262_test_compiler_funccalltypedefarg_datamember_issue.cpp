@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 3\nUe_Ish { typedef Int(16) Coord;  Int(16) x(0);  Int(16) y(0);  Int(32) test() {  Ish f;  f ( 1 cast 3 cast )make = f y . cast return } }\n");
+      return std::string("Exit status: 3\nUe_Ish { typedef Int(16) Coord;  Int(16) x(0);  Int(16) y(0);  Int(32) test() {  Ish f;  f ( 1 3 )make = f y . cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -44,5 +44,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3262_test_compiler_funccalltypedefarg_datamember_issue)
 
 } //end MFM
-
-

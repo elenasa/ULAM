@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 6\nUe_A { typedef Int(16) Foo[2];  Int(16) d[2](6,3);  Int(32) test() {  Bool(1) mybool;  mybool true cast = d ( mybool )foo = d ( 6 cast )foo = d 0 [] cast return } }\n");
+      return std::string("Exit status: 6\nUe_A { typedef Int(16) Foo[2];  Int(16) d[2](6,3);  Int(32) test() {  Bool(1) mybool;  mybool true = d ( mybool )foo = d ( 6 )foo = d 0 [] cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -24,5 +24,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3138_test_compiler_funcdef_overload)
 
 } //end MFM
-
-

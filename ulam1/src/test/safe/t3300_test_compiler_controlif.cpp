@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       // removed 1-bit bool cast from constant
-      return std::string("Exit status: 2\nUe_A { Bool(1) b(true);  Int(32) a(2);  Int(32) test() {  b true cast = b ! cond a 1 cast = if a 2 cast = else a return } }\n");
+      return std::string("Exit status: 2\nUe_A { Bool(1) b(true);  Int(32) a(2);  Int(32) test() {  b true = b ! cond a 1 = if a 2 = else a return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -24,5 +24,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3300_test_compiler_controlif)
 
 } //end MFM
-
-

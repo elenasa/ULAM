@@ -165,11 +165,6 @@ namespace MFM {
       }
   } //setUlamClass
 
-  bool UlamTypeClass::isConstant()
-  {
-    return false;   //e.g. zero-size quark is not a constant
-  }
-
   bool UlamTypeClass::isScalar()
   {
     return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);

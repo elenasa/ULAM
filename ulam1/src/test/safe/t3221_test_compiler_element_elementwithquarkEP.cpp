@@ -10,7 +10,7 @@ namespace MFM {
 	 assert: arg is 1
 	 after assert's abort: arg is 1
       */
-      return std::string("Exit status: 1\nUe_Foo { Bool(3) b(false);  System s();  Bool(1) sp(false);  Bool(3) c(false);  Bar bar( Bool(1) val_b[3](false,true,false); );  Bool(1) last(false);  Int(32) test() {  Int(32) i;  i 1 cast = bar poochance ( i )check . = poochance m_bar . bar = s ( poochance m_bar val_b i [] . . )assert . poochance m_bar val_b i [] . . cast return } }\nUq_System { <NOMAIN> }\nUe_Poo { System s();  Bool(3) sp(false);  Unary(4) m_i(0);  Unary(4) m_j(1);  Bits(4) m_bits(0);  Int(4) m_k(0);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_Foo { Bool(3) b(false);  System s();  Bool(1) sp(false);  Bool(3) c(false);  Bar bar( Bool(1) val_b[3](false,true,false); );  Bool(1) last(false);  Int(32) test() {  Int(32) i;  i 1 = bar poochance ( i )check . = poochance m_bar . bar = s ( poochance m_bar val_b i [] . . )assert . poochance m_bar val_b i [] . . cast return } }\nUq_System { <NOMAIN> }\nUe_Poo { System s();  Bool(3) sp(false);  Unary(4) m_i(0);  Unary(4) m_j(1);  Bits(4) m_bits(0);  Int(4) m_k(0);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -34,5 +34,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3221_test_compiler_element_elementwithquarkEP)
 
 } //end MFM
-
-

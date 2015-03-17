@@ -5,7 +5,9 @@
 namespace MFM {
 
   NodeBinaryOpBitwise::NodeBinaryOpBitwise(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
+
   NodeBinaryOpBitwise::NodeBinaryOpBitwise(const NodeBinaryOpBitwise& ref) : NodeBinaryOp(ref) {}
+
   NodeBinaryOpBitwise::~NodeBinaryOpBitwise() {}
 
   // third arg is the slots for the rtype; slots for the left is
@@ -33,9 +35,7 @@ namespace MFM {
 	    doBinaryOperationArray(lslot, rslot, slots);
 	  }
       }
-  } //end dobinaryop
-
-
+  } //dobinaryoperation
 
   UTI NodeBinaryOpBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
   {
@@ -44,7 +44,9 @@ namespace MFM {
     if(uticr == UTIC_DONTKNOW)
       {
 	std::ostringstream msg;
-	msg << "Calculating 'incomplete' bitwise node types: " << m_state.getUlamTypeNameByIndex(lt).c_str() << " and " << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << "Calculating 'incomplete' bitwise node types: ";
+	msg << m_state.getUlamTypeNameByIndex(lt).c_str() << " and ";
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return Nav;
       }
@@ -55,28 +57,33 @@ namespace MFM {
 	if(!m_state.isScalar(lt) && (etyp == Unary || etyp == Bool))
 	  {
 	    std::ostringstream msg;
-	    msg << "Nonscalar types Bool and Unary are not currently supported for binary bitwise operator" << getName() << "; suggest writing a loop for: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	    msg << "Nonscalar types Bool and Unary are not currently supported ";
+	    msg << "for binary bitwise operator" << getName();
+	    msg << "; suggest writing a loop for: ";
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	else
-	  newType = rt;  //maintain type
+	  newType = rt; //maintain type
       }
     else
       {
 	if(m_state.isScalar(lt) && m_state.isScalar(rt))
 	  {
-	    newType = Bits;  //default is Bits
+	    newType = Bits; //default is Bits
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary bitwise operator" << getName();
+	    msg << "Incompatible (nonscalar) types, LHS: ";
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
+	    msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << " for binary bitwise operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
     return newType;
   } //calcNodeType
-
 
   const std::string NodeBinaryOpBitwise::methodNameForCodeGen()
   {
@@ -97,7 +104,6 @@ namespace MFM {
 	methodname << "Bits";
 	break;
       };
-
     methodname << nut->getTotalWordSize();
     return methodname.str();
   } // methodNameForCodeGen

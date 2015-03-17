@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_A { Int(32) test() {  ; ; ; 0 cast return } }\n");
+      return std::string("Exit status: 0\nUe_A { Int(32) test() {  ; ; ; 0 return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -23,5 +23,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3317_test_compiler_emptysimplestmt)
 
 } //end MFM
-
-

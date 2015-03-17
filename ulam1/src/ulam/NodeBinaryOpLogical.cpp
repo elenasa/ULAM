@@ -5,16 +5,16 @@
 namespace MFM {
 
   NodeBinaryOpLogical::NodeBinaryOpLogical(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
+
   NodeBinaryOpLogical::NodeBinaryOpLogical(const NodeBinaryOpLogical& ref) : NodeBinaryOp(ref) {}
+
   NodeBinaryOpLogical::~NodeBinaryOpLogical()  {}
 
   // not used for logical op
   void NodeBinaryOpLogical::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(0);
-  } //end dobinaryop
-
-
+  } //dobinaryoperation
 
   UTI NodeBinaryOpLogical::calcNodeType(UTI lt, UTI rt)  //logical
   {
@@ -34,12 +34,13 @@ namespace MFM {
       {
 	//array op scalar: defer since the question of matrix operations is unclear at this time.
 	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary logical operator" << getName();
+	msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " for binary logical operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return newType;
   } //calcNodeType
-
 
   const std::string NodeBinaryOpLogical::methodNameForCodeGen()
   {

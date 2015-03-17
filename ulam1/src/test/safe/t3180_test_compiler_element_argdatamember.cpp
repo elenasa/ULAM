@@ -6,7 +6,11 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 3\nUe_Foo { System s();  Bits(2) sp(0);  Bool(1) m_b(false);  Int(4) m_i(0);  Int(32) test() {  Foo f;  f m_b . true cast = m_b f ( m_b )check . = s ( m_i )print . s ( f m_i . )print . f m_i . cast return } }\nUq_System { <NOMAIN> }\n");
+      /* gen code output:
+	 Int(4) Arg: 0x0
+	 Int(4) Arg: 0x3
+      */
+      return std::string("Exit status: 3\nUe_Foo { System s();  Bits(2) sp(0);  Bool(1) m_b(false);  Int(4) m_i(0);  Int(32) test() {  Foo f;  f m_b . true = m_b f ( m_b )check . = s ( m_i )print . s ( f m_i . )print . f m_i . cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -27,5 +31,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3180_test_compiler_element_argdatamember)
 
 } //end MFM
-
-
