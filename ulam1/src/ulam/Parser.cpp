@@ -2057,7 +2057,7 @@ namespace MFM {
 	  if(ut->isMinMaxAllowed())
 	    {
 	      if(ut->isComplete())
-		rtnNode = makeTerminal(fTok, ut->getMax(), Unsigned);
+		rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum());
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	    }
@@ -2076,7 +2076,7 @@ namespace MFM {
 	  if(ut->isMinMaxAllowed())
 	    {
 	      if(ut->isComplete())
-		rtnNode = makeTerminal(fTok, ut->getMin(), Int);
+		rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum());
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	    }
