@@ -90,13 +90,52 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	if((rtnBool = fsym->matchingTypes(argTypes)))
+	if((rtnBool = fsym->matchingTypesStrictly(argTypes)))
 	  {
 	    funcSymbol = fsym;
 	    break;
 	  }
 	++it;
       }
+    return rtnBool;
+  } //findMatchingFunction
+
+  bool SymbolFunctionName::findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<bool> constArgTypes, SymbolFunction *& funcSymbol)
+  {
+    bool rtnBool = false;
+
+    if(m_mangledFunctionNames.empty())
+      return false;
+
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    assert(funcSymbol == NULL);
+
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	if((rtnBool = fsym->matchingTypesStrictly(argTypes)))
+	  {
+	    funcSymbol = fsym;
+	    break;
+	  }
+	++it;
+      }
+
+    //try again with less strict constraints, allows constants to match any similar base type
+    if(!funcSymbol)
+      {
+	it = m_mangledFunctionNames.begin();
+	while(it != m_mangledFunctionNames.end())
+	  {
+	    SymbolFunction * fsym = it->second;
+	    if((rtnBool = fsym->matchingTypes(argTypes, constArgTypes)))
+	      {
+		funcSymbol = fsym;
+		break;
+	      }
+	    ++it;
+	  }
+      } //2nd try
     return rtnBool;
   } //findMatchingFunction
 

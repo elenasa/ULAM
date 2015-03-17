@@ -7,8 +7,10 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //note: 148 decimal == 0x94 hex
-
-      return std::string("Exit status: 40\nUe_Foo { System s();  Bool(7) m_b(false);  Int(32) m_idx(40);  C2D m_coord( Int(6) m_width(9);  Int(6) m_height(4); );  Int(32) test() {  m_coord ( 9 cast 4 cast )func = m_idx m_coord ( 0 cast 0 cast )getIndex . = s ( m_idx )print . m_idx return } }\nUq_System { <NOMAIN> }\nUq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }\n");
+      /* gen code output:
+	 Int Arg: 40
+       */
+      return std::string("Exit status: 40\nUe_Foo { System s();  Bool(7) m_b(false);  Int(32) m_idx(40);  C2D m_coord( Int(6) m_width(9);  Int(6) m_height(4); );  Int(32) test() {  m_coord ( 9 4 )func = m_idx m_coord ( 0 0 )getIndex . = s ( m_idx )print . m_idx return } }\nUq_System { <NOMAIN> }\nUq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -34,5 +36,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3188_test_compiler_elementandquark_memberselectedfunc)
 
 } //end MFM
-
-

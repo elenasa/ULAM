@@ -371,7 +371,7 @@ namespace MFM {
     // consider user requested first, then size independent;
     // even constant may need casting (e.g. narrowing for saturation)
     // Bool constants require casts to generate "full" true UlamValue (>1-bit).
-    return( isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_state.isConstant(nodeType) && m_state.getBitSize(tobeType)>1));
+    return( isExplicitCast() || typEnum != nodetypEnum  || (m_state.getBitSize(tobeType) != m_state.getBitSize(nodeType)) || (nodetypEnum == Bool && m_node->isAConstant() && m_state.getBitSize(tobeType)>1));
   } //needsACast
 
 } //end MFM

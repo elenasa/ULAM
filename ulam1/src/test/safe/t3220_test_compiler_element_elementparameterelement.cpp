@@ -9,7 +9,7 @@ namespace MFM {
       /* gen code output:
 	 Bool(3) Arg: 0x7 (true)
       */
-      return std::string("Exit status: 1\nUe_Foo { Bool(3) b(true);  System s();  Bool(1) sp(false);  Bool(3) c(false);  Bool(1) last(false);  Int(32) test() {  Poo p;  p ( sp )reset . poochance ( sp )reset . poochance valb 1 [] . true cast = b poochance valb 1 [] . cast = s ( b )print . b cast return } }\nUq_System { <NOMAIN> }\nUe_Poo { Bool(1) valb[3](false,true,true);  <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_Foo { Bool(3) b(true);  System s();  Bool(1) sp(false);  Bool(3) c(false);  Bool(1) last(false);  Int(32) test() {  Poo p;  p ( sp )reset . poochance ( sp )reset . poochance valb 1 [] . true = b poochance valb 1 [] . cast = s ( b )print . b cast return } }\nUq_System { <NOMAIN> }\nUe_Poo { Bool(1) valb[3](false,true,true);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -31,5 +31,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3220_test_compiler_element_elementparameterelement)
 
 } //end MFM
-
-

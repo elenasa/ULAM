@@ -14,7 +14,7 @@ namespace MFM {
 	 after assert's abort: arg is 1
 	 Int Arg: 5
        */
-      return std::string("Exit status: 5\nUe_A { Bool(1) b(false);  System s();  Unary(6) sp(0);  Int(32) j(5);  Int(32) i(5);  Int(32) test() {  j 1 3 +b cast = s ( j )print . { j j 1 cast +b = s ( j )print . Int(32) j;  j 2 4 * cast = s ( j )print . b j cast ! = s ( b ! )assert . } i j = s ( i )print . j return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 5\nUe_A { Bool(1) b(false);  System s();  Unary(6) sp(0);  Int(32) j(5);  Int(32) i(5);  Int(32) test() {  j 1 3 +b = s ( j )print . { j j 1 +b = s ( j )print . Int(32) j;  j 2 4 * = s ( j )print . b j cast ! = s ( b ! )assert . } i j = s ( i )print . j return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -39,5 +39,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3306_test_compiler_embedblock)
 
 } //end MFM
-
-

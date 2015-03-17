@@ -104,42 +104,57 @@ namespace MFM {
     UlamType * cut = m_state.getUlamTypeByIndex(m_uti);
     assert(cut->isComplete());
 
-    if(tok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
+    switch(tok.m_type)
       {
-	m_constant.uval =  cut->getTotalBitSize(); //unsigned
-	rtnB = true;
-      }
-    else if(tok.m_dataindex == m_state.m_pool.getIndexForDataString("maxof"))
-      {
-	if(cut->isMinMaxAllowed())
-	  {
-	    m_constant.uval = cut->getMax();
-	    rtnB = true;
-	  }
-      }
-    else if (tok.m_dataindex == m_state.m_pool.getIndexForDataString("minof"))
-      {
-	if(cut->isMinMaxAllowed())
-	  {
-	    m_constant.sval = cut->getMin();
-	    rtnB = true;
-	  }
-      }
+      case TOK_KW_SIZEOF:
+	{
+	  m_constant.uval =  cut->getTotalBitSize(); //unsigned
+	  rtnB = true;
+	}
+	break;
+      case TOK_KW_MAXOF:
+	{
+	  if(cut->isMinMaxAllowed())
+	    {
+	      m_constant.uval = cut->getMax();
+	      rtnB = true;
+	    }
+	}
+	break;
+      case TOK_KW_MINOF:
+	{
+	  if(cut->isMinMaxAllowed())
+	    {
+	      m_constant.sval = cut->getMin();
+	      rtnB = true;
+	    }
+	}
+	break;
+      default:
+	assert(0);
+      };
     return rtnB;
   } //setConstantValue
 
-  //minof, maxof should be the same type as the original member token, unsigned for sizeof
+  //minof, maxof use type of lhs, sizeof is always unsigned
   UTI NodeTerminalProxy::setConstantTypeForNode(Token tok)
   {
     UTI newType = Nav;  //init
-    if(tok.m_dataindex == m_state.m_pool.getIndexForDataString("sizeof"))
-	newType = m_state.getUlamTypeOfConstant(Unsigned);
-    else
+    switch(tok.m_type)
       {
-	// not a class! since sizeof is only func that applies to classes
-	ULAMTYPE etype = m_state.getUlamTypeByIndex(m_uti)->getUlamTypeEnum();
-	newType = m_state.getUlamTypeOfConstant(etype);
+      case TOK_KW_SIZEOF:
+	newType = Unsigned; //m_state.getUlamTypeOfConstant(Unsigned);
+	break;
+      case TOK_KW_MAXOF:
+      case TOK_KW_MINOF:
+      {
+	// use sign of the lhs
+	newType = m_state.getDefaultUlamTypeOfConstant(m_uti);
+	break;
       }
+      default:
+	assert(0);
+      };
 
     setNodeType(newType);
     setStoreIntoAble(false);
@@ -179,7 +194,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	msg << " is still incomplete and unknown for its '";
-	msg << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str();
+	msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
@@ -193,7 +208,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	    msg << " constant value for its <";
-	    msg << m_state.m_pool.getDataAsString(m_funcTok.m_dataindex).c_str();
+	    msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
 	    msg << "> is still incomplete and unknown while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), ERR);

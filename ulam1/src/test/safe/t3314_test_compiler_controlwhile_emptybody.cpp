@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_A { Bool(7) b(false);  Int(32) a(0);  Int(32) test() {  a 5 cast = a a 1 cast -b = cast cond {} _1: while a return } }\n");
+      return std::string("Exit status: 0\nUe_A { Bool(7) b(false);  Int(32) a(0);  Int(32) test() {  a 5 = a a 1 -b = cast cond {} _1: while a return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -23,5 +23,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3314_test_compiler_controlwhile_emptybody)
 
 } //end MFM
-
-

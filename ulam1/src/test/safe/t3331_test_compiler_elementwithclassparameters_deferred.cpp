@@ -16,7 +16,7 @@ namespace MFM {
 	 Bool(3) Arg: 0x7 (true)
       */
       //Constants have explicit types
-      return std::string("Exit status: 6\nUe_T { Bool(3) b(false);  Unsigned(32) i(6);  Unsigned(32) j(70);  System s();  Bool(3) c(true);  Int(32) test() {  Unsigned(32) x;  Unsigned(32) y;  S(1,2) m;  i 6u cast = x m ( )func . cast = b i x == cast = s ( i )print . s ( x )print . s ( b )print . j 70u cast = y 70u cast = c j y == cast = s ( j )print . s ( y )print . s ( c )print . i cast return } }\nUq_System { <NOMAIN> }\nUq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\n");
+      return std::string("Exit status: 6\nUe_T { Bool(3) b(false);  Unsigned(32) i(6);  Unsigned(32) j(70);  System s();  Bool(3) c(true);  Int(32) test() {  Unsigned(32) x;  Unsigned(32) y;  S(1,2) m;  i 6u = x m ( )func . cast = b i x == cast = s ( i )print . s ( x )print . s ( b )print . j 70u = y 70u = c j y == cast = s ( j )print . s ( y )print . s ( c )print . i cast return } }\nUq_System { <NOMAIN> }\nUq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -14,7 +14,7 @@ namespace MFM {
 	 Int Arg: 2147483647
       */
       //now printing from saved value
-      return std::string("Exit status: 0\nUe_Fu { System s();  Int(32) i(2147483647);  Int(32) test() {  Unsigned(32) u;  u 4294967295u cast = s ( u )print . i 2147483648u cast = s ( i )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Fu { System s();  Int(32) i(2147483647);  Int(32) test() {  Unsigned(32) u;  u 4294967295u = s ( u )print . i 2147483648u cast = s ( i )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -34,5 +34,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3283_test_compiler_unsignedconstant)
 
 } //end MFM
-
-

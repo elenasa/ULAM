@@ -5,13 +5,14 @@
 namespace MFM {
 
   NodeBinaryOpShift::NodeBinaryOpShift(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
+
   NodeBinaryOpShift::NodeBinaryOpShift(const NodeBinaryOpShift& ref) : NodeBinaryOp(ref) {}
+
   NodeBinaryOpShift::~NodeBinaryOpShift() {}
 
   UTI NodeBinaryOpShift::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);
-
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType); //left, or nav error
@@ -19,18 +20,15 @@ namespace MFM {
     if(newType != Nav && m_state.isComplete(newType))
       {
 	assert(newType == leftType);
-
 	if(UlamType::compare(rightType, Int, m_state) != UTIC_SAME) //notsame or dontknow
 	  {
 	    m_nodeRight = makeCastingNode(m_nodeRight, Int);
 	  }
       }
-
     setNodeType(newType);
     setStoreIntoAble(false);
     return newType;
   } //checkAndLabelType
-
 
   // third arg is the slots for the rtype; slots for the left is
   // rslot-lslot; they should be equal, unless one is a packed array
@@ -41,7 +39,7 @@ namespace MFM {
   {
     assert(slots);
     UTI nuti = getNodeType();
-    if(m_state.isScalar(nuti))  //not an array
+    if(m_state.isScalar(nuti)) //not an array
       {
 	doBinaryOperationImmediate(lslot, rslot, slots);
       }
@@ -57,8 +55,7 @@ namespace MFM {
 	    doBinaryOperationArray(lslot, rslot, slots);
 	  }
       }
-  } //end dobinaryop
-
+  } //dobinaryoperation
 
   UTI NodeBinaryOpShift::calcNodeType(UTI lt, UTI rt)  //shift
   {
@@ -68,17 +65,23 @@ namespace MFM {
     if(m_state.isScalar(lt) && m_state.isScalar(rt))
       {
 	newType = lt;
-
-	if(m_state.isConstant(rt) && m_nodeRight->isNegativeConstant())
+	bool rconst = m_nodeRight->isAConstant();
+	if(rconst && m_nodeRight->isNegativeConstant())
 	  {
 	    std::ostringstream msg;
-	    msg << "Negative shift! Recommend shifting in the opposite direction, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary shift operator" << getName();
+	    msg << "Negative shift! Recommend shifting in the opposite direction, LHS: ";
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
+	    msg << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary shift operator";
+	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
-	else if(m_state.isConstant(rt) && m_nodeRight->isWordSizeConstant())
+	else if(rconst && m_nodeRight->isWordSizeConstant())
 	  {
 	    std::ostringstream msg;
-	    msg << "Bitwise shift by any number greater than or equal to 32 is undefined. LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary shift operator" << getName();
+	    msg << "Bitwise shift by any number greater than or equal to 32 is undefined. LHS: ";
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
+	    msg << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary shift operator";
+	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
 
@@ -87,7 +90,9 @@ namespace MFM {
 	if(etyp == Unary || etyp == Bool)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bool and Unary are not currently supported for bitwise shift operator" << getName() << "; suggest casting " << m_state.getUlamTypeNameByIndex(lt).c_str() << " to Bits";
+	    msg << "Bool and Unary are not currently supported for bitwise shift operator";
+	    msg << getName() << "; suggest casting " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	    msg << " to Bits";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }
@@ -96,12 +101,13 @@ namespace MFM {
       {
 	//array op scalar: defer since the question of matrix operations is unclear at this time.
 	std::ostringstream msg;
-	msg << "Unsupported (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for bitwise shift operator" << getName() << " ; suggest writing a loop";
+	msg << "Unsupported (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for bitwise shift operator";
+	msg << getName() << " ; suggest writing a loop";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return newType;
   } //calcNodeType
-
 
   EvalStatus NodeBinaryOpShift::eval()
   {
@@ -132,7 +138,6 @@ namespace MFM {
     evalNodeEpilog();
     return NORMAL;
   } //eval
-
 
   const std::string NodeBinaryOpShift::methodNameForCodeGen()
   {

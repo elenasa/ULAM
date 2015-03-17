@@ -6,6 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+
       return std::string("Exit status: 3\nUe_P { Bool(1) b(false);  Unsigned(3) x(0);  Unsigned(3) y(7);  Unsigned(3) z(3);  Unsigned(3) i(0);  Unsigned(3) j(7);  Unsigned(3) k(3);  Int(32) test() {  Unsigned(3) var;  var 3 cast = x 0u cast = y 7u cast = z 3u cast = i 0u cast = j 7u cast = k 3u cast = var cast return } }\nUq_Q { typedef Unsigned(3) Foo;  <NOMAIN> }\nUq_V { typedef Q Woof;  <NOMAIN> }\n");
     }
 
@@ -29,5 +30,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3290_test_compiler_elementandquarks_typedeffromanotherclasstypedef_minmaxsizeof)
 
 } //end MFM
-
-

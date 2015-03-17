@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_A { Bar bar( Bool(1) b(true); );  Int(32) test() {  bar b . true cast = bar b . cast return } }\nUq_Bar { Bool(1) b(true);  <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_A { Bar bar( Bool(1) b(true); );  Int(32) test() {  bar b . true = bar b . cast return } }\nUq_Bar { Bool(1) b(true);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -23,5 +23,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3322_test_compiler_compound)
 
 } //end MFM
-
-

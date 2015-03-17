@@ -75,8 +75,6 @@ namespace MFM{
 
     void setUlamClass(ULAMCLASSTYPE type);
 
-    virtual bool isConstant();
-
     virtual bool isScalar();
 
     virtual bool isCustomArray();

@@ -7,7 +7,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_A { Bool(7) b(false);  System s();  Unsigned(32) x(15);  Unsigned(32) y(0);  Int(32) test() {  y x ( 4 cast 5 cast )times cast = = s ( x )print . y ( x x )max cast = s ( y )print . y cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_A { Bool(7) b(false);  System s();  Unsigned(32) x(15);  Unsigned(32) y(0);  Int(32) test() {  y x ( 4 5 )times cast = = s ( x )print . y ( x x )max cast = s ( y )print . y cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -30,5 +30,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3136_test_compiler_twofuncdefs)
 
 } //end MFM
-
-

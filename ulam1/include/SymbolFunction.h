@@ -75,7 +75,8 @@ namespace MFM{
 
     bool checkParameterTypes();
 
-    bool matchingTypes(std::vector<UTI> argTypes);
+    bool matchingTypesStrictly(std::vector<UTI> argTypes);
+    bool matchingTypes(std::vector<UTI> argTypes, std::vector<bool> constantArg);
 
     u32 isNativeFunctionDeclaration();
 

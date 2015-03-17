@@ -13,7 +13,7 @@ namespace MFM {
       */
 
       // element parameter chance not stored (as static variable) for eval
-      return std::string("Exit status: 3\nUe_Foo { Int(8) b(2);  System s();  Bool(7) sp(false);  Int(8) a(1);  Int(8) c(3);  Int(32) test() {  Foo f;  f chance . 1 cast = s ( chance )print . a f chance . cast = f choice . 2 cast = s ( choice )print . b f choice . cast = f result . 3 cast = s ( result )print . c f result . cast = f chance . return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 3\nUe_Foo { Int(8) b(2);  System s();  Bool(7) sp(false);  Int(8) a(1);  Int(8) c(3);  Int(32) test() {  Foo f;  f chance . 1 = s ( chance )print . a f chance . cast = f choice . 2 = s ( choice )print . b f choice . cast = f result . 3 = s ( result )print . c f result . cast = f chance . return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -33,5 +33,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3260_test_compiler_element_elementparameterintlist)
 
 } //end MFM
-
-

@@ -11,7 +11,7 @@ namespace MFM {
       */
 
       //fails because no eval storage for element parameters (e.g. chance)
-      return std::string("Exit status: 0\nUe_Foo { System s();  Bool(7) sp(false);  Bool(1) last(false);  Int(32) test() {  Foo f;  Int(32) i;  i 1 cast = f chance i [] . 3 cast = s ( chance i [] )print . chance i [] return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { System s();  Bool(7) sp(false);  Bool(1) last(false);  Int(32) test() {  Foo f;  Int(32) i;  i 1 = f chance i [] . 3 = s ( chance i [] )print . chance i [] return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -32,5 +32,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3219_test_compiler_element_elementparameterint32arrayexpression)
 
 } //end MFM
-
-
