@@ -104,6 +104,7 @@ namespace MFM {
 
     //label argument types; used to pinpoint the exact function symbol in case of overloading
     std::vector<UTI> argTypes;
+    std::vector<bool> constArgs;
     u32 constantArgs = 0;
 
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
@@ -116,17 +117,25 @@ namespace MFM {
 	    argTypes.push_back(argtype);
 	    // track constants and potential casting to be handled
 	    if(m_argumentNodes[i]->isAConstant())
-	      constantArgs++;
+	      {
+		constArgs.push_back(true);
+		constantArgs++;
+	      }
+	    else
+	      constArgs.push_back(false);
+
 	  }
 	m_state.popClassContext(); //restore here
 
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
 	// currently requires exact match
 	// (let constant match any size of same type)
-	if(!((SymbolFunctionName *) fnsymptr)->findMatchingFunction(argTypes, funcSymbol))
+	if(!((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol))
 	  {
 	    std::ostringstream msg;
-	    msg << "(1) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str() << "> has no defined function with " << m_argumentNodes.size() << " matching argument types: ";
+	    msg << "(1) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+	    msg << "> has no defined function with " << m_argumentNodes.size();
+	    msg << " matching argument types: ";
 	    for(u32 i = 0; i < argTypes.size(); i++)
 	      {
 		msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
@@ -178,8 +187,8 @@ namespace MFM {
 	    u32 numParams = m_funcSymbol->getNumberOfParameters();
 	    for(u32 i = 0; i < numParams; i++)
 	      {
-
-		if(m_argumentNodes[i]->isAConstant())
+		//if(m_argumentNodes[i]->isAConstant())
+		if(constArgs[i])
 		  {
 		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
 		    UTI ptype = psym->getUlamTypeIdx();
@@ -193,7 +202,8 @@ namespace MFM {
 	      {
 		for(u32 i = numParams; i < m_argumentNodes.size(); i++)
 		  {
-		    if(m_argumentNodes[i]->isAConstant())
+		    //if(m_argumentNodes[i]->isAConstant())
+		    if(constArgs[i])
 		      {
 			m_argumentNodes[i] = makeCastingNode(m_argumentNodes[i], m_state.getDefaultUlamTypeOfConstant(argTypes[i]));
 			argsWithCast++;
@@ -204,6 +214,9 @@ namespace MFM {
 	    assert(argsWithCast == constantArgs);
 	  } //constants
       } // no errors found
+
+    argTypes.clear();
+    constArgs.clear();
     return it;
   } //checkAndLabelType
 

@@ -440,6 +440,8 @@ namespace MFM {
 
   ULAMTYPECOMPARERESULTS UlamType::compare(UTI u1, UTI u2, CompilerState& state)  //static
   {
+    if(u1 == u2) return UTIC_SAME; //short-circuit
+
     UlamType * ut1 = state.getUlamTypeByIndex(u1);
     UlamType * ut2 = state.getUlamTypeByIndex(u2);
     ULAMCLASSTYPE ct1 = ut1->getUlamClass();
