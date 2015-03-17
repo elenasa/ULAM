@@ -388,9 +388,6 @@ namespace MFM {
       }
 
     // maintain specific type (see isAConstant() Node method)
-    // use constant type for base type for constants
-    //uti = m_state.getUlamTypeOfConstant(bUT);
-
     bool brtn = false;
     UTI uti = Nav;
     if(args.anothertduti)

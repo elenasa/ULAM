@@ -6,6 +6,7 @@
 namespace MFM {
 
   NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node) {}
+
   NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref)
   {
     m_node = ref.m_node->instantiate();
@@ -70,11 +71,11 @@ namespace MFM {
     ULAMTYPE etype = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
 
     // expect a constant integer or constant unsigned integer
-    //if(!(it == m_state.getUlamTypeOfConstant(Int) || it == m_state.getUlamTypeOfConstant(Unsigned)))
     if(!( (etype == Int || etype == Unsigned) && m_node->isAConstant()))
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameByIndex(it) << ", inside (), is not a valid constant expression";
+	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameByIndex(it);
+	msg << ", inside (), is not a valid constant expression";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
@@ -101,7 +102,6 @@ namespace MFM {
   {
     s32 newbitsize = UNKNOWNSIZE;
     UTI sizetype = checkAndLabelType();
-    //if((sizetype == m_state.getUlamTypeOfConstant(Int) || sizetype == m_state.getUlamTypeOfConstant(Unsigned)))
     if(sizetype != Nav)
       {
 	evalNodeProlog(0); //new current frame pointer
@@ -121,7 +121,10 @@ namespace MFM {
 	if(newbitsize == UNKNOWNSIZE)
 	  {
 	    std::ostringstream msg;
-	    msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "()UTI" << sizetype << ", is not yet a \"known\" constant expression for class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT) << "()UTI" << sizetype;
+	    msg << ", is not yet a \"known\" constant expression for class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    return false;
 	  }
@@ -131,14 +134,17 @@ namespace MFM {
 	  {
 	    newbitsize--;
 	    std::ostringstream msg;
-	    msg << "Bool Type with EVEN number of bits is internally inconsistent; Reduced by one to " << newbitsize << " bits" ;
+	    msg << "Bool Type with EVEN number of bits is internally inconsistent; Reduced by one to ";
+	    msg << newbitsize << " bits" ;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT) << "() is not a constant expression for class: " << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT);
+	msg << "() is not a constant expression for class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
