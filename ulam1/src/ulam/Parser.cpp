@@ -1550,14 +1550,15 @@ namespace MFM {
 	    std::ostringstream sname;
 	    sname << "_" << parmIdx;
 	    u32 snameid = m_state.m_pool.getIndexForDataString(sname.str());
-	    argSym = new SymbolConstantValue(snameid, m_state.getUlamTypeOfConstant(Int), m_state); //stub id, stub type, state
+	    //stub id,  m_state.getUlamTypeOfConstant(Int) stub type, state
+	    argSym = new SymbolConstantValue(snameid, Int, m_state);
 	  }
 
 	assert(argSym);
 	argSym->setParameterFlag();
 	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
-	m_state.popClassContext(); //restore before making NodeConstantDef so that it has current context
+	m_state.popClassContext(); //restore before making NodeConstantDef, so current context
 
 	//make Node with argument symbol to try to fold const expr;
 	//o.w. add to list of unresolved for this uti

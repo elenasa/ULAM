@@ -17,21 +17,21 @@ namespace MFM {
   NodeTerminal::NodeTerminal(s32 val, CompilerState & state) : Node(state)
   {
     m_constant.sval = val;
-    setNodeType(m_state.getUlamTypeOfConstant(Int));
+    setNodeType(Int); //m_state.getUlamTypeOfConstant(Int);
     //uptocaller to set node location.
   }
 
   NodeTerminal::NodeTerminal(u32 val, CompilerState & state) : Node(state)
   {
     m_constant.uval = val;
-    setNodeType(m_state.getUlamTypeOfConstant(Unsigned));
+    setNodeType(Unsigned); //m_state.getUlamTypeOfConstant(Unsigned);
     //uptocaller to set node location.
   }
 
   NodeTerminal::NodeTerminal(bool val, CompilerState & state) : Node(state)
   {
     m_constant.bval = val;
-    setNodeType(m_state.getUlamTypeOfConstant(Bool));
+    setNodeType(Bool); //m_state.getUlamTypeOfConstant(Bool);
     //uptocaller to set node location.
   }
 
@@ -391,14 +391,14 @@ namespace MFM {
     switch(tok.m_type)
       {
       case TOK_NUMBER_SIGNED:
-	newType = m_state.getUlamTypeOfConstant(Int); //constant Int
+	newType = Int; //m_state.getUlamTypeOfConstant(Int);
 	break;
       case TOK_NUMBER_UNSIGNED:
-	newType = m_state.getUlamTypeOfConstant(Unsigned); //Unsigned constant
+	newType = Unsigned; //m_state.getUlamTypeOfConstant(Unsigned);
 	break;
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
-	newType = m_state.getUlamTypeOfConstant(Bool); //constant Bool
+	newType = Bool; //m_state.getUlamTypeOfConstant(Bool);
 	break;
       default:
 	{
@@ -408,7 +408,6 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
-
     setNodeType(newType);
     setStoreIntoAble(false);
     return newType;
