@@ -9,10 +9,10 @@ namespace MFM {
       /* gen output:
 	 Int(3) Arg: 0x4  (not sign extended!)
 	 Int Arg: -4
-	 Unsigned Arg: 3  (max is unsigned)
+	 Int Arg: 3
 	 Unsigned Arg: 4
       */
-      return std::string("Exit status: 0\nUe_Fu { System s();  Int(3) n(4);  Unsigned(3) u(4);  Int(32) test() {  n -4 cast = s ( n )print . s ( -4 )print . s ( 3u )print . u n cast - cast = s ( u cast )print . 0 return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Fu { System s();  Int(3) n(4);  Unsigned(3) u(4);  Int(32) test() {  n -4 cast = s ( n )print . s ( -4 )print . s ( 3 )print . u n cast - cast = s ( u cast )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

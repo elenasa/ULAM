@@ -136,7 +136,7 @@ namespace MFM {
     return rtnB;
   } //setConstantValue
 
-  //type of value minof, maxof, sizeof is not related to the lhs type
+  //minof, maxof use type of lhs, sizeof is always unsigned
   UTI NodeTerminalProxy::setConstantTypeForNode(Token tok)
   {
     UTI newType = Nav;  //init
@@ -146,11 +146,10 @@ namespace MFM {
 	newType = Unsigned; //m_state.getUlamTypeOfConstant(Unsigned);
 	break;
       case TOK_KW_MAXOF:
-	newType = Unsigned; //more resolution than signed
-	break;
       case TOK_KW_MINOF:
       {
-	newType = Int;
+	// use sign of the lhs
+	newType = m_state.getDefaultUlamTypeOfConstant(m_uti);
 	break;
       }
       default:
