@@ -208,7 +208,7 @@ namespace MFM {
     return aok;
   } //checkParamterTypes
 
-  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes)
+  bool SymbolFunction::matchingTypesStrictly(std::vector<UTI> argTypes)
   {
     u32 numArgs = argTypes.size();
     u32 numParams = m_parameterSymbols.size();
@@ -225,13 +225,40 @@ namespace MFM {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
 	if(UlamType::compare(puti, argTypes[i], m_state) == UTIC_NOTSAME)
 	  {
-	    //constants can match any bit size
-	    ULAMTYPE ptypEnum = m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum();
-	    if(UlamType::compare(argTypes[i], m_state.getUlamTypeOfConstant(ptypEnum), m_state) == UTIC_NOTSAME)
+	    rtnBool = false;
+	    break;
+	  }
+      } //next param
+    return rtnBool;
+  } //matchingTypes (strictly)
+
+  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<bool> constantArg)
+  {
+    u32 numArgs = argTypes.size();
+    u32 numParams = m_parameterSymbols.size();
+
+    // numArgs could be greater if this function takes variable args
+    // check number of args first
+    if(numArgs < numParams || (numArgs > numParams && !takesVariableArgs()))
+      return false;
+
+    bool rtnBool = true;
+    //next match types; order counts!
+    for(u32 i=0; i < numParams; i++)
+      {
+	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
+	if(UlamType::compare(puti, argTypes[i], m_state) == UTIC_NOTSAME)
+	  {
+	    if(constantArg[i])
 	      {
-		rtnBool = false;
-		break;
-	      }
+		//constants can match any bit size
+		ULAMTYPE ptypEnum = m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum();
+		if(UlamType::compare(argTypes[i], m_state.getUlamTypeOfConstant(ptypEnum), m_state) == UTIC_NOTSAME)
+		  {
+		    rtnBool = false;
+		    break;
+		  }
+	      } //constantarg
 	  }
       } //next param
     return rtnBool;
