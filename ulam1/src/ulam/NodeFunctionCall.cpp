@@ -115,7 +115,7 @@ namespace MFM {
 	    UTI argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
 	    argTypes.push_back(argtype);
 	    // track constants and potential casting to be handled
-	    if(m_state.isConstant(argtype))
+	    if(m_argumentNodes[i]->isAConstant())
 	      constantArgs++;
 	  }
 	m_state.popClassContext(); //restore here
@@ -178,7 +178,8 @@ namespace MFM {
 	    u32 numParams = m_funcSymbol->getNumberOfParameters();
 	    for(u32 i = 0; i < numParams; i++)
 	      {
-		if(m_state.isConstant(argTypes[i]))
+
+		if(m_argumentNodes[i]->isAConstant())
 		  {
 		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
 		    UTI ptype = psym->getUlamTypeIdx();
@@ -192,7 +193,7 @@ namespace MFM {
 	      {
 		for(u32 i = numParams; i < m_argumentNodes.size(); i++)
 		  {
-		    if(m_state.isConstant(argTypes[i]))
+		    if(m_argumentNodes[i]->isAConstant())
 		      {
 			m_argumentNodes[i] = makeCastingNode(m_argumentNodes[i], m_state.getDefaultUlamTypeOfConstant(argTypes[i]));
 			argsWithCast++;

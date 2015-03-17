@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_A { Int(32) c(1);  Int(32) test() {  Int(32) a[2];  Int(32) b;  b 1 cast = a 0 cast b +b [] b = c a 1 [] = a 1 [] return } }\n");
+      return std::string("Exit status: 1\nUe_A { Int(32) c(1);  Int(32) test() {  Int(32) a[2];  Int(32) b;  b 1 = a 0 b +b [] b = c a 1 [] = a 1 [] return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -23,5 +23,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3313_test_compiler_vardecls)
 
 } //end MFM
-
-

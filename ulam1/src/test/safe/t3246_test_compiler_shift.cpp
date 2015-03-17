@@ -12,7 +12,7 @@ namespace MFM {
 	 Int Arg: 8
 	 Int Arg: 16
       */
-      return std::string("Exit status: 16\nUe_A { Bool(7) b(false);  System s();  Int(32) d(16);  Int(32) test() {  Int(32) a;  a 8 cast = d 1 cast = a cast cond { d d 1 cast << = s ( d )print . a a 1 cast >> = } _1: while d return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 16\nUe_A { Bool(7) b(false);  System s();  Int(32) d(16);  Int(32) test() {  Int(32) a;  a 8 = d 1 = a cast cond { d d 1 << = s ( d )print . a a 1 >> = } _1: while d return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -32,5 +32,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3246_test_compiler_shift)
 
 } //end MFM
-
-

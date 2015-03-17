@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_A { Int(32) a(0);  Int(32) b(2);  Int(32) test() {  a 1 cast = b 0 cast = a a 1 cast -b = cast cond b 1 cast = if b 2 cast = else a return } }\n");
+      return std::string("Exit status: 0\nUe_A { Int(32) a(0);  Int(32) b(2);  Int(32) test() {  a 1 = b 0 = a a 1 -b = cast cond b 1 = if b 2 = else a return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -23,5 +23,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3302_test_compiler_controlif)
 
 } //end MFM
-
-

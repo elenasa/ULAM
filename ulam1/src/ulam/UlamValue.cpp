@@ -28,7 +28,7 @@ namespace MFM {
   void UlamValue::init(UTI utype, u32 v, CompilerState& state)
   {
     s32 len = state.getBitSize(utype);
-    assert(len <=32 && len >= ANYBITSIZECONSTANT);  //very important!
+    assert(len <=32 && len >= 0);  //very important!
     clear();
     setUlamValueTypeIdx(utype);
 
@@ -234,7 +234,7 @@ namespace MFM {
   {
     assert(getUlamValueTypeIdx() == Ptr);
     s32 len = m_uv.m_ptrValue.m_bitlenInAtom;
-    assert(len >= ANYBITSIZECONSTANT && len <= MAXSTATEBITS); //up to caller to fix negative len
+    assert(len >= 0 && len <= MAXSTATEBITS); //up to caller to fix negative len
     return len;
   } //getPtrLen
 
@@ -393,9 +393,6 @@ namespace MFM {
 	    s32 len = p.getPtrLen();
 	    assert(len != UNKNOWNSIZE);
 
-	    if(len == ANYBITSIZECONSTANT)
-	      len = state.getDefaultBitSize(p.getPtrTargetType());
-
 	    u32 datavalue = data.getImmediateData(len);
 	    putData(p.getPtrPos(), len, datavalue);
 	  }
@@ -408,9 +405,6 @@ namespace MFM {
 	assert(p.isTargetPacked() == PACKEDLOADABLE);
 	s32 len = p.getPtrLen();
 	assert(len != UNKNOWNSIZE);
-
-	if(len == ANYBITSIZECONSTANT)
-	  len = state.getDefaultBitSize(p.getPtrTargetType());
 
 	u32 datavalue = data.getImmediateData(len);
 	putData(p.getPtrPos(), len, datavalue);

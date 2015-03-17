@@ -6,8 +6,10 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-
-      return std::string("Exit status: -18\nUe_A { Bool(7) b(false);  System s();  Int(32) bar(-18);  Int(32) test() {  bar -18 cast = bar - - s ( bar )print . bar return } }\nUq_System { <NOMAIN> }\n");
+      /* gen code output:
+	 Int Arg: -18
+      */
+      return std::string("Exit status: -18\nUe_A { Bool(7) b(false);  System s();  Int(32) bar(-18);  Int(32) test() {  bar -18 = bar - - s ( bar )print . bar return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -28,5 +30,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3304_test_compiler_unaryminus)
 
 } //end MFM
-
-

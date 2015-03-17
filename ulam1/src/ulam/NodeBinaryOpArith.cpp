@@ -5,7 +5,9 @@
 namespace MFM {
 
   NodeBinaryOpArith::NodeBinaryOpArith(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left, right, state) {}
+
   NodeBinaryOpArith::NodeBinaryOpArith(const NodeBinaryOpArith& ref) : NodeBinaryOp(ref) {}
+
   NodeBinaryOpArith::~NodeBinaryOpArith() {}
 
   const std::string NodeBinaryOpArith::methodNameForCodeGen()
@@ -33,11 +35,10 @@ namespace MFM {
     return methodname.str();
   } // methodNameForCodeGen
 
-
   void NodeBinaryOpArith::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
-    if(m_state.isScalar(getNodeType()))  //not an array
+    if(m_state.isScalar(getNodeType())) //not an array
       {
 	doBinaryOperationImmediate(lslot, rslot, slots);
       }
@@ -51,7 +52,6 @@ namespace MFM {
       }
   } //end dobinaryop
 
-
   UTI NodeBinaryOpArith::calcNodeType(UTI lt, UTI rt)
   {
     UTI newType = Nav; //init
@@ -64,23 +64,6 @@ namespace MFM {
       {
 	//return constant expressions as constants for constant folding (e.g. sq bracket, type bitsize);
 	// could be a signed constant and an unsigned constant, i.e. not equal.
-	//if(lt == rt && m_state.isConstant(lt))
-	if(m_state.isConstant(lt) && m_state.isConstant(rt))
-	  {
-	    //if(lt == rt) return lt;
-	    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(lt, rt, m_state);
-	    if(uticr == UTIC_DONTKNOW)
-	      {
-		std::ostringstream msg;
-		msg << "Calculating 'incomplete' arithmetic node types: " << m_state.getUlamTypeNameByIndex(lt).c_str() << " and " << m_state.getUlamTypeNameByIndex(rt).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		return Nav;
-	      }
-
-	    if(uticr == UTIC_SAME) return lt;
-	    return m_state.getUlamTypeOfConstant(Int);
-	  }
-
 	newType = Int;
 
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
@@ -88,29 +71,37 @@ namespace MFM {
 
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
 	  {
-	    newType = Unsigned;        //constants aren't unsigned
+	    return Unsigned; //constants aren't unsigned
 	  }
-	else if(m_state.isConstant(lt) || m_state.isConstant(rt))
+
+	bool lconst = m_nodeLeft->isAConstant();
+	bool rconst = m_nodeRight->isAConstant();
+	if(lconst || rconst)
 	  {
 	    // if one is a constant, check for value to fit in bits.
 	    bool doErrMsg = true;
-	    if(m_state.isConstant(lt) && m_nodeLeft->fitsInBits(rt))
+	    if(lconst && m_nodeLeft->fitsInBits(rt))
 	      doErrMsg = false;
 
-	    if(m_state.isConstant(rt) && m_nodeRight->fitsInBits(lt))
+	    if(rconst && m_nodeRight->fitsInBits(lt))
 	      doErrMsg = false;
 
 	    if(doErrMsg)
 	      {
 		std::ostringstream msg;
 		msg << "Attempting to fit a constant <";
-		if(m_state.isConstant(lt))
-		  msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
+		if(lconst)
+		  {
+		    msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: ";
+		    msg<< m_state.getUlamTypeNameByIndex(rt).c_str();
+		  }
 		else
-		  msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+		  {
+		    msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: ";
+		    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
+		  }
 		msg << ", for binary operator" << getName() << " ";
-
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);    //output warning
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
 	      }
 	  } //a constant
 	else if(ltypEnum == Unsigned || rtypEnum == Unsigned)
@@ -118,8 +109,11 @@ namespace MFM {
 	    // not both unsigned, but one is, so mixing signed and
 	    // unsigned gets a warning, but still uses signed Int.
 	    std::ostringstream msg;
-	    msg << "Attempting to mix signed and unsigned types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << ", for binary operator" << getName() << " ";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); 	    //output warning
+	    msg << "Attempting to mix signed and unsigned types, LHS: ";
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
+	    msg << m_state.getUlamTypeNameByIndex(rt).c_str() << ", for binary operator";
+	    msg << getName() << " ";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
 	  } //mixing unsigned and signed
 	else
 	  {
@@ -143,7 +137,9 @@ namespace MFM {
 
 	//array op scalar: defer since the question of matrix operations is unclear at this time.
 	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary operator" << getName();
+	msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary operator";
+	msg << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return newType;

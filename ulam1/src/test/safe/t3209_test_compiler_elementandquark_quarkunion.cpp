@@ -14,7 +14,7 @@ namespace MFM {
 	 Bool(3) Arg: 0x7 (true)
       */
 
-      return std::string("Exit status: 1\nUe_Foo { Bool(3) b(false);  Bool(1) e(false);  System s();  Int(4) i(1);  Gah m_gah( Bool(3) b(true);  Int(4) a(15);  Unary(7) c(4);  Unsigned(6) d(60);  Bits(2) e(3);  Bool(1) f(true); );  Int(32) test() {  i 1 cast = m_gah ( i cast )set . s ( m_gah a . )print . s ( m_gah b . )print . m_gah ( true cast )set . s ( m_gah a . )print . s ( m_gah b . )print . i cast return } }\nUq_Gah { Bool(3) b(false);  Int(4) a(0);  Unary(7) c(1);  Unsigned(6) d(0);  Bits(2) e(0);  Bool(1) f(false);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_Foo { Bool(3) b(false);  Bool(1) e(false);  System s();  Int(4) i(1);  Gah m_gah( Bool(3) b(true);  Int(4) a(15);  Unary(7) c(4);  Unsigned(6) d(60);  Bits(2) e(3);  Bool(1) f(true); );  Int(32) test() {  i 1 cast = m_gah ( i cast )set . s ( m_gah a . )print . s ( m_gah b . )print . m_gah ( true )set . s ( m_gah a . )print . s ( m_gah b . )print . i cast return } }\nUq_Gah { Bool(3) b(false);  Int(4) a(0);  Unary(7) c(1);  Unsigned(6) d(0);  Bits(2) e(0);  Bool(1) f(false);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -37,5 +37,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3209_test_compiler_elementandquark_quarkunion)
 
 } //end MFM
-
-

@@ -57,8 +57,6 @@ namespace MFM {
     key << getUlamKeyTypeSignatureName(state);
     if(m_bits >= 0)
       key << "(" << m_bits << ")";
-    else if(m_bits == ANYBITSIZECONSTANT)
-      key << "(" << "CONSTANT" << ")";
     else if(m_bits == UNKNOWNSIZE)
       key << "(" << "UNKNOWN" << ")";
     else if(m_bits == CYCLEFLAG)
@@ -82,8 +80,6 @@ namespace MFM {
     key << utk.getUlamKeyTypeSignatureName(state);
     if(utk.m_bits >= 0)
       key << "(" << utk.m_bits << ")";
-    else if(utk.m_bits == ANYBITSIZECONSTANT)
-      key << "(" << "CONSTANT" << ")";
     else if(utk.m_bits == UNKNOWNSIZE)
       key << "(" << "UNKNOWN" << ")";
     else if(utk.m_bits == CYCLEFLAG)

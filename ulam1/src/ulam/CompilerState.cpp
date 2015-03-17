@@ -674,7 +674,7 @@ namespace MFM {
   UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)
   {
     u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
-    UlamKeyTypeSignature ckey(enumStrIdx, ANYBITSIZECONSTANT, NONARRAYSIZE);
+    UlamKeyTypeSignature ckey(enumStrIdx, getDefaultBitSize((UTI) etype), NONARRAYSIZE); //was ANYBITSIZECONSTANT
     return makeUlamType(ckey, etype); //may not exist yet, create
   }
 
@@ -684,12 +684,6 @@ namespace MFM {
     u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
     UlamKeyTypeSignature ckey(enumStrIdx, getDefaultBitSize(ctype), NONARRAYSIZE);
     return makeUlamType(ckey, etype); //may not exist yet, create
-  }
-
-  bool CompilerState::isConstant(UTI uti)
-  {
-    UlamType * ut = getUlamTypeByIndex(uti);
-    return (ut->isConstant());
   }
 
   bool CompilerState::isScalar(UTI utArg)

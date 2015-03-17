@@ -10,7 +10,7 @@ namespace MFM {
 	 Int Arg: 0
       */
       //problem with eval answer is that an atom type appears the same as tu.
-      return std::string("Exit status: 2\nUe_Tu { System s();  Int(32) me(2);  Int(32) test() {  Tu t;  Atom(96) a;  a Tu is cond { t a cast = me 2 cast = } if s ( me )print . me return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 2\nUe_Tu { System s();  Int(32) me(2);  Int(32) test() {  Tu t;  Atom(96) a;  a Tu is cond { t a cast = me 2 = } if s ( me )print . me return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -34,5 +34,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3277_test_compiler_castatom2element_issue)
 
 } //end MFM
-
-

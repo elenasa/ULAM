@@ -13,7 +13,7 @@ namespace MFM {
       */
 
       //constant fold minus
-      return std::string("Exit status: 0\nUe_Foo { Bool(1) b(false);  System m_s();  Int(3) i(0);  Int(3) j(4);  Bar m_bar( Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(2);  Int(3) d(6); ); );  Int(32) test() {  m_bar m_gah ( 2 cast -2 cast )set . . j m_bar m_gah . ( )toInt . cast = m_s ( j )print . 0 cast return } }\nUq_Bar { Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(4);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(0); );  <NOMAIN> }\nUq_System { <NOMAIN> }\nUq_Gah { Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(4);  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { Bool(1) b(false);  System m_s();  Int(3) i(0);  Int(3) j(4);  Bar m_bar( Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(2);  Int(3) d(6); ); );  Int(32) test() {  m_bar m_gah ( 2 -2 )set . . j m_bar m_gah . ( )toInt . cast = m_s ( j )print . 0 return } }\nUq_Bar { Bool(1) b(false);  System m_s();  Unsigned(3) x(0);  Unsigned(3) y(4);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(0); );  <NOMAIN> }\nUq_System { <NOMAIN> }\nUq_Gah { Bool(1) b(false);  System m_s();  Int(3) a(0);  Int(3) d(4);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -39,5 +39,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3208_test_compiler_elementandquark_accessaquarkinsideaquark)
 
 } //end MFM
-
-

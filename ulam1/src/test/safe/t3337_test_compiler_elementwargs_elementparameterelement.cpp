@@ -10,7 +10,7 @@ namespace MFM {
 	 Bool(3) Arg: 0x7 (true)
       */
       //Constants have explicit types
-      return std::string("Exit status: 1\nUe_Foo { Bool(3) b(true);  System s();  Bool(1) sp(false);  Bool(3) c(false);  Bool(1) last(false);  Int(32) test() {  Poo(1,2,0) p;  p ( sp )reset . poochance ( sp )reset . poochance valb 1 [] . true cast = b poochance valb 1 [] . cast = s ( b )print . b cast return } }\nUq_System { <NOMAIN> }\nUe_Poo { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  constant Int(32) z = NONREADYCONST;  Bool(UNKNOWN) valb(false);  <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_Foo { Bool(3) b(true);  System s();  Bool(1) sp(false);  Bool(3) c(false);  Bool(1) last(false);  Int(32) test() {  Poo(1,2,0) p;  p ( sp )reset . poochance ( sp )reset . poochance valb 1 [] . true = b poochance valb 1 [] . cast = s ( b )print . b cast return } }\nUq_System { <NOMAIN> }\nUe_Poo { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  constant Int(32) z = NONREADYCONST;  Bool(UNKNOWN) valb(false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

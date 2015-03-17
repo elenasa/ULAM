@@ -9,7 +9,7 @@ namespace MFM {
       /* gen code output:
 	 Int Arg: 20
       */
-      return std::string("Exit status: 20\nUe_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . d return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 20\nUe_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  d ( 4 5 )times = s ( d )print . d return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -31,5 +31,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3265_test_compiler_funcdef_forloop)
 
 } //end MFM
-
-

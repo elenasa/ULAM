@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
 
-      return std::string("Exit status: 0\nUe_Foo { Bool(1) b[3](false,false,false);  System s();  Int(4) m_i(0);  Int(32) test() {  Foo f;  Bar boo;  boo f spoon mbar 0 [] . . = f spoon mbar 1 [] . . boo = f spoon sbar ( true cast )reset . . . 0 cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\nUe_Poo { Bool(3) b(false);  typedef Bar Pop[2];  System s();  Int(4) m_i(0);  Bar mbar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Bar sbar( Bool(1) val_b[3](false,false,false); );  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { Bool(1) b[3](false,false,false);  System s();  Int(4) m_i(0);  Int(32) test() {  Foo f;  Bar boo;  boo f spoon mbar 0 [] . . = f spoon mbar 1 [] . . boo = f spoon sbar ( true )reset . . . 0 return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\nUe_Poo { Bool(3) b(false);  typedef Bar Pop[2];  System s();  Int(4) m_i(0);  Bar mbar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,false,false); );  Bar sbar( Bool(1) val_b[3](false,false,false); );  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -31,5 +31,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3229_test_compiler_elementandquarkarray_EPelementlocal)
 
 } //end MFM
-
-

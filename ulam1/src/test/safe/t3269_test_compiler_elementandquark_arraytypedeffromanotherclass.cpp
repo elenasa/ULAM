@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_TypedefIssue { Unsigned(3) x[2](2,1);  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](2,1); );  Int(32) test() {  x 0 [] 2 cast = x 1 [] 1 cast = t ( x )set . cond b true cast = if t m 1 [] . cast return } }\nUq_Vector { typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](2,1);  <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_TypedefIssue { Unsigned(3) x[2](2,1);  Bool(1) b(true);  Vector t( typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](2,1); );  Int(32) test() {  x 0 [] 2 cast = x 1 [] 1 cast = t ( x )set . cond b true = if t m 1 [] . cast return } }\nUq_Vector { typedef Unsigned(3) Symmetry[2];  Unsigned(3) m[2](2,1);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -28,5 +28,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3269_test_compiler_elementandquark_arraytypedeffromanotherclass)
 
 } //end MFM
-
-

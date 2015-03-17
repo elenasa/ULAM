@@ -84,7 +84,6 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeAsStringForC()
   {
-    assert(!isConstant());
     assert(isComplete());
 
     s32 len = getTotalBitSize(); // includes arrays
@@ -169,7 +168,7 @@ namespace MFM {
 
   bool UlamType::needsImmediateType()
   {
-    return !isConstant() && isComplete();
+    return isComplete();
   }
 
   const std::string UlamType::getImmediateStorageTypeAsString()
@@ -404,11 +403,6 @@ namespace MFM {
     return rtnUT; //static method
   } //getEnumFromUlamTypeString
 
-  bool UlamType::isConstant()
-  {
-    return m_key.getUlamKeyTypeSignatureBitSize() == ANYBITSIZECONSTANT;
-  }
-
   bool UlamType::isScalar()
   {
     return (m_key.getUlamKeyTypeSignatureArraySize() == NONARRAYSIZE);
@@ -426,9 +420,6 @@ namespace MFM {
 
   s32 UlamType::getBitSize()
   {
-    if(isConstant())
-      return ULAMTYPE_DEFAULTBITSIZE[getUlamTypeEnum()];
-
     return m_key.getUlamKeyTypeSignatureBitSize();  //could be negative "unknown"
   }
 

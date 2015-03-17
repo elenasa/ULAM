@@ -6,8 +6,11 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      /* gen code output:
+	 Int Arg: 0
+      */
       //problem with eval answer is that an atom type appears the same as tu.
-      return std::string("Exit status: 0\nUe_Ebar { System s();  Int(32) test() {  s ( shouldBeOK )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Ebar { System s();  Int(32) test() {  s ( shouldBeOK )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -29,5 +32,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3278_test_compiler_elementandquark_ep_issue)
 
 } //end MFM
-
-

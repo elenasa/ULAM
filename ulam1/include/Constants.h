@@ -83,10 +83,6 @@ namespace MFM {
 #define BITSPERBOOL (1)
 #endif //BITSPERBOOL
 
-#ifndef ANYBITSIZECONSTANT
-#define ANYBITSIZECONSTANT (-1)
-#endif //ANYBITSIZECONSTANT
-
 #ifndef UNKNOWNSIZE
 #define UNKNOWNSIZE (-2)
 #endif //UNKNOWNSIZE

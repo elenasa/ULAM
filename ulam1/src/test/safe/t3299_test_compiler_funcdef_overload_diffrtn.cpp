@@ -11,7 +11,7 @@ namespace MFM {
 	 Bool(3) Arg: 0x7 (true)
       */
 
-      return std::string("Exit status: 0\nUe_A { System s();  Bool(1) sp(true);  Int(3) spi(3);  Int(32) test() {  Bool(1) mybool;  mybool true cast = spi ( mybool 7 cast )foo cast = s ( spi )print . sp ( mybool )foo = s ( sp cast )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_A { System s();  Bool(1) sp(true);  Int(3) spi(3);  Int(32) test() {  Bool(1) mybool;  mybool true = spi ( mybool 7 )foo cast = s ( spi )print . sp ( mybool )foo = s ( sp cast )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -33,5 +33,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3299_test_compiler_funcdef_overload_diffrtn)
 
 } //end MFM
-
-

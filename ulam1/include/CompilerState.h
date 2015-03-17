@@ -208,7 +208,6 @@ namespace MFM{
     UTI getUlamTypeAsScalar(UTI utArg);
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
-    bool isConstant(UTI uti);
 
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
