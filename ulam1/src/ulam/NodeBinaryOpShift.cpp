@@ -65,6 +65,8 @@ namespace MFM {
     if(m_state.isScalar(lt) && m_state.isScalar(rt))
       {
 	newType = lt;
+#if 0
+	//these "helpful" checks do not consider the possibility of a constant expression XXX
 	bool rconst = m_nodeRight->isAConstant();
 	if(rconst && m_nodeRight->isNegativeConstant())
 	  {
@@ -84,7 +86,7 @@ namespace MFM {
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
-
+#endif
 	//if Unary or Bool ERR.
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	if(etyp == Unary || etyp == Bool)
