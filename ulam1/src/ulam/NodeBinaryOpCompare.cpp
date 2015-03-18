@@ -17,6 +17,12 @@ namespace MFM {
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType); //for casting
 
+    setNodeType(newType);
+    setStoreIntoAble(false);
+
+    if(isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      return constantFold();
+
     if(newType != Nav && m_state.isComplete(newType))
       {
 	if(UlamType::compare(rightType, newType, m_state) != UTIC_SAME)
@@ -31,8 +37,7 @@ namespace MFM {
 
 	newType = Bool; //always Bool (default size) for node
       }
-    setNodeType(newType);
-    setStoreIntoAble(false);
+
     return newType;
   } //checkAndLabelType
 
@@ -62,10 +67,10 @@ namespace MFM {
 	  {
 	    // if one is a constant, check for value to fit in bits.
 	    bool doErrMsg = true;
-	    if(lconst && m_nodeLeft->fitsInBits(rt))
+	    if(lconst && m_nodeLeft->isReadyConstant() && m_nodeLeft->fitsInBits(rt))
 	      doErrMsg = false;
 
-	    if(rconst && m_nodeRight->fitsInBits(lt))
+	    if(rconst && m_nodeRight->isReadyConstant() && m_nodeRight->fitsInBits(lt))
 	      doErrMsg = false;
 
 	    if(doErrMsg)

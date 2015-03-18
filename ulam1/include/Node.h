@@ -97,7 +97,6 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void constantFoldAToken(Token tok);
     virtual bool isAConstant();
 
     virtual bool isReadyConstant();
@@ -105,6 +104,10 @@ namespace MFM{
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
+
+    virtual void constantFoldAToken(Token tok);
+
+    virtual UTI constantFold();
 
     virtual bool fitsInBits(UTI fituti);
     virtual bool isNegativeConstant();

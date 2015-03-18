@@ -18,9 +18,9 @@
 
 namespace MFM {
 
-//#define _DEBUG_OUTPUT
-//#define _INFO_OUTPUT
-//#define _WARN_OUTPUT
+  //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;

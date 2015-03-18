@@ -69,6 +69,8 @@ namespace MFM{
 
     virtual void countNavNodes(u32& cnt);
 
+    virtual UTI constantFold();
+
     virtual const std::string methodNameForCodeGen();
 
     virtual EvalStatus eval();
