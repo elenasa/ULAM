@@ -66,9 +66,11 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void constantFold(Token tok);
+    virtual void constantFoldAToken(Token tok);
 
     virtual bool isAConstant();
+
+    virtual bool isReadyConstant();
 
     virtual UTI checkAndLabelType();
 

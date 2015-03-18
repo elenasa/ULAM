@@ -121,12 +121,17 @@ namespace MFM {
     return false;
   }
 
-  void Node::constantFold(Token tok)
+  void Node::constantFoldAToken(Token tok)
   {
-    assert(0);  //only NodeTerminal has this defined
+    assert(0);  //only NodeTerminal has this defined; NodeConstant bypasses
   }
 
   bool Node::isAConstant()
+  {
+    return false;
+  }
+
+  bool Node::isReadyConstant()
   {
     return false;
   }

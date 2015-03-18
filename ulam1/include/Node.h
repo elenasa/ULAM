@@ -97,8 +97,10 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void constantFold(Token tok);
+    virtual void constantFoldAToken(Token tok);
     virtual bool isAConstant();
+
+    virtual bool isReadyConstant();
 
     virtual UTI checkAndLabelType();
 

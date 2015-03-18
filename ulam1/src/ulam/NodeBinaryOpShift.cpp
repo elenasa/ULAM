@@ -65,10 +65,10 @@ namespace MFM {
     if(m_state.isScalar(lt) && m_state.isScalar(rt))
       {
 	newType = lt;
-#if 0
+
 	//these "helpful" checks do not consider the possibility of a constant expression XXX
 	bool rconst = m_nodeRight->isAConstant();
-	if(rconst && m_nodeRight->isNegativeConstant())
+	if(rconst && m_nodeRight->isReadyConstant() && m_nodeRight->isNegativeConstant())
 	  {
 	    std::ostringstream msg;
 	    msg << "Negative shift! Recommend shifting in the opposite direction, LHS: ";
@@ -77,7 +77,7 @@ namespace MFM {
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
-	else if(rconst && m_nodeRight->isWordSizeConstant())
+	else if(rconst && m_nodeRight->isReadyConstant() && m_nodeRight->isWordSizeConstant())
 	  {
 	    std::ostringstream msg;
 	    msg << "Bitwise shift by any number greater than or equal to 32 is undefined. LHS: ";
@@ -86,7 +86,7 @@ namespace MFM {
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
-#endif
+
 	//if Unary or Bool ERR.
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	if(etyp == Unary || etyp == Bool)

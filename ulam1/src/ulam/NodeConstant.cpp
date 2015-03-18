@@ -8,7 +8,7 @@ namespace MFM {
   {
     assert(symptr);
     m_currBlockNo = symptr->getBlockNoOfST();
-    m_ready = updateConstant();
+    m_ready = updateConstant(); //sets ready here
   }
 
   NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_currBlockNo(ref.m_currBlockNo) {}
@@ -38,15 +38,20 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  void NodeConstant::constantFold(Token tok)
-  {
-    //not same meaning as NodeTerminal; bypass.
-  }
-
   bool NodeConstant::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
     return true;
+  }
+
+  void NodeConstant::constantFoldAToken(Token tok)
+  {
+    //not same meaning as NodeTerminal; bypass.
+  }
+
+  bool NodeConstant::isReadyConstant()
+  {
+    return m_ready;
   }
 
   UTI NodeConstant::checkAndLabelType()
@@ -126,8 +131,8 @@ namespace MFM {
     setStoreIntoAble(false);
 
     //copy m_constant from Symbol into NodeTerminal parent.
-    if(!m_ready)
-      m_ready = updateConstant();
+    if(!isReadyConstant())
+      m_ready = updateConstant(); //sets ready here
 
     return it;
   } //checkAndLabelType
@@ -147,9 +152,9 @@ namespace MFM {
 
   EvalStatus NodeConstant::eval()
   {
-    if(!m_ready)
+    if(!isReadyConstant())
       m_ready = updateConstant();
-    if(!m_ready)
+    if(!isReadyConstant())
       return ERROR;
     if(!m_state.isComplete(getNodeType()))
       return ERROR;
@@ -158,8 +163,8 @@ namespace MFM {
 
   void NodeConstant::genCode(File * fp, UlamValue& uvpass)
   {
-    if(!m_ready)
-      m_ready = updateConstant();
+    if(!isReadyConstant())
+      m_ready = updateConstant(); //sets ready here
     NodeTerminal::genCode(fp, uvpass);
   } //genCode
 
