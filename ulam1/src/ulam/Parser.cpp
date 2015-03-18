@@ -3851,7 +3851,7 @@ namespace MFM {
 	  UTI futi = factorNode->getNodeType();
 	  if( (futi != Nav) && factorNode->isAConstant())
 	    {
-	      factorNode->constantFold(pTok);
+	      factorNode->constantFoldAToken(pTok);
 	      rtnNode = factorNode;
 	    }
 	  else

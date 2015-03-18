@@ -87,7 +87,7 @@ namespace MFM {
   }
 
   // this is the application of unary minus to produce a negative number
-  void NodeTerminal::constantFold(Token tok)
+  void NodeTerminal::constantFoldAToken(Token tok)
   {
     if(tok.m_type == TOK_MINUS)
       {
@@ -114,9 +114,14 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	assert(0);
       }
-  } //constantFold
+  } //constantFoldAToken
 
   bool NodeTerminal::isAConstant()
+  {
+    return true;
+  }
+
+  bool NodeTerminal::isReadyConstant()
   {
     return true;
   }

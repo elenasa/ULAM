@@ -105,6 +105,12 @@ namespace MFM {
     return m_nodeLeft->isAConstant() && m_nodeRight->isAConstant();
   }
 
+  bool NodeBinaryOp::isReadyConstant()
+  {
+    //needs constant folding
+    return false;
+  }
+
   UTI NodeBinaryOp::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);

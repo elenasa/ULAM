@@ -90,6 +90,12 @@ namespace MFM {
     return m_node->isAConstant();
   }
 
+  bool NodeUnaryOp::isReadyConstant()
+  {
+    //needs constant folding
+    return false;
+  }
+
   UTI NodeUnaryOp::checkAndLabelType()
   {
     assert(0);  //see unary operators..
