@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool isReadyConstant();
+
     virtual UTI checkAndLabelType();
 
     virtual EvalStatus eval();
