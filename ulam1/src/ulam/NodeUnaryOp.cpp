@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "NodeUnaryOp.h"
+#include "NodeTerminal.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -127,6 +128,10 @@ namespace MFM {
 
     setNodeType(newType);
     setStoreIntoAble(false);
+
+    if(isAConstant() && m_node->isReadyConstant())
+      return constantFold();
+
     return newType;
   } //checkAndLabelType
 
@@ -134,6 +139,80 @@ namespace MFM {
   {
     m_node->countNavNodes(cnt);
   }
+
+  UTI NodeUnaryOp::constantFold()
+  {
+    u32 val;
+    UTI nuti = getNodeType();
+
+    if(nuti == Nav) return Nav; //nothing to do yet
+
+    // if here, must be a constant..
+    assert(isAConstant());
+
+    evalNodeProlog(0); //new current frame pointer
+    makeRoomForNodeType(nuti); //offset a constant expression
+    EvalStatus evs = eval();
+    if( evs == NORMAL)
+      {
+	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
+	val = cnstUV.getImmediateData(m_state);
+      }
+
+    evalNodeEpilog();
+
+    if(evs == ERROR)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for unary op" << getName();
+	msg << " is not yet ready while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	return Nav;
+      }
+
+    //replace ourselves (and kids) with a node terminal; new NNO unlike template's
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    NodeTerminal * newnode = NULL;
+    switch(etype)
+      {
+      case Int:
+	newnode = new NodeTerminal((s32) val, m_state);
+	break;
+      case Bool:
+	newnode = new NodeTerminal((bool) val, m_state);
+	break;
+      case Unsigned:
+	newnode = new NodeTerminal(val, m_state);
+	break;
+      default:
+	assert(0);
+      };
+
+    assert(newnode);
+    newnode->setNodeLocation(getNodeLocation());
+
+    NNO pno = Node::getYourParentNo();
+    assert(pno);
+    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    assert(parentNode);
+
+    assert(parentNode->exchangeKids(this, newnode));
+
+    std::ostringstream msg;
+    msg << "Exchanged kids! for unary operator" << getName();
+    msg << ", with a constant == " << newnode->getName();
+    msg << " while compiling class: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+    newnode->setYourParentNo(pno);
+
+    delete this; //suicide is painless..
+
+    return newnode->checkAndLabelType();
+  } //constantFold
 
   EvalStatus NodeUnaryOp::eval()
   {

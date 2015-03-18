@@ -151,6 +151,11 @@ namespace MFM {
       cnt += 1;
   }
 
+  UTI Node::constantFold()
+  {
+    return Nav;
+  }
+
   // only for constants (NodeTerminal)
   bool Node::fitsInBits(UTI fituti)
   {

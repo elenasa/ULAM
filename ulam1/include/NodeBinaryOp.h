@@ -72,6 +72,8 @@ namespace MFM{
 
     virtual void countNavNodes(u32& cnt);
 
+    virtual UTI constantFold();
+
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);

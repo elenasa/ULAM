@@ -16,6 +16,11 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType); //left, or nav error
+    setNodeType(newType);
+    setStoreIntoAble(false);
+
+    if(isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      return constantFold();
 
     if(newType != Nav && m_state.isComplete(newType))
       {
@@ -25,8 +30,6 @@ namespace MFM {
 	    m_nodeRight = makeCastingNode(m_nodeRight, Int);
 	  }
       }
-    setNodeType(newType);
-    setStoreIntoAble(false);
     return newType;
   } //checkAndLabelType
 
@@ -110,36 +113,6 @@ namespace MFM {
       }
     return newType;
   } //calcNodeType
-
-  EvalStatus NodeBinaryOpShift::eval()
-  {
-    assert(m_nodeLeft && m_nodeRight);
-
-    evalNodeProlog(0); //new current frame pointer
-
-    u32 slot = makeRoomForNodeType(getNodeType());
-    EvalStatus evs = m_nodeLeft->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    u32 slot2 = makeRoomForNodeType(m_nodeRight->getNodeType());
-    evs = m_nodeRight->eval();
-    if(evs != NORMAL)
-      {
-	evalNodeEpilog();
-	return evs;
-      }
-
-    //copies return UV to stack, -1 relative to current frame pointer
-    if(slot && slot2)
-      doBinaryOperation(1, 1+slot, slot2);
-
-    evalNodeEpilog();
-    return NORMAL;
-  } //eval
 
   const std::string NodeBinaryOpShift::methodNameForCodeGen()
   {
