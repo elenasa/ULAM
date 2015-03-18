@@ -21,7 +21,7 @@ namespace MFM {
   void NodeTerminalProxy::printPostfix(File * fp)
   {
     fp->write(" ");
-    if(m_ready)
+    if(isReadyConstant())
       fp->write(NodeTerminal::getName());
     else
       {
@@ -35,6 +35,11 @@ namespace MFM {
   const std::string NodeTerminalProxy::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+  bool NodeTerminalProxy::isReadyConstant()
+  {
+    return m_ready;
   }
 
   UTI NodeTerminalProxy::checkAndLabelType()
@@ -166,7 +171,7 @@ namespace MFM {
     if(m_uti == Nav)
       return false;
 
-    if(m_ready)
+    if(isReadyConstant())
       return true;
 
     bool rtnb = true;
@@ -222,7 +227,7 @@ namespace MFM {
 	    msg << ") while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
-	    m_ready = true;
+	    m_ready = true; //set ready here
 	  }
       }
     return rtnb;
