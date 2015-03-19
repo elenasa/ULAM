@@ -80,6 +80,8 @@ namespace MFM {
   //change to return Node * rather than vector; change tests
   u32 Parser::parseProgram(std::string startstr, File * errOutput)
   {
+    m_state.m_parsingInProgress = true;
+
     if(errOutput)
       m_state.m_err.setFileOutput(errOutput);
 
@@ -143,6 +145,8 @@ namespace MFM {
 	msg << errs << " TOO MANY PARSE ERRORS: " << compileThis;
 	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
+
+    m_state.m_parsingInProgress = false;
     return (errs);
   } //parseProgram
 
@@ -1613,12 +1617,12 @@ namespace MFM {
 
 	    // can't constant fold before node is findable by NNO
 	    //eval what we need, and delete the node if successful
-	    //if(((NodeTypeBitsize *) rtnNode)->getTypeBitSizeInParen(args.bitsize, m_state.getBaseTypeFromToken(args.typeTok)))
-	    //  {
-	    //	delete rtnNode; //done with them!
-	    //	rtnNode = NULL;
-	    //  }
-	    //else //else will be returning rtnNode, ownership transferred
+	    if(((NodeTypeBitsize *) rtnNode)->getTypeBitSizeInParen(args.bitsize, m_state.getBaseTypeFromToken(args.typeTok)))
+	      {
+	    	delete rtnNode; //done with them!
+	    	rtnNode = NULL;
+	      }
+	    else //else will be returning rtnNode, ownership transferred
 	      {
 		args.bitsize = UNKNOWNSIZE;
 	      }
