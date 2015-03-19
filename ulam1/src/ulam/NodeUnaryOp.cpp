@@ -145,6 +145,9 @@ namespace MFM {
     u32 val;
     UTI nuti = getNodeType();
 
+    if(m_state.m_parsingInProgress)
+      return nuti;
+
     if(nuti == Nav) return Nav; //nothing to do yet
 
     // if here, must be a constant..

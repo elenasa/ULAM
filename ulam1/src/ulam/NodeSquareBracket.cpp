@@ -259,11 +259,10 @@ namespace MFM {
 	return false;
       }
 
-    //s32 newarraysize = NONARRAYSIZE;
-    //if(getArraysizeInBracket(newarraysize))
+    s32 newarraysize = NONARRAYSIZE;
+    if(getArraysizeInBracket(newarraysize))
       {
-    //	args.arraysize = newarraysize;
-	args.arraysize = UNKNOWNSIZE; //newarraysize;
+    	args.arraysize = newarraysize;
 	return m_nodeLeft->installSymbolTypedef(args, asymptr);
       }
 
@@ -294,10 +293,10 @@ namespace MFM {
 	return false;
       }
 
-    //    s32 newarraysize = NONARRAYSIZE;
-    //if(getArraysizeInBracket(newarraysize))
+    s32 newarraysize = NONARRAYSIZE;
+    if(getArraysizeInBracket(newarraysize))
       {
-	args.arraysize = UNKNOWNSIZE; //newarraysize;
+	args.arraysize = newarraysize;
 	return m_nodeLeft->installSymbolVariable(args, asymptr);
       }
     return false;  //error getting array size

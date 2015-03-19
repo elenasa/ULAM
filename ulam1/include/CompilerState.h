@@ -133,6 +133,7 @@ namespace MFM{
 
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
+    bool m_parsingInProgress; //to avoid constantFolding when parsing
 
     s32 m_parsingControlLoop;                // used for break/continue control statement parsing;
                                              // label num for end of loop, or 0
