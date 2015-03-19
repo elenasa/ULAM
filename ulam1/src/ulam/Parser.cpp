@@ -1611,13 +1611,14 @@ namespace MFM {
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.typeTok.m_locator);
 
+	    // can't constant fold before node is findable by NNO
 	    //eval what we need, and delete the node if successful
-	    if(((NodeTypeBitsize *) rtnNode)->getTypeBitSizeInParen(args.bitsize, m_state.getBaseTypeFromToken(args.typeTok)))
-	      {
-		delete rtnNode; //done with them!
-		rtnNode = NULL;
-	      }
-	    else //else will be returning rtnNode, ownership transferred
+	    //if(((NodeTypeBitsize *) rtnNode)->getTypeBitSizeInParen(args.bitsize, m_state.getBaseTypeFromToken(args.typeTok)))
+	    //  {
+	    //	delete rtnNode; //done with them!
+	    //	rtnNode = NULL;
+	    //  }
+	    //else //else will be returning rtnNode, ownership transferred
 	      {
 		args.bitsize = UNKNOWNSIZE;
 	      }

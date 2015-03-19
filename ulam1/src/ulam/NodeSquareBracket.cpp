@@ -6,7 +6,10 @@
 
 namespace MFM {
 
-  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
+  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state)
+  {
+    m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
+  }
 
   NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref) {}
 
@@ -256,10 +259,11 @@ namespace MFM {
 	return false;
       }
 
-    s32 newarraysize = NONARRAYSIZE;
-    if(getArraysizeInBracket(newarraysize))
+    //s32 newarraysize = NONARRAYSIZE;
+    //if(getArraysizeInBracket(newarraysize))
       {
-	args.arraysize = newarraysize;
+    //	args.arraysize = newarraysize;
+	args.arraysize = UNKNOWNSIZE; //newarraysize;
 	return m_nodeLeft->installSymbolTypedef(args, asymptr);
       }
 
@@ -290,10 +294,10 @@ namespace MFM {
 	return false;
       }
 
-    s32 newarraysize = NONARRAYSIZE;
-    if(getArraysizeInBracket(newarraysize))
+    //    s32 newarraysize = NONARRAYSIZE;
+    //if(getArraysizeInBracket(newarraysize))
       {
-	args.arraysize = newarraysize;
+	args.arraysize = UNKNOWNSIZE; //newarraysize;
 	return m_nodeLeft->installSymbolVariable(args, asymptr);
       }
     return false;  //error getting array size

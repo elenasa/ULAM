@@ -113,7 +113,7 @@ namespace MFM{
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
-
+    bool findNodeNoInResolver(NNO n, Node *& foundNode);
 
     virtual void generateCode(FileManager * fm);
 

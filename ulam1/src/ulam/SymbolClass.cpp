@@ -360,6 +360,15 @@ namespace MFM {
     return m_resolver->findMappedUTI(auti, mappedUTI);
   } //hasMappedUTI
 
+
+  bool SymbolClass::findNodeNoInResolver(NNO n, Node *& foundNode)
+  {
+    if(!m_resolver)
+      return false; //not found
+
+    return m_resolver->findNodeNo(n, foundNode);
+  } //findNodeNoInResolver
+
   /////////////////////////////////////////////////////////////////////////////////
   // from NodeProgram
   /////////////////////////////////////////////////////////////////////////////////

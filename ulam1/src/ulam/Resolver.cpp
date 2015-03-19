@@ -13,6 +13,16 @@ namespace MFM {
 
   void Resolver::clearLeftoverSubtrees()
   {
+    clearLeftoverUnknownBitsizeSubtrees();
+    clearLeftoverUnknownArraysizeSubtrees();
+    clearLeftoverNonreadyNamedConstantSubtrees();
+    clearLeftoverNonreadyClassArgSubtrees();
+    clearLeftoverUnknownTypdedefsFromAnotherClass();
+    m_mapUTItoUTI.clear();
+  } //clearLeftoverSubtrees()
+
+  void Resolver::clearLeftoverUnknownBitsizeSubtrees()
+  {
     s32 unknownB = m_unknownBitsizeSubtrees.size();
     if(unknownB > 0)
       {
@@ -30,8 +40,10 @@ namespace MFM {
 	  }
       }
     m_unknownBitsizeSubtrees.clear();
+  } //clearLeftoverUnknownBitsizeSubtrees
 
-
+  void Resolver::clearLeftoverUnknownArraysizeSubtrees()
+  {
     s32 unknownA = m_unknownArraysizeSubtrees.size();
     if(unknownA > 0)
       {
@@ -49,7 +61,10 @@ namespace MFM {
 	  }
       }
     m_unknownArraysizeSubtrees.clear();
+  } //clearLeftoverUnknownArraysizeSubtrees
 
+  void Resolver::clearLeftoverNonreadyNamedConstantSubtrees()
+  {
     s32 nonreadyC = m_nonreadyNamedConstantSubtrees.size();
     if(nonreadyC > 0)
       {
@@ -58,8 +73,10 @@ namespace MFM {
 	MSG("",msg.str().c_str(),DEBUG);
       }
     m_nonreadyNamedConstantSubtrees.clear();
+  } //clearLeftoverNonreadyNamedConstantSubtrees
 
-
+  void Resolver::clearLeftoverNonreadyClassArgSubtrees()
+  {
     s32 nonreadyG = m_nonreadyClassArgSubtrees.size();
     if(nonreadyG > 0)
       {
@@ -78,7 +95,10 @@ namespace MFM {
 	  }
       }
     m_nonreadyClassArgSubtrees.clear();
+  } //clearLeftoverNonreadyClassArgSubtrees
 
+  void Resolver::clearLeftoverUnknownTypdedefsFromAnotherClass()
+  {
     s32 tdfromanotherC = m_unknownTypedefFromAnotherClass.size();
     if(tdfromanotherC > 0)
       {
@@ -88,9 +108,7 @@ namespace MFM {
 	MSG("",msg.str().c_str(),DEBUG);
       }
     m_unknownTypedefFromAnotherClass.clear();
-
-    m_mapUTItoUTI.clear();
-  } //clearLeftoverSubtrees()
+  } //clearLeftoverUnknownTypdedefsFromAnotherClass
 
   void Resolver::cloneTemplateResolver(SymbolClass * to)
   {
@@ -631,6 +649,76 @@ namespace MFM {
       }
     return brtn;
   } //findMappedUTI
+
+  bool Resolver::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(findNodeNoInUnknownBitsizes(n, foundNode))
+      return true;
+
+    if(findNodeNoInUnknownArraysizes(n, foundNode))
+      return true;
+
+    if(findNodeNoInNonreadyNamedConstants(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
+
+  bool Resolver::findNodeNoInUnknownBitsizes(NNO n, Node *& foundNode)
+  {
+    bool rtnB = false;
+    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
+
+    while(it != m_unknownBitsizeSubtrees.end())
+      {
+	NodeTypeBitsize * ceNode = it->second;
+	assert(ceNode);
+	if(ceNode->findNodeNo(n, foundNode))
+	  {
+	    rtnB = true;
+	    break;
+	  }
+	it++;
+      }
+    return rtnB;
+  } //findNodeNoInUnknownBitsizes
+
+  bool Resolver::findNodeNoInUnknownArraysizes(NNO n, Node *& foundNode)
+  {
+    bool rtnB = false;
+    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.begin();
+
+    while(it != m_unknownArraysizeSubtrees.end())
+      {
+	NodeSquareBracket * ceNode = it->second;
+	assert(ceNode);
+	if(ceNode->findNodeNo(n, foundNode))
+	  {
+	    rtnB = true;
+	    break;
+	  }
+	it++;
+      }
+    return rtnB;
+  } //findNodeNoInUnknownArraysizes
+
+  bool Resolver::findNodeNoInNonreadyNamedConstants(NNO n, Node *& foundNode)
+  {
+    bool rtnB = false;
+
+    std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
+    while(it != m_nonreadyNamedConstantSubtrees.end())
+      {
+	NodeConstantDef * constNode = *it;
+	assert(constNode);
+	if(constNode->findNodeNo(n, foundNode))
+	  {
+	    rtnB = true;
+	    break;
+	  }
+	it++;
+      }
+    return rtnB;
+  } //findNodeNoInNonreadyNamedConstants
 
   void Resolver::cloneUTImap(SymbolClass * csym)
   {

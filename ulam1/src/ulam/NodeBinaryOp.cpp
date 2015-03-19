@@ -5,7 +5,8 @@
 
 namespace MFM {
 
-  NodeBinaryOp::NodeBinaryOp(Node * left, Node * right, CompilerState & state) : Node(state), m_nodeLeft(left), m_nodeRight(right) {}
+  NodeBinaryOp::NodeBinaryOp(Node * left, Node * right, CompilerState & state) : Node(state), m_nodeLeft(left), m_nodeRight(right) { }
+
   NodeBinaryOp::NodeBinaryOp(const NodeBinaryOp& ref) : Node(ref)
   {
     m_nodeLeft = ref.m_nodeLeft->instantiate();

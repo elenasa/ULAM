@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_A { Bool(1) a[5](false,false,false,false,true);  Int(32) test() {  a 1 3 +b [] true = 0 return } }\n");
+      // constant fold: a 1 3 +b
+      return std::string("Exit status: 0\nUe_A { Bool(1) a[5](false,false,false,false,true);  Int(32) test() {  a 4 [] true = 0 return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_A { Int(16) a[2](1,0);  Int(32) test() {  a 2 1 -b [] 1 cast = a 0 [] a 1 [] cast 0 +b cast = a a 0 [] [] a 0 [] cast 1 -b cast = a a 1 [] [] cast return } }\n");
+      //constant fold: a 2 1 -b
+      return std::string("Exit status: 1\nUe_A { Int(16) a[2](1,0);  Int(32) test() {  a 1 [] 1 cast = a 0 [] a 1 [] cast 0 +b cast = a a 0 [] [] a 0 [] cast 1 -b cast = a a 1 [] [] cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

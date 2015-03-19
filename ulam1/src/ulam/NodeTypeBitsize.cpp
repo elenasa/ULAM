@@ -5,7 +5,10 @@
 
 namespace MFM {
 
-  NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node) {}
+  NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node)
+  {
+    m_node->updateLineage(getNodeNo()); //for unknown subtrees
+  }
 
   NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref)
   {

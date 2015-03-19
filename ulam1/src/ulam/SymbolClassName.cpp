@@ -61,6 +61,13 @@ namespace MFM {
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->findNodeNo(n, foundNode);
+
+    //if not in the tree, ask the resolver
+    if(!foundNode)
+      {
+	SymbolClass::findNodeNoInResolver(n, foundNode);
+      }
+
     m_state.popClassContext(); //restore
     return foundNode;
   } //findNodeNoInAClassInstance
