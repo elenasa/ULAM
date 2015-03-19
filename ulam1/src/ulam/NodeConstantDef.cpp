@@ -228,6 +228,7 @@ namespace MFM {
   void NodeConstantDef::setConstantExpr(Node * node)
   {
     m_nodeExpr = node;
+    m_nodeExpr->updateLineage(getNodeNo()); // for unknown subtrees
   }
 
   // called during parsing rhs of named constant;

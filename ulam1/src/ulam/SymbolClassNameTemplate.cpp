@@ -629,16 +629,9 @@ namespace MFM {
   Node * SymbolClassNameTemplate::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
     Node * foundNode = NULL;
-
     if(getUlamTypeIdx() == instance)
       {
-	NodeBlockClass * classNode = getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-	classNode->findNodeNo(n, foundNode);
-	m_state.popClassContext(); //restore
-	return foundNode;
+	return SymbolClassName::findNodeNoInAClassInstance(instance, n);
       }
 
     SymbolClass * csym = NULL;
@@ -653,8 +646,14 @@ namespace MFM {
 	if(n == getClassBlockNode()->getNodeNo())
 	  foundNode = classNode;
 	else
-	  classNode->findNodeNo(n, foundNode);
-
+	  {
+	    classNode->findNodeNo(n, foundNode);
+	    //if not in the tree, ask the resolver
+	    if(!foundNode)
+	      {
+		csym->findNodeNoInResolver(n, foundNode);
+	      }
+	  }
 	m_state.popClassContext(); //restore
       }
     return foundNode;

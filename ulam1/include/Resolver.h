@@ -85,6 +85,8 @@ namespace MFM
 
     bool mapUTItoUTI(UTI fmuti, UTI touti);
     bool findMappedUTI(UTI auti, UTI& mappedUTI);
+    bool findNodeNo(NNO n, Node *& foundNode);
+
     void cloneUTImap(SymbolClass * csym);
 
   protected:
@@ -112,7 +114,17 @@ namespace MFM
     bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
     bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
 
+    bool findNodeNoInUnknownBitsizes(NNO n, Node *& foundNode);
+    bool findNodeNoInUnknownArraysizes(NNO n, Node *& foundNode);
+    bool findNodeNoInNonreadyNamedConstants(NNO n, Node *& foundNode);
+
     void clearLeftoverSubtrees();
+    void clearLeftoverUnknownBitsizeSubtrees();
+    void clearLeftoverUnknownArraysizeSubtrees();
+    void clearLeftoverNonreadyNamedConstantSubtrees();
+    void clearLeftoverNonreadyClassArgSubtrees();
+    void clearLeftoverUnknownTypdedefsFromAnotherClass();
+
   };
 
 }
