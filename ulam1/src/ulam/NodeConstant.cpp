@@ -13,6 +13,7 @@ namespace MFM {
 
   NodeConstant::NodeConstant(const NodeConstant& ref) : NodeTerminal(ref), m_token(ref.m_token), m_constSymbol(NULL), m_ready(false), m_currBlockNo(ref.m_currBlockNo) {}
 
+  //special constructor that replaces a var with a constant (see NodeIdent)
   NodeConstant::NodeConstant(const NodeIdent& iref) :  NodeTerminal(iref), m_token(iref.getToken()), m_constSymbol(NULL), m_ready(false), m_currBlockNo(iref.getBlockNo()) {}
 
   NodeConstant::~NodeConstant(){}
@@ -41,7 +42,7 @@ namespace MFM {
   bool NodeConstant::getSymbolPtr(Symbol *& symptrref)
   {
     symptrref = m_constSymbol;
-    return true;
+    return (m_constSymbol != NULL); //true;
   }
 
   void NodeConstant::constantFoldAToken(Token tok)
@@ -57,8 +58,8 @@ namespace MFM {
   UTI NodeConstant::checkAndLabelType()
   {
     UTI it = Nav;
-    //instantiate, look up in class block
-    if(m_constSymbol == NULL)
+    //instantiate, look up in class block; skip if stub copy and already ready.
+    if(m_constSymbol == NULL && !isReadyConstant())
       {
 	//in case of a cloned unknown
 	NodeBlock * currBlock = getBlock();
@@ -94,27 +95,35 @@ namespace MFM {
     if(m_constSymbol)
       {
 	it = m_constSymbol->getUlamTypeIdx();
-	if(!m_state.isComplete(it))
+      }
+    else if(isReadyConstant())
+      {
+	//stub copy case: still wants uti mapping
+	it = NodeTerminal::getNodeType();
+      }
+
+    // map incomplete UTI
+    if(it != Nav && !m_state.isComplete(it))
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Named Constant type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with constant symbol name '" << getName();
-		msg << "' UTI" << it << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		it = mappedUTI;
-		m_constSymbol->resetUlamType(mappedUTI); //consistent!
-	      }
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete Named Constant type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with constant symbol name '" << getName();
+	    msg << "' UTI" << it << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    it = mappedUTI;
+	    if(m_constSymbol)
+	      m_constSymbol->resetUlamType(mappedUTI); //consistent!
 	  }
 
-	if(!m_state.isComplete(it)) //reloads
+	if(!m_state.isComplete(it)) //reloads to recheck
 	  {
 	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
@@ -125,7 +134,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
-      } //got const symbol
+      }
 
     setNodeType(it);
     setStoreIntoAble(false);
@@ -151,8 +160,8 @@ namespace MFM {
   }
 
   //class context set prior to calling us; purpose is to get
-  // the value of this constant from the context without
-  // constant folding.
+  // the value of this constant from the context before
+  // constant folding happens.
   bool NodeConstant::assignClassArgValueInStubCopy()
   {
     // insure current block NNOs match
@@ -181,6 +190,7 @@ namespace MFM {
 	    ((SymbolConstantValue *) asymptr)->getValue(val);
 	    m_constant.uval = val;
 	    m_ready = true;
+	    //note: m_constSymbol may be NULL; ok in this circumstance (i.e. stub copy).
 	  }
       }
     return m_ready;
@@ -213,6 +223,5 @@ namespace MFM {
     m_constant.uval = val;
     return m_constSymbol->isReady();
   } //updateConstant
-
 
 } //end MFM
