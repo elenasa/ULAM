@@ -85,6 +85,8 @@ namespace MFM{
 
     bool foldConstantExpression();
 
+    virtual bool assignClassArgValueInStubCopy();
+
     virtual EvalStatus eval();
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);

@@ -150,11 +150,13 @@ namespace MFM {
 
   SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(Token typeTok, UTI cuti)
   {
+    NodeBlockClass * templateclassblock = getClassBlockNode();
     //previous block is template's class block, and new NNO here!
-    NodeBlockClass * newblockclass = new NodeBlockClass(getClassBlockNode(), m_state);
+    NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
     newblockclass->setNodeLocation(typeTok.m_locator);
     newblockclass->setNodeType(cuti);
+    newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
     SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, this, m_state);
     assert(newclassinstance);
@@ -177,18 +179,19 @@ namespace MFM {
     assert(csym->pendingClassArgumentsForClassInstance());
     assert(csym->isStub());
     NodeBlockClass * blockclass = csym->getClassBlockNode();
+    NodeBlockClass * templateclassblock = getClassBlockNode();
 
     //previous block is template's class block, and new NNO here!
-    NodeBlockClass * newblockclass = new NodeBlockClass(getClassBlockNode(), m_state);
+    NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
     newblockclass->setNodeLocation(blockclass->getNodeLocation());
     newblockclass->setNodeType(newuti);
+    newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
     SymbolClass * newclassinstance = new SymbolClass(getId(), newuti, newblockclass, this, m_state);
     assert(newclassinstance);
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
-
 
     // we are in the middle of fully instantiating (context); with known args that we want to use
     // to resolve, if possible, these pending args:
@@ -641,11 +644,11 @@ namespace MFM {
 	assert(classNode);
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	// classblock node no is NOT the same across instances,
+	// classblock node no is NOT the same across instances, NOT TRUE anymore!!!
 	// unlike ALL the other node blocks. sigh.
-	if(n == getClassBlockNode()->getNodeNo())
-	  foundNode = classNode;
-	else
+	//if(n == getClassBlockNode()->getNodeNo())
+	//  foundNode = classNode; //slight-of-hand magic
+	//else
 	  {
 	    classNode->findNodeNo(n, foundNode);
 	    //if not in the tree, ask the resolver
@@ -1089,6 +1092,7 @@ namespace MFM {
 
     m_state.popClassContext(); //restore
 
+    //copy the "ready" values from first the stub (fm)
     NodeBlockClass * toclassblock = to->getClassBlockNode();
     m_state.pushClassContext(to->getUlamTypeIdx(), toclassblock, toclassblock, false, NULL);
 
@@ -1101,8 +1105,9 @@ namespace MFM {
 	m_state.addSymbolToCurrentScope(asym2);
       } //next arg
 
-    instancesArgs.clear(); //don't delete the symbols
     m_state.popClassContext(); //restore
+
+    instancesArgs.clear(); //don't delete the symbols
     return true;
   } //copyAnInstancesArgValues
 

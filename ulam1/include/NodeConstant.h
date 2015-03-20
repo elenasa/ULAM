@@ -75,6 +75,8 @@ namespace MFM{
     NNO getBlockNo();
     NodeBlock * getBlock();
 
+    virtual bool assignClassArgValueInStubCopy();
+
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);

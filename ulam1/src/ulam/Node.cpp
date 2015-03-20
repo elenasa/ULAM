@@ -34,6 +34,11 @@ namespace MFM {
     return m_no;
   }
 
+  void Node::resetNodeNo(NNO no)
+  {
+    m_no = no;
+  }
+
   bool Node::exchangeKids(Node * oldnptr, Node * newnptr)
   {
     return false; //default
@@ -188,6 +193,11 @@ namespace MFM {
   bool Node::installSymbolVariable(ParserTypeArgs& args, Symbol *& asymptr)
   {
     return false;
+  }
+
+  bool Node::assignClassArgValueInStubCopy()
+  {
+    return true; //nothing to do
   }
 
   // any node above assignexpr is not storeintoable

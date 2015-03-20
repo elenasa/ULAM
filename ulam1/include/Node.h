@@ -73,6 +73,7 @@ namespace MFM{
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
     NNO getNodeNo();
+    void resetNodeNo(NNO no); //for constant folding
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void print(File * fp);
@@ -116,6 +117,8 @@ namespace MFM{
     virtual bool installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(ParserTypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolVariable(ParserTypeArgs& args,  Symbol *& asymptr);
+
+    virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval() = 0;
     virtual EvalStatus evalToStoreInto();

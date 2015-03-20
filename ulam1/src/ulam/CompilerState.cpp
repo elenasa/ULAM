@@ -1796,9 +1796,9 @@ namespace MFM {
 	return cnsym->findNodeNoInAClassInstance(mbuti, n);
       }
 
-    //beware the classblock is the only block with different node no in SHALLOW instances
-    if(getCurrentBlock()->getNodeNo() == n && getClassBlock()->getNodeType() == getCompileThisIdx())
-      return getCurrentBlock(); //avoid chix-n-egg with functiondefs
+    NodeBlock * currBlock = getCurrentBlock();
+    if(currBlock && currBlock->getNodeNo() == n && getClassBlock()->getNodeType() == getCompileThisIdx())
+      return currBlock; //avoid chix-n-egg with functiondefs
 
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));

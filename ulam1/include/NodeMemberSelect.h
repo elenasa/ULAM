@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual bool assignClassArgValueInStubCopy();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
