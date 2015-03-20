@@ -36,6 +36,7 @@ namespace MFM {
 	  }
 
 	newType = Bool; //always Bool (default size) for node
+	setNodeType(newType);
       }
 
     return newType;
