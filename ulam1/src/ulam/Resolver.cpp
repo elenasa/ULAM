@@ -461,6 +461,7 @@ namespace MFM {
 	  {
 	    UTI tduti = it->first;
 	    UTI aclassuti = it->second;
+
 	    //if aclassuti is not a stub, look up tduti in its map of uti's
 	    SymbolClass * acsym = NULL;
 	    assert(m_state.alreadyDefinedSymbolClass(aclassuti, acsym));
@@ -537,27 +538,6 @@ namespace MFM {
   bool Resolver::constantFoldNonreadyClassArgs()
   {
     bool rtnb = true;
-    //HOPEFULLY, all context dependent expressions have been simplified so
-    // this step is no longer required.
-    bool changeContext = false;
-
-#if 0
-    // before trying to resolve class args, reset the context responsible for its existence
-    // during resolving loop the current context may be its shallow self rather than the deep
-    // instantiation with the needed values for the constants used in these pending args.
-    if(m_classContextUTIForPendingArgs != m_state.getCompileThisIdx())
-      {
-
-	SymbolClass * csymptr = NULL;
-	assert(m_state.alreadyDefinedSymbolClass(m_classContextUTIForPendingArgs, csymptr));
-
-	NodeBlockClass * classNode = csymptr->getClassBlockNode();
-	//set context and try to resolve all context-dependent arg expressions..
-	m_state.pushClassContext(m_classContextUTIForPendingArgs, classNode, classNode, false, NULL);
-	changeContext = true; //use to pop class context.
-      }
-#endif
-
     std::vector<NodeConstantDef *> leftCArgs;
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
     while(vit != m_nonreadyClassArgSubtrees.end())
@@ -581,10 +561,6 @@ namespace MFM {
 	m_nonreadyClassArgSubtrees = leftCArgs; //replace
 	rtnb = false;
       }
-
-    if(changeContext)
-      m_state.popClassContext(); //restore
-
     return rtnb;
   } //constantFoldNonreadyClassArgs
 
@@ -617,32 +593,21 @@ namespace MFM {
 	assert(classblock->isIdInScope(cloneNode->getSymbolId(), cvsym));
 	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
 
-	linkConstantExpressionForPendingArg(cloneNode);
-#if 0
-	//set context and try to resolve all context-dependent arg expressions..
-	m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
-
-	if(cloneNode->foldConstantExpression())
-	  delete cloneNode;
-	else
-	  linkConstantExpressionForPendingArg(cloneNode);
-
-	m_state.popClassContext(); //restore previous context
-#endif
-
+	linkConstantExpressionForPendingArg(cloneNode); //resolve later
 	vit++;
       }
+
     m_classContextUTIForPendingArgs = context; //update (might not be needed anymore?)
 
-#if 1
-    // comment needs updating, elena..
-    //can we mix the current block (context) to find symbols; use this stub copy to find NNOs
-    //set context and try to resolve all context-dependent arg expressions..
-    //m_state.pushClassContext(m_classUTI, classblock, classblock, false, NULL);
+    //Cannot MIX the current block (context) to find symbols while
+    //using this stub copy to find parent NNOs for constant folding;
+    //therefore we separate them so that all we do now is update the
+    //constant values in the stub copy's Resolver map.
+    //Resolution of all context-dependent arg expressions will occur
+    //during the resolving loop..
     m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
     assignClassArgValuesInStubCopy();
     m_state.popClassContext(); //restore previous context
-#endif
   } //clonePendingClassArgumentsForStubClassInstance
 
   UTI Resolver::getContextForPendingArgs()
