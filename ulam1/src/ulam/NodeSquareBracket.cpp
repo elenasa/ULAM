@@ -302,6 +302,12 @@ namespace MFM {
     return false;  //error getting array size
   } //installSymbolVariable
 
+  bool NodeSquareBracket::assignClassArgValueInStubCopy()
+  {
+    //return m_nodeRight->assignClassArgValueInStubCopy();
+    return true;
+  }
+
   // eval() performed even before check and label!
   // returns false if error; UNKNOWNSIZE is not an error!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)

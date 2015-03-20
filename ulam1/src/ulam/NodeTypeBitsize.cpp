@@ -92,6 +92,12 @@ namespace MFM {
     m_node->countNavNodes(cnt);
   }
 
+  bool NodeTypeBitsize::assignClassArgValueInStubCopy()
+  {
+    //return m_node->assignClassArgValueInStubCopy();
+    return true;
+  }
+
   EvalStatus NodeTypeBitsize::eval()
   {
     assert(0);  //not in parse tree; part of symbol's type

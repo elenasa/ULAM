@@ -211,11 +211,17 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
     newnode->setYourParentNo(pno);
+    newnode->resetNodeNo(getNodeNo());
 
     delete this; //suicide is painless..
 
     return newnode->checkAndLabelType();
   } //constantFold
+
+  bool NodeUnaryOp::assignClassArgValueInStubCopy()
+  {
+    return m_node->assignClassArgValueInStubCopy();
+  }
 
   EvalStatus NodeUnaryOp::eval()
   {

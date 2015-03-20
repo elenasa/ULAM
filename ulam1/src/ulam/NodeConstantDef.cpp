@@ -273,6 +273,11 @@ namespace MFM {
     return true;
   } //foldConstantExpression
 
+  bool NodeConstantDef::assignClassArgValueInStubCopy()
+  {
+    return m_nodeExpr->assignClassArgValueInStubCopy();
+  }
+
   EvalStatus NodeConstantDef::eval()
   {
     if(m_constSymbol->isReady())

@@ -150,6 +150,42 @@ namespace MFM {
     return currBlock;
   }
 
+  //class context set prior to calling us; purpose is to get
+  // the value of this constant from the context without
+  // constant folding.
+  bool NodeConstant::assignClassArgValueInStubCopy()
+  {
+    // insure current block NNOs match
+    if(m_currBlockNo != m_state.getCurrentBlockNo())
+      {
+	std::ostringstream msg;
+	msg << "Block NNO " << m_currBlockNo << " for <";
+	msg << m_state.getTokenDataAsString(&m_token).c_str();
+	msg << "> does not match the current block no ";
+	msg << m_state.getCurrentBlockNo();
+	msg << "; its value cannot be used in stub copy, with class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	return false;
+      }
+
+    if(m_ready)
+      return true; //nothing to do
+
+    Symbol * asymptr = NULL;
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
+      {
+	if(asymptr->isConstant())
+	  {
+	    u32 val = 0;
+	    ((SymbolConstantValue *) asymptr)->getValue(val);
+	    m_constant.uval = val;
+	    m_ready = true;
+	  }
+      }
+    return m_ready;
+  } //assignClassArgValueInStubCopy
+
   EvalStatus NodeConstant::eval()
   {
     if(!isReadyConstant())
@@ -177,5 +213,6 @@ namespace MFM {
     m_constant.uval = val;
     return m_constSymbol->isReady();
   } //updateConstant
+
 
 } //end MFM

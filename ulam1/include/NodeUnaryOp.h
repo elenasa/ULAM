@@ -73,6 +73,8 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen();
 
+    virtual bool assignClassArgValueInStubCopy();
+
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);

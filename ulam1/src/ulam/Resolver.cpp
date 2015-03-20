@@ -234,6 +234,9 @@ namespace MFM {
     NodeTypeBitsize * ceNode = it->second;
     NodeTypeBitsize * cloneSubtree = new NodeTypeBitsize(*ceNode); //any symbols will be null until c&l
     assert(cloneSubtree);
+    cloneSubtree->resetNodeNo(m_state.getNextNodeNo()); //mucks up finding nno when the same
+    cloneSubtree->updateLineage(cloneSubtree->getNodeNo()); //for future constant folding; does it hurt to have clones' parent nno be itself?
+
     linkConstantExpression(totype, cloneSubtree);
   } //linkConstantExpression (bitsize, decllist)
 
@@ -492,6 +495,24 @@ namespace MFM {
     return rtnstat;
   } //statusUnknownTypedefsFromAnotherClass
 
+  bool Resolver::assignClassArgValuesInStubCopy()
+  {
+    bool aok = true;
+    // context is already set
+    std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
+    while(vit != m_nonreadyClassArgSubtrees.end())
+      {
+	NodeConstantDef * ceNode = *vit;
+
+	if(ceNode)
+	  {
+	    aok &= ceNode->assignClassArgValueInStubCopy();
+	  }
+	vit++;
+      } //while thru vector of incomplete args only
+    return aok;
+  } //assignClassArgValuesInStubCopy
+
   bool Resolver::statusNonreadyClassArguments()
   {
     bool rtnstat = true; //ok, empty
@@ -518,20 +539,22 @@ namespace MFM {
     bool rtnb = true;
     //HOPEFULLY, all context dependent expressions have been simplified so
     // this step is no longer required.
+    bool changeContext = false;
+
 #if 0
     // before trying to resolve class args, reset the context responsible for its existence
     // during resolving loop the current context may be its shallow self rather than the deep
     // instantiation with the needed values for the constants used in these pending args.
-    if(m_classContextUTIForPendingArgs != m_state.m_compileThisIdx)
+    if(m_classContextUTIForPendingArgs != m_state.getCompileThisIdx())
       {
 
 	SymbolClass * csymptr = NULL;
 	assert(m_state.alreadyDefinedSymbolClass(m_classContextUTIForPendingArgs, csymptr));
 
-	m_state.setCompileThisIdx(m_classContextUTIForPendingArgs);
 	NodeBlockClass * classNode = csymptr->getClassBlockNode();
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
+	//set context and try to resolve all context-dependent arg expressions..
+	m_state.pushClassContext(m_classContextUTIForPendingArgs, classNode, classNode, false, NULL);
+	changeContext = true; //use to pop class context.
       }
 #endif
 
@@ -558,6 +581,10 @@ namespace MFM {
 	m_nonreadyClassArgSubtrees = leftCArgs; //replace
 	rtnb = false;
       }
+
+    if(changeContext)
+      m_state.popClassContext(); //restore
+
     return rtnb;
   } //constantFoldNonreadyClassArgs
 
@@ -590,6 +617,8 @@ namespace MFM {
 	assert(classblock->isIdInScope(cloneNode->getSymbolId(), cvsym));
 	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
 
+	linkConstantExpressionForPendingArg(cloneNode);
+#if 0
 	//set context and try to resolve all context-dependent arg expressions..
 	m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
 
@@ -599,9 +628,21 @@ namespace MFM {
 	  linkConstantExpressionForPendingArg(cloneNode);
 
 	m_state.popClassContext(); //restore previous context
+#endif
+
 	vit++;
       }
     m_classContextUTIForPendingArgs = context; //update (might not be needed anymore?)
+
+#if 1
+    // comment needs updating, elena..
+    //can we mix the current block (context) to find symbols; use this stub copy to find NNOs
+    //set context and try to resolve all context-dependent arg expressions..
+    //m_state.pushClassContext(m_classUTI, classblock, classblock, false, NULL);
+    m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+    assignClassArgValuesInStubCopy();
+    m_state.popClassContext(); //restore previous context
+#endif
   } //clonePendingClassArgumentsForStubClassInstance
 
   UTI Resolver::getContextForPendingArgs()
@@ -660,6 +701,10 @@ namespace MFM {
 
     if(findNodeNoInNonreadyNamedConstants(n, foundNode))
       return true;
+
+    if(findNodeNoInNonreadyClassArgs(n, foundNode))
+      return true;
+
     return false;
   } //findNodeNo
 
@@ -719,6 +764,25 @@ namespace MFM {
       }
     return rtnB;
   } //findNodeNoInNonreadyNamedConstants
+
+  bool Resolver::findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode)
+  {
+    bool rtnB = false;
+
+    std::vector<NodeConstantDef *>::const_iterator vit = m_nonreadyClassArgSubtrees.begin();
+    while(vit != m_nonreadyClassArgSubtrees.end())
+      {
+	NodeConstantDef * ceNode = *vit;
+	assert(ceNode);
+	if(ceNode->findNodeNo(n, foundNode))
+	  {
+	    rtnB = true;
+	    break;
+	  }
+	vit++;
+      }
+    return rtnB;
+  } //findNodeNoInNonreadyClassArgs
 
   void Resolver::cloneUTImap(SymbolClass * csym)
   {

@@ -218,12 +218,21 @@ namespace MFM {
     msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
-    newnode->setYourParentNo(pno);
+    newnode->setYourParentNo(pno); //a leaf
+    newnode->resetNodeNo(getNodeNo());
 
     delete this; //suicide is painless..
 
     return newnode->checkAndLabelType();
   } //constantFold
+
+  bool NodeBinaryOp::assignClassArgValueInStubCopy()
+  {
+    bool aok = true;
+    aok &= m_nodeLeft->assignClassArgValueInStubCopy();
+    aok &= m_nodeRight->assignClassArgValueInStubCopy();
+    return aok;
+  }
 
   EvalStatus NodeBinaryOp::eval()
   {

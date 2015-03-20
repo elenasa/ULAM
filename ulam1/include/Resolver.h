@@ -76,6 +76,7 @@ namespace MFM
     void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubUTI);
 
     //these exist in a stubs only!
+    bool assignClassArgValuesInStubCopy();
     bool statusNonreadyClassArguments();
     bool constantFoldNonreadyClassArgs();
     void linkConstantExpressionForPendingArg(NodeConstantDef * ceNode);
@@ -117,6 +118,7 @@ namespace MFM
     bool findNodeNoInUnknownBitsizes(NNO n, Node *& foundNode);
     bool findNodeNoInUnknownArraysizes(NNO n, Node *& foundNode);
     bool findNodeNoInNonreadyNamedConstants(NNO n, Node *& foundNode);
+    bool findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode);
 
     void clearLeftoverSubtrees();
     void clearLeftoverUnknownBitsizeSubtrees();

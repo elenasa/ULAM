@@ -113,7 +113,7 @@ namespace MFM {
 
     makeRoomForNodeType(getNodeType());
     EvalStatus evs = m_nodeCondition->eval();
-    if(evs != NORMAL)
+    if(evs != NORMAL) //what if RETURN
       {
 	evalNodeEpilog();
 	return evs;

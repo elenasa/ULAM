@@ -64,6 +64,8 @@ namespace MFM{
 
     virtual void countNavNodes(u32& cnt);
 
+    virtual bool assignClassArgValueInStubCopy();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
