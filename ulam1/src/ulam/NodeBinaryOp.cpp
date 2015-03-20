@@ -138,7 +138,6 @@ namespace MFM {
 	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
 	  }
       }
-
     return newType;
   } //checkAndLabelType
 
