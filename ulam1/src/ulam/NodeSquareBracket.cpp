@@ -259,7 +259,7 @@ namespace MFM {
 	return false;
       }
 
-    s32 newarraysize = NONARRAYSIZE;
+    s32 newarraysize = NONARRAYSIZE; //UNKNOWNSIZE
     if(getArraysizeInBracket(newarraysize))
       {
     	args.arraysize = newarraysize;
@@ -293,7 +293,7 @@ namespace MFM {
 	return false;
       }
 
-    s32 newarraysize = NONARRAYSIZE;
+    s32 newarraysize = NONARRAYSIZE; //UNKNOWNSIZE
     if(getArraysizeInBracket(newarraysize))
       {
 	args.arraysize = newarraysize;

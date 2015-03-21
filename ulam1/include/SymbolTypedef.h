@@ -48,13 +48,15 @@ namespace MFM{
   class SymbolTypedef : public Symbol
   {
   public:
-    SymbolTypedef(u32 id, UTI utype, CompilerState& state);
+    SymbolTypedef(u32 id, UTI utype, UTI scalaruti, CompilerState& state);
     SymbolTypedef(const SymbolTypedef& sref);
     ~SymbolTypedef();
 
     virtual Symbol * clone();
 
     virtual bool isTypedef();
+
+    UTI getScalarUTI();
 
     virtual const std::string getMangledPrefix();
 
@@ -63,7 +65,7 @@ namespace MFM{
   protected:
 
   private:
-
+    UTI m_scalarUTI; //when utype is an array
   };
 
 }

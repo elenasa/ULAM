@@ -3,8 +3,9 @@
 
 namespace MFM {
 
-  SymbolTypedef::SymbolTypedef(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state){}
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref) {}
+  SymbolTypedef::SymbolTypedef(u32 id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti) {}
+
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(sref.m_scalarUTI) {}
 
   SymbolTypedef::~SymbolTypedef() {}
 
@@ -16,6 +17,11 @@ namespace MFM {
   bool SymbolTypedef::isTypedef()
   {
     return true;
+  }
+
+  UTI SymbolTypedef::getScalarUTI()
+  {
+    return m_scalarUTI;
   }
 
   const std::string SymbolTypedef::getMangledPrefix()

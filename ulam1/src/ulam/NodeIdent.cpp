@@ -321,6 +321,7 @@ namespace MFM {
 
     //typedef might have bitsize and arraysize info..
     UTI tduti = Nav;
+    UTI tdscalaruti = Nav;
     bool brtn = false;
     if(args.anothertduti)
       {
@@ -330,8 +331,9 @@ namespace MFM {
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, tduti))
+    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, tduti, tdscalaruti))
       {
+	args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkTypedefOfTypedefSizes(args, tduti)) //ref
 	  {
 	    brtn = true;
@@ -356,6 +358,7 @@ namespace MFM {
 	UTI uti = tduti;
 	if(m_state.isScalar(uti) && args.arraysize != NONARRAYSIZE)
 	  {
+	    args.declListOrTypedefScalarType = uti;
 	    // o.w. build symbol (with bit and array sizes);
 	    // array's can't have their scalar as classInstance; o.w., no longer findable by token.
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
@@ -366,11 +369,13 @@ namespace MFM {
 	      args.bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
 	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.bitsize, args.arraysize);
-	    newarraykey.append(uti);
+	    newarraykey.append(args.declListOrTypedefScalarType); //removed if not a class
+
 	    uti = m_state.makeUlamType(newarraykey, bUT);
 	  }
+
 	//create a symbol for this new ulam type, a typedef, with its type
-	SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, uti, m_state);
+	SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, uti, args.declListOrTypedefScalarType, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));  //true
       }
@@ -390,6 +395,7 @@ namespace MFM {
     // maintain specific type (see isAConstant() Node method)
     bool brtn = false;
     UTI uti = Nav;
+    UTI tdscalaruti = Nav;
     if(args.anothertduti)
       {
 	if(checkConstantTypedefSizes(args, args.anothertduti))
@@ -398,8 +404,9 @@ namespace MFM {
 	    uti = args.anothertduti;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, uti))
+    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, uti, tdscalaruti))
       {
+	args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))
 	  {
 	    brtn = true;
@@ -452,14 +459,15 @@ namespace MFM {
     // if a primitive (NONARRAYSIZE), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
     UTI auti = Nav;
+    UTI tdscalaruti = Nav;
     bool brtn = false;
 
     //list of decls can use the same 'scalar' type (arg); adjusted for arrays
-    if(args.declListScalarType)
+    if(args.declListOrTypedefScalarType)
       {
-	if(!checkVariableTypedefSizes(args, args.declListScalarType))
+	if(!checkVariableTypedefSizes(args, args.declListOrTypedefScalarType))
 	  return false;
-	auti = args.declListScalarType;
+	auti = args.declListOrTypedefScalarType;
 	brtn = true;
       }
     else if(args.anothertduti)
@@ -470,8 +478,9 @@ namespace MFM {
 	auti = args.anothertduti;
 	brtn = true;
       }
-    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, auti))
+    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, auti, tdscalaruti))
       {
+	args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	// check typedef types here..
 	if(!checkVariableTypedefSizes(args, auti))
 	  return false;
@@ -547,7 +556,8 @@ namespace MFM {
     //Symbol is a parameter; always on the stack
     if(m_state.m_currentFunctionBlockDeclSize < 0)
       {
-	  m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti); //1 slot for scalar or packed array
+	//1 slot for scalar or packed array
+	  m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
 
 	return (new SymbolVariableStack(m_token.m_dataindex, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
       }
@@ -575,7 +585,11 @@ namespace MFM {
 	  {
 	    //error can't support double arrays
 	    std::ostringstream msg;
-	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(auti).c_str() << ", and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <";
+	    msg <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: ";
+	    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
+	    msg << ", and cannot be redefined by variable: <";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
@@ -592,7 +606,11 @@ namespace MFM {
 	  {
 	    //error can't support different bitsizes
 	    std::ostringstream msg;
-	    msg << "Bit size (" << tdbitsize << ") is included in typedef: <" <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(auti).c_str() << ", and cannot be redefined by variable: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+	    msg << "Bit size (" << tdbitsize << ") is included in typedef: <";
+	    msg <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: ";
+	    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
+	    msg << ", and cannot be redefined by variable: <";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
@@ -616,7 +634,12 @@ namespace MFM {
 	  {
 	    //error can't support typedefs changing arraysizes
 	    std::ostringstream msg;
-	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(args.anothertduti).c_str() << ", and cannot be redefined by typedef: <" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">, to [" << args.arraysize << "]";
+	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <";
+	    msg <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: ";
+	    msg << m_state.getUlamTypeNameByIndex(args.anothertduti).c_str();
+	    msg << ", and cannot be redefined by typedef: <";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << ">, to [" << args.arraysize << "]";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
@@ -641,7 +664,11 @@ namespace MFM {
       {
 	//error can't support named constant arrays
 	std::ostringstream msg;
-	msg << "Arraysize [" << tdarraysize << "] is included in typedef: <" <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: " << m_state.getUlamTypeNameByIndex(args.anothertduti).c_str() << ", and cannot be used by a named constant: '" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
+	msg << "Arraysize [" << tdarraysize << "] is included in typedef: <";
+	msg <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: ";
+	msg << m_state.getUlamTypeNameByIndex(args.anothertduti).c_str();
+	msg << ", and cannot be used by a named constant: '";
+	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnb = false;
       }
