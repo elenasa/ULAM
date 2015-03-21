@@ -126,7 +126,8 @@ namespace MFM {
 
     //can't be a typedef!! get's the wrong name for type key; use key as arg
     UTI tmputi;
-    assert(!getUlamTypeByTypedefName(typeTok.m_dataindex, tmputi));
+    UTI tmpforscalaruti;
+    assert(!getUlamTypeByTypedefName(typeTok.m_dataindex, tmputi, tmpforscalaruti));
 
     //is this name already a typedef for a complex type?
     ULAMTYPE bUT = getBaseTypeFromToken(typeTok);
@@ -582,8 +583,9 @@ namespace MFM {
   {
     ULAMTYPE bUT = Nav;
     UTI ut = Nav;
+    UTI tmpforscalaruti = Nav;
     //is this name already a typedef for a complex type?
-    if(getUlamTypeByTypedefName(tok.m_dataindex, ut))
+    if(getUlamTypeByTypedefName(tok.m_dataindex, ut, tmpforscalaruti))
       {
 	bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
       }
@@ -607,8 +609,9 @@ namespace MFM {
   UTI CompilerState::getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize)
   {
     UTI uti = Nav;
+    UTI tmpforscalaruti = Nav;
     //is this name already a typedef for a complex type?
-    if(!getUlamTypeByTypedefName(tok.m_dataindex, uti))
+    if(!getUlamTypeByTypedefName(tok.m_dataindex, uti, tmpforscalaruti))
       {
 	if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
@@ -628,7 +631,7 @@ namespace MFM {
   } //getUlamTypeFromToken
 
   //new version! uses indexes
-  bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType)
+  bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
   {
     bool rtnBool = false;
     Symbol * asymptr = NULL;
@@ -642,6 +645,7 @@ namespace MFM {
 	if(asymptr->isTypedef())
 	  {
 	    rtnType = asymptr->getUlamTypeIdx();
+	    rtnScalarType = ((SymbolTypedef *) asymptr)->getScalarUTI();
 	    rtnBool = true;
 	  }
       }
@@ -655,6 +659,7 @@ namespace MFM {
       return utArg;
 
     //for typedef array, the scalar is the primitive type
+    // maintained in the symbol!! can't get to it from utarg. XXX
     ULAMTYPE bUT = ut->getUlamTypeEnum();
 
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
@@ -667,7 +672,7 @@ namespace MFM {
     u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize);  //default array size is zero
 
-    UTI buti = makeUlamType(baseKey, bUT);
+    UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
     return buti;
   } //getUlamTypeAsScalar
 
@@ -1171,7 +1176,8 @@ namespace MFM {
 	else
 	  {
 	    UTI tduti = Nav;
-	    if(getUlamTypeByTypedefName(tok.m_dataindex, tduti))
+	    UTI tmpforscalaruti = Nav;
+	    if(getUlamTypeByTypedefName(tok.m_dataindex, tduti, tmpforscalaruti))
 	      {
 		UlamType * tdut = getUlamTypeByIndex(tduti);
 		//for typedef quarks return quark name, o.w. base name

@@ -97,7 +97,7 @@ namespace MFM{
     s32 arraysize;
     UTI classInstanceIdx;
     UTI anothertduti;
-    UTI declListScalarType;
+    UTI declListOrTypedefScalarType;
     bool assignOK;
 
     void init(Token typetoken)
@@ -107,7 +107,7 @@ namespace MFM{
       arraysize = NONARRAYSIZE;
       classInstanceIdx = Nav;
       anothertduti = Nav;
-      declListScalarType = Nav;
+      declListOrTypedefScalarType = Nav;
       assignOK = true;
     }
   };
@@ -203,7 +203,7 @@ namespace MFM{
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
     UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);
-    bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType);
+    bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
 
     /** turns array into its single element type */
     UTI getUlamTypeAsScalar(UTI utArg);

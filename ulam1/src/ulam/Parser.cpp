@@ -558,7 +558,7 @@ namespace MFM {
 	    //not '(', so token is unread, and we know
 	    //it's a variable, not a function;
 	    //also handles arrays
-	    typeargs.declListScalarType = Nav;
+	    typeargs.declListOrTypedefScalarType = Nav;
 	    rtnNode = makeVariableSymbol(typeargs, iTok, bitsizeNode);
 
 	    if(rtnNode)
@@ -1397,7 +1397,7 @@ namespace MFM {
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-	typeargs.declListScalarType = Nav; //first one!
+	typeargs.declListOrTypedefScalarType = Nav; //first one!
 	rtnNode = makeVariableSymbol(typeargs, iTok, bitsizeNode);
 	if(rtnNode && !parseSingleDecl)
 	  {
@@ -1430,9 +1430,12 @@ namespace MFM {
 	  {
 	    //check if a typedef first..if so, return its SCALAR uti
 	    UTI tduti;
-	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti))
+	    UTI tdscalaruti = Nav;
+	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
 	      {
-		return m_state.getUlamTypeAsScalar(tduti);
+		if(tdscalaruti != Nav)
+		  return tdscalaruti;
+		return m_state.getUlamTypeAsScalar(tduti); //may make new uti
 	      }
 	    else
 	      m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, cnsym);
@@ -1615,6 +1618,7 @@ namespace MFM {
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.typeTok.m_locator);
 
+#if 0
 	    // can't constant fold before node is findable by NNO
 	    //eval what we need, and delete the node if successful
 	    if(((NodeTypeBitsize *) rtnNode)->getTypeBitSizeInParen(args.bitsize, m_state.getBaseTypeFromToken(args.typeTok)))
@@ -1623,6 +1627,7 @@ namespace MFM {
 	    	rtnNode = NULL;
 	      }
 	    else //else will be returning rtnNode, ownership transferred
+#endif
 	      {
 		args.bitsize = UNKNOWNSIZE;
 	      }
@@ -1729,8 +1734,9 @@ namespace MFM {
 	if(Token::isTokenAType(nTok))
 	  {
 	    UTI tduti;
+	    UTI tdscalaruti = Nav;
 	    bool isclasstd = false;
-	    if(m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti))
+	    if(m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti, tdscalaruti))
 	      {
 		UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
 		if(!tdut->isComplete())
@@ -1767,6 +1773,7 @@ namespace MFM {
 		  }
 
 		args.anothertduti = tduti; //don't lose it!
+		args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 		rtnb = true;
 	      }
 	    else
@@ -3285,8 +3292,8 @@ namespace MFM {
 
 	    //in case of decl list, set type of symbol in args ref
 	    assert(asymptr);
-	    if(args.declListScalarType == Nav)
-	      args.declListScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
+	    if(args.declListOrTypedefScalarType == Nav)
+	      args.declListOrTypedefScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
 	  }
 
 	//link square bracket for constant expression, if unknown array size
@@ -4013,8 +4020,8 @@ namespace MFM {
 		//find the scalardecllist, clone the ceNode for this auti
 		//if auti is arraytype, its scalartype should already have been added
 		//(not compare, actual uti's equal)
-		if(args.declListScalarType != Nav && auti != args.declListScalarType)
-		  m_state.cloneAndLinkConstantExpression(args.declListScalarType, auti);
+		if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType)
+		  m_state.cloneAndLinkConstantExpression(args.declListOrTypedefScalarType, auti);
 		else if(args.classInstanceIdx != Nav)
 		  m_state.linkUnknownTypedefFromAnotherClass(auti, args.classInstanceIdx);
 	      }
@@ -4024,8 +4031,10 @@ namespace MFM {
 		//also, insure its scalar type has the same subtree for unknown bitsize
 		if(aut->getArraySize() != NONARRAYSIZE)
 		  {
-		    UTI scalarUTI = m_state.getUlamTypeAsScalar(auti);
-		    m_state.cloneAndLinkConstantExpression(auti, scalarUTI); //tfr owner, checks for dups
+		    UTI scalarUTI = args.declListOrTypedefScalarType;
+		    if(scalarUTI == Nav)
+		      scalarUTI = m_state.getUlamTypeAsScalar(auti); //may make a new uti
+		    m_state.cloneAndLinkConstantExpression(auti, scalarUTI); //tfr owner, chks for dups
 		  }
 	      }
 	  }
