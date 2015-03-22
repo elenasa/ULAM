@@ -5,7 +5,7 @@ namespace MFM {
 
   SymbolTypedef::SymbolTypedef(u32 id, UTI utype, UTI scalaruti, CompilerState & state) : Symbol(id, utype, state), m_scalarUTI(scalaruti) {}
 
-  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(sref.m_scalarUTI) {}
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI)) {}
 
   SymbolTypedef::~SymbolTypedef() {}
 

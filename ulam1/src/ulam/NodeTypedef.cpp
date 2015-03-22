@@ -110,9 +110,10 @@ namespace MFM {
 
 	if(!tdut->isComplete())
 	  {
-	    m_state.constantFoldIncompleteUTI(it); //update if possible
+	    // infinitie loop
+	    //m_state.constantFoldIncompleteUTI(it); //update if possible
 	    // fall through to common attempt to map UTI
-	    if(!m_state.isComplete(it))
+	    //if(!m_state.isComplete(it))
 	      {
 		UTI cuti = m_state.getCompileThisIdx();
 		UTI mappedUTI = Nav;

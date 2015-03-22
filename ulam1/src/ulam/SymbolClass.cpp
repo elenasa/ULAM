@@ -280,6 +280,13 @@ namespace MFM {
     m_resolver->linkConstantExpression(uti, ceNode);
   }
 
+  void SymbolClass::linkIncompleteArrayTypeInResolver(UTI auti, UTI buti)
+  {
+    if(!m_resolver)
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
+    m_resolver->linkIncompleteArrayTypeToItsBaseScalarType(auti, buti);
+  }
+
   void SymbolClass::linkConstantExpression(NodeConstantDef * ceNode)
   {
     if(!m_resolver)

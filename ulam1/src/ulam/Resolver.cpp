@@ -19,6 +19,7 @@ namespace MFM {
     clearLeftoverNonreadyClassArgSubtrees();
     clearLeftoverUnknownTypdedefsFromAnotherClass();
     m_mapUTItoUTI.clear();
+    m_incompleteArrayTypeToItsBaseScalarType.clear();
   } //clearLeftoverSubtrees()
 
   void Resolver::clearLeftoverUnknownBitsizeSubtrees()
@@ -142,6 +143,22 @@ namespace MFM {
       }
     }
 
+    //incomplete Array type (for scalar's bitsize)
+    {
+      std::map<UTI, UTI>::iterator it = m_incompleteArrayTypeToItsBaseScalarType.begin();
+      while(it != m_incompleteArrayTypeToItsBaseScalarType.end())
+	{
+	  UTI auti = it->first;
+	  UTI buti = it->second;
+	  UTI mappedauti = auti;
+	  UTI mappedbuti = buti;
+	  to->hasMappedUTI(auti, mappedauti);
+	  to->hasMappedUTI(buti, mappedbuti);
+	  to->linkIncompleteArrayTypeInResolver(mappedauti, mappedbuti);
+	  it++;
+	}
+    }
+
     //Named Constants
     {
       std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
@@ -188,11 +205,20 @@ namespace MFM {
     return NULL;
   } //findUnknownArraysizeUTI
 
+  UTI Resolver::findIncompleteArrayTypeBaseScalarType(UTI auti) const
+  {
+    std::map<UTI, UTI>::const_iterator it = m_incompleteArrayTypeToItsBaseScalarType.find(auti);
+    if(it != m_incompleteArrayTypeToItsBaseScalarType.end())
+      return it->second;
+    return Nav;
+  } //findincompleteArrayTypeToItsBaseScalarType
+
   bool Resolver::statusUnknownConstantExpressions()
   {
     bool sumbrtn = true;
     sumbrtn &= statusUnknownBitsizeUTI();
     sumbrtn &= statusUnknownArraysizeUTI();
+    sumbrtn &= statusIncompleteArrayTypes();
     sumbrtn &= statusNonreadyNamedConstants();
     sumbrtn &= statusUnknownTypedefsFromAnotherClass();
     return sumbrtn;
@@ -377,6 +403,69 @@ namespace MFM {
       }
     return rtnstat;
   } //statusUnknownArraysizeUTI
+
+  void Resolver::linkIncompleteArrayTypeToItsBaseScalarType(UTI arraytype, UTI scalartype)
+  {
+    std::pair<std::map<UTI, UTI>::iterator, bool> ret;
+    ret = m_incompleteArrayTypeToItsBaseScalarType.insert(std::pair<UTI, UTI>(arraytype,scalartype));
+    bool notdupi = ret.second; //false if already existed, i.e. not added
+    if(!notdupi)
+      {
+	//not added
+      }
+  } //linkIncompleteArrayTypeToItsBaseScalarType
+
+  bool Resolver::statusIncompleteArrayTypes()
+  {
+    bool rtnstat = true; //ok, empty
+    if(!m_incompleteArrayTypeToItsBaseScalarType.empty())
+      {
+	u32 uksize = m_incompleteArrayTypeToItsBaseScalarType.size();
+	std::vector<UTI> foundAs;
+	std::ostringstream msg;
+	msg << "Found " << uksize << " incomplete array type";
+	msg << (uksize > 1 ? "s " : " ");
+	msg << "while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	MSG("", msg.str().c_str(), DEBUG);
+
+	std::map<UTI, UTI>::iterator it = m_incompleteArrayTypeToItsBaseScalarType.begin();
+	while(it != m_incompleteArrayTypeToItsBaseScalarType.end())
+	  {
+	    UTI auti = it->first; //array
+	    UTI buti = it->second; //base scalar
+
+	    //if auti is still incomplete with unknown bitsize:
+	    //  1. if base is still incomplete, then still incomplete
+	    //  2. if base bitsize is known, update auti, and remove from map
+	    if(m_state.getBitSize(auti) > UNKNOWNSIZE)
+	      {
+		foundAs.push_back(auti);
+	      }
+	    else
+	      {
+		s32 bitsize = m_state.getBitSize(buti);
+		if(bitsize > UNKNOWNSIZE)
+		  {
+		    m_state.setBitSize(auti, bitsize); //update UlamType
+		    foundAs.push_back(auti);
+		  }
+	      }
+	    it++;
+	  } //while
+
+	while(!foundAs.empty())
+	  {
+	    UTI futi = foundAs.back();
+	    it = m_incompleteArrayTypeToItsBaseScalarType.find(futi);
+	    m_incompleteArrayTypeToItsBaseScalarType.erase(it);
+	    foundAs.pop_back();
+	  }
+	foundAs.clear();
+	rtnstat = m_incompleteArrayTypeToItsBaseScalarType.empty();
+      }
+    return rtnstat;
+  } //statusIncompleteArrayTypes
 
   void Resolver::linkConstantExpression(NodeConstantDef * ceNode)
   {

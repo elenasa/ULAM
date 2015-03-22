@@ -510,6 +510,13 @@ namespace MFM {
       }
   } //linkConstantExpression (arraysize)
 
+  void CompilerState::linkIncompleteArrayTypeToItsBaseScalarType(UTI arrayuti, UTI baseuti)
+  {
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+    cnsym->linkIncompleteArrayTypeInAClass(arrayuti, baseuti);
+  } //linkIncompleteArrayTypeToItsBaseScalarType
+
   void CompilerState::linkConstantExpression(NodeConstantDef * ceNode)
   {
     if(ceNode)

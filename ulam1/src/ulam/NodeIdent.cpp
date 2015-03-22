@@ -356,9 +356,10 @@ namespace MFM {
     if(brtn)
       {
 	UTI uti = tduti;
+	UTI scalarUTI = args.declListOrTypedefScalarType;
 	if(m_state.isScalar(uti) && args.arraysize != NONARRAYSIZE)
 	  {
-	    args.declListOrTypedefScalarType = uti;
+	    scalarUTI = uti;
 	    // o.w. build symbol (with bit and array sizes);
 	    // array's can't have their scalar as classInstance; o.w., no longer findable by token.
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
@@ -369,13 +370,13 @@ namespace MFM {
 	      args.bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
 	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.bitsize, args.arraysize);
-	    newarraykey.append(args.declListOrTypedefScalarType); //removed if not a class
+	    newarraykey.append(scalarUTI); //removed if not a class
 
 	    uti = m_state.makeUlamType(newarraykey, bUT);
 	  }
 
 	//create a symbol for this new ulam type, a typedef, with its type
-	SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, uti, args.declListOrTypedefScalarType, m_state);
+	SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, uti, scalarUTI, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));  //true
       }
@@ -502,8 +503,10 @@ namespace MFM {
     if(brtn)
       {
 	UTI uti = auti;
+	UTI scalarUTI = args.declListOrTypedefScalarType;
 	if(m_state.isScalar(uti) && args.arraysize != NONARRAYSIZE)
 	  {
+	    scalarUTI = uti;
 	    // o.w. build symbol (with bit and array sizes);
 	    // array's can't have their scalar as classInstance; o.w., no longer findable by token.
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
@@ -514,7 +517,7 @@ namespace MFM {
 	      args.bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
 	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.bitsize, args.arraysize);
-	    newarraykey.append(uti);
+	    newarraykey.append(scalarUTI);
 	    uti = m_state.makeUlamType(newarraykey, bUT);
 	  }
 
