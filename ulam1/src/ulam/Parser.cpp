@@ -2323,7 +2323,7 @@ namespace MFM {
 	    if(typeargs.anothertduti)
 	      uti = typeargs.anothertduti;
 	    else
-	      uti = m_state.getUlamTypeFromToken(pTok, typeargs.bitsize, typeargs.arraysize);
+	      uti = m_state.getUlamTypeFromToken(pTok, typeargs.bitsize, typeargs.arraysize); //only one
 	  }
 
 	//returns either a terminal or proxy
@@ -2966,7 +2966,7 @@ namespace MFM {
     else if(args.classInstanceIdx) //second in line???
       rtnuti = args.classInstanceIdx;
     else
-      rtnuti = m_state.getUlamTypeFromToken(args.typeTok, args.bitsize, NONARRAYSIZE);
+      rtnuti = m_state.getUlamTypeFromToken(args);
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
 
@@ -3937,7 +3937,7 @@ namespace MFM {
 
 	//allows for casting to a class (makes class type if newly seen)
 	if(typeargs.anothertduti == Nav)
-	  typeToBe = m_state.getUlamTypeFromToken(typeargs.typeTok, typeargs.bitsize, typeargs.arraysize);
+	  typeToBe = m_state.getUlamTypeFromToken(typeargs);
 	else
 	  typeToBe = typeargs.anothertduti;
       }

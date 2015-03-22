@@ -204,6 +204,8 @@ namespace MFM{
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
     UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);
+    UTI getUlamTypeFromToken(ParserTypeArgs & args);
+
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
 
     /** turns array into its single element type */
