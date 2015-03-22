@@ -1227,7 +1227,8 @@ namespace MFM {
 	NodeReturnStatement * rNode = m_currentFunctionReturnNodes.at(i);
 	UTI rType = rNode->getNodeType();
 
-	if(rType != it)
+	//if(rType != it)
+	if(UlamType::compare(rType, it, *this) != UTIC_SAME)
 	  {
 	    rtnBool = false;
 	    ULAMTYPE rBUT = getUlamTypeByIndex(rType)->getUlamTypeEnum();
@@ -1397,7 +1398,9 @@ namespace MFM {
     if(cnsym->isClassTemplate())
       {
 	u32 numParams = ((SymbolClassNameTemplate *) cnsym)->getNumberOfParameters();
-	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str() << getDataAsStringMangled(getCompileThisId()).c_str() << ToLeximitedNumber(numParams) << "_main.cpp";
+	f << getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str();
+	f << getDataAsStringMangled(getCompileThisId()).c_str();
+	f << ToLeximitedNumber(numParams) << "_main.cpp";
       }
     else
       f << getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str() << "_main.cpp";
@@ -1522,7 +1525,7 @@ namespace MFM {
     assert(rptr.getUlamValueTypeIdx() == Ptr);
 
     //assert types..the same, and arrays
-    assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
+    assert(UlamType::compare(lptr.getPtrTargetType(), rptr.getPtrTargetType(), *this) == UTIC_SAME);
     UTI tuti = rptr.getPtrTargetType();
 
     //unless we're copying from different storage classes, or an element
@@ -1545,7 +1548,8 @@ namespace MFM {
 
 	//redo what getPtrTarget use to do, when types didn't match due to
 	//an element/quark or a requested scalar of an arraytype
-	if(atval.getUlamValueTypeIdx() != tuti)
+	//if(atval.getUlamValueTypeIdx() != tuti)
+	if(UlamType::compare(atval.getUlamValueTypeIdx(), tuti, *this) != UTIC_SAME)
 	  {
 	    UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
 	    assignValue(lptr, atvalUV);
@@ -1568,7 +1572,8 @@ namespace MFM {
 
 	    //redo what getPtrTarget use to do, when types didn't match due to
 	    //an element/quark or a requested scalar of an arraytype
-	    if(atval.getUlamValueTypeIdx() != tuti)
+	    // if(atval.getUlamValueTypeIdx() != tuti)
+	    if(UlamType::compare(atval.getUlamValueTypeIdx(), tuti, *this) != UTIC_SAME)
 	      {
 		UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
 		assignValue(nextlptr, atvalUV);
@@ -1588,7 +1593,8 @@ namespace MFM {
     assert(lptr.getUlamValueTypeIdx() == Ptr);
     assert(rptr.getUlamValueTypeIdx() == Ptr);
 
-    assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
+    //assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
+    assert(UlamType::compare(lptr.getPtrTargetType(), rptr.getPtrTargetType(), *this) == UTIC_SAME);
 
     STORAGE place = lptr.getPtrStorage();
     switch(place)
