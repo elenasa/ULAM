@@ -637,6 +637,32 @@ namespace MFM {
     return uti;
   } //getUlamTypeFromToken
 
+  UTI CompilerState::getUlamTypeFromToken(ParserTypeArgs & args)
+  {
+    UTI uti = Nav;
+    UTI tmpforscalaruti = Nav;
+    //is this name already a typedef for a complex type?
+    if(!getUlamTypeByTypedefName(args.typeTok.m_dataindex, uti, tmpforscalaruti))
+      {
+	if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+	  {
+	    uti = makeUlamType(args.typeTok, args.bitsize, args.arraysize, Nav);
+	  }
+	else
+	  {
+	    //check for existing Class type
+	    SymbolClassName * cnsym = NULL;
+	    if(alreadyDefinedSymbolClassName(args.typeTok.m_dataindex, cnsym))
+	      {
+		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
+	      } //else  or make one if doesn't exist yet, while parsing --- do we do this anymore ???
+	  }
+      }
+    else
+      args.declListOrTypedefScalarType = tmpforscalaruti; //also returns scalar uti
+    return uti;
+  } //getUlamTypeFromToken
+
   //new version! uses indexes
   bool CompilerState::getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType)
   {

@@ -345,6 +345,7 @@ namespace MFM {
 	//but with typedef's "scope" of use, typedef needed to be checked first.
 	// scalar uti
 	tduti = m_state.makeUlamType(args.typeTok, args.bitsize, NONARRAYSIZE, Nav);
+	args.declListOrTypedefScalarType = tduti;
 	brtn = true;
       }
     else
