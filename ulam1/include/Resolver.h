@@ -65,13 +65,17 @@ namespace MFM
 
     NodeTypeBitsize * findUnknownBitsizeUTI(UTI auti) const;
     NodeSquareBracket * findUnknownArraysizeUTI(UTI auti) const;
+    UTI findIncompleteArrayTypeBaseScalarType(UTI auti) const;
 
     bool statusUnknownConstantExpressions(); //excluding pending class args
     void constantFoldIncompleteUTI(UTI uti);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
     void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
+
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    void linkIncompleteArrayTypeToItsBaseScalarType(UTI arraytype, UTI scalartype);
+
     void linkConstantExpression(NodeConstantDef * ceNode);
     void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubUTI);
 
@@ -102,6 +106,8 @@ namespace MFM
     std::map<UTI, UTI> m_unknownTypedefFromAnotherClass; //typedef uti to its class' uti, for map lookup after full instantiation of its class (while a stub the type is the template's).
 
     std::map<UTI, UTI> m_mapUTItoUTI; //mult-purpose: instantiating stubs; unknown typedefs from another class
+    std::map<UTI, UTI> m_incompleteArrayTypeToItsBaseScalarType; //array uti to scalar uti; scalar may be typedef from another class
+
 
     CompilerState& m_state;
     UTI m_classUTI;
@@ -109,6 +115,7 @@ namespace MFM
 
     bool statusUnknownBitsizeUTI();
     bool statusUnknownArraysizeUTI();
+    bool statusIncompleteArrayTypes();
     bool statusNonreadyNamedConstants();
     bool statusUnknownTypedefsFromAnotherClass();
 

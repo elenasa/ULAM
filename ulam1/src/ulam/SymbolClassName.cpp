@@ -36,6 +36,11 @@ namespace MFM {
     SymbolClass::linkConstantExpression(auti, ceNode);
   }
 
+  void SymbolClassName::linkIncompleteArrayTypeInAClass(UTI auti, UTI buti)
+  {
+    SymbolClass::linkIncompleteArrayTypeInResolver(auti, buti);
+  }
+
   void SymbolClassName::linkUnknownNamedConstantExpression(NodeConstantDef * ceNode)
   {
     SymbolClass::linkConstantExpression(ceNode);

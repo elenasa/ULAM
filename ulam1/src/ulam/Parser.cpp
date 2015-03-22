@@ -1773,7 +1773,6 @@ namespace MFM {
 		  }
 
 		args.anothertduti = tduti; //don't lose it!
-		args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 		rtnb = true;
 	      }
 	    else
@@ -3292,7 +3291,7 @@ namespace MFM {
 
 	    //in case of decl list, set type of symbol in args ref
 	    assert(asymptr);
-	    if(args.declListOrTypedefScalarType == Nav)
+	    if(args.declListOrTypedefScalarType == Nav && args.anothertduti == Nav)
 	      args.declListOrTypedefScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
 	  }
 
@@ -4004,49 +4003,89 @@ namespace MFM {
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     if(!aut->isComplete())
       {
+	s32 arraysize = aut->getArraySize();
 	//applies to classes as well, no subtree clones needed
-	if(aut->getArraySize() == UNKNOWNSIZE)
+	if(arraysize == UNKNOWNSIZE)
 	  m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner
 	else
 	  delete ceForArraySize;
 
 	//possibly decl list that's shared;
 	//scalarUTI of array type should also be included, if not a class
-	if(aut->getBitSize() == UNKNOWNSIZE && aut->getUlamClass() == UC_NOTACLASS)
+	if(aut->getBitSize() == UNKNOWNSIZE)
 	  {
 	    if(ceForBitSize == NULL)
 	      {
-		//assert(scalardecllisttype != Nav); not true for typedefs
-		//find the scalardecllist, clone the ceNode for this auti
-		//if auti is arraytype, its scalartype should already have been added
-		//(not compare, actual uti's equal)
-		if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType)
-		  m_state.cloneAndLinkConstantExpression(args.declListOrTypedefScalarType, auti);
-		else if(args.classInstanceIdx != Nav)
-		  m_state.linkUnknownTypedefFromAnotherClass(auti, args.classInstanceIdx);
+		if(arraysize != NONARRAYSIZE) //an array
+		  {
+		    if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType)
+		      m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.declListOrTypedefScalarType);
+		    else if(args.classInstanceIdx != Nav)
+		      {
+			m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+
+			if(auti != args.anothertduti) //e.g. an array type based on anothertduti scalar.
+			  {
+			    m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
+			  }
+		      }
+		    else
+		      assert(0); //????
+		  }
+		else
+		  {
+		    // not an array, and no bitsize subtree
+		    if(aut->getUlamClass() == UC_NOTACLASS)
+		      {
+			//assert(scalardecllisttype != Nav); not true for typedefs
+			//find the scalardecllist, clone the ceNode for this auti
+			//(not compare, actual uti's equal)
+			if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType)
+			  m_state.cloneAndLinkConstantExpression(args.declListOrTypedefScalarType, auti);
+			else if(args.classInstanceIdx != Nav)
+			  {
+			    assert(auti == args.anothertduti);
+			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			  }
+		      }
+		  }
 	      }
 	    else
 	      {
-		m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
-		//also, insure its scalar type has the same subtree for unknown bitsize
-		if(aut->getArraySize() != NONARRAYSIZE)
+		// we have a bitsize subtree
+		//m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
+
+		//give its scalar type the subtree for unknown bitsize, and link auti to it
+		if(aut->getArraySize() != NONARRAYSIZE) //an array
 		  {
 		    UTI scalarUTI = args.declListOrTypedefScalarType;
 		    if(scalarUTI == Nav)
-		      scalarUTI = m_state.getUlamTypeAsScalar(auti); //may make a new uti
-		    m_state.cloneAndLinkConstantExpression(auti, scalarUTI); //tfr owner, chks for dups
+		      {
+			scalarUTI = m_state.getUlamTypeAsScalar(auti); //may make a new uti
+		      }
+		    assert(scalarUTI != args.anothertduti); //can't be!
+		    m_state.linkConstantExpression(scalarUTI, ceForBitSize); //tfr owner
+		    m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, scalarUTI);
+		  }
+		else
+		  {
+		    assert(auti != args.anothertduti); //can't be!
+		    m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
 		  }
 	      }
 	  }
 	else
 	  {
+	    //bitsize is known..ok free
 	    delete ceForBitSize;
-	    if(args.anothertduti == auti)
-	      m_state.linkUnknownTypedefFromAnotherClass(auti, args.classInstanceIdx); //except lost class instance!!! boo hoo
+	    // not sure this makes sense ???
+	    //if(args.anothertduti == auti)
+	    //m_state.linkUnknownTypedefFromAnotherClass(auti, args.classInstanceIdx);
 	  }
       }
     else
       {
+	//auti is complete, free!
 	delete ceForArraySize; //done with it
 	delete ceForBitSize; //done with it
       }

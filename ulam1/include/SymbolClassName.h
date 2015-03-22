@@ -54,6 +54,7 @@ namespace MFM{
     virtual void linkUnknownBitsizeConstantExpression(UTI auti, NodeTypeBitsize * ceNode);
     virtual void linkUnknownBitsizeConstantExpression(UTI fromtype, UTI totype); // for decllist
     virtual void linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode);
+    virtual void linkIncompleteArrayTypeInAClass(UTI auti, UTI buti);
     virtual void linkUnknownNamedConstantExpression(NodeConstantDef * ceNode);
     virtual bool statusUnknownConstantExpressionsInClassInstances();
 

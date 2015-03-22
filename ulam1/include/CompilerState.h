@@ -191,6 +191,7 @@ namespace MFM{
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
     void cloneAndLinkConstantExpression(UTI fromuti, UTI touti);
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    void linkIncompleteArrayTypeToItsBaseScalarType(UTI arrayuti, UTI baseuti);
     void linkConstantExpression(NodeConstantDef * ceNode);
     void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubuti);
 
