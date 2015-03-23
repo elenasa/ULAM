@@ -156,7 +156,7 @@ namespace MFM {
   {
     if(m_nodeNext) //may not have data members
       NodeBlock::countNavNodes(cnt);
-    m_functionST.countNavNodesAcrossTableOfFunctions();
+    cnt += m_functionST.countNavNodesAcrossTableOfFunctions();
   }
 
   void NodeBlockClass::checkDuplicateFunctions()
@@ -191,7 +191,8 @@ namespace MFM {
     u32 numberoffuncs = getNumberOfFuncSymbolsInTable();
     {
       std::ostringstream msg;
-      msg << stackframetotal << " is the total stackframe size required for " << numberoffuncs << " functions";
+      msg << stackframetotal << " is the total stackframe size required for ";
+      msg << numberoffuncs << " functions";
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     }
 #endif

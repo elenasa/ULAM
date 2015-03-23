@@ -238,6 +238,10 @@ namespace MFM {
   EvalStatus NodeVarDecl::eval()
   {
     assert(m_varSymbol);
+
+    if(getNodeType() == Nav)
+      return ERROR;
+
     //evalNodeProlog(0); //new current frame pointer
     //copy result UV to stack, -1 relative to current frame pointer
     //    assignReturnValueToStack(m_varSymbol->getUlamValue(m_state));
@@ -273,6 +277,7 @@ namespace MFM {
   void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_varSymbol);
+    assert(getNodeType() != Nav);
 
     // use immediate storage for "static" element parameters
     if(m_varSymbol->isElementParameter())
