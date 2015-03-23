@@ -114,7 +114,8 @@ namespace MFM {
 	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
 	    msg << " for incomplete Named Constant type: ";
 	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " used with constant symbol name '" << getName();
+	    msg << " used with constant symbol name '";
+	    msg << m_state.getTokenDataAsString(&m_token).c_str();
 	    msg << "' UTI" << it << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -129,13 +130,13 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Incomplete Named Constant for type: ";
 	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " used with constant symbol name '" << getName();
+	    msg << " used with constant symbol name '";
+	    msg << m_state.getTokenDataAsString(&m_token).c_str();
 	    msg << "' UTI" << it << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
       }
-
     setNodeType(it);
     setStoreIntoAble(false);
 

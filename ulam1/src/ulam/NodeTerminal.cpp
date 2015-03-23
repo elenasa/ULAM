@@ -18,7 +18,7 @@ namespace MFM {
   NodeTerminal::NodeTerminal(s32 val, UTI utype, CompilerState & state) : Node(state)
   {
     m_constant.sval = val;
-    setNodeType(utype); //m_state.getUlamTypeOfConstant(Int);
+    setNodeType(utype);
     //uptocaller to set node location.
   }
 
@@ -26,18 +26,10 @@ namespace MFM {
   NodeTerminal::NodeTerminal(u32 val, UTI utype, CompilerState & state) : Node(state)
   {
     m_constant.uval = val;
-    setNodeType(utype); //m_state.getUlamTypeOfConstant(Unsigned);
+    setNodeType(utype);
     //uptocaller to set node location.
   }
 
-#if 0
-  NodeTerminal::NodeTerminal(bool val, CompilerState & state) : Node(state)
-  {
-    m_constant.bval = val;
-    setNodeType(Bool); //m_state.getUlamTypeOfConstant(Bool);
-    //uptocaller to set node location.
-  }
-#endif
   NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_constant(ref.m_constant) {}
 
   NodeTerminal::NodeTerminal(const NodeIdent& iref) : Node(iref) {}
@@ -68,7 +60,6 @@ namespace MFM {
     switch(etype)
       {
       case Bool:
-	//num << (m_constant.bval ? "true" : "false");
 	num << ( _Bool32ToCbool(m_constant.uval, nbitsize) ? "true" : "false");
 	break;
       case Int:
@@ -115,7 +106,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Negating an unsigned constant: <" << getName() <<  ">, type: ";
+	    msg << "Negating an unsigned constant: <" << m_constant.uval <<  ">, type: ";
 	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -235,7 +226,7 @@ namespace MFM {
     if(!fit->isMinMaxAllowed())
       {
 	std::ostringstream msg;
-	msg << "Cannot check: <" << getName() << ">, fits into a non-arithmetic type: ";
+	msg << "Cannot check: <" << m_constant.uval << ">, fits into a non-arithmetic type: ";
 	msg << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
@@ -366,7 +357,7 @@ namespace MFM {
       {
       case TOK_NUMBER_SIGNED:
 	{
-	  std::string numstr = m_state.getTokenDataAsString(&tok); //getName();
+	  std::string numstr = m_state.getTokenDataAsString(&tok);
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
 
@@ -384,7 +375,7 @@ namespace MFM {
 	break;
       case TOK_NUMBER_UNSIGNED:
 	{
-	  std::string numstr = m_state.getTokenDataAsString(&tok); //getName();
+	  std::string numstr = m_state.getTokenDataAsString(&tok);
 	  const char * numlist = numstr.c_str();
 	  char * nEnd;
 
@@ -401,12 +392,10 @@ namespace MFM {
 	}
 	break;
       case TOK_KW_TRUE:
-	//m_constant.bval = true;
 	m_constant.uval = 1u;
 	rtnok = true;
 	break;
       case TOK_KW_FALSE:
-	//m_constant.bval = false;
 	m_constant.uval = 0u;
 	rtnok = true;
 	break;

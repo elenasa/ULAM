@@ -4006,14 +4006,13 @@ namespace MFM {
 			  }
 		      }
 		    else
-		      assert(0); //????
+		      assert(0); //a bug, likely typedef related (e.g. missing scalarUTI)
 		  }
 		else
 		  {
 		    // not an array, and no bitsize subtree
 		    if(aut->getUlamClass() == UC_NOTACLASS)
 		      {
-			//assert(scalardecllisttype != Nav); not true for typedefs
 			//find the scalardecllist, clone the ceNode for this auti
 			//(not compare, actual uti's equal)
 			if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType)
@@ -4021,6 +4020,14 @@ namespace MFM {
 			else if(args.classInstanceIdx != Nav)
 			  {
 			    assert(auti == args.anothertduti);
+			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			  }
+		      }
+		    else
+		      {
+			//a class, no bitsize subtree, must be a typedef from another class
+			if(auti == args.anothertduti && args.classInstanceIdx != Nav)
+			  {
 			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
 			  }
 		      }
@@ -4054,14 +4061,15 @@ namespace MFM {
 	  {
 	    //bitsize is known..ok free
 	    delete ceForBitSize;
-	    // not sure this makes sense ???
-	    //if(args.anothertduti == auti)
-	    //m_state.linkUnknownTypedefFromAnotherClass(auti, args.classInstanceIdx);
+
+	    //arraysize isn't known
+	    if(args.anothertduti == auti && args.classInstanceIdx != Nav)
+	      m_state.linkUnknownTypedefFromAnotherClass(auti, args.classInstanceIdx);
 	  }
       }
     else
       {
-	//auti is complete, free!
+	//auti is complete, free all!
 	delete ceForArraySize; //done with it
 	delete ceForBitSize; //done with it
       }
