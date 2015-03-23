@@ -17,6 +17,9 @@ namespace MFM {
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
 
+      // simplify for debug, no System
+      //bool rtn1 = fms->add("B.ulam","element B {\nBool(7) b;\ntypedef Unsigned(8) Index;\ntypedef Index NIdx;\ntypedef NIdx IndArr[4];\ntypedef IndArr IArray;\n IArray arr;\n Int test(){ arr[0] = 1;\n return arr[0] == 0;\n }\n }\n");
+
       if(rtn1 && rtn3)
 	return std::string("B.ulam");
 
