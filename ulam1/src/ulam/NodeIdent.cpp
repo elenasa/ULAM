@@ -357,7 +357,7 @@ namespace MFM {
     if(brtn)
       {
 	UTI uti = tduti;
-	UTI scalarUTI = Nav;
+	UTI scalarUTI = args.declListOrTypedefScalarType;
 	if(m_state.isScalar(uti) && args.arraysize != NONARRAYSIZE)
 	  {
 	    args.declListOrTypedefScalarType = scalarUTI = uti;
@@ -507,7 +507,7 @@ namespace MFM {
 	UTI scalarUTI = args.declListOrTypedefScalarType;
 	if(m_state.isScalar(uti) && args.arraysize != NONARRAYSIZE)
 	  {
-	    scalarUTI = uti;
+	    args.declListOrTypedefScalarType = scalarUTI = uti;
 	    // o.w. build symbol (with bit and array sizes);
 	    // array's can't have their scalar as classInstance; o.w., no longer findable by token.
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);

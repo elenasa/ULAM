@@ -14,6 +14,7 @@ namespace MFM {
     setConstantTypeForNode(tok);
   }
 
+  //cannot convert using utype at construction since bitsize may be UNKNOWN
   NodeTerminal::NodeTerminal(s32 val, UTI utype, CompilerState & state) : Node(state)
   {
     m_constant.sval = val;
@@ -21,6 +22,7 @@ namespace MFM {
     //uptocaller to set node location.
   }
 
+  //cannot convert using utype at construction since bitsize may be UNKNOWN
   NodeTerminal::NodeTerminal(u32 val, UTI utype, CompilerState & state) : Node(state)
   {
     m_constant.uval = val;
@@ -58,6 +60,9 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
+    assert(nbitsize > 0);
+    u32 wordsize = nut->getTotalWordSize();
+    assert(wordsize == 32);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etype)
@@ -67,16 +72,16 @@ namespace MFM {
 	num << ( _Bool32ToCbool(m_constant.uval, nbitsize) ? "true" : "false");
 	break;
       case Int:
-	num << m_constant.sval;
+	num << _Int32ToInt32(m_constant.sval, wordsize, nbitsize);
 	break;
       case Unsigned:
-	num << m_constant.uval << "u";
+	num << _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize) << "u";
 	break;
       case Unary:
-	num << _Unsigned32ToUnary32(m_constant.uval, nbitsize, nbitsize) << "u"; //y
+	num << _Unsigned32ToUnary32(m_constant.uval, wordsize, nbitsize) << "u"; //y
 	break;
       case Bits:
-	num << m_constant.uval << "u";  //t
+	num << _Unsigned32ToBits32(m_constant.uval, wordsize, nbitsize) << "u";  //t
 	break;
       default:
 	{
@@ -86,7 +91,6 @@ namespace MFM {
 	  num << "CONSTANT?";
 	}
       };
-
     u32 id = m_state.m_pool.getIndexForDataString(num.str());
     return m_state.m_pool.getDataAsString(id).c_str();
   } //getName
@@ -144,6 +148,10 @@ namespace MFM {
   EvalStatus NodeTerminal::eval()
   {
     EvalStatus evs = NORMAL; //init ok
+
+    if(!m_state.isComplete(getNodeType()))
+       return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
 
     UlamValue rtnUV;
@@ -165,24 +173,26 @@ namespace MFM {
     assert(nuti != Nav);
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
+    assert(nbitsize > 0);
+    u32 wordsize = nut->getTotalWordSize();
+    assert(wordsize == 32);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {
       case Int:
-	rtnUV = UlamValue::makeImmediate(nuti, m_constant.sval, m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, _Int32ToInt32(m_constant.sval, wordsize, nbitsize), m_state);
 	break;
       case Unsigned:
-	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize), m_state);
 	break;
       case Bool:
-	//rtnUV = UlamValue::makeImmediate(nuti, m_constant.bval, m_state);
-	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBool32(m_constant.uval, nbitsize, nbitsize), m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBool32(m_constant.uval, wordsize, nbitsize), m_state);
 	break;
       case Unary:
-	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnary32(m_constant.uval, nbitsize, nbitsize), m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnary32(m_constant.uval, wordsize, nbitsize), m_state);
 	break;
       case Bits:
-	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBits32(m_constant.uval, wordsize, nbitsize), m_state);
 	break;
       default:
 	{
@@ -392,12 +402,12 @@ namespace MFM {
 	break;
       case TOK_KW_TRUE:
 	//m_constant.bval = true;
-	m_constant.uval = 1;
+	m_constant.uval = 1u;
 	rtnok = true;
 	break;
       case TOK_KW_FALSE:
 	//m_constant.bval = false;
-	m_constant.uval = 0;
+	m_constant.uval = 0u;
 	rtnok = true;
 	break;
       default:
