@@ -50,9 +50,9 @@ namespace MFM{
 
     NodeTerminal(CompilerState & state); //for NodeConstant
     NodeTerminal(Token tok, CompilerState & state);
-    NodeTerminal(s32 val, CompilerState & state);
-    NodeTerminal(u32 val, CompilerState & state);
-    NodeTerminal(bool val, CompilerState & state);
+    NodeTerminal(s32 val, UTI utype, CompilerState & state);
+    NodeTerminal(u32 val, UTI utype, CompilerState & state);
+    //NodeTerminal(bool val, CompilerState & state);
     NodeTerminal(const NodeTerminal& ref);
     NodeTerminal(const NodeIdent& ref); //passthru for NodeConstant
 
@@ -98,7 +98,7 @@ namespace MFM{
     union {
       s32 sval;
       u32 uval;
-      bool bval;
+      //bool bval;
     } m_constant;
 
   };

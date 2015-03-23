@@ -12,28 +12,24 @@ namespace MFM {
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
-    m_max = getBitSize();
+    m_max = getBitSize(); //stored as binary
     m_min = 0;
   }
-
 
    ULAMTYPE UlamTypeUnary::getUlamTypeEnum()
    {
      return Unary;
    }
 
-
   const std::string UlamTypeUnary::getUlamTypeVDAsStringForC()
   {
     return "VD::UNARY";
   }
 
-
   const char * UlamTypeUnary::getUlamTypeAsSingleLowercaseLetter()
   {
     return "u";
   }
-
 
   bool UlamTypeUnary::cast(UlamValue & val, UTI typidx)
   {
@@ -46,7 +42,8 @@ namespace MFM {
     if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << m_state.getArraySize(valtypidx);
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: ";
+	msg << valtypidx << "," << m_state.getArraySize(valtypidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
@@ -58,7 +55,8 @@ namespace MFM {
     if(bitsize == UNKNOWNSIZE || valbitsize == UNKNOWNSIZE)
       {
 	std::ostringstream msg;
-	msg << "Casting UNKNOWN sizes; " << bitsize << ", Value Type and size was: " << valtypidx << "," << valbitsize;
+	msg << "Casting UNKNOWN sizes; " << bitsize << ", Value Type and size was: ";
+	msg << valtypidx << "," << valbitsize;
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
@@ -108,7 +106,6 @@ namespace MFM {
 
     return brtn;
   } //end cast
-
 
   void UlamTypeUnary::getDataAsString(const u32 data, char * valstr, char prefix)
   {
