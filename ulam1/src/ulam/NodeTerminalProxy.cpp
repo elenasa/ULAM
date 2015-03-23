@@ -4,9 +4,10 @@
 
 namespace MFM {
 
-  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false)
+  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, memberType, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false)
   {
     Node::setNodeLocation(funcTok.m_locator);
+    // is memberType is corrected for sizeof during c&l
   }
 
   NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_ofTok(ref.m_ofTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok), m_ready(ref.m_ready) {}
@@ -154,7 +155,7 @@ namespace MFM {
       case TOK_KW_MINOF:
       {
 	// use sign of the lhs
-	newType = m_state.getDefaultUlamTypeOfConstant(m_uti);
+	newType = m_uti; //m_state.getDefaultUlamTypeOfConstant(m_uti);
 	break;
       }
       default:

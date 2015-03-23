@@ -182,9 +182,11 @@ namespace MFM {
       }
 
     //replace ourselves (and kids) with a node terminal; new NNO unlike template's
+    NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
+
+#if 0
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etype = nut->getUlamTypeEnum();
-    NodeTerminal * newnode = NULL;
     switch(etype)
       {
       case Int:
@@ -199,7 +201,7 @@ namespace MFM {
       default:
 	assert(0);
       };
-
+#endif
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
 

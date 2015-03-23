@@ -2068,7 +2068,7 @@ namespace MFM {
 	  if(ut->isMinMaxAllowed())
 	    {
 	      if(ut->isComplete())
-		rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum());
+		rtnNode = makeTerminal(fTok, ut->getMax(), utype); //ut->getUlamTypeEnum());
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	    }
@@ -2087,7 +2087,7 @@ namespace MFM {
 	  if(ut->isMinMaxAllowed())
 	    {
 	      if(ut->isComplete())
-		rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum());
+		rtnNode = makeTerminal(fTok, ut->getMin(), utype); //ut->getUlamTypeEnum());
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	    }
@@ -3958,6 +3958,23 @@ namespace MFM {
     return rtnNode;
   } //makeCastNode
 
+  Node * Parser::makeTerminal(Token& locTok, s32 val, UTI utype)
+  {
+    Node * termNode = new NodeTerminal(val, utype, m_state);
+    assert(termNode);
+    termNode->setNodeLocation(locTok.m_locator);
+    return termNode;
+  } //makeTerminal
+
+  Node * Parser::makeTerminal(Token& locTok, u32 val, UTI utype)
+  {
+    Node * termNode = new NodeTerminal(val, utype, m_state);
+    assert(termNode);
+    termNode->setNodeLocation(locTok.m_locator);
+    return termNode;
+  } //makeTerminal
+
+#if 0
   Node * Parser::makeTerminal(Token& locTok, s32 val, ULAMTYPE etype)
   {
     Node * termNode = NULL;
@@ -3977,7 +3994,9 @@ namespace MFM {
     termNode->setNodeLocation(locTok.m_locator);
     return termNode;
   } //makeTerminal
+#endif
 
+#if 0
   Node * Parser::makeTerminal(Token& locTok, u32 val, ULAMTYPE etype)
   {
     Node * termNode = NULL;
@@ -3997,6 +4016,7 @@ namespace MFM {
     termNode->setNodeLocation(locTok.m_locator);
     return termNode;
   } //makeTerminal
+#endif
 
   void Parser::linkOrFreeConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
   {

@@ -14,27 +14,28 @@ namespace MFM {
     setConstantTypeForNode(tok);
   }
 
-  NodeTerminal::NodeTerminal(s32 val, CompilerState & state) : Node(state)
+  NodeTerminal::NodeTerminal(s32 val, UTI utype, CompilerState & state) : Node(state)
   {
     m_constant.sval = val;
-    setNodeType(Int); //m_state.getUlamTypeOfConstant(Int);
+    setNodeType(utype); //m_state.getUlamTypeOfConstant(Int);
     //uptocaller to set node location.
   }
 
-  NodeTerminal::NodeTerminal(u32 val, CompilerState & state) : Node(state)
+  NodeTerminal::NodeTerminal(u32 val, UTI utype, CompilerState & state) : Node(state)
   {
     m_constant.uval = val;
-    setNodeType(Unsigned); //m_state.getUlamTypeOfConstant(Unsigned);
+    setNodeType(utype); //m_state.getUlamTypeOfConstant(Unsigned);
     //uptocaller to set node location.
   }
 
+#if 0
   NodeTerminal::NodeTerminal(bool val, CompilerState & state) : Node(state)
   {
     m_constant.bval = val;
     setNodeType(Bool); //m_state.getUlamTypeOfConstant(Bool);
     //uptocaller to set node location.
   }
-
+#endif
   NodeTerminal::NodeTerminal(const NodeTerminal& ref) : Node(ref), m_constant(ref.m_constant) {}
 
   NodeTerminal::NodeTerminal(const NodeIdent& iref) : Node(iref) {}
@@ -55,18 +56,27 @@ namespace MFM {
   const char * NodeTerminal::getName()
   {
     UTI nuti = getNodeType();
-    ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nbitsize = nut->getBitSize();
+    ULAMTYPE etype = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etype)
       {
       case Bool:
-	num << (m_constant.bval ? "true" : "false");
+	//num << (m_constant.bval ? "true" : "false");
+	num << ( _Bool32ToCbool(m_constant.uval, nbitsize) ? "true" : "false");
 	break;
       case Int:
 	num << m_constant.sval;
 	break;
       case Unsigned:
 	num << m_constant.uval << "u";
+	break;
+      case Unary:
+	num << _Unsigned32ToUnary32(m_constant.uval, nbitsize, nbitsize) << "u"; //y
+	break;
+      case Bits:
+	num << m_constant.uval << "u";  //t
 	break;
       default:
 	{
@@ -153,7 +163,9 @@ namespace MFM {
     EvalStatus evs = NORMAL; //init ok
     UTI nuti = getNodeType();
     assert(nuti != Nav);
-    ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nbitsize = nut->getBitSize();
+    ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {
       case Int:
@@ -163,7 +175,14 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
 	break;
       case Bool:
-	rtnUV = UlamValue::makeImmediate(nuti, m_constant.bval, m_state);
+	//rtnUV = UlamValue::makeImmediate(nuti, m_constant.bval, m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBool32(m_constant.uval, nbitsize, nbitsize), m_state);
+	break;
+      case Unary:
+	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnary32(m_constant.uval, nbitsize, nbitsize), m_state);
+	break;
+      case Bits:
+	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
 	break;
       default:
 	{
@@ -372,17 +391,19 @@ namespace MFM {
 	}
 	break;
       case TOK_KW_TRUE:
-	m_constant.bval = true;
+	//m_constant.bval = true;
+	m_constant.uval = 1;
 	rtnok = true;
 	break;
       case TOK_KW_FALSE:
-	m_constant.bval = false;
+	//m_constant.bval = false;
+	m_constant.uval = 0;
 	rtnok = true;
 	break;
       default:
 	{
 	    std::ostringstream msg;
-	    msg << "Token neither a number, nor a boolean: <";
+	    msg << "Token is neither a number, nor a boolean: <";
 	    msg <<  m_state.getTokenDataAsString(&tok).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	}
