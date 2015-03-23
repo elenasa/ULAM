@@ -345,7 +345,7 @@ namespace MFM {
 	//but with typedef's "scope" of use, typedef needed to be checked first.
 	// scalar uti
 	tduti = m_state.makeUlamType(args.typeTok, args.bitsize, NONARRAYSIZE, Nav);
-	args.declListOrTypedefScalarType = tduti;
+	//args.declListOrTypedefScalarType = tduti;
 	brtn = true;
       }
     else
@@ -357,10 +357,10 @@ namespace MFM {
     if(brtn)
       {
 	UTI uti = tduti;
-	UTI scalarUTI = args.declListOrTypedefScalarType;
+	UTI scalarUTI = Nav;
 	if(m_state.isScalar(uti) && args.arraysize != NONARRAYSIZE)
 	  {
-	    scalarUTI = uti;
+	    args.declListOrTypedefScalarType = scalarUTI = uti;
 	    // o.w. build symbol (with bit and array sizes);
 	    // array's can't have their scalar as classInstance; o.w., no longer findable by token.
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
@@ -651,7 +651,7 @@ namespace MFM {
     else
       args.arraysize = tdarraysize; //use whatever typedef is
 
-    if(tdut->getBitSize() > 0 && args.bitsize == 0)
+    //if(tdut->getBitSize() > 0 && args.bitsize == 0)
       {
 	//ok to use typedef bitsize
 	args.bitsize = tdut->getBitSize();
@@ -679,7 +679,7 @@ namespace MFM {
 
     assert(args.arraysize == NONARRAYSIZE);
 
-    if(tdut->getBitSize() > 0 && args.bitsize == 0)
+    //if(tdut->getBitSize() > 0 && args.bitsize == 0)
       {
 	//ok to use typedef bitsize
 	args.bitsize = tdut->getBitSize();
