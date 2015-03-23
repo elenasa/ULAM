@@ -2323,7 +2323,7 @@ namespace MFM {
 	    if(typeargs.anothertduti)
 	      uti = typeargs.anothertduti;
 	    else
-	      uti = m_state.getUlamTypeFromToken(pTok, typeargs.bitsize, typeargs.arraysize); //only one
+	      uti = m_state.getUlamTypeFromToken(typeargs);
 	  }
 
 	//returns either a terminal or proxy
@@ -3973,50 +3973,6 @@ namespace MFM {
     termNode->setNodeLocation(locTok.m_locator);
     return termNode;
   } //makeTerminal
-
-#if 0
-  Node * Parser::makeTerminal(Token& locTok, s32 val, ULAMTYPE etype)
-  {
-    Node * termNode = NULL;
-    if(etype == Int)
-      {
-	termNode = new NodeTerminal(val, m_state);
-      }
-    else if(etype == Bool)
-      {
-	termNode = new NodeTerminal((bool) val, m_state);
-      }
-    else
-      {
-	termNode = new NodeTerminal((u32) val, m_state);
-      }
-    assert(termNode);
-    termNode->setNodeLocation(locTok.m_locator);
-    return termNode;
-  } //makeTerminal
-#endif
-
-#if 0
-  Node * Parser::makeTerminal(Token& locTok, u32 val, ULAMTYPE etype)
-  {
-    Node * termNode = NULL;
-    if(etype == Int)
-      {
-	termNode = new NodeTerminal((s32) val, m_state);
-      }
-    else if(etype == Bool)
-      {
-	termNode = new NodeTerminal((bool) val, m_state);
-      }
-    else
-      {
-	termNode = new NodeTerminal(val, m_state);
-      }
-    assert(termNode);
-    termNode->setNodeLocation(locTok.m_locator);
-    return termNode;
-  } //makeTerminal
-#endif
 
   void Parser::linkOrFreeConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
   {
