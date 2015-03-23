@@ -711,7 +711,12 @@ namespace MFM {
 
   UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)
   {
-    u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
+    u32 enumStrIdx;
+    if(etype == Int || etype == Bool)
+      enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
+    else //unsigned for everybody else (e.g. Unary, Bits)
+      enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(Unsigned));
+
     UlamKeyTypeSignature ckey(enumStrIdx, getDefaultBitSize((UTI) etype), NONARRAYSIZE); //was ANYBITSIZECONSTANT
     return makeUlamType(ckey, etype); //may not exist yet, create
   }
@@ -719,7 +724,12 @@ namespace MFM {
   UTI CompilerState::getDefaultUlamTypeOfConstant(UTI ctype)
   {
     ULAMTYPE etype = getUlamTypeByIndex(ctype)->getUlamTypeEnum();
-    u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
+    u32 enumStrIdx;
+    if(etype == Int || etype == Bool)
+      enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
+    else //unsigned for everybody else (e.g. Unary, Bits)
+      enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(Unsigned));
+
     UlamKeyTypeSignature ckey(enumStrIdx, getDefaultBitSize(ctype), NONARRAYSIZE);
     return makeUlamType(ckey, etype); //may not exist yet, create
   }
