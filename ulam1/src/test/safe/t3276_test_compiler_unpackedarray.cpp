@@ -23,11 +23,21 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","use System;\n element A {\nSystem s;\ntypedef Int BigSite[10];\nInt test(){ BigSite site; for(Int i = 0; i < 10; ++i){\n site[i] = i;\n s.print(site[i]);\n}\n return 10;\n }\n }\n");
+      //bool rtn1 = fms->add("A.ulam","use System;\n element A {\nSystem s;\ntypedef Int BigSite[10];\nInt test(){ BigSite site; for(Int i = 0; i < 10; ++i){\n site[i] = i;\n s.print(site[i]);\n}\n return 10;\n }\n }\n");
 
-      bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
+      //bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
 
-      if(rtn1 && rtn3)
+      // simplify for debug
+      //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int BigSite[10];\nInt test(){ BigSite site;  for(Int i = 0; i < 5; ++i){\n  /* site[i] = i;\n */ site[1] = 4;\n  }\n   return 10;\n }\n }\n");
+
+      //site[3] = 1 ok, site[4] as lhs fails
+      bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int BigSite[10];\nInt test(){ BigSite site;  site[4] = 1;\n  return 0;\n }\n }\n");
+
+      //return site[0] only ok.
+      //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int BigSite[10];\nInt test(){ BigSite site;  /* site[4] = 4;\n*/  return site[1];\n }\n }\n");
+
+      //if(rtn1 && rtn3)
+      if(rtn1)
 	return std::string("A.ulam");
 
       return std::string("");

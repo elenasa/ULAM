@@ -130,7 +130,8 @@ namespace MFM {
 	else
 	  {
 	    //typedefs don't contribute to the total bit size
-	    if(!sym->isTypedef())
+	    //if(!sym->isTypedef())
+	    if(variableSymbolWithCountableSize(sym))
 	      {
 		totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
 	      }
@@ -148,6 +149,7 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
+	//don't count typedef's or element parameters toward total, nor named constants
 	if(!variableSymbolWithCountableSize(sym))
 	  {
 	    it++;
@@ -186,11 +188,7 @@ namespace MFM {
 	    m_state.setBitSize(suti, symsize); //symsize does not include arrays
 	  }
 
-	//don't count typedef's or element parameters toward total, nor named constants
-	//if(variableSymbolWithCountableSize(sym))
-	  {
-	    totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
-	  }
+	totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
 	it++;
       } //while
     return totalsizes;
