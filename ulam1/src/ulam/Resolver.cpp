@@ -241,6 +241,7 @@ namespace MFM {
   {
     if(ceNode)
       {
+	assert(!isTypedefFromAnotherClass(uti));
 	std::pair<std::map<UTI, NodeTypeBitsize *>::iterator, bool> ret;
 	ret = m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
 	bool notdupi = ret.second; //false if already existed, i.e. not added
@@ -330,9 +331,14 @@ namespace MFM {
   {
     if(ceNode)
       {
-	std::pair<std::map<UTI, NodeSquareBracket * >::iterator, bool> ret;
-	ret = m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
-	bool notdupi = ret.second; //false if already existed, i.e. not added
+	bool notdupi = false;
+	if(!isTypedefFromAnotherClass(uti))
+	  {
+	    std::pair<std::map<UTI, NodeSquareBracket * >::iterator, bool> ret;
+	    ret = m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
+	    notdupi = ret.second; //false if already existed, i.e. not added
+	  }
+
 	if(!notdupi)
 	  {
 	    delete ceNode; //prevent leaks
@@ -533,6 +539,16 @@ namespace MFM {
 	//not added
       }
   } //linkUnknownTypedefFromAnotherClass
+
+  bool Resolver::isTypedefFromAnotherClass(UTI uti)
+  {
+    std::map<UTI, UTI>::iterator it = m_unknownTypedefFromAnotherClass.find(uti);
+    if(it != m_unknownTypedefFromAnotherClass.end())
+      {
+	return true;
+      }
+    return false;
+  } //isTypedefFromAnotherClass
 
   bool Resolver::statusUnknownTypedefsFromAnotherClass()
   {
