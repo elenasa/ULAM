@@ -159,6 +159,7 @@ namespace MFM {
 
   u32 SymbolClassName::countNavNodesInClassInstances()
   {
+    assert(!isClassTemplate());
     u32 navCounter = 0;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);

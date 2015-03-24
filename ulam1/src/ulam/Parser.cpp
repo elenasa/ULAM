@@ -3981,8 +3981,27 @@ namespace MFM {
 	//link arraysize subtree for arraytype based on scalar from another class, OR
 	// a local arraytype based on a local scalar uti; o.w. delete.
 	// don't keep the ceForArraySize if the type belongs to another class!
-	if(arraysize == UNKNOWNSIZE && ((args.anothertduti && args.anothertduti != auti) || (args.classInstanceIdx == Nav && args.declListOrTypedefScalarType && args.declListOrTypedefScalarType != auti)))
-	  m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner or delete if dup or anothertd
+	if(arraysize == UNKNOWNSIZE)
+	  {
+	    //array here of a typedef from another class's scalar
+	    if(args.anothertduti && args.anothertduti != auti)
+	      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner or delete if dup or anothertd
+	    else
+	      {
+		if(args.classInstanceIdx == Nav)
+		  {
+		    //local array and scalar
+		    if(args.declListOrTypedefScalarType && args.declListOrTypedefScalarType != auti)
+		      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner or delete if dup or anothertd
+		  }
+		else
+		  {
+		    //an array of classes (typedef)
+		    if(args.declListOrTypedefScalarType == args.classInstanceIdx)
+		      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner or delete if dup or anothertd
+		  }
+	      }
+	  }
 	else
 	  delete ceForArraySize;
 

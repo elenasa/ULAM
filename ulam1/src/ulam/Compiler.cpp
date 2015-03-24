@@ -144,17 +144,6 @@ namespace MFM {
 	}
     } while(!sumbrtn);
 
-    // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
-    u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
-    //if(!labelok || navcount > 0)
-    if(navcount > 0)
-      {
-	std::ostringstream msg;
-	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG("", msg.str().c_str(), ERR);
-      }
-
     // type set at parse time (needed for square bracket checkandlabel);
     // so, here we just check for matching arg types (regular and Templates only).
     m_state.m_programDefST.checkCustomArraysForTableOfClasses();
@@ -166,6 +155,19 @@ namespace MFM {
 
     // let Ulam programmer know the bits used/available (needs infoOn)
     m_state.m_programDefST.printBitSizeOfTableOfClasses();
+
+
+    // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
+    // clean up duplicate functions beforehand
+    u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
+    //if(!labelok || navcount > 0)
+    if(navcount > 0)
+      {
+	std::ostringstream msg;
+	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG("", msg.str().c_str(), ERR);
+      }
 
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)
