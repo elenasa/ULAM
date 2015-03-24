@@ -1773,6 +1773,7 @@ namespace MFM {
 		  }
 
 		args.anothertduti = tduti; //don't lose it!
+		args.declListOrTypedefScalarType = tdscalaruti;
 		rtnb = true;
 	      }
 	    else
@@ -1786,9 +1787,6 @@ namespace MFM {
 	      }
 
 	    //possibly another class? go again..
-	    //if(isclasstd)
-	    //  args.classInstanceIdx = tduti;
-	    //o.w. keep any previous classInstanceIdx for future reference
 	    parseTypeFromAnotherClassesTypedef(args, rtnb, numDots);
 	  }
 	else
@@ -3980,9 +3978,11 @@ namespace MFM {
     if(!aut->isComplete())
       {
 	s32 arraysize = aut->getArraySize();
-	//applies to classes as well, no subtree clones needed
-	if(arraysize == UNKNOWNSIZE)
-	  m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner
+	//link arraysize subtree for arraytype based on scalar from another class, OR
+	// a local arraytype based on a local scalar uti; o.w. delete.
+	// don't keep the ceForArraySize if the type belongs to another class!
+	if(arraysize == UNKNOWNSIZE && ((args.anothertduti && args.anothertduti != auti) || (args.classInstanceIdx == Nav && args.declListOrTypedefScalarType && args.declListOrTypedefScalarType != auti)))
+	  m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner or delete if dup or anothertd
 	else
 	  delete ceForArraySize;
 
@@ -3994,17 +3994,16 @@ namespace MFM {
 	      {
 		if(arraysize != NONARRAYSIZE) //an array
 		  {
-		    if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType)
-		      m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.declListOrTypedefScalarType);
-		    else if(args.classInstanceIdx != Nav)
+		    if(args.classInstanceIdx != Nav) //the other class
 		      {
 			m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
-
 			if(auti != args.anothertduti) //e.g. an array type based on anothertduti scalar.
-			  {
-			    m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
-			  }
+			  m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
+			else if(args.declListOrTypedefScalarType != Nav) //an array type based on anothertduti array
+			  m_state.linkUnknownTypedefFromAnotherClass(args.declListOrTypedefScalarType, args.classInstanceIdx);
 		      }
+		    else if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType) //local array typedef
+		      m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.declListOrTypedefScalarType);
 		    else
 		      assert(0); //a bug, likely typedef related (e.g. missing scalarUTI)
 		  }
@@ -4025,7 +4024,8 @@ namespace MFM {
 		      }
 		    else
 		      {
-			//a class, no bitsize subtree, must be a typedef from another class
+			//a class, no bitsize subtree, must be a class or a typedef from another class
+			// nothing to do if a class type (not a typedef)
 			if(auti == args.anothertduti && args.classInstanceIdx != Nav)
 			  {
 			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
@@ -4062,9 +4062,16 @@ namespace MFM {
 	    //bitsize is known..ok free
 	    delete ceForBitSize;
 
-	    //arraysize isn't known
-	    if(args.anothertduti == auti && args.classInstanceIdx != Nav)
-	      m_state.linkUnknownTypedefFromAnotherClass(auti, args.classInstanceIdx);
+	    //t.f. arraysize isn't known
+	    if(args.classInstanceIdx != Nav)
+	      {
+		m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+
+		if(auti != args.anothertduti) //e.g. an array type based on anothertduti scalar.
+		  {
+		    m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
+		  }
+	      }
 	  }
       }
     else

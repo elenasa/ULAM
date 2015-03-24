@@ -78,6 +78,7 @@ namespace MFM
 
     void linkConstantExpression(NodeConstantDef * ceNode);
     void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubUTI);
+    bool isTypedefFromAnotherClass(UTI uti); //prevent linking array subtree if so
 
     //these exist in a stubs only!
     bool assignClassArgValuesInStubCopy();

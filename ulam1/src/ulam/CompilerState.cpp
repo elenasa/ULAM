@@ -1031,6 +1031,7 @@ namespace MFM {
     bool rtnB = false;
     SymbolClass * csym = NULL;
     UlamType * ict = getUlamTypeByIndex(incomplete);
+    assert(ict->getUlamClass() == UC_UNSEEN); //missing?
     if(alreadyDefinedSymbolClass(incomplete, csym))
       {
 	SymbolClassName * cnsym = NULL;

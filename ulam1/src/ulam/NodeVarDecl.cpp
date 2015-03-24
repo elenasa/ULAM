@@ -105,14 +105,14 @@ namespace MFM {
 	  {
 	    m_state.completeIncompleteClassSymbol(it);
 	  }
-	else if(tdclasstype != UC_NOTACLASS)
-	  {
-	    m_state.constantFoldPendingArgs(it);
-	  }
-	else if(!tdut->isComplete()) //o.w. primitive
-	  {
-	    m_state.constantFoldIncompleteUTI(it); //update if possible
-	  }
+	//else if(tdclasstype != UC_NOTACLASS)
+	//  {
+	//    m_state.constantFoldPendingArgs(it);
+	//  }
+	//else if(!tdut->isComplete()) //o.w. primitive
+	//  {
+	//    m_state.constantFoldIncompleteUTI(it); //update if possible
+	//  }
 
 	// fall through to common attempt to map UTI
 	tdut = m_state.getUlamTypeByIndex(it); //reload

@@ -585,7 +585,7 @@ namespace MFM {
     s32 tdarraysize = tdut->getArraySize();
     if(args.arraysize >= 0)  //variable's
       {
-	if(tdarraysize >= 0 && tdarraysize != args.arraysize)  //was tdarraysize >= 0
+	if(tdarraysize >= 0 && tdarraysize != args.arraysize)
 	  {
 	    //error can't support double arrays
 	    std::ostringstream msg;
@@ -598,9 +598,12 @@ namespace MFM {
 	    rtnb = false;
 	  }
       }
-    else  //variable not array, or unknown
+    else  //variable not array; leave as-is when unknown
       {
-	args.arraysize = tdarraysize; //use whatever typedef is
+	if(args.arraysize == UNKNOWNSIZE || tdarraysize == UNKNOWNSIZE)
+	  args.arraysize = UNKNOWNSIZE;
+	else
+	  args.arraysize = tdarraysize; //use whatever typedef is
       }
 
     s32 tdbitsize = tdut->getBitSize();
@@ -623,7 +626,6 @@ namespace MFM {
       {
 	args.bitsize = tdbitsize; //use whatever typedef is
       }
-    //assert(tdbitsize == bitsize);
     return rtnb;
   } //checkVariableTypedefSizes
 
@@ -649,13 +651,14 @@ namespace MFM {
 	  }
       }
     else
-      args.arraysize = tdarraysize; //use whatever typedef is
-
-    //if(tdut->getBitSize() > 0 && args.bitsize == 0)
       {
-	//ok to use typedef bitsize
-	args.bitsize = tdut->getBitSize();
+	if(args.arraysize == UNKNOWNSIZE || tdarraysize == UNKNOWNSIZE)
+	  args.arraysize = UNKNOWNSIZE;
+	else
+	  args.arraysize = tdarraysize; //use whatever typedef is
       }
+
+    args.bitsize = tdut->getBitSize(); //ok to use typedef bitsize
     return rtnb;
   } //checkTypedefOfTypedefSizes
 
@@ -676,14 +679,9 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnb = false;
       }
-
     assert(args.arraysize == NONARRAYSIZE);
 
-    //if(tdut->getBitSize() > 0 && args.bitsize == 0)
-      {
-	//ok to use typedef bitsize
-	args.bitsize = tdut->getBitSize();
-      }
+    args.bitsize = tdut->getBitSize(); //ok to use typedef bitsize
 
     // constants can't be classes either
     if(tdut->getUlamClass() != UC_NOTACLASS)
