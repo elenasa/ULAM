@@ -17,13 +17,6 @@ namespace MFM {
     return UAtom;
   }
 
-#if 0
-  ULAMCLASSTYPE UlamTypeAtom::getUlamClass()
-  {
-    return UC_ATOM;  //???
-  }
-#endif
-
   const std::string UlamTypeAtom::getUlamTypeVDAsStringForC()
   {
     return "VD::ATOM";
@@ -44,11 +37,11 @@ namespace MFM {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName() << "<EC>";
     return ctype.str();
-  } //getImmediateStorageTypeAsString
+  }
 
   const char * UlamTypeAtom::getUlamTypeAsSingleLowercaseLetter()
   {
-    return "a";  //self ???
+    return "a";  //self?
   }
 
   bool UlamTypeAtom::isMinMaxAllowed()
@@ -105,8 +98,6 @@ namespace MFM {
     std::ostringstream  ud;
     ud << "Ud_" << mangledName;  //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
-
-    //s32 len = getTotalBitSize();  //BITSPERATOM
 
     m_state.indent(fp);
     fp->write("#ifndef ");

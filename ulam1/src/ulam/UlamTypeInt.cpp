@@ -19,18 +19,15 @@ namespace MFM {
     m_min = calcBitsizeSignedMin(bitsize);
   }
 
-
    ULAMTYPE UlamTypeInt::getUlamTypeEnum()
    {
      return Int;
    }
 
-
   const std::string UlamTypeInt::getUlamTypeVDAsStringForC()
   {
     return "VD::S32";
   }
-
 
   //As it stands, this can refer to base class code now.
   const std::string UlamTypeInt::getUlamTypeImmediateMangledName()
@@ -42,30 +39,25 @@ namespace MFM {
     return UlamType::getUlamTypeImmediateMangledName(); //? for constants
   }
 
-
   const std::string UlamTypeInt::getArrayItemTmpStorageTypeAsString()
   {
     return getTmpStorageTypeAsString(getItemWordSize());
   }
-
 
   const std::string UlamTypeInt::getTmpStorageTypeAsString()
   {
     return getTmpStorageTypeAsString(getTotalWordSize());
   }
 
-
   const std::string UlamTypeInt::getArrayItemUnsignedTmpStorageTypeAsString()
   {
     return UlamType::getTmpStorageTypeAsString(getItemWordSize());
   }
 
-
   const std::string UlamTypeInt::getUnsignedTmpStorageTypeAsString()
   {
     return UlamType::getTmpStorageTypeAsString(getTotalWordSize());
   }
-
 
   const std::string UlamTypeInt::getTmpStorageTypeAsString(s32 sizebyints)
   {
@@ -91,12 +83,10 @@ namespace MFM {
     return ctype;
   } //getTmpStorageTypeAsString
 
-
   const char * UlamTypeInt::getUlamTypeAsSingleLowercaseLetter()
   {
     return "i";
   }
-
 
   bool UlamTypeInt::cast(UlamValue & val, UTI typidx)
   {
@@ -175,7 +165,6 @@ namespace MFM {
     return brtn;
   } //end cast
 
-
   void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)
   {
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
@@ -210,20 +199,9 @@ namespace MFM {
     fp->write(";\n");
 
     UTI newuti = uti;
-#if 0
-    UTI newuti = Int;
-
-    if(totWords > MAXBITSPERINT)
-      {
-	UlamKeyTypeSignature ikey(state.m_pool.getIndexForDataString("Int"), totWords);
-	newuti = m_state.makeUlamType(ikey, Int);
-      }
-#endif
 
     uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
-
   } //genCodeAfterReadingIntoATmpVar
-
 
   // private helper
   void UlamTypeInt::genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
@@ -251,20 +229,8 @@ namespace MFM {
     fp->write(";\n");
 
     UTI newuti = uti;
-#if 0
-    UTI newuti = Int;
-
-    if(itemWords > MAXBITSPERINT)
-      {
-	UlamKeyTypeSignature ikey(state.m_pool.getIndexForDataString("Int"), itemWords);
-	newuti = m_state.makeUlamType(ikey, Int);
-      }
-#endif
-
     uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
-
   } //genCodeAfterReadingArrayItemIntoATmpVar
-
 
   void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix)
   {

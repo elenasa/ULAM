@@ -159,11 +159,11 @@ namespace MFM {
 	UTI suti = sym->getUlamTypeIdx();
 	s32 symsize = calcVariableSymbolTypeSize(suti); //recursively
 
-	if(symsize == CYCLEFLAG)  //was < 0
+	if(symsize == CYCLEFLAG) //was < 0
 	  {
 	    std::ostringstream msg;
 	    msg << "cycle error!!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	  }
 	else if(symsize == EMPTYSYMBOLTABLE)
 	  {
@@ -176,7 +176,7 @@ namespace MFM {
 	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << " UTI" << suti << " while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	    if(variableSymbolWithCountableSize(sym))
 	      {
 		totalsizes = UNKNOWNSIZE;
@@ -209,7 +209,7 @@ namespace MFM {
 	    UTI sut = sym->getUlamTypeIdx();
 	    s32 symsize = calcVariableSymbolTypeSize(sut); //recursively
 
-	    if(symsize == CYCLEFLAG)  //was < 0
+	    if(symsize == CYCLEFLAG) //was < 0
 	      {
 		std::ostringstream msg;
 		msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
@@ -730,7 +730,7 @@ namespace MFM {
 	((SymbolClassName *) sym)->calcMaxDepthOfFunctionsForClassInstances();
 	it++;
       }
-  } //calcMaxDepthOfFunctionsForTableOfClasses();
+  } //calcMaxDepthOfFunctionsForTableOfClasses
 
   bool SymbolTable::labelTableOfClasses()
   {
@@ -751,9 +751,8 @@ namespace MFM {
 	    break;
 	  }
 	else
-	  {
-	    cnsym->checkAndLabelClassInstances();
-	  }
+	  cnsym->checkAndLabelClassInstances();
+
 	it++;
       }
     return (m_state.m_err.getErrorCount() + m_state.m_err.getWarningCount() == 0);
@@ -820,13 +819,6 @@ namespace MFM {
 	    lostClassesIds.pop_back();
 	  }
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
-      }
-    else
-      {
-	//misleading..
-	//	std::ostringstream msg;
-	//msg << m_idToSymbolPtr.size() << " Class" <<( m_idToSymbolPtr.size() > 1 ? "es ALL " : " ") << "sized SUCCESSFULLY";
-	//MSG("", msg.str().c_str(),DEBUG);
       }
     lostClassesIds.clear();
     return aok;
@@ -962,7 +954,7 @@ namespace MFM {
 	  {
 	    return totbitsize;
 	  }
-	if(totbitsize == CYCLEFLAG)  //was < 0
+	if(totbitsize == CYCLEFLAG) //was < 0
 	  {
 	    assert(0);
 	    return CYCLEFLAG;
@@ -994,7 +986,7 @@ namespace MFM {
 
 	if(totbitsize == CYCLEFLAG) //was < 0
 	  {
-	    return CYCLEFLAG;       //error! cycle
+	    return CYCLEFLAG; //error! cycle
 	  }
 	else if(totbitsize == EMPTYSYMBOLTABLE)
 	  {

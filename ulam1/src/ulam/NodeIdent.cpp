@@ -97,7 +97,6 @@ namespace MFM {
 		// replace ourselves with a constant node instead;
 		// same node no, and loc
 		NodeConstant * newnode = new NodeConstant(*this);
-		//newnode->setNodeType(asymptr->getUlamTypeIdx());
 		Node * parentNode = m_state.findNodeNoInThisClass(Node::getYourParentNo());
 		assert(parentNode);
 
@@ -112,7 +111,7 @@ namespace MFM {
 		m_state.popClassContext(); //restore
 
 		delete this; //suicide is painless..
-		//return Nav;
+
 		return newnode->checkAndLabelType();
 	      }
 	    else
@@ -184,7 +183,7 @@ namespace MFM {
 		UlamType * caut = m_state.getUlamTypeByIndex(caType);
 		if(caType == UAtom || caut->getBitSize() > 32)
 		  {
-		    uv = uvp; //UlamValue::makeAtom(caType);	//customarray
+		    uv = uvp; //customarray
 		  }
 		else
 		  {
@@ -224,7 +223,7 @@ namespace MFM {
     assert(m_varSymbol);
     assert(isStoreIntoAble());
 
-    evalNodeProlog(0);         //new current node eval frame pointer
+    evalNodeProlog(0); //new current node eval frame pointer
 
     UlamValue rtnUVPtr = makeUlamValuePtr();
 
@@ -233,8 +232,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }
-
+  } //evalToStoreInto
 
   UlamValue NodeIdent::makeUlamValuePtr()
   {
@@ -272,7 +270,6 @@ namespace MFM {
       }
     return ptr;
   } //makeUlamValuePtr
-
 
   //new
   UlamValue NodeIdent::makeUlamValuePtrForCodeGen()
@@ -342,10 +339,8 @@ namespace MFM {
     else if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	//UlamTypes automatically created for the base types with different array sizes.
-	//but with typedef's "scope" of use, typedef needed to be checked first.
-	// scalar uti
+	//but with typedef's "scope" of use, typedef needed to be checked first. scalar uti
 	tduti = m_state.makeUlamType(args.typeTok, args.bitsize, NONARRAYSIZE, Nav);
-	//args.declListOrTypedefScalarType = tduti;
 	brtn = true;
       }
     else
@@ -379,7 +374,7 @@ namespace MFM {
 	//create a symbol for this new ulam type, a typedef, with its type
 	SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, uti, scalarUTI, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));  //true
+	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;
   } //installSymbolTypedef
@@ -391,7 +386,7 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
-	return false;    //already there
+	return false; //already there
       }
 
     // maintain specific type (see isAConstant() Node method)
@@ -439,7 +434,7 @@ namespace MFM {
 	m_state.addSymbolToCurrentScope(symconstdef);
 
 	//gets the symbol just created by makeUlamType
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));  //true
+	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
     return false;
   } //installSymbolConstantValue
@@ -453,8 +448,8 @@ namespace MFM {
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
 	if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
-	  setSymbolPtr((SymbolVariable *) asymptr);  //updates Node's symbol, if is variable
-	return false;    //already there
+	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
+	return false; //already there
       }
 
     // verify typedef exists for this scope; or is a primitive keyword type

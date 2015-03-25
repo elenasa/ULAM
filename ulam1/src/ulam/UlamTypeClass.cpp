@@ -450,21 +450,6 @@ namespace MFM {
     //fp->write(" d) : m_t(d) {}\n");
     fp->write(" d) { write(d); }\n");
 
-#if 0 // Fri Mar 13 16:04:59 2015 XXX TESTING GCC CODE GEN IMPACTS
-    //copy constructor here (used by func call return values)
-    m_state.indent(fp);
-    fp->write(mangledName.c_str());
-    fp->write("(const ");
-    fp->write(getImmediateStorageTypeAsString().c_str()); //s32 or u32
-    fp->write("& d) : m_stg(d.m_stg) {}\n");
-
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(mangledName.c_str());
-    fp->write("() {}\n");
-#endif // Fri Mar 13 16:04:59 2015 XXX TESTING GCC CODE GEN IMPACTS
-
     //read 'entire quark' method
     genUlamTypeQuarkReadDefinitionForC(fp);
 
@@ -862,14 +847,6 @@ namespace MFM {
       }
     else
       assert(0);
-
-#if 0
-    // non-const T ref method for scalar
-    m_state.indent(fp);
-    fp->write("T& getRef() { return ");
-    fp->write(mangledName.c_str());
-    fp->write("<EC>::getRef(); }\n");
-#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

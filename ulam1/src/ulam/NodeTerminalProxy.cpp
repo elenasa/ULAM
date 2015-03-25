@@ -177,9 +177,6 @@ namespace MFM {
 
     bool rtnb = true;
 
-    // leave it to the resolving loop
-    //m_state.constantFoldIncompleteUTI(m_uti); //update if possible
-
     //attempt to map UTI
     if(!m_state.isComplete(m_uti))
       {

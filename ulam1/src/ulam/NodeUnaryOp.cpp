@@ -176,25 +176,6 @@ namespace MFM {
 
     //replace ourselves (and kids) with a node terminal; new NNO unlike template's
     NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
-
-#if 0
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    switch(etype)
-      {
-      case Int:
-	newnode = new NodeTerminal((s32) val, m_state);
-	break;
-      case Bool:
-	newnode = new NodeTerminal((bool) val, m_state);
-	break;
-      case Unsigned:
-	newnode = new NodeTerminal(val, m_state);
-	break;
-      default:
-	assert(0);
-      };
-#endif
     assert(newnode);
     newnode->setNodeLocation(getNodeLocation());
 

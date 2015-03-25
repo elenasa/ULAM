@@ -380,16 +380,6 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG("", msg.str().c_str(), WARN);
       }
-#if 0
-    else
-      {
-	std::ostringstream msg;
-	msg << countNavs << " nodes with illegal 'Nav' types remain in functions <";
-	msg << m_state.m_pool.getDataAsString(getId());
-	msg << "> --- good to go!";
-	MSG("", msg.str().c_str(), DEBUG);
-      }
-#endif
     return countNavs;
   } //countNavNodesInFunctionDefs
 

@@ -1155,5 +1155,4 @@ namespace MFM {
   }//cloneResolverForClassInstance
 
 
-
 } //end MFM

@@ -121,14 +121,6 @@ namespace MFM {
     if(isEmpty())
       return getNodeType();
 
-#if 0
-    // redo checkAndLabel with class arg values?
-    if(m_templateClassParent != Nav)
-      {
-	return getPreviousBlockPointer()->checkAndLabelType();
-      }
-#endif
-
     //side-effect DataMember VAR DECLS
     if(m_nodeNext)
       m_nodeNext->checkAndLabelType();

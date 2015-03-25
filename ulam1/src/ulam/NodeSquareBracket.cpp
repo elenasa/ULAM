@@ -259,14 +259,8 @@ namespace MFM {
 	return false;
       }
 
-    s32 newarraysize = UNKNOWNSIZE; //NONARRAYSIZE
-    //if(getArraysizeInBracket(newarraysize))
-      {
-    	args.arraysize = newarraysize;
-	return m_nodeLeft->installSymbolTypedef(args, asymptr);
-      }
-
-    return false;  //error getting array size
+    args.arraysize = UNKNOWNSIZE; // no eval yet
+    return m_nodeLeft->installSymbolTypedef(args, asymptr);
   } //installSymbolTypedef
 
   //see also NodeIdent
@@ -293,13 +287,8 @@ namespace MFM {
 	return false;
       }
 
-    s32 newarraysize = UNKNOWNSIZE; //NONARRAYSIZE
-    //if(getArraysizeInBracket(newarraysize))
-      {
-	args.arraysize = newarraysize;
-	return m_nodeLeft->installSymbolVariable(args, asymptr);
-      }
-    return false;  //error getting array size
+    args.arraysize = UNKNOWNSIZE; // no eval yet
+    return m_nodeLeft->installSymbolVariable(args, asymptr);
   } //installSymbolVariable
 
   bool NodeSquareBracket::assignClassArgValueInStubCopy()
