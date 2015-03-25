@@ -247,8 +247,8 @@ namespace MFM{
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
-    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassName * & symptr);
-    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassNameTemplate * & symptr);
+    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
+    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
 
     /** during type labeling, sets the ULAMCLASSTYPE and bitsize for typedefs that involved incomplete Class types */
     bool completeIncompleteClassSymbol(UTI incomplete) ;

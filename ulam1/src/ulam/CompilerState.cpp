@@ -990,8 +990,9 @@ namespace MFM {
   } //alreadyDefinedSymbolClass
 
   //temporary UlamType which will be updated during type labeling.
-  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassName * & symptr)
+  void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
   {
+    u32 dataindex = cTok.m_dataindex;
     assert(!alreadyDefinedSymbolClassName(dataindex,symptr));
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
@@ -1003,8 +1004,9 @@ namespace MFM {
   } //addIncompleteClassSymbolToProgramTable
 
   //temporary UlamType which will be updated during type labeling.
-  void CompilerState::addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassNameTemplate * & symptr)
+  void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
   {
+    u32 dataindex = cTok.m_dataindex;
     assert(!alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
