@@ -998,8 +998,13 @@ namespace MFM {
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
 
+    NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
+    assert(classblock);
+    classblock->setNodeLocation(cTok.m_locator);
+    classblock->setNodeType(cuti);
+
     //symbol ownership goes to the programDefST; distinguish between template and regular classes here:
-    symptr = new SymbolClassName(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
+    symptr = new SymbolClassName(dataindex, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
 
@@ -1012,8 +1017,13 @@ namespace MFM {
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
 
+    NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
+    assert(classblock);
+    classblock->setNodeLocation(cTok.m_locator);
+    classblock->setNodeType(cuti);
+
     //symbol ownership goes to the programDefST; distinguish between template and regular classes here:
-    symptr = new SymbolClassNameTemplate(dataindex, cuti, NULL, *this);  //NodeBlockClass is NULL for now
+    symptr = new SymbolClassNameTemplate(dataindex, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
 
@@ -1126,6 +1136,13 @@ namespace MFM {
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
   {
     getCurrentBlock()->addIdToScope(symptr->getId(), symptr);
+  }
+
+  //symbol ownership goes to the member block (end of vector)
+  // making stuff up!
+  void CompilerState::addSymbolToCurrentMemberClassScope(Symbol * symptr)
+  {
+    getCurrentMemberClassBlock()->addIdToScope(symptr->getId(), symptr);
   }
 
   //symbol ownership goes to the current block (end of vector);

@@ -296,17 +296,20 @@ namespace MFM {
   NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym, Token identTok)
   {
     UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
-    NodeBlockClass * rtnNode = NULL;
-    NodeBlock * prevBlock = m_state.getCurrentBlock();
-    assert(prevBlock == NULL); //this is the class' first block
+    NodeBlockClass * rtnNode = cnsym->getClassBlockNode(); //usually NULL
+    if(!rtnNode)
+      {
+	NodeBlock * prevBlock = m_state.getCurrentBlock();
+	assert(prevBlock == NULL); //this is the class' first block
 
-    rtnNode = new NodeBlockClass(prevBlock, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(identTok.m_locator);
-    rtnNode->setNodeType(utype);
+	rtnNode = new NodeBlockClass(prevBlock, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(identTok.m_locator);
+	rtnNode->setNodeType(utype);
 
-    //set block before returning, so future class instances can link back to it
-    cnsym->setClassBlockNode(rtnNode);
+	//set block before returning, so future class instances can link back to it
+	cnsym->setClassBlockNode(rtnNode);
+      }
 
     //current, this block's symbol table added to parse tree stack
     //        for validating and finding scope of program/block variables
@@ -1725,6 +1728,22 @@ namespace MFM {
 	    UTI tduti;
 	    UTI tdscalaruti = Nav;
 	    bool isclasstd = false;
+	    if(!m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti, tdscalaruti))
+	      {
+		//make one up!! if UN_SEEN class
+		UTI mcuti = memberClassNode->getNodeType();
+		ULAMCLASSTYPE mclasstype = m_state.getUlamTypeByIndex(mcuti)->getUlamClass();
+		if(mclasstype == UC_UNSEEN)
+		  {
+		    // use Int.32.-1 as default type
+		    SymbolTypedef * symtypedef = new SymbolTypedef(nTok.m_dataindex, Int, Nav, m_state);
+		    assert(symtypedef);
+		    symtypedef->setBlockNoOfST(memberClassNode->getNodeNo());
+		    symtypedef->setFabricatedTmp(true);
+		    m_state.addSymbolToCurrentMemberClassScope(symtypedef);
+		  }
+	      } //end make one up, now fall through
+
 	    if(m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti, tdscalaruti))
 	      {
 		UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
