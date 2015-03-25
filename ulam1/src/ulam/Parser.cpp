@@ -204,7 +204,7 @@ namespace MFM {
       {
 	if(!m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, cnSym))
 	  {
-	    m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, cnSym);
+	    m_state.addIncompleteClassSymbolToProgramTable(iTok, cnSym);
 	  }
 	else
 	  {
@@ -226,7 +226,7 @@ namespace MFM {
 	SymbolClassNameTemplate * ctSym;
 	if(!m_state.alreadyDefinedSymbolClassNameTemplate(iTok.m_dataindex, ctSym))
 	  {
-	    m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, ctSym); //overloaded
+	    m_state.addIncompleteClassSymbolToProgramTable(iTok, ctSym); //overloaded
 	  }
 	else
 	  {
@@ -1438,7 +1438,7 @@ namespace MFM {
 		return m_state.getUlamTypeAsScalar(tduti); //may make new uti
 	      }
 	    else
-	      m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, cnsym);
+	      m_state.addIncompleteClassSymbolToProgramTable(typeTok, cnsym);
 	  }
 	else
 	  {
@@ -1458,7 +1458,7 @@ namespace MFM {
     //must be a template class
     SymbolClassNameTemplate * ctsym = NULL;
     if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
-      m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, ctsym); //was undefined, template
+      m_state.addIncompleteClassSymbolToProgramTable(typeTok, ctsym); //was undefined, template
 
     assert(ctsym);
 
@@ -1683,6 +1683,7 @@ namespace MFM {
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
 		numDots = 0;
 		rtnb = false;
+		getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 		return; //failed
 	      }
 	  }
@@ -1703,6 +1704,7 @@ namespace MFM {
 		msg << ">, before it has been defined. Cannot continue with (token) ";
 		msg << m_state.getTokenDataAsString(&nTok).c_str();
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
+		getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	      }
 	    else
 	      {
@@ -3981,12 +3983,16 @@ namespace MFM {
 		    //local array and scalar
 		    if(args.declListOrTypedefScalarType && args.declListOrTypedefScalarType != auti)
 		      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+		    else
+		      delete ceForArraySize;
 		  }
 		else
 		  {
 		    //an array of classes (typedef)
 		    if(args.declListOrTypedefScalarType == args.classInstanceIdx)
 		      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+		    else
+		      delete ceForArraySize;
 		  }
 	      }
 	  }
