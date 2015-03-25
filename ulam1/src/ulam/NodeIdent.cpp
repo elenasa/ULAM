@@ -313,7 +313,18 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
-	return false;    //already there
+	if(asymptr->isFabricatedTmp())
+	  {
+	    //remove it! then continue..
+	    Symbol * rmsym = NULL;
+	    if(m_state.getCurrentBlock()->removeIdFromScope(m_token.m_dataindex, rmsym))
+	      {
+		assert(rmsym == asymptr); //sanity check removal
+		asymptr = NULL;
+	      }
+	  }
+	else
+	  return false;    //already there
       }
 
     //typedef might have bitsize and arraysize info..
@@ -386,7 +397,18 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
-	return false; //already there
+	if(asymptr->isFabricatedTmp())
+	  {
+	    //remove it! then continue..
+	    Symbol * rmsym = NULL;
+	    if(m_state.getCurrentBlock()->removeIdFromScope(m_token.m_dataindex, rmsym))
+	      {
+		assert(rmsym == asymptr); //sanity check removal
+		asymptr = NULL;
+	      }
+	  }
+	else
+	  return false; //already there
       }
 
     // maintain specific type (see isAConstant() Node method)
@@ -447,9 +469,22 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
-	if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
-	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
-	return false; //already there
+	if(asymptr->isFabricatedTmp())
+	  {
+	    //remove it! then continue..
+	    Symbol * rmsym = NULL;
+	    if(m_state.getCurrentBlock()->removeIdFromScope(m_token.m_dataindex, rmsym))
+	      {
+		assert(rmsym == asymptr); //sanity check removal
+		asymptr = NULL;
+	      }
+	  }
+	else
+	  {
+	    if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
+	      setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
+	    return false; //already there
+	  }
       }
 
     // verify typedef exists for this scope; or is a primitive keyword type
