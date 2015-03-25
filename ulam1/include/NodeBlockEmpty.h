@@ -66,6 +66,8 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
+    virtual void calcMaxDepth(u32& depth);
+
     virtual void genCode(File * fp, UlamValue& uvpass);
 
 

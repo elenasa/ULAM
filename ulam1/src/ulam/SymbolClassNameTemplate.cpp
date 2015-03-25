@@ -746,6 +746,34 @@ namespace MFM {
       }
   } //checkDuplicateFunctionsForClassInstances
 
+  void SymbolClassNameTemplate::calcMaxDepthOfFunctionsForClassInstances()
+  {
+    // only need to check the unique class instances that have been deeply copied
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	if(!csym->isStub())
+	  {
+	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+	    classNode->calcMaxDepthOfFunctions(); //do each instance
+	    m_state.popClassContext(); //restore
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << " Class instance: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << " is still a stub, so no calc max depth function error";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	  }
+	it++;
+      }
+  } //calcMaxDepthOfFunctionsForClassInstances
+
   void SymbolClassNameTemplate::checkAndLabelClassInstances()
   {
     // only need to c&l the unique class instances that have been deeply copied

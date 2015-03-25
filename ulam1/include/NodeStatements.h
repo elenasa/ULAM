@@ -74,6 +74,8 @@ namespace MFM{
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
+    virtual void calcMaxDepth(u32& depth);
+
     virtual void genCode(File * fp, UlamValue& uvpass);
 
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);

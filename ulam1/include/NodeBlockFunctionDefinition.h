@@ -73,6 +73,7 @@ namespace MFM{
     // for framestack
     void setMaxDepth(u32 depth);
     u32 getMaxDepth();
+    //    virtual void calcMaxDepth(u32& depth);
 
     // for keyword 'native'; has empty block (i.e. not defined in Ulam); eval skipped
     void setNative();
