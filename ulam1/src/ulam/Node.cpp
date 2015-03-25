@@ -292,6 +292,11 @@ namespace MFM {
     assert(0);
   }
 
+  void Node::calcMaxDepth(u32& depth)
+  {
+    return; //work done by NodeStatements and NodeBlock
+  }
+
   void Node::genCode(File * fp, UlamValue& uvpass)
   {
     m_state.indent(fp);

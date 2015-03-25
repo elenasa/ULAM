@@ -133,6 +133,16 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkDuplicateFunctionsForClassInstances
 
+  void SymbolClassName::calcMaxDepthOfFunctionsForClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    classNode->calcMaxDepthOfFunctions();
+    m_state.popClassContext(); //restore
+  } //calcMaxDepthOfFunctionsForClassInstances
+
   void SymbolClassName::checkAndLabelClassFirst()
   {
     NodeBlockClass * classNode = getClassBlockNode();

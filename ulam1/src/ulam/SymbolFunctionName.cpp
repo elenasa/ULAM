@@ -155,6 +155,31 @@ namespace MFM {
     return depthsum;
   } //getDepthSumOfFunctions
 
+
+  // after all the UTI types are known, including array and bitsize
+  // and before eval() for testing, update the maxdepth that was
+  // calculated during parsetime
+  void SymbolFunctionName::calcMaxDepthOfFunctions()
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func); //how would a function symbol be without a body?
+	u32 maxdepth = 0;
+	func->calcMaxDepth(maxdepth);
+	//add size of parameters (+ 1 for hidden) and return size?
+	maxdepth += fsym->getTotalSizeOfParameters();
+	maxdepth += 1; //hidden arg
+	maxdepth += m_state.slotsNeeded(fsym->getUlamTypeIdx()); //return type
+	func->setMaxDepth(maxdepth);
+	++it;
+      }
+    return;
+  } //calcMaxDepthOfFunctions
+
   // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
   u32 SymbolFunctionName::checkFunctionNames()
   {

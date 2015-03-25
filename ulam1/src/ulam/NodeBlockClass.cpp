@@ -166,6 +166,13 @@ namespace MFM {
       m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
   }
 
+  void NodeBlockClass::calcMaxDepthOfFunctions()
+  {
+    // for all the function names, calculate their max depth
+    if(!isEmpty())
+      m_functionST.calcMaxDepthForTableOfFunctions(); //returns prob counts, outputs errs
+  }
+
   void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     if(!isEmpty())

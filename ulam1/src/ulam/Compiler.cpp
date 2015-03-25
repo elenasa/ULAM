@@ -150,6 +150,9 @@ namespace MFM {
 
     m_state.m_programDefST.checkDuplicateFunctionsForTableOfClasses();
 
+    // must happen after type labeling and before eval (test)
+    m_state.m_programDefST.calcMaxDepthOfFunctionsForTableOfClasses();
+
     // must happen after type labeling and before code gen; separate pass. want UNKNOWNS reported
     m_state.m_programDefST.packBitsForTableOfClasses();
 

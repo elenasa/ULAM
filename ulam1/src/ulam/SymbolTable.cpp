@@ -466,6 +466,19 @@ namespace MFM {
     return totalNavCount;
   } //countNavNodesAcrossTableOfFunctions
 
+  void SymbolTable::calcMaxDepthForTableOfFunctions()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isFunction());
+	((SymbolFunctionName *) sym)->calcMaxDepthOfFunctions();
+	it++;
+      }
+    return;
+  } //calcMaxDepthForTableOfFunctions
+
   //called by current Class block on its function ST
   bool SymbolTable::checkCustomArrayTypeFuncs()
   {
@@ -705,6 +718,19 @@ namespace MFM {
 	it++;
       }
   } //checkDuplicateFunctionsForTableOfClasses
+
+  void SymbolTable::calcMaxDepthOfFunctionsForTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+
+	((SymbolClassName *) sym)->calcMaxDepthOfFunctionsForClassInstances();
+	it++;
+      }
+  } //calcMaxDepthOfFunctionsForTableOfClasses();
 
   bool SymbolTable::labelTableOfClasses()
   {
