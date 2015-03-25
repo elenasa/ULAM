@@ -189,7 +189,7 @@ namespace MFM {
 	  {
 	    if(key.getUlamKeyTypeSignatureArraySize() != NONARRAYSIZE) //array type
 	      {
-		//save scalar in key
+		//can't save scalar in key; unable to look up from token
 		//saveNonClassScalarUTIForArrayUTI = suti;
 	      }
 	    key.append(Nav); //clear
@@ -606,8 +606,6 @@ namespace MFM {
     else
       {
 	//it's an element or quark! base type is Class.
-	//SymbolClassName * cnsym = NULL;
-	//if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	bUT = Class;
       }
     return bUT;
@@ -718,15 +716,7 @@ namespace MFM {
 
   UTI CompilerState::getDefaultUlamTypeOfConstant(UTI ctype)
   {
-    //ULAMTYPE etype = getUlamTypeByIndex(ctype)->getUlamTypeEnum();
-    //u32 enumStrIdx;
-    //if(etype == Int || etype == Bool)
-    //  enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
-    //else //unsigned for everybody else (e.g. Unary, Bits)
-    //  enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(Unsigned));
-    //UlamKeyTypeSignature ckey(enumStrIdx, getDefaultBitSize(ctype), NONARRAYSIZE);
-    //return makeUlamType(ckey, etype); //may not exist yet, create
-    return ctype;
+    return ctype; // use its own type
   } //getDefaultUlamTypeOfConstant
 
   bool CompilerState::isScalar(UTI utArg)
@@ -760,11 +750,10 @@ namespace MFM {
     return ut->isComplete();
   } //isComplete
 
-  //this may go away..
   //updates key. we can do this now that UTI is used and the UlamType * isn't saved
   void CompilerState::setBitSize(UTI utArg, s32 bits)
   {
-    return setUTISizes(utArg, bits, getArraySize(utArg));  //keep current arraysize
+    return setUTISizes(utArg, bits, getArraySize(utArg)); //keep current arraysize
   }
 
   void CompilerState::setUTISizes(UTI utArg, s32 bitsize, s32 arraysize)
@@ -1031,7 +1020,7 @@ namespace MFM {
     bool rtnB = false;
     SymbolClass * csym = NULL;
     UlamType * ict = getUlamTypeByIndex(incomplete);
-    assert(ict->getUlamClass() == UC_UNSEEN); //missing?
+    assert(ict->getUlamClass() == UC_UNSEEN); //missing
     if(alreadyDefinedSymbolClass(incomplete, csym))
       {
 	SymbolClassName * cnsym = NULL;
@@ -1087,15 +1076,14 @@ namespace MFM {
     while(!brtn && blockNode)
       {
 	brtn = blockNode->isIdInScope(dataindex,symptr);
-	blockNode = blockNode->getPreviousBlockPointer();  //traverse the chain
+	blockNode = blockNode->getPreviousBlockPointer(); //traverse the chain
       }
 
     //data member variables in class block; function symbols are linked to their
     //function def block; check function data members separately.
     if(!brtn)
-      {
-	brtn = isFuncIdInClassScope(dataindex, symptr);
-      }
+      brtn = isFuncIdInClassScope(dataindex, symptr);
+
     return brtn;
   } //alreadyDefinedSymbol
 
@@ -1251,15 +1239,13 @@ namespace MFM {
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
-	return true;  //okay to skip return statement for void function
+	return true; //okay to skip return statement for void function
       }
 
     for(u32 i = 0; i < m_currentFunctionReturnNodes.size(); i++)
       {
 	NodeReturnStatement * rNode = m_currentFunctionReturnNodes.at(i);
 	UTI rType = rNode->getNodeType();
-
-	//if(rType != it)
 	if(UlamType::compare(rType, it, *this) != UTIC_SAME)
 	  {
 	    rtnBool = false;
@@ -1310,9 +1296,7 @@ namespace MFM {
   void CompilerState::indent(File * fp)
   {
     for(u32 i = 0; i < m_currentIndentLevel; i++)
-      {
-	fp->write(m_indentedSpaceLevel);
-      }
+      fp->write(m_indentedSpaceLevel);
   } //indent
 
   const char * CompilerState::getHiddenArgName()
@@ -1458,13 +1442,13 @@ namespace MFM {
     std::ostringstream mangled;
     if(classtype == UC_QUARK)
       {
-	mangled << "<" << getTotalBitSize(uti) << ">";  //???
+	mangled << "<" << getTotalBitSize(uti) << ">"; //?
       }
     return mangled.str();
   } //getBitSizeTemplateString
 
-  //unfortunately, the uti did not reveal a Class symbol; already down to primitive types
-  //for casting.
+  //unfortunately, the uti did not reveal a Class symbol;
+  //already down to primitive types for casting.
   const std::string CompilerState::getBitVectorLengthAsStringForCodeGen(UTI uti)
   {
     ULAMCLASSTYPE classtype = getUlamTypeByIndex(uti)->getUlamClass();
@@ -1515,10 +1499,9 @@ namespace MFM {
 	valAtIdx = m_eventWindow.loadAtomFromSite(ptr.getPtrSlotIndex());
 	break;
       default:
-	//error!
-	assert(0);
+	assert(0); //error!
       };
-    return valAtIdx;  //return as-is
+    return valAtIdx; //return as-is
   } //getPtrTarget
 
   //general purpose store
@@ -1580,7 +1563,6 @@ namespace MFM {
 
 	//redo what getPtrTarget use to do, when types didn't match due to
 	//an element/quark or a requested scalar of an arraytype
-	//if(atval.getUlamValueTypeIdx() != tuti)
 	if(UlamType::compare(atval.getUlamValueTypeIdx(), tuti, *this) != UTIC_SAME)
 	  {
 	    UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
@@ -1604,7 +1586,6 @@ namespace MFM {
 
 	    //redo what getPtrTarget use to do, when types didn't match due to
 	    //an element/quark or a requested scalar of an arraytype
-	    // if(atval.getUlamValueTypeIdx() != tuti)
 	    if(UlamType::compare(atval.getUlamValueTypeIdx(), tuti, *this) != UTIC_SAME)
 	      {
 		UlamValue atvalUV = UlamValue::getPackedArrayDataFromAtom(rptr, atval, *this);
@@ -1625,7 +1606,6 @@ namespace MFM {
     assert(lptr.getUlamValueTypeIdx() == Ptr);
     assert(rptr.getUlamValueTypeIdx() == Ptr);
 
-    //assert(lptr.getPtrTargetType() == rptr.getPtrTargetType());
     assert(UlamType::compare(lptr.getPtrTargetType(), rptr.getPtrTargetType(), *this) == UTIC_SAME);
 
     STORAGE place = lptr.getPtrStorage();
@@ -1720,7 +1700,7 @@ namespace MFM {
     assert(linenum >= 0 && linenum <= textOfLines->size());
     textOfLines->push_back(textid);
 
-    m_locOfNextLineText = loc;  //during parsing here (see NodeStatements)
+    m_locOfNextLineText = loc; //during parsing here (see NodeStatements)
   } //appendNextLineOfText
 
   std::string CompilerState::getLineOfText(Locator loc)
@@ -1788,7 +1768,7 @@ namespace MFM {
   {
     assert(uti != Void);
 
-    std::ostringstream tmpVar;  //into
+    std::ostringstream tmpVar; //into
     PACKFIT packed = determinePackable(uti);
 
     if(uti == UAtom || getUlamTypeByIndex(uti)->getUlamClass() == UC_ELEMENT)
@@ -1820,7 +1800,7 @@ namespace MFM {
 
   const std::string CompilerState::getLabelNumAsString(s32 num)
   {
-    std::ostringstream labelname;  //into
+    std::ostringstream labelname; //into
     labelname << "Ul_endcontrolloop_" << ToLeximitedNumber(num);
     return labelname.str();
   } //getLabelNumAsString
@@ -1879,16 +1859,6 @@ namespace MFM {
 
   NNO CompilerState::getCurrentBlockNo()
   {
-#if 0
-    //unlike getCurrentBlock, here we check for memberselect for symbol construction
-    if(useMemberBlock())
-      {
-	NodeBlockClass * classblock = getCurrentMemberClassBlock();
-	if(classblock)
-	  return classblock->getNodeNo();
-	return 0;
-      }
-#endif
     ClassContext cc;
     if(m_classContextStack.getCurrentClassContext(cc) && getCurrentBlock())
       return getCurrentBlock()->getNodeNo();

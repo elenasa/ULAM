@@ -213,12 +213,12 @@ namespace MFM {
 	// set up STACK since func call not called
 	m_state.setupCenterSiteForTesting();
 
-	m_state.m_nodeEvalStack.addFrameSlots(1);     //prolog, 1 for return
+	m_state.m_nodeEvalStack.addFrameSlots(1); //prolog, 1 for return
 	s32 rtnValue = 0;
 	EvalStatus evs = classNode->eval();
 	if(evs != NORMAL)
 	  {
-	    rtnValue =  -1;   //error!
+	    rtnValue = -1; //error!
 	  }
 	else
 	  {
@@ -231,15 +231,15 @@ namespace MFM {
 	//curious..
 	{
 	  UlamValue objUV = m_state.m_eventWindow.loadAtomFromSite(c0.convertCoordToIndex());
-	  u32 data = objUV.getData(25,32);  //Int f.m_i (t3146)
+	  u32 data = objUV.getData(25,32); //Int f.m_i (t3146)
 	  std::ostringstream msg;
 	  msg << "Output for m_i = <" << data << "> (expecting 4 for t3146)";
 	  MSG("",msg.str().c_str() , INFO);
 	}
 #endif
-	m_state.m_nodeEvalStack.returnFrame();       //epilog
+	m_state.m_nodeEvalStack.returnFrame(); //epilog
 
-	fp->write("Exit status: " );    //in compared answer
+	fp->write("Exit status: " ); //in compared answer
 	fp->write_decimal(rtnValue);
 	fp->write("\n");
       } //test eval
@@ -431,12 +431,12 @@ namespace MFM {
       assert(fp);
 
       m_state.m_currentIndentLevel = 0;
-      fp->write(CModeForHeaderFiles);  //needed for .tcc files too
+      fp->write(CModeForHeaderFiles); //needed for .tcc files too
 
       UlamValue uvpass;
-      m_classBlock->genCodeBody(fp, uvpass);  //compileThisId only, MFM namespace
+      m_classBlock->genCodeBody(fp, uvpass); //compileThisId only, MFM namespace
 
-      delete fp;  //close
+      delete fp; //close
     }
 
     // "stub" .cpp includes .h (unlike the .tcc body)
@@ -459,7 +459,6 @@ namespace MFM {
     //separate main.cpp for elements only; that have the test method.
     if(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass() == UC_ELEMENT)
       {
-	//if(m_state.thisClassHasTheTestMethod())
 	if(m_classBlock->findTestFunctionNode())
 	  generateMain(fm);
       }
@@ -644,7 +643,7 @@ namespace MFM {
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
-	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)   //e.g. skip constants, incl atom
+	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS) //e.g. skip constants, incl atom
 	  ut->genUlamTypeMangledDefinitionForC(fp);
 	it++;
       }

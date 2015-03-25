@@ -97,14 +97,14 @@ namespace MFM {
 
     if(m_varSymbol)
       {
-	it = m_varSymbol->getUlamTypeIdx();  //base type has arraysize
+	it = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
 	//check for incomplete Classes
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
-	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-	if(tdclasstype == UC_UNSEEN)
-	  {
-	    m_state.completeIncompleteClassSymbol(it);
-	  }
+	//ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
+	//if(tdclasstype == UC_UNSEEN)
+	//  {
+	//    m_state.completeIncompleteClassSymbol(it); //?
+	//  }
 	//else if(tdclasstype != UC_NOTACLASS)
 	//  {
 	//    m_state.constantFoldPendingArgs(it);
@@ -181,7 +181,6 @@ namespace MFM {
 	if(!m_state.isComplete(it))
 	  {
 	    UTI cuti = m_state.getCompileThisIdx();
-	    //m_state.constantFoldIncompleteUTI(it); //update if possible
 	    UTI mappedUTI = Nav;
 	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
 	      {
@@ -242,10 +241,6 @@ namespace MFM {
     if(getNodeType() == Nav)
       return ERROR;
 
-    //evalNodeProlog(0); //new current frame pointer
-    //copy result UV to stack, -1 relative to current frame pointer
-    //    assignReturnValueToStack(m_varSymbol->getUlamValue(m_state));
-    //evalNodeEpilog();
     if(getNodeType() == UAtom || m_state.getUlamTypeByIndex(getNodeType())->getUlamClass() == UC_ELEMENT)
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());

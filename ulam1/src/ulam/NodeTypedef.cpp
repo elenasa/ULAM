@@ -110,27 +110,21 @@ namespace MFM {
 
 	if(!tdut->isComplete())
 	  {
-	    // infinitie loop
-	    //m_state.constantFoldIncompleteUTI(it); //update if possible
-	    // fall through to common attempt to map UTI
-	    //if(!m_state.isComplete(it))
+	    UTI cuti = m_state.getCompileThisIdx();
+	    UTI mappedUTI = Nav;
+	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
 	      {
-		UTI cuti = m_state.getCompileThisIdx();
-		UTI mappedUTI = Nav;
-		if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-		  {
-		    std::ostringstream msg;
-		    msg << "Substituting Mapped UTI" << mappedUTI;
-		    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		    msg << " for incomplete Typedef type: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		    msg << " used with typedef symbol name '" << getName();
-		    msg << "' UTI" << it << " while labeling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    it = mappedUTI;
-		    m_typedefSymbol->resetUlamType(mappedUTI); //consistent!
-		  }
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		msg << " for incomplete Typedef type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << " used with typedef symbol name '" << getName();
+		msg << "' UTI" << it << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
+		m_typedefSymbol->resetUlamType(mappedUTI); //consistent!
 	      }
 	  }
 
