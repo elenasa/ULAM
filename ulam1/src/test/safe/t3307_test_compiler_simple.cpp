@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 8\nUe_A { Int(16) a[2](4,8);  Int(32) test() {  a 0 [] 1 3 +b cast = a 1 [] 2 4 * cast = a 1 [] cast return } }\n");
+      // constant folded 1 3 +b, and 2 4 *
+      return std::string("Exit status: 8\nUe_A { Int(16) a[2](4,8);  Int(32) test() {  a 0 [] 4 cast = a 1 [] 8 cast = a 1 [] cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -23,5 +24,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3307_test_compiler_simple)
 
 } //end MFM
-
-

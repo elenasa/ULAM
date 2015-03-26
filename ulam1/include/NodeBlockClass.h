@@ -77,6 +77,8 @@ namespace MFM{
 
     void checkDuplicateFunctions();
 
+    void calcMaxDepthOfFunctions();
+
     virtual EvalStatus eval();
 
     //checks both function and variable symbol names

@@ -68,6 +68,8 @@ namespace MFM{
 
     u32 getDepthSumOfFunctions();
 
+    void calcMaxDepthOfFunctions(); //called after all UTI sizes are known
+
     u32 checkFunctionNames();
 
     u32 checkCustomArrayFunctions(SymbolTable & fST);

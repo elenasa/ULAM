@@ -47,7 +47,7 @@ namespace MFM {
 	msg << "Calculating 'incomplete' bitwise node types: ";
 	msg << m_state.getUlamTypeNameByIndex(lt).c_str() << " and ";
 	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	return Nav;
       }
 

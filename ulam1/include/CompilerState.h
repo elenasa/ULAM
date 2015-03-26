@@ -97,7 +97,7 @@ namespace MFM{
     s32 arraysize;
     UTI classInstanceIdx;
     UTI anothertduti;
-    UTI declListScalarType;
+    UTI declListOrTypedefScalarType;
     bool assignOK;
 
     void init(Token typetoken)
@@ -107,7 +107,7 @@ namespace MFM{
       arraysize = NONARRAYSIZE;
       classInstanceIdx = Nav;
       anothertduti = Nav;
-      declListScalarType = Nav;
+      declListOrTypedefScalarType = Nav;
       assignOK = true;
     }
   };
@@ -133,6 +133,7 @@ namespace MFM{
 
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
+    bool m_parsingInProgress; //to avoid constantFolding when parsing
 
     s32 m_parsingControlLoop;                // used for break/continue control statement parsing;
                                              // label num for end of loop, or 0
@@ -190,6 +191,7 @@ namespace MFM{
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
     void cloneAndLinkConstantExpression(UTI fromuti, UTI touti);
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    void linkIncompleteArrayTypeToItsBaseScalarType(UTI arrayuti, UTI baseuti);
     void linkConstantExpression(NodeConstantDef * ceNode);
     void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubuti);
 
@@ -202,7 +204,9 @@ namespace MFM{
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
     UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);
-    bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType);
+    UTI getUlamTypeFromToken(ParserTypeArgs & args);
+
+    bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
 
     /** turns array into its single element type */
     UTI getUlamTypeAsScalar(UTI utArg);
@@ -243,8 +247,8 @@ namespace MFM{
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
-    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassName * & symptr);
-    void addIncompleteClassSymbolToProgramTable(u32 dataindex, SymbolClassNameTemplate * & symptr);
+    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
+    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
 
     /** during type labeling, sets the ULAMCLASSTYPE and bitsize for typedefs that involved incomplete Class types */
     bool completeIncompleteClassSymbol(UTI incomplete) ;

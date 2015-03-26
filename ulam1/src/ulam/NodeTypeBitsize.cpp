@@ -5,7 +5,10 @@
 
 namespace MFM {
 
-  NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node) {}
+  NodeTypeBitsize::NodeTypeBitsize(Node * node, CompilerState & state) : Node(state), m_node(node)
+  {
+    m_node->updateLineage(getNodeNo()); //for unknown subtrees
+  }
 
   NodeTypeBitsize::NodeTypeBitsize(const NodeTypeBitsize& ref) : Node(ref)
   {
@@ -87,6 +90,12 @@ namespace MFM {
   {
     Node::countNavNodes(cnt);
     m_node->countNavNodes(cnt);
+  }
+
+  bool NodeTypeBitsize::assignClassArgValueInStubCopy()
+  {
+    //return m_node->assignClassArgValueInStubCopy();
+    return true;
   }
 
   EvalStatus NodeTypeBitsize::eval()

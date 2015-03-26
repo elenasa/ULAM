@@ -13,6 +13,17 @@ namespace MFM {
 
   void Resolver::clearLeftoverSubtrees()
   {
+    clearLeftoverUnknownBitsizeSubtrees();
+    clearLeftoverUnknownArraysizeSubtrees();
+    clearLeftoverNonreadyNamedConstantSubtrees();
+    clearLeftoverNonreadyClassArgSubtrees();
+    clearLeftoverUnknownTypdedefsFromAnotherClass();
+    m_mapUTItoUTI.clear();
+    m_incompleteArrayTypeToItsBaseScalarType.clear();
+  } //clearLeftoverSubtrees()
+
+  void Resolver::clearLeftoverUnknownBitsizeSubtrees()
+  {
     s32 unknownB = m_unknownBitsizeSubtrees.size();
     if(unknownB > 0)
       {
@@ -30,8 +41,10 @@ namespace MFM {
 	  }
       }
     m_unknownBitsizeSubtrees.clear();
+  } //clearLeftoverUnknownBitsizeSubtrees
 
-
+  void Resolver::clearLeftoverUnknownArraysizeSubtrees()
+  {
     s32 unknownA = m_unknownArraysizeSubtrees.size();
     if(unknownA > 0)
       {
@@ -49,7 +62,10 @@ namespace MFM {
 	  }
       }
     m_unknownArraysizeSubtrees.clear();
+  } //clearLeftoverUnknownArraysizeSubtrees
 
+  void Resolver::clearLeftoverNonreadyNamedConstantSubtrees()
+  {
     s32 nonreadyC = m_nonreadyNamedConstantSubtrees.size();
     if(nonreadyC > 0)
       {
@@ -58,8 +74,10 @@ namespace MFM {
 	MSG("",msg.str().c_str(),DEBUG);
       }
     m_nonreadyNamedConstantSubtrees.clear();
+  } //clearLeftoverNonreadyNamedConstantSubtrees
 
-
+  void Resolver::clearLeftoverNonreadyClassArgSubtrees()
+  {
     s32 nonreadyG = m_nonreadyClassArgSubtrees.size();
     if(nonreadyG > 0)
       {
@@ -78,7 +96,10 @@ namespace MFM {
 	  }
       }
     m_nonreadyClassArgSubtrees.clear();
+  } //clearLeftoverNonreadyClassArgSubtrees
 
+  void Resolver::clearLeftoverUnknownTypdedefsFromAnotherClass()
+  {
     s32 tdfromanotherC = m_unknownTypedefFromAnotherClass.size();
     if(tdfromanotherC > 0)
       {
@@ -88,9 +109,7 @@ namespace MFM {
 	MSG("",msg.str().c_str(),DEBUG);
       }
     m_unknownTypedefFromAnotherClass.clear();
-
-    m_mapUTItoUTI.clear();
-  } //clearLeftoverSubtrees()
+  } //clearLeftoverUnknownTypdedefsFromAnotherClass
 
   void Resolver::cloneTemplateResolver(SymbolClass * to)
   {
@@ -122,6 +141,22 @@ namespace MFM {
 	  to->linkConstantExpression(mappedUTI, cloneNode);
 	  it++;
       }
+    }
+
+    //incomplete Array type (for scalar's bitsize)
+    {
+      std::map<UTI, UTI>::iterator it = m_incompleteArrayTypeToItsBaseScalarType.begin();
+      while(it != m_incompleteArrayTypeToItsBaseScalarType.end())
+	{
+	  UTI auti = it->first;
+	  UTI buti = it->second;
+	  UTI mappedauti = auti;
+	  UTI mappedbuti = buti;
+	  to->hasMappedUTI(auti, mappedauti);
+	  to->hasMappedUTI(buti, mappedbuti);
+	  to->linkIncompleteArrayTypeInResolver(mappedauti, mappedbuti);
+	  it++;
+	}
     }
 
     //Named Constants
@@ -170,11 +205,20 @@ namespace MFM {
     return NULL;
   } //findUnknownArraysizeUTI
 
+  UTI Resolver::findIncompleteArrayTypeBaseScalarType(UTI auti) const
+  {
+    std::map<UTI, UTI>::const_iterator it = m_incompleteArrayTypeToItsBaseScalarType.find(auti);
+    if(it != m_incompleteArrayTypeToItsBaseScalarType.end())
+      return it->second;
+    return Nav;
+  } //findincompleteArrayTypeToItsBaseScalarType
+
   bool Resolver::statusUnknownConstantExpressions()
   {
     bool sumbrtn = true;
     sumbrtn &= statusUnknownBitsizeUTI();
     sumbrtn &= statusUnknownArraysizeUTI();
+    sumbrtn &= statusIncompleteArrayTypes();
     sumbrtn &= statusNonreadyNamedConstants();
     sumbrtn &= statusUnknownTypedefsFromAnotherClass();
     return sumbrtn;
@@ -197,6 +241,7 @@ namespace MFM {
   {
     if(ceNode)
       {
+	assert(!isTypedefFromAnotherClass(uti));
 	std::pair<std::map<UTI, NodeTypeBitsize *>::iterator, bool> ret;
 	ret = m_unknownBitsizeSubtrees.insert(std::pair<UTI, NodeTypeBitsize *>(uti,ceNode));
 	bool notdupi = ret.second; //false if already existed, i.e. not added
@@ -216,6 +261,9 @@ namespace MFM {
     NodeTypeBitsize * ceNode = it->second;
     NodeTypeBitsize * cloneSubtree = new NodeTypeBitsize(*ceNode); //any symbols will be null until c&l
     assert(cloneSubtree);
+    cloneSubtree->resetNodeNo(m_state.getNextNodeNo()); //mucks up finding nno when the same
+    cloneSubtree->updateLineage(cloneSubtree->getNodeNo()); //for future constant folding; does it hurt to have clones' parent nno be itself?
+
     linkConstantExpression(totype, cloneSubtree);
   } //linkConstantExpression (bitsize, decllist)
 
@@ -283,9 +331,14 @@ namespace MFM {
   {
     if(ceNode)
       {
-	std::pair<std::map<UTI, NodeSquareBracket * >::iterator, bool> ret;
-	ret = m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
-	bool notdupi = ret.second; //false if already existed, i.e. not added
+	bool notdupi = false;
+	if(!isTypedefFromAnotherClass(uti))
+	  {
+	    std::pair<std::map<UTI, NodeSquareBracket * >::iterator, bool> ret;
+	    ret = m_unknownArraysizeSubtrees.insert(std::pair<UTI, NodeSquareBracket *>(uti,ceNode));
+	    notdupi = ret.second; //false if already existed, i.e. not added
+	  }
+
 	if(!notdupi)
 	  {
 	    delete ceNode; //prevent leaks
@@ -357,6 +410,69 @@ namespace MFM {
     return rtnstat;
   } //statusUnknownArraysizeUTI
 
+  void Resolver::linkIncompleteArrayTypeToItsBaseScalarType(UTI arraytype, UTI scalartype)
+  {
+    std::pair<std::map<UTI, UTI>::iterator, bool> ret;
+    ret = m_incompleteArrayTypeToItsBaseScalarType.insert(std::pair<UTI, UTI>(arraytype,scalartype));
+    bool notdupi = ret.second; //false if already existed, i.e. not added
+    if(!notdupi)
+      {
+	//not added
+      }
+  } //linkIncompleteArrayTypeToItsBaseScalarType
+
+  bool Resolver::statusIncompleteArrayTypes()
+  {
+    bool rtnstat = true; //ok, empty
+    if(!m_incompleteArrayTypeToItsBaseScalarType.empty())
+      {
+	u32 uksize = m_incompleteArrayTypeToItsBaseScalarType.size();
+	std::vector<UTI> foundAs;
+	std::ostringstream msg;
+	msg << "Found " << uksize << " incomplete array type";
+	msg << (uksize > 1 ? "s " : " ");
+	msg << "while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	MSG("", msg.str().c_str(), DEBUG);
+
+	std::map<UTI, UTI>::iterator it = m_incompleteArrayTypeToItsBaseScalarType.begin();
+	while(it != m_incompleteArrayTypeToItsBaseScalarType.end())
+	  {
+	    UTI auti = it->first; //array
+	    UTI buti = it->second; //base scalar
+
+	    //if auti is still incomplete with unknown bitsize:
+	    //  1. if base is still incomplete, then still incomplete
+	    //  2. if base bitsize is known, update auti, and remove from map
+	    if(m_state.getBitSize(auti) > UNKNOWNSIZE)
+	      {
+		foundAs.push_back(auti);
+	      }
+	    else
+	      {
+		s32 bitsize = m_state.getBitSize(buti);
+		if(bitsize > UNKNOWNSIZE)
+		  {
+		    m_state.setBitSize(auti, bitsize); //update UlamType
+		    foundAs.push_back(auti);
+		  }
+	      }
+	    it++;
+	  } //while
+
+	while(!foundAs.empty())
+	  {
+	    UTI futi = foundAs.back();
+	    it = m_incompleteArrayTypeToItsBaseScalarType.find(futi);
+	    m_incompleteArrayTypeToItsBaseScalarType.erase(it);
+	    foundAs.pop_back();
+	  }
+	foundAs.clear();
+	rtnstat = m_incompleteArrayTypeToItsBaseScalarType.empty();
+      }
+    return rtnstat;
+  } //statusIncompleteArrayTypes
+
   void Resolver::linkConstantExpression(NodeConstantDef * ceNode)
   {
     if(ceNode)
@@ -424,6 +540,16 @@ namespace MFM {
       }
   } //linkUnknownTypedefFromAnotherClass
 
+  bool Resolver::isTypedefFromAnotherClass(UTI uti)
+  {
+    std::map<UTI, UTI>::iterator it = m_unknownTypedefFromAnotherClass.find(uti);
+    if(it != m_unknownTypedefFromAnotherClass.end())
+      {
+	return true;
+      }
+    return false;
+  } //isTypedefFromAnotherClass
+
   bool Resolver::statusUnknownTypedefsFromAnotherClass()
   {
     bool rtnstat = true; //ok, empty
@@ -440,6 +566,7 @@ namespace MFM {
 	  {
 	    UTI tduti = it->first;
 	    UTI aclassuti = it->second;
+
 	    //if aclassuti is not a stub, look up tduti in its map of uti's
 	    SymbolClass * acsym = NULL;
 	    assert(m_state.alreadyDefinedSymbolClass(aclassuti, acsym));
@@ -474,6 +601,24 @@ namespace MFM {
     return rtnstat;
   } //statusUnknownTypedefsFromAnotherClass
 
+  bool Resolver::assignClassArgValuesInStubCopy()
+  {
+    bool aok = true;
+    // context is already set
+    std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
+    while(vit != m_nonreadyClassArgSubtrees.end())
+      {
+	NodeConstantDef * ceNode = *vit;
+
+	if(ceNode)
+	  {
+	    aok &= ceNode->assignClassArgValueInStubCopy();
+	  }
+	vit++;
+      } //while thru vector of incomplete args only
+    return aok;
+  } //assignClassArgValuesInStubCopy
+
   bool Resolver::statusNonreadyClassArguments()
   {
     bool rtnstat = true; //ok, empty
@@ -498,25 +643,6 @@ namespace MFM {
   bool Resolver::constantFoldNonreadyClassArgs()
   {
     bool rtnb = true;
-    //HOPEFULLY, all context dependent expressions have been simplified so
-    // this step is no longer required.
-#if 0
-    // before trying to resolve class args, reset the context responsible for its existence
-    // during resolving loop the current context may be its shallow self rather than the deep
-    // instantiation with the needed values for the constants used in these pending args.
-    if(m_classContextUTIForPendingArgs != m_state.m_compileThisIdx)
-      {
-
-	SymbolClass * csymptr = NULL;
-	assert(m_state.alreadyDefinedSymbolClass(m_classContextUTIForPendingArgs, csymptr));
-
-	m_state.setCompileThisIdx(m_classContextUTIForPendingArgs);
-	NodeBlockClass * classNode = csymptr->getClassBlockNode();
-	m_state.m_classBlock = classNode;
-	m_state.m_currentBlock = m_state.m_classBlock;
-      }
-#endif
-
     std::vector<NodeConstantDef *> leftCArgs;
     std::vector<NodeConstantDef *>::iterator vit = m_nonreadyClassArgSubtrees.begin();
     while(vit != m_nonreadyClassArgSubtrees.end())
@@ -572,18 +698,21 @@ namespace MFM {
 	assert(classblock->isIdInScope(cloneNode->getSymbolId(), cvsym));
 	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
 
-	//set context and try to resolve all context-dependent arg expressions..
-	m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
-
-	if(cloneNode->foldConstantExpression())
-	  delete cloneNode;
-	else
-	  linkConstantExpressionForPendingArg(cloneNode);
-
-	m_state.popClassContext(); //restore previous context
+	linkConstantExpressionForPendingArg(cloneNode); //resolve later
 	vit++;
       }
+
     m_classContextUTIForPendingArgs = context; //update (might not be needed anymore?)
+
+    //Cannot MIX the current block (context) to find symbols while
+    //using this stub copy to find parent NNOs for constant folding;
+    //therefore we separate them so that all we do now is update the
+    //constant values in the stub copy's Resolver map.
+    //Resolution of all context-dependent arg expressions will occur
+    //during the resolving loop..
+    m_state.pushClassContext(context, contextSym->getClassBlockNode(), contextSym->getClassBlockNode(), false, NULL);
+    assignClassArgValuesInStubCopy();
+    m_state.popClassContext(); //restore previous context
   } //clonePendingClassArgumentsForStubClassInstance
 
   UTI Resolver::getContextForPendingArgs()
@@ -631,6 +760,99 @@ namespace MFM {
       }
     return brtn;
   } //findMappedUTI
+
+  bool Resolver::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(findNodeNoInUnknownBitsizes(n, foundNode))
+      return true;
+
+    if(findNodeNoInUnknownArraysizes(n, foundNode))
+      return true;
+
+    if(findNodeNoInNonreadyNamedConstants(n, foundNode))
+      return true;
+
+    if(findNodeNoInNonreadyClassArgs(n, foundNode))
+      return true;
+
+    return false;
+  } //findNodeNo
+
+  bool Resolver::findNodeNoInUnknownBitsizes(NNO n, Node *& foundNode)
+  {
+    bool rtnB = false;
+    std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.begin();
+
+    while(it != m_unknownBitsizeSubtrees.end())
+      {
+	NodeTypeBitsize * ceNode = it->second;
+	assert(ceNode);
+	if(ceNode->findNodeNo(n, foundNode))
+	  {
+	    rtnB = true;
+	    break;
+	  }
+	it++;
+      }
+    return rtnB;
+  } //findNodeNoInUnknownBitsizes
+
+  bool Resolver::findNodeNoInUnknownArraysizes(NNO n, Node *& foundNode)
+  {
+    bool rtnB = false;
+    std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.begin();
+
+    while(it != m_unknownArraysizeSubtrees.end())
+      {
+	NodeSquareBracket * ceNode = it->second;
+	assert(ceNode);
+	if(ceNode->findNodeNo(n, foundNode))
+	  {
+	    rtnB = true;
+	    break;
+	  }
+	it++;
+      }
+    return rtnB;
+  } //findNodeNoInUnknownArraysizes
+
+  bool Resolver::findNodeNoInNonreadyNamedConstants(NNO n, Node *& foundNode)
+  {
+    bool rtnB = false;
+
+    std::set<NodeConstantDef *>::iterator it = m_nonreadyNamedConstantSubtrees.begin();
+    while(it != m_nonreadyNamedConstantSubtrees.end())
+      {
+	NodeConstantDef * constNode = *it;
+	assert(constNode);
+	if(constNode->findNodeNo(n, foundNode))
+	  {
+	    rtnB = true;
+	    break;
+	  }
+	it++;
+      }
+    return rtnB;
+  } //findNodeNoInNonreadyNamedConstants
+
+  bool Resolver::findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode)
+  {
+    bool rtnB = false;
+
+    std::vector<NodeConstantDef *>::const_iterator vit = m_nonreadyClassArgSubtrees.begin();
+    while(vit != m_nonreadyClassArgSubtrees.end())
+      {
+	NodeConstantDef * ceNode = *vit;
+	assert(ceNode);
+	if(ceNode->findNodeNo(n, foundNode))
+	  {
+	    rtnB = true;
+	    break;
+	  }
+	vit++;
+      }
+    return rtnB;
+  } //findNodeNoInNonreadyClassArgs
 
   void Resolver::cloneUTImap(SymbolClass * csym)
   {

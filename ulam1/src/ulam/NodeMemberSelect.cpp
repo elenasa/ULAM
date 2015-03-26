@@ -109,6 +109,11 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  bool NodeMemberSelect::assignClassArgValueInStubCopy()
+  {
+    return true; //nothing to do
+  }
+
   EvalStatus NodeMemberSelect::eval()
   {
     assert(m_nodeLeft && m_nodeRight);

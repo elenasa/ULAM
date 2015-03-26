@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include "NodeBinaryOp.h"
+#include "NodeTerminal.h"
 #include "CompilerState.h"
 
 namespace MFM {
 
-  NodeBinaryOp::NodeBinaryOp(Node * left, Node * right, CompilerState & state) : Node(state), m_nodeLeft(left), m_nodeRight(right) {}
+  NodeBinaryOp::NodeBinaryOp(Node * left, Node * right, CompilerState & state) : Node(state), m_nodeLeft(left), m_nodeRight(right) { }
+
   NodeBinaryOp::NodeBinaryOp(const NodeBinaryOp& ref) : Node(ref)
   {
     m_nodeLeft = ref.m_nodeLeft->instantiate();
@@ -105,6 +107,12 @@ namespace MFM {
     return m_nodeLeft->isAConstant() && m_nodeRight->isAConstant();
   }
 
+  bool NodeBinaryOp::isReadyConstant()
+  {
+    //needs constant folding
+    return false;
+  }
+
   UTI NodeBinaryOp::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -112,6 +120,11 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = calcNodeType(leftType, rightType);
+    setNodeType(newType);
+    setStoreIntoAble(false);
+
+    if(isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      return constantFold();
 
     if(newType != Nav && m_state.isComplete(newType))
       {
@@ -125,8 +138,6 @@ namespace MFM {
 	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
 	  }
       }
-    setNodeType(newType);
-    setStoreIntoAble(false);
     return newType;
   } //checkAndLabelType
 
@@ -134,6 +145,75 @@ namespace MFM {
   {
     m_nodeLeft->countNavNodes(cnt);
     m_nodeRight->countNavNodes(cnt);
+  }
+
+  UTI NodeBinaryOp::constantFold()
+  {
+    u32 val;
+    UTI nuti = getNodeType();
+
+    if(m_state.m_parsingInProgress)
+      return nuti;
+
+    if(nuti == Nav) return Nav; //nothing to do yet
+
+    // if here, must be a constant..
+    assert(isAConstant());
+
+    evalNodeProlog(0); //new current frame pointer
+    makeRoomForNodeType(nuti); //offset a constant expression
+    EvalStatus evs = eval();
+    if( evs == NORMAL)
+      {
+	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
+	val = cnstUV.getImmediateData(m_state);
+      }
+
+    evalNodeEpilog();
+
+    if(evs == ERROR)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for binary op" << getName();
+	msg << " is not yet ready while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	return Nav;
+      }
+
+    //replace ourselves (and kids) with a node terminal; new NNO unlike template's
+    NodeTerminal * newnode = new NodeTerminal(val, nuti, m_state);
+    assert(newnode);
+    newnode->setNodeLocation(getNodeLocation());
+
+    NNO pno = Node::getYourParentNo();
+    assert(pno);
+    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+    assert(parentNode);
+
+    assert(parentNode->exchangeKids(this, newnode));
+
+    std::ostringstream msg;
+    msg << "Exchanged kids! for binary operator" << getName();
+    msg << ", with a constant == " << newnode->getName();
+    msg << " while compiling class: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+    newnode->setYourParentNo(pno); //a leaf
+    newnode->resetNodeNo(getNodeNo());
+
+    delete this; //suicide is painless..
+
+    return newnode->checkAndLabelType();
+  } //constantFold
+
+  bool NodeBinaryOp::assignClassArgValueInStubCopy()
+  {
+    bool aok = true;
+    aok &= m_nodeLeft->assignClassArgValueInStubCopy();
+    aok &= m_nodeRight->assignClassArgValueInStubCopy();
+    return aok;
   }
 
   EvalStatus NodeBinaryOp::eval()

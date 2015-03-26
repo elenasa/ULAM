@@ -106,6 +106,8 @@ namespace MFM{
 
     u32 countNativeFuncDeclsForTableOfFunctions();
 
+    void calcMaxDepthForTableOfFunctions();
+
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
 
@@ -129,6 +131,8 @@ namespace MFM{
     void checkCustomArraysForTableOfClasses();
 
     void checkDuplicateFunctionsForTableOfClasses();
+
+    void calcMaxDepthOfFunctionsForTableOfClasses();
 
     bool labelTableOfClasses();
 

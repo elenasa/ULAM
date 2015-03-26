@@ -52,8 +52,6 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual   EvalStatus eval();
-
     virtual const std::string methodNameForCodeGen();
 
   protected:

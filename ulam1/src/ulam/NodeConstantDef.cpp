@@ -228,6 +228,7 @@ namespace MFM {
   void NodeConstantDef::setConstantExpr(Node * node)
   {
     m_nodeExpr = node;
+    m_nodeExpr->updateLineage(getNodeNo()); // for unknown subtrees
   }
 
   // called during parsing rhs of named constant;
@@ -271,6 +272,11 @@ namespace MFM {
     m_constSymbol->setValue(newconst); //isReady now
     return true;
   } //foldConstantExpression
+
+  bool NodeConstantDef::assignClassArgValueInStubCopy()
+  {
+    return m_nodeExpr->assignClassArgValueInStubCopy();
+  }
 
   EvalStatus NodeConstantDef::eval()
   {

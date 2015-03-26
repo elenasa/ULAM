@@ -5,7 +5,9 @@
 namespace MFM {
 
   NodeBlockEmpty::NodeBlockEmpty(NodeBlock * prevBlockNode, CompilerState & state): NodeBlock(prevBlockNode, state, NULL) {}
+
   NodeBlockEmpty::NodeBlockEmpty(const NodeBlockEmpty& ref) : NodeBlock(ref) {}
+
   NodeBlockEmpty::~NodeBlockEmpty() {}
 
   Node * NodeBlockEmpty::instantiate()
@@ -20,24 +22,20 @@ namespace MFM {
     fp->write("-----------------NodeBlockEmpty\n");
   }
 
-
   void NodeBlockEmpty::printPostfix(File * fp)
   {
     fp->write(" {}");
   }
-
 
   const char * NodeBlockEmpty::getName()
   {
     return "{}";
   }
 
-
   const std::string NodeBlockEmpty::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeBlockEmpty::checkAndLabelType()
   {
@@ -45,18 +43,20 @@ namespace MFM {
     return getNodeType();
   }
 
-
   void NodeBlockEmpty::countNavNodes(u32& cnt)
   {
     return;
   }
-
 
   EvalStatus NodeBlockEmpty::eval()
   {
     return NORMAL;
   }
 
+  void NodeBlockEmpty::calcMaxDepth(u32& depth)
+  {
+    return;  //overrides NodeBlock
+  }
 
   void NodeBlockEmpty::genCode(File * fp, UlamValue& uvpass)
   {

@@ -144,7 +144,24 @@ namespace MFM {
 	}
     } while(!sumbrtn);
 
+    // type set at parse time (needed for square bracket checkandlabel);
+    // so, here we just check for matching arg types (regular and Templates only).
+    m_state.m_programDefST.checkCustomArraysForTableOfClasses();
+
+    m_state.m_programDefST.checkDuplicateFunctionsForTableOfClasses();
+
+    // must happen after type labeling and before eval (test)
+    m_state.m_programDefST.calcMaxDepthOfFunctionsForTableOfClasses();
+
+    // must happen after type labeling and before code gen; separate pass. want UNKNOWNS reported
+    m_state.m_programDefST.packBitsForTableOfClasses();
+
+    // let Ulam programmer know the bits used/available (needs infoOn)
+    m_state.m_programDefST.printBitSizeOfTableOfClasses();
+
+
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
+    // clean up duplicate functions beforehand
     u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
     //if(!labelok || navcount > 0)
     if(navcount > 0)
@@ -154,18 +171,6 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG("", msg.str().c_str(), ERR);
       }
-
-    // type set at parse time (needed for square bracket checkandlabel);
-    // so, here we just check for matching arg types (regular and Templates only).
-    m_state.m_programDefST.checkCustomArraysForTableOfClasses();
-
-    m_state.m_programDefST.checkDuplicateFunctionsForTableOfClasses();
-
-    // must happen after type labeling and before code gen; separate pass. want UNKNOWNS reported
-    m_state.m_programDefST.packBitsForTableOfClasses();
-
-    // let Ulam programmer know the bits used/available (needs infoOn)
-    m_state.m_programDefST.printBitSizeOfTableOfClasses();
 
     u32 warns = m_state.m_err.getWarningCount();
     if(warns > 0)

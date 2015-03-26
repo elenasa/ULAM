@@ -121,14 +121,6 @@ namespace MFM {
     if(isEmpty())
       return getNodeType();
 
-#if 0
-    // redo checkAndLabel with class arg values?
-    if(m_templateClassParent != Nav)
-      {
-	return getPreviousBlockPointer()->checkAndLabelType();
-      }
-#endif
-
     //side-effect DataMember VAR DECLS
     if(m_nodeNext)
       m_nodeNext->checkAndLabelType();
@@ -156,7 +148,7 @@ namespace MFM {
   {
     if(m_nodeNext) //may not have data members
       NodeBlock::countNavNodes(cnt);
-    m_functionST.countNavNodesAcrossTableOfFunctions();
+    cnt += m_functionST.countNavNodesAcrossTableOfFunctions();
   }
 
   void NodeBlockClass::checkDuplicateFunctions()
@@ -164,6 +156,13 @@ namespace MFM {
     // check all the function names for duplicate definitions
     if(!isEmpty())
       m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
+  }
+
+  void NodeBlockClass::calcMaxDepthOfFunctions()
+  {
+    // for all the function names, calculate their max depth
+    if(!isEmpty())
+      m_functionST.calcMaxDepthForTableOfFunctions(); //returns prob counts, outputs errs
   }
 
   void NodeBlockClass::checkCustomArrayTypeFunctions()
@@ -191,7 +190,8 @@ namespace MFM {
     u32 numberoffuncs = getNumberOfFuncSymbolsInTable();
     {
       std::ostringstream msg;
-      msg << stackframetotal << " is the total stackframe size required for " << numberoffuncs << " functions";
+      msg << stackframetotal << " is the total stackframe size required for ";
+      msg << numberoffuncs << " functions";
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     }
 #endif

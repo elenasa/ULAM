@@ -150,11 +150,13 @@ namespace MFM {
 
   SymbolClass * SymbolClassNameTemplate::makeAStubClassInstance(Token typeTok, UTI cuti)
   {
+    NodeBlockClass * templateclassblock = getClassBlockNode();
     //previous block is template's class block, and new NNO here!
-    NodeBlockClass * newblockclass = new NodeBlockClass(getClassBlockNode(), m_state);
+    NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
     newblockclass->setNodeLocation(typeTok.m_locator);
     newblockclass->setNodeType(cuti);
+    newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
     SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, this, m_state);
     assert(newclassinstance);
@@ -177,18 +179,19 @@ namespace MFM {
     assert(csym->pendingClassArgumentsForClassInstance());
     assert(csym->isStub());
     NodeBlockClass * blockclass = csym->getClassBlockNode();
+    NodeBlockClass * templateclassblock = getClassBlockNode();
 
     //previous block is template's class block, and new NNO here!
-    NodeBlockClass * newblockclass = new NodeBlockClass(getClassBlockNode(), m_state);
+    NodeBlockClass * newblockclass = new NodeBlockClass(templateclassblock, m_state);
     assert(newblockclass);
     newblockclass->setNodeLocation(blockclass->getNodeLocation());
     newblockclass->setNodeType(newuti);
+    newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
     SymbolClass * newclassinstance = new SymbolClass(getId(), newuti, newblockclass, this, m_state);
     assert(newclassinstance);
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
-
 
     // we are in the middle of fully instantiating (context); with known args that we want to use
     // to resolve, if possible, these pending args:
@@ -629,16 +632,9 @@ namespace MFM {
   Node * SymbolClassNameTemplate::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
     Node * foundNode = NULL;
-
     if(getUlamTypeIdx() == instance)
       {
-	NodeBlockClass * classNode = getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-	classNode->findNodeNo(n, foundNode);
-	m_state.popClassContext(); //restore
-	return foundNode;
+	return SymbolClassName::findNodeNoInAClassInstance(instance, n);
       }
 
     SymbolClass * csym = NULL;
@@ -648,13 +644,19 @@ namespace MFM {
 	assert(classNode);
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	// classblock node no is NOT the same across instances,
+	// classblock node no is NOT the same across instances, NOT TRUE anymore!!!
 	// unlike ALL the other node blocks. sigh.
-	if(n == getClassBlockNode()->getNodeNo())
-	  foundNode = classNode;
-	else
-	  classNode->findNodeNo(n, foundNode);
-
+	//if(n == getClassBlockNode()->getNodeNo())
+	//  foundNode = classNode; //slight-of-hand magic
+	//else
+	  {
+	    classNode->findNodeNo(n, foundNode);
+	    //if not in the tree, ask the resolver
+	    if(!foundNode)
+	      {
+		csym->findNodeNoInResolver(n, foundNode);
+	      }
+	  }
 	m_state.popClassContext(); //restore
       }
     return foundNode;
@@ -743,6 +745,34 @@ namespace MFM {
 	it++;
       }
   } //checkDuplicateFunctionsForClassInstances
+
+  void SymbolClassNameTemplate::calcMaxDepthOfFunctionsForClassInstances()
+  {
+    // only need to check the unique class instances that have been deeply copied
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	if(!csym->isStub())
+	  {
+	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+	    classNode->calcMaxDepthOfFunctions(); //do each instance
+	    m_state.popClassContext(); //restore
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << " Class instance: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << " is still a stub, so no calc max depth function error";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	  }
+	it++;
+      }
+  } //calcMaxDepthOfFunctionsForClassInstances
 
   void SymbolClassNameTemplate::checkAndLabelClassInstances()
   {
@@ -1090,6 +1120,7 @@ namespace MFM {
 
     m_state.popClassContext(); //restore
 
+    //copy the "ready" values from first the stub (fm)
     NodeBlockClass * toclassblock = to->getClassBlockNode();
     m_state.pushClassContext(to->getUlamTypeIdx(), toclassblock, toclassblock, false, NULL);
 
@@ -1102,8 +1133,9 @@ namespace MFM {
 	m_state.addSymbolToCurrentScope(asym2);
       } //next arg
 
-    instancesArgs.clear(); //don't delete the symbols
     m_state.popClassContext(); //restore
+
+    instancesArgs.clear(); //don't delete the symbols
     return true;
   } //copyAnInstancesArgValues
 
@@ -1121,7 +1153,6 @@ namespace MFM {
 
     m_resolver->cloneTemplateResolver(csym);
   }//cloneResolverForClassInstance
-
 
 
 } //end MFM

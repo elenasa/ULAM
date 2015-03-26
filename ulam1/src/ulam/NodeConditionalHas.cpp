@@ -82,7 +82,6 @@ namespace MFM {
 	  }
       }
 
-    //    if(!m_state.constantFoldPendingArgs(ruti))
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
 	std::ostringstream msg;
