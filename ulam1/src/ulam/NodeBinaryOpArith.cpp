@@ -78,31 +78,36 @@ namespace MFM {
 	bool rconst = m_nodeRight->isAConstant();
 	if(lconst || rconst)
 	  {
+	    bool lready = lconst && m_nodeLeft->isReadyConstant();
+	    bool rready = rconst && m_nodeRight->isReadyConstant();
 	    // if one is a constant, check for value to fit in bits.
 	    bool doErrMsg = true;
-	    if(lconst && m_nodeLeft->fitsInBits(rt))
+	    if(lready && m_nodeLeft->fitsInBits(rt))
 	      doErrMsg = false;
 
-	    if(rconst && m_nodeRight->fitsInBits(lt))
+	    if(rready && m_nodeRight->fitsInBits(lt))
 	      doErrMsg = false;
 
 	    if(doErrMsg)
 	      {
-		std::ostringstream msg;
-		msg << "Attempting to fit a constant <";
-		if(lconst)
+		if(lready || rready)
 		  {
-		    msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: ";
-		    msg<< m_state.getUlamTypeNameByIndex(rt).c_str();
+		    std::ostringstream msg;
+		    msg << "Attempting to fit a constant <";
+		    if(lready)
+		      {
+			msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: ";
+			msg<< m_state.getUlamTypeNameByIndex(rt).c_str();
+		      }
+		    if(rready)
+		      {
+			msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: ";
+			msg << m_state.getUlamTypeNameByIndex(lt).c_str();
+		      }
+		    msg << ", for binary operator" << getName() << " ";
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
 		  }
-		else
-		  {
-		    msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: ";
-		    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-		  }
-		msg << ", for binary operator" << getName() << " ";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
-	      }
+	      } //err
 	  } //a constant
 	else if(ltypEnum == Unsigned || rtypEnum == Unsigned)
 	  {

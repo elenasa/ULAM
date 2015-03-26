@@ -101,6 +101,7 @@ namespace MFM{
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
     void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
     void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    void linkIncompleteArrayTypeInResolver(UTI auti, UTI buti);
     void linkConstantExpression(NodeConstantDef * ceNode);
     void linkTypedefFromAnotherClass(UTI tduti, UTI stubuti);
 
@@ -113,7 +114,7 @@ namespace MFM{
 
     bool mapUTItoUTI(UTI auti, UTI mappedUTI);
     bool hasMappedUTI(UTI auti, UTI& mappedUTI);
-
+    bool findNodeNoInResolver(NNO n, Node *& foundNode);
 
     virtual void generateCode(FileManager * fm);
 

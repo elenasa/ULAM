@@ -50,9 +50,8 @@ namespace MFM{
 
     NodeTerminal(CompilerState & state); //for NodeConstant
     NodeTerminal(Token tok, CompilerState & state);
-    NodeTerminal(s32 val, CompilerState & state);
-    NodeTerminal(u32 val, CompilerState & state);
-    NodeTerminal(bool val, CompilerState & state);
+    NodeTerminal(s32 val, UTI utype, CompilerState & state);
+    NodeTerminal(u32 val, UTI utype, CompilerState & state);
     NodeTerminal(const NodeTerminal& ref);
     NodeTerminal(const NodeIdent& ref); //passthru for NodeConstant
 
@@ -66,9 +65,11 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void constantFold(Token tok);
+    virtual void constantFoldAToken(Token tok);
 
     virtual bool isAConstant();
+
+    virtual bool isReadyConstant();
 
     virtual UTI checkAndLabelType();
 
@@ -96,7 +97,6 @@ namespace MFM{
     union {
       s32 sval;
       u32 uval;
-      bool bval;
     } m_constant;
 
   };

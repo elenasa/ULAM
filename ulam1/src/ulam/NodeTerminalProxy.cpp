@@ -4,9 +4,10 @@
 
 namespace MFM {
 
-  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false)
+  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, memberType, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false)
   {
     Node::setNodeLocation(funcTok.m_locator);
+    // is memberType is corrected for sizeof during c&l
   }
 
   NodeTerminalProxy::NodeTerminalProxy(const NodeTerminalProxy& ref) : NodeTerminal(ref), m_ofTok(ref.m_ofTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_funcTok(ref.m_funcTok), m_ready(ref.m_ready) {}
@@ -21,7 +22,7 @@ namespace MFM {
   void NodeTerminalProxy::printPostfix(File * fp)
   {
     fp->write(" ");
-    if(m_ready)
+    if(isReadyConstant())
       fp->write(NodeTerminal::getName());
     else
       {
@@ -35,6 +36,11 @@ namespace MFM {
   const std::string NodeTerminalProxy::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
+  }
+
+  bool NodeTerminalProxy::isReadyConstant()
+  {
+    return m_ready;
   }
 
   UTI NodeTerminalProxy::checkAndLabelType()
@@ -149,7 +155,7 @@ namespace MFM {
       case TOK_KW_MINOF:
       {
 	// use sign of the lhs
-	newType = m_state.getDefaultUlamTypeOfConstant(m_uti);
+	newType = m_uti; //m_state.getDefaultUlamTypeOfConstant(m_uti);
 	break;
       }
       default:
@@ -166,11 +172,10 @@ namespace MFM {
     if(m_uti == Nav)
       return false;
 
-    if(m_ready)
+    if(isReadyConstant())
       return true;
 
     bool rtnb = true;
-    m_state.constantFoldIncompleteUTI(m_uti); //update if possible
 
     //attempt to map UTI
     if(!m_state.isComplete(m_uti))
@@ -222,7 +227,7 @@ namespace MFM {
 	    msg << ") while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
-	    m_ready = true;
+	    m_ready = true; //set ready here
 	  }
       }
     return rtnb;

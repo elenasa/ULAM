@@ -6,7 +6,10 @@
 
 namespace MFM {
 
-  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state) {}
+  NodeSquareBracket::NodeSquareBracket(Node * left, Node * right, CompilerState & state) : NodeBinaryOp(left,right,state)
+  {
+    m_nodeRight->updateLineage(getNodeNo()); //for unknown subtrees
+  }
 
   NodeSquareBracket::NodeSquareBracket(const NodeSquareBracket& ref) : NodeBinaryOp(ref) {}
 
@@ -256,14 +259,8 @@ namespace MFM {
 	return false;
       }
 
-    s32 newarraysize = NONARRAYSIZE;
-    if(getArraysizeInBracket(newarraysize))
-      {
-	args.arraysize = newarraysize;
-	return m_nodeLeft->installSymbolTypedef(args, asymptr);
-      }
-
-    return false;  //error getting array size
+    args.arraysize = UNKNOWNSIZE; // no eval yet
+    return m_nodeLeft->installSymbolTypedef(args, asymptr);
   } //installSymbolTypedef
 
   //see also NodeIdent
@@ -290,14 +287,15 @@ namespace MFM {
 	return false;
       }
 
-    s32 newarraysize = NONARRAYSIZE;
-    if(getArraysizeInBracket(newarraysize))
-      {
-	args.arraysize = newarraysize;
-	return m_nodeLeft->installSymbolVariable(args, asymptr);
-      }
-    return false;  //error getting array size
+    args.arraysize = UNKNOWNSIZE; // no eval yet
+    return m_nodeLeft->installSymbolVariable(args, asymptr);
   } //installSymbolVariable
+
+  bool NodeSquareBracket::assignClassArgValueInStubCopy()
+  {
+    //return m_nodeRight->assignClassArgValueInStubCopy();
+    return true;
+  }
 
   // eval() performed even before check and label!
   // returns false if error; UNKNOWNSIZE is not an error!

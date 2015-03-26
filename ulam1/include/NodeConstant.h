@@ -64,14 +64,18 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual void constantFold(Token tok);
-
     virtual bool getSymbolPtr(Symbol *& symptrref);
+
+    virtual void constantFoldAToken(Token tok);
+
+    virtual bool isReadyConstant();
 
     virtual UTI checkAndLabelType();
 
     NNO getBlockNo();
     NodeBlock * getBlock();
+
+    virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
 

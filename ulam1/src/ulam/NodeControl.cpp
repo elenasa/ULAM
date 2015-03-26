@@ -121,9 +121,11 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //caution: c&l called multiple times
 	    //always cast: Bools are maintained as unsigned in gen code,
 	    //until c-bool is needed
-	    m_nodeCondition = makeCastingNode(m_nodeCondition, cuti);
+	    if(cuti != newType)
+	      m_nodeCondition = makeCastingNode(m_nodeCondition, cuti);
 	    newType = cuti;
 	  }
 	m_nodeBody->checkAndLabelType(); //side-effect

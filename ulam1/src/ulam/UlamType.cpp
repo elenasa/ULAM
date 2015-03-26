@@ -272,21 +272,6 @@ namespace MFM {
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" d) : m_stg(d) {}\n");
 
-#if 0 // Fri Mar 13 16:04:59 2015 XXX TESTING GCC CODE GEN IMPACTS
-    //copy constructor here (used by func call return values)
-    m_state.indent(fp);
-    fp->write(mangledName.c_str());
-    fp->write("(const ");
-    fp->write(getImmediateStorageTypeAsString().c_str()); //s32 or u32
-    fp->write("& d) : m_stg(d.m_stg) {}\n");
-
-    //default destructor (for completeness)
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(mangledName.c_str());
-    fp->write("() {}\n");
-#endif // Fri Mar 13 16:04:59 2015 XXX TESTING GCC CODE GEN IMPACTS
-
     //read BV method
     genUlamTypeReadDefinitionForC(fp);
 

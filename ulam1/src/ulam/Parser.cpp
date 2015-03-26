@@ -80,6 +80,8 @@ namespace MFM {
   //change to return Node * rather than vector; change tests
   u32 Parser::parseProgram(std::string startstr, File * errOutput)
   {
+    m_state.m_parsingInProgress = true;
+
     if(errOutput)
       m_state.m_err.setFileOutput(errOutput);
 
@@ -143,6 +145,8 @@ namespace MFM {
 	msg << errs << " TOO MANY PARSE ERRORS: " << compileThis;
 	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
+
+    m_state.m_parsingInProgress = false;
     return (errs);
   } //parseProgram
 
@@ -200,7 +204,7 @@ namespace MFM {
       {
 	if(!m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, cnSym))
 	  {
-	    m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, cnSym);
+	    m_state.addIncompleteClassSymbolToProgramTable(iTok, cnSym);
 	  }
 	else
 	  {
@@ -222,7 +226,7 @@ namespace MFM {
 	SymbolClassNameTemplate * ctSym;
 	if(!m_state.alreadyDefinedSymbolClassNameTemplate(iTok.m_dataindex, ctSym))
 	  {
-	    m_state.addIncompleteClassSymbolToProgramTable(iTok.m_dataindex, ctSym); //overloaded
+	    m_state.addIncompleteClassSymbolToProgramTable(iTok, ctSym); //overloaded
 	  }
 	else
 	  {
@@ -554,7 +558,7 @@ namespace MFM {
 	    //not '(', so token is unread, and we know
 	    //it's a variable, not a function;
 	    //also handles arrays
-	    typeargs.declListScalarType = Nav;
+	    typeargs.declListOrTypedefScalarType = Nav;
 	    rtnNode = makeVariableSymbol(typeargs, iTok, bitsizeNode);
 
 	    if(rtnNode)
@@ -1393,7 +1397,7 @@ namespace MFM {
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-	typeargs.declListScalarType = Nav; //first one!
+	typeargs.declListOrTypedefScalarType = Nav; //first one!
 	rtnNode = makeVariableSymbol(typeargs, iTok, bitsizeNode);
 	if(rtnNode && !parseSingleDecl)
 	  {
@@ -1426,12 +1430,15 @@ namespace MFM {
 	  {
 	    //check if a typedef first..if so, return its SCALAR uti
 	    UTI tduti;
-	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti))
+	    UTI tdscalaruti = Nav;
+	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
 	      {
-		return m_state.getUlamTypeAsScalar(tduti);
+		if(tdscalaruti != Nav)
+		  return tdscalaruti;
+		return m_state.getUlamTypeAsScalar(tduti); //may make new uti
 	      }
 	    else
-	      m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, cnsym);
+	      m_state.addIncompleteClassSymbolToProgramTable(typeTok, cnsym);
 	  }
 	else
 	  {
@@ -1451,7 +1458,7 @@ namespace MFM {
     //must be a template class
     SymbolClassNameTemplate * ctsym = NULL;
     if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
-      m_state.addIncompleteClassSymbolToProgramTable(typeTok.m_dataindex, ctsym); //was undefined, template
+      m_state.addIncompleteClassSymbolToProgramTable(typeTok, ctsym); //was undefined, template
 
     assert(ctsym);
 
@@ -1610,22 +1617,12 @@ namespace MFM {
 	    rtnNode = new NodeTypeBitsize(bitsizeNode, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.typeTok.m_locator);
-
-	    //eval what we need, and delete the node if successful
-	    if(((NodeTypeBitsize *) rtnNode)->getTypeBitSizeInParen(args.bitsize, m_state.getBaseTypeFromToken(args.typeTok)))
-	      {
-		delete rtnNode; //done with them!
-		rtnNode = NULL;
-	      }
-	    else //else will be returning rtnNode, ownership transferred
-	      {
-		args.bitsize = UNKNOWNSIZE;
-	      }
+	    args.bitsize = UNKNOWNSIZE; //no eval yet
 	  }
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
-	    args.bitsize = UNKNOWNSIZE; //?
+	    args.bitsize = UNKNOWNSIZE;
 	    delete rtnNode;
 	    rtnNode = NULL;
 	  }
@@ -1686,6 +1683,7 @@ namespace MFM {
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
 		numDots = 0;
 		rtnb = false;
+		getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 		return; //failed
 	      }
 	  }
@@ -1706,6 +1704,7 @@ namespace MFM {
 		msg << ">, before it has been defined. Cannot continue with (token) ";
 		msg << m_state.getTokenDataAsString(&nTok).c_str();
 		MSG(&args.typeTok, msg.str().c_str(), ERR);
+		getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	      }
 	    else
 	      {
@@ -1724,8 +1723,9 @@ namespace MFM {
 	if(Token::isTokenAType(nTok))
 	  {
 	    UTI tduti;
+	    UTI tdscalaruti = Nav;
 	    bool isclasstd = false;
-	    if(m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti))
+	    if(m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti, tdscalaruti))
 	      {
 		UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
 		if(!tdut->isComplete())
@@ -1762,6 +1762,7 @@ namespace MFM {
 		  }
 
 		args.anothertduti = tduti; //don't lose it!
+		args.declListOrTypedefScalarType = tdscalaruti;
 		rtnb = true;
 	      }
 	    else
@@ -1775,9 +1776,6 @@ namespace MFM {
 	      }
 
 	    //possibly another class? go again..
-	    //if(isclasstd)
-	    //  args.classInstanceIdx = tduti;
-	    //o.w. keep any previous classInstanceIdx for future reference
 	    parseTypeFromAnotherClassesTypedef(args, rtnb, numDots);
 	  }
 	else
@@ -2057,7 +2055,7 @@ namespace MFM {
 	  if(ut->isMinMaxAllowed())
 	    {
 	      if(ut->isComplete())
-		rtnNode = makeTerminal(fTok, ut->getMax(), ut->getUlamTypeEnum());
+		rtnNode = makeTerminal(fTok, ut->getMax(), utype); //ut->getUlamTypeEnum());
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	    }
@@ -2076,7 +2074,7 @@ namespace MFM {
 	  if(ut->isMinMaxAllowed())
 	    {
 	      if(ut->isComplete())
-		rtnNode = makeTerminal(fTok, ut->getMin(), ut->getUlamTypeEnum());
+		rtnNode = makeTerminal(fTok, ut->getMin(), utype); //ut->getUlamTypeEnum());
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, m_state);
 	    }
@@ -2312,7 +2310,7 @@ namespace MFM {
 	    if(typeargs.anothertduti)
 	      uti = typeargs.anothertduti;
 	    else
-	      uti = m_state.getUlamTypeFromToken(pTok, typeargs.bitsize, typeargs.arraysize);
+	      uti = m_state.getUlamTypeFromToken(typeargs);
 	  }
 
 	//returns either a terminal or proxy
@@ -2955,7 +2953,7 @@ namespace MFM {
     else if(args.classInstanceIdx) //second in line???
       rtnuti = args.classInstanceIdx;
     else
-      rtnuti = m_state.getUlamTypeFromToken(args.typeTok, args.bitsize, NONARRAYSIZE);
+      rtnuti = m_state.getUlamTypeFromToken(args);
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
 
@@ -3280,8 +3278,8 @@ namespace MFM {
 
 	    //in case of decl list, set type of symbol in args ref
 	    assert(asymptr);
-	    if(args.declListScalarType == Nav)
-	      args.declListScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
+	    if(args.declListOrTypedefScalarType == Nav && args.anothertduti == Nav)
+	      args.declListOrTypedefScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
 	  }
 
 	//link square bracket for constant expression, if unknown array size
@@ -3851,7 +3849,7 @@ namespace MFM {
 	  UTI futi = factorNode->getNodeType();
 	  if( (futi != Nav) && factorNode->isAConstant())
 	    {
-	      factorNode->constantFold(pTok);
+	      factorNode->constantFoldAToken(pTok);
 	      rtnNode = factorNode;
 	    }
 	  else
@@ -3926,7 +3924,7 @@ namespace MFM {
 
 	//allows for casting to a class (makes class type if newly seen)
 	if(typeargs.anothertduti == Nav)
-	  typeToBe = m_state.getUlamTypeFromToken(typeargs.typeTok, typeargs.bitsize, typeargs.arraysize);
+	  typeToBe = m_state.getUlamTypeFromToken(typeargs);
 	else
 	  typeToBe = typeargs.anothertduti;
       }
@@ -3947,41 +3945,17 @@ namespace MFM {
     return rtnNode;
   } //makeCastNode
 
-  Node * Parser::makeTerminal(Token& locTok, s32 val, ULAMTYPE etype)
+  Node * Parser::makeTerminal(Token& locTok, s32 val, UTI utype)
   {
-    Node * termNode = NULL;
-    if(etype == Int)
-      {
-	termNode = new NodeTerminal(val, m_state);
-      }
-    else if(etype == Bool)
-      {
-	termNode = new NodeTerminal((bool) val, m_state);
-      }
-    else
-      {
-	termNode = new NodeTerminal((u32) val, m_state);
-      }
+    Node * termNode = new NodeTerminal(val, utype, m_state);
     assert(termNode);
     termNode->setNodeLocation(locTok.m_locator);
     return termNode;
   } //makeTerminal
 
-  Node * Parser::makeTerminal(Token& locTok, u32 val, ULAMTYPE etype)
+  Node * Parser::makeTerminal(Token& locTok, u32 val, UTI utype)
   {
-    Node * termNode = NULL;
-    if(etype == Int)
-      {
-	termNode = new NodeTerminal((s32) val, m_state);
-      }
-    else if(etype == Bool)
-      {
-	termNode = new NodeTerminal((bool) val, m_state);
-      }
-    else
-      {
-	termNode = new NodeTerminal(val, m_state);
-      }
+    Node * termNode = new NodeTerminal(val, utype, m_state);
     assert(termNode);
     termNode->setNodeLocation(locTok.m_locator);
     return termNode;
@@ -3992,47 +3966,125 @@ namespace MFM {
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
     if(!aut->isComplete())
       {
-	//applies to classes as well, no subtree clones needed
-	if(aut->getArraySize() == UNKNOWNSIZE)
-	  m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner
+	s32 arraysize = aut->getArraySize();
+	//link arraysize subtree for arraytype based on scalar from another class, OR
+	// a local arraytype based on a local scalar uti; o.w. delete.
+	// don't keep the ceForArraySize if the type belongs to another class!
+	// when also unknown bitsize, we link array to its scalar (below)
+	if(arraysize == UNKNOWNSIZE)
+	  {
+	    //array here of a typedef from another class's scalar
+	    if(args.anothertduti && args.anothertduti != auti)
+	      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+	    else
+	      {
+		if(args.classInstanceIdx == Nav)
+		  {
+		    //local array and scalar
+		    if(args.declListOrTypedefScalarType && args.declListOrTypedefScalarType != auti)
+		      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+		    else
+		      delete ceForArraySize;
+		  }
+		else
+		  {
+		    //an array of classes (typedef)
+		    if(args.declListOrTypedefScalarType == args.classInstanceIdx)
+		      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+		    else
+		      delete ceForArraySize;
+		  }
+	      }
+	  }
 	else
 	  delete ceForArraySize;
 
 	//possibly decl list that's shared;
 	//scalarUTI of array type should also be included, if not a class
-	if(aut->getBitSize() == UNKNOWNSIZE && aut->getUlamClass() == UC_NOTACLASS)
+	if(aut->getBitSize() == UNKNOWNSIZE)
 	  {
-	    if(ceForBitSize == NULL)
+	    if(ceForBitSize == NULL) //no bitsize subtree
 	      {
-		//assert(scalardecllisttype != Nav); not true for typedefs
-		//find the scalardecllist, clone the ceNode for this auti
-		//if auti is arraytype, its scalartype should already have been added
-		//(not compare, actual uti's equal)
-		if(args.declListScalarType != Nav && auti != args.declListScalarType)
-		  m_state.cloneAndLinkConstantExpression(args.declListScalarType, auti);
-		else if(args.classInstanceIdx != Nav)
-		  m_state.linkUnknownTypedefFromAnotherClass(auti, args.classInstanceIdx);
+		if(arraysize != NONARRAYSIZE) //an array
+		  {
+		    if(args.classInstanceIdx != Nav) //the other class
+		      {
+			m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			if(auti != args.anothertduti) //e.g. an array type based on anothertduti scalar.
+			  m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
+			else if(args.declListOrTypedefScalarType != Nav) //an array type based on anothertduti scalar
+			  m_state.linkUnknownTypedefFromAnotherClass(args.declListOrTypedefScalarType, args.classInstanceIdx);
+		      }
+		    else if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType) //local array typedef
+		      m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.declListOrTypedefScalarType);
+		    else
+		      assert(0); //a bug, likely typedef related (e.g. missing scalarUTI)
+		  }
+		else
+		  {
+		    // not an array, and no bitsize subtree
+		    if(aut->getUlamClass() == UC_NOTACLASS)
+		      {
+			//find the scalardecllist, clone the ceNode for this scalar auti
+			//(not compare, actual uti's equal)
+			if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType)
+			  m_state.cloneAndLinkConstantExpression(args.declListOrTypedefScalarType, auti);
+			else if(args.classInstanceIdx != Nav)
+			  {
+			    assert(auti == args.anothertduti);
+			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			  }
+		      }
+		    else
+		      {
+			//a class, no bitsize subtree, must be a class or a typedef from another class
+			// nothing to do if a class type (not a typedef)
+			if(auti == args.anothertduti && args.classInstanceIdx != Nav)
+			  m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+		      }
+		  }
 	      }
 	    else
 	      {
-		m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
-		//also, insure its scalar type has the same subtree for unknown bitsize
-		if(aut->getArraySize() != NONARRAYSIZE)
+		// we have a bitsize subtree
+		//give its scalar type the subtree for unknown bitsize, and link auti to it
+		if(aut->getArraySize() != NONARRAYSIZE) //an array
 		  {
-		    UTI scalarUTI = m_state.getUlamTypeAsScalar(auti);
-		    m_state.cloneAndLinkConstantExpression(auti, scalarUTI); //tfr owner, checks for dups
+		    UTI scalarUTI = args.declListOrTypedefScalarType;
+		    if(scalarUTI == Nav)
+		      {
+			scalarUTI = m_state.getUlamTypeAsScalar(auti); //may make a new uti
+		      }
+		    assert(scalarUTI != args.anothertduti); //can't be!
+		    m_state.linkConstantExpression(scalarUTI, ceForBitSize); //tfr owner
+		    m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, scalarUTI);
+		  }
+		else
+		  {
+		    assert(auti != args.anothertduti); //can't be!
+		    m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
 		  }
 	      }
 	  }
 	else
 	  {
+	    //bitsize is known..ok free
 	    delete ceForBitSize;
-	    if(args.anothertduti == auti)
-	      m_state.linkUnknownTypedefFromAnotherClass(auti, args.classInstanceIdx); //except lost class instance!!! boo hoo
+
+	    //t.f. arraysize isn't known
+	    if(args.classInstanceIdx != Nav)
+	      {
+		m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+		if(auti != args.anothertduti) //e.g. an array type based on anothertduti scalar.
+		  {
+		    m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
+		  }
+	      }
 	  }
       }
     else
       {
+	//auti is complete, free all!
 	delete ceForArraySize; //done with it
 	delete ceForBitSize; //done with it
       }

@@ -36,6 +36,11 @@ namespace MFM {
     SymbolClass::linkConstantExpression(auti, ceNode);
   }
 
+  void SymbolClassName::linkIncompleteArrayTypeInAClass(UTI auti, UTI buti)
+  {
+    SymbolClass::linkIncompleteArrayTypeInResolver(auti, buti);
+  }
+
   void SymbolClassName::linkUnknownNamedConstantExpression(NodeConstantDef * ceNode)
   {
     SymbolClass::linkConstantExpression(ceNode);
@@ -61,6 +66,13 @@ namespace MFM {
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
     classNode->findNodeNo(n, foundNode);
+
+    //if not in the tree, ask the resolver
+    if(!foundNode)
+      {
+	SymbolClass::findNodeNoInResolver(n, foundNode);
+      }
+
     m_state.popClassContext(); //restore
     return foundNode;
   } //findNodeNoInAClassInstance
@@ -121,6 +133,16 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkDuplicateFunctionsForClassInstances
 
+  void SymbolClassName::calcMaxDepthOfFunctionsForClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    classNode->calcMaxDepthOfFunctions();
+    m_state.popClassContext(); //restore
+  } //calcMaxDepthOfFunctionsForClassInstances
+
   void SymbolClassName::checkAndLabelClassFirst()
   {
     NodeBlockClass * classNode = getClassBlockNode();
@@ -147,6 +169,7 @@ namespace MFM {
 
   u32 SymbolClassName::countNavNodesInClassInstances()
   {
+    assert(!isClassTemplate());
     u32 navCounter = 0;
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);

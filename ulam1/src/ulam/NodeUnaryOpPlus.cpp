@@ -63,6 +63,10 @@ namespace MFM {
       }
     setNodeType(newType);
     setStoreIntoAble(false);
+
+    if(isAConstant() && m_node->isReadyConstant())
+      return constantFold();
+
     return newType;
   } //checkAndLabelType
 

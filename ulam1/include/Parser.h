@@ -393,9 +393,10 @@ namespace MFM{
        helper method to make a terminal node
        for a constant value known at parse time (e.g. one for ++/--)
     */
-    Node * makeTerminal(Token& locTok, s32 val, ULAMTYPE etype);
-
-    Node * makeTerminal(Token& locTok, u32 val, ULAMTYPE etype);
+    //Node * makeTerminal(Token& locTok, s32 val, ULAMTYPE etype);
+    //Node * makeTerminal(Token& locTok, u32 val, ULAMTYPE etype);
+    Node * makeTerminal(Token& locTok, s32 val, UTI utype);
+    Node * makeTerminal(Token& locTok, u32 val, UTI utype);
 
     /**
        helper method to save subtrees for unknown UTIs

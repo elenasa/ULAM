@@ -73,6 +73,7 @@ namespace MFM{
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
     NNO getNodeNo();
+    void resetNodeNo(NNO no); //for constant folding
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void print(File * fp);
@@ -97,12 +98,17 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void constantFold(Token tok);
     virtual bool isAConstant();
+
+    virtual bool isReadyConstant();
 
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
+
+    virtual void constantFoldAToken(Token tok);
+
+    virtual UTI constantFold();
 
     virtual bool fitsInBits(UTI fituti);
     virtual bool isNegativeConstant();
@@ -111,6 +117,8 @@ namespace MFM{
     virtual bool installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(ParserTypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolVariable(ParserTypeArgs& args,  Symbol *& asymptr);
+
+    virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval() = 0;
     virtual EvalStatus evalToStoreInto();
@@ -125,6 +133,7 @@ namespace MFM{
     void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
+    virtual void calcMaxDepth(u32& depth);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);

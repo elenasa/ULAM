@@ -34,6 +34,11 @@ namespace MFM {
     return m_no;
   }
 
+  void Node::resetNodeNo(NNO no)
+  {
+    m_no = no;
+  }
+
   bool Node::exchangeKids(Node * oldnptr, Node * newnptr)
   {
     return false; //default
@@ -121,12 +126,17 @@ namespace MFM {
     return false;
   }
 
-  void Node::constantFold(Token tok)
+  void Node::constantFoldAToken(Token tok)
   {
-    assert(0);  //only NodeTerminal has this defined
+    assert(0);  //only NodeTerminal has this defined; NodeConstant bypasses
   }
 
   bool Node::isAConstant()
+  {
+    return false;
+  }
+
+  bool Node::isReadyConstant()
   {
     return false;
   }
@@ -144,6 +154,11 @@ namespace MFM {
   {
     if(getNodeType() == Nav)
       cnt += 1;
+  }
+
+  UTI Node::constantFold()
+  {
+    return Nav;
   }
 
   // only for constants (NodeTerminal)
@@ -178,6 +193,11 @@ namespace MFM {
   bool Node::installSymbolVariable(ParserTypeArgs& args, Symbol *& asymptr)
   {
     return false;
+  }
+
+  bool Node::assignClassArgValueInStubCopy()
+  {
+    return true; //nothing to do
   }
 
   // any node above assignexpr is not storeintoable
@@ -270,6 +290,11 @@ namespace MFM {
   void Node::packBitsInOrderOfDeclaration(u32& offset)
   {
     assert(0);
+  }
+
+  void Node::calcMaxDepth(u32& depth)
+  {
+    return; //work done by NodeStatements and NodeBlock
   }
 
   void Node::genCode(File * fp, UlamValue& uvpass)

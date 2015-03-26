@@ -106,7 +106,7 @@ namespace MFM {
 
   void NodeBlock::countNavNodes(u32& cnt)
   {
-      m_nodeNext->countNavNodes(cnt);
+    m_nodeNext->countNavNodes(cnt);
   }
 
   EvalStatus NodeBlock::eval()
@@ -118,6 +118,17 @@ namespace MFM {
     //evalNodeEpilog();
     return evs;
   }
+
+  void NodeBlock::calcMaxDepth(u32& depth)
+  {
+    u32 max1 = m_ST.getTotalSymbolSize();
+    u32 max2 = 0;
+    if(m_nodeNext)
+      m_nodeNext->calcMaxDepth(max2);
+
+    depth = max1 + max2;
+    return; //work done by NodeStatements and NodeBlock
+  } //calcMaxDepth
 
   bool NodeBlock::isIdInScope(u32 id, Symbol * & symptrref)
   {

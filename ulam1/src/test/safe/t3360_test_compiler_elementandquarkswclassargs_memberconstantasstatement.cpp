@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 2\nUe_Foo { Int(32) test() {  Booly(0u,2u,true) b;  b true . b 2u . cast return } }\nUq_Booly { constant Unsigned(3) firstRange = NONREADYCONST;  constant Unsigned(3) lastRange = NONREADYCONST;  constant Bool(1) bomb = NONREADYCONST;  <NOMAIN> }\n");
+      return std::string("Exit status: 2\nUe_Foo { Int(32) test() {  Booly(0u,2u,true) b;  b true . b 2u . cast return } }\nUq_Booly { constant Unsigned(UNKNOWN) firstRange = NONREADYCONST;  constant Unsigned(UNKNOWN) lastRange = NONREADYCONST;  constant Bool(1) bomb = NONREADYCONST;  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -123,7 +123,6 @@ namespace MFM {
 	      }
 	    else
 	      constArgs.push_back(false);
-
 	  }
 	m_state.popClassContext(); //restore here
 
@@ -187,7 +186,6 @@ namespace MFM {
 	    u32 numParams = m_funcSymbol->getNumberOfParameters();
 	    for(u32 i = 0; i < numParams; i++)
 	      {
-		//if(m_argumentNodes[i]->isAConstant())
 		if(constArgs[i])
 		  {
 		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
@@ -202,7 +200,6 @@ namespace MFM {
 	      {
 		for(u32 i = numParams; i < m_argumentNodes.size(); i++)
 		  {
-		    //if(m_argumentNodes[i]->isAConstant())
 		    if(constArgs[i])
 		      {
 			m_argumentNodes[i] = makeCastingNode(m_argumentNodes[i], m_state.getDefaultUlamTypeOfConstant(argTypes[i]));
@@ -355,7 +352,9 @@ namespace MFM {
   EvalStatus NodeFunctionCall::evalToStoreInto()
   {
     std::ostringstream msg;
-    msg << "Use of function calls as lefthand values is not currently supported. Save the results of <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str() << "> to a variable, type: " << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
+    msg << "Use of function calls as lefthand values is not currently supported.";
+    msg << " Save the results of <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+    msg << "> to a variable, type: " << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     assert(!isStoreIntoAble());
     return ERROR;

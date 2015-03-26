@@ -63,11 +63,17 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual bool isReadyConstant();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
 
+    virtual UTI constantFold();
+
     virtual const std::string methodNameForCodeGen();
+
+    virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();
 
