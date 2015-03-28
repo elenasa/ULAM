@@ -76,7 +76,6 @@ namespace MFM{
     void setIsSelf();
     bool isSelf();
 
-    void setFabricatedTmp(bool ftmp);
     bool isFabricatedTmp();
 
     NNO getBlockNoOfST();
@@ -105,7 +104,6 @@ namespace MFM{
     bool m_elementParameter;
     bool m_autoLocal;
     bool m_isSelf;       // hidden arg symbol
-    bool m_fabricatedTmp;
     NNO m_stBlockNo;
   };
 

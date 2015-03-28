@@ -17,6 +17,9 @@ namespace MFM {
       // must already be parsed!
       bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P {\nBool b;\nUnsigned(3) x,y,z;\n Unsigned(3) i,j,k;\n Int test() {\nV.Woof.Foo var = 3;\nx = var.minof;\n y = var.maxof;\n z = var.sizeof;\n i = V.Woof.Foo.minof;\n j = V.Woof.Foo.maxof;\n k = V.Woof.Foo.sizeof;\n return var;\n}\n}\n");
 
+      //simplify for debugging
+      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P {\n Int test() {\nreturn V.Woof.Foo.minof;\n }\n}\n");
+
       bool rtn2 = fms->add("Q.ulam","ulam 1;\nquark Q {\ntypedef Unsigned(3) Foo;\n}\n");
 
       bool rtn3 = fms->add("V.ulam","ulam 1;\nuse Q;\n quark V {\ntypedef Q Woof;\n}\n");
