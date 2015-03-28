@@ -174,6 +174,9 @@ namespace MFM{
     void clearAllDefinedUlamTypes();
     void clearAllLinesOfText();
 
+    UTI makeUlamTypeHolder();
+    UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
+
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);

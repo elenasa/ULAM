@@ -308,14 +308,20 @@ namespace MFM {
 
   bool NodeIdent::installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr)
   {
+    bool brtn = false;
+    UTI tduti = Nav;
+    UTI tdscalaruti = Nav;
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
-	if(asymptr->isFabricatedTmp())
+	if(asymptr->isTypedef() && asymptr->isFabricatedTmp())
 	  {
-	    //remove it! then continue..
+	    tduti = asymptr->getUlamTypeIdx();
+	    args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
+	    brtn = true;
+	    //remove it! then continue using same uti..
 	    Symbol * rmsym = NULL;
 	    if(m_state.getCurrentBlock()->removeIdFromScope(m_token.m_dataindex, rmsym))
 	      {
@@ -327,37 +333,37 @@ namespace MFM {
 	  return false;    //already there
       }
 
-    //typedef might have bitsize and arraysize info..
-    UTI tduti = Nav;
-    UTI tdscalaruti = Nav;
-    bool brtn = false;
-    if(args.anothertduti)
+    if(tduti==Nav)  //not a pre-fab
       {
-	if(checkTypedefOfTypedefSizes(args, args.anothertduti)) //ref
+	//typedef might have bitsize and arraysize info..
+	if(args.anothertduti)
 	  {
-	    tduti = args.anothertduti;
+	    if(checkTypedefOfTypedefSizes(args, args.anothertduti)) //ref
+	      {
+		tduti = args.anothertduti;
+		brtn = true;
+	      }
+	  }
+	else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, tduti, tdscalaruti))
+	  {
+	    args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
+	    if(checkTypedefOfTypedefSizes(args, tduti)) //ref
+	      {
+		brtn = true;
+	      }
+	  }
+	else if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+	  {
+	    //UlamTypes automatically created for the base types with different array sizes.
+	    //but with typedef's "scope" of use, typedef needed to be checked first. scalar uti
+	    tduti = m_state.makeUlamType(args.typeTok, args.bitsize, NONARRAYSIZE, Nav);
 	    brtn = true;
 	  }
-      }
-    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, tduti, tdscalaruti))
-      {
-	args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
-	if(checkTypedefOfTypedefSizes(args, tduti)) //ref
+	else
 	  {
+	    tduti = args.classInstanceIdx;
 	    brtn = true;
 	  }
-      }
-    else if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
-      {
-	//UlamTypes automatically created for the base types with different array sizes.
-	//but with typedef's "scope" of use, typedef needed to be checked first. scalar uti
-	tduti = m_state.makeUlamType(args.typeTok, args.bitsize, NONARRAYSIZE, Nav);
-	brtn = true;
-      }
-    else
-      {
-	tduti = args.classInstanceIdx;
-	brtn = true;
       }
 
     if(brtn)

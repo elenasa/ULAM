@@ -15,6 +15,7 @@
 #include "UlamTypeNav.h"
 #include "UlamTypeVoid.h"
 #include "UlamTypePtr.h"
+#include "UlamTypeHolder.h"
 
 namespace MFM {
 
@@ -116,6 +117,55 @@ namespace MFM {
 
     m_textByLinePerFilePath.clear();
   } //clearAllLinesOfText
+
+  UTI CompilerState::makeUlamTypeHolder()
+  {
+    UTI uti = m_indexToUlamKey.size();  //next index based on key
+    UlamKeyTypeSignature hkey = getUlamTypeByIndex(Holder)->getUlamKeyTypeSignature();
+
+    m_indexToUlamKey.push_back(hkey);
+    return uti;
+  } //makeUlamTypeHolder
+
+  UTI CompilerState::makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti)
+  {
+    //we need to keep the uti, but change the key
+    UlamKeyTypeSignature hkey = getUlamTypeByIndex(uti)->getUlamKeyTypeSignature();
+
+    //removes old key and its ulamtype from map, if no longer pointed to
+    deleteUlamKeyTypeSignature(hkey);
+
+    UlamType * newut = NULL;
+    if(!isDefined(newkey, newut))
+      {
+	newut = createUlamType(newkey, utype);
+
+	std::pair<std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator, bool> reti;
+	reti = m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(newkey,newut)); //map owns ut
+	bool notdupi = reti.second; //false if already existed, i.e. not added
+	if(!notdupi)
+	  {
+	    delete newut;
+	    newut = NULL;
+	  }
+
+	incrementUnknownKeyUTICounter(newkey);
+      }
+
+    m_indexToUlamKey[uti] = newkey;
+
+    {
+      std::ostringstream msg;
+      msg << "Replace Holder key (UTI" << uti << ") WITH: ";
+      msg << newut->getUlamTypeName().c_str() << " (UTI" << uti << ")";
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+    }
+
+    UlamType * ut = NULL;
+    assert(isDefined(newkey, ut));
+
+    return  uti; //return same uti as third arg
+  } //makeUlamTypeFromHolder
 
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it; trick to know the base ULAMTYPE
@@ -282,6 +332,9 @@ namespace MFM {
       case Ptr:
 	ut = new UlamTypePtr(key, *this);
 	break;
+      case Holder:
+	ut = new UlamTypeHolder(key, *this);
+	break;
       default:
 	{
 	  std::ostringstream msg;
@@ -290,6 +343,7 @@ namespace MFM {
 	  assert(0);
 	}
       };
+    assert(ut);
     return ut;
   } //createUlamType
 
@@ -856,7 +910,8 @@ namespace MFM {
     incrementUnknownKeyUTICounter(key2);
     {
       std::ostringstream msg;
-      msg << "MERGED keys for duplicate Class (UTI" << olduti << ") WITH: " << ut2->getUlamTypeName().c_str() << " (UTI" << cuti << ")";
+      msg << "MERGED keys for duplicate Class (UTI" << olduti << ") WITH: ";
+      msg << ut2->getUlamTypeName().c_str() << " (UTI" << cuti << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
   } //mergeClassUTI
