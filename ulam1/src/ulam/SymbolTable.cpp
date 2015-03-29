@@ -41,6 +41,8 @@ namespace MFM {
 
   bool SymbolTable::isInTable(u32 id, Symbol * & symptrref)
   {
+    if(m_idToSymbolPtr.empty()) return false;
+
     std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.find(id);
     if(it != m_idToSymbolPtr.end())
       {
@@ -100,6 +102,8 @@ namespace MFM {
 
   Symbol * SymbolTable::getSymbolPtr(u32 id)
   {
+    if(m_idToSymbolPtr.empty()) return NULL;
+
     std::map<u32,Symbol*>::iterator it = m_idToSymbolPtr.find(id);
     if(it != m_idToSymbolPtr.end())
       {

@@ -19,9 +19,9 @@
 
 namespace MFM {
 
-  //#define _DEBUG_OUTPUT
-  //#define _INFO_OUTPUT
-  //#define _WARN_OUTPUT
+//#define _DEBUG_OUTPUT
+//#define _INFO_OUTPUT
+//#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -123,6 +123,7 @@ namespace MFM {
     UTI uti = m_indexToUlamKey.size();  //next index based on key
     UlamKeyTypeSignature hkey = getUlamTypeByIndex(Holder)->getUlamKeyTypeSignature();
 
+    incrementUnknownKeyUTICounter(hkey);
     m_indexToUlamKey.push_back(hkey);
     return uti;
   } //makeUlamTypeHolder
@@ -131,9 +132,14 @@ namespace MFM {
   {
     //we need to keep the uti, but change the key
     UlamKeyTypeSignature hkey = getUlamTypeByIndex(uti)->getUlamKeyTypeSignature();
+    return makeUlamTypeFromHolder(hkey, newkey, utype, uti);
+  } //makeUlamTypeFromHolder
 
+  UTI CompilerState::makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti)
+  {
+    //we need to keep the uti, but change the key
     //removes old key and its ulamtype from map, if no longer pointed to
-    deleteUlamKeyTypeSignature(hkey);
+    deleteUlamKeyTypeSignature(oldkey);
 
     UlamType * newut = NULL;
     if(!isDefined(newkey, newut))
@@ -149,8 +155,16 @@ namespace MFM {
 	    newut = NULL;
 	  }
 
-	incrementUnknownKeyUTICounter(newkey);
+	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
+	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); //just one!
       }
+    else
+      {
+	UTI auti = Nav;
+	assert(aDefinedUTI(newkey,auti)); //don't wipe out uti
+      }
+
+    incrementUnknownKeyUTICounter(newkey);
 
     m_indexToUlamKey[uti] = newkey;
 
@@ -164,7 +178,7 @@ namespace MFM {
     UlamType * ut = NULL;
     assert(isDefined(newkey, ut));
 
-    return  uti; //return same uti as third arg
+    return  uti; //return same uti (third arg)
   } //makeUlamTypeFromHolder
 
   //convenience method (refactors code originally from installSymbol)
@@ -536,6 +550,16 @@ namespace MFM {
       }
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
+
+  void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
+  {
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
+    if(cnsym->isClassTemplate())
+      ((SymbolClassNameTemplate *) cnsym)->mapInstanceUTI(getCompileThisIdx(), fm, to);
+    else
+      cnsym->mapUTItoUTI(fm,to);
+  } //mapTypesInCurrentClass
 
   void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
   {
@@ -915,6 +939,33 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
   } //mergeClassUTI
+
+  bool CompilerState::updateClassName(UTI cuti, u32 cname)
+  {
+    bool rtnb = false; // not a class
+    u32 id = m_pool.getIndexForNumberAsString(cuti);
+    SymbolClassName * cnsymId = NULL;
+    SymbolClassName * cnsym = NULL;
+    if(alreadyDefinedSymbolClassName(id, cnsymId))
+      {
+	// if real name exists, we can't do the update; instead..
+	if(alreadyDefinedSymbolClassName(cname, cnsym))
+	  {
+	    UlamKeyTypeSignature idkey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
+	    UlamKeyTypeSignature cnkey = getUlamTypeByIndex(cnsym->getUlamTypeIdx())->getUlamKeyTypeSignature();
+	    //change the key only, including the class idx to
+	    // point to the "real" one!
+	    makeUlamTypeFromHolder(idkey, cnkey, Class, cuti);
+	    Symbol * goneclass = NULL;
+	    m_programDefST.removeFromTable(id, goneclass);
+	    assert(goneclass == cnsymId);
+	  }
+	else
+	  m_programDefST.replaceInTable(id, cname, cnsym);
+	rtnb = true;
+      }
+    return rtnb;
+  } //updateClassName
 
   void CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
   {

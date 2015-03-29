@@ -191,6 +191,8 @@ namespace MFM {
 
   NodeTypeBitsize * Resolver::findUnknownBitsizeUTI(UTI auti) const
   {
+    if(m_unknownBitsizeSubtrees.empty()) return NULL;
+
     std::map<UTI, NodeTypeBitsize *>::const_iterator it = m_unknownBitsizeSubtrees.find(auti);
     if(it != m_unknownBitsizeSubtrees.end())
       return it->second;
@@ -199,6 +201,8 @@ namespace MFM {
 
   NodeSquareBracket * Resolver::findUnknownArraysizeUTI(UTI auti) const
   {
+    if(m_unknownArraysizeSubtrees.empty()) return NULL;
+
     std::map<UTI, NodeSquareBracket *>::const_iterator it = m_unknownArraysizeSubtrees.find(auti);
     if(it != m_unknownArraysizeSubtrees.end())
       return it->second;
@@ -207,6 +211,8 @@ namespace MFM {
 
   UTI Resolver::findIncompleteArrayTypeBaseScalarType(UTI auti) const
   {
+    if(m_incompleteArrayTypeToItsBaseScalarType.empty()) return Nav;
+
     std::map<UTI, UTI>::const_iterator it = m_incompleteArrayTypeToItsBaseScalarType.find(auti);
     if(it != m_incompleteArrayTypeToItsBaseScalarType.end())
       return it->second;
@@ -221,6 +227,7 @@ namespace MFM {
     sumbrtn &= statusIncompleteArrayTypes();
     sumbrtn &= statusNonreadyNamedConstants();
     sumbrtn &= statusUnknownTypedefsFromAnotherClass();
+    //sumbrtn &= statusMappedTypes(); //always true
     return sumbrtn;
   } //statusUnknownConstantExpressions
 
@@ -255,6 +262,8 @@ namespace MFM {
 
   void Resolver::cloneAndLinkConstantExpression(UTI fromtype, UTI totype)
   {
+    assert(!m_unknownBitsizeSubtrees.empty());
+
     std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.find(fromtype);
     assert(it != m_unknownBitsizeSubtrees.end());
     assert(it->first == fromtype);
@@ -308,6 +317,8 @@ namespace MFM {
 
   bool Resolver::constantFoldUnknownBitsize(UTI auti, s32& bitsize)
   {
+    if(m_unknownBitsizeSubtrees.empty()) return true;
+
     bool rtnBool = true; //unfound
     std::map<UTI, NodeTypeBitsize *>::iterator it = m_unknownBitsizeSubtrees.find(auti);
 
@@ -349,6 +360,8 @@ namespace MFM {
 
   bool Resolver::constantFoldUnknownArraysize(UTI auti, s32& arraysize)
   {
+    if(m_unknownArraysizeSubtrees.empty()) return true;
+
     bool rtnBool = true;  //unfound
     std::map<UTI, NodeSquareBracket *>::iterator it = m_unknownArraysizeSubtrees.find(auti);
 
@@ -441,6 +454,7 @@ namespace MFM {
 	    UTI auti = it->first; //array
 	    UTI buti = it->second; //base scalar
 
+	    attemptToResolveHolderMappedType(auti);
 	    //if auti is still incomplete with unknown bitsize:
 	    //  1. if base is still incomplete, then still incomplete
 	    //  2. if base bitsize is known, update auti, and remove from map
@@ -450,10 +464,24 @@ namespace MFM {
 	      }
 	    else
 	      {
+		attemptToResolveHolderMappedType(buti);
 		s32 bitsize = m_state.getBitSize(buti);
 		if(bitsize > UNKNOWNSIZE)
 		  {
-		    m_state.setBitSize(auti, bitsize); //update UlamType
+		    UlamType *aut = m_state.getUlamTypeByIndex(auti);
+		    UlamType *but = m_state.getUlamTypeByIndex(buti);
+		    //if auti is a holder, and buti is not:
+		    // update auti's key, including bitsize as well as type of buti.
+		    bool aholder = (aut->getUlamTypeEnum() == Holder);
+		    bool bholder = (but->getUlamTypeEnum() == Holder);
+		    if(aholder && !bholder)
+		      {
+			UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
+			UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bitsize, aut->getArraySize());
+			m_state.makeUlamTypeFromHolder(newkey, but->getUlamTypeEnum(), auti);
+		      }
+		    else
+		      m_state.setBitSize(auti, bitsize); //update bitsize of UlamType
 		    foundAs.push_back(auti);
 		  }
 	      }
@@ -472,6 +500,67 @@ namespace MFM {
       }
     return rtnstat;
   } //statusIncompleteArrayTypes
+
+  bool Resolver::statusMappedTypes()
+  {
+    bool rtnstat = true; //ok, empty
+    if(!m_mapUTItoUTI.empty())
+      {
+	u32 uksize = m_mapUTItoUTI.size();
+	std::vector<UTI> foundAs;
+	std::ostringstream msg;
+	msg << "Found " << uksize << " mapped type";
+	msg << (uksize > 1 ? "s " : " ");
+	msg << "while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_classUTI).c_str();
+	MSG("", msg.str().c_str(), DEBUG);
+
+	std::map<UTI, UTI>::iterator it = m_mapUTItoUTI.begin();
+	while(it != m_mapUTItoUTI.end())
+	  {
+	    UTI auti = it->first;
+	    attemptToResolveHolderMappedType(auti);
+	    it++;
+	  } //while
+      }
+    return rtnstat;
+  } //statusMappedTypes
+
+  bool Resolver::attemptToResolveHolderMappedType(UTI uti)
+  {
+    bool rtnstat = true; //ok, empty
+    if(!m_mapUTItoUTI.empty())
+      {
+	std::map<UTI, UTI>::iterator it = m_mapUTItoUTI.find(uti);
+	if(it != m_mapUTItoUTI.end())
+	  {
+	    UTI auti = it->first;
+	    UTI buti = it->second;
+
+	    UlamType *aut = m_state.getUlamTypeByIndex(auti);
+	    UlamType *but = m_state.getUlamTypeByIndex(buti);
+	    //if auti or buti is a holder, but not both
+	    // exchange keys
+	    bool aholder = (aut->getUlamTypeEnum() == Holder);
+	    bool bholder = (but->getUlamTypeEnum() == Holder);
+
+	    if(aholder ^ bholder)
+	      {
+		if(aholder)
+		  {
+		    UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
+		    m_state.makeUlamTypeFromHolder(bkey, but->getUlamTypeEnum(), auti);
+		  }
+		else
+		  {
+		    UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
+		    m_state.makeUlamTypeFromHolder(akey, aut->getUlamTypeEnum(), buti);
+		  }
+	      }
+	  } //found
+      }
+    return rtnstat;
+  } //attemptToResolveHolderMappedType
 
   void Resolver::linkConstantExpression(NodeConstantDef * ceNode)
   {
@@ -542,6 +631,8 @@ namespace MFM {
 
   bool Resolver::isTypedefFromAnotherClass(UTI uti)
   {
+    if(m_unknownTypedefFromAnotherClass.empty()) return false;
+
     std::map<UTI, UTI>::iterator it = m_unknownTypedefFromAnotherClass.find(uti);
     if(it != m_unknownTypedefFromAnotherClass.end())
       {
@@ -567,21 +658,27 @@ namespace MFM {
 	    UTI tduti = it->first;
 	    UTI aclassuti = it->second;
 
-	    //if aclassuti is not a stub, look up tduti in its map of uti's
-	    SymbolClass * acsym = NULL;
-	    assert(m_state.alreadyDefinedSymbolClass(aclassuti, acsym));
-	    if(!acsym->isStub())
+	    if(!m_state.isComplete(tduti))
 	      {
-		UTI mappedUTI;
-		if(acsym->hasMappedUTI(tduti, mappedUTI))
+		//if aclassuti is not a stub, look up tduti in its map of uti's
+		SymbolClass * acsym = NULL;
+		assert(m_state.alreadyDefinedSymbolClass(aclassuti, acsym));
+		if(!acsym->isStub())
 		  {
-		    msg << tduti << "-maps-to-" << mappedUTI << " in class ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(aclassuti).c_str() << "; ";
+		    UTI mappedUTI;
+		    if(acsym->hasMappedUTI(tduti, mappedUTI))
+		      {
+			msg << tduti << "-maps-to-" << mappedUTI << " in class ";
+			msg << m_state.getUlamTypeNameBriefByIndex(aclassuti).c_str() << "; ";
 
-		    mapUTItoUTI(tduti, mappedUTI);
-		    foundTs.push_back(tduti); //to be deleted
+			mapUTItoUTI(tduti, mappedUTI);
+			foundTs.push_back(tduti); //to be deleted
+		      }
 		  }
 	      }
+	    else
+	      foundTs.push_back(tduti); //to be deleted
+
 	    it++;
 	  }
 	msg << "while compiling class: ";
@@ -750,6 +847,8 @@ namespace MFM {
 
   bool Resolver::findMappedUTI(UTI auti, UTI& mappedUTI)
   {
+    if(m_mapUTItoUTI.empty()) return false;
+
     bool brtn = false;
     std::map<UTI, UTI>::iterator mit = m_mapUTItoUTI.find(auti);
     if(mit != m_mapUTItoUTI.end())
