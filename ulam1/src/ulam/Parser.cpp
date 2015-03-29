@@ -1677,8 +1677,8 @@ namespace MFM {
 	// now we know (thanks to the dot and subsequent type token) that its a holder
 	//  for a class. but we don't know it's real name, yet!
 
-	// we need to add it to our table of anonymous classes for now
-	// using its the string of its UTI as its temporary name.
+	// we need to add it to our table as an anonymous classes for now
+	// using its the string of its UTI as its temporary out-of-band name.
 
 	// in the future, we will only be able to find it via its UTI, not a token.
 	// the UTI should be the anothertduti (unless numdots is only 1).
@@ -1690,13 +1690,11 @@ namespace MFM {
 	if(numDots > 1 && Token::isTokenAType(pTok))
 	  {
 	    //make an 'anonymous class' key
-	    std::ostringstream num;
-	    num << args.anothertduti;
-	    u32 id = m_state.m_pool.getIndexForDataString(num.str());
+	    u32 id = m_state.m_pool.getIndexForNumberAsString(args.anothertduti);
 
 	    UlamKeyTypeSignature ackey(id, UNKNOWNSIZE, NONARRAYSIZE, args.anothertduti);
 	    UTI cuti = m_state.makeUlamTypeFromHolder(ackey, Class, args.anothertduti);
-	    assert(cuti == args.anothertduti);
+	    assert(cuti == args.anothertduti); //keeps same uti
 
 	    NodeBlockClass * classblock = new NodeBlockClass(NULL, m_state);
 	    assert(classblock);
@@ -4022,6 +4020,14 @@ namespace MFM {
   void Parser::linkOrFreeConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
   {
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    bool fromUnseenClass = false;
+    if(args.classInstanceIdx != Nav) //the other class
+      {
+	UlamType * cut = m_state.getUlamTypeByIndex(args.classInstanceIdx);
+	if(cut->getUlamClass() == UC_UNSEEN)
+	  fromUnseenClass = true;
+      }
+
     if(!aut->isComplete())
       {
 	s32 arraysize = aut->getArraySize();
@@ -4080,8 +4086,18 @@ namespace MFM {
 		  }
 		else
 		  {
+		    if(fromUnseenClass)
+		      {
+			// scalar auti may not be anothertduti; map UTIs, and let UT 'compare' help
+			m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			if(auti != args.anothertduti)
+			  {
+			    m_state.mapTypesInCurrentClass(auti, args.anothertduti);
+			    //m_state.mapTypesInCurrentClass(args.anothertduti, auti);
+			  }
+		      }
 		    // not an array, and no bitsize subtree
-		    if(aut->getUlamClass() == UC_NOTACLASS)
+		    else if(aut->getUlamClass() == UC_NOTACLASS)
 		      {
 			//find the scalardecllist, clone the ceNode for this scalar auti
 			//(not compare, actual uti's equal)

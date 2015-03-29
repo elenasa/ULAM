@@ -117,6 +117,8 @@ namespace MFM
     bool statusUnknownBitsizeUTI();
     bool statusUnknownArraysizeUTI();
     bool statusIncompleteArrayTypes();
+    bool statusMappedTypes();
+    bool attemptToResolveHolderMappedType(UTI uti);
     bool statusNonreadyNamedConstants();
     bool statusUnknownTypedefsFromAnotherClass();
 
