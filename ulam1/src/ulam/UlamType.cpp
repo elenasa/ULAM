@@ -418,6 +418,11 @@ namespace MFM {
     return bitsize * arraysize; // >= 0
   }
 
+  bool UlamType::isHolder()
+  {
+    return false;
+  }
+
   bool UlamType::isComplete()
   {
     return !(m_key.getUlamKeyTypeSignatureBitSize() <= UNKNOWNSIZE || getArraySize() == UNKNOWNSIZE);

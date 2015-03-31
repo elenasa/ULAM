@@ -177,6 +177,7 @@ namespace MFM{
     UTI makeUlamTypeHolder();
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
+    UTI makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);

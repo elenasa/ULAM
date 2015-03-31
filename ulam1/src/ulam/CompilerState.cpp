@@ -181,6 +181,28 @@ namespace MFM {
     return  uti; //return same uti (third arg)
   } //makeUlamTypeFromHolder
 
+  UTI CompilerState::makeAnonymousClassFromHolder(UTI cuti, Locator cloc)
+  {
+    //make an 'anonymous class' key
+    u32 id = m_pool.getIndexForNumberAsString(cuti);
+
+    UlamKeyTypeSignature ackey(id, UNKNOWNSIZE, NONARRAYSIZE, cuti);
+    UTI cuti2 = makeUlamTypeFromHolder(ackey, Class, cuti);
+    assert(cuti2 == cuti); //keeps same uti
+
+    NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
+    assert(classblock);
+    classblock->setNodeLocation(cloc);
+    classblock->setNodeType(cuti);
+
+    //symbol ownership goes to the programDefST;
+    //distinguish between template and regular classes, where?
+    SymbolClassName * cnsym = new SymbolClassName(id, cuti, classblock, *this);
+    assert(cnsym);
+    m_programDefST.addToTable(id, cnsym); //here or special map for anonymous???
+    return cuti2;
+  } //makeAnonymousClassFromHolder
+
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it; trick to know the base ULAMTYPE
   UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx)
@@ -475,10 +497,21 @@ namespace MFM {
 	UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
 	SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
 	assert(alreadyDefinedSymbolClassName(akey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
-	if(cnsymOfIncomplete->getUlamTypeIdx() != cuti)
+	UTI utiofinc = cnsymOfIncomplete->getUlamTypeIdx();
+	if(utiofinc != cuti)
 	  {
-	    if(!cnsymOfIncomplete->isClassTemplate())
-	      return false;
+#if 0
+	    // a class holder that was 'seen' has a key with class instance idx
+	    // of the 'real' class' UTI (i.e. mapped).
+	    if(akey.getUlamKeyTypeSignatureClassInstanceIdx() == utiofinc)
+	      {
+		mappedUTI = utiofinc;
+		return true;
+	      }
+	    else
+#endif
+	      if(!cnsymOfIncomplete->isClassTemplate())
+		return false;
 	    return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
 	  }
       }
@@ -945,24 +978,43 @@ namespace MFM {
     bool rtnb = false; // not a class
     u32 id = m_pool.getIndexForNumberAsString(cuti);
     SymbolClassName * cnsymId = NULL;
-    SymbolClassName * cnsym = NULL;
     if(alreadyDefinedSymbolClassName(id, cnsymId))
       {
-	// if real name exists, we can't do the update; instead..
-	if(alreadyDefinedSymbolClassName(cname, cnsym))
+	if(cname)
 	  {
-	    UlamKeyTypeSignature idkey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
-	    UlamKeyTypeSignature cnkey = getUlamTypeByIndex(cnsym->getUlamTypeIdx())->getUlamKeyTypeSignature();
-	    //change the key only, including the class idx to
-	    // point to the "real" one!
-	    makeUlamTypeFromHolder(idkey, cnkey, Class, cuti);
-	    Symbol * goneclass = NULL;
-	    m_programDefST.removeFromTable(id, goneclass);
-	    assert(goneclass == cnsymId);
+	    SymbolClassName * cnsym = NULL;
+	    // if real name exists, we can't do the update; instead..
+	    if(alreadyDefinedSymbolClassName(cname, cnsym))
+	      {
+		UlamKeyTypeSignature idkey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
+		UlamKeyTypeSignature cnkey = getUlamTypeByIndex(cnsym->getUlamTypeIdx())->getUlamKeyTypeSignature();
+		//change the key only, including the class idx to
+		// point to the "real" one!
+		makeUlamTypeFromHolder(idkey, cnkey, Class, cuti);
+		Symbol * goneclass = NULL;
+		m_programDefST.removeFromTable(id, goneclass);
+		assert(goneclass == cnsymId);
+	      }
+	    else
+	      m_programDefST.replaceInTable(id, cname, cnsym);
 	  }
-	else
-	  m_programDefST.replaceInTable(id, cname, cnsym);
 	rtnb = true;
+      }
+    else
+      {
+	if(cname)
+	  {
+	    SymbolClassName * cnsym = NULL;
+	    // if real name exists, we can update the cuti (Holder) to it
+	    if(alreadyDefinedSymbolClassName(cname, cnsym))
+	      {
+		UlamKeyTypeSignature cnkey = getUlamTypeByIndex(cnsym->getUlamTypeIdx())->getUlamKeyTypeSignature();
+		//change the key only, including the class idx to
+		// point to the "real" one!
+		makeUlamTypeFromHolder(cnkey, Class, cuti);
+		rtnb = true;
+	      }
+	  }
       }
     return rtnb;
   } //updateClassName

@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <iostream>
 #include <sstream>
 #include <stdio.h>
@@ -192,6 +193,21 @@ namespace MFM {
   {
     s32 bitsize = m_key.getUlamKeyTypeSignatureBitSize();
     return bitsize;  //could be negative "unknown"; allow for empty quarks
+  }
+
+  bool UlamTypeClass::isHolder()
+  {
+    std::string name = m_key.getUlamKeyTypeSignatureName(&m_state);
+    s32 c = name.at(0);
+    return (!isalpha(c));  //id same as UTI number, out-of-band
+  }
+
+  bool UlamTypeClass::isComplete()
+  {
+    if(isHolder())
+      return false;
+
+    return UlamType::isComplete();
   }
 
   bool UlamTypeClass::isMinMaxAllowed()
