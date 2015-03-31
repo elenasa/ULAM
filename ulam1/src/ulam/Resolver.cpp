@@ -465,23 +465,10 @@ namespace MFM {
 	    else
 	      {
 		attemptToResolveHolderMappedType(buti);
-		s32 bitsize = m_state.getBitSize(buti);
-		if(bitsize > UNKNOWNSIZE)
+		attemptToResolveHolderArrayType(auti, buti);
+
+		if(m_state.getBitSize(auti) > UNKNOWNSIZE)
 		  {
-		    UlamType *aut = m_state.getUlamTypeByIndex(auti);
-		    UlamType *but = m_state.getUlamTypeByIndex(buti);
-		    //if auti is a holder, and buti is not:
-		    // update auti's key, including bitsize as well as type of buti.
-		    bool aholder = (aut->getUlamTypeEnum() == Holder);
-		    bool bholder = (but->getUlamTypeEnum() == Holder);
-		    if(aholder && !bholder)
-		      {
-			UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
-			UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bitsize, aut->getArraySize());
-			m_state.makeUlamTypeFromHolder(newkey, but->getUlamTypeEnum(), auti);
-		      }
-		    else
-		      m_state.setBitSize(auti, bitsize); //update bitsize of UlamType
 		    foundAs.push_back(auti);
 		  }
 	      }
@@ -557,10 +544,82 @@ namespace MFM {
 		    m_state.makeUlamTypeFromHolder(bkey, akey, aut->getUlamTypeEnum(), buti);
 		  }
 	      }
+	    else
+	      {
+		// neither holders though there may be a bit size
+		bool acomplete = aut->isComplete();
+		bool bcomplete = but->isComplete();
+		if(acomplete ^ bcomplete)
+		  {
+		    UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
+		    UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
+		    if(acomplete)
+		      {
+			UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), akey.getUlamKeyTypeSignatureBitSize(), bkey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
+			m_state.makeUlamTypeFromHolder(bkey, newkey, aut->getUlamTypeEnum(), buti);
+		      }
+		    else
+		      {
+			UlamKeyTypeSignature newkey(akey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), akey.getUlamKeyTypeSignatureClassInstanceIdx());
+			m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti);
+		      }
+		  }
+	      }
+
 	  } //found
       }
     return rtnstat;
   } //attemptToResolveHolderMappedType
+
+  bool Resolver::attemptToResolveHolderArrayType(UTI auti, UTI buti)
+  {
+    bool rtnstat = true; //ok, empty
+    UlamType *aut = m_state.getUlamTypeByIndex(auti);
+    UlamType *but = m_state.getUlamTypeByIndex(buti);
+    //if auti or buti is a holder, but not both
+    // update key
+    bool aholder = aut->isHolder();
+    bool bholder = but->isHolder();
+
+    if(aholder ^ bholder)
+      {
+	UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
+	if(aholder)
+	  {
+	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), akey.getUlamKeyTypeSignatureClassInstanceIdx());
+	    m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti);
+	  }
+	else
+	  {
+	    UlamKeyTypeSignature newkey(akey.getUlamKeyTypeSignatureNameId(), akey.getUlamKeyTypeSignatureBitSize(), bkey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
+	    m_state.makeUlamTypeFromHolder(bkey, newkey, aut->getUlamTypeEnum(), buti);
+	  }
+      }
+    else
+      {
+	// neither holders though there may be a bit size
+	bool acomplete = aut->isComplete();
+	bool bcomplete = but->isComplete();
+	if(acomplete ^ bcomplete)
+	  {
+	    UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
+	    UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
+	    if(acomplete)
+	      {
+		UlamKeyTypeSignature newkey(akey.getUlamKeyTypeSignatureNameId(), akey.getUlamKeyTypeSignatureBitSize(), bkey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
+		m_state.makeUlamTypeFromHolder(bkey, newkey, aut->getUlamTypeEnum(), buti);
+	      }
+	    else
+	      {
+		UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), akey.getUlamKeyTypeSignatureClassInstanceIdx());
+		m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti);
+	      }
+	  }
+      }
+
+    return rtnstat;
+  } //attemptToResolveHolderArrayType
 
   void Resolver::linkConstantExpression(NodeConstantDef * ceNode)
   {
@@ -673,7 +732,8 @@ namespace MFM {
 
 			mapUTItoUTI(tduti, mappedUTI);
 			attemptToResolveHolderMappedType(tduti);
-			foundTs.push_back(tduti); //to be deleted
+			if(!m_state.getUlamTypeByIndex(tduti)->isHolder()) //keep if holder
+			  foundTs.push_back(tduti); //to be deleted
 		      }
 		  }
 	      }
