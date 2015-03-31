@@ -1652,7 +1652,7 @@ namespace MFM {
     if(numDots > 1)
       return true; //definitely found a typedef
 
-    return foundTypedef; //one time through only
+    return foundTypedef; //one time only
   } //parseTypeFromAnotherClassesTypedef (call)
 
   //recursively parses classtypes and their typedefs (dot separated)
@@ -1689,22 +1689,8 @@ namespace MFM {
 
 	if(numDots > 1 && Token::isTokenAType(pTok))
 	  {
-	    //make an 'anonymous class' key
-	    u32 id = m_state.m_pool.getIndexForNumberAsString(args.anothertduti);
-
-	    UlamKeyTypeSignature ackey(id, UNKNOWNSIZE, NONARRAYSIZE, args.anothertduti);
-	    UTI cuti = m_state.makeUlamTypeFromHolder(ackey, Class, args.anothertduti);
-	    assert(cuti == args.anothertduti); //keeps same uti
-
-	    NodeBlockClass * classblock = new NodeBlockClass(NULL, m_state);
-	    assert(classblock);
-	    classblock->setNodeLocation(args.typeTok.m_locator);
-	    classblock->setNodeType(cuti);
-
-	    //symbol ownership goes to the programDefST;
-	    //distinguish between template and regular classes, where?
-	    cnsym = new SymbolClassName(id, cuti, classblock, m_state);
-	    m_state.m_programDefST.addToTable(id, cnsym); //here or special map for anonymous???
+	    //make an 'anonymous class'
+	    m_state.makeAnonymousClassFromHolder(args.anothertduti, args.typeTok.m_locator);
 	  }
 	else
 	  {
@@ -1846,19 +1832,8 @@ namespace MFM {
       }
     else
       {
-	//	if(pTok.m_type != TOK_KW_SIZEOF)
-	//  {
-	//    unreadToken();
-	//    std::ostringstream msg;
-	//    msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str();
-	//    msg << "> is not a type, or 'sizeof'";
-	//    MSG(&pTok, msg.str().c_str(), ERR);
-	//  }
-	// else
-	//  {
-	    args.bitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
-	    unreadToken(); //put the whatever came after the dot (e.g. 'sizeof') back
-	    //  }
+	args.bitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
+	unreadToken(); //put the whatever came after the dot (e.g. 'sizeof') back
 	rtnb = false;
       }
 
@@ -2012,6 +1987,17 @@ namespace MFM {
       rtnNode = parseMinMaxSizeofType(memberTok);
 
     if(rtnNode) return rtnNode; //not min/max/sizeof..continue
+
+    // type of dsymptr maybe holder; now we know it should be a class!
+    if(dsymptr)
+      {
+	UTI duti = dsymptr->getUlamTypeIdx();
+	UlamType * dut = m_state.getUlamTypeByIndex(duti);
+	if(dut->getUlamClass() == UC_NOTACLASS && dut->getUlamTypeEnum() == Holder)
+	  {
+	    m_state.makeAnonymousClassFromHolder(duti, memberTok.m_locator);
+	  }
+      }
 
     //arg is an instance of a class, it will be/was
     //declared as a variable, either as a data member or locally,
@@ -3333,6 +3319,7 @@ namespace MFM {
 	    rtnNode->setNodeLocation(args.typeTok.m_locator);
 
 	    //in case of decl list, set type of symbol in args ref
+	    // scalar types return their own uti, not a new one.
 	    assert(asymptr);
 	    if(args.declListOrTypedefScalarType == Nav && args.anothertduti == Nav)
 	      args.declListOrTypedefScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
@@ -4088,12 +4075,19 @@ namespace MFM {
 		  {
 		    if(fromUnseenClass)
 		      {
-			// scalar auti may not be anothertduti; map UTIs, and let UT 'compare' help
-			m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
-			if(auti != args.anothertduti)
+			if(args.anothertduti)
 			  {
-			    m_state.mapTypesInCurrentClass(auti, args.anothertduti);
-			    //m_state.mapTypesInCurrentClass(args.anothertduti, auti);
+			    // scalar auti may not be anothertduti; map UTIs, and let UT 'compare' help
+			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			    if(auti != args.anothertduti)
+			      {
+				m_state.mapTypesInCurrentClass(auti, args.anothertduti);
+			      }
+			  }
+			else
+			  {
+			    //e.g. lone class typedef
+			    m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx);
 			  }
 		      }
 		    // not an array, and no bitsize subtree

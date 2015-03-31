@@ -795,7 +795,10 @@ namespace MFM {
 	    msg << "Incomplete Class: ";
 	    msg << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str();
 	    msg << " was never defined, fails sizing";
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	    if(m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->isHolder())
+	      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false; //moved here;
 	  }

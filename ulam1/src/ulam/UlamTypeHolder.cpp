@@ -42,6 +42,11 @@ namespace MFM {
     return "holder";
   }
 
+  bool UlamTypeHolder::isHolder()
+  {
+    return true;
+  }
+
   bool UlamTypeHolder::isComplete()
   {
     return false;

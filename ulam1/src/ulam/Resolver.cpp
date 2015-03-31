@@ -541,20 +541,20 @@ namespace MFM {
 	    UlamType *but = m_state.getUlamTypeByIndex(buti);
 	    //if auti or buti is a holder, but not both
 	    // exchange keys
-	    bool aholder = (aut->getUlamTypeEnum() == Holder);
-	    bool bholder = (but->getUlamTypeEnum() == Holder);
+	    bool aholder = aut->isHolder();
+	    bool bholder = but->isHolder();
 
 	    if(aholder ^ bholder)
 	      {
+		UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
+		UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
 		if(aholder)
 		  {
-		    UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
-		    m_state.makeUlamTypeFromHolder(bkey, but->getUlamTypeEnum(), auti);
+		    m_state.makeUlamTypeFromHolder(akey, bkey, but->getUlamTypeEnum(), auti);
 		  }
 		else
 		  {
-		    UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
-		    m_state.makeUlamTypeFromHolder(akey, aut->getUlamTypeEnum(), buti);
+		    m_state.makeUlamTypeFromHolder(bkey, akey, aut->getUlamTypeEnum(), buti);
 		  }
 	      }
 	  } //found
@@ -672,6 +672,7 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(aclassuti).c_str() << "; ";
 
 			mapUTItoUTI(tduti, mappedUTI);
+			attemptToResolveHolderMappedType(tduti);
 			foundTs.push_back(tduti); //to be deleted
 		      }
 		  }

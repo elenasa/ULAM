@@ -316,15 +316,15 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
-	if(asymptr->isTypedef() && asymptr->isFabricatedTmp())
+	if(asymptr->isTypedef() && (asymptr->isFabricatedTmp() || m_state.getUlamTypeByIndex(asymptr->getUlamTypeIdx())->getUlamClass() == UC_UNSEEN))
 	  {
 	    tduti = asymptr->getUlamTypeIdx();
 	    args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 
 	    // if its UTI is a unseen class, we can update the name of the class
-	    if(!m_state.updateClassName(asymptr->getUlamTypeIdx(), args.typeTok.m_dataindex))
+	    if(!m_state.updateClassName(tduti, args.typeTok.m_dataindex))
 	      {
-		// if not a class, but a primitve type update the key
+		// if not a class, but a primitive type update the key
 		if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
 		  {
 		    ULAMTYPE bUT = m_state.getBaseTypeFromToken(args.typeTok);
@@ -480,31 +480,17 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
-	if(asymptr->isFabricatedTmp())
-	  {
-	    //remove it! then continue..
-	    Symbol * rmsym = NULL;
-	    if(m_state.getCurrentBlock()->removeIdFromScope(m_token.m_dataindex, rmsym))
-	      {
-		assert(rmsym == asymptr); //sanity check removal
-		asymptr = NULL;
-	      }
-	  }
-	else
-	  {
-	    if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
-	      setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
-	    return false; //already there
-	  }
+	if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
+	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
+	return false; //already there
       }
 
+    bool brtn = false;
+    UTI auti = Nav;
+    UTI tdscalaruti = Nav;
     // verify typedef exists for this scope; or is a primitive keyword type
     // if a primitive (NONARRAYSIZE), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
-    UTI auti = Nav;
-    UTI tdscalaruti = Nav;
-    bool brtn = false;
-
     //list of decls can use the same 'scalar' type (arg); adjusted for arrays
     if(args.declListOrTypedefScalarType)
       {
