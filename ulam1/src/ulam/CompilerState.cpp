@@ -500,16 +500,6 @@ namespace MFM {
 	UTI utiofinc = cnsymOfIncomplete->getUlamTypeIdx();
 	if(utiofinc != cuti)
 	  {
-#if 0
-	    // a class holder that was 'seen' has a key with class instance idx
-	    // of the 'real' class' UTI (i.e. mapped).
-	    if(akey.getUlamKeyTypeSignatureClassInstanceIdx() == utiofinc)
-	      {
-		mappedUTI = utiofinc;
-		return true;
-	      }
-	    else
-#endif
 	      if(!cnsymOfIncomplete->isClassTemplate())
 		return false;
 	    return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
@@ -1002,6 +992,7 @@ namespace MFM {
       }
     else
       {
+	// anonymous name doesn't exist
 	if(cname)
 	  {
 	    SymbolClassName * cnsym = NULL;
