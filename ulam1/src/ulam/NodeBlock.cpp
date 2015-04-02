@@ -164,6 +164,11 @@ namespace MFM {
     m_ST.clearTheTable();
   }
 
+  bool NodeBlock::mergeAllSymbolsFromScopeIntoTable(NodeBlock * toBlocksTable)
+  {
+    return m_ST.mergeTables(toBlocksTable);
+  }
+
   NodeBlock * NodeBlock::getPreviousBlockPointer()
   {
     return m_prevBlockNode;

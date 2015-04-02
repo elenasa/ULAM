@@ -732,9 +732,42 @@ namespace MFM {
 
 			mapUTItoUTI(tduti, mappedUTI);
 			attemptToResolveHolderMappedType(tduti);
-			if(!m_state.getUlamTypeByIndex(tduti)->isHolder()) //keep if holder
-			  foundTs.push_back(tduti); //to be deleted
+			// keep in case more is revealed about tduti next round; or test for completeness.
+			//if(!m_state.getUlamTypeByIndex(tduti)->isHolder()) //keep if holder
+			//  foundTs.push_back(tduti); //to be deleted
 		      }
+		  }
+
+		if(m_state.getUlamTypeByIndex(aclassuti)->isHolder())
+		  {
+		    UTI classAlias;
+		    if(m_state.findaUTIAlias(aclassuti, classAlias))
+		      {
+			//if classAlias is not a stub, look up tduti in its map of uti's
+			SymbolClass * acsym = NULL;
+			assert(m_state.alreadyDefinedSymbolClass(classAlias, acsym));
+			if(!acsym->isStub())
+			  {
+			    UTI mappedUTI;
+			    if(acsym->hasMappedUTI(tduti, mappedUTI))
+			      {
+				msg << tduti << "-maps-to-" << mappedUTI << " in alias class ";
+				msg << m_state.getUlamTypeNameBriefByIndex(classAlias).c_str() << "; ";
+
+				mapUTItoUTI(tduti, mappedUTI);
+				attemptToResolveHolderMappedType(tduti);
+			      }
+			  }
+		      }
+		  }
+		UTI aliastduti;
+		if(m_state.findaUTIAlias(tduti, aliastduti))
+		  {
+		    msg << tduti << "-maps-to-" << aliastduti << " an alias ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(aliastduti).c_str() << "; ";
+
+		    mapUTItoUTI(tduti, aliastduti);
+		    attemptToResolveHolderMappedType(tduti);
 		  }
 	      }
 	    else

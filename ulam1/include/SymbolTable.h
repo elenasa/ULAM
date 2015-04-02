@@ -50,6 +50,7 @@ namespace MFM{
   struct CompilerState; //forward
   class Node; //forward
   class NodeBlockClass; //forward
+  class NodeBlock; //forward
 
   class SymbolTable
   {
@@ -65,6 +66,7 @@ namespace MFM{
     void replaceInTable(u32 oldid, u32 newid, Symbol * s);
     void replaceInTable(Symbol * oldsym, Symbol * newsym);
     bool removeFromTable(u32 id, Symbol *& rtnsymptr);
+    bool mergeTables(NodeBlock * toTable);
 
     Symbol * getSymbolPtr(u32 id);
 

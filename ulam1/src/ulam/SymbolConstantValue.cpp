@@ -26,6 +26,11 @@ namespace MFM {
     return new SymbolConstantValue(*this);
   }
 
+  Symbol * SymbolConstantValue::cloneKeepsType()
+  {
+    return new SymbolConstantValue(*this, true);
+  }
+
   bool SymbolConstantValue::isConstant()
   {
     return true;
