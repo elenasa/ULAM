@@ -296,6 +296,7 @@ namespace MFM {
 
   void SymbolClass::linkTypedefFromAnotherClass(UTI tduti, UTI stubuti)
   {
+    if(tduti == stubuti || tduti == Nav) return; //short-circuit
     if(!m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state);
     m_resolver->linkUnknownTypedefFromAnotherClass(tduti, stubuti);
@@ -366,7 +367,6 @@ namespace MFM {
 
     return m_resolver->findMappedUTI(auti, mappedUTI);
   } //hasMappedUTI
-
 
   bool SymbolClass::findNodeNoInResolver(NNO n, Node *& foundNode)
   {

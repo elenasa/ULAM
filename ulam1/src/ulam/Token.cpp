@@ -1,6 +1,5 @@
 #include <string.h>
 #include "Token.h"
-//#include "Tokenizer.h"
 #include "CompilerState.h"
 
 namespace MFM {
@@ -32,7 +31,6 @@ namespace MFM {
 #undef XX
 
 
-
   void Token::init(TokenType t, Locator l, u32 d)
     {
       m_type = t;
@@ -50,7 +48,6 @@ namespace MFM {
     return tok_name[m_type];
   }
 
-
   const char *  Token::getTokenAsString(TokenType ttype)
   {
     return  tok_string[ttype];
@@ -60,7 +57,6 @@ namespace MFM {
   {
     return tok_special[ttype];
   }
-
 
   TokenType Token::getTokenTypeFromString(const char * aname)
   {
@@ -73,10 +69,8 @@ namespace MFM {
 	    break;
 	  }
       }
-
     return ttype;
-  }
-
+  } //getTokenTypeFromString
 
   //oops! do the remaining letters have to be lower case? no.
   //for the typename use helper in CS:;getTokenAsATypeName
@@ -84,21 +78,17 @@ namespace MFM {
   //bool Token::isTokenAType(Token tok, CompilerState * state)
   bool Token::isTokenAType(Token tok)
   {
-    //assert(state);
-    //return ((getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD) || ((! state->getDataAsString(&tok).empty() && isUpper(state->getDataAsString(&tok).at(0)))));
     return ((getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD) || (tok.m_type == TOK_TYPE_IDENTIFIER));
   }
 
-
-  //void Token::print(File * fp, Tokenizer * izer)
   void Token::print(File * fp, CompilerState * state)
   {
     fp->write(state->getPathFromLocator(m_locator).c_str());
-    fp->write(58);  // : ascii decimal
+    fp->write(58); // : ascii decimal
     fp->write_decimal(m_locator.getLineNo());
-    fp->write(46);  // . ascii decimal
+    fp->write(46); // . ascii decimal
     fp->write_decimal(m_locator.getByteNo());
-    fp->write(58);  // : ascii decimal
+    fp->write(58); // : ascii decimal
     fp->write(getTokenEnumName());
     if(m_dataindex > 0)
       {

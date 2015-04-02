@@ -52,6 +52,7 @@ namespace MFM{
     virtual ~SymbolConstantValue();
 
     virtual Symbol * clone();
+    virtual Symbol * cloneKeepsType();
 
     virtual bool isConstant();
 
