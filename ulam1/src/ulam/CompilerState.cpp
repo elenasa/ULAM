@@ -1094,16 +1094,9 @@ namespace MFM {
 	    if(alreadyDefinedSymbolClassName(cname, cnsym))
 	      {
 		UlamKeyTypeSignature idkey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
-		//UlamKeyTypeSignature cnkey = getUlamTypeByIndex(cnsym->getUlamTypeIdx())->getUlamKeyTypeSignature();
 		UlamKeyTypeSignature newkey(cname, getBitSize(cuti), getArraySize(cuti), cuti);
-		//change the key only, including the class idx to
-		// point to the "real" one!
+		//change the key id only
 		makeUlamTypeFromHolder(idkey, newkey, Class, cuti);
-
-		//Symbol * goneclass = NULL;
-		//m_programDefST.removeFromTable(id, goneclass);
-		//assert(goneclass == cnsymId);
-		//delete cnsymId; //this is what we want to do with it.
 	      }
 	    else
 	      m_programDefST.replaceInTable(id, cname, cnsym);
@@ -1294,8 +1287,8 @@ namespace MFM {
     u32 dataindex = cTok.m_dataindex;
     assert(!alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
 
-    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
-    UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
+    UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
+    UTI cuti = makeUlamType(key, Class); //**gets next unknown uti type
 
     NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
     assert(classblock);
