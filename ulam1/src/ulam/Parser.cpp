@@ -4112,14 +4112,18 @@ namespace MFM {
 		    else
 		      {
 			//a class, no bitsize subtree, must be a class or a typedef from another class
-			// nothing to do if a class type (not a typedef)
 			if(args.classInstanceIdx != Nav)
 			  {
 			    if(auti == args.anothertduti)
 			      m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
 			    else
-			      //e.g. lone class typedef
-			      m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
+			      {
+				// nothing to do if a class type (not a typedef), unless auti is UNSEEN.
+				UlamType * aut = m_state.getUlamTypeByIndex(auti);
+				if(aut->getUlamClass() == UC_UNSEEN)
+				//e.g. lone class typedef
+				  m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
+			      }
 			  }
 		      }
 		  }
