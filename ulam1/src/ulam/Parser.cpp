@@ -4113,8 +4113,14 @@ namespace MFM {
 		      {
 			//a class, no bitsize subtree, must be a class or a typedef from another class
 			// nothing to do if a class type (not a typedef)
-			if(auti == args.anothertduti && args.classInstanceIdx != Nav)
-			  m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			if(args.classInstanceIdx != Nav)
+			  {
+			    if(auti == args.anothertduti)
+			      m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			    else
+			      //e.g. lone class typedef
+			      m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
+			  }
 		      }
 		  }
 	      }
