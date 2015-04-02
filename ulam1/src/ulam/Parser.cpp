@@ -1577,6 +1577,8 @@ namespace MFM {
 	constNode->setNodeLocation(pTok.m_locator);
 	constNode->setConstantExpr(exprNode);
 
+#if 0
+	//oops, missed one!
 	//eval what we need, and delete the node if folding successful
 	if(((NodeConstantDef *) constNode)->foldConstantExpression())
 	  {
@@ -1584,6 +1586,7 @@ namespace MFM {
 	    constNode = NULL;
 	  }
 	else
+#endif
 	  {
 	    //non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
 	    csym->linkConstantExpressionForPendingArg(constNode);
@@ -1690,7 +1693,8 @@ namespace MFM {
 	if(numDots > 1 && Token::isTokenAType(pTok))
 	  {
 	    //make an 'anonymous class'
-	    m_state.makeAnonymousClassFromHolder(args.anothertduti, args.typeTok.m_locator);
+	    cnsym = m_state.makeAnonymousClassFromHolder(args.anothertduti, args.typeTok.m_locator);
+	    args.classInstanceIdx = args.anothertduti; //since we didn't know last time around
 	  }
 	else
 	  {
@@ -1706,6 +1710,7 @@ namespace MFM {
       }
 
     // either found a class or made one up, continue..
+    assert(cnsym);
     SymbolClass * csym = NULL;
     if(cnsym->isClassTemplate() && args.classInstanceIdx)
       {
@@ -1784,6 +1789,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete type!! " << m_state.getUlamTypeNameByIndex(tduti).c_str();
+		msg << " UTI" << tduti;
 		msg << " found for Typedef: <" << m_state.getTokenDataAsString(&pTok).c_str();
 		msg << ">, belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
 		MSG(&pTok, msg.str().c_str(), DEBUG);
@@ -4081,13 +4087,13 @@ namespace MFM {
 			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
 			    if(auti != args.anothertduti)
 			      {
-				m_state.mapTypesInCurrentClass(auti, args.anothertduti);
+				m_state.mapTypesInCurrentClass(auti, args.anothertduti, args.typeTok.m_locator);
 			      }
 			  }
 			else
 			  {
 			    //e.g. lone class typedef
-			    m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx);
+			    m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
 			  }
 		      }
 		    // not an array, and no bitsize subtree

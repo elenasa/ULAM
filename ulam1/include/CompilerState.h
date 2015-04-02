@@ -155,6 +155,8 @@ namespace MFM{
     std::vector<UlamKeyTypeSignature> m_indexToUlamKey; //UTI->ulamkey, many-to-one
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes; //key->ulamtype *
 
+    std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
+
     std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
@@ -177,7 +179,7 @@ namespace MFM{
     UTI makeUlamTypeHolder();
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
-    UTI makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
+    SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
 
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
@@ -192,7 +194,7 @@ namespace MFM{
 
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
-    void mapTypesInCurrentClass(UTI fm, UTI to);
+    void mapTypesInCurrentClass(UTI fm, UTI to, Locator loc);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
     void cloneAndLinkConstantExpression(UTI fromuti, UTI touti);
@@ -226,7 +228,12 @@ namespace MFM{
     void setBitSize(UTI utArg, s32 total);
     void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void mergeClassUTI(UTI olduti, UTI cuti);
+    bool updateClassSymbolsFromHolder(UTI fm, UTI to, Locator loc);
     bool updateClassName(UTI cuti, u32 cname);
+    bool isARootUTI(UTI auti);
+    bool findaUTIAlias(UTI auti, UTI& aliasuti);
+    void updateUTIAlias(UTI auti, UTI buti);
+    void initUTIAlias(UTI auti);
 
     void setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize);
 

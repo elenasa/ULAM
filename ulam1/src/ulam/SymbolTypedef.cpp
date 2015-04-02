@@ -7,11 +7,18 @@ namespace MFM {
 
   SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref) : Symbol(sref), m_scalarUTI(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_scalarUTI)) {}
 
+  SymbolTypedef::SymbolTypedef(const SymbolTypedef& sref, bool keeptype) : Symbol(sref, keeptype), m_scalarUTI(sref.m_scalarUTI) {}
+
   SymbolTypedef::~SymbolTypedef() {}
 
   Symbol * SymbolTypedef::clone()
   {
     return new SymbolTypedef(*this);
+  }
+
+  Symbol * SymbolTypedef::cloneKeepsType()
+  {
+    return new SymbolTypedef(*this, true);
   }
 
   bool SymbolTypedef::isTypedef()

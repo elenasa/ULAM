@@ -19,9 +19,9 @@
 
 namespace MFM {
 
-//#define _DEBUG_OUTPUT
-//#define _INFO_OUTPUT
-//#define _WARN_OUTPUT
+  //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -101,6 +101,8 @@ namespace MFM {
 	    it++;
 	  }
       }
+    //m_classUTIAliases.clear();
+    m_unionRootUTI.clear();
     m_unknownKeyUTICounter.clear();
   } //clearAllDefinedUlamTypes()
 
@@ -125,6 +127,7 @@ namespace MFM {
 
     incrementUnknownKeyUTICounter(hkey);
     m_indexToUlamKey.push_back(hkey);
+    initUTIAlias(uti);
     return uti;
   } //makeUlamTypeHolder
 
@@ -142,6 +145,7 @@ namespace MFM {
     deleteUlamKeyTypeSignature(oldkey);
 
     UlamType * newut = NULL;
+    UTI auti = Nav;
     if(!isDefined(newkey, newut))
       {
 	newut = createUlamType(newkey, utype);
@@ -157,16 +161,20 @@ namespace MFM {
 
 	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
 	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); //just one!
+
+	auti = uti;
       }
     else
       {
-	UTI auti = Nav;
+	auti = Nav;
 	assert(aDefinedUTI(newkey,auti)); //don't wipe out uti
       }
 
     incrementUnknownKeyUTICounter(newkey);
 
     m_indexToUlamKey[uti] = newkey;
+
+    updateUTIAlias(uti, auti); //after index-to-key is set
 
     {
       std::ostringstream msg;
@@ -181,26 +189,30 @@ namespace MFM {
     return  uti; //return same uti (third arg)
   } //makeUlamTypeFromHolder
 
-  UTI CompilerState::makeAnonymousClassFromHolder(UTI cuti, Locator cloc)
+  SymbolClassName * CompilerState::makeAnonymousClassFromHolder(UTI cuti, Locator cloc)
   {
-    //make an 'anonymous class' key
+    SymbolClassName * cnsym = NULL;
+    //make an 'anonymous class' key, if doesn't exist already
     u32 id = m_pool.getIndexForNumberAsString(cuti);
 
     UlamKeyTypeSignature ackey(id, UNKNOWNSIZE, NONARRAYSIZE, cuti);
     UTI cuti2 = makeUlamTypeFromHolder(ackey, Class, cuti);
     assert(cuti2 == cuti); //keeps same uti
 
-    NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
-    assert(classblock);
-    classblock->setNodeLocation(cloc);
-    classblock->setNodeType(cuti);
+    if(!m_programDefST.isInTable(id, (Symbol *&) cnsym))
+      {
+	NodeBlockClass * classblock = new NodeBlockClass(NULL, *this);
+	assert(classblock);
+	classblock->setNodeLocation(cloc);
+	classblock->setNodeType(cuti);
 
-    //symbol ownership goes to the programDefST;
-    //distinguish between template and regular classes, where?
-    SymbolClassName * cnsym = new SymbolClassName(id, cuti, classblock, *this);
-    assert(cnsym);
-    m_programDefST.addToTable(id, cnsym); //here or special map for anonymous???
-    return cuti2;
+	//symbol ownership goes to the programDefST;
+	//distinguish between template and regular classes, where?
+	cnsym = new SymbolClassName(id, cuti, classblock, *this);
+	assert(cnsym);
+	m_programDefST.addToTable(id, cnsym); //here or special map for anonymous???
+      }
+    return cnsym;
   } //makeAnonymousClassFromHolder
 
   //convenience method (refactors code originally from installSymbol)
@@ -283,6 +295,7 @@ namespace MFM {
 
 	ut = createUlamType(key, utype);
 	m_indexToUlamKey.push_back(key);
+
 	std::pair<std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator, bool> reti;
 	reti = m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(key,ut)); //map owns ut
 	bool notdupi = reti.second; //false if already existed, i.e. not added
@@ -297,6 +310,8 @@ namespace MFM {
 	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
 	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); //just one!
 	assert(isDefined(key, ut));
+
+	initUTIAlias(uti);
       }
     else
       assert(aDefinedUTI(key,uti));
@@ -478,6 +493,13 @@ namespace MFM {
 	    msg << " (UTI" << uti << ")";
 	    MSG2("", msg.str().c_str(), DEBUG);
 	  }
+	else
+	  {
+	    // same ???
+	    UTI auti = Nav;
+	    assert(aDefinedUTI(newkey,auti)); //don't wipe out uti
+	    updateUTIAlias(uti, auti);
+	  }
       }
     return rtnBool;
   } //updateUlamKeyTypeSignatureToaUTI
@@ -521,6 +543,9 @@ namespace MFM {
     UTI mappedUTI;
     if(cnsym->hasInstanceMappedUTI(getCompileThisIdx(), suti, mappedUTI))
       return mappedUTI;  //e.g. decl list
+
+    if(findaUTIAlias(suti, mappedUTI))
+       return mappedUTI; //anonymous UTI
 
     //move this test after looking for the mapped class symbol type
     ULAMTYPE bUT = sut->getUlamTypeEnum();
@@ -571,11 +596,16 @@ namespace MFM {
 	msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
+    updateUTIAlias(suti, newuti);
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
 
-  void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
+  void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to, Locator loc)
   {
+    updateUTIAlias(fm, to);
+
+    updateClassSymbolsFromHolder(fm, to, loc);
+
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     if(cnsym->isClassTemplate())
@@ -963,6 +993,93 @@ namespace MFM {
     }
   } //mergeClassUTI
 
+  bool CompilerState::isARootUTI(UTI auti)
+  {
+    UTI tmpalias;
+    return !findaUTIAlias(auti, tmpalias);
+  }
+
+  bool CompilerState::findaUTIAlias(UTI auti, UTI& aliasuti)
+  {
+    assert(auti < m_unionRootUTI.size());
+    UTI finduti = m_unionRootUTI[auti];
+    if(finduti != auti)
+      {
+	aliasuti = finduti;
+	return true;
+      }
+    return false;
+  } //findAClassUTIAlias
+
+  void CompilerState::updateUTIAlias(UTI auti, UTI buti)
+  {
+    assert(auti < m_unionRootUTI.size());
+    assert(buti < m_unionRootUTI.size());
+    m_unionRootUTI[auti] = buti;
+    {
+      std::ostringstream msg;
+      msg << "ALIASES for (UTI" << auti << ") ";
+      msg << getUlamTypeNameBriefByIndex(auti).c_str();
+      msg << " is update to (UTI" << buti << ") ";
+      msg << getUlamTypeNameBriefByIndex(buti).c_str();
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+    }
+    return;
+  } //updateClassUTIAlias
+
+  void CompilerState::initUTIAlias(UTI auti)
+  {
+    assert(auti == m_unionRootUTI.size());
+    m_unionRootUTI.push_back(auti);
+    {
+      std::ostringstream msg;
+      msg << "ALIASES for (UTI" << auti << ") ";
+      msg << getUlamTypeNameBriefByIndex(auti).c_str();
+      msg << " is initialized to self";
+      MSG2("", msg.str().c_str(), DEBUG);
+    }
+    return;
+  } //initUTIAlias
+
+  bool CompilerState::updateClassSymbolsFromHolder(UTI fm, UTI to, Locator loc)
+  {
+    bool rtn = false; //not a class
+    UlamType * tut = getUlamTypeByIndex(to);
+    if(tut->getUlamClass() != UC_NOTACLASS)
+      {
+	SymbolClass * tcsym = NULL;
+	assert(alreadyDefinedSymbolClass(to, tcsym));
+
+	UlamType * fut = getUlamTypeByIndex(fm);
+	if(fut->getUlamClass() != UC_NOTACLASS)
+	  {
+	    SymbolClass * fcsym = NULL;
+	    assert(alreadyDefinedSymbolClass(fm, fcsym));
+
+	    NodeBlockClass * fclassblock = fcsym->getClassBlockNode();
+	    NodeBlockClass * tclassblock = tcsym->getClassBlockNode();
+
+	    assert(fclassblock && tclassblock);
+
+	    rtn = fclassblock->mergeAllSymbolsFromScopeIntoTable(tclassblock);
+	  }
+	else
+	  {
+	    updateClassName(fm, tcsym->getId());
+	  }
+      }
+    else
+      {
+	UlamType * fut = getUlamTypeByIndex(fm);
+	if(fut->getUlamClass() != UC_NOTACLASS)
+	  {
+	    //change 'to' holder to a class, keeping its uti
+	    makeAnonymousClassFromHolder(to, loc);
+	  }
+      }
+    return rtn;
+  } //updateClassSymbolsFromHolder
+
   bool CompilerState::updateClassName(UTI cuti, u32 cname)
   {
     bool rtnb = false; // not a class
@@ -977,13 +1094,16 @@ namespace MFM {
 	    if(alreadyDefinedSymbolClassName(cname, cnsym))
 	      {
 		UlamKeyTypeSignature idkey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
-		UlamKeyTypeSignature cnkey = getUlamTypeByIndex(cnsym->getUlamTypeIdx())->getUlamKeyTypeSignature();
+		//UlamKeyTypeSignature cnkey = getUlamTypeByIndex(cnsym->getUlamTypeIdx())->getUlamKeyTypeSignature();
+		UlamKeyTypeSignature newkey(cname, getBitSize(cuti), getArraySize(cuti), cuti);
 		//change the key only, including the class idx to
 		// point to the "real" one!
-		makeUlamTypeFromHolder(idkey, cnkey, Class, cuti);
-		Symbol * goneclass = NULL;
-		m_programDefST.removeFromTable(id, goneclass);
-		assert(goneclass == cnsymId);
+		makeUlamTypeFromHolder(idkey, newkey, Class, cuti);
+
+		//Symbol * goneclass = NULL;
+		//m_programDefST.removeFromTable(id, goneclass);
+		//assert(goneclass == cnsymId);
+		//delete cnsymId; //this is what we want to do with it.
 	      }
 	    else
 	      m_programDefST.replaceInTable(id, cname, cnsym);
@@ -1042,8 +1162,6 @@ namespace MFM {
     deleteUlamKeyTypeSignature(key);
 
     UlamType * newut = NULL;
-    //assert(!isDefined(key, newut) && !newut);
-
     if(!isDefined(newkey, newut))
       {
 	newut = createUlamType(newkey, bUT);
@@ -1058,6 +1176,7 @@ namespace MFM {
       msg << "Sizes set for nonClass: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
+
     assert(updateUlamKeyTypeSignatureToaUTI(key,newkey));
   } //setSizesOfNonClass
 

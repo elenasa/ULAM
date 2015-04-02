@@ -14,6 +14,12 @@ namespace MFM {
 
   Symbol::~Symbol(){}
 
+  Symbol * Symbol::cloneKeepsType()
+  {
+    assert(0);
+    return NULL;
+  }
+
   u32 Symbol::getId()
   {
     return m_id;

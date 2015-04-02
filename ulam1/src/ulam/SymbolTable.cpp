@@ -6,6 +6,7 @@
 #include "SymbolVariable.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "NodeBlock.h"
 #include "Node.h"
 
 namespace MFM {
@@ -94,11 +95,57 @@ namespace MFM {
     if(it != m_idToSymbolPtr.end())
       {
 	rtnsymptr = it->second;
-	m_idToSymbolPtr.erase(it);
+	m_idToSymbolPtr.erase(it); //doesn't delete, up to caller
 	rtnok = true;
       }
     return rtnok;
   } //removeFromTable
+
+  bool SymbolTable::mergeTables(NodeBlock * toTable)
+  {
+    if(m_idToSymbolPtr.empty()) return true;
+
+    std::vector<Symbol *> copyList;
+    std::map<u32,Symbol*>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	u32 sid = it->first;
+	Symbol * fsym = it->second;
+	assert(fsym);
+	UTI fsuti = fsym->getUlamTypeIdx();
+	Symbol * tsym = NULL;
+	if(toTable->isIdInScope(sid, tsym))
+	  {
+	    UTI tsuti = tsym->getUlamTypeIdx();
+	    if(tsuti != fsuti)
+	      {
+		m_state.updateUTIAlias(fsuti, tsuti);
+	      }
+	  }
+	else
+	  {
+	    copyList.push_back(fsym);
+	  }
+	it++;
+      } //next symbol
+
+    NNO toNo = toTable->getNodeNo();
+    while(!copyList.empty())
+      {
+	Symbol * sym = copyList.back();
+	u32 sid = sym->getId();
+	//Symbol * rmsym = NULL;
+	//removeFromTable(sid, rmsym);
+	//assert(sym == rmsym);
+	Symbol * copysym = sym->cloneKeepsType();
+	copysym->setBlockNoOfST(toNo);
+	toTable->addIdToScope(sid, copysym);
+	//delete rmsym;
+	copyList.pop_back();
+      }
+
+    return copyList.empty();
+  } //mergeTables
 
   Symbol * SymbolTable::getSymbolPtr(u32 id)
   {
@@ -134,7 +181,6 @@ namespace MFM {
 	else
 	  {
 	    //typedefs don't contribute to the total bit size
-	    //if(!sym->isTypedef())
 	    if(variableSymbolWithCountableSize(sym))
 	      {
 		totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
@@ -382,9 +428,14 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	if(sym->isTypedef() || sym->isConstant() || (sym->isDataMember() && !sym->isElementParameter()))
-	{
-	  sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
-	}
+	  {
+	    //UTI cuti = sym->getUlamTypeIdx();
+	    //skip anonymous classes
+	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	      {
+		sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
+	      }
+	  }
 	it++;
       }
   } //printPostfixValuesForTableOfVariableDataMembers
@@ -399,7 +450,12 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    probcnt += ((SymbolFunctionName *) sym)->checkFunctionNames();
+	    //UTI cuti = sym->getUlamTypeIdx();
+	    //skip anonymous classes
+	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	      {
+		probcnt += ((SymbolFunctionName *) sym)->checkFunctionNames();
+	      }
 	  }
 	it++;
       }
@@ -414,7 +470,12 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    ((SymbolFunctionName *) sym)->linkToParentNodesInFunctionDefs(p);
+	    //UTI cuti = sym->getUlamTypeIdx();
+	    //skip anonymous classes
+	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	      {
+		((SymbolFunctionName *) sym)->linkToParentNodesInFunctionDefs(p);
+	      }
 	  }
 	it++;
       }
@@ -448,7 +509,12 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    ((SymbolFunctionName *) sym)->labelFunctions();
+	    //UTI cuti = sym->getUlamTypeIdx();
+	    //skip anonymous classes
+	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	      {
+		((SymbolFunctionName *) sym)->labelFunctions();
+	      }
 	  }
 	it++;
       }
@@ -463,7 +529,12 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    totalNavCount += ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs();
+	    //UTI cuti = sym->getUlamTypeIdx();
+	    //skip anonymous classes
+	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	      {
+		totalNavCount += ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs();
+	      }
 	  }
 	it++;
       }
@@ -477,7 +548,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isFunction());
-	((SymbolFunctionName *) sym)->calcMaxDepthOfFunctions();
+	//UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	//if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolFunctionName *) sym)->calcMaxDepthOfFunctions();
+	  }
 	it++;
       }
     return;
@@ -533,7 +609,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isFunction());
-	nativeCount += ((SymbolFunctionName *) sym)->countNativeFuncDecls();
+	//UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	//if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    nativeCount += ((SymbolFunctionName *) sym)->countNativeFuncDecls();
+	  }
 	it++;
       }
     return nativeCount;
@@ -547,7 +628,12 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    ((SymbolFunctionName *) sym)->generateCodedFunctions(fp, declOnly, classtype);
+	    //UTI cuti = sym->getUlamTypeIdx();
+	    //skip anonymous classes
+	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	      {
+		((SymbolFunctionName *) sym)->generateCodedFunctions(fp, declOnly, classtype);
+	      }
 	  }
 	it++;
       }
@@ -560,7 +646,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-	((SymbolClassName *) sym)->getTargetDescriptorsForClassInstances(classtargets);
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->getTargetDescriptorsForClassInstances(classtargets);
+	  }
 	it++;
       } //while
   } //getTargets
@@ -575,7 +666,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-	((SymbolClassName *) sym)->testForClassInstances(fp);
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))
+	  {
+	    ((SymbolClassName *) sym)->testForClassInstances(fp);
+	  }
 	it++;
       } //while
 
@@ -604,13 +700,17 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))
+	  {
+	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-	classNode->printPostfix(fp);
-	m_state.popClassContext(); //restore
+	    classNode->printPostfix(fp);
+	    m_state.popClassContext(); //restore
+	  }
 	it++;
       } //while
   } //printPostfixForTableOfClasses
@@ -622,13 +722,17 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
+	//UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	//if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-	classNode->print(fp);
-	m_state.popClassContext(); //restore
+	    classNode->print(fp);
+	    m_state.popClassContext(); //restore
+	  }
 	it++;
       } //while
   } //printForDebugForTableOfClasses
@@ -687,12 +791,14 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-
-	((SymbolClassName *) sym)->updateLineageOfClass();
-
-	//only regular and templates immediate after updating lineages
-	((SymbolClassName *) sym)->checkAndLabelClassFirst();
-
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->updateLineageOfClass();
+	    //only regular and templates immediate after updating lineages
+	    ((SymbolClassName *) sym)->checkAndLabelClassFirst();
+	  }
 	it++;
       } //while
   } //updateLineageForTableOfClasses
@@ -705,7 +811,12 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 
-	((SymbolClassName *) sym)->checkCustomArraysOfClassInstances();
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->checkCustomArraysOfClassInstances();
+	  }
 	it++;
       }
   } //checkCustomArraysForTableOfClasses()
@@ -717,8 +828,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-
-	((SymbolClassName *) sym)->checkDuplicateFunctionsForClassInstances();
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->checkDuplicateFunctionsForClassInstances();
+	  }
 	it++;
       }
   } //checkDuplicateFunctionsForTableOfClasses
@@ -731,7 +846,12 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 
-	((SymbolClassName *) sym)->calcMaxDepthOfFunctionsForClassInstances();
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->calcMaxDepthOfFunctionsForClassInstances();
+	  }
 	it++;
       }
   } //calcMaxDepthOfFunctionsForTableOfClasses
@@ -746,13 +866,18 @@ namespace MFM {
 	assert(cnsym->isClass());
 	if( ((SymbolClass *) cnsym)->getUlamClass() == UC_UNSEEN)
 	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete Class: ";
-	    msg << m_state.getUlamTypeNameByIndex(cnsym->getUlamTypeIdx()).c_str();
-	    msg << " was never defined, fails labeling";
-	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
-	    //assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
-	    break;
+	    UTI cuti = cnsym->getUlamTypeIdx();
+	    //skip anonymous classes
+	    if(m_state.isARootUTI(cuti)) //!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Class: ";
+		msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+		msg << " was never defined, fails labeling";
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
+		break;
+	      }
 	  }
 	else
 	  cnsym->checkAndLabelClassInstances();
@@ -771,7 +896,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-	navcount += ((SymbolClassName *) sym)->countNavNodesInClassInstances();
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    navcount += ((SymbolClassName *) sym)->countNavNodesInClassInstances();
+	  }
 	it++;
       }
     return navcount;
@@ -789,13 +919,15 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	bool isAnonymousClass = m_state.getUlamTypeByIndex(cuti)->isHolder() || !m_state.isARootUTI(cuti);
 	if( ((SymbolClass *) sym)->getUlamClass() == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class: ";
-	    msg << m_state.getUlamTypeNameByIndex(sym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	    msg << " was never defined, fails sizing";
-	    if(m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->isHolder())
+	    if(isAnonymousClass)
 	      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	    else
 	      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
@@ -803,12 +935,16 @@ namespace MFM {
 	    aok = false; //moved here;
 	  }
 
-	//try..
-	aok = ((SymbolClassName *) sym)->setBitSizeOfClassInstances();
+	//skip anonymous classes
+	if(!isAnonymousClass)
+	  {
+	    //try..
+	    aok = ((SymbolClassName *) sym)->setBitSizeOfClassInstances();
 
-	//track classes that fail to be sized.
-	if(!aok)
-	  lostClassesIds.push_back(sym->getId());
+	    //track classes that fail to be sized.
+	    if(!aok)
+	      lostClassesIds.push_back(sym->getId());
+	  }
 
 	aok = true; //reset for next class
 	it++;
@@ -839,7 +975,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-	((SymbolClassName *) sym)->printBitSizeOfClassInstances();
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->printBitSizeOfClassInstances();
+	  }
 	it++;
       }
   } //printBitSizeOfTableOfClasses
@@ -852,10 +993,15 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
 
-	//quark union keep default pos = 0 for each data member, hence skip packing bits.
-	if(!((SymbolClass *) sym)->isQuarkUnion())
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
 	  {
-	    ((SymbolClassName *) sym)->packBitsForClassInstances();
+	    //quark union keep default pos = 0 for each data member, hence skip packing bits.
+	    if(!((SymbolClass *) sym)->isQuarkUnion())
+	      {
+		((SymbolClassName *) sym)->packBitsForClassInstances();
+	      }
 	  }
 	it++;
       }
@@ -869,7 +1015,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-	((SymbolClassName *) sym)->generateIncludesForClassInstances(fp);
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->generateIncludesForClassInstances(fp);
+	  }
 	it++;
       }
   } //generateIncludesForTableOfClasses
@@ -882,7 +1033,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-	((SymbolClassName *) sym)->generateForwardDefsForClassInstances(fp);
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->generateForwardDefsForClassInstances(fp);
+	  }
 	it++;
       }
   } //generateForwardDefsForTableOfClasses
@@ -897,9 +1053,14 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
-	//first output all the element typedefs, skipping quarks
-	if(((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
-	  ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, NORUNTEST);
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    //first output all the element typedefs, skipping quarks
+	    if(((SymbolClass * ) sym)->getUlamClass() != UC_QUARK)
+	      ((SymbolClassName *) sym)->generateTestInstanceForClassInstances(fp, NORUNTEST);
+	  }
 	it++;
       } //while for typedefs only
 
@@ -934,9 +1095,14 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti))
+	  {
 
-	//output header/body for this class next
-	((SymbolClassName *) sym)->generateCodeForClassInstances(fm);
+	    //output header/body for this class next
+	    ((SymbolClassName *) sym)->generateCodeForClassInstances(fm);
+	  }
 	it++;
       } //while
   } //genCodeForTableOfClasses

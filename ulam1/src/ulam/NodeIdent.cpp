@@ -316,13 +316,16 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
-	if(asymptr->isTypedef() && (asymptr->isFabricatedTmp() || m_state.getUlamTypeByIndex(asymptr->getUlamTypeIdx())->getUlamClass() == UC_UNSEEN))
+	ULAMCLASSTYPE tclasstype = m_state.getUlamTypeByIndex(asymptr->getUlamTypeIdx())->getUlamClass();
+	if(asymptr->isTypedef() && (asymptr->isFabricatedTmp() || tclasstype == UC_UNSEEN))
 	  {
 	    tduti = asymptr->getUlamTypeIdx();
 	    args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 
+	    // keep the out-of-band name; other's might refer to its UTI.
 	    // if its UTI is a unseen class, we can update the name of the class
-	    if(!m_state.updateClassName(tduti, args.typeTok.m_dataindex))
+	    //if(!m_state.updateClassName(tduti, args.typeTok.m_dataindex))
+	    if(tclasstype == UC_NOTACLASS && m_state.getUlamTypeByIndex(tduti)->isHolder())
 	      {
 		// if not a class, but a primitive type update the key
 		if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
