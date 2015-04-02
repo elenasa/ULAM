@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3380_test_compiler_unseenclassesholdertypedef_doubledots)
+  BEGINTESTCASECOMPILER(t3381_test_compiler_unseenclassesholdertypedef_doubledots)
   {
     std::string GetAnswerKey()
     {
@@ -11,9 +11,8 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      // try B before X too..t3381
-      bool rtn1 = fms->add("F.ulam","use A;\n use X;\n use B;\n element F{ Int test() {\n return 0;\n}\n }\n");
-      //bool rtn1 = fms->add("F.ulam","use A;\n use B;\n use X;\n element F{ Int test() {\n return 0;\n}\n }\n");
+      // B before X too..(informed by t3380)
+      bool rtn1 = fms->add("F.ulam","use A;\n use B;\n use X;\n element F{ Int test() {\n return 0;\n}\n }\n");
 
       bool rtn2 = fms->add("A.ulam", "element A{\n typedef X.Y.Z ZZ;\n}\n");
 
@@ -28,6 +27,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3380_test_compiler_unseenclassesholdertypedef_doubledots)
+  ENDTESTCASECOMPILER(t3381_test_compiler_unseenclassesholdertypedef_doubledots)
 
 } //end MFM
