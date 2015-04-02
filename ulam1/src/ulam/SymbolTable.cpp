@@ -429,12 +429,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isTypedef() || sym->isConstant() || (sym->isDataMember() && !sym->isElementParameter()))
 	  {
-	    //UTI cuti = sym->getUlamTypeIdx();
-	    //skip anonymous classes
-	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
-	      {
-		sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
-	      }
+	    sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
 	  }
 	it++;
       }
@@ -450,12 +445,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    //UTI cuti = sym->getUlamTypeIdx();
-	    //skip anonymous classes
-	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
-	      {
-		probcnt += ((SymbolFunctionName *) sym)->checkFunctionNames();
-	      }
+	    probcnt += ((SymbolFunctionName *) sym)->checkFunctionNames();
 	  }
 	it++;
       }
@@ -470,12 +460,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    //UTI cuti = sym->getUlamTypeIdx();
-	    //skip anonymous classes
-	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
-	      {
-		((SymbolFunctionName *) sym)->linkToParentNodesInFunctionDefs(p);
-	      }
+	    ((SymbolFunctionName *) sym)->linkToParentNodesInFunctionDefs(p);
 	  }
 	it++;
       }
@@ -509,12 +494,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    //UTI cuti = sym->getUlamTypeIdx();
-	    //skip anonymous classes
-	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
-	      {
-		((SymbolFunctionName *) sym)->labelFunctions();
-	      }
+	    ((SymbolFunctionName *) sym)->labelFunctions();
 	  }
 	it++;
       }
@@ -529,12 +509,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    //UTI cuti = sym->getUlamTypeIdx();
-	    //skip anonymous classes
-	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
-	      {
-		totalNavCount += ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs();
-	      }
+	    totalNavCount += ((SymbolFunctionName *) sym)->countNavNodesInFunctionDefs();
 	  }
 	it++;
       }
@@ -548,12 +523,7 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isFunction());
-	//UTI cuti = sym->getUlamTypeIdx();
-	//skip anonymous classes
-	//if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
-	  {
-	    ((SymbolFunctionName *) sym)->calcMaxDepthOfFunctions();
-	  }
+	((SymbolFunctionName *) sym)->calcMaxDepthOfFunctions();
 	it++;
       }
     return;
@@ -609,12 +579,7 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym->isFunction());
-	//UTI cuti = sym->getUlamTypeIdx();
-	//skip anonymous classes
-	//if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
-	  {
-	    nativeCount += ((SymbolFunctionName *) sym)->countNativeFuncDecls();
-	  }
+	nativeCount += ((SymbolFunctionName *) sym)->countNativeFuncDecls();
 	it++;
       }
     return nativeCount;
@@ -628,12 +593,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isFunction())
 	  {
-	    //UTI cuti = sym->getUlamTypeIdx();
-	    //skip anonymous classes
-	    //if(m_state.isARootUTI(cuti))//	    if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
-	      {
-		((SymbolFunctionName *) sym)->generateCodedFunctions(fp, declOnly, classtype);
-	      }
+	    ((SymbolFunctionName *) sym)->generateCodedFunctions(fp, declOnly, classtype);
 	  }
 	it++;
       }
@@ -722,17 +682,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(sym && sym->isClass());
-	//UTI cuti = sym->getUlamTypeIdx();
-	//skip anonymous classes
-	//if(m_state.isARootUTI(cuti))//	if(!m_state.getUlamTypeByIndex(cuti)->isHolder())
-	  {
-	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	    assert(classNode);
-	    m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+	NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(sym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	    classNode->print(fp);
-	    m_state.popClassContext(); //restore
-	  }
+	classNode->print(fp);
+	m_state.popClassContext(); //restore
 	it++;
       } //while
   } //printForDebugForTableOfClasses

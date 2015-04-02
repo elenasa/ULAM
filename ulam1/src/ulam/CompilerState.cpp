@@ -596,7 +596,7 @@ namespace MFM {
 	msg << "(UTI" << cnsymOfIncomplete->getUlamTypeIdx() << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
-    updateUTIAlias(suti, newuti);
+      //updateUTIAlias(suti, newuti);
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
 
@@ -1246,6 +1246,18 @@ namespace MFM {
 	      {
 		symptr = csym;
 		rtnb = true;
+	      }
+	    else
+	      {
+		UTI mappedUTI;
+		if(findaUTIAlias(scalarUTI, mappedUTI))
+		  {
+		    if(((SymbolClassNameTemplate *) cnsym)->findClassInstanceByUTI(mappedUTI, csym))
+		      {
+			symptr = csym;
+			rtnb = true;
+		      }
+		  }
 	      }
 	  }
 	else
