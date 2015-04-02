@@ -323,8 +323,8 @@ namespace MFM {
 	    args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 
 	    // keep the out-of-band name; other's might refer to its UTI.
-	    // if its UTI is a unseen class, we can update the name of the class
-	    //if(!m_state.updateClassName(tduti, args.typeTok.m_dataindex))
+	    // if its UTI is a unseen class, we can update the name of the class during linkOrFree
+	    // don't want to rush this step since we might have a class w args and a different UTI.
 	    if(tclasstype == UC_NOTACLASS && m_state.getUlamTypeByIndex(tduti)->isHolder())
 	      {
 		// if not a class, but a primitive type update the key

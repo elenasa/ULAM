@@ -1576,21 +1576,8 @@ namespace MFM {
 	assert(constNode);
 	constNode->setNodeLocation(pTok.m_locator);
 	constNode->setConstantExpr(exprNode);
-
-#if 0
-	//oops, missed one!
-	//eval what we need, and delete the node if folding successful
-	if(((NodeConstantDef *) constNode)->foldConstantExpression())
-	  {
-	    delete constNode; //done with them!
-	    constNode = NULL;
-	  }
-	else
-#endif
-	  {
-	    //non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
-	    csym->linkConstantExpressionForPendingArg(constNode);
-	  }
+	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
+	csym->linkConstantExpressionForPendingArg(constNode);
       } //too many args
 
     getNextToken(pTok);
@@ -4119,9 +4106,7 @@ namespace MFM {
 			    else
 			      {
 				// nothing to do if a class type (not a typedef), unless auti is UNSEEN.
-				UlamType * aut = m_state.getUlamTypeByIndex(auti);
 				if(aut->getUlamClass() == UC_UNSEEN)
-				//e.g. lone class typedef
 				  m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
 			      }
 			  }
