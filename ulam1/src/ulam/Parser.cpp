@@ -296,17 +296,20 @@ namespace MFM {
   NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym, Token identTok)
   {
     UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
-    NodeBlockClass * rtnNode = NULL;
-    NodeBlock * prevBlock = m_state.getCurrentBlock();
-    assert(prevBlock == NULL); //this is the class' first block
+    NodeBlockClass * rtnNode = cnsym->getClassBlockNode(); //usually NULL
+    if(!rtnNode)
+      {
+	NodeBlock * prevBlock = m_state.getCurrentBlock();
+	assert(prevBlock == NULL); //this is the class' first block
 
-    rtnNode = new NodeBlockClass(prevBlock, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(identTok.m_locator);
-    rtnNode->setNodeType(utype);
+	rtnNode = new NodeBlockClass(prevBlock, m_state);
+	assert(rtnNode);
+	rtnNode->setNodeLocation(identTok.m_locator);
+	rtnNode->setNodeType(utype);
 
-    //set block before returning, so future class instances can link back to it
-    cnsym->setClassBlockNode(rtnNode);
+	//set block before returning, so future class instances can link back to it
+	cnsym->setClassBlockNode(rtnNode);
+      }
 
     //current, this block's symbol table added to parse tree stack
     //        for validating and finding scope of program/block variables
@@ -1573,18 +1576,8 @@ namespace MFM {
 	assert(constNode);
 	constNode->setNodeLocation(pTok.m_locator);
 	constNode->setConstantExpr(exprNode);
-
-	//eval what we need, and delete the node if folding successful
-	if(((NodeConstantDef *) constNode)->foldConstantExpression())
-	  {
-	    delete constNode; //done with them!
-	    constNode = NULL;
-	  }
-	else
-	  {
-	    //non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
-	    csym->linkConstantExpressionForPendingArg(constNode);
-	  }
+	//fold later; non ready expressions saved by UTI in m_nonreadyClassArgSubtrees (stub)
+	csym->linkConstantExpressionForPendingArg(constNode);
       } //too many args
 
     getNextToken(pTok);
@@ -1649,7 +1642,7 @@ namespace MFM {
     if(numDots > 1)
       return true; //definitely found a typedef
 
-    return foundTypedef; //one time through only
+    return foundTypedef; //one time only
   } //parseTypeFromAnotherClassesTypedef (call)
 
   //recursively parses classtypes and their typedefs (dot separated)
@@ -1668,145 +1661,176 @@ namespace MFM {
     numDots++;
 
     SymbolClassName * cnsym = NULL;
-    if(m_state.alreadyDefinedSymbolClassName(args.typeTok.m_dataindex, cnsym))
+    if(!m_state.alreadyDefinedSymbolClassName(args.typeTok.m_dataindex, cnsym))
       {
-	SymbolClass * csym = NULL;
-	if(cnsym->isClassTemplate() && args.classInstanceIdx)
+	//if here, the last typedef might have been a holder for some unknown type
+	// now we know (thanks to the dot and subsequent type token) that its a holder
+	//  for a class. but we don't know it's real name, yet!
+
+	// we need to add it to our table as an anonymous classes for now
+	// using its the string of its UTI as its temporary out-of-band name.
+
+	// in the future, we will only be able to find it via its UTI, not a token.
+	// the UTI should be the anothertduti (unless numdots is only 1).
+
+	Token pTok; //look ahead after the dot
+	getNextToken(pTok);
+	unreadToken();
+
+	if(numDots > 1 && Token::isTokenAType(pTok))
 	  {
-	    if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.classInstanceIdx, csym))
-	      {
-		std::ostringstream msg;
-		msg << "Trying to use typedef from another class template <";
-		msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
-		msg << ">, but instance UTI";
-		msg << args.classInstanceIdx << " cannot be found";
-		MSG(&args.typeTok, msg.str().c_str(), ERR);
-		numDots = 0;
-		rtnb = false;
-		getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
-		return; //failed
-	      }
+	    //make an 'anonymous class'
+	    cnsym = m_state.makeAnonymousClassFromHolder(args.anothertduti, args.typeTok.m_locator);
+	    args.classInstanceIdx = args.anothertduti; //since we didn't know last time around
 	  }
 	else
-	  csym = cnsym; //regular class
-
-	assert(csym);
-	NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-	if(!memberClassNode)  //e.g. forgot the closing brace on quark def once; or UNSEEN
 	  {
-	    //hail mary pass..possibly a sizeof of unseen class
-	    getNextToken(nTok);
-	    if(nTok.m_type != TOK_KW_SIZEOF)
-	      {
-		std::ostringstream msg;
-		msg << "Trying to use typedef from another class <";
-		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
-		msg << ">, before it has been defined. Cannot continue with (token) ";
-		msg << m_state.getTokenDataAsString(&nTok).c_str();
-		MSG(&args.typeTok, msg.str().c_str(), ERR);
-		getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
-	      }
-	    else
-	      {
-		args.bitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
-		unreadToken(); //put the 'sizeof' back
-	      }
+	    unreadToken(); //put dot back, minof or maxof perhaps?
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token: <" << args.typeTok.getTokenEnumName();
+	    msg << "> is not a 'seen' class type: <";
+	    msg << m_state.getTokenDataAsString(&args.typeTok).c_str() << ">";
+	    MSG(&args.typeTok, msg.str().c_str(), DEBUG);
 	    rtnb = false;
 	    return;
 	  }
+      }
 
-	//set up compiler state to use the member class block for symbol searches
-	m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
-
-	//after the dot
-	getNextToken(nTok);
-	if(Token::isTokenAType(nTok))
+    // either found a class or made one up, continue..
+    assert(cnsym);
+    SymbolClass * csym = NULL;
+    if(cnsym->isClassTemplate() && args.classInstanceIdx)
+      {
+	if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.classInstanceIdx, csym))
 	  {
-	    UTI tduti;
-	    UTI tdscalaruti = Nav;
-	    bool isclasstd = false;
-	    if(m_state.getUlamTypeByTypedefName(nTok.m_dataindex, tduti, tdscalaruti))
-	      {
-		UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
-		if(!tdut->isComplete())
-		  {
-		    std::ostringstream msg;
-		    msg << "Incomplete type!! " << m_state.getUlamTypeNameByIndex(tduti).c_str();
-		    msg << " found for Typedef: <" << m_state.getTokenDataAsString(&nTok).c_str();
-		    msg << ">, belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
-		    MSG(&nTok, msg.str().c_str(), DEBUG);
-		  }
+	    std::ostringstream msg;
+	    msg << "Trying to use typedef from another class template <";
+	    msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
+	    msg << ">, but instance UTI";
+	    msg << args.classInstanceIdx << " cannot be found";
+	    MSG(&args.typeTok, msg.str().c_str(), ERR);
+	    numDots = 0;
+	    rtnb = false;
+	    getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
+	    return; //failed
+	  }
+      }
+    else
+      csym = cnsym; //regular class
 
-		ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-		const std::string tdname = tdut->getUlamTypeNameOnly();
-
-		//update token argument
-		if(tdclasstype == UC_NOTACLASS)
-		  args.typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), nTok.m_locator, 0);
-		else
-		  {
-		    args.typeTok.init(TOK_TYPE_IDENTIFIER, nTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
-		    isclasstd = true;
-		  }
-		//update rest of argument refs
-		args.bitsize = tdut->getBitSize();
-		args.arraysize = tdut->getArraySize(); //becomes arg when installing symbol
-
-		//possibly another class? go again..
-		if(isclasstd)
-		  {
-		    if(args.anothertduti != Nav)
-		      args.classInstanceIdx = args.anothertduti;
-		    else
-		      args.classInstanceIdx = tduti;
-		  }
-
-		args.anothertduti = tduti; //don't lose it!
-		args.declListOrTypedefScalarType = tdscalaruti;
-		rtnb = true;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str();
-		msg << "> is not a typedef belonging to class: ";
-		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
-		MSG(&nTok, msg.str().c_str(), ERR);
-		rtnb = false;
-	      }
-
-	    //possibly another class? go again..
-	    parseTypeFromAnotherClassesTypedef(args, rtnb, numDots);
+    assert(csym);
+    NodeBlockClass * memberClassNode = csym->getClassBlockNode();
+    if(!memberClassNode)  //e.g. forgot the closing brace on quark def once; or UNSEEN
+      {
+	//hail mary pass..possibly a sizeof of unseen class
+	getNextToken(nTok);
+	if(nTok.m_type != TOK_KW_SIZEOF)
+	  {
+	    std::ostringstream msg;
+	    msg << "Trying to use typedef from another class <";
+	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+	    msg << ">, before it has been defined. Cannot continue with (token) ";
+	    msg << m_state.getTokenDataAsString(&nTok).c_str();
+	    MSG(&args.typeTok, msg.str().c_str(), ERR);
+	    getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	  }
 	else
 	  {
-	    if(nTok.m_type != TOK_KW_SIZEOF)
+	    args.bitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
+	    unreadToken(); //put the 'sizeof' back
+	  }
+	rtnb = false;
+	return;
+      }
+
+    //set up compiler state to use the member class block for symbol searches
+    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+
+    Token pTok;
+    //after the dot
+    getNextToken(pTok);
+    if(Token::isTokenAType(pTok))
+      {
+	UTI tduti;
+	UTI tdscalaruti = Nav;
+	bool isclasstd = false;
+	if(!m_state.getUlamTypeByTypedefName(pTok.m_dataindex, tduti, tdscalaruti))
+	  {
+	    //make one up!! if UN_SEEN class
+	    UTI mcuti = memberClassNode->getNodeType();
+	    ULAMCLASSTYPE mclasstype = m_state.getUlamTypeByIndex(mcuti)->getUlamClass();
+	    if(mclasstype == UC_UNSEEN)
 	      {
-		unreadToken();
-		std::ostringstream msg;
-		msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&nTok).c_str();
-		msg << "> is not a type, or 'sizeof'";
-		MSG(&nTok, msg.str().c_str(), ERR);
+		UTI huti = m_state.makeUlamTypeHolder();
+		SymbolTypedef * symtypedef = new SymbolTypedef(pTok.m_dataindex, huti, Nav, m_state);
+		assert(symtypedef);
+		symtypedef->setBlockNoOfST(memberClassNode->getNodeNo());
+		m_state.addSymbolToCurrentMemberClassScope(symtypedef);
 	      }
+	  } //end make one up, now fall through
+
+	if(m_state.getUlamTypeByTypedefName(pTok.m_dataindex, tduti, tdscalaruti))
+	  {
+	    UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
+	    if(!tdut->isComplete())
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete type!! " << m_state.getUlamTypeNameByIndex(tduti).c_str();
+		msg << " UTI" << tduti;
+		msg << " found for Typedef: <" << m_state.getTokenDataAsString(&pTok).c_str();
+		msg << ">, belonging to class: " << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+		MSG(&pTok, msg.str().c_str(), DEBUG);
+	      }
+
+	    ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
+	    const std::string tdname = tdut->getUlamTypeNameOnly();
+
+	    //update token argument
+	    if(tdclasstype == UC_NOTACLASS)
+	      args.typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), pTok.m_locator, 0);
 	    else
 	      {
-		args.bitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
-		unreadToken(); //put the 'sizeof' back
+		args.typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
+		isclasstd = true;
 	      }
+	    //update rest of argument refs
+	    args.bitsize = tdut->getBitSize();
+	    args.arraysize = tdut->getArraySize(); //becomes arg when installing symbol
+
+	    //possibly another class? go again..
+	    if(isclasstd)
+	      {
+		if(args.anothertduti != Nav)
+		  args.classInstanceIdx = args.anothertduti;
+		else
+		  args.classInstanceIdx = tduti;
+	      }
+
+	    args.anothertduti = tduti; //don't lose it!
+	    args.declListOrTypedefScalarType = tdscalaruti;
+	    rtnb = true;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str();
+	    msg << "> is not a typedef belonging to class: ";
+	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
+	    MSG(&pTok, msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
-	m_state.popClassContext(); //restore
+
+	//possibly another class? go again..
+	parseTypeFromAnotherClassesTypedef(args, rtnb, numDots);
       }
     else
       {
-	unreadToken(); //put dot back, minof or maxof perhaps?
-	std::ostringstream msg;
-	msg << "Unexpected input!! Token: <" << args.typeTok.getTokenEnumName();
-	msg << "> is not a 'seen' class type: <";
-	msg << m_state.getTokenDataAsString(&args.typeTok).c_str() << ">";
-	MSG(&args.typeTok, msg.str().c_str(), DEBUG);
+	args.bitsize = UNKNOWNSIZE; //t.f. unknown bitsize or arraysize or both?
+	unreadToken(); //put the whatever came after the dot (e.g. 'sizeof') back
 	rtnb = false;
       }
+
+    m_state.popClassContext(); //restore
     return;
   } //parseTypeFromAnotherClassesTypedef
 
@@ -1956,6 +1980,17 @@ namespace MFM {
       rtnNode = parseMinMaxSizeofType(memberTok);
 
     if(rtnNode) return rtnNode; //not min/max/sizeof..continue
+
+    // type of dsymptr maybe holder; now we know it should be a class!
+    if(dsymptr)
+      {
+	UTI duti = dsymptr->getUlamTypeIdx();
+	UlamType * dut = m_state.getUlamTypeByIndex(duti);
+	if(dut->getUlamClass() == UC_NOTACLASS && dut->getUlamTypeEnum() == Holder)
+	  {
+	    m_state.makeAnonymousClassFromHolder(duti, memberTok.m_locator);
+	  }
+      }
 
     //arg is an instance of a class, it will be/was
     //declared as a variable, either as a data member or locally,
@@ -3277,6 +3312,7 @@ namespace MFM {
 	    rtnNode->setNodeLocation(args.typeTok.m_locator);
 
 	    //in case of decl list, set type of symbol in args ref
+	    // scalar types return their own uti, not a new one.
 	    assert(asymptr);
 	    if(args.declListOrTypedefScalarType == Nav && args.anothertduti == Nav)
 	      args.declListOrTypedefScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
@@ -3964,6 +4000,14 @@ namespace MFM {
   void Parser::linkOrFreeConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
   {
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    bool fromUnseenClass = false;
+    if(args.classInstanceIdx != Nav) //the other class
+      {
+	UlamType * cut = m_state.getUlamTypeByIndex(args.classInstanceIdx);
+	if(cut->getUlamClass() == UC_UNSEEN)
+	  fromUnseenClass = true;
+      }
+
     if(!aut->isComplete())
       {
 	s32 arraysize = aut->getArraySize();
@@ -4022,8 +4066,25 @@ namespace MFM {
 		  }
 		else
 		  {
+		    if(fromUnseenClass)
+		      {
+			if(args.anothertduti)
+			  {
+			    // scalar auti may not be anothertduti; map UTIs, and let UT 'compare' help
+			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			    if(auti != args.anothertduti)
+			      {
+				m_state.mapTypesInCurrentClass(auti, args.anothertduti, args.typeTok.m_locator);
+			      }
+			  }
+			else
+			  {
+			    //e.g. lone class typedef
+			    m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
+			  }
+		      }
 		    // not an array, and no bitsize subtree
-		    if(aut->getUlamClass() == UC_NOTACLASS)
+		    else if(aut->getUlamClass() == UC_NOTACLASS)
 		      {
 			//find the scalardecllist, clone the ceNode for this scalar auti
 			//(not compare, actual uti's equal)
@@ -4038,9 +4099,17 @@ namespace MFM {
 		    else
 		      {
 			//a class, no bitsize subtree, must be a class or a typedef from another class
-			// nothing to do if a class type (not a typedef)
-			if(auti == args.anothertduti && args.classInstanceIdx != Nav)
-			  m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			if(args.classInstanceIdx != Nav)
+			  {
+			    if(auti == args.anothertduti)
+			      m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+			    else
+			      {
+				// nothing to do if a class type (not a typedef), unless auti is UNSEEN.
+				if(aut->getUlamClass() == UC_UNSEEN)
+				  m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
+			      }
+			  }
 		      }
 		  }
 	      }
@@ -4158,7 +4227,7 @@ namespace MFM {
   void Parser::initPrimitiveUlamTypes()
   {
     //initialize primitive UlamTypes, in order!!
-    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
+    UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("0Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
     UTI nidx = m_state.makeUlamType(nkey, Nav);
     assert(nidx == Nav); //true for primitives
 
@@ -4186,7 +4255,7 @@ namespace MFM {
     UTI bitsidx = m_state.makeUlamType(bitskey, Bits);
     assert(bitsidx == Bits);
 
-    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("Ut_Class"), ULAMTYPE_DEFAULTBITSIZE[Class]); //bits tbd
+    UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("0Class"), ULAMTYPE_DEFAULTBITSIZE[Class]); //bits tbd
     UTI cidx = m_state.makeUlamType(ckey, Class);
     assert(cidx == Class);
 
@@ -4194,9 +4263,13 @@ namespace MFM {
     UTI aidx = m_state.makeUlamType(akey, UAtom);
     assert(aidx == UAtom);
 
-    UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("Ut_Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr]);
+    UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr]);
     UTI pidx = m_state.makeUlamType(pkey, Ptr);
     assert(pidx == Ptr);
+
+    UlamKeyTypeSignature hkey(m_state.m_pool.getIndexForDataString("0Holder"), UNKNOWNSIZE);
+    UTI hidx = m_state.makeUlamType(hkey, Holder);
+    assert(hidx == Holder);
 
     //initialize call stack with 'Int' UlamType pointer
     m_state.m_funcCallStack.init(iidx);

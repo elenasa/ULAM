@@ -14,6 +14,12 @@ namespace MFM {
 
   Symbol::~Symbol(){}
 
+  Symbol * Symbol::cloneKeepsType()
+  {
+    assert(0);
+    return NULL;
+  }
+
   u32 Symbol::getId()
   {
     return m_id;
@@ -89,6 +95,13 @@ namespace MFM {
   bool Symbol::isSelf()
   {
     return m_isSelf;
+  }
+
+  bool Symbol::isFabricatedTmp()
+  {
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
+    ULAMTYPE etype = sut->getUlamTypeEnum();
+    return etype == Holder;
   }
 
   NNO Symbol::getBlockNoOfST()

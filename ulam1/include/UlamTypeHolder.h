@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * StringPool.h -  Basic String Pool management for ULAM
+ * UlamTypeHolder.h -  Basic handling of the Holder UlamType for ULAM
  *
  * Copyright (C) 2014 The Regents of the University of New Mexico.
  * Copyright (C) 2014 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file StringPool.h -  Basic String Pool management for ULAM
+  \file UlamTypeHolder.h -  Basic handling of the Holder UlamType for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2014 All rights reserved.
@@ -34,42 +34,40 @@
 */
 
 
-#ifndef STRINGPOOL_H
-#define STRINGPOOL_H
+#ifndef ULAMTYPEHOLDER_H
+#define ULAMTYPEHOLDER_H
 
-#include <stdio.h>
-#include <string>
-#include <string.h>
-#include <map>
-#include <vector>
-#include "itype.h"
+#include "UlamType.h"
 
+namespace MFM{
 
-namespace MFM
-{
+  class CompilerState; //forward
 
-  class StringPool
+  class UlamTypeHolder : public UlamType
   {
   public:
 
-    StringPool();
+    UlamTypeHolder(const UlamKeyTypeSignature key, CompilerState& state);
+    virtual ~UlamTypeHolder(){}
 
-    ~StringPool();
+    virtual ULAMTYPE getUlamTypeEnum();
 
-    u32 getIndexForDataString(std::string str);    //< makes a new entry in map, vector if nonexistent
+    virtual bool needsImmediateType();
 
-    u32 getIndexForNumberAsString(u32 num);
+    virtual const std::string getUlamTypeAsStringForC();
 
-    std::string getDataAsString(u32 dataindex);
+    virtual const std::string getImmediateStorageTypeAsString();
 
+    virtual const std::string castMethodForCodeGen(UTI nodetype);
+
+    virtual bool isHolder();
+
+    virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
 
   private:
 
-    std::vector<std::string> m_dataAsString;       //< string indexed by dataindex
-    std::map<std::string,u32> m_stringToDataIndex; //< value indexes into m_dataAsString; avoid duplicates
-
-
   };
+
 }
 
-#endif  /* STRINGPOOL_H */
+#endif //end ULAMTYPEHOLDER_H

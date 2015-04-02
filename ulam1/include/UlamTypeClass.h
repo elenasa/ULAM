@@ -85,6 +85,10 @@ namespace MFM{
 
     virtual s32 getBitSize();
 
+    virtual bool isHolder();
+
+    virtual bool isComplete();
+
     virtual bool isMinMaxAllowed();
 
     virtual PACKFIT getPackable();

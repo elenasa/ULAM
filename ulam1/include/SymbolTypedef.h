@@ -50,9 +50,11 @@ namespace MFM{
   public:
     SymbolTypedef(u32 id, UTI utype, UTI scalaruti, CompilerState& state);
     SymbolTypedef(const SymbolTypedef& sref);
+    SymbolTypedef(const SymbolTypedef& sref, bool keeptype);
     ~SymbolTypedef();
 
     virtual Symbol * clone();
+    virtual Symbol * cloneKeepsType();
 
     virtual bool isTypedef();
 

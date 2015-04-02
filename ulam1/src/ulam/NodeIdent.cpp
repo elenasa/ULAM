@@ -308,18 +308,43 @@ namespace MFM {
 
   bool NodeIdent::installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr)
   {
+    bool brtn = false;
+    UTI tduti = Nav;
+    UTI tdscalaruti = Nav;
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
-	return false;    //already there
+	ULAMCLASSTYPE tclasstype = m_state.getUlamTypeByIndex(asymptr->getUlamTypeIdx())->getUlamClass();
+	if(asymptr->isTypedef() && (asymptr->isFabricatedTmp() || tclasstype == UC_UNSEEN))
+	  {
+	    tduti = asymptr->getUlamTypeIdx();
+	    args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
+
+	    // keep the out-of-band name; other's might refer to its UTI.
+	    // if its UTI is a unseen class, we can update the name of the class during linkOrFree
+	    // don't want to rush this step since we might have a class w args and a different UTI.
+	    if(tclasstype == UC_NOTACLASS && m_state.getUlamTypeByIndex(tduti)->isHolder())
+	      {
+		// if not a class, but a primitive type update the key
+		if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+		  {
+		    ULAMTYPE bUT = m_state.getBaseTypeFromToken(args.typeTok);
+		    if(args.bitsize == 0)
+		      args.bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+		    // update the type of holder key
+		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.typeTok), args.bitsize, args.arraysize, Nav);
+		    // append Nav?
+		    m_state.makeUlamTypeFromHolder(newkey, bUT, tduti); //update key, same uti
+		  }
+	      }
+	    brtn = true;
+	  }
+	return brtn; //already there, and updated
       }
 
     //typedef might have bitsize and arraysize info..
-    UTI tduti = Nav;
-    UTI tdscalaruti = Nav;
-    bool brtn = false;
     if(args.anothertduti)
       {
 	if(checkTypedefOfTypedefSizes(args, args.anothertduti)) //ref
@@ -335,7 +360,7 @@ namespace MFM {
 	  {
 	    brtn = true;
 	  }
-      }
+	  }
     else if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	//UlamTypes automatically created for the base types with different array sizes.
@@ -386,7 +411,18 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
-	return false; //already there
+	if(asymptr->isFabricatedTmp())
+	  {
+	    //remove it! then continue..
+	    Symbol * rmsym = NULL;
+	    if(m_state.getCurrentBlock()->removeIdFromScope(m_token.m_dataindex, rmsym))
+	      {
+		assert(rmsym == asymptr); //sanity check removal
+		asymptr = NULL;
+	      }
+	  }
+	else
+	  return false; //already there
       }
 
     // maintain specific type (see isAConstant() Node method)
@@ -452,13 +488,12 @@ namespace MFM {
 	return false; //already there
       }
 
+    bool brtn = false;
+    UTI auti = Nav;
+    UTI tdscalaruti = Nav;
     // verify typedef exists for this scope; or is a primitive keyword type
     // if a primitive (NONARRAYSIZE), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
-    UTI auti = Nav;
-    UTI tdscalaruti = Nav;
-    bool brtn = false;
-
     //list of decls can use the same 'scalar' type (arg); adjusted for arrays
     if(args.declListOrTypedefScalarType)
       {
