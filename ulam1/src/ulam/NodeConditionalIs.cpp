@@ -29,19 +29,25 @@ namespace MFM {
 	msg << "Invalid type for LHS of conditional operator '" << getName();
 	msg << "'; must be an atom or an element, not type: ";
 	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(lclasstype == UC_UNSEEN)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
 
     UTI ruti = m_utypeRight;
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(rclasstype != UC_ELEMENT)
+    if(!(rclasstype == UC_ELEMENT))
       {
 	std::ostringstream msg;
 	msg << "Invalid type for RHS of conditional operator '" << getName();
 	msg << "'; must be an element name, not type: ";
 	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(rclasstype == UC_UNSEEN)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
 
