@@ -4142,6 +4142,16 @@ namespace MFM {
 	return;
       }
 
+    //typedef is an array from another class
+    if(args.anothertduti && args.anothertduti == auti)
+      {
+	delete ceForArraySize;
+	return;
+      }
+
+      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+
+#if 0
     //array here of a typedef from another class's scalar
     if(args.anothertduti && args.anothertduti != auti)
       m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
@@ -4151,6 +4161,8 @@ namespace MFM {
 	  {
 	    //local array and scalar
 	    if(args.declListOrTypedefScalarType && args.declListOrTypedefScalarType != auti)
+	      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+	    else if (m_state.getUlamTypeByIndex(auti)->isHolder()) //didn't know it was an array at the time holder was made
 	      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
 	    else
 	      delete ceForArraySize;
@@ -4164,6 +4176,7 @@ namespace MFM {
 	      delete ceForArraySize;
 	  }
       }
+#endif
   } //linkOrFreeConstantExpressionArraysize
 
   void Parser::linkOrFreeConstantExpressionBitsize(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize)
