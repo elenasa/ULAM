@@ -45,7 +45,10 @@ namespace MFM {
 	msg << "Invalid type for LHS of conditional operator '" << getName();
 	msg << "'; must be an atom, or element, not type: ";
 	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(lclasstype == UC_UNSEEN)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
 
@@ -53,13 +56,16 @@ namespace MFM {
     assert(m_state.isScalar(ruti));
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(!(rclasstype == UC_QUARK || rclasstype == UC_ELEMENT || rclasstype == UC_UNSEEN))
+    if(!(rclasstype == UC_QUARK || rclasstype == UC_ELEMENT))
       {
 	std::ostringstream msg;
 	msg << "Invalid type for RHS of conditional operator '" << getName();
 	msg << "'; must be a quark or element name, not type: ";
 	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(rclasstype == UC_UNSEEN)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
 

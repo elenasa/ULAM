@@ -401,7 +401,12 @@ namespace MFM{
     /**
        helper method to save subtrees for unknown UTIs
     */
-    void linkOrFreeConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize);
+    void linkFreeMapATypeAndConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize);
+
+    void linkOrMapAType(UTI auti, ParserTypeArgs args);
+    void mapTypeFromUnseenClass(UTI auti, ParserTypeArgs args);
+    void linkOrFreeConstantExpressionArraysize(UTI auti, ParserTypeArgs args, NodeSquareBracket * ceForArraySize);
+    void linkOrFreeConstantExpressionBitsize(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize);
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);
