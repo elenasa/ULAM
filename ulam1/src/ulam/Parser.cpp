@@ -1661,7 +1661,8 @@ namespace MFM {
     numDots++;
 
     SymbolClassName * cnsym = NULL;
-    if(!m_state.alreadyDefinedSymbolClassName(args.typeTok.m_dataindex, cnsym))
+    Symbol * asym = NULL; 	// or is it a typedef? that we've already seen?
+    if(! (m_state.alreadyDefinedSymbolClassName(args.typeTok.m_dataindex, cnsym) || m_state.alreadyDefinedSymbol(args.typeTok.m_dataindex, asym)))
       {
 	//if here, the last typedef might have been a holder for some unknown type
 	// now we know (thanks to the dot and subsequent type token) that its a holder
@@ -1693,6 +1694,33 @@ namespace MFM {
 	    MSG(&args.typeTok, msg.str().c_str(), DEBUG);
 	    rtnb = false;
 	    return;
+	  }
+      }
+    else
+      {
+	if(asym && !cnsym)
+	  {
+	    if(asym->isTypedef())
+	      {
+		SymbolClass * tmpcsym = NULL;
+		UTI acuti = asym->getUlamTypeIdx();
+		if(!m_state.alreadyDefinedSymbolClass(acuti, tmpcsym))
+		  {
+		    unreadToken(); //put dot back, minof or maxof perhaps?
+		    std::ostringstream msg;
+		    msg << "Unexpected input!! Token: <" << args.typeTok.getTokenEnumName();
+		    msg << "> is not a 'seen' class typedef: <";
+		    msg << m_state.getTokenDataAsString(&args.typeTok).c_str() << ">";
+		    MSG(&args.typeTok, msg.str().c_str(), DEBUG);
+		    rtnb = false;
+		    return;
+		  }
+		else
+		  {
+		    u32 cid = tmpcsym->getId();
+		    assert(m_state.alreadyDefinedSymbolClassName(cid, cnsym));
+		  }
+	      }
 	  }
       }
 
