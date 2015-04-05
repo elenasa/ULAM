@@ -1167,7 +1167,7 @@ namespace MFM {
 	      }
 	  } //totbitsize == 0
       } //not primitive, not array
-    return CYCLEFLAG;
+    return UNKNOWNSIZE; //was CYCLEFLAG
   } //calcVariableSymbolTypeSize (recursively)
 
   bool SymbolTable::variableSymbolWithCountableSize(Symbol * sym)
