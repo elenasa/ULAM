@@ -956,10 +956,11 @@ namespace MFM {
 
 	if(isCustomArray)
 	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
-
-	incrementUnknownKeyUTICounter(newkey);  //here???
       }
+
     m_indexToUlamKey[utArg] = newkey;
+
+    incrementUnknownKeyUTICounter(newkey);  //here
 
     {
       std::ostringstream msg;
@@ -1159,10 +1160,11 @@ namespace MFM {
       {
 	newut = createUlamType(newkey, bUT);
 	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(newkey,newut));
-	incrementUnknownKeyUTICounter(newkey);
       }
 
     m_indexToUlamKey[utArg] = newkey;
+
+    incrementUnknownKeyUTICounter(newkey);
 
     {
       std::ostringstream msg;

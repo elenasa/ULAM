@@ -2353,7 +2353,7 @@ namespace MFM {
 	if(rtnNode)
 	  {
 	    //bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	    linkOrFreeConstantExpressions(uti, typeargs, bitsizeNode, NULL);
+	    linkFreeMapATypeAndConstantExpressions(uti, typeargs, bitsizeNode, NULL);
 	  }
 	else
 	  {
@@ -2992,7 +2992,7 @@ namespace MFM {
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
 
-    linkOrFreeConstantExpressions(rtnuti, args, constExprForBitSize, NULL);
+    linkFreeMapATypeAndConstantExpressions(rtnuti, args, constExprForBitSize, NULL);
 
     //WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, m_state);
@@ -3323,7 +3323,7 @@ namespace MFM {
 	//o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), args, constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkFreeMapATypeAndConstantExpressions(asymptr->getUlamTypeIdx(), args, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3383,7 +3383,7 @@ namespace MFM {
 	//o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), args, constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkFreeMapATypeAndConstantExpressions(asymptr->getUlamTypeIdx(), args, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3450,7 +3450,7 @@ namespace MFM {
 	//o.w. clean up!
 	if(rtnNode)
 	  {
-	    linkOrFreeConstantExpressions(asymptr->getUlamTypeIdx(), args, constExprForBitSize, (NodeSquareBracket *) lvalNode);
+	    linkFreeMapATypeAndConstantExpressions(asymptr->getUlamTypeIdx(), args, constExprForBitSize, (NodeSquareBracket *) lvalNode);
 	  }
 	else
 	  {
@@ -3968,7 +3968,7 @@ namespace MFM {
     if(bitsizeNode)
       {
 	//bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	linkOrFreeConstantExpressions(typeToBe, typeargs, bitsizeNode, NULL);
+	linkFreeMapATypeAndConstantExpressions(typeToBe, typeargs, bitsizeNode, NULL);
       }
 
     if(getExpectedToken(TOK_CLOSE_PAREN))
@@ -3997,167 +3997,203 @@ namespace MFM {
     return termNode;
   } //makeTerminal
 
-  void Parser::linkOrFreeConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
+  void Parser::linkFreeMapATypeAndConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize)
   {
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
-    bool fromUnseenClass = false;
-    if(args.classInstanceIdx != Nav) //the other class
-      {
-	UlamType * cut = m_state.getUlamTypeByIndex(args.classInstanceIdx);
-	if(cut->getUlamClass() == UC_UNSEEN)
-	  fromUnseenClass = true;
-      }
-
-    if(!aut->isComplete())
-      {
-	s32 arraysize = aut->getArraySize();
-	//link arraysize subtree for arraytype based on scalar from another class, OR
-	// a local arraytype based on a local scalar uti; o.w. delete.
-	// don't keep the ceForArraySize if the type belongs to another class!
-	// when also unknown bitsize, we link array to its scalar (below)
-	if(arraysize == UNKNOWNSIZE)
-	  {
-	    //array here of a typedef from another class's scalar
-	    if(args.anothertduti && args.anothertduti != auti)
-	      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
-	    else
-	      {
-		if(args.classInstanceIdx == Nav)
-		  {
-		    //local array and scalar
-		    if(args.declListOrTypedefScalarType && args.declListOrTypedefScalarType != auti)
-		      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
-		    else
-		      delete ceForArraySize;
-		  }
-		else
-		  {
-		    //an array of classes (typedef)
-		    if(args.declListOrTypedefScalarType == args.classInstanceIdx)
-		      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
-		    else
-		      delete ceForArraySize;
-		  }
-	      }
-	  }
-	else
-	  delete ceForArraySize;
-
-	//possibly decl list that's shared;
-	//scalarUTI of array type should also be included, if not a class
-	if(aut->getBitSize() == UNKNOWNSIZE)
-	  {
-	    if(ceForBitSize == NULL) //no bitsize subtree
-	      {
-		if(arraysize != NONARRAYSIZE) //an array
-		  {
-		    if(args.classInstanceIdx != Nav) //the other class
-		      {
-			m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
-			if(auti != args.anothertduti) //e.g. an array type based on anothertduti scalar.
-			  m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
-			else if(args.declListOrTypedefScalarType != Nav) //an array type based on anothertduti scalar
-			  m_state.linkUnknownTypedefFromAnotherClass(args.declListOrTypedefScalarType, args.classInstanceIdx);
-		      }
-		    else if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType) //local array typedef
-		      m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.declListOrTypedefScalarType);
-		    else
-		      assert(0); //a bug, likely typedef related (e.g. missing scalarUTI)
-		  }
-		else
-		  {
-		    if(fromUnseenClass)
-		      {
-			if(args.anothertduti)
-			  {
-			    // scalar auti may not be anothertduti; map UTIs, and let UT 'compare' help
-			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
-			    if(auti != args.anothertduti)
-			      {
-				m_state.mapTypesInCurrentClass(auti, args.anothertduti, args.typeTok.m_locator);
-			      }
-			  }
-			else
-			  {
-			    //e.g. lone class typedef
-			    m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
-			  }
-		      }
-		    // not an array, and no bitsize subtree
-		    else if(aut->getUlamClass() == UC_NOTACLASS)
-		      {
-			//find the scalardecllist, clone the ceNode for this scalar auti
-			//(not compare, actual uti's equal)
-			if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType)
-			  m_state.cloneAndLinkConstantExpression(args.declListOrTypedefScalarType, auti);
-			else if(args.classInstanceIdx != Nav)
-			  {
-			    assert(auti == args.anothertduti);
-			    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
-			  }
-		      }
-		    else
-		      {
-			//a class, no bitsize subtree, must be a class or a typedef from another class
-			if(args.classInstanceIdx != Nav)
-			  {
-			    if(auti == args.anothertduti)
-			      m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
-			    else
-			      {
-				// nothing to do if a class type (not a typedef), unless auti is UNSEEN.
-				if(aut->getUlamClass() == UC_UNSEEN)
-				  m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
-			      }
-			  }
-		      }
-		  }
-	      }
-	    else
-	      {
-		// we have a bitsize subtree
-		//give its scalar type the subtree for unknown bitsize, and link auti to it
-		if(aut->getArraySize() != NONARRAYSIZE) //an array
-		  {
-		    UTI scalarUTI = args.declListOrTypedefScalarType;
-		    if(scalarUTI == Nav)
-		      {
-			scalarUTI = m_state.getUlamTypeAsScalar(auti); //may make a new uti
-		      }
-		    assert(scalarUTI != args.anothertduti); //can't be!
-		    m_state.linkConstantExpression(scalarUTI, ceForBitSize); //tfr owner
-		    m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, scalarUTI);
-		  }
-		else
-		  {
-		    assert(auti != args.anothertduti); //can't be!
-		    m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
-		  }
-	      }
-	  }
-	else
-	  {
-	    //bitsize is known..ok free
-	    delete ceForBitSize;
-
-	    //t.f. arraysize isn't known
-	    if(args.classInstanceIdx != Nav)
-	      {
-		m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
-		if(auti != args.anothertduti) //e.g. an array type based on anothertduti scalar.
-		  {
-		    m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
-		  }
-	      }
-	  }
-      }
-    else
+    if(aut->isComplete())
       {
 	//auti is complete, free all!
 	delete ceForArraySize; //done with it
 	delete ceForBitSize; //done with it
+	return;
       }
-  } //linkOrFreeConstantExpressions
+
+    //link arraysize subtree for arraytype based on scalar from another class, OR
+    // a local arraytype based on a local scalar uti; o.w. delete.
+    // don't keep the ceForArraySize if the type belongs to another class!
+    // when also unknown bitsize, we link array to its scalar (below)
+    linkOrFreeConstantExpressionArraysize(auti,args,ceForArraySize);
+
+    if(ceForBitSize != NULL) //bitsize subtree
+      linkOrFreeConstantExpressionBitsize(auti,args,ceForBitSize);
+    else
+      linkOrMapAType(auti,args);
+  } //linkFreeMapATypeAndConstantExpressions
+
+  void Parser::linkOrMapAType(UTI auti, ParserTypeArgs args)
+  {
+    //if bitsize is known..(and no bitsize subtree)
+    if(m_state.getBitSize(auti) != UNKNOWNSIZE)
+      {
+	//t.f. arraysize isn't known, since type is not complete
+	if(args.classInstanceIdx != Nav)
+	  {
+	    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+	    if(auti != args.anothertduti)
+	      {
+		//e.g. an array type based on anothertduti scalar.
+		m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
+	      }
+	  }
+	return;
+      }
+
+    //bitsize is unknown (and no bitsize subtree)
+    //possibly decl list that's shared;
+    //scalarUTI of array type should also be included, if not a class
+    if(m_state.getArraySize(auti) != NONARRAYSIZE) //an array
+      {
+	if(args.classInstanceIdx != Nav) //the other class
+	  {
+	    m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+	    if(auti != args.anothertduti) //e.g. an array type based on anothertduti scalar.
+	      m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.anothertduti);
+	    else if(args.declListOrTypedefScalarType != Nav)
+	      {
+		//an array type based on anothertduti array
+		m_state.linkUnknownTypedefFromAnotherClass(args.declListOrTypedefScalarType, args.classInstanceIdx);
+	      }
+	  }
+	else if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType) //local array typedef
+	  m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, args.declListOrTypedefScalarType);
+	else
+	  assert(0); //a bug, likely typedef related (e.g. missing scalarUTI)
+      }
+    else
+      {
+	// not an array, and no bitsize subtree
+	ULAMCLASSTYPE aclasstype = m_state.getUlamTypeByIndex(auti)->getUlamClass();
+
+	bool fromUnseenClass = false;
+	if(args.classInstanceIdx != Nav) //the other class
+	  {
+	    ULAMCLASSTYPE cclasstype = m_state.getUlamTypeByIndex(args.classInstanceIdx)->getUlamClass();
+	    if(cclasstype == UC_UNSEEN)
+	      fromUnseenClass = true;
+	  }
+
+	if(fromUnseenClass)
+	  {
+	    mapTypeFromUnseenClass(auti, args);
+	  }
+	else if(aclasstype == UC_NOTACLASS)
+	  {
+	    // find the scalardecllist, clone the ceNode for this scalar auti
+	    // (not compare, actual uti's equal)
+	    if(args.declListOrTypedefScalarType != Nav && auti != args.declListOrTypedefScalarType)
+	      m_state.cloneAndLinkConstantExpression(args.declListOrTypedefScalarType, auti);
+	    else if(args.classInstanceIdx != Nav)
+	      {
+		assert(auti == args.anothertduti);
+		m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+	      }
+	  }
+	else
+	  {
+	    //auti is a class (no bitsize subtree),
+	    //must be a class or a typedef from another class
+	    if(args.classInstanceIdx != Nav)
+	      {
+		if(auti == args.anothertduti)
+		  m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+		else
+		  {
+		    // nothing to do if a class type (not a typedef), unless auti is UNSEEN.
+		    if(aclasstype == UC_UNSEEN)
+		      m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
+		  }
+	      }
+	  }
+      }
+  } //linkOrMapAType
+
+  void Parser::mapTypeFromUnseenClass(UTI auti, ParserTypeArgs args)
+  {
+    // scalar auti may not be the same as anothertduti;
+    if(args.anothertduti)
+      {
+	// map UTIs, and let UT 'compare' help
+	m_state.linkUnknownTypedefFromAnotherClass(args.anothertduti, args.classInstanceIdx);
+	if(auti != args.anothertduti)
+	  {
+	    m_state.mapTypesInCurrentClass(auti, args.anothertduti, args.typeTok.m_locator);
+	  }
+      }
+    else
+      {
+	//e.g. lone class typedef
+	m_state.mapTypesInCurrentClass(auti, args.classInstanceIdx, args.typeTok.m_locator);
+      }
+  } //mapTypeFromUnseenClass
+
+  void Parser::linkOrFreeConstantExpressionArraysize(UTI auti, ParserTypeArgs args, NodeSquareBracket * ceForArraySize)
+  {
+    //auti is incomplete.
+
+    s32 arraysize = m_state.getArraySize(auti);
+    //link arraysize subtree for arraytype based on scalar from another class, OR
+    // a local arraytype based on a local scalar uti; o.w. delete.
+    // don't keep the ceForArraySize if the type belongs to another class!
+    // when also unknown bitsize, we link array to its scalar (below)
+
+    if(arraysize != UNKNOWNSIZE)
+      {
+	delete ceForArraySize;
+	return;
+      }
+
+    //array here of a typedef from another class's scalar
+    if(args.anothertduti && args.anothertduti != auti)
+      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+    else
+      {
+	if(args.classInstanceIdx == Nav)
+	  {
+	    //local array and scalar
+	    if(args.declListOrTypedefScalarType && args.declListOrTypedefScalarType != auti)
+	      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+	    else
+	      delete ceForArraySize;
+	  }
+	else
+	  {
+	    //an array of classes (typedef)
+	    if(args.declListOrTypedefScalarType == args.classInstanceIdx)
+	      m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+	    else
+	      delete ceForArraySize;
+	  }
+      }
+  } //linkOrFreeConstantExpressionArraysize
+
+  void Parser::linkOrFreeConstantExpressionBitsize(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize)
+  {
+    //bitsize is known..ok free
+    if(m_state.getBitSize(auti) != UNKNOWNSIZE || !ceForBitSize)
+      {
+	delete ceForBitSize;
+	return;
+      }
+
+    // we have a bitsize subtree
+    //give its scalar type the subtree for unknown bitsize, and link auti to it
+    if(m_state.getArraySize(auti) != NONARRAYSIZE) //an array
+      {
+	UTI scalarUTI = args.declListOrTypedefScalarType;
+	if(scalarUTI == Nav)
+	  {
+	    scalarUTI = m_state.getUlamTypeAsScalar(auti); //may make a new uti
+	  }
+	assert(scalarUTI != args.anothertduti); //can't be!
+	m_state.linkConstantExpression(scalarUTI, ceForBitSize); //tfr owner
+	m_state.linkIncompleteArrayTypeToItsBaseScalarType(auti, scalarUTI);
+      }
+    else
+      {
+	assert(auti != args.anothertduti); //can't be!
+	m_state.linkConstantExpression(auti, ceForBitSize); //tfr owner
+      }
+  } //linkOrFreeConstantExpressionBitsize
 
   bool Parser::getExpectedToken(TokenType eTokType, bool quietly)
   {
