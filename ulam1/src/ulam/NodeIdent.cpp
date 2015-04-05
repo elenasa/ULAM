@@ -335,11 +335,6 @@ namespace MFM {
 		      args.bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 		    // update the type of holder key
 		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.typeTok), args.bitsize, args.arraysize, Nav);
-		    // didn't realize it was an array when holder was made..
-		    //if(tdscalaruti== Nav && args.arraysize != NONARRAYSIZE)
-		    //  {
-		    //		args.declListOrTypedefScalarType = m_state.getUlamTypeAsScalar(tduti); //may make a new uti
-		    //  }
 		    m_state.makeUlamTypeFromHolder(newkey, bUT, tduti); //update key, same uti
 		  }
 	      }
