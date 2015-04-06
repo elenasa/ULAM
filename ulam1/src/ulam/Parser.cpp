@@ -1661,8 +1661,8 @@ namespace MFM {
     numDots++;
 
     SymbolClassName * cnsym = NULL;
-    Symbol * asym = NULL; 	// or is it a typedef? that we've already seen?
-    if(! (m_state.alreadyDefinedSymbolClassName(args.typeTok.m_dataindex, cnsym) || m_state.alreadyDefinedSymbol(args.typeTok.m_dataindex, asym)))
+    Symbol * asym = NULL; // or a typedef that we've already seen
+    if(!(m_state.alreadyDefinedSymbolClassName(args.typeTok.m_dataindex, cnsym) || m_state.alreadyDefinedSymbol(args.typeTok.m_dataindex, asym)))
       {
 	//if here, the last typedef might have been a holder for some unknown type
 	// now we know (thanks to the dot and subsequent type token) that its a holder
@@ -4040,10 +4040,10 @@ namespace MFM {
     // a local arraytype based on a local scalar uti; o.w. delete.
     // don't keep the ceForArraySize if the type belongs to another class!
     // when also unknown bitsize, we link array to its scalar (below)
-    linkOrFreeConstantExpressionArraysize(auti,args,ceForArraySize);
+    linkOrFreeConstantExpressionArraysize(auti,args,ceForArraySize); //done with it
 
     if(ceForBitSize != NULL) //bitsize subtree
-      linkOrFreeConstantExpressionBitsize(auti,args,ceForBitSize);
+      linkOrFreeConstantExpressionBitsize(auti,args,ceForBitSize); //done with it
     else
       linkOrMapAType(auti,args);
   } //linkFreeMapATypeAndConstantExpressions
