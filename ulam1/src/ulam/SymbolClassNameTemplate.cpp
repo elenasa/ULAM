@@ -531,6 +531,10 @@ namespace MFM {
   {
     bool aok = true; //all done
 
+    // in case of leftovers from previous resolving loop;
+    // could result from a different class' instantiation.
+    mergeClassInstancesFromTEMP();
+
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       return true;
 
@@ -589,6 +593,9 @@ namespace MFM {
 	m_state.popClassContext();
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
+	//set previous block pointer for function definition blocks, as updating lineage.
+	classNode->updatePrevBlockPtrOfFuncSymbolsInTable();
+
 	if(!takeAnInstancesArgValues(csym, clone)) //instead of keeping template's unknown values
 	  {
 	    aok &= false;
@@ -610,7 +617,13 @@ namespace MFM {
 	it++;
       } //while
 
-    // done with iteration; go ahead and merge these entries into the non-temp map
+    // done with iteration; go ahead and merge any entries into the non-temp map
+    mergeClassInstancesFromTEMP();
+    return aok;
+  } //fullyInstantiate
+
+  void SymbolClassNameTemplate::mergeClassInstancesFromTEMP()
+  {
     if(!m_scalarClassInstanceIdxToSymbolPtrTEMP.empty())
       {
 	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtrTEMP.begin();
@@ -626,8 +639,7 @@ namespace MFM {
 	  }
 	m_scalarClassInstanceIdxToSymbolPtrTEMP.clear();
       } //end temp stuff
-    return aok;
-  } //fullyInstantiate
+  } //mergeClassInstancesFromTEMP
 
   Node * SymbolClassNameTemplate::findNodeNoInAClassInstance(UTI instance, NNO n)
   {

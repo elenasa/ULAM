@@ -116,6 +116,7 @@ namespace MFM{
     std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
+    void mergeClassInstancesFromTEMP();
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
