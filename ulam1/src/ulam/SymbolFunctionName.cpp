@@ -308,6 +308,19 @@ namespace MFM {
       }
   } //linkToParentNodesInFunctionDefs
 
+  void SymbolFunctionName::updatePrevBlockPtrInFunctionDefs(NodeBlockClass * p)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+	func->setPreviousBlockPointer(p);
+	++it;
+      }
+  } //updatePrevBlockPtrInFunctionDefs
+
   bool SymbolFunctionName::findNodeNoInFunctionDefs(NNO n, Node*& foundNode)
   {
     bool rtnfound = false;

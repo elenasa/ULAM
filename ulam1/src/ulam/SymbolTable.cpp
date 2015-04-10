@@ -466,6 +466,20 @@ namespace MFM {
       }
   } //linkToParentNodesAcrossTableOfFunctions
 
+  void SymbolTable::updatePrevBlockPtrAcrossTableOfFunctions(NodeBlockClass * p)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isFunction())
+	  {
+	    ((SymbolFunctionName *) sym)->updatePrevBlockPtrInFunctionDefs(p);
+	  }
+	it++;
+      }
+  } //updatePrevBlockPtrAcrossTableOfFunctions
+
   bool SymbolTable::findNodeNoAcrossTableOfFunctions(NNO n, Node*& foundNode)
   {
     bool rtnfound = false;

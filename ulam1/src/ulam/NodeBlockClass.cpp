@@ -255,6 +255,11 @@ namespace MFM {
     return m_functionST.getTotalSymbolSize();
   }
 
+  void NodeBlockClass::updatePrevBlockPtrOfFuncSymbolsInTable()
+  {
+    m_functionST.updatePrevBlockPtrAcrossTableOfFunctions(this);
+  }
+
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
   {

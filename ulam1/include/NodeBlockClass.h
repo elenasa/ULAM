@@ -92,6 +92,8 @@ namespace MFM{
 
     u32 getSizeOfFuncSymbolsInTable();
 
+    void updatePrevBlockPtrOfFuncSymbolsInTable();
+
     void packBitsForVariableDataMembers();
 
     virtual u32 countNativeFuncDecls();

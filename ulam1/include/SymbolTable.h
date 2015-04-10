@@ -98,6 +98,8 @@ namespace MFM{
 
     void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);
 
+    void updatePrevBlockPtrAcrossTableOfFunctions(NodeBlockClass * p);
+
     bool findNodeNoAcrossTableOfFunctions(NNO n, Node*& foundNode);
 
     void labelTableOfFunctions();
