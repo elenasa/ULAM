@@ -72,9 +72,9 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual bool installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr);
-    virtual bool installSymbolConstantValue(ParserTypeArgs& args, Symbol *& asymptr);
-    virtual bool installSymbolVariable(ParserTypeArgs& args,  Symbol *& asymptr);
+    virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
+    virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
+    virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
     //helper method to install symbol; also called by Resolver for unknown arraysize
     bool getArraysizeInBracket(s32 & rtnArraySize);

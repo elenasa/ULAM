@@ -64,6 +64,7 @@
 #include "SymbolVariable.h"
 #include "Token.h"
 #include "Tokenizer.h"
+#include "TypeArgs.h"
 #include "UlamType.h"
 #include "UlamUtil.h"
 
@@ -87,28 +88,6 @@ namespace MFM{
       if(key1.m_classInstanceIdx < key2.m_classInstanceIdx) return true;
       if(key1.m_classInstanceIdx > key2.m_classInstanceIdx) return false;
       return false;
-    }
-  };
-
-  struct ParserTypeArgs
-  {
-    Token typeTok;
-    s32 bitsize;
-    s32 arraysize;
-    UTI classInstanceIdx;
-    UTI anothertduti;
-    UTI declListOrTypedefScalarType;
-    bool assignOK;
-
-    void init(Token typetoken)
-    {
-      typeTok = typetoken;
-      bitsize = UNKNOWNSIZE;
-      arraysize = NONARRAYSIZE;
-      classInstanceIdx = Nav;
-      anothertduti = Nav;
-      declListOrTypedefScalarType = Nav;
-      assignOK = true;
     }
   };
 
@@ -212,7 +191,7 @@ namespace MFM{
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
     UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);
-    UTI getUlamTypeFromToken(ParserTypeArgs & args);
+    UTI getUlamTypeFromToken(TypeArgs & args);
 
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
 

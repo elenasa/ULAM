@@ -180,17 +180,17 @@ namespace MFM {
     return false;
   }
 
-  bool Node::installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr)
+  bool Node::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
   {
     return false;
   }
 
-  bool Node::installSymbolConstantValue(ParserTypeArgs& args, Symbol*& asymptr)
+  bool Node::installSymbolConstantValue(TypeArgs& args, Symbol*& asymptr)
   {
     return false;
   }
 
-  bool Node::installSymbolVariable(ParserTypeArgs& args, Symbol *& asymptr)
+  bool Node::installSymbolVariable(TypeArgs& args, Symbol *& asymptr)
   {
     return false;
   }

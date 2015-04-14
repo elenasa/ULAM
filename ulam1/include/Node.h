@@ -53,7 +53,7 @@ namespace MFM{
   enum EvalStatus {ERROR, NORMAL, RETURN, BREAK, CONTINUE};
 
   struct CompilerState; //forward
-  struct ParserTypeArgs; //forward
+  struct TypeArgs; //forward
 
   class Node
   {
@@ -114,9 +114,9 @@ namespace MFM{
     virtual bool isNegativeConstant();
     virtual bool isWordSizeConstant();
 
-    virtual bool installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr);
-    virtual bool installSymbolConstantValue(ParserTypeArgs& args, Symbol *& asymptr);
-    virtual bool installSymbolVariable(ParserTypeArgs& args,  Symbol *& asymptr);
+    virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
+    virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
+    virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
     virtual bool assignClassArgValueInStubCopy();
 
