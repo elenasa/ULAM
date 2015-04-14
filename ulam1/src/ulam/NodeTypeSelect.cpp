@@ -5,21 +5,23 @@
 
 namespace MFM {
 
-  NodeTypeSelect::NodeTypeSelect(NodeTypeSelect * node, TypeArgs args, CompilerState & state) : Node(state), m_nodeSelect(node), m_typeargs(args), m_ready(false)
+  NodeTypeSelect::NodeTypeSelect(Token typetoken, UTI auti, NodeType * node, CompilerState & state) : NodeType(typetoken, auti, state), m_nodeSelect(node)
   {
-    m_nodeSelect->updateLineage(getNodeNo()); //for unknown subtrees
+    if(m_nodeSelect)
+      m_nodeSelect->updateLineage(getNodeNo()); //for unknown subtrees
   }
 
-  NodeTypeSelect::NodeTypeSelect(const NodeTypeSelect& ref) : Node(ref), m_typeargs(ref.m_typeargs), m_ready(false)
+  NodeTypeSelect::NodeTypeSelect(const NodeTypeSelect& ref) : NodeType(ref), m_nodeSelect(NULL)
   {
-    m_nodeSelect = (NodeTypeSelect *) ref.m_nodeSelect->instantiate();
+    if(ref.m_nodeSelect)
+      m_nodeSelect = (NodeType *) ref.m_nodeSelect->instantiate();
   }
 
   NodeTypeSelect::~NodeTypeSelect()
   {
     delete m_nodeSelect;
     m_nodeSelect = NULL;
-  }
+  } //destructor
 
   Node * NodeTypeSelect::instantiate()
   {
@@ -29,18 +31,9 @@ namespace MFM {
   void NodeTypeSelect::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    m_nodeSelect->updateLineage(getNodeNo());
+    if(m_nodeSelect)
+      m_nodeSelect->updateLineage(getNodeNo());
   }//updateLineage
-
-  bool NodeTypeSelect::exchangeKids(Node * oldnptr, Node * newnptr)
-  {
-    if(m_nodeSelect == (NodeTypeSelect *) oldnptr)
-      {
-	m_nodeSelect = (NodeTypeSelect *) newnptr;
-	return true;
-      }
-    return false;
-  } //exhangeKids
 
   bool NodeTypeSelect::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -53,22 +46,24 @@ namespace MFM {
 
   void NodeTypeSelect::printPostfix(File * fp)
   {
-    m_nodeSelect->printPostfix(fp);
+    fp->write(getName());
   }
 
   const char * NodeTypeSelect::getName()
   {
-    return ".";
-  }
+    std::ostringstream nstr;
+    if(m_nodeSelect)
+      {
+	nstr << m_nodeSelect->getName();
+	nstr << ".";
+      }
+    nstr << m_state.getTokenDataAsString(&m_typeTok);
+    return nstr.str().c_str();
+  } //getName
 
   const std::string NodeTypeSelect::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
-  }
-
-  bool NodeTypeSelect::isReadyType()
-  {
-    return m_ready;
   }
 
   UTI NodeTypeSelect::checkAndLabelType()
@@ -76,31 +71,83 @@ namespace MFM {
     if(isReadyType())
       return getNodeType();
 
-
-    UTI it = m_nodeSelect->checkAndLabelType();
-
-    m_ready = it != Nav; // set
+    UTI it = Nav;
+    //    it = m_nodeSelect->checkAndLabelType();
+    if(resolveType(it))
+      {
+	m_ready = true; // set here
+      }
 
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
 
+
+  bool NodeTypeSelect::resolveType(UTI& rtnuti)
+  {
+    bool rtnb = false;
+    if(isReadyType())
+      {
+	rtnuti = getNodeType();
+	return true;
+      }
+
+    // we are in a "chain" of type selects..
+    assert(m_nodeSelect);
+
+    UTI seluti;
+    if(m_nodeSelect->resolveType(seluti))
+      {
+	UlamType * selut = m_state.getUlamTypeByIndex(seluti);
+	ULAMTYPE seletype = selut->getUlamTypeEnum();
+	if(seletype == Class)
+	  {
+	    SymbolClass * csym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(seluti, csym));
+
+	    m_state.pushClassContext(seluti, csym->getClassBlockNode(), csym->getClassBlockNode(), false, NULL);
+	    // find our id in the "selected" class, must be a typedef at top level
+	    Symbol * asymptr = NULL;
+	    if(m_state.alreadyDefinedSymbol(m_typeTok.m_dataindex, asymptr))
+	      {
+		if(asymptr->isTypedef())
+		  {
+		    rtnuti = asymptr->getUlamTypeIdx(); //should be mapped if necessary
+			rtnb = true;
+		  }
+		else
+		  {
+		    //error id is not a typedef
+		  }
+	      }
+	    else
+	      {
+		//error! id not found
+
+	      }
+
+	    m_state.popClassContext();
+	  }
+	else
+	  {
+	    // not a class, possible scalar with "known" bitsize for our unknown arraysize
+	    UTI nuti = getNodeType();
+	    UTI mappedUTI = nuti;
+	    UTI cuti = m_state.getCompileThisIdx();
+	    if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
+	      nuti = mappedUTI;
+
+	    rtnb = resolveTypeArraysize(nuti);
+	    rtnuti = nuti;
+	  }
+      } //else select not ready, so neither are we!!
+    return rtnb;
+  } //resolveType
+
   void NodeTypeSelect::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);
     m_nodeSelect->countNavNodes(cnt);
-  }
-
-  bool NodeTypeSelect::assignClassArgValueInStubCopy()
-  {
-    //return m_nodeSelect->assignClassArgValueInStubCopy();
-    return true;
-  }
-
-  EvalStatus NodeTypeSelect::eval()
-  {
-    assert(0);  //not in parse tree; part of symbol's type
-    return NORMAL;
   }
 
 } //end MFM

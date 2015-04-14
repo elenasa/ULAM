@@ -37,26 +37,23 @@
 #ifndef NODETYPESELECT_H
 #define NODETYPESELECT_H
 
-#include "Node.h"
-#include "TypeArgs.h"
+#include "NodeType.h"
 
 namespace MFM{
 
-  //  struct TypeArgs; //forward
-
-  class NodeTypeSelect : public Node
+  class NodeTypeSelect : public NodeType
   {
   public:
 
-    NodeTypeSelect(NodeTypeSelect * node, TypeArgs args, CompilerState & state);
+    NodeTypeSelect(Token typetoken, UTI auti, NodeType * node, CompilerState & state);
+
     NodeTypeSelect(const NodeTypeSelect& ref);
+
     virtual ~NodeTypeSelect();
 
     virtual Node * instantiate();
 
     virtual void updateLineage(NNO pno);
-
-    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
@@ -66,21 +63,14 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    bool isReadyType();
-
     virtual UTI checkAndLabelType();
+
+    virtual bool resolveType(UTI& rtnuti);
 
     virtual void countNavNodes(u32& cnt);
 
-    virtual bool assignClassArgValueInStubCopy();
-
-    virtual EvalStatus eval();
-
-
   private:
-    NodeTypeSelect * m_nodeSelect; //selected, or null
-    TypeArgs  m_typeargs;
-    bool m_ready;
+    NodeType * m_nodeSelect; //selected from, or null
 
   };
 

@@ -38,6 +38,8 @@
 #define NODETYPE_H
 
 #include "Node.h"
+#include "NodeTypeBitsize.h"
+#include "NodeSquareBracket.h"
 
 namespace MFM{
 
@@ -45,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    NodeType(Node * node, CompilerState & state);
+    NodeType(Token typetoken, UTI auti, CompilerState & state);
     NodeType(const NodeType& ref);
     virtual ~NodeType();
 
@@ -53,13 +55,25 @@ namespace MFM{
 
     virtual void updateLineage(NNO pno);
 
-    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
-
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * f);
 
+    virtual const char * getName();
+
+    virtual const std::string prettyNodeName();
+
+    void linkConstantExpressionBitsize(NodeTypeBitsize * ceForBitSize);
+
+    void linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize);
+
+    bool isReadyType();
+
     virtual UTI checkAndLabelType();
+
+    virtual bool resolveType(UTI& rtnuti);
+    bool resolveTypeBitsize(UTI auti);
+    bool resolveTypeArraysize(UTI auti);
 
     virtual void countNavNodes(u32& cnt);
 
@@ -67,14 +81,13 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual const char * getName();
-
-    virtual const std::string prettyNodeName();
-
-    bool getTypeBitSizeInParen(s32& rtnBitSize, ULAMTYPE BUT);
+  protected:
+    Token m_typeTok;
+    bool m_ready;
 
   private:
-    TypeArgs  m_args;
+    NodeTypeBitsize * m_unknownBitsizeSubtree;
+    NodeSquareBracket * m_unknownArraysizeSubtree;
 
   };
 
