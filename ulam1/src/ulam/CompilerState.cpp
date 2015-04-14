@@ -766,29 +766,29 @@ namespace MFM {
     return uti;
   } //getUlamTypeFromToken
 
-  UTI CompilerState::getUlamTypeFromToken(ParserTypeArgs & args)
+  UTI CompilerState::getUlamTypeFromToken(TypeArgs & args)
   {
     UTI uti = Nav;
     UTI tmpforscalaruti = Nav;
     //is this name already a typedef for a complex type?
-    if(!getUlamTypeByTypedefName(args.typeTok.m_dataindex, uti, tmpforscalaruti))
+    if(!getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tmpforscalaruti))
       {
-	if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+	if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    uti = makeUlamType(args.typeTok, args.bitsize, args.arraysize, Nav);
+	    uti = makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nav);
 	  }
 	else
 	  {
 	    //check for existing Class type
 	    SymbolClassName * cnsym = NULL;
-	    if(alreadyDefinedSymbolClassName(args.typeTok.m_dataindex, cnsym))
+	    if(alreadyDefinedSymbolClassName(args.m_typeTok.m_dataindex, cnsym))
 	      {
 		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
 	      } //else  or make one if doesn't exist yet, while parsing --- do we do this anymore ???
 	  }
       }
     else
-      args.declListOrTypedefScalarType = tmpforscalaruti; //also returns scalar uti
+      args.m_declListOrTypedefScalarType = tmpforscalaruti; //also returns scalar uti
     return uti;
   } //getUlamTypeFromToken
 

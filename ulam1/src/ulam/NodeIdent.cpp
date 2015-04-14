@@ -306,7 +306,7 @@ namespace MFM {
     return ptr;
   } //makeUlamValuePtrForCodeGen
 
-  bool NodeIdent::installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr)
+  bool NodeIdent::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
   {
     bool brtn = false;
     UTI tduti = Nav;
@@ -320,7 +320,7 @@ namespace MFM {
 	if(asymptr->isTypedef() && (asymptr->isFabricatedTmp() || tclasstype == UC_UNSEEN))
 	  {
 	    tduti = asymptr->getUlamTypeIdx();
-	    args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
+	    args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 
 	    // keep the out-of-band name; other's might refer to its UTI.
 	    // if its UTI is a unseen class, we can update the name of the class during linkOrFree
@@ -328,13 +328,13 @@ namespace MFM {
 	    if(tclasstype == UC_NOTACLASS && m_state.getUlamTypeByIndex(tduti)->isHolder())
 	      {
 		// if not a class, but a primitive type update the key
-		if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+		if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
 		  {
-		    ULAMTYPE bUT = m_state.getBaseTypeFromToken(args.typeTok);
-		    if(args.bitsize == 0)
-		      args.bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+		    ULAMTYPE bUT = m_state.getBaseTypeFromToken(args.m_typeTok);
+		    if(args.m_bitsize == 0)
+		      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 		    // update the type of holder key
-		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.typeTok), args.bitsize, args.arraysize, Nav);
+		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nav);
 		    m_state.makeUlamTypeFromHolder(newkey, bUT, tduti); //update key, same uti
 		  }
 	      }
@@ -344,52 +344,52 @@ namespace MFM {
       }
 
     //typedef might have bitsize and arraysize info..
-    if(args.anothertduti)
+    if(args.m_anothertduti)
       {
-	if(checkTypedefOfTypedefSizes(args, args.anothertduti)) //ref
+	if(checkTypedefOfTypedefSizes(args, args.m_anothertduti)) //ref
 	  {
-	    tduti = args.anothertduti;
+	    tduti = args.m_anothertduti;
 	    brtn = true;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, tduti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, tduti, tdscalaruti))
       {
-	args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
+	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkTypedefOfTypedefSizes(args, tduti)) //ref
 	  {
 	    brtn = true;
 	  }
 	  }
-    else if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+    else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first. scalar uti
-	tduti = m_state.makeUlamType(args.typeTok, args.bitsize, NONARRAYSIZE, Nav);
+	tduti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nav);
 	brtn = true;
       }
     else
       {
-	tduti = args.classInstanceIdx;
+	tduti = args.m_classInstanceIdx;
 	brtn = true;
       }
 
     if(brtn)
       {
 	UTI uti = tduti;
-	UTI scalarUTI = args.declListOrTypedefScalarType;
-	if(m_state.isScalar(uti) && args.arraysize != NONARRAYSIZE)
+	UTI scalarUTI = args.m_declListOrTypedefScalarType;
+	if(m_state.isScalar(uti) && args.m_arraysize != NONARRAYSIZE)
 	  {
-	    args.declListOrTypedefScalarType = scalarUTI = uti;
+	    args.m_declListOrTypedefScalarType = scalarUTI = uti;
 	    // o.w. build symbol (with bit and array sizes);
 	    // array's can't have their scalar as classInstance; o.w., no longer findable by token.
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
 	    ULAMTYPE bUT = ut->getUlamTypeEnum();
 	    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
-	    if(args.bitsize == 0)
-	      args.bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+	    if(args.m_bitsize == 0)
+	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.bitsize, args.arraysize);
+	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize);
 	    newarraykey.append(scalarUTI); //removed if not a class
 
 	    uti = m_state.makeUlamType(newarraykey, bUT);
@@ -403,7 +403,7 @@ namespace MFM {
     return false;
   } //installSymbolTypedef
 
-  bool NodeIdent::installSymbolConstantValue(ParserTypeArgs& args, Symbol*& asymptr)
+  bool NodeIdent::installSymbolConstantValue(TypeArgs& args, Symbol*& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
@@ -428,28 +428,28 @@ namespace MFM {
     bool brtn = false;
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
-    if(args.anothertduti)
+    if(args.m_anothertduti)
       {
-	if(checkConstantTypedefSizes(args, args.anothertduti))
+	if(checkConstantTypedefSizes(args, args.m_anothertduti))
 	  {
 	    brtn = true;
-	    uti = args.anothertduti;
+	    uti = args.m_anothertduti;
 	  }
       }
-    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, uti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tdscalaruti))
       {
-	args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
+	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	if(checkConstantTypedefSizes(args, uti))
 	  {
 	    brtn = true;
 	  }
       }
-    else if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+    else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
 	// scalar uti
-	uti = m_state.makeUlamType(args.typeTok, args.bitsize, NONARRAYSIZE, Nav);
+	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nav);
 	brtn = true;
       }
     else
@@ -458,7 +458,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Named Constant '" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	msg << "' cannot be based on a class type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(args.classInstanceIdx).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
@@ -475,7 +475,7 @@ namespace MFM {
   } //installSymbolConstantValue
 
   //see also NodeSquareBracket
-  bool NodeIdent::installSymbolVariable(ParserTypeArgs& args, Symbol *& asymptr)
+  bool NodeIdent::installSymbolVariable(TypeArgs& args, Symbol *& asymptr)
   {
     // ask current scope block if this variable name is there;
     // if so, nothing to install return symbol and false
@@ -494,59 +494,59 @@ namespace MFM {
     // if a primitive (NONARRAYSIZE), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
     //list of decls can use the same 'scalar' type (arg); adjusted for arrays
-    if(args.declListOrTypedefScalarType)
+    if(args.m_declListOrTypedefScalarType)
       {
-	if(!checkVariableTypedefSizes(args, args.declListOrTypedefScalarType))
+	if(!checkVariableTypedefSizes(args, args.m_declListOrTypedefScalarType))
 	  return false;
-	auti = args.declListOrTypedefScalarType;
+	auti = args.m_declListOrTypedefScalarType;
 	brtn = true;
       }
-    else if(args.anothertduti)
+    else if(args.m_anothertduti)
       {
-	if(!checkVariableTypedefSizes(args, args.anothertduti))
+	if(!checkVariableTypedefSizes(args, args.m_anothertduti))
 	  return false;
 	//use another classes' typedef uti; (is classInstanceIdx relevant?)
-	auti = args.anothertduti;
+	auti = args.m_anothertduti;
 	brtn = true;
       }
-    else if(m_state.getUlamTypeByTypedefName(args.typeTok.m_dataindex, auti, tdscalaruti))
+    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, auti, tdscalaruti))
       {
-	args.declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
+	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 	// check typedef types here..
 	if(!checkVariableTypedefSizes(args, auti))
 	  return false;
 	brtn = true;
       }
-    else if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+    else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
-	auti = m_state.makeUlamType(args.typeTok, args.bitsize, args.arraysize, Nav);
+	auti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nav);
 	brtn = true;
       }
     else
       {
-	auti = args.classInstanceIdx;
+	auti = args.m_classInstanceIdx;
 	brtn = true;
       }
 
     if(brtn)
       {
 	UTI uti = auti;
-	UTI scalarUTI = args.declListOrTypedefScalarType;
-	if(m_state.isScalar(uti) && args.arraysize != NONARRAYSIZE)
+	UTI scalarUTI = args.m_declListOrTypedefScalarType;
+	if(m_state.isScalar(uti) && args.m_arraysize != NONARRAYSIZE)
 	  {
-	    args.declListOrTypedefScalarType = scalarUTI = uti;
+	    args.m_declListOrTypedefScalarType = scalarUTI = uti;
 	    // o.w. build symbol (with bit and array sizes);
 	    // array's can't have their scalar as classInstance; o.w., no longer findable by token.
 	    UlamType * ut = m_state.getUlamTypeByIndex(uti);
 	    ULAMTYPE bUT = ut->getUlamTypeEnum();
 	    UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
 
-	    if(args.bitsize == 0)
-	      args.bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
+	    if(args.m_bitsize == 0)
+	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.bitsize, args.arraysize);
+	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize);
 	    newarraykey.append(scalarUTI);
 	    uti = m_state.makeUlamType(newarraykey, bUT);
 	  }
@@ -607,19 +607,19 @@ namespace MFM {
     return rtnLocalSym;
   } //makeSymbol
 
-  bool NodeIdent::checkVariableTypedefSizes(ParserTypeArgs& args, UTI auti)
+  bool NodeIdent::checkVariableTypedefSizes(TypeArgs& args, UTI auti)
   {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(auti);
     s32 tdarraysize = tdut->getArraySize();
-    if(args.arraysize >= 0)  //variable's
+    if(args.m_arraysize >= 0)  //variable's
       {
-	if(tdarraysize >= 0 && tdarraysize != args.arraysize)
+	if(tdarraysize >= 0 && tdarraysize != args.m_arraysize)
 	  {
 	    //error can't support double arrays
 	    std::ostringstream msg;
 	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <";
-	    msg <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: ";
+	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">, type: ";
 	    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
 	    msg << ", and cannot be redefined by variable: <";
 	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
@@ -629,21 +629,21 @@ namespace MFM {
       }
     else  //variable not array; leave as-is when unknown
       {
-	if(args.arraysize == UNKNOWNSIZE || tdarraysize == UNKNOWNSIZE)
-	  args.arraysize = UNKNOWNSIZE;
+	if(args.m_arraysize == UNKNOWNSIZE || tdarraysize == UNKNOWNSIZE)
+	  args.m_arraysize = UNKNOWNSIZE;
 	else
-	  args.arraysize = tdarraysize; //use whatever typedef is
+	  args.m_arraysize = tdarraysize; //use whatever typedef is
       }
 
     s32 tdbitsize = tdut->getBitSize();
-    if(args.bitsize > 0)  //variable's
+    if(args.m_bitsize > 0)  //variable's
       {
-	if(tdbitsize != args.bitsize)  //was (tdbitsize > 0)
+	if(tdbitsize != args.m_bitsize)  //was (tdbitsize > 0)
 	  {
 	    //error can't support different bitsizes
 	    std::ostringstream msg;
 	    msg << "Bit size (" << tdbitsize << ") is included in typedef: <";
-	    msg <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: ";
+	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">, type: ";
 	    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
 	    msg << ", and cannot be redefined by variable: <";
 	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
@@ -653,64 +653,64 @@ namespace MFM {
       }
     else  //variable unknown bitsize
       {
-	args.bitsize = tdbitsize; //use whatever typedef is
+	args.m_bitsize = tdbitsize; //use whatever typedef is
       }
     return rtnb;
   } //checkVariableTypedefSizes
 
-  bool NodeIdent::checkTypedefOfTypedefSizes(ParserTypeArgs& args, UTI tduti)
+  bool NodeIdent::checkTypedefOfTypedefSizes(TypeArgs& args, UTI tduti)
   {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
     s32 tdarraysize = tdut->getArraySize();
-    if(args.arraysize >= 0)
+    if(args.m_arraysize >= 0)
       {
-	if(tdarraysize >= 0 && args.arraysize != tdarraysize)
+	if(tdarraysize >= 0 && args.m_arraysize != tdarraysize)
 	  {
 	    //error can't support typedefs changing arraysizes
 	    std::ostringstream msg;
 	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <";
-	    msg <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: ";
-	    msg << m_state.getUlamTypeNameByIndex(args.anothertduti).c_str();
+	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">, type: ";
+	    msg << m_state.getUlamTypeNameByIndex(args.m_anothertduti).c_str();
 	    msg << ", and cannot be redefined by typedef: <";
 	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	    msg << ">, to [" << args.arraysize << "]";
+	    msg << ">, to [" << args.m_arraysize << "]";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
       }
     else
       {
-	if(args.arraysize == UNKNOWNSIZE || tdarraysize == UNKNOWNSIZE)
-	  args.arraysize = UNKNOWNSIZE;
+	if(args.m_arraysize == UNKNOWNSIZE || tdarraysize == UNKNOWNSIZE)
+	  args.m_arraysize = UNKNOWNSIZE;
 	else
-	  args.arraysize = tdarraysize; //use whatever typedef is
+	  args.m_arraysize = tdarraysize; //use whatever typedef is
       }
 
-    args.bitsize = tdut->getBitSize(); //ok to use typedef bitsize
+    args.m_bitsize = tdut->getBitSize(); //ok to use typedef bitsize
     return rtnb;
   } //checkTypedefOfTypedefSizes
 
-  bool NodeIdent::checkConstantTypedefSizes(ParserTypeArgs& args, UTI tduti)
+  bool NodeIdent::checkConstantTypedefSizes(TypeArgs& args, UTI tduti)
   {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
     s32 tdarraysize = tdut->getArraySize();
-    if(args.arraysize != NONARRAYSIZE || tdarraysize != NONARRAYSIZE)
+    if(args.m_arraysize != NONARRAYSIZE || tdarraysize != NONARRAYSIZE)
       {
 	//error can't support named constant arrays
 	std::ostringstream msg;
 	msg << "Arraysize [" << tdarraysize << "] is included in typedef: <";
-	msg <<  m_state.getTokenDataAsString(&args.typeTok).c_str() << ">, type: ";
-	msg << m_state.getUlamTypeNameByIndex(args.anothertduti).c_str();
+	msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">, type: ";
+	msg << m_state.getUlamTypeNameByIndex(args.m_anothertduti).c_str();
 	msg << ", and cannot be used by a named constant: '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnb = false;
       }
-    assert(args.arraysize == NONARRAYSIZE);
+    assert(args.m_arraysize == NONARRAYSIZE);
 
-    args.bitsize = tdut->getBitSize(); //ok to use typedef bitsize
+    args.m_bitsize = tdut->getBitSize(); //ok to use typedef bitsize
 
     // constants can't be classes either
     if(tdut->getUlamClass() != UC_NOTACLASS)

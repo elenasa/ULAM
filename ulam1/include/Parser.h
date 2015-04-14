@@ -194,13 +194,13 @@ namespace MFM{
     void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);
 
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE and node with constant expression */
-    NodeTypeBitsize * parseTypeBitsize(ParserTypeArgs& args);
+    NodeTypeBitsize * parseTypeBitsize(TypeArgs& args);
 
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE
 	false when possible 'sizeof' found instead of a type;
      */
-    bool parseTypeFromAnotherClassesTypedef(ParserTypeArgs& args);
-    void parseTypeFromAnotherClassesTypedef(ParserTypeArgs& args, bool& rtnb, u32& numDots);
+    bool parseTypeFromAnotherClassesTypedef(TypeArgs& args);
+    void parseTypeFromAnotherClassesTypedef(TypeArgs& args, bool& rtnb, u32& numDots);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)
@@ -318,10 +318,10 @@ namespace MFM{
     Node * parseRestOfAssignExpr(Node * leftNode);
 
     //Node * parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, UTI anothertduti, UTI& rtnType, Node * dNode, bool assignOK = true);
-    Node * parseRestOfDecls(ParserTypeArgs& args, Token identTok, Node * dNode);
+    Node * parseRestOfDecls(TypeArgs& args, Token identTok, Node * dNode);
 
     //Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, UTI anothertduti, UTI& rtnType, Node * dNode);
-    Node * parseRestOfDeclAssignment(ParserTypeArgs& args, Token identTok, Node * dNode);
+    Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, Node * dNode);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK = true);
 
@@ -335,7 +335,7 @@ namespace MFM{
 	<FUNC_PARAMS> := <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
 	<FUNC_PARAM>  := <TYPE> + <VAR_DECL>
      */
-    NodeBlockFunctionDefinition * makeFunctionBlock(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
     void parseRestOfFunctionParameters(SymbolFunction * sym);
 
@@ -347,16 +347,16 @@ namespace MFM{
 
 
     /** helper for parseDataMember */
-    Node * makeFunctionSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeVariableSymbol(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
     /** helper for parseTypedef */
-    Node * makeTypedefSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeTypedefSymbol(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
     /** helper for parseConstdef */
-    Node * makeConstdefSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeConstdefSymbol(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
 
     /** helper method for parseConditionalExpr */
     Node * makeConditionalExprNode(Node * leftNode);
@@ -401,12 +401,12 @@ namespace MFM{
     /**
        helper method to save subtrees for unknown UTIs
     */
-    void linkFreeMapATypeAndConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize);
+    void linkFreeMapATypeAndConstantExpressions(UTI auti, TypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize);
 
-    void linkOrMapAType(UTI auti, ParserTypeArgs args);
-    void mapTypeFromUnseenClass(UTI auti, ParserTypeArgs args);
-    void linkOrFreeConstantExpressionArraysize(UTI auti, ParserTypeArgs args, NodeSquareBracket * ceForArraySize);
-    void linkOrFreeConstantExpressionBitsize(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize);
+    void linkOrMapAType(UTI auti, TypeArgs args);
+    void mapTypeFromUnseenClass(UTI auti, TypeArgs args);
+    void linkOrFreeConstantExpressionArraysize(UTI auti, TypeArgs args, NodeSquareBracket * ceForArraySize);
+    void linkOrFreeConstantExpressionBitsize(UTI auti, TypeArgs args, NodeTypeBitsize * ceForBitSize);
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);

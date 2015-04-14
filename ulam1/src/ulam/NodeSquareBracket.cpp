@@ -244,7 +244,7 @@ namespace MFM {
   }
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -254,25 +254,25 @@ namespace MFM {
 	return false;
       }
 
-    if(args.arraysize > NONARRAYSIZE)
+    if(args.m_arraysize > NONARRAYSIZE)
       {
 	MSG(getNodeLocationAsString().c_str(), "Array size specified twice for typedef symbol", ERR);
 	return false;
       }
 
-    args.arraysize = UNKNOWNSIZE; // no eval yet
+    args.m_arraysize = UNKNOWNSIZE; // no eval yet
     return m_nodeLeft->installSymbolTypedef(args, asymptr);
   } //installSymbolTypedef
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolConstantValue(ParserTypeArgs& args, Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr)
   {
     MSG(getNodeLocationAsString().c_str(), "Array size specified for named constant", ERR);
     return false;
   } //installSymbolConstantValue
 
   //see also NodeIdent
-  bool NodeSquareBracket::installSymbolVariable(ParserTypeArgs& args,  Symbol *& asymptr)
+  bool NodeSquareBracket::installSymbolVariable(TypeArgs& args,  Symbol *& asymptr)
   {
     assert(m_nodeLeft && m_nodeRight);
 
@@ -282,13 +282,13 @@ namespace MFM {
 	return false;
       }
 
-    if(args.arraysize > NONARRAYSIZE)
+    if(args.m_arraysize > NONARRAYSIZE)
       {
 	MSG(getNodeLocationAsString().c_str(), "Array size specified twice", ERR);
 	return false;
       }
 
-    args.arraysize = UNKNOWNSIZE; // no eval yet
+    args.m_arraysize = UNKNOWNSIZE; // no eval yet
     return m_nodeLeft->installSymbolVariable(args, asymptr);
   } //installSymbolVariable
 
