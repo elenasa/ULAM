@@ -5,7 +5,11 @@
 
 namespace MFM {
 
-  NodeType::NodeType(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_ready(false), m_unknownBitsizeSubtree(NULL){ }
+  NodeType::NodeType(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  {
+    setNodeType(auti); //not necessarily "ready"
+    setNodeLocation(typetoken.m_locator);
+  }
 
   NodeType::NodeType(const NodeType& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
@@ -27,6 +31,8 @@ namespace MFM {
   void NodeType::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
+    if(m_unknownBitsizeSubtree)
+      m_unknownBitsizeSubtree->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeType::findNodeNo(NNO n, Node *& foundNode)
@@ -68,7 +74,7 @@ namespace MFM {
     UTI it = Nav;
     if(resolveType(it))
       {
-	m_ready = true; // set here
+	m_ready = true; // set here!!!
       }
 
     setNodeType(it);
@@ -107,7 +113,7 @@ namespace MFM {
       }
     else
       {
-	//primitive with possible unknown bit size, and arraysize
+	//primitive with possible unknown bit size
 	if(resolveTypeBitsize(nuti))
 	  {
 	    rtnb = true;

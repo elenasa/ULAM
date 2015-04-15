@@ -16,7 +16,7 @@ namespace MFM {
       m_nodeScalar = (NodeType *) ref.m_nodeScalar->instantiate();
 
     if(ref.m_unknownArraysizeSubtree)
-      m_unknownArraysizeSubtree = new NodeSquareBracket(*ref.m_unknownArraysizeSubtree); //mappedUTI???
+      m_unknownArraysizeSubtree = new NodeSquareBracket(*ref.m_unknownArraysizeSubtree); //mappedUTI?
   }
 
   NodeTypeArray::~NodeTypeArray()
@@ -37,7 +37,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_nodeScalar->updateLineage(getNodeNo());
-
+    m_unknownArraysizeSubtree->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeTypeArray::findNodeNo(NNO n, Node *& foundNode)
