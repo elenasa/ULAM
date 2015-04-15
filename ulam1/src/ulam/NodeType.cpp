@@ -5,24 +5,18 @@
 
 namespace MFM {
 
-  NodeType::NodeType(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_ready(false), m_unknownBitsizeSubtree(NULL), m_unknownArraysizeSubtree(NULL){ }
+  NodeType::NodeType(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_ready(false), m_unknownBitsizeSubtree(NULL){ }
 
-  NodeType::NodeType(const NodeType& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_ready(false), m_unknownBitsizeSubtree(NULL), m_unknownArraysizeSubtree(NULL)
+  NodeType::NodeType(const NodeType& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI???
-
-    if(ref.m_unknownArraysizeSubtree)
-      m_unknownArraysizeSubtree = new NodeSquareBracket(*ref.m_unknownArraysizeSubtree); //mappedUTI???
   }
 
   NodeType::~NodeType()
   {
     delete m_unknownBitsizeSubtree;
     m_unknownBitsizeSubtree = NULL;
-
-    delete m_unknownArraysizeSubtree;
-    m_unknownArraysizeSubtree = NULL;
   } //destructor
 
   Node * NodeType::instantiate()
@@ -60,13 +54,6 @@ namespace MFM {
     assert(!m_unknownBitsizeSubtree);
     m_unknownBitsizeSubtree = ceForBitSize;
   } //linkConstantExpressionBitsize
-
-  void NodeType::linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize)
-  {
-    //tfr owner, or deletes if dup or anothertd ???
-    assert(!m_unknownArraysizeSubtree);
-    m_unknownArraysizeSubtree = ceForArraySize;
-  } //linkConstantExpressionArraysize
 
   bool NodeType::isReadyType()
   {
@@ -120,9 +107,12 @@ namespace MFM {
       }
     else
       {
-	//primitive with possible unknown bit size
-	rtnb = resolveTypeBitsize(nuti);
-	rtnuti = nuti;
+	//primitive with possible unknown bit size, and arraysize
+	if(resolveTypeBitsize(nuti))
+	  {
+	    rtnb = true;
+	    rtnuti = nuti;
+	  }
       }
     return rtnb;
   } //resolveType
@@ -147,24 +137,6 @@ namespace MFM {
       }
     return rtnb;
   } //resolveTypeBitsize
-
-  bool NodeType::resolveTypeArraysize(UTI auti)
-  {
-    bool rtnb = true;
-    if(m_unknownArraysizeSubtree)
-      {
-	s32 as = UNKNOWNSIZE;
-	//array of primitives or classes
-	rtnb = m_unknownArraysizeSubtree->getArraysizeInBracket(as); //eval
-	if(rtnb && as != UNKNOWNSIZE)
-	  {
-	    delete m_unknownArraysizeSubtree;
-	    m_unknownArraysizeSubtree = NULL;
-	    m_state.setUTISizes(auti, m_state.getBitSize(auti), as); //update UlamType
-	  }
-      }
-    return rtnb;
-  } //resolveTypeArraysize
 
   void NodeType::countNavNodes(u32& cnt)
   {

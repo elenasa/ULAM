@@ -112,8 +112,11 @@ namespace MFM {
 	      {
 		if(asymptr->isTypedef())
 		  {
-		    rtnuti = asymptr->getUlamTypeIdx(); //should be mapped if necessary
+		    if(m_state.isComplete(rtnuti))
+		      {
+			rtnuti = asymptr->getUlamTypeIdx(); //should be mapped if necessary
 			rtnb = true;
+		      }
 		  }
 		else
 		  {
@@ -128,18 +131,7 @@ namespace MFM {
 
 	    m_state.popClassContext();
 	  }
-	else
-	  {
-	    // not a class, possible scalar with "known" bitsize for our unknown arraysize
-	    UTI nuti = getNodeType();
-	    UTI mappedUTI = nuti;
-	    UTI cuti = m_state.getCompileThisIdx();
-	    if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
-	      nuti = mappedUTI;
-
-	    rtnb = resolveTypeArraysize(nuti);
-	    rtnuti = nuti;
-	  }
+	//else error has to be a class
       } //else select not ready, so neither are we!!
     return rtnb;
   } //resolveType

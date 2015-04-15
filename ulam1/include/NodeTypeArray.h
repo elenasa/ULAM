@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeType.h - Basic Node Type descriptor for ULAM
+ * NodeTypeArray.h - Basic Node handling of Node Type Arrays for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeType.h - Basic Node Type descriptor for ULAM
+  \file NodeTypeArray.h - Basic Node handling of Node Type Arrays for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -34,21 +34,21 @@
 */
 
 
-#ifndef NODETYPE_H
-#define NODETYPE_H
+#ifndef NODETYPEARRAY_H
+#define NODETYPEARRAY_H
 
-#include "Node.h"
-#include "NodeTypeBitsize.h"
+#include "NodeType.h"
+#include "NodeSquareBracket.h"
 
 namespace MFM{
 
-  class NodeType : public Node
+  class NodeTypeArray : public NodeType
   {
   public:
 
-    NodeType(Token typetoken, UTI auti, CompilerState & state);
-    NodeType(const NodeType& ref);
-    virtual ~NodeType();
+    NodeTypeArray(Token typetoken, UTI auti, NodeType * scalarnode, CompilerState & state);
+    NodeTypeArray(const NodeTypeArray& ref);
+    virtual ~NodeTypeArray();
 
     virtual Node * instantiate();
 
@@ -62,15 +62,13 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    void linkConstantExpressionBitsize(NodeTypeBitsize * ceForBitSize);
-
-    bool isReadyType();
+    void linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize);
 
     virtual UTI checkAndLabelType();
 
     virtual bool resolveType(UTI& rtnuti);
 
-    bool resolveTypeBitsize(UTI auti);
+    bool resolveTypeArraysize(UTI auti);
 
     virtual void countNavNodes(u32& cnt);
 
@@ -78,15 +76,12 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-  protected:
-    Token m_typeTok;
-    bool m_ready;
-
   private:
-    NodeTypeBitsize * m_unknownBitsizeSubtree;
+    NodeType * m_nodeScalar;
+    NodeSquareBracket * m_unknownArraysizeSubtree;
 
   };
 
 } //MFM
 
-#endif //NODETYPE_H
+#endif //NODETYPEARRAY_H
