@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state) : Node(state), m_constSymbol(symptr), m_nodeExpr(NULL), m_currBlockNo(m_state.getCurrentBlockNo())
+  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_constSymbol(symptr), m_nodeExpr(NULL), m_currBlockNo(m_state.getCurrentBlockNo()), m_nodeTypeDesc(nodetype)
   {
     if(symptr)
       {
@@ -16,18 +16,24 @@ namespace MFM {
       m_cid = 0; //error
   }
 
-  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlockNo(ref.m_currBlockNo), m_cid(ref.m_cid)
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_currBlockNo(ref.m_currBlockNo), m_cid(ref.m_cid), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeExpr)
       m_nodeExpr = ref.m_nodeExpr->instantiate();
     else
       m_nodeExpr = NULL;
+
+    if(ref.m_nodeTypeDesc)
+      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
   }
 
   NodeConstantDef::~NodeConstantDef()
   {
     delete m_nodeExpr;
     m_nodeExpr = NULL;
+
+    delete m_nodeTypeDesc;
+    m_nodeTypeDesc = NULL;
   }
 
   Node * NodeConstantDef::instantiate()
@@ -39,7 +45,10 @@ namespace MFM {
   {
     setYourParentNo(pno);
     assert(m_state.getCurrentBlockNo() == m_currBlockNo);
-    m_nodeExpr->updateLineage(getNodeNo());
+    if(m_nodeExpr)
+      m_nodeExpr->updateLineage(getNodeNo());
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->updateLineage(getNodeNo());
   }//updateLineage
 
   bool NodeConstantDef::exchangeKids(Node * oldnptr, Node * newnptr)
@@ -149,25 +158,33 @@ namespace MFM {
     UTI suti = m_constSymbol->getUlamTypeIdx();
     if(!m_state.isComplete(suti))
       {
-	UTI cuti = m_state.getCompileThisIdx();
-	UTI mappedUTI = Nav;
-	if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
+	if(m_nodeTypeDesc)
 	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete Named Constant type: ";
-	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << " used with constant symbol name '" << getName();
-	    msg << "' UTI" << suti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    suti = mappedUTI;
-	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
+	    suti = m_nodeTypeDesc->checkAndLabelType();
+	    m_constSymbol->resetUlamType(suti); //consistent!
+	  }
+	else
+	  {
+	    UTI cuti = m_state.getCompileThisIdx();
+	    UTI mappedUTI = Nav;
+	    if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		msg << " for incomplete Named Constant type: ";
+		msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+		msg << " used with constant symbol name '" << getName();
+		msg << "' UTI" << suti << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		suti = mappedUTI;
+		m_constSymbol->resetUlamType(mappedUTI); //consistent!
+	      }
 	  }
       }
 
-    if(!m_state.isComplete(suti)) //reload
+    if(!m_state.isComplete(suti)) //reloads
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;

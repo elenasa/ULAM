@@ -40,6 +40,7 @@
 #include "Node.h"
 #include "SymbolVariable.h"
 #include "NodeBlock.h"
+#include "NodeTypeDescriptor.h"
 
 namespace MFM{
 
@@ -47,11 +48,15 @@ namespace MFM{
   {
   public:
 
-    NodeVarDecl(SymbolVariable * sym, CompilerState & state);
+    NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state);
+
     NodeVarDecl(const NodeVarDecl& ref);
+
     virtual ~NodeVarDecl();
 
     virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
 
     virtual void printPostfix(File * f);
 
@@ -61,12 +66,13 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    virtual void packBitsInOrderOfDeclaration(u32& offset);
-
     virtual UTI checkAndLabelType();
 
     NNO getBlockNo();
+
     NodeBlock * getBlock();
+
+    virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual EvalStatus eval();
 
@@ -78,6 +84,7 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
     u32 m_vid; // to instantiate
     NNO m_currBlockNo;
+    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
     void genCodedElementParameter(File * fp, UlamValue uvpass);

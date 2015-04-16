@@ -1,41 +1,41 @@
 #include <stdlib.h>
-#include "NodeTypeSelect.h"
+#include "NodeTypeDescriptorSelect.h"
 #include "CompilerState.h"
 
 
 namespace MFM {
 
-  NodeTypeSelect::NodeTypeSelect(Token typetoken, UTI auti, NodeType * node, CompilerState & state) : NodeType(typetoken, auti, state), m_nodeSelect(node)
+  NodeTypeDescriptorSelect::NodeTypeDescriptorSelect(Token typetoken, UTI auti, NodeTypeDescriptor * node, CompilerState & state) : NodeTypeDescriptor(typetoken, auti, state), m_nodeSelect(node)
   {
     if(m_nodeSelect)
       m_nodeSelect->updateLineage(getNodeNo()); //for unknown subtrees
   }
 
-  NodeTypeSelect::NodeTypeSelect(const NodeTypeSelect& ref) : NodeType(ref), m_nodeSelect(NULL)
+  NodeTypeDescriptorSelect::NodeTypeDescriptorSelect(const NodeTypeDescriptorSelect& ref) : NodeTypeDescriptor(ref), m_nodeSelect(NULL)
   {
     if(ref.m_nodeSelect)
-      m_nodeSelect = (NodeType *) ref.m_nodeSelect->instantiate();
+      m_nodeSelect = (NodeTypeDescriptor *) ref.m_nodeSelect->instantiate();
   }
 
-  NodeTypeSelect::~NodeTypeSelect()
+  NodeTypeDescriptorSelect::~NodeTypeDescriptorSelect()
   {
     delete m_nodeSelect;
     m_nodeSelect = NULL;
   } //destructor
 
-  Node * NodeTypeSelect::instantiate()
+  Node * NodeTypeDescriptorSelect::instantiate()
   {
-    return new NodeTypeSelect(*this);
+    return new NodeTypeDescriptorSelect(*this);
   }
 
-  void NodeTypeSelect::updateLineage(NNO pno)
+  void NodeTypeDescriptorSelect::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
     if(m_nodeSelect)
       m_nodeSelect->updateLineage(getNodeNo());
   }//updateLineage
 
-  bool NodeTypeSelect::findNodeNo(NNO n, Node *& foundNode)
+  bool NodeTypeDescriptorSelect::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
@@ -44,12 +44,12 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeTypeSelect::printPostfix(File * fp)
+  void NodeTypeDescriptorSelect::printPostfix(File * fp)
   {
     fp->write(getName());
   }
 
-  const char * NodeTypeSelect::getName()
+  const char * NodeTypeDescriptorSelect::getName()
   {
     std::ostringstream nstr;
     if(m_nodeSelect)
@@ -61,12 +61,12 @@ namespace MFM {
     return nstr.str().c_str();
   } //getName
 
-  const std::string NodeTypeSelect::prettyNodeName()
+  const std::string NodeTypeDescriptorSelect::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  UTI NodeTypeSelect::checkAndLabelType()
+  UTI NodeTypeDescriptorSelect::checkAndLabelType()
   {
     if(isReadyType())
       return getNodeType();
@@ -82,8 +82,7 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-
-  bool NodeTypeSelect::resolveType(UTI& rtnuti)
+  bool NodeTypeDescriptorSelect::resolveType(UTI& rtnuti)
   {
     bool rtnb = false;
     if(isReadyType())
@@ -161,7 +160,7 @@ namespace MFM {
     return rtnb;
   } //resolveType
 
-  void NodeTypeSelect::countNavNodes(u32& cnt)
+  void NodeTypeDescriptorSelect::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);
     m_nodeSelect->countNavNodes(cnt);

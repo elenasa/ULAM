@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeTypeArray.h - Basic Node handling of Node Type Arrays for ULAM
+ * NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeTypeArray.h - Basic Node handling of Node Type Arrays for ULAM
+  \file NodeTypeDescriptor.h - Basic Node Type descriptor for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -34,21 +34,21 @@
 */
 
 
-#ifndef NODETYPEARRAY_H
-#define NODETYPEARRAY_H
+#ifndef NODETYPEDESCRIPTOR_H
+#define NODETYPEDESCRIPTOR_H
 
-#include "NodeType.h"
-#include "NodeSquareBracket.h"
+#include "Node.h"
+#include "NodeTypeBitsize.h"
 
 namespace MFM{
 
-  class NodeTypeArray : public NodeType
+  class NodeTypeDescriptor : public Node
   {
   public:
 
-    NodeTypeArray(Token typetoken, UTI auti, NodeType * scalarnode, CompilerState & state);
-    NodeTypeArray(const NodeTypeArray& ref);
-    virtual ~NodeTypeArray();
+    NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state);
+    NodeTypeDescriptor(const NodeTypeDescriptor& ref);
+    virtual ~NodeTypeDescriptor();
 
     virtual Node * instantiate();
 
@@ -62,13 +62,15 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    void linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize);
+    void linkConstantExpressionBitsize(NodeTypeBitsize * ceForBitSize);
+
+    bool isReadyType();
 
     virtual UTI checkAndLabelType();
 
     virtual bool resolveType(UTI& rtnuti);
 
-    bool resolveTypeArraysize(UTI auti);
+    bool resolveTypeBitsize(UTI auti);
 
     virtual void countNavNodes(u32& cnt);
 
@@ -76,12 +78,15 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
+  protected:
+    Token m_typeTok;
+    bool m_ready;
+
   private:
-    NodeType * m_nodeScalar;
-    NodeSquareBracket * m_unknownArraysizeSubtree;
+    NodeTypeBitsize * m_unknownBitsizeSubtree;
 
   };
 
 } //MFM
 
-#endif //NODETYPEARRAY_H
+#endif //NODETYPEDESCRIPTOR_H

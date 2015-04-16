@@ -1,72 +1,72 @@
 #include <stdlib.h>
-#include "NodeType.h"
+#include "NodeTypeDescriptor.h"
 #include "CompilerState.h"
 
 
 namespace MFM {
 
-  NodeType::NodeType(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
     setNodeType(auti); //not necessarily "ready"
     setNodeLocation(typetoken.m_locator);
   }
 
-  NodeType::NodeType(const NodeType& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI???
   }
 
-  NodeType::~NodeType()
+  NodeTypeDescriptor::~NodeTypeDescriptor()
   {
     delete m_unknownBitsizeSubtree;
     m_unknownBitsizeSubtree = NULL;
   } //destructor
 
-  Node * NodeType::instantiate()
+  Node * NodeTypeDescriptor::instantiate()
   {
-    return new NodeType(*this);
+    return new NodeTypeDescriptor(*this);
   }
 
-  void NodeType::updateLineage(NNO pno)
+  void NodeTypeDescriptor::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
     if(m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree->updateLineage(getNodeNo());
   }//updateLineage
 
-  bool NodeType::findNodeNo(NNO n, Node *& foundNode)
+  bool NodeTypeDescriptor::findNodeNo(NNO n, Node *& foundNode)
   {
     return Node::findNodeNo(n, foundNode);
   } //findNodeNo
 
-  void NodeType::printPostfix(File * fp)
+  void NodeTypeDescriptor::printPostfix(File * fp)
   {
     fp->write(getName());
   }
 
-  const char * NodeType::getName()
+  const char * NodeTypeDescriptor::getName()
   {
     return m_state.getTokenDataAsString(&m_typeTok).c_str();
   } //getName
 
-  const std::string NodeType::prettyNodeName()
+  const std::string NodeTypeDescriptor::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  void NodeType::linkConstantExpressionBitsize(NodeTypeBitsize * ceForBitSize)
+  void NodeTypeDescriptor::linkConstantExpressionBitsize(NodeTypeBitsize * ceForBitSize)
   {
     assert(!m_unknownBitsizeSubtree);
-    m_unknownBitsizeSubtree = ceForBitSize;
+    m_unknownBitsizeSubtree = ceForBitSize; //tfr owner
   } //linkConstantExpressionBitsize
 
-  bool NodeType::isReadyType()
+  bool NodeTypeDescriptor::isReadyType()
   {
     return m_ready;
   }
 
-  UTI NodeType::checkAndLabelType()
+  UTI NodeTypeDescriptor::checkAndLabelType()
   {
     if(isReadyType())
       return getNodeType();
@@ -74,14 +74,14 @@ namespace MFM {
     UTI it = Nav;
     if(resolveType(it))
       {
+	setNodeType(it);
 	m_ready = true; // set here!!!
       }
 
-    setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
 
-  bool NodeType::resolveType(UTI& rtnuti)
+  bool NodeTypeDescriptor::resolveType(UTI& rtnuti)
   {
     bool rtnb = false;
     if(isReadyType())
@@ -92,6 +92,9 @@ namespace MFM {
 
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = getNodeType();
+
+    // if Nav, use token
+
     UTI mappedUTI = nuti;
     UTI cuti = m_state.getCompileThisIdx();
 
@@ -99,7 +102,17 @@ namespace MFM {
     // since we're call AFTER that (not during), we can look up our
     // new UTI and pass that on up the line of NodeType Selects, if any.
     if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
-      nuti = mappedUTI;
+      {
+	std::ostringstream msg;
+	msg << "Substituting Mapped UTI" << mappedUTI;
+	msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	msg << " for incomplete descriptor type: ";
+	msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	msg << "' UTI" << nuti << " while labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	nuti = mappedUTI;
+      }
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etype = nut->getUlamTypeEnum();
@@ -123,38 +136,38 @@ namespace MFM {
     return rtnb;
   } //resolveType
 
-  bool NodeType::resolveTypeBitsize(UTI auti)
+  bool NodeTypeDescriptor::resolveTypeBitsize(UTI auti)
   {
-    bool rtnb = true;
+    UlamType * ut = m_state.getUlamTypeByIndex(auti);
     if(m_unknownBitsizeSubtree)
       {
 	s32 bs = UNKNOWNSIZE;
-	UlamType * ut = m_state.getUlamTypeByIndex(auti);
 	ULAMTYPE etype = ut->getUlamTypeEnum();
 
 	//primitive with possible unknown bit sizes.
-	rtnb = m_unknownBitsizeSubtree->getTypeBitSizeInParen(bs, etype); //eval
+	bool rtnb = m_unknownBitsizeSubtree->getTypeBitSizeInParen(bs, etype); //eval
 	if(rtnb)
 	  {
-	    delete m_unknownBitsizeSubtree;
-	    m_unknownBitsizeSubtree = NULL;
+	    // keep in case of template
+	    // delete m_unknownBitsizeSubtree;
+	    // m_unknownBitsizeSubtree = NULL;
 	    m_state.setUTISizes(auti, bs, ut->getArraySize()); //update UlamType
 	  }
       }
-    return rtnb;
+    return (ut->getBitSize() != UNKNOWNSIZE);
   } //resolveTypeBitsize
 
-  void NodeType::countNavNodes(u32& cnt)
+  void NodeTypeDescriptor::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);
   }
 
-  bool NodeType::assignClassArgValueInStubCopy()
+  bool NodeTypeDescriptor::assignClassArgValueInStubCopy()
   {
     return true;
   }
 
-  EvalStatus NodeType::eval()
+  EvalStatus NodeTypeDescriptor::eval()
   {
     assert(0);  //not in parse tree; part of Node's type
     return NORMAL;
