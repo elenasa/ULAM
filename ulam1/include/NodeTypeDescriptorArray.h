@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeTypeSelect.h - Node for handling Type Selection for ULAM
+ * NodeTypeDescriptorArray.h - Node Type Array descriptor for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeTypeSelect.h - Node for handling Type Selection for ULAM
+  \file NodeTypeDescriptorArray.h - Node Type Array descriptor for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -34,22 +34,21 @@
 */
 
 
-#ifndef NODETYPESELECT_H
-#define NODETYPESELECT_H
+#ifndef NODETYPEARRAYDESCRIPTOR_H
+#define NODETYPEARRAYDESCRIPTOR_H
 
-#include "NodeType.h"
+#include "NodeTypeDescriptor.h"
+#include "NodeSquareBracket.h"
 
 namespace MFM{
 
-  class NodeTypeSelect : public NodeType
+  class NodeTypeDescriptorArray : public NodeTypeDescriptor
   {
   public:
 
-    NodeTypeSelect(Token typetoken, UTI auti, NodeType * node, CompilerState & state);
-
-    NodeTypeSelect(const NodeTypeSelect& ref);
-
-    virtual ~NodeTypeSelect();
+    NodeTypeDescriptorArray(Token typetoken, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state);
+    NodeTypeDescriptorArray(const NodeTypeDescriptorArray& ref);
+    virtual ~NodeTypeDescriptorArray();
 
     virtual Node * instantiate();
 
@@ -63,17 +62,22 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    void linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize);
+
     virtual UTI checkAndLabelType();
 
     virtual bool resolveType(UTI& rtnuti);
 
+    bool resolveTypeArraysize(UTI auti, UTI scuti);
+
     virtual void countNavNodes(u32& cnt);
 
   private:
-    NodeType * m_nodeSelect; //selected from, or null
+    NodeTypeDescriptor * m_nodeScalar;
+    NodeSquareBracket * m_unknownArraysizeSubtree;
 
   };
 
 } //MFM
 
-#endif //NODETYPESELECT_H
+#endif //NODETYPEARRAYDESCRIPTOR_H

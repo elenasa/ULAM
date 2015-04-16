@@ -1,25 +1,25 @@
 #include <stdlib.h>
-#include "NodeTypeArray.h"
+#include "NodeTypeDescriptorArray.h"
 #include "CompilerState.h"
 
 
 namespace MFM {
 
-  NodeTypeArray::NodeTypeArray(Token typetoken, UTI auti, NodeType * scalarnode, CompilerState & state) : NodeType(typetoken, auti, state), m_nodeScalar(scalarnode), m_unknownArraysizeSubtree(NULL)
+  NodeTypeDescriptorArray::NodeTypeDescriptorArray(Token typetoken, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state) : NodeTypeDescriptor(typetoken, auti, state), m_nodeScalar(scalarnode), m_unknownArraysizeSubtree(NULL)
   {
     m_nodeScalar->updateLineage(getNodeNo()); //for unknown subtrees
   }
 
-  NodeTypeArray::NodeTypeArray(const NodeTypeArray& ref) : NodeType(ref), m_nodeScalar(NULL), m_unknownArraysizeSubtree(NULL)
+  NodeTypeDescriptorArray::NodeTypeDescriptorArray(const NodeTypeDescriptorArray& ref) : NodeTypeDescriptor(ref), m_nodeScalar(NULL), m_unknownArraysizeSubtree(NULL)
   {
     if(m_nodeScalar)
-      m_nodeScalar = (NodeType *) ref.m_nodeScalar->instantiate();
+      m_nodeScalar = (NodeTypeDescriptor *) ref.m_nodeScalar->instantiate();
 
     if(ref.m_unknownArraysizeSubtree)
       m_unknownArraysizeSubtree = new NodeSquareBracket(*ref.m_unknownArraysizeSubtree); //mappedUTI?
   }
 
-  NodeTypeArray::~NodeTypeArray()
+  NodeTypeDescriptorArray::~NodeTypeDescriptorArray()
   {
     delete m_nodeScalar;
     m_nodeScalar = NULL;
@@ -28,19 +28,19 @@ namespace MFM {
     m_unknownArraysizeSubtree = NULL;
   } //destructor
 
-  Node * NodeTypeArray::instantiate()
+  Node * NodeTypeDescriptorArray::instantiate()
   {
-    return new NodeTypeArray(*this);
+    return new NodeTypeDescriptorArray(*this);
   }
 
-  void NodeTypeArray::updateLineage(NNO pno)
+  void NodeTypeDescriptorArray::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
     m_nodeScalar->updateLineage(getNodeNo());
     m_unknownArraysizeSubtree->updateLineage(getNodeNo());
   }//updateLineage
 
-  bool NodeTypeArray::findNodeNo(NNO n, Node *& foundNode)
+  bool NodeTypeDescriptorArray::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
@@ -49,12 +49,12 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  void NodeTypeArray::printPostfix(File * fp)
+  void NodeTypeDescriptorArray::printPostfix(File * fp)
   {
     fp->write(getName());
   }
 
-  const char * NodeTypeArray::getName()
+  const char * NodeTypeDescriptorArray::getName()
   {
     std::ostringstream nstr;
     nstr << m_nodeScalar->getName();
@@ -63,19 +63,19 @@ namespace MFM {
     return nstr.str().c_str();
   } //getName
 
-  const std::string NodeTypeArray::prettyNodeName()
+  const std::string NodeTypeDescriptorArray::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  void NodeTypeArray::linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize)
+  void NodeTypeDescriptorArray::linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize)
   {
     //tfr owner, or deletes if dup or anothertd ???
     assert(!m_unknownArraysizeSubtree);
     m_unknownArraysizeSubtree = ceForArraySize;
   } //linkConstantExpressionArraysize
 
-  UTI NodeTypeArray::checkAndLabelType()
+  UTI NodeTypeDescriptorArray::checkAndLabelType()
   {
     if(isReadyType())
       return getNodeType();
@@ -90,7 +90,7 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
-  bool NodeTypeArray::resolveType(UTI& rtnuti)
+  bool NodeTypeDescriptorArray::resolveType(UTI& rtnuti)
   {
     bool rtnb = false;
     if(isReadyType())
@@ -114,9 +114,22 @@ namespace MFM {
 	// since we're call AFTER that (not during), we can look up our
 	// new UTI and pass that on up the line of NodeType Selects, if any.
 	if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
-	  nuti = mappedUTI;
+	  {
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete descriptor array type: ";
+	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << "' UTI" << nuti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    nuti = mappedUTI;
+	  }
 
-	if(resolveTypeArraysize(nuti))
+	// of course, their keys' nameids should be the same (~ enum)!!
+	assert(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(scuti)->getUlamTypeEnum());
+
+	if(resolveTypeArraysize(nuti, scuti))
 	  {
 	    rtnb = true;
 	    rtnuti = nuti;
@@ -125,29 +138,29 @@ namespace MFM {
     return rtnb;
   } //resolveType
 
-  bool NodeTypeArray::resolveTypeArraysize(UTI auti)
+  bool NodeTypeDescriptorArray::resolveTypeArraysize(UTI auti, UTI scuti)
   {
-    bool rtnb = true;
     if(m_unknownArraysizeSubtree)
       {
 	s32 as = UNKNOWNSIZE;
+
 	//array of primitives or classes
-	rtnb = m_unknownArraysizeSubtree->getArraysizeInBracket(as); //eval
+	bool rtnb = m_unknownArraysizeSubtree->getArraysizeInBracket(as); //eval
 	if(rtnb && as != UNKNOWNSIZE)
 	  {
-	    delete m_unknownArraysizeSubtree;
-	    m_unknownArraysizeSubtree = NULL;
-	    m_state.setUTISizes(auti, m_state.getBitSize(auti), as); //update UlamType
+	    // keep in case a template
+	    //delete m_unknownArraysizeSubtree;
+	    //m_unknownArraysizeSubtree = NULL;
+	    m_state.setUTISizes(auti, m_state.getBitSize(scuti), as); //update UlamType
 	  }
       }
-    return rtnb;
+    return (m_state.getArraySize(auti) != UNKNOWNSIZE);
   } //resolveTypeArraysize
 
-  void NodeTypeArray::countNavNodes(u32& cnt)
+  void NodeTypeDescriptorArray::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);
     m_nodeScalar->countNavNodes(cnt);
   }
-
 
 } //end MFM

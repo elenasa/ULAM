@@ -40,6 +40,7 @@
 #include "Node.h"
 #include "NodeBlock.h"
 #include "SymbolConstantValue.h"
+#include "NodeTypeDescriptor.h"
 
 namespace MFM{
 
@@ -47,7 +48,7 @@ namespace MFM{
   {
   public:
 
-    NodeConstantDef(SymbolConstantValue * symptr, CompilerState & state);
+    NodeConstantDef(SymbolConstantValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
     NodeConstantDef(const NodeConstantDef& ref);
     virtual ~NodeConstantDef();
 
@@ -98,6 +99,7 @@ namespace MFM{
     Node * m_nodeExpr;
     NNO m_currBlockNo;
     u32 m_cid; //to instantiate
+    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
   };
 
 } //MFM

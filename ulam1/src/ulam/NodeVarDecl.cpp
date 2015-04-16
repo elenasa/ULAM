@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlockNo(0)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
   {
     if(sym)
       {
@@ -17,14 +17,29 @@ namespace MFM {
       }
   }
 
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  {
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+  }
 
-  NodeVarDecl::~NodeVarDecl() {}
+  NodeVarDecl::~NodeVarDecl()
+  {
+    delete m_nodeTypeDesc;
+    m_nodeTypeDesc = NULL;
+  }
 
   Node * NodeVarDecl::instantiate()
   {
     return new NodeVarDecl(*this);
   }
+
+  void NodeVarDecl::updateLineage(NNO pno)
+  {
+    Node::updateLineage(pno);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->updateLineage(getNodeNo());
+  }//updateLineage
 
   // see SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
@@ -98,45 +113,32 @@ namespace MFM {
     if(m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
-	//check for incomplete Classes
-	UlamType * tdut = m_state.getUlamTypeByIndex(it);
-	//ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-	//if(tdclasstype == UC_UNSEEN)
-	//  {
-	//    m_state.completeIncompleteClassSymbol(it); //?
-	//  }
-	//else if(tdclasstype != UC_NOTACLASS)
-	//  {
-	//    m_state.constantFoldPendingArgs(it);
-	//  }
-	//else if(!tdut->isComplete()) //o.w. primitive
-	//  {
-	//    m_state.constantFoldIncompleteUTI(it); //update if possible
-	//  }
-
-	// fall through to common attempt to map UTI
-	tdut = m_state.getUlamTypeByIndex(it); //reload
-	if(!tdut->isComplete())
+	if(!m_state.isComplete(it))
 	  {
 	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+	    if(m_nodeTypeDesc)
 	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Variable Decl for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with variable symbol name '" << getName();
-		msg << "' UTI" << it << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		it = mappedUTI;
-		tdut = m_state.getUlamTypeByIndex(it); //reload
-		m_varSymbol->resetUlamType(it); //consistent!
+		it = m_nodeTypeDesc->checkAndLabelType();
+	      }
+	    else
+	      {
+		UTI mappedUTI = Nav;
+		if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+		  {
+		    std::ostringstream msg;
+		    msg << "Substituting Mapped UTI" << mappedUTI;
+		    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		    msg << " for incomplete Variable Decl for type: ";
+		    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		    msg << " used with variable symbol name '" << getName();
+		    msg << "' UTI" << it << " while labeling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    it = mappedUTI;
+		  }
 	      }
 
-	    if(!tdut->isComplete())
+	    if(!m_state.isComplete(it))
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Variable Decl for type: ";
@@ -147,6 +149,8 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		it = Nav;
 	      }
+	    else
+	      m_varSymbol->resetUlamType(it); //consistent!
 	  } //not complete
       } //end var_symbol
 

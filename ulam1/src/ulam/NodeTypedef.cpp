@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeTypedef::NodeTypedef(SymbolTypedef * sym, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlockNo(0)
+  NodeTypedef::NodeTypedef(SymbolTypedef * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_typedefSymbol(sym), m_tdid(0), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
   {
     if(sym)
       {
@@ -14,9 +14,24 @@ namespace MFM {
       }
   }
 
-  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  {
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+  }
 
-  NodeTypedef::~NodeTypedef() {}
+  NodeTypedef::~NodeTypedef()
+  {
+    delete m_nodeTypeDesc;
+    m_nodeTypeDesc = NULL;
+  }
+
+  void NodeTypedef::updateLineage(NNO pno)
+  {
+    Node::updateLineage(pno);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->updateLineage(getNodeNo());
+  }//updateLineage
 
   Node * NodeTypedef::instantiate()
   {
@@ -52,6 +67,12 @@ namespace MFM {
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
+
+  bool NodeTypedef::getSymbolPtr(Symbol *& symptrref)
+  {
+    symptrref = m_typedefSymbol;
+    return true;
+  } //getSymbolPtr
 
   UTI NodeTypedef::checkAndLabelType()
   {
@@ -108,23 +129,29 @@ namespace MFM {
 	      }
 	  }
 
-	if(!tdut->isComplete())
+	if(!m_state.isComplete(it))
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+	    if(m_nodeTypeDesc)
 	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Typedef type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		msg << " used with typedef symbol name '" << getName();
-		msg << "' UTI" << it << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		it = mappedUTI;
-		m_typedefSymbol->resetUlamType(mappedUTI); //consistent!
+		it = m_nodeTypeDesc->checkAndLabelType();
+	      }
+	    else
+	      {
+		UTI cuti = m_state.getCompileThisIdx();
+		UTI mappedUTI = Nav;
+		if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+		  {
+		    std::ostringstream msg;
+		    msg << "Substituting Mapped UTI" << mappedUTI;
+		    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		    msg << " for incomplete Typedef type: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		    msg << " used with typedef symbol name '" << getName();
+		    msg << "' UTI" << it << " while labeling class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    it = mappedUTI;
+		  }
 	      }
 	  }
 
@@ -136,7 +163,10 @@ namespace MFM {
 	    msg << " used with typedef symbol name '" << getName();
 	    msg << "' (UTI" << it << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    //it = Nav; unlike vardecl
 	  }
+	else
+	  m_typedefSymbol->resetUlamType(it); //consistent!
       } // got typedef symbol
 
     setNodeType(it);
@@ -156,22 +186,16 @@ namespace MFM {
     return currBlock;
   } //getBlock
 
+  void NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
+  {
+    //do nothing, but override
+  }
+
   EvalStatus NodeTypedef::eval()
   {
     assert(m_typedefSymbol);
     return NORMAL;
   } //eval
-
-  bool NodeTypedef::getSymbolPtr(Symbol *& symptrref)
-  {
-    symptrref = m_typedefSymbol;
-    return true;
-  } //getSymbolPtr
-
-  void NodeTypedef::packBitsInOrderOfDeclaration(u32& offset)
-  {
-    //do nothing, but override
-  }
 
   void NodeTypedef::genCode(File * fp, UlamValue& uvpass)
   {

@@ -4,19 +4,34 @@
 
 namespace MFM {
 
-  NodeCast::NodeCast(Node * n, UTI typeToBe, CompilerState & state): NodeUnaryOp(n, state), m_explicit(false)
+  NodeCast::NodeCast(Node * n, UTI typeToBe, NodeTypeDescriptor * nodetype, CompilerState & state): NodeUnaryOp(n, state), m_explicit(false), m_nodeTypeDesc(nodetype)
   {
     setNodeType(typeToBe);
   }
 
-  NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_explicit(ref.m_explicit) {}
+  NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_explicit(ref.m_explicit)
+  {
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+  }
 
-  NodeCast::~NodeCast() {}
+  NodeCast::~NodeCast()
+  {
+    delete m_nodeTypeDesc;
+    m_nodeTypeDesc = NULL;
+  }
 
   Node * NodeCast::instantiate()
   {
     return new NodeCast(*this);
   }
+
+  void NodeCast::updateLineage(NNO pno)
+  {
+    NodeUnaryOp::updateLineage(pno);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->updateLineage(getNodeNo());
+  }//updateLineage
 
   const char * NodeCast::getName()
   {
@@ -54,13 +69,23 @@ namespace MFM {
       }
     else if(!m_state.isComplete(tobeType))
       {
-	std::ostringstream msg;
-	msg << "Cannot cast to incomplete type: " ;
-	msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	errorsFound++;
+	if(m_nodeTypeDesc)
+	  {
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	    // does duti == tobeType? perhaps instantiated stub has mapped uti
+	    assert(duti == tobeType); //let's see..
+	    if(!m_nodeTypeDesc->isReadyType())
+	      {
+		std::ostringstream msg;
+		msg << "Cannot cast to incomplete type: " ;
+		msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		errorsFound++;
+	      }
+	  }
       }
-    else
+
+    if(errorsFound == 0) //    else
       {
 	if(!m_state.isScalar(tobeType))
 	  {

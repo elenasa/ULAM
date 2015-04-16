@@ -1350,7 +1350,7 @@ namespace MFM {
 	  doErrMsg = true;  //cannot cast a void into anything else (reverse is fine)
 	else
 	  {
-	    rtnNode = new NodeCast(node, tobeType, m_state);
+	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
 	    rtnNode->updateLineage(getNodeNo());
@@ -1380,7 +1380,7 @@ namespace MFM {
 	    //if(tobeType != nuti)
 	    if(uticr != UTIC_SAME)
 	      {
-		rtnNode = new NodeCast(mselectNode, tobeType, m_state);
+		rtnNode = new NodeCast(mselectNode, tobeType, NULL, m_state);
 		assert(rtnNode);
 		rtnNode->setNodeLocation(getNodeLocation());
 		rtnNode->updateLineage(getNodeNo());
@@ -1401,7 +1401,7 @@ namespace MFM {
 	  doErrMsg = true;
 	else
 	  {
-	    rtnNode = new NodeCast(node, tobeType, m_state);
+	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
 	    rtnNode->updateLineage(getNodeNo());
