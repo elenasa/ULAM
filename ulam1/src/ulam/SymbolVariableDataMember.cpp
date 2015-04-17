@@ -64,6 +64,11 @@ namespace MFM {
 	fp->write_decimal(arraysize);
 	fp->write("]");
       }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
+
 #endif
     fp->write(";\n");
   } //generateCodedVariableDeclarations
@@ -91,6 +96,11 @@ namespace MFM {
 	fp->write_decimal(arraysize);
 	fp->write("]");
       }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
+
     fp->write("(");
 
     if(vclasstype == UC_QUARK)

@@ -8,12 +8,12 @@ namespace MFM {
 
   NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, NodeTypeDescriptor * nodetype, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false), m_nodeTypeDesc(nodetype)
   {
-    m_nodeParameterList = new ParameterListOfNodes();
+    m_nodeParameterList = new NodeList(state);
   }
 
   NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)/*, m_fsymTemplate(ref.m_funcSymbol)*/
  {
-   m_nodeParameterList = ref.m_nodeParameterList->clone();
+   m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate();
    if(m_nodeTypeDesc)
      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
  }
@@ -99,6 +99,11 @@ namespace MFM {
 	    fp->write_decimal(arraysize);
 	    fp->write("]");
 	  }
+	else if(arraysize == UNKNOWNSIZE)
+	  {
+	    fp->write("[UNKNOWN]");
+	  }
+
       }
     fp->write(")");
 
@@ -124,7 +129,7 @@ namespace MFM {
 
   bool NodeBlockFunctionDefinition::checkParameterNodeTypes()
   {
-    return m_nodeParameterList->checkAndLabelTypesOfParameterNodes(m_state);
+    return m_nodeParameterList->checkAndLabelType();
   }
 
   UTI NodeBlockFunctionDefinition::checkAndLabelType()
@@ -199,7 +204,7 @@ namespace MFM {
 
   void NodeBlockFunctionDefinition::addParameterNode(Node * nodeArg)
   {
-    m_nodeParameterList->addParameterNode(nodeArg);
+    m_nodeParameterList->addNodeToList(nodeArg);
   }
 
   void NodeBlockFunctionDefinition::countNavNodes(u32& cnt)
@@ -208,7 +213,7 @@ namespace MFM {
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->countNavNodes(cnt);
     if(m_nodeParameterList)
-      m_nodeParameterList->countNavNodeTypes(cnt);
+      m_nodeParameterList->countNavNodes(cnt);
   } //countNavNodes
 
   EvalStatus NodeBlockFunctionDefinition::eval()
