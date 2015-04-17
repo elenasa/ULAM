@@ -40,14 +40,16 @@
 #include "File.h"
 #include "SymbolFunction.h"
 #include "NodeBlock.h"
+#include "NodeTypeDescriptor.h"
+#include "ParameterListOfNodes.h"
 
-namespace MFM{
+namespace MFM {
 
-  class NodeBlockFunctionDefinition : public NodeBlock
+class NodeBlockFunctionDefinition : public NodeBlock
   {
   public:
 
-    NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
+    NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, NodeTypeDescriptor* nodetype, CompilerState & state, NodeStatements * s = NULL);
 
     NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref);
 
@@ -55,11 +57,19 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void updateLineage(NNO pno);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
 
+    bool checkParameterNodeTypes();
+
     virtual UTI checkAndLabelType();
+
+    void addParameterNode(Node * nodeArg);
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
@@ -92,6 +102,8 @@ namespace MFM{
     bool m_isDefinition;
     u32 m_maxDepth;
     bool m_native;  //false by default, requires keyword
+    ParameterListOfNodes * m_nodeParameterList; //variable or function can be an args
+    NodeTypeDescriptor * m_nodeTypeDesc;
   };
 
 }
