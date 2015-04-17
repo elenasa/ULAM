@@ -60,20 +60,12 @@ namespace MFM {
     u32 errorsFound = 0;
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->checkAndLabelType(); //user cast
-    if(tobeType == Nav)
-      {
-	std::ostringstream msg;
-	msg << "Cannot cast to type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	errorsFound++;
-      }
-    else if(!m_state.isComplete(tobeType))
+    if(!m_state.isComplete(tobeType))
       {
 	if(m_nodeTypeDesc)
 	  {
-	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	    tobeType = m_nodeTypeDesc->checkAndLabelType();
 	    // does duti == tobeType? perhaps instantiated stub has mapped uti
-	    assert(duti == tobeType); //let's see..
 	    if(!m_nodeTypeDesc->isReadyType())
 	      {
 		std::ostringstream msg;
@@ -83,6 +75,13 @@ namespace MFM {
 		errorsFound++;
 	      }
 	  }
+      }
+    else if(tobeType == Nav)
+      {
+	std::ostringstream msg;
+	msg << "Cannot cast to type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	errorsFound++;
       }
 
     if(errorsFound == 0) //    else

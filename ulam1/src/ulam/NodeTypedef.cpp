@@ -118,7 +118,8 @@ namespace MFM {
     if(m_typedefSymbol)
       {
 	it = m_typedefSymbol->getUlamTypeIdx();
-	//check for incomplete Classes
+
+	//check for incomplete Classes (e.g. array of UC_QUARK)
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
 	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
 	if(tdclasstype == UC_UNSEEN)
@@ -136,13 +137,13 @@ namespace MFM {
 
 	if(!m_state.isComplete(it))
 	  {
+	    UTI cuti = m_state.getCompileThisIdx();
 	    if(m_nodeTypeDesc)
 	      {
 		it = m_nodeTypeDesc->checkAndLabelType();
 	      }
 	    else
 	      {
-		UTI cuti = m_state.getCompileThisIdx();
 		UTI mappedUTI = Nav;
 		if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
 		  {
@@ -158,20 +159,20 @@ namespace MFM {
 		    it = mappedUTI;
 		  }
 	      }
-	  }
 
-	if(!m_state.isComplete(it)) //reloads
-	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete Typedef for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " used with typedef symbol name '" << getName();
-	    msg << "' (UTI" << it << ")";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	    //it = Nav; unlike vardecl
-	  }
-	else
-	  m_typedefSymbol->resetUlamType(it); //consistent!
+	    if(!m_state.isComplete(it)) //reloads
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Typedef for type: ";
+		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << " used with typedef symbol name '" << getName();
+		msg << "' (UTI" << it << ")";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		//it = Nav; unlike vardecl
+	      }
+	    else
+	      m_typedefSymbol->resetUlamType(it); //consistent!
+	  } //not complete
       } // got typedef symbol
 
     setNodeType(it);

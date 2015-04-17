@@ -77,10 +77,11 @@ namespace MFM {
 
   UTI NodeTypeDescriptorArray::checkAndLabelType()
   {
-    if(isReadyType())
-      return getNodeType();
+    UTI it = getNodeType();
 
-    UTI it = Nav;
+    if(isReadyType())
+      return it;
+
     if(resolveType(it))
       {
 	m_ready = true; // set here
@@ -105,8 +106,8 @@ namespace MFM {
     UTI scuti;
     if(m_nodeScalar->resolveType(scuti))
       {
-	// not node select, we are the leaf Type: a typedef, class or primitive scalar.
-	UTI nuti = getNodeType();
+	// not node select, we are the array on top of the scalar leaf
+	UTI nuti = givenUTI();
 	UTI mappedUTI = nuti;
 	UTI cuti = m_state.getCompileThisIdx();
 
@@ -154,7 +155,8 @@ namespace MFM {
 	    m_state.setUTISizes(auti, m_state.getBitSize(scuti), as); //update UlamType
 	  }
       }
-    return (m_state.getArraySize(auti) != UNKNOWNSIZE);
+    //return (m_state.getArraySize(auti) != UNKNOWNSIZE);
+    return (m_state.isComplete(auti)); //repeat if bitsize is still unknown
   } //resolveTypeArraysize
 
   void NodeTypeDescriptorArray::countNavNodes(u32& cnt)

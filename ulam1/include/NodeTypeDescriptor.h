@@ -66,6 +66,8 @@ namespace MFM{
 
     bool isReadyType();
 
+    UTI givenUTI();
+
     virtual UTI checkAndLabelType();
 
     virtual bool resolveType(UTI& rtnuti);
@@ -80,6 +82,7 @@ namespace MFM{
 
   protected:
     Token m_typeTok;
+    UTI m_uti;
     bool m_ready;
 
   private:

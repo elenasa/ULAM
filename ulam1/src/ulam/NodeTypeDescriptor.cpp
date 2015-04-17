@@ -5,13 +5,13 @@
 
 namespace MFM {
 
-  NodeTypeDescriptor::NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
-    setNodeType(auti); //not necessarily "ready"
+    //    setNodeType(auti); //not necessarily "ready"
     setNodeLocation(typetoken.m_locator);
   }
 
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(ref.m_uti), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI???
@@ -66,12 +66,18 @@ namespace MFM {
     return m_ready;
   }
 
+  UTI NodeTypeDescriptor::givenUTI()
+  {
+    return m_uti;
+  }
+
   UTI NodeTypeDescriptor::checkAndLabelType()
   {
-    if(isReadyType())
-      return getNodeType();
+    UTI it = getNodeType();
 
-    UTI it = Nav;
+    if(isReadyType())
+      return it;
+
     if(resolveType(it))
       {
 	setNodeType(it);
@@ -91,10 +97,9 @@ namespace MFM {
       }
 
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
-    UTI nuti = getNodeType();
+    UTI nuti = givenUTI(); //getNodeType();
 
     // if Nav, use token
-
     UTI mappedUTI = nuti;
     UTI cuti = m_state.getCompileThisIdx();
 
@@ -126,11 +131,26 @@ namespace MFM {
       }
     else
       {
-	//primitive with possible unknown bit size
-	if(resolveTypeBitsize(nuti))
+	//primitive
+	if(nuti == Nav)
 	  {
-	    rtnb = true;
-	    rtnuti = nuti;
+	    if(!m_unknownBitsizeSubtree)
+	      {
+		//get default bitsize
+		rtnuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etype], NONARRAYSIZE, Nav);
+		rtnb = true;
+	      }
+	    else
+	      assert(0);
+	  }
+	else
+	  {
+	    //primitive with possible unknown bit size
+	    if(resolveTypeBitsize(nuti))
+	      {
+		rtnb = true;
+		rtnuti = nuti;
+	      }
 	  }
       }
     return rtnb;
@@ -139,11 +159,10 @@ namespace MFM {
   bool NodeTypeDescriptor::resolveTypeBitsize(UTI auti)
   {
     UlamType * ut = m_state.getUlamTypeByIndex(auti);
+    ULAMTYPE etype = ut->getUlamTypeEnum();
     if(m_unknownBitsizeSubtree)
       {
 	s32 bs = UNKNOWNSIZE;
-	ULAMTYPE etype = ut->getUlamTypeEnum();
-
 	//primitive with possible unknown bit sizes.
 	bool rtnb = m_unknownBitsizeSubtree->getTypeBitSizeInParen(bs, etype); //eval
 	if(rtnb)
@@ -154,7 +173,8 @@ namespace MFM {
 	    m_state.setUTISizes(auti, bs, ut->getArraySize()); //update UlamType
 	  }
       }
-    return (m_state.getBitSize(auti) != UNKNOWNSIZE);
+    //return (m_state.getBitSize(auti) != UNKNOWNSIZE);
+    return (m_state.isComplete(auti)); //repeat if bitsize is still unknown
   } //resolveTypeBitsize
 
   void NodeTypeDescriptor::countNavNodes(u32& cnt)
