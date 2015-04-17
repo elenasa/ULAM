@@ -583,7 +583,8 @@ namespace MFM {
 	    //also handles arrays
 	    //typeargs.m_declListOrTypedefScalarType = Nav; we have it
 	    //rtnNode = makeVariableSymbol(typeargs, iTok, bitsizeNode);
-	    UTI passuti = typeNode->getNodeType(); //before it may become an array
+	    //UTI passuti = typeNode->getNodeType(); //before it may become an array
+	    UTI passuti = typeNode->givenUTI(); //before it may become an array
 	    rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
 
 	    if(rtnNode)
@@ -1476,7 +1477,8 @@ namespace MFM {
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-	UTI passuti = typeNode->getNodeType(); //before it may become an array
+	//UTI passuti = typeNode->getNodeType(); //before it may become an array
+	UTI passuti = typeNode->givenUTI(); //before it may become an array
 	//typeargs.m_declListOrTypedefScalarType = Nav; //first one!
 	rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
 	if(rtnNode && !parseSingleDecl)
@@ -3448,13 +3450,6 @@ namespace MFM {
 	else
 	  {
 	    UTI auti = asymptr->getUlamTypeIdx();
-	    UTI duti = nodetyperef->getNodeType();
-	    if(auti != duti)
-	      {
-		//update NodeType descriptor type to match symbol (not simply token possibly)
-		nodetyperef->setNodeType(auti);
-	      }
-
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
@@ -3531,13 +3526,6 @@ namespace MFM {
 	else
 	  {
 	    UTI auti = asymptr->getUlamTypeIdx();
-	    UTI duti = nodetyperef->getNodeType();
-	    if(auti != duti)
-	      {
-		//update NodeType descriptor type to match symbol (not simply token possibly)
-		nodetyperef->setNodeType(auti);
-	      }
-
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
@@ -3613,13 +3601,6 @@ namespace MFM {
 	else
 	  {
 	    UTI auti = asymptr->getUlamTypeIdx();
-	    UTI duti = nodetyperef->getNodeType();
-	    if(auti != duti)
-	      {
-		//update NodeType descriptor type to match symbol (not simply token possibly)
-		nodetyperef->setNodeType(auti);
-	      }
-
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
@@ -4143,11 +4124,11 @@ namespace MFM {
 	typeargs.m_bitsize = 0;
 	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
 
-	UTI scalaruti = m_state.getUlamTypeFromToken(typeargs);
-	typeargs.m_declListOrTypedefScalarType = scalaruti; //this is what we wanted..
+	typeToBe = m_state.getUlamTypeFromToken(typeargs);
+	typeargs.m_declListOrTypedefScalarType = typeToBe; //this is what we wanted..
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
-	typeNode = new NodeTypeDescriptor(typeTok, scalaruti, m_state);
+	typeNode = new NodeTypeDescriptor(typeTok, typeToBe, m_state);
 	assert(typeNode);
 
 	if(bitsizeNode)

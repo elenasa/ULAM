@@ -99,7 +99,8 @@ namespace MFM {
     UTI nodeType = m_node->checkAndLabelType();
     if(nodeType != Nav && m_state.isComplete(nodeType) && m_state.isComplete(m_state.m_currentFunctionReturnType))
       {
-	if(nodeType != m_state.m_currentFunctionReturnType)
+	//if(nodeType != m_state.m_currentFunctionReturnType)
+	if(UlamType::compare(nodeType, m_state.m_currentFunctionReturnType, m_state) != UTIC_SAME)
 	  {
 	    if(m_state.m_currentFunctionReturnType != Void)
 	      {

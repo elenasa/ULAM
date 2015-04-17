@@ -871,6 +871,7 @@ namespace MFM {
   bool CompilerState::isComplete(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
+#if 0
     //for arrays, check if scalar is complete
     if(!ut->isComplete() && !ut->isScalar())
       {
@@ -878,6 +879,7 @@ namespace MFM {
 	assert(isScalar(scalarUTI));
 	return isComplete(scalarUTI);
       }
+#endif
     return ut->isComplete();
   } //isComplete
 

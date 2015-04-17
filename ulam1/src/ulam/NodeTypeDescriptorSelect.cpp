@@ -68,11 +68,10 @@ namespace MFM {
 
   UTI NodeTypeDescriptorSelect::checkAndLabelType()
   {
+    UTI it = getNodeType();
     if(isReadyType())
-      return getNodeType();
+      return it;
 
-    UTI it = Nav;
-    //    it = m_nodeSelect->checkAndLabelType();
     if(resolveType(it))
       {
 	m_ready = true; // set here
