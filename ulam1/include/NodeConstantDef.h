@@ -50,6 +50,7 @@ namespace MFM{
 
     NodeConstantDef(SymbolConstantValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
     NodeConstantDef(const NodeConstantDef& ref);
+
     virtual ~NodeConstantDef();
 
     virtual Node * instantiate();

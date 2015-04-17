@@ -36,13 +36,28 @@ namespace MFM {
   void NodeBlockFunctionDefinition::updateLineage(NNO pno)
   {
     NodeBlock::updateLineage(pno);
+    m_state.pushCurrentBlock(this);
     if(m_nodeTypeDesc)
       {
-	m_state.pushCurrentBlock(this);
 	m_nodeTypeDesc->updateLineage(getNodeNo());
-	m_state.popClassContext();
       }
+    if(m_nodeParameterList)
+      {
+	m_nodeParameterList->updateLineage(getNodeNo());
+      }
+    m_state.popClassContext();
   }//updateLineage
+
+  bool NodeBlockFunctionDefinition::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(NodeBlock::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeBlockFunctionDefinition::print(File * fp)
   {

@@ -47,12 +47,16 @@ namespace MFM{
   public:
 
     NodeCast(Node * n, UTI typeToBe, NodeTypeDescriptor * nodetype, CompilerState & state);
+
     NodeCast(const NodeCast& ref);
+
     virtual ~NodeCast();
 
     virtual Node * instantiate();
 
     virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual const char * getName();
 

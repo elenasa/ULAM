@@ -26,6 +26,11 @@ namespace MFM {
     m_nodeTypeDesc = NULL;
   }
 
+  Node * NodeTypedef::instantiate()
+  {
+    return new NodeTypedef(*this);
+  }
+
   void NodeTypedef::updateLineage(NNO pno)
   {
     Node::updateLineage(pno);
@@ -33,10 +38,14 @@ namespace MFM {
       m_nodeTypeDesc->updateLineage(getNodeNo());
   }//updateLineage
 
-  Node * NodeTypedef::instantiate()
+  bool NodeTypedef::findNodeNo(NNO n, Node *& foundNode)
   {
-    return new NodeTypedef(*this);
-  }
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeTypedef::printPostfix(File * fp)
   {

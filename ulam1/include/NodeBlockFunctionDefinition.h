@@ -59,6 +59,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual void updateLineage(NNO pno);
 
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);

@@ -65,7 +65,11 @@ namespace MFM {
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
-    return m_nodeExpr->findNodeNo(n, foundNode);
+    if(m_nodeExpr && m_nodeExpr->findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    return false;
   } //findNodeNo
 
   void NodeConstantDef::printPostfix(File * fp)

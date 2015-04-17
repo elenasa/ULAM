@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual void updateLineage(NNO pno);
 
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void printPostfix(File * f);
 
     virtual const char * getName();

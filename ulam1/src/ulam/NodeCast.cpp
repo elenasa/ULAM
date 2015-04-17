@@ -33,6 +33,15 @@ namespace MFM {
       m_nodeTypeDesc->updateLineage(getNodeNo());
   }//updateLineage
 
+  bool NodeCast::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
+
   const char * NodeCast::getName()
   {
     return "cast";

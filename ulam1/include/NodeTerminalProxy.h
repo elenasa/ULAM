@@ -57,6 +57,8 @@ public:
 
     virtual void updateLineage(NNO pno);
 
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void printPostfix(File * fp);
 
     virtual const std::string prettyNodeName();
