@@ -342,7 +342,7 @@ namespace MFM{
     //NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
     NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype);
 
-    void parseRestOfFunctionParameters(SymbolFunction * sym);
+    void parseRestOfFunctionParameters(SymbolFunction * sym, NodeBlockFunctionDefinition * fblock);
 
     /**
 	helper method for function definition, populates funcNode,

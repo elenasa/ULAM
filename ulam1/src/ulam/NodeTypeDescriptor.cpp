@@ -154,7 +154,7 @@ namespace MFM {
 	    m_state.setUTISizes(auti, bs, ut->getArraySize()); //update UlamType
 	  }
       }
-    return (ut->getBitSize() != UNKNOWNSIZE);
+    return (m_state.getBitSize(auti) != UNKNOWNSIZE);
   } //resolveTypeBitsize
 
   void NodeTypeDescriptor::countNavNodes(u32& cnt)

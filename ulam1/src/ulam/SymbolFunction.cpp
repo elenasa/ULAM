@@ -166,7 +166,13 @@ namespace MFM {
 
   bool SymbolFunction::checkParameterTypes()
   {
+    NodeBlockFunctionDefinition * func = getFunctionNode();
+    assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+    return func->checkParameterNodeTypes();
+
+#if 0
     bool aok = true;
+
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
@@ -206,6 +212,7 @@ namespace MFM {
 	  } //not complete
       } //next param
     return aok;
+#endif
   } //checkParamterTypes
 
   bool SymbolFunction::matchingTypesStrictly(std::vector<UTI> argTypes)

@@ -1460,7 +1460,6 @@ namespace MFM {
 	  typeNode->linkConstantExpressionBitsize(bitsizeNode); //tfr ownership
       }
 
-
     Token dTok;
     getNextToken(dTok);
     unreadToken();
@@ -3128,7 +3127,7 @@ namespace MFM {
     //linkFreeMapATypeAndConstantExpressions(rtnuti, args, constExprForBitSize, NULL);
 
     //WAIT for the parameters, so we can add it to the SymbolFunctionName map..
-    rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, m_state);
+    rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, nodetype, m_state);
     assert(rtnNode);
     rtnNode->setNodeLocation(args.m_typeTok.m_locator);
 
@@ -3167,7 +3166,7 @@ namespace MFM {
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 
     //parse and add parameters to function symbol (not in ST yet!)
-    parseRestOfFunctionParameters(fsymptr);
+    parseRestOfFunctionParameters(fsymptr, rtnNode);
 
     //Now, look specifically for a function with the same given name defined
     Symbol * fnSym = NULL;
@@ -3229,7 +3228,7 @@ namespace MFM {
     return rtnNode;
   } //makeFunctionBlock
 
- void Parser::parseRestOfFunctionParameters(SymbolFunction * fsym)
+  void Parser::parseRestOfFunctionParameters(SymbolFunction * fsym, NodeBlockFunctionDefinition * fblock)
   {
     Token pTok;
     getNextToken(pTok);
@@ -3255,7 +3254,7 @@ namespace MFM {
     else if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	Node * argNode = parseDecl(SINGLEDECL);     //singletons
+	Node * argNode = parseDecl(SINGLEDECL); //singleton
 	Symbol * argSym = NULL;
 
 	//could be null symbol already in scope
@@ -3268,7 +3267,10 @@ namespace MFM {
 	      MSG(&pTok, "No symbol from parameter declaration", ERR);
 	  }
 
-	delete argNode; //no longer needed
+	//potentially needed to resolve its node type
+	//delete argNode; //no longer needed
+	fblock->addParameterNode(argNode); //transfer owner
+
 	if(fsym->takesVariableArgs() && argSym)
 	  {
 	    std::ostringstream msg;
@@ -3291,7 +3293,7 @@ namespace MFM {
 	if(fsym->takesVariableArgs())
 	  MSG(&pTok, "Variable args indication (...) appears at end of parameter list", ERR);
       }
-    return parseRestOfFunctionParameters(fsym);
+    return parseRestOfFunctionParameters(fsym, fblock);
   } //parseRestOfFunctionParameters
 
   bool Parser::parseFunctionBody(NodeBlockFunctionDefinition *& funcNode)
