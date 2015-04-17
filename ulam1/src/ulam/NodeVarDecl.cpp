@@ -41,6 +41,15 @@ namespace MFM {
       m_nodeTypeDesc->updateLineage(getNodeNo());
   }//updateLineage
 
+  bool NodeVarDecl::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
+
   // see SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
   {

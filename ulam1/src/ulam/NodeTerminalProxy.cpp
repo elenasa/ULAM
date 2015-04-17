@@ -22,6 +22,11 @@ namespace MFM {
     m_nodeTypeDesc = NULL;
   }
 
+  Node * NodeTerminalProxy::instantiate()
+  {
+    return new NodeTerminalProxy(*this);
+  }
+
   void NodeTerminalProxy::updateLineage(NNO pno)
   {
     Node::updateLineage(pno);
@@ -29,10 +34,14 @@ namespace MFM {
       m_nodeTypeDesc->updateLineage(getNodeNo());
   }//updateLineage
 
-  Node * NodeTerminalProxy::instantiate()
+  bool NodeTerminalProxy::findNodeNo(NNO n, Node *& foundNode)
   {
-    return new NodeTerminalProxy(*this);
-  }
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeTerminalProxy::printPostfix(File * fp)
   {

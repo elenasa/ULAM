@@ -36,6 +36,8 @@ namespace MFM {
   void NodeTypeDescriptorArray::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
+    assert(m_nodeScalar);
+    assert(m_unknownArraysizeSubtree);
     m_nodeScalar->updateLineage(getNodeNo());
     m_unknownArraysizeSubtree->updateLineage(getNodeNo());
   }//updateLineage
@@ -141,19 +143,17 @@ namespace MFM {
 
   bool NodeTypeDescriptorArray::resolveTypeArraysize(UTI auti, UTI scuti)
   {
-    if(m_unknownArraysizeSubtree)
-      {
-	s32 as = UNKNOWNSIZE;
+    assert(m_unknownArraysizeSubtree);
+    s32 as = UNKNOWNSIZE;
 
-	//array of primitives or classes
-	bool rtnb = m_unknownArraysizeSubtree->getArraysizeInBracket(as); //eval
-	if(rtnb && as != UNKNOWNSIZE)
-	  {
-	    // keep in case a template
-	    //delete m_unknownArraysizeSubtree;
+    //array of primitives or classes
+    bool rtnb = m_unknownArraysizeSubtree->getArraysizeInBracket(as); //eval
+    if(rtnb && as != UNKNOWNSIZE)
+      {
+	// keep in case a template
+	//delete m_unknownArraysizeSubtree;
 	    //m_unknownArraysizeSubtree = NULL;
-	    m_state.setUTISizes(auti, m_state.getBitSize(scuti), as); //update UlamType
-	  }
+	m_state.setUTISizes(auti, m_state.getBitSize(scuti), as); //update UlamType
       }
     //return (m_state.getArraySize(auti) != UNKNOWNSIZE);
     return (m_state.isComplete(auti)); //repeat if bitsize is still unknown

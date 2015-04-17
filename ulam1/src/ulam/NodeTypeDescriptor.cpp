@@ -37,7 +37,11 @@ namespace MFM {
 
   bool NodeTypeDescriptor::findNodeNo(NNO n, Node *& foundNode)
   {
-    return Node::findNodeNo(n, foundNode);
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_unknownBitsizeSubtree && m_unknownBitsizeSubtree->findNodeNo(n, foundNode))
+      return true;
+    return false;
   } //findNodeNo
 
   void NodeTypeDescriptor::printPostfix(File * fp)
@@ -73,11 +77,10 @@ namespace MFM {
 
   UTI NodeTypeDescriptor::checkAndLabelType()
   {
-    UTI it = getNodeType();
-
     if(isReadyType())
-      return it;
+      return getNodeType();
 
+    UTI it = givenUTI();
     if(resolveType(it))
       {
 	setNodeType(it);
