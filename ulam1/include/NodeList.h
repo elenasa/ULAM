@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * ParameterListOfNodes.h - Vector for handling parameter nodes for ULAM
+ * NodeList.h - Basic handling a list of nodes for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file ParameterListOfNodes.h - Vector for handling parameter nodes for ULAM
+  \file NodeList.h - Basic handling a list of nodes for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -34,52 +34,62 @@
 */
 
 
-#ifndef PARAMETERLISTOFNODES_H
-#define PARAMETERLISTOFNODES_H
+#ifndef NODELIST_H
+#define NODELIST_H
 
 #include "Node.h"
-#include "UlamType.h"
 #include <vector>
 
 namespace MFM{
 
   struct CompilerState; //forward
 
-  class ParameterListOfNodes
+  class NodeList : public Node
   {
   public:
 
-    ParameterListOfNodes();
+    NodeList(CompilerState & state);
 
-    ParameterListOfNodes(const ParameterListOfNodes& ref);
+    NodeList(const NodeList& ref);
 
-    ~ParameterListOfNodes();
+    virtual ~NodeList();
 
-    ParameterListOfNodes * clone();
+    virtual Node * instantiate();
 
-    void addParameterNode(Node * argNode);
+    virtual void updateLineage(NNO pno);
 
-    u32 getNumberOfParameterNodes() const;
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
-    Node * getParameterNodePtr (u32 n) const;
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
-    void updateParameterLineage(NNO pno);
+    virtual void print(File * fp);
 
-    bool findParameterNodeNo(NNO n, Node *& foundNode);
+    virtual void printPostfix(File * fp);
 
-    //return true when all parameter types are complete
-    bool checkAndLabelTypesOfParameterNodes(CompilerState& state);
+    virtual const char * getName();
 
-    UTI getParameterNodeType(u32 n);
+    virtual const std::string prettyNodeName();
 
-    void countNavNodeTypes(u32& cnt);
+    virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
+
+    virtual EvalStatus eval();
+
+    void addNodeToList(Node * argNode);
+
+    u32 getNumberOfNodes() const;
+
+    Node * getNodePtr (u32 n) const;
+
+    UTI getNodeType(u32 n); //overloads Node.h
 
   protected:
 
   private:
-    std::vector<Node *> m_parameterNodes; //variable or function can be an args
+    std::vector<Node *> m_nodes;
   };
 
 } //MFM
 
-#endif //PARAMETERLISTOFNODES_H
+#endif //NODELIST_H

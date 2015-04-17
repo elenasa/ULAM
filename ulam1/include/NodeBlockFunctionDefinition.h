@@ -41,7 +41,7 @@
 #include "SymbolFunction.h"
 #include "NodeBlock.h"
 #include "NodeTypeDescriptor.h"
-#include "ParameterListOfNodes.h"
+#include "NodeList.h"
 
 namespace MFM {
 
@@ -102,7 +102,7 @@ class NodeBlockFunctionDefinition : public NodeBlock
     bool m_isDefinition;
     u32 m_maxDepth;
     bool m_native;  //false by default, requires keyword
-    ParameterListOfNodes * m_nodeParameterList; //variable or function can be an args
+    NodeList * m_nodeParameterList; //variable or function can be an args
     NodeTypeDescriptor * m_nodeTypeDesc;
   };
 
