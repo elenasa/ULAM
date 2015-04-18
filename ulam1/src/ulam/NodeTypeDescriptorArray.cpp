@@ -48,6 +48,8 @@ namespace MFM {
       return true;
     if(m_nodeScalar->findNodeNo(n, foundNode))
       return true;
+    if(m_unknownArraysizeSubtree->findNodeNo(n, foundNode))
+      return true;
     return false;
   } //findNodeNo
 
