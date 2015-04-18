@@ -343,14 +343,7 @@ namespace MFM {
 	return brtn; //already there, and updated
       }
 
-    if(args.m_declListOrTypedefScalarType)
-      {
-	if(!checkTypedefOfTypedefSizes(args, args.m_declListOrTypedefScalarType))
-	  return false;
-	tduti = args.m_declListOrTypedefScalarType;
-	brtn = true;
-      }
-    else if(args.m_anothertduti)
+    if(args.m_anothertduti)
       {
 	//typedef might have bitsize and arraysize info..
 	if(checkTypedefOfTypedefSizes(args, args.m_anothertduti)) //ref
@@ -366,6 +359,14 @@ namespace MFM {
 	  {
 	    brtn = true;
 	  }
+      }
+    else if(args.m_declListOrTypedefScalarType)
+      {
+	// if m_anothertduti fails first (this could be the scalar for it!)
+	if(!checkTypedefOfTypedefSizes(args, args.m_declListOrTypedefScalarType))
+	  return false;
+	tduti = args.m_declListOrTypedefScalarType;
+	brtn = true;
       }
     else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
       {
@@ -435,14 +436,7 @@ namespace MFM {
     bool brtn = false;
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
-    if(args.m_declListOrTypedefScalarType)
-      {
-	if(!checkConstantTypedefSizes(args, args.m_declListOrTypedefScalarType))
-	  return false;
-	uti = args.m_declListOrTypedefScalarType;
-	brtn = true;
-      }
-    else if(args.m_anothertduti)
+    if(args.m_anothertduti)
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))
 	  {
@@ -457,6 +451,13 @@ namespace MFM {
 	  {
 	    brtn = true;
 	  }
+      }
+    else if(args.m_declListOrTypedefScalarType)
+      {
+	if(!checkConstantTypedefSizes(args, args.m_declListOrTypedefScalarType))
+	  return false;
+	uti = args.m_declListOrTypedefScalarType;
+	brtn = true;
       }
     else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
       {
@@ -508,14 +509,7 @@ namespace MFM {
     // if a primitive (NONARRAYSIZE), we may need to make a new arraysize type for it;
     // or if it is a class type (quark, element).
     //list of decls can use the same 'scalar' type (arg); adjusted for arrays
-    if(args.m_declListOrTypedefScalarType)
-      {
-	if(!checkVariableTypedefSizes(args, args.m_declListOrTypedefScalarType))
-	  return false;
-	auti = args.m_declListOrTypedefScalarType;
-	brtn = true;
-      }
-    else if(args.m_anothertduti)
+    if(args.m_anothertduti)
       {
 	if(!checkVariableTypedefSizes(args, args.m_anothertduti))
 	  return false;
@@ -529,6 +523,13 @@ namespace MFM {
 	// check typedef types here..
 	if(!checkVariableTypedefSizes(args, auti))
 	  return false;
+	brtn = true;
+      }
+    else if(args.m_declListOrTypedefScalarType)
+      {
+	if(!checkVariableTypedefSizes(args, args.m_declListOrTypedefScalarType))
+	  return false;
+	auti = args.m_declListOrTypedefScalarType;
 	brtn = true;
       }
     else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
