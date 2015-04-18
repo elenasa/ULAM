@@ -343,9 +343,16 @@ namespace MFM {
 	return brtn; //already there, and updated
       }
 
-    //typedef might have bitsize and arraysize info..
-    if(args.m_anothertduti)
+    if(args.m_declListOrTypedefScalarType)
       {
+	if(!checkTypedefOfTypedefSizes(args, args.m_declListOrTypedefScalarType))
+	  return false;
+	tduti = args.m_declListOrTypedefScalarType;
+	brtn = true;
+      }
+    else if(args.m_anothertduti)
+      {
+	//typedef might have bitsize and arraysize info..
 	if(checkTypedefOfTypedefSizes(args, args.m_anothertduti)) //ref
 	  {
 	    tduti = args.m_anothertduti;
@@ -359,7 +366,7 @@ namespace MFM {
 	  {
 	    brtn = true;
 	  }
-	  }
+      }
     else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	//UlamTypes automatically created for the base types with different array sizes.
@@ -428,7 +435,14 @@ namespace MFM {
     bool brtn = false;
     UTI uti = Nav;
     UTI tdscalaruti = Nav;
-    if(args.m_anothertduti)
+    if(args.m_declListOrTypedefScalarType)
+      {
+	if(!checkConstantTypedefSizes(args, args.m_declListOrTypedefScalarType))
+	  return false;
+	uti = args.m_declListOrTypedefScalarType;
+	brtn = true;
+      }
+    else if(args.m_anothertduti)
       {
 	if(checkConstantTypedefSizes(args, args.m_anothertduti))
 	  {
