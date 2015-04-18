@@ -69,6 +69,7 @@ namespace MFM {
 
   UTI NodeTerminalProxy::checkAndLabelType()
   {
+#if 0
     Symbol * asymptr = NULL;
     if(m_uti == Nav)
       {
@@ -83,10 +84,11 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
+#endif
 
     if(!updateProxy())
       setNodeType(Nav);  //invalid func
-    else
+    else if(isReadyConstant())
       setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
 
     return getNodeType(); //updated to Unsigned, hopefully
@@ -193,9 +195,6 @@ namespace MFM {
 
   bool NodeTerminalProxy::updateProxy()
   {
-    if(m_uti == Nav)
-      return false;
-
     if(isReadyConstant())
       return true;
 
