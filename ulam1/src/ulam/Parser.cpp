@@ -1904,6 +1904,7 @@ namespace MFM {
 		args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
 		isclasstd = true;
 	      }
+
 	    //update rest of argument refs
 	    args.m_bitsize = tdut->getBitSize();
 	    args.m_arraysize = tdut->getArraySize(); //becomes arg when installing symbol
@@ -1921,8 +1922,8 @@ namespace MFM {
 	    args.m_declListOrTypedefScalarType = tdscalaruti;
 	    rtnb = true;
 
-	    //link this selection to NodeTypeDescriptor
-	    NodeTypeDescriptorSelect * selNode = new NodeTypeDescriptorSelect(args.m_typeTok, tduti, rtnTypeDesc, m_state);
+	    //link this selection to NodeTypeDescriptor; keep typedef alias name here (i.e. pTok)
+	    NodeTypeDescriptorSelect * selNode = new NodeTypeDescriptorSelect(pTok, tduti, rtnTypeDesc, m_state);
 	    rtnTypeDesc = selNode;
 	  }
 	else
