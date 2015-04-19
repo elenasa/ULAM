@@ -225,8 +225,8 @@ namespace MFM {
   void NodeBlockFunctionDefinition::countNavNodes(u32& cnt)
   {
     NodeBlock::countNavNodes(cnt);
-    if(m_nodeTypeDesc)
-      m_nodeTypeDesc->countNavNodes(cnt);
+    //if(m_nodeTypeDesc)
+    //  m_nodeTypeDesc->countNavNodes(cnt);
     if(m_nodeParameterList)
       m_nodeParameterList->countNavNodes(cnt);
   } //countNavNodes
