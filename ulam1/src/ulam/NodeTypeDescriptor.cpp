@@ -134,8 +134,7 @@ namespace MFM {
       }
     else
       {
-	//primitive
-
+	//primitive, or array typedef
 	if(!m_unknownBitsizeSubtree)
 	  {
 	    if(nuti == Nav)
@@ -175,7 +174,6 @@ namespace MFM {
 	    m_state.setUTISizes(auti, bs, ut->getArraySize()); //update UlamType
 	  }
       }
-    //return (m_state.getBitSize(auti) != UNKNOWNSIZE);
     return (m_state.isComplete(auti)); //repeat if bitsize is still unknown
   } //resolveTypeBitsize
 
