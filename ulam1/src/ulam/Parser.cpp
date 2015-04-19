@@ -520,11 +520,12 @@ namespace MFM {
 	typeargs.m_bitsize = 0;
 	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
 
-	UTI scalaruti = m_state.getUlamTypeFromToken(typeargs);
-	typeargs.m_declListOrTypedefScalarType = scalaruti; //this is what we wanted..
+	UTI tuti = m_state.getUlamTypeFromToken(typeargs); //could be typedef array, w scalar set
+	if(m_state.isScalar(tuti))
+	  typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
-	typeNode = new NodeTypeDescriptor(pTok, scalaruti, m_state);
+	typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
 	assert(typeNode);
 
 	if(bitsizeNode)
@@ -1312,11 +1313,12 @@ namespace MFM {
 	    typeargs.m_bitsize = 0;
 	    NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
 
-	    UTI scalaruti = m_state.getUlamTypeFromToken(typeargs);
-	    typeargs.m_declListOrTypedefScalarType = scalaruti; //this is what we wanted..
+	    UTI tuti = m_state.getUlamTypeFromToken(typeargs);
+	    if(m_state.isScalar(tuti))
+	      typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
 
 	    //bitsize is unknown, e.g. based on a Class.sizeof
-	    typeNode = new NodeTypeDescriptor(pTok, scalaruti, m_state);
+	    typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
 	    assert(typeNode);
 
 	    if(bitsizeNode)
@@ -1383,11 +1385,12 @@ namespace MFM {
 	//check for Type bitsize specifier;
 	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs); //ref
 
-	UTI scalaruti = m_state.getUlamTypeFromToken(typeargs);
-	typeargs.m_declListOrTypedefScalarType = scalaruti; //this is what we wanted..
+	UTI tuti = m_state.getUlamTypeFromToken(typeargs);
+	if(m_state.isScalar(tuti))
+	  typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
-	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(pTok, scalaruti, m_state);
+	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
 	assert(typeNode);
 
 	if(bitsizeNode)
@@ -1450,11 +1453,12 @@ namespace MFM {
 	typeargs.m_bitsize = 0;
 	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
 
-	UTI scalaruti = m_state.getUlamTypeFromToken(typeargs);
-	typeargs.m_declListOrTypedefScalarType = scalaruti; //this is what we wanted..
+	UTI tuti = m_state.getUlamTypeFromToken(typeargs);
+	if(m_state.isScalar(tuti))
+	  typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
-	typeNode = new NodeTypeDescriptor(pTok, scalaruti, m_state);
+	typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
 	assert(typeNode);
 
 	if(bitsizeNode)
@@ -2455,12 +2459,14 @@ namespace MFM {
 	    typeargs.m_bitsize = 0;
 	    NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
 
-	    UTI scalaruti = m_state.getUlamTypeFromToken(typeargs);
-	    typeargs.m_declListOrTypedefScalarType = scalaruti; //this is what we wanted..
-	    uti = scalaruti;
+	    UTI tuti = m_state.getUlamTypeFromToken(typeargs);
+	    if(m_state.isScalar(tuti))
+	      typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
+
+	    uti = tuti;
 
 	    //bitsize is unknown, e.g. based on a Class.sizeof
-	    typeNode = new NodeTypeDescriptor(pTok, scalaruti, m_state);
+	    typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
 	    assert(typeNode);
 
 	    if(bitsizeNode)
@@ -4127,7 +4133,8 @@ namespace MFM {
 	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
 
 	typeToBe = m_state.getUlamTypeFromToken(typeargs);
-	typeargs.m_declListOrTypedefScalarType = typeToBe; //this is what we wanted..
+	if(m_state.isScalar(typeToBe))
+	  typeargs.m_declListOrTypedefScalarType = typeToBe; //this is what we wanted..
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
 	typeNode = new NodeTypeDescriptor(typeTok, typeToBe, m_state);
@@ -4358,12 +4365,16 @@ namespace MFM {
 	return;
       }
 
-    NodeTypeDescriptorArray * nodetypearray = new NodeTypeDescriptorArray(args.m_typeTok, auti, nodetyperef, m_state);
-    assert(nodetypearray);
-    nodetypearray->linkConstantExpressionArraysize(ceForArraySize);
-    nodetyperef = nodetypearray;
-
-    //m_state.linkConstantExpression(auti, ceForArraySize); //tfr owner, or deletes if dup or anothertd
+    // could be local array typedef, no square brackets this time
+    if(m_state.isScalar(nodetyperef->givenUTI()))
+      {
+	NodeTypeDescriptorArray * nodetypearray = new NodeTypeDescriptorArray(args.m_typeTok, auti, nodetyperef, m_state);
+	assert(nodetypearray);
+	nodetypearray->linkConstantExpressionArraysize(ceForArraySize);
+	nodetyperef = nodetypearray;
+      }
+    else
+      delete ceForArraySize;
   } //linkOrFreeConstantExpressionArraysize
 
   void Parser::linkOrFreeConstantExpressionBitsize(UTI auti, TypeArgs args, NodeTypeBitsize * ceForBitSize)
