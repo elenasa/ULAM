@@ -509,7 +509,10 @@ namespace MFM {
     if(m_state.getBaseTypeFromToken(pTok) == Class)
       {
 	UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI?
-	typeargs.m_classInstanceIdx = cuti;
+	if(m_state.isScalar(cuti))
+	  typeargs.m_classInstanceIdx = cuti;
+	else
+	  typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
 
 	typeNode = new NodeTypeDescriptor(pTok, cuti, m_state);
 	assert(typeNode);
@@ -1302,7 +1305,10 @@ namespace MFM {
 	if(m_state.getBaseTypeFromToken(pTok) == Class)
 	  {
 	    UTI cuti = parseClassArguments(pTok);
-	    typeargs.m_classInstanceIdx = cuti;
+	    if(m_state.isScalar(cuti))
+	      typeargs.m_classInstanceIdx = cuti;
+	    else
+	      typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
 
 	    typeNode = new NodeTypeDescriptor(pTok, cuti, m_state);
 	    assert(typeNode);
@@ -1443,7 +1449,11 @@ namespace MFM {
     if(m_state.getBaseTypeFromToken(pTok) == Class)
       {
 	UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI?
-	typeargs.m_classInstanceIdx = cuti;
+	if(m_state.isScalar(cuti))
+	  typeargs.m_classInstanceIdx = cuti;
+	else
+	  typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
+
 	typeNode = new NodeTypeDescriptor(pTok, cuti, m_state);
 	assert(typeNode);
       }
@@ -1514,14 +1524,15 @@ namespace MFM {
 	SymbolClassName * cnsym = NULL;
 	if(!m_state.alreadyDefinedSymbolClassName(typeTok.m_dataindex, cnsym))
 	  {
-	    //check if a typedef first..if so, return its SCALAR uti
+	    //check if a typedef first..
 	    UTI tduti;
 	    UTI tdscalaruti = Nav;
 	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
 	      {
-		if(tdscalaruti != Nav)
-		  return tdscalaruti;
-		return m_state.getUlamTypeAsScalar(tduti); //may make new uti
+		//if(tdscalaruti != Nav)
+		//  return tdscalaruti;
+		//return m_state.getUlamTypeAsScalar(tduti); //may make new uti
+		return tduti; //done. (could be an array)
 	      }
 	    else
 	      m_state.addIncompleteClassSymbolToProgramTable(typeTok, cnsym);
@@ -2258,7 +2269,7 @@ namespace MFM {
 	  //msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
 	  //msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 	  //MSG(&fTok, msg.str().c_str(), DEBUG);
-	  unreadToken(); //?
+	  unreadToken();
 	}
       };
     return rtnNode; //may be null if not minof, maxof, sizeof, but a member or func selected
@@ -2448,7 +2459,10 @@ namespace MFM {
 	if(m_state.getBaseTypeFromToken(pTok) == Class)
 	  {
 	    UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI?
-	    typeargs.m_classInstanceIdx = cuti;
+	    if(m_state.isScalar(cuti))
+	      typeargs.m_classInstanceIdx = cuti;
+	    else
+	      typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
 	    typeNode = new NodeTypeDescriptor(pTok, cuti, m_state);
 	    assert(typeNode);
 	    uti = cuti;
@@ -3668,6 +3682,17 @@ namespace MFM {
 
     //consider possibility of Class Instance as Type
     UTI cuti = parseClassArguments(tTok);
+    if(!m_state.isScalar(cuti))
+      {
+	std::ostringstream msg;
+	msg << "RHS of operator <" << fTok.getTokenString() << "> is an array: ";
+	msg << tTok.getTokenString() << ", operation deleted";
+	MSG(&tTok, msg.str().c_str(), ERR);
+	delete leftNode;
+	m_state.m_parsingConditionalAs = false;
+	return NULL;
+      }
+
     //NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(tTok, cuti, m_state);
     //assert(typeNode);
 
@@ -4121,7 +4146,13 @@ namespace MFM {
     if(m_state.getBaseTypeFromToken(typeTok) == Class)
       {
 	UTI cuti = parseClassArguments(typeTok);
-	typeargs.m_classInstanceIdx = cuti;
+	if(m_state.isScalar(cuti))
+	  typeargs.m_classInstanceIdx = cuti;
+	else
+	  typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
+
+	//catch error casting to an array here?
+
 	typeToBe = cuti; //unless a dot is next
 	typeNode = new NodeTypeDescriptor(typeTok, cuti, m_state);
 	assert(typeNode);
