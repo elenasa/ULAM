@@ -127,46 +127,50 @@ namespace MFM {
     if(m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
+
+	UTI cuti = m_state.getCompileThisIdx();
+	if(m_nodeTypeDesc)
+	  {
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	    assert(duti == Nav || duti == it);
+	  }
+
+#if 0
+	// i believe this is done by the node type descriptor
 	if(!m_state.isComplete(it))
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    if(m_nodeTypeDesc)
-	      {
-		it = m_nodeTypeDesc->checkAndLabelType();
-	      }
-	    else
-	      {
-		UTI mappedUTI = Nav;
-		if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-		  {
-		    std::ostringstream msg;
-		    msg << "Substituting Mapped UTI" << mappedUTI;
-		    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		    msg << " for incomplete Variable Decl for type: ";
-		    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		    msg << " used with variable symbol name '" << getName();
-		    msg << "' UTI" << it << " while labeling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    it = mappedUTI;
-		  }
-	      }
-
-	    if(!m_state.isComplete(it))
+	    UTI mappedUTI = Nav;
+	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: ";
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		msg << " for incomplete Variable Decl for type: ";
 		msg << m_state.getUlamTypeNameByIndex(it).c_str();
 		msg << " used with variable symbol name '" << getName();
 		msg << "' UTI" << it << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		it = Nav;
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
 	      }
-	    else
-	      m_varSymbol->resetUlamType(it); //consistent!
-	  } //not complete
-      } //end var_symbol
+	  }
+#endif
+
+	if(!m_state.isComplete(it))
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete Variable Decl for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' UTI" << it << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    it = Nav;
+	  }
+	//else
+	//  m_varSymbol->resetUlamType(it); //consistent!
+	//    } //not complete
+  } //end var_symbol
 
     setNodeType(it);
     return getNodeType();
@@ -251,6 +255,13 @@ namespace MFM {
 	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
       }
   } //packBitsInOrderOfDeclaration
+
+  void NodeVarDecl::countNavNodes(u32& cnt)
+  {
+    Node::countNavNodes(cnt);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->countNavNodes(cnt);
+  } //countNavNodes
 
   EvalStatus NodeVarDecl::eval()
   {

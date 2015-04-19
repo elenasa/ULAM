@@ -69,21 +69,28 @@ namespace MFM {
     u32 errorsFound = 0;
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->checkAndLabelType(); //user cast
+
+    if(m_nodeTypeDesc)
+      {
+	tobeType = m_nodeTypeDesc->checkAndLabelType();
+	// does duti == tobeType? perhaps instantiated stub has mapped uti
+	if(!m_nodeTypeDesc->isReadyType())
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot cast to nonready type: " ;
+	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    errorsFound++;
+	  }
+      }
+
     if(!m_state.isComplete(tobeType))
       {
-	if(m_nodeTypeDesc)
-	  {
-	    tobeType = m_nodeTypeDesc->checkAndLabelType();
-	    // does duti == tobeType? perhaps instantiated stub has mapped uti
-	    if(!m_nodeTypeDesc->isReadyType())
-	      {
-		std::ostringstream msg;
-		msg << "Cannot cast to incomplete type: " ;
-		msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		errorsFound++;
-	      }
-	  }
+	std::ostringstream msg;
+	msg << "Cannot cast to incomplete type: " ;
+	msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	errorsFound++;
       }
     else if(tobeType == Nav)
       {
@@ -171,7 +178,10 @@ namespace MFM {
   {
     m_node->countNavNodes(cnt);
     Node::countNavNodes(cnt);
-  }
+
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->countNavNodes(cnt);
+  } //countNavNodes
 
   EvalStatus NodeCast::eval()
   {

@@ -150,46 +150,65 @@ namespace MFM {
   UTI NodeBlockFunctionDefinition::checkAndLabelType()
   {
     assert(m_funcSymbol);
-    UTI it = m_funcSymbol->getUlamTypeIdx();
+    UTI fit = m_funcSymbol->getUlamTypeIdx();
+    UTI it = fit;
+    UTI cuti = m_state.getCompileThisIdx();
 
+    // don't want to leave Nav dangling
+    if(m_nodeTypeDesc)
+      {
+	it = m_nodeTypeDesc->checkAndLabelType();
+      }
+
+#if 0
+    // i believe this is done by m_nodeTypeDesc now!!
     if(!m_state.isComplete(it))
       {
-	UTI cuti = m_state.getCompileThisIdx();
-	if(m_nodeTypeDesc)
-	  {
-	    it = m_nodeTypeDesc->checkAndLabelType();
-	  }
-	else
-	  {
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Function Return type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with function name '" << getName();
-		msg << "' UTI" << it << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		it = mappedUTI;
-	      }
-	  }
-
-	if(!m_state.isComplete(it))
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Function Return type: ";
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete Function Return type: ";
 	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
 	    msg << " used with function name '" << getName();
 	    msg << "' UTI" << it << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	    it = Nav;
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    it = mappedUTI;
 	  }
-	else
-	  m_funcSymbol->resetUlamType(it); //consistent!
+      }
+#endif
+
+    if(!m_state.isComplete(it))
+      {
+	std::ostringstream msg;
+	msg << "Incomplete Function Return type: ";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << " used with function name '" << getName();
+	msg << "' UTI" << it << " while labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	it = Nav;
+      }
+    else
+      {
+	assert(fit == it); //should be exact UTI match
+	//if(fit != it) //exact UTI match
+	{
+	  std::ostringstream msg;
+	  msg << "Resetting function symbol UTI" << fit;
+	  msg << ", " << m_state.getUlamTypeNameByIndex(fit).c_str();
+	  msg << " by type descriptor type: ";
+	  msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	  msg << "' UTI" << it;
+	  msg << " used with function name '" << getName();
+	  msg <<  " while labeling class: ";
+	  msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  //m_funcSymbol->resetUlamType(it); //consistent!
+	}
       }
 
     setNodeType(it);
@@ -225,8 +244,8 @@ namespace MFM {
   void NodeBlockFunctionDefinition::countNavNodes(u32& cnt)
   {
     NodeBlock::countNavNodes(cnt);
-    //if(m_nodeTypeDesc)
-    //  m_nodeTypeDesc->countNavNodes(cnt);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->countNavNodes(cnt);
     if(m_nodeParameterList)
       m_nodeParameterList->countNavNodes(cnt);
   } //countNavNodes

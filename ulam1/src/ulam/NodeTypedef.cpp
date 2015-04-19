@@ -144,44 +144,48 @@ namespace MFM {
 	      }
 	  }
 
+	UTI cuti = m_state.getCompileThisIdx();
+	if(m_nodeTypeDesc)
+	  {
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	    assert(duti == Nav || duti == it);
+	  }
+
+#if 0
+	// i belive this is done by node type descriptor
 	if(!m_state.isComplete(it))
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    if(m_nodeTypeDesc)
-	      {
-		it = m_nodeTypeDesc->checkAndLabelType();
-	      }
-	    else
-	      {
-		UTI mappedUTI = Nav;
-		if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-		  {
-		    std::ostringstream msg;
-		    msg << "Substituting Mapped UTI" << mappedUTI;
-		    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		    msg << " for incomplete Typedef type: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-		    msg << " used with typedef symbol name '" << getName();
-		    msg << "' UTI" << it << " while labeling class: ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    it = mappedUTI;
-		  }
-	      }
-
-	    if(!m_state.isComplete(it)) //reloads
+	    UTI mappedUTI = Nav;
+	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Typedef for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		msg << " for incomplete Typedef type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 		msg << " used with typedef symbol name '" << getName();
-		msg << "' (UTI" << it << ")";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		//it = Nav; unlike vardecl
+		msg << "' UTI" << it << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
 	      }
-	    else
-	      m_typedefSymbol->resetUlamType(it); //consistent!
-	  } //not complete
+	  }
+#endif
+
+	if(!m_state.isComplete(it)) //reloads
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete Typedef for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with typedef symbol name '" << getName();
+	    msg << "' UTI" << it << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    //it = Nav; unlike vardecl
+	  }
+	//else
+	//  m_typedefSymbol->resetUlamType(it); //consistent!
+	//  } //not complete
       } // got typedef symbol
 
     setNodeType(it);
@@ -205,6 +209,13 @@ namespace MFM {
   {
     //do nothing, but override
   }
+
+  void NodeTypedef::countNavNodes(u32& cnt)
+  {
+    Node::countNavNodes(cnt);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->countNavNodes(cnt);
+  } //countNavNodes
 
   EvalStatus NodeTypedef::eval()
   {

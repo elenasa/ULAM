@@ -65,12 +65,12 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual bool resolveType(UTI& rtnuti);
-
     virtual void countNavNodes(u32& cnt);
 
   private:
     NodeTypeDescriptor * m_nodeSelect; //selected from, or null
+
+    virtual bool resolveType(UTI& rtnuti);
 
   };
 

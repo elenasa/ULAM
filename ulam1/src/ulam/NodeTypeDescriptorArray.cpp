@@ -84,7 +84,10 @@ namespace MFM {
     UTI it = getNodeType();
 
     if(isReadyType())
-      return it;
+      {
+	assert(m_state.isComplete(it)); //could it be???
+	return it;
+      }
 
     if(resolveType(it))
       {
@@ -107,8 +110,8 @@ namespace MFM {
     // scalar type
     assert(m_nodeScalar);
 
-    UTI scuti;
-    if(m_nodeScalar->resolveType(scuti))
+    UTI scuti = m_nodeScalar->checkAndLabelType();
+    if(m_nodeScalar->isReadyType())
       {
 	// not node select, we are the array on top of the scalar leaf
 	UTI nuti = givenUTI();

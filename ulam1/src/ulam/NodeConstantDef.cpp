@@ -160,37 +160,39 @@ namespace MFM {
 
     assert(m_constSymbol);
     UTI suti = m_constSymbol->getUlamTypeIdx();
+    UTI cuti = m_state.getCompileThisIdx();
+
+    if(m_nodeTypeDesc)
+      {
+	UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	assert(duti == Nav || duti == suti);
+	//m_constSymbol->resetUlamType(suti); //consistent!
+      }
+
+#if 0
+    //i believe this is done by the node type descriptor
     if(!m_state.isComplete(suti))
       {
-	if(m_nodeTypeDesc)
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
 	  {
-	    suti = m_nodeTypeDesc->checkAndLabelType();
-	    m_constSymbol->resetUlamType(suti); //consistent!
-	  }
-	else
-	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Named Constant type: ";
-		msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-		msg << " used with constant symbol name '" << getName();
-		msg << "' UTI" << suti << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		suti = mappedUTI;
-		m_constSymbol->resetUlamType(mappedUTI); //consistent!
-	      }
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete Named Constant type: ";
+	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with constant symbol name '" << getName();
+	    msg << "' UTI" << suti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    suti = mappedUTI;
+	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
 	  }
       }
+#endif
 
     if(!m_state.isComplete(suti)) //reloads
       {
-	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
 	msg << "Incomplete Named Constant for type: ";
 	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
@@ -206,7 +208,6 @@ namespace MFM {
 	ULAMTYPE esuti = m_state.getUlamTypeByIndex(suti)->getUlamTypeEnum();
 	if(eit != esuti)
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
 	    std::ostringstream msg;
 	    msg << "Named Constant '" << getName();
 	    msg << "' type: <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
@@ -226,7 +227,10 @@ namespace MFM {
   {
     Node::countNavNodes(cnt);
     m_nodeExpr->countNavNodes(cnt);
-  }
+
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->countNavNodes(cnt);
+  } //countNavNodes
 
   NNO NodeConstantDef::getBlockNo()
   {
