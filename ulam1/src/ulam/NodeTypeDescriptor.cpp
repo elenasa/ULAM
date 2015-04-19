@@ -135,16 +135,15 @@ namespace MFM {
     else
       {
 	//primitive
-	if(nuti == Nav)
+
+	if(!m_unknownBitsizeSubtree)
 	  {
-	    if(!m_unknownBitsizeSubtree)
-	      {
-		//get default bitsize
-		rtnuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etype], NONARRAYSIZE, Nav);
-		rtnb = true;
-	      }
+	    if(nuti == Nav)
+	      //use default primitive bitsize
+	      rtnuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etype], NONARRAYSIZE, Nav);
 	    else
-	      assert(0);
+	      rtnuti = nuti;
+	    rtnb = true;
 	  }
 	else
 	  {

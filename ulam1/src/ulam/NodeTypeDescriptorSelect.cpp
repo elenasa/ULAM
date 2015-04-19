@@ -93,8 +93,8 @@ namespace MFM {
     // we are in a "chain" of type selects..
     assert(m_nodeSelect);
 
-    UTI seluti;
-    if(m_nodeSelect->resolveType(seluti))
+    UTI seluti = m_nodeSelect->checkAndLabelType();
+    if(m_nodeSelect->isReadyType())
       {
 	UlamType * selut = m_state.getUlamTypeByIndex(seluti);
 	ULAMTYPE seletype = selut->getUlamTypeEnum();

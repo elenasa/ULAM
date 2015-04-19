@@ -47,7 +47,9 @@ namespace MFM{
   public:
 
     NodeTypeDescriptorArray(Token typetoken, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state);
+
     NodeTypeDescriptorArray(const NodeTypeDescriptorArray& ref);
+
     virtual ~NodeTypeDescriptorArray();
 
     virtual Node * instantiate();
@@ -66,15 +68,15 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual bool resolveType(UTI& rtnuti);
-
-    bool resolveTypeArraysize(UTI auti, UTI scuti);
-
     virtual void countNavNodes(u32& cnt);
 
   private:
     NodeTypeDescriptor * m_nodeScalar;
     NodeSquareBracket * m_unknownArraysizeSubtree;
+
+    virtual bool resolveType(UTI& rtnuti);
+
+    bool resolveTypeArraysize(UTI auti, UTI scuti);
 
   };
 

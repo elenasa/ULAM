@@ -94,6 +94,13 @@ namespace MFM {
     return getNodeType(); //updated to Unsigned, hopefully
   }  //checkandLabelType
 
+  void NodeTerminalProxy::countNavNodes(u32& cnt)
+  {
+    Node::countNavNodes(cnt);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->countNavNodes(cnt);
+  } //countNavNodes
+
   EvalStatus NodeTerminalProxy::eval()
   {
     EvalStatus evs = NORMAL; //init ok
@@ -195,21 +202,21 @@ namespace MFM {
 
   bool NodeTerminalProxy::updateProxy()
   {
+    bool rtnb = true;
+
+    if(m_nodeTypeDesc)
+      {
+	m_uti = m_nodeTypeDesc->checkAndLabelType();
+      }
+
     if(isReadyConstant())
       return true;
 
-    bool rtnb = true;
 
+#if 0
     //attempt to map UTI
     if(!m_state.isComplete(m_uti))
       {
-	if(m_nodeTypeDesc)
-	  {
-	    m_uti = m_nodeTypeDesc->checkAndLabelType();
-	  }
-	else
-	  {
-
 	    UTI cuti = m_state.getCompileThisIdx();
 	    UTI mappedUTI = Nav;
 	    if(m_state.mappedIncompleteUTI(cuti, m_uti, mappedUTI))
@@ -224,6 +231,7 @@ namespace MFM {
 	      }
 	  }
       }
+#endif
 
     if(!m_state.isComplete(m_uti))
       {

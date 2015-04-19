@@ -76,6 +76,8 @@ namespace MFM{
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
+    virtual void countNavNodes(u32& cnt);
+
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
