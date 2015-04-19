@@ -3123,7 +3123,8 @@ namespace MFM {
     //  rtnuti = m_state.getUlamTypeFromToken(args); //might make a new one!
 
     assert(nodetype);
-    UTI rtnuti = nodetype->getNodeType();
+    //UTI rtnuti = nodetype->getNodeType();
+    UTI rtnuti = nodetype->givenUTI();
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
 
