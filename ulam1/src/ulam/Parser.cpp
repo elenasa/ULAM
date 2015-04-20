@@ -1664,8 +1664,9 @@ namespace MFM {
 
 	m_state.popClassContext(); //restore before making NodeConstantDef, so current context
 
-	//make Node with argument symbol to try to fold const expr;
-	//o.w. add to list of unresolved for this uti
+	//make Node with argument symbol wo trying to fold const expr;
+	// add to list of unresolved for this uti
+	// NULL node type descriptor, no token, yet know uti
 	NodeConstantDef * constNode = new NodeConstantDef(argSym, NULL, m_state);
 	assert(constNode);
 	constNode->setNodeLocation(pTok.m_locator);

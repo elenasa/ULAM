@@ -850,9 +850,9 @@ namespace MFM {
 		delete ceNode;
 		*vit = NULL;
 	      }
+	    else
+	      leftCArgs.push_back(ceNode);
 	  }
-	else
-	  leftCArgs.push_back(ceNode);
 	vit++;
       } //while thru vector of incomplete args only
 

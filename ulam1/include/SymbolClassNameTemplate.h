@@ -76,6 +76,7 @@ namespace MFM{
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
     std::string formatAnInstancesArgValuesAsCommaDelimitedString(UTI instance);
+    bool checkArgValuesOfClassInstance(UTI instance);
 
     //helpers while deep instantiation
     bool hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI);
