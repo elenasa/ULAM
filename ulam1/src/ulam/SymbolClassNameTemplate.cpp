@@ -507,6 +507,92 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsCommaDelimitedString
 
+  bool SymbolClassNameTemplate::checkArgValuesOfClassInstance(UTI instance)
+  {
+    u32 numParams = getNumberOfParameters();
+    if(numParams == 0)
+      {
+	return true;
+      }
+
+    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
+      {
+	std::ostringstream msg;
+	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	msg << ", has no instances; args format is number of parameters";
+	MSG("", msg.str().c_str(), DEBUG);
+	return false; //short-circuit when argument is template's UTI
+      }
+
+    SymbolClass * csym = NULL;
+    bool rtnok = true;
+
+    if(findClassInstanceByUTI(instance, csym))
+      {
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+	while(pit != m_parameterSymbols.end())
+	  {
+	    SymbolConstantValue * psym = *pit;
+	    //get 'instance's value
+	    Symbol * asym = NULL;
+	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
+	    UTI auti = asym->getUlamTypeIdx();
+	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	    ULAMTYPE eutype = aut->getUlamTypeEnum();
+
+	    bool isok = false;
+	    switch(eutype)
+	      {
+	      case Int:
+		{
+		  s32 sval;
+		  if(((SymbolConstantValue *) asym)->getValue(sval))
+		    {
+		      isok = true;
+		    }
+		  break;
+		}
+	      case Unsigned:
+		{
+		  u32 uval;
+		  if(((SymbolConstantValue *) asym)->getValue(uval))
+		    {
+		      isok = true;
+		    }
+		  break;
+		}
+	      case Bool:
+		{
+		  bool bval;
+		  if(((SymbolConstantValue *) asym)->getValue(bval))
+		    {
+		      isok = true;
+		    }
+		  break;
+		}
+	      default:
+		assert(0);
+	      };
+
+	    if(!isok)
+	      {
+		rtnok = isok;
+		break;
+	      }
+	    pit++;
+	  } //next param
+
+	m_state.popClassContext(); //restore
+      }
+    else
+      rtnok = false;
+    return rtnok;
+  } //checkArgValuesOfAnInstance
+
   bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
     SymbolClass * csym = NULL;
@@ -825,7 +911,7 @@ namespace MFM {
 	u32 navclasscnt = 0;
 	SymbolClass * csym = it->second;
 	UTI suti = csym->getUlamTypeIdx(); //this instance
-	if(m_state.getUlamTypeByIndex(suti)->isComplete())
+	if(m_state.isComplete(suti))
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
@@ -868,7 +954,7 @@ namespace MFM {
 	UTI uti = it->first; //this instance entry; may not match Symbol class' uti
 	s32 totalbits = 0;
 
-	if(m_state.getUlamTypeByIndex(uti)->isComplete())
+	if(m_state.isComplete(uti))
 	  {
 	    it++;
 	    continue; //already set
@@ -956,12 +1042,15 @@ namespace MFM {
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-	classNode->packBitsForVariableDataMembers(); //this instance
-	m_state.popClassContext();
+	UTI suti = csym->getUlamTypeIdx(); //this instance
+	if(m_state.isComplete(suti))
+	  {
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
+	    classNode->packBitsForVariableDataMembers(); //this instance
+	    m_state.popClassContext();
+	  }
 	it++;
       }
   } //packBitsForClassInstances
@@ -991,7 +1080,7 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	assert(!csym->isStub());
 	UTI suti = csym->getUlamTypeIdx();
-	if(m_state.getUlamTypeByIndex(suti)->isComplete())
+	if(m_state.isComplete(suti))
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);

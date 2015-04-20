@@ -556,7 +556,7 @@ namespace MFM {
 	assert(alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
 	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
-	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
+	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti)) //&& ((SymbolClassNameTemplate *) cnsymOfIncomplete)->checkArgValuesOfClassInstance(suti))
 	  return suti;
       }
 
