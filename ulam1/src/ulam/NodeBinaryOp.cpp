@@ -119,7 +119,11 @@ namespace MFM {
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
-    UTI newType = calcNodeType(leftType, rightType);
+    UTI newType = Nav;
+
+    if(leftType && rightType)
+      newType = calcNodeType(leftType, rightType);
+
     setNodeType(newType);
     setStoreIntoAble(false);
 

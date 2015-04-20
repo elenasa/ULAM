@@ -3086,18 +3086,23 @@ namespace MFM {
     if(assignOK && getExpectedToken(TOK_EQUAL))
       {
 	Node * exprNode = parseExpression();
+
 	if(exprNode)
 	  {
 	    constNode->setConstantExpr(exprNode);
+
+#if 0
+	    // no longer needed; part of ConstantDef's c&l
 	    if(!constNode->foldConstantExpression())
 	      {
 		std::ostringstream msg;
 		msg << "Named constant <" << constNode->getName() << "> is not 'ready' while parsing";
-		MSG(constNode->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+		MSG(constNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
 		//add to non-ready list of subtrees
 		m_state.linkConstantExpression(constNode);
 	      }
+#endif
 	  }
       }
     else
