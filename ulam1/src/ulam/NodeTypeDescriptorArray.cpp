@@ -12,7 +12,7 @@ namespace MFM {
 
   NodeTypeDescriptorArray::NodeTypeDescriptorArray(const NodeTypeDescriptorArray& ref) : NodeTypeDescriptor(ref), m_nodeScalar(NULL), m_unknownArraysizeSubtree(NULL)
   {
-    if(m_nodeScalar)
+    if(ref.m_nodeScalar)
       m_nodeScalar = (NodeTypeDescriptor *) ref.m_nodeScalar->instantiate();
 
     if(ref.m_unknownArraysizeSubtree)
