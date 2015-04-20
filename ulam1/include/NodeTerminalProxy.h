@@ -61,6 +61,8 @@ public:
 
     virtual void printPostfix(File * fp);
 
+    virtual const char * getName();
+
     virtual const std::string prettyNodeName();
 
     virtual bool isReadyConstant();

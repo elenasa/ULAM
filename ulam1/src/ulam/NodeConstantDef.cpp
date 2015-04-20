@@ -164,43 +164,21 @@ namespace MFM {
 
     if(m_nodeTypeDesc)
       {
-	UTI duti = m_nodeTypeDesc->checkAndLabelType();
-	assert(duti == Nav || duti == suti);
+	it = m_nodeTypeDesc->checkAndLabelType();
+	assert(it == Nav || it == suti);
 	//m_constSymbol->resetUlamType(suti); //consistent!
       }
 
-#if 0
-    //i believe this is done by the node type descriptor
-    if(!m_state.isComplete(suti))
-      {
-	UTI mappedUTI = Nav;
-	if(m_state.mappedIncompleteUTI(cuti, suti, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete Named Constant type: ";
-	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << " used with constant symbol name '" << getName();
-	    msg << "' UTI" << suti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    suti = mappedUTI;
-	    m_constSymbol->resetUlamType(mappedUTI); //consistent!
-	  }
-      }
-#endif
-
-    if(!m_state.isComplete(suti)) //reloads
+    if(!m_state.isComplete(it)) //reloads
       {
 	std::ostringstream msg;
 	msg << "Incomplete Named Constant for type: ";
 	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
 	msg << " used with constant symbol name '" << getName();
-	msg << "' UTI" << suti << " while labeling class: ";
+	msg << "' UTI" << it << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	it = suti;
+	//it = suti;
       }
     else
       {
@@ -216,9 +194,19 @@ namespace MFM {
 	    msg << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    it = suti; //default it==Int for temp class args, may not match after seeing the template
+	    it = suti; //default it==Int for temp class args, maynot match after seeing the template
 	  }
       }
+
+    setNodeType(it);
+
+    if(!m_constSymbol->isReady())
+      {
+	foldConstantExpression();
+	if(!m_constSymbol->isReady())
+	  it = Nav;
+      }
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -262,9 +250,10 @@ namespace MFM {
   bool NodeConstantDef::foldConstantExpression()
   {
     s32 newconst = 0;
-    UTI uti = checkAndLabelType(); //find any missing symbol
+    //UTI uti = checkAndLabelType(); //find any missing symbol- loop!
+    UTI uti = getNodeType();
 
-    if(uti == Nav)
+    if(uti == Nav || !m_state.isComplete(uti))
       return false; //e.g. not a constant
 
     assert(m_constSymbol);
@@ -273,7 +262,7 @@ namespace MFM {
 
     // if here, must be a constant..
     evalNodeProlog(0); //new current frame pointer
-    makeRoomForNodeType(getNodeType()); //offset a constant expression
+    makeRoomForNodeType(uti); //offset a constant expression
     EvalStatus evs = m_nodeExpr->eval();
     if( evs == NORMAL)
       {
@@ -294,7 +283,7 @@ namespace MFM {
 	return false;
       }
 
-    m_constSymbol->setValue(newconst); //isReady now
+    m_constSymbol->setValue(newconst); //isReady now!
     return true;
   } //foldConstantExpression
 

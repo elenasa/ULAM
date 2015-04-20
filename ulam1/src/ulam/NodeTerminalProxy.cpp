@@ -57,6 +57,14 @@ namespace MFM {
       }
   } //printPostfix
 
+  const char * NodeTerminalProxy::getName()
+  {
+    if(isReadyConstant())
+      return NodeTerminal::getName();
+
+    return m_state.getTokenDataAsString(&m_funcTok).c_str();
+  }
+
   const std::string NodeTerminalProxy::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
@@ -86,13 +94,13 @@ namespace MFM {
       }
 #endif
 
-    if(!updateProxy())
+    if(!updateProxy())   //sets m_uti
       setNodeType(Nav);  //invalid func
-    else if(isReadyConstant())
+    else //if(isReadyConstant())
       setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
 
     return getNodeType(); //updated to Unsigned, hopefully
-  }  //checkandLabelType
+  } //checkandLabelType
 
   void NodeTerminalProxy::countNavNodes(u32& cnt)
   {
@@ -214,6 +222,7 @@ namespace MFM {
 
 
 #if 0
+    // i believe this is done by node type desc
     //attempt to map UTI
     if(!m_state.isComplete(m_uti))
       {
