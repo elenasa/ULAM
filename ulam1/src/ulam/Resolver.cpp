@@ -662,7 +662,8 @@ namespace MFM {
 	    while(!lostCs.empty())
 	      {
 		NodeConstantDef * ncd = lostCs.back();
-		ncd->foldConstantExpression();
+		//ncd->foldConstantExpression();
+		ncd->checkAndLabelType();
 		lostCs.pop_back();
 	      }
 	    lostCs.clear();
@@ -839,11 +840,16 @@ namespace MFM {
     while(vit != m_nonreadyClassArgSubtrees.end())
       {
 	NodeConstantDef * ceNode = *vit;
-
-	if(ceNode && ceNode->foldConstantExpression())
+	// c&l calls foldConstantExpression instead of the reverse.
+	//if(ceNode && ceNode->foldConstantExpression())
+	if(ceNode)
 	  {
-	    delete ceNode;
-	    *vit = NULL;
+	    UTI uti = ceNode->checkAndLabelType();
+	    if(uti != Nav) //i.e. ready
+	      {
+		delete ceNode;
+		*vit = NULL;
+	      }
 	  }
 	else
 	  leftCArgs.push_back(ceNode);

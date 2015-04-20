@@ -19,7 +19,7 @@ namespace MFM {
 
   NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
   {
-    if(m_nodeTypeDesc)
+    if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
   }
 

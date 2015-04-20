@@ -16,7 +16,7 @@ namespace MFM {
 
   NodeTypedef::NodeTypedef(const NodeTypedef& ref) : Node(ref), m_typedefSymbol(NULL), m_tdid(ref.m_tdid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
   {
-    if(m_nodeTypeDesc)
+    if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
   }
 
