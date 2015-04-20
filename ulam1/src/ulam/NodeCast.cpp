@@ -11,7 +11,7 @@ namespace MFM {
 
   NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_explicit(ref.m_explicit)
   {
-    if(m_nodeTypeDesc)
+    if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
   }
 

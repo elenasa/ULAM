@@ -3092,7 +3092,7 @@ namespace MFM {
 	    constNode->setConstantExpr(exprNode);
 
 #if 0
-	    // no longer needed; part of ConstantDef's c&l
+	    // no longer needed; part of ConstantDef's c&lg1669
 	    if(!constNode->foldConstantExpression())
 	      {
 		std::ostringstream msg;

@@ -168,6 +168,8 @@ namespace MFM {
 	assert(it == Nav || it == suti);
 	//m_constSymbol->resetUlamType(suti); //consistent!
       }
+    else
+      it = suti; // for now
 
     if(!m_state.isComplete(it)) //reloads
       {
