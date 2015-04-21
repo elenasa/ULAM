@@ -11,7 +11,8 @@ namespace MFM {
     setNodeLocation(typetoken.m_locator);
   }
 
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(ref.m_uti), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  //since there's no assoc symbol, we map the m_uti here (e.g. S(x,y).sizeof nodeterminalproxy)
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI???
@@ -102,6 +103,8 @@ namespace MFM {
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI(); //getNodeType();
 
+#if 0
+    //since done at construction, this is redundant, i think.
     // if Nav, use token
     UTI mappedUTI = nuti;
     UTI cuti = m_state.getCompileThisIdx();
@@ -121,6 +124,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	nuti = mappedUTI;
       }
+#endif
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etype = nut->getUlamTypeEnum();
