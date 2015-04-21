@@ -4327,7 +4327,7 @@ namespace MFM {
 		  {
 		    // nothing to do if a class type (not a typedef), unless auti is UNSEEN.
 		    if(aclasstype == UC_UNSEEN)
-		      m_state.mapTypesInCurrentClass(auti, args.m_classInstanceIdx, args.m_typeTok.m_locator);
+		      m_state.mapHolderTypesInCurrentClass(auti, args.m_classInstanceIdx, args.m_typeTok.m_locator);
 		  }
 	      }
 	  }
@@ -4343,13 +4343,13 @@ namespace MFM {
 	m_state.linkUnknownTypedefFromAnotherClass(args.m_anothertduti, args.m_classInstanceIdx);
 	if(auti != args.m_anothertduti)
 	  {
-	    m_state.mapTypesInCurrentClass(auti, args.m_anothertduti, args.m_typeTok.m_locator);
+	    m_state.mapHolderTypesInCurrentClass(auti, args.m_anothertduti, args.m_typeTok.m_locator);
 	  }
       }
     else
       {
 	//e.g. lone class typedef
-	m_state.mapTypesInCurrentClass(auti, args.m_classInstanceIdx, args.m_typeTok.m_locator);
+	m_state.mapHolderTypesInCurrentClass(auti, args.m_classInstanceIdx, args.m_typeTok.m_locator);
       }
   } //mapTypeFromUnseenClass
 

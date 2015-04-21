@@ -165,8 +165,22 @@ namespace MFM {
     if(m_nodeTypeDesc)
       {
 	it = m_nodeTypeDesc->checkAndLabelType();
-	assert(it == Nav || it == suti);
-	//m_constSymbol->resetUlamType(suti); //consistent!
+	//assert(it == Nav || it == suti);
+	if(it != Nav && suti != it)
+	  {
+	    std::ostringstream msg;
+	    msg << "Replacing Symbol UTI" << suti;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with named constant symbol name '" << getName();
+	    msg << " with node type descriptor type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << "' UTI" << it << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_constSymbol->resetUlamType(it); //consistent!
+	    m_state.mapTypesInCurrentClass(suti, it);
+	    suti = it;
+	  }
       }
     else
       it = suti; // for now
@@ -175,7 +189,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incomplete Named Constant for type: ";
-	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+	msg << m_state.getUlamTypeNameByIndex(it).c_str();
 	msg << " used with constant symbol name '" << getName();
 	msg << "' UTI" << it << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();

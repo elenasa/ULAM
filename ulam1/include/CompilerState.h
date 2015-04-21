@@ -173,7 +173,8 @@ namespace MFM{
 
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
-    void mapTypesInCurrentClass(UTI fm, UTI to, Locator loc);
+    void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
+    void mapTypesInCurrentClass(UTI fm, UTI to);
 
     void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
     void cloneAndLinkConstantExpression(UTI fromuti, UTI touti);
