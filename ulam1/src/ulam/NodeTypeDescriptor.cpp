@@ -103,7 +103,7 @@ namespace MFM {
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI(); //getNodeType();
 
-#if 0
+#if 1
     //since done at construction, this is redundant, i think.
     // if Nav, use token
     UTI mappedUTI = nuti;
@@ -142,11 +142,17 @@ namespace MFM {
 	if(!m_unknownBitsizeSubtree)
 	  {
 	    if(nuti == Nav)
+	      {
 	      //use default primitive bitsize
 	      rtnuti = m_state.makeUlamType(m_typeTok, ULAMTYPE_DEFAULTBITSIZE[etype], NONARRAYSIZE, Nav);
-	    else
-	      rtnuti = nuti;
-	    rtnb = true;
+	      rtnb = true;
+	      }
+	    else if(m_state.isComplete(nuti))
+	      {
+		rtnuti = nuti;
+		rtnb = true;
+	      }
+	    //else mapped?
 	  }
 	else
 	  {

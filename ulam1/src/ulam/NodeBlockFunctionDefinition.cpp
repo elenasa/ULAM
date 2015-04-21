@@ -160,7 +160,7 @@ namespace MFM {
 	it = m_nodeTypeDesc->checkAndLabelType();
       }
 
-#if 0
+#if 1
     // i believe this is done by m_nodeTypeDesc now!!
     if(!m_state.isComplete(it))
       {
@@ -194,8 +194,8 @@ namespace MFM {
       }
     else
       {
-	assert(fit == it); //should be exact UTI match
-	//if(fit != it) //exact UTI match
+	//assert(fit == it); //should be exact UTI match
+	if(fit != Nav && fit != it) //exact UTI match
 	{
 	  std::ostringstream msg;
 	  msg << "Resetting function symbol UTI" << fit;
@@ -207,7 +207,8 @@ namespace MFM {
 	  msg <<  " while labeling class: ";
 	  msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	  //m_funcSymbol->resetUlamType(it); //consistent!
+	  m_state.mapTypesInCurrentClass(fit, it);
+	  m_funcSymbol->resetUlamType(it); //consistent!
 	}
       }
 

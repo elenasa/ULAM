@@ -600,19 +600,24 @@ namespace MFM {
     return newuti;
   }//mapIncompleteUTIForCurrentClassInstance
 
-  void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to, Locator loc)
+  void CompilerState::mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc)
   {
     updateUTIAlias(fm, to);
 
     updateClassSymbolsFromHolder(fm, to, loc);
 
+    mapTypesInCurrentClass(fm, to);
+  } //mapHolderTypesInCurrentClass
+
+  void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
+  {
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     if(cnsym->isClassTemplate())
       ((SymbolClassNameTemplate *) cnsym)->mapInstanceUTI(getCompileThisIdx(), fm, to);
     else
       cnsym->mapUTItoUTI(fm,to);
-  } //mapTypesInCurrentClass
+  } //mapTypesInCurrentClass (overload)
 
   void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
   {

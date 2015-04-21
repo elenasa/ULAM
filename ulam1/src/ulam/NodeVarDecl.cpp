@@ -132,10 +132,25 @@ namespace MFM {
 	if(m_nodeTypeDesc)
 	  {
 	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
-	    assert(duti == Nav || duti == it);
+	    //assert(duti == Nav || duti == it);
+	    if(duti != Nav && duti != it)
+	      {
+		std::ostringstream msg;
+		msg << "Replacing Symbol UTI" << it;
+		msg << ", " << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << " used with variable symbol name '" << getName();
+		msg << " with node type descriptor type: ";
+		msg << m_state.getUlamTypeNameByIndex(duti).c_str();
+		msg << "' UTI" << duti << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_varSymbol->resetUlamType(duti); //consistent!
+		m_state.mapTypesInCurrentClass(it, duti);
+		it = duti;
+	      }
 	  }
 
-#if 0
+#if 1
 	// i believe this is done by the node type descriptor
 	if(!m_state.isComplete(it))
 	  {
