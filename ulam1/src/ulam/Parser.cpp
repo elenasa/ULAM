@@ -1383,6 +1383,7 @@ namespace MFM {
 
     if(Token::isTokenAType(pTok))
       {
+#if 0
 	TypeArgs typeargs;
 	typeargs.init(pTok);
 	typeargs.m_bitsize = 0;
@@ -1401,7 +1402,58 @@ namespace MFM {
 
 	if(bitsizeNode)
 	  typeNode->linkConstantExpressionBitsize(bitsizeNode); //tfr ownership
+#endif
 
+	NodeTypeDescriptor * typeNode = NULL;
+	TypeArgs typeargs;
+	typeargs.init(pTok);
+	typeargs.m_bitsize = UNKNOWNSIZE;
+
+	if(m_state.getBaseTypeFromToken(pTok) == Class)
+	  {
+	    UTI cuti = parseClassArguments(pTok);
+	    if(m_state.isScalar(cuti))
+	      typeargs.m_classInstanceIdx = cuti;
+	    else
+	      typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
+
+	    typeNode = new NodeTypeDescriptor(pTok, cuti, m_state);
+	    assert(typeNode);
+	  }
+	else
+	  {
+	    //check for Type bitsize specifier;
+	    typeargs.m_bitsize = 0;
+	    NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
+
+	    UTI tuti = m_state.getUlamTypeFromToken(typeargs);
+	    if(m_state.isScalar(tuti))
+	      typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
+
+	    //bitsize is unknown, e.g. based on a Class.sizeof
+	    typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
+	    assert(typeNode);
+
+	    if(bitsizeNode)
+	      typeNode->linkConstantExpressionBitsize(bitsizeNode); //tfr ownership
+	  }
+
+
+	Token dTok;
+	getNextToken(dTok);
+	unreadToken();
+	if(dTok.m_type == TOK_DOT)
+	  {
+	    //appends to typeNode chain
+	    if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
+	      {
+		delete typeNode;
+		typeNode = NULL;
+		return NULL; //error if not a typedef, right?
+	      }
+	  }
+
+	typeargs.m_assignOK = assignOK;
 
 	Token iTok;
 	getNextToken(iTok);
