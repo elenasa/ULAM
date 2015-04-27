@@ -7,14 +7,23 @@
 
 namespace MFM {
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false) {}
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false)
+  {
+    m_nodeParameterList = new NodeList(state);
+  }
+
 
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty)
   {
     setNodeType(m_state.getCompileThisIdx());
+   m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate();
   }
 
-  NodeBlockClass::~NodeBlockClass() {}
+  NodeBlockClass::~NodeBlockClass()
+  {
+    delete m_nodeParameterList;
+    m_nodeParameterList = NULL;
+  }
 
   Node * NodeBlockClass::instantiate()
   {
@@ -38,6 +47,10 @@ namespace MFM {
       m_node->updateLineage(getNodeNo());
     if(m_nodeNext)
       m_nodeNext->updateLineage(getNodeNo());
+    if(m_nodeParameterList)
+      {
+	m_nodeParameterList->updateLineage(getNodeNo());
+      }
     m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs
   } //updateLineage
 
@@ -45,7 +58,11 @@ namespace MFM {
   {
     if(NodeBlock::findNodeNo(n, foundNode))
       return true;
-    return m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode); //all the function defs
+    if(m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode)) //all the function defs
+      return true;
+    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
+      return true;
+    return false;
   } //findNodeNo
 
   void NodeBlockClass::print(File * fp)
@@ -128,6 +145,8 @@ namespace MFM {
     // label all the function definition bodies
     m_functionST.labelTableOfFunctions();
 
+    checkParameterNodeTypes();
+
     // check that a 'test' function returns Int (ulam convention)
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
@@ -144,12 +163,25 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  bool NodeBlockClass::checkParameterNodeTypes()
+  {
+    return m_nodeParameterList->checkAndLabelType();
+  }
+
+  void NodeBlockClass::addParameterNode(Node * nodeArg)
+  {
+    m_nodeParameterList->addNodeToList(nodeArg);
+  }
+
   void NodeBlockClass::countNavNodes(u32& cnt)
   {
     if(m_nodeNext) //may not have data members
       NodeBlock::countNavNodes(cnt);
     cnt += m_functionST.countNavNodesAcrossTableOfFunctions();
-  }
+
+    if(m_nodeParameterList)
+      m_nodeParameterList->countNavNodes(cnt);
+  } //countNavNodes
 
   void NodeBlockClass::checkDuplicateFunctions()
   {

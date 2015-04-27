@@ -141,7 +141,7 @@ namespace MFM {
     EvalStatus evs = NORMAL; //init ok
 
     if(!m_state.isComplete(getNodeType()))
-       return ERROR;
+      return ERROR;
 
     evalNodeProlog(0); //new current frame pointer
 

@@ -238,7 +238,8 @@ namespace MFM {
 	    m_state.setBitSize(suti, symsize); //symsize does not include arrays
 	  }
 
-	totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
+	//if(variableSymbolWithCountableSize(sym))
+	  totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
 	it++;
       } //while
     return totalsizes;
@@ -255,29 +256,30 @@ namespace MFM {
 
 	//don't count typedef's or element parameters toward max
 	if(variableSymbolWithCountableSize(sym))
-	  {
-	    UTI sut = sym->getUlamTypeIdx();
-	    s32 symsize = calcVariableSymbolTypeSize(sut); //recursively
+	{
+	  UTI sut = sym->getUlamTypeIdx();
+	  s32 symsize = calcVariableSymbolTypeSize(sut); //recursively
 
-	    if(symsize == CYCLEFLAG) //was < 0
-	      {
-		std::ostringstream msg;
-		msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
-		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
-	      }
-	    else if(symsize == EMPTYSYMBOLTABLE)
-	      {
-		symsize = 0;
-		m_state.setBitSize(sut, symsize); //total bits NOT including arrays
-	      }
-	    else
+	  if(symsize == CYCLEFLAG) //was < 0
+	    {
+	      std::ostringstream msg;
+	      msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+	      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	    }
+	  else if(symsize == EMPTYSYMBOLTABLE)
+	    {
+	      symsize = 0;
+	      m_state.setBitSize(sut, symsize); //total bits NOT including arrays
+	    }
+	  else
 	      {
 		m_state.setBitSize(sut, symsize); //symsize does not include arrays
 	      }
 
+	  //if(variableSymbolWithCountableSize(sym) && ((s32) m_state.getTotalBitSize(sut) > maxsize))
 	    if((s32) m_state.getTotalBitSize(sut) > maxsize)
 	      maxsize = m_state.getTotalBitSize(sut); //includes arrays
-	  }
+	}
 	it++;
       }
     return maxsize;
@@ -1080,7 +1082,7 @@ namespace MFM {
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
     if(!m_state.isComplete(argut))
-       m_state.constantFoldIncompleteUTI(argut);
+      m_state.constantFoldIncompleteUTI(argut); //to resolver in SymbolClass
 
     s32 totbitsize = m_state.getBitSize(argut);
 
