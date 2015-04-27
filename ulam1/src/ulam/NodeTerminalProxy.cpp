@@ -92,22 +92,22 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
-	// i believe this is done by node type desc
-	//attempt to map UTI
-	if(!m_state.isComplete(m_uti))
+      }
+
+    //attempt to map UTI; may not have a node type descriptor
+    if(!m_state.isComplete(m_uti))
+      {
+	UTI cuti = m_state.getCompileThisIdx();
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, m_uti, mappedUTI))
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, m_uti, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Proxy type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		m_uti = mappedUTI;
-	      }
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete Proxy type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_uti = mappedUTI;
 	  }
       }
 
