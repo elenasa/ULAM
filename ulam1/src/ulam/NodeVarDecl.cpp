@@ -136,12 +136,12 @@ namespace MFM {
 	    if(duti != Nav && duti != it)
 	      {
 		std::ostringstream msg;
-		msg << "Replacing Symbol UTI" << it;
-		msg << ", " << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << "REPLACING Symbol UTI" << it;
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 		msg << " used with variable symbol name '" << getName();
-		msg << " with node type descriptor type: ";
-		msg << m_state.getUlamTypeNameByIndex(duti).c_str();
-		msg << "' UTI" << duti << " while labeling class: ";
+		msg << "' with node type descriptor type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+		msg << " UTI" << duti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_varSymbol->resetUlamType(duti); //consistent!

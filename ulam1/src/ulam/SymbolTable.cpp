@@ -200,11 +200,11 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
 	//don't count typedef's or element parameters toward total, nor named constants
-	if(!variableSymbolWithCountableSize(sym))
-	  {
-	    it++;
-	    continue;
-	  }
+	//if(!variableSymbolWithCountableSize(sym))
+	//  {
+	//    it++;
+	//    continue;
+	//  }
 
 	UTI suti = sym->getUlamTypeIdx();
 	s32 symsize = calcVariableSymbolTypeSize(suti); //recursively
@@ -238,7 +238,7 @@ namespace MFM {
 	    m_state.setBitSize(suti, symsize); //symsize does not include arrays
 	  }
 
-	//if(variableSymbolWithCountableSize(sym))
+	if(variableSymbolWithCountableSize(sym))
 	  totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
 	it++;
       } //while
@@ -255,7 +255,7 @@ namespace MFM {
 	assert(!sym->isFunction());
 
 	//don't count typedef's or element parameters toward max
-	if(variableSymbolWithCountableSize(sym))
+	//if(variableSymbolWithCountableSize(sym))
 	{
 	  UTI sut = sym->getUlamTypeIdx();
 	  s32 symsize = calcVariableSymbolTypeSize(sut); //recursively
@@ -276,8 +276,8 @@ namespace MFM {
 		m_state.setBitSize(sut, symsize); //symsize does not include arrays
 	      }
 
-	  //if(variableSymbolWithCountableSize(sym) && ((s32) m_state.getTotalBitSize(sut) > maxsize))
-	    if((s32) m_state.getTotalBitSize(sut) > maxsize)
+	  if(variableSymbolWithCountableSize(sym) && ((s32) m_state.getTotalBitSize(sut) > maxsize))
+	    //if((s32) m_state.getTotalBitSize(sut) > maxsize)
 	      maxsize = m_state.getTotalBitSize(sut); //includes arrays
 	}
 	it++;

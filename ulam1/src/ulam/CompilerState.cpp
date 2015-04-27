@@ -19,9 +19,9 @@
 
 namespace MFM {
 
-  //#define _DEBUG_OUTPUT
-  //#define _INFO_OUTPUT
-  //#define _WARN_OUTPUT
+//#define _DEBUG_OUTPUT
+//#define _INFO_OUTPUT
+//#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -510,6 +510,10 @@ namespace MFM {
     assert(alreadyDefinedSymbolClass(cuti, csym));
     if(csym->hasMappedUTI(auti, mappedUTI))
       return true;
+
+    // does this hurt anything???
+    if(findaUTIAlias(auti, mappedUTI))
+       return mappedUTI; //anonymous UTI
 
     //move this test after looking for the mapped class symbol type in "cuti" (always compileThis?)
     UlamType * aut = getUlamTypeByIndex(auti);

@@ -294,7 +294,8 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+	UTI cuti = csym->getUlamTypeIdx();
+	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	aok &= csym->statusNonreadyClassArguments(); //could bypass if fully instantiated
 	m_state.popClassContext();
@@ -311,7 +312,8 @@ namespace MFM {
       {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+	UTI cuti = csym->getUlamTypeIdx();
+	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	aok = csym->statusNonreadyClassArguments();
 	m_state.popClassContext();
@@ -638,6 +640,8 @@ namespace MFM {
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
+	UTI cuti = csym->getUlamTypeIdx();
+
 	if(!csym->isStub())
 	  {
 	    it++;
@@ -653,7 +657,6 @@ namespace MFM {
 	  }
 
 	//have we seen these args before?
-	UTI cuti = csym->getUlamTypeIdx();
 	SymbolClass * dupsym = NULL;
 	if(findClassInstanceByArgString(cuti, dupsym))
 	  {
@@ -704,7 +707,7 @@ namespace MFM {
       } //while
 
     // done with iteration; go ahead and merge any entries into the non-temp map
-    mergeClassInstancesFromTEMP();
+    //mergeClassInstancesFromTEMP();
     return aok;
   } //fullyInstantiate
 
@@ -797,9 +800,10 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
+	UTI cuti = csym->getUlamTypeIdx();
 	if(!csym->isStub())
 	  {
-	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+	    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	    classNode->checkCustomArrayTypeFunctions(); //do each instance
 	    m_state.popClassContext(); //restore
@@ -808,7 +812,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << " is still a stub, so no check for custom arrays error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -881,9 +885,10 @@ namespace MFM {
 	SymbolClass * csym = it->second;
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
+	UTI cuti = csym->getUlamTypeIdx();
 	if(!csym->isStub())
 	  {
-	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+	    m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
 	    classNode->checkAndLabelType(); //do each instance
 	    m_state.popClassContext(); //restore
@@ -892,7 +897,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << " Class instance: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << " is still a stub, so check and label error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -1008,6 +1013,7 @@ namespace MFM {
 	  {
 	    UTI lcuti = lostClasses.back();
 	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(lcuti).c_str();
+	    msg << " (UTI" << lcuti << ")";
 	    lostClasses.pop_back();
 	  }
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
