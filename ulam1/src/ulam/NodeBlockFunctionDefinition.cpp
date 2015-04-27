@@ -142,11 +142,6 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  bool NodeBlockFunctionDefinition::checkParameterNodeTypes()
-  {
-    return m_nodeParameterList->checkAndLabelType();
-  }
-
   UTI NodeBlockFunctionDefinition::checkAndLabelType()
   {
     assert(m_funcSymbol);
@@ -159,6 +154,8 @@ namespace MFM {
       {
 	it = m_nodeTypeDesc->checkAndLabelType();
       }
+
+    checkParameterNodeTypes();
 
 #if 1
     // i believe this is done by m_nodeTypeDesc now!!
@@ -236,6 +233,11 @@ namespace MFM {
     m_state.popClassContext();  //restores previous block ptr
     return getNodeType();
   } //checkAndLabelType
+
+  bool NodeBlockFunctionDefinition::checkParameterNodeTypes()
+  {
+    return m_nodeParameterList->checkAndLabelType();
+  }
 
   void NodeBlockFunctionDefinition::addParameterNode(Node * nodeArg)
   {

@@ -39,6 +39,7 @@
 
 #include "NodeBlock.h"
 #include "NodeBlockFunctionDefinition.h"
+#include "NodeList.h"
 #include "Symbol.h"
 
 namespace MFM{
@@ -70,6 +71,10 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     virtual UTI checkAndLabelType();
+
+    bool checkParameterNodeTypes();
+
+    void addParameterNode(Node * nodeArg);
 
     virtual void countNavNodes(u32& cnt);
 
@@ -114,6 +119,7 @@ namespace MFM{
 
     bool m_isEmpty; //replaces separate node
     UTI m_templateClassParentUTI;
+    NodeList * m_nodeParameterList; //constants
 
     void genCodeHeaderQuark(File * fp);
     void genCodeHeaderElement(File * fp);

@@ -96,7 +96,8 @@ namespace MFM{
     */
     NodeBlockClass * parseClassBlock(SymbolClassName * cnsym, Token identTok);
 
-    void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym);
+    //void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym);
+    void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
     /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | ('element' | 0) + <DECL> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
@@ -190,6 +191,7 @@ namespace MFM{
     Node * parseDecl(bool parseSingleDecl = false);
 
 
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs);
 
     UTI parseClassArguments(Token& typeTok);
     void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);

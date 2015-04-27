@@ -65,9 +65,9 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual void printPostfix(File * fp);
 
-    bool checkParameterNodeTypes();
-
     virtual UTI checkAndLabelType();
+
+    bool checkParameterNodeTypes();
 
     void addParameterNode(Node * nodeArg);
 
@@ -105,7 +105,7 @@ class NodeBlockFunctionDefinition : public NodeBlock
     u32 m_maxDepth;
     bool m_native;  //false by default, requires keyword
     NodeList * m_nodeParameterList; //variable or function can be an args
-    NodeTypeDescriptor * m_nodeTypeDesc;
+    NodeTypeDescriptor * m_nodeTypeDesc; //return type
   };
 
 }
