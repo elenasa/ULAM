@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeConditionalHas::NodeConditionalHas(Node * leftNode, UTI classInstanceIdx, CompilerState & state): NodeConditional(leftNode, classInstanceIdx, state) {}
+  NodeConditionalHas::NodeConditionalHas(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state): NodeConditional(leftNode, classType, state) {}
 
   NodeConditionalHas::NodeConditionalHas(const NodeConditionalHas& ref) : NodeConditional(ref) {}
 
@@ -53,7 +53,9 @@ namespace MFM {
 	newType = Nav;
       }
 
-    UTI ruti = m_utypeRight;
+    assert(m_nodeTypeDesc);
+    UTI ruti = m_nodeTypeDesc->checkAndLabelType();
+
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(!(rclasstype == UC_QUARK))
       {
@@ -61,17 +63,15 @@ namespace MFM {
 	msg << "Invalid type for RHS of conditional operator '" << getName();
 	msg << "'; must be a quark name, not type: ";
 	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	if(rclasstype == UC_UNSEEN)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	newType = Nav;
       }
 
+#if 0
+    // i believe this is done by node type descriptor
     // fall through to common attempt to map UTI
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
-	UTI cuti = m_state.getCompileThisIdx();
 	UTI mappedUTI = Nav;
 	if(m_state.mappedIncompleteUTI(cuti, ruti, mappedUTI))
 	  {
@@ -87,6 +87,7 @@ namespace MFM {
 	    ruti = mappedUTI;
 	  }
       }
+#endif
 
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
@@ -124,13 +125,14 @@ namespace MFM {
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
 
+    UTI ruti = getRightType();
     SymbolClass * csym = NULL;
     s32 posFound = -1;
     if(m_state.alreadyDefinedSymbolClass(luti, csym))
       {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	posFound = classNode->findUlamTypeInTable(m_utypeRight);
+	posFound = classNode->findUlamTypeInTable(ruti);
       }
     else
       {
@@ -163,8 +165,9 @@ namespace MFM {
   {
     assert(m_nodeLeft);
     UTI nuti = getNodeType();
+    UTI ruti = getRightType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    UlamType * rut = m_state.getUlamTypeByIndex(m_utypeRight);
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);  //NO need to load lhs into tmp (T)

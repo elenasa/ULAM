@@ -25,6 +25,12 @@ namespace MFM {
       if(rtn1 && rtn2 && rtn3)
 	return std::string("Eltypo.ulam");
 
+      //simplified for debug
+      //bool rtn1 = fms->add("Typo.ulam", "ulam 1;\nquark Typo(Int a) {\n }\n");
+      //bool rtn2 = fms->add("Eltypo.ulam", "ulam 1;\nuse Typo;\n element Eltypo {\n Typo(1) t;\n Int test(){\n if(self has Typo(1)){\n return 1;\n}\n return 0;\n}\n }\n");
+      //if(rtn1 && rtn2)
+      //	return std::string("Eltypo.ulam");
+
       return std::string("");
     }
   }
