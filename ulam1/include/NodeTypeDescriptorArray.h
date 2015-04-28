@@ -77,7 +77,7 @@ namespace MFM{
     virtual bool resolveType(UTI& rtnuti);
 
     bool resolveTypeArraysize(UTI auti, UTI scuti);
-
+    bool attemptToResolveHolderArrayType(UTI auti, UTI buti);
   };
 
 } //MFM
