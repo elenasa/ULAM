@@ -97,13 +97,6 @@ namespace MFM {
     return m_isSelf;
   }
 
-  bool Symbol::isFabricatedTmp()
-  {
-    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
-    ULAMTYPE etype = sut->getUlamTypeEnum();
-    return etype == Holder;
-  }
-
   NNO Symbol::getBlockNoOfST()
   {
     return m_stBlockNo;

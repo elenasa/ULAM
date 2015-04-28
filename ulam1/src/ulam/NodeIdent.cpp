@@ -316,16 +316,18 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex,asymptr))
       {
-	ULAMCLASSTYPE tclasstype = m_state.getUlamTypeByIndex(asymptr->getUlamTypeIdx())->getUlamClass();
-	if(asymptr->isTypedef() && (asymptr->isFabricatedTmp() || tclasstype == UC_UNSEEN))
+	tduti = asymptr->getUlamTypeIdx();
+	//if(asymptr->isTypedef() && (asymptr->isFabricatedTmp() || tclasstype == UC_UNSEEN))
+	if(asymptr->isTypedef() && m_state.isHolder(tduti))
 	  {
-	    tduti = asymptr->getUlamTypeIdx();
 	    args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
 
+	    ULAMCLASSTYPE tclasstype = m_state.getUlamTypeByIndex(tduti)->getUlamClass();
 	    // keep the out-of-band name; other's might refer to its UTI.
 	    // if its UTI is a unseen class, we can update the name of the class during linkOrFree
 	    // don't want to rush this step since we might have a class w args and a different UTI.
-	    if(tclasstype == UC_NOTACLASS && m_state.getUlamTypeByIndex(tduti)->isHolder())
+	    //if(tclasstype == UC_NOTACLASS && m_state.getUlamTypeByIndex(tduti)->isHolder())
+	    if(tclasstype == UC_NOTACLASS)
 	      {
 		// if not a class, but a primitive type update the key
 		if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
@@ -413,12 +415,13 @@ namespace MFM {
 
   bool NodeIdent::installSymbolConstantValue(TypeArgs& args, Symbol*& asymptr)
   {
-    // ask current scope block if this variable name is there;
+    // ask current scope block if this constant name is there;
     // if so, nothing to install return symbol and false
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
-	if(asymptr->isFabricatedTmp())
+	//if(asymptr->isFabricatedTmp())
+	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
 	  {
 	    //remove it! then continue..
 	    Symbol * rmsym = NULL;

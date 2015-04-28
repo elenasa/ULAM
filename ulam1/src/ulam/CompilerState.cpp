@@ -179,7 +179,7 @@ namespace MFM {
     {
       std::ostringstream msg;
       msg << "Replace Holder key (UTI" << uti << ") WITH: ";
-      msg << newut->getUlamTypeName().c_str() << " (UTI" << uti << ")";
+      msg << newut->getUlamTypeName().c_str() << " (UTI" << auti << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 
@@ -891,6 +891,12 @@ namespace MFM {
 #endif
     return ut->isComplete();
   } //isComplete
+
+  bool CompilerState::isHolder(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->isHolder());
+  }
 
   //updates key. we can do this now that UTI is used and the UlamType * isn't saved
   void CompilerState::setBitSize(UTI utArg, s32 bits)

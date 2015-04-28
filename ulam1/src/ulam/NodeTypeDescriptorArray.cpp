@@ -135,7 +135,8 @@ namespace MFM {
 	  }
 
 	// of course, their keys' nameids should be the same (~ enum)!!
-	assert(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(scuti)->getUlamTypeEnum());
+	// unless one is a "holder"
+	assert((m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(scuti)->getUlamTypeEnum()) || m_state.isHolder(nuti));
 
 	if(resolveTypeArraysize(nuti, scuti))
 	  {
@@ -160,9 +161,43 @@ namespace MFM {
 	    //m_unknownArraysizeSubtree = NULL;
 	m_state.setUTISizes(auti, m_state.getBitSize(scuti), as); //update UlamType
       }
+
+    attemptToResolveHolderArrayType(auti, scuti);
     //return (m_state.getArraySize(auti) != UNKNOWNSIZE);
-    return (m_state.isComplete(auti)); //repeat if bitsize is still unknown
+    return (m_state.isComplete(auti)); //repeat if holder or bitsize is still unknown
   } //resolveTypeArraysize
+
+  bool NodeTypeDescriptorArray::attemptToResolveHolderArrayType(UTI auti, UTI buti)
+  {
+    UlamType *aut = m_state.getUlamTypeByIndex(auti);
+    UlamType *but = m_state.getUlamTypeByIndex(buti);
+    bool aholder = aut->isHolder();
+    bool bholder = but->isHolder();
+
+    bool rtnstat = false; //e.g. both are holders
+
+    if(aholder ^ bholder)
+      {
+	//if auti or buti is a holder, but not both, update a key
+	UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature bkey = but->getUlamKeyTypeSignature();
+	if(aholder)
+	  {
+	    UlamKeyTypeSignature newkey(bkey.getUlamKeyTypeSignatureNameId(), bkey.getUlamKeyTypeSignatureBitSize(), akey.getUlamKeyTypeSignatureArraySize(), akey.getUlamKeyTypeSignatureClassInstanceIdx());
+	    m_state.makeUlamTypeFromHolder(akey, newkey, but->getUlamTypeEnum(), auti);
+	  }
+	else
+	  {
+	    UlamKeyTypeSignature newkey(akey.getUlamKeyTypeSignatureNameId(), akey.getUlamKeyTypeSignatureBitSize(), bkey.getUlamKeyTypeSignatureArraySize(), bkey.getUlamKeyTypeSignatureClassInstanceIdx());
+	    m_state.makeUlamTypeFromHolder(bkey, newkey, aut->getUlamTypeEnum(), buti);
+	  }
+	rtnstat = true;
+      }
+    else if(!aholder && !bholder)
+      rtnstat = true; //neither are holders
+
+    return rtnstat;
+  } //attemptToResolveHolderArrayType
 
   void NodeTypeDescriptorArray::countNavNodes(u32& cnt)
   {

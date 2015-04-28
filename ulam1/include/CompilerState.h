@@ -205,6 +205,7 @@ namespace MFM{
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
     bool isComplete(UTI utArg);
+    bool isHolder(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
     void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void mergeClassUTI(UTI olduti, UTI cuti);
