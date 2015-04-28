@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeConditionalAs::NodeConditionalAs(Node * leftNode, UTI classInstanceIdx, CompilerState & state): NodeConditional(leftNode, classInstanceIdx, state) {}
+  NodeConditionalAs::NodeConditionalAs(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state): NodeConditional(leftNode, classType, state) {}
 
   NodeConditionalAs::NodeConditionalAs(const NodeConditionalAs& ref) : NodeConditional(ref) {}
   NodeConditionalAs::~NodeConditionalAs() {}
@@ -26,7 +26,7 @@ namespace MFM {
 
   const std::string NodeConditionalAs::methodNameForCodeGen()
   {
-    return  std::string(m_state.getAsMangledFunctionName(m_nodeLeft->getNodeType(), m_utypeRight));
+    return  std::string(m_state.getAsMangledFunctionName(m_nodeLeft->getNodeType(), getRightType()));
   }
 
   UTI NodeConditionalAs::checkAndLabelType()
@@ -52,7 +52,9 @@ namespace MFM {
 	newType = Nav;
       }
 
-    UTI ruti = m_utypeRight;
+    assert(m_nodeTypeDesc);
+    UTI ruti = m_nodeTypeDesc->checkAndLabelType();
+
     assert(m_state.isScalar(ruti));
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
@@ -62,13 +64,11 @@ namespace MFM {
 	msg << "Invalid type for RHS of conditional operator '" << getName();
 	msg << "'; must be a quark or element name, not type: ";
 	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	if(rclasstype == UC_UNSEEN)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	newType = Nav;
       }
 
+#if 0
     // fall through to common attempt to map UTI
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
@@ -88,6 +88,7 @@ namespace MFM {
 	    ruti = mappedUTI;
 	  }
       }
+#endif
 
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
@@ -127,7 +128,8 @@ namespace MFM {
     luti = pluv.getPtrTargetType();
 
     bool asit;
-    ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(m_utypeRight)->getUlamClass();
+    UTI ruti = getRightType();
+    ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(rclasstype == UC_QUARK)
       {
 	SymbolClass * csym = NULL;
@@ -137,7 +139,7 @@ namespace MFM {
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
-	    posFound = classNode->findUlamTypeInTable(m_utypeRight);
+	    posFound = classNode->findUlamTypeInTable(ruti);
 	  }
 	else
 	  {
@@ -162,7 +164,7 @@ namespace MFM {
       {
 	// like 'is'
 	// inclusive result for eval purposes (atoms and element types are orthogonal)
-	asit = (luti == UAtom || luti == m_utypeRight);
+	asit = (luti == UAtom || luti == ruti);
       }
 
     UlamValue rtnuv = UlamValue::makeImmediate(getNodeType(), (u32) asit, m_state);
@@ -176,7 +178,8 @@ namespace MFM {
   void NodeConditionalAs::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft);
-    ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(m_utypeRight)->getUlamClass();
+    UTI ruti = getRightType();
+    ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
 
     if(rclasstype == UC_QUARK)
       return genCodeAsQuark(fp, uvpass);
@@ -191,7 +194,8 @@ namespace MFM {
   void NodeConditionalAs::genCodeAsQuark(File * fp, UlamValue& uvpass)
   {
     UTI nuti = getNodeType();
-    UlamType * rut = m_state.getUlamTypeByIndex(m_utypeRight);
+    UTI ruti = getRightType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
     s32 tmpVarAs = m_state.getNextTmpVarNumber();
 
     UlamValue luvpass;
@@ -252,7 +256,8 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    UlamType * rut = m_state.getUlamTypeByIndex(m_utypeRight);
+    UTI ruti = getRightType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
     ULAMCLASSTYPE rclasstype = rut->getUlamClass();
 
     UlamValue luvpass;

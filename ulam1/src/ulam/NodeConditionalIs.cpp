@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeConditionalIs::NodeConditionalIs(Node * leftNode, UTI classInstanceIdx, CompilerState & state): NodeConditional(leftNode, classInstanceIdx, state) {}
+  NodeConditionalIs::NodeConditionalIs(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state): NodeConditional(leftNode, classType, state) {}
 
   NodeConditionalIs::NodeConditionalIs(const NodeConditionalIs& ref) : NodeConditional(ref) {}
   NodeConditionalIs::~NodeConditionalIs() {}
@@ -36,7 +36,9 @@ namespace MFM {
 	newType = Nav;
       }
 
-    UTI ruti = m_utypeRight;
+    assert(m_nodeTypeDesc);
+    UTI ruti = m_nodeTypeDesc->checkAndLabelType();
+
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(!(rclasstype == UC_ELEMENT))
       {
@@ -44,13 +46,11 @@ namespace MFM {
 	msg << "Invalid type for RHS of conditional operator '" << getName();
 	msg << "'; must be an element name, not type: ";
 	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	if(rclasstype == UC_UNSEEN)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	newType = Nav;
       }
 
+#if 0
     // fall through to common attempt to map UTI
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
@@ -70,6 +70,7 @@ namespace MFM {
 	    ruti = mappedUTI;
 	  }
       }
+#endif
 
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
@@ -120,9 +121,10 @@ namespace MFM {
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
+    UTI ruti = getRightType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
-    bool isit = (luti == UAtom || UlamType::compare(luti,m_utypeRight,m_state) == UTIC_SAME);
+    bool isit = (luti == UAtom || UlamType::compare(luti,ruti,m_state) == UTIC_SAME);
     UlamValue rtnuv = UlamValue::makeImmediate(getNodeType(), (u32) isit, m_state);
 
     //also copy result UV to stack, -1 relative to current frame pointer
@@ -144,7 +146,8 @@ namespace MFM {
     assert(luti == Ptr);
     luti = luvpass.getPtrTargetType();  //replace
 
-    UlamType * rut = m_state.getUlamTypeByIndex(m_utypeRight);
+    UTI ruti = getRightType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
     ULAMCLASSTYPE rclasstype = rut->getUlamClass();
 
     s32 tmpVarNum = luvpass.getPtrSlotIndex();

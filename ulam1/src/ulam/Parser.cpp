@@ -3626,19 +3626,19 @@ namespace MFM {
 	return NULL;
       }
 
-    //NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(tTok, cuti, m_state);
-    //assert(typeNode);
+    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(tTok, cuti, m_state);
+    assert(typeNode);
 
     switch(fTok.m_type)
       {
       case TOK_KW_IS:
-	rtnNode = new NodeConditionalIs(leftNode, cuti, m_state);
+	rtnNode = new NodeConditionalIs(leftNode, typeNode, m_state);
 	break;
       case TOK_KW_HAS:
-	rtnNode = new NodeConditionalHas(leftNode, cuti, m_state);
+	rtnNode = new NodeConditionalHas(leftNode, typeNode, m_state);
 	break;
       case TOK_KW_AS:
-	rtnNode = new NodeConditionalAs(leftNode, cuti, m_state);
+	rtnNode = new NodeConditionalAs(leftNode, typeNode, m_state);
 	break;
       default:
 	{

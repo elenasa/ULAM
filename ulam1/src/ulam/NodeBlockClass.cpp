@@ -13,10 +13,10 @@ namespace MFM {
   }
 
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty)
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
-   m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate();
+    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); instances don't need this; its got symbols
   }
 
   NodeBlockClass::~NodeBlockClass()
@@ -48,9 +48,7 @@ namespace MFM {
     if(m_nodeNext)
       m_nodeNext->updateLineage(getNodeNo());
     if(m_nodeParameterList)
-      {
-	m_nodeParameterList->updateLineage(getNodeNo());
-      }
+      m_nodeParameterList->updateLineage(getNodeNo());
     m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs
   } //updateLineage
 
@@ -165,11 +163,14 @@ namespace MFM {
 
   bool NodeBlockClass::checkParameterNodeTypes()
   {
-    return m_nodeParameterList->checkAndLabelType();
+    if(m_nodeParameterList)
+      return m_nodeParameterList->checkAndLabelType();
+    return true;
   }
 
   void NodeBlockClass::addParameterNode(Node * nodeArg)
   {
+    assert(m_nodeParameterList); //must be a template
     m_nodeParameterList->addNodeToList(nodeArg);
   }
 
