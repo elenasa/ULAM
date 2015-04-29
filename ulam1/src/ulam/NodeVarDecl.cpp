@@ -132,12 +132,11 @@ namespace MFM {
 	if(m_nodeTypeDesc)
 	  {
 	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
-	    //assert(duti == Nav || duti == it);
 	    if(duti != Nav && duti != it)
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;
-		msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << ", " << m_state.getUlamTypeNameByIndex(it).c_str();
 		msg << " used with variable symbol name '" << getName();
 		msg << "' with node type descriptor type: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
@@ -150,27 +149,6 @@ namespace MFM {
 	      }
 	  }
 
-#if 1
-	// i believe this is done by the node type descriptor
-	if(!m_state.isComplete(it))
-	  {
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Variable Decl for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with variable symbol name '" << getName();
-		msg << "' UTI" << it << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		it = mappedUTI;
-	      }
-	  }
-#endif
-
 	if(!m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
@@ -182,10 +160,7 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	    it = Nav;
 	  }
-	//else
-	//  m_varSymbol->resetUlamType(it); //consistent!
-	//    } //not complete
-  } //end var_symbol
+      } //end var_symbol
 
     setNodeType(it);
     return getNodeType();
@@ -340,7 +315,7 @@ namespace MFM {
     m_state.indent(fp);
     if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
       {
-	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
       }
     else
       {

@@ -7,7 +7,6 @@ namespace MFM {
 
   NodeTypeDescriptor::NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
-    //    setNodeType(auti); //not necessarily "ready"
     setNodeLocation(typetoken.m_locator);
   }
 

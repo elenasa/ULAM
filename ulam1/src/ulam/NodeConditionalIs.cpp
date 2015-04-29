@@ -7,6 +7,7 @@ namespace MFM {
   NodeConditionalIs::NodeConditionalIs(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state): NodeConditional(leftNode, classType, state) {}
 
   NodeConditionalIs::NodeConditionalIs(const NodeConditionalIs& ref) : NodeConditional(ref) {}
+
   NodeConditionalIs::~NodeConditionalIs() {}
 
   Node * NodeConditionalIs::instantiate()
@@ -49,28 +50,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	newType = Nav;
       }
-
-#if 0
-    // fall through to common attempt to map UTI
-    if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
-      {
-	UTI cuti = m_state.getCompileThisIdx();
-	UTI mappedUTI = Nav;
-	if(m_state.mappedIncompleteUTI(cuti, ruti, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete RHS of conditional operator '";
-	    msg << getName() << "' type: ";
-	    msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	    msg << ", while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    ruti = mappedUTI;
-	  }
-      }
-#endif
 
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
@@ -141,10 +120,10 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     UlamValue luvpass;
-    m_nodeLeft->genCode(fp, luvpass);  //loads lhs into tmp (T)
+    m_nodeLeft->genCode(fp, luvpass); //loads lhs into tmp (T)
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
-    luti = luvpass.getPtrTargetType();  //replace
+    luti = luvpass.getPtrTargetType(); //replace
 
     UTI ruti = getRightType();
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
@@ -168,13 +147,13 @@ namespace MFM {
     else
       assert(0);
 
-    fp->write(methodNameForCodeGen().c_str());  //mangled
+    fp->write(methodNameForCodeGen().c_str()); //mangled
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
     fp->write(");\n");
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified (atom-based).
+    uvpass = UlamValue::makePtr(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).
   } //genCode
 
 } //end MFM

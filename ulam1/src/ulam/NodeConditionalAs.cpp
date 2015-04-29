@@ -7,6 +7,7 @@ namespace MFM {
   NodeConditionalAs::NodeConditionalAs(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state): NodeConditional(leftNode, classType, state) {}
 
   NodeConditionalAs::NodeConditionalAs(const NodeConditionalAs& ref) : NodeConditional(ref) {}
+
   NodeConditionalAs::~NodeConditionalAs() {}
 
   Node * NodeConditionalAs::instantiate()
@@ -34,7 +35,7 @@ namespace MFM {
     assert(m_nodeLeft);
     UTI newType = Bool;
 
-    UTI luti = m_nodeLeft->checkAndLabelType();  //side-effect
+    UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
     assert(m_state.isScalar(luti));
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
@@ -67,28 +68,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	newType = Nav;
       }
-
-#if 0
-    // fall through to common attempt to map UTI
-    if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
-      {
-	UTI cuti = m_state.getCompileThisIdx();
-	UTI mappedUTI = Nav;
-	if(m_state.mappedIncompleteUTI(cuti, ruti, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete RHS of conditional operator '";
-	    msg << getName() << "' type: ";
-	    msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	    msg << ", while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    ruti = mappedUTI;
-	  }
-      }
-#endif
 
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
@@ -199,10 +178,10 @@ namespace MFM {
     s32 tmpVarAs = m_state.getNextTmpVarNumber();
 
     UlamValue luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);  //No need to load lhs into tmp (T); symbol's in COS vector
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass); //No need to load lhs into tmp (T); symbol's in COS vector
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
-    luti = luvpass.getPtrTargetType();  //replaces
+    luti = luvpass.getPtrTargetType(); //replaces
 
     // atom is a special case since we have to learn its element type at runtime
     // before interrogating if it 'as' a particular QuarkName Type; return signed pos.
@@ -216,11 +195,11 @@ namespace MFM {
 	fp->write(methodNameForCodeGen().c_str());
 	fp->write("(");
 	fp->write("uc, ");
-	Node::genLocalMemberNameOfMethod(fp);  //assume atom is a local var (neither dm nor ep)
+	Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
 	fp->write("read().GetType(), ");
 	fp->write("\"");
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
-	fp->write("\");\n");  //keeping pos in tmp
+	fp->write("\");\n"); //keeping pos in tmp
       }
     else  //not an atom
       {
@@ -235,21 +214,21 @@ namespace MFM {
 	fp->write(lut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::");
 
-	fp->write(methodNameForCodeGen().c_str());  //mangled-hAs
+	fp->write(methodNameForCodeGen().c_str()); //mangled-hAs
 	fp->write("(\"");
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
-	fp->write("\"));\n");  //keeping pos in tmp
+	fp->write("\"));\n"); //keeping pos in tmp
       }
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
-    uvpass = UlamValue::makePtr(tmpVarAs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid);  //POS 0 rightjustified (atom-based).
+    uvpass = UlamValue::makePtr(tmpVarAs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //POS 0 rightjustified (atom-based).
 
     //indicate to NodeControl that the value returned in uvpass, still needs to be tested >=0,
     //since its value represents the posoffset (+ FIRSTSTATEBIT) into T (in case of a quark).
     m_state.m_genCodingConditionalAs = true;
-    //m_state.m_currentObjSymbolsForCodeGen.clear();  //clear remnant of lhs ???
+    //m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ???
   } //genCodeAsQuark
 
   void NodeConditionalAs::genCodeAsElement(File * fp, UlamValue& uvpass)
@@ -261,15 +240,15 @@ namespace MFM {
     ULAMCLASSTYPE rclasstype = rut->getUlamClass();
 
     UlamValue luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);  //needs to load lhs into tmp (T); symbol's in COS vector
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass); //needs to load lhs into tmp (T); symbol's in COS vector
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
-    luti = luvpass.getPtrTargetType();  //replaces
+    luti = luvpass.getPtrTargetType(); //replaces
 
     //wiped out by reading lhs; needed later by auto NodeVarDecl
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
     m_nodeLeft->genCodeReadIntoATmpVar(fp, luvpass);
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore COS after read.
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore COS after read.
 
     s32 tmpVarNum = luvpass.getPtrSlotIndex();
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
@@ -289,7 +268,7 @@ namespace MFM {
     else
       assert(0);
 
-    fp->write(methodNameForCodeGen().c_str());  //mangled
+    fp->write(methodNameForCodeGen().c_str()); //mangled
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
     fp->write(");\n");

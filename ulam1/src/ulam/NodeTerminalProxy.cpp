@@ -77,7 +77,6 @@ namespace MFM {
 
   UTI NodeTerminalProxy::checkAndLabelType()
   {
-#if 1
     //when minmaxsizeof a selected member
     Symbol * asymptr = NULL;
     if(m_uti == Nav)
@@ -111,11 +110,9 @@ namespace MFM {
 	  }
       }
 
-#endif
-
-    if(!updateProxy())   //sets m_uti
-      setNodeType(Nav);  //invalid func
-    else //if(isReadyConstant())
+    if(!updateProxy()) //sets m_uti
+      setNodeType(Nav); //invalid func
+    else
       setConstantTypeForNode(m_funcTok); //enough info to set this constant node's type
 
     return getNodeType(); //updated to Unsigned, hopefully
@@ -132,8 +129,6 @@ namespace MFM {
   {
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
-
-    //updateProxy();
 
     if(!m_state.isComplete(m_uti))
       evs = ERROR;
@@ -152,15 +147,11 @@ namespace MFM {
 
   void NodeTerminalProxy::genCode(File * fp, UlamValue& uvpass)
   {
-    //updateProxy();
-
     return NodeTerminal::genCode(fp, uvpass);
   }
 
   void NodeTerminalProxy::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
-    //updateProxy();
-
     return NodeTerminal::genCodeToStoreInto(fp, uvpass);
   }
 
@@ -238,28 +229,6 @@ namespace MFM {
 
     if(isReadyConstant())
       return true;
-
-
-#if 0
-    // i believe this is done by node type desc
-    //attempt to map UTI
-    if(!m_state.isComplete(m_uti))
-      {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, m_uti, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Proxy type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		m_uti = mappedUTI;
-	      }
-	  }
-      }
-#endif
 
     if(!m_state.isComplete(m_uti))
       {

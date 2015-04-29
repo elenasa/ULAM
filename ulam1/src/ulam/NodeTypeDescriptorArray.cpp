@@ -163,7 +163,6 @@ namespace MFM {
       }
 
     attemptToResolveHolderArrayType(auti, scuti);
-    //return (m_state.getArraySize(auti) != UNKNOWNSIZE);
     return (m_state.isComplete(auti)); //repeat if holder or bitsize is still unknown
   } //resolveTypeArraysize
 
