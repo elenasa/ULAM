@@ -96,14 +96,7 @@ namespace MFM{
 
     bool constantFoldNonreadyClassArguments();
 
-    void constantFoldIncompleteUTI(UTI auti);
-
-    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
-    void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
-    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
-    void linkIncompleteArrayTypeInResolver(UTI auti, UTI buti);
-    void linkConstantExpression(NodeConstantDef * ceNode);
-    void linkTypedefFromAnotherClass(UTI tduti, UTI stubuti);
+    //void constantFoldIncompleteUTI(UTI auti);
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();

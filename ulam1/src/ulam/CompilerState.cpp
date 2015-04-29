@@ -19,9 +19,9 @@
 
 namespace MFM {
 
-//#define _DEBUG_OUTPUT
-//#define _INFO_OUTPUT
-//#define _WARN_OUTPUT
+  //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -623,57 +623,7 @@ namespace MFM {
       cnsym->mapUTItoUTI(fm,to);
   } //mapTypesInCurrentClass (overload)
 
-  void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
-  {
-    if(ceNode)
-      {
-	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-	cnsym->linkUnknownBitsizeConstantExpression(uti, ceNode);
-      }
-  } //linkConstantExpression (bitsize)
-
-  void CompilerState::cloneAndLinkConstantExpression(UTI fromuti, UTI touti)
-  {
-    SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-    cnsym->linkUnknownBitsizeConstantExpression(fromuti, touti);
-  } //linkConstantExpression (bitsize in decllist)
-
-  void CompilerState::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
-  {
-    if(ceNode)
-      {
-	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-	cnsym->linkUnknownArraysizeConstantExpression(uti, ceNode);
-      }
-  } //linkConstantExpression (arraysize)
-
-  void CompilerState::linkIncompleteArrayTypeToItsBaseScalarType(UTI arrayuti, UTI baseuti)
-  {
-    SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-    cnsym->linkIncompleteArrayTypeInAClass(arrayuti, baseuti);
-  } //linkIncompleteArrayTypeToItsBaseScalarType
-
-  void CompilerState::linkConstantExpression(NodeConstantDef * ceNode)
-  {
-    if(ceNode)
-      {
-	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-	cnsym->linkUnknownNamedConstantExpression(ceNode);
-      }
-  } //linkConstantExpression (named constant)
-
-  void CompilerState::linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubuti)
-  {
-    SymbolClass * csym = NULL;
-    assert(alreadyDefinedSymbolClass(getCompileThisIdx(), csym));
-    csym->linkTypedefFromAnotherClass(tduti, stubuti); //directly into the SC
-  } //linkUnknownTypedefFromAnotherClass
-
+#if 0
   void CompilerState::constantFoldIncompleteUTI(UTI auti)
   {
     SymbolClassName * cnsym = NULL;
@@ -684,6 +634,7 @@ namespace MFM {
       }
     cnsym->constantFoldIncompleteUTIOfClassInstance(getCompileThisIdx(), auti);
   } //constantFoldIncompleteUTI
+#endif
 
   bool CompilerState::constantFoldPendingArgs(UTI cuti)
   {
@@ -880,15 +831,6 @@ namespace MFM {
   bool CompilerState::isComplete(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-#if 0
-    //for arrays, check if scalar is complete
-    if(!ut->isComplete() && !ut->isScalar())
-      {
-	UTI scalarUTI = ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
-	assert(isScalar(scalarUTI));
-	return isComplete(scalarUTI);
-      }
-#endif
     return ut->isComplete();
   } //isComplete
 

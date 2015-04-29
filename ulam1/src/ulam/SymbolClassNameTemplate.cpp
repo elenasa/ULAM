@@ -700,7 +700,7 @@ namespace MFM {
 
 	    addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
 	    //updateLineageOfClassInstanceUTI(cuti); NNO-based now
-	    cloneTemplateResolverForClassInstance(clone);
+	    //cloneTemplateResolverForClassInstance(clone);
 	  }
 	m_state.popClassContext(); //restore
 	it++;
@@ -763,6 +763,7 @@ namespace MFM {
     return foundNode;
   } //findNodeNoInAClassInstance
 
+#if 0
   void SymbolClassNameTemplate::constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti)
   {
     SymbolClass * csym = NULL;
@@ -776,6 +777,7 @@ namespace MFM {
 	m_state.popClassContext(); //restore
       }
   } //constantFoldIncompleteUTIOfClassInstance
+#endif
 
   void SymbolClassNameTemplate::updateLineageOfClassInstanceUTI(UTI instance)
   {
@@ -1252,6 +1254,7 @@ namespace MFM {
     fm->cloneResolverUTImap(to);
   }
 
+#if 0
   // done promptly after the full instantiation; after cloneAnInstancesUTImap
   void SymbolClassNameTemplate::cloneTemplateResolverForClassInstance(SymbolClass * csym)
   {
@@ -1260,6 +1263,6 @@ namespace MFM {
 
     m_resolver->cloneTemplateResolver(csym);
   }//cloneResolverForClassInstance
-
+#endif
 
 } //end MFM

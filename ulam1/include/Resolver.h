@@ -61,24 +61,24 @@ namespace MFM
     ~Resolver();
 
     //clones template's resolver, mapping uti's as needed
-    void cloneTemplateResolver(SymbolClass * to);
+    //void cloneTemplateResolver(SymbolClass * to);
 
-    NodeTypeBitsize * findUnknownBitsizeUTI(UTI auti) const;
-    NodeSquareBracket * findUnknownArraysizeUTI(UTI auti) const;
-    UTI findIncompleteArrayTypeBaseScalarType(UTI auti) const;
+    //    NodeTypeBitsize * findUnknownBitsizeUTI(UTI auti) const;
+    //NodeSquareBracket * findUnknownArraysizeUTI(UTI auti) const;
+    //UTI findIncompleteArrayTypeBaseScalarType(UTI auti) const;
 
     bool statusUnknownConstantExpressions(); //excluding pending class args
-    void constantFoldIncompleteUTI(UTI uti);
+    //void constantFoldIncompleteUTI(UTI uti);
 
-    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
-    void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
+    //void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
+    //void cloneAndLinkConstantExpression(UTI fromtype, UTI totype); //for decllist
 
-    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
-    void linkIncompleteArrayTypeToItsBaseScalarType(UTI arraytype, UTI scalartype);
+    //void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
+    //void linkIncompleteArrayTypeToItsBaseScalarType(UTI arraytype, UTI scalartype);
 
-    void linkConstantExpression(NodeConstantDef * ceNode);
-    void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubUTI);
-    bool isTypedefFromAnotherClass(UTI uti); //prevent linking array subtree if so
+    //void linkConstantExpression(NodeConstantDef * ceNode);
+    //void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubUTI);
+    //bool isTypedefFromAnotherClass(UTI uti); //prevent linking array subtree if so
 
     //these exist in a stubs only!
     bool assignClassArgValuesInStubCopy();
@@ -98,45 +98,45 @@ namespace MFM
   protected:
 
   private:
-    std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
-    std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
+    //std::map<UTI, NodeTypeBitsize *> m_unknownBitsizeSubtrees; //constant expr to resolve, and empty
+    //std::map<UTI, NodeSquareBracket *> m_unknownArraysizeSubtrees;  //constant expr to resolve, and empty
 
-    std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
+    //std::set<NodeConstantDef *> m_nonreadyNamedConstantSubtrees; //constant expr to resolve, and empty; various scopes
     std::vector<NodeConstantDef *> m_nonreadyClassArgSubtrees; //constant expr to resolve, and empty for a class' args.
 
-    std::map<UTI, UTI> m_unknownTypedefFromAnotherClass; //typedef uti to its class' uti, for map lookup after full instantiation of its class (while a stub the type is the template's).
+    //std::map<UTI, UTI> m_unknownTypedefFromAnotherClass; //typedef uti to its class' uti, for map lookup after full instantiation of its class (while a stub the type is the template's).
 
     std::map<UTI, UTI> m_mapUTItoUTI; //mult-purpose: instantiating stubs; unknown typedefs from another class
-    std::map<UTI, UTI> m_incompleteArrayTypeToItsBaseScalarType; //array uti to scalar uti; scalar may be typedef from another class
+    //std::map<UTI, UTI> m_incompleteArrayTypeToItsBaseScalarType; //array uti to scalar uti; scalar may be typedef from another class
 
 
     CompilerState& m_state;
     UTI m_classUTI;
     UTI m_classContextUTIForPendingArgs; //used to evaluate pending class args in context
 
-    bool statusUnknownBitsizeUTI();
-    bool statusUnknownArraysizeUTI();
-    bool statusIncompleteArrayTypes();
+    //bool statusUnknownBitsizeUTI();
+    //bool statusUnknownArraysizeUTI();
+    //bool statusIncompleteArrayTypes();
     bool statusMappedTypes();
     bool attemptToResolveHolderMappedType(UTI uti);
     bool attemptToResolveHolderArrayType(UTI auti, UTI buti);
-    bool statusNonreadyNamedConstants();
-    bool statusUnknownTypedefsFromAnotherClass();
+    //bool statusNonreadyNamedConstants();
+    //bool statusUnknownTypedefsFromAnotherClass();
 
-    bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
-    bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
+    //bool constantFoldUnknownBitsize(UTI auti, s32& bitsize);
+    //bool constantFoldUnknownArraysize(UTI auti, s32& arraysize);
 
-    bool findNodeNoInUnknownBitsizes(NNO n, Node *& foundNode);
-    bool findNodeNoInUnknownArraysizes(NNO n, Node *& foundNode);
-    bool findNodeNoInNonreadyNamedConstants(NNO n, Node *& foundNode);
+    //bool findNodeNoInUnknownBitsizes(NNO n, Node *& foundNode);
+    //bool findNodeNoInUnknownArraysizes(NNO n, Node *& foundNode);
+    //bool findNodeNoInNonreadyNamedConstants(NNO n, Node *& foundNode);
     bool findNodeNoInNonreadyClassArgs(NNO n, Node *& foundNode);
 
     void clearLeftoverSubtrees();
-    void clearLeftoverUnknownBitsizeSubtrees();
-    void clearLeftoverUnknownArraysizeSubtrees();
-    void clearLeftoverNonreadyNamedConstantSubtrees();
+    //    void clearLeftoverUnknownBitsizeSubtrees();
+    //void clearLeftoverUnknownArraysizeSubtrees();
+    //void clearLeftoverNonreadyNamedConstantSubtrees();
     void clearLeftoverNonreadyClassArgSubtrees();
-    void clearLeftoverUnknownTypdedefsFromAnotherClass();
+    //void clearLeftoverUnknownTypdedefsFromAnotherClass();
 
   };
 
