@@ -115,23 +115,37 @@ namespace MFM {
       {
 	// not node select, we are the array on top of the scalar leaf
 	UTI nuti = givenUTI();
-	UTI mappedUTI = nuti;
-	UTI cuti = m_state.getCompileThisIdx();
 
-	// the symbol associated with this type, was mapped during instantiation
-	// since we're call AFTER that (not during), we can look up our
-	// new UTI and pass that on up the line of NodeType Selects, if any.
-	if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
+	if(!m_state.isComplete(nuti))
 	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete descriptor array type: ";
-	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	    msg << "' UTI" << nuti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    nuti = mappedUTI;
+	    UTI mappedUTI = nuti;
+	    UTI cuti = m_state.getCompileThisIdx();
+
+	    // the symbol associated with this type, was mapped during instantiation
+	    // since we're call AFTER that (not during), we can look up our
+	    // new UTI and pass that on up the line of NodeType Selects, if any.
+	    if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+		msg << " for incomplete descriptor array type: ";
+		msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+		msg << "' UTI" << nuti << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		nuti = mappedUTI;
+	      }
+
+	    if(!m_state.isComplete(nuti)) //reloads to recheck
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete descriptor for array type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << " UTI" << nuti << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	      }
 	  }
 
 	// of course, their keys' nameids should be the same (~ enum)!!

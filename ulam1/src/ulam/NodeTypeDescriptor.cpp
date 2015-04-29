@@ -102,28 +102,38 @@ namespace MFM {
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI(); //getNodeType();
 
-#if 1
-    //since done at construction, this is redundant, i think.
-    // if Nav, use token
-    UTI mappedUTI = nuti;
-    UTI cuti = m_state.getCompileThisIdx();
-
-    // the symbol associated with this type, was mapped during instantiation
-    // since we're call AFTER that (not during), we can look up our
-    // new UTI and pass that on up the line of NodeType Selects, if any.
-    if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
+    if(!m_state.isComplete(nuti))
       {
-	std::ostringstream msg;
-	msg << "Substituting Mapped UTI" << mappedUTI;
-	msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	msg << " for incomplete descriptor type: ";
-	msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	msg << "' UTI" << nuti << " while labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	nuti = mappedUTI;
+	// if Nav, use token
+	UTI mappedUTI = nuti;
+	UTI cuti = m_state.getCompileThisIdx();
+
+	// the symbol associated with this type, was mapped during instantiation
+	// since we're call AFTER that (not during), we can look up our
+	// new UTI and pass that on up the line of NodeType Selects, if any.
+	if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
+	  {
+	    std::ostringstream msg;
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete descriptor type: ";
+	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << "' UTI" << nuti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    nuti = mappedUTI;
+	  }
+
+	if(!m_state.isComplete(nuti)) //reloads to recheck
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete descriptor for type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " UTI" << nuti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	  }
       }
-#endif
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etype = nut->getUlamTypeEnum();
