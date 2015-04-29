@@ -108,6 +108,18 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_uti = mappedUTI;
 	  }
+
+	if(!m_state.isComplete(m_uti)) //reloads to recheck
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete Terminal Proxy for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    msg << " of member '";
+	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
+	    msg << "' while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	  }
       }
 
     if(!updateProxy()) //sets m_uti

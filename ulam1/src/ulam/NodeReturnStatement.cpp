@@ -118,13 +118,12 @@ namespace MFM {
 	  }
       } // not nav
     else if(!m_state.isComplete(nodeType))
-	  {
-	    std::ostringstream msg;
-	    msg << "Function return type is still incomplete: ";
-	    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	    nodeType = Nav;
-	  }
+      {
+	std::ostringstream msg;
+	msg << "Function return type is still incomplete: ";
+	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	nodeType = Nav;
       }
 
     //check later against defined function return type
