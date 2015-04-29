@@ -68,7 +68,6 @@ namespace MFM {
       {
 	fp->write("[UNKNOWN]");
       }
-
 #endif
     fp->write(";\n");
   } //generateCodedVariableDeclarations
