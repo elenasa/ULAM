@@ -56,6 +56,18 @@ namespace MFM{
     return rtnb;
   } //exchangeKids
 
+  bool NodeList::exchangeKids(Node * oldnptr, Node * newnptr, u32 n)
+  {
+    bool rtnb = false;
+    assert(n < m_nodes.size());
+    if(m_nodes[n] == oldnptr)
+      {
+         m_nodes[n] = newnptr;
+	 rtnb = true;
+      }
+    return rtnb;
+  } //exchangeKids
+
   bool NodeList::findNodeNo(NNO n, Node *& foundNode)
   {
     bool rtnb = false;
@@ -123,6 +135,12 @@ namespace MFM{
     return NORMAL;
   }
 
+  EvalStatus NodeList::eval(u32 n)
+  {
+    assert(n < m_nodes.size());
+    return m_nodes[n]->eval();
+  }
+
   void NodeList::addNodeToList(Node * argNode)
   {
     m_nodes.push_back(argNode);
@@ -144,5 +162,17 @@ namespace MFM{
     assert(n < m_nodes.size());
     return m_nodes[n]->getNodeType();
   } //getNodeType
+
+  bool NodeList::isAConstant(u32 n)
+  {
+    assert(n < m_nodes.size());
+    return m_nodes[n]->isAConstant();
+  } //isAConstant
+
+  void NodeList::genCode(File * fp, UlamValue& uvpass, u32 n)
+  {
+    assert(n < m_nodes.size());
+    m_nodes[n]->genCode(fp, uvpass);
+  } //genCode
 
 } //MFM

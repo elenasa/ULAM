@@ -39,8 +39,9 @@
 
 #include <vector>
 #include "Node.h"
-#include "Token.h"
+#include "NodeList.h"
 #include "SymbolFunction.h"
+#include "Token.h"
 
 namespace MFM{
 
@@ -98,7 +99,8 @@ namespace MFM{
 
     Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
-    std::vector<Node *> m_argumentNodes;
+    //std::vector<Node *> m_argumentNodes;
+    NodeList * m_argumentNodes;
 
   };
 
