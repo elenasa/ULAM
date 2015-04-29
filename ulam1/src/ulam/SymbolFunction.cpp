@@ -169,50 +169,6 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
     return func->checkParameterNodeTypes();
-
-#if 0
-    bool aok = true;
-
-    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
-      {
-	Symbol * sym = m_parameterSymbols[i];
-	UTI pit = sym->getUlamTypeIdx();
-	if(!m_state.isComplete(pit))
-	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, pit, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete function parameter#" << i+1 << ", type: ";
-		msg << m_state.getUlamTypeNameByIndex(pit).c_str();
-		msg << " used with function symbol name '";
-		msg << m_state.m_pool.getDataAsString(getId()).c_str();
-		msg << "' while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG("", msg.str().c_str(), DEBUG);
-		sym->resetUlamType(mappedUTI); //consistent!
-		pit = mappedUTI;
-	      }
-
-	    if(!m_state.isComplete(pit))
-	      {
-		std::ostringstream msg;
-		msg << "Incomplete function parameter#" << i+1 << ", type: ";
-		msg << m_state.getUlamTypeNameByIndex(pit).c_str();
-		msg << " used with function symbol name '";
-		msg << m_state.m_pool.getDataAsString(getId()).c_str();
-		msg << "' while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG("", msg.str().c_str(), WARN);
-		aok &= false;
-	      }
-	  } //not complete
-      } //next param
-    return aok;
-#endif
   } //checkParamterTypes
 
   bool SymbolFunction::matchingTypesStrictly(std::vector<UTI> argTypes)
