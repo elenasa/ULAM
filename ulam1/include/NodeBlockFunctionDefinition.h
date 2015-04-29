@@ -38,10 +38,10 @@
 #define NODEBLOCKFUNCTIONDEFINITION_H
 
 #include "File.h"
-#include "SymbolFunction.h"
 #include "NodeBlock.h"
-#include "NodeTypeDescriptor.h"
 #include "NodeList.h"
+#include "NodeTypeDescriptor.h"
+#include "SymbolFunction.h"
 
 namespace MFM {
 

@@ -9,24 +9,21 @@
 
 namespace MFM {
 
-  NodeFunctionCall::NodeFunctionCall(Token tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym) {}
-
-  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL)
+  NodeFunctionCall::NodeFunctionCall(Token tok, SymbolFunction * fsym, CompilerState & state) : Node(state), m_functionNameTok(tok), m_funcSymbol(fsym), m_argumentNodes(NULL)
   {
-    for(u32 i = 0; i < ref.m_argumentNodes.size(); i++)
-      {
-	m_argumentNodes.push_back(ref.m_argumentNodes[i]->instantiate()); //deep copy
-      }
+    m_argumentNodes = new NodeList(state);
+    assert(m_argumentNodes);
+  }
+
+  NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL)
+  {
+    m_argumentNodes = (NodeList *) ref.m_argumentNodes->instantiate();
   }
 
   NodeFunctionCall::~NodeFunctionCall()
   {
-    //may need to delete the nodes
-    for(u32 i = 0; i < m_argumentNodes.size(); i++)
-      {
-	delete m_argumentNodes[i];
-      }
-    m_argumentNodes.clear();
+    delete m_argumentNodes;
+    m_argumentNodes = NULL;
   }
 
   Node * NodeFunctionCall::instantiate()
@@ -37,24 +34,12 @@ namespace MFM {
   void NodeFunctionCall::updateLineage(NNO pno)
   {
     setYourParentNo(pno);
-    NNO fcno = getNodeNo();
-    for(u32 i = 0; i < m_argumentNodes.size(); i++)
-      {
-	m_argumentNodes[i]->updateLineage(fcno);
-      }
+    m_argumentNodes->updateLineage(getNodeNo());
   } //updateLineage
 
   bool NodeFunctionCall::exchangeKids(Node * oldnptr, Node * newnptr)
   {
-    for(u32 i = 0; i < m_argumentNodes.size(); i++)
-      {
-	if(m_argumentNodes[i] == oldnptr)
-	  {
-	    m_argumentNodes[i] = newnptr;
-	    return true;
-	  }
-      }
-    return false;
+    return m_argumentNodes->exchangeKids(oldnptr, newnptr);
   } //exchangeKids
 
   bool NodeFunctionCall::findNodeNo(NNO n, Node *& foundNode)
@@ -62,21 +47,15 @@ namespace MFM {
     if(Node::findNodeNo(n, foundNode))
       return true;
 
-    for(u32 i = 0; i < m_argumentNodes.size(); i++)
-      {
-	if(m_argumentNodes[i]->findNodeNo(n, foundNode))
-	  return true;
-      }
+    if(m_argumentNodes->findNodeNo(n, foundNode))
+      return true;
     return false;
   } //findNodeNo
 
   void NodeFunctionCall::printPostfix(File * fp)
   {
     fp->write(" (");
-    for(u32 i = 0; i < m_argumentNodes.size(); i++)
-      {
-	m_argumentNodes[i]->printPostfix(fp);
-      }
+    m_argumentNodes->printPostfix(fp);
     fp->write(" )");
     fp->write(getName());
   } //printPostfix
@@ -111,12 +90,14 @@ namespace MFM {
       {
         //use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
-	for(u32 i = 0; i < m_argumentNodes.size(); i++)
+	m_argumentNodes->checkAndLabelType();  //plus side-effect
+	u32 numargs = getNumberOfArguments();
+	for(u32 i = 0; i < numargs; i++)
 	  {
-	    UTI argtype = m_argumentNodes[i]->checkAndLabelType();  //plus side-effect
+	    UTI argtype = m_argumentNodes->getNodeType(i);  //plus side-effect
 	    argTypes.push_back(argtype);
 	    // track constants and potential casting to be handled
-	    if(m_argumentNodes[i]->isAConstant())
+	    if(m_argumentNodes->isAConstant(i))
 	      {
 		constArgs.push_back(true);
 		constantArgs++;
@@ -133,7 +114,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "(1) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-	    msg << "> has no defined function with " << m_argumentNodes.size();
+	    msg << "> has no defined function with " << numargs;
 	    msg << " matching argument types: ";
 	    for(u32 i = 0; i < argTypes.size(); i++)
 	      {
@@ -190,7 +171,9 @@ namespace MFM {
 		  {
 		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
 		    UTI ptype = psym->getUlamTypeIdx();
-		    m_argumentNodes[i] = makeCastingNode(m_argumentNodes[i], ptype);
+		    Node * argNode = m_argumentNodes->getNodePtr(i);
+		    Node * argCast = makeCastingNode(argNode, ptype);
+		    m_argumentNodes->exchangeKids(argNode, argCast, i);
 		    argsWithCast++;
 		  }
 	      }
@@ -198,11 +181,14 @@ namespace MFM {
 	    // do similar casting on any variable arg constants (without parameters)
 	    if(m_funcSymbol->takesVariableArgs())
 	      {
-		for(u32 i = numParams; i < m_argumentNodes.size(); i++)
+		u32 numargs = getNumberOfArguments();
+		for(u32 i = numParams; i < numargs; i++)
 		  {
 		    if(constArgs[i])
 		      {
-			m_argumentNodes[i] = makeCastingNode(m_argumentNodes[i], m_state.getDefaultUlamTypeOfConstant(argTypes[i]));
+			Node * argNode = m_argumentNodes->getNodePtr(i);
+			Node * argCast = makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]));
+			m_argumentNodes->exchangeKids(argNode, argCast, i);
 			argsWithCast++;
 		      }
 		  }
@@ -239,19 +225,20 @@ namespace MFM {
 
     // for now we're going to bypass variable arguments for eval purposes
     // since our NodeFunctionDef has no way to know how many extra args to expect!
-    s32 diffInArgs = m_argumentNodes.size() - m_funcSymbol->getNumberOfParameters();
+    u32 numargs = getNumberOfArguments();
+    s32 diffInArgs = numargs - m_funcSymbol->getNumberOfParameters();
     assert(diffInArgs == 0 || m_funcSymbol->takesVariableArgs());
 
     // place values of arguments on call stack (reverse order) before calling function
-    for(s32 i= m_argumentNodes.size() - diffInArgs - 1; i >= 0; i--)
+    for(s32 i= numargs - diffInArgs - 1; i >= 0; i--)
       {
-	UTI argType = m_argumentNodes[i]->getNodeType();
+	UTI argType = m_argumentNodes->getNodeType(i);
 
 	// extra slot for a Ptr to unpacked array;
 	// arrays are handled by CS/callstack, and passed by value
 	u32 slots = makeRoomForNodeType(argType); //for eval return
 
-	evs = m_argumentNodes[i]->eval();
+	evs = m_argumentNodes->eval(i);
 	if(evs != NORMAL)
 	  {
 	    evalNodeEpilog();
@@ -363,13 +350,13 @@ namespace MFM {
   void NodeFunctionCall::addArgument(Node * n)
   {
     //check types later
-    m_argumentNodes.push_back(n);
+    m_argumentNodes->addNodeToList(n);
     return;
   }
 
   u32 NodeFunctionCall::getNumberOfArguments()
   {
-    return m_argumentNodes.size();
+    return m_argumentNodes->getNumberOfNodes();
   }
 
   bool NodeFunctionCall::getSymbolPtr(Symbol *& symptrref)
@@ -460,7 +447,7 @@ namespace MFM {
 	UTI auti;
 	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
-	m_argumentNodes[i]->genCode(fp, auvpass);
+	m_argumentNodes->genCode(fp, auvpass, i);
 	Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 	auti = auvpass.getUlamValueTypeIdx();
 	if(auti == Ptr)
@@ -472,13 +459,14 @@ namespace MFM {
 
     if(m_funcSymbol->takesVariableArgs())
       {
-	for(u32 i = numParams; i < m_argumentNodes.size(); i++)
+	u32 numargs = getNumberOfArguments();
+	for(u32 i = numParams; i < numargs; i++)
 	  {
 	    UlamValue auvpass;
 	    UTI auti;
 	    m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
 
-	    m_argumentNodes[i]->genCode(fp, auvpass);
+	    m_argumentNodes->genCode(fp, auvpass, i);
 	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
 
 	    auti = auvpass.getUlamValueTypeIdx();

@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
+    bool exchangeKids(Node * oldnptr, Node * newnptr, u32 n);
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void print(File * fp);
@@ -76,6 +78,8 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
+    EvalStatus eval(u32 n);
+
     void addNodeToList(Node * argNode);
 
     u32 getNumberOfNodes() const;
@@ -83,6 +87,10 @@ namespace MFM{
     Node * getNodePtr (u32 n) const;
 
     UTI getNodeType(u32 n); //overloads Node.h
+
+    bool isAConstant(u32 n);
+
+    void genCode(File * fp, UlamValue& uvpass, u32 n);
 
   protected:
 
