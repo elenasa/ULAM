@@ -588,9 +588,6 @@ namespace MFM {
 	    //not '(', so token is unread, and we know
 	    //it's a variable, not a function;
 	    //also handles arrays
-	    //typeargs.m_declListOrTypedefScalarType = Nav; we have it
-	    //rtnNode = makeVariableSymbol(typeargs, iTok, bitsizeNode);
-	    //UTI passuti = typeNode->getNodeType(); //before it may become an array
 	    UTI passuti = typeNode->givenUTI(); //before it may become an array
 	    rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
 
@@ -1398,9 +1395,7 @@ namespace MFM {
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-	//UTI passuti = typeNode->getNodeType(); //before it may become an array
 	UTI passuti = typeNode->givenUTI(); //before it may become an array
-	//typeargs.m_declListOrTypedefScalarType = Nav; //first one!
 	rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
 	if(rtnNode && !parseSingleDecl)
 	  {
@@ -1467,14 +1462,7 @@ namespace MFM {
     getNextToken(dTok);
     unreadToken();
     if(dTok.m_type == TOK_DOT)
-      {
-	if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode)) //refs
-	  {
-	    //delete typeNode;
-	    //typeNode = NULL;
-	    //return NULL; //decl with sizeof in type, not good.
-	  }
-      }
+      parseTypeFromAnotherClassesTypedef(typeargs, typeNode);
     return typeNode;
   } //parseTypeDescriptor
 
@@ -1493,12 +1481,7 @@ namespace MFM {
 	    UTI tduti;
 	    UTI tdscalaruti = Nav;
 	    if(m_state.getUlamTypeByTypedefName(typeTok.m_dataindex, tduti, tdscalaruti))
-	      {
-		//if(tdscalaruti != Nav)
-		//  return tdscalaruti;
-		//return m_state.getUlamTypeAsScalar(tduti); //may make new uti
-		return tduti; //done. (could be an array)
-	      }
+	      return tduti; //done. (could be an array)
 	    else
 	      m_state.addIncompleteClassSymbolToProgramTable(typeTok, cnsym);
 	  }
@@ -3039,23 +3022,10 @@ namespace MFM {
     NodeBlock * prevBlock = m_state.getCurrentBlock();
     assert(prevBlock == currClassBlock);
 
-    //o.w. build symbol for function: name, return type, plus arg symbols
-    //array return types require a typedef alias; lookup is name-based, indep of size args.
-    //UTI rtnuti;
-    //if(args.m_anothertduti)
-    //  rtnuti = args.m_anothertduti;
-    //else if(args.m_classInstanceIdx) //second in line???
-    //  rtnuti = args.m_classInstanceIdx;
-    //else
-    //  rtnuti = m_state.getUlamTypeFromToken(args); //might make a new one!
-
     assert(nodetype);
-    //UTI rtnuti = nodetype->getNodeType();
     UTI rtnuti = nodetype->givenUTI();
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
-
-    //linkFreeMapATypeAndConstantExpressions(rtnuti, args, constExprForBitSize, NULL);
 
     //WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, nodetype, m_state);
@@ -3196,9 +3166,8 @@ namespace MFM {
 	      fsym->addParameterSymbol(argSym); //ownership stays with NodeBlockFunctionDefinition's ST
 	    else
 	      MSG(&pTok, "No symbol from parameter declaration", ERR);
-	    //}
+
 	    //potentially needed to resolve its node type
-	    //delete argNode; //no longer needed
 	    fblock->addParameterNode(argNode); //transfer owner
 
 	    if(fsym->takesVariableArgs() && argSym)
@@ -3288,7 +3257,6 @@ namespace MFM {
     return brtn;
   } //parseFunctionBody
 
-  //Node * Parser::makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   Node * Parser::makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype)
   {
     //first check that the function name begins with a lower case letter
@@ -3325,7 +3293,6 @@ namespace MFM {
 
     //not in scope, or not yet defined, or possible overloading
     //o.w. build symbol for function: return type + name + parameter symbols
-    //Node * rtnNode = makeFunctionBlock(args, identTok, constExprForBitSize);
     Node * rtnNode = makeFunctionBlock(args, identTok, nodetype);
 
     //exclude the declaration & definition from the parse tree
@@ -3333,8 +3300,6 @@ namespace MFM {
     return rtnNode;
   } //makeFunctionSymbol
 
-
-  //Node * Parser::makeVariableSymbol(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   Node * Parser::makeVariableSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
   {
     assert(!Token::isTokenAType(identTok)); //capitalization check done by Lexer
@@ -3395,17 +3360,9 @@ namespace MFM {
 	      args.m_declListOrTypedefScalarType = m_state.getUlamTypeAsScalar(asymptr->getUlamTypeIdx());
 	  }
 
-	//link square bracket for constant expression, if unknown array size
-	//link last arg for constant expression, if unknown bit size
-	//o.w. clean up!
-	if(rtnNode)
-	  {
-	    //linkFreeMapATypeAndConstantExpressions(asymptr->getUlamTypeIdx(), args, constExprForBitSize, (NodeSquareBracket *) lvalNode);
-	  }
-	else
+	if(!rtnNode)
 	  {
 	    delete lvalNode; //done with it
-	    //delete constExprForBitSize; //done with it
 	    delete nodetyperef;
 	    nodetyperef = NULL;
 	  }
@@ -3414,12 +3371,10 @@ namespace MFM {
       {
 	delete nodetyperef;
 	nodetyperef = NULL;
-	//delete constExprForBitSize;
       }
     return rtnNode;
   } //makeVariableSymbol
 
-  //  Node * Parser::makeTypedefSymbol(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   Node * Parser::makeTypedefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
   {
     NodeTypedef * rtnNode = NULL;
@@ -3465,31 +3420,21 @@ namespace MFM {
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
 	  }
 
-	//link square bracket for constant expression, if unknown array size
-	//link 2nd arg for constant expression, if unknown bit size
-	//o.w. clean up!
-	if(rtnNode)
-	  {
-	    //linkFreeMapATypeAndConstantExpressions(asymptr->getUlamTypeIdx(), args, constExprForBitSize, (NodeSquareBracket *) lvalNode);
-	  }
-	else
+	if(!rtnNode)
 	  {
 	    delete lvalNode; //done with it
-	    //delete constExprForBitSize; //done with it
 	    delete nodetyperef;
 	    nodetyperef = NULL;
 	  }
       }
     else
       {
-	//delete constExprForBitSize;
 	delete nodetyperef;
 	nodetyperef = NULL;
       }
     return rtnNode;
   } //makeTypedefSymbol
 
-  //Node * Parser::makeConstdefSymbol(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   Node * Parser::makeConstdefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
   {
     NodeConstantDef * rtnNode = NULL;
@@ -3541,24 +3486,15 @@ namespace MFM {
 	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK); //refactored for readability
 	  }
 
-	//link square bracket for constant expression, if unknown array size;
-	//link last arg for constant expression, if unknown bit size;
-	//o.w. clean up!
-	if(rtnNode)
-	  {
-	    //linkFreeMapATypeAndConstantExpressions(asymptr->getUlamTypeIdx(), args, constExprForBitSize, (NodeSquareBracket *) lvalNode);
-	  }
-	else
+	if(!rtnNode)
 	  {
 	    delete lvalNode; //done with it
-	    //delete constExprForBitSize; //done with it
 	    delete nodetyperef;
 	    nodetyperef = NULL;
 	  }
       }
     else
       {
-	//delete constExprForBitSize;
 	delete nodetyperef;
 	nodetyperef = NULL;
       }
