@@ -84,7 +84,7 @@ namespace MFM{
     bool fullyInstantiate();
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
-    virtual void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
+    //virtual void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
 
     void updateLineageOfClassInstanceUTI(UTI cuti); //during full instantiateion
 
@@ -121,7 +121,7 @@ namespace MFM{
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
-    void cloneTemplateResolverForClassInstance(SymbolClass * csym);
+    //void cloneTemplateResolverForClassInstance(SymbolClass * csym);
   };
 
 }

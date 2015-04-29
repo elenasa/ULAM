@@ -1081,8 +1081,8 @@ namespace MFM {
   //PRIVATE HELPER METHODS:
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
-    if(!m_state.isComplete(argut))
-      m_state.constantFoldIncompleteUTI(argut); //to resolver in SymbolClass
+    //if(!m_state.isComplete(argut))
+    //  m_state.constantFoldIncompleteUTI(argut); //to resolver in SymbolClass
 
     s32 totbitsize = m_state.getBitSize(argut);
 

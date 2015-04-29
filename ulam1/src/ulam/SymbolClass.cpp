@@ -253,55 +253,6 @@ namespace MFM {
     return m_resolver->statusUnknownConstantExpressions();
   }
 
-  void SymbolClass::constantFoldIncompleteUTI(UTI auti)
-  {
-    if(!m_resolver)
-      return; //nothing to do
-    m_resolver->constantFoldIncompleteUTI(auti);
-  }
-
-  void SymbolClass::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
-  {
-    if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    m_resolver->linkConstantExpression(uti, ceNode);
-  }
-
-  void SymbolClass::cloneAndLinkConstantExpression(UTI fromtype, UTI totype)
-  {
-    assert(m_resolver);
-    m_resolver->cloneAndLinkConstantExpression(fromtype, totype);
-  }
-
-  void SymbolClass::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
-  {
-    if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    m_resolver->linkConstantExpression(uti, ceNode);
-  }
-
-  void SymbolClass::linkIncompleteArrayTypeInResolver(UTI auti, UTI buti)
-  {
-    if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    m_resolver->linkIncompleteArrayTypeToItsBaseScalarType(auti, buti);
-  }
-
-  void SymbolClass::linkConstantExpression(NodeConstantDef * ceNode)
-  {
-    if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    m_resolver->linkConstantExpression(ceNode);
-  }
-
-  void SymbolClass::linkTypedefFromAnotherClass(UTI tduti, UTI stubuti)
-  {
-    if(tduti == stubuti || tduti == Nav) return; //short-circuit
-    if(!m_resolver)
-      m_resolver = new Resolver(getUlamTypeIdx(), m_state);
-    m_resolver->linkUnknownTypedefFromAnotherClass(tduti, stubuti);
-  }
-
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
     if(!m_resolver)

@@ -412,13 +412,6 @@ namespace MFM{
     /**
        helper method to save subtrees for unknown UTIs
     */
-    void linkFreeMapATypeAndConstantExpressions(UTI auti, TypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize);
-
-    void linkOrMapAType(UTI auti, TypeArgs args);
-    void mapTypeFromUnseenClass(UTI auti, TypeArgs args);
-    void linkOrFreeConstantExpressionArraysize(UTI auti, TypeArgs args, NodeSquareBracket * ceForArraySize);
-    void linkOrFreeConstantExpressionBitsize(UTI auti, TypeArgs args, NodeTypeBitsize * ceForBitSize);
-
     void linkOrFreeConstantExpressionArraysize(UTI auti, TypeArgs args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef); //keeper
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
