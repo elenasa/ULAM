@@ -365,6 +365,7 @@ namespace MFM {
   } //statusIncompleteArrayTypes
 #endif
 
+#if 0
   bool Resolver::statusMappedTypes()
   {
     bool rtnstat = true; //ok, empty
@@ -389,7 +390,9 @@ namespace MFM {
       }
     return rtnstat;
   } //statusMappedTypes
+#endif
 
+#if 0
   bool Resolver::attemptToResolveHolderMappedType(UTI uti)
   {
     bool rtnstat = true; //ok, empty
@@ -447,7 +450,9 @@ namespace MFM {
       }
     return rtnstat;
   } //attemptToResolveHolderMappedType
+#endif
 
+#if 0
   bool Resolver::attemptToResolveHolderArrayType(UTI auti, UTI buti)
   {
     bool rtnstat = true; //ok, empty
@@ -497,6 +502,7 @@ namespace MFM {
 
     return rtnstat;
   } //attemptToResolveHolderArrayType
+#endif
 
 #if 0
   void Resolver::linkConstantExpression(NodeConstantDef * ceNode)
