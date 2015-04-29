@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
+
   NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
+
   NodeMemberSelect::~NodeMemberSelect(){}
 
   Node * NodeMemberSelect::instantiate()
@@ -55,26 +57,6 @@ namespace MFM {
 	setNodeType(Nav);
 	return getNodeType();
       } //done
-
-    // fall through to common attempt to map UTI
-    if(!lut->isComplete())
-      {
-	UTI cuti = m_state.getCompileThisIdx();
-	UTI mappedUTI = Nav;
-	if(m_state.mappedIncompleteUTI(cuti, luti, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete Member Selected type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	    msg << " used with variable symbol name '" << getName();
-	    msg << "' UTI" << luti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    luti = mappedUTI;
-	  }
-      }
 
     if(!m_state.isComplete(luti)) //reloads
       {
