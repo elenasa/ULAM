@@ -623,19 +623,6 @@ namespace MFM {
       cnsym->mapUTItoUTI(fm,to);
   } //mapTypesInCurrentClass (overload)
 
-#if 0
-  void CompilerState::constantFoldIncompleteUTI(UTI auti)
-  {
-    SymbolClassName * cnsym = NULL;
-    if(!alreadyDefinedSymbolClassName(getCompileThisId(), cnsym))
-      {
-	std::string debugme = getClassContextAsStringForDebugging();
-	assert(0); //forgot a pushClassContext somewhere!
-      }
-    cnsym->constantFoldIncompleteUTIOfClassInstance(getCompileThisIdx(), auti);
-  } //constantFoldIncompleteUTI
-#endif
-
   bool CompilerState::constantFoldPendingArgs(UTI cuti)
   {
     UlamType * cut = getUlamTypeByIndex(cuti);
@@ -905,8 +892,6 @@ namespace MFM {
     deleteUlamKeyTypeSignature(key);
 
     UlamType * newut = NULL;
-    //assert(!isDefined(key, newut) && !newut);
-
     if(!isDefined(newkey, newut))
       {
 	newut = createUlamType(newkey, Class);

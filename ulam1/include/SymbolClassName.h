@@ -51,10 +51,7 @@ namespace MFM{
 
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
 
-    virtual bool statusUnknownConstantExpressionsInClassInstances();
-
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
-    //virtual void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
 
     virtual std::string formatAnInstancesArgValuesAsAString(UTI instance);
 

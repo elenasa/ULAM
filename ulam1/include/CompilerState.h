@@ -170,13 +170,11 @@ namespace MFM{
     u32 findUnknownKeyUTICounter(UlamKeyTypeSignature key);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
-
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
     void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
     void mapTypesInCurrentClass(UTI fm, UTI to);
 
-    //void constantFoldIncompleteUTI(UTI auti);
     bool constantFoldPendingArgs(UTI cuti);
 
     UlamType * getUlamTypeByIndex(UTI uti);

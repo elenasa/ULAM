@@ -266,25 +266,6 @@ namespace MFM {
       } //any class instances
   } //fixAnyClassInstances
 
-  bool SymbolClassNameTemplate::statusUnknownConstantExpressionsInClassInstances()
-  {
-    bool aok = true; //all done
-    std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
-    while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
-      {
-	SymbolClass * csym = it->second;
-	assert(csym);
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-	aok &= csym->statusUnknownConstantExpressions();
-	m_state.popClassContext(); //restore
-	it++;
-      }
-    return aok;
-  } //statusUnknownConstantExpressionsInClassInstances
-
   bool SymbolClassNameTemplate::statusNonreadyClassArgumentsInStubClassInstances()
   {
     bool aok = true;
@@ -509,92 +490,6 @@ namespace MFM {
     return args.str();
   } //formatAnInstancesArgValuesAsCommaDelimitedString
 
-  bool SymbolClassNameTemplate::checkArgValuesOfClassInstance(UTI instance)
-  {
-    u32 numParams = getNumberOfParameters();
-    if(numParams == 0)
-      {
-	return true;
-      }
-
-    if(m_scalarClassInstanceIdxToSymbolPtr.empty())
-      {
-	std::ostringstream msg;
-	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	msg << ", has no instances; args format is number of parameters";
-	MSG("", msg.str().c_str(), DEBUG);
-	return false; //short-circuit when argument is template's UTI
-      }
-
-    SymbolClass * csym = NULL;
-    bool rtnok = true;
-
-    if(findClassInstanceByUTI(instance, csym))
-      {
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-	std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
-	while(pit != m_parameterSymbols.end())
-	  {
-	    SymbolConstantValue * psym = *pit;
-	    //get 'instance's value
-	    Symbol * asym = NULL;
-	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
-	    UTI auti = asym->getUlamTypeIdx();
-	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	    ULAMTYPE eutype = aut->getUlamTypeEnum();
-
-	    bool isok = false;
-	    switch(eutype)
-	      {
-	      case Int:
-		{
-		  s32 sval;
-		  if(((SymbolConstantValue *) asym)->getValue(sval))
-		    {
-		      isok = true;
-		    }
-		  break;
-		}
-	      case Unsigned:
-		{
-		  u32 uval;
-		  if(((SymbolConstantValue *) asym)->getValue(uval))
-		    {
-		      isok = true;
-		    }
-		  break;
-		}
-	      case Bool:
-		{
-		  bool bval;
-		  if(((SymbolConstantValue *) asym)->getValue(bval))
-		    {
-		      isok = true;
-		    }
-		  break;
-		}
-	      default:
-		assert(0);
-	      };
-
-	    if(!isok)
-	      {
-		rtnok = isok;
-		break;
-	      }
-	    pit++;
-	  } //next param
-
-	m_state.popClassContext(); //restore
-      }
-    else
-      rtnok = false;
-    return rtnok;
-  } //checkArgValuesOfAnInstance
-
   bool SymbolClassNameTemplate::hasInstanceMappedUTI(UTI instance, UTI auti, UTI& mappedUTI)
   {
     SymbolClass * csym = NULL;
@@ -699,8 +594,6 @@ namespace MFM {
 	    csym = NULL;
 
 	    addClassInstanceByArgString(cuti, clone); //new entry, and owner of symbol class
-	    //updateLineageOfClassInstanceUTI(cuti); NNO-based now
-	    //cloneTemplateResolverForClassInstance(clone);
 	  }
 	m_state.popClassContext(); //restore
 	it++;
@@ -762,22 +655,6 @@ namespace MFM {
       }
     return foundNode;
   } //findNodeNoInAClassInstance
-
-#if 0
-  void SymbolClassNameTemplate::constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti)
-  {
-    SymbolClass * csym = NULL;
-    if(findClassInstanceByUTI(instance, csym))
-      {
-	NodeBlockClass * classNode = csym->getClassBlockNode();
-	assert(classNode);
-	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-	csym->constantFoldIncompleteUTI(auti); //do this instance
-	m_state.popClassContext(); //restore
-      }
-  } //constantFoldIncompleteUTIOfClassInstance
-#endif
 
   void SymbolClassNameTemplate::updateLineageOfClassInstanceUTI(UTI instance)
   {
@@ -1253,16 +1130,5 @@ namespace MFM {
   {
     fm->cloneResolverUTImap(to);
   }
-
-#if 0
-  // done promptly after the full instantiation; after cloneAnInstancesUTImap
-  void SymbolClassNameTemplate::cloneTemplateResolverForClassInstance(SymbolClass * csym)
-  {
-    if(!m_resolver)
-      return; //nothing to do
-
-    m_resolver->cloneTemplateResolver(csym);
-  }//cloneResolverForClassInstance
-#endif
 
 } //end MFM

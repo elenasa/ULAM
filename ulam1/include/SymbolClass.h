@@ -90,13 +90,9 @@ namespace MFM{
 
     void testThisClass(File * fp); //eval-land
 
-    bool statusUnknownConstantExpressions();
-
     bool statusNonreadyClassArguments();
 
     bool constantFoldNonreadyClassArguments();
-
-    //void constantFoldIncompleteUTI(UTI auti);
 
     void linkConstantExpressionForPendingArg(NodeConstantDef * constNode);
     bool pendingClassArgumentsForClassInstance();
