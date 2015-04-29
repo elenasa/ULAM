@@ -262,7 +262,6 @@ namespace MFM {
 
   void NodeCast::genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass)
   {
-    //assert(needsACast());
     // e.g. called by NodeFunctionCall on a NodeTerminal..
     if(!needsACast())
       {
@@ -294,7 +293,6 @@ namespace MFM {
       }
 
    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-   //ULAMCLASSTYPE vclasstype = vut->getUlamClass();
    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);

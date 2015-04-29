@@ -11,7 +11,7 @@ namespace MFM {
     m_nodeParameterList = new NodeList(state);
   }
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)/*, m_fsymTemplate(ref.m_funcSymbol)*/
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)
  {
    m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate();
    if(ref.m_nodeTypeDesc)
@@ -157,27 +157,6 @@ namespace MFM {
 
     checkParameterNodeTypes();
 
-#if 1
-    // i believe this is done by m_nodeTypeDesc now!!
-    if(!m_state.isComplete(it))
-      {
-	UTI mappedUTI = Nav;
-	if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete Function Return type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " used with function name '" << getName();
-	    msg << "' UTI" << it << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    it = mappedUTI;
-	  }
-      }
-#endif
-
     if(!m_state.isComplete(it))
       {
 	std::ostringstream msg;
@@ -191,7 +170,6 @@ namespace MFM {
       }
     else
       {
-	//assert(fit == it); //should be exact UTI match
 	if(fit != Nav && fit != it) //exact UTI match
 	{
 	  std::ostringstream msg;

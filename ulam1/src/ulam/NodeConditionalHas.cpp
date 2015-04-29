@@ -35,7 +35,7 @@ namespace MFM {
     assert(m_nodeLeft);
     UTI newType = Bool;
 
-    UTI luti = m_nodeLeft->checkAndLabelType();  //side-effect
+    UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
     assert(m_state.isScalar(luti));
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
@@ -66,28 +66,6 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	newType = Nav;
       }
-
-#if 0
-    // i believe this is done by node type descriptor
-    // fall through to common attempt to map UTI
-    if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
-      {
-	UTI mappedUTI = Nav;
-	if(m_state.mappedIncompleteUTI(cuti, ruti, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete RHS of conditional operator '";
-	    msg << getName() << "' type: ";
-	    msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	    msg << ", while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    ruti = mappedUTI;
-	  }
-      }
-#endif
 
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
@@ -170,10 +148,10 @@ namespace MFM {
     UlamType * rut = m_state.getUlamTypeByIndex(ruti);
 
     UlamValue luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);  //NO need to load lhs into tmp (T)
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass); //NO need to load lhs into tmp (T)
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
-    luti = luvpass.getPtrTargetType();  //replace
+    luti = luvpass.getPtrTargetType(); //replace
 
     s32 tmpVarHas = m_state.getNextTmpVarNumber();
 
@@ -191,11 +169,11 @@ namespace MFM {
 	fp->write(methodNameForCodeGen().c_str());
 	fp->write("(");
 	fp->write("uc, ");
-	Node::genLocalMemberNameOfMethod(fp);  //assume atom is a local var (neither dm nor ep)
+	Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
 	fp->write("read().GetType(), ");
 	fp->write("\"");
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
-	fp->write("\") >= 0);\n");  //bool as u32
+	fp->write("\") >= 0);\n"); //bool as u32
       }
     else  //not atom
       {
@@ -218,15 +196,15 @@ namespace MFM {
 	else
 	  assert(0);
 
-	fp->write(methodNameForCodeGen().c_str());  //mangled
+	fp->write(methodNameForCodeGen().c_str()); //mangled
 	fp->write("(\"");
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
 	fp->write("\") >= 0);\n");
       }
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarHas, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified (atom-based).
-    m_state.m_currentObjSymbolsForCodeGen.clear();  //clear remnant of lhs
+    uvpass = UlamValue::makePtr(tmpVarHas, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCode
 
 } //end MFM

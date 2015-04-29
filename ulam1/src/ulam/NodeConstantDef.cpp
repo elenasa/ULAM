@@ -149,7 +149,6 @@ namespace MFM {
       } //toinstantiate
 
     // NOASSIGN (e.g. for class parameters) doesn't have this!
-    //assert(m_nodeExpr);
     if(m_nodeExpr)
       {
 	it = m_nodeExpr->checkAndLabelType();
@@ -172,7 +171,6 @@ namespace MFM {
     if(m_nodeTypeDesc)
       {
 	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
-	//assert(it == Nav || it == suti);
 	if(duti != Nav && suti != duti)
 	  {
 	    std::ostringstream msg;
@@ -189,22 +187,6 @@ namespace MFM {
 	    suti = duti;
 	  }
       }
-    //    else
-    //  it = suti; //clobbers any expression type
-
-#if 0
-    if(!m_state.isComplete(it)) //reloads
-      {
-	std::ostringstream msg;
-	msg << "Incomplete Named Constant for type: ";
-	msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	msg << " used with constant symbol name '" << getName();
-	msg << "' UTI" << it << " while labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	//it = suti;
-      }
-#endif
 
     if(!m_state.isComplete(suti)) //reloads
       {
@@ -215,7 +197,6 @@ namespace MFM {
 	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	//it = suti;
       }
     else
       {
@@ -235,7 +216,6 @@ namespace MFM {
 	  }
       }
 
-    //setNodeType(it);
     setNodeType(suti);
 
     if(!(m_constSymbol->isReady()))
@@ -288,10 +268,8 @@ namespace MFM {
   bool NodeConstantDef::foldConstantExpression()
   {
     s32 newconst = 0;
-    //UTI uti = checkAndLabelType(); //find any missing symbol- loop!
     UTI uti = getNodeType();
 
-    //if(uti == Nav || !m_state.isComplete(uti))
     if(uti == Nav)
       return false; //e.g. not a constant
 

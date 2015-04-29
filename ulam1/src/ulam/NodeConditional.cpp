@@ -7,7 +7,6 @@ namespace MFM {
 
   NodeConditional::NodeConditional(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state): Node(state), m_nodeLeft(leftNode), m_nodeTypeDesc(classType) {}
 
-  //  NodeConditional::NodeConditional(const NodeConditional& ref) : Node(ref), m_utypeRight(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_utypeRight))
   NodeConditional::NodeConditional(const NodeConditional& ref) : Node(ref)
   {
     m_nodeLeft = ref.m_nodeLeft->instantiate();
@@ -103,7 +102,6 @@ namespace MFM {
 
   UTI NodeConditional::getRightType()
   {
-    //return m_utypeRight;
     return m_nodeTypeDesc->givenUTI();
   }
 
