@@ -246,13 +246,6 @@ namespace MFM {
     m_state.popClassContext(); //missing?
   }//testThisClass
 
-  bool SymbolClass::statusUnknownConstantExpressions()
-  {
-    if(!m_resolver)
-      return !isStub();
-    return m_resolver->statusUnknownConstantExpressions();
-  }
-
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
     if(!m_resolver)

@@ -21,16 +21,6 @@ namespace MFM {
     return false;
   } //isClassTemplate
 
-  bool SymbolClassName::statusUnknownConstantExpressionsInClassInstances()
-  {
-    bool aok = true; //all done
-    NodeBlockClass * classNode = getClassBlockNode();
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-    aok = SymbolClass::statusUnknownConstantExpressions();
-    m_state.popClassContext(); //restore
-    return aok;
-  } //statusUnknownConstantExpressionsInClassInstances
-
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
     assert(getUlamTypeIdx() == instance);
@@ -51,19 +41,6 @@ namespace MFM {
     m_state.popClassContext(); //restore
     return foundNode;
   } //findNodeNoInAClassInstance
-
-#if 0
-  void SymbolClassName::constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti)
-  {
-    assert(instance == getUlamTypeIdx());
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    SymbolClass::constantFoldIncompleteUTI(auti);
-    m_state.popClassContext(); //restore
-  } //constantFoldIncompleteUTIOfClassInstance
-#endif
 
   std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
   {

@@ -124,8 +124,6 @@ namespace MFM{
 
     void printForDebugForTableOfClasses(File * fp);
 
-    bool statusUnknownConstantExpressionsInTableOfClasses();
-
     bool statusNonreadyClassArgumentsInTableOfClasses();
 
     bool fullyInstantiateTableOfClasses();
