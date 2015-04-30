@@ -495,10 +495,9 @@ namespace MFM {
 	  }
 	else
 	  {
-	    // same ???
 	    UTI auti = Nav;
 	    assert(aDefinedUTI(newkey,auti)); //don't wipe out uti
-	    updateUTIAlias(uti, auti);
+	    updateUTIAlias(uti, auti); // could be the same
 	  }
       }
     return rtnBool;
@@ -511,7 +510,7 @@ namespace MFM {
     if(csym->hasMappedUTI(auti, mappedUTI))
       return true;
 
-    // does this hurt anything???
+    // does this hurt anything?
     if(findaUTIAlias(auti, mappedUTI))
        return mappedUTI; //anonymous UTI
 
@@ -534,7 +533,8 @@ namespace MFM {
     return false; //for compiler
   } //mappedIncompleteUTI
 
-  //called by Symbol's copy constructor with ref's 'incomplete' uti
+  //called by Symbol's copy constructor with ref's 'incomplete' uti;
+  //also called by NodeTypeDescriptor's copy constructor since has no symbol;
   //please set getCompileThisIdx() to the instance's UTI.
   UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
   {
@@ -560,17 +560,17 @@ namespace MFM {
 	assert(alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
 	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
-	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti)) //&& ((SymbolClassNameTemplate *) cnsymOfIncomplete)->checkArgValuesOfClassInstance(suti))
+	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
 	  return suti;
       }
 
-    //first time we've seen this 'incomplete' UTI for this class instance (being fully instantiated):
+    //first time we've seen this 'incomplete' UTI for this class instance (as fully instantiated):
     //get a new UTI and add to cnsym's map for this instance in case we see it again;
-    //Later, also update all its resolver's 'subtree' table references; For classes with
-    //pending args, make a copy of the stub including its resolver with pending args, so
-    //pending args can be resolved XXXX within the context of this class instance (e.g. dependent on
-    //instances arg values which makes it different than others', like "self").
-    //Context dependent pending args are resolved before they are added to the resolver's pending args.
+    //For classes with pending args, make a copy of the stub including its resolver with pending
+    //args, so pending args can be resolved XXXX within the context of this class instance
+    //(e.g. dependent on instances arg values which makes it different than others', like "self").
+    //Context dependent pending args are resolved before they are added to the resolver's
+    //pending args.
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
     UTI newuti = makeUlamType(newkey,bUT);
     cnsym->mapInstanceUTI(getCompileThisIdx(), suti, newuti);
@@ -602,7 +602,7 @@ namespace MFM {
       }
       //updateUTIAlias(suti, newuti);
     return newuti;
-  }//mapIncompleteUTIForCurrentClassInstance
+  } //mapIncompleteUTIForCurrentClassInstance
 
   void CompilerState::mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc)
   {
@@ -707,7 +707,7 @@ namespace MFM {
 	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	      {
 		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
-	      } //else  or make one if doesn't exist yet, while parsing --- do we do this anymore ???
+	      } //else or make one if doesn't exist yet, while parsing---do we do this anymore?
 	  }
       }
     return uti;
@@ -1112,7 +1112,8 @@ namespace MFM {
 
     {
       std::ostringstream msg;
-      msg << "Sizes set for nonClass: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
+      msg << "Sizes set for nonClass: " << newut->getUlamTypeName().c_str();
+      msg << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 
@@ -1222,7 +1223,7 @@ namespace MFM {
     classblock->setNodeLocation(cTok.m_locator);
     classblock->setNodeType(cuti);
 
-    //symbol ownership goes to the programDefST; distinguish between template and regular classes here:
+    //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(dataindex, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
@@ -1241,7 +1242,7 @@ namespace MFM {
     classblock->setNodeLocation(cTok.m_locator);
     classblock->setNodeType(cuti);
 
-    //symbol ownership goes to the programDefST; distinguish between template and regular classes here:
+    //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassNameTemplate(dataindex, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable

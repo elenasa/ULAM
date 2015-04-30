@@ -26,7 +26,7 @@ namespace MFM {
     setYourParentNo(pno);
     m_nodeCondition->updateLineage(getNodeNo());
     m_nodeBody->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeControl::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -186,13 +186,13 @@ namespace MFM {
 	    fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("((");
 	    fp->write(m_state.getTmpVarAsString(cuti, uvpass.getPtrSlotIndex()).c_str());
-	    fp->write(" >= 0 ? 1 : 0), ");   //test for 'has' part of 'as'
+	    fp->write(" >= 0 ? 1 : 0), "); //test for 'has' part of 'as'
 	    fp->write_decimal(cut->getBitSize());
 	    fp->write(")");
 	  }
 	else
 	  {
-	    // regular condition
+	    //regular condition
 	    assert(cut->getUlamTypeEnum() == Bool);
 	    fp->write(((UlamTypeBool *) cut)->getConvertToCboolMethod().c_str());
 	    fp->write("(");

@@ -46,7 +46,7 @@ namespace MFM {
 	m_nodeParameterList->updateLineage(getNodeNo());
       }
     m_state.popClassContext();
-  }//updateLineage
+  } //updateLineage
 
   bool NodeBlockFunctionDefinition::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -200,7 +200,7 @@ namespace MFM {
     if(m_nodeNext) //non-empty function
       {
 	m_nodeNext->checkAndLabelType();                     //side-effect
-	m_state.checkFunctionReturnNodeTypes(m_funcSymbol);  //gives errors
+	m_state.checkFunctionReturnNodeTypes(m_funcSymbol); //gives errors
       }
     else
       {
@@ -208,7 +208,7 @@ namespace MFM {
 	msg << "Undefined function block: <" << getName() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-    m_state.popClassContext();  //restores previous block ptr
+    m_state.popClassContext(); //restores previous block ptr
     return getNodeType();
   } //checkAndLabelType
 
@@ -240,10 +240,10 @@ namespace MFM {
     assert(m_state.m_currentObjPtr.getUlamValueTypeIdx() != Nav);
     m_state.m_currentFunctionReturnType = getNodeType(); //to help find hidden first arg
 
-    evalNodeProlog(0);                  //new current frame pointer on node eval stack
+    evalNodeProlog(0); //new current frame pointer on node eval stack
     makeRoomForNodeType(getNodeType()); //place for return vals node eval stack
 
-    m_state.m_funcCallStack.addFrameSlots(getMaxDepth());  //local variables on callstack!
+    m_state.m_funcCallStack.addFrameSlots(getMaxDepth()); //local variables on callstack!
 
     EvalStatus evs = m_nodeNext->eval();
 
@@ -253,8 +253,7 @@ namespace MFM {
     if(evs == RETURN)
       {
 	// save results in the stackframe for caller;
-	// copies each element of the array by value,
-	// in reverse order ([0] is last at bottom)
+	// copies each element of the array by value, in reverse order ([0] is last at bottom)
 	s32 slot = m_state.slotsNeeded(getNodeType());
 	rtnUV = UlamValue::makePtr(-slot, STACK, getNodeType(), packRtn, m_state); //negative to current stack frame pointer
       }
@@ -277,7 +276,7 @@ namespace MFM {
     m_state.m_funcCallStack.returnFrame();
     evalNodeEpilog();
     return NORMAL;
-  }
+  } //eval
 
   void NodeBlockFunctionDefinition::setDefinition()
   {
@@ -350,10 +349,10 @@ namespace MFM {
     fp->write("\n");
     m_state.indent(fp);
     fp->write("} // ");
-    fp->write(m_funcSymbol->getMangledName().c_str());  //end of function
+    fp->write(m_funcSymbol->getMangledName().c_str()); //end of function
     fp->write("\n\n\n");
 
-    m_state.popClassContext();  //restores NodeBlock::getPreviousBlockPointer()
+    m_state.popClassContext(); //restores NodeBlock::getPreviousBlockPointer()
   } //genCode
 
 } //end MFM

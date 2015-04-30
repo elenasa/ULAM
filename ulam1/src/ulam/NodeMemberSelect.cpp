@@ -157,7 +157,7 @@ namespace MFM {
 
     //copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnUV);
-  }//doBinaryOperation
+  } //doBinaryOperation
 
   EvalStatus NodeMemberSelect::evalToStoreInto()
   {
@@ -214,14 +214,13 @@ namespace MFM {
     return false;
   } //getSymbolPtr
 
-
   void NodeMemberSelect::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());    //*************?
+    //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-    m_nodeRight->genCode(fp, uvpass);  // is this ok???
+    m_nodeRight->genCode(fp, uvpass);  // is this ok?
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode

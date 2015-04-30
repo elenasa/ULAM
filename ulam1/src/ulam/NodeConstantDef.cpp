@@ -47,7 +47,7 @@ namespace MFM {
       m_nodeExpr->updateLineage(getNodeNo());
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeConstantDef::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -259,7 +259,7 @@ namespace MFM {
   void NodeConstantDef::setConstantExpr(Node * node)
   {
     m_nodeExpr = node;
-    m_nodeExpr->updateLineage(getNodeNo()); // for unknown subtrees
+    m_nodeExpr->updateLineage(getNodeNo()); //for unknown subtrees
   }
 
   // called during parsing rhs of named constant;

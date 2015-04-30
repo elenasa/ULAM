@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpEqualBitwiseAnd::NodeBinaryOpEqualBitwiseAnd(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualBitwise(left,right,state) {}
+
   NodeBinaryOpEqualBitwiseAnd::NodeBinaryOpEqualBitwiseAnd(const NodeBinaryOpEqualBitwiseAnd& ref) : NodeBinaryOpEqualBitwise(ref) {}
+
   NodeBinaryOpEqualBitwiseAnd::~NodeBinaryOpEqualBitwiseAnd(){}
 
   Node * NodeBinaryOpEqualBitwiseAnd::instantiate()
@@ -12,18 +14,15 @@ namespace MFM {
     return new NodeBinaryOpEqualBitwiseAnd(*this);
   }
 
-
   const char * NodeBinaryOpEqualBitwiseAnd::getName()
   {
     return "&=";
   }
 
-
   const std::string NodeBinaryOpEqualBitwiseAnd::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   const std::string NodeBinaryOpEqualBitwiseAnd::methodNameForCodeGen()
   {
@@ -31,7 +30,6 @@ namespace MFM {
     methodname << "_BitwiseAnd" << NodeBinaryOpEqualBitwise::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UlamValue NodeBinaryOpEqualBitwiseAnd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
@@ -60,7 +58,6 @@ namespace MFM {
       };
     return rtnUV;
   } //makeImmediateBinaryOp
-
 
   void NodeBinaryOpEqualBitwiseAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {

@@ -6,7 +6,9 @@
 namespace MFM {
 
   NodeControlWhile::NodeControlWhile(Node * condNode, Node * trueNode, CompilerState & state): NodeControl(condNode, trueNode, state) {}
+
   NodeControlWhile::NodeControlWhile(const NodeControlWhile& ref) : NodeControl(ref) {}
+
   NodeControlWhile::~NodeControlWhile() {}
 
   Node * NodeControlWhile::instantiate()
@@ -21,18 +23,15 @@ namespace MFM {
     fp->write("-----------------NodeControlwhile\n");
   }
 
-
   const char * NodeControlWhile::getName()
   {
     return "while";
   }
 
-
   const std::string NodeControlWhile::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   EvalStatus  NodeControlWhile::eval()
   {
@@ -52,9 +51,9 @@ namespace MFM {
     while((bool) cuv.getImmediateData(m_state) == true)
       {
 	u32 slots = makeRoomForNodeType(m_nodeBody->getNodeType());
- 	evs = m_nodeBody->eval();  //side-effect
+ 	evs = m_nodeBody->eval(); //side-effect
 	if(evs == BREAK)
-	  break;  //use C to break out of this loop
+	  break; //use C to break out of this loop
 	else if(evs == RETURN || evs == ERROR)
 	  {
 	    evalNodeEpilog();
@@ -82,8 +81,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }
-
+  } //eval
 
   void NodeControlWhile::genCode(File * fp, UlamValue& uvpass)
   {

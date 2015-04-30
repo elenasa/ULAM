@@ -33,7 +33,7 @@ namespace MFM {
     setYourParentNo(pno);
     if(m_nodeSelect)
       m_nodeSelect->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeTypeDescriptorSelect::findNodeNo(NNO n, Node *& foundNode)
   {

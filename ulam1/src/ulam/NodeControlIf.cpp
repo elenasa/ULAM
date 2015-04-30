@@ -30,7 +30,7 @@ namespace MFM {
     NodeControl::updateLineage(pno);
     if(m_nodeElse)
       m_nodeElse->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeControlIf::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -71,11 +71,11 @@ namespace MFM {
     if(m_nodeElse)
       {
 	m_nodeElse->printPostfix(fp);
-	fp->write(" else");  //operators last
+	fp->write(" else"); //operators last
       }
     //else
     //  fp->write("<NULLFALSE>");
-  }//printPostfix
+  } //printPostfix
 
   const char * NodeControlIf::getName()
   {
@@ -89,14 +89,14 @@ namespace MFM {
 
   UTI NodeControlIf::checkAndLabelType()
   {
-    NodeControl::checkAndLabelType();  //does condition and true
+    NodeControl::checkAndLabelType(); //does condition and true
 
     if(m_nodeElse)
       {
 	m_nodeElse->checkAndLabelType();
       }
 
-    return getNodeType();  //Bool
+    return getNodeType(); //Bool
   } //checkAndLabelType
 
   void NodeControlIf::countNavNodes(u32& cnt)

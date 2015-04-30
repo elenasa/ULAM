@@ -14,7 +14,7 @@ namespace MFM {
   NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
     if(ref.m_unknownBitsizeSubtree)
-      m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI???
+      m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
   }
 
   NodeTypeDescriptor::~NodeTypeDescriptor()
@@ -33,7 +33,7 @@ namespace MFM {
     setYourParentNo(pno);
     if(m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeTypeDescriptor::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -210,6 +210,6 @@ namespace MFM {
   {
     assert(0);  //not in parse tree; part of Node's type
     return NORMAL;
-  }
+  } //eval
 
 } //end MFM

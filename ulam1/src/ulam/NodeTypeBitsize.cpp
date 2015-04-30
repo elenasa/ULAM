@@ -30,7 +30,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_node->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeTypeBitsize::exchangeKids(Node * oldnptr, Node * newnptr)
   {

@@ -194,7 +194,7 @@ namespace MFM {
 		  }
 	      } //var args
 
-	    assert(argsWithCast == constantArgs);
+	    assert(argsWithCast == constantArgs); //sanity check
 	  } //constants
       } // no errors found
 
@@ -227,7 +227,7 @@ namespace MFM {
     // since our NodeFunctionDef has no way to know how many extra args to expect!
     u32 numargs = getNumberOfArguments();
     s32 diffInArgs = numargs - m_funcSymbol->getNumberOfParameters();
-    assert(diffInArgs == 0 || m_funcSymbol->takesVariableArgs());
+    assert(diffInArgs == 0 || m_funcSymbol->takesVariableArgs()); //sanity check
 
     // place values of arguments on call stack (reverse order) before calling function
     for(s32 i= numargs - diffInArgs - 1; i >= 0; i--)
@@ -671,8 +671,15 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 
     if(!stgcosut->isScalar())
-      { //?? can't call a func on an array!
-	assert(0);
+      {
+	//can't call a func on an array!
+	std::ostringstream msg;
+	msg << "Calling a function on an array is not currently supported.";
+	msg << " <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(stgcosuti).c_str();
+	msg << " (UTI" << stgcosuti << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	//assert(0);
       }
 
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();

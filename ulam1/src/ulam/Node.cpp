@@ -26,7 +26,7 @@ namespace MFM {
 
   void Node::updateLineage(NNO pno)
   {
-    setYourParentNo(pno);  //walk the tree..a leaf.
+    setYourParentNo(pno); //walk the tree..a leaf.
   }
 
   NNO Node::getNodeNo()
@@ -128,7 +128,7 @@ namespace MFM {
 
   void Node::constantFoldAToken(Token tok)
   {
-    assert(0);  //only NodeTerminal has this defined; NodeConstant bypasses
+    assert(0); //only NodeTerminal has this defined; NodeConstant bypasses
   }
 
   bool Node::isAConstant()
@@ -229,7 +229,7 @@ namespace MFM {
       return 0;
 
     u32 slots = m_state.slotsNeeded(type);
-    makeRoomForSlots(slots, where);  //=1 for scalar or packed array
+    makeRoomForSlots(slots, where); //=1 for scalar or packed array
     return slots;
   }
 
@@ -254,12 +254,12 @@ namespace MFM {
   {
     UTI rtnUVtype = rtnUV.getUlamValueTypeIdx(); //==node type
 
-    if(rtnUVtype == Ptr)  //unpacked array
+    if(rtnUVtype == Ptr) //unpacked array
       {
 	rtnUVtype = rtnUV.getPtrTargetType();
       }
 
-    if(rtnUVtype == Void)  //check after Ptr target type
+    if(rtnUVtype == Void) //check after Ptr target type
       return;
 
     assert((UlamType::compare(rtnUVtype, getNodeType(), m_state) == UTIC_SAME) || rtnUVtype == UAtom || getNodeType() == UAtom);
@@ -302,7 +302,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("virtual void ");
     fp->write(prettyNodeName().c_str());
-    fp->write("::genCode(File * fp){} is needed!!\n");  //sweet.
+    fp->write("::genCode(File * fp){} is needed!!\n"); //sweet.
   }
 
   void Node::genCodeToStoreInto(File * fp, UlamValue& uvpass)
@@ -322,7 +322,7 @@ namespace MFM {
     assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
 
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
-    vuti = uvpass.getPtrTargetType();  //replaces vuti w target type
+    vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
     assert(vuti != Void);
 
     // here, cos is symbol used to determine read method: either self or last of cos.
@@ -443,9 +443,9 @@ namespace MFM {
 
     assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
 
-    //s32 tmpVarNum = uvpass.getPtrSlotIndex();  //tmp with index
-    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();  //tmp for data
-    vuti = uvpass.getPtrTargetType();  //replaces vuti w target type
+    //s32 tmpVarNum = uvpass.getPtrSlotIndex(); //tmp with index
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
+    vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
     assert(vuti != Void);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -507,7 +507,7 @@ namespace MFM {
 	// a data member quark, or the element itself should both getBits from self
 	fp->write(m_state.getHiddenArgName());
 	fp->write(".GetBits()");
-	fp->write(", ");  	//rest of arg's
+	fp->write(", "); //rest of arg's
       }
     else
       {
@@ -525,15 +525,15 @@ namespace MFM {
 	    if(!isHandlingImmediateType())
 	      {
 		genElementParameterHiddenArgs(fp, epi);
-		fp->write(", ");  	//rest of arg's
+		fp->write(", "); //rest of arg's
 	      }
 	    else
 	      {
 		if(cosut->isCustomArray())
-		  fp->write("uc, "); 	    //rest of arg's
+		  fp->write("uc, "); //rest of arg's
 	      }
 	  }
-	else  //local var
+	else //local var
 	  {
 	    genLocalMemberNameOfMethod(fp);
 
@@ -585,12 +585,12 @@ namespace MFM {
     fp->write(", ");
     fp->write_decimal(m_state.getBitSize(cosuti)); //BITS_PER_ITEM
     fp->write("u");
-    fp->write(");\n");    //done read element parameter
+    fp->write(");\n"); //done read element parameter
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0);  //POS 0 rightjustified (atom-based).
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0); //POS 0 rightjustified (atom-based).
 
-    // specifically to sign extend Int's (a cast)
+    //specifically to sign extend Int's (a cast)
     scalarcosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
@@ -602,16 +602,16 @@ namespace MFM {
 
     assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
 
-    s32 tmpVarNum2 = m_state.getNextTmpVarNumber();  //tmp for data
-    vuti = uvpass.getPtrTargetType();  //replaces vuti w target type
+    s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
+    vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
     assert(vuti != Void);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMTYPE vetype = vut->getUlamTypeEnum();
     assert( vetype == Int || vetype == Unsigned);
 
-    // here, cos is symbol used to determine read method: either self or last of cos.
-    // stgcos is symbol used to determine first "hidden" arg
+    //here, cos is symbol used to determine read method: either self or last of cos.
+    //stgcos is symbol used to determine first "hidden" arg
     Symbol * cos = NULL;
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -654,8 +654,8 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 	fp->write("(uc, ");
 
-	fp->write(m_state.getHiddenArgName());  // no getBits
-	fp->write(", ");  	//rest of arg's
+	fp->write(m_state.getHiddenArgName()); //no getBits
+	fp->write(", "); //rest of arg's
       }
     else
       {
@@ -727,9 +727,9 @@ namespace MFM {
     fp->write("));\n");
 
     //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0);  //POS 0 rightjustified (atom-based).
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0); //POS 0 rightjustified (atom-based).
 
-    genCodeConvertABitVectorIntoATmpVar(fp, uvpass);  //updates uvpass again
+    genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //updates uvpass again
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadCustomArrayItemIntoTmp
@@ -795,7 +795,7 @@ namespace MFM {
 
 	fp->write(m_state.getHiddenArgName());
 	fp->write(".GetBits()");
-	fp->write(", ");  //rest of args
+	fp->write(", "); //rest of args
       }
     else
       {
@@ -962,7 +962,7 @@ namespace MFM {
 
 	fp->write(m_state.getHiddenArgName());
 	fp->write(".GetBits()");
-	fp->write(", ");  //rest of args
+	fp->write(", "); //rest of args
       }
     else
       {
@@ -1112,7 +1112,7 @@ namespace MFM {
 	fp->write("(uc, ");
 
 	fp->write(m_state.getHiddenArgName());
-	fp->write(", ");  //rest of args
+	fp->write(", "); //rest of args
       }
     else
       {
@@ -1154,7 +1154,7 @@ namespace MFM {
 		if(stgcosclasstype == UC_ELEMENT)
 		  {
 		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(".getRef()");  //immediate EP needs the T storage within the struct
+		    fp->write(".getRef()"); //immediate EP needs the T storage within the struct
 		    fp->write(", ");         //rest of args
 		  }
 		else if(stgcosclasstype == UC_QUARK)
@@ -1245,18 +1245,17 @@ namespace MFM {
       }
     fp->write(");\n");
 
-    u32 pos = 0;  //pos calculated by makePtr(atom-based) (e.g. quark, atom)
+    u32 pos = 0; //pos calculated by makePtr(atom-based) (e.g. quark, atom)
     if(vut->getUlamClass() == UC_NOTACLASS)
       {
 	s32 wordsize = vut->getTotalWordSize();
 	pos = wordsize - vut->getTotalBitSize();
       }
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos);  //POS rightjustified.
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, vuti, m_state.determinePackable(vuti), m_state, pos); //POS rightjustified.
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeConvertATmpVarIntoBitVector
-
 
   // write out immediate tmp BitValue as an intermediate tmpVar
   void Node::genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass)
@@ -1294,7 +1293,7 @@ namespace MFM {
       }
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0);  //POS 0 rightjustified (atom-based).
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 rightjustified (atom-based).
     uvpass.setPtrPos(0); //entire register
 
     // specifically to sign extend Int's (a cast)
@@ -1347,7 +1346,7 @@ namespace MFM {
 	if((nuti == UAtom) && (m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_ELEMENT))
 	  doErrMsg = true;
 	else if(nuti == Void)
-	  doErrMsg = true;  //cannot cast a void into anything else (reverse is fine)
+	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
 	else
 	  {
 	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
@@ -1386,7 +1385,7 @@ namespace MFM {
 		rtnNode->updateLineage(getNodeNo());
 	      }
 	    else
-	      rtnNode = mselectNode;  //replace right node with new branch
+	      rtnNode = mselectNode; //replace right node with new branch
 
 	    //redo check and type labeling
 	    UTI newType = rtnNode->checkAndLabelType();
@@ -1465,7 +1464,7 @@ namespace MFM {
     // arrays are already atomic parameters
     if(sut->isScalar() && sut->getUlamClass() == UC_QUARK && !sut->isCustomArray())
       {
-	fp->write("Up_Us::");  //gives quark an atomicparameter type for write
+	fp->write("Up_Us::"); //gives quark an atomicparameter type for write
       }
   } //genMemberNameOfMethod
 
@@ -1477,7 +1476,7 @@ namespace MFM {
     assert(epi >= 0);
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi];  //***
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
@@ -1529,13 +1528,13 @@ namespace MFM {
     assert(epi >= 0);
 
     if(isHandlingImmediateType())
-      return;  // no args
+      return; // no args
 
     Symbol * stgcos = NULL;
     if(epi == 0)
       stgcos = m_state.m_currentSelfSymbolForCodeGen;
     else
-      stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1];  //***
+      stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -1544,13 +1543,13 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
-    Symbol * epcos = m_state.m_currentObjSymbolsForCodeGen[epi];  //***
+    Symbol * epcos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
     UTI epcosuti = epcos->getUlamTypeIdx();
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
     ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClass();
 
     if(cosut->isCustomArray())
-      fp->write("uc, ");  //not for regular READs and WRITEs
+      fp->write("uc, "); //not for regular READs and WRITEs
 
     fp->write(stgcosut->getUlamTypeMangledName().c_str());
     fp->write("<EC>::THE_INSTANCE");
@@ -1593,7 +1592,7 @@ namespace MFM {
     // now for both immediate elements and quarks..
     fp->write(ut->getImmediateStorageTypeAsString().c_str());
     fp->write("::");
-    fp->write("Us::");   //typedef
+    fp->write("Us::"); //typedef
 
     for(u32 i = 1; i < cosSize; i++)
       {
@@ -1730,7 +1729,7 @@ namespace MFM {
     //uvpass would be an array index (an int of sorts), not an array; types would not be the same;
     //return(!m_state.isScalar(cosuti) && uvpass.getPtrLen() != (s32) m_state.getTotalBitSize(cosuti));
     return(!m_state.isScalar(cosuti) && m_state.isScalar(uvpass.getPtrTargetType()) );
-  }
+  } //isCurrentObjectAnArrayItem
 
   bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass)
   {
@@ -1740,14 +1739,13 @@ namespace MFM {
     // uvpass would be an array index (an int of sorts), not an array; types would not be the same;
     //    return(m_state.isScalar(cosuti) && isCustomArray && m_state.isScalar(uvpass.getPtrTargetType()) );
     return(m_state.isScalar(cosuti) && cosut->isCustomArray() && uvpass.getPtrTargetType() != cosuti);
-  }
-
+  } //isCurrentObjectACustomArrayItem
 
   bool Node::isHandlingImmediateType()
   {
     // a local var that's not refining (i.e. cos[0]), or a local var that's an EP
     return (isCurrentObjectALocalVariableOrArgument() && ( (m_state.m_currentObjSymbolsForCodeGen.size() == 1) || (m_state.m_currentObjSymbolsForCodeGen.back()->isElementParameter())));
-  }
+  } //isHandlingImmediateType
 
   u32 Node::adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass)
   {
@@ -1755,11 +1753,11 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     if(cosut->getUlamClass() == UC_NOTACLASS)
       {
-	assert(cosuti != UAtom);  //atom too? let's find out..
+	assert(cosuti != UAtom); //atom too? let's find out..
 	s32 wordsize = cosut->getTotalWordSize();
 	pos = wordsize - (BITSPERATOM - pos); //cosut->getTotalBitSize();
       }
     return pos;
-  }
+  } //adjustedImmediateArrayItemPtrPos
 
 } //end MFM

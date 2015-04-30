@@ -5,6 +5,7 @@
 namespace MFM {
 
   NodeReturnStatement::NodeReturnStatement(Node * s, CompilerState & state) : Node(state), m_node(s) {}
+
   NodeReturnStatement::NodeReturnStatement(const NodeReturnStatement& ref) : Node(ref)
   {
     if(ref.m_node)
@@ -29,7 +30,7 @@ namespace MFM {
     setYourParentNo(pno);
     if(m_node)
       m_node->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeReturnStatement::exchangeKids(Node * oldnptr, Node * newnptr)
   {

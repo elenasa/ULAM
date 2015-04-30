@@ -133,29 +133,29 @@ namespace MFM{
   {
     assert(0);
     return NORMAL;
-  }
+  } //eval
 
   EvalStatus NodeList::eval(u32 n)
   {
     assert(n < m_nodes.size());
     return m_nodes[n]->eval();
-  }
+  } //eval (overloaded)
 
   void NodeList::addNodeToList(Node * argNode)
   {
     m_nodes.push_back(argNode);
-  }
+  } //addNodeToList
 
   u32 NodeList::getNumberOfNodes() const
   {
     return m_nodes.size();
-  }
+  } //getNumberOfNodes
 
   Node * NodeList::getNodePtr(u32 n) const
   {
     assert(n < m_nodes.size());
     return m_nodes[n];
-  }
+  } //getNodePtr
 
   UTI NodeList::getNodeType(u32 n)
   {

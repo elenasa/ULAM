@@ -119,7 +119,7 @@ namespace MFM {
   //atomic parameter type, not element parameter.
   const std::string Symbol::getMangledNameForParameterType()
   {
-    assert(!m_elementParameter);  //maybe do it some other way XXX
+    assert(!m_elementParameter); //maybe do it some other way XXX
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     ULAMCLASSTYPE classtype = sut->getUlamClass();

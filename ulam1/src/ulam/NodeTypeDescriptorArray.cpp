@@ -40,7 +40,7 @@ namespace MFM {
     assert(m_unknownArraysizeSubtree);
     m_nodeScalar->updateLineage(getNodeNo());
     m_unknownArraysizeSubtree->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeTypeDescriptorArray::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -74,7 +74,7 @@ namespace MFM {
 
   void NodeTypeDescriptorArray::linkConstantExpressionArraysize(NodeSquareBracket * ceForArraySize)
   {
-    //tfr owner, or deletes if dup or anothertd ???
+    //tfr owner, no dups
     assert(!m_unknownArraysizeSubtree);
     m_unknownArraysizeSubtree = ceForArraySize;
   } //linkConstantExpressionArraysize
@@ -85,7 +85,7 @@ namespace MFM {
 
     if(isReadyType())
       {
-	assert(m_state.isComplete(it)); //could it be???
+	assert(m_state.isComplete(it)); //could it be?
 	return it;
       }
 

@@ -12,7 +12,6 @@ namespace MFM {
     m_nodeParameterList = new NodeList(state);
   }
 
-
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
@@ -114,7 +113,7 @@ namespace MFM {
     if(func)
       func->printPostfix(fp);
     else
-      fp->write(" <NOMAIN>");  //not an error
+      fp->write(" <NOMAIN>"); //not an error
 
     fp->write(" }");
     fp->write("\n");
@@ -123,7 +122,6 @@ namespace MFM {
   const char * NodeBlockClass::getName()
   {
     return m_state.getUlamTypeByIndex(getNodeType())->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str();
-    //return "{}";
   }
 
   const std::string NodeBlockClass::prettyNodeName()
@@ -356,7 +354,7 @@ namespace MFM {
       {
 	genCodeHeaderQuark(fp);
       }
-    else  //element
+    else //element
       {
 	genCodeHeaderElement(fp);
       }

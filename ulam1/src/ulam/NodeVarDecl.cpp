@@ -39,7 +39,7 @@ namespace MFM {
     Node::updateLineage(pno);
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeVarDecl::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -283,7 +283,7 @@ namespace MFM {
 
   EvalStatus  NodeVarDecl::evalToStoreInto()
   {
-    assert(0);  //no way to get here!
+    assert(0); //no way to get here!
     return ERROR;
   }
 
@@ -335,7 +335,7 @@ namespace MFM {
 	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
 	fp->write("<EC>");
 	fp->write("::THE_INSTANCE");
-	fp->write(".GetDefaultAtom()");  //returns object of type T
+	fp->write(".GetDefaultAtom()"); //returns object of type T
       }
 
     if(vclasstype == UC_QUARK)
@@ -343,7 +343,7 @@ namespace MFM {
 	//right-justified?
       }
 
-    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
+    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   } //genCode
 
 
@@ -375,7 +375,7 @@ namespace MFM {
     else
       {
 	fp->write("typedef AtomicParameterType");
-	fp->write("<EC");  //BITSPERATOM
+	fp->write("<EC"); //BITSPERATOM
 	fp->write(", ");
 	fp->write(nut->getUlamTypeVDAsStringForC().c_str());
 	fp->write(", ");
@@ -394,7 +394,7 @@ namespace MFM {
       }
     fp->write("> ");
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
-    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
+    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   } //genCodedBitFieldTypedef
 
   void NodeVarDecl::genCodedElementParameter(File * fp, UlamValue uvpass)
@@ -410,7 +410,7 @@ namespace MFM {
     fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName().c_str());
-    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
+    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   }  //genCodedElementParameter
 
   // this is the auto local variable's node, created at parse time,
@@ -461,15 +461,15 @@ namespace MFM {
       }
     else if(vclasstype == UC_ELEMENT)
       {
-	fp->write(", true");  //invokes 'badass' constructor
+	fp->write(", true"); //invokes 'badass' constructor
       }
     else
       assert(0);
 
     fp->write(");   //shadows lhs of 'as'\n");
 
-    m_state.m_genCodingConditionalAs = false;       // done
-    m_state.m_currentObjSymbolsForCodeGen.clear();  //clear remnant of lhs ?
+    m_state.m_genCodingConditionalAs = false; // done
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?
   } //genCodedAutoLocal
 
 } //end MFM
