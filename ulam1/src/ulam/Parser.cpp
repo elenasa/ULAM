@@ -930,7 +930,13 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	declNode = parseDecl();        //updates symbol table
+	declNode = parseDecl(); //updates symbol table
+	getNextToken(pTok);
+      }
+    else if(pTok.m_type == TOK_IDENTIFIER)
+      {
+	unreadToken();
+	declNode = parseAssignExpr();
 	getNextToken(pTok);
       }
 
