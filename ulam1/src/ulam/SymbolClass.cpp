@@ -150,7 +150,7 @@ namespace MFM {
 	msg << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: ";
 	msg  << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
-	aok = false;  //moved here;
+	aok = false; //moved here;
       }
 
     if(isQuarkUnion())
@@ -172,7 +172,7 @@ namespace MFM {
 	    aok = true;
 	  }
 	else if(totalbits != UNKNOWNSIZE)
-	  aok = true;  //not UNKNOWN
+	  aok = true; //not UNKNOWN
     return aok;
   } //trySetBitSize
 
@@ -244,7 +244,7 @@ namespace MFM {
 	fp->write("\n");
       } //test eval
     m_state.popClassContext(); //missing?
-  }//testThisClass
+  } //testThisClass
 
   void SymbolClass::linkConstantExpressionForPendingArg(NodeConstantDef * constNode)
   {
@@ -326,14 +326,14 @@ namespace MFM {
 
   void SymbolClass::generateCode(FileManager * fm)
   {
+    //class context already pushed..
     assert(m_classBlock);
-    //    m_state.pushClassContext(getUlamTypeIdx(), m_classBlock, m_classBlock, false, NULL);
 
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
     m_state.m_currentObjSymbolsForCodeGen.clear();
 
-    m_state.setupCenterSiteForTesting();  //temporary!!!
+    m_state.setupCenterSiteForTesting(); //temporary!!!
 
     // mangled types and forward class declarations
     genMangledTypesHeaderFile(fm);
@@ -348,7 +348,7 @@ namespace MFM {
       generateHeaderIncludes(fp);
 
       UlamValue uvpass;
-      m_classBlock->genCode(fp, uvpass);      //compileThisId only, class block
+      m_classBlock->genCode(fp, uvpass); //compileThisId only, class block
 
       // include this .tcc
       m_state.indent(fp);
@@ -406,7 +406,6 @@ namespace MFM {
 	if(m_classBlock->findTestFunctionNode())
 	  generateMain(fm);
       }
-    // m_state.popClassContext(); //missing?
   } //generateCode
 
   void SymbolClass::generateAsOtherInclude(File * fp)

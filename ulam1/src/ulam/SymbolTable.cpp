@@ -134,14 +134,10 @@ namespace MFM {
       {
 	Symbol * sym = copyList.back();
 	u32 sid = sym->getId();
-	//Symbol * rmsym = NULL;
-	//removeFromTable(sid, rmsym);
-	//assert(sym == rmsym);
 	Symbol * copysym = sym->cloneKeepsType();
 	copysym->setBlockNoOfST(toNo);
 	toTable->addIdToScope(sid, copysym);
-	//delete rmsym;
-	copyList.pop_back();
+	copyList.pop_back(); //no deletion
       }
 
     return copyList.empty();
@@ -199,13 +195,6 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
-	//don't count typedef's or element parameters toward total, nor named constants
-	//if(!variableSymbolWithCountableSize(sym))
-	//  {
-	//    it++;
-	//    continue;
-	//  }
-
 	UTI suti = sym->getUlamTypeIdx();
 	s32 symsize = calcVariableSymbolTypeSize(suti); //recursively
 
@@ -254,32 +243,28 @@ namespace MFM {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
 
-	//don't count typedef's or element parameters toward max
-	//if(variableSymbolWithCountableSize(sym))
-	{
-	  UTI sut = sym->getUlamTypeIdx();
-	  s32 symsize = calcVariableSymbolTypeSize(sut); //recursively
+	UTI sut = sym->getUlamTypeIdx();
+	s32 symsize = calcVariableSymbolTypeSize(sut); //recursively
 
-	  if(symsize == CYCLEFLAG) //was < 0
-	    {
-	      std::ostringstream msg;
-	      msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
-	      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
-	    }
-	  else if(symsize == EMPTYSYMBOLTABLE)
-	    {
-	      symsize = 0;
-	      m_state.setBitSize(sut, symsize); //total bits NOT including arrays
-	    }
-	  else
-	      {
-		m_state.setBitSize(sut, symsize); //symsize does not include arrays
-	      }
+	if(symsize == CYCLEFLAG) //was < 0
+	  {
+	    std::ostringstream msg;
+	    msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	  }
+	else if(symsize == EMPTYSYMBOLTABLE)
+	  {
+	    symsize = 0;
+	    m_state.setBitSize(sut, symsize); //total bits NOT including arrays
+	  }
+	else
+	  {
+	    m_state.setBitSize(sut, symsize); //symsize does not include arrays
+	  }
 
-	  if(variableSymbolWithCountableSize(sym) && ((s32) m_state.getTotalBitSize(sut) > maxsize))
-	    //if((s32) m_state.getTotalBitSize(sut) > maxsize)
-	      maxsize = m_state.getTotalBitSize(sut); //includes arrays
-	}
+	if(variableSymbolWithCountableSize(sym) && ((s32) m_state.getTotalBitSize(sut) > maxsize))
+	  maxsize = m_state.getTotalBitSize(sut); //includes arrays
+
 	it++;
       }
     return maxsize;
@@ -500,7 +485,7 @@ namespace MFM {
 	it++;
       }
     return rtnfound;
-  }//findNodeNoAcrossTableOfFunctions
+  } //findNodeNoAcrossTableOfFunctions
 
   void SymbolTable::labelTableOfFunctions()
   {
@@ -721,7 +706,7 @@ namespace MFM {
 	it++;
       } //while
     return aok;
-  }//statusNonreadyClassArgumentsInTableOfClasses
+  } //statusNonreadyClassArgumentsInTableOfClasses
 
   bool SymbolTable::fullyInstantiateTableOfClasses()
   {

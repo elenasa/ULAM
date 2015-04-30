@@ -31,7 +31,7 @@ namespace MFM {
     NodeUnaryOp::updateLineage(pno);
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeCast::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -100,7 +100,7 @@ namespace MFM {
 	errorsFound++;
       }
 
-    if(errorsFound == 0) //    else
+    if(errorsFound == 0) //else
       {
 	if(!m_state.isScalar(tobeType))
 	  {
@@ -202,15 +202,25 @@ namespace MFM {
     //do we believe these to be scalars, only?
     //possibly an array that needs to be casted, per elenemt
     if(m_state.isScalar(tobeType))
-      assert(m_state.isScalar(nodeType));
+      {
+	//assert(m_state.isScalar(nodeType));
+	if(!m_state.isScalar(nodeType))
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot cast an array: ";
+	    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	    msg << " to a scalar type: " ;
+	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
     else
       {
 	//both arrays the same dimensions
-	//assert(!nodeType->isScalar());
 	if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), "Considering implementing array casts!!!", ERR);
-	    assert(0);
+	    //assert(0);
 	  }
       }
 

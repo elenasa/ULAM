@@ -314,13 +314,13 @@ namespace MFM {
       } //forloop
 
     if(WritePacked(packRtn))
-      m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);  //store accumulated packed result
+      m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
   } //end dobinaryoparray
 
   void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());     //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
 #ifdef TMPVARBRACES
     m_state.indent(fp);
@@ -328,15 +328,15 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 #endif
 
-    // generate rhs first; may update current object globals (e.g. function call)
+    //generate rhs first; may update current object globals (e.g. function call)
     UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
 
-    // restore current object globals
+    //restore current object globals
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
     UlamValue luvpass;
-    m_nodeLeft->genCode(fp, luvpass);     //updates m_currentObjSymbol
+    m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -366,16 +366,16 @@ namespace MFM {
 
     fp->write(", ");
 
-    fp->write_decimal(nut->getTotalBitSize());  //if scalar, it's just the bitsize
+    fp->write_decimal(nut->getTotalBitSize()); //if scalar, it's just the bitsize
 
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //P
 
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");  //close for tmpVar
+    fp->write("}\n"); //close for tmpVar
 #endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode

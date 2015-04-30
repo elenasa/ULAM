@@ -54,7 +54,7 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    assert(wordsize == 32);
+    assert(wordsize == MAXBITSPERINT);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etype)
@@ -166,7 +166,7 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    assert(wordsize == 32);
+    assert(wordsize == MAXBITSPERINT);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {

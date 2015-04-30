@@ -126,17 +126,19 @@ namespace MFM {
 	    if(luti != UAtom)
 	      {
 		std::ostringstream msg;
-		msg << "Invalid type for LHS of conditional operator '" << getName() << "'; Class Not Found: "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+		msg << "Invalid type for LHS of conditional operator '" << getName();
+		msg << "'; Class Not Found: "  << m_state.getUlamTypeNameByIndex(luti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Invalid type for LHS of conditional operator '" << getName() <<  "', "  << m_state.getUlamTypeNameByIndex(luti).c_str() << "; Passing through as UNFOUND for eval";
+		msg << "Invalid type for LHS of conditional operator '" << getName();
+		msg <<  "', "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+		msg << "; Passing through as UNFOUND for eval";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
-
 	asit = (posFound >= 0);
       }
     else if(rclasstype == UC_ELEMENT)
@@ -166,8 +168,6 @@ namespace MFM {
       return genCodeAsElement(fp, uvpass);
     else
       assert(0);
-
-    return;
   } //genCode
 
   void NodeConditionalAs::genCodeAsQuark(File * fp, UlamValue& uvpass)

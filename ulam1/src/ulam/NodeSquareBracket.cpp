@@ -48,7 +48,6 @@ namespace MFM {
     UTI newType = Nav; //init
     UTI leftType = m_nodeLeft->checkAndLabelType();
 
-    //    if(leftType != Nav && m_state.isComplete(leftType))
     if(leftType != Nav)
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);

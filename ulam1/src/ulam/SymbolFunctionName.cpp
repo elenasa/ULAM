@@ -11,7 +11,7 @@ namespace MFM {
 
   SymbolFunctionName::SymbolFunctionName(u32 id, UTI typetoreturn, CompilerState& state) : Symbol(id,typetoreturn,state)
   {
-    setDataMember(); // by definition all function definitions are data members
+    setDataMember(); //by definition all function definitions are data members
   }
 
   SymbolFunctionName::SymbolFunctionName(const SymbolFunctionName& sref) : Symbol(sref)
@@ -23,8 +23,6 @@ namespace MFM {
 	SymbolFunction * cloneOf = (SymbolFunction *) foundSym->clone();
 	// return types could be mapped UTI, and not the same
 	//assert(foundSym != cloneOf && foundSym->getUlamTypeIdx() == cloneOf->getUlamTypeIdx());
-	//std::string clonemangled(it->first);
-	//m_mangledFunctionNames.insert(std::pair<std::string,SymbolFunction *>(clonemangled,cloneOf));
 	overloadFunction(cloneOf);
 	++it;
       }
@@ -54,7 +52,7 @@ namespace MFM {
 
   const std::string SymbolFunctionName::getMangledPrefix()
   {
-    return "Uz_";  //?
+    return "Uz_"; //?
   }
 
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
@@ -279,7 +277,7 @@ namespace MFM {
 		MSG("", msg.str().c_str(), DEBUG);
 	      }
 	    argTypes.clear();
-	  }//aset found
+	  } //aset found
 	else
 	  {
 	    std::ostringstream msg;
@@ -339,7 +337,7 @@ namespace MFM {
 	++it;
       }
     return rtnfound;
-  }//findNodeNoInFunctionDefs
+  } //findNodeNoInFunctionDefs
 
   bool SymbolFunctionName::labelFunctions()
   {

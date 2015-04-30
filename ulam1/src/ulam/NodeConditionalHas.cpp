@@ -86,7 +86,7 @@ namespace MFM {
   EvalStatus  NodeConditionalHas::eval()
   {
     assert(m_nodeLeft);
-    evalNodeProlog(0);   //new current frame pointer
+    evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
     EvalStatus evs = m_nodeLeft->evalToStoreInto();
@@ -118,13 +118,16 @@ namespace MFM {
 	if(luti != UAtom)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid type for LHS of conditional operator '" << getName() << "'; Class Not Found: "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+	    msg << "Invalid type for LHS of conditional operator '" << getName();
+	    msg << "'; Class Not Found: "  << m_state.getUlamTypeNameByIndex(luti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid type for LHS of conditional operator '" << getName() <<  "', "  << m_state.getUlamTypeNameByIndex(luti).c_str() << "; Passing through as UNFOUND for eval";
+	    msg << "Invalid type for LHS of conditional operator '" << getName();
+	    msg <<  "', "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+	    msg << "; Passing through as UNFOUND for eval";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
@@ -175,7 +178,7 @@ namespace MFM {
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
 	fp->write("\") >= 0);\n"); //bool as u32
       }
-    else  //not atom
+    else //not atom
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(luti);
 	ULAMCLASSTYPE lclasstype = lut->getUlamClass();
@@ -201,7 +204,6 @@ namespace MFM {
 	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
 	fp->write("\") >= 0);\n");
       }
-
     //update uvpass
     uvpass = UlamValue::makePtr(tmpVarHas, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs

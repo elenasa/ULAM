@@ -283,7 +283,7 @@ namespace MFM {
 	it++;
       }
     return aok;
-  }//statusNonreadyClassArgumentsInStubClassInstances
+  } //statusNonreadyClassArgumentsInStubClassInstances
 
   bool SymbolClassNameTemplate::constantFoldClassArgumentsInAStubClassInstance(UTI instance)
   {
@@ -300,7 +300,7 @@ namespace MFM {
 	m_state.popClassContext();
       }
     return aok;
-  }//constantFoldClassArgumentsInAStubClassInstance
+  } //constantFoldClassArgumentsInAStubClassInstance
 
   std::string SymbolClassNameTemplate::formatAnInstancesArgValuesAsAString(UTI instance)
   {
@@ -869,14 +869,14 @@ namespace MFM {
 
 	if(aok)
 	  {
-	    m_state.setBitSize(uti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	    m_state.setBitSize(uti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	    std::ostringstream msg;
 	    msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 	    msg << " UTI" << uti << ", SIZED: " << totalbits;
 	    MSG("", msg.str().c_str(), DEBUG);
 	  }
 	else
-	  lostClasses.push_back(cuti); 	//track classes that fail to be sized.
+	  lostClasses.push_back(cuti); //track classes that fail to be sized.
 
 	aok = true; //reset for next class
 	it++;

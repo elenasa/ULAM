@@ -2399,13 +2399,8 @@ namespace MFM {
 	UTI uti = typeNode->givenUTI();
 
 	//returns either a terminal or proxy
-	rtnNode = parseMinMaxSizeofType(pTok, uti, typeNode); //optionally, get's next dot token
-	if(rtnNode)
-	  {
-	    //bitsize/arraysize is unknown, i.e. based on a Class.sizeof
-	    //linkFreeMapATypeAndConstantExpressions(uti, typeargs, bitsizeNode, NULL);
-	  }
-	else
+	rtnNode = parseMinMaxSizeofType(pTok, uti, typeNode); //optionally, gets next dot token
+	if(!rtnNode)
 	  {
 	    //clean up, some kind of error parsing min/max/sizeof
 	    delete typeNode;
@@ -3010,13 +3005,11 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfConstantDef
 
-  //NodeBlockFunctionDefinition * Parser::makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize)
   NodeBlockFunctionDefinition * Parser::makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype)
   {
     NodeBlockFunctionDefinition * rtnNode = NULL;
 
-    //all functions are defined in this "class" block;
-    //or external 'use' for declarations.
+    //all functions are defined in this "class" block; or external 'use' for declarations.
     //this is a block with its own ST
     NodeBlockClass * currClassBlock = m_state.getClassBlock();
     NodeBlock * prevBlock = m_state.getCurrentBlock();
@@ -3052,6 +3045,8 @@ namespace MFM {
     s32 returnArraySize = m_state.slotsNeeded(fsymptr->getUlamTypeIdx());
 
     //extra one for "hidden" first arg, Ptr to its Atom
+    //maxdepth now re-calculated after parsing due to some still unknown sizes;
+    //blockdeclsize: 0, <1, >1 means: datamember, parameter, local variable, respectively
     m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
@@ -3268,7 +3263,6 @@ namespace MFM {
 	MSG(&identTok, msg.str().c_str(), ERR);
 
 	//eat tokens until end of definition ?
-	//delete constExprForBitSize;
 	delete nodetype;
 	return NULL;
       }
@@ -3441,10 +3435,10 @@ namespace MFM {
     Node * lvalNode = parseIdentExpr(identTok); //calls parseLvalExpr
     if(lvalNode)
       {
-	//lvalNode could be either a NodeIdent or a NodeSquareBracket though arrays not legal in this context!!!
+	//lvalNode could be either a NodeIdent or a NodeSquareBracket,
+	// though arrays not legal in this context!!!
 	//process identifier...check if already defined in current scope; if not, add it;
-	//return a SymbolConstantValue.
-	//else some sort of primitive
+	//return a SymbolConstantValue else some sort of primitive
 	Symbol * asymptr = NULL;
 	if(!lvalNode->installSymbolConstantValue(args, asymptr))
 	  {
@@ -4070,7 +4064,7 @@ namespace MFM {
     //link arraysize subtree for arraytype based on scalar from another class, OR
     // a local arraytype based on a local scalar uti; o.w. delete.
     // don't keep the ceForArraySize if the type belongs to another class!
-    // when also unknown bitsize, we link array to its scalar (below)
+    // we link an array type to its scalar type
 
     if(arraysize != UNKNOWNSIZE)
       {
@@ -4085,7 +4079,7 @@ namespace MFM {
 	return;
       }
 
-    // could be local array typedef, no square brackets this time
+    // could be local array typedef, no square brackets this time (else)
     if(m_state.isScalar(nodetyperef->givenUTI()))
       {
 	NodeTypeDescriptorArray * nodetypearray = new NodeTypeDescriptorArray(args.m_typeTok, auti, nodetyperef, m_state);

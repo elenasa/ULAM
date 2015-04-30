@@ -154,7 +154,7 @@ namespace MFM {
     if(aok)
       {
 	UTI cuti = getUlamTypeIdx();
-	m_state.setBitSize(cuti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	m_state.setBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	std::ostringstream msg;
 	msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	msg << " SIZED: " << totalbits;
@@ -162,7 +162,7 @@ namespace MFM {
       }
     m_state.popClassContext(); //restore
     return aok;
-  } //setBitSizeOfClassInstances()
+  } //setBitSizeOfClassInstances
 
   // separate pass...after labeling all classes is completed;
   void SymbolClassName::printBitSizeOfClassInstances()

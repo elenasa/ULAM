@@ -95,7 +95,7 @@ namespace MFM {
   void SymbolFunction::setFunctionNode(NodeBlockFunctionDefinition * func)
   {
     if(m_functionNode)
-      delete m_functionNode;  //clean up any previous declarations
+      delete m_functionNode; //clean up any previous declarations
 
     m_functionNode = func; //could be null if error occurs while parsing func body
     Symbol::setBlockNoOfST(m_state.getClassBlockNo()); //SF not in the func def ST
@@ -116,7 +116,7 @@ namespace MFM {
   const std::string SymbolFunction::getMangledNameWithUTIparameters()
   {
     std::ostringstream mangled;
-    mangled << Symbol::getMangledName();  //e.g. Uf_14name, with lexNumbers
+    mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
 
     // use void type when no parameters
     if(m_parameterSymbols.empty())
@@ -143,7 +143,7 @@ namespace MFM {
   const std::string SymbolFunction::getMangledNameWithTypes()
   {
     std::ostringstream mangled;
-    mangled << Symbol::getMangledName();  //e.g. Uf_14name, with lexNumbers
+    mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
 
     // use void type when no parameters
     if(m_parameterSymbols.empty())
@@ -281,10 +281,10 @@ namespace MFM {
     fp->write(getMangledName().c_str());
     fp->write("(");
 
-    fp->write("UlamContext<EC>& uc, ");  //first arg is unmangled context
+    fp->write("UlamContext<EC>& uc, "); //first arg is unmangled context
 
     //the hidden arg is "self", a T& (atom)
-    fp->write("T& ");          //a reference
+    fp->write("T& "); //a reference
     fp->write(m_state.getHiddenArgName());
 
     u32 numparams = getNumberOfParameters();
@@ -306,7 +306,7 @@ namespace MFM {
     if(takesVariableArgs())
       {
 	assert(func->isNative());
-	fp->write(", ...");  //ellipses must be after at least one param
+	fp->write(", ..."); //ellipses must be after at least one param
       }
 
     fp->write(")");
@@ -318,7 +318,7 @@ namespace MFM {
 	else
 	  {
 	    if(classtype == UC_ELEMENT)
-	      fp->write(" const");   //element functions are const, not static
+	      fp->write(" const"); //element functions are const, not static
 
 	    fp->write(";\n\n");
 	  }
@@ -326,7 +326,7 @@ namespace MFM {
     else
       {
 	if(classtype == UC_ELEMENT)
-	  fp->write(" const");      //element functions are const, not static
+	  fp->write(" const"); //element functions are const, not static
 
 	UlamValue uvpass;
 	func->genCode(fp, uvpass);
