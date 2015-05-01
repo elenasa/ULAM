@@ -39,6 +39,7 @@
 
 #include "Node.h"
 #include "NodeCast.h"
+#include "NodeTypeDescriptor.h"
 
 namespace MFM{
 
@@ -46,7 +47,7 @@ namespace MFM{
   {
   public:
 
-    NodeConditional(Node * leftNode, UTI classInstanceIdx, CompilerState & state);
+    NodeConditional(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state);
     NodeConditional(const NodeConditional& ref);
     virtual ~NodeConditional();
 
@@ -85,7 +86,8 @@ namespace MFM{
   protected:
     Node * m_nodeLeft;
     //Token m_typeTok;  //right
-    UTI m_utypeRight;
+    //UTI m_utypeRight;
+    NodeTypeDescriptor * m_nodeTypeDesc; //right
   };
 
 }

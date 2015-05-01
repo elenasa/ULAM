@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpEqualBitwise::NodeBinaryOpEqualBitwise(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
+
   NodeBinaryOpEqualBitwise::NodeBinaryOpEqualBitwise(const NodeBinaryOpEqualBitwise& ref) : NodeBinaryOpEqual(ref) {}
+
   NodeBinaryOpEqualBitwise::~NodeBinaryOpEqualBitwise(){}
 
   UTI NodeBinaryOpEqualBitwise::checkAndLabelType()
@@ -23,8 +25,7 @@ namespace MFM {
       }
 
     return nodeType;
-  }  //checkandlabeltype
-
+  } //checkandlabeltype
 
   const std::string NodeBinaryOpEqualBitwise::methodNameForCodeGen()
   {
@@ -50,8 +51,7 @@ namespace MFM {
       };
     methodname << nut->getTotalWordSize();
     return methodname.str();
-  } // methodNameForCodeGen
-
+  } //methodNameForCodeGen
 
   // third arg is the slots for the rtype; slots for the left is
   // rslot-lslot; they should be equal, unless one is a packed array
@@ -80,7 +80,6 @@ namespace MFM {
       }
   } //end dobinaryop
 
-
   void NodeBinaryOpEqualBitwise::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -103,13 +102,13 @@ namespace MFM {
     // but a plain NodeIdent does not!!!  because genCodeToStoreInto has been repurposed
     // to mean "don't read into a TmpVar" (e.g. by NodeCast).
     UlamValue luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass);      //may update m_currentObjSymbol
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass); //may update m_currentObjSymbol
 
     //wiped out by left read; need to write back into left
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    uvpass = luvpass;      //keep luvpass slot untouched
+    uvpass = luvpass; //keep luvpass slot untouched
     Node::genCodeReadIntoATmpVar(fp, uvpass);
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore vector after lhs read*************
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore vector after lhs read*************
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -139,15 +138,15 @@ namespace MFM {
     fp->write_decimal(nut->getBitSize());
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos(), uvpass.getPtrNameId());  //P
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos(), uvpass.getPtrNameId()); //P
 
     // current object globals should pertain to lhs for the write
-    genCodeWriteFromATmpVar(fp, luvpass, uvpass);        //uses rhs' tmpvar; orig lhs
+    genCodeWriteFromATmpVar(fp, luvpass, uvpass); //uses rhs' tmpvar; orig lhs
 
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");  //close for tmpVar
+    fp->write("}\n"); //close for tmpVar
 #endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode

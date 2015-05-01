@@ -39,14 +39,15 @@
 
 #include "NodeTerminal.h"
 #include "Token.h"
+#include "NodeTypeDescriptor.h"
 
 namespace MFM{
 
-  class NodeTerminalProxy : public NodeTerminal
-  {
-  public:
+class NodeTerminalProxy : public NodeTerminal
+{
+public:
 
-    NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, CompilerState & state);
+    NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, NodeTypeDescriptor * nodetype, CompilerState & state);
 
     NodeTerminalProxy(const NodeTerminalProxy& ref);
 
@@ -54,13 +55,21 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void printPostfix(File * fp);
+
+    virtual const char * getName();
 
     virtual const std::string prettyNodeName();
 
     virtual bool isReadyConstant();
 
     virtual UTI checkAndLabelType();
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
@@ -73,6 +82,7 @@ namespace MFM{
     UTI m_uti; //lhs type of func
     Token m_funcTok; //minof, maxof or sizeof
     bool m_ready;
+    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     virtual bool setConstantValue(Token tok);
     virtual UTI setConstantTypeForNode(Token tok);

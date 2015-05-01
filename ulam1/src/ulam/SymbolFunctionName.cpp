@@ -11,7 +11,7 @@ namespace MFM {
 
   SymbolFunctionName::SymbolFunctionName(u32 id, UTI typetoreturn, CompilerState& state) : Symbol(id,typetoreturn,state)
   {
-    setDataMember(); // by definition all function definitions are data members
+    setDataMember(); //by definition all function definitions are data members
   }
 
   SymbolFunctionName::SymbolFunctionName(const SymbolFunctionName& sref) : Symbol(sref)
@@ -23,8 +23,6 @@ namespace MFM {
 	SymbolFunction * cloneOf = (SymbolFunction *) foundSym->clone();
 	// return types could be mapped UTI, and not the same
 	//assert(foundSym != cloneOf && foundSym->getUlamTypeIdx() == cloneOf->getUlamTypeIdx());
-	//std::string clonemangled(it->first);
-	//m_mangledFunctionNames.insert(std::pair<std::string,SymbolFunction *>(clonemangled,cloneOf));
 	overloadFunction(cloneOf);
 	++it;
       }
@@ -54,7 +52,7 @@ namespace MFM {
 
   const std::string SymbolFunctionName::getMangledPrefix()
   {
-    return "Uz_";  //?
+    return "Uz_"; //?
   }
 
   bool SymbolFunctionName::overloadFunction(SymbolFunction * fsym)
@@ -279,7 +277,7 @@ namespace MFM {
 		MSG("", msg.str().c_str(), DEBUG);
 	      }
 	    argTypes.clear();
-	  }//aset found
+	  } //aset found
 	else
 	  {
 	    std::ostringstream msg;
@@ -308,6 +306,19 @@ namespace MFM {
       }
   } //linkToParentNodesInFunctionDefs
 
+  void SymbolFunctionName::updatePrevBlockPtrInFunctionDefs(NodeBlockClass * p)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
+	func->setPreviousBlockPointer(p);
+	++it;
+      }
+  } //updatePrevBlockPtrInFunctionDefs
+
   bool SymbolFunctionName::findNodeNoInFunctionDefs(NNO n, Node*& foundNode)
   {
     bool rtnfound = false;
@@ -326,24 +337,28 @@ namespace MFM {
 	++it;
       }
     return rtnfound;
-  }//findNodeNoInFunctionDefs
+  } //findNodeNoInFunctionDefs
 
-  void SymbolFunctionName::labelFunctions()
+  bool SymbolFunctionName::labelFunctions()
   {
+    bool aok = true; //parameter types
+
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
 
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
 
+	// now done as part of block's c&l
 	// first check for incomplete parameters
-	fsym->checkParameterTypes();
+	aok &= fsym->checkParameterTypes();
 
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->checkAndLabelType();
 	++it;
       }
+    return aok;
   } //labelFunctions
 
   u32 SymbolFunctionName::countNavNodesInFunctionDefs()

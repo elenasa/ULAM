@@ -69,7 +69,7 @@ namespace MFM{
     /** replaces temporary class argument names, updates the ST, and the class type */
     void fixAnyClassInstances();
 
-    virtual bool statusUnknownConstantExpressionsInClassInstances();
+    //    virtual bool statusUnknownConstantExpressionsInClassInstances();
 
     bool statusNonreadyClassArgumentsInStubClassInstances();
     bool constantFoldClassArgumentsInAStubClassInstance(UTI instance);
@@ -83,7 +83,6 @@ namespace MFM{
     bool fullyInstantiate();
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
-    virtual void constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti);
 
     void updateLineageOfClassInstanceUTI(UTI cuti); //during full instantiateion
 
@@ -116,10 +115,10 @@ namespace MFM{
     std::map<std::string, SymbolClass* > m_scalarClassArgStringsToSymbolPtr; //merged set
     std::map<UTI, std::map<UTI,UTI> > m_mapOfTemplateUTIToInstanceUTIPerClassInstance;
 
+    void mergeClassInstancesFromTEMP();
     bool takeAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     bool copyAnInstancesArgValues(SymbolClass * fm, SymbolClass * to);
     void cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to);
-    void cloneTemplateResolverForClassInstance(SymbolClass * csym);
   };
 
 }

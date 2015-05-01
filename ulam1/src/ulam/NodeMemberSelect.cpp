@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeMemberSelect::NodeMemberSelect(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
+
   NodeMemberSelect::NodeMemberSelect(const NodeMemberSelect& ref) : NodeBinaryOpEqual(ref) {}
+
   NodeMemberSelect::~NodeMemberSelect(){}
 
   Node * NodeMemberSelect::instantiate()
@@ -55,26 +57,6 @@ namespace MFM {
 	setNodeType(Nav);
 	return getNodeType();
       } //done
-
-    // fall through to common attempt to map UTI
-    if(!lut->isComplete())
-      {
-	UTI cuti = m_state.getCompileThisIdx();
-	UTI mappedUTI = Nav;
-	if(m_state.mappedIncompleteUTI(cuti, luti, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete Member Selected type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	    msg << " used with variable symbol name '" << getName();
-	    msg << "' UTI" << luti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    luti = mappedUTI;
-	  }
-      }
 
     if(!m_state.isComplete(luti)) //reloads
       {
@@ -175,7 +157,7 @@ namespace MFM {
 
     //copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnUV);
-  }//doBinaryOperation
+  } //doBinaryOperation
 
   EvalStatus NodeMemberSelect::evalToStoreInto()
   {
@@ -232,14 +214,13 @@ namespace MFM {
     return false;
   } //getSymbolPtr
 
-
   void NodeMemberSelect::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());    //*************?
+    //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-    m_nodeRight->genCode(fp, uvpass);  // is this ok???
+    m_nodeRight->genCode(fp, uvpass);  // is this ok?
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
   } //genCode

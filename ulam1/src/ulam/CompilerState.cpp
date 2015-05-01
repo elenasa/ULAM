@@ -19,9 +19,9 @@
 
 namespace MFM {
 
-//#define _DEBUG_OUTPUT
-//#define _INFO_OUTPUT
-//#define _WARN_OUTPUT
+  //#define _DEBUG_OUTPUT
+  //#define _INFO_OUTPUT
+  //#define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -179,7 +179,7 @@ namespace MFM {
     {
       std::ostringstream msg;
       msg << "Replace Holder key (UTI" << uti << ") WITH: ";
-      msg << newut->getUlamTypeName().c_str() << " (UTI" << uti << ")";
+      msg << newut->getUlamTypeName().c_str() << " (UTI" << auti << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 
@@ -495,10 +495,9 @@ namespace MFM {
 	  }
 	else
 	  {
-	    // same ???
 	    UTI auti = Nav;
 	    assert(aDefinedUTI(newkey,auti)); //don't wipe out uti
-	    updateUTIAlias(uti, auti);
+	    updateUTIAlias(uti, auti); // could be the same
 	  }
       }
     return rtnBool;
@@ -510,6 +509,10 @@ namespace MFM {
     assert(alreadyDefinedSymbolClass(cuti, csym));
     if(csym->hasMappedUTI(auti, mappedUTI))
       return true;
+
+    // does this hurt anything?
+    if(findaUTIAlias(auti, mappedUTI))
+       return mappedUTI; //anonymous UTI
 
     //move this test after looking for the mapped class symbol type in "cuti" (always compileThis?)
     UlamType * aut = getUlamTypeByIndex(auti);
@@ -530,7 +533,8 @@ namespace MFM {
     return false; //for compiler
   } //mappedIncompleteUTI
 
-  //called by Symbol's copy constructor with ref's 'incomplete' uti
+  //called by Symbol's copy constructor with ref's 'incomplete' uti;
+  //also called by NodeTypeDescriptor's copy constructor since has no symbol;
   //please set getCompileThisIdx() to the instance's UTI.
   UTI CompilerState::mapIncompleteUTIForCurrentClassInstance(UTI suti)
   {
@@ -560,13 +564,13 @@ namespace MFM {
 	  return suti;
       }
 
-    //first time we've seen this 'incomplete' UTI for this class instance (being fully instantiated):
+    //first time we've seen this 'incomplete' UTI for this class instance (as fully instantiated):
     //get a new UTI and add to cnsym's map for this instance in case we see it again;
-    //Later, also update all its resolver's 'subtree' table references; For classes with
-    //pending args, make a copy of the stub including its resolver with pending args, so
-    //pending args can be resolved XXXX within the context of this class instance (e.g. dependent on
-    //instances arg values which makes it different than others', like "self").
-    //Context dependent pending args are resolved before they are added to the resolver's pending args.
+    //For classes with pending args, make a copy of the stub including its resolver with pending
+    //args, so pending args can be resolved XXXX within the context of this class instance
+    //(e.g. dependent on instances arg values which makes it different than others', like "self").
+    //Context dependent pending args are resolved before they are added to the resolver's
+    //pending args.
     UlamKeyTypeSignature newkey(skey); //default constructor makes copy
     UTI newuti = makeUlamType(newkey,bUT);
     cnsym->mapInstanceUTI(getCompileThisIdx(), suti, newuti);
@@ -598,83 +602,26 @@ namespace MFM {
       }
       //updateUTIAlias(suti, newuti);
     return newuti;
-  }//mapIncompleteUTIForCurrentClassInstance
+  } //mapIncompleteUTIForCurrentClassInstance
 
-  void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to, Locator loc)
+  void CompilerState::mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc)
   {
     updateUTIAlias(fm, to);
 
     updateClassSymbolsFromHolder(fm, to, loc);
 
+    mapTypesInCurrentClass(fm, to);
+  } //mapHolderTypesInCurrentClass
+
+  void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
+  {
     SymbolClassName * cnsym = NULL;
     assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     if(cnsym->isClassTemplate())
       ((SymbolClassNameTemplate *) cnsym)->mapInstanceUTI(getCompileThisIdx(), fm, to);
     else
       cnsym->mapUTItoUTI(fm,to);
-  } //mapTypesInCurrentClass
-
-  void CompilerState::linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode)
-  {
-    if(ceNode)
-      {
-	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-	cnsym->linkUnknownBitsizeConstantExpression(uti, ceNode);
-      }
-  } //linkConstantExpression (bitsize)
-
-  void CompilerState::cloneAndLinkConstantExpression(UTI fromuti, UTI touti)
-  {
-    SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-    cnsym->linkUnknownBitsizeConstantExpression(fromuti, touti);
-  } //linkConstantExpression (bitsize in decllist)
-
-  void CompilerState::linkConstantExpression(UTI uti, NodeSquareBracket * ceNode)
-  {
-    if(ceNode)
-      {
-	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-	cnsym->linkUnknownArraysizeConstantExpression(uti, ceNode);
-      }
-  } //linkConstantExpression (arraysize)
-
-  void CompilerState::linkIncompleteArrayTypeToItsBaseScalarType(UTI arrayuti, UTI baseuti)
-  {
-    SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-    cnsym->linkIncompleteArrayTypeInAClass(arrayuti, baseuti);
-  } //linkIncompleteArrayTypeToItsBaseScalarType
-
-  void CompilerState::linkConstantExpression(NodeConstantDef * ceNode)
-  {
-    if(ceNode)
-      {
-	SymbolClassName * cnsym = NULL;
-	assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
-	cnsym->linkUnknownNamedConstantExpression(ceNode);
-      }
-  } //linkConstantExpression (named constant)
-
-  void CompilerState::linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubuti)
-  {
-    SymbolClass * csym = NULL;
-    assert(alreadyDefinedSymbolClass(getCompileThisIdx(), csym));
-    csym->linkTypedefFromAnotherClass(tduti, stubuti); //directly into the SC
-  } //linkUnknownTypedefFromAnotherClass
-
-  void CompilerState::constantFoldIncompleteUTI(UTI auti)
-  {
-    SymbolClassName * cnsym = NULL;
-    if(!alreadyDefinedSymbolClassName(getCompileThisId(), cnsym))
-      {
-	std::string debugme = getClassContextAsStringForDebugging();
-	assert(0); //forgot a pushClassContext somewhere!
-      }
-    cnsym->constantFoldIncompleteUTIOfClassInstance(getCompileThisIdx(), auti);
-  } //constantFoldIncompleteUTI
+  } //mapTypesInCurrentClass (overload)
 
   bool CompilerState::constantFoldPendingArgs(UTI cuti)
   {
@@ -760,35 +707,35 @@ namespace MFM {
 	    if(alreadyDefinedSymbolClassName(tok.m_dataindex, cnsym))
 	      {
 		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
-	      } //else  or make one if doesn't exist yet, while parsing --- do we do this anymore ???
+	      } //else or make one if doesn't exist yet, while parsing---do we do this anymore?
 	  }
       }
     return uti;
   } //getUlamTypeFromToken
 
-  UTI CompilerState::getUlamTypeFromToken(ParserTypeArgs & args)
+  UTI CompilerState::getUlamTypeFromToken(TypeArgs & args)
   {
     UTI uti = Nav;
     UTI tmpforscalaruti = Nav;
     //is this name already a typedef for a complex type?
-    if(!getUlamTypeByTypedefName(args.typeTok.m_dataindex, uti, tmpforscalaruti))
+    if(!getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tmpforscalaruti))
       {
-	if(Token::getSpecialTokenWork(args.typeTok.m_type) == TOKSP_TYPEKEYWORD)
+	if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
 	  {
-	    uti = makeUlamType(args.typeTok, args.bitsize, args.arraysize, Nav);
+	    uti = makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nav);
 	  }
 	else
 	  {
 	    //check for existing Class type
 	    SymbolClassName * cnsym = NULL;
-	    if(alreadyDefinedSymbolClassName(args.typeTok.m_dataindex, cnsym))
+	    if(alreadyDefinedSymbolClassName(args.m_typeTok.m_dataindex, cnsym))
 	      {
 		uti = cnsym->getUlamTypeIdx();  //beware: may not match class parameters!!!
 	      } //else  or make one if doesn't exist yet, while parsing --- do we do this anymore ???
 	  }
       }
     else
-      args.declListOrTypedefScalarType = tmpforscalaruti; //also returns scalar uti
+      args.m_declListOrTypedefScalarType = tmpforscalaruti; //also returns scalar uti
     return uti;
   } //getUlamTypeFromToken
 
@@ -871,15 +818,14 @@ namespace MFM {
   bool CompilerState::isComplete(UTI utArg)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    //for arrays, check if scalar is complete
-    if(!ut->isComplete() && !ut->isScalar())
-      {
-	UTI scalarUTI = ut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureClassInstanceIdx();
-	assert(isScalar(scalarUTI));
-	return isComplete(scalarUTI);
-      }
     return ut->isComplete();
   } //isComplete
+
+  bool CompilerState::isHolder(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->isHolder());
+  }
 
   //updates key. we can do this now that UTI is used and the UlamType * isn't saved
   void CompilerState::setBitSize(UTI utArg, s32 bits)
@@ -946,8 +892,6 @@ namespace MFM {
     deleteUlamKeyTypeSignature(key);
 
     UlamType * newut = NULL;
-    //assert(!isDefined(key, newut) && !newut);
-
     if(!isDefined(newkey, newut))
       {
 	newut = createUlamType(newkey, Class);
@@ -956,10 +900,11 @@ namespace MFM {
 
 	if(isCustomArray)
 	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
-
-	incrementUnknownKeyUTICounter(newkey);  //here???
       }
+
     m_indexToUlamKey[utArg] = newkey;
+
+    incrementUnknownKeyUTICounter(newkey);  //here
 
     {
       std::ostringstream msg;
@@ -1135,11 +1080,33 @@ namespace MFM {
       return;  //nothing to do
 
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
+    //'Void' by default is zero and only zero bitsize (already complete)
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
     if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
       {
+	if(bUT != Void)
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str();
+	    msg << "> (UTI" << utArg << ")";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    return;
+	  }
+	//Void with zero bitsize
+	if(arraysize != NONARRAYSIZE)
+	  {
+	    // disallow an array of Void(0)'s
+	    std::ostringstream msg;
+	    msg << "Invalid Void type array: " << ut->getUlamTypeName().c_str();
+	    msg << "> (UTI" << utArg << ")";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    return;
+	  }
+      }
+    else if(bUT == Void)
+      {
 	std::ostringstream msg;
-	msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str();
+	msg << "Invalid nonzero size for Void type: " << ut->getUlamTypeName().c_str();
 	msg << "> (UTI" << utArg << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return;
@@ -1159,14 +1126,16 @@ namespace MFM {
       {
 	newut = createUlamType(newkey, bUT);
 	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType*>(newkey,newut));
-	incrementUnknownKeyUTICounter(newkey);
       }
 
     m_indexToUlamKey[utArg] = newkey;
 
+    incrementUnknownKeyUTICounter(newkey);
+
     {
       std::ostringstream msg;
-      msg << "Sizes set for nonClass: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
+      msg << "Sizes set for nonClass: " << newut->getUlamTypeName().c_str();
+      msg << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 
@@ -1276,7 +1245,7 @@ namespace MFM {
     classblock->setNodeLocation(cTok.m_locator);
     classblock->setNodeType(cuti);
 
-    //symbol ownership goes to the programDefST; distinguish between template and regular classes here:
+    //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(dataindex, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
@@ -1295,7 +1264,7 @@ namespace MFM {
     classblock->setNodeLocation(cTok.m_locator);
     classblock->setNodeType(cuti);
 
-    //symbol ownership goes to the programDefST; distinguish between template and regular classes here:
+    //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassNameTemplate(dataindex, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable

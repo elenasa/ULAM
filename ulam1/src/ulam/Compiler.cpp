@@ -201,7 +201,7 @@ namespace MFM {
   {
     bool sumbrtn = true;
     sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
-    sumbrtn &= m_state.m_programDefST.statusUnknownConstantExpressionsInTableOfClasses();
+    //    sumbrtn &= m_state.m_programDefST.statusUnknownConstantExpressionsInTableOfClasses();
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context
     sumbrtn &= m_state.m_programDefST.fullyInstantiateTableOfClasses(); //with ready args
     //checkAndLabelTypes: lineage updated incrementally

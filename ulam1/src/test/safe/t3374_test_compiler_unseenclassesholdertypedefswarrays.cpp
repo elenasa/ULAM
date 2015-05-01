@@ -16,6 +16,9 @@ namespace MFM {
       // array is part of E.X typedef
       bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo;\n Int test(){\n Foo f;\n f[0] = true;\n if(f[0])\n return f[0];\n return 0;\n}\n}\n");
 
+      //simplfy for testing
+      //bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo;\n Int test(){\n return 0;\n}\n}\n");
+
       bool rtn3 = fms->add("E.ulam", "element E{\n typedef D.X X[2];\n }\n");
 
       //test constant expression bitwise

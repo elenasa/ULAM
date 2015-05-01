@@ -64,6 +64,7 @@
 #include "SymbolVariable.h"
 #include "Token.h"
 #include "Tokenizer.h"
+#include "TypeArgs.h"
 #include "UlamType.h"
 #include "UlamUtil.h"
 
@@ -87,28 +88,6 @@ namespace MFM{
       if(key1.m_classInstanceIdx < key2.m_classInstanceIdx) return true;
       if(key1.m_classInstanceIdx > key2.m_classInstanceIdx) return false;
       return false;
-    }
-  };
-
-  struct ParserTypeArgs
-  {
-    Token typeTok;
-    s32 bitsize;
-    s32 arraysize;
-    UTI classInstanceIdx;
-    UTI anothertduti;
-    UTI declListOrTypedefScalarType;
-    bool assignOK;
-
-    void init(Token typetoken)
-    {
-      typeTok = typetoken;
-      bitsize = UNKNOWNSIZE;
-      arraysize = NONARRAYSIZE;
-      classInstanceIdx = Nav;
-      anothertduti = Nav;
-      declListOrTypedefScalarType = Nav;
-      assignOK = true;
     }
   };
 
@@ -191,19 +170,11 @@ namespace MFM{
     u32 findUnknownKeyUTICounter(UlamKeyTypeSignature key);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
-
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
-    void mapTypesInCurrentClass(UTI fm, UTI to, Locator loc);
+    void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
+    void mapTypesInCurrentClass(UTI fm, UTI to);
 
-    void linkConstantExpression(UTI uti, NodeTypeBitsize * ceNode);
-    void cloneAndLinkConstantExpression(UTI fromuti, UTI touti);
-    void linkConstantExpression(UTI uti, NodeSquareBracket * ceNode);
-    void linkIncompleteArrayTypeToItsBaseScalarType(UTI arrayuti, UTI baseuti);
-    void linkConstantExpression(NodeConstantDef * ceNode);
-    void linkUnknownTypedefFromAnotherClass(UTI tduti, UTI stubuti);
-
-    void constantFoldIncompleteUTI(UTI auti);
     bool constantFoldPendingArgs(UTI cuti);
 
     UlamType * getUlamTypeByIndex(UTI uti);
@@ -212,7 +183,7 @@ namespace MFM{
 
     ULAMTYPE getBaseTypeFromToken(Token tok);
     UTI getUlamTypeFromToken(Token tok, s32 typebitsize, s32 arraysize);
-    UTI getUlamTypeFromToken(ParserTypeArgs & args);
+    UTI getUlamTypeFromToken(TypeArgs & args);
 
     bool getUlamTypeByTypedefName(u32 nameIdx, UTI & rtnType, UTI & rtnScalarType);
 
@@ -225,6 +196,7 @@ namespace MFM{
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
     bool isComplete(UTI utArg);
+    bool isHolder(UTI utArg);
     void setBitSize(UTI utArg, s32 total);
     void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void mergeClassUTI(UTI olduti, UTI cuti);

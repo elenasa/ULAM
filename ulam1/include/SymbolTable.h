@@ -98,6 +98,8 @@ namespace MFM{
 
     void linkToParentNodesAcrossTableOfFunctions(NodeBlockClass * p);
 
+    void updatePrevBlockPtrAcrossTableOfFunctions(NodeBlockClass * p);
+
     bool findNodeNoAcrossTableOfFunctions(NNO n, Node*& foundNode);
 
     void labelTableOfFunctions();
@@ -121,8 +123,6 @@ namespace MFM{
     void printPostfixForTableOfClasses(File * fp);
 
     void printForDebugForTableOfClasses(File * fp);
-
-    bool statusUnknownConstantExpressionsInTableOfClasses();
 
     bool statusNonreadyClassArgumentsInTableOfClasses();
 
