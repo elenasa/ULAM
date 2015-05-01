@@ -255,6 +255,8 @@ int main(int argc, char ** argv)
       }
     if (outdir)
       ds.SetOutputDir(outdir);
+    else
+      ds.SetOutputDir(".");
 
     ds.AddSharedInputDir();
 
