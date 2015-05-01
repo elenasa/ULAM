@@ -73,8 +73,6 @@ namespace MFM {
 
   void NodeReturnStatement::printPostfix(File * fp)
   {
-    assert(m_node);    //e.g. bad decl
-
     if(m_node)
       m_node->printPostfix(fp);
     else
@@ -96,17 +94,22 @@ namespace MFM {
 
   UTI NodeReturnStatement::checkAndLabelType()
   {
-    assert(m_node);
-    UTI nodeType = m_node->checkAndLabelType();
+    //assert(m_node); a return without an expression (i.e. Void)
+    UTI nodeType = Void;
+    if(m_node)
+      nodeType = m_node->checkAndLabelType();
+
     if(nodeType != Nav && m_state.isComplete(nodeType) && m_state.isComplete(m_state.m_currentFunctionReturnType))
       {
 	if(UlamType::compare(nodeType, m_state.m_currentFunctionReturnType, m_state) != UTIC_SAME)
 	  {
-	    if(m_state.m_currentFunctionReturnType != Void)
+	    if(UlamType::compare(m_state.m_currentFunctionReturnType, Void, m_state) == UTIC_NOTSAME)
 	      {
-		m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
 		if(m_node)
-		  nodeType = m_node->getNodeType();
+		  {
+		    m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
+		    nodeType = m_node->getNodeType();
+		  }
 		else
 		  nodeType = Nav;  //no casting node
 	      }
@@ -142,7 +145,8 @@ namespace MFM {
 
   EvalStatus NodeReturnStatement::eval()
   {
-    assert(m_node);
+    if(!m_node)
+      return RETURN;
 
     evalNodeProlog(0);
     makeRoomForNodeType(getNodeType());
