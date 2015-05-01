@@ -5,6 +5,7 @@
 namespace MFM {
 
   NodeSimpleStatement::NodeSimpleStatement(Node * s, CompilerState & state) : Node(state), m_node(s) {}
+
   NodeSimpleStatement::NodeSimpleStatement(const NodeSimpleStatement& ref) : Node(ref)
   {
     m_node = ref.m_node->instantiate();
@@ -25,7 +26,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_node->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeSimpleStatement::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -64,49 +65,43 @@ namespace MFM {
 
     sprintf(id,"-----------------%s\n", prettyNodeName().c_str());
     fp->write(id);
-  }
-
+  } //print
 
   void NodeSimpleStatement::printPostfix(File * fp)
   {
-    assert(m_node);    //e.g. bad decl
+    assert(m_node); //e.g. bad decl
 
     if(m_node)
       m_node->printPostfix(fp);
     else
       fp->write(" <EMPTYSTMT>");
-  }
-
+  } //printPostfix
 
   const char * NodeSimpleStatement::getName()
   {
-    return "simple";  //?
+    return "simple"; //?
   }
-
 
   const std::string NodeSimpleStatement::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   UTI NodeSimpleStatement::checkAndLabelType()
   {
     assert(m_node);
 
-    m_node->checkAndLabelType();  //side-effect
+    m_node->checkAndLabelType(); //side-effect
 
     //statements don't have types
     setNodeType(Void);
     return getNodeType();
   } //checkAndLabelType
 
-
   void NodeSimpleStatement::countNavNodes(u32& cnt)
   {
     m_node->countNavNodes(cnt);
   }
-
 
   EvalStatus NodeSimpleStatement::eval()
   {
@@ -117,8 +112,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return evs;
-  }
-
+  } //eval
 
   void NodeSimpleStatement::genCode(File * fp, UlamValue& uvpass)
   {

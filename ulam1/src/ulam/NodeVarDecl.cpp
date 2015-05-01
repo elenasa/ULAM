@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlockNo(0)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
   {
     if(sym)
       {
@@ -17,14 +17,38 @@ namespace MFM {
       }
   }
 
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlockNo(ref.m_currBlockNo) {}
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  {
+    if(ref.m_nodeTypeDesc)
+      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+  }
 
-  NodeVarDecl::~NodeVarDecl() {}
+  NodeVarDecl::~NodeVarDecl()
+  {
+    delete m_nodeTypeDesc;
+    m_nodeTypeDesc = NULL;
+  }
 
   Node * NodeVarDecl::instantiate()
   {
     return new NodeVarDecl(*this);
   }
+
+  void NodeVarDecl::updateLineage(NNO pno)
+  {
+    Node::updateLineage(pno);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->updateLineage(getNodeNo());
+  } //updateLineage
+
+  bool NodeVarDecl::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   // see SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
@@ -41,6 +65,11 @@ namespace MFM {
 	fp->write_decimal(arraysize);
 	fp->write("]");
       }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
+
     fp->write("; ");
   } //printPostfix
 
@@ -98,56 +127,39 @@ namespace MFM {
     if(m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx(); //base type has arraysize
-	//check for incomplete Classes
-	UlamType * tdut = m_state.getUlamTypeByIndex(it);
-	//ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
-	//if(tdclasstype == UC_UNSEEN)
-	//  {
-	//    m_state.completeIncompleteClassSymbol(it); //?
-	//  }
-	//else if(tdclasstype != UC_NOTACLASS)
-	//  {
-	//    m_state.constantFoldPendingArgs(it);
-	//  }
-	//else if(!tdut->isComplete()) //o.w. primitive
-	//  {
-	//    m_state.constantFoldIncompleteUTI(it); //update if possible
-	//  }
 
-	// fall through to common attempt to map UTI
-	tdut = m_state.getUlamTypeByIndex(it); //reload
-	if(!tdut->isComplete())
+	UTI cuti = m_state.getCompileThisIdx();
+	if(m_nodeTypeDesc)
 	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	    if(duti != Nav && duti != it)
 	      {
 		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Variable Decl for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << "REPLACING Symbol UTI" << it;
+		msg << ", " << m_state.getUlamTypeNameByIndex(it).c_str();
 		msg << " used with variable symbol name '" << getName();
-		msg << "' UTI" << it << " while labeling class: ";
+		msg << "' with node type descriptor type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+		msg << " UTI" << duti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		it = mappedUTI;
-		tdut = m_state.getUlamTypeByIndex(it); //reload
-		m_varSymbol->resetUlamType(it); //consistent!
+		m_varSymbol->resetUlamType(duti); //consistent!
+		m_state.mapTypesInCurrentClass(it, duti);
+		it = duti;
 	      }
+	  }
 
-	    if(!tdut->isComplete())
-	      {
-		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with variable symbol name '" << getName();
-		msg << "' UTI" << it << " while labeling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-		it = Nav;
-	      }
-	  } //not complete
+	if(!m_state.isComplete(it))
+	  {
+	    std::ostringstream msg;
+	    msg << "Incomplete Variable Decl for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' UTI" << it << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    it = Nav;
+	  }
       } //end var_symbol
 
     setNodeType(it);
@@ -234,6 +246,13 @@ namespace MFM {
       }
   } //packBitsInOrderOfDeclaration
 
+  void NodeVarDecl::countNavNodes(u32& cnt)
+  {
+    Node::countNavNodes(cnt);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->countNavNodes(cnt);
+  } //countNavNodes
+
   EvalStatus NodeVarDecl::eval()
   {
     assert(m_varSymbol);
@@ -264,7 +283,7 @@ namespace MFM {
 
   EvalStatus  NodeVarDecl::evalToStoreInto()
   {
-    assert(0);  //no way to get here!
+    assert(0); //no way to get here!
     return ERROR;
   }
 
@@ -296,7 +315,7 @@ namespace MFM {
     m_state.indent(fp);
     if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
       {
-	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
       }
     else
       {
@@ -316,7 +335,7 @@ namespace MFM {
 	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
 	fp->write("<EC>");
 	fp->write("::THE_INSTANCE");
-	fp->write(".GetDefaultAtom()");  //returns object of type T
+	fp->write(".GetDefaultAtom()"); //returns object of type T
       }
 
     if(vclasstype == UC_QUARK)
@@ -324,7 +343,7 @@ namespace MFM {
 	//right-justified?
       }
 
-    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
+    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   } //genCode
 
 
@@ -356,7 +375,7 @@ namespace MFM {
     else
       {
 	fp->write("typedef AtomicParameterType");
-	fp->write("<EC");  //BITSPERATOM
+	fp->write("<EC"); //BITSPERATOM
 	fp->write(", ");
 	fp->write(nut->getUlamTypeVDAsStringForC().c_str());
 	fp->write(", ");
@@ -375,7 +394,7 @@ namespace MFM {
       }
     fp->write("> ");
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
-    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
+    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   } //genCodedBitFieldTypedef
 
   void NodeVarDecl::genCodedElementParameter(File * fp, UlamValue uvpass)
@@ -391,7 +410,7 @@ namespace MFM {
     fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName().c_str());
-    fp->write(";\n");  //func call parameters aren't NodeVarDecl's
+    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   }  //genCodedElementParameter
 
   // this is the auto local variable's node, created at parse time,
@@ -442,15 +461,15 @@ namespace MFM {
       }
     else if(vclasstype == UC_ELEMENT)
       {
-	fp->write(", true");  //invokes 'badass' constructor
+	fp->write(", true"); //invokes 'badass' constructor
       }
     else
       assert(0);
 
     fp->write(");   //shadows lhs of 'as'\n");
 
-    m_state.m_genCodingConditionalAs = false;       // done
-    m_state.m_currentObjSymbolsForCodeGen.clear();  //clear remnant of lhs ?
+    m_state.m_genCodingConditionalAs = false; // done
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?
   } //genCodedAutoLocal
 
 } //end MFM

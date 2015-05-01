@@ -34,7 +34,6 @@ namespace MFM {
   bool UlamTypeUnary::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
-    //    UTI typidx = getUlamTypeIndex();
     assert(m_state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
 
@@ -42,7 +41,8 @@ namespace MFM {
     if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: ";
+	msg << "Casting different Array sizes; " << arraysize;
+	msg << ", Value Type and size was: ";
 	msg << valtypidx << "," << m_state.getArraySize(valtypidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;

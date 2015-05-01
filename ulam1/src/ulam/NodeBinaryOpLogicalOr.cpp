@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpLogicalOr::NodeBinaryOpLogicalOr(Node * left, Node * right, CompilerState & state) : NodeBinaryOpLogical(left,right,state) {}
+
   NodeBinaryOpLogicalOr::NodeBinaryOpLogicalOr(const NodeBinaryOpLogicalOr& ref) : NodeBinaryOpLogical(ref) {}
+
   NodeBinaryOpLogicalOr::~NodeBinaryOpLogicalOr(){}
 
   Node * NodeBinaryOpLogicalOr::instantiate()
@@ -12,25 +14,21 @@ namespace MFM {
     return new NodeBinaryOpLogicalOr(*this);
   }
 
-
   const char * NodeBinaryOpLogicalOr::getName()
   {
     return "||";
   }
-
 
   const std::string NodeBinaryOpLogicalOr::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-
   const std::string NodeBinaryOpLogicalOr::methodNameForCodeGen()
   {
     assert(0);
     return "notapplicable_logicalOr";
   } //methodNameForCodeGen
-
 
   //overrides parent due to short-circuiting requirement
   EvalStatus NodeBinaryOpLogicalOr::eval()
@@ -75,8 +73,7 @@ namespace MFM {
 
     evalNodeEpilog();
     return NORMAL;
-  }  //eval
-
+  } //eval
 
   UlamValue NodeBinaryOpLogicalOr::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
@@ -85,19 +82,17 @@ namespace MFM {
     return rtnUV;
   } //makeImmediateBinaryOp
 
-
   void NodeBinaryOpLogicalOr::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     assert(0); //not implemented yet!
     return;
   }
 
-
   //short-circuit when lhs is true
   void NodeBinaryOpLogicalOr::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    assert(m_state.m_currentObjSymbolsForCodeGen.empty());     //*************
+    assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
 #ifdef TMPVARBRACES
     m_state.indent(fp);
@@ -119,9 +114,9 @@ namespace MFM {
 
     //process lhs first
     UlamValue luvpass;
-    m_nodeLeft->genCode(fp, luvpass);     //updates m_currentObjSymbol
+    m_nodeLeft->genCode(fp, luvpass); //updates m_currentObjSymbol
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);                  //terminals read into tmpvar
+    assert(luti == Ptr); //terminals read into tmpvar
     luti = luvpass.getPtrTargetType();
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     assert(lut->getUlamTypeEnum() == Bool);
@@ -129,7 +124,7 @@ namespace MFM {
     //fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("if(!");    //lhs is false
+    fp->write("if(!"); //lhs is false
     fp->write(((UlamTypeBool *) lut)->getConvertToCboolMethod().c_str());
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str());
@@ -175,15 +170,14 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("}\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //P
 
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");  //close for tmpVar
+    fp->write("}\n"); //close for tmpVar
 #endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
-
 
 } //end MFM

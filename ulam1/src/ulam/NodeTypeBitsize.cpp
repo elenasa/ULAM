@@ -30,7 +30,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_node->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeTypeBitsize::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -118,11 +118,16 @@ namespace MFM {
 	if(m_node->eval() == NORMAL)
 	  {
 	    UlamValue bitUV = m_state.m_nodeEvalStack.popArg();
-
-	    if(bitUV.getUlamValueTypeIdx() == Nav)
+	    UTI bituti = bitUV.getUlamValueTypeIdx();
+	    if( bituti == Nav)
 	      newbitsize = UNKNOWNSIZE;
 	    else
-	      newbitsize = bitUV.getImmediateData(m_state);
+	      {
+		if(m_state.getBitSize(bituti) == UNKNOWNSIZE)
+		  newbitsize = bitUV.getImmediateData(MAXBITSPERINT); //use default
+		else
+		  newbitsize = bitUV.getImmediateData(m_state);
+	      }
 	  }
 
 	evalNodeEpilog();

@@ -15,18 +15,15 @@ namespace MFM {
     m_min = 0;
   }
 
-
    ULAMTYPE UlamTypeBool::getUlamTypeEnum()
    {
      return Bool;
    }
 
-
   const std::string UlamTypeBool::getUlamTypeVDAsStringForC()
   {
     return "VD::BOOL";
   }
-
 
   const std::string UlamTypeBool::getUlamTypeImmediateMangledName()
   {
@@ -38,24 +35,22 @@ namespace MFM {
     return UlamType::getUlamTypeImmediateMangledName(); //? for constants
   }
 
-
   const char * UlamTypeBool::getUlamTypeAsSingleLowercaseLetter()
   {
     return "b";
   }
 
-
   bool UlamTypeBool::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
-    //UTI typidx = getUlamTypeIndex();
     assert(m_state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     s32 arraysize = getArraySize();
     if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: " << valtypidx << "," << m_state.getArraySize(valtypidx);
+	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: ";
+	msg << valtypidx << "," << m_state.getArraySize(valtypidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 	return false;
       }
@@ -110,7 +105,6 @@ namespace MFM {
     return brtn;
   } //end cast
 
-
   void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     bool dataAsBool = false;
@@ -132,7 +126,6 @@ namespace MFM {
     else
       sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   } //getDataAsString
-
 
   const std::string UlamTypeBool::getConvertToCboolMethod()
   {

@@ -38,6 +38,7 @@
 #define NODECAST_H
 
 #include "NodeUnaryOp.h"
+#include "NodeTypeDescriptor.h"
 
 namespace MFM{
 
@@ -45,11 +46,17 @@ namespace MFM{
   {
   public:
 
-    NodeCast(Node * n, UTI typeToBe, CompilerState & state);
+    NodeCast(Node * n, UTI typeToBe, NodeTypeDescriptor * nodetype, CompilerState & state);
+
     NodeCast(const NodeCast& ref);
+
     virtual ~NodeCast();
 
     virtual Node * instantiate();
+
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual const char * getName();
 
@@ -75,6 +82,7 @@ namespace MFM{
 
   private:
     bool m_explicit;   // requested by user (not automatic)
+    NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     bool needsACast(); // trying to avoid extraneous casting.
 

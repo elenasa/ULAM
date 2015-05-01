@@ -40,7 +40,7 @@ namespace MFM {
       m_node->updateLineage(getNodeNo());
     if(m_nodeNext)
       m_nodeNext->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeStatements::findNodeNo(NNO n, Node *& foundNode)
   {
@@ -55,7 +55,7 @@ namespace MFM {
 
   void NodeStatements::print(File * fp)
   {
-    printNodeLocation(fp);  //has same location as it's node
+    printNodeLocation(fp); //has same location as it's node
     UTI myut = getNodeType();
     char id[255];
     if(myut == Nav)
@@ -92,7 +92,7 @@ namespace MFM {
 
   const char * NodeStatements::getName()
   {
-    return "Stmts";  //?
+    return "Stmts"; //?
   }
 
   const std::string NodeStatements::prettyNodeName()
@@ -139,7 +139,7 @@ namespace MFM {
     //not the last one, so thrown out results and continue
     if(m_nodeNext)
       {
-	evalNodeEpilog();  //Tue Aug 26 16:18:43 2014
+	evalNodeEpilog(); //Tue Aug 26 16:18:43 2014
 	evs = m_nodeNext->eval();
 	if(evs != NORMAL)
 	  {
@@ -151,7 +151,7 @@ namespace MFM {
     else
       {
 	//end, so copy to -1
-	//	UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
+	//	UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN); //positive to current frame pointer
 	//assignReturnValueToStack(rtnPtr);
 	evalNodeEpilog();
       }
@@ -188,11 +188,11 @@ namespace MFM {
   {
     Locator nodeloc = getNodeLocation();
     m_state.outputTextAsComment(fp, nodeloc);
-    m_state.m_locOfNextLineText = nodeloc;  //during gen code here
+    m_state.m_locOfNextLineText = nodeloc; //during gen code here
 
 #ifdef TMPVARBRACES
     m_state.indent(fp);
-    fp->write("{\n");    //open for tmpvar arg's
+    fp->write("{\n"); //open for tmpvar arg's
     m_state.m_currentIndentLevel++;
 #endif
 
@@ -201,7 +201,7 @@ namespace MFM {
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");  //close for tmpVar
+    fp->write("}\n"); //close for tmpVar
 #endif
 
     if(m_nodeNext)

@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpEqualArithMultiply::NodeBinaryOpEqualArithMultiply(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
+
   NodeBinaryOpEqualArithMultiply::NodeBinaryOpEqualArithMultiply(const NodeBinaryOpEqualArithMultiply& ref) : NodeBinaryOpEqualArith(ref) {}
+
   NodeBinaryOpEqualArithMultiply::~NodeBinaryOpEqualArithMultiply(){}
 
   Node * NodeBinaryOpEqualArithMultiply::instantiate()
@@ -12,18 +14,15 @@ namespace MFM {
     return new NodeBinaryOpEqualArithMultiply(*this);
   }
 
-
   const char * NodeBinaryOpEqualArithMultiply::getName()
   {
     return "*=";
   }
 
-
   const std::string NodeBinaryOpEqualArithMultiply::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   const std::string NodeBinaryOpEqualArithMultiply::methodNameForCodeGen()
   {
@@ -31,7 +30,6 @@ namespace MFM {
     methodname << "_BinOpMultiply" << NodeBinaryOpEqualArith::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UlamValue NodeBinaryOpEqualArithMultiply::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
@@ -58,7 +56,6 @@ namespace MFM {
       };
     return rtnUV;
   } //makeImmediateBinaryOp
-
 
   void NodeBinaryOpEqualArithMultiply::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {

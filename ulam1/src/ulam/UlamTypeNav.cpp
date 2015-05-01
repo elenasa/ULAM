@@ -9,12 +9,10 @@ namespace MFM {
   UlamTypeNav::UlamTypeNav(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
   {}
 
-
-   ULAMTYPE UlamTypeNav::getUlamTypeEnum()
-   {
-     return Nav;
-   }
-
+  ULAMTYPE UlamTypeNav::getUlamTypeEnum()
+  {
+    return Nav;
+  }
 
   const std::string UlamTypeNav::getUlamTypeAsStringForC()
   {
@@ -22,19 +20,16 @@ namespace MFM {
     return "nav";
   }
 
-
   bool UlamTypeNav::needsImmediateType()
   {
     return false;
   }
-
 
   const std::string UlamTypeNav::getImmediateStorageTypeAsString()
   {
     assert(0);
     return "nav";
   }
-
 
   const std::string UlamTypeNav::castMethodForCodeGen(UTI nodetype)
   {

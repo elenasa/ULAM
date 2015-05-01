@@ -4,19 +4,43 @@
 
 namespace MFM {
 
-  NodeCast::NodeCast(Node * n, UTI typeToBe, CompilerState & state): NodeUnaryOp(n, state), m_explicit(false)
+  NodeCast::NodeCast(Node * n, UTI typeToBe, NodeTypeDescriptor * nodetype, CompilerState & state): NodeUnaryOp(n, state), m_explicit(false), m_nodeTypeDesc(nodetype)
   {
     setNodeType(typeToBe);
   }
 
-  NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_explicit(ref.m_explicit) {}
+  NodeCast::NodeCast(const NodeCast& ref) : NodeUnaryOp(ref), m_explicit(ref.m_explicit), m_nodeTypeDesc(NULL)
+  {
+    if(ref.m_nodeTypeDesc)
+      m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+  }
 
-  NodeCast::~NodeCast() {}
+  NodeCast::~NodeCast()
+  {
+    delete m_nodeTypeDesc;
+    m_nodeTypeDesc = NULL;
+  }
 
   Node * NodeCast::instantiate()
   {
     return new NodeCast(*this);
   }
+
+  void NodeCast::updateLineage(NNO pno)
+  {
+    NodeUnaryOp::updateLineage(pno);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->updateLineage(getNodeNo());
+  } //updateLineage
+
+  bool NodeCast::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(Node::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   const char * NodeCast::getName()
   {
@@ -45,14 +69,22 @@ namespace MFM {
     u32 errorsFound = 0;
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->checkAndLabelType(); //user cast
-    if(tobeType == Nav)
+
+    if(m_nodeTypeDesc)
       {
-	std::ostringstream msg;
-	msg << "Cannot cast to type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	errorsFound++;
+	tobeType = m_nodeTypeDesc->checkAndLabelType();
+	// does duti == tobeType? perhaps instantiated stub has mapped uti
+	if(!m_nodeTypeDesc->isReadyType())
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot cast to nonready type: " ;
+	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    errorsFound++;
+	  }
       }
-    else if(!m_state.isComplete(tobeType))
+
+    if(!m_state.isComplete(tobeType))
       {
 	std::ostringstream msg;
 	msg << "Cannot cast to incomplete type: " ;
@@ -60,7 +92,15 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	errorsFound++;
       }
-    else
+    else if(tobeType == Nav)
+      {
+	std::ostringstream msg;
+	msg << "Cannot cast to type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	errorsFound++;
+      }
+
+    if(errorsFound == 0) //else
       {
 	if(!m_state.isScalar(tobeType))
 	  {
@@ -138,7 +178,10 @@ namespace MFM {
   {
     m_node->countNavNodes(cnt);
     Node::countNavNodes(cnt);
-  }
+
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->countNavNodes(cnt);
+  } //countNavNodes
 
   EvalStatus NodeCast::eval()
   {
@@ -159,15 +202,25 @@ namespace MFM {
     //do we believe these to be scalars, only?
     //possibly an array that needs to be casted, per elenemt
     if(m_state.isScalar(tobeType))
-      assert(m_state.isScalar(nodeType));
+      {
+	//assert(m_state.isScalar(nodeType));
+	if(!m_state.isScalar(nodeType))
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot cast an array: ";
+	    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	    msg << " to a scalar type: " ;
+	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
     else
       {
 	//both arrays the same dimensions
-	//assert(!nodeType->isScalar());
 	if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), "Considering implementing array casts!!!", ERR);
-	    assert(0);
+	    //assert(0);
 	  }
       }
 
@@ -219,7 +272,6 @@ namespace MFM {
 
   void NodeCast::genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass)
   {
-    //assert(needsACast());
     // e.g. called by NodeFunctionCall on a NodeTerminal..
     if(!needsACast())
       {
@@ -251,7 +303,6 @@ namespace MFM {
       }
 
    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-   //ULAMCLASSTYPE vclasstype = vut->getUlamClass();
    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
 
     m_state.indent(fp);
