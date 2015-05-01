@@ -8,6 +8,7 @@ TOP_TARGETS:=
 TOP_TARGETS+=doc       # Build documentation in doc/ref
 TOP_TARGETS+=dist      # Export as tar file
 TOP_TARGETS+=realclean # Deep cleaning: Nuke build, bin, doc/ref, also clean
+TOP_TARGETS+=projini   # Initialize CWD as an ULAM project, if it isn't already
 
 
 ####
