@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpShiftRight::NodeBinaryOpShiftRight(Node * left, Node * right, CompilerState & state) : NodeBinaryOpShift(left,right,state) {}
+
   NodeBinaryOpShiftRight::NodeBinaryOpShiftRight(const NodeBinaryOpShiftRight& ref) : NodeBinaryOpShift(ref) {}
+
   NodeBinaryOpShiftRight::~NodeBinaryOpShiftRight(){}
 
   Node * NodeBinaryOpShiftRight::instantiate()
@@ -12,18 +14,15 @@ namespace MFM {
     return new NodeBinaryOpShiftRight(*this);
   }
 
-
   const char * NodeBinaryOpShiftRight::getName()
   {
     return ">>";
   }
 
-
   const std::string NodeBinaryOpShiftRight::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   const std::string NodeBinaryOpShiftRight::methodNameForCodeGen()
   {
@@ -32,12 +31,10 @@ namespace MFM {
     return methodname.str();
   } //methodNameForCodeGen
 
-
-
   UlamValue NodeBinaryOpShiftRight::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;
-    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum(); // left/right node type
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum(); //left/right node type
     switch(typEnum)
       {
       case Int:
@@ -61,7 +58,6 @@ namespace MFM {
       };
     return rtnUV;
   } //makeImmediateBinaryOp
-
 
   void NodeBinaryOpShiftRight::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
@@ -93,7 +89,6 @@ namespace MFM {
       };
 #endif
     return;
-  }
-
+  } //appendBinaryOp
 
 } //end MFM

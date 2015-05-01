@@ -97,13 +97,6 @@ namespace MFM {
     return m_isSelf;
   }
 
-  bool Symbol::isFabricatedTmp()
-  {
-    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
-    ULAMTYPE etype = sut->getUlamTypeEnum();
-    return etype == Holder;
-  }
-
   NNO Symbol::getBlockNoOfST()
   {
     return m_stBlockNo;
@@ -126,7 +119,7 @@ namespace MFM {
   //atomic parameter type, not element parameter.
   const std::string Symbol::getMangledNameForParameterType()
   {
-    assert(!m_elementParameter);  //maybe do it some other way XXX
+    assert(!m_elementParameter); //maybe do it some other way XXX
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     ULAMCLASSTYPE classtype = sut->getUlamClass();

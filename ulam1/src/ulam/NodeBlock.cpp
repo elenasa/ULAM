@@ -74,7 +74,7 @@ namespace MFM {
     if(m_nodeNext)
       m_nodeNext->printPostfix(fp);
     else
-      fp->write(" <EMPTYSTMT>");  //not an error
+      fp->write(" <EMPTYSTMT>"); //not an error
 
     fp->write(" }");
   } //printPostifx
@@ -97,7 +97,7 @@ namespace MFM {
 
     m_nodeNext->checkAndLabelType();
 
-    m_state.popClassContext();  //restores m_prevBlockNode
+    m_state.popClassContext(); //restores m_prevBlockNode
 
     //blocks don't have types
     setNodeType(Void);
@@ -112,11 +112,7 @@ namespace MFM {
   EvalStatus NodeBlock::eval()
   {
     assert(m_nodeNext);
-    //evalNodeProlog(0);
-    //makeRoomForNodeType(m_nodeNext->getNodeType());
-    EvalStatus evs = m_nodeNext->eval();    //no return value
-    //evalNodeEpilog();
-    return evs;
+    return m_nodeNext->eval(); //no return value
   }
 
   void NodeBlock::calcMaxDepth(u32& depth)
@@ -192,7 +188,7 @@ namespace MFM {
   s32 NodeBlock::getBitSizesOfVariableSymbolsInTable()
   {
     if(m_ST.getTableSize() == 0)
-      return EMPTYSYMBOLTABLE;  //should allow no variable data members
+      return EMPTYSYMBOLTABLE; //should allow no variable data members
 
     return m_ST.getTotalVariableSymbolsBitSize();
   }
@@ -200,7 +196,7 @@ namespace MFM {
   s32 NodeBlock::getMaxBitSizeOfVariableSymbolsInTable()
   {
     if(m_ST.getTableSize() == 0)
-      return EMPTYSYMBOLTABLE;  //should allow no variable data members
+      return EMPTYSYMBOLTABLE; //should allow no variable data members
 
     return m_ST.getMaxVariableSymbolsBitSize();
   }
@@ -237,6 +233,6 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("}\n");
-  }
+  } //genCode
 
 } //end MFM

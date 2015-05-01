@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpEqualBitwiseXor::NodeBinaryOpEqualBitwiseXor(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualBitwise(left,right,state) {}
+
   NodeBinaryOpEqualBitwiseXor::NodeBinaryOpEqualBitwiseXor(const NodeBinaryOpEqualBitwiseXor& ref) : NodeBinaryOpEqualBitwise(ref) {}
+
   NodeBinaryOpEqualBitwiseXor::~NodeBinaryOpEqualBitwiseXor(){}
 
   Node * NodeBinaryOpEqualBitwiseXor::instantiate()
@@ -12,18 +14,15 @@ namespace MFM {
     return new NodeBinaryOpEqualBitwiseXor(*this);
   }
 
-
   const char * NodeBinaryOpEqualBitwiseXor::getName()
   {
     return "^=";
   }
 
-
   const std::string NodeBinaryOpEqualBitwiseXor::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   const std::string NodeBinaryOpEqualBitwiseXor::methodNameForCodeGen()
   {
@@ -31,7 +30,6 @@ namespace MFM {
     methodname << "_BitwiseXor" << NodeBinaryOpEqualBitwise::methodNameForCodeGen();
     return methodname.str();
   }
-
 
   UlamValue NodeBinaryOpEqualBitwiseXor::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
@@ -60,7 +58,6 @@ namespace MFM {
       };
     return rtnUV;
   } //makeImmediateBinaryOp
-
 
   void NodeBinaryOpEqualBitwiseXor::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {

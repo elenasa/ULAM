@@ -77,8 +77,6 @@ namespace MFM{
     void setIsSelf();
     bool isSelf();
 
-    bool isFabricatedTmp();
-
     NNO getBlockNoOfST();
     void setBlockNoOfST(NNO n);
 

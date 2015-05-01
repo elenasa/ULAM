@@ -24,6 +24,15 @@ namespace MFM {
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
 
+      // simplifying for debugging
+      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nuse Bar;\nelement Foo {\nelement Poo poochance;\nBar bar;\n Int test() { \nInt i=1;\n /*bar = poochance.check(i);\n  poochance.m_bar = bar;\n */ return 0;\n }\n }\n");
+      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nuse Bar;\nelement Foo {\nelement Poo poochance;\nBar bar;\n Int test() { \nbar =  poochance.check(1);\n return 0;\n }\n }\n");
+      //bool rtn4 = fms->add("Poo.ulam","ulam 1;\nuse Bar;\n element Poo {\nBar check(Int v) {\nBar b;\nb.val_b[v] = true;\nreturn b;}\n\n}\n");
+      //bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool val_b[3];\nInt toInt(){\nreturn 3;}\n}\n");
+      //if(rtn2 && rtn4)
+      //	return std::string("Poo.ulam");
+      //if(rtn1 && rtn2 && rtn4)
+
       if(rtn1 && rtn2 && rtn3 && rtn4)
 	return std::string("Foo.ulam");
 

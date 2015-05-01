@@ -76,9 +76,9 @@ namespace MFM{
 
     virtual EvalStatus evalToStoreInto();
 
-    virtual bool installSymbolTypedef(ParserTypeArgs& args, Symbol *& asymptr);
-    virtual bool installSymbolConstantValue(ParserTypeArgs& args, Symbol*& asymptr);
-    virtual bool installSymbolVariable(ParserTypeArgs& args,  Symbol *& asymptr);
+    virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
+    virtual bool installSymbolConstantValue(TypeArgs& args, Symbol*& asymptr);
+    virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
@@ -92,9 +92,9 @@ namespace MFM{
     NNO m_currBlockNo;
 
     SymbolVariable *  makeSymbol(UTI aut);
-    bool checkVariableTypedefSizes(ParserTypeArgs& args, UTI auti);
-    bool checkTypedefOfTypedefSizes(ParserTypeArgs& args, UTI tduti);
-    bool checkConstantTypedefSizes(ParserTypeArgs& args, UTI tduti);
+    bool checkVariableTypedefSizes(TypeArgs& args, UTI auti);
+    bool checkTypedefOfTypedefSizes(TypeArgs& args, UTI tduti);
+    bool checkConstantTypedefSizes(TypeArgs& args, UTI tduti);
     UlamValue makeUlamValuePtr();
     UlamValue makeUlamValuePtrForCodeGen();
   };

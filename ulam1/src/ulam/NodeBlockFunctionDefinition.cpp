@@ -6,20 +6,58 @@
 
 namespace MFM {
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false)
-  {}
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, NodeTypeDescriptor * nodetype, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false), m_nodeTypeDesc(nodetype)
+  {
+    m_nodeParameterList = new NodeList(state);
+  }
 
-  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)/*, m_fsymTemplate(ref.m_funcSymbol)*/ {}
+  NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)
+ {
+   m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate();
+   if(ref.m_nodeTypeDesc)
+     m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+ }
 
   NodeBlockFunctionDefinition::~NodeBlockFunctionDefinition()
   {
     // nodes deleted by SymbolTable in BlockClass
+    delete m_nodeParameterList;
+    m_nodeParameterList = NULL;
+
+    delete m_nodeTypeDesc;
+    m_nodeTypeDesc = NULL;
   }
 
   Node * NodeBlockFunctionDefinition::instantiate()
   {
     return new NodeBlockFunctionDefinition(*this);
   }
+
+  void NodeBlockFunctionDefinition::updateLineage(NNO pno)
+  {
+    NodeBlock::updateLineage(pno);
+    m_state.pushCurrentBlock(this);
+    if(m_nodeTypeDesc)
+      {
+	m_nodeTypeDesc->updateLineage(getNodeNo());
+      }
+    if(m_nodeParameterList)
+      {
+	m_nodeParameterList->updateLineage(getNodeNo());
+      }
+    m_state.popClassContext();
+  } //updateLineage
+
+  bool NodeBlockFunctionDefinition::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(NodeBlock::findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeBlockFunctionDefinition::print(File * fp)
   {
@@ -76,6 +114,11 @@ namespace MFM {
 	    fp->write_decimal(arraysize);
 	    fp->write("]");
 	  }
+	else if(arraysize == UNKNOWNSIZE)
+	  {
+	    fp->write("[UNKNOWN]");
+	  }
+
       }
     fp->write(")");
 
@@ -102,45 +145,52 @@ namespace MFM {
   UTI NodeBlockFunctionDefinition::checkAndLabelType()
   {
     assert(m_funcSymbol);
-    UTI it = m_funcSymbol->getUlamTypeIdx();
+    UTI fit = m_funcSymbol->getUlamTypeIdx();
+    UTI it = fit;
+    UTI cuti = m_state.getCompileThisIdx();
+
+    // don't want to leave Nav dangling
+    if(m_nodeTypeDesc)
+      {
+	it = m_nodeTypeDesc->checkAndLabelType();
+      }
+
+    checkParameterNodeTypes();
 
     if(!m_state.isComplete(it))
       {
-	UTI cuti = m_state.getCompileThisIdx();
-	UTI mappedUTI = Nav;
-	if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-	  {
-	    std::ostringstream msg;
-	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-	    msg << " for incomplete Function Return type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " used with function name '" << getName();
-	    msg << "' UTI" << it << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    it = mappedUTI;
-	    m_funcSymbol->resetUlamType(it); //consistent!
-	  }
-
-	if(!m_state.isComplete(it))
-	  {
-	    std::ostringstream msg;
-	    msg << "Incomplete Function Return type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " used with function name '" << getName();
-	    msg << "' UTI" << it << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	    it = Nav;
-	  }
+	std::ostringstream msg;
+	msg << "Incomplete Function Return type: ";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << " used with function name '" << getName();
+	msg << "' UTI" << it << " while labeling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	it = Nav;
+      }
+    else
+      {
+	if(fit != Nav && fit != it) //exact UTI match
+	{
+	  std::ostringstream msg;
+	  msg << "Resetting function symbol UTI" << fit;
+	  msg << ", " << m_state.getUlamTypeNameByIndex(fit).c_str();
+	  msg << " by type descriptor type: ";
+	  msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	  msg << "' UTI" << it;
+	  msg << " used with function name '" << getName();
+	  msg <<  " while labeling class: ";
+	  msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  m_state.mapTypesInCurrentClass(fit, it);
+	  m_funcSymbol->resetUlamType(it); //consistent!
+	}
       }
 
     setNodeType(it);
 
     if(it == Nav)
       return getNodeType(); //bail for this iteration
-
 
     m_state.pushCurrentBlock(this);
 
@@ -150,7 +200,7 @@ namespace MFM {
     if(m_nodeNext) //non-empty function
       {
 	m_nodeNext->checkAndLabelType();                     //side-effect
-	m_state.checkFunctionReturnNodeTypes(m_funcSymbol);  //gives errors
+	m_state.checkFunctionReturnNodeTypes(m_funcSymbol); //gives errors
       }
     else
       {
@@ -158,9 +208,28 @@ namespace MFM {
 	msg << "Undefined function block: <" << getName() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-    m_state.popClassContext();  //restores previous block ptr
+    m_state.popClassContext(); //restores previous block ptr
     return getNodeType();
   } //checkAndLabelType
+
+  bool NodeBlockFunctionDefinition::checkParameterNodeTypes()
+  {
+    return m_nodeParameterList->checkAndLabelType();
+  }
+
+  void NodeBlockFunctionDefinition::addParameterNode(Node * nodeArg)
+  {
+    m_nodeParameterList->addNodeToList(nodeArg);
+  }
+
+  void NodeBlockFunctionDefinition::countNavNodes(u32& cnt)
+  {
+    NodeBlock::countNavNodes(cnt);
+    if(m_nodeTypeDesc)
+      m_nodeTypeDesc->countNavNodes(cnt);
+    if(m_nodeParameterList)
+      m_nodeParameterList->countNavNodes(cnt);
+  } //countNavNodes
 
   EvalStatus NodeBlockFunctionDefinition::eval()
   {
@@ -171,10 +240,10 @@ namespace MFM {
     assert(m_state.m_currentObjPtr.getUlamValueTypeIdx() != Nav);
     m_state.m_currentFunctionReturnType = getNodeType(); //to help find hidden first arg
 
-    evalNodeProlog(0);                  //new current frame pointer on node eval stack
+    evalNodeProlog(0); //new current frame pointer on node eval stack
     makeRoomForNodeType(getNodeType()); //place for return vals node eval stack
 
-    m_state.m_funcCallStack.addFrameSlots(getMaxDepth());  //local variables on callstack!
+    m_state.m_funcCallStack.addFrameSlots(getMaxDepth()); //local variables on callstack!
 
     EvalStatus evs = m_nodeNext->eval();
 
@@ -184,8 +253,7 @@ namespace MFM {
     if(evs == RETURN)
       {
 	// save results in the stackframe for caller;
-	// copies each element of the array by value,
-	// in reverse order ([0] is last at bottom)
+	// copies each element of the array by value, in reverse order ([0] is last at bottom)
 	s32 slot = m_state.slotsNeeded(getNodeType());
 	rtnUV = UlamValue::makePtr(-slot, STACK, getNodeType(), packRtn, m_state); //negative to current stack frame pointer
       }
@@ -208,7 +276,7 @@ namespace MFM {
     m_state.m_funcCallStack.returnFrame();
     evalNodeEpilog();
     return NORMAL;
-  }
+  } //eval
 
   void NodeBlockFunctionDefinition::setDefinition()
   {
@@ -281,10 +349,10 @@ namespace MFM {
     fp->write("\n");
     m_state.indent(fp);
     fp->write("} // ");
-    fp->write(m_funcSymbol->getMangledName().c_str());  //end of function
+    fp->write(m_funcSymbol->getMangledName().c_str()); //end of function
     fp->write("\n\n\n");
 
-    m_state.popClassContext();  //restores NodeBlock::getPreviousBlockPointer()
+    m_state.popClassContext(); //restores NodeBlock::getPreviousBlockPointer()
   } //genCode
 
 } //end MFM

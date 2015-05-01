@@ -21,41 +21,6 @@ namespace MFM {
     return false;
   } //isClassTemplate
 
-  void SymbolClassName::linkUnknownBitsizeConstantExpression(UTI auti, NodeTypeBitsize * ceNode)
-  {
-    SymbolClass::linkConstantExpression(auti, ceNode);
-  }
-
-  void SymbolClassName::linkUnknownBitsizeConstantExpression(UTI fromtype, UTI totype)
-  {
-    SymbolClass::cloneAndLinkConstantExpression(fromtype, totype);
-  }
-
-  void SymbolClassName::linkUnknownArraysizeConstantExpression(UTI auti, NodeSquareBracket * ceNode)
-  {
-    SymbolClass::linkConstantExpression(auti, ceNode);
-  }
-
-  void SymbolClassName::linkIncompleteArrayTypeInAClass(UTI auti, UTI buti)
-  {
-    SymbolClass::linkIncompleteArrayTypeInResolver(auti, buti);
-  }
-
-  void SymbolClassName::linkUnknownNamedConstantExpression(NodeConstantDef * ceNode)
-  {
-    SymbolClass::linkConstantExpression(ceNode);
-  }
-
-  bool SymbolClassName::statusUnknownConstantExpressionsInClassInstances()
-  {
-    bool aok = true; //all done
-    NodeBlockClass * classNode = getClassBlockNode();
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-    aok = SymbolClass::statusUnknownConstantExpressions();
-    m_state.popClassContext(); //restore
-    return aok;
-  } //statusUnknownConstantExpressionsInClassInstances
-
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
     assert(getUlamTypeIdx() == instance);
@@ -76,17 +41,6 @@ namespace MFM {
     m_state.popClassContext(); //restore
     return foundNode;
   } //findNodeNoInAClassInstance
-
-  void SymbolClassName::constantFoldIncompleteUTIOfClassInstance(UTI instance, UTI auti)
-  {
-    assert(instance == getUlamTypeIdx());
-    NodeBlockClass * classNode = getClassBlockNode();
-    assert(classNode);
-    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
-
-    SymbolClass::constantFoldIncompleteUTI(auti);
-    m_state.popClassContext(); //restore
-  } //constantFoldIncompleteUTIOfClassInstance
 
   std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
   {
@@ -200,7 +154,7 @@ namespace MFM {
     if(aok)
       {
 	UTI cuti = getUlamTypeIdx();
-	m_state.setBitSize(cuti, totalbits);  //"scalar" Class bitsize  KEY ADJUSTED
+	m_state.setBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
 	std::ostringstream msg;
 	msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	msg << " SIZED: " << totalbits;
@@ -208,7 +162,7 @@ namespace MFM {
       }
     m_state.popClassContext(); //restore
     return aok;
-  } //setBitSizeOfClassInstances()
+  } //setBitSizeOfClassInstances
 
   // separate pass...after labeling all classes is completed;
   void SymbolClassName::printBitSizeOfClassInstances()

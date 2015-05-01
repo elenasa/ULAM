@@ -61,7 +61,7 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeVDAsStringForC()
   {
-    return "VD::BITS";  //for quark use bits
+    return "VD::BITS"; //for quark use bits
   }
 
   const std::string UlamTypeClass::getUlamTypeMangledType()
@@ -130,7 +130,6 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeNameBrief()
   {
-    //return m_key.getUlamKeyTypeSignatureName(&m_state);
     std::ostringstream namestr;
     namestr << m_key.getUlamKeyTypeSignatureName(&m_state).c_str();
 
@@ -192,14 +191,14 @@ namespace MFM {
   s32 UlamTypeClass::getBitSize()
   {
     s32 bitsize = m_key.getUlamKeyTypeSignatureBitSize();
-    return bitsize;  //could be negative "unknown"; allow for empty quarks
+    return bitsize; //could be negative "unknown"; allow for empty quarks
   }
 
   bool UlamTypeClass::isHolder()
   {
     std::string name = m_key.getUlamKeyTypeSignatureName(&m_state);
     s32 c = name.at(0);
-    return (!isalpha(c));  //id same as UTI number, out-of-band
+    return (!isalpha(c)); //id same as UTI number, out-of-band
   }
 
   bool UlamTypeClass::isComplete()
@@ -219,7 +218,7 @@ namespace MFM {
   {
     if(m_class == UC_ELEMENT)
       return UNPACKED; //was PACKED, now matches ATOM regardless of its bit size.
-    return UlamType::getPackable();  //quarks depend their size
+    return UlamType::getPackable(); //quarks depend their size
   }
 
   bool UlamTypeClass::needsImmediateType()
@@ -291,7 +290,7 @@ namespace MFM {
     ctype << getUlamTypeImmediateMangledName();
 
     if(m_class == UC_QUARK && isScalar())
-      ctype << "<EC>";  // not ,POS> because immediates know their position
+      ctype << "<EC>"; // not ,POS> because immediates know their position
 
     if(m_class == UC_ELEMENT)
       ctype << "<EC>";
@@ -368,7 +367,6 @@ namespace MFM {
       assert(0);
   } //genUlamTypeMangledDefinitionForC
 
-
   void UlamTypeClass::genUlamTypeQuarkMangledDefinitionForC(File * fp)
   {
     assert(m_class == UC_QUARK);
@@ -383,10 +381,9 @@ namespace MFM {
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
     std::ostringstream  ud;
-    ud << "Ud_" << mangledName;  //d for define (p used for atomicparametrictype)
+    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
-    //s32 sizeByIntBits = getTotalWordSize();
     s32 len = getTotalBitSize();
 
     m_state.indent(fp);
@@ -442,7 +439,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("typedef AtomicParameterType");
-    fp->write("<EC");  //BITSPERATOM
+    fp->write("<EC"); //BITSPERATOM
     fp->write(", ");
     fp->write(getUlamTypeVDAsStringForC().c_str());
     fp->write(", ");
@@ -530,7 +527,6 @@ namespace MFM {
     fp->write("(m_stg.GetBits(), v); }\n");
   } //genUlamTypeQuarkWriteDefinitionForC
 
-
   void UlamTypeClass::genCustomArrayMangledDefinitionForC(File * fp)
   {
     assert(m_class == UC_QUARK);
@@ -546,7 +542,7 @@ namespace MFM {
     fp->write(" readArrayItem(");
     fp->write("UlamContext<EC>& uc, ");
     fp->write("const u32 index, const u32 unitsize) { return Us::"); //const unhappy w first arg
-    fp->write(readArrayItemMethodForCodeGen().c_str());  //aref
+    fp->write(readArrayItemMethodForCodeGen().c_str()); //aref
     fp->write("(uc, m_stg, ");
     fp->write(m_state.getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString().c_str());
     fp->write("((const s32)index)).read(); }\n");
@@ -557,7 +553,7 @@ namespace MFM {
     fp->write("UlamContext<EC>& uc, const ");
     fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" v, const u32 index, const u32 unitsize) { Us::");
-    fp->write(writeArrayItemMethodForCodeGen().c_str());  //aset
+    fp->write(writeArrayItemMethodForCodeGen().c_str()); //aset
     fp->write("(uc, m_stg, ");
     fp->write(m_state.getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString().c_str());
     fp->write("((const s32) index), ");
@@ -573,10 +569,9 @@ namespace MFM {
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
     std::ostringstream  ud;
-    ud << "Ud_" << mangledName;  //d for define (p used for atomicparametrictype)
+    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
-    //s32 len = getTotalBitSize();  //BITSPERATOM
     m_state.indent(fp);
     fp->write("#ifndef ");
     fp->write(udstr.c_str());
@@ -698,7 +693,6 @@ namespace MFM {
     fp->write(" */\n\n");
   } //genUlamTypeElementMangledDefinitionForC
 
-
   void UlamTypeClass::genUlamTypeElementReadDefinitionForC(File * fp)
   {
     // arrays are handled separately
@@ -710,7 +704,6 @@ namespace MFM {
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write(" read() const { return m_stgRef; }\n");
   } //genUlamTypeElementReadDefinitionForC
-
 
   void UlamTypeClass::genUlamTypeElementWriteDefinitionForC(File * fp)
   {
@@ -724,14 +717,12 @@ namespace MFM {
     fp->write("& v) { m_stgRef = v; }\n");
   } //genUlamTypeElementWriteDefinitionForC
 
-
   const std::string UlamTypeClass::readArrayItemMethodForCodeGen()
   {
     if(isCustomArray())
       return CUSTOMARRAY_GET_MANGLEDNAME;
     return UlamType::readArrayItemMethodForCodeGen();
   }
-
 
   const std::string UlamTypeClass::writeArrayItemMethodForCodeGen()
   {
@@ -755,7 +746,7 @@ namespace MFM {
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
 
     std::ostringstream  ud;
-    ud << "Ud_" << automangledName;  //d for define (p used for atomicparametrictype)
+    ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
     m_state.m_currentIndentLevel = 0;
@@ -880,6 +871,5 @@ namespace MFM {
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
-
 
 } //end MFM

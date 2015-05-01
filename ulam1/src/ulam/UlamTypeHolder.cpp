@@ -6,15 +6,12 @@
 
 namespace MFM {
 
-  UlamTypeHolder::UlamTypeHolder(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
-  {}
+  UlamTypeHolder::UlamTypeHolder(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state) {}
 
-
-   ULAMTYPE UlamTypeHolder::getUlamTypeEnum()
-   {
-     return Holder;
-   }
-
+  ULAMTYPE UlamTypeHolder::getUlamTypeEnum()
+  {
+    return Holder;
+  }
 
   const std::string UlamTypeHolder::getUlamTypeAsStringForC()
   {
@@ -22,19 +19,16 @@ namespace MFM {
     return "holder";
   }
 
-
   bool UlamTypeHolder::needsImmediateType()
   {
     return false;
   }
-
 
   const std::string UlamTypeHolder::getImmediateStorageTypeAsString()
   {
     assert(0);
     return "holder";
   }
-
 
   const std::string UlamTypeHolder::castMethodForCodeGen(UTI nodetype)
   {

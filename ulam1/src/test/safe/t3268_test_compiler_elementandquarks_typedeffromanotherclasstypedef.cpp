@@ -29,5 +29,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3268_test_compiler_elementandquarks_typedeffromanotherclasstypedef)
 
 } //end MFM
-
-

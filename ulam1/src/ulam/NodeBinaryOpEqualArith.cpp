@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpEqualArith::NodeBinaryOpEqualArith(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqual(left,right,state) {}
+
   NodeBinaryOpEqualArith::NodeBinaryOpEqualArith(const NodeBinaryOpEqualArith& ref) : NodeBinaryOpEqual(ref) {}
+
   NodeBinaryOpEqualArith::~NodeBinaryOpEqualArith(){}
 
   UTI NodeBinaryOpEqualArith::checkAndLabelType()
@@ -14,7 +16,6 @@ namespace MFM {
 
     // common part of name
     ULAMTYPE enodetyp = nut->getUlamTypeEnum();
-
     if(enodetyp == Bits)
       {
 	// can happen with op-equal operations when both sides are the same type
@@ -24,13 +25,14 @@ namespace MFM {
     if(!nut->isScalar())
       {
 	std::ostringstream msg;
-	msg << "Non-scalars require a loop for operator" << getName() << " on LHS: <" << m_nodeLeft->getName() << ">, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	msg << "Non-scalars require a loop for operator" << getName();
+	msg << " on LHS: <" << m_nodeLeft->getName() << ">, type: ";
+	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
     return nodeType;
-  }
-
+  } //checkAndLabelType
 
   const std::string NodeBinaryOpEqualArith::methodNameForCodeGen()
   {
@@ -56,8 +58,7 @@ namespace MFM {
       };
     methodname << nut->getTotalWordSize();
     return methodname.str();
-  } // methodNameForCodeGen
-
+  } //methodNameForCodeGen
 
   void NodeBinaryOpEqualArith::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
@@ -71,7 +72,6 @@ namespace MFM {
 	doBinaryOperationArray(lslot, rslot, slots);
       }
   } //end dobinaryop
-
 
   void NodeBinaryOpEqualArith::genCode(File * fp, UlamValue& uvpass)
   {
@@ -99,9 +99,9 @@ namespace MFM {
 
     //wiped out by left read; need to write back into left
     std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
-    uvpass = luvpass;      //keep luvpass slot untouched
+    uvpass = luvpass; //keep luvpass slot untouched
     Node::genCodeReadIntoATmpVar(fp, uvpass);
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector;  //restore vector after lhs read*************
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore vector after lhs read*************
 
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -131,15 +131,15 @@ namespace MFM {
     fp->write_decimal(nut->getBitSize());
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos(), uvpass.getPtrNameId());  //P
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos(), uvpass.getPtrNameId()); //P
 
     // current object globals should pertain to lhs for the write
-    genCodeWriteFromATmpVar(fp, luvpass, uvpass);        //uses rhs' tmpvar; orig lhs
+    genCodeWriteFromATmpVar(fp, luvpass, uvpass); //uses rhs' tmpvar; orig lhs
 
 #ifdef TMPVARBRACES
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");  //close for tmpVar
+    fp->write("}\n"); //close for tmpVar
 #endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty());
   } //genCode

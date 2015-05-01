@@ -64,6 +64,10 @@ namespace MFM {
 	fp->write_decimal(arraysize);
 	fp->write("]");
       }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
 #endif
     fp->write(";\n");
   } //generateCodedVariableDeclarations
@@ -91,6 +95,11 @@ namespace MFM {
 	fp->write_decimal(arraysize);
 	fp->write("]");
       }
+    else if(arraysize == UNKNOWNSIZE)
+      {
+	fp->write("[UNKNOWN]");
+      }
+
     fp->write("(");
 
     if(vclasstype == UC_QUARK)
@@ -101,7 +110,7 @@ namespace MFM {
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
-	    SymbolTable * stptr = classNode->getSymbolTablePtr();  //ST of data members
+	    SymbolTable * stptr = classNode->getSymbolTablePtr(); //ST of data members
 	    u32 newstartpos = startpos + getPosOffset();
 	    s32 len = vut->getBitSize();
 	    for(s32 i = 0; i < size; i++)
@@ -115,7 +124,7 @@ namespace MFM {
     else
       {
 	PACKFIT packFit = m_state.determinePackable(vuti);
-	assert(WritePacked(packFit));   //has to be to fit in an atom/site;
+	assert(WritePacked(packFit)); //has to be to fit in an atom/site;
 
 	char * valstr = new char[size * 8 + 32];
 
@@ -148,7 +157,7 @@ namespace MFM {
 	    sprintf(valstr," ");
 	  }
 
-	fp->write(valstr);  //results out here!
+	fp->write(valstr); //results out here!
 	delete [] valstr;
       } //not a quark
     fp->write("); ");

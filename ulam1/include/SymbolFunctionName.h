@@ -76,9 +76,11 @@ namespace MFM{
 
     void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
 
+    void updatePrevBlockPtrInFunctionDefs(NodeBlockClass * p);
+
     bool findNodeNoInFunctionDefs(NNO n, Node*& foundNode);
 
-    void labelFunctions();
+    bool labelFunctions();
 
     u32 countNavNodesInFunctionDefs();
 
