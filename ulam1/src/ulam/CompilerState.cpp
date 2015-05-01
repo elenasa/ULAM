@@ -1080,11 +1080,33 @@ namespace MFM {
       return;  //nothing to do
 
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
+    //'Void' by default is zero and only zero bitsize (already complete)
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
     if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
       {
+	if(bUT != Void)
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str();
+	    msg << "> (UTI" << utArg << ")";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    return;
+	  }
+	//Void with zero bitsize
+	if(arraysize != NONARRAYSIZE)
+	  {
+	    // disallow an array of Void(0)'s
+	    std::ostringstream msg;
+	    msg << "Invalid Void type array: " << ut->getUlamTypeName().c_str();
+	    msg << "> (UTI" << utArg << ")";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    return;
+	  }
+      }
+    else if(bUT == Void)
+      {
 	std::ostringstream msg;
-	msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str();
+	msg << "Invalid nonzero size for Void type: " << ut->getUlamTypeName().c_str();
 	msg << "> (UTI" << utArg << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return;

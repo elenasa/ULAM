@@ -2180,7 +2180,7 @@ namespace MFM {
 	    {
 	      std::ostringstream msg;
 	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	      msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	      msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
 	      msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 	      MSG(&fTok, msg.str().c_str(), ERR);
 	    }
@@ -2202,7 +2202,7 @@ namespace MFM {
 	    {
 	      std::ostringstream msg;
 	      msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	      msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	      msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
 	      msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 	      MSG(&fTok, msg.str().c_str(), ERR);
 	    }
@@ -2212,7 +2212,7 @@ namespace MFM {
 	{
 	  //std::ostringstream msg;
 	  //msg << "Undefined request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	  //msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	  //msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
 	  //msg << ">, type: " << m_state.getUlamTypeNameByIndex(utype).c_str();
 	  //MSG(&fTok, msg.str().c_str(), DEBUG);
 	  unreadToken();
@@ -2249,7 +2249,7 @@ namespace MFM {
 	{
 	  std::ostringstream msg;
 	  msg << "Unsupported request: '" << m_state.getTokenDataAsString(&fTok).c_str();
-	  msg << "' of variable <" << m_state.getTokenDataAsString(&memberTok).c_str();
+	  msg << "' <" << m_state.getTokenDataAsString(&memberTok).c_str();
 	  msg << ">, type unavailable";
 	  MSG(&fTok, msg.str().c_str(), DEBUG);
 	  unreadToken();
