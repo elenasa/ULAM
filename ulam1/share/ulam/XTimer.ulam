@@ -1,0 +1,22 @@
+ulam 1;
+use Random;
+
+quark XTimer(Unsigned bits)
+{
+  typedef Unsigned(bits) Counter;
+  Random r;
+  Counter time;
+
+  Void reset() { time = 0; }
+  Void trigger() { time = time.maxof; }
+
+  Bool alarm() { return time == time.maxof; }
+
+  Counter current() { return time; }
+  Counter count() {
+    Unsigned k = 1;
+    if (!alarm() && r.oneIn(k<<time))
+      ++time;
+    return time;
+  }
+}
