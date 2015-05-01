@@ -78,17 +78,9 @@ for (my $i = 0; $i < $cnum; ++$i) {
         $haveFunction = 1;
     }
 }
-$cnum = 5 if ($haveFunction && $cnum < 5);
-for (my $i = 0; $i < $cnum; ++$i) {
-    my $c = $colors[$i];
-    if (!defined($c) || $c eq "function") {
-        $body .= "\n      case $i: {  // And woe unto you if you didn't define this!" .
-                 "\n                 return m_ulamElement.Uf_8getColor(uc,atom,Ui_Ut_102328Unsigned(colnum)).read();".
-                 "\n               }"
-    } else {
-        $body .= "\n      case $i: return $colors[$i];"
-    }
-}
+die "Internal error: UPDATE NEEDED" if $cnum > 1 or $haveFunction;
+$body .= "return $colors[0];";
+
 my @syms = split(/,/,$keys{'symmetries'});
 my $csyc = scalar(@syms);
 my $symbody = "";
@@ -148,11 +140,7 @@ namespace MFM {
     const u32 GetVersion() const { return $cver; }
 $movfunc
     const u32 GetNumColors() const { return $cnum; }
-    const u32 GetColor(UlamContext<EC>& uc, T atom, u32 colnum) const {
-      switch (colnum) {
-      default: $body
-      }
-    }
+    const u32 GetElementColor() const { $body }
     const u32 GetSymmetry(UlamContext<EC>& uc) const {
       $symbody
     }

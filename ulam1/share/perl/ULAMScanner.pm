@@ -125,10 +125,18 @@ sub normalizeKeys {
     if (defined $keys{'colors'}) {
         @colors = split(/[\s,;]+/, $keys{'colors'});
     }
+    if (scalar(@colors) > 1) {
+        my $first = $colors[0];
+        print STDERR "Multiple \\color values no longer accepted; considering just '".$colors[0]."'\n";
+        @colors = ($first);
+    }
+
+    my $w = "0xFFFFFFFF";
     for (my $i = 0; $i < scalar(@colors); ++$i) {
         my $c = $colors[$i];
         if ($c =~ /^(dynamic|function)$/i) {
-            $c = "function";
+            print STDERR "Color keyword '$c' no longer accepted; using white ($w)\n";
+            $c = $w;
         } elsif ($c =~ /^(0x|#)([0-9a-fA-F]{8})$/) {
             $c = "0x$2";
         } elsif  ($c =~ /^(0x|#)([0-9a-fA-F]{6})$/) {
@@ -136,8 +144,8 @@ sub normalizeKeys {
         } elsif  ($c =~ /^(0x|#)([0-9a-fA-F])([0-9a-fA-F])([0-9a-fA-F])$/) {
             $c = "0xff$2$2$3$3$4$4"; # expand 12 bit color
         } else {
-            $c = "0xFFFFFFFF";
-            print STDERR "Unrecognized color '$c', replaced with white ($c)\n";
+            print STDERR "Unrecognized color '$c', replaced with white ($w)\n";
+            $c = $w;
         }
         $colors[$i] = $c;
     }
