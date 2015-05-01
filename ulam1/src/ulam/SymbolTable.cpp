@@ -195,6 +195,13 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
+
+	if(!variableSymbolWithCountableSize(sym))
+	  {
+	    it++;
+	    continue;
+	  }
+
 	UTI suti = sym->getUlamTypeIdx();
 	s32 symsize = calcVariableSymbolTypeSize(suti); //recursively
 
@@ -216,19 +223,13 @@ namespace MFM {
 	    msg << " UTI" << suti << " while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	    if(variableSymbolWithCountableSize(sym))
-	      {
-		totalsizes = UNKNOWNSIZE;
-		break;
-	      }
+	    totalsizes = UNKNOWNSIZE;
+	    break;
 	  }
 	else
-	  {
-	    m_state.setBitSize(suti, symsize); //symsize does not include arrays
-	  }
+	  m_state.setBitSize(suti, symsize); //symsize does not include arrays
 
-	if(variableSymbolWithCountableSize(sym))
-	  totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
+	totalsizes += m_state.getTotalBitSize(suti); //covers up any unknown sizes; includes arrays
 	it++;
       } //while
     return totalsizes;
@@ -242,6 +243,12 @@ namespace MFM {
       {
 	Symbol * sym = it->second;
 	assert(!sym->isFunction());
+
+	if(!variableSymbolWithCountableSize(sym))
+	  {
+	    it++;
+	    continue;
+	  }
 
 	UTI sut = sym->getUlamTypeIdx();
 	s32 symsize = calcVariableSymbolTypeSize(sut); //recursively
@@ -262,7 +269,7 @@ namespace MFM {
 	    m_state.setBitSize(sut, symsize); //symsize does not include arrays
 	  }
 
-	if(variableSymbolWithCountableSize(sym) && ((s32) m_state.getTotalBitSize(sut) > maxsize))
+	if((s32) m_state.getTotalBitSize(sut) > maxsize)
 	  maxsize = m_state.getTotalBitSize(sut); //includes arrays
 
 	it++;
@@ -1052,9 +1059,6 @@ namespace MFM {
   //PRIVATE HELPER METHODS:
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)
   {
-    //if(!m_state.isComplete(argut))
-    //  m_state.constantFoldIncompleteUTI(argut); //to resolver in SymbolClass
-
     s32 totbitsize = m_state.getBitSize(argut);
 
     if(m_state.getUlamTypeByIndex(argut)->getUlamClass() == UC_NOTACLASS) //includes Atom type
@@ -1143,8 +1147,8 @@ namespace MFM {
 		      {
 			UTI suti = csym->getUlamTypeIdx();
 			std::ostringstream msg;
-			msg << " Quark " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-			msg << " (UTI" << suti << ")";
+			msg << " Quark/Element '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+			msg << "' (UTI" << suti << ")";
 			msg << " cannot contain a copy of itself";
 			MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
 			return UNKNOWNSIZE;
