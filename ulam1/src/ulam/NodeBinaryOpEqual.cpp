@@ -107,7 +107,6 @@ namespace MFM {
 
   EvalStatus NodeBinaryOpEqual::evalToStoreInto()
   {
-    //assert(0);
     evalNodeProlog(0);
 
     makeRoomForSlots(1); //always 1 slot for ptr

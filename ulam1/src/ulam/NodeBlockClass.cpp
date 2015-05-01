@@ -7,14 +7,22 @@
 
 namespace MFM {
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false) {}
-
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false)
   {
-    setNodeType(m_state.getCompileThisIdx());
+    m_nodeParameterList = new NodeList(state);
   }
 
-  NodeBlockClass::~NodeBlockClass() {}
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
+  {
+    setNodeType(m_state.getCompileThisIdx());
+    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); instances don't need this; its got symbols
+  }
+
+  NodeBlockClass::~NodeBlockClass()
+  {
+    delete m_nodeParameterList;
+    m_nodeParameterList = NULL;
+  }
 
   Node * NodeBlockClass::instantiate()
   {
@@ -38,6 +46,8 @@ namespace MFM {
       m_node->updateLineage(getNodeNo());
     if(m_nodeNext)
       m_nodeNext->updateLineage(getNodeNo());
+    if(m_nodeParameterList)
+      m_nodeParameterList->updateLineage(getNodeNo());
     m_functionST.linkToParentNodesAcrossTableOfFunctions(this); //all the function defs
   } //updateLineage
 
@@ -45,7 +55,11 @@ namespace MFM {
   {
     if(NodeBlock::findNodeNo(n, foundNode))
       return true;
-    return m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode); //all the function defs
+    if(m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode)) //all the function defs
+      return true;
+    if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
+      return true;
+    return false;
   } //findNodeNo
 
   void NodeBlockClass::print(File * fp)
@@ -99,7 +113,7 @@ namespace MFM {
     if(func)
       func->printPostfix(fp);
     else
-      fp->write(" <NOMAIN>");  //not an error
+      fp->write(" <NOMAIN>"); //not an error
 
     fp->write(" }");
     fp->write("\n");
@@ -108,7 +122,6 @@ namespace MFM {
   const char * NodeBlockClass::getName()
   {
     return m_state.getUlamTypeByIndex(getNodeType())->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str();
-    //return "{}";
   }
 
   const std::string NodeBlockClass::prettyNodeName()
@@ -128,6 +141,8 @@ namespace MFM {
     // label all the function definition bodies
     m_functionST.labelTableOfFunctions();
 
+    checkParameterNodeTypes();
+
     // check that a 'test' function returns Int (ulam convention)
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
@@ -144,12 +159,28 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  bool NodeBlockClass::checkParameterNodeTypes()
+  {
+    if(m_nodeParameterList)
+      return m_nodeParameterList->checkAndLabelType();
+    return true;
+  }
+
+  void NodeBlockClass::addParameterNode(Node * nodeArg)
+  {
+    assert(m_nodeParameterList); //must be a template
+    m_nodeParameterList->addNodeToList(nodeArg);
+  }
+
   void NodeBlockClass::countNavNodes(u32& cnt)
   {
     if(m_nodeNext) //may not have data members
       NodeBlock::countNavNodes(cnt);
     cnt += m_functionST.countNavNodesAcrossTableOfFunctions();
-  }
+
+    if(m_nodeParameterList)
+      m_nodeParameterList->countNavNodes(cnt);
+  } //countNavNodes
 
   void NodeBlockClass::checkDuplicateFunctions()
   {
@@ -255,6 +286,11 @@ namespace MFM {
     return m_functionST.getTotalSymbolSize();
   }
 
+  void NodeBlockClass::updatePrevBlockPtrOfFuncSymbolsInTable()
+  {
+    m_functionST.updatePrevBlockPtrAcrossTableOfFunctions(this);
+  }
+
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
   {
@@ -318,7 +354,7 @@ namespace MFM {
       {
 	genCodeHeaderQuark(fp);
       }
-    else  //element
+    else //element
       {
 	genCodeHeaderElement(fp);
       }

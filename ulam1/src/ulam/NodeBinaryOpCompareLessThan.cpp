@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpCompareLessThan::NodeBinaryOpCompareLessThan(Node * left, Node * right, CompilerState & state) : NodeBinaryOpCompare(left,right,state) {}
+
   NodeBinaryOpCompareLessThan::NodeBinaryOpCompareLessThan(const NodeBinaryOpCompareLessThan& ref) : NodeBinaryOpCompare(ref) {}
+
   NodeBinaryOpCompareLessThan::~NodeBinaryOpCompareLessThan(){}
 
   Node * NodeBinaryOpCompareLessThan::instantiate()
@@ -12,18 +14,15 @@ namespace MFM {
     return new NodeBinaryOpCompareLessThan(*this);
   }
 
-
   const char * NodeBinaryOpCompareLessThan::getName()
   {
     return "<";
   }
 
-
   const std::string NodeBinaryOpCompareLessThan::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   const std::string NodeBinaryOpCompareLessThan::methodNameForCodeGen()
   {
@@ -31,7 +30,6 @@ namespace MFM {
     methodname << "_BinOpCompareLessThan" << NodeBinaryOpCompare::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UlamValue NodeBinaryOpCompareLessThan::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
@@ -61,7 +59,6 @@ namespace MFM {
       };
     return rtnUV;
   } //makeImmediateBinaryOp
-
 
   void NodeBinaryOpCompareLessThan::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {

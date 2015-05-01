@@ -54,7 +54,7 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    assert(wordsize == 32);
+    assert(wordsize == MAXBITSPERINT);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etype)
@@ -141,7 +141,7 @@ namespace MFM {
     EvalStatus evs = NORMAL; //init ok
 
     if(!m_state.isComplete(getNodeType()))
-       return ERROR;
+      return ERROR;
 
     evalNodeProlog(0); //new current frame pointer
 
@@ -166,7 +166,7 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    assert(wordsize == 32);
+    assert(wordsize == MAXBITSPERINT);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {

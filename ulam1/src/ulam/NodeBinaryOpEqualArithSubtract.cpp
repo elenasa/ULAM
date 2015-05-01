@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpEqualArithSubtract::NodeBinaryOpEqualArithSubtract(Node * left, Node * right, CompilerState & state) : NodeBinaryOpEqualArith(left,right,state) {}
+
   NodeBinaryOpEqualArithSubtract::NodeBinaryOpEqualArithSubtract(const NodeBinaryOpEqualArithSubtract& ref) : NodeBinaryOpEqualArith(ref) {}
+
   NodeBinaryOpEqualArithSubtract::~NodeBinaryOpEqualArithSubtract(){}
 
   Node * NodeBinaryOpEqualArithSubtract::instantiate()
@@ -12,18 +14,15 @@ namespace MFM {
     return new NodeBinaryOpEqualArithSubtract(*this);
   }
 
-
   const char * NodeBinaryOpEqualArithSubtract::getName()
   {
     return "-=";
   }
 
-
   const std::string NodeBinaryOpEqualArithSubtract::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   const std::string NodeBinaryOpEqualArithSubtract::methodNameForCodeGen()
   {
@@ -31,7 +30,6 @@ namespace MFM {
     methodname << "_BinOpSubtract" << NodeBinaryOpEqualArith::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UlamValue NodeBinaryOpEqualArithSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
@@ -58,7 +56,6 @@ namespace MFM {
       };
     return rtnUV;
   } //makeImmediateBinaryOp
-
 
   void NodeBinaryOpEqualArithSubtract::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {

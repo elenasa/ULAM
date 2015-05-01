@@ -50,6 +50,7 @@
 #include "NodeFunctionCall.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
+#include "NodeTypeDescriptor.h"
 #include "NodeTypeBitsize.h"
 #include "NodeUnaryOp.h"
 #include "Symbol.h"
@@ -95,7 +96,7 @@ namespace MFM{
     */
     NodeBlockClass * parseClassBlock(SymbolClassName * cnsym, Token identTok);
 
-    void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym);
+    void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
     /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | ('element' | 0) + <DECL> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
@@ -189,18 +190,19 @@ namespace MFM{
     Node * parseDecl(bool parseSingleDecl = false);
 
 
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs);
 
     UTI parseClassArguments(Token& typeTok);
     void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);
 
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE and node with constant expression */
-    NodeTypeBitsize * parseTypeBitsize(ParserTypeArgs& args);
+    NodeTypeBitsize * parseTypeBitsize(TypeArgs& args);
 
     /** helper for parsing type; returns bitsize, or UNKNOWNSIZE
 	false when possible 'sizeof' found instead of a type;
      */
-    bool parseTypeFromAnotherClassesTypedef(ParserTypeArgs& args);
-    void parseTypeFromAnotherClassesTypedef(ParserTypeArgs& args, bool& rtnb, u32& numDots);
+    bool parseTypeFromAnotherClassesTypedef(TypeArgs& args, NodeTypeDescriptor *& rtnTypeDesc);
+    void parseTypeFromAnotherClassesTypedef(TypeArgs& args, bool& rtnb, u32& numDots, NodeTypeDescriptor *& rtnTypeDesc);
 
     /**
        <RETURN_STATMENT> := 'return' + (0 | <ASSIGN_EXPR>)
@@ -231,7 +233,7 @@ namespace MFM{
 
     Node * parseRestOfMemberSelectExpr(Node * classInstanceNode);
 
-    Node * parseMinMaxSizeofType(Token memberTok, UTI utype);
+    Node * parseMinMaxSizeofType(Token memberTok, UTI utype, NodeTypeDescriptor * nodetype);
 
     Node * parseMinMaxSizeofType(Token memberTok); //member selected type unavailable at parse
 
@@ -317,11 +319,9 @@ namespace MFM{
 
     Node * parseRestOfAssignExpr(Node * leftNode);
 
-    //Node * parseRestOfDecls(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, UTI anothertduti, UTI& rtnType, Node * dNode, bool assignOK = true);
-    Node * parseRestOfDecls(ParserTypeArgs& args, Token identTok, Node * dNode);
+    Node * parseRestOfDecls(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
 
-    //Node * parseRestOfDeclAssignment(Token typeTok, u32 typebitsize, s32 arraysize, Token identTok, UTI classInstanceId, UTI anothertduti, UTI& rtnType, Node * dNode);
-    Node * parseRestOfDeclAssignment(ParserTypeArgs& args, Token identTok, Node * dNode);
+    Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK = true);
 
@@ -335,9 +335,9 @@ namespace MFM{
 	<FUNC_PARAMS> := <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
 	<FUNC_PARAM>  := <TYPE> + <VAR_DECL>
      */
-    NodeBlockFunctionDefinition * makeFunctionBlock(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype);
 
-    void parseRestOfFunctionParameters(SymbolFunction * sym);
+    void parseRestOfFunctionParameters(SymbolFunction * sym, NodeBlockFunctionDefinition * fblock);
 
     /**
 	helper method for function definition, populates funcNode,
@@ -347,16 +347,16 @@ namespace MFM{
 
 
     /** helper for parseDataMember */
-    Node * makeFunctionSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype);
 
     /** helper for parseDecl and parseRestOfDecls */
-    Node * makeVariableSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeVariableSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper for parseTypedef */
-    Node * makeTypedefSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeTypedefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper for parseConstdef */
-    Node * makeConstdefSymbol(ParserTypeArgs& args, Token identTok, NodeTypeBitsize * constExprForBitSize);
+    Node * makeConstdefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper method for parseConditionalExpr */
     Node * makeConditionalExprNode(Node * leftNode);
@@ -393,15 +393,13 @@ namespace MFM{
        helper method to make a terminal node
        for a constant value known at parse time (e.g. one for ++/--)
     */
-    //Node * makeTerminal(Token& locTok, s32 val, ULAMTYPE etype);
-    //Node * makeTerminal(Token& locTok, u32 val, ULAMTYPE etype);
     Node * makeTerminal(Token& locTok, s32 val, UTI utype);
     Node * makeTerminal(Token& locTok, u32 val, UTI utype);
 
     /**
        helper method to save subtrees for unknown UTIs
     */
-    void linkOrFreeConstantExpressions(UTI auti, ParserTypeArgs args, NodeTypeBitsize * ceForBitSize, NodeSquareBracket * ceForArraySize);
+    void linkOrFreeConstantExpressionArraysize(UTI auti, TypeArgs args, NodeSquareBracket * ceForArraySize, NodeTypeDescriptor *& nodetyperef); //keeper
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);

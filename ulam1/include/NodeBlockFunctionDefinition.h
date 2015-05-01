@@ -38,16 +38,18 @@
 #define NODEBLOCKFUNCTIONDEFINITION_H
 
 #include "File.h"
-#include "SymbolFunction.h"
 #include "NodeBlock.h"
+#include "NodeList.h"
+#include "NodeTypeDescriptor.h"
+#include "SymbolFunction.h"
 
-namespace MFM{
+namespace MFM {
 
-  class NodeBlockFunctionDefinition : public NodeBlock
+class NodeBlockFunctionDefinition : public NodeBlock
   {
   public:
 
-    NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
+    NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, NodeTypeDescriptor* nodetype, CompilerState & state, NodeStatements * s = NULL);
 
     NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref);
 
@@ -55,11 +57,21 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);
 
     virtual UTI checkAndLabelType();
+
+    bool checkParameterNodeTypes();
+
+    void addParameterNode(Node * nodeArg);
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
@@ -92,6 +104,8 @@ namespace MFM{
     bool m_isDefinition;
     u32 m_maxDepth;
     bool m_native;  //false by default, requires keyword
+    NodeList * m_nodeParameterList; //variable or function can be an args
+    NodeTypeDescriptor * m_nodeTypeDesc; //return type
   };
 
 }

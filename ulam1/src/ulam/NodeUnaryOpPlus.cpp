@@ -48,7 +48,7 @@ namespace MFM {
 	    if(eut == Bool)
 	      {
 		newType = Int;
-		m_node = makeCastingNode(m_node, newType);  //insert node/s
+		m_node = makeCastingNode(m_node, newType); //insert node/s
 	      }
 	    else if(eut == Bits)
 	      {
@@ -78,15 +78,13 @@ namespace MFM {
   void NodeUnaryOpPlus::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
-    m_node->genCode(fp, uvpass);
-    return; //essentially a no-op
+    m_node->genCode(fp, uvpass); //essentially a no-op
   } //genCode
 
   void NodeUnaryOpPlus::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     assert(m_node);
-    m_node->genCodeToStoreInto(fp, uvpass);
-    return; //essentially a no-op ?
+    m_node->genCodeToStoreInto(fp, uvpass); //essentially a no-op ?
   } //genCodeToStoreInto
 
 } //end MFM

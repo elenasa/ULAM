@@ -29,12 +29,10 @@ namespace MFM {
   UlamType::UlamType(const UlamKeyTypeSignature key, CompilerState & state) : m_key(key), m_state(state), m_wordLengthTotal(0), m_wordLengthItem(0), m_max(S32_MIN), m_min(S32_MAX)
   {}
 
-
   UlamType * UlamType::getUlamType()
   {
     return this;
   }
-
 
   const std::string UlamType::getUlamTypeName()
   {
@@ -43,24 +41,20 @@ namespace MFM {
     //    return m_key.getUlamKeyTypeSignatureAsString().c_str();
   }
 
-
   const std::string UlamType::getUlamTypeNameBrief()
   {
     return m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state);
   }
-
 
   const std::string UlamType::getUlamTypeNameOnly()
   {
     return m_key.getUlamKeyTypeSignatureName(&m_state);
   }
 
-
    UlamKeyTypeSignature UlamType::getUlamKeyTypeSignature()
   {
     return m_key;
   }
-
 
   bool UlamType::cast(UlamValue & val, UTI typidx)
   {
@@ -69,24 +63,21 @@ namespace MFM {
     return false;
   }
 
-
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)
-    {
-      sprintf(valstr,"%s", getUlamTypeName().c_str());
-    }
-
+  {
+    sprintf(valstr,"%s", getUlamTypeName().c_str());
+  }
 
   ULAMCLASSTYPE UlamType::getUlamClass()
   {
     return UC_NOTACLASS;
   }
 
-
   const std::string UlamType::getUlamTypeAsStringForC()
   {
     assert(isComplete());
 
-    s32 len = getTotalBitSize(); // includes arrays
+    s32 len = getTotalBitSize(); //includes arrays
     assert(len >= 0);
     s32 roundUpSize = getTotalWordSize();
 
@@ -98,7 +89,6 @@ namespace MFM {
     else
       ctype << "VD::BITS, ";  //use BITS for arrays
 
-    //    if(getPackable() == UNPACKED)
     if(!isScalar() && getPackable() != PACKEDLOADABLE)
       {
 	s32 itemlen = getBitSize(); //per item
@@ -174,7 +164,7 @@ namespace MFM {
   const std::string UlamType::getImmediateStorageTypeAsString()
   {
     std::ostringstream ctype;
-    ctype << getUlamTypeImmediateMangledName();  // name of struct w typedef(bf) and storage(bv);
+    ctype << getUlamTypeImmediateMangledName(); //name of struct w typedef(bf) and storage(bv);
     return ctype.str();
   } //getImmediateStorageTypeAsString
 
@@ -193,7 +183,7 @@ namespace MFM {
     std::string ctype;
     switch(sizebyints)
       {
-      case 0:    //e.g. empty quarks
+      case 0: //e.g. empty quarks
       case 32:
 	ctype = "u32";
 	break;
@@ -303,14 +293,14 @@ namespace MFM {
 	fp->write(readMethodForCodeGen().c_str());
 
 	if(isScalar())
-	  fp->write("(m_stg); }\n");   //done
+	  fp->write("(m_stg); }\n"); //done
 	else
 	  fp->write("(m_stg); }   //reads entire array\n");
       }
 
     if(!isScalar())
       {
-	// reads an element of array
+	//reads an element of array
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
@@ -358,7 +348,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("typedef ");
-    fp->write(getUlamTypeAsStringForC().c_str());  //e.g. BitVector
+    fp->write(getUlamTypeAsStringForC().c_str()); //e.g. BitVector
     fp->write(" ");
     fp->write(mangledName.c_str());
     fp->write(";\n");
@@ -405,7 +395,7 @@ namespace MFM {
 
   s32 UlamType::getBitSize()
   {
-    return m_key.getUlamKeyTypeSignatureBitSize();  //could be negative "unknown"
+    return m_key.getUlamKeyTypeSignatureBitSize(); //could be negative "unknown"
   }
 
   u32 UlamType::getTotalBitSize()
@@ -511,17 +501,15 @@ namespace MFM {
 
   PACKFIT UlamType::getPackable()
   {
-    PACKFIT rtn = UNPACKED;            //was false == 0
-    u32 len = getTotalBitSize();       //could be 0, e.g. 'unknown'
+    PACKFIT rtn = UNPACKED; //was false == 0
+    u32 len = getTotalBitSize(); //could be 0, e.g. 'unknown'
 
     //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
-    //if(len <= MAXBITSPERINT || len <= MAXBITSPERLONG)
     if(len <= MAXBITSPERINT)
       rtn = PACKEDLOADABLE;
     else
       if(len <= MAXSTATEBITS)
 	rtn = PACKED;
-
     return rtn;
   } //getPackable
 
@@ -531,7 +519,7 @@ namespace MFM {
     s32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
       {
-      case 0:    //e.g. empty quarks
+      case 0: //e.g. empty quarks
       case 32:
 	method = "Read";
 	break;
@@ -539,7 +527,7 @@ namespace MFM {
 	method = "ReadLong";
 	break;
       default:
-	method = "ReadUnpacked";  //TBD
+	method = "ReadUnpacked"; //TBD
 	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	assert(0);
       };
@@ -552,7 +540,7 @@ namespace MFM {
     s32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
       {
-      case 0:    //e.g. empty quarks
+      case 0: //e.g. empty quarks
       case 32:
 	method = "Write";
 	break;
@@ -560,7 +548,7 @@ namespace MFM {
 	method = "WriteLong";
 	break;
       default:
-	method = "WriteUnpacked";  //TBD
+	method = "WriteUnpacked"; //TBD
 	//MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	assert(0);
       };
@@ -573,7 +561,7 @@ namespace MFM {
     s32 sizeByIntBits = getItemWordSize();
     switch(sizeByIntBits)
       {
-      case 0:    //e.g. empty quarks
+      case 0: //e.g. empty quarks
       case 32:
 	method = "ReadArray";
 	break;
@@ -581,7 +569,7 @@ namespace MFM {
 	method = "ReadArrayLong";
 	break;
       default:
-	method = "ReadArrayUnpacked";  //TBD
+	method = "ReadArrayUnpacked"; //TBD
 	//assert(0);
       };
     return method;
@@ -593,7 +581,7 @@ namespace MFM {
     s32 sizeByIntBits = getItemWordSize();
     switch(sizeByIntBits)
       {
-      case 0:    //e.g. empty quarks
+      case 0: //e.g. empty quarks
       case 32:
 	method = "WriteArray";
 	break;
@@ -601,7 +589,7 @@ namespace MFM {
 	method = "WriteArrayLong";
 	break;
       default:
-	method = "WriteArrayUnpacked";  //TBD
+	method = "WriteArrayUnpacked"; //TBD
       };
     return method;
   } //writeArrayItemMethodForCodeGen()
@@ -614,7 +602,6 @@ namespace MFM {
     s32 sizeByIntBitsToBe = getTotalWordSize();
     s32 sizeByIntBits = nut->getTotalWordSize();
 
-    //    assert(sizeByIntBitsToBe == sizeByIntBits);
     if(sizeByIntBitsToBe != sizeByIntBits)
       {
 	std::ostringstream msg;
@@ -625,7 +612,8 @@ namespace MFM {
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
       }
 
-    rtnMethod << "_" << nut->getUlamTypeNameOnly().c_str() << sizeByIntBits << "To" << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;
+    rtnMethod << "_" << nut->getUlamTypeNameOnly().c_str() << sizeByIntBits << "To";
+    rtnMethod << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;
     return rtnMethod.str();
   } //castMethodForCodeGen
 
@@ -636,7 +624,7 @@ namespace MFM {
 
   void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    assert(0);  //only quarks and elements so far
+    assert(0); //only quarks and elements so far
   }
 
 } //end MFM

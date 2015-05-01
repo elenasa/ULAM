@@ -22,7 +22,7 @@ namespace MFM {
   {
     setYourParentNo(pno);
     m_node->updateLineage(getNodeNo());
-  }//updateLineage
+  } //updateLineage
 
   bool NodeUnaryOp::exchangeKids(Node * oldnptr, Node * newnptr)
   {
@@ -69,7 +69,7 @@ namespace MFM {
     else
       fp->write("<NULL>");
 
-    printOp(fp);  //operators last
+    printOp(fp); //operators last
   } //printPostfix
 
   void NodeUnaryOp::printOp(File * fp)
@@ -93,16 +93,15 @@ namespace MFM {
 
   bool NodeUnaryOp::isReadyConstant()
   {
-    //needs constant folding
-    return false;
+    return false; //needs constant folding
   }
 
   UTI NodeUnaryOp::checkAndLabelType()
   {
-    assert(0);  //see unary operators..
+    assert(0); //see unary operators..
     assert(m_node);
     UTI ut = m_node->checkAndLabelType();
-    UTI newType = ut;         // init to stay the same
+    UTI newType = ut; //init to stay the same
 
     if(newType != Nav && m_state.isComplete(newType))
       {
@@ -121,7 +120,7 @@ namespace MFM {
 	    if(eut == Bool)
 	      {
 		newType = Int;
-		m_node = makeCastingNode(m_node, newType);  //insert node/s
+		m_node = makeCastingNode(m_node, newType); //insert node/s
 	      }
 	  }
       } //not nav
@@ -224,13 +223,22 @@ namespace MFM {
 
   void NodeUnaryOp::doUnaryOperation(s32 slot, u32 nslots)
   {
-    if(m_state.isScalar(getNodeType()))  //not an array
+    UTI nuti = getNodeType();
+    if(m_state.isScalar(nuti))  //not an array
       {
 	doUnaryOperationImmediate(slot, nslots);
       }
     else
-      { //arrays not supported at this time
-	assert(0);
+      {
+	//arrays not supported at this time
+	std::ostringstream msg;
+	msg << "Unsupported unary operator" << getName();
+	msg << ", with an array type <";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << "< (UTI" << nuti << ") while compiling class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	//assert(0);
       }
   } //end dobinaryop
 
@@ -276,7 +284,7 @@ namespace MFM {
 
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //POS 0 rightjustified.
+    uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified.
   } //genCode
 
   void NodeUnaryOp::genCodeToStoreInto(File * fp, UlamValue& uvpass)

@@ -84,7 +84,8 @@ namespace MFM {
     assert(sizeByIntBitsToBe == sizeByIntBits);
     assert(nut->getUlamClass() == UC_ELEMENT);  //quarks only cast toInt
 
-    rtnMethod << "_" << "Element"  << sizeByIntBits << "To" << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;
+    rtnMethod << "_" << "Element"  << sizeByIntBits << "To";
+    rtnMethod << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;
     return rtnMethod.str();
   } //castMethodForCodeGen
 
