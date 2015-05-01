@@ -1139,7 +1139,16 @@ namespace MFM {
 		    assert(classblock);
 
 		    //quark cannot contain a copy of itself!
-		    assert(classblock != m_state.getClassBlock());
+		    if(classblock == m_state.getClassBlock())
+		      {
+			UTI suti = csym->getUlamTypeIdx();
+			std::ostringstream msg;
+			msg << " Quark " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+			msg << " (UTI" << suti << ")";
+			msg << " cannot contain a copy of itself";
+			MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+			return UNKNOWNSIZE;
+		      }
 
 		    m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
 
