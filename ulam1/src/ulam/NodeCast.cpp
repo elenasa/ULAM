@@ -72,8 +72,9 @@ namespace MFM {
 
     if(m_nodeTypeDesc)
       {
+	//might be a mapped uti for instantiated template class
 	tobeType = m_nodeTypeDesc->checkAndLabelType();
-	// does duti == tobeType? perhaps instantiated stub has mapped uti
+	setNodeType(tobeType); //overrides type set at parse time
 	if(!m_nodeTypeDesc->isReadyType())
 	  {
 	    std::ostringstream msg;
