@@ -139,7 +139,7 @@ namespace MFM {
 	    msg << UlamType::getUlamTypeEnumAsString(BUT) << "()UTI" << sizetype;
 	    msg << ", is not yet a \"known\" constant expression for class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    return false;
 	  }
 

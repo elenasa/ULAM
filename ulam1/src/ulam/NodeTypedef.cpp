@@ -172,7 +172,7 @@ namespace MFM {
 	    msg << " used with typedef symbol name '" << getName();
 	    msg << "' UTI" << it << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    //it = Nav; unlike vardecl
 	  }
       } // got typedef symbol

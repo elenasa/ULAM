@@ -45,6 +45,7 @@ namespace MFM {
   const char * NodeCast::getName()
   {
     return "cast";
+    //return m_node->getName();
   }
 
   const std::string NodeCast::prettyNodeName()
@@ -60,6 +61,11 @@ namespace MFM {
   bool NodeCast::isExplicitCast()
   {
     return m_explicit;
+  }
+
+  bool NodeCast::isReadyConstant()
+  {
+    return m_node->isReadyConstant(); //needs constant folding
   }
 
   UTI NodeCast::checkAndLabelType()
@@ -80,7 +86,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Cannot cast to nonready type: " ;
 	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    errorsFound++;
 	  }
       }
@@ -90,7 +96,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Cannot cast to incomplete type: " ;
 	msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	errorsFound++;
       }
     else if(tobeType == Nav)
@@ -118,7 +124,8 @@ namespace MFM {
 
 	    if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
 	      {
-		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Array sizes differ", ERR);
+		MSG(getNodeLocationAsString().c_str(),
+		    "Consider implementing array casts: Array sizes differ", ERR);
 		errorsFound++;
 	      }
 	  }
@@ -126,7 +133,8 @@ namespace MFM {
 	  {
 	    if(!m_state.isScalar(nodeType))
 	      {
-		MSG(getNodeLocationAsString().c_str(), "Consider implementing array casts: Cannot cast array into scalar", ERR);
+		MSG(getNodeLocationAsString().c_str(),
+		    "Consider implementing array casts: Cannot cast array into scalar", ERR);
 		errorsFound++;
 	      }
 	  } // end not scalar errors
@@ -410,7 +418,7 @@ namespace MFM {
 	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	msg << "(UTI" << nodeType << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	msg << "(UTI" << tobeType << ")";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
 

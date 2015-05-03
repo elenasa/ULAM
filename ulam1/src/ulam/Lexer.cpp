@@ -170,7 +170,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Weird Lex! <" << aname << "> isn't a special keyword type..becomes identifier instead.";
-	    MSG(m_state.getFullLocationAsString(firstloc).c_str(), msg.str().c_str(),ERR);
+	    MSG(m_state.getFullLocationAsString(firstloc).c_str(), msg.str().c_str(), ERR);
 	  }
       }
 

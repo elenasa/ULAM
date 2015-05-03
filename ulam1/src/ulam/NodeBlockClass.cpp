@@ -151,7 +151,9 @@ namespace MFM {
 	if(funcType != Int)
 	  {
 	    std::ostringstream msg;
-	    msg << "By convention, Function '" << funcNode->getName() << "''s Return type must be 'Int', not " << m_state.getUlamTypeNameBriefByIndex(funcType).c_str();
+	    msg << "By convention, Function '" << funcNode->getName();
+	    msg << "''s Return type must be 'Int', not ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(funcType).c_str();
 	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }

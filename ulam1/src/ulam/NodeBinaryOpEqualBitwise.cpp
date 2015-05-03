@@ -20,7 +20,9 @@ namespace MFM {
     if(!nut->isScalar() && (enodetyp == Bool || enodetyp == Unary))
       {
 	std::ostringstream msg;
-	msg << "Non-scalar Bool and Unary require a loop for bitwise operator" << getName() << " on LHS: <" << m_nodeLeft->getName() << ">, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	msg << "Non-scalar Bool and Unary require a loop for bitwise operator" << getName();
+	msg << " on LHS: <" << m_nodeLeft->getName() << ">, type: ";
+	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 

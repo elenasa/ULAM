@@ -65,6 +65,8 @@ namespace MFM{
     void setExplicitCast();
     bool isExplicitCast();
 
+    virtual bool isReadyConstant();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);

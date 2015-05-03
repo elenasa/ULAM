@@ -144,7 +144,7 @@ namespace MFM {
 		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 		msg << " UTI" << nuti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
 
