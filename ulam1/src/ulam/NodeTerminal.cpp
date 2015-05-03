@@ -209,7 +209,7 @@ namespace MFM {
 	msg << "Unknown size!! constant type: ";
 	msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 	msg << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
 
@@ -236,7 +236,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
 

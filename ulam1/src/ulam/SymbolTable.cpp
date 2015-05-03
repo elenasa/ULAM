@@ -823,7 +823,7 @@ namespace MFM {
 		msg << "Incomplete Class: ";
 		msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
 		msg << " was never defined, fails labeling";
-		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 		break;
 	      }
@@ -1150,7 +1150,7 @@ namespace MFM {
 			msg << " Quark/Element '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 			msg << "' (UTI" << suti << ")";
 			msg << " cannot contain a copy of itself";
-			MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+			MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 			return UNKNOWNSIZE;
 		      }
 

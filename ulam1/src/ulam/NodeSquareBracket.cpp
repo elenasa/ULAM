@@ -319,7 +319,8 @@ namespace MFM {
 	    newarraysize = arrayUV.getImmediateData(m_state);
 	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
 	      {
-		MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a positive integer", ERR);
+		MSG(getNodeLocationAsString().c_str(),
+		    "Array size specifier in [] is not a positive integer", ERR);
 		noerr = false;
 	      }
 	  }
@@ -331,7 +332,8 @@ namespace MFM {
       }
     else
       {
-	MSG(getNodeLocationAsString().c_str(), "Array size specifier in [] is not a constant integer", ERR);
+	MSG(getNodeLocationAsString().c_str(),
+	    "Array size specifier in [] is not a constant integer", ERR);
 	noerr = false;
       }
     rtnArraySize = newarraysize;
