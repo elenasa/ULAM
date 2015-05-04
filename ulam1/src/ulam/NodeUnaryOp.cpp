@@ -136,7 +136,7 @@ namespace MFM {
 
   void NodeUnaryOp::countNavNodes(u32& cnt)
   {
-    m_node->countNavNodes(cnt);
+    m_node->countNavNodes(cnt); //no need to count self?
   }
 
   UTI NodeUnaryOp::constantFold()
