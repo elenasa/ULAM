@@ -164,12 +164,13 @@ namespace MFM{
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
+    bool findFirstMatchingKeyForUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     void incrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
     u32 decrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
     u32 findUnknownKeyUTICounter(UlamKeyTypeSignature key);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
-    bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey);
+    bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, UTI newuti);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
     void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
