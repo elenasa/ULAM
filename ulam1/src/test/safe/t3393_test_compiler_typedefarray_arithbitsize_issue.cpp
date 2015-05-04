@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 7\nUe_B { typedef Unsigned(2) Slot;  typedef Unsigned(8) Index;  typedef Unsigned(8) IndArr[4];  Unsigned(8) arr[4](0,3,0,0);  Int(32) test() {  ( 1 cast 7u )hit arr 1 [] cast return } }\n");
+      return std::string("Exit status: 7\nUe_B { typedef Unsigned(2) Slot;  typedef Unsigned(8) Index;  typedef Unsigned(8) IndArr[4];  Unsigned(8) arr[4](0,7,0,0);  Int(32) test() {  ( 1 cast 7u )hit arr 1 [] cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
