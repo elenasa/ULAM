@@ -807,6 +807,8 @@ namespace MFM {
 
   bool SymbolTable::labelTableOfClasses()
   {
+    m_state.clearGoAgain();
+
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
 
     while(it != m_idToSymbolPtr.end())
@@ -833,7 +835,7 @@ namespace MFM {
 
 	it++;
       }
-    return (m_state.m_err.getErrorCount() + m_state.m_err.getWarningCount() == 0);
+    return (!m_state.goAgain() && (m_state.m_err.getErrorCount() + m_state.m_err.getWarningCount() == 0));
   } //labelTableOfClasses
 
   u32 SymbolTable::countNavNodesAcrossTableOfClasses()

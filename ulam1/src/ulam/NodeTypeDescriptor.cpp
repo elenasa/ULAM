@@ -86,6 +86,8 @@ namespace MFM {
 	setNodeType(it);
 	m_ready = true; // set here!!!
       }
+    else
+      m_state.setGoAgain();
 
     return getNodeType();
   } //checkAndLabelType
