@@ -196,7 +196,7 @@ namespace MFM {
 	msg << " used with constant symbol name '" << getName();
 	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     else
       {
@@ -301,7 +301,7 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str();
 	msg << "' is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
 

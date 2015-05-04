@@ -76,6 +76,9 @@ namespace MFM {
       {
 	m_ready = true; // set here
       }
+    else
+      m_state.setGoAgain();
+
 
     setNodeType(it);
     return getNodeType();

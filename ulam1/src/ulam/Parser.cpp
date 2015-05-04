@@ -560,7 +560,6 @@ namespace MFM {
 	if(getExpectedToken(TOK_OPEN_PAREN, QUIETLY))
 	  {
 	    //eats the '(' when found; NULL if error occurred
-	    //rtnNode = makeFunctionSymbol(typeargs, iTok, bitsizeNode); //with params
 	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode); //with params
 
 	    Token qTok;
@@ -698,7 +697,7 @@ namespace MFM {
     Node * sNode = parseStatement();
     if(!sNode)  //e.g. due to an invalid token perhaps
       {
-	MSG("", "EMPTY STATEMENT!! when in doubt, count", WARN);
+	MSG("", "EMPTY STATEMENT!! when in doubt, count", DEBUG);
 
 	Token pTok;
 	getNextToken(pTok);
@@ -1087,6 +1086,17 @@ namespace MFM {
     Token iTok;
     if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
       {
+	Symbol * asymptr = NULL;
+	//may continue when symbol not defined yet (e.g. FuncCall)
+	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex,asymptr))
+	  {
+	    if(asymptr->isConstant()) //check for constant first
+	      {
+		unreadToken();
+		return parseExpression();
+	      }
+	  }
+
 	if(!(rtnNode = parseIdentExpr(iTok)))
 	  return parseExpression();  	//continue as parseAssignExpr
 

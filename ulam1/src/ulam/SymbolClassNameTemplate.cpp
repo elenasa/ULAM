@@ -721,7 +721,7 @@ namespace MFM {
 	    msg << " Class instance: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << " is still a stub, so no check for duplication function error";
-	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
       }
@@ -749,7 +749,7 @@ namespace MFM {
 	    msg << " Class instance: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
 	    msg << " is still a stub, so no calc max depth function error";
-	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
       }
