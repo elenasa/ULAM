@@ -332,7 +332,7 @@ namespace MFM {
 	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: ";
 	msg << nut->getUlamTypeName().c_str() << ", to be: " << sizeByIntBitsToBe << " for type: ";
 	msg << getUlamTypeName().c_str();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(),ERR);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
 
     if(m_class != UC_ELEMENT)
@@ -340,7 +340,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Quarks only cast 'toInt': value type and size was: " << nut->getUlamTypeName().c_str();
 	msg << ", to be: " << getUlamTypeName().c_str();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(),ERR);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
 
     //e.g. casting an element to an element, redundant and not supported: Element96ToElement96?
@@ -349,7 +349,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Attempting to illegally cast a non-atom type to an element: value type and size was: ";
 	msg << nut->getUlamTypeName().c_str() << ", to be: " << getUlamTypeName().c_str();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(),ERR);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
 
     rtnMethod << "_" << nut->getUlamTypeNameOnly().c_str() << sizeByIntBits;

@@ -128,6 +128,8 @@ namespace MFM{
     CallStack m_nodeEvalStack;    //for node eval return values,
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
 
+    bool m_goAgainResolveLoop; //true means a node has a type that's not ready
+
     ErrorMessageHandler m_err;
 
     std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key->index of ulamtype (UTI)
@@ -352,6 +354,11 @@ namespace MFM{
     void pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock);
 
     std::string getClassContextAsStringForDebugging();
+
+    /** flag to resolving loop to go again for non-ready types (i.e. Navs) */
+    void clearGoAgain();
+    void setGoAgain();
+    bool goAgain();
 
   private:
     ClassContextStack m_classContextStack;         // the current subject of this compilation

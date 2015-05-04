@@ -1329,7 +1329,7 @@ namespace MFM {
 	msg << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	msg << "(UTI" << tobeType << ") in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	// continue on..
       }
 

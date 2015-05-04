@@ -64,7 +64,7 @@ namespace MFM {
 	msg << "Member selected is incomplete class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	msg << ", check and label fails this time around";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
 	setNodeType(Nav);
 	return getNodeType();
