@@ -35,7 +35,7 @@ namespace MFM {
 
   bool NodeCast::findNodeNo(NNO n, Node *& foundNode)
   {
-    if(Node::findNodeNo(n, foundNode))
+    if(NodeUnaryOp::findNodeNo(n, foundNode))
       return true;
     if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
       return true;
@@ -185,9 +185,8 @@ namespace MFM {
 
   void NodeCast::countNavNodes(u32& cnt)
   {
-    m_node->countNavNodes(cnt);
     Node::countNavNodes(cnt);
-
+    m_node->countNavNodes(cnt);
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->countNavNodes(cnt);
   } //countNavNodes
