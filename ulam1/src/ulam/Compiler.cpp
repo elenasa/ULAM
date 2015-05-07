@@ -171,7 +171,7 @@ namespace MFM {
     u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
     if(navcount > 0)
       {
-	//assert(m_state.goAgain()); //sanity check; ran out of iterations
+	assert(m_state.goAgain()); //sanity check; ran out of iterations
 	std::ostringstream msg;
 	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
