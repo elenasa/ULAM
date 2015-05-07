@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3394_test_compiler_unseenfunccall)
+  BEGINTESTCASECOMPILER(t3396_test_compiler_unseenfunccall_error)
   {
     std::string GetAnswerKey()
     {
@@ -11,20 +11,20 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //informed by 3392
-      // Colony, with args, is Unseen at typedef time.
+      //tripped upon by 3394, causes assert in Compiler after resolving loop, after counting Nav's before all iterations used up
+      // because we start with R.ulam, and never see Colony.ulam.
       bool rtn2 = fms->add("A.ulam", "use R;\nuse Colony;\n element A{\n}\n");
-      bool rtn3 = fms->add("R.ulam", "element R{\n Int test() {typedef Colony(3u) Ish;\n Ish ish;\n ish.setTailAge(7u);\n return 0;\n}\n}");
-      bool rtn1 = fms->add("Colony.ulam","use Telomeree;\n quark Colony(Unsigned widthc){\n typedef Telomeree(widthc) Telo;\n typedef Telo.Tail Tail;\n Telo t;\n Void setTailAge(Unsigned newage) {\n t.setAge((Tail) newage);\n }\n }");
+      bool rtn3 = fms->add("R.ulam", "element R{\ntypedef Colony Ish;\n Int test() { Ish ish;\n ish.setTailAge(7u);\n return 0;\n}\n}");
+      bool rtn1 = fms->add("Colony.ulam","use Telomeree;\n quark Colony{\nconstant Unsigned widthc = 3u;\n typedef Telomeree(widthc) Telo;\n typedef Telo.Tail Tail;\n Telo t;\n Void setTailAge(Unsigned newage) {\n t.setAge((Tail) newage);\n }\n }");
       bool rtn4 = fms->add("Telomeree.ulam","quark Telomeree(Unsigned width){\n typedef Unsigned(width) Tail;\n Tail age;\nTail getAge(){\n return age;\n}\nVoid setAge(Tail newAge){\nage = newAge;\n}\n }");
 
       if(rtn1 && rtn2 && rtn3 && rtn4)
-	return std::string("A.ulam");
+	return std::string("R.ulam");
 
       return std::string("");
     }
   }
 
-  ENDTESTCASECOMPILER(t3394_test_compiler_unseenfunccall)
+  ENDTESTCASECOMPILER(t3396_test_compiler_unseenfunccall_error)
 
 } //end MFM

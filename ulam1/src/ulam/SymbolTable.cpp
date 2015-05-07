@@ -872,7 +872,8 @@ namespace MFM {
 	assert(sym->isClass());
 	UTI cuti = sym->getUlamTypeIdx();
 	bool isAnonymousClass = m_state.getUlamTypeByIndex(cuti)->isHolder() || !m_state.isARootUTI(cuti);
-	if( ((SymbolClass *) sym)->getUlamClass() == UC_UNSEEN)
+	ULAMCLASSTYPE classtype = ((SymbolClass *) sym)->getUlamClass();
+	if( classtype == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Class: ";
@@ -885,17 +886,15 @@ namespace MFM {
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false; //moved here;
 	  }
-
-	//skip anonymous classes
-	if(!isAnonymousClass)
+	else
 	  {
-	    //try..
+	    //skip unseen and anonymous classes, o.w. try..
 	    aok = ((SymbolClassName *) sym)->setBitSizeOfClassInstances();
-
-	    //track classes that fail to be sized.
-	    if(!aok)
-	      lostClassesIds.push_back(sym->getId());
 	  }
+
+	//track classes that fail to be sized.
+	if(!aok)
+	  lostClassesIds.push_back(sym->getId());
 
 	aok = true; //reset for next class
 	it++;
