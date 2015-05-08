@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolConstantValue::SymbolConstantValue(u32 id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_parameter(false)
+  SymbolConstantValue::SymbolConstantValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_parameter(false)
   {
     m_constant.sval = 0; //was NONREADYCONST
   }
@@ -111,8 +111,9 @@ namespace MFM {
   //warning: this change also requires an update to the ST's key.
   void SymbolConstantValue::changeConstantId(u32 fmid, u32 toid)
   {
-    assert(m_id == fmid);
-    m_id = toid;
+    assert(getId() == fmid);
+    //Token idTok(TOK_IDENTIFIER, getLoc(), toid);
+    m_id.m_dataindex = toid;
   }
 
   void SymbolConstantValue::setParameterFlag()

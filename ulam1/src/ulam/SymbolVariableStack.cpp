@@ -3,7 +3,7 @@
 
 namespace MFM {
 
-  SymbolVariableStack::SymbolVariableStack(u32 id, UTI utype, PACKFIT packed, s32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_stackFrameSlotIndex(slot){}
+  SymbolVariableStack::SymbolVariableStack(Token id, UTI utype, PACKFIT packed, s32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_stackFrameSlotIndex(slot){}
 
   SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref) : SymbolVariable(sref), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex) {}
 
