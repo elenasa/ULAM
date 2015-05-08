@@ -14,12 +14,11 @@ use Empty;
  */
 
 quark Telomere(Unsigned width) {
-  //  typedef Unsigned(width) Tail;
+  typedef Unsigned(width) Tail;
   typedef EventWindow.SiteNum SiteNum;
   EventWindow ew;
   AtomUtils au;
-  //  Tail age;
-  Unsigned(width) age;
+  Tail age;
 
   /**
     Duplicate self to ew[to] if self's
@@ -28,7 +27,7 @@ quark Telomere(Unsigned width) {
 
     \return false only if it failed to dup
     because of an unacceptable
-    destinatiopn, true otherwise.
+    destination, true otherwise.
    */
   Bool dup(SiteNum to) {
     if (age < Unsigned(width).maxof) {
@@ -39,6 +38,6 @@ quark Telomere(Unsigned width) {
     }
     return true;
   }
-  Void setAge(Unsigned(width) newAge) { age = newAge;  }
-  Unsigned(width) getAge() { return age; }
+  Void setAge(Tail newAge) { age = newAge;  }
+  Tail getAge() { return age; }
 }
