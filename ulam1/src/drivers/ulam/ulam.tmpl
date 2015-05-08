@@ -767,6 +767,7 @@ sub compilationDriver {
     return 0 if $actionCmd eq "library";
 
     if ($actionCmd eq "executables") {
+        IDie("executable construction under reconstruction :(");
         ($buildResults) = buildExecutables();
         UDie("$buildResults executable creation problem(s) detected\n")
             if $buildResults;
@@ -1305,6 +1306,7 @@ sub runGccCompilations
             gppCompile($cfile,"ulam_cppcompile",
                        getDebugArgs(),
                        "EXTERNAL_DEFINES", $extraDefines,
+                       "ULAM_CPPFLAGS", "-Wno-unused-variable",
                        "ULAM_SRC_DIR", "$dir/src",
                        "ULAM_CPP_FILE", $cfile,
                        "ULAM_BLD_DIR", "$dir/build",
