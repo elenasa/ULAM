@@ -1454,7 +1454,9 @@ namespace MFM {
 
   const std::string CompilerState::getFullPathFromLocator(const Locator& loc)
   {
-    return m_pool.getDataAsString(loc.getFullPathIndex());
+    if(loc.getFullPathIndex() > 0)
+      return m_pool.getDataAsString(loc.getFullPathIndex());
+    return "";
   }
 
   const std::string CompilerState::getTokenDataAsString(Token * tok)
