@@ -29,7 +29,7 @@ quark AtomUtils {
 
   /** Build a default atom of type t.  If au is a AtomUtils and t is a
       legal type, than the expression
-      <code> (t == au.getType(tu.new(t)) </code>
+      <code> (t == au.getType(au.new(t)) </code>
       will be true.
 
       \returns an instance of Empty if t is negative or an unknown or

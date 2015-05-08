@@ -197,7 +197,14 @@ sub IDie {
 
 sub lexEncode {
     my ($prefix, $num) = @_;
-    return $prefix.length($num).$num;
+    my $len = length($num);
+    my $lex;
+    if ($len > 8) {
+        $lex = "9".lexEncode($len).$num;
+    } else {
+        $lex = $len.$num;
+    }
+    return $prefix.$lex;
 }
 
 my @sections;
@@ -760,6 +767,7 @@ sub compilationDriver {
     return 0 if $actionCmd eq "library";
 
     if ($actionCmd eq "executables") {
+        IDie("executable construction under reconstruction :(");
         ($buildResults) = buildExecutables();
         UDie("$buildResults executable creation problem(s) detected\n")
             if $buildResults;
@@ -865,15 +873,14 @@ sub runUlamCompilations
     print " Compile ".join(", ",@ulamFiles).": ";
 
     my ($status,$stdout,$stderr) = runThis(undef,undef,$culam,@args);
-    if ($status ne "") {
-        print STDOUT "ERROR: $status\n$stderr\n";
-    } else {
+    if ($status eq "") {
         print STDOUT "OK\n";
         my $info = $stderr;
         chomp($info);
         my @rows = split(/\n/, $info);
         for my $row (@rows) {
             my ($path,$name,$cname,$size,$testflag,$classtype) = split(/ /,$row);
+            defined $classtype or die "Successful exit but not enough fields in '$row'";
             # For now, strip location info.. :(
             $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
             $path = deHexEscape($path);
@@ -887,8 +894,13 @@ sub runUlamCompilations
                 $elementCNameToUlamName{$cname} = $name;
 #                print "INFO($path,$name,$size,$testflag,$classtype)='$elementCNameToUlamFile{$cname}'\n";
             }
-
-       }
+        }
+        if (scalar(@elementCNamesFromUlam)==0) {
+            $status = "No elements found, cannot build library";
+        }
+    }
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
     }
     return $status ne "";
 }
@@ -1294,6 +1306,7 @@ sub runGccCompilations
             gppCompile($cfile,"ulam_cppcompile",
                        getDebugArgs(),
                        "EXTERNAL_DEFINES", $extraDefines,
+                       "ULAM_CPPFLAGS", "-Wno-unused-variable",
                        "ULAM_SRC_DIR", "$dir/src",
                        "ULAM_CPP_FILE", $cfile,
                        "ULAM_BLD_DIR", "$dir/build",
@@ -1382,7 +1395,11 @@ sub runUlamElementInfo {
         $info =~ s/^([^\n]+\n)// or IDie("No match '$info'");
         my $structName = $1;
         chomp($structName);
-        print STDOUT "OK\n";
+        if ($stderr ne "") {
+            print STDOUT "WARNING(S):\n$stderr\n";
+        } else {
+            print STDOUT "OK\n";
+        }
         return (0, $structName, $info);
     }
     return $status ne "";
