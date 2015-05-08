@@ -1611,15 +1611,17 @@ namespace MFM {
 	  {
 	    SymbolConstantValue * paramSym = (SymbolConstantValue * ) (ctsym->getParameterSymbolPtr(parmIdx));
 	    assert(paramSym);
-	    argSym = new SymbolConstantValue(paramSym->getId(), paramSym->getUlamTypeIdx(), m_state); //like param, not copy
+	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, paramSym->getId());  //use current locator
+	    argSym = new SymbolConstantValue(argTok, paramSym->getUlamTypeIdx(), m_state); //like param, not copy
 	  }
 	else
 	  {
 	    std::ostringstream sname;
 	    sname << "_" << parmIdx;
 	    u32 snameid = m_state.m_pool.getIndexForDataString(sname.str());
+	    Token argTok(TOK_IDENTIFIER, pTok.m_locator, snameid);  //use current locator
 	    //stub id,  m_state.getUlamTypeOfConstant(Int) stub type, state
-	    argSym = new SymbolConstantValue(snameid, Int, m_state);
+	    argSym = new SymbolConstantValue(argTok, Int, m_state);
 	  }
 
 	assert(argSym);
@@ -1844,7 +1846,7 @@ namespace MFM {
 	    if(mclasstype == UC_UNSEEN)
 	      {
 		UTI huti = m_state.makeUlamTypeHolder();
-		SymbolTypedef * symtypedef = new SymbolTypedef(pTok.m_dataindex, huti, Nav, m_state);
+		SymbolTypedef * symtypedef = new SymbolTypedef(pTok, huti, Nav, m_state);
 		assert(symtypedef);
 		symtypedef->setBlockNoOfST(memberClassNode->getNodeNo());
 		m_state.addSymbolToCurrentMemberClassScope(symtypedef);
@@ -3034,7 +3036,7 @@ namespace MFM {
     assert(nodetype);
     UTI rtnuti = nodetype->givenUTI();
 
-    SymbolFunction * fsymptr = new SymbolFunction(identTok.m_dataindex, rtnuti, m_state);
+    SymbolFunction * fsymptr = new SymbolFunction(identTok, rtnuti, m_state);
 
     //WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, nodetype, m_state);
@@ -3072,8 +3074,9 @@ namespace MFM {
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
     if(m_state.getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
       cuti = UAtom; //use atom for quark functions
+    Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
 
-    SymbolVariableStack * selfsym = new SymbolVariableStack(selfid, cuti, m_state.determinePackable(cuti), m_state.m_currentFunctionBlockDeclSize, m_state);
+    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, cuti, m_state.determinePackable(cuti), m_state.m_currentFunctionBlockDeclSize, m_state);
     selfsym->setIsSelf();
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 
@@ -3085,7 +3088,7 @@ namespace MFM {
     if(!currClassBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
       {
 	//first time name used as a function..add symbol function name/typeNav
-	fnSym = new SymbolFunctionName(identTok.m_dataindex, Nav, m_state);
+	fnSym = new SymbolFunctionName(identTok, Nav, m_state);
 
 	//ownership goes to the class block's ST
 	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);

@@ -48,7 +48,7 @@ namespace MFM{
   class Symbol
   {
   public:
-    Symbol(u32 id, UTI utype, CompilerState& state);
+    Symbol(Token id, UTI utype, CompilerState& state);
     Symbol(const Symbol& sref);
     Symbol(const Symbol& sref, bool keepType);
     virtual ~Symbol();    //abstract
@@ -59,6 +59,8 @@ namespace MFM{
     void resetUlamType(UTI newuti); //e.g. mappedUTI
     UTI getUlamTypeIdx();
     u32 getId();
+    Locator getLoc();
+    Token& getTokRef();
 
     virtual bool isFunction();
     virtual bool isTypedef();
@@ -94,7 +96,7 @@ namespace MFM{
   protected:
     CompilerState & m_state;
 
-    u32 m_id;            // id to its name (string) in lexer; also in ST
+    Token m_id;            // id to its name (string) in lexer; also in ST
     UTI m_utypeIdx;      // may seem redundant, but not; from NodeVarDecl, before m_value known.
                          // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
 

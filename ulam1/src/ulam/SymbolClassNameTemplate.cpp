@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolClassNameTemplate::SymbolClassNameTemplate(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClassName(id, utype, classblock, state)
+  SymbolClassNameTemplate::SymbolClassNameTemplate(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClassName(id, utype, classblock, state)
   {
     //setParentClassTemplate(this);
   }
@@ -158,7 +158,8 @@ namespace MFM {
     newblockclass->setNodeType(cuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
-    SymbolClass * newclassinstance = new SymbolClass(getId(), cuti, newblockclass, this, m_state);
+    Token stubTok(TOK_IDENTIFIER, typeTok.m_locator, getId());
+    SymbolClass * newclassinstance = new SymbolClass(stubTok, cuti, newblockclass, this, m_state);
     assert(newclassinstance);
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
@@ -188,7 +189,9 @@ namespace MFM {
     newblockclass->setNodeType(newuti);
     newblockclass->resetNodeNo(templateclassblock->getNodeNo()); //keep NNO consistent (new)
 
-    SymbolClass * newclassinstance = new SymbolClass(getId(), newuti, newblockclass, this, m_state);
+    Token stubTok(TOK_IDENTIFIER,csym->getLoc(), getId());
+
+    SymbolClass * newclassinstance = new SymbolClass(stubTok, newuti, newblockclass, this, m_state);
     assert(newclassinstance);
     if(isQuarkUnion())
       newclassinstance->setQuarkUnion();
