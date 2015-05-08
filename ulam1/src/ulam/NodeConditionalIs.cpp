@@ -31,7 +31,7 @@ namespace MFM {
 	msg << "'; must be an atom or an element, not type: ";
 	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
 	if(lclasstype == UC_UNSEEN)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
@@ -47,7 +47,10 @@ namespace MFM {
 	msg << "Invalid type for RHS of conditional operator '" << getName();
 	msg << "'; must be an element name, not type: ";
 	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	if(rclasstype == UC_UNSEEN || ruti == Nav)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
 
@@ -58,7 +61,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
 	msg << "; is still incomplete while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	newType = Nav;
       }
     setNodeType(newType);

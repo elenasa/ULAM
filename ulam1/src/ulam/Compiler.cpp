@@ -127,38 +127,45 @@ namespace MFM {
     //for regular classes and templates, only; since NNOs used
     //followed by the first c&l in case of re-orgs
     m_state.m_programDefST.updateLineageForTableOfClasses();
+    m_state.m_err.clearCounts(); //missing?
 
     bool sumbrtn = true;
     u32 infcounter = 0;
+    u32 errCnt = 0;
     do{
       // resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
       sumbrtn = resolvingLoop();
-      if(++infcounter > MAX_ITERATIONS)
+      errCnt = m_state.m_err.getErrorCount();
+      //if(++infcounter > MAX_ITERATIONS)
+      if(++infcounter > MAX_ITERATIONS || errCnt > 0)
 	{
 	  std::ostringstream msg;
-	  msg << "Possible INCOMPLETE (or Template) class detected during resolving loop";
+	  msg << errCnt << " Errors found during resolving loop---";
+	  msg << "possible INCOMPLETE (or Template) class detected---";
 	  msg << " after " << infcounter << " iterations";
-	  MSG("", msg.str().c_str(), WARN);
+	  MSG("", msg.str().c_str(), DEBUG);
 	  //note: not an error because template uses remain unresolved
 	  break;
 	}
     } while(!sumbrtn);
 
-    // type set at parse time (needed for square bracket checkandlabel);
-    // so, here we just check for matching arg types (regular and Templates only).
-    m_state.m_programDefST.checkCustomArraysForTableOfClasses();
+    if(!errCnt)
+      {
+	// type set at parse time (needed for square bracket checkandlabel);
+	// so, here we just check for matching arg types (regular and Templates only).
+	m_state.m_programDefST.checkCustomArraysForTableOfClasses();
 
-    m_state.m_programDefST.checkDuplicateFunctionsForTableOfClasses();
+	m_state.m_programDefST.checkDuplicateFunctionsForTableOfClasses();
 
-    // must happen after type labeling and before eval (test)
-    m_state.m_programDefST.calcMaxDepthOfFunctionsForTableOfClasses();
+	// must happen after type labeling and before eval (test)
+	m_state.m_programDefST.calcMaxDepthOfFunctionsForTableOfClasses();
 
-    // must happen after type labeling and before code gen; separate pass. want UNKNOWNS reported
-    m_state.m_programDefST.packBitsForTableOfClasses();
+	// must happen after type labeling and before code gen; separate pass. want UNKNOWNS reported
+	m_state.m_programDefST.packBitsForTableOfClasses();
 
-    // let Ulam programmer know the bits used/available (needs infoOn)
-    m_state.m_programDefST.printBitSizeOfTableOfClasses();
-
+	// let Ulam programmer know the bits used/available (needs infoOn)
+	m_state.m_programDefST.printBitSizeOfTableOfClasses();
+      }
 
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
     // clean up duplicate functions beforehand
@@ -166,6 +173,7 @@ namespace MFM {
     //if(!labelok || navcount > 0)
     if(navcount > 0)
       {
+	assert(m_state.goAgain()); //sanity check; ran out of iterations
 	std::ostringstream msg;
 	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
@@ -180,11 +188,11 @@ namespace MFM {
 	MSG("", msg.str().c_str(), INFO);
       }
 
-    u32 errs = m_state.m_err.getErrorCount();
-    if(errs > 0)
+    errCnt = m_state.m_err.getErrorCount();
+    if(errCnt > 0)
       {
 	std::ostringstream msg;
-	msg << errs << " TOO MANY TYPELABEL ERRORS";
+	msg << errCnt << " TOO MANY TYPELABEL ERRORS";
 	MSG("", msg.str().c_str(), INFO);
       }
 
@@ -201,7 +209,6 @@ namespace MFM {
   {
     bool sumbrtn = true;
     sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
-    //    sumbrtn &= m_state.m_programDefST.statusUnknownConstantExpressionsInTableOfClasses();
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context
     sumbrtn &= m_state.m_programDefST.fullyInstantiateTableOfClasses(); //with ready args
     //checkAndLabelTypes: lineage updated incrementally

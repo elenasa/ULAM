@@ -44,7 +44,7 @@ namespace MFM {
 	msg << "Casting different Array sizes; " << arraysize;
 	msg << ", Value Type and size was: ";
 	msg << valtypidx << "," << m_state.getArraySize(valtypidx);
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return false;
       }
 
@@ -57,7 +57,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Casting UNKNOWN sizes; " << bitsize << ", Value Type and size was: ";
 	msg << valtypidx << "," << valbitsize;
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),ERR);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
 

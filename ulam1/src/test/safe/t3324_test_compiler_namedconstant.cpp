@@ -10,8 +10,8 @@ namespace MFM {
 	 Int Arg: 8
        */
       //different casts since Constants have explicit types
-      // constant fold: j 1 7 +b =
-      return std::string("Exit status: 8\nUe_A { Int(32) j(8);  System s();  Int(32) test() {  1 6u cast +b = cOW const j 8 = s ( j )print . j return } }\nUq_System { <NOMAIN> }\nUq_B { typedef Int(3) Bar[2];  Int(3) j[2](0,0);  <NOMAIN> }\n");
+      // constant fold: j 1 7 +b =, 1 6u cast +b
+      return std::string("Exit status: 8\nUe_A { Int(32) j(8);  System s();  Int(32) test() {  7 = cOW const j 8 = s ( j )print . j return } }\nUq_System { <NOMAIN> }\nUq_B { typedef Int(3) Bar[2];  Int(3) j[2](0,0);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

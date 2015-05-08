@@ -21,7 +21,7 @@ namespace MFM {
 
   //#define _DEBUG_OUTPUT
   //#define _INFO_OUTPUT
-  //#define _WARN_OUTPUT
+  #define _WARN_OUTPUT
 
 #ifdef _DEBUG_OUTPUT
   static const bool debugOn = true;
@@ -52,7 +52,7 @@ namespace MFM {
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
@@ -1530,6 +1530,17 @@ namespace MFM {
       {
 	NodeReturnStatement * rNode = m_currentFunctionReturnNodes.at(i);
 	UTI rType = rNode->getNodeType();
+	if(!isComplete(rType))
+	  {
+	    std::ostringstream msg;
+	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
+	    msg << " does not match incomplete resulting type ";
+	    msg << getUlamTypeNameByIndex(rType).c_str();
+	    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_DEBUG);
+	    continue;
+	  }
+
 	if(UlamType::compare(rType, it, *this) != UTIC_SAME)
 	  {
 	    rtnBool = false;
@@ -2223,6 +2234,21 @@ namespace MFM {
     ClassContext cc;
     assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getClassContextAsString();
+  }
+
+  void CompilerState::clearGoAgain()
+  {
+    m_goAgainResolveLoop = false;
+  }
+
+  void CompilerState::setGoAgain()
+  {
+    m_goAgainResolveLoop = true;
+  }
+
+  bool CompilerState::goAgain()
+  {
+    return m_goAgainResolveLoop;
   }
 
 } //end MFM

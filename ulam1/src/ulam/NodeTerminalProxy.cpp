@@ -118,7 +118,7 @@ namespace MFM {
 	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
 	    msg << "' while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
       }
 
@@ -250,7 +250,7 @@ namespace MFM {
 	msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	//rtnb = false; don't want to stop after parsing.
       }
     else
@@ -264,7 +264,7 @@ namespace MFM {
 	    msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
 	    msg << "> is still incomplete and unknown while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(&m_funcTok, msg.str().c_str(), ERR);
+	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
 	    rtnb = false;
 	  }
 	else

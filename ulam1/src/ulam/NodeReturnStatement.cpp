@@ -126,7 +126,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Function return type is still incomplete: ";
 	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	nodeType = Nav;
       }
 

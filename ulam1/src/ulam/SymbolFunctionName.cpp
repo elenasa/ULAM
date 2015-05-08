@@ -241,7 +241,7 @@ namespace MFM {
 	UTI futi = fsym->getUlamTypeIdx();
 	assert(futi != Void);
 
-	// CANT use UTI directly, must key to compare as they may change.???
+	// CANT use UTI directly, must key to compare as they may change.
 	// check that its 'set' function has a matching parameter type
 	Symbol * fnsymset = NULL;
 	if(fST.isInTable(m_state.getCustomArraySetFunctionNameId(), fnsymset))
@@ -285,7 +285,7 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
 	    msg << "' NOT FOUND in class: ";
 	    msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
-	    MSG("", msg.str().c_str(), WARN);
+	    MSG("", msg.str().c_str(), INFO);
 	  }
 	++it;
       } //while get found
@@ -351,7 +351,7 @@ namespace MFM {
 
 	// now done as part of block's c&l
 	// first check for incomplete parameters
-	aok &= fsym->checkParameterTypes();
+	//aok &= fsym->checkParameterTypes();
 
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
