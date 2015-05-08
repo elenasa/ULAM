@@ -165,7 +165,7 @@ namespace MFM {
 	msg << " used with function name '" << getName();
 	msg << "' UTI" << it << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	it = Nav;
       }
     else

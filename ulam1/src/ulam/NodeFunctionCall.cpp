@@ -145,7 +145,7 @@ namespace MFM {
 	    msg << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str();
 	    msg << "> , while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_funcSymbol = funcSymbol;
 	  }
       }
