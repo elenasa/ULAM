@@ -81,7 +81,8 @@ namespace MFM {
 	    bool lready = lconst && m_nodeLeft->isReadyConstant();
 	    bool rready = rconst && m_nodeRight->isReadyConstant();
 	    // if one is a constant, check for value to fit in bits.
-	    bool doErrMsg = true;
+	    bool doErrMsg = lready || rready;
+
 	    if(lready && m_nodeLeft->fitsInBits(rt))
 	      doErrMsg = false;
 
