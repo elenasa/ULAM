@@ -1,18 +1,41 @@
 ulam 1;
 use C2D;
+use AtomUtils;
+
 quark EventWindow {
+  AtomUtils au;
+
   typedef Unsigned(6) SiteNum;
   typedef Unsigned(3) Symmetry;
+
+  constant Symmetry cSYMMETRY_000L = 0u;
+  constant Symmetry cSYMMETRY_090L = 1u;
+  constant Symmetry cSYMMETRY_180L = 2u;
+  constant Symmetry cSYMMETRY_270L = 3u;
+  constant Symmetry cSYMMETRY_000R = 4u;
+  constant Symmetry cSYMMETRY_090R = 5u;
+  constant Symmetry cSYMMETRY_180R = 6u;
+  constant Symmetry cSYMMETRY_270R = 7u;
+
+  typedef Unsigned(3) Dir;
+  constant Dir cDIR_NORTH =     0u;
+  constant Dir cDIR_NORTHEAST = 1u;
+  constant Dir cDIR_EAST =      2u;
+  constant Dir cDIR_SOUTHEAST = 3u;
+  constant Dir cDIR_SOUTH =     4u;
+  constant Dir cDIR_SOUTHWEST = 5u;
+  constant Dir cDIR_WEST =      6u;
+  constant Dir cDIR_NORTHWEST = 7u;
 
   SiteNum size() native;
 
   Atom aref(SiteNum index) native;
   Atom aref(Int index) { return aref((SiteNum) index); }
-  //  Atom aref(C2D coord) { return aref(getSiteNumber(coord)); }
+  Atom aref(C2D coord) { return aref(getSiteNumber(coord)); }
 
   Void aset(SiteNum index, Atom val) native;
   Void aset(Int index, Atom val) { aset((SiteNum) index, val); }
-  //  Void aset(C2D coord, Atom val) { aset(getSiteNumber(coord), val); }
+  Void aset(C2D coord, Atom val) { aset(getSiteNumber(coord), val); }
 
   Bool isLegal(SiteNum index) { return index < size(); }
   Bool isLegal(Int index) { return index >= 0 && isLegal((SiteNum) index); }
@@ -21,6 +44,10 @@ quark EventWindow {
   Bool isLive(SiteNum index) native;
   Bool isLive(Int index) { return isLegal(index) && isLive((SiteNum) index); }
   Bool isLive(C2D coord) { return isLegal(coord) && isLive(getSiteNumber(coord)); }
+
+  Bool isEmpty(SiteNum index) { return isLive(index) && au.isEmpty(aref(index)); }
+  Bool isEmpty(Int index) { return isEmpty((SiteNum) index); }
+  Bool isEmpty(C2D coord) { return isLegal(coord) && isLive(getSiteNumber(coord)); }
 
   Bool swap(SiteNum index1, SiteNum index2)  native;
   Bool swap(Int index1, Int index2) { return swap((SiteNum) index1, (SiteNum) index2); }
@@ -33,12 +60,13 @@ quark EventWindow {
      corresponding position.
    */
   C2D mapSym(C2D directCoord) native;
+  /*
   C2D mapSyM(C2D directCoord) {
     C2D ret;
     ret.x = -directCoord.x;
     ret.y = directCoord.y;
     return ret;
-  }
+    }*/
 
   /** Get the SiteNum corresponding to \c coord, if it exists, else
       return EventWindow.size() (which is an illegal SiteNum, and will
