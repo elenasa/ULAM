@@ -1,7 +1,11 @@
 <LIBRARY> := <PROGRAM_DEF>* + <EOF>
 <PROGRAM_DEF> := <QUARK_OR_UNION_DEF> | <ELEMENT_DEF>
-<ELEMENT_DEF> := 'element' + <TYPE_IDENT> + <CLASS_BLOCK>
-<QUARK_OR_UNION_DEF> := ('quark' | 'union') + <TYPE_IDENT> + <CLASS_BLOCK>
+<ELEMENT_DEF> := 'element' + <TYPE_IDENT> +
+                 ( 0 | '(' + <CLASS_PARAM_DECLS>) + ')' ) + <CLASS_BLOCK>
+<QUARK_OR_UNION_DEF> := ('quark' | 'union') + <TYPE_IDENT> + 
+                        ( 0 | '(' + <CLASS_PARAM_DECLS>) + ')' ) + <CLASS_BLOCK>
+<CLASS_PARAM_DECLS> := <CLASS_PARAM> | <CLASS_PARAM> + ',' + <CLASS_PARAMS>
+<CLASS_PARAM>  := <TYPE> + <VAR_DECL>
 <CLASS_BLOCK> := '{' + <DATA_MEMBERS> + '}'
 <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | ('element' | 0 ) + <DECL> + ';' | <TYPE_DEF> + ';' |                 <CONST_DEF> + ';' )*
 
