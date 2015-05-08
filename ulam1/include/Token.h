@@ -65,6 +65,14 @@ namespace MFM{
     Locator m_locator;  //fileid, lineno, byteno
     u32 m_dataindex;
 
+    Token();
+
+    Token(TokenType t, Locator l, u32 d);
+
+    Token(const Token& tok);
+
+    ~Token();
+
     void init(TokenType t, Locator l, u32 d);
 
     const char * getTokenString();

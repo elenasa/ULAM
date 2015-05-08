@@ -54,7 +54,7 @@ namespace MFM{
   class SymbolClass : public Symbol
   {
   public:
-    SymbolClass(u32 id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state);
+    SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state);
     SymbolClass(const SymbolClass& sref);
     virtual ~SymbolClass();
 

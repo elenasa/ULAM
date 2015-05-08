@@ -55,7 +55,7 @@ namespace MFM {
     assert(m_currBlockNo);
   }
 
-  Token NodeIdent::getToken() const
+  const Token& NodeIdent::getToken() const
   {
     return m_token;
   }
@@ -406,7 +406,7 @@ namespace MFM {
 	  }
 
 	//create a symbol for this new ulam type, a typedef, with its type
-	SymbolTypedef * symtypedef = new SymbolTypedef(m_token.m_dataindex, uti, scalarUTI, m_state);
+	SymbolTypedef * symtypedef = new SymbolTypedef(m_token, uti, scalarUTI, m_state);
 	m_state.addSymbolToCurrentScope(symtypedef);
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
       }
@@ -483,7 +483,7 @@ namespace MFM {
     if(brtn)
       {
 	//create a symbol for this new named constant, a constant-def, with its value
-	SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token.m_dataindex, uti, m_state);
+	SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token, uti, m_state);
 	m_state.addSymbolToCurrentScope(symconstdef);
 
 	//gets the symbol just created by makeUlamType
@@ -601,7 +601,7 @@ namespace MFM {
 	u32 baseslot = 1;  //no longer stored unpacked
 
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
-	return (new SymbolVariableDataMember(m_token.m_dataindex, auti, packit, baseslot, m_state));
+	return (new SymbolVariableDataMember(m_token, auti, packit, baseslot, m_state));
       }
 
     //Symbol is a parameter; always on the stack
@@ -610,11 +610,11 @@ namespace MFM {
 	//1 slot for scalar or packed array
 	  m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
 
-	return (new SymbolVariableStack(m_token.m_dataindex, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
+	return (new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
       }
 
     //(else) Symbol is a local variable, always on the stack
-    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token.m_dataindex, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
+    SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
 
     m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
 

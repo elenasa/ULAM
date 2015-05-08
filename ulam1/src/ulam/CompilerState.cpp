@@ -206,9 +206,10 @@ namespace MFM {
 	classblock->setNodeLocation(cloc);
 	classblock->setNodeType(cuti);
 
+	Token cTok(TOK_IDENTIFIER, cloc, id);
 	//symbol ownership goes to the programDefST;
 	//distinguish between template and regular classes, where?
-	cnsym = new SymbolClassName(id, cuti, classblock, *this);
+	cnsym = new SymbolClassName(cTok, cuti, classblock, *this);
 	assert(cnsym);
 	m_programDefST.addToTable(id, cnsym); //here or special map for anonymous???
       }
@@ -1269,7 +1270,7 @@ namespace MFM {
     classblock->setNodeType(cuti);
 
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
-    symptr = new SymbolClassName(dataindex, cuti, classblock, *this);
+    symptr = new SymbolClassName(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
 
@@ -1288,7 +1289,7 @@ namespace MFM {
     classblock->setNodeType(cuti);
 
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
-    symptr = new SymbolClassNameTemplate(dataindex, cuti, classblock, *this);
+    symptr = new SymbolClassNameTemplate(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
   } //addIncompleteClassSymbolToProgramTable
 
@@ -1315,7 +1316,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
 		msg << "(UTI" << but << ")";
-		MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+		MSG2(&cnsym->getTokRef(), msg.str().c_str(), DEBUG);
 	      }
 	    else
 	      rtnB = true;
@@ -1325,7 +1326,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
 	    msg << "(UTI" << incomplete << ") - Incomplete";
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	    MSG2(&cnsym->getTokRef(), msg.str().c_str(), DEBUG);
 	  }
       }
     else
@@ -1522,7 +1523,7 @@ namespace MFM {
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "''s Return Statement is missing; Return type: ";
 	    msg << getUlamTypeNameByIndex(it).c_str();
-	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	    MSG2(&fsym->getTokRef(), msg.str().c_str(), ERR);
 	    return false;
 	  }
 	return true; //okay to skip return statement for void function
