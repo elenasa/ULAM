@@ -65,7 +65,7 @@ namespace MFM{
 
     void setSymbolPtr(SymbolVariable * vsymptr);
 
-    Token getToken() const;
+    const Token& getToken() const;
 
     virtual UTI checkAndLabelType();
 

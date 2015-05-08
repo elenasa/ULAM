@@ -44,7 +44,7 @@ namespace MFM{
   class SymbolClassName : public SymbolClass
   {
   public:
-    SymbolClassName(u32 id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
+    SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
     virtual ~SymbolClassName();
 
     virtual bool isClassTemplate();

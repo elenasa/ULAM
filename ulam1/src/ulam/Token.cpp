@@ -30,6 +30,13 @@ namespace MFM {
 
 #undef XX
 
+  Token::Token() {} //requires init.
+
+  Token::Token(TokenType t, Locator l, u32 d) : m_type(t), m_locator(l), m_dataindex(d) {}
+
+  Token::Token(const Token& tok) : m_type(tok.m_type), m_locator(tok.m_locator), m_dataindex(tok.m_dataindex) {}
+
+  Token::~Token() {}
 
   void Token::init(TokenType t, Locator l, u32 d)
     {

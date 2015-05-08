@@ -9,7 +9,7 @@
 
 namespace MFM {
 
-  SymbolFunctionName::SymbolFunctionName(u32 id, UTI typetoreturn, CompilerState& state) : Symbol(id,typetoreturn,state)
+  SymbolFunctionName::SymbolFunctionName(Token id, UTI typetoreturn, CompilerState& state) : Symbol(id,typetoreturn,state)
   {
     setDataMember(); //by definition all function definitions are data members
   }

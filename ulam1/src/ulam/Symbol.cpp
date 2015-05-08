@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  Symbol::Symbol(u32 id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()) {}
+  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()) {}
 
   Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_id(sref.m_id), m_utypeIdx(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_utypeIdx)), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
@@ -21,6 +21,16 @@ namespace MFM {
   }
 
   u32 Symbol::getId()
+  {
+    return m_id.m_dataindex;
+  }
+
+  Locator Symbol::getLoc()
+  {
+    return m_id.m_locator;
+  }
+
+  Token& Symbol::getTokRef()
   {
     return m_id;
   }
