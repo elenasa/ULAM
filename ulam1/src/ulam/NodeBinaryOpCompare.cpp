@@ -67,11 +67,14 @@ namespace MFM {
 	if(lconst || rconst)
 	  {
 	    // if one is a constant, check for value to fit in bits.
-	    bool doErrMsg = true;
-	    if(lconst && m_nodeLeft->isReadyConstant() && m_nodeLeft->fitsInBits(rt))
+	    bool lready = lconst && m_nodeLeft->isReadyConstant();
+	    bool rready = rconst && m_nodeRight->isReadyConstant();
+	    bool doErrMsg = lready || rready; //skip if none ready; was true
+
+	    if(lready && m_nodeLeft->fitsInBits(rt))
 	      doErrMsg = false;
 
-	    if(rconst && m_nodeRight->isReadyConstant() && m_nodeRight->fitsInBits(lt))
+	    if(rready && m_nodeRight->fitsInBits(lt))
 	      doErrMsg = false;
 
 	    if(doErrMsg)

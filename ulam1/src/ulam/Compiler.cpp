@@ -136,7 +136,6 @@ namespace MFM {
       // resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
       sumbrtn = resolvingLoop();
       errCnt = m_state.m_err.getErrorCount();
-      //if(++infcounter > MAX_ITERATIONS)
       if(++infcounter > MAX_ITERATIONS || errCnt > 0)
 	{
 	  std::ostringstream msg;
@@ -170,7 +169,6 @@ namespace MFM {
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.
     // clean up duplicate functions beforehand
     u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
-    //if(!labelok || navcount > 0)
     if(navcount > 0)
       {
 	assert(m_state.goAgain()); //sanity check; ran out of iterations
