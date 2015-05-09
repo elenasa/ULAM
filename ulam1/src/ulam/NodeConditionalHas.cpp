@@ -36,11 +36,11 @@ namespace MFM {
     UTI newType = Bool;
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
-    assert(m_state.isScalar(luti));
+    //assert(m_state.isScalar(luti));
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
-    if(!(luti == UAtom || lclasstype == UC_ELEMENT || lclasstype == UC_QUARK))
+    if(!(luti == UAtom || lclasstype == UC_ELEMENT || lclasstype == UC_QUARK || m_state.isScalar(luti)))
       {
 	std::ostringstream msg;
 	msg << "Invalid type for LHS of conditional operator '" << getName();
@@ -57,12 +57,13 @@ namespace MFM {
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(!(rclasstype == UC_QUARK))
+    if(!(rclasstype == UC_QUARK || m_state.isScalar(ruti)))
       {
 	std::ostringstream msg;
 	msg << "Invalid type for RHS of conditional operator '" << getName();
 	msg << "'; must be a quark name, not type: ";
-	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
+	msg << " (UTI" << ruti << ")";
 	if(rclasstype == UC_UNSEEN || ruti == Nav)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else

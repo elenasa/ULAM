@@ -12,7 +12,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       //arraysize zero ok, but not bitsize zero!
-      // gcc balks at BitVector for immediate (Dave?)
+      // gcc balks at BitVector for immediate (Dave fixed it)
       bool rtn1 = fms->add("Empty.ulam", "ulam 1;\n quark Empty {\n }\n");
       bool rtn2 = fms->add("Eltypo.ulam", "ulam 1;\nuse Empty;\n element Eltypo {\ntypedef Empty EArr[4];\n Int test(){\nEArr arr;\n return arr.sizeof; \n}\n }\n");
 

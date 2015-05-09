@@ -101,10 +101,10 @@ namespace MFM {
 
   void NodeControlIf::countNavNodes(u32& cnt)
   {
+    NodeControl::countNavNodes(cnt);
     if(m_nodeElse)
       m_nodeElse->countNavNodes(cnt);
-    NodeControl::countNavNodes(cnt);
-  }
+  } //countNavNodes
 
   EvalStatus  NodeControlIf::eval()
   {
