@@ -112,8 +112,7 @@ namespace MFM {
   void SymbolConstantValue::changeConstantId(u32 fmid, u32 toid)
   {
     assert(getId() == fmid);
-    //Token idTok(TOK_IDENTIFIER, getLoc(), toid);
-    m_id.m_dataindex = toid;
+    setId(toid);
   }
 
   void SymbolConstantValue::setParameterFlag()

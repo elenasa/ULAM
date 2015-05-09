@@ -45,7 +45,7 @@ namespace MFM {
       m_classBlock = NULL; //i.e. UC_UNSEEN
 
     if(sref.m_resolver)
-      m_resolver = new Resolver(m_utypeIdx, m_state); //not a clone, populated later
+      m_resolver = new Resolver(getUlamTypeIdx(), m_state); //not a clone, populated later
   }
 
   SymbolClass::~SymbolClass()

@@ -45,11 +45,14 @@ namespace MFM{
   {
   public:
     SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state);
+
     virtual ~SymbolClassName();
 
-    virtual bool isClassTemplate();
+    void resetUnseenClassLocation(Token identTok);
 
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
+
+    virtual bool isClassTemplate();
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
