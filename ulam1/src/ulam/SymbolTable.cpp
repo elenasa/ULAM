@@ -209,7 +209,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "cycle error!!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    MSG(&sym->getTokRef(), msg.str().c_str(), ERR);
+	    MSG(sym->getTokPtr(), msg.str().c_str(), ERR);
 	  }
 	else if(symsize == EMPTYSYMBOLTABLE)
 	  {
@@ -222,7 +222,7 @@ namespace MFM {
 	    msg << "UNKNOWN !!! " << m_state.getUlamTypeNameByIndex(suti).c_str();
 	    msg << " UTI" << suti << " while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(&sym->getTokRef(), msg.str().c_str(), DEBUG);
+	    MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
 	    totalsizes = UNKNOWNSIZE;
 	    break;
 	  }
@@ -257,7 +257,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "cycle error!!!! " << m_state.getUlamTypeNameByIndex(sut).c_str();
-	    MSG(&sym->getTokRef(), msg.str().c_str(),ERR);
+	    MSG(sym->getTokPtr(), msg.str().c_str(),ERR);
 	  }
 	else if(symsize == EMPTYSYMBOLTABLE)
 	  {
@@ -559,7 +559,7 @@ namespace MFM {
 	  msg << "Custom array get method: '";
 	  msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
 	  msg << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
-	  MSG(&fnsym->getTokRef(), msg.str().c_str(), DEBUG);
+	  MSG(fnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 	}
 
 	u32 probcount = ((SymbolFunctionName *) fnsym)->checkCustomArrayFunctions(*this);
@@ -623,6 +623,32 @@ namespace MFM {
 	it++;
       } //while
   } //getTargets
+
+  bool SymbolTable::getUnseenClassFileNames(std::vector<std::string>& unseenFiles)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+	//skip anonymous classes, only unseen classes with known names
+	if(m_state.isARootUTI(cuti) && !cut->isHolder())
+	  {
+	    ULAMCLASSTYPE classtype = cut->getUlamClass();
+	    if(classtype == UC_UNSEEN)
+	      {
+		std::ostringstream fn;
+		fn << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ".ulam";
+		unseenFiles.push_back(fn.str());
+	      }
+	  }
+	it++;
+      } //while
+    return !unseenFiles.empty();
+  } //getUnseenClassFileNames
 
   void SymbolTable::testForTableOfClasses(File * fp)
   {
@@ -825,7 +851,7 @@ namespace MFM {
 		msg << "Incomplete Class: ";
 		msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
 		msg << " was never defined, fails labeling";
-		MSG(&cnsym->getTokRef(), msg.str().c_str(), ERR);
+		MSG(cnsym->getTokPtr(), msg.str().c_str(), ERR);
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 		break;
 	      }
@@ -880,9 +906,9 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	    msg << " was never defined, fails sizing";
 	    if(isAnonymousClass)
-	      MSG(&sym->getTokRef(), msg.str().c_str(), DEBUG);
+	      MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
 	    else
-	      MSG(&sym->getTokRef(), msg.str().c_str(), ERR);
+	      MSG(sym->getTokPtr(), msg.str().c_str(), ERR);
 	    //m_state.completeIncompleteClassSymbol(sym->getUlamTypeIdx()); //too late
 	    aok = false; //moved here;
 	  }
@@ -1151,7 +1177,7 @@ namespace MFM {
 			msg << " Quark/Element '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 			msg << "' (UTI" << suti << ")";
 			msg << " cannot contain a copy of itself";
-			MSG(&csym->getTokRef(), msg.str().c_str(), ERR);
+			MSG(csym->getTokPtr(), msg.str().c_str(), ERR);
 			return UNKNOWNSIZE;
 		      }
 

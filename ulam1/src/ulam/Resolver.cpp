@@ -129,6 +129,7 @@ namespace MFM {
     while(vit != rslvr.m_nonreadyClassArgSubtrees.end())
       {
 	NodeConstantDef * ceNode = *vit;
+	ceNode->fixPendingArgumentNode();
 	NodeConstantDef * cloneNode = new NodeConstantDef(*ceNode);
 
 	Symbol * cvsym = NULL;
