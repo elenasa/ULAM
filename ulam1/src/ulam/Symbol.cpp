@@ -6,11 +6,11 @@
 
 namespace MFM {
 
-  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_id(id), m_utypeIdx(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()) {}
+  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_idtok(id), m_uti(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()) {}
 
-  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_id(sref.m_id), m_utypeIdx(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_utypeIdx)), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
-  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_id(sref.m_id), m_utypeIdx(sref.m_utypeIdx), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
   Symbol::~Symbol(){}
 
@@ -20,29 +20,39 @@ namespace MFM {
     return NULL;
   }
 
+  void Symbol::setId(u32 newid)
+  {
+    m_idtok.m_dataindex = newid; //protected
+  }
+
+  void Symbol::resetIdToken(Token newtok)
+  {
+    m_idtok = newtok; //id & loc
+  }
+
   u32 Symbol::getId()
   {
-    return m_id.m_dataindex;
+    return m_idtok.m_dataindex;
   }
 
   Locator Symbol::getLoc()
   {
-    return m_id.m_locator;
+    return m_idtok.m_locator;
   }
 
   Token* Symbol::getTokPtr()
   {
-    return &m_id;
+    return &m_idtok;
   }
 
   void Symbol::resetUlamType(UTI newuti) //e.g. mappedUTI, fix _N class args
   {
-    m_utypeIdx = newuti;
+    m_uti = newuti;
   }
 
   UTI Symbol::getUlamTypeIdx()
   {
-    return m_utypeIdx;
+    return m_uti;
   }
 
   bool Symbol::isFunction()

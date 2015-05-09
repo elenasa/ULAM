@@ -220,6 +220,7 @@ namespace MFM {
 
 		return  true; //we're done unless we can gobble the rest up?
 	      }
+	    cnSym->resetUnseenClassLocation(iTok);
 	    wasIncomplete = true;
 	  }
       }
@@ -242,6 +243,7 @@ namespace MFM {
 
 		return  true; //we're done unless we can gobble the rest up?
 	      }
+	    ctSym->resetUnseenClassLocation(iTok);
 	    wasIncomplete = true;
 	  }
 	cnSym = ctSym;

@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeConditionalAs(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state);
+
     NodeConditionalAs(const NodeConditionalAs& ref);
+
     virtual ~NodeConditionalAs();
 
     virtual Node * instantiate();
@@ -63,13 +65,11 @@ namespace MFM{
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
-    //TODO:
-    //virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
-
   protected:
 
   private:
     void genCodeAsQuark(File * fp, UlamValue& uvpass);
+
     void genCodeAsElement(File * fp, UlamValue& uvpass);
 
   };

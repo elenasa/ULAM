@@ -129,8 +129,11 @@ namespace MFM {
 	    newType = cuti;
 	  }
 	m_nodeBody->checkAndLabelType(); //side-effect
-	setNodeType(newType);  //stays the same
       }
+    else
+      newType = cuti;
+
+    setNodeType(newType);  //stays the same
     setStoreIntoAble(false);
     return getNodeType();
   } //checkAndLabelType

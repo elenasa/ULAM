@@ -11,6 +11,15 @@ namespace MFM {
 
   SymbolClassName::~SymbolClassName(){}
 
+  void SymbolClassName::resetUnseenClassLocation(Token identTok)
+  {
+    //during parsing
+    Symbol::resetIdToken(identTok);
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    classNode->setNodeLocation(identTok.m_locator);
+  } //resetUnseenClassLocation
+
   void SymbolClassName::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
   {
     SymbolClass::addTargetDescriptionMapEntry(classtargets);

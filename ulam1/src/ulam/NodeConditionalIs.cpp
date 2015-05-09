@@ -21,15 +21,16 @@ namespace MFM {
     UTI newType = Bool;  //except for 'Has'
 
     UTI luti = m_nodeLeft->checkAndLabelType();  //side-effect
-    assert(m_state.isScalar(luti));
+    //assert(m_state.isScalar(luti));
 
     ULAMCLASSTYPE lclasstype = m_state.getUlamTypeByIndex(luti)->getUlamClass();
-    if(!(luti == UAtom || lclasstype == UC_ELEMENT))
+    if(!(luti == UAtom || lclasstype == UC_ELEMENT || m_state.isScalar(luti)))
       {
 	std::ostringstream msg;
 	msg << "Invalid type for LHS of conditional operator '" << getName();
 	msg << "'; must be an atom or an element, not type: ";
-	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	msg << " (UTI" << luti << ")";
 	if(lclasstype == UC_UNSEEN)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -41,12 +42,13 @@ namespace MFM {
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(!(rclasstype == UC_ELEMENT))
+    if(!(rclasstype == UC_ELEMENT || m_state.isScalar(ruti)))
       {
 	std::ostringstream msg;
 	msg << "Invalid type for RHS of conditional operator '" << getName();
 	msg << "'; must be an element name, not type: ";
-	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
+	msg << " (UTI" << ruti << ")";
 	if(rclasstype == UC_UNSEEN || ruti == Nav)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
