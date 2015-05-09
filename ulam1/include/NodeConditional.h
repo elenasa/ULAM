@@ -48,7 +48,9 @@ namespace MFM{
   public:
 
     NodeConditional(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state);
+
     NodeConditional(const NodeConditional& ref);
+
     virtual ~NodeConditional();
 
     virtual void updateLineage(NNO pno);
@@ -67,27 +69,17 @@ namespace MFM{
 
     virtual const std::string prettyNodeName() = 0;
 
-    //virtual UTI checkAndLabelType();
-
     virtual void countNavNodes(u32& cnt);
 
     virtual const std::string methodNameForCodeGen() = 0;
 
-    //virtual EvalStatus eval();
-
-    //virtual void genCode(File * fp, UlamValue& uvpass);
-
-    //TODO:
-    //virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
-
-    //Token getTypeToken();
     UTI getRightType();
 
   protected:
     Node * m_nodeLeft;
-    //Token m_typeTok;  //right
-    //UTI m_utypeRight;
+
     NodeTypeDescriptor * m_nodeTypeDesc; //right
+
   };
 
 }

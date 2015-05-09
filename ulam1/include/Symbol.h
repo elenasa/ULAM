@@ -51,16 +51,17 @@ namespace MFM{
     Symbol(Token id, UTI utype, CompilerState& state);
     Symbol(const Symbol& sref);
     Symbol(const Symbol& sref, bool keepType);
-    virtual ~Symbol();    //abstract
+    virtual ~Symbol(); //abstract
 
     virtual Symbol * clone() = 0;
     virtual Symbol * cloneKeepsType();
 
-    void resetUlamType(UTI newuti); //e.g. mappedUTI
-    UTI getUlamTypeIdx();
     u32 getId();
     Locator getLoc();
-    Token * getTokPtr();
+    Token * getTokPtr(); //for err msgs
+
+    void resetUlamType(UTI newuti); //e.g. mappedUTI
+    UTI getUlamTypeIdx();
 
     virtual bool isFunction();
     virtual bool isTypedef();
@@ -90,17 +91,16 @@ namespace MFM{
 
     virtual const std::string getMangledPrefix() = 0;
 
-
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
   protected:
     CompilerState & m_state;
-
-    Token m_id;            // id to its name (string) in lexer; also in ST
-    UTI m_utypeIdx;      // may seem redundant, but not; from NodeVarDecl, before m_value known.
-                         // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
+    void setId(u32 newid);
 
   private:
+    Token m_idtok; // id to its name (string) in lexer; also in ST
+    UTI m_uti; // may seem redundant, but not; from NodeVarDecl, before m_value known.
+               // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
     bool m_dataMember;
     bool m_elementParameter;
     bool m_autoLocal;

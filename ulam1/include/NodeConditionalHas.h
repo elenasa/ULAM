@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeConditionalHas(Node * leftNode, NodeTypeDescriptor * classType, CompilerState & state);
+
     NodeConditionalHas(const NodeConditionalHas& ref);
+
     virtual ~NodeConditionalHas();
 
     virtual Node * instantiate();
@@ -62,9 +64,6 @@ namespace MFM{
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
-
-    //TODO:
-    //virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
   protected:
 
