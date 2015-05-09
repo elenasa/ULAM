@@ -56,6 +56,7 @@ namespace MFM{
     virtual Symbol * clone() = 0;
     virtual Symbol * cloneKeepsType();
 
+    void resetIdToken(Token newtok);
     u32 getId();
     Locator getLoc();
     Token * getTokPtr(); //for err msgs

@@ -25,6 +25,11 @@ namespace MFM {
     m_idtok.m_dataindex = newid; //protected
   }
 
+  void Symbol::resetIdToken(Token newtok)
+  {
+    m_idtok = newtok; //id & loc
+  }
+
   u32 Symbol::getId()
   {
     return m_idtok.m_dataindex;
