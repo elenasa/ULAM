@@ -53,20 +53,19 @@ namespace MFM {
 	it++;
       } //while, parse all files
 
-    if(!perrs)
+    std::vector<std::string> unseenFileNames;
+    while(!perrs && m_state.m_programDefST.getUnseenClassFileNames(unseenFileNames))
       {
-	std::vector<std::string> unseenFileNames;
-	if(m_state.m_programDefST.getUnseenClassFileNames(unseenFileNames))
+	std::vector<std::string>::iterator it = unseenFileNames.begin();
+	while(it != unseenFileNames.end())
 	  {
-	    std::vector<std::string>::iterator it = unseenFileNames.begin();
-	    while(it != unseenFileNames.end())
-	      {
-		std::string startstr = *it;
-		perrs += compileFile(startstr, errput, ss, P);
-		it++;
-	      }
+	    std::string startstr = *it;
+	    perrs += compileFile(startstr, errput, ss, P);
+	    it++;
 	  }
+	unseenFileNames.clear();
       }
+
 
     if(!perrs)
       {
