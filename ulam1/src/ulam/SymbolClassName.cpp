@@ -57,7 +57,7 @@ namespace MFM {
 	msg << "LineageUpdate skipped for a class <";
 	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	msg << "> without a definition, maybe not a class at all";
-	MSG("", msg.str().c_str(), ERR);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	return;
       }
 
@@ -106,7 +106,7 @@ namespace MFM {
 	msg << "Check and Label skipped for a class <";
 	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	msg << "> without a definition, maybe not a class at all";
-	MSG("", msg.str().c_str(), ERR);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	return;
       }
 
@@ -158,7 +158,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str();
 	msg << " SIZED: " << totalbits;
-	MSG("", msg.str().c_str(),DEBUG);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
       }
     m_state.popClassContext(); //restore
     return aok;

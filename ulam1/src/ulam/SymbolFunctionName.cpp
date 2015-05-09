@@ -202,7 +202,7 @@ namespace MFM {
 	    msg << "> has a duplicate definition: " << fmangled.c_str();
 	    msg << ", while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG("", msg.str().c_str(), ERR);  //Dave says better to start as error
+	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
 	    probcount++;
 	    dupfuncs.push_back(fkey);
 	  }
@@ -264,7 +264,7 @@ namespace MFM {
 		  }
 		msg << "and cannot be called in class: ";
 		msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
-		MSG("", msg.str().c_str(), ERR);
+		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
 		probcount++;
 	      }
 	    else
@@ -274,7 +274,7 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
 		msg << "' FOUND in class: ";
 		msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
-		MSG("", msg.str().c_str(), DEBUG);
+		MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG);
 	      }
 	    argTypes.clear();
 	  } //aset found
@@ -285,7 +285,7 @@ namespace MFM {
 	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
 	    msg << "' NOT FOUND in class: ";
 	    msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
-	    MSG("", msg.str().c_str(), INFO);
+	    MSG(fsym->getTokPtr(), msg.str().c_str(), INFO);
 	  }
 	++it;
       } //while get found

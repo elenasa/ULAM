@@ -257,6 +257,7 @@ namespace MFM {
 	}
 	break;
       case Unsigned:
+      case Unary:
 	{
 	  u32 numval = m_constant.uval;
 	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
@@ -265,6 +266,7 @@ namespace MFM {
       case Bool:
 	rtnb = true;
 	break;
+      case Bits:
       default:
 	{
 	  std::ostringstream msg;

@@ -60,7 +60,7 @@ namespace MFM{
     UTI getUlamTypeIdx();
     u32 getId();
     Locator getLoc();
-    Token& getTokRef();
+    Token * getTokPtr();
 
     virtual bool isFunction();
     virtual bool isTypedef();

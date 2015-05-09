@@ -309,6 +309,18 @@ namespace MFM {
     return true;
   } //foldConstantExpression
 
+  void NodeConstantDef::fixPendingArgumentNode()
+  {
+    assert(m_constSymbol);
+    // for unseen classes that needed their args "fixed" to proper param name
+    // this fixes the saved m_cid while clonePendingClassArgumentsForStubClassInstance
+    // (the m_cid is used during full instantiation).
+    if(m_constSymbol->getId() != getSymbolId())
+      {
+	m_cid = m_constSymbol->getId();
+      }
+  } //fixPendingArgumentNode
+
   bool NodeConstantDef::assignClassArgValueInStubCopy()
   {
     assert(m_nodeExpr);
