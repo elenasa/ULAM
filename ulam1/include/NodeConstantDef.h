@@ -87,6 +87,8 @@ namespace MFM{
 
     bool foldConstantExpression();
 
+    void fixPendingArgumentNode();
+
     virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval();

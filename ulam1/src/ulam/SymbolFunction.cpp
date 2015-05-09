@@ -33,7 +33,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Undefined function block: <";
 	msg << m_state.m_pool.getDataAsString(getId()).c_str() << ">";
-	MSG("", msg.str().c_str(), ERR);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	//assert(0);
       }
   }

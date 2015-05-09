@@ -38,6 +38,7 @@
 #define SYMBOLTABLE_H
 
 #include <map>
+#include <vector>
 #include "Symbol.h"
 #include "itype.h"
 #include "File.h"
@@ -117,6 +118,8 @@ namespace MFM{
 
     // TableOfClasses:
     void getTargets(TargetMap& classtargets);
+
+    bool getUnseenClassFileNames(std::vector<std::string>& unseenFiles);
 
     void testForTableOfClasses(File * fp);
 

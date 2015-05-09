@@ -149,7 +149,7 @@ namespace MFM {
 	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str();
 	msg << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: ";
 	msg  << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
 	aok = false; //moved here;
       }
 
@@ -163,7 +163,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(),DEBUG);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
 	    aok = false;
 	  }
 	else if(totalbits == EMPTYSYMBOLTABLE)
@@ -234,7 +234,7 @@ namespace MFM {
 	  u32 data = objUV.getData(25,32); //Int f.m_i (t3146)
 	  std::ostringstream msg;
 	  msg << "Output for m_i = <" << data << "> (expecting 4 for t3146)";
-	  MSG("",msg.str().c_str() , INFO);
+	  MSG(Symbol::getTokPtr(),msg.str().c_str() , INFO);
 	}
 #endif
 	m_state.m_nodeEvalStack.returnFrame(); //epilog
