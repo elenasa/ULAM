@@ -232,21 +232,25 @@ namespace MFM {
 
 	    NodeBlockClass * cblock = csym->getClassBlockNode();
 	    assert(cblock);
+
+	    //can have 0Holder symbols for possible typedefs seen from another class
+	    //which will increase the count of symbols; can only test for at least
 	    u32 cargs = cblock->getNumberOfSymbolsInTable();
-	    if(cargs != numparams)
+	    if(cargs < numparams)
 	      {
 		//error! number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
 		msg << "Number of Arguments (" << cargs << ") in class instance: ";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
-		msg << ", does not match the required number of parameters (";
-		msg << numparams << ") to fix";
-		MSG("", msg.str().c_str(),ERR);
+		msg << ", is insufficient for the required number of parameters (";
+		msg << numparams << ") to be fixed";
+		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 		it++;
 		continue;
 	      }
 
 	    //replace the temporary id with the official parameter name id; update the class instance's ST.
+	    u32 foundArgs = 0;
 	    for(u32 i = 0; i < numparams; i++)
 	      {
 		Symbol * argsym = NULL;
@@ -259,7 +263,19 @@ namespace MFM {
 		    ((SymbolConstantValue *) argsym)->changeConstantId(sid, m_parameterSymbols[i]->getId());
 		    argsym->resetUlamType(m_parameterSymbols[i]->getUlamTypeIdx()); //default was Int
 		    cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
+		    foundArgs++;
 		  }
+	      }
+
+	    if(foundArgs != numparams)
+	      {
+		//error! number of arguments in class instance does not match the number of parameters
+		std::ostringstream msg;
+		msg << "Number of Arguments (" << foundArgs << ") in class instance: ";
+		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
+		msg << ", did not match the required number of parameters (";
+		msg << numparams << ") to fix";
+		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	      }
 
 	    //importantly, also link the class instance's class block to the classsymbolname's.
@@ -321,7 +337,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	msg << ", has no instances; args format is number of parameters";
-	MSG("", msg.str().c_str(), DEBUG);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	return args.str(); //short-circuit when argument is template's UTI
       }
 
@@ -413,7 +429,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	    msg << ", has no instances; args format is number of parameters";
-	    MSG("", msg.str().c_str(), DEBUG);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
 	args << ToLeximitedNumber(numParams);
 	return args.str(); //short-circuit when argument is template's UTI
@@ -530,7 +546,7 @@ namespace MFM {
 	msg << "Cannot fully instantiate a template class <";
 	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	msg << "> without a definition, maybe not a class at all";
-	MSG("", msg.str().c_str(), ERR);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	return false;
       }
 
@@ -822,7 +838,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Class Instance: " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	    msg << ", is incomplete; Navs will not be counted";
-	    MSG("", msg.str().c_str(), DEBUG);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
       }
@@ -876,7 +892,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 	    msg << " UTI" << uti << ", SIZED: " << totalbits;
-	    MSG("", msg.str().c_str(), DEBUG);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
 	else
 	  lostClasses.push_back(cuti); //track classes that fail to be sized.
@@ -906,7 +922,7 @@ namespace MFM {
 	msg << m_scalarClassInstanceIdxToSymbolPtr.size() << " Class Instance";
 	msg << (m_scalarClassInstanceIdxToSymbolPtr.size() > 1 ? "s ALL " : " ");
 	msg << "sized SUCCESSFULLY for template: " << m_state.m_pool.getDataAsString(getId()).c_str();
-	MSG("", msg.str().c_str(),DEBUG);
+	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
       }
     lostClasses.clear();
     return aok;
@@ -982,7 +998,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Class Instance: " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	    msg << ", is incomplete; Code will not be generated";
-	    MSG("", msg.str().c_str(), DEBUG);
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
       }
@@ -1028,14 +1044,14 @@ namespace MFM {
     assert(fmclassblock);
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
-    if(cargs != numparams)
+    if(cargs < numparams)
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
 	msg << "Number of Arguments (" << cargs << ") in class instance: ";
 	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
-	msg << ", does not match the required number of parameters (" << numparams << ")";
-	MSG("", msg.str().c_str(), ERR);
+	msg << ", is insufficient for the required number of parameters (" << numparams << ")";
+	MSG(fm->getTokPtr(), msg.str().c_str(), ERR);
 	return false;
       }
 
@@ -1080,15 +1096,15 @@ namespace MFM {
     assert(fmclassblock);
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
-    if(cargs != numparams)
+    if(cargs < numparams)
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
 	msg << "Number of Arguments (" << cargs << ") in class instance stub: ";
 	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
-	msg << ", does not match the required number of parameters (" << numparams;
-	msg << ") to copy from";
-	MSG("", msg.str().c_str(),ERR);
+	msg << ", is insufficient for the required number of parameters (" << numparams;
+	msg << ") to be copied from";
+	MSG(fm->getTokPtr(), msg.str().c_str(),ERR);
 	return false;
       }
 

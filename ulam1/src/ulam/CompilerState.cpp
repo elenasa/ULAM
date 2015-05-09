@@ -1316,7 +1316,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
 		msg << "(UTI" << but << ")";
-		MSG2(&cnsym->getTokRef(), msg.str().c_str(), DEBUG);
+		MSG2(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 	      }
 	    else
 	      rtnB = true;
@@ -1326,7 +1326,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
 	    msg << "(UTI" << incomplete << ") - Incomplete";
-	    MSG2(&cnsym->getTokRef(), msg.str().c_str(), DEBUG);
+	    MSG2(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
       }
     else
@@ -1523,7 +1523,7 @@ namespace MFM {
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "''s Return Statement is missing; Return type: ";
 	    msg << getUlamTypeNameByIndex(it).c_str();
-	    MSG2(&fsym->getTokRef(), msg.str().c_str(), ERR);
+	    MSG2(fsym->getTokPtr(), msg.str().c_str(), ERR);
 	    return false;
 	  }
 	return true; //okay to skip return statement for void function

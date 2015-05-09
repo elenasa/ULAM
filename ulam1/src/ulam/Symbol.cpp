@@ -30,9 +30,9 @@ namespace MFM {
     return m_id.m_locator;
   }
 
-  Token& Symbol::getTokRef()
+  Token* Symbol::getTokPtr()
   {
-    return m_id;
+    return &m_id;
   }
 
   void Symbol::resetUlamType(UTI newuti) //e.g. mappedUTI, fix _N class args

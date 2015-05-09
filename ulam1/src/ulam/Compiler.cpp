@@ -2,11 +2,9 @@
 #include <sstream>
 #include <assert.h>
 #include "Compiler.h"
-#include "SourceStream.h"
 #include "Tokenizer.h"
 #include "Lexer.h"
 #include "Preparser.h"
-#include "Parser.h"
 #include "Token.h"
 #include "FileManagerStdio.h"
 
@@ -30,7 +28,6 @@ namespace MFM {
     return rtnTargets;
   }
 
-
   //compile one set of related Ulam files, as before.
   u32 Compiler::compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput)
   {
@@ -53,6 +50,9 @@ namespace MFM {
       {
 	std::string startstr = *it;
 
+	perrs += compileFile(startstr, errput, ss, P);
+
+#if 0
 	if(ss.isPushed(startstr))
 	  {
 	    it++;
@@ -74,8 +74,24 @@ namespace MFM {
 	    msg << "Unrecoverable Program Parse FAILURE: <" << startstr.c_str() << ">\n";
 	    errput->write(msg.str().c_str());
 	  }
+#endif
 	it++;
       } //while, parse all files
+
+    if(!perrs)
+      {
+	std::vector<std::string> unseenFileNames;
+	if(m_state.m_programDefST.getUnseenClassFileNames(unseenFileNames))
+	  {
+	    std::vector<std::string>::iterator it = unseenFileNames.begin();
+	    while(it != unseenFileNames.end())
+	      {
+		std::string startstr = *it;
+		perrs += compileFile(startstr, errput, ss, P);
+		it++;
+	      }
+	  }
+      }
 
     if(!perrs)
       {
@@ -95,6 +111,32 @@ namespace MFM {
     delete Lex;
     return m_state.m_err.getErrorCount();
   } //compileFiles
+
+  u32 Compiler::compileFile(std::string startstr, File * errput, SourceStream& ssref, Parser* p)
+  {
+    if(ssref.isPushed(startstr))
+      {
+	return 0;
+      }
+
+    u32 perrs = 0;
+    if(!ssref.push(startstr))
+      {
+	std::ostringstream msg;
+	msg << "Compilation initialization FAILURE: <" << startstr.c_str() << ">\n";
+	errput->write(msg.str().c_str());
+      }
+
+    // continue with Parser's parseProgram
+    perrs = p->parseProgram(startstr, errput); //will be compared to answer
+    if (perrs)
+      {
+	std::ostringstream msg;
+	msg << "Unrecoverable Program Parse FAILURE: <" << startstr.c_str() << ">\n";
+	errput->write(msg.str().c_str());
+      }
+    return perrs;
+  } //compileFile
 
   u32 Compiler::parseProgram(FileManager * fm, std::string startstr, File * output)
   {
