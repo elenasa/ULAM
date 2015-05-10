@@ -85,7 +85,7 @@ namespace MFM{
 
     void removeAllSymbolsFromScope();
 
-    bool mergeAllSymbolsFromScopeIntoTable(NodeBlock * toBlocksTable);
+    //bool mergeAllSymbolsFromScopeIntoTable(NodeBlock * toBlocksTable);
 
     NodeBlock * getPreviousBlockPointer();
 

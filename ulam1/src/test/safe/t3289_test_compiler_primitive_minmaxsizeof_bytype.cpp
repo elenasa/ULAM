@@ -18,12 +18,12 @@ namespace MFM {
 	 Unary(3) Arg: 0x3
 	 Unsigned Arg: 3
 	 Bool(3) Arg: 0x0 (false)
-	 Bool(3) Arg: 0x0 (false)
+	 Bool(3) Arg: 0x7 (true)
 	 Unsigned Arg: 2
       */
       // minof, maxof related to lhs type ; sizeof always unsigned
       //constant fold minus
-      return std::string("Exit status: 0\nUe_Fu { System s();  Int(32) test() {  s ( 4u )print . ; s ( -8 )print . s ( 7 )print . s ( 32u )print . s ( 0u )print . s ( 4294967295u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 3u )print . s ( false )print . s ( false )print . s ( 2u )print . 0 return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Fu { System s();  Int(32) test() {  s ( 4u )print . ; s ( -8 )print . s ( 7 )print . s ( 32u )print . s ( 0u )print . s ( 4294967295u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 2u )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

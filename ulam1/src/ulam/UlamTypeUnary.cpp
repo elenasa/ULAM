@@ -12,7 +12,7 @@ namespace MFM {
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
-    m_max = getBitSize(); //stored as binary
+    m_max = (getBitSize() <= 0 ? 0 : _GetNOnes32((u32) getBitSize()));
     m_min = 0;
   }
 
