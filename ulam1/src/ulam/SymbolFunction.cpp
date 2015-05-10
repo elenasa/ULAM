@@ -123,7 +123,7 @@ namespace MFM {
       {
 	UlamType * vit = m_state.getUlamTypeByIndex(Void);
 	UTI avuti;
-	assert(m_state.aDefinedUTI(vit->getUlamKeyTypeSignature(), avuti));
+	assert(m_state.anyDefinedUTI(vit->getUlamKeyTypeSignature(), avuti));
 	mangled << "," << avuti;
       }
 

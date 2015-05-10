@@ -101,6 +101,7 @@ namespace MFM {
     return rtnok;
   } //removeFromTable
 
+#if 0
   bool SymbolTable::mergeTables(NodeBlock * toTable)
   {
     if(m_idToSymbolPtr.empty()) return true;
@@ -142,6 +143,7 @@ namespace MFM {
 
     return copyList.empty();
   } //mergeTables
+#endif
 
   Symbol * SymbolTable::getSymbolPtr(u32 id)
   {
