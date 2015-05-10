@@ -44,7 +44,14 @@ namespace MFM {
   void NodeTerminal::printPostfix(File * fp)
   {
     fp->write(" ");
-    fp->write(getName());
+
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    if(etype == Bool)
+      fp->write((_Bool32ToCbool(m_constant.uval, nut->getBitSize()) ? "true" : "false"));
+    else
+      fp->write(getName());
   } //printPostfix
 
   const char * NodeTerminal::getName()
@@ -60,19 +67,23 @@ namespace MFM {
     switch(etype)
       {
       case Bool:
-	num << ( _Bool32ToCbool(m_constant.uval, nbitsize) ? "true" : "false");
+	//num << ( _Bool32ToCbool(m_constant.uval, nbitsize) ? "true" : "false");
+	num << m_constant.uval << "u";
 	break;
       case Int:
 	num << _Int32ToInt32(m_constant.sval, wordsize, nbitsize);
 	break;
       case Unsigned:
-	num << _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize) << "u";
+	//num << _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize) << "u";
+	num << m_constant.uval << "u"; //y
 	break;
       case Unary:
-	num << _Unsigned32ToUnary32(m_constant.uval, wordsize, nbitsize) << "u"; //y
+	//num << _Unsigned32ToUnary32(m_constant.uval, wordsize, nbitsize) << "u"; //y
+	num << m_constant.uval << "u"; //y
 	break;
       case Bits:
-	num << _Unsigned32ToBits32(m_constant.uval, wordsize, nbitsize) << "u";  //t
+	//num << _Unsigned32ToBits32(m_constant.uval, wordsize, nbitsize) << "u";  //t
+	num << m_constant.uval << "u";  //t
 	break;
       default:
 	{
@@ -174,16 +185,20 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(nuti, _Int32ToInt32(m_constant.sval, wordsize, nbitsize), m_state);
 	break;
       case Unsigned:
-	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize), m_state);
+	//rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize), m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
 	break;
       case Bool:
-	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBool32(m_constant.uval, wordsize, nbitsize), m_state);
+	//rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBool32(m_constant.uval, wordsize, nbitsize), m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
 	break;
       case Unary:
-	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnary32(m_constant.uval, wordsize, nbitsize), m_state);
+	//rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnary32(m_constant.uval, wordsize, nbitsize), m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
 	break;
       case Bits:
-	rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBits32(m_constant.uval, wordsize, nbitsize), m_state);
+	//rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBits32(m_constant.uval, wordsize, nbitsize), m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
 	break;
       default:
 	{
