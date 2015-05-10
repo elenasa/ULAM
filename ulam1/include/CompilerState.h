@@ -138,7 +138,8 @@ namespace MFM{
 
     std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
 
-    std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
+    //std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
+    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -167,11 +168,12 @@ namespace MFM{
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     bool findFirstMatchingKeyForUTI(UlamKeyTypeSignature key, UTI& foundUTI);
+    bool findMatchingKeyForUnknownUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
-    void incrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
-    u32 decrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
+    void incrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg);
+    u32 decrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg);
     u32 findUnknownKeyUTICounter(UlamKeyTypeSignature key);
-    bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key);
+    bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, UTI newuti);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
