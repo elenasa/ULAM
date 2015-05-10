@@ -245,7 +245,7 @@ namespace MFM {
 	uti = makeUlamType(key,bUT); //returns uti
       }
     else
-	assert(anyDefinedUTI(key,uti));
+      assert(anyDefinedUTI(key,uti));
 
     return uti;
   } //makeUlamType
@@ -516,10 +516,13 @@ namespace MFM {
 	  m_keyToaUTI.erase(it);
 	else if(uti == newuti)
 	  {
-	    //update old key's to another UTI.
+	    //update old key's to another UTI (there's at least one!)
 	    UTI auti = Nav;
-	    //assert(findFirstMatchingKeyForUTI(oldkey, auti)); //counter > 0
-	    assert(findMatchingKeyForUnknownUTI(oldkey, auti)); //counter > 0
+	    if((oldkey.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || (oldkey.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE))
+	      assert(findMatchingKeyForUnknownUTI(oldkey, auti)); //counter > 0
+	    else
+	      assert(findFirstMatchingKeyForUTI(oldkey, auti)); //counter > 0
+
 	    assert(auti != uti);
 	    it->second = auti;
 	    uti = auti;
