@@ -165,7 +165,7 @@ namespace MFM{
     UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
-    bool aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
+    bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     bool findFirstMatchingKeyForUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     void incrementUnknownKeyUTICounter(UlamKeyTypeSignature key);
@@ -175,10 +175,10 @@ namespace MFM{
     bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, UTI newuti);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
-    void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
+    //    void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
     void mapTypesInCurrentClass(UTI fm, UTI to);
 
-    bool constantFoldPendingArgs(UTI cuti);
+    //bool constantFoldPendingArgs(UTI cuti);
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
@@ -203,8 +203,8 @@ namespace MFM{
     void setBitSize(UTI utArg, s32 total);
     void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void mergeClassUTI(UTI olduti, UTI cuti);
-    bool updateClassSymbolsFromHolder(UTI fm, UTI to, Locator loc);
-    bool updateClassName(UTI cuti, u32 cname);
+    //    bool updateClassSymbolsFromHolder(UTI fm, UTI to, Locator loc);
+    //bool updateClassName(UTI cuti, u32 cname);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
     void updateUTIAlias(UTI auti, UTI buti);
