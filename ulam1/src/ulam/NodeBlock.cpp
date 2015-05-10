@@ -160,10 +160,12 @@ namespace MFM {
     m_ST.clearTheTable();
   }
 
+#if 0
   bool NodeBlock::mergeAllSymbolsFromScopeIntoTable(NodeBlock * toBlocksTable)
   {
     return m_ST.mergeTables(toBlocksTable);
   }
+#endif
 
   NodeBlock * NodeBlock::getPreviousBlockPointer()
   {

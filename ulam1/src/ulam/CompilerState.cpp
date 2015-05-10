@@ -167,7 +167,7 @@ namespace MFM {
     else
       {
 	auti = Nav;
-	assert(aDefinedUTI(newkey,auti)); //don't wipe out uti
+	assert(anyDefinedUTI(newkey,auti)); //don't wipe out uti
       }
 
     incrementUnknownKeyUTICounter(newkey);
@@ -244,7 +244,7 @@ namespace MFM {
 	uti = makeUlamType(key,bUT); //returns uti
       }
     else
-	assert(aDefinedUTI(key,uti));
+	assert(anyDefinedUTI(key,uti));
 
     return uti;
   } //makeUlamType
@@ -315,7 +315,7 @@ namespace MFM {
 	initUTIAlias(uti);
       }
     else
-      assert(aDefinedUTI(key,uti));
+      assert(anyDefinedUTI(key,uti));
 
     return uti;
   } //makeUlamType
@@ -334,7 +334,7 @@ namespace MFM {
     return rtnBool;
   } //isDefined
 
-  bool CompilerState::aDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI)
+  bool CompilerState::anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI)
   {
     bool rtnBool= false;
 
@@ -347,7 +347,7 @@ namespace MFM {
 	rtnBool = true;
       }
     return rtnBool;
-  } //aDefinedUTI
+  } //anyDefinedUTI
 
   bool CompilerState::findFirstMatchingKeyForUTI(UlamKeyTypeSignature key, UTI& foundUTI)
   {
@@ -520,7 +520,7 @@ namespace MFM {
 	else
 	  {
 	    UTI auti = Nav;
-	    assert(aDefinedUTI(newkey,auti)); //don't wipe out uti
+	    assert(anyDefinedUTI(newkey,auti)); //don't wipe out uti
 	    updateUTIAlias(newuti, auti); // could be the same
 	  }
       }
@@ -628,6 +628,7 @@ namespace MFM {
     return newuti;
   } //mapIncompleteUTIForCurrentClassInstance
 
+#if 0
   void CompilerState::mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc)
   {
     updateUTIAlias(fm, to);
@@ -636,6 +637,7 @@ namespace MFM {
 
     mapTypesInCurrentClass(fm, to);
   } //mapHolderTypesInCurrentClass
+#endif
 
   void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
   {
@@ -645,8 +647,9 @@ namespace MFM {
       ((SymbolClassNameTemplate *) cnsym)->mapInstanceUTI(getCompileThisIdx(), fm, to);
     else
       cnsym->mapUTItoUTI(fm,to);
-  } //mapTypesInCurrentClass (overload)
+  } //mapTypesInCurrentClass
 
+#if 0
   bool CompilerState::constantFoldPendingArgs(UTI cuti)
   {
     UlamType * cut = getUlamTypeByIndex(cuti);
@@ -657,7 +660,8 @@ namespace MFM {
     if(cnsym->isClassTemplate())
       return ((SymbolClassNameTemplate *) cnsym)->constantFoldClassArgumentsInAStubClassInstance(cuti);
     return true; //ok
-  } //constantFoldPendingArgsInCurrentContext
+  } //constantFoldPendingArgs
+#endif
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {
@@ -936,7 +940,7 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 
-    assert(updateUlamKeyTypeSignatureToaUTI(key,newkey, utArg));
+    assert(updateUlamKeyTypeSignatureToaUTI(key, newkey, utArg));
   } //setUTISizes
 
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
@@ -1010,6 +1014,7 @@ namespace MFM {
     return;
   } //initUTIAlias
 
+#if 0
   bool CompilerState::updateClassSymbolsFromHolder(UTI fm, UTI to, Locator loc)
   {
     bool rtn = false; //not a class
@@ -1048,7 +1053,9 @@ namespace MFM {
       }
     return rtn;
   } //updateClassSymbolsFromHolder
+#endif
 
+#if 0
   bool CompilerState::updateClassName(UTI cuti, u32 cname)
   {
     bool rtnb = false; // not a class
@@ -1091,6 +1098,7 @@ namespace MFM {
       }
     return rtnb;
   } //updateClassName
+#endif
 
   void CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
   {
@@ -1163,7 +1171,7 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 
-    assert(updateUlamKeyTypeSignatureToaUTI(key,newkey, utArg));
+    assert(updateUlamKeyTypeSignatureToaUTI(key, newkey, utArg));
   } //setSizesOfNonClass
 
   s32 CompilerState::getDefaultBitSize(UTI uti)
