@@ -103,6 +103,8 @@ namespace MFM{
     NNO m_currBlockNo;
     u32 m_cid; //to instantiate
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+
+    bool updateConstant(u32 & newconst);
   };
 
 } //MFM
