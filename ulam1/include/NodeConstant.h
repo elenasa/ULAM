@@ -87,6 +87,7 @@ namespace MFM{
     bool m_ready;
     NNO m_currBlockNo;
     bool updateConstant();
+    virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
   };
 
 }
