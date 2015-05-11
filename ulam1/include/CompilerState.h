@@ -132,14 +132,11 @@ namespace MFM{
 
     ErrorMessageHandler m_err;
 
-    //std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key->index of ulamtype (UTI)
     std::vector<UlamKeyTypeSignature> m_indexToUlamKey; //UTI->ulamkey, many-to-one
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes; //key->ulamtype *
+    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key> m_keyToAnyUTI; //key->set of indexes of ulamtype (UTI); tracks how many uti's to an "unknown" key, before delete
 
     std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
-
-    //std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
-    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key> m_keyToAnyUTI; //key->index of ulamtype (UTI), tracks how many uti's to an "unknown" key, before delete
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -167,14 +164,10 @@ namespace MFM{
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
-    //bool findFirstMatchingKeyForUTI(UlamKeyTypeSignature key, UTI& foundUTI);
-    //bool findMatchingKeyForUnknownUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     void incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
     u32 decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
-    //u32 findKeyToAnyUTICounter(UlamKeyTypeSignature key);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
-    //bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, UTI newuti);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
     //    void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
