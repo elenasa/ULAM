@@ -128,7 +128,7 @@ namespace MFM {
     UTI uti = m_indexToUlamKey.size();  //next index based on key
     UlamKeyTypeSignature hkey = getUlamTypeByIndex(Holder)->getUlamKeyTypeSignature();
 
-    incrementUnknownKeyUTICounter(hkey, uti);
+    incrementKeyToAnyUTICounter(hkey, uti);
     m_indexToUlamKey.push_back(hkey);
     initUTIAlias(uti);
     return uti;
@@ -172,7 +172,7 @@ namespace MFM {
 	assert(anyDefinedUTI(newkey,auti)); //don't wipe out uti
       }
 
-    incrementUnknownKeyUTICounter(newkey, uti);
+    incrementKeyToAnyUTICounter(newkey, uti);
 
     m_indexToUlamKey[uti] = newkey;
 
@@ -308,7 +308,7 @@ namespace MFM {
 	    ut = NULL;
 	  }
 
-	incrementUnknownKeyUTICounter(key, uti);
+	incrementKeyToAnyUTICounter(key, uti);
 
 	//std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
 	//ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); //just one!
@@ -435,29 +435,24 @@ namespace MFM {
     return ut;
   } //createUlamType
 
-  void CompilerState::incrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg)
+  void CompilerState::incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg)
   {
-    //if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
+    if(it != m_keyToAnyUTI.end())
       {
-	//std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
-	std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
-	if(it != m_keyToAnyUTI.end())
-	  {
-	    assert(key == it->first);
-	    it->second.insert(utarg);
-	  }
-	else
-	  {
-	    std::set<UTI> aset;
-	    aset.insert(utarg);
-	    m_keyToAnyUTI.insert(std::pair<UlamKeyTypeSignature,std::set<UTI> >(key, aset));
-	  }
+	assert(key == it->first);
+	it->second.insert(utarg);
       }
-  } //incrementUnknownKeyUTICounter
+    else
+      {
+	std::set<UTI> aset;
+	aset.insert(utarg);
+	m_keyToAnyUTI.insert(std::pair<UlamKeyTypeSignature,std::set<UTI> >(key, aset));
+      }
+  } //incrementKeyToAnyUTICounter
 
-  u32 CompilerState::decrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg)
+  u32 CompilerState::decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg)
   {
-    //std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
     u32 count = 0;
     if(it != m_keyToAnyUTI.end())
@@ -474,11 +469,11 @@ namespace MFM {
 	  m_keyToAnyUTI.erase(it);
       }
     return count;
-  } //decrementUnknownKeyUTICounter
+  } //decrementKeyToAnyUTICounter
 
-  u32 CompilerState::findUnknownKeyUTICounter(UlamKeyTypeSignature key)
+#if 0
+  u32 CompilerState::findKeyToAnyUTICounter(UlamKeyTypeSignature key)
   {
-    //std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
     u32 count = 0;
     if(it != m_keyToAnyUTI.end())
@@ -487,13 +482,14 @@ namespace MFM {
 	count = it->second.size();
       }
     return count;
-  } //findUnknownKeyUTICounter
+  } //findKeyToAnyUTICounter
+#endif
 
   //used to update Class' calculated bit size (setBitSize)
   bool CompilerState::deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg)
   {
     bool rtnBool= false;
-    if(decrementUnknownKeyUTICounter(key, utarg) == 0)
+    if(decrementKeyToAnyUTICounter(key, utarg) == 0)
       {
 	std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.find(key);
 	if(it != m_definedUlamTypes.end())
@@ -516,7 +512,7 @@ namespace MFM {
     bool rtnBool= false;
 
     //skip happily if no others use the old key; new key was added by makeulamtype
-    //u32 counter = findUnknownKeyUTICounter(oldkey);
+    //u32 counter = findKeyToAnyUTICounter(oldkey);
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(oldkey);
     if(it != m_keyToAnyUTI.end())
       {
@@ -977,7 +973,7 @@ namespace MFM {
 
     m_indexToUlamKey[utArg] = newkey;
 
-    incrementUnknownKeyUTICounter(newkey, utArg);  //here
+    incrementKeyToAnyUTICounter(newkey, utArg);  //here
 
     {
       std::ostringstream msg;
@@ -1002,7 +998,7 @@ namespace MFM {
     //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(key1, olduti);
     m_indexToUlamKey[olduti] = key2;
-    incrementUnknownKeyUTICounter(key2, olduti);
+    incrementKeyToAnyUTICounter(key2, olduti);
     {
       std::ostringstream msg;
       msg << "MERGED keys for duplicate Class (UTI" << olduti << ") WITH: ";
@@ -1207,7 +1203,7 @@ namespace MFM {
 
     m_indexToUlamKey[utArg] = newkey;
 
-    incrementUnknownKeyUTICounter(newkey, utArg);
+    incrementKeyToAnyUTICounter(newkey, utArg);
 
     {
       std::ostringstream msg;
