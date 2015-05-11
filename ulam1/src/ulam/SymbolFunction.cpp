@@ -121,9 +121,7 @@ namespace MFM {
     // use void type when no parameters
     if(m_parameterSymbols.empty())
       {
-	UlamType * vit = m_state.getUlamTypeByIndex(Void);
-	UTI avuti;
-	assert(m_state.anyDefinedUTI(vit->getUlamKeyTypeSignature(), avuti));
+	UTI avuti = Void;
 	mangled << "," << avuti;
       }
 

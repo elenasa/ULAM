@@ -119,8 +119,6 @@ namespace MFM{
     // TableOfClasses:
     void getTargets(TargetMap& classtargets);
 
-    //bool getUnseenClassFileNames(std::vector<std::string>& unseenFiles);
-
     void testForTableOfClasses(File * fp);
 
     void printPostfixForTableOfClasses(File * fp);

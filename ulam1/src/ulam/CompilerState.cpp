@@ -138,10 +138,6 @@ namespace MFM {
 	    delete newut;
 	    newut = NULL;
 	  }
-
-	//std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
-	//ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); //just one!
-
 	auti = uti;
       }
     else
@@ -168,6 +164,7 @@ namespace MFM {
     return  uti; //return same uti (third arg)
   } //makeUlamTypeFromHolder
 
+  //similar to addIncompleteClassSymbolToProgramTable, yet different!
   SymbolClassName * CompilerState::makeAnonymousClassFromHolder(UTI cuti, Locator cloc)
   {
     SymbolClassName * cnsym = NULL;
@@ -288,8 +285,6 @@ namespace MFM {
 
 	incrementKeyToAnyUTICounter(key, uti);
 
-	//std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
-	//ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); //just one!
 	assert(isDefined(key, ut));
 
 	initUTIAlias(uti);
@@ -317,7 +312,6 @@ namespace MFM {
   bool CompilerState::anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI)
   {
     bool rtnBool= false;
-
     std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
 
     if(it != m_keyToAnyUTI.end())
@@ -556,20 +550,6 @@ namespace MFM {
     else
       cnsym->mapUTItoUTI(fm,to);
   } //mapTypesInCurrentClass
-
-#if 0
-  bool CompilerState::constantFoldPendingArgs(UTI cuti)
-  {
-    UlamType * cut = getUlamTypeByIndex(cuti);
-    UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
-
-    SymbolClassName * cnsym = NULL; //could be a different class than being compiled
-    assert(alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsym));
-    if(cnsym->isClassTemplate())
-      return ((SymbolClassNameTemplate *) cnsym)->constantFoldClassArgumentsInAStubClassInstance(cuti);
-    return true; //ok
-  } //constantFoldPendingArgs
-#endif
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {
@@ -1226,17 +1206,14 @@ namespace MFM {
 	SymbolClassName * cnsym = *it;
 	UTI cuti = cnsym->getUlamTypeIdx();
 	UlamType * cut = getUlamTypeByIndex(cuti);
-	//skip anonymous classes, only unseen classes with known names
-	//if(isARootUTI(cuti) && !cut->isHolder())
-	  {
-	    ULAMCLASSTYPE classtype = cut->getUlamClass();
-	    assert(classtype == UC_UNSEEN);
-	    {
-	      std::ostringstream fn;
-	      fn << m_pool.getDataAsString(cnsym->getId()).c_str() << ".ulam";
-	      unseenFiles.push_back(fn.str());
-	    }
-	  }
+	//excludes anonymous classes, only unseen classes with known names
+	ULAMCLASSTYPE classtype = cut->getUlamClass();
+	assert(classtype == UC_UNSEEN);
+	{
+	  std::ostringstream fn;
+	  fn << m_pool.getDataAsString(cnsym->getId()).c_str() << ".ulam";
+	  unseenFiles.push_back(fn.str());
+	}
 	it++;
       } //while
     return !unseenFiles.empty();
