@@ -170,9 +170,9 @@ namespace MFM{
     //bool findFirstMatchingKeyForUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     //bool findMatchingKeyForUnknownUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
-    void incrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg);
-    u32 decrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg);
-    u32 findUnknownKeyUTICounter(UlamKeyTypeSignature key);
+    void incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
+    u32 decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
+    //u32 findKeyToAnyUTICounter(UlamKeyTypeSignature key);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
     //bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, UTI newuti);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
