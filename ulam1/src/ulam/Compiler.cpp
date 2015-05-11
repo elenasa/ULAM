@@ -54,7 +54,8 @@ namespace MFM {
       } //while, parse all files
 
     std::vector<std::string> unseenFileNames;
-    while(!perrs && m_state.m_programDefST.getUnseenClassFileNames(unseenFileNames))
+    //while(!perrs && m_state.m_programDefST.getUnseenClassFileNames(unseenFileNames))
+    while(!perrs && m_state.getUnseenClassFilenames(unseenFileNames))
       {
 	std::vector<std::string>::iterator it = unseenFileNames.begin();
 	while(it != unseenFileNames.end())
@@ -65,7 +66,6 @@ namespace MFM {
 	  }
 	unseenFileNames.clear();
       }
-
 
     if(!perrs)
       {

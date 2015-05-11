@@ -626,6 +626,7 @@ namespace MFM {
       } //while
   } //getTargets
 
+#if 0
   bool SymbolTable::getUnseenClassFileNames(std::vector<std::string>& unseenFiles)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -651,6 +652,7 @@ namespace MFM {
       } //while
     return !unseenFiles.empty();
   } //getUnseenClassFileNames
+#endif
 
   void SymbolTable::testForTableOfClasses(File * fp)
   {

@@ -119,7 +119,7 @@ namespace MFM{
     // TableOfClasses:
     void getTargets(TargetMap& classtargets);
 
-    bool getUnseenClassFileNames(std::vector<std::string>& unseenFiles);
+    //bool getUnseenClassFileNames(std::vector<std::string>& unseenFiles);
 
     void testForTableOfClasses(File * fp);
 
