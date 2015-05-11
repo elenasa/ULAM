@@ -81,32 +81,7 @@ namespace MFM {
 
     m_currentFunctionReturnNodes.clear();
 
-#if 0
-    s32 unknownKeyC = m_unknownKeyUTICounter.size();
-    if(unknownKeyC > 0)
-      {
-	std::ostringstream msg;
-	msg << "Remaining Unknown Keys with UTI counts, cleared: " << unknownKeyC;
-	MSG2("", msg.str().c_str(),DEBUG);
-
-	std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.begin();
-
-	while(it != m_unknownKeyUTICounter.end())
-	  {
-	    UlamKeyTypeSignature key = it->first;
-	    u32 count = it->second.size();
-	    std::ostringstream msg;
-	    msg << "Key: " << key.getUlamKeyTypeSignatureAsString(this).c_str();
-	    msg << ", " << count << " counted";
-	    MSG2("", msg.str().c_str(),DEBUG);
-	    it->second.clear();
-	    it++;
-	  }
-      }
-#endif
-    //m_classUTIAliases.clear();
-    m_unionRootUTI.clear();
-    //m_unknownKeyUTICounter.clear();
+    m_unionRootUTI.clear(); //aliasUTIs
   } //clearAllDefinedUlamTypes()
 
   void CompilerState::clearAllLinesOfText()
@@ -346,44 +321,10 @@ namespace MFM {
       {
 	assert(key == it->first);
 	foundUTI = *(it->second.lower_bound(Nav));
-	//foundUTI = it->second;
 	rtnBool = true;
       }
     return rtnBool;
   } //anyDefinedUTI
-
-#if 0
-  bool CompilerState::findFirstMatchingKeyForUTI(UlamKeyTypeSignature key, UTI& foundUTI)
-  {
-    bool rtnBool= false;
-    for(u32 i = 0; i < m_indexToUlamKey.size(); i++)
-      {
-	if(m_indexToUlamKey[i] == key)
-	  {
-	    foundUTI = i;
-	    rtnBool = true;
-	    break;
-	  }
-      }
-    return rtnBool;
-  } //findFirstMatchingKeyForUTI
-#endif
-#if 0
-  bool CompilerState::findMatchingKeyForUnknownUTI(UlamKeyTypeSignature key, UTI& foundUTI)
-  {
-    bool rtnBool= false;
-    assert(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE);
-    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
-    if(it != m_unknownKeyUTICounter.end())
-      {
-	assert(key == it->first);
-	foundUTI = *(it->second.lower_bound(Nav));
-	rtnBool = true;
-      }
-    return rtnBool;
-  } //findMatchingKeyForUnknownUTI
-#endif
-
 
   UlamType * CompilerState::createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype)
   {
@@ -462,7 +403,7 @@ namespace MFM {
 	if(sit != it->second.end())
 	  {
 	    assert(utarg == *sit);
-	    it->second.erase(sit); //it->second--;
+	    it->second.erase(sit); //decrements count
 	  }
 	count = it->second.size();
 	if(count == 0)
@@ -470,20 +411,6 @@ namespace MFM {
       }
     return count;
   } //decrementKeyToAnyUTICounter
-
-#if 0
-  u32 CompilerState::findKeyToAnyUTICounter(UlamKeyTypeSignature key)
-  {
-    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
-    u32 count = 0;
-    if(it != m_keyToAnyUTI.end())
-      {
-	assert(key == it->first);
-	count = it->second.size();
-      }
-    return count;
-  } //findKeyToAnyUTICounter
-#endif
 
   //used to update Class' calculated bit size (setBitSize)
   bool CompilerState::deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg)
@@ -504,69 +431,6 @@ namespace MFM {
       }
     return rtnBool;
   } //deleteUlamKeyTypeSignature
-
-#if 0
-  //used to update Class' calculated bit size (setBitSize)
-  bool CompilerState::updateUlamKeyTypeSignatureToAnyUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, UTI newuti)
-  {
-    bool rtnBool= false;
-
-    //skip happily if no others use the old key; new key was added by makeulamtype
-    //u32 counter = findKeyToAnyUTICounter(oldkey);
-    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(oldkey);
-    if(it != m_keyToAnyUTI.end())
-      {
-	assert(oldkey == it->first);
-
-	std::set<UTI>::iterator sit = it->second.find(newuti);
-	if(sit != it->second.end())
-	  {
-	    it->second.erase(sit);
-	  }
-	if(it->second.empty())
-	  m_keyToAnyUTI.erase(it);
-	//	UTI uti = it->second;
-	//if(counter == 0)
-	//  m_keyToaUTI.erase(it);
-	//else if(uti == newuti)
-	// {
-	//   //update old key's to another UTI (there's at least one!)
-	//    UTI auti = Nav;
-	//    if((oldkey.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE) || (oldkey.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE))
-	//      assert(findMatchingKeyForUnknownUTI(oldkey, auti)); //counter > 0
-	//    else
-	//      assert(findFirstMatchingKeyForUTI(oldkey, auti)); //counter > 0
-
-	//  assert(auti != uti);
-	//  it->second = auti;
-	//    uti = auti;
-	//  }
-	rtnBool = true;
-      }
-
-    //insert new key to new UTI.
-    if(rtnBool)
-      {
-	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
-	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,newuti)); //just one! new one!!
-	bool notdup = ret.second; //false if already existed, i.e. not added
-	if(!notdup)
-	  {
-	    std::ostringstream msg;
-	    msg << "Updated Key to A UTI: " << getUlamTypeNameByIndex(newuti).c_str();
-	    msg << " (UTI" << newuti << ")";
-	    MSG2("", msg.str().c_str(), DEBUG);
-	  }
-	else
-	  {
-	    UTI auti = Nav;
-	    assert(anyDefinedUTI(newkey,auti)); //don't wipe out uti
-	    updateUTIAlias(newuti, auti); // could be the same
-	  }
-      }
-    return rtnBool;
-  } //updateUlamKeyTypeSignatureToaUTI
-#endif
 
   bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
   {
@@ -980,8 +844,6 @@ namespace MFM {
       msg << "Sizes SET for Class: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
-
-    //assert(updateUlamKeyTypeSignatureToaUTI(key, newkey, utArg));
   } //setUTISizes
 
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
@@ -1212,7 +1074,6 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 
-    //assert(updateUlamKeyTypeSignatureToaUTI(key, newkey, utArg));
   } //setSizesOfNonClass
 
   s32 CompilerState::getDefaultBitSize(UTI uti)
