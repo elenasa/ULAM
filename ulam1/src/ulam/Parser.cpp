@@ -220,7 +220,8 @@ namespace MFM {
 
 		return  true; //we're done unless we can gobble the rest up?
 	      }
-	    cnSym->resetUnseenClassLocation(iTok);
+	    //cnSym->resetUnseenClassLocation(iTok);
+	    //m_state.resetUnseenClass(cnSym, iTok);
 	    wasIncomplete = true;
 	  }
       }
@@ -243,7 +244,8 @@ namespace MFM {
 
 		return  true; //we're done unless we can gobble the rest up?
 	      }
-	    ctSym->resetUnseenClassLocation(iTok);
+	    //ctSym->resetUnseenClassLocation(iTok);
+	    //m_state.resetUnseenClass(ctSym, iTok);
 	    wasIncomplete = true;
 	  }
 	cnSym = ctSym;
@@ -254,6 +256,8 @@ namespace MFM {
 
     //set class type in UlamType (through its class symbol) since we know it;
     //UC_UNSEEN if unseen so far.
+    m_state.resetUnseenClass(cnSym, iTok);
+
     switch(pTok.m_type)
       {
       case TOK_KW_ELEMENT:

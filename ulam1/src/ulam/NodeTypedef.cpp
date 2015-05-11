@@ -127,12 +127,12 @@ namespace MFM {
       {
 	it = m_typedefSymbol->getUlamTypeIdx();
 
-	//check for incomplete Classes (e.g. array of UC_QUARK)
+	//check for UNSEEN Class' ClassType (e.g. array of UC_QUARK)
 	UlamType * tdut = m_state.getUlamTypeByIndex(it);
 	ULAMCLASSTYPE tdclasstype = tdut->getUlamClass();
 	if(tdclasstype == UC_UNSEEN)
 	  {
-	    if(!m_state.completeIncompleteClassSymbol(it))
+	    if(!m_state.completeIncompleteClassSymbolForTypedef(it))
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for class type: ";

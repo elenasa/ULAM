@@ -82,6 +82,8 @@ namespace MFM {
     m_currentFunctionReturnNodes.clear();
 
     m_unionRootUTI.clear(); //aliasUTIs
+
+    m_unseenClasses.clear();
   } //clearAllDefinedUlamTypes()
 
   void CompilerState::clearAllLinesOfText()
@@ -188,7 +190,8 @@ namespace MFM {
 	//distinguish between template and regular classes, where?
 	cnsym = new SymbolClassName(cTok, cuti, classblock, *this);
 	assert(cnsym);
-	m_programDefST.addToTable(id, cnsym); //here or special map for anonymous???
+	m_programDefST.addToTable(id, cnsym); //ignored post-parse
+	//m_unseenClasses.insert(symptr); don't include as unseen; needs a name.
       }
     return cnsym;
   } //makeAnonymousClassFromHolder
@@ -1182,6 +1185,7 @@ namespace MFM {
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
+    m_unseenClasses.insert(symptr);
   } //addIncompleteClassSymbolToProgramTable
 
   //temporary UlamType which will be updated during type labeling.
@@ -1201,9 +1205,44 @@ namespace MFM {
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassNameTemplate(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
+    m_unseenClasses.insert(symptr);
   } //addIncompleteClassSymbolToProgramTable
 
-  bool CompilerState::completeIncompleteClassSymbol(UTI incomplete)
+  void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)
+  {
+    std::set<SymbolClassName *>::iterator it = m_unseenClasses.find(cnsym);
+    if(it != m_unseenClasses.end())
+      {
+	m_unseenClasses.erase(it);
+      }
+    cnsym->resetUnseenClassLocation(identTok);
+  } //resetUnseenClass
+
+  bool CompilerState::getUnseenClassFilenames(std::vector<std::string>& unseenFiles)
+  {
+    std::set<SymbolClassName *>::iterator it = m_unseenClasses.begin();
+    while(it != m_unseenClasses.end())
+      {
+	SymbolClassName * cnsym = *it;
+	UTI cuti = cnsym->getUlamTypeIdx();
+	UlamType * cut = getUlamTypeByIndex(cuti);
+	//skip anonymous classes, only unseen classes with known names
+	//if(isARootUTI(cuti) && !cut->isHolder())
+	  {
+	    ULAMCLASSTYPE classtype = cut->getUlamClass();
+	    assert(classtype == UC_UNSEEN);
+	    {
+	      std::ostringstream fn;
+	      fn << m_pool.getDataAsString(cnsym->getId()).c_str() << ".ulam";
+	      unseenFiles.push_back(fn.str());
+	    }
+	  }
+	it++;
+      } //while
+    return !unseenFiles.empty();
+  } //getUnseenClassFilenames
+
+  bool CompilerState::completeIncompleteClassSymbolForTypedef(UTI incomplete)
   {
     bool rtnB = false;
     SymbolClass * csym = NULL;
@@ -1224,8 +1263,8 @@ namespace MFM {
 	    if(getBitSize(but) == UNKNOWNSIZE || getArraySize(but) == UNKNOWNSIZE)
 	      {
 		std::ostringstream msg;
-		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
-		msg << "(UTI" << but << ")";
+		msg << "Class Instance for typedef: " << ict->getUlamTypeName().c_str();
+		msg << "(UTI" << but << ") - sizes still unknown";
 		MSG2(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 	      }
 	    else
@@ -1234,20 +1273,20 @@ namespace MFM {
 	else //else uc_incomplete
 	  {
 	    std::ostringstream msg;
-	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
-	    msg << "(UTI" << incomplete << ") - Incomplete";
+	    msg << "Class Instance for typedef: " << ict->getUlamTypeName().c_str();
+	    msg << "(UTI" << incomplete << ") - still UNSEEN";
 	    MSG2(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
+	msg << "Class Instance for typedef: " << ict->getUlamTypeName().c_str();
 	msg << "(UTI" << incomplete << ") - NOT YET DEFINED";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return rtnB;
-  } //completeIncompleteClassSymbol
+  } //completeIncompleteClassSymbolForTypedef
 
   bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr)
   {
