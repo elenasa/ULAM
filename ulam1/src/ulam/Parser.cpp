@@ -2445,9 +2445,17 @@ namespace MFM {
 	      //then return a NodeConstant, instead of NodeIdent, without arrays.
 	      if(asymptr->isConstant())
 		{
-		  NodeConstant * rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
-		  assert(rtnNode);
-		  rtnNode->setNodeLocation(pTok.m_locator);
+		  Token dTok;
+		  getNextToken(dTok);
+		  unreadToken();
+		  if(dTok.m_type == TOK_DOT)
+		    rtnNode = parseMinMaxSizeofType(pTok, asymptr->getUlamTypeIdx(), NULL);
+		  else
+		    {
+		      rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
+		      assert(rtnNode);
+		      rtnNode->setNodeLocation(pTok.m_locator);
+		    }
 		  return rtnNode; //done.
 		}
 	    }
