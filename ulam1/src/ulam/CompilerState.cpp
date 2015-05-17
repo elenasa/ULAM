@@ -77,34 +77,13 @@ namespace MFM {
 
     m_definedUlamTypes.clear();
     m_indexToUlamKey.clear();
-    m_keyToaUTI.clear();
+    m_keyToAnyUTI.clear();
 
     m_currentFunctionReturnNodes.clear();
 
-    s32 unknownKeyC = m_unknownKeyUTICounter.size();
-    if(unknownKeyC > 0)
-      {
-	std::ostringstream msg;
-	msg << "Remaining Unknown Keys with UTI counts, cleared: " << unknownKeyC;
-	MSG2("", msg.str().c_str(),DEBUG);
+    m_unionRootUTI.clear(); //aliasUTIs
 
-	std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.begin();
-
-	while(it != m_unknownKeyUTICounter.end())
-	  {
-	    UlamKeyTypeSignature key = it->first;
-	    u32 count = it->second.size();
-	    std::ostringstream msg;
-	    msg << "Key: " << key.getUlamKeyTypeSignatureAsString(this).c_str();
-	    msg << ", " << count << " counted";
-	    MSG2("", msg.str().c_str(),DEBUG);
-	    it->second.clear();
-	    it++;
-	  }
-      }
-    //m_classUTIAliases.clear();
-    m_unionRootUTI.clear();
-    m_unknownKeyUTICounter.clear();
+    m_unseenClasses.clear();
   } //clearAllDefinedUlamTypes()
 
   void CompilerState::clearAllLinesOfText()
@@ -126,7 +105,7 @@ namespace MFM {
     UTI uti = m_indexToUlamKey.size();  //next index based on key
     UlamKeyTypeSignature hkey = getUlamTypeByIndex(Holder)->getUlamKeyTypeSignature();
 
-    incrementUnknownKeyUTICounter(hkey, uti);
+    incrementKeyToAnyUTICounter(hkey, uti);
     m_indexToUlamKey.push_back(hkey);
     initUTIAlias(uti);
     return uti;
@@ -159,19 +138,14 @@ namespace MFM {
 	    delete newut;
 	    newut = NULL;
 	  }
-
-	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
-	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,uti)); //just one!
-
 	auti = uti;
       }
     else
       {
-	auti = Nav;
 	assert(anyDefinedUTI(newkey,auti)); //don't wipe out uti
       }
 
-    incrementUnknownKeyUTICounter(newkey, uti);
+    incrementKeyToAnyUTICounter(newkey, uti);
 
     m_indexToUlamKey[uti] = newkey;
 
@@ -190,6 +164,7 @@ namespace MFM {
     return  uti; //return same uti (third arg)
   } //makeUlamTypeFromHolder
 
+  //similar to addIncompleteClassSymbolToProgramTable, yet different!
   SymbolClassName * CompilerState::makeAnonymousClassFromHolder(UTI cuti, Locator cloc)
   {
     SymbolClassName * cnsym = NULL;
@@ -212,7 +187,8 @@ namespace MFM {
 	//distinguish between template and regular classes, where?
 	cnsym = new SymbolClassName(cTok, cuti, classblock, *this);
 	assert(cnsym);
-	m_programDefST.addToTable(id, cnsym); //here or special map for anonymous???
+	m_programDefST.addToTable(id, cnsym); //ignored post-parse
+	//m_unseenClasses.insert(symptr); don't include as unseen; needs a name.
       }
     return cnsym;
   } //makeAnonymousClassFromHolder
@@ -245,7 +221,7 @@ namespace MFM {
 	uti = makeUlamType(key,bUT); //returns uti
       }
     else
-	assert(anyDefinedUTI(key,uti));
+      assert(anyDefinedUTI(key,uti));
 
     return uti;
   } //makeUlamType
@@ -307,10 +283,8 @@ namespace MFM {
 	    ut = NULL;
 	  }
 
-	incrementUnknownKeyUTICounter(key, uti);
+	incrementKeyToAnyUTICounter(key, uti);
 
-	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
-	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(key,uti)); //just one!
 	assert(isDefined(key, ut));
 
 	initUTIAlias(uti);
@@ -338,46 +312,16 @@ namespace MFM {
   bool CompilerState::anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI)
   {
     bool rtnBool= false;
+    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
 
-    std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToaUTI.find(key);
-
-    if(it != m_keyToaUTI.end())
-      {
-	assert(key == it->first);
-	foundUTI = it->second;
-	rtnBool = true;
-      }
-    return rtnBool;
-  } //anyDefinedUTI
-
-  bool CompilerState::findFirstMatchingKeyForUTI(UlamKeyTypeSignature key, UTI& foundUTI)
-  {
-    bool rtnBool= false;
-    for(u32 i = 0; i < m_indexToUlamKey.size(); i++)
-      {
-	if(m_indexToUlamKey[i] == key)
-	  {
-	    foundUTI = i;
-	    rtnBool = true;
-	    break;
-	  }
-      }
-    return rtnBool;
-  } //findFirstMatchingKeyForUTI
-
-  bool CompilerState::findMatchingKeyForUnknownUTI(UlamKeyTypeSignature key, UTI& foundUTI)
-  {
-    bool rtnBool= false;
-    assert(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE);
-    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
-    if(it != m_unknownKeyUTICounter.end())
+    if(it != m_keyToAnyUTI.end())
       {
 	assert(key == it->first);
 	foundUTI = *(it->second.lower_bound(Nav));
 	rtnBool = true;
       }
     return rtnBool;
-  } //findMatchingKeyForUnknownUTI
+  } //anyDefinedUTI
 
   UlamType * CompilerState::createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype)
   {
@@ -429,62 +373,47 @@ namespace MFM {
     return ut;
   } //createUlamType
 
-  void CompilerState::incrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg)
+  void CompilerState::incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg)
   {
-    if(key.getUlamKeyTypeSignatureBitSize() == UNKNOWNSIZE || key.getUlamKeyTypeSignatureArraySize() == UNKNOWNSIZE)
+    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
+    if(it != m_keyToAnyUTI.end())
       {
-	std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
-	if(it != m_unknownKeyUTICounter.end())
-	  {
-	    assert(key == it->first);
-	    it->second.insert(utarg);
-	  }
-	else
-	  {
-	    std::set<UTI> aset;
-	    aset.insert(utarg);
-	    m_unknownKeyUTICounter.insert(std::pair<UlamKeyTypeSignature,std::set<UTI> >(key, aset));
-	  }
+	assert(key == it->first);
+	it->second.insert(utarg);
       }
-  } //incrementUnknownKeyUTICounter
+    else
+      {
+	std::set<UTI> aset;
+	aset.insert(utarg);
+	m_keyToAnyUTI.insert(std::pair<UlamKeyTypeSignature,std::set<UTI> >(key, aset));
+      }
+  } //incrementKeyToAnyUTICounter
 
-  u32 CompilerState::decrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg)
+  u32 CompilerState::decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg)
   {
-    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
+    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_keyToAnyUTI.find(key);
     u32 count = 0;
-    if(it != m_unknownKeyUTICounter.end())
+    if(it != m_keyToAnyUTI.end())
       {
 	assert(key == it->first);
 	std::set<UTI>::iterator sit = it->second.find(utarg);
 	if(sit != it->second.end())
 	  {
 	    assert(utarg == *sit);
-	    it->second.erase(sit); //it->second--;
+	    it->second.erase(sit); //decrements count
 	  }
 	count = it->second.size();
 	if(count == 0)
-	  m_unknownKeyUTICounter.erase(it);
+	  m_keyToAnyUTI.erase(it);
       }
     return count;
-  } //decrementUnknownKeyUTICounter
-
-  u32 CompilerState::findUnknownKeyUTICounter(UlamKeyTypeSignature key)
-  {
-    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key>::iterator it = m_unknownKeyUTICounter.find(key);
-    u32 count = 0;
-    if(it != m_unknownKeyUTICounter.end())
-      {
-	assert(key == it->first);
-	count = it->second.size();
-      }
-    return count;
-  } //findUnknownKeyUTICounter
+  } //decrementKeyToAnyUTICounter
 
   //used to update Class' calculated bit size (setBitSize)
   bool CompilerState::deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg)
   {
     bool rtnBool= false;
-    if(decrementUnknownKeyUTICounter(key, utarg) == 0)
+    if(decrementKeyToAnyUTICounter(key, utarg) == 0)
       {
 	std::map<UlamKeyTypeSignature, UlamType *, less_than_key>::iterator it = m_definedUlamTypes.find(key);
 	if(it != m_definedUlamTypes.end())
@@ -499,56 +428,6 @@ namespace MFM {
       }
     return rtnBool;
   } //deleteUlamKeyTypeSignature
-
-  //used to update Class' calculated bit size (setBitSize)
-  bool CompilerState::updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, UTI newuti)
-  {
-    bool rtnBool= false;
-
-    //skip happily if no others use the old key; new key was added by makeulamtype
-    u32 counter = findUnknownKeyUTICounter(oldkey);
-    std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator it = m_keyToaUTI.find(oldkey);
-    if(it != m_keyToaUTI.end())
-      {
-	assert(oldkey == it->first);
-	UTI uti = it->second;
-	if(counter == 0)
-	  m_keyToaUTI.erase(it);
-	else if(uti == newuti)
-	  {
-	    //update old key's to another UTI.
-	    UTI auti = Nav;
-	    //assert(findFirstMatchingKeyForUTI(oldkey, auti)); //counter > 0
-	    assert(findMatchingKeyForUnknownUTI(oldkey, auti)); //counter > 0
-	    assert(auti != uti);
-	    it->second = auti;
-	    uti = auti;
-	  }
-	rtnBool = true;
-      }
-
-    //insert new key to new UTI.
-    if(rtnBool)
-      {
-	std::pair<std::map<UlamKeyTypeSignature, UTI, less_than_key>::iterator, bool> ret;
-	ret = m_keyToaUTI.insert(std::pair<UlamKeyTypeSignature,UTI>(newkey,newuti)); //just one! new one!!
-	bool notdup = ret.second; //false if already existed, i.e. not added
-	if(!notdup)
-	  {
-	    std::ostringstream msg;
-	    msg << "Updated Key to A UTI: " << getUlamTypeNameByIndex(newuti).c_str();
-	    msg << " (UTI" << newuti << ")";
-	    MSG2("", msg.str().c_str(), DEBUG);
-	  }
-	else
-	  {
-	    UTI auti = Nav;
-	    assert(anyDefinedUTI(newkey,auti)); //don't wipe out uti
-	    updateUTIAlias(newuti, auti); // could be the same
-	  }
-      }
-    return rtnBool;
-  } //updateUlamKeyTypeSignatureToaUTI
 
   bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
   {
@@ -671,20 +550,6 @@ namespace MFM {
     else
       cnsym->mapUTItoUTI(fm,to);
   } //mapTypesInCurrentClass
-
-#if 0
-  bool CompilerState::constantFoldPendingArgs(UTI cuti)
-  {
-    UlamType * cut = getUlamTypeByIndex(cuti);
-    UlamKeyTypeSignature ckey = cut->getUlamKeyTypeSignature();
-
-    SymbolClassName * cnsym = NULL; //could be a different class than being compiled
-    assert(alreadyDefinedSymbolClassName(ckey.getUlamKeyTypeSignatureNameId(), cnsym));
-    if(cnsym->isClassTemplate())
-      return ((SymbolClassNameTemplate *) cnsym)->constantFoldClassArgumentsInAStubClassInstance(cuti);
-    return true; //ok
-  } //constantFoldPendingArgs
-#endif
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {
@@ -955,15 +820,13 @@ namespace MFM {
 
     m_indexToUlamKey[utArg] = newkey;
 
-    incrementUnknownKeyUTICounter(newkey, utArg);  //here
+    incrementKeyToAnyUTICounter(newkey, utArg);  //here
 
     {
       std::ostringstream msg;
       msg << "Sizes SET for Class: " << newut->getUlamTypeName().c_str() << " (UTI" << utArg << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
-
-    assert(updateUlamKeyTypeSignatureToaUTI(key, newkey, utArg));
   } //setUTISizes
 
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
@@ -980,7 +843,7 @@ namespace MFM {
     //removes old key and its ulamtype from map, if no longer pointed to
     deleteUlamKeyTypeSignature(key1, olduti);
     m_indexToUlamKey[olduti] = key2;
-    incrementUnknownKeyUTICounter(key2, olduti);
+    incrementKeyToAnyUTICounter(key2, olduti);
     {
       std::ostringstream msg;
       msg << "MERGED keys for duplicate Class (UTI" << olduti << ") WITH: ";
@@ -1185,7 +1048,7 @@ namespace MFM {
 
     m_indexToUlamKey[utArg] = newkey;
 
-    incrementUnknownKeyUTICounter(newkey, utArg);
+    incrementKeyToAnyUTICounter(newkey, utArg);
 
     {
       std::ostringstream msg;
@@ -1194,7 +1057,6 @@ namespace MFM {
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
 
-    assert(updateUlamKeyTypeSignatureToaUTI(key, newkey, utArg));
   } //setSizesOfNonClass
 
   s32 CompilerState::getDefaultBitSize(UTI uti)
@@ -1303,6 +1165,7 @@ namespace MFM {
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
+    m_unseenClasses.insert(symptr);
   } //addIncompleteClassSymbolToProgramTable
 
   //temporary UlamType which will be updated during type labeling.
@@ -1322,9 +1185,41 @@ namespace MFM {
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassNameTemplate(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
+    m_unseenClasses.insert(symptr);
   } //addIncompleteClassSymbolToProgramTable
 
-  bool CompilerState::completeIncompleteClassSymbol(UTI incomplete)
+  void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)
+  {
+    std::set<SymbolClassName *>::iterator it = m_unseenClasses.find(cnsym);
+    if(it != m_unseenClasses.end())
+      {
+	m_unseenClasses.erase(it);
+      }
+    cnsym->resetUnseenClassLocation(identTok);
+  } //resetUnseenClass
+
+  bool CompilerState::getUnseenClassFilenames(std::vector<std::string>& unseenFiles)
+  {
+    std::set<SymbolClassName *>::iterator it = m_unseenClasses.begin();
+    while(it != m_unseenClasses.end())
+      {
+	SymbolClassName * cnsym = *it;
+	UTI cuti = cnsym->getUlamTypeIdx();
+	UlamType * cut = getUlamTypeByIndex(cuti);
+	//excludes anonymous classes, only unseen classes with known names
+	ULAMCLASSTYPE classtype = cut->getUlamClass();
+	assert(classtype == UC_UNSEEN);
+	{
+	  std::ostringstream fn;
+	  fn << m_pool.getDataAsString(cnsym->getId()).c_str() << ".ulam";
+	  unseenFiles.push_back(fn.str());
+	}
+	it++;
+      } //while
+    return !unseenFiles.empty();
+  } //getUnseenClassFilenames
+
+  bool CompilerState::completeIncompleteClassSymbolForTypedef(UTI incomplete)
   {
     bool rtnB = false;
     SymbolClass * csym = NULL;
@@ -1345,8 +1240,8 @@ namespace MFM {
 	    if(getBitSize(but) == UNKNOWNSIZE || getArraySize(but) == UNKNOWNSIZE)
 	      {
 		std::ostringstream msg;
-		msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
-		msg << "(UTI" << but << ")";
+		msg << "Class Instance for typedef: " << ict->getUlamTypeName().c_str();
+		msg << "(UTI" << but << ") - sizes still unknown";
 		MSG2(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 	      }
 	    else
@@ -1355,20 +1250,20 @@ namespace MFM {
 	else //else uc_incomplete
 	  {
 	    std::ostringstream msg;
-	    msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
-	    msg << "(UTI" << incomplete << ") - Incomplete";
+	    msg << "Class Instance for typedef: " << ict->getUlamTypeName().c_str();
+	    msg << "(UTI" << incomplete << ") - still UNSEEN";
 	    MSG2(cnsym->getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Sizes still unknown for Class Instance: " << ict->getUlamTypeName().c_str();
+	msg << "Class Instance for typedef: " << ict->getUlamTypeName().c_str();
 	msg << "(UTI" << incomplete << ") - NOT YET DEFINED";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
       }
     return rtnB;
-  } //completeIncompleteClassSymbol
+  } //completeIncompleteClassSymbolForTypedef
 
   bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr)
   {

@@ -81,10 +81,6 @@ namespace MFM{
       if(key1.m_bits > key2.m_bits ) return false;
       if(key1.m_arraySize < key2.m_arraySize) return true;
       if(key1.m_arraySize > key2.m_arraySize) return false;
-      //if(key1.m_bits < key2.m_bits && key1.m_bits > UNKNOWNSIZE) return true;
-      //if(key1.m_bits > key2.m_bits && key2.m_bits > UNKNOWNSIZE) return false;
-      //if(key1.m_arraySize < key2.m_arraySize && key1.m_arraySize > UNKNOWNSIZE) return true;
-      //if(key1.m_arraySize > key2.m_arraySize && key2.m_arraySize > UNKNOWNSIZE) return false;
       if(key1.m_classInstanceIdx < key2.m_classInstanceIdx) return true;
       if(key1.m_classInstanceIdx > key2.m_classInstanceIdx) return false;
       return false;
@@ -132,14 +128,13 @@ namespace MFM{
 
     ErrorMessageHandler m_err;
 
-    std::map<UlamKeyTypeSignature, UTI, less_than_key> m_keyToaUTI;   //key->index of ulamtype (UTI)
     std::vector<UlamKeyTypeSignature> m_indexToUlamKey; //UTI->ulamkey, many-to-one
     std::map<UlamKeyTypeSignature, UlamType *, less_than_key> m_definedUlamTypes; //key->ulamtype *
+    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key> m_keyToAnyUTI; //key->set of indexes of ulamtype (UTI); tracks how many uti's to an "unknown" key, before delete
+
+    std::set<SymbolClassName *> m_unseenClasses;
 
     std::vector<UTI> m_unionRootUTI; //UTI's root UTI to manage holder/aliases
-
-    //std::map<UlamKeyTypeSignature, u32, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
-    std::map<UlamKeyTypeSignature, std::set<UTI>, less_than_key> m_unknownKeyUTICounter; //track how many uti's to an "unknown" key, before delete
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
@@ -167,20 +162,14 @@ namespace MFM{
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
-    bool findFirstMatchingKeyForUTI(UlamKeyTypeSignature key, UTI& foundUTI);
-    bool findMatchingKeyForUnknownUTI(UlamKeyTypeSignature key, UTI& foundUTI);
     UlamType * createUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
-    void incrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg);
-    u32 decrementUnknownKeyUTICounter(UlamKeyTypeSignature key, UTI utarg);
-    u32 findUnknownKeyUTICounter(UlamKeyTypeSignature key);
+    void incrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
+    u32 decrementKeyToAnyUTICounter(UlamKeyTypeSignature key, UTI utarg);
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
-    bool updateUlamKeyTypeSignatureToaUTI(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, UTI newuti);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
     //    void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
     void mapTypesInCurrentClass(UTI fm, UTI to);
-
-    //bool constantFoldPendingArgs(UTI cuti);
 
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
@@ -243,8 +232,11 @@ namespace MFM{
     void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
     void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
 
-    /** during type labeling, sets the ULAMCLASSTYPE and bitsize for typedefs that involved incomplete Class types */
-    bool completeIncompleteClassSymbol(UTI incomplete) ;
+    void resetUnseenClass(SymbolClassName * cnsym, Token identTok);
+    bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);
+
+    /** during type labeling, sets ULAMCLASSTYPE for typedefs that involved incomplete Class types */
+    bool completeIncompleteClassSymbolForTypedef(UTI incomplete) ;
 
     /** helper methods for error messaging, uses string pool */
     const std::string getTokenLocationAsString(Token * tok);

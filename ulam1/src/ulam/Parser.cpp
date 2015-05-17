@@ -220,7 +220,8 @@ namespace MFM {
 
 		return  true; //we're done unless we can gobble the rest up?
 	      }
-	    cnSym->resetUnseenClassLocation(iTok);
+	    //cnSym->resetUnseenClassLocation(iTok);
+	    //m_state.resetUnseenClass(cnSym, iTok);
 	    wasIncomplete = true;
 	  }
       }
@@ -243,7 +244,8 @@ namespace MFM {
 
 		return  true; //we're done unless we can gobble the rest up?
 	      }
-	    ctSym->resetUnseenClassLocation(iTok);
+	    //ctSym->resetUnseenClassLocation(iTok);
+	    //m_state.resetUnseenClass(ctSym, iTok);
 	    wasIncomplete = true;
 	  }
 	cnSym = ctSym;
@@ -254,6 +256,8 @@ namespace MFM {
 
     //set class type in UlamType (through its class symbol) since we know it;
     //UC_UNSEEN if unseen so far.
+    m_state.resetUnseenClass(cnSym, iTok);
+
     switch(pTok.m_type)
       {
       case TOK_KW_ELEMENT:
@@ -2441,9 +2445,17 @@ namespace MFM {
 	      //then return a NodeConstant, instead of NodeIdent, without arrays.
 	      if(asymptr->isConstant())
 		{
-		  NodeConstant * rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
-		  assert(rtnNode);
-		  rtnNode->setNodeLocation(pTok.m_locator);
+		  Token dTok;
+		  getNextToken(dTok);
+		  unreadToken();
+		  if(dTok.m_type == TOK_DOT)
+		    rtnNode = parseMinMaxSizeofType(pTok, asymptr->getUlamTypeIdx(), NULL);
+		  else
+		    {
+		      rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
+		      assert(rtnNode);
+		      rtnNode->setNodeLocation(pTok.m_locator);
+		    }
 		  return rtnNode; //done.
 		}
 	    }
