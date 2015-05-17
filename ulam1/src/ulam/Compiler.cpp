@@ -54,7 +54,7 @@ namespace MFM {
       } //while, parse all files
 
     std::vector<std::string> unseenFileNames;
-    while(!perrs && m_state.m_programDefST.getUnseenClassFileNames(unseenFileNames))
+    while(!perrs && m_state.getUnseenClassFilenames(unseenFileNames))
       {
 	std::vector<std::string>::iterator it = unseenFileNames.begin();
 	while(it != unseenFileNames.end())
@@ -65,7 +65,6 @@ namespace MFM {
 	  }
 	unseenFileNames.clear();
       }
-
 
     if(!perrs)
       {
@@ -187,7 +186,7 @@ namespace MFM {
     u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
     if(navcount > 0)
       {
-	// not necessarily, e.g. atom is Empty, where Empty is a quark instead of an element
+	// not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
 	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
 	// however, in the context of "is", this is an error and t.f. a Nav node.
 	assert(m_state.goAgain() || errCnt > 0); //sanity check; ran out of iterations
@@ -231,7 +230,7 @@ namespace MFM {
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context
     sumbrtn &= m_state.m_programDefST.fullyInstantiateTableOfClasses(); //with ready args
     //checkAndLabelTypes: lineage updated incrementally
-    m_state.m_err.clearCounts();
+    m_state.m_err.clearCounts(); //errors and warnings
     sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled
     return sumbrtn;
   } //resolvingLoop

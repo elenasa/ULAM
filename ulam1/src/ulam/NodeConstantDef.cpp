@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "NodeConstantDef.h"
+#include "NodeTerminal.h"
 #include "CompilerState.h"
 
 
@@ -267,10 +268,10 @@ namespace MFM {
   // (scope of eval is based on the block of const def.)
   bool NodeConstantDef::foldConstantExpression()
   {
-    s32 newconst = 0;
+    u32 newconst = 0;
     UTI uti = getNodeType();
 
-    if(uti == Nav)
+    if(uti == Nav || !m_state.isComplete(uti))
       return false; //e.g. not a constant
 
     assert(m_constSymbol);
@@ -305,9 +306,78 @@ namespace MFM {
 	return false;
       }
 
+    //insure constant value fits in its declared type
+    if(!m_nodeExpr->fitsInBits(uti))
+      {
+	std::ostringstream msg;
+	msg << "Attempting to fit named constant's value (";
+	msg << getName() << " = " << newconst << ") into a smaller bit size type: ";
+	msg<< m_state.getUlamTypeNameByIndex(uti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
+	if(updateConstant(newconst))
+	  {
+	    NodeTerminal * newnode;
+	    if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
+	      newnode = new NodeTerminal((s32) newconst, uti, m_state);
+	    else
+	      newnode = new NodeTerminal(newconst, uti, m_state);
+
+	    newnode->setNodeLocation(getNodeLocation());
+	    delete m_nodeExpr;
+	    m_nodeExpr = newnode;
+	  }
+	else
+	  return false;
+      }
+
     m_constSymbol->setValue(newconst); //isReady now!
     return true;
   } //foldConstantExpression
+
+  bool NodeConstantDef::updateConstant(u32 & newconst)
+  {
+    u32 val = newconst;
+    if(!m_constSymbol)
+      return false;
+
+    UTI nuti = getNodeType();
+    if(!m_state.isComplete(nuti))
+      return false;
+
+    //store in UlamType format
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    s32 nbitsize = nut->getBitSize();
+    assert(nbitsize > 0);
+    u32 wordsize = nut->getTotalWordSize();
+    assert(wordsize == MAXBITSPERINT);
+
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    switch(etype)
+      {
+      case Int:
+	newconst = _Int32ToInt32((s32) val, wordsize, nbitsize);
+	break;
+      case Unsigned:
+	newconst = _Unsigned32ToUnsigned32(val, wordsize, nbitsize);
+	break;
+      case Bool:
+	newconst = _Unsigned32ToBool32(val, wordsize, nbitsize);
+	break;
+      case Unary:
+	newconst =  _Unsigned32ToUnary32(val, wordsize, nbitsize);
+	break;
+      case Bits:
+	newconst = _Unsigned32ToBits32(val, wordsize, nbitsize);
+	break;
+      default:
+	{
+	  std::ostringstream msg;
+	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	}
+      };
+    return true;
+  } //updateConstant
 
   void NodeConstantDef::fixPendingArgumentNode()
   {

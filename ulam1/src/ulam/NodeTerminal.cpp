@@ -71,7 +71,8 @@ namespace MFM {
 	num << m_constant.uval << "u";
 	break;
       case Int:
-	num << _Int32ToInt32(m_constant.sval, wordsize, nbitsize);
+	//num << _Int32ToInt32(m_constant.sval, wordsize, nbitsize);
+	num << m_constant.sval;
 	break;
       case Unsigned:
 	//num << _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize) << "u";
@@ -182,7 +183,8 @@ namespace MFM {
     switch(etype)
       {
       case Int:
-	rtnUV = UlamValue::makeImmediate(nuti, _Int32ToInt32(m_constant.sval, wordsize, nbitsize), m_state);
+	//rtnUV = UlamValue::makeImmediate(nuti, _Int32ToInt32(m_constant.sval, wordsize, nbitsize), m_state);
+	rtnUV = UlamValue::makeImmediate(nuti, m_constant.sval, m_state);
 	break;
       case Unsigned:
 	//rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize), m_state);

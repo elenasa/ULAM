@@ -626,32 +626,6 @@ namespace MFM {
       } //while
   } //getTargets
 
-  bool SymbolTable::getUnseenClassFileNames(std::vector<std::string>& unseenFiles)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym && sym->isClass());
-	UTI cuti = sym->getUlamTypeIdx();
-	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	//skip anonymous classes, only unseen classes with known names
-	if(m_state.isARootUTI(cuti) && !cut->isHolder())
-	  {
-	    ULAMCLASSTYPE classtype = cut->getUlamClass();
-	    if(classtype == UC_UNSEEN)
-	      {
-		std::ostringstream fn;
-		fn << m_state.m_pool.getDataAsString(sym->getId()).c_str() << ".ulam";
-		unseenFiles.push_back(fn.str());
-	      }
-	  }
-	it++;
-      } //while
-    return !unseenFiles.empty();
-  } //getUnseenClassFileNames
-
   void SymbolTable::testForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();

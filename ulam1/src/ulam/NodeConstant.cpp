@@ -200,7 +200,8 @@ namespace MFM {
     if(!m_constSymbol)
       return false;
     m_constSymbol->getValue(val);
-    m_constant.uval = val;
+    m_constant.uval = val; //value fits type per its constantdef
+
     return m_constSymbol->isReady();
   } //updateConstant
 
