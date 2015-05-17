@@ -6,6 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      //./Foo.ulam:4:2: ERROR: Data member <m_array> of type: Int(1)[71] (UTI15) total size: 71 MUST fit into 32 bits; Local variables do not have this restriction.
 
       //Ue_Foo { Int(1) m_array[71](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  Int(32) test() {  C2D c;  c ( 0 cast 0 cast )func = m_array c ( )toInt . [] true cast = m_array c ( )toInt . [] cast return } }\nExit status: 1
 
@@ -33,5 +34,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3190_test_compiler_elementandquark_array2d_quarkcasttoint)
 
 } //end MFM
-
-

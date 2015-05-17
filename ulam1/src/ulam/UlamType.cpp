@@ -422,6 +422,8 @@ namespace MFM {
   {
     if(u1 == u2) return UTIC_SAME; //short-circuit
 
+    if(u1 == Nav || u2 == Nav) return UTIC_NOTSAME;
+
     UlamType * ut1 = state.getUlamTypeByIndex(u1);
     UlamType * ut2 = state.getUlamTypeByIndex(u2);
     ULAMCLASSTYPE ct1 = ut1->getUlamClass();

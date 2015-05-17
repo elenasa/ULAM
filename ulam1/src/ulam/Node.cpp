@@ -1315,10 +1315,11 @@ namespace MFM {
 
 
   //PROTECTED METHODS:
-  Node * Node::makeCastingNode(Node * node, UTI tobeType)
+  //Node * Node::makeCastingNode(Node * node, UTI tobeType)
+  bool Node::makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode)
   {
     bool doErrMsg = false;
-    Node * rtnNode = NULL;
+    rtnNode = NULL;
     UTI nuti = node->getNodeType();
 
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
@@ -1337,7 +1338,9 @@ namespace MFM {
       {
 	//happens too often with Bool.1.-1 for some reason; and Quark toInt special case
 	// handle quietly
-	return node;
+	//return node;
+	rtnNode = node;
+	return true;
       }
 
     ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
@@ -1353,7 +1356,9 @@ namespace MFM {
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
 	    rtnNode->updateLineage(getNodeNo());
-	    rtnNode->checkAndLabelType();
+	    UTI newType = rtnNode->checkAndLabelType();
+	    if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
+	      doErrMsg = true; //error msg instead
 	  }
       }
     else if (nclasstype == UC_QUARK)
@@ -1389,7 +1394,6 @@ namespace MFM {
 
 	    //redo check and type labeling
 	    UTI newType = rtnNode->checkAndLabelType();
-	    //if(newType != tobeType)
 	    if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
 	      doErrMsg = true; //error msg instead
 	  }
@@ -1404,7 +1408,9 @@ namespace MFM {
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
 	    rtnNode->updateLineage(getNodeNo());
-	    rtnNode->checkAndLabelType();
+	    UTI newType = rtnNode->checkAndLabelType();
+	    if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
+	      doErrMsg = true; //error msg instead
 	  }
       }
     else
@@ -1416,9 +1422,13 @@ namespace MFM {
 	msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
 	msg << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	//setNodeType(Nav); //missing?
+	//delete rtnNode;
+	//rtnNode = NULL;
       }
-    return rtnNode;
-  } //make casting node
+    //return rtnNode;
+    return !doErrMsg;
+  } //makecastingnode
 
   bool Node::warnOfNarrowingCast(UTI nodeType, UTI tobeType)
   {

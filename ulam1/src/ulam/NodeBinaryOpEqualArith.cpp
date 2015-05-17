@@ -20,6 +20,7 @@ namespace MFM {
       {
 	// can happen with op-equal operations when both sides are the same type
 	MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bits' type", ERR);
+	nodeType = Nav;
       }
 
     if(!nut->isScalar())
@@ -29,8 +30,10 @@ namespace MFM {
 	msg << " on LHS: <" << m_nodeLeft->getName() << ">, type: ";
 	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	nodeType = Nav;
       }
 
+    setNodeType(nodeType);
     return nodeType;
   } //checkAndLabelType
 

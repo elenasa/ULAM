@@ -57,7 +57,9 @@ namespace MFM {
 	    if(eut == Bool)
 	      {
 		newType = Int;
-		m_node = makeCastingNode(m_node, newType);  //insert node/s
+		//m_node = makeCastingNode(m_node, newType);  //insert node/s
+		if(!makeCastingNode(m_node, newType, m_node))  //insert node/s
+		  newType = Nav;
 	      }
 	    else if(eut != Int)
 	      {
@@ -71,7 +73,9 @@ namespace MFM {
 	    else if(ut != Int) //bitsize < 32
 	      {
 		newType = Int;
-		m_node = makeCastingNode(m_node, newType);  //insert node/s
+		//m_node = makeCastingNode(m_node, newType);  //insert node/s
+		if(!makeCastingNode(m_node, newType, m_node))  //insert node/s
+		  newType = Nav;
 	      }
 	  }
       }
