@@ -120,7 +120,9 @@ namespace MFM {
 	    if(eut == Bool)
 	      {
 		newType = Int;
-		m_node = makeCastingNode(m_node, newType); //insert node/s
+		//m_node = makeCastingNode(m_node, newType); //insert node/s
+		if(!makeCastingNode(m_node, newType, m_node)) //insert node/s
+		  newType = Nav;
 	      }
 	  }
       } //not nav
@@ -136,6 +138,7 @@ namespace MFM {
 
   void NodeUnaryOp::countNavNodes(u32& cnt)
   {
+    Node::countNavNodes(cnt); //missing
     m_node->countNavNodes(cnt); //no need to count self?
   }
 

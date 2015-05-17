@@ -155,6 +155,7 @@ namespace MFM {
 	    msg << "''s Return type must be 'Int', not ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(funcType).c_str();
 	    MSG(funcNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    funcNode->setNodeType(Nav); //missing
 	  }
       }
     // type already set during parsing

@@ -96,6 +96,7 @@ namespace MFM {
 
   void NodeConditional::countNavNodes(u32& cnt)
   {
+    Node::countNavNodes(cnt); //missing
     m_nodeLeft->countNavNodes(cnt);
     m_nodeTypeDesc->countNavNodes(cnt);
   }

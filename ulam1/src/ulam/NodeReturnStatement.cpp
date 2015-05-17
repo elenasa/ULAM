@@ -99,7 +99,7 @@ namespace MFM {
     if(m_node)
       nodeType = m_node->checkAndLabelType();
 
-    if(nodeType != Nav && m_state.isComplete(nodeType) && m_state.isComplete(m_state.m_currentFunctionReturnType))
+    if(m_state.isComplete(nodeType) && m_state.isComplete(m_state.m_currentFunctionReturnType))
       {
 	if(UlamType::compare(nodeType, m_state.m_currentFunctionReturnType, m_state) != UTIC_SAME)
 	  {
@@ -107,8 +107,11 @@ namespace MFM {
 	      {
 		if(m_node)
 		  {
-		    m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
-		    nodeType = m_node->getNodeType();
+		    //m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
+		    if(!makeCastingNode(m_node, m_state.m_currentFunctionReturnType, m_node))
+		      nodeType = Nav;
+		    else
+		      nodeType = m_node->getNodeType();
 		  }
 		else
 		  nodeType = Nav;  //no casting node
@@ -118,6 +121,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "ISO C forbids ‘return’ with expression, in function returning void";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		nodeType = Nav; //missing?
 	      }
 	  }
       } // not nav
@@ -139,6 +143,7 @@ namespace MFM {
 
   void NodeReturnStatement::countNavNodes(u32& cnt)
   {
+    Node::countNavNodes(cnt); //missing
     if(m_node)
       m_node->countNavNodes(cnt);
   }

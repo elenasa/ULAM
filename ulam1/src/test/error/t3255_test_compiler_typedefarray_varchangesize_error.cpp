@@ -6,6 +6,9 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      //./B.ulam:9:9: ERROR: Arraysize [] is included in typedef: <IArray>, and cannot be redefined by variable: <arr>.
+      //./B.ulam:9:2: ERROR: Invalid variable declaration of base type: <Unsigned> and Name: <arr> (missing symbol).
+
       return std::string("Ue_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IArray[4];  IArray(8) arr[4](1,0,0,0);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] cast 0 cast == cast return } }\nExit status: 0");
     }
 
@@ -28,5 +31,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3255_test_compiler_typedefarray_varchangesize_error)
 
 } //end MFM
-
-

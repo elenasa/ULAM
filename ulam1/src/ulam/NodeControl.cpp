@@ -117,7 +117,9 @@ namespace MFM {
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != newEnumTyp)
 	  {
-	    m_nodeCondition = makeCastingNode(m_nodeCondition, newType);
+	    //m_nodeCondition = makeCastingNode(m_nodeCondition, newType);
+	    if(!makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
+	      newType = Nav;
 	  }
 	else
 	  {
@@ -125,8 +127,13 @@ namespace MFM {
 	    //always cast: Bools are maintained as unsigned in gen code,
 	    //until c-bool is needed
 	    if(cuti != newType)
-	      m_nodeCondition = makeCastingNode(m_nodeCondition, cuti);
-	    newType = cuti;
+	      {
+		//m_nodeCondition = makeCastingNode(m_nodeCondition, cuti);
+		if(!makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
+		  newType = Nav;
+		else
+		  newType = cuti;
+	      }
 	  }
 	m_nodeBody->checkAndLabelType(); //side-effect
       }
@@ -140,6 +147,7 @@ namespace MFM {
 
   void NodeControl::countNavNodes(u32& cnt)
   {
+    Node::countNavNodes(cnt); //missing
     m_nodeCondition->countNavNodes(cnt);
     m_nodeBody->countNavNodes(cnt);
   }

@@ -55,7 +55,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 
 	setNodeType(Nav);
-	return getNodeType();
+	return Nav;
       } //done
 
     if(!m_state.isComplete(luti)) //reloads

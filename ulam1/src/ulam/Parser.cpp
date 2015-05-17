@@ -496,7 +496,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Only elements may have element parameters: <";
-	    msg << m_state.m_pool.getDataAsString(m_state.getCompileThisIdx()).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    msg << "> is a quark";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
@@ -1883,11 +1883,11 @@ namespace MFM {
 		args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
 		isclasstd = true;
 	      }
-
+#if 0
 	    //update rest of argument refs
 	    args.m_bitsize = tdut->getBitSize();
 	    args.m_arraysize = tdut->getArraySize(); //becomes arg when installing symbol
-
+#endif
 	    //possibly another class? go again..
 	    if(isclasstd)
 	      {
@@ -3363,7 +3363,7 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with [])
 		//rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid variable declaration of Type: <";
+		msg << "Invalid variable declaration of base type: <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str() << "> and Name: <";
 		msg << m_state.getTokenDataAsString(&identTok).c_str() << "> (missing symbol)";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
@@ -3428,7 +3428,7 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with []) , error already output.
 		//rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid typedef of Type: <";
+		msg << "Invalid typedef of base type: <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
 		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str();
 		msg << "> (missing symbol)";

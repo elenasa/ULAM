@@ -163,6 +163,7 @@ namespace MFM {
 	// insert casts of constant args, now that we have a "matching" function symbol
 	if(constantArgs > 0)
 	  {
+	    std::vector<u32> argsWithCastErr;
 	    u32 argsWithCast = 0;
 	    u32 numParams = m_funcSymbol->getNumberOfParameters();
 	    for(u32 i = 0; i < numParams; i++)
@@ -172,7 +173,11 @@ namespace MFM {
 		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
 		    UTI ptype = psym->getUlamTypeIdx();
 		    Node * argNode = m_argumentNodes->getNodePtr(i);
-		    Node * argCast = makeCastingNode(argNode, ptype);
+		    Node * argCast = NULL;
+		    if(!makeCastingNode(argNode, ptype, argCast))
+		      {
+			argsWithCastErr.push_back(i); //error!
+		      }
 		    m_argumentNodes->exchangeKids(argNode, argCast, i);
 		    argsWithCast++;
 		  }
@@ -187,7 +192,11 @@ namespace MFM {
 		    if(constArgs[i])
 		      {
 			Node * argNode = m_argumentNodes->getNodePtr(i);
-			Node * argCast = makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]));
+			Node * argCast = NULL;
+			if(!makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]), argCast))
+			  {
+			    argsWithCastErr.push_back(i); //error!
+			  }
 			m_argumentNodes->exchangeKids(argNode, argCast, i);
 			argsWithCast++;
 		      }
@@ -195,6 +204,23 @@ namespace MFM {
 	      } //var args
 
 	    assert(argsWithCast == constantArgs); //sanity check
+	    if(!argsWithCastErr.empty())
+	      {
+		std::ostringstream msg;
+		msg << "Casting errors for args with constants: " ;
+		for(u32 i = 0; i < argsWithCastErr.size(); i++)
+		  {
+		    if(i > 0)
+		      msg << ", ";
+		    msg << i + 1;
+		  }
+
+		msg << " to function <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+		msg << "> , while compiling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		argsWithCastErr.clear();
+	      }
 	  } //constants
       } // no errors found
 
