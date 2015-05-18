@@ -1190,6 +1190,9 @@ namespace MFM {
 
   void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)
   {
+    if(m_unseenClasses.empty())
+      return;
+
     std::set<SymbolClassName *>::iterator it = m_unseenClasses.find(cnsym);
     if(it != m_unseenClasses.end())
       {

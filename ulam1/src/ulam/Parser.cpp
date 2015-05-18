@@ -2477,6 +2477,13 @@ namespace MFM {
 	rtnNode = new NodeTerminal(pTok, m_state);
 	assert(rtnNode);
 	break;
+      case TOK_NUMBER_FLOAT:
+	{
+	  std::ostringstream msg;
+	  msg << "Unsupported Number Type, Float <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  MSG(&pTok, msg.str().c_str(), ERR);
+	}
+	break;
       case TOK_OPEN_PAREN:
 	rtnNode = parseRestOfCastOrExpression();
 	break;
