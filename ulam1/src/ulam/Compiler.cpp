@@ -189,7 +189,7 @@ namespace MFM {
 	// not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
 	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
 	// however, in the context of "is", this is an error and t.f. a Nav node.
-	//assert(m_state.goAgain() || errCnt > 0); //sanity check; ran out of iterations
+	assert(m_state.goAgain() || errCnt > 0); //sanity check; ran out of iterations
 	std::ostringstream msg;
 	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();

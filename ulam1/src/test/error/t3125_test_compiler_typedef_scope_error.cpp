@@ -6,6 +6,13 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      /*
+	 ./D.ulam:1:76: ERROR: Invalid Type: Bar(UNKNOWN)<13> used with [].
+	 ./D.ulam:1:118: ERROR: Invalid Type: Bar(UNKNOWN)<13> used with [].
+	 ./D.ulam:1:110: ERROR: Function 'test''s Return type's: Int(32) does not match incomplete resulting type.
+	 ./D.ulam:1:68: ERROR: Incomplete Class: Bar(UNKNOWN)<13> was never defined, fails sizing.
+      */
+
       //D.ulam:1:68: ERROR: Incomplete Var Decl for type: <Bar.0.-1> used with variable symbol name <f>.  NOPE!
       //D.ulam:1:76: ERROR: Invalid Type: <Bar.0.-1> used with [].
       //D.ulam:1:80: ERROR: Not storeIntoAble: <[]>, is type: <Nav.0.-1>. NOPE!

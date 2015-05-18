@@ -202,7 +202,7 @@ namespace MFM {
 		msg << " for incomplete Variable Decl for type: ";
 		msg << m_state.getUlamTypeNameByIndex(it).c_str();
 		msg << " used with variable symbol name '" << getName();
-		msg << "' UTI" << it << " while bit packing class: ";
+		msg << "' (UTI" << it << ") while bit packing class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		it = mappedUTI;
@@ -215,7 +215,7 @@ namespace MFM {
 		msg << "Incomplete Variable Decl for type: ";
 		msg << m_state.getUlamTypeNameByIndex(it).c_str();
 		msg << " used with variable symbol name '" << getName();
-		msg << "' UTI" << it << " while bit packing class: ";
+		msg << "' (UTI" << it << ") while bit packing class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }

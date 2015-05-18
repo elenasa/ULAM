@@ -6,6 +6,9 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      //./R.ulam:2:9: ERROR: Incomplete Class: Colony(UNKNOWN)<12> was never defined, fails sizing.
+      //./R.ulam:2:9: ERROR: Incomplete Class: Colony(UNKNOWN)<12> was never defined, fails labeling.
+
       return std::string("Exit status: 0\nUe_A { /* empty class block */ }Ue_R { Int(32) test() {  typedef Colony(3u) Ish;  Colony(3u) ish;  ish ( 7u )setTailAge . 0 return } }\nUq_Colony { typedef Unsigned(UNKNOWN) Tail;  constant Unsigned(32) widthc = NONREADYCONST;  typedef Telomeree(width) Telo;  Telomeree(width) t( constant Unsigned(32) width = NONREADYCONST; );  <NOMAIN> }\nUq_Telomeree { constant Unsigned(32) width = NONREADYCONST;  typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(0);  <NOMAIN> }\n");
     }
 

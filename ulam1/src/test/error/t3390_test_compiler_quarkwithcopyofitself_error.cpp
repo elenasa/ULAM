@@ -7,6 +7,8 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //./Typo.ulam:4:2: ERROR:  Quark Typo (UTI11) cannot contain a copy of itself.
+      //....
+      //./Typo.ulam:3:1: ERROR: Incomplete Variable Decl for type: Typo(UNKNOWN)<11> used with variable symbol name 't2' (UTI11) while bit packing class: Typo.
       return std::string("Uq_Typo { /* empty class block */ }\n");
     }
 

@@ -199,8 +199,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Check overloading function: <";
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "> has a duplicate definition: " << fmangled.c_str();
-	    msg << ", while compiling class: ";
+	    msg << "> has a duplicate definition: (" << fmangled.c_str();
+	    msg << "), while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
 	    probcount++;

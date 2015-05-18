@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      // ERROR: number of arguments (2) in class instance: Booly, does not match the required number of parameters (3).
+      //./Foo.ulam:5:1: ERROR: Too few Class Arguments parsed, (2), for template: Booly, by Booly(firstRange,lastRange,bomb).
       return std::string("Exit status: -1\nUe_Foo { Int(32) test() {  Booly(firstRange,lastRange,bomb) b;  b ( )behave . cast return } }\nUq_Booly { constant Unsigned(3) firstRange = NONREADYCONST;  constant Unsigned(3) lastRange = NONREADYCONST;  constant Bool(1) bomb = NONREADYCONST;  <NOMAIN> }\n");
     }
 

@@ -107,7 +107,6 @@ namespace MFM {
 	      {
 		if(m_node)
 		  {
-		    //m_node = makeCastingNode(m_node, m_state.m_currentFunctionReturnType);
 		    if(!makeCastingNode(m_node, m_state.m_currentFunctionReturnType, m_node))
 		      nodeType = Nav;
 		    else
@@ -131,7 +130,7 @@ namespace MFM {
 	msg << "Function return type is still incomplete: ";
 	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	nodeType = Nav;
+	//	nodeType = Nav; needed???
       }
 
     //check later against defined function return type

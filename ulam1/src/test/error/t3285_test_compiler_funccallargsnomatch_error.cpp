@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	Tu.ulam:7:4: ERROR: (1) <print> has no defined function with 2 matching argument types: <Bool.1.-1>, <Int.-1.-1>, and cannot be called.
+	./Tu.ulam:7:4: ERROR: (1) <print> has no defined function with 2 matching argument types: Bool(1), Int(32), and cannot be called, while compiling class: Tu.
 	Tu.ulam:8:3: ERROR: (1) <print> has no defined function with 0 matching argument types: and cannot be called.
       */
       return std::string("Ue_Tu { }");
@@ -31,5 +31,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3285_test_compiler_funccallargsnomatch_error)
 
 } //end MFM
-
-
