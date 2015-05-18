@@ -1160,7 +1160,8 @@ namespace MFM {
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
     const std::string tdname = tut->getUlamTypeNameOnly();
     Token typeTok;
-    typeTok.init(TOK_TYPE_IDENTIFIER, asNode->getNodeLocation(), m_state.m_pool.getIndexForDataString(tdname));
+    u32 tdid = m_state.m_pool.getIndexForDataString(tdname);
+    typeTok.init(TOK_TYPE_IDENTIFIER, asNode->getNodeLocation(), tdid);
 
     TypeArgs typeargs;
     typeargs.init(typeTok);
