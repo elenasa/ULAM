@@ -195,12 +195,14 @@ namespace MFM {
   bool Lexer::makeNumberToken(std::string& anumber, Token & tok)
   {
     Locator firstloc = m_SS.getLocator();
-
+    bool floatflag = false;
     s32 c = m_SS.read();
 
-    //not supporting floats anymore || c=='.'
-    while(c >= 0 && (isxdigit(c) || c=='x' || c=='X') )
+    //not supporting floats anymore || c=='.' except for error msg
+    while(c >= 0 && (isxdigit(c) || c=='x' || c=='X' || c=='.') )
       {
+	if(c == '.')
+	  floatflag = true;
 	anumber.push_back(c);
 	c = m_SS.read();
       }
@@ -219,7 +221,10 @@ namespace MFM {
 	// build a number
 	//data indexed in map, vector
 	u32 idx = m_state.m_pool.getIndexForDataString(anumber);
-	tok.init(TOK_NUMBER_SIGNED,firstloc,idx);
+	if(floatflag)
+	  tok.init(TOK_NUMBER_FLOAT,firstloc,idx);
+	else
+	  tok.init(TOK_NUMBER_SIGNED,firstloc,idx);
       }
     return true;
   } //makeNumberToken
