@@ -108,14 +108,16 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
-    else if(m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_NOTACLASS)
+    else if(m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_NOTACLASS && m_state.getUlamTypeByIndex(nodeType)->getUlamClass() == UC_NOTACLASS)
       {
-	// ok to cast an atom to an element?
-	//if(!(m_state.getUlamTypeByIndex(tobeType)->getUlamClass() == UC_ELEMENT && nodeType == UAtom))
+	if(nodeType != UAtom)
 	  {
 	    std::ostringstream msg;
-	    msg << "Cannot cast to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	    msg << " (UTI" << tobeType << "); use Conditional-As";
+	    msg << "Cannot cast ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	    msg << " (UTI" << nodeType << ")";
+	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	    msg << " (UTI" << tobeType << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
 	  }

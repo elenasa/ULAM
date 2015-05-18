@@ -8,8 +8,6 @@ namespace MFM {
     {
       /*
 	A.ulam:1:58: ERROR: Array size specifier in [] is not a constant integer.
-	A.ulam:1:53: ERROR: Invalid variable declaration of Type: <Int> and Name: <b> (missing symbol).
-	Unrecoverable Program Parse FAILURE.
       */
 
       return std::string("Ue_A { Int(32) a(7);  Int(32) test() {  a 7 = } }\n");
@@ -29,5 +27,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3320_test_compiler_arraynonconstant_error)
 
 } //end MFM
-
-

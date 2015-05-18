@@ -6,7 +6,12 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./D.ulam:1:64: ERROR: Consider implementing array casts: Cannot cast scalar into array.
+      /*
+	./D.ulam:1:64: ERROR: Array casts currently not supported.
+	./D.ulam:1:64: ERROR: Consider implementing array casts: Cannot cast scalar into array.
+	./D.ulam:1:64: ERROR: Cannot CAST type: Int(3) as a Int(3)[8].
+	./D.ulam:1:64: ERROR: Function 'foo''s Return type's: Int(3)[8] does not match incomplete resulting type.
+      */
       return std::string("Ue_D { typedef Int(3) Foo[8];  Int(3) d[8](1,0,0,0,0,0,0,0);  Int test() {  Bool mybool;  mybool true = d ( mybool )foo = d 0 [] } }\n");
     }
 

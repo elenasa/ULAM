@@ -1319,7 +1319,7 @@ namespace MFM {
   bool Node::makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode)
   {
     bool doErrMsg = false;
-    rtnNode = NULL;
+    //rtnNode = NULL;
     UTI nuti = node->getNodeType();
 
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);

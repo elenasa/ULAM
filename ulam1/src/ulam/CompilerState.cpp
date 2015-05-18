@@ -1464,8 +1464,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
-	    msg << " does not match incomplete resulting type ";
-	    msg << getUlamTypeNameByIndex(rType).c_str();
+	    msg << " does not match incomplete resulting type";
+	    msg << " " << getUlamTypeNameBriefByIndex(rType).c_str();
 	    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_DEBUG);
 	    continue;
 	  }
