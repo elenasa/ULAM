@@ -438,7 +438,11 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
     fp->write(" = ");
     fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
-    fp->write(".getRef();\n");
+
+    //if(!m_varSymbol->isSelf())
+    if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("self"))
+      fp->write(".getRef()");
+    fp->write(";\n");
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
