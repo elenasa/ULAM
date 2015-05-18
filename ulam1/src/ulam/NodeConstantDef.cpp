@@ -149,6 +149,13 @@ namespace MFM {
 	m_state.popClassContext(); //restore
       } //toinstantiate
 
+    //short circuit, avoid assert
+    if(!m_constSymbol)
+      {
+	setNodeType(Nav);
+	return Nav;
+      }
+
     // NOASSIGN (e.g. for class parameters) doesn't have this!
     if(m_nodeExpr)
       {
@@ -164,7 +171,7 @@ namespace MFM {
 	  }
       }
 
-    assert(m_constSymbol);
+    //assert(m_constSymbol);
     UTI suti = m_constSymbol->getUlamTypeIdx();
     UTI cuti = m_state.getCompileThisIdx();
 
@@ -345,6 +352,7 @@ namespace MFM {
       return false;
 
     //store in UlamType format
+    bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
@@ -374,9 +382,10 @@ namespace MFM {
 	  std::ostringstream msg;
 	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  rtnb = false;
 	}
       };
-    return true;
+    return rtnb;
   } //updateConstant
 
   void NodeConstantDef::fixPendingArgumentNode()

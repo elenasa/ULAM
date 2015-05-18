@@ -6,7 +6,9 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Ue_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IArray[4];  IArray(8) arr[4](1,0,0,0);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] cast 0 cast == cast return } }\nExit status: 0");
+      //./B.ulam:8:16: ERROR: Arraysize [] is included in typedef: <IndArr>, and cannot be redefined by typedef: <IArray>.
+      //./B.ulam:8:16: ERROR: Invalid typedef of base type: <Unsigned> and Name: <IArray> (missing symbol).
+      return std::string("Ue_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8)[4] IArray[2] /* INVALID */;  IArray(8) arr[4](1,0,0,0);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] cast 0 cast == cast return } }\nExit status: 0");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -28,5 +30,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3254_test_compiler_typedefarray_changesize_error)
 
 } //end MFM
-
-

@@ -7,8 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	Tu.ulam:7:4: ERROR: (1) <print> has no defined function with 2 matching argument types: <Bool.1.-1>, <Int.-1.-1>, and cannot be called.
-	Tu.ulam:8:3: ERROR: (1) <print> has no defined function with 0 matching argument types: and cannot be called.
+	./Tu.ulam:8:6: ERROR: Check overloading function: <chk> has a duplicate definition: (Uf_3chkUt_10131i), while compiling class: Tu.
       */
       return std::string("Ue_Tu { }");
     }
@@ -28,5 +27,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3297_test_compiler_overloadfuncdef_error)
 
 } //end MFM
-
-

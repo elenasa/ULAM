@@ -38,7 +38,10 @@ namespace MFM {
     UTI rightType = m_nodeRight->checkAndLabelType();
 
     if(leftType == Nav || rightType == Nav || !m_state.isComplete(leftType) || !m_state.isComplete(rightType))
-      return Nav; //quietly ?
+      {
+	setNodeType(Nav);
+	return Nav; //not quietly
+      }
 
     if(!m_nodeLeft->isStoreIntoAble())
       {
@@ -50,9 +53,9 @@ namespace MFM {
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 
-	setNodeType(newType);
+	setNodeType(Nav);  //was newType that wasn't Nav
 	setStoreIntoAble(false);
-	return newType; //nav
+	return Nav; //newType
       }
 
     newType = leftType;
@@ -60,7 +63,8 @@ namespace MFM {
     //cast RHS if necessary
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
-	m_nodeRight = makeCastingNode(m_nodeRight, newType);
+	if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	  newType = Nav; //error
       }
 
     setNodeType(newType);

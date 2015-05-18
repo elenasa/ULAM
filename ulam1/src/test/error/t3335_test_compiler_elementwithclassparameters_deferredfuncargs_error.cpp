@@ -7,14 +7,14 @@ namespace MFM {
     //informed by t3333
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 7\nUe_T { Int(32) i(7);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,1) m;  i m ( b )func . = s ( i )print . j m ( a )func . = s ( j )print . i return } }\nUq_S { constant Int(CONSTANT) x = NONREADYCONST;  constant Int(CONSTANT) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      //./S.ulam:5:1: ERROR: Function 'func''s Return type's: Int(32) does not match incomplete resulting type.
+      return std::string("Exit status: 15\nUe_T { Int(32) i(15);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,2) m;  i m ( b )func . = s ( i )print . j m ( a )func . = s ( j )print . i return } }\nUq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
       /* S(3,2) m; gives errors:
-	 T.ulam:13:7: ERROR: (1) <func> has no defined function with 1 matching argument types: Int(4), and cannot be called, while compiling class: T.
-	 Unrecoverable Program Type Label FAILURE.
+	 ./S.ulam:5:1: ERROR: Function 'func''s Return type's: Int(32) does not match incomplete resulting type.
       */
 
       // note: S(3,1) m; works!!

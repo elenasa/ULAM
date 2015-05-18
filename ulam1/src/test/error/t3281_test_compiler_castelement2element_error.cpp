@@ -6,11 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      // ERROR: Attempting to illegally cast a non-atom type to an element: value type and size was: <Tu.32.-1>, to be:      <Tu.32.-1> -- [Tu.ulam:9:  u = (Tu) t;
-      /* gen code output:
-	 include/Ue_102322Tu.tcc:31:83: error: ‘_Tu96ToElement96’ was not declared in this scope
-      */
-      return std::string("Ue_Tu { System s();  Int(32) me(0);  Int(32) test() {  Tu t;  Tu u;  u t cast = me return } }\nExit status: 0");
+      return std::string("Exit status: 0\nUe_Tu { System s();  Int(32) me(0);  Int(32) test() {  Tu t;  Tu u;  u t cast = me return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -31,5 +27,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3281_test_compiler_castelement2element_error)
 
 } //end MFM
-
-

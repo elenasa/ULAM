@@ -24,6 +24,8 @@ sub BEGIN {
 my $TOPLEVEL = "/home/elenas/WORK/ulam/repo/ULAM/ulam1";
 my $TESTDIR =  "/home/elenas/WORK/ulam/repo/ULAM/ulam1/src/test";
 my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files
+my $SRC_DIR = "safe";
+#my $SRC_DIR = "error";
 
 sub usage_abort
 {
@@ -68,7 +70,7 @@ sub main
     my $start = time;
     my $N = 0; # number of tests run
 
-    my @files = <$TESTDIR/safe/$query>;
+    my @files = <$TESTDIR/$SRC_DIR/$query>;
     chomp @files;
     my $f;
     my $lasttestnum = 0;
@@ -84,14 +86,14 @@ sub main
 
 	    my $dest = $TESTDIR;
 	    my $testf = "t" . $testnum . "*.cpp";
-	    my $src = $TESTDIR . "/safe/". $testf;
+	    my $src = $TESTDIR . "/$SRC_DIR/". $testf;
 	    print "src: <$src> , dest: <$dest> \n";
 
 	    my $log = "/tmp/t" . $testnum . "-testlog.txt";
 	    my $errlog = "/tmp/t" . $testnum . "-testerrlog.txt";
 
 	    # useful System Quark:
-	    #`cp $TESTDIR/safe/t3207_test_compiler_quarksystem_inside_a_quark.cpp $TESTDIR/.`;
+	    #`cp $TESTDIR/$SRC_DIR/t3207_test_compiler_quarksystem_inside_a_quark.cpp $TESTDIR/.`;
 
 	    if($EXEC_TEST_VALGRIND)
 	    {

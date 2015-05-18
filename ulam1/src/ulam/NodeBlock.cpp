@@ -106,6 +106,7 @@ namespace MFM {
 
   void NodeBlock::countNavNodes(u32& cnt)
   {
+    Node::countNavNodes(cnt); //missing
     m_nodeNext->countNavNodes(cnt);
   }
 

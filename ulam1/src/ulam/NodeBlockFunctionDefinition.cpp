@@ -190,7 +190,7 @@ namespace MFM {
     setNodeType(it);
 
     if(it == Nav)
-      return getNodeType(); //bail for this iteration
+      return Nav;; //bail for this iteration
 
     m_state.pushCurrentBlock(this);
 
@@ -207,6 +207,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Undefined function block: <" << getName() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav); //missing?
       }
     m_state.popClassContext(); //restores previous block ptr
     return getNodeType();
