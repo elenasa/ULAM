@@ -90,7 +90,7 @@ namespace MFM {
   UTI NodeTypedef::checkAndLabelType()
   {
     UTI it = Nav;
-
+    u32 errCnt = 0;
     // instantiate, look up in current block
     if(m_typedefSymbol == NULL)
       {
@@ -111,6 +111,7 @@ namespace MFM {
 		msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 		msg << "> is not a typedef, and cannot be used as one";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errCnt++;
 	      }
 	  }
 	else
@@ -119,11 +120,12 @@ namespace MFM {
 	    msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 	    msg << "> is not defined, and cannot be used";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errCnt++;
 	  }
 	m_state.popClassContext(); //restore
       } //toinstantiate
 
-    if(m_typedefSymbol)
+    if(!errCnt && m_typedefSymbol)
       {
 	it = m_typedefSymbol->getUlamTypeIdx();
 

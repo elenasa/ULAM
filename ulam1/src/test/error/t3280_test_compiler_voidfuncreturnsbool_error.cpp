@@ -6,7 +6,9 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //leaks 80 bytes. ):
+      //./Tu.ulam:7:1: ERROR: ISO C forbids ‘return’ with expression, in function returning void.
+      //./Tu.ulam:7:1: ERROR: Function 'func''s Return type's: Void(0) does not match incomplete resulting type 0Nav(0). NOPE!!
+      //./Tu.ulam:10:5: ERROR: Cannot CAST type: Void(0) as a Bool(3).
       return std::string("Ue_Tu { Int(32) me(2);  Int(32) test() {  System s;  me 2 cast = s ( me )print . me return } }\nExit status: 2");
     }
 
@@ -27,5 +29,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3280_test_compiler_voidfuncreturnsbool_error)
 
 } //end MFM
-
-

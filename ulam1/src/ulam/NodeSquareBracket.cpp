@@ -77,7 +77,12 @@ namespace MFM {
 	ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
 	if(!(retype == Int || retype == Unsigned))
 	  {
-	    m_nodeRight = makeCastingNode(m_nodeRight, Int);
+	    //m_nodeRight = makeCastingNode(m_nodeRight, Int);
+	    if(!makeCastingNode(m_nodeRight, Int, m_nodeRight))
+	      {
+		newType = Nav; //error!
+		errorCount++;
+	      }
 	  }
 
 	if(errorCount == 0)

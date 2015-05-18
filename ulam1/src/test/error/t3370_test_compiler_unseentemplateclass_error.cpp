@@ -6,8 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./Typo.ulam:2:1: ERROR: Invalid Class Type: <quaak>; should be: 'element' , 'quark' , or 'union'.
-      //Unrecoverable Program Parse FAILURE.
+      //./Eltypo.ulam:4:2: ERROR: Incomplete Class: Typ0(UNKNOWN)<13> was never defined, fails sizing.
       return std::string("Exit status: 0\nUe_Eltypo { Typo t();  Int(32) test() {  0 cast return } }\nUq_Typo { /* empty class block */ }");
     }
 

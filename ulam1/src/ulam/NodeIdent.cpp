@@ -63,6 +63,7 @@ namespace MFM {
   UTI NodeIdent::checkAndLabelType()
   {
     UTI it = Nav;  //init
+    u32 errCnt = 0;
 
     //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
@@ -121,6 +122,7 @@ namespace MFM {
 		msg << "> is not a variable, and cannot be used as one with class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		errCnt++;
 	      }
 	  }
 	else
@@ -130,16 +132,19 @@ namespace MFM {
 	    msg << "> is not defined, and cannot be used with class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errCnt++;
 	  }
 	m_state.popClassContext(); //restore
       } //lookup symbol
 
-    if(m_varSymbol)
+
+    if(!errCnt && m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx();
       }
 
     setNodeType(it);
+    //store into an array entotal?
     setStoreIntoAble(true);
     return it;
   } //checkAndLabelType
@@ -630,16 +635,16 @@ namespace MFM {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(auti);
     s32 tdarraysize = tdut->getArraySize();
-    if(args.m_arraysize >= 0)  //variable's
+    if(args.m_arraysize != NONARRAYSIZE && tdarraysize != NONARRAYSIZE)
+      //    if(args.m_arraysize >= 0)  //variable's
       {
-	if(tdarraysize >= 0 && tdarraysize != args.m_arraysize)
+	//if(tdarraysize >= 0 && tdarraysize != args.m_arraysize)
 	  {
 	    //error can't support double arrays
 	    std::ostringstream msg;
-	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <";
-	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">, type: ";
-	    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
-	    msg << ", and cannot be redefined by variable: <";
+	    msg << "Arraysize [] is included in typedef: <";
+	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
+	    msg << ">, and cannot be redefined by variable: <";
 	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnb = false;
@@ -661,9 +666,9 @@ namespace MFM {
 	    //error can't support different bitsizes
 	    std::ostringstream msg;
 	    msg << "Bit size (" << tdbitsize << ") is included in typedef: <";
-	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">, type: ";
-	    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
-	    msg << ", and cannot be redefined by variable: <";
+	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << "> (UTI";
+	    msg << auti;
+	    msg << "), and cannot be redefined by variable: <";
 	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnb = false;
@@ -681,18 +686,19 @@ namespace MFM {
     bool rtnb = true;
     UlamType * tdut = m_state.getUlamTypeByIndex(tduti);
     s32 tdarraysize = tdut->getArraySize();
-    if(args.m_arraysize >= 0)
+    //if(args.m_arraysize >= 0)
+    //    if(args.m_arraysize != NONARRAYSIZE || args.m_arraysize >= 0)
+    if(args.m_arraysize != NONARRAYSIZE && tdarraysize != NONARRAYSIZE)
       {
-	if(tdarraysize >= 0 && args.m_arraysize != tdarraysize)
+	//	if(tdarraysize >= 0 && args.m_arraysize != tdarraysize)
+	//if(tdarraysize != NONARRAYSIZE || (tdarraysize >= 0 && args.m_arraysize != tdarraysize))
 	  {
 	    //error can't support typedefs changing arraysizes
 	    std::ostringstream msg;
-	    msg << "Arraysize [" << tdarraysize << "] is included in typedef: <";
-	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">, type: ";
-	    msg << m_state.getUlamTypeNameByIndex(args.m_anothertduti).c_str();
-	    msg << ", and cannot be redefined by typedef: <";
-	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	    msg << ">, to [" << args.m_arraysize << "]";
+	    msg << "Arraysize [] is included in typedef: <";
+	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
+	    msg << ">, and cannot be redefined by typedef: <";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
@@ -718,10 +724,10 @@ namespace MFM {
       {
 	//error can't support named constant arrays
 	std::ostringstream msg;
-	msg << "Arraysize [" << tdarraysize << "] is included in typedef: <";
-	msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">, type: ";
-	msg << m_state.getUlamTypeNameByIndex(args.m_anothertduti).c_str();
-	msg << ", and cannot be used by a named constant: '";
+	msg << "Arraysize [] is included in typedef: <";
+	msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
+	msg  << ">, (UTI" << args.m_anothertduti;
+	msg << "), and cannot be used by a named constant: '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnb = false;

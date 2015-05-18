@@ -6,6 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      //./Su.ulam:5:6: ERROR: The keyword 'self' may not be used as a variable name.
       return std::string("Ue_Su { 0 cast return } }\nExit status: 0");
     }
 
@@ -24,5 +25,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3284_test_compiler_varcalledself_error)
 
 } //end MFM
-
-

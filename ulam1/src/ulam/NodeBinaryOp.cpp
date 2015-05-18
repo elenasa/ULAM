@@ -134,12 +134,16 @@ namespace MFM {
       {
 	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
+	    //m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	      newType = Nav;
 	  }
 
 	if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
+	    //m_nodeRight = makeCastingNode(m_nodeRight, newType);
+	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	      newType = Nav;
 	  }
       }
     return newType;
@@ -147,6 +151,7 @@ namespace MFM {
 
   void NodeBinaryOp::countNavNodes(u32& cnt)
   {
+    Node::countNavNodes(cnt); //missing
     m_nodeLeft->countNavNodes(cnt);
     m_nodeRight->countNavNodes(cnt);
   }

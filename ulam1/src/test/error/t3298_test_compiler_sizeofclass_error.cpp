@@ -6,12 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      /* gen output:
-	 Int Arg: 0
-	 Int Arg: 64
-      */
-
-      //node terminal proxy
+      //./Fu.ulam:4:1: ERROR: Incomplete Variable Decl for type: Int(UNKNOWN) used with variable symbol name 'u' (UTI12) while bit packing class: Fu.
       return std::string("Ue_Fu { System s();  Int(32) u(0);  Int(32) v(64);  Int(32) test() {  u 0u cast = s ( u )print . v 64u cast = s ( v )print . v return } }\nExit status: 64");
     }
 
@@ -29,5 +24,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3298_test_compiler_sizeofclass_error)
 
 } //end MFM
-
-

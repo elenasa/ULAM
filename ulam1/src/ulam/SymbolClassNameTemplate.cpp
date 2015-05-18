@@ -227,7 +227,12 @@ namespace MFM {
 	while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
 	  {
 	    SymbolClass * csym = it->second;
-	    assert(csym->getUlamClass() == UC_UNSEEN);
+	    if(csym->getUlamClass() != UC_UNSEEN)
+	      {
+		it++; //covers synonyms
+		continue;
+	      }
+
 	    csym->setUlamClass(classtype);
 
 	    NodeBlockClass * cblock = csym->getClassBlockNode();

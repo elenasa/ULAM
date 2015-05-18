@@ -15,30 +15,37 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
-    UTI newType = calcNodeType(leftType, rightType); //for casting
 
-    setNodeType(newType);
-    setStoreIntoAble(false);
-
+    //we go away..
     if(isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      return constantFold();
+      {
+	setNodeType(Bool);
+	return constantFold();
+      }
 
+    UTI newType = calcNodeType(leftType, rightType); //for casting
     if(newType != Nav && m_state.isComplete(newType))
       {
+	u32 errCnt = 0;
 	if(UlamType::compare(rightType, newType, m_state) != UTIC_SAME)
 	  {
-	    m_nodeRight = makeCastingNode(m_nodeRight, newType);
+	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	      errCnt++;
 	  }
 
 	if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
 	  {
-	    m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	      errCnt++;
 	  }
 
-	newType = Bool; //always Bool (default size) for node
-	setNodeType(newType);
+	if(errCnt)
+	  newType = Nav;
+	else
+	  newType = Bool; //always Bool (default size) for node; after castings!
       }
-
+    setNodeType(newType);
+    setStoreIntoAble(false);
     return newType;
   } //checkAndLabelType
 

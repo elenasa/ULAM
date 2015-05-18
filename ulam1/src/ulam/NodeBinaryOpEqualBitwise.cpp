@@ -24,8 +24,9 @@ namespace MFM {
 	msg << " on LHS: <" << m_nodeLeft->getName() << ">, type: ";
 	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	nodeType = Nav;
+	setNodeType(nodeType);
       }
-
     return nodeType;
   } //checkandlabeltype
 

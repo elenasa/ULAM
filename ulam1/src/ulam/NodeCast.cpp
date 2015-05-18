@@ -85,7 +85,8 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Cannot cast to nonready type: " ;
-	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	    msg << " (UTI" << tobeType << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    errorsFound++;
 	  }
@@ -95,7 +96,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Cannot cast to incomplete type: " ;
-	msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	msg << " (UTI" << tobeType << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	errorsFound++;
       }
@@ -106,13 +108,27 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
+    else if(m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_NOTACLASS && m_state.getUlamTypeByIndex(nodeType)->getUlamClass() == UC_NOTACLASS)
+      {
+	if(nodeType != UAtom)
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot cast ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	    msg << " (UTI" << nodeType << ")";
+	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	    msg << " (UTI" << tobeType << ")";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errorsFound++;
+	  }
+      }
 
     if(errorsFound == 0) //else
       {
 	if(!m_state.isScalar(tobeType))
 	  {
 	    MSG(getNodeLocationAsString().c_str(),
-		"Consider implementing array casts, elena", DEBUG);
+		"Array casts currently not supported", ERR);
 	    errorsFound++;
 
 	    if(m_state.isScalar(nodeType))
@@ -121,8 +137,7 @@ namespace MFM {
 		    "Consider implementing array casts: Cannot cast scalar into array", ERR);
 		errorsFound++;
 	      }
-
-	    if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
+	    else if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
 	      {
 		MSG(getNodeLocationAsString().c_str(),
 		    "Consider implementing array casts: Array sizes differ", ERR);
@@ -131,6 +146,7 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //to be scalar type
 	    if(!m_state.isScalar(nodeType))
 	      {
 		MSG(getNodeLocationAsString().c_str(),
@@ -164,7 +180,9 @@ namespace MFM {
 	    else
 	      {
 		// update to NodeMemberSelect + NodeFunctionCall
-		m_node = makeCastingNode(m_node, tobeType);
+		//m_node = makeCastingNode(m_node, tobeType);
+		if(!makeCastingNode(m_node, tobeType, m_node))
+		  errorsFound++;
 	      }
 	  }
 	else
@@ -180,6 +198,12 @@ namespace MFM {
 	      }
 	  }
       }
+
+    if(errorsFound)
+      {
+	return Nav; //inconsistent! but keeps cast type..makeCastingNode returns error
+      }
+
     return getNodeType();
   } //checkAndLabelType
 
