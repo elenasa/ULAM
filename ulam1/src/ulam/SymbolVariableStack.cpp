@@ -3,7 +3,11 @@
 
 namespace MFM {
 
-  SymbolVariableStack::SymbolVariableStack(Token id, UTI utype, PACKFIT packed, s32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_stackFrameSlotIndex(slot){}
+  SymbolVariableStack::SymbolVariableStack(Token id, UTI utype, PACKFIT packed, s32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_stackFrameSlotIndex(slot)
+  {
+    //if(getId() == m_state.m_pool.getIndexForDataString("self"))
+    // setIsSelf();
+  }
 
   SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref) : SymbolVariable(sref), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex) {}
 
