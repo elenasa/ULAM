@@ -381,6 +381,8 @@ namespace MFM {
 		  break;
 		}
 	      case Unsigned:
+	      case Unary:
+	      case Bits:
 		{
 		  u32 uval;
 		  if(((SymbolConstantValue *) asym)->getValue(uval))
@@ -477,6 +479,8 @@ namespace MFM {
 		  break;
 		}
 	      case Unsigned:
+	      case Unary:
+	      case Bits:
 		{
 		  u32 uval;
 		  if(((SymbolConstantValue *) asym)->getValue(uval))

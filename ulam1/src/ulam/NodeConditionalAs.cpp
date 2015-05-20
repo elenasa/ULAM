@@ -186,6 +186,10 @@ namespace MFM {
     assert(luti == Ptr);
     luti = luvpass.getPtrTargetType(); //replaces
 
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    Symbol * stgcos = NULL;
+    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
     // atom is a special case since we have to learn its element type at runtime
     // before interrogating if it 'as' a particular QuarkName Type; return signed pos.
     if(luti == UAtom)
@@ -199,9 +203,14 @@ namespace MFM {
 	fp->write("(");
 	fp->write("uc, ");
 	Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
-	fp->write("read().GetType(), ");
+	if(stgcos->isSelf())
+	  fp->write("GetType(), "); //no read for self
+	else
+	  fp->write("read().GetType(), ");
+
 	fp->write("\"");
-	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+	//fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+	fp->write(rut->getUlamTypeMangledName().c_str());
 	fp->write("\");\n"); //keeping pos in tmp
       }
     else  //not an atom
@@ -219,7 +228,8 @@ namespace MFM {
 
 	fp->write(methodNameForCodeGen().c_str()); //mangled-hAs
 	fp->write("(\"");
-	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+	//fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+	fp->write(rut->getUlamTypeMangledName().c_str());
 	fp->write("\"));\n"); //keeping pos in tmp
       }
 
@@ -266,8 +276,9 @@ namespace MFM {
     fp->write(rut->getUlamTypeMangledName().c_str());
     if(rclasstype == UC_ELEMENT)
       fp->write("<EC>::THE_INSTANCE.");
-    else if(rclasstype == UC_QUARK)
-      fp->write("<EC,POS>::");
+    // not possible!! we already know rhs is an element
+    //    else if(rclasstype == UC_QUARK)
+    //  fp->write("<EC,POS>::");
     else
       assert(0);
 

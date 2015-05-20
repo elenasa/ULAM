@@ -312,7 +312,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
 	  {
-	    if(sym->getUlamTypeIdx() == utype)
+	    if(UlamType::compare(sym->getUlamTypeIdx(), utype, m_state) == UTIC_SAME)
 	      {
 		posfound = ((SymbolVariable *) sym)->getPosOffset();
 		break;
@@ -393,7 +393,8 @@ namespace MFM {
 	      {
 		m_state.indent(fp);
 		fp->write("if(!strcmp(namearg,\"");
-		fp->write(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+		//fp->write(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+		fp->write(sut->getUlamTypeMangledName().c_str()); //including class args!
 		fp->write("\")) return ");
 		fp->write("(");
 		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());

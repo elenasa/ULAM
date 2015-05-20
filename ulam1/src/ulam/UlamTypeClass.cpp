@@ -33,8 +33,34 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
     assert(vut->isScalar() && isScalar());
 
-    assert(m_class == UC_ELEMENT);
-    assert(valtypidx == UAtom || valtypidx == typidx);
+    //now allowing atoms to be cast as quarks, as well as elements;
+    //assert(valtypidx == UAtom || valtypidx == typidx);
+    if(m_class == UC_ELEMENT)
+      assert(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME);
+    else if(m_class == UC_QUARK)
+      {
+	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+	assert(valtypidx == UAtom || vclasstype == UC_ELEMENT || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME);
+	if(vclasstype == UC_ELEMENT)
+	  {
+	    SymbolClass * csym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(valtypidx, csym));
+	    NodeBlockClass * cblock = csym->getClassBlockNode();
+	    assert(cblock);
+	    s32 pos = cblock->findUlamTypeInTable(typidx);
+	    if(pos >= 0)
+	      {
+		s32 len = getTotalBitSize();
+		u32 qdata = val.getDataFromAtom(pos, len);
+		val = UlamValue::makeImmediate(typidx, qdata, len);
+	      }
+	    else
+	      assert(0);
+	  }
+	//if same type nothing to do; if atom ?
+      }
+    else
+      assert(0);
     // what change is to be made ????
     // atom type vs. class type
     // how can it be both in an UlamValue?
