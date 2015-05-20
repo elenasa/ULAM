@@ -336,7 +336,6 @@ namespace MFM {
 
    //handle element-atom and atom-element casting differently
    // handle element->quark, atom->quark, not quark->element or quark->atom
-   //    if(nuti == UAtom || vuti == UAtom)
    if(nuti == UAtom || vuti == UAtom || vclasstype == UC_ELEMENT)
      {
        //only to be nclasstype quark makes sense!!! check first, one might be element

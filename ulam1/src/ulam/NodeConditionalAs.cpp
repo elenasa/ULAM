@@ -209,7 +209,6 @@ namespace MFM {
 	  fp->write("read().GetType(), ");
 
 	fp->write("\"");
-	//fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
 	fp->write(rut->getUlamTypeMangledName().c_str());
 	fp->write("\");\n"); //keeping pos in tmp
       }
@@ -228,7 +227,6 @@ namespace MFM {
 
 	fp->write(methodNameForCodeGen().c_str()); //mangled-hAs
 	fp->write("(\"");
-	//fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
 	fp->write(rut->getUlamTypeMangledName().c_str());
 	fp->write("\"));\n"); //keeping pos in tmp
       }
