@@ -200,9 +200,7 @@ namespace MFM {
       }
 
     if(errorsFound)
-      {
-	return Nav; //inconsistent! but keeps cast type..makeCastingNode returns error
-      }
+      return Nav; //inconsistent! but keeps cast type..makeCastingNode returns error
 
     return getNodeType();
   } //checkAndLabelType
@@ -235,7 +233,6 @@ namespace MFM {
     //possibly an array that needs to be casted, per elenemt
     if(m_state.isScalar(tobeType))
       {
-	//assert(m_state.isScalar(nodeType));
 	if(!m_state.isScalar(nodeType))
 	  {
 	    std::ostringstream msg;
@@ -252,7 +249,6 @@ namespace MFM {
 	if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
 	  {
 	    MSG(getNodeLocationAsString().c_str(), "Considering implementing array casts!!!", ERR);
-	    //assert(0);
 	  }
       }
 
@@ -316,7 +312,6 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
     UTI vuti = uvpass.getUlamValueTypeIdx();
-   UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     bool isTerminal = false;
     s32 tmpVarNum = 0;
@@ -331,6 +326,8 @@ namespace MFM {
 	// an immediate terminal value
 	isTerminal = true;
       }
+
+   UlamType * vut = m_state.getUlamTypeByIndex(vuti); //after vuti replacement
 
    //handle element-atom and atom-element casting differently
     if(nuti == UAtom || vuti == UAtom)
@@ -466,7 +463,8 @@ namespace MFM {
     s32 tmpVarPos = m_state.getNextTmpVarNumber();
     // "downcast" might not be true; compare to be sure the atom has a quark "Foo"
     // get signed pos
-    if(vuti == UAtom)
+    //if(vuti == UAtom)
+    if(vuti == UAtom || m_state.getUlamTypeByIndex(vuti)->getUlamClass() == UC_ELEMENT)
       {
 	m_state.indent(fp);
 	fp->write("const s32 ");
@@ -537,12 +535,11 @@ namespace MFM {
     //update the uvpass to have the casted immediate quark
     uvpass = UlamValue::makePtr(tmpIQ, uvpass.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified;
 
-    return;
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCodeCastAtomAndQuark
 
   bool NodeCast::needsACast()
   {
-    //return true;  //debug
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->getNodeType();
 

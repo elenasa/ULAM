@@ -34,7 +34,6 @@ namespace MFM {
     assert(vut->isScalar() && isScalar());
 
     //now allowing atoms to be cast as quarks, as well as elements;
-    //assert(valtypidx == UAtom || valtypidx == typidx);
     if(m_class == UC_ELEMENT)
       assert(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME);
     else if(m_class == UC_QUARK)
@@ -57,7 +56,7 @@ namespace MFM {
 	    else
 	      assert(0);
 	  }
-	//if same type nothing to do; if atom ?
+	//if same type nothing to do; if atom, shows as element in eval-land.
       }
     else
       assert(0);
