@@ -393,8 +393,7 @@ namespace MFM {
 	      {
 		m_state.indent(fp);
 		fp->write("if(!strcmp(namearg,\"");
-		//fp->write(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
-		fp->write(sut->getUlamTypeMangledName().c_str()); //including class args!
+		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		fp->write("\")) return ");
 		fp->write("(");
 		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
