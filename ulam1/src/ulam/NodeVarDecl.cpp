@@ -439,7 +439,6 @@ namespace MFM {
     fp->write(" = ");
     fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
 
-    //if(!m_varSymbol->isSelf())
     if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("self"))
       fp->write(".getRef()");
     fp->write(";\n");
