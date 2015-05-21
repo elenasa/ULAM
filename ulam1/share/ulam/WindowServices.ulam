@@ -30,6 +30,15 @@ element WindowServices {
 
   typedef Unsigned(2) Slot;
 
+  // Constants
+  constant Int cNO_SITES_HIT =        -1;
+  constant Int cEMPTY_SITES_HIT =     -2;
+  constant Int cNONEMPTY_SITES_HIT =  -3;
+  constant Int cALL_SITES_HIT =       -4;
+
+  constant Int cMIN_SCAN_CODE =       cALL_SITES_HIT;
+
+
   // Data members
   Radius firstRadius;
   Radius lastRadius;
@@ -60,9 +69,9 @@ element WindowServices {
     currentIndex = (1<<6)-1;  // Unsigned(6).MAX_VAL
   }
 
-  Bool scan(Int t0) { return scan(t0, -1, -1, -1); }
-  Bool scan(Int t0, Int t1) { return scan(t0, t1, -1, -1); }
-  Bool scan(Int t0, Int t1, Int t2) { return scan(t0, t1, t2, -1); }
+  Bool scan(Int t0) { return scan(t0, cNO_SITES_HIT, cNO_SITES_HIT, cNO_SITES_HIT); }
+  Bool scan(Int t0, Int t1) { return scan(t0, t1, cNO_SITES_HIT, cNO_SITES_HIT); }
+  Bool scan(Int t0, Int t1, Int t2) { return scan(t0, t1, t2, cNO_SITES_HIT); }
 
   /**
      Scan the event window from the firstRadius (by default 0) through
@@ -70,10 +79,10 @@ element WindowServices {
      four types, t1, t2, t3, t4.
 
      The following special cases apply:
-      - If a type is equal to -1, then no sites sites will be considered hits
-      - if a type is equal to -2, then all empty sites will be considered hits
-      - if a type is equal to -3, then all non-empty sites will be considered hits.
-      - if a type is equal to -4, then all sites will be considered hits.
+      - If a type is WindowServices.cNO_SITES_HIT (-1), then no sites sites will be considered hits
+      - if a type is WindowServices.cEMPTY_SITES_HIT (-2), then all empty sites will be considered hits
+      - if a type is WindowServices.cNONEMPTY_SITES_HIT (-3), then all non-empty sites will be considered hits.
+      - if a type is WindowServices.cALL_SITES_HIT (-4), then all sites will be considered hits.
 
      All other negative type values are reserved and will cause
      failure if used.
@@ -83,7 +92,10 @@ element WindowServices {
    */
   Bool scan(Int t0, Int t1, Int t2, Int t3) {
 
-    if (t0 < -4 || t1 < -4 || t2 < -4 || t3 < -4)
+    if (t0 < cMIN_SCAN_CODE ||
+        t1 < cMIN_SCAN_CODE ||
+        t2 < cMIN_SCAN_CODE ||
+        t3 < cMIN_SCAN_CODE)
       fail.fail();
 
     AtomUtils tu;
