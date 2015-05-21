@@ -60,13 +60,6 @@ quark EventWindow {
      corresponding position.
    */
   C2D mapSym(C2D directCoord) native;
-  /*
-  C2D mapSyM(C2D directCoord) {
-    C2D ret;
-    ret.x = -directCoord.x;
-    ret.y = directCoord.y;
-    return ret;
-    }*/
 
   /** Get the SiteNum corresponding to \c coord, if it exists, else
       return EventWindow.size() (which is an illegal SiteNum, and will
