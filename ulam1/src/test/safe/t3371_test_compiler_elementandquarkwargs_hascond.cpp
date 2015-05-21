@@ -6,10 +6,10 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      /* gen code output: (correct answer unlike eval exit status)
+      /* gen code output: (correct answer like eval exit status!)
 	 Int Arg: 1
       */
-      return std::string("Exit status: 0\nUe_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1; );  Int(32) test() {  self Typo(1) has cond { s ( t 1 . )print . t 1 . return } if 0 return } }\nUq_Typo { /* empty class block */ }Uq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1; );  Int(32) test() {  self Typo(1) has cond { s ( t 1 . )print . t 1 . return } if 0 return } }\nUq_Typo { /* empty class block */ }Uq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -89,6 +89,7 @@ namespace MFM{
     bool needsACast(); // trying to avoid extraneous casting.
 
     void genCodeCastAtomAndElement(File * fp, UlamValue & uvpass);
+    void genCodeCastAtomAndQuark(File * fp, UlamValue & uvpass);
   };
 
 }

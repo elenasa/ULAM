@@ -312,7 +312,7 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
 	  {
-	    if(sym->getUlamTypeIdx() == utype)
+	    if(UlamType::compare(sym->getUlamTypeIdx(), utype, m_state) == UTIC_SAME)
 	      {
 		posfound = ((SymbolVariable *) sym)->getPosOffset();
 		break;
@@ -393,7 +393,7 @@ namespace MFM {
 	      {
 		m_state.indent(fp);
 		fp->write("if(!strcmp(namearg,\"");
-		fp->write(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
 		fp->write("\")) return ");
 		fp->write("(");
 		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
@@ -817,9 +817,9 @@ namespace MFM {
       {
 	SymbolClassName * cnsym = (SymbolClassName *) (it->second);
 	assert(cnsym->isClass());
+	UTI cuti = cnsym->getUlamTypeIdx();
 	if( ((SymbolClass *) cnsym)->getUlamClass() == UC_UNSEEN)
 	  {
-	    UTI cuti = cnsym->getUlamTypeIdx();
 	    //skip anonymous classes
 	    if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	      {
