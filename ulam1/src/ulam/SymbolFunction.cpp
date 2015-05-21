@@ -220,6 +220,11 @@ namespace MFM {
 		    break;
 		  }
 	      } //constantarg
+	    else
+	      {
+		rtnBool = false;
+		break;
+	      }
 	  }
       } //next param
     return rtnBool;

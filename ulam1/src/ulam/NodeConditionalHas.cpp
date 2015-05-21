@@ -179,7 +179,7 @@ namespace MFM {
 	Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
 	fp->write("read().GetType(), ");
 	fp->write("\"");
-	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+	fp->write(rut->getUlamTypeMangledName().c_str());
 	fp->write("\") >= 0);\n"); //bool as u32
       }
     else //not atom
@@ -205,7 +205,7 @@ namespace MFM {
 
 	fp->write(methodNameForCodeGen().c_str()); //mangled
 	fp->write("(\"");
-	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+	fp->write(rut->getUlamTypeMangledName().c_str());
 	fp->write("\") >= 0);\n");
       }
     //update uvpass
