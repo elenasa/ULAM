@@ -881,10 +881,15 @@ sub runUlamCompilations
         print STDOUT "OK\n";
         my $info = $stderr;
         chomp($info);
+        $stderr = "";
         my @rows = split(/\n/, $info);
         for my $row (@rows) {
             my ($ulam,$info,$path,$name,$cname,$size,$testflag,$classtype) = split(/ /,$row);
-            next unless $ulam eq "ULAM" && $info eq "INFO:";
+            if ($ulam ne "ULAM" || $info ne "INFO:") {
+                # Not our business..  Leave in case it's important to somebody else..
+                $stderr .= "$row\n";
+                next;
+            }
             defined $classtype or die "Successful exit but not enough fields in '$row'";
             # For now, strip location info.. :(
             $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
