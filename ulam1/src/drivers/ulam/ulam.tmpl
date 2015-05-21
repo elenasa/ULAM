@@ -151,8 +151,8 @@ sub runThis {
         }
     }
     if (showOutput()) {
-        print " # STDOUT:\n$stdout";     print "\n" unless $stdout =~ /.*\n$/;
-        print " # STDERR:\n$stderr";     print "\n" unless $stderr =~ /.*\n$/;
+        print " # STDOUT:\n{$stdout}";  print "\n" unless $stdout =~ /.*\n$/;
+        print " # STDERR:\n{$stderr}";  print "\n" unless $stderr =~ /.*\n$/;
         print " # STATUS: $status";     print "\n" unless $status =~ /.*\n$/;
     }
     return ($status,$stdout,$stderr);
@@ -772,7 +772,9 @@ sub compilationDriver {
         UDie("$buildResults executable creation problem(s) detected\n")
             if $buildResults;
         return 0;
-    } else {
+    }
+
+    if ($actionCmd eq "test") {
         ($buildResults) = buildTestMain();
         UDie("$buildResults test main creation problem(s) detected\n")
             if $buildResults;
@@ -788,6 +790,8 @@ sub compilationDriver {
 
         return 0;
     }
+
+    IDie("Unrecognized action '$actionCmd'");
 }
 
 sub myMkdir {
@@ -879,7 +883,8 @@ sub runUlamCompilations
         chomp($info);
         my @rows = split(/\n/, $info);
         for my $row (@rows) {
-            my ($path,$name,$cname,$size,$testflag,$classtype) = split(/ /,$row);
+            my ($ulam,$info,$path,$name,$cname,$size,$testflag,$classtype) = split(/ /,$row);
+            next unless $ulam eq "ULAM" && $info eq "INFO:";
             defined $classtype or die "Successful exit but not enough fields in '$row'";
             # For now, strip location info.. :(
             $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
@@ -1070,16 +1075,24 @@ sub buildSharedLibrary
     pISC("## Create library");
     my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
     my $rollupObject = "$ULAM_WORK_DIR/build/$ROLLUP_FILE_STEM.o";
-    my @args = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject);
+    my @bslargs = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject);
     my $status = 0;
 
     print " Create $libfile shared library: ";
     my $gpp = getTool($gppTool);
 
-    my $HOLD_PATH = $ENV{PATH};
-    $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
-    ($status,my $stdout,my $stderr) = runThis(undef,undef,$gpp,@args);
-    $ENV{PATH} = $HOLD_PATH;
+    {
+        my $HOLD_PATH = $ENV{PATH};
+        $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+        ($status,my $stdout,my $stderr) = runThis(undef,undef,$gpp,@bslargs);
+        pISC("## USED PATH ($ENV{PATH})");
+        if (defined($HOLD_PATH)) {
+            $ENV{PATH} = $HOLD_PATH;
+            pISC("## RESET PATH ($ENV{PATH})");
+        } else {
+            delete $ENV{PATH};
+        }
+    }
 
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
@@ -1096,32 +1109,28 @@ sub generateTestForTestable {
     print $handle <<EOF;
 
 #include "$elementName.h"
+
 static int $elementTestFuncName(bool output)
 {
-  enum { SIZE = 96 };
-  typedef MFM::ParamConfig<SIZE> OurParamConfig;
-  typedef MFM::P3Atom<OurParamConfig> OurAtom;
-  typedef MFM::CoreConfig<OurAtom, OurParamConfig> OurCoreConfig;
 
-  AllocateElementTypes<OurCoreConfig>();
+  OurElementTypeNumberMap etnm;
+  AllocateElementTypes<OurEventConfig>(etnm);
 
-  typedef MFM::UlamContext<OurCoreConfig> OurUlamContext;
-  typedef MFM::Tile<OurCoreConfig> OurTile;
-  typedef MFM::EventWindow<OurCoreConfig> OurEventWindow;
-  OurTile theTile;
+  OurSite storage[SIDE*SIDE];
+  OurTile theTile(SIDE,storage);
   theTile.Init();
   OurUlamContext ouc;
   ouc.SetTile(theTile);
   OurEventWindow & ew = ouc.GetEventWindow();
-  MFM::s32 ctr = theTile.GetTileWidth()/2;
+  MFM::s32 ctr = theTile.GetTileSide()/2;
   if (!ew.InitForEvent(MFM::SPoint(ctr,ctr)))
     return 99;
-  typedef MFM::$elementName<OurCoreConfig> OurElement;
+  typedef MFM::$elementName<OurEventConfig> OurElement;
   OurElement& elt = OurElement::THE_INSTANCE;
   OurAtom atom = elt.GetDefaultAtom();
   ew.SetCenterAtomSym(atom);
 
-  MFM::Ui_Ut_102323Int rtn;
+  MFM::Ui_Ut_102321i rtn;
   rtn = OurElement::THE_INSTANCE.Uf_4test(ouc, atom);
   int count = rtn.read();
   if (output) {
@@ -1191,8 +1200,17 @@ EOF
 
     print $handle <<EOF;
 
+const MFM::u32 SIDE = 12;
+typedef MFM::P3Atom OurAtom;
+typedef MFM::Site<MFM::P3AtomConfig> OurSite;
+typedef MFM::EventConfig<OurSite, 4> OurEventConfig;
+typedef MFM::ElementTypeNumberMap<OurEventConfig> OurElementTypeNumberMap;
+typedef MFM::UlamContext<OurEventConfig> OurUlamContext;
+typedef MFM::Tile<OurEventConfig> OurTile;
+typedef MFM::EventWindow<OurEventConfig> OurEventWindow;
+
 template <class EC>
-static void AllocateElementTypes()
+static void AllocateElementTypes(MFM::ElementTypeNumberMap<EC> & etnm)
 {
   static bool initted = false;
   if (initted) return;
@@ -1210,7 +1228,7 @@ EOF
 EOF
             } else {
                 print $handle <<EOF;
-  MFM::$en<EC>::THE_INSTANCE.AllocateType();
+  MFM::$en<EC>::THE_INSTANCE.AllocateType(etnm);
 EOF
             }
         }
@@ -1288,6 +1306,28 @@ sub buildSimDriver
     UDie("What") if $linkFailed;
 }
 
+sub runSingleGccCompilation
+{
+    my ($target, $cfile, $extraDefines) = @_;
+    pISC("  # Single compile: $cfile");
+
+    my $dir = getWorkDir();
+    my $gppStatus = 0;
+    $gppStatus =
+        gppCompile($cfile,$target,
+                   getDebugArgs(),
+                   "EXTERNAL_DEFINES", $extraDefines,
+                   "ULAM_CPPFLAGS", "-Wno-unused-variable",
+                   "ULAM_SRC_DIR", "$dir/src",
+                   "ULAM_CPP_FILE", $cfile,
+                   "ULAM_BLD_DIR", "$dir/build",
+                   "ULAM_BIN_DIR", "$dir/bin",
+                   "MFM_ROOT_DIR", $MFM_ROOT_DIR,
+                   "USE_PATH", $ORIG_PATH
+        );
+    my $fileStatus = $gppStatus;
+    return $fileStatus;
+}
 
 sub runGccCompilations
 {
@@ -1301,20 +1341,7 @@ sub runGccCompilations
         if ($cfile eq $rollupFile) {
              $extraDefines .= " -I $MFM_ROOT_DIR/src/sim/include -I $MFM_ROOT_DIR/src/elements/include";
         }
-       my $gppStatus = 0;
-        $gppStatus =
-            gppCompile($cfile,"ulam_cppcompile",
-                       getDebugArgs(),
-                       "EXTERNAL_DEFINES", $extraDefines,
-                       "ULAM_CPPFLAGS", "-Wno-unused-variable",
-                       "ULAM_SRC_DIR", "$dir/src",
-                       "ULAM_CPP_FILE", $cfile,
-                       "ULAM_BLD_DIR", "$dir/build",
-                       "ULAM_BIN_DIR", "$dir/bin",
-                       "MFM_ROOT_DIR", $MFM_ROOT_DIR,
-                       "USE_PATH", $ORIG_PATH
-            );
-        my $fileStatus = $gppStatus;
+        my $fileStatus = runSingleGccCompilation("ulam_cppcompile", $cfile, $extraDefines);
         $status += $fileStatus;
         last if $fileStatus != 0 && $KEEP_GOING == 0;
     }
@@ -1325,20 +1352,11 @@ sub makeProgram
 {
     my $progname = shift;
     pISC("## Create program $progname");
-    my $gppStatus = 0;
-    my $dir = getWorkDir();
+
     my $cfile = "$progname.cpp";
-    $gppStatus =
-        gppCompile($cfile,"ulam_program",
-                   getDebugArgs(),
-                   "EXTERNAL_DEFINES", "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc",
-                   "ULAM_SRC_DIR", "$dir/src",
-                   "ULAM_CPP_FILE", $cfile,
-                   "ULAM_BLD_DIR", "$dir/build",
-                   "ULAM_BIN_DIR", "$dir/bin",
-                   "MFM_ROOT_DIR", $MFM_ROOT_DIR,
-                   "USE_PATH", $ORIG_PATH
-        );
+    my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc";
+    my $gppStatus = runSingleGccCompilation("ulam_program", $cfile, $extraDefines);
+    pISC("## COMPILED $cfile NOW EHAT");
     return ($gppStatus,$progname);
 }
 
@@ -1369,7 +1387,7 @@ sub runTestMain {
     my @args = ();
     push @args, "output"
         if showTests();
-    print " Running $prog: ";
+    print " Running $path: ";
     my ($status,$stdout,$stderr) = runThis(undef,undef,$path,@args);
     if ($status ne "") {
         print STDOUT "ERROR: $status\n$stderr\n";
@@ -1421,9 +1439,25 @@ sub printEnv {
     }
 }
 
+sub stringHashRef {
+    my $href = shift;
+    my $str = "";
+    for my $key (sort keys %{$href}) {
+        $str .= ", " unless $str eq "";
+        my $val = $href->{$key};
+        if (defined($val)) {
+            $str .= "$key='$val'";
+        } else {
+            $str .= "$key=<<UNDEF>>";  # Without surrounding 's..
+        }
+    }
+    return $str;
+}
+
 sub modifyEnv {
     my @kv = @_;
     my %OLDENV = %ENV;
+#    pISC("## Modify environment [FROM]: ".stringHashRef(\%OLDENV));
     print STDOUT " # Environment:" if showEnvironment();
     while (@kv) {
         my $key = shift @kv;
@@ -1435,12 +1469,14 @@ sub modifyEnv {
         print STDOUT " $key=$d$val$d" if showEnvironment();
     }
     print STDOUT "\n" if showEnvironment();
+#    pISC("## Modified environment [TO]: ".stringHashRef(\%OLDENV));
     return \%OLDENV;
 }
 
 sub restoreEnv {
     my $oldEref = shift;
     %ENV = %{$oldEref};
+#    pISC("## Restored environment: ".stringHashRef(\%ENV));
 }
 
 sub changeEnv {
@@ -1491,6 +1527,7 @@ sub gppCompile {
 }
 
 sub runMake {
+    IDie("runMake deprecated");
     my ($makeTarget,@args) = @_;
     my $make = getTool($makeTool);
     my $mfm = getTool($mfmRootTool);
