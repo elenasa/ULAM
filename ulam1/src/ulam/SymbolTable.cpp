@@ -817,9 +817,9 @@ namespace MFM {
       {
 	SymbolClassName * cnsym = (SymbolClassName *) (it->second);
 	assert(cnsym->isClass());
+	UTI cuti = cnsym->getUlamTypeIdx();
 	if( ((SymbolClass *) cnsym)->getUlamClass() == UC_UNSEEN)
 	  {
-	    UTI cuti = cnsym->getUlamTypeIdx();
 	    //skip anonymous classes
 	    if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	      {
