@@ -181,7 +181,7 @@ namespace MFM {
 	      {
 		// update to NodeMemberSelect + NodeFunctionCall
 		//m_node = makeCastingNode(m_node, tobeType);
-		if(!makeCastingNode(m_node, tobeType, m_node))
+		if(!makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
 		  errorsFound++;
 	      }
 	  }
@@ -590,6 +590,9 @@ namespace MFM {
 
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
     ULAMTYPE nodetypEnum = m_state.getUlamTypeByIndex(nodeType)->getUlamTypeEnum();
+
+    if(m_state.getUlamTypeByIndex(nodeType)->getUlamClass() == UC_QUARK)
+      return false;
 
     // consider user requested first, then size independent;
     // even constant may need casting (e.g. narrowing for saturation)
