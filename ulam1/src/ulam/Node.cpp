@@ -1323,7 +1323,7 @@ namespace MFM {
 
   //PROTECTED METHODS:
   //Node * Node::makeCastingNode(Node * node, UTI tobeType)
-  bool Node::makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode)
+  bool Node::makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode, bool isExplicit)
   {
     bool doErrMsg = false;
     //rtnNode = NULL;
@@ -1347,6 +1347,7 @@ namespace MFM {
 	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
 	else
 	  {
+	    assert(!isExplicit);
 	    rtnNode = new NodeCast(node, tobeType, NULL, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
@@ -1370,7 +1371,7 @@ namespace MFM {
 	      doErrMsg = true;
 	    else
 	      {
-		if(uticr != UTIC_SAME)
+		if(uticr != UTIC_SAME && !isExplicit)
 		  {
 		    rtnNode = new NodeCast(castFunc, tobeType, NULL, m_state);
 		    assert(rtnNode);
@@ -1404,7 +1405,7 @@ namespace MFM {
 	    //before asserts start hitting later during assignment
 	    //quarks are likely unknown size at checkandlabel time
 	    //if(tobeType != nuti)
-	    if(uticr != UTIC_SAME)
+	    if(uticr != UTIC_SAME && !isExplicit)
 	      {
 		rtnNode = new NodeCast(mselectNode, tobeType, NULL, m_state);
 		assert(rtnNode);
@@ -1548,6 +1549,8 @@ namespace MFM {
 	MSG(&argTok, msg.str().c_str(), DEBUG);
 	delete fsymptr; //also deletes the NodeBlockFunctionDefinition
 	fsymptr = NULL;
+	delete argIdentNode;
+	argIdentNode = NULL;
       }
     else
       {
