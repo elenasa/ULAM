@@ -54,6 +54,7 @@ namespace MFM{
 
   struct CompilerState; //forward
   struct TypeArgs; //forward
+  class NodeFunctionCall; //forward
 
   class Node
   {
@@ -199,6 +200,9 @@ namespace MFM{
     Locator m_loc;
     NNO m_parentNo;
     NNO m_no;
+
+    NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
+
   };
 
 }

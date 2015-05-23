@@ -286,6 +286,7 @@ namespace MFM {
     rtnUV.setUlamValueTypeIdx(tuti);
 
     s32 arraysize = state.getArraySize(tuti);
+    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize); //possible scalar if element or quark
     assert(arraysize > NONARRAYSIZE);
     s32 bitsize = state.getBitSize(tuti);
     assert( (bitsize * arraysize) == p.getPtrLen());

@@ -6,8 +6,9 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      // just got implemented!
       //Foo.ulam:1:121: (NodeFunctionCall.cpp:evalToStoreInto:269) ERROR: Use of function calls as lefthand values is not currently supported. Save the results of <func> to a variable, type: C2D.
-      return std::string("Exit status: 116\nUe_Foo { Q q( C2D c( Int(4) m_width(7);  Int(4) m_height(4); ); );  Int(32) test() {  q ( )toInt . cast cast return } }\nUq_Q { C2D c( Int(4) m_width(7);  Int(4) m_height(4); );  <NOMAIN> }\nUq_C2D { Int(4) m_width(7);  Int(4) m_height(4);  <NOMAIN> }\n");
+      return std::string("Exit status: 11\nUe_Foo { Q q( C2D c( Int(4) m_width(7);  Int(4) m_height(4); ); );  Int(32) test() {  q ( )toInt . cast cast return } }\nUq_Q { C2D c( Int(4) m_width(7);  Int(4) m_height(4); );  <NOMAIN> }\nUq_C2D { Int(4) m_width(7);  Int(4) m_height(4);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
