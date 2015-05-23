@@ -41,6 +41,23 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
+
+#if 0
+    if(!m_nodeLeft->isStoreIntoAble())
+      {
+	//e.g. funcCall is not storeintoable even if its return
+	//     value is.
+	std::ostringstream msg;
+	msg << "Member selected must be a valid lefthand side, type: ";
+	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
+	msg << m_nodeLeft->getName();
+	msg << " requires a variable; may be a casted function call";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
+      } //done
+#endif
+
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE classtype = lut->getUlamClass();
     if(classtype == UC_NOTACLASS && lut->getUlamTypeEnum() != Holder)
@@ -114,7 +131,9 @@ namespace MFM {
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs
     //(i.e. data member or func call)
-    m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
+    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
+    assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
+    m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     u32 slot = makeRoomForNodeType(getNodeType());
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
@@ -174,7 +193,9 @@ namespace MFM {
       }
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
-    m_state.m_currentObjPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
+    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
+    assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
+    m_state.m_currentObjPtr = newCurrentObjectPtr;
 
     makeRoomForSlots(1); //always 1 slot for ptr
     evs = m_nodeRight->evalToStoreInto();
@@ -220,6 +241,7 @@ namespace MFM {
     //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
+
     m_nodeRight->genCode(fp, uvpass);  // is this ok?
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
