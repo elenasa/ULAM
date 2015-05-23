@@ -1,6 +1,7 @@
 ulam 1;
 
 quark DebugUtils {
+  Void printSelf() native;
   Void print(Unsigned arg) native;
   Void print(Int arg) native;
   Void print(Int(4) arg) native;
