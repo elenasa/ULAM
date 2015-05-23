@@ -6,9 +6,20 @@
 
 namespace MFM{
 
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_919printSelf(UlamContext<EC>& uc, T& Uv_4self)
+  {
+    typedef typename EC::ATOM_CONFIG AC;
+    AtomSerializer<AC> as(Uv_4self);
+    Tile<EC> & tile = uc.GetTile();
+    EventWindow<EC> & ew = uc.GetEventWindow();
+    SPoint ctr = ew.GetCenterInTile();
+
+    LOG.Message("self %@ at (%d,%d) of %s", &as, ctr.GetX(), ctr.GetY(), tile.GetLabel());
+  } // Uf_9212printSelf
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils0<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131i Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131i Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -17,7 +28,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils0<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10141i Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10141i Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(4); //mask
@@ -26,7 +37,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils0<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321i Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321i Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     LOG.Message("print: Int: %d", tmp);
@@ -34,7 +45,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils0<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321u Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321u Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     LOG.Message("print: Unsigned: %u", tmp);
@@ -42,7 +53,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils0<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131y Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131y Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -52,7 +63,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils0<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131b Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131b Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -62,7 +73,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils0<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_3arg) //native
   {
     T atom = Uv_3arg.read();
     typedef typename EC::ATOM_CONFIG AC;
@@ -72,7 +83,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils0<EC, POS>::Uf_6assert(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10111b Uv_1b) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_6assert(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10111b Uv_1b) //native
   {
     bool btmp = Uv_1b.read();
     printf("assert: arg is %d\n",btmp);

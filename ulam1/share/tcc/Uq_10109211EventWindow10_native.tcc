@@ -6,7 +6,7 @@
 namespace MFM{
 
   template<class EC, u32 POS>
-  Ui_Ut_102961a<EC> Uq_10109211EventWindow0<EC,POS>::Uf_4aref(UlamContext<EC> & uc, T& Uv_4self,
+  Ui_Ut_102961a<EC> Uq_10109211EventWindow10<EC,POS>::Uf_4aref(UlamContext<EC> & uc, T& Uv_4self,
 							      Ui_Ut_10161u Uv_5index) //native
   {
     u32 siteNumber = Uv_5index.read();
@@ -16,7 +16,7 @@ namespace MFM{
   }
 
   template<class EC, u32 POS>
-  void Uq_10109211EventWindow0<EC,POS>::Uf_4aset(UlamContext<EC> & uc,
+  void Uq_10109211EventWindow10<EC,POS>::Uf_4aset(UlamContext<EC> & uc,
                                                 T& Uv_4self, Ui_Ut_10161u Uv_5index,
                                                 Ui_Ut_102961a<EC> Uv_1v) //native
   {
@@ -26,7 +26,7 @@ namespace MFM{
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_10111b Uq_10109211EventWindow0<EC,POS>::Uf_6isLive(UlamContext<EC> & uc,
+  Ui_Ut_10111b Uq_10109211EventWindow10<EC,POS>::Uf_6isLive(UlamContext<EC> & uc,
                                                              T& Uv_4self, Ui_Ut_10161u Uv_5index)
   {
     u32 siteNumber = Uv_5index.read();
@@ -35,7 +35,7 @@ namespace MFM{
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_10111b Uq_10109211EventWindow0<EC,POS>::Uf_4swap(UlamContext<EC> & uc, T& Uv_4self,
+  Ui_Ut_10111b Uq_10109211EventWindow10<EC,POS>::Uf_4swap(UlamContext<EC> & uc, T& Uv_4self,
 							 Ui_Ut_10161u Uv_6index1,
 							 Ui_Ut_10161u Uv_6index2)
   {
@@ -49,7 +49,7 @@ namespace MFM{
   }
 
   template<class EC, u32 POS>
-  Ui_Uq_102323C2D0<EC> Uq_10109211EventWindow0<EC, POS>::Uf_8getCoord(UlamContext<EC> & uc, T& Uv_4self,
+  Ui_Uq_102323C2D0<EC> Uq_10109211EventWindow10<EC, POS>::Uf_8getCoord(UlamContext<EC> & uc, T& Uv_4self,
 								      Ui_Ut_10161u Uv_7siteNum)
   {
     //! EventWindow.ulam:21:     C2D ret;
@@ -68,7 +68,7 @@ namespace MFM{
   } // Uf_8getCoord
 
   template<class EC, u32 POS>
-  Ui_Ut_10161u Uq_10109211EventWindow0<EC, POS>::Uf_9213getSiteNumber(UlamContext<EC> & uc, T& Uv_4self,
+  Ui_Ut_10161u Uq_10109211EventWindow10<EC, POS>::Uf_9213getSiteNumber(UlamContext<EC> & uc, T& Uv_4self,
 								      Ui_Uq_102323C2D0<EC> Uv_5coord)
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
@@ -87,13 +87,13 @@ namespace MFM{
 
   //! EventWindow.ulam:28:   SiteNum size() native;
   template<class EC, u32 POS>
-  Ui_Ut_10161u Uq_10109211EventWindow0<EC,POS>::Uf_4size(UlamContext<EC> & uc,
+  Ui_Ut_10161u Uq_10109211EventWindow10<EC,POS>::Uf_4size(UlamContext<EC> & uc,
                                                                T& Uv_4self) {
     return Ui_Ut_10161u(EventWindow<EC>::SITE_COUNT);
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_10131u Uq_10109211EventWindow0<EC, POS>::Uf_9214changeSymmetry(UlamContext<EC> & uc,T& Uv_4self,
+  Ui_Ut_10131u Uq_10109211EventWindow10<EC, POS>::Uf_9214changeSymmetry(UlamContext<EC> & uc,T& Uv_4self,
 								       Ui_Ut_10131u Uv_6newSym)
   {
     EventWindow<EC> & ew = uc.GetEventWindow();
@@ -107,7 +107,7 @@ namespace MFM{
 
   //! EventWindow.ulam:34:   C2D mapSym(C2D directCoord) {
   template<class EC, u32 POS>
-  Ui_Uq_102323C2D0<EC> Uq_10109211EventWindow0<EC, POS>::Uf_6mapSym(UlamContext<EC> & uc, T& Uv_4self,
+  Ui_Uq_102323C2D0<EC> Uq_10109211EventWindow10<EC, POS>::Uf_6mapSym(UlamContext<EC> & uc, T& Uv_4self,
 								    Ui_Uq_102323C2D0<EC> Uv_9211directCoord)
   {
     EventWindow<EC> & ew = uc.GetEventWindow();
@@ -129,7 +129,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109211EventWindow0<EC,POS>::Uf_7diffuse(UlamContext<EC> & uc,
+  void Uq_10109211EventWindow10<EC,POS>::Uf_7diffuse(UlamContext<EC> & uc,
                                                    T& Uv_4self)	 //native
   {
     EventWindow<EC> & ew = uc.GetEventWindow();
