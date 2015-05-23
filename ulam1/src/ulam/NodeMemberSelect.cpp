@@ -42,7 +42,6 @@ namespace MFM {
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
 
-#if 0
     if(!m_nodeLeft->isStoreIntoAble())
       {
 	//e.g. funcCall is not storeintoable even if its return
@@ -56,7 +55,6 @@ namespace MFM {
 	setNodeType(Nav);
 	return Nav;
       } //done
-#endif
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE classtype = lut->getUlamClass();
