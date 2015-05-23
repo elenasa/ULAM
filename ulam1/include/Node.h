@@ -54,6 +54,7 @@ namespace MFM{
 
   struct CompilerState; //forward
   struct TypeArgs; //forward
+  class NodeFunctionCall; //forward
 
   class Node
   {
@@ -157,8 +158,7 @@ namespace MFM{
   protected:
 
     CompilerState & m_state;  //for printing error messages with path
-    //Node * makeCastingNode(Node * node, UTI tobeType);
-    bool makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode);
+    bool makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode, bool isExplicit = false);
     bool warnOfNarrowingCast(UTI nodeType, UTI tobeType);
 
     virtual void genMemberNameOfMethod(File * fp); //helper method to read/write into/from tmpvar
@@ -199,6 +199,9 @@ namespace MFM{
     Locator m_loc;
     NNO m_parentNo;
     NNO m_no;
+
+    NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
+
   };
 
 }
