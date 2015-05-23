@@ -333,7 +333,7 @@ namespace MFM {
     UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
     m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
 
-    //(con't) push return slot(s) last (on both STACKS for now)
+    //(continue) push return slot(s) last (on both STACKS for now)
     makeRoomForNodeType(rtnType, STACK);
 
     assert(rtnslots == m_state.slotsNeeded(rtnType));
