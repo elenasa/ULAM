@@ -23,7 +23,7 @@ namespace MFM
 	//no way convert the biggest negative number to unsigned
 	assert(num > S32_MIN);
 	num = -num;
-	digits = DigitCount((u32) num, 10) + 1;
+	digits = DigitCount((u32) num, 10);
 	useneg = true;
       }
     else //>0
@@ -32,13 +32,15 @@ namespace MFM
       }
 
     std::ostringstream os;
+
+    if(useneg)
+      os << "n";
+
     if (digits < 9)
       os << digits;
     else
       os << 9 << ToLeximited(digits);
 
-    if(useneg)
-      os << "n";
     os << num;
     return os.str();
   } //ToLeximitedNumber (signed)
