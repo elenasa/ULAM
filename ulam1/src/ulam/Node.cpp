@@ -1,8 +1,15 @@
 #include <iostream>
 #include "Node.h"
 #include "CompilerState.h"
+#include "NodeBlockFunctionDefinition.h"
 #include "NodeFunctionCall.h"
+#include "NodeIdent.h"
 #include "NodeMemberSelect.h"
+#include "NodeVarDecl.h"
+#include "SymbolVariableStack.h"
+#include "SymbolFunction.h"
+#include "SymbolFunctionName.h"
+
 #include "UlamTypeInt.h"
 
 namespace MFM {
@@ -1323,22 +1330,10 @@ namespace MFM {
     UTI nuti = node->getNodeType();
 
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
-    if(uticr == UTIC_DONTKNOW)
-      {
-	std::ostringstream msg;
-	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	msg << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	msg << "(UTI" << tobeType << ") in class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	// continue on..
-      }
-
     if(uticr == UTIC_SAME)
       {
 	//happens too often with Bool.1.-1 for some reason; and Quark toInt special case
 	// handle quietly
-	//return node;
 	rtnNode = node;
 	return true;
       }
@@ -1361,15 +1356,42 @@ namespace MFM {
 	      doErrMsg = true; //error msg instead
 	  }
       }
-    else if (nclasstype == UC_QUARK)
+    else if(nclasstype == UC_QUARK)
       {
-	Token identTok;
-	u32 castId = m_state.m_pool.getIndexForDataString("toInt");
-	identTok.init(TOK_IDENTIFIER, getNodeLocation(), castId);
 	if(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() != Int)
 	  doErrMsg = true;
+	else if(!node->isStoreIntoAble())
+	  {
+	    // 'node' is a function call that returns a quark (it's not storeintoable);
+	    // build a toIntHelper function that takes the return value of 'node'
+	    // as its arg and returns toInt
+	    NodeFunctionCall * castFunc = buildCastingFunctionCallNode(node, tobeType);
+	    if(!castFunc)
+	      doErrMsg = true;
+	    else
+	      {
+		if(uticr != UTIC_SAME)
+		  {
+		    rtnNode = new NodeCast(castFunc, tobeType, NULL, m_state);
+		    assert(rtnNode);
+		    rtnNode->setNodeLocation(getNodeLocation());
+		    rtnNode->updateLineage(getNodeNo());
+		  }
+		else
+		  rtnNode = castFunc;
+
+		//redo check and type labeling
+		UTI newType = rtnNode->checkAndLabelType();
+		if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
+		  doErrMsg = true; //error msg instead
+	      }
+	  }
 	else
 	  {
+	    Token identTok;
+	    u32 castId = m_state.m_pool.getIndexForDataString("toInt");
+	    identTok.init(TOK_IDENTIFIER, getNodeLocation(), castId);
+
 	    //fill in func symbol during type labeling;
 	    Node * fcallNode = new NodeFunctionCall(identTok, NULL, m_state);
 	    assert(fcallNode);
@@ -1418,17 +1440,161 @@ namespace MFM {
 
     if(doErrMsg)
       {
-	std::ostringstream msg;
-	msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	msg << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//setNodeType(Nav); //missing?
-	//delete rtnNode;
-	//rtnNode = NULL;
+	if(uticr == UTIC_DONTKNOW)
+	  {
+	    std::ostringstream msg;
+	    msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    msg << "(UTI" << tobeType << ") in class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
       }
-    //return rtnNode;
     return !doErrMsg;
   } //makecastingnode
+
+  NodeFunctionCall * Node::buildCastingFunctionCallNode(Node * node, UTI tobeType)
+  {
+    Locator loc = getNodeLocation(); //used throughout
+    u32 castId = m_state.m_pool.getIndexForDataString("_toIntHelper");
+    Token funcidentTok(TOK_IDENTIFIER, loc, castId);
+
+    NodeBlockClass * currClassBlock = m_state.getClassBlock();
+
+    //make the function def, with node (quark) type as its param, returns Int
+    SymbolFunction * fsymptr = new SymbolFunction(funcidentTok, tobeType, m_state);
+    //No NodeTypeDescriptor needed for Int
+    NodeBlockFunctionDefinition * fblock = new NodeBlockFunctionDefinition(fsymptr, currClassBlock, NULL, m_state);
+    assert(fblock);
+    fblock->setNodeLocation(loc);
+
+    //symbol will have pointer to body (or just decl for 'use');
+    fsymptr->setFunctionNode(fblock); //tfr ownership
+
+    m_state.pushCurrentBlock(fblock); //before parsing the args
+
+    //create "self" symbol whose index is that of the "hidden" first arg (i.e. a Ptr to an Atom);
+    //immediately below the return value(s); and belongs to the function definition scope.
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    Token selfTok(TOK_IDENTIFIER, loc, selfid);
+
+    m_state.m_currentFunctionBlockDeclSize = -2; // -(slots needed for return + 1); negative indicates parameter for symbol instal
+    m_state.m_currentFunctionBlockMaxDepth = 0;
+
+    SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, UAtom, UNPACKED, m_state.m_currentFunctionBlockDeclSize, m_state);
+    selfsym->setIsSelf();
+    m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the fblock
+
+    UTI nodeType = node->getNodeType(); //quark type..
+    UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+    assert(nut->getUlamClass() == UC_QUARK);
+    u32 quid = nut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+    Token typeTok(TOK_TYPE_IDENTIFIER, loc, quid);
+
+    TypeArgs typeargs;
+    typeargs.init(typeTok);
+    typeargs.m_bitsize = nut->getBitSize();
+    typeargs.m_arraysize = nut->getArraySize();
+    typeargs.m_classInstanceIdx = nodeType;
+
+    u32 argid = m_state.m_pool.getIndexForDataString("arg");
+    Token argTok(TOK_IDENTIFIER, loc, argid);
+    NodeIdent * argIdentNode = new NodeIdent(argTok, NULL, m_state);
+    assert(argIdentNode);
+    argIdentNode->setNodeLocation(loc);
+
+    Symbol * argSym = NULL; //a place to put the new symbol; not a decl list, nor typedef from another class
+    argIdentNode->installSymbolVariable(typeargs, argSym);
+    assert(argSym);
+
+    //delete tmpni; //done with nti
+    //tmpni = NULL;
+
+    //NodeTypedescriptor for 'node' type?
+    Node * argNode = new NodeVarDecl((SymbolVariable*) argSym, NULL, m_state);
+    assert(argNode);
+    argNode->setNodeLocation(loc);
+    fsymptr->addParameterSymbol(argSym); //ownership stays with NodeBlockFunctionDefinition's ST
+
+    //potentially needed to resolve its node type
+    fblock->addParameterNode(argNode); //transfer owner
+
+    //Now, look specifically for a function with the same given name defined
+    Symbol * fnSym = NULL;
+    if(!currClassBlock->isFuncIdInScope(funcidentTok.m_dataindex, fnSym))
+      {
+	//first time name used as a function..add symbol function name/typeNav
+	fnSym = new SymbolFunctionName(funcidentTok, Nav, m_state);
+
+	//ownership goes to the class block's ST
+	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
+      }
+
+    bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr); //transfers ownership, if added
+    if(!isAdded)
+      {
+	//this is a duplicate function definition with same parameters and given name!!
+	//return types may differ
+	std::ostringstream msg;
+	msg << "Duplicate defined function '" << m_state.m_pool.getDataAsString(fsymptr->getId());
+	msg << "' with the same parameters" ;
+	MSG(&argTok, msg.str().c_str(), DEBUG);
+	delete fsymptr; //also deletes the NodeBlockFunctionDefinition
+	fsymptr = NULL;
+      }
+    else
+      {
+	//starts with positive one for local variables
+	m_state.m_currentFunctionBlockDeclSize = 1;
+	m_state.m_currentFunctionBlockMaxDepth = 0;
+
+	/* like a typical quark toInt cast expression */
+	u32 tointId = m_state.m_pool.getIndexForDataString("toInt");
+	Token castidentTok(TOK_IDENTIFIER, loc, tointId);
+
+	//fill in func symbol during type labeling;
+	Node * fcallNode = new NodeFunctionCall(castidentTok, NULL, m_state);
+	assert(fcallNode);
+	fcallNode->setNodeLocation(loc);
+	Node * mselectNode = new NodeMemberSelect(argIdentNode, fcallNode, m_state);
+	assert(mselectNode);
+	mselectNode->setNodeLocation(loc);
+
+	//the body: single statement return arg.toInt();
+	NodeReturnStatement * returnNode =  new NodeReturnStatement(mselectNode, m_state);
+	assert(returnNode);
+	returnNode->setNodeLocation(loc);
+
+	NodeStatements * sNode = new NodeStatements(returnNode, m_state);
+	assert(sNode);
+	sNode->setNodeLocation(loc);
+
+	fblock->setNextNode(sNode);
+	fblock->setDefinition();
+	fblock->setMaxDepth(0); //no local variables, except params
+      }
+
+    //this block's ST is no longer in scope
+    m_state.popClassContext(); //= prevBlock;
+
+    m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
+    m_state.m_currentFunctionBlockMaxDepth = 0; //reset
+
+    //func call symbol to return to NodeCast; fsymptr maybe null
+    NodeFunctionCall * rtnNode = new NodeFunctionCall(funcidentTok, fsymptr, m_state);
+    assert(rtnNode);
+    rtnNode->setNodeLocation(loc);
+    rtnNode->addArgument(node);
+
+    return rtnNode;
+  } //buildCastingFunctionCallNode
 
   bool Node::warnOfNarrowingCast(UTI nodeType, UTI tobeType)
   {
