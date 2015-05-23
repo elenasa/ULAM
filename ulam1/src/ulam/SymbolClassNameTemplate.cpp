@@ -331,7 +331,7 @@ namespace MFM {
     u32 numParams = getNumberOfParameters();
     if(numParams == 0)
       {
-	return "0";
+	return "10";
       }
 
     std::ostringstream args;

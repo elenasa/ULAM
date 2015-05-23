@@ -54,7 +54,7 @@ namespace MFM {
   std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
   {
     assert(instance == getUlamTypeIdx());
-    return "0";
+    return "10"; //zero args
   }
 
   void SymbolClassName::updateLineageOfClass()
