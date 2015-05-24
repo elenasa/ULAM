@@ -421,4 +421,7 @@ namespace MFM {
   void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
   {}
 
+  void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  {}
+
 } //end MFM
