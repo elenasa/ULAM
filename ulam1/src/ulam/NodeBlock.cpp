@@ -282,7 +282,8 @@ namespace MFM {
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 
-	m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
+	if(m_nodeNext)
+	  m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
