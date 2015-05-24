@@ -1307,6 +1307,11 @@ namespace MFM {
     vut->genCodeAfterReadingIntoATmpVar(fp, uvpass); //why was this commented out?
   } //genCodeConvertABitVectorIntoATmpVar
 
+  void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  {
+    assert(0); //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
+  }
+
   std::string Node::allCAPS(const char * s) //static method
   {
     u32 len = strlen(s);
