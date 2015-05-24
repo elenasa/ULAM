@@ -340,7 +340,6 @@ namespace MFM {
   void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
   {
     //use the instance UTI instead of the node's original type
-    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
     ULAMCLASSTYPE classtype = cut->getUlamClass();
     assert(cut->getUlamTypeEnum() == Class);
@@ -402,8 +401,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(cut->getUlamTypeMangledName().c_str());
-
-    //tbd inheritance
+    fp->write(" : public UlamClass");  //was tbd inheritance
 
     fp->write("\n");
 
@@ -642,7 +640,8 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("bool ");  //return pos offset, or -1 if not found
 
-    UTI cuti = m_state.getCompileThisIdx();
+    //UTI cuti = m_state.getCompileThisIdx();
+    UTI cuti = getNodeType();
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 
