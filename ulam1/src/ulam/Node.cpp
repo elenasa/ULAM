@@ -1368,6 +1368,7 @@ namespace MFM {
 	  doErrMsg = true;
 	else if(!node->isStoreIntoAble())
 	  {
+	    // ASSUMES a function call is not a valid lhs !!!
 	    // 'node' is a function call that returns a quark (it's not storeintoable);
 	    // build a toIntHelper function that takes the return value of 'node'
 	    // as its arg and returns toInt
