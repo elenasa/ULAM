@@ -216,4 +216,12 @@ namespace MFM {
       m_nodeNext->genCodeToStoreInto(fp, uvpass);
   } //genCodeToStoreInto
 
+  void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  {
+    m_node->generateUlamClassInfo(fp, declOnly, dmcount);
+
+    if(m_nodeNext)
+      m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
+  } //generateUlamClassInfo
+
 } //end MFM

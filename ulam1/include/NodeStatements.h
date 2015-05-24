@@ -80,6 +80,8 @@ namespace MFM{
 
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
+    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+
   protected:
     Node * m_node;
     NodeStatements * m_nodeNext;

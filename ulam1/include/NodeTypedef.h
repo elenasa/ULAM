@@ -82,6 +82,8 @@ namespace MFM{
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
+    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+
   private:
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate

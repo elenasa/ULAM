@@ -97,6 +97,8 @@ namespace MFM{
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
+    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+
   private:
     SymbolConstantValue * m_constSymbol;
     Node * m_nodeExpr;
