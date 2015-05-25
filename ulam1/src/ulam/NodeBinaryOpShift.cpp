@@ -64,8 +64,12 @@ namespace MFM {
 
   UTI NodeBinaryOpShift::calcNodeType(UTI lt, UTI rt)  //shift
   {
-    UTI newType = Nav; //init
+    if(lt == Nav || rt == Nav)
+      {
+	return Nav;
+      }
 
+    UTI newType = Nav; //init
     // all shift operations are performed as lhs type
     if(m_state.isScalar(lt) && m_state.isScalar(rt))
       {
