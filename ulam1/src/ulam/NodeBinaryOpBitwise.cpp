@@ -39,6 +39,11 @@ namespace MFM {
 
   UTI NodeBinaryOpBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
   {
+    if(lt == Nav || rt == Nav)
+      {
+	return Nav;
+      }
+
     UTI newType = Nav;  //init
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(lt, rt, m_state);
     if(uticr == UTIC_DONTKNOW)
