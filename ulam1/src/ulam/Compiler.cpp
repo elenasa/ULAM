@@ -142,13 +142,13 @@ namespace MFM {
     //for regular classes and templates, only; since NNOs used
     //followed by the first c&l in case of re-orgs
     m_state.m_programDefST.updateLineageForTableOfClasses();
-    m_state.m_err.clearCounts(); //missing?
 
     bool sumbrtn = true;
     u32 infcounter = 0;
     u32 errCnt = 0;
     do{
       // resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
+      m_state.m_err.clearCounts(); //warnings and errors
       sumbrtn = resolvingLoop();
       errCnt = m_state.m_err.getErrorCount();
       if(++infcounter > MAX_ITERATIONS || errCnt > 0)
@@ -230,7 +230,6 @@ namespace MFM {
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context
     sumbrtn &= m_state.m_programDefST.fullyInstantiateTableOfClasses(); //with ready args
     //checkAndLabelTypes: lineage updated incrementally
-    m_state.m_err.clearCounts(); //errors and warnings
     sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled
     return sumbrtn;
   } //resolvingLoop

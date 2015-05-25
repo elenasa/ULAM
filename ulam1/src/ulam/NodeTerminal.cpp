@@ -240,16 +240,16 @@ namespace MFM {
 	return false;
       }
 
-    if(!fit->isMinMaxAllowed())
+    if(!fit->isMinMaxAllowed() && (fituti != Bits))
       {
 	std::ostringstream msg;
 	msg << "Cannot check: <" << m_constant.uval << ">, fits into a non-arithmetic type: ";
 	msg << m_state.getUlamTypeNameByIndex(fituti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	return false;
       }
 
-    if(getNodeType() == Nav)
+    if(nuti == Nav)
       {
 	std::ostringstream msg;
 	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
@@ -275,6 +275,7 @@ namespace MFM {
 	break;
       case Unsigned:
       case Unary:
+      case Bits:
 	{
 	  u32 numval = m_constant.uval;
 	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
@@ -283,7 +284,6 @@ namespace MFM {
       case Bool:
 	rtnb = true;
 	break;
-      case Bits:
       default:
 	{
 	  std::ostringstream msg;

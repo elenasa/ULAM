@@ -18,8 +18,12 @@ namespace MFM {
 
   UTI NodeBinaryOpLogical::calcNodeType(UTI lt, UTI rt)  //logical
   {
-    UTI newType = Nav; //init
+    if(lt == Nav || rt == Nav)
+      {
+	return Nav;
+      }
 
+    UTI newType = Nav; //init
     // all logical operations are performed as Bool.BITSPERBOOL.-1
     if(m_state.isScalar(lt) && m_state.isScalar(rt))
       {
