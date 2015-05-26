@@ -37,7 +37,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Unread called twice bogusly: <" << (char) m_fileRecords[id].getUnreadByte() << ">";
 	Locator lastLoc = m_fileRecords[id].getUnreadLoc();
-	MSG(m_state.getFullLocationAsString(lastLoc).c_str(), msg.str().c_str(),DEBUG);
+	MSG(m_state.getFullLocationAsString(lastLoc).c_str(), msg.str().c_str(), DEBUG);
       }
 
     m_fileRecords[id].setUnreadFlag(true);
@@ -128,7 +128,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Couldn't open file <" << filename << "> errno=" << errno << " " << strerror(errno);
-	MSG("", msg.str().c_str(), ERR);
+	MSG("", msg.str().c_str(), DEBUG);
 	return false;         //couldn't open the file
       }
 
