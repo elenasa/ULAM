@@ -240,7 +240,7 @@ namespace MFM {
 	return false;
       }
 
-    if(!fit->isMinMaxAllowed() && (fituti != Bits))
+    if(!fit->isMinMaxAllowed() && (fit->getUlamTypeEnum() != Bits))
       {
 	std::ostringstream msg;
 	msg << "Cannot check: <" << m_constant.uval << ">, fits into a non-arithmetic type: ";
