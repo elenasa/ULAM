@@ -160,7 +160,7 @@ namespace MFM {
     if(m_nodeExpr)
       {
 	it = m_nodeExpr->checkAndLabelType();
-	if(!m_nodeExpr->isAConstant())
+	if(!m_nodeExpr->isAConstant() && it != Nav)
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
