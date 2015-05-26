@@ -123,14 +123,14 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid type for LHS of conditional operator '" << getName();
-	    msg << "'; Class Not Found: "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+	    msg << "'; Type Not Found: "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	else
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid type for LHS of conditional operator '" << getName();
-	    msg <<  "', "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+	    msg <<  "', "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    msg << "; Passing through as UNFOUND for eval";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
