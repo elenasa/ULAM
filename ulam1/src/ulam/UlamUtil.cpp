@@ -11,19 +11,27 @@ namespace MFM
 
   std::string ToLeximitedNumber(s32 num)
   {
-    //handles negative numbers greater than the biggest negative number
-    //returns 'n' before a negative num
-    //returns 10 when 'num' is zero
+    //handles negative numbers
+    //returns 'n' before a negative num, e.g., -3 -> n13
+    //returns '10' when 'num' is zero
+    //returns 'n10' when 'num' is the biggest negative number
     bool useneg = false;
     u32 digits;
     if(num == 0)
       digits = 1;
     else if(num < 0)
       {
-	//no way convert the biggest negative number to unsigned
-	assert(num > S32_MIN);
-	num = -num;
-	digits = DigitCount((u32) num, 10) + 1;
+	// use 'n10' as a special code meaning 'max negative number'
+        if (num == S32_MIN)
+          {
+            num = 0;
+            digits = 1;
+          }
+        else
+          {
+            num = -num;
+            digits = DigitCount((u32) num, 10);
+          }
 	useneg = true;
       }
     else //>0
@@ -32,13 +40,15 @@ namespace MFM
       }
 
     std::ostringstream os;
+
+    if(useneg)
+      os << "n";
+
     if (digits < 9)
       os << digits;
     else
       os << 9 << ToLeximited(digits);
 
-    if(useneg)
-      os << "n";
     os << num;
     return os.str();
   } //ToLeximitedNumber (signed)

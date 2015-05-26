@@ -240,4 +240,7 @@ namespace MFM {
 #endif
   } //genCode
 
+  void NodeTypedef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  {}
+
 } //end MFM

@@ -123,14 +123,14 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid type for LHS of conditional operator '" << getName();
-	    msg << "'; Class Not Found: "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+	    msg << "'; Type Not Found: "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	else
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid type for LHS of conditional operator '" << getName();
-	    msg <<  "', "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+	    msg <<  "', "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    msg << "; Passing through as UNFOUND for eval";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
@@ -179,7 +179,7 @@ namespace MFM {
 	Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
 	fp->write("read().GetType(), ");
 	fp->write("\"");
-	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+	fp->write(rut->getUlamTypeMangledName().c_str());
 	fp->write("\") >= 0);\n"); //bool as u32
       }
     else //not atom
@@ -205,7 +205,7 @@ namespace MFM {
 
 	fp->write(methodNameForCodeGen().c_str()); //mangled
 	fp->write("(\"");
-	fp->write(rut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+	fp->write(rut->getUlamTypeMangledName().c_str());
 	fp->write("\") >= 0);\n");
       }
     //update uvpass

@@ -1487,7 +1487,11 @@ namespace MFM {
 		msg << ">, does not match resulting type's ";
 		msg << getUlamTypeNameByIndex(rType).c_str() << " base type: <";
 		msg << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
-		m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_WARN); //ERR?
+
+		if(fsym->getId() == m_pool.getIndexForDataString("toInt") && it == Int)
+		  m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_DEBUG);
+		else
+		  m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_WARN); //ERR?
 	      }
 	    else
 	      {
@@ -1738,9 +1742,18 @@ namespace MFM {
 
     //handle UAtom assignment as a singleton (not array values)
     if(ruv.getUlamValueTypeIdx() == Ptr && (ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom))
+      return assignArrayValues(lptr, ruv);
+
+#if 0
+    if(ruv.getUlamValueTypeIdx() == Ptr)
       {
-	return assignArrayValues(lptr, ruv);
+	if(getArraySize(ruv.getPtrTargetType()) != NONARRAYSIZE)
+	  return assignArrayValues(lptr, ruv);
+	else if(ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom)
+	  return;// assignValuePtr(lptr, ruv);
       }
+#endif
+
     //r is data (includes packed arrays), store it into where lptr is pointing
     assert(UlamType::compare(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
 

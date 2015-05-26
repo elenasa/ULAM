@@ -439,7 +439,6 @@ namespace MFM {
     fp->write(" = ");
     fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
 
-    //if(!m_varSymbol->isSelf())
     if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("self"))
       fp->write(".getRef()");
     fp->write(";\n");
@@ -475,5 +474,24 @@ namespace MFM {
     m_state.m_genCodingConditionalAs = false; // done
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?
   } //genCodedAutoLocal
+
+  void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  {
+    UTI nuti = getNodeType();
+
+    //output a case of switch statement
+    m_state.indent(fp);
+    fp->write("case ");
+    fp->write_decimal(dmcount);
+    fp->write(": { static UlamClassDataMemberInfo i(\"");
+    fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeMangledName().c_str());
+    fp->write("\", \"");
+    fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
+    fp->write("\", ");
+    fp->write_decimal(m_varSymbol->getPosOffset());
+    fp->write("u); return i; }\n");
+
+    dmcount++; //increment data member count
+  } //generateUlamClassInfo
 
 } //end MFM

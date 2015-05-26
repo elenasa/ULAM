@@ -111,7 +111,6 @@ namespace MFM{
 
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
-
   protected:
     SymbolTable m_functionST;
 
@@ -128,6 +127,10 @@ namespace MFM{
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
     virtual void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void generateInternalIsMethodForElement(File * fp, bool declOnly);
+    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+    void generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount);
+    void generateUlamClassGetMangledName(File * fp, bool declOnly);
 
     std::string removePunct(std::string str);
   };

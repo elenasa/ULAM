@@ -9,10 +9,20 @@ quark C2D {
   Coord x;
   Coord y;
 
+  Void init(Int ax, Int ay) {
+    x = ax;
+    y = ay;
+  }
+
+  Int getX() { return (Int) x; }
+  Int getY() { return (Int) y; }
+
+  Void setX(Int ax) { x = (Coord) ax; }
+  Void setY(Int ay) { y = (Coord) ay; }
+
   C2D make(Int x, Int y) {
     C2D ret;
-    ret.x = x;
-    ret.y = y;
+    ret.init(x,y);
     return ret;
   }
 

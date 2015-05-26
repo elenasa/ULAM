@@ -98,10 +98,12 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Compilation initialization FAILURE: <" << startstr.c_str() << ">\n";
 	errput->write(msg.str().c_str());
+	perrs++;
       }
 
-    // continue with Parser's parseProgram
-    perrs = p->parseProgram(startstr, errput); //will be compared to answer
+    // continue with Parser's parseProgram (including push error to avoid infinite l)
+    perrs += p->parseProgram(startstr, errput); //will be compared to answer
+
     if (perrs)
       {
 	std::ostringstream msg;
@@ -142,13 +144,13 @@ namespace MFM {
     //for regular classes and templates, only; since NNOs used
     //followed by the first c&l in case of re-orgs
     m_state.m_programDefST.updateLineageForTableOfClasses();
-    m_state.m_err.clearCounts(); //missing?
 
     bool sumbrtn = true;
     u32 infcounter = 0;
     u32 errCnt = 0;
     do{
       // resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
+      m_state.m_err.clearCounts(); //warnings and errors
       sumbrtn = resolvingLoop();
       errCnt = m_state.m_err.getErrorCount();
       if(++infcounter > MAX_ITERATIONS || errCnt > 0)
@@ -157,7 +159,7 @@ namespace MFM {
 	  msg << errCnt << " Errors found during resolving loop---";
 	  msg << "possible INCOMPLETE (or Template) class detected---";
 	  msg << " after " << infcounter << " iterations";
-	  MSG("", msg.str().c_str(), DEBUG);
+	  MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  //note: not an error because template uses remain unresolved
 	  break;
 	}
@@ -190,10 +192,11 @@ namespace MFM {
 	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
 	// however, in the context of "is", this is an error and t.f. a Nav node.
 	assert(m_state.goAgain() || errCnt > 0); //sanity check; ran out of iterations
+
 	std::ostringstream msg;
-	msg << navcount << " Nodes with illegal 'Nav' types detected after type labeling class: ";
+	msg << navcount << " Nodes with illegal types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG("", msg.str().c_str(), ERR);
+	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     else
       assert(!m_state.goAgain() && errCnt == 0);
@@ -203,7 +206,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during type labeling";
-	MSG("", msg.str().c_str(), INFO);
+	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
 
     errCnt = m_state.m_err.getErrorCount();
@@ -211,7 +214,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << errCnt << " TOO MANY TYPELABEL ERRORS";
-	MSG("", msg.str().c_str(), INFO);
+	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
       }
 
     // testing targetmap only
@@ -230,7 +233,6 @@ namespace MFM {
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context
     sumbrtn &= m_state.m_programDefST.fullyInstantiateTableOfClasses(); //with ready args
     //checkAndLabelTypes: lineage updated incrementally
-    m_state.m_err.clearCounts(); //errors and warnings
     sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled
     return sumbrtn;
   } //resolvingLoop

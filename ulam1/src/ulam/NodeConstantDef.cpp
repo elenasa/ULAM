@@ -160,7 +160,7 @@ namespace MFM {
     if(m_nodeExpr)
       {
 	it = m_nodeExpr->checkAndLabelType();
-	if(!m_nodeExpr->isAConstant())
+	if(!m_nodeExpr->isAConstant() && it != Nav)
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
@@ -419,6 +419,9 @@ namespace MFM {
   }
 
   void NodeConstantDef::genCode(File * fp, UlamValue& uvpass)
+  {}
+
+  void NodeConstantDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {}
 
 } //end MFM

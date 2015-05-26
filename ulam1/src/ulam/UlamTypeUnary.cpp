@@ -28,7 +28,7 @@ namespace MFM {
 
   const char * UlamTypeUnary::getUlamTypeAsSingleLowercaseLetter()
   {
-    return "u";
+    return "y";
   }
 
   bool UlamTypeUnary::cast(UlamValue & val, UTI typidx)

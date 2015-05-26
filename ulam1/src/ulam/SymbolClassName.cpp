@@ -54,7 +54,7 @@ namespace MFM {
   std::string SymbolClassName::formatAnInstancesArgValuesAsAString(UTI instance)
   {
     assert(instance == getUlamTypeIdx());
-    return "0";
+    return "10"; //zero args
   }
 
   void SymbolClassName::updateLineageOfClass()
@@ -142,8 +142,8 @@ namespace MFM {
     if(navCounter > 0)
       {
 	std::ostringstream msg;
-	msg << navCounter << " data member nodes with illegal 'Nav' types remain in class <";
-	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	msg << navCounter << " data member nodes with illegal types remain in class <";
+	msg << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
 	msg << ">";
 	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }

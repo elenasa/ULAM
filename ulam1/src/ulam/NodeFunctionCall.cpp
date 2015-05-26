@@ -85,6 +85,7 @@ namespace MFM {
     std::vector<UTI> argTypes;
     std::vector<bool> constArgs;
     u32 constantArgs = 0;
+    u32 navArgs = 0;
 
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
@@ -96,6 +97,8 @@ namespace MFM {
 	  {
 	    UTI argtype = m_argumentNodes->getNodeType(i);  //plus side-effect
 	    argTypes.push_back(argtype);
+	    if(argtype == Nav)
+	      navArgs++;
 	    // track constants and potential casting to be handled
 	    if(m_argumentNodes->isAConstant(i))
 	      {
@@ -106,6 +109,12 @@ namespace MFM {
 	      constArgs.push_back(false);
 	  }
 	m_state.popClassContext(); //restore here
+
+	if(navArgs)
+	  {
+	    setNodeType(Nav);
+	    return Nav; //short circuit
+	  }
 
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
 	// currently requires exact match
@@ -324,7 +333,7 @@ namespace MFM {
     UlamValue saveSelfPtr = m_state.m_currentSelfPtr; // restore upon return from func *****
     m_state.m_currentSelfPtr = m_state.m_currentObjPtr; // set for subsequent func calls ****
 
-    //(con't) push return slot(s) last (on both STACKS for now)
+    //(continue) push return slot(s) last (on both STACKS for now)
     makeRoomForNodeType(rtnType, STACK);
 
     assert(rtnslots == m_state.slotsNeeded(rtnType));

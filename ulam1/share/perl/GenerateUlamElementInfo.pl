@@ -88,7 +88,7 @@ if ($csyc == 1) {
     $symbody .= "return $syms[0];";
 } else {
     $symbody .= <<EOF;
-      Random & r = uc.GetRandom();
+Random & r = uc.GetRandom();
 EOF
     if ($csyc == 8) {
       $symbody .= "      return r.Create($csyc);"

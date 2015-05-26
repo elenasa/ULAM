@@ -267,6 +267,7 @@ int main(int argc, char ** argv)
         for(MFM::TargetMap::const_iterator i = ds.TargetMapBegin(); i != ds.TargetMapEnd(); ++i)
           {
             std::cerr
+              << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
               << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
               << " " << i->second.m_className
               << " " << i->first

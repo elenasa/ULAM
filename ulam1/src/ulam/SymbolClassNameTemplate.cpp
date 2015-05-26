@@ -331,7 +331,7 @@ namespace MFM {
     u32 numParams = getNumberOfParameters();
     if(numParams == 0)
       {
-	return "0";
+	return "10";
       }
 
     std::ostringstream args;
@@ -381,6 +381,8 @@ namespace MFM {
 		  break;
 		}
 	      case Unsigned:
+	      case Unary:
+	      case Bits:
 		{
 		  u32 uval;
 		  if(((SymbolConstantValue *) asym)->getValue(uval))
@@ -477,6 +479,8 @@ namespace MFM {
 		  break;
 		}
 	      case Unsigned:
+	      case Unary:
+	      case Bits:
 		{
 		  u32 uval;
 		  if(((SymbolConstantValue *) asym)->getValue(uval))
@@ -830,7 +834,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << navclasscnt;
-		msg << " data member nodes with illegal 'Nav' types remain in class instance <";
+		msg << " data member nodes with illegal types remain in class instance <";
 		msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 		msg << ">";
 		MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);

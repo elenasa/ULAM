@@ -5,7 +5,7 @@
 namespace MFM{
 
   template<class EC, u32 POS>
-  Ui_Ut_102321u Uq_10104Site0<EC, POS>::Uf_8getTouch(UlamContext<EC>& uc, T& Uv_4self)
+  Ui_Ut_102321u Uq_10104Site10<EC, POS>::Uf_8getTouch(UlamContext<EC>& uc, T& Uv_4self)
   {
     typedef typename EC::ATOM_CONFIG AC;
     Base<AC> & base = uc.GetBase();
@@ -17,7 +17,7 @@ namespace MFM{
 
   //! Site.ulam:7:   ARGB getIn() { ARGB a; return a; }
   template<class EC, u32 POS>
-  Ui_Ut_14181u Uq_10104Site0<EC, POS>::Uf_5getIn(UlamContext<EC>& uc, T& Uv_4self)
+  Ui_Ut_14181u Uq_10104Site10<EC, POS>::Uf_5getIn(UlamContext<EC>& uc, T& Uv_4self)
   {
 
     //! Site.ulam:7:   ARGB getIn() { ARGB a; return a; }
@@ -34,7 +34,7 @@ namespace MFM{
 
   //! Site.ulam:8:   ARGB getOut() { ARGB a; return a; }
   template<class EC, u32 POS>
-  Ui_Ut_14181u Uq_10104Site0<EC, POS>::Uf_6getOut(UlamContext<EC>& uc, T& Uv_4self)
+  Ui_Ut_14181u Uq_10104Site10<EC, POS>::Uf_6getOut(UlamContext<EC>& uc, T& Uv_4self)
   {
 
     //! Site.ulam:8:   ARGB getOut() { ARGB a; return a; }
@@ -51,7 +51,7 @@ namespace MFM{
 
   //! Site.ulam:9:   ARGB setOut(ARGB newVal) { ARGB a; return a; }
   template<class EC, u32 POS>
-  Ui_Ut_14181u Uq_10104Site0<EC, POS>::Uf_6setOut(UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_14181u Uv_6newVal)
+  Ui_Ut_14181u Uq_10104Site10<EC, POS>::Uf_6setOut(UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_14181u Uv_6newVal)
   {
 
     //! Site.ulam:9:   ARGB setOut(ARGB newVal) { ARGB a; return a; }

@@ -9,7 +9,7 @@ namespace MFM {
       /* gen code output: (correct answer unlike eval exit status)
 	 Int Arg: 1
       */
-      return std::string("Exit status: 2\nUe_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1;  Unsigned(1) u(0);  Int(2) i(0); );  Int(32) test() {  Eltypo el;  el Typo(1) has cond { s ( t 1 . )print . t 1 . return } if 2u cast return } }\nUq_Typo { constant Int(32) a = NONREADYCONST;  Unsigned(UNKNOWN) u(0);  Int(UNKNOWN) i(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1;  Unsigned(1) u(0);  Int(2) i(0); );  Int(32) test() {  Eltypo el;  el Typo(1) has cond { s ( t 1 . )print . t 1 . return } if 2u cast return } }\nUq_Typo { constant Int(32) a = NONREADYCONST;  Unsigned(UNKNOWN) u(0);  Int(UNKNOWN) i(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
