@@ -623,10 +623,11 @@ namespace MFM {
     // 'has' is for both class types
     NodeBlock::generateCodeForBuiltInClassFunctions(fp, declOnly, classtype);
 
-    //generate 2 UlamClass:: methods for smart ulam debugging
+    //generate 3 UlamClass:: methods for smart ulam debugging
     u32 dmcount = 0; //pass ref
     generateUlamClassInfo(fp, declOnly, dmcount);
     generateUlamClassInfoCount(fp, declOnly, dmcount); //after dmcount is updated by nodes
+    generateUlamClassGetMangledName(fp, declOnly);
 
     // 'is' is only for element/classes
     if(classtype == UC_ELEMENT)
@@ -799,6 +800,65 @@ namespace MFM {
 	fp->write(";\n\n");
       }
   } //generateUlamClassInfoCount
+
+  void NodeBlockClass::generateUlamClassGetMangledName(File * fp, bool declOnly)
+  {
+    UTI cuti = getNodeType();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    ULAMCLASSTYPE classtype = cut->getUlamClass();
+
+    if(!declOnly)
+      {
+	m_state.indent(fp);
+	if(classtype == UC_ELEMENT)
+	  fp->write("template<class EC>\n");
+	else if(classtype == UC_QUARK)
+	  fp->write("template<class EC, u32 POS>\n");
+	else
+	  assert(0);
+      }
+
+    m_state.indent(fp);
+    fp->write("const char * "); //return type
+
+    if(!declOnly)
+      {
+	//include the mangled class::
+	fp->write(cut->getUlamTypeMangledName().c_str());
+
+	if(classtype == UC_QUARK)
+	  fp->write("<EC, POS>");
+	else
+	  fp->write("<EC>");
+
+	fp->write("::");
+      }
+
+    fp->write("GetMangledClassName() const"); //method name!!!
+
+    if(!declOnly)
+      {
+	fp->write("\n");
+
+	m_state.indent(fp);
+	fp->write("{\n");
+
+	m_state.m_currentIndentLevel++;
+	m_state.indent(fp);
+
+	fp->write("return \"");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("\";\n");
+
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("} //GetMangledClassName\n\n");
+      }
+    else
+      {
+	fp->write(";\n\n");
+      }
+  } //generateUlamClassGetMangledName
 
   std::string NodeBlockClass::removePunct(std::string str)
   {
