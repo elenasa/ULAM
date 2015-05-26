@@ -824,8 +824,8 @@ namespace MFM {
 	    if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Class: ";
-		msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+		msg << "Incomplete Type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		msg << " was never defined, fails labeling";
 		MSG(cnsym->getTokPtr(), msg.str().c_str(), ERR);
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
@@ -878,8 +878,8 @@ namespace MFM {
 	if( classtype == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Class: ";
-	    msg << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "Incomplete Type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << " was never defined, fails sizing";
 	    if(isAnonymousClass)
 	      MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);

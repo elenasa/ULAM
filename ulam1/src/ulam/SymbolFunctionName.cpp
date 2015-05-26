@@ -398,7 +398,7 @@ namespace MFM {
 	  msg << " a single function <";
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG("", msg.str().c_str(), WARN);
+	MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(), WARN);
       }
     return countNavs;
   } //countNavNodesInFunctionDefs
