@@ -123,7 +123,17 @@ namespace MFM {
     NodeBlockClass * rootNode = NULL;
 
     if(m_state.m_programDefST.isInTable(compileThisId, thisClassSymbol))
-      rootNode = ((SymbolClass *) thisClassSymbol)->getClassBlockNode();
+      {
+	UTI cuti = thisClassSymbol->getUlamTypeIdx();
+	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
+	if(classtype == UC_UNSEEN)
+	  {
+	    std::ostringstream msg;
+	    msg << "Invalid Type: " << compileThis;
+	    MSG(m_state.getFullLocationAsString(thisClassSymbol->getLoc()).c_str(), msg.str().c_str(), ERR);
+	  }
+	rootNode = ((SymbolClass *) thisClassSymbol)->getClassBlockNode();
+      }
 
     if(!rootNode)
       {
@@ -220,8 +230,6 @@ namespace MFM {
 
 		return  true; //we're done unless we can gobble the rest up?
 	      }
-	    //cnSym->resetUnseenClassLocation(iTok);
-	    //m_state.resetUnseenClass(cnSym, iTok);
 	    wasIncomplete = true;
 	  }
       }
@@ -244,8 +252,6 @@ namespace MFM {
 
 		return  true; //we're done unless we can gobble the rest up?
 	      }
-	    //ctSym->resetUnseenClassLocation(iTok);
-	    //m_state.resetUnseenClass(ctSym, iTok);
 	    wasIncomplete = true;
 	  }
 	cnSym = ctSym;

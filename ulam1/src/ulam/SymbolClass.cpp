@@ -198,7 +198,7 @@ namespace MFM {
 	s32 remaining = (classtype == UC_ELEMENT ? MAXSTATEBITS : MAXBITSPERQUARK);
 	msg << "UNKNOWN" << "/" << remaining;
       }
-    MSG("", msg.str().c_str(),INFO);
+    MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(),INFO);
   } //printBitSizeOfClass
 
   void SymbolClass::testThisClass(File * fp)

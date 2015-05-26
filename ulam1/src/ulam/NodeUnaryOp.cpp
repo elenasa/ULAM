@@ -212,9 +212,12 @@ namespace MFM {
   {
     assert(m_node);
 
-    UTI nut = getNodeType();
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
-    u32 slots = makeRoomForNodeType(nut);
+    u32 slots = makeRoomForNodeType(nuti);
     EvalStatus evs = m_node->eval();
 
     if(evs == NORMAL)
