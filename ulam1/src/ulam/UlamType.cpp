@@ -486,18 +486,18 @@ namespace MFM {
 
   bool UlamType::isMinMaxAllowed()
   {
-    return isScalar();
+    return isScalar(); //minof/maxof allowed in ulam
   }
 
   u32 UlamType::getMax()
   {
-    assert(isMinMaxAllowed());
+    //assert(isMinMaxAllowed());
     return m_max;
   }
 
   s32 UlamType::getMin()
   {
-    assert(isMinMaxAllowed());
+    //assert(isMinMaxAllowed());
     return m_min;
   }
 

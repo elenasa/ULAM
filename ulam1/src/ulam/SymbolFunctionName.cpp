@@ -378,7 +378,7 @@ namespace MFM {
 	  {
 	    std::string fkey = it->first;
 	    std::ostringstream msg;
-	    msg << fcntnavs << " nodes with illegal 'Nav' types remain in function <";
+	    msg << fcntnavs << " nodes with illegal types remain in function <";
 	    msg << m_state.m_pool.getDataAsString(getId());
 	    msg << "> (" << fkey.c_str() << ")";
 	    MSG(func->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
@@ -389,8 +389,13 @@ namespace MFM {
 
     if(countNavs > 0)
       {
+	u32 numfuncs = m_mangledFunctionNames.size();
 	std::ostringstream msg;
-	msg << countNavs << " nodes with illegal 'Nav' types remain in all functions <";
+	msg << "Summary: " << countNavs << " nodes with illegal types remain in ";
+	if(numfuncs > 1)
+	  msg << "all " <<  numfuncs << " functions <";
+	else
+	  msg << " a single function <";
 	msg << m_state.m_pool.getDataAsString(getId()) << "> in class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG("", msg.str().c_str(), WARN);

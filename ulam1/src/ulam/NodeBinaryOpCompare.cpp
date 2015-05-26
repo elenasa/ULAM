@@ -53,8 +53,12 @@ namespace MFM {
   // punt on arrays at this time..
   UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)
   {
-    UTI newType = Nav; //init
+    if(lt == Nav || rt == Nav)
+      {
+	return Nav;
+      }
 
+    UTI newType = Nav; //init
     // except for 2 Unsigned, all comparison operations are performed as Int.32.-1
     // if one is unsigned, and the other isn't -> output warning, but Signed Int wins.
     // Class (i.e. quark) + anything goes to Int.32

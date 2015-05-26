@@ -54,6 +54,11 @@ namespace MFM {
 
   UTI NodeBinaryOpArith::calcNodeType(UTI lt, UTI rt)
   {
+    if(lt == Nav || rt == Nav)
+      {
+	return Nav;
+      }
+
     UTI newType = Nav; //init
 
     // except for 2 Unsigned, all arithmetic operations are performed as Int.32.-1
