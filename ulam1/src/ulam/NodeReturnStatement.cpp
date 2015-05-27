@@ -166,10 +166,20 @@ namespace MFM {
 	return evs;
       }
 
-    //end, so copy to -1
-    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
+    if(nuti == UAtom)
+      {
+	//avoid pointer to atom situation
+	UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	assignReturnValueToStack(rtnUV, STACK);
+      }
+    else
+      {
+	//end, so copy to -1
+	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
 
-    assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
+	assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
+      }
+
     evalNodeEpilog();
     return RETURN;
   } //eval
