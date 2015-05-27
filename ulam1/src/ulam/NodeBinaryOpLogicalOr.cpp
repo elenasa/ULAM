@@ -35,6 +35,7 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
+
     u32 len = m_state.getTotalBitSize(nuti);
 
     evalNodeProlog(0); //new current frame pointer

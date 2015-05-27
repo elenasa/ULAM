@@ -217,9 +217,13 @@ namespace MFM {
   {
     assert(m_node); //has to be
 
-    evalNodeProlog(0); //new current frame pointer
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->getNodeType(); //uv.getUlamValueType()
+
+    if(tobeType == Nav)
+      return ERROR;
+
+    evalNodeProlog(0); //new current frame pointer
 
     makeRoomForNodeType(nodeType);
     EvalStatus evs = m_node->eval();

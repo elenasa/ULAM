@@ -35,6 +35,9 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     u32 len = m_state.getTotalBitSize(nuti);
 
     evalNodeProlog(0); //new current frame pointer
@@ -58,7 +61,7 @@ namespace MFM {
       }
     else
       {
-	u32 slot2 = makeRoomForNodeType(getNodeType());
+	u32 slot2 = makeRoomForNodeType(nuti);
 	evs = m_nodeRight->eval();
 	if(evs != NORMAL)
 	  {

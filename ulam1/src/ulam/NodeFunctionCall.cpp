@@ -244,6 +244,10 @@ namespace MFM {
   // its data members on the STACK, as the first argument.
   EvalStatus NodeFunctionCall::eval()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     assert(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);

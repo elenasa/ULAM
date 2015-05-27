@@ -139,6 +139,10 @@ namespace MFM {
 
   EvalStatus NodeTerminalProxy::eval()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
 
