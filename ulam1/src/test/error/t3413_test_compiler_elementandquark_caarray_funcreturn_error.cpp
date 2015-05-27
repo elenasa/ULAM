@@ -2,29 +2,25 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3413_test_compiler_elementandquark_caarray_funcreturn)
+  BEGINTESTCASECOMPILER(t3413_test_compiler_elementandquark_caarray_funcreturn_error)
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_EventWindowTest { EventWindow ew();  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ew 0 [] ewt cast = a ew 0 [] = a EventWindowTest is cond 0 return if 1 return } }\nUq_EventWindow { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_EventWindowTest { EventWindow ew();  Int(32) test() {  Atom(96) a;  a ( )func = 1 return } }\nUq_EventWindow { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
       // 'a has System' doesn't appy to eval because atoms have no class declarations; but testable for gencode
-      //bool rtn1 = fms->add("EventWindowTest.ulam", "ulam 1;\nuse EventWindow;\nelement EventWindowTest {\nEventWindow ew;\n /*EventWindow func() {\n return ew;\n }\n */ Atom func() {\n return ew[0];\n }\n Int test() {\n Atom a;\n EventWindowTest ewt;\n /*func() = ewt;\n*/ ew[0] = ewt;\n   /*a = func();*/ a = ew[0];  // This is me!\n    if (a is EventWindowTest)\n      return 0;\n    return 1;\n  }\n}\n");
+      //bool rtn1 = fms->add("EventWindowTest.ulam", "ulam 1;\nuse EventWindow;\nelement EventWindowTest {\nEventWindow ew;\n Atom func() {\n return ew[0];\n }\n Int test() {\n Atom a;\n EventWindowTest ewt;\n  ew[0] = ewt;\n  a = ew[0];  // This is me!\n    if (a is EventWindowTest)\n      return 0;\n    return 1;\n  }\n}\n");
 
-      //can't use a func to return ew[0] even on the rhs???
-      bool rtn1 = fms->add("EventWindowTest.ulam", "ulam 1;\nuse EventWindow;\nelement EventWindowTest {\nEventWindow ew;\n  Atom func() {\n return ew[0];\n }\n Int test() {\n Atom a;\n a = func(); /* a = ew[0]; */ \n   return 1;\n  }\n}\n");
+      // here we try to use func() whereever ew[0] was used since that's its return value..but lhs is not storeintoable!
+      bool rtn1 = fms->add("EventWindowTest.ulam", "ulam 1;\nuse EventWindow;\nelement EventWindowTest {\nEventWindow ew;\n /*EventWindow func() {\n return ew;\n }\n */ Atom func() {\n return ew[0];\n }\n Int test() {\n Atom a;\n EventWindowTest ewt;\n func() = ewt;\n /*ew[0] = ewt;\n*/   a = func(); /*a = ew[0]; */ // This is me!\n    if (a is EventWindowTest)\n      return 0;\n    return 1;\n  }\n}\n");
+
+      //can't use a func to return ew[0] even on the rhs? OK now.
+      //bool rtn1 = fms->add("EventWindowTest.ulam", "ulam 1;\nuse EventWindow;\nelement EventWindowTest {\nEventWindow ew;\n  Atom func() {\n return ew[0];\n }\n Int test() {\n Atom a;\n a = func();\n return 1;\n  }\n}\n");
 
       bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aset(Int index, Atom val) native;\n}\n");
-
-      // playing with errors..
-      //bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aset(Int index, Int val) native;\n}\n");
-      //bool rtn2 = fms->add("EventWindow.ulam", "ulam 1;\nquark EventWindow {\n  Atom aref(Int index) native;\n  Void aSet(Int index, Atom val) native;\n}\n");
-
-      // test system quark with native overloaded print funcs; assert
-      //bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
 
       if(rtn1 && rtn2)
 	return std::string("EventWindowTest.ulam");
@@ -33,6 +29,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3413_test_compiler_elementandquark_caarray_funcreturn)
+  ENDTESTCASECOMPILER(t3413_test_compiler_elementandquark_caarray_funcreturn_error)
 
 } //end MFM
