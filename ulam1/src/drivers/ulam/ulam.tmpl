@@ -1020,7 +1020,7 @@ EOF
         my $stubname = lexEncode("_uelstub",$libraryStubPtrArrayCount);
         my $elsname = "UlamElementLibraryStub";
         my $putinarray = 1;
-        if ($en eq "Ue_10105Empty0") {
+        if ($en eq "Ue_10105Empty10") {
             $infoinstancename = "_ueinfoEmpty";
             $stubname = "_uelstubEmpty";
             $elsname = "UlamEmptyElementLibraryStub";
@@ -1227,7 +1227,7 @@ EOF
             next if $seen{$en};
             $seen{$en} = 1;
 
-            if ($en eq "Ue_10105Empty") {
+            if ($en eq "Ue_10105Empty10") {
                 print $handle <<EOF;
   MFM::$en<EC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<EC>::THE_INSTANCE);
 EOF

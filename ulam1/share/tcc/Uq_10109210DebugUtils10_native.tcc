@@ -7,16 +7,23 @@
 namespace MFM{
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_919printSelf(UlamContext<EC>& uc, T& Uv_4self)
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_9212printContext(UlamContext<EC>& uc,
+                                                             typename EC::ATOM_CONFIG::ATOM_TYPE & Uv_4self,
+                                                             Ui_Ut_102321u Uv_5flags)
   {
-    typedef typename EC::ATOM_CONFIG AC;
-    AtomSerializer<AC> as(Uv_4self);
+    OString512 buff;
+    u32 flags = Uv_5flags.read();
+    Uq_10109210DebugUtils10_printAtom(uc, Uv_4self, flags, buff);
+
     Tile<EC> & tile = uc.GetTile();
     EventWindow<EC> & ew = uc.GetEventWindow();
     SPoint ctr = ew.GetCenterInTile();
 
-    LOG.Message("self %@ at (%d,%d) of %s", &as, ctr.GetX(), ctr.GetY(), tile.GetLabel());
-  } // Uf_9212printSelf
+    LOG.Message("@(%2d,%2d) of %s: %s",
+                ctr.GetX(), ctr.GetY(),
+                tile.GetLabel(),
+                buff.GetZString());
+  } // Uf_9212printContext
 
   template<class EC, u32 POS>
   void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131i Uv_3arg) //native
@@ -71,16 +78,61 @@ namespace MFM{
     LOG.Message("print: Bool(3) 0x%x (%s)", tmp, b ? "true" : "false");
   }
 
-
-  template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_3arg) //native
+  // Note this is a template function, not a template class member!
+  // It doesn't follow the ulam native function interface rules!
+  template<class EC>
+  inline void Uq_10109210DebugUtils10_printAtom(UlamContext<EC>& uc,
+                                                typename EC::ATOM_CONFIG::ATOM_TYPE & atom,
+                                                u32 flags,
+                                                ByteSink & buff)
   {
-    T atom = Uv_3arg.read();
+    typedef typename EC::ATOM_CONFIG::ATOM_TYPE T;
+    if (!flags) return;
+
+    u32 type = atom.GetType();
+    Tile<EC> & tile = uc.GetTile();
+    const Element<EC> * ep = tile.GetElement(type);
+
     typedef typename EC::ATOM_CONFIG AC;
     AtomSerializer<AC> as(atom);
-    LOG.Message("print: Atom %@",&as);
+
+    if (ep)
+    {
+      const UlamElement<EC> * uep = ep->AsUlamElement();
+      if (uep)
+      {
+        uep->Print(buff, atom, flags);
+      }
+      else
+      {
+        // Make do with minimal non-UlamElement printing here
+        if (flags & UlamElement<EC>::PRINT_SYMBOL)
+          buff.Printf("(%s)", ep->GetAtomicSymbol());
+        if (flags & UlamElement<EC>::PRINT_FULL_NAME)
+          buff.Printf("%s", ep->GetName());
+        if (flags & (UlamElement<EC>::PRINT_ATOM_BODY|UlamElement<EC>::PRINT_MEMBER_VALUES))
+        {
+          if (type != T::ATOM_EMPTY_TYPE || atom != Element_Empty<EC>::THE_INSTANCE.GetDefaultAtom())
+            buff.Printf("[%@]", &as);
+        }
+      }
+      return;
+    } // else fall back to hex
+
+    buff.Printf("Undefined type [%04x]: %@",type, &as);
   }
 
+  //! DebugUtils.ulam:10:   Void print(Atom a, Unsigned flags)
+  template<class EC, u32 POS>
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_1a, Ui_Ut_102321u Uv_5flags)
+  {
+    OString512 buff;
+    T atom = Uv_1a.read();
+    u32 flags = Uv_5flags.read();
+    Uq_10109210DebugUtils10_printAtom(uc, atom, flags, buff);
+    if (buff.GetLength() > 0)
+      LOG.Message("%s",buff.GetZString());
+  } // Uf_5print
 
   template<class EC, u32 POS>
   void Uq_10109210DebugUtils10<EC, POS>::Uf_6assert(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10111b Uv_1b) //native
