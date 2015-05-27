@@ -36,9 +36,13 @@ namespace MFM {
   EvalStatus  NodeControlWhile::eval()
   {
     assert(m_nodeCondition && m_nodeBody);
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
 
-    makeRoomForNodeType(getNodeType());
+    makeRoomForNodeType(nuti);
     EvalStatus evs = m_nodeCondition->eval();
     if(evs != NORMAL)
       {
@@ -64,7 +68,7 @@ namespace MFM {
 	//continue continues as normal
 	m_state.m_nodeEvalStack.popArgs(slots);
 
-	makeRoomForNodeType(getNodeType());
+	makeRoomForNodeType(nuti);
 
 	evs = m_nodeCondition->eval();
 	if(evs != NORMAL)

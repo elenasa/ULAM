@@ -150,11 +150,14 @@ namespace MFM {
 
   EvalStatus NodeTerminal::eval()
   {
-    EvalStatus evs = NORMAL; //init ok
-
-    if(!m_state.isComplete(getNodeType()))
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
       return ERROR;
 
+    if(!m_state.isComplete(nuti))
+      return ERROR;
+
+    EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
 
     UlamValue rtnUV;

@@ -165,8 +165,12 @@ namespace MFM {
   EvalStatus NodeIdent::eval()
   {
     assert(m_varSymbol);
-    evalNodeProlog(0); //new current frame pointer
+
     UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    evalNodeProlog(0); //new current frame pointer
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
     UlamValue uv;
@@ -225,6 +229,10 @@ namespace MFM {
 
   EvalStatus NodeIdent::evalToStoreInto()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     assert(m_varSymbol);
     assert(isStoreIntoAble());
 

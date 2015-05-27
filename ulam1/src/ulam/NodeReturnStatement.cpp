@@ -149,11 +149,15 @@ namespace MFM {
 
   EvalStatus NodeReturnStatement::eval()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     if(!m_node)
       return RETURN;
 
     evalNodeProlog(0);
-    makeRoomForNodeType(getNodeType());
+    makeRoomForNodeType(nuti);
     EvalStatus evs = m_node->eval();
     if(evs != NORMAL)
       {
@@ -163,8 +167,7 @@ namespace MFM {
       }
 
     //end, so copy to -1
-    //UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
-    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, getNodeType(), m_state.determinePackable(getNodeType()), m_state);  //positive to current frame pointer
+    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
 
     assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
     evalNodeEpilog();

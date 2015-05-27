@@ -116,6 +116,10 @@ namespace MFM {
   EvalStatus NodeSquareBracket::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -169,6 +173,10 @@ namespace MFM {
   EvalStatus NodeSquareBracket::evalToStoreInto()
   {
     assert(m_nodeLeft && m_nodeRight);
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr

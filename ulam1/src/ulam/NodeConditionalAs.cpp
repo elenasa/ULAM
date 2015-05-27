@@ -92,6 +92,10 @@ namespace MFM {
   {
     assert(m_nodeLeft);
 
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0);   //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -151,7 +155,7 @@ namespace MFM {
 	asit = (luti == UAtom || luti == ruti);
       }
 
-    UlamValue rtnuv = UlamValue::makeImmediate(getNodeType(), (u32) asit, m_state);
+    UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) asit, m_state);
     //also copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnuv);
 

@@ -109,9 +109,14 @@ namespace MFM {
   EvalStatus  NodeControlIf::eval()
   {
     assert(m_nodeCondition && m_nodeBody);
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
 
-    makeRoomForNodeType(getNodeType());
+    makeRoomForNodeType(nuti);
     EvalStatus evs = m_nodeCondition->eval();
     if(evs != NORMAL) //what if RETURN
       {
