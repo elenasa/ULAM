@@ -581,6 +581,18 @@ namespace MFM {
     return rtnBool;
   } //checkForAndInitializeClassCustomArrayType
 
+  //called by current Class block on its function ST
+  UTI SymbolTable::getCustomArrayReturnTypeGetFunction()
+  {
+    UTI caType = Nav;
+    Symbol * fnsym = NULL;
+    if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsym))
+      {
+	caType = ((SymbolFunctionName *) fnsym)->getCustomArrayReturnType();
+      }
+    return caType;
+  } //getCustomArrayReturnTypeGetFunction
+
   u32 SymbolTable::countNativeFuncDeclsForTableOfFunctions()
   {
     u32 nativeCount = 0;

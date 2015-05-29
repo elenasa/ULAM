@@ -1565,7 +1565,7 @@ namespace MFM {
 
     UlamType * ctut = m_state.getUlamTypeByIndex(ctsym->getUlamTypeIdx());
     if(ctut->isCustomArray())
-      ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) ctut)->getCustomArrayType());
+      ((UlamTypeClass *) cut)->setCustomArray();
 
     SymbolClass * csym = ctsym->makeAStubClassInstance(typeTok, cuti);
 
@@ -3076,11 +3076,12 @@ namespace MFM {
 
     //set class type to custom array; the current class block
     //node type was set to its class symbol type after checkAndLabelType
+    // caType is the return type of the 'aget' method (set here).
     if(m_state.getCustomArrayGetFunctionNameId() == identTok.m_dataindex)
       {
 	UTI cuti = currClassBlock->getNodeType(); //prevBlock
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	((UlamTypeClass *) cut)->setCustomArrayType(rtnuti);
+	((UlamTypeClass *) cut)->setCustomArray();
       }
 
     m_state.pushCurrentBlock(rtnNode); //before parsing the args

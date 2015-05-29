@@ -6,6 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      //./EventWindowTest.ulam:14:9: ERROR: Lefthand side of equals is 'Not StoreIntoAble': <func>, type: Atom(96).
       return std::string("Exit status: 1\nUe_EventWindowTest { EventWindow ew();  Int(32) test() {  Atom(96) a;  a ( )func = 1 return } }\nUq_EventWindow { <NOMAIN> }\n");
     }
 

@@ -505,12 +505,10 @@ namespace MFM {
       {
 	UlamType * ut = getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE classtype = ut->getUlamClass();
-	bool isCustomArray = ut->isCustomArray();
-	UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);
 	UlamType * newut = getUlamTypeByIndex(newuti);
 	((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
-	if(isCustomArray)
-	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+	if(ut->isCustomArray())
+	  ((UlamTypeClass *) newut)->setCustomArray();
 
 	//potential for unending process..
 	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx());
@@ -765,9 +763,7 @@ namespace MFM {
 
     //bitsize could be UNKNOWN or CONSTANT (negative)
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
-
     bool isCustomArray = ut->isCustomArray();
-    UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);
 
     //verify total bits is within limits for elements and quarks
     if(classtype == UC_ELEMENT)
@@ -815,12 +811,12 @@ namespace MFM {
 	((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
 
 	if(isCustomArray)
-	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+	  ((UlamTypeClass *) newut)->setCustomArray();
       }
 
     m_indexToUlamKey[utArg] = newkey;
 
-    incrementKeyToAnyUTICounter(newkey, utArg);  //here
+    incrementKeyToAnyUTICounter(newkey, utArg); //here
 
     {
       std::ostringstream msg;
