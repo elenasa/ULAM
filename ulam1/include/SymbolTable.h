@@ -109,6 +109,8 @@ namespace MFM{
 
     bool checkCustomArrayTypeFuncs();
 
+    UTI getCustomArrayReturnTypeGetFunction();
+
     u32 countNativeFuncDeclsForTableOfFunctions();
 
     void calcMaxDepthForTableOfFunctions();
