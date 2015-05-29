@@ -79,6 +79,8 @@ namespace MFM{
 
     u32 checkCustomArraySetFunctions(UTI caType);
 
+    UTI getCustomArrayReturnType();
+
     void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
 
     void updatePrevBlockPtrInFunctionDefs(NodeBlockClass * p);

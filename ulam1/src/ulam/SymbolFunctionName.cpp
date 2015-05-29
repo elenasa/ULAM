@@ -337,6 +337,23 @@ namespace MFM {
     return probcount;
   } //checkCustomArraySetFunctions
 
+  UTI SymbolFunctionName::getCustomArrayReturnType()
+  {
+    UTI rtnType = Nav;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    //loop over 'aref's for return type;
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	UTI futi = fsym->getUlamTypeIdx();
+	assert(futi != Void);
+	assert(rtnType == Nav || UlamType::compare(rtnType, futi, m_state) == UTIC_SAME);
+	rtnType = futi;
+	++it;
+      }
+    return rtnType;
+  } //getCustomArrayReturnType
+
   void SymbolFunctionName::linkToParentNodesInFunctionDefs(NodeBlockClass * p)
   {
     NNO pno = p->getNodeNo();

@@ -116,7 +116,7 @@ namespace MFM{
 	UTI puti = m_nodes[i]->checkAndLabelType();
 	if(!m_state.isComplete(puti))
 	  rtnuti = Nav; //all or none
-	else if(!WritePacked(m_state.determinePackable(puti)))
+	else if(!WritePacked(m_state.determinePackable(puti)) && !m_state.isScalar(puti))
 	  {
 	    std::ostringstream msg;
 	    msg << "Function Definition parameter ";

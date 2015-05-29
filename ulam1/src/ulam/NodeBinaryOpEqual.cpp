@@ -56,16 +56,19 @@ namespace MFM {
 
     PACKFIT lpacked = m_state.determinePackable(leftType);
     PACKFIT rpacked = m_state.determinePackable(rightType);
-    if(!WritePacked(lpacked) || !WritePacked(rpacked))
+    bool unpackedArrayLeft = !WritePacked(lpacked) && !m_state.isScalar(leftType);
+    bool unpackedArrayRight = !WritePacked(rpacked) && !m_state.isScalar(rightType);
+
+    if(unpackedArrayLeft || unpackedArrayRight)
       {
-	if(!WritePacked(lpacked))
+	if(unpackedArrayLeft)
 	  {
 	    std::ostringstream msg;
 	    msg << "Lefthand side of equals requires UNPACKED array support: <" << m_nodeLeft->getName();
 	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-	if(!WritePacked(rpacked))
+	if(unpackedArrayRight)
 	  {
 	    std::ostringstream msg;
 	    msg << "Righthand side of equals requires UNPACKED array support: <" << m_nodeRight->getName();
