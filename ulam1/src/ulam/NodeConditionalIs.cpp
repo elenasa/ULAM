@@ -89,6 +89,11 @@ namespace MFM {
   EvalStatus  NodeConditionalIs::eval()
   {
     assert(m_nodeLeft);
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0);   //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -109,7 +114,7 @@ namespace MFM {
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
     bool isit = (luti == UAtom || UlamType::compare(luti,ruti,m_state) == UTIC_SAME);
-    UlamValue rtnuv = UlamValue::makeImmediate(getNodeType(), (u32) isit, m_state);
+    UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) isit, m_state);
 
     //also copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnuv);

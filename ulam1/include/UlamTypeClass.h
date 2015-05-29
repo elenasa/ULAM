@@ -79,7 +79,7 @@ namespace MFM{
 
     virtual bool isCustomArray();
 
-    void setCustomArrayType(UTI type);
+    void setCustomArray();
 
     UTI getCustomArrayType();
 
@@ -123,7 +123,6 @@ namespace MFM{
 
     ULAMCLASSTYPE m_class;
     bool m_customArray;
-    UTI m_customArrayType;
 
     void genCustomArrayMangledDefinitionForC(File * fp);
 

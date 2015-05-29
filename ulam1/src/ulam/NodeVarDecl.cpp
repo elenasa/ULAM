@@ -257,10 +257,11 @@ namespace MFM {
   {
     assert(m_varSymbol);
 
-    if(getNodeType() == Nav)
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
       return ERROR;
 
-    if(getNodeType() == UAtom || m_state.getUlamTypeByIndex(getNodeType())->getUlamClass() == UC_ELEMENT)
+    if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
 	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
