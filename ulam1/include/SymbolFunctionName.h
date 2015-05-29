@@ -74,6 +74,8 @@ namespace MFM{
 
     u32 checkCustomArrayFunctions(SymbolTable & fST);
 
+    UTI getCustomArrayReturnType();
+
     void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
 
     void updatePrevBlockPtrInFunctionDefs(NodeBlockClass * p);

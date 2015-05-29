@@ -183,7 +183,7 @@ namespace MFM {
 	assert(findMappedUTI(fmuti,checkuti));
 	assert(checkuti == touti);
       }
-    return notdup;
+  return notdup;
   } //mapUTItoUTI
 
   bool Resolver::findMappedUTI(UTI auti, UTI& mappedUTI)

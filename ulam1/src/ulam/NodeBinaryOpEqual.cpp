@@ -48,11 +48,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Lefthand side of equals is 'Not StoreIntoAble': <" << m_nodeLeft->getName();
 	msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
-	if(leftType == Nav)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //likely still resolving
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);  //was newType that wasn't Nav
 	setStoreIntoAble(false);
 	return Nav; //newType
