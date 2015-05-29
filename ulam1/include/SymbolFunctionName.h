@@ -52,7 +52,9 @@ namespace MFM{
   {
   public:
     SymbolFunctionName(Token id, UTI typetoreturn, CompilerState& state);
+
     SymbolFunctionName(const SymbolFunctionName& sref);
+
     virtual ~SymbolFunctionName();
 
     virtual Symbol * clone();
@@ -64,6 +66,7 @@ namespace MFM{
     bool overloadFunction(SymbolFunction * fsym);
 
     bool findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol);
+
     bool findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<bool> constArgTypes, SymbolFunction *& funcSymbol);
 
     u32 getDepthSumOfFunctions();
@@ -72,9 +75,9 @@ namespace MFM{
 
     u32 checkFunctionNames();
 
-    u32 checkCustomArrayFunctions(SymbolTable & fST);
+    u32 checkCustomArrayGetFunctions(UTI& rtnType);
 
-    UTI getCustomArrayReturnType();
+    u32 checkCustomArraySetFunctions(UTI caType);
 
     void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
 
@@ -94,10 +97,7 @@ namespace MFM{
 
   private:
     std::map<std::string, SymbolFunction *> m_mangledFunctionNames; //mangled func name -> symbol function ptr
-
     bool isDefined(std::string mangledFName, SymbolFunction * & foundSym);
-
-
   };
 
 }
