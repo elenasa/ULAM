@@ -90,6 +90,11 @@ namespace MFM {
   EvalStatus  NodeConditionalHas::eval()
   {
     assert(m_nodeLeft);
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -137,7 +142,7 @@ namespace MFM {
       }
 
     bool hasit = (posFound >= 0);
-    UlamValue rtnuv = UlamValue::makeImmediate(getNodeType(), (u32) hasit, m_state);
+    UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) hasit, m_state);
 
     //also copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnuv);

@@ -48,11 +48,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Lefthand side of equals is 'Not StoreIntoAble': <" << m_nodeLeft->getName();
 	msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
-	if(leftType == Nav)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //likely still resolving
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);  //was newType that wasn't Nav
 	setStoreIntoAble(false);
 	return Nav; //newType
@@ -81,6 +77,11 @@ namespace MFM {
   EvalStatus NodeBinaryOpEqual::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -92,7 +93,7 @@ namespace MFM {
 	return evs;
       }
 
-    u32 slot = makeRoomForNodeType(getNodeType());
+    u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here
     if(evs != NORMAL)
       {
@@ -111,6 +112,10 @@ namespace MFM {
 
   EvalStatus NodeBinaryOpEqual::evalToStoreInto()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0);
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -121,7 +126,7 @@ namespace MFM {
 	return evs;
       }
 
-    UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, getNodeType(), m_state.determinePackable(getNodeType()), m_state); //positive to current frame pointer
+    UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state); //positive to current frame pointer
 
     assignReturnValuePtrToStack(luvPtr);
 

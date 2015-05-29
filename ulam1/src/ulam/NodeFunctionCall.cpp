@@ -244,6 +244,10 @@ namespace MFM {
   // its data members on the STACK, as the first argument.
   EvalStatus NodeFunctionCall::eval()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     assert(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);
@@ -357,11 +361,17 @@ namespace MFM {
     // ANY return value placed on the STACK by a Return Statement,
     // was copied to EVALRETURN by the NodeBlockFunctionDefinition
     // before arriving here! And may be ignored at this point.
-
-    //positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
-    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
-
-    assignReturnValueToStack(rtnPtr); //into return space on eval stack;
+    if(rtnType == UAtom)
+      {
+	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+	assignReturnValueToStack(rtnUV); //into return space on eval stack;
+      }
+    else
+      {
+	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
+	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
+	assignReturnValueToStack(rtnPtr); //into return space on eval stack;
+      }
 
     m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
 

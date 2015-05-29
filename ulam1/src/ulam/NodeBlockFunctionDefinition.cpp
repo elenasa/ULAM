@@ -237,31 +237,43 @@ namespace MFM {
     assert(isDefinition());
     assert(m_nodeNext);
 
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     // m_currentObjPtr set up by caller
     assert(m_state.m_currentObjPtr.getUlamValueTypeIdx() != Nav);
-    m_state.m_currentFunctionReturnType = getNodeType(); //to help find hidden first arg
+    m_state.m_currentFunctionReturnType = nuti; //to help find hidden first arg
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
-    makeRoomForNodeType(getNodeType()); //place for return vals node eval stack
+    makeRoomForNodeType(nuti); //place for return vals node eval stack
 
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth()); //local variables on callstack!
 
     EvalStatus evs = m_nodeNext->eval();
 
-    PACKFIT packRtn = m_state.determinePackable(getNodeType());
+    PACKFIT packRtn = m_state.determinePackable(nuti);
     UlamValue rtnUV;
 
     if(evs == RETURN)
       {
-	// save results in the stackframe for caller;
-	// copies each element of the array by value, in reverse order ([0] is last at bottom)
-	s32 slot = m_state.slotsNeeded(getNodeType());
-	rtnUV = UlamValue::makePtr(-slot, STACK, getNodeType(), packRtn, m_state); //negative to current stack frame pointer
+	if(nuti == UAtom)
+	  {
+	    //avoid pointer to atom situation
+	    rtnUV = m_state.m_funcCallStack.loadUlamValueFromSlot(-1); //popArg();
+	  }
+	else
+	  {
+	    // save results in the stackframe for caller;
+	    // copies each element of the array by value, in reverse order ([0] is last at bottom)
+	    s32 slot = m_state.slotsNeeded(nuti);
+	    rtnUV = UlamValue::makePtr(-slot, STACK, nuti, packRtn, m_state); //negative to current stack frame pointer
+	  }
       }
     else if (evs == NORMAL)  //no explicit return statement
       {
 	// 1 for base of array or scalar
-	rtnUV = UlamValue::makePtr(1, EVALRETURN, getNodeType(), packRtn, m_state); //positive to current frame pointer
+	rtnUV = UlamValue::makePtr(1, EVALRETURN, nuti, packRtn, m_state); //positive to current frame pointer
       }
     else
       {

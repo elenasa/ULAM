@@ -84,6 +84,10 @@ namespace MFM{
 
     void unsetStub();
 
+    bool isCustomArray(); //by ulamtypeclass
+
+    UTI getCustomArrayType(); //by function return type
+
     bool trySetBitsizeWithUTIValues(s32& totalbits);
 
     void printBitSizeOfClass();

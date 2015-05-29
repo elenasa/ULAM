@@ -114,6 +114,9 @@ namespace MFM {
   EvalStatus NodeMemberSelect::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
@@ -133,7 +136,7 @@ namespace MFM {
     assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
-    u32 slot = makeRoomForNodeType(getNodeType());
+    u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here, or data member eval
     if(evs != NORMAL)
       {
@@ -178,6 +181,10 @@ namespace MFM {
 
   EvalStatus NodeMemberSelect::evalToStoreInto()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0);
 
     UlamValue saveCurrentObjectPtr = m_state.m_currentObjPtr; //*************
