@@ -58,6 +58,28 @@ namespace MFM {
 	return Nav; //newType
       }
 
+    PACKFIT lpacked = m_state.determinePackable(leftType);
+    PACKFIT rpacked = m_state.determinePackable(rightType);
+    if(!WritePacked(lpacked) || !WritePacked(rpacked))
+      {
+	if(!WritePacked(lpacked))
+	  {
+	    std::ostringstream msg;
+	    msg << "Lefthand side of equals requires UNPACKED array support: <" << m_nodeLeft->getName();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	if(!WritePacked(rpacked))
+	  {
+	    std::ostringstream msg;
+	    msg << "Righthand side of equals requires UNPACKED array support: <" << m_nodeRight->getName();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(rightType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	setNodeType(Nav);  //was newType that wasn't Nav
+	return Nav; //newType
+      }
+
     newType = leftType;
 
     //cast RHS if necessary

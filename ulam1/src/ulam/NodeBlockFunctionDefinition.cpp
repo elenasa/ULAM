@@ -185,6 +185,18 @@ namespace MFM {
 	  m_state.mapTypesInCurrentClass(fit, it);
 	  m_funcSymbol->resetUlamType(it); //consistent!
 	}
+
+	PACKFIT packed = m_state.determinePackable(it);
+	if(!WritePacked(packed))
+	  {
+	    std::ostringstream msg;
+	    msg << "Function Definition <" << getName();
+	    msg << "> return type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " (UTI" << it << "), requires UNPACKED array support";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = Nav;
+	  }
       }
 
     setNodeType(it);
