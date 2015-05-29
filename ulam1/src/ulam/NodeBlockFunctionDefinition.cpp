@@ -187,7 +187,7 @@ namespace MFM {
 	}
 
 	PACKFIT packed = m_state.determinePackable(it);
-	if(!WritePacked(packed))
+	if(!WritePacked(packed) && !m_state.isScalar(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Function Definition <" << getName();
