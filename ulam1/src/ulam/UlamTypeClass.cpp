@@ -14,7 +14,7 @@ namespace MFM {
   static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
 
 
-  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state, ULAMCLASSTYPE type) : UlamType(key, state), m_class(type), m_customArray(false), m_customArrayType(Nav)
+  UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state, ULAMCLASSTYPE type) : UlamType(key, state), m_class(type), m_customArray(false) /* , m_customArrayType(Nav)*/
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
     m_wordLengthItem = calcWordSize(getBitSize());
@@ -197,21 +197,27 @@ namespace MFM {
 
   bool UlamTypeClass::isCustomArray()
   {
-    return m_customArray;
+    return m_customArray; //canonical
   }
 
-  void UlamTypeClass::setCustomArrayType(UTI type)
+  void UlamTypeClass::setCustomArray()
   {
-    assert(isScalar());
     m_customArray = true;
-    m_customArrayType = type;
   }
 
   UTI UlamTypeClass::getCustomArrayType()
   {
+    UTI caType = Nav;
     assert(m_customArray);
-    return m_customArrayType;
-  }
+    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    SymbolClass * csym = NULL;
+
+    if(m_state.alreadyDefinedSymbolClass(cuti, csym))
+      {
+	caType = csym->getCustomArrayType();
+      }
+    return caType;
+  } //getCustomArrayType
 
   s32 UlamTypeClass::getBitSize()
   {
@@ -582,7 +588,8 @@ namespace MFM {
     fp->write("(uc, m_stg, ");
     fp->write(m_state.getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString().c_str());
     fp->write("((const s32) index), ");
-    fp->write(m_state.getUlamTypeByIndex(UAtom)->getImmediateStorageTypeAsString().c_str());
+    UTI caType = getCustomArrayType(); //don't assume it's an atom
+    fp->write(m_state.getUlamTypeByIndex(caType)->getImmediateStorageTypeAsString().c_str());
     fp->write("(v)); }\n");
   } //genCustomArrayMangledDefinitionForC
 

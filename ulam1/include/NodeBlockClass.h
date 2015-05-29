@@ -80,6 +80,8 @@ namespace MFM{
 
     void checkCustomArrayTypeFunctions();
 
+    UTI getCustomArrayTypeFromGetFunction();
+
     void checkDuplicateFunctions();
 
     void calcMaxDepthOfFunctions();

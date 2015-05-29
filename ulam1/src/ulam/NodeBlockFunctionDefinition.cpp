@@ -269,10 +269,18 @@ namespace MFM {
 
     if(evs == RETURN)
       {
-	// save results in the stackframe for caller;
-	// copies each element of the array by value, in reverse order ([0] is last at bottom)
-	s32 slot = m_state.slotsNeeded(nuti);
-	rtnUV = UlamValue::makePtr(-slot, STACK, nuti, packRtn, m_state); //negative to current stack frame pointer
+	if(nuti == UAtom)
+	  {
+	    //avoid pointer to atom situation
+	    rtnUV = m_state.m_funcCallStack.loadUlamValueFromSlot(-1); //popArg();
+	  }
+	else
+	  {
+	    // save results in the stackframe for caller;
+	    // copies each element of the array by value, in reverse order ([0] is last at bottom)
+	    s32 slot = m_state.slotsNeeded(nuti);
+	    rtnUV = UlamValue::makePtr(-slot, STACK, nuti, packRtn, m_state); //negative to current stack frame pointer
+	  }
       }
     else if (evs == NORMAL)  //no explicit return statement
       {

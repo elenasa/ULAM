@@ -213,6 +213,11 @@ namespace MFM {
       }
   } //checkCustomArrayTypeFunctions
 
+  UTI NodeBlockClass::getCustomArrayTypeFromGetFunction()
+  {
+    return m_functionST.getCustomArrayReturnTypeGetFunction();
+  }
+
   EvalStatus NodeBlockClass::eval()
   {
     //#define _DEBUG_SKIP_EVAL
