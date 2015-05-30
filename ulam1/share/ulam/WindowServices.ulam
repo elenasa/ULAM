@@ -9,17 +9,15 @@ use AtomUtils;
 use Fail;
 
 /**
+   A simple scanning framework to help automate common event window
+   search and selection tasks.
+
+   \author Dave Ackley
+   \license lgpl
    \placeable no
 */
 element WindowServices {
-  // Utilities
-  MDist mdist;
-  Random random;
-  DebugUtils debug;
-  EventWindow ew;
-  Fail fail;
-
-  // Types
+  // Typedefs
   typedef Unsigned(3) Radius;
 
   typedef Unsigned(6) Index;
@@ -29,6 +27,13 @@ element WindowServices {
   typedef Count CountArray[4];
 
   typedef Unsigned(2) Slot;
+
+  // Utilities
+  MDist mdist;
+  Random random;
+  DebugUtils debug;
+  EventWindow ew;
+  Fail fail;
 
   // Constants
   constant Int cNO_SITES_HIT =        -1;
