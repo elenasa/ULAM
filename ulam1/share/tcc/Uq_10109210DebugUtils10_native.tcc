@@ -91,6 +91,7 @@ namespace MFM{
 
     u32 type = atom.GetType();
     Tile<EC> & tile = uc.GetTile();
+    const UlamClassRegistry & ucr = tile.GetUlamClassRegistry();
     const Element<EC> * ep = tile.GetElement(type);
 
     typedef typename EC::ATOM_CONFIG AC;
@@ -101,7 +102,7 @@ namespace MFM{
       const UlamElement<EC> * uep = ep->AsUlamElement();
       if (uep)
       {
-        uep->Print(buff, atom, flags);
+        uep->Print(ucr, buff, atom, flags);
       }
       else
       {
