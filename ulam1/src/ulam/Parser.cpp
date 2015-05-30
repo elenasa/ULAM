@@ -1890,11 +1890,11 @@ namespace MFM {
 		args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
 		isclasstd = true;
 	      }
-#if 0
-	    //update rest of argument refs
-	    args.m_bitsize = tdut->getBitSize();
-	    args.m_arraysize = tdut->getArraySize(); //becomes arg when installing symbol
-#endif
+
+	    //don't update rest of argument refs; typedefs have their own bit and array sizes to look up
+	    //args.m_bitsize = tdut->getBitSize();
+	    //args.m_arraysize = tdut->getArraySize(); //becomes arg when installing symbol
+
 	    //possibly another class? go again..
 	    if(isclasstd)
 	      {

@@ -29,6 +29,7 @@ namespace MFM {
       bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int BigSite[10];\nInt func(BigSite sarr) {\n return sarr[9];\n}\n BigSite func2() {\n BigSite s;\nfor(Int i = 0; i < 10; ++i){\n s[i] = i;\n}\n return s;\n}\n Int test(){\n BigSite site = func2();\n BigSite site2 = site + site2;\n return func(site);\n }\n }\n");
 
       //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int BigSite[10];\nInt test(){\n BigSite site, site2; site = site2;\n return 2;\n }\n }\n");
+
       if(rtn1)
 	return std::string("A.ulam");
 
