@@ -350,22 +350,24 @@ namespace MFM {
     //bypass a blackslash for nextcharacter
     if((c = m_SS.read()) >= 0)
       {
+	if(c == '\'')
+	  return false; //disallow empty ''
+
 	if(c == '\\')
 	  {
 	    s32 d = m_SS.read();
-	    astring.push_back(d - '\0');
+	    astring.push_back(d - '\0'); //save next byte
 	  }
 	else
-	  {
-	    astring.push_back(c - '\0');
-	  }
+	  astring.push_back(c - '\0'); //as a number
       }
-    else //    if(c < 0)
+    else //c < 0
       {
 	if( c == -1) unread();
 	return false;
       }
 
+    //next byte must be a tic
     if((c = m_SS.read()) != '\'')
       {
 	unread();
@@ -375,7 +377,7 @@ namespace MFM {
     u32 idx = m_state.m_pool.getIndexForDataString(astring);
     tok.init(TOK_SQUOTED_STRING,firstloc,idx);
     return true;
-  }
+  } //makeSingleQuoteToken
 
 
   s32 Lexer::eatComment()
