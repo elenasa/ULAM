@@ -342,25 +342,33 @@ namespace MFM {
   bool Lexer::makeSingleQuoteToken(std::string& astring, Token & tok)
   {
     Locator firstloc = m_SS.getLocator();
-    s32 c;
-    //keep reading until end of quote or (EOF or error)
-    //return last byte after comment
-    //bypass a blackslash and nextcharacter
-    while((c = m_SS.read()) >= 0)
+    s32 c ;
+
+    astring = ""; //clear single tic
+
+    //get next byte; save as its ascii numeric value
+    //bypass a blackslash for nextcharacter
+    if((c = m_SS.read()) >= 0)
       {
-	astring.push_back(c);
-	if( c == '\'')
-	  break;
-	else if(c == '\\')
+	if(c == '\\')
 	  {
 	    s32 d = m_SS.read();
-	    astring.push_back(d);
+	    astring.push_back(d - '\0');
 	  }
-      } //end while
-
-    if(c < 0)
+	else
+	  {
+	    astring.push_back(c - '\0');
+	  }
+      }
+    else //    if(c < 0)
       {
 	if( c == -1) unread();
+	return false;
+      }
+
+    if((c = m_SS.read()) != '\'')
+      {
+	unread();
 	return false;
       }
 
