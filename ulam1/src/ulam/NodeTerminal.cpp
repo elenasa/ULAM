@@ -421,6 +421,13 @@ namespace MFM {
 	m_constant.uval = 0u;
 	rtnok = true;
 	break;
+      case TOK_SQUOTED_STRING:
+	{
+	  std::string numstr = m_state.getTokenDataAsString(&tok);
+	  m_constant.uval = numstr[0];
+	  rtnok = true;
+	}
+	break;
       default:
 	{
 	    std::ostringstream msg;
@@ -446,6 +453,13 @@ namespace MFM {
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
 	newType = Bool; //m_state.getUlamTypeOfConstant(Bool);
+	break;
+      case TOK_SQUOTED_STRING:
+	{
+	  u32 uid = m_state.m_pool.getIndexForDataString("Unsigned");
+	  UlamKeyTypeSignature key(uid, SIZEOFACHAR, NONARRAYSIZE, 0);
+	  newType = m_state.makeUlamType(key, Unsigned);
+	}
 	break;
       default:
 	{

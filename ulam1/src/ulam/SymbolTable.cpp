@@ -543,43 +543,61 @@ namespace MFM {
   bool SymbolTable::checkCustomArrayTypeFuncs()
   {
     bool rtnBool = false;
-    Symbol * fnsym = NULL;
-    if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsym))
+    NodeBlockClass * cblock = m_state.getClassBlock();
+
+    Symbol * fnsymget = NULL;
+    if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsymget))
       {
-	//LOOP over SymbolFunctions to get return type, and check
-	//if corresponding aset exists and params match.
-	//CANT use UTI directly, must build string of keys to compare
-	//as they may change.
+	u32 probcount = 0;
+	//LOOP over SymbolFunctions to verify same return type
+	// CANT use UTI directly, must build string of keys to compare
+	// as they may change.
 
-	//set class type to custom array; the current class block
-	//node type was set to its class symbol type at start of parsing it.
-	UTI cuti = m_state.getClassBlock()->getNodeType();
+	//class type should already be flagged as a custom array
+	UTI cuti = cblock->getNodeType();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	assert(((UlamTypeClass *) cut)->isCustomArray());
-	{
-	  std::ostringstream msg;
-	  msg << "Custom array get method: '";
-	  msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
-	  msg << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
-	  MSG(fnsym->getTokPtr(), msg.str().c_str(), DEBUG);
-	}
+	if(!((UlamTypeClass *) cut)->isCustomArray())
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom array get method: '";
+	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+	    msg << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
+	    MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    probcount++;
+	  }
+	else
+	  {
+	    UTI caType = Nav;
+	    probcount = ((SymbolFunctionName *) fnsymget)->checkCustomArrayGetFunctions(caType); //sets caType
 
-	u32 probcount = ((SymbolFunctionName *) fnsym)->checkCustomArrayFunctions(*this);
+	    if(!probcount)
+	      {
+		// for each aset that exists: it has two params, the 2nd is
+		// the same as the get return type, and the set return type is Void.
+		Symbol * fnsymset = NULL;
+		if(isInTable(m_state.getCustomArraySetFunctionNameId(), fnsymset))
+		  {
+		    probcount = ((SymbolFunctionName *) fnsymset)->checkCustomArraySetFunctions(caType);
+		  }
+	      }
+	  }
 	rtnBool = (probcount == 0);
       } //get found
     else
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-
-	std::ostringstream msg;
-	msg << "Custom array get method: '";
-	msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
-	msg << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
-	MSG("", msg.str().c_str(), DEBUG);
+	if(((UlamTypeClass *) cut)->isCustomArray())
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom array get method: '";
+	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+	    msg << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
+	    MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
       }
     return rtnBool;
-  } //checkForAndInitializeClassCustomArrayType
+  } //checkCustomArrayTypeFuncs
 
   //called by current Class block on its function ST
   UTI SymbolTable::getCustomArrayReturnTypeGetFunction()

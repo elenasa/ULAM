@@ -116,6 +116,16 @@ namespace MFM{
 	UTI puti = m_nodes[i]->checkAndLabelType();
 	if(!m_state.isComplete(puti))
 	  rtnuti = Nav; //all or none
+	else if(!WritePacked(m_state.determinePackable(puti)) && !m_state.isScalar(puti))
+	  {
+	    std::ostringstream msg;
+	    msg << "Function Definition parameter ";
+	    msg << i+1 << ", type: ";
+	    msg << m_state.getUlamTypeNameByIndex(puti).c_str();
+	    msg << " (UTI" << puti << "), requires UNPACKED array support";
+	    MSG(m_nodes[i]->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnuti = Nav;
+	  }
       }
     setNodeType(rtnuti);
     return rtnuti;
