@@ -726,6 +726,7 @@ exit compilationDriver();
 
 my @testFilesFromUlam;
 my @elementCNamesFromUlam;
+my @quarkCNamesFromUlam;
 
 sub compilationDriver {
     prepareWorkDir();
@@ -903,6 +904,8 @@ sub runUlamCompilations
                 $elementCNameToUlamFile{$cname} = $path;
                 $elementCNameToUlamName{$cname} = $name;
 #                print "INFO($path,$name,$size,$testflag,$classtype)='$elementCNameToUlamFile{$cname}'\n";
+            } elsif ($classtype eq "quark") {
+                push @quarkCNamesFromUlam, $cname;
             }
         }
         if (scalar(@elementCNamesFromUlam)==0) {
@@ -954,7 +957,7 @@ sub writeElementAllocatorStub {
 EOF
     {
         my %seen;
-        for my $en (@elementCNamesFromUlam) {
+        for my $en (@elementCNamesFromUlam, @quarkCNamesFromUlam) {
             next if $seen{$en};
             $seen{$en} = 1;
             print $hdrhdl <<EOF;
@@ -1011,36 +1014,62 @@ EOF
     my $libraryStubPtrArrayInits = "";
     my $libraryStubPtrArrayCount = 0;
 
-    my %seen;
-    for my $en (@elementCNamesFromUlam) {
-        next if $seen{$en};
-        $seen{$en} = 1;
-        my ($infoname, $infocode) = @{$infoForElement{$en}};
-        my $infoinstancename = lexEncode("_ueinfo",$libraryStubPtrArrayCount);
-        my $stubname = lexEncode("_uelstub",$libraryStubPtrArrayCount);
-        my $elsname = "UlamElementLibraryStub";
-        my $putinarray = 1;
-        if ($en eq "Ue_10105Empty10") {
-            $infoinstancename = "_ueinfoEmpty";
-            $stubname = "_uelstubEmpty";
-            $elsname = "UlamEmptyElementLibraryStub";
-            $putinarray = 0;
-        }
-        $libraryStubPtrArrayStatics .= <<EOF;
+    my $quarkPtrArrayStatics = "";
+    my $quarkPtrArrayInits = "";
+    my $quarkPtrArrayCount = 0;
+
+    # PROCESS THE ELEMENTS
+    {
+        my %seen;
+        for my $en (@elementCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+            my ($infoname, $infocode) = @{$infoForElement{$en}};
+            my $infoinstancename = lexEncode("_ueinfo",$libraryStubPtrArrayCount);
+            my $stubname = lexEncode("_uelstub",$libraryStubPtrArrayCount);
+            my $elsname = "UlamElementLibraryStub";
+            my $putinarray = 1;
+            if ($en eq "Ue_10105Empty10") {
+                $infoinstancename = "_ueinfoEmpty";
+                $stubname = "_uelstubEmpty";
+                $elsname = "UlamEmptyElementLibraryStub";
+                $putinarray = 0;
+            }
+            $libraryStubPtrArrayStatics .= <<EOF;
 
   static MFM::$infoname<MFM::StdEventConfig> $infoinstancename(MFM::$en<MFM::StdEventConfig>::THE_INSTANCE);
   static MFM::$elsname<MFM::StdEventConfig> $stubname (
       MFM::$en<MFM::StdEventConfig>::THE_INSTANCE,
       &$infoinstancename);
 EOF
-        if ($putinarray) {
-            $libraryStubPtrArrayInits .= "," if $libraryStubPtrArrayInits ne "";
-            $libraryStubPtrArrayInits .= "\n    &$stubname";
-            ++$libraryStubPtrArrayCount;
-         }
+            if ($putinarray) {
+                $libraryStubPtrArrayInits .= "," if $libraryStubPtrArrayInits ne "";
+                $libraryStubPtrArrayInits .= "\n    &$stubname";
+                ++$libraryStubPtrArrayCount;
+            }
 #        print STDERR "IIFFI($infoname, $infocode,$libraryStubPtrArrayStatics,$libraryStubPtrArrayInits)\n";
 #        die;
+        }
     }
+
+    # PROCESS THE QUARKS
+    {
+        my %seen;
+        for my $en (@quarkCNamesFromUlam) {
+            next if $seen{$en};
+            $seen{$en} = 1;
+
+            my $stubname = lexEncode("_uqinstance",$quarkPtrArrayCount);
+            $quarkPtrArrayStatics .= <<EOF;
+
+  static MFM::$en<MFM::StdEventConfig,0> $stubname;
+EOF
+            $quarkPtrArrayInits .= "," if $quarkPtrArrayInits ne "";
+            $quarkPtrArrayInits .= "\n    &$stubname";
+            ++$quarkPtrArrayCount;
+        }
+    }
+
     open(my $handle, ">", $src)
         or UDie("Can't write '$src': $!\n");
     print $handle <<EOF;
@@ -1056,14 +1085,20 @@ extern "C" {
 $libraryStubPtrArrayStatics
   static MFM::ElementLibraryStub<MFM::StdEventConfig> * (_elementStubPtrArray_[]) = {$libraryStubPtrArrayInits
   };
+$quarkPtrArrayStatics
+  static MFM::UlamClass * (_otherUlamClassPtrArray_[]) = {$quarkPtrArrayInits
+  };
   static MFM::ElementLibrary<MFM::StdEventConfig> el = {
     MFM::ELEMENT_LIBRARY_MAGIC,
     MFM::ELEMENT_LIBRARY_VERSION,
+    MFM::ELEMENT_LIBRARY_SUBVERSION,
     0,
-    $libraryStubPtrArrayCount,
     MFM_BUILD_DATE,
     MFM_BUILD_TIME,
-    _elementStubPtrArray_
+    $libraryStubPtrArrayCount,
+    _elementStubPtrArray_,
+    $quarkPtrArrayCount,
+    _otherUlamClassPtrArray_
   };
   void * MFM_ELEMENT_LIBRARY_LOADER_SYMBOL =  &el;
 }
