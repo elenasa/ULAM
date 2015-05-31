@@ -121,13 +121,20 @@ namespace MFM {
     return brtn;
   } //end cast
 
-
   void UlamTypeUnsigned::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
       sprintf(valstr,"%u", data);
     else
       sprintf(valstr,"%c%u", prefix, data);
+  }
+
+  void UlamTypeUnsigned::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  {
+    if(prefix == 'z')
+      sprintf(valstr,"%lu", data);
+    else
+      sprintf(valstr,"%c%lu", prefix, data);
   }
 
 } //end MFM

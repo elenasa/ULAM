@@ -375,10 +375,24 @@ namespace MFM {
 
    if(isTerminal)
      {
-       u32 data = uvpass.getImmediateData(m_state);
-       char dstr[40];
-       vut->getDataAsString(data, dstr, 'z');
-       fp->write(dstr);
+       s32 len = m_state.getBitSize(vuti);
+       assert(len != UNKNOWNSIZE);
+       if(len <= MAXBITSPERINT)
+	 {
+	   u32 data = uvpass.getImmediateData(m_state);
+	   char dstr[40];
+	   vut->getDataAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else if(len <= MAXBITSPERLONG)
+	 {
+	   u64 data = uvpass.getImmediateDataLong(m_state);
+	   char dstr[70];
+	   vut->getDataLongAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else
+	 assert(0);
      }
    else
      {

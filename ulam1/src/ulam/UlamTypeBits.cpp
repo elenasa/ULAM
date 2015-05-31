@@ -81,4 +81,12 @@ namespace MFM {
       sprintf(valstr,"%c%u", prefix, data);
   }
 
+  void UlamTypeBits::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  {
+    if(prefix == 'z')
+      sprintf(valstr,"%lu", data);
+    else
+      sprintf(valstr,"%c%lu", prefix, data);
+  }
+
 } //end MFM
