@@ -1096,7 +1096,7 @@ namespace MFM {
 	msg << "Class without parameters already exists with the same name: ";
 	msg << m_pool.getDataAsString(symptr->getId()).c_str() << " <UTI";
 	msg << symptr->getUlamTypeIdx() << ">";
-	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR); //parsing
       }
     return (rtnb && symptr->isClassTemplate());
   } //alreadyDefinedSymbolClassNameTemplate
@@ -1957,7 +1957,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Cannot find path index (" << pathidx << ") for line: " << linenum;
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	return "<empty path>\n";
+	return "<empty path>\n"; //used in gen code
       }
 
     if(linenum >= textOfLines->size())
