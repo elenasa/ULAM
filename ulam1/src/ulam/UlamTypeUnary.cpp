@@ -110,9 +110,17 @@ namespace MFM {
   void UlamTypeUnary::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%u", PopCount(data));            //converted to binary
+      sprintf(valstr,"%u", PopCount(data)); //converted to binary
     else
-      sprintf(valstr,"%c%u", prefix, PopCount(data));  //converted to binary
+      sprintf(valstr,"%c%u", prefix, PopCount(data)); //converted to binary
+  }
+
+  void UlamTypeUnary::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  {
+    if(prefix == 'z')
+      sprintf(valstr,"%u", PopCount(data)); //converted to binary
+    else
+      sprintf(valstr,"%c%u", prefix, PopCount(data)); //converted to binary
   }
 
 } //end MFM

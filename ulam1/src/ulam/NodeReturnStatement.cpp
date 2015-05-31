@@ -194,32 +194,16 @@ namespace MFM {
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 #endif
-	//m_node->genCodeToStoreInto(fp, uvpass);
 	m_node->genCode(fp, uvpass);
 	UTI vuti = uvpass.getUlamValueTypeIdx();
-	//bool isTerminal = (vuti != Ptr);
 
 	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
-	//if(isTerminal)
-	//  {
-	//    // write out terminal explicitly
-	//    m_state.indent(fp);
-	//    fp->write("return ");
-	//    fp->write("(");
-	//    u32 data = uvpass.getImmediateData(m_state);
-	//    char dstr[40];
-	//    m_state.getUlamTypeByIndex(vuti)->getDataAsString(data, dstr, 'z', m_state);
-	//    fp->write(dstr);
-	//  }
-	//else
-	  {
-	    m_state.indent(fp);
-	    fp->write("return ");
-	    fp->write("(");
-	    vuti = uvpass.getPtrTargetType();
-	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
-	  }
+	m_state.indent(fp);
+	fp->write("return ");
+	fp->write("(");
+	vuti = uvpass.getPtrTargetType();
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 
 	fp->write(")");
 	fp->write(";\n");
@@ -233,7 +217,7 @@ namespace MFM {
     else
       {
 	m_state.indent(fp);
-	fp->write("return;\n");   //void
+	fp->write("return;\n"); //void
       }
   } //genCode
 

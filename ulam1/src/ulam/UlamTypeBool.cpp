@@ -127,6 +127,28 @@ namespace MFM {
       sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   } //getDataAsString
 
+  void UlamTypeBool::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  {
+    bool dataAsBool = false;
+    if(!isComplete())
+      {
+	sprintf(valstr,"%s", "unknown");
+      }
+    else
+      {
+	s32 bitsize = getBitSize();
+	s32 count1s = PopCount(data);
+
+	if(count1s > (s64) (bitsize - count1s))  // == when even number bits is ignored (warning at def)
+	  dataAsBool = true;
+      }
+
+    if(prefix == 'z')
+      sprintf(valstr,"%s", dataAsBool ? "true" : "false");
+    else
+      sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
+  } //getDataLongAsString
+
   const std::string UlamTypeBool::getConvertToCboolMethod()
   {
     std::ostringstream rtnMethod;
