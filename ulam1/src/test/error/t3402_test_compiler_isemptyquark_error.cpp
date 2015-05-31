@@ -6,6 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      //sh: 1: /home/elenas/WORK/ulam/repo/ULAM/ulam1/src/test/bin/main: not found
+
       // gen code issue: quark doesn't have internalCMethodImplementingIs!!
       //include/Ue_10163Foo0.tcc:28:57: error: ‘POS’ was not declared in this scope
       //        const u32 Uh_tmpreg_loadable_12 = Uq_10105Empty0<EC,POS>::internalCMethodImplementingIs(Uh_tmpval_unpacked_11);

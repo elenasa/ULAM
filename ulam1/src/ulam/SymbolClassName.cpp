@@ -164,10 +164,21 @@ namespace MFM {
       {
 	UTI cuti = getUlamTypeIdx();
 	m_state.setBitSize(cuti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
-	std::ostringstream msg;
-	msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str();
-	msg << " SIZED: " << totalbits;
-	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
+	if(m_state.getBitSize(cuti) != totalbits)
+	  {
+	    std::ostringstream msg;
+	    msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << " SIZED FAILED: " << totalbits;
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+	    classNode->setNodeType(Nav); //avoid assert in resolving loop
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << " SIZED: " << totalbits;
+	    MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
+	  }
       }
     m_state.popClassContext(); //restore
     return aok;

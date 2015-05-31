@@ -78,6 +78,8 @@ namespace MFM{
 
     bool makeDoubleQuoteToken(std::string& astring, Token & tok);
     bool makeSingleQuoteToken(std::string& astring, Token & tok);
+    bool formatOctalConstant(u8& rtn);
+    bool formatHexConstant(u8& rtn);
 
     s32 eatComment();
     s32 eatBlockComment();
