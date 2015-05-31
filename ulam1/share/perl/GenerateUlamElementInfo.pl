@@ -62,6 +62,7 @@ EOF
 }
 
 my $author = $us->makeCString($keys{'author'});
+my $copyright = $us->makeCString($keys{'copyright'});
 my $license = $us->makeCString($keys{'license'});
 my $cver = $keys{'version'};
 my $cplaceable = "true";
@@ -135,6 +136,7 @@ namespace MFM {
     const char * GetSummary() const { return $csum; }
     const char * GetDetails() const { return $cdet; }
     const char * GetAuthor() const { return $author; }
+    const char * GetCopyright() const { return $copyright; }
     const char * GetLicense() const { return $license; }
     bool GetPlaceable() const { return $cplaceable; }
     const u32 GetVersion() const { return $cver; }
