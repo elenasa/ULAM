@@ -131,10 +131,24 @@ namespace MFM {
       {
 	// fp->write("(bool) ");
 	// write out terminal explicitly
-	u32 data = uvpass.getImmediateData(m_state);
-	char dstr[40];
-	cut->getDataAsString(data, dstr, 'z');
-	fp->write(dstr);
+       s32 len = m_state.getBitSize(cuti);
+       assert(len != UNKNOWNSIZE);
+       if(len <= MAXBITSPERINT)
+	 {
+	   u32 data = uvpass.getImmediateData(m_state);
+	   char dstr[40];
+	   cut->getDataAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else if(len <= MAXBITSPERLONG)
+	 {
+	   u64 data = uvpass.getImmediateDataLong(m_state);
+	   char dstr[70];
+	   cut->getDataLongAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else
+	 assert(0);
       }
     else
       {

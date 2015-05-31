@@ -68,6 +68,11 @@ namespace MFM {
     sprintf(valstr,"%s", getUlamTypeName().c_str());
   }
 
+  void UlamType::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  {
+    sprintf(valstr,"%s", getUlamTypeName().c_str());
+  }
+
   ULAMCLASSTYPE UlamType::getUlamClass()
   {
     return UC_NOTACLASS;
@@ -87,7 +92,7 @@ namespace MFM {
     if(isScalar())
       ctype << getUlamTypeVDAsStringForC() << ", ";
     else
-      ctype << "VD::BITS, ";  //use BITS for arrays
+      ctype << "VD::BITS, "; //use BITS for arrays
 
     if(!isScalar() && getPackable() != PACKEDLOADABLE)
       {
@@ -123,7 +128,6 @@ namespace MFM {
     else
       mangled << 10;
 
-    //mangled << m_state.getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
     std::string ecode(UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum()));
     mangled << ToLeximited(ecode).c_str();
 
@@ -209,7 +213,7 @@ namespace MFM {
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
     std::ostringstream  ud;
-    ud << "Ud_" << mangledName;  //d for define (p used for atomicparametrictype)
+    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
     s32 sizeByIntBits = getTotalWordSize();
@@ -240,7 +244,7 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
     fp->write("typedef ");
-    fp->write(getUlamTypeAsStringForC().c_str());  //e.g. BitField
+    fp->write(getUlamTypeAsStringForC().c_str()); //e.g. BitField
     fp->write(" BF;\n");
 
     //storage here
@@ -465,23 +469,23 @@ namespace MFM {
    u32 UlamType::getTotalWordSize()
   {
     assert(isComplete());
-    return m_wordLengthTotal;  //e.g. 32, 64, 96
+    return m_wordLengthTotal; //e.g. 32, 64, 96
   }
 
   u32 UlamType::getItemWordSize()
   {
     assert(isComplete());
-    return m_wordLengthItem;  //e.g. 32, 64, 96
+    return m_wordLengthItem; //e.g. 32, 64, 96
   }
 
   void UlamType::setTotalWordSize(u32 tw)
   {
-    m_wordLengthTotal = tw;  //e.g. 32, 64, 96
+    m_wordLengthTotal = tw; //e.g. 32, 64, 96
   }
 
   void UlamType::setItemWordSize(u32 iw)
   {
-    m_wordLengthItem = iw;  //e.g. 32, 64, 96
+    m_wordLengthItem = iw; //e.g. 32, 64, 96
   }
 
   bool UlamType::isMinMaxAllowed()
@@ -491,13 +495,11 @@ namespace MFM {
 
   u32 UlamType::getMax()
   {
-    //assert(isMinMaxAllowed());
     return m_max;
   }
 
   s32 UlamType::getMin()
   {
-    //assert(isMinMaxAllowed());
     return m_min;
   }
 
@@ -507,7 +509,8 @@ namespace MFM {
     u32 len = getTotalBitSize(); //could be 0, e.g. 'unknown'
 
     //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
-    if(len <= MAXBITSPERINT)
+    //if(len <= MAXBITSPERINT)
+    if(len <= MAXBITSPERLONG)
       rtn = PACKEDLOADABLE;
     else
       if(len <= MAXSTATEBITS)

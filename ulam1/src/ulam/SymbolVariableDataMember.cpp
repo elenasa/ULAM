@@ -126,7 +126,7 @@ namespace MFM {
 	PACKFIT packFit = m_state.determinePackable(vuti);
 	assert(WritePacked(packFit)); //has to be to fit in an atom/site;
 
-	char * valstr = new char[size * 8 + 32];
+	char * valstr = new char[size * 8 + MAXBITSPERLONG]; //was 32
 
 	if(size > 0)
 	  {
@@ -139,18 +139,41 @@ namespace MFM {
 	    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
 
 	    UlamValue atval = m_state.getPtrTarget(nextPtr);
-	    u32 data = atval.getDataFromAtom(nextPtr, m_state);
-	    vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
-
-	    for(s32 i = 1; i < size; i++)
+	    s32 len = nextPtr.getPtrLen();
+	    assert(len != UNKNOWNSIZE);
+	    if(len <= MAXBITSPERINT)
 	      {
-		char tmpstr[8];
-		nextPtr.incrementPtr(m_state);
-		atval = m_state.getPtrTarget(nextPtr);
-		data = atval.getDataFromAtom(nextPtr, m_state);
-		vut->getDataAsString(data, tmpstr, ',');
-		strcat(valstr,tmpstr);
+		u32 data = atval.getDataFromAtom(nextPtr, m_state);
+		vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+
+		for(s32 i = 1; i < size; i++)
+		  {
+		    char tmpstr[8];
+		    nextPtr.incrementPtr(m_state);
+		    atval = m_state.getPtrTarget(nextPtr);
+		    data = atval.getDataFromAtom(nextPtr, m_state);
+		    vut->getDataAsString(data, tmpstr, ',');
+		    strcat(valstr,tmpstr);
+		  }
 	      }
+	    else if(len <= MAXBITSPERLONG)
+	      {
+		u64 data = atval.getDataLongFromAtom(nextPtr, m_state);
+		vut->getDataLongAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+
+		for(s32 i = 1; i < size; i++)
+		  {
+		    char tmpstr[8];
+		    nextPtr.incrementPtr(m_state);
+		    atval = m_state.getPtrTarget(nextPtr);
+		    data = atval.getDataLongFromAtom(nextPtr, m_state);
+		    vut->getDataLongAsString(data, tmpstr, ',');
+		    strcat(valstr,tmpstr);
+		  }
+	      }
+	    else
+	      assert(0);
+
 	  } //end arrays > 0, and scalar
 	else
 	  {

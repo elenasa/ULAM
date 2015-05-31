@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
+    virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
+
   private:
 
   };
