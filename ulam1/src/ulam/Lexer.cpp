@@ -356,7 +356,71 @@ namespace MFM {
 	if(c == '\\')
 	  {
 	    s32 d = m_SS.read();
-	    astring.push_back(d - '\0'); //save next byte
+	    switch((char) d)
+	      {
+	      case 'a':
+		astring.push_back('\a'); //bell/alert 7
+		break;
+	      case 'b':
+		astring.push_back('\b'); //backspace 8
+		break;
+	      case 't':
+		astring.push_back('\t'); //horizontal tab 9
+		break;
+	      case 'n':
+		astring.push_back('\n'); //newline 10
+		break;
+	      case 'v':
+		astring.push_back('\v'); //vertical tab 11
+		break;
+	      case 'f':
+		astring.push_back('\f'); //formfeed 12
+		break;
+	      case 'r':
+		astring.push_back('\r'); //carriage return 13
+		break;
+	      case '"':
+		astring.push_back('\"'); //double quote 34
+		break;
+	      case '\'':
+		astring.push_back('\''); //single quote 39
+		break;
+	      case '?':
+		astring.push_back('\?'); //questionmark 63
+		break;
+	      case '\\':
+		astring.push_back('\\'); //backslash escape 92
+		break;
+	      case '0':
+	      case '1':
+	      case '2':
+	      case '3':
+	      case '4':
+	      case '5':
+	      case '6':
+	      case '7':
+		{
+		  unread();
+		  u8 ooo;
+		  if(formatOctalConstant(ooo))
+		    astring.push_back(ooo); //octal number
+		  else
+		    return false;
+		}
+		break;
+	      case 'x':
+	      case 'X':
+		{
+		  u8 hh;
+		  if(formatHexConstant(hh))
+		    astring.push_back(hh);
+		  else
+		    return false;
+		}
+		break;
+	      default:
+		astring.push_back(d - '\0'); //save it
+	      };
 	  }
 	else
 	  astring.push_back(c - '\0'); //as a number
@@ -379,6 +443,104 @@ namespace MFM {
     return true;
   } //makeSingleQuoteToken
 
+  bool Lexer::formatOctalConstant(u8& rtn)
+  {
+    //where \ooo is one to three octal digits (0..7)
+    u32 runningtotal = 0;
+    s32 c;
+    while((c = m_SS.read()) >= 0)
+      {
+	if(c == '\'')
+	  {
+	    unread();
+	    break;
+	  }
+	if(c >= '0' && c < '8')
+	  runningtotal = runningtotal * 8 + (c - '0');
+	else
+	  return false;
+      }
+
+    if(c < 0)
+      return false;
+
+    if(runningtotal < 256)
+      {
+	rtn = (u8) runningtotal;
+	return true;
+      }
+
+    return false;
+  } //formatOctalConstant
+
+  bool Lexer::formatHexConstant(u8& rtn)
+  {
+    // where \xhh is one or more hexadecimal digits (0...9, a...f, A...F).
+    u32 runningtotal = 0;
+    s32 c;
+    while((c = m_SS.read()) >= 0)
+      {
+	u32 cnum;
+	if(c == '\'')
+	  {
+	    unread();
+	    break;
+	  }
+
+	switch(c)
+	  {
+	  case 'a':
+	  case 'A':
+	    cnum = 10;
+	    break;
+	  case 'b':
+	  case 'B':
+	    cnum = 11;
+	    break;
+	  case 'c':
+	  case 'C':
+	    cnum = 12;
+	    break;
+	  case 'd':
+	  case 'D':
+	    cnum = 13;
+	    break;
+	  case 'e':
+	  case 'E':
+	    cnum = 14;
+	    break;
+	  case 'f':
+	  case 'F':
+	    cnum = 15;
+	    break;
+	  case '0':
+	  case '1':
+	  case '2':
+	  case '3':
+	  case '4':
+	  case '5':
+	  case '6':
+	  case '7':
+	  case '8':
+	  case '9':
+	    cnum = c - '0';
+	    break;
+	  default:
+	    return false; //error!
+	  };
+	runningtotal = runningtotal * 16 + cnum;
+      } //while
+
+    if(c < 0)
+      return false;
+
+    if(runningtotal < 256)
+      {
+	rtn = (u8) runningtotal;
+	return true;
+      }
+    return false;
+  } //formatHexConstant
 
   s32 Lexer::eatComment()
   {
