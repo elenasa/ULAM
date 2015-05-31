@@ -424,7 +424,8 @@ namespace MFM {
       case TOK_SQUOTED_STRING:
 	{
 	  std::string numstr = m_state.getTokenDataAsString(&tok);
-	  m_constant.uval = numstr[0];
+	  assert(numstr.length() == 1);
+	  m_constant.uval = (u8) numstr[0];
 	  rtnok = true;
 	}
 	break;
