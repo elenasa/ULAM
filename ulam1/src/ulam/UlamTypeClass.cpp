@@ -50,8 +50,19 @@ namespace MFM {
 	    if(pos >= 0)
 	      {
 		s32 len = getTotalBitSize();
-		u32 qdata = val.getDataFromAtom(pos, len);
-		val = UlamValue::makeImmediate(typidx, qdata, len);
+		assert(len != UNKNOWNSIZE);
+		if(len <= MAXBITSPERINT)
+		  {
+		    u32 qdata = val.getDataFromAtom(pos, len);
+		    val = UlamValue::makeImmediate(typidx, qdata, len);
+		  }
+		else if(len <+ MAXBITSPERLONG)
+		  {
+		    u64 qdata = val.getDataLongFromAtom(pos, len);
+		    val = UlamValue::makeImmediateLong(typidx, qdata, len);
+		  }
+		else
+		  assert(0);
 	      }
 	    else
 	      assert(0);
@@ -173,6 +184,14 @@ namespace MFM {
       sprintf(valstr,"%d", data);
     else
       sprintf(valstr,"%c%d", prefix, data);
+  }
+
+  void UlamTypeClass::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  {
+    if(prefix == 'z')
+      sprintf(valstr,"%ld", data);
+    else
+      sprintf(valstr,"%c%ld", prefix, data);
   }
 
   ULAMCLASSTYPE UlamTypeClass::getUlamClass()

@@ -196,8 +196,20 @@ namespace MFM {
 		  }
 		else
 		  {
-		    u32 datavalue = uv.getDataFromAtom(uvp, m_state);
-		    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		    s32 len = uvp.getPtrLen();
+		    assert(len != UNKNOWNSIZE);
+		    if(len <= MAXBITSPERINT)
+		      {
+			u32 datavalue = uv.getDataFromAtom(uvp, m_state);
+			uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		      }
+		    else if(len <= MAXBITSPERLONG)
+		      {
+			u64 datavalue = uv.getDataLongFromAtom(uvp, m_state);
+			uv = UlamValue::makeImmediateLong(nuti, datavalue, m_state);
+		      }
+		    else
+		      assert(0);
 		  }
 	      }
 	    else
@@ -211,8 +223,20 @@ namespace MFM {
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
 		    assert(uv.getUlamValueTypeIdx() != Ptr);
 
-		    u32 datavalue = uv.getDataFromAtom(uvp, m_state);
-		    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		    s32 len = uvp.getPtrLen();
+		    assert(len != UNKNOWNSIZE);
+		    if(len <= MAXBITSPERINT)
+		      {
+			u32 datavalue = uv.getDataFromAtom(uvp, m_state);
+			uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		      }
+		    else if(len <= MAXBITSPERLONG)
+		      {
+			u64 datavalue = uv.getDataLongFromAtom(uvp, m_state);
+			uv = UlamValue::makeImmediateLong(nuti, datavalue, m_state);
+		      }
+		    else
+		      assert(0);
 		  }
 	      }
 	  } // not node type
