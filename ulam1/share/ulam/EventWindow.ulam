@@ -2,6 +2,11 @@ ulam 1;
 use C2D;
 use AtomUtils;
 
+/**
+   \author Dave Ackley
+   \license lgpl
+ */
+
 quark EventWindow {
   AtomUtils au;
 
