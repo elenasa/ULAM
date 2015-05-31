@@ -78,7 +78,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameByIndex(it);
-	msg << ", inside (), is not a valid constant expression";
+	msg << ", within (), is not a valid constant expression";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
@@ -136,10 +136,21 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Type Bitsize specifier for base type: ";
-	    msg << UlamType::getUlamTypeEnumAsString(BUT) << "()UTI" << sizetype;
-	    msg << ", is not yet a \"known\" constant expression for class: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT) << "(UTI" << sizetype;
+	    msg << "), is not yet a \"known\" constant expression for class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    return false;
+	  }
+
+	if(newbitsize > MAXBITSPERINT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT);
+	    msg << " has a constant value of " << newbitsize;
+	    msg << " that exceeds the maximum bitsize " << MAXBITSPERINT;
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }
 
@@ -148,17 +159,17 @@ namespace MFM {
 	  {
 	    newbitsize--;
 	    std::ostringstream msg;
-	    msg << "Bool Type with EVEN number of bits is internally inconsistent; Reduced by one to ";
-	    msg << newbitsize << " bits" ;
+	    msg << "Bool Type with EVEN number of bits is internally inconsistent;";
+	    msg << "  Reduced by one to " << newbitsize << " bits" ;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier for base type: " << UlamType::getUlamTypeEnumAsString(BUT);
-	msg << "() is not a constant expression for class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "Type Bitsize specifier for base type: ";
+	msg << UlamType::getUlamTypeEnumAsString(BUT);
+	msg << "is not a constant expression";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }

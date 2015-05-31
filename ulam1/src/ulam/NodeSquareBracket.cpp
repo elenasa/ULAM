@@ -60,7 +60,7 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Invalid Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		msg << " (UTI" << leftType;
-		msg << " used with " << getName();
+		msg << ") used with " << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorCount++;
 	      }
@@ -72,45 +72,19 @@ namespace MFM {
 
 		if(!m_state.isComplete(caType))
 		  {
-#if 0
-
-		    // if Nav, use token
-		    UTI mappedUTI = caType;
-		    UTI cuti = m_state.getCompileThisIdx();
-
-		    // the symbol associated with this type, was mapped during instantiation
-		    // since we're call AFTER that (not during), we can look up our
-		    // new UTI and pass that on up the line of NodeType Selects, if any.
-		    if(m_state.mappedIncompleteUTI(cuti, caType, mappedUTI))
-		      {
-			std::ostringstream msg;
-			msg << "Substituting Mapped UTI" << mappedUTI;
-			msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-			msg << " for incomplete descriptor type: ";
-			msg << m_state.getUlamTypeNameByIndex(caType).c_str();
-			msg << "' UTI" << caType << " while labeling class: ";
-			msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-			caType = mappedUTI;
-		      }
-
-		    if(!m_state.isComplete(caType))
-#endif
-		      {
-			std::ostringstream msg;
-			msg << "Incomplete Custom Array Type: ";
-			msg << m_state.getUlamTypeNameBriefByIndex(caType).c_str();
-			msg << " (UTI" << caType;
-			msg << ") used with class: ";
-			msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-			msg << getName();
-			if(lut->isComplete())
-			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			else
-			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-			newType = Nav; //error!
-			errorCount++;
-		      }
+		    std::ostringstream msg;
+		    msg << "Incomplete Custom Array Type: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(caType).c_str();
+		    msg << " (UTI" << caType;
+		    msg << ") used with class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		    msg << getName();
+		    if(lut->isComplete())
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    else
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    newType = Nav; //error!
+		    errorCount++;
 		  }
 	      }
 	  }
