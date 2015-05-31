@@ -898,10 +898,23 @@ namespace MFM {
 	if(aok)
 	  {
 	    m_state.setBitSize(uti, totalbits); //"scalar" Class bitsize  KEY ADJUSTED
-	    std::ostringstream msg;
-	    msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	    msg << " UTI" << uti << ", SIZED: " << totalbits;
-	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
+	    if(m_state.getBitSize(uti) != totalbits)
+	      {
+		std::ostringstream msg;
+		msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameByIndex(uti).c_str();
+		msg << " SIZED FAILED: " << totalbits;
+		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+		NodeBlockClass * classNode = csym->getClassBlockNode();
+		assert(classNode);
+		classNode->setNodeType(Nav); //avoid assert in resolving loop
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+		msg << " UTI" << uti << ", SIZED: " << totalbits;
+		MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
+	      }
 	  }
 	else
 	  lostClasses.push_back(cuti); //track classes that fail to be sized.

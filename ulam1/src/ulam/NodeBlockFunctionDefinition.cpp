@@ -211,15 +211,16 @@ namespace MFM {
 
     if(m_nodeNext) //non-empty function
       {
-	m_nodeNext->checkAndLabelType();                     //side-effect
-	m_state.checkFunctionReturnNodeTypes(m_funcSymbol); //gives errors
+	m_nodeNext->checkAndLabelType(); //side-effect
+	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives errors
+	  setNodeType(Nav); //avoid assert in resolving loop
       }
     else
       {
 	std::ostringstream msg;
 	msg << "Undefined function block: <" << getName() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //missing?
+	setNodeType(Nav);
       }
     m_state.popClassContext(); //restores previous block ptr
     return getNodeType();
