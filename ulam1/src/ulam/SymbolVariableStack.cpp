@@ -25,6 +25,12 @@ namespace MFM {
     return m_stackFrameSlotIndex;
   }
 
+  void SymbolVariableStack::setStackFrameSlotIndex(s32 slot)
+  {
+    assert(!isDataMember());
+    m_stackFrameSlotIndex = slot;
+  }
+
   s32 SymbolVariableStack::getBaseArrayIndex()
   {
     return getStackFrameSlotIndex();

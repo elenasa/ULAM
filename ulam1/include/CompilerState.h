@@ -205,6 +205,7 @@ namespace MFM{
 
     s32 getDefaultBitSize(UTI uti);
     u32 getTotalBitSize(UTI utArg);
+    u32 getTotalWordSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
 
     /** return true and the Symbol pointer in 2nd arg if found;

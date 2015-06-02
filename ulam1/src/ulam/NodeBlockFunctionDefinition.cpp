@@ -320,8 +320,8 @@ namespace MFM {
 
 #if 0
     std::ostringstream msg;
-    msg << "Max Depth is: <" << m_maxDepth << ">";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+    msg << getName() << ": Max Depth is <" << m_maxDepth << ">";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 #endif
   }
 
@@ -329,6 +329,39 @@ namespace MFM {
   {
     return m_maxDepth;
   }
+
+  void NodeBlockFunctionDefinition::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    m_state.pushCurrentBlock(this);
+    //base starts with slots for: return type, args, and hidden
+    u32 max1 = 0;
+    u32 nomaxdepth = 0;
+    if(m_nodeParameterList) //slot indices negative to frame
+      m_nodeParameterList->calcMaxDepth(max1, nomaxdepth, base);
+
+    //set self slot just below return value
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    Symbol * selfsym = NULL;
+    assert(m_state.alreadyDefinedSymbol(selfid, selfsym));
+    s32 newslot = -1 - m_state.slotsNeeded(getNodeType());
+    s32 oldslot = ((SymbolVariable *) selfsym)->getStackFrameSlotIndex();
+    if(oldslot != newslot)
+      {
+	std::ostringstream msg;
+	msg << "'" << m_state.m_pool.getDataAsString(selfid).c_str();
+	msg << "' was at slot: " << oldslot << ", new slot is " << newslot;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
+      }
+
+    NodeBlock::calcMaxDepth(depth, maxdepth, 1); // one for the frame ptr offset
+    m_state.popClassContext();
+
+    // special case test function:
+    u32 testid = m_state.m_pool.getIndexForDataString("test");
+    if(m_funcSymbol->getId() == testid)
+      maxdepth += 1; //add spot for return since no caller does
+  } //calcMaxDepth
 
   void NodeBlockFunctionDefinition::setNative()
   {

@@ -34,14 +34,20 @@ namespace MFM {
 	if(r != 0) break;
 	i++;
       }
-
     return r;
   }
 
   s32 File::write_decimal(const s32 data)
     {
-      char tmp[32];
+      char tmp[32+3];
       sprintf(tmp,"%d",data);
+      return write(tmp);
+    }
+
+  s32 File::write_decimal_long(const s64 data)
+    {
+      char tmp[64+3];
+      sprintf(tmp,"%ld",data);
       return write(tmp);
     }
 

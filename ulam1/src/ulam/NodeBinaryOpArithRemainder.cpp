@@ -66,6 +66,38 @@ namespace MFM {
     return rtnUV;
   } //makeImmediateBinaryOp
 
+  UlamValue NodeBinaryOpArithRemainder::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+
+    if(rdata == 0)
+      {
+	MSG(getNodeLocationAsString().c_str(), "Possible Division By Zero Attempt in Modulus", ERR);
+	return rtnUV;
+      }
+
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	rtnUV = UlamValue::makeImmediateLong(type, _BinOpModInt64(ldata, rdata, len), len);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediateLong(type, _BinOpModUnsigned64(ldata, rdata, len), len);
+	break;
+      case Bool:
+	rtnUV = UlamValue::makeImmediateLong(type, _BinOpModBool64(ldata, rdata, len), len);
+	break;
+      case Unary:
+	rtnUV = UlamValue::makeImmediateLong(type, _BinOpModUnary64(ldata, rdata, len), len);
+	break;
+      case Bits:
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  } //makeImmediateLongBinaryOp
 
   void NodeBinaryOpArithRemainder::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {

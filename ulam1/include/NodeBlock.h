@@ -71,7 +71,7 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
-    virtual void calcMaxDepth(u32& depth);
+    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
     virtual bool isIdInScope(u32 id, Symbol * & symptrref);
 

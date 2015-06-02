@@ -147,7 +147,7 @@ namespace MFM{
 
     void setPtrNameId(u32 id);
 
-    void incrementPtr(CompilerState& state, s32 offset = 1);
+    bool incrementPtr(CompilerState& state, s32 offset = 1);
 
     static UlamValue getPackedArrayDataFromAtom(UlamValue p, UlamValue data, CompilerState& state);
 

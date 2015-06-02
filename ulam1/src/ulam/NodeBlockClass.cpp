@@ -234,7 +234,7 @@ namespace MFM {
       std::ostringstream msg;
       msg << stackframetotal << " is the total stackframe size required for ";
       msg << numberoffuncs << " functions";
-      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
     }
 #endif
 

@@ -83,8 +83,8 @@ namespace MFM{
     bool m_parameter; //i.e. no value, look at instance
 
     union {
-      s32 sval;
-      u32 uval;
+      s64 sval;
+      u64 uval;
       bool bval;
     } m_constant;
   };

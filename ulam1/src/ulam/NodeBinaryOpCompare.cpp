@@ -196,11 +196,27 @@ namespace MFM {
 
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
+    //UlamValue rtnUV;
 
-    u32 ldata = luv.getImmediateData(len);
-    u32 rdata = ruv.getImmediateData(len);
-    UlamValue rtnUV = makeImmediateBinaryOp(luti, ldata, rdata, len);
-    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+    u32 wordsize = m_state.getTotalWordSize(luti);
+    if(wordsize == MAXBITSPERINT)
+      {
+	u32 ldata = luv.getImmediateData(len);
+	u32 rdata = ruv.getImmediateData(len);
+	UlamValue rtnUV = makeImmediateBinaryOp(luti, ldata, rdata, len);
+	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+      }
+    else if(wordsize == MAXBITSPERLONG)
+      {
+	u64 ldata = luv.getImmediateDataLong(len);
+	u64 rdata = ruv.getImmediateDataLong(len);
+	UlamValue rtnUV = makeImmediateLongBinaryOp(luti, ldata, rdata, len);
+	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+      }
+    else
+      assert(0);
+
+    //m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
   } //end dobinaryopImmediate
 
   //unlike NodeBinaryOp, NodeBinaryOpCompare has a node type that's different from
@@ -254,8 +270,8 @@ namespace MFM {
 	    //cp result UV to stack, -1 (first array element deepest) relative to current frame pointer
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
-	lp.incrementPtr(m_state);
-	rp.incrementPtr(m_state);
+	assert(lp.incrementPtr(m_state));
+	assert(rp.incrementPtr(m_state));
       } //forloop
 
     if(WritePacked(packRtn))
