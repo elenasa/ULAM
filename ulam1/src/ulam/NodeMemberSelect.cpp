@@ -226,6 +226,12 @@ namespace MFM {
     return UlamValue();
   }
 
+  UlamValue NodeMemberSelect::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
+  {
+    assert(0); //unused
+    return UlamValue();
+  }
+
   void NodeMemberSelect::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     assert(0); //unused

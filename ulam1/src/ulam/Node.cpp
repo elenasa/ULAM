@@ -299,7 +299,7 @@ namespace MFM {
     assert(0);
   }
 
-  void Node::calcMaxDepth(u32& depth)
+  void Node::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     return; //work done by NodeStatements and NodeBlock
   }
@@ -1312,7 +1312,7 @@ namespace MFM {
     u32 pos = 0; //pos calculated by makePtr(atom-based) (e.g. quark, atom)
     if(vut->getUlamClass() == UC_NOTACLASS)
       {
-	s32 wordsize = vut->getTotalWordSize();
+	u32 wordsize = vut->getTotalWordSize();
 	pos = wordsize - vut->getTotalBitSize();
       }
 
@@ -1996,7 +1996,7 @@ namespace MFM {
     if(cosut->getUlamClass() == UC_NOTACLASS)
       {
 	assert(cosuti != UAtom); //atom too? let's find out..
-	s32 wordsize = cosut->getTotalWordSize();
+	u32 wordsize = cosut->getTotalWordSize();
 	pos = wordsize - (BITSPERATOM - pos); //cosut->getTotalBitSize();
       }
     return pos;

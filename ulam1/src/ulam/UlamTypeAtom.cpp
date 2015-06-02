@@ -78,8 +78,8 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nodetype);
 
     //base types e.g. Int, Bool, Unary, Foo, Bar..
-    s32 sizeByIntBitsToBe = getTotalWordSize();
-    s32 sizeByIntBits = nut->getTotalWordSize();
+    u32 sizeByIntBitsToBe = getTotalWordSize();
+    u32 sizeByIntBits = nut->getTotalWordSize();
 
     assert(sizeByIntBitsToBe == sizeByIntBits);
     assert(nut->getUlamClass() == UC_ELEMENT);  //quarks only cast toInt

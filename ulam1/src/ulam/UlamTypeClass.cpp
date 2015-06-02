@@ -56,7 +56,7 @@ namespace MFM {
 		    u32 qdata = val.getDataFromAtom(pos, len);
 		    val = UlamValue::makeImmediate(typidx, qdata, len);
 		  }
-		else if(len <+ MAXBITSPERLONG)
+		else if(len <= MAXBITSPERLONG)
 		  {
 		    u64 qdata = val.getDataLongFromAtom(pos, len);
 		    val = UlamValue::makeImmediateLong(typidx, qdata, len);
@@ -373,8 +373,8 @@ namespace MFM {
     std::ostringstream rtnMethod;
     UlamType * nut = m_state.getUlamTypeByIndex(nodetype);
     //base types e.g. Int, Bool, Unary, Foo, Bar..
-    s32 sizeByIntBitsToBe = getTotalWordSize();
-    s32 sizeByIntBits = nut->getTotalWordSize();
+    u32 sizeByIntBitsToBe = getTotalWordSize();
+    u32 sizeByIntBits = nut->getTotalWordSize();
 
     if(sizeByIntBitsToBe != sizeByIntBits)
       {

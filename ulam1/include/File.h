@@ -84,6 +84,7 @@ namespace MFM
 	from write(int)
     */
     s32 write_decimal(const s32 data);
+    s32 write_decimal_long(const s64 data);
 
     /** Attempt to close this File, and return 0 if successful.  If this
      File is has already been closed, or some I/O problem occurs,

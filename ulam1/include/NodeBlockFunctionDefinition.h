@@ -85,7 +85,7 @@ class NodeBlockFunctionDefinition : public NodeBlock
     // for framestack
     void setMaxDepth(u32 depth);
     u32 getMaxDepth();
-    //    virtual void calcMaxDepth(u32& depth);
+    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
     // for keyword 'native'; has empty block (i.e. not defined in Ulam); eval skipped
     void setNative();

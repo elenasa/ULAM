@@ -57,6 +57,32 @@ namespace MFM {
     return rtnUV;
   } //makeImmediateBinaryOp
 
+  UlamValue NodeBinaryOpEqualArithMultiply::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	rtnUV = UlamValue::makeImmediateLong(type, _BinOpMultiplyInt64(ldata, rdata, len), len);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediateLong(type, _BinOpMultiplyUnsigned64(ldata, rdata, len), len);
+	break;
+      case Bool:
+	rtnUV = UlamValue::makeImmediateLong(type, _BinOpMultiplyBool64(ldata, rdata, len), len);
+	break;
+      case Unary:
+	rtnUV = UlamValue::makeImmediateLong(type, _BinOpMultiplyUnary64(ldata, rdata, len), len);
+	break;
+      case Bits:
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  } //makeImmediateLongBinaryOp
+
   void NodeBinaryOpEqualArithMultiply::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     UTI type = refUV.getUlamValueTypeIdx();

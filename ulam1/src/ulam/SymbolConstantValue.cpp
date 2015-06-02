@@ -101,7 +101,13 @@ namespace MFM {
     fp->write(" = ");
     if(isReady())
       {
-	fp->write_decimal(m_constant.sval);
+	s32 tbs = m_state.getBitSize(tuti);
+	if( tbs <= MAXBITSPERINT)
+	  fp->write_decimal((s32) m_constant.sval);
+	else if( tbs <= MAXBITSPERLONG)
+	  fp->write_decimal_long(m_constant.sval);
+	else
+	  assert(0);
       }
     else
       fp->write("NONREADYCONST");

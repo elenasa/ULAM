@@ -238,6 +238,16 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
+  void NodeFunctionCall::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    u32 argbase = 0;
+    //allot enough stack space for the function call to another func
+    argbase += m_argumentNodes->getTotalSlotsNeeded(); //args assigned at eval
+    argbase += m_state.slotsNeeded(getNodeType()); //return
+    argbase += 1; //hidden
+    depth += argbase;
+  } //calcMaxDepth
+
   // since functions are defined at the class-level; a function call
   // must be PRECEDED by a member selection (element or quark) --- a
   // local variable instance that provides the storage (i.e. atom) for
@@ -536,7 +546,7 @@ namespace MFM {
 	u32 pos = 0; //POS 0 rightjustified;
 	if(nut->getUlamClass() == UC_NOTACLASS) //atom too???
 	  {
-	    s32 wordsize = nut->getTotalWordSize();
+	    u32 wordsize = nut->getTotalWordSize();
 	    pos = wordsize - nut->getTotalBitSize();
 	  }
 

@@ -60,6 +60,35 @@ namespace MFM {
     return rtnUV;
   } //makeImmediateBinaryOp
 
+  UlamValue NodeBinaryOpCompareLessEqual::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+    UTI nuti = getNodeType(); //Bool
+    u32 nodelen = m_state.getBitSize(nuti);
+
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum(); // left/right node type
+    switch(typEnum)
+      {
+      case Int:
+	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareLessEqualInt64(ldata, rdata, len), nodelen);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareLessEqualUnsigned64(ldata, rdata, len), nodelen);
+	break;
+      case Bool:
+	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareLessEqualBool64(ldata, rdata, len), nodelen);
+	break;
+      case Unary:
+	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareLessEqualUnary64(ldata, rdata, len), nodelen);
+	break;
+      case Bits:
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  } //makeImmediateLongBinaryOp
+
   void NodeBinaryOpCompareLessEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     assert(0); //not implemented yet!

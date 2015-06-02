@@ -14,15 +14,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","element A {\n Bool foo(Int m, Bool b) {\n Int d;\n { Int e[8];\n b = true;\n}\n Bool c;\n c = d = m;\n return c;\n } Int test() {\n c = foo(1, true);\n return c;\n } Bool c;\n }\n");  // max depth is 9; should cast return to Int.
-
-      // max depth == 2 (packed array)
-      //bool rtn1 = fms->add("A.ulam","element A { Bool foo(Int m, Bool b) {\n Int d;\n {\n Int(4) e[8];\n b = true;\n}\n Bool c;\n c = d = m;\n return c;\n }\n Int test() {\n c = foo(1, true);\n return c;\n } Bool c;\n }\n");  // max depth is 9; should cast return to Int.
-
-      //currently, can't handle arrays, SO substitute 8 Int's instead.
-      //bool rtn1 = fms->add("A.ulam","element A { Bool foo(Int m, Bool b) {\n Int d;\n {\nInt e,f,g,h,i,j,k,l;\n b = true;\n}\n Bool c;\n c = d = m;\n return c;\n }\n Int test() {\n c = foo(1, true);\n return c;\n } Bool c;\n }\n");
-      // max depth is 9; should cast return to Int.
-
+      bool rtn1 = fms->add("A.ulam","element A {\n Bool foo(Int m, Bool b) {\n Int d;\n { Int e[8];\n b = false;\n}\n Bool c;\n c = d = m;\n return c;\n } Int test() {\n c = foo(1, true);\n return c;\n } Bool c;\n }\n");  // max depth is 9; should cast return to Int.
 
       if(rtn1)
 	return std::string("A.ulam");
