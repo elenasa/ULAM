@@ -50,7 +50,7 @@ namespace MFM{
 
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();
-    u32 getTotalSizeOfParameters();
+    u32 getTotalParameterSlots();
     Symbol * getParameterSymbolPtr(u32 n);
 
     virtual bool isClassTemplate();

@@ -29,7 +29,7 @@ namespace MFM {
   {
     //first slot is frame pointer, contains previous frame pointer
     UlamValue uv = UlamValue::makeImmediate(m_intType, (s32) m_currentFrame);
-    m_frames.push_back(uv); 
+    m_frames.push_back(uv);
     m_currentFrame = m_frames.size() - 1;
 
     //initialize remaining depth slots to a zero ulamvalue
@@ -73,14 +73,14 @@ namespace MFM {
   void CallStack::storeUlamValueInSlot(UlamValue uv, s32 slot)
   {
     assert((m_currentFrame + slot < m_frames.size()) && (m_currentFrame + slot >= 0));
-    m_frames[m_currentFrame + slot] = uv; 
+    m_frames[m_currentFrame + slot] = uv;
   }
 
 
   UlamValue CallStack::loadUlamValueFromSlot(s32 slot)
   {
     assert((m_currentFrame + slot < m_frames.size()) && (m_currentFrame + slot >= 0));
-    return m_frames[m_currentFrame + slot]; 
+    return m_frames[m_currentFrame + slot];
   }
 
 
@@ -102,7 +102,7 @@ namespace MFM {
       }
     else
       {
-	//target is either packed array or packedloadable into a single int, 
+	//target is either packed array or packedloadable into a single int,
 	// use pos & len in ptr, unless there's no type
 	UlamValue lvalAtIdx = loadUlamValueFromSlot(leftbaseslot);
 
@@ -113,20 +113,33 @@ namespace MFM {
 	  }
 
 	// never is lvalAtIdx a Ptr
-	assert(lvalAtIdx.getUlamValueTypeIdx() != Ptr);
+	UTI luti = lvalAtIdx.getUlamValueTypeIdx();
+	assert(luti != Ptr);
 
-	lvalAtIdx.putDataIntoAtom(pluv, ruv, state);
-	storeUlamValueInSlot(lvalAtIdx, leftbaseslot);
+	s32 len = pluv.getPtrLen(); //state.getBitSize(luti);
+	assert(len != UNKNOWNSIZE);
+	if(len <= MAXBITSPERINT)
+	  {
+	    lvalAtIdx.putDataIntoAtom(pluv, ruv, state);
+	    storeUlamValueInSlot(lvalAtIdx, leftbaseslot);
+	  }
+	else if(len <= MAXBITSPERLONG)
+	  {
+	    lvalAtIdx.putDataIntoAtom(pluv, ruv, state);
+	    storeUlamValueInSlot(lvalAtIdx, leftbaseslot);
+	  }
+	else
+	  assert(0);
       }
-  }
+  } //assignUlamValue
 
 
   void CallStack::assignUlamValuePtr(UlamValue pluv, UlamValue puv)
   {
-    assert(pluv.getPtrTargetType() == puv.getPtrTargetType());   
+    assert(pluv.getPtrTargetType() == puv.getPtrTargetType());
 
     s32 leftbaseslot = pluv.getPtrSlotIndex(); //even for scalars
-    m_frames[m_currentFrame + leftbaseslot] = puv;  
+    m_frames[m_currentFrame + leftbaseslot] = puv;
   }
 
 

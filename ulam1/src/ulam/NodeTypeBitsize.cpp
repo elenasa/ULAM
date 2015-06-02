@@ -143,13 +143,14 @@ namespace MFM {
 	    return false;
 	  }
 
-	if(newbitsize > MAXBITSPERINT)
+	//if(newbitsize > MAXBITSPERINT)
+	if(newbitsize > MAXBITSPERLONG)
 	  {
 	    std::ostringstream msg;
 	    msg << "Type Bitsize specifier for base type: ";
 	    msg << UlamType::getUlamTypeEnumAsString(BUT);
 	    msg << " has a constant value of " << newbitsize;
-	    msg << " that exceeds the maximum bitsize " << MAXBITSPERINT;
+	    msg << " that exceeds the maximum bitsize " << MAXBITSPERLONG;
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return false;
 	  }

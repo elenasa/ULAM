@@ -99,6 +99,21 @@ namespace MFM {
     return getNodeType(); //Bool
   } //checkAndLabelType
 
+  void NodeControlIf::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    if(m_nodeCondition)
+      m_nodeCondition->calcMaxDepth(depth, maxdepth, base);
+
+    u32 maxbody = depth;
+    m_nodeBody->calcMaxDepth(maxbody, maxdepth, base);
+
+    u32 maxelse = depth;
+    if(m_nodeElse)
+      m_nodeElse->calcMaxDepth(maxelse, maxdepth, base);
+
+    depth += maxbody > maxelse ? maxbody : maxelse;
+  } //calcMaxDepth
+
   void NodeControlIf::countNavNodes(u32& cnt)
   {
     NodeControl::countNavNodes(cnt);

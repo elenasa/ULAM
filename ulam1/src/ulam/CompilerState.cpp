@@ -1067,6 +1067,12 @@ namespace MFM {
     return (ut->getTotalBitSize());
   }
 
+  u32 CompilerState::getTotalWordSize(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->getTotalWordSize());
+  }
+
   s32 CompilerState::slotsNeeded(UTI uti)
   {
     if(uti == Void)
@@ -1830,8 +1836,8 @@ namespace MFM {
 	    else
 	      assignValue(nextlptr, atval);
 
-	    nextlptr.incrementPtr(*this);
-	    nextrptr.incrementPtr(*this);
+	    assert(nextlptr.incrementPtr(*this));
+	    assert(nextrptr.incrementPtr(*this));
 	  }
       }
   } //assignArrayValues

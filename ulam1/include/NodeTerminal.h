@@ -95,8 +95,8 @@ namespace MFM{
   protected:
     virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
     union {
-      s32 sval;
-      u32 uval;
+      s64 sval;
+      u64 uval;
     } m_constant;
 
   };

@@ -43,6 +43,11 @@ namespace MFM {
     return getNodeType();
   }
 
+  void NodeBlockEmpty::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    return;  //overrides NodeBlock
+  }
+
   void NodeBlockEmpty::countNavNodes(u32& cnt)
   {
     return;
@@ -51,11 +56,6 @@ namespace MFM {
   EvalStatus NodeBlockEmpty::eval()
   {
     return NORMAL;
-  }
-
-  void NodeBlockEmpty::calcMaxDepth(u32& depth)
-  {
-    return;  //overrides NodeBlock
   }
 
   void NodeBlockEmpty::genCode(File * fp, UlamValue& uvpass)

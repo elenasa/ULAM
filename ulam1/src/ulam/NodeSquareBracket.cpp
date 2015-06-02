@@ -232,7 +232,7 @@ namespace MFM {
 	UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
 	UlamType * caut = m_state.getUlamTypeByIndex(caType);
 	u32 pos = pluv.getPtrPos();
-	if(caut->getBitSize() > 32)
+	if(caut->getBitSize() > MAXBITSPERINT)
 	  pos = 0;
 	//  itemUV = UlamValue::makeAtom(caType);
 	//else
@@ -254,17 +254,36 @@ namespace MFM {
       {
 	//adjust pos by offset * len, according to its scalar type
 	UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
-	scalarPtr.incrementPtr(m_state, offsetInt);
+	if(scalarPtr.incrementPtr(m_state, offsetInt))
+	  //copy result UV to stack, -1 relative to current frame pointer
+	  assignReturnValuePtrToStack(scalarPtr);
+	else
+	  {
+	    s32 arraysize = m_state.getArraySize(pluv.getPtrTargetType());
+	    Symbol * lsymptr;
+	    u32 lid = 0;
+	    if(getSymbolPtr(lsymptr))
+	      lid = lsymptr->getId();
 
-	//copy result UV to stack, -1 relative to current frame pointer
-	assignReturnValuePtrToStack(scalarPtr);
+	    std::ostringstream msg;
+	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
+	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evs = ERROR;
+	  }
       }
 
     evalNodeEpilog();
-    return NORMAL;
+    return evs;
   } //evalToStoreInto
 
   UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    assert(0); //unused
+    return UlamValue();
+  }
+
+  UlamValue NodeSquareBracket::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
     assert(0); //unused
     return UlamValue();

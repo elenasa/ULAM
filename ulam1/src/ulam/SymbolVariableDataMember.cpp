@@ -149,7 +149,7 @@ namespace MFM {
 		for(s32 i = 1; i < size; i++)
 		  {
 		    char tmpstr[8];
-		    nextPtr.incrementPtr(m_state);
+		    assert(nextPtr.incrementPtr(m_state));
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataFromAtom(nextPtr, m_state);
 		    vut->getDataAsString(data, tmpstr, ',');
@@ -164,7 +164,7 @@ namespace MFM {
 		for(s32 i = 1; i < size; i++)
 		  {
 		    char tmpstr[8];
-		    nextPtr.incrementPtr(m_state);
+		    assert(nextPtr.incrementPtr(m_state));
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataLongFromAtom(nextPtr, m_state);
 		    vut->getDataLongAsString(data, tmpstr, ',');

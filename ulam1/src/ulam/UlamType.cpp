@@ -63,6 +63,20 @@ namespace MFM {
     return false;
   }
 
+  bool UlamType::castTo32(UlamValue & val, UTI typidx)
+  {
+    assert(0);
+    //std::cerr << "UlamTypeClass (cast) error! " << std::endl;
+    return false;
+  }
+
+  bool UlamType::castTo64(UlamValue & val, UTI typidx)
+  {
+    assert(0);
+    //std::cerr << "UlamTypeClass (cast) error! " << std::endl;
+    return false;
+  }
+
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     sprintf(valstr,"%s", getUlamTypeName().c_str());
@@ -84,7 +98,7 @@ namespace MFM {
 
     s32 len = getTotalBitSize(); //includes arrays
     assert(len >= 0);
-    s32 roundUpSize = getTotalWordSize();
+    u32 roundUpSize = getTotalWordSize();
 
     std::ostringstream ctype;
     ctype << "BitField<BitVector<" << roundUpSize << ">, ";
@@ -216,7 +230,7 @@ namespace MFM {
     ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
-    s32 sizeByIntBits = getTotalWordSize();
+    u32 sizeByIntBits = getTotalWordSize();
 
     m_state.indent(fp);
     fp->write("#ifndef ");
@@ -466,7 +480,7 @@ namespace MFM {
     return (ut1 == ut2) ? UTIC_SAME : UTIC_NOTSAME;
   } //compare (static)
 
-   u32 UlamType::getTotalWordSize()
+  u32 UlamType::getTotalWordSize()
   {
     assert(isComplete());
     return m_wordLengthTotal; //e.g. 32, 64, 96
@@ -521,7 +535,7 @@ namespace MFM {
   const std::string UlamType::readMethodForCodeGen()
   {
     std::string method;
-    s32 sizeByIntBits = getTotalWordSize();
+    u32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
       {
       case 0: //e.g. empty quarks
@@ -542,7 +556,7 @@ namespace MFM {
   const std::string UlamType::writeMethodForCodeGen()
   {
     std::string method;
-    s32 sizeByIntBits = getTotalWordSize();
+    u32 sizeByIntBits = getTotalWordSize();
     switch(sizeByIntBits)
       {
       case 0: //e.g. empty quarks
@@ -604,8 +618,8 @@ namespace MFM {
     std::ostringstream rtnMethod;
     UlamType * nut = m_state.getUlamTypeByIndex(nodetype);
     //base types e.g. Int, Bool, Unary, Foo, Bar..
-    s32 sizeByIntBitsToBe = getTotalWordSize();
-    s32 sizeByIntBits = nut->getTotalWordSize();
+    u32 sizeByIntBitsToBe = getTotalWordSize();
+    u32 sizeByIntBits = nut->getTotalWordSize();
 
     if(sizeByIntBitsToBe != sizeByIntBits)
       {
@@ -614,7 +628,13 @@ namespace MFM {
 	msg << ", Value Type and size was: " << nut->getUlamTypeName().c_str();
 	msg << ", to be: " << sizeByIntBitsToBe << " for type: ";
 	msg << getUlamTypeName().c_str();
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+
+	//use the larger word size
+	if(sizeByIntBitsToBe < sizeByIntBits) //downcast using larger
+	  sizeByIntBitsToBe = sizeByIntBits;
+	else
+	  sizeByIntBits = sizeByIntBitsToBe;
       }
 
     rtnMethod << "_" << nut->getUlamTypeNameOnly().c_str() << sizeByIntBits << "To";
