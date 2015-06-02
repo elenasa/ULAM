@@ -32,7 +32,6 @@ namespace MFM {
     return methodname.str();
   }
 
-
   UlamValue NodeBinaryOpBitwiseAnd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;
@@ -61,6 +60,33 @@ namespace MFM {
     return rtnUV;
   } //makeImmediateBinaryOp
 
+  UlamValue NodeBinaryOpBitwiseAnd::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(type)->getUlamTypeEnum();
+    switch(typEnum)
+      {
+      case Int:
+	rtnUV = UlamValue::makeImmediateLong(type, _BitwiseAndInt64(ldata, rdata, len), len);
+	break;
+      case Unsigned:
+	rtnUV = UlamValue::makeImmediateLong(type, _BitwiseAndUnsigned64(ldata, rdata, len), len);
+	break;
+      case Bool:
+	rtnUV = UlamValue::makeImmediateLong(type, _BitwiseAndBool64(ldata, rdata, len), len);
+	break;
+      case Unary:
+	rtnUV = UlamValue::makeImmediateLong(type, _BitwiseAndUnary64(ldata, rdata, len), len);
+	break;
+      case Bits:
+	rtnUV = UlamValue::makeImmediateLong(type, _BitwiseAndBits64(ldata, rdata, len), len);
+	break;
+      default:
+	assert(0);
+	break;
+      };
+    return rtnUV;
+  } //makeImmediateLongBinaryOp
 
   void NodeBinaryOpBitwiseAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {

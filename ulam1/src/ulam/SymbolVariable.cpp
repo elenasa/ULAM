@@ -15,6 +15,12 @@ namespace MFM {
     return 0; //not on stack
   }
 
+  void SymbolVariable::setStackFrameSlotIndex(s32 slot)
+  {
+    assert(0);
+    return; //not on stack
+  }
+
   u32 SymbolVariable::getDataMemberSlotIndex()
   {
     assert(0);

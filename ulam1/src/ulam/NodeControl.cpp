@@ -145,6 +145,14 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  void NodeControl::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    if(m_nodeCondition)
+      m_nodeCondition->calcMaxDepth(depth, maxdepth, base);
+
+    m_nodeBody->calcMaxDepth(depth, maxdepth, base);
+  } //calcMaxDepth
+
   void NodeControl::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt); //missing

@@ -61,30 +61,25 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    assert(wordsize == MAXBITSPERINT);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etype)
       {
-      case Bool:
-	//num << ( _Bool32ToCbool(m_constant.uval, nbitsize) ? "true" : "false");
-	num << m_constant.uval << "u";
-	break;
       case Int:
-	//num << _Int32ToInt32(m_constant.sval, wordsize, nbitsize);
-	num << m_constant.sval;
+	if(wordsize <= MAXBITSPERINT)
+	  num << (s32) m_constant.sval;
+	else
+	  num << m_constant.sval;
 	break;
+      case Bool:
       case Unsigned:
-	//num << _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize) << "u";
-	num << m_constant.uval << "u"; //y
-	break;
       case Unary:
-	//num << _Unsigned32ToUnary32(m_constant.uval, wordsize, nbitsize) << "u"; //y
-	num << m_constant.uval << "u"; //y
-	break;
       case Bits:
-	//num << _Unsigned32ToBits32(m_constant.uval, wordsize, nbitsize) << "u";  //t
-	num << m_constant.uval << "u";  //t
+	// no casting needed, assume saved in its natural format
+	if(wordsize <= MAXBITSPERINT)
+	  num << (u32) m_constant.uval << "u";
+	else
+	  num << m_constant.uval << "u";
 	break;
       default:
 	{

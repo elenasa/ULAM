@@ -66,6 +66,11 @@ namespace MFM{
 
   private:
 
+    virtual bool castTo32(UlamValue & val, UTI typidx);
+
+    virtual bool castTo64(UlamValue & val, UTI typidx);
+
+
   };
 
 }

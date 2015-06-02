@@ -190,7 +190,7 @@ namespace MFM {
 	      {
 		UTI caType = ((UlamTypeClass *) nut)->getCustomArrayType();
 		UlamType * caut = m_state.getUlamTypeByIndex(caType);
-		if(caType == UAtom || caut->getBitSize() > 32)
+		if(caType == UAtom || caut->getBitSize() > MAXBITSPERINT)
 		  {
 		    uv = uvp; //customarray
 		  }
@@ -220,9 +220,13 @@ namespace MFM {
 		  }
 		else
 		  {
+		    UTI vuti = uv.getUlamValueTypeIdx();
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    assert(uv.getUlamValueTypeIdx() != Ptr);
+		    assert( vuti != Ptr);
+		    //assert(vuti == uvp.getPtrTargetType()); //o.w. stack screwed
 
+		    //s32 len = m_state.getTotalBitSize(vuti);
+		    //assert(len == uvp.getPtrLen()); //o.w. stack screwed
 		    s32 len = uvp.getPtrLen();
 		    assert(len != UNKNOWNSIZE);
 		    if(len <= MAXBITSPERINT)

@@ -116,15 +116,14 @@ namespace MFM {
     return m_nodeNext->eval(); //no return value
   }
 
-  void NodeBlock::calcMaxDepth(u32& depth)
+  void NodeBlock::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    u32 max1 = m_ST.getTotalSymbolSize();
-    u32 max2 = 0;
+    // can't use ST because it includes the hidden and rest of args; unordered.
+    u32 max2 = depth;
     if(m_nodeNext)
-      m_nodeNext->calcMaxDepth(max2);
+      m_nodeNext->calcMaxDepth(max2, maxdepth, base);
 
-    depth = max1 + max2;
-    return; //work done by NodeStatements and NodeBlock
+    maxdepth = max2 > maxdepth ? max2 : maxdepth; //no change to depth here
   } //calcMaxDepth
 
   bool NodeBlock::isIdInScope(u32 id, Symbol * & symptrref)

@@ -267,10 +267,23 @@ namespace MFM {
 
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
+    UlamValue rtnUV;
 
-    u32 ldata = luv.getImmediateData(len);
-    u32 rdata = ruv.getImmediateData(len);
-    UlamValue rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
+    u32 wordsize = m_state.getTotalWordSize(nuti);
+    if(wordsize == MAXBITSPERINT)
+      {
+	u32 ldata = luv.getImmediateData(len);
+	u32 rdata = ruv.getImmediateData(len);
+	rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
+      }
+    else if(wordsize == MAXBITSPERLONG)
+      {
+	u64 ldata = luv.getImmediateDataLong(len);
+	u64 rdata = ruv.getImmediateDataLong(len);
+	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
+      }
+    else
+      assert(0);
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
   } //end dobinaryopImmediate
 
@@ -318,8 +331,8 @@ namespace MFM {
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
 
-	lp.incrementPtr(m_state);
-	rp.incrementPtr(m_state);
+	assert(lp.incrementPtr(m_state));
+	assert(rp.incrementPtr(m_state));
       } //forloop
 
     if(WritePacked(packRtn))

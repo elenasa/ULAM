@@ -65,7 +65,7 @@ namespace MFM {
     return m_parameterSymbols.size();
   }
 
-  u32 SymbolFunction::getTotalSizeOfParameters()
+  u32 SymbolFunction::getTotalParameterSlots()
   {
     u32 totalsizes = 0;
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
@@ -74,7 +74,7 @@ namespace MFM {
 	totalsizes += m_state.slotsNeeded(sym->getUlamTypeIdx());
       }
     return totalsizes;
-  }
+  } //getTotalParameterSlots
 
   Symbol * SymbolFunction::getParameterSymbolPtr(u32 n)
   {

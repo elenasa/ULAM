@@ -78,7 +78,6 @@ namespace MFM{
 
   private:
 
-
   };
 
 }
