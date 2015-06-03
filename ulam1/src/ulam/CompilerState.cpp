@@ -868,6 +868,9 @@ namespace MFM {
 
   void CompilerState::updateUTIAlias(UTI auti, UTI buti)
   {
+    if(!isComplete(auti))
+      return; //without knowing the bitsize, don't alias it
+
     assert(auti < m_unionRootUTI.size());
     assert(buti < m_unionRootUTI.size());
     m_unionRootUTI[auti] = buti;
