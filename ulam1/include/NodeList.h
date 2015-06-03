@@ -74,6 +74,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+
     virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
@@ -83,6 +85,8 @@ namespace MFM{
     void addNodeToList(Node * argNode);
 
     u32 getNumberOfNodes() const;
+
+    u32 getTotalSlotsNeeded();
 
     Node * getNodePtr (u32 n) const;
 

@@ -299,7 +299,7 @@ namespace MFM {
     assert(0);
   }
 
-  void Node::calcMaxDepth(u32& depth)
+  void Node::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
     return; //work done by NodeStatements and NodeBlock
   }
@@ -858,11 +858,24 @@ namespace MFM {
     if(isTerminal)
       {
 	// write out terminal explicitly
-	u32 data = ruvpass.getImmediateData(m_state);
-	char dstr[40];
-	rut->getDataAsString(data, dstr, 'z');
-	fp->write(dstr);
-	fp->write(");\n");
+       s32 len = m_state.getBitSize(ruti);
+       assert(len != UNKNOWNSIZE);
+       if(len <= MAXBITSPERINT)
+	 {
+	   u32 data = ruvpass.getImmediateData(m_state);
+	   char dstr[40];
+	   rut->getDataAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else if(len <= MAXBITSPERLONG)
+	 {
+	   u64 data = ruvpass.getImmediateDataLong(m_state);
+	   char dstr[70];
+	   rut->getDataLongAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else
+	 assert(0);
       }
     else
       {
@@ -1035,10 +1048,25 @@ namespace MFM {
     if(isTerminal)
       {
 	// write out terminal explicitly
-	u32 data = ruvpass.getImmediateData(m_state);
-	char dstr[40];
-	rut->getDataAsString(data, dstr, 'z');
-	fp->write(dstr);
+	s32 len = m_state.getBitSize(ruti);
+	assert(len != UNKNOWNSIZE);
+	if(len <= MAXBITSPERINT)
+	  {
+	    u32 data = ruvpass.getImmediateData(m_state);
+	    char dstr[40];
+	    rut->getDataAsString(data, dstr, 'z');
+	    fp->write(dstr);
+	  }
+	else if(len <= MAXBITSPERLONG)
+	  {
+	    u64 data = ruvpass.getImmediateDataLong(m_state);
+	    char dstr[70];
+	    rut->getDataLongAsString(data, dstr, 'z');
+	    fp->write(dstr);
+	  }
+	else
+	  assert(0);
+
 	fp->write(");\n");
       }
     else
@@ -1189,10 +1217,24 @@ namespace MFM {
     if(isTerminal)
       {
 	// write out terminal explicitly
-	u32 data = ruvpass.getImmediateData(m_state);
-	char dstr[40];
-	rut->getDataAsString(data, dstr, 'z');
-	fp->write(dstr);
+	s32 len = m_state.getBitSize(ruti);
+	assert(len != UNKNOWNSIZE);
+	if(len <= MAXBITSPERINT)
+	  {
+	    u32 data = ruvpass.getImmediateData(m_state);
+	    char dstr[40];
+	    rut->getDataAsString(data, dstr, 'z');
+	    fp->write(dstr);
+	  }
+	else if(len <= MAXBITSPERLONG)
+	  {
+	    u64 data = ruvpass.getImmediateDataLong(m_state);
+	    char dstr[70];
+	    rut->getDataLongAsString(data, dstr, 'z');
+	    fp->write(dstr);
+	  }
+	else
+	  assert(0);
 	fp->write(");\n");
       }
     else
@@ -1241,10 +1283,25 @@ namespace MFM {
     fp->write("("); // use constructor (not equals)
     if(isTerminal)
       {
-	u32 data = uvpass.getImmediateData(m_state);
-	char dstr[40];
-	vut->getDataAsString(data, dstr, 'z');
-	fp->write(dstr);
+	// write out terminal explicitly
+	s32 len = m_state.getBitSize(vuti);
+	assert(len != UNKNOWNSIZE);
+	if(len <= MAXBITSPERINT)
+	  {
+	    u32 data = uvpass.getImmediateData(m_state);
+	    char dstr[40];
+	    vut->getDataAsString(data, dstr, 'z');
+	    fp->write(dstr);
+	  }
+	else if(len <= MAXBITSPERLONG)
+	  {
+	    u64 data = uvpass.getImmediateDataLong(m_state);
+	    char dstr[70];
+	    vut->getDataLongAsString(data, dstr, 'z');
+	    fp->write(dstr);
+	  }
+	else
+	  assert(0);
       }
     else
       {
@@ -1255,7 +1312,7 @@ namespace MFM {
     u32 pos = 0; //pos calculated by makePtr(atom-based) (e.g. quark, atom)
     if(vut->getUlamClass() == UC_NOTACLASS)
       {
-	s32 wordsize = vut->getTotalWordSize();
+	u32 wordsize = vut->getTotalWordSize();
 	pos = wordsize - vut->getTotalBitSize();
       }
 
@@ -1939,7 +1996,7 @@ namespace MFM {
     if(cosut->getUlamClass() == UC_NOTACLASS)
       {
 	assert(cosuti != UAtom); //atom too? let's find out..
-	s32 wordsize = cosut->getTotalWordSize();
+	u32 wordsize = cosut->getTotalWordSize();
 	pos = wordsize - (BITSPERATOM - pos); //cosut->getTotalBitSize();
       }
     return pos;

@@ -61,30 +61,25 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    assert(wordsize == MAXBITSPERINT);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     std::ostringstream num;
     switch(etype)
       {
-      case Bool:
-	//num << ( _Bool32ToCbool(m_constant.uval, nbitsize) ? "true" : "false");
-	num << m_constant.uval << "u";
-	break;
       case Int:
-	//num << _Int32ToInt32(m_constant.sval, wordsize, nbitsize);
-	num << m_constant.sval;
+	if(wordsize <= MAXBITSPERINT)
+	  num << (s32) m_constant.sval;
+	else
+	  num << m_constant.sval;
 	break;
+      case Bool:
       case Unsigned:
-	//num << _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize) << "u";
-	num << m_constant.uval << "u"; //y
-	break;
       case Unary:
-	//num << _Unsigned32ToUnary32(m_constant.uval, wordsize, nbitsize) << "u"; //y
-	num << m_constant.uval << "u"; //y
-	break;
       case Bits:
-	//num << _Unsigned32ToBits32(m_constant.uval, wordsize, nbitsize) << "u";  //t
-	num << m_constant.uval << "u";  //t
+	// no casting needed, assume saved in its natural format
+	if(wordsize <= MAXBITSPERINT)
+	  num << (u32) m_constant.uval << "u";
+	else
+	  num << m_constant.uval << "u";
 	break;
       default:
 	{
@@ -150,11 +145,14 @@ namespace MFM {
 
   EvalStatus NodeTerminal::eval()
   {
-    EvalStatus evs = NORMAL; //init ok
-
-    if(!m_state.isComplete(getNodeType()))
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
       return ERROR;
 
+    if(!m_state.isComplete(nuti))
+      return ERROR;
+
+    EvalStatus evs = NORMAL; //init ok
     evalNodeProlog(0); //new current frame pointer
 
     UlamValue rtnUV;
@@ -418,6 +416,14 @@ namespace MFM {
 	m_constant.uval = 0u;
 	rtnok = true;
 	break;
+      case TOK_SQUOTED_STRING:
+	{
+	  std::string numstr = m_state.getTokenDataAsString(&tok);
+	  assert(numstr.length() == 1);
+	  m_constant.uval = (u8) numstr[0];
+	  rtnok = true;
+	}
+	break;
       default:
 	{
 	    std::ostringstream msg;
@@ -443,6 +449,13 @@ namespace MFM {
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
 	newType = Bool; //m_state.getUlamTypeOfConstant(Bool);
+	break;
+      case TOK_SQUOTED_STRING:
+	{
+	  u32 uid = m_state.m_pool.getIndexForDataString("Unsigned");
+	  UlamKeyTypeSignature key(uid, SIZEOFACHAR, NONARRAYSIZE, 0);
+	  newType = m_state.makeUlamType(key, Unsigned);
+	}
 	break;
       default:
 	{

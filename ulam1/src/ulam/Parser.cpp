@@ -1565,7 +1565,7 @@ namespace MFM {
 
     UlamType * ctut = m_state.getUlamTypeByIndex(ctsym->getUlamTypeIdx());
     if(ctut->isCustomArray())
-      ((UlamTypeClass *) cut)->setCustomArrayType(((UlamTypeClass *) ctut)->getCustomArrayType());
+      ((UlamTypeClass *) cut)->setCustomArray();
 
     SymbolClass * csym = ctsym->makeAStubClassInstance(typeTok, cuti);
 
@@ -1890,11 +1890,11 @@ namespace MFM {
 		args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
 		isclasstd = true;
 	      }
-#if 0
-	    //update rest of argument refs
-	    args.m_bitsize = tdut->getBitSize();
-	    args.m_arraysize = tdut->getArraySize(); //becomes arg when installing symbol
-#endif
+
+	    //don't update rest of argument refs; typedefs have their own bit and array sizes to look up
+	    //args.m_bitsize = tdut->getBitSize();
+	    //args.m_arraysize = tdut->getArraySize(); //becomes arg when installing symbol
+
 	    //possibly another class? go again..
 	    if(isclasstd)
 	      {
@@ -2481,6 +2481,7 @@ namespace MFM {
       case TOK_NUMBER_UNSIGNED:
       case TOK_KW_TRUE:
       case TOK_KW_FALSE:
+      case TOK_SQUOTED_STRING:
 	rtnNode = new NodeTerminal(pTok, m_state);
 	assert(rtnNode);
 	break;
@@ -3076,11 +3077,12 @@ namespace MFM {
 
     //set class type to custom array; the current class block
     //node type was set to its class symbol type after checkAndLabelType
+    // caType is the return type of the 'aget' method (set here).
     if(m_state.getCustomArrayGetFunctionNameId() == identTok.m_dataindex)
       {
 	UTI cuti = currClassBlock->getNodeType(); //prevBlock
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	((UlamTypeClass *) cut)->setCustomArrayType(rtnuti);
+	((UlamTypeClass *) cut)->setCustomArray();
       }
 
     m_state.pushCurrentBlock(rtnNode); //before parsing the args

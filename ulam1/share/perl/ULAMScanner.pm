@@ -249,6 +249,12 @@ sub normalizeKeys {
     }
 
     ###
+    # 'copyright' key analysis
+    if (!defined $keys{'copyright'}) {
+        $keys{'copyright'} = "--none specified--";
+    }
+
+    ###
     # 'license' key analysis
     if (!defined $keys{'license'}) {
         $keys{'license'} = "--none specified--";

@@ -165,8 +165,12 @@ namespace MFM {
   EvalStatus NodeIdent::eval()
   {
     assert(m_varSymbol);
-    evalNodeProlog(0); //new current frame pointer
+
     UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    evalNodeProlog(0); //new current frame pointer
 
     //return the ptr for an array; square bracket will resolve down to the immediate data
     UlamValue uv;
@@ -186,14 +190,26 @@ namespace MFM {
 	      {
 		UTI caType = ((UlamTypeClass *) nut)->getCustomArrayType();
 		UlamType * caut = m_state.getUlamTypeByIndex(caType);
-		if(caType == UAtom || caut->getBitSize() > 32)
+		if(caType == UAtom || caut->getBitSize() > MAXBITSPERINT)
 		  {
 		    uv = uvp; //customarray
 		  }
 		else
 		  {
-		    u32 datavalue = uv.getDataFromAtom(uvp, m_state);
-		    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		    s32 len = uvp.getPtrLen();
+		    assert(len != UNKNOWNSIZE);
+		    if(len <= MAXBITSPERINT)
+		      {
+			u32 datavalue = uv.getDataFromAtom(uvp, m_state);
+			uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		      }
+		    else if(len <= MAXBITSPERLONG)
+		      {
+			u64 datavalue = uv.getDataLongFromAtom(uvp, m_state);
+			uv = UlamValue::makeImmediateLong(nuti, datavalue, m_state);
+		      }
+		    else
+		      assert(0);
 		  }
 	      }
 	    else
@@ -204,11 +220,27 @@ namespace MFM {
 		  }
 		else
 		  {
+		    UTI vuti = uv.getUlamValueTypeIdx();
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    assert(uv.getUlamValueTypeIdx() != Ptr);
+		    assert( vuti != Ptr);
+		    //assert(vuti == uvp.getPtrTargetType()); //o.w. stack screwed
 
-		    u32 datavalue = uv.getDataFromAtom(uvp, m_state);
-		    uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		    //s32 len = m_state.getTotalBitSize(vuti);
+		    //assert(len == uvp.getPtrLen()); //o.w. stack screwed
+		    s32 len = uvp.getPtrLen();
+		    assert(len != UNKNOWNSIZE);
+		    if(len <= MAXBITSPERINT)
+		      {
+			u32 datavalue = uv.getDataFromAtom(uvp, m_state);
+			uv = UlamValue::makeImmediate(nuti, datavalue, m_state);
+		      }
+		    else if(len <= MAXBITSPERLONG)
+		      {
+			u64 datavalue = uv.getDataLongFromAtom(uvp, m_state);
+			uv = UlamValue::makeImmediateLong(nuti, datavalue, m_state);
+		      }
+		    else
+		      assert(0);
 		  }
 	      }
 	  } // not node type
@@ -225,6 +257,10 @@ namespace MFM {
 
   EvalStatus NodeIdent::evalToStoreInto()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     assert(m_varSymbol);
     assert(isStoreIntoAble());
 

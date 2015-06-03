@@ -46,15 +46,36 @@ namespace MFM {
     if(!m_nodeLeft->isStoreIntoAble())
       {
 	std::ostringstream msg;
-	msg << "Lefthand side of equals is 'Not StoreIntoAble': <" << m_nodeLeft->getName();
+	msg << "Invalid lefthand side of equals: <" << m_nodeLeft->getName();
 	msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
-	if(leftType == Nav)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //likely still resolving
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);  //was newType that wasn't Nav
 	setStoreIntoAble(false);
+	return Nav; //newType
+      }
+
+    PACKFIT lpacked = m_state.determinePackable(leftType);
+    PACKFIT rpacked = m_state.determinePackable(rightType);
+    bool unpackedArrayLeft = !WritePacked(lpacked) && !m_state.isScalar(leftType);
+    bool unpackedArrayRight = !WritePacked(rpacked) && !m_state.isScalar(rightType);
+
+    if(unpackedArrayLeft || unpackedArrayRight)
+      {
+	if(unpackedArrayLeft)
+	  {
+	    std::ostringstream msg;
+	    msg << "Lefthand side of equals requires UNPACKED array support: <" << m_nodeLeft->getName();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	if(unpackedArrayRight)
+	  {
+	    std::ostringstream msg;
+	    msg << "Righthand side of equals requires UNPACKED array support: <" << m_nodeRight->getName();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(rightType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	setNodeType(Nav);  //was newType that wasn't Nav
 	return Nav; //newType
       }
 
@@ -81,6 +102,11 @@ namespace MFM {
   EvalStatus NodeBinaryOpEqual::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer on node eval stack
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -92,7 +118,7 @@ namespace MFM {
 	return evs;
       }
 
-    u32 slot = makeRoomForNodeType(getNodeType());
+    u32 slot = makeRoomForNodeType(nuti);
     evs = m_nodeRight->eval(); //a Node Function Call here
     if(evs != NORMAL)
       {
@@ -111,6 +137,10 @@ namespace MFM {
 
   EvalStatus NodeBinaryOpEqual::evalToStoreInto()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0);
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -121,7 +151,7 @@ namespace MFM {
 	return evs;
       }
 
-    UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, getNodeType(), m_state.determinePackable(getNodeType()), m_state); //positive to current frame pointer
+    UlamValue luvPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state); //positive to current frame pointer
 
     assignReturnValuePtrToStack(luvPtr);
 
@@ -173,11 +203,23 @@ namespace MFM {
     assert(slots == 1);
     UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
+    UlamValue rtnUV;
 
-    //u32 ldata = luv.getImmediateData(len);
-    u32 ldata = luv.getDataFromAtom(pluv, m_state);
-    u32 rdata = ruv.getImmediateData(len);
-    UlamValue rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
+    u32 wordsize = m_state.getTotalWordSize(nuti);
+    if(wordsize == MAXBITSPERINT)
+      {
+	u32 ldata = luv.getDataFromAtom(pluv, m_state);
+	u32 rdata = ruv.getImmediateData(len);
+	rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
+      }
+    else if(wordsize == MAXBITSPERLONG)
+      {
+	u64 ldata = luv.getDataLongFromAtom(pluv, m_state);
+	u64 rdata = ruv.getImmediateDataLong(len);
+	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
+      }
+    else
+      assert(0);
 
     m_state.assignValue(pluv,rtnUV);
 
@@ -236,8 +278,8 @@ namespace MFM {
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
 
-	lp.incrementPtr(m_state);
-	rp.incrementPtr(m_state);
+	assert(lp.incrementPtr(m_state));
+	assert(rp.incrementPtr(m_state));
       } //forloop
 
     if(WritePacked(packRtn))
@@ -248,6 +290,12 @@ namespace MFM {
   } //dobinaryoparray
 
   UlamValue NodeBinaryOpEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    assert(0); //unused
+    return UlamValue();
+  }
+
+  UlamValue NodeBinaryOpEqual::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
     assert(0); //unused
     return UlamValue();

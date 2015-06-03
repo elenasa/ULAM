@@ -171,17 +171,16 @@ namespace MFM {
       m_nodeNext->packBitsInOrderOfDeclaration(offset);
   } //packBitsInOrderOfDeclaration
 
-  void NodeStatements::calcMaxDepth(u32& depth)
+  void NodeStatements::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    u32 max1 = 0;
-    m_node->calcMaxDepth(max1);
+    u32 max2 = depth;
+    u32 max1 = depth;
+    m_node->calcMaxDepth(max1, maxdepth, base);
 
-    u32 max2 = 0;
     if(m_nodeNext)
-      m_nodeNext->calcMaxDepth(max2);
+      m_nodeNext->calcMaxDepth(max1, maxdepth, base);
 
-    depth = max1 > max2 ? max1 : max2;
-    return; //work done by NodeStatements and NodeBlock
+    depth = max1 > max2 ? max1 : max2; //no change to maxdepth here
   } //calcMaxDepth
 
   void NodeStatements::genCode(File * fp, UlamValue& uvpass)

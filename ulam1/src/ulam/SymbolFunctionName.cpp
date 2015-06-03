@@ -153,25 +153,26 @@ namespace MFM {
     return depthsum;
   } //getDepthSumOfFunctions
 
-
   // after all the UTI types are known, including array and bitsize
   // and before eval() for testing, update the maxdepth that was
   // calculated during parsetime
   void SymbolFunctionName::calcMaxDepthOfFunctions()
   {
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
-
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body?
+	u32 depth = 0;
 	u32 maxdepth = 0;
-	func->calcMaxDepth(maxdepth);
-	//add size of parameters (+ 1 for hidden) and return size?
-	maxdepth += fsym->getTotalSizeOfParameters();
-	maxdepth += 1; //hidden arg
-	maxdepth += m_state.slotsNeeded(fsym->getUlamTypeIdx()); //return type
+	s32 base = 0;
+	//add size of parameters (+ 1 for hidden) and return size
+	base += m_state.slotsNeeded(fsym->getUlamTypeIdx()); //return type
+	base += fsym->getTotalParameterSlots();
+	base += 1; //hidden arg is a symbol, not a node
+	func->calcMaxDepth(depth, maxdepth, base);
+	maxdepth += 1; //hidden, (frame ptr at zero implicit)
 	func->setMaxDepth(maxdepth);
 	++it;
       }
@@ -230,67 +231,131 @@ namespace MFM {
     return probcount;
   } //checkFunctionNames
 
-  u32 SymbolFunctionName::checkCustomArrayFunctions(SymbolTable & fST)
+  u32 SymbolFunctionName::checkCustomArrayGetFunctions(UTI& rtnType)
   {
     u32 probcount = 0;
+    UTI futisav = Nav;
+
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     //loop over 'aref's for return type; then check for 'aset' existence/correctness
+    // aref's should all return the same type
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	UTI futi = fsym->getUlamTypeIdx();
+	if(futi == Void)
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom array get method: '";
+	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "' cannot return Void ";
+	    probcount++;
+	  }
+	else if(futisav != Nav && UlamType::compare(futi, futisav, m_state) == UTIC_NOTSAME)
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom array get methods: '";
+	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "' cannot have different return types: ";
+	    msg << m_state.getUlamTypeNameByIndex(futi).c_str();
+	    msg << ", ";
+	    msg << m_state.getUlamTypeNameByIndex(futisav).c_str();
+	    probcount++;
+	  }
+	futisav = futi;
+	it++;
+      } //while
+
+    if(!probcount)
+      rtnType = futisav;
+    else
+      rtnType = Nav;
+    return probcount;
+  } //checkCustomArrayGetFunctions
+
+  u32 SymbolFunctionName::checkCustomArraySetFunctions(UTI caType)
+  {
+    if(m_mangledFunctionNames.empty())
+      {
+	std::ostringstream msg;
+	msg << "Custom array set method: '";
+	msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
+	msg << "' NOT FOUND in class: ";
+	msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
+	MSG(getTokPtr(), msg.str().c_str(), INFO);
+	return 0;
+      }
+
+    u32 probcount = 0;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	UTI futi = fsym->getUlamTypeIdx();
+	if(futi != Void)
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom array set method: '";
+	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "' must return Void ";
+	    probcount++;
+	  }
+
+	u32 numparams = fsym->getNumberOfParameters();
+	if(numparams != 2)
+	  {
+	    std::ostringstream msg;
+	    msg << "Custom array set method: '";
+	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+	    msg << "' requires exactly two parameters, not ";
+	    msg << numparams;
+	    probcount++;
+	  }
+	else
+	  {
+	    //verify 2nd parameter matches caType
+	    // compare UTI as they may change during full instantiations
+	    Symbol * asym = fsym->getParameterSymbolPtr(1);
+	    assert(asym);
+	    UTI auti = asym->getUlamTypeIdx();
+	    if(UlamType::compare(auti, caType, m_state) == UTIC_NOTSAME)
+	      {
+		std::ostringstream msg;
+		msg << "Custom array set method: '";
+		msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
+		msg << "' second parameter type: ";
+		msg << m_state.getUlamTypeNameByIndex(auti).c_str();
+		msg << " does not match '";
+		msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
+		msg << "' return type: ";
+		msg << m_state.getUlamTypeNameByIndex(caType).c_str();
+		msg << "and cannot be called in class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
+		probcount++;
+	      }
+	  }
+	it++;
+      } //while aset found
+    return probcount;
+  } //checkCustomArraySetFunctions
+
+  UTI SymbolFunctionName::getCustomArrayReturnType()
+  {
+    UTI rtnType = Nav;
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    //loop over 'aref's for return type;
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
 	UTI futi = fsym->getUlamTypeIdx();
 	assert(futi != Void);
-
-	// CANT use UTI directly, must key to compare as they may change.
-	// check that its 'set' function has a matching parameter type
-	Symbol * fnsymset = NULL;
-	if(fST.isInTable(m_state.getCustomArraySetFunctionNameId(), fnsymset))
-	  {
-	    SymbolFunction * funcSymbol = NULL;
-	    std::vector<UTI> argTypes;
-	    argTypes.push_back(Int);
-	    argTypes.push_back(futi);
-	    if(!((SymbolFunctionName *) fnsymset)->findMatchingFunction(argTypes, funcSymbol))
-	      {
-		std::ostringstream msg;
-		msg << "Custom array set method: '";
-		msg << m_state.m_pool.getDataAsString(fnsymset->getId()).c_str();
-		msg << "' does not match '";
-		msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
-		msg << "' argument types: ";
-		for(u32 i = 0; i < argTypes.size(); i++)
-		  {
-		    msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
-		  }
-		msg << "and cannot be called in class: ";
-		msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
-		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
-		probcount++;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Custom array set method: '";
-		msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
-		msg << "' FOUND in class: ";
-		msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
-		MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG);
-	      }
-	    argTypes.clear();
-	  } //aset found
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Custom array set method: '";
-	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
-	    msg << "' NOT FOUND in class: ";
-	    msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
-	    MSG(fsym->getTokPtr(), msg.str().c_str(), INFO);
-	  }
+	assert(rtnType == Nav || UlamType::compare(rtnType, futi, m_state) == UTIC_SAME);
+	rtnType = futi;
 	++it;
-      } //while get found
-    return probcount;
-  } //checkCustomArrayFunctions
+      }
+    return rtnType;
+  } //getCustomArrayReturnType
 
   void SymbolFunctionName::linkToParentNodesInFunctionDefs(NodeBlockClass * p)
   {

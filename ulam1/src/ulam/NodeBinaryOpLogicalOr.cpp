@@ -35,6 +35,7 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
+
     u32 len = m_state.getTotalBitSize(nuti);
 
     evalNodeProlog(0); //new current frame pointer
@@ -81,6 +82,13 @@ namespace MFM {
     assert(0); //overridden by eval
     return rtnUV;
   } //makeImmediateBinaryOp
+
+  UlamValue NodeBinaryOpLogicalOr::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+    assert(0); //overridden by eval
+    return rtnUV;
+  } //makeImmediateLongBinaryOp
 
   void NodeBinaryOpLogicalOr::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {

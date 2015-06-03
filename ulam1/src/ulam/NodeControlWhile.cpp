@@ -36,9 +36,13 @@ namespace MFM {
   EvalStatus  NodeControlWhile::eval()
   {
     assert(m_nodeCondition && m_nodeBody);
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
 
-    makeRoomForNodeType(getNodeType());
+    makeRoomForNodeType(nuti);
     EvalStatus evs = m_nodeCondition->eval();
     if(evs != NORMAL)
       {
@@ -64,7 +68,7 @@ namespace MFM {
 	//continue continues as normal
 	m_state.m_nodeEvalStack.popArgs(slots);
 
-	makeRoomForNodeType(getNodeType());
+	makeRoomForNodeType(nuti);
 
 	evs = m_nodeCondition->eval();
 	if(evs != NORMAL)
@@ -127,10 +131,24 @@ namespace MFM {
       {
 	// fp->write("(bool) ");
 	// write out terminal explicitly
-	u32 data = uvpass.getImmediateData(m_state);
-	char dstr[40];
-	cut->getDataAsString(data, dstr, 'z');
-	fp->write(dstr);
+       s32 len = m_state.getBitSize(cuti);
+       assert(len != UNKNOWNSIZE);
+       if(len <= MAXBITSPERINT)
+	 {
+	   u32 data = uvpass.getImmediateData(m_state);
+	   char dstr[40];
+	   cut->getDataAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else if(len <= MAXBITSPERLONG)
+	 {
+	   u64 data = uvpass.getImmediateDataLong(m_state);
+	   char dstr[70];
+	   cut->getDataLongAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else
+	 assert(0);
       }
     else
       {

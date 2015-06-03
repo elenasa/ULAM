@@ -26,7 +26,7 @@ namespace MFM {
 
   const std::string NodeUnaryOpBang::methodNameForCodeGen()
   {
-    s32 sizeByInts = m_state.getUlamTypeByIndex(getNodeType())->getTotalWordSize();
+    u32 sizeByInts = m_state.getTotalWordSize(getNodeType());
 
     std::ostringstream methodname;
     methodname << "_LogicalBang" << "Bool" << sizeByInts;

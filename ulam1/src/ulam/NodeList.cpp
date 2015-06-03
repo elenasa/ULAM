@@ -116,10 +116,35 @@ namespace MFM{
 	UTI puti = m_nodes[i]->checkAndLabelType();
 	if(!m_state.isComplete(puti))
 	  rtnuti = Nav; //all or none
+	else if(!WritePacked(m_state.determinePackable(puti)) && !m_state.isScalar(puti))
+	  {
+	    std::ostringstream msg;
+	    msg << "Function Definition parameter ";
+	    msg << i+1 << ", type: ";
+	    msg << m_state.getUlamTypeNameByIndex(puti).c_str();
+	    msg << " (UTI" << puti << "), requires UNPACKED array support";
+	    MSG(m_nodes[i]->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    rtnuti = Nav;
+	  }
       }
     setNodeType(rtnuti);
     return rtnuti;
   } //checkAndLabelType
+
+  void NodeList::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    s32 negrun = -base;
+    u32 nomaxdepth = 0;
+    if(m_nodes.empty())
+      return;
+    //reverse order
+    for(s32 i = m_nodes.size() - 1; i >= 0; i--)
+      {
+	u32 max1 = 0;
+	m_nodes[i]->calcMaxDepth(max1, nomaxdepth, negrun);
+	negrun += max1;
+      }
+  } //calcMaxDepth
 
   void NodeList::countNavNodes(u32& cnt)
   {
@@ -150,6 +175,16 @@ namespace MFM{
   {
     return m_nodes.size();
   } //getNumberOfNodes
+
+  u32 NodeList::getTotalSlotsNeeded()
+  {
+    u32 nslots = 0;
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      {
+	nslots += m_state.slotsNeeded(m_nodes[i]->getNodeType());
+      }
+    return nslots;
+  } //getTotalSlotsNeeded
 
   Node * NodeList::getNodePtr(u32 n) const
   {

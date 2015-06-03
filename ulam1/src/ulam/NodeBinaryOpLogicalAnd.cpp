@@ -35,6 +35,9 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     u32 len = m_state.getTotalBitSize(nuti);
 
     evalNodeProlog(0); //new current frame pointer
@@ -58,7 +61,7 @@ namespace MFM {
       }
     else
       {
-	u32 slot2 = makeRoomForNodeType(getNodeType());
+	u32 slot2 = makeRoomForNodeType(nuti);
 	evs = m_nodeRight->eval();
 	if(evs != NORMAL)
 	  {
@@ -81,6 +84,13 @@ namespace MFM {
     assert(0); //overridden by eval
     return rtnUV;
   } //makeImmediateBinaryOp
+
+  UlamValue NodeBinaryOpLogicalAnd::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
+  {
+    UlamValue rtnUV;
+    assert(0); //overridden by eval
+    return rtnUV;
+  } //makeImmediateLongBinaryOp
 
   void NodeBinaryOpLogicalAnd::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {

@@ -72,20 +72,20 @@ namespace MFM{
 	u8  m_posInAtom;
 	s8  m_bitlenInAtom;
 	u8  m_storagetype; //STORAGE
-	u8  m_packed;  //PACKFIT
+	u8  m_packed; //PACKFIT
 	u16 m_targetType;
-	u16 m_nameid;     //for code gen
+	u16 m_nameid; //for code gen
       } m_ptrValue;
 
       struct Storage {
-	//AtomBitVector m_atom;  //0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
+	//AtomBitVector m_atom; //0-15 UTI, 16-24 errcorr. 25-96 designed by element data members
 	u32 m_atom[AtomBitVector::ARRAY_LENGTH];
       } m_storage;
 
     } m_uv;
 
 
-    UlamValue();   //requires init to avoid Null ptr for type
+    UlamValue(); //requires init to avoid Null ptr for type
     ~UlamValue();
 
     void clear();
@@ -103,6 +103,10 @@ namespace MFM{
 
     static UlamValue makeImmediate(UTI utype, u32 v, s32 len = 32);
 
+    static UlamValue makeImmediateLong(UTI utype, u64 v, CompilerState& state);
+
+    static UlamValue makeImmediateLong(UTI utype, u64 v, s32 len = 64);
+
     // returns a pointer to an UlamValue of type targetType; pos==0 determined from targettype
     static UlamValue makePtr(u32 slot, STORAGE storage, UTI targetType, PACKFIT packed, CompilerState& state, u32 pos = 0);
 
@@ -119,10 +123,9 @@ namespace MFM{
 
     void setAtomElementTypeIdx(UTI utype);
 
-    PACKFIT isTargetPacked();             // Ptr only
+    PACKFIT isTargetPacked(); // Ptr only
 
-    UlamValue getValAt(u32 offset, CompilerState& state) const;   // Ptr only, arrays
-
+    UlamValue getValAt(u32 offset, CompilerState& state) const; // Ptr only, arrays
 
     STORAGE getPtrStorage();
 
@@ -144,7 +147,7 @@ namespace MFM{
 
     void setPtrNameId(u32 id);
 
-    void incrementPtr(CompilerState& state, s32 offset = 1);
+    bool incrementPtr(CompilerState& state, s32 offset = 1);
 
     static UlamValue getPackedArrayDataFromAtom(UlamValue p, UlamValue data, CompilerState& state);
 
@@ -152,20 +155,30 @@ namespace MFM{
 
     u32 getDataFromAtom(u32 pos, s32 len) const;
 
+    u64 getDataLongFromAtom(UlamValue p, CompilerState& state) const;
+
+    u64 getDataLongFromAtom(u32 pos, s32 len) const;
+
     u32 getImmediateData(CompilerState& state) const;
 
     u32 getImmediateData(s32 len = 32) const;
 
+    u64 getImmediateDataLong(CompilerState & state) const;
+
+    u64 getImmediateDataLong(s32 len = 64) const;
+
     void putDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
-    //void putDataIntoAtom(UlamValue srcPtr, UlamValue srcData, UlamValue destPtr, CompilerState& state);
 
     // called by putDataIntoAtom when packed array is not 'loadable' in a single integer
     void putPackedArrayDataIntoAtom(UlamValue p, UlamValue data, CompilerState& state);
-    //void putPackedArrayDataIntoAtom(UlamValue srcPtr, UlamValue srcData, UlamValue destPtr, CompilerState& state);
 
     u32 getData(u32 pos, s32 len) const;
 
+    u64 getDataLong(u32 pos, s32 len) const;
+
     void putData(u32 pos, s32 len, u32 data);
+
+    void putDataLong(u32 pos, s32 len, u64 data);
 
     UlamValue& operator=(const UlamValue& rhs);
 

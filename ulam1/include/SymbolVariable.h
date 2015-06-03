@@ -54,11 +54,15 @@ namespace MFM{
     virtual ~SymbolVariable();
 
     virtual s32 getStackFrameSlotIndex();
+
+    virtual void setStackFrameSlotIndex(s32 slot);
+
     virtual u32 getDataMemberSlotIndex();
 
     virtual s32 getBaseArrayIndex() = 0;
 
     u32 getPosOffset();
+
     void setPosOffset(u32 offsetIntoAtom);
 
     PACKFIT isPacked();

@@ -185,6 +185,18 @@ namespace MFM {
 	  m_state.mapTypesInCurrentClass(fit, it);
 	  m_funcSymbol->resetUlamType(it); //consistent!
 	}
+
+	PACKFIT packed = m_state.determinePackable(it);
+	if(!WritePacked(packed) && !m_state.isScalar(it))
+	  {
+	    std::ostringstream msg;
+	    msg << "Function Definition <" << getName();
+	    msg << "> return type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " (UTI" << it << "), requires UNPACKED array support";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = Nav;
+	  }
       }
 
     setNodeType(it);
@@ -199,15 +211,16 @@ namespace MFM {
 
     if(m_nodeNext) //non-empty function
       {
-	m_nodeNext->checkAndLabelType();                     //side-effect
-	m_state.checkFunctionReturnNodeTypes(m_funcSymbol); //gives errors
+	m_nodeNext->checkAndLabelType(); //side-effect
+	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives errors
+	  setNodeType(Nav); //avoid assert in resolving loop
       }
     else
       {
 	std::ostringstream msg;
 	msg << "Undefined function block: <" << getName() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	setNodeType(Nav); //missing?
+	setNodeType(Nav);
       }
     m_state.popClassContext(); //restores previous block ptr
     return getNodeType();
@@ -237,31 +250,43 @@ namespace MFM {
     assert(isDefinition());
     assert(m_nodeNext);
 
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     // m_currentObjPtr set up by caller
     assert(m_state.m_currentObjPtr.getUlamValueTypeIdx() != Nav);
-    m_state.m_currentFunctionReturnType = getNodeType(); //to help find hidden first arg
+    m_state.m_currentFunctionReturnType = nuti; //to help find hidden first arg
 
     evalNodeProlog(0); //new current frame pointer on node eval stack
-    makeRoomForNodeType(getNodeType()); //place for return vals node eval stack
+    makeRoomForNodeType(nuti); //place for return vals node eval stack
 
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth()); //local variables on callstack!
 
     EvalStatus evs = m_nodeNext->eval();
 
-    PACKFIT packRtn = m_state.determinePackable(getNodeType());
+    PACKFIT packRtn = m_state.determinePackable(nuti);
     UlamValue rtnUV;
 
     if(evs == RETURN)
       {
-	// save results in the stackframe for caller;
-	// copies each element of the array by value, in reverse order ([0] is last at bottom)
-	s32 slot = m_state.slotsNeeded(getNodeType());
-	rtnUV = UlamValue::makePtr(-slot, STACK, getNodeType(), packRtn, m_state); //negative to current stack frame pointer
+	if(nuti == UAtom)
+	  {
+	    //avoid pointer to atom situation
+	    rtnUV = m_state.m_funcCallStack.loadUlamValueFromSlot(-1); //popArg();
+	  }
+	else
+	  {
+	    // save results in the stackframe for caller;
+	    // copies each element of the array by value, in reverse order ([0] is last at bottom)
+	    s32 slot = m_state.slotsNeeded(nuti);
+	    rtnUV = UlamValue::makePtr(-slot, STACK, nuti, packRtn, m_state); //negative to current stack frame pointer
+	  }
       }
     else if (evs == NORMAL)  //no explicit return statement
       {
 	// 1 for base of array or scalar
-	rtnUV = UlamValue::makePtr(1, EVALRETURN, getNodeType(), packRtn, m_state); //positive to current frame pointer
+	rtnUV = UlamValue::makePtr(1, EVALRETURN, nuti, packRtn, m_state); //positive to current frame pointer
       }
     else
       {
@@ -295,8 +320,8 @@ namespace MFM {
 
 #if 0
     std::ostringstream msg;
-    msg << "Max Depth is: <" << m_maxDepth << ">";
-    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), INFO);
+    msg << getName() << ": Max Depth is <" << m_maxDepth << ">";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 #endif
   }
 
@@ -304,6 +329,39 @@ namespace MFM {
   {
     return m_maxDepth;
   }
+
+  void NodeBlockFunctionDefinition::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    m_state.pushCurrentBlock(this);
+    //base starts with slots for: return type, args, and hidden
+    u32 max1 = 0;
+    u32 nomaxdepth = 0;
+    if(m_nodeParameterList) //slot indices negative to frame
+      m_nodeParameterList->calcMaxDepth(max1, nomaxdepth, base);
+
+    //set self slot just below return value
+    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    Symbol * selfsym = NULL;
+    assert(m_state.alreadyDefinedSymbol(selfid, selfsym));
+    s32 newslot = -1 - m_state.slotsNeeded(getNodeType());
+    s32 oldslot = ((SymbolVariable *) selfsym)->getStackFrameSlotIndex();
+    if(oldslot != newslot)
+      {
+	std::ostringstream msg;
+	msg << "'" << m_state.m_pool.getDataAsString(selfid).c_str();
+	msg << "' was at slot: " << oldslot << ", new slot is " << newslot;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	((SymbolVariable *) selfsym)->setStackFrameSlotIndex(newslot);
+      }
+
+    NodeBlock::calcMaxDepth(depth, maxdepth, 1); // one for the frame ptr offset
+    m_state.popClassContext();
+
+    // special case test function:
+    u32 testid = m_state.m_pool.getIndexForDataString("test");
+    if(m_funcSymbol->getId() == testid)
+      maxdepth += 1; //add spot for return since no caller does
+  } //calcMaxDepth
 
   void NodeBlockFunctionDefinition::setNative()
   {

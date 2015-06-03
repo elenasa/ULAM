@@ -54,6 +54,8 @@ namespace MFM{
 
     virtual s32 getStackFrameSlotIndex();
 
+    virtual void setStackFrameSlotIndex(s32 slot);
+
     virtual s32 getBaseArrayIndex();
 
     virtual const std::string getMangledPrefix();

@@ -116,55 +116,130 @@ namespace MFM {
 	return false;
       }
 
-    //base types e.g. Int, Bool, Unary, Foo, Bar..
-    //ULAMTYPE typEnum = getUlamTypeEnum();
-    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+    u32 wordsize = getTotalWordSize();
+    u32 valwordsize = m_state.getTotalWordSize(valtypidx);
+    if(wordsize == MAXBITSPERINT)
+      {
+	if(valwordsize == MAXBITSPERINT)
+	  brtn = castTo32(val, typidx);
+	else if(valwordsize == MAXBITSPERLONG)
+	  brtn = castTo64(val, typidx); //downcast
+	else
+	  assert(0);
+      }
+    else if(wordsize == MAXBITSPERLONG)
+      brtn = castTo64(val, typidx);
+    else
+      {
+	std::ostringstream msg;
+	msg << "Casting to an unsupported word size: " << wordsize;
+	msg << ", Value Type and bit size was: ";
+	msg << valtypidx << "," << valbitsize;
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	brtn = false;
+      }
+    return brtn;
+  } //cast
+
+  bool UlamTypeInt::castTo32(UlamValue & val, UTI typidx)
+  {
+    bool brtn = true;
+    UTI valtypidx = val.getUlamValueTypeIdx();
+    s32 bitsize = getBitSize();
+    s32 valbitsize = m_state.getBitSize(valtypidx);
 
     u32 data = val.getImmediateData(m_state);
-
+    s32 sdata = 0;
+    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case Int:
-	{
-	  // casting Int to Int to change bits size
-	  s32 sdata = _SignExtend32(data, valbitsize);
-	  sdata = _Int32ToInt32(sdata, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
-	}
+	// casting Int to Int to change bits size
+	sdata = _SignExtend32(data, valbitsize);
+	sdata = _Int32ToInt32(sdata, valbitsize, bitsize);
 	break;
       case Unsigned:
-	{
-	  // casting Unsigned to Int to change type
-	  s32 sdata = _Unsigned32ToInt32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
-	}
+	// casting Unsigned to Int to change type
+	sdata = _Unsigned32ToInt32(data, valbitsize, bitsize);
 	break;
       case Bits:
-	{
-	  // casting Bits to Int to change type
-	  s32 sdata = _Bits32ToInt32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
-	}
+	// casting Bits to Int to change type
+	sdata = _Bits32ToInt32(data, valbitsize, bitsize);
 	break;
       case Unary:
-	{
-	  s32 sdata = _Unary32ToInt32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
-	}
+	sdata = _Unary32ToInt32(data, valbitsize, bitsize);
 	break;
       case Bool:
-	{
-	  s32 sdata = _Bool32ToInt32(data, valbitsize, bitsize);
-	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
-	}
+	sdata = _Bool32ToInt32(data, valbitsize, bitsize);
 	break;
       case Void:
       default:
 	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
+
+    if(brtn)
+      val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
     return brtn;
-  } //end cast
+  } //castTo32
+
+  bool UlamTypeInt::castTo64(UlamValue & val, UTI typidx)
+  {
+    bool brtn = true;
+    UTI valtypidx = val.getUlamValueTypeIdx();
+    u32 valwordsize = m_state.getTotalWordSize(valtypidx);
+    u64 data;
+
+    if(valwordsize == MAXBITSPERINT)
+      data = (u64) val.getImmediateData(m_state);
+    else if(valwordsize == MAXBITSPERLONG)
+      data = val.getImmediateDataLong(m_state);
+    else
+      assert(0);
+
+    s64 sdata = 0;
+    s32 bitsize = getBitSize();
+    s32 valbitsize = m_state.getBitSize(valtypidx);
+    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
+    switch(valtypEnum)
+      {
+      case Int:
+	// casting Int to Int to change bits size
+	sdata = _SignExtend64(data, valbitsize);
+	sdata = _Int64ToInt64(sdata, valbitsize, bitsize);
+	break;
+      case Unsigned:
+	// casting Unsigned to Int to change type
+	sdata = _Unsigned64ToInt64(data, valbitsize, bitsize);
+	break;
+      case Bits:
+	// casting Bits to Int to change type
+	sdata = _Bits64ToInt64(data, valbitsize, bitsize);
+	break;
+      case Unary:
+	sdata = _Unary64ToInt64(data, valbitsize, bitsize);
+	break;
+      case Bool:
+	sdata = _Bool64ToInt64(data, valbitsize, bitsize);
+	break;
+      case Void:
+      default:
+	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+
+    if(brtn)
+      {
+	u32 wordsize = getTotalWordSize(); //tobe
+	if(wordsize == MAXBITSPERINT) //downcast
+	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
+	else if(wordsize == MAXBITSPERLONG)
+	  val = UlamValue::makeImmediateLong(typidx, (u64) sdata, m_state); //overwrite val
+	else
+	  assert(0);
+      }
+    return brtn;
+  } //castTo64
 
   void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)
   {
@@ -180,7 +255,7 @@ namespace MFM {
     UTI uti = uvpass.getPtrTargetType(); // == getUlamTypeIndex()?
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
     s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
-    s32 totWords = getTotalWordSize();
+    u32 totWords = getTotalWordSize();
 
     m_state.indent(fp);
     fp->write("const ");
@@ -239,6 +314,14 @@ namespace MFM {
       sprintf(valstr,"%d", (s32) data);
     else
       sprintf(valstr,"%c%d", prefix, (s32) data);
+  }
+
+  void UlamTypeInt::getDataLongAsString(const u64 data, char * valstr, char prefix)
+  {
+    if(prefix == 'z')
+      sprintf(valstr,"%ld", (s64) data);
+    else
+      sprintf(valstr,"%c%ld", prefix, (s64) data);
   }
 
 } //end MFM

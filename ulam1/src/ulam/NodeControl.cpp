@@ -145,6 +145,14 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  void NodeControl::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    if(m_nodeCondition)
+      m_nodeCondition->calcMaxDepth(depth, maxdepth, base);
+
+    m_nodeBody->calcMaxDepth(depth, maxdepth, base);
+  } //calcMaxDepth
+
   void NodeControl::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt); //missing
@@ -184,10 +192,24 @@ namespace MFM {
       {
 	// fp->write("(bool) ");
 	// write out terminal explicitly
-	u32 data = uvpass.getImmediateData(m_state);
-	char dstr[40];
-	cut->getDataAsString(data, dstr, 'z');
-	fp->write(dstr);
+       s32 len = m_state.getBitSize(cuti);
+       assert(len != UNKNOWNSIZE);
+       if(len <= MAXBITSPERINT)
+	 {
+	   u32 data = uvpass.getImmediateData(m_state);
+	   char dstr[40];
+	   cut->getDataAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else if(len <= MAXBITSPERLONG)
+	 {
+	   u64 data = uvpass.getImmediateDataLong(m_state);
+	   char dstr[70];
+	   cut->getDataLongAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else
+	 assert(0);
       }
     else
       {

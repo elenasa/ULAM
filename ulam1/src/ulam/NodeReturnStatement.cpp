@@ -149,11 +149,15 @@ namespace MFM {
 
   EvalStatus NodeReturnStatement::eval()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     if(!m_node)
       return RETURN;
 
     evalNodeProlog(0);
-    makeRoomForNodeType(getNodeType());
+    makeRoomForNodeType(nuti);
     EvalStatus evs = m_node->eval();
     if(evs != NORMAL)
       {
@@ -162,11 +166,20 @@ namespace MFM {
 	return evs;
       }
 
-    //end, so copy to -1
-    //UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN);  //positive to current frame pointer
-    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, getNodeType(), m_state.determinePackable(getNodeType()), m_state);  //positive to current frame pointer
+    if(nuti == UAtom)
+      {
+	//avoid pointer to atom situation
+	UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
+	assignReturnValueToStack(rtnUV, STACK);
+      }
+    else
+      {
+	//end, so copy to -1
+	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, nuti, m_state.determinePackable(nuti), m_state);  //positive to current frame pointer
 
-    assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
+	assignReturnValueToStack(rtnPtr, STACK); //uses STACK, unlike all the other nodes
+      }
+
     evalNodeEpilog();
     return RETURN;
   } //eval
@@ -181,32 +194,16 @@ namespace MFM {
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 #endif
-	//m_node->genCodeToStoreInto(fp, uvpass);
 	m_node->genCode(fp, uvpass);
 	UTI vuti = uvpass.getUlamValueTypeIdx();
-	//bool isTerminal = (vuti != Ptr);
 
 	Node::genCodeConvertATmpVarIntoBitVector(fp, uvpass);
 
-	//if(isTerminal)
-	//  {
-	//    // write out terminal explicitly
-	//    m_state.indent(fp);
-	//    fp->write("return ");
-	//    fp->write("(");
-	//    u32 data = uvpass.getImmediateData(m_state);
-	//    char dstr[40];
-	//    m_state.getUlamTypeByIndex(vuti)->getDataAsString(data, dstr, 'z', m_state);
-	//    fp->write(dstr);
-	//  }
-	//else
-	  {
-	    m_state.indent(fp);
-	    fp->write("return ");
-	    fp->write("(");
-	    vuti = uvpass.getPtrTargetType();
-	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
-	  }
+	m_state.indent(fp);
+	fp->write("return ");
+	fp->write("(");
+	vuti = uvpass.getPtrTargetType();
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 
 	fp->write(")");
 	fp->write(";\n");
@@ -220,7 +217,7 @@ namespace MFM {
     else
       {
 	m_state.indent(fp);
-	fp->write("return;\n");   //void
+	fp->write("return;\n"); //void
       }
   } //genCode
 

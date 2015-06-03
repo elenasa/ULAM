@@ -58,10 +58,34 @@ namespace MFM {
 	    if(!isCustomArray)
 	      {
 		std::ostringstream msg;
-		msg << "Invalid Type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
-		msg << " used with " << getName();
+		msg << "Invalid Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		msg << " (UTI" << leftType;
+		msg << ") used with " << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorCount++;
+	      }
+	    else
+	      {
+		//must be a custom array; t.f. lhs is a quark!
+		assert(lut->getUlamClass() != UC_NOTACLASS);
+		UTI caType = ((UlamTypeClass *) lut)->getCustomArrayType();
+
+		if(!m_state.isComplete(caType))
+		  {
+		    std::ostringstream msg;
+		    msg << "Incomplete Custom Array Type: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(caType).c_str();
+		    msg << " (UTI" << caType;
+		    msg << ") used with class: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		    msg << getName();
+		    if(lut->isComplete())
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    else
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    newType = Nav; //error!
+		    errorCount++;
+		  }
 	      }
 	  }
 
@@ -116,6 +140,10 @@ namespace MFM {
   EvalStatus NodeSquareBracket::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -169,6 +197,10 @@ namespace MFM {
   EvalStatus NodeSquareBracket::evalToStoreInto()
   {
     assert(m_nodeLeft && m_nodeRight);
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
@@ -200,7 +232,7 @@ namespace MFM {
 	UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
 	UlamType * caut = m_state.getUlamTypeByIndex(caType);
 	u32 pos = pluv.getPtrPos();
-	if(caut->getBitSize() > 32)
+	if(caut->getBitSize() > MAXBITSPERINT)
 	  pos = 0;
 	//  itemUV = UlamValue::makeAtom(caType);
 	//else
@@ -222,17 +254,36 @@ namespace MFM {
       {
 	//adjust pos by offset * len, according to its scalar type
 	UlamValue scalarPtr = UlamValue::makeScalarPtr(pluv, m_state);
-	scalarPtr.incrementPtr(m_state, offsetInt);
+	if(scalarPtr.incrementPtr(m_state, offsetInt))
+	  //copy result UV to stack, -1 relative to current frame pointer
+	  assignReturnValuePtrToStack(scalarPtr);
+	else
+	  {
+	    s32 arraysize = m_state.getArraySize(pluv.getPtrTargetType());
+	    Symbol * lsymptr;
+	    u32 lid = 0;
+	    if(getSymbolPtr(lsymptr))
+	      lid = lsymptr->getId();
 
-	//copy result UV to stack, -1 relative to current frame pointer
-	assignReturnValuePtrToStack(scalarPtr);
+	    std::ostringstream msg;
+	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
+	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evs = ERROR;
+	  }
       }
 
     evalNodeEpilog();
-    return NORMAL;
+    return evs;
   } //evalToStoreInto
 
   UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
+  {
+    assert(0); //unused
+    return UlamValue();
+  }
+
+  UlamValue NodeSquareBracket::makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len)
   {
     assert(0); //unused
     return UlamValue();

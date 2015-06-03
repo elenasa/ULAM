@@ -217,9 +217,13 @@ namespace MFM {
   {
     assert(m_node); //has to be
 
-    evalNodeProlog(0); //new current frame pointer
     UTI tobeType = getNodeType();
     UTI nodeType = m_node->getNodeType(); //uv.getUlamValueType()
+
+    if(tobeType == Nav)
+      return ERROR;
+
+    evalNodeProlog(0); //new current frame pointer
 
     makeRoomForNodeType(nodeType);
     EvalStatus evs = m_node->eval();
@@ -371,10 +375,24 @@ namespace MFM {
 
    if(isTerminal)
      {
-       u32 data = uvpass.getImmediateData(m_state);
-       char dstr[40];
-       vut->getDataAsString(data, dstr, 'z');
-       fp->write(dstr);
+       s32 len = m_state.getBitSize(vuti);
+       assert(len != UNKNOWNSIZE);
+       if(len <= MAXBITSPERINT)
+	 {
+	   u32 data = uvpass.getImmediateData(m_state);
+	   char dstr[40];
+	   vut->getDataAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else if(len <= MAXBITSPERLONG)
+	 {
+	   u64 data = uvpass.getImmediateDataLong(m_state);
+	   char dstr[70];
+	   vut->getDataLongAsString(data, dstr, 'z');
+	   fp->write(dstr);
+	 }
+       else
+	 assert(0);
      }
    else
      {

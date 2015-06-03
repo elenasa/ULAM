@@ -505,12 +505,10 @@ namespace MFM {
       {
 	UlamType * ut = getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE classtype = ut->getUlamClass();
-	bool isCustomArray = ut->isCustomArray();
-	UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);
 	UlamType * newut = getUlamTypeByIndex(newuti);
 	((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
-	if(isCustomArray)
-	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+	if(ut->isCustomArray())
+	  ((UlamTypeClass *) newut)->setCustomArray();
 
 	//potential for unending process..
 	((SymbolClassNameTemplate *)cnsymOfIncomplete)->copyAStubClassInstance(suti, newuti, getCompileThisIdx());
@@ -765,9 +763,7 @@ namespace MFM {
 
     //bitsize could be UNKNOWN or CONSTANT (negative)
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
-
     bool isCustomArray = ut->isCustomArray();
-    UTI caType = (isCustomArray ? ((UlamTypeClass *) ut)->getCustomArrayType() : Nav);
 
     //verify total bits is within limits for elements and quarks
     if(classtype == UC_ELEMENT)
@@ -815,12 +811,12 @@ namespace MFM {
 	((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
 
 	if(isCustomArray)
-	  ((UlamTypeClass *) newut)->setCustomArrayType(caType);
+	  ((UlamTypeClass *) newut)->setCustomArray();
       }
 
     m_indexToUlamKey[utArg] = newkey;
 
-    incrementKeyToAnyUTICounter(newkey, utArg);  //here
+    incrementKeyToAnyUTICounter(newkey, utArg); //here
 
     {
       std::ostringstream msg;
@@ -872,6 +868,9 @@ namespace MFM {
 
   void CompilerState::updateUTIAlias(UTI auti, UTI buti)
   {
+    if(!isComplete(auti))
+      return; //without knowing the bitsize, don't alias it
+
     assert(auti < m_unionRootUTI.size());
     assert(buti < m_unionRootUTI.size());
     m_unionRootUTI[auti] = buti;
@@ -1071,6 +1070,12 @@ namespace MFM {
     return (ut->getTotalBitSize());
   }
 
+  u32 CompilerState::getTotalWordSize(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return (ut->getTotalWordSize());
+  }
+
   s32 CompilerState::slotsNeeded(UTI uti)
   {
     if(uti == Void)
@@ -1100,7 +1105,7 @@ namespace MFM {
 	msg << "Class without parameters already exists with the same name: ";
 	msg << m_pool.getDataAsString(symptr->getId()).c_str() << " <UTI";
 	msg << symptr->getUlamTypeIdx() << ">";
-	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR); //parsing
       }
     return (rtnb && symptr->isClassTemplate());
   } //alreadyDefinedSymbolClassNameTemplate
@@ -1834,8 +1839,8 @@ namespace MFM {
 	    else
 	      assignValue(nextlptr, atval);
 
-	    nextlptr.incrementPtr(*this);
-	    nextrptr.incrementPtr(*this);
+	    assert(nextlptr.incrementPtr(*this));
+	    assert(nextrptr.incrementPtr(*this));
 	  }
       }
   } //assignArrayValues
@@ -1961,7 +1966,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Cannot find path index (" << pathidx << ") for line: " << linenum;
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	return "<empty path>\n";
+	return "<empty path>\n"; //used in gen code
       }
 
     if(linenum >= textOfLines->size())

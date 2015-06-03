@@ -71,6 +71,8 @@ namespace MFM{
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
+    virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
+
     virtual ULAMCLASSTYPE getUlamClass();
 
     void setUlamClass(ULAMCLASSTYPE type);
@@ -79,7 +81,7 @@ namespace MFM{
 
     virtual bool isCustomArray();
 
-    void setCustomArrayType(UTI type);
+    void setCustomArray();
 
     UTI getCustomArrayType();
 
@@ -123,7 +125,6 @@ namespace MFM{
 
     ULAMCLASSTYPE m_class;
     bool m_customArray;
-    UTI m_customArrayType;
 
     void genCustomArrayMangledDefinitionForC(File * fp);
 

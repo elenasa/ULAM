@@ -238,12 +238,26 @@ namespace MFM {
     return it;
   } //checkAndLabelType
 
+  void NodeFunctionCall::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    u32 argbase = 0;
+    //allot enough stack space for the function call to another func
+    argbase += m_argumentNodes->getTotalSlotsNeeded(); //args assigned at eval
+    argbase += m_state.slotsNeeded(getNodeType()); //return
+    argbase += 1; //hidden
+    depth += argbase;
+  } //calcMaxDepth
+
   // since functions are defined at the class-level; a function call
   // must be PRECEDED by a member selection (element or quark) --- a
   // local variable instance that provides the storage (i.e. atom) for
   // its data members on the STACK, as the first argument.
   EvalStatus NodeFunctionCall::eval()
   {
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
     assert(m_funcSymbol);
     NodeBlockFunctionDefinition * func = m_funcSymbol->getFunctionNode();
     assert(func);
@@ -357,11 +371,17 @@ namespace MFM {
     // ANY return value placed on the STACK by a Return Statement,
     // was copied to EVALRETURN by the NodeBlockFunctionDefinition
     // before arriving here! And may be ignored at this point.
-
-    //positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
-    UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
-
-    assignReturnValueToStack(rtnPtr); //into return space on eval stack;
+    if(rtnType == UAtom)
+      {
+	UlamValue rtnUV = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+	assignReturnValueToStack(rtnUV); //into return space on eval stack;
+      }
+    else
+      {
+	//positive to current frame pointer; pos is (BITSPERATOM - rtnbitsize * rtnarraysize)
+	UlamValue rtnPtr = UlamValue::makePtr(1, EVALRETURN, rtnType, m_state.determinePackable(rtnType), m_state);
+	assignReturnValueToStack(rtnPtr); //into return space on eval stack;
+      }
 
     m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
 
@@ -526,7 +546,7 @@ namespace MFM {
 	u32 pos = 0; //POS 0 rightjustified;
 	if(nut->getUlamClass() == UC_NOTACLASS) //atom too???
 	  {
-	    s32 wordsize = nut->getTotalWordSize();
+	    u32 wordsize = nut->getTotalWordSize();
 	    pos = wordsize - nut->getTotalBitSize();
 	  }
 

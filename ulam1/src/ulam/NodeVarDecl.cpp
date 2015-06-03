@@ -246,6 +246,22 @@ namespace MFM {
       }
   } //packBitsInOrderOfDeclaration
 
+  void NodeVarDecl::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    assert(m_varSymbol);
+    s32 newslot = depth + base;
+    s32 oldslot = ((SymbolVariable *) m_varSymbol)->getStackFrameSlotIndex();
+    if(oldslot != newslot)
+      {
+	std::ostringstream msg;
+	msg << "'" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "' was at slot: " << oldslot << ", new slot is " << newslot;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	((SymbolVariable *) m_varSymbol)->setStackFrameSlotIndex(newslot);
+      }
+    depth += m_state.slotsNeeded(getNodeType());
+  } //calcMaxDepth
+
   void NodeVarDecl::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);
@@ -257,10 +273,11 @@ namespace MFM {
   {
     assert(m_varSymbol);
 
-    if(getNodeType() == Nav)
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
       return ERROR;
 
-    if(getNodeType() == UAtom || m_state.getUlamTypeByIndex(getNodeType())->getUlamClass() == UC_ELEMENT)
+    if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
 	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
@@ -270,7 +287,15 @@ namespace MFM {
 	if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
 	  {
 	    //local variable to a function
-	    UlamValue immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+	    u32 len = m_state.getTotalBitSize(nuti);
+	    UlamValue immUV;
+	    if(len <= MAXBITSPERINT)
+	      immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+	    else if(len <= MAXBITSPERLONG)
+	      immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+	    else
+	      immUV = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
+
 	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableDataMember *) m_varSymbol)->getStackFrameSlotIndex());
 	  }
 	else

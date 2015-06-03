@@ -48,6 +48,7 @@ namespace MFM{
   public:
 
     UlamTypeUnsigned(const UlamKeyTypeSignature key, CompilerState& state);
+
     virtual ~UlamTypeUnsigned(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
@@ -62,10 +63,15 @@ namespace MFM{
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
+   virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
+
   private:
+
+    virtual bool castTo32(UlamValue & val, UTI typidx);
+
+    virtual bool castTo64(UlamValue & val, UTI typidx);
 
   };
 
-}
-
+} //MFM
 #endif //end ULAMTYPEUNSIGNED_H
