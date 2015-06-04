@@ -82,7 +82,7 @@ namespace MFM {
     setNodeType(newType);
     setStoreIntoAble(false);
 
-    if(isAConstant() && m_node->isReadyConstant())
+    if(newType != Nav && isAConstant() && m_node->isReadyConstant())
       return constantFold();
 
     return newType;

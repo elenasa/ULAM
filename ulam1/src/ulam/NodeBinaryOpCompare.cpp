@@ -16,13 +16,6 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
-    //we go away..
-    if(isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      {
-	setNodeType(Bool);
-	return constantFold();
-      }
-
     UTI newType = calcNodeType(leftType, rightType); //for casting
     if(newType != Nav && m_state.isComplete(newType))
       {
@@ -46,6 +39,13 @@ namespace MFM {
       }
     setNodeType(newType);
     setStoreIntoAble(false);
+
+    //still may need casting (e.g. unary compared to an int) before constantfolding
+    if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      {
+	return NodeBinaryOp::constantFold();
+      }
+
     return newType;
   } //checkAndLabelType
 
