@@ -41,39 +41,27 @@ namespace MFM {
     return m_isReady;
   }
 
-  bool SymbolConstantValue::getValue(s32& val)
+  bool SymbolConstantValue::getValue(s64& val)
   {
     val = m_constant.sval;
     return m_isReady;
   }
 
-  bool SymbolConstantValue::getValue(u32& val)
+  bool SymbolConstantValue::getValue(u64& val)
   {
     val = m_constant.uval;
     return m_isReady;
   }
 
-  bool SymbolConstantValue::getValue(bool& val)
-  {
-    val = m_constant.bval;
-    return m_isReady;
-  }
-
-  void SymbolConstantValue::setValue(s32 val)
+  void SymbolConstantValue::setValue(s64 val)
   {
     m_constant.sval = val;
     m_isReady = true;
   }
 
-  void SymbolConstantValue::setValue(u32 val)
+  void SymbolConstantValue::setValue(u64 val)
   {
     m_constant.uval = val;
-    m_isReady = true;
-  }
-
-  void SymbolConstantValue::setValue(bool val)
-  {
-    m_constant.bval = val;
     m_isReady = true;
   }
 
@@ -99,15 +87,55 @@ namespace MFM {
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
     fp->write(" = ");
+
     if(isReady())
       {
+	u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
 	s32 tbs = m_state.getBitSize(tuti);
-	if( tbs <= MAXBITSPERINT)
-	  fp->write_decimal((s32) m_constant.sval);
-	else if( tbs <= MAXBITSPERLONG)
-	  fp->write_decimal_long(m_constant.sval);
-	else
-	  assert(0);
+	ULAMTYPE etype = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
+
+	switch(etype)
+	  {
+	  case Int:
+	    {
+	      if(twordsize == MAXBITSPERINT)
+		fp->write_decimal(_SignExtend32((u32) m_constant.uval, tbs));
+	      else if(twordsize == MAXBITSPERLONG)
+		fp->write_decimal_long(_SignExtend64(m_constant.uval, tbs));
+	      else
+		assert(0);
+	    }
+	    break;
+	  case Bool:
+	    {
+	      bool bval = _Bool64ToCbool(m_constant.uval, tbs);
+	      if(bval)
+		fp->write("true");
+	      else
+		fp->write("false");
+	    }
+	    break;
+	  case Unary:
+	    {
+	      s32 pval = _Unary64ToInt64(m_constant.uval, tbs, MAXBITSPERINT);
+	      fp->write_decimal(pval);
+	    }
+	    break;
+	  case Unsigned:
+	  case Bits:
+	    {
+	      //oddly write_decimal wants a signed int..
+	      if( tbs <= MAXBITSPERINT)
+		fp->write_decimal((s32) m_constant.sval);
+	      else if( tbs <= MAXBITSPERLONG)
+		fp->write_decimal_long(m_constant.sval);
+	      else
+		assert(0);
+	    }
+	    break;
+	  default:
+	    assert(0);
+	  };
       }
     else
       fp->write("NONREADYCONST");
