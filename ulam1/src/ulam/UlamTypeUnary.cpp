@@ -43,11 +43,6 @@ namespace MFM {
     return "VD::UNARY";
   }
 
-  const char * UlamTypeUnary::getUlamTypeAsSingleLowercaseLetter()
-  {
-    return "y";
-  }
-
   bool UlamTypeUnary::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
