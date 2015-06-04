@@ -52,11 +52,6 @@ namespace MFM {
     return UlamType::getUlamTypeImmediateMangledName(); //? for constants
   }
 
-  const char * UlamTypeUnsigned::getUlamTypeAsSingleLowercaseLetter()
-  {
-    return "u";
-  }
-
   bool UlamTypeUnsigned::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;

@@ -219,8 +219,8 @@ namespace MFM {
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
   {
-    return "x";
-  }
+    return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
+  } //getUlamTypeAsSingleLowercaseLetter
 
   void UlamType::genUlamTypeMangledDefinitionForC(File * fp)
   {

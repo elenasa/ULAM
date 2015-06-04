@@ -97,11 +97,6 @@ namespace MFM {
     return ctype;
   } //getTmpStorageTypeAsString
 
-  const char * UlamTypeInt::getUlamTypeAsSingleLowercaseLetter()
-  {
-    return "i";
-  }
-
   bool UlamTypeInt::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;

@@ -92,7 +92,7 @@ namespace MFM {
       default:
 	assert(0);
       };
-    return "?";
+    return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
   } //getUlamTypeAsSingleLowercaseLetter()
 
   const std::string UlamTypeClass::getUlamTypeVDAsStringForC()

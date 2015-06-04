@@ -55,8 +55,6 @@ namespace MFM{
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
-    virtual const char * getUlamTypeAsSingleLowercaseLetter();
-
     virtual bool cast(UlamValue & val, UTI typidx);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);

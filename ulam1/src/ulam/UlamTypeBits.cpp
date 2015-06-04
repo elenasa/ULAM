@@ -43,11 +43,6 @@ namespace MFM {
     return "VD::BITS";
   }
 
-  const char * UlamTypeBits::getUlamTypeAsSingleLowercaseLetter()
-  {
-    return "t";
-  }
-
   bool UlamTypeBits::isMinMaxAllowed()
   {
     return false;
