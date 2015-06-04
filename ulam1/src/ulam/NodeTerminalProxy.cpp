@@ -87,9 +87,18 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Determined incomplete type for member '";
 	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
-	    msg << "'s Proxy, as type: ";
+	    msg << "' Proxy, as type: ";
 	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Undetermined type for missing member '";
+	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
+	    msg << "' Proxy";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return Nav;
 	  }
       }
 
