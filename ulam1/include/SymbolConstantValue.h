@@ -61,12 +61,10 @@ namespace MFM{
     bool isParameter();
     void setParameterFlag();
 
-    bool getValue(s32& val);
-    bool getValue(u32& val);
-    bool getValue(bool& val);
-    void setValue(s32 val);
-    void setValue(u32 val);
-    void setValue(bool val);
+    bool getValue(s64& val);
+    bool getValue(u64& val);
+    void setValue(s64 val);
+    void setValue(u64 val);
 
     bool foldConstantExpression();
 
@@ -85,7 +83,6 @@ namespace MFM{
     union {
       s64 sval;
       u64 uval;
-      bool bval;
     } m_constant;
   };
 } //MFM

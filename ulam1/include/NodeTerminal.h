@@ -50,8 +50,8 @@ namespace MFM{
 
     NodeTerminal(CompilerState & state); //for NodeConstant
     NodeTerminal(Token tok, CompilerState & state);
-    NodeTerminal(s32 val, UTI utype, CompilerState & state);
-    NodeTerminal(u32 val, UTI utype, CompilerState & state);
+    NodeTerminal(s64 val, UTI utype, CompilerState & state);
+    NodeTerminal(u64 val, UTI utype, CompilerState & state);
     NodeTerminal(const NodeTerminal& ref);
     NodeTerminal(const NodeIdent& ref); //passthru for NodeConstant
 
@@ -91,6 +91,8 @@ namespace MFM{
   private:
     virtual bool setConstantValue(Token tok);
     virtual UTI setConstantTypeForNode(Token tok);
+    bool fitsInBits32(UTI fituti);
+    bool fitsInBits64(UTI fituti);
 
   protected:
     virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode

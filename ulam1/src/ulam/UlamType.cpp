@@ -507,12 +507,12 @@ namespace MFM {
     return isScalar(); //minof/maxof allowed in ulam
   }
 
-  u32 UlamType::getMax()
+  u64 UlamType::getMax()
   {
     return m_max;
   }
 
-  s32 UlamType::getMin()
+  s64 UlamType::getMin()
   {
     return m_min;
   }

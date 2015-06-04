@@ -508,7 +508,7 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 	fp->write("(");
 
-	if(cosut->isCustomArray())
+	if(cosut->isCustomArray()) //immediate CA
 	  fp->write("uc, ");
 
 	// a data member quark, or the element itself should both getBits from self

@@ -10,25 +10,38 @@ namespace MFM {
 
   UlamTypeUnsigned::UlamTypeUnsigned(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
   {
-    m_wordLengthTotal = calcWordSize(getTotalBitSize());
-    m_wordLengthItem = calcWordSize(getBitSize());
-    // consider s64 later...
-    m_max = calcBitsizeUnsignedMax(getBitSize());
-    m_min = 0;
+    s32 bitsize = getBitSize();
+    if(bitsize <= 0)
+      {
+	m_max = m_min = 0;
+      }
+    else if(bitsize <= MAXBITSPERINT)
+      {
+	m_wordLengthTotal = calcWordSize(getTotalBitSize());
+	m_wordLengthItem = calcWordSize(bitsize);
+	m_max = calcBitsizeUnsignedMax(bitsize);
+	m_min = 0;
+      }
+    else if(bitsize <= MAXBITSPERLONG)
+      {
+	m_wordLengthTotal = calcWordSizeLong(getTotalBitSize());
+	m_wordLengthItem = calcWordSizeLong(bitsize);
+	m_max = calcBitsizeUnsignedMaxLong(bitsize);
+	m_min = 0;
+      }
+    else
+      assert(0);
   }
-
 
    ULAMTYPE UlamTypeUnsigned::getUlamTypeEnum()
    {
      return Unsigned;
    }
 
-
   const std::string UlamTypeUnsigned::getUlamTypeVDAsStringForC()
   {
     return "VD::U32";
   }
-
 
   const std::string UlamTypeUnsigned::getUlamTypeImmediateMangledName()
   {

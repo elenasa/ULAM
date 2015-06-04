@@ -158,7 +158,7 @@ namespace MFM {
 
   UTI NodeBinaryOp::constantFold()
   {
-    u32 val;
+    u64 val;
     UTI nuti = getNodeType();
 
     if(m_state.m_parsingInProgress)
@@ -175,7 +175,13 @@ namespace MFM {
     if( evs == NORMAL)
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	val = cnstUV.getImmediateData(m_state);
+	u32 wordsize = m_state.getTotalWordSize(nuti);
+	if(wordsize == MAXBITSPERINT)
+	  val = cnstUV.getImmediateData(m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  val = cnstUV.getImmediateDataLong(m_state);
+	else
+	  assert(0);
       }
 
     evalNodeEpilog();
