@@ -45,11 +45,6 @@ namespace MFM {
     return "void";
   }
 
-  const char * UlamTypeVoid::getUlamTypeAsSingleLowercaseLetter()
-  {
-    return "v";
-  }
-
   bool UlamTypeVoid::isMinMaxAllowed()
   {
     return false;

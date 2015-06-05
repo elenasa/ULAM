@@ -10,10 +10,27 @@ namespace MFM {
 
   UlamTypeUnary::UlamTypeUnary(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
   {
-    m_wordLengthTotal = calcWordSize(getTotalBitSize());
-    m_wordLengthItem = calcWordSize(getBitSize());
-    m_max = (getBitSize() <= 0 ? 0 : _GetNOnes32((u32) getBitSize()));
-    m_min = 0;
+    s32 bitsize = getBitSize();
+    if(bitsize <= 0)
+      {
+	m_max = m_min = 0;
+      }
+    else if(bitsize <= MAXBITSPERINT)
+      {
+	m_wordLengthTotal = calcWordSize(getTotalBitSize());
+	m_wordLengthItem = calcWordSize(bitsize);
+	m_max = _GetNOnes32((u32) bitsize);
+	m_min = 0;
+      }
+    else if(bitsize <= MAXBITSPERLONG)
+      {
+	m_wordLengthTotal = calcWordSizeLong(getTotalBitSize());
+	m_wordLengthItem = calcWordSizeLong(bitsize);
+	m_max = _GetNOnes64((u64) bitsize);
+	m_min = 0;
+      }
+    else
+      assert(0);
   }
 
    ULAMTYPE UlamTypeUnary::getUlamTypeEnum()
@@ -24,11 +41,6 @@ namespace MFM {
   const std::string UlamTypeUnary::getUlamTypeVDAsStringForC()
   {
     return "VD::UNARY";
-  }
-
-  const char * UlamTypeUnary::getUlamTypeAsSingleLowercaseLetter()
-  {
-    return "y";
   }
 
   bool UlamTypeUnary::cast(UlamValue & val, UTI typidx)

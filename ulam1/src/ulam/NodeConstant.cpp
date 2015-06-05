@@ -166,7 +166,7 @@ namespace MFM {
       {
 	if(asymptr->isConstant())
 	  {
-	    u32 val = 0;
+	    u64 val = 0;
 	    ((SymbolConstantValue *) asymptr)->getValue(val);
 	    m_constant.uval = val;
 	    m_ready = true;
@@ -196,7 +196,7 @@ namespace MFM {
 
   bool NodeConstant::updateConstant()
   {
-    u32 val;
+    u64 val;
     if(!m_constSymbol)
       return false;
     m_constSymbol->getValue(val);

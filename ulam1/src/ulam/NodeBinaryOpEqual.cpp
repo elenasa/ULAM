@@ -331,7 +331,7 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass); //may update m_currentObjSymbol, m_currentSelfSymbol
 
     // current object globals should pertain to lhs for the write
-    genCodeWriteFromATmpVar(fp, luvpass, ruvpass); //uses rhs' tmpvar
+    Node::genCodeWriteFromATmpVar(fp, luvpass, ruvpass); //uses rhs' tmpvar
 
     uvpass = ruvpass; //in case we're the rhs of an equals..
 

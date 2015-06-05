@@ -130,7 +130,7 @@ namespace MFM {
     setNodeType(newType);
     setStoreIntoAble(false);
 
-    if(isAConstant() && m_node->isReadyConstant())
+    if(newType != Nav && isAConstant() && m_node->isReadyConstant())
       return constantFold();
 
     return newType;
@@ -144,7 +144,7 @@ namespace MFM {
 
   UTI NodeUnaryOp::constantFold()
   {
-    u32 val;
+    u64 val;
     UTI nuti = getNodeType();
 
     if(m_state.m_parsingInProgress)
@@ -161,7 +161,13 @@ namespace MFM {
     if( evs == NORMAL)
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	val = cnstUV.getImmediateData(m_state);
+	u32 wordsize = m_state.getTotalWordSize(nuti);
+	if(wordsize == MAXBITSPERINT)
+	  val = cnstUV.getImmediateData(m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  val = cnstUV.getImmediateDataLong(m_state);
+	else
+	  assert(0);
       }
 
     evalNodeEpilog();

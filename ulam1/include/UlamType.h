@@ -160,9 +160,9 @@ namespace MFM{
 
     virtual bool isMinMaxAllowed();
 
-    u32 getMax();
+    u64 getMax();
 
-    s32 getMin();
+    s64 getMin();
 
     virtual PACKFIT getPackable();
 
@@ -183,8 +183,8 @@ namespace MFM{
     CompilerState& m_state;
     u32 m_wordLengthTotal;
     u32 m_wordLengthItem;
-    u32 m_max;
-    s32 m_min;
+    u64 m_max;
+    s64 m_min;
 
   private:
 

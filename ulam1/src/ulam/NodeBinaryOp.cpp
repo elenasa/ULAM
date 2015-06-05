@@ -127,9 +127,6 @@ namespace MFM {
     setNodeType(newType);
     setStoreIntoAble(false);
 
-    if(isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      return constantFold();
-
     if(newType != Nav && m_state.isComplete(newType))
       {
 	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
@@ -146,6 +143,10 @@ namespace MFM {
 	      newType = Nav;
 	  }
       }
+
+    if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      return constantFold();
+
     return newType;
   } //checkAndLabelType
 
@@ -158,7 +159,7 @@ namespace MFM {
 
   UTI NodeBinaryOp::constantFold()
   {
-    u32 val;
+    u64 val;
     UTI nuti = getNodeType();
 
     if(m_state.m_parsingInProgress)
@@ -175,7 +176,13 @@ namespace MFM {
     if( evs == NORMAL)
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	val = cnstUV.getImmediateData(m_state);
+	u32 wordsize = m_state.getTotalWordSize(nuti);
+	if(wordsize == MAXBITSPERINT)
+	  val = cnstUV.getImmediateData(m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  val = cnstUV.getImmediateDataLong(m_state);
+	else
+	  assert(0);
       }
 
     evalNodeEpilog();

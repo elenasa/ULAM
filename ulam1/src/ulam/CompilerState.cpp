@@ -2201,4 +2201,22 @@ namespace MFM {
     return m_goAgainResolveLoop;
   }
 
+  UTI CompilerState::getLongUTI()
+  {
+    UlamKeyTypeSignature ilkey(m_pool.getIndexForDataString("Int"), MAXBITSPERLONG);
+    return makeUlamType(ilkey, Int);
+  }
+
+  UTI CompilerState::getUnsignedLongUTI()
+  {
+    UlamKeyTypeSignature ulikey(m_pool.getIndexForDataString("Unsigned"), MAXBITSPERLONG);
+    return makeUlamType(ulikey, Unsigned);
+  }
+
+  UTI CompilerState::getBigBitsUTI()
+  {
+    UlamKeyTypeSignature ubitskey(m_pool.getIndexForDataString("Bits"), MAXBITSPERLONG);
+    return makeUlamType(ubitskey, Bits);
+  }
+
 } //end MFM

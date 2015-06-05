@@ -39,11 +39,6 @@ namespace MFM {
     return ctype.str();
   }
 
-  const char * UlamTypeAtom::getUlamTypeAsSingleLowercaseLetter()
-  {
-    return "a";  //self?
-  }
-
   bool UlamTypeAtom::isMinMaxAllowed()
   {
     return false;

@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeTerminal(UNKNOWNSIZE, memberType, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false), m_nodeTypeDesc(nodetype)
+  NodeTerminalProxy::NodeTerminalProxy(Token memberTok, UTI memberType, Token funcTok, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeTerminal( (u64) UNKNOWNSIZE, memberType, state), m_ofTok(memberTok), m_uti(memberType), m_funcTok(funcTok), m_ready(false), m_nodeTypeDesc(nodetype)
   {
     Node::setNodeLocation(funcTok.m_locator);
     // is memberType is corrected for sizeof during c&l
@@ -87,9 +87,21 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Determined incomplete type for member '";
 	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
-	    msg << "'s Proxy, as type: ";
+	    msg << "' Proxy, as type: ";
 	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+	else
+	  {
+	    if(m_ofTok.m_type == TOK_IDENTIFIER)
+	      {
+		std::ostringstream msg;
+		msg << "Undetermined type for missing member '";
+		msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
+		msg << "' Proxy";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		return Nav;
+	      }
 	  }
       }
 

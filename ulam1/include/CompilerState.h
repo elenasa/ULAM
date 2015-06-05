@@ -355,6 +355,10 @@ namespace MFM{
     void setGoAgain();
     bool goAgain();
 
+    UTI getLongUTI();
+    UTI getUnsignedLongUTI();
+    UTI getBigBitsUTI();
+
   private:
     ClassContextStack m_classContextStack;         // the current subject of this compilation
 

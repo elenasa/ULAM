@@ -2179,7 +2179,7 @@ namespace MFM {
 	  if(ut->isComplete())
 	    {
 	      assert(classtype == UC_NOTACLASS); //can't be a class and complete
-	      rtnNode = makeTerminal(fTok, ut->getTotalBitSize(), Unsigned);
+	      rtnNode = makeTerminal(fTok, (u64) ut->getTotalBitSize(), Unsigned);
 	      delete nodetype; //unlikely
 	    }
 	  else
@@ -3999,12 +3999,12 @@ namespace MFM {
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_PLUS_PLUS:
-	rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminal(pTok, 1, Int), m_state);
+	rtnNode = new NodeBinaryOpEqualArithAdd(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
       case TOK_MINUS_MINUS:
-	rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminal(pTok, 1, Int), m_state);
+	rtnNode = new NodeBinaryOpEqualArithSubtract(factorNode, makeTerminal(pTok, (s64) 1, Int), m_state);
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
 	break;
@@ -4089,7 +4089,7 @@ namespace MFM {
     return rtnNode;
   } //makeCastNode
 
-  Node * Parser::makeTerminal(Token& locTok, s32 val, UTI utype)
+  Node * Parser::makeTerminal(Token& locTok, s64 val, UTI utype)
   {
     Node * termNode = new NodeTerminal(val, utype, m_state);
     assert(termNode);
@@ -4097,7 +4097,7 @@ namespace MFM {
     return termNode;
   } //makeTerminal
 
-  Node * Parser::makeTerminal(Token& locTok, u32 val, UTI utype)
+  Node * Parser::makeTerminal(Token& locTok, u64 val, UTI utype)
   {
     Node * termNode = new NodeTerminal(val, utype, m_state);
     assert(termNode);
@@ -4251,6 +4251,11 @@ namespace MFM {
     UlamKeyTypeSignature hkey(m_state.m_pool.getIndexForDataString("0Holder"), UNKNOWNSIZE);
     UTI hidx = m_state.makeUlamType(hkey, Holder);
     assert(hidx == Holder);
+
+    // next in line, the 64 basics:
+    m_state.getLongUTI();
+    m_state.getUnsignedLongUTI();
+    m_state.getBigBitsUTI();
 
     //initialize call stack with 'Int' UlamType pointer
     m_state.m_funcCallStack.init(iidx);

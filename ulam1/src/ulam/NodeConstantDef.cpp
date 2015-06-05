@@ -275,7 +275,7 @@ namespace MFM {
   // (scope of eval is based on the block of const def.)
   bool NodeConstantDef::foldConstantExpression()
   {
-    u32 newconst = 0;
+    u64 newconst = 0;
     UTI uti = getNodeType();
 
     if(uti == Nav || !m_state.isComplete(uti))
@@ -297,7 +297,13 @@ namespace MFM {
     if( evs == NORMAL)
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	newconst = cnstUV.getImmediateData(m_state);
+	u32 wordsize = m_state.getTotalWordSize(uti);
+	if(wordsize == MAXBITSPERINT)
+	  newconst = cnstUV.getImmediateData(m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  newconst = cnstUV.getImmediateDataLong(m_state);
+	else
+	  assert(0);
       }
 
     evalNodeEpilog();
@@ -321,29 +327,29 @@ namespace MFM {
 	msg << getName() << " = " << newconst << ") into a smaller bit size type: ";
 	msg<< m_state.getUlamTypeNameByIndex(uti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
-	if(updateConstant(newconst))
-	  {
-	    NodeTerminal * newnode;
-	    if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
-	      newnode = new NodeTerminal((s32) newconst, uti, m_state);
-	    else
-	      newnode = new NodeTerminal(newconst, uti, m_state);
-
-	    newnode->setNodeLocation(getNodeLocation());
-	    delete m_nodeExpr;
-	    m_nodeExpr = newnode;
-	  }
-	else
-	  return false;
       }
+
+    if(updateConstant(newconst))
+      {
+	NodeTerminal * newnode;
+	if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
+	  newnode = new NodeTerminal((s64) newconst, uti, m_state);
+	else
+	  newnode = new NodeTerminal(newconst, uti, m_state);
+
+	newnode->setNodeLocation(getNodeLocation());
+	delete m_nodeExpr;
+	m_nodeExpr = newnode;
+      }
+    else
+      return false;
 
     m_constSymbol->setValue(newconst); //isReady now!
     return true;
   } //foldConstantExpression
 
-  bool NodeConstantDef::updateConstant(u32 & newconst)
+  bool NodeConstantDef::updateConstant(u64 & newconst)
   {
-    u32 val = newconst;
     if(!m_constSymbol)
       return false;
 
@@ -357,36 +363,87 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    assert(wordsize == MAXBITSPERINT);
+    if(wordsize == MAXBITSPERINT)
+      rtnb = updateConstant32(newconst);
+    else if(wordsize == MAXBITSPERLONG)
+      rtnb = updateConstant64(newconst);
+    else
+      assert(0);
+
+    if(!rtnb)
+      {
+	std::ostringstream msg;
+	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    return rtnb;
+  } //updateConstant
+
+  bool NodeConstantDef::updateConstant32(u64 & newconst)
+  {
+    u64 val = newconst;
+    //store in UlamType format
+    bool rtnb = true;
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    s32 nbitsize = nut->getBitSize();
 
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {
       case Int:
-	newconst = _Int32ToInt32((s32) val, wordsize, nbitsize);
+	newconst = _Int32ToInt32((s32) val, MAXBITSPERINT, nbitsize);
 	break;
       case Unsigned:
-	newconst = _Unsigned32ToUnsigned32(val, wordsize, nbitsize);
+	newconst = _Unsigned32ToUnsigned32(val, MAXBITSPERINT, nbitsize);
 	break;
       case Bool:
-	newconst = _Unsigned32ToBool32(val, wordsize, nbitsize);
+	//newconst = _Unsigned32ToBool32(val, MAXBITSPERINT, nbitsize);
+	newconst = _CboolToBool32( (bool) val, nbitsize);
 	break;
       case Unary:
-	newconst =  _Unsigned32ToUnary32(val, wordsize, nbitsize);
+	newconst =  _Unsigned32ToUnary32(val, MAXBITSPERINT, nbitsize);
 	break;
       case Bits:
-	newconst = _Unsigned32ToBits32(val, wordsize, nbitsize);
+	newconst = _Unsigned32ToBits32(val, MAXBITSPERINT, nbitsize);
 	break;
       default:
-	{
-	  std::ostringstream msg;
-	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  rtnb = false;
-	}
+	rtnb = false;
       };
     return rtnb;
-  } //updateConstant
+  } //updateConstant32
+
+  bool NodeConstantDef::updateConstant64(u64 & newconst)
+  {
+    u64 val = newconst;
+    //store in UlamType format
+    bool rtnb = true;
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    s32 nbitsize = nut->getBitSize();
+
+    ULAMTYPE etype = nut->getUlamTypeEnum();
+    switch(etype)
+      {
+      case Int:
+	newconst = _Int64ToInt64((s64) val, MAXBITSPERLONG, nbitsize);
+	break;
+      case Unsigned:
+	newconst = _Unsigned64ToUnsigned64(val, MAXBITSPERLONG, nbitsize);
+	break;
+      case Bool:
+	//newconst = _Unsigned64ToBool64(val, MAXBITSPERLONG, nbitsize);
+	newconst = _CboolToBool64( (bool) val, nbitsize);
+	break;
+      case Unary:
+	newconst =  _Unsigned64ToUnary64(val, MAXBITSPERLONG, nbitsize);
+	break;
+      case Bits:
+	newconst = _Unsigned64ToBits64(val, MAXBITSPERLONG, nbitsize);
+	break;
+      default:
+	  rtnb = false;
+      };
+    return rtnb;
+  } //updateConstant64
 
   void NodeConstantDef::fixPendingArgumentNode()
   {

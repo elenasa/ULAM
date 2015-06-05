@@ -10,13 +10,27 @@ namespace MFM {
 
   UlamTypeInt::UlamTypeInt(const UlamKeyTypeSignature key, CompilerState & state) : UlamType(key, state)
   {
-    m_wordLengthTotal = calcWordSize(getTotalBitSize());
     s32 bitsize = getBitSize();
-    m_wordLengthItem = calcWordSize(bitsize);
-
-    // consider s64 later...
-    m_max = calcBitsizeSignedMax(bitsize);
-    m_min = calcBitsizeSignedMin(bitsize);
+    if(bitsize <= 0)
+      {
+	m_max = m_min = 0;
+      }
+    else if(bitsize <= MAXBITSPERINT)
+      {
+	m_wordLengthTotal = calcWordSize(getTotalBitSize());
+	m_wordLengthItem = calcWordSize(bitsize);
+	m_max = calcBitsizeSignedMax(bitsize);
+	m_min = calcBitsizeSignedMin(bitsize);
+      }
+    else if(bitsize <= MAXBITSPERLONG)
+      {
+	m_wordLengthTotal = calcWordSizeLong(getTotalBitSize());
+	m_wordLengthItem = calcWordSizeLong(bitsize);
+	m_max = calcBitsizeSignedMaxLong(bitsize);
+	m_min = calcBitsizeSignedMinLong(bitsize);
+      }
+    else
+      assert(0);
   }
 
    ULAMTYPE UlamTypeInt::getUlamTypeEnum()
@@ -82,11 +96,6 @@ namespace MFM {
       };
     return ctype;
   } //getTmpStorageTypeAsString
-
-  const char * UlamTypeInt::getUlamTypeAsSingleLowercaseLetter()
-  {
-    return "i";
-  }
 
   bool UlamTypeInt::cast(UlamValue & val, UTI typidx)
   {

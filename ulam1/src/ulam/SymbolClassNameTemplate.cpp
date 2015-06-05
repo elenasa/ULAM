@@ -363,48 +363,66 @@ namespace MFM {
 	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
 	    UTI auti = asym->getUlamTypeIdx();
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	    u32 awordsize = m_state.getTotalWordSize(auti); //must be complete!
+	    s32 abs = m_state.getBitSize(auti);
 	    ULAMTYPE eutype = aut->getUlamTypeEnum();
 
 	    args << aut->getUlamTypeMangledType().c_str();
 
 	    bool isok = false;
-	    switch(eutype)
+	    u64 uval;
+	    if(((SymbolConstantValue *) asym)->getValue(uval))
 	      {
-	      case Int:
-		{
-		  s32 sval;
-		  if(((SymbolConstantValue *) asym)->getValue(sval))
+		switch(eutype)
+		  {
+		  case Int:
 		    {
-		      args << ToLeximitedNumber(sval);
+		      if(awordsize == MAXBITSPERINT)
+			args << ToLeximitedNumber(_SignExtend32((u32)uval, (u32) abs));
+		      else if(awordsize == MAXBITSPERLONG)
+			args << ToLeximitedNumber64(_SignExtend64(uval, (u32) abs));
+		      else
+			assert(0);
 		      isok = true;
 		    }
 		  break;
-		}
-	      case Unsigned:
-	      case Unary:
-	      case Bits:
-		{
-		  u32 uval;
-		  if(((SymbolConstantValue *) asym)->getValue(uval))
+		  case Unsigned:
+		  case Bits:
 		    {
-		      args << ToLeximitedNumber(uval);
+		      if(awordsize == MAXBITSPERINT)
+			args << ToLeximitedNumber((u32) uval);
+		      else if(awordsize == MAXBITSPERLONG)
+			args << ToLeximitedNumber64(uval);
+		      else
+			assert(0);
 		      isok = true;
 		    }
-		  break;
-		}
-	      case Bool:
-		{
-		  bool bval;
-		  if(((SymbolConstantValue *) asym)->getValue(bval))
+		    break;
+		  case Unary:
 		    {
+		      u32 pval = _Unary64ToUnsigned64(uval, abs, MAXBITSPERINT);
+		      args << ToLeximitedNumber(pval);
+		      isok = true;
+		    }
+		    break;
+		  case Bool:
+		    {
+		      bool bval;
+		      if(awordsize == MAXBITSPERINT)
+			bval = _Bool32ToCbool((u32) uval, m_state.getBitSize(auti));
+		      else if(awordsize == MAXBITSPERLONG)
+			bval = _Bool64ToCbool(uval, m_state.getBitSize(auti));
+		      else
+			assert(0);
+
 		      args << ToLeximitedNumber((u32) bval);
 		      isok = true;
 		    }
-		  break;
-		}
-	      default:
-		assert(0);
-	      };
+		    break;
+		  default:
+		    assert(0);
+		  };
+	      }
 
 	    if(!isok)
 	      {
@@ -460,49 +478,70 @@ namespace MFM {
 
 	    SymbolConstantValue * psym = *pit;
 	    //get 'instance's value
+	    bool isok = false;
 	    Symbol * asym = NULL;
 	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
 	    UTI auti = asym->getUlamTypeIdx();
-	    ULAMTYPE eutype = m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum();
-
-	    bool isok = false;
-	    switch(eutype)
+	    if(m_state.isComplete(auti))
 	      {
-	      case Int:
-		{
-		  s32 sval;
-		  if(((SymbolConstantValue *) asym)->getValue(sval))
-		    {
-		      args << sval;
-		      isok = true;
-		    }
-		  break;
-		}
-	      case Unsigned:
-	      case Unary:
-	      case Bits:
-		{
-		  u32 uval;
-		  if(((SymbolConstantValue *) asym)->getValue(uval))
-		    {
-		      args << uval << "u";
-		      isok = true;
-		    }
-		  break;
-		}
-	      case Bool:
-		{
-		  bool bval;
-		  if(((SymbolConstantValue *) asym)->getValue(bval))
-		    {
-		      args << (bval ? "true" : "false");
-		      isok = true;
-		    }
-		  break;
-		}
-	      default:
-		assert(0);
-	      };
+		u32 awordsize = m_state.getTotalWordSize(auti); //requires completeness
+		s32 abs = m_state.getBitSize(auti);
+		ULAMTYPE eutype = m_state.getUlamTypeByIndex(auti)->getUlamTypeEnum();
+
+		u64 uval;
+		if(((SymbolConstantValue *) asym)->getValue(uval))
+		  {
+		    switch(eutype)
+		      {
+		      case Int:
+			{
+			  if(awordsize == MAXBITSPERINT)
+			    args << _SignExtend32((u32)uval, abs);
+			  else if(awordsize == MAXBITSPERLONG)
+			    args << _SignExtend64(uval, abs);
+			  else
+			    assert(0);
+			  isok = true;
+			}
+			break;
+		      case Unsigned:
+			{
+			  args << uval << "u";
+			  isok = true;
+			}
+			break;
+		      case Unary:
+			{
+			  u32 pval = _Unary64ToUnsigned64(uval, abs, MAXBITSPERINT);
+			  args << pval;
+			  isok = true;
+			}
+			break;
+		      case Bool:
+			{
+			  bool bval;
+			  if(awordsize == MAXBITSPERINT)
+			    bval = _Bool32ToCbool((u32) uval, abs);
+			  else if(awordsize == MAXBITSPERLONG)
+			    bval = _Bool64ToCbool(uval, abs);
+			  else
+			    assert(0);
+
+			  args << (bval ? "true" : "false");
+			  isok = true;
+			}
+			break;
+		      case Bits:
+			{
+			  args << "0x " << std::hex << uval;  //as hex
+			  isok = true;
+			}
+			break;
+		      default:
+			assert(0);
+		      };
+		  }
+	      } //iscomplete
 
 	    if(!isok)
 	      {
