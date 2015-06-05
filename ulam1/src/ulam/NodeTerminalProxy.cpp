@@ -93,12 +93,15 @@ namespace MFM {
 	  }
 	else
 	  {
-	    std::ostringstream msg;
-	    msg << "Undetermined type for missing member '";
-	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
-	    msg << "' Proxy";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return Nav;
+	    if(m_ofTok.m_type == TOK_IDENTIFIER)
+	      {
+		std::ostringstream msg;
+		msg << "Undetermined type for missing member '";
+		msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
+		msg << "' Proxy";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		return Nav;
+	      }
 	  }
       }
 
