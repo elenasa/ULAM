@@ -6,23 +6,22 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_A { typedef Int(9) Foo;  Int(9) f(254);  Int(32) test() {  f 255 = f f cast 1 +b 1 -b cast = f cast 254 cast == cast return } }\n");
+      return std::string("Exit status: 1\nUe_A { typedef Int(9) Foo;  Int(9) f(254);  Int(9) g(254);  Int(32) test() {  g f 255 = = f f 1 cast +b 1 cast -b = g 1 cast += g 1 cast -= f cast g cast == cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //aren't the same, but should be!!!
+      //aren't the same, but should be???
+      //bool rtn1 = fms->add("A.ulam"," element A {\ntypedef Int(9) Foo;\n Foo f;\n Int test(){\n f = f.maxof;\n f += 1;\n f-= 1;\n return f == f.maxof;\n }\n }\n"); //254
 
-      bool rtn1 = fms->add("A.ulam"," element A {\ntypedef Int(9) Foo;\n Foo f;\n Int test(){\n f = f.maxof;\n f += 1;\n f-= 1;\n return f == f.maxof;\n }\n }\n");
+      //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int(9) Foo;\n Foo f;\n Int test(){\nf = f.maxof;\n f = f + 1 - 1;\n return f == f.maxof;\n }\n }\n"); //255
 
-      //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int(9) Foo;\n Foo f;\n Int test(){\nf = f.maxof;\n f = f + 1 - 1;\n return f == f.maxof;\n }\n }\n");
+      // in fact, add anything>0 and subtract one gives the same answer.. so maxof == maxof +(1-1) == maxof +(x -1) == maxof +x != maxof +x -(x+1).
+      //bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int(9) Foo;\n Foo f,g;\n Int test(){\ng = f = f.maxof;\n f = f + 19 - 1;\n g = g + 1 - 1;\n return f == g;\n }\n }\n");
 
+      bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int(9) Foo;\n Foo f,g;\n Int test(){\ng = f = f.maxof;\n f = f + 1 - 1;\n g += 1;\n g -= 1;\n return f == g;\n }\n }\n");
 
-
-      // test system quark with native overloaded print funcs; assert
-      bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
-
-      if(rtn1 && rtn3)
+      if(rtn1)
 	return std::string("A.ulam");
 
       return std::string("");

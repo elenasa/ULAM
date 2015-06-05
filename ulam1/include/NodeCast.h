@@ -67,6 +67,10 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual bool isNegativeConstant();
+
+    virtual bool isWordSizeConstant();
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);

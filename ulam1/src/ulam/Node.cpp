@@ -20,9 +20,6 @@ namespace MFM {
 
   void Node::setYourParentNo(NNO pno)
   {
-    // not true in case of cast insertion
-    //if(m_parentNo > 0)
-    //  assert(m_parentNo == pno);
     m_parentNo = pno;
   }
 
@@ -1384,11 +1381,9 @@ namespace MFM {
 
 
   //PROTECTED METHODS:
-  //Node * Node::makeCastingNode(Node * node, UTI tobeType)
   bool Node::makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode, bool isExplicit)
   {
     bool doErrMsg = false;
-    //rtnNode = NULL;
     UTI nuti = node->getNodeType();
 
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
@@ -1414,9 +1409,10 @@ namespace MFM {
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
 	    rtnNode->updateLineage(getNodeNo());
+
+	    //redo check and type labeling; error msg if not same
 	    UTI newType = rtnNode->checkAndLabelType();
-	    if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
-	      doErrMsg = true; //error msg instead
+	    doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
 	  }
       }
     else if(nclasstype == UC_QUARK)
@@ -1444,10 +1440,9 @@ namespace MFM {
 		else
 		  rtnNode = castFunc;
 
-		//redo check and type labeling
+		//redo check and type labeling; error msg if not same
 		UTI newType = rtnNode->checkAndLabelType();
-		if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
-		  doErrMsg = true; //error msg instead
+		doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
 	      }
 	  }
 	else
@@ -1467,7 +1462,6 @@ namespace MFM {
 	    //address the case of different byte sizes here
 	    //before asserts start hitting later during assignment
 	    //quarks are likely unknown size at checkandlabel time
-	    //if(tobeType != nuti)
 	    if(uticr != UTIC_SAME && !isExplicit)
 	      {
 		rtnNode = new NodeCast(mselectNode, tobeType, NULL, m_state);
@@ -1478,10 +1472,9 @@ namespace MFM {
 	    else
 	      rtnNode = mselectNode; //replace right node with new branch
 
-	    //redo check and type labeling
+	    //redo check and type labeling; error msg if not same
 	    UTI newType = rtnNode->checkAndLabelType();
-	    if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
-	      doErrMsg = true; //error msg instead
+	    doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
 	  }
       }
     else if (nclasstype == UC_ELEMENT)
@@ -1494,9 +1487,10 @@ namespace MFM {
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(getNodeLocation());
 	    rtnNode->updateLineage(getNodeNo());
+
+	    //redo check and type labeling; error msg if not same
 	    UTI newType = rtnNode->checkAndLabelType();
-	    if(UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME)
-	      doErrMsg = true; //error msg instead
+	    doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
 	  }
       }
     else
@@ -1507,8 +1501,10 @@ namespace MFM {
 	if(uticr == UTIC_DONTKNOW)
 	  {
 	    std::ostringstream msg;
-	    msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	    msg << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    msg << "Casting 'incomplete' types: ";
+	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << "(UTI" << nuti << ") to be ";
+	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	    msg << "(UTI" << tobeType << ") in class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -1578,9 +1574,6 @@ namespace MFM {
     argIdentNode->installSymbolVariable(typeargs, argSym);
     assert(argSym);
 
-    //delete tmpni; //done with nti
-    //tmpni = NULL;
-
     //NodeTypedescriptor for 'node' type?
     Node * argNode = new NodeVarDecl((SymbolVariable*) argSym, NULL, m_state);
     assert(argNode);
@@ -1607,7 +1600,8 @@ namespace MFM {
 	//this is a duplicate function definition with same parameters and given name!!
 	//return types may differ
 	std::ostringstream msg;
-	msg << "Duplicate defined function '" << m_state.m_pool.getDataAsString(fsymptr->getId());
+	msg << "Duplicate defined function '";
+	msg << m_state.m_pool.getDataAsString(fsymptr->getId());
 	msg << "' with the same parameters" ;
 	MSG(&argTok, msg.str().c_str(), DEBUG);
 	delete fsymptr; //also deletes the NodeBlockFunctionDefinition
@@ -1674,7 +1668,8 @@ namespace MFM {
 	rtnB = true;
 	std::ostringstream msg;
 	msg << "Narrowing CAST, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-	msg << " to a " << m_state.getUlamTypeNameByIndex(tobeType).c_str() << " may cause data loss";
+	msg << " to a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << " may cause data loss";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
     return rtnB;
@@ -1732,7 +1727,7 @@ namespace MFM {
       }
 
     // the EP:
-    if(cosclasstype == UC_NOTACLASS)  //atom too?
+    if(cosclasstype == UC_NOTACLASS) //atom too?
       {
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
@@ -1742,8 +1737,8 @@ namespace MFM {
 	//now for both immmediate elements and quarks..
 	fp->write(cosut->getImmediateStorageTypeAsString().c_str());
 	fp->write("::");
-	if( ((u32) (epi + 1) < cosSize))  //still another cos refiner, use
-	  fp->write("Us::");      //typedef
+	if( ((u32) (epi + 1) < cosSize)) //still another cos refiner, use
+	  fp->write("Us::"); //typedef
       }
 
     u32 cosStart = epi+1;
@@ -1758,7 +1753,7 @@ namespace MFM {
 	fp->write("::");
 	// if its the last cos, a quark, and not a custom array...
 	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray())
-	  fp->write("Up_Us::");   //atomic parameter needed
+	  fp->write("Up_Us::"); //atomic parameter needed
       }
   } //genElementParameterMemberNameOfMethod
 
@@ -1847,7 +1842,7 @@ namespace MFM {
 	fp->write("::");
 	// if its the last cos, a quark, and not a custom array...
 	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray())
-	  fp->write("Up_Us::");   //atomic parameter needed
+	  fp->write("Up_Us::"); //atomic parameter needed
       }
   } //genLocalMemberNameOfMethod
 
@@ -1968,9 +1963,9 @@ namespace MFM {
   //false means its the entire array or not an array at all (use read() if PACKEDLOADABLE)
   bool Node::isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass)
   {
-    //uvpass would be an array index (an int of sorts), not an array; types would not be the same;
-    //return(!m_state.isScalar(cosuti) && uvpass.getPtrLen() != (s32) m_state.getTotalBitSize(cosuti));
-    return(!m_state.isScalar(cosuti) && m_state.isScalar(uvpass.getPtrTargetType()) );
+    //uvpass would be an array index (an int of sorts), not an array;
+    //types would not be the same;
+    return(!m_state.isScalar(cosuti) && m_state.isScalar(uvpass.getPtrTargetType()));
   } //isCurrentObjectAnArrayItem
 
   bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass)
@@ -1978,8 +1973,8 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     // a cosuti as a scalar, customarray, may be used as a regular array,
     //     but at this point cosuti would be a scalar in either case (sigh);
-    // uvpass would be an array index (an int of sorts), not an array; types would not be the same;
-    //    return(m_state.isScalar(cosuti) && isCustomArray && m_state.isScalar(uvpass.getPtrTargetType()) );
+    // uvpass would be an array index (an int of sorts), not an array;
+    // types would not be the same;
     return(m_state.isScalar(cosuti) && cosut->isCustomArray() && uvpass.getPtrTargetType() != cosuti);
   } //isCurrentObjectACustomArrayItem
 

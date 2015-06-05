@@ -68,6 +68,16 @@ namespace MFM {
     return m_node->isReadyConstant(); //needs constant folding
   }
 
+  bool NodeCast::isNegativeConstant()
+  {
+    return m_node->isNegativeConstant();
+  }
+
+  bool NodeCast::isWordSizeConstant()
+  {
+    return m_node->isWordSizeConstant();
+  }
+
   UTI NodeCast::checkAndLabelType()
   {
     // unlike the other nodes, nodecast knows its type at construction time;
@@ -159,7 +169,7 @@ namespace MFM {
 	// reserve for user requested casts; arithmetic operations
 	// cast to Int32 all the time causing this to happend often.
 	////if(isExplicitCast())
-	//  Node::warnOfNarrowingCast(nodeType, tobeType);
+	//Node::warnOfNarrowingCast(nodeType, tobeType);
       }
 
     // special case: user casting a quark to an Int;
@@ -172,8 +182,10 @@ namespace MFM {
 	    if(tobeTypEnum != Int)
 	      {
 		std::ostringstream msg;
-		msg << "Cannot cast quark type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-		msg << " to non-Int type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+		msg << "Cannot cast quark type: ";
+		msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+		msg << " to non-Int type: ";
+		msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
@@ -191,7 +203,8 @@ namespace MFM {
 	    if(nodeClass == UC_UNSEEN)
 	      {
 		std::ostringstream msg;
-		msg << "Cannot cast type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+		msg << "Cannot cast type: ";
+		msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 		msg << " to: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
@@ -265,7 +278,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Cast problem! Value type: ";
 	    msg << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str();
-	    msg << " failed to be cast as type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    msg << " failed to be cast as type: ";
+	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    evalNodeEpilog();
 	    return ERROR;
@@ -340,7 +354,6 @@ namespace MFM {
 
    //handle element-atom and atom-element casting differently
    // handle element->quark, atom->quark, not quark->element or quark->atom
-   //if(nuti == UAtom || vuti == UAtom || vclasstype == UC_ELEMENT)
    if(nuti == UAtom || vuti == UAtom || vclasstype == UC_ELEMENT || vclasstype == UC_QUARK)
      {
        //only to be nclasstype quark makes sense!!! check first, one might be element
@@ -352,7 +365,8 @@ namespace MFM {
 
        {
 	 std::ostringstream msg;
-	 msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	 msg << "Casting 'incomplete' types: ";
+	 msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
 	 msg << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(vuti).c_str();
 	 msg << "(UTI" << vuti << ")";
 	 MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -604,7 +618,7 @@ namespace MFM {
       }
 
     if(uticr == UTIC_SAME)
-      return false;  //short-circuit if same exact type
+      return false; //short-circuit if same exact type
 
     ULAMTYPE typEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
     ULAMTYPE nodetypEnum = m_state.getUlamTypeByIndex(nodeType)->getUlamTypeEnum();
