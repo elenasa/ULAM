@@ -67,8 +67,6 @@ namespace MFM {
 
     if( m_state.isScalar(lt) && m_state.isScalar(rt))
       {
-	if(lt == rt) return lt; //short circuit
-
 	s32 lbs = m_state.getBitSize(lt);
 	s32 rbs = m_state.getBitSize(rt);
 
