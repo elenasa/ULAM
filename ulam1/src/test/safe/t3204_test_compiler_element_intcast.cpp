@@ -10,7 +10,7 @@ namespace MFM {
 	 Int Arg: -1
 	 Int(4) Arg: 0xf
        */
-      return std::string("Exit status: -1\nUe_Foo { Bool(3) b(false);  System s();  Int(4) i(0);  Int(4) j(15);  Int(32) test() {  i 0 cast = j ( i cast 1 -b cast )update = s ( j cast )print . s ( j )print . j cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: -1\nUe_Foo { Bool(3) b(false);  System s();  Int(4) i(0);  Int(4) j(15);  Int(32) test() {  i 0 cast = j ( i 1 cast -b cast )update = s ( j cast )print . s ( j )print . j cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
