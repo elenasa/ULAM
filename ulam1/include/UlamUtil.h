@@ -61,6 +61,24 @@ namespace MFM {
   extern std::string ToLeximitedNumber(u32 num);
 
   /**
+   * Encodes an signed long in leximited.
+   *
+   * @param num The number to encode.
+   *
+   * @return a string containing the leximited encoding of num.
+   */
+  extern std::string ToLeximitedNumber64(s64 num);
+
+  /**
+   * Encodes an unsigned long in leximited.
+   *
+   * @param num The number to encode.
+   *
+   * @return a string containing the leximited encoding of num.
+   */
+  extern std::string ToLeximitedNumber64(u64 num);
+
+  /**
    * Encode an arbitrary string in leximited.
    *
    * @param str The string to encode.

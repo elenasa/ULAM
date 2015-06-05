@@ -106,7 +106,9 @@ namespace MFM{
     u32 m_cid; //to instantiate
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
-    bool updateConstant(u32 & newconst);
+    bool updateConstant(u64 & newconst);
+    bool updateConstant32(u64 & newconst);
+    bool updateConstant64(u64 & newconst);
   };
 
 } //MFM

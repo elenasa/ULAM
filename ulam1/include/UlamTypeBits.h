@@ -54,8 +54,6 @@ namespace MFM{
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
-    virtual const char * getUlamTypeAsSingleLowercaseLetter();
-
     virtual bool isMinMaxAllowed();
 
     virtual bool cast(UlamValue & val, UTI typidx);

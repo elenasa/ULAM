@@ -10,23 +10,23 @@ namespace MFM {
   NodeTerminal::NodeTerminal(Token tok, CompilerState & state) : Node(state)
   {
     Node::setNodeLocation(tok.m_locator); //in case of errors
-    setConstantValue(tok);
     setConstantTypeForNode(tok);
+    setConstantValue(tok);
   }
 
   //cannot convert using utype at construction since bitsize may be UNKNOWN
-  NodeTerminal::NodeTerminal(s32 val, UTI utype, CompilerState & state) : Node(state)
+  NodeTerminal::NodeTerminal(s64 val, UTI utype, CompilerState & state) : Node(state)
   {
-    m_constant.sval = val;
     setNodeType(utype);
+    m_constant.sval = val;
     //uptocaller to set node location.
   }
 
   //cannot convert using utype at construction since bitsize may be UNKNOWN
-  NodeTerminal::NodeTerminal(u32 val, UTI utype, CompilerState & state) : Node(state)
+  NodeTerminal::NodeTerminal(u64 val, UTI utype, CompilerState & state) : Node(state)
   {
-    m_constant.uval = val;
     setNodeType(utype);
+    m_constant.uval = val;
     //uptocaller to set node location.
   }
 
@@ -49,7 +49,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     if(etype == Bool)
-      fp->write((_Bool32ToCbool(m_constant.uval, nut->getBitSize()) ? "true" : "false"));
+      fp->write((_Bool64ToCbool(m_constant.uval, nut->getBitSize()) ? "true" : "false"));
     else
       fp->write(getName());
   } //printPostfix
@@ -176,29 +176,28 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    assert(wordsize == MAXBITSPERINT);
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {
+	// assumes val is in proper format for its type
       case Int:
-	//rtnUV = UlamValue::makeImmediate(nuti, _Int32ToInt32(m_constant.sval, wordsize, nbitsize), m_state);
-	rtnUV = UlamValue::makeImmediate(nuti, m_constant.sval, m_state);
-	break;
-      case Unsigned:
-	//rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnsigned32(m_constant.uval, wordsize, nbitsize), m_state);
-	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
+	if(wordsize == MAXBITSPERINT)
+	  rtnUV = UlamValue::makeImmediate(nuti, (s32) m_constant.sval, m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  rtnUV = UlamValue::makeImmediateLong(nuti, m_constant.sval, m_state);
+	else
+	  assert(0);
 	break;
       case Bool:
-	//rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBool32(m_constant.uval, wordsize, nbitsize), m_state);
-	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
-	break;
+      case Unsigned:
       case Unary:
-	//rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToUnary32(m_constant.uval, wordsize, nbitsize), m_state);
-	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
-	break;
       case Bits:
-	//rtnUV = UlamValue::makeImmediate(nuti, _Unsigned32ToBits32(m_constant.uval, wordsize, nbitsize), m_state);
-	rtnUV = UlamValue::makeImmediate(nuti, m_constant.uval, m_state);
+	if(wordsize == MAXBITSPERINT)
+	  rtnUV = UlamValue::makeImmediate(nuti, (u32) m_constant.uval, m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  rtnUV = UlamValue::makeImmediateLong(nuti, m_constant.uval, m_state);
+	else
+	  assert(0);
 	break;
       default:
 	{
@@ -228,16 +227,6 @@ namespace MFM {
 	return false;
       }
 
-    if(fit->getTotalWordSize() != MAXBITSPERINT) //32
-      {
-	std::ostringstream msg;
-	msg << "Not supported at this time, constant type: ";
-	msg << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: ";
-	msg << m_state.getUlamTypeNameByIndex(fituti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return false;
-      }
-
     if(!fit->isMinMaxAllowed() && (fit->getUlamTypeEnum() != Bits))
       {
 	std::ostringstream msg;
@@ -254,6 +243,35 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
+
+    u32 fwordsize = fit->getTotalWordSize();
+    if(fwordsize == MAXBITSPERINT) //32
+      {
+	rtnb = fitsInBits32(fituti);
+      }
+    else if(fwordsize == MAXBITSPERLONG) //64
+      {
+	rtnb = fitsInBits64(fituti);
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Not supported at this time, constant type: ";
+	msg << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: ";
+	msg << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+
+    return rtnb;
+  } //fitsInBits
+
+  //used during check and label for binary arith and compare ops that have a constant term
+  bool NodeTerminal::fitsInBits32(UTI fituti)
+  {
+    bool rtnb = false;
+    UTI nuti = getNodeType(); //constant type
+    UlamType * fit = m_state.getUlamTypeByIndex(fituti);
 
     ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
     switch(etype)
@@ -274,13 +292,11 @@ namespace MFM {
       case Unsigned:
       case Unary:
       case Bits:
+      case Bool:
 	{
 	  u32 numval = m_constant.uval;
 	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
 	}
-	break;
-      case Bool:
-	rtnb = true;
 	break;
       default:
 	{
@@ -291,7 +307,49 @@ namespace MFM {
 	}
       };
     return rtnb;
-  } //fitsInBits
+  } //fitsInBits32
+
+  //used during check and label for binary arith and compare ops that have a constant term
+  bool NodeTerminal::fitsInBits64(UTI fituti)
+  {
+    bool rtnb = false;
+    UTI nuti = getNodeType(); //constant type
+    UlamType * fit = m_state.getUlamTypeByIndex(fituti);
+    ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+    switch(etype)
+      {
+      case Int:
+	{
+	  s64 numval = m_constant.sval;
+	  if(fit->getUlamTypeEnum() == Int)
+	    {
+	      rtnb = (numval <= (s64) fit->getMax()) && (numval >= fit->getMin());
+	    }
+	  else
+	    {
+	      rtnb = (UABS64(numval) <= fit->getMax()) && (numval >= 0);
+	    }
+	}
+	break;
+      case Unsigned:
+      case Unary:
+      case Bits:
+      case Bool:
+	{
+	  u64 numval = m_constant.uval;
+	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
+	}
+	break;
+      default:
+	{
+	  std::ostringstream msg;
+	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	  msg << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	}
+      };
+    return rtnb;
+  } //fitsInBits64
 
   //used during check and label for bitwise shift op that has a negative constant term
   bool NodeTerminal::isNegativeConstant()
@@ -409,7 +467,7 @@ namespace MFM {
 	}
 	break;
       case TOK_KW_TRUE:
-	m_constant.uval = 1u;
+	m_constant.uval = _CboolToBool64(true, m_state.getBitSize(getNodeType()));
 	rtnok = true;
 	break;
       case TOK_KW_FALSE:

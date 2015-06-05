@@ -16,13 +16,6 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
-    //we go away..
-    if(isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      {
-	setNodeType(Bool);
-	return constantFold();
-      }
-
     UTI newType = calcNodeType(leftType, rightType); //for casting
     if(newType != Nav && m_state.isComplete(newType))
       {
@@ -46,6 +39,13 @@ namespace MFM {
       }
     setNodeType(newType);
     setStoreIntoAble(false);
+
+    //still may need casting (e.g. unary compared to an int) before constantfolding
+    if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
+      {
+	return NodeBinaryOp::constantFold();
+      }
+
     return newType;
   } //checkAndLabelType
 
@@ -53,7 +53,7 @@ namespace MFM {
   // punt on arrays at this time..
   UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)
   {
-    if(lt == Nav || rt == Nav)
+    if(lt == Nav || rt == Nav || !m_state.isComplete(lt) || !m_state.isComplete(rt))
       {
 	return Nav;
       }
@@ -62,15 +62,17 @@ namespace MFM {
     // except for 2 Unsigned, all comparison operations are performed as Int.32.-1
     // if one is unsigned, and the other isn't -> output warning, but Signed Int wins.
     // Class (i.e. quark) + anything goes to Int.32
+    bool useLong = ((m_state.getTotalWordSize(lt) == MAXBITSPERLONG) || (m_state.getTotalWordSize(rt) == MAXBITSPERLONG));
+
     if( m_state.isScalar(lt) && m_state.isScalar(rt))
       {
-	newType = Int;
+	newType = useLong ? m_state.getLongUTI() : Int;
 
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
 	  {
-	    return Unsigned;
+	    return useLong ? m_state.getUnsignedLongUTI() : Unsigned; //constants aren't unsigned
 	  }
 
 	bool lconst = m_nodeLeft->isAConstant();

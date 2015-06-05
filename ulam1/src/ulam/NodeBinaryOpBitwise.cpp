@@ -39,7 +39,7 @@ namespace MFM {
 
   UTI NodeBinaryOpBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
   {
-    if(lt == Nav || rt == Nav)
+    if(lt == Nav || rt == Nav || !m_state.isComplete(lt) || !m_state.isComplete(rt))
       {
 	return Nav;
       }
@@ -75,7 +75,9 @@ namespace MFM {
       {
 	if(m_state.isScalar(lt) && m_state.isScalar(rt))
 	  {
-	    newType = Bits; //default is Bits
+	    bool useLong = ((m_state.getTotalWordSize(lt) == MAXBITSPERLONG) || (m_state.getTotalWordSize(rt) == MAXBITSPERLONG));
+
+	    newType = useLong ? m_state.getBigBitsUTI() : Bits; //default is Bits
 	  }
 	else
 	  {

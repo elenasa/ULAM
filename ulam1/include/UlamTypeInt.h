@@ -66,8 +66,6 @@ namespace MFM{
 
     const std::string getUnsignedTmpStorageTypeAsString();
 
-    virtual const char * getUlamTypeAsSingleLowercaseLetter();
-
     virtual bool cast(UlamValue & val, UTI typidx);
 
     virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass);
