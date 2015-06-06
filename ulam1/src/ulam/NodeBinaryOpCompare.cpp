@@ -59,7 +59,7 @@ namespace MFM {
 
     UTI newType = Nav; //init
 
-    // except for 2 Unsigned, all arithmetic operations are performed as Int.32.-1 in CastOps.h
+    // all operations are performed as Int(32) or Unsigned(32) in CastOps.h
     // if one is unsigned, and the other isn't -> output warning,
     // but Signed Int wins, unless its a constant.
     // Class (i.e. quark) + anything goes to Int.32
@@ -186,106 +186,6 @@ namespace MFM {
       }
     return newType;
   } //calcNodeType
-
-#if 0
-  // same as Arith Ops for casting lhs & rhs, however node type is Bool
-  // punt on arrays at this time..
-  UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)
-  {
-    if(lt == Nav || rt == Nav || !m_state.isComplete(lt) || !m_state.isComplete(rt))
-      {
-	return Nav;
-      }
-
-    UTI newType = Nav; //init
-    // except for 2 Unsigned, all comparison operations are performed as Int.32.-1
-    // if one is unsigned, and the other isn't -> output warning, but Signed Int wins.
-    // Class (i.e. quark) + anything goes to Int.32
-    bool useLong = ((m_state.getTotalWordSize(lt) == MAXBITSPERLONG) || (m_state.getTotalWordSize(rt) == MAXBITSPERLONG));
-
-    if( m_state.isScalar(lt) && m_state.isScalar(rt))
-      {
-	newType = useLong ? m_state.getLongUTI() : Int;
-
-	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
-	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
-	  {
-	    return useLong ? m_state.getUnsignedLongUTI() : Unsigned; //constants aren't unsigned
-	  }
-
-	bool lconst = m_nodeLeft->isAConstant();
-	bool rconst = m_nodeRight->isAConstant();
-	if(lconst || rconst)
-	  {
-	    // if one is a constant, check for value to fit in bits.
-	    bool lready = lconst && m_nodeLeft->isReadyConstant();
-	    bool rready = rconst && m_nodeRight->isReadyConstant();
-	    bool doErrMsg = lready || rready; //skip if none ready; was true
-
-	    if(lready && m_nodeLeft->fitsInBits(rt))
-	      doErrMsg = false;
-
-	    if(rready && m_nodeRight->fitsInBits(lt))
-	      doErrMsg = false;
-
-	    if(doErrMsg)
-	      {
-		std::ostringstream msg;
-		msg << "Attempting to fit a constant <";
-		if(lconst)
-		  {
-		    msg << m_nodeLeft->getName() <<  "> into a smaller bit size type, RHS: ";
-		    msg<< m_state.getUlamTypeNameByIndex(rt).c_str();
-		  }
-		else
-		  {
-		    msg << m_nodeRight->getName() <<  "> into a smaller bit size type, LHS: ";
-		    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-		  }
-		msg << ", for binary comparison operator" << getName() << " ";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
-	      }
-	  } //a constant
-	else if(ltypEnum == Unsigned || rtypEnum == Unsigned)
-	  {
-	    // not both unsigned, but one is, so mixing signed and
-	    // unsigned gets a warning, but still uses signed Int.
-	    // if one is a constant, check for value to fit in bits.
-	    std::ostringstream msg;
-	    msg << "Attempting to mix signed and unsigned types, LHS: ";
-	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
-	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	    msg << ", for binary comparison operator" << getName() << " ";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
-	  }
-      } //both scalars
-    else
-      {
-	//#define SUPPORT_ARITHMETIC_ARRAY_OPS
-#ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
-	// Conflicted: we don't like the idea that the type might be
-	// different for arrays than scalars; casting occurring differently.
-	// besides, for arithmetic ops, unlike logical ops, we have to do each
-	// op separately anyway, so no big win (let ulam programmer do the loop).
-	// let arrays of same types through ??? Is SO for op equals, btw.
-	if(lt == rt)
-	  {
-	    return lt;
-	  }
-#endif //SUPPORT_ARITHMETIC_ARRAY_OPS
-
-	//array op scalar: defer since the question of matrix operations is unclear at this time.
-	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: ";
-	msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << " for binary comparison operator" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
-    return newType;
-  } //calcNodeType
-#endif
 
   const std::string NodeBinaryOpCompare::methodNameForCodeGen()
   {
