@@ -80,10 +80,10 @@ namespace MFM {
       {
       case 0:
       case 32:
-	ctype = "s32";
+	ctype = "u32"; //"s32";
 	break;
       case 64:
-	ctype = "s64";
+	ctype = "u64"; //"s64";
 	break;
       default:
 	{
@@ -164,8 +164,7 @@ namespace MFM {
       {
       case Int:
 	// casting Int to Int to change bits size
-	sdata = _SignExtend32(data, valbitsize);
-	sdata = _Int32ToInt32(sdata, valbitsize, bitsize);
+	sdata = _Int32ToInt32(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	// casting Unsigned to Int to change type
@@ -214,8 +213,7 @@ namespace MFM {
       {
       case Int:
 	// casting Int to Int to change bits size
-	sdata = _SignExtend64(data, valbitsize);
-	sdata = _Int64ToInt64(sdata, valbitsize, bitsize);
+	sdata = _Int64ToInt64(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	// casting Unsigned to Int to change type

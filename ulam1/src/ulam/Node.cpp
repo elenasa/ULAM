@@ -344,7 +344,7 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // split off reading array items
     if(isCurrentObjectAnArrayItem(cosuti, uvpass) || isCurrentObjectACustomArrayItem(cosuti, uvpass))
@@ -435,8 +435,7 @@ namespace MFM {
     // specifically to sign extend Int's (a cast)
     // problem! for arrays, the vut is an Int, regardless of the array typeXXX
     // but not arrays here. hmm..
-    //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass, m_state);
-    cosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
+    //    cosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadIntoTmp
@@ -485,7 +484,7 @@ namespace MFM {
     ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();
 
     UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
-    UlamType *	scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
+    //UlamType *	scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
 
     m_state.indent(fp);
     fp->write("const ");
@@ -595,7 +594,7 @@ namespace MFM {
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0); //POS 0 rightjustified (atom-based).
 
     //specifically to sign extend Int's (a cast)
-    scalarcosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
+    //scalarcosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadArrayItemIntoTmp
@@ -1358,7 +1357,7 @@ namespace MFM {
     uvpass.setPtrPos(0); //entire register
 
     // specifically to sign extend Int's (a cast)
-    vut->genCodeAfterReadingIntoATmpVar(fp, uvpass); //why was this commented out?
+    //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass); //why was this commented out?
   } //genCodeConvertABitVectorIntoATmpVar
 
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
@@ -1849,11 +1848,11 @@ namespace MFM {
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    //ULAMTYPE etyp = nut->getUlamTypeEnum();
 
     //special case, u32/u64 desired before AfterReadingIntoATmpVar
-    if(etyp == Int)
-      return ((UlamTypeInt *) nut)->getUnsignedTmpStorageTypeAsString();
+    //if(etyp == Int)
+    //  return ((UlamTypeInt *) nut)->getUnsignedTmpStorageTypeAsString();
 
     return nut->getTmpStorageTypeAsString();
   } //tmpStorageTypeForRead
@@ -1861,11 +1860,11 @@ namespace MFM {
   const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
+    //ULAMTYPE etyp = nut->getUlamTypeEnum();
 
     //special case, u32/u64 desired before AfterReadingIntoATmpVar
-    if(etyp == Int)
-      return ((UlamTypeInt *) nut)->getArrayItemUnsignedTmpStorageTypeAsString();
+    //if(etyp == Int)
+    //  return ((UlamTypeInt *) nut)->getArrayItemUnsignedTmpStorageTypeAsString();
 
     return nut->getArrayItemTmpStorageTypeAsString();
   } //tmpStorageTypeForReadArrayItem

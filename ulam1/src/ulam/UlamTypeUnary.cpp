@@ -111,11 +111,8 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Int:
-	{
-	  s32 sdata = _SignExtend32(data, valbitsize);
-	  // cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
-	  data = _Int32ToUnary32(sdata, valbitsize, bitsize);
-	}
+	// cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
+	data = _Int32ToUnary32(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	data = _Unsigned32ToUnary32(data, valbitsize, bitsize);
@@ -160,11 +157,8 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Int:
-	{
-	  s64 sdata = _SignExtend64(data, valbitsize);
-	  // cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
-	  data = _Int64ToUnary64(sdata, valbitsize, bitsize);
-	}
+	// cast from Int->Unary, OR Bool->Unary (same as Bool->Int)
+	data = _Int64ToUnary64(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	data = _Unsigned64ToUnary64(data, valbitsize, bitsize);
