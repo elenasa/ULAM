@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_A { Bool(7) b(false);  typedef Unsigned(8) Byte;  Unsigned(8) arr[2](1,0);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] cast 0 == cast return } }\n");
+      return std::string("Exit status: 0\nUe_A { Bool(7) b(false);  typedef Unsigned(8) Byte;  Unsigned(8) arr[2](1,0);  Int(32) test() {  arr 0 [] 1 cast = arr 0 [] 0 cast == cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
