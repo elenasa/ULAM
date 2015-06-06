@@ -64,14 +64,16 @@ namespace MFM {
 	if(unpackedArrayLeft)
 	  {
 	    std::ostringstream msg;
-	    msg << "Lefthand side of equals requires UNPACKED array support: <" << m_nodeLeft->getName();
+	    msg << "Lefthand side of equals requires UNPACKED array support: <";
+	    msg << m_nodeLeft->getName();
 	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	if(unpackedArrayRight)
 	  {
 	    std::ostringstream msg;
-	    msg << "Righthand side of equals requires UNPACKED array support: <" << m_nodeRight->getName();
+	    msg << "Righthand side of equals requires UNPACKED array support: <";
+	    msg << m_nodeRight->getName();
 	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(rightType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }

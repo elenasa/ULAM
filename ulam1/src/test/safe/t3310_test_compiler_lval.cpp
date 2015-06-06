@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //constant fold: a 2 1 -b
-      return std::string("Exit status: 3\nUe_A { Int(16) a[2](3,7);  Int(32) test() {  Int(32) j;  a 1 [] 7 cast = j 10 a 1 [] cast -b = a 0 [] j cast = j return } }\n");
+      return std::string("Exit status: 3\nUe_A { Int(16) a[2](3,7);  Int(32) test() {  Int(32) j;  a 1 [] 7 cast = j 10 cast a 1 [] -b cast = a 0 [] j cast = j return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

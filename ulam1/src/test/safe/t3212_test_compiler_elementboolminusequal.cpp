@@ -7,10 +7,10 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /* gen code output:
-	 Bool(3) Arg: 0x7 (true)
-	 Bool(3) Arg: 0x7 (true)
+	 Bool(3) Arg: 0x0 (false)
+	 Bool(3) Arg: 0x0 (false)
       */
-      return std::string("Exit status: 1\nUe_Foo { Bool(3) b(true);  System s();  Unary(4) sp(0);  Bool(3) a(true);  Bool(3) c(true);  Int(32) test() {  a false cast = b true cast = c a cast b cast -b cast = s ( c )print . a b -= s ( a )print . a cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { Bool(3) b(true);  System s();  Unary(4) sp(0);  Bool(3) a(false);  Bool(3) c(false);  Int(32) test() {  a false cast = b true cast = c a cast b cast -b cast = s ( c )print . a b -= s ( a )print . a cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -29,5 +29,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3212_test_compiler_elementboolminusequal)
 
 } //end MFM
-
-

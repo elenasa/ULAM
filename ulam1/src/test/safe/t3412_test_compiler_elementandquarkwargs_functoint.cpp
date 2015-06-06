@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       // repeat of func() doesn't make a new toIntHelper.
-      return std::string("Exit status: 7\nUe_Foo { Q q( C2D(4,7) c( constant Int(4) m_width = 4;  constant Int(4) m_height = 7; );  C2D(2,5) d( constant Int(4) m_width = 2;  constant Int(4) m_height = 5; ); );  Int(8) i(11);  Int(8) j(7);  Int(8) k(11);  Int(32) test() {  i ( q ( )func . )_toIntHelper cast cast = j ( q ( )func2 . )_toIntHelper cast cast = k ( q ( )func . )_toIntHelper cast cast = ( q ( )func2 . )_toIntHelper cast return } }\nUq_Q { C2D(4,7) c( constant Int(4) m_width = 4;  constant Int(4) m_height = 7; );  C2D(2,5) d( constant Int(4) m_width = 2;  constant Int(4) m_height = 5; );  <NOMAIN> }\nUq_C2D { constant Int(4) m_width = NONREADYCONST;  constant Int(4) m_height = NONREADYCONST;  <NOMAIN> }\n");
+      return std::string("Exit status: 7\nUe_Foo { Q q( C2D(4,7) c( constant Int(4) m_width = 4;  constant Int(4) m_height = 7; );  C2D(2,5) d( constant Int(4) m_width = 2;  constant Int(4) m_height = 5; ); );  Int(8) i(7);  Int(8) j(7);  Int(8) k(7);  Int(32) test() {  i ( q ( )func . )_toIntHelper cast cast = j ( q ( )func2 . )_toIntHelper cast cast = k ( q ( )func . )_toIntHelper cast cast = ( q ( )func2 . )_toIntHelper cast return } }\nUq_Q { C2D(4,7) c( constant Int(4) m_width = 4;  constant Int(4) m_height = 7; );  C2D(2,5) d( constant Int(4) m_width = 2;  constant Int(4) m_height = 5; );  <NOMAIN> }\nUq_C2D { constant Int(4) m_width = NONREADYCONST;  constant Int(4) m_height = NONREADYCONST;  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

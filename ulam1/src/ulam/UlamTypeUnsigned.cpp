@@ -62,7 +62,8 @@ namespace MFM {
     if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: ";
+	msg << "Casting different Array sizes; " << arraysize;
+	msg << ", Value Type and size was: ";
 	msg << valtypidx << "," << m_state.getArraySize(valtypidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return false;
@@ -119,11 +120,8 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Int:
-	{
-	  // casting Int to Unsigned to change type
-	  const s32 sdata = _SignExtend32(data,valbitsize);
-	  data = _Int32ToUnsigned32(sdata, valbitsize, bitsize);
-	}
+	// casting Int to Unsigned to change type
+	data = _Int32ToUnsigned32(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	// casting UnsignedInt to UnsignedInt to change bits size
@@ -170,11 +168,8 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Int:
-	{
-	  // casting Int to Unsigned to change type
-	  const s64 sdata = _SignExtend64(data,valbitsize);
-	  data = _Int64ToUnsigned64(sdata, valbitsize, bitsize);
-	}
+	// casting Int to Unsigned to change type
+	data = _Int64ToUnsigned64(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	// casting UnsignedInt to UnsignedInt to change bits size
