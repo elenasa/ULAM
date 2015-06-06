@@ -202,9 +202,9 @@ namespace MFM {
   void UlamTypeUnary::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%u", PopCount(data)); //converted to binary
+      sprintf(valstr,"%u", PopCount64(data)); //converted to binary
     else
-      sprintf(valstr,"%c%u", prefix, PopCount(data)); //converted to binary
+      sprintf(valstr,"%c%u", prefix, PopCount64(data)); //converted to binary
   }
 
 } //end MFM

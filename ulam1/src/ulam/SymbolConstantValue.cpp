@@ -99,9 +99,15 @@ namespace MFM {
 	  case Int:
 	    {
 	      if(twordsize == MAXBITSPERINT)
-		fp->write_decimal(_SignExtend32((u32) m_constant.uval, tbs));
+		{
+		  s32 sval = _Int32ToInt32((u32) m_constant.uval, tbs, MAXBITSPERINT);
+		  fp->write_decimal(sval);
+		}
 	      else if(twordsize == MAXBITSPERLONG)
-		fp->write_decimal_long(_SignExtend64(m_constant.uval, tbs));
+		{
+		  s64 sval = _Int64ToInt64(m_constant.uval, tbs, MAXBITSPERLONG);
+		  fp->write_decimal_long(sval);
+		}
 	      else
 		assert(0);
 	    }
