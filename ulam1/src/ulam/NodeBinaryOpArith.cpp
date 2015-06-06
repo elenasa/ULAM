@@ -61,7 +61,7 @@ namespace MFM {
 
     UTI newType = Nav; //init
 
-    // except for 2 Unsigned, all arithmetic operations are performed as Int.32.-1 in CastOps.h
+    // all operations are performed as Int(32) or Unsigned(32) in CastOps.h
     // if one is unsigned, and the other isn't -> output warning,
     // but Signed Int wins, unless its a constant.
     // Class (i.e. quark) + anything goes to Int.32
