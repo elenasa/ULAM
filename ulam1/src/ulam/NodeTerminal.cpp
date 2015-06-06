@@ -67,15 +67,21 @@ namespace MFM {
       {
       case Int:
 	if(wordsize <= MAXBITSPERINT)
-	  num << (s32) m_constant.sval;
+	  {
+	    s32 sval = _Int32ToInt32((u32) m_constant.uval, nbitsize, MAXBITSPERINT);
+	    num << sval;
+	  }
 	else
-	  num << m_constant.sval;
+	  {
+	    s64 sval = _Int64ToInt64(m_constant.uval, nbitsize, MAXBITSPERLONG);
+	    num << sval;
+	  }
 	break;
       case Bool:
       case Unsigned:
       case Unary:
       case Bits:
-	// no casting needed, assume saved in its natural format
+	// NO CASTING NEEDED, assume saved in its natural format
 	if(wordsize <= MAXBITSPERINT)
 	  num << (u32) m_constant.uval << "u";
 	else
@@ -290,12 +296,18 @@ namespace MFM {
 	}
 	break;
       case Unsigned:
-      case Unary:
       case Bits:
       case Bool:
 	{
 	  u32 numval = m_constant.uval;
 	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
+	}
+	break;
+      case Unary:
+	{
+	  u32 numval = m_constant.uval;
+	  u32 fmax = _Unary32ToUnsigned32(fit->getMax(), fit->getBitSize(), m_state.getBitSize(nuti));
+	  rtnb = (numval <= fmax) && (numval >= 0);
 	}
 	break;
       default:
@@ -332,12 +344,18 @@ namespace MFM {
 	}
 	break;
       case Unsigned:
-      case Unary:
       case Bits:
       case Bool:
 	{
 	  u64 numval = m_constant.uval;
 	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
+	}
+	break;
+      case Unary:
+	{
+	  u64 numval = m_constant.uval;
+	  u64 fmax = _Unary64ToUnsigned64(fit->getMax(), fit->getBitSize(), m_state.getBitSize(nuti));
+	  rtnb = (numval <= fmax) && (numval >= 0);
 	}
 	break;
       default:

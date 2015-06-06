@@ -6,6 +6,10 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      /* gen code output:
+	 Unary(3) Arg: 0x1
+	 Unary(3) Arg: 0x0
+      */
       return std::string("Exit status: 1\nUe_A { Unary(3) b(1);  System s();  Bool(1) sp(false);  Unary(3) a(2);  Unary(3) c(1);  Unary(3) d(0);  Int(32) test() {  a 2 cast = b 1 cast = c a cast b cast -b cast = s ( c )print . d b cast a cast -b cast = s ( d )print . c cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
@@ -30,5 +34,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3165_test_compiler_unarysubtract)
 
 } //end MFM
-
-

@@ -18,7 +18,7 @@ namespace MFM {
 	 Unary(3) Arg: 0x3
 	 Unsigned Arg: 3
 	 Bool(3) Arg: 0x0 (false)
-	 Bool(3) Arg: 0x0 (false)
+	 Bool(3) Arg: 0x7 (true)
 	 Unsigned Arg: 2
       */
 
@@ -29,6 +29,9 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt test(){\nInt(4) z; s.print(z.sizeof);\n s.print(z.minof);\n s.print(z.maxof);\nUnsigned y;\n s.print(y.sizeof);\n s.print(y.minof);\n s.print(y.maxof);\nUnary(3) x;\n s.print(x.sizeof);\n s.print(x.minof);\n s.print(x.maxof);\n Bool(3) v;\n s.print(v.sizeof);\n s.print(v.minof);\n s.print(v.maxof);\nBits(2) t;\n s.print(t.sizeof);\n /*i = t.minof;\n unsupported request minof Bits */  return Void.sizeof;\n}\n}\n");
+
+      //simply to unary for debugging:
+      //bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nUnary(3) x;\nInt test(){\n x = x.maxof;\n s.print(x.sizeof);\n s.print(x.minof);\n s.print(x.maxof);\n return Void.sizeof;\n}\n}\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

@@ -22,9 +22,12 @@ namespace MFM {
     if(newType != Nav && m_state.isComplete(newType))
       {
 	assert(newType == leftType);
-	if(UlamType::compare(rightType, Int, m_state) != UTIC_SAME) //notsame or dontknow
+	//shift ops take unsigned as second arg;
+	//note: C implementations typically shift by the lower 5 bits (6 for 64-bits) only.
+	ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
+	if(retype != Unsigned)
 	  {
-	    if(!makeCastingNode(m_nodeRight, Int, m_nodeRight))
+	    if(!makeCastingNode(m_nodeRight, Unsigned, m_nodeRight))
 	      newType = Nav;
 	  }
       }
