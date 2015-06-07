@@ -539,8 +539,10 @@ namespace MFM {
 	  {
 	    //e.g. a quark here would be wrong
 	    std::ostringstream msg;
-	    msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	    msg << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(vuti).c_str();
+	    msg << "Casting 'incomplete' types: ";
+	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << "(UTI" << nuti << ") to be ";
+	    msg << m_state.getUlamTypeNameByIndex(vuti).c_str();
 	    msg << "(UTI" << vuti << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    assert(0);//return;
@@ -610,8 +612,10 @@ namespace MFM {
     if(uticr == UTIC_DONTKNOW)
       {
 	std::ostringstream msg;
-	msg << "Casting 'incomplete' types: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-	msg << "(UTI" << nodeType << ") to be " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << "Casting 'incomplete' types: ";
+	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	msg << "(UTI" << nodeType << ") to be ";
+	msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 	msg << "(UTI" << tobeType << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
