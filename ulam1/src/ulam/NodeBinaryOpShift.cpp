@@ -89,20 +89,6 @@ namespace MFM {
 	    msg << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
-#if 0
-	//if Unary or Bool ERR.
-	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-	if(etyp == Unary || etyp == Bool)
-	  {
-	    std::ostringstream msg;
-	    msg << "Bool and Unary are not currently supported for bitwise shift operator";
-	    msg << getName() << "; suggest casting ";
-	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-	    msg << " to Bits";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
-	  }
-#endif
       } //both scalars
     else
       {
