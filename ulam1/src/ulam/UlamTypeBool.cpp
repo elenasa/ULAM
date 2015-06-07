@@ -61,7 +61,8 @@ namespace MFM {
     if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: ";
+	msg << "Casting different Array sizes; " << arraysize;
+	msg << ", Value Type and size was: ";
 	msg << valtypidx << "," << m_state.getArraySize(valtypidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return false;
@@ -74,7 +75,8 @@ namespace MFM {
     if(bitsize == UNKNOWNSIZE || valbitsize == UNKNOWNSIZE)
       {
 	std::ostringstream msg;
-	msg << "Casting UNKNOWN sizes; " << bitsize << ", Value Type and size was: " << valtypidx << "," << valbitsize;
+	msg << "Casting UNKNOWN sizes; " << bitsize;
+	msg << ", Value Type and size was: " << valtypidx << "," << valbitsize;
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
@@ -118,10 +120,7 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Int:
-	{
-	  s32 sdata = _SignExtend32(data, valbitsize);
-	  newdata = _Int32ToBool32(sdata, valbitsize, bitsize);
-	}
+	newdata = _Int32ToBool32(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	newdata = _Unsigned32ToBool32(data, valbitsize, bitsize);
@@ -169,10 +168,7 @@ namespace MFM {
     switch(valtypEnum)
       {
       case Int:
-	{
-	  s64 sdata = _SignExtend64(data, valbitsize);
-	  newdata = _Int64ToBool64(sdata, valbitsize, bitsize);
-	}
+	newdata = _Int64ToBool64(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	newdata = _Unsigned64ToBool64(data, valbitsize, bitsize);
@@ -217,7 +213,8 @@ namespace MFM {
 	s32 bitsize = getBitSize();
 	s32 count1s = PopCount(data);
 
-	if(count1s > (s32) (bitsize - count1s))  // == when even number bits is ignored (warning at def)
+	// == when even number bits is ignored (warning at def)
+	if(count1s > (s32) (bitsize - count1s))
 	  dataAsBool = true;
       }
 
@@ -239,7 +236,8 @@ namespace MFM {
 	s32 bitsize = getBitSize();
 	s32 count1s = PopCount(data);
 
-	if(count1s > (s64) (bitsize - count1s))  // == when even number bits is ignored (warning at def)
+	// == when even number bits is ignored (warning at def)
+	if(count1s > (s64) (bitsize - count1s))
 	  dataAsBool = true;
       }
 

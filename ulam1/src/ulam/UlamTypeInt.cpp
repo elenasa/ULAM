@@ -80,17 +80,18 @@ namespace MFM {
       {
       case 0:
       case 32:
-	ctype = "s32";
+	ctype = "u32"; //"s32";
 	break;
       case 64:
-	ctype = "s64";
+	ctype = "u64"; //"s64";
 	break;
       default:
 	{
+	  ctype = "u32"; //array item
 	  //std::ostringstream msg;
-	  //msg << "Need UNPACKED ARRAY for " << sizebyints << " bits; s32[" << getArraySize() << "]";
+	  //msg << "Need UNPACKED ARRAY for " << sizebyints;
+	  //msg << " bits; s32[" << getArraySize() << "]";
 	  //MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),INFO);
-	  ctype = "s32"; //array item
 	  //assert(0);
 	}
       };
@@ -106,7 +107,8 @@ namespace MFM {
     if(arraysize != m_state.getArraySize(valtypidx))
       {
 	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize << ", Value Type and size was: ";
+	msg << "Casting different Array sizes; " << arraysize;
+	msg << ", Value Type and size was: ";
 	msg << valtypidx << "," << m_state.getArraySize(valtypidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return false;
@@ -164,8 +166,7 @@ namespace MFM {
       {
       case Int:
 	// casting Int to Int to change bits size
-	sdata = _SignExtend32(data, valbitsize);
-	sdata = _Int32ToInt32(sdata, valbitsize, bitsize);
+	sdata = _Int32ToInt32(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	// casting Unsigned to Int to change type
@@ -214,8 +215,7 @@ namespace MFM {
       {
       case Int:
 	// casting Int to Int to change bits size
-	sdata = _SignExtend64(data, valbitsize);
-	sdata = _Int64ToInt64(sdata, valbitsize, bitsize);
+	sdata = _Int64ToInt64(data, valbitsize, bitsize);
 	break;
       case Unsigned:
 	// casting Unsigned to Int to change type
@@ -288,7 +288,7 @@ namespace MFM {
     uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
   } //genCodeAfterReadingIntoATmpVar
 
-  // private helper
+  // private helper (no longer used)
   void UlamTypeInt::genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
   {
     UTI uti = uvpass.getPtrTargetType(); //getUlamTypeIndex();

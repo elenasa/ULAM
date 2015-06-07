@@ -13,7 +13,7 @@ namespace MFM {
 	 after assert's abort: arg is 1
       */
 
-      return std::string("Exit status: 0\nUe_A { Int(3) b(3);  System s();  Bool(1) d(false);  Int(3) a(3);  Int(3) c(3);  Int(32) test() {  a 3 cast = b 4 cast = c a cast b cast +b cast = s ( c )print . a b += s ( a )print . d a cast c cast -b cast = s ( d ! )assert . d cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_A { Int(3) b(3);  System s();  Bool(1) d(false);  Int(3) a(3);  Int(3) c(3);  Int(32) test() {  a 3 cast = b 4 cast = c a b +b = s ( c )print . a b += s ( a )print . d a c -b cast = s ( d ! )assert . d cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -33,5 +33,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3214_test_compiler_plusequaloverflow)
 
 } //end MFM
-
-
