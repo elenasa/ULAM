@@ -179,6 +179,7 @@ namespace MFM {
 	  }
       } // got typedef symbol
 
+#if 0
     ULAMTYPE etyp = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
     if(etyp == Void)
       {
@@ -190,6 +191,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
+#endif
 
     setNodeType(it);
     return getNodeType();
