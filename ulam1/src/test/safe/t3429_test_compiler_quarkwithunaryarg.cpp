@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3429_test_compiler_funcdefwithunaryarg)
+  BEGINTESTCASECOMPILER(t3429_test_compiler_quarkwithunaryarg)
   {
     std::string GetAnswerKey()
     {
@@ -23,6 +23,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3429_test_compiler_funcdefwithunaryarg)
+  ENDTESTCASECOMPILER(t3429_test_compiler_quarkwithunaryarg)
 
 } //end MFM
