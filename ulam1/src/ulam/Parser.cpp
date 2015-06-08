@@ -390,7 +390,7 @@ namespace MFM {
 	if(cntsym->getNumberOfParameters() == 0)
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Template has NO parameters: <";
+	    msg << "Class Template has NO parameters: ";
 	    msg << m_state.getUlamTypeNameByIndex(cntsym->getUlamTypeIdx()).c_str();
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
@@ -1368,7 +1368,7 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    if(Token::isTokenAType(pTok))
+    if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID)
       {
 	unreadToken();
 	TypeArgs typeargs;
@@ -1400,6 +1400,13 @@ namespace MFM {
 	msg << "Invalid constant-def Type <";
 	msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
+	if(assignOK)
+	  getTokensUntil(TOK_SEMICOLON);
+	else
+	  {
+	    Token tmpTok;
+	    getNextToken(tmpTok); //by pass identTok only
+	  }
       }
     return rtnNode;
   } //parseConstdef
@@ -1613,6 +1620,8 @@ namespace MFM {
 	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str();
 	msg << " expects " << ctsym->getNumberOfParameters();
 	MSG(&pTok, msg.str().c_str(), ERR);
+	delete exprNode;
+	exprNode = NULL;
       }
     else
       {
@@ -3532,8 +3541,11 @@ namespace MFM {
 	    nodetyperef = NULL;
 
 	    //perhaps read until semi-colon
-	    getTokensUntil(TOK_SEMICOLON);
-	    unreadToken();
+	    if(args.m_assignOK)
+	      {
+		getTokensUntil(TOK_SEMICOLON);
+		unreadToken();
+	      }
 	  }
 	else
 	  {
