@@ -222,6 +222,17 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    it = suti; //default it==Int for temp class args, maynot match after seeing the template
 	  }
+
+	if(esuti == Void)
+	  {
+	    //void only valid use is as a func return type
+	    std::ostringstream msg;
+	    msg << "Invalid use of type: ";
+	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+	    msg << " used with named constant symbol name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    suti = Nav;
+	  }
       }
 
     setNodeType(suti);

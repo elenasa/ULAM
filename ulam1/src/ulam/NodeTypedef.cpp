@@ -179,6 +179,18 @@ namespace MFM {
 	  }
       } // got typedef symbol
 
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
+    if(etyp == Void)
+      {
+	//void only valid use is as a func return type
+	std::ostringstream msg;
+	msg << "Invalid use of type: ";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << " used with typedef symbol name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	it = Nav;
+      }
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType

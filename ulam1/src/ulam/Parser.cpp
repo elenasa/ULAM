@@ -435,7 +435,7 @@ namespace MFM {
 	//continue or short-circuit?
       }
 
-    getExpectedToken(TOK_COMMA, QUIETLY); //if so, get next parameter; o.w. unread
+    getExpectedToken(TOK_COMMA); //if so, get next parameter; o.w. unread
 
     return parseRestOfClassParameters(cntsym, cblock);
   } //parseRestOfClassParameters
@@ -569,7 +569,7 @@ namespace MFM {
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//need another token to distinguish a function from a variable declaration (do so quietly)
-	if(getExpectedToken(TOK_OPEN_PAREN, QUIETLY))
+	if(getExpectedToken(TOK_OPEN_PAREN))
 	  {
 	    //eats the '(' when found; NULL if error occurred
 	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode); //with params
@@ -649,7 +649,7 @@ namespace MFM {
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
       return NULL;
 
-    if(getExpectedToken(TOK_CLOSE_CURLY, QUIETLY))
+    if(getExpectedToken(TOK_CLOSE_CURLY))
       {
 	rtnNode = new NodeBlockEmpty(prevBlock, m_state); //legal
 	assert(rtnNode);
@@ -729,7 +729,7 @@ namespace MFM {
     assert(rtnNode);
     rtnNode->setNodeLocation(sNode->getNodeLocation());
 
-    if(!getExpectedToken(TOK_CLOSE_CURLY, QUIETLY))
+    if(!getExpectedToken(TOK_CLOSE_CURLY))
       {
 	rtnNode->setNextNode((NodeStatements *) parseStatements()); //more statements
       }
@@ -849,7 +849,7 @@ namespace MFM {
 
     Node * falseStmtNode = NULL;
 
-    if(getExpectedToken(TOK_KW_ELSE, QUIETLY))
+    if(getExpectedToken(TOK_KW_ELSE))
       {
 	Node * falseNode = parseStatement();
 	if(falseNode != NULL)
@@ -1200,7 +1200,7 @@ namespace MFM {
 
     if(!singleStmtExpected)
       {
-	if(!getExpectedToken(TOK_CLOSE_CURLY, QUIETLY))
+	if(!getExpectedToken(TOK_CLOSE_CURLY))
 	  {
 	    stmtsNode->setNextNode((NodeStatements *) parseStatements()); //more statements
 	    getExpectedToken(TOK_CLOSE_CURLY);
@@ -3026,7 +3026,8 @@ namespace MFM {
   NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK)
   {
     NodeConstantDef * rtnNode = constNode;
-    if(assignOK && getExpectedToken(TOK_EQUAL))
+    Token pTok;
+    if(assignOK && getExpectedToken(TOK_EQUAL, pTok, QUIETLY))
       {
 	Node * exprNode = parseExpression();
 	if(exprNode)
@@ -3034,19 +3035,23 @@ namespace MFM {
       }
     else
       {
-	//let the = constant expr be optional for class params
+	//let the = constant expr be optional in case of class params
 	if(assignOK)
 	  {
+	    std::ostringstream msg;
+	    msg << "Missing '=' after named constant definition";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+
 	    //perhaps read until semi-colon
 	    getTokensUntil(TOK_SEMICOLON);
 	    unreadToken();
-	    delete constNode; //does this also delete the symbol?
+	    delete constNode; //also deletes the symbol, and nodetypedesc.
 	    constNode = NULL;
 	    rtnNode = NULL;
 	  }
 	else
 	  {
-	    unreadToken(); //class param doesn't have equal; wait for the class arg
+	    //unreadToken(); //class param doesn't have equal; wait for the class arg
 	  }
       }
     return rtnNode;
@@ -3232,7 +3237,7 @@ namespace MFM {
 	//continue or short-circuit?
       }
 
-    if(getExpectedToken(TOK_COMMA, QUIETLY)) //if so, get next parameter; o.w. unread
+    if(getExpectedToken(TOK_COMMA)) //if so, get next parameter; o.w. unread
       {
 	if(fsym->takesVariableArgs())
 	  MSG(&pTok, "Variable args indication (...) appears at end of parameter list", ERR);
@@ -3512,6 +3517,11 @@ namespace MFM {
 		msg << "> (problem with [])";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
+
+	    delete lvalNode; //done with it
+	    delete nodetyperef;
+	    nodetyperef = NULL;
+
 	    //perhaps read until semi-colon
 	    getTokensUntil(TOK_SEMICOLON);
 	    unreadToken();
@@ -3519,7 +3529,7 @@ namespace MFM {
 	else
 	  {
 	    UTI auti = asymptr->getUlamTypeIdx();
-	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval
+	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. deletes lval
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
 	    NodeConstantDef * constNode =  new NodeConstantDef((SymbolConstantValue *) asymptr, nodetyperef, m_state);
@@ -3528,19 +3538,13 @@ namespace MFM {
 
 	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK); //refactored for readability
 	  }
-
-	if(!rtnNode)
-	  {
-	    delete lvalNode; //done with it
-	    delete nodetyperef;
-	    nodetyperef = NULL;
-	  }
       }
     else
       {
 	delete nodetyperef;
 	nodetyperef = NULL;
       }
+
     return rtnNode;
   } //makeConstdefSymbol
 
@@ -4140,14 +4144,15 @@ namespace MFM {
       delete ceForArraySize;
   } //linkOrFreeConstantExpressionArraysize
 
-  bool Parser::getExpectedToken(TokenType eTokType, bool quietly)
+  bool Parser::getExpectedToken(TokenType eTokType)
   {
     Token dropTok;
-    return getExpectedToken(eTokType, dropTok, QUIETLY);
+    return getExpectedToken(eTokType, dropTok, QUIETLY); //shh..always quiet.
   }
 
   bool Parser::getExpectedToken(TokenType eTokType, Token & myTok, bool quietly)
   {
+    bool brtn = true;
     Token pTok;
     getNextToken(pTok);
 
@@ -4162,10 +4167,10 @@ namespace MFM {
 	    msg << Token::getTokenAsString(eTokType) << ">";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
-	return false;
+	brtn = false;
       }
-    myTok = pTok;
-    return true;
+    myTok = pTok; //copy even if unexpected for any extra error msg by caller
+    return brtn;
   } //getExpectedToken
 
   bool Parser::getNextToken(Token & tok)

@@ -403,7 +403,7 @@ namespace MFM{
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);
-    bool getExpectedToken(TokenType closeTokType, bool quietly = false);
+    bool getExpectedToken(TokenType closeTokType);
 
     /** helper , passes through to tokenizer */
     bool getNextToken(Token & tok);
