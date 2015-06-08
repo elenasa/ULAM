@@ -1681,15 +1681,23 @@ namespace MFM {
 	  }
 	else
 	  {
-	    rtnNode = new NodeTypeBitsize(bitsizeNode, m_state);
-	    assert(rtnNode);
-	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
-	    args.m_bitsize = UNKNOWNSIZE; //no eval yet
+	    if(args.m_typeTok.m_type != TOK_KW_TYPE_VOID)
+	      {
+		rtnNode = new NodeTypeBitsize(bitsizeNode, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(args.m_typeTok.m_locator);
+		args.m_bitsize = UNKNOWNSIZE; //no eval yet
+	      }
+	    else
+	      {
+		args.m_bitsize = 0;
+		delete bitsizeNode;
+		bitsizeNode = NULL;
+	      }
 	  }
 
 	if(!getExpectedToken(TOK_CLOSE_PAREN))
 	  {
-	    args.m_bitsize = UNKNOWNSIZE;
 	    delete rtnNode;
 	    rtnNode = NULL;
 	  }
@@ -1698,6 +1706,7 @@ namespace MFM {
       {
 	unreadToken(); //not open paren, bitsize is unspecified
       }
+
     return rtnNode; //typebitsize const expr
   } //parseTypeBitsize
 
