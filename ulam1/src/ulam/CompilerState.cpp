@@ -1023,8 +1023,7 @@ namespace MFM {
     else if(bUT == Void)
       {
 	std::ostringstream msg;
-	msg << "Invalid nonzero size for Void type: " << ut->getUlamTypeName().c_str();
-	msg << "> (UTI" << utArg << ")";
+	msg << "Invalid nonzero bitsize (" << bitsize << ") for Void type";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return;
       }
