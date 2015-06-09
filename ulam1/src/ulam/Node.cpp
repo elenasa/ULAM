@@ -184,6 +184,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::isFunctionCall()
+  {
+    return false;
+  }
+
   bool Node::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
   {
     return false;
@@ -1418,9 +1423,10 @@ namespace MFM {
       {
 	if(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() != Int)
 	  doErrMsg = true;
-	else if(!node->isStoreIntoAble())
+	//else if(!node->isStoreIntoAble())
+	else if(node->isFunctionCall())
 	  {
-	    // ASSUMES a function call is not a valid lhs !!!
+	    // a function call is not a valid lhs !!!
 	    // 'node' is a function call that returns a quark (it's not storeintoable);
 	    // build a toIntHelper function that takes the return value of 'node'
 	    // as its arg and returns toInt

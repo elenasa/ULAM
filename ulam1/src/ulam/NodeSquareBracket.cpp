@@ -117,8 +117,8 @@ namespace MFM {
 	      newType = m_state.getUlamTypeAsScalar(leftType);
 
 	    setNodeType(newType);
-	    // multi-dimensional possible
-	    setStoreIntoAble(true);
+	    // multi-dimensional possible; EP not ok lhs.
+	    setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
 	  }
       }
     return newType;

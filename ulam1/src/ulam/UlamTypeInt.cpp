@@ -80,14 +80,14 @@ namespace MFM {
       {
       case 0:
       case 32:
-	ctype = "u32"; //"s32";
+	ctype = "s32"; //"s32";
 	break;
       case 64:
-	ctype = "u64"; //"s64";
+	ctype = "s64"; //"s64";
 	break;
       default:
 	{
-	  ctype = "u32"; //array item
+	  ctype = "s32"; //array item
 	  //std::ostringstream msg;
 	  //msg << "Need UNPACKED ARRAY for " << sizebyints;
 	  //msg << " bits; s32[" << getArraySize() << "]";

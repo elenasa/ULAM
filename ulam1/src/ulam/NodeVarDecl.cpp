@@ -197,65 +197,65 @@ namespace MFM {
     assert(m_varSymbol);
 
     //skip element parameter variables
-    if(!m_varSymbol->isElementParameter())
+    if(m_varSymbol->isElementParameter())
+      return;
+
+    m_varSymbol->setPosOffset(offset);
+    UTI it = m_varSymbol->getUlamTypeIdx();
+
+    if(!m_state.isComplete(it))
       {
-	m_varSymbol->setPosOffset(offset);
-	UTI it = m_varSymbol->getUlamTypeIdx();
-
-	if(!m_state.isComplete(it))
-	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Variable Decl for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with variable symbol name '" << getName();
-		msg << "' (UTI" << it << ") while bit packing class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		it = mappedUTI;
-		m_varSymbol->resetUlamType(it); //consistent!
-	      }
-
-	    if(!m_state.isComplete(it)) //reloads
-	      {
-		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with variable symbol name '" << getName();
-		msg << "' (UTI" << it << ") while bit packing class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-	  } //not complete
-
-	if(m_state.getTotalBitSize(it) > MAXBITSPERINT)
+	UTI cuti = m_state.getCompileThisIdx();
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it;
-	    msg << ") total size: " << (s32) m_state.getTotalBitSize(it);
-	    msg << " MUST fit into " << MAXBITSPERINT << " bits;";
-	    msg << " Local variables do not have this restriction";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete Variable Decl for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' (UTI" << it << ") while bit packing class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    it = mappedUTI;
+	    m_varSymbol->resetUlamType(it); //consistent!
 	  }
 
-	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_ELEMENT)
+	if(!m_state.isComplete(it)) //reloads
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str() << " (UTI" << it;
-	    msg << ") is an element, and is NOT permitted; Local variables, quarks, ";
-	    msg << "and Element Parameters do not have this restriction";
+	    msg << "Incomplete Variable Decl for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' (UTI" << it << ") while bit packing class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+      } //not complete
 
-	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
+    if(m_state.getTotalBitSize(it) > MAXBITSPERINT)
+      {
+	std::ostringstream msg;
+	msg << "Data member <" << getName() << "> of type: ";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it;
+	msg << ") total size: " << (s32) m_state.getTotalBitSize(it);
+	msg << " MUST fit into " << MAXBITSPERINT << " bits;";
+	msg << " Local variables do not have this restriction";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
+
+    if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_ELEMENT)
+      {
+	std::ostringstream msg;
+	msg << "Data member <" << getName() << "> of type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str() << " (UTI" << it;
+	msg << ") is an element, and is NOT permitted; Local variables, quarks, ";
+	msg << "and Element Parameters do not have this restriction";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
   } //packBitsInOrderOfDeclaration
 
   void NodeVarDecl::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
