@@ -2,10 +2,11 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3442_test_compiler_typedef_void)
+  BEGINTESTCASECOMPILER(t3442_test_compiler_typedefvoid_warn)
   {
     std::string GetAnswerKey()
     {
+      //./A.ulam:2:13: Warning: Void bitsize expression disregarded; size is zero.
       return std::string("Exit status: 0\nUe_A { typedef Void(0) V0;  Int(32) test() {  ( )func 0u cast return } }\n");
     }
 
@@ -20,6 +21,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3442_test_compiler_typedef_void)
+  ENDTESTCASECOMPILER(t3442_test_compiler_typedefvoid_warn)
 
 } //end MFM
