@@ -1699,6 +1699,10 @@ namespace MFM {
 	      }
 	    else
 	      {
+		std::ostringstream msg;
+		msg << "Void bitsize expression disregarded; size is zero";
+		MSG(&bTok, msg.str().c_str(), WARN);
+
 		args.m_bitsize = 0;
 		delete bitsizeNode;
 		bitsizeNode = NULL;
