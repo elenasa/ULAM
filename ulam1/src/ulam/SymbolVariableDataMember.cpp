@@ -6,7 +6,7 @@ namespace MFM {
   SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, PACKFIT packed, u32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_dataMemberUnpackedSlotIndex(slot)
   {
     setDataMember();
-    if(state.m_parsingElementParameterVariable)
+    if(state.m_parsingParameterDataMember)
       setElementParameter();
   }
 

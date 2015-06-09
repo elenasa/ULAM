@@ -13,12 +13,16 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       // EP no longer storeintoable/
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n element Foo {\nSystem s;\nBool(7) sp;\nelement Int chance;\nInt a;\n Int test() {\n Foo f;\n/* f.chance = 1;\n */ s.print(chance);\n a = f.chance;\nreturn a;\n }\n }\n");
+      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n element Foo {\nSystem s;\n parameter Int chance = 1;\n Int a;\n Int test() {\n Foo f;\n s.print(chance);\n a = f.chance;\n return a;\n }\n }\n");
+
+      //simplify for debugging
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\n parameter Int chance = 1;\n Int a;\n Int test() {\n Foo f;\n a = f.chance;\n return a;\n }\n }\n");
 
       // test system quark with native overloaded print funcs; assert
-      bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
+      //bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
 
-      if(rtn1 && rtn3)
+      //if(rtn1 && rtn3)
+      if(rtn1)
 	return std::string("Foo.ulam");
 
       return std::string("");

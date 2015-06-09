@@ -104,7 +104,8 @@ namespace MFM {
     setNodeType(rightType);
 
     //if left is not storeintoable (e.g. EP), neither is the right
-    setStoreIntoAble(m_nodeLeft->isStoreIntoAble() && m_nodeRight->isStoreIntoAble());
+    //setStoreIntoAble(m_nodeLeft->isStoreIntoAble() && m_nodeRight->isStoreIntoAble());
+    setStoreIntoAble(true); //must be!
     return getNodeType();
   } //checkAndLabelType
 

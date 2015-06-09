@@ -99,7 +99,7 @@ namespace MFM{
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
     /**
-       <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | ('element' | 0) + <DECL> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
+       <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | <PARAMETER_DEF> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
      */
     bool parseDataMember(NodeStatements *& nextNode);
 
@@ -175,6 +175,11 @@ namespace MFM{
        <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
     Node * parseConstdef(bool assignOK = true);
+
+    /**
+       <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
+    */
+    Node * parseParameter();
 
     /**
        <DECL> := <TYPE> + <VAR_DECLS>
