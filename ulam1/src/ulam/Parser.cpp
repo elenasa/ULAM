@@ -1368,7 +1368,7 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID)
+    if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID && pTok.m_type != TOK_KW_TYPE_ATOM)
       {
 	unreadToken();
 	TypeArgs typeargs;
@@ -3536,7 +3536,7 @@ namespace MFM {
 		msg << "Invalid constant-def of Type: <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
 		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str();
-		msg << "> (problem with [])";
+		msg << ">";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 
