@@ -115,6 +115,8 @@ namespace MFM{
     virtual bool isNegativeConstant();
     virtual bool isWordSizeConstant();
 
+    virtual bool isFunctionCall();
+
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);

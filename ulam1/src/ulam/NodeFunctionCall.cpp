@@ -248,6 +248,11 @@ namespace MFM {
     depth += argbase;
   } //calcMaxDepth
 
+  bool NodeFunctionCall::isFunctionCall()
+  {
+    return true;
+  }
+
   // since functions are defined at the class-level; a function call
   // must be PRECEDED by a member selection (element or quark) --- a
   // local variable instance that provides the storage (i.e. atom) for

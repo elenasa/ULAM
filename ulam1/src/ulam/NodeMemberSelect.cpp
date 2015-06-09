@@ -42,7 +42,8 @@ namespace MFM {
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
 
-    if(!m_nodeLeft->isStoreIntoAble())
+    //    if(!m_nodeLeft->isStoreIntoAble())
+    if(m_nodeLeft->isFunctionCall())
       {
 	//e.g. funcCall is not storeintoable even if its return
 	//     value is.
@@ -91,7 +92,7 @@ namespace MFM {
     assert(m_state.alreadyDefinedSymbolClass(luti, csym));
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();
-    assert(memberClassNode);  // e.g. forgot the closing brace on quark definition
+    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
     //set up compiler state to use the member class block for symbol searches
     m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
 
@@ -102,7 +103,8 @@ namespace MFM {
 
     setNodeType(rightType);
 
-    setStoreIntoAble(m_nodeRight->isStoreIntoAble());
+    //if left is not storeintoable (e.g. EP), neither is the right
+    setStoreIntoAble(m_nodeLeft->isStoreIntoAble() && m_nodeRight->isStoreIntoAble());
     return getNodeType();
   } //checkAndLabelType
 
@@ -147,9 +149,9 @@ namespace MFM {
     //assigns rhs to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
     if(slot) //avoid Void's
-      doBinaryOperation(1, 1+slot, slot); //????????
+      doBinaryOperation(1, 1+slot, slot); //???
 
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr
     evalNodeEpilog();
     return NORMAL;
   } //eval
@@ -197,7 +199,8 @@ namespace MFM {
 	return evs;
       }
 
-    //UPDATE selected member (i.e. element or quark) before eval of rhs (i.e. data member or func call)
+    //UPDATE selected member (i.e. element or quark) before eval of rhs
+    // (i.e. data member or func call)
     UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
     assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
     m_state.m_currentObjPtr = newCurrentObjectPtr;
@@ -214,7 +217,7 @@ namespace MFM {
 
     assignReturnValuePtrToStack(ruvPtr);
 
-    m_state.m_currentObjPtr = saveCurrentObjectPtr;  //restore current object ptr *************
+    m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr **********
 
     evalNodeEpilog();
     return NORMAL;
@@ -249,7 +252,7 @@ namespace MFM {
   void NodeMemberSelect::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft && m_nodeRight);
-    //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
+    //apparently not so: assert(m_state.m_currentObjSymbolsForCodeGen.empty());
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
 
@@ -264,7 +267,7 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-    m_nodeRight->genCodeToStoreInto(fp, uvpass);   //uvpass contains the member selected
+    m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected
   } //genCodeToStoreInto
 
 } //end MFM
