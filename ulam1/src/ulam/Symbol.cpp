@@ -78,7 +78,7 @@ namespace MFM {
   void Symbol::setDataMember()
   {
     m_dataMember = true;
-    if(m_state.m_parsingElementParameterVariable)
+    if(m_state.m_parsingParameterDataMember)
       m_elementParameter = true;
   }
 

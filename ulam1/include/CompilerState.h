@@ -112,7 +112,7 @@ namespace MFM{
 
     s32 m_parsingControlLoop;                // used for break/continue control statement parsing;
                                              // label num for end of loop, or 0
-    bool m_parsingElementParameterVariable;  // used for static 'element' variables
+    bool m_parsingParameterDataMember;  // used for static 'parameter' data member
 
     bool m_parsingConditionalAs;             // used for Conditional-As parsing
     Token m_identTokenForConditionalAs;      // used for Conditional-As parsing

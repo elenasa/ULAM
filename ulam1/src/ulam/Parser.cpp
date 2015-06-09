@@ -491,29 +491,33 @@ namespace MFM {
 	return brtn;
       } //constdef done.
 
-    m_state.m_parsingElementParameterVariable = false;
-    //static element parameter
-    if(pTok.m_type == TOK_KW_ELEMENT)
+    m_state.m_parsingParameterDataMember = false;
+    //static parameter
+    if(pTok.m_type == TOK_KW_PARAMETER)
       {
-	//currently only permitted in elements, no quarks
-	UTI cuti = m_state.getClassBlock()->getNodeType();
-	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
-	if(classtype != UC_ELEMENT)
+	if((rtnNode = parseParameter()) )
 	  {
-	    std::ostringstream msg;
-	    msg << "Only elements may have element parameters: <";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    msg << "> is a quark";
-	    MSG(&pTok, msg.str().c_str(), ERR);
+	    if(!getExpectedToken(TOK_SEMICOLON))
+	      {
+		delete rtnNode;
+		rtnNode = NULL;
+		getTokensUntil(TOK_SEMICOLON); //does this help?
+	      }
+	    else
+	      {
+		brtn = true;
+		nextNode = new NodeStatements(rtnNode, m_state);
+		assert(nextNode);
+		nextNode->setNodeLocation(rtnNode->getNodeLocation());
+	      }
 	  }
-	m_state.m_parsingElementParameterVariable = true;
-	getNextToken(pTok);
-      }
+	return brtn;
+      } //parameter done.
 
+    // regular data member:
     if(!Token::isTokenAType(pTok))
       {
 	unreadToken();
-	m_state.m_parsingElementParameterVariable = false; //clear on error
 	return false;
       }
 
@@ -557,7 +561,7 @@ namespace MFM {
       {
 	if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
 	  {
-	    m_state.m_parsingElementParameterVariable = false; //clear on error
+	    m_state.m_parsingParameterDataMember = false; //clear on error
 	    delete typeNode;
 	    typeNode = NULL;
 	    return false; //expecting a type, not sizeof, probably an error
@@ -636,7 +640,6 @@ namespace MFM {
 	typeNode = NULL;
 	unreadToken();
       }
-    m_state.m_parsingElementParameterVariable = false;
     return brtn;
   } //parseDataMember
 
@@ -1410,6 +1413,103 @@ namespace MFM {
       }
     return rtnNode;
   } //parseConstdef
+
+  Node * Parser::parseParameter()
+  {
+    //permitted in both elements and quarks
+    Token pTok;
+    getNextToken(pTok);
+    if(!Token::isTokenAType(pTok) || pTok.m_type == TOK_KW_TYPE_VOID || pTok.m_type == TOK_KW_TYPE_ATOM || m_state.getBaseTypeFromToken(pTok) == Class)
+      {
+	std::ostringstream msg;
+	msg << "Only primitive types may be an element parameter, not: <";
+	msg << m_state.getTokenDataAsString(&pTok).c_str();
+	msg << ">";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	unreadToken();
+	return NULL;;
+      }
+
+    Node * rtnNode = NULL;
+    m_state.m_parsingParameterDataMember = true;
+
+    TypeArgs typeargs;
+    typeargs.init(pTok);
+    NodeTypeDescriptor * typeNode = NULL;
+
+    //check for Type bitsize specifier;
+    typeargs.m_bitsize = 0;
+    NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
+
+    UTI tuti = m_state.getUlamTypeFromToken(typeargs); //could be typedef array, w scalar set
+    if(m_state.isScalar(tuti))
+      typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
+
+    //bitsize is unknown, e.g. based on a Class.sizeof
+    typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
+    assert(typeNode);
+
+    if(bitsizeNode)
+      typeNode->linkConstantExpressionBitsize(bitsizeNode); //tfr ownership
+
+    Token dTok;
+    getNextToken(dTok);
+    unreadToken();
+    if(dTok.m_type == TOK_DOT)
+      {
+	if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
+	  {
+	    m_state.m_parsingParameterDataMember = false; //clear on error
+	    delete typeNode;
+	    typeNode = NULL;
+	    return NULL; //expecting a type, not sizeof, probably an error
+	  }
+      }
+
+    Token iTok;
+    getNextToken(iTok);
+    if(iTok.m_type == TOK_IDENTIFIER)
+      {
+	//also handles arrays
+	UTI passuti = typeNode->givenUTI(); //before it may become an array, GAH!
+	rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
+
+	if(rtnNode)
+	  {
+	    Token qTok;
+	    if(getExpectedToken(TOK_EQUAL, pTok, QUIETLY))
+	      {
+		unreadToken();
+		rtnNode = parseRestOfDeclAssignment(typeargs, iTok, rtnNode, passuti); //pass args for more decls
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Missing '=' after parameter definition";
+		MSG(&pTok, msg.str().c_str(), ERR);
+
+		//perhaps read until semi-colon
+		getTokensUntil(TOK_SEMICOLON);
+		unreadToken();
+		delete rtnNode; //also deletes the symbol, and nodetypedesc.
+		rtnNode = NULL;
+	      }
+	  }
+      }
+    else
+      {
+	//user error!
+	std::ostringstream msg;
+	msg << "Name of Parameter <" << m_state.getTokenDataAsString(&iTok).c_str();
+	msg << ">: Identifier must begin with a lower-case letter";
+	MSG(&iTok, msg.str().c_str(), ERR);
+	delete typeNode;
+	typeNode = NULL;
+	unreadToken();
+      }
+    m_state.m_parsingParameterDataMember = false;
+    return rtnNode;
+  } //parseParameter
 
   //used for data members or local function variables; or
   //'singledecl' function parameters; no longer for function defs.
