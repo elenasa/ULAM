@@ -48,6 +48,7 @@
 #include "NodeConditionalAs.h"
 #include "NodeConstantDef.h"
 #include "NodeFunctionCall.h"
+#include "NodeParameterDef.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
 #include "NodeTypeDescriptor.h"
@@ -330,6 +331,8 @@ namespace MFM{
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK = true);
 
+    NodeParameterDef * parseRestOfParameterDef(NodeParameterDef * paramNode);
+
     /**
 	<FUNC_DEF>  := <ULAM_FUNC_DEF> | <NATIVE_FUNC_DEF>
 	<ULAM_FUNC_DEF> := <FUNC_DECL> + <BLOCK>
@@ -362,6 +365,9 @@ namespace MFM{
 
     /** helper for parseConstdef */
     Node * makeConstdefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
+
+    /** helper for parseParameter */
+    Node * makeParameterSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper method for parseConditionalExpr */
     Node * makeConditionalExprNode(Node * leftNode);

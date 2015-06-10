@@ -243,7 +243,7 @@ namespace MFM {
 	    u32 cargs = cblock->getNumberOfSymbolsInTable();
 	    if(cargs < numparams)
 	      {
-		//error! number of arguments in class instance does not match the number of parameters
+		//number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
 		msg << "Number of Arguments (" << cargs << ") in class instance: ";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
@@ -254,7 +254,8 @@ namespace MFM {
 		continue;
 	      }
 
-	    //replace the temporary id with the official parameter name id; update the class instance's ST.
+	    //replace the temporary id with the official parameter name id;
+	    //update the class instance's ST.
 	    u32 foundArgs = 0;
 	    for(u32 i = 0; i < numparams; i++)
 	      {
@@ -274,7 +275,7 @@ namespace MFM {
 
 	    if(foundArgs != numparams)
 	      {
-		//error! number of arguments in class instance does not match the number of parameters
+		//number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
 		msg << "Number of Arguments (" << foundArgs << ") in class instance: ";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti

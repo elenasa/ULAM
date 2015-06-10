@@ -108,14 +108,13 @@ namespace MFM{
 
     s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
     s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
-    bool m_parsingInProgress; //to avoid constantFolding when parsing
+    bool m_parsingInProgress;             //to avoid constantFolding when parsing
 
-    s32 m_parsingControlLoop;                // used for break/continue control statement parsing;
-                                             // label num for end of loop, or 0
-    bool m_parsingParameterDataMember;  // used for static 'parameter' data member
+    s32 m_parsingControlLoop;             // used for break/continue control statement parsing;
+                                          // label num for end of loop, or 0
 
-    bool m_parsingConditionalAs;             // used for Conditional-As parsing
-    Token m_identTokenForConditionalAs;      // used for Conditional-As parsing
+    bool m_parsingConditionalAs;          // used for Conditional-As parsing
+    Token m_identTokenForConditionalAs;   // used for Conditional-As parsing
     bool m_genCodingConditionalAs;   // used for Conditional-As code gen
 
     CallStack m_funcCallStack;    //local variables and arguments

@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
+ * SymbolWithValue.h - Basic handling of symbols with values for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,45 +26,67 @@
  */
 
 /**
-  \file SymbolConstantValue.h - Handling of Named Constant Symbols for ULAM
+  \file SymbolWithValue.h - Basic handling of symbols with values for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
   \gpl
 */
 
-#ifndef SYMBOLCONSTANTVALUE_H
-#define SYMBOLCONSTANTVALUE_H
+#ifndef SYMBOLWITHVALUE_H
+#define SYMBOLWITHVALUE_H
 
-#include "SymbolWithValue.h"
+#include "Symbol.h"
 
 namespace MFM{
 
   class CompilerState;  //forward
 
   //distinguish between Symbols
-  class SymbolConstantValue : public SymbolWithValue
+  class SymbolWithValue : public Symbol
   {
   public:
-    SymbolConstantValue(Token id, UTI utype, CompilerState& state);
-    SymbolConstantValue(const SymbolConstantValue& sref);
-    SymbolConstantValue(const SymbolConstantValue& sref, bool keepType);
-    virtual ~SymbolConstantValue();
+    SymbolWithValue(Token id, UTI utype, CompilerState& state);
+    SymbolWithValue(const SymbolWithValue& sref);
+    SymbolWithValue(const SymbolWithValue& sref, bool keepType);
+    virtual ~SymbolWithValue();
 
-    virtual Symbol * clone();
-    virtual Symbol * cloneKeepsType();
+    virtual Symbol * clone() = 0;
+    virtual Symbol * cloneKeepsType() = 0;
 
-    virtual bool isConstant();
+    virtual bool isConstant() = 0;
 
-    virtual const std::string getMangledPrefix();
+    virtual bool isReady();
 
-    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
+    bool isParameter();
+    void setParameterFlag();
+
+    bool getValue(s64& val);
+    bool getValue(u64& val);
+    void setValue(s64 val);
+    void setValue(u64 val);
+
+    bool foldConstantExpression();
+
+    virtual const std::string getMangledPrefix() = 0;
+
+    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype) = 0;
+
+    void changeConstantId(u32 fmid, u32 toid); //for premature class instances
 
   protected:
 
-  private:
+    void printPostfixValue(File * fp);
 
+  private:
+    bool m_isReady;
+    bool m_parameter; //i.e. no value, look at instance
+
+    union {
+      s64 sval;
+      u64 uval;
+    } m_constant;
   };
 } //MFM
 
-#endif //end SYMBOLCONSTANTVALUE_H
+#endif //end SYMBOLWITHVALUE_H
