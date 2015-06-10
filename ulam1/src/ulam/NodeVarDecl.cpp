@@ -102,7 +102,7 @@ namespace MFM {
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
 	  {
-	    if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isFunction())
+	    if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter() && !asymptr->isFunction())
 	      {
 		m_varSymbol = (SymbolVariable *) asymptr;
 	      }
@@ -195,10 +195,6 @@ namespace MFM {
   {
     assert((s32) offset >= 0); //neg is invalid
     assert(m_varSymbol);
-
-    //skip element parameter variables
-    if(m_varSymbol->isElementParameter())
-      return;
 
     m_varSymbol->setPosOffset(offset);
     UTI it = m_varSymbol->getUlamTypeIdx();
@@ -296,7 +292,7 @@ namespace MFM {
       }
     else
       {
-	if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
+	if(!m_varSymbol->isDataMember())
 	  {
 	    //local variable to a function
 	    u32 len = m_state.getTotalBitSize(nuti);
@@ -330,12 +326,6 @@ namespace MFM {
     assert(m_varSymbol);
     assert(getNodeType() != Nav);
 
-    // use immediate storage for "static" element parameters
-    if(m_varSymbol->isElementParameter())
-      {
-	return genCodedElementParameter(fp, uvpass);
-      }
-
     if(m_varSymbol->isDataMember())
       {
 	return genCodedBitFieldTypedef(fp, uvpass);
@@ -350,7 +340,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     m_state.indent(fp);
-    if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
+    if(!m_varSymbol->isDataMember())
       {
 	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
       }
@@ -433,22 +423,6 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   } //genCodedBitFieldTypedef
-
-  void NodeVarDecl::genCodedElementParameter(File * fp, UlamValue uvpass)
-  {
-    assert(m_varSymbol->isDataMember());
-
-    UTI vuti = m_varSymbol->getUlamTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
-    m_state.indent(fp);
-    fp->write("mutable ");
-
-    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-    fp->write(" ");
-    fp->write(m_varSymbol->getMangledName().c_str());
-    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
-  }  //genCodedElementParameter
 
   // this is the auto local variable's node, created at parse time,
   // for Conditional-As case.

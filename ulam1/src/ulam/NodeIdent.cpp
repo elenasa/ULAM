@@ -3,10 +3,13 @@
 #include "NodeIdent.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "NodeModelParameter.h"
 #include "NodeTypeBitsize.h"
 #include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
+#include "SymbolParameterValue.h"
 #include "SymbolTypedef.h"
+#include "SymbolVariable.h"
 
 namespace MFM {
 
@@ -87,7 +90,7 @@ namespace MFM {
 	Symbol * asymptr = NULL;
 	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
 	  {
-	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant())
+	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
 		setSymbolPtr((SymbolVariable *) asymptr);
 		//assert(asymptr->getBlockNoOfST() == m_currBlockNo); not necessarily true
@@ -106,6 +109,28 @@ namespace MFM {
 		std::ostringstream msg;
 		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(&m_token).c_str();
 		msg << "> a named constant, in place of a variable with class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+		m_state.popClassContext(); //restore
+
+		delete this; //suicide is painless..
+
+		return newnode->checkAndLabelType();
+	      }
+	    else if(asymptr->isModelParameter())
+	      {
+		// replace ourselves with a parameter node instead;
+		// same node no, and loc
+		NodeModelParameter * newnode = new NodeModelParameter(*this);
+		Node * parentNode = m_state.findNodeNoInThisClass(Node::getYourParentNo());
+		assert(parentNode);
+
+		assert(parentNode->exchangeKids(this, newnode));
+
+		std::ostringstream msg;
+		msg << "Exchanged kids! <" << m_state.getTokenDataAsString(&m_token).c_str();
+		msg << "> a model parameter, in place of a variable with class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
@@ -141,15 +166,10 @@ namespace MFM {
     if(!errCnt && m_varSymbol)
       {
 	it = m_varSymbol->getUlamTypeIdx();
-
-	//element parameters exist at the pleasure of the simulator;
-	// ulam programmers cannot change them!
-	if(!m_varSymbol->isElementParameter())
-	  setStoreIntoAble(true); //store into an array entotal?
+	setStoreIntoAble(true); //store into an array entotal?
       }
 
     setNodeType(it);
-
     return it;
   } //checkAndLabelType
 
@@ -264,12 +284,12 @@ namespace MFM {
 
     assert(m_varSymbol);
 
-    if(!isStoreIntoAble()) //i.e. an EP
+    if(!isStoreIntoAble()) //i.e. an MP
       {
 	std::ostringstream msg;
 	msg << "Variable '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
-	msg << "' is not a valid lefthand side. Eval FAILS. ";
+	msg << "' is not a valid lefthand side. Eval FAILS";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return ERROR;
       }
@@ -296,22 +316,16 @@ namespace MFM {
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
     if(classtype == UC_ELEMENT)
       {
-	if(!m_varSymbol->isElementParameter())
 	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
 	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), UNPACKED, m_state, 0, m_varSymbol->getId());
-	else
-	  ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId()); //???
       }
     else
       {
 	if(m_varSymbol->isDataMember())
 	  {
-	    if(!m_varSymbol->isElementParameter())
-	      // return ptr to this data member within the m_currentObjPtr
-	      // 'pos' modified by this data member symbol's packed bit position
-	      ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
-	    else //same or not???
-	      ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    // return ptr to this data member within the m_currentObjPtr
+	    // 'pos' modified by this data member symbol's packed bit position
+	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	  }
 	else
 	  {
@@ -328,16 +342,17 @@ namespace MFM {
     s32 tmpnum = m_state.getNextTmpVarNumber();
 
     UlamValue ptr;
-    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
     if(classtype == UC_ELEMENT)
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, getNodeType(), UNPACKED, m_state, 0, m_varSymbol->getId());
+	ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
       }
     else
       {
-	if(m_varSymbol->isDataMember() && !m_varSymbol->isElementParameter())
+	if(m_varSymbol->isDataMember())
 	  {
 	    u32 pos = 0;
 	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
@@ -346,12 +361,12 @@ namespace MFM {
 		pos = sym->getPosOffset();
 	      }
 	    // 'pos' modified by this data member symbol's packed bit position
-	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, /*m_state.m_currentObjPtr.getPtrPos() +*/ pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, /*m_state.m_currentObjPtr.getPtrPos() +*/ pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	  }
 	else
 	    {
-	      //local variable on the stack; could be array ptr! or element parameter
-	      ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+	      //local variable on the stack; could be array ptr!
+	      ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
 	    }
       }
     return ptr;
@@ -543,6 +558,86 @@ namespace MFM {
     return false;
   } //installSymbolConstantValue
 
+  bool NodeIdent::installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr)
+  {
+    // ask current scope block if this constant name is there;
+    // if so, nothing to install return symbol and false
+    // function names also checked when currentBlock is the classblock.
+    if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
+      {
+	//if(asymptr->isFabricatedTmp())
+	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
+	  {
+	    //remove it! then continue..
+	    Symbol * rmsym = NULL;
+	    if(m_state.getCurrentBlock()->removeIdFromScope(m_token.m_dataindex, rmsym))
+	      {
+		assert(rmsym == asymptr); //sanity check removal
+		asymptr = NULL;
+	      }
+	  }
+	else
+	  return false; //already there
+      }
+
+    // maintain specific type (see isAConstant() Node method)
+    bool brtn = false;
+    UTI uti = Nav;
+    UTI tdscalaruti = Nav;
+    if(args.m_anothertduti)
+      {
+	if(checkConstantTypedefSizes(args, args.m_anothertduti))
+	  {
+	    brtn = true;
+	    uti = args.m_anothertduti;
+	  }
+      }
+    else if(m_state.getUlamTypeByTypedefName(args.m_typeTok.m_dataindex, uti, tdscalaruti))
+      {
+	args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti is an array
+	if(checkConstantTypedefSizes(args, uti))
+	  {
+	    brtn = true;
+	  }
+      }
+    else if(args.m_declListOrTypedefScalarType)
+      {
+	if(!checkConstantTypedefSizes(args, args.m_declListOrTypedefScalarType))
+	  return false;
+	uti = args.m_declListOrTypedefScalarType;
+	brtn = true;
+      }
+    else if(Token::getSpecialTokenWork(args.m_typeTok.m_type) == TOKSP_TYPEKEYWORD)
+      {
+	//UlamTypes automatically created for the base types with different array sizes.
+	//but with typedef's "scope" of use, typedef needed to be checked first.
+	// scalar uti
+	uti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, NONARRAYSIZE, Nav);
+	brtn = true;
+      }
+    else
+      {
+	// no class types for constants
+	std::ostringstream msg;
+	msg << "Parameter Data Member '";
+	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	msg << "' cannot be based on a class type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    if(brtn)
+      {
+	//create a symbol for this new named constant, a constant-def, with its value
+	SymbolParameterValue * symparam = new SymbolParameterValue(m_token, uti, m_state);
+	m_state.addSymbolToCurrentScope(symparam);
+
+	//gets the symbol just created by makeUlamType
+	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
+      }
+    return false;
+  } //installSymbolParameterValue
+
   //see also NodeSquareBracket
   bool NodeIdent::installSymbolVariable(TypeArgs& args, Symbol *& asymptr)
   {
@@ -551,7 +646,7 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
-	if(!(asymptr->isFunction()) && !(asymptr->isTypedef() && !(asymptr->isConstant()) ))
+	if(!(asymptr->isFunction()) && !(asymptr->isTypedef()) && !(asymptr->isConstant()) && !(asymptr->isModelParameter()))
 	  setSymbolPtr((SymbolVariable *) asymptr); //updates Node's symbol, if is variable
 	return false; //already there
       }

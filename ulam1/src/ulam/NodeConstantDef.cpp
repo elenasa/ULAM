@@ -6,7 +6,7 @@
 
 namespace MFM {
 
-  NodeConstantDef::NodeConstantDef(SymbolConstantValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_constSymbol(symptr), m_nodeExpr(NULL), m_currBlockNo(m_state.getCurrentBlockNo()), m_nodeTypeDesc(nodetype)
+  NodeConstantDef::NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_constSymbol(symptr), m_nodeExpr(NULL), m_currBlockNo(m_state.getCurrentBlockNo()), m_nodeTypeDesc(nodetype)
   {
     if(symptr)
       {
@@ -100,7 +100,7 @@ namespace MFM {
     return true;
   }
 
-  void NodeConstantDef::setSymbolPtr(SymbolConstantValue * cvsymptr)
+  void NodeConstantDef::setSymbolPtr(SymbolWithValue * cvsymptr)
   {
     assert(cvsymptr);
     m_constSymbol = cvsymptr;
@@ -165,9 +165,11 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", has an invalid type: <" << m_state.getUlamTypeNameByIndex(it) << ">";
+	    msg << ", is not a constant, type: <";
+	    msg << m_state.getUlamTypeNameByIndex(it) << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    it = Nav;
+	    setNodeType(Nav);
+	    return Nav;
 	  }
       }
 

@@ -41,6 +41,7 @@
 #include "NodeControlWhile.h"
 #include "NodeLabel.h"
 #include "NodeMemberSelect.h"
+#include "NodeModelParameter.h"
 #include "NodeReturnStatement.h"
 #include "NodeTerminalProxy.h"
 #include "NodeSquareBracket.h"
@@ -56,12 +57,13 @@
 #include "NodeUnaryOpPlus.h"
 #include "NodeUnaryOpBang.h"
 #include "NodeVarDecl.h"
+#include "SymbolClass.h"
+#include "SymbolClassName.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
 #include "SymbolVariableStack.h"
-#include "SymbolClass.h"
-#include "SymbolClassName.h"
-
+#include "SymbolConstantValue.h"
+#include "SymbolParameterValue.h"
 
 namespace MFM {
 
@@ -491,7 +493,6 @@ namespace MFM {
 	return brtn;
       } //constdef done.
 
-    m_state.m_parsingParameterDataMember = false;
     //static parameter
     if(pTok.m_type == TOK_KW_PARAMETER)
       {
@@ -561,7 +562,6 @@ namespace MFM {
       {
 	if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
 	  {
-	    m_state.m_parsingParameterDataMember = false; //clear on error
 	    delete typeNode;
 	    typeNode = NULL;
 	    return false; //expecting a type, not sizeof, probably an error
@@ -1422,7 +1422,7 @@ namespace MFM {
     if(!Token::isTokenAType(pTok) || pTok.m_type == TOK_KW_TYPE_VOID || pTok.m_type == TOK_KW_TYPE_ATOM || m_state.getBaseTypeFromToken(pTok) == Class)
       {
 	std::ostringstream msg;
-	msg << "Only primitive types may be an element parameter, not: <";
+	msg << "Only primitive types may be a Model Parameter, not: <";
 	msg << m_state.getTokenDataAsString(&pTok).c_str();
 	msg << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
@@ -1431,7 +1431,6 @@ namespace MFM {
       }
 
     Node * rtnNode = NULL;
-    m_state.m_parsingParameterDataMember = true;
 
     TypeArgs typeargs;
     typeargs.init(pTok);
@@ -1440,6 +1439,7 @@ namespace MFM {
     //check for Type bitsize specifier;
     typeargs.m_bitsize = 0;
     NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
+    typeargs.m_assignOK = true;
 
     UTI tuti = m_state.getUlamTypeFromToken(typeargs); //could be typedef array, w scalar set
     if(m_state.isScalar(tuti))
@@ -1459,7 +1459,6 @@ namespace MFM {
       {
 	if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
 	  {
-	    m_state.m_parsingParameterDataMember = false; //clear on error
 	    delete typeNode;
 	    typeNode = NULL;
 	    return NULL; //expecting a type, not sizeof, probably an error
@@ -1470,6 +1469,10 @@ namespace MFM {
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
+
+	rtnNode = makeParameterSymbol(typeargs, iTok, typeNode);
+
+#if 0
 	//also handles arrays
 	UTI passuti = typeNode->givenUTI(); //before it may become an array, GAH!
 	rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
@@ -1495,19 +1498,21 @@ namespace MFM {
 		rtnNode = NULL;
 	      }
 	  }
+#endif
+
       }
     else
       {
 	//user error!
 	std::ostringstream msg;
-	msg << "Name of Parameter <" << m_state.getTokenDataAsString(&iTok).c_str();
+	msg << "Name of Parameter Data Member <";
+	msg << m_state.getTokenDataAsString(&iTok).c_str();
 	msg << ">: Identifier must begin with a lower-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	delete typeNode;
 	typeNode = NULL;
 	unreadToken();
       }
-    m_state.m_parsingParameterDataMember = false;
     return rtnNode;
   } //parseParameter
 
@@ -2088,7 +2093,7 @@ namespace MFM {
 	Symbol * sym = NULL;
 	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex,sym))
 	  {
-	    if(sym->isConstant())
+	    if(sym->isConstant() || sym->isModelParameter())
 	      {
 		unreadToken();
 		return parseExpression();
@@ -2570,9 +2575,9 @@ namespace MFM {
 	  Symbol * asymptr = NULL;
 	  if(m_state.alreadyDefinedSymbol(pTok.m_dataindex,asymptr))
 	    {
-	      //if its an already defined named constant, in current block,
-	      //then return a NodeConstant, instead of NodeIdent, without arrays.
-	      if(asymptr->isConstant())
+	      //if already defined named constant, or model parameter, in current block,
+	      //then return a NodeConstant (or NodeMP), instead of NodeIdent, without arrays.
+	      if(asymptr->isConstant() || asymptr->isModelParameter())
 		{
 		  Token dTok;
 		  getNextToken(dTok);
@@ -2581,7 +2586,10 @@ namespace MFM {
 		    rtnNode = parseMinMaxSizeofType(pTok, asymptr->getUlamTypeIdx(), NULL);
 		  else
 		    {
-		      rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
+		      if(asymptr->isConstant())
+			rtnNode = new NodeConstant(pTok, (SymbolConstantValue *) asymptr, m_state);
+		      else
+			rtnNode = new NodeModelParameter(pTok, (SymbolParameterValue *) asymptr, m_state);
 		      assert(rtnNode);
 		      rtnNode->setNodeLocation(pTok.m_locator);
 		    }
@@ -3179,6 +3187,32 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfConstantDef
 
+  NodeParameterDef * Parser::parseRestOfParameterDef(NodeParameterDef * paramNode)
+  {
+    NodeParameterDef * rtnNode = paramNode;
+    Token pTok;
+    if(getExpectedToken(TOK_EQUAL, pTok, QUIETLY))
+      {
+	Node * exprNode = parseExpression();
+	if(exprNode)
+	  paramNode->setConstantExpr(exprNode);
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Missing '=' after model parameter definition";
+	MSG(&pTok, msg.str().c_str(), ERR);
+
+	//perhaps read until semi-colon
+	getTokensUntil(TOK_SEMICOLON);
+	unreadToken();
+	delete paramNode; //also deletes the symbol, and nodetypedesc.
+	paramNode = NULL;
+	rtnNode = NULL;
+      }
+    return rtnNode;
+  } //parseRestOfParameterDef
+
   NodeBlockFunctionDefinition * Parser::makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype)
   {
     NodeBlockFunctionDefinition * rtnNode = NULL;
@@ -3672,6 +3706,73 @@ namespace MFM {
 
     return rtnNode;
   } //makeConstdefSymbol
+
+  Node * Parser::makeParameterSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
+  {
+    NodeParameterDef * rtnNode = NULL;
+    Node * lvalNode = parseIdentExpr(identTok); //calls parseLvalExpr
+    if(lvalNode)
+      {
+	//lvalNode could be either a NodeIdent or a NodeSquareBracket,
+	// though arrays not legal in this context!!!
+	//process identifier...check if already defined in current scope; if not, add it;
+	//return a SymbolParameterValue else some sort of primitive
+	Symbol * asymptr = NULL;
+	if(!lvalNode->installSymbolParameterValue(args, asymptr))
+	  {
+	    if(asymptr)
+	      {
+		std::ostringstream msg;
+		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
+		msg << " has a previous declaration as '";
+		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
+		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId());
+		msg << "' and cannot be used as a Model Parameter data member";
+		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		//installSymbol failed for other reasons (e.g. problem with []),
+		//error already output; rtnNode is NULL.
+		std::ostringstream msg;
+		msg << "Invalid Model Parameter of Type: <";
+		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
+		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str();
+		msg << ">";
+		MSG(&identTok, msg.str().c_str(), ERR);
+	      }
+
+	    delete lvalNode; //done with it
+	    delete nodetyperef;
+	    nodetyperef = NULL;
+
+	    //perhaps read until semi-colon
+	    if(args.m_assignOK)
+	      {
+		getTokensUntil(TOK_SEMICOLON);
+		unreadToken();
+	      }
+	  }
+	else
+	  {
+	    UTI auti = asymptr->getUlamTypeIdx();
+	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. deletes lval
+	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
+
+	    NodeParameterDef * paramNode =  new NodeParameterDef((SymbolParameterValue *) asymptr, nodetyperef, m_state);
+	    assert(paramNode);
+	    paramNode->setNodeLocation(args.m_typeTok.m_locator);
+
+	    rtnNode = parseRestOfParameterDef(paramNode);
+	  }
+      }
+    else
+      {
+	delete nodetyperef;
+	nodetyperef = NULL;
+      }
+    return rtnNode;
+  } //makeParameterSymbol
 
   Node * Parser::makeConditionalExprNode(Node * leftNode)
   {

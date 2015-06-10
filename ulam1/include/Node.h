@@ -119,6 +119,7 @@ namespace MFM{
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
+    virtual bool installSymbolParameterValue(TypeArgs& args, Symbol *& asymptr);
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
     virtual bool assignClassArgValueInStubCopy();
@@ -152,6 +153,8 @@ namespace MFM{
     void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
 
+    virtual void genCodeConstructorInitialization(File * fp);
+
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
     /**
@@ -166,8 +169,8 @@ namespace MFM{
     bool warnOfNarrowingCast(UTI nodeType, UTI tobeType);
 
     virtual void genMemberNameOfMethod(File * fp); //helper method to read/write into/from tmpvar
-    virtual void genElementParameterMemberNameOfMethod(File * fp, s32 epi);
-    void genElementParameterHiddenArgs(File * fp, s32 epi);
+    virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
+    void genModelParameterHiddenArgs(File * fp, s32 epi);
     virtual void genLocalMemberNameOfMethod(File * fp);
 
     const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
@@ -186,7 +189,7 @@ namespace MFM{
     bool isCurrentObjectALocalVariableOrArgument();
 
     //index of last "static" EP object; o.w.-1
-    s32 isCurrentObjectsContainingAnElementParameter();
+    s32 isCurrentObjectsContainingAModelParameter();
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass);

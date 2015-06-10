@@ -170,7 +170,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier for base type: ";
 	msg << UlamType::getUlamTypeEnumAsString(BUT);
-	msg << "is not a constant expression";
+	msg << " is not a constant expression";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }

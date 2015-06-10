@@ -39,7 +39,7 @@
 
 #include "Node.h"
 #include "NodeBlock.h"
-#include "SymbolConstantValue.h"
+#include "SymbolWithValue.h"
 #include "NodeTypeDescriptor.h"
 
 namespace MFM{
@@ -48,7 +48,7 @@ namespace MFM{
   {
   public:
 
-    NodeConstantDef(SymbolConstantValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeConstantDef(SymbolWithValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
     NodeConstantDef(const NodeConstantDef& ref);
 
     virtual ~NodeConstantDef();
@@ -69,7 +69,7 @@ namespace MFM{
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
 
-    void setSymbolPtr(SymbolConstantValue * cvsymptr);
+    void setSymbolPtr(SymbolWithValue * cvsymptr);
 
     u32 getSymbolId();
 
@@ -99,9 +99,11 @@ namespace MFM{
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
-  private:
-    SymbolConstantValue * m_constSymbol;
+  protected:
+    SymbolWithValue * m_constSymbol;
     Node * m_nodeExpr;
+
+  private:
     NNO m_currBlockNo;
     u32 m_cid; //to instantiate
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL

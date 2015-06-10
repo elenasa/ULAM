@@ -199,6 +199,11 @@ namespace MFM {
     return false;
   }
 
+  bool Node::installSymbolParameterValue(TypeArgs& args, Symbol*& asymptr)
+  {
+    return false;
+  }
+
   bool Node::installSymbolVariable(TypeArgs& args, Symbol *& asymptr)
   {
     return false;
@@ -389,10 +394,10 @@ namespace MFM {
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAnElementParameter();
+	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
-	    genElementParameterMemberNameOfMethod(fp, epi);
+	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    //read method based on last cos
 	    fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
@@ -402,7 +407,7 @@ namespace MFM {
 	    //storage based on epi-1
 	    if(!isHandlingImmediateType())
 	      {
-		genElementParameterHiddenArgs(fp, epi);
+		genModelParameterHiddenArgs(fp, epi);
 	      }
 	    fp->write(");\n");
 	  }
@@ -479,7 +484,7 @@ namespace MFM {
 
     // split if custom array, that requires an 'aref' function call
     // (that's when cos is neither a local var that's not refining, i.e. cos[0];
-    // nor a local var that's an EP); o.w. immediate types have an array method
+    // nor a local var that's an MP); o.w. immediate types have an array method
     // to call even for CA's.
     if(cosut->isCustomArray() && !isHandlingImmediateType())
       return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);
@@ -519,10 +524,10 @@ namespace MFM {
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAnElementParameter();
+	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
-	    genElementParameterMemberNameOfMethod(fp, epi);
+	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    //read method based on last cos
 	    fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
@@ -532,7 +537,7 @@ namespace MFM {
 
 	    if(!isHandlingImmediateType())
 	      {
-		genElementParameterHiddenArgs(fp, epi);
+		genModelParameterHiddenArgs(fp, epi);
 		fp->write(", "); //rest of arg's
 	      }
 	    else
@@ -667,10 +672,10 @@ namespace MFM {
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAnElementParameter();
+	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
-	    genElementParameterMemberNameOfMethod(fp, epi);
+	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    //read method based on last cos
 	    fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
@@ -680,7 +685,7 @@ namespace MFM {
 	    //storage based on epi - 1
 	    if(!isHandlingImmediateType())
 	      {
-		genElementParameterHiddenArgs(fp, epi);
+		genModelParameterHiddenArgs(fp, epi);
 		fp->write(", ");       //rest of args
 	      }
 	    else
@@ -700,7 +705,7 @@ namespace MFM {
 	      {
 		fp->write("(uc, ");
 		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".getRef()");     //immediate EP needs the T storage within the struct
+		fp->write(".getRef()"); //immediate MP needs the T storage within the struct
 		fp->write(", ");
 	      }
 	    else
@@ -807,10 +812,10 @@ namespace MFM {
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAnElementParameter();
+	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
-	    genElementParameterMemberNameOfMethod(fp, epi);
+	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
 	    fp->write("(");
@@ -818,7 +823,7 @@ namespace MFM {
 	    //storage based on epi - 1
 	    if(!isHandlingImmediateType())
 	      {
-		genElementParameterHiddenArgs(fp, epi);
+		genModelParameterHiddenArgs(fp, epi);
 		fp->write(", ");  	//rest of arg's
 	      }
 	  }
@@ -832,7 +837,7 @@ namespace MFM {
 
 	    if(cos->isDataMember())
 	      {
-		assert(!cos->isElementParameter());
+		assert(!cos->isModelParameter());
 
 		// allow for immediate quarks; not element parameters
 		if(stgcosclasstype == UC_ELEMENT)
@@ -987,19 +992,19 @@ namespace MFM {
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAnElementParameter();
+	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
 	    m_state.indent(fp);
 
-	    genElementParameterMemberNameOfMethod(fp, epi);
+	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 	    fp->write("(");
 
 	    if(!isHandlingImmediateType())
 	      {
-		genElementParameterHiddenArgs(fp, epi);
+		genModelParameterHiddenArgs(fp, epi);
 		fp->write(", ");  	//rest of arg's
 	      }
 	    else
@@ -1021,7 +1026,7 @@ namespace MFM {
 	    if(cosut->isCustomArray())
 	      fp->write("uc, ");
 
-	    if(cos->isDataMember() && !cos->isElementParameter())
+	    if(cos->isDataMember() && !cos->isModelParameter())
 	      {
 		// allow for immediate quarks; not element parameters
 		if(stgcosclasstype == UC_ELEMENT)
@@ -1152,12 +1157,12 @@ namespace MFM {
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAnElementParameter();
+	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
 	    m_state.indent(fp);
 
-	    genElementParameterMemberNameOfMethod(fp, epi);
+	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 	    fp->write("(");
@@ -1165,13 +1170,13 @@ namespace MFM {
 	    //storage based on epi - 1
 	    if(!isHandlingImmediateType())
 	      {
-		genElementParameterHiddenArgs(fp, epi);
-		fp->write(", ");  	//rest of arg's
+		genModelParameterHiddenArgs(fp, epi);
+		fp->write(", "); //rest of arg's
 	      }
 	    else
 	      {
 		if(cosut->isCustomArray())
-		  fp->write("uc, "); 	//rest of arg's
+		  fp->write("uc, "); //rest of arg's
 	      }
 	  }
 	else
@@ -1184,19 +1189,19 @@ namespace MFM {
 	    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 	    fp->write("(uc, ");
 
-	    if(cos->isDataMember() && !cos->isElementParameter())
+	    if(cos->isDataMember() && !cos->isModelParameter())
 	      {
 		// allow for immediate quarks; not element parameters
 		if(stgcosclasstype == UC_ELEMENT)
 		  {
 		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(".getRef()"); //immediate EP needs the T storage within the struct
-		    fp->write(", ");         //rest of args
+		    fp->write(".getRef()"); //immediate MP needs the T storage within the struct
+		    fp->write(", "); //rest of args
 		  }
 		else if(stgcosclasstype == UC_QUARK)
 		  {
 		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(", ");         //rest of args
+		    fp->write(", "); //rest of args
 		  }
 		else
 		  {
@@ -1364,6 +1369,11 @@ namespace MFM {
     // specifically to sign extend Int's (a cast)
     //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass); //why was this commented out?
   } //genCodeConvertABitVectorIntoATmpVar
+
+  void Node::genCodeConstructorInitialization(File * fp)
+  {
+    //pass
+  }
 
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
@@ -1693,6 +1703,8 @@ namespace MFM {
     for(u32 i = 0; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(sym->isSelf())
+	  continue;
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
       }
@@ -1712,7 +1724,7 @@ namespace MFM {
 
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.
-  void Node::genElementParameterMemberNameOfMethod(File * fp, s32 epi)
+  void Node::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     assert(epi >= 0);
@@ -1731,7 +1743,7 @@ namespace MFM {
 	return;
       }
 
-    // the EP:
+    // the MP:
     if(cosclasstype == UC_NOTACLASS) //atom too?
       {
 	fp->write(cos->getMangledName().c_str());
@@ -1753,18 +1765,18 @@ namespace MFM {
 	UTI suti = sym->getUlamTypeIdx();
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
-	//not the element parameter, but a data member..
+	//not the model parameter, but a data member..
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
 	// if its the last cos, a quark, and not a custom array...
 	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray())
 	  fp->write("Up_Us::"); //atomic parameter needed
       }
-  } //genElementParameterMemberNameOfMethod
+  } //genModelParameterMemberNameOfMethod
 
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.
-  void Node::genElementParameterHiddenArgs(File * fp, s32 epi)
+  void Node::genModelParameterHiddenArgs(File * fp, s32 epi)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     assert(epi >= 0);
@@ -1797,7 +1809,7 @@ namespace MFM {
     fp->write("<EC>::THE_INSTANCE");
     fp->write(".");
 
-    // the EP (an element, quark, or primitive):
+    // the MP (only primitive!, no longer quark or element):
     fp->write(epcos->getMangledName().c_str());
 
     if(epcosclasstype != UC_NOTACLASS)
@@ -1807,14 +1819,14 @@ namespace MFM {
 	else
 	  fp->write(".getBits()");
       }
-  } //genElementParameterHiddenArgs
+  } //genModelParameterHiddenArgs
 
   void Node::genLocalMemberNameOfMethod(File * fp)
   {
     assert(isCurrentObjectALocalVariableOrArgument());
 
-    // element parameter has its own storage, like a local
-    assert(isCurrentObjectsContainingAnElementParameter() == -1);
+    // model parameter has its own storage, like a local
+    assert(isCurrentObjectsContainingAModelParameter() == -1);
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
@@ -1842,7 +1854,7 @@ namespace MFM {
 	UTI suti = sym->getUlamTypeIdx();
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
-	//not the element parameter, but a data member..
+	//not the model parameter, but a data member..
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
 	// if its the last cos, a quark, and not a custom array...
@@ -1943,27 +1955,28 @@ namespace MFM {
 
   bool Node::isCurrentObjectALocalVariableOrArgument()
   {
-    // include element parameters as LocalVariableOrArgument, since more alike XXX
-    return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAnElementParameter() == -1));
+    // include model parameters as LocalVariableOrArgument, since more alike XXX
+    // "self" as obj[0] is like it isn't there for purposes of this discovery.
+    return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && isCurrentObjectsContainingAModelParameter() == -1));
   }
 
-  // returns the index to the last object that's an EP; o.w. -1 none found;
+  // returns the index to the last object that's an MP; o.w. -1 none found;
   // preceeding object is the "owner", others before it are irrelevant;
-  s32 Node::isCurrentObjectsContainingAnElementParameter()
+  s32 Node::isCurrentObjectsContainingAModelParameter()
   {
-    s32 indexOfLastEP = -1;
+    s32 indexOfLastMP = -1;
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     for(s32 i = cosSize - 1; i >= 0; i--)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-	if(sym->isElementParameter())
+	if(sym->isModelParameter())
 	  {
-	    indexOfLastEP = i;
+	    indexOfLastMP = i;
 	    break;
 	  }
       }
-    return indexOfLastEP;
-  } //isCurrentObjectsContainingAnElementParameter
+    return indexOfLastMP;
+  } //isCurrentObjectsContainingAModelgParameter
 
   //false means its the entire array or not an array at all (use read() if PACKEDLOADABLE)
   bool Node::isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass)
@@ -1985,8 +1998,8 @@ namespace MFM {
 
   bool Node::isHandlingImmediateType()
   {
-    // a local var that's not refining (i.e. cos[0]), or a local var that's an EP
-    return (isCurrentObjectALocalVariableOrArgument() && ( (m_state.m_currentObjSymbolsForCodeGen.size() == 1) || (m_state.m_currentObjSymbolsForCodeGen.back()->isElementParameter())));
+    // a local var that's not refining (i.e. cos[0]), or a var that's an MP
+    return (isCurrentObjectALocalVariableOrArgument() && ( (m_state.m_currentObjSymbolsForCodeGen.size() == 1) || (m_state.m_currentObjSymbolsForCodeGen.back()->isModelParameter())));
   } //isHandlingImmediateType
 
   u32 Node::adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass)

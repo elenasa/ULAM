@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeConstant.h - Node handling NamedConstants for ULAM
+ * SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,73 +26,46 @@
  */
 
 /**
-  \file NodeConstant.h - Node handling Named Constants for ULAM
+  \file SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
   \gpl
 */
 
+#ifndef SYMBOLPARAMETERVALUE_H
+#define SYMBOLPARAMETERVALUE_H
 
-#ifndef NODECONSTANT_H
-#define NODECONSTANT_H
-
-#include "NodeBlock.h"
-#include "NodeTerminal.h"
-#include "NodeIdent.h"
 #include "SymbolWithValue.h"
-#include "Token.h"
-#include "UlamType.h"
-
 
 namespace MFM{
 
-  class NodeConstant : public NodeTerminal
+  class CompilerState;  //forward
+
+  //distinguish between Symbols
+  class SymbolParameterValue : public SymbolWithValue
   {
   public:
+    SymbolParameterValue(Token id, UTI utype, CompilerState& state);
+    SymbolParameterValue(const SymbolParameterValue& sref);
+    SymbolParameterValue(const SymbolParameterValue& sref, bool keepType);
+    virtual ~SymbolParameterValue();
 
-    NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state);
-    NodeConstant(const NodeConstant& ref);
-    NodeConstant(const NodeIdent& iref);
-    virtual ~NodeConstant();
+    virtual Symbol * clone();
+    virtual Symbol * cloneKeepsType();
 
-    virtual Node * instantiate();
+    virtual bool isConstant();
 
-    virtual void printPostfix(File * fp);
+    virtual bool isModelParameter();
 
-    virtual const char * getName();
+    virtual const std::string getMangledPrefix();
 
-    virtual const std::string prettyNodeName();
-
-    virtual bool getSymbolPtr(Symbol *& symptrref);
-
-    virtual void constantFoldAToken(Token tok);
-
-    virtual bool isReadyConstant();
-
-    virtual UTI checkAndLabelType();
-
-    NNO getBlockNo();
-    NodeBlock * getBlock();
-
-    virtual bool assignClassArgValueInStubCopy();
-
-    virtual EvalStatus eval();
-
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
   protected:
-    Token m_token;
-    SymbolWithValue * m_constSymbol;
-    bool m_ready;
-
-    bool updateConstant();
 
   private:
-    NNO m_currBlockNo;
-
   };
+} //MFM
 
-}
-
-#endif //end NODECONSTANT_H
+#endif //SYMBOLPARAMETERVALUE_H

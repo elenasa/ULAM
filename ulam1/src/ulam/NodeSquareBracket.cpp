@@ -117,7 +117,7 @@ namespace MFM {
 	      newType = m_state.getUlamTypeAsScalar(leftType);
 
 	    setNodeType(newType);
-	    // multi-dimensional possible; EP not ok lhs.
+	    // multi-dimensional possible; MP not ok lhs.
 	    setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
 	  }
       }
@@ -324,6 +324,13 @@ namespace MFM {
     MSG(getNodeLocationAsString().c_str(), "Array size specified for named constant", ERR);
     return false;
   } //installSymbolConstantValue
+
+  //see also NodeIdent
+  bool NodeSquareBracket::installSymbolParameterValue(TypeArgs& args, Symbol *& asymptr)
+  {
+    MSG(getNodeLocationAsString().c_str(), "Invalid array size specified for Model Parameter", ERR);
+    return false;
+  } //installSymbolParameterValue
 
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolVariable(TypeArgs& args,  Symbol *& asymptr)

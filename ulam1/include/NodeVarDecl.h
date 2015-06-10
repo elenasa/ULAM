@@ -95,7 +95,6 @@ namespace MFM{
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
-    void genCodedElementParameter(File * fp, UlamValue uvpass);
     void genCodedAutoLocal(File * fp, UlamValue & uvpass);
 
   };
