@@ -1469,37 +1469,7 @@ namespace MFM {
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-
 	rtnNode = makeParameterSymbol(typeargs, iTok, typeNode);
-
-#if 0
-	//also handles arrays
-	UTI passuti = typeNode->givenUTI(); //before it may become an array, GAH!
-	rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
-
-	if(rtnNode)
-	  {
-	    Token qTok;
-	    if(getExpectedToken(TOK_EQUAL, pTok, QUIETLY))
-	      {
-		unreadToken();
-		rtnNode = parseRestOfDeclAssignment(typeargs, iTok, rtnNode, passuti); //pass args for more decls
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "Missing '=' after parameter definition";
-		MSG(&pTok, msg.str().c_str(), ERR);
-
-		//perhaps read until semi-colon
-		getTokensUntil(TOK_SEMICOLON);
-		unreadToken();
-		delete rtnNode; //also deletes the symbol, and nodetypedesc.
-		rtnNode = NULL;
-	      }
-	  }
-#endif
-
       }
     else
       {
