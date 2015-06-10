@@ -383,14 +383,22 @@ namespace MFM {
       {
 	genMemberNameOfMethod(fp);
 
-	// the READ method
-	fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
-	fp->write("(");
+	if(stgcos->isSelf())
+	  {
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(";\n");
+	  }
+	else
+	  {
+	    // the READ method
+	    fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
+	    fp->write("(");
 
-	// a data member quark, or the element itself should both getBits from self
-	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
-	fp->write(");\n");
+	    // a data member quark, or the element itself should both getBits from self
+	    fp->write(m_state.getHiddenArgName());
+	    fp->write(".GetBits()");
+	    fp->write(");\n");
+	  }
       }
     else
       {

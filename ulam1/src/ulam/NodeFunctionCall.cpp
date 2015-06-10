@@ -617,6 +617,8 @@ namespace MFM {
     for(u32 i = 0; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(sym->isSelf())
+	  continue;
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
       }
