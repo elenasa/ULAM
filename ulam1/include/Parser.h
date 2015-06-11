@@ -196,7 +196,8 @@ namespace MFM{
     Node * parseDecl(bool parseSingleDecl = false);
 
 
-    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs);
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool delAfterDotFails = false);
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool delAfterDotFails);
 
     UTI parseClassArguments(Token& typeTok);
     void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);

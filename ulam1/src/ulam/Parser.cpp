@@ -522,51 +522,12 @@ namespace MFM {
 	return false;
       }
 
+    unreadToken(); //put back for parsing type descriptor
     TypeArgs typeargs;
-    typeargs.init(pTok);
-    NodeTypeDescriptor * typeNode = NULL;
+    NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, true);
 
-    if(m_state.getBaseTypeFromToken(pTok) == Class)
-      {
-	UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI?
-	if(m_state.isScalar(cuti))
-	  typeargs.m_classInstanceIdx = cuti;
-	else
-	  typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
-
-	typeNode = new NodeTypeDescriptor(pTok, cuti, m_state);
-	assert(typeNode);
-      }
-    else
-      {
-	//check for Type bitsize specifier;
-	typeargs.m_bitsize = 0;
-	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
-
-	UTI tuti = m_state.getUlamTypeFromToken(typeargs); //could be typedef array, w scalar set
-	if(m_state.isScalar(tuti))
-	  typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
-
-	//bitsize is unknown, e.g. based on a Class.sizeof
-	typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
-	assert(typeNode);
-
-	if(bitsizeNode)
-	  typeNode->linkConstantExpressionBitsize(bitsizeNode); //tfr ownership
-      }
-
-    Token dTok;
-    getNextToken(dTok);
-    unreadToken();
-    if(dTok.m_type == TOK_DOT)
-      {
-	if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
-	  {
-	    delete typeNode;
-	    typeNode = NULL;
-	    return false; //expecting a type, not sizeof, probably an error
-	  }
-      }
+    if(typeNode == NULL)
+      return false; //expecting a type, not sizeof, probably an error
 
     Token iTok;
     getNextToken(iTok);
@@ -1407,6 +1368,7 @@ namespace MFM {
 	  getTokensUntil(TOK_SEMICOLON);
 	else
 	  {
+	    //unreadToken() ??
 	    Token tmpTok;
 	    getNextToken(tmpTok); //by pass identTok only
 	  }
@@ -1416,71 +1378,47 @@ namespace MFM {
 
   Node * Parser::parseParameter()
   {
+    Node * rtnNode = NULL;
+
     //permitted in both elements and quarks
     Token pTok;
     getNextToken(pTok);
-    if(!Token::isTokenAType(pTok) || pTok.m_type == TOK_KW_TYPE_VOID || pTok.m_type == TOK_KW_TYPE_ATOM || m_state.getBaseTypeFromToken(pTok) == Class)
+
+    if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID && pTok.m_type != TOK_KW_TYPE_ATOM)
       {
-	std::ostringstream msg;
-	msg << "Only primitive types may be a Model Parameter, not: <";
-	msg << m_state.getTokenDataAsString(&pTok).c_str();
-	msg << ">";
-	MSG(&pTok, msg.str().c_str(), ERR);
 	unreadToken();
-	return NULL;;
-      }
-
-    Node * rtnNode = NULL;
-
-    TypeArgs typeargs;
-    typeargs.init(pTok);
-    NodeTypeDescriptor * typeNode = NULL;
-
-    //check for Type bitsize specifier;
-    typeargs.m_bitsize = 0;
-    NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
-    typeargs.m_assignOK = true;
-
-    UTI tuti = m_state.getUlamTypeFromToken(typeargs); //could be typedef array, w scalar set
-    if(m_state.isScalar(tuti))
-      typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
-
-    //bitsize is unknown, e.g. based on a Class.sizeof
-    typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
-    assert(typeNode);
-
-    if(bitsizeNode)
-      typeNode->linkConstantExpressionBitsize(bitsizeNode); //tfr ownership
-
-    Token dTok;
-    getNextToken(dTok);
-    unreadToken();
-    if(dTok.m_type == TOK_DOT)
-      {
-	if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
+	TypeArgs typeargs;
+	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, true);
+	if(typeNode)
 	  {
-	    delete typeNode;
-	    typeNode = NULL;
-	    return NULL; //expecting a type, not sizeof, probably an error
-	  }
-      }
+	    typeargs.m_assignOK = true;
 
-    Token iTok;
-    getNextToken(iTok);
-    if(iTok.m_type == TOK_IDENTIFIER)
-      {
-	rtnNode = makeParameterSymbol(typeargs, iTok, typeNode);
+	    Token iTok;
+	    getNextToken(iTok);
+	    if(iTok.m_type == TOK_IDENTIFIER)
+	      {
+		rtnNode = makeParameterSymbol(typeargs, iTok, typeNode);
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Invalid Model Parameter Name <";
+		msg << m_state.getTokenDataAsString(&iTok).c_str();
+		msg << ">, Parameter Identifier requires lower-case";
+		MSG(&iTok, msg.str().c_str(), ERR);
+		delete typeNode;
+		typeNode = NULL;
+	      }
+	  }
       }
     else
       {
-	//user error!
 	std::ostringstream msg;
-	msg << "Name of Parameter Data Member <";
-	msg << m_state.getTokenDataAsString(&iTok).c_str();
-	msg << ">: Identifier must begin with a lower-case letter";
-	MSG(&iTok, msg.str().c_str(), ERR);
-	delete typeNode;
-	typeNode = NULL;
+	msg << "Invalid Model Parameter Type: <";
+	msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	msg << ">: Only primitive types beginning with an ";
+	msg << "upper-case letter may be a Model Parameter";
+	MSG(&pTok, msg.str().c_str(), ERR);
 	unreadToken();
       }
     return rtnNode;
@@ -1528,7 +1466,7 @@ namespace MFM {
     return rtnNode;
   } //parseDecl
 
-  NodeTypeDescriptor * Parser::parseTypeDescriptor(TypeArgs& typeargs)
+  NodeTypeDescriptor * Parser::parseTypeDescriptor(TypeArgs& typeargs, bool delAfterDotFails)
   {
     Token pTok;
     getNextToken(pTok);
@@ -1536,9 +1474,16 @@ namespace MFM {
     //should have already known to be true
     assert(Token::isTokenAType(pTok));
 
-    //    TypeArgs typeargs;
     typeargs.init(pTok);
+    UTI dropCastUTI;
+    NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, dropCastUTI, delAfterDotFails);
+    return typeNode;
+  }//parseTypeDescriptor (helper)
+
+  NodeTypeDescriptor * Parser::parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool delAfterDotFails)
+  {
     NodeTypeDescriptor * typeNode = NULL;
+    Token pTok = typeargs.m_typeTok;
 
     if(m_state.getBaseTypeFromToken(pTok) == Class)
       {
@@ -1547,7 +1492,7 @@ namespace MFM {
 	  typeargs.m_classInstanceIdx = cuti;
 	else
 	  typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
-
+	castUTI = cuti; //unless a dot is next
 	typeNode = new NodeTypeDescriptor(pTok, cuti, m_state);
 	assert(typeNode);
       }
@@ -1560,6 +1505,7 @@ namespace MFM {
 	UTI tuti = m_state.getUlamTypeFromToken(typeargs);
 	if(m_state.isScalar(tuti))
 	  typeargs.m_declListOrTypedefScalarType = tuti; //this is what we wanted..
+	castUTI = tuti;
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
 	typeNode = new NodeTypeDescriptor(pTok, tuti, m_state);
@@ -1573,7 +1519,18 @@ namespace MFM {
     getNextToken(dTok);
     unreadToken();
     if(dTok.m_type == TOK_DOT)
-      parseTypeFromAnotherClassesTypedef(typeargs, typeNode);
+      {
+	if(!parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
+	  {
+	    if(delAfterDotFails)
+	      {
+		delete typeNode;
+		typeNode = NULL;
+	      }
+	  }
+	else
+	  castUTI = typeargs.m_anothertduti;
+      }
     return typeNode;
   } //parseTypeDescriptor
 
@@ -4228,49 +4185,10 @@ namespace MFM {
     UTI typeToBe = Nav;
     TypeArgs typeargs;
     typeargs.init(typeTok);
-    NodeTypeDescriptor * typeNode = NULL;
 
-    if(m_state.getBaseTypeFromToken(typeTok) == Class)
-      {
-	UTI cuti = parseClassArguments(typeTok);
-	if(m_state.isScalar(cuti))
-	  typeargs.m_classInstanceIdx = cuti;
-	else
-	  typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
-
-	//catch error casting to an array here?
-
-	typeToBe = cuti; //unless a dot is next
-	typeNode = new NodeTypeDescriptor(typeTok, cuti, m_state);
-	assert(typeNode);
-      }
-    else
-      {
-	//check for Type bitsize specifier;
-	typeargs.m_bitsize = 0;
-	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
-
-	typeToBe = m_state.getUlamTypeFromToken(typeargs);
-	if(m_state.isScalar(typeToBe))
-	  typeargs.m_declListOrTypedefScalarType = typeToBe; //this is what we wanted..
-
-	//bitsize is unknown, e.g. based on a Class.sizeof
-	typeNode = new NodeTypeDescriptor(typeTok, typeToBe, m_state);
-	assert(typeNode);
-
-	if(bitsizeNode)
-	  typeNode->linkConstantExpressionBitsize(bitsizeNode); //tfr ownership
-      }
-
-    Token dTok;
-    getNextToken(dTok);
-    unreadToken();
-    if(dTok.m_type == TOK_DOT)
-      {
-	if(parseTypeFromAnotherClassesTypedef(typeargs, typeNode))
-	  typeToBe = typeargs.m_anothertduti;
-	//else what was the dot for??? error?
-      }
+    //we want the casting UTI, without deleting any failed dots because, why?
+    NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, typeToBe, false);
+    assert(typeNode);
 
     if(getExpectedToken(TOK_CLOSE_PAREN))
       {
@@ -4285,7 +4203,6 @@ namespace MFM {
 	delete typeNode;
 	typeNode = NULL;
       }
-
     return rtnNode;
   } //makeCastNode
 
