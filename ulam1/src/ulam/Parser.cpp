@@ -444,96 +444,58 @@ namespace MFM {
 
   bool Parser::parseDataMember(NodeStatements *& nextNode)
   {
-    //bool isFunc = false;
     bool brtn = false;
     Node * rtnNode = NULL;
+    bool isFunc = false;
     Token pTok;
     getNextToken(pTok);
 
-    //parse Typedef's starting with keyword first
     if(pTok.m_type == TOK_KW_TYPEDEF)
       {
-	if((rtnNode = parseTypedef()) )
-	  {
-	    if(!getExpectedToken(TOK_SEMICOLON))
-	      {
-		delete rtnNode;
-		rtnNode = NULL;
-		getTokensUntil(TOK_SEMICOLON); //does this help?
-	      }
-	    else
-	      {
-		brtn = true;
-		nextNode = new NodeStatements(rtnNode, m_state);
-		assert(nextNode);
-		nextNode->setNodeLocation(rtnNode->getNodeLocation());
-	      }
-	  }
-	  return brtn;
-      } //typedef done.
-
-    //parse Named Constant starting with keyword first
-    if(pTok.m_type == TOK_KW_CONSTDEF)
+	//parse Typedef's starting with keyword first
+	rtnNode = parseTypedef();
+      }
+    else if(pTok.m_type == TOK_KW_CONSTDEF)
       {
-	if((rtnNode = parseConstdef()) )
-	  {
-	    if(!getExpectedToken(TOK_SEMICOLON))
-	      {
-		delete rtnNode;
-		rtnNode = NULL;
-		getTokensUntil(TOK_SEMICOLON); //does this help?
-	      }
-	    else
-	      {
-		brtn = true;
-		nextNode = new NodeStatements(rtnNode, m_state);
-		assert(nextNode);
-		nextNode->setNodeLocation(rtnNode->getNodeLocation());
-	      }
-	  }
-	return brtn;
-      } //constdef done.
-
-    //static model parameter for elements, not quarks
-    if(pTok.m_type == TOK_KW_PARAMETER)
+	//parse Named Constant starting with keyword first
+	rtnNode = parseConstdef();
+      }
+    else if(pTok.m_type == TOK_KW_PARAMETER)
       {
-	if((rtnNode = parseParameter()) )
-	  {
-	    if(!getExpectedToken(TOK_SEMICOLON))
-	      {
-		delete rtnNode;
-		rtnNode = NULL;
-		getTokensUntil(TOK_SEMICOLON); //does this help?
-	      }
-	    else
-	      {
-		brtn = true;
-		nextNode = new NodeStatements(rtnNode, m_state);
-		assert(nextNode);
-		nextNode->setNodeLocation(rtnNode->getNodeLocation());
-	      }
-	  }
-	return brtn;
-      } //parameter done.
-
-    // regular data member:
-    unreadToken(); //put back for parsing type descriptor
-    TypeArgs typeargs;
-    NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, true);
-
-    if(typeNode == NULL)
-      return false; //expecting a type, not sizeof, probably an error
-
-    Token iTok;
-    getNextToken(iTok);
-    if(iTok.m_type == TOK_IDENTIFIER)
+	//static model parameter for elements, not quarks
+	rtnNode = parseParameter();
+      }
+    else //regular data member: function or variable
       {
-	//need another token to distinguish a function from a variable declaration (quietly)
+	unreadToken(); //put back for parsing type descriptor
+	TypeArgs typeargs;
+	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, true);
+
+	if(typeNode == NULL)
+	  return false; //expecting a type, not sizeof, probably an error!
+
+	Token iTok;
+	getNextToken(iTok);
+	if(iTok.m_type != TOK_IDENTIFIER)
+	  {
+	    //user error!
+	    std::ostringstream msg;
+	    msg << "Name of variable/function <";
+	    msg << m_state.getTokenDataAsString(&iTok).c_str();
+	    msg << ">: Identifier must begin with a lower-case letter";
+	    MSG(&iTok, msg.str().c_str(), ERR);
+	    delete typeNode;
+	    typeNode = NULL;
+	    unreadToken();
+	    return false; //done!
+	  }
+
+	//need next token to distinguish a function from a variable declaration (quietly)
 	if(getExpectedToken(TOK_OPEN_PAREN))
 	  {
+	    isFunc = true;
 	    //eats the '(' when found; NULL if error occurred
 	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode); //with params
-
 	    if(rtnNode)
 	      brtn = true; //rtnNode belongs to the symbolFunction
 	    //else
@@ -542,45 +504,38 @@ namespace MFM {
 	else
 	  {
 	    //not '(', so token is unread, and we know
-	    //it's a variable, not a function;
-	    //also handles arrays
+	    //it's a variable, not a function; also handles arrays
 	    UTI passuti = typeNode->givenUTI(); //before it may become an array
 	    rtnNode = makeVariableSymbol(typeargs, iTok, typeNode);
 
 	    if(rtnNode)
 	      {
+		// data members aren't initialized; could be a list of same type.
 		typeargs.m_assignOK = NOASSIGN;
 		rtnNode = parseRestOfDecls(typeargs, iTok, rtnNode, passuti);
 	      }
+	  }
+      } //regular data member
 
-	    if(!getExpectedToken(TOK_SEMICOLON))
+    //common end processing, except for function defs
+    if(rtnNode && !isFunc)
+      {
+	if(!getExpectedToken(TOK_SEMICOLON))
+	  {
+	    delete rtnNode;
+	    rtnNode = NULL;
+	    getTokensUntil(TOK_SEMICOLON); //does this help?
+	  }
+	else
+	  {
+	    if(rtnNode)
 	      {
-		delete rtnNode;
-		rtnNode = NULL;
-		getTokensUntil(TOK_SEMICOLON); //does this help?
-	      }
-	    else
-	      {
-		if(rtnNode)
-		  {
-		    brtn = true;
-		    nextNode = new NodeStatements(rtnNode, m_state);
-		    assert(nextNode);
-		    nextNode->setNodeLocation(rtnNode->getNodeLocation());
-		  }
+		brtn = true;
+		nextNode = new NodeStatements(rtnNode, m_state);
+		assert(nextNode);
+		nextNode->setNodeLocation(rtnNode->getNodeLocation());
 	      }
 	  }
-      }
-    else
-      {
-	//user error!
-	std::ostringstream msg;
-	msg << "Name of variable/function <" << m_state.getTokenDataAsString(&iTok).c_str();
-	msg << ">: Identifier must begin with a lower-case letter";
-	MSG(&iTok, msg.str().c_str(), ERR);
-	delete typeNode;
-	typeNode = NULL;
-	unreadToken();
       }
     return brtn;
   } //parseDataMember
