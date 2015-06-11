@@ -1964,8 +1964,12 @@ namespace MFM {
   bool Node::isCurrentObjectALocalVariableOrArgument()
   {
     // include model parameters as LocalVariableOrArgument, since more alike XXX
-    // "self" as obj[0] is like it isn't there for purposes of this discovery.
-    return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && isCurrentObjectsContainingAModelParameter() == -1));
+    // an element's "self" as obj[0] is like it isn't there for purposes of this discovery.
+    // quark's self is an atom, and should be treated like a local arg.
+    // note: self is not a data member.
+    //return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && isCurrentObjectsContainingAModelParameter() == -1));
+    //    return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (((m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() || m_state.m_currentObjSymbolsForCodeGen[0]->isSelf()) && isCurrentObjectsContainingAModelParameter() == -1));
+    return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx() != UAtom && isCurrentObjectsContainingAModelParameter() == -1));
   }
 
   // returns the index to the last object that's an MP; o.w. -1 none found;
