@@ -444,6 +444,7 @@ namespace MFM {
 
   bool Parser::parseDataMember(NodeStatements *& nextNode)
   {
+    //bool isFunc = false;
     bool brtn = false;
     Node * rtnNode = NULL;
     Token pTok;
@@ -493,7 +494,7 @@ namespace MFM {
 	return brtn;
       } //constdef done.
 
-    //static parameter
+    //static model parameter for elements, not quarks
     if(pTok.m_type == TOK_KW_PARAMETER)
       {
 	if((rtnNode = parseParameter()) )
@@ -516,12 +517,6 @@ namespace MFM {
       } //parameter done.
 
     // regular data member:
-    if(!Token::isTokenAType(pTok))
-      {
-	unreadToken();
-	return false;
-      }
-
     unreadToken(); //put back for parsing type descriptor
     TypeArgs typeargs;
     NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, true);
@@ -533,29 +528,14 @@ namespace MFM {
     getNextToken(iTok);
     if(iTok.m_type == TOK_IDENTIFIER)
       {
-	//need another token to distinguish a function from a variable declaration (do so quietly)
+	//need another token to distinguish a function from a variable declaration (quietly)
 	if(getExpectedToken(TOK_OPEN_PAREN))
 	  {
 	    //eats the '(' when found; NULL if error occurred
 	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode); //with params
 
-	    Token qTok;
-	    getNextToken(qTok);
-
 	    if(rtnNode)
-	      {
-		if((qTok.m_type != TOK_CLOSE_CURLY) && (((NodeBlockFunctionDefinition *) rtnNode)->isNative() && qTok.m_type != TOK_SEMICOLON))
-		  {
-		    //first remove the pointer to this node from its symbol
-		    ((NodeBlockFunctionDefinition *) rtnNode)->getFuncSymbolPtr()->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
-		    rtnNode = NULL;
-		    MSG(&pTok, "INCOMPLETE Function Definition", ERR);
-		  }
-		else
-		  {
-		    brtn = true; //rtnNode belongs to the symbolFunction
-		  }
-	      }
+	      brtn = true; //rtnNode belongs to the symbolFunction
 	    //else
 	    //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
 	  }
@@ -572,6 +552,7 @@ namespace MFM {
 		typeargs.m_assignOK = NOASSIGN;
 		rtnNode = parseRestOfDecls(typeargs, iTok, rtnNode, passuti);
 	      }
+
 	    if(!getExpectedToken(TOK_SEMICOLON))
 	      {
 		delete rtnNode;
@@ -1379,10 +1360,20 @@ namespace MFM {
   Node * Parser::parseParameter()
   {
     Node * rtnNode = NULL;
-
-    //permitted in both elements and quarks
     Token pTok;
     getNextToken(pTok);
+
+    //permitted in only in elements;
+    // quarks are static and cannot have a mutable member
+    UTI cuti = m_state.getCompileThisIdx();
+    if(m_state.getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
+      {
+	std::ostringstream msg;
+	msg << "Model Parameters can survive in elements only";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	getTokensUntil(TOK_SEMICOLON); //does this help?
+	return NULL;
+      }
 
     if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID && pTok.m_type != TOK_KW_TYPE_ATOM)
       {
@@ -1429,13 +1420,6 @@ namespace MFM {
   Node * Parser::parseDecl(bool parseSingleDecl)
   {
     Node * rtnNode = NULL;
-    Token pTok;
-    getNextToken(pTok);
-
-    //should have already known to be true
-    assert(Token::isTokenAType(pTok));
-    unreadToken();
-
     TypeArgs typeargs;
     NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
     assert(typeNode);
@@ -1471,13 +1455,16 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    //should have already known to be true
-    assert(Token::isTokenAType(pTok));
+    if(!Token::isTokenAType(pTok))
+      {
+	unreadToken();
+	return NULL;
+      }
 
-    typeargs.init(pTok);
+    typeargs.init(pTok); //initialize here
+
     UTI dropCastUTI;
-    NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, dropCastUTI, delAfterDotFails);
-    return typeNode;
+    return parseTypeDescriptor(typeargs, dropCastUTI, delAfterDotFails);
   }//parseTypeDescriptor (helper)
 
   NodeTypeDescriptor * Parser::parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool delAfterDotFails)
@@ -3417,7 +3404,7 @@ namespace MFM {
 	msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()).c_str() << "'";
 	MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 
-	//eat tokens until end of definition?
+	//eat tokens until end of definition? which ending brace?
 	delete nodetype;
 	return NULL;
       }
@@ -3428,6 +3415,19 @@ namespace MFM {
 
     //exclude the declaration & definition from the parse tree
     //(since in SymbolFunction) & return NULL.
+    Token qTok;
+    getNextToken(qTok);
+
+    if(rtnNode)
+      {
+	if((qTok.m_type != TOK_CLOSE_CURLY) && (((NodeBlockFunctionDefinition *) rtnNode)->isNative() && qTok.m_type != TOK_SEMICOLON))
+	  {
+	    //first remove the pointer to this node from its symbol
+	    ((NodeBlockFunctionDefinition *) rtnNode)->getFuncSymbolPtr()->setFunctionNode((NodeBlockFunctionDefinition *) NULL); //deletes node
+	    rtnNode = NULL;
+	    MSG(&qTok, "INCOMPLETE Function Definition", ERR);
+	  }
+      }
     return rtnNode;
   } //makeFunctionSymbol
 
