@@ -1320,6 +1320,7 @@ namespace MFM {
 
     //permitted in only in elements;
     // quarks are static and cannot have a mutable member
+#if 1
     UTI cuti = m_state.getCompileThisIdx();
     if(m_state.getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
       {
@@ -1329,6 +1330,7 @@ namespace MFM {
 	getTokensUntil(TOK_SEMICOLON); //does this help?
 	return NULL;
       }
+#endif
 
     if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID && pTok.m_type != TOK_KW_TYPE_ATOM)
       {
