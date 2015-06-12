@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual bool assignClassArgValueInStubCopy();
 
+    virtual bool isFunctionCall();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();

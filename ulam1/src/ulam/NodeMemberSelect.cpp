@@ -113,6 +113,11 @@ namespace MFM {
     return true; //nothing to do
   }
 
+  bool NodeMemberSelect::isFunctionCall()
+  {
+    return m_nodeRight->isFunctionCall(); //based like storeintoable, on right
+  }
+
   EvalStatus NodeMemberSelect::eval()
   {
     assert(m_nodeLeft && m_nodeRight);
