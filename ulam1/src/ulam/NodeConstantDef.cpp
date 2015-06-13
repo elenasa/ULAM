@@ -408,20 +408,20 @@ namespace MFM {
     switch(etype)
       {
       case Int:
-	newconst = _Int32ToInt32((s32) val, srcbitsize, nbitsize);
+	newconst = _Int32ToInt32((u32) val, srcbitsize, nbitsize);
 	break;
       case Unsigned:
-	newconst = _Unsigned32ToUnsigned32(val, srcbitsize, nbitsize);
+	newconst = _Unsigned32ToUnsigned32((u32) val, srcbitsize, nbitsize);
 	break;
       case Bool:
 	//newconst = _Unsigned32ToBool32(val, MAXBITSPERINT, nbitsize);
 	newconst = _CboolToBool32( (bool) val, nbitsize);
 	break;
       case Unary:
-	newconst =  _Unsigned32ToUnary32(val, srcbitsize, nbitsize);
+	newconst =  _Unsigned32ToUnary32((u32) val, srcbitsize, nbitsize);
 	break;
       case Bits:
-	newconst = _Unsigned32ToBits32(val, srcbitsize, nbitsize);
+	newconst = _Unsigned32ToBits32((u32) val, srcbitsize, nbitsize);
 	break;
       default:
 	rtnb = false;
@@ -442,7 +442,7 @@ namespace MFM {
     switch(etype)
       {
       case Int:
-	newconst = _Int64ToInt64((s64) val, srcbitsize, nbitsize);
+	newconst = _Int64ToInt64(val, srcbitsize, nbitsize);
 	break;
       case Unsigned:
 	newconst = _Unsigned64ToUnsigned64(val, srcbitsize, nbitsize);

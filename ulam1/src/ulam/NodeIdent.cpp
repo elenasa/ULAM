@@ -385,7 +385,8 @@ namespace MFM {
 	tduti = asymptr->getUlamTypeIdx();
 	if(asymptr->isTypedef() && m_state.isHolder(tduti))
 	  {
-	    args.m_declListOrTypedefScalarType = tdscalaruti; //not Nav when tduti's an array
+	    //not Nav when tduti's an array; might know?
+	    args.m_declListOrTypedefScalarType = tdscalaruti;
 
 	    ULAMCLASSTYPE tclasstype = m_state.getUlamTypeByIndex(tduti)->getUlamClass();
 	    // keep the out-of-band name; other's might refer to its UTI.
@@ -402,6 +403,12 @@ namespace MFM {
 		    // update the type of holder key
 		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nav);
 		    m_state.makeUlamTypeFromHolder(newkey, bUT, tduti); //update key, same uti
+		  }
+		else
+		  {
+		    //update holder key with name_id and possible array (UNKNOWNSIZE)
+		    UlamKeyTypeSignature newkey(m_state.getTokenAsATypeNameId(args.m_typeTok), args.m_bitsize, args.m_arraysize, Nav);
+		    m_state.makeUlamTypeFromHolder(newkey, Holder, tduti); //update key, same uti
 		  }
 	      }
 	    brtn = true;
