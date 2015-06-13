@@ -111,29 +111,19 @@ sub standardizeWhitespace {
 sub normalizeKeys {
     my ($self, %keys) = @_;
 
-    ###
-    # 'colors' key analysis
-    if (defined $keys{'color'}) {
-        if (defined $keys{'colors'}) {
-            $keys{'colors'} = $keys{'color'}." ".$keys{'color'}
-        } else {
-            $keys{'colors'} = $keys{'color'};
-        }
-        delete $keys{'color'};
-    }
-    my @colors;
     if (defined $keys{'colors'}) {
-        @colors = split(/[\s,;]+/, $keys{'colors'});
-    }
-    if (scalar(@colors) > 1) {
-        my $first = $colors[0];
-        print STDERR "Multiple \\color values no longer accepted; considering just '".$colors[0]."'\n";
-        @colors = ($first);
+        print STDERR "'\\colors' key not accepted, ignored.  Use '\\color'\n";
+        delete $keys{'colors'};
     }
 
+    ###
+    # 'color' key analysis
+
     my $w = "0xFFFFFFFF";
-    for (my $i = 0; $i < scalar(@colors); ++$i) {
-        my $c = $colors[$i];
+    if (!defined $keys{'color'}) {
+        $keys{'color'} = $w;
+    } else {
+        my $c = $keys{'color'};
         if ($c =~ /^(dynamic|function)$/i) {
             print STDERR "Color keyword '$c' no longer accepted; using white ($w)\n";
             $c = $w;
@@ -147,12 +137,8 @@ sub normalizeKeys {
             print STDERR "Unrecognized color '$c', replaced with white ($w)\n";
             $c = $w;
         }
-        $colors[$i] = $c;
+        $keys{'color'} = $c;
     }
-    push @colors, "0xFFFFFFFF"
-        if scalar(@colors) == 0;
-    $keys{'numcolors'} = scalar(@colors);
-    $keys{'colors'} = join(",", @colors);
 
     ###
     # 'symbol' key analysis
