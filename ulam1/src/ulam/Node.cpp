@@ -154,6 +154,11 @@ namespace MFM {
     return m_utype;
   }
 
+  void Node::checkForSymbol()
+  {
+    //for Nodes with Symbols
+  }
+
   void Node::countNavNodes(u32& cnt)
   {
     if(getNodeType() == Nav)
@@ -371,9 +376,9 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
 
-    // after read does sign extend for ints, etc.
-    fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
-    fp->write(" ");
+    //NOPE!!! after read does sign extend for ints, etc.
+    //fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
+    fp->write("u32 ");
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
     fp->write(" = ");
@@ -1744,6 +1749,33 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
+    if(cosSize > (u32) epi)
+      {
+	Symbol * stgcos = NULL;
+	if(epi == 0)
+	  stgcos = m_state.m_currentSelfSymbolForCodeGen;
+	else
+	  stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
+
+	UTI stgcosuti = stgcos->getUlamTypeIdx();
+	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+	fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::THE_INSTANCE");
+	fp->write(".");
+
+	//MP belongs to a local element var
+	for(u32 i = 1; i < (u32) epi; i++)
+	  {
+	    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	    if(sym->isSelf())
+	      continue;
+	    fp->write(sym->getMangledNameForParameterType().c_str());
+	    fp->write("::");
+	  }
+      }
+
+    // the MP (only primitive!, no longer quark or element):
     if(isHandlingImmediateType())
       {
 	fp->write(cos->getMangledName().c_str());
@@ -1751,7 +1783,7 @@ namespace MFM {
 	return;
       }
 
-    // the MP:
+    // the MP: when it could be a class
     if(cosclasstype == UC_NOTACLASS) //atom too?
       {
 	fp->write(cos->getMangledName().c_str());

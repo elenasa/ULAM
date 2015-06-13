@@ -86,6 +86,7 @@ namespace MFM{
     SymbolWithValue * m_constSymbol;
     bool m_ready;
 
+    virtual void checkForSymbol();
     bool updateConstant();
 
   private:

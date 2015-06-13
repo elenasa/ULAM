@@ -43,79 +43,38 @@ namespace MFM {
     return false; //seems like a contradiction, but no
   }
 
-  UTI NodeModelParameter::checkAndLabelType()
+  void NodeModelParameter::checkForSymbol()
   {
-    UTI it = Nav;
-    //instantiate, look up in class block; skip if stub copy and already ready.
-    if(m_constSymbol == NULL && !isReadyConstant())
-      {
-	//in case of a cloned unknown
-	NodeBlock * currBlock = getBlock();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+    //in case of a cloned unknown
+    NodeBlock * currBlock = getBlock();
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
-	Symbol * asymptr = NULL;
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
+    Symbol * asymptr = NULL;
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
+      {
+	if(asymptr->isModelParameter())
 	  {
-	    if(asymptr->isModelParameter())
-	      {
-		m_constSymbol = (SymbolParameterValue *) asymptr;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
-		msg << "> is not a model parameter, and cannot be used as one with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
+	    m_constSymbol = (SymbolParameterValue *) asymptr;
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "(2) Model Parameter <" << m_state.getTokenDataAsString(&m_token).c_str();
-	    msg << "> is not defined, and cannot be used with class: ";
+	    msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << "> is not a model parameter, and cannot be used as one with class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-	m_state.popClassContext(); //restore
-      } //lookup symbol
-
-    if(m_constSymbol)
+	}
+    else
       {
-	it = m_constSymbol->getUlamTypeIdx();
-      }
-    else if(isReadyConstant())
-      {
-	//stub copy case: still wants uti mapping
-	it = NodeTerminal::getNodeType();
-      }
-
-    // map incomplete UTI
-    if(!m_state.isComplete(it)) //reloads to recheck
-      {
-	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
-	msg << "Incomplete Model Parameter for type: ";
-	msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	msg << " used with parameter symbol name '";
-	msg << m_state.getTokenDataAsString(&m_token).c_str();
-	msg << "' UTI" << it << " while labeling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	msg << "(2) Model Parameter <" << m_state.getTokenDataAsString(&m_token).c_str();
+	msg << "> is not defined, and cannot be used with class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-
-    setNodeType(it);
-
-    //element parameters exist at the pleasure of the simulator;
-    // ulam programmers cannot change them!
-    setStoreIntoAble(false);
-
-    //copy m_constant from Symbol into NodeTerminal parent.
-    if(!isReadyConstant())
-      m_ready = updateConstant(); //sets ready here
-
-    return it;
-  } //checkAndLabelType
+    m_state.popClassContext(); //restore
+  } //checkForSymbol
 
   //class context set prior to calling us; purpose is to get
   // the value of this constant from the context before

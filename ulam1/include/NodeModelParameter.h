@@ -61,13 +61,15 @@ namespace MFM{
 
     virtual bool isAConstant();
 
-    virtual UTI checkAndLabelType();
-
     virtual bool assignClassArgValueInStubCopy();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
+  protected:
+    virtual void checkForSymbol();
+
   private:
 
   };

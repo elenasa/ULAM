@@ -200,6 +200,9 @@ namespace MFM{
 
     u32 adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass);
 
+  protected:
+    virtual void checkForSymbol();
+
   private:
     bool m_storeIntoAble;
     UTI m_utype;

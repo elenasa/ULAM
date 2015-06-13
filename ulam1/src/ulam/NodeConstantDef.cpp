@@ -17,7 +17,7 @@ namespace MFM {
       m_cid = 0; //error
   }
 
-  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_nodeExpr(NULL), m_currBlockNo(ref.m_currBlockNo), m_cid(ref.m_cid), m_nodeTypeDesc(NULL)
+  NodeConstantDef::NodeConstantDef(const NodeConstantDef& ref) : Node(ref), m_constSymbol(NULL), m_nodeExpr(NULL), m_cid(ref.m_cid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeExpr)
       m_nodeExpr = ref.m_nodeExpr->instantiate();
@@ -119,35 +119,7 @@ namespace MFM {
 
     // instantiate, look up in current block
     if(m_constSymbol == NULL)
-      {
-	//in case of a cloned unknown
-	NodeBlock * currBlock = getBlock();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
-
-	Symbol * asymptr = NULL;
-	if(m_state.alreadyDefinedSymbol(m_cid, asymptr))
-	  {
-	    if(asymptr->isConstant())
-	      {
-		m_constSymbol = (SymbolConstantValue *) asymptr;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-		msg << "> is not a constant, and cannot be used as one";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << "> is not defined, and cannot be used";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	m_state.popClassContext(); //restore
-      } //toinstantiate
+      checkForSymbol(); //toinstantiate
 
     //short circuit, avoid assert
     if(!m_constSymbol)
@@ -173,7 +145,6 @@ namespace MFM {
 	  }
       }
 
-    //assert(m_constSymbol);
     UTI suti = m_constSymbol->getUlamTypeIdx();
     UTI cuti = m_state.getCompileThisIdx();
 
@@ -186,7 +157,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "REPLACING Symbol UTI" << suti;
 	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << " used with named constant symbol name '" << getName();
+	    msg << " used with " << prettyNodeName().c_str() << " symbol name '" << getName();
 	    msg << "' with node type descriptor type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
 	    msg << " UTI" << duti << " while labeling class: ";
@@ -201,9 +172,9 @@ namespace MFM {
     if(!m_state.isComplete(suti)) //reloads
       {
 	std::ostringstream msg;
-	msg << "Incomplete Named Constant for type: ";
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
 	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	msg << " used with constant symbol name '" << getName();
+	msg << " used with symbol name '" << getName();
 	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -215,7 +186,7 @@ namespace MFM {
 	if(eit != esuti)
 	  {
 	    std::ostringstream msg;
-	    msg << "Named Constant '" << getName();
+	    msg << prettyNodeName().c_str() << " '" << getName();
 	    msg << "' type: <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
 	    msg << "> does not match its value type: <";
 	    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
@@ -231,7 +202,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid use of type: ";
 	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << " used with named constant symbol name '" << getName() << "'";
+	    msg << " used with " << prettyNodeName().c_str();
+	    msg << " symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    suti = Nav;
 	  }
@@ -248,6 +220,37 @@ namespace MFM {
 
     return getNodeType();
   } //checkAndLabelType
+
+  void NodeConstantDef::checkForSymbol()
+  {
+    //in case of a cloned unknown
+    NodeBlock * currBlock = getBlock();
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+
+    Symbol * asymptr = NULL;
+    if(m_state.alreadyDefinedSymbol(m_cid, asymptr))
+      {
+	if(asymptr->isConstant())
+	  {
+	    m_constSymbol = (SymbolConstantValue *) asymptr;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << "> is not a constant, and cannot be used as one";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "(2) Named Constant <" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	msg << "> is not defined, and cannot be used";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    m_state.popClassContext(); //restore
+  } //checkForSymbols
 
   void NodeConstantDef::countNavNodes(u32& cnt)
   {
@@ -399,25 +402,26 @@ namespace MFM {
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
     s32 nbitsize = nut->getBitSize();
+    u32 srcbitsize = nbitsize; //was MAXBITSPERINT WRONG!
 
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {
       case Int:
-	newconst = _Int32ToInt32((s32) val, MAXBITSPERINT, nbitsize);
+	newconst = _Int32ToInt32((s32) val, srcbitsize, nbitsize);
 	break;
       case Unsigned:
-	newconst = _Unsigned32ToUnsigned32(val, MAXBITSPERINT, nbitsize);
+	newconst = _Unsigned32ToUnsigned32(val, srcbitsize, nbitsize);
 	break;
       case Bool:
 	//newconst = _Unsigned32ToBool32(val, MAXBITSPERINT, nbitsize);
 	newconst = _CboolToBool32( (bool) val, nbitsize);
 	break;
       case Unary:
-	newconst =  _Unsigned32ToUnary32(val, MAXBITSPERINT, nbitsize);
+	newconst =  _Unsigned32ToUnary32(val, srcbitsize, nbitsize);
 	break;
       case Bits:
-	newconst = _Unsigned32ToBits32(val, MAXBITSPERINT, nbitsize);
+	newconst = _Unsigned32ToBits32(val, srcbitsize, nbitsize);
 	break;
       default:
 	rtnb = false;
@@ -432,25 +436,26 @@ namespace MFM {
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
     s32 nbitsize = nut->getBitSize();
+    u32 srcbitsize = nbitsize; //was MAXBITSPERLONG WRONG!
 
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {
       case Int:
-	newconst = _Int64ToInt64((s64) val, MAXBITSPERLONG, nbitsize);
+	newconst = _Int64ToInt64((s64) val, srcbitsize, nbitsize);
 	break;
       case Unsigned:
-	newconst = _Unsigned64ToUnsigned64(val, MAXBITSPERLONG, nbitsize);
+	newconst = _Unsigned64ToUnsigned64(val, srcbitsize, nbitsize);
 	break;
       case Bool:
 	//newconst = _Unsigned64ToBool64(val, MAXBITSPERLONG, nbitsize);
 	newconst = _CboolToBool64( (bool) val, nbitsize);
 	break;
       case Unary:
-	newconst =  _Unsigned64ToUnary64(val, MAXBITSPERLONG, nbitsize);
+	newconst =  _Unsigned64ToUnary64(val, srcbitsize, nbitsize);
 	break;
       case Bits:
-	newconst = _Unsigned64ToBits64(val, MAXBITSPERLONG, nbitsize);
+	newconst = _Unsigned64ToBits64(val, srcbitsize, nbitsize);
 	break;
       default:
 	  rtnb = false;
