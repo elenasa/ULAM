@@ -377,8 +377,8 @@ namespace MFM {
     fp->write("const ");
 
     //NOPE!!! after read does sign extend for ints, etc.
-    //fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
-    fp->write("u32 ");
+    fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
+    fp->write(" ");
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
     fp->write(" = ");
@@ -828,6 +828,7 @@ namespace MFM {
 	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
+	    assert(0); //shouldn't write into MP
 	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
@@ -1906,11 +1907,11 @@ namespace MFM {
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    //ULAMTYPE etyp = nut->getUlamTypeEnum();
+    ULAMTYPE etyp = nut->getUlamTypeEnum();
 
     //special case, u32/u64 desired before AfterReadingIntoATmpVar
-    //if(etyp == Int)
-    //  return ((UlamTypeInt *) nut)->getUnsignedTmpStorageTypeAsString();
+    if(etyp == Int)
+      return ((UlamTypeInt *) nut)->getUnsignedTmpStorageTypeAsString();
 
     return nut->getTmpStorageTypeAsString();
   } //tmpStorageTypeForRead

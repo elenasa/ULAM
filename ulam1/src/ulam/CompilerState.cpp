@@ -650,6 +650,8 @@ namespace MFM {
       }
     else
       args.m_declListOrTypedefScalarType = tmpforscalaruti; //also returns scalar uti
+
+    args.m_bitsize = getBitSize(uti);
     return uti;
   } //getUlamTypeFromToken
 

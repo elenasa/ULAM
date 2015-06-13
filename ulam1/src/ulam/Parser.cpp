@@ -1443,7 +1443,7 @@ namespace MFM {
     else
       {
 	//check for Type bitsize specifier;
-	typeargs.m_bitsize = 0;
+	typeargs.m_bitsize = 0; //default bitsize possible, if not specified
 	NodeTypeBitsize * bitsizeNode = parseTypeBitsize(typeargs);
 
 	UTI tuti = m_state.getUlamTypeFromToken(typeargs);
