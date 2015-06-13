@@ -234,18 +234,29 @@ namespace MFM {
 	  }
       } //not complete
 
-    if(m_state.getTotalBitSize(it) > MAXBITSPERINT)
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(it)->getUlamClass();
+    if(m_state.getTotalBitSize(it) > MAXBITSPERLONG && classtype == UC_NOTACLASS)
+      {
+	std::ostringstream msg;
+	msg << "Data member <" << getName() << "> of type: ";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it;
+	msg << ") total size: " << (s32) m_state.getTotalBitSize(it);
+	msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
+	msg << " Local variables do not have this restriction";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    if(m_state.getTotalBitSize(it) > MAXBITSPERINT && classtype == UC_QUARK)
       {
 	std::ostringstream msg;
 	msg << "Data member <" << getName() << "> of type: ";
 	msg << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it;
 	msg << ") total size: " << (s32) m_state.getTotalBitSize(it);
 	msg << " MUST fit into " << MAXBITSPERINT << " bits;";
-	msg << " Local variables do not have this restriction";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
-    if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_ELEMENT)
+    if(classtype == UC_ELEMENT)
       {
 	std::ostringstream msg;
 	msg << "Data member <" << getName() << "> of type: ";

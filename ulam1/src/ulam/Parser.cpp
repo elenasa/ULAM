@@ -303,7 +303,7 @@ namespace MFM {
 	msg << "Empty/Incomplete Class Definition: <";
 	msg << m_state.getTokenDataAsString(&iTok).c_str();
 	msg << ">; possible missing ending curly brace";
-	MSG(&pTok, msg.str().c_str(), WARN);
+	MSG(&pTok, msg.str().c_str(), ERR);
       }
 
     return false; //keep going until EOF is reached
