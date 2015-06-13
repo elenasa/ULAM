@@ -102,10 +102,12 @@ namespace MFM{
   protected:
     SymbolWithValue * m_constSymbol;
     Node * m_nodeExpr;
+    u32 m_cid; //to instantiate
+
+    virtual void checkForSymbol();
 
   private:
     NNO m_currBlockNo;
-    u32 m_cid; //to instantiate
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     bool updateConstant(u64 & newconst);

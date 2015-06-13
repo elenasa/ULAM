@@ -92,37 +92,10 @@ namespace MFM {
   UTI NodeVarDecl::checkAndLabelType()
   {
     UTI it = Nav;
+
     // instantiate, look up in current block
     if(m_varSymbol == NULL)
-      {
-	//in case of a cloned unknown
-	NodeBlock * currBlock = getBlock();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
-
-	Symbol * asymptr = NULL;
-	if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
-	  {
-	    if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter() && !asymptr->isFunction())
-	      {
-		m_varSymbol = (SymbolVariable *) asymptr;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.m_pool.getDataAsString(m_vid).c_str();
-		msg << "> is not a variable, and cannot be used as one";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << "> is not defined, and cannot be used";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	m_state.popClassContext(); //restore
-      } //to instantiate
+      checkForSymbol();
 
     if(m_varSymbol)
       {
@@ -177,6 +150,37 @@ namespace MFM {
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
+
+  void NodeVarDecl::checkForSymbol()
+  {
+    //in case of a cloned unknown
+    NodeBlock * currBlock = getBlock();
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+
+    Symbol * asymptr = NULL;
+    if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
+      {
+	if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter() && !asymptr->isFunction())
+	  {
+	    m_varSymbol = (SymbolVariable *) asymptr;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << "> is not a variable, and cannot be used as one";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "> is not defined, and cannot be used";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    m_state.popClassContext(); //restore
+  } //checkForSymbol
 
   NNO NodeVarDecl::getBlockNo()
   {
@@ -247,7 +251,7 @@ namespace MFM {
 	msg << "Data member <" << getName() << "> of type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str() << " (UTI" << it;
 	msg << ") is an element, and is NOT permitted; Local variables, quarks, ";
-	msg << "and Element Parameters do not have this restriction";
+	msg << "and Model Parameters do not have this restriction";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 
