@@ -68,19 +68,9 @@ my $cver = $keys{'version'};
 my $cplaceable = "true";
 $cplaceable = "false" if $keys{'placeable'} eq "no";
 
-my @colors = split(/,/,$keys{'colors'});
-my $cnum = scalar(@colors);
+my $color = $keys{'color'};
 my $body = "";
-## If any color slots say 'function', use 'function' for all missing slots as well
-my $haveFunction = 0;
-for (my $i = 0; $i < $cnum; ++$i) {
-    my $c = $colors[$i];
-    if ($c eq "function") {
-        $haveFunction = 1;
-    }
-}
-die "Internal error: UPDATE NEEDED" if $cnum > 1 or $haveFunction;
-$body .= "return $colors[0];";
+$body .= "return $color;";
 
 my @syms = split(/,/,$keys{'symmetries'});
 my $csyc = scalar(@syms);
@@ -141,7 +131,6 @@ namespace MFM {
     bool GetPlaceable() const { return $cplaceable; }
     const u32 GetVersion() const { return $cver; }
 $movfunc
-    const u32 GetNumColors() const { return $cnum; }
     const u32 GetElementColor() const { $body }
     const u32 GetSymmetry(UlamContext<EC>& uc) const {
       $symbody
