@@ -30,7 +30,6 @@ quark ColorUtils {
     return this;
   }
 
-
   /** Return a brighter version of a color.  Sort of like the Java
     brighten() method does it. The comment on their code says:
 

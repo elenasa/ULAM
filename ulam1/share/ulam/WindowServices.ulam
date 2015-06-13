@@ -13,6 +13,8 @@ use Fail;
    search and selection tasks.
 
    \author Dave Ackley
+   \symbol WS
+   \color #000
    \license lgpl
    \placeable no
 */
