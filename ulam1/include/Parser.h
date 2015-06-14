@@ -48,6 +48,7 @@
 #include "NodeConditionalAs.h"
 #include "NodeConstantDef.h"
 #include "NodeFunctionCall.h"
+#include "NodeParameterDef.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
 #include "NodeTypeDescriptor.h"
@@ -99,7 +100,7 @@ namespace MFM{
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
     /**
-       <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | ('element' | 0) + <DECL> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
+       <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | <PARAMETER_DEF> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
      */
     bool parseDataMember(NodeStatements *& nextNode);
 
@@ -177,6 +178,11 @@ namespace MFM{
     Node * parseConstdef(bool assignOK = true);
 
     /**
+       <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
+    */
+    Node * parseParameter();
+
+    /**
        <DECL> := <TYPE> + <VAR_DECLS>
        <VAR_DECLS> := <VAR_DECL> | <VAR_DECL> + ',' + <VAR_DECLS>
        <VAR_DECL> := <LVAL_EXPR>
@@ -190,7 +196,8 @@ namespace MFM{
     Node * parseDecl(bool parseSingleDecl = false);
 
 
-    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs);
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, bool delAfterDotFails = false);
+    NodeTypeDescriptor * parseTypeDescriptor(TypeArgs& typeargs, UTI& castUTI, bool delAfterDotFails);
 
     UTI parseClassArguments(Token& typeTok);
     void parseRestOfClassArguments(SymbolClass * csym, SymbolClassNameTemplate * ctsym, u32& parmIdx);
@@ -325,6 +332,8 @@ namespace MFM{
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK = true);
 
+    NodeParameterDef * parseRestOfParameterDef(NodeParameterDef * paramNode);
+
     /**
 	<FUNC_DEF>  := <ULAM_FUNC_DEF> | <NATIVE_FUNC_DEF>
 	<ULAM_FUNC_DEF> := <FUNC_DECL> + <BLOCK>
@@ -357,6 +366,9 @@ namespace MFM{
 
     /** helper for parseConstdef */
     Node * makeConstdefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
+
+    /** helper for parseParameter */
+    Node * makeParameterSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);
 
     /** helper method for parseConditionalExpr */
     Node * makeConditionalExprNode(Node * leftNode);
@@ -403,7 +415,7 @@ namespace MFM{
 
     /** helper, gets CLOSE_PAREN for <FACTOR>, CLOSE_SQUARE rest of LVal */
     bool getExpectedToken(TokenType eTokType, Token & myTok, bool quietly = false);
-    bool getExpectedToken(TokenType closeTokType, bool quietly = false);
+    bool getExpectedToken(TokenType closeTokType);
 
     /** helper , passes through to tokenizer */
     bool getNextToken(Token & tok);

@@ -92,37 +92,10 @@ namespace MFM {
   UTI NodeVarDecl::checkAndLabelType()
   {
     UTI it = Nav;
+
     // instantiate, look up in current block
     if(m_varSymbol == NULL)
-      {
-	//in case of a cloned unknown
-	NodeBlock * currBlock = getBlock();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
-
-	Symbol * asymptr = NULL;
-	if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
-	  {
-	    if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isFunction())
-	      {
-		m_varSymbol = (SymbolVariable *) asymptr;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.m_pool.getDataAsString(m_vid).c_str();
-		msg << "> is not a variable, and cannot be used as one";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
-	    msg << "> is not defined, and cannot be used";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	m_state.popClassContext(); //restore
-      } //to instantiate
+      checkForSymbol();
 
     if(m_varSymbol)
       {
@@ -162,9 +135,52 @@ namespace MFM {
 	  }
       } //end var_symbol
 
+    ULAMTYPE etyp = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
+    if(etyp == Void)
+      {
+	//void only valid use is as a func return type
+	std::ostringstream msg;
+	msg << "Invalid use of type: ";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << " used with variable symbol name '" << getName() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	it = Nav;
+      }
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
+
+  void NodeVarDecl::checkForSymbol()
+  {
+    //in case of a cloned unknown
+    NodeBlock * currBlock = getBlock();
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+
+    Symbol * asymptr = NULL;
+    if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
+      {
+	if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter() && !asymptr->isFunction())
+	  {
+	    m_varSymbol = (SymbolVariable *) asymptr;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << "> is not a variable, and cannot be used as one";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
+	msg << "> is not defined, and cannot be used";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    m_state.popClassContext(); //restore
+  } //checkForSymbol
 
   NNO NodeVarDecl::getBlockNo()
   {
@@ -184,66 +200,73 @@ namespace MFM {
     assert((s32) offset >= 0); //neg is invalid
     assert(m_varSymbol);
 
-    //skip element parameter variables
-    if(!m_varSymbol->isElementParameter())
+    m_varSymbol->setPosOffset(offset);
+    UTI it = m_varSymbol->getUlamTypeIdx();
+
+    if(!m_state.isComplete(it))
       {
-	m_varSymbol->setPosOffset(offset);
-	UTI it = m_varSymbol->getUlamTypeIdx();
-
-	if(!m_state.isComplete(it))
-	  {
-	    UTI cuti = m_state.getCompileThisIdx();
-	    UTI mappedUTI = Nav;
-	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
-	      {
-		std::ostringstream msg;
-		msg << "Substituting Mapped UTI" << mappedUTI;
-		msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
-		msg << " for incomplete Variable Decl for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with variable symbol name '" << getName();
-		msg << "' (UTI" << it << ") while bit packing class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		it = mappedUTI;
-		m_varSymbol->resetUlamType(it); //consistent!
-	      }
-
-	    if(!m_state.isComplete(it)) //reloads
-	      {
-		std::ostringstream msg;
-		msg << "Incomplete Variable Decl for type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
-		msg << " used with variable symbol name '" << getName();
-		msg << "' (UTI" << it << ") while bit packing class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-	  } //not complete
-
-	if(m_state.getTotalBitSize(it) > MAXBITSPERINT)
+	UTI cuti = m_state.getCompileThisIdx();
+	UTI mappedUTI = Nav;
+	if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it;
-	    msg << ") total size: " << (s32) m_state.getTotalBitSize(it);
-	    msg << " MUST fit into " << MAXBITSPERINT << " bits;";
-	    msg << " Local variables do not have this restriction";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    msg << "Substituting Mapped UTI" << mappedUTI;
+	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << " for incomplete Variable Decl for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' (UTI" << it << ") while bit packing class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    it = mappedUTI;
+	    m_varSymbol->resetUlamType(it); //consistent!
 	  }
 
-	if(m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_ELEMENT)
+	if(!m_state.isComplete(it)) //reloads
 	  {
 	    std::ostringstream msg;
-	    msg << "Data member <" << getName() << "> of type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str() << " (UTI" << it;
-	    msg << ") is an element, and is NOT permitted; Local variables, quarks, ";
-	    msg << "and Element Parameters do not have this restriction";
+	    msg << "Incomplete Variable Decl for type: ";
+	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << " used with variable symbol name '" << getName();
+	    msg << "' (UTI" << it << ") while bit packing class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
+      } //not complete
 
-	offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(it)->getUlamClass();
+    if(m_state.getTotalBitSize(it) > MAXBITSPERLONG && classtype == UC_NOTACLASS)
+      {
+	std::ostringstream msg;
+	msg << "Data member <" << getName() << "> of type: ";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it;
+	msg << ") total size: " << (s32) m_state.getTotalBitSize(it);
+	msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
+	msg << " Local variables do not have this restriction";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
+
+    if(m_state.getTotalBitSize(it) > MAXBITSPERINT && classtype == UC_QUARK)
+      {
+	std::ostringstream msg;
+	msg << "Data member <" << getName() << "> of type: ";
+	msg << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it;
+	msg << ") total size: " << (s32) m_state.getTotalBitSize(it);
+	msg << " MUST fit into " << MAXBITSPERINT << " bits;";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    if(classtype == UC_ELEMENT)
+      {
+	std::ostringstream msg;
+	msg << "Data member <" << getName() << "> of type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str() << " (UTI" << it;
+	msg << ") is an element, and is NOT permitted; Local variables, quarks, ";
+	msg << "and Model Parameters do not have this restriction";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
+    offset += m_state.getTotalBitSize(m_varSymbol->getUlamTypeIdx());
   } //packBitsInOrderOfDeclaration
 
   void NodeVarDecl::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
@@ -284,7 +307,7 @@ namespace MFM {
       }
     else
       {
-	if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
+	if(!m_varSymbol->isDataMember())
 	  {
 	    //local variable to a function
 	    u32 len = m_state.getTotalBitSize(nuti);
@@ -318,12 +341,6 @@ namespace MFM {
     assert(m_varSymbol);
     assert(getNodeType() != Nav);
 
-    // use immediate storage for "static" element parameters
-    if(m_varSymbol->isElementParameter())
-      {
-	return genCodedElementParameter(fp, uvpass);
-      }
-
     if(m_varSymbol->isDataMember())
       {
 	return genCodedBitFieldTypedef(fp, uvpass);
@@ -338,7 +355,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     m_state.indent(fp);
-    if(!m_varSymbol->isDataMember() || m_varSymbol->isElementParameter())
+    if(!m_varSymbol->isDataMember())
       {
 	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
       }
@@ -421,22 +438,6 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   } //genCodedBitFieldTypedef
-
-  void NodeVarDecl::genCodedElementParameter(File * fp, UlamValue uvpass)
-  {
-    assert(m_varSymbol->isDataMember());
-
-    UTI vuti = m_varSymbol->getUlamTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
-    m_state.indent(fp);
-    fp->write("mutable ");
-
-    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-    fp->write(" ");
-    fp->write(m_varSymbol->getMangledName().c_str());
-    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
-  }  //genCodedElementParameter
 
   // this is the auto local variable's node, created at parse time,
   // for Conditional-As case.

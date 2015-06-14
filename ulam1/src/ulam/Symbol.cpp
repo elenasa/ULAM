@@ -6,11 +6,11 @@
 
 namespace MFM {
 
-  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_idtok(id), m_uti(utype), m_dataMember(false), m_elementParameter(false), m_autoLocal(false), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()) {}
+  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_idtok(id), m_uti(utype), m_dataMember(false), m_autoLocal(false), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()) {}
 
-  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMember(sref.m_dataMember), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
-  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMember(sref.m_dataMember), m_elementParameter(sref.m_elementParameter), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMember(sref.m_dataMember), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
   Symbol::~Symbol(){}
 
@@ -78,8 +78,6 @@ namespace MFM {
   void Symbol::setDataMember()
   {
     m_dataMember = true;
-    if(m_state.m_parsingElementParameterVariable)
-      m_elementParameter = true;
   }
 
   bool Symbol::isDataMember()
@@ -87,14 +85,9 @@ namespace MFM {
     return m_dataMember;
   }
 
-  void Symbol::setElementParameter()
+  bool Symbol::isModelParameter()
   {
-      m_elementParameter = true;
-  }
-
-  bool Symbol::isElementParameter()
-  {
-    return m_elementParameter;
+    return false;
   }
 
   void Symbol::setAutoLocal()
@@ -136,16 +129,16 @@ namespace MFM {
        return mangled.str();
   }
 
-  //atomic parameter type, not element parameter.
+  //atomic parameter type, not model parameter.
   const std::string Symbol::getMangledNameForParameterType()
   {
-    assert(!m_elementParameter); //maybe do it some other way XXX
+    assert(!isModelParameter());
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     ULAMCLASSTYPE classtype = sut->getUlamClass();
 
     //another way, like this?
-    if(m_elementParameter)
+    if(isModelParameter())
       {
 	std::ostringstream epmangled;
 	epmangled << sut->getImmediateStorageTypeAsString();

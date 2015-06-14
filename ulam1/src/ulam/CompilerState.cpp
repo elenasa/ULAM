@@ -52,7 +52,7 @@ namespace MFM {
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingElementParameterVariable(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
@@ -650,6 +650,8 @@ namespace MFM {
       }
     else
       args.m_declListOrTypedefScalarType = tmpforscalaruti; //also returns scalar uti
+
+    args.m_bitsize = getBitSize(uti);
     return uti;
   } //getUlamTypeFromToken
 
@@ -1023,8 +1025,7 @@ namespace MFM {
     else if(bUT == Void)
       {
 	std::ostringstream msg;
-	msg << "Invalid nonzero size for Void type: " << ut->getUlamTypeName().c_str();
-	msg << "> (UTI" << utArg << ")";
+	msg << "Invalid nonzero bitsize (" << bitsize << ") for Void type";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	return;
       }

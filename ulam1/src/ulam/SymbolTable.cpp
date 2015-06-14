@@ -331,7 +331,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(!sym->isTypedef() && sym->isDataMember()) //including element parameters
+	if(!sym->isTypedef() && sym->isDataMember()) //including model parameters
 	  {
 	    ((SymbolVariable *) sym)->generateCodedVariableDeclarations(fp, classtype);
 	  }
@@ -424,7 +424,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(sym->isTypedef() || sym->isConstant() || (sym->isDataMember() && !sym->isElementParameter()))
+	if(sym->isTypedef() || sym->isConstant() || (sym->isDataMember() && !sym->isModelParameter()))
 	  {
 	    sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
 	  }
@@ -1206,7 +1206,7 @@ namespace MFM {
 
   bool SymbolTable::variableSymbolWithCountableSize(Symbol * sym)
   {
-    return (!sym->isTypedef() && !sym->isElementParameter() && !sym->isConstant());
+    return (!sym->isTypedef() && !sym->isModelParameter() && !sym->isConstant());
   }
 
 } //end MFM

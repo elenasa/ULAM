@@ -248,6 +248,11 @@ namespace MFM {
     depth += argbase;
   } //calcMaxDepth
 
+  bool NodeFunctionCall::isFunctionCall()
+  {
+    return true;
+  }
+
   // since functions are defined at the class-level; a function call
   // must be PRECEDED by a member selection (element or quark) --- a
   // local variable instance that provides the storage (i.e. atom) for
@@ -468,10 +473,10 @@ namespace MFM {
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAnElementParameter();
+	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
-	    arglist << genElementParameterHiddenArgs(epi);
+	    arglist << genModelParameterHiddenArgs(epi);
 	  }
 	else //local var
 	  {
@@ -575,9 +580,9 @@ namespace MFM {
       genMemberNameOfMethod(fp);
     else
       {
-	s32 epi = isCurrentObjectsContainingAnElementParameter();
+	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
-	  genElementParameterMemberNameOfMethod(fp,epi);
+	  genModelParameterMemberNameOfMethod(fp,epi);
 	else
 	  genLocalMemberNameOfMethod(fp);
       }
@@ -612,6 +617,8 @@ namespace MFM {
     for(u32 i = 0; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+	if(sym->isSelf())
+	  continue;
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
       }
@@ -621,26 +628,29 @@ namespace MFM {
     // atomic Parameter type (i.e. Up_Us);
   } //genMemberNameOfMethod
 
-  void NodeFunctionCall::genElementParameterMemberNameOfMethod(File * fp, s32 epi)
+  void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     assert(epi >= 0);
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi]; //the EP
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi]; //the MP
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
-    // the EP:
-    if(cosclasstype == UC_NOTACLASS) //atom too?
+    // the MP:
+    if(cosclasstype == UC_NOTACLASS) //atom too? atoms not MP
       {
+	assert(cosut->getUlamTypeEnum() != UAtom);
+	assert(cosut->getUlamTypeEnum() != Void);
 	fp->write(cos->getMangledName().c_str());
 	fp->write(".");
       }
     else
       {
+	assert(0); //no longer may MP be an element or a quark type
 	if(cosclasstype == UC_ELEMENT)
 	  {
 	    fp->write(cosut->getUlamTypeMangledName().c_str());
@@ -654,7 +664,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //for immmediate quark EP..?
+	    //for immmediate quark MP..?
 	    fp->write(cosut->getImmediateStorageTypeAsString().c_str());
 	    fp->write("::");
 	    fp->write("Us::"); //typedef, always for funccalls
@@ -666,17 +676,17 @@ namespace MFM {
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 
-	//not the element parameter, but a data member..
+	//not the model parameter, but a data member..
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
 	//NOT FOR Funccalls
 	//  fp->write("Up_Us::");   //atomic parameter needed
       }
-  } //genElementParamenterMemberNameOfMethod
+  } //genModelParamenterMemberNameOfMethod
 
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.
-  std::string NodeFunctionCall::genElementParameterHiddenArgs(s32 epi)
+  std::string NodeFunctionCall::genModelParameterHiddenArgs(s32 epi)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     assert(epi >= 0);
@@ -700,7 +710,7 @@ namespace MFM {
     hiddenlist << stgcosut->getUlamTypeMangledName().c_str();
     hiddenlist << "<EC>::THE_INSTANCE.";
 
-    // the EP (an element, quark, or primitive):
+    // the MP (only primitive, no longer an element, or quark):
     hiddenlist << epcos->getMangledName().c_str();
 
     if(epcosclasstype != UC_NOTACLASS)
@@ -709,7 +719,7 @@ namespace MFM {
       }
 
     return hiddenlist.str();
-  } //genElementParameterHiddenArgs
+  } //genModelParameterHiddenArgs
 
   void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {

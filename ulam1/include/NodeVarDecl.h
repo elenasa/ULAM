@@ -88,6 +88,9 @@ namespace MFM{
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
+  protected:
+    virtual void checkForSymbol();
+
   private:
     SymbolVariable * m_varSymbol;
     u32 m_vid; // to instantiate
@@ -95,7 +98,6 @@ namespace MFM{
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
-    void genCodedElementParameter(File * fp, UlamValue uvpass);
     void genCodedAutoLocal(File * fp, UlamValue & uvpass);
 
   };
