@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3433_test_compiler_boolshift)
+  BEGINTESTCASECOMPILER(t3433_test_compiler_boolshift_error)
   {
     std::string GetAnswerKey()
     {
@@ -11,6 +11,9 @@ namespace MFM {
 	 Bool(3) Arg: 0x3 (true)
 	 Bool(3) Arg: 0x4 (false)
       */
+      //./A.ulam:7:8: ERROR: Bool is not currently supported for bitwise shift operator<<; suggest casting Bool(3) to Bits.
+      //./A.ulam:8:8: ERROR: Bool is not currently supported for bitwise shift operator>>; suggest casting Bool(3) to Bits.
+      //./A.ulam:9:8: ERROR: Bool is not currently supported for bitwise shift operator<<; suggest casting Bool(3) to Bits.
       return std::string("Exit status: 0\nUe_A { System s();  Bool(3) u(true);  Bool(3) v(true);  Bool(3) z(false);  Int(32) test() {  v true cast = u v 1 cast << = v v 1 cast >> = z v 2 cast << = s ( u )print . s ( v )print . s ( z )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
@@ -29,6 +32,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3433_test_compiler_boolshift)
+  ENDTESTCASECOMPILER(t3433_test_compiler_boolshift_error)
 
 } //end MFM

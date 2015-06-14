@@ -84,6 +84,9 @@ namespace MFM{
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
+  protected:
+    virtual void checkForSymbol();
+
   private:
     SymbolTypedef * m_typedefSymbol;
     u32 m_tdid; //to instantiate

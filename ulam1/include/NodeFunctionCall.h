@@ -71,6 +71,8 @@ namespace MFM{
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
+    virtual bool isFunctionCall();
+
     virtual EvalStatus eval();
 
     virtual EvalStatus evalToStoreInto();
@@ -91,8 +93,8 @@ namespace MFM{
     //helper methods override Node read/write
     virtual void genMemberNameOfMethod(File * fp);
 
-    virtual void genElementParameterMemberNameOfMethod(File * fp, s32 epi);
-    std::string genElementParameterHiddenArgs(s32 epi);
+    virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
+    std::string genModelParameterHiddenArgs(s32 epi);
     virtual void genLocalMemberNameOfMethod(File * fp);
 
     void genCodeIntoABitValue(File * fp, UlamValue& uvpass);

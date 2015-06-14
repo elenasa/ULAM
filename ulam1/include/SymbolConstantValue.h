@@ -36,14 +36,14 @@
 #ifndef SYMBOLCONSTANTVALUE_H
 #define SYMBOLCONSTANTVALUE_H
 
-#include "Symbol.h"
+#include "SymbolWithValue.h"
 
 namespace MFM{
 
   class CompilerState;  //forward
 
   //distinguish between Symbols
-  class SymbolConstantValue : public Symbol
+  class SymbolConstantValue : public SymbolWithValue
   {
   public:
     SymbolConstantValue(Token id, UTI utype, CompilerState& state);
@@ -56,34 +56,14 @@ namespace MFM{
 
     virtual bool isConstant();
 
-    virtual bool isReady();
-
-    bool isParameter();
-    void setParameterFlag();
-
-    bool getValue(s64& val);
-    bool getValue(u64& val);
-    void setValue(s64 val);
-    void setValue(u64 val);
-
-    bool foldConstantExpression();
-
     virtual const std::string getMangledPrefix();
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
-    void changeConstantId(u32 fmid, u32 toid); //for premature class instances
-
   protected:
 
   private:
-    bool m_isReady;
-    bool m_parameter; //i.e. no value, look at instance
 
-    union {
-      s64 sval;
-      u64 uval;
-    } m_constant;
   };
 } //MFM
 

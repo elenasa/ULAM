@@ -90,42 +90,12 @@ namespace MFM {
   UTI NodeTypedef::checkAndLabelType()
   {
     UTI it = Nav;
-    u32 errCnt = 0;
+
     // instantiate, look up in current block
     if(m_typedefSymbol == NULL)
-      {
-	//in case of a cloned unknown
-	NodeBlock * currBlock = getBlock();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+      checkForSymbol();
 
-	Symbol * asymptr = NULL;
-	if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
-	  {
-	    if(asymptr->isTypedef())
-	      {
-		m_typedefSymbol = (SymbolTypedef *) asymptr;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
-		msg << "> is not a typedef, and cannot be used as one";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		errCnt++;
-	      }
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
-	    msg << "> is not defined, and cannot be used";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    errCnt++;
-	  }
-	m_state.popClassContext(); //restore
-      } //toinstantiate
-
-    if(!errCnt && m_typedefSymbol)
+    if(m_typedefSymbol)
       {
 	it = m_typedefSymbol->getUlamTypeIdx();
 
@@ -182,6 +152,39 @@ namespace MFM {
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
+
+  void NodeTypedef::checkForSymbol()
+  {
+    //in case of a cloned unknown
+    NodeBlock * currBlock = getBlock();
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+
+    Symbol * asymptr = NULL;
+    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
+      {
+	if(asymptr->isTypedef())
+	  {
+	    m_typedefSymbol = (SymbolTypedef *) asymptr;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
+	    msg << "> is not a typedef, and cannot be used as one";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    //errCnt++;
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
+	msg << "> is not defined, and cannot be used";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	//errCnt++;
+      }
+    m_state.popClassContext(); //restore
+  } //toinstantiate
 
   NNO NodeTypedef::getBlockNo()
   {

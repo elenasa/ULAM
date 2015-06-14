@@ -2,20 +2,20 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3278_test_compiler_elementandquark_ep_issue)
+  BEGINTESTCASECOMPILER(t3278_test_compiler_elementandquarkMP_issue)
   {
     std::string GetAnswerKey()
     {
       /* gen code output:
-	 Int Arg: 0
+	 Int Arg: 512
       */
       //problem with eval answer is that an atom type appears the same as tu.
-      return std::string("Exit status: 0\nUe_Ebar { System s();  Int(32) test() {  s ( shouldBeOK )print . 0 return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Ebar { System s();  Int(32) test() {  s ( shouldBeOK(512) )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("Ebar.ulam", "ulam 1;\nuse System;\n element Ebar{\nSystem s;\nelement Int shouldBeOK;\nInt test(){\ns.print(shouldBeOK);\nreturn 0;\n }\n}\n");
+      bool rtn1 = fms->add("Ebar.ulam", "ulam 1;\nuse System;\n element Ebar{\nSystem s;\nparameter Int shouldBeOK = 512;\nInt test(){\ns.print(shouldBeOK);\nreturn 0;\n }\n}\n");
 
       bool rtn2 = fms->add("Qfoo.ulam", "ulam 1;\nuse Ebar;\nquark Qfoo{\nVoid func(){\nEbar ebar;\n}\n}\n");
 
@@ -29,6 +29,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3278_test_compiler_elementandquark_ep_issue)
+  ENDTESTCASECOMPILER(t3278_test_compiler_elementandquarkMP_issue)
 
 } //end MFM

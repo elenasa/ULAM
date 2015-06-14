@@ -6,11 +6,11 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./Foo.ulam:4:2: ERROR: Data member <m_array> of type: Int(1)[71] (UTI15) total size: 71 MUST fit into 32 bits; Local variables do not have this restriction.
+      //./Foo.ulam:4:2: ERROR: Data member <m_array> of type: Int(1)[71] (UTI15) total size: 71 MUST fit into 64 bits; Local variables do not have this restriction.
 
       //Ue_Foo { Int(1) m_array[71](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  Int(32) test() {  C2D c;  c ( 0 cast 0 cast )func = m_array c ( )toInt . [] true cast = m_array c ( )toInt . [] cast return } }\nExit status: 1
 
-      return std::string("Ue_Foo { Int(1) m_array[71](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  Int(32) test() {  C2D c;  c ( 0 cast 0 cast )func = m_array c ( )toInt . cast [] true cast = m_array c ( )toInt . cast [] cast return } }\nExit status: -1");
+      return std::string("Exit status: -1\nUe_Foo { Int(32) test() {  Int(1) m_array[71];  C2D c;  c ( 0 0 )func = m_array c ( )toInt . cast [] true cast = m_array c ( )toInt . cast [] cast return } }\nUq_C2D { Int(8) m_width(0);  Int(8) m_height(0);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

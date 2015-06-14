@@ -72,8 +72,7 @@ namespace MFM{
     void setDataMember();
     bool isDataMember();
 
-    void setElementParameter();
-    bool isElementParameter();
+    virtual bool isModelParameter();
 
     void setAutoLocal();
     bool isAutoLocal();
@@ -103,7 +102,6 @@ namespace MFM{
     UTI m_uti; // may seem redundant, but not; from NodeVarDecl, before m_value known.
                // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
     bool m_dataMember;
-    bool m_elementParameter;
     bool m_autoLocal;
     bool m_isSelf;       // hidden arg symbol
     NNO m_stBlockNo;

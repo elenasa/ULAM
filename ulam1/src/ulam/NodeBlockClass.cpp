@@ -579,7 +579,12 @@ namespace MFM {
 
 	fp->write("() : UlamElement<EC>(MFM_UUID_FOR(\"");
 	fp->write(namestrlong.c_str());
-	fp->write("\", 0))\n");
+	fp->write("\", 0))");
+
+	//model parameter initializations, if any
+	genCodeConstructorInitialization(fp);
+	fp->write("\n");
+
 	m_state.indent(fp);
 	fp->write("{\n");
 

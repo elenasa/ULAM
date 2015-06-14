@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  NodeConstant::NodeConstant(Token tok, SymbolConstantValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_currBlockNo(0)
+  NodeConstant::NodeConstant(Token tok, SymbolWithValue * symptr, CompilerState & state) : NodeTerminal(state), m_token(tok), m_constSymbol(symptr), m_ready(false), m_currBlockNo(0)
   {
     assert(symptr);
     m_currBlockNo = symptr->getBlockNoOfST();
@@ -60,37 +60,7 @@ namespace MFM {
     UTI it = Nav;
     //instantiate, look up in class block; skip if stub copy and already ready.
     if(m_constSymbol == NULL && !isReadyConstant())
-      {
-	//in case of a cloned unknown
-	NodeBlock * currBlock = getBlock();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
-
-	Symbol * asymptr = NULL;
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
-	  {
-	    if(asymptr->isConstant())
-	      {
-		m_constSymbol = (SymbolConstantValue *) asymptr;
-	      }
-	    else
-	      {
-		std::ostringstream msg;
-		msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
-		msg << "> is not a constant, and cannot be used as one with class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	      }
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str();
-	    msg << "> is not defined, and cannot be used with class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	m_state.popClassContext(); //restore
-      } //lookup symbol
+      checkForSymbol();
 
     if(m_constSymbol)
       {
@@ -107,7 +77,7 @@ namespace MFM {
       {
 	UTI cuti = m_state.getCompileThisIdx();
 	std::ostringstream msg;
-	msg << "Incomplete Named Constant for type: ";
+	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
 	msg << m_state.getUlamTypeNameByIndex(it).c_str();
 	msg << " used with constant symbol name '";
 	msg << m_state.getTokenDataAsString(&m_token).c_str();
@@ -125,6 +95,39 @@ namespace MFM {
 
     return it;
   } //checkAndLabelType
+
+  void NodeConstant::checkForSymbol()
+  {
+    //in case of a cloned unknown
+    NodeBlock * currBlock = getBlock();
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
+
+    Symbol * asymptr = NULL;
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
+      {
+	if(asymptr->isConstant())
+	  {
+	    m_constSymbol = (SymbolConstantValue *) asymptr;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "(1) <" << m_state.getTokenDataAsString(&m_token).c_str();
+	    msg << "> is not a constant, and cannot be used as one with class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str();
+	msg << "> is not defined, and cannot be used with class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    m_state.popClassContext(); //restore
+  } //checkForSymbol
 
   NNO NodeConstant::getBlockNo()
   {
