@@ -104,21 +104,19 @@ namespace MFM{
     std::map<u32,std::vector<u32>* > m_textByLinePerFilePath;
     Locator m_locOfNextLineText;
 
-    SymbolTable m_programDefST;          // holds SymbolClassName and SymbolClassNameTemplate
+    SymbolTable m_programDefST; // holds SymbolClassName and SymbolClassNameTemplate
 
-    s32 m_currentFunctionBlockDeclSize;   //used to calc framestack size for function def
-    s32 m_currentFunctionBlockMaxDepth;   //framestack for function def saved in NodeBlockFunctionDefinition
-    bool m_parsingInProgress;             //to avoid constantFolding when parsing
+    s32 m_currentFunctionBlockDeclSize; //used to calc framestack size for function def
+    s32 m_currentFunctionBlockMaxDepth; //framestack saved in NodeBlockFunctionDefinition
 
-    s32 m_parsingControlLoop;             // used for break/continue control statement parsing;
+    s32 m_parsingControlLoop;             // used for break/continue control stmt parsing;
                                           // label num for end of loop, or 0
 
     bool m_parsingConditionalAs;          // used for Conditional-As parsing
     Token m_identTokenForConditionalAs;   // used for Conditional-As parsing
-    bool m_genCodingConditionalAs;   // used for Conditional-As code gen
+    bool m_genCodingConditionalAs; // used for Conditional-As code gen
 
     CallStack m_funcCallStack;    //local variables and arguments
-    //UlamAtom  m_selectedAtom;   //storage for data member (static/global) variables
     UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
     CallStack m_nodeEvalStack;    //for node eval return values,
                                   //uses evalNodeProlog/Epilog; EVALRETURN storage
@@ -137,14 +135,15 @@ namespace MFM{
 
     std::vector<NodeReturnStatement *> m_currentFunctionReturnNodes; //nodes of return nodes in a function; verify type
     UTI m_currentFunctionReturnType;  //used during type labeling to check return types
-    UlamValue m_currentObjPtr;        //used in eval of members: data or funcs; updated at each '.'
-    UlamValue m_currentSelfPtr;       //used in eval of func calls: updated after args, becomes currentObjPtr for args
+    UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
+    UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
+                                // becomes currentObjPtr for args
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
-    Symbol * m_currentSelfSymbolForCodeGen; //used in code generation; parallels m_currentSelf
-    u32 m_currentIndentLevel;         //used in code generation: func def, blocks, control body
-    s32 m_nextTmpVarNumber;           //used in code gen when a "slot index" is not available
-    NNO m_nextNodeNumber;             //used to identify blocks in clone classes with unknown subtrees
+    Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
+    u32 m_currentIndentLevel; //used in code generation: func def, blocks, control body
+    s32 m_nextTmpVarNumber; //used in code gen when a "slot index" is not available
+    NNO m_nextNodeNumber; //used to identify blocks in clone classes with unknown subtrees
 
     CompilerState();
     ~CompilerState();
@@ -235,7 +234,8 @@ namespace MFM{
     void resetUnseenClass(SymbolClassName * cnsym, Token identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);
 
-    /** during type labeling, sets ULAMCLASSTYPE for typedefs that involved incomplete Class types */
+    /** during type labeling, sets ULAMCLASSTYPE for typedefs that
+	involved incomplete Class types */
     bool completeIncompleteClassSymbolForTypedef(UTI incomplete) ;
 
     /** helper methods for error messaging, uses string pool */
@@ -275,7 +275,8 @@ namespace MFM{
 
     const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
 
-    /** returns immediate target value: extracts data from packed targets; unpacked array targets are invalid */
+    /** returns immediate target value: extracts data from packed targets;
+	unpacked array targets are invalid */
     UlamValue getPtrTarget(UlamValue ptr);
 
     /** general purpose store value (except for Ptr as value) */
@@ -359,7 +360,7 @@ namespace MFM{
     UTI getBigBitsUTI();
 
   private:
-    ClassContextStack m_classContextStack;         // the current subject of this compilation
+    ClassContextStack m_classContextStack; // the current subject of this compilation
 
   };
 }

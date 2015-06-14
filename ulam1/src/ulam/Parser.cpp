@@ -84,8 +84,6 @@ namespace MFM {
   //change to return Node * rather than vector; change tests
   u32 Parser::parseProgram(std::string startstr, File * errOutput)
   {
-    m_state.m_parsingInProgress = true;
-
     if(errOutput)
       m_state.m_err.setFileOutput(errOutput);
 
@@ -159,8 +157,6 @@ namespace MFM {
 	msg << errs << " TOO MANY PARSE ERRORS: " << compileThis;
 	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
-
-    m_state.m_parsingInProgress = false;
     return (errs);
   } //parseProgram
 
