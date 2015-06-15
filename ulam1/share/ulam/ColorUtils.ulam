@@ -3,6 +3,9 @@ ulam 1;
 quark ColorUtils {
   typedef Unsigned(8) Channel;
   typedef Channel ARGB[4];
+  ARGB color(Int hex) {
+    return color((Unsigned) ((Bits) hex));
+  }
   ARGB color(Unsigned hex) {
     ARGB ret;
     ret[0] = (hex >> 24) & 0xff;
