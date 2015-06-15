@@ -1760,10 +1760,16 @@ namespace MFM {
 
 	UTI stgcosuti = stgcos->getUlamTypeIdx();
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+	ULAMCLASSTYPE stgclass = stgcosut->getUlamClass();
 
 	fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::THE_INSTANCE");
-	fp->write(".");
+
+	if(stgclass == UC_ELEMENT)
+	    fp->write("<EC>::THE_INSTANCE.");
+	else if(stgclass == UC_QUARK)
+	  fp->write("<EC,POS>::Up_Us::");
+	else
+	  assert(0);
 
 	//MP belongs to a local element var
 	for(u32 i = 1; i < (u32) epi; i++)

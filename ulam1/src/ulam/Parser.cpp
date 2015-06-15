@@ -84,8 +84,6 @@ namespace MFM {
   //change to return Node * rather than vector; change tests
   u32 Parser::parseProgram(std::string startstr, File * errOutput)
   {
-    m_state.m_parsingInProgress = true;
-
     if(errOutput)
       m_state.m_err.setFileOutput(errOutput);
 
@@ -159,8 +157,6 @@ namespace MFM {
 	msg << errs << " TOO MANY PARSE ERRORS: " << compileThis;
 	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
-
-    m_state.m_parsingInProgress = false;
     return (errs);
   } //parseProgram
 
@@ -449,6 +445,12 @@ namespace MFM {
     bool isFunc = false;
     Token pTok;
     getNextToken(pTok);
+
+    if(pTok.m_type == TOK_CLOSE_CURLY)
+      {
+	unreadToken();
+	return false; //done!
+      }
 
     if(pTok.m_type == TOK_KW_TYPEDEF)
       {
@@ -2912,6 +2914,7 @@ namespace MFM {
       case TOK_HAT_EQUAL:
 	unreadToken();
 	rtnNode = makeAssignExprNode(leftNode);
+	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
       case TOK_SEMICOLON:
       case TOK_CLOSE_PAREN:
@@ -3732,7 +3735,8 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, Assignment deleted";
+	msg << "RHS of binary operator" << pTok.getTokenString();
+	msg << " is missing, Assignment deleted";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	delete leftNode;
       }
@@ -4144,6 +4148,7 @@ namespace MFM {
     typeargs.init(typeTok);
 
     //we want the casting UTI, without deleting any failed dots because, why?
+    // because it might be a minof,maxof,sizeof..which wouldn't be a cast at all!
     NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, typeToBe, false);
     assert(typeNode);
 
@@ -4157,8 +4162,24 @@ namespace MFM {
       }
     else
       {
-	delete typeNode;
-	typeNode = NULL;
+	//not a cast anymore..
+	UTI uti = typeNode->givenUTI();
+	//as in parseFactor, returns either a terminal or proxy
+	rtnNode = parseMinMaxSizeofType(typeTok, uti, typeNode); //optionally, gets next dot token
+	if(rtnNode)
+	  rtnNode = parseRestOfExpression(rtnNode);
+
+	if(!rtnNode)
+	  {
+	    delete typeNode;
+	    typeNode = NULL;
+	  }
+
+	if(!getExpectedToken(TOK_CLOSE_PAREN))
+	  {
+	    delete rtnNode;
+	    rtnNode = NULL;
+	  }
       }
     return rtnNode;
   } //makeCastNode
