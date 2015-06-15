@@ -1,0 +1,18 @@
+ulam 1;
+
+use ColorUtils;
+
+quark SiteUtils {
+  typedef ColorUtils.ARGB ARGB;
+
+  typedef Unsigned(2) TouchType;
+  constant TouchType cTOUCH_TYPE_NONE = 0u;
+  constant TouchType cTOUCH_TYPE_PROXIMITY = 1u;
+  constant TouchType cTOUCH_TYPE_LIGHT = 2u;
+  constant TouchType cTOUCH_TYPE_HEAVY = 3u;
+
+  Unsigned getTouch() native; // { return mySiteNum; }
+  ARGB getIn() native; // { ARGB a; return a; }
+  ARGB getOut() native; // { ARGB a; return a; }
+  ARGB setOut(ARGB newVal) native; // { ARGB a; return a; }
+}
