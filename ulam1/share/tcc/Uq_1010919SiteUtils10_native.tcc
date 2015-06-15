@@ -6,10 +6,8 @@ namespace MFM{
   Ui_Ut_102321u Uq_1010919SiteUtils10<EC, POS>::Uf_8getTouch(UlamContext<EC>& uc, T& Uv_4self)
   {
     typedef typename EC::ATOM_CONFIG AC;
-    Base<AC> & base = uc.GetBase();
-    u64 en = base.GetLastEventEventNumber();
-    SiteSensors & ss = base.GetSensory();
-    return Ui_Ut_102321u(ss.RecentTouch(en));
+    const Site<AC> & site = uc.GetSite();
+    return Ui_Ut_102321u(site.RecentTouch());
 
   }
 
