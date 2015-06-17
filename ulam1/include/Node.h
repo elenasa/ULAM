@@ -157,6 +157,8 @@ namespace MFM{
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
+    virtual void genCodeExtern(File * fp, bool declOnly);
+
     /**
      * Returns converted const argument to all capital letters as a string
      */

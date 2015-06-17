@@ -379,7 +379,7 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("};\n");
+    fp->write("};\n"); //end of class/struct
 
     //declaration of THE_INSTANCE for ELEMENT
     if(classtype == UC_ELEMENT)
@@ -393,10 +393,27 @@ namespace MFM {
 	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::THE_INSTANCE;\n\n");
       }
+
+    //output Model Parameters as extern decl's
+    if(classtype == UC_QUARK)
+      {
+	genCodeExtern(fp, declOnly);
+      }
+
     m_state.m_currentIndentLevel = 0;
     fp->write("} //MFM\n\n");
     //leave class' endif to caller
   } //genCode
+
+  void NodeBlockClass::genCodeExtern(File * fp, bool declOnly)
+  {
+    fp->write("\n");
+
+    if(m_nodeNext)
+      m_nodeNext->genCodeExtern(fp, declOnly);
+
+    fp->write("\n");
+  } //genCodeExtern
 
   void NodeBlockClass::genCodeHeaderQuark(File * fp)
   {
