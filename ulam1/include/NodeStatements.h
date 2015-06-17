@@ -82,6 +82,8 @@ namespace MFM{
 
     virtual void genCodeConstructorInitialization(File * fp);
 
+    virtual void genCodeExtern(File * fp, bool declOnly);
+
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
   protected:

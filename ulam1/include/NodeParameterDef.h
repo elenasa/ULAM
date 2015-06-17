@@ -65,12 +65,13 @@ namespace MFM{
 
     virtual void genCodeConstructorInitialization(File * fp);
 
-    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+    virtual void genCodeExtern(File * fp, bool declOnly);
 
   protected:
     virtual void checkForSymbol();
 
   private:
+
   };
 
 } //MFM

@@ -70,46 +70,69 @@ namespace MFM {
   {
     assert(m_constSymbol->isDataMember());
 
+    UTI cuti = m_state.getCompileThisIdx();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
+
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     m_state.indent(fp);
-    fp->write("mutable ");
-
-    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
-    fp->write(" ");
-    fp->write(m_constSymbol->getMangledName().c_str());
-    fp->write(";\n");
+    if(classtype == UC_ELEMENT)
+      {
+	fp->write("mutable ");
+	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+	fp->write(" ");
+	fp->write(m_constSymbol->getMangledName().c_str());
+	fp->write(";\n");
+      }
+    //for quark, MP is extern and not declared within the template struct.
   } //genCode
 
   void NodeParameterDef::genCodeConstructorInitialization(File * fp)
   {
-    fp->write(", ");
-    fp->write(m_constSymbol->getMangledName().c_str());
-    fp->write("(");
-    fp->write(m_nodeExpr->getName());
-    fp->write(")");
+    UTI cuti = m_state.getCompileThisIdx();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
+    if(classtype == UC_ELEMENT)
+      {
+	fp->write(", ");
+	fp->write(m_constSymbol->getMangledName().c_str());
+	fp->write("(");
+	fp->write(m_nodeExpr->getName());
+	fp->write(")");
+      }
+    //for quark, MP constructed in its .cpp
   } //genCodeConstructorInitialization
 
-  // like NodeVarDecl for model parameters
-  void NodeParameterDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  void NodeParameterDef::genCodeExtern(File * fp, bool declOnly)
   {
-    UTI nuti = getNodeType();
+    assert(m_constSymbol->isDataMember());
 
-    //output a case of switch statement
-    m_state.indent(fp);
-    fp->write("case ");
-    fp->write_decimal(dmcount);
-    fp->write(": { static UlamClassDataMemberInfo i(\"");
-    fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeMangledName().c_str());
-    fp->write("\", \"");
-    fp->write(m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str());
-    fp->write("\", ");
-    fp->write("0u); return i; }\n"); //pos offset is 0
+    UTI cuti = m_state.getCompileThisIdx();
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
 
-    dmcount++; //increment data member count
-  } //generateUlamClassInfo
+    UTI vuti = m_constSymbol->getUlamTypeIdx();
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
+    if(classtype == UC_QUARK)
+      {
+	m_state.indent(fp);
 
+	if(declOnly)
+	  fp->write("extern ");
+
+	//common to both decl and def
+	fp->write(vut->getImmediateStorageTypeAsString().c_str());
+	fp->write(" ");
+	fp->write(m_constSymbol->getMangledName().c_str());
+
+	if(!declOnly)
+	  {
+	    fp->write("(");
+	    fp->write(m_nodeExpr->getName()); //initialize default value
+	    fp->write(")");
+	  }
+	fp->write(";\n");
+      }
+  } //genCodeExtern
 
 } //end MFM

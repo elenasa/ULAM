@@ -1389,6 +1389,11 @@ namespace MFM {
     //pass
   }
 
+  void Node::genCodeExtern(File * fp, bool declOnly)
+  {
+    //e.g. NodeParameterDefs
+  }
+
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     assert(0); //fufilled by NodeVarDecl, NodeBlock; bypassed by NodeTypedef and NodeConstDef
@@ -1762,14 +1767,15 @@ namespace MFM {
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	ULAMCLASSTYPE stgclass = stgcosut->getUlamClass();
 
-	fp->write(stgcosut->getUlamTypeMangledName().c_str());
-
 	if(stgclass == UC_ELEMENT)
+	  {
+	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC>::THE_INSTANCE.");
-	else if(stgclass == UC_QUARK)
-	  fp->write("<EC,POS>::Up_Us::");
-	else
-	  assert(0);
+	  }
+	//else if(stgclass == UC_QUARK)
+	  //fp->write("<EC,POS>::");
+	//else
+	//  assert(0);
 
 	//MP belongs to a local element var
 	for(u32 i = 1; i < (u32) epi; i++)

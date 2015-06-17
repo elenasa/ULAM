@@ -342,6 +342,8 @@ namespace MFM {
     //class context already pushed..
     assert(m_classBlock);
 
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
+
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
     m_state.m_currentObjSymbolsForCodeGen.clear();
@@ -410,11 +412,23 @@ namespace MFM {
       fp->write("\"\n");
       fp->write("\n");
 
+      m_state.indent(fp);
+      fp->write("namespace MFM{\n\n");
+
+      m_state.m_currentIndentLevel++;
+      if(classtype == UC_QUARK)
+	{
+	  m_classBlock->genCodeExtern(fp, false); //not decl, def for MP
+	}
+
+      m_state.m_currentIndentLevel = 0;
+      fp->write("} //MFM\n\n");
+
       delete fp; //close
     }
 
     //separate main.cpp for elements only; that have the test method.
-    if(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass() == UC_ELEMENT)
+    if(classtype == UC_ELEMENT)
       {
 	if(m_classBlock->findTestFunctionNode())
 	  generateMain(fm);

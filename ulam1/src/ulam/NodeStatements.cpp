@@ -224,6 +224,15 @@ namespace MFM {
       m_nodeNext->genCodeConstructorInitialization(fp);
   } //genCodeConstructorInitialization
 
+  void NodeStatements::genCodeExtern(File * fp, bool declOnly)
+  {
+    if(m_node)
+      m_node->genCodeExtern(fp, declOnly);
+
+    if(m_nodeNext)
+      m_nodeNext->genCodeExtern(fp, declOnly);
+  } //genCodeExtern
+
   void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     m_node->generateUlamClassInfo(fp, declOnly, dmcount);
