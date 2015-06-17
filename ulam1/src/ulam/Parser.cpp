@@ -1320,20 +1320,7 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    //permitted in only in elements;
-    // quarks are static and cannot have a mutable member
-#if 0
-    UTI cuti = m_state.getCompileThisIdx();
-    if(m_state.getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
-      {
-	std::ostringstream msg;
-	msg << "Model Parameters can survive in elements only";
-	MSG(&pTok, msg.str().c_str(), ERR);
-	getTokensUntil(TOK_SEMICOLON); //does this help?
-	return NULL;
-      }
-#endif
-
+    //permitted in only in elements and quarks
     if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID && pTok.m_type != TOK_KW_TYPE_ATOM)
       {
 	unreadToken();

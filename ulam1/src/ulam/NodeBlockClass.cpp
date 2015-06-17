@@ -418,7 +418,6 @@ namespace MFM {
   void NodeBlockClass::genCodeHeaderQuark(File * fp)
   {
     //use the instance UTI instead of the node's original type
-    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
 
     m_state.indent(fp);
@@ -507,7 +506,6 @@ namespace MFM {
       {
 	UlamValue uvpass;
 	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
-	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
 
@@ -564,7 +562,6 @@ namespace MFM {
   void NodeBlockClass::genCodeBody(File * fp, UlamValue& uvpass)
   {
     //use the instance UTI instead of the node's original type
-    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
     ULAMCLASSTYPE classtype = cut->getUlamClass();
 
