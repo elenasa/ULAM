@@ -61,9 +61,9 @@ namespace MFM{
 
     virtual void fixPendingArgumentNode();
 
-    virtual void genCode(File * fp, UlamValue& uvpass);
+    //    virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeConstructorInitialization(File * fp);
+    //virtual void genCodeConstructorInitialization(File * fp);
 
     virtual void genCodeExtern(File * fp, bool declOnly);
 

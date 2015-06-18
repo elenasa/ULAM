@@ -1755,6 +1755,7 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
+#if 0
     if(cosSize > (u32) epi)
       {
 	Symbol * stgcos = NULL;
@@ -1763,15 +1764,15 @@ namespace MFM {
 	else
 	  stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 
-	UTI stgcosuti = stgcos->getUlamTypeIdx();
-	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-	ULAMCLASSTYPE stgclass = stgcosut->getUlamClass();
+	//UTI stgcosuti = stgcos->getUlamTypeIdx();
+	//UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+	//ULAMCLASSTYPE stgclass = stgcosut->getUlamClass();
 
-	if(stgclass == UC_ELEMENT)
-	  {
-	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE.");
-	  }
+	//if(stgclass == UC_ELEMENT)
+	//  {
+	//    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	//    fp->write("<EC>::THE_INSTANCE.");
+	//  }
 	//else if(stgclass == UC_QUARK)
 	  //fp->write("<EC,POS>::");
 	//else
@@ -1787,6 +1788,7 @@ namespace MFM {
 	    fp->write("::");
 	  }
       }
+#endif
 
     // the MP (only primitive!, no longer quark or element):
     if(isHandlingImmediateType())

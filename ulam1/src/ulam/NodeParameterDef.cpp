@@ -66,6 +66,7 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
+#if 0
   void NodeParameterDef::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_constSymbol->isDataMember());
@@ -76,9 +77,9 @@ namespace MFM {
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    m_state.indent(fp);
     if(classtype == UC_ELEMENT)
       {
+	m_state.indent(fp);
 	fp->write("mutable ");
 	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
 	fp->write(" ");
@@ -87,7 +88,8 @@ namespace MFM {
       }
     //for quark, MP is extern and not declared within the template struct.
   } //genCode
-
+#endif
+#if 0
   void NodeParameterDef::genCodeConstructorInitialization(File * fp)
   {
     UTI cuti = m_state.getCompileThisIdx();
@@ -102,37 +104,35 @@ namespace MFM {
       }
     //for quark, MP constructed in its .cpp
   } //genCodeConstructorInitialization
+#endif
 
   void NodeParameterDef::genCodeExtern(File * fp, bool declOnly)
   {
     assert(m_constSymbol->isDataMember());
 
-    UTI cuti = m_state.getCompileThisIdx();
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
+    //    UTI cuti = m_state.getCompileThisIdx();
+    //ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
 
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    if(classtype == UC_QUARK)
+    m_state.indent(fp);
+
+    if(declOnly)
+      fp->write("extern ");
+
+    //common to both decl and def
+    fp->write(vut->getImmediateStorageTypeAsString().c_str());
+    fp->write(" ");
+    fp->write(m_constSymbol->getMangledName().c_str());
+
+    if(!declOnly)
       {
-	m_state.indent(fp);
-
-	if(declOnly)
-	  fp->write("extern ");
-
-	//common to both decl and def
-	fp->write(vut->getImmediateStorageTypeAsString().c_str());
-	fp->write(" ");
-	fp->write(m_constSymbol->getMangledName().c_str());
-
-	if(!declOnly)
-	  {
-	    fp->write("(");
-	    fp->write(m_nodeExpr->getName()); //initialize default value
-	    fp->write(")");
-	  }
-	fp->write(";\n");
+	fp->write("(");
+	fp->write(m_nodeExpr->getName()); //initialize default value
+	fp->write(")");
       }
+    fp->write("; //model parameter\n");
   } //genCodeExtern
 
 } //end MFM
