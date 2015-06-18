@@ -395,7 +395,7 @@ namespace MFM {
       }
 
     //output Model Parameters as extern decl's
-    if(classtype == UC_QUARK)
+    //if(classtype == UC_QUARK)
       {
 	genCodeExtern(fp, declOnly);
       }
@@ -596,7 +596,7 @@ namespace MFM {
 	fp->write("\", 0))");
 
 	//model parameter initializations, if any
-	genCodeConstructorInitialization(fp);
+	//genCodeConstructorInitialization(fp);
 	fp->write("\n");
 
 	m_state.indent(fp);
@@ -656,7 +656,7 @@ namespace MFM {
     // 'is' is only for element/classes
     if(classtype == UC_ELEMENT)
       generateInternalIsMethodForElement(fp, declOnly);
-  } //CodeForBuiltInClassFunctions
+  } //generateCodeForBuiltInClassFunctions
 
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {

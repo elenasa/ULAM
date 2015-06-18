@@ -417,7 +417,7 @@ namespace MFM {
       fp->write("namespace MFM{\n\n");
 
       m_state.m_currentIndentLevel++;
-      if(classtype == UC_QUARK)
+      //if(classtype == UC_QUARK)
 	{
 	  m_classBlock->genCodeExtern(fp, false); //not decl, def for MP
 	}
