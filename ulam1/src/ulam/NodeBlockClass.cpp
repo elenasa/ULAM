@@ -395,10 +395,7 @@ namespace MFM {
       }
 
     //output Model Parameters as extern decl's
-    //if(classtype == UC_QUARK)
-      {
-	genCodeExtern(fp, declOnly);
-      }
+    genCodeExtern(fp, declOnly);
 
     m_state.m_currentIndentLevel = 0;
     fp->write("} //MFM\n\n");
@@ -593,11 +590,7 @@ namespace MFM {
 
 	fp->write("() : UlamElement<EC>(MFM_UUID_FOR(\"");
 	fp->write(namestrlong.c_str());
-	fp->write("\", 0))");
-
-	//model parameter initializations, if any
-	//genCodeConstructorInitialization(fp);
-	fp->write("\n");
+	fp->write("\", 0))\n");
 
 	m_state.indent(fp);
 	fp->write("{\n");
