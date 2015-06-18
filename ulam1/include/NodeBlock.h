@@ -105,6 +105,8 @@ namespace MFM{
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
+    void addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters);
+
   protected:
     SymbolTable m_ST;
 

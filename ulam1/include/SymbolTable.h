@@ -43,6 +43,7 @@
 #include "itype.h"
 #include "File.h"
 #include "FileManager.h"
+#include "ParameterMap.h"
 #include "TargetMap.h"
 #include "UlamTypeClass.h"
 
@@ -90,6 +91,8 @@ namespace MFM{
 
     void genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
+    void addModelParameterDescriptionsToMap(ParameterMap& classmodelparameters);
+
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
 
@@ -120,6 +123,8 @@ namespace MFM{
 
     // TableOfClasses:
     void getTargets(TargetMap& classtargets);
+
+    void getModelParameters(ParameterMap& classmodelparameters);
 
     void testForTableOfClasses(File * fp);
 

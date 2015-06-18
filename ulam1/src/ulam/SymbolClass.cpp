@@ -777,7 +777,6 @@ namespace MFM {
     desc.m_className = className;
 
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
-
-  } //getTargetDesciptionMapEntry
+  } //addTargetDesciptionMapEntry
 
 } //end MFM
