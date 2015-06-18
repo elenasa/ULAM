@@ -153,8 +153,6 @@ namespace MFM{
     void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
 
-    virtual void genCodeConstructorInitialization(File * fp);
-
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
     virtual void genCodeExtern(File * fp, bool declOnly);

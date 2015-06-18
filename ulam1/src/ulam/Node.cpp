@@ -1384,11 +1384,6 @@ namespace MFM {
     //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass); //why was this commented out?
   } //genCodeConvertABitVectorIntoATmpVar
 
-  void Node::genCodeConstructorInitialization(File * fp)
-  {
-    //pass
-  }
-
   void Node::genCodeExtern(File * fp, bool declOnly)
   {
     //e.g. NodeParameterDefs
@@ -1742,8 +1737,32 @@ namespace MFM {
   } //genMemberNameOfMethod
 
   // "static" data member, a mixture of local variable and dm;
-  // requires THE_INSTANCE, and local variables are superfluous.
+  // NEW approach as extern immediate; its mangled name includes the
+  // element/quark mangled name; thus, unique MP per ulam class.
+  // No longer a template data member; must be initialized (in .cpp),
+  // so only primitive types allowed.
   void Node::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
+  {
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    assert(epi >= 0);
+
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
+
+    // the MP (only primitive!, no longer quark or element):
+    assert(isHandlingImmediateType());
+
+    fp->write(cos->getMangledName().c_str());
+    fp->write(".");
+    return;
+  } //genModelParameterMemberNameOfMethod
+
+#if 0
+  // OLD WAY! didn't allow quarks to have MP, but did allow
+  // the MP to be a quark or element (very complicated!), that
+  // wasn't initialized.
+  // "static" data member, a mixture of local variable and dm;
+  // requires THE_INSTANCE, and local variables are superfluous.
+  void Node::GENMODELPARAMETERMEMBERNAMEOFMETHOD(File * fp, s32 epi)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     assert(epi >= 0);
@@ -1755,7 +1774,6 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
-#if 0
     if(cosSize > (u32) epi)
       {
 	Symbol * stgcos = NULL;
@@ -1764,15 +1782,15 @@ namespace MFM {
 	else
 	  stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 
-	//UTI stgcosuti = stgcos->getUlamTypeIdx();
-	//UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-	//ULAMCLASSTYPE stgclass = stgcosut->getUlamClass();
+	UTI stgcosuti = stgcos->getUlamTypeIdx();
+	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+	ULAMCLASSTYPE stgclass = stgcosut->getUlamClass();
 
-	//if(stgclass == UC_ELEMENT)
-	//  {
-	//    fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	//    fp->write("<EC>::THE_INSTANCE.");
-	//  }
+	if(stgclass == UC_ELEMENT)
+	  {
+	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::THE_INSTANCE.");
+	  }
 	//else if(stgclass == UC_QUARK)
 	  //fp->write("<EC,POS>::");
 	//else
@@ -1788,7 +1806,6 @@ namespace MFM {
 	    fp->write("::");
 	  }
       }
-#endif
 
     // the MP (only primitive!, no longer quark or element):
     if(isHandlingImmediateType())
@@ -1828,6 +1845,7 @@ namespace MFM {
 	  fp->write("Up_Us::"); //atomic parameter needed
       }
   } //genModelParameterMemberNameOfMethod
+#endif
 
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.
