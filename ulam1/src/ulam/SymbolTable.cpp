@@ -413,6 +413,26 @@ namespace MFM {
     fp->write("}  //has\n\n");
   } //genCodeBuiltInFunctionsOverTableOfVariableDataMember
 
+  void SymbolTable::addModelParameterDescriptionsToMap(ParameterMap& classmodelparameters)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isModelParameter())
+	  {
+	    //similar to SymbolClass' addTargetDescriptionMapEntry for class targets
+	    struct ParameterDesc desc;
+	    desc.m_loc = sym->getLoc();
+	    desc.m_mangledType = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName();
+
+	    std::string mangledName = sym->getMangledName();
+	    classmodelparameters.insert(std::pair<std::string, struct ParameterDesc>(mangledName, desc));
+	  }
+	it++;
+      }
+  } //addModelParameterDescriptionsToMap
+
   //storage for class members persists, so we give up preserving
   //order of declaration that the NodeVarDecl in the parseTree
   //provides, in order to distinguish between an instance's data
@@ -656,6 +676,25 @@ namespace MFM {
 	it++;
       } //while
   } //getTargets
+
+  void SymbolTable::getModelParameters(ParameterMap& classmodelparameters)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
+	    assert(classNode);
+	    classNode->addModelParameterDescriptionsToInfoMap(classmodelparameters);
+	  }
+	it++;
+      } //while
+  } //getModelParameters
 
   void SymbolTable::testForTableOfClasses(File * fp)
   {

@@ -219,6 +219,11 @@ namespace MFM {
     m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
   }
 
+  void NodeBlock::addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters)
+  {
+    m_ST.addModelParameterDescriptionsToMap(classmodelparameters); //Table of Classes request
+  }
+
   void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     m_ST.genCodeBuiltInFunctionsOverTableOfVariableDataMember(fp, declOnly, classtype);

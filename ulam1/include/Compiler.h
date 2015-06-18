@@ -44,6 +44,7 @@
 #include "FileManager.h"
 #include "File.h"
 #include "Node.h"
+#include "ParameterMap.h"
 #include "Parser.h"
 #include "SourceStream.h"
 #include "TargetMap.h"
@@ -58,27 +59,38 @@ namespace MFM{
     ~Compiler();
 
     u32 compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput);
+
     u32 compileFiles(FileManager * infm, std::vector<std::string> filesToCompile, FileManager * outfm, File * errput);
+
     u32 parseProgram(FileManager * fm, std::string startstr, File * output); //for tests
+
     u32 checkAndTypeLabelProgram(File * output);
+
     bool resolvingLoop();
+
     bool hasTheTestMethod();
+
     bool targetIsAQuark();
+
     u32 testProgram(File * output);
+
     void printPostFix(File * output);
+
     void printProgramForDebug(File * output);
+
     void generateCodedProgram(File * output);
+
     std::string getMangledTarget();
-    const std::string getFullPathLocationAsString(const Locator& loc)
-    {
-      return m_state.getFullLocationAsString(loc);
-    }
 
     TargetMap getMangledTargetsMap();
 
-  private:
+    ParameterMap getMangledParametersMap();
 
+    const std::string getFullPathLocationAsString(const Locator& loc);
+
+  private:
     CompilerState m_state;  //owner
+
     u32 compileFile(std::string startstr, File * errput, SourceStream& ssref, Parser * p);
   };
 

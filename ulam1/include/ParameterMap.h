@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * TargetMap.h - Map of class targets for ULAM
+ * ParameterMap.h - Map of Model Parameters for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,15 +26,15 @@
  */
 
 /**
-  \file TargetMap.h -  Map of class targets for ULAM
+  \file ParameterMap.h -  Map of Model Parameters for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
   \gpl
 */
 
-#ifndef TARGETMAP_H
-#define TARGETMAP_H
+#ifndef PARAMETERMAP_H
+#define PARAMETERMAP_H
 
 #include <map>
 #include <string>
@@ -43,17 +43,14 @@
 
 namespace MFM
 {
-  struct TargetDesc
+  struct ParameterDesc
   {
-    bool m_hasTest;
-    bool m_isQuark;
-    u32 m_bitsize;
     Locator m_loc;
-    std::string m_className;
+    std::string m_mangledType;
   };
 
-  // key is class mangled name
-  typedef std::map<std::string, struct TargetDesc> TargetMap;
+  //key is mangledParameterName, including the mangled class it belongs
+  typedef std::map<std::string, struct ParameterDesc> ParameterMap;
 }
 
-#endif  /* TARGETMAP_H */
+#endif  /* PARAMETERMAP_H */
