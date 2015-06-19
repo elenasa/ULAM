@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./Foo.ulam:7:12: ERROR: Only primitive types may be an element parameter, not: <Bar>.
+      //./Foo.ulam:5:16: ERROR: Model Parameter 'barchance' cannot be based on a class type: Bar.
+      //./Foo.ulam:5:16: ERROR: Invalid Model Parameter of Type: <Bar> and Name: <barchance>.
       return std::string("Exit status: -1\n");
     }
 

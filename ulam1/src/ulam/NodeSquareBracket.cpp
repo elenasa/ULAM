@@ -310,7 +310,7 @@ namespace MFM {
 
     if(args.m_arraysize > NONARRAYSIZE)
       {
-	MSG(getNodeLocationAsString().c_str(), "Array size specified twice for typedef symbol", ERR);
+	MSG(getNodeLocationAsString().c_str(), "Array size specified twice for typedef", ERR);
 	return false;
       }
 
@@ -328,7 +328,7 @@ namespace MFM {
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolParameterValue(TypeArgs& args, Symbol *& asymptr)
   {
-    MSG(getNodeLocationAsString().c_str(), "Invalid array size specified for Model Parameter", ERR);
+    MSG(getNodeLocationAsString().c_str(), "Array size specified for model parameter", ERR);
     return false;
   } //installSymbolParameterValue
 

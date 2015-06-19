@@ -132,7 +132,18 @@ namespace MFM {
     if(m_nodeExpr)
       {
 	it = m_nodeExpr->checkAndLabelType();
-	if(!m_nodeExpr->isAConstant() && it != Nav)
+	if(it == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Constant value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", is invalid";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+
+	if(!m_nodeExpr->isAConstant())
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
@@ -141,7 +152,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameByIndex(it) << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
-	    return Nav;
+	    return Nav; //short-circuit
 	  }
       }
 

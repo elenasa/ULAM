@@ -622,9 +622,9 @@ namespace MFM {
       }
     else
       {
-	// no class types for constants
+	// no class types for model parameters
 	std::ostringstream msg;
-	msg << "Parameter Data Member '";
+	msg << "Model Parameter '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	msg << "' cannot be based on a class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
@@ -633,7 +633,7 @@ namespace MFM {
 
     if(brtn)
       {
-	//create a symbol for this new named constant, a constant-def, with its value
+	//create a symbol for this new model parameter, a parameter-def, with its value
 	SymbolParameterValue * symparam = new SymbolParameterValue(m_token, uti, m_state);
 	m_state.addSymbolToCurrentScope(symparam);
 
