@@ -3057,6 +3057,13 @@ namespace MFM {
 	Node * exprNode = parseExpression();
 	if(exprNode)
 	  paramNode->setConstantExpr(exprNode);
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Missing model parameter definition after '=' for '";
+	    msg << m_state.m_pool.getDataAsString(paramNode->getSymbolId()).c_str() << "'";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
       }
     else
       {
