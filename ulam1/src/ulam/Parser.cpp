@@ -3023,6 +3023,13 @@ namespace MFM {
 	Node * exprNode = parseExpression();
 	if(exprNode)
 	  constNode->setConstantExpr(exprNode);
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Missing named constant definition after '=' for '";
+	    msg << m_state.m_pool.getDataAsString(constNode->getSymbolId()).c_str() << "'";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
       }
     else
       {
@@ -3044,6 +3051,20 @@ namespace MFM {
 	  {
 	    //unreadToken(); //class param doesn't have equal; wait for the class arg
 	  }
+      }
+
+    if(assignOK)
+      {
+	if(!getExpectedToken(TOK_SEMICOLON))
+	  {
+	    std::ostringstream msg;
+	    msg << "Missing ';' after named constant definition '";
+	    msg << m_state.m_pool.getDataAsString(constNode->getSymbolId()).c_str() << "'";
+	    msg << "; Lists not supported";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
+      else
+	unreadToken();
       }
     return rtnNode;
   } //parseRestOfConstantDef
@@ -3078,6 +3099,18 @@ namespace MFM {
 	paramNode = NULL;
 	rtnNode = NULL;
       }
+
+    if(!getExpectedToken(TOK_SEMICOLON))
+      {
+	std::ostringstream msg;
+	msg << "Missing ';' after model parameter definition '";
+	msg << m_state.m_pool.getDataAsString(paramNode->getSymbolId()).c_str() << "'";
+	msg << "; Lists not supported";
+	MSG(&pTok, msg.str().c_str(), ERR);
+      }
+    else
+      unreadToken();
+
     return rtnNode;
   } //parseRestOfParameterDef
 

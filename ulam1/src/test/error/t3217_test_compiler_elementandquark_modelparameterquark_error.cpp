@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3217_test_compiler_elementandquark_elementparameterquark_error)
+  BEGINTESTCASECOMPILER(t3217_test_compiler_elementandquark_modelparameterquark_error)
   {
     std::string GetAnswerKey()
     {
@@ -26,6 +26,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3217_test_compiler_elementandquark_elementparameterquark_error)
+  ENDTESTCASECOMPILER(t3217_test_compiler_elementandquark_modelparameterquark_error)
 
 } //end MFM
