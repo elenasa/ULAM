@@ -213,8 +213,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid use of type: ";
 	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << " used with " << prettyNodeName().c_str();
-	    msg << " symbol name '" << getName() << "'";
+	    msg << " used with symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    suti = Nav;
 	  }
