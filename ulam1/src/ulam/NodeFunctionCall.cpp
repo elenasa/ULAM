@@ -399,9 +399,11 @@ namespace MFM {
   EvalStatus NodeFunctionCall::evalToStoreInto()
   {
     std::ostringstream msg;
-    msg << "Use of function calls as lefthand values is not currently supported.";
-    msg << " Save the results of <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-    msg << "> to a variable, type: " << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
+    msg << "Eval of function calls as lefthand values is not currently supported.";
+    msg << " Save the results of <";
+    msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+    msg << "> to a variable, type: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     assert(!isStoreIntoAble());
     return ERROR;
