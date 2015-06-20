@@ -13,7 +13,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //can't be a quark
+      //model parameter can't be a quark or union
       bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nBool(3) b;\n parameter Bar barchance;\nBool last;\nInt test() {\n b = barchance.valb[1];\ns.print(b);\nreturn b;\n }\n }\n");
 
       bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool valb[3];\n  Void reset(Bool b) {\n b = 0;\n }\n }\n");

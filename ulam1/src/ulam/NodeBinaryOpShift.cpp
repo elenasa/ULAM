@@ -21,12 +21,25 @@ namespace MFM {
 
     if(newType != Nav && m_state.isComplete(newType))
       {
-	assert(newType == leftType);
+	if(newType != leftType)
+	  {
+	    if(!makeCastingNode(m_nodeLeft, Int, m_nodeLeft))
+	      newType = Nav;
+	  }
+
 	//shift ops take unsigned as second arg;
 	//note: C implementations typically shift by the lower 5 bits (6 for 64-bits) only.
-	ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
+	UlamType * rut = m_state.getUlamTypeByIndex(rightType);
+	ULAMTYPE retype = rut->getUlamTypeEnum();
 	if(retype != Unsigned)
 	  {
+	    //first see if it happens to be a quark that can be cast toInt
+	    if(retype == Class && rut->getUlamClass() == UC_QUARK)
+	      {
+		if(!makeCastingNode(m_nodeRight, Int, m_nodeRight))
+		  newType = Nav;
+	      }
+
 	    if(!makeCastingNode(m_nodeRight, Unsigned, m_nodeRight))
 	      newType = Nav;
 	  }
@@ -72,6 +85,34 @@ namespace MFM {
 	return Nav;
       }
 
+
+    ULAMCLASSTYPE lclass = m_state.getUlamTypeByIndex(lt)->getUlamClass();
+    if(lclass == UC_ELEMENT || lt == UAtom)
+      {
+	std::ostringstream msg;
+	msg << "Non-primitive type: <";
+	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << "> is not supported for LHS bitwise shift operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav;
+      }
+
+    ULAMCLASSTYPE rclass = m_state.getUlamTypeByIndex(rt)->getUlamClass();
+    if(rclass == UC_ELEMENT || rt == UAtom)
+      {
+	std::ostringstream msg;
+	msg << "Non-primitive type: <";
+	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	msg << "> is not supported for RHS bitwise shift operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav;
+      }
+
+    if(lclass == UC_QUARK)
+      lt = Int;
+
     UTI newType = Nav; //init
     // all shift operations are performed as lhs type
     if(m_state.isScalar(lt) && m_state.isScalar(rt))
@@ -96,7 +137,8 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Bool is not currently supported for bitwise shift operator";
-	    msg << getName() << "; suggest casting " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	    msg << getName() << "; suggest casting ";
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
 	    msg << " to Bits";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
