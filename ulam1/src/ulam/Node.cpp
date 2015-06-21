@@ -1418,8 +1418,8 @@ namespace MFM {
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
     if(uticr == UTIC_SAME)
       {
-	//happens too often with Bool.1.-1 for some reason; and Quark toInt special case
-	// handle quietly
+	//happens too often with Bool.1.-1 for some reason;
+	//and Quark toInt special case -- handle quietly
 	rtnNode = node;
 	return true;
       }

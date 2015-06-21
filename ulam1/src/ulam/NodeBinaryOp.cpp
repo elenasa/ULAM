@@ -258,29 +258,31 @@ namespace MFM {
   {
     bool rtnOK = true;
     ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
-    s32 nbs = m_state.getBitSize(newType);
 
     //Int to Unsigned of any size is unsafe!
     if(ntypEnum == Unsigned)
       {
-	if(ltypEnum != ntypEnum && !m_nodeLeft->isAConstant())
+	//if(ltypEnum != ntypEnum && !m_nodeLeft->isAConstant())
+	if(ltypEnum == Int && !m_nodeLeft->isAConstant())
 	  rtnOK = false;
 
-	if(rtypEnum != ntypEnum && !m_nodeRight->isAConstant())
+	if(rtypEnum == Int && !m_nodeRight->isAConstant())
 	  rtnOK = false;
       }
     else if(ntypEnum == Int)
       {
+	s32 nbs = m_state.getBitSize(newType);
+
 	// Unsigned to Int gets an error if the bitsizes are "unsafe"
 	// (including the SAME size);
-	if(ltypEnum != ntypEnum && !m_nodeLeft->isAConstant() && m_state.getBitSize(lt) >= nbs)
+	if(ltypEnum == Unsigned && !m_nodeLeft->isAConstant() && m_state.getBitSize(lt) >= nbs)
 	  rtnOK = false;
 
-	if(rtypEnum != ntypEnum && !m_nodeRight->isAConstant() && m_state.getBitSize(rt) >= nbs)
+	if(rtypEnum == Unsigned && !m_nodeRight->isAConstant() && m_state.getBitSize(rt) >= nbs)
 	  rtnOK = false;
       }
-    else
-      assert(0);
+    //else
+      //assert(0);
 
     if(!rtnOK)
       {
