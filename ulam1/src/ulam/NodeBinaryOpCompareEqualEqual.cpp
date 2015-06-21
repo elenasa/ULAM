@@ -34,6 +34,28 @@ namespace MFM {
   } //methodNameForCodeGen
 
 
+  UTI NodeBinaryOpCompareEqualEqual::calcNodeType(UTI lt, UTI rt)
+  {
+    if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
+      return Nav; //short-circuit
+
+    UTI newType = Nav; //init
+    //if either is Bits, compare == as Bits; o.w. use 'ordered' compare rules.
+    if(!(m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum() == Bits || m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum() == Bits))
+      return NodeBinaryOpCompare::calcNodeType(lt,rt);
+
+    if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
+      {
+	s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	if(checkAnyConstantsFit(lt, rt, newType))
+	  {
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	    newType = m_state.makeUlamType(newkey, Bits);
+	  }
+      }
+    return newType;
+  } //calcNodeType
+
   UlamValue NodeBinaryOpCompareEqualEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;
