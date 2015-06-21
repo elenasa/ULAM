@@ -73,16 +73,25 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incompatible Bits type for binary operator";
-	    msg << getName() << ". Suggest casting to an ordered type first";
+	    msg << getName() << ". Suggest casting to a numeric type first";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return Nav;
 	  }
 
-	// treat Bool and Unary using Unsigned rules
-	if(ltypEnum == Bool || ltypEnum == Unary)
+	if(ltypEnum == Bool || rtypEnum == Bool)
+	  {
+	    std::ostringstream msg;
+	    msg << "Incompatible Bool type for binary operator";
+	    msg << getName() << ". Suggest casting to a numeric type first";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return Nav;
+	  }
+
+	// treat Unary using Unsigned rules
+	if(ltypEnum == Unary)
 	  ltypEnum = Unsigned;
 
-	if(rtypEnum == Bool || rtypEnum == Unary)
+	if(rtypEnum == Unary)
 	  rtypEnum = Unsigned;
 
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
