@@ -99,8 +99,8 @@ namespace MFM{
     //common helpers for calcNodeType:
     bool checkScalarTypesOnly(UTI lt, UTI rt);
     s32 maxBitsize(UTI lt, UTI rt);
-    bool checkAnyConstantsFit(UTI lt, UTI rt, UTI& newType);
-    bool checkForMixedSignsOfVariables(UTI lt, UTI rt, UTI& newType);
+    bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
+    bool checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType);
   };
 
 }

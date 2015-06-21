@@ -195,7 +195,7 @@ namespace MFM {
     return ( lconst == rconst ? (lbs > rbs ? lbs : rbs) : (!lconst ? lbs : rbs));
   } //maxBitsize
 
-  bool NodeBinaryOp::checkAnyConstantsFit(UTI lt, UTI rt, UTI& newType)
+  bool NodeBinaryOp::checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType)
   {
     bool rtnOK = true;
     bool lconst = m_nodeLeft->isAConstant();
@@ -206,11 +206,11 @@ namespace MFM {
 	bool lready = lconst && m_nodeLeft->isReadyConstant();
 	bool rready = rconst && m_nodeRight->isReadyConstant();
 
-	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 
 	// cast constant to unsigned variable type if mixed types
-	if((ltypEnum == Unsigned && !lconst) || (rtypEnum == Unsigned && !rconst))
+	//	if((ltypEnum == Unsigned && !lconst) || (rtypEnum == Unsigned && !rconst))
+	if((ltypEnum != ntypEnum && !lconst) || (rtypEnum != ntypEnum && !rconst))
 	  {
 	    s32 newbs = m_state.getBitSize(newType);
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
@@ -254,11 +254,9 @@ namespace MFM {
     return rtnOK;
   } //checkAnyConstantsFit
 
-  bool NodeBinaryOp::checkForMixedSignsOfVariables(UTI lt, UTI rt, UTI& newType)
+  bool NodeBinaryOp::checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType)
   {
     bool rtnOK = true;
-    ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
     ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
     s32 nbs = m_state.getBitSize(newType);
 
