@@ -37,7 +37,7 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
-    if(leftType == Nav || rightType == Nav || !m_state.isComplete(leftType) || !m_state.isComplete(rightType))
+    if(!m_state.isComplete(leftType) || !m_state.isComplete(rightType))
       {
 	setNodeType(Nav);
 	return Nav; //not quietly
@@ -86,14 +86,144 @@ namespace MFM {
     //cast RHS if necessary
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
-	if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
-	  newType = Nav; //error
+	if(checkForSafeImplicitCasting(leftType, rightType, newType)) //ref
+	  {
+	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	      newType = Nav; //error
+	  }
       }
 
     setNodeType(newType);
     setStoreIntoAble(true);
     return newType;
   } //checkAndLabelType
+
+  bool NodeBinaryOpEqual::checkForSafeImplicitCasting(UTI lt, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+    if(!NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
+      rtnOK = false;
+    else if(!NodeBinaryOp::checkForMixedSignsOfVariables(ltypEnum, rtypEnum, lt, rt, newType))
+      rtnOK = false;
+    else if(!checkNonBoolToBoolCast(rtypEnum, rt, newType))
+      rtnOK = false;
+    else if(!checkFromBitsCast(rtypEnum, rt, newType))
+      rtnOK = false;
+    else if(!checkToUnaryCast(rtypEnum, rt, newType))
+      rtnOK = false;
+    else if(!checkBitsizeOfCastLast(rt, newType))
+      rtnOK = false;
+    return rtnOK;
+  } //checkForSafeImplicitCasting
+
+  bool NodeBinaryOpEqual::checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+    if(ntypEnum != Bool)
+      return true;
+
+    bool rtnOK = false;
+    if(rtypEnum != ntypEnum)
+      {
+	if(m_state.getBitSize(rt) == 1 && (rtypEnum == Unsigned || rtypEnum == Unary))
+	  rtnOK = true;
+      }
+    else
+      rtnOK = true; //bools of any size are safe to cast
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to implicitly cast a non-Bool type, RHS: ";
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << ", to a Bool type: ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " for binary operator" << getName() << " without casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkNonBoolToBoolCast
+
+  bool NodeBinaryOpEqual::checkFromBitsCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    bool rtnOK = false;
+    if(rtypEnum == Bits)
+      {
+	if(rt == newType)
+	  rtnOK = true;
+      }
+    else
+      rtnOK = true; //not casting From Bits
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to implicitly cast from a Bits type, RHS: ";
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << ", to type: ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " for binary operator" << getName() << " without casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkFromBitsCast
+
+  bool NodeBinaryOpEqual::checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    UlamType * nit = m_state.getUlamTypeByIndex(newType);
+    ULAMTYPE ntypEnum = nit->getUlamTypeEnum();
+    if(ntypEnum != Unary)
+      return true; //not to unary
+
+    bool rtnOK = false;
+    UlamType * rit = m_state.getUlamTypeByIndex(rt);
+    if(!rit->isMinMaxAllowed() && (rtypEnum != Bits))
+      {
+	rtnOK = false;
+      }
+    else
+      {
+	if((rit->getMax() <= nit->getMax()) && (rit->getMin() == 0))
+	  rtnOK = true;
+      }
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to implicitly cast from RHS type: ";
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << ", to Unary type: ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " for binary operator" << getName() << " without casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkToUnaryCast
+
+  bool NodeBinaryOpEqual::checkBitsizeOfCastLast(UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    s32 rbs = m_state.getBitSize(rt);
+    s32 nbs = m_state.getBitSize(newType);
+    if(rbs > nbs)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to implicitly cast from a larger bitsize, RHS type: ";
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << ", to a smaller bitsize type: ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " for binary operator" << getName() << " without casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+	rtnOK = false;
+      }
+    return rtnOK;
+  } //checkBitsizeOfCastLast
 
   UTI NodeBinaryOpEqual::calcNodeType(UTI lt, UTI rt)
   {

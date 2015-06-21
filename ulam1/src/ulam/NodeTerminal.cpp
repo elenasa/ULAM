@@ -236,7 +236,7 @@ namespace MFM {
     if(!fit->isMinMaxAllowed() && (fit->getUlamTypeEnum() != Bits))
       {
 	std::ostringstream msg;
-	msg << "Cannot check: <" << m_constant.uval << ">, fits into a non-arithmetic type: ";
+	msg << "Cannot check: <" << m_constant.uval << ">, fits into a non-numeric type: ";
 	msg << m_state.getUlamTypeNameByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	return false;

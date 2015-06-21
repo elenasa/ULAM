@@ -15,13 +15,14 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
+      //./A.ulam:9:4: ERROR: Attempting to implicitly cast a non-Bool type, RHS: Unsigned(3), to a Bool type: Bool(3) for binary operator= without casting.
       //./A.ulam:10:8: ERROR: Incompatible Bool type for binary operator+. Suggest casting to a numeric type first.
       //here's what happens when we try to add bools and save in a bool;
       // note1: cast as a unary the sum is true
       // note2: cast as an Int(32), the exit status is 1
       //bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\n Bool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = a + b;\ns.print(c);\n d = c;\ns.print(d);\n return c;\n }\n }\n");
 
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = (Unsigned(3)) a + (Unsigned(3)) b;\n s.print(c);\n d = c;\ns.print(d);\n return c;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = (Bool(3)) ((Unsigned(3)) a + (Unsigned(3)) b);\n s.print(c);\n d = c;\ns.print(d);\n return c;\n }\n }\n");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

@@ -23,7 +23,14 @@ namespace MFM {
 	nodeType = Nav;
       }
 
-    if(!nut->isScalar())
+    if(enodetyp == Bool)
+      {
+	// can happen with op-equal operations when both sides are the same type
+	MSG(getNodeLocationAsString().c_str(), "Arithmetic Operations are invalid on 'Bool' type", ERR);
+	nodeType = Nav;
+      }
+
+    if(nodeType != Nav && !nut->isScalar())
       {
 	std::ostringstream msg;
 	msg << "Non-scalars require a loop for operator" << getName();
