@@ -53,16 +53,13 @@ namespace MFM {
   UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)
   {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
-      {
-	return Nav;
-      }
+      return Nav;
 
     UTI newType = Nav; //init
-
     // all operations are performed as Int(32) or Unsigned(32) in CastOps.h
-    // if one is unsigned, and the other isn't -> output warning,
-    // but Signed Int wins, unless its a constant.
-    // Class (i.e. quark) + anything goes to Int.32
+    // if one is unsigned, and the other isn't -> output error if unsafe;
+    // Signed Int wins, unless its a constant.
+    // Class (i.e. quark) + anything goes to Int(32)
     if(checkScalarTypesOnly(lt, rt))
       {
 	s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
@@ -72,8 +69,7 @@ namespace MFM {
 	if(ltypEnum == Bits || rtypEnum == Bits)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incompatible Bits type ";
-	    msg << " for binary comparison operator";
+	    msg << "Incompatible Bits type for comparison operator";
 	    msg << getName() << ". Suggest casting to an ordered type first";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return Nav;
@@ -96,10 +92,10 @@ namespace MFM {
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
 	newType = m_state.makeUlamType(newkey, Int);
 
-	if(!NodeBinaryOp::checkAnyConstantsFit(lt, rt, newType))
+	if(!NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
 	  return newType; //outputs errors if not ok, Nav returned
 
-	NodeBinaryOp::checkForMixedSignsOfVariables(lt, rt, newType); //ref
+	NodeBinaryOp::checkForMixedSignsOfVariables(ltypEnum, rtypEnum, lt, rt, newType); //ref
       } //both scalars
     return newType;
   } //calcNodeType
@@ -119,6 +115,9 @@ namespace MFM {
 	break;
       case Unsigned:
 	methodname << "Unsigned";
+	break;
+      case Bits:
+	methodname << "Bits";
 	break;
       default:
 	assert(0);

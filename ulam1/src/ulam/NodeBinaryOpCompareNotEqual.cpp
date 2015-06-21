@@ -37,18 +37,21 @@ namespace MFM {
       return Nav; //short-circuit
 
     UTI newType = Nav; //init
+    ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+
     //if either is Bits, compare == as Bits; o.w. use 'ordered' compare rules.
-    if(!(m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum() == Bits || m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum() == Bits))
+    if(!(ltypEnum == Bits || rtypEnum == Bits))
       return NodeBinaryOpCompare::calcNodeType(lt,rt);
 
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
 	s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
-	if(checkAnyConstantsFit(lt, rt, newType))
-	  {
-	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
-	    newType = m_state.makeUlamType(newkey, Bits);
-	  }
+	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	newType = m_state.makeUlamType(newkey, Bits);
+	UTI savenewtype = newType;
+	if(checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
+	  newType = savenewtype;
       }
     return newType;
   } //calcNodeType
@@ -75,6 +78,8 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareNotEqUnary32(ldata, rdata, len), nodelen);
 	break;
       case Bits:
+	rtnUV = UlamValue::makeImmediate(nuti, _BinOpCompareNotEqBits32(ldata, rdata, len), nodelen);
+	break;
       default:
 	assert(0);
 	break;
@@ -104,6 +109,8 @@ namespace MFM {
 	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareNotEqUnary64(ldata, rdata, len), nodelen);
 	break;
       case Bits:
+	rtnUV = UlamValue::makeImmediateLong(nuti, _BinOpCompareNotEqBits64(ldata, rdata, len), nodelen);
+	break;
       default:
 	assert(0);
 	break;
