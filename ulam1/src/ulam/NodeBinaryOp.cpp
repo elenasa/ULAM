@@ -176,7 +176,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameByIndex(lt).c_str();
 	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
 	msg << " for binary operator";
-	msg << getName();
+	msg << getName() << " ; Suggest writing a loop";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return rtnOK;
@@ -231,19 +231,14 @@ namespace MFM {
 	    if(lready || rready)
 	      {
 		std::ostringstream msg;
-		msg << "Attempting to fit a constant <";
+		msg << "Constant <";
 		if(lready)
-		  {
-		    msg << m_nodeLeft->getName();
-		    msg <<  "> into a smaller bit size type, RHS: ";
-		    msg<< m_state.getUlamTypeNameByIndex(newType).c_str();
-		  }
+		  msg << m_nodeLeft->getName();
 		if(rready)
-		  {
-		    msg << m_nodeRight->getName();
-		    msg <<  "> into a smaller bit size type, LHS: ";
-		    msg << m_state.getUlamTypeNameByIndex(newType).c_str(); //was lt
-		  }
+		  msg << m_nodeRight->getName();
+
+		msg <<  "> is not representable as: ";
+		msg<< m_state.getUlamTypeNameByIndex(newType).c_str();
 		msg << ", for binary operator" << getName() << " ";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		newType = Nav; //for error
@@ -290,7 +285,7 @@ namespace MFM {
 	msg << "Attempting to mix signed and unsigned types, LHS: ";
 	msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
 	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << ", of an unsafe sized variable, to type: ";
+	msg << ", of an unsafe sized variable, to: ";
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for binary operator" << getName() << " without casting";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
