@@ -18,14 +18,12 @@ namespace MFM {
       //Unsigned Arg: 7
       //Unsigned Arg: 7
 
-      //Exit status: 3\nUe_Foo { System s();  Bool(3) sp(false);  Unary(4) m_i(3);  Unary(4) m_j(4);  Bits(4) m_bits(7);  Int(4) m_k(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 cast )check = m_i m_bar ( )toInt . cast cast cast cast = m_j 7 cast = m_bits m_i cast = m_k m_bits cast = s ( m_i cast )print . s ( m_j cast )print . s ( m_bits cast )print . s ( m_k cast )print . m_i cast return } }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\nUq_System { <NOMAIN> }
-      return std::string("Exit status: 3\nUe_Foo { System s();  Bool(3) sp(false);  Unary(4) m_i(3);  Unary(4) m_j(4);  Bits(4) m_bits(7);  Int(4) m_k(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 )check = m_i m_bar ( )toInt . cast cast cast = m_j 7 cast = m_bits m_i cast = m_k m_bits cast = s ( m_i cast )print . s ( m_j cast )print . s ( m_bits cast )print . s ( m_k cast )print . m_i cast return } }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 3\nUe_Foo { System s();  Unary(4) m_i(3);  Unary(4) m_j(4);  Bits(4) m_bits(7);  Int(4) m_k(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 )check = m_i m_bar ( )toInt . cast cast = m_j 7 cast = m_bits m_i cast = m_k m_bits cast = s ( m_i cast )print . s ( m_j cast )print . s ( m_bits cast )print . s ( m_k cast )print . m_i cast return } }\nUq_Bar { Bool(1) val_b[3](false,true,true);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nUnary(4) m_i;\nUnary(4) m_j;\nBits(4) m_bits;\nInt(4) m_k;\nBar m_bar;\nBar check(Int v) {\nBar b;\nb.val_b[1] = true;\nreturn b; }\nInt test() {\nm_bar = check(1);\nm_i = (Unary)((Int) m_bar);\nm_j = (Unary(4)) 7;\nm_bits = m_i;\nm_k = m_bits;\nreturn m_i;}\n}\n");
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nuse System;\nelement Foo {\nSystem s;\nBool(3) sp;\nUnary(4) m_i;\nUnary(4) m_j;\nBits(4) m_bits;\nInt(4) m_k;\nBar m_bar;\nBar check(Int v) {\nBar b;\nb.val_b[1] = true;\nreturn b; }\nInt test() {\nm_bar = check(1);\nm_i = (Unary)((Int) m_bar);\nm_j = (Unary(4)) 7;\nm_bits = m_i;\nm_k = m_bits;\ns.print((Unsigned) m_i);\ns.print((Unsigned) m_j);\ns.print((Unsigned) m_bits);\ns.print((Unsigned) m_k);\nreturn m_i;}\n}\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nuse System;\nelement Foo {\nSystem s;\nUnary(4) m_i;\nUnary(4) m_j;\nBits(4) m_bits;\nInt(4) m_k;\nBar m_bar;\nBar check(Int v) {\nBar b;\nb.val_b[1] = true;\nreturn b; }\nInt test() {\nm_bar = check(1);\nm_i = (Unary(4))((Int) m_bar);\nm_j = (Unary(4)) 7;\nm_bits = m_i;\nm_k = (Int(4)) m_bits;\ns.print((Unsigned) m_i);\ns.print((Unsigned) m_j);\ns.print((Unsigned) m_bits);\ns.print((Unsigned) m_k);\nreturn m_i;}\n}\n");
 
       //simplified test() for debug..
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nUnary(4) m_i;\nUnary(4) m_j;\nBits(4) m_bits;\nInt(4) m_k;\nBar m_bar;\nBar check(Int v) {\nBar b;\nb.val_b[1] = true;\nreturn b; }\nInt test() {\nm_i = (Unary)((Int) m_bar);\nreturn m_i;}\n}\n");

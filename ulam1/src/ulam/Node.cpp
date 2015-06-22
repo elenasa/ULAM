@@ -1473,6 +1473,8 @@ namespace MFM {
 		//redo check and type labeling; error msg if not same
 		UTI newType = rtnNode->checkAndLabelType();
 		doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
+		if(doErrMsg && isExplicit)
+		  return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
 	      }
 	  }
 	else
@@ -1502,9 +1504,11 @@ namespace MFM {
 	    else
 	      rtnNode = mselectNode; //replace right node with new branch
 
-	    //redo check and type labeling; error msg if not same
+	    //redo check and type labeling; error msg if not same, unless explicit
 	    UTI newType = rtnNode->checkAndLabelType();
 	    doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
+	    if(doErrMsg && isExplicit)
+	      return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
 	  }
       }
     else if (nclasstype == UC_ELEMENT)

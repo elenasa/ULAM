@@ -12,7 +12,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       // return element
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use Bar;\n element Foo {\n Int(4) m_i;\n Bar m_bar;\n Foo check(Int i) {\n Foo f;\n f.m_i = i;\n return f;\n }\n Int test() {\n Foo f;\n f = f.check(7);\n return f.m_i;\n }\n }\n"); //tests offsets, but too complicated data members in Foo for memberselect
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use Bar;\n element Foo {\n Int(4) m_i;\n Bar m_bar;\n Foo check(Int i) {\n Foo f;\n f.m_i = (Int(4)) i;\n return f;\n }\n Int test() {\n Foo f;\n f = f.check(7);\n return f.m_i;\n }\n }\n"); //tests offsets, but too complicated data members in Foo for memberselect
 
       bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = 0;\n }\n }\n");
 

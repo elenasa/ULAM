@@ -14,7 +14,7 @@ namespace MFM {
       //informed by error/t3417_
       //no binaryop+ even for packed array (site1 + site2).
       //./A.ulam:15:23: ERROR: Incompatible (nonscalar) types, LHS: Int(3)[10], RHS: Int(3)[10] for binary operator+.
-      bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int(3) BigSite[10];\nInt func(BigSite sarr) {\n return sarr[9];\n}\n BigSite func2() {\n BigSite s;\nfor(Int i = 0; i < 10; ++i){\n s[i] = i;\n}\n return s;\n}\n Int test(){\n BigSite site = func2();\n BigSite site2 = site /*+ site2*/;\n return func(site);\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","element A {\ntypedef Int(3) BigSite[10];\nInt func(BigSite sarr) {\n return sarr[9];\n}\n BigSite func2() {\n BigSite s;\nfor(Int i = 0; i < 10; ++i){\n s[i] = (Int(3)) i;\n}\n return s;\n}\n Int test(){\n BigSite site = func2();\n BigSite site2 = site /*+ site2*/;\n return func(site);\n }\n }\n");
 
       if(rtn1)
 	return std::string("A.ulam");

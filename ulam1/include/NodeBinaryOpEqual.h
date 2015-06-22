@@ -82,7 +82,7 @@ namespace MFM{
     bool checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
     bool checkFromBitsCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
     bool checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-    bool checkBitsizeOfCastLast(UTI rt, UTI& newType);
+    bool checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
   };
 
 }

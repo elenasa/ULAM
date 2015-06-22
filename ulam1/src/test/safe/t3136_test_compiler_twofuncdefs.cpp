@@ -12,9 +12,8 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //bool rtn1 = fms->add("A.ulam","element A { Int times(Int m, Int n) { Int e; while( m-=1 ) e += n; return e; } Int max(Int a, Int b) { return (a - b); } Int x, y; Int test(){ y = x = times(4,5); y = max(x,x); return y; } }");
       // try overload max with Unsigned args; let x and y be Unsigned
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nInt times(Int m, Int n) {\nInt e;\nwhile( m-=1 )\n e += n;\n return e;\n }\nInt max(Int a, Int b) {\n return (a - b);\n}\nInt max(Unsigned a, Unsigned b){\n return (a - b);\n}\nBool(7) b;\nUnsigned x, y;\nInt test(){\ny = x = times(4,5);\ns.print(x);\ny = max(x,x);\ns.print(y);\nreturn y;\n}\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nInt times(Int m, Int n) {\nInt e;\nwhile( m-=1 )\n e += n;\n return e;\n }\nInt max(Int a, Int b) {\n return (a - b);\n}\nInt max(Unsigned a, Unsigned b){\n return (a - b);\n}\nBool(7) b;\nUnsigned x, y;\nInt test(){\ny = x = (Unsigned) times(4,5);\ns.print(x);\ny = (Unsigned) max(x,x);\ns.print(y);\nreturn y;\n}\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
