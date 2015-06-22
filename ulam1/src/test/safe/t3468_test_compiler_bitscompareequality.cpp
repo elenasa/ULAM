@@ -12,7 +12,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       //Bits do not saturate!!
-      bool rtn1 = fms->add("A.ulam","element A {\nBool a,b;\n Bits(3) u, v;\n Int test() {\n v = 7u;\n u = 9u;\na = (u == v);\n b = (u != v);\n return u == 7u;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","element A {\nBool a,b;\n Bits(3) u, v;\n Int test() {\n v = 7u;\n u = (Bits(3)) 9u;\na = (u == v);\n b = (u != v);\n return u == 7u;\n }\n }\n");
 
       if(rtn1)
 	return std::string("A.ulam");

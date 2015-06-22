@@ -113,7 +113,7 @@ namespace MFM {
       rtnOK = false;
     else if(!checkToUnaryCast(rtypEnum, rt, newType))
       rtnOK = false;
-    else if(!checkBitsizeOfCastLast(rt, newType))
+    else if(!checkBitsizeOfCastLast(rtypEnum, rt, newType))
       rtnOK = false;
     return rtnOK;
   } //checkForSafeImplicitCasting
@@ -125,7 +125,7 @@ namespace MFM {
       return true;
 
     bool rtnOK = false;
-    if(rtypEnum != ntypEnum)
+    if(!m_nodeRight->isAConstant() && rtypEnum != ntypEnum)
       {
 	if(m_state.getBitSize(rt) == 1 && (rtypEnum == Unsigned || rtypEnum == Unary))
 	  rtnOK = true;
@@ -180,16 +180,14 @@ namespace MFM {
       return true; //not to unary
 
     bool rtnOK = false;
-    UlamType * rit = m_state.getUlamTypeByIndex(rt);
-    if(!rit->isMinMaxAllowed() && (rtypEnum != Bits))
+    if(!m_nodeRight->isAConstant())
       {
-	rtnOK = false;
-      }
-    else
-      {
+	UlamType * rit = m_state.getUlamTypeByIndex(rt);
 	if((rit->getMax() <= nit->getMax()) && (rit->getMin() == 0))
 	  rtnOK = true;
       }
+    else
+      rtnOK = true;
 
     if(!rtnOK)
       {
@@ -205,22 +203,26 @@ namespace MFM {
     return rtnOK;
   } //checkToUnaryCast
 
-  bool NodeBinaryOpEqual::checkBitsizeOfCastLast(UTI rt, UTI& newType)
+  bool NodeBinaryOpEqual::checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
   {
     bool rtnOK = true;
-    s32 rbs = m_state.getBitSize(rt);
-    s32 nbs = m_state.getBitSize(newType);
-    if(rbs > nbs)
+    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+    // constants already checked; Any size Bool to Bool safe.
+    // Atom may be larger than an element.
+    if(!m_nodeRight->isAConstant() && (ntypEnum != Bool && rtypEnum != Bool) && (rtypEnum != UAtom))
       {
-	std::ostringstream msg;
-	msg << "Attempting to implicitly cast from a larger bitsize, RHS type: ";
-	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << ", to a smaller bitsize type: ";
-	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
-	msg << " for binary operator" << getName() << " without casting";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
-	rtnOK = false;
+	if(m_state.getBitSize(rt) > m_state.getBitSize(newType))
+	  {
+	    std::ostringstream msg;
+	    msg << "Attempting to implicitly cast from a larger bitsize, RHS type: ";
+	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << ", to a smaller bitsize type: ";
+	    msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	    msg << " for binary operator" << getName() << " without casting";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	    rtnOK = false;
+	  }
       }
     return rtnOK;
   } //checkBitsizeOfCastLast

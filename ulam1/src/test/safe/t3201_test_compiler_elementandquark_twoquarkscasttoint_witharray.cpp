@@ -30,7 +30,7 @@ namespace MFM {
       // fixed a bug that didn't address different int bit sizes automatically during casting
 
       // test with array data member (lhs), and return array item[1]. [currently not supported by simulator]
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\nuse Bar;\nelement Foo {\nSystem s;\nBar bar1;\nBar bar2;\nInt(4) i[2];\nInt test(){\nInt(2) d;\nd = 1;\nbar1.x = d;\nbar1.y = 2;\nbar2.x = 3;\nbar2.y = 0;\ni[0] = bar1;\ni[1] = bar2;\ns.print((Unsigned) bar1.x);\ns.print((Unsigned) bar1.y);\ns.print((Unsigned) bar2.x);\ns.print((Unsigned) bar2.y);\n\ns.print(i[0]);\ns.print(i[1]);\n\nreturn i[1];}\n}\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\nuse Bar;\nelement Foo {\nSystem s;\nBar bar1;\nBar bar2;\nInt(4) i[2];\nInt test(){\nInt(2) d;\nd = 1;\nbar1.x = (Unsigned(3)) d;\nbar1.y = 2;\nbar2.x = 3;\nbar2.y = 0;\ni[0] = (Int(4)) bar1;\ni[1] = (Int(4)) bar2;\ns.print((Unsigned) bar1.x);\ns.print((Unsigned) bar1.y);\ns.print((Unsigned) bar2.x);\ns.print((Unsigned) bar2.y);\n\ns.print(i[0]);\ns.print(i[1]);\n\nreturn i[1];}\n}\n");
 
       //note: don't have <<2, so substituted *4; got it now! changes the answer too..
       //bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nreturn (x * 4u) + y;\n}\n}\n");

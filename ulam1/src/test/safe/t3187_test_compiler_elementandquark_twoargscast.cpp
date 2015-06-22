@@ -15,7 +15,7 @@ namespace MFM {
       bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use C2D;\nuse System;\n element Foo {\nSystem s;\n Int m_idx;\n Int(6) m_x, m_y;\n Int func(Int i, Int j) {\n C2D c;\n  c.init(i,j);\n return c.getIndex(0,0);\n }\n Int test() {\n m_x = 9;\n m_y = 4;\n  m_idx = func((Int) m_x,(Int) m_y);\ns.print(m_idx);\ns.print((Int) m_x * m_y);\n return (m_x * m_y);\n }\n }\n"); //cast args; exit status (31)
 
       //note: getIndex calculation done as Int(32) since args are Ints.
-      bool rtn2 = fms->add("C2D.ulam","quark C2D {\n Int(6) m_width;\n Int(6) m_height;\n  Void init(Int x, Int y) {\n m_width = x;\n m_height = y;\n return;\n }\n Void init() {\n m_width = 9;\n m_height = 4;\n return;\n /* event window overload */ }\n Int getIndex(Int a, Int b){\n return ((m_height-b) * m_width + (m_height-a));\n }\n }\n");
+      bool rtn2 = fms->add("C2D.ulam","quark C2D {\n Int(6) m_width;\n Int(6) m_height;\n  Void init(Int x, Int y) {\n m_width = (Int(6)) x;\n m_height = (Int(6)) y;\n return;\n }\n Void init() {\n m_width = 9;\n m_height = 4;\n return;\n /* event window overload */ }\n Int getIndex(Int a, Int b){\n return ((m_height-b) * m_width + (m_height-a));\n }\n }\n");
 
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
 

@@ -11,7 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","element A { typedef Int(16) Foo [2]; Foo foo(Bool b) { Foo m; if(b) m[0]=1; else m[0]=2; return m;} Foo foo(Int i) { Foo e; e[1] = 3; e[0] = i; return e; } Int test() { Bool mybool; mybool= true;\nd = foo(mybool); d = foo(6);\n return d[0]; /* match return type */}\nFoo d; }");  // want d[0] == 6.
+      bool rtn1 = fms->add("A.ulam","element A {\n typedef Int(16) Foo [2];\n Foo foo(Bool b) {\n Foo m;\n if(b) m[0]=1;\n else m[0]=2;\n return m;\n} Foo foo(Int i) {\n Foo e;\n e[1] = 3;\n e[0] = (Int(16)) i;\n return e;\n } Int test() {\n Bool mybool;\n mybool= true;\nd = foo(mybool);\n d = foo(6);\n return d[0]; /* match return type */\n}\nFoo d;\n }\n");  // want d[0] == 6.
 
 
       if(rtn1)

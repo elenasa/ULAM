@@ -6,13 +6,18 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 2\nUe_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(2);  Int(32) test() {  a 3 cast = b 2 cast = d a a b & = cast = s ( a )print . s ( d )assert . a cast return } }\nUq_System { <NOMAIN> }\n");
+      /* gen code output:
+	 Int(3) Arg: 0x2
+	 assert: arg is 1
+	 after assert's abort: arg is 1
+      */
+      return std::string("Exit status: 2\nUe_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(2);  Int(32) test() {  a 3 cast = b 2 cast = a a b & = s ( a )print . d a cast = s ( d )assert . a cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
 
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool d;\nInt(3) a, b;\nInt test() {\na = 3;\nb = 2;\nd = a = a & b;\ns.print(a);\ns.assert(d);\nreturn a;\n}\n}\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool d;\nInt(3) a, b;\nInt test() {\na = 3;\nb = 2;\na = a & b;\ns.print(a);\n d = (Bool) a;\n s.assert(d);\nreturn a;\n}\n}\n");
 
       // without system for testing
       //bool rtn1 = fms->add("A.ulam","ulam 1;\n element A {\nBool d;\nInt(3) a, b;\n Int test() {\na = 3;\nb = 2;\nd = a = a & b;\nreturn a;\n}\n}\n");
