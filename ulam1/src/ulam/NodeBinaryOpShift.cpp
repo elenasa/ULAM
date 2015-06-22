@@ -23,7 +23,7 @@ namespace MFM {
       {
 	if(newType != leftType)
 	  {
-	    if(!makeCastingNode(m_nodeLeft, Int, m_nodeLeft))
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      newType = Nav;
 	  }
 
@@ -85,7 +85,6 @@ namespace MFM {
 	return Nav;
       }
 
-
     ULAMCLASSTYPE lclass = m_state.getUlamTypeByIndex(lt)->getUlamClass();
     if(lclass == UC_ELEMENT || lt == UAtom)
       {
@@ -110,12 +109,13 @@ namespace MFM {
 	return Nav;
       }
 
-    if(lclass == UC_QUARK)
-      lt = Int;
+    //if(lclass == UC_QUARK)
+    //  lt = Int;
 
     UTI newType = Nav; //init
+    // change! lhs must be Bits..up to ulam programmer to cast
     // all shift operations are performed as lhs type
-    if(m_state.isScalar(lt) && m_state.isScalar(rt))
+    if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
 	newType = lt;
 
@@ -131,32 +131,25 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	  }
 
-	//if Bool ERR.
-	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-	if(etyp == Bool)
+	//if not Bits ERR, except for constants
+	bool lconst = m_nodeLeft->isAConstant();
+	if(!lconst)
 	  {
-	    std::ostringstream msg;
-	    msg << "Bool is not currently supported for bitwise shift operator";
-	    msg << getName() << "; suggest casting ";
-	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-	    msg << " to Bits";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
+	    ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+	    if(etyp != Bits)
+	      {
+		std::ostringstream msg;
+		msg << "Bits is the supported type for bitwise shift operator";
+		msg << getName() << "; Suggest casting ";
+		msg << m_state.getUlamTypeNameByIndex(lt).c_str();
+		msg << " to Bits";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav;
+	      }
 	  }
-
+	else
+	  newType = Bits; //auto for constants, downhill cast.
       } //both scalars
-    else
-      {
-	//array op scalar: defer since the question of matrix operations
-	// is unclear at this time.
-	std::ostringstream msg;
-	msg << "Unsupported (nonscalar) types, LHS: ";
-	msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << " for bitwise shift operator";
-	msg << getName() << " ; suggest writing a loop";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
     return newType;
   } //calcNodeType
 

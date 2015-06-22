@@ -76,13 +76,12 @@ namespace MFM{
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len); //stub
     virtual UTI calcNodeType(UTI lt, UTI rt);  //stub
 
+    virtual bool checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
+    virtual bool checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
+    virtual bool checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
+
   private:
-    //common helpers before casting rhs to lhs
-    bool checkForSafeImplicitCasting(UTI leftType, UTI rightType, UTI& newType);
-    bool checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-    bool checkFromBitsCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-    bool checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-    bool checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
+
   };
 
 }

@@ -98,26 +98,6 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
-  bool NodeBinaryOpEqual::checkForSafeImplicitCasting(UTI lt, UTI rt, UTI& newType)
-  {
-    bool rtnOK = true;
-    ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
-    if(!NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
-      rtnOK = false;
-    else if(!NodeBinaryOp::checkForMixedSignsOfVariables(ltypEnum, rtypEnum, lt, rt, newType))
-      rtnOK = false;
-    else if(!checkNonBoolToBoolCast(rtypEnum, rt, newType))
-      rtnOK = false;
-    else if(!checkFromBitsCast(rtypEnum, rt, newType))
-      rtnOK = false;
-    else if(!checkToUnaryCast(rtypEnum, rt, newType))
-      rtnOK = false;
-    else if(!checkBitsizeOfCastLast(rtypEnum, rt, newType))
-      rtnOK = false;
-    return rtnOK;
-  } //checkForSafeImplicitCasting
-
   bool NodeBinaryOpEqual::checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
   {
     ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
@@ -136,41 +116,17 @@ namespace MFM {
     if(!rtnOK)
       {
 	std::ostringstream msg;
-	msg << "Attempting to implicitly cast a non-Bool type, RHS: ";
+	msg << "Converting from "; //non-Bool
 	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << ", to a Bool type: ";
+	msg << " to "; //Bool
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
-	msg << " for binary operator" << getName() << " without casting";
+	msg << " requires explicit casting";
+	msg << " for binary operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
     return rtnOK;
   } //checkNonBoolToBoolCast
-
-  bool NodeBinaryOpEqual::checkFromBitsCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
-  {
-    bool rtnOK = false;
-    if(rtypEnum == Bits)
-      {
-	if(rt == newType)
-	  rtnOK = true;
-      }
-    else
-      rtnOK = true; //not casting From Bits
-
-    if(!rtnOK)
-      {
-	std::ostringstream msg;
-	msg << "Attempting to implicitly cast from a Bits type, RHS: ";
-	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << ", to type: ";
-	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
-	msg << " for binary operator" << getName() << " without casting";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
-      }
-    return rtnOK;
-  } //checkFromBitsCast
 
   bool NodeBinaryOpEqual::checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
   {
@@ -192,11 +148,12 @@ namespace MFM {
     if(!rtnOK)
       {
 	std::ostringstream msg;
-	msg << "Attempting to implicitly cast from RHS type: ";
+	msg << "Converting from ";
 	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << ", to Unary type: ";
+	msg << " to "; //Unary
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
-	msg << " for binary operator" << getName() << " without casting";
+	msg << " requires explicit casting";
+	msg << " for binary operator" << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
@@ -214,11 +171,12 @@ namespace MFM {
 	if(m_state.getBitSize(rt) > m_state.getBitSize(newType))
 	  {
 	    std::ostringstream msg;
-	    msg << "Attempting to implicitly cast from a larger bitsize, RHS type: ";
+	    msg << "Converting from ";
 	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	    msg << ", to a smaller bitsize type: ";
+	    msg << " to smaller ";
 	    msg << m_state.getUlamTypeNameByIndex(newType).c_str();
-	    msg << " for binary operator" << getName() << " without casting";
+	    msg << " requires explicit casting";
+	    msg << " for binary operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	    rtnOK = false;

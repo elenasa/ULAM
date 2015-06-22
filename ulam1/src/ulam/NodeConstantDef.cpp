@@ -349,8 +349,8 @@ namespace MFM {
     if(!m_nodeExpr->fitsInBits(uti))
       {
 	std::ostringstream msg;
-	msg << "Attempting to fit named constant's value (";
-	msg << getName() << " = " << newconst << ") into a smaller bit size type: ";
+	msg << "Named constant's value (";
+	msg << getName() << " = " << newconst << ") is not representable as: ";
 	msg<< m_state.getUlamTypeNameByIndex(uti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
       }
