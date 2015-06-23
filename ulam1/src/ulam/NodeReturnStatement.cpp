@@ -197,12 +197,6 @@ namespace MFM {
 	if(rtypEnum == Unsigned && !m_node->isAConstant() && m_state.getBitSize(rt) >= nbs)
 	  rtnOK = false;
       }
-    else
-      {
-	// Any thing else gets an error if the bitsizes are "unsafe"
-	if(!m_node->isAConstant() && m_state.getBitSize(rt) > nbs)
-	  rtnOK = false;
-      }
 
     if(!rtnOK)
       {
@@ -269,7 +263,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Returning ";
 	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << " as "; //Unary
+	msg << " as Unary "; //Unary
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " requires explicit casting";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -289,9 +283,9 @@ namespace MFM {
 	if(m_state.getBitSize(rt) > m_state.getBitSize(newType))
 	  {
 	    std::ostringstream msg;
-	    msg << "Returning type: ";
+	    msg << "Returning ";
 	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	    msg << " as a smaller type: ";
+	    msg << " as a smaller type ";
 	    msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	    msg << " requires explicit casting";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

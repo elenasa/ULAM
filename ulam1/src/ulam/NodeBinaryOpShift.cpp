@@ -142,7 +142,7 @@ namespace MFM {
 		msg << "Bits is the supported type for bitwise shift operator";
 		msg << getName() << "; Suggest casting ";
 		msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-		msg << " to Bits";
+		msg << " to Bits(" << m_state.getBitSize(lt) << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		newType = Nav;
 	      }
