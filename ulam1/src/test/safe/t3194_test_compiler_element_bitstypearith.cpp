@@ -16,7 +16,7 @@ namespace MFM {
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n  element Foo {\nSystem s;\nBool sp;\n Bits(3) m_i[3];\n Bool(3) m_b[3];\n Int test() {\n m_i[0] = 1;\n m_i[1] = 2;\n m_i[2] = m_i[0] + m_i[1];\n m_b[0] = m_i[0];\n m_b[1] = m_i[1];\n m_b[2] = m_i[2];\ns.print((Unsigned) m_i[0]);\ns.print((Unsigned) m_i[1]);\ns.print((Unsigned) m_i[2]);\ns.print(m_b[0]);\ns.print(m_b[1]);\ns.print(m_b[2]);\nreturn m_i[2];\n }\n }\n");
 
 
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n  element Foo {\nSystem s;\nBool sp;\n Bits(3) m_i[3];\n Bool(3) m_b[3];\n Int test() {\n m_i[0] = 1;\n m_i[1] = 2;\n m_i[2] = ((Unsigned(3)) m_i[0]) + ((Unsigned(3)) m_i[1]);\n m_b[0] = (Bool(3)) m_i[0];\n m_b[1] = (Bool(3)) m_i[1];\n m_b[2] = (Bool(3)) m_i[2];\ns.print((Unsigned) m_i[0]);\ns.print((Unsigned) m_i[1]);\ns.print((Unsigned) m_i[2]);\ns.print(m_b[0]);\ns.print(m_b[1]);\ns.print(m_b[2]);\nreturn m_i[2];\n }\n }\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n  element Foo {\nSystem s;\nBool sp;\n Bits(3) m_i[3];\n Bool(3) m_b[3];\n Int test() {\n m_i[0] = 1;\n m_i[1] = 2;\n m_i[2] = ((Unsigned(3)) m_i[0]) + ((Unsigned(3)) m_i[1]);\n m_b[0] = (Bool(3)) m_i[0];\n m_b[1] = (Bool(3)) m_i[1];\n m_b[2] = (Bool(3)) m_i[2];\ns.print((Unsigned) m_i[0]);\ns.print((Unsigned) m_i[1]);\ns.print((Unsigned) m_i[2]);\ns.print(m_b[0]);\ns.print(m_b[1]);\ns.print(m_b[2]);\nreturn (Int) m_i[2];\n }\n }\n");
 
 
       // test system quark with native overloaded print funcs; assert

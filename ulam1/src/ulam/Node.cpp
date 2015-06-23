@@ -1635,8 +1635,8 @@ namespace MFM {
 
     NodeBlockClass * currClassBlock = m_state.getClassBlock();
 
-    //make the function def, with node (quark) type as its param, returns Int
-    SymbolFunction * fsymptr = new SymbolFunction(funcidentTok, tobeType, m_state);
+    //make the function def, with node (quark) type as its param, returns Int (always)
+    SymbolFunction * fsymptr = new SymbolFunction(funcidentTok, Int /*tobeType*/, m_state);
     //No NodeTypeDescriptor needed for Int
     NodeBlockFunctionDefinition * fblock = new NodeBlockFunctionDefinition(fsymptr, currClassBlock, NULL, m_state);
     assert(fblock);
