@@ -212,6 +212,33 @@ namespace MFM {
     return rtnOK;
   } //checkforMixedSignsOfVariables
 
+  bool NodeReturnStatement::checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    // Int to anything, except Bits or Int same or larger bitsize
+    if(rtypEnum == Int && !m_node->isAConstant())
+      {
+	s32 rbs = m_state.getBitSize(rt);
+	s32 nbs = m_state.getBitSize(newType);
+	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+	if(!((ntypEnum == Bits || ntypEnum == Int) && nbs >= rbs))
+	  rtnOK = false;
+      }
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Returning Int "; //Int
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " as ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkIntToNonBitsNonIntCast
+
   bool NodeReturnStatement::checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
   {
     ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();

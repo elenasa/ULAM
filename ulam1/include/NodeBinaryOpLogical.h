@@ -57,7 +57,7 @@ namespace MFM{
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
 
     virtual UTI calcNodeType(UTI lt, UTI rt);
-
+    bool checkNonBoolToBoolCastAndMaxsize(UTI uti, s32& maxbitsize);
   };
 
 }

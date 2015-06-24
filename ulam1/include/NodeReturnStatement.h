@@ -78,6 +78,7 @@ namespace MFM{
 
     virtual bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
     virtual bool checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType);
+    virtual bool checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
     virtual bool checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
     virtual bool checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
     virtual bool checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);

@@ -204,6 +204,7 @@ namespace MFM{
     virtual void checkForSymbol();
     virtual bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
     virtual bool checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType);
+    virtual bool checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
 
     bool checkForSafeImplicitCasting(UTI leftType, UTI rightType, UTI& newType);
 
