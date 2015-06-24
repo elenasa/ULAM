@@ -96,12 +96,9 @@ namespace MFM {
 	return Nav;
       }
 
-    //if(lclass == UC_QUARK)
-    //  lt = Int;
-
     UTI newType = Nav; //init
-    // change! lhs must be Bits..up to ulam programmer to cast
-    // all shift operations are performed as lhs type
+    // change! LHS must be Bits..up to ulam programmer to cast
+    // (including quarks).
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
 	newType = lt;
@@ -125,7 +122,7 @@ namespace MFM {
 	    return  Nav;
 	  }
 
-	//if LHS is not Bits ERR, except for constants
+	//ERROR if LHS is not Bits, except for constants
 	bool lconst = m_nodeLeft->isAConstant();
 	if(!lconst)
 	  {

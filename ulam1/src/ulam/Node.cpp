@@ -1566,6 +1566,8 @@ namespace MFM {
       rtnOK = false;
     else if(!checkForMixedSignsOfVariables(ltypEnum, rtypEnum, lt, rt, newType))
       rtnOK = false;
+    else if(!checkIntToNonBitsNonIntCast(rtypEnum, rt, newType))
+      rtnOK = false;
     else if(!checkNonBoolToBoolCast(rtypEnum, rt, newType))
       rtnOK = false;
     else if(!checkFromBitsCast(rtypEnum, rt, newType))
@@ -1586,6 +1588,11 @@ namespace MFM {
   {
     return true; //default ok
   }
+
+  bool Node::checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    return true; //default ok
+  } //checkIntToNonBitsNonIntCast
 
   bool Node::checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
   {

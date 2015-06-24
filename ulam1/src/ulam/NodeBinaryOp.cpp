@@ -264,7 +264,6 @@ namespace MFM {
     //Int to Unsigned of any size is unsafe!
     if(ntypEnum == Unsigned)
       {
-	//if(ltypEnum != ntypEnum && !m_nodeLeft->isAConstant())
 	if(ltypEnum == Int && !m_nodeLeft->isAConstant())
 	  rtnOK = false;
 
@@ -283,8 +282,7 @@ namespace MFM {
 	if(rtypEnum == Unsigned && !m_nodeRight->isAConstant() && m_state.getBitSize(rt) >= nbs)
 	  rtnOK = false;
       }
-    //else
-      //assert(0);
+    //assert(0);
 
     if(!rtnOK)
       {
@@ -300,6 +298,33 @@ namespace MFM {
       } //mixing unsigned and signed
     return rtnOK;
   } //checkforMixedSignsOfVariables
+
+  bool NodeBinaryOp::checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    // Int to anything, except Bits or Int same or larger bitsize
+    if(rtypEnum == Int && !m_nodeRight->isAConstant())
+      {
+	s32 rbs = m_state.getBitSize(rt);
+	s32 nbs = m_state.getBitSize(newType);
+	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+	if(!((ntypEnum == Bits || ntypEnum == Int) && nbs >= rbs))
+	  rtnOK = false;
+      }
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Converting Int "; //Int
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " to ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkIntToNonBitsNonIntCast
 
   void NodeBinaryOp::countNavNodes(u32& cnt)
   {

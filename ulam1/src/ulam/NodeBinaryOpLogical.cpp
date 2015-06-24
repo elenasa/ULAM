@@ -25,26 +25,44 @@ namespace MFM {
 
     UTI newType = Nav; //init
     // all logical operations are performed as Bool.BITSPERBOOL.-1
-    if(m_state.isScalar(lt) && m_state.isScalar(rt))
+    if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
-	if(m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum() == Bool)
-	  newType = lt; //any size bool
-	else if(m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum() == Bool)
-	  newType = rt; //any size bool
+	s32 maxbs = 1;
+	//check for Bool, or safe Non-Bool to Bool casting cases:
+	if(!(checkNonBoolToBoolCastAndMaxsize(lt, maxbs) && checkNonBoolToBoolCastAndMaxsize(rt, maxbs)))
+	  {
+	    std::ostringstream msg;
+	    msg << "Bool is the supported type for logical operator";
+	    msg << getName() << "; Suggest casting ";
+	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << " and ";
+	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << " to Bool";
+	    if(maxbs > 1)
+	      msg << "(" << maxbs << ")";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
 	else
-	  newType = Bool; //default
+	  {
+	    //both bool. ok to cast. use larger bool bitsize.
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bool"), maxbs);
+	    newType = m_state.makeUlamType(newkey, Bool);
+	  }
       } //both scalars
-    else
-      {
-	//array op scalar: defer since the question of matrix operations is unclear at this time.
-	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: " << m_state.getUlamTypeNameByIndex(lt).c_str();
-	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << " for binary logical operator" << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
     return newType;
   } //calcNodeType
+
+  bool NodeBinaryOpLogical::checkNonBoolToBoolCastAndMaxsize(UTI uti, s32& maxbitsize)
+  {
+    bool rtnOK = false;
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
+    s32 bs = m_state.getBitSize(uti);
+    if((typEnum == Bool) || ((bs == 1) && (typEnum == Unsigned || typEnum == Unary)))
+      {
+	rtnOK = true;
+	maxbitsize = (bs > maxbitsize ? bs : maxbitsize);
+      }
+    return rtnOK;
+  } //checkNonBoolToBoolCastAndMaxsize
 
   const std::string NodeBinaryOpLogical::methodNameForCodeGen()
   {
