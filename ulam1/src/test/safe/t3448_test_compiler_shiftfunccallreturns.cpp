@@ -11,7 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn2 = fms->add("T.ulam"," ulam 1;\n element T{\nInt i;\n Int func1() {\n return 1;\n}\n Int func2() {\n return 2;\n}\n Int test(){\n i = (Int) ((Bits) func1() << func2()); return i;\n}\n }\n");
+      bool rtn2 = fms->add("T.ulam"," ulam 1;\n element T{\nInt i;\n Int func1() {\n return 1;\n}\n Int func2() {\n return 2;\n}\n Int test(){\n i = (Int) ((Bits) func1() << (Unsigned) func2()); return i;\n}\n }\n");
 
       if(rtn2)
       	return std::string("T.ulam");
