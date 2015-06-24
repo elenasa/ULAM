@@ -185,6 +185,15 @@ namespace MFM {
     s32 lbs = m_state.getBitSize(lt);
     s32 rbs = m_state.getBitSize(rt);
 
+    ULAMCLASSTYPE lct = m_state.getUlamTypeByIndex(lt)->getUlamClass();
+    ULAMCLASSTYPE rct = m_state.getUlamTypeByIndex(rt)->getUlamClass();
+
+    if(lct == UC_QUARK)
+      lbs = MAXBITSPERINT; //32
+
+    if(rct == UC_QUARK)
+      rbs = MAXBITSPERINT; //32
+
     bool lconst = m_nodeLeft->isAConstant();
     bool rconst = m_nodeRight->isAConstant();
 
