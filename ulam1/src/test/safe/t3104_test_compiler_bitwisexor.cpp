@@ -9,12 +9,12 @@ namespace MFM {
       /* gen code output:
 	 Int(3) Arg: 0x1
       */
-      return std::string("Exit status: 1\nUe_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(1);  Int(32) test() {  a 3 cast = b 2 cast = a a b ^ = s ( a )print . d a cast = a cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_A { Int(3) b(2);  System s();  Bool(1) d(true);  Int(3) a(1);  Int(32) test() {  a 3 cast = b 2 cast = a a cast b cast ^ cast = s ( a )print . d a cast = a cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","ulam 1; use System; element A {System s;\nBool d;\nInt(3) a, b;\nuse test;\na = 3;\nb = 2;\na = a ^ b;\ns.print(a);\nd = (Bool) a;\nreturn a;\n}\n}\n");
+      bool rtn1 = fms->add("A.ulam","ulam 1; use System; element A {System s;\nBool d;\nInt(3) a, b;\nuse test;\na = 3;\nb = 2;\na = (Int(3)) ( (Bits(3)) a ^ (Bits(3)) b);\ns.print(a);\nd = (Bool) a;\nreturn a;\n}\n}\n");
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 
       // test system quark with native overloaded print funcs; assert

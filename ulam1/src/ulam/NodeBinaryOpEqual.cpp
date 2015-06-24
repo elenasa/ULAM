@@ -43,42 +43,16 @@ namespace MFM {
 	return Nav; //not quietly
       }
 
-    if(!m_nodeLeft->isStoreIntoAble())
+    if(!checkStoreIntoAble())
       {
-	std::ostringstream msg;
-	msg << "Invalid lefthand side of equals: <" << m_nodeLeft->getName();
-	msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);  //was newType that wasn't Nav
-	setStoreIntoAble(false);
 	return Nav; //newType
       }
 
-    PACKFIT lpacked = m_state.determinePackable(leftType);
-    PACKFIT rpacked = m_state.determinePackable(rightType);
-    bool unpackedArrayLeft = !WritePacked(lpacked) && !m_state.isScalar(leftType);
-    bool unpackedArrayRight = !WritePacked(rpacked) && !m_state.isScalar(rightType);
-
-    if(unpackedArrayLeft || unpackedArrayRight)
+    if(!checkNotUnpackedArray())
       {
-	if(unpackedArrayLeft)
-	  {
-	    std::ostringstream msg;
-	    msg << "Lefthand side of equals requires UNPACKED array support: <";
-	    msg << m_nodeLeft->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	if(unpackedArrayRight)
-	  {
-	    std::ostringstream msg;
-	    msg << "Righthand side of equals requires UNPACKED array support: <";
-	    msg << m_nodeRight->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(rightType).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	setNodeType(Nav);  //was newType that wasn't Nav
-	return Nav; //newType
+	setNodeType(Nav);
+	return Nav;
       }
 
     newType = leftType;
@@ -97,6 +71,55 @@ namespace MFM {
     setStoreIntoAble(true);
     return newType;
   } //checkAndLabelType
+
+  bool NodeBinaryOpEqual::checkStoreIntoAble()
+  {
+    if(!m_nodeLeft->isStoreIntoAble())
+      {
+	UTI lt = m_nodeLeft->getNodeType();
+	std::ostringstream msg;
+	msg << "Invalid lefthand side of equals: <" << m_nodeLeft->getName();
+	msg << ">, type: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setStoreIntoAble(false);
+	return false;
+      }
+    setStoreIntoAble(true);
+    return true;
+  } //checkStoreIntoAble
+
+  bool NodeBinaryOpEqual::checkNotUnpackedArray()
+  {
+    bool rtnOK = true;
+    UTI lt = m_nodeLeft->getNodeType();
+    UTI rt = m_nodeRight->getNodeType();
+    PACKFIT lpacked = m_state.determinePackable(lt);
+    PACKFIT rpacked = m_state.determinePackable(rt);
+    bool unpackedArrayLeft = !WritePacked(lpacked) && !m_state.isScalar(lt);
+    bool unpackedArrayRight = !WritePacked(rpacked) && !m_state.isScalar(rt);
+
+    if(unpackedArrayLeft || unpackedArrayRight)
+      {
+	if(unpackedArrayLeft)
+	  {
+	    std::ostringstream msg;
+	    msg << "Lefthand side of equals requires UNPACKED array support: <";
+	    msg << m_nodeLeft->getName();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	if(unpackedArrayRight)
+	  {
+	    std::ostringstream msg;
+	    msg << "Righthand side of equals requires UNPACKED array support: <";
+	    msg << m_nodeRight->getName();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	rtnOK = false;
+      }
+    return rtnOK;
+  } //checkNotUnpackedArray
 
   bool NodeBinaryOpEqual::checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
   {

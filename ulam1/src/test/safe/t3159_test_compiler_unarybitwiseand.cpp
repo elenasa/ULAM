@@ -10,13 +10,14 @@ namespace MFM {
 	Unary(3) Arg: 0x1
 	Unsigned Arg: 0
       */
-      return std::string("Exit status: 1\nUe_A { Unary(3) b(1);  System s();  Unary(3) a(2);  Unary(3) c(1);  Unsigned(2) e(2);  Unsigned(2) f(1);  Unsigned(2) g(0);  Int(32) test() {  a e 2 cast = cast = b f 1 cast = cast = c a b & = s ( c )print . g e f & = s ( g cast )print . c cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_A { Unary(3) b(1);  System s();  Unary(3) a(2);  Unary(3) c(1);  Unsigned(2) e(2);  Unsigned(2) f(1);  Unsigned(2) g(0);  Int(32) test() {  a e 2 cast = cast = b f 1 cast = cast = c a cast b cast & cast = s ( c )print . g e cast f cast & cast = s ( g cast )print . c cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
+      // need explicit casting for bitwise op. Note: implicit cast ok returning Unary(3) as Int.
       // a is 2 bits; b is 1 bit; a & b = 1 bit as Unary.3 (c); notice as Int.3 (g), 2 & 1 = 0
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nUnary(3) a, b, c;\n Unsigned(2) e, f, g;\n use test;\n  a = e = 2;\n b = f = 1;\n c = a & b;\ns.print(c);\ng = e & f;\ns.print((Unsigned) g);\n return c;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nUnary(3) a, b, c;\n Unsigned(2) e, f, g;\n use test;\n  a = e = 2;\n b = f = 1;\n c = (Unary(3)) ((Bits(3)) a & (Bits(3)) b);\ns.print(c);\ng = (Unsigned(2)) ((Bits(2)) e & (Bits(2)) f);\ns.print((Unsigned) g);\n return c;\n }\n }\n");
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 
       // test system quark with native overloaded print funcs; assert

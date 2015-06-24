@@ -119,6 +119,7 @@ namespace MFM {
       {
 	newType = lt;
 
+	// RHS casts to Unsigned.
 	//these "helpful" checks do not consider the possibility of a constant expression XXX
 	bool rconst = m_nodeRight->isAConstant();
 	if(rconst && m_nodeRight->isReadyConstant() && m_nodeRight->isNegativeConstant())
@@ -148,7 +149,12 @@ namespace MFM {
 	      }
 	  }
 	else
-	  newType = Bits; //auto for constants, downhill cast.
+	  {
+	    //auto for constants, downhill cast. use larger bitsize.
+	    s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	    newType = m_state.makeUlamType(newkey, Bits);
+	  }
       } //both scalars
     return newType;
   } //calcNodeType
