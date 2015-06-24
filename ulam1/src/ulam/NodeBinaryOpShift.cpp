@@ -15,35 +15,22 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
-    UTI newType = calcNodeType(leftType, rightType); //left, or nav error
+    UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
+
     setNodeType(newType);
     setStoreIntoAble(false);
 
     if(newType != Nav && m_state.isComplete(newType))
       {
-	if(newType != leftType)
+	if(leftType != newType)
 	  {
 	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
-	      newType = Nav;
-	  }
-
-	//shift ops take unsigned as second arg;
-	//note: C implementations typically shift by the lower 5 bits (6 for 64-bits) only.
-	UlamType * rut = m_state.getUlamTypeByIndex(rightType);
-	ULAMTYPE retype = rut->getUlamTypeEnum();
-	if(retype != Unsigned)
-	  {
-	    //first see if it happens to be a quark that can be cast toInt
-	    if(retype == Class && rut->getUlamClass() == UC_QUARK)
 	      {
-		if(!makeCastingNode(m_nodeRight, Int, m_nodeRight))
-		  newType = Nav;
+		newType = Nav;
+		setNodeType(Nav);
 	      }
-
-	    if(!makeCastingNode(m_nodeRight, Unsigned, m_nodeRight))
-	      newType = Nav;
 	  }
-      }
+      } //complete
 
     if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold();
@@ -119,20 +106,26 @@ namespace MFM {
       {
 	newType = lt;
 
-	// RHS casts to Unsigned.
-	//these "helpful" checks do not consider the possibility of a constant expression XXX
-	bool rconst = m_nodeRight->isAConstant();
-	if(rconst && m_nodeRight->isReadyConstant() && m_nodeRight->isNegativeConstant())
+	// RHS must be Unsigned, or positive constant.
+	//shift ops take unsigned as second arg;
+	//note: C implementations typically shift by the lower 5 bits (6 for 64-bits) only.
+	UlamType * rut = m_state.getUlamTypeByIndex(rt);
+	ULAMTYPE retype = rut->getUlamTypeEnum();
+	bool rconstpos = (m_nodeRight->isAConstant() && m_nodeRight->isReadyConstant() && !m_nodeRight->isNegativeConstant());
+
+	if(!rconstpos && retype != Unsigned)
 	  {
+	    //this is an unsafe cast, must be explicit!
 	    std::ostringstream msg;
-	    msg << "Negative shift! Recommend shifting in the opposite direction, LHS: ";
-	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
-	    msg << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary shift operator";
-	    msg << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	    msg << "Unsigned is the supported type for RHS bitwise shift value, operator";
+	    msg << getName() << "; Suggest casting ";
+	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << " to Unsigned";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return  Nav;
 	  }
 
-	//if not Bits ERR, except for constants
+	//if LHS is not Bits ERR, except for constants
 	bool lconst = m_nodeLeft->isAConstant();
 	if(!lconst)
 	  {

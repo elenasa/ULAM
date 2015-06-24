@@ -33,7 +33,7 @@ namespace MFM {
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
 
       //explicit casting required with shift, and bitwise |.
-      bool rtn4 = fms->add("Gah.ulam","ulam 1;\nuse System;\nquark Gah{\nSystem m_s;\nBool b;\nInt(4) a, d;\nInt toInt(){\nif((Bool) ((Bits(4)) a | 1) )\nreturn (Int) ((Bits(4)) (a + 4) << d);\nreturn (Int) a;\n}\nVoid set(Int xarg, Int yarg){\na=(Int(4)) xarg;\nd=(Int(4)) yarg;\nm_s.print(a);\nm_s.print((Int) d);\n}\n}\n");
+      bool rtn4 = fms->add("Gah.ulam","ulam 1;\nuse System;\nquark Gah{\nSystem m_s;\nBool b;\nInt(4) a, d;\nInt toInt(){\nif((Bool) ((Bits(4)) a | 1) )\nreturn (Int) ((Bits(4)) (a + 4) << (Unsigned) d);\nreturn (Int) a;\n}\nVoid set(Int xarg, Int yarg){\na=(Int(4)) xarg;\nd=(Int(4)) yarg;\nm_s.print(a);\nm_s.print((Int) d);\n}\n}\n");
 
       if(rtn1 && rtn2 && rtn3 && rtn4)
 	return std::string("Foo.ulam");

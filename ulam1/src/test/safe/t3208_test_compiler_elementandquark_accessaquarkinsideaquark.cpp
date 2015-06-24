@@ -26,7 +26,7 @@ namespace MFM {
 
       //explicit casting required with shift, and bitwise |.
       //doens't catch shifting in negative direction when variable (d) is used. cast rhs of shift to Unsigned (-2 becomes 0) so no shift, returns 6; (also, poor design; better to use Unsigned for d -- see below)
-      bool rtn4 = fms->add("Gah.ulam","ulam 1;\nuse System;\nquark Gah{\nSystem m_s;\nBool b;\nInt(4) a, d;\nInt toInt(){\nif((Bool)((Bits(4)) a | 1))\nreturn (Int) ((Bits(4))(a + 4) << d);\nreturn a;\n}\nVoid set(Int xarg, Int yarg){\na= (Int(4)) xarg;\nd= (Int(4)) yarg;\nm_s.print(a);\nm_s.print((Int) d);\n}\n}\n");
+      bool rtn4 = fms->add("Gah.ulam","ulam 1;\nuse System;\nquark Gah{\nSystem m_s;\nBool b;\nInt(4) a, d;\nInt toInt(){\nif((Bool)((Bits(4)) a | 1))\nreturn (Int) ((Bits(4))(a + 4) << (Unsigned) d);\nreturn a;\n}\nVoid set(Int xarg, Int yarg){\na= (Int(4)) xarg;\nd= (Int(4)) yarg;\nm_s.print(a);\nm_s.print((Int) d);\n}\n}\n");
 
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nuse Gah;\nuse System;\nelement Foo {\nSystem m_s;\nBool b;\nInt(4) i, j;\nBar m_bar;\nInt test(){\nm_bar.m_gah.set(2,(Unsigned)-2);\nj = m_bar.m_gah;\n m_s.print(j);\nreturn 0;\n}\n}\n");
 
