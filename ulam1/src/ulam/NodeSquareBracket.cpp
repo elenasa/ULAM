@@ -369,8 +369,8 @@ namespace MFM {
     UTI sizetype = m_nodeRight->checkAndLabelType();
     ULAMTYPE etype = m_state.getUlamTypeByIndex(sizetype)->getUlamTypeEnum();
 
-    // expect a constant integer or constant unsigned integer or constant bits
-    if( (etype == Int || etype == Unsigned || etype == Bits) && m_nodeRight->isAConstant())
+    // expect a constant integer or constant unsigned integer
+    if( (etype == Int || etype == Unsigned) && m_nodeRight->isAConstant())
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression
@@ -395,7 +395,7 @@ namespace MFM {
     else
       {
 	MSG(getNodeLocationAsString().c_str(),
-	    "Array size specifier in [] is not a constant expression", ERR);
+	    "Array size specifier in [] is not a constant number", ERR);
 	noerr = false;
       }
     rtnArraySize = newarraysize;
