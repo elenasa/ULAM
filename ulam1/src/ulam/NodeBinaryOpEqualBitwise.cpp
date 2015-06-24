@@ -11,12 +11,27 @@ namespace MFM {
 
   UTI NodeBinaryOpEqualBitwise::checkAndLabelType()
   {
-    UTI nodeType = NodeBinaryOpEqual::checkAndLabelType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+    UTI nodeType = NodeBinaryOp::checkAndLabelType(); //dup Bitwise calcNodeType
 
+    if(nodeType != Nav)
+      {
+	if(!NodeBinaryOpEqual::checkStoreIntoAble())
+	  {
+	    setNodeType(Nav);
+	    return Nav; //newType
+	  }
+
+	if(!NodeBinaryOpEqual::checkNotUnpackedArray())
+	  {
+	    setNodeType(Nav);
+	    return Nav;
+	  }
+      }
+
+#if 0
+    UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
     // common part of name
     ULAMTYPE enodetyp = nut->getUlamTypeEnum();
-
     if(!nut->isScalar() && (enodetyp == Bool || enodetyp == Unary))
       {
 	std::ostringstream msg;
@@ -27,8 +42,66 @@ namespace MFM {
 	nodeType = Nav;
 	setNodeType(nodeType);
       }
-    return nodeType;
+#endif
+
+    return getNodeType();
   } //checkandlabeltype
+
+  UTI NodeBinaryOpEqualBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
+  {
+    if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
+	return Nav;
+
+    UTI newType = Nav;  //init
+    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(lt, rt, m_state);
+    if(uticr == UTIC_DONTKNOW)
+      {
+	std::ostringstream msg;
+	msg << "Calculating 'incomplete' bitwise node types: ";
+	msg << m_state.getUlamTypeNameByIndex(lt).c_str() << " and ";
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	return Nav;
+      }
+
+    if(uticr == UTIC_SAME)
+      {
+	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+	if(etyp == Bits)
+	  return lt; //includes array of bits
+      }
+
+    if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
+      {
+	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+
+	//auto cast when both Bits.
+	if(ltypEnum == Bits && rtypEnum == Bits)
+	  {
+	    s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	    newType = m_state.makeUlamType(newkey, Bits);
+	  }
+	else if(m_nodeRight->isAConstant() && ltypEnum == Bits)
+	  {
+	    //only right can be a constant;  constant fold later.
+	    newType = lt;
+
+	    // possible error if constant doesn't fit in lt.
+	    NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
+	  }
+
+	if(newType == Nav && !(ltypEnum == Bits && rtypEnum == Bits))
+	  {
+	    std::ostringstream msg;
+	    msg << "Bits is the supported type for bitwise operator";
+	    msg << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      } //both scalars
+    return newType;
+  } //calcNodeType
 
   const std::string NodeBinaryOpEqualBitwise::methodNameForCodeGen()
   {
