@@ -67,34 +67,12 @@ namespace MFM {
 
   UTI NodeBinaryOpShift::calcNodeType(UTI lt, UTI rt)  //shift
   {
-    if(lt == Nav || rt == Nav)
-      {
-	return Nav;
-      }
+    if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
+      return Nav;
 
-    ULAMCLASSTYPE lclass = m_state.getUlamTypeByIndex(lt)->getUlamClass();
-    if(lclass == UC_ELEMENT || lt == UAtom)
-      {
-	std::ostringstream msg;
-	msg << "Non-primitive type: <";
-	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	msg << "> is not supported for LHS bitwise shift operator";
-	msg << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    //no atoms, elements, nor void as either operand
+    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
 	return Nav;
-      }
-
-    ULAMCLASSTYPE rclass = m_state.getUlamTypeByIndex(rt)->getUlamClass();
-    if(rclass == UC_ELEMENT || rt == UAtom)
-      {
-	std::ostringstream msg;
-	msg << "Non-primitive type: <";
-	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << "> is not supported for RHS bitwise shift operator";
-	msg << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return Nav;
-      }
 
     UTI newType = Nav; //init
     // change! LHS must be Bits..up to ulam programmer to cast
@@ -116,7 +94,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Unsigned is the supported type for RHS bitwise shift value, operator";
 	    msg << getName() << "; Suggest casting ";
-	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Unsigned";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    return  Nav;
@@ -129,11 +107,14 @@ namespace MFM {
 	    ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	    if(etyp != Bits)
 	      {
+		s32 lbs = m_state.getBitSize(lt);
 		std::ostringstream msg;
 		msg << "Bits is the supported type for bitwise shift operator";
 		msg << getName() << "; Suggest casting ";
-		msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-		msg << " to Bits(" << m_state.getBitSize(lt) << ")";
+		msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+		msg << " to Bits";
+		if(lbs > 0)
+		  msg << "(" << lbs << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		newType = Nav;
 	      }

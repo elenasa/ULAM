@@ -45,14 +45,16 @@ namespace MFM {
       {
 	return NodeBinaryOp::constantFold();
       }
-
     return newType;
   } //checkAndLabelType
-
 
   UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)
   {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
+      return Nav;
+
+    //no atoms, elements nor void as either operand
+    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
       return Nav;
 
     UTI newType = Nav; //init

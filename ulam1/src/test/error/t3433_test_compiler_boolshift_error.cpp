@@ -6,9 +6,11 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./A.ulam:7:8: ERROR: Bool is not currently supported for bitwise shift operator<<; suggest casting Bool(3) to Bits.
-      //./A.ulam:8:8: ERROR: Bool is not currently supported for bitwise shift operator>>; suggest casting Bool(3) to Bits.
-      //./A.ulam:9:8: ERROR: Bool is not currently supported for bitwise shift operator<<; suggest casting Bool(3) to Bits.
+      /*
+	./A.ulam:5:8: ERROR: Bits is the supported type for bitwise shift operator<<; Suggest casting Bool(3) to Bits(3).
+	./A.ulam:6:8: ERROR: Bits is the supported type for bitwise shift operator>>; Suggest casting Bool(3) to Bits(3).
+	./A.ulam:7:8: ERROR: Bits is the supported type for bitwise shift operator<<; Suggest casting Bool(3) to Bits(3).
+      */
       return std::string("Exit status: -1\n");
     }
 

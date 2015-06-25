@@ -6,8 +6,12 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./A.ulam:4:8: ERROR: Non-primitive type: <Atom(96)> is not supported for LHS bitwise shift operator<<.
-      // ./A.ulam:5:8: ERROR: Non-primitive type: <Atom(96)> is not supported for RHS bitwise shift operator<<.
+      /*
+	./A.ulam:4:8: ERROR: Non-primitive type: <Atom(96)> is not supported as LHS for binary operator<<.
+	./A.ulam:5:8: ERROR: Non-primitive type: <Atom(96)> is not supported as RHS for binary operator<<.
+	./A.ulam:4:8: ERROR: Non-primitive type: <Atom(96)> is not supported as LHS for binary operator<<.
+	./A.ulam:5:8: ERROR: Non-primitive type: <Atom(96)> is not supported as RHS for binary operator<<.
+      */
       return std::string("Exit status: -1\n");
     }
 

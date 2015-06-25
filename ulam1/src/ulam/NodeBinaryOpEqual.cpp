@@ -55,6 +55,12 @@ namespace MFM {
 	return Nav;
       }
 
+    if(!checkNotVoidTypes(leftType, rightType))
+      {
+	setNodeType(Nav);
+	return Nav;
+      }
+
     newType = leftType;
 
     //cast RHS if necessary

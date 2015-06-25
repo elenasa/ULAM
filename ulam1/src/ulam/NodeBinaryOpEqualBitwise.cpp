@@ -28,28 +28,16 @@ namespace MFM {
 	  }
       }
 
-#if 0
-    UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
-    // common part of name
-    ULAMTYPE enodetyp = nut->getUlamTypeEnum();
-    if(!nut->isScalar() && (enodetyp == Bool || enodetyp == Unary))
-      {
-	std::ostringstream msg;
-	msg << "Non-scalar Bool and Unary require a loop for bitwise operator" << getName();
-	msg << " on LHS: <" << m_nodeLeft->getName() << ">, type: ";
-	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	nodeType = Nav;
-	setNodeType(nodeType);
-      }
-#endif
-
     return getNodeType();
   } //checkandlabeltype
 
   UTI NodeBinaryOpEqualBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
   {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
+	return Nav;
+
+    //no atoms, elements nor voids as either operand
+    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
 	return Nav;
 
     UTI newType = Nav;  //init

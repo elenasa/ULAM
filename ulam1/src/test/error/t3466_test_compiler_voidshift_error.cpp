@@ -6,8 +6,10 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./A.ulam:6:4: ERROR: Cannot CAST type: Void(0) as a Int(32).
-      //./A.ulam:7:8: ERROR: Cannot CAST type: Void(0) as a Unsigned(32).
+      /*
+	./A.ulam:6:13: ERROR: Void is not supported for binary operator<<.
+	./A.ulam:7:8: ERROR: Void is not supported for binary operator<<.
+      */
       return std::string("Exit status: -1\n");
     }
 
