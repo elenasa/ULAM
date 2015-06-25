@@ -98,7 +98,7 @@ namespace MFM {
     return rtnBool;
   } //findMatchingFunction
 
-  bool SymbolFunctionName::findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<bool> constArgTypes, SymbolFunction *& funcSymbol)
+  bool SymbolFunctionName::findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol)
   {
     bool rtnBool = false;
 
@@ -126,7 +126,7 @@ namespace MFM {
 	while(it != m_mangledFunctionNames.end())
 	  {
 	    SymbolFunction * fsym = it->second;
-	    if((rtnBool = fsym->matchingTypes(argTypes, constArgTypes)))
+	    if((rtnBool = fsym->matchingTypes(argTypes, constArgs)))
 	      {
 		funcSymbol = fsym;
 		break;

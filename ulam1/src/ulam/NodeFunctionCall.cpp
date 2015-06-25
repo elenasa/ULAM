@@ -83,7 +83,7 @@ namespace MFM {
 
     //label argument types; used to pinpoint the exact function symbol in case of overloading
     std::vector<UTI> argTypes;
-    std::vector<bool> constArgs;
+    std::vector<Node *> constArgs;
     u32 constantArgs = 0;
     u32 navArgs = 0;
 
@@ -102,11 +102,11 @@ namespace MFM {
 	    // track constants and potential casting to be handled
 	    if(m_argumentNodes->isAConstant(i))
 	      {
-		constArgs.push_back(true);
+		constArgs.push_back(m_argumentNodes->getNodePtr(i));
 		constantArgs++;
 	      }
 	    else
-	      constArgs.push_back(false);
+	      constArgs.push_back(NULL);
 	  }
 	m_state.popClassContext(); //restore here
 
@@ -181,7 +181,7 @@ namespace MFM {
 		  {
 		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
 		    UTI ptype = psym->getUlamTypeIdx();
-		    Node * argNode = m_argumentNodes->getNodePtr(i);
+		    Node * argNode = constArgs[i]; //m_argumentNodes->getNodePtr(i);
 		    Node * argCast = NULL;
 		    if(!makeCastingNode(argNode, ptype, argCast))
 		      {
@@ -200,7 +200,7 @@ namespace MFM {
 		  {
 		    if(constArgs[i])
 		      {
-			Node * argNode = m_argumentNodes->getNodePtr(i);
+			Node * argNode = constArgs[i];//m_argumentNodes->getNodePtr(i);
 			Node * argCast = NULL;
 			if(!makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]), argCast))
 			  {
