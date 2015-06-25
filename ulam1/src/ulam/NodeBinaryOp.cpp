@@ -148,6 +148,52 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
+    //no atoms, elements nor voids as either operand
+  bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt)
+  {
+    bool rtnOK = true;
+    ULAMCLASSTYPE lclass = m_state.getUlamTypeByIndex(lt)->getUlamClass();
+    if(lclass == UC_ELEMENT || lt == UAtom)
+      {
+	std::ostringstream msg;
+	msg << "Non-primitive type: <";
+	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << "> is not supported as LHS for binary operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      }
+
+    ULAMCLASSTYPE rclass = m_state.getUlamTypeByIndex(rt)->getUlamClass();
+    if(rclass == UC_ELEMENT || rt == UAtom)
+      {
+	std::ostringstream msg;
+	msg << "Non-primitive type: <";
+	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	msg << "> is not supported as RHS for binary operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      }
+
+    rtnOK &= checkNotVoidTypes(lt, rt);
+    return rtnOK;
+  } //checkForPrimitiveTypes
+
+  bool NodeBinaryOp::checkNotVoidTypes(UTI lt, UTI rt)
+  {
+    bool rtnOK = true;
+    if(lt == Void || rt == Void)
+      {
+	std::ostringstream msg;
+	msg << "Void is not supported for binary operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      }
+    return rtnOK;
+  } //checkNotVoidTypes
+
   bool NodeBinaryOp::checkScalarTypesOnly(UTI lt, UTI rt)
   {
     bool rtnOK = true;

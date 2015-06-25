@@ -97,6 +97,8 @@ namespace MFM{
 
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
     //common helpers for calcNodeType:
+    bool checkForPrimitiveTypes(UTI lt, UTI rt);
+    bool checkNotVoidTypes(UTI lt, UTI rt);
     bool checkScalarTypesOnly(UTI lt, UTI rt);
     s32 maxBitsize(UTI lt, UTI rt);
     virtual bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);

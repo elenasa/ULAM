@@ -18,10 +18,12 @@ namespace MFM {
 
   UTI NodeBinaryOpLogical::calcNodeType(UTI lt, UTI rt)  //logical
   {
-    if(lt == Nav || rt == Nav)
-      {
-	return Nav;
-      }
+    if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
+      return Nav;
+
+    //no atoms, elements nor voids as either operand
+    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
+      return Nav;
 
     UTI newType = Nav; //init
     // all logical operations are performed as Bool.BITSPERBOOL.-1
@@ -34,8 +36,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Bool is the supported type for logical operator";
 	    msg << getName() << "; Suggest casting ";
-	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << " and ";
-	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str() << " and ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Bool";
 	    if(maxbs > 1)
 	      msg << "(" << maxbs << ")";

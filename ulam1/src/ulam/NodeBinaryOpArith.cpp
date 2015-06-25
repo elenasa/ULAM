@@ -57,6 +57,10 @@ namespace MFM {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
       return Nav;
 
+    //no atoms, elements nor void as either operand
+    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
+	return Nav;
+
     UTI newType = Nav; //init
 
     // all operations are performed as Int(32) or Unsigned(32) in CastOps.h

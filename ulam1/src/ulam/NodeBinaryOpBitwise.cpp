@@ -42,6 +42,10 @@ namespace MFM {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
 	return Nav;
 
+    //no atoms, elements, nor void as either operand
+    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
+	return Nav;
+
     UTI newType = Nav;  //init
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(lt, rt, m_state);
     if(uticr == UTIC_DONTKNOW)
@@ -91,12 +95,15 @@ namespace MFM {
 
 	if(newType == Nav && !(ltypEnum == Bits && rtypEnum == Bits))
 	  {
+	    s32 mbs = NodeBinaryOp::maxBitsize(lt, rt);
 	    std::ostringstream msg;
 	    msg << "Bits is the supported type for bitwise operator";
 	    msg << getName() << "; Suggest casting ";
-	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << " and ";
-	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	    msg << " to Bits(" << NodeBinaryOp::maxBitsize(lt, rt) << ")";
+	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str() << " and ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << " to Bits";
+	    if(mbs > 0)
+	      msg<< "(" << mbs << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }
