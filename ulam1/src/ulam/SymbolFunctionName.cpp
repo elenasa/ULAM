@@ -75,66 +75,70 @@ namespace MFM {
     return overloaded;
   } //overloadFunction
 
-  bool SymbolFunctionName::findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol)
+  u32 SymbolFunctionName::findMatchingFunction(std::vector<UTI> argTypes, SymbolFunction *& funcSymbol)
   {
-    bool rtnBool = false;
-
     if(m_mangledFunctionNames.empty())
-      return false;
+      return 0;
 
+    u32 matchingFuncCount = 0;
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     assert(funcSymbol == NULL);
 
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	if((rtnBool = fsym->matchingTypesStrictly(argTypes)))
+	if(fsym->matchingTypesStrictly(argTypes))
 	  {
 	    funcSymbol = fsym;
-	    break;
+	    matchingFuncCount++;
+	    //break;
 	  }
 	++it;
       }
-    return rtnBool;
+    return matchingFuncCount;
   } //findMatchingFunction
 
-  bool SymbolFunctionName::findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol)
+  u32 SymbolFunctionName::findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol)
   {
-    bool rtnBool = false;
-
     if(m_mangledFunctionNames.empty())
-      return false;
+      return 0;
 
+    u32 matchingFuncCount = 0;
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     assert(funcSymbol == NULL);
 
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	if((rtnBool = fsym->matchingTypesStrictly(argTypes)))
+	if(fsym->matchingTypesStrictly(argTypes))
 	  {
 	    funcSymbol = fsym;
-	    break;
+	    matchingFuncCount++;
+	    //	    break;
 	  }
 	++it;
       }
 
-    //try again with less strict constraints, allows constants to match any similar base type
+    //try again with less strict constraints, allow constants that fit to match same base type
     if(!funcSymbol)
       {
 	it = m_mangledFunctionNames.begin();
 	while(it != m_mangledFunctionNames.end())
 	  {
 	    SymbolFunction * fsym = it->second;
-	    if((rtnBool = fsym->matchingTypes(argTypes, constArgs)))
+	    if(fsym->matchingTypes(argTypes, constArgs))
 	      {
 		funcSymbol = fsym;
-		break;
+		matchingFuncCount++;
+		//break;
 	      }
 	    ++it;
 	  }
+
+	if(matchingFuncCount > 1)
+	  funcSymbol = NULL;
       } //2nd try
-    return rtnBool;
+    return matchingFuncCount;
   } //findMatchingFunction
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()

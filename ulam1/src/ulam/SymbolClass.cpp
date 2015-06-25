@@ -160,7 +160,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str();
-	msg << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: ";
+	msg << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test";
+	msg << " while compiling class: ";
 	msg  << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
 	aok = false; //moved here;

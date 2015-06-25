@@ -312,7 +312,7 @@ namespace MFM {
       {
 	SymbolFunction * funcSymbol = NULL;
 	std::vector<UTI> voidVector;
-	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol))
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol) == 1)
 	  {
 	    func = funcSymbol->getFunctionNode();
 	  }

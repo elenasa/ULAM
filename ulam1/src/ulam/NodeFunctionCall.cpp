@@ -119,18 +119,33 @@ namespace MFM {
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
 	// currently requires exact match
 	// (let constant match any size of same type)
-	if(!((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol))
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol);
+	if(numFuncs == 0)
 	  {
 	    std::ostringstream msg;
 	    msg << "(1) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
 	    msg << "> has no defined function with " << numargs;
-	    msg << " matching argument types: ";
+	    msg << " matching argument type";
+	    if(numargs != 1)
+	      msg << "s";
+	    msg << ": ";
 	    for(u32 i = 0; i < argTypes.size(); i++)
 	      {
 		msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
 	      }
-	    msg << "and cannot be called, while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "and cannot be called";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    numErrorsFound++;
+	  }
+	else if(numFuncs > 1)
+	  {
+	    std::ostringstream msg;
+	    msg << "Ambiguous matches (" << numFuncs << ") of function <";
+	    msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+	    msg << "> with " << numargs << " matching argument type";
+	    if(numargs != 1)
+	      msg << "s";
+	    msg << "; Explicit casting required";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    numErrorsFound++;
 	  }
@@ -139,8 +154,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-	msg << "> is not a defined function, and cannot be called; compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "> is not a defined function, and cannot be called";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	numErrorsFound++;
       }
@@ -151,9 +165,7 @@ namespace MFM {
 	if(funcSymbol)
 	  {
 	    msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> , while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str() <<">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_funcSymbol = funcSymbol;
 	  }
@@ -224,9 +236,8 @@ namespace MFM {
 		    msg << i + 1;
 		  }
 
-		msg << " to function <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-		msg << "> , while compiling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		msg << " to function <";
+		msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str() <<">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		argsWithCastErr.clear();
 	      }
