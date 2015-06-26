@@ -68,6 +68,8 @@ namespace MFM{
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
+    virtual bool safeCast(UTI typidx);
+
   private:
 
   };

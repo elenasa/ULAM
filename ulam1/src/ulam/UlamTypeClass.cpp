@@ -80,6 +80,19 @@ namespace MFM {
     return brtn;
   } //end cast
 
+  bool UlamTypeClass::safeCast(UTI typidx)
+  {
+    if(!UlamType::safeCast(typidx))
+      return false;
+
+    if(m_class == UC_ELEMENT && typidx == UAtom)
+      return false; //complicated not safe.
+
+    //must be Quark! treat as Int
+    assert(m_class == UC_QUARK);
+    return m_state.getUlamTypeByIndex(Int)->safeCast(typidx);
+  } //safeCast
+
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
     switch(m_class)

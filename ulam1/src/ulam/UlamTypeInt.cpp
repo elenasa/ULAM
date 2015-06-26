@@ -250,6 +250,43 @@ namespace MFM {
     return brtn;
   } //castTo64
 
+  bool UlamTypeInt::safeCast(UTI typidx)
+  {
+    if(!UlamType::safeCast(typidx))
+      return false;
+
+    s32 bitsize = getBitSize();
+    s32 valbitsize = m_state.getBitSize(typidx);
+
+    bool brtn = true;
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    switch(valtypEnum)
+      {
+      case Unsigned:
+	brtn = (bitsize > valbitsize);
+	break;
+      case Unary:
+      case Int:
+	brtn = (bitsize >= valbitsize);
+	break;
+      case Bool:
+      case Bits:
+      case Void:
+      case UAtom:
+	brtn = false;
+	break;
+      case Class:
+	brtn = ((vut->getUlamClass() == UC_QUARK) && (bitsize >= MAXBITSPERINT));
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+    return brtn;
+  } //safeCast
+
   void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)
   {
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
