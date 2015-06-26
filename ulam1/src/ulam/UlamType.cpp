@@ -77,6 +77,36 @@ namespace MFM {
     return false;
   }
 
+  bool UlamType::safeCast(UTI typidx)
+  {
+    // initial tests for completeness and scalars
+    s32 bitsize = getBitSize();
+    s32 valbitsize = m_state.getBitSize(typidx);
+
+    if(!isComplete() || !m_state.isComplete(typidx))
+      {
+	std::ostringstream msg;
+	msg << "Casting UNKNOWN sizes; " << bitsize;
+	msg << ", Value Type and size was: " << typidx << "," << valbitsize;
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	return false;
+      }
+
+    assert(m_state.getUlamTypeByIndex(typidx) == this);
+    s32 arraysize = getArraySize();
+
+    if(!isScalar() || !m_state.isScalar(typidx))
+      {
+	std::ostringstream msg;
+	msg << "Casting nonScalar Array sizes; " << arraysize;
+	msg << ", Value Type and size was: ";
+	msg << typidx << "," << m_state.getArraySize(typidx);
+	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+    return true;
+  } //safeCast
+
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     sprintf(valstr,"%s", getUlamTypeName().c_str());

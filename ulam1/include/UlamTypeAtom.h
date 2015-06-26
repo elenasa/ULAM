@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
+    virtual bool safeCast(UTI typidx);
+
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);

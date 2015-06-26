@@ -172,7 +172,7 @@ namespace MFM {
 	  rtnOK = true;
       }
     else
-      rtnOK = true;
+      rtnOK = true; //fit?
 
     if(!rtnOK)
       {
