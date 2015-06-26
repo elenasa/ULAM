@@ -145,14 +145,14 @@ namespace MFM {
     return false;
   }
 
-  bool Node::safeToCastTo(UTI newType)
+  SAFECAST Node::safeToCastTo(UTI newType)
   {
     std::ostringstream msg;
-    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "virtual SAFECAST " << prettyNodeName().c_str();
     msg << "::safeToCastTo(UTI newType){} is needed!!";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     //assert(0); //needs a method apparently
-    return true;
+    return HAZY;
   } //safeToCastTo
 
   // any node above assignexpr is not storeintoable;

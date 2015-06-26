@@ -250,10 +250,11 @@ namespace MFM {
     return brtn;
   } //castTo64
 
-  bool UlamTypeInt::safeCast(UTI typidx)
+  SAFECAST UlamTypeInt::safeCast(UTI typidx)
   {
-    if(!UlamType::safeCast(typidx))
-      return false;
+    SAFECAST scr = UlamType::safeCast(typidx);
+    if(scr != SAFE)
+      return scr;
 
     s32 bitsize = getBitSize();
     s32 valbitsize = m_state.getBitSize(typidx);
@@ -284,7 +285,7 @@ namespace MFM {
 	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
-    return brtn;
+    return brtn ? SAFE : UNSAFE;
   } //safeCast
 
   void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)

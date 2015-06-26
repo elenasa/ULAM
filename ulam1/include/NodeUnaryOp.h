@@ -65,6 +65,8 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual SAFECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);

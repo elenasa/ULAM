@@ -109,7 +109,8 @@ namespace MFM {
 		//if(m_node && checkForSafeImplicitCasting(m_state.m_currentFunctionReturnType, nodeType, rtnType)) //ref)
 		if(m_node)
 		  {
-		    if(m_node->safeToCastTo(nodeType))
+		    SAFECAST scr = m_node->safeToCastTo(nodeType);
+		    if( scr == SAFE)
 		      {
 			assert(rtnType == m_state.m_currentFunctionReturnType); //are we ignoring cast change
 			if(!makeCastingNode(m_node, m_state.m_currentFunctionReturnType, m_node))
@@ -125,7 +126,10 @@ namespace MFM {
 			msg << " as ";
 			msg << m_state.getUlamTypeNameByIndex(m_state.m_currentFunctionReturnType).c_str();
 			msg << " requires explicit casting";
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			if(scr == UNSAFE)
+			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			else
+			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			nodeType = Nav; //missing?
 		      }
 		  }
