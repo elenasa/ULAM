@@ -46,7 +46,8 @@ namespace MFM {
 
     NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(leftType, rightType, newType); //ref newType
 
-    if(!m_nodeRight->safeToCastTo(newType))
+    SAFECAST scr = m_nodeRight->safeToCastTo(newType);
+    if(scr != SAFE)
       {
 	std::ostringstream msg;
 	msg << "Converting "; // the real converting-message
@@ -54,7 +55,10 @@ namespace MFM {
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 	msg << " requires explicit casting";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(scr == UNSAFE)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	setNodeType(Nav);
 	return Nav;
       }

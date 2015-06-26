@@ -203,10 +203,11 @@ namespace MFM {
     return brtn;
   } //castTo64
 
-  bool UlamTypeUnsigned::safeCast(UTI typidx)
+  SAFECAST UlamTypeUnsigned::safeCast(UTI typidx)
   {
-    if(!UlamType::safeCast(typidx))
-      return false;
+    SAFECAST scr = UlamType::safeCast(typidx);
+    if(scr != SAFE)
+      return scr;
 
     s32 bitsize = getBitSize();
     s32 valbitsize = m_state.getBitSize(typidx);
@@ -234,7 +235,7 @@ namespace MFM {
 	//std::cerr << "UlamTypeUnsigned (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
-    return brtn;
+    return brtn ? SAFE : UNSAFE;
   } //safeCast
 
   void UlamTypeUnsigned::getDataAsString(const u32 data, char * valstr, char prefix)

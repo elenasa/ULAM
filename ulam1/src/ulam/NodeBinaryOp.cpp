@@ -113,7 +113,7 @@ namespace MFM {
     return false;
   }
 
-  bool NodeBinaryOp::safeToCastTo(UTI newType)
+  SAFECAST NodeBinaryOp::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
     //newtype->safeCast(fromtype)

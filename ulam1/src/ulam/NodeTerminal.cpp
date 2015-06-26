@@ -144,9 +144,9 @@ namespace MFM {
     return true;
   }
 
-  bool NodeTerminal::safeToCastTo(UTI newType)
+  SAFECAST NodeTerminal::safeToCastTo(UTI newType)
   {
-    return fitsInBits(newType);
+    return fitsInBits(newType) ? SAFE : UNSAFE;
   } //safeToCastTo
 
   UTI NodeTerminal::checkAndLabelType()
@@ -311,8 +311,8 @@ namespace MFM {
       case Unary:
 	{
 	  u32 numval = m_constant.uval;
-	  u32 fmax = _Unary32ToUnsigned32(fit->getMax(), fit->getBitSize(), m_state.getBitSize(nuti));
-	  rtnb = (numval <= fmax) && (numval >= 0);
+	  //u32 fmax = _Unary32ToUnsigned32(fit->getMax(), fit->getBitSize(), m_state.getBitSize(nuti));
+	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
 	}
 	break;
       default:

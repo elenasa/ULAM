@@ -77,7 +77,7 @@ namespace MFM {
     return false;
   }
 
-  bool UlamType::safeCast(UTI typidx)
+  SAFECAST UlamType::safeCast(UTI typidx)
   {
     // initial tests for completeness and scalars
     s32 bitsize = getBitSize();
@@ -89,7 +89,7 @@ namespace MFM {
 	msg << "Casting UNKNOWN sizes; " << bitsize;
 	msg << ", Value Type and size was: " << typidx << "," << valbitsize;
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	return false;
+	return HAZY;
       }
 
     bool bOK = true;
@@ -131,7 +131,7 @@ namespace MFM {
 	      }
 	  }
       }
-    return bOK;
+    return bOK ? SAFE : UNSAFE;
   } //safeCast
 
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)

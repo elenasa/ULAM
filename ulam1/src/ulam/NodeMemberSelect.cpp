@@ -36,7 +36,7 @@ namespace MFM {
     return "_MemberSelect_Stub";
   }
 
-  bool NodeMemberSelect::safeToCastTo(UTI newType)
+  SAFECAST NodeMemberSelect::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_nodeRight->safeToCastTo(newType);
