@@ -33,14 +33,30 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
-    UTI newType = Nav; //init
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
     if(!m_state.isComplete(leftType) || !m_state.isComplete(rightType))
       {
+    	setNodeType(Nav);
+    	return Nav; //not quietly
+      }
+
+    UTI newType = leftType; //init
+
+    NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(leftType, rightType, newType); //ref newType
+
+    if(!m_nodeRight->safeToCastTo(newType))
+      {
+	std::ostringstream msg;
+	msg << "Converting "; // the real converting-message
+	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	msg << " to ";
+	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);
-	return Nav; //not quietly
+	return Nav;
       }
 
     if(!checkStoreIntoAble())
@@ -55,18 +71,18 @@ namespace MFM {
 	return Nav;
       }
 
-    if(!checkNotVoidTypes(leftType, rightType))
-      {
-	setNodeType(Nav);
-	return Nav;
-      }
+    //    if(!checkNotVoidTypes(leftType, rightType))
+    //  {
+    //	setNodeType(Nav);
+    //	return Nav;
+    //  }
 
-    newType = leftType;
+    //newType = leftType;
 
     //cast RHS if necessary
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
-	if(checkForSafeImplicitCasting(leftType, rightType, newType)) //ref
+	//if(checkForSafeImplicitCasting(leftType, rightType, newType)) //ref
 	  {
 	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav; //error
@@ -145,7 +161,7 @@ namespace MFM {
     if(!rtnOK)
       {
 	std::ostringstream msg;
-	msg << "Converting from "; //non-Bool
+	msg << "Converting from non-Bool "; //non-Bool
 	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
 	msg << " to "; //Bool
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
@@ -179,7 +195,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Converting from ";
 	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << " to "; //Unary
+	msg << " to Unary "; //Unary
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " requires explicit casting";
 	msg << " for binary operator" << getName();

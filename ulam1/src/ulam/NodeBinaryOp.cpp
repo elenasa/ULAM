@@ -113,6 +113,13 @@ namespace MFM {
     return false;
   }
 
+  bool NodeBinaryOp::safeToCastTo(UTI newType)
+  {
+    //ulamtype checks for complete, non array, and type specific rules
+    //newtype->safeCast(fromtype)
+    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+  } //safeToCastTo
+
   UTI NodeBinaryOp::checkAndLabelType()
   {
     assert(m_nodeLeft && m_nodeRight);
@@ -248,7 +255,7 @@ namespace MFM {
     return ( lconst == rconst ? (lbs > rbs ? lbs : rbs) : (!lconst ? lbs : rbs));
   } //maxBitsize
 
-  bool NodeBinaryOp::checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType)
+  bool NodeBinaryOp::checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI newType)
   {
     bool rtnOK = true;
     bool lconst = m_nodeLeft->isAConstant();
@@ -259,9 +266,11 @@ namespace MFM {
 	bool lready = lconst && m_nodeLeft->isReadyConstant();
 	bool rready = rconst && m_nodeRight->isReadyConstant();
 
+#if 0
 	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 
-	// cast constant to unsigned variable type if mixed types
+	// cast constant to unsigned variable type if mixed types:
+	// e.g. Unsigned(8) var = 2; //change from Int(8) to Unsigned(8)
 	//	if((ltypEnum == Unsigned && !lconst) || (rtypEnum == Unsigned && !rconst))
 	if((ltypEnum != ntypEnum && !lconst) || (rtypEnum != ntypEnum && !rconst))
 	  {
@@ -269,6 +278,7 @@ namespace MFM {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
 	    newType = m_state.makeUlamType(newkey, Unsigned);
 	  }
+#endif
 
 	// if one is a constant, check for value to fit in new type bits.
 	bool doErrMsg = lready || rready;
@@ -294,7 +304,7 @@ namespace MFM {
 		msg<< m_state.getUlamTypeNameByIndex(newType).c_str();
 		msg << ", for binary operator" << getName() << " ";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		newType = Nav; //for error
+		//newType = Nav; //for error
 	      }
 	  } //err
 	rtnOK = !doErrMsg;
@@ -302,9 +312,38 @@ namespace MFM {
     return rtnOK;
   } //checkAnyConstantsFit
 
-  bool NodeBinaryOp::checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType)
+  bool NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(UTI lt, UTI rt, UTI& newType)
+  {
+    ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+    return fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType);
+  } //fixMixedSignsOfVariableWithConstantToVariableType (helper)
+
+  bool NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType)
+  {
+    bool lconst = m_nodeLeft->isAConstant();
+    bool rconst = m_nodeRight->isAConstant();
+    if(lconst ^ rconst)
+      {
+	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+
+	// cast constant to unsigned variable type if mixed types:
+	// e.g. Unsigned(8) var = 2; //change from Int(8) to Unsigned(8)
+	//	if((ltypEnum == Unsigned && !lconst) || (rtypEnum == Unsigned && !rconst))
+	if((ltypEnum != ntypEnum && !lconst) || (rtypEnum != ntypEnum && !rconst))
+	  {
+	    s32 newbs = m_state.getBitSize(newType);
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
+	    newType = m_state.makeUlamType(newkey, Unsigned);
+	  }
+      }
+    return true;
+  } //fixMixedSignsOfVariableWithConstantToVariableType
+
+  bool NodeBinaryOp::checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI newType)
   {
     bool rtnOK = true;
+
     ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 
     //Int to Unsigned of any size is unsafe!
@@ -340,7 +379,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
 	msg << " for binary operator" << getName() << " without casting";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
+	//newType = Nav;
       } //mixing unsigned and signed
     return rtnOK;
   } //checkforMixedSignsOfVariables

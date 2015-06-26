@@ -106,13 +106,28 @@ namespace MFM {
 	    if(UlamType::compare(m_state.m_currentFunctionReturnType, Void, m_state) == UTIC_NOTSAME)
 	      {
 		UTI rtnType = m_state.m_currentFunctionReturnType;
-		if(m_node && checkForSafeImplicitCasting(m_state.m_currentFunctionReturnType, nodeType, rtnType)) //ref)
+		//if(m_node && checkForSafeImplicitCasting(m_state.m_currentFunctionReturnType, nodeType, rtnType)) //ref)
+		if(m_node)
 		  {
-		    assert(rtnType == m_state.m_currentFunctionReturnType); //are we ignoring cast change
-		    if(!makeCastingNode(m_node, m_state.m_currentFunctionReturnType, m_node))
-		      nodeType = Nav;
+		    if(m_node->safeToCastTo(nodeType))
+		      {
+			assert(rtnType == m_state.m_currentFunctionReturnType); //are we ignoring cast change
+			if(!makeCastingNode(m_node, m_state.m_currentFunctionReturnType, m_node))
+			  nodeType = Nav;
+			else
+			  nodeType = m_node->getNodeType();
+		      }
 		    else
-		      nodeType = m_node->getNodeType();
+		      {
+			std::ostringstream msg;
+			msg << "Returning an mixed sign type: "; // mixed signs
+			msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+			msg << " as ";
+			msg << m_state.getUlamTypeNameByIndex(m_state.m_currentFunctionReturnType).c_str();
+			msg << " requires explicit casting";
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			nodeType = Nav; //missing?
+		      }
 		  }
 		else
 		  nodeType = Nav;  //no casting node
@@ -201,7 +216,7 @@ namespace MFM {
     if(!rtnOK)
       {
 	std::ostringstream msg;
-	msg << "Returning an "; // mixed signs
+	msg << "Returning mixed signs type "; // mixed signs
 	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
 	msg << " as ";
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();

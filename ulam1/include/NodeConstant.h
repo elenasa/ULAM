@@ -70,6 +70,8 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual bool safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
     NNO getBlockNo();

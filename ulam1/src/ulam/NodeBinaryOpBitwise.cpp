@@ -90,7 +90,10 @@ namespace MFM {
 	    //else could fail
 
 	    if(newType != Nav)
-	      NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
+	      {
+		NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
+		NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
+	      }
 	  }
 
 	if(newType == Nav && !(ltypEnum == Bits && rtypEnum == Bits))

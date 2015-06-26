@@ -55,6 +55,13 @@ namespace MFM {
     return m_ready;
   }
 
+  bool NodeConstant::safeToCastTo(UTI newType)
+  {
+    if(isReadyConstant())
+      return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType()) && NodeTerminal::fitsInBits(newType);
+    return false;
+  } //safeToCastTo
+
   UTI NodeConstant::checkAndLabelType()
   {
     UTI it = Nav;
