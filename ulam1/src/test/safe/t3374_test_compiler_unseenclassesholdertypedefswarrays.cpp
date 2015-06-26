@@ -21,8 +21,8 @@ namespace MFM {
 
       bool rtn3 = fms->add("E.ulam", "element E{\n typedef D.X X[2];\n }\n");
 
-      //test constant expression bitwise
-      bool rtn4 = fms->add("D.ulam", "element D{\n typedef Bool(2|1) X;\n }\n");
+      //test constant expression bitwise; requires explicit cast back to Int from Bits after bitwise |
+      bool rtn4 = fms->add("D.ulam", "element D{\n typedef Bool((Int) (2|1)) X;\n }\n");
 
       if(rtn1 && rtn2 && rtn3 && rtn4)
 	return std::string("A.ulam");

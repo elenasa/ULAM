@@ -40,6 +40,7 @@
 #include <vector>
 #include "Symbol.h"
 #include "UlamTypeClass.h"
+#include "Node.h"
 
 namespace MFM{
 
@@ -76,7 +77,7 @@ namespace MFM{
     bool checkParameterTypes();
 
     bool matchingTypesStrictly(std::vector<UTI> argTypes);
-    bool matchingTypes(std::vector<UTI> argTypes, std::vector<bool> constantArg);
+    bool matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg);
 
     u32 isNativeFunctionDeclaration();
 

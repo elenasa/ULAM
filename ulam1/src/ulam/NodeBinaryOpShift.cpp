@@ -15,22 +15,22 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
-    UTI newType = calcNodeType(leftType, rightType); //left, or nav error
+    UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
+
     setNodeType(newType);
     setStoreIntoAble(false);
 
     if(newType != Nav && m_state.isComplete(newType))
       {
-	assert(newType == leftType);
-	//shift ops take unsigned as second arg;
-	//note: C implementations typically shift by the lower 5 bits (6 for 64-bits) only.
-	ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
-	if(retype != Unsigned)
+	if(leftType != newType)
 	  {
-	    if(!makeCastingNode(m_nodeRight, Unsigned, m_nodeRight))
-	      newType = Nav;
+	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	      {
+		newType = Nav;
+		setNodeType(Nav);
+	      }
 	  }
-      }
+      } //complete
 
     if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold();
@@ -67,54 +67,66 @@ namespace MFM {
 
   UTI NodeBinaryOpShift::calcNodeType(UTI lt, UTI rt)  //shift
   {
-    if(lt == Nav || rt == Nav)
-      {
+    if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
+      return Nav;
+
+    //no atoms, elements, nor void as either operand
+    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
 	return Nav;
-      }
 
     UTI newType = Nav; //init
-    // all shift operations are performed as lhs type
-    if(m_state.isScalar(lt) && m_state.isScalar(rt))
+    // change! LHS must be Bits..up to ulam programmer to cast
+    // (including quarks).
+    if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
 	newType = lt;
 
-	//these "helpful" checks do not consider the possibility of a constant expression XXX
-	bool rconst = m_nodeRight->isAConstant();
-	if(rconst && m_nodeRight->isReadyConstant() && m_nodeRight->isNegativeConstant())
-	  {
-	    std::ostringstream msg;
-	    msg << "Negative shift! Recommend shifting in the opposite direction, LHS: ";
-	    msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
-	    msg << m_state.getUlamTypeNameByIndex(rt).c_str() << " for binary shift operator";
-	    msg << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
-	  }
+	// RHS must be Unsigned, or positive constant.
+	//shift ops take unsigned as second arg;
+	//note: C implementations typically shift by the lower 5 bits (6 for 64-bits) only.
+	UlamType * rut = m_state.getUlamTypeByIndex(rt);
+	ULAMTYPE retype = rut->getUlamTypeEnum();
+	bool rconstpos = (m_nodeRight->isAConstant() && m_nodeRight->isReadyConstant() && !m_nodeRight->isNegativeConstant());
 
-	//if Bool ERR.
-	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-	if(etyp == Bool)
+	if(!rconstpos && retype != Unsigned)
 	  {
+	    //this is an unsafe cast, must be explicit!
 	    std::ostringstream msg;
-	    msg << "Bool is not currently supported for bitwise shift operator";
-	    msg << getName() << "; suggest casting " << m_state.getUlamTypeNameByIndex(lt).c_str();
-	    msg << " to Bits";
+	    msg << "Unsigned is the supported type for RHS bitwise shift value, operator";
+	    msg << getName() << "; Suggest casting ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << " to Unsigned";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
+	    return  Nav;
 	  }
 
+	//ERROR if LHS is not Bits, except for constants
+	bool lconst = m_nodeLeft->isAConstant();
+	if(!lconst)
+	  {
+	    ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+	    if(etyp != Bits)
+	      {
+		s32 lbs = m_state.getBitSize(lt);
+		std::ostringstream msg;
+		msg << "Bits is the supported type for bitwise shift operator";
+		msg << getName() << "; Suggest casting ";
+		msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+		msg << " to Bits";
+		if(lbs > 0)
+		  msg << "(" << lbs << ")";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav;
+	      }
+	  }
+	else
+	  {
+	    //auto for constants, downhill cast. use larger bitsize.
+	    s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	    newType = m_state.makeUlamType(newkey, Bits);
+	  }
       } //both scalars
-    else
-      {
-	//array op scalar: defer since the question of matrix operations
-	// is unclear at this time.
-	std::ostringstream msg;
-	msg << "Unsupported (nonscalar) types, LHS: ";
-	msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << " for bitwise shift operator";
-	msg << getName() << " ; suggest writing a loop";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
     return newType;
   } //calcNodeType
 

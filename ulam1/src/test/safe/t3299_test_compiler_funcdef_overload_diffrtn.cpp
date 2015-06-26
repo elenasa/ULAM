@@ -17,7 +17,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       //different return types ok!
-      bool rtn1 = fms->add("A.ulam","ulam 1;\nuse System;\nelement A {\nSystem s;\n Bool sp;\n Int(3) spi;\n Int foo(Bool b, Int i){\nreturn 3;\n}\n Bool foo(Bool b){\nreturn b;\n}\n Int foo(Int i){\nreturn i;\n}\n Int test() {\n Bool mybool = true;\nspi = foo(mybool, 7);\n s.print(spi);\n sp=foo(mybool);\n s.print((Bool(3)) sp);\n return 0;\n }\n}");
+      bool rtn1 = fms->add("A.ulam","ulam 1;\nuse System;\nelement A {\nSystem s;\n Bool sp;\n Int(3) spi;\n Int foo(Bool b, Int i){\nreturn 3;\n}\n Bool foo(Bool b){\nreturn b;\n}\n Int foo(Int i){\nreturn i;\n}\n Int test() {\n Bool mybool = true;\nspi = (Int(3)) foo(mybool, 7);\n s.print(spi);\n sp=foo(mybool);\n s.print((Bool(3)) sp);\n return 0;\n }\n}");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

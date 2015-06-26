@@ -12,7 +12,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       // with renames of typedefs, and arrays based on typedef
-      bool rtn1 = fms->add("B.ulam","element B {\ntypedef Unsigned(2) Slot;\n typedef Unsigned(8) Index;\ntypedef Index IndArr[4];\nIndArr arr;\n  Void hit(Slot slot, Unsigned weight) {\n arr[slot] = arr[slot] + weight;\n}\n Int test(){hit((Slot) 1, 7u);\n return arr[1];\n }\n }\n");
+      bool rtn1 = fms->add("B.ulam","element B {\ntypedef Unsigned(2) Slot;\n typedef Unsigned(8) Index;\ntypedef Index IndArr[4];\nIndArr arr;\n  Void hit(Slot slot, Unsigned weight) {\n arr[slot] = arr[slot] + (Unsigned(8)) weight;\n}\n Int test(){hit((Slot) 1, 7u);\n return arr[1];\n }\n }\n");
 
 
       if(rtn1)

@@ -17,7 +17,7 @@ namespace MFM {
       // likes Telomeree first!
       //bool rtn3 = fms->add("R.ulam", "use Telomeree;\n use Colony;\n use Ish3;\n  element R{\nIsh3 ish;\n Int test() { return 0;\n}\n}");
       //      bool rtn3 = fms->add("R.ulam", "use Ish3;\n  element R{\nIsh3 ish;\n Int test() { return 0;\n}\n}");
-      bool rtn3 = fms->add("R.ulam", "use Ish3;\n  element R{\nIsh3 ish;\n Int test() {\n return ish.colony.foo();\n}\n}");
+      bool rtn3 = fms->add("R.ulam", "use Ish3;\n  element R{\nIsh3 ish;\n Int test() {\n return (Int) ish.colony.foo();\n}\n}");
 
       //bool rtn1 = fms->add("Colony.ulam","quark Colony(Unsigned widthc){\n typedef Telomeree(widthc) Telo; \n  Bool foo() {\n Telo tail;\n if (tail.age >= Telomeree(widthc).Tail.maxof) {\n return true;\n }\n  /* if (tail.age >= Telo.Tail.maxof) {\n return true;\n }\n */ }\n }");
 

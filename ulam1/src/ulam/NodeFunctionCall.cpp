@@ -83,7 +83,7 @@ namespace MFM {
 
     //label argument types; used to pinpoint the exact function symbol in case of overloading
     std::vector<UTI> argTypes;
-    std::vector<bool> constArgs;
+    std::vector<Node *> constArgs;
     u32 constantArgs = 0;
     u32 navArgs = 0;
 
@@ -102,11 +102,11 @@ namespace MFM {
 	    // track constants and potential casting to be handled
 	    if(m_argumentNodes->isAConstant(i))
 	      {
-		constArgs.push_back(true);
+		constArgs.push_back(m_argumentNodes->getNodePtr(i));
 		constantArgs++;
 	      }
 	    else
-	      constArgs.push_back(false);
+	      constArgs.push_back(NULL);
 	  }
 	m_state.popClassContext(); //restore here
 
@@ -119,18 +119,33 @@ namespace MFM {
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
 	// currently requires exact match
 	// (let constant match any size of same type)
-	if(!((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol))
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol);
+	if(numFuncs == 0)
 	  {
 	    std::ostringstream msg;
 	    msg << "(1) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
 	    msg << "> has no defined function with " << numargs;
-	    msg << " matching argument types: ";
+	    msg << " matching argument type";
+	    if(numargs != 1)
+	      msg << "s";
+	    msg << ": ";
 	    for(u32 i = 0; i < argTypes.size(); i++)
 	      {
 		msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
 	      }
-	    msg << "and cannot be called, while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "and cannot be called";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    numErrorsFound++;
+	  }
+	else if(numFuncs > 1)
+	  {
+	    std::ostringstream msg;
+	    msg << "Ambiguous matches (" << numFuncs << ") of function <";
+	    msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+	    msg << "> with " << numargs << " matching argument type";
+	    if(numargs != 1)
+	      msg << "s";
+	    msg << "; Explicit casting required";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    numErrorsFound++;
 	  }
@@ -139,8 +154,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-	msg << "> is not a defined function, and cannot be called; compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << "> is not a defined function, and cannot be called";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	numErrorsFound++;
       }
@@ -151,9 +165,7 @@ namespace MFM {
 	if(funcSymbol)
 	  {
 	    msg << "Substituting <" << funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str();
-	    msg << "> , while compiling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    msg << "> for <" << m_funcSymbol->getMangledNameWithTypes().c_str() <<">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    m_funcSymbol = funcSymbol;
 	  }
@@ -181,7 +193,7 @@ namespace MFM {
 		  {
 		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
 		    UTI ptype = psym->getUlamTypeIdx();
-		    Node * argNode = m_argumentNodes->getNodePtr(i);
+		    Node * argNode = constArgs[i]; //m_argumentNodes->getNodePtr(i);
 		    Node * argCast = NULL;
 		    if(!makeCastingNode(argNode, ptype, argCast))
 		      {
@@ -200,7 +212,7 @@ namespace MFM {
 		  {
 		    if(constArgs[i])
 		      {
-			Node * argNode = m_argumentNodes->getNodePtr(i);
+			Node * argNode = constArgs[i];//m_argumentNodes->getNodePtr(i);
 			Node * argCast = NULL;
 			if(!makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]), argCast))
 			  {
@@ -224,9 +236,8 @@ namespace MFM {
 		    msg << i + 1;
 		  }
 
-		msg << " to function <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-		msg << "> , while compiling class: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+		msg << " to function <";
+		msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str() <<">";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		argsWithCastErr.clear();
 	      }
@@ -399,9 +410,11 @@ namespace MFM {
   EvalStatus NodeFunctionCall::evalToStoreInto()
   {
     std::ostringstream msg;
-    msg << "Use of function calls as lefthand values is not currently supported.";
-    msg << " Save the results of <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-    msg << "> to a variable, type: " << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
+    msg << "Eval of function calls as lefthand values is not currently supported.";
+    msg << " Save the results of <";
+    msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
+    msg << "> to a variable, type: ";
+    msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str();
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     assert(!isStoreIntoAble());
     return ERROR;

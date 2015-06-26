@@ -18,7 +18,9 @@ namespace MFM {
       //informed by 3416 only return is Int("3") instead of atom; using class args for bitsize "3"
       // (don't have to use native aref).
       bool rtn1 = fms->add("IntArrayTest.ulam", "ulam 1;\nuse IAN;\n use System;\n element IntArrayTest {\nconstant Int isn = 3;\n typedef Int(isn) Intn;\n IAN(isn) ia;\n  Intn func() {\n return ia[1];\n }\n Int test() {\nSystem s;\n Intn a;\n a = func();\n s.print(a);\n return a;\n  }\n}\n");
-      bool rtn2 = fms->add("IAN.ulam", "ulam 1;\nquark IAN(Int n) {\ntypedef Int(n) Intn;\n Intn aref(Int index){\n return n - index;\n}\n}\n");
+
+      //./IAN.ulam:5:2: ERROR: Returning Int(32) as a smaller type Int(3) requires explicit casting.
+      bool rtn2 = fms->add("IAN.ulam", "ulam 1;\nquark IAN(Int n) {\ntypedef Int(n) Intn;\n Intn aref(Int index){\n return (Intn) (n - index);\n}\n}\n");
 
       // simplify for debug..wo class param, use hardcoded Int(3)
       // return isn't 3+1, it's zero; might need system to see..

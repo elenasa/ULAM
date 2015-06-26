@@ -39,10 +39,12 @@ namespace MFM {
 
   UTI NodeBinaryOpBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise
   {
-    if(lt == Nav || rt == Nav || !m_state.isComplete(lt) || !m_state.isComplete(rt))
-      {
+    if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
 	return Nav;
-      }
+
+    //no atoms, elements, nor void as either operand
+    if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
+	return Nav;
 
     UTI newType = Nav;  //init
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(lt, rt, m_state);
@@ -59,36 +61,53 @@ namespace MFM {
     if(uticr == UTIC_SAME)
       {
 	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-	if(!m_state.isScalar(lt) && (etyp == Unary || etyp == Bool))
-	  {
-	    std::ostringstream msg;
-	    msg << "Nonscalar types Bool and Unary are not currently supported ";
-	    msg << "for binary bitwise operator" << getName();
-	    msg << "; suggest writing a loop for: ";
-	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	  }
-	else
-	  newType = rt; //maintain type
+	if(etyp == Bits)
+	  return lt; //includes array of bits
       }
-    else
-      {
-	if(m_state.isScalar(lt) && m_state.isScalar(rt))
-	  {
-	    bool useLong = ((m_state.getTotalWordSize(lt) == MAXBITSPERLONG) || (m_state.getTotalWordSize(rt) == MAXBITSPERLONG));
 
-	    newType = useLong ? m_state.getBigBitsUTI() : Bits; //default is Bits
-	  }
-	else
+    if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
+      {
+	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+	//if not both Bits ERR, except for both constants
+	bool lconst = m_nodeLeft->isAConstant();
+	bool rconst = m_nodeRight->isAConstant();
+
+	//auto cast when both constants, or both Bits. constant fold later.
+	if((lconst && rconst) || (ltypEnum == Bits && rtypEnum == Bits))
 	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) types, LHS: ";
-	    msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-	    msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
-	    msg << " for binary bitwise operator" << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	    newType = m_state.makeUlamType(newkey, Bits);
 	  }
-      }
+	else if(lconst ^ rconst)
+	  {
+	    //one or the other but not both are constants; use
+	    if(lconst && rtypEnum == Bits)
+	      newType = rt;
+	    else if(rconst && ltypEnum == Bits)
+	      newType = lt;
+	    //else could fail
+
+	    if(newType != Nav)
+	      NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
+	  }
+
+	if(newType == Nav && !(ltypEnum == Bits && rtypEnum == Bits))
+	  {
+	    s32 mbs = NodeBinaryOp::maxBitsize(lt, rt);
+	    std::ostringstream msg;
+	    msg << "Bits is the supported type for bitwise operator";
+	    msg << getName() << "; Suggest casting ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str() << " and ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << " to Bits";
+	    if(mbs > 0)
+	      msg<< "(" << mbs << ")";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	  }
+      } //both scalars
     return newType;
   } //calcNodeType
 

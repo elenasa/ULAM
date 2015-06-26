@@ -43,6 +43,7 @@
 #include "NodeSquareBracket.h"
 #include "NodeConstantDef.h"
 #include "TargetMap.h"
+#include "ParameterMap.h"
 
 namespace MFM{
 

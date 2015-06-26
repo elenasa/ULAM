@@ -160,7 +160,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incomplete Class Type: "  << m_state.getUlamTypeNameByIndex(suti).c_str();
-	msg << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test while compiling class: ";
+	msg << " (UTI" << suti << ") has 'unknown' sizes, fails sizing pre-test";
+	msg << " while compiling class: ";
 	msg  << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
 	aok = false; //moved here;
@@ -197,7 +198,8 @@ namespace MFM {
     ULAMCLASSTYPE classtype = sut->getUlamClass();
 
     std::ostringstream msg;
-    msg << "[UTBUA] Total bits used/available by " << (classtype == UC_ELEMENT ? "element " : "quark ");
+    msg << "[UTBUA] Total bits used/available by ";
+    msg << (classtype == UC_ELEMENT ? "element " : "quark ");
     msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str() << " : ";
 
     if(m_state.isComplete(suti))
@@ -342,6 +344,8 @@ namespace MFM {
     //class context already pushed..
     assert(m_classBlock);
 
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass();
+
     // setup for codeGen
     m_state.m_currentSelfSymbolForCodeGen = this;
     m_state.m_currentObjSymbolsForCodeGen.clear();
@@ -410,11 +414,20 @@ namespace MFM {
       fp->write("\"\n");
       fp->write("\n");
 
+      m_state.indent(fp);
+      fp->write("namespace MFM{\n\n");
+
+      m_state.m_currentIndentLevel++;
+      m_classBlock->genCodeExtern(fp, false); //def for MP
+
+      m_state.m_currentIndentLevel = 0;
+      fp->write("} //MFM\n\n");
+
       delete fp; //close
     }
 
     //separate main.cpp for elements only; that have the test method.
-    if(m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamClass() == UC_ELEMENT)
+    if(classtype == UC_ELEMENT)
       {
 	if(m_classBlock->findTestFunctionNode())
 	  generateMain(fm);
@@ -765,7 +778,6 @@ namespace MFM {
     desc.m_className = className;
 
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
-
-  } //getTargetDesciptionMapEntry
+  } //addTargetDesciptionMapEntry
 
 } //end MFM
