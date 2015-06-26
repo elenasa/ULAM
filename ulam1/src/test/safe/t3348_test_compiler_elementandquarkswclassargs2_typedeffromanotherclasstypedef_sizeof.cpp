@@ -12,7 +12,7 @@ namespace MFM {
 	 Unsigned Arg: 33
       */
       //Constants have explicit types
-      return std::string("Exit status: 1\nUe_P { Bool(UNKNOWN) b(false);  constant Unsigned(32) a = NONREADYCONST;  Int(32) foo(0);  Int(32) test() {  System s;  3u = var const P(1u) pel;  s ( pel b sizeof . . )print . s ( P sizeof . )print . s ( pel sizeof . )print . pel b sizeof . . return } }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_P { Bool(UNKNOWN) b(false);  constant Unsigned(32) a = NONREADYCONST;  Int(32) foo(0);  Int(32) test() {  System s;  3u = var const P(1u) pel;  s ( pel b sizeof . . )print . s ( P sizeof . )print . s ( pel sizeof . )print . pel b sizeof . . cast return } }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -22,7 +22,7 @@ namespace MFM {
       // must already be parsed!
       //pel.b.sizeof
       //P.ulam:9:15: ERROR: Member selected must be either a quark or an element, not type: Bool(1).
-      bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\nuse System;\n element P(Unsigned a) {\nBool(a) b;\nInt foo;\nInt test() {\nSystem s;\n constant V.Woof.Foo var = 3u;\n P(1u) pel;\n s.print(pel.b.sizeof);\ns.print(P(1u).sizeof);\ns.print(pel.sizeof);\n return pel.b.sizeof;\n}\n}\n");
+      bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\nuse System;\n element P(Unsigned a) {\nBool(a) b;\nInt foo;\nInt test() {\nSystem s;\n constant V.Woof.Foo var = 3u;\n P(1u) pel;\n s.print(pel.b.sizeof);\ns.print(P(1u).sizeof);\ns.print(pel.sizeof);\n return (Int) pel.b.sizeof;\n}\n}\n");
 
       bool rtn2 = fms->add("Q.ulam","ulam 1;\nquark Q(Int s) {\ntypedef Unsigned(s) Foo;\n}\n");
 

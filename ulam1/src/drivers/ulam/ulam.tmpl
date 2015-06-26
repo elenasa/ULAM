@@ -885,10 +885,14 @@ sub runUlamCompilations
         $stderr = "";
         my @rows = split(/\n/, $info);
         for my $row (@rows) {
-            my ($ulam,$info,$path,$name,$cname,$size,$testflag,$classtype) = split(/ /,$row);
+            my ($ulam,$info,$type,$path,$name,$cname,$size,$testflag,$classtype) = split(/ /,$row);
             if ($ulam ne "ULAM" || $info ne "INFO:") {
                 # Not our business..  Leave in case it's important to somebody else..
                 $stderr .= "$row\n";
+                next;
+            }
+	    if ($type ne "TARGET") {
+                # NYI.  Strip it out but do nothing with it.
                 next;
             }
             defined $classtype or die "Successful exit but not enough fields in '$row'";

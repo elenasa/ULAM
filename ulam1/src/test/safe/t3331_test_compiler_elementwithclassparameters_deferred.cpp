@@ -26,7 +26,7 @@ namespace MFM {
       //bool rtn1 = fms->add("S.ulam"," ulam 1;\nquark S(Int x, Int y){\nInt(x+y) i,j;\n Int func(){\nreturn (x + y);\n}\n }\n");
 
       // here we set i using S(1,2).sizeof
-      bool rtn2 = fms->add("T.ulam"," ulam 1;\nuse System;\nuse S;\n element T{\nSystem s;\nUnsigned i,j;\nBool(3) b,c;\n Int test(){\nUnsigned x,y;\n S(1,2) m;\ni = S(1,2).sizeof;\n x = m.func(); b = (i == x);\n s.print(i);\ns.print(x);\n s.print(b);\n j = self.sizeof;\ny = T.sizeof;\n c = (j == y);\n s.print(j);\n s.print(y);\n s.print(c);\nreturn i;\n}\n }\n");
+      bool rtn2 = fms->add("T.ulam"," ulam 1;\nuse System;\nuse S;\n element T{\nSystem s;\nUnsigned i,j;\nBool(3) b,c;\n Int test(){\nUnsigned x,y;\n S(1,2) m;\ni = S(1,2).sizeof;\n x = (Unsigned) m.func(); b = (i == x);\n s.print(i);\ns.print(x);\n s.print(b);\n j = self.sizeof;\ny = T.sizeof;\n c = (j == y);\n s.print(j);\n s.print(y);\n s.print(c);\nreturn (Int) i;\n}\n }\n");
 
       //infinite loop 'S(x+y,n) s;' with x+y as class arg!
       //note: quark self.sizeof returns 96 (an atom's size).

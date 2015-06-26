@@ -2,17 +2,12 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3260_test_compiler_element_elementparameterintlist)
+  BEGINTESTCASECOMPILER(t3260_test_compiler_element_modelparameterintlist)
   {
     std::string GetAnswerKey()
     {
-      /* gen code output:
-	 Int Arg: 1
-	 Int Arg: 2
-	 Int Arg: 3
-      */
-
-      // element parameter chance not stored (as static variable) for eval
+      //./Foo.ulam:6:22: ERROR: Missing ';' after model parameter definition 'chance'; Lists not supported.
+      // model parameter chance not stored (as static variable) for eval
       return std::string("Exit status: 3\nUe_Foo { Int(8) b(2);  System s();  Bool(7) sp(false);  Int(8) a(1);  Int(8) c(3);  Int(32) test() {  Foo f;  f chance . 1 = s ( chance )print . a f chance . cast = f choice . 2 = s ( choice )print . b f choice . cast = f result . 3 = s ( result )print . c f result . cast = f chance . return } }\nUq_System { <NOMAIN> }\n");
     }
 
@@ -30,6 +25,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3260_test_compiler_element_elementparameterintlist)
+  ENDTESTCASECOMPILER(t3260_test_compiler_element_modelparameterintlist)
 
 } //end MFM

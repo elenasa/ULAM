@@ -32,7 +32,7 @@ namespace MFM {
 	}
       */
 
-      bool rtn1 = fms->add("Ish.ulam","ulam 1;\nelement Ish {\ntypedef Int(16) Coord;\nCoord x;\nCoord y;\nIsh make(Int x, Int y) {\nIsh ret;\n ret.x = x;\n ret.y = y;\n return ret;\n }\n Int test() {\n Ish f = make(1,3);\n return f.y;\n }\n }\n");
+      bool rtn1 = fms->add("Ish.ulam","ulam 1;\nelement Ish {\ntypedef Int(16) Coord;\nCoord x;\nCoord y;\nIsh make(Int x, Int y) {\nIsh ret;\n ret.x = (Coord) x;\n ret.y = (Coord) y;\n return ret;\n }\n Int test() {\n Ish f = make(1,3);\n return f.y;\n }\n }\n");
 
       if(rtn1)
 	return std::string("Ish.ulam");

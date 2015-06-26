@@ -131,14 +131,12 @@ namespace MFM {
       {
 	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    //m_nodeLeft = makeCastingNode(m_nodeLeft, newType);
 	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      newType = Nav;
 	  }
 
 	if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    //m_nodeRight = makeCastingNode(m_nodeRight, newType);
 	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav;
 	  }
@@ -149,6 +147,230 @@ namespace MFM {
 
     return newType;
   } //checkAndLabelType
+
+    //no atoms, elements nor voids as either operand
+  bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt)
+  {
+    bool rtnOK = true;
+    ULAMCLASSTYPE lclass = m_state.getUlamTypeByIndex(lt)->getUlamClass();
+    if(lclass == UC_ELEMENT || lt == UAtom)
+      {
+	std::ostringstream msg;
+	msg << "Non-primitive type: <";
+	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << "> is not supported as LHS for binary operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      }
+
+    ULAMCLASSTYPE rclass = m_state.getUlamTypeByIndex(rt)->getUlamClass();
+    if(rclass == UC_ELEMENT || rt == UAtom)
+      {
+	std::ostringstream msg;
+	msg << "Non-primitive type: <";
+	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	msg << "> is not supported as RHS for binary operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      }
+
+    rtnOK &= checkNotVoidTypes(lt, rt);
+    return rtnOK;
+  } //checkForPrimitiveTypes
+
+  bool NodeBinaryOp::checkNotVoidTypes(UTI lt, UTI rt)
+  {
+    bool rtnOK = true;
+    if(lt == Void || rt == Void)
+      {
+	std::ostringstream msg;
+	msg << "Void is not supported for binary operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      }
+    return rtnOK;
+  } //checkNotVoidTypes
+
+  bool NodeBinaryOp::checkScalarTypesOnly(UTI lt, UTI rt)
+  {
+    bool rtnOK = true;
+    if( !(m_state.isScalar(lt) && m_state.isScalar(rt)))
+      {
+	rtnOK = false;
+
+	//#define SUPPORT_ARITHMETIC_ARRAY_OPS
+#ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
+	// Conflicted: we don't like the idea that the type might be
+	// different for arrays than scalars; casting occurring differently.
+	// besides, for arithmetic ops, unlike logical ops, we have to do each
+	// op separately anyway, so no big win (let ulam programmer do the loop).
+	// let arrays of same types through ??? Is SO for op equals, btw.
+	if(lt == rt)
+	  {
+	    return lt;
+	  }
+#endif //SUPPORT_ARITHMETIC_ARRAY_OPS
+
+	//array op scalar: defer since the question of matrix operations is unclear.
+	std::ostringstream msg;
+	msg << "Incompatible (nonscalar) types, LHS: ";
+	msg << m_state.getUlamTypeNameByIndex(lt).c_str();
+	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " for binary operator";
+	msg << getName() << " ; Suggest writing a loop";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    return rtnOK;
+  } //checkScalarTypesOnly
+
+  s32 NodeBinaryOp::maxBitsize(UTI lt, UTI rt)
+  {
+    s32 lbs = m_state.getBitSize(lt);
+    s32 rbs = m_state.getBitSize(rt);
+
+    ULAMCLASSTYPE lct = m_state.getUlamTypeByIndex(lt)->getUlamClass();
+    ULAMCLASSTYPE rct = m_state.getUlamTypeByIndex(rt)->getUlamClass();
+
+    if(lct == UC_QUARK)
+      lbs = MAXBITSPERINT; //32
+
+    if(rct == UC_QUARK)
+      rbs = MAXBITSPERINT; //32
+
+    bool lconst = m_nodeLeft->isAConstant();
+    bool rconst = m_nodeRight->isAConstant();
+
+    // if both or neither are const, use larger bitsize; else use nonconst's bitsize.
+    // later checkAnyConstantsFit.
+    return ( lconst == rconst ? (lbs > rbs ? lbs : rbs) : (!lconst ? lbs : rbs));
+  } //maxBitsize
+
+  bool NodeBinaryOp::checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType)
+  {
+    bool rtnOK = true;
+    bool lconst = m_nodeLeft->isAConstant();
+    bool rconst = m_nodeRight->isAConstant();
+
+    if(lconst || rconst)
+      {
+	bool lready = lconst && m_nodeLeft->isReadyConstant();
+	bool rready = rconst && m_nodeRight->isReadyConstant();
+
+	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+
+	// cast constant to unsigned variable type if mixed types
+	//	if((ltypEnum == Unsigned && !lconst) || (rtypEnum == Unsigned && !rconst))
+	if((ltypEnum != ntypEnum && !lconst) || (rtypEnum != ntypEnum && !rconst))
+	  {
+	    s32 newbs = m_state.getBitSize(newType);
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
+	    newType = m_state.makeUlamType(newkey, Unsigned);
+	  }
+
+	// if one is a constant, check for value to fit in new type bits.
+	bool doErrMsg = lready || rready;
+
+	if(lready && m_nodeLeft->fitsInBits(newType)) //was rt
+	  doErrMsg = false;
+
+	if(rready && m_nodeRight->fitsInBits(newType))
+	  doErrMsg = false;
+
+	if(doErrMsg)
+	  {
+	    if(lready || rready)
+	      {
+		std::ostringstream msg;
+		msg << "Constant <";
+		if(lready)
+		  msg << m_nodeLeft->getName();
+		if(rready)
+		  msg << m_nodeRight->getName();
+
+		msg <<  "> is not representable as: ";
+		msg<< m_state.getUlamTypeNameByIndex(newType).c_str();
+		msg << ", for binary operator" << getName() << " ";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav; //for error
+	      }
+	  } //err
+	rtnOK = !doErrMsg;
+      } //a constant
+    return rtnOK;
+  } //checkAnyConstantsFit
+
+  bool NodeBinaryOp::checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+
+    //Int to Unsigned of any size is unsafe!
+    if(ntypEnum == Unsigned)
+      {
+	if(ltypEnum == Int && !m_nodeLeft->isAConstant())
+	  rtnOK = false;
+
+	if(rtypEnum == Int && !m_nodeRight->isAConstant())
+	  rtnOK = false;
+      }
+    else if(ntypEnum == Int)
+      {
+	s32 nbs = m_state.getBitSize(newType);
+
+	// Unsigned to Int gets an error if the bitsizes are "unsafe"
+	// (including the SAME size);
+	if(ltypEnum == Unsigned && !m_nodeLeft->isAConstant() && m_state.getBitSize(lt) >= nbs)
+	  rtnOK = false;
+
+	if(rtypEnum == Unsigned && !m_nodeRight->isAConstant() && m_state.getBitSize(rt) >= nbs)
+	  rtnOK = false;
+      }
+    //assert(0);
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Attempting to mix signed and unsigned types, LHS: ";
+	msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << ", of an unsafe sized variable, to: ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " for binary operator" << getName() << " without casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      } //mixing unsigned and signed
+    return rtnOK;
+  } //checkforMixedSignsOfVariables
+
+  bool NodeBinaryOp::checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    // Int to anything, except Bits or Int same or larger bitsize
+    if(rtypEnum == Int && !m_nodeRight->isAConstant())
+      {
+	s32 rbs = m_state.getBitSize(rt);
+	s32 nbs = m_state.getBitSize(newType);
+	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+	if(!((ntypEnum == Bits || ntypEnum == Int) && nbs >= rbs))
+	  rtnOK = false;
+      }
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Converting Int "; //Int
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " to ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkIntToNonBitsNonIntCast
 
   void NodeBinaryOp::countNavNodes(u32& cnt)
   {

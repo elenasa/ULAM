@@ -13,7 +13,7 @@ namespace MFM {
     {
       //informed by t3343, 53 : recursive typedefs as function return value; class with args
       // must already be parsed!
-      bool rtn4 = fms->add("R.ulam","ulam 1;\nuse V;\nelement R {\nV.Woof.Foo pel;\nUnsigned punc(V.Woof.Foo farg) {\n return farg.sizeof;\n}\n Int test() {\nV.Woof.Foo pvar;\n return punc(pvar);\n}\n}\n");
+      bool rtn4 = fms->add("R.ulam","ulam 1;\nuse V;\nelement R {\nV.Woof.Foo pel;\nUnsigned punc(V.Woof.Foo farg) {\n return farg.sizeof;\n}\n Int test() {\nV.Woof.Foo pvar;\n return (Int) punc(pvar);\n}\n}\n");
 
       bool rtn1 = fms->add("P.ulam","ulam 1;\nquark P(Int a) {\nUnsigned(a+1) var;\nUnsigned func() {\n return var.sizeof;\n}\n}\n");
 

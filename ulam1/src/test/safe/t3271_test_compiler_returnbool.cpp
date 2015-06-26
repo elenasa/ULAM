@@ -11,7 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","element A {\ntypedef Unsigned(6) SiteNum;\n Bool dup(SiteNum m) {\nBool b = m;\n return b;\n}\nBool sp;\nInt test(){ sp = dup((SiteNum) 7);\n return 7;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","element A {\ntypedef Unsigned(6) SiteNum;\n Bool dup(SiteNum m) {\nBool b = (Bool) m;\n return b;\n}\nBool sp;\nInt test(){ sp = dup((SiteNum) 7);\n return 7;\n }\n }\n");
 
       if(rtn1)
 	return std::string("A.ulam");

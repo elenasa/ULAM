@@ -22,7 +22,7 @@ namespace MFM {
 	 }
 	 // //! WindowUtils.ulam:75:     hitCount[slot] += weight;
 	 */
-      bool rtn1 = fms->add("B.ulam","element B {\n typedef Unsigned(8) Count;\n typedef Count CountArray[4];\n typedef Unsigned(2) Slot;\n	 CountArray hitCount;\n	 Void hit(Slot slot, Unsigned weight) {\n hitCount[slot] += weight;\n }\n Int test(){\n hit((Slot) 0, (Unsigned) 1);\n return 0;\n;}\n}\n");
+      bool rtn1 = fms->add("B.ulam","element B {\n typedef Unsigned(8) Count;\n typedef Count CountArray[4];\n typedef Unsigned(2) Slot;\n	 CountArray hitCount;\n	 Void hit(Slot slot, Unsigned weight) {\n hitCount[slot] += (Unsigned(8)) weight;\n }\n Int test(){\n hit((Slot) 0, (Unsigned) 1);\n return 0;\n;}\n}\n");
 
       // test system quark with native overloaded print funcs; assert
       //bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

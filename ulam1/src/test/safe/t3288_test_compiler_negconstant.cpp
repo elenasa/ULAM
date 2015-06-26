@@ -17,7 +17,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt(3) n;\nUnsigned(3) u;\n Int test(){\n n = -4;\n s.print(n);\n s.print( (Int) n.minof);\n s.print( (Int) n.maxof);\n u = -n; s.print((Unsigned) u);\nreturn 0;\n}\n}\n");
+      bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt(3) n;\nUnsigned(3) u;\n Int test(){\n n = -4;\n s.print(n);\n s.print( (Int) n.minof);\n s.print( (Int) n.maxof);\n u = (Unsigned(3)) -n; s.print((Unsigned) u);\nreturn 0;\n}\n}\n");
 
       // flip flops problems with t3181; n.minof should be Int, not Int(3) casting constant to first "match". search matchingFunctionName strictly first, then flexibly. Tue Mar 17 14:18:49 2015
       //bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt(3) n;\n Int test(){\n n = -4;\n/* s.print(n);\n*/ s.print( n.minof);\n return 0;\n}\n}\n");

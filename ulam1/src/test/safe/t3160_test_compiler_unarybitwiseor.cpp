@@ -8,15 +8,16 @@ namespace MFM {
     {
       /* gen code output:
 	 Unary(3) Arg: 0x2
-	 Int(3) Arg: 0x3
+	 Unsigned Arg: 3
       */
-      return std::string("Exit status: 2\nUe_A { Unary(3) b(1);  System s();  Bool(1) sp(false);  Unary(3) a(2);  Unary(3) c(2);  Int(3) e(2);  Int(3) f(1);  Int(3) g(3);  Int(32) test() {  a e 2 cast = cast = b f 1 cast = cast = c a b | = s ( c )print . g e f | = s ( g )print . c cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 2\nUe_A { Unary(3) b(1);  System s();  Unary(3) a(2);  Unary(3) c(2);  Unsigned(2) e(2);  Unsigned(2) f(1);  Unsigned(2) g(3);  Int(32) test() {  a e 2 cast = cast = b f 1 cast = cast = c a cast b cast | cast = s ( c )print . g e cast f cast | cast = s ( g cast )print . c cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
+      //explicit casting to Bits
       // a is 2 bits; b is 1 bit; a | b = 2 bit; notice as Int.3 (g), 2 | 1 = 3
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\nUnary(3) a, b, c;\n Int(3) e, f, g;\n use test;\n  a = e = 2;\n b = f = 1;\n c = a | b;\ns.print(c);\ng = e | f;\ns.print(g);\n return c;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nUnary(3) a, b, c;\n Unsigned(2) e, f, g;\n use test;\n  a = e = 2;\n b = f = 1;\n c = (Unary(3)) ((Bits(3)) a | (Bits(3)) b);\ns.print(c);\ng = (Unsigned(2)) ((Bits(2)) e | (Bits(2)) f);\ns.print((Unsigned) g);\n return c;\n }\n }\n");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

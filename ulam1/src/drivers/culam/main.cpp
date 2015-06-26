@@ -87,18 +87,6 @@ namespace MFM
       }
     }
 
-    /*
-    std::string GetMangledTarget()
-    {
-      return m_mangledTarget;
-    }
-
-    std::string HasTestMethod()
-    {
-      return m_hasTestMethod ? (m_isAQuark ? "QTEST" : "TEST") : "NOTEST";
-    }
-    */
-
     void SetOutputDir(const char * dirOrNull)
     {
       std::string dir;
@@ -188,6 +176,7 @@ namespace MFM
       int status = C.compileFiles(m_srcFileManager, m_classfiles, m_outFileManager, m_stderr);
       if (status == 0) {
         m_targetMap = C.getMangledTargetsMap();
+        m_parameterMap = C.getMangledParametersMap();
       }
       return status;
     }
@@ -202,6 +191,16 @@ namespace MFM
       return m_targetMap.end();
     }
 
+    ParameterMap::const_iterator ParameterMapBegin() const
+    {
+      return m_parameterMap.begin();
+    }
+
+    ParameterMap::const_iterator ParameterMapEnd() const
+    {
+      return m_parameterMap.end();
+    }
+
   private:
     FileManagerStdio * m_srcFileManager;
     FileManagerStdio * m_outFileManager;
@@ -210,6 +209,7 @@ namespace MFM
     File * m_stderr;
     std::vector<std::string> m_classfiles;
     TargetMap m_targetMap;
+    ParameterMap m_parameterMap;
   };
 } /* namespace MFM */
 
@@ -268,6 +268,7 @@ int main(int argc, char ** argv)
           {
             std::cerr
               << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	      << "TARGET "
               << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
               << " " << i->second.m_className
               << " " << i->first
@@ -276,6 +277,18 @@ int main(int argc, char ** argv)
               << " " << (i->second.m_isQuark?"quark":"element")
               << std::endl;
           }
+
+        for(MFM::ParameterMap::const_iterator i = ds.ParameterMapBegin(); i != ds.ParameterMapEnd(); ++i)
+          {
+            std::cerr
+              << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	      << "PARAMETER "
+              << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
+              << " " << i->second.m_mangledType
+              << " " << i->first
+              << std::endl;
+          }
+
       }
     return result;
   }

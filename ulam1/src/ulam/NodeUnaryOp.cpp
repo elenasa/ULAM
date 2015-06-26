@@ -243,11 +243,8 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Unsupported unary operator" << getName();
 	msg << ", with an array type <";
-	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	msg << "< (UTI" << nuti << ") while compiling class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//assert(0);
       }
   } //end dobinaryop
 

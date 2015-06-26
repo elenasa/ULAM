@@ -1288,7 +1288,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid constant-def Alias <";
+	    msg << "Invalid constant definition Alias <";
 	    msg << m_state.getTokenDataAsString(&iTok).c_str();
 	    msg << ">, Constant Identifier (2nd arg) requires lower-case";
 	    MSG(&iTok, msg.str().c_str(), ERR);
@@ -1299,7 +1299,7 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Invalid constant-def Type <";
+	msg << "Invalid constant definition Type <";
 	msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	if(assignOK)
@@ -1320,20 +1320,7 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    //permitted in only in elements;
-    // quarks are static and cannot have a mutable member
-#if 1
-    UTI cuti = m_state.getCompileThisIdx();
-    if(m_state.getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
-      {
-	std::ostringstream msg;
-	msg << "Model Parameters can survive in elements only";
-	MSG(&pTok, msg.str().c_str(), ERR);
-	getTokensUntil(TOK_SEMICOLON); //does this help?
-	return NULL;
-      }
-#endif
-
+    //permitted in only in elements and quarks
     if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID && pTok.m_type != TOK_KW_TYPE_ATOM)
       {
 	unreadToken();
@@ -1365,7 +1352,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Invalid Model Parameter Type: <";
-	msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	msg << m_state.getTokenDataAsString(&pTok).c_str();
 	msg << ">: Only primitive types beginning with an ";
 	msg << "upper-case letter may be a Model Parameter";
 	MSG(&pTok, msg.str().c_str(), ERR);
@@ -3036,6 +3023,13 @@ namespace MFM {
 	Node * exprNode = parseExpression();
 	if(exprNode)
 	  constNode->setConstantExpr(exprNode);
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Missing named constant definition after '=' for '";
+	    msg << m_state.m_pool.getDataAsString(constNode->getSymbolId()).c_str() << "'";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
       }
     else
       {
@@ -3058,6 +3052,20 @@ namespace MFM {
 	    //unreadToken(); //class param doesn't have equal; wait for the class arg
 	  }
       }
+
+    if(assignOK)
+      {
+	if(!getExpectedToken(TOK_SEMICOLON))
+	  {
+	    std::ostringstream msg;
+	    msg << "Missing ';' after named constant definition '";
+	    msg << m_state.m_pool.getDataAsString(constNode->getSymbolId()).c_str() << "'";
+	    msg << "; Lists not supported";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
+      else
+	unreadToken();
+      }
     return rtnNode;
   } //parseRestOfConstantDef
 
@@ -3070,6 +3078,13 @@ namespace MFM {
 	Node * exprNode = parseExpression();
 	if(exprNode)
 	  paramNode->setConstantExpr(exprNode);
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Missing model parameter definition after '=' for '";
+	    msg << m_state.m_pool.getDataAsString(paramNode->getSymbolId()).c_str() << "'";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
       }
     else
       {
@@ -3084,6 +3099,18 @@ namespace MFM {
 	paramNode = NULL;
 	rtnNode = NULL;
       }
+
+    if(!getExpectedToken(TOK_SEMICOLON))
+      {
+	std::ostringstream msg;
+	msg << "Missing ';' after model parameter definition '";
+	msg << m_state.m_pool.getDataAsString(paramNode->getSymbolId()).c_str() << "'";
+	msg << "; Lists not supported";
+	MSG(&pTok, msg.str().c_str(), ERR);
+      }
+    else
+      unreadToken();
+
     return rtnNode;
   } //parseRestOfParameterDef
 
@@ -3554,7 +3581,7 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with []) , error already output.
 		//rtnNode is NULL;
 		std::ostringstream msg;
-		msg << "Invalid constant-def of Type: <";
+		msg << "Invalid constant definition of Type: <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
 		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str();
 		msg << ">";

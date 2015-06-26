@@ -14,7 +14,8 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","element A {\n Bool foo(Int m, Bool b) {\n Int d;\n { Int e[8];\n b = false;\n}\n Bool c;\n c = d = m;\n return c;\n } Int test() {\n c = foo(1, true);\n return c;\n } Bool c;\n }\n");  // max depth is 9; should cast return to Int.
+      //./A.ulam:8:4: ERROR: Attempting to implicitly cast a non-Bool type, RHS: Int(32), to a Bool type: Bool(1) for binary operator= without casting.
+      bool rtn1 = fms->add("A.ulam","element A {\n Bool foo(Int m, Bool b) {\n Int d;\n { Int e[8];\n b = false;\n}\n Bool c;\n d = m;\n c = (Bool) d;\n return c;\n } Int test() {\n c = foo(1, true);\n return c;\n } Bool c;\n }\n");  // max depth is 9; should cast return to Int.
 
       if(rtn1)
 	return std::string("A.ulam");
