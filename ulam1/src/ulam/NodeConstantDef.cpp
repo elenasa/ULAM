@@ -132,7 +132,18 @@ namespace MFM {
     if(m_nodeExpr)
       {
 	it = m_nodeExpr->checkAndLabelType();
-	if(!m_nodeExpr->isAConstant() && it != Nav)
+	if(it == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Constant value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", is invalid";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+
+	if(!m_nodeExpr->isAConstant())
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
@@ -141,7 +152,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameByIndex(it) << ">";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
-	    return Nav;
+	    return Nav; //short-circuit
 	  }
       }
 
@@ -202,8 +213,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid use of type: ";
 	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << " used with " << prettyNodeName().c_str();
-	    msg << " symbol name '" << getName() << "'";
+	    msg << " used with symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    suti = Nav;
 	  }
@@ -339,8 +349,8 @@ namespace MFM {
     if(!m_nodeExpr->fitsInBits(uti))
       {
 	std::ostringstream msg;
-	msg << "Attempting to fit named constant's value (";
-	msg << getName() << " = " << newconst << ") into a smaller bit size type: ";
+	msg << "Named constant's value (";
+	msg << getName() << " = " << newconst << ") is not representable as: ";
 	msg<< m_state.getUlamTypeNameByIndex(uti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
       }

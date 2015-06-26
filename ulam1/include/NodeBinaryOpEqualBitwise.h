@@ -56,7 +56,7 @@ namespace MFM{
     virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
-
+    virtual UTI calcNodeType(UTI lt, UTI rt);  //same as NodeBinaryOpBitwise
     virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
   };
 

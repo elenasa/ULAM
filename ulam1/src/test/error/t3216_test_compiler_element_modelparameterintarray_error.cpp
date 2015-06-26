@@ -2,12 +2,12 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3216_test_compiler_element_elementparameterintarray_error)
+  BEGINTESTCASECOMPILER(t3216_test_compiler_element_modelparameterintarray_error)
   {
     std::string GetAnswerKey()
     {
       /*
-	./Foo.ulam:6:24: ERROR: Invalid array size specified for Model Parameter.
+	./Foo.ulam:6:24: ERROR: Array size specified for Model Parameter.
 	./Foo.ulam:6:18: ERROR: Invalid Model Parameter of Type: <Int> and Name: <chance>.
       */
       return std::string("Exit status: -1\nUe_Foo { System s();  Bool(7) sp(false);  Bool(1) last(false);  Int(32) test() {  Foo f;  s ( chance 1 [] )print . f chance 1 [] . cast return } }\nUq_System { <NOMAIN> }\n");
@@ -25,6 +25,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3216_test_compiler_element_elementparameterintarray_error)
+  ENDTESTCASECOMPILER(t3216_test_compiler_element_modelparameterintarray_error)
 
 } //end MFM

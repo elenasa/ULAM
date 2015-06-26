@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3215_test_compiler_element_elementparameterint)
+  BEGINTESTCASECOMPILER(t3215_test_compiler_element_modelparameterint)
   {
     std::string GetAnswerKey()
     {
@@ -33,6 +33,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3215_test_compiler_element_elementparameterint)
+  ENDTESTCASECOMPILER(t3215_test_compiler_element_modelparameterint)
 
 } //end MFM

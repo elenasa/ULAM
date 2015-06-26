@@ -11,13 +11,13 @@ namespace MFM {
 	 Unary(3) Arg: 0x1
 	 Unary(3) Arg: 0x2
       */
-      return std::string("Exit status: 0\nUe_A { Unary(3) b(3);  System s();  Bool(1) sp(false);  Unary(3) a(2);  Unary(3) c(0);  Unary(3) d(1);  Unary(3) f(2);  Unary(4) e(4);  Int(32) test() {  a 2 cast = b 4 cast = c a cast b cast / cast = s ( c )print . d b cast a cast / cast = s ( d )print . e 4 cast = f e cast a cast / cast = s ( f )print . c cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_A { Unary(3) b(3);  System s();  Unary(3) a(2);  Unary(3) c(0);  Unary(3) d(1);  Unary(3) f(2);  Unary(4) e(4);  Int(32) test() {  a 2 cast = b 4 cast = c a cast b cast / cast = s ( c )print . d b cast a cast / cast = s ( d )print . e 4 cast = f e cast a cast / cast = s ( f )print . c cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
       //2 / 1 == 2 bit
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {System s;\nBool sp;\nUnary(3) a, b, c, d, f;\nUnary(4) e;\n use test;\n  a = 2;\n b = 4;\n c = a / b;\ns.print(c);\nd = b / a;\ns.print(d);\ne = 4;\nf = e / a;\ns.print(f);\n return c;\n } }");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {System s;\nUnary(3) a, b, c, d, f;\nUnary(4) e;\n use test;\n  a = 2;\n b = 4;\n c = a / b;\ns.print(c);\nd = b / a;\ns.print(d);\ne = 4;\nf = (Unary(3)) (e / a);\ns.print(f);\n return c;\n } }");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

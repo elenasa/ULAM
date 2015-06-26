@@ -68,48 +68,38 @@ namespace MFM {
 
   void NodeParameterDef::genCode(File * fp, UlamValue& uvpass)
   {
+    m_state.indent(fp);
+    fp->write("// declared as extern (below)\n");
+
+  } //genCode
+
+  void NodeParameterDef::genCodeExtern(File * fp, bool declOnly)
+  {
     assert(m_constSymbol->isDataMember());
+
+    //    UTI cuti = m_state.getCompileThisIdx();
+    //ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
 
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     m_state.indent(fp);
-    fp->write("mutable ");
 
-    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars, ie non-data members
+    if(declOnly)
+      fp->write("extern ");
+
+    //common to both decl and def
+    fp->write(vut->getImmediateStorageTypeAsString().c_str());
     fp->write(" ");
     fp->write(m_constSymbol->getMangledName().c_str());
-    fp->write(";\n");
-  } //genCode
 
-  void NodeParameterDef::genCodeConstructorInitialization(File * fp)
-  {
-    fp->write(", ");
-    fp->write(m_constSymbol->getMangledName().c_str());
-    fp->write("(");
-    fp->write(m_nodeExpr->getName());
-    fp->write(")");
-  } //genCodeConstructorInitialization
-
-  // like NodeVarDecl for model parameters
-  void NodeParameterDef::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
-  {
-    UTI nuti = getNodeType();
-
-    //output a case of switch statement
-    m_state.indent(fp);
-    fp->write("case ");
-    fp->write_decimal(dmcount);
-    fp->write(": { static UlamClassDataMemberInfo i(\"");
-    fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeMangledName().c_str());
-    fp->write("\", \"");
-    fp->write(m_state.m_pool.getDataAsString(m_constSymbol->getId()).c_str());
-    fp->write("\", ");
-    fp->write("0u); return i; }\n"); //pos offset is 0
-
-    dmcount++; //increment data member count
-  } //generateUlamClassInfo
-
-
+    if(!declOnly)
+      {
+	fp->write("(");
+	fp->write(m_nodeExpr->getName()); //initialize default value
+	fp->write(")");
+      }
+    fp->write("; //model parameter\n");
+  } //genCodeExtern
 
 } //end MFM

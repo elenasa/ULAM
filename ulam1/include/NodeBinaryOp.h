@@ -96,6 +96,14 @@ namespace MFM{
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len) = 0;
 
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
+    //common helpers for calcNodeType:
+    bool checkForPrimitiveTypes(UTI lt, UTI rt);
+    bool checkNotVoidTypes(UTI lt, UTI rt);
+    bool checkScalarTypesOnly(UTI lt, UTI rt);
+    s32 maxBitsize(UTI lt, UTI rt);
+    virtual bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
+    virtual bool checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType);
+    virtual bool checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
 
   };
 

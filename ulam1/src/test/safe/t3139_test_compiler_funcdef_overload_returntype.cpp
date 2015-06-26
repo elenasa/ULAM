@@ -12,7 +12,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","element A { typedef Int(4) Foo [8]; Foo foo(Bool b) { Foo m; if(b) m[0]=1; else m[0]=2; return m;} Int foo(Int i) { Foo e; e[3] = 3; e[4] = 4; e[0] = i; return i; } Int test() { Bool mybool; mybool= true;\nd = foo(mybool); d[0] = foo(6);\n return d[0]; /* match return type */}\nFoo d; }");  // note: overloaded foo has different return types, error!
+      bool rtn1 = fms->add("A.ulam","element A {\n typedef Int(4) Foo [8];\n Foo foo(Bool b) {\n Foo m;\n if(b) m[0]=1;\n else m[0]=2;\n return m;\n} Int foo(Int i) {\n Foo e;\n e[3] = 3;\n e[4] = 4;\n e[0] = (Int(4)) i;\n return i;\n } Int test() {\n Bool mybool;\n mybool= true;\nd = foo(mybool);\n d[0] = (Int(4)) foo(6);\n return d[0]; /* match return type */\n}\nFoo d;\n }\n");  // note: overloaded foo has different return types, error!
 
 
       if(rtn1)

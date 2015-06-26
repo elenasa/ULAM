@@ -7,18 +7,18 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	 compiled output should be 7, not 0 for f.m_i:
-	 Int(4) Arg: 0x7
+	gen code output:
+	Unsigned Arg: 15
       */
 
-      return std::string("Exit status: 7\nUe_Foo { System s();  typedef Bar Pop[2];  Int(4) m_i(0);  Bar m_bar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,true,false); );  Int(32) test() {  Foo f;  f m_i . 15 cast = m_bar 1 [] f ( 1 )check . = s ( f m_i . )print . f m_i . cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
+      return std::string("Exit status: 15\nUe_Foo { System s();  typedef Bar Pop[2];  Unsigned(4) m_i(0);  Bar m_bar[2]( Bool(1) val_b[3](false,false,false);  Bool(1) val_b[3](false,true,false); );  Int(32) test() {  Foo f;  f m_i . 15 cast = m_bar 1 [] f ( 1 )check . = s ( f m_i . cast )print . f m_i . cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
       // array of quarks, as typedef
       //modified gencode to allow quarks as return values, and parameters.
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n use Bar;\n element Foo {\nSystem s;\n typedef Bar Pop[2];\n Int(4) m_i;\n Pop m_bar;\n Bar check(Int v) {\n Bar b;\n b.val_b[1] = true;\n return b;\n }\n Int test() {\n Foo f;\n f.m_i = 15;\n m_bar[1] = f.check(1);\ns.print(f.m_i);\n return f.m_i;\n }\n }\n"); //tests offsets, but too complicated data members in Foo for memberselect
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n use Bar;\n element Foo {\nSystem s;\n typedef Bar Pop[2];\n Unsigned(4) m_i;\n Pop m_bar;\n Bar check(Int v) {\n Bar b;\n b.val_b[1] = true;\n return b;\n }\n Int test() {\n Foo f;\n f.m_i = 15;\n m_bar[1] = f.check(1);\ns.print((Unsigned) f.m_i);\n return f.m_i;\n }\n }\n"); //tests offsets, but too complicated data members in Foo for memberselect
 
       // simplify to DEBUG:
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\n element Foo {\n typedef Bar Pop[2];\n Pop m_bar;\n Int test() {\n Bar b;\n m_bar[1] = b;\n return 0;\n }\n }\n");

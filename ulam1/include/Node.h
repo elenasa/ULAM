@@ -153,9 +153,9 @@ namespace MFM{
     void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
 
-    virtual void genCodeConstructorInitialization(File * fp);
-
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+
+    virtual void genCodeExtern(File * fp, bool declOnly);
 
     /**
      * Returns converted const argument to all capital letters as a string
@@ -202,6 +202,11 @@ namespace MFM{
 
   protected:
     virtual void checkForSymbol();
+    virtual bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
+    virtual bool checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType);
+    virtual bool checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
+
+    bool checkForSafeImplicitCasting(UTI leftType, UTI rightType, UTI& newType);
 
   private:
     bool m_storeIntoAble;
@@ -209,6 +214,12 @@ namespace MFM{
     Locator m_loc;
     NNO m_parentNo;
     NNO m_no;
+
+    //common helpers for safe casting
+    virtual bool checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
+    virtual bool checkFromBitsCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
+    virtual bool checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
+    virtual bool checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
 
     NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
 

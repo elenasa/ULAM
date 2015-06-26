@@ -12,7 +12,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\nBool b;\nBool check(Bits idx){\n return true;\n}\n Int test() {\nBits s = 3u;\nb = self.check(s);\nreturn s;\n }\n }\n");
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\nBool b;\n Bits(7) s;\nBool check(Bits(7) idx){\n return true;\n}\n Int test() {\ns = 3u;\nb = self.check(s);\nreturn s;\n }\n }\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\nBool b;\n Bits(7) s;\nBool check(Bits(7) idx){\n return true;\n}\n Int test() {\ns = 3u;\nb = self.check(s);\nreturn (Int) s;\n }\n }\n");
 
       if(rtn1)
 	return std::string("Foo.ulam");

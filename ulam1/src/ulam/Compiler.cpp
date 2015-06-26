@@ -28,6 +28,18 @@ namespace MFM {
     return rtnTargets;
   }
 
+  ParameterMap Compiler::getMangledParametersMap()
+  {
+    ParameterMap rtnParameters;
+    m_state.m_programDefST.getModelParameters(rtnParameters);
+    return rtnParameters;
+  }
+
+  const std::string Compiler::getFullPathLocationAsString(const Locator& loc)
+  {
+    return m_state.getFullLocationAsString(loc);
+  }
+
   //compile one set of related Ulam files, as before.
   u32 Compiler::compileProgram(FileManager * infm, std::string startstr, FileManager * outfm, File * errput)
   {
@@ -223,6 +235,14 @@ namespace MFM {
     TargetMap tm = getMangledTargetsMap();
     std::cerr << "Size of target map is " << tm.size() << std::endl;
 #endif
+
+    // testing model parameter map only
+    //#define TESTPARAMETERMAP
+#ifdef TESTPARAMETERMAP
+    ParameterMap pm = getMangledParametersMap();
+    std::cerr << "Size of model parameter map is " << pm.size() << std::endl;
+#endif
+
     return m_state.m_err.getErrorCount();
   } //checkAndTypeLabelProgram
 
@@ -255,7 +275,6 @@ namespace MFM {
     return m_state.m_err.getErrorCount();
   } //testProgram
 
-
   void Compiler::printPostFix(File * output)
   {
     m_state.m_err.setFileOutput(output);
@@ -278,7 +297,6 @@ namespace MFM {
 	errorOutput->write("Error in making new file manager for code generation...aborting");
 	return;
       }
-
     m_state.m_programDefST.genCodeForTableOfClasses(fm);
     delete fm;
   } //generateCodedProgram (tests)

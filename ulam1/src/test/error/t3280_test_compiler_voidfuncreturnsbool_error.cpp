@@ -7,8 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //./Tu.ulam:7:1: ERROR: ISO C forbids ‘return’ with expression, in function returning void.
-      //./Tu.ulam:7:1: ERROR: Function 'func''s Return type's: Void(0) does not match incomplete resulting type 0Nav(0). NOPE!!
-      //./Tu.ulam:10:5: ERROR: Cannot CAST type: Void(0) as a Bool(3).
+      //./Tu.ulam:10:5: ERROR: Void is not supported for binary operator|=.
       return std::string("Ue_Tu { Int(32) me(2);  Int(32) test() {  System s;  me 2 cast = s ( me )print . me return } }\nExit status: 2");
     }
 

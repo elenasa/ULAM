@@ -65,6 +65,8 @@ namespace MFM{
   protected:
 
   private:
+    UTI m_childOf; //needed for symbol's mangled name
+
   };
 } //MFM
 
