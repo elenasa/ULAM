@@ -193,7 +193,7 @@ namespace MFM {
     return rtnBool;
   } //matchingTypes (strictly)
 
-  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<bool> constantArg)
+  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg)
   {
     u32 numArgs = argTypes.size();
     u32 numParams = m_parameterSymbols.size();
@@ -218,6 +218,17 @@ namespace MFM {
 		  {
 		    rtnBool = false;
 		    break;
+		  }
+		else
+		  {
+		    assert(constantArg[i]->isAConstant());
+		    //check that it fits
+		    bool aready = constantArg[i]->isReadyConstant();
+		    if(!(aready && constantArg[i]->fitsInBits(puti)))
+		      {
+			rtnBool = false;
+			break;
+		      }
 		  }
 	      } //constantarg
 	    else

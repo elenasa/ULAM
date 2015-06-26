@@ -105,8 +105,10 @@ namespace MFM {
 	  {
 	    if(UlamType::compare(m_state.m_currentFunctionReturnType, Void, m_state) == UTIC_NOTSAME)
 	      {
-		if(m_node)
+		UTI rtnType = m_state.m_currentFunctionReturnType;
+		if(m_node && checkForSafeImplicitCasting(m_state.m_currentFunctionReturnType, nodeType, rtnType)) //ref)
 		  {
+		    assert(rtnType == m_state.m_currentFunctionReturnType); //are we ignoring cast change
 		    if(!makeCastingNode(m_node, m_state.m_currentFunctionReturnType, m_node))
 		      nodeType = Nav;
 		    else
@@ -139,6 +141,187 @@ namespace MFM {
     setNodeType(nodeType); //return take type of their node
     return nodeType;
   } //checkAndLabelType
+
+  bool NodeReturnStatement::checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType)
+  {
+    bool rtnOK = true;
+    bool rconst = m_node->isAConstant();
+
+    if(rconst)
+      {
+	bool rready = rconst && m_node->isReadyConstant();
+
+	// if one is a constant, check for value to fit in new type bits.
+	bool doErrMsg = rready;
+
+	if(rready && m_node->fitsInBits(newType))
+	  doErrMsg = false;
+
+	if(doErrMsg)
+	  {
+	    if(rready)
+	      {
+		std::ostringstream msg;
+		msg << "Constant <";
+		if(rready)
+		  {
+		    msg << m_node->getName();
+		    msg <<  "> is not representable as return type: ";
+		    msg << m_state.getUlamTypeNameByIndex(newType).c_str(); //was lt
+		  }
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		newType = Nav; //for error
+	      }
+	  } //err
+	rtnOK = !doErrMsg;
+      } //a constant
+    return rtnOK;
+  } //checkAnyConstantsFit
+
+  bool NodeReturnStatement::checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+    s32 nbs = m_state.getBitSize(newType);
+
+    //Int to Unsigned of any size is unsafe!
+    if(ntypEnum == Unsigned)
+      {
+	if(rtypEnum == Int && !m_node->isAConstant())
+	  rtnOK = false;
+      }
+    else if(ntypEnum == Int)
+      {
+	// Unsigned to Int gets an error if the bitsizes are "unsafe"
+	// (including the SAME size);
+	if(rtypEnum == Unsigned && !m_node->isAConstant() && m_state.getBitSize(rt) >= nbs)
+	  rtnOK = false;
+      }
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Returning an "; // mixed signs
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " as ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      } //mixing unsigned and signed
+    return rtnOK;
+  } //checkforMixedSignsOfVariables
+
+  bool NodeReturnStatement::checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    // Int to anything, except Bits or Int same or larger bitsize
+    if(rtypEnum == Int && !m_node->isAConstant())
+      {
+	s32 rbs = m_state.getBitSize(rt);
+	s32 nbs = m_state.getBitSize(newType);
+	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+	if(!((ntypEnum == Bits || ntypEnum == Int) && nbs >= rbs))
+	  rtnOK = false;
+      }
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Returning Int "; //Int
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " as ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkIntToNonBitsNonIntCast
+
+  bool NodeReturnStatement::checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+    if(ntypEnum != Bool)
+      return true;
+
+    bool rtnOK = false;
+    if(!m_node->isAConstant() && rtypEnum != ntypEnum)
+      {
+	if(m_state.getBitSize(rt) == 1 && (rtypEnum == Unsigned || rtypEnum == Unary))
+	  rtnOK = true;
+      }
+    else
+      rtnOK = true; //bools of any size are safe to cast
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Returning non-Bool "; //non-Bool
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " as ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkNonBoolToBoolCast
+
+  bool NodeReturnStatement::checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    UlamType * nit = m_state.getUlamTypeByIndex(newType);
+    ULAMTYPE ntypEnum = nit->getUlamTypeEnum();
+    if(ntypEnum != Unary)
+      return true; //not to unary
+
+    bool rtnOK = false;
+    if(!m_node->isAConstant())
+      {
+	UlamType * rit = m_state.getUlamTypeByIndex(rt);
+	if((rit->getMax() <= nit->getMax()) && (rit->getMin() == 0))
+	  rtnOK = true;
+      }
+    else
+      rtnOK = true;
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Returning ";
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " as Unary "; //Unary
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkToUnaryCast
+
+  bool NodeReturnStatement::checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+    // constants already checked; Any size Bool to Bool safe.
+    // Atom may be larger than an element.
+    if(!m_node->isAConstant() && (ntypEnum != Bool && rtypEnum != Bool) && (rtypEnum != UAtom))
+      {
+	if(m_state.getBitSize(rt) > m_state.getBitSize(newType))
+	  {
+	    std::ostringstream msg;
+	    msg << "Returning ";
+	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << " as a smaller type ";
+	    msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	    msg << " requires explicit casting";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	    rtnOK = false;
+	  }
+      }
+    return rtnOK;
+  } //checkBitsizeOfCastLast
 
   void NodeReturnStatement::countNavNodes(u32& cnt)
   {

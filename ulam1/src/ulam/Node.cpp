@@ -223,7 +223,8 @@ namespace MFM {
   EvalStatus Node::evalToStoreInto()
   {
     std::ostringstream msg;
-    msg << "Invalid lefthand value (not storeIntoAble): <" << getName() << ">";
+    msg << "Invalid lefthand value (not storeIntoAble): '" << getName() << "'";
+    msg << ". Cannot eval";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     assert(!isStoreIntoAble());
     return ERROR;
@@ -1384,9 +1385,9 @@ namespace MFM {
     //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass); //why was this commented out?
   } //genCodeConvertABitVectorIntoATmpVar
 
-  void Node::genCodeConstructorInitialization(File * fp)
+  void Node::genCodeExtern(File * fp, bool declOnly)
   {
-    //pass
+    //e.g. NodeParameterDefs
   }
 
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
@@ -1417,8 +1418,8 @@ namespace MFM {
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
     if(uticr == UTIC_SAME)
       {
-	//happens too often with Bool.1.-1 for some reason; and Quark toInt special case
-	// handle quietly
+	//happens too often with Bool.1.-1 for some reason;
+	//and Quark toInt special case -- handle quietly
 	rtnNode = node;
 	return true;
       }
@@ -1445,8 +1446,10 @@ namespace MFM {
       }
     else if(nclasstype == UC_QUARK)
       {
-	if(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() != Int)
-	  doErrMsg = true;
+	if((m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() != Int) && !isExplicit)
+	  {
+	      doErrMsg = true;
+	  }
 	//else if(!node->isStoreIntoAble())
 	else if(node->isFunctionCall())
 	  {
@@ -1472,6 +1475,8 @@ namespace MFM {
 		//redo check and type labeling; error msg if not same
 		UTI newType = rtnNode->checkAndLabelType();
 		doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
+		if(doErrMsg && isExplicit)
+		  return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
 	      }
 	  }
 	else
@@ -1501,9 +1506,11 @@ namespace MFM {
 	    else
 	      rtnNode = mselectNode; //replace right node with new branch
 
-	    //redo check and type labeling; error msg if not same
+	    //redo check and type labeling; error msg if not same, unless explicit
 	    UTI newType = rtnNode->checkAndLabelType();
 	    doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
+	    if(doErrMsg && isExplicit)
+	      return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
 	  }
       }
     else if (nclasstype == UC_ELEMENT)
@@ -1549,6 +1556,84 @@ namespace MFM {
     return !doErrMsg;
   } //makecastingnode
 
+  //errors return false, and change newType to Nav.
+  bool Node::checkForSafeImplicitCasting(UTI lt, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+    if(!checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
+      rtnOK = false;
+    else if(!checkForMixedSignsOfVariables(ltypEnum, rtypEnum, lt, rt, newType))
+      rtnOK = false;
+    else if(!checkIntToNonBitsNonIntCast(rtypEnum, rt, newType))
+      rtnOK = false;
+    else if(!checkNonBoolToBoolCast(rtypEnum, rt, newType))
+      rtnOK = false;
+    else if(!checkFromBitsCast(rtypEnum, rt, newType))
+      rtnOK = false;
+    else if(!checkToUnaryCast(rtypEnum, rt, newType))
+      rtnOK = false;
+    else if(!checkBitsizeOfCastLast(rtypEnum, rt, newType))
+      rtnOK = false;
+    return rtnOK;
+  } //checkForSafeImplicitCasting
+
+  bool Node::checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType)
+  {
+    return true; //default ok
+  }
+
+  bool Node::checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType)
+  {
+    return true; //default ok
+  }
+
+  bool Node::checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    return true; //default ok
+  } //checkIntToNonBitsNonIntCast
+
+  bool Node::checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    return true; //default ok
+  } //checkNonBoolToBoolCast
+
+  bool Node::checkFromBitsCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    bool rtnOK = false;
+    if(rtypEnum == Bits)
+      {
+	if(UlamType::compare(rt, newType, m_state) == UTIC_SAME)
+	  rtnOK = true;
+      }
+    else
+      rtnOK = true; //not casting From Bits
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Converting from "; //Bits type
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " to ";
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkFromBitsCast
+
+  bool Node::checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    return true;
+  } //checkToUnaryCast
+
+  bool Node::checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    return true;
+  } //checkBitsizeOfCastLast
+
   NodeFunctionCall * Node::buildCastingFunctionCallNode(Node * node, UTI tobeType)
   {
     Locator loc = getNodeLocation(); //used throughout
@@ -1557,8 +1642,8 @@ namespace MFM {
 
     NodeBlockClass * currClassBlock = m_state.getClassBlock();
 
-    //make the function def, with node (quark) type as its param, returns Int
-    SymbolFunction * fsymptr = new SymbolFunction(funcidentTok, tobeType, m_state);
+    //make the function def, with node (quark) type as its param, returns Int (always)
+    SymbolFunction * fsymptr = new SymbolFunction(funcidentTok, Int /*tobeType*/, m_state);
     //No NodeTypeDescriptor needed for Int
     NodeBlockFunctionDefinition * fblock = new NodeBlockFunctionDefinition(fsymptr, currClassBlock, NULL, m_state);
     assert(fblock);
@@ -1737,8 +1822,32 @@ namespace MFM {
   } //genMemberNameOfMethod
 
   // "static" data member, a mixture of local variable and dm;
-  // requires THE_INSTANCE, and local variables are superfluous.
+  // NEW approach as extern immediate; its mangled name includes the
+  // element/quark mangled name; thus, unique MP per ulam class.
+  // No longer a template data member; must be initialized (in .cpp),
+  // so only primitive types allowed.
   void Node::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
+  {
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    assert(epi >= 0);
+
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
+
+    // the MP (only primitive!, no longer quark or element):
+    assert(isHandlingImmediateType());
+
+    fp->write(cos->getMangledName().c_str());
+    fp->write(".");
+    return;
+  } //genModelParameterMemberNameOfMethod
+
+#if 0
+  // OLD WAY! didn't allow quarks to have MP, but did allow
+  // the MP to be a quark or element (very complicated!), that
+  // wasn't initialized.
+  // "static" data member, a mixture of local variable and dm;
+  // requires THE_INSTANCE, and local variables are superfluous.
+  void Node::GENMODELPARAMETERMEMBERNAMEOFMETHOD(File * fp, s32 epi)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     assert(epi >= 0);
@@ -1762,14 +1871,15 @@ namespace MFM {
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	ULAMCLASSTYPE stgclass = stgcosut->getUlamClass();
 
-	fp->write(stgcosut->getUlamTypeMangledName().c_str());
-
 	if(stgclass == UC_ELEMENT)
+	  {
+	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC>::THE_INSTANCE.");
-	else if(stgclass == UC_QUARK)
-	  fp->write("<EC,POS>::Up_Us::");
-	else
-	  assert(0);
+	  }
+	//else if(stgclass == UC_QUARK)
+	  //fp->write("<EC,POS>::");
+	//else
+	//  assert(0);
 
 	//MP belongs to a local element var
 	for(u32 i = 1; i < (u32) epi; i++)
@@ -1820,6 +1930,7 @@ namespace MFM {
 	  fp->write("Up_Us::"); //atomic parameter needed
       }
   } //genModelParameterMemberNameOfMethod
+#endif
 
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.

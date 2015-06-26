@@ -105,7 +105,7 @@ namespace MFM {
     assert(m_node);
 
     //unlike statements, blocks don't have an m_node
-    m_node->checkAndLabelType();       //side-effect
+    m_node->checkAndLabelType(); //side-effect
 
     if(m_nodeNext)
       m_nodeNext->checkAndLabelType(); //side-effect
@@ -139,22 +139,15 @@ namespace MFM {
     //not the last one, so thrown out results and continue
     if(m_nodeNext)
       {
-	evalNodeEpilog(); //Tue Aug 26 16:18:43 2014
+	evalNodeEpilog();
 	evs = m_nodeNext->eval();
 	if(evs != NORMAL)
 	  {
-	    ////evalNodeEpilog();
-	    //evalNodeEpilog(); //Tue Aug 26 16:18:56 2014
 	    return evs;
 	  }
       }
     else
-      {
-	//end, so copy to -1
-	//	UlamValue rtnPtr(getNodeType(), 1, true, EVALRETURN); //positive to current frame pointer
-	//assignReturnValueToStack(rtnPtr);
-	evalNodeEpilog();
-      }
+      evalNodeEpilog();
     return NORMAL;
   } //eval
 
@@ -215,14 +208,14 @@ namespace MFM {
       m_nodeNext->genCodeToStoreInto(fp, uvpass);
   } //genCodeToStoreInto
 
-  void NodeStatements::genCodeConstructorInitialization(File * fp)
+  void NodeStatements::genCodeExtern(File * fp, bool declOnly)
   {
     if(m_node)
-      m_node->genCodeConstructorInitialization(fp);
+      m_node->genCodeExtern(fp, declOnly);
 
     if(m_nodeNext)
-      m_nodeNext->genCodeConstructorInitialization(fp);
-  } //genCodeConstructorInitialization
+      m_nodeNext->genCodeExtern(fp, declOnly);
+  } //genCodeExtern
 
   void NodeStatements::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {

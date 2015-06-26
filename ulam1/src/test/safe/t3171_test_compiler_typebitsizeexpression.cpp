@@ -14,7 +14,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       // doesn't work with variables, local or data members: Int(a), Int(2+a), OR Int(2+m_i[0]);
-      bool rtn1 = fms->add("C.ulam","ulam 1;\n element C {\n Bool a;\n Int(3) m_i[4];\n Int(6) m_u;\n Bool(3) b;\n Int test() {\n Int a;\n a = 3;\n m_i[0] = a;\n Int(2+3) exp;\n exp = 8;\n m_u = exp;\n m_i[1] = exp;\n return exp;\n}\n }\n");
+      bool rtn1 = fms->add("C.ulam","ulam 1;\n element C {\n Bool a;\n Int(3) m_i[4];\n Int(6) m_u;\n Bool(3) b;\n Int test() {\n Int a;\n a = 3;\n m_i[0] = (Int(3)) a;\n Int(2+3) exp;\n exp = 8;\n m_u = exp;\n m_i[1] =  (Int(3)) exp;\n return exp;\n}\n }\n");
 
       if(rtn1)
 	return std::string("C.ulam");

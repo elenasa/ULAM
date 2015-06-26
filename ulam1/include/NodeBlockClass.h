@@ -109,6 +109,8 @@ namespace MFM{
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
+    virtual void genCodeExtern(File * fp, bool declOnly);
+
     void genCodeBody(File * fp, UlamValue& uvpass);  //specific for this class
 
     NodeBlockFunctionDefinition * findTestFunctionNode();

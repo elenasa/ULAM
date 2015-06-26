@@ -312,7 +312,7 @@ namespace MFM {
       {
 	SymbolFunction * funcSymbol = NULL;
 	std::vector<UTI> voidVector;
-	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol))
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol) == 1)
 	  {
 	    func = funcSymbol->getFunctionNode();
 	  }
@@ -379,7 +379,7 @@ namespace MFM {
     m_state.m_currentIndentLevel--;
 
     m_state.indent(fp);
-    fp->write("};\n");
+    fp->write("};\n"); //end of class/struct
 
     //declaration of THE_INSTANCE for ELEMENT
     if(classtype == UC_ELEMENT)
@@ -393,15 +393,28 @@ namespace MFM {
 	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::THE_INSTANCE;\n\n");
       }
+
+    //output Model Parameters as extern decl's
+    genCodeExtern(fp, declOnly);
+
     m_state.m_currentIndentLevel = 0;
     fp->write("} //MFM\n\n");
     //leave class' endif to caller
   } //genCode
 
+  void NodeBlockClass::genCodeExtern(File * fp, bool declOnly)
+  {
+    fp->write("\n");
+
+    if(m_nodeNext)
+      m_nodeNext->genCodeExtern(fp, declOnly);
+
+    fp->write("\n");
+  } //genCodeExtern
+
   void NodeBlockClass::genCodeHeaderQuark(File * fp)
   {
     //use the instance UTI instead of the node's original type
-    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
 
     m_state.indent(fp);
@@ -490,7 +503,6 @@ namespace MFM {
       {
 	UlamValue uvpass;
 	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
-	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
 
@@ -547,7 +559,6 @@ namespace MFM {
   void NodeBlockClass::genCodeBody(File * fp, UlamValue& uvpass)
   {
     //use the instance UTI instead of the node's original type
-    //UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
     UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
     ULAMCLASSTYPE classtype = cut->getUlamClass();
 
@@ -579,11 +590,7 @@ namespace MFM {
 
 	fp->write("() : UlamElement<EC>(MFM_UUID_FOR(\"");
 	fp->write(namestrlong.c_str());
-	fp->write("\", 0))");
-
-	//model parameter initializations, if any
-	genCodeConstructorInitialization(fp);
-	fp->write("\n");
+	fp->write("\", 0))\n");
 
 	m_state.indent(fp);
 	fp->write("{\n");
@@ -642,7 +649,7 @@ namespace MFM {
     // 'is' is only for element/classes
     if(classtype == UC_ELEMENT)
       generateInternalIsMethodForElement(fp, declOnly);
-  } //CodeForBuiltInClassFunctions
+  } //generateCodeForBuiltInClassFunctions
 
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {

@@ -68,6 +68,7 @@ namespace MFM {
     UTI it = Nav;  //init
     u32 errCnt = 0;
 
+    //checkForSymbol:
     //2 cases: use was before def, look up in class block; cloned unknown
     if(m_varSymbol == NULL)
       {
@@ -161,7 +162,6 @@ namespace MFM {
 	  }
 	m_state.popClassContext(); //restore
       } //lookup symbol
-
 
     if(!errCnt && m_varSymbol)
       {
@@ -492,7 +492,6 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
-	//if(asymptr->isFabricatedTmp())
 	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
 	  {
 	    //remove it! then continue..
@@ -559,8 +558,8 @@ namespace MFM {
 	SymbolConstantValue * symconstdef = new SymbolConstantValue(m_token, uti, m_state);
 	m_state.addSymbolToCurrentScope(symconstdef);
 
-	//gets the symbol just created by makeUlamType
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
+	//gets the symbol just created by makeUlamType; true.
+	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
       }
     return false;
   } //installSymbolConstantValue
@@ -572,7 +571,6 @@ namespace MFM {
     // function names also checked when currentBlock is the classblock.
     if(m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr))
       {
-	//if(asymptr->isFabricatedTmp())
 	if(m_state.isHolder(asymptr->getUlamTypeIdx()))
 	  {
 	    //remove it! then continue..
@@ -624,9 +622,9 @@ namespace MFM {
       }
     else
       {
-	// no class types for constants
+	// no class types for model parameters
 	std::ostringstream msg;
-	msg << "Parameter Data Member '";
+	msg << "Model Parameter '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	msg << "' cannot be based on a class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(args.m_classInstanceIdx).c_str();
@@ -635,12 +633,12 @@ namespace MFM {
 
     if(brtn)
       {
-	//create a symbol for this new named constant, a constant-def, with its value
+	//create a symbol for this new model parameter, a parameter-def, with its value
 	SymbolParameterValue * symparam = new SymbolParameterValue(m_token, uti, m_state);
 	m_state.addSymbolToCurrentScope(symparam);
 
-	//gets the symbol just created by makeUlamType
-	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr)); //true
+	//gets the symbol just created by makeUlamType; true.
+	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
       }
     return false;
   } //installSymbolParameterValue
@@ -748,7 +746,7 @@ namespace MFM {
     if(m_state.m_currentFunctionBlockDeclSize < 0)
       {
 	//1 slot for scalar or packed array
-	  m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
+	m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
 
 	return (new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
       }
@@ -865,7 +863,8 @@ namespace MFM {
     if(tdut->getUlamClass() != UC_NOTACLASS)
       {
 	std::ostringstream msg;
-	msg << "Named Constant '" << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	msg << "Named Constant '";
+	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
 	msg << "' cannot be based on a class type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(tduti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

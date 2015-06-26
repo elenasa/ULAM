@@ -52,6 +52,7 @@ namespace MFM
     std::string m_className;
   };
 
+  // key is class mangled name
   typedef std::map<std::string, struct TargetDesc> TargetMap;
 }
 

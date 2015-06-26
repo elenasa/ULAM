@@ -178,18 +178,18 @@ namespace MFM {
 	ULAMCLASSTYPE nodeClass = m_state.getUlamTypeByIndex(nodeType)->getUlamClass();
 	if(nodeClass == UC_QUARK)
 	  {
-	    ULAMTYPE tobeTypEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
-	    if(tobeTypEnum != Int)
-	      {
-		std::ostringstream msg;
-		msg << "Cannot cast quark type: ";
-		msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-		msg << " to non-Int type: ";
-		msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		errorsFound++;
-	      }
-	    else
+	    //	    ULAMTYPE tobeTypEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
+	    //if(tobeTypEnum != Int)
+	    //  {
+	    //	std::ostringstream msg;
+	    //	msg << "Cannot cast quark type: ";
+	    //	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	    //	msg << " to non-Int type: ";
+	    //	msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    //	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    //	errorsFound++;
+	    //}
+	    //else
 	      {
 		// update to NodeMemberSelect + NodeFunctionCall
 		//m_node = makeCastingNode(m_node, tobeType);

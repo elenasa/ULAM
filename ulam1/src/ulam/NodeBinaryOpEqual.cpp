@@ -37,27 +37,72 @@ namespace MFM {
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
 
-    if(leftType == Nav || rightType == Nav || !m_state.isComplete(leftType) || !m_state.isComplete(rightType))
+    if(!m_state.isComplete(leftType) || !m_state.isComplete(rightType))
       {
 	setNodeType(Nav);
 	return Nav; //not quietly
       }
 
-    if(!m_nodeLeft->isStoreIntoAble())
+    if(!checkStoreIntoAble())
       {
-	std::ostringstream msg;
-	msg << "Invalid lefthand side of equals: <" << m_nodeLeft->getName();
-	msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setNodeType(Nav);  //was newType that wasn't Nav
-	setStoreIntoAble(false);
 	return Nav; //newType
       }
 
-    PACKFIT lpacked = m_state.determinePackable(leftType);
-    PACKFIT rpacked = m_state.determinePackable(rightType);
-    bool unpackedArrayLeft = !WritePacked(lpacked) && !m_state.isScalar(leftType);
-    bool unpackedArrayRight = !WritePacked(rpacked) && !m_state.isScalar(rightType);
+    if(!checkNotUnpackedArray())
+      {
+	setNodeType(Nav);
+	return Nav;
+      }
+
+    if(!checkNotVoidTypes(leftType, rightType))
+      {
+	setNodeType(Nav);
+	return Nav;
+      }
+
+    newType = leftType;
+
+    //cast RHS if necessary
+    if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
+      {
+	if(checkForSafeImplicitCasting(leftType, rightType, newType)) //ref
+	  {
+	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	      newType = Nav; //error
+	  }
+      }
+
+    setNodeType(newType);
+    setStoreIntoAble(true);
+    return newType;
+  } //checkAndLabelType
+
+  bool NodeBinaryOpEqual::checkStoreIntoAble()
+  {
+    if(!m_nodeLeft->isStoreIntoAble())
+      {
+	UTI lt = m_nodeLeft->getNodeType();
+	std::ostringstream msg;
+	msg << "Invalid lefthand side of equals: <" << m_nodeLeft->getName();
+	msg << ">, type: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setStoreIntoAble(false);
+	return false;
+      }
+    setStoreIntoAble(true);
+    return true;
+  } //checkStoreIntoAble
+
+  bool NodeBinaryOpEqual::checkNotUnpackedArray()
+  {
+    bool rtnOK = true;
+    UTI lt = m_nodeLeft->getNodeType();
+    UTI rt = m_nodeRight->getNodeType();
+    PACKFIT lpacked = m_state.determinePackable(lt);
+    PACKFIT rpacked = m_state.determinePackable(rt);
+    bool unpackedArrayLeft = !WritePacked(lpacked) && !m_state.isScalar(lt);
+    bool unpackedArrayRight = !WritePacked(rpacked) && !m_state.isScalar(rt);
 
     if(unpackedArrayLeft || unpackedArrayRight)
       {
@@ -66,7 +111,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Lefthand side of equals requires UNPACKED array support: <";
 	    msg << m_nodeLeft->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(leftType).c_str();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(lt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	if(unpackedArrayRight)
@@ -74,26 +119,100 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Righthand side of equals requires UNPACKED array support: <";
 	    msg << m_nodeRight->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(rightType).c_str();
+	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(rt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
-	setNodeType(Nav);  //was newType that wasn't Nav
-	return Nav; //newType
+	rtnOK = false;
       }
+    return rtnOK;
+  } //checkNotUnpackedArray
 
-    newType = leftType;
+  bool NodeBinaryOpEqual::checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+    if(ntypEnum != Bool)
+      return true;
 
-    //cast RHS if necessary
-    if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
+    bool rtnOK = false;
+    if(!m_nodeRight->isAConstant() && rtypEnum != ntypEnum)
       {
-	if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
-	  newType = Nav; //error
+	if(m_state.getBitSize(rt) == 1 && (rtypEnum == Unsigned || rtypEnum == Unary))
+	  rtnOK = true;
       }
+    else
+      rtnOK = true; //bools of any size are safe to cast
 
-    setNodeType(newType);
-    setStoreIntoAble(true);
-    return newType;
-  } //checkAndLabelType
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Converting from "; //non-Bool
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " to "; //Bool
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	msg << " for binary operator" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkNonBoolToBoolCast
+
+  bool NodeBinaryOpEqual::checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    UlamType * nit = m_state.getUlamTypeByIndex(newType);
+    ULAMTYPE ntypEnum = nit->getUlamTypeEnum();
+    if(ntypEnum != Unary)
+      return true; //not to unary
+
+    bool rtnOK = false;
+    if(!m_nodeRight->isAConstant())
+      {
+	UlamType * rit = m_state.getUlamTypeByIndex(rt);
+	if((rit->getMax() <= nit->getMax()) && (rit->getMin() == 0))
+	  rtnOK = true;
+      }
+    else
+      rtnOK = true;
+
+    if(!rtnOK)
+      {
+	std::ostringstream msg;
+	msg << "Converting from ";
+	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << " to "; //Unary
+	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	msg << " requires explicit casting";
+	msg << " for binary operator" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+    return rtnOK;
+  } //checkToUnaryCast
+
+  bool NodeBinaryOpEqual::checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
+  {
+    bool rtnOK = true;
+    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+    // constants already checked; Any size Bool to Bool safe.
+    // Atom may be larger than an element.
+    if(!m_nodeRight->isAConstant() && (ntypEnum != Bool && rtypEnum != Bool) && (rtypEnum != UAtom))
+      {
+	if(m_state.getBitSize(rt) > m_state.getBitSize(newType))
+	  {
+	    std::ostringstream msg;
+	    msg << "Converting from ";
+	    msg << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << " to smaller ";
+	    msg << m_state.getUlamTypeNameByIndex(newType).c_str();
+	    msg << " requires explicit casting";
+	    msg << " for binary operator" << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    newType = Nav;
+	    rtnOK = false;
+	  }
+      }
+    return rtnOK;
+  } //checkBitsizeOfCastLast
 
   UTI NodeBinaryOpEqual::calcNodeType(UTI lt, UTI rt)
   {

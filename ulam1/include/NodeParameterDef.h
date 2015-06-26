@@ -47,6 +47,7 @@ namespace MFM{
   public:
 
     NodeParameterDef(SymbolParameterValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
+
     NodeParameterDef(const NodeParameterDef& ref);
 
     virtual ~NodeParameterDef();
@@ -55,22 +56,19 @@ namespace MFM{
 
     virtual void printPostfix(File * f);
 
-    //    virtual const char * getName();
-
     virtual const std::string prettyNodeName();
 
     virtual void fixPendingArgumentNode();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void genCodeConstructorInitialization(File * fp);
-
-    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
+    virtual void genCodeExtern(File * fp, bool declOnly);
 
   protected:
     virtual void checkForSymbol();
 
   private:
+
   };
 
 } //MFM

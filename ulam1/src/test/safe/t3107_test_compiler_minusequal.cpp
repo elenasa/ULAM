@@ -29,5 +29,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3107_test_compiler_minusequal)
 
 } //end MFM
-
-

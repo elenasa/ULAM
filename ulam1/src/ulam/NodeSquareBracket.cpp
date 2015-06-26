@@ -310,7 +310,7 @@ namespace MFM {
 
     if(args.m_arraysize > NONARRAYSIZE)
       {
-	MSG(getNodeLocationAsString().c_str(), "Array size specified twice for typedef symbol", ERR);
+	MSG(getNodeLocationAsString().c_str(), "Array size specified twice for typedef", ERR);
 	return false;
       }
 
@@ -328,7 +328,7 @@ namespace MFM {
   //see also NodeIdent
   bool NodeSquareBracket::installSymbolParameterValue(TypeArgs& args, Symbol *& asymptr)
   {
-    MSG(getNodeLocationAsString().c_str(), "Invalid array size specified for Model Parameter", ERR);
+    MSG(getNodeLocationAsString().c_str(), "Array size specified for model parameter", ERR);
     return false;
   } //installSymbolParameterValue
 
@@ -382,7 +382,7 @@ namespace MFM {
 	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
 	      {
 		MSG(getNodeLocationAsString().c_str(),
-		    "Array size specifier in [] is not a positive integer", ERR);
+		    "Array size specifier in [] is not a positive number", ERR);
 		noerr = false;
 	      }
 	  }
@@ -395,7 +395,7 @@ namespace MFM {
     else
       {
 	MSG(getNodeLocationAsString().c_str(),
-	    "Array size specifier in [] is not a constant integer", ERR);
+	    "Array size specifier in [] is not a constant number", ERR);
 	noerr = false;
       }
     rtnArraySize = newarraysize;
