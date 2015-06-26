@@ -145,6 +145,16 @@ namespace MFM {
     return false;
   }
 
+  bool Node::safeToCastTo(UTI newType)
+  {
+    std::ostringstream msg;
+    msg << "virtual bool " << prettyNodeName().c_str();
+    msg << "::safeToCastTo(UTI newType){} is needed!!";
+    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+    //assert(0); //needs a method apparently
+    return true;
+  } //safeToCastTo
+
   // any node above assignexpr is not storeintoable;
   // and has no type (e.g. statements, statement, block, program)
   UTI Node::checkAndLabelType()
@@ -1613,7 +1623,7 @@ namespace MFM {
     if(!rtnOK)
       {
 	std::ostringstream msg;
-	msg << "Converting from "; //Bits type
+	msg << "Converting from Bits "; //Bits type
 	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameByIndex(newType).c_str();

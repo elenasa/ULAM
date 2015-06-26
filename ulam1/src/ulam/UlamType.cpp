@@ -92,19 +92,46 @@ namespace MFM {
 	return false;
       }
 
-    assert(m_state.getUlamTypeByIndex(typidx) == this);
-    s32 arraysize = getArraySize();
-
+    bool bOK = true;
+    //let packable arrays of same size pass...
     if(!isScalar() || !m_state.isScalar(typidx))
       {
-	std::ostringstream msg;
-	msg << "Casting nonScalar Array sizes; " << arraysize;
-	msg << ", Value Type and size was: ";
-	msg << typidx << "," << m_state.getArraySize(typidx);
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	return false;
+	if(getPackable() != PACKEDLOADABLE || m_state.determinePackable(typidx) != PACKEDLOADABLE)
+
+	  {
+	    std::ostringstream msg;
+	    msg << "Casting requires UNPACKED array support: ";
+	    msg << m_state.getUlamTypeNameByIndex(typidx).c_str();
+	    msg << " TO " ;
+	    msg << getUlamTypeName().c_str();
+	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+
+	    bOK = false;
+	  }
+	else
+	  {
+	    s32 arraysize = getArraySize();
+	    s32 varraysize = m_state.getArraySize(typidx);
+	    if(arraysize != varraysize)
+	      {
+		std::ostringstream msg;
+		msg << "Casting different Array sizes: " << arraysize;
+		msg << ", Value Type and size was: ";
+		msg << typidx << "," << varraysize;
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
+		bOK = false;
+	      }
+	    else
+	      {
+		std::ostringstream msg;
+		msg << "Casting nonScalar Array size: " << arraysize;
+		msg << ", Value Type and size was: ";
+		msg << typidx << "," << varraysize;
+		MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	      }
+	  }
       }
-    return true;
+    return bOK;
   } //safeCast
 
   void UlamType::getDataAsString(const u32 data, char * valstr, char prefix)

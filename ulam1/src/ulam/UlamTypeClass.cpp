@@ -88,6 +88,9 @@ namespace MFM {
     if(m_class == UC_ELEMENT && typidx == UAtom)
       return false; //complicated not safe.
 
+    if(m_state.getUlamTypeByIndex(typidx) == this)
+      return true; //same class
+
     //must be Quark! treat as Int
     assert(m_class == UC_QUARK);
     return m_state.getUlamTypeByIndex(Int)->safeCast(typidx);

@@ -75,6 +75,13 @@ namespace MFM {
     return m_ready;
   }
 
+  bool NodeTerminalProxy::safeToCastTo(UTI newType)
+  {
+    if(isReadyConstant())
+      return  NodeTerminal::fitsInBits(newType);
+    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+  } //safeToCastTo
+
   UTI NodeTerminalProxy::checkAndLabelType()
   {
     //when minmaxsizeof a selected member
@@ -228,7 +235,10 @@ namespace MFM {
     switch(tok.m_type)
       {
       case TOK_KW_SIZEOF:
-	newType = Unsigned; //m_state.getUlamTypeOfConstant(Unsigned);
+	{
+	  //u32 logsizeof = _getLogBase2(m_constant.uval) + 1;
+	  newType = Unsigned; //m_state.getUlamTypeOfConstant(Unsigned);
+	}
 	break;
       case TOK_KW_MAXOF:
       case TOK_KW_MINOF:

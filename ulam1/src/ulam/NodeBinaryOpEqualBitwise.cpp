@@ -76,6 +76,8 @@ namespace MFM {
 	    //only right can be a constant;  constant fold later.
 	    newType = lt;
 
+	    NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
+
 	    // possible error if constant doesn't fit in lt.
 	    NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
 	  }

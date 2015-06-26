@@ -67,6 +67,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual bool safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);

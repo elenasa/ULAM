@@ -22,7 +22,7 @@ namespace MFM {
       // note2: cast as an Int(32), the exit status is 1
       //bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\n Bool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = a + b;\ns.print(c);\n d = c;\ns.print(d);\n return c;\n }\n }\n");
 
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = (Bool(3)) ((Unsigned(3)) a + (Unsigned(3)) b);\n s.print(c);\n d = c;\ns.print(d);\n return c;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = (Bool(3)) ((Unsigned(3)) a + (Unsigned(3)) b);\n s.print(c);\n d = (Unary(3)) c;\ns.print(d);\n return c;\n }\n }\n");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

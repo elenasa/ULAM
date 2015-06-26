@@ -70,6 +70,12 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  bool NodeFunctionCall::safeToCastTo(UTI newType)
+  {
+    //ulamtype checks for complete, non array, and type specific rules
+    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+  } //safeToCastTo
+
   UTI NodeFunctionCall::checkAndLabelType()
   {
     UTI it = Nav;  // init return type

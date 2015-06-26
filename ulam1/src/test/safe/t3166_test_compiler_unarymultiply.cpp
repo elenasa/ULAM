@@ -17,7 +17,7 @@ namespace MFM {
       //2 * 2 == 4 bit -> maxes out 3 bit unary == 3
       //bool rtn1 = fms->add("A.ulam","element A { Unary(3) a, b, c; use test;  a = 2; b = 2; c = a * b; return c; } }");
 
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {System s;\nBool sp;\nUnary(3) a, b, c;\n use test;\n  a = 2;\n b = 2;\n c = a * b;\ns.print(c);\n return c;\n } }");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {System s;\nBool sp;\nUnary(3) a, b, c;\n use test;\n  a = 2;\n b = 2;\n c = (Unary(3)) (a * b);\ns.print(c);\n return c;\n } }");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

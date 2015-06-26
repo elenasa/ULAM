@@ -144,6 +144,11 @@ namespace MFM {
     return true;
   }
 
+  bool NodeTerminal::safeToCastTo(UTI newType)
+  {
+    return fitsInBits(newType);
+  } //safeToCastTo
+
   UTI NodeTerminal::checkAndLabelType()
   {
     return getNodeType(); //done by constructor

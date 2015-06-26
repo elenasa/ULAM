@@ -21,7 +21,7 @@ namespace MFM {
 
       // need explicit cast (Unary(3)) using e in rhs equation:
       //./A.ulam:13:3: ERROR: Attempting to implicitly cast from RHS type: Unsigned(4), to Unary type: Unary(3) for binary operator= without casting.
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {System s;\nUnary(3) a, b, c, d, f;\nUnary(4) e;\n use test;\n  a = 2u;\n b = 3u;\n c = (Unary(3)) (a % b);\ns.print(c);\nd = b / a;\ns.print(d);\ne = 4;\nf = (Unary(3)) (e % a);\ns.print(f);\n return c;\n } }");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {System s;\nUnary(3) a, b, c, d, f;\nUnary(4) e;\n use test;\n  a = 2u;\n b = 3u;\n c = (Unary(3)) (a % b);\ns.print(c);\nd = (Unary(3)) (b / a);\ns.print(d);\ne = 4;\nf = (Unary(3)) (e % a);\ns.print(f);\n return c;\n } }");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

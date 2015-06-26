@@ -78,6 +78,15 @@ namespace MFM {
     return m_node->isWordSizeConstant();
   }
 
+  bool NodeCast::safeToCastTo(UTI newType)
+  {
+    //possible user error, deal with it.
+    //assert(UlamType::compare(newType,getNodeType(), m_state) == UTIC_SAME);
+    //ulamtype checks for complete, non array, and type specific rules
+    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    return true;
+  } //safeToCastTo
+
   UTI NodeCast::checkAndLabelType()
   {
     // unlike the other nodes, nodecast knows its type at construction time;

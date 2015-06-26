@@ -63,6 +63,12 @@ namespace MFM {
     return m_token;
   }
 
+  bool NodeIdent::safeToCastTo(UTI newType)
+  {
+    //ulamtype checks for complete, non array, and type specific rules
+    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+  } //safeToCastTo
+
   UTI NodeIdent::checkAndLabelType()
   {
     UTI it = Nav;  //init

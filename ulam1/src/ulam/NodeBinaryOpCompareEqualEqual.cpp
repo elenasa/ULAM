@@ -52,9 +52,16 @@ namespace MFM {
 	s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
 	newType = m_state.makeUlamType(newkey, Bits);
-	UTI savenewtype = newType;
-	if(checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
-	  newType = savenewtype;
+
+	//UTI savenewtype = newType; //???
+
+	NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
+
+	//restore savenewtype???
+
+	checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
+	//if(checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
+	  //newType = savenewtype;
       }
     return newType;
   } //calcNodeType
