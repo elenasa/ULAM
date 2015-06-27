@@ -94,11 +94,6 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		newType = Nav;
 	      }
-
-	    //NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
-
-	    // possible error if constant doesn't fit in lt.
-	    //NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
 	  }
 
 	if(newType == Nav && !(ltypEnum == Bits && rtypEnum == Bits))
