@@ -1566,11 +1566,6 @@ namespace MFM {
     return !doErrMsg;
   } //makecastingnode
 
-  bool Node::checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType)
-  {
-    return true; //default ok
-  }
-
   NodeFunctionCall * Node::buildCastingFunctionCallNode(Node * node, UTI tobeType)
   {
     Locator loc = getNodeLocation(); //used throughout
