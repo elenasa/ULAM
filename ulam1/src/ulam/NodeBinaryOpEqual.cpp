@@ -42,9 +42,26 @@ namespace MFM {
     	return Nav; //not quietly
       }
 
-    UTI newType = leftType; //init
+    if(!checkStoreIntoAble())
+      {
+	setNodeType(Nav);
+	return Nav;
+      }
 
-    NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(leftType, rightType, newType); //ref newType
+    if(!checkNotUnpackedArray())
+      {
+	setNodeType(Nav);
+	return Nav;
+      }
+
+    if(!checkNotVoidTypes(leftType, rightType))
+      {
+    	setNodeType(Nav);
+    	return Nav;
+      }
+
+
+    UTI newType = leftType; //init
 
     SAFECAST scr = m_nodeRight->safeToCastTo(newType);
     if(scr != SAFE)
@@ -54,7 +71,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " requires explicit casting";
+	msg << " requires explicit casting for operator" << getName();
 	if(scr == UNSAFE)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
@@ -63,27 +80,7 @@ namespace MFM {
 	return Nav;
       }
 
-    if(!checkStoreIntoAble())
-      {
-	setNodeType(Nav);  //was newType that wasn't Nav
-	return Nav; //newType
-      }
-
-    if(!checkNotUnpackedArray())
-      {
-	setNodeType(Nav);
-	return Nav;
-      }
-
-    //    if(!checkNotVoidTypes(leftType, rightType))
-    //  {
-    //	setNodeType(Nav);
-    //	return Nav;
-    //  }
-
-    //newType = leftType;
-
-    //cast RHS if necessary
+    //cast RHS if necessary and safe
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
 	if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
@@ -91,7 +88,7 @@ namespace MFM {
       }
 
     setNodeType(newType);
-    setStoreIntoAble(true);
+    setStoreIntoAble((newType != Nav)); //ok true
     return newType;
   } //checkAndLabelType
 

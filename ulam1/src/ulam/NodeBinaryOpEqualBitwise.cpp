@@ -78,7 +78,7 @@ namespace MFM {
 	    //only right can be a constant;  constant fold later.
 	    newType = lt;
 
-	     scr = m_nodeRight->safeToCastTo(newType);
+	    scr = m_nodeRight->safeToCastTo(newType);
 
 	    if(scr != SAFE)
 	      {
