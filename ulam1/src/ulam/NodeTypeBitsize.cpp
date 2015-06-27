@@ -70,11 +70,19 @@ namespace MFM {
   {
     UTI it = Nav;
     it = m_node->checkAndLabelType();
+    if(!m_state.isComplete(it))
+      {
+	std::ostringstream msg;
+	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameByIndex(it);
+	msg << ", within (), is not ready";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	return Nav; //short-circuit
+      }
 
     ULAMTYPE etype = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
 
     // expect a constant integer or constant unsigned integer
-    if(!( (etype == Int || etype == Unsigned) && m_node->isAConstant()))
+    if( !m_node->isAConstant() || (!(etype == Int || etype == Unsigned) && m_node->isReadyConstant()))
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameByIndex(it);
@@ -167,12 +175,25 @@ namespace MFM {
       }
     else
       {
-	std::ostringstream msg;
-	msg << "Type Bitsize specifier for base type: ";
-	msg << UlamType::getUlamTypeEnumAsString(BUT);
-	msg << " is not a constant expression";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return false;
+	// it's a Nav, perhaps not ready.
+	if( !m_node->isAConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT);
+	    msg << " is not a constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return false;
+	  }
+	if(!m_node->isReadyConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Type Bitsize specifier for base type: ";
+	    msg << UlamType::getUlamTypeEnumAsString(BUT);
+	    msg << " is not a ready constant expression";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    return false;
+	  }
       }
     rtnBitSize = newbitsize;
     return true;

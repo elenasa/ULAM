@@ -1566,83 +1566,10 @@ namespace MFM {
     return !doErrMsg;
   } //makecastingnode
 
-  //errors return false, and change newType to Nav.
-  bool Node::checkForSafeImplicitCasting(UTI lt, UTI rt, UTI& newType)
-  {
-    bool rtnOK = true;
-    ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
-    if(!checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
-      rtnOK = false;
-    else if(!checkForMixedSignsOfVariables(ltypEnum, rtypEnum, lt, rt, newType))
-      rtnOK = false;
-    else if(!checkIntToNonBitsNonIntCast(rtypEnum, rt, newType))
-      rtnOK = false;
-    else if(!checkNonBoolToBoolCast(rtypEnum, rt, newType))
-      rtnOK = false;
-    else if(!checkFromBitsCast(rtypEnum, rt, newType))
-      rtnOK = false;
-    else if(!checkToUnaryCast(rtypEnum, rt, newType))
-      rtnOK = false;
-    else if(!checkBitsizeOfCastLast(rtypEnum, rt, newType))
-      rtnOK = false;
-    return rtnOK;
-  } //checkForSafeImplicitCasting
-
   bool Node::checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType)
   {
     return true; //default ok
   }
-
-  bool Node::checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType)
-  {
-    return true; //default ok
-  }
-
-  bool Node::checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
-  {
-    return true; //default ok
-  } //checkIntToNonBitsNonIntCast
-
-  bool Node::checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
-  {
-    return true; //default ok
-  } //checkNonBoolToBoolCast
-
-  bool Node::checkFromBitsCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
-  {
-    bool rtnOK = false;
-    if(rtypEnum == Bits)
-      {
-	if(UlamType::compare(rt, newType, m_state) == UTIC_SAME)
-	  rtnOK = true;
-      }
-    else
-      rtnOK = true; //not casting From Bits
-
-    if(!rtnOK)
-      {
-	std::ostringstream msg;
-	msg << "Converting from Bits "; //Bits type
-	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << " to ";
-	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
-	msg << " requires explicit casting";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	newType = Nav;
-      }
-    return rtnOK;
-  } //checkFromBitsCast
-
-  bool Node::checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
-  {
-    return true;
-  } //checkToUnaryCast
-
-  bool Node::checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType)
-  {
-    return true;
-  } //checkBitsizeOfCastLast
 
   NodeFunctionCall * Node::buildCastingFunctionCallNode(Node * node, UTI tobeType)
   {
