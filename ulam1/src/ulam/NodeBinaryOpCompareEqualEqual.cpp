@@ -57,9 +57,12 @@ namespace MFM {
 
 	NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
 
+	if(!NodeBinaryOp::checkSafeToCastTo(newType))
+	  newType = Nav; //outputs error msg
+
 	//restore savenewtype???
 
-	checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
+	//checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
 	//if(checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
 	  //newType = savenewtype;
       }

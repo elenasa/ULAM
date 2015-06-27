@@ -155,6 +155,31 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
+  bool NodeBinaryOp::checkSafeToCastTo(UTI newType)
+  {
+    bool rtnOK = true;
+    SAFECAST lsafe = m_nodeLeft->safeToCastTo(newType);
+    SAFECAST rsafe = m_nodeRight->safeToCastTo(newType);
+    if( lsafe != SAFE || rsafe != SAFE )
+      {
+	std::ostringstream msg;
+	msg << "Converting "; // the real converting-message
+	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeLeft->getNodeType()).c_str();
+	msg << " and ";
+	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
+	msg << " to ";
+	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	msg << " requires explicit casting for binary operator";
+	msg << getName();
+	if(lsafe == HAZY || rsafe == HAZY)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      } //not safe
+    return rtnOK;
+  } //checkSafeToCastTo
+
     //no atoms, elements nor voids as either operand
   bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt)
   {
@@ -255,63 +280,6 @@ namespace MFM {
     return ( lconst == rconst ? (lbs > rbs ? lbs : rbs) : (!lconst ? lbs : rbs));
   } //maxBitsize
 
-  bool NodeBinaryOp::checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI newType)
-  {
-    bool rtnOK = true;
-    bool lconst = m_nodeLeft->isAConstant();
-    bool rconst = m_nodeRight->isAConstant();
-
-    if(lconst || rconst)
-      {
-	bool lready = lconst && m_nodeLeft->isReadyConstant();
-	bool rready = rconst && m_nodeRight->isReadyConstant();
-
-#if 0
-	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
-
-	// cast constant to unsigned variable type if mixed types:
-	// e.g. Unsigned(8) var = 2; //change from Int(8) to Unsigned(8)
-	//	if((ltypEnum == Unsigned && !lconst) || (rtypEnum == Unsigned && !rconst))
-	if((ltypEnum != ntypEnum && !lconst) || (rtypEnum != ntypEnum && !rconst))
-	  {
-	    s32 newbs = m_state.getBitSize(newType);
-	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
-	    newType = m_state.makeUlamType(newkey, Unsigned);
-	  }
-#endif
-
-	// if one is a constant, check for value to fit in new type bits.
-	bool doErrMsg = lready || rready;
-
-	if(lready && m_nodeLeft->fitsInBits(newType)) //was rt
-	  doErrMsg = false;
-
-	if(rready && m_nodeRight->fitsInBits(newType))
-	  doErrMsg = false;
-
-	if(doErrMsg)
-	  {
-	    if(lready || rready)
-	      {
-		std::ostringstream msg;
-		msg << "Constant <";
-		if(lready)
-		  msg << m_nodeLeft->getName();
-		if(rready)
-		  msg << m_nodeRight->getName();
-
-		msg <<  "> is not representable as: ";
-		msg<< m_state.getUlamTypeNameByIndex(newType).c_str();
-		msg << ", for binary operator" << getName() << " ";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		//newType = Nav; //for error
-	      }
-	  } //err
-	rtnOK = !doErrMsg;
-      } //a constant
-    return rtnOK;
-  } //checkAnyConstantsFit
-
   bool NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(UTI lt, UTI rt, UTI& newType)
   {
     ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
@@ -339,50 +307,6 @@ namespace MFM {
       }
     return true;
   } //fixMixedSignsOfVariableWithConstantToVariableType
-
-  bool NodeBinaryOp::checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI newType)
-  {
-    bool rtnOK = true;
-
-    ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
-
-    //Int to Unsigned of any size is unsafe!
-    if(ntypEnum == Unsigned)
-      {
-	if(ltypEnum == Int && !m_nodeLeft->isAConstant())
-	  rtnOK = false;
-
-	if(rtypEnum == Int && !m_nodeRight->isAConstant())
-	  rtnOK = false;
-      }
-    else if(ntypEnum == Int)
-      {
-	s32 nbs = m_state.getBitSize(newType);
-
-	// Unsigned to Int gets an error if the bitsizes are "unsafe"
-	// (including the SAME size);
-	if(ltypEnum == Unsigned && !m_nodeLeft->isAConstant() && m_state.getBitSize(lt) >= nbs)
-	  rtnOK = false;
-
-	if(rtypEnum == Unsigned && !m_nodeRight->isAConstant() && m_state.getBitSize(rt) >= nbs)
-	  rtnOK = false;
-      }
-    //assert(0);
-
-    if(!rtnOK)
-      {
-	std::ostringstream msg;
-	msg << "Attempting to mix signed and unsigned types, LHS: ";
-	msg << m_state.getUlamTypeNameByIndex(lt).c_str() << ", RHS: ";
-	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	msg << ", of an unsafe sized variable, to: ";
-	msg << m_state.getUlamTypeNameByIndex(newType).c_str();
-	msg << " for binary operator" << getName() << " without casting";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//newType = Nav;
-      } //mixing unsigned and signed
-    return rtnOK;
-  } //checkforMixedSignsOfVariables
 
   void NodeBinaryOp::countNavNodes(u32& cnt)
   {

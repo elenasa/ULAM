@@ -204,7 +204,6 @@ namespace MFM{
 
   protected:
     virtual void checkForSymbol();
-    virtual bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
 
   private:
     bool m_storeIntoAble;

@@ -110,30 +110,8 @@ namespace MFM {
 
 	NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
 
-	SAFECAST lsafe = m_nodeLeft->safeToCastTo(newType);
-	SAFECAST rsafe = m_nodeRight->safeToCastTo(newType);
-	if( lsafe != SAFE || rsafe != SAFE )
-	  {
-	    std::ostringstream msg;
-	    msg << "Converting "; // the real converting-message
-	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str() << ", ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	    msg << " to ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	    msg << " requires explicit casting for binary operator";
-	    msg << getName();
-	    if(lsafe == HAZY || rsafe == HAZY)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
-	  } //not safe
-
-	//	if(!NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
-	//  return Nav; //outputs errors if not ok.
-
-	//if(!NodeBinaryOp::checkForMixedSignsOfVariables(ltypEnum, rtypEnum, lt, rt, newType))
-	//  return Nav; //outputs errors if not ok.
+	if(!NodeBinaryOp::checkSafeToCastTo(newType))
+	  newType = Nav; //outputs error msg
       } //both scalars
     return newType;
   } //calcNodeType

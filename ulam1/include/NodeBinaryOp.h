@@ -99,6 +99,7 @@ namespace MFM{
 
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
     //common helpers for calcNodeType:
+    bool checkSafeToCastTo(UTI newType);
     bool checkForPrimitiveTypes(UTI lt, UTI rt);
     bool checkNotVoidTypes(UTI lt, UTI rt);
     bool checkScalarTypesOnly(UTI lt, UTI rt);
@@ -106,9 +107,6 @@ namespace MFM{
 
     bool fixMixedSignsOfVariableWithConstantToVariableType(UTI lt, UTI rt, UTI& newType); //helper
     bool fixMixedSignsOfVariableWithConstantToVariableType(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
-    virtual bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI newType);
-
-    bool checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI newType);
 
   };
 
