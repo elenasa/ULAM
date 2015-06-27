@@ -107,8 +107,8 @@ namespace MFM{
     bool fixMixedSignsOfVariableWithConstantToVariableType(UTI lt, UTI rt, UTI& newType); //helper
     bool fixMixedSignsOfVariableWithConstantToVariableType(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
     virtual bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI newType);
-    virtual bool checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI newType);
-    virtual bool checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
+
+    bool checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI newType);
 
   };
 
