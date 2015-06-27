@@ -129,7 +129,7 @@ namespace MFM {
     UTI newType = Nav;
 
     if(leftType && rightType)
-      newType = calcNodeType(leftType, rightType);
+      newType = calcNodeType(leftType, rightType); //does safety check
 
     setNodeType(newType);
     setStoreIntoAble(false);
@@ -294,9 +294,8 @@ namespace MFM {
       {
 	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
 
-	// cast constant to unsigned variable type if mixed types:
+	// cast constant to Unsigned Variable Type if mixed types:
 	// e.g. Unsigned(8) var = 2; //change from Int(8) to Unsigned(8)
-	//	if((ltypEnum == Unsigned && !lconst) || (rtypEnum == Unsigned && !rconst))
 	if((ltypEnum != ntypEnum && !lconst) || (rtypEnum != ntypEnum && !rconst))
 	  {
 	    s32 newbs = m_state.getBitSize(newType);

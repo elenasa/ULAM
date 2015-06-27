@@ -23,7 +23,7 @@ namespace MFM {
 
     //no atoms, elements nor voids as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
-      return Nav;
+	return Nav;
 
     UTI newType = Nav; //init
     // all logical operations are performed as Bool.BITSPERBOOL.-1
@@ -56,12 +56,12 @@ namespace MFM {
   bool NodeBinaryOpLogical::checkNonBoolToBoolCastAndMaxsize(UTI uti, s32& maxbitsize)
   {
     bool rtnOK = false;
-    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
-    s32 bs = m_state.getBitSize(uti);
-    if((typEnum == Bool) || ((bs == 1) && (typEnum == Unsigned || typEnum == Unary)))
+    UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    if((ut->getUlamTypeEnum() == Bool) || (m_state.getUlamTypeByIndex(Bool)->safeCast(uti) == SAFE))
       {
-	rtnOK = true;
+	s32 bs = ut->getBitSize();
 	maxbitsize = (bs > maxbitsize ? bs : maxbitsize);
+	rtnOK = true;
       }
     return rtnOK;
   } //checkNonBoolToBoolCastAndMaxsize

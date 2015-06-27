@@ -12,7 +12,7 @@ namespace MFM {
 	 Unsigned Arg: 8
 	 Unsigned Arg: 16
       */
-      return std::string("Exit status: 16\nUe_A { Bool(7) b(false);  System s();  Unsigned(32) d(16);  Int(32) test() {  Int(32) a;  a 8 = d 1 cast = a cast cond { d d cast 1 << cast = s ( d )print . a a cast 1 >> cast = } _1: while d cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 16\nUe_A { Bool(7) b(false);  System s();  Unsigned(32) d(16);  Int(32) test() {  Int(32) a;  a 8 = d 1 cast = a cast cond { d d cast 1 cast << cast = s ( d )print . a a cast 1 cast >> cast = } _1: while d cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

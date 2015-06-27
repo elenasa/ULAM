@@ -30,6 +30,15 @@ namespace MFM {
 		setNodeType(Nav);
 	      }
 	  }
+	//shift by unsigned type; cast if need be. safety checked by calcNodeType.
+	if(m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum() != Unsigned)
+	  {
+	    if(!makeCastingNode(m_nodeRight, Unsigned, m_nodeRight))
+	      {
+		newType = Nav;
+		setNodeType(Nav);
+	      }
+	  }
       } //complete
 
     if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
@@ -79,26 +88,33 @@ namespace MFM {
     // (including quarks).
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
-	newType = lt;
+	bool bok = true;
 
 	// RHS must be Unsigned, or positive constant.
-	//shift ops take unsigned as second arg;
+	// shift ops take unsigned as second arg;
 	//note: C implementations typically shift by the lower 5 bits (6 for 64-bits) only.
 	UlamType * rut = m_state.getUlamTypeByIndex(rt);
 	ULAMTYPE retype = rut->getUlamTypeEnum();
-	bool rconstpos = (m_nodeRight->isAConstant() && m_nodeRight->isReadyConstant() && !m_nodeRight->isNegativeConstant());
-
-	if(!rconstpos && retype != Unsigned)
+	bool rconst = m_nodeRight->isAConstant(); //unready const will by hazy safecast
+	SAFECAST scr = rconst ? m_nodeRight->safeToCastTo(Unsigned) : UNSAFE; //bypass var
+	if((rconst && scr != SAFE) || (!rconst && retype != Unsigned))
 	  {
-	    //this is an unsafe cast, must be explicit!
+	    //this is an unsafe cast of constant (e.g. negative number),
+	    // or not an Unsigned var, so casting to Unsigned must be explicit!
 	    std::ostringstream msg;
 	    msg << "Unsigned is the supported type for RHS bitwise shift value, operator";
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Unsigned";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return  Nav;
+	    if(scr == HAZY)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    bok = false; //Nav;
 	  }
+
+	newType = lt;
+	s32 lbs = m_state.getBitSize(lt);
 
 	//ERROR if LHS is not Bits, except for constants
 	bool lconst = m_nodeLeft->isAConstant();
@@ -107,7 +123,6 @@ namespace MFM {
 	    ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	    if(etyp != Bits)
 	      {
-		s32 lbs = m_state.getBitSize(lt);
 		std::ostringstream msg;
 		msg << "Bits is the supported type for bitwise shift operator";
 		msg << getName() << "; Suggest casting ";
@@ -116,16 +131,18 @@ namespace MFM {
 		if(lbs > 0)
 		  msg << "(" << lbs << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		newType = Nav;
+		bok = false; //newType = Nav;
 	      }
 	  }
 	else
 	  {
-	    //auto for constants, downhill cast. use larger bitsize.
-	    s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
-	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	    //auto for constants, downhill cast. use lt bitsize.
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
 	    newType = m_state.makeUlamType(newkey, Bits);
 	  }
+
+	if(!bok)
+	  newType = Nav;
       } //both scalars
     return newType;
   } //calcNodeType
