@@ -276,7 +276,6 @@ namespace MFM {
     bool rconst = m_nodeRight->isAConstant();
 
     // if both or neither are const, use larger bitsize; else use nonconst's bitsize.
-    // later checkAnyConstantsFit.
     return ( lconst == rconst ? (lbs > rbs ? lbs : rbs) : (!lconst ? lbs : rbs));
   } //maxBitsize
 
