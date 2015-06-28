@@ -96,7 +96,7 @@ namespace MFM {
 	UlamType * rut = m_state.getUlamTypeByIndex(rt);
 	ULAMTYPE retype = rut->getUlamTypeEnum();
 	bool rconst = m_nodeRight->isAConstant(); //unready const will by hazy safecast
-	CASTSTAT scr = rconst ? m_nodeRight->safeToCastTo(Unsigned) : CAST_BAD; //bypass var
+	FORECAST scr = rconst ? m_nodeRight->safeToCastTo(Unsigned) : CAST_BAD; //bypass var
 	if((rconst && scr != CAST_CLEAR) || (!rconst && retype != Unsigned))
 	  {
 	    //this is an unsafe cast of constant (e.g. negative number),

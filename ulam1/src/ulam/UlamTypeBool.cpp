@@ -201,9 +201,9 @@ namespace MFM {
     return brtn;
   } //castTo64
 
-  CASTSTAT UlamTypeBool::safeCast(UTI typidx)
+  FORECAST UlamTypeBool::safeCast(UTI typidx)
   {
-    CASTSTAT scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamType::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
@@ -236,10 +236,10 @@ namespace MFM {
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
-  CASTSTAT UlamTypeBool::explicitlyCastable(UTI typidx)
+  FORECAST UlamTypeBool::explicitlyCastable(UTI typidx)
   {
     ULAMTYPE vtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
-    CASTSTAT scr = safeCast(typidx);
+    FORECAST scr = safeCast(typidx);
     if((vtypEnum == Bits && UlamType::explicitlyCastable(typidx) == CAST_CLEAR) || scr == CAST_CLEAR)
       return CAST_CLEAR;
     return scr; //HAZY or UNSAFE

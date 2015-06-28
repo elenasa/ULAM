@@ -145,10 +145,10 @@ namespace MFM {
     return false;
   }
 
-  CASTSTAT Node::safeToCastTo(UTI newType)
+  FORECAST Node::safeToCastTo(UTI newType)
   {
     std::ostringstream msg;
-    msg << "virtual CASTSTAT " << prettyNodeName().c_str();
+    msg << "virtual FORECAST " << prettyNodeName().c_str();
     msg << "::safeToCastTo(UTI newType){} is needed!!";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     //assert(0); //needs a method apparently

@@ -67,9 +67,9 @@ namespace MFM {
     return brtn;
   } //end cast
 
-  CASTSTAT UlamTypeAtom::safeCast(UTI typidx)
+  FORECAST UlamTypeAtom::safeCast(UTI typidx)
   {
-    CASTSTAT scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamType::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 

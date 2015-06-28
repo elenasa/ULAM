@@ -80,21 +80,27 @@ namespace MFM {
     return brtn;
   } //end cast
 
-  CASTSTAT UlamTypeClass::safeCast(UTI typidx)
+  FORECAST UlamTypeClass::safeCast(UTI typidx)
   {
-    CASTSTAT scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamType::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 
-    if(m_class == UC_ELEMENT && typidx == UAtom)
-      return CAST_BAD; //complicated not safe.
+    if(m_class == UC_ELEMENT)
+      {
+	if(typidx == UAtom)
+	  return CAST_BAD; //complicated not safe.
+	else if(m_state.getUlamTypeByIndex(typidx) == this)
+	  return CAST_CLEAR; //same class
+	else
+	  return CAST_BAD;
+      }
 
-    if(m_state.getUlamTypeByIndex(typidx) == this)
-      return CAST_CLEAR; //same class
-
-    //must be Quark! treat as Int
+    //must be Quark! treat as Int if it has a toInt method
     assert(m_class == UC_QUARK);
-    return m_state.getUlamTypeByIndex(Int)->safeCast(typidx);
+    if(m_state.quarkHasAToIntMethod(m_key.getUlamKeyTypeSignatureClassInstanceIdx()))
+      return m_state.getUlamTypeByIndex(Int)->safeCast(typidx);
+    return CAST_BAD; //undefined
   } //safeCast
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
@@ -396,8 +402,10 @@ namespace MFM {
     if(sizeByIntBitsToBe != sizeByIntBits)
       {
 	std::ostringstream msg;
-	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: ";
-	msg << nut->getUlamTypeName().c_str() << ", to be: " << sizeByIntBitsToBe << " for type: ";
+	msg << "Casting different word sizes; " << sizeByIntBits;
+	msg << ", Value Type and size was: ";
+	msg << nut->getUlamTypeName().c_str() << ", to be: ";
+	msg << sizeByIntBitsToBe << " for type: ";
 	msg << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
@@ -405,7 +413,8 @@ namespace MFM {
     if(m_class != UC_ELEMENT)
       {
 	std::ostringstream msg;
-	msg << "Quarks only cast 'toInt': value type and size was: " << nut->getUlamTypeName().c_str();
+	msg << "Quarks only cast 'toInt': value type and size was: ";
+	msg << nut->getUlamTypeName().c_str();
 	msg << ", to be: " << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
@@ -414,7 +423,8 @@ namespace MFM {
     if(nodetype != UAtom)
       {
 	std::ostringstream msg;
-	msg << "Attempting to illegally cast a non-atom type to an element: value type and size was: ";
+	msg << "Attempting to illegally cast a non-atom type to an element: ";
+	msg << "value type and size was: ";
 	msg << nut->getUlamTypeName().c_str() << ", to be: " << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }

@@ -318,6 +318,24 @@ namespace MFM {
     return func;
   } //findTestFunctionNode()
 
+  //don't set nextNode since it'll get deleted with program.
+  NodeBlockFunctionDefinition * NodeBlockClass::findToIntFunctionNode()
+  {
+    Symbol * fnSym;
+    NodeBlockFunctionDefinition * func = NULL;
+    u32 tointid = m_state.m_pool.getIndexForDataString("toInt");
+    if(isFuncIdInScope(tointid, fnSym))
+      {
+	SymbolFunction * funcSymbol = NULL;
+	std::vector<UTI> voidVector;
+	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol) == 1)
+	  {
+	    func = funcSymbol->getFunctionNode();
+	  }
+      }
+    return func;
+  } //findToIntFunctionNode()
+
   void NodeBlockClass::packBitsForVariableDataMembers()
   {
     if(m_ST.getTableSize() == 0) return;

@@ -63,7 +63,7 @@ namespace MFM {
     return m_token;
   }
 
-  CASTSTAT NodeIdent::safeToCastTo(UTI newType)
+  FORECAST NodeIdent::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());

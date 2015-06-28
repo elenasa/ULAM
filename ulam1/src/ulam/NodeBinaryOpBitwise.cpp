@@ -67,7 +67,7 @@ namespace MFM {
 
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
-	CASTSTAT scr = CAST_CLEAR; //avoid constant error msg if neither var is Bits
+	FORECAST scr = CAST_CLEAR; //avoid constant error msg if neither var is Bits
 
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();

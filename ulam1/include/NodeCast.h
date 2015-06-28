@@ -71,7 +71,7 @@ namespace MFM{
 
     virtual bool isWordSizeConstant();
 
-    virtual CASTSTAT safeToCastTo(UTI newType);
+    virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
 

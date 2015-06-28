@@ -78,7 +78,7 @@ namespace MFM {
     return m_node->isWordSizeConstant();
   }
 
-  CASTSTAT NodeCast::safeToCastTo(UTI newType)
+  FORECAST NodeCast::safeToCastTo(UTI newType)
   {
     //possible user error, deal with it.
     //assert(UlamType::compare(newType,getNodeType(), m_state) == UTIC_SAME);
@@ -144,7 +144,7 @@ namespace MFM {
       }
     else if(isExplicitCast())
       {
-	CASTSTAT castlight = tobe->explicitlyCastable(nodeType);
+	FORECAST castlight = tobe->explicitlyCastable(nodeType);
 	if(castlight != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;

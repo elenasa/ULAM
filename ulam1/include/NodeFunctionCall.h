@@ -67,7 +67,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual CASTSTAT safeToCastTo(UTI newType);
+    virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
 

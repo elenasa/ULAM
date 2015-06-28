@@ -77,7 +77,7 @@ namespace MFM {
     return false;
   }
 
-  CASTSTAT UlamType::safeCast(UTI typidx)
+  FORECAST UlamType::safeCast(UTI typidx)
   {
     // initial tests for completeness and scalars
     s32 bitsize = getBitSize();
@@ -96,7 +96,7 @@ namespace MFM {
     return checkArrayCast(typidx) ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
-  CASTSTAT UlamType::explicitlyCastable(UTI typidx)
+  FORECAST UlamType::explicitlyCastable(UTI typidx)
   {
     return UlamType::safeCast(typidx); //default
   } //explicitlyCastable

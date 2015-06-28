@@ -61,7 +61,7 @@ namespace MFM {
 
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
-	CASTSTAT scr = CAST_CLEAR; //avoid error msg if const not ready
+	FORECAST scr = CAST_CLEAR; //avoid error msg if const not ready
 
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();

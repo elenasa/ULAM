@@ -113,7 +113,7 @@ namespace MFM {
     return false;
   }
 
-  CASTSTAT NodeBinaryOp::safeToCastTo(UTI newType)
+  FORECAST NodeBinaryOp::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
     //newtype->safeCast(fromtype)
@@ -158,8 +158,8 @@ namespace MFM {
   bool NodeBinaryOp::checkSafeToCastTo(UTI newType)
   {
     bool rtnOK = true;
-    CASTSTAT lsafe = m_nodeLeft->safeToCastTo(newType);
-    CASTSTAT rsafe = m_nodeRight->safeToCastTo(newType);
+    FORECAST lsafe = m_nodeLeft->safeToCastTo(newType);
+    FORECAST rsafe = m_nodeRight->safeToCastTo(newType);
     if( lsafe != CAST_CLEAR || rsafe != CAST_CLEAR )
       {
 	std::ostringstream msg;
