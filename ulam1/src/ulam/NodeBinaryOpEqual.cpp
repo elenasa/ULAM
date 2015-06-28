@@ -63,8 +63,8 @@ namespace MFM {
 
     UTI newType = leftType; //init
 
-    SAFECAST scr = m_nodeRight->safeToCastTo(newType);
-    if(scr != SAFE)
+    CASTSTAT scr = m_nodeRight->safeToCastTo(newType);
+    if(scr != CAST_CLEAR)
       {
 	std::ostringstream msg;
 	msg << "Converting "; // the real converting-message
@@ -72,7 +72,7 @@ namespace MFM {
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 	msg << " requires explicit casting for operator" << getName();
-	if(scr == UNSAFE)
+	if(scr == CAST_BAD)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

@@ -77,7 +77,7 @@ namespace MFM {
     return false;
   }
 
-  SAFECAST UlamType::safeCast(UTI typidx)
+  CASTSTAT UlamType::safeCast(UTI typidx)
   {
     // initial tests for completeness and scalars
     s32 bitsize = getBitSize();
@@ -89,14 +89,14 @@ namespace MFM {
 	msg << "Casting UNKNOWN sizes; " << bitsize;
 	msg << ", Value Type and size was: " << typidx << "," << valbitsize;
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	return HAZY;
+	return CAST_HAZY;
       }
 
     //let packable arrays of same size pass...
-    return checkArrayCast(typidx) ? SAFE : UNSAFE;
+    return checkArrayCast(typidx) ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
-  SAFECAST UlamType::explicitlyCastable(UTI typidx)
+  CASTSTAT UlamType::explicitlyCastable(UTI typidx)
   {
     return UlamType::safeCast(typidx); //default
   } //explicitlyCastable

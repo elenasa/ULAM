@@ -144,11 +144,11 @@ namespace MFM {
     return true;
   }
 
-  SAFECAST NodeTerminal::safeToCastTo(UTI newType)
+  CASTSTAT NodeTerminal::safeToCastTo(UTI newType)
   {
     if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
       return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
-    return fitsInBits(newType) ? SAFE : UNSAFE;
+    return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
 
   UTI NodeTerminal::checkAndLabelType()

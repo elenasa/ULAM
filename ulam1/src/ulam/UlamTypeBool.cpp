@@ -201,10 +201,10 @@ namespace MFM {
     return brtn;
   } //castTo64
 
-  SAFECAST UlamTypeBool::safeCast(UTI typidx)
+  CASTSTAT UlamTypeBool::safeCast(UTI typidx)
   {
-    SAFECAST scr = UlamType::safeCast(typidx);
-    if(scr != SAFE)
+    CASTSTAT scr = UlamType::safeCast(typidx);
+    if(scr != CAST_CLEAR)
       return scr;
 
     //s32 bitsize = getBitSize();
@@ -233,15 +233,15 @@ namespace MFM {
 	//std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
-    return brtn ? SAFE : UNSAFE;
+    return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
-  SAFECAST UlamTypeBool::explicitlyCastable(UTI typidx)
+  CASTSTAT UlamTypeBool::explicitlyCastable(UTI typidx)
   {
     ULAMTYPE vtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
-    SAFECAST scr = safeCast(typidx);
-    if((vtypEnum == Bits && UlamType::explicitlyCastable(typidx) == SAFE) || scr == SAFE)
-      return SAFE;
+    CASTSTAT scr = safeCast(typidx);
+    if((vtypEnum == Bits && UlamType::explicitlyCastable(typidx) == CAST_CLEAR) || scr == CAST_CLEAR)
+      return CAST_CLEAR;
     return scr; //HAZY or UNSAFE
   } //explicitlyCastable
 

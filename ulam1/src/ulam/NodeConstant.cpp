@@ -55,11 +55,11 @@ namespace MFM {
     return m_ready;
   }
 
-  SAFECAST NodeConstant::safeToCastTo(UTI newType)
+  CASTSTAT NodeConstant::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())
-      return (m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType()) && NodeTerminal::fitsInBits(newType)) ? SAFE : UNSAFE;
-    return HAZY;
+      return (m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType()) && NodeTerminal::fitsInBits(newType)) ? CAST_CLEAR : CAST_BAD;
+    return CAST_HAZY;
   } //safeToCastTo
 
   UTI NodeConstant::checkAndLabelType()

@@ -145,14 +145,14 @@ namespace MFM {
     return false;
   }
 
-  SAFECAST Node::safeToCastTo(UTI newType)
+  CASTSTAT Node::safeToCastTo(UTI newType)
   {
     std::ostringstream msg;
-    msg << "virtual SAFECAST " << prettyNodeName().c_str();
+    msg << "virtual CASTSTAT " << prettyNodeName().c_str();
     msg << "::safeToCastTo(UTI newType){} is needed!!";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
     //assert(0); //needs a method apparently
-    return HAZY;
+    return CAST_HAZY;
   } //safeToCastTo
 
   // any node above assignexpr is not storeintoable;
@@ -1441,7 +1441,7 @@ namespace MFM {
 	  doErrMsg = true;
 	else if(nuti == Void)
 	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
-	else if(m_state.getUlamTypeByIndex(tobeType)->explicitlyCastable(nuti) != SAFE)
+	else if(m_state.getUlamTypeByIndex(tobeType)->explicitlyCastable(nuti) != CAST_CLEAR)
 	  doErrMsg = true; //cannot cast to Bool from most Non-Bools (including explicitly)
 	else
 	  {

@@ -96,8 +96,8 @@ namespace MFM {
 	UlamType * rut = m_state.getUlamTypeByIndex(rt);
 	ULAMTYPE retype = rut->getUlamTypeEnum();
 	bool rconst = m_nodeRight->isAConstant(); //unready const will by hazy safecast
-	SAFECAST scr = rconst ? m_nodeRight->safeToCastTo(Unsigned) : UNSAFE; //bypass var
-	if((rconst && scr != SAFE) || (!rconst && retype != Unsigned))
+	CASTSTAT scr = rconst ? m_nodeRight->safeToCastTo(Unsigned) : CAST_BAD; //bypass var
+	if((rconst && scr != CAST_CLEAR) || (!rconst && retype != Unsigned))
 	  {
 	    //this is an unsafe cast of constant (e.g. negative number),
 	    // or not an Unsigned var, so casting to Unsigned must be explicit!
@@ -106,7 +106,7 @@ namespace MFM {
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Unsigned";
-	    if(scr == HAZY)
+	    if(scr == CAST_HAZY)
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

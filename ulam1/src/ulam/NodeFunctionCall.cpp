@@ -70,7 +70,7 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  SAFECAST NodeFunctionCall::safeToCastTo(UTI newType)
+  CASTSTAT NodeFunctionCall::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());

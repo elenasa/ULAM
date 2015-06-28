@@ -58,9 +58,9 @@ namespace MFM{
 
     virtual bool cast(UlamValue& val, UTI typidx);
 
-    virtual SAFECAST safeCast(UTI typidx);
+    virtual CASTSTAT safeCast(UTI typidx);
 
-    virtual SAFECAST explicitlyCastable(UTI typidx);
+    virtual CASTSTAT explicitlyCastable(UTI typidx);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 

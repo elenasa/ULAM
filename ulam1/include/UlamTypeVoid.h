@@ -68,7 +68,7 @@ namespace MFM{
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
-    virtual SAFECAST safeCast(UTI typidx);
+    virtual CASTSTAT safeCast(UTI typidx);
 
   private:
 

@@ -108,8 +108,8 @@ namespace MFM {
 		UTI rtnType = m_state.m_currentFunctionReturnType;
 		if(m_node)
 		  {
-		    SAFECAST scr = m_node->safeToCastTo(nodeType);
-		    if( scr == SAFE)
+		    CASTSTAT scr = m_node->safeToCastTo(nodeType);
+		    if( scr == CAST_CLEAR)
 		      {
 			assert(rtnType == m_state.m_currentFunctionReturnType);
 			if(!makeCastingNode(m_node, m_state.m_currentFunctionReturnType, m_node))
@@ -125,7 +125,7 @@ namespace MFM {
 			msg << " as ";
 			msg << m_state.getUlamTypeNameByIndex(m_state.m_currentFunctionReturnType).c_str();
 			msg << " requires explicit casting";
-			if(scr == UNSAFE)
+			if(scr == CAST_CLEAR)
 			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			else
 			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
