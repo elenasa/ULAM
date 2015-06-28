@@ -71,6 +71,8 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual void countNavNodes(u32& cnt);
+
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
     virtual bool isFunctionCall();

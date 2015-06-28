@@ -84,6 +84,7 @@ namespace MFM {
     //assert(UlamType::compare(newType,getNodeType(), m_state) == UTIC_SAME);
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    //return m_node->safeToCastTo(newType);
   } //safeToCastTo
 
   UTI NodeCast::checkAndLabelType()
@@ -139,6 +140,15 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
 	  }
+      }
+    else if(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() == Bool && m_state.getUlamTypeByIndex(tobeType)->safeCast(nodeType) != SAFE)
+      {
+	std::ostringstream msg;
+	msg << "Cannot cast ";
+	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	errorsFound++;
       }
 
     if(errorsFound == 0) //else

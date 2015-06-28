@@ -10,7 +10,7 @@ namespace MFM {
 	 Bool(3) Arg: 0x7 (true)
 	 Unary(3) Arg: 0x1
       */
-      return std::string("Exit status: 1\nUe_A { Bool(3) b(false);  System s();  Bool(3) a(true);  Bool(3) c(true);  Unary(3) d(1);  Int(32) test() {  a true cast = b false cast = c a cast b cast +b cast = s ( c )print . d c cast = s ( d )print . c cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_A { Bool(3) b(false);  System s();  Bool(3) a(true);  Bool(3) c(true);  Unary(3) d(1);  Int(32) test() {  a true cast = b false cast = c a cast b cast +b 0 cast > cast = s ( c )print . d c cast = s ( d )print . c cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -22,7 +22,7 @@ namespace MFM {
       // note2: cast as an Int(32), the exit status is 1
       //bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\n Bool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = a + b;\ns.print(c);\n d = c;\ns.print(d);\n return c;\n }\n }\n");
 
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = (Bool(3)) ((Unsigned(3)) a + (Unsigned(3)) b);\n s.print(c);\n d = (Unary(3)) c;\ns.print(d);\n return c;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = ((Unsigned(3)) a + (Unsigned(3)) b) > 0;\n s.print(c);\n d = (Unary(3)) c;\ns.print(d);\n return c;\n }\n }\n");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

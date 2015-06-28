@@ -17,7 +17,7 @@ namespace MFM {
       //simplify for debugging
       //bool rtn1 = fms->add("TypedefIssue.ulam","ulam 1;\nuse Vector;\n element TypedefIssue {\nVector.Symmetry x[2];\n Int test() {\n return x[1];\n}\n}\n");
 
-      bool rtn2 = fms->add("Vector.ulam","ulam 1;\nquark Vector {\ntypedef Unsigned(3) Symmetry;\n Symmetry m;\nSymmetry n;\n Bool set(Symmetry vector, Symmetry index) {\nm=vector;\nn=index;\n return ((Bool) m && (Bool) n);\n }\n}\n");
+      bool rtn2 = fms->add("Vector.ulam","ulam 1;\nquark Vector {\ntypedef Unsigned(3) Symmetry;\n Symmetry m;\nSymmetry n;\n Bool set(Symmetry vector, Symmetry index) {\nm=vector;\nn=index;\n return (m!=0 && n!=0);\n }\n}\n");
 
       if(rtn1 && rtn2)
 	return std::string("TypedefIssue.ulam");
