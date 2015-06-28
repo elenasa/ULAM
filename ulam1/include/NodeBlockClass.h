@@ -115,6 +115,8 @@ namespace MFM{
 
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
+    NodeBlockFunctionDefinition * findToIntFunctionNode();
+
   protected:
     SymbolTable m_functionST;
 

@@ -63,7 +63,7 @@ namespace MFM {
 
     UTI newType = leftType; //init
 
-    CASTSTAT scr = m_nodeRight->safeToCastTo(newType);
+    FORECAST scr = m_nodeRight->safeToCastTo(newType);
     if(scr != CAST_CLEAR)
       {
 	std::ostringstream msg;

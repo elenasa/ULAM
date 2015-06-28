@@ -67,7 +67,7 @@ public:
 
     virtual bool isReadyConstant();
 
-    virtual CASTSTAT safeToCastTo(UTI newType);
+    virtual FORECAST safeToCastTo(UTI newType);
 
     virtual UTI checkAndLabelType();
 

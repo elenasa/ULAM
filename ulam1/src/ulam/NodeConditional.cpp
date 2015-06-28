@@ -94,7 +94,7 @@ namespace MFM {
     fp->write(myname);
   }
 
-  CASTSTAT NodeConditional::safeToCastTo(UTI newType)
+  FORECAST NodeConditional::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());

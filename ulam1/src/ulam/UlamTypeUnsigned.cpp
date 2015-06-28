@@ -203,9 +203,9 @@ namespace MFM {
     return brtn;
   } //castTo64
 
-  CASTSTAT UlamTypeUnsigned::safeCast(UTI typidx)
+  FORECAST UlamTypeUnsigned::safeCast(UTI typidx)
   {
-    CASTSTAT scr = UlamType::safeCast(typidx);
+    FORECAST scr = UlamType::safeCast(typidx);
     if(scr != CAST_CLEAR)
       return scr;
 

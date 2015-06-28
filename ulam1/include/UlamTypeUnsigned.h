@@ -59,7 +59,7 @@ namespace MFM{
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
-    virtual CASTSTAT safeCast(UTI typidx);
+    virtual FORECAST safeCast(UTI typidx);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 

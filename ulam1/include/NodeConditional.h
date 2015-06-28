@@ -69,7 +69,7 @@ namespace MFM{
 
     virtual const std::string prettyNodeName() = 0;
 
-    virtual CASTSTAT safeToCastTo(UTI newType);
+    virtual FORECAST safeToCastTo(UTI newType);
 
     virtual void countNavNodes(u32& cnt);
 

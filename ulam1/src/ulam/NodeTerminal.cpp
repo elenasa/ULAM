@@ -144,7 +144,7 @@ namespace MFM {
     return true;
   }
 
-  CASTSTAT NodeTerminal::safeToCastTo(UTI newType)
+  FORECAST NodeTerminal::safeToCastTo(UTI newType)
   {
     if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
       return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());

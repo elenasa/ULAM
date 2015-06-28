@@ -108,7 +108,7 @@ namespace MFM {
 		UTI rtnType = m_state.m_currentFunctionReturnType;
 		if(m_node)
 		  {
-		    CASTSTAT scr = m_node->safeToCastTo(nodeType);
+		    FORECAST scr = m_node->safeToCastTo(nodeType);
 		    if( scr == CAST_CLEAR)
 		      {
 			assert(rtnType == m_state.m_currentFunctionReturnType);
