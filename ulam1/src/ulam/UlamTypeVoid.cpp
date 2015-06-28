@@ -91,9 +91,6 @@ namespace MFM {
     if(scr != SAFE)
       return scr;
 
-    //s32 bitsize = getBitSize();
-    //s32 valbitsize = m_state.getBitSize(typidx);
-
     bool brtn = true;
     UlamType * vut = m_state.getUlamTypeByIndex(typidx);
     ULAMTYPE valtypEnum = vut->getUlamTypeEnum();

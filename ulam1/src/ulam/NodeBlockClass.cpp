@@ -36,7 +36,7 @@ namespace MFM {
 
   void NodeBlockClass::setEmpty()
   {
-    m_isEmpty = true;
+    m_isEmpty = true; //may have parameters!
   }
 
   void NodeBlockClass::updateLineage(NNO pno)
@@ -98,7 +98,8 @@ namespace MFM {
 
     fp->write(" {");
     // has no m_node!
-    // use Symbol Table of variables instead of parse tree; only want the UEventWindow storage
+    // use Symbol Table of variables instead of parse tree;
+    // only want the UEventWindow storage
     // since the two stack-type storage are all gone by now.
     //    if(m_nodeNext)
     //  m_nodeNext->printPostfix(fp);  //datamember vardecls
@@ -131,9 +132,6 @@ namespace MFM {
 
   UTI NodeBlockClass::checkAndLabelType()
   {
-    if(isEmpty())
-      return getNodeType();
-
     //side-effect DataMember VAR DECLS
     if(m_nodeNext)
       m_nodeNext->checkAndLabelType();

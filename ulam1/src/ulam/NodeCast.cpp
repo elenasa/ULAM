@@ -111,6 +111,7 @@ namespace MFM {
 	  }
       }
 
+    UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
     if(!m_state.isComplete(tobeType))
       {
 	std::ostringstream msg;
@@ -127,7 +128,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
-    else if(m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_NOTACLASS && m_state.getUlamTypeByIndex(nodeType)->getUlamClass() == UC_NOTACLASS)
+    else if(tobe->getUlamClass() != UC_NOTACLASS && m_state.getUlamTypeByIndex(nodeType)->getUlamClass() == UC_NOTACLASS)
       {
 	if(nodeType != UAtom)
 	  {
@@ -141,14 +142,21 @@ namespace MFM {
 	    errorsFound++;
 	  }
       }
-    else if(m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() == Bool && m_state.getUlamTypeByIndex(tobeType)->safeCast(nodeType) != SAFE)
+    else if(tobe->getUlamTypeEnum() == Bool)
       {
-	std::ostringstream msg;
-	msg << "Cannot cast ";
-	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-	msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	errorsFound++;
+	SAFECAST scr = tobe->explicitlyCastable(nodeType);
+	if( scr != SAFE)
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot cast ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	    if(scr == HAZY)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errorsFound++;
+	  }
       }
 
     if(errorsFound == 0) //else
