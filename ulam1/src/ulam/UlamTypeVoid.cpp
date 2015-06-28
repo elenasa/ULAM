@@ -85,10 +85,10 @@ namespace MFM {
     return brtn;
   } //end cast
 
-  SAFECAST UlamTypeVoid::safeCast(UTI typidx)
+  CASTSTAT UlamTypeVoid::safeCast(UTI typidx)
   {
-    SAFECAST scr = UlamType::safeCast(typidx);
-    if(scr != SAFE)
+    CASTSTAT scr = UlamType::safeCast(typidx);
+    if(scr != CAST_CLEAR)
       return scr;
 
     bool brtn = true;
@@ -115,7 +115,7 @@ namespace MFM {
 	//std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;
 	brtn = false;
       };
-    return brtn ? SAFE : UNSAFE;
+    return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
 } //end MFM

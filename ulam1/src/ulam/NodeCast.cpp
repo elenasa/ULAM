@@ -78,7 +78,7 @@ namespace MFM {
     return m_node->isWordSizeConstant();
   }
 
-  SAFECAST NodeCast::safeToCastTo(UTI newType)
+  CASTSTAT NodeCast::safeToCastTo(UTI newType)
   {
     //possible user error, deal with it.
     //assert(UlamType::compare(newType,getNodeType(), m_state) == UTIC_SAME);
@@ -142,16 +142,16 @@ namespace MFM {
 	    errorsFound++;
 	  }
       }
-    else if(tobe->getUlamTypeEnum() == Bool)
+    else if(isExplicitCast())
       {
-	SAFECAST scr = tobe->explicitlyCastable(nodeType);
-	if( scr != SAFE)
+	CASTSTAT castlight = tobe->explicitlyCastable(nodeType);
+	if(castlight != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Cannot cast ";
+	    msg << "Cannot explicitly cast ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	    if(scr == HAZY)
+	    if(castlight == CAST_HAZY)
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

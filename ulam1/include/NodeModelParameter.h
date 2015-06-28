@@ -61,7 +61,7 @@ namespace MFM{
 
     virtual bool isAConstant();
 
-    virtual SAFECAST safeToCastTo(UTI newType);
+    virtual CASTSTAT safeToCastTo(UTI newType);
 
     virtual bool assignClassArgValueInStubCopy();
 

@@ -67,7 +67,7 @@ namespace MFM {
 
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
-	SAFECAST scr = SAFE; //avoid constant error msg if neither var is Bits
+	CASTSTAT scr = CAST_CLEAR; //avoid constant error msg if neither var is Bits
 
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
@@ -98,7 +98,7 @@ namespace MFM {
 	      }
 	    //else could fail if neither var is Bits
 
-	    if(newType != Nav && scr != SAFE)
+	    if(newType != Nav && scr != CAST_CLEAR)
 	      {
 		std::ostringstream msg;
 		msg << "Constant <";
@@ -110,7 +110,7 @@ namespace MFM {
 		msg <<  "> is not representable as: ";
 		msg<< m_state.getUlamTypeNameByIndex(newType).c_str();
 		msg << ", for binary operator" << getName() << " ";
-		if(scr == UNSAFE)
+		if(scr == CAST_BAD)
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		else //hazy
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -129,7 +129,7 @@ namespace MFM {
 	    msg << " to Bits";
 	    if(mbs > 0)
 	      msg<< "(" << mbs << ")";
-	    if(scr == HAZY)
+	    if(scr == CAST_HAZY)
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

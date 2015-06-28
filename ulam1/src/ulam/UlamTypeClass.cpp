@@ -80,17 +80,17 @@ namespace MFM {
     return brtn;
   } //end cast
 
-  SAFECAST UlamTypeClass::safeCast(UTI typidx)
+  CASTSTAT UlamTypeClass::safeCast(UTI typidx)
   {
-    SAFECAST scr = UlamType::safeCast(typidx);
-    if(scr != SAFE)
+    CASTSTAT scr = UlamType::safeCast(typidx);
+    if(scr != CAST_CLEAR)
       return scr;
 
     if(m_class == UC_ELEMENT && typidx == UAtom)
-      return UNSAFE; //complicated not safe.
+      return CAST_BAD; //complicated not safe.
 
     if(m_state.getUlamTypeByIndex(typidx) == this)
-      return SAFE; //same class
+      return CAST_CLEAR; //same class
 
     //must be Quark! treat as Int
     assert(m_class == UC_QUARK);

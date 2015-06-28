@@ -113,7 +113,7 @@ namespace MFM {
     return false;
   }
 
-  SAFECAST NodeBinaryOp::safeToCastTo(UTI newType)
+  CASTSTAT NodeBinaryOp::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
     //newtype->safeCast(fromtype)
@@ -158,9 +158,9 @@ namespace MFM {
   bool NodeBinaryOp::checkSafeToCastTo(UTI newType)
   {
     bool rtnOK = true;
-    SAFECAST lsafe = m_nodeLeft->safeToCastTo(newType);
-    SAFECAST rsafe = m_nodeRight->safeToCastTo(newType);
-    if( lsafe != SAFE || rsafe != SAFE )
+    CASTSTAT lsafe = m_nodeLeft->safeToCastTo(newType);
+    CASTSTAT rsafe = m_nodeRight->safeToCastTo(newType);
+    if( lsafe != CAST_CLEAR || rsafe != CAST_CLEAR )
       {
 	std::ostringstream msg;
 	msg << "Converting "; // the real converting-message
@@ -171,7 +171,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 	msg << " requires explicit casting for binary operator";
 	msg << getName();
-	if(lsafe == HAZY || rsafe == HAZY)
+	if(lsafe == CAST_HAZY || rsafe == CAST_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

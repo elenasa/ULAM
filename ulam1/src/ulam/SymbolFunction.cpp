@@ -214,7 +214,7 @@ namespace MFM {
 	      {
 		assert(constantArg[i]->isAConstant());
 		//constants can match any bit size, that it fits
-		if(constantArg[i]->safeToCastTo(puti) == UNSAFE)
+		if(constantArg[i]->safeToCastTo(puti) == CAST_BAD)
 		  {
 		    rtnBool = false;
 		    break;
@@ -223,7 +223,7 @@ namespace MFM {
 	    else
 	      {
 		//willing to cast argType safely TO puti
-		if(m_state.getUlamTypeByIndex(puti)->safeCast(argTypes[i]) == UNSAFE)
+		if(m_state.getUlamTypeByIndex(puti)->safeCast(argTypes[i]) == CAST_BAD)
 		  {
 		    rtnBool = false;
 		    break;

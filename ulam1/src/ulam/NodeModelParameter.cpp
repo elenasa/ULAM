@@ -43,11 +43,11 @@ namespace MFM {
     return false; //seems like a contradiction, but no
   }
 
-  SAFECAST NodeModelParameter::safeToCastTo(UTI newType)
+  CASTSTAT NodeModelParameter::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())
-      return (m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType()) && NodeTerminal::fitsInBits(newType)) ? SAFE : UNSAFE;
-    return HAZY;
+      return (m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType()) && NodeTerminal::fitsInBits(newType)) ? CAST_CLEAR : CAST_BAD;
+    return CAST_HAZY;
   } //safeToCastTo
 
   void NodeModelParameter::checkForSymbol()

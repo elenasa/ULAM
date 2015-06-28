@@ -75,11 +75,11 @@ namespace MFM {
     return m_ready;
   }
 
-  SAFECAST NodeTerminalProxy::safeToCastTo(UTI newType)
+  CASTSTAT NodeTerminalProxy::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())
-      return  NodeTerminal::fitsInBits(newType) ? SAFE : UNSAFE;
-    return HAZY; //m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+      return  NodeTerminal::fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
+    return CAST_HAZY; //m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
   } //safeToCastTo
 
   UTI NodeTerminalProxy::checkAndLabelType()
