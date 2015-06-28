@@ -24,7 +24,7 @@ namespace MFM {
 
       bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use Bar;\n element Foo {\n typedef Bar Pop[2];\n Bool a;\nPop m_bar2;\n Int m_i;\nBool b;\n Bar m_bar1;\nBar m_bar3;\n Bool check(Int v) {\n return true;\n }\n Int test() {\n Foo f;\n f.check(1);\n m_i = 7;\n return m_i;\n }\n }\n"); //tests offsets, but too complicated data members in Foo for memberselect
 
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = 0;\n return;\n}\n }\n");
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = false;\n return;\n}\n }\n");
 
       if(rtn1 && rtn2)
 	return std::string("Foo.ulam");

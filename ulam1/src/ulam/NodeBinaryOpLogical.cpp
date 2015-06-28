@@ -55,15 +55,14 @@ namespace MFM {
 
   bool NodeBinaryOpLogical::checkNonBoolToBoolCastAndMaxsize(UTI uti, s32& maxbitsize)
   {
-    bool rtnOK = false;
-    UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    if((ut->getUlamTypeEnum() == Bool) || (m_state.getUlamTypeByIndex(Bool)->safeCast(uti) == SAFE))
+    //if((ut->getUlamTypeEnum() == Bool) || (m_state.getUlamTypeByIndex(Bool)->safeCast(uti) == SAFE))
+    if(m_state.getUlamTypeByIndex(Bool)->safeCast(uti) == SAFE)
       {
-	s32 bs = ut->getBitSize();
+	s32 bs = m_state.getBitSize(uti);
 	maxbitsize = (bs > maxbitsize ? bs : maxbitsize);
-	rtnOK = true;
+	return true;
       }
-    return rtnOK;
+    return false;
   } //checkNonBoolToBoolCastAndMaxsize
 
   const std::string NodeBinaryOpLogical::methodNameForCodeGen()

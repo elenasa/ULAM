@@ -188,33 +188,33 @@ namespace MFM {
 	setNodeType(it);
 
 	// insert casts of constant args, now that we have a "matching" function symbol
-	if(constantArgs > 0)
-	  {
-	    std::vector<u32> argsWithCastErr;
-	    u32 argsWithCast = 0;
-	    u32 numParams = m_funcSymbol->getNumberOfParameters();
-	    for(u32 i = 0; i < numParams; i++)
-	      {
-		if(constArgs[i])
-		  {
-		    Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
-		    UTI ptype = psym->getUlamTypeIdx();
-		    Node * argNode = constArgs[i]; //m_argumentNodes->getNodePtr(i);
-		    Node * argCast = NULL;
-		    if(!makeCastingNode(argNode, ptype, argCast))
-		      {
-			argsWithCastErr.push_back(i); //error!
-		      }
-		    m_argumentNodes->exchangeKids(argNode, argCast, i);
-		    argsWithCast++;
+	{
+	  std::vector<u32> argsWithCastErr;
+	  u32 argsWithCast = 0;
+	  u32 numParams = m_funcSymbol->getNumberOfParameters();
+	  for(u32 i = 0; i < numParams; i++)
+	    {
+	      Symbol * psym = m_funcSymbol->getParameterSymbolPtr(i);
+	      UTI ptype = psym->getUlamTypeIdx();
+	      Node * argNode = m_argumentNodes->getNodePtr(i); //constArgs[i];
+	      UTI atype = argNode->getNodeType();
+	      if(UlamType::compare(ptype, atype, m_state) != UTIC_SAME)
+		{
+		  Node * argCast = NULL;
+		  if(!makeCastingNode(argNode, ptype, argCast))
+		    {
+		      argsWithCastErr.push_back(i); //error!
+		    }
+		  m_argumentNodes->exchangeKids(argNode, argCast, i);
+		  argsWithCast++;
 		  }
-	      }
+	    }
 
-	    // do similar casting on any variable arg constants (without parameters)
-	    if(m_funcSymbol->takesVariableArgs())
-	      {
-		u32 numargs = getNumberOfArguments();
-		for(u32 i = numParams; i < numargs; i++)
+	  // do similar casting on any variable arg constants (without parameters)
+	  if(m_funcSymbol->takesVariableArgs())
+	    {
+	      u32 numargs = getNumberOfArguments();
+	      for(u32 i = numParams; i < numargs; i++)
 		  {
 		    if(constArgs[i])
 		      {
@@ -228,10 +228,9 @@ namespace MFM {
 			argsWithCast++;
 		      }
 		  }
-	      } //var args
+	    } //var args
 
-	    assert(argsWithCast == constantArgs); //sanity check
-	    if(!argsWithCastErr.empty())
+	  if(!argsWithCastErr.empty())
 	      {
 		std::ostringstream msg;
 		msg << "Casting errors for args with constants: " ;
@@ -247,13 +246,19 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		argsWithCastErr.clear();
 	      }
-	  } //constants
+	} //constants
       } // no errors found
 
     argTypes.clear();
     constArgs.clear();
     return it;
   } //checkAndLabelType
+
+  void NodeFunctionCall::countNavNodes(u32& cnt)
+  {
+    Node::countNavNodes(cnt); //missing
+    m_argumentNodes->countNavNodes(cnt);
+  } //countNavNodes
 
   void NodeFunctionCall::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {

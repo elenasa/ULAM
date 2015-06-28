@@ -146,6 +146,8 @@ namespace MFM {
 
   SAFECAST NodeTerminal::safeToCastTo(UTI newType)
   {
+    if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+      return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
     return fitsInBits(newType) ? SAFE : UNSAFE;
   } //safeToCastTo
 
@@ -311,7 +313,6 @@ namespace MFM {
       case Unary:
 	{
 	  u32 numval = m_constant.uval;
-	  //u32 fmax = _Unary32ToUnsigned32(fit->getMax(), fit->getBitSize(), m_state.getBitSize(nuti));
 	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
 	}
 	break;
