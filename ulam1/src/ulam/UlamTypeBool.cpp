@@ -236,6 +236,15 @@ namespace MFM {
     return brtn ? SAFE : UNSAFE;
   } //safeCast
 
+  SAFECAST UlamTypeBool::explicitlyCastable(UTI typidx)
+  {
+    ULAMTYPE vtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+    SAFECAST scr = safeCast(typidx);
+    if((vtypEnum == Bits && UlamType::explicitlyCastable(typidx) == SAFE) || scr == SAFE)
+      return SAFE;
+    return scr; //HAZY or UNSAFE
+  } //explicitlyCastable
+
   void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     bool dataAsBool = false;

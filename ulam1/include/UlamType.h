@@ -84,6 +84,8 @@ namespace MFM{
 
     virtual SAFECAST safeCast(UTI typidx);
 
+    virtual SAFECAST explicitlyCastable(UTI typidx);
+
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
     virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
@@ -191,6 +193,8 @@ namespace MFM{
     virtual bool castTo32(UlamValue & val, UTI typidx);
 
     virtual bool castTo64(UlamValue & val, UTI typidx);
+
+    bool checkArrayCast(UTI typidx);
 
   };
 
