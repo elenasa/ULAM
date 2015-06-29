@@ -17,7 +17,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
 
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool d;\nInt(3) a, b;\nInt test() {\na = 3;\nb = 2;\na = (Int(3)) ((Bits(3)) a & (Bits(3)) b);\ns.print(a);\n d = (a < a.maxof) ;\n s.assert(d);\nreturn a;\n}\n}\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool d;\nInt(3) a, b;\nInt test() {\na = 3;\nb = 2;\na = (Int(3)) (a & b);\ns.print(a);\n d = (a < a.maxof) ;\n s.assert(d);\nreturn a;\n}\n}\n");
 
       // without system for testing
       //bool rtn1 = fms->add("A.ulam","ulam 1;\n element A {\nBool d;\nInt(3) a, b;\n Int test() {\na = 3;\nb = 2;\nd = a = a & b;\nreturn a;\n}\n}\n");
