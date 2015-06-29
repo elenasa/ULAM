@@ -7,8 +7,9 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	./Foo.ulam:12:6: ERROR: Array casts currently not supported.
-	./Foo.ulam:12:6: ERROR: Cannot CAST type: Bits(3)[3] as a Bool(3)[3].
+	./Foo.ulam:11:18: ERROR: Incompatible Bits type for binary operator+. Suggest casting to a numeric type first.
+	./Foo.ulam:12:6: ERROR: Converting Bits(3)[3] to Bool(3)[3] requires explicit casting for operator=.
+	./Foo.ulam:11:18: ERROR: Incompatible Bits type for binary operator+. Suggest casting to a numeric type first.
       */
       return std::string("Exit status: 3\nUe_Foo { Bits(3) m_i[3](1,2,3);  Bits(3) m_b[3](1,2,3);  Int(32) test() {  m_i 0 [] 1 cast = m_i 1 [] 2 cast = m_i 2 [] m_i 0 [] cast m_i 1 [] cast +b cast = m_b m_i = m_b 2 [] cast return } }\n");
     }

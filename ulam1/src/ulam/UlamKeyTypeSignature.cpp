@@ -51,7 +51,7 @@ namespace MFM {
   }
 
 
-  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state)
+  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndSize(CompilerState * state)
   {
     std::ostringstream key;
     key << getUlamKeyTypeSignatureName(state);
@@ -63,6 +63,15 @@ namespace MFM {
       key << "(" << "CYCLE" << ")";
     else
       key << "(" << m_bits << "?)";
+
+    //arraysize
+    if(m_arraySize >= 0)
+      key << "[" << m_arraySize << "]";
+    else if(m_arraySize == UNKNOWNSIZE)
+      key << "[" << "UNKNOWN" << "]";
+    else if(m_arraySize != NONARRAYSIZE)
+      key << "[" << m_arraySize << "?]";
+
     return key.str();
   } //getUlamKeyTypeSignatureNameAndBitSize
 

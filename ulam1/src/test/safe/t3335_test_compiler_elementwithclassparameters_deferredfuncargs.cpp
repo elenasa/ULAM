@@ -2,18 +2,18 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3335_test_compiler_elementwithclassparameters_deferredfuncargs_error)
+  BEGINTESTCASECOMPILER(t3335_test_compiler_elementwithclassparameters_deferredfuncargs)
   {
     //informed by t3333
     std::string GetAnswerKey()
     {
-      //./S.ulam:5:1: ERROR: Function 'func''s Return type's: Int(32) does not match incomplete resulting type.
-      return std::string("Exit status: 15\nUe_T { Int(32) i(15);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,2) m;  i m ( b )func . = s ( i )print . j m ( a )func . = s ( j )print . i return } }\nUq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      //with implicit b casted to func; it works!!
+      return std::string("Exit status: 15\nUe_T { Int(32) i(15);  Int(32) j(3);  System s();  Int(32) test() {  Int(3) a;  Int(4) b;  S(3,2) m;  i m ( b cast )func . = s ( i )print . j m ( a )func . = s ( j )print . i return } }\nUq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Int(UNKNOWN) i(0);  Int(UNKNOWN) j(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
-      /* S(3,2) m; gives errors:
+      /* S(3,2) m; gaves errors:
 	 ./S.ulam:5:1: ERROR: Function 'func''s Return type's: Int(32) does not match incomplete resulting type.
       */
 
@@ -32,6 +32,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3335_test_compiler_elementwithclassparameters_deferredfuncargs_error)
+  ENDTESTCASECOMPILER(t3335_test_compiler_elementwithclassparameters_deferredfuncargs)
 
 } //end MFM

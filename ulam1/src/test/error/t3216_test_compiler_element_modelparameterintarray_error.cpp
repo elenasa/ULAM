@@ -7,8 +7,8 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	./Foo.ulam:6:24: ERROR: Array size specified for Model Parameter.
-	./Foo.ulam:6:18: ERROR: Invalid Model Parameter of Type: <Int> and Name: <chance>.
+	./Foo.ulam:4:24: ERROR: Array size specified for model parameter.
+	./Foo.ulam:4:18: ERROR: Invalid Model Parameter: Int chance.
       */
       return std::string("Exit status: -1\nUe_Foo { System s();  Bool(7) sp(false);  Bool(1) last(false);  Int(32) test() {  Foo f;  s ( chance 1 [] )print . f chance 1 [] . cast return } }\nUq_System { <NOMAIN> }\n");
     }

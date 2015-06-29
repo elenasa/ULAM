@@ -774,7 +774,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element ";
-	    msg << ut->getUlamTypeName().c_str() << " with " << total << " bits";
+	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -786,7 +786,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark ";
-	    msg << ut->getUlamTypeName().c_str() << " with " << total << " bits";
+	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -1006,8 +1006,7 @@ namespace MFM {
 	if(bUT != Void)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str();
-	    msg << "> (UTI" << utArg << ")";
+	    msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeNameBrief().c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -1016,8 +1015,7 @@ namespace MFM {
 	  {
 	    // disallow an array of Void(0)'s
 	    std::ostringstream msg;
-	    msg << "Invalid Void type array: " << ut->getUlamTypeName().c_str();
-	    msg << "> (UTI" << utArg << ")";
+	    msg << "Invalid Void type array: " << ut->getUlamTypeNameBrief().c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -1168,10 +1166,15 @@ namespace MFM {
     classblock->setNodeLocation(cTok.m_locator);
     classblock->setNodeType(cuti);
 
+    //avoid Invalid Read whenconstructing class' Symbol
+    pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
+
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
     m_unseenClasses.insert(symptr);
+
+    popClassContext();
   } //addIncompleteClassSymbolToProgramTable
 
   //temporary UlamType which will be updated during type labeling.
@@ -1188,10 +1191,15 @@ namespace MFM {
     classblock->setNodeLocation(cTok.m_locator);
     classblock->setNodeType(cuti);
 
+    //avoid Invalid Read whenconstructing class' Symbol
+    pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
+
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassNameTemplate(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
     m_unseenClasses.insert(symptr);
+
+    popClassContext();
   } //addIncompleteClassSymbolToProgramTable
 
   void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)

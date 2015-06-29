@@ -55,7 +55,7 @@ namespace MFM {
 	//     value is.
 	std::ostringstream msg;
 	msg << "Member selected must be a valid lefthand side, type: ";
-	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	msg << m_nodeLeft->getName();
 	msg << " requires a variable; may be a casted function call";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
