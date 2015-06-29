@@ -89,21 +89,7 @@ namespace MFM {
     if(m_state.getUlamTypeByIndex(typidx) == this)
       return CAST_CLEAR; //same class, quark or element
 
-    if(m_class == UC_ELEMENT)
-      return CAST_BAD; //e.g. (typidx == UAtom)
-
-    //must be Quark! treat as Int if it has a toInt method
-    assert(m_class == UC_QUARK);
-    if(m_state.quarkHasAToIntMethod(m_key.getUlamKeyTypeSignatureNameId()))
-      return m_state.getUlamTypeByIndex(Int)->safeCast(typidx);
-
-    //else
-    {
-      std::ostringstream msg;
-      msg << "Quarks only cast 'toInt': method not found";
-      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
-    }
-    return CAST_BAD; //undefined
+    return CAST_BAD; //e.g. (typidx == UAtom)
   } //safeCast
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()

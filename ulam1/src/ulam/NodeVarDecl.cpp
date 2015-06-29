@@ -239,8 +239,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Data member <" << getName() << "> of type: ";
-	msg << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it;
-	msg << ") total size: " << (s32) m_state.getTotalBitSize(it);
+	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
 	msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
 	msg << " Local variables do not have this restriction";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -250,8 +250,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Data member <" << getName() << "> of type: ";
-	msg << m_state.getUlamTypeNameByIndex(it).c_str() << " (UTI" << it;
-	msg << ") total size: " << (s32) m_state.getTotalBitSize(it);
+	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
 	msg << " MUST fit into " << MAXBITSPERINT << " bits;";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
@@ -260,8 +260,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Data member <" << getName() << "> of type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str() << " (UTI" << it;
-	msg << ") is an element, and is NOT permitted; Local variables, quarks, ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << ", is an element, and is NOT permitted; Local variables, quarks, ";
 	msg << "and Model Parameters do not have this restriction";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }

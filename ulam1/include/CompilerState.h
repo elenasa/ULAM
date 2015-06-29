@@ -299,7 +299,7 @@ namespace MFM{
 
     bool thisClassIsAQuark();
 
-    bool quarkHasAToIntMethod(u32 qid);
+    bool quarkHasAToIntMethod(UTI quti);
 
     void setupCenterSiteForTesting();
 

@@ -1441,8 +1441,6 @@ namespace MFM {
 	  doErrMsg = true;
 	else if(nuti == Void)
 	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
-	else if(m_state.getUlamTypeByIndex(tobeType)->explicitlyCastable(nuti) != CAST_CLEAR)
-	  doErrMsg = true; //cannot cast to Bool from most Non-Bools (including explicitly)
 	else
 	  {
 	    assert(!isExplicit);
