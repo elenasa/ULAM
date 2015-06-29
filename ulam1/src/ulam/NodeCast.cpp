@@ -135,9 +135,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Cannot cast ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-	    msg << " (UTI" << nodeType << ")";
 	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	    msg << " (UTI" << tobeType << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
 	  }
