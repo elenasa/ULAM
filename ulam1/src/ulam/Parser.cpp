@@ -3649,10 +3649,9 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with []),
 		//error already output; rtnNode is NULL.
 		std::ostringstream msg;
-		msg << "Invalid Model Parameter of Type: <";
+		msg << "Invalid Model Parameter: ";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
-		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str();
-		msg << ">";
+		msg << " " << m_state.getTokenDataAsString(&identTok).c_str();
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 

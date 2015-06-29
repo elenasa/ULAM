@@ -43,7 +43,7 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeNameBrief()
   {
-    return m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state);
+    return m_key.getUlamKeyTypeSignatureNameAndSize(&m_state);
   }
 
   const std::string UlamType::getUlamTypeNameOnly()
@@ -108,9 +108,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Casting requires UNPACKED array support: ";
-	msg << m_state.getUlamTypeNameByIndex(typidx).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
 	msg << " TO " ;
-	msg << getUlamTypeName().c_str();
+	msg << getUlamTypeNameBrief().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 
 	bOK = false;
@@ -122,18 +122,20 @@ namespace MFM {
 	if(arraysize != varraysize)
 	  {
 	    std::ostringstream msg;
-	    msg << "Casting different Array sizes: " << arraysize;
-	    msg << ", Value Type and size was: ";
-	    msg << typidx << "," << varraysize;
+	    msg << "Casting different Array sizes: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	    msg << " TO " ;
+	    msg << getUlamTypeNameBrief().c_str();
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    bOK = false;
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Casting nonScalar Array size: " << arraysize;
-	    msg << ", Value Type and size was: ";
-	    msg << typidx << "," << varraysize;
+	    msg << "Casting (nonScalar) Array: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	    msg << " TO " ;
+	    msg << getUlamTypeNameBrief().c_str();
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	  }
       }

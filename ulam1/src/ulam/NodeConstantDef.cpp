@@ -136,8 +136,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not a constant, type: <";
-	    msg << m_state.getUlamTypeNameByIndex(it) << ">";
+	    msg << ", is not a constant";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
@@ -356,7 +355,8 @@ namespace MFM {
 	msg << "Named constant's value (";
 	msg << getName() << " = " << newconst << ") is not representable as: ";
 	msg<< m_state.getUlamTypeNameByIndex(uti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //output warning?
+	return false; //necessary if not just a warning.
       }
 
     if(updateConstant(newconst))
