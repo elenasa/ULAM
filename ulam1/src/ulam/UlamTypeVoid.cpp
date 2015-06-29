@@ -108,7 +108,7 @@ namespace MFM {
 	brtn = false; //?
 	break;
       case Class:
-	brtn = (vut->getUlamClass() == UC_QUARK); //as Int
+	brtn = (vut->getUlamClass() == UC_QUARK && m_state.quarkHasAToIntMethod(typidx));
 	break;
       default:
 	assert(0);

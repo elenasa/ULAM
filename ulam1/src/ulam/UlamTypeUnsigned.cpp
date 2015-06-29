@@ -220,7 +220,7 @@ namespace MFM {
 	brtn = (bitsize >= valbitsize);
 	break;
       case Unary:
-	brtn = ((bitsize >= valbitsize - 1) && (bitsize > 0));
+	brtn = (bitsize >= (s32) _getLogBase2(valbitsize) + 1);
 	break;
       case Int:
       case Bool:

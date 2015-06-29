@@ -80,16 +80,13 @@ namespace MFM {
   FORECAST UlamType::safeCast(UTI typidx)
   {
     // initial tests for completeness and scalars
-    s32 bitsize = getBitSize();
-    s32 valbitsize = m_state.getBitSize(typidx);
-
     if(!isComplete() || !m_state.isComplete(typidx))
       {
 	std::ostringstream msg;
-	msg << "Casting UNKNOWN sizes; " << bitsize;
-	msg << ", Value Type and size was: " << typidx << "," << valbitsize;
+	msg << "Casting UNKNOWN sizes; " << getBitSize();
+	msg << ", Value Type and size was: " << typidx << "," << m_state.getBitSize(typidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	return CAST_HAZY;
+	return CAST_HAZY;  //includes Navs
       }
 
     //let packable arrays of same size pass...
@@ -104,7 +101,7 @@ namespace MFM {
   bool UlamType::checkArrayCast(UTI typidx)
   {
     if(isScalar() && m_state.isScalar(typidx))
-      return true;
+      return true; //not arrays, ok
 
     bool bOK = true;
     if(getPackable() != PACKEDLOADABLE || m_state.determinePackable(typidx) != PACKEDLOADABLE)

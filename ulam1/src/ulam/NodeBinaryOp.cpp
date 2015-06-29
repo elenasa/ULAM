@@ -116,7 +116,6 @@ namespace MFM {
   FORECAST NodeBinaryOp::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
-    //newtype->safeCast(fromtype)
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
   } //safeToCastTo
 

@@ -43,12 +43,23 @@ namespace MFM {
     UTI newType = Nav;  //init
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
-	s32 newbs = m_state.getBitSize(lt);
-	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	bool bOK = true;
+	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+	if(ltypEnum != Bits)
+	  {
+	    std::ostringstream msg;
+	    msg << "Bits is the supported type for bitwise operator"; //equal
+	    msg << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    bOK = false;
+	  }
+
+	s32 lbs = m_state.getBitSize(lt);
+	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
 	newType = m_state.makeUlamType(newkey, Bits);
 
-	FORECAST scr = m_nodeRight->safeToCastTo(newType);
-	if(scr != CAST_CLEAR)
+	FORECAST rscr = m_nodeRight->safeToCastTo(newType);
+	if(rscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
 	    msg << "RHS type ";
@@ -57,12 +68,15 @@ namespace MFM {
 	    msg<< m_state.getUlamTypeNameBriefByIndex(newType).c_str();
 	    msg << ". Bits is the supported type for bitwise operator";
 	    msg << getName();
-	    if(scr == CAST_BAD)
+	    if(rscr == CAST_BAD)
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    else //hazy
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    newType = Nav;
+	    bOK = false;
 	  }
+
+	if(!bOK)
+	  newType = Nav;
       } //both scalars
     return newType;
   } //calcNodeType

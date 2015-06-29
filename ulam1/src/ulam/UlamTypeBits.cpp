@@ -179,14 +179,32 @@ namespace MFM {
       case Int:
       case Bool:
       case Bits:
-	brtn = (bitsize >= valbitsize); //anything to void ok
+	brtn = (bitsize >= valbitsize); //downhill
 	break;
       case Void:
       case UAtom:
 	brtn = false;
 	break;
       case Class:
-	brtn = (vut->getUlamClass() == UC_QUARK && bitsize >= MAXBITSPERINT); //as Int
+	{
+	  //must be Quark! treat as Int if it has a toInt method
+	  if(vut->getUlamClass() == UC_QUARK)
+	    {
+	      if(m_state.quarkHasAToIntMethod(typidx))
+		brtn = (bitsize >= MAXBITSPERINT);
+	      else
+		{
+		  std::ostringstream msg;
+		  msg << "Quark: ";
+		  msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+		  msg << " 'toInt' method not found";
+		  MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
+		  brtn = false;
+		}
+	    }
+	  else
+	    brtn = false;
+	}
 	break;
       default:
 	assert(0);
