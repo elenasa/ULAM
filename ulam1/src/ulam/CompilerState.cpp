@@ -1892,10 +1892,11 @@ namespace MFM {
     return(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK);
   } //thisClassIsAQuark
 
-  bool CompilerState::quarkHasAToIntMethod(UTI quti)
+  bool CompilerState::quarkHasAToIntMethod(u32 qid)
   {
-    Symbol * csym = m_programDefST.getSymbolPtr(quti); //safer approach
-    assert(getUlamTypeByIndex(quti)->getUlamClass() == UC_QUARK);
+    Symbol * csym = m_programDefST.getSymbolPtr(qid); //safer approach
+    assert(csym);
+    assert(getUlamTypeByIndex(csym->getUlamTypeIdx())->getUlamClass() == UC_QUARK);
     NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
     assert(classNode);
     NodeBlockFunctionDefinition * func = classNode->findToIntFunctionNode();
