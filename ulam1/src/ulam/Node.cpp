@@ -1456,12 +1456,7 @@ namespace MFM {
       }
     else if(nclasstype == UC_QUARK)
       {
-	if((m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum() != Int) && !isExplicit)
-	  {
-	      doErrMsg = true;
-	  }
-	//else if(!node->isStoreIntoAble())
-	else if(node->isFunctionCall())
+	if(node->isFunctionCall())
 	  {
 	    // a function call is not a valid lhs !!!
 	    // 'node' is a function call that returns a quark (it's not storeintoable);
@@ -1471,25 +1466,9 @@ namespace MFM {
 	    if(!castFunc)
 	      doErrMsg = true;
 	    else
-	      {
-		if(uticr != UTIC_SAME && !isExplicit)
-		  {
-		    rtnNode = new NodeCast(castFunc, tobeType, NULL, m_state);
-		    assert(rtnNode);
-		    rtnNode->setNodeLocation(getNodeLocation());
-		    rtnNode->updateLineage(getNodeNo());
-		  }
-		else
-		  rtnNode = castFunc;
-
-		//redo check and type labeling; error msg if not same
-		UTI newType = rtnNode->checkAndLabelType();
-		doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
-		if(doErrMsg && isExplicit)
-		  return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
-	      }
+	      rtnNode = castFunc;
 	  }
-	else
+	  else
 	  {
 	    Token identTok;
 	    u32 castId = m_state.m_pool.getIndexForDataString("toInt");
@@ -1502,26 +1481,17 @@ namespace MFM {
 	    Node * mselectNode = new NodeMemberSelect(node, fcallNode, m_state);
 	    assert(mselectNode);
 	    mselectNode->setNodeLocation(identTok.m_locator);
-
-	    //address the case of different byte sizes here
-	    //before asserts start hitting later during assignment
-	    //quarks are likely unknown size at checkandlabel time
-	    if(uticr != UTIC_SAME && !isExplicit)
-	      {
-		rtnNode = new NodeCast(mselectNode, tobeType, NULL, m_state);
-		assert(rtnNode);
-		rtnNode->setNodeLocation(getNodeLocation());
-		rtnNode->updateLineage(getNodeNo());
-	      }
-	    else
-	      rtnNode = mselectNode; //replace right node with new branch
-
-	    //redo check and type labeling; error msg if not same, unless explicit
-	    UTI newType = rtnNode->checkAndLabelType();
-	    doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
-	    if(doErrMsg && isExplicit)
-	      return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
+	    rtnNode = mselectNode; //replace right node with new branch
 	  }
+
+	  //redo check and type labeling; error msg if not same
+	  if(!doErrMsg)
+	    {
+	      UTI newType = rtnNode->checkAndLabelType();
+	      doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
+	      if(doErrMsg)
+		return makeCastingNode(rtnNode, tobeType, rtnNode, false); //recurse
+	    }
       }
     else if (nclasstype == UC_ELEMENT)
       {
@@ -1586,12 +1556,14 @@ namespace MFM {
 
     m_state.pushCurrentBlock(fblock); //before parsing the args
 
-    //create "self" symbol whose index is that of the "hidden" first arg (i.e. a Ptr to an Atom);
+    //create "self" symbol whose index is "hidden" first arg (i.e. a Ptr to an Atom);
     //immediately below the return value(s); and belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     Token selfTok(TOK_IDENTIFIER, loc, selfid);
 
-    m_state.m_currentFunctionBlockDeclSize = -2; // -(slots needed for return + 1); negative indicates parameter for symbol instal
+    //negative indicates parameter for symbol install
+    m_state.m_currentFunctionBlockDeclSize = -2; //slots for return + 1;
+
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, UAtom, UNPACKED, m_state.m_currentFunctionBlockDeclSize, m_state);
@@ -1616,7 +1588,8 @@ namespace MFM {
     assert(argIdentNode);
     argIdentNode->setNodeLocation(loc);
 
-    Symbol * argSym = NULL; //a place to put the new symbol; not a decl list, nor typedef from another class
+    //symbol not a decl list, nor typedef from another class
+    Symbol * argSym = NULL; //a place to put the new symbol;
     argIdentNode->installSymbolVariable(typeargs, argSym);
     assert(argSym);
 
@@ -1624,7 +1597,7 @@ namespace MFM {
     Node * argNode = new NodeVarDecl((SymbolVariable*) argSym, NULL, m_state);
     assert(argNode);
     argNode->setNodeLocation(loc);
-    fsymptr->addParameterSymbol(argSym); //ownership stays with NodeBlockFunctionDefinition's ST
+    fsymptr->addParameterSymbol(argSym); //ownership stays w NodeBlockFunctionDefinition's ST
 
     //potentially needed to resolve its node type
     fblock->addParameterNode(argNode); //transfer owner
@@ -1640,7 +1613,7 @@ namespace MFM {
 	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
       }
 
-    bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr); //transfers ownership, if added
+    bool isAdded = ((SymbolFunctionName *) fnSym)->overloadFunction(fsymptr); //tfrs owner
     if(!isAdded)
       {
 	//this is a duplicate function definition with same parameters and given name!!

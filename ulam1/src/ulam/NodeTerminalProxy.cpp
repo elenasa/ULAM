@@ -79,7 +79,7 @@ namespace MFM {
   {
     if(isReadyConstant())
       return  NodeTerminal::fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
-    return CAST_HAZY; //m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    return CAST_HAZY;
   } //safeToCastTo
 
   UTI NodeTerminalProxy::checkAndLabelType()

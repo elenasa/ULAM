@@ -60,30 +60,26 @@ namespace MFM {
     	return Nav;
       }
 
-
     UTI newType = leftType; //init
-
-    FORECAST scr = m_nodeRight->safeToCastTo(newType);
-    if(scr != CAST_CLEAR)
-      {
-	std::ostringstream msg;
-	msg << "Converting "; // the real converting-message
-	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	msg << " to ";
-	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " requires explicit casting for operator" << getName();
-	if(scr == CAST_BAD)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	setNodeType(Nav);
-	return Nav;
-      }
-
     //cast RHS if necessary and safe
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
-	if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	FORECAST rscr = m_nodeRight->safeToCastTo(newType);
+	if(rscr != CAST_CLEAR)
+	  {
+	    std::ostringstream msg;
+	    msg << "Converting "; // the real converting-message
+	    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	    msg << " to ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	    msg << " requires explicit casting for operator" << getName();
+	    if(rscr == CAST_BAD)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    newType = Nav; //error
+	  }
+	else if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	  newType = Nav; //error
       }
 
