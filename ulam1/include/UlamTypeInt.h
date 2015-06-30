@@ -68,6 +68,8 @@ namespace MFM{
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
+    virtual FORECAST safeCast(UTI typidx);
+
     virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);

@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen();
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
     virtual bool assignClassArgValueInStubCopy();

@@ -10,9 +10,16 @@ int main()
   {
     s32 i = -1;
     s32 x = 1 << i;
-    s32 y = 1 >> 1;
-    std::cerr << "x is " << std::hex << x << "\ny is " << y << std::endl;
-    
+    /*
+      foo-shift-neg.cpp:13:19: warning: right shift count is negative [enabled by default]
+      s32 y = 1 >> -1;
+      ^
+      x is 80000000; y is 2
+    */
+    //s32 y = 1 >> -1;
+    //s32 y = 1 >> 1;
+    s32 y = 1 >> 0;
+    //    std::cerr << "x is " << std::hex << x << "\ny is " << y << std::endl;
+    printf("x is %x; y is %d\n",x,y);
     return x;
   }
-  

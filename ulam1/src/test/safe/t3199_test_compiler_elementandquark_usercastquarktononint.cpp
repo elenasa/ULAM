@@ -18,7 +18,7 @@ namespace MFM {
       //Unsigned Arg: 7
       //Unsigned Arg: 7
 
-      return std::string("Exit status: 3\nUe_Foo { System s();  Unary(4) m_i(3);  Unary(4) m_j(4);  Bits(4) m_bits(7);  Int(4) m_k(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 )check = m_i m_bar ( )toInt . cast cast cast = m_j 7 cast = m_bits m_i cast = m_k m_bits cast = s ( m_i cast )print . s ( m_j cast )print . s ( m_bits cast )print . s ( m_k cast )print . m_i cast return } }\nUq_Bar { Bool(1) val_b[3](false,true,true);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 3\nUe_Foo { System s();  Unary(4) m_i(3);  Unary(4) m_j(4);  Bits(4) m_bits(7);  Int(4) m_k(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 )check = m_i m_bar ( )toInt . cast cast = m_j 7 cast = m_bits m_i cast = m_k m_bits cast = s ( m_i cast )print . s ( m_j cast )print . s ( m_bits cast )print . s ( m_k cast )print . m_i cast return } }\nUq_Bar { Bool(1) val_b[3](false,true,true);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -28,7 +28,7 @@ namespace MFM {
       //simplified test() for debug..
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\nelement Foo {\nUnary(4) m_i;\nUnary(4) m_j;\nBits(4) m_bits;\nInt(4) m_k;\nBar m_bar;\nBar check(Int v) {\nBar b;\nb.val_b[1] = true;\nreturn b; }\nInt test() {\nm_i = (Unary)((Int) m_bar);\nreturn m_i;}\n}\n");
 
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool val_b[3];\nVoid reset(Bool b) {\nb = 0; }\nInt toInt(){\nreturn 3;}\n}\n");
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool val_b[3];\nVoid reset(Bool b) {\nb = false; }\nInt toInt(){\nreturn 3;}\n}\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

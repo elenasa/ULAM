@@ -18,7 +18,7 @@ namespace MFM {
       //2 - 1 == 1 bit; for negative unary, d is 0
       //bool rtn1 = fms->add("A.ulam","use System;\nelement A { Unary(3) a, b, c, d;\n use test;\n  a = 2;\n b = 1;\n c = a - b;\n d = b - a;\n return c;\n } }");
 
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {System s;\nBool sp;\nUnary(3) a, b, c, d;\n use test;\n  a = 2;\n b = 1;\n c = a - b;\ns.print(c);\n d = b - a;\ns.print(d);\n return c;\n } }");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {System s;\nBool sp;\nUnary(3) a, b, c, d;\n use test;\n  a = 2;\n b = 1;\n c = (Unary(3)) (a - b);\ns.print(c);\n d = (Unary(3)) (b - a);\ns.print(d);\n return c;\n } }");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

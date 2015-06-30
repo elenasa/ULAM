@@ -78,6 +78,15 @@ namespace MFM {
     return m_node->isWordSizeConstant();
   }
 
+  FORECAST NodeCast::safeToCastTo(UTI newType)
+  {
+    //possible user error, deal with it.
+    //assert(UlamType::compare(newType,getNodeType(), m_state) == UTIC_SAME);
+    //ulamtype checks for complete, non array, and type specific rules
+    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    //return m_node->safeToCastTo(newType);
+  } //safeToCastTo
+
   UTI NodeCast::checkAndLabelType()
   {
     // unlike the other nodes, nodecast knows its type at construction time;
@@ -102,6 +111,7 @@ namespace MFM {
 	  }
       }
 
+    UlamType * tobe = m_state.getUlamTypeByIndex(tobeType);
     if(!m_state.isComplete(tobeType))
       {
 	std::ostringstream msg;
@@ -118,17 +128,31 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
-    else if(m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_NOTACLASS && m_state.getUlamTypeByIndex(nodeType)->getUlamClass() == UC_NOTACLASS)
+    else if(tobe->getUlamClass() != UC_NOTACLASS && m_state.getUlamTypeByIndex(nodeType)->getUlamClass() == UC_NOTACLASS)
       {
 	if(nodeType != UAtom)
 	  {
 	    std::ostringstream msg;
 	    msg << "Cannot cast ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-	    msg << " (UTI" << nodeType << ")";
 	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	    msg << " (UTI" << tobeType << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errorsFound++;
+	  }
+      }
+    else if(isExplicitCast())
+      {
+	FORECAST castlight = tobe->explicitlyCastable(nodeType);
+	if(castlight != CAST_CLEAR)
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot explicitly cast ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	    if(castlight == CAST_HAZY)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
 	  }
       }
@@ -166,8 +190,7 @@ namespace MFM {
 	  } // end not scalar errors
 
 	// needs commandline arg..lots of non-explicit warning.
-	// reserve for user requested casts; arithmetic operations
-	// cast to Int32 all the time causing this to happend often.
+	// reserve for user requested casts;
 	////if(isExplicitCast())
 	//Node::warnOfNarrowingCast(nodeType, tobeType);
       }
@@ -178,24 +201,8 @@ namespace MFM {
 	ULAMCLASSTYPE nodeClass = m_state.getUlamTypeByIndex(nodeType)->getUlamClass();
 	if(nodeClass == UC_QUARK)
 	  {
-	    //	    ULAMTYPE tobeTypEnum = m_state.getUlamTypeByIndex(tobeType)->getUlamTypeEnum();
-	    //if(tobeTypEnum != Int)
-	    //  {
-	    //	std::ostringstream msg;
-	    //	msg << "Cannot cast quark type: ";
-	    //	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-	    //	msg << " to non-Int type: ";
-	    //	msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
-	    //	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    //	errorsFound++;
-	    //}
-	    //else
-	      {
-		// update to NodeMemberSelect + NodeFunctionCall
-		//m_node = makeCastingNode(m_node, tobeType);
-		if(!makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
-		  errorsFound++;
-	      }
+	    if(!makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
+	      errorsFound++;
 	  }
 	else
 	  {
@@ -352,7 +359,7 @@ namespace MFM {
    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
-   //handle element-atom and atom-element casting differently
+   //handle element-atom and atom-element casting differently:
    // handle element->quark, atom->quark, not quark->element or quark->atom
    if(nuti == UAtom || vuti == UAtom || vclasstype == UC_ELEMENT || vclasstype == UC_QUARK)
      {

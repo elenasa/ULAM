@@ -152,6 +152,7 @@ namespace MFM{
       {
 	m_nodes[i]->countNavNodes(cnt);
       }
+    Node::countNavNodes(cnt); //NodeList counts!
   } //countNavNodes
 
   EvalStatus NodeList::eval()

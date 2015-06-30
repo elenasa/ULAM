@@ -40,7 +40,7 @@ namespace MFM {
       //bool rtn1 = fms->add("TypedefIssue.ulam","ulam 1;\n element TypedefIssue {\n // Types\n typedef Unsigned(3) Symmetry;\n Symmetry m;\n Void set(Symmetry vector) {m=vector;\n }\nInt test() {\nTypedefIssue t;\n t.set((Symmetry) 0);  // line 11\n t.set((Unsigned(3)) 1); return t.m;\n}\n}\n");
 
       // Unsigned(3) version with if
-      bool rtn1 = fms->add("TypedefIssue.ulam","ulam 1;\n element TypedefIssue {\n // Types\n typedef Unsigned(3) Symmetry;\nBool b;\n Symmetry m;\n Bool set(Symmetry vector) {m=vector; return (Bool) m;\n }\nInt test() {\nTypedefIssue t;\nif(t.set((Symmetry) 0))\n b=true;\n  // line 11\n if(t.set((Unsigned(3)) 1))\n b=true;\n return t.m;\n}\n}\n");
+      bool rtn1 = fms->add("TypedefIssue.ulam","ulam 1;\n element TypedefIssue {\n // Types\n typedef Unsigned(3) Symmetry;\nBool b;\n Symmetry m;\n Bool set(Symmetry vector) {m=vector; return m !=0;\n }\nInt test() {\nTypedefIssue t;\nif(t.set((Symmetry) 0))\n b=true;\n  // line 11\n if(t.set((Unsigned(3)) 1))\n b=true;\n return t.m;\n}\n}\n");
 
       if(rtn1)
 	return std::string("TypedefIssue.ulam");

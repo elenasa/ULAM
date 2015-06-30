@@ -61,6 +61,8 @@ namespace MFM{
 
     virtual bool isAConstant();
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual bool assignClassArgValueInStubCopy();
 
     virtual void genCode(File * fp, UlamValue& uvpass);

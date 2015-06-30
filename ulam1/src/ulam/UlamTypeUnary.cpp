@@ -191,6 +191,41 @@ namespace MFM {
     return brtn;
   } //castTo64
 
+  FORECAST UlamTypeUnary::safeCast(UTI typidx)
+  {
+    FORECAST scr = UlamType::safeCast(typidx);
+    if(scr != CAST_CLEAR)
+      return scr;
+
+    s32 bitsize = getBitSize();
+    s32 valbitsize = m_state.getBitSize(typidx);
+
+    bool brtn = true;
+    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+    switch(valtypEnum)
+      {
+      case Unsigned:
+	brtn = ((bitsize + 1) >= (1 << valbitsize));
+	break;
+      case Unary:
+	brtn = (bitsize >= valbitsize);
+	break;
+      case Int:
+      case Bool:
+      case Bits:
+      case Void:
+      case UAtom:
+      case Class:
+	brtn = false;
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeUnary (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+    return brtn ? CAST_CLEAR : CAST_BAD;
+  } //safeCast
+
   void UlamTypeUnary::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
