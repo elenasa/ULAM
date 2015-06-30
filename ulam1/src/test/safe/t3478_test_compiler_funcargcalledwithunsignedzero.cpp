@@ -11,6 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
+      // working toward this to work! needs to try safe casts when matching func args.
       bool rtn1 = fms->add("Tu.ulam", "ulam 1;\nelement Tu {\ntypedef Unsigned(3) I;\n I func(I arg) {\nreturn arg;\n}\n Int test(){\n return func(0);\n}\n}\n");
 
 

@@ -1892,6 +1892,18 @@ namespace MFM {
     return(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK);
   } //thisClassIsAQuark
 
+  bool CompilerState::quarkHasAToIntMethod(UTI quti)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(quti, csym));
+
+    assert(getUlamTypeByIndex(csym->getUlamTypeIdx())->getUlamClass() == UC_QUARK);
+    NodeBlockClass * classNode = csym->getClassBlockNode();
+    assert(classNode);
+    NodeBlockFunctionDefinition * func = classNode->findToIntFunctionNode();
+    return (func != NULL);
+  } //quarkHasAToIntMethod
+
   void CompilerState::setupCenterSiteForTesting()
   {
     //call again for code gen..

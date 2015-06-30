@@ -78,11 +78,13 @@ namespace MFM{
 
     virtual const std::string getUlamTypeNameOnly();
 
-    //    UTI getUlamTypeIndex();
-
     UlamKeyTypeSignature getUlamKeyTypeSignature();
 
     virtual bool cast(UlamValue& val, UTI typidx);
+
+    virtual FORECAST safeCast(UTI typidx);
+
+    virtual FORECAST explicitlyCastable(UTI typidx);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
@@ -191,6 +193,8 @@ namespace MFM{
     virtual bool castTo32(UlamValue & val, UTI typidx);
 
     virtual bool castTo64(UlamValue & val, UTI typidx);
+
+    bool checkArrayCast(UTI typidx);
 
   };
 

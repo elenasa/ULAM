@@ -201,6 +201,50 @@ namespace MFM {
     return brtn;
   } //castTo64
 
+  FORECAST UlamTypeBool::safeCast(UTI typidx)
+  {
+    FORECAST scr = UlamType::safeCast(typidx);
+    if(scr != CAST_CLEAR)
+      return scr;
+
+    //s32 bitsize = getBitSize();
+    s32 valbitsize = m_state.getBitSize(typidx);
+
+    bool brtn = true;
+    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+    switch(valtypEnum)
+      {
+      case Bool:
+	brtn = true; //any size ok
+	break;
+      case Unsigned:
+      case Unary:
+	brtn = (valbitsize == 1);
+	break;
+      case Int:
+      case Bits:
+      case Void:
+      case UAtom:
+      case Class:
+	brtn = false;
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeBool (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+    return brtn ? CAST_CLEAR : CAST_BAD;
+  } //safeCast
+
+  FORECAST UlamTypeBool::explicitlyCastable(UTI typidx)
+  {
+    ULAMTYPE vtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+    FORECAST scr = safeCast(typidx);
+    if((vtypEnum == Bits && UlamType::explicitlyCastable(typidx) == CAST_CLEAR) || scr == CAST_CLEAR)
+      return CAST_CLEAR;
+    return scr; //HAZY or UNSAFE
+  } //explicitlyCastable
+
   void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     bool dataAsBool = false;

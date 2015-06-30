@@ -131,18 +131,6 @@ namespace MFM {
     // NOASSIGN (e.g. for class parameters) doesn't have this!
     if(m_nodeExpr)
       {
-	it = m_nodeExpr->checkAndLabelType();
-	if(it == Nav)
-	  {
-	    std::ostringstream msg;
-	    msg << "Constant value expression for: ";
-	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is invalid";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit
-	  }
-
 	if(!m_nodeExpr->isAConstant())
 	  {
 	    std::ostringstream msg;
@@ -154,6 +142,22 @@ namespace MFM {
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
+
+	it = m_nodeExpr->checkAndLabelType();
+	if(it == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Constant value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", is invalid";
+	    if(m_nodeExpr->isReadyConstant())
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+
       }
 
     UTI suti = m_constSymbol->getUlamTypeIdx();

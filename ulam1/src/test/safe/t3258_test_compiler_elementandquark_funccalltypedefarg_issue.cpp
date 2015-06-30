@@ -17,7 +17,7 @@ namespace MFM {
       // Unsigned(3) version with if, Vector as local variable
       bool rtn1 = fms->add("TypedefIssue.ulam","ulam 1;\nuse Vector;\n element TypedefIssue {\n // Types\n typedef Unsigned(3) Symmetry;\nBool b;\nVector t;\n Int test() {\nif(t.set((Symmetry) 0, (Symmetry) 1))\n b=true;\n  if(t.set((Unsigned(3)) 1, (Unsigned(3)) 1))\n b=true;\n return t.m;\n}\n}\n");
 
-      bool rtn2 = fms->add("Vector.ulam","ulam 1;\nquark Vector {\ntypedef Unsigned(3) Symmetry;\n Symmetry m;\nSymmetry n;\n Bool set(Symmetry vector, Symmetry index) {\nm=vector;\nn=index;\n return ((Bool) m && (Bool) n);\n }\n}\n");
+      bool rtn2 = fms->add("Vector.ulam","ulam 1;\nquark Vector {\ntypedef Unsigned(3) Symmetry;\n Symmetry m;\nSymmetry n;\n Bool set(Symmetry vector, Symmetry index) {\nm=vector;\nn=index;\n return (m!=0 && n!=0);\n }\n}\n");
 
       if(rtn1 && rtn2)
 	return std::string("TypedefIssue.ulam");

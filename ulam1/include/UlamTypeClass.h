@@ -55,6 +55,8 @@ namespace MFM{
 
     virtual bool cast(UlamValue& val, UTI typidx);
 
+    virtual FORECAST safeCast(UTI typidx);
+
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual const std::string getUlamTypeVDAsStringForC();
