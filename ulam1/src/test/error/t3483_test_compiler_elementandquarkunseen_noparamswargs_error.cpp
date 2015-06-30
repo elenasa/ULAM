@@ -2,11 +2,11 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3340_test_compiler_elementandquark_noparamswargs_error)
+  BEGINTESTCASECOMPILER(t3483_test_compiler_elementandquarkunseen_noparamswargs_error)
   {
     std::string GetAnswerKey()
     {
-      //Foo.ulam:3:13: ERROR: Class without parameters already exists with the same name: NoParms.
+      //./NoParms.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters <NoParms>
       //Unrecoverable Program Parse FAILURE.
       return std::string("Ue_Foo { NoParms boom();  <NOMAIN> }\nUq_NoParms { /* empty class block */ }\n");
     }
@@ -21,11 +21,11 @@ namespace MFM {
 	NoParms(1) boom;
 	}
       */
-
+      //informed by 3340, except seeing quark afterwards
       bool rtn1 = fms->add("NoParms.ulam", "ulam 1;\nquark NoParms {\n }\n");
 
-      bool rtn2 = fms->add("Foo.ulam", "ulam 1;\nuse NoParms;\nelement Foo {\n NoParms(1) boom;\n}\n");
-      //bool rtn2 = fms->add("Foo.ulam", "ulam 1;\nelement Foo {\n NoParms(1) boom;\n}\nuse NoParms;\n");
+      //bool rtn2 = fms->add("Foo.ulam", "ulam 1;\nuse NoParms;\nelement Foo {\n NoParms(1) boom;\n}\n");
+      bool rtn2 = fms->add("Foo.ulam", "ulam 1;\nelement Foo {\n NoParms(1) boom;\n}\nuse NoParms;\n");
 
       if(rtn1 && rtn2)
 	return std::string("Foo.ulam");
@@ -34,6 +34,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3340_test_compiler_elementandquark_noparamswargs_error)
+  ENDTESTCASECOMPILER(t3483_test_compiler_elementandquarkunseen_noparamswargs_error)
 
 } //end MFM
