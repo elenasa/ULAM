@@ -90,7 +90,7 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  num << "CONSTANT?";
 	}
@@ -119,8 +119,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Negating an unsigned constant: <" << m_constant.uval <<  ">, type: ";
-	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << "Negating an unsigned constant: '" << m_constant.uval <<  "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
@@ -215,7 +214,8 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	  msg << "Constant Type Unknown: ";
+	  msg <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  evs = ERROR;
 	}
@@ -234,8 +234,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Unknown size!! constant type: ";
-	msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	msg << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
@@ -244,7 +244,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Cannot check constant '" << m_constant.uval << "' fits into type: ";
-	msg << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //warn?
 	return false;
       }
@@ -252,7 +252,7 @@ namespace MFM {
     if(nuti == Nav)
       {
 	std::ostringstream msg;
-	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
@@ -270,12 +270,11 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Not supported at this time, constant type: ";
-	msg << m_state.getUlamTypeNameByIndex(nuti).c_str() << ", to fit into type: ";
-	msg << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << ", to fit into type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
-
     return rtnb;
   } //fitsInBits
 
@@ -319,8 +318,9 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
-	  msg << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	  msg << "Constant Type Unknown: ";
+	  msg <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	  msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
@@ -367,8 +367,9 @@ namespace MFM {
       default:
 	{
 	  std::ostringstream msg;
-	  msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
-	  msg << ", to fit into type: " << m_state.getUlamTypeNameByIndex(fituti).c_str();
+	  msg << "Constant Type Unknown: ";
+	  msg <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	  msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };

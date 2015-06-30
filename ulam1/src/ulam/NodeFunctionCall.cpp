@@ -137,7 +137,7 @@ namespace MFM {
 	    msg << ": ";
 	    for(u32 i = 0; i < argTypes.size(); i++)
 	      {
-		msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
+		msg << m_state.getUlamTypeNameBriefByIndex(argTypes[i]).c_str() << ", ";
 	      }
 	    msg << "and cannot be called";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

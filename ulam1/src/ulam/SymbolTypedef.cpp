@@ -40,11 +40,17 @@ namespace MFM {
   void SymbolTypedef::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     UTI tuti = getUlamTypeIdx();
+    UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
 
     fp->write(" typedef");
 
     fp->write(" ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(tuti).c_str());
+    if(tut->getUlamTypeEnum() != Class)
+      fp->write(tkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
+    else
+      fp->write(tut->getUlamTypeNameBrief().c_str());
+
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
 

@@ -24,8 +24,8 @@ sub BEGIN {
 my $TOPLEVEL = "/home/elenas/WORK/ulam/repo/ULAM/ulam1";
 my $TESTDIR =  "/home/elenas/WORK/ulam/repo/ULAM/ulam1/src/test";
 my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files
-#my $SRC_DIR = "safe";
-my $SRC_DIR = "error";
+my $SRC_DIR = "safe";
+#my $SRC_DIR = "error";
 
 sub usage_abort
 {

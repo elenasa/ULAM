@@ -49,14 +49,22 @@ namespace MFM {
 
   void NodeTypedef::printPostfix(File * fp)
   {
+    UTI tuti = m_typedefSymbol->getUlamTypeIdx();
+    UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
+    UlamType * tut = m_state.getUlamTypeByIndex(tuti);
+
     fp->write(" typedef");
 
     fp->write(" ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(m_typedefSymbol->getUlamTypeIdx()).c_str());
+    if(tut->getUlamTypeEnum() != Class)
+      fp->write(tkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
+    else
+      fp->write(tut->getUlamTypeNameBrief().c_str());
+
     fp->write(" ");
     fp->write(getName());
 
-    s32 arraysize = m_state.getArraySize(m_typedefSymbol->getUlamTypeIdx());
+    s32 arraysize = m_state.getArraySize(tuti);
     if(arraysize > NONARRAYSIZE)
       {
 	fp->write("[");
@@ -108,7 +116,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Incomplete Typedef for class type: ";
-		msg << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 		msg << " used with variable symbol name <" << getName();
 		msg << "> (UTI" << it << ")";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -140,7 +148,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Typedef for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << " used with typedef symbol name '" << getName();
 	    msg << "' UTI" << it << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
