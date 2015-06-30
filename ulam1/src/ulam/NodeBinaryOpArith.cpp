@@ -108,10 +108,10 @@ namespace MFM {
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
 	newType = m_state.makeUlamType(newkey, Int);
 
-	if(!NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType))
-	  return newType; //outputs errors if not ok, Nav returned
+	NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
 
-	NodeBinaryOp::checkForMixedSignsOfVariables(ltypEnum, rtypEnum, lt, rt, newType); //ref
+	if(!NodeBinaryOp::checkSafeToCastTo(newType))
+	  newType = Nav; //outputs error msg
       } //both scalars
     return newType;
   } //calcNodeType

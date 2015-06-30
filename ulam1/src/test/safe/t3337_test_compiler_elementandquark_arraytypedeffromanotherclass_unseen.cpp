@@ -23,7 +23,7 @@ namespace MFM {
 
       bool rtn1 = fms->add("TypedefIssue.ulam","ulam 1;\nelement TypedefIssue {\ntypedef Vector.Symmetry Symmetry;\n Symmetry x;\n Bool b;\nVector t;\n Int foo() {\nx[0] = 2;\n x[1] = 1;\nif(t.set(x))\n b=true;\nreturn t.m[1];\n}\n}\n");
 
-      bool rtn2 = fms->add("Vector.ulam","ulam 1;\nquark Vector {\ntypedef Unsigned(3) Channel;\n typedef Channel Symmetry[2];\n Symmetry m;\nBool set(Symmetry vector) {\nm[0]=vector[0];\n m[1]=vector[1];\n return ((Bool) m[0] && (Bool) m[1]);\n }\n}\n");
+      bool rtn2 = fms->add("Vector.ulam","ulam 1;\nquark Vector {\ntypedef Unsigned(3) Channel;\n typedef Channel Symmetry[2];\n Symmetry m;\nBool set(Symmetry vector) {\nm[0]=vector[0];\n m[1]=vector[1];\n return (m[0]!=0 && m[1]!=0);\n }\n}\n");
 
       if(rtn1 && rtn2 && rtn3)
 	return std::string("R.ulam");

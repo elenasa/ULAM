@@ -250,6 +250,60 @@ namespace MFM {
     return brtn;
   } //castTo64
 
+  FORECAST UlamTypeInt::safeCast(UTI typidx)
+  {
+    FORECAST scr = UlamType::safeCast(typidx);
+    if(scr != CAST_CLEAR)
+      return scr;
+
+    s32 bitsize = getBitSize();
+    s32 valbitsize = m_state.getBitSize(typidx);
+
+    bool brtn = true;
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    switch(valtypEnum)
+      {
+      case Unsigned:
+	brtn = (bitsize > valbitsize);
+	break;
+      case Unary:
+      case Int:
+	brtn = (bitsize >= valbitsize);
+	break;
+      case Bool:
+      case Bits:
+      case Void:
+      case UAtom:
+	brtn = false;
+	break;
+      case Class:
+	{
+	  //must be Quark! treat as Int if it has a toInt method
+	  if(vut->getUlamClass() == UC_QUARK)
+	    {
+	      if(m_state.quarkHasAToIntMethod(typidx))
+		brtn = (bitsize >= MAXBITSPERINT);
+	      else
+		{
+		  std::ostringstream msg;
+		  msg << "Quark: ";
+		  msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+		  msg << " 'toInt' method not found";
+		  MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
+		  brtn = false;
+		}
+	    }
+	}
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeInt (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+    return brtn ? CAST_CLEAR : CAST_BAD;
+  } //safeCast
+
   void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)
   {
     assert(uvpass.getUlamValueTypeIdx() == Ptr);

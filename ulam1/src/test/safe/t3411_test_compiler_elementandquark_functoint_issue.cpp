@@ -9,7 +9,7 @@ namespace MFM {
       // width 9 saturates at 7, then sum 11 also saturates at 7 for Int(4) aritmetic.
       // just got implemented!
       //Foo.ulam:1:121: (NodeFunctionCall.cpp:evalToStoreInto:269) ERROR: Use of function calls as lefthand values is not currently supported. Save the results of <func> to a variable, type: C2D.
-      return std::string("Exit status: 7\nUe_Foo { Q q( C2D c( typedef Int(4) I;  Int(4) m_width(7);  Int(4) m_height(4); ); );  Int(32) test() {  q ( )toInt . cast cast return } }\nUq_Q { C2D c( typedef Int(4) I;  Int(4) m_width(7);  Int(4) m_height(4); );  <NOMAIN> }\nUq_C2D { typedef Int(4) I;  Int(4) m_width(7);  Int(4) m_height(4);  <NOMAIN> }\n");
+      return std::string("Exit status: 7\nUe_Foo { Q q( C2D c( typedef Int(4) I;  Int(4) m_width(7);  Int(4) m_height(4); ); );  Int(32) test() {  q ( )toInt . cast return } }\nUq_Q { C2D c( typedef Int(4) I;  Int(4) m_width(7);  Int(4) m_height(4); );  <NOMAIN> }\nUq_C2D { typedef Int(4) I;  Int(4) m_width(7);  Int(4) m_height(4);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

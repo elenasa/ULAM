@@ -299,6 +299,8 @@ namespace MFM{
 
     bool thisClassIsAQuark();
 
+    bool quarkHasAToIntMethod(UTI quti);
+
     void setupCenterSiteForTesting();
 
     /** used by SourceStream to build m_textByLinePerFilePath during parsing */

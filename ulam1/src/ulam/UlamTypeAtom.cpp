@@ -67,6 +67,19 @@ namespace MFM {
     return brtn;
   } //end cast
 
+  FORECAST UlamTypeAtom::safeCast(UTI typidx)
+  {
+    FORECAST scr = UlamType::safeCast(typidx);
+    if(scr != CAST_CLEAR)
+      return scr;
+
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    if(vut->getUlamTypeEnum() == UAtom)
+      return CAST_CLEAR; //atom to atom
+
+    return (vut->getUlamClass() == UC_ELEMENT) ? CAST_CLEAR : CAST_BAD;
+   } //safeCast
+
   const std::string UlamTypeAtom::castMethodForCodeGen(UTI nodetype)
   {
     std::ostringstream rtnMethod;

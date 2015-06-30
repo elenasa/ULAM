@@ -14,7 +14,7 @@ namespace MFM {
     {
       bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\n element Foo {\n typedef Bar Pop[2];\n Pop m_bar2;\n Int test() {\n return 0;\n }\n }\n");
 
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = 0;\n }\n }\n");
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = false;\n }\n }\n");
 
       if(rtn1 && rtn2)
 	return std::string("Foo.ulam");

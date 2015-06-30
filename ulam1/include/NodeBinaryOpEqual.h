@@ -78,9 +78,6 @@ namespace MFM{
 
     bool checkStoreIntoAble();
     bool checkNotUnpackedArray();
-    virtual bool checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-    virtual bool checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-    virtual bool checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
 
   private:
 

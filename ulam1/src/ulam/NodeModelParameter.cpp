@@ -43,6 +43,13 @@ namespace MFM {
     return false; //seems like a contradiction, but no
   }
 
+  FORECAST NodeModelParameter::safeToCastTo(UTI newType)
+  {
+    if(isReadyConstant())
+      return (m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType()) && NodeTerminal::fitsInBits(newType)) ? CAST_CLEAR : CAST_BAD;
+    return CAST_HAZY;
+  } //safeToCastTo
+
   void NodeModelParameter::checkForSymbol()
   {
     //in case of a cloned unknown

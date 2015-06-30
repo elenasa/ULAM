@@ -67,6 +67,8 @@ public:
 
     virtual bool isReadyConstant();
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);

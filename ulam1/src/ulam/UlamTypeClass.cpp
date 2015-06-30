@@ -80,6 +80,18 @@ namespace MFM {
     return brtn;
   } //end cast
 
+  FORECAST UlamTypeClass::safeCast(UTI typidx)
+  {
+    FORECAST scr = UlamType::safeCast(typidx);
+    if(scr != CAST_CLEAR)
+      return scr;
+
+    if(m_state.getUlamTypeByIndex(typidx) == this)
+      return CAST_CLEAR; //same class, quark or element
+
+    return CAST_BAD; //e.g. (typidx == UAtom)
+  } //safeCast
+
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
     switch(m_class)
@@ -379,8 +391,10 @@ namespace MFM {
     if(sizeByIntBitsToBe != sizeByIntBits)
       {
 	std::ostringstream msg;
-	msg << "Casting different word sizes; " << sizeByIntBits << ", Value Type and size was: ";
-	msg << nut->getUlamTypeName().c_str() << ", to be: " << sizeByIntBitsToBe << " for type: ";
+	msg << "Casting different word sizes; " << sizeByIntBits;
+	msg << ", Value Type and size was: ";
+	msg << nut->getUlamTypeName().c_str() << ", to be: ";
+	msg << sizeByIntBitsToBe << " for type: ";
 	msg << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
@@ -388,7 +402,8 @@ namespace MFM {
     if(m_class != UC_ELEMENT)
       {
 	std::ostringstream msg;
-	msg << "Quarks only cast 'toInt': value type and size was: " << nut->getUlamTypeName().c_str();
+	msg << "Quarks only cast 'toInt': value type and size was: ";
+	msg << nut->getUlamTypeName().c_str();
 	msg << ", to be: " << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
@@ -397,7 +412,8 @@ namespace MFM {
     if(nodetype != UAtom)
       {
 	std::ostringstream msg;
-	msg << "Attempting to illegally cast a non-atom type to an element: value type and size was: ";
+	msg << "Attempting to illegally cast a non-atom type to an element: ";
+	msg << "value type and size was: ";
 	msg << nut->getUlamTypeName().c_str() << ", to be: " << getUlamTypeName().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
