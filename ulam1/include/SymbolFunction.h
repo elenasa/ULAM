@@ -77,7 +77,7 @@ namespace MFM{
     bool checkParameterTypes();
 
     bool matchingTypesStrictly(std::vector<UTI> argTypes);
-    bool matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg);
+    bool matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs);
 
     u32 isNativeFunctionDeclaration();
 
@@ -90,7 +90,7 @@ namespace MFM{
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
     bool m_hasVariableArgs;
-     //void generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    //void generateElementFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     //void generateQuarkFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
   };
 
