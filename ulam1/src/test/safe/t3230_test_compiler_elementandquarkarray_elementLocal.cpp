@@ -13,7 +13,7 @@ namespace MFM {
     {
       bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n use Bar;\nuse Poo;\n element Foo {\nSystem s;\nBool b[3];\n Int(4) m_i;\nInt test() {\nPoo spoon;\nBar boo;\n boo = spoon.mbar[0];\nspoon.mbar[1] = boo;\nAtom a;\na = spoon.sbar[0];\nspoon.sbar[1] = a;\nreturn 0;\n }\n }\n");
 
-      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = 0;\n }\n Atom aref(Int index) native;\n Void aset(Int index, Atom v) native;\n }\n");
+      bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = false;\n }\n Atom aref(Int index) native;\n Void aset(Int index, Atom v) native;\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

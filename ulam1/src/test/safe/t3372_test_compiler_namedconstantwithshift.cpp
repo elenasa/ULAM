@@ -20,7 +20,8 @@ namespace MFM {
     {
       bool rtn1 = fms->add("A.ulam","use System;\nuse Counter;\nelement A{\nSystem s;\nBool(3) b;\nInt test () {\nCounter(3u) c;\n b = c.isEarlier(0u, 1u);\ns.print(b);\n return  c.thanWhat();\n}\n}\n");
 
-      bool rtn2 = fms->add("Counter.ulam", "quark Counter(Unsigned bits) {\n  typedef Unsigned(bits) Count;\nBool(3) isEarlier(Count a, Count b) {\n if (a < b)\n return (b - a) < (Count) ((Bits(bits)) 1u<<(bits-1));\n return (a - b) > (Count) ((Bits(bits)) 1u<<(bits-1));\n  }\n Count thanWhat() {\nreturn (Count) ((Bits(bits)) 1u<<(bits-1));\n  }\n }\n");
+      //had to add u for (bits -1u) because both are constants, mixed signs, 32 bits.
+      bool rtn2 = fms->add("Counter.ulam", "quark Counter(Unsigned bits) {\n  typedef Unsigned(bits) Count;\nBool(3) isEarlier(Count a, Count b) {\n if (a < b)\n return (b - a) < (Count) ((Bits(bits)) 1u<<(bits-1u));\n return (a - b) > (Count) ((Bits(bits)) 1u<<(bits-1u));\n  }\n Count thanWhat() {\nreturn (Count) ((Bits(bits)) 1u<<(bits-1u));\n  }\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

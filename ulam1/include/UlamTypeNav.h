@@ -48,6 +48,7 @@ namespace MFM{
   public:
 
     UlamTypeNav(const UlamKeyTypeSignature key, CompilerState& state);
+
     virtual ~UlamTypeNav(){}
 
     virtual ULAMTYPE getUlamTypeEnum();

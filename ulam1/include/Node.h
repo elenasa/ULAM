@@ -103,6 +103,8 @@ namespace MFM{
 
     virtual bool isReadyConstant();
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
     virtual void countNavNodes(u32& cnt);
@@ -202,11 +204,6 @@ namespace MFM{
 
   protected:
     virtual void checkForSymbol();
-    virtual bool checkAnyConstantsFit(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
-    virtual bool checkForMixedSignsOfVariables(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI lt, UTI rt, UTI& newType);
-    virtual bool checkIntToNonBitsNonIntCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-
-    bool checkForSafeImplicitCasting(UTI leftType, UTI rightType, UTI& newType);
 
   private:
     bool m_storeIntoAble;
@@ -216,11 +213,6 @@ namespace MFM{
     NNO m_no;
 
     //common helpers for safe casting
-    virtual bool checkNonBoolToBoolCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-    virtual bool checkFromBitsCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-    virtual bool checkToUnaryCast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-    virtual bool checkBitsizeOfCastLast(ULAMTYPE rtypEnum, UTI rt, UTI& newType);
-
     NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
 
   };

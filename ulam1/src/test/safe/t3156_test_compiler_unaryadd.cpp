@@ -14,7 +14,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\n Unary(3) a, b, c;\n use test;\n  a = 2;\n b = 1;\n c = a + b;\ns.print(c);\n return c;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\n Unary(3) a, b, c;\n use test;\n  a = 2;\n b = 1;\n c = (Unary(3)) (a + b);\ns.print(c);\n return c;\n }\n }\n");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

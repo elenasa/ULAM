@@ -96,6 +96,12 @@ namespace MFM {
     return false; //needs constant folding
   }
 
+  FORECAST NodeUnaryOp::safeToCastTo(UTI newType)
+  {
+    //ulamtype checks for complete, non array, and type specific rules
+    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+  } //safeToCastTo
+
   UTI NodeUnaryOp::checkAndLabelType()
   {
     assert(0); //see unary operators..

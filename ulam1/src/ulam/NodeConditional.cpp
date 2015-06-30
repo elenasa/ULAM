@@ -94,6 +94,12 @@ namespace MFM {
     fp->write(myname);
   }
 
+  FORECAST NodeConditional::safeToCastTo(UTI newType)
+  {
+    //ulamtype checks for complete, non array, and type specific rules
+    return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+  } //safeToCastTo
+
   void NodeConditional::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt); //missing

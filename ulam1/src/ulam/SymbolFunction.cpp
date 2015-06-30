@@ -204,7 +204,7 @@ namespace MFM {
       return false;
 
     bool rtnBool = true;
-    //next match types; order counts!
+    //next, liberally match types; order counts!
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
@@ -212,29 +212,22 @@ namespace MFM {
 	  {
 	    if(constantArg[i])
 	      {
-		//constants can match any bit size
-		ULAMTYPE ptypEnum = m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum();
-		if(UlamType::compare(argTypes[i], m_state.getUlamTypeOfConstant(ptypEnum), m_state) == UTIC_NOTSAME)
+		assert(constantArg[i]->isAConstant());
+		//constants can match any bit size, that it fits
+		if(constantArg[i]->safeToCastTo(puti) == CAST_BAD)
 		  {
 		    rtnBool = false;
 		    break;
 		  }
-		else
-		  {
-		    assert(constantArg[i]->isAConstant());
-		    //check that it fits
-		    bool aready = constantArg[i]->isReadyConstant();
-		    if(!(aready && constantArg[i]->fitsInBits(puti)))
-		      {
-			rtnBool = false;
-			break;
-		      }
-		  }
 	      } //constantarg
 	    else
 	      {
-		rtnBool = false;
-		break;
+		//willing to cast argType safely TO puti
+		if(m_state.getUlamTypeByIndex(puti)->safeCast(argTypes[i]) == CAST_BAD)
+		  {
+		    rtnBool = false;
+		    break;
+		  }
 	      }
 	  }
       } //next param

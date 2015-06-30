@@ -61,10 +61,12 @@ namespace MFM {
 
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
+	FORECAST scr = CAST_CLEAR; //avoid error msg if const not ready
+
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
 
-	//auto cast when both Bits.
+	//auto cast when both Bits
 	if(ltypEnum == Bits && rtypEnum == Bits)
 	  {
 	    s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
@@ -76,8 +78,22 @@ namespace MFM {
 	    //only right can be a constant;  constant fold later.
 	    newType = lt;
 
-	    // possible error if constant doesn't fit in lt.
-	    NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
+	    scr = m_nodeRight->safeToCastTo(newType);
+
+	    if(scr != CAST_CLEAR)
+	      {
+		std::ostringstream msg;
+		msg << "Constant <";
+		msg << m_nodeRight->getName();
+		msg <<  "> is not representable as: ";
+		msg<< m_state.getUlamTypeNameByIndex(newType).c_str();
+		msg << ", for binary operator" << getName() << " ";
+		if(scr == CAST_BAD)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		else //hazy
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		newType = Nav;
+	      }
 	  }
 
 	if(newType == Nav && !(ltypEnum == Bits && rtypEnum == Bits))
@@ -85,7 +101,10 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Bits is the supported type for bitwise operator";
 	    msg << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(scr == CAST_HAZY)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       } //both scalars
     return newType;

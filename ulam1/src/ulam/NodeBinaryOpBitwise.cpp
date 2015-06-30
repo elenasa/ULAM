@@ -67,8 +67,11 @@ namespace MFM {
 
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
+	FORECAST scr = CAST_CLEAR; //avoid constant error msg if neither var is Bits
+
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+
 	//if not both Bits ERR, except for both constants
 	bool lconst = m_nodeLeft->isAConstant();
 	bool rconst = m_nodeRight->isAConstant();
@@ -84,13 +87,35 @@ namespace MFM {
 	  {
 	    //one or the other but not both are constants; use
 	    if(lconst && rtypEnum == Bits)
-	      newType = rt;
+	      {
+		newType = rt;
+		scr = m_nodeLeft->safeToCastTo(newType);
+	      }
 	    else if(rconst && ltypEnum == Bits)
-	      newType = lt;
-	    //else could fail
+	      {
+		newType = lt;
+		scr = m_nodeLeft->safeToCastTo(newType);
+	      }
+	    //else could fail if neither var is Bits
 
-	    if(newType != Nav)
-	      NodeBinaryOp::checkAnyConstantsFit(ltypEnum, rtypEnum, newType);
+	    if(newType != Nav && scr != CAST_CLEAR)
+	      {
+		std::ostringstream msg;
+		msg << "Constant <";
+		if(lconst)
+		  msg << m_nodeLeft->getName();
+		if(rconst)
+		  msg << m_nodeRight->getName();
+
+		msg <<  "> is not representable as: ";
+		msg<< m_state.getUlamTypeNameByIndex(newType).c_str();
+		msg << ", for binary operator" << getName() << " ";
+		if(scr == CAST_BAD)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		else //hazy
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		newType = Nav;
+	      }
 	  }
 
 	if(newType == Nav && !(ltypEnum == Bits && rtypEnum == Bits))
@@ -104,7 +129,10 @@ namespace MFM {
 	    msg << " to Bits";
 	    if(mbs > 0)
 	      msg<< "(" << mbs << ")";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(scr == CAST_HAZY)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
 	  }
       } //both scalars

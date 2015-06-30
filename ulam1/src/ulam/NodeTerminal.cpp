@@ -144,6 +144,13 @@ namespace MFM {
     return true;
   }
 
+  FORECAST NodeTerminal::safeToCastTo(UTI newType)
+  {
+    if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+      return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
+  } //safeToCastTo
+
   UTI NodeTerminal::checkAndLabelType()
   {
     return getNodeType(); //done by constructor
@@ -306,8 +313,7 @@ namespace MFM {
       case Unary:
 	{
 	  u32 numval = m_constant.uval;
-	  u32 fmax = _Unary32ToUnsigned32(fit->getMax(), fit->getBitSize(), m_state.getBitSize(nuti));
-	  rtnb = (numval <= fmax) && (numval >= 0);
+	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
 	}
 	break;
       default:

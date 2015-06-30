@@ -10,7 +10,7 @@ namespace MFM {
 	 Unary(3) Arg: 0x2
 	 Unary(3) Arg: 0x2
       */
-      return std::string("Exit status: 0\nUe_A { System s();  Unary(3) u(2);  Unary(3) v(2);  Int(32) test() {  v 3u cast = u v cast 1 << cast = v v cast 1 >> cast = s ( u )print . s ( v )print . 0 return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_A { System s();  Unary(3) u(2);  Unary(3) v(2);  Int(32) test() {  v 3u cast = u v cast 1 cast << cast = v v cast 1 cast >> cast = s ( u )print . s ( v )print . 0 return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

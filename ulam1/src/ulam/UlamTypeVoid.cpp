@@ -85,4 +85,37 @@ namespace MFM {
     return brtn;
   } //end cast
 
+  FORECAST UlamTypeVoid::safeCast(UTI typidx)
+  {
+    FORECAST scr = UlamType::safeCast(typidx);
+    if(scr != CAST_CLEAR)
+      return scr;
+
+    bool brtn = true;
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
+    switch(valtypEnum)
+      {
+      case Void:
+      case Unsigned:
+      case Unary:
+      case Int:
+      case Bool:
+      case Bits:
+	brtn = true; //anything to void ok
+	break;
+      case UAtom:
+	brtn = false; //?
+	break;
+      case Class:
+	brtn = (vut->getUlamClass() == UC_QUARK); //as Int
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeVoid (cast) error! Value Type was: " << valtypidx << std::endl;
+	brtn = false;
+      };
+    return brtn ? CAST_CLEAR : CAST_BAD;
+  } //safeCast
+
 } //end MFM
