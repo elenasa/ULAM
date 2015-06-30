@@ -169,6 +169,7 @@ namespace MFM{
     //    void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
     void mapTypesInCurrentClass(UTI fm, UTI to);
 
+    UlamKeyTypeSignature getUlamKeyTypeSignatureByIndex(UTI typidx);
     UlamType * getUlamTypeByIndex(UTI uti);
     const std::string getUlamTypeNameBriefByIndex(UTI uti);
     const std::string getUlamTypeNameByIndex(UTI uti);

@@ -95,7 +95,7 @@ namespace MFM {
 	UTI lt = m_nodeLeft->getNodeType();
 	std::ostringstream msg;
 	msg << "Invalid lefthand side of equals: <" << m_nodeLeft->getName();
-	msg << ">, type: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	setStoreIntoAble(false);
 	return false;
@@ -121,7 +121,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Lefthand side of equals requires UNPACKED array support: <";
 	    msg << m_nodeLeft->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(lt).c_str();
+	    msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	if(unpackedArrayRight)
@@ -129,7 +129,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Righthand side of equals requires UNPACKED array support: <";
 	    msg << m_nodeRight->getName();
-	    msg << ">, type: " << m_state.getUlamTypeNameByIndex(rt).c_str();
+	    msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	rtnOK = false;

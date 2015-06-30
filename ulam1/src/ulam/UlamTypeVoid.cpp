@@ -102,13 +102,9 @@ namespace MFM {
       case Int:
       case Bool:
       case Bits:
-	brtn = true; //anything to void ok
-	break;
       case UAtom:
-	brtn = false; //?
-	break;
       case Class:
-	brtn = (vut->getUlamClass() == UC_QUARK && m_state.quarkHasAToIntMethod(typidx));
+	brtn = true; //anything casts to void ok
 	break;
       default:
 	assert(0);

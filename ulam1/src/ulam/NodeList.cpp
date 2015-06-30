@@ -121,8 +121,8 @@ namespace MFM{
 	    std::ostringstream msg;
 	    msg << "Function Definition parameter ";
 	    msg << i+1 << ", type: ";
-	    msg << m_state.getUlamTypeNameByIndex(puti).c_str();
-	    msg << " (UTI" << puti << "), requires UNPACKED array support";
+	    msg << m_state.getUlamTypeNameBriefByIndex(puti).c_str();
+	    msg << " requires UNPACKED array support";
 	    MSG(m_nodes[i]->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnuti = Nav;
 	  }

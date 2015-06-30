@@ -339,7 +339,7 @@ namespace MFM {
   {
     std::ostringstream msg;
     msg << "genCodeToStoreInto called on Node type: ";
-    msg << m_state.getUlamTypeNameByIndex(getNodeType()).c_str() << ", and failed.";
+    msg << m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str() << ", and failed.";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
     assert(0);
     return;
@@ -1518,9 +1518,9 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Casting 'incomplete' types: ";
-	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << "(UTI" << nuti << ") to be ";
-	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	    msg << "(UTI" << tobeType << ") in class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -1528,8 +1528,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Cannot CAST type: " << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	    msg << " as a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    msg << "Cannot CAST " << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " as " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
@@ -1686,8 +1686,8 @@ namespace MFM {
       {
 	rtnB = true;
 	std::ostringstream msg;
-	msg << "Narrowing CAST, type: " << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-	msg << " to a " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << "Narrowing CAST: " << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	msg << " to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	msg << " may cause data loss";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }

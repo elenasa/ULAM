@@ -53,12 +53,20 @@ namespace MFM {
   // see SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
   {
+    UTI vuti = m_varSymbol->getUlamTypeIdx();
+    UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+
     fp->write(" ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(m_varSymbol->getUlamTypeIdx()).c_str()); //short type name
+    if(vut->getUlamTypeEnum() != Class)
+      fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
+    else
+      fp->write(vut->getUlamTypeNameBrief().c_str());
+
     fp->write(" ");
     fp->write(getName());
 
-    s32 arraysize = m_state.getArraySize(m_varSymbol->getUlamTypeIdx());
+    s32 arraysize = m_state.getArraySize(vuti);
     if(arraysize > NONARRAYSIZE)
       {
 	fp->write("[");
@@ -109,7 +117,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "REPLACING Symbol UTI" << it;
-		msg << ", " << m_state.getUlamTypeNameByIndex(it).c_str();
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 		msg << " used with variable symbol name '" << getName();
 		msg << "' with node type descriptor type: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
@@ -126,7 +134,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << " used with variable symbol name '" << getName();
 	    msg << "' UTI" << it << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -140,9 +148,9 @@ namespace MFM {
       {
 	//void only valid use is as a func return type
 	std::ostringstream msg;
-	msg << "Invalid use of type: ";
-	msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	msg << " used with variable symbol name '" << getName() << "'";
+	msg << "Invalid use of type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	msg << " with variable symbol name '" << getName() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
@@ -211,9 +219,9 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
 	    msg << " for incomplete Variable Decl for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << " used with variable symbol name '" << getName();
 	    msg << "' (UTI" << it << ") while bit packing class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -225,10 +233,10 @@ namespace MFM {
 	if(!m_state.isComplete(it)) //reloads
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Variable Decl for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	    msg << "Incomplete type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << " used with variable symbol name '" << getName();
-	    msg << "' (UTI" << it << ") while bit packing class: ";
+	    msg << "' found while bit packing class ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
@@ -239,7 +247,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Data member <" << getName() << "> of type: ";
-	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
 	msg << " MUST fit into " << MAXBITSPERLONG << " bits;";
 	msg << " Local variables do not have this restriction";
@@ -250,7 +258,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Data member <" << getName() << "> of type: ";
-	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	msg << ", total size: " << (s32) m_state.getTotalBitSize(it);
 	msg << " MUST fit into " << MAXBITSPERINT << " bits;";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

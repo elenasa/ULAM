@@ -71,7 +71,7 @@ namespace MFM {
 	// doesn't complete checkandlabel for rhs (e.g. funccall is NULL, no eval)
 	std::ostringstream msg;
 	msg << "Member selected must be either a quark or an element, not type: ";
-	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	if(luti == UAtom)
 	  msg << "; suggest using a Conditional-As";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
