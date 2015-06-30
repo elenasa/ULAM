@@ -184,16 +184,16 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	if(UlamType::compare(puti, argTypes[i], m_state) == UTIC_NOTSAME)
+	if(UlamType::compare(puti, argTypes[i], m_state) != UTIC_SAME)
 	  {
 	    rtnBool = false;
 	    break;
 	  }
       } //next param
     return rtnBool;
-  } //matchingTypes (strictly)
+  } //matchingTypesStrictly
 
-  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg)
+  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs)
   {
     u32 numArgs = argTypes.size();
     u32 numParams = m_parameterSymbols.size();
@@ -208,26 +208,35 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	if(UlamType::compare(puti, argTypes[i], m_state) == UTIC_NOTSAME)
+	// if(UlamType::compare(puti, argTypes[i], m_state) == UTIC_NOTSAME) //same|not ready
+	if(UlamType::compare(puti, argTypes[i], m_state) != UTIC_SAME) //not same|not ready
 	  {
 	    if(constantArg[i])
 	      {
 		assert(constantArg[i]->isAConstant());
 		//constants can match any bit size, that it fits
-		if(constantArg[i]->safeToCastTo(puti) == CAST_BAD)
+		FORECAST scr = constantArg[i]->safeToCastTo(puti);
+		if( scr == CAST_BAD)
 		  {
 		    rtnBool = false;
 		    break;
 		  }
+		else if(scr == CAST_HAZY)
+		  hasHazyArgs = true;
+		//else CAST_CLEAR
 	      } //constantarg
 	    else
 	      {
-		//willing to cast argType safely TO puti
-		if(m_state.getUlamTypeByIndex(puti)->safeCast(argTypes[i]) == CAST_BAD)
+		//willing to cast argType safely TO puti; incomplete types are hazy.
+		FORECAST scr = m_state.getUlamTypeByIndex(puti)->safeCast(argTypes[i]);
+		if( scr == CAST_BAD)
 		  {
 		    rtnBool = false;
 		    break;
 		  }
+		else if(scr == CAST_HAZY)
+		  hasHazyArgs = true;
+		//else CAST_CLEAR
 	      }
 	  }
       } //next param
