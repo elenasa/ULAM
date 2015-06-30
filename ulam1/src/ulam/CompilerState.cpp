@@ -1104,8 +1104,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Class without parameters already exists with the same name: ";
-	msg << m_pool.getDataAsString(symptr->getId()).c_str() << " <UTI";
-	msg << symptr->getUlamTypeIdx() << ">";
+	msg << m_pool.getDataAsString(symptr->getId()).c_str();
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR); //parsing
       }
     return (rtnb && symptr->isClassTemplate());
@@ -1158,7 +1157,7 @@ namespace MFM {
   void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
-    assert(!alreadyDefinedSymbolClassName(dataindex,symptr));
+    assert(symptr == NULL && !alreadyDefinedSymbolClassName(dataindex,symptr));
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
@@ -1183,7 +1182,7 @@ namespace MFM {
   void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
-    assert(!alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
+    assert(symptr == NULL && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class); //**gets next unknown uti type
