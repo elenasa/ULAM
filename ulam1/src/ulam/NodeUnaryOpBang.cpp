@@ -33,43 +33,45 @@ namespace MFM {
     return methodname.str();
   } //methodNameForCodeGen
 
-  UTI NodeUnaryOpBang::checkAndLabelType()
+  UTI NodeUnaryOpBang::calcNodeType(UTI uti)
   {
-    assert(m_node);
-    UTI ut = m_node->checkAndLabelType();
-    UTI newType = ut;         // init to stay the same
-
-    if(newType != Nav && m_state.isComplete(newType))
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
+    if(typEnum == Bits)
       {
-	if(!m_state.isScalar(ut)) //array unsupported at this time
-	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(ut).c_str();
-	    msg << " for unary operator" << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
-	  }
-	else
-	  {
-	    ULAMTYPE eut = m_state.getUlamTypeByIndex(ut)->getUlamTypeEnum();
-	    if(eut != Bool)
-	      {
-		newType = Bool;
-		//m_node = makeCastingNode(m_node, newType);  //insert node/s
-		if(!makeCastingNode(m_node, newType, m_node))  //insert node/s
-		  newType = Nav;
-	      }
-	  }
+	std::ostringstream msg;
+	msg << "Incompatible Bits type for unary operator";
+	msg << getName() << ". Suggest casting to a Bool first";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav;
       }
-    setNodeType(newType);
-    setStoreIntoAble(false);
 
-    if(newType != Nav && isAConstant() && m_node->isReadyConstant())
-      return constantFold();
+    if(!NodeUnaryOp::checkForPrimitiveType(uti))
+      return Nav;
+
+    UTI newType = Nav;
+    s32 newbs = (typEnum == Bool ? m_state.getBitSize(uti) : 1);
+    FORECAST scr = m_state.getUlamTypeByIndex(Bool)->safeCast(uti);
+    if(scr != CAST_CLEAR)
+      {
+	std::ostringstream msg;
+	msg << "Bool is the supported type for logical unary operator";
+	msg << getName() << "; Suggest casting ";
+	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	msg << " to Bool";
+	if(scr == CAST_HAZY)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+    else
+      {
+	// safe to cast. use a bool bitsize.
+	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bool"), newbs);
+	newType = m_state.makeUlamType(newkey, Bool);
+      }
 
     return newType;
-  } //checkAndLabelType
+  } //calcNodeType
 
   UlamValue NodeUnaryOpBang::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {
