@@ -43,7 +43,7 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeNameBrief()
   {
-    return m_key.getUlamKeyTypeSignatureNameAndBitSize(&m_state);
+    return m_key.getUlamKeyTypeSignatureNameAndSize(&m_state);
   }
 
   const std::string UlamType::getUlamTypeNameOnly()
@@ -80,16 +80,13 @@ namespace MFM {
   FORECAST UlamType::safeCast(UTI typidx)
   {
     // initial tests for completeness and scalars
-    s32 bitsize = getBitSize();
-    s32 valbitsize = m_state.getBitSize(typidx);
-
     if(!isComplete() || !m_state.isComplete(typidx))
       {
 	std::ostringstream msg;
-	msg << "Casting UNKNOWN sizes; " << bitsize;
-	msg << ", Value Type and size was: " << typidx << "," << valbitsize;
+	msg << "Casting UNKNOWN sizes; " << getBitSize();
+	msg << ", Value Type and size was: " << typidx << "," << m_state.getBitSize(typidx);
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	return CAST_HAZY;
+	return CAST_HAZY;  //includes Navs
       }
 
     //let packable arrays of same size pass...
@@ -104,16 +101,16 @@ namespace MFM {
   bool UlamType::checkArrayCast(UTI typidx)
   {
     if(isScalar() && m_state.isScalar(typidx))
-      return true;
+      return true; //not arrays, ok
 
     bool bOK = true;
     if(getPackable() != PACKEDLOADABLE || m_state.determinePackable(typidx) != PACKEDLOADABLE)
       {
 	std::ostringstream msg;
 	msg << "Casting requires UNPACKED array support: ";
-	msg << m_state.getUlamTypeNameByIndex(typidx).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
 	msg << " TO " ;
-	msg << getUlamTypeName().c_str();
+	msg << getUlamTypeNameBrief().c_str();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 
 	bOK = false;
@@ -125,18 +122,20 @@ namespace MFM {
 	if(arraysize != varraysize)
 	  {
 	    std::ostringstream msg;
-	    msg << "Casting different Array sizes: " << arraysize;
-	    msg << ", Value Type and size was: ";
-	    msg << typidx << "," << varraysize;
+	    msg << "Casting different Array sizes: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	    msg << " TO " ;
+	    msg << getUlamTypeNameBrief().c_str();
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    bOK = false;
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Casting nonScalar Array size: " << arraysize;
-	    msg << ", Value Type and size was: ";
-	    msg << typidx << "," << varraysize;
+	    msg << "Casting (nonScalar) Array: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	    msg << " TO " ;
+	    msg << getUlamTypeNameBrief().c_str();
 	    MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	  }
       }

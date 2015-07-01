@@ -161,7 +161,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incomplete Function Return type: ";
-	msg << m_state.getUlamTypeNameByIndex(it).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	msg << " used with function name '" << getName();
 	msg << "' UTI" << it << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -192,8 +192,8 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Function Definition <" << getName();
 	    msg << "> return type: ";
-	    msg << m_state.getUlamTypeNameByIndex(it).c_str();
-	    msg << " (UTI" << it << "), requires UNPACKED array support";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << " requires UNPACKED array support";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    it = Nav;
 	  }

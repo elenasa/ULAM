@@ -44,8 +44,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Invalid type for LHS of conditional operator '" << getName();
-	msg << "'; must be an atom, or element, not type: ";
-	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
+	msg << "'; must be an atom or element, not type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	if(lclasstype == UC_UNSEEN)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -134,14 +134,16 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Invalid type for LHS of conditional operator '" << getName();
-		msg << "'; Class Not Found: "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+		msg << "'; Class ";
+		msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+		msg << " Not Found during eval";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	    else
 	      {
 		std::ostringstream msg;
 		msg << "Invalid type for LHS of conditional operator '" << getName();
-		msg <<  "', "  << m_state.getUlamTypeNameByIndex(luti).c_str();
+		msg <<  "', "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 		msg << "; Passing through as UNFOUND for eval";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }

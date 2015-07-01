@@ -6,9 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./Tu.ulam:4:20: ERROR: (2) <self> is not defined, and cannot be used with class: Tu.
-      // ./Tu.ulam:4:12: ERROR: Constant value expression for: aep, is invalid.
-
+      // ./Tu.ulam:4:12: ERROR: Constant value expression for: aep, is not a constant.
       return std::string("Ue_Tu { }");
     }
 

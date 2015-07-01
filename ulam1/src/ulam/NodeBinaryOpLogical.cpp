@@ -55,7 +55,6 @@ namespace MFM {
 
   bool NodeBinaryOpLogical::checkNonBoolToBoolCastAndMaxsize(UTI uti, s32& maxbitsize)
   {
-    //if((ut->getUlamTypeEnum() == Bool) || (m_state.getUlamTypeByIndex(Bool)->safeCast(uti) == CAST_CLEAR))
     if(m_state.getUlamTypeByIndex(Bool)->safeCast(uti) == CAST_CLEAR)
       {
 	s32 bs = m_state.getBitSize(uti);

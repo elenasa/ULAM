@@ -41,71 +41,42 @@ namespace MFM {
 	return Nav;
 
     UTI newType = Nav;  //init
-    ULAMTYPECOMPARERESULTS uticr = UlamType::compare(lt, rt, m_state);
-    if(uticr == UTIC_DONTKNOW)
-      {
-	std::ostringstream msg;
-	msg << "Calculating 'incomplete' bitwise node types: ";
-	msg << m_state.getUlamTypeNameByIndex(lt).c_str() << " and ";
-	msg << m_state.getUlamTypeNameByIndex(rt).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	return Nav;
-      }
-
-    if(uticr == UTIC_SAME)
-      {
-	ULAMTYPE etyp = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-	if(etyp == Bits)
-	  return lt; //includes array of bits
-      }
-
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
-	FORECAST scr = CAST_CLEAR; //avoid error msg if const not ready
-
+	bool bOK = true;
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
-
-	//auto cast when both Bits
-	if(ltypEnum == Bits && rtypEnum == Bits)
-	  {
-	    s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
-	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
-	    newType = m_state.makeUlamType(newkey, Bits);
-	  }
-	else if(m_nodeRight->isAConstant() && ltypEnum == Bits)
-	  {
-	    //only right can be a constant;  constant fold later.
-	    newType = lt;
-
-	    scr = m_nodeRight->safeToCastTo(newType);
-
-	    if(scr != CAST_CLEAR)
-	      {
-		std::ostringstream msg;
-		msg << "Constant <";
-		msg << m_nodeRight->getName();
-		msg <<  "> is not representable as: ";
-		msg<< m_state.getUlamTypeNameByIndex(newType).c_str();
-		msg << ", for binary operator" << getName() << " ";
-		if(scr == CAST_BAD)
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		else //hazy
-		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		newType = Nav;
-	      }
-	  }
-
-	if(newType == Nav && !(ltypEnum == Bits && rtypEnum == Bits))
+	if(ltypEnum != Bits)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bits is the supported type for bitwise operator";
+	    msg << "Bits is the supported type for bitwise operator"; //equal
 	    msg << getName();
-	    if(scr == CAST_HAZY)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    bOK = false;
 	  }
+
+	s32 lbs = m_state.getBitSize(lt);
+	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
+	newType = m_state.makeUlamType(newkey, Bits);
+
+	FORECAST rscr = m_nodeRight->safeToCastTo(newType);
+	if(rscr != CAST_CLEAR)
+	  {
+	    std::ostringstream msg;
+	    msg << "RHS type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	    msg << " is not representable as ";
+	    msg<< m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	    msg << ". Bits is the supported type for bitwise operator";
+	    msg << getName();
+	    if(rscr == CAST_BAD)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    else //hazy
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    bOK = false;
+	  }
+
+	if(!bOK)
+	  newType = Nav;
       } //both scalars
     return newType;
   } //calcNodeType
