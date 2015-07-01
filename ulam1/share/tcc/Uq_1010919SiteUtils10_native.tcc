@@ -3,11 +3,11 @@
 namespace MFM{
 
   template<class EC, u32 POS>
-  Ui_Ut_102321u Uq_1010919SiteUtils10<EC, POS>::Uf_8getTouch(UlamContext<EC>& uc, T& Uv_4self)
+  Ui_Ut_10121u Uq_1010919SiteUtils10<EC, POS>::Uf_8getTouch(UlamContext<EC>& uc, T& Uv_4self)
   {
     typedef typename EC::ATOM_CONFIG AC;
     const Site<AC> & site = uc.GetSite();
-    return Ui_Ut_102321u(site.RecentTouch());
+    return Ui_Ut_10121u(site.RecentTouch());
 
   }
 
@@ -56,6 +56,34 @@ namespace MFM{
     return Uv_6newVal;
 
   }
+
+  template<class EC, u32 POS>
+  Ui_Ut_102961a<EC> Uq_1010919SiteUtils10<EC, POS>::Uf_7getBase(UlamContext<EC>& uc, T& Uv_4self)
+  {
+    typedef typename EC::ATOM_CONFIG AC;
+
+    EventWindow<EC> & ew = uc.GetEventWindow();
+    Base<AC> & base = ew.GetBase();
+
+    const T atom = base.GetBaseAtom();
+    const Ui_Ut_102961a<EC> tmp(atom);
+    return tmp;
+
+  } // Uf_7getBase
+
+  template<class EC, u32 POS>
+  void Uq_1010919SiteUtils10<EC, POS>::Uf_7setBase(UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_1a)
+  {
+    typedef typename EC::ATOM_CONFIG AC;
+
+    EventWindow<EC> & ew = uc.GetEventWindow();
+    Base<AC> & base = ew.GetBase();
+
+    const T atom = Uv_1a.read();
+
+    base.PutBaseAtom(atom);
+
+  } // Uf_7setBase
 
 
 } //MFM
