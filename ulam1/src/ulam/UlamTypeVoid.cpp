@@ -75,6 +75,8 @@ namespace MFM {
       case Unary:
       case Bool:
       case Bits:
+      case UAtom:
+      case Class:
 	val = UlamValue::makeImmediate(typidx, 0, m_state); //overwrite val, no data
 	break;
       default:

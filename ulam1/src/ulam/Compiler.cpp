@@ -206,7 +206,7 @@ namespace MFM {
 	assert(m_state.goAgain() || errCnt > 0); //sanity check; ran out of iterations
 
 	std::ostringstream msg;
-	msg << navcount << " Nodes with illegal types detected after type labeling class: ";
+	msg << navcount << " Nodes with unresolved types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }

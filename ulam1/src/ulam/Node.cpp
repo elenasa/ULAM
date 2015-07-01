@@ -172,7 +172,21 @@ namespace MFM {
   void Node::countNavNodes(u32& cnt)
   {
     if(getNodeType() == Nav)
-      cnt += 1;
+      {
+	cnt += 1;
+	std::ostringstream msg;
+	msg << "Unresolved No. " << cnt;
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+#if 0
+    //debugg only
+    if(m_loc.getLineNo() == 0)
+      {
+	std::ostringstream msg;
+	msg << prettyNodeName().c_str() << " has NO LOC!!";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+#endif
   }
 
   UTI Node::constantFold()
