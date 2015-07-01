@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //Foo.ulam:1:121: (NodeFunctionCall.cpp:evalToStoreInto:269) ERROR: Use of function calls as lefthand values is not currently supported. Save the results of <func> to a variable, type: C2D.
+      //./Foo.ulam:11:20: ERROR: Member selected must be a valid lefthand side, type: C2Dfunc requires a variable; may be a casted function call.
       return std::string("Exit status: -1\n");
     }
 
@@ -14,9 +14,9 @@ namespace MFM {
     {
       //member selection with a function call must be first saved to a
       //variable since we results are returned-by-value (see t3188)
-      bool rtn1 = fms->add("Foo.ulam","ulam 1; use C2D; element Foo { Int m_idx; C2D func(Int i, Int j) { C2D c; c.init(i,j); return c; } Int test() { m_idx = func(9,4).getIndex(0,0);  return m_idx; } }\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n use C2D;\n element Foo {\n Int m_idx;\n C2D func(Int i, Int j) {\n C2D c;\n c.init(i,j);\n return c;\n }\n Int test() {\n m_idx = func(9,4).getIndex(0,0);\n  return m_idx;\n }\n }\n");
 
-      bool rtn2 = fms->add("C2D.ulam","quark C2D { Int(4) m_width; Int(4) m_height;  Void init(Int x, Int y) { m_width = x; m_height = y; return; } Void init() { m_width = 9; m_height = 4; return; /* event window overload */ } Int getIndex(Int a, Int b){return ((m_height-b) * m_width + (m_height-a)); } }\n");
+      bool rtn2 = fms->add("C2D.ulam","quark C2D {\n typedef Int(4) IF;\n IF m_width, m_height;\n  Void init(Int x, Int y) {\n m_width = (IF) x;\n m_height = (IF) y;\n return;\n }\n Void init() {\n m_width = IF.maxof;\n m_height = 4;\n return;\n /* event window overload */ }\n Int getIndex(Int a, Int b){\n return ((m_height-b) * m_width + (m_height-a));\n }\n }\n");
 
 
       if(rtn1 & rtn2)

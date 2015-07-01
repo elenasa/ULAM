@@ -124,7 +124,8 @@ namespace MFM {
     else if(tobeType == Nav)
       {
 	std::ostringstream msg;
-	msg << "Cannot cast to type: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << "Cannot cast " << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	msg << " to not-a-valid type";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	errorsFound++;
       }
@@ -135,21 +136,21 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Cannot cast ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
-	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	    msg << " to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
 	  }
       }
     else if(isExplicitCast())
       {
-	FORECAST castlight = tobe->explicitlyCastable(nodeType);
-	if(castlight != CAST_CLEAR)
+	FORECAST scr = tobe->explicitlyCastable(nodeType);
+	if(scr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
 	    msg << "Cannot explicitly cast ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
-	    if(castlight == CAST_HAZY)
+	    if(scr == CAST_HAZY)
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -210,9 +211,9 @@ namespace MFM {
 	    if(nodeClass == UC_UNSEEN)
 	      {
 		std::ostringstream msg;
-		msg << "Cannot cast type: ";
-		msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-		msg << " to: " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+		msg << "Cannot cast unseen class ";
+		msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+		msg << " to " << m_state.getUlamTypeNameByIndex(tobeType).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorsFound++;
 	      }
@@ -260,10 +261,10 @@ namespace MFM {
 	if(!m_state.isScalar(nodeType))
 	  {
 	    std::ostringstream msg;
-	    msg << "Cannot cast an array: ";
-	    msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
-	    msg << " to a scalar type: " ;
-	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    msg << "Cannot cast an array ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	    msg << " to a scalar type " ;
+	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
@@ -272,7 +273,8 @@ namespace MFM {
 	//both arrays the same dimensions
 	if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
 	  {
-	    MSG(getNodeLocationAsString().c_str(), "Considering implementing array casts!!!", ERR);
+	    MSG(getNodeLocationAsString().c_str(),
+		"Considering implementing array casts!!!", ERR);
 	  }
       }
 
@@ -283,10 +285,10 @@ namespace MFM {
 	if(!(m_state.getUlamTypeByIndex(tobeType)->cast(uv, tobeType)))
 	  {
 	    std::ostringstream msg;
-	    msg << "Cast problem! Value type: ";
-	    msg << m_state.getUlamTypeNameByIndex(uv.getUlamValueTypeIdx()).c_str();
-	    msg << " failed to be cast as type: ";
-	    msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	    msg << "Cast problem during eval! Value type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(uv.getUlamValueTypeIdx()).c_str();
+	    msg << " failed to be cast as ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    evalNodeEpilog();
 	    return ERROR;
@@ -546,11 +548,10 @@ namespace MFM {
 	  {
 	    //e.g. a quark here would be wrong
 	    std::ostringstream msg;
-	    msg << "Casting 'incomplete' types: ";
-	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	    msg << "(UTI" << nuti << ") to be ";
-	    msg << m_state.getUlamTypeNameByIndex(vuti).c_str();
-	    msg << "(UTI" << vuti << ")";
+	    msg << "Casting 'incomplete' types ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " to be ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    assert(0);//return;
 	  }
@@ -620,9 +621,9 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Casting 'incomplete' types: ";
-	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	msg << "(UTI" << nodeType << ") to be ";
-	msg << m_state.getUlamTypeNameByIndex(tobeType).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	msg << "(UTI" << tobeType << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;

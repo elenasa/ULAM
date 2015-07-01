@@ -36,7 +36,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incompatible (nonscalar) type: ";
-	    msg << m_state.getUlamTypeNameByIndex(ut).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(ut).c_str();
 	    msg << " for unary operator" << getName();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav;
@@ -55,8 +55,8 @@ namespace MFM {
 	    else if(eut == Bits)
 	      {
 		std::ostringstream msg;
-		msg << "Unary operator" << getName() << " applied to type: ";
-		msg << m_state.getUlamTypeNameByIndex(ut).c_str() << " is not defined";
+		msg << "Unary operator" << getName() << " applied to type ";
+		msg << m_state.getUlamTypeNameBriefByIndex(ut).c_str() << " is not defined";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		newType = Nav;
 	      }

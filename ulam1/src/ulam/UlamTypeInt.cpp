@@ -264,12 +264,14 @@ namespace MFM {
     ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
     switch(valtypEnum)
       {
+      case Int:
+	brtn = (bitsize >= valbitsize);
+	break;
       case Unsigned:
 	brtn = (bitsize > valbitsize);
 	break;
       case Unary:
-      case Int:
-	brtn = (bitsize >= valbitsize);
+	brtn = (bitsize > (s32) _getLogBase2(valbitsize) + 1);
 	break;
       case Bool:
       case Bits:
@@ -294,6 +296,8 @@ namespace MFM {
 		  brtn = false;
 		}
 	    }
+	  else
+	    brtn = false;
 	}
 	break;
       default:

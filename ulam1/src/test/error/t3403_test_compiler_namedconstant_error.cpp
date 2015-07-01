@@ -11,7 +11,7 @@ namespace MFM {
        */
       //different casts since Constants have explicit types
       // constant fold: j 1 7 +b =, 1 6u cast +b
-      //./A.ulam:7:10: Warning: Attempting to fit named constant's value (cOW = 7) into a smaller bit size type: Int(3).
+      //./A.ulam:7:10: ERROR: Named constant's value (cOW = 7) is not representable as: Int(3).
       return std::string("Exit status: 4\nUe_A { Int(32) j(4);  System s();  Int(32) test() {  3 = cOW const j 4 = s ( j )print . j return } }\nUq_System { <NOMAIN> }\nUq_B { typedef Int(3) Bar[2];  Int(3) j[2](0,0);  <NOMAIN> }\n");
     }
 

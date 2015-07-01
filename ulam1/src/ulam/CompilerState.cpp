@@ -114,7 +114,7 @@ namespace MFM {
   UTI CompilerState::makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti)
   {
     //we need to keep the uti, but change the key
-    UlamKeyTypeSignature hkey = getUlamTypeByIndex(uti)->getUlamKeyTypeSignature();
+    UlamKeyTypeSignature hkey = getUlamKeyTypeSignatureByIndex(uti);
     return makeUlamTypeFromHolder(hkey, newkey, utype, uti);
   } //makeUlamTypeFromHolder
 
@@ -252,8 +252,7 @@ namespace MFM {
 		    //if this classInstanceIdx (suti) is a template with parameters
 		    //then make a new uti; o.w. no need for a new uti, it's defined.
 		    SymbolClassName * cnsym = NULL;
-		    UlamType * sut = getUlamTypeByIndex(suti);
-		    assert(alreadyDefinedSymbolClassName(sut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym));
+		    assert(alreadyDefinedSymbolClassName(getUlamKeyTypeSignatureByIndex(suti).getUlamKeyTypeSignatureNameId(), cnsym));
 		    if(cnsym->isClassTemplate())
 		      key.append(uti);
 		    else
@@ -445,7 +444,7 @@ namespace MFM {
     ULAMTYPE bUT = aut->getUlamTypeEnum();
     if(bUT == Class)
       {
-	UlamKeyTypeSignature akey = aut->getUlamKeyTypeSignature();
+	UlamKeyTypeSignature akey = getUlamKeyTypeSignatureByIndex(auti);
 	SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
 	assert(alreadyDefinedSymbolClassName(akey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete));
 	UTI utiofinc = cnsymOfIncomplete->getUlamTypeIdx();
@@ -548,6 +547,12 @@ namespace MFM {
     else
       cnsym->mapUTItoUTI(fm,to);
   } //mapTypesInCurrentClass
+
+  UlamKeyTypeSignature CompilerState::getUlamKeyTypeSignatureByIndex(UTI typidx)
+  {
+    assert(typidx < m_indexToUlamKey.size());
+    return m_indexToUlamKey[typidx];
+  }
 
   UlamType * CompilerState::getUlamTypeByIndex(UTI typidx)
   {
@@ -774,7 +779,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXSTATEBITS << ") for element ";
-	    msg << ut->getUlamTypeName().c_str() << " with " << total << " bits";
+	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -786,7 +791,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Trying to exceed allotted bit size (" << MAXBITSPERQUARK << ") for quark ";
-	    msg << ut->getUlamTypeName().c_str() << " with " << total << " bits";
+	    msg << ut->getUlamTypeNameBrief().c_str() << " with " << total << " bits";
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -829,11 +834,8 @@ namespace MFM {
 
   void CompilerState::mergeClassUTI(UTI olduti, UTI cuti)
   {
-    UlamType * ut1 = getUlamTypeByIndex(olduti);
-    UlamType * ut2 = getUlamTypeByIndex(cuti);
-    assert(ut1 && ut2);
-    UlamKeyTypeSignature key1 = ut1->getUlamKeyTypeSignature();
-    UlamKeyTypeSignature key2 = ut2->getUlamKeyTypeSignature();
+    UlamKeyTypeSignature key1 = getUlamKeyTypeSignatureByIndex(olduti);
+    UlamKeyTypeSignature key2 = getUlamKeyTypeSignatureByIndex(cuti);
 
     //bitsize of old could still be "unknown" (before size set, but args known and match 'cuti').
     assert(key1.getUlamKeyTypeSignatureNameId() == key2.getUlamKeyTypeSignatureNameId());
@@ -845,7 +847,7 @@ namespace MFM {
     {
       std::ostringstream msg;
       msg << "MERGED keys for duplicate Class (UTI" << olduti << ") WITH: ";
-      msg << ut2->getUlamTypeName().c_str() << " (UTI" << cuti << ")";
+      msg << getUlamTypeNameBriefByIndex(cuti).c_str() << " (UTI" << cuti << ")";
       MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
     }
   } //mergeClassUTI
@@ -956,7 +958,7 @@ namespace MFM {
 	    // if real name exists, we can't do the update; instead..
 	    if(alreadyDefinedSymbolClassName(cname, cnsym))
 	      {
-		UlamKeyTypeSignature idkey = getUlamTypeByIndex(cuti)->getUlamKeyTypeSignature();
+		UlamKeyTypeSignature idkey = getUlamKeyTypeSignatureByIndex(cuti);
 		UlamKeyTypeSignature newkey(cname, getBitSize(cuti), getArraySize(cuti), cuti);
 		//change the key id only
 		makeUlamTypeFromHolder(idkey, newkey, Class, cuti);
@@ -975,7 +977,7 @@ namespace MFM {
 	    // if real name exists, we can update the cuti (Holder) to it
 	    if(alreadyDefinedSymbolClassName(cname, cnsym))
 	      {
-		UlamKeyTypeSignature cnkey = getUlamTypeByIndex(cnsym->getUlamTypeIdx())->getUlamKeyTypeSignature();
+		UlamKeyTypeSignature cnkey = getUlamKeyTypeSignatureByIndex(cnsym->getUlamTypeIdx());
 		//change the key only, including the class idx to
 		// point to the "real" one!
 		makeUlamTypeFromHolder(cnkey, Class, cuti);
@@ -1006,8 +1008,7 @@ namespace MFM {
 	if(bUT != Void)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeName().c_str();
-	    msg << "> (UTI" << utArg << ")";
+	    msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeNameBrief().c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -1016,8 +1017,7 @@ namespace MFM {
 	  {
 	    // disallow an array of Void(0)'s
 	    std::ostringstream msg;
-	    msg << "Invalid Void type array: " << ut->getUlamTypeName().c_str();
-	    msg << "> (UTI" << utArg << ")";
+	    msg << "Invalid Void type array: " << ut->getUlamTypeNameBrief().c_str();
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -1104,8 +1104,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Class without parameters already exists with the same name: ";
-	msg << m_pool.getDataAsString(symptr->getId()).c_str() << " <UTI";
-	msg << symptr->getUlamTypeIdx() << ">";
+	msg << m_pool.getDataAsString(symptr->getId()).c_str();
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR); //parsing
       }
     return (rtnb && symptr->isClassTemplate());
@@ -1158,7 +1157,7 @@ namespace MFM {
   void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
-    assert(!alreadyDefinedSymbolClassName(dataindex,symptr));
+    assert(symptr == NULL && !alreadyDefinedSymbolClassName(dataindex,symptr));
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class);  //**gets next unknown uti type
@@ -1168,17 +1167,22 @@ namespace MFM {
     classblock->setNodeLocation(cTok.m_locator);
     classblock->setNodeType(cuti);
 
+    //avoid Invalid Read whenconstructing class' Symbol
+    pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
+
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassName(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
     m_unseenClasses.insert(symptr);
+
+    popClassContext();
   } //addIncompleteClassSymbolToProgramTable
 
   //temporary UlamType which will be updated during type labeling.
   void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
-    assert(!alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
+    assert(symptr == NULL && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
     UTI cuti = makeUlamType(key, Class); //**gets next unknown uti type
@@ -1188,10 +1192,15 @@ namespace MFM {
     classblock->setNodeLocation(cTok.m_locator);
     classblock->setNodeType(cuti);
 
+    //avoid Invalid Read whenconstructing class' Symbol
+    pushClassContext(cuti, classblock, classblock, false, NULL); //null blocks likely
+
     //symbol ownership goes to the programDefST; distinguish btn template & regular classes here:
     symptr = new SymbolClassNameTemplate(cTok, cuti, classblock, *this);
     m_programDefST.addToTable(dataindex, symptr);
     m_unseenClasses.insert(symptr);
+
+    popClassContext();
   } //addIncompleteClassSymbolToProgramTable
 
   void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)
@@ -2079,7 +2088,7 @@ namespace MFM {
     if(useMemberBlock())
       {
 	UTI mbuti = getCurrentMemberClassBlock()->getNodeType();
-	u32 mbid = getUlamTypeByIndex(mbuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+	u32 mbid = getUlamKeyTypeSignatureByIndex(mbuti).getUlamKeyTypeSignatureNameId();
 	SymbolClassName * cnsym = NULL;
 	assert(alreadyDefinedSymbolClassName(mbid, cnsym));
 	return cnsym->findNodeNoInAClassInstance(mbuti, n);
@@ -2156,7 +2165,7 @@ namespace MFM {
 
   void CompilerState::pushClassContext(UTI idx, NodeBlock * currblock, NodeBlockClass * classblock, bool usemember, NodeBlockClass * memberblock)
   {
-    u32 id = getUlamTypeByIndex(idx)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+    u32 id = getUlamKeyTypeSignatureByIndex(idx).getUlamKeyTypeSignatureNameId();
     ClassContext cc(id, idx, currblock, classblock, usemember, memberblock); //new
     m_classContextStack.pushClassContext(cc);
   }

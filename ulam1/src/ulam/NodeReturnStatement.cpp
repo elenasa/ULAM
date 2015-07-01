@@ -120,10 +120,10 @@ namespace MFM {
 		    else
 		      {
 			std::ostringstream msg;
-			msg << "Returning : ";
-			msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+			msg << "Returning ";
+			msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 			msg << " as ";
-			msg << m_state.getUlamTypeNameByIndex(m_state.m_currentFunctionReturnType).c_str();
+			msg << m_state.getUlamTypeNameBriefByIndex(m_state.m_currentFunctionReturnType).c_str();
 			msg << " requires explicit casting";
 			if(scr == CAST_CLEAR)
 			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -148,7 +148,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Function return type is still incomplete: ";
-	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	// nodeType = Nav; needed?
       }

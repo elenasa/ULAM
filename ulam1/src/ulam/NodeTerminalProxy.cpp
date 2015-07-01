@@ -79,7 +79,7 @@ namespace MFM {
   {
     if(isReadyConstant())
       return  NodeTerminal::fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
-    return CAST_HAZY; //m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+    return CAST_HAZY;
   } //safeToCastTo
 
   UTI NodeTerminalProxy::checkAndLabelType()
@@ -95,7 +95,7 @@ namespace MFM {
 	    msg << "Determined incomplete type for member '";
 	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
 	    msg << "' Proxy, as type: ";
-	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
 	else
@@ -121,7 +121,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
 	    msg << " for incomplete Proxy type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -132,7 +132,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Terminal Proxy for type: ";
-	    msg << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    msg << " of member '";
 	    msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
 	    msg << "' while labeling class: ";
@@ -271,7 +271,7 @@ namespace MFM {
     if(!m_state.isComplete(m_uti))
       {
 	std::ostringstream msg;
-	msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	msg << " is still incomplete and unknown for its '";
 	msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
 	msg << "' while compiling class: ";
@@ -285,7 +285,7 @@ namespace MFM {
 	if(!setConstantValue(m_funcTok))
 	  {
 	    std::ostringstream msg;
-	    msg << "Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    msg << " constant value for its <";
 	    msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
 	    msg << "> is still incomplete and unknown while compiling class: ";
@@ -296,7 +296,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Yippee! Proxy Type: " << m_state.getUlamTypeNameByIndex(m_uti).c_str();
+	    msg << "Yippee! Proxy Type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    msg << " (UTI" << getNodeType() << ") is KNOWN (=" << m_constant.uval;
 	    msg << ") while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();

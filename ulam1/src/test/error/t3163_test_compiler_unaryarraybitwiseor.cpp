@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./A.ulam:11:8: ERROR: Nonscalar types Bool and Unary are not currently supported for binary bitwise operator|; suggest writing a loop for: Unary(3)[2].
+      //./A.ulam:11:8: ERROR: Incompatible (nonscalar) types, LHS: Unary(3)[2], RHS: Unary(3)[2] for binary operator| ; Suggest writing a loop.
       return std::string("Ue_A { typedef Unary(3) Mu[2];  Unary(3) a[2](2,1);  Unary(3) b[2](0,2);  Unary(3) c[2](2,2);  Int(32) test() {  a 0 [] 2 cast = a 1 [] 1 cast = b 0 [] 0 cast = b 1 [] 2 cast = c a b | = c 0 [] cast return } }\nExit status: 2");
     }
 

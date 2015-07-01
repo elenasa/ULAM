@@ -45,7 +45,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Invalid type for LHS of conditional operator '" << getName();
 	msg << "'; must be an atom, element or quark, not type: ";
-	msg << m_state.getUlamTypeNameByIndex(luti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	if(lclasstype == UC_UNSEEN)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -75,7 +75,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "RHS of conditional operator '" << getName() << "' type: ";
-	msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 	msg << "; is still incomplete while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

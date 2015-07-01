@@ -66,6 +66,7 @@ namespace MFM{
     UTI getUlamKeyTypeSignatureClassInstanceIdx();
 
     const std::string getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state);
+    const std::string getUlamKeyTypeSignatureNameAndSize(CompilerState * state);
 
     const std::string getUlamKeyTypeSignatureAsString(CompilerState * state);
     static const std::string getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState * state);

@@ -116,7 +116,6 @@ namespace MFM {
   FORECAST NodeBinaryOp::safeToCastTo(UTI newType)
   {
     //ulamtype checks for complete, non array, and type specific rules
-    //newtype->safeCast(fromtype)
     return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
   } //safeToCastTo
 
@@ -249,8 +248,8 @@ namespace MFM {
 	//array op scalar: defer since the question of matrix operations is unclear.
 	std::ostringstream msg;
 	msg << "Incompatible (nonscalar) types, LHS: ";
-	msg << m_state.getUlamTypeNameByIndex(lt).c_str();
-	msg << ", RHS: " << m_state.getUlamTypeNameByIndex(rt).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << ", RHS: " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	msg << " for binary operator";
 	msg << getName() << " ; Suggest writing a loop";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
