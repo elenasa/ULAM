@@ -123,9 +123,9 @@ namespace MFM {
 	  }
 
 	// still need to pinpoint the SymbolFunction for m_funcSymbol!
-	// currently requires exact match
-	// (let constant match any size of same type)
-	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol);
+	// exact match if possible; o.w. allow safe casts to find matches
+	bool hasHazyArgs = false;
+	u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol, hasHazyArgs);
 	if(numFuncs == 0)
 	  {
 	    std::ostringstream msg;
@@ -137,10 +137,13 @@ namespace MFM {
 	    msg << ": ";
 	    for(u32 i = 0; i < argTypes.size(); i++)
 	      {
-		msg << m_state.getUlamTypeNameByIndex(argTypes[i]).c_str() << ", ";
+		msg << m_state.getUlamTypeNameBriefByIndex(argTypes[i]).c_str() << ", ";
 	      }
 	    msg << "and cannot be called";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(hasHazyArgs)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    numErrorsFound++;
 	  }
 	else if(numFuncs > 1)
@@ -152,7 +155,10 @@ namespace MFM {
 	    if(numargs != 1)
 	      msg << "s";
 	    msg << "; Explicit casting required";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(hasHazyArgs)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    numErrorsFound++;
 	  }
       }

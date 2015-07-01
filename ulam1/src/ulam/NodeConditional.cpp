@@ -70,7 +70,7 @@ namespace MFM {
     fp->write(id);
 
     //fp->write(m_typeTok.getTokenString());
-    fp->write(m_state.getUlamTypeByIndex(ruti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str());
+    fp->write(m_state.getUlamKeyTypeSignatureByIndex(ruti).getUlamKeyTypeSignatureName(&m_state).c_str());
     fp->write("\n");
   } //print
 

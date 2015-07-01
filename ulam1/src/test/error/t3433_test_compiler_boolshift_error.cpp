@@ -7,9 +7,9 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	./A.ulam:5:8: ERROR: Bits is the supported type for bitwise shift operator<<; Suggest casting Bool(3) to Bits(3).
-	./A.ulam:6:8: ERROR: Bits is the supported type for bitwise shift operator>>; Suggest casting Bool(3) to Bits(3).
-	./A.ulam:7:8: ERROR: Bits is the supported type for bitwise shift operator<<; Suggest casting Bool(3) to Bits(3).
+	./A.ulam:5:4: ERROR: Converting Bits(3) to Bool(3) requires explicit casting for operator=.
+	./A.ulam:6:4: ERROR: Converting Bits(3) to Bool(3) requires explicit casting for operator=.
+	./A.ulam:7:4: ERROR: Converting Bits(3) to Bool(3) requires explicit casting for operator=.
       */
       return std::string("Exit status: -1\n");
     }

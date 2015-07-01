@@ -23,60 +23,67 @@ namespace MFM {
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureName(CompilerState * state)
   {
     return state->m_pool.getDataAsString(m_typeNameId);
-    //return m_typeName;
   }
-
 
   u32 UlamKeyTypeSignature::getUlamKeyTypeSignatureNameId()
   {
     return m_typeNameId;
   }
 
-
   s32 UlamKeyTypeSignature::getUlamKeyTypeSignatureBitSize()
   {
     return m_bits;
   }
-
 
   s32 UlamKeyTypeSignature::getUlamKeyTypeSignatureArraySize()
   {
     return m_arraySize;
   }
 
-
   UTI UlamKeyTypeSignature::getUlamKeyTypeSignatureClassInstanceIdx()
   {
     return m_classInstanceIdx;
   }
 
-
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state)
   {
     std::ostringstream key;
     key << getUlamKeyTypeSignatureName(state);
-    if(m_bits >= 0)
+    if(m_bits > 0)
       key << "(" << m_bits << ")";
     else if(m_bits == UNKNOWNSIZE)
       key << "(" << "UNKNOWN" << ")";
     else if(m_bits == CYCLEFLAG)
       key << "(" << "CYCLE" << ")";
-    else
-      key << "(" << m_bits << "?)";
+    //else
+    //  key << "(" << m_bits << "?)";
+
     return key.str();
   } //getUlamKeyTypeSignatureNameAndBitSize
 
+  const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureNameAndSize(CompilerState * state)
+  {
+    std::ostringstream key;
+    key << getUlamKeyTypeSignatureNameAndBitSize(state);
+    //arraysize
+    if(m_arraySize >= 0)
+      key << "[" << m_arraySize << "]";
+    else if(m_arraySize == UNKNOWNSIZE)
+      key << "[" << "UNKNOWN" << "]";
+    else if(m_arraySize != NONARRAYSIZE)
+      key << "[" << m_arraySize << "?]";
+
+    return key.str();
+  } //getUlamKeyTypeSignatureNameAndBitSize
 
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(CompilerState * state)
   {
     return UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(*this, state);
   }
 
-
   const std::string UlamKeyTypeSignature::getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState* state)
   {
     std::ostringstream key;
-    //key << utk.getUlamKeyTypeSignatureName(state) << "." << utk.m_bits << "." << utk.m_arraySize;
     key << utk.getUlamKeyTypeSignatureName(state);
     if(utk.m_bits >= 0)
       key << "(" << utk.m_bits << ")";
@@ -102,7 +109,6 @@ namespace MFM {
     return key.str();
   } //getUlamKeyTypeSignatureAsString
 
-
   bool UlamKeyTypeSignature::operator<(const UlamKeyTypeSignature & key2)
   {
     if(m_typeNameId < key2.m_typeNameId) return true;  //?
@@ -117,7 +123,6 @@ namespace MFM {
     if(m_classInstanceIdx > key2.m_classInstanceIdx) return false;
     return false;
   }
-
 
   bool UlamKeyTypeSignature::operator==(const UlamKeyTypeSignature & key2)
   {

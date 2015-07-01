@@ -34,8 +34,6 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Non-scalars require a loop for operator" << getName();
-	msg << " on LHS: <" << m_nodeLeft->getName() << ">, type: ";
-	msg << m_state.getUlamTypeNameByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	nodeType = Nav;
       }

@@ -136,8 +136,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not a constant, type: <";
-	    msg << m_state.getUlamTypeNameByIndex(it) << ">";
+	    msg << ", is not a constant";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
@@ -188,7 +187,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Incomplete " << prettyNodeName().c_str() << " for type: ";
-	msg << m_state.getUlamTypeNameByIndex(suti).c_str();
+	msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
 	msg << " used with symbol name '" << getName();
 	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
@@ -215,9 +214,9 @@ namespace MFM {
 	  {
 	    //void only valid use is as a func return type
 	    std::ostringstream msg;
-	    msg << "Invalid use of type: ";
-	    msg << m_state.getUlamTypeNameByIndex(suti).c_str();
-	    msg << " used with symbol name '" << getName() << "'";
+	    msg << "Invalid use of type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << " with symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    suti = Nav;
 	  }
@@ -354,9 +353,10 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Named constant's value (";
-	msg << getName() << " = " << newconst << ") is not representable as: ";
-	msg<< m_state.getUlamTypeNameByIndex(uti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //output warning
+	msg << getName() << " = " << newconst << ") is not representable as ";
+	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //output warning?
+	return false; //necessary if not just a warning.
       }
 
     if(updateConstant(newconst))
@@ -403,7 +403,7 @@ namespace MFM {
     if(!rtnb)
       {
 	std::ostringstream msg;
-	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameByIndex(nuti).c_str();
+	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return rtnb;

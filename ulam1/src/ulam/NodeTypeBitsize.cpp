@@ -73,7 +73,7 @@ namespace MFM {
     if(!m_state.isComplete(it))
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameByIndex(it);
+	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
 	msg << ", within (), is not ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return Nav; //short-circuit
@@ -85,7 +85,7 @@ namespace MFM {
     if( !m_node->isAConstant() || (!(etype == Int || etype == Unsigned) && m_node->isReadyConstant()))
       {
 	std::ostringstream msg;
-	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameByIndex(it);
+	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
 	msg << ", within (), is not a valid constant expression";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;

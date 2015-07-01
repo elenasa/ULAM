@@ -7,9 +7,10 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	./C.ulam:1:45: Warning: Bool Type with EVEN number of bits is internally inconsistent; Reduced by one to 1 bits.
-	:0:0: ERROR: Trying to exceed allotted bit size (71) for element C(UNKNOWN)<11> with 74 bits.
-	./C.ulam:1:29: ERROR: Data member <m_i> of type: Int(3)[24] (UTI13) total size: 72 MUST fit into 32 bits; Local variables do not have this restriction.
+	./C.ulam:5:2: Warning: Bool Type with EVEN number of bits is internally inconsistent;  Reduced by one to 1 bits.
+	./C.ulam:7:9: ERROR: Converting Int(32) to Int(3) requires explicit casting for operator=.
+	./C.ulam:10:2: ERROR: Trying to exceed allotted bit size (71) for element C(UNKNOWN)<14> with 74 bits.
+	./C.ulam:2:10: ERROR: CLASS (regular): C(UNKNOWN)<14> SIZED FAILED: 74.
       */
       return std::string("Ue_C { Bool(1) a(true);  Int(3) m_i[4](2,7,0,0);  Int(6) m_u(15);  Bool(3) b(true);  Int(32) test() {  m_i 0 [] 2 cast = m_u 15 cast = m_i 1 [] m_u cast = b m_i 0 [] cast = b m_i 0 [] cast &= a b cast = 0 return } }\nExit status: 0");
     }

@@ -17,7 +17,7 @@ namespace MFM {
     {
       //explicit casting to Bits
       // a is 2 bits; b is 1 bit; a ^ b = 1 bit; notice as Int.3 (g), 1 ^ 2 = 3
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nUnary(3) a, b, c;\n Unsigned(2) e, f, g;\n use test;\n  a = e = 2;\n b = f = 1;\n c = (Unary(3)) ((Bits(3)) a ^ (Bits(3)) b);\ns.print(c);\ng = (Unsigned(2)) ((Bits(2)) e ^ (Bits(2)) f);\ns.print((Unsigned) g);\n return c;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nUnary(3) a, b, c;\n Unsigned(2) e, f, g;\n use test;\n  a = e = 2;\n b = f = 1;\n c = (Unary(3)) (a ^ b);\ns.print(c);\ng = (Unsigned(2)) (e ^ f);\ns.print((Unsigned) g);\n return c;\n }\n }\n");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 
