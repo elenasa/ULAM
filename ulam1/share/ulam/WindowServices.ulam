@@ -73,7 +73,7 @@ element WindowServices {
       hitCount[i] = 0;
       chosenIndex[i] = 0;
     }
-    currentIndex = (1<<6)-1;  // Unsigned(6).MAX_VAL
+    currentIndex = currentIndex.maxof;
   }
 
   Bool scan(Int t0) { return scan(t0, cNO_SITES_HIT, cNO_SITES_HIT, cNO_SITES_HIT); }
@@ -123,7 +123,7 @@ element WindowServices {
   Int next() {
     Index end = mdist.getLastIndex(lastRadius);
 
-    if (currentIndex == (1<<6)-1)  // Unsigned(6).MAX_VAL
+    if (currentIndex == currentIndex.maxof)
       currentIndex = mdist.getFirstIndex(firstRadius);
     else if (currentIndex <= end)
       currentIndex += 1;
@@ -139,7 +139,7 @@ element WindowServices {
   Bool hit(Int slot) { return hit((Slot) slot, (Unsigned) 1); }
 
   Bool hit(Slot slot, Unsigned weight) {
-    hitCount[slot] = hitCount[slot] + weight;
+    hitCount[slot] = hitCount[slot] + (Count) weight;
     if (random.create((Unsigned) hitCount[slot]) < weight) {
       chosenIndex[slot] = currentIndex;
       return true;
@@ -160,7 +160,7 @@ element WindowServices {
 
   Index getPick(Slot slot) {
     if (getHits(slot) == 0)
-      return (1<<6)-1;  // Unsigned(6).MAX_VAL
+      return Index.maxof;
     return chosenIndex[slot];
   }
   Index getPick(Int slot) { return getPick((Slot) slot); }
@@ -172,7 +172,7 @@ element WindowServices {
     init();
 
     for (Int index = next(); index >= 0; index = next()) {
-      count += 1;
+      ++count;
     }
 
     if (count != 41) return 1;
@@ -180,14 +180,9 @@ element WindowServices {
     count = 0;
     init();
     for (Int index2 = next(); index2 >= 0; index2 = next()) {
-      for (Int idx = 0; idx < 4; idx += 1) {
-        debug.print(-1);
-        debug.print(count);
-        debug.print(index2);
-        debug.print(idx);
-        n0 = (count&(1<<idx));
-        debug.print((Unsigned) (count&(1<<idx)));
-        if (count&(1<<idx)) hit((Slot) idx);
+      for (Unsigned idx = 0; idx < 4; idx += 1) {
+        Bits mask = 1<<idx;
+        if (((Bits) count)&mask) hit((Slot) idx);
       }
       count += 1;
     }
