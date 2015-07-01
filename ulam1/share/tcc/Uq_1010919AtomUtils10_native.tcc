@@ -13,21 +13,16 @@ namespace MFM {
   } // Uf_7getType
 
 
-
   //! AtomUtils.ulam:13:   Atom new(Type t) {
   template<class EC, u32 POS>
   Ui_Ut_102961a<EC> Uq_1010919AtomUtils10<EC, POS>::Uf_3new(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321i Uv_1t)
   {
-    FAIL(INCOMPLETE_CODE);
-#if 0
-    //! AtomUtils.ulam:14:     Atom a;
-    Ui_Ut_102961a<EC> Uv_1a;
-
-    //! AtomUtils.ulam:15:     return a;
-    const T Uh_tmpval_unpacked_14 = Uv_1a.read();
-    const Ui_Ut_102961a<EC> Uh_tmpval_unpacked_15(Uh_tmpval_unpacked_14);
-    return (Uh_tmpval_unpacked_15);
-#endif
+    const s32 t = Uv_1t.read();
+    if (t < 0 || t > U16_MAX)
+      FAIL(ILLEGAL_ARGUMENT);
+    T p3atom((u32) t);
+    const Ui_Ut_102961a<EC> tmp(p3atom);
+    return tmp;
   } // Uf_3new
 
 } //MFM
