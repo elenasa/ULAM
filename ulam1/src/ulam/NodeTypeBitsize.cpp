@@ -81,8 +81,8 @@ namespace MFM {
 
     ULAMTYPE etype = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
 
-    // expect a constant integer or constant unsigned integer
-    if( !m_node->isAConstant() || (!(etype == Int || etype == Unsigned) && m_node->isReadyConstant()))
+    // expect a constant numeric type
+    if( !m_node->isAConstant() || (!(etype == Int || etype == Unsigned || etype == Unary) && m_node->isReadyConstant()))
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
