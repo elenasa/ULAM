@@ -15,7 +15,7 @@ namespace MFM {
       //bool rtn1 = fms->add("A.ulam","ulam 1;\n element A {\ntypedef Int(3) I;\n typedef Bits(3) B;\n B a, b;\n Int test() {\na = 3;\nb = a & 2;\nreturn (Int) b;\n}\n}\n");
 
       // as a Int cast to Bits and a constant
-      bool rtn1 = fms->add("A.ulam","ulam 1;\n element A {\ntypedef Int(3) I;\n typedef Bits(3) B;\n I a, b;\n Int test() {\na = 3;\nb = (I) ((B) a & 2);\nreturn b;\n}\n}\n");
+      bool rtn1 = fms->add("A.ulam","ulam 1;\n element A {\ntypedef Int(3) I;\n typedef Bits(3) B;\n I a, b;\n Int test() {\na = 3;\nb = (I) (a & 2);\nreturn b;\n}\n}\n");
 
       if(rtn1)
 	return std::string("A.ulam");

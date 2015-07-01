@@ -122,7 +122,7 @@ namespace MFM {
 
   const char * NodeBlockClass::getName()
   {
-    return m_state.getUlamTypeByIndex(getNodeType())->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state).c_str();
+    return m_state.getUlamKeyTypeSignatureByIndex(getNodeType()).getUlamKeyTypeSignatureName(&m_state).c_str();
   }
 
   const std::string NodeBlockClass::prettyNodeName()

@@ -207,7 +207,6 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
-    //s32 bitsize = getBitSize();
     s32 valbitsize = m_state.getBitSize(typidx);
 
     bool brtn = true;

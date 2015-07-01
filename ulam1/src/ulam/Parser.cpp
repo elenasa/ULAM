@@ -228,13 +228,21 @@ namespace MFM {
 
 		return  true; //we're done unless we can gobble the rest up?
 	      }
+	    else if(cnSym->isClassTemplate())
+	      {
+		std::ostringstream msg;
+		msg << "Conflicting class args previously seen for class with no parameters <";
+		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
+		MSG(&iTok, msg.str().c_str(), ERR);
+		return  true; //we're done unless we can gobble the rest up?
+	      }
 	    wasIncomplete = true;
 	  }
       }
     else
       {
-	SymbolClassNameTemplate * ctSym;
-	if(!m_state.alreadyDefinedSymbolClassNameTemplate(iTok.m_dataindex, ctSym))
+	SymbolClassNameTemplate * ctSym = NULL;
+	if(!m_state.alreadyDefinedSymbolClassNameTemplate(iTok.m_dataindex, ctSym) && ctSym == NULL)
 	  {
 	    m_state.addIncompleteClassSymbolToProgramTable(iTok, ctSym); //overloaded
 	  }
@@ -1504,7 +1512,16 @@ namespace MFM {
     //must be a template class
     SymbolClassNameTemplate * ctsym = NULL;
     if(!m_state.alreadyDefinedSymbolClassNameTemplate(typeTok.m_dataindex, ctsym))
-      m_state.addIncompleteClassSymbolToProgramTable(typeTok, ctsym); //was undefined, template
+      {
+	if(ctsym == NULL)
+	  m_state.addIncompleteClassSymbolToProgramTable(typeTok, ctsym); //was undefined, template
+	else
+	  {
+	    //error have a class without parameters already defined
+	    getTokensUntil(TOK_CLOSE_PAREN); //rest of statement is ignored.
+	    return Nav; //short-circuit
+	  }
+      }
 
     assert(ctsym);
 
@@ -3649,10 +3666,9 @@ namespace MFM {
 		//installSymbol failed for other reasons (e.g. problem with []),
 		//error already output; rtnNode is NULL.
 		std::ostringstream msg;
-		msg << "Invalid Model Parameter of Type: <";
+		msg << "Invalid Model Parameter: ";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
-		msg << "> and Name: <" << m_state.getTokenDataAsString(&identTok).c_str();
-		msg << ">";
+		msg << " " << m_state.getTokenDataAsString(&identTok).c_str();
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 

@@ -125,10 +125,10 @@ namespace MFM {
 			if(m_state.mappedIncompleteUTI(seluti, auti, mappedUTI))
 			  {
 			    std::ostringstream msg;
-			    msg << "Substituting Mapped UTI" << mappedUTI;
-			    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+			    msg << "Substituting Mapped UTI" << mappedUTI << ", ";
+			    msg << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
 			    msg << " for incomplete descriptor type: ";
-			    msg << m_state.getUlamTypeNameByIndex(auti).c_str();
+			    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
 			    msg << "' UTI" << auti << " while labeling class: ";
 			    msg << m_state.getUlamTypeNameBriefByIndex(seluti).c_str();
 			    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

@@ -98,8 +98,10 @@ namespace MFM {
     return matchingFuncCount;
   } //findMatchingFunction
 
-  u32 SymbolFunctionName::findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol)
+  u32 SymbolFunctionName::findMatchingFunctionWithConstantsAsArgs(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
   {
+    assert(!hasHazyArgs);
+
     if(m_mangledFunctionNames.empty())
       return 0;
 
@@ -114,19 +116,19 @@ namespace MFM {
 	  {
 	    funcSymbol = fsym;
 	    matchingFuncCount++;
-	    //	    break;
 	  }
 	++it;
       }
 
-    //try again with less strict constraints, allow constants that fit to match same base type
+    //try again with less strict constraints, allow safe casting;
+    //track matches with hazy casting for error message output
     if(!funcSymbol)
       {
 	it = m_mangledFunctionNames.begin();
 	while(it != m_mangledFunctionNames.end())
 	  {
 	    SymbolFunction * fsym = it->second;
-	    if(fsym->matchingTypes(argTypes, constArgs))
+	    if(fsym->matchingTypes(argTypes, constArgs, hasHazyArgs))
 	      {
 		funcSymbol = fsym;
 		matchingFuncCount++;
@@ -139,7 +141,7 @@ namespace MFM {
 	  funcSymbol = NULL;
       } //2nd try
     return matchingFuncCount;
-  } //findMatchingFunction
+  } //findMatchingFunctionWithConstantsAsArgs
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()
   {

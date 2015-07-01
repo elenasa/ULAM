@@ -117,9 +117,9 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Substituting Mapped UTI" << mappedUTI;
-	    msg << ", " << m_state.getUlamTypeNameByIndex(mappedUTI).c_str();
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
 	    msg << " for incomplete descriptor type: ";
-	    msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << "' UTI" << nuti << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

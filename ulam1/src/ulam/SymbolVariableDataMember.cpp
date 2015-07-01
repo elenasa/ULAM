@@ -74,11 +74,16 @@ namespace MFM {
   void SymbolVariableDataMember::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     UTI vuti = getUlamTypeIdx();
+    UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     fp->write(" ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(vuti).c_str()); //short type name
+    if(vclasstype == UC_NOTACLASS)
+      fp->write(vkey.getUlamKeyTypeSignatureNameAndBitSize(&m_state).c_str());
+    else
+      fp->write(vut->getUlamTypeNameBrief().c_str());
+
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(getId()).c_str());
 

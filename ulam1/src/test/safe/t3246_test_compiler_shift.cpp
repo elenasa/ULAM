@@ -17,7 +17,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(7) b;\nUnsigned d;\nInt test(){Int a;\n a = 8;\nd = 1;\nwhile(a!=0){\nd = (Unsigned) ((Bits) d << 1);\ns.print(d);\na = (Int) ((Bits) a >> 1);\n}\nreturn (Int) d;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(7) b;\nUnsigned d;\nInt test(){Int a;\n a = 8;\nd = 1;\nwhile(a!=0){\nd = (Unsigned) (d << 1);\ns.print(d);\na = (Int) (a >> 1);\n}\nreturn (Int) d;\n }\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
