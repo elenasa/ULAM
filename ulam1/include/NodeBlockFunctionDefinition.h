@@ -61,6 +61,8 @@ class NodeBlockFunctionDefinition : public NodeBlock
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
+    virtual void setNodeLocation(Locator loc);
+
     virtual void print(File * fp);
 
     virtual void printPostfix(File * fp);

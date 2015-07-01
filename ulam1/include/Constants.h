@@ -103,7 +103,7 @@ namespace MFM {
 #endif //BASE10
 
 #ifndef MAX_ITERATIONS
-#define MAX_ITERATIONS 10
+#define MAX_ITERATIONS 99
 #endif //MAX_ITERATIONS
 
 #ifndef CYCLEFLAG

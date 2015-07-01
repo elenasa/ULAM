@@ -9,6 +9,7 @@ namespace MFM {
   NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, NodeTypeDescriptor * nodetype, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false), m_nodeTypeDesc(nodetype)
   {
     m_nodeParameterList = new NodeList(state);
+    assert(m_nodeParameterList);
   }
 
   NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)
@@ -58,6 +59,12 @@ namespace MFM {
       return true;
     return false;
   } //findNodeNo
+
+  void NodeBlockFunctionDefinition::setNodeLocation(Locator loc)
+  {
+    m_nodeParameterList->setNodeLocation(loc);
+    Node::setNodeLocation(loc);
+  }
 
   void NodeBlockFunctionDefinition::print(File * fp)
   {

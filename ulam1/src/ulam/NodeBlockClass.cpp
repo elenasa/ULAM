@@ -10,6 +10,7 @@ namespace MFM {
   NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false)
   {
     m_nodeParameterList = new NodeList(state);
+    assert(m_nodeParameterList);
   }
 
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
@@ -61,6 +62,13 @@ namespace MFM {
       return true;
     return false;
   } //findNodeNo
+
+  void NodeBlockClass::setNodeLocation(Locator loc)
+  {
+    if(m_nodeParameterList)
+      m_nodeParameterList->setNodeLocation(loc);
+    Node::setNodeLocation(loc);
+  }
 
   void NodeBlockClass::print(File * fp)
   {
