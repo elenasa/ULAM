@@ -187,9 +187,12 @@ namespace MFM {
       {
 	NodeBlock::countNavNodes(cnt);
 
-	std::ostringstream msg;
-	msg << cnt << "  data members with unresolved types remain";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(cnt > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << cnt << "  data members with unresolved types remain";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
       }
 
     cnt += m_functionST.countNavNodesAcrossTableOfFunctions();

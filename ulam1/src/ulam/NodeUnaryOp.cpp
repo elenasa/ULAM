@@ -104,9 +104,91 @@ namespace MFM {
 
   UTI NodeUnaryOp::checkAndLabelType()
   {
-    assert(0); //see unary operators..
-    return Nav;
+    assert(m_node);
+    UTI uti = m_node->checkAndLabelType();
+
+    if(!m_state.isScalar(uti)) //array unsupported at this time
+      {
+	std::ostringstream msg;
+	msg << "Incompatible (nonscalar) type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	msg << " for unary operator" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
+      }
+
+    UTI newType = Nav;
+    if(uti)
+      newType = calcNodeType(uti); //does safety check
+
+    if(newType != Nav && m_state.isComplete(newType))
+      {
+	if(UlamType::compare(newType, uti, m_state) != UTIC_SAME) //not same|dontknow
+	  {
+	    if(!makeCastingNode(m_node, newType, m_node))
+	      newType = Nav;
+	  }
+      }
+
+    setNodeType(newType);
+    setStoreIntoAble(false);
+
+    if(newType != Nav && isAConstant() && m_node->isReadyConstant())
+      return constantFold();
+
+    return newType;
   } //checkAndLabelType
+
+  bool NodeUnaryOp::checkSafeToCastTo(UTI newType)
+  {
+    bool rtnOK = true;
+    FORECAST scr = m_node->safeToCastTo(newType);
+    if(scr != CAST_CLEAR)
+      {
+	std::ostringstream msg;
+	msg << "Converting "; // the real converting-message
+	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
+	msg << " to ";
+	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	msg << " requires explicit casting for unary operator";
+	msg << getName();
+	if(scr == CAST_HAZY)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      } //not safe
+    return rtnOK;
+  } //checkSafeToCastTo
+
+  s32 NodeUnaryOp::maxBitsize(UTI uti)
+  {
+    s32 newbs = m_state.getBitSize(uti);
+    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(uti)->getUlamClass();
+
+    if(ct == UC_QUARK)
+      newbs = MAXBITSPERINT; //32
+
+    return newbs;
+  } //maxBitsize
+
+  //no atoms, elements as operand
+  bool NodeUnaryOp::checkForPrimitiveType(UTI uti)
+  {
+    ULAMCLASSTYPE uclass = m_state.getUlamTypeByIndex(uti)->getUlamClass();
+    if(uclass == UC_ELEMENT || uti == UAtom)
+      {
+	std::ostringstream msg;
+	msg << "Non-primitive type: <";
+	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	msg << "> is not supported for unary operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return false;
+      }
+    return true;
+  } //checkForPrimitiveType
 
   void NodeUnaryOp::countNavNodes(u32& cnt)
   {

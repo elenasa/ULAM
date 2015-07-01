@@ -88,6 +88,8 @@ namespace MFM{
   protected:
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len); //noop
 
+    virtual UTI calcNodeType(UTI uti); //override
+
   private:
     bool m_explicit;   // requested by user (not automatic)
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
