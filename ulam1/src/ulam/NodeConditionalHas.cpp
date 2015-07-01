@@ -128,7 +128,8 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid type for LHS of conditional operator '" << getName();
-	    msg << "'; Type Not Found: "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	    msg << "'; Type Not Found during eval: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	else

@@ -175,7 +175,7 @@ namespace MFM {
       {
 	cnt += 1;
 	std::ostringstream msg;
-	msg << "Unresolved No. " << cnt;
+	msg << "Unresolved No." << cnt;
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
 #if 0

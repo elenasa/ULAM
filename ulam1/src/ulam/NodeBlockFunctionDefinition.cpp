@@ -285,15 +285,18 @@ namespace MFM {
 	else
 	  {
 	    // save results in the stackframe for caller;
-	    // copies each element of the array by value, in reverse order ([0] is last at bottom)
+	    // copies each element of the array by value,
+	    //in reverse order ([0] is last at bottom)
+	    //negative to current stack frame pointer
 	    s32 slot = m_state.slotsNeeded(nuti);
-	    rtnUV = UlamValue::makePtr(-slot, STACK, nuti, packRtn, m_state); //negative to current stack frame pointer
+	    rtnUV = UlamValue::makePtr(-slot, STACK, nuti, packRtn, m_state);
 	  }
       }
     else if (evs == NORMAL)  //no explicit return statement
       {
 	// 1 for base of array or scalar
-	rtnUV = UlamValue::makePtr(1, EVALRETURN, nuti, packRtn, m_state); //positive to current frame pointer
+	//positive to current frame pointer
+	rtnUV = UlamValue::makePtr(1, EVALRETURN, nuti, packRtn, m_state);
       }
     else
       {
@@ -303,7 +306,8 @@ namespace MFM {
       }
 
     //save results in the node eval stackframe for function caller
-    //return each element of the array by value, in reverse order ([0] is last at bottom)
+    //return each element of the array by value,
+    //in reverse order ([0] is last at bottom)
     assignReturnValueToStack(rtnUV);
 
     m_state.m_funcCallStack.returnFrame();

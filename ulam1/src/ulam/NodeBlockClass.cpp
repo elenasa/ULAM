@@ -184,7 +184,14 @@ namespace MFM {
   void NodeBlockClass::countNavNodes(u32& cnt)
   {
     if(m_nodeNext) //may not have data members
-      NodeBlock::countNavNodes(cnt);
+      {
+	NodeBlock::countNavNodes(cnt);
+
+	std::ostringstream msg;
+	msg << cnt << "  data members with unresolved types remain";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
+
     cnt += m_functionST.countNavNodesAcrossTableOfFunctions();
 
     if(m_nodeParameterList)

@@ -105,41 +105,7 @@ namespace MFM {
   UTI NodeUnaryOp::checkAndLabelType()
   {
     assert(0); //see unary operators..
-    assert(m_node);
-    UTI ut = m_node->checkAndLabelType();
-    UTI newType = ut; //init to stay the same
-
-    if(newType != Nav && m_state.isComplete(newType))
-      {
-	if(!m_state.isScalar(ut)) //array unsupported at this time
-	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(ut).c_str();
-	    msg << " for unary operator" << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
-	  }
-	else
-	  {
-	    ULAMTYPE eut = m_state.getUlamTypeByIndex(ut)->getUlamTypeEnum();
-	    if(eut == Bool)
-	      {
-		newType = Int;
-		//m_node = makeCastingNode(m_node, newType); //insert node/s
-		if(!makeCastingNode(m_node, newType, m_node)) //insert node/s
-		  newType = Nav;
-	      }
-	  }
-      } //not nav
-
-    setNodeType(newType);
-    setStoreIntoAble(false);
-
-    if(newType != Nav && isAConstant() && m_node->isReadyConstant())
-      return constantFold();
-
-    return newType;
+    return Nav;
   } //checkAndLabelType
 
   void NodeUnaryOp::countNavNodes(u32& cnt)
