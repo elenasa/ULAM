@@ -5,7 +5,9 @@
 namespace MFM {
 
   NodeContinueStatement::NodeContinueStatement(s32 gotolabelnum, CompilerState & state) : Node(state), m_gotolabelnum(gotolabelnum) {}
+
   NodeContinueStatement::NodeContinueStatement(const NodeContinueStatement& ref) : Node(ref), m_gotolabelnum(ref.m_gotolabelnum) {}
+
   NodeContinueStatement::~NodeContinueStatement() {}
 
   Node * NodeContinueStatement::instantiate()
@@ -15,7 +17,7 @@ namespace MFM {
 
   void NodeContinueStatement::print(File * fp)
   {
-    printNodeLocation(fp);  //has same location as it's node
+    printNodeLocation(fp);  //has same location as its node
     UTI myut = getNodeType();
     char id[255];
     if(myut == Nav)
@@ -25,29 +27,21 @@ namespace MFM {
     fp->write(id);
   }
 
-
   void NodeContinueStatement::printPostfix(File * fp)
   {
     fp->write(" ");
     fp->write(getName());
   }
 
-
   const char * NodeContinueStatement::getName()
   {
-    //return "continue";
-    //std::ostringstream name;  // into
-    //name << "goto " << m_state.getLabelNumAsString(m_gotolabelnum).c_str();
-    //return name.str().c_str();
     return "goto";
   }
-
 
   const std::string NodeContinueStatement::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeContinueStatement::checkAndLabelType()
   {
@@ -56,18 +50,16 @@ namespace MFM {
     return nodeType;
   }
 
-
   EvalStatus NodeContinueStatement::eval()
   {
     return CONTINUE;
   }
 
-
   void NodeContinueStatement::genCode(File * fp, UlamValue& uvpass)
   {
     m_state.indent(fp);
-    //fp->write("continue;\n");
-    fp->write("goto ");
+    fp->write(getName());
+    fp->write(" ");
     fp->write(m_state.getLabelNumAsString(m_gotolabelnum).c_str());
     fp->write(";\n");
   } //genCode

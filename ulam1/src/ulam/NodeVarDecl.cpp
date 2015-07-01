@@ -233,9 +233,9 @@ namespace MFM {
 	if(!m_state.isComplete(it)) //reloads
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete type ";
+	    msg << "Incomplete type <";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << " used with variable symbol name '" << getName();
+	    msg << "> used with variable symbol name '" << getName();
 	    msg << "' found while bit packing class ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -295,9 +295,10 @@ namespace MFM {
 
   void NodeVarDecl::countNavNodes(u32& cnt)
   {
-    Node::countNavNodes(cnt);
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->countNavNodes(cnt);
+
+    Node::countNavNodes(cnt);
   } //countNavNodes
 
   EvalStatus NodeVarDecl::eval()

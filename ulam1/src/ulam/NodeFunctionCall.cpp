@@ -393,7 +393,8 @@ namespace MFM {
     if(evs != NORMAL)
       {
 	assert(evs != RETURN);
-	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
+	//drops all the args and return slots on callstack
+	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
 	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
 	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
 	evalNodeEpilog();
