@@ -4315,7 +4315,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Unexpected token <" << m_state.getTokenDataAsString(&tok).c_str();
-	msg << ">, exiting now";
+	msg << "> (check 'ulam' version number, 'use' or 'load' a missing .ulam file)";
+	msg << " -- exiting now";
 	MSG(&tok, msg.str().c_str(), ERR);
 	exit(1);
       }
