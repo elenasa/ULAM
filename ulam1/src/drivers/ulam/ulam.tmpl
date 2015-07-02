@@ -151,9 +151,9 @@ sub runThis {
         }
     }
     if (showOutput()) {
-        print " # STDOUT:\n{$stdout}";  print "\n" unless $stdout =~ /.*\n$/;
-        print " # STDERR:\n{$stderr}";  print "\n" unless $stderr =~ /.*\n$/;
-        print " # STATUS: $status";     print "\n" unless $status =~ /.*\n$/;
+        print " # BEGIN(STDOUT)\n$stdout\n # END(STDOUT)\n";  #print "\n" unless $stdout =~ /.*\n$/;
+        print " # BEGIN(STDERR)\n$stderr\n # END(STDERR)\n";  #print "\n" unless $stderr =~ /.*\n$/;
+        print " # STATUS($status)\n";#     print "\n" unless $status =~ /.*\n$/;
     }
     return ($status,$stdout,$stderr);
 }
@@ -725,6 +725,8 @@ UDie("No command specified\n")
 exit compilationDriver();
 
 my @testFilesFromUlam;
+my @cppFilesFromUlam;
+my @objectFilesFromUlamCpps;
 my @elementCNamesFromUlam;
 my @quarkCNamesFromUlam;
 
@@ -900,6 +902,9 @@ sub runUlamCompilations
             $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
             $path = deHexEscape($path);
             my $cfile = "$cname.cpp";
+            push @cppFilesFromUlam, $cfile;
+            push @objectFilesFromUlamCpps, "$ULAM_WORK_DIR/build/$cname.o";
+
             if ($testflag eq "test") {
                 $testableClasses{$cname} = $cfile;
             }
@@ -1119,7 +1124,7 @@ sub buildSharedLibrary
     pISC("## Create library");
     my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
     my $rollupObject = "$ULAM_WORK_DIR/build/$ROLLUP_FILE_STEM.o";
-    my @bslargs = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject);
+    my @bslargs = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject, @objectFilesFromUlamCpps);
     my $status = 0;
 
     print " Create $libfile shared library: ";
@@ -1379,7 +1384,7 @@ sub runGccCompilations
     my $status = 0;
     my $dir = getWorkDir();
     my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
-    for my $cfile ($rollupFile, @testFilesFromUlam) {
+    for my $cfile ($rollupFile, @cppFilesFromUlam, @testFilesFromUlam) {
         pISC(" # Compiling '$cfile'");
         my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc";
         if ($cfile eq $rollupFile) {
