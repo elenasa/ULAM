@@ -4316,9 +4316,12 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Unexpected token <" << m_state.getTokenDataAsString(&tok).c_str();
 	msg << "> (check 'ulam' version number, 'use' or 'load' a missing .ulam file)";
-	msg << " -- exiting now";
+	//msg << " -- exiting now"; //lots of leaks..
 	MSG(&tok, msg.str().c_str(), ERR);
-	exit(1);
+	//exit(1);
+	brtn = false; //no one checks
+	//getTokensUntil(TOK_SEMICOLON); //and what if no semicolon? why bother.
+	//brtn = m_tokenizer->getNextToken(tok);
       }
     return brtn;
   } //getNextToken

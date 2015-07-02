@@ -44,6 +44,7 @@ namespace MFM {
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
 	bool bOK = true;
+	//can't cast lhs of equal
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	if(ltypEnum != Bits)
 	  {
@@ -54,9 +55,7 @@ namespace MFM {
 	    bOK = false;
 	  }
 
-	s32 lbs = m_state.getBitSize(lt);
-	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
-	newType = m_state.makeUlamType(newkey, Bits);
+	newType = lt;
 
 	FORECAST rscr = m_nodeRight->safeToCastTo(newType);
 	if(rscr != CAST_CLEAR)

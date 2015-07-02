@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeUnaryOp(Node * n, CompilerState & state);
+
     NodeUnaryOp(const NodeUnaryOp& ref);
+
     virtual ~NodeUnaryOp();
 
     virtual void updateLineage(NNO pno);
@@ -88,6 +90,7 @@ namespace MFM{
     Node * m_node;
 
     virtual UTI calcNodeType(UTI uti) = 0;
+
     bool checkSafeToCastTo(UTI newType);
     s32 maxBitsize(UTI uti);
     bool checkForPrimitiveType(UTI uti);

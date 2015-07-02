@@ -34,7 +34,6 @@ namespace MFM {
 	FORECAST rscr = m_state.getUlamTypeByIndex(Bool)->safeCast(rt);
 
 	//check for Bool, or safe Non-Bool to Bool casting cases:
-	//if(!(checkNonBoolToBoolCastAndMaxsize(lt, maxbs) && checkNonBoolToBoolCastAndMaxsize(rt, maxbs)))
 	if(lscr != CAST_CLEAR || rscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;

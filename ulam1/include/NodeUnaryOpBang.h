@@ -46,12 +46,12 @@ namespace MFM{
   public:
 
     NodeUnaryOpBang(Node * n, CompilerState & state);
+
     NodeUnaryOpBang(const NodeUnaryOpBang& ref);
+
     virtual ~NodeUnaryOpBang();
 
     virtual Node * instantiate();
-
-    //virtual UTI checkAndLabelType();
 
     virtual const char * getName();
 

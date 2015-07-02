@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeUnaryOpPlus(Node * n, CompilerState & state);
+
     NodeUnaryOpPlus(const NodeUnaryOpPlus& ref);
+
     virtual ~NodeUnaryOpPlus();
 
     virtual Node * instantiate();
@@ -54,8 +56,6 @@ namespace MFM{
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
-
-    //virtual UTI checkAndLabelType();
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 

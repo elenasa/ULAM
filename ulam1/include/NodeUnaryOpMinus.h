@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeUnaryOpMinus(Node * n, CompilerState & state);
+
     NodeUnaryOpMinus(const NodeUnaryOpMinus& ref);
+
     virtual ~NodeUnaryOpMinus();
 
     virtual Node * instantiate();
@@ -54,8 +56,6 @@ namespace MFM{
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
-
-    //virtual UTI checkAndLabelType();
 
     virtual const std::string methodNameForCodeGen();
 

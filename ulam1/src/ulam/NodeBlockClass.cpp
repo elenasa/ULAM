@@ -190,7 +190,7 @@ namespace MFM {
 	if(cnt > 0)
 	  {
 	    std::ostringstream msg;
-	    msg << cnt << "  data members with unresolved types remain";
+	    msg << cnt << " data members with unresolved types remain";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
