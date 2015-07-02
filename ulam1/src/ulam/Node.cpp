@@ -151,7 +151,6 @@ namespace MFM {
     msg << "virtual FORECAST " << prettyNodeName().c_str();
     msg << "::safeToCastTo(UTI newType){} is needed!!";
     MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-    //assert(0); //needs a method apparently
     return CAST_HAZY;
   } //safeToCastTo
 
@@ -494,7 +493,6 @@ namespace MFM {
 
     assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
 
-    //s32 tmpVarNum = uvpass.getPtrSlotIndex(); //tmp with index
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
     vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
     assert(vuti != Void);
@@ -530,9 +528,7 @@ namespace MFM {
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();
-
     UTI	scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
-    //UlamType *	scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
 
     m_state.indent(fp);
     fp->write("const ");
@@ -641,9 +637,6 @@ namespace MFM {
     //update uvpass
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0); //POS 0 rightjustified (atom-based).
 
-    //specifically to sign extend Int's (a cast)
-    //scalarcosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
-
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadArrayItemIntoTmp
 
@@ -724,12 +717,12 @@ namespace MFM {
 	    if(!isHandlingImmediateType())
 	      {
 		genModelParameterHiddenArgs(fp, epi);
-		fp->write(", ");       //rest of args
+		fp->write(", "); //rest of args
 	      }
 	    else
 	      {
 		if(cosut->isCustomArray())
-		  fp->write("uc, "); 	    //rest of arg's
+		  fp->write("uc, "); //rest of arg's
 	      }
 	  }
 	else  //local var
@@ -863,7 +856,7 @@ namespace MFM {
 	    if(!isHandlingImmediateType())
 	      {
 		genModelParameterHiddenArgs(fp, epi);
-		fp->write(", ");  	//rest of arg's
+		fp->write(", "); //rest of arg's
 	      }
 	  }
 	else
@@ -883,13 +876,13 @@ namespace MFM {
 		  {
 		    fp->write(stgcos->getMangledName().c_str());
 		    fp->write(".getBits()");
-		    fp->write(", ");   //rest of args
+		    fp->write(", "); //rest of args
 		  }
 		else if(stgcosclasstype == UC_QUARK)
 		  {
 		    fp->write(stgcos->getMangledName().c_str());
 		    fp->write(".getBits()");
-		    fp->write(", ");   //rest of args
+		    fp->write(", "); //rest of args
 		  }
 		else
 		  {
@@ -1008,7 +1001,7 @@ namespace MFM {
     ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
 
     if(cosut->isCustomArray() && !isHandlingImmediateType())
-      return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a function call instead
+      return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a func call
 
     // a data member quark, or the element itself should both getBits from self;
     // getbits needed to go from-atom to-BitVector
@@ -1044,12 +1037,12 @@ namespace MFM {
 	    if(!isHandlingImmediateType())
 	      {
 		genModelParameterHiddenArgs(fp, epi);
-		fp->write(", ");  	//rest of arg's
+		fp->write(", "); //rest of arg's
 	      }
 	    else
 	      {
 		if(cosut->isCustomArray())
-		  fp->write("uc, "); 	//rest of arg's
+		  fp->write("uc, "); //rest of arg's
 	      }
 	  }
 	else
@@ -1072,13 +1065,13 @@ namespace MFM {
 		  {
 		    fp->write(stgcos->getMangledName().c_str());
 		    fp->write(".getBits()");
-		    fp->write(", ");   //rest of args
+		    fp->write(", "); //rest of args
 		  }
 		else if(stgcosclasstype == UC_QUARK)
 		  {
 		    fp->write(stgcos->getMangledName().c_str());
 		    fp->write(".getBits()");
-		    fp->write(", ");   //rest of args
+		    fp->write(", "); //rest of args
 		  }
 		else
 		  {
@@ -1405,8 +1398,6 @@ namespace MFM {
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 rightjustified (atom-based).
     uvpass.setPtrPos(0); //entire register
 
-    // specifically to sign extend Int's (a cast)
-    //vut->genCodeAfterReadingIntoATmpVar(fp, uvpass); //why was this commented out?
   } //genCodeConvertABitVectorIntoATmpVar
 
   void Node::genCodeExtern(File * fp, bool declOnly)
@@ -1760,97 +1751,6 @@ namespace MFM {
     return;
   } //genModelParameterMemberNameOfMethod
 
-#if 0
-  // OLD WAY! didn't allow quarks to have MP, but did allow
-  // the MP to be a quark or element (very complicated!), that
-  // wasn't initialized.
-  // "static" data member, a mixture of local variable and dm;
-  // requires THE_INSTANCE, and local variables are superfluous.
-  void Node::GENMODELPARAMETERMEMBERNAMEOFMETHOD(File * fp, s32 epi)
-  {
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    assert(epi >= 0);
-
-    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
-
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
-
-    if(cosSize > (u32) epi)
-      {
-	Symbol * stgcos = NULL;
-	if(epi == 0)
-	  stgcos = m_state.m_currentSelfSymbolForCodeGen;
-	else
-	  stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
-
-	UTI stgcosuti = stgcos->getUlamTypeIdx();
-	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-	ULAMCLASSTYPE stgclass = stgcosut->getUlamClass();
-
-	if(stgclass == UC_ELEMENT)
-	  {
-	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE.");
-	  }
-	//else if(stgclass == UC_QUARK)
-	  //fp->write("<EC,POS>::");
-	//else
-	//  assert(0);
-
-	//MP belongs to a local element var
-	for(u32 i = 1; i < (u32) epi; i++)
-	  {
-	    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-	    if(sym->isSelf())
-	      continue;
-	    fp->write(sym->getMangledNameForParameterType().c_str());
-	    fp->write("::");
-	  }
-      }
-
-    // the MP (only primitive!, no longer quark or element):
-    if(isHandlingImmediateType())
-      {
-	fp->write(cos->getMangledName().c_str());
-	fp->write(".");
-	return;
-      }
-
-    // the MP: when it could be a class
-    if(cosclasstype == UC_NOTACLASS) //atom too?
-      {
-	fp->write(cos->getMangledName().c_str());
-	fp->write(".");
-      }
-    else
-      {
-	//now for both immmediate elements and quarks..
-	fp->write(cosut->getImmediateStorageTypeAsString().c_str());
-	fp->write("::");
-	if( ((u32) (epi + 1) < cosSize)) //still another cos refiner, use
-	  fp->write("Us::"); //typedef
-      }
-
-    u32 cosStart = epi+1;
-    for(u32 i = cosStart; i < cosSize; i++)
-      {
-	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-	UTI suti = sym->getUlamTypeIdx();
-	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
-	//not the model parameter, but a data member..
-	fp->write(sym->getMangledNameForParameterType().c_str());
-	fp->write("::");
-	// if its the last cos, a quark, and not a custom array...
-	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray())
-	  fp->write("Up_Us::"); //atomic parameter needed
-      }
-  } //genModelParameterMemberNameOfMethod
-#endif
-
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.
   void Node::genModelParameterHiddenArgs(File * fp, s32 epi)
@@ -1954,14 +1854,7 @@ namespace MFM {
 
   const std::string Node::tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass)
   {
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    //ULAMTYPE etyp = nut->getUlamTypeEnum();
-
-    //special case, u32/u64 desired before AfterReadingIntoATmpVar
-    //if(etyp == Int)
-    //  return ((UlamTypeInt *) nut)->getArrayItemUnsignedTmpStorageTypeAsString();
-
-    return nut->getArrayItemTmpStorageTypeAsString();
+    return m_state.getUlamTypeByIndex(nuti)->getArrayItemTmpStorageTypeAsString();
   } //tmpStorageTypeForReadArrayItem
 
   const std::string Node::readMethodForCodeGen(UTI nuti, UlamValue uvpass)
@@ -2036,8 +1929,6 @@ namespace MFM {
     // an element's "self" as obj[0] is like it isn't there for purposes of this discovery.
     // quark's self is an atom, and should be treated like a local arg.
     // note: self is not a data member.
-    //return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && isCurrentObjectsContainingAModelParameter() == -1));
-    //    return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (((m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() || m_state.m_currentObjSymbolsForCodeGen[0]->isSelf()) && isCurrentObjectsContainingAModelParameter() == -1));
     return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx() != UAtom && isCurrentObjectsContainingAModelParameter() == -1));
   }
 
