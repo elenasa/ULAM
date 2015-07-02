@@ -9,6 +9,7 @@ namespace MFM {
   NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(SymbolFunction * fsym, NodeBlock * prevBlockNode, NodeTypeDescriptor * nodetype, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_funcSymbol(fsym), m_isDefinition(false), m_maxDepth(0), m_native(false), m_nodeTypeDesc(nodetype)
   {
     m_nodeParameterList = new NodeList(state);
+    assert(m_nodeParameterList);
   }
 
   NodeBlockFunctionDefinition::NodeBlockFunctionDefinition(const NodeBlockFunctionDefinition& ref) : NodeBlock(ref), m_funcSymbol(NULL), m_isDefinition(ref.m_isDefinition), m_maxDepth(ref.m_maxDepth), m_native(ref.m_native)
@@ -58,6 +59,12 @@ namespace MFM {
       return true;
     return false;
   } //findNodeNo
+
+  void NodeBlockFunctionDefinition::setNodeLocation(Locator loc)
+  {
+    m_nodeParameterList->setNodeLocation(loc);
+    Node::setNodeLocation(loc);
+  }
 
   void NodeBlockFunctionDefinition::print(File * fp)
   {
@@ -278,15 +285,18 @@ namespace MFM {
 	else
 	  {
 	    // save results in the stackframe for caller;
-	    // copies each element of the array by value, in reverse order ([0] is last at bottom)
+	    // copies each element of the array by value,
+	    //in reverse order ([0] is last at bottom)
+	    //negative to current stack frame pointer
 	    s32 slot = m_state.slotsNeeded(nuti);
-	    rtnUV = UlamValue::makePtr(-slot, STACK, nuti, packRtn, m_state); //negative to current stack frame pointer
+	    rtnUV = UlamValue::makePtr(-slot, STACK, nuti, packRtn, m_state);
 	  }
       }
     else if (evs == NORMAL)  //no explicit return statement
       {
 	// 1 for base of array or scalar
-	rtnUV = UlamValue::makePtr(1, EVALRETURN, nuti, packRtn, m_state); //positive to current frame pointer
+	//positive to current frame pointer
+	rtnUV = UlamValue::makePtr(1, EVALRETURN, nuti, packRtn, m_state);
       }
     else
       {
@@ -296,7 +306,8 @@ namespace MFM {
       }
 
     //save results in the node eval stackframe for function caller
-    //return each element of the array by value, in reverse order ([0] is last at bottom)
+    //return each element of the array by value,
+    //in reverse order ([0] is last at bottom)
     assignReturnValueToStack(rtnUV);
 
     m_state.m_funcCallStack.returnFrame();

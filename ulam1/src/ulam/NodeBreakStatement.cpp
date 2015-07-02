@@ -5,7 +5,9 @@
 namespace MFM {
 
   NodeBreakStatement::NodeBreakStatement(CompilerState & state) : Node(state) {}
+
   NodeBreakStatement::NodeBreakStatement(const NodeBreakStatement& ref) : Node(ref) {}
+
   NodeBreakStatement::~NodeBreakStatement() {}
 
   Node * NodeBreakStatement::instantiate()
@@ -23,8 +25,7 @@ namespace MFM {
     else
       sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
     fp->write(id);
-  }
-
+  } //print
 
   void NodeBreakStatement::printPostfix(File * fp)
   {
@@ -32,18 +33,15 @@ namespace MFM {
     fp->write(getName());
   }
 
-
   const char * NodeBreakStatement::getName()
   {
     return "break";
   }
 
-
   const std::string NodeBreakStatement::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeBreakStatement::checkAndLabelType()
   {
@@ -52,12 +50,10 @@ namespace MFM {
     return nodeType;
   }
 
-
   EvalStatus NodeBreakStatement::eval()
   {
     return BREAK;
   }
-
 
   void NodeBreakStatement::genCode(File * fp, UlamValue& uvpass)
   {

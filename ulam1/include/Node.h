@@ -93,7 +93,7 @@ namespace MFM{
     void setStoreIntoAble(bool s);
 
     Locator getNodeLocation();
-    void setNodeLocation(Locator loc);
+    virtual void setNodeLocation(Locator loc);
     void printNodeLocation(File * fp);
     std::string getNodeLocationAsString();
 

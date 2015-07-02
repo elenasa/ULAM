@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeUnaryOp(Node * n, CompilerState & state);
+
     NodeUnaryOp(const NodeUnaryOp& ref);
+
     virtual ~NodeUnaryOp();
 
     virtual void updateLineage(NNO pno);
@@ -86,6 +88,13 @@ namespace MFM{
   protected:
 
     Node * m_node;
+
+    virtual UTI calcNodeType(UTI uti) = 0;
+
+    bool checkSafeToCastTo(UTI newType);
+    s32 maxBitsize(UTI uti);
+    bool checkForPrimitiveType(UTI uti);
+
     virtual void doUnaryOperation(s32 slot, u32 nslots);
     virtual void doUnaryOperationImmediate(s32 slot, u32 nslots);
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len) = 0;

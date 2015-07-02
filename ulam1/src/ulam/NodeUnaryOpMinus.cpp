@@ -33,59 +33,39 @@ namespace MFM {
     return methodname.str();
   } //methodNameForCodeGen
 
-  UTI NodeUnaryOpMinus::checkAndLabelType()
+  UTI NodeUnaryOpMinus::calcNodeType(UTI uti)
   {
-    assert(m_node);
-    UTI ut = m_node->checkAndLabelType();
-    UTI newType = ut;         // init to stay the same
-
-    if(newType != Nav && m_state.isComplete(newType))
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
+    if(typEnum == Bits)
       {
-	if(!m_state.isScalar(ut)) //array unsupported at this time
-	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible (nonscalar) type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(ut).c_str();
-	    msg << " for unary operator" << getName();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    newType = Nav;
-	  }
-	else
-	  {
-	    ULAMTYPE eut = m_state.getUlamTypeByIndex(ut)->getUlamTypeEnum();
-	    // implicit cast for Bool only
-	    if(eut == Bool)
-	      {
-		newType = Int;
-		if(!makeCastingNode(m_node, newType, m_node))  //insert node/s
-		  newType = Nav;
-	      }
-	    else if(eut != Int)
-	      {
-		std::ostringstream msg;
-		msg << "Unary operator" << getName() << " applied to type ";
-		msg << m_state.getUlamTypeNameBriefByIndex(ut).c_str();
-		msg << " requires an explicit cast";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		newType = Nav;
-	      }
-	    else if(ut != Int) //bitsize < 32
-	      {
-		newType = Int;
-		//m_node = makeCastingNode(m_node, newType);  //insert node/s
-		if(!makeCastingNode(m_node, newType, m_node))  //insert node/s
-		  newType = Nav;
-	      }
-	  }
+	std::ostringstream msg;
+	msg << "Incompatible Bits type for unary operator";
+	msg << getName() << ". Suggest casting to a numeric type first";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav;
       }
-    setNodeType(newType);
-    setStoreIntoAble(false);
 
-    if(newType != Nav && isAConstant() && m_node->isReadyConstant())
-      return constantFold();
+    if(typEnum == Bool)
+      {
+	std::ostringstream msg;
+	msg << "Incompatible Bool type for unary operator";
+	msg << getName() << ". Suggest casting to a numeric type first";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	return Nav;
+      }
+
+    if(!NodeUnaryOp::checkForPrimitiveType(uti))
+      return Nav; //outputs error msg
+
+    s32 newbs = NodeUnaryOp::maxBitsize(uti);
+    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
+    UTI newType = m_state.makeUlamType(newkey, Int);
+
+    if(!NodeUnaryOp::checkSafeToCastTo(newType))
+      newType = Nav; //outputs error msg
 
     return newType;
-  } //checkAndLabelType
+  } //calcNodeType
 
   UlamValue NodeUnaryOpMinus::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {

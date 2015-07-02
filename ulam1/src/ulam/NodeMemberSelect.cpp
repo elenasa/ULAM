@@ -144,8 +144,8 @@ namespace MFM {
       }
 
     //UPDATE selected member (i.e. element or quark) before eval of rhs
-    //(i.e. data member or func call)
-    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1); //e.g. Ptr to atom
+    //(i.e. data member or func call); e.g. Ptr to atom
+    UlamValue newCurrentObjectPtr = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
     assert(newCurrentObjectPtr.getUlamValueTypeIdx() == Ptr);
     m_state.m_currentObjPtr = newCurrentObjectPtr;
 
