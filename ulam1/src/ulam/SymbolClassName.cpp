@@ -142,7 +142,7 @@ namespace MFM {
     if(navCounter > 0)
       {
 	std::ostringstream msg;
-	msg << navCounter << " data member nodes with illegal types remain in class <";
+	msg << navCounter << " data member nodes with unresolved types remain in class <";
 	msg << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
 	msg << ">";
 	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);

@@ -30,8 +30,11 @@ namespace MFM {
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
 	s32 maxbs = 1;
+	FORECAST lscr = m_state.getUlamTypeByIndex(Bool)->safeCast(lt);
+	FORECAST rscr = m_state.getUlamTypeByIndex(Bool)->safeCast(rt);
+
 	//check for Bool, or safe Non-Bool to Bool casting cases:
-	if(!(checkNonBoolToBoolCastAndMaxsize(lt, maxbs) && checkNonBoolToBoolCastAndMaxsize(rt, maxbs)))
+	if(lscr != CAST_CLEAR || rscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
 	    msg << "Bool is the supported type for logical operator";
@@ -39,12 +42,16 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str() << " and ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Bool";
-	    if(maxbs > 1)
-	      msg << "(" << maxbs << ")";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(lscr == CAST_BAD || rscr == CAST_BAD)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //hazy
 	  }
 	else
 	  {
+	    s32 lbs = m_state.getBitSize(lt);
+	    s32 rbs = m_state.getBitSize(rt);
+	    maxbs = (lbs > rbs ? lbs : rbs);
 	    //both bool. ok to cast. use larger bool bitsize.
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bool"), maxbs);
 	    newType = m_state.makeUlamType(newkey, Bool);
@@ -52,17 +59,6 @@ namespace MFM {
       } //both scalars
     return newType;
   } //calcNodeType
-
-  bool NodeBinaryOpLogical::checkNonBoolToBoolCastAndMaxsize(UTI uti, s32& maxbitsize)
-  {
-    if(m_state.getUlamTypeByIndex(Bool)->safeCast(uti) == CAST_CLEAR)
-      {
-	s32 bs = m_state.getBitSize(uti);
-	maxbitsize = (bs > maxbitsize ? bs : maxbitsize);
-	return true;
-      }
-    return false;
-  } //checkNonBoolToBoolCastAndMaxsize
 
   const std::string NodeBinaryOpLogical::methodNameForCodeGen()
   {

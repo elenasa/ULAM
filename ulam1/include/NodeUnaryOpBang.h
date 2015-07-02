@@ -46,12 +46,12 @@ namespace MFM{
   public:
 
     NodeUnaryOpBang(Node * n, CompilerState & state);
+
     NodeUnaryOpBang(const NodeUnaryOpBang& ref);
+
     virtual ~NodeUnaryOpBang();
 
     virtual Node * instantiate();
-
-    virtual UTI checkAndLabelType();
 
     virtual const char * getName();
 
@@ -60,6 +60,8 @@ namespace MFM{
     virtual const std::string methodNameForCodeGen();
 
   protected:
+    virtual UTI calcNodeType(UTI uti);
+
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len);
 
   private:
@@ -67,4 +69,4 @@ namespace MFM{
   };
 } //MFM
 
-#endif //end NODEUNARYOPBANG_H
+#endif //NODEUNARYOPBANG_H

@@ -226,6 +226,11 @@ namespace MFM {
     return getNodeType();
   } //checkAndLabelType
 
+  UTI NodeCast::calcNodeType(UTI uti)
+  {
+    return uti; //noop
+  }
+
   void NodeCast::countNavNodes(u32& cnt)
   {
     Node::countNavNodes(cnt);

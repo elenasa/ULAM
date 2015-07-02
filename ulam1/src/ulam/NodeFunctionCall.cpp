@@ -13,6 +13,7 @@ namespace MFM {
   {
     m_argumentNodes = new NodeList(state);
     assert(m_argumentNodes);
+    m_argumentNodes->setNodeLocation(tok.m_locator); //same as func call
   }
 
   NodeFunctionCall::NodeFunctionCall(const NodeFunctionCall& ref) : Node(ref), m_functionNameTok(ref.m_functionNameTok), m_funcSymbol(NULL), m_argumentNodes(NULL)
@@ -392,7 +393,8 @@ namespace MFM {
     if(evs != NORMAL)
       {
 	assert(evs != RETURN);
-	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots); //drops all the args and return slots on callstack
+	//drops all the args and return slots on callstack
+	m_state.m_funcCallStack.popArgs(argsPushed+rtnslots);
 	m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr *******
 	m_state.m_currentSelfPtr = saveSelfPtr; //restore previous self *****
 	evalNodeEpilog();

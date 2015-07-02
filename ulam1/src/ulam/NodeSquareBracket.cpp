@@ -59,8 +59,7 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Invalid Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
-		msg << " (UTI" << leftType;
-		msg << ") used with " << getName();
+		msg << " used with " << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		errorCount++;
 	      }
@@ -75,8 +74,7 @@ namespace MFM {
 		    std::ostringstream msg;
 		    msg << "Incomplete Custom Array Type: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(caType).c_str();
-		    msg << " (UTI" << caType;
-		    msg << ") used with class: ";
+		    msg << " used with class: ";
 		    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
 		    msg << getName();
 		    if(lut->isComplete())
@@ -97,9 +95,9 @@ namespace MFM {
 
 	m_state.popClassContext();
 
-	//must be some kind of Int or Unsigned..of any bit size
+	//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
 	ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
-	if(!(retype == Int || retype == Unsigned))
+	if(!(retype == Int || retype == Unsigned || retype == Unary))
 	  {
 	    if(!makeCastingNode(m_nodeRight, Int, m_nodeRight))
 	      {
@@ -369,8 +367,8 @@ namespace MFM {
     UTI sizetype = m_nodeRight->checkAndLabelType();
     ULAMTYPE etype = m_state.getUlamTypeByIndex(sizetype)->getUlamTypeEnum();
 
-    // expect a constant integer or constant unsigned integer
-    if( (etype == Int || etype == Unsigned) && m_nodeRight->isAConstant())
+    // expects a constant, numeric type within []
+    if( (etype == Int || etype == Unsigned || etype == Unary) && m_nodeRight->isAConstant())
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression

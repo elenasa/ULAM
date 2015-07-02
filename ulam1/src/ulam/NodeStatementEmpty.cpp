@@ -5,7 +5,9 @@
 namespace MFM {
 
   NodeStatementEmpty::NodeStatementEmpty(CompilerState & state): Node(state) {}
+
   NodeStatementEmpty::NodeStatementEmpty(const NodeStatementEmpty& ref) : Node(ref) {}
+
   NodeStatementEmpty::~NodeStatementEmpty() {}
 
   Node * NodeStatementEmpty::instantiate()
@@ -30,28 +32,23 @@ namespace MFM {
     fp->write("-----------------NodeStatementEmpty\n");
   }
 
-
   void NodeStatementEmpty::printPostfix(File * fp)
   {
     fp->write(" ;");
   }
 
-
   void NodeStatementEmpty::printOp(File * fp)
   {}
-
 
   const char * NodeStatementEmpty::getName()
   {
     return ";";
   }
 
-
   const std::string NodeStatementEmpty::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   UTI NodeStatementEmpty::checkAndLabelType()
   {
@@ -59,12 +56,10 @@ namespace MFM {
     return getNodeType();
   }
 
-
   EvalStatus NodeStatementEmpty::eval()
   {
     return NORMAL;
   }
-
 
   void NodeStatementEmpty::genCode(File * fp, UlamValue& uvpass)
   {

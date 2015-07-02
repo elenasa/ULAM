@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeUnaryOpMinus(Node * n, CompilerState & state);
+
     NodeUnaryOpMinus(const NodeUnaryOpMinus& ref);
+
     virtual ~NodeUnaryOpMinus();
 
     virtual Node * instantiate();
@@ -55,11 +57,11 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    virtual UTI checkAndLabelType();
-
     virtual const std::string methodNameForCodeGen();
 
   protected:
+    virtual UTI calcNodeType(UTI uti);
+
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len);
 
   private:
@@ -68,4 +70,4 @@ namespace MFM{
 
 } //MFM
 
-#endif //end NODEUNARYOPMINUS_H
+#endif //NODEUNARYOPMINUS_H

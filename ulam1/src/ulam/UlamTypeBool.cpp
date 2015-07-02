@@ -57,29 +57,9 @@ namespace MFM {
     bool brtn = true;
     assert(m_state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
-    s32 arraysize = getArraySize();
-    if(arraysize != m_state.getArraySize(valtypidx))
-      {
-	std::ostringstream msg;
-	msg << "Casting different Array sizes; " << arraysize;
-	msg << ", Value Type and size was: ";
-	msg << valtypidx << "," << m_state.getArraySize(valtypidx);
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
-	return false;
-      }
 
-    //change the size first of tobe, if necessary
-    s32 bitsize = getBitSize();
-    s32 valbitsize = m_state.getBitSize(valtypidx);
-
-    if(bitsize == UNKNOWNSIZE || valbitsize == UNKNOWNSIZE)
-      {
-	std::ostringstream msg;
-	msg << "Casting UNKNOWN sizes; " << bitsize;
-	msg << ", Value Type and size was: " << valtypidx << "," << valbitsize;
-	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
-	return false;
-      }
+    if(UlamType::safeCast(valtypidx) != CAST_CLEAR) //bad|hazy
+      return false;
 
     u32 wordsize = getTotalWordSize();
     u32 valwordsize = m_state.getTotalWordSize(valtypidx);
@@ -99,7 +79,9 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Casting to an unsupported word size: " << wordsize;
 	msg << ", Value Type and bit size was: ";
-	msg << valtypidx << "," << valbitsize;
+	msg << valtypidx << "," << m_state.getBitSize(valtypidx);
+	msg << " TO: ";
+	msg << typidx << "," << getBitSize();
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
 	brtn = false;
       }

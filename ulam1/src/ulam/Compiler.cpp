@@ -157,25 +157,26 @@ namespace MFM {
     //followed by the first c&l in case of re-orgs
     m_state.m_programDefST.updateLineageForTableOfClasses();
 
-    bool sumbrtn = true;
+    u32 errCnt = m_state.m_err.getErrorCount();
+    bool sumbrtn = (errCnt != 0);
     u32 infcounter = 0;
-    u32 errCnt = 0;
-    do{
-      // resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
-      m_state.m_err.clearCounts(); //warnings and errors
-      sumbrtn = resolvingLoop();
-      errCnt = m_state.m_err.getErrorCount();
-      if(++infcounter > MAX_ITERATIONS || errCnt > 0)
-	{
-	  std::ostringstream msg;
-	  msg << errCnt << " Errors found during resolving loop---";
-	  msg << "possible INCOMPLETE (or Template) class detected---";
-	  msg << " after " << infcounter << " iterations";
-	  MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	  //note: not an error because template uses remain unresolved
-	  break;
-	}
-    } while(!sumbrtn);
+    while(!sumbrtn)
+      {
+	// resolve unknowns and size classes; sets "current" m_currentClassSymbol in CS
+	m_state.m_err.clearCounts(); //warnings and errors
+	sumbrtn = resolvingLoop();
+	errCnt = m_state.m_err.getErrorCount();
+	if(++infcounter > MAX_ITERATIONS || errCnt > 0)
+	  {
+	    std::ostringstream msg;
+	    msg << errCnt << " Errors found during resolving loop---";
+	    msg << "possible INCOMPLETE (or Template) class detected---";
+	    msg << " after " << infcounter << " iterations";
+	    MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    //note: not an error because template uses remain unresolved
+	    break;
+	  }
+      } //while
 
     if(!errCnt)
       {
@@ -188,7 +189,8 @@ namespace MFM {
 	// must happen after type labeling and before eval (test)
 	m_state.m_programDefST.calcMaxDepthOfFunctionsForTableOfClasses();
 
-	// must happen after type labeling and before code gen; separate pass. want UNKNOWNS reported
+	// must happen after type labeling and before code gen;
+	// separate pass. want UNKNOWNS reported
 	m_state.m_programDefST.packBitsForTableOfClasses();
 
 	// let Ulam programmer know the bits used/available (needs infoOn)
@@ -200,13 +202,16 @@ namespace MFM {
     u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
     if(navcount > 0)
       {
-	// not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
-	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
-	// however, in the context of "is", this is an error and t.f. a Nav node.
+	// not necessarily goAgain, e.g. atom is Empty,
+	// where Empty is a quark instead of an element
+	// the NodeTypeDescriptor is perfectly fine with
+	// a complete quark type, so no need to go again;
+	// however, in the context of "is", this is an
+	// error and t.f. a Nav node.
 	assert(m_state.goAgain() || errCnt > 0); //sanity check; ran out of iterations
 
 	std::ostringstream msg;
-	msg << navcount << " Nodes with illegal types detected after type labeling class: ";
+	msg << navcount << " Nodes with unresolved types detected after type labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
