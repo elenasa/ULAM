@@ -252,7 +252,7 @@ namespace MFM {
     if(nuti == Nav)
       {
 	std::ostringstream msg;
-	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << "Constant Type Unknown: "<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
@@ -369,7 +369,8 @@ namespace MFM {
 	  std::ostringstream msg;
 	  msg << "Constant Type Unknown: ";
 	  msg <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	  msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
+	  msg << ", to fit into type: ";
+	  msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };

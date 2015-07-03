@@ -54,6 +54,17 @@ namespace MFM {
       }
   } //getTargetDescriptorsForClassInstances()
 
+  void SymbolClassNameTemplate::getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters)
+  {
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	csym->addModelParameterDescriptionsMapEntry(classmodelparameters);
+	it++;
+      }
+  } //getModelParameterDescriptionsForClassInstances
+
   void SymbolClassNameTemplate::addParameterSymbol(SymbolConstantValue * sym)
   {
     m_parameterSymbols.push_back(sym);

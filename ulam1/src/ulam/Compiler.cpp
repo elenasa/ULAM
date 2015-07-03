@@ -251,6 +251,18 @@ namespace MFM {
 #ifdef TESTPARAMETERMAP
     ParameterMap pm = getMangledParametersMap();
     std::cerr << "Size of model parameter map is " << pm.size() << std::endl;
+    for(ParameterMap::const_iterator i = pm.begin(); i != pm.end(); ++i)
+      {
+	std::cerr
+	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	  << "PARAMETER "
+	  << MFM::HexEscape(getFullPathLocationAsString(i->second.m_loc))
+	  << " " << i->second.m_mangledType
+	  << " " << i->first
+	  << " 0x" << std::hex << i->second.m_val
+	  << " " << i->second.m_lexval
+	  << std::endl;
+      }
 #endif
 
     return m_state.m_err.getErrorCount();
