@@ -7,7 +7,7 @@ namespace MFM {
 
   Preparser::~Preparser(){}
 
-  bool Preparser::push(std::string filename, bool onlyOnce)
+  u32 Preparser::push(std::string filename, bool onlyOnce)
   {
     return m_tokenizer->push(filename,onlyOnce);
   }
@@ -57,16 +57,14 @@ namespace MFM {
 
     if(preparsePackageName(pkgname))
       {
-	if(push(pkgname))
+	u32 pmsg = push(pkgname);
+	if(pmsg == 0)
 	  {
 	    return getNextToken(tok);
 	  }
 	else
 	  {
-	    std::ostringstream errmsg;
-	    errmsg << "Cannot fufill 'use " << pkgname << "' request";
-	    u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
-	    tok.init(TOK_ERROR_ABORT, useTok.m_locator, idx);
+	    tok.init(TOK_ERROR_ABORT, useTok.m_locator, pmsg);
 	  }
       }
     return false;
@@ -79,16 +77,14 @@ namespace MFM {
 
     if(preparsePackageName(pkgname))
       {
-	if(push(pkgname,false))
+	u32 pmsg = push(pkgname,false);
+	if(pmsg == 0)
 	  {
 	    return getNextToken(tok);
 	  }
 	else
 	  {
-	    std::ostringstream errmsg;
-	    errmsg << "Cannot fufill 'load " << pkgname << "' request";
-	    u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
-	    tok.init(TOK_ERROR_ABORT, loadTok.m_locator, idx);
+	    tok.init(TOK_ERROR_ABORT, loadTok.m_locator, pmsg);
 	  }
       }
     return false;

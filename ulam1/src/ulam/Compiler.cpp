@@ -105,10 +105,12 @@ namespace MFM {
       }
 
     u32 perrs = 0;
-    if(!ssref.push(startstr))
+    u32 pmsg = ssref.push(startstr);
+    if( pmsg > 0)
       {
 	std::ostringstream msg;
-	msg << "Compilation initialization FAILURE: <" << startstr.c_str() << ">\n";
+	msg << "Compilation initialization FAILURE " << startstr.c_str();
+	msg << ": <" << m_state.m_pool.getDataAsString(pmsg).c_str() << ">";
 	errput->write(msg.str().c_str());
 	perrs++;
       }
@@ -132,14 +134,17 @@ namespace MFM {
     Preparser * PP =  new Preparser(Lex, m_state);
     Parser * P = new Parser(PP, m_state);
     u32 perrs = 0;
-
-    if (ss.push(startstr))
+    u32 pmsg = ss.push(startstr);
+    if (pmsg == 0)
       {
 	perrs = P->parseProgram(startstr, output); //will be compared to answer
       }
     else
       {
-	output->write("parseProgram failed to start SourceStream.");
+	std::ostringstream errmsg;
+	errmsg << "parseProgram failed to start SourceStream: <";
+	errmsg << m_state.m_pool.getDataAsString(pmsg).c_str() << ">";
+	output->write(errmsg.str().c_str());
       }
     delete P;
     delete PP;

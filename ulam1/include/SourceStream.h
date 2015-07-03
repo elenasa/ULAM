@@ -80,15 +80,15 @@ namespace MFM{
     /** If onlyOnce is true, cause the SourceStream, first, to check
 	if the given filename has been push'ed before, since this
 	SourceStream was constructed; If so, the push does nothing and
-	returns true.  Otherwise, SourceStream attempts to open the
+	returns 0.  Otherwise, SourceStream attempts to open the
 	filename for reading.  If that fails, the push does nothing
-	and returns false.  Otherwise, the open succeeds, and the
-	SourceStream then suspends reading whatever it is currently
-	reading, and begins reading 'filename' instead (meaning that
-	the next read() call will return the first byte of filename,
-	if any, etc).
+	and returns nonzero index to error message.  Otherwise, the
+	open succeeds, and the SourceStream then suspends reading
+	whatever it is currently reading, and begins reading
+	'filename' instead (meaning that the next read() call will
+	return the first byte of filename, if any, etc).
     */
-    bool push(std::string filename, bool onlyOnce = true);
+    u32 push(std::string filename, bool onlyOnce = true);
 
 
     /** Get the path (that had previously been push()ed) that was the

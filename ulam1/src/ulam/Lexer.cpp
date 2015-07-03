@@ -28,7 +28,7 @@ namespace MFM {
   }
 
 
-  bool Lexer::push(std::string filename, bool onlyOnce)
+  u32 Lexer::push(std::string filename, bool onlyOnce)
   {
     return m_SS.push(filename,onlyOnce);
   }
