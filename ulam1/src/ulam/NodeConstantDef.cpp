@@ -304,7 +304,6 @@ namespace MFM {
   // (scope of eval is based on the block of const def.)
   bool NodeConstantDef::foldConstantExpression()
   {
-    u64 newconst = 0;
     UTI uti = getNodeType();
 
     if(uti == Nav || !m_state.isComplete(uti))
@@ -320,6 +319,7 @@ namespace MFM {
       }
 
     // if here, must be a constant..
+    u64 newconst = 0; //UlamType format (not sign extended)
     evalNodeProlog(0); //new current frame pointer
     makeRoomForNodeType(uti); //offset a constant expression
     EvalStatus evs = m_nodeExpr->eval();
@@ -349,13 +349,17 @@ namespace MFM {
       }
 
     //insure constant value fits in its declared type
-    if(!m_nodeExpr->fitsInBits(uti))
+    FORECAST scr = m_nodeExpr->safeToCastTo(uti);
+    if(scr != CAST_CLEAR)
       {
 	std::ostringstream msg;
-	msg << "Named constant's value (";
-	msg << getName() << " = " << newconst << ") is not representable as ";
+	msg << "Constant value expression for (";
+	msg << getName() << " = " << m_nodeExpr->getName() << ") is not representable as ";
 	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR); //output warning?
+	if(scr == CAST_BAD)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false; //necessary if not just a warning.
       }
 
@@ -403,7 +407,8 @@ namespace MFM {
     if(!rtnb)
       {
 	std::ostringstream msg;
-	msg << "Constant Type Unknown: " <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << "Constant Type Unknown: ";
+	msg <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
     return rtnb;
@@ -411,7 +416,7 @@ namespace MFM {
 
   bool NodeConstantDef::updateConstant32(u64 & newconst)
   {
-    u64 val = newconst;
+    u64 val = newconst; //wo any sign extend to start
     //store in UlamType format
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
@@ -422,7 +427,7 @@ namespace MFM {
     switch(etype)
       {
       case Int:
-	newconst = _Int32ToInt32((u32) val, srcbitsize, nbitsize);
+	newconst = _Int32ToInt32((u32) val, srcbitsize, nbitsize); //signextended
 	break;
       case Unsigned:
 	newconst = _Unsigned32ToUnsigned32((u32) val, srcbitsize, nbitsize);
@@ -445,7 +450,7 @@ namespace MFM {
 
   bool NodeConstantDef::updateConstant64(u64 & newconst)
   {
-    u64 val = newconst;
+    u64 val = newconst; //wo any sign extend to start
     //store in UlamType format
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
@@ -456,7 +461,7 @@ namespace MFM {
     switch(etype)
       {
       case Int:
-	newconst = _Int64ToInt64(val, srcbitsize, nbitsize);
+	newconst = _Int64ToInt64(val, srcbitsize, nbitsize); //signextended
 	break;
       case Unsigned:
 	newconst = _Unsigned64ToUnsigned64(val, srcbitsize, nbitsize);

@@ -119,6 +119,67 @@ namespace MFM {
     fp->write("; ");
   } //printPostfixValue
 
+  bool SymbolWithValue::getLexValue(std::string& vstr)
+  {
+    UTI tuti = getUlamTypeIdx();
+
+    if(!isReady())
+      return false;
+
+    u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
+    s32 tbs = m_state.getBitSize(tuti);
+    ULAMTYPE etype = m_state.getUlamTypeByIndex(tuti)->getUlamTypeEnum();
+    switch(etype)
+      {
+      case Int:
+	{
+	  if(twordsize == MAXBITSPERINT)
+	    {
+	      s32 sval = _Int32ToInt32((u32) m_constant.uval, tbs, MAXBITSPERINT);
+	      vstr = ToLeximitedNumber(sval);
+	    }
+	  else if(twordsize == MAXBITSPERLONG)
+	    {
+	      s64 sval = _Int64ToInt64(m_constant.uval, tbs, MAXBITSPERLONG);
+	      vstr = ToLeximitedNumber64(sval);
+	    }
+	  else
+	    assert(0);
+	}
+	break;
+      case Bool:
+	{
+	  bool bval = _Bool64ToCbool(m_constant.uval, tbs);
+	  if(bval)
+	    vstr = ToLeximitedNumber(1); //true
+	  else
+	    vstr = ToLeximitedNumber(0); //false
+	}
+	break;
+      case Unary:
+	{
+	  s32 pval = _Unary64ToInt64(m_constant.uval, tbs, MAXBITSPERINT);
+	      vstr = ToLeximitedNumber(pval);
+	}
+	break;
+      case Unsigned:
+      case Bits:
+	{
+	  //oddly write_decimal wants a signed int..
+	  if( tbs <= MAXBITSPERINT)
+	    vstr = ToLeximitedNumber((u32) m_constant.uval);
+	  else if( tbs <= MAXBITSPERLONG)
+		vstr = ToLeximitedNumber64(m_constant.uval);
+	  else
+	    assert(0);
+	}
+	break;
+      default:
+	assert(0);
+      };
+    return true;
+  } //getLexValue
+
   //warning: this change also requires an update to the ST's key.
   void SymbolWithValue::changeConstantId(u32 fmid, u32 toid)
   {

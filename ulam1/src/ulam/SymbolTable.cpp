@@ -3,6 +3,7 @@
 #include <iostream>
 #include "SymbolTable.h"
 #include "SymbolFunctionName.h"
+#include "SymbolParameterValue.h"
 #include "SymbolVariable.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
@@ -425,6 +426,8 @@ namespace MFM {
 	    struct ParameterDesc desc;
 	    desc.m_loc = sym->getLoc();
 	    desc.m_mangledType = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName();
+	    assert(((SymbolParameterValue *) sym)->getValue(desc.m_val)); //is ready.
+	    assert(((SymbolParameterValue *) sym)->getLexValue(desc.m_lexval)); //is ready.
 
 	    std::string mangledName = sym->getMangledName();
 	    classmodelparameters.insert(std::pair<std::string, struct ParameterDesc>(mangledName, desc));
@@ -688,9 +691,7 @@ namespace MFM {
 	//skip anonymous classes
 	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	  {
-	    NodeBlockClass * classNode = ((SymbolClass *) sym)->getClassBlockNode();
-	    assert(classNode);
-	    classNode->addModelParameterDescriptionsToInfoMap(classmodelparameters);
+	    ((SymbolClassName *) sym)->getModelParameterDescriptionsForClassInstances(classmodelparameters);
 	  }
 	it++;
       } //while

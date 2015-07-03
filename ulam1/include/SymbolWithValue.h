@@ -61,6 +61,7 @@ namespace MFM{
     bool isParameter();
     void setParameterFlag();
 
+    bool getLexValue(std::string& vstr);
     bool getValue(s64& val);
     bool getValue(u64& val);
     void setValue(s64 val);

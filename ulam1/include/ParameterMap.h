@@ -47,6 +47,8 @@ namespace MFM
   {
     Locator m_loc;
     std::string m_mangledType;
+    u64 m_val; //as Bits
+    std::string m_lexval; //converted to binary
   };
 
   //key is mangledParameterName, including the mangled class it belongs

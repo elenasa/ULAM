@@ -25,6 +25,11 @@ namespace MFM {
     SymbolClass::addTargetDescriptionMapEntry(classtargets);
   } //getTargetDescriptorsForClassInstances
 
+  void SymbolClassName::getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters)
+  {
+    SymbolClass::addModelParameterDescriptionsMapEntry(classmodelparameters);
+  } //getModelParameterDescriptionsForClassInstances
+
   bool SymbolClassName::isClassTemplate()
   {
     return false;
