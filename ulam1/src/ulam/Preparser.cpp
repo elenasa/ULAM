@@ -64,7 +64,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    tok.init(TOK_ERROR_ABORT, useTok.m_locator, pmsg);
+	    tok.init(TOK_ERROR_LOWLEVEL, useTok.m_locator, pmsg);
 	  }
       }
     return false;
@@ -84,7 +84,7 @@ namespace MFM {
 	  }
 	else
 	  {
-	    tok.init(TOK_ERROR_ABORT, loadTok.m_locator, pmsg);
+	    tok.init(TOK_ERROR_LOWLEVEL, loadTok.m_locator, pmsg);
 	  }
       }
     return false;
@@ -138,9 +138,9 @@ namespace MFM {
 	if (*numlist == 0 || *nEnd != 0)
 	  {
 	    std::ostringstream errmsg;
-	    errmsg << " Bad 'ulam' version number: " << nstr;
+	    errmsg << "Bad ulam version number: " << nstr;
 	    u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
-	    tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, idx);
+	    tok.init(TOK_ERROR_LOWLEVEL, ulamTok.m_locator, idx);
 	    rtnBool = false;
 	  }
 	else
@@ -152,10 +152,10 @@ namespace MFM {
     else
       {
 	std::ostringstream errmsg;
-	errmsg << " Non-numeric 'ulam version': ";
+	errmsg << "Non-numeric ulam version: ";
 	errmsg << nTok.getTokenString();
 	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
-	tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, idx);
+	tok.init(TOK_ERROR_LOWLEVEL, ulamTok.m_locator, idx);
 	rtnBool = false;
       }
 
@@ -163,10 +163,10 @@ namespace MFM {
     if(nTok.m_type != TOK_SEMICOLON)  //e.g. float used in error
       {
 	std::ostringstream errmsg;
-	errmsg << " 'ulam version' ended with <";
+	errmsg << "ulam version ending with <";
 	errmsg << nTok.getTokenString() << ">";
 	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
-	tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, idx);
+	tok.init(TOK_ERROR_LOWLEVEL, ulamTok.m_locator, idx);
 	rtnBool = false;
       }
     else

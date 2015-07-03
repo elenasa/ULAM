@@ -176,8 +176,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Invalid Class Type: <";
-	//	msg << m_state.getTokenDataAsString(&pTok).c_str();
-	msg << pTok.getTokenString();
+	msg << m_state.getTokenDataAsString(&pTok).c_str();
+	//msg << pTok.getTokenString();
 	msg << ">; KEYWORD should be: '";
 	msg << Token::getTokenAsString(TOK_KW_ELEMENT);
 	msg << "', '";
@@ -700,13 +700,8 @@ namespace MFM {
 	  m_state.m_parsingControlLoop = 0;
 	}
 	break;
-      case TOK_ERROR_CONT:
-	{
-	  std::ostringstream msg;
-	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  //eat error token
-	}
+      case TOK_ERROR_LOWLEVEL:
+	//eat error token
 	break;
       default:
 	{
@@ -1194,21 +1189,9 @@ namespace MFM {
 	    MSG(&pTok,"Continue statement not within loop" , ERR);
 	  }
       }
-    else if(pTok.m_type == TOK_ERROR_CONT)
+    else if(pTok.m_type == TOK_ERROR_LOWLEVEL)
       {
-	std::ostringstream msg;
-	msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
-	MSG(&pTok, msg.str().c_str(), ERR);
-	//	MSG(&pTok, "Unexpected input!! ERROR Token, Continue", ERR);
 	//eat error token
-      }
-    else if(pTok.m_type == TOK_ERROR_ABORT)
-      {
-	std::ostringstream msg;
-	msg << "ABORT: " << m_state.getTokenDataAsString(&pTok).c_str();
-	MSG(&pTok, msg.str().c_str(), ERR);
-	//MSG(&pTok, "Unexpected input!! ERROR Token, Exiting..", ERR);
-	exit(1);
       }
     else
       {
@@ -2524,10 +2507,10 @@ namespace MFM {
       case TOK_COMMA: //for functionall args
 	unreadToken();
 	break;
-      case TOK_ERROR_CONT:
+      case TOK_ERROR_LOWLEVEL:
 	{
 	  std::ostringstream msg;
-	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
+	  msg << "(Low Level) " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  return parseFactor(); //redo
 	}
@@ -2567,23 +2550,8 @@ namespace MFM {
 	assert(leftNode);
 	rtnNode = makeConditionalExprNode(leftNode);
 	break;
-      case TOK_ERROR_CONT:
-	{
-	  std::ostringstream msg;
-	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  //eat token
-	}
-	break;
-      case TOK_ERROR_ABORT:
-	{
-	  std::ostringstream msg;
-	  msg << "ABORT: " << m_state.getTokenDataAsString(&pTok).c_str();
-	  msg << ", exiting..";
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  //eat token
-	  exit(1);
-	}
+      case TOK_ERROR_LOWLEVEL:
+	//eat token
 	break;
       default:
 	{
@@ -2657,13 +2625,8 @@ namespace MFM {
 	rtnNode = makeShiftExpressionNode(leftNode);
 	rtnNode = parseRestOfShiftExpression(rtnNode); //recursion of left-associativity
 	break;
-      case TOK_ERROR_CONT:
-	{
-	  std::ostringstream msg;
-	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  rtnNode = parseRestOfShiftExpression(leftNode); //redo
-	}
+      case TOK_ERROR_LOWLEVEL:
+	rtnNode = parseRestOfShiftExpression(leftNode); //redo
 	break;
       default:
 	{
@@ -2688,13 +2651,8 @@ namespace MFM {
 	rtnNode = makeCompareExpressionNode(leftNode);
 	rtnNode = parseRestOfCompareExpression(rtnNode); //recursion of left-associativity
 	break;
-      case TOK_ERROR_CONT:
-	{
-	  std::ostringstream msg;
-	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  rtnNode = parseRestOfCompareExpression(leftNode); //redo
-	}
+      case TOK_ERROR_LOWLEVEL:
+	rtnNode = parseRestOfCompareExpression(leftNode); //redo
 	break;
       default:
 	{
@@ -2721,13 +2679,8 @@ namespace MFM {
 	rtnNode = makeEqExpressionNode(leftNode);
 	rtnNode = parseRestOfEqExpression(rtnNode); //recursion of left-associativity
 	break;
-      case TOK_ERROR_CONT:
-	{
-	  std::ostringstream msg;
-	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  rtnNode = parseRestOfEqExpression(leftNode); //redo
-	}
+      case TOK_ERROR_LOWLEVEL:
+	rtnNode = parseRestOfEqExpression(leftNode); //redo
 	break;
       default:
 	{
@@ -2752,13 +2705,8 @@ namespace MFM {
 	rtnNode = makeBitExpressionNode(leftNode);
 	rtnNode = parseRestOfBitExpression(rtnNode); //recursion of left-associativity
 	break;
-      case TOK_ERROR_CONT:
-	{
-	  std::ostringstream msg;
-	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  rtnNode = parseRestOfBitExpression(leftNode); //redo
-	}
+      case TOK_ERROR_LOWLEVEL:
+	rtnNode = parseRestOfBitExpression(leftNode); //redo
 	break;
       default:
 	{
@@ -2784,13 +2732,8 @@ namespace MFM {
 	rtnNode = makeLogicalExpressionNode(leftNode);
 	rtnNode = parseRestOfLogicalExpression(rtnNode); //recursion of left-associativity
 	break;
-      case TOK_ERROR_CONT:
-	{
-	  std::ostringstream msg;
-	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  rtnNode = parseRestOfLogicalExpression(leftNode); //redo
-	}
+      case TOK_ERROR_LOWLEVEL:
+	rtnNode = parseRestOfLogicalExpression(leftNode); //redo
 	break;
       default:
 	{
@@ -2861,13 +2804,8 @@ namespace MFM {
 	rtnNode = parseRestOfFactor(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
-      case TOK_ERROR_CONT:
-	{
-	  std::ostringstream msg;
-	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
-	  MSG(&pTok, msg.str().c_str(), ERR);
-	  rtnNode = parseRestOfExpression(leftNode); //redo
-	}
+      case TOK_ERROR_LOWLEVEL:
+	rtnNode = parseRestOfExpression(leftNode); //redo
 	break;
       default:
 	{
@@ -4318,23 +4256,11 @@ namespace MFM {
   {
     bool brtn = m_tokenizer->getNextToken(tok);
 
-    if(tok.m_type == TOK_ERROR_ABORT)
+    if(tok.m_type == TOK_ERROR_LOWLEVEL)
       {
 	std::ostringstream msg;
-	msg << "ABORT: " << m_state.getTokenDataAsString(&tok).c_str();
-	//msg << " -- exiting now"; //lots of leaks..
+	msg << "(Low Level) " << m_state.getTokenDataAsString(&tok).c_str();
 	MSG(&tok, msg.str().c_str(), ERR);
-	//exit(1);
-	brtn = false; //no one checks
-	//getTokensUntil(TOK_SEMICOLON); //and what if no semicolon? why bother.
-	//brtn = m_tokenizer->getNextToken(tok);
-      }
-    else if(tok.m_type == TOK_ERROR_CONT)
-      {
-	std::ostringstream msg;
-	msg << "Continue: " << m_state.getTokenDataAsString(&tok).c_str();
-	MSG(&tok, msg.str().c_str(), ERR);
-	//brtn = false; //no one checks
 	brtn = m_tokenizer->getNextToken(tok);
       }
     return brtn;

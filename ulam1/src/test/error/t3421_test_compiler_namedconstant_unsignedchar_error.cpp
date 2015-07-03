@@ -6,7 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //./A.ulam:2:37: ERROR: Unexpected input!! Token: <ContinueError>.
+      //./A.ulam:2:37: ERROR: (Low Level) Lexer prevents empty single quoted constant
+      //./A.ulam:2:34: ERROR: Missing named constant definition after '=' for 'cPRINT_NAME'.
       return std::string("Exit status: 26\nUe_A { constant Unsigned(8) cPRINT_NAME = 26;  Int(32) test() {  26u cast return } }\n");
     }
 
