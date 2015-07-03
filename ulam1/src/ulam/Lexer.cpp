@@ -70,7 +70,10 @@ namespace MFM {
 
     if(c < -1)
       {
-	returnTok.init(TOK_ERROR_ABORT, m_SS.getLocator(), 0); //is locator ok?
+	std::ostringstream errmsg;
+	errmsg << "Invalid read";
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	returnTok.init(TOK_ERROR_ABORT, m_SS.getLocator(), idx); //is locator ok?
 	m_lastToken = returnTok; //NEEDS SOME KIND OF TOK_ERROR
 	return false;   //error case
       }
@@ -132,7 +135,10 @@ namespace MFM {
       m_lastToken = returnTok;
     else
       {
-	returnTok.init(TOK_ERROR_CONT, m_SS.getLocator(), 0);
+	std::ostringstream errmsg;
+	errmsg << "Failed making next token from <" << cstring.c_str() << ">";
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	returnTok.init(TOK_ERROR_CONT, m_SS.getLocator(), idx);
 	m_lastToken = returnTok;  //NEEDS SOME KIND OF TOK_ERROR!!!
       }
     return brtn;
@@ -276,6 +282,7 @@ namespace MFM {
     std::ostringstream msg;
     msg << "Weird! Lexer could not find match for: <" << astring << ">";
     MSG(m_state.getFullLocationAsString(firstloc).c_str(), msg.str().c_str(), ERR);
+
 
     return false;
   } //makeOperatorToken

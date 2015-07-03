@@ -51,7 +51,7 @@ namespace MFM{
 
     /** pass through filename to underlying sourcestream */
     virtual bool push(std::string filename, bool onlyOnce = true) = 0;
-    
+
 
     /** read SourceStream and produce TOKEN: get next byte, skip white
 	space, return special characters, identifier token (string of
@@ -59,16 +59,15 @@ namespace MFM{
 	returns keyword tokens, deal with EOF token, comments, quotes, etc.
     */
     virtual bool getNextToken(Token & returnTok) = 0;
-    
+
     void unreadToken();
 
 
     /** returns Ulam version of current filename from underlying sourcestream; 0 is unknown */
     virtual u32 getFileUlamVersion() const = 0;
-    
+
     /** passes through Ulam version of current filename to underlying sourcestream */
     virtual void setFileUlamVersion(u32 ver) = 0;
-
 
   protected:
 
@@ -76,7 +75,7 @@ namespace MFM{
       bool m_haveUnreadToken;
 
   private:
-    
+
   };
 
 }

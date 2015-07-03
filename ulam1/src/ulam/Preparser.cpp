@@ -7,24 +7,20 @@ namespace MFM {
 
   Preparser::~Preparser(){}
 
-
   bool Preparser::push(std::string filename, bool onlyOnce)
   {
     return m_tokenizer->push(filename,onlyOnce);
   }
-
 
   u32 Preparser::getFileUlamVersion() const
   {
     return m_tokenizer->getFileUlamVersion();
   }
 
-
   void Preparser::setFileUlamVersion(u32 ver)
   {
     m_tokenizer->setFileUlamVersion(ver);
   }
-
 
   bool Preparser::getNextToken(Token & returnTok)
   {
@@ -54,7 +50,6 @@ namespace MFM {
     return true;
   } //getNextToken
 
-
   bool Preparser::preparseKeywordUse(Token & tok)
   {
     std::string pkgname;
@@ -68,12 +63,14 @@ namespace MFM {
 	  }
 	else
 	  {
-	    tok.init(TOK_ERROR_ABORT, useTok.m_locator, 0);
+	    std::ostringstream errmsg;
+	    errmsg << "Cannot fufill 'use " << pkgname << "' request";
+	    u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	    tok.init(TOK_ERROR_ABORT, useTok.m_locator, idx);
 	  }
       }
     return false;
   } //preparseKeywordUse
-
 
   bool Preparser::preparseKeywordLoad(Token & tok)
   {
@@ -88,12 +85,14 @@ namespace MFM {
 	  }
 	else
 	  {
-	    tok.init(TOK_ERROR_ABORT, loadTok.m_locator, 0);
+	    std::ostringstream errmsg;
+	    errmsg << "Cannot fufill 'load " << pkgname << "' request";
+	    u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	    tok.init(TOK_ERROR_ABORT, loadTok.m_locator, idx);
 	  }
       }
     return false;
   } //preparseKeywordLoad
-
 
   bool Preparser::preparsePackageName(std::string & pStr)
   {
@@ -116,8 +115,7 @@ namespace MFM {
 	  case TOK_SEMICOLON:
 	    {
 	      pStr.append(".ulam"); // ulam suffix
-	      //m_tokenizer->unreadToken();  // eat it?
-	      return true;       //done
+	      return true; //done, ate ;
 	    }
 	  default:
 	    m_tokenizer->unreadToken();
@@ -126,7 +124,6 @@ namespace MFM {
       } //end while
     return false;
   } //preparsePackageName
-
 
   bool Preparser::preparseKeywordUlam(Token & tok)
   {
@@ -144,7 +141,10 @@ namespace MFM {
 	s32 numval = strtol(numlist, &nEnd, 0);   //base 10, 8, or 16
 	if (*numlist == 0 || *nEnd != 0)
 	  {
-	    tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, 0);
+	    std::ostringstream errmsg;
+	    errmsg << " Bad 'ulam' version number: " << nstr;
+	    u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	    tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, idx);
 	    rtnBool = false;
 	  }
 	else
@@ -152,25 +152,31 @@ namespace MFM {
 	    setFileUlamVersion(numval);
 	    rtnBool = true;
 	  }
-
-	getNextToken(nTok);
-	if(nTok.m_type != TOK_SEMICOLON)  //e.g. float used in error
-	   {
-	     tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, 0);
-	     rtnBool = false;
-	   }
-	else
-	  {
-	    rtnBool = getNextToken(tok);
-	  }
       }
     else
       {
-	tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, 0);
+	std::ostringstream errmsg;
+	errmsg << " Non-numeric 'ulam version': ";
+	errmsg << nTok.getTokenString();
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, idx);
 	rtnBool = false;
       }
+
+    getNextToken(nTok);
+    if(nTok.m_type != TOK_SEMICOLON)  //e.g. float used in error
+      {
+	std::ostringstream errmsg;
+	errmsg << " 'ulam version' ended with <";
+	errmsg << nTok.getTokenString() << ">";
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	tok.init(TOK_ERROR_ABORT, ulamTok.m_locator, idx);
+	rtnBool = false;
+      }
+    else
+      rtnBool = getNextToken(tok);
+
     return rtnBool;
   } //preparseKeywordUlam
-
 
 } //end MFM
