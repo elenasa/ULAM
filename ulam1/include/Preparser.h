@@ -45,7 +45,7 @@
 #include "SourceStream.h"
 
 namespace MFM{
-  /** 
+  /**
       Preparser wrapper class for tokenizer's (e.g. Lexer)
    */
   class Preparser : public Tokenizer
@@ -53,29 +53,29 @@ namespace MFM{
   public:
     Preparser(Tokenizer * izer, CompilerState & state);
     ~Preparser();
-      
-    virtual bool push(std::string filename, bool onlyOnce = true);
+
+    virtual u32 push(std::string filename, bool onlyOnce = true);
 
     /** returns Ulam version of current filename from underlying sourcestream; 0 is unknown */
     virtual u32 getFileUlamVersion() const;
-    
+
     /** passes through Ulam version of current filename to underlying sourcestream */
     virtual void setFileUlamVersion(u32 ver);
 
 
     virtual bool getNextToken(Token & returnTok);
-    
+
   private:
     CompilerState & m_state;
 
     Tokenizer * m_tokenizer;
-    
+
     bool preparseKeywordUse(Token & tok);
     bool preparseKeywordLoad(Token & tok);
     bool preparsePackageName(std::string & pStr);
     bool preparseKeywordUlam(Token & tok);
   };
-  
+
 }
 
 #endif //end PREPARSER_H

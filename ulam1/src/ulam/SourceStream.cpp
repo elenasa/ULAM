@@ -104,7 +104,7 @@ namespace MFM {
   } //isPushed
 
 
-  bool SourceStream::push(std::string filename, bool onlyOnce)
+  u32 SourceStream::push(std::string filename, bool onlyOnce)
   {
     //map filename to string pool index (u32)
     u32 findex = m_state.m_pool.getIndexForDataString(filename);
@@ -112,13 +112,15 @@ namespace MFM {
     // if the given filename has been push'ed before, return true
     if(onlyOnce && isPushed(findex))
       {
-	return true;
+	return 0;
       }
 
     if(!m_fileManager)
       {
-	MSG("", "FileManager not found", ERR);
-	return false;  //FM no good
+	std::ostringstream errmsg;
+	errmsg << "FileManager not found";
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	return idx; //FM no good
       }
 
     // attempt to open filename for reading; return false if failed.
@@ -126,10 +128,11 @@ namespace MFM {
     File * fp = m_fileManager->open(filename, READ, fullpath);
     if(fp == NULL)
       {
-	std::ostringstream msg;
-	msg << "Couldn't open file <" << filename << "> errno=" << errno << " " << strerror(errno);
-	MSG("", msg.str().c_str(), DEBUG);
-	return false;         //couldn't open the file
+	std::ostringstream errmsg;
+	errmsg << "Couldn't open file <" << filename << "> errno=";
+	errmsg << errno << " " << strerror(errno);
+	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
+	return idx; //couldn't open the file
       }
 
     // open succeeds !!!
@@ -149,7 +152,7 @@ namespace MFM {
     frec.init(newid, fp, findex, fullindex);
     m_fileRecords.push_back(frec);  // at position id - 1; init to 0,0
 
-    return true;
+    return 0;
   } //push
 
 

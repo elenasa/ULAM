@@ -50,7 +50,7 @@ namespace MFM{
     virtual ~Tokenizer();
 
     /** pass through filename to underlying sourcestream */
-    virtual bool push(std::string filename, bool onlyOnce = true) = 0;
+    virtual u32 push(std::string filename, bool onlyOnce = true) = 0;
 
 
     /** read SourceStream and produce TOKEN: get next byte, skip white

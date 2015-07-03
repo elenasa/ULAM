@@ -52,7 +52,7 @@ namespace MFM{
     Lexer(SourceStream & ss, CompilerState& state);
     ~Lexer();
 
-    virtual bool push(std::string filename, bool onlyOnce = true);
+    virtual u32 push(std::string filename, bool onlyOnce = true);
 
     /** returns Ulam version of current filename from underlying sourcestream; 0 is unknown */
     virtual u32 getFileUlamVersion() const;
