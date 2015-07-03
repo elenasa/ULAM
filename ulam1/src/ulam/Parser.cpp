@@ -176,7 +176,8 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "Invalid Class Type: <";
-	msg << m_state.getTokenDataAsString(&pTok).c_str();
+	//	msg << m_state.getTokenDataAsString(&pTok).c_str();
+	msg << pTok.getTokenString();
 	msg << ">; KEYWORD should be: '";
 	msg << Token::getTokenAsString(TOK_KW_ELEMENT);
 	msg << "', '";
@@ -702,7 +703,7 @@ namespace MFM {
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  //eat error token
 	}
@@ -1195,12 +1196,18 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_ERROR_CONT)
       {
-	MSG(&pTok, "Unexpected input!! ERROR Token, Continue", ERR);
+	std::ostringstream msg;
+	msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
+	MSG(&pTok, msg.str().c_str(), ERR);
+	//	MSG(&pTok, "Unexpected input!! ERROR Token, Continue", ERR);
 	//eat error token
       }
     else if(pTok.m_type == TOK_ERROR_ABORT)
       {
-	MSG(&pTok, "Unexpected input!! ERROR Token, Exiting..", ERR);
+	std::ostringstream msg;
+	msg << "ABORT: " << m_state.getTokenDataAsString(&pTok).c_str();
+	MSG(&pTok, msg.str().c_str(), ERR);
+	//MSG(&pTok, "Unexpected input!! ERROR Token, Exiting..", ERR);
 	exit(1);
       }
     else
@@ -2520,7 +2527,7 @@ namespace MFM {
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  return parseFactor(); //redo
 	}
@@ -2563,7 +2570,7 @@ namespace MFM {
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  //eat token
 	}
@@ -2571,8 +2578,8 @@ namespace MFM {
       case TOK_ERROR_ABORT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str();
-	  msg << ">, exiting..";
+	  msg << "ABORT: " << m_state.getTokenDataAsString(&pTok).c_str();
+	  msg << ", exiting..";
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  //eat token
 	  exit(1);
@@ -2653,7 +2660,7 @@ namespace MFM {
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = parseRestOfShiftExpression(leftNode); //redo
 	}
@@ -2684,7 +2691,7 @@ namespace MFM {
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = parseRestOfCompareExpression(leftNode); //redo
 	}
@@ -2717,7 +2724,7 @@ namespace MFM {
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = parseRestOfEqExpression(leftNode); //redo
 	}
@@ -2748,7 +2755,7 @@ namespace MFM {
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = parseRestOfBitExpression(leftNode); //redo
 	}
@@ -2780,7 +2787,7 @@ namespace MFM {
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = parseRestOfLogicalExpression(leftNode); //redo
 	}
@@ -2857,7 +2864,7 @@ namespace MFM {
       case TOK_ERROR_CONT:
 	{
 	  std::ostringstream msg;
-	  msg << "Unexpected input!! Token: <" << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	  msg << "Continue: " << m_state.getTokenDataAsString(&pTok).c_str();
 	  MSG(&pTok, msg.str().c_str(), ERR);
 	  rtnNode = parseRestOfExpression(leftNode); //redo
 	}
@@ -4314,14 +4321,21 @@ namespace MFM {
     if(tok.m_type == TOK_ERROR_ABORT)
       {
 	std::ostringstream msg;
-	msg << "Unexpected token <" << m_state.getTokenDataAsString(&tok).c_str();
-	msg << "> (check 'ulam' version number, 'use' or 'load' a missing .ulam file)";
+	msg << "ABORT: " << m_state.getTokenDataAsString(&tok).c_str();
 	//msg << " -- exiting now"; //lots of leaks..
 	MSG(&tok, msg.str().c_str(), ERR);
 	//exit(1);
 	brtn = false; //no one checks
 	//getTokensUntil(TOK_SEMICOLON); //and what if no semicolon? why bother.
 	//brtn = m_tokenizer->getNextToken(tok);
+      }
+    else if(tok.m_type == TOK_ERROR_CONT)
+      {
+	std::ostringstream msg;
+	msg << "Continue: " << m_state.getTokenDataAsString(&tok).c_str();
+	MSG(&tok, msg.str().c_str(), ERR);
+	//brtn = false; //no one checks
+	brtn = m_tokenizer->getNextToken(tok);
       }
     return brtn;
   } //getNextToken
