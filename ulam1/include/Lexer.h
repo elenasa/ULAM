@@ -71,15 +71,15 @@ namespace MFM{
 
     TokenType getTokenTypeFromString(std::string str);  //< returns TOK_LAST_ONE if not found
 
-    bool makeWordToken(std::string& aname, Token & tok);
-    bool makeNumberToken(std::string& anumber, Token & tok);
-    bool makeOperatorToken(std::string& astring, Token & tok);
-    bool checkEllipsisToken(std::string& astring, Locator firstloc);
+    u32 makeWordToken(std::string& aname, Token & tok);
+    u32 makeNumberToken(std::string& anumber, Token & tok);
+    u32 makeOperatorToken(std::string& astring, Token & tok);
+    u32 checkEllipsisToken(std::string& astring, Locator firstloc);
 
-    bool makeDoubleQuoteToken(std::string& astring, Token & tok);
-    bool makeSingleQuoteToken(std::string& astring, Token & tok);
-    bool formatOctalConstant(u8& rtn);
-    bool formatHexConstant(u8& rtn);
+    u32 makeDoubleQuoteToken(std::string& astring, Token & tok);
+    u32 makeSingleQuoteToken(std::string& astring, Token & tok);
+    u32 formatOctalConstant(u8& rtn);
+    u32 formatHexConstant(u8& rtn);
 
     s32 eatComment();
     s32 eatBlockComment();
