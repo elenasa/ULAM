@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	./Foo.ulam:5:1: ERROR: Unexpected ABORT ERROR Token: Cannot fufill 'use NoParms.ulam' request.
+	./Foo.ulam:5:1: ERROR: (Low Level) Couldn't open file <NoParms.ulam> errno=2 No such file or directory.
 	Unrecoverable Program Parse FAILURE.
        */
       return std::string("Ue_Foo { NoParms boom();  <NOMAIN> }\nUq_NoParms { /* empty class block */ }\n");

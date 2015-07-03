@@ -7,8 +7,11 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	./Foo.ulam:3:1: ERROR: Unexpected ABORT ERROR Token:  after 'ulam' version: Int.
-	./Foo.ulam:5:1: ERROR: Invalid Class Type: <}>; KEYWORD should be: 'element', 'quark', or 'union'.
+	./Foo.ulam:3:1: ERROR: (Low Level) ulam version ending with <Int>.
+	./Foo.ulam:1:1: ERROR: Empty/Incomplete Class Definition: <Foo>; possible missing ending curly brace.
+	./test.ulam:1:5: ERROR: Invalid Class Type: <test>; KEYWORD should be: 'element', 'quark', or 'union'.
+	./Foo.ulam:1:9: ERROR: Invalid Type: Foo.
+	ERROR: No parse tree for This Class: Foo.
 	Unrecoverable Program Parse FAILURE.
        */
       return std::string("Exit status: 0\nUe_Foo { NoParms(1) boom( constant Unary(32) a = 1; );  Int(32) test() {  0 return } }\nUq_NoParms { /* empty class block */ }");

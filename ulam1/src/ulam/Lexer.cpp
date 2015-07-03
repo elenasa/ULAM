@@ -73,7 +73,7 @@ namespace MFM {
 	std::ostringstream errmsg;
 	errmsg << "Invalid read";
 	u32 idx = m_state.m_pool.getIndexForDataString(errmsg.str());
-	returnTok.init(TOK_ERROR_ABORT, m_SS.getLocator(), idx); //is locator ok?
+	returnTok.init(TOK_ERROR_LOWLEVEL, m_SS.getLocator(), idx); //is locator ok?
 	m_lastToken = returnTok; //NEEDS SOME KIND OF TOK_ERROR
 	return false; //error case
       }
@@ -135,7 +135,7 @@ namespace MFM {
       m_lastToken = returnTok;
     else
       {
-	returnTok.init(TOK_ERROR_CONT, m_SS.getLocator(), brtn);
+	returnTok.init(TOK_ERROR_LOWLEVEL, m_SS.getLocator(), brtn);
 	m_lastToken = returnTok;  //NEEDS SOME KIND OF TOK_ERROR!!!
       }
     return (brtn == 0);
@@ -355,7 +355,7 @@ namespace MFM {
 	if(c == '\'')
 	  {
 	    std::ostringstream errmsg; //disallow empty ''
-	    errmsg << "Lexer disallows an empty single quoted string";
+	    errmsg << "Lexer prevents empty single quoted constant";
 	    return m_state.m_pool.getIndexForDataString(errmsg.str());
 	  }
 
