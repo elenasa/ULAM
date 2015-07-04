@@ -154,6 +154,32 @@ namespace MFM {
     return CAST_HAZY;
   } //safeToCastTo
 
+  bool Node::checkSafeToCastTo(UTI fromType, UTI newType)
+  {
+    bool rtnOK = true;
+    UlamType * tobe = m_state.getUlamTypeByIndex(newType);
+    FORECAST scr = tobe->safeCast(fromType);
+    if(scr != CAST_CLEAR)
+      {
+	std::ostringstream msg;
+	msg << "Converting "; // the real converting-message
+	msg << m_state.getUlamTypeNameBriefByIndex(fromType).c_str();
+	msg << " to ";
+	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+	if(tobe->getUlamTypeEnum() == Bool)
+	  msg << " requires a logical comparison for ";
+	else
+	  msg << " requires explicit casting for ";
+	msg << getName();
+	if(scr == CAST_HAZY)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      } //not safe
+    return rtnOK;
+  } //checkSafeToCastTo
+
   // any node above assignexpr is not storeintoable;
   // and has no type (e.g. statements, statement, block, program)
   UTI Node::checkAndLabelType()
@@ -192,13 +218,7 @@ namespace MFM {
   {
     return Nav;
   }
-#if 0
-  // only for constants (NodeTerminal)
-  bool Node::fitsInBits(UTI fituti)
-  {
-    return true;
-  }
-#endif
+
   // only for constants (NodeTerminal)
   bool Node::isNegativeConstant()
   {

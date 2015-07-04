@@ -42,9 +42,8 @@ namespace MFM {
 
     //still may need casting (e.g. unary compared to an int) before constantfolding
     if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
-      {
-	return NodeBinaryOp::constantFold();
-      }
+      return NodeBinaryOp::constantFold();
+
     return newType;
   } //checkAndLabelType
 

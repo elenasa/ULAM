@@ -72,7 +72,11 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
 	    msg << " to ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	    msg << " requires explicit casting for operator" << getName();
+	    if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+	      msg << " requires a logical comparison";
+	    else
+	      msg << " requires explicit casting";
+	    msg << " for operator" << getName();
 	    if(rscr == CAST_BAD)
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    else
