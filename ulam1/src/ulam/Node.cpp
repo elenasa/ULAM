@@ -192,13 +192,13 @@ namespace MFM {
   {
     return Nav;
   }
-
+#if 0
   // only for constants (NodeTerminal)
   bool Node::fitsInBits(UTI fituti)
   {
     return true;
   }
-
+#endif
   // only for constants (NodeTerminal)
   bool Node::isNegativeConstant()
   {

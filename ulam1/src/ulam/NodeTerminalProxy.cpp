@@ -78,7 +78,8 @@ namespace MFM {
   FORECAST NodeTerminalProxy::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())
-      return  NodeTerminal::fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
+      //return  NodeTerminal::fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
+      return  NodeTerminal::safeToCastTo(newType);
     return CAST_HAZY;
   } //safeToCastTo
 

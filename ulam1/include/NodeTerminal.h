@@ -75,8 +75,6 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
-    virtual bool fitsInBits(UTI fituti);
-
     virtual bool isNegativeConstant();
 
     virtual bool isWordSizeConstant();
@@ -93,8 +91,11 @@ namespace MFM{
   private:
     virtual bool setConstantValue(Token tok);
     virtual UTI setConstantTypeForNode(Token tok);
+
+    bool fitsInBits(UTI fituti);
     bool fitsInBits32(UTI fituti);
     bool fitsInBits64(UTI fituti);
+
 
   protected:
     virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
