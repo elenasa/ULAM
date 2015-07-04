@@ -14,7 +14,7 @@ namespace MFM {
       //informed by 3228
       bool rtn2 = fms->add("T.ulam"," ulam 1;\n use S;\n element T{\nS(3) m_s;\nBool(3) b1,b2;\n Int test() {\nS(1) s, t;\n b1 = m_s.iep;\n b2 = t.iep;\n return s.iep;\n }\n }\n");
 
-      bool rtn1 = fms->add("S.ulam"," ulam 1;\n quark S(Unsigned a){\nparameter Bool(a) iep = a;\n  }\n"); //self.iep fails
+      bool rtn1 = fms->add("S.ulam"," ulam 1;\n quark S(Unsigned a){\nparameter Bool(a) iep = (a != 0);\n  }\n"); //self.iep fails
 
 
       if(rtn1 && rtn2)

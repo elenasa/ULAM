@@ -58,7 +58,8 @@ namespace MFM {
   FORECAST NodeConstant::safeToCastTo(UTI newType)
   {
     if(isReadyConstant())
-      return (m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType()) && NodeTerminal::fitsInBits(newType)) ? CAST_CLEAR : CAST_BAD;
+      //return (m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType()) && NodeTerminal::fitsInBits(newType)) ? CAST_CLEAR : CAST_BAD;
+      return NodeTerminal::safeToCastTo(newType);
     return CAST_HAZY;
   } //safeToCastTo
 

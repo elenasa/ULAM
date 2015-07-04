@@ -780,4 +780,11 @@ namespace MFM {
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
   } //addTargetDesciptionMapEntry
 
+  void SymbolClass::addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters)
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    classNode->addModelParameterDescriptionsToInfoMap(classmodelparameters);
+  } //addModelParameterDesciptionsMapEntry
+
 } //end MFM

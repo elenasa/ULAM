@@ -286,6 +286,7 @@ int main(int argc, char ** argv)
               << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
               << " " << i->second.m_mangledType
               << " " << i->first
+	      << " " << std::hex << i->second.m_val
               << std::endl;
           }
 
