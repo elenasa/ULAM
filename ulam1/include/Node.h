@@ -113,7 +113,7 @@ namespace MFM{
 
     virtual UTI constantFold();
 
-    virtual bool fitsInBits(UTI fituti);
+    //    virtual bool fitsInBits(UTI fituti);
     virtual bool isNegativeConstant();
     virtual bool isWordSizeConstant();
 
