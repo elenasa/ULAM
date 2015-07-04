@@ -52,6 +52,8 @@ namespace MFM{
 
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
 
+    virtual void getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters);
+
     virtual bool isClassTemplate();
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);

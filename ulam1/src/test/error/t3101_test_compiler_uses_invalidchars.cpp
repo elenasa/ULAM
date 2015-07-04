@@ -7,9 +7,10 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	./foo.ulam:1:13: ERROR: Weird! Lexer could not find match for: <@>.
-	./foo.ulam:1:1: Warning: Empty/Incomplete Class Definition: <D>; possible missing ending curly brace.
-	./foo.ulam:1:13: ERROR: Invalid Class Type: <ContinueError>; KEYWORD should be: 'element', 'quark', or 'union'.
+	./foo.ulam:1:13: ERROR: (Low Level) Weird! Lexer could not find match for: <@>.
+	./D.ulam:1:32: ERROR: (Low Level) Weird! Lexer could not find match for: <@>.
+	./D.ulam:1:37: ERROR: (Low Level) Weird! Lexer could not find match for: <@>.
+	Unrecoverable Program Parse FAILURE.
       */
       return std::string("Ue_D { Int(32) test() { Int(32) a(5);  a 3 2 +b = } }\n");
     }

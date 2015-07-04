@@ -120,6 +120,8 @@ namespace MFM{
 
     void addTargetDescriptionMapEntry(TargetMap& classtargets);
 
+    void addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters);
+
   protected:
     Resolver * m_resolver;
 
