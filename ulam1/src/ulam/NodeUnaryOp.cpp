@@ -151,7 +151,11 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " requires explicit casting for unary operator";
+	if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+	  msg << " requires a logical comparison";
+	else
+	  msg << " requires explicit casting";
+	msg << " for unary operator";
 	msg << getName();
 	if(scr == CAST_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -230,6 +234,7 @@ namespace MFM {
 	msg << " is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	setNodeType(Nav);
 	return Nav;
       }
 
