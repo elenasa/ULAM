@@ -27,7 +27,7 @@ namespace MFM {
       // use set function; test bool to avoid divide by zero
       //note: don't have <<2, so substituted *4; use 3 bits so not to cross word boundary
 
-      //./Bar.ulam:14:5: ERROR: Cannot explicitly cast Int(32) to type: Bool(1).
+      //./Bar.ulam:14:1: ERROR: Converting Int(32) to Bool(1) requires a logical comparison for if.
       bool rtn2 = fms->add("Bar.ulam"," ulam 1;\nquark Bar {\nBool b;\nUnsigned(3) x, y;\nInt toInt(){\nif(b)\nreturn (Int) (x << 2) / y;\nelse\nreturn 0;\n}\nVoid set(Int xarg, Int yarg){\nx=(Unsigned(3)) xarg;\ny=(Unsigned(3)) yarg;\nif(yarg!=0){\nb=true;\n}\nelse{\nb=false;\n}\n}\n}\n");
 
 
