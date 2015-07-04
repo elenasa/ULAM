@@ -7,16 +7,16 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /*
-	 ./A.ulam:5:22: Warning: Shifting more than a wordsize, operator<<.
-	 ./A.ulam:6:18: Warning: Shifting more than a wordsize, operator<<.
-	 ./A.ulam:7:23: Warning: Shifting more than a wordsize, operator>>.
-	 ./A.ulam:8:18: Warning: Shifting more than a wordsize, operator>>.
+	./A.ulam:5:22: Warning: Shift distance greater than data width, operator<<.
+	./A.ulam:6:18: Warning: Shift distance greater than data width, operator<<.
+	./A.ulam:7:23: Warning: Shift distance greater than data width, operator>>.
+	./A.ulam:8:18: Warning: Shift distance greater than data width, operator>>.
       */
 
       // regardless signed or unsigned
-      //note: g++ shift == 32 produces 1 << 32 = 1, 1 >> 32 = 1; for ulam: 1 << 32 = 0; 1 >> 32 = 1; DIFFERENT!
-      //note: g++ shift == 33 produces 1 << 33 = 2, 1 >> 33 = 0; for ulam: 1 << 33 = 2; 1 >> 33 = 0; SAME!
-      return std::string("Exit status: 0\nUe_A { Unsigned(8) d(0);  Unsigned(8) f(1);  Int(8) e(0);  Int(8) g(1);  Int(32) test() {  32u = shift const d 0u cast = e 0u cast = f 1u cast = g 1u cast = 0 return } }\n");
+      //note: g++ shift == 32 produces 1 << 32 = 1, 1 >> 32 = 0; for ulam: 1 << 32 = 0; 1 >> 32 = 0; DIFFERENT!
+      //note: g++ shift == 33 produces 1 << 33 = 2, 1 >> 33 = 0; for ulam: 1 << 33 = 0; 1 >> 33 = 0; DIFFERENT!
+      return std::string("Exit status: 0\nUe_A { Unsigned(8) d(0);  Unsigned(8) f(0);  Int(8) e(0);  Int(8) g(0);  Int(32) test() {  32u = shift const d 0u cast = e 0u cast = f 1u cast = g 1u cast = 0 return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

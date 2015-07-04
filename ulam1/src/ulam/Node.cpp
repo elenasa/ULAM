@@ -162,14 +162,15 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       {
 	std::ostringstream msg;
-	msg << "Converting "; // the real converting-message
+	if(tobe->getUlamTypeEnum() == Bool)
+	  msg << "Use a comparison operator";
+	else
+	  msg << "Use explicit cast";
+	msg << " to convert "; // the real converting-message
 	msg << m_state.getUlamTypeNameBriefByIndex(fromType).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	if(tobe->getUlamTypeEnum() == Bool)
-	  msg << " requires a logical comparison for ";
-	else
-	  msg << " requires explicit casting for ";
+	msg << " for ";
 	msg << getName();
 	if(scr == CAST_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

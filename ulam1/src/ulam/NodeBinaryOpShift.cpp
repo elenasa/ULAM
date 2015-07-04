@@ -128,19 +128,18 @@ namespace MFM {
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    bok = false; //Nav;
 	  }
-#if 0
+
 	//check for big shift values
 	if(m_nodeRight->isAConstant() && m_nodeRight->isReadyConstant())
 	  {
 	    if(m_nodeRight->isWordSizeConstant())
 	      {
 		std::ostringstream msg;
-		msg << "Shifting a word size or more, operator";
+		msg << "Shift distance greater than data width, operator";
 		msg << getName();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 	      }
 	  }
-#endif
 
 	if(!bok)
 	  newType = Nav;
