@@ -261,7 +261,7 @@ namespace MFM {
 #endif
 
     // testing model parameter map only
-#define TESTPARAMETERMAP
+    //#define TESTPARAMETERMAP
 #ifdef TESTPARAMETERMAP
     ParameterMap pm = getMangledParametersMap();
     std::cerr << "Size of model parameter map is " << pm.size() << std::endl;
