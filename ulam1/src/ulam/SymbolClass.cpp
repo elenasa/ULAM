@@ -778,9 +778,15 @@ namespace MFM {
     desc.m_className = className;
 
     if(scid > 0)
-      desc.m_structuredComment = m_state.m_pool.getDataAsString(scid);
+      {
+	std::ostringstream sc;
+	sc << "/**";
+	sc << m_state.m_pool.getDataAsString(scid).c_str();
+	sc << "*/";
+	desc.m_structuredComment = sc.str();
+      }
     else
-      desc.m_structuredComment = "NOSTRUCTUREDCOMMENT";
+      desc.m_structuredComment = "NONE";
 
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
   } //addTargetDesciptionMapEntry
