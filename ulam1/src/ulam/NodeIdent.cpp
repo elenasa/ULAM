@@ -588,7 +588,10 @@ namespace MFM {
 	      }
 	  }
 	else
-	  return false; //already there
+	  {
+	    m_state.clearStructuredCommentToken();
+	    return false; //already there
+	  }
       }
 
     // maintain specific type (see isAConstant() Node method)
@@ -643,9 +646,12 @@ namespace MFM {
 	SymbolParameterValue * symparam = new SymbolParameterValue(m_token, uti, m_state);
 	m_state.addSymbolToCurrentScope(symparam);
 
+	symparam->setStructuredComment(); //also clears
+
 	//gets the symbol just created by makeUlamType; true.
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
       }
+    m_state.clearStructuredCommentToken();
     return false;
   } //installSymbolParameterValue
 

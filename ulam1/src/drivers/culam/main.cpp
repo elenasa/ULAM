@@ -275,6 +275,7 @@ int main(int argc, char ** argv)
               << " " << i->second.m_bitsize
               << " " << (i->second.m_hasTest?"test":"notest")
               << " " << (i->second.m_isQuark?"quark":"element")
+	      << " " << MFM::HexEscape(i->second.m_structuredComment)
               << std::endl;
           }
 
@@ -286,7 +287,8 @@ int main(int argc, char ** argv)
               << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
               << " " << i->second.m_mangledType
               << " " << i->first
-	      << " " << std::hex << i->second.m_val
+	      << " 0x" << std::hex << i->second.m_val
+	      << " " << MFM::HexEscape(i->second.m_structuredComment)
               << std::endl;
           }
 

@@ -118,7 +118,7 @@ namespace MFM{
 
     void generateTestInstance(File * fp, bool runtest);
 
-    void addTargetDescriptionMapEntry(TargetMap& classtargets);
+    void addTargetDescriptionMapEntry(TargetMap& classtargets, u32 scid);
 
     void addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters);
 

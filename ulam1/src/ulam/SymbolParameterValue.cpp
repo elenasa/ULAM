@@ -8,9 +8,9 @@ namespace MFM {
     setDataMember();
   }
 
-  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref) : SymbolWithValue(sref), m_childOf(m_state.getCompileThisIdx()) {}
+  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref) : SymbolWithValue(sref), m_childOf(m_state.getCompileThisIdx()), m_structuredCommentToken(sref.m_structuredCommentToken) {}
 
-  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_childOf(m_state.getCompileThisIdx()) {}
+  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_childOf(m_state.getCompileThisIdx()), m_structuredCommentToken(sref.m_structuredCommentToken) {}
 
   SymbolParameterValue::~SymbolParameterValue()
   { }
@@ -62,5 +62,22 @@ namespace MFM {
 
     SymbolWithValue::printPostfixValue(fp);
   } //printPostfixValuesOfVariableDeclarations
+
+  void SymbolParameterValue::setStructuredComment()
+  {
+    Token scTok;
+    if(m_state.getStructuredCommentToken(scTok)) //and clears it
+      m_structuredCommentToken = scTok;
+  }
+
+  bool SymbolParameterValue::getStructuredComment(Token& scTok)
+  {
+    if(m_structuredCommentToken.m_type == TOK_STRUCTURED_COMMENT)
+      {
+	scTok = m_structuredCommentToken;
+	return true;
+      }
+    return false;
+  } //getStructuredComment
 
 } //end MFM

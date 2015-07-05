@@ -114,7 +114,7 @@ namespace MFM {
 	if(etype == Int)
 	  {
 	    m_constant.sval = -m_constant.sval;
-	    fitsInBits(nuti);  //check self
+	    fitsInBits(nuti); //check self
 	  }
 	else
 	  {
@@ -145,8 +145,16 @@ namespace MFM {
 
   FORECAST NodeTerminal::safeToCastTo(UTI newType)
   {
+    UTI nuti = getNodeType();
+    //Bool special case: not a matter of fitting
     if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
-      return m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
+      return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
+
+    //for non-bool terminal check for complete types and arrays before fits.
+    FORECAST scr = m_state.getUlamTypeByIndex(newType)->UlamType::safeCast(nuti);
+    if(scr != CAST_CLEAR)
+      return scr;
+
     return fitsInBits(newType) ? CAST_CLEAR : CAST_BAD;
   } //safeToCastTo
 
@@ -243,7 +251,7 @@ namespace MFM {
     if(!fit->isMinMaxAllowed() && (fit->getUlamTypeEnum() != Bits))
       {
 	std::ostringstream msg;
-	msg << "Cannot check constant '" << m_constant.uval << "' fits into type: ";
+	msg << "Cannot check constant '" << getName() << "' fits into type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //warn?
 	return false;
@@ -252,7 +260,7 @@ namespace MFM {
     if(nuti == Nav)
       {
 	std::ostringstream msg;
-	msg << "Constant Type Unknown: "<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << "Constant is not-a-valid type: "<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
@@ -302,14 +310,9 @@ namespace MFM {
 	}
 	break;
       case Unsigned:
+      case Unary:
       case Bits:
       case Bool:
-	{
-	  u32 numval = m_constant.uval;
-	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
-	}
-	break;
-      case Unary:
 	{
 	  u32 numval = m_constant.uval;
 	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
@@ -320,7 +323,8 @@ namespace MFM {
 	  std::ostringstream msg;
 	  msg << "Constant Type Unknown: ";
 	  msg <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	  msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
+	  msg << ", to fit into type: ";
+	  msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
@@ -350,18 +354,12 @@ namespace MFM {
 	}
 	break;
       case Unsigned:
+      case Unary:
       case Bits:
       case Bool:
 	{
 	  u64 numval = m_constant.uval;
 	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
-	}
-	break;
-      case Unary:
-	{
-	  u64 numval = m_constant.uval;
-	  u64 fmax = _Unary64ToUnsigned64(fit->getMax(), fit->getBitSize(), m_state.getBitSize(nuti));
-	  rtnb = (numval <= fmax) && (numval >= 0);
 	}
 	break;
       default:
@@ -388,19 +386,32 @@ namespace MFM {
     return rtnb;
   } //isNegativeConstant
 
-  // used during check and label for bitwise shift op that has a constant term gt/ge 32;
+  // used during check and label for bitwise shift op that has a RHS constant term gt/ge 32;
+  // since node is not the shiftee, unsigned/int distinction not pertinent
   // false is ok.
   bool NodeTerminal::isWordSizeConstant()
   {
     bool rtnb = false;
-    ULAMTYPE etype = m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeEnum();
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    u32 wordsize = nut->getTotalWordSize();
+    ULAMTYPE etype = nut->getUlamTypeEnum();
     if(etype == Int)
       {
-	rtnb = (m_constant.sval >= m_state.getDefaultBitSize(Int));
+	if(wordsize <= MAXBITSPERINT)
+	  rtnb = (m_constant.sval >= MAXBITSPERINT);
+	else if(wordsize <= MAXBITSPERLONG)
+	  rtnb = (m_constant.sval >= MAXBITSPERLONG);
+	else
+	  assert(0);
       }
     else if(etype == Unsigned)
       {
-	rtnb = (m_constant.uval > (u32) m_state.getDefaultBitSize(Unsigned)); // may be ==
+	if(wordsize <= MAXBITSPERINT)
+	rtnb = (m_constant.uval >= (u32) MAXBITSPERINT);
+	else if(wordsize <= MAXBITSPERLONG)
+	  rtnb = (m_constant.uval >= (u32) MAXBITSPERLONG);
+	else
+	  assert(0);
       }
     return rtnb;
   } //isWordSizeConstant

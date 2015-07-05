@@ -124,7 +124,10 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 			msg << " as ";
 			msg << m_state.getUlamTypeNameBriefByIndex(m_state.m_currentFunctionReturnType).c_str();
-			msg << " requires explicit casting";
+			if(m_state.getUlamTypeByIndex(m_state.m_currentFunctionReturnType)->getUlamTypeEnum() == Bool)
+			  msg << " requires a logical comparison";
+			else
+			  msg << " requires explicit casting";
 			if(scr == CAST_CLEAR)
 			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			else

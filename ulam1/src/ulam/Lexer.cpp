@@ -63,9 +63,10 @@ namespace MFM {
 	return true;
       }
 
+    bool isStructuredComment = false;
     //get the first non-space character (newline included)
     do{
-      c = eatComment();  //returns next byte
+      c = eatComment(returnTok, isStructuredComment);  //returns next byte
     } while(c >= 0 && isspace(c));
 
     if(c < -1)
@@ -76,6 +77,13 @@ namespace MFM {
 	returnTok.init(TOK_ERROR_LOWLEVEL, m_SS.getLocator(), idx); //is locator ok?
 	m_lastToken = returnTok; //NEEDS SOME KIND OF TOK_ERROR
 	return false; //error case
+      }
+
+    if(isStructuredComment)
+      {
+	unread();
+	m_lastToken = returnTok;
+	return true;
       }
 
     // switch to any special processing based on the first byte:
@@ -115,7 +123,7 @@ namespace MFM {
 	  //tokentype still unclear..
 	  if(isalpha(c))
 	    {
-	      brtn =  makeWordToken(cstring, returnTok);
+	      brtn = makeWordToken(cstring, returnTok);
 	    }
 	  else if(isdigit(c))
 	    {
@@ -580,10 +588,9 @@ namespace MFM {
     return m_state.m_pool.getIndexForDataString(errmsg.str());
   } //formatHexConstant
 
-  s32 Lexer::eatComment()
+  s32 Lexer::eatComment(Token& rtnTok, bool& isStructuredComment)
   {
     s32 c = m_SS.read();
-
     // initially called with a value that is not EOF or space or digit or alpha
     // check for start of comment
     if(c == '/')
@@ -595,14 +602,22 @@ namespace MFM {
 	  }
 	else if( d == '*')
 	  {
-	    return eatBlockComment();
+	    s32 e = m_SS.read();
+	    if( e == '*')
+	      {
+		isStructuredComment = true;
+		return makeStructuredCommentToken(rtnTok);
+	      }
+	    else
+	      {
+		unread(); //wasn't a 2nd *
+		return eatBlockComment();
+	      }
 	  }
 	unread();
       }
-
     return c;
-  }
-
+  } //eatComment
 
   s32 Lexer::eatBlockComment()
   {
@@ -614,31 +629,19 @@ namespace MFM {
 	if(c == '*')
 	  {
 	    s32 d = m_SS.read();
-
 	    if(d >= 0)
 	      {
 		if(d == '/')
-		  {
-		    //found end of comment; return next byte
-		    return m_SS.read();
-		  }
+		  return m_SS.read(); //found end of comment; return next byte
 		else
-		  {
-		    unread(); //to re-read; in case d is *, for example
-		  }
+		  unread(); //to re-read; in case d is *, for example
 	      }
 	    else
-	      {
-		// d error or eof
-		return d;
-	      }
+	      return d; // d error or eof
 	  } // c is not *, get the next byte
-
       } //end while
-
     return c;
-  }
-
+  } //eatBlockComment
 
   s32 Lexer::eatLineComment()
   {
@@ -648,8 +651,39 @@ namespace MFM {
     while((c = m_SS.read()) >= 0 && c != '\n');
 
     return c;  // a newline or EOF or error
-  }
+  } //eatLineComment
 
+  s32 Lexer::makeStructuredCommentToken(Token& tok)
+  {
+    Locator firstloc = m_SS.getLocator();
+    std::string scstr;
+    s32 c;
+    //keep reading until end of comment or (EOF or error)
+    //return last byte after comment
+    while((c = m_SS.read()) >= 0)
+      {
+	if(c == '*')
+	  {
+	    s32 d = m_SS.read();
+	    if(d >= 0)
+	      {
+		if(d == '/')
+		  {
+		    u32 idx = m_state.m_pool.getIndexForDataString(scstr);
+		    tok.init(TOK_STRUCTURED_COMMENT, firstloc, idx);
+		    return m_SS.read(); //found end of comment; return next byte
+		  }
+		else
+		  unread(); //to re-read; in case d is *, for example
+	      }
+	    else
+	      return d; // d error or eof
+	  } // c is not *, get the next byte
+	else
+	  scstr.push_back(c);
+      } //end while
+    return c;
+  } //makeStructuredCommentToken
 
   TokenType Lexer::getTokenTypeFromString(std::string str)
   {

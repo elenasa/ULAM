@@ -99,7 +99,15 @@ namespace MFM {
 	ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
 	if(!(retype == Int || retype == Unsigned || retype == Unary))
 	  {
-	    if(!makeCastingNode(m_nodeRight, Int, m_nodeRight))
+	    if(Node::checkSafeToCastTo(rightType, Int) == CAST_CLEAR)
+	      {
+		if(!makeCastingNode(m_nodeRight, Int, m_nodeRight))
+		  {
+		    newType = Nav; //error!
+		    errorCount++;
+		  }
+	      }
+	    else
 	      {
 		newType = Nav; //error!
 		errorCount++;

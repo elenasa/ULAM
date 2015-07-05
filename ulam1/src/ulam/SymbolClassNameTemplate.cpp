@@ -45,11 +45,16 @@ namespace MFM {
 
   void SymbolClassNameTemplate::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
   {
+    u32 scid = 0;
+    Token scTok;
+    if(getStructuredComment(scTok))
+      scid = scTok.m_dataindex;
+
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
     while(it != m_scalarClassArgStringsToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
-	csym->addTargetDescriptionMapEntry(classtargets);
+	csym->addTargetDescriptionMapEntry(classtargets, scid);
 	it++;
       }
   } //getTargetDescriptorsForClassInstances()

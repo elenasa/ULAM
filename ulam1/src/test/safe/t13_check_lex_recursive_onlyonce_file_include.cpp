@@ -10,7 +10,7 @@ static const char OPEN_NAME = '[';
 static const char CLOSE_NAME = ']';
 
   BEGINTESTCASEIO(t13_check_lex_recursive_onlyonce_file_include)
-  {  
+  {
     std::string GetAnswerKey()
     {
       std::string answerkey = "hello no[c.ULAM\n] go yeCCC]DDDs\n world !\nrubout between the anglebrackets here: <\377>\nbye\n";
@@ -20,35 +20,35 @@ static const char CLOSE_NAME = ']';
     std::string PresetTest(FileManagerString * fms)
     {
       bool rtn1 = fms->add("a.ulam","hello [b.ulam] world [b.ulam]!\n[f.ulam]\nbye\n");
-      
+
       bool rtn2 = fms->add("b.ulam", "n[b.ulam]o[c.ULAM\n] g[a.ulam]o ye[c.ulam]s\n");
-      
+
       bool rtn3 = fms->add("c.ulam", "CCC[a.ulam]]DDD");
 
       bool rtn4 = fms->add("f.ulam", "rubout between the anglebrackets here: <\377>");
-      
+
       if(rtn1 && rtn2 && rtn3 && rtn4)
 	return std::string("a.ulam");
 
       return std::string("");
     }
-    
+
 
     bool CheckResults(FileManagerString * fms, File * errorOutput)
-    {    
+    {
       return CompareResultsWithAnswerKey(fms,errorOutput);
     }
-     
+
 
     bool GetTestResults(FileManager * fm, std::string startstr, File * output)
     {
       CompilerState cs;
-      SourceStream ss(fm, cs);      
+      SourceStream ss(fm, cs);
       std::string fname;   //to build
       bool filenameSeen = false;
       bool rtn = true;
 
-      if (ss.push(startstr))
+      if (ss.push(startstr) == 0)
 	{
 	  int c;
 	  while( (c = ss.read()) >= 0)
@@ -78,7 +78,7 @@ static const char CLOSE_NAME = ']';
 			filenameSeen = false;
 			// If the push returns false, spike1
 			//  outputs the brackets and enclosed bytes literally
-			if(!ss.push(fname))
+			if(ss.push(fname) != 0)
 			  {
 			    //std::cout << OPEN_NAME << fname << CLOSE_NAME;
 			    output->write(OPEN_NAME);
@@ -110,16 +110,14 @@ static const char CLOSE_NAME = ']';
 	{
 	  rtn = false;
 	}
-      
+
       return rtn;
   }
 
-    
+
   } //end test struct
-  
+
   ENDTESTCASEIO(t13_check_lex_recursive_onlyonce_file_include)
 
 
 } //end MFM
-
-

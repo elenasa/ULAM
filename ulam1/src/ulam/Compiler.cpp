@@ -244,6 +244,20 @@ namespace MFM {
 #ifdef TESTTARGETMAP
     TargetMap tm = getMangledTargetsMap();
     std::cerr << "Size of target map is " << tm.size() << std::endl;
+    for(TargetMap::const_iterator i = tm.begin(); i != tm.end(); ++i)
+      {
+	std::cerr
+	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	  << "TARGET "
+	  << MFM::HexEscape(getFullPathLocationAsString(i->second.m_loc))
+	  << " " << i->second.m_className
+	  << " " << i->first
+	  << " " << i->second.m_bitsize
+	  << " " << (i->second.m_hasTest?"test":"notest")
+	  << " " << (i->second.m_isQuark?"quark":"element")
+	  << " " << MFM::HexEscape(i->second.m_structuredComment)
+	  << std::endl;
+      }
 #endif
 
     // testing model parameter map only
@@ -260,7 +274,7 @@ namespace MFM {
 	  << " " << i->second.m_mangledType
 	  << " " << i->first
 	  << " 0x" << std::hex << i->second.m_val
-	  << " " << i->second.m_lexval
+	  << " " << MFM::HexEscape(i->second.m_structuredComment)
 	  << std::endl;
       }
 #endif
