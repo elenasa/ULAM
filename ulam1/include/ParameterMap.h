@@ -47,8 +47,8 @@ namespace MFM
   {
     Locator m_loc;
     std::string m_mangledType;
+    std::string m_parameterName;
     u64 m_val; //as Bits
-    std::string m_lexval; //converted to binary
     std::string m_structuredComment;
   };
 

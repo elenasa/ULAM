@@ -261,7 +261,7 @@ namespace MFM {
 #endif
 
     // testing model parameter map only
-    //#define TESTPARAMETERMAP
+#define TESTPARAMETERMAP
 #ifdef TESTPARAMETERMAP
     ParameterMap pm = getMangledParametersMap();
     std::cerr << "Size of model parameter map is " << pm.size() << std::endl;
@@ -272,6 +272,7 @@ namespace MFM {
 	  << "PARAMETER "
 	  << MFM::HexEscape(getFullPathLocationAsString(i->second.m_loc))
 	  << " " << i->second.m_mangledType
+	  << " " << i->second.m_parameterName
 	  << " " << i->first
 	  << " 0x" << std::hex << i->second.m_val
 	  << " " << MFM::HexEscape(i->second.m_structuredComment)
