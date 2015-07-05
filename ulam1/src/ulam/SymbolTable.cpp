@@ -430,9 +430,15 @@ namespace MFM {
 	    assert(((SymbolParameterValue *) sym)->getLexValue(desc.m_lexval)); //is ready.
 	    Token scTok;
 	    if(((SymbolParameterValue *) sym)->getStructuredComment(scTok))
-	      desc.m_structuredComment = m_state.m_pool.getDataAsString(scTok.m_dataindex);
+	      {
+		std::ostringstream sc;
+		sc << "/**";
+		sc << m_state.m_pool.getDataAsString(scTok.m_dataindex).c_str();
+		sc << "*/";
+		desc.m_structuredComment = sc.str();
+	      }
 	    else
-	      desc.m_structuredComment = "NOSTRUCTUREDCOMMENT";
+	      desc.m_structuredComment = "NONE";
 
 	    std::string mangledName = sym->getMangledName();
 	    classmodelparameters.insert(std::pair<std::string, struct ParameterDesc>(mangledName, desc));

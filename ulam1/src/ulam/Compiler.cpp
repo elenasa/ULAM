@@ -255,7 +255,7 @@ namespace MFM {
 	  << " " << i->second.m_bitsize
 	  << " " << (i->second.m_hasTest?"test":"notest")
 	  << " " << (i->second.m_isQuark?"quark":"element")
-	  << " /**" << MFM::HexEscape(i->second.m_structuredComment) << "*/"
+	  << " " << MFM::HexEscape(i->second.m_structuredComment)
 	  << std::endl;
       }
 #endif
@@ -274,7 +274,7 @@ namespace MFM {
 	  << " " << i->second.m_mangledType
 	  << " " << i->first
 	  << " 0x" << std::hex << i->second.m_val
-	  << " /**" << MFM::HexEscape(i->second.m_structuredComment) << "*/"
+	  << " " << MFM::HexEscape(i->second.m_structuredComment)
 	  << std::endl;
       }
 #endif
