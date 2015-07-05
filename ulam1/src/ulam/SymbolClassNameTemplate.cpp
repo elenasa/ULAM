@@ -261,9 +261,9 @@ namespace MFM {
 	      {
 		//number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
-		msg << "Number of Arguments (" << cargs << ") in class instance: ";
+		msg << "Number of Arguments (" << cargs << ") in class instance '";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
-		msg << ", is insufficient for the required number of parameters (";
+		msg << "' is insufficient for the required number of parameters (";
 		msg << numparams << ") to be fixed";
 		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 		it++;
@@ -293,9 +293,9 @@ namespace MFM {
 	      {
 		//number of arguments in class instance does not match the number of parameters
 		std::ostringstream msg;
-		msg << "Number of Arguments (" << foundArgs << ") in class instance: ";
+		msg << "Number of Arguments (" << foundArgs << ") in class instance '";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
-		msg << ", did not match the required number of parameters (";
+		msg << "' did not match the required number of parameters (";
 		msg << numparams << ") to fix";
 		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	      }
@@ -357,8 +357,8 @@ namespace MFM {
     if(m_scalarClassInstanceIdxToSymbolPtr.empty())
       {
 	std::ostringstream msg;
-	msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	msg << ", has no instances; args format is number of parameters";
+	msg << "Template '" << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	msg << "' has no instances; Args format is number of parameters";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	return args.str(); //short-circuit when argument is template's UTI
       }
@@ -469,8 +469,8 @@ namespace MFM {
 	if(m_scalarClassInstanceIdxToSymbolPtr.empty())
 	  {
 	    std::ostringstream msg;
-	    msg << "Template: " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	    msg << ", has no instances; args format is number of parameters";
+	    msg << "Template '" << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
+	    msg << "' has no instances; Args format is number of parameters";
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
 	args << ToLeximitedNumber(numParams);
@@ -608,9 +608,9 @@ namespace MFM {
     if(!getClassBlockNode())
       {
 	std::ostringstream msg;
-	msg << "Cannot fully instantiate a template class <";
+	msg << "Cannot fully instantiate a template class '";
 	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	msg << "> without a definition, maybe not a class at all";
+	msg << "' without a definition (maybe not a class at all)";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	return false;
       }
@@ -774,9 +774,9 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << " Class instance: ";
+	    msg << " Class instance '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " is still a stub, so no check for custom arrays error";
+	    msg << "' is still a stub; No check for custom arrays error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
@@ -802,9 +802,9 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << " Class instance: ";
+	    msg << " Class instance '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
-	    msg << " is still a stub, so no check for duplication function error";
+	    msg << "' is still a stub; No check for duplication function error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
@@ -830,9 +830,9 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << " Class instance: ";
+	    msg << " Class instance '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
-	    msg << " is still a stub, so no calc max depth function error";
+	    msg << "' is still a stub; No calc max depth function error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
@@ -859,9 +859,9 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << " Class instance: ";
+	    msg << " Class instance '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " is still a stub, so check and label error";
+	    msg << "' is still a stub; Check and label error";
 	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
 	it++;
@@ -890,9 +890,9 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << navclasscnt;
-		msg << " data member nodes with unresolved types remain in class instance <";
+		msg << " data member nodes with unresolved types remain in class instance '";
 		msg << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-		msg << ">";
+		msg << "'";
 		MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
 		navCounter += navclasscnt;
 	      }
@@ -901,8 +901,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Instance: " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << ", is incomplete; Navs will not be counted";
+	    msg << "Class Instance '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << "' is incomplete; Navs will not be counted";
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
@@ -957,8 +957,8 @@ namespace MFM {
 	    if(m_state.getBitSize(uti) != totalbits)
 	      {
 		std::ostringstream msg;
-		msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameByIndex(uti).c_str();
-		msg << " SIZED FAILED: " << totalbits;
+		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameByIndex(uti).c_str();
+		msg << "' SIZED " << totalbits << " FAILED";
 		MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 		NodeBlockClass * classNode = csym->getClassBlockNode();
 		assert(classNode);
@@ -967,8 +967,8 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "CLASS INSTANCE: " << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
-		msg << " UTI" << uti << ", SIZED: " << totalbits;
+		msg << "CLASS INSTANCE '" << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+		msg << "' UTI" << uti << ", SIZED: " << totalbits;
 		MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	      }
 	  }
@@ -999,7 +999,8 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << m_scalarClassInstanceIdxToSymbolPtr.size() << " Class Instance";
 	msg << (m_scalarClassInstanceIdxToSymbolPtr.size() > 1 ? "s ALL " : " ");
-	msg << "sized SUCCESSFULLY for template: " << m_state.m_pool.getDataAsString(getId()).c_str();
+	msg << "sized SUCCESSFULLY for template '";
+	msg << m_state.m_pool.getDataAsString(getId()).c_str() << "'";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
       }
     lostClasses.clear();
@@ -1074,8 +1075,8 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Instance: " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << ", is incomplete; Code will not be generated";
+	    msg << "Class Instance '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << "' is incomplete; Code will not be generated";
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(), DEBUG);
 	  }
 	it++;
@@ -1126,9 +1127,10 @@ namespace MFM {
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
-	msg << "Number of Arguments (" << cargs << ") in class instance: ";
+	msg << "Number of Arguments (" << cargs << ") in class instance '";
 	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
-	msg << ", is insufficient for the required number of parameters (" << numparams << ")";
+	msg << "' is insufficient for the required number of parameters (";
+	msg << numparams << ")";
 	MSG(fm->getTokPtr(), msg.str().c_str(), ERR);
 	return false;
       }
@@ -1178,11 +1180,11 @@ namespace MFM {
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
-	msg << "Number of Arguments (" << cargs << ") in class instance stub: ";
+	msg << "Number of Arguments (" << cargs << ") in class instance stub '";
 	msg << m_state.m_pool.getDataAsString(fm->getId()).c_str(); //not a uti
-	msg << ", is insufficient for the required number of parameters (" << numparams;
+	msg << "' is insufficient for the required number of parameters (" << numparams;
 	msg << ") to be copied from";
-	MSG(fm->getTokPtr(), msg.str().c_str(),ERR);
+	MSG(fm->getTokPtr(), msg.str().c_str(), ERR);
 	return false;
       }
 

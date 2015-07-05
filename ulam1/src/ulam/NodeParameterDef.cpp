@@ -33,6 +33,26 @@ namespace MFM {
     assert(0);
   }
 
+  UTI NodeParameterDef::checkAndLabelType()
+  {
+    UTI nodeType = NodeConstantDef::checkAndLabelType();
+    if(nodeType != Nav)
+      {
+	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+	u32 wordsize = nut->getTotalWordSize();
+	if(wordsize > MAXBITSPERINT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Model Parameter '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << "' must fit in " << MAXBITSPERINT << " bits";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    nodeType = Nav;
+	    setNodeType(Nav);
+	  }
+      }
+    return nodeType;
+  }
+
   void NodeParameterDef::checkForSymbol()
   {
     assert(!m_constSymbol);
