@@ -183,7 +183,7 @@ namespace MFM {
     if(uclass == UC_ELEMENT || uti == UAtom)
       {
 	std::ostringstream msg;
-	msg << "Non-primitive type: <";
+	msg << "Non-primitive type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 	msg << "> is not supported for unary operator";
 	msg << getName();

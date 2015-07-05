@@ -204,9 +204,9 @@ namespace MFM {
 	if(!overloaded) //shouldn't be a duplicate, but if it is handle it
 	  {
 	    std::ostringstream msg;
-	    msg << "Check overloading function: <";
+	    msg << "Check overloading function <";
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-	    msg << "> has a duplicate definition: (" << fmangled.c_str();
+	    msg << "> has a duplicate definition (" << fmangled.c_str();
 	    msg << "), while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);  //Dave says better to start as error
@@ -252,7 +252,7 @@ namespace MFM {
 	if(futi == Void)
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array get method: '";
+	    msg << "Custom array get method '";
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "' cannot return Void ";
 	    probcount++;
@@ -260,7 +260,7 @@ namespace MFM {
 	else if(futisav != Nav && UlamType::compare(futi, futisav, m_state) == UTIC_NOTSAME)
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array get methods: '";
+	    msg << "Custom array get methods '";
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "' cannot have different return types: ";
 	    msg << m_state.getUlamTypeNameByIndex(futi).c_str();
@@ -284,7 +284,7 @@ namespace MFM {
     if(m_mangledFunctionNames.empty())
       {
 	std::ostringstream msg;
-	msg << "Custom array set method: '";
+	msg << "Custom array set method '";
 	msg << m_state.m_pool.getDataAsString(m_state.getCustomArraySetFunctionNameId()).c_str();
 	msg << "' NOT FOUND in class: ";
 	msg << m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamTypeNameOnly().c_str();
@@ -301,7 +301,7 @@ namespace MFM {
 	if(futi != Void)
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array set method: '";
+	    msg << "Custom array set method '";
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "' must return Void ";
 	    probcount++;
@@ -311,7 +311,7 @@ namespace MFM {
 	if(numparams != 2)
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array set method: '";
+	    msg << "Custom array set method '";
 	    msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
 	    msg << "' requires exactly two parameters, not ";
 	    msg << numparams;
@@ -327,15 +327,15 @@ namespace MFM {
 	    if(UlamType::compare(auti, caType, m_state) == UTIC_NOTSAME)
 	      {
 		std::ostringstream msg;
-		msg << "Custom array set method: '";
+		msg << "Custom array set method '";
 		msg << m_state.m_pool.getDataAsString(fsym->getId()).c_str();
-		msg << "' second parameter type: ";
+		msg << "' second parameter type '";
 		msg << m_state.getUlamTypeNameByIndex(auti).c_str();
-		msg << " does not match '";
+		msg << "' does not match '";
 		msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
-		msg << "' return type: ";
+		msg << "' return type '";
 		msg << m_state.getUlamTypeNameByIndex(caType).c_str();
-		msg << "and cannot be called in class: ";
+		msg << "'; Cannot be called in class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(fsym->getTokPtr(), msg.str().c_str(), ERR);
 		probcount++;

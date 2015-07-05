@@ -594,7 +594,7 @@ namespace MFM {
 	if(!((UlamTypeClass *) cut)->isCustomArray())
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array get method: '";
+	    msg << "Custom array get method '";
 	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
 	    msg << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	    MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -625,7 +625,7 @@ namespace MFM {
 	if(((UlamTypeClass *) cut)->isCustomArray())
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array get method: '";
+	    msg << "Custom array get method '";
 	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
 	    msg << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	    MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
