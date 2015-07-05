@@ -2078,6 +2078,28 @@ namespace MFM {
     m_parsingConditionalAs = true; //cleared manually
   } //saveIdentTokenForConditionalAs
 
+  void CompilerState::saveStructuredCommentToken(Token scTok)
+  {
+    m_precedingStructuredCommentToken = scTok;
+  } //saveStructuredCommentToken
+
+  void CompilerState::clearStructuredCommentToken()
+  {
+    Token blankTok; //unitialized
+    m_precedingStructuredCommentToken = blankTok;
+  } //clearStructuredCommentToken
+
+  bool CompilerState::getStructuredCommentToken(Token& scTok)
+  {
+    if(m_precedingStructuredCommentToken.m_type == TOK_STRUCTURED_COMMENT)
+      {
+	scTok = m_precedingStructuredCommentToken;
+	clearStructuredCommentToken(); //auto clear; 1-get per scTOK
+	return true;
+      }
+    return false;
+  } //getStructuredCommentToken
+
   NNO CompilerState::getNextNodeNo()
   {
     return ++m_nextNodeNumber; //first one is 1

@@ -49,6 +49,7 @@ namespace MFM
     std::string m_mangledType;
     u64 m_val; //as Bits
     std::string m_lexval; //converted to binary
+    std::string m_structuredComment;
   };
 
   //key is mangledParameterName, including the mangled class it belongs

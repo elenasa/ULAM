@@ -758,7 +758,7 @@ namespace MFM {
     return up.str();
   } //firstletterTolowercase
 
-  void SymbolClass::addTargetDescriptionMapEntry(TargetMap& classtargets)
+  void SymbolClass::addTargetDescriptionMapEntry(TargetMap& classtargets, u32 scid)
   {
     UlamType * cut = m_state.getUlamTypeByIndex(getUlamTypeIdx());
     std::string className = cut->getUlamTypeNameOnly();
@@ -776,6 +776,11 @@ namespace MFM {
     desc.m_bitsize = cut->getTotalBitSize();
     desc.m_loc = classNode->getNodeLocation();
     desc.m_className = className;
+
+    if(scid > 0)
+      desc.m_structuredComment = m_state.m_pool.getDataAsString(scid);
+    else
+      desc.m_structuredComment = "NOSTRUCTUREDCOMMENT";
 
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
   } //addTargetDesciptionMapEntry
