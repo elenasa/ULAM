@@ -50,6 +50,7 @@ namespace MFM
     u32 m_bitsize;
     Locator m_loc;
     std::string m_className;
+    std::string m_structuredComment;
   };
 
   // key is class mangled name

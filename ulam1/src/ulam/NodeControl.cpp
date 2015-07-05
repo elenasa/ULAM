@@ -108,7 +108,7 @@ namespace MFM {
     UTI newType = Bool;
     ULAMTYPE newEnumTyp = Bool;
 
-    // condition should be a bool, always cast
+    // condition should be a bool, safely cast
     UTI cuti = m_nodeCondition->checkAndLabelType();
     if(cuti != Nav && m_state.isComplete(cuti))
       {
@@ -117,8 +117,12 @@ namespace MFM {
 	ULAMTYPE ctypEnum = cut->getUlamTypeEnum();
 	if(ctypEnum != newEnumTyp)
 	  {
-	    //m_nodeCondition = makeCastingNode(m_nodeCondition, newType);
-	    if(!makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
+	    if(Node::checkSafeToCastTo(cuti, newType) == CAST_CLEAR)
+	      {
+		if(!makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
+		  newType = Nav;
+	      }
+	    else
 	      newType = Nav;
 	  }
 	else
@@ -128,11 +132,15 @@ namespace MFM {
 	    //until c-bool is needed
 	    if(cuti != newType)
 	      {
-		//m_nodeCondition = makeCastingNode(m_nodeCondition, cuti);
-		if(!makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
-		  newType = Nav;
+		if(Node::checkSafeToCastTo(cuti, newType))
+		  {
+		    if(!makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
+		      newType = Nav;
+		    else
+		      newType = cuti;
+		  }
 		else
-		  newType = cuti;
+		  newType = Nav;
 	      }
 	  }
 	m_nodeBody->checkAndLabelType(); //side-effect

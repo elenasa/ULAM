@@ -113,7 +113,6 @@ namespace MFM{
 
     virtual UTI constantFold();
 
-    virtual bool fitsInBits(UTI fituti);
     virtual bool isNegativeConstant();
     virtual bool isWordSizeConstant();
 
@@ -167,6 +166,9 @@ namespace MFM{
   protected:
 
     CompilerState & m_state;  //for printing error messages with path
+
+    bool checkSafeToCastTo(UTI fromType, UTI newType);
+
     bool makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode, bool isExplicit = false);
     bool warnOfNarrowingCast(UTI nodeType, UTI tobeType);
 

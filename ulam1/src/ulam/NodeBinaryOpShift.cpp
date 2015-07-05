@@ -129,6 +129,18 @@ namespace MFM {
 	    bok = false; //Nav;
 	  }
 
+	//check for big shift values
+	if(m_nodeRight->isAConstant() && m_nodeRight->isReadyConstant())
+	  {
+	    if(m_nodeRight->isWordSizeConstant())
+	      {
+		std::ostringstream msg;
+		msg << "Shift distance greater than data width, operator";
+		msg << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
+	      }
+	  }
+
 	if(!bok)
 	  newType = Nav;
       } //both scalars

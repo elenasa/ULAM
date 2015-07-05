@@ -112,6 +112,8 @@ namespace MFM{
     s32 m_parsingControlLoop;             // used for break/continue control stmt parsing;
                                           // label num for end of loop, or 0
 
+    Token m_precedingStructuredCommentToken; //for next class or parameter
+
     bool m_parsingConditionalAs;          // used for Conditional-As parsing
     Token m_identTokenForConditionalAs;   // used for Conditional-As parsing
     bool m_genCodingConditionalAs; // used for Conditional-As code gen
@@ -318,6 +320,11 @@ namespace MFM{
 
     /** for conditional as-magic */
     void saveIdentTokenForConditionalAs(Token iTok);
+
+    /** class or model parameter structured comment for MFM */
+    void saveStructuredCommentToken(Token scTok);
+    void clearStructuredCommentToken();
+    bool getStructuredCommentToken(Token& scTok);
 
     /** to identify each node */
     NNO getNextNodeNo();

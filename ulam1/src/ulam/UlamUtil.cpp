@@ -152,6 +152,7 @@ namespace MFM
     std::istringstream is(source);
     std::ostringstream os;
     os << std::hex;
+    is >> std::noskipws;
 
     u8 ch;
     while (is >> ch)

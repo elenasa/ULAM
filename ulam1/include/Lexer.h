@@ -81,9 +81,10 @@ namespace MFM{
     u32 formatOctalConstant(u8& rtn);
     u32 formatHexConstant(u8& rtn);
 
-    s32 eatComment();
+    s32 eatComment(Token& rtnTok, bool& isStructuredCommento);
     s32 eatBlockComment();
     s32 eatLineComment();
+    s32 makeStructuredCommentToken(Token& tok);
 
     /** current byte to be read again, request to underlying sourcestream */
     void unread();
