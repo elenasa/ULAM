@@ -286,6 +286,7 @@ int main(int argc, char ** argv)
 	      << "PARAMETER "
               << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
               << " " << i->second.m_mangledType
+	      << " " << i->second.m_parameterName
               << " " << i->first
 	      << " 0x" << std::hex << i->second.m_val
 	      << " " << MFM::HexEscape(i->second.m_structuredComment)

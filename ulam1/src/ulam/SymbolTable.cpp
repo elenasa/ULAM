@@ -427,7 +427,7 @@ namespace MFM {
 	    desc.m_loc = sym->getLoc();
 	    desc.m_mangledType = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName();
 	    assert(((SymbolParameterValue *) sym)->getValue(desc.m_val)); //is ready.
-	    assert(((SymbolParameterValue *) sym)->getLexValue(desc.m_lexval)); //is ready.
+	    desc.m_parameterName = m_state.m_pool.getDataAsString(sym->getId());
 	    Token scTok;
 	    if(((SymbolParameterValue *) sym)->getStructuredComment(scTok))
 	      {
