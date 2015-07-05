@@ -20,9 +20,31 @@ namespace MFM {
     classNode->setNodeLocation(identTok.m_locator);
   } //resetUnseenClassLocation
 
+  void SymbolClassName::setStructuredComment()
+  {
+    Token scTok;
+    if(m_state.getStructuredCommentToken(scTok)) //and clears it
+      m_structuredCommentToken = scTok;
+  }
+
+  bool SymbolClassName::getStructuredComment(Token& scTok)
+  {
+    if(m_structuredCommentToken.m_type == TOK_STRUCTURED_COMMENT)
+      {
+	scTok = m_structuredCommentToken;
+	return true;
+      }
+    return false;
+  } //getStructuredComment
+
   void SymbolClassName::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
   {
-    SymbolClass::addTargetDescriptionMapEntry(classtargets);
+    u32 scid = 0;
+    Token scTok;
+    if(getStructuredComment(scTok))
+      scid = scTok.m_dataindex;
+
+    SymbolClass::addTargetDescriptionMapEntry(classtargets, scid);
   } //getTargetDescriptorsForClassInstances
 
   void SymbolClassName::getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters)

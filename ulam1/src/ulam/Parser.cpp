@@ -107,7 +107,8 @@ namespace MFM {
       {
 	//compileThis.at(0) = 'A' + (c - 'a'); //uppercase
 	std::ostringstream msg;
-	msg << "File name <" << startstr << "> must match a valid class name (uppercase) to compile";
+	msg << "File name <" << startstr;
+	msg << "> must match a valid class name (uppercase) to compile";
 	MSG("", msg.str().c_str() , ERR);
 	return  1; //1 error
       }
@@ -169,6 +170,7 @@ namespace MFM {
       {
         //Nothing else (but haven't found startstr yet)
 	MSG(&pTok, "EOF before finding compilation target", DEBUG);
+	m_state.clearStructuredCommentToken();
         return true;
       }
 
@@ -186,10 +188,12 @@ namespace MFM {
 	msg << Token::getTokenAsString(TOK_KW_QUARKUNION);
 	msg << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
+	m_state.clearStructuredCommentToken();
 	return true; //we're done.
       }
 
-    //each class has its own parse tree; each "compileThis", in turn, has code generated later.
+    //each class has its own parse tree; each "compileThis",
+    //in turn, has code generated later.
     Token iTok;
     getNextToken(iTok);
 
@@ -200,6 +204,7 @@ namespace MFM {
 	msg << "Poorly named class <" << m_state.getTokenDataAsString(&iTok).c_str();
 	msg << ">: Identifier must begin with an upper-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
+	m_state.clearStructuredCommentToken();
 	return true; //we're done unless we can gobble the rest up?
       }
 
@@ -226,7 +231,7 @@ namespace MFM {
 		msg << "Duplicate or incomplete class <";
 		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
 		MSG(&iTok, msg.str().c_str(), ERR);
-
+		m_state.clearStructuredCommentToken();
 		return  true; //we're done unless we can gobble the rest up?
 	      }
 	    else if(cnSym->isClassTemplate())
@@ -235,6 +240,7 @@ namespace MFM {
 		msg << "Conflicting class args previously seen for class with no parameters <";
 		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
 		MSG(&iTok, msg.str().c_str(), ERR);
+		m_state.clearStructuredCommentToken();
 		return  true; //we're done unless we can gobble the rest up?
 	      }
 	    wasIncomplete = true;
@@ -256,7 +262,7 @@ namespace MFM {
 		msg << "Duplicate or incomplete template class <";
 		msg << m_state.m_pool.getDataAsString(ctSym->getId()).c_str() << ">";
 		MSG(&iTok, msg.str().c_str(), ERR);
-
+		m_state.clearStructuredCommentToken();
 		return  true; //we're done unless we can gobble the rest up?
 	      }
 	    wasIncomplete = true;
@@ -292,6 +298,8 @@ namespace MFM {
       default:
 	assert(0); //checked prior
       };
+
+    cnSym->setStructuredComment(); //also clears
 
     NodeBlockClass * classNode = parseClassBlock(cnSym, iTok); //we know its type too..sweeter
     if(classNode)
@@ -4262,6 +4270,13 @@ namespace MFM {
 	msg << "(Low Level) " << m_state.getTokenDataAsString(&tok).c_str();
 	MSG(&tok, msg.str().c_str(), ERR);
 	brtn = m_tokenizer->getNextToken(tok);
+      }
+    else if(tok.m_type == TOK_STRUCTURED_COMMENT)
+      {
+	Token scTok = tok; //save in case next token is a class or parameter
+	brtn = m_tokenizer->getNextToken(tok);
+	if((tok.m_type == TOK_KW_ELEMENT) || (tok.m_type == TOK_KW_QUARK) || (tok.m_type == TOK_KW_QUARKUNION) || tok.m_type == TOK_KW_PARAMETER)
+	  m_state.saveStructuredCommentToken(scTok);
       }
     return brtn;
   } //getNextToken
