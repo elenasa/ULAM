@@ -112,6 +112,7 @@ namespace MFM{
     s32 m_parsingControlLoop;             // used for break/continue control stmt parsing;
                                           // label num for end of loop, or 0
 
+    bool m_gotStructuredCommentToken; // avoid testing uninitialized value
     Token m_precedingStructuredCommentToken; //for next class or parameter
 
     bool m_parsingConditionalAs;          // used for Conditional-As parsing

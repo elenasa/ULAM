@@ -71,6 +71,7 @@ namespace MFM{
   private:
     UTI m_childOf; //needed for symbol's mangled name
     Token m_structuredCommentToken;
+    bool m_gotStructuredCommentToken;
   };
 } //MFM
 

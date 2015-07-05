@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state)
+  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state), m_gotStructuredCommentToken(false)
   {
     unsetStub(); //regular class; classblock may be null if utype is UC_UNSEEN class type.
   }
@@ -24,13 +24,17 @@ namespace MFM {
   {
     Token scTok;
     if(m_state.getStructuredCommentToken(scTok)) //and clears it
-      m_structuredCommentToken = scTok;
-  }
+      {
+	m_structuredCommentToken = scTok;
+	m_gotStructuredCommentToken = true;
+      }
+  } //setStructuredComment
 
   bool SymbolClassName::getStructuredComment(Token& scTok)
   {
-    if(m_structuredCommentToken.m_type == TOK_STRUCTURED_COMMENT)
+    if(m_gotStructuredCommentToken)
       {
+	assert(m_structuredCommentToken.m_type == TOK_STRUCTURED_COMMENT);
 	scTok = m_structuredCommentToken;
 	return true;
       }
