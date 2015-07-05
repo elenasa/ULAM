@@ -61,7 +61,7 @@ namespace MFM {
 	if(rscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "RHS type ";
+	    msg << "Righthand type ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " is not representable as ";
 	    msg<< m_state.getUlamTypeNameBriefByIndex(newType).c_str();

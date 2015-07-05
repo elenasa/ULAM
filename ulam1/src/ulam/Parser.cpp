@@ -405,8 +405,9 @@ namespace MFM {
 	if(cntsym->getNumberOfParameters() == 0)
 	  {
 	    std::ostringstream msg;
-	    msg << "Class Template has NO parameters: ";
-	    msg << m_state.getUlamTypeNameByIndex(cntsym->getUlamTypeIdx()).c_str();
+	    msg << "Class Template '";
+	    msg << m_state.m_pool.getDataAsString(cntsym->getId()).c_str();
+	    msg << "' has NO parameters; Parens are inapplicable";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
 	return; //done with parameters
@@ -2835,7 +2836,7 @@ namespace MFM {
     Node * rightNode = parseExpression();
     if(!rightNode)
       {
-	MSG(&pTok, "RHS of Open Square is missing->Sq Bracket deleted", ERR);
+	MSG(&pTok, "Array item/size is missing; Square Bracket deleted", ERR);
 	delete leftNode;
 	rtnNode = NULL;
       }
@@ -3672,8 +3673,9 @@ namespace MFM {
     if(!Token::isTokenAType(tTok))
       {
 	std::ostringstream msg;
-	msg << "RHS of operator <" << fTok.getTokenString() << "> is not a Type: ";
-	msg << tTok.getTokenString() << ", operation deleted";
+	msg << "Right operand of conditional-" << fTok.getTokenString();
+	msg << " is not a Type: ";
+	msg << tTok.getTokenString() << "; Operation deleted";
 	MSG(&tTok, msg.str().c_str(), ERR);
 	delete leftNode;
 	m_state.m_parsingConditionalAs = false;
@@ -3685,8 +3687,8 @@ namespace MFM {
     if(!m_state.isScalar(cuti))
       {
 	std::ostringstream msg;
-	msg << "RHS of operator <" << fTok.getTokenString() << "> is an array: ";
-	msg << tTok.getTokenString() << ", operation deleted";
+	msg << "Right operand of conditional-" << fTok.getTokenString() << " is an array: ";
+	msg << tTok.getTokenString() << "; Operation deleted";
 	MSG(&tTok, msg.str().c_str(), ERR);
 	delete leftNode;
 	m_state.m_parsingConditionalAs = false;
@@ -3731,8 +3733,8 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "RHS of binary operator" << pTok.getTokenString();
-	msg << " is missing, Assignment deleted";
+	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << " is missing; Assignment deleted";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	delete leftNode;
       }
@@ -3787,7 +3789,8 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
       }
@@ -3827,7 +3830,8 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
       }
@@ -3870,7 +3874,8 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
       }
@@ -3910,7 +3915,8 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
       }
@@ -3956,7 +3962,8 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
       }
@@ -3996,7 +4003,8 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
       }
@@ -4036,7 +4044,8 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "RHS of binary operator" << pTok.getTokenString() << " is missing, operation deleted";
+	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
       }
@@ -4079,7 +4088,7 @@ namespace MFM {
     if(!factorNode)
       {
 	std::ostringstream msg;
-	msg << "Factor is missing, unary operation " << pTok.getTokenString() << " deleted";
+	msg << "Factor is missing; Unary operation " << pTok.getTokenString() << " deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	return NULL;
       }
