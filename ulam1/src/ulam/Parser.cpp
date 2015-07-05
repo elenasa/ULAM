@@ -201,8 +201,8 @@ namespace MFM {
     if(iTok.m_type != TOK_TYPE_IDENTIFIER)
       {
 	std::ostringstream msg;
-	msg << "Poorly named class <" << m_state.getTokenDataAsString(&iTok).c_str();
-	msg << ">: Identifier must begin with an upper-case letter";
+	msg << "Poorly named class '" << m_state.getTokenDataAsString(&iTok).c_str();
+	msg << "'; Identifier must begin with an upper-case letter";
 	MSG(&iTok, msg.str().c_str(), ERR);
 	m_state.clearStructuredCommentToken();
 	return true; //we're done unless we can gobble the rest up?
@@ -228,8 +228,8 @@ namespace MFM {
 	    if(cnSym->getUlamClass() != UC_UNSEEN)
 	      {
 		std::ostringstream msg;
-		msg << "Duplicate or incomplete class <";
-		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << ">";
+		msg << "Duplicate or incomplete class '";
+		msg << m_state.m_pool.getDataAsString(cnSym->getId()).c_str() << "'";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
 		return  true; //we're done unless we can gobble the rest up?
@@ -259,8 +259,8 @@ namespace MFM {
 	    if(ctSym->getUlamClass() != UC_UNSEEN)
 	      {
 		std::ostringstream msg;
-		msg << "Duplicate or incomplete template class <";
-		msg << m_state.m_pool.getDataAsString(ctSym->getId()).c_str() << ">";
+		msg << "Duplicate or incomplete template class '";
+		msg << m_state.m_pool.getDataAsString(ctSym->getId()).c_str() << "'";
 		MSG(&iTok, msg.str().c_str(), ERR);
 		m_state.clearStructuredCommentToken();
 		return  true; //we're done unless we can gobble the rest up?
@@ -1499,8 +1499,8 @@ namespace MFM {
 	      {
 		//params but no args
 		std::ostringstream msg;
-		msg << "Missing Class Arguments for an instance stub of class template <";
-		msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str() << ">";
+		msg << "Missing Class Arguments for an instance stub of class template '";
+		msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str() << "'";
 		MSG(&pTok, msg.str().c_str(), ERR);
 	      }
 	  }
@@ -1534,9 +1534,9 @@ namespace MFM {
 	  {
 	    //params but no args
 	    std::ostringstream msg;
-	    msg << "NO Class Arguments for an instance stub of class template <";
+	    msg << "NO Class Arguments for an instance stub of class template '";
 	    msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str();
-	    msg << "> with " << numParams << " parameters";
+	    msg << "' with " << numParams << " parameters";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	    cuti = Nav;
 	  }
@@ -1585,8 +1585,8 @@ namespace MFM {
     if(!exprNode)
       {
 	std::ostringstream msg;
-	msg << "Class Argument after Open Paren is missing, for template: <";
-	msg << m_state.m_pool.getDataAsString(csym->getId()).c_str() << ">";
+	msg << "Class Argument after Open Paren is missing, for template '";
+	msg << m_state.m_pool.getDataAsString(csym->getId()).c_str() << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	// what else is missing?
 	return;
@@ -1597,9 +1597,9 @@ namespace MFM {
     if(!ctUnseen && parmIdx >= ctsym->getNumberOfParameters())
       {
 	std::ostringstream msg;
-	msg << "Too many Class Arguments " << "(" << parmIdx + 1 << "), class template: ";
+	msg << "Too many Class Arguments " << "(" << parmIdx + 1 << "); Class Template '";
 	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str();
-	msg << " expects " << ctsym->getNumberOfParameters();
+	msg << "' expects " << ctsym->getNumberOfParameters();
 	MSG(&pTok, msg.str().c_str(), ERR);
 	delete exprNode;
 	exprNode = NULL;
@@ -1803,10 +1803,9 @@ namespace MFM {
 	if(! ((SymbolClassNameTemplate *)cnsym)->findClassInstanceByUTI(args.m_classInstanceIdx, csym))
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to use typedef from another class template <";
+	    msg << "Trying to use typedef from another class template '";
 	    msg << m_state.m_pool.getDataAsString(cnsym->getId()).c_str();
-	    msg << ">, but instance UTI";
-	    msg << args.m_classInstanceIdx << " cannot be found";
+	    msg << "', but instance cannot be found";
 	    MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	    numDots = 0;
 	    rtnb = false;
@@ -1826,9 +1825,9 @@ namespace MFM {
 	if(nTok.m_type != TOK_KW_SIZEOF)
 	  {
 	    std::ostringstream msg;
-	    msg << "Trying to use typedef from another class <";
+	    msg << "Trying to use typedef from another class '";
 	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str();
-	    msg << ">, before it has been defined. Cannot continue with (token) ";
+	    msg << "', before it has been defined; Cannot continue with (token) ";
 	    msg << m_state.getTokenDataAsString(&nTok).c_str();
 	    MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	    getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
@@ -4259,8 +4258,8 @@ namespace MFM {
 	if(!quietly)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unexpected token <" << pTok.getTokenEnumName() << ">; Expected <";
-	    msg << Token::getTokenAsString(eTokType) << ">";
+	    msg << "Unexpected token <" << pTok.getTokenEnumName() << ">; Expected ";
+	    msg << Token::getTokenAsString(eTokType);
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
 	brtn = false;
