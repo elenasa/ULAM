@@ -190,7 +190,7 @@ namespace MFM {
     if(lclass == UC_ELEMENT || lt == UAtom)
       {
 	std::ostringstream msg;
-	msg << "Non-primitive type: <";
+	msg << "Non-primitive type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	msg << "> is not supported as left operand type for binary operator";
 	msg << getName();
@@ -202,7 +202,7 @@ namespace MFM {
     if(rclass == UC_ELEMENT || rt == UAtom)
       {
 	std::ostringstream msg;
-	msg << "Non-primitive type: <";
+	msg << "Non-primitive type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	msg << "> is not supported as right operand type for binary operator";
 	msg << getName();

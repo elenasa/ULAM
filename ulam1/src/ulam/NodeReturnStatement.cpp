@@ -141,7 +141,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "ISO C forbids ‘return’ with expression, in function returning void";
+		msg << "ISO C forbids ‘return’ with expression in a function returning void";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?
 	      }
@@ -150,7 +150,7 @@ namespace MFM {
     else if(!m_state.isComplete(nodeType))
       {
 	std::ostringstream msg;
-	msg << "Function return type is still incomplete: ";
+	msg << "Function return type is still unresolved: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	// nodeType = Nav; needed?
