@@ -32,7 +32,7 @@ namespace MFM {
 
   bool SymbolParameterValue::isModelParameter()
   {
-    return (SymbolWithValue::isReady());
+    return true;
   }
 
   const std::string SymbolParameterValue::getMangledPrefix()

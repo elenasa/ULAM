@@ -150,6 +150,8 @@ namespace MFM {
 	    msg << "Cannot explicitly cast ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	    msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
+	    if(tobe->getUlamTypeEnum() == Bool)
+	      msg << "; Consider using a comparison operator";
 	    if(scr == CAST_HAZY)
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    else

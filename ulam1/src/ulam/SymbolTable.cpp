@@ -420,7 +420,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(sym->isModelParameter())
+	if(sym->isModelParameter() && ((SymbolParameterValue *)sym)->isReady())
 	  {
 	    //similar to SymbolClass' addTargetDescriptionMapEntry for class targets
 	    struct ParameterDesc desc;
@@ -906,9 +906,9 @@ namespace MFM {
 	    if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Type: ";
+		msg << "Unresolved type <";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << " was never defined, fails labeling";
+		msg << "> was never defined; Fails labeling";
 		MSG(cnsym->getTokPtr(), msg.str().c_str(), ERR);
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 		break;
@@ -960,9 +960,9 @@ namespace MFM {
 	if( classtype == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Type: ";
+	    msg << "Unresolved type <";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " was never defined, fails sizing";
+	    msg << "> was never defined; Fails sizing";
 	    if(isAnonymousClass)
 	      MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
 	    else
@@ -1232,9 +1232,8 @@ namespace MFM {
 		      {
 			UTI suti = csym->getUlamTypeIdx();
 			std::ostringstream msg;
-			msg << " Quark/Element '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-			msg << "' (UTI" << suti << ")";
-			msg << " cannot contain a copy of itself";
+			msg << "Quark/Element '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+			msg << "' cannot contain a copy of itself";
 			MSG(csym->getTokPtr(), msg.str().c_str(), ERR);
 			return UNKNOWNSIZE;
 		      }
