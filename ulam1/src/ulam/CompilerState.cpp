@@ -52,7 +52,7 @@ namespace MFM {
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
@@ -2081,18 +2081,21 @@ namespace MFM {
   void CompilerState::saveStructuredCommentToken(Token scTok)
   {
     m_precedingStructuredCommentToken = scTok;
+    m_gotStructuredCommentToken = true;
   } //saveStructuredCommentToken
 
   void CompilerState::clearStructuredCommentToken()
   {
     Token blankTok; //unitialized
     m_precedingStructuredCommentToken = blankTok;
+    m_gotStructuredCommentToken = false;
   } //clearStructuredCommentToken
 
   bool CompilerState::getStructuredCommentToken(Token& scTok)
   {
-    if(m_precedingStructuredCommentToken.m_type == TOK_STRUCTURED_COMMENT)
+    if(m_gotStructuredCommentToken)
       {
+	assert(m_precedingStructuredCommentToken.m_type == TOK_STRUCTURED_COMMENT);
 	scTok = m_precedingStructuredCommentToken;
 	clearStructuredCommentToken(); //auto clear; 1-get per scTOK
 	return true;

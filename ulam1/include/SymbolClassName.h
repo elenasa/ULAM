@@ -90,8 +90,8 @@ namespace MFM{
    protected:
 
   private:
-
     Token m_structuredCommentToken;
+    bool m_gotStructuredCommentToken;
   };
 
 }
