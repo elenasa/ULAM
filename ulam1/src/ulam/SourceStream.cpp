@@ -35,7 +35,8 @@ namespace MFM {
     if(m_fileRecords[id].getUnreadFlag())
       {
 	std::ostringstream msg;
-	msg << "Unread called twice bogusly: <" << (char) m_fileRecords[id].getUnreadByte() << ">";
+	msg << "Unread called twice bogusly <";
+	msg << (char) m_fileRecords[id].getUnreadByte() << ">";
 	Locator lastLoc = m_fileRecords[id].getUnreadLoc();
 	MSG(m_state.getFullLocationAsString(lastLoc).c_str(), msg.str().c_str(), DEBUG);
       }

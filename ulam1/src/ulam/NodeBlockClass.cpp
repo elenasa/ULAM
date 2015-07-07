@@ -428,7 +428,7 @@ namespace MFM {
 	fp->write("<EC>::THE_INSTANCE;\n\n");
       }
 
-    //output Model Parameters as extern decl's
+    //output any externs, outside of class decl
     genCodeExtern(fp, declOnly);
 
     m_state.m_currentIndentLevel = 0;
@@ -527,6 +527,16 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
+    //default constructor/destructor; initializes UlamElement with MFM__UUID_FOR
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();\n");
+
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();\n\n");
+
     m_state.indent(fp);
     fp->write("static ");
     fp->write(cut->getUlamTypeMangledName().c_str());
@@ -539,16 +549,6 @@ namespace MFM {
 	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
 	fp->write("\n");
       }
-
-    //default constructor/destructor
-    m_state.indent(fp);
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("();\n");
-
-    m_state.indent(fp);
-    fp->write("~");
-    fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write("();\n\n");
 
     // if this 'element' contains more than one template (quark) data members,
     // we need vector of offsets to generate a separate function decl/dfn for each one's POS
@@ -671,6 +671,9 @@ namespace MFM {
 
   void NodeBlockClass::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    m_state.indent(fp);
+    fp->write("//BUILT-IN FUNCTIONS:\n\n");
+
     // 'has' is for both class types
     NodeBlock::generateCodeForBuiltInClassFunctions(fp, declOnly, classtype);
 

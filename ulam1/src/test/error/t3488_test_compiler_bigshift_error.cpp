@@ -16,6 +16,7 @@ namespace MFM {
       //ULAM INFO: PARAMETER ./A.ulam:12:51: Ut_10131u Uc_Ue_102321A10_Up_4m_p2 0x0 /**2nd%20model%20parameter:%20*/
 
       /*
+	./A.ulam:12:39: ERROR: Model Parameter 'm_p2' must fit into 32 bits.
 	./A.ulam:5:22: Warning: Shift distance greater than data width, operator<<.
 	./A.ulam:6:18: Warning: Shift distance greater than data width, operator<<.
 	./A.ulam:7:23: Warning: Shift distance greater than data width, operator>>.
@@ -31,7 +32,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       //informed by t3480
-      bool rtn1 = fms->add("A.ulam","ulam 1;\n use B;\n /** This Is A Structured Comment. */\n element A {\n B(1) b;\n B(2) b2;\n Unsigned(8) d,f;\nInt(8) e,g;\n /**This is a \nmodel parameter: */ parameter Int(3) m_p = -1;\n /**fake out */\n /**2nd model parameter: */ parameter Unsigned(3) m_p2 = 0;\n Int test(){constant Unsigned shift = 32;\nd = (Unsigned(8)) (1 << shift);\n e = (Int(8)) (1 << shift);\n f = (Unsigned(8)) (1 >> shift);\n g = (Int(8)) (1 >> shift);\n return 0;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","ulam 1;\n use B;\n /** This Is A Structured Comment. */\n element A {\n B(1) b;\n B(2) b2;\n Unsigned(8) d,f;\nInt(8) e,g;\n /**This is a \nmodel parameter: */ parameter Int(3) m_p = -1;\n /**fake out */\n /**2nd model parameter: */ parameter Unsigned(64) m_p2 = 0;\n Int test(){constant Unsigned shift = 32;\nd = (Unsigned(8)) (1 << shift);\n e = (Int(8)) (1 << shift);\n f = (Unsigned(8)) (1 >> shift);\n g = (Int(8)) (1 >> shift);\n return 0;\n }\n }\n");
 
       bool rtn2 = fms->add("B.ulam", "/** This is quark B */ quark B(Int a){\n }\n");
 
