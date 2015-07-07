@@ -69,7 +69,6 @@ namespace MFM {
 
   UlamValue NodeUnaryOpMinus::makeImmediateUnaryOp(UTI type, u32 data, u32 len)
   {
-    //return UlamValue::makeImmediate(type, (s32) -data, len);
     return UlamValue::makeImmediate(type, _UnaryMinusInt32(data, len), len);
   }
 

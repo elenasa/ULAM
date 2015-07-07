@@ -340,6 +340,21 @@ namespace MFM {
       }
   } //genCodeForTableOfVariableDataMembers (unused)
 
+  void SymbolTable::genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isModelParameter())
+	  {
+	    UTI suti = sym->getUlamTypeIdx();
+	    m_state.getUlamTypeByIndex(suti)->genUlamTypeMangledImmediateModelParameterDefinitionForC(fp);
+	  }
+	it++;
+      }
+  } //genModelParameterImmediateDefinitionsForTableOfVariableDataMembers
+
   void SymbolTable::genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //'has' applies to both quarks and elements
@@ -420,7 +435,7 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(sym->isModelParameter())
+	if(sym->isModelParameter() && ((SymbolParameterValue *)sym)->isReady())
 	  {
 	    //similar to SymbolClass' addTargetDescriptionMapEntry for class targets
 	    struct ParameterDesc desc;
@@ -594,7 +609,7 @@ namespace MFM {
 	if(!((UlamTypeClass *) cut)->isCustomArray())
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array get method: '";
+	    msg << "Custom array get method '";
 	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
 	    msg << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	    MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -625,7 +640,7 @@ namespace MFM {
 	if(((UlamTypeClass *) cut)->isCustomArray())
 	  {
 	    std::ostringstream msg;
-	    msg << "Custom array get method: '";
+	    msg << "Custom array get method '";
 	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
 	    msg << "' NOT FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
 	    MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -906,9 +921,9 @@ namespace MFM {
 	    if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete Type: ";
+		msg << "Unresolved type <";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-		msg << " was never defined, fails labeling";
+		msg << "> was never defined; Fails labeling";
 		MSG(cnsym->getTokPtr(), msg.str().c_str(), ERR);
 		//assert(0); wasn't a class at all, e.g. out-of-scope typedef/variable
 		break;
@@ -960,9 +975,9 @@ namespace MFM {
 	if( classtype == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete Type: ";
+	    msg << "Unresolved type <";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    msg << " was never defined, fails sizing";
+	    msg << "> was never defined; Fails sizing";
 	    if(isAnonymousClass)
 	      MSG(sym->getTokPtr(), msg.str().c_str(), DEBUG);
 	    else
@@ -1232,9 +1247,8 @@ namespace MFM {
 		      {
 			UTI suti = csym->getUlamTypeIdx();
 			std::ostringstream msg;
-			msg << " Quark/Element '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-			msg << "' (UTI" << suti << ")";
-			msg << " cannot contain a copy of itself";
+			msg << "Quark/Element '" << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+			msg << "' cannot contain a copy of itself";
 			MSG(csym->getTokPtr(), msg.str().c_str(), ERR);
 			return UNKNOWNSIZE;
 		      }

@@ -40,6 +40,11 @@ namespace MFM {
     return "void";
   }
 
+  void UlamTypeVoid::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
+  {
+    assert(0); //only primitive types
+  }
+
   const std::string UlamTypeVoid::getTmpStorageTypeAsString()
   {
     return "void";

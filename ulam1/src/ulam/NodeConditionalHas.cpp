@@ -43,7 +43,7 @@ namespace MFM {
     if(!(luti == UAtom || lclasstype == UC_ELEMENT || lclasstype == UC_QUARK || m_state.isScalar(luti)))
       {
 	std::ostringstream msg;
-	msg << "Invalid type for LHS of conditional operator '" << getName();
+	msg << "Invalid lefthand type of conditional operator '" << getName();
 	msg << "'; must be an atom, element or quark, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	if(lclasstype == UC_UNSEEN)
@@ -60,10 +60,9 @@ namespace MFM {
     if(!(rclasstype == UC_QUARK || m_state.isScalar(ruti)))
       {
 	std::ostringstream msg;
-	msg << "Invalid type for RHS of conditional operator '" << getName();
+	msg << "Invalid righthand type of conditional operator '" << getName();
 	msg << "'; must be a quark name, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
-	msg << " (UTI" << ruti << ")";
 	if(rclasstype == UC_UNSEEN || ruti == Nav)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -74,9 +73,9 @@ namespace MFM {
     if(!m_state.getUlamTypeByIndex(ruti)->isComplete())
       {
 	std::ostringstream msg;
-	msg << "RHS of conditional operator '" << getName() << "' type: ";
+	msg << "Righthand type of conditional operator '" << getName() << "' ";
 	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
-	msg << "; is still incomplete while labeling class: ";
+	msg << " is still incomplete while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	newType = Nav;
@@ -127,7 +126,7 @@ namespace MFM {
 	if(luti != UAtom)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid type for LHS of conditional operator '" << getName();
+	    msg << "Invalid lefthand type of conditional operator '" << getName();
 	    msg << "'; Type Not Found during eval: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -135,7 +134,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid type for LHS of conditional operator '" << getName();
+	    msg << "Invalid lefthand type of conditional operator '" << getName();
 	    msg <<  "', "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 	    msg << "; Passing through as UNFOUND for eval";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);

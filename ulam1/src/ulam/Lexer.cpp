@@ -286,7 +286,7 @@ namespace MFM {
       }
 
     std::ostringstream errmsg;
-    errmsg << "Weird! Lexer could not find match for: <" << astring << ">";
+    errmsg << "Weird! Lexer could not find match for <" << astring << ">";
     return m_state.m_pool.getIndexForDataString(errmsg.str());
   } //makeOperatorToken
 
@@ -301,7 +301,7 @@ namespace MFM {
 	if(c3 != '.')
 	  {
 	    std::ostringstream errmsg;
-	    errmsg << "Lexer could not find match for: <" << astring << ">";
+	    errmsg << "Lexer could not find match for <" << astring << ">";
 	    bok = m_state.m_pool.getIndexForDataString(errmsg.str());
 	    unread();
 	  }
@@ -309,7 +309,7 @@ namespace MFM {
     else
       {
 	std::ostringstream errmsg;
-	errmsg << "Lexer could not find last dot for ellipsis: <" << astring << ">";
+	errmsg << "Lexer could not find last dot for ellipsis <" << astring << ">";
 	bok = m_state.m_pool.getIndexForDataString(errmsg.str());
       }
     return bok;
@@ -339,7 +339,7 @@ namespace MFM {
       {
 	if( c == -1) unread();
 	std::ostringstream errmsg;
-	errmsg << "Lexer could not complete double quoted string: <" << astring << ">";
+	errmsg << "Lexer could not complete double quoted string <" << astring << ">";
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 
@@ -454,7 +454,7 @@ namespace MFM {
       {
 	unread();
 	std::ostringstream errmsg;
-	errmsg << "Lexer could not find closing single quote: <" << astring << ">";
+	errmsg << "Lexer could not find closing single quote <" << astring << ">";
 	return m_state.m_pool.getIndexForDataString(errmsg.str());
       }
 

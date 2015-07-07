@@ -939,4 +939,8 @@ namespace MFM {
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
 
+  void UlamTypeClass::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
+  {
+    assert(0); //only primitive types
+  }
 } //end MFM

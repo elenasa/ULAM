@@ -120,14 +120,14 @@ namespace MFM {
 		    else
 		      {
 			std::ostringstream msg;
-			msg << "Returning ";
+			if(m_state.getUlamTypeByIndex(m_state.m_currentFunctionReturnType)->getUlamTypeEnum() == Bool)
+			  msg << "Use a comparison operator";
+			else
+			  msg << "Use explicit cast";
+			msg << "to return ";
 			msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 			msg << " as ";
 			msg << m_state.getUlamTypeNameBriefByIndex(m_state.m_currentFunctionReturnType).c_str();
-			if(m_state.getUlamTypeByIndex(m_state.m_currentFunctionReturnType)->getUlamTypeEnum() == Bool)
-			  msg << " requires a logical comparison";
-			else
-			  msg << " requires explicit casting";
 			if(scr == CAST_CLEAR)
 			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			else
@@ -141,7 +141,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "ISO C forbids ‘return’ with expression, in function returning void";
+		msg << "ISO C forbids ‘return’ with expression in a function returning void";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?
 	      }
@@ -150,7 +150,7 @@ namespace MFM {
     else if(!m_state.isComplete(nodeType))
       {
 	std::ostringstream msg;
-	msg << "Function return type is still incomplete: ";
+	msg << "Function return type is still unresolved: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	// nodeType = Nav; needed?

@@ -64,7 +64,7 @@ namespace MFM{
 
     const std::string getArrayItemUnsignedTmpStorageTypeAsString();
 
-    const std::string getUnsignedTmpStorageTypeAsString();
+    virtual const std::string getUnsignedTmpStorageTypeAsString();
 
     virtual bool cast(UlamValue & val, UTI typidx);
 
