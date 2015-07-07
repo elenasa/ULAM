@@ -226,7 +226,7 @@ namespace MFM {
 
   void NodeBlock::addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters)
   {
-    m_ST.addModelParameterDescriptionsToMap(classmodelparameters); //Table of Classes request
+    m_ST.addModelParameterDescriptionsToMap(this->getNodeType(), classmodelparameters); //Table of Classes request
   }
 
   void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
