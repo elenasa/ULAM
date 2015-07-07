@@ -155,8 +155,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_node->getNodeType()).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " for unary operator";
-	msg << getName();
+	msg << " for unary operator" << getName();
 	if(scr == CAST_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -184,7 +183,7 @@ namespace MFM {
     if(uclass == UC_ELEMENT || uti == UAtom)
       {
 	std::ostringstream msg;
-	msg << "Non-primitive type: <";
+	msg << "Non-primitive type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
 	msg << "> is not supported for unary operator";
 	msg << getName();

@@ -784,10 +784,10 @@ namespace MFM {
       {
 	//error can't support double arrays
 	std::ostringstream msg;
-	msg << "Arraysize [] is included in typedef: <";
+	msg << "Array size [] is included in typedef '";
 	msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
-	msg << ">, and cannot be redefined by variable: <";
-	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+	msg << "', and cannot be redefined by variable '";
+	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnb = false;
       }
@@ -806,11 +806,10 @@ namespace MFM {
 	  {
 	    //error can't support different bitsizes
 	    std::ostringstream msg;
-	    msg << "Bit size (" << tdbitsize << ") is included in typedef: <";
-	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str() << "> (UTI";
-	    msg << auti;
-	    msg << "), and cannot be redefined by variable: <";
-	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+	    msg << "Bit size (" << tdbitsize << ") is included in typedef '";
+	    msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
+	    msg << "', and cannot be redefined by variable '";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    rtnb = false;
 	  }
@@ -831,10 +830,10 @@ namespace MFM {
       {
 	//error can't support typedefs changing arraysizes
 	std::ostringstream msg;
-	msg << "Arraysize [] is included in typedef: <";
+	msg << "Array size [] is included in typedef '";
 	msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
-	msg << ">, and cannot be redefined by typedef: <";
-	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << ">";
+	msg << "', and cannot be redefined by typedef '";
+	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnb = false;
       }
@@ -859,10 +858,9 @@ namespace MFM {
       {
 	//error can't support named constant arrays
 	std::ostringstream msg;
-	msg << "Arraysize [] is included in typedef: <";
+	msg << "Array size [] is included in typedef '";
 	msg <<  m_state.getTokenDataAsString(&args.m_typeTok).c_str();
-	msg  << ">, (UTI" << args.m_anothertduti;
-	msg << "), and cannot be used by a named constant: '";
+	msg  << "', and cannot be used by a named constant '";
 	msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str() << "'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnb = false;

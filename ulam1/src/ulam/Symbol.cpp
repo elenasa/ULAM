@@ -141,9 +141,10 @@ namespace MFM {
     if(isModelParameter())
       {
 	std::ostringstream epmangled;
-	epmangled << sut->getImmediateStorageTypeAsString();
-	if(classtype == UC_QUARK)
-	  epmangled << "::Us";
+	epmangled << sut->getImmediateModelParameterStorageTypeAsString();
+	//if(classtype == UC_QUARK)
+	//  epmangled << "::Us";
+	assert(classtype == UC_NOTACLASS);
 	return epmangled.str();
       }
 
@@ -158,7 +159,7 @@ namespace MFM {
 
   const std::string Symbol::getParameterTypePrefix(bool isaclass)  //static method
   {
-    return (isaclass ? "Ut_" : "Up_");
+    return (isaclass ? "Ut_" : "Up_"); //atomic parameter p
   }
 
   void Symbol::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)

@@ -33,6 +33,26 @@ namespace MFM {
     assert(0);
   }
 
+  UTI NodeParameterDef::checkAndLabelType()
+  {
+    UTI nodeType = NodeConstantDef::checkAndLabelType();
+    if(nodeType != Nav)
+      {
+	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+	u32 wordsize = nut->getTotalWordSize();
+	if(wordsize > MAXBITSPERINT)
+	  {
+	    std::ostringstream msg;
+	    msg << "Model Parameter '" << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << "' must fit in " << MAXBITSPERINT << " bits";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    nodeType = Nav;
+	    setNodeType(Nav);
+	  }
+      }
+    return nodeType;
+  } //checkAndLabelType
+
   void NodeParameterDef::checkForSymbol()
   {
     assert(!m_constSymbol);
@@ -68,38 +88,19 @@ namespace MFM {
 
   void NodeParameterDef::genCode(File * fp, UlamValue& uvpass)
   {
-    m_state.indent(fp);
-    fp->write("// declared as extern (below)\n");
-
-  } //genCode
-
-  void NodeParameterDef::genCodeExtern(File * fp, bool declOnly)
-  {
     assert(m_constSymbol->isDataMember());
-
-    //    UTI cuti = m_state.getCompileThisIdx();
-    //ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
 
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     m_state.indent(fp);
 
-    if(declOnly)
-      fp->write("extern ");
-
-    //common to both decl and def
-    fp->write(vut->getImmediateStorageTypeAsString().c_str());
+    fp->write(vut->getImmediateModelParameterStorageTypeAsString().c_str());
+    fp->write("<EC>");
     fp->write(" ");
     fp->write(m_constSymbol->getMangledName().c_str());
 
-    if(!declOnly)
-      {
-	fp->write("(");
-	fp->write(m_nodeExpr->getName()); //initialize default value
-	fp->write(")");
-      }
     fp->write("; //model parameter\n");
-  } //genCodeExtern
+  } //genCode
 
 } //end MFM

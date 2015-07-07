@@ -1497,10 +1497,10 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
-		msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
-		msg << " base type: <" << UlamType::getUlamTypeEnumAsString(itBUT);
-		msg << ">, does not match resulting type's ";
-		msg << getUlamTypeNameByIndex(rType).c_str() << " base type: <";
+		msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
+		msg << " base type <" << UlamType::getUlamTypeEnumAsString(itBUT);
+		msg << "> does not match resulting type's ";
+		msg << getUlamTypeNameByIndex(rType).c_str() << " base type <";
 		msg << UlamType::getUlamTypeEnumAsString(rBUT) << ">";
 
 		if(fsym->getId() == m_pool.getIndexForDataString("toInt") && it == Int)
@@ -1514,10 +1514,10 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
-		    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
-		    msg << " array size: <" << getArraySize(it);
-		    msg << "> does not match resulting type's: ";
-		    msg << getUlamTypeNameByIndex(rType).c_str() << " array size: <";
+		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
+		    msg << " array size <" << getArraySize(it);
+		    msg << "> does not match resulting type's ";
+		    msg << getUlamTypeNameByIndex(rType).c_str() << " array size <";
 		    msg << getArraySize(rType) << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }
@@ -1526,10 +1526,10 @@ namespace MFM {
 		  {
 		    std::ostringstream msg;
 		    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
-		    msg << "''s Return type's: " << getUlamTypeNameByIndex(it).c_str();
-		    msg << " bit size: <" << getBitSize(it);
-		    msg << "> does not match resulting type's: ";
-		    msg << getUlamTypeNameByIndex(rType).c_str() << " bit size: <";
+		    msg << "''s Return type's " << getUlamTypeNameByIndex(it).c_str();
+		    msg << " bit size <" << getBitSize(it);
+		    msg << "> does not match resulting type's ";
+		    msg << getUlamTypeNameByIndex(rType).c_str() << " bit size <";
 		    msg << getBitSize(rType) << ">";
 		    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_ERR);
 		  }

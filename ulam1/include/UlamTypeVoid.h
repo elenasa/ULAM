@@ -64,6 +64,8 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString();
 
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+
     virtual bool isMinMaxAllowed();
 
     virtual bool cast(UlamValue & val, UTI typidx);

@@ -31,7 +31,7 @@ namespace MFM {
       {
 	m_functionNode = NULL; //is this possible?
 	std::ostringstream msg;
-	msg << "Undefined function block: <";
+	msg << "Undefined function block <";
 	msg << m_state.m_pool.getDataAsString(getId()).c_str() << ">";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	//assert(0);
