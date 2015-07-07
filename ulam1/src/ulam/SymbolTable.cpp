@@ -429,7 +429,7 @@ namespace MFM {
     fp->write("}  //has\n\n");
   } //genCodeBuiltInFunctionsOverTableOfVariableDataMember
 
-  void SymbolTable::addModelParameterDescriptionsToMap(ParameterMap& classmodelparameters)
+  void SymbolTable::addModelParameterDescriptionsToMap(UTI classType, ParameterMap& classmodelparameters)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -440,6 +440,7 @@ namespace MFM {
 	    //similar to SymbolClass' addTargetDescriptionMapEntry for class targets
 	    struct ParameterDesc desc;
 	    desc.m_loc = sym->getLoc();
+            desc.m_mangledClassName = m_state.getUlamTypeByIndex(classType)->getUlamTypeMangledName(),
 	    desc.m_mangledType = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName();
 	    assert(((SymbolParameterValue *) sym)->getValue(desc.m_val)); //is ready.
 	    desc.m_parameterName = m_state.m_pool.getDataAsString(sym->getId());

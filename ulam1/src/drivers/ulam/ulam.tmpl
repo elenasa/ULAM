@@ -23,6 +23,12 @@ use Carp;
   IDie("Templates have not been substituted -- this is not the script you are looking for.\n")
       if $CULAM_PATH =~ /@/ or $MFM_ROOT_DIR =~ /@/;
 
+BEGIN {
+    push @INC, '@ULAM_SHARE_DIR@/perl';
+}
+
+use UlamGen;
+
 ####VARIABLES MODIFIED BY SWITCHES
 my $ULAM_WORK_DIR=undef;
 my $ULAM_BIN_DIR=undef;
@@ -44,7 +50,7 @@ my $gppTool = "Compiler for C++ -> native code";
 my $arTool = "Archive maker for .o files";
 my $ulamcTool = "Compiler for ulam -> C++";
 my $mfmRootTool = "Movable Feast Machine source distribution";
-my $infoTool = "Element metadata parser";
+#my $infoTool = "Element metadata parser";
 
 my %tools;
 $tools{$ulamcTool} =
@@ -55,14 +61,14 @@ $tools{$ulamcTool} =
           return $status;
       }
     ];
-$tools{$infoTool} =
-    [ "$ULAM_SHARE_DIR/perl/GenerateUlamElementInfo.pl",
-      sub {
-          my $p = shift;
-          my $status = runThis("^GenerateUlamElementInfo", undef, $p,"-V");
-          return $status;
-      }
-    ];
+# $tools{$infoTool} =
+#     [ "$ULAM_SHARE_DIR/perl/GenerateUlamElementInfo.pl",
+#       sub {
+#           my $p = shift;
+#           my $status = runThis("^GenerateUlamElementInfo", undef, $p,"-V");
+#           return $status;
+#       }
+#     ];
 configureMSD($MFM_ROOT_DIR);
 
 sub getTool {
@@ -100,7 +106,7 @@ $tools{$makeTool} =
           return $status;
       }
     ];
-my @toolNames = ($makeTool, $gppTool, $arTool, $mfmRootTool, $ulamcTool, $infoTool);
+my @toolNames = ($makeTool, $gppTool, $arTool, $mfmRootTool, $ulamcTool);
 
 sub matchOrCall {
     my ($thing, $arg) = @_;
@@ -151,9 +157,9 @@ sub runThis {
         }
     }
     if (showOutput()) {
-        print " # STDOUT:\n{$stdout}";  print "\n" unless $stdout =~ /.*\n$/;
-        print " # STDERR:\n{$stderr}";  print "\n" unless $stderr =~ /.*\n$/;
-        print " # STATUS: $status";     print "\n" unless $status =~ /.*\n$/;
+        print " # BEGIN(STDOUT)\n$stdout\n # END(STDOUT)\n";  #print "\n" unless $stdout =~ /.*\n$/;
+        print " # BEGIN(STDERR)\n$stderr\n # END(STDERR)\n";  #print "\n" unless $stderr =~ /.*\n$/;
+        print " # STATUS($status)\n";#     print "\n" unless $status =~ /.*\n$/;
     }
     return ($status,$stdout,$stderr);
 }
@@ -725,6 +731,8 @@ UDie("No command specified\n")
 exit compilationDriver();
 
 my @testFilesFromUlam;
+my @cppFilesFromUlam;
+my @objectFilesFromUlamCpps;
 my @elementCNamesFromUlam;
 my @quarkCNamesFromUlam;
 
@@ -841,8 +849,11 @@ sub prepareWorkDir
 my %testableClasses;
 my %elementCNameToUlamFile;
 my %elementCNameToUlamName;
+my %elementCNameToStructuredComment;
 my %infoStructName;
 my %infoStructCode;
+
+my %modelParmInfoMap;
 
 sub runGccMakeForTests
 {
@@ -885,32 +896,60 @@ sub runUlamCompilations
         $stderr = "";
         my @rows = split(/\n/, $info);
         for my $row (@rows) {
-            my ($ulam,$info,$type,$path,$name,$cname,$size,$testflag,$classtype) = split(/ /,$row);
+            my ($ulam,$info,$type,@args) = split(/ /,$row);
             if ($ulam ne "ULAM" || $info ne "INFO:") {
                 # Not our business..  Leave in case it's important to somebody else..
                 $stderr .= "$row\n";
                 next;
             }
-	    if ($type ne "TARGET") {
-                # NYI.  Strip it out but do nothing with it.
+	    if ($type eq "PARAMETER") {
+                my ($path,$ename,$type,$uname,$pname,$default,$scmt) = @args;
+#                print STDERR "KDPM(path=$path,ename=$ename,type=$type,uname=$uname,pname=$pname,default=$default,scmt=$scmt)\n";
+
+                $scmt = "" if $scmt eq "NONE";
+
+                # Analyze loc for sortability
+                $path =~ s/:(\d+):(\d+):$// or die "No loc in '$path'?";
+                my ($line,$byteinline) = ($1,$2);
+                $path = deHexEscape($path);
+
+                # Make info record
+                #          file   line#  byte#        uname,  parm    type   def     doc
+                my $rec = [$path, $line, $byteinline, $uname, $pname, $type, $default, deHexEscape($scmt)];
+
+                # Stash it for later sorting and merging with possible scmt
+                push @{$modelParmInfoMap{$ename}}, $rec;
+#                print STDERR "KDPM($rec, ".join(",",@{$rec}).")\n";
+#                print STDERR "KDPM($ename ::".join(";",@{$modelParmInfoMap{$ename}}).")\n";
                 next;
             }
-            defined $classtype or die "Successful exit but not enough fields in '$row'";
-            # For now, strip location info.. :(
-            $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
-            $path = deHexEscape($path);
-            my $cfile = "$cname.cpp";
-            if ($testflag eq "test") {
-                $testableClasses{$cname} = $cfile;
-            }
-            if ($classtype eq "element") {
-                push @elementCNamesFromUlam, $cname;
-                $elementCNameToUlamFile{$cname} = $path;
-                $elementCNameToUlamName{$cname} = $name;
+	    if ($type eq "TARGET") {
+                my ($path,$name,$cname,$size,$testflag,$classtype,$scmt) = @args;
+                defined $scmt or die "Successful exit but not enough fields in '$row'";
+                # For now, strip location info.. :(
+                $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
+                $path = deHexEscape($path);
+                my $cfile = "$cname.cpp";
+                push @cppFilesFromUlam, $cfile;
+                push @objectFilesFromUlamCpps, "$ULAM_WORK_DIR/build/$cname.o";
+
+                if ($testflag eq "test") {
+                    $testableClasses{$cname} = $cfile;
+                }
+                if ($classtype eq "element") {
+                    push @elementCNamesFromUlam, $cname;
+                    $elementCNameToUlamFile{$cname} = $path;
+                    $elementCNameToUlamName{$cname} = $name;
+                    $elementCNameToStructuredComment{$cname} = deHexEscape($scmt);
 #                print "INFO($path,$name,$size,$testflag,$classtype)='$elementCNameToUlamFile{$cname}'\n";
-            } elsif ($classtype eq "quark") {
-                push @quarkCNamesFromUlam, $cname;
+                } elsif ($classtype eq "quark") {
+                    push @quarkCNamesFromUlam, $cname;
+                }
+                next;
             }
+
+            # Anything else: NYI, complain, continue
+            print STDERR "Unrecognized compiler information line: '$row'\n";
         }
         if (scalar(@elementCNamesFromUlam)==0) {
             $status = "No elements found, cannot build library";
@@ -925,20 +964,15 @@ sub runUlamCompilations
 sub runUlamInfoGeneration
 {
     pISC("## Extract ulam element information");
-    my $status = 0;
     for my $eltCName (@elementCNamesFromUlam) {
         my $ufile = $elementCNameToUlamFile{$eltCName};
         my $uname = $elementCNameToUlamName{$eltCName};
         IDie unless defined $ufile;
         pISC(" # Processing '$ufile' metadata");
-        my ($ulamStatus, $name, $code) = runUlamElementInfo($ufile,$uname,$eltCName);
-        if ($ulamStatus == 0) {
-            $infoForElement{$eltCName} = [$name, $code];
-        }
-        $status += $ulamStatus;
-        last if $status != 0 && $KEEP_GOING == 0;
+        my ($name, $code) = generateUlamElementInfo($ufile,$uname,$eltCName);
+        $infoForElement{$eltCName} = [$name, $code];
     }
-    return $status;
+    return 0;
 }
 
 sub writeElementAllocatorStub {
@@ -1119,7 +1153,7 @@ sub buildSharedLibrary
     pISC("## Create library");
     my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
     my $rollupObject = "$ULAM_WORK_DIR/build/$ROLLUP_FILE_STEM.o";
-    my @bslargs = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject);
+    my @bslargs = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject, @objectFilesFromUlamCpps);
     my $status = 0;
 
     print " Create $libfile shared library: ";
@@ -1379,7 +1413,7 @@ sub runGccCompilations
     my $status = 0;
     my $dir = getWorkDir();
     my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
-    for my $cfile ($rollupFile, @testFilesFromUlam) {
+    for my $cfile ($rollupFile, @cppFilesFromUlam, @testFilesFromUlam) {
         pISC(" # Compiling '$cfile'");
         my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc";
         if ($cfile eq $rollupFile) {
@@ -1443,28 +1477,25 @@ sub runTestMain {
 }
 
 
-sub runUlamElementInfo {
+sub generateUlamElementInfo {
     my ($file,$className,$mangledName) = @_;
-    my $geninfo = getTool($infoTool);
-    my @args = ($file,$className,$mangledName);
+    my $ug = UlamGen->new($className, $mangledName, $file);
     print " Element metadating $className from $file: ";
-    my ($status,$stdout,$stderr) = runThis(undef,undef,$geninfo,@args);
-    if ($status ne "") {
-        print STDOUT "ERROR: $status\n$stderr\n";
-    } else {
-        my $info = $stdout;
-        chomp($info);
-        $info =~ s/^([^\n]+\n)// or IDie("No match '$info'");
-        my $structName = $1;
-        chomp($structName);
-        if ($stderr ne "") {
-            print STDOUT "WARNING(S):\n$stderr\n";
-        } else {
-            print STDOUT "OK\n";
+    my $doc = $elementCNameToStructuredComment{$mangledName};
+    die unless defined $doc;
+    $ug->addClassDoc($doc);
+#    $ug->dump();
+    my $mparmref = $modelParmInfoMap{$mangledName};
+    if (defined $mparmref) {
+        for my $parm (@{$mparmref}) {
+            my ($path, $line, $col, $uname, $valStg, $mangledType, $def, $scmt) = @{$parm};
+#            print "NORG'".join(", ",@{$parm})."'\n";
+            $ug->addModelParameter($uname,$mangledType,$mangledName,$valStg,$def,$scmt);
         }
-        return (0, $structName, $info);
     }
-    return $status ne "";
+    my ($structName, $ulamElementInfoCode) = $ug->generateUlamElementInfo();
+    print "OK\n";
+    return ($structName, $ulamElementInfoCode);
 }
 
 sub UNSAFE_TEMPORARY_MV_FILES

@@ -1,9 +1,12 @@
 ulam 1;
 use Random;
 
-quark XTimer(Unsigned bits)
+quark XTimer(Unary(5) bits)
 {
-  typedef Unsigned(bits) Counter;
+  // With a max counter width of 5, the max value of Counter.maxof is
+  // 31, so 1u<<time cannot overflow
+  // (Wed Jul  1 14:22:21 2015 temporary for culam: cast to unsigned)
+  typedef Unsigned((Unsigned) bits) Counter;
   Random r;
   Counter time;
 
@@ -14,8 +17,7 @@ quark XTimer(Unsigned bits)
 
   Counter current() { return time; }
   Counter count() {
-    Unsigned k = 1;
-    if (!alarm() && r.oneIn(k<<time))
+    if (!alarm() && r.oneIn((Unsigned) (1u<<time)))
       ++time;
     return time;
   }
