@@ -774,7 +774,6 @@ namespace MFM {
 	msg << "Calling a function on an array is not currently supported.";
 	msg << " <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
 	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(stgcosuti).c_str();
-	msg << " (UTI" << stgcosuti << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	//assert(0);
       }

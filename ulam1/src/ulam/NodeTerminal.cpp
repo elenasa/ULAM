@@ -119,15 +119,15 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Negating an unsigned constant: '" << m_constant.uval <<  "'";
+	    msg << "Negating an unsigned constant '" << m_constant.uval <<  "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Constant Folding Token: <" << m_state.getTokenDataAsString(&tok).c_str();
-	msg << ">, currently unsupported";
+	msg << "Constant Folding Token <" << m_state.getTokenDataAsString(&tok).c_str();
+	msg << "> currently unsupported";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	assert(0);
       }
@@ -477,8 +477,8 @@ namespace MFM {
 	  if (*numlist == 0 || *nEnd != 0)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid signed constant: <" << numstr.c_str() << ">, errno=";
-	      msg << errno << " " << strerror(errno);
+	      msg << "Invalid signed constant <" << numstr.c_str() << ">, errno=";
+	      msg << errno << ": " << strerror(errno);
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }
 	  else
@@ -495,8 +495,8 @@ namespace MFM {
 	  if (*numlist == 0 || !(*nEnd == 'u' || *nEnd == 'U') || *(nEnd + 1) != 0)
 	    {
 	      std::ostringstream msg;
-	      msg << "Invalid unsigned constant: <" << numstr.c_str() << ">, errno=";
-	      msg << errno << " " << strerror(errno);
+	      msg << "Invalid unsigned constant <" << numstr.c_str() << ">, errno=";
+	      msg << errno << ": " << strerror(errno);
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    }
 	  else

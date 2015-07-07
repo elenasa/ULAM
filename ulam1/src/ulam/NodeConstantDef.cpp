@@ -201,8 +201,8 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << prettyNodeName().c_str() << " '" << getName();
-	    msg << "' type: <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
-	    msg << "> does not match its value type: <";
+	    msg << "' type <" << m_state.getUlamTypeByIndex(suti)->getUlamTypeNameOnly().c_str();
+	    msg << "> does not match its value type <";
 	    msg << m_state.getUlamTypeByIndex(it)->getUlamTypeNameOnly().c_str() << ">";
 	    msg << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();

@@ -172,8 +172,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(m_nodeRight->getNodeType()).c_str();
 	msg << " to ";
 	msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	msg << " for binary operator";
-	msg << getName();
+	msg << " for binary operator" << getName();
 	if(lsafe == CAST_HAZY || rsafe == CAST_HAZY)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -191,9 +190,9 @@ namespace MFM {
     if(lclass == UC_ELEMENT || lt == UAtom)
       {
 	std::ostringstream msg;
-	msg << "Non-primitive type: <";
+	msg << "Non-primitive type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	msg << "> is not supported as LHS for binary operator";
+	msg << "> is not supported as left operand type for binary operator";
 	msg << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnOK = false;
@@ -203,9 +202,9 @@ namespace MFM {
     if(rclass == UC_ELEMENT || rt == UAtom)
       {
 	std::ostringstream msg;
-	msg << "Non-primitive type: <";
+	msg << "Non-primitive type <";
 	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
-	msg << "> is not supported as RHS for binary operator";
+	msg << "> is not supported as right operand type for binary operator";
 	msg << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnOK = false;
@@ -221,7 +220,7 @@ namespace MFM {
     if(lt == Void || rt == Void)
       {
 	std::ostringstream msg;
-	msg << "Void is not supported for binary operator";
+	msg << "Void is not a supported type for binary operator";
 	msg << getName();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	rtnOK = false;
@@ -251,9 +250,9 @@ namespace MFM {
 
 	//array op scalar: defer since the question of matrix operations is unclear.
 	std::ostringstream msg;
-	msg << "Incompatible (nonscalar) types, LHS: ";
+	msg << "Incompatible (nonscalar) types ";
 	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
-	msg << ", RHS: " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	msg << " for binary operator";
 	msg << getName() << " ; Suggest writing a loop";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);

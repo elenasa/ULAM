@@ -94,9 +94,9 @@ namespace MFM {
     if(!classNode)
       {
 	std::ostringstream msg;
-	msg << "LineageUpdate skipped for a class <";
+	msg << "LineageUpdate skipped for a class '";
 	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	msg << "> without a definition, maybe not a class at all";
+	msg << "' without a definition (maybe not a class at all)";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	return;
       }
@@ -143,9 +143,9 @@ namespace MFM {
     if(!classNode)
       {
 	std::ostringstream msg;
-	msg << "Check and Label skipped for a class <";
+	msg << "Check and Label skipped for a class '";
 	msg << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
-	msg << "> without a definition, maybe not a class at all";
+	msg << "' without a definition (maybe not a class at all)";
 	MSG(Symbol::getTokPtr(), msg.str().c_str(), ERR);
 	return;
       }
@@ -173,9 +173,9 @@ namespace MFM {
     if(navCounter > 0)
       {
 	std::ostringstream msg;
-	msg << navCounter << " data member nodes with unresolved types remain in class <";
+	msg << navCounter << " data member nodes with unresolved types remain in class '";
 	msg << m_state.getUlamTypeNameBriefByIndex(getUlamTypeIdx()).c_str();
-	msg << ">";
+	msg << "'";
 	MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
       }
     m_state.popClassContext(); //restore
@@ -198,16 +198,16 @@ namespace MFM {
 	if(m_state.getBitSize(cuti) != totalbits)
 	  {
 	    std::ostringstream msg;
-	    msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str();
-	    msg << " SIZED FAILED: " << totalbits;
+	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "' SIZED " << totalbits << " FAILED";
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	    classNode->setNodeType(Nav); //avoid assert in resolving loop
 	  }
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "CLASS (regular): " << m_state.getUlamTypeNameByIndex(cuti).c_str();
-	    msg << " SIZED: " << totalbits;
+	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "' SIZED: " << totalbits;
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
 	  }
       }

@@ -251,6 +251,14 @@ namespace MFM {
     return ctype.str();
   } //getImmediateStorageTypeAsString
 
+  const std::string UlamType::getImmediateModelParameterStorageTypeAsString()
+  {
+    std::ostringstream mpimangled;
+    //substitutes Up_ for Ut_ for model parameter immediate
+    mpimangled << "Ui_Up_" << getUlamTypeMangledType();
+    return mpimangled.str();
+  } //getImmediateStorageTypeAsString
+
   const std::string UlamType::getArrayItemTmpStorageTypeAsString()
   {
     return getTmpStorageTypeAsString(getItemWordSize());
@@ -275,12 +283,18 @@ namespace MFM {
 	break;
       default:
 	{
-	  assert(0);
+	  ctype = getTmpStorageTypeAsString(getItemWordSize()); //u32, u64
+	  //assert(0);
 	  //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	}
       };
     return ctype;
   } //getTmpStorageTypeAsString
+
+  const std::string UlamType::getUnsignedTmpStorageTypeAsString()
+  {
+    return getTmpStorageTypeAsString();
+  }
 
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
   {
@@ -342,7 +356,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+    fp->write(getUnsignedTmpStorageTypeAsString().c_str()); //u32
     fp->write(" d) : m_stg(d) {}\n");
 
     //read BV method
@@ -371,7 +385,7 @@ namespace MFM {
       {
 	m_state.indent(fp);
 	fp->write("const ");
-	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(getUnsignedTmpStorageTypeAsString().c_str()); //u32
 	fp->write(" read() const { return BF::");
 	fp->write(readMethodForCodeGen().c_str());
 
@@ -436,6 +450,105 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write(";\n");
   }
+
+  void UlamType::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
+  {
+    assert(isScalar());
+
+    const std::string mangledName = getImmediateModelParameterStorageTypeAsString();
+
+    std::ostringstream  ud;
+    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
+
+    m_state.m_currentIndentLevel = 0;
+
+    m_state.indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("namespace MFM{\n");
+    fp->write("\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+    m_state.indent(fp);
+    fp->write("struct ");
+    fp->write(mangledName.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("// immediate model parameter definition:\n");
+
+    //typedef atomic parameter type inside struct
+    m_state.indent(fp);
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
+    m_state.indent(fp);
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
+    m_state.indent(fp);
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    fp->write("\n");
+
+    s32 len = getTotalBitSize();
+
+    m_state.indent(fp);
+    fp->write("typedef AtomicParameterType");
+    fp->write("<EC"); //BITSPERATOM
+    fp->write(", ");
+    fp->write(getUlamTypeVDAsStringForC().c_str());
+    fp->write(", ");
+    fp->write_decimal(len);
+    fp->write(", ");
+    fp->write_decimal(BITSPERATOM - len); //right-justified
+    fp->write("> ");
+    fp->write(" Up_Us;\n");
+
+    //reference to storage in atom
+    m_state.indent(fp);
+    fp->write("T* m_stgPtr;  //ptr to storage here!\n");
+
+    // constructor with args
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("() : m_stgPtr(NULL) { }\n");
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(getUnsignedTmpStorageTypeAsString().c_str()); //s32 or u32
+    fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); return Up_Us::");
+    fp->write(readMethodForCodeGen().c_str());
+    fp->write("(m_stgPtr->GetBits() ); }\n");
+
+    m_state.indent(fp);
+    fp->write("void init(T& realStg) { m_stgPtr = &realStg; }\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n");
+
+    m_state.indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  } //genUlamTypeMangledImmediateModelParameterDefinitionForC
 
   const char * UlamType::getUlamTypeEnumCodeChar(ULAMTYPE etype)
   {

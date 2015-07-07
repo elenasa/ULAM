@@ -233,7 +233,7 @@ namespace MFM {
 	if(!m_state.isComplete(it)) //reloads
 	  {
 	    std::ostringstream msg;
-	    msg << "Incomplete type <";
+	    msg << "Unresolved type <";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
 	    msg << "> used with variable symbol name '" << getName();
 	    msg << "' found while bit packing class ";

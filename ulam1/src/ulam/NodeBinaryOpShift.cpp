@@ -99,7 +99,7 @@ namespace MFM {
 	if(lscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Bits is the supported type for bitwise shift operator";
+	    msg << "Bits is the supported type for shift operator";
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
 	    msg << " to Bits";
@@ -118,7 +118,7 @@ namespace MFM {
 	if(rscr != CAST_CLEAR)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unsigned is the supported type for RHS bitwise shift value, operator";
+	    msg << "Unsigned is the supported type for shift distance, operator";
 	    msg << getName() << "; Suggest casting ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
 	    msg << " to Unsigned";

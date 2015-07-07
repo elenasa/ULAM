@@ -417,10 +417,10 @@ namespace MFM {
       m_state.indent(fp);
       fp->write("namespace MFM{\n\n");
 
-      m_state.m_currentIndentLevel++;
-      m_classBlock->genCodeExtern(fp, false); //def for MP
+      //m_state.m_currentIndentLevel++;
+      //m_classBlock->genCodeExtern(fp, false); //def for MP
+      //m_state.m_currentIndentLevel = 0;
 
-      m_state.m_currentIndentLevel = 0;
       fp->write("} //MFM\n\n");
 
       delete fp; //close
@@ -612,7 +612,8 @@ namespace MFM {
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
-	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS) //e.g. skip constants, incl atom
+	//e.g. skip constants, include atom
+	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)
 	  ut->genUlamTypeMangledDefinitionForC(fp);
 	it++;
       }
@@ -631,8 +632,14 @@ namespace MFM {
 	  }
 	it++;
       }
+
+    // define any model parameter immediate types needed for this class
+    NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    classblock->genModelParameterImmediateDefinitions(fp);
+
     delete fp; //close
-  } //genMangledTypeHeaderFile
+  } //genMangledTypesHeaderFile
 
   // append main to .cpp for debug useage
   // outside the MFM namespace !!!
