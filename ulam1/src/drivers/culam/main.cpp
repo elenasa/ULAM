@@ -285,6 +285,7 @@ int main(int argc, char ** argv)
               << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
 	      << "PARAMETER "
               << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
+              << " " << i->second.m_mangledClassName
               << " " << i->second.m_mangledType
 	      << " " << i->second.m_parameterName
               << " " << i->first

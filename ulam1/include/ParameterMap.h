@@ -46,6 +46,7 @@ namespace MFM
   struct ParameterDesc
   {
     Locator m_loc;
+    std::string m_mangledClassName;
     std::string m_mangledType;
     std::string m_parameterName;
     u64 m_val; //as Bits

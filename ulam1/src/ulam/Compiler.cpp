@@ -271,6 +271,7 @@ namespace MFM {
 	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
 	  << "PARAMETER "
 	  << MFM::HexEscape(getFullPathLocationAsString(i->second.m_loc))
+	  << " " << i->second.m_mangledClassName
 	  << " " << i->second.m_mangledType
 	  << " " << i->second.m_parameterName
 	  << " " << i->first
