@@ -1422,7 +1422,7 @@ namespace MFM {
 
   void Node::genCodeExtern(File * fp, bool declOnly)
   {
-    //e.g. NodeParameterDefs
+    // no externs
   }
 
   void Node::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
@@ -1765,6 +1765,32 @@ namespace MFM {
 
     // the MP (only primitive!, no longer quark or element):
     assert(isHandlingImmediateType());
+
+    Symbol * stgcos = NULL;
+    if(epi == 0)
+      stgcos = m_state.m_currentSelfSymbolForCodeGen;
+    else
+      stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
+
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
+
+    if(stgclasstype == UC_ELEMENT)
+      {
+	fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::THE_INSTANCE");
+	fp->write(".");
+      }
+    else if(stgclasstype == UC_QUARK)
+      {
+	assert(0); //tbd
+	//fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	//fp->write("<EC,POS>::");
+	//fp->write("Up_Us::"); //atomic parameter needed
+      }
+    else
+      assert(0);
 
     fp->write(cos->getMangledName().c_str());
     fp->write(".");

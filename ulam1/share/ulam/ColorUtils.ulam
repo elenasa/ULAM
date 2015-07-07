@@ -5,18 +5,18 @@ quark ColorUtils {
   typedef Channel ARGB[4];
   ARGB color(Unsigned hex) {
     ARGB ret;
-    ret[0] = (hex >> 24) & 0xff;
-    ret[1] = (hex >> 16) & 0xff;
-    ret[2] = (hex >>  8) & 0xff;
-    ret[3] = (hex >>  0) & 0xff;
+    ret[0] = (Channel) ((hex >> 24) & 0xff);
+    ret[1] = (Channel) ((hex >> 16) & 0xff);
+    ret[2] = (Channel) ((hex >>  8) & 0xff);
+    ret[3] = (Channel) ((hex >>  0) & 0xff);
     return ret;
   }
   ARGB color(Channel red, Channel green, Channel blue) {
     ARGB ret;
     ret[0] = 0xff;
-    ret[1] = red & 0xff;
-    ret[2] = green & 0xff;
-    ret[3] = blue & 0xff;
+    ret[1] = (Channel) (red & 0xff);
+    ret[2] = (Channel) (green & 0xff);
+    ret[3] = (Channel) (blue & 0xff);
     return ret;
   }
 
@@ -25,7 +25,7 @@ quark ColorUtils {
     for (Int i = 1; i < 4; ++i) {
       Unsigned old = this[i];
       Unsigned new = (old * rest + (Unsigned) 0xff * percent) / 100;
-      this[i] = new;
+      this[i] = (Channel) new;
     }
     return this;
   }

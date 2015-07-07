@@ -109,6 +109,8 @@ namespace MFM{
 
     virtual const std::string getImmediateStorageTypeAsString();
 
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);

@@ -340,6 +340,21 @@ namespace MFM {
       }
   } //genCodeForTableOfVariableDataMembers (unused)
 
+  void SymbolTable::genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isModelParameter())
+	  {
+	    UTI suti = sym->getUlamTypeIdx();
+	    m_state.getUlamTypeByIndex(suti)->genUlamTypeMangledImmediateModelParameterDefinitionForC(fp);
+	  }
+	it++;
+      }
+  } //genModelParameterImmediateDefinitionsForTableOfVariableDataMembers
+
   void SymbolTable::genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     //'has' applies to both quarks and elements

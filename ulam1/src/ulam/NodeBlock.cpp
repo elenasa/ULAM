@@ -219,6 +219,11 @@ namespace MFM {
     m_ST.genCodeForTableOfVariableDataMembers(fp, classtype);
   }
 
+  void NodeBlock::genModelParameterImmediateDefinitions(File * fp)
+  {
+    m_ST.genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(fp);
+  }
+
   void NodeBlock::addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters)
   {
     m_ST.addModelParameterDescriptionsToMap(classmodelparameters); //Table of Classes request

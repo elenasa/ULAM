@@ -51,7 +51,7 @@ namespace MFM {
 	  }
       }
     return nodeType;
-  }
+  } //checkAndLabelType
 
   void NodeParameterDef::checkForSymbol()
   {
@@ -88,38 +88,19 @@ namespace MFM {
 
   void NodeParameterDef::genCode(File * fp, UlamValue& uvpass)
   {
-    m_state.indent(fp);
-    fp->write("// declared as extern (below)\n");
-
-  } //genCode
-
-  void NodeParameterDef::genCodeExtern(File * fp, bool declOnly)
-  {
     assert(m_constSymbol->isDataMember());
-
-    //    UTI cuti = m_state.getCompileThisIdx();
-    //ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass();
 
     UTI vuti = m_constSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     m_state.indent(fp);
 
-    if(declOnly)
-      fp->write("extern ");
-
-    //common to both decl and def
-    fp->write(vut->getImmediateStorageTypeAsString().c_str());
+    fp->write(vut->getImmediateModelParameterStorageTypeAsString().c_str());
+    fp->write("<EC>");
     fp->write(" ");
     fp->write(m_constSymbol->getMangledName().c_str());
 
-    if(!declOnly)
-      {
-	fp->write("(");
-	fp->write(m_nodeExpr->getName()); //initialize default value
-	fp->write(")");
-      }
     fp->write("; //model parameter\n");
-  } //genCodeExtern
+  } //genCode
 
 } //end MFM

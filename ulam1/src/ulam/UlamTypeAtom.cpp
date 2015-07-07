@@ -221,4 +221,9 @@ namespace MFM {
     fp->write("& v) { m_stg = v; }\n");
   } //genUlamTypeWriteDefinitionForC
 
+  void UlamTypeAtom::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
+  {
+    assert(0); //only primitive types
+  }
+
 } //end MFM
