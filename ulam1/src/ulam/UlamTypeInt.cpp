@@ -87,7 +87,7 @@ namespace MFM {
 	break;
       default:
 	{
-	  ctype = "s32"; //array item
+	  ctype = getTmpStorageTypeAsString(getItemWordSize());// "s32" array item
 	  //std::ostringstream msg;
 	  //msg << "Need UNPACKED ARRAY for " << sizebyints;
 	  //msg << " bits; s32[" << getArraySize() << "]";

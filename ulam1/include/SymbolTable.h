@@ -88,6 +88,7 @@ namespace MFM{
     s32 findPosOfUlamTypeInTable(UTI utype);
 
     void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
+    void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
 
     void genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 

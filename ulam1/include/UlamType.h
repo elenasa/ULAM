@@ -112,17 +112,23 @@ namespace MFM{
 
     virtual const std::string getImmediateStorageTypeAsString();
 
+    virtual const std::string getImmediateModelParameterStorageTypeAsString();
+
     virtual const std::string getArrayItemTmpStorageTypeAsString();
 
     virtual const std::string getTmpStorageTypeAsString();
 
     virtual const std::string getTmpStorageTypeAsString(s32 sizebyints);
 
+    virtual const std::string getUnsignedTmpStorageTypeAsString();
+
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
     virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 

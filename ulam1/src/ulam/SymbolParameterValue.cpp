@@ -37,15 +37,7 @@ namespace MFM {
 
   const std::string SymbolParameterValue::getMangledPrefix()
   {
-    //mangled "prefix" includes Uc_ + parent class' mangled name +
-    // its prefix before its mangled name; this keeps Model Parameters
-    // unique for each distinct Ulam Class, but the same for each
-    // C++ use.
-    std::ostringstream mangled;
-    mangled << "Uc_";
-    mangled << m_state.getUlamTypeByIndex(m_childOf)->getUlamTypeMangledName().c_str();
-    mangled << "_Up_";
-    return mangled.str();
+    return "Up_";
   }
 
   void SymbolParameterValue::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)

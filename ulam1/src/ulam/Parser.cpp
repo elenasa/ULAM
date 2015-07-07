@@ -1328,7 +1328,16 @@ namespace MFM {
     Token pTok;
     getNextToken(pTok);
 
-    //permitted in only in elements and quarks
+    //permitted in only in elements
+    if(m_state.getUlamTypeByIndex(m_state.getCompileThisIdx())->getUlamClass() != UC_ELEMENT)
+      {
+	std::ostringstream msg;
+	msg << "Model Parameters cannot survive within a quark";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	getTokensUntil(TOK_SEMICOLON); //does this help?
+	return NULL;
+      }
+
     if(Token::isTokenAType(pTok) && pTok.m_type != TOK_KW_TYPE_VOID && pTok.m_type != TOK_KW_TYPE_ATOM)
       {
 	unreadToken();

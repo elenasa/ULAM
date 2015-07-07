@@ -60,6 +60,8 @@ namespace MFM{
 
     virtual const std::string getImmediateStorageTypeAsString();
 
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+
     virtual bool cast(UlamValue & val, UTI typidx);
 
     virtual FORECAST safeCast(UTI typidx);
