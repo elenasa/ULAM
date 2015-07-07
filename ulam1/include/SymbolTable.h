@@ -92,7 +92,7 @@ namespace MFM{
 
     void genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
-    void addModelParameterDescriptionsToMap(ParameterMap& classmodelparameters);
+    void addModelParameterDescriptionsToMap(UTI classType, ParameterMap& classmodelparameters);
 
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 

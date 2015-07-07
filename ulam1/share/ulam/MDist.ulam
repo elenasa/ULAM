@@ -9,8 +9,9 @@ ulam 1;
  */
 quark MDist {
   typedef Unsigned(3) Radius;
+  typedef Unsigned(6) Index;
 
-  Unsigned getFirstIndex(Radius radius) native;
+  Index getFirstIndex(Radius radius) native;
 
-  Unsigned getLastIndex(Radius radius) native;
+  Index getLastIndex(Radius radius) native;
 }

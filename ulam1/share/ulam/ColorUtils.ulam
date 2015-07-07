@@ -2,8 +2,18 @@ ulam 1;
 
 quark ColorUtils {
   typedef Unsigned(8) Channel;
+  typedef Bits(8) Byte;
   typedef Channel ARGB[4];
+
+  ARGB color(Int hex) {
+    return color((Bits) hex);
+  }
+
   ARGB color(Unsigned hex) {
+    return color((Bits) hex);
+  }
+
+  ARGB color(Bits hex) {
     ARGB ret;
     ret[0] = (Channel) ((hex >> 24) & 0xff);
     ret[1] = (Channel) ((hex >> 16) & 0xff);
@@ -11,9 +21,9 @@ quark ColorUtils {
     ret[3] = (Channel) ((hex >>  0) & 0xff);
     return ret;
   }
-  ARGB color(Channel red, Channel green, Channel blue) {
+  ARGB color(Byte red, Byte green, Byte blue) {
     ARGB ret;
-    ret[0] = 0xff;
+    ret[0] = (Channel) 0xff;
     ret[1] = (Channel) (red & 0xff);
     ret[2] = (Channel) (green & 0xff);
     ret[3] = (Channel) (blue & 0xff);
@@ -23,7 +33,7 @@ quark ColorUtils {
   ARGB modify(ARGB this, Unsigned percent) {
     Unsigned rest = (Unsigned) 100 - percent;
     for (Int i = 1; i < 4; ++i) {
-      Unsigned old = this[i];
+      Unsigned old = (Unsigned) this[i];
       Unsigned new = (old * rest + (Unsigned) 0xff * percent) / 100;
       this[i] = (Channel) new;
     }
@@ -43,8 +53,9 @@ quark ColorUtils {
     if (than[1] == 0 && than[2] == 0 && than[3] == 0)
       return color((Unsigned) 0x030303);
     for (Int i = 1; i < 4; ++i) {
-      if (than[i] > 0 && than[i] < 3) than[i] = 3;
+      if (than[i] < 3) than[i] = 3;
       than[i] = 100*than[i]/70;
+
     }
     return than;
   }

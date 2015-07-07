@@ -3,6 +3,9 @@ ulam 1;
 use Empty;
 
 quark AtomUtils {
+
+  typedef Unsigned(16) Type;
+
   /** Get the type of Atom a.
 
       \returns The type number of a, greater than or equal to 0, or -1
@@ -10,13 +13,21 @@ quark AtomUtils {
    */
   Int getType(Atom a) native;
 
+  Type getValidType(Atom a)
+  {
+    Fail f;
+    Int i = getType(a);
+    if (i < 0) f.fail();
+    return (Type) i;
+  }
+
   /** Get the type of the empty site
 
       \returns The type number corresponding to an empty site
    */
-  Int getEmptyType() {
+  Type getEmptyType() {
     Empty a;
-    return getType((Atom) a);
+    return getValidType((Atom) a);
   }
 
   /** Test if an Atom is an empty atom
