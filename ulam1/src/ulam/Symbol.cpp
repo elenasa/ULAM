@@ -55,6 +55,12 @@ namespace MFM {
     return m_uti;
   }
 
+  u32 Symbol::getPosOffset()
+  {
+    assert(0);
+    return 0; //data members only, incl. symbolparametervalue
+  }
+
   bool Symbol::isFunction()
   {
     return false;
