@@ -70,7 +70,7 @@ namespace MFM {
 
   const std::string UlamTypeInt::getUnsignedTmpStorageTypeAsString()
   {
-    return UlamType::getTmpStorageTypeAsString(getTotalWordSize());
+    return getTmpStorageTypeAsString(getTotalWordSize());
   }
 
   const std::string UlamTypeInt::getTmpStorageTypeAsString(s32 sizebyints)
@@ -80,10 +80,10 @@ namespace MFM {
       {
       case 0:
       case 32:
-	ctype = "s32"; //"s32";
+	ctype = "u32"; //"s32";
 	break;
       case 64:
-	ctype = "s64"; //"s64";
+	ctype = "u64"; //"s64";
 	break;
       default:
 	{
@@ -360,17 +360,17 @@ namespace MFM {
   void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%d", (s32) data);
+      sprintf(valstr,"%d", data);
     else
-      sprintf(valstr,"%c%d", prefix, (s32) data);
+      sprintf(valstr,"%c%d", prefix, data);
   }
 
   void UlamTypeInt::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%ld", (s64) data);
+      sprintf(valstr,"%ld", data);
     else
-      sprintf(valstr,"%c%ld", prefix, (s64) data);
+      sprintf(valstr,"%c%ld", prefix, data);
   }
 
 } //end MFM
