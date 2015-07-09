@@ -291,11 +291,6 @@ namespace MFM {
     return ctype;
   } //getTmpStorageTypeAsString
 
-  const std::string UlamType::getUnsignedTmpStorageTypeAsString()
-  {
-    return getTmpStorageTypeAsString();
-  }
-
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
   {
     return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
@@ -819,11 +814,6 @@ namespace MFM {
     rtnMethod << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;
     return rtnMethod.str();
   } //castMethodForCodeGen
-
-  void UlamType::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)
-  {
-    return; //nothing to do usually
-  }
 
   void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
