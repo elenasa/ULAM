@@ -1,6 +1,7 @@
 ####
 # Top level Makefile driver for ULAM
 
+include VERSION.mk
 
 ####
 # TOP_TARGETS: Targets that are handled at this level
@@ -50,17 +51,31 @@ dist:	realclean
 ####
 # Variables exported to submakes
 
+# Root of source tree
+ROOT_DIR := $(shell pwd)
+export ROOT_DIR
+
 export SRC_TARGETS
+
+export ULAM_VERSION_MAJOR
+export ULAM_VERSION_MINOR
+export ULAM_VERSION_REV
 
 export ULAM_LANGUAGE_VERSION
 ULAM_LANGUAGE_VERSION:=1
 
 # Defines from top level
 export DEFINES
-BUILD_DATE := $(shell date -u +%Y%m%d)
-BUILD_TIME := $(shell date -u +%H%M%S)
-BUILD_DATE_TIME := $(BUILD_DATE)$(BUILD_TIME)
-DEFINES+=-DBUILD_DATE="0x$(BUILD_DATE)" -DBUILD_TIME="0x$(BUILD_TIME)" -DBUILD_DATE_TIME="$(BUILD_DATE_TIME)"
+export ULAM_BUILD_DATE := $(shell date -u +%Y%m%d)
+export ULAM_BUILD_TIME := $(shell date -u +%H%M%S)
+export ULAM_BUILD_TIMESTAMP := $(ULAM_BUILD_DATE)$(ULAM_BUILD_TIME)
+export ULAM_BUILD_WHO:=$(shell whoami)
+export ULAM_BUILD_WHERE:=$(shell hostname)
+export ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe || echo "unknown-rev")
+
+DEFINES+=-DBUILD_DATE="0x$(ULAM_BUILD_DATE)" -DBUILD_TIME="0x$(ULAM_BUILD_TIME)" -DBUILD_DATE_TIME="$(ULAM_BUILD_TIMESTAMP)"
+DEFINES+=-DULAM_VERSION_MAJOR=$(ULAM_VERSION_MAJOR) -DULAM_VERSION_MINOR=$(ULAM_VERSION_MINOR) -DULAM_VERSION_REV=$(ULAM_VERSION_REV)
+DEFINES+=-DULAM_TREE_VERSION="$(ULAM_TREE_VERSION)"
 
 # Compilation flags from top level
 export CFLAGS
@@ -68,10 +83,6 @@ CFLAGS+=-g2 -ansi -Wall -pedantic -Werror -Wformat
 
 # Libs from top level
 export LIBS
-
-# Root of source tree
-ROOT_DIR := $(shell pwd)
-export ROOT_DIR
 
 # Root of shared files tree.
 ifeq ($(ULAM_SHARE_DIR),)
@@ -84,6 +95,9 @@ export MFM_ROOT_DIR
 
 # MFM version we're built on
 export MFM_VERSION_NUMBER
+
+# MFM git rev we're built on
+export MFM_TREE_VERSION
 
 # Things that all builds should depend on
 export ALLDEP
