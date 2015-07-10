@@ -5,6 +5,8 @@
 my $ORIG_PATH = $ENV{'PATH'};
 delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
+## Import mfz functions from the MFM tree at 'compile' time
+<<<INCLUDE:@MFM_ROOT_DIR@/src/drivers/mfzrun/common.pl.inc>>>
 
 use Capture::Tiny 'capture';
 use Cwd 'abs_path';
@@ -15,10 +17,15 @@ use Carp;
   ##TEMPLATE SUBSTITUTIONS
   my $CULAM_PATH='@CULAM_PATH@';
   my $ULAM_SHARE_DIR='@ULAM_SHARE_DIR@';
+  my $ULAM_VERSION_MAJOR='@ULAM_VERSION_MAJOR@';
+  my $ULAM_VERSION_MINOR='@ULAM_VERSION_MINOR@';
+  my $ULAM_VERSION_REV='@ULAM_VERSION_REV@';
   my $ULAM_BUILD_TIMESTAMP='@ULAM_BUILD_TIMESTAMP@';
   my $ULAM_BUILD_WHO='@ULAM_BUILD_WHO@';
   my $ULAM_BUILD_WHERE='@ULAM_BUILD_WHERE@';
   my $MFM_BUILD_VERSION='@MFM_VERSION_NUMBER@';
+  my $MFM_TREE_VERSION='@MFM_TREE_VERSION@';
+  my $ULAM_TREE_VERSION='@ULAM_TREE_VERSION@';
   my $MFM_ROOT_DIR='@MFM_ROOT_DIR@';
   IDie("Templates have not been substituted -- this is not the script you are looking for.\n")
       if $CULAM_PATH =~ /@/ or $MFM_ROOT_DIR =~ /@/;
@@ -47,6 +54,7 @@ my $ROLLUP_FILE_STEM = "UlamCustomElements";
 ####TOOL PATH NAMES
 my $makeTool = "GNU Make system builder";
 my $gppTool = "Compiler for C++ -> native code";
+my $mfzTool = "MFZ package creator";
 my $arTool = "Archive maker for .o files";
 my $ulamcTool = "Compiler for ulam -> C++";
 my $mfmRootTool = "Movable Feast Machine source distribution";
@@ -61,14 +69,15 @@ $tools{$ulamcTool} =
           return $status;
       }
     ];
-# $tools{$infoTool} =
-#     [ "$ULAM_SHARE_DIR/perl/GenerateUlamElementInfo.pl",
-#       sub {
-#           my $p = shift;
-#           my $status = runThis("^GenerateUlamElementInfo", undef, $p,"-V");
-#           return $status;
-#       }
-#     ];
+$tools{$mfzTool} =
+    [ "$MFM_ROOT_DIR/bin/mfzmake",
+      sub {
+          my $p = shift;
+          my $status = runThis("^mfzmake", undef, $p,"-v");
+          return $status;
+      }
+    ];
+
 configureMSD($MFM_ROOT_DIR);
 
 sub getTool {
@@ -188,19 +197,6 @@ sub blessShellReaching {
     return $1;
 }
 
-sub UDie {
-    my $msg = shift;
-    print STDERR "\nError: $msg";
-    print STDERR "Type '$0 -h' for help\n";
-    exit(1);
-}
-
-sub IDie {
-    my $msg = shift;
-    print STDERR "\nInternal Error: $msg\n";
-    confess "I suck";
-}
-
 sub lexEncode {
     my ($prefix, $num) = @_;
     my $len = length($num);
@@ -259,6 +255,14 @@ my %swinfo = (
         desc => "Generate executable binaries from .ulam (implies --library)",
         id => getSectionId("Command"),
         handler => \&entryCmd
+    },
+    "mfzpackage" => {
+        aliases => "z",
+        type => "s",
+        desc => "Create .mfz package signed by HANDLE (implies --library)",
+        id => getSectionId("Command"),
+        default => ".",
+        handler => \&entryOpt
     },
     "library" => {
         aliases => "l",
@@ -400,7 +404,8 @@ sub printSummaryHelp
     print STDERR "\nBasic command forms:\n";
     print STDERR "  $0 [OPTIONSWITCHES] INFOSWITCH\n";
     print STDERR "  $0 [OPTIONSWITCHES] COMMANDSWITCH File1.ext File2.ext .....\n";
-    print STDERR "      Extensions are either .ulam or 'C-like' (.cpp, .h, etc)\n";
+    print STDERR "      Extensions are usually either .ulam or 'C-like' (.cpp, .h, etc)\n";
+    print STDERR "      Extension '.mfz' specifies package name for -z\n";
     print STDERR "\n";
 }
 
@@ -492,11 +497,16 @@ sub checkTool {
 }
 
 sub printVersion {
-    print STDERR "$MFM_BUILD_VERSION\n";
+    print STDERR "ulam-$ULAM_VERSION_MAJOR.$ULAM_VERSION_MINOR.$ULAM_VERSION_REV\n";
 }
 
 sub printFullVersion {
-    print STDERR "ulam $ULAM_BUILD_TIMESTAMP, built on MFM $MFM_BUILD_VERSION by $ULAM_BUILD_WHO\@$ULAM_BUILD_WHERE\n";
+    print STDERR "ULAM compilation driver version ";
+    printVersion();
+    print STDERR " Built for MFM $MFM_BUILD_VERSION";
+    print STDERR "\n at $ULAM_BUILD_TIMESTAMP by $ULAM_BUILD_WHO\@$ULAM_BUILD_WHERE";
+    print STDERR "\n from source commits ulam-$ULAM_TREE_VERSION and mfm-$MFM_TREE_VERSION";
+    print STDERR "\n";
 }
 
 sub printToolPathsAndExit {
@@ -574,10 +584,29 @@ sub configureSD {
 #    print "CSD:".join(",",@sourceDirsConfigured)."\n";
 }
 
+my $mfzhandle = undef;
+sub configureMFZHandle {
+    my ($arg) = @_;
+    UDie "Only one -z / --mfzpackage switch allowed"
+        if defined $mfzhandle && $mfzhandle ne $arg;
+    $mfzhandle = GetLegalHandle($arg);
+    if ($arg eq "-") {
+        print STDOUT " Default package signing handle: OK\n";
+    }
+
+    # Let's check the handle's good early..
+    my $privkeyfile = GetPrivateKeyFile($mfzhandle);
+    UDie "MFZ signing handle '$mfzhandle' not found"
+        unless -r $privkeyfile;
+    entryCmd("mfzpackage"); # to get dupes checked and $actionCmd set
+    print STDOUT " MFZ package signing handle '$mfzhandle': OK\n";
+}
+
 sub entryOpt {
     my ($key, $val) = @_;
     return configureMSD($val) if $key eq "mfmSourceDir";
     return configureSD($val) if $key eq "sourceDir";
+    return configureMFZHandle($val) if $key eq "mfzpackage";
     IDie("Unrecognized entryOpt($key,$val)\n");
 }
 
@@ -657,9 +686,11 @@ if ($confErrs != 0) {
 
 my @files = @ARGV;
 UDie("No input files\n") unless @files;
-my (@ulamFiles, @includeFiles, @otherSrcFiles);
+my (@ulamFiles, @includeFiles, @otherSrcFiles, @mfsFiles, @mfzFiles);
 my %extensionDispatch = (
     "ulam" => \@ulamFiles,
+    "mfs" => \@mfsFiles,
+    "mfz" => \@mfzFiles,
     "h" => \@includeFiles,
     "tcc" => \@includeFiles,
     "cpp" => \@otherSrcFiles,
@@ -685,11 +716,11 @@ sub separateFiles {
             unless $handled;
     }
 }
-my $usdfiles = `ls $ULAM_SHARE_DIR/ulam/*.ulam`;
-chomp($usdfiles);
-my @stdUlamFiles = split(/\s+/,$usdfiles);
+# my $usdfiles = `ls $ULAM_SHARE_DIR/ulam/stdlib/*.ulam`;
+# chomp($usdfiles);
+# my @stdUlamFiles = split(/\s+/,$usdfiles);
 
-my $tsdfiles = `ls $ULAM_SHARE_DIR/tcc/*.tcc`;
+my $tsdfiles = `ls $ULAM_SHARE_DIR/tcc/stdlib/*.tcc`;
 chomp($tsdfiles);
 my @stdTccFiles = split(/\s+/,$tsdfiles);
 
@@ -697,7 +728,27 @@ my @stdTccFiles = split(/\s+/,$tsdfiles);
 # Barf; need to compile the stdUlamFiles to get the mangled names into
 # @elementNamesFromUlam, and thence into AllocateEmptyTypes()..
 #separateFiles(@files, @stdUlamFiles, @stdTccFiles);
-separateFiles(@files, @stdTccFiles);
+
+sub checkMFZFiles {
+    if (scalar(@mfzFiles) == 0) {
+        if ($actionCmd eq "mfzpackage") {
+            my $mfz = "a.mfz";
+            push @mfzFiles, $mfz; # ..and it's good enough for me
+        }
+    } else {
+        if ($actionCmd eq "mfzpackage") {
+            if (scalar(@mfzFiles) > 1) {
+                UDie "Need at most one .MFZ file, found: ".join(", ", @mfzFiles);
+            }
+        } else {
+            UDie "MFZ files legal only with --$actionCmd";
+        }
+    }
+    if ($actionCmd eq "mfzpackage") {
+        my $f = $mfzFiles[0];
+        print STDOUT " MFZ package to create: $f\n";
+    }
+}
 
 sub positionLiteralFiles {
     pISC("## Copy files");
@@ -721,8 +772,21 @@ sub copyFileTo {
 }
 
 ####ACTION SELECTION
-UDie("No command specified\n")
-    unless defined($actionCmd);
+separateFiles(@files, @stdTccFiles);
+if (!defined($actionCmd)) {
+    # If any .ulam, .mfz, or .mfs files were specified, fake up a -z-
+    # equivalent and hope for the best.  Otherwise punt
+    if (scalar(@mfzFiles) > 0
+        || scalar(@mfsFiles) > 0
+        || scalar(@ulamFiles) > 0) {
+        configureMFZHandle("-");
+    } else {
+        UDie("No command specified\n")
+    }
+}
+
+checkMFZFiles();
+
 
 ####EXECUTION ENGINE
 
@@ -778,6 +842,13 @@ sub compilationDriver {
     if ($actionCmd eq "executables") {
         IDie("executable construction under reconstruction :(");
         ($buildResults) = buildExecutables();
+        UDie("$buildResults executable creation problem(s) detected\n")
+            if $buildResults;
+        return 0;
+    }
+
+    if ($actionCmd eq "mfzpackage") {
+        ($buildResults) = buildMFZ();
         UDie("$buildResults executable creation problem(s) detected\n")
             if $buildResults;
         return 0;
@@ -1017,32 +1088,6 @@ EOF
         }
     }
 
-#     print $hdrhdl <<EOF;
-# namespace MFM {
-#   template <class GC>
-#   void $fname(AbstractDriver<GC> * ad)
-#   {
-#     typedef typename GC::EVENT_CONFIG EC;
-# EOF
-#     for my $en (@elementNamesFromUlam) {
-#       my ($infoname, $infocode) = @{$infoForElement{$en}};
-#       print $hdrhdl <<EOF;
-
-#     {
-#       static $infoname<EC> eltInfo;
-#       $en<EC>::THE_INSTANCE.SetInfo(&eltInfo);
-#     }
-# EOF
-#         if ($en eq "Ue_10105Empty") {
-#           print $hdrhdl <<EOF;
-#     MFM::$en<EC>::THE_INSTANCE.MakeAlternateNameForTestingInternal(MFM::Element_Empty<EC>::THE_INSTANCE);
-# EOF
-#         } else {
-#             print $hdrhdl "    ad->NeedElement(&$en<EC>::THE_INSTANCE);\n";
-#         }
-#     }
-#  }
-#} // MFM
     print $hdrhdl <<EOF;
 #endif /* $baseguard */
 EOF
@@ -1177,6 +1222,39 @@ sub buildSharedLibrary
     } else {
         print STDOUT "OK\n";
         return (0, $libfile);
+    }
+    return $status ne "";
+}
+
+sub buildMFZ
+{
+    pISC("## Create MFZ package");
+    my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
+    my $output = $mfzFiles[0];
+    my @mfzmakeargs = ("make", $mfzhandle, $output, $libfile, @files);
+    my $status = 0;
+
+    print " Create $output package: ";
+    my $mfz = getTool($mfzTool);
+
+    {
+        my $HOLD_PATH = $ENV{PATH};
+        $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
+        ($status,my $stdout,my $stderr) = runThis(undef,undef,$mfz,@mfzmakeargs);
+        pISC("## USED PATH ($ENV{PATH})");
+        if (defined($HOLD_PATH)) {
+            $ENV{PATH} = $HOLD_PATH;
+            pISC("## RESET PATH ($ENV{PATH})");
+        } else {
+            delete $ENV{PATH};
+        }
+    }
+
+    if ($status ne "") {
+        print STDOUT "ERROR: $status\n$stderr\n";
+    } else {
+        print STDOUT "OK\n";
+        return (0, $output);
     }
     return $status ne "";
 }
@@ -1415,7 +1493,7 @@ sub runGccCompilations
     my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
     for my $cfile ($rollupFile, @cppFilesFromUlam, @testFilesFromUlam) {
         pISC(" # Compiling '$cfile'");
-        my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc";
+        my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc/stdlib";
         if ($cfile eq $rollupFile) {
              $extraDefines .= " -I $MFM_ROOT_DIR/src/sim/include -I $MFM_ROOT_DIR/src/elements/include";
         }
@@ -1432,7 +1510,7 @@ sub makeProgram
     pISC("## Create program $progname");
 
     my $cfile = "$progname.cpp";
-    my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc";
+    my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc/stdlib";
     my $gppStatus = runSingleGccCompilation("ulam_program", $cfile, $extraDefines);
     pISC("## COMPILED $cfile NOW EHAT");
     return ($gppStatus,$progname);

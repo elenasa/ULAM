@@ -1,0 +1,23 @@
+ulam 1;
+
+quark Once_(Unary(15) bitpairs)
+{
+  constant Unsigned oddw = 2*bitpairs + 1;
+  typedef Bool(oddw) WBool;
+  WBool done;
+  Bool new() {
+    if (done) return false;
+    return done = true;
+  }
+  Bool reset() {
+    Bool was = done;
+    done = false;
+    return done;
+  }
+}
+
+quark Once {
+  Once_(1) once;
+  Bool new() { return once.new(); }
+  Bool reset() { return once.reset(); }
+}
