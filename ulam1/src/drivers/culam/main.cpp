@@ -112,7 +112,7 @@ namespace MFM
 #ifdef ULAM_SHARE_DIR  /* Search shared files if configured for it */
 #define YY(s) XX(s)    /* expand */
 #define XX(s) #s       /* stringify */
-      m_srcFileManager->addReadDir(YY(ULAM_SHARE_DIR) "/ulam");
+      m_srcFileManager->addReadDir(YY(ULAM_SHARE_DIR) "/ulam/stdlib");
 #undef XX
 #undef YY
 #endif /* ULAM_SHARE_DIR */
