@@ -136,6 +136,7 @@ namespace MFM {
        if(len <= MAXBITSPERINT)
 	 {
 	   u32 data = uvpass.getImmediateData(m_state);
+	   data = cut->getDataAsCu32(data); //ever negative? possible unary?
 	   char dstr[40];
 	   cut->getDataAsString(data, dstr, 'z');
 	   fp->write(dstr);
@@ -143,6 +144,7 @@ namespace MFM {
        else if(len <= MAXBITSPERLONG)
 	 {
 	   u64 data = uvpass.getImmediateDataLong(m_state);
+	   data = cut->getDataAsCu64(data); //ever negative? possible unary?
 	   char dstr[70];
 	   cut->getDataLongAsString(data, dstr, 'z');
 	   fp->write(dstr);

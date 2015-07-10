@@ -152,6 +152,30 @@ namespace MFM {
     sprintf(valstr,"%s", getUlamTypeName().c_str());
   }
 
+  s32 UlamType::getDataAsCs32(const u32 data)
+  {
+    assert(0);
+    return (s32) data;
+  }
+
+  u32 UlamType::getDataAsCu32(const u32 data)
+  {
+    assert(0);
+    return data;
+  }
+
+  s64 UlamType::getDataAsCs64(const u64 data)
+  {
+    assert(0);
+    return (s64) data;
+  }
+
+  u64 UlamType::getDataAsCu64(const u64 data)
+  {
+    assert(0);
+    return data;
+  }
+
   ULAMCLASSTYPE UlamType::getUlamClass()
   {
     return UC_NOTACLASS;
