@@ -64,6 +64,8 @@ namespace MFM{
     void resetUlamType(UTI newuti); //e.g. mappedUTI
     UTI getUlamTypeIdx();
 
+    virtual u32 getPosOffset();
+
     virtual bool isFunction();
     virtual bool isTypedef();
     virtual bool isConstant();
@@ -82,6 +84,7 @@ namespace MFM{
 
     NNO getBlockNoOfST();
     void setBlockNoOfST(NNO n);
+
 
     const std::string getMangledName();
 

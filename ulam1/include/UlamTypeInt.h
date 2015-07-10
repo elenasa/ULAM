@@ -48,29 +48,16 @@ namespace MFM{
   public:
 
     UlamTypeInt(const UlamKeyTypeSignature key, CompilerState& state);
+
     virtual ~UlamTypeInt(){}
 
     virtual ULAMTYPE getUlamTypeEnum();
 
     virtual const std::string getUlamTypeVDAsStringForC();
 
-    virtual const std::string getUlamTypeImmediateMangledName();
-
-    virtual const std::string getArrayItemTmpStorageTypeAsString();
-
-    virtual const std::string getTmpStorageTypeAsString();
-
-    virtual const std::string getTmpStorageTypeAsString(s32 sizebyints);
-
-    const std::string getArrayItemUnsignedTmpStorageTypeAsString();
-
-    virtual const std::string getUnsignedTmpStorageTypeAsString();
-
     virtual bool cast(UlamValue & val, UTI typidx);
 
     virtual FORECAST safeCast(UTI typidx);
-
-    virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass);
 
     virtual void getDataAsString(const u32 data, char * valstr, char prefix);
 
@@ -81,8 +68,6 @@ namespace MFM{
     virtual bool castTo32(UlamValue & val, UTI typidx);
 
     virtual bool castTo64(UlamValue & val, UTI typidx);
-
-    void genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
 
   };
 

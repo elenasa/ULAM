@@ -43,61 +43,6 @@ namespace MFM {
     return "VD::S32";
   }
 
-  //As it stands, this can refer to base class code now.
-  const std::string UlamTypeInt::getUlamTypeImmediateMangledName()
-  {
-    if(needsImmediateType())
-      return UlamType::getUlamTypeImmediateMangledName();
-
-    //return getImmediateStorageTypeAsString(state); //BV<32>, not "s32" ? inf loop
-    return UlamType::getUlamTypeImmediateMangledName(); //? for constants
-  }
-
-  const std::string UlamTypeInt::getArrayItemTmpStorageTypeAsString()
-  {
-    return getTmpStorageTypeAsString(getItemWordSize());
-  }
-
-  const std::string UlamTypeInt::getTmpStorageTypeAsString()
-  {
-    return getTmpStorageTypeAsString(getTotalWordSize());
-  }
-
-  const std::string UlamTypeInt::getArrayItemUnsignedTmpStorageTypeAsString()
-  {
-    return UlamType::getTmpStorageTypeAsString(getItemWordSize());
-  }
-
-  const std::string UlamTypeInt::getUnsignedTmpStorageTypeAsString()
-  {
-    return UlamType::getTmpStorageTypeAsString(getTotalWordSize());
-  }
-
-  const std::string UlamTypeInt::getTmpStorageTypeAsString(s32 sizebyints)
-  {
-    std::string ctype;
-    switch(sizebyints)
-      {
-      case 0:
-      case 32:
-	ctype = "s32"; //"s32";
-	break;
-      case 64:
-	ctype = "s64"; //"s64";
-	break;
-      default:
-	{
-	  ctype = getTmpStorageTypeAsString(getItemWordSize());// "s32" array item
-	  //std::ostringstream msg;
-	  //msg << "Need UNPACKED ARRAY for " << sizebyints;
-	  //msg << " bits; s32[" << getArraySize() << "]";
-	  //MSG3(state.getFullLocationAsString(state.m_locOfNextLineText).c_str(), msg.str().c_str(),INFO);
-	  //assert(0);
-	}
-      };
-    return ctype;
-  } //getTmpStorageTypeAsString
-
   bool UlamTypeInt::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
@@ -290,87 +235,20 @@ namespace MFM {
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
 
-  void UlamTypeInt::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)
-  {
-    assert(uvpass.getUlamValueTypeIdx() == Ptr);
-
-    //bypass sign extend when entire array is read
-    if(!isScalar() && uvpass.getPtrLen() == (s32) getTotalBitSize())
-      return;
-
-    if(!isScalar())
-      return genCodeAfterReadingArrayItemIntoATmpVar(fp, uvpass);
-
-    UTI uti = uvpass.getPtrTargetType(); // == getUlamTypeIndex()?
-    s32 tmpVarNum = uvpass.getPtrSlotIndex();
-    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
-    u32 totWords = getTotalWordSize();
-
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //i.e. s32, s64
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
-    fp->write(" = ");
-
-    fp->write("_SignExtend");
-    fp->write_decimal(totWords);
-
-    fp->write("(");
-    fp->write(m_state.getTmpVarAsString(uti, tmpVarNum).c_str());
-    fp->write(", ");
-    fp->write_decimal(getTotalBitSize());
-    fp->write(")");
-    fp->write(";\n");
-
-    UTI newuti = uti;
-
-    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
-  } //genCodeAfterReadingIntoATmpVar
-
-  // private helper (no longer used)
-  void UlamTypeInt::genCodeAfterReadingArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
-  {
-    UTI uti = uvpass.getPtrTargetType(); //getUlamTypeIndex();
-    s32 tmpVarNum = uvpass.getPtrSlotIndex();
-    s32 tmpVarCastNum = m_state.getNextTmpVarNumber();
-    s32 itemWords = getItemWordSize();
-
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //i.e. s32, s64
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(uti, tmpVarCastNum).c_str());
-    fp->write(" = ");
-
-    fp->write("_SignExtend");
-    fp->write_decimal(itemWords);
-
-    fp->write("(");
-    fp->write(m_state.getTmpVarAsString(uti, tmpVarNum).c_str());
-    fp->write(", ");
-    fp->write_decimal(getBitSize());
-    fp->write(")");
-    fp->write(";\n");
-
-    UTI newuti = uti;
-    uvpass = UlamValue::makePtr(tmpVarCastNum, TMPREGISTER, newuti, getPackable(), m_state, 0, uvpass.getPtrNameId()); //POS 0 rightjustified (atom-based); pass along name id
-  } //genCodeAfterReadingArrayItemIntoATmpVar
-
   void UlamTypeInt::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%d", (s32) data);
+      sprintf(valstr,"%d", data);
     else
-      sprintf(valstr,"%c%d", prefix, (s32) data);
+      sprintf(valstr,"%c%d", prefix, data);
   }
 
   void UlamTypeInt::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%ld", (s64) data);
+      sprintf(valstr,"%ld", data);
     else
-      sprintf(valstr,"%c%ld", prefix, (s64) data);
+      sprintf(valstr,"%c%ld", prefix, data);
   }
 
 } //end MFM

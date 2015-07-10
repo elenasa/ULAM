@@ -69,8 +69,7 @@ namespace MFM{
     UlamType(const UlamKeyTypeSignature key, CompilerState& state);
     virtual ~UlamType(){}
 
-    /** returns a pointer to UlamType */
-    UlamType * getUlamType();
+    UlamType * getUlamType(); //returns a pointer to self
 
     const std::string getUlamTypeName();
 
@@ -120,8 +119,6 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString(s32 sizebyints);
 
-    virtual const std::string getUnsignedTmpStorageTypeAsString();
-
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
@@ -140,19 +137,19 @@ namespace MFM{
 
     static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
 
-    virtual bool isScalar();   //arraysize == NOTARRAYSIZE is scalar
+    virtual bool isScalar(); //arraysize == NOTARRAYSIZE is scalar
 
     virtual bool isCustomArray();
 
     s32 getArraySize();
 
-    virtual s32 getBitSize();  //'class' type calculated after type labeling; default size for constants
+    virtual s32 getBitSize(); //except for default size constants, known after type labeling
 
-    u32 getTotalBitSize();  //bitsize * arraysize, accounting for constants and scalars
+    u32 getTotalBitSize(); //bitsize * arraysize, accounting for constants and scalars
 
     virtual bool isHolder();
 
-    virtual bool isComplete();  //neither bitsize nor arraysize is "unknown"
+    virtual bool isComplete(); //neither bitsize nor arraysize is "unknown"
 
     static ULAMTYPECOMPARERESULTS compare(UTI u1, UTI u2, CompilerState& state);
 
@@ -179,8 +176,6 @@ namespace MFM{
 
     virtual const std::string readArrayItemMethodForCodeGen();
     virtual const std::string writeArrayItemMethodForCodeGen();
-
-    virtual void genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass);
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 

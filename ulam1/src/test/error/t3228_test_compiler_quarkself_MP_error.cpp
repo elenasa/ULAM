@@ -2,7 +2,7 @@
 
 namespace MFM {
 
-  BEGINTESTCASECOMPILER(t3228_test_compiler_quarkself_MP)
+  BEGINTESTCASECOMPILER(t3228_test_compiler_quarkself_MP_error)
   {
     std::string GetAnswerKey()
     {
@@ -24,6 +24,6 @@ namespace MFM {
     }
   }
 
-  ENDTESTCASECOMPILER(t3228_test_compiler_quarkself_MP)
+  ENDTESTCASECOMPILER(t3228_test_compiler_quarkself_MP_error)
 
 } //end MFM

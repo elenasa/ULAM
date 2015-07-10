@@ -197,4 +197,10 @@ namespace MFM {
     return m_parameter;
   }
 
+  u32 SymbolWithValue::getPosOffset()
+  {
+    return 0; //always zero
+  }
+
+
 } //end MFM

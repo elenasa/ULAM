@@ -54,6 +54,8 @@ namespace MFM{
     virtual Symbol * clone() = 0;
     virtual Symbol * cloneKeepsType() = 0;
 
+    virtual u32 getPosOffset();
+
     virtual bool isConstant() = 0;
 
     virtual bool isReady();
