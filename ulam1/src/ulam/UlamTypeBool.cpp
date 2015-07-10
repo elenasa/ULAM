@@ -272,11 +272,32 @@ namespace MFM {
       sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   } //getDataLongAsString
 
+  s32 UlamTypeBool::getDataAsCs32(const u32 data)
+  {
+    return _Bool32ToCs32(data, getBitSize());
+  }
+
+  u32 UlamTypeBool::getDataAsCu32(const u32 data)
+  {
+    return _Bool32ToCu32(data, getBitSize());
+  }
+
+  s64 UlamTypeBool::getDataAsCs64(const u64 data)
+  {
+    return _Bool64ToCs64(data, getBitSize());
+  }
+
+  u64 UlamTypeBool::getDataAsCu64(const u64 data)
+  {
+    return _Bool64ToCu64(data, getBitSize());
+  }
+
   const std::string UlamTypeBool::getConvertToCboolMethod()
   {
     std::ostringstream rtnMethod;
     rtnMethod << "_Bool" << getTotalWordSize() << "ToCbool";
     return rtnMethod.str();
   } //getCovertToCBoolMethod
+
 
 } //end MFM

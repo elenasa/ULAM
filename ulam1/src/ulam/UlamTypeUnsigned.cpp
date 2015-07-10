@@ -235,4 +235,24 @@ namespace MFM {
       sprintf(valstr,"%c%lu", prefix, data);
   }
 
+  s32 UlamTypeUnsigned::getDataAsCs32(const u32 data)
+  {
+    return _Unsigned32ToCs32(data, getBitSize());
+  }
+
+  u32 UlamTypeUnsigned::getDataAsCu32(const u32 data)
+  {
+    return _Unsigned32ToCu32(data, getBitSize());
+  }
+
+  s64 UlamTypeUnsigned::getDataAsCs64(const u64 data)
+  {
+    return _Unsigned64ToCs64(data, getBitSize());
+  }
+
+  u64 UlamTypeUnsigned::getDataAsCu64(const u64 data)
+  {
+    return _Unsigned64ToCu64(data, getBitSize());
+  }
+
 } //end MFM
