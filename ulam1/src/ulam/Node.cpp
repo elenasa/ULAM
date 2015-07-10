@@ -498,12 +498,7 @@ namespace MFM {
 	      }
 	  }
       }
-
-    // specifically to sign extend Int's (a cast)
-    // problem! for arrays, the vut is an Int, regardless of the array typeXXX
-    // but not arrays here. hmm..
-    //    cosut->genCodeAfterReadingIntoATmpVar(fp, uvpass);
-
+    // note: Ints not sign extended until used/cast
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadIntoTmp
 
@@ -1889,12 +1884,6 @@ namespace MFM {
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
   {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMTYPE etyp = nut->getUlamTypeEnum();
-
-    //special case, u32/u64 desired before AfterReadingIntoATmpVar
-    if(etyp == Int)
-      return ((UlamTypeInt *) nut)->getUnsignedTmpStorageTypeAsString();
-
     return nut->getTmpStorageTypeAsString();
   } //tmpStorageTypeForRead
 

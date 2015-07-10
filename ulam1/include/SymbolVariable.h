@@ -61,7 +61,7 @@ namespace MFM{
 
     virtual s32 getBaseArrayIndex() = 0;
 
-    u32 getPosOffset();
+    virtual u32 getPosOffset();
 
     void setPosOffset(u32 offsetIntoAtom);
 

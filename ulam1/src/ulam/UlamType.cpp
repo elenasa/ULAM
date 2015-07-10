@@ -291,11 +291,6 @@ namespace MFM {
     return ctype;
   } //getTmpStorageTypeAsString
 
-  const std::string UlamType::getUnsignedTmpStorageTypeAsString()
-  {
-    return getTmpStorageTypeAsString();
-  }
-
   const char * UlamType::getUlamTypeAsSingleLowercaseLetter()
   {
     return UlamType::getUlamTypeEnumCodeChar(getUlamTypeEnum());
@@ -356,7 +351,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
-    fp->write(getUnsignedTmpStorageTypeAsString().c_str()); //u32
+    fp->write(getTmpStorageTypeAsString().c_str()); //u32
     fp->write(" d) : m_stg(d) {}\n");
 
     //read BV method
@@ -385,7 +380,7 @@ namespace MFM {
       {
 	m_state.indent(fp);
 	fp->write("const ");
-	fp->write(getUnsignedTmpStorageTypeAsString().c_str()); //u32
+	fp->write(getTmpStorageTypeAsString().c_str()); //u32
 	fp->write(" read() const { return BF::");
 	fp->write(readMethodForCodeGen().c_str());
 
@@ -528,7 +523,7 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-    fp->write(getUnsignedTmpStorageTypeAsString().c_str()); //s32 or u32
+    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" read() const { MFM_API_ASSERT_NONNULL(m_stgPtr); return Up_Us::");
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(m_stgPtr->GetBits() ); }\n");
@@ -819,11 +814,6 @@ namespace MFM {
     rtnMethod << getUlamTypeNameOnly().c_str() << sizeByIntBitsToBe;
     return rtnMethod.str();
   } //castMethodForCodeGen
-
-  void UlamType::genCodeAfterReadingIntoATmpVar(File * fp, UlamValue & uvpass)
-  {
-    return; //nothing to do usually
-  }
 
   void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
