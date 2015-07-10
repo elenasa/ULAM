@@ -169,6 +169,10 @@ namespace MFM{
 
     s64 getMin();
 
+    u64 getMax(UlamValue& rtnUV, UTI uti);
+
+    s64 getMin(UlamValue& rtnUV, UTI uti);
+
     virtual PACKFIT getPackable();
 
     virtual const std::string readMethodForCodeGen();

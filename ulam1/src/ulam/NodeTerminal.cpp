@@ -260,7 +260,8 @@ namespace MFM {
     if(nuti == Nav)
       {
 	std::ostringstream msg;
-	msg << "Constant is not-a-valid type: "<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << "Constant is not-a-valid type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
@@ -291,9 +292,15 @@ namespace MFM {
   {
     bool rtnb = false;
     UTI nuti = getNodeType(); //constant type
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UlamType * fit = m_state.getUlamTypeByIndex(fituti);
+    UlamValue fitmaxUV;
+    u32 fitmax = fit->getMax(fitmaxUV, fituti);
+    if(!nut->cast(fitmaxUV, nuti))
+      return false;
+    fitmax = fitmaxUV.getImmediateData(m_state);
 
-    ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+    ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {
       case Int:
@@ -301,11 +308,18 @@ namespace MFM {
 	  s32 numval = m_constant.sval;
 	  if(fit->getUlamTypeEnum() == Int)
 	    {
-	      rtnb = (numval <= (s32) fit->getMax()) && (numval >= fit->getMin());
+	      UlamValue fitminUV;
+	      s32 fitmin = fit->getMin(fitminUV, fituti);
+	      if(nut->cast(fitminUV, nuti))
+		{
+		  fitmin = fitminUV.getImmediateData(m_state);
+		  fitmin = _Int32ToCs32(fitmin, fit->getBitSize()); //sign extend
+		  rtnb = (numval <= (s32) fitmax) && (numval >= fitmin);
+		}
 	    }
 	  else
 	    {
-	      rtnb = (UABS32(numval) <= fit->getMax()) && (numval >= 0);
+	      rtnb = (UABS32(numval) <= fitmax) && (numval >= 0);
 	    }
 	}
 	break;
@@ -315,7 +329,7 @@ namespace MFM {
       case Bool:
 	{
 	  u32 numval = m_constant.uval;
-	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
+	  rtnb = (numval <= fitmax) && (numval >= 0);
 	}
 	break;
       default:
@@ -336,8 +350,16 @@ namespace MFM {
   {
     bool rtnb = false;
     UTI nuti = getNodeType(); //constant type
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     UlamType * fit = m_state.getUlamTypeByIndex(fituti);
-    ULAMTYPE etype = m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum();
+
+    UlamValue fitmaxUV;
+    u64 fitmax = fit->getMax(fitmaxUV, fituti);
+    if(!nut->cast(fitmaxUV, nuti))
+      return false;
+    fitmax = fitmaxUV.getImmediateDataLong(m_state);
+
+    ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {
       case Int:
@@ -345,11 +367,17 @@ namespace MFM {
 	  s64 numval = m_constant.sval;
 	  if(fit->getUlamTypeEnum() == Int)
 	    {
-	      rtnb = (numval <= (s64) fit->getMax()) && (numval >= fit->getMin());
+	      UlamValue fitminUV;
+	      s64 fitmin = fit->getMin(fitminUV, fituti);
+	      if(nut->cast(fitminUV, nuti))
+		{
+		  fitmin = (s64) fitminUV.getImmediateDataLong(m_state);
+		  rtnb = (numval <= (s64) fitmax) && (numval >= fitmin);
+		}
 	    }
 	  else
 	    {
-	      rtnb = (UABS64(numval) <= fit->getMax()) && (numval >= 0);
+	      rtnb = (UABS64(numval) <= fitmax) && (numval >= 0);
 	    }
 	}
 	break;
@@ -359,7 +387,7 @@ namespace MFM {
       case Bool:
 	{
 	  u64 numval = m_constant.uval;
-	  rtnb = (numval <= fit->getMax()) && (numval >= 0);
+	  rtnb = (numval <= fitmax) && (numval >= 0);
 	}
 	break;
       default:
