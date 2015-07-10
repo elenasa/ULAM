@@ -7,6 +7,7 @@ delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
 ## Import mfz functions from the MFM tree at 'compile' time
 <<<INCLUDE:@MFM_ROOT_DIR@/src/drivers/mfzrun/common.pl.inc>>>
+SetUDieMsg("Type '$0 -h' for help\n");
 
 use Capture::Tiny 'capture';
 use Cwd 'abs_path';
