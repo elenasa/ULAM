@@ -1,0 +1,14 @@
+  /**
+   Generic resource
+   \symbol R
+   \color #60662e
+   \symmetries all
+*/
+
+element Res {
+  EventWindow ew;
+  Void behave() {
+    if (ew[1] is Empty)
+      ew.swap(0,1);
+  }
+}
