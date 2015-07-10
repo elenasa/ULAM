@@ -152,6 +152,30 @@ namespace MFM {
     sprintf(valstr,"%s", getUlamTypeName().c_str());
   }
 
+  s32 UlamType::getDataAsCs32(const u32 data)
+  {
+    assert(0);
+    return (s32) data;
+  }
+
+  u32 UlamType::getDataAsCu32(const u32 data)
+  {
+    assert(0);
+    return data;
+  }
+
+  s64 UlamType::getDataAsCs64(const u64 data)
+  {
+    assert(0);
+    return (s64) data;
+  }
+
+  u64 UlamType::getDataAsCu64(const u64 data)
+  {
+    assert(0);
+    return data;
+  }
+
   ULAMCLASSTYPE UlamType::getUlamClass()
   {
     return UC_NOTACLASS;
@@ -689,6 +713,26 @@ namespace MFM {
   {
     return m_min;
   }
+
+  u64 UlamType::getMax(UlamValue& rtnUV, UTI uti)
+  {
+    u32 wordsize = getTotalWordSize();
+    if(wordsize == MAXBITSPERINT)
+      rtnUV = UlamValue::makeImmediate(uti, (u32) m_max, m_state);
+    else if(wordsize == MAXBITSPERLONG)
+      rtnUV = UlamValue::makeImmediateLong(uti, m_max, m_state);
+    return m_max;
+  } //getMax (UlamValue)
+
+  s64 UlamType::getMin(UlamValue& rtnUV, UTI uti)
+  {
+    u32 wordsize = getTotalWordSize();
+    if(wordsize == MAXBITSPERINT)
+      rtnUV = UlamValue::makeImmediate(uti, (s32) m_min, m_state);
+    else if(wordsize == MAXBITSPERLONG)
+      rtnUV = UlamValue::makeImmediateLong(uti, (s64) m_min, m_state);
+    return m_min;
+  } //getMin (UlamValue)
 
   PACKFIT UlamType::getPackable()
   {

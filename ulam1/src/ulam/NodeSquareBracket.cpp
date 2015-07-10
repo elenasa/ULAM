@@ -179,7 +179,9 @@ namespace MFM {
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     // constant expression only required for array declaration
     s32 arraysize = m_state.getArraySize(ltype);
-    s32 offsetInt = offset.getImmediateData(m_state);
+    u32 offsetdata = offset.getImmediateData(m_state);
+    s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
+
     if((offsetInt >= arraysize) && !isCustomArray)
       {
 	Symbol * lsymptr;
@@ -228,7 +230,8 @@ namespace MFM {
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
     // constant expression only required for array declaration
-    u32 offsetInt = offset.getImmediateData(m_state);
+    u32 offsetdata = offset.getImmediateData(m_state);
+    s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
 
     UTI auti = pluv.getPtrTargetType();
     UlamType * aut = m_state.getUlamTypeByIndex(auti);
@@ -373,7 +376,8 @@ namespace MFM {
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
-    ULAMTYPE etype = m_state.getUlamTypeByIndex(sizetype)->getUlamTypeEnum();
+    UlamType * sizeut = m_state.getUlamTypeByIndex(sizetype);
+    ULAMTYPE etype = sizeut->getUlamTypeEnum();
 
     // expects a constant, numeric type within []
     if( (etype == Int || etype == Unsigned || etype == Unary) && m_nodeRight->isAConstant())
@@ -384,7 +388,8 @@ namespace MFM {
 	  {
 	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
 
-	    newarraysize = arrayUV.getImmediateData(m_state);
+	    u32 arraysizedata = arrayUV.getImmediateData(m_state);
+	    newarraysize = sizeut->getDataAsCs32(arraysizedata);
 	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
 	      {
 		MSG(getNodeLocationAsString().c_str(),

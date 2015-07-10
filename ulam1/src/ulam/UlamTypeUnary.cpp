@@ -223,4 +223,24 @@ namespace MFM {
       sprintf(valstr,"%c%u", prefix, PopCount64(data)); //converted to binary
   }
 
+  s32 UlamTypeUnary::getDataAsCs32(const u32 data)
+  {
+    return _Unary32ToCs32(data, getBitSize());
+  }
+
+  u32 UlamTypeUnary::getDataAsCu32(const u32 data)
+  {
+    return _Unary32ToCu32(data, getBitSize());
+  }
+
+  s64 UlamTypeUnary::getDataAsCs64(const u64 data)
+  {
+    return _Unary64ToCs64(data, getBitSize());
+  }
+
+  u64 UlamTypeUnary::getDataAsCu64(const u64 data)
+  {
+    return _Unary64ToCu64(data, getBitSize());
+  }
+
 } //end MFM
