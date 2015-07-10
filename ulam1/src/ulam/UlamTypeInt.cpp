@@ -87,7 +87,7 @@ namespace MFM {
     s32 valbitsize = m_state.getBitSize(valtypidx);
 
     u32 data = val.getImmediateData(m_state);
-    s32 sdata = 0;
+    u32 sdata = 0;
     ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
     switch(valtypEnum)
       {
@@ -116,7 +116,7 @@ namespace MFM {
       };
 
     if(brtn)
-      val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
+      val = UlamValue::makeImmediate(typidx, sdata, m_state); //overwrite val
     return brtn;
   } //castTo32
 
@@ -134,7 +134,7 @@ namespace MFM {
     else
       assert(0);
 
-    s64 sdata = 0;
+    u64 sdata = 0;
     s32 bitsize = getBitSize();
     s32 valbitsize = m_state.getBitSize(valtypidx);
     ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
@@ -170,7 +170,7 @@ namespace MFM {
 	if(wordsize == MAXBITSPERINT) //downcast
 	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
 	else if(wordsize == MAXBITSPERLONG)
-	  val = UlamValue::makeImmediateLong(typidx, (u64) sdata, m_state); //overwrite val
+	  val = UlamValue::makeImmediateLong(typidx, sdata, m_state); //overwrite val
 	else
 	  assert(0);
       }
@@ -249,6 +249,32 @@ namespace MFM {
       sprintf(valstr,"%ld", data);
     else
       sprintf(valstr,"%c%ld", prefix, data);
+  }
+
+  s32 UlamTypeInt::getDataAsCs32(const u32 data)
+  {
+    return _Int32ToCs32(data, getBitSize());
+  }
+
+  u32 UlamTypeInt::getDataAsCu32(const u32 data)
+  {
+    s32 bitsize = getBitSize();
+    assert(bitsize > 0);
+    u32 cdata = _Int32ToUnsigned32(data, (u32) bitsize, (u32) bitsize);
+    return _Unsigned32ToCu32(cdata, (u32) bitsize);
+  }
+
+  s64 UlamTypeInt::getDataAsCs64(const u64 data)
+  {
+    return _Int64ToCs64(data, getBitSize());
+  }
+
+  u64 UlamTypeInt::getDataAsCu64(const u64 data)
+  {
+    s32 bitsize = getBitSize();
+    assert(bitsize > 0);
+    u64 cdata = _Int64ToUnsigned64(data, (u32) bitsize, (u32) bitsize);
+    return _Unsigned64ToCu64(cdata, (u32) bitsize);
   }
 
 } //end MFM

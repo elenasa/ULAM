@@ -135,6 +135,9 @@ namespace MFM {
 		  newbitsize = bitUV.getImmediateData(MAXBITSPERINT); //use default
 		else
 		  newbitsize = bitUV.getImmediateData(m_state);
+
+		//prepare bitsize into C-format:
+		newbitsize = m_state.getUlamTypeByIndex(bituti)->getDataAsCs32(newbitsize);
 	      }
 	  }
 

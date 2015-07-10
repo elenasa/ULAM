@@ -916,6 +916,7 @@ namespace MFM {
        if(len <= MAXBITSPERINT)
 	 {
 	   u32 data = ruvpass.getImmediateData(m_state);
+	   data = rut->getDataAsCu32(data); //neg? or unary?
 	   char dstr[40];
 	   rut->getDataAsString(data, dstr, 'z');
 	   fp->write(dstr);
@@ -923,6 +924,7 @@ namespace MFM {
        else if(len <= MAXBITSPERLONG)
 	 {
 	   u64 data = ruvpass.getImmediateDataLong(m_state);
+	   data = rut->getDataAsCu64(data); //neg? or unary?
 	   char dstr[70];
 	   rut->getDataLongAsString(data, dstr, 'z');
 	   fp->write(dstr);
@@ -1106,6 +1108,7 @@ namespace MFM {
 	if(len <= MAXBITSPERINT)
 	  {
 	    u32 data = ruvpass.getImmediateData(m_state);
+	    data = rut->getDataAsCu32(data); //neg? or unary?
 	    char dstr[40];
 	    rut->getDataAsString(data, dstr, 'z');
 	    fp->write(dstr);
@@ -1113,6 +1116,7 @@ namespace MFM {
 	else if(len <= MAXBITSPERLONG)
 	  {
 	    u64 data = ruvpass.getImmediateDataLong(m_state);
+	    data = rut->getDataAsCu64(data); //neg? or unary?
 	    char dstr[70];
 	    rut->getDataLongAsString(data, dstr, 'z');
 	    fp->write(dstr);
@@ -1275,6 +1279,7 @@ namespace MFM {
 	if(len <= MAXBITSPERINT)
 	  {
 	    u32 data = ruvpass.getImmediateData(m_state);
+	    data = rut->getDataAsCu32(data); //neg? or unary?
 	    char dstr[40];
 	    rut->getDataAsString(data, dstr, 'z');
 	    fp->write(dstr);
@@ -1282,6 +1287,7 @@ namespace MFM {
 	else if(len <= MAXBITSPERLONG)
 	  {
 	    u64 data = ruvpass.getImmediateDataLong(m_state);
+	    data = rut->getDataAsCu64(data); //neg? or unary?
 	    char dstr[70];
 	    rut->getDataLongAsString(data, dstr, 'z');
 	    fp->write(dstr);
@@ -1342,6 +1348,7 @@ namespace MFM {
 	if(len <= MAXBITSPERINT)
 	  {
 	    u32 data = uvpass.getImmediateData(m_state);
+	    data = vut->getDataAsCu32(data); //neg? or unary?
 	    char dstr[40];
 	    vut->getDataAsString(data, dstr, 'z');
 	    fp->write(dstr);
@@ -1349,6 +1356,7 @@ namespace MFM {
 	else if(len <= MAXBITSPERLONG)
 	  {
 	    u64 data = uvpass.getImmediateDataLong(m_state);
+	    data = vut->getDataAsCu64(data); //neg? or unary?
 	    char dstr[70];
 	    vut->getDataLongAsString(data, dstr, 'z');
 	    fp->write(dstr);
