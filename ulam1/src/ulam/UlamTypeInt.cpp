@@ -87,7 +87,7 @@ namespace MFM {
     s32 valbitsize = m_state.getBitSize(valtypidx);
 
     u32 data = val.getImmediateData(m_state);
-    s32 sdata = 0;
+    u32 sdata = 0;
     ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
     switch(valtypEnum)
       {
@@ -116,7 +116,7 @@ namespace MFM {
       };
 
     if(brtn)
-      val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
+      val = UlamValue::makeImmediate(typidx, sdata, m_state); //overwrite val
     return brtn;
   } //castTo32
 
@@ -134,7 +134,7 @@ namespace MFM {
     else
       assert(0);
 
-    s64 sdata = 0;
+    u64 sdata = 0;
     s32 bitsize = getBitSize();
     s32 valbitsize = m_state.getBitSize(valtypidx);
     ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(valtypidx)->getUlamTypeEnum();
@@ -170,7 +170,7 @@ namespace MFM {
 	if(wordsize == MAXBITSPERINT) //downcast
 	  val = UlamValue::makeImmediate(typidx, (u32) sdata, m_state); //overwrite val
 	else if(wordsize == MAXBITSPERLONG)
-	  val = UlamValue::makeImmediateLong(typidx, (u64) sdata, m_state); //overwrite val
+	  val = UlamValue::makeImmediateLong(typidx, sdata, m_state); //overwrite val
 	else
 	  assert(0);
       }

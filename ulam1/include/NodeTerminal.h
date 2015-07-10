@@ -96,6 +96,11 @@ namespace MFM{
     bool fitsInBits32(UTI fituti);
     bool fitsInBits64(UTI fituti);
 
+    EvalStatus makeTerminalValue(UlamValue& uvarg, u32 data, UTI uti);
+    EvalStatus makeTerminalValueLong(UlamValue& uvarg, u64 data, UTI uti);
+    u32 convertForthAndBack(const u32 data, UTI fituti);
+    u64 convertForthAndBackLong(const u64 data, UTI fituti);
+    bool fitsInBits32compare(UTI fituti);
 
   protected:
     virtual EvalStatus makeTerminalValue(UlamValue& uvarg); //used both by eval and gencode
