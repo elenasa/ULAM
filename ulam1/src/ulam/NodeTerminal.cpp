@@ -282,7 +282,8 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	return false;
       }
-
+#if 0
+    // does this matter any more Fri Jul 10 12:34:19 2015
     if(!fit->isMinMaxAllowed() && (fit->getUlamTypeEnum() != Bits))
       {
 	std::ostringstream msg;
@@ -291,6 +292,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //warn?
 	return false;
       }
+#endif
 
     if(nuti == Nav)
       {
@@ -324,66 +326,6 @@ namespace MFM {
 
   //used during check and label for binary arith and compare ops that have a constant term
   bool NodeTerminal::fitsInBits32(UTI fituti)
-  {
-    bool rtnb = false;
-    UTI nuti = getNodeType(); //constant type
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    UlamType * fit = m_state.getUlamTypeByIndex(fituti);
-    UlamValue fitmaxUV;
-    u32 fitmax = fit->getMax(fitmaxUV, fituti);
-    if(!nut->cast(fitmaxUV, nuti))
-      return false;
-    fitmax = fitmaxUV.getImmediateData(m_state);
-
-    ULAMTYPE etype = nut->getUlamTypeEnum();
-    switch(etype)
-      {
-      case Int:
-	{
-	  s32 numval = m_constant.sval;
-	  if(fit->getUlamTypeEnum() == Int)
-	    {
-	      UlamValue fitminUV;
-	      s32 fitmin = fit->getMin(fitminUV, fituti);
-	      if(nut->cast(fitminUV, nuti))
-		{
-		  fitmin = fitminUV.getImmediateData(m_state);
-		  fitmin = _Int32ToCs32(fitmin, fit->getBitSize()); //sign extend
-		  rtnb = (numval <= (s32) fitmax) && (numval >= fitmin);
-		}
-	    }
-	  else
-	    {
-	      rtnb = (UABS32(numval) <= fitmax) && (numval >= 0);
-	    }
-	}
-	break;
-      case Unsigned:
-      case Unary:
-      case Bits:
-      case Bool:
-	{
-	  u32 numval = m_constant.uval;
-	  rtnb = (numval <= fitmax) && (numval >= 0);
-	}
-	break;
-      default:
-	{
-	  std::ostringstream msg;
-	  msg << "Constant Type Unknown: ";
-	  msg <<  m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	  msg << ", to fit into type: ";
-	  msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	}
-      };
-
-    assert(fitsInBits32compare(fituti) == rtnb);
-    return rtnb;
-  } //fitsInBits32
-
-
-  bool NodeTerminal::fitsInBits32compare(UTI fituti)
   {
     bool rtnb = false;
     u32 rtnc = 0;
@@ -442,51 +384,53 @@ namespace MFM {
 
     rtnb = _Bool32ToCbool(rtnc, BITSPERBOOL);
     return rtnb;
-  } //fitsInBits32compare
+  } //fitsInBits32
 
   //used during check and label for binary arith and compare ops that have a constant term
   bool NodeTerminal::fitsInBits64(UTI fituti)
   {
     bool rtnb = false;
+    u64 rtnc = 0;
     UTI nuti = getNodeType(); //constant type
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    UlamType * fit = m_state.getUlamTypeByIndex(fituti);
+    s32 nbitsize = nut->getBitSize();
+    assert(nbitsize > 0);
 
-    UlamValue fitmaxUV;
-    u64 fitmax = fit->getMax(fitmaxUV, fituti);
-    if(!nut->cast(fitmaxUV, nuti))
-      return false;
-    fitmax = fitmaxUV.getImmediateDataLong(m_state);
-
+    //convert forth and back, then compare.
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {
       case Int:
 	{
-	  s64 numval = m_constant.sval;
-	  if(fit->getUlamTypeEnum() == Int)
-	    {
-	      UlamValue fitminUV;
-	      s64 fitmin = fit->getMin(fitminUV, fituti);
-	      if(nut->cast(fitminUV, nuti))
-		{
-		  fitmin = (s64) fitminUV.getImmediateDataLong(m_state);
-		  rtnb = (numval <= (s64) fitmax) && (numval >= fitmin);
-		}
-	    }
-	  else
-	    {
-	      rtnb = (UABS64(numval) <= fitmax) && (numval >= 0);
-	    }
+	  u64 cdata = convertForthAndBackLong(m_constant.uval, fituti);
+	  rtnc = _BinOpCompareEqEqInt64(m_constant.uval, cdata, nbitsize);
 	}
 	break;
       case Unsigned:
+	{
+	  u64 cdata = convertForthAndBackLong(m_constant.uval, fituti);
+	  rtnc = _BinOpCompareEqEqUnsigned64(m_constant.uval, cdata, nbitsize);
+	}
+	break;
       case Unary:
+	{
+	  //right-justify first
+	  u64 jdata = _Unary64ToUnary64(m_constant.uval, nbitsize, nbitsize);
+	  u64 cdata = convertForthAndBackLong(jdata, fituti);
+	  rtnc = _BinOpCompareEqEqUnary64(jdata, cdata, nbitsize);
+	}
+	break;
       case Bits:
+	{
+	  u64 cdata = convertForthAndBackLong(m_constant.uval, fituti);
+	  rtnc = _BinOpCompareEqEqBits64(m_constant.uval, cdata, nbitsize);
+	}
+	break;
       case Bool:
 	{
-	  u64 numval = m_constant.uval;
-	  rtnb = (numval <= fitmax) && (numval >= 0);
+	  u64 jdata = _Bool64ToBool64(m_constant.uval, nbitsize, nbitsize);
+	  u64 cdata = convertForthAndBackLong(jdata, fituti);
+	  rtnc = _BinOpCompareEqEqBool64(jdata, cdata, nbitsize);
 	}
 	break;
       default:
@@ -499,6 +443,8 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	}
       };
+
+    rtnb = _Bool64ToCbool(rtnc, BITSPERBOOL);
     return rtnb;
   } //fitsInBits64
 
