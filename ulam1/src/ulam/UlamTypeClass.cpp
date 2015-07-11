@@ -25,6 +25,16 @@ namespace MFM {
      return Class;
    }
 
+  bool UlamTypeClass::isNumericType()
+  {
+    if(m_class == UC_QUARK)
+      {
+	u32 quti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+	return (m_state.quarkHasAToIntMethod(quti));
+      }
+    return false;
+  } //isNumericType
+
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;

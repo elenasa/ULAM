@@ -68,12 +68,12 @@ namespace MFM {
       case Int:
 	if(wordsize <= MAXBITSPERINT)
 	  {
-	    s32 sval = _Int32ToInt32((u32) m_constant.uval, nbitsize, MAXBITSPERINT);
+	    s32 sval = _Int32ToCs32((u32) m_constant.uval, nbitsize);
 	    num << sval;
 	  }
 	else
 	  {
-	    s64 sval = _Int64ToInt64(m_constant.uval, nbitsize, MAXBITSPERLONG);
+	    s64 sval = _Int64ToCs64(m_constant.uval, nbitsize);
 	    num << sval;
 	  }
 	break;
@@ -81,7 +81,7 @@ namespace MFM {
       case Unsigned:
       case Unary:
       case Bits:
-	// NO CASTING NEEDED, assume saved in its natural format
+	// NO CASTING NEEDED, assume saved in its ulam-native format
 	if(wordsize <= MAXBITSPERINT)
 	  num << (u32) m_constant.uval << "u";
 	else
@@ -476,9 +476,24 @@ namespace MFM {
   bool NodeTerminal::isNegativeConstant()
   {
     bool rtnb = false;
-    if(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeEnum() == Int)
+    UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
+    if(nut->getUlamTypeEnum() == Int)
       {
-	rtnb = (m_constant.sval < 0);
+	u32 wordsize = nut->getTotalWordSize();
+	s32 nbitsize = nut->getBitSize();
+	assert(nbitsize > 0);
+	if(wordsize <= MAXBITSPERINT)
+	  {
+	    s32 sval = _Int32ToCs32((u32) m_constant.uval, (u32) nbitsize);
+	    if(sval < 0)
+	      rtnb = true;
+	  }
+	else
+	  {
+	    s64 sval = _Int64ToCs64(m_constant.uval, (u32) nbitsize);
+	    if(sval < 0)
+	      rtnb = true;
+	  }
       }
     return rtnb;
   } //isNegativeConstant
@@ -547,6 +562,17 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());
 
     fp->write(" = ");
+
+    if(isNegativeConstant())
+      {
+	u32 wordsize = nut->getTotalWordSize();
+	if(wordsize <= MAXBITSPERINT)
+	  fp->write("(u32) ");
+	else if(wordsize <= MAXBITSPERLONG)
+	  fp->write("(u64) ");
+	else
+	  assert(0);
+      }
 
     fp->write(getName());
     fp->write(";\n");
