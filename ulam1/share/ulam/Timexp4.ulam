@@ -3,16 +3,8 @@ use Random;
 
 quark Timexp4
 {
-  Random r;
-  Unsigned(4) t;
-  Void reset() { t = 0; }
-
-  Unsigned count() {
-    Unsigned base = 1;
-    if (!alarm() && r.oneIn(base<<t))
-      t += 1;
-    return t;
-  }
-
-  Bool alarm() { return t == (1<<4)-1; }
+  XTimer(4,Unsigned(4).maxof) x;
+  Void reset() { x.reset(); }
+  Unsigned count() { return x.count(); }
+  Bool alarm() { return x.alarm(); }
 }
