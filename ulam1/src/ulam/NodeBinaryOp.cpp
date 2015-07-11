@@ -217,7 +217,9 @@ namespace MFM {
   bool NodeBinaryOp::checkNotVoidTypes(UTI lt, UTI rt)
   {
     bool rtnOK = true;
-    if(lt == Void || rt == Void)
+    ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
+    if(ltypEnum == Void || rtypEnum == Void)
       {
 	std::ostringstream msg;
 	msg << "Void is not a supported type for binary operator";
@@ -227,6 +229,26 @@ namespace MFM {
       }
     return rtnOK;
   } //checkNotVoidTypes
+
+  bool NodeBinaryOp::checkForNumericTypes(UTI lt, UTI rt)
+  {
+    bool rtnOK = true;
+    bool lnum = m_state.getUlamTypeByIndex(lt)->isNumericType();
+    bool rnum = m_state.getUlamTypeByIndex(rt)->isNumericType();
+    if(!(lnum && rnum))
+      {
+	std::ostringstream msg;
+	msg << "Incompatible types for binary operator";
+	msg << getName() << " : ";
+	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << ", ";
+	msg << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	msg << "; Suggest casting to a numeric type first";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      }
+    return rtnOK;
+  } //checkForNumericTypes
 
   bool NodeBinaryOp::checkScalarTypesOnly(UTI lt, UTI rt)
   {

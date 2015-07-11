@@ -89,9 +89,19 @@ namespace MFM{
 
     virtual void getDataLongAsString(const u64 data, char * valstr, char prefix);
 
+    virtual s32 getDataAsCs32(const u32 data);
+
+    virtual u32 getDataAsCu32(const u32 data);
+
+    virtual s64 getDataAsCs64(const u64 data);
+
+    virtual u64 getDataAsCu64(const u64 data);
+
     virtual ULAMCLASSTYPE getUlamClass();
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
+
+    virtual bool isNumericType();
 
     virtual const std::string getUlamTypeAsStringForC();
 
@@ -168,6 +178,10 @@ namespace MFM{
     u64 getMax();
 
     s64 getMin();
+
+    u64 getMax(UlamValue& rtnUV, UTI uti);
+
+    s64 getMin(UlamValue& rtnUV, UTI uti);
 
     virtual PACKFIT getPackable();
 
