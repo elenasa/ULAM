@@ -100,6 +100,35 @@ namespace MFM {
     m_textByLinePerFilePath.clear();
   } //clearAllLinesOfText
 
+  bool CompilerState::getClassNameFromFileName(std::string startstr, u32& compileThisId)
+  {
+    u32 foundSuffix = startstr.find(".ulam");
+    if(foundSuffix == std::string::npos        //.ulam not found
+       || foundSuffix != startstr.length()-5   //ensure it's a suffix
+       || foundSuffix == 0)                    //and not also a prefix
+      {
+	std::ostringstream msg;
+        msg << "File name <" << startstr << "> doesn't end with '.ulam'";
+	MSG2("",msg.str().c_str() , ERR);
+	return false;
+      }
+
+    std::string compileThis = startstr.substr(0,foundSuffix);
+
+    char c = compileThis.at(0);
+    if(!Token::isUpper(c))
+      {
+	std::ostringstream msg;
+	msg << "File name <" << startstr;
+	msg << "> must match a valid class name (uppercase) to compile";
+	MSG2("", msg.str().c_str() , ERR);
+	return  false;
+      }
+
+    compileThisId = m_pool.getIndexForDataString(compileThis);
+    return true;
+  } //getClassNameFromFileName
+
   UTI CompilerState::makeUlamTypeHolder()
   {
     UTI uti = m_indexToUlamKey.size();  //next index based on key

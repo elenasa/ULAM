@@ -190,8 +190,40 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	return false;
       }
-    return true;
+    return checkNotVoidType(uti);
   } //checkForPrimitiveType
+
+  bool NodeUnaryOp::checkNotVoidType(UTI uti)
+  {
+    bool rtnOK = true;
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
+    if(typEnum == Void)
+      {
+	std::ostringstream msg;
+	msg << "Void is not a supported type for unary operator";
+	msg << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      }
+    return rtnOK;
+  } //checkNotVoidTypes
+
+  bool NodeUnaryOp::checkForNumericType(UTI uti)
+  {
+    bool rtnOK = true;
+    bool isnum = m_state.getUlamTypeByIndex(uti)->isNumericType();
+    if(!isnum)
+      {
+	std::ostringstream msg;
+	msg << "Incompatible type for unary operator";
+	msg << getName() << " : ";
+	msg << m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	msg << "; Suggest casting to a numeric type first";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	rtnOK = false;
+      }
+    return rtnOK;
+  } //checkForNumericType
 
   void NodeUnaryOp::countNavNodes(u32& cnt)
   {

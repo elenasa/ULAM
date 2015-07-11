@@ -154,6 +154,8 @@ namespace MFM{
     void clearAllDefinedUlamTypes();
     void clearAllLinesOfText();
 
+    bool getClassNameFromFileName(std::string startstr, u32& compileThisId);
+
     UTI makeUlamTypeHolder();
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);

@@ -79,14 +79,12 @@ namespace MFM {
 	return Nav; //short-circuit
       }
 
-    ULAMTYPE etype = m_state.getUlamTypeByIndex(it)->getUlamTypeEnum();
-
-    // expect a constant numeric type
-    if( !m_node->isAConstant() || (!(etype == Int || etype == Unsigned || etype == Unary) && m_node->isReadyConstant()))
+    // expects a constant numeric type
+    if( !m_node->isAConstant() || (!(m_state.getUlamTypeByIndex(it)->isNumericType()) && m_node->isReadyConstant()))
       {
 	std::ostringstream msg;
 	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
-	msg << ", within (), is not a valid constant expression";
+	msg << ", within (), is not a numeric constant expression";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
@@ -135,6 +133,9 @@ namespace MFM {
 		  newbitsize = bitUV.getImmediateData(MAXBITSPERINT); //use default
 		else
 		  newbitsize = bitUV.getImmediateData(m_state);
+
+		//prepare bitsize into C-format:
+		newbitsize = m_state.getUlamTypeByIndex(bituti)->getDataAsCs32(newbitsize);
 	      }
 	  }
 
