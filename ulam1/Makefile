@@ -119,7 +119,6 @@ MFM_TARGET:=linux
 BASEDIR:=$(MFM_ROOT_DIR)
 include $(BASEDIR)/config/Makecommon.mk
 CFLAGS += -I $(BASEDIR)/src/core/include
-CFLAGS += $(DEFINES)
 CFLAGS += -D ULAM_SHARE_DIR=$(ULAM_SHARE_DIR)
 LIBS := -L $(BASEDIR)/build/core $(LIBS)
 ${info (top-level) LIBS='$(LIBS)'}
@@ -133,6 +132,22 @@ $(SRC_TARGETS):	src
 # src rule just passes the make goals down to src
 src:	FORCE
 	@$(MAKE) -C $@ $(MAKECMDGOALS)
+
+# pattern rule to build shared libs of ulam elements destined to live
+# inside the MFM tree.  NOTE: MAKE BOTH TREES FIRST!
+ULAMDIR:=share/ulam
+ULAMWORKDIR:=.gen
+$(MFM_ROOT_DIR)/res/elements/libue%.so:	$(ULAMDIR)/%/*.ulam
+	./bin/ulam -lo --sd $(ULAMDIR)/core --sd $(ULAMDIR)/$* $(^:$(ULAMDIR)/$*/%=%)
+	mv -f $(ULAMWORKDIR)/bin/libcue.so "$@"
+	rm -rf $(ULAMWORKDIR)
+
+ULAM_MFM_TARGETS+=$(MFM_ROOT_DIR)/res/elements/libuecore.so
+ULAM_MFM_TARGETS+=$(MFM_ROOT_DIR)/res/elements/libuedemos.so
+ulamexports:	$(ULAM_MFM_TARGETS)
+
+cleanulamexports:	FORCE
+	rm -f $(ULAM_MFM_TARGETS)
 
 # Shortcut to ulam template build
 ulam:	FORCE
