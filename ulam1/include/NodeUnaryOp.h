@@ -94,6 +94,8 @@ namespace MFM{
     bool checkSafeToCastTo(UTI newType);
     s32 maxBitsize(UTI uti);
     bool checkForPrimitiveType(UTI uti);
+    bool checkNotVoidType(UTI uti);
+    bool checkForNumericType(UTI uti);
 
     virtual void doUnaryOperation(s32 slot, u32 nslots);
     virtual void doUnaryOperationImmediate(s32 slot, u32 nslots);

@@ -38,6 +38,11 @@ namespace MFM {
      return Unsigned;
    }
 
+  bool UlamTypeUnsigned::isNumericType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeUnsigned::getUlamTypeVDAsStringForC()
   {
     return "VD::U32";
