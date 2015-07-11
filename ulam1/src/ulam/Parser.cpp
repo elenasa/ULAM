@@ -89,31 +89,9 @@ namespace MFM {
 
     //add name of the thing we are compiling to string pool (and node program);
     //dropping the .ulam suffix
-    u32 foundSuffix = startstr.find(".ulam");
-    if(foundSuffix == std::string::npos        //.ulam not found
-       || foundSuffix != startstr.length()-5   //ensure it's a suffix
-       || foundSuffix == 0)                    //and not also a prefix
-      {
-	std::ostringstream msg;
-        msg << "File name <" << startstr << "> doesn't end with '.ulam'";
-	MSG("",msg.str().c_str() , ERR);
-	return 1; //1 error
-      }
-
-    std::string compileThis = startstr.substr(0,foundSuffix);
-
-    char c = compileThis.at(0);
-    if(!Token::isUpper(c))
-      {
-	//compileThis.at(0) = 'A' + (c - 'a'); //uppercase
-	std::ostringstream msg;
-	msg << "File name <" << startstr;
-	msg << "> must match a valid class name (uppercase) to compile";
-	MSG("", msg.str().c_str() , ERR);
-	return  1; //1 error
-      }
-
-    u32 compileThisId = m_state.m_pool.getIndexForDataString(compileThis);
+    u32 compileThisId;
+    if(!m_state.getClassNameFromFileName(startstr, compileThisId))
+      return 1; //1 error
 
     //here's the start (first token)!!  preparser will handle the VERSION_DECL,
     //as well as USE and LOAD keywords.
@@ -130,7 +108,7 @@ namespace MFM {
 	if(classtype == UC_UNSEEN)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid Type: " << compileThis;
+	    msg << "Invalid Type: " << m_state.m_pool.getDataAsString(compileThisId).c_str();
 	    MSG(m_state.getFullLocationAsString(thisClassSymbol->getLoc()).c_str(), msg.str().c_str(), ERR);
 	  }
 	rootNode = ((SymbolClass *) thisClassSymbol)->getClassBlockNode();
@@ -139,7 +117,8 @@ namespace MFM {
     if(!rootNode)
       {
 	std::ostringstream msg;
-	msg << "No parse tree for This Class: " << compileThis;
+	msg << "No parse tree for This Class: ";
+	msg << m_state.m_pool.getDataAsString(compileThisId).c_str();
 	MSG("", msg.str().c_str(), ERR);
       }
 
@@ -147,7 +126,8 @@ namespace MFM {
     if(warns > 0)
       {
 	std::ostringstream msg;
-	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during parsing: " << compileThis;
+	msg << warns << " warning" << (warns > 1 ? "s " : " ") << "during parsing: ";
+	msg << m_state.m_pool.getDataAsString(compileThisId).c_str();
 	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
 
@@ -155,7 +135,8 @@ namespace MFM {
     if(errs > 0)
       {
 	std::ostringstream msg;
-	msg << errs << " TOO MANY PARSE ERRORS: " << compileThis;
+	msg << errs << " TOO MANY PARSE ERRORS: ";
+	msg << m_state.m_pool.getDataAsString(compileThisId).c_str();
 	MSG((rootNode ? rootNode->getNodeLocationAsString().c_str() : ""), msg.str().c_str(), INFO);
       }
     return (errs);
