@@ -43,21 +43,35 @@ namespace MFM {
     ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
     ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
 
-    //if neither is Bits, use 'ordered' compare rules;
-    if(!(ltypEnum == Bits || rtypEnum == Bits))
-      return NodeBinaryOpCompare::calcNodeType(lt,rt);
-
-    //o.w. compare == as Bits
-    if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
+    //if either is Bits, cast to Bits
+    if(ltypEnum == Bits || rtypEnum == Bits)
       {
-	s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
-	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
-	newType = m_state.makeUlamType(newkey, Bits);
+	if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
+	  {
+	    s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
+	    newType = m_state.makeUlamType(newkey, Bits);
 
-	if(!NodeBinaryOp::checkSafeToCastTo(newType))
-	  newType = Nav; //outputs error msg
+	    if(!NodeBinaryOp::checkSafeToCastTo(newType))
+	      newType = Nav; //outputs error msg
+	  }
+	return newType; //done
       }
-    return newType;
+
+    //if both are Bool, cast to Bool
+    if(ltypEnum == Bool && rtypEnum == Bool)
+      {
+	if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
+	  {
+	    newType = Bool;
+	    if(!NodeBinaryOp::checkSafeToCastTo(newType))
+	      newType = Nav; //outputs error msg
+	  }
+	return newType; //done
+      }
+
+    //o.w. revert to ordered comparison rules
+    return NodeBinaryOpCompare::calcNodeType(lt,rt);
   } //calcNodeType
 
   UlamValue NodeBinaryOpCompareEqualEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)

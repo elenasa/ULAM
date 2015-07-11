@@ -47,6 +47,7 @@ namespace MFM {
     return newType;
   } //checkAndLabelType
 
+  //same as arith rules for relative comparisons.
   UTI NodeBinaryOpCompare::calcNodeType(UTI lt, UTI rt)
   {
     if(!m_state.isComplete(lt) || !m_state.isComplete(rt))
@@ -55,6 +56,10 @@ namespace MFM {
     //no atoms, elements nor void as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
       return Nav;
+
+    // only int, unsigned, unary types; not bool, bits, etc..
+    if(!NodeBinaryOp::checkForNumericTypes(lt, rt))
+      return Nav; //err output
 
     UTI newType = Nav; //init
     // all operations are performed as Int(32) or Unsigned(32) in CastOps.h
@@ -67,20 +72,11 @@ namespace MFM {
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
 
-	if(ltypEnum == Bits || rtypEnum == Bits)
-	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible Bits type for comparison operator";
-	    msg << getName() << ". Suggest casting to an ordered type first";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return Nav;
-	  }
-
-	// treat Bool and Unary using Unsigned rules
-	if(ltypEnum == Bool || ltypEnum == Unary)
+	// treat Unary using Unsigned rules
+	if(ltypEnum == Unary)
 	  ltypEnum = Unsigned;
 
-	if(rtypEnum == Bool || rtypEnum == Unary)
+	if(rtypEnum == Unary)
 	  rtypEnum = Unsigned;
 
 	if(ltypEnum == Unsigned && rtypEnum == Unsigned)
@@ -120,6 +116,9 @@ namespace MFM {
 	break;
       case Bits:
 	methodname << "Bits";
+	break;
+      case Bool:
+	methodname << "Bool";
 	break;
       default:
 	assert(0);
