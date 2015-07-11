@@ -59,7 +59,11 @@ namespace MFM {
 
     //no atoms, elements nor void as either operand
     if(!NodeBinaryOp::checkForPrimitiveTypes(lt, rt))
-	return Nav;
+      return Nav; //err output
+
+    // only int, unsigned, unary types; not bool, bits, etc..
+    if(!NodeBinaryOp::checkForNumericTypes(lt, rt))
+      return Nav; //err output
 
     UTI newType = Nav; //init
 
@@ -72,24 +76,6 @@ namespace MFM {
 	s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
-
-	if(ltypEnum == Bits || rtypEnum == Bits)
-	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible Bits type for binary operator";
-	    msg << getName() << ". Suggest casting to a numeric type first";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return Nav;
-	  }
-
-	if(ltypEnum == Bool || rtypEnum == Bool)
-	  {
-	    std::ostringstream msg;
-	    msg << "Incompatible Bool type for binary operator";
-	    msg << getName() << ". Suggest casting to a numeric type first";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    return Nav;
-	  }
 
 	// treat Unary using Unsigned rules
 	if(ltypEnum == Unary)

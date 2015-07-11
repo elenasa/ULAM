@@ -96,8 +96,7 @@ namespace MFM {
 	m_state.popClassContext();
 
 	//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
-	ULAMTYPE retype = m_state.getUlamTypeByIndex(rightType)->getUlamTypeEnum();
-	if(!(retype == Int || retype == Unsigned || retype == Unary))
+	if(!m_state.getUlamTypeByIndex(rightType)->isNumericType())
 	  {
 	    if(Node::checkSafeToCastTo(rightType, Int) == CAST_CLEAR)
 	      {
@@ -377,10 +376,9 @@ namespace MFM {
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
     UlamType * sizeut = m_state.getUlamTypeByIndex(sizetype);
-    ULAMTYPE etype = sizeut->getUlamTypeEnum();
 
     // expects a constant, numeric type within []
-    if( (etype == Int || etype == Unsigned || etype == Unary) && m_nodeRight->isAConstant())
+    if(sizeut->isNumericType() && m_nodeRight->isAConstant())
       {
 	evalNodeProlog(0); //new current frame pointer
 	makeRoomForNodeType(sizetype); //offset a constant expression

@@ -53,6 +53,8 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
+    virtual bool isNumericType();
+
     virtual bool cast(UlamValue& val, UTI typidx);
 
     virtual FORECAST safeCast(UTI typidx);

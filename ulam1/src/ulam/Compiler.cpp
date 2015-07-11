@@ -101,6 +101,24 @@ namespace MFM {
   {
     if(ssref.isPushed(startstr))
       {
+	u32 compileThisId;
+	if(m_state.getClassNameFromFileName(startstr, compileThisId))
+	  {
+	    SymbolClassName * cnsym = NULL;
+	    if(m_state.alreadyDefinedSymbolClassName(compileThisId, cnsym))
+	      {
+		//prevent infinite loop
+		if(cnsym->getUlamClass() == UC_UNSEEN)
+		  {
+		    std::ostringstream msg;
+		    msg << "No class '";
+		    msg << m_state.m_pool.getDataAsString(compileThisId).c_str();
+		    msg << "' in <" << startstr.c_str() << ">";
+		    errput->write(msg.str().c_str());
+		    return 1;
+		  }
+	      }
+	  }
 	return 0;
       }
 

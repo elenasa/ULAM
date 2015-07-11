@@ -101,6 +101,8 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
 
+    virtual bool isNumericType();
+
     virtual const std::string getUlamTypeAsStringForC();
 
     virtual const std::string getUlamTypeVDAsStringForC();
