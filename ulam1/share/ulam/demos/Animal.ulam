@@ -1,0 +1,36 @@
+ulam 1;
+
+/** Animal.
+
+    \symbol An
+    \symmetries all
+    \color #e05
+    \author Dave
+    \license lgpl
+ */
+
+element Animal {
+  Unary(32) hunger;
+  EventWindow ew;
+  Void behave() {
+    if (++hunger == hunger.maxof) {
+      for (Int i = 0; i < 5; ++i) {
+        Res r;
+        if (i == 0 || ew[i] is Empty)
+          ew[i] = r;
+      }
+      return;
+    }
+
+    if (ew[1] is Plant) {
+      if ((hunger -= 4) == hunger.minof) {
+        hunger = (hunger.maxof-hunger.minof)/2;
+        ew[1] = self;
+        return;
+      }
+      Empty e;
+      ew[1] = e;
+    }
+    if (ew[1] is Empty)  ew.swap(0,1);
+  }
+}
