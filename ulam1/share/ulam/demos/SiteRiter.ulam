@@ -1,0 +1,46 @@
+use SiteUtils;
+
+/**
+   Demo painting with SiteUtils.  The SiteUtils.setOut method is used
+   set the 'site paint', and in this demo we just set it to a randomly
+   changing color while wandering around randomly.  For this demo, all
+   that really matters is that the site paint is visible to the sim
+   user if 'Site paint' is selected for rendering (on one or more of
+   the front, middle, or back levels).  But more that that, the site
+   paint is _also_ visible to atoms in the event layer, and elements
+   can use the site paint to communicate.
+
+   \symbol SR
+   \symmetries all
+   \author Dave
+   \license public domain
+ */
+element SiteRiter {
+  // Typedefs
+  typedef SiteUtils.Channel Channel;
+  typedef SiteUtils.ARGB ARGB;
+
+  // Utilities
+  SiteUtils su;
+  EventWindow ew;
+  Random random;
+
+  // Data members
+  ARGB m_color;
+
+  Void behave() {
+    m_color[0] = 0xff;
+
+    for (Unsigned i = 1; i < 4; ++i) {
+      Int color = m_color[i];
+      color += random.between(-1,1);
+      m_color[i] = (Channel) color;
+    }
+
+    // Paint (a tiny bit of) the town!
+    su.setOut(m_color);
+
+    // And beat it!
+    ew.swap(0,1);
+  }
+}
