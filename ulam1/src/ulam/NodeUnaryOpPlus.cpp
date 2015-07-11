@@ -26,38 +26,13 @@ namespace MFM {
 
   UTI NodeUnaryOpPlus::calcNodeType(UTI uti)
   {
-    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum();
-    if(typEnum == Bits)
-      {
-	std::ostringstream msg;
-	msg << "Incompatible Bits type for unary operator";
-	msg << getName() << ". Suggest casting to a numeric type first";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return Nav;
-      }
-
-    if(typEnum == Bool)
-      {
-	std::ostringstream msg;
-	msg << "Incompatible Bool type for unary operator";
-	msg << getName() << ". Suggest casting to a numeric type first";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return Nav;
-      }
-
-    if(typEnum == Void)
-      {
-	std::ostringstream msg;
-	msg << "Void is not supported for unary operator";
-	msg << getName();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	return Nav;
-      }
-
     if(!NodeUnaryOp::checkForPrimitiveType(uti))
-      return Nav;
+      return Nav; //outputs error msg
 
-    //else maintain type for NOOP (e.g. Unary, Unsigned, Int)
+    if(!NodeUnaryOp::checkForNumericType(uti))
+      return Nav; //outputs error msg
+
+    //else maintain numeric type for NO-OP (e.g. Unary, Unsigned, Int)
     return uti;
   } //calcNodeType
 

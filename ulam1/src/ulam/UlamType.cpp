@@ -181,6 +181,11 @@ namespace MFM {
     return UC_NOTACLASS;
   }
 
+  bool UlamType::isNumericType()
+  {
+    return false;
+  }
+
   const std::string UlamType::getUlamTypeAsStringForC()
   {
     assert(isComplete());
@@ -206,7 +211,7 @@ namespace MFM {
       ctype << len << ", " << roundUpSize - len << ">";
 
     return ctype.str();
-  }
+  } //getUlamTypeAsStringForC
 
   const std::string UlamType::getUlamTypeVDAsStringForC()
   {

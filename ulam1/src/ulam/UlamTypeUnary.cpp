@@ -38,6 +38,11 @@ namespace MFM {
      return Unary;
    }
 
+  bool UlamTypeUnary::isNumericType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeUnary::getUlamTypeVDAsStringForC()
   {
     return "VD::UNARY";

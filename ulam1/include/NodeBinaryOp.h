@@ -102,6 +102,7 @@ namespace MFM{
     bool checkSafeToCastTo(UTI newType);
     bool checkForPrimitiveTypes(UTI lt, UTI rt);
     bool checkNotVoidTypes(UTI lt, UTI rt);
+    bool checkForNumericTypes(UTI lt, UTI rt);
     bool checkScalarTypesOnly(UTI lt, UTI rt);
     s32 maxBitsize(UTI lt, UTI rt);
 

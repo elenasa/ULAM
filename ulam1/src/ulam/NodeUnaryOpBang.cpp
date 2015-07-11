@@ -69,7 +69,6 @@ namespace MFM {
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bool"), newbs);
 	newType = m_state.makeUlamType(newkey, Bool);
       }
-
     return newType;
   } //calcNodeType
 

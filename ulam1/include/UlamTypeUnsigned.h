@@ -53,6 +53,8 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
+    virtual bool isNumericType();
+
     virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual const std::string getUlamTypeImmediateMangledName();
