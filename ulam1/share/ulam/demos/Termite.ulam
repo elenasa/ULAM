@@ -1,0 +1,90 @@
+ulam 1;
+
+/**
+   Sort base atom (types) into piles.
+   \symbol Te
+   \color #ff0
+   \symmetries normal
+ */
+element Termite
+{
+  typedef AtomUtils.Type Type;
+  typedef Unary(3) State;
+
+  EventWindow ew;
+  SiteUtils su;
+  AtomUtils au;
+  Random random;
+
+  Type m_heldType;
+  Unsigned(3) m_dir;
+
+  constant State cFIND_CHIP = 0;
+  constant State cMOVE_CHIP = cFIND_CHIP + 1;
+  constant State cDROP_CHIP = cMOVE_CHIP + 1;
+  State m_state;
+
+  /**
+     Turning odds.  With smaller values the termite turns more
+     frequently.
+
+     \range 1..100
+   */
+  parameter Unsigned pTURN_ODDS = 10;
+
+  Void behave()
+  {
+    Type baseType = au.getValidType(su.getBase());
+    Type emptyType = au.getEmptyType();
+
+    if (m_state == cFIND_CHIP) {
+
+      if (baseType != emptyType) {
+
+        m_heldType = baseType;
+        su.setBase(au.new((Int) emptyType));
+
+        m_state = cMOVE_CHIP;
+      }
+
+    } else if (m_state == cMOVE_CHIP) {
+
+      if (baseType == m_heldType)
+        m_state = cDROP_CHIP;
+
+    } else if (m_state == cDROP_CHIP) {
+
+      if (baseType == emptyType) {
+
+        su.setBase(au.new((Int) m_heldType));
+        m_heldType = emptyType;
+        m_state = cFIND_CHIP;
+
+      } else if (baseType != m_heldType) {
+
+        // Oops, we're passing over some other thing.
+        // Don't be dropping our chip around here.
+        m_state = cMOVE_CHIP;
+
+      }
+    }
+
+    if (random.oneIn(pTURN_ODDS))
+      m_dir = (Unsigned(3)) random.bits(m_dir.sizeof);
+
+    ew.swap(0, (Int) m_dir + 1);
+  }
+
+  ColorUtils cu;
+  typedef ColorUtils.ARGB ARGB;
+  ARGB getColor(Unsigned selector)
+  {
+    ARGB ret = cu.color(0xffffff00U); // yellow - looking for 1st chip
+    if (m_state == cMOVE_CHIP)
+      ret = cu.color(0xffff0000U); // red - looking for 2nd chip
+    else if (m_state == cDROP_CHIP)
+      ret = cu.color(0xff0000ffU); // blue - looking for empty
+    return ret;
+  }
+
+}

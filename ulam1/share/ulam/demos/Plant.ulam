@@ -1,0 +1,17 @@
+ulam 1;
+
+/** Plant.
+
+    \symbol Pl
+    \symmetries all
+    \color #3e2
+    \license lgpl
+ */
+
+element Plant {
+  EventWindow ew;
+  Void behave() {
+    if (ew[1] is Res)
+      ew[1] = self;
+  }
+}

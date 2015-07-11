@@ -262,7 +262,7 @@ my %swinfo = (
         type => "s",
         desc => "Create .mfz package signed by HANDLE (implies --library)",
         id => getSectionId("Command"),
-        default => ".",
+        default => "-",
         handler => \&entryOpt
     },
     "library" => {
@@ -687,7 +687,8 @@ if ($confErrs != 0) {
 
 my @files = @ARGV;
 UDie("No input files\n") unless @files;
-my (@ulamFiles, @includeFiles, @otherSrcFiles, @mfsFiles, @mfzFiles);
+my (@ulamFiles, @normalPackableFiles, @includeFiles, @otherSrcFiles, @mfsFiles, @mfzFiles);
+
 my %extensionDispatch = (
     "ulam" => \@ulamFiles,
     "mfs" => \@mfsFiles,
@@ -772,8 +773,17 @@ sub copyFileTo {
     UDie("Can't copy '$file' to '$destDir': $status\n") if $status ne "";
 }
 
+####FILE TYPE ANALYSIS
+# Split up user-supplied files by extensions
+separateFiles(@files);
+
+# Collect the files we can pack without special concerns
+@normalPackableFiles = sort (@mfsFiles, @includeFiles, @includeFiles, @otherSrcFiles);
+
+# Add in standard files maybe needed for the build (but which we won't pack)
+separateFiles(@stdTccFiles);
+
 ####ACTION SELECTION
-separateFiles(@files, @stdTccFiles);
 if (!defined($actionCmd)) {
     # If any .ulam, .mfz, or .mfs files were specified, fake up a -z-
     # equivalent and hope for the best.  Otherwise punt
@@ -800,6 +810,7 @@ my @cppFilesFromUlam;
 my @objectFilesFromUlamCpps;
 my @elementCNamesFromUlam;
 my @quarkCNamesFromUlam;
+my %ulamFileTargets;
 
 sub compilationDriver {
     prepareWorkDir();
@@ -1001,6 +1012,7 @@ sub runUlamCompilations
                 # For now, strip location info.. :(
                 $path =~ s/:\d+:\d+:$// or die "No loc in '$path'?";
                 $path = deHexEscape($path);
+                $ulamFileTargets{$path} = 1;
                 my $cfile = "$cname.cpp";
                 push @cppFilesFromUlam, $cfile;
                 push @objectFilesFromUlamCpps, "$ULAM_WORK_DIR/build/$cname.o";
@@ -1200,15 +1212,14 @@ sub buildSharedLibrary
     my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
     my $rollupObject = "$ULAM_WORK_DIR/build/$ROLLUP_FILE_STEM.o";
     my @bslargs = ("-g2", "-shared", "-rdynamic", "-o", $libfile, $rollupObject, @objectFilesFromUlamCpps);
-    my $status = 0;
 
     print " Create $libfile shared library: ";
     my $gpp = getTool($gppTool);
-
+    my ($status, $stdout, $stderr);
     {
         my $HOLD_PATH = $ENV{PATH};
         $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
-        ($status,my $stdout,my $stderr) = runThis(undef,undef,$gpp,@bslargs);
+        ($status,$stdout,$stderr) = runThis(undef,undef,$gpp,@bslargs);
         pISC("## USED PATH ($ENV{PATH})");
         if (defined($HOLD_PATH)) {
             $ENV{PATH} = $HOLD_PATH;
@@ -1232,16 +1243,16 @@ sub buildMFZ
     pISC("## Create MFZ package");
     my $libfile = "$ULAM_WORK_DIR/bin/libcue.so";
     my $output = $mfzFiles[0];
-    my @mfzmakeargs = ("make", $mfzhandle, $output, $libfile, @files);
-    my $status = 0;
+    my @mfzmakeargs = ("make", $mfzhandle, $output, keys %ulamFileTargets, @normalPackableFiles, $libfile);
 
+    my ($status, $stdout, $stderr);
     print " Create $output package: ";
     my $mfz = getTool($mfzTool);
 
     {
         my $HOLD_PATH = $ENV{PATH};
         $ENV{PATH} = '/bin:/usr/bin'; # collect2 wants to run ld and etc
-        ($status,my $stdout,my $stderr) = runThis(undef,undef,$mfz,@mfzmakeargs);
+        ($status,$stdout,$stderr) = runThis(undef,undef,$mfz,@mfzmakeargs);
         pISC("## USED PATH ($ENV{PATH})");
         if (defined($HOLD_PATH)) {
             $ENV{PATH} = $HOLD_PATH;
@@ -1474,6 +1485,8 @@ sub runSingleGccCompilation
         gppCompile($cfile,$target,
                    getDebugArgs(),
                    "EXTERNAL_DEFINES", $extraDefines,
+                   "EXTERNAL_INCLUDES",
+                      " -I $ULAM_SHARE_DIR/tcc/stdlib -I $MFM_ROOT_DIR/src/sim/include -I $MFM_ROOT_DIR/src/elements/include",
                    "ULAM_CPPFLAGS", "-Wno-unused-variable",
                    "ULAM_SRC_DIR", "$dir/src",
                    "ULAM_CPP_FILE", $cfile,
@@ -1494,9 +1507,9 @@ sub runGccCompilations
     my $rollupFile = "$ROLLUP_FILE_STEM.cpp";
     for my $cfile ($rollupFile, @cppFilesFromUlam, @testFilesFromUlam) {
         pISC(" # Compiling '$cfile'");
-        my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc/stdlib";
-        if ($cfile eq $rollupFile) {
-             $extraDefines .= " -I $MFM_ROOT_DIR/src/sim/include -I $MFM_ROOT_DIR/src/elements/include";
+        my $extraDefines = "-Wno-error=unused-variable";
+        if ($cfile =~ /$rollupFile$/) {
+             $extraDefines .= "";
         }
         my $fileStatus = runSingleGccCompilation("ulam_cppcompile", $cfile, $extraDefines);
         $status += $fileStatus;
@@ -1511,7 +1524,7 @@ sub makeProgram
     pISC("## Create program $progname");
 
     my $cfile = "$progname.cpp";
-    my $extraDefines = "-Wno-error=unused-variable -I $ULAM_SHARE_DIR/tcc/stdlib";
+    my $extraDefines = "-Wno-error=unused-variable";
     my $gppStatus = runSingleGccCompilation("ulam_program", $cfile, $extraDefines);
     pISC("## COMPILED $cfile NOW EHAT");
     return ($gppStatus,$progname);
@@ -1623,7 +1636,7 @@ sub modifyEnv {
         print STDOUT " $key=$d$val$d" if showEnvironment();
     }
     print STDOUT "\n" if showEnvironment();
-#    pISC("## Modified environment [TO]: ".stringHashRef(\%OLDENV));
+#    pISC("## Modified environment [TO]: ".stringHashRef(\%ENV));
     return \%OLDENV;
 }
 
