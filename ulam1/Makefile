@@ -73,11 +73,13 @@ export ULAM_BUILD_WHO:=$(shell whoami)
 export ULAM_BUILD_WHERE:=$(shell hostname)
 
 # Get the repo version (and save it for possible non-git-repo builds downstream)
-ifeq ($(shell cd $(ROOT_DIR) && git describe 2>&1 >/dev/null && echo $$?),"0")
-  ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe || echo "unknown-rev")
+HAVE_GIT_DESCRIBE:=$(shell cd $(ROOT_DIR) && git describe 2>&1 >/dev/null && echo $$?)
+ifeq ($(HAVE_GIT_DESCRIBE),0)
+  ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe)
   $(shell echo "ULAM_TREE_VERSION:=$(ULAM_TREE_VERSION)" > TREEVERSION.mk)
 else
-    include TREEVERSION.mk
+  ULAM_TREE_VERSION:=unknown-rev
+  -include TREEVERSION.mk
 endif
 export ULAM_TREE_VERSION
 
