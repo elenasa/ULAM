@@ -112,7 +112,7 @@ ${info  =>Consider creating '$(ROOT_DIR)/Makefile.local.mk', containing somethin
 ${info  =>  MFM_ROOT_DIR := /path/to/source/dir/of/MFMv2}
 ${info  =>to avoid this message}
 else
-${info Local configuration: MFM_ROOT_DIR=$(MFM_ROOT_DIR)}
+#${info Local configuration: MFM_ROOT_DIR=$(MFM_ROOT_DIR)}
 ## This wants to be rethought and refactored!
 COMPONENTNAME:=ulamic
 MFM_TARGET:=linux
@@ -121,7 +121,6 @@ include $(BASEDIR)/config/Makecommon.mk
 CFLAGS += -I $(BASEDIR)/src/core/include
 CFLAGS += -D ULAM_SHARE_DIR=$(ULAM_SHARE_DIR)
 LIBS := -L $(BASEDIR)/build/core $(LIBS)
-${info (top-level) LIBS='$(LIBS)'}
 endif
 
 ####
