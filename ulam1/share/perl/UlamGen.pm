@@ -298,7 +298,7 @@ sub normalizeDecimal {
     if ($numstr =~ s/^\s*[-+]//) {
         $sign = $1 if $1 eq "-";
     }
-    $numstr =~ s/^0*//;
+    $numstr =~ s/^0*(\d+)$/$1/;
     return "$sign$numstr";
 }
 
