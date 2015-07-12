@@ -18,3 +18,5 @@ install:	FORCE
 include VERSION.mk
 version:	FORCE
 	@echo $(ULAM_VERSION_NUMBER)
+
+.PHONY:	FORCE
