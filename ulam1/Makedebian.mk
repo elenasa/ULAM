@@ -19,7 +19,7 @@ include VERSION.mk
 version:	FORCE
 	@echo $(ULAM_VERSION_NUMBER)
 
-TAR_EXCLUDES+=--exclude=tools --exclude=*~ --exclude=.git --exclude=doc/internal --exclude=spikes --exclude-backups
+TAR_EXCLUDES+=--exclude=tools --exclude=*~ --exclude=.git --exclude=doc/internal --exclude=spike --exclude-backups
 tar:	FORCE
 	make realclean
 	PWD=`pwd`;BASE=`basename $$PWD`;cd ..;tar cvzf ulam-$(ULAM_VERSION_NUMBER).tgz $(TAR_EXCLUDES) $$BASE
