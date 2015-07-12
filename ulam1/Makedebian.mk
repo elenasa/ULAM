@@ -22,6 +22,6 @@ version:	FORCE
 TAR_EXCLUDES+=--exclude=tools --exclude=*~ --exclude=.git --exclude=doc/internal --exclude=spike --exclude-backups
 tar:	FORCE
 	make realclean
-	PWD=`pwd`;BASE=`basename $$PWD`;cd ..;tar cvzf ulam-$(ULAM_VERSION_NUMBER).tgz $(TAR_EXCLUDES) $$BASE
+	PWD=`pwd`;BASE=`basename $$PWD`;cd ..;tar cvzf ulam-$(ULAM_VERSION_NUMBER).tgz $(TAR_EXCLUDES) *
 
 .PHONY:	FORCE
