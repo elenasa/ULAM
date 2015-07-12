@@ -71,7 +71,15 @@ export ULAM_BUILD_TIME := $(shell date -u +%H%M%S)
 export ULAM_BUILD_TIMESTAMP := $(ULAM_BUILD_DATE)$(ULAM_BUILD_TIME)
 export ULAM_BUILD_WHO:=$(shell whoami)
 export ULAM_BUILD_WHERE:=$(shell hostname)
-export ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe || echo "unknown-rev")
+
+# Get the repo version (and save it for possible non-git-repo builds downstream)
+ifeq ($(shell cd $(ROOT_DIR) && git describe 2>&1 >/dev/null && echo $$?),"0")
+  ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe || echo "unknown-rev")
+  $(shell echo "ULAM_TREE_VERSION:=$(ULAM_TREE_VERSION)" > TREEVERSION.mk)
+else
+    include TREEVERSION.mk
+endif
+export ULAM_TREE_VERSION
 
 DEFINES+=-DBUILD_DATE="0x$(ULAM_BUILD_DATE)" -DBUILD_TIME="0x$(ULAM_BUILD_TIME)" -DBUILD_DATE_TIME="$(ULAM_BUILD_TIMESTAMP)"
 DEFINES+=-DULAM_VERSION_MAJOR=$(ULAM_VERSION_MAJOR) -DULAM_VERSION_MINOR=$(ULAM_VERSION_MINOR) -DULAM_VERSION_REV=$(ULAM_VERSION_REV)
