@@ -21,12 +21,12 @@ export ROOT_DIR
 endif
 
 # Get the repo version (and save it for possible non-git-repo builds downstream)
-HAVE_GIT_DESCRIBE:=$(shell cd $(ROOT_DIR) && git describe 2>&1 >/dev/null && echo $$?)
-ifeq ($(HAVE_GIT_DESCRIBE),0)
+HAVE_GIT_DESCRIBE_ULAM:=$(shell cd $(ROOT_DIR) && git describe 2>&1 >/dev/null && echo $$?)
+ifeq ($(HAVE_GIT_DESCRIBE_ULAM),0)
   ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe)
-  $(shell echo "ULAM_TREE_VERSION:=$(ULAM_TREE_VERSION)" > TREEVERSION.mk)
+  $(shell echo "ULAM_TREE_VERSION:=$(ULAM_TREE_VERSION)" > ULAM_TREEVERSION.mk)
 else
   ULAM_TREE_VERSION:=unknown-rev
-  -include TREEVERSION.mk
+  -include ULAM_TREEVERSION.mk
 endif
 export ULAM_TREE_VERSION
