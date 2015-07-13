@@ -15,7 +15,7 @@ DEB_MFM_SHAREDIR := $(DESTDIR)/usr/share/mfm/
 # We're recursing rather than depending on 'all' so that the
 # $(PLATFORMS) mechanism doesn't need to know about install.
 install:	FORCE
-	COMMANDS=1 SHARED_DIR=$(DEB_MFM_SHAREDIR) make -C ../../MFM -k all
+	COMMANDS=1 SHARED_DIR=$(DEB_MFM_SHAREDIR) make -C ../MFM -k all
 	COMMANDS=1 ULAM_SHARE_DIR=$(DEB_ULAM_SHAREDIR) make -k all
 	mkdir -p $(DEB_ULAM_BINDIR)
 	cp -a $(DEB_PROGRAMS_PATHS_TO_INSTALL) $(DEB_ULAM_BINDIR)
