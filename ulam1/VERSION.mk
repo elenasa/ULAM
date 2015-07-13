@@ -14,6 +14,12 @@ ULAM_VERSION_REV:=0
 
 ULAM_VERSION_NUMBER:=$(ULAM_VERSION_MAJOR).$(ULAM_VERSION_MINOR).$(ULAM_VERSION_REV)
 
+# Get root dir now if we don't have it yet
+ifeq ($(ROOT_DIR),)
+ROOT_DIR := $(shell pwd)
+export ROOT_DIR
+endif
+
 # Get the repo version (and save it for possible non-git-repo builds downstream)
 HAVE_GIT_DESCRIBE:=$(shell cd $(ROOT_DIR) && git describe 2>&1 >/dev/null && echo $$?)
 ifeq ($(HAVE_GIT_DESCRIBE),0)
