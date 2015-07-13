@@ -36,8 +36,9 @@ install:	FORCE
 	cp -r share/* $(DEB_ULAM_SHAREDIR)
 	cp -a $(DEB_MFM_PROGRAMS_PATHS_TO_INSTALL) $(DEB_ULAM_BINDIR)
 	mkdir -p $(DEB_MFM_SHAREDIR)
+	cp -r ../MFM/res $(DEB_MFM_SHAREDIR)
 	mkdir -p $(DEB_ULAM_MFM_DIR)
-	cd .. && cp --parents $(DEB_ULAM_MFM_FILES) $(DEB_ULAM_MFM_DIR)
+	cd .. && cp --parents -a $(DEB_ULAM_MFM_FILES) $(DEB_ULAM_MFM_DIR)
 	# MAN AND DOC?
 
 include VERSION.mk
