@@ -179,8 +179,7 @@ namespace MFM {
   //no atoms, elements as operand
   bool NodeUnaryOp::checkForPrimitiveType(UTI uti)
   {
-    ULAMCLASSTYPE uclass = m_state.getUlamTypeByIndex(uti)->getUlamClass();
-    if(uclass == UC_ELEMENT || uti == UAtom)
+    if(!m_state.getUlamTypeByIndex(uti)->isPrimitiveType())
       {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";
@@ -233,7 +232,7 @@ namespace MFM {
 
   UTI NodeUnaryOp::constantFold()
   {
-    u64 val;
+    u64 val = U64_MAX;
     UTI nuti = getNodeType();
 
     if(nuti == Nav) return Nav; //nothing to do yet

@@ -42,21 +42,29 @@ namespace MFM {
     // types are either unsigned or signed (unary as-is)
     // to be converted to Bits
     ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
 
     s32 lbs = lut->getBitSize();
     s32 rbs = rut->getBitSize();
+    s32 lwordsize = (s32) lut->getTotalWordSize();
+    s32 rwordsize = (s32) rut->getTotalWordSize();
 
     if(ltypEnum == Class)
       {
 	if(lut->isNumericType()) //i.e. a quark
-	  lbs = MAXBITSPERINT; //32
+	  lwordsize = lbs = MAXBITSPERINT; //32
       }
 
-    s32 wordsize = (s32) lut->getTotalWordSize();
-    assert(wordsize == (s32) rut->getTotalWordSize());
+    if(rtypEnum == Class)
+      {
+	if(rut->isNumericType()) //i.e. a quark
+	  rwordsize = rbs = MAXBITSPERINT; //32
+      }
+
+    assert(lwordsize == rwordsize);
 
     s32 maxbs = lbs + (1 << rbs); // lbs + 2^rbs
-    return (maxbs >= wordsize ? wordsize : maxbs);
+    return (maxbs >= lwordsize ? lwordsize : maxbs);
   } //resultBitsize
 
   UlamValue NodeBinaryOpShiftLeft::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)

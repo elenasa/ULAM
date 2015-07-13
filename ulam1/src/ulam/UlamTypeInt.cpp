@@ -43,6 +43,11 @@ namespace MFM {
     return true;
   }
 
+  bool UlamTypeInt::isPrimitiveType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeInt::getUlamTypeVDAsStringForC()
   {
     return "VD::S32";

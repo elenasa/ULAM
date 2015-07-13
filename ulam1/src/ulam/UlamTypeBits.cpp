@@ -38,6 +38,11 @@ namespace MFM {
      return Bits;
    }
 
+  bool UlamTypeBits::isPrimitiveType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeBits::getUlamTypeVDAsStringForC()
   {
     return "VD::BITS";

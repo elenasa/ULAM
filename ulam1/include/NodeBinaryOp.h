@@ -98,17 +98,13 @@ namespace MFM{
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len) = 0;
 
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
+    virtual s32 resultBitsize(UTI lt, UTI rt); //op specific
     //common helpers for calcNodeType:
     bool checkSafeToCastTo(UTI newType);
     bool checkForPrimitiveTypes(UTI lt, UTI rt);
     bool checkNotVoidTypes(UTI lt, UTI rt);
     bool checkForNumericTypes(UTI lt, UTI rt);
     bool checkScalarTypesOnly(UTI lt, UTI rt);
-    virtual s32 resultBitsize(UTI lt, UTI rt); //op specific
-
-    bool fixMixedSignsOfVariableWithConstantToVariableType(UTI lt, UTI rt, UTI& newType); //helper
-    bool fixMixedSignsOfVariableWithConstantToVariableType(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
-
   };
 
 }

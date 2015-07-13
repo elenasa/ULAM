@@ -37,6 +37,11 @@ namespace MFM {
      return Bool;
    }
 
+  bool UlamTypeBool::isPrimitiveType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeBool::getUlamTypeVDAsStringForC()
   {
     return "VD::BOOL";
