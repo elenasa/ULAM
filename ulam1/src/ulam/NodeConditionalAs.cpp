@@ -112,7 +112,7 @@ namespace MFM {
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
 
-    bool asit;
+    bool asit = false;
     UTI ruti = getRightType();
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(rclasstype == UC_QUARK)
