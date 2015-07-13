@@ -189,10 +189,10 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
-    s32 valbitsize = m_state.getBitSize(typidx);
-
     bool brtn = true;
-    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    s32 valbitsize = vut->getBitSize();
+    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case Bool:
@@ -228,48 +228,32 @@ namespace MFM {
 
   void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix)
   {
-    bool dataAsBool = false;
     if(!isComplete())
-      {
-	sprintf(valstr,"%s", "unknown");
-      }
+      sprintf(valstr,"%s", "unknown");
     else
       {
-	s32 bitsize = getBitSize();
-	s32 count1s = PopCount(data);
+	bool dataAsBool = _Bool32ToCbool(data, getBitSize());
 
-	// == when even number bits is ignored (warning at def)
-	if(count1s > (s32) (bitsize - count1s))
-	  dataAsBool = true;
+	if(prefix == 'z')
+	  sprintf(valstr,"%s", dataAsBool ? "true" : "false");
+	else
+	  sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
       }
-
-    if(prefix == 'z')
-      sprintf(valstr,"%s", dataAsBool ? "true" : "false");
-    else
-      sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   } //getDataAsString
 
   void UlamTypeBool::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
-    bool dataAsBool = false;
     if(!isComplete())
-      {
-	sprintf(valstr,"%s", "unknown");
-      }
+      sprintf(valstr,"%s", "unknown");
     else
       {
-	s32 bitsize = getBitSize();
-	s32 count1s = PopCount(data);
+	bool dataAsBool = _Bool64ToCbool(data, getBitSize());
 
-	// == when even number bits is ignored (warning at def)
-	if(count1s > (s64) (bitsize - count1s))
-	  dataAsBool = true;
+	if(prefix == 'z')
+	  sprintf(valstr,"%s", dataAsBool ? "true" : "false");
+	else
+	  sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
       }
-
-    if(prefix == 'z')
-      sprintf(valstr,"%s", dataAsBool ? "true" : "false");
-    else
-      sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   } //getDataLongAsString
 
   s32 UlamTypeBool::getDataAsCs32(const u32 data)

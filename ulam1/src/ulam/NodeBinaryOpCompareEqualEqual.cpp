@@ -48,7 +48,7 @@ namespace MFM {
       {
 	if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
 	  {
-	    s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	    s32 newbs = NodeBinaryOp::resultBitsize(lt, rt);
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
 	    newType = m_state.makeUlamType(newkey, Bits);
 

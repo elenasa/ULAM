@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //Bits exception for fits test (eventhough doesn't allowminmax).
-      return std::string("Exit status: 0\nUe_A { constant Bits(3) cPRINT_NAME = 2;  constant Bits(3) cPRINT_VALUE = 1;  constant Bits(3) cPRINT_ALL = 3;  Int(32) test() {  0 return } }\n");
+      return std::string("Exit status: 0\nUe_A { constant Bits(3) cPRINT_NAME = 2;  constant Bits(3) cPRINT_VALUE = 1;  constant Bits(3) cPRINT_ALL = 3;  Int(32) test() {  0 cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

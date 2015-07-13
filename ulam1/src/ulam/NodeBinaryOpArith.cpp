@@ -73,7 +73,7 @@ namespace MFM {
     // Class (i.e. quark) + anything goes to Int(32)
     if(checkScalarTypesOnly(lt, rt))
       {
-	s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	s32 newbs = resultBitsize(lt, rt); //op-specific
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
 
@@ -94,7 +94,7 @@ namespace MFM {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
 	    newType = m_state.makeUlamType(newkey, Int);
 
-	    NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
+	    //NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
 	  }
 
 	if(!NodeBinaryOp::checkSafeToCastTo(newType))

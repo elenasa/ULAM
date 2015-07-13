@@ -4,6 +4,7 @@
 namespace MFM {
 
   NodeBinaryOpArithRemainder::NodeBinaryOpArithRemainder(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
+
   NodeBinaryOpArithRemainder::NodeBinaryOpArithRemainder(const NodeBinaryOpArithRemainder& ref) : NodeBinaryOpArith(ref) {}
 
   NodeBinaryOpArithRemainder::~NodeBinaryOpArithRemainder(){}
@@ -18,12 +19,48 @@ namespace MFM {
     return "%";
   }
 
-
   const std::string NodeBinaryOpArithRemainder::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  s32 NodeBinaryOpArithRemainder::resultBitsize(UTI lt, UTI rt)
+  {
+    UlamType * lut = m_state.getUlamTypeByIndex(lt);
+    UlamType * rut = m_state.getUlamTypeByIndex(rt);
+
+    //both sides complete to be here!!
+    assert(lut->isComplete() && rut->isComplete());
+
+    // types are either unsigned or signed (unary as unsigned)
+    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
+
+    s32 lbs = lut->getBitSize();
+    s32 rbs = rut->getBitSize();
+
+    if(ltypEnum == Class)
+      {
+	if(lut->isNumericType()) //i.e. a quark
+	  lbs = MAXBITSPERINT; //32
+      }
+    else if(ltypEnum == Unary)
+      lbs = (s32) _getLogBase2(lbs) + 1; //fits into unsigned
+    else
+      assert(ltypEnum == Unsigned || ltypEnum == Int);
+
+    if(rtypEnum == Class)
+      {
+	if(rut->isNumericType()) //i.e. a quark
+	  rbs = MAXBITSPERINT; //32
+      }
+    else if(rtypEnum == Unary)
+      rbs = (s32) _getLogBase2(rbs) + 1; //fits into unsigned
+    else
+      assert(rtypEnum == Unsigned || rtypEnum == Int);
+
+    return (lbs > rbs ? lbs : rbs);
+  } //resultBitsize
 
   const std::string NodeBinaryOpArithRemainder::methodNameForCodeGen()
   {
@@ -31,7 +68,6 @@ namespace MFM {
     methodname << "_BinOpMod" << NodeBinaryOpArith::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UlamValue NodeBinaryOpArithRemainder::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {

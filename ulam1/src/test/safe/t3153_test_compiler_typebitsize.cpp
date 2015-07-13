@@ -8,7 +8,7 @@ namespace MFM {
     {
       //casting to Bits a,b are false now.
       //note: m_i[1] = 3 now (correctly), not 7 as before.
-      return std::string("Exit status: 0\nUe_C { Bool(1) a(false);  Int(3) m_i[4](2,3,0,0);  Int(6) m_u(15);  Bool(3) b(false);  Int(32) test() {  m_i 0 [] 2 cast = m_u 15 cast = m_i 1 [] m_u cast = b m_i 0 [] 3 == cast = b b cast m_i 0 [] cast & 0 cast != cast = a b cast = 0 return } }\n");
+      return std::string("Exit status: 0\nUe_C { Bool(1) a(false);  Int(3) m_i[4](2,3,0,0);  Int(6) m_u(15);  Bool(3) b(false);  Int(32) test() {  m_i 0 [] 2 = m_u 15 cast = m_i 1 [] m_u cast = b m_i 0 [] 3 == cast = b b cast m_i 0 [] cast & 0 cast != cast = a b cast = 0 cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

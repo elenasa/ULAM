@@ -41,7 +41,7 @@ namespace MFM {
     if(!NodeUnaryOp::checkForNumericType(uti))
       return Nav; //outputs error msg
 
-    s32 newbs = NodeUnaryOp::maxBitsize(uti);
+    s32 newbs = NodeUnaryOp::resultBitsize(uti);
     UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
     UTI newType = m_state.makeUlamType(newkey, Int);
 

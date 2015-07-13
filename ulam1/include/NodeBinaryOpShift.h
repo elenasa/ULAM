@@ -59,6 +59,7 @@ namespace MFM{
 
     virtual UTI calcNodeType(UTI lt, UTI rt);
 
+    virtual s32 resultBitsize(UTI lt, UTI rt) = 0;
   };
 
 }

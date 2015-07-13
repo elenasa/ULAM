@@ -12,7 +12,7 @@ namespace MFM {
       //Bool(3) Arg: 0x7 (true)
       //Bool(3) Arg: 0x7 (true)
 
-      return std::string("Exit status: 0\nUe_Foo { typedef Bool(1) BA[6];  System s();  Bool(1) m_ba[6](false,true,false,true,false,true);  Int(32) test() {  Foo f;  f m_ba 0 [] . true = f m_ba . f ( 1 )check . = m_ba f m_ba . = s ( f m_ba 0 [] . cast )print . s ( m_ba 0 [] cast )print . s ( f m_ba 5 [] . cast )print . s ( m_ba 5 [] cast )print . 0 return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { typedef Bool(1) BA[6];  System s();  Bool(1) m_ba[6](false,true,false,true,false,true);  Int(32) test() {  Foo f;  f m_ba 0 [] . true = f m_ba . f ( 1 cast )check . = m_ba f m_ba . = s ( f m_ba 0 [] . cast )print . s ( m_ba 0 [] cast )print . s ( f m_ba 5 [] . cast )print . s ( m_ba 5 [] cast )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

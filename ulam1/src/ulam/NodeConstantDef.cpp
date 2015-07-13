@@ -208,6 +208,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    it = suti; //default it==Int for temp class args, maynot match after seeing the template
+	    if(m_nodeExpr) m_nodeExpr->setNodeType(it); //sync the terminal's type too
 	  }
 
 	if(esuti == Void)
@@ -421,7 +422,7 @@ namespace MFM {
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
     s32 nbitsize = nut->getBitSize();
-    u32 srcbitsize = nbitsize; //was MAXBITSPERINT WRONG!
+    u32 srcbitsize = m_nodeExpr ? m_state.getBitSize(m_nodeExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
 
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
@@ -455,8 +456,7 @@ namespace MFM {
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(getNodeType());
     s32 nbitsize = nut->getBitSize();
-    u32 srcbitsize = nbitsize; //was MAXBITSPERLONG WRONG!
-
+    u32 srcbitsize = m_nodeExpr ? m_state.getBitSize(m_nodeExpr->getNodeType()) : nbitsize; //was MAXBITSPERINT WRONG!
     ULAMTYPE etype = nut->getUlamTypeEnum();
     switch(etype)
       {

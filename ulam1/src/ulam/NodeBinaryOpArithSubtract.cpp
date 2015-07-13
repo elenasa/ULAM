@@ -4,6 +4,7 @@
 namespace MFM {
 
   NodeBinaryOpArithSubtract::NodeBinaryOpArithSubtract(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
+
   NodeBinaryOpArithSubtract::NodeBinaryOpArithSubtract(const NodeBinaryOpArithSubtract& ref) : NodeBinaryOpArith(ref) {}
 
   NodeBinaryOpArithSubtract::~NodeBinaryOpArithSubtract(){}
@@ -20,18 +21,68 @@ namespace MFM {
     fp->write(myname);
   }
 
-
   const char * NodeBinaryOpArithSubtract::getName()
   {
     return "-";
   }
-
 
   const std::string NodeBinaryOpArithSubtract::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  s32 NodeBinaryOpArithSubtract::resultBitsize(UTI lt, UTI rt)
+  {
+    UlamType * lut = m_state.getUlamTypeByIndex(lt);
+    UlamType * rut = m_state.getUlamTypeByIndex(rt);
+
+    //both sides complete to be here!!
+    assert(lut->isComplete() && rut->isComplete());
+
+    // types are either unsigned or signed (unary as unsigned)
+    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
+
+    s32 lbs = lut->getBitSize();
+    s32 rbs = rut->getBitSize();
+
+    if(ltypEnum == Class)
+      {
+	if(lut->isNumericType()) //i.e. a quark
+	  lbs = MAXBITSPERINT; //32
+      }
+    else if(ltypEnum == Unary)
+      {
+	lbs = (s32) _getLogBase2(lbs) + 1; //fits into unsigned
+	ltypEnum = Unsigned; //for mix test
+      }
+    else
+      assert(ltypEnum == Unsigned || ltypEnum == Int);
+
+    if(rtypEnum == Class)
+      {
+	if(rut->isNumericType()) //i.e. a quark
+	  rbs = MAXBITSPERINT; //32
+      }
+    else if(rtypEnum == Unary)
+      {
+	rbs = (s32) _getLogBase2(rbs) + 1; //fits into unsigned
+	rtypEnum = Unsigned;
+      }
+    else
+      assert(rtypEnum == Unsigned || rtypEnum == Int);
+
+    s32 wordsize = (s32) lut->getTotalWordSize();
+    assert(wordsize == (s32) rut->getTotalWordSize());
+
+    s32 maxbs = (lbs > rbs ? lbs : rbs);
+    if(ltypEnum == rtypEnum)
+      maxbs += 1;
+    else
+      maxbs += 2; //compensate for mixed signed and unsigned
+
+    return (maxbs >= wordsize ? wordsize : maxbs);
+  } //resultBitsize
 
   const std::string NodeBinaryOpArithSubtract::methodNameForCodeGen()
   {
@@ -39,7 +90,6 @@ namespace MFM {
     methodname << "_BinOpSubtract" << NodeBinaryOpArith::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UlamValue NodeBinaryOpArithSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {

@@ -160,7 +160,63 @@ namespace MFM {
 
   UTI NodeTerminal::checkAndLabelType()
   {
-    return getNodeType(); //done by constructor
+    UTI nuti = getNodeType(); //done by constructor using default size
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    assert(nut->isComplete());
+
+    s32 bs = nut->getBitSize();
+    //update bitsize to fit the constant value
+    if(bs == m_state.getDefaultBitSize(nuti))
+      {
+	s32 newbs = bs;
+	u32 wordsize = nut->getTotalWordSize();
+	ULAMTYPE typEnum = nut->getUlamTypeEnum();
+	switch(typEnum)
+	  {
+	  case Int:
+	    {
+	      if(wordsize <= MAXBITSPERINT)
+		{
+		  s32 sval = _Int32ToCs32((u32) m_constant.uval, bs);
+		  newbs = (s32) (_getLogBase2(UABS32(sval)) + 1 + 1); //fits into signed
+		}
+	      else
+		{
+		  s64 sval = _Int64ToCs64(m_constant.uval, bs);
+		  newbs = (s32) (_getLogBase2Long(UABS64(sval)) + 1 + 1); //fits into signed
+		}
+	    }
+	    break;
+	  case Bits:
+	  case Unsigned:
+	    {
+	      if(wordsize <= MAXBITSPERINT)
+		newbs = (s32) _getLogBase2((u32) m_constant.uval) + 1; //fits into unsigned
+	      else
+		newbs = (s32) _getLogBase2Long(m_constant.uval) + 1; //fits into unsigned
+	    }
+	    break;
+	  case Unary:
+	    {
+	      u32 wordsize = nut->getTotalWordSize();
+	      newbs = (s32) (m_constant.uval > wordsize ? wordsize : m_constant.uval);
+	    }
+	    break;
+	  case Bool:
+	    newbs = BITS_PER_BOOL;
+	    break;
+	  default:
+	    assert(0);
+	  };
+
+	//use UTI with same base type and new bitsize:
+	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
+	UlamKeyTypeSignature newkey(enumStrIdx, newbs);
+	UTI newType = m_state.makeUlamType(newkey, typEnum);
+	setNodeType(newType);
+      }
+    return getNodeType();
   } //checkAndLabelType
 
   EvalStatus NodeTerminal::eval()

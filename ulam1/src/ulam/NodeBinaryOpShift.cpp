@@ -90,7 +90,7 @@ namespace MFM {
       {
 	bool bok = true;
 
-	s32 lbs = NodeBinaryOp::maxBitsize(lt,lt); //in case of quark
+	s32 lbs = resultBitsize(lt, rt);
 	//auto cast to Bits, a downhill cast. use LHS bitsize.
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
 	newType = m_state.makeUlamType(newkey, Bits);

@@ -282,26 +282,54 @@ namespace MFM {
     return rtnOK;
   } //checkScalarTypesOnly
 
-  s32 NodeBinaryOp::maxBitsize(UTI lt, UTI rt)
+  s32 NodeBinaryOp::resultBitsize(UTI lt, UTI rt)
   {
-    s32 lbs = m_state.getBitSize(lt);
-    s32 rbs = m_state.getBitSize(rt);
+    UlamType * lut = m_state.getUlamTypeByIndex(lt);
+    UlamType * rut = m_state.getUlamTypeByIndex(rt);
 
-    ULAMCLASSTYPE lct = m_state.getUlamTypeByIndex(lt)->getUlamClass();
-    ULAMCLASSTYPE rct = m_state.getUlamTypeByIndex(rt)->getUlamClass();
+    //both sides complete to be here!!
+    assert(lut->isComplete() && rut->isComplete());
 
-    if(lct == UC_QUARK)
-      lbs = MAXBITSPERINT; //32
+    // types are either unsigned or signed (unary as unsigned)
+    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
 
-    if(rct == UC_QUARK)
-      rbs = MAXBITSPERINT; //32
+    s32 lbs = lut->getBitSize();
+    s32 rbs = rut->getBitSize();
 
-    bool lconst = m_nodeLeft->isAConstant();
-    bool rconst = m_nodeRight->isAConstant();
+    if(ltypEnum == Class)
+      {
+	if(lut->isNumericType()) //i.e. a quark
+	  lbs = MAXBITSPERINT; //32
+      }
+    else if(rtypEnum == Unary)
+      {
+	lbs = (s32) _getLogBase2(lbs) + 1; //fits into unsigned
+	ltypEnum = Unsigned; //for mix test
+      }
+    //else could be Bits
 
-    // if both or neither are const, use larger bitsize; else use nonconst's bitsize.
-    return ( lconst == rconst ? (lbs > rbs ? lbs : rbs) : (!lconst ? lbs : rbs));
-  } //maxBitsize
+    if(rtypEnum == Class)
+      {
+	if(rut->isNumericType()) //i.e. a quark
+	  rbs = MAXBITSPERINT; //32
+      }
+    else if(rtypEnum == Unary)
+      {
+	rbs = (s32) _getLogBase2(rbs) + 1; //fits into unsigned
+	rtypEnum = Unsigned; //for mix test
+      }
+    //else could be Bits
+
+    s32 wordsize = (s32) lut->getTotalWordSize();
+    assert(wordsize == (s32) rut->getTotalWordSize());
+
+    s32 maxbs = (lbs > rbs ? lbs : rbs);
+    if(rtypEnum != ltypEnum && (ltypEnum == Int || rtypEnum == Int))
+      maxbs += 1; //compensate for mixed signed and unsigned
+
+    return (maxbs >= wordsize ? wordsize : maxbs);
+  } //resultBitsize
 
   bool NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(UTI lt, UTI rt, UTI& newType)
   {

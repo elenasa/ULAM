@@ -17,6 +17,8 @@ namespace MFM {
     {
       // need explicit casting for bitwise op. Note: implicit cast ok returning Unary(3) as Int.
       // a is 2 bits; b is 1 bit; a & b = 1 bit as Unary.3 (c); notice as Int.3 (g), 2 & 1 = 0
+
+      //./A.ulam:9:20: ERROR: Use explicit cast to convert Unary(3) and Unary(3) to Bits(2) for binary operator&.
       bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nUnary(3) a, b, c;\n Unsigned(2) e, f, g;\n use test;\n  a = e = 2;\n b = f = 1;\n c = (Unary(3)) (a & b);\ns.print(c);\ng = (Unsigned(2)) (e & f);\ns.print((Unsigned) g);\n return c;\n }\n }\n");
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 

@@ -23,13 +23,13 @@ namespace MFM {
       */
       // minof, maxof related to lhs type ; sizeof always unsigned
       //constant fold minus
-      return std::string("Exit status: 0\nUe_Fu { System s();  Int(32) test() {  s ( 4u )print . ; s ( -8 )print . s ( 7 )print . s ( 32u )print . s ( 0u )print . s ( 4294967295u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 2u )print . 0 return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Fu { System s();  Int(32) test() {  s ( 4u )print . ; s ( -8 )print . s ( 7 )print . s ( 32u cast )print . s ( 0u cast )print . s ( 4294967295u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 3u )print . s ( 0u )print . s ( 7u )print . s ( 2u )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
       // similar to t3287 except using types instead of variables.
-      bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt test(){\n s.print(Int(4).sizeof);\n;\n s.print(Int(4).minof);\n s.print(Int(4).maxof);\n s.print(Unsigned.sizeof);\n s.print(Unsigned.minof);\n s.print(Unsigned.maxof);\n s.print(Unary(3).sizeof);\n s.print(Unary(3).minof);\n s.print(Unary(3).maxof);\n s.print(Bool(3).sizeof);\n s.print(Bool(3).minof);\n s.print(Bool(3).maxof);\n s.print(Bits(2).sizeof);\n/* i = t.minof;\n */ return 0;\n}\n}\n");
+      bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt test(){\n s.print(Int(4).sizeof);\n;\n s.print(Int(4).minof);\n s.print(Int(4).maxof);\n s.print((Unsigned) Unsigned.sizeof);\n s.print((Unsigned) Unsigned.minof);\n s.print(Unsigned.maxof);\n s.print(Unary(3).sizeof);\n s.print(Unary(3).minof);\n s.print(Unary(3).maxof);\n s.print(Bool(3).sizeof);\n s.print(Bool(3).minof);\n s.print(Bool(3).maxof);\n s.print(Bits(2).sizeof);\n/* i = t.minof;\n */ return 0;\n}\n}\n");
 
       // uncovered problem with type of the values for maxof, minof, sizeof; not related to lhs type.
       //bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nInt test(){\ns.print(Bool(3).maxof);\n return 0;\n}\n}\n");

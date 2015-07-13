@@ -104,7 +104,7 @@ namespace MFM{
     bool checkNotVoidTypes(UTI lt, UTI rt);
     bool checkForNumericTypes(UTI lt, UTI rt);
     bool checkScalarTypesOnly(UTI lt, UTI rt);
-    s32 maxBitsize(UTI lt, UTI rt);
+    virtual s32 resultBitsize(UTI lt, UTI rt); //op specific
 
     bool fixMixedSignsOfVariableWithConstantToVariableType(UTI lt, UTI rt, UTI& newType); //helper
     bool fixMixedSignsOfVariableWithConstantToVariableType(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);

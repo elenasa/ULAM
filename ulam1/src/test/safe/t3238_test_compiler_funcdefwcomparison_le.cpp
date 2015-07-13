@@ -15,7 +15,7 @@ namespace MFM {
 	 Int Arg: 25
       */
 
-      return std::string("Exit status: 25\nUe_A { Bool(7) b(false);  Int(32) d(25);  System s();  Int(32) test() {  d ( 4 5 )times = s ( d )print . d return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 25\nUe_A { Bool(7) b(false);  Int(32) d(25);  System s();  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . d return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

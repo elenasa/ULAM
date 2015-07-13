@@ -49,7 +49,7 @@ namespace MFM {
     UTI newType = Nav;  //init
     if(NodeBinaryOp::checkScalarTypesOnly(lt, rt))
       {
-	s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	s32 newbs = resultBitsize(lt, rt);
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), newbs);
 	newType = m_state.makeUlamType(newkey, Bits);
 
@@ -59,6 +59,36 @@ namespace MFM {
       } //both scalars
     return newType;
   } //calcNodeType
+
+  s32 NodeBinaryOpBitwise::resultBitsize(UTI lt, UTI rt)
+  {
+    UlamType * lut = m_state.getUlamTypeByIndex(lt);
+    UlamType * rut = m_state.getUlamTypeByIndex(rt);
+
+    //both sides complete to be here!!
+    assert(lut->isComplete() && rut->isComplete());
+
+    // types are either unsigned or signed (unary as-is)
+    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
+
+    s32 lbs = lut->getBitSize();
+    s32 rbs = rut->getBitSize();
+
+    if(ltypEnum == Class)
+      {
+	if(lut->isNumericType()) //i.e. a quark
+	  lbs = MAXBITSPERINT; //32
+      }
+
+    if(rtypEnum == Class)
+      {
+	if(rut->isNumericType()) //i.e. a quark
+	  rbs = MAXBITSPERINT; //32
+      }
+
+    return (lbs > rbs ? lbs : rbs);
+  } //resultBitsize
 
   const std::string NodeBinaryOpBitwise::methodNameForCodeGen()
   {
