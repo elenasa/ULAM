@@ -233,7 +233,7 @@ namespace MFM {
 
   UTI NodeUnaryOp::constantFold()
   {
-    u64 val;
+    u64 val = 0;
     UTI nuti = getNodeType();
 
     if(nuti == Nav) return Nav; //nothing to do yet
