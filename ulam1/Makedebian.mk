@@ -1,13 +1,21 @@
 # Extra stuff for debian install
 # Note this is meant to be run as 'make -C Makedebian.mk install'!
-DEB_PROGRAMS_TO_INSTALL += ulam culam
-DEB_PROGRAMS_PATHS_TO_INSTALL := $(DEB_PROGRAMS_TO_INSTALL:%=bin/%)
+DEB_ULAM_PROGRAMS_TO_INSTALL += ulam culam
+DEB_ULAM_PROGRAMS_PATHS_TO_INSTALL := $(DEB_ULAM_PROGRAMS_TO_INSTALL:%=bin/%)
+
+DEB_MFM_PROGRAMS_TO_INSTALL += mfms mfzmake mfzrun
+DEB_MFM_PROGRAMS_PATHS_TO_INSTALL := $(DEB_MFM_PROGRAMS_TO_INSTALL:%=bin/%)
+
 DEB_ULAM_BINDIR := $(DESTDIR)/usr/bin
 DEB_ULAM_SHAREDIR := $(DESTDIR)/usr/share/ulam/
+
+DEB_MFM_BINDIR := $(DESTDIR)/usr/bin
+DEB_MFM_SHAREDIR := $(DESTDIR)/usr/share/mfm/
 
 # We're recursing rather than depending on 'all' so that the
 # $(PLATFORMS) mechanism doesn't need to know about install.
 install:	FORCE
+	COMMANDS=1 SHARED_DIR=$(DEB_MFM_SHAREDIR) make -C ../../MFM -k all
 	COMMANDS=1 ULAM_SHARE_DIR=$(DEB_ULAM_SHAREDIR) make -k all
 	mkdir -p $(DEB_ULAM_BINDIR)
 	cp -a $(DEB_PROGRAMS_PATHS_TO_INSTALL) $(DEB_ULAM_BINDIR)
