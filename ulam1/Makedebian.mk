@@ -12,6 +12,14 @@ DEB_ULAM_SHAREDIR := $(DESTDIR)/usr/share/ulam/
 DEB_MFM_BINDIR := $(DESTDIR)/usr/bin
 DEB_MFM_SHAREDIR := $(DESTDIR)/usr/share/mfm/
 
+# All the the stuff we need from MFM to do ulam compiles..
+DEB_ULAM_MFM_PATHS += $(wildcard ../MFM/build/*/lib*.a)
+DEB_ULAM_MFM_PATHS += $(wildcard ../MFM/config/*.mk)
+DEB_ULAM_MFM_PATHS += ../MFM/src
+DEB_ULAM_MFM_PATHS := $(patsubst ../%,%,$(DEB_ULAM_MFM_PATHS))
+
+DEB_ULAM_MFM_DIR := $(DESTDIR)/usr/lib/ulam
+
 # We're recursing rather than depending on 'all' so that the
 # $(PLATFORMS) mechanism doesn't need to know about install.
 install:	FORCE
@@ -23,7 +31,9 @@ install:	FORCE
 	cp -r share/* $(DEB_ULAM_SHAREDIR)
 	cp -a $(DEB_MFM_PROGRAMS_PATHS_TO_INSTALL) $(DEB_ULAM_BINDIR)
 	mkdir -p $(DEB_MFM_SHAREDIR)
-	cp -r ../MFM/res $(DEB_MFM_SHAREDIR)
+	cp -r ../MFM $(DEB_MFM_SHAREDIR)
+	mkdir -p $(DEB_ULAM_MFM_DIR)
+	cd .. && cp --parents -r $(DEB_ULAM_MFM_PATHS) $(DEB_ULAM_MFM_DIR)
 	# MAN AND DOC?
 
 include VERSION.mk
