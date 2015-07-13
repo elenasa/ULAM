@@ -195,11 +195,11 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
-    s32 bitsize = getBitSize();
-    s32 valbitsize = m_state.getBitSize(typidx);
-
     bool brtn = true;
-    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    s32 valbitsize = vut->getBitSize();
+    s32 bitsize = getBitSize();
+    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case Unsigned:

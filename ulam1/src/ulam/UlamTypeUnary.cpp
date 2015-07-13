@@ -183,15 +183,21 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
-    s32 bitsize = getBitSize();
-    s32 valbitsize = m_state.getBitSize(typidx);
-
     bool brtn = true;
-    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    s32 valbitsize = vut->getBitSize();
+    s32 bitsize = getBitSize();
+    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case Unsigned:
-	brtn = ((bitsize + 1) >= (1 << valbitsize));
+	{
+	  u32 vwordsize = vut->getTotalWordSize();
+	  if(vwordsize <= MAXBITSPERINT)
+	    brtn = ((u32) bitsize >= (u32) vut->getMax());
+	  else
+	    brtn = ((u64) bitsize >= vut->getMax());
+	}
 	break;
       case Unary:
 	brtn = (bitsize >= valbitsize);
@@ -215,17 +221,17 @@ namespace MFM {
   void UlamTypeUnary::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%u", PopCount(data)); //converted to binary
+      sprintf(valstr,"%u", getDataAsCu32(data)); //converted to binary
     else
-      sprintf(valstr,"%c%u", prefix, PopCount(data)); //converted to binary
+      sprintf(valstr,"%c%u", prefix, getDataAsCu32(data)); //converted to binary
   }
 
   void UlamTypeUnary::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%u", PopCount64(data)); //converted to binary
+      sprintf(valstr,"%lu", getDataAsCu64(data)); //converted to binary
     else
-      sprintf(valstr,"%c%u", prefix, PopCount64(data)); //converted to binary
+      sprintf(valstr,"%c%lu", prefix, getDataAsCu64(data)); //converted to binary
   }
 
   s32 UlamTypeUnary::getDataAsCs32(const u32 data)

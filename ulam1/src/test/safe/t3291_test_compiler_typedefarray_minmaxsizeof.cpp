@@ -12,7 +12,7 @@ namespace MFM {
 	 Unsigned Arg: 32
       */
 
-      return std::string("Exit status: 0\nUe_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IArray[4];  Unsigned(8) arr[4](0,0,0,0);  Int(32) test() {  s ( 32u )print . s ( 32u )print . s ( 32u )print . 0 return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_B { Bool(7) b(false);  System s();  typedef Unsigned(8) Index;  typedef Unsigned(8) NIdx;  typedef Unsigned(8) IndArr[4];  typedef Unsigned(8) IArray[4];  Unsigned(8) arr[4](0,0,0,0);  Int(32) test() {  s ( 32u )print . s ( 32u )print . s ( 32u )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

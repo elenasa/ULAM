@@ -165,7 +165,7 @@ namespace MFM {
     return rtnOK;
   } //checkSafeToCastTo
 
-  s32 NodeUnaryOp::maxBitsize(UTI uti)
+  s32 NodeUnaryOp::resultBitsize(UTI uti)
   {
     s32 newbs = m_state.getBitSize(uti);
     ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(uti)->getUlamClass();
@@ -174,7 +174,7 @@ namespace MFM {
       newbs = MAXBITSPERINT; //32
 
     return newbs;
-  } //maxBitsize
+  } //resultBitsize
 
   //no atoms, elements as operand
   bool NodeUnaryOp::checkForPrimitiveType(UTI uti)

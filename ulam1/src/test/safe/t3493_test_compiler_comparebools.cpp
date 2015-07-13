@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_El { constant Unary(3) cy = 3;  Int(32) test() {  Bool(3) b;  b true cast = Bool(3) c;  c false cast = b cast c cast != cond 0 return if -1 return } }\n");
+      return std::string("Exit status: 0\nUe_El { constant Unary(3) cy = 3;  Int(32) test() {  Bool(3) b;  b true cast = Bool(3) c;  c false cast = b cast c cast != cond 0 cast return if -1 cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

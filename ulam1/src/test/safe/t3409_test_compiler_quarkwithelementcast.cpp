@@ -12,7 +12,7 @@ namespace MFM {
 
       */
       //eval self doesn't reflect correctly (see gen output): is an atom for quark's function call hidden arg
-      return std::string("Exit status: 0\nUe_Foo { System s();  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3;  constant Unsigned(32) ybits = 4;  typedef IntXY(3u,4u) Self;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(1);  Int(4) y(2); );  Int(32) test() {  n ( 1 2 )init . Int(32) i;  i ( self cast )func = s ( i )print . s ( n x . )print . i return } }\nUq_IntXY { constant Unsigned(32) xbits = NONREADYCONST;  constant Unsigned(32) ybits = NONREADYCONST;  typedef IntXY(xbits,ybits) Self;  typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(UNKNOWN) x(0);  Int(UNKNOWN) y(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { System s();  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3;  constant Unsigned(32) ybits = 4;  typedef IntXY(3u,4u) Self;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(1);  Int(4) y(2); );  Int(32) test() {  n ( 1 cast 2 cast )init . Int(32) i;  i ( self cast )func = s ( i )print . s ( n x . )print . i return } }\nUq_IntXY { constant Unsigned(32) xbits = NONREADYCONST;  constant Unsigned(32) ybits = NONREADYCONST;  typedef IntXY(xbits,ybits) Self;  typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(UNKNOWN) x(0);  Int(UNKNOWN) y(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

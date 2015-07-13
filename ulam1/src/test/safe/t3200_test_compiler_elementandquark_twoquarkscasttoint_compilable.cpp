@@ -20,7 +20,7 @@ namespace MFM {
       */
 
       //constant fold minus
-      return std::string("Exit status: 0\nUe_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(6);  Int(4) j(4);  Int(32) test() {  Int(2) d;  d 1 cast = bar1 x . d cast = bar1 y . 2u cast = bar2 x . 3u cast = bar2 y . 0u cast = i bar1 ( )toInt . cast cast = j bar2 ( )toInt . cast cast = s ( bar1 x . cast )print . s ( bar1 y . cast )print . s ( bar2 x . cast )print . s ( bar2 y . cast )print . s ( i )print . s ( j )print . 0 return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { System s();  Bar bar1( Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(6);  Int(4) j(4);  Int(32) test() {  Int(2) d;  d 1 = bar1 x . d cast = bar1 y . 2u cast = bar2 x . 3u cast = bar2 y . 0u cast = i bar1 ( )toInt . cast cast = j bar2 ( )toInt . cast cast = s ( bar1 x . cast )print . s ( bar1 y . cast )print . s ( bar2 x . cast )print . s ( bar2 y . cast )print . s ( i )print . s ( j )print . 0 cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) b(false);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

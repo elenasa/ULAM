@@ -13,7 +13,7 @@ namespace MFM {
 	 Int(4) Arg: 0x6
       */
       //constant fold minus
-      return std::string("Exit status: 0\nUe_Foo { Bool(1) b(false);  System m_s();  Int(4) i(0);  Int(4) j(6);  Bar m_bar( Bool(1) b(false);  System m_s();  Unsigned(4) x(0);  Unsigned(4) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(2);  Int(4) d(14); ); );  Int(32) test() {  m_bar m_gah ( 2 -2 )set . . j m_bar m_gah . ( )toInt . cast cast = m_s ( j )print . 0 return } }\nUq_Bar { Bool(1) b(false);  System m_s();  Unsigned(4) x(0);  Unsigned(4) y(6);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(0);  Int(4) d(0); );  <NOMAIN> }\nUq_System { <NOMAIN> }\nUq_Gah { Bool(1) b(false);  System m_s();  Int(4) a(0);  Int(4) d(6);  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { Bool(1) b(false);  System m_s();  Int(4) i(0);  Int(4) j(6);  Bar m_bar( Bool(1) b(false);  System m_s();  Unsigned(4) x(0);  Unsigned(4) y(0);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(2);  Int(4) d(14); ); );  Int(32) test() {  m_bar m_gah ( 2 cast -2 cast )set . . j m_bar m_gah . ( )toInt . cast cast = m_s ( j )print . 0 cast return } }\nUq_Bar { Bool(1) b(false);  System m_s();  Unsigned(4) x(0);  Unsigned(4) y(6);  Gah m_gah( Bool(1) b(false);  System m_s();  Int(4) a(0);  Int(4) d(0); );  <NOMAIN> }\nUq_System { <NOMAIN> }\nUq_Gah { Bool(1) b(false);  System m_s();  Int(4) a(0);  Int(4) d(6);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

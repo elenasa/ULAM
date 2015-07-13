@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //notice the 2 casts surrounding the +b; that's why the arithop-on-bits assert didn't hit.
-      return std::string("Exit status: 3\nUe_Foo { System s();  Bool(1) sp(false);  Bits(3) m_i[3](1,2,3);  Bool(3) m_b[3](false,false,true);  Int(32) test() {  m_i 0 [] 1 cast = m_i 1 [] 2 cast = m_i 2 [] m_i 0 [] cast m_i 1 [] cast +b cast = m_b 0 [] m_i 0 [] cast = m_b 1 [] m_i 1 [] cast = m_b 2 [] m_i 2 [] cast = s ( m_i 0 [] cast )print . s ( m_i 1 [] cast )print . s ( m_i 2 [] cast )print . s ( m_b 0 [] )print . s ( m_b 1 [] )print . s ( m_b 2 [] )print . m_i 2 [] cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 3\nUe_Foo { System s();  Bool(1) sp(false);  Bits(3) m_i[3](1,2,3);  Bool(3) m_b[3](false,false,true);  Int(32) test() {  m_i 0 [] 1 cast = m_i 1 [] 2 cast = m_i 2 [] m_i 0 [] cast cast cast m_i 1 [] cast cast cast +b cast = m_b 0 [] m_i 0 [] cast = m_b 1 [] m_i 1 [] cast = m_b 2 [] m_i 2 [] cast = s ( m_i 0 [] cast )print . s ( m_i 1 [] cast )print . s ( m_i 2 [] cast )print . s ( m_b 0 [] )print . s ( m_b 1 [] )print . s ( m_b 2 [] )print . m_i 2 [] cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -16,7 +16,7 @@ namespace MFM {
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n  element Foo {\nSystem s;\nBool sp;\n Bits(3) m_i[3];\n Bool(3) m_b[3];\n Int test() {\n m_i[0] = 1;\n m_i[1] = 2;\n m_i[2] = m_i[0] + m_i[1];\n m_b[0] = m_i[0];\n m_b[1] = m_i[1];\n m_b[2] = m_i[2];\ns.print((Unsigned) m_i[0]);\ns.print((Unsigned) m_i[1]);\ns.print((Unsigned) m_i[2]);\ns.print(m_b[0]);\ns.print(m_b[1]);\ns.print(m_b[2]);\nreturn m_i[2];\n }\n }\n");
 
 
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n  element Foo {\nSystem s;\nBool sp;\n Bits(3) m_i[3];\n Bool(3) m_b[3];\n Int test() {\n m_i[0] = 1;\n m_i[1] = 2;\n m_i[2] = ((Unsigned(3)) m_i[0]) + ((Unsigned(3)) m_i[1]);\n m_b[0] = (Bool(3)) m_i[0];\n m_b[1] = (Bool(3)) m_i[1];\n m_b[2] = (Bool(3)) m_i[2];\ns.print((Unsigned) m_i[0]);\ns.print((Unsigned) m_i[1]);\ns.print((Unsigned) m_i[2]);\ns.print(m_b[0]);\ns.print(m_b[1]);\ns.print(m_b[2]);\nreturn (Int) m_i[2];\n }\n }\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n  element Foo {\nSystem s;\nBool sp;\n Bits(3) m_i[3];\n Bool(3) m_b[3];\n Int test() {\n m_i[0] = 1;\n m_i[1] = 2;\n m_i[2] = (Bits(3)) (((Unsigned(3)) m_i[0]) + ((Unsigned(3)) m_i[1]));\n m_b[0] = (Bool(3)) m_i[0];\n m_b[1] = (Bool(3)) m_i[1];\n m_b[2] = (Bool(3)) m_i[2];\ns.print((Unsigned) m_i[0]);\ns.print((Unsigned) m_i[1]);\ns.print((Unsigned) m_i[2]);\ns.print(m_b[0]);\ns.print(m_b[1]);\ns.print(m_b[2]);\nreturn (Int) m_i[2];\n }\n }\n");
 
 
       // test system quark with native overloaded print funcs; assert
