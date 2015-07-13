@@ -15,6 +15,11 @@ namespace MFM {
      return Void;
    }
 
+  bool UlamTypeVoid::isPrimitiveType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeVoid::getUlamTypeAsStringForC()
   {
     return "void";

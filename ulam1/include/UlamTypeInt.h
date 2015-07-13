@@ -55,6 +55,8 @@ namespace MFM{
 
     virtual bool isNumericType();
 
+    virtual bool isPrimitiveType();
+
     virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual bool cast(UlamValue & val, UTI typidx);

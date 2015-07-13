@@ -88,8 +88,6 @@ namespace MFM {
 	  {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
 	    newType = m_state.makeUlamType(newkey, Int);
-
-	    //NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
 	  }
 
 	if(!NodeBinaryOp::checkSafeToCastTo(newType))

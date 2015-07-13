@@ -182,12 +182,11 @@ namespace MFM {
     return rtnOK;
   } //checkSafeToCastTo
 
-    //no atoms, elements nor voids as either operand
+  //no atoms, elements nor voids as either operand
   bool NodeBinaryOp::checkForPrimitiveTypes(UTI lt, UTI rt)
   {
     bool rtnOK = true;
-    ULAMCLASSTYPE lclass = m_state.getUlamTypeByIndex(lt)->getUlamClass();
-    if(lclass == UC_ELEMENT || lt == UAtom)
+    if(!m_state.getUlamTypeByIndex(lt)->isPrimitiveType())
       {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";
@@ -198,8 +197,7 @@ namespace MFM {
 	rtnOK = false;
       }
 
-    ULAMCLASSTYPE rclass = m_state.getUlamTypeByIndex(rt)->getUlamClass();
-    if(rclass == UC_ELEMENT || rt == UAtom)
+    if(!m_state.getUlamTypeByIndex(rt)->isPrimitiveType())
       {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";
@@ -296,11 +294,13 @@ namespace MFM {
 
     s32 lbs = lut->getBitSize();
     s32 rbs = rut->getBitSize();
+    s32 lwordsize = (s32) lut->getTotalWordSize();
+    s32 rwordsize = (s32) rut->getTotalWordSize();
 
     if(ltypEnum == Class)
       {
 	if(lut->isNumericType()) //i.e. a quark
-	  lbs = MAXBITSPERINT; //32
+	  lwordsize = lbs = MAXBITSPERINT; //32
       }
     else if(rtypEnum == Unary)
       {
@@ -312,7 +312,7 @@ namespace MFM {
     if(rtypEnum == Class)
       {
 	if(rut->isNumericType()) //i.e. a quark
-	  rbs = MAXBITSPERINT; //32
+	  rwordsize = rbs = MAXBITSPERINT; //32
       }
     else if(rtypEnum == Unary)
       {
@@ -321,42 +321,14 @@ namespace MFM {
       }
     //else could be Bits
 
-    s32 wordsize = (s32) lut->getTotalWordSize();
-    assert(wordsize == (s32) rut->getTotalWordSize());
+    assert(lwordsize == rwordsize);
 
     s32 maxbs = (lbs > rbs ? lbs : rbs);
     if(rtypEnum != ltypEnum && (ltypEnum == Int || rtypEnum == Int))
       maxbs += 1; //compensate for mixed signed and unsigned
 
-    return (maxbs >= wordsize ? wordsize : maxbs);
+    return (maxbs >= lwordsize ? lwordsize : maxbs);
   } //resultBitsize
-
-  bool NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(UTI lt, UTI rt, UTI& newType)
-  {
-    ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
-    return fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType);
-  } //fixMixedSignsOfVariableWithConstantToVariableType (helper)
-
-  bool NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType)
-  {
-    bool lconst = m_nodeLeft->isAConstant();
-    bool rconst = m_nodeRight->isAConstant();
-    if(lconst ^ rconst)
-      {
-	ULAMTYPE ntypEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
-
-	// cast constant to Unsigned Variable Type if mixed types:
-	// e.g. Unsigned(8) var = 2; //change from Int(8) to Unsigned(8)
-	if((ltypEnum != ntypEnum && !lconst) || (rtypEnum != ntypEnum && !rconst))
-	  {
-	    s32 newbs = m_state.getBitSize(newType);
-	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
-	    newType = m_state.makeUlamType(newkey, Unsigned);
-	  }
-      }
-    return true;
-  } //fixMixedSignsOfVariableWithConstantToVariableType
 
   void NodeBinaryOp::countNavNodes(u32& cnt)
   {

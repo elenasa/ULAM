@@ -103,6 +103,8 @@ namespace MFM{
 
     virtual bool isNumericType();
 
+    virtual bool isPrimitiveType();
+
     virtual const std::string getUlamTypeAsStringForC();
 
     virtual const std::string getUlamTypeVDAsStringForC();

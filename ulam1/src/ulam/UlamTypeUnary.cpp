@@ -43,6 +43,11 @@ namespace MFM {
     return true;
   }
 
+  bool UlamTypeUnary::isPrimitiveType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeUnary::getUlamTypeVDAsStringForC()
   {
     return "VD::UNARY";

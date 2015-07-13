@@ -186,6 +186,11 @@ namespace MFM {
     return false;
   }
 
+  bool UlamType::isPrimitiveType()
+  {
+    return false;
+  }
+
   const std::string UlamType::getUlamTypeAsStringForC()
   {
     assert(isComplete());

@@ -45,11 +45,13 @@ namespace MFM {
 
     s32 lbs = lut->getBitSize();
     s32 rbs = rut->getBitSize();
+    s32 lwordsize = (s32) lut->getTotalWordSize();
+    s32 rwordsize = (s32) rut->getTotalWordSize();
 
     if(ltypEnum == Class)
       {
 	if(lut->isNumericType()) //i.e. a quark
-	  lbs = MAXBITSPERINT; //32
+	  lwordsize = lbs = MAXBITSPERINT; //32
       }
     else if(ltypEnum == Unary)
       {
@@ -62,7 +64,7 @@ namespace MFM {
     if(rtypEnum == Class)
       {
 	if(rut->isNumericType()) //i.e. a quark
-	  rbs = MAXBITSPERINT; //32
+	  rwordsize = rbs = MAXBITSPERINT; //32
       }
     else if(rtypEnum == Unary)
       {
@@ -72,8 +74,7 @@ namespace MFM {
     else
       assert(rtypEnum == Unsigned || rtypEnum == Int);
 
-    s32 wordsize = (s32) lut->getTotalWordSize();
-    assert(wordsize == (s32) rut->getTotalWordSize());
+    assert(lwordsize == rwordsize);
 
     s32 maxbs = (lbs > rbs ? lbs : rbs);
     if(ltypEnum == rtypEnum)
@@ -81,7 +82,7 @@ namespace MFM {
     else
       maxbs += 2; //compensate for mixed signed and unsigned
 
-    return (maxbs >= wordsize ? wordsize : maxbs);
+    return (maxbs >= lwordsize ? lwordsize : maxbs);
   } //resultBitsize
 
   const std::string NodeBinaryOpArithAdd::methodNameForCodeGen()
