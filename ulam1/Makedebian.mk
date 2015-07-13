@@ -28,6 +28,6 @@ TAR_EXCLUDES+=--exclude=spikes
 TAR_EXCLUDES+=--exclude-backups
 tar:	FORCE
 	make realclean
-	PWD=`pwd`;BASE=`basename $$PWD`;cd ..;tar cvzf ../ulam-$(ULAM_VERSION_NUMBER).tgz $(TAR_EXCLUDES) *
+	PWD=`pwd`;BASE=`basename $$PWD`;cd ../..;tar cvzf ulam-$(ULAM_VERSION_NUMBER).tgz $(TAR_EXCLUDES) *
 
 .PHONY:	FORCE
