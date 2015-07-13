@@ -1,6 +1,10 @@
 ####
 # Top level Makefile driver for ULAM
 
+# Root of source tree
+ROOT_DIR := $(shell pwd)
+export ROOT_DIR
+
 include VERSION.mk
 
 ####
@@ -51,10 +55,6 @@ dist:	realclean
 ####
 # Variables exported to submakes
 
-# Root of source tree
-ROOT_DIR := $(shell pwd)
-export ROOT_DIR
-
 export SRC_TARGETS
 
 export ULAM_VERSION_MAJOR
@@ -71,17 +71,6 @@ export ULAM_BUILD_TIME := $(shell date -u +%H%M%S)
 export ULAM_BUILD_TIMESTAMP := $(ULAM_BUILD_DATE)$(ULAM_BUILD_TIME)
 export ULAM_BUILD_WHO:=$(shell whoami)
 export ULAM_BUILD_WHERE:=$(shell hostname)
-
-# Get the repo version (and save it for possible non-git-repo builds downstream)
-HAVE_GIT_DESCRIBE:=$(shell cd $(ROOT_DIR) && git describe 2>&1 >/dev/null && echo $$?)
-ifeq ($(HAVE_GIT_DESCRIBE),0)
-  ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe)
-  $(shell echo "ULAM_TREE_VERSION:=$(ULAM_TREE_VERSION)" > TREEVERSION.mk)
-else
-  ULAM_TREE_VERSION:=unknown-rev
-  -include TREEVERSION.mk
-endif
-export ULAM_TREE_VERSION
 
 DEFINES+=-DBUILD_DATE="0x$(ULAM_BUILD_DATE)" -DBUILD_TIME="0x$(ULAM_BUILD_TIME)" -DBUILD_DATE_TIME="$(ULAM_BUILD_TIMESTAMP)"
 DEFINES+=-DULAM_VERSION_MAJOR=$(ULAM_VERSION_MAJOR) -DULAM_VERSION_MINOR=$(ULAM_VERSION_MINOR) -DULAM_VERSION_REV=$(ULAM_VERSION_REV)
