@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeBinaryOpArithRemainder(Node * left, Node * right, CompilerState & state);
+
     NodeBinaryOpArithRemainder(const NodeBinaryOpArithRemainder& ref);
+
     virtual ~NodeBinaryOpArithRemainder();
 
     virtual Node * instantiate();
@@ -59,14 +61,16 @@ namespace MFM{
 
   protected:
 
-    virtual s32 resultBitsize(UTI lt, UTI rt); //op specific
+    virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
 
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
+
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
   };
 
 }
 
-#endif //end NODEBINARYOPARITHREMAINDER_H
+#endif //NODEBINARYOPARITHREMAINDER_H

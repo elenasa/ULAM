@@ -259,4 +259,37 @@ namespace MFM {
     return _Unary64ToCu64(data, getBitSize());
   }
 
+  s32 UlamTypeUnary::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  {
+    s32 wordsize = getTotalWordSize();
+    s32 bitsize = getBitSize();
+    s32 tobitsize = UNKNOWNSIZE;
+    switch(tobUT)
+      {
+      case Unsigned:
+	tobitsize = (s32) _getLogBase2(bitsize) + 1; //fits into unsigned
+	break;
+      case Int:
+	tobitsize = (s32) _getLogBase2(bitsize) + 1 + 1;
+	break;
+      case Bool:
+	tobitsize = 1;
+	break;
+      case Unary:
+      case Bits:
+	tobitsize = bitsize; //self
+	break;
+      case Void:
+	tobitsize = 0;
+	break;
+      case UAtom:
+      case Class:
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeUnary convertTypeTo error! " << tobUT << std::endl;
+      };
+    return (tobitsize > wordsize ? wordsize : tobitsize);
+  } //bitsizeToconvertTypeTo
+
 } //end MFM

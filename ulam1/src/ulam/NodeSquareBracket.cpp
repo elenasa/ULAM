@@ -176,6 +176,21 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
+    if(offset.getUlamValueTypeIdx() == Nav)
+      {
+	Symbol * lsymptr;
+	u32 lid = 0;
+	if(getSymbolPtr(lsymptr))
+	  lid = lsymptr->getId();
+
+	std::ostringstream msg;
+	msg << "Bad array subscript of array '";
+	msg << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	evalNodeEpilog();
+	return ERROR;
+      }
+
     // constant expression only required for array declaration
     s32 arraysize = m_state.getArraySize(ltype);
     u32 offsetdata = offset.getImmediateData(m_state);
@@ -228,6 +243,21 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
+    if(offset.getUlamValueTypeIdx() == Nav)
+      {
+	Symbol * lsymptr;
+	u32 lid = 0;
+	if(getSymbolPtr(lsymptr))
+	  lid = lsymptr->getId();
+
+	std::ostringstream msg;
+	msg << "Bad array subscript of array '";
+	msg << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	evalNodeEpilog();
+	return ERROR;
+      }
+
     // constant expression only required for array declaration
     u32 offsetdata = offset.getImmediateData(m_state);
     s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
@@ -385,14 +415,29 @@ namespace MFM {
 	if(m_nodeRight->eval() == NORMAL)
 	  {
 	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
-
-	    u32 arraysizedata = arrayUV.getImmediateData(m_state);
-	    newarraysize = sizeut->getDataAsCs32(arraysizedata);
-	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
+	    if(arrayUV.getUlamValueTypeIdx() == Nav)
 	      {
-		MSG(getNodeLocationAsString().c_str(),
-		    "Array size specifier in [] is not a positive number", ERR);
+		Symbol * lsymptr;
+		u32 lid = 0;
+		if(getSymbolPtr(lsymptr))
+		  lid = lsymptr->getId();
+
+		std::ostringstream msg;
+		msg << "Bad array subscript of array '";
+		msg << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		noerr = false;
+	      }
+	    else
+	      {
+		u32 arraysizedata = arrayUV.getImmediateData(m_state);
+		newarraysize = sizeut->getDataAsCs32(arraysizedata);
+		if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
+		  {
+		    MSG(getNodeLocationAsString().c_str(),
+			"Array size specifier in [] is not a positive number", ERR);
+		    noerr = false;
+		  }
 	      }
 	  }
 	else

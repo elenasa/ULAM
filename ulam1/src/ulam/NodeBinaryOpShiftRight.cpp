@@ -33,22 +33,9 @@ namespace MFM {
 
   s32 NodeBinaryOpShiftRight::resultBitsize(UTI lt, UTI rt)
   {
-    UlamType * lut = m_state.getUlamTypeByIndex(lt);
-    UlamType * rut = m_state.getUlamTypeByIndex(rt);
+    s32 lbs = UNKNOWNSIZE, rbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+    NodeBinaryOp::resultBitsizeCalcInBits(lt, rt, lbs, rbs, wordsize);
 
-    //both sides complete to be here!!
-    assert(lut->isComplete() && rut->isComplete());
-
-    // types are either unsigned or signed (unary as-is)
-    // to be converted to Bits
-    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
-    s32 lbs = lut->getBitSize();
-
-    if(ltypEnum == Class)
-      {
-	if(lut->isNumericType()) //i.e. a quark
-	  lbs = MAXBITSPERINT; //32
-      }
     return lbs;
   } //resultBitsize
 

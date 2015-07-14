@@ -74,6 +74,8 @@ namespace MFM{
 
     virtual u64 getDataAsCu64(const u64 data);
 
+    virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
+
   private:
 
     virtual bool castTo32(UlamValue & val, UTI typidx);

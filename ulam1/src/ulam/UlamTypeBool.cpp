@@ -288,5 +288,35 @@ namespace MFM {
     return rtnMethod.str();
   } //getCovertToCBoolMethod
 
+  s32 UlamTypeBool::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  {
+    s32 bitsize = getBitSize();
+    s32 tobitsize = UNKNOWNSIZE;
+    s32 wordsize = getTotalWordSize();
+    switch(tobUT)
+      {
+      case Bool:
+      case Unsigned:
+      case Unary:
+	tobitsize = 1;
+	break;
+      case Int:
+	tobitsize = 2;
+	break;
+      case Bits:
+	tobitsize = bitsize; //self
+	break;
+      case Void:
+	tobitsize = 0;
+	break;
+      case UAtom:
+      case Class:
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeInt (convertTo) error! " << tobUT << std::endl;
+      };
+    return (tobitsize > wordsize ? wordsize : tobitsize);
+  } //bitsizeToConvertTypeTo
 
 } //end MFM

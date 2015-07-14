@@ -62,30 +62,8 @@ namespace MFM {
 
   s32 NodeBinaryOpBitwise::resultBitsize(UTI lt, UTI rt)
   {
-    UlamType * lut = m_state.getUlamTypeByIndex(lt);
-    UlamType * rut = m_state.getUlamTypeByIndex(rt);
-
-    //both sides complete to be here!!
-    assert(lut->isComplete() && rut->isComplete());
-
-    // types are either unsigned or signed (unary as-is)
-    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
-
-    s32 lbs = lut->getBitSize();
-    s32 rbs = rut->getBitSize();
-
-    if(ltypEnum == Class)
-      {
-	if(lut->isNumericType()) //i.e. a quark
-	  lbs = MAXBITSPERINT; //32
-      }
-
-    if(rtypEnum == Class)
-      {
-	if(rut->isNumericType()) //i.e. a quark
-	  rbs = MAXBITSPERINT; //32
-      }
+    s32 lbs = UNKNOWNSIZE, rbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+    NodeBinaryOp::resultBitsizeCalcInBits(lt, rt, lbs, rbs, wordsize);
 
     return (lbs > rbs ? lbs : rbs);
   } //resultBitsize

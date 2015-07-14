@@ -232,4 +232,31 @@ namespace MFM {
     return _Bits64ToCu64(data, getBitSize());
   }
 
+  s32 UlamTypeBits::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  {
+    s32 bitsize = getBitSize();
+    s32 tobitsize = UNKNOWNSIZE;
+    s32 wordsize = getTotalWordSize();
+    switch(tobUT)
+      {
+      case Bool:
+      case Unsigned:
+      case Unary:
+      case Int:
+      case Bits:
+	tobitsize = bitsize;
+	break;
+      case Void:
+	tobitsize = 0;
+	break;
+      case UAtom:
+      case Class:
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeBits (convertTo) error! " << tobUT << std::endl;
+      };
+    return (tobitsize > wordsize ? wordsize : tobitsize);
+  } //bitsizeToConvertTypeTo
+
 } //end MFM

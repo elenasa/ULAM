@@ -24,43 +24,47 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  s32 NodeBinaryOpArithRemainder::resultBitsize(UTI lt, UTI rt)
+  UTI NodeBinaryOpArithRemainder::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
   {
-    UlamType * lut = m_state.getUlamTypeByIndex(lt);
-    UlamType * rut = m_state.getUlamTypeByIndex(rt);
-
-    //both sides complete to be here!!
-    assert(lut->isComplete() && rut->isComplete());
-
-    // types are either unsigned or signed (unary as unsigned)
-    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
-
-    s32 lbs = lut->getBitSize();
-    s32 rbs = rut->getBitSize();
-
-    if(ltypEnum == Class)
+    UTI nuti = newType;
+    //because the result bitsize for mod should be the right bitsize
+    // create a cast! combining newType's base type and right resultbitsize.
+    // could be the same, or "unsafe".
+    if(newType != Nav && m_state.isComplete(newType))
       {
-	if(lut->isNumericType()) //i.e. a quark
-	  lbs = MAXBITSPERINT; //32
-      }
-    else if(ltypEnum == Unary)
-      lbs = (s32) _getLogBase2(lbs) + 1; //fits into unsigned
-    else
-      assert(ltypEnum == Unsigned || ltypEnum == Int);
+	UlamType * newut = m_state.getUlamTypeByIndex(newType);
+	ULAMTYPE typEnum = newut->getUlamTypeEnum();
+	u32 convertSize = m_state.getUlamTypeByIndex(rt)->bitsizeToConvertTypeTo(typEnum);
+	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
+	UlamKeyTypeSignature tokey(enumStrIdx, convertSize, NONARRAYSIZE);
+	nuti = m_state.makeUlamType(tokey, typEnum);
 
-    if(rtypEnum == Class)
-      {
-	if(rut->isNumericType()) //i.e. a quark
-	  rbs = MAXBITSPERINT; //32
-      }
-    else if(rtypEnum == Unary)
-      rbs = (s32) _getLogBase2(rbs) + 1; //fits into unsigned
-    else
-      assert(rtypEnum == Unsigned || rtypEnum == Int);
+	if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
+	  {
+	    NNO pno = Node::getYourParentNo(); //save
+	    assert(pno);
+	      //not using use makeCastingNode since don't want recursive c&l call
+	    Node * castNode = new NodeCast(this, nuti, NULL, m_state);
+	    assert(castNode);
+	    castNode->setNodeLocation(getNodeLocation());
 
-    return (lbs > rbs ? lbs : rbs);
-  } //resultBitsize
+	    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+	    assert(parentNode);
+	    assert(parentNode->exchangeKids(this, castNode));
+
+	    std::ostringstream msg;
+	    msg << "Exchanged kids! of parent of binary operator" << getName();
+	    msg << ", with a cast to type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    castNode->setYourParentNo(pno); //inverts normal update lineage
+	    setYourParentNo(castNode->getNodeNo());
+	  }
+	}
+    return nuti;
+  } //castThyselfToResultType
 
   const std::string NodeBinaryOpArithRemainder::methodNameForCodeGen()
   {
