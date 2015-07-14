@@ -34,5 +34,5 @@ doc/ref
 # Ignore *-hold files
 *-hold
 
-# Ignore the version file made for non-git builds
-TREEVERSION.mk
+# Ignore git version cache files
+*TREEVERSION.mk
