@@ -106,10 +106,15 @@ ALLDEP += $(shell find $(ROOT_DIR) -name 'Makefile')
 -include Makefile.local.mk
 
 ifeq ($(MFM_ROOT_DIR),)
+# check installed location
+ifeq ("$(wildcard ../MFM)","")
 ${warning MFM_ROOT_DIR not configured}
 ${info  =>Consider creating '$(ROOT_DIR)/Makefile.local.mk', containing something like}
 ${info  =>  MFM_ROOT_DIR := /path/to/source/dir/of/MFMv2}
 ${info  =>to avoid this message}
+else
+MFM_ROOT_DIR:=$(realpath ../MFM)
+endif
 else
 #${info Local configuration: MFM_ROOT_DIR=$(MFM_ROOT_DIR)}
 ## This wants to be rethought and refactored!
