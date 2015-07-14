@@ -28,7 +28,7 @@ ULAM_TREE_VERSION:=unknown-rev
 # that means we are in the ULAM_REPO_BUILD_TIME era, so we should cache
 # the tag for use in later eras.
 SHOULD_CACHE_REPO_TAG_ULAM:=$(shell test -w $(ROOT_DIR) && which git >/dev/null && cd $(ROOT_DIR) && git describe >/dev/null 2>&1 && echo YES)
-${info AT<<$(realpath $(ROOT_DIR))>>=($(SHOULD_CACHE_REPO_TAG_ULAM))}
+#${info AT<<$(realpath $(ROOT_DIR))>>=($(SHOULD_CACHE_REPO_TAG_ULAM))}
 ifeq ($(SHOULD_CACHE_REPO_TAG_ULAM),YES)
   ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe)
   $(shell echo "ULAM_TREE_VERSION:=$(ULAM_TREE_VERSION)" > $(ROOT_DIR)/ULAM_TREEVERSION.mk)
