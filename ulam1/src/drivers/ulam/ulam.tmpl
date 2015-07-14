@@ -32,7 +32,7 @@ use Carp;
       if $CULAM_PATH =~ /@/ or $MFM_ROOT_DIR =~ /@/;
 
 BEGIN {
-    push @INC, '@ULAM_SHARE_DIR@/perl';
+    push @INC, '@ULAM_SHARE_DIR@/perl', '/usr/share/ulam/perl';
 }
 
 use UlamGen;
@@ -1164,6 +1164,11 @@ EOF
             $quarkPtrArrayInits .= "\n    &$stubname";
             ++$quarkPtrArrayCount;
         }
+    }
+
+    if ($quarkPtrArrayCount == 0) {
+        # Avoid zero length array if no quarks
+        $quarkPtrArrayInits = "0";
     }
 
     open(my $handle, ">", $src)
