@@ -176,6 +176,11 @@ namespace MFM {
     return data;
   }
 
+  s32 UlamType::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  {
+    return UNKNOWNSIZE; //atom, class, nav, ptr, holder
+  }
+
   ULAMCLASSTYPE UlamType::getUlamClass()
   {
     return UC_NOTACLASS;

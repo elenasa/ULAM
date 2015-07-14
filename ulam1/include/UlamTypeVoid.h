@@ -74,6 +74,8 @@ namespace MFM{
 
     virtual FORECAST safeCast(UTI typidx);
 
+    virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
+
   private:
 
   };

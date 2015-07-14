@@ -33,56 +33,12 @@ namespace MFM {
 
   s32 NodeBinaryOpArithAdd::resultBitsize(UTI lt, UTI rt)
   {
-    UlamType * lut = m_state.getUlamTypeByIndex(lt);
-    UlamType * rut = m_state.getUlamTypeByIndex(rt);
-
-    //both sides complete to be here!!
-    assert(lut->isComplete() && rut->isComplete());
-
-    // types are either unsigned or signed (unary as unsigned)
-    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
-
-    s32 lbs = lut->getBitSize();
-    s32 rbs = rut->getBitSize();
-    s32 lwordsize = (s32) lut->getTotalWordSize();
-    s32 rwordsize = (s32) rut->getTotalWordSize();
-
-    if(ltypEnum == Class)
-      {
-	if(lut->isNumericType()) //i.e. a quark
-	  lwordsize = lbs = MAXBITSPERINT; //32
-      }
-    else if(ltypEnum == Unary)
-      {
-	lbs = (s32) _getLogBase2(lbs) + 1; //fits into unsigned
-	ltypEnum = Unsigned; //for mix test
-      }
-    else
-      assert(ltypEnum == Unsigned || ltypEnum == Int);
-
-    if(rtypEnum == Class)
-      {
-	if(rut->isNumericType()) //i.e. a quark
-	  rwordsize = rbs = MAXBITSPERINT; //32
-      }
-    else if(rtypEnum == Unary)
-      {
-	rbs = (s32) _getLogBase2(rbs) + 1; //fits into unsigned
-	rtypEnum = Unsigned;
-      }
-    else
-      assert(rtypEnum == Unsigned || rtypEnum == Int);
-
-    assert(lwordsize == rwordsize);
+    s32 lbs = UNKNOWNSIZE, rbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+    NodeBinaryOp::resultBitsizeCalc(lt, rt, lbs, rbs, wordsize);
 
     s32 maxbs = (lbs > rbs ? lbs : rbs);
-    if(ltypEnum == rtypEnum)
-      maxbs += 1;
-    else
-      maxbs += 2; //compensate for mixed signed and unsigned
-
-    return (maxbs >= lwordsize ? lwordsize : maxbs);
+    maxbs += 1; //for addition/subtraction
+    return (maxbs >= wordsize ? wordsize : maxbs);
   } //resultBitsize
 
   const std::string NodeBinaryOpArithAdd::methodNameForCodeGen()

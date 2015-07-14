@@ -33,38 +33,11 @@ namespace MFM {
 
   s32 NodeBinaryOpShiftLeft::resultBitsize(UTI lt, UTI rt)
   {
-    UlamType * lut = m_state.getUlamTypeByIndex(lt);
-    UlamType * rut = m_state.getUlamTypeByIndex(rt);
-
-    //both sides complete to be here!!
-    assert(lut->isComplete() && rut->isComplete());
-
-    // types are either unsigned or signed (unary as-is)
-    // to be converted to Bits
-    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
-    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
-
-    s32 lbs = lut->getBitSize();
-    s32 rbs = rut->getBitSize();
-    s32 lwordsize = (s32) lut->getTotalWordSize();
-    s32 rwordsize = (s32) rut->getTotalWordSize();
-
-    if(ltypEnum == Class)
-      {
-	if(lut->isNumericType()) //i.e. a quark
-	  lwordsize = lbs = MAXBITSPERINT; //32
-      }
-
-    if(rtypEnum == Class)
-      {
-	if(rut->isNumericType()) //i.e. a quark
-	  rwordsize = rbs = MAXBITSPERINT; //32
-      }
-
-    assert(lwordsize == rwordsize);
+    s32 lbs = UNKNOWNSIZE, rbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+    NodeBinaryOp::resultBitsizeCalcInBits(lt, rt, lbs, rbs, wordsize);
 
     s32 maxbs = lbs + (1 << rbs); // lbs + 2^rbs
-    return (maxbs >= lwordsize ? lwordsize : maxbs);
+    return (maxbs >= wordsize ? wordsize : maxbs);
   } //resultBitsize
 
   UlamValue NodeBinaryOpShiftLeft::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)

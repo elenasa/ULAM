@@ -97,6 +97,8 @@ namespace MFM{
 
     virtual u64 getDataAsCu64(const u64 data);
 
+    virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
+
     virtual ULAMCLASSTYPE getUlamClass();
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;

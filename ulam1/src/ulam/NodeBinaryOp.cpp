@@ -148,11 +148,19 @@ namespace MFM {
 	  }
       }
 
+    //before constant folding; if needed (e.g. Remainder, Divide)
+    castThyselfToResultType(rightType, leftType, newType);
+
     if(newType != Nav && isAConstant() && m_nodeLeft->isReadyConstant() && m_nodeRight->isReadyConstant())
       return constantFold();
 
     return newType;
   } //checkAndLabelType
+
+  UTI NodeBinaryOp::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
+  {
+    return newType; //noop
+  }
 
   bool NodeBinaryOp::checkSafeToCastTo(UTI newType)
   {
@@ -282,19 +290,95 @@ namespace MFM {
 
   s32 NodeBinaryOp::resultBitsize(UTI lt, UTI rt)
   {
+    s32 lbs = UNKNOWNSIZE, rbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+    resultBitsizeCalc(lt, rt, lbs, rbs, wordsize);
+
+    s32 maxbs = (lbs > rbs ? lbs : rbs);
+    return (maxbs >= wordsize ? wordsize : maxbs);
+  } //resultBitsize
+
+  void NodeBinaryOp::resultBitsizeCalc(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize)
+  {
     UlamType * lut = m_state.getUlamTypeByIndex(lt);
     UlamType * rut = m_state.getUlamTypeByIndex(rt);
 
-    //both sides complete to be here!!
+    //both sides complete by now!!
     assert(lut->isComplete() && rut->isComplete());
 
     // types are either unsigned or signed (unary as unsigned)
     ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
     ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
 
-    s32 lbs = lut->getBitSize();
-    s32 rbs = rut->getBitSize();
-    s32 lwordsize = (s32) lut->getTotalWordSize();
+    lbs = lut->getBitSize();
+    rbs = rut->getBitSize();
+    lwordsize = (s32) lut->getTotalWordSize();
+    s32 rwordsize = (s32) rut->getTotalWordSize();
+
+    if(ltypEnum == Class)
+      {
+	if(lut->isNumericType()) //i.e. a quark
+	  {
+	    lwordsize = lbs = MAXBITSPERINT; //32
+	    ltypEnum = Int; //for mix test
+	  }
+      }
+    else if(ltypEnum == Unary)
+      {
+	lbs = (s32) _getLogBase2(lbs) + 1; //fits into unsigned
+	ltypEnum = Unsigned; //for mix test
+      }
+    else //could be Unsigned or Int, not Bits
+      assert(ltypEnum == Unsigned || ltypEnum == Int);
+
+    if(rtypEnum == Class)
+      {
+	if(rut->isNumericType()) //i.e. a quark
+	  {
+	    rwordsize = rbs = MAXBITSPERINT; //32
+	    rtypEnum = Int; //for mix test
+	  }
+      }
+    else if(rtypEnum == Unary)
+      {
+	rbs = (s32) _getLogBase2(rbs) + 1; //fits into unsigned
+	rtypEnum = Unsigned; //for mix test
+      }
+    else //could be Unsigned or Int, not Bits
+      assert(rtypEnum == Unsigned || rtypEnum == Int);
+
+    assert(lwordsize == rwordsize);
+
+    // adjust for mixed sign and unsigned types, skip if either is Bits
+    if(ltypEnum != rtypEnum && (ltypEnum == Int || rtypEnum == Int))
+      {
+	if(ltypEnum != Int)
+	  {
+	    lbs = lut->bitsizeToConvertTypeTo(Int); //fits into signed
+	    ltypEnum = Int;
+	  }
+	else if(rtypEnum != Int)
+	  {
+	    rbs = rut->bitsizeToConvertTypeTo(Int); //fits into signed
+	    rtypEnum = Int;
+	  }
+      }
+  } //returnBitsizeCalc
+
+  void NodeBinaryOp::resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize)
+  {
+    UlamType * lut = m_state.getUlamTypeByIndex(lt);
+    UlamType * rut = m_state.getUlamTypeByIndex(rt);
+
+    //both sides complete to be here!!
+    assert(lut->isComplete() && rut->isComplete());
+
+    // types are either unsigned or signed (unary as-is)
+    ULAMTYPE ltypEnum = lut->getUlamTypeEnum();
+    ULAMTYPE rtypEnum = rut->getUlamTypeEnum();
+
+    lbs = lut->getBitSize();
+    rbs = rut->getBitSize();
+    lwordsize = (s32) lut->getTotalWordSize();
     s32 rwordsize = (s32) rut->getTotalWordSize();
 
     if(ltypEnum == Class)
@@ -302,33 +386,14 @@ namespace MFM {
 	if(lut->isNumericType()) //i.e. a quark
 	  lwordsize = lbs = MAXBITSPERINT; //32
       }
-    else if(rtypEnum == Unary)
-      {
-	lbs = (s32) _getLogBase2(lbs) + 1; //fits into unsigned
-	ltypEnum = Unsigned; //for mix test
-      }
-    //else could be Bits
 
     if(rtypEnum == Class)
       {
 	if(rut->isNumericType()) //i.e. a quark
 	  rwordsize = rbs = MAXBITSPERINT; //32
       }
-    else if(rtypEnum == Unary)
-      {
-	rbs = (s32) _getLogBase2(rbs) + 1; //fits into unsigned
-	rtypEnum = Unsigned; //for mix test
-      }
-    //else could be Bits
-
     assert(lwordsize == rwordsize);
-
-    s32 maxbs = (lbs > rbs ? lbs : rbs);
-    if(rtypEnum != ltypEnum && (ltypEnum == Int || rtypEnum == Int))
-      maxbs += 1; //compensate for mixed signed and unsigned
-
-    return (maxbs >= lwordsize ? lwordsize : maxbs);
-  } //resultBitsize
+  } //resultBitsizeCalcInBits
 
   void NodeBinaryOp::countNavNodes(u32& cnt)
   {
@@ -353,13 +418,18 @@ namespace MFM {
     if( evs == NORMAL)
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	u32 wordsize = m_state.getTotalWordSize(nuti);
-	if(wordsize == MAXBITSPERINT)
-	  val = cnstUV.getImmediateData(m_state);
-	else if(wordsize == MAXBITSPERLONG)
-	  val = cnstUV.getImmediateDataLong(m_state);
+	if(cnstUV.getUlamValueTypeIdx() == Nav)
+	  evs = ERROR;
 	else
-	  assert(0);
+	  {
+	    u32 wordsize = m_state.getTotalWordSize(nuti);
+	    if(wordsize == MAXBITSPERINT)
+	      val = cnstUV.getImmediateData(m_state);
+	    else if(wordsize == MAXBITSPERLONG)
+	      val = cnstUV.getImmediateDataLong(m_state);
+	    else
+	      assert(0);
+	  }
       }
 
     evalNodeEpilog();
