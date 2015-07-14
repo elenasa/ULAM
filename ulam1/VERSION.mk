@@ -20,13 +20,18 @@ ROOT_DIR := $(shell pwd)
 export ROOT_DIR
 endif
 
-# Get the repo version (and save it for possible non-git-repo builds downstream)
-HAVE_GIT_DESCRIBE_ULAM:=$(shell cd $(ROOT_DIR) && git describe 2>&1 >/dev/null && echo $$?)
-ifeq ($(HAVE_GIT_DESCRIBE_ULAM),0)
+# Suck in a git rep marker if it's been cached
+ULAM_TREE_VERSION:=unknown-rev
+-include $(ROOT_DIR)/ULAM_TREEVERSION.mk
+
+# If our dir is writable, and we have git, and there's a repo tag,
+# that means we are in the ULAM_REPO_BUILD_TIME era, so we should cache
+# the tag for use in later eras.
+SHOULD_CACHE_REPO_TAG_ULAM:=$(shell test -w $(ROOT_DIR) && which git >/dev/null && cd $(ROOT_DIR) && git describe >/dev/null 2>&1 && echo YES)
+${info AT<<$(realpath $(ROOT_DIR))>>=($(SHOULD_CACHE_REPO_TAG_ULAM))}
+ifeq ($(SHOULD_CACHE_REPO_TAG_ULAM),YES)
   ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe)
-  $(shell echo "ULAM_TREE_VERSION:=$(ULAM_TREE_VERSION)" > ULAM_TREEVERSION.mk)
+  $(shell echo "ULAM_TREE_VERSION:=$(ULAM_TREE_VERSION)" > $(ROOT_DIR)/ULAM_TREEVERSION.mk)
 else
-  ULAM_TREE_VERSION:=unknown-rev
-  -include ULAM_TREEVERSION.mk
 endif
 export ULAM_TREE_VERSION
