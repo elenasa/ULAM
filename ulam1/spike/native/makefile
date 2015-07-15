@@ -1,6 +1,6 @@
 #note: tests run from 'rootdir'/src/test/bin
-ROOT_DIR:=../../..
--include $(ROOT_DIR)/Makefile.local.mk
+ULAM_ROOT_DIR:=../../..
+-include $(ULAM_ROOT_DIR)/Makefile.local.mk
 
 #MFM_BASE_DIR:=/home/elenas/WORK/ulam/repo/MFMv2
 MFM_INCLUDES:=$(MFM_ROOT_DIR)/src/core/include -I $(MFM_ROOT_DIR)/src/sim/include
