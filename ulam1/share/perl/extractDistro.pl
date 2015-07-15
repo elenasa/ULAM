@@ -1,6 +1,10 @@
 #!/usr/bin/perl -w
 # -*- mode:perl -*-
 
+my $content = shift @ARGV;
+defined $content and ($content eq "src" or $content eq "bin" or $content eq "all")
+    or die "Usage: $0 src|bin|all MFM_TREE ULAM_TREE OUTPUT_DIR (bad src|bin|all)\n";
+
 my $MFM_TREE = shift @ARGV;
 my $ULAM_TREE = shift @ARGV;
 my $OUTPUT_DIR = shift @ARGV;
@@ -10,25 +14,25 @@ $ULAM_TREE =~ s!/$!!;
 $OUTPUT_DIR =~ s!/$!!;
 
 defined $MFM_TREE and -d $MFM_TREE
-    or die "Usage: $0 MFM_TREE ULAM_TREE OUTPUT_DIR (bad MFM_TREE)\n";
+    or die "Usage: $0 src|bin|all MFM_TREE ULAM_TREE OUTPUT_DIR (bad MFM_TREE)\n";
 defined $ULAM_TREE and -d $ULAM_TREE
-    or die "Usage: $0 MFM_TREE ULAM_TREE OUTPUT_DIR (bad ULAM_TREE)\n";
+    or die "Usage: $0 src|bin|all MFM_TREE ULAM_TREE OUTPUT_DIR (bad ULAM_TREE)\n";
 defined $OUTPUT_DIR and !-e $OUTPUT_DIR
-    or die "Usage: $0 MFM_TREE ULAM_TREE OUTPUT_DIR (bad existing OUTPUT_DIR)\n";
+    or die "Usage: $0 src|bin|all MFM_TREE ULAM_TREE OUTPUT_DIR (bad existing OUTPUT_DIR)\n";
 
 my %categories = (
-    "MFM_source" =>       ["MFM", "find src -name '*.cpp' -o -name '*.tmpl' -o -name '*.src'"],
-    "MFM_headers" =>      ["MFM", "find src -name '*.inc' -o -name '*.h' -o -name '*.tcc'"],
-    "MFM_makefiles" =>    ["MFM", "find Makefile *.mk config src -name '[Mm]akefile' -o -name '*.mk'"],
-    "MFM_shared_files" => ["MFM", "find res"],
-    "MFM_libraries" =>    ["MFM", "find build -name '*.a'"],
-    "MFM_binaries" =>     ["MFM", "find bin -name 'mfms' -o -name 'mfzmake' -o -name 'mfzrun'"],
+    "MFM_source" =>       ["MFM", "src", "find src -name '*.cpp' -o -name '*.tmpl' -o -name '*.src'"],
+    "MFM_headers" =>      ["MFM", "src", "find src -name '*.inc' -o -name '*.h' -o -name '*.tcc'"],
+    "MFM_makefiles" =>    ["MFM", "src", "find Makefile *.mk config src -name '[Mm]akefile' -o -name '*.mk'"],
+    "MFM_shared_files" => ["MFM", "src", "find res"],
+    "MFM_libraries" =>    ["MFM", "bin", "find build -name '*.a'"],
+    "MFM_binaries" =>     ["MFM", "bin", "find bin -name 'mfms' -o -name 'mfzmake' -o -name 'mfzrun'"],
 
-    "ULAM_source" =>      ["ULAM", "find src -name '*.cpp' -o -name '*.tmpl' -o -name '*.src'"],
-    "ULAM_headers" =>     ["ULAM", "find include -name '*.h' -o  -name '*.inc'"],
-    "ULAM_makefiles" =>   ["ULAM", "find Makefile *.mk src -name '[Mm]akefile' -o -name '*.mk'"],
-    "ULAM_binaries" =>    ["ULAM", "find bin -name 'ulam' -o -name 'culam'"],
-    "ULAM_shared_files"=> ["ULAM", "find share"],
+    "ULAM_source" =>      ["ULAM", "src", "find src -name '*.cpp' -o -name '*.tmpl' -o -name '*.src'"],
+    "ULAM_headers" =>     ["ULAM", "src", "find include -name '*.h' -o  -name '*.inc'"],
+    "ULAM_makefiles" =>   ["ULAM", "src", "find Makefile *.mk src -name '[Mm]akefile' -o -name '*.mk'"],
+    "ULAM_binaries" =>    ["ULAM", "bin", "find bin -name 'ulam' -o -name 'culam'"],
+    "ULAM_shared_files"=> ["ULAM", "src", "find share"],
     );
 
 use File::Path qw(make_path remove_tree);
@@ -45,7 +49,9 @@ my %indirs = ("MFM" => $MFM_TREE, "ULAM" => $ULAM_TREE);
 my %outdirs = ("MFM" => $DISTRO_MFM, "ULAM" => $DISTRO_ULAM);
 
 for my $c (sort keys %categories) {
-    my ($tree, $cmd) = @{$categories{$c}};
+    my ($tree, $type, $cmd) = @{$categories{$c}};
+    next if $content ne "all" and $type ne $content;
+
     my $indir = $indirs{$tree};
     my $outdir = $outdirs{$tree};
     my $lines = `cd $indir; $cmd`;
