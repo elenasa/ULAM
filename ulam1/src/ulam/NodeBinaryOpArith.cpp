@@ -35,21 +35,22 @@ namespace MFM {
     return methodname.str();
   } // methodNameForCodeGen
 
-  void NodeBinaryOpArith::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpArith::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     if(m_state.isScalar(getNodeType())) //not an array
       {
-	doBinaryOperationImmediate(lslot, rslot, slots);
+	return doBinaryOperationImmediate(lslot, rslot, slots);
       }
     else
       { //array
 #ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
-	doBinaryOperationArray(lslot, rslot, slots);
+	return doBinaryOperationArray(lslot, rslot, slots);
 #else
 	assert(0);
 #endif //defined below...
       }
+    return false;
   } //end dobinaryop
 
   UTI NodeBinaryOpArith::calcNodeType(UTI lt, UTI rt)

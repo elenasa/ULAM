@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeBinaryOpEqualBitwise(Node * left, Node * right, CompilerState & state);
+
     NodeBinaryOpEqualBitwise(const NodeBinaryOpEqualBitwise& ref);
+
     virtual ~NodeBinaryOpEqualBitwise();
 
     UTI checkAndLabelType();
@@ -57,9 +59,10 @@ namespace MFM{
 
   protected:
     virtual UTI calcNodeType(UTI lt, UTI rt);  //same as NodeBinaryOpBitwise
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
+
+    virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
   };
 
 }
 
-#endif //end NODEBINARYOPEQUALBITWISE_H
+#endif //NODEBINARYOPEQUALBITWISE_H

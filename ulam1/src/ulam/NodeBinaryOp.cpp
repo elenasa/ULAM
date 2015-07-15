@@ -508,13 +508,14 @@ namespace MFM {
 
     //copies return UV to stack, -1 relative to current frame pointer
     if(slot && slot2)
-      doBinaryOperation(1, 1+slot, slot2);
+      if(!doBinaryOperation(1, 1+slot, slot2))
+	evs = ERROR;
 
     evalNodeEpilog();
-    return NORMAL;
+    return evs;
   } //eval
 
-  void NodeBinaryOp::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOp::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots == 1);
     UTI nuti = getNodeType();
@@ -522,8 +523,11 @@ namespace MFM {
 
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
-    UlamValue rtnUV;
 
+    if((luv.getUlamValueTypeIdx() == Nav) || (ruv.getUlamValueTypeIdx() == Nav))
+      return false;
+
+    UlamValue rtnUV;
     u32 wordsize = m_state.getTotalWordSize(nuti);
     if(wordsize == MAXBITSPERINT)
       {
@@ -537,12 +541,16 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
-    else
-      assert(0);
-    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
-  } //end dobinaryopImmediate
+    //    else
+    //  assert(0);
+    if(rtnUV.getUlamValueTypeIdx() == Nav)
+      return false;
 
-  void NodeBinaryOp::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
+    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+    return true;
+  } //dobinaryopImmediate
+
+  bool NodeBinaryOp::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
   {
     UlamValue rtnUV;
 
@@ -590,9 +598,13 @@ namespace MFM {
 	assert(rp.incrementPtr(m_state));
       } //forloop
 
+    if(rtnUV.getUlamValueTypeIdx() == Nav)
+      return false;
+
     if(WritePacked(packRtn))
-      m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
-  } //end dobinaryoparray
+	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
+    return true;
+  } //dobinaryoparray
 
   void NodeBinaryOp::genCode(File * fp, UlamValue& uvpass)
   {

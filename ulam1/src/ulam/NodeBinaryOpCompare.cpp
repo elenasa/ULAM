@@ -127,26 +127,27 @@ namespace MFM {
     return methodname.str();
   } // methodNameForCodeGen
 
-  void NodeBinaryOpCompare::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpCompare::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     if(m_state.isScalar(getNodeType())) //not an array
       {
-	doBinaryOperationImmediate(lslot, rslot, slots);
+	return doBinaryOperationImmediate(lslot, rslot, slots);
       }
     else
       { //array
 #ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
-	doBinaryOperationArray(lslot, rslot, slots);
+	return doBinaryOperationArray(lslot, rslot, slots);
 #else
 	assert(0);
 #endif //defined below...
       }
+    return false;
   } //end dobinaryop
 
   //unlike NodeBinaryOp, NodeBinaryOpCompare has a node type that's different from
   // its nodes, where left and right nodes are casted to be the same.
-  void NodeBinaryOpCompare::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpCompare::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots == 1);
     UTI luti = m_nodeLeft->getNodeType();
@@ -154,34 +155,38 @@ namespace MFM {
 
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(lslot); //immediate value
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
-    //UlamValue rtnUV;
+    if((luv.getUlamValueTypeIdx() == Nav) || (ruv.getUlamValueTypeIdx() == Nav))
+      return false;
 
+    UlamValue rtnUV;
     u32 wordsize = m_state.getTotalWordSize(luti);
     if(wordsize == MAXBITSPERINT)
       {
 	u32 ldata = luv.getImmediateData(len);
 	u32 rdata = ruv.getImmediateData(len);
-	UlamValue rtnUV = makeImmediateBinaryOp(luti, ldata, rdata, len);
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+	rtnUV = makeImmediateBinaryOp(luti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)
       {
 	u64 ldata = luv.getImmediateDataLong(len);
 	u64 rdata = ruv.getImmediateDataLong(len);
-	UlamValue rtnUV = makeImmediateLongBinaryOp(luti, ldata, rdata, len);
-	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+	rtnUV = makeImmediateLongBinaryOp(luti, ldata, rdata, len);
       }
-    else
-      assert(0);
+    //else
+      //assert(0);
 
-    //m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
-  } //end dobinaryopImmediate
+    if(rtnUV.getUlamValueTypeIdx() == Nav)
+      return false;
+
+    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+    return true;
+  } //dobinaryopImmediate
 
   //unlike NodeBinaryOp, NodeBinaryOpCompare has a node type that's different from
   // its nodes, where left and right nodes are casted to be the same.
-  void NodeBinaryOpCompare::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpCompare::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
   {
-    assert(0); //not implemented yet.
+    assert(0); //not implemented yet..TODO return bool.
     UlamValue rtnUV;
     UTI nuti = getNodeType(); //Bool, same array size as lhs/rhs
 
@@ -234,6 +239,8 @@ namespace MFM {
 
     if(WritePacked(packRtn))
       m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
+
+    return false;
   } //end dobinaryoparray
 
   void NodeBinaryOpCompare::genCode(File * fp, UlamValue& uvpass)
