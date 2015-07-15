@@ -8,5 +8,5 @@ export DH_OPTIONS=-v
 	dh $@
 
 override_dh_install:
-        make install DESTDIR=debian/ulam
+	make install DESTDIR=debian/ulam
 	dh_install
