@@ -66,3 +66,12 @@ for my $c (sort keys %categories) {
 
 `echo "MFM_ROOT_DIR := $DISTRO_MFM" > $DISTRO_ULAM/Makefile.local.mk`;
 `mkdir $DISTRO_ULAM/build`;
+open(MK,">Makefile") or die "opening Makefile: $!";
+print MK <<EOF;
+all:
+	make -C MFM
+	make -C ULAM
+
+.PHONY:	all
+EOF
+close MK or die "closing Makefile: $!";
