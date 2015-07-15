@@ -97,8 +97,8 @@ namespace MFM{
     bool checkNotVoidType(UTI uti);
     bool checkForNumericType(UTI uti);
 
-    virtual void doUnaryOperation(s32 slot, u32 nslots);
-    virtual void doUnaryOperationImmediate(s32 slot, u32 nslots);
+    virtual bool doUnaryOperation(s32 slot, u32 nslots);
+    virtual bool doUnaryOperationImmediate(s32 slot, u32 nslots);
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len) = 0;
 
   };

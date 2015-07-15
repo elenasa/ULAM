@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeBinaryOpEqualArith(Node * left, Node * right, CompilerState & state);
+
     NodeBinaryOpEqualArith(const NodeBinaryOpEqualArith& ref);
+
     virtual ~NodeBinaryOpEqualArith();
 
     virtual UTI checkAndLabelType();
@@ -57,10 +59,10 @@ namespace MFM{
 
   protected:
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
 
   };
 
 }
 
-#endif //end NODEBINARYOPEQUALARITH_H
+#endif //NODEBINARYOPEQUALARITH_H

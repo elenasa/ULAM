@@ -15,26 +15,27 @@ namespace MFM {
   // and the other isn't; however, currently, according to
   // CompilerState determinePackable, they should always be the same
   // since their types must be identical.
-  void NodeBinaryOpBitwise::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpBitwise::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     UTI nuti = getNodeType();
     if(m_state.isScalar(nuti))  //not an array
       {
-	doBinaryOperationImmediate(lslot, rslot, slots);
+	return doBinaryOperationImmediate(lslot, rslot, slots);
       }
     else
       { //array
 	// leverage case when both are packed, for bitwise operations
 	if(m_state.determinePackable(nuti) == PACKEDLOADABLE)
 	  {
-	    doBinaryOperationImmediate(lslot, rslot, slots);
+	    return doBinaryOperationImmediate(lslot, rslot, slots);
 	  }
 	else
 	  {
-	    doBinaryOperationArray(lslot, rslot, slots);
+	    return doBinaryOperationArray(lslot, rslot, slots);
 	  }
       }
+    return false;
   } //dobinaryoperation
 
   UTI NodeBinaryOpBitwise::calcNodeType(UTI lt, UTI rt)  //bitwise

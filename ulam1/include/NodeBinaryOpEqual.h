@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeBinaryOpEqual(Node * left, Node * right, CompilerState & state);
+
     NodeBinaryOpEqual(const NodeBinaryOpEqual& ref);
+
     virtual ~NodeBinaryOpEqual();
 
     virtual Node * instantiate();
@@ -67,9 +69,9 @@ namespace MFM{
 
   protected:
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
-    virtual void doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots);
-    virtual void doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
 
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len); //stub
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
@@ -85,4 +87,4 @@ namespace MFM{
 
 }
 
-#endif //end NODEBINARYOPEQUAL_H
+#endif //NODEBINARYOPEQUAL_H

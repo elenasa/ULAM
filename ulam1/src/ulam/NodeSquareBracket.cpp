@@ -314,6 +314,11 @@ namespace MFM {
     return evs;
   } //evalToStoreInto
 
+  bool NodeSquareBracket::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  {
+    return false;
+  }
+
   UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     assert(0); //unused
