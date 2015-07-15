@@ -168,7 +168,7 @@ sub SECOND_EXTRACT {
 
     my $tarPath = "$distroName.tgz";
     print "Making $tarPath..";
-    my $ret = `tar cvfz $tarPath $distroName >logs/SECOND_EXTRACT-tar.log 2>&1 || echo \$?`;
+    $ret = `tar cvfz $tarPath $distroName >logs/SECOND_EXTRACT-tar.log 2>&1 || echo \$?`;
     return "Building $tarPath failed ($ret)"
         unless $ret eq "";
     print "OK\n";
