@@ -25,15 +25,16 @@ EOS
 step("TREE_BUILD",<<EOS);
 
   Builds in that tempdir, to ensure both contained trees do build (as
-  a simulation of, but not the actual, ULAM_DISTRO_BUILD_TIME era).
+  an incomplete simulation of the ULAM_DISTRO_BUILD_TIME era).
   Assuming all goes well, then discards that tempdir.
 
 EOS
 step("SECOND_EXTRACT",<<EOS);
 
   Runs extractDistro.pl on the built repos again to a directory named
-  for the ulam version we are exporting.  Then creates the distro tar
-  file from that directory (withOUT having built in it).
+  for the ulam version we are exporting.  Then adds the canned debian
+  directory, and creates the distro tar file from the resulting tree
+  (withOUT having built in it).
 
 EOS
 step("DISTRO_BUILD",<<EOS);
@@ -48,7 +49,6 @@ EOS
 $| = 1;
 my $GIT_URL = "https://github.com/DaveAckley/ULAM.git";
 my $MFM_GIT_URL = "https://github.com/DaveAckley/MFM.git";
-my $DEBIAN_TGZ = "~/papers/MF/asrepo/RT13/code/Clean-ULAM-fork-for-packaging/config/ulam-debian-16.tgz";
 my @DISTROS = ("precise", "trusty");
 
 use Cwd 'abs_path';
@@ -201,10 +201,6 @@ $cmd = "bzr dh-make --bzr-only ulam $bareversion $ulam_version.tgz 2>&1";
 print "Initting bzr [$cmd]..";
 my $bzroutput = `$cmd`;
 print "done: [$bzroutput]\n";
-
-print "Adding canned debian to ulam..";
-my $canoutput = `cd ulam;tar xvzf $DEBIAN_TGZ debian 2>&1`;
-print "done\n";
 
 my $newppaversion = makeLeximited(incrementFileNumber("$STATE_DIR/ppaversion"));
 for my $distro (@DISTROS) {

@@ -33,6 +33,7 @@ my %categories = (
     "ULAM_makefiles" =>   ["ULAM", "src", "find Makefile *.mk src -name '[Mm]akefile' -o -name '*.mk'"],
     "ULAM_binaries" =>    ["ULAM", "bin", "find bin -name 'ulam' -o -name 'culam'"],
     "ULAM_shared_files"=> ["ULAM", "src", "find share"],
+    "ULAM_packaging" =>   ["ULAM", "src", "find debian"],
     );
 
 use File::Path qw(make_path remove_tree);
