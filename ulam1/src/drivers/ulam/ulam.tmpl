@@ -45,7 +45,10 @@ my $ULAM_SHARE_DIR;
 BEGIN {
     use File::Basename;
 
-    $SCRIPT_PATH = File::Spec->rel2abs( __FILE__ );
+    $SCRIPT_PATH = __FILE__;
+    $SCRIPT_PATH = readlink $SCRIPT_PATH if -l $SCRIPT_PATH;
+    $SCRIPT_PATH = File::Spec->rel2abs( $SCRIPT_PATH );
+
     $ULAM_ROOT = dirname($SCRIPT_PATH)."/..";
 
     # Note we're not allowing spaces in the path.  F-U if that's a problem.
