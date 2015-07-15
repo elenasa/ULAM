@@ -103,9 +103,8 @@ sub REPO_BUILD {
     mkdir "logs" or die "mkdir: $!";
     my $ret;
     $ret = `cd ULAM && make >../logs/REPO_BUILD.log 2>&1 || echo -n \$?`;
-    if ($ret ne "") {
-        return "Repo build failed ($ret)";
-    }
+    return "Repo build failed ($ret)"
+        unless $ret eq "";
 
     print "Getting version from MFM/..";
     $mfm_version_tag = `cd ULAM/MFM;make version`;
@@ -129,8 +128,14 @@ sub REPO_BUILD {
 }
 
 sub FIRST_EXTRACT {
-    print "Extracting files..";
-    return "XXX FINISH ME";
+    print "Extracting files for distribution..";
+    mkdir "extract1" or die "mkdir: $!";
+    my $extractPath = "ULAM/ulam1/share/perl/extractDistro.pl";
+    my $ret = `$extractPath ULAM/MFM ULAM/ulam1 extract1 || echo \$?`;
+    return "First extract build failed ($ret)"
+        unless $ret eq "";
+
+    return "";
 }
 
 my $ulam_version = "ulam-$bareversion";
