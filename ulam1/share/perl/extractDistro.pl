@@ -46,6 +46,7 @@ my $DISTRO_TOP = `readlink -f $OUTPUT_DIR`;
 
 chomp($DISTRO_MFM);
 chomp($DISTRO_ULAM);
+chomp($DISTRO_TOP);
 make_path( $DISTRO_MFM, $DISTRO_ULAM );
 
 my %indirs = ("MFM" => $MFM_TREE, "ULAM" => $ULAM_TREE, "TOP" => "$ULAM_TREE/.." );
