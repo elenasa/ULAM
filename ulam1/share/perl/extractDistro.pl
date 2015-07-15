@@ -70,8 +70,8 @@ my $topmake = "$OUTPUT_DIR/Makefile";
 open(MK,">$topmake") or die "opening $topmake: $!";
 print MK <<EOF;
 all:
-	make -C MFM
-	make -C ULAM
+	COMMANDS=1 make -C MFM
+	COMMANDS=1 make -C ULAM
 
 .PHONY:	all
 EOF
