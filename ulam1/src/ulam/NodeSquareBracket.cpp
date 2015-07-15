@@ -176,20 +176,6 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
-    if(offset.getUlamValueTypeIdx() == Nav)
-      {
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
-
-	std::ostringstream msg;
-	msg << "Bad array subscript of array '";
-	msg << m_state.m_pool.getDataAsString(lid).c_str() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	evalNodeEpilog();
-	return ERROR;
-      }
 
     // constant expression only required for array declaration
     s32 arraysize = m_state.getArraySize(ltype);
@@ -210,6 +196,7 @@ namespace MFM {
 	evalNodeEpilog();
 	return ERROR;
       }
+
     assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
     evalNodeEpilog();
     return NORMAL;
@@ -243,20 +230,6 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
-    if(offset.getUlamValueTypeIdx() == Nav)
-      {
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
-
-	std::ostringstream msg;
-	msg << "Bad array subscript of array '";
-	msg << m_state.m_pool.getDataAsString(lid).c_str() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	evalNodeEpilog();
-	return ERROR;
-      }
 
     // constant expression only required for array declaration
     u32 offsetdata = offset.getImmediateData(m_state);
@@ -309,7 +282,6 @@ namespace MFM {
 	    evs = ERROR;
 	  }
       }
-
     evalNodeEpilog();
     return evs;
   } //evalToStoreInto
@@ -402,7 +374,7 @@ namespace MFM {
     return true;
   }
 
-  // eval() performed even before check and label!
+  // eval() no longer performed before check and label
   // returns false if error; UNKNOWNSIZE is not an error!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
   {
@@ -420,35 +392,19 @@ namespace MFM {
 	if(m_nodeRight->eval() == NORMAL)
 	  {
 	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
-	    if(arrayUV.getUlamValueTypeIdx() == Nav)
+	    u32 arraysizedata = arrayUV.getImmediateData(m_state);
+	    newarraysize = sizeut->getDataAsCs32(arraysizedata);
+	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
 	      {
-		Symbol * lsymptr;
-		u32 lid = 0;
-		if(getSymbolPtr(lsymptr))
-		  lid = lsymptr->getId();
-
-		std::ostringstream msg;
-		msg << "Bad array subscript of array '";
-		msg << m_state.m_pool.getDataAsString(lid).c_str() << "'";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		MSG(getNodeLocationAsString().c_str(),
+		    "Array size specifier in [] is not a positive number", ERR);
 		noerr = false;
 	      }
-	    else
-	      {
-		u32 arraysizedata = arrayUV.getImmediateData(m_state);
-		newarraysize = sizeut->getDataAsCs32(arraysizedata);
-		if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
-		  {
-		    MSG(getNodeLocationAsString().c_str(),
-			"Array size specifier in [] is not a positive number", ERR);
-		    noerr = false;
-		  }
-	      }
+	    //else unknown is not an error
 	  }
 	else
-	  {
-	    newarraysize = UNKNOWNSIZE; //still true
-	  }
+	  noerr = false;
+
 	evalNodeEpilog();
       }
     else
