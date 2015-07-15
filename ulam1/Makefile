@@ -2,8 +2,8 @@
 # Top level Makefile driver for ULAM
 
 # Root of source tree
-ROOT_DIR := $(shell pwd)
-export ROOT_DIR
+ULAM_ROOT_DIR := $(shell pwd)
+export ULAM_ROOT_DIR
 
 include VERSION.mk
 
@@ -85,7 +85,7 @@ export LIBS
 
 # Root of shared files tree.
 ifeq ($(ULAM_SHARE_DIR),)
-  ULAM_SHARE_DIR:=$(ROOT_DIR)/share
+  ULAM_SHARE_DIR:=$(ULAM_ROOT_DIR)/share
 endif
 export ULAM_SHARE_DIR
 
@@ -100,7 +100,7 @@ export MFM_TREE_VERSION
 
 # Things that all builds should depend on
 export ALLDEP
-ALLDEP += $(shell find $(ROOT_DIR) -name 'Makefile')
+ALLDEP += $(shell find $(ULAM_ROOT_DIR) -name 'Makefile')
 
 # Allow local configuration, if any, to override us:
 -include Makefile.local.mk
@@ -109,7 +109,7 @@ ifeq ($(MFM_ROOT_DIR),)
 # check installed location
 ifeq ("$(wildcard ../MFM)","")
 ${warning MFM_ROOT_DIR not configured}
-${info  =>Consider creating '$(ROOT_DIR)/Makefile.local.mk', containing something like}
+${info  =>Consider creating '$(ULAM_ROOT_DIR)/Makefile.local.mk', containing something like}
 ${info  =>  MFM_ROOT_DIR := /path/to/source/dir/of/MFMv2}
 ${info  =>to avoid this message}
 else
