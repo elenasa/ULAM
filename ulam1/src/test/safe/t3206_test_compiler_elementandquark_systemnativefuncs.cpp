@@ -20,7 +20,7 @@ namespace MFM {
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nelement Foo {\nBool(3) b;\nInt(4) i, j;\nInt(4) update(Int x)\n{\nreturn x;\n}\nInt test(){\ni = 0;\nj = update(i - 1);\n\nreturn j;\n}\n}\n");
 
       // test system quark with native overloaded print funcs and assert; !! also works.
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\nelement Foo {\nSystem m_s;\nBool(3) b;\nInt(4) i, j;\nInt(4) update(Int(4) x)\n{\nreturn x;\n}\nInt test(){\ni = 0;\nj = update((Int(4)) (i - 1));\nm_s.print((Int) j);\nm_s.print(j);\nm_s.assert((Bool) (!b));\nreturn j;\n}\n}\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\nelement Foo {\nSystem m_s;\nBool(3) b;\nInt(4) i, j;\nInt(4) update(Int(4) x)\n{\nreturn x;\n}\nInt test(){\ni = 0;\nj = update((Int(4)) (i - 1));\nm_s.print((Int) j);\nm_s.print(j);\nm_s.assert(!b);\nreturn j;\n}\n}\n");
 
       //bool rtn2 = fms->add("System.ulam", "ulam 1;\nquark System {Void print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid assert(Bool b) native;\n}\n");
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

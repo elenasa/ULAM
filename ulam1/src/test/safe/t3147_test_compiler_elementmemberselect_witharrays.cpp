@@ -17,7 +17,7 @@ namespace MFM {
     {
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\n Bool m_ba[6];\n Bool check(Int v) {\n return true;\n }\n Int test() {\n Foo f;\n f.m_ba[1] = true;\n f.m_ba[5] = f.check(1);\n m_ba = f.m_ba;\n return 0;\n }\n }\n"); //2 basic member select tests: data member, func call
 
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n element Foo {\nSystem s;\n Bool m_ba[6];\n Bool check(Int v) {\n return true;\n }\n Int test() {\n Foo f;\n f.m_ba[1] = true;\n f.m_ba[5] = f.check(1);\n m_ba = f.m_ba;\ns.print( (Bool(3)) f.m_ba[5]);\ns.print( (Bool(3)) m_ba[5]);\n return 0;\n }\n }\n"); //2 basic member select tests: data member, func call
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n element Foo {\nSystem s;\n Bool m_ba[6];\n Bool check(Int v) {\n return true;\n }\n Int test() {\n Foo f;\n f.m_ba[1] = true;\n f.m_ba[5] = f.check(1);\n m_ba = f.m_ba;\ns.print(f.m_ba[5]);\ns.print(m_ba[5]);\n return 0;\n }\n }\n"); //2 basic member select tests: data member, func call
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
