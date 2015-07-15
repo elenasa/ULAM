@@ -418,18 +418,13 @@ namespace MFM {
     if( evs == NORMAL)
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	if(cnstUV.getUlamValueTypeIdx() == Nav)
-	  evs = ERROR;
+	u32 wordsize = m_state.getTotalWordSize(nuti);
+	if(wordsize == MAXBITSPERINT)
+	  val = cnstUV.getImmediateData(m_state);
+	else if(wordsize == MAXBITSPERLONG)
+	  val = cnstUV.getImmediateDataLong(m_state);
 	else
-	  {
-	    u32 wordsize = m_state.getTotalWordSize(nuti);
-	    if(wordsize == MAXBITSPERINT)
-	      val = cnstUV.getImmediateData(m_state);
-	    else if(wordsize == MAXBITSPERLONG)
-	      val = cnstUV.getImmediateDataLong(m_state);
-	    else
-	      assert(0);
-	  }
+	  assert(0);
       }
 
     evalNodeEpilog();
