@@ -105,33 +105,35 @@ sub REPO_BUILD {
     $ret = `cd ULAM && make >../logs/REPO_BUILD.log 2>&1 || echo -n \$?`;
     return "Repo build failed ($ret)"
         unless $ret eq "";
+    print "OK\n";
 
-    print "Getting version from MFM/..";
+    print "Getting version number from MFM..";
     $mfm_version_tag = `cd ULAM/MFM;make version`;
     chomp($mfm_version_tag);
     $mfm_version_tag =~ /^\d+[.]\d+[.]\d+$/ or return "MFM version not found, got '$mfm_version_tag'";
-    print "done: $mfm_version_tag\n";
+    print "$mfm_version_tag\n";
 
-    print "Getting version from ULAM/..";
+    print "Getting version number from ULAM..";
     $ulam_version_tag = `cd ULAM;make -C ulam1 -f Makedebian.mk --quiet version`;
     chomp($ulam_version_tag);
     $ulam_version_tag =~ /^\d+[.]\d+[.]\d+$/ or return "Ulam version not found, got '$ulam_version_tag'";
-    print "done: $ulam_version_tag\n";
+    print "$ulam_version_tag\n";
 
+    print "Getting git version tags\n";
     my $f;
     $f = "ULAM/ulam1/ULAM_TREEVERSION.mk";
-    if (-r $f) { print `cat $f`; } else { return "Not found '$f'"; }
+    if (-r $f) { print " ".`cat $f`; } else { return "Not found '$f'"; }
     $f = "ULAM/MFM/MFM_TREEVERSION.mk";
-    if (-r $f) { print `cat $f`; } else { return "Not found '$f'"; }
+    if (-r $f) { print " ".`cat $f`; } else { return "Not found '$f'"; }
 
     return "";
 }
 
 sub FIRST_EXTRACT {
-    print "Extracting files for distribution..";
+    print "Extracting files for test build..";
     my $extractPath = "ULAM/ulam1/share/perl/extractDistro.pl";
     my $ret = `$extractPath ULAM/MFM ULAM/ulam1 extract1 >logs/FIRST_EXTRACT.log 2>&1 || echo \$?`;
-    return "First extract build failed ($ret)"
+    return "First extract failed ($ret)"
         unless $ret eq "";
 
     print "OK\n";
@@ -155,6 +157,24 @@ sub TREE_BUILD {
 
     return "";
 }
+
+sub SECOND_EXTRACT {
+    print "Extracting files for distribution..";
+    my $extractPath = "ULAM/ulam1/share/perl/extractDistro.pl";
+    my $distroName = "ulam-$ulam_version_tag";
+    my $ret = `$extractPath ULAM/MFM ULAM/ulam1 $distroName >logs/SECOND_EXTRACT.log 2>&1 || echo \$?`;
+    return "Second extract failed ($ret)"
+        unless $ret eq "";
+
+    my $tarPath = "$distroName.tgz";
+    print "Making $tarPath..";
+    my $ret = `tar cvfz $tarPath $distroName >logs/SECOND_EXTRACT-tar.log 2>&1 || echo \$?`;
+    return "Building $tarPath failed ($ret)"
+        unless $ret eq "";
+    print "OK\n";
+    return "";
+}
+
 
 my $ulam_version = "ulam-$bareversion";
 
