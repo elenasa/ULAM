@@ -1,5 +1,0 @@
-ulam (1.0.0) trusty; urgency=low
-
-  * Initial release: More work heading towards usable debian/ubuntu packaging
-
- -- Dave Ackley <ackley@ackleyshack.com>  Mon, 13 Jul 2015 02:09:41 -0600
