@@ -1,59 +1,34 @@
 # Extra stuff for debian install
 # Note this is meant to be run as 'make -C Makedebian.mk install'!
+#
+# Strategy 20150713: This is completely and obviously awful (if also
+# painfully typical) but it appears a seriously non-finite task to do
+# anything else, so we're basically going to put the entire MFM tree
+# under /usr/lib/ulam/MFM.  ulam needs a _lot_ (though strictly
+# speaking not _all_) of the MFM tree at _runtime_, including
+# executables plus .h's, .tcc's, .inc's, and Makefiles.  At the
+# moment, those are all intertwined under MFM_ROOT_DIR relative
+# references -- which this way, at least for now, will continue to
+# work.  Then we do symlinks in /usr/bin for the programs.
+
+DEB_COMBINED_ROOT_DIR := $(DESTDIR)/usr/lib/ulam/
+DEB_SYMLINK_BIN_DIR := $(DESTDIR)/usr/bin
+
 DEB_ULAM_PROGRAMS_TO_INSTALL += ulam culam
-DEB_ULAM_PROGRAMS_PATHS_TO_INSTALL := $(DEB_ULAM_PROGRAMS_TO_INSTALL:%=bin/%)
+DEB_ULAM_PROGRAMS_PATHS_TO_INSTALL := $(DEB_ULAM_PROGRAMS_TO_INSTALL:%=../ULAM/bin/%)
 
 DEB_MFM_PROGRAMS_TO_INSTALL += mfms mfzmake mfzrun
 DEB_MFM_PROGRAMS_PATHS_TO_INSTALL := $(DEB_MFM_PROGRAMS_TO_INSTALL:%=../MFM/bin/%)
 
-DEB_ULAM_BINDIR := $(DESTDIR)/usr/bin
-DEB_ULAM_SHAREDIR := $(DESTDIR)/usr/share/ulam/
+DEB_MFM_ROOT_DIR := $(DESTDIR)/usr/lib/ulam
 
-DEB_MFM_BINDIR := $(DESTDIR)/usr/bin
-DEB_MFM_SHAREDIR := $(DESTDIR)/usr/share/mfm/
-
-# All the stuff we need from MFM to do ulam compiles..
-DEB_ULAM_MFM_FILES += $(wildcard ../MFM/build/*/lib*.a)
-DEB_ULAM_MFM_FILES += $(wildcard ../MFM/config/*.mk)
-DEB_ULAM_MFM_FILES += $(shell find ../MFM/src -name "*.h")
-DEB_ULAM_MFM_FILES += $(shell find ../MFM/src -name "*.tcc")
-DEB_ULAM_MFM_FILES += $(shell find ../MFM/src -name "*.inc")
-DEB_ULAM_MFM_FILES += $(shell find ../MFM/src -name "*.tmpl")
-DEB_ULAM_MFM_FILES += $(shell find ../MFM/src -name "Makefile")
-DEB_ULAM_MFM_FILES += $(shell find ../MFM/src -name "*.mk")
-DEB_ULAM_MFM_FILES := $(patsubst ../%,%,$(DEB_ULAM_MFM_FILES))
-
-DEB_ULAM_MFM_DIR := $(DESTDIR)/usr/lib/ulam
-
-# We're recursing rather than depending on 'all' so that the
-# $(PLATFORMS) mechanism doesn't need to know about install.
 install:	FORCE
-	COMMANDS=1 SHARED_DIR=$(DEB_MFM_SHAREDIR) make -C ../MFM -k all
-	COMMANDS=1 ULAM_SHARE_DIR=$(DEB_ULAM_SHAREDIR) make -k all
-	mkdir -p $(DEB_ULAM_BINDIR)
-	cp -a $(DEB_ULAM_PROGRAMS_PATHS_TO_INSTALL) $(DEB_ULAM_BINDIR)
-	mkdir -p $(DEB_ULAM_SHAREDIR)
-	cp -r share/* $(DEB_ULAM_SHAREDIR)
-	cp -a $(DEB_MFM_PROGRAMS_PATHS_TO_INSTALL) $(DEB_ULAM_BINDIR)
-	mkdir -p $(DEB_MFM_SHAREDIR)
-	cp -r ../MFM/res $(DEB_MFM_SHAREDIR)
-	mkdir -p $(DEB_ULAM_MFM_DIR)
-	cd .. && cp --parents -a $(DEB_ULAM_MFM_FILES) $(DEB_ULAM_MFM_DIR)
-	# MAN AND DOC?
+	mkdir -p $(DEB_COMBINED_ROOT_DIR)
+	./share/perl/extractDistro.pl all ../MFM ../ULAM $(DEB_COMBINED_ROOT_DIR)
+	./share/perl/installSymlinks.pl `pwd` $(DEB_SYMLINK_BIN_DIR)
 
 include VERSION.mk
 version:	FORCE
 	@echo $(ULAM_VERSION_NUMBER)
-
-TAR_EXCLUDES+=--exclude=tools
-TAR_EXCLUDES+=--exclude=*~
-TAR_EXCLUDES+=--exclude=.git*
-TAR_EXCLUDES+=--exclude=doc/internal
-TAR_EXCLUDES+=--exclude=spike
-TAR_EXCLUDES+=--exclude=spikes
-TAR_EXCLUDES+=--exclude-backups
-tar:	FORCE
-	make realclean
-	PWD=`pwd`;BASE=`basename $$PWD`;cd ../..;tar cvzf ulam-$(ULAM_VERSION_NUMBER).tgz $(TAR_EXCLUDES) *
 
 .PHONY:	FORCE
