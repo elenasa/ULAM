@@ -22,7 +22,7 @@ DEB_MFM_PROGRAMS_PATHS_TO_INSTALL := $(DEB_MFM_PROGRAMS_TO_INSTALL:%=../MFM/bin/
 
 DEB_MFM_ROOT_DIR := $(DESTDIR)/usr/lib/ulam
 
-install:	FORCE
+install:	FORCE   ${info KDKD//INSTALL}
 	mkdir -p $(DEB_COMBINED_ROOT_DIR)
 	./share/perl/extractDistro.pl all ../MFM ../ULAM $(DEB_COMBINED_ROOT_DIR)
 	./share/perl/installSymlinks.pl `pwd` $(DEB_SYMLINK_BIN_DIR)
