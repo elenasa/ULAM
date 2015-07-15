@@ -510,10 +510,10 @@ namespace MFM {
     UlamValue uv;
     makeTerminalValue(uv, data, nuti);
     //first cast to fit type:
-    m_state.getUlamTypeByIndex(fituti)->cast(uv, fituti);
+    bool fb1 = m_state.getUlamTypeByIndex(fituti)->cast(uv, fituti);
     //2nd cast back to node type:
-    m_state.getUlamTypeByIndex(nuti)->cast(uv, nuti);
-    return uv.getImmediateData();
+    bool fb2 = m_state.getUlamTypeByIndex(nuti)->cast(uv, nuti);
+    return ((fb1 && fb2) ? uv.getImmediateData() : ~data);
   } //convertForthAndBack
 
   u64 NodeTerminal::convertForthAndBackLong(const u64 data, UTI fituti)
@@ -522,10 +522,10 @@ namespace MFM {
     UlamValue uv;
     makeTerminalValueLong(uv, data, nuti);
     //first cast to fit type:
-    m_state.getUlamTypeByIndex(fituti)->cast(uv, fituti);
+    bool fb1 = m_state.getUlamTypeByIndex(fituti)->cast(uv, fituti);
     //2nd cast back to node type:
-    m_state.getUlamTypeByIndex(nuti)->cast(uv, nuti);
-    return uv.getImmediateDataLong();
+    bool fb2 = m_state.getUlamTypeByIndex(nuti)->cast(uv, nuti);
+    return ((fb1 && fb2) ? uv.getImmediateDataLong() : ~data);
   } //convertForthAndBackLong
 
   //used during check and label for bitwise shift op that has a negative constant term

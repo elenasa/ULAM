@@ -8,8 +8,9 @@ namespace MFM {
     {
       /* gencode output:
 	 Unary(3) Arg: 0x3
+	 Unsigned Arg: 12
       */
-      return std::string("Exit status: 3\nUe_A { constant Unsigned(3) b = 5;  System s();  constant Unsigned(3) a = 7;  constant Unary(3) c = 3;  Int(32) test() {  s ( 7u )print . 7u cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 3\nUe_A { constant Unsigned(3) b = 5;  System s();  constant Unsigned(3) a = 7;  constant Unary(3) c = 3;  Unsigned(4) d(12);  Int(32) test() {  d 12u = s ( 7u )print . s ( d cast )print . 7u cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -19,7 +20,7 @@ namespace MFM {
       // try as named constants
       // without explicit cast of (a+b) we get error:
       //./A.ulam:5:11: ERROR: Constant value expression for (c = 7u) is not representable as Unary(3).
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nconstant Unsigned(3) a = 7u; constant Unsigned(3) b = 5u;\n constant Unary(3) c = (Unary(3)) (a + b);\n use test;\n s.print(c);\n return c;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nconstant Unsigned(3) a = 7u; constant Unsigned(3) b = 5u;\n constant Unary(3) c = (Unary(3)) (a + b);\n Unsigned(4) d;\n use test;\n d = a + b;\n s.print(c);\n s.print((Unsigned) d);\n return c;\n }\n }\n");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 
