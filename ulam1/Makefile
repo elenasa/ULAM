@@ -115,7 +115,7 @@ ${info  =>to avoid this message}
 else
 MFM_ROOT_DIR:=$(realpath ../MFM)
 endif
-else
+endif
 #${info Local configuration: MFM_ROOT_DIR=$(MFM_ROOT_DIR)}
 ## This wants to be rethought and refactored!
 COMPONENTNAME:=ulamic
@@ -125,7 +125,6 @@ include $(BASEDIR)/config/Makecommon.mk
 CFLAGS += -I $(BASEDIR)/src/core/include
 CFLAGS += -D ULAM_SHARE_DIR=$(ULAM_SHARE_DIR)
 LIBS := -L $(BASEDIR)/build/core $(LIBS)
-endif
 
 ####
 # Top level rules
