@@ -16,6 +16,7 @@ DEB_SYMLINK_BIN_DIR := $(DESTDIR)/usr/bin
 
 install:	FORCE
 	echo KDKDINSTALL
+	exit 1
 	install -d $(DEB_COMBINED_ROOT_DIR)
 	./share/perl/extractDistro.pl all ../MFM ../ULAM $(DEB_COMBINED_ROOT_DIR)
 	./share/perl/installSymlinks.pl `pwd` $(DEB_SYMLINK_BIN_DIR)
