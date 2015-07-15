@@ -42,13 +42,14 @@ use File::Path qw(make_path remove_tree);
 make_path( $OUTPUT_DIR );
 my $DISTRO_MFM = `readlink -f $OUTPUT_DIR/MFM`;
 my $DISTRO_ULAM = `readlink -f $OUTPUT_DIR/ULAM`;
+my $DISTRO_TOP = `readlink -f $OUTPUT_DIR`;
 
 chomp($DISTRO_MFM);
 chomp($DISTRO_ULAM);
 make_path( $DISTRO_MFM, $DISTRO_ULAM );
 
 my %indirs = ("MFM" => $MFM_TREE, "ULAM" => $ULAM_TREE, "TOP" => "$ULAM_TREE/.." );
-my %outdirs = ("MFM" => $DISTRO_MFM, "ULAM" => $DISTRO_ULAM, "TOP" => "$OUTPUT_DIR" );
+my %outdirs = ("MFM" => $DISTRO_MFM, "ULAM" => $DISTRO_ULAM, "TOP" => $DISTRO_TOP );
 
 for my $c (sort keys %categories) {
     my ($tree, $type, $cmd) = @{$categories{$c}};
@@ -71,7 +72,7 @@ for my $c (sort keys %categories) {
         if ($res eq "") {
             print "OK\n"
         } else {
-            die "FAILED ($ret)\n";
+            die "FAILED ($res)\n";
         }
     }
 }
