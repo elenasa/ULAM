@@ -226,6 +226,8 @@ EOF
     return "";
 }
 
+print "FINISHED: $workDir\n";
+
 # Return home to let temp dir die
 chdir || die "$!";
 
