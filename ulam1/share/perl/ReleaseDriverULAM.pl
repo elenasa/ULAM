@@ -58,9 +58,8 @@ use File::Temp qw/ tempfile tempdir /;
 my $MY_PATH = abs_path($0);
 my $MY_DIR = dirname($MY_PATH);
 
-my $ROOT_DIR = abs_path("$MY_DIR/..");
-my $STATE_DIR = "$ROOT_DIR/state";
-my $CONFIG_DIR = "$ROOT_DIR/config";
+my $STATE_DIR = `readlink -f ~/pbuilder/localState`;
+chomp($STATE_DIR);
 
 my $mfm_version_tag = undef; # Set in step REPO_BUILD
 my $ulam_version_tag = undef; # Set in step REPO_BUILD
@@ -176,64 +175,51 @@ sub SECOND_EXTRACT {
 }
 
 sub DISTRO_BUILD {
-    print "Building distribution tree..";
-    return "XXX FINISH ME";
-}
+    my $distroName = "ulam-$ulam_version_tag";
+    my $tarPath = "$distroName.tgz";
 
+    my $cmd = "bzr dh-make --bzr-only ulam $ulam_version_tag $tarPath >logs/DISTRO_BUILD-dhmake.log 2>&1 || echo \$?";
+    print "Running [$cmd]..";
+    my $ret = `$cmd`;
+    return "[$cmd] failed ($ret)"
+        unless $ret eq "";
+    print "OK\n";
 
-my $ulam_version = "ulam-$bareversion";
+    my $newppaversion = makeLeximited(incrementFileNumber("$STATE_DIR/ulam-ppaversion"));
+    for my $distro (@DISTROS) {
+        print "\n\n------Packaging for $distro------\n";
 
-print "Renaming ULAM to '$ulam_version'..";
-my $rename_output = `mv ULAM $ulam_version`;
-print "done\n";
+        my $changelogdate = `date +"%a, %d %b %Y %T %z"`;
+        chomp($changelogdate);
 
-
-print "Removing Makefile.local.mk before tar..";
-`rm -f ULAM/ulam1/Makefile.local.mk`;
-print "done\n";
-
-print "Making tar file in $ulam_version..";
-my $taroutput = `cd $ulam_version;make -C ulam1 -f Makedebian.mk tar`;
-chomp($taroutput);
-print "done\n";
-
-$cmd = "bzr dh-make --bzr-only ulam $bareversion $ulam_version.tgz 2>&1";
-print "Initting bzr [$cmd]..";
-my $bzroutput = `$cmd`;
-print "done: [$bzroutput]\n";
-
-my $newppaversion = makeLeximited(incrementFileNumber("$STATE_DIR/ppaversion"));
-for my $distro (@DISTROS) {
-    print "\n\n------Packaging for $distro------\n";
-
-    my $changelogdate = `date +"%a, %d %b %Y %T %z"`;
-    chomp($changelogdate);
-
-    my $newdistroversion = makeLeximited(incrementFileNumber("$STATE_DIR/$distro-version"));
-    my $debianversion = "$bareversion-ppa$newppaversion~$distro$newdistroversion";
-    print "Updating debian/changelog for $debianversion..";
-    open(LOG,">ulam/debian/changelog") or die "LOG: $!";
-    print LOG <<EOF;
+        my $newdistroversion = makeLeximited(incrementFileNumber("$STATE_DIR/ulam-$distro-version"));
+        my $debianversion = "$ulam_version_tag-ppa$newppaversion~$distro$newdistroversion";
+        print "Updating debian/changelog for $debianversion..";
+        open(LOG,">ulam/debian/changelog") or die "LOG: $!";
+        print LOG <<EOF;
 ulam ($debianversion) $distro; urgency=low
 
-  * Packaging ulam $bareversion for $distro
+  * Packaging ulam $ulam_version_tag for $distro
 
  -- Dave Ackley <ackley\@ackleyshack.com>  $changelogdate
 EOF
-    close LOG or die "Closing $!";
-    print "done\n";
+        close LOG or die "Closing $!";
+        print "done\n";
 
-    print "Committing in bzr..";
-    my $bzrcommitoutput = `cd ulam;bzr add debian;bzr commit -m "Packaging $bareversion for $distro on $changelogdate" 2>&1`;
-    print "done [$bzrcommitoutput]\n";
+        print "Committing updated debian in bzr..";
+        $cmd = "cd ulam && bzr add debian && bzr commit -m \"Packaging $ulam_version_tag for $distro on $changelogdate\"";
+        $ret = `$cmd >../logs/DISTRO_BUILD-update-debian.log 2>&1 || echo \$?`;
+        return "[$cmd] failed ($ret)"
+            unless $ret eq "";
+        print "OK\n";
 
-    #print "COMMIT($bzrcommitoutput)\n";
-
-    print "Building source package..";
-    my $bzrbuildoutput = `cd ulam;bzr builddeb -S 2>&1`;
-    print "done [$bzrbuildoutput]\n";
-
-    #print "BUILD($bzrbuildoutput)\n";
+        print "Building source package..";
+        $cmd = "cd ulam;bzr builddeb -S";
+        $ret = `$cmd >../logs/DISTRO_BUILD-source-package.log 2>&1 || echo \$?`;
+        return "[$cmd] failed ($ret)"
+            unless $ret eq "";
+    }
+    return "";
 }
 
 # Return home to let temp dir die
