@@ -129,10 +129,23 @@ sub REPO_BUILD {
 
 sub FIRST_EXTRACT {
     print "Extracting files for distribution..";
-    mkdir "extract1" or die "mkdir: $!";
     my $extractPath = "ULAM/ulam1/share/perl/extractDistro.pl";
     my $ret = `$extractPath ULAM/MFM ULAM/ulam1 extract1 || echo \$?`;
     return "First extract build failed ($ret)"
+        unless $ret eq "";
+
+    return "";
+}
+
+sub TREE_BUILD {
+    print "Building extract1 tree..";
+    my $ret;
+    $ret = `cd extract1 && make >../logs/TREE_BUILD.log 2>&1 || echo -n \$?`;
+    return "Tree build failed ($ret)"
+        unless $ret eq "";
+
+    $ret = `rm -r extract1  || echo -n \$?`;
+    return "Tree deletion failed ($ret)"
         unless $ret eq "";
 
     return "";
