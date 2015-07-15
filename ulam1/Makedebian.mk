@@ -14,15 +14,8 @@
 DEB_COMBINED_ROOT_DIR := $(DESTDIR)/usr/lib/ulam/
 DEB_SYMLINK_BIN_DIR := $(DESTDIR)/usr/bin
 
-DEB_ULAM_PROGRAMS_TO_INSTALL += ulam culam
-DEB_ULAM_PROGRAMS_PATHS_TO_INSTALL := $(DEB_ULAM_PROGRAMS_TO_INSTALL:%=../ULAM/bin/%)
-
-DEB_MFM_PROGRAMS_TO_INSTALL += mfms mfzmake mfzrun
-DEB_MFM_PROGRAMS_PATHS_TO_INSTALL := $(DEB_MFM_PROGRAMS_TO_INSTALL:%=../MFM/bin/%)
-
-DEB_MFM_ROOT_DIR := $(DESTDIR)/usr/lib/ulam
-
-install:	FORCE   ${info KDKD//INSTALL}
+install:	FORCE
+	echo KDKDINSTALL
 	mkdir -p $(DEB_COMBINED_ROOT_DIR)
 	./share/perl/extractDistro.pl all ../MFM ../ULAM $(DEB_COMBINED_ROOT_DIR)
 	./share/perl/installSymlinks.pl `pwd` $(DEB_SYMLINK_BIN_DIR)
