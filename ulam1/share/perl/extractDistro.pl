@@ -33,7 +33,8 @@ my %categories = (
     "ULAM_makefiles" =>   ["ULAM", "src", "find Makefile *.mk src -name '[Mm]akefile' -o -name '*.mk'"],
     "ULAM_binaries" =>    ["ULAM", "bin", "find bin -name 'ulam' -o -name 'culam'"],
     "ULAM_shared_files"=> ["ULAM", "src", "find share"],
-    "ULAM_packaging" =>   ["ULAM", "src", "find debian"],
+
+    "ULAM_packaging" =>   ["TOP", "src", "find debian"],
     );
 
 use File::Path qw(make_path remove_tree);
@@ -46,8 +47,8 @@ chomp($DISTRO_MFM);
 chomp($DISTRO_ULAM);
 make_path( $DISTRO_MFM, $DISTRO_ULAM );
 
-my %indirs = ("MFM" => $MFM_TREE, "ULAM" => $ULAM_TREE);
-my %outdirs = ("MFM" => $DISTRO_MFM, "ULAM" => $DISTRO_ULAM);
+my %indirs = ("MFM" => $MFM_TREE, "ULAM" => $ULAM_TREE, "TOP" => "$ULAM_TREE/.." );
+my %outdirs = ("MFM" => $DISTRO_MFM, "ULAM" => $DISTRO_ULAM, "TOP" => $OUTPUT_DIR );
 
 for my $c (sort keys %categories) {
     my ($tree, $type, $cmd) = @{$categories{$c}};
