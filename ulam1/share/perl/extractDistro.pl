@@ -48,7 +48,7 @@ chomp($DISTRO_ULAM);
 make_path( $DISTRO_MFM, $DISTRO_ULAM );
 
 my %indirs = ("MFM" => $MFM_TREE, "ULAM" => $ULAM_TREE, "TOP" => "$ULAM_TREE/.." );
-my %outdirs = ("MFM" => $DISTRO_MFM, "ULAM" => $DISTRO_ULAM, "TOP" => $OUTPUT_DIR );
+my %outdirs = ("MFM" => $DISTRO_MFM, "ULAM" => $DISTRO_ULAM, "TOP" => "../$OUTPUT_DIR" );
 
 for my $c (sort keys %categories) {
     my ($tree, $type, $cmd) = @{$categories{$c}};
@@ -66,7 +66,7 @@ for my $c (sort keys %categories) {
         next if -d $src;
         $src =~ s!^$indir/!! or die "Couldn't find '$indir' at front of '$src'\n";
         my $res = `mkdir -p $outdir && cd $indir;cp --parents $src $outdir && echo -n OK`;
-        die "Copy $src => $outdir failed" unless $res eq "OK";
+        die "Copy $src => $indir/$outdir failed" unless $res eq "OK";
     }
 }
 
