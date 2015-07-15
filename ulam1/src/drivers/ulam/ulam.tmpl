@@ -75,6 +75,8 @@ my $makefilelocal = TryToReadWholeFile($makefilelocalpath);
 if (defined($makefilelocal) &&
     $makefilelocal =~ /^\s*MFM_ROOT_DIR\s*:=\s*([^\s#]+)\s*(#.*)?$/m) {
     $MFM_ROOT_DIR = $1;
+    # Do makefile's substitution by hand here
+    $MFM_ROOT_DIR =~ s/\$\(ULAM_ROOT_DIR\)/$ULAM_ROOT/;
 }
 
 use UlamGen;
