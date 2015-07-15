@@ -165,6 +165,10 @@ sub SECOND_EXTRACT {
     return "Second extract failed ($ret)"
         unless $ret eq "";
 
+    print "Removing Makefile.local.mk..";
+    my $del = "$distroName/ULAM/Makefile.local.mk" ;
+    unlink $del or return "Couldn't unlink $del: $!";
+
     my $tarPath = "$distroName.tgz";
     print "Making $tarPath..";
     $ret = `tar cvfz $tarPath $distroName >logs/SECOND_EXTRACT-tar.log 2>&1 || echo \$?`;
