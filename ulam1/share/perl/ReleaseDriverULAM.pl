@@ -80,7 +80,13 @@ for my $step (sort keys %steps) {
         die "Step $tag failed: $ret\n";
     }
 }
-exit;
+
+print "FINISHED: $workDir\n";
+
+# Return home to let temp dir die
+chdir || die "$!";
+
+exit 0;
 
 sub REPO_CHECK_OUT {
     print "Cloning repo $GIT_URL..";
@@ -225,13 +231,6 @@ EOF
     }
     return "";
 }
-
-print "FINISHED: $workDir\n";
-
-# Return home to let temp dir die
-chdir || die "$!";
-
-exit 0;
 
 sub initFileNumber {
     my $path = shift;
