@@ -66,7 +66,8 @@ for my $c (sort keys %categories) {
 
 `echo "MFM_ROOT_DIR := $DISTRO_MFM" > $DISTRO_ULAM/Makefile.local.mk`;
 `mkdir $DISTRO_ULAM/build`;
-open(MK,">Makefile") or die "opening Makefile: $!";
+my $topmake = "$OUTPUT_DIR/Makefile";
+open(MK,">$topmake") or die "opening $topmake: $!";
 print MK <<EOF;
 all:
 	make -C MFM
@@ -74,4 +75,5 @@ all:
 
 .PHONY:	all
 EOF
-close MK or die "closing Makefile: $!";
+close MK or die "$topmake: $!";
+exit 0;
