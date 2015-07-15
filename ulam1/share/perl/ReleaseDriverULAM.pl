@@ -100,10 +100,11 @@ sub REPO_CHECK_OUT {
 
 sub REPO_BUILD {
     print "Building repos..";
+    mkdir "logs" or die "mkdir: $!";
     my $ret;
-    $ret = `cd ULAM && make && echo \$?`;
-    if ($ret ne "0") {
-        return "Repo build failed";
+    $ret = `cd ULAM && make >../logs/REPO_BUILD.log 2>&1 || echo -n \$?`;
+    if ($ret ne "") {
+        return "Repo build failed ($ret)";
     }
 
     print "Getting version from MFM/..";
@@ -118,8 +119,11 @@ sub REPO_BUILD {
     $ulam_version_tag =~ /^\d+[.]\d+[.]\d+$/ or return "Ulam version not found, got '$ulam_version_tag'";
     print "done: $ulam_version_tag\n";
 
-    print "$ulam_version/ulam1/ULAM_TREEVERSION.mk:".`cat $ulam_version/ulam1/ULAM_TREEVERSION.mk`;
-    print "$ulam_version/MFM/MFM_TREEVERSION.mk:".`cat $ulam_version/MFM/MFM_TREEVERSION.mk`;
+    my $f;
+    $f = "ULAM/ulam1/ULAM_TREEVERSION.mk";
+    if (-r $f) { print `cat $f`; } else { return "Not found '$f'"; }
+    $f = "ULAM/MFM/MFM_TREEVERSION.mk";
+    if (-r $f) { print `cat $f`; } else { return "Not found '$f'"; }
 
     return "";
 }
