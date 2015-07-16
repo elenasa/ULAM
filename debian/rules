@@ -10,3 +10,7 @@ export DH_OPTIONS=-v
 override_dh_install:
 	make install DESTDIR=debian/ulam
 	dh_install
+
+override_dh_links:
+	dh_links
+	make testinstalled DESTDIR=debian/ulam
