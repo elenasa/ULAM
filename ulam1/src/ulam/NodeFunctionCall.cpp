@@ -93,12 +93,14 @@ namespace MFM {
     std::vector<Node *> constArgs;
     u32 constantArgs = 0;
     u32 navArgs = 0;
+    UTI listuti = Nav;
 
     if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
       {
         //use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
-	m_argumentNodes->checkAndLabelType();  //plus side-effect
+	listuti = m_argumentNodes->checkAndLabelType();  //plus side-effect; void return good
+
 	u32 numargs = getNumberOfArguments();
 	for(u32 i = 0; i < numargs; i++)
 	  {
@@ -255,6 +257,14 @@ namespace MFM {
 	      }
 	} //constants
       } // no errors found
+
+    // late, important to do, but not too soon;
+    // o.w. NodeIdents can't find their blocks.
+    if(listuti == Nav)
+      {
+	setNodeType(Nav); //happens when the arg list has incomplete types.
+	it = Nav;
+      }
 
     argTypes.clear();
     constArgs.clear();
