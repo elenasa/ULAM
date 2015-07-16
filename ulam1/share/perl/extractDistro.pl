@@ -1,24 +1,32 @@
 #!/usr/bin/perl -w
 # -*- mode:perl -*-
 
+my $ULAM_VERSION_SUBTREE = "ulam1";
+
 my $content = shift @ARGV;
 defined $content and ($content eq "src" or $content eq "bin" or $content eq "all")
-    or die "Usage: $0 src|bin|all MFM_TREE ULAM_TREE OUTPUT_DIR (bad src|bin|all)\n";
+    or die "Usage: $0 src|bin|all COMBINED_ROOT_DIR OUTPUT_DIR (bad src|bin|all)\n";
 
-my $MFM_TREE = shift @ARGV;
-my $ULAM_TREE = shift @ARGV;
+my $COMBINED_ROOT_DIR = shift @ARGV;
+defined $COMBINED_ROOT_DIR and -d $COMBINED_ROOT_DIR
+    or die "Usage: $0 src|bin|all COMBINED_ROOT_DIR OUTPUT_DIR (bad MFM_TREE)\n";
+$COMBINED_ROOT_DIR =~ s!/$!!;
+
 my $OUTPUT_DIR = shift @ARGV;
-
-$MFM_TREE =~ s!/$!!;
-$ULAM_TREE =~ s!/$!!;
+defined $OUTPUT_DIR and !-e $OUTPUT_DIR
+    or die "Usage: $0 src|bin|all COMBINED_ROOT_DIR OUTPUT_DIR (bad existing OUTPUT_DIR)\n";
 $OUTPUT_DIR =~ s!/$!!;
 
+# The MFM tree shall be at $COMBINED_ROOT_DIR/MFM
+# The ULAM tree shall be at $COMBINED_ROOT_DIR/$ULAM_VERSION_SUBTREE
+
+my $MFM_TREE = "$COMBINED_ROOT_DIR/MFM";
+my $ULAM_TREE = "$COMBINED_ROOT_DIR/$ULAM_VERSION_SUBTREE";
+
 defined $MFM_TREE and -d $MFM_TREE
-    or die "Usage: $0 src|bin|all MFM_TREE ULAM_TREE OUTPUT_DIR (bad MFM_TREE)\n";
+    or die "Usage: $0 src|bin|all COMBINED_ROOT_DIR OUTPUT_DIR (not found '$MFM_TREE')\n";
 defined $ULAM_TREE and -d $ULAM_TREE
-    or die "Usage: $0 src|bin|all MFM_TREE ULAM_TREE OUTPUT_DIR (bad ULAM_TREE)\n";
-defined $OUTPUT_DIR and !-e $OUTPUT_DIR
-    or die "Usage: $0 src|bin|all MFM_TREE ULAM_TREE OUTPUT_DIR (bad existing OUTPUT_DIR)\n";
+    or die "Usage: $0 src|bin|all COMBINED_ROOT_DIR OUTPUT_DIR (not found '$ULAM_TREE')\n";
 
 my %categories = (
     "MFM_source" =>       ["MFM", "src", "find src -name '*.cpp' -o -name '*.tmpl' -o -name '*.src'"],
@@ -43,7 +51,7 @@ use File::Path qw(make_path remove_tree);
 
 make_path( $OUTPUT_DIR );
 my $DISTRO_MFM = `readlink -f $OUTPUT_DIR/MFM`;
-my $DISTRO_ULAM = `readlink -f $OUTPUT_DIR/ULAM`;
+my $DISTRO_ULAM = `readlink -f $OUTPUT_DIR/$ULAM_VERSION_SUBTREE`;
 my $DISTRO_TOP = `readlink -f $OUTPUT_DIR`;
 
 chomp($DISTRO_MFM);
