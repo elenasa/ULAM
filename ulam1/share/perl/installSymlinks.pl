@@ -4,7 +4,7 @@ my $ULAM_LANGUAGE_VERSION = "ulam1";
 
 my $ulamRootDir = shift @ARGV;
 my $symlinkBinDir = shift @ARGV;
-defined $ulamRootDir && defined symlinkBinDir
+defined $ulamRootDir && defined $symlinkBinDir
     or die "Usage: $0 ULAM_ROOT_DIR SYMLINK_BIN_DIR";
 
 my @ulam_programs = ("culam", "ulam");
