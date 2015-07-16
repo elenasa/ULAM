@@ -228,23 +228,21 @@ namespace MFM {
     return rtnB;
   } //setConstantValue
 
-  //minof, maxof use type of lhs, sizeof is always unsigned
+  //minof, maxof use type of lhs, sizeof is just unsigned32
   UTI NodeTerminalProxy::setConstantTypeForNode(Token tok)
   {
-    UTI newType = Nav;  //init
+    UTI newType = Nav; //init
     switch(tok.m_type)
       {
       case TOK_KW_SIZEOF:
 	{
-	  //u32 logsizeof = _getLogBase2(m_constant.uval) + 1;
-	  newType = Unsigned; //m_state.getUlamTypeOfConstant(Unsigned);
+	  newType = Unsigned;
 	}
 	break;
       case TOK_KW_MAXOF:
       case TOK_KW_MINOF:
       {
-	// use sign of the lhs
-	newType = m_uti; //m_state.getDefaultUlamTypeOfConstant(m_uti);
+	newType = m_uti; // use type of the lhs
 	break;
       }
       default:

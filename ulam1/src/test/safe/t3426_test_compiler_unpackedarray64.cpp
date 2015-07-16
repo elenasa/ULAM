@@ -18,7 +18,7 @@ namespace MFM {
 	 Int Arg: -2147483641
 	 Int Arg: -2147483640
       */
-      return std::string("Exit status: 640\nUe_A { typedef Int(64) BigSite[10];  Int(32) test() {  System s;  Int(64) site[10];  { Int(32) i;  i 0 = i 10 < cond { Int(64) k;  k i 2147483647 +b cast = site i [] k = s ( site i [] cast )print . } _1: i 1 += while } 640u cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 640\nUe_A { typedef Int(64) BigSite[10];  Int(32) test() {  System s;  Int(64) site[10];  { Int(32) i;  i 0 cast = i 10 cast < cond { Int(64) k;  k i 2147483647 +b cast = site i [] k = s ( site i [] cast )print . } _1: i 1 cast += while } 640u cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

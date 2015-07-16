@@ -9,7 +9,7 @@ namespace MFM {
       /* gen code output:
 	 Int(4) Arg: 0x7
       */
-      return std::string("Exit status: 7\nUe_Foo { System s();  Int(4) m_i(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 )check = m_i m_bar ( )toInt . cast cast = s ( m_i )print . m_i cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,true,true);  <NOMAIN> }\n");
+      return std::string("Exit status: 7\nUe_Foo { System s();  Int(4) m_i(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 cast )check = m_i m_bar ( )toInt . cast cast = s ( m_i )print . m_i cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) val_b[3](false,true,true);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

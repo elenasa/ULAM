@@ -47,7 +47,9 @@ namespace MFM{
   public:
 
     NodeBinaryOp(Node * left, Node * right, CompilerState & state);
+
     NodeBinaryOp(const NodeBinaryOp& ref);
+
     virtual ~NodeBinaryOp();
 
     virtual void updateLineage(NNO pno);
@@ -88,27 +90,25 @@ namespace MFM{
     Node * m_nodeLeft;
     Node * m_nodeRight;
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots) = 0;
-
-    virtual void doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots);
-    virtual void doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots) = 0;
+    virtual bool doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
 
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len) = 0;
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len) = 0;
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len) = 0;
 
     virtual UTI calcNodeType(UTI lt, UTI rt) = 0;
+    virtual s32 resultBitsize(UTI lt, UTI rt); //op specific
+    void resultBitsizeCalc(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize);
+    void resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize);
+    virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
     //common helpers for calcNodeType:
     bool checkSafeToCastTo(UTI newType);
     bool checkForPrimitiveTypes(UTI lt, UTI rt);
     bool checkNotVoidTypes(UTI lt, UTI rt);
     bool checkForNumericTypes(UTI lt, UTI rt);
     bool checkScalarTypesOnly(UTI lt, UTI rt);
-    s32 maxBitsize(UTI lt, UTI rt);
-
-    bool fixMixedSignsOfVariableWithConstantToVariableType(UTI lt, UTI rt, UTI& newType); //helper
-    bool fixMixedSignsOfVariableWithConstantToVariableType(ULAMTYPE ltypEnum, ULAMTYPE rtypEnum, UTI& newType);
-
   };
 
 }

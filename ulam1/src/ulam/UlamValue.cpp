@@ -9,7 +9,6 @@ namespace MFM {
 
   UlamValue::UlamValue()
   {
-    //m_uv.m_storage.m_atom.Clear(); //default type is Nav == 0
     clear(); //default type is Nav == 0
   }
 
@@ -47,8 +46,7 @@ namespace MFM {
 
   UlamValue UlamValue::makeAtom()
   {
-    UlamValue rtnVal;   //static
-    //rtnVal.m_uv.m_storage.m_atom.Clear();
+    UlamValue rtnVal; //static
     rtnVal.clear();
     rtnVal.setAtomElementTypeIdx(UAtom);
     return rtnVal;
@@ -63,7 +61,7 @@ namespace MFM {
 
   UlamValue UlamValue::makeImmediate(UTI utype, u32 v, s32 len)
   {
-    UlamValue rtnVal;             //static
+    UlamValue rtnVal; //static
     assert(len <= MAXBITSPERINT && (s32) len >= 0); //very important!
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
@@ -80,11 +78,11 @@ namespace MFM {
 
   UlamValue UlamValue::makeImmediateLong(UTI utype, u64 v, s32 len)
   {
-    UlamValue rtnVal;             //static
+    UlamValue rtnVal; //static
     assert(len <=MAXBITSPERLONG && (s32) len >= 0); //very important!
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
-    rtnVal.putDataLong(BITSPERATOM - len, len, v); //starts from end, for 32 bit boundary case
+    rtnVal.putDataLong(BITSPERATOM - len, len, v); //starts from end for 32-bit boundary case
     return rtnVal;
   } //makeImmediateLong overloaded
 
@@ -174,7 +172,6 @@ namespace MFM {
   void UlamValue::setAtomElementTypeIdx(UTI utype)
   {
     putData(0, 16, utype);
-    //m_uv.m_rawAtom.m_utypeIdx = utype;
   }
 
   // for iterating an entire array see CompilerState::assignArrayValues
@@ -197,11 +194,11 @@ namespace MFM {
 	return UlamValue::makeImmediate(caType, 0, state); //quietly skip for now XXX
       }
 
-    assert(state.getArraySize(auti) >= 0);   //allow zero length arrays ?
+    assert(state.getArraySize(auti) >= 0); //allow zero length arrays
 
     UlamValue scalarPtr = UlamValue::makeScalarPtr(*this, state);
 
-    assert(scalarPtr.incrementPtr(state, offset));   //incr appropriately by packed-ness
+    assert(scalarPtr.incrementPtr(state, offset)); //incr appropriately by packed-ness
     UlamValue atval = state.getPtrTarget(scalarPtr);
 
     // redo what getPtrTarget use to do, when types didn't match due to
@@ -421,7 +418,7 @@ namespace MFM {
   u32 UlamValue::getDataFromAtom(u32 pos, s32 len) const
   {
     assert(len >= 0);
-    //assert(getUlamValueTypeIdx() == Atom); ///not an atom, element?
+    ///if not an atom, element
     return getData(pos,len);
   }
 
@@ -462,7 +459,7 @@ namespace MFM {
   u64 UlamValue::getDataLongFromAtom(u32 pos, s32 len) const
   {
     assert(len >= 0);
-    //assert(getUlamValueTypeIdx() == Atom); ///not an atom, element?
+    ///if not an atom, element
     return getDataLong(pos,len);
   }
 
@@ -602,8 +599,6 @@ namespace MFM {
   {
     assert(len >= 0);
     AtomBitVector a(m_uv.m_storage.m_atom); //copy
-
-    //return m_uv.m_storage.m_atom.Read(pos, len);
     return a.Read(pos, len);
   } //getData
 
@@ -611,8 +606,6 @@ namespace MFM {
   {
     assert(len >= 0);
     AtomBitVector a(m_uv.m_storage.m_atom); //copy
-
-    //return m_uv.m_storage.m_atom.Read(pos, len);
     return a.ReadLong(pos, len);
   } //getData
 
@@ -620,8 +613,6 @@ namespace MFM {
   {
     assert(len >= 0);
     AtomBitVector a(m_uv.m_storage.m_atom); //copy
-
-    //m_uv.m_storage.m_atom.Write(pos, len, data);
     a.Write(pos, len, data);
     a.ToArray(m_uv.m_storage.m_atom);
   } //putData
@@ -631,8 +622,6 @@ namespace MFM {
     assert(len >= 0);
     assert(pos + len <= BITSPERATOM);
     AtomBitVector a(m_uv.m_storage.m_atom); //copy
-
-    //m_uv.m_storage.m_atom.Write(pos, len, data);
     a.WriteLong(pos, len, data);
     a.ToArray(m_uv.m_storage.m_atom);
   } //putData
@@ -643,7 +632,6 @@ namespace MFM {
       {
 	m_uv.m_storage.m_atom[i] = rhs.m_uv.m_storage.m_atom[i];
       }
-    //m_uv.m_storage.m_atom = rhs.m_uv.m_storage.m_atom;
     return *this;
   } //op=
 
@@ -659,7 +647,6 @@ namespace MFM {
 	  }
       }
     return allTheSame;
-    //return m_uv.m_storage.m_atom == rhs.m_uv.m_storage.m_atom;
   } //op==
 
   void UlamValue::genCodeBitField(File * fp, CompilerState& state)

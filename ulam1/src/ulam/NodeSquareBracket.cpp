@@ -53,9 +53,17 @@ namespace MFM {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
 	bool isCustomArray = lut->isCustomArray();
 
-	if(m_state.isScalar(leftType))
+	if(lut->isScalar())
 	  {
-	    if(!isCustomArray)
+	    if(lut->isHolder())
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		msg << " used with " << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		errorCount++;
+	      }
+	    else if(!isCustomArray)
 	      {
 		std::ostringstream msg;
 		msg << "Invalid Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
@@ -176,6 +184,7 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
+
     // constant expression only required for array declaration
     s32 arraysize = m_state.getArraySize(ltype);
     u32 offsetdata = offset.getImmediateData(m_state);
@@ -195,6 +204,7 @@ namespace MFM {
 	evalNodeEpilog();
 	return ERROR;
       }
+
     assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
     evalNodeEpilog();
     return NORMAL;
@@ -228,6 +238,7 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
+
     // constant expression only required for array declaration
     u32 offsetdata = offset.getImmediateData(m_state);
     s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
@@ -279,10 +290,14 @@ namespace MFM {
 	    evs = ERROR;
 	  }
       }
-
     evalNodeEpilog();
     return evs;
   } //evalToStoreInto
+
+  bool NodeSquareBracket::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  {
+    return false;
+  }
 
   UlamValue NodeSquareBracket::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
@@ -367,7 +382,7 @@ namespace MFM {
     return true;
   }
 
-  // eval() performed even before check and label!
+  // eval() no longer performed before check and label
   // returns false if error; UNKNOWNSIZE is not an error!
   bool NodeSquareBracket::getArraysizeInBracket(s32 & rtnArraySize)
   {
@@ -375,6 +390,12 @@ namespace MFM {
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
+    if(sizetype == Nav)
+      {
+	rtnArraySize = UNKNOWNSIZE;
+	return true;
+      }
+
     UlamType * sizeut = m_state.getUlamTypeByIndex(sizetype);
 
     // expects a constant, numeric type within []
@@ -385,7 +406,6 @@ namespace MFM {
 	if(m_nodeRight->eval() == NORMAL)
 	  {
 	    UlamValue arrayUV = m_state.m_nodeEvalStack.popArg();
-
 	    u32 arraysizedata = arrayUV.getImmediateData(m_state);
 	    newarraysize = sizeut->getDataAsCs32(arraysizedata);
 	    if(newarraysize < 0 && newarraysize != UNKNOWNSIZE) //NONARRAY or UNKNOWN
@@ -394,11 +414,11 @@ namespace MFM {
 		    "Array size specifier in [] is not a positive number", ERR);
 		noerr = false;
 	      }
+	    //else unknown is not an error
 	  }
-	else
-	  {
-	    newarraysize = UNKNOWNSIZE; //still true
-	  }
+	else //newarraysize = UNKNOWNSIZE; //still true
+	  noerr = false;
+
 	evalNodeEpilog();
       }
     else

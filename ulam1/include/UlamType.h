@@ -97,11 +97,15 @@ namespace MFM{
 
     virtual u64 getDataAsCu64(const u64 data);
 
+    virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
+
     virtual ULAMCLASSTYPE getUlamClass();
 
     virtual ULAMTYPE getUlamTypeEnum() = 0;
 
     virtual bool isNumericType();
+
+    virtual bool isPrimitiveType();
 
     virtual const std::string getUlamTypeAsStringForC();
 

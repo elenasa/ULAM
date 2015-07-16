@@ -9,7 +9,7 @@ namespace MFM {
       /* gen code output:
 	 Int Arg: -18
       */
-      return std::string("Exit status: -18\nUe_A { Bool(7) b(false);  System s();  Int(32) bar(-18);  Int(32) test() {  bar -18 = Int(32) ar;  ar bar - - = s ( bar )print . bar + return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: -18\nUe_A { Bool(7) b(false);  System s();  Int(32) bar(-18);  Int(32) test() {  bar -18 cast = Int(32) ar;  ar bar - - = s ( bar )print . bar + return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

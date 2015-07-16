@@ -52,6 +52,8 @@ namespace MFM{
 
     virtual ULAMTYPE getUlamTypeEnum();
 
+    virtual bool isPrimitiveType();
+
     virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual bool isMinMaxAllowed();
@@ -71,6 +73,8 @@ namespace MFM{
     virtual s64 getDataAsCs64(const u64 data);
 
     virtual u64 getDataAsCu64(const u64 data);
+
+    virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
 
   private:
 

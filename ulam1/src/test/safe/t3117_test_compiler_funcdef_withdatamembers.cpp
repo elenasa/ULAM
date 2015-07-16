@@ -7,12 +7,9 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       /* gen code output:
-	 Int(4) Arg: 0x7
+	 Int Arg: 9
       */
-      // before new saturation answer:
-      //Exit status: 9\nUe_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  a 4 cast = b 5 cast = s ( a cast b cast +b )print . a cast b cast +b return } }\nUq_System { <NOMAIN> }
-
-      return std::string("Exit status: 7\nUe_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  a 4 cast = b 5 cast = s ( a b +b )print . a b +b cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 9\nUe_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  a 4 = b 5 = s ( a cast b cast +b cast )print . a cast b cast +b cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

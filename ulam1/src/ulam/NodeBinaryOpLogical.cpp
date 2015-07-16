@@ -11,9 +11,10 @@ namespace MFM {
   NodeBinaryOpLogical::~NodeBinaryOpLogical()  {}
 
   // not used for logical op
-  void NodeBinaryOpLogical::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpLogical::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(0);
+    return false;
   } //dobinaryoperation
 
   UTI NodeBinaryOpLogical::calcNodeType(UTI lt, UTI rt)  //logical

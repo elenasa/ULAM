@@ -15,7 +15,7 @@ namespace MFM {
 	 Int Arg: 5
        */
       // constant folded: 3 1 +b, and 2 4 *,
-      return std::string("Exit status: 5\nUe_A { Bool(1) b(true);  System s();  Unary(6) sp(0);  Int(32) j(5);  Int(32) i(5);  Int(32) test() {  j 4 = s ( j )print . { j j 1 +b = s ( j )print . Int(32) j;  j 8 = s ( j )print . b j 8 == = s ( b )assert . } i j = s ( i )print . j return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 5\nUe_A { Bool(1) b(true);  System s();  Unary(6) sp(0);  Int(32) j(5);  Int(32) i(5);  Int(32) test() {  j 4 cast = s ( j )print . { j j 1 cast +b = s ( j )print . Int(32) j;  j 8 cast = s ( j )print . b j 8 cast == = s ( b )assert . } i j = s ( i )print . j return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

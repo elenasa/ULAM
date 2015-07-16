@@ -4,6 +4,7 @@
 namespace MFM {
 
   NodeBinaryOpArithRemainder::NodeBinaryOpArithRemainder(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
+
   NodeBinaryOpArithRemainder::NodeBinaryOpArithRemainder(const NodeBinaryOpArithRemainder& ref) : NodeBinaryOpArith(ref) {}
 
   NodeBinaryOpArithRemainder::~NodeBinaryOpArithRemainder(){}
@@ -18,12 +19,52 @@ namespace MFM {
     return "%";
   }
 
-
   const std::string NodeBinaryOpArithRemainder::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  UTI NodeBinaryOpArithRemainder::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
+  {
+    UTI nuti = newType;
+    //because the result bitsize for mod should be the right bitsize
+    // create a cast! combining newType's base type and right resultbitsize.
+    // could be the same, or "unsafe".
+    if(newType != Nav && m_state.isComplete(newType))
+      {
+	UlamType * newut = m_state.getUlamTypeByIndex(newType);
+	ULAMTYPE typEnum = newut->getUlamTypeEnum();
+	u32 convertSize = m_state.getUlamTypeByIndex(rt)->bitsizeToConvertTypeTo(typEnum);
+	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
+	UlamKeyTypeSignature tokey(enumStrIdx, convertSize, NONARRAYSIZE);
+	nuti = m_state.makeUlamType(tokey, typEnum);
+
+	if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
+	  {
+	    NNO pno = Node::getYourParentNo(); //save
+	    assert(pno);
+	      //not using use makeCastingNode since don't want recursive c&l call
+	    Node * castNode = new NodeCast(this, nuti, NULL, m_state);
+	    assert(castNode);
+	    castNode->setNodeLocation(getNodeLocation());
+
+	    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+	    assert(parentNode);
+	    assert(parentNode->exchangeKids(this, castNode));
+
+	    std::ostringstream msg;
+	    msg << "Exchanged kids! of parent of binary operator" << getName();
+	    msg << ", with a cast to type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    castNode->setYourParentNo(pno); //inverts normal update lineage
+	    setYourParentNo(castNode->getNodeNo());
+	  }
+	}
+    return nuti;
+  } //castThyselfToResultType
 
   const std::string NodeBinaryOpArithRemainder::methodNameForCodeGen()
   {
@@ -31,7 +72,6 @@ namespace MFM {
     methodname << "_BinOpMod" << NodeBinaryOpArith::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UlamValue NodeBinaryOpArithRemainder::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {

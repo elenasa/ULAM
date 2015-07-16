@@ -52,26 +52,27 @@ namespace MFM {
   // and the other isn't; however, currently, according to
   // CompilerState determinePackable, they should always be the same
   // since their types must be identical.
-  void NodeBinaryOpShift::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpShift::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     UTI nuti = getNodeType();
     if(m_state.isScalar(nuti)) //not an array
       {
-	doBinaryOperationImmediate(lslot, rslot, slots);
+	return doBinaryOperationImmediate(lslot, rslot, slots);
       }
     else
       { //array
 	// leverage case when both are packed, for shift operations
 	if(m_state.determinePackable(nuti) == PACKEDLOADABLE)
 	  {
-	    doBinaryOperationImmediate(lslot, rslot, slots);
+	    return doBinaryOperationImmediate(lslot, rslot, slots);
 	  }
 	else
 	  {
-	    doBinaryOperationArray(lslot, rslot, slots);
+	    return doBinaryOperationArray(lslot, rslot, slots);
 	  }
       }
+    return false;
   } //dobinaryoperation
 
   UTI NodeBinaryOpShift::calcNodeType(UTI lt, UTI rt)
@@ -90,7 +91,7 @@ namespace MFM {
       {
 	bool bok = true;
 
-	s32 lbs = NodeBinaryOp::maxBitsize(lt,lt); //in case of quark
+	s32 lbs = resultBitsize(lt, rt);
 	//auto cast to Bits, a downhill cast. use LHS bitsize.
 	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Bits"), lbs);
 	newType = m_state.makeUlamType(newkey, Bits);

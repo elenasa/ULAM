@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpArithMultiply::NodeBinaryOpArithMultiply(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
+
   NodeBinaryOpArithMultiply::NodeBinaryOpArithMultiply(const NodeBinaryOpArithMultiply& ref) : NodeBinaryOpArith(ref) {}
+
   NodeBinaryOpArithMultiply::~NodeBinaryOpArithMultiply() {}
 
   Node * NodeBinaryOpArithMultiply::instantiate()
@@ -17,12 +19,19 @@ namespace MFM {
     return "*";
   }
 
-
   const std::string NodeBinaryOpArithMultiply::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  s32 NodeBinaryOpArithMultiply::resultBitsize(UTI lt, UTI rt)
+  {
+    s32 lbs = UNKNOWNSIZE, rbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+    NodeBinaryOp::resultBitsizeCalc(lt, rt, lbs, rbs, wordsize);
+
+    s32 maxbs = lbs + rbs; //for multiplication/
+    return (maxbs >= wordsize ? wordsize : maxbs);
+  } //resultBitsize
 
   const std::string NodeBinaryOpArithMultiply::methodNameForCodeGen()
   {
@@ -30,7 +39,6 @@ namespace MFM {
     methodname << "_BinOpMultiply" << NodeBinaryOpArith::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UlamValue NodeBinaryOpArithMultiply::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {

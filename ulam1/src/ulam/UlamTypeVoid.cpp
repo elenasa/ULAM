@@ -15,6 +15,11 @@ namespace MFM {
      return Void;
    }
 
+  bool UlamTypeVoid::isPrimitiveType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeVoid::getUlamTypeAsStringForC()
   {
     return "void";
@@ -113,5 +118,29 @@ namespace MFM {
       };
     return brtn ? CAST_CLEAR : CAST_BAD;
   } //safeCast
+
+  s32 UlamTypeVoid::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  {
+    u32 tobitsize = UNKNOWNSIZE;
+    switch(tobUT)
+      {
+      case Bool:
+      case Unsigned:
+      case Unary:
+      case Int:
+      case Bits:
+	break;
+      case Void:
+	tobitsize = 0;
+	break;
+      case UAtom:
+      case Class:
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeVoid (convertTo) error! " << tobUT << std::endl;
+      };
+    return tobitsize;
+  } //bitsizeToConvertTypeTo
 
 } //end MFM

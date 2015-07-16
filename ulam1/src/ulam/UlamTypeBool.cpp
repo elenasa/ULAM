@@ -37,6 +37,11 @@ namespace MFM {
      return Bool;
    }
 
+  bool UlamTypeBool::isPrimitiveType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeBool::getUlamTypeVDAsStringForC()
   {
     return "VD::BOOL";
@@ -189,10 +194,10 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
-    s32 valbitsize = m_state.getBitSize(typidx);
-
     bool brtn = true;
-    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    s32 valbitsize = vut->getBitSize();
+    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case Bool:
@@ -228,48 +233,32 @@ namespace MFM {
 
   void UlamTypeBool::getDataAsString(const u32 data, char * valstr, char prefix)
   {
-    bool dataAsBool = false;
     if(!isComplete())
-      {
-	sprintf(valstr,"%s", "unknown");
-      }
+      sprintf(valstr,"%s", "unknown");
     else
       {
-	s32 bitsize = getBitSize();
-	s32 count1s = PopCount(data);
+	bool dataAsBool = _Bool32ToCbool(data, getBitSize());
 
-	// == when even number bits is ignored (warning at def)
-	if(count1s > (s32) (bitsize - count1s))
-	  dataAsBool = true;
+	if(prefix == 'z')
+	  sprintf(valstr,"%s", dataAsBool ? "true" : "false");
+	else
+	  sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
       }
-
-    if(prefix == 'z')
-      sprintf(valstr,"%s", dataAsBool ? "true" : "false");
-    else
-      sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   } //getDataAsString
 
   void UlamTypeBool::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
-    bool dataAsBool = false;
     if(!isComplete())
-      {
-	sprintf(valstr,"%s", "unknown");
-      }
+      sprintf(valstr,"%s", "unknown");
     else
       {
-	s32 bitsize = getBitSize();
-	s32 count1s = PopCount(data);
+	bool dataAsBool = _Bool64ToCbool(data, getBitSize());
 
-	// == when even number bits is ignored (warning at def)
-	if(count1s > (s64) (bitsize - count1s))
-	  dataAsBool = true;
+	if(prefix == 'z')
+	  sprintf(valstr,"%s", dataAsBool ? "true" : "false");
+	else
+	  sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
       }
-
-    if(prefix == 'z')
-      sprintf(valstr,"%s", dataAsBool ? "true" : "false");
-    else
-      sprintf(valstr,"%c%s", prefix, dataAsBool ? "true" : "false");
   } //getDataLongAsString
 
   s32 UlamTypeBool::getDataAsCs32(const u32 data)
@@ -299,5 +288,35 @@ namespace MFM {
     return rtnMethod.str();
   } //getCovertToCBoolMethod
 
+  s32 UlamTypeBool::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  {
+    s32 bitsize = getBitSize();
+    s32 tobitsize = UNKNOWNSIZE;
+    s32 wordsize = getTotalWordSize();
+    switch(tobUT)
+      {
+      case Bool:
+      case Unsigned:
+      case Unary:
+	tobitsize = 1;
+	break;
+      case Int:
+	tobitsize = 2;
+	break;
+      case Bits:
+	tobitsize = bitsize; //self
+	break;
+      case Void:
+	tobitsize = 0;
+	break;
+      case UAtom:
+      case Class:
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeInt (convertTo) error! " << tobUT << std::endl;
+      };
+    return (tobitsize > wordsize ? wordsize : tobitsize);
+  } //bitsizeToConvertTypeTo
 
 } //end MFM
