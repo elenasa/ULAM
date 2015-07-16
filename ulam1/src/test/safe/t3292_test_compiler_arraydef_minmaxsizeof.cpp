@@ -10,7 +10,7 @@ namespace MFM {
 	 Unsigned Arg: 9
       */
 
-      return std::string("Exit status: 0\nUe_B { System s();  Int(32) test() {  Int(3) arr[3];  s ( 9u cast )print . 0 return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_B { System s();  Int(32) test() {  Int(3) arr[3];  s ( 9u cast )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

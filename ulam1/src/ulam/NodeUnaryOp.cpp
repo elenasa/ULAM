@@ -165,7 +165,7 @@ namespace MFM {
     return rtnOK;
   } //checkSafeToCastTo
 
-  s32 NodeUnaryOp::maxBitsize(UTI uti)
+  s32 NodeUnaryOp::resultBitsize(UTI uti)
   {
     s32 newbs = m_state.getBitSize(uti);
     ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(uti)->getUlamClass();
@@ -174,13 +174,12 @@ namespace MFM {
       newbs = MAXBITSPERINT; //32
 
     return newbs;
-  } //maxBitsize
+  } //resultBitsize
 
   //no atoms, elements as operand
   bool NodeUnaryOp::checkForPrimitiveType(UTI uti)
   {
-    ULAMCLASSTYPE uclass = m_state.getUlamTypeByIndex(uti)->getUlamClass();
-    if(uclass == UC_ELEMENT || uti == UAtom)
+    if(!m_state.getUlamTypeByIndex(uti)->isPrimitiveType())
       {
 	std::ostringstream msg;
 	msg << "Non-primitive type <";
@@ -233,7 +232,7 @@ namespace MFM {
 
   UTI NodeUnaryOp::constantFold()
   {
-    u64 val = 0;
+    u64 val = U64_MAX;
     UTI nuti = getNodeType();
 
     if(nuti == Nav) return Nav; //nothing to do yet
@@ -314,18 +313,19 @@ namespace MFM {
     EvalStatus evs = m_node->eval();
 
     if(evs == NORMAL)
-      doUnaryOperation(1,slots);
+      if(!doUnaryOperation(1,slots))
+	evs = ERROR;
 
     evalNodeEpilog();
     return evs;
   } //eval
 
-  void NodeUnaryOp::doUnaryOperation(s32 slot, u32 nslots)
+  bool NodeUnaryOp::doUnaryOperation(s32 slot, u32 nslots)
   {
     UTI nuti = getNodeType();
     if(m_state.isScalar(nuti))  //not an array
       {
-	doUnaryOperationImmediate(slot, nslots);
+	return doUnaryOperationImmediate(slot, nslots);
       }
     else
       {
@@ -336,19 +336,25 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str() << ">";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-  } //end dobinaryop
+    return false;
+  } //dobinaryop
 
-  void NodeUnaryOp::doUnaryOperationImmediate(s32 slot, u32 nslots)
+  bool NodeUnaryOp::doUnaryOperationImmediate(s32 slot, u32 nslots)
   {
     assert(nslots == 1);
     UTI nuti = getNodeType();
     u32 len = m_state.getTotalBitSize(nuti);
 
     UlamValue uv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
+
+    if(uv.getUlamValueTypeIdx() == Nav || nuti == Nav)
+      return false;
+
     u32 data = uv.getImmediateData(len);
     UlamValue rtnUV = makeImmediateUnaryOp(nuti, data, len);
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
-  } //end dounaryopImmediate
+    return true;
+  } //dounaryopImmediate
 
   void NodeUnaryOp::genCode(File * fp, UlamValue& uvpass)
   {

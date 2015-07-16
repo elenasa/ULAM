@@ -9,7 +9,7 @@ namespace MFM {
     {
       //Constants have explicit types
       //note: in eval, last case, uninitialized atom case is wrong!!
-      return std::string("Exit status: 0\nUe_T { S(1,2) m( constant Int(32) x = 1;  constant Int(32) y = 2; );  Int(32) test() {  m ( )func . 0 return } }\nUq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_T { S(1,2) m( constant Int(32) x = 1;  constant Int(32) y = 2; );  Int(32) test() {  m ( )func . 0 cast return } }\nUq_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

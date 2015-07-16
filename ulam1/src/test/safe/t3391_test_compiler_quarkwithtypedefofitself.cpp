@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 0\nUe_ElTypo { Typo t( typedef Typo Self; );  Int(32) test() {  0 return } }\nUq_Typo { typedef Typo Self;  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_ElTypo { Typo t( typedef Typo Self; );  Int(32) test() {  0 cast return } }\nUq_Typo { typedef Typo Self;  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

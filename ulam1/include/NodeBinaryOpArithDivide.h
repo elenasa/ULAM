@@ -46,7 +46,9 @@ namespace MFM{
   public:
 
     NodeBinaryOpArithDivide(Node * left, Node * right, CompilerState & state);
+
     NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& ref);
+
     virtual ~NodeBinaryOpArithDivide();
 
     virtual Node * instantiate();
@@ -59,12 +61,16 @@ namespace MFM{
 
   protected:
 
+    virtual UTI castThyselfToResultType(UTI rt, UTI lt, UTI newType);
+
     virtual UlamValue makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len);
+
     virtual UlamValue makeImmediateLongBinaryOp(UTI type, u64 ldata, u64 rdata, u32 len);
+
     virtual void appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len);
 
   };
 
 }
 
-#endif //end NODEBINARYOPARITHDIVIDE_H
+#endif //NODEBINARYOPARITHDIVIDE_H

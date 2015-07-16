@@ -11,7 +11,7 @@ namespace MFM {
 	 Int(4) Arg: 0x7
 	 Int(4) Arg: 0x6
        */
-      return std::string("Exit status: 6\nUe_Foo { System s();  Int(4) m_i(0);  Int(32) test() {  Foo f;  f m_i . 7 cast = s ( f m_i . )print . s ( f m_i . 1 cast += )print . s ( f m_i . 1 cast -= )print . f m_i . cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 6\nUe_Foo { System s();  Int(4) m_i(0);  Int(32) test() {  Foo f;  f m_i . 7 = s ( f m_i . )print . s ( f m_i . 1 cast += )print . s ( f m_i . 1 cast -= )print . f m_i . cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -10,7 +10,7 @@ namespace MFM {
 	 Int Arg: 7
        */
       //constant fold: j 1 2 3 * +b = s
-      return std::string("Exit status: 7\nUe_A { Bool(7) b(false);  System s();  Int(32) j(7);  Int(32) test() {  j 7 = s ( j )print . j return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 7\nUe_A { Bool(7) b(false);  System s();  Int(32) j(7);  Int(32) test() {  j 7 cast = s ( j )print . j return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

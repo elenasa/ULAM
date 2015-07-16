@@ -59,21 +59,21 @@ namespace MFM {
   bool UlamType::cast(UlamValue & val, UTI typidx)
   {
     assert(0);
-    //std::cerr << "UlamTypeClass (cast) error! " << std::endl;
+    //std::cerr << "UlamType (cast) error! " << std::endl;
     return false;
   }
 
   bool UlamType::castTo32(UlamValue & val, UTI typidx)
   {
     assert(0);
-    //std::cerr << "UlamTypeClass (cast) error! " << std::endl;
+    //std::cerr << "UlamType (cast) error! " << std::endl;
     return false;
   }
 
   bool UlamType::castTo64(UlamValue & val, UTI typidx)
   {
     assert(0);
-    //std::cerr << "UlamTypeClass (cast) error! " << std::endl;
+    //std::cerr << "UlamType (cast) error! " << std::endl;
     return false;
   }
 
@@ -176,12 +176,22 @@ namespace MFM {
     return data;
   }
 
+  s32 UlamType::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  {
+    return UNKNOWNSIZE; //atom, class, nav, ptr, holder
+  }
+
   ULAMCLASSTYPE UlamType::getUlamClass()
   {
     return UC_NOTACLASS;
   }
 
   bool UlamType::isNumericType()
+  {
+    return false;
+  }
+
+  bool UlamType::isPrimitiveType()
   {
     return false;
   }

@@ -43,6 +43,11 @@ namespace MFM {
     return true;
   }
 
+  bool UlamTypeInt::isPrimitiveType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeInt::getUlamTypeVDAsStringForC()
   {
     return "VD::S32";
@@ -188,11 +193,10 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
-    s32 bitsize = getBitSize();
-    s32 valbitsize = m_state.getBitSize(typidx);
-
     bool brtn = true;
     UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    s32 valbitsize = m_state.getBitSize(typidx);
+    s32 bitsize = getBitSize();
     ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
     switch(valtypEnum)
       {
@@ -214,22 +218,17 @@ namespace MFM {
       case Class:
 	{
 	  //must be Quark! treat as Int if it has a toInt method
-	  if(vut->getUlamClass() == UC_QUARK)
-	    {
-	      if(m_state.quarkHasAToIntMethod(typidx))
-		brtn = (bitsize >= MAXBITSPERINT);
-	      else
-		{
-		  std::ostringstream msg;
-		  msg << "Quark: ";
-		  msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
-		  msg << " 'toInt' method not found";
-		  MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
-		  brtn = false;
-		}
-	    }
+	  if(vut->isNumericType())
+	    brtn = (bitsize >= MAXBITSPERINT);
 	  else
-	    brtn = false;
+	    {
+	      std::ostringstream msg;
+	      msg << "Class: ";
+	      msg << m_state.getUlamTypeNameBriefByIndex(typidx).c_str();
+	      msg << " is not a numeric type and cannot be safely cast to an Int";
+	      MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
+	      brtn = false;
+	    }
 	}
 	break;
       default:
@@ -281,5 +280,38 @@ namespace MFM {
     u64 cdata = _Int64ToUnsigned64(data, (u32) bitsize, (u32) bitsize);
     return _Unsigned64ToCu64(cdata, (u32) bitsize);
   }
+
+  s32 UlamTypeInt::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  {
+    s32 bitsize = getBitSize();
+    s32 tobitsize = UNKNOWNSIZE;
+    s32 wordsize = getTotalWordSize();
+    switch(tobUT)
+      {
+      case Unsigned:
+	tobitsize = bitsize; //unsafe
+	break;
+      case Unary:
+	tobitsize = getMax();
+	break;
+      case Bool:
+	tobitsize = 1;
+	break;
+      case Int:
+      case Bits:
+	tobitsize = bitsize; //self
+	break;
+      case Void:
+	tobitsize = 0;
+	break;
+      case UAtom:
+      case Class:
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeInt (convertTo) error! " << tobUT << std::endl;
+      };
+    return (tobitsize > wordsize ? wordsize : tobitsize);
+  } //bitsizeToConvertTypeTo
 
 } //end MFM

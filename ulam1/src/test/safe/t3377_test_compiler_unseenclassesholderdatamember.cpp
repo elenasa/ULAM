@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUq_A { /* empty class block */ }Ue_F { Bool(3) f[2](true,false);  Int(32) test() {  f 0 [] true cast = f 0 [] cond f 0 [] cast return if 0 return } }\nUe_E { typedef Bool(3) X;  <NOMAIN> }\nUe_D { typedef Bool(3) X;  <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUq_A { /* empty class block */ }Ue_F { Bool(3) f[2](true,false);  Int(32) test() {  f 0 [] true cast = f 0 [] cond f 0 [] cast return if 0 cast return } }\nUe_E { typedef Bool(3) X;  <NOMAIN> }\nUe_D { typedef Bool(3) X;  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -32,17 +32,18 @@ namespace MFM {
     return methodname.str();
   } //methodNameForCodeGen
 
-  void NodeBinaryOpEqualArithAdd::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpEqualArithAdd::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     if(m_state.isScalar(getNodeType())) //not an array
       {
-	doBinaryOperationImmediate(lslot, rslot, slots);
+	return doBinaryOperationImmediate(lslot, rslot, slots);
       }
     else
       { //array
-	doBinaryOperationArray(lslot, rslot, slots);
+	return doBinaryOperationArray(lslot, rslot, slots);
       }
+    return false;
   } //end dobinaryop
 
   UlamValue NodeBinaryOpEqualArithAdd::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)

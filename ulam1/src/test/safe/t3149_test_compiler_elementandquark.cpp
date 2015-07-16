@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 7\nUe_Foo { Int(4) m_i(0);  Bar m_bar( Bool(1) val_b[3](true,false,false); );  Int(32) test() {  Foo f;  m_bar val_b 0 [] . f ( 1 )check . = 7 return } }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
+      return std::string("Exit status: 7\nUe_Foo { Int(4) m_i(0);  Bar m_bar( Bool(1) val_b[3](true,false,false); );  Int(32) test() {  Foo f;  m_bar val_b 0 [] . f ( 1 cast )check . = 7 cast return } }\nUq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

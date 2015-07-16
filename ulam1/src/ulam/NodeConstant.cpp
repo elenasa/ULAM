@@ -76,7 +76,8 @@ namespace MFM {
     else if(isReadyConstant())
       {
 	//stub copy case: still wants uti mapping
-	it = NodeTerminal::getNodeType();
+	//it = NodeTerminal::getNodeType();
+	it = NodeTerminal::checkAndLabelType();
       }
 
     // map incomplete UTI

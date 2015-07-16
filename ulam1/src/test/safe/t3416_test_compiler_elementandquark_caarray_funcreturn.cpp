@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_EventWindowTest { EventWindow ew();  Int(32) test() {  Atom(96) a;  a ( )func = 1 return } }\nUq_EventWindow { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_EventWindowTest { EventWindow ew();  Int(32) test() {  Atom(96) a;  a ( )func = 1 cast return } }\nUq_EventWindow { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

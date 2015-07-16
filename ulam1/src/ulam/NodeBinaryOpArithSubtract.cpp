@@ -4,6 +4,7 @@
 namespace MFM {
 
   NodeBinaryOpArithSubtract::NodeBinaryOpArithSubtract(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
+
   NodeBinaryOpArithSubtract::NodeBinaryOpArithSubtract(const NodeBinaryOpArithSubtract& ref) : NodeBinaryOpArith(ref) {}
 
   NodeBinaryOpArithSubtract::~NodeBinaryOpArithSubtract(){}
@@ -20,18 +21,25 @@ namespace MFM {
     fp->write(myname);
   }
 
-
   const char * NodeBinaryOpArithSubtract::getName()
   {
     return "-";
   }
-
 
   const std::string NodeBinaryOpArithSubtract::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  s32 NodeBinaryOpArithSubtract::resultBitsize(UTI lt, UTI rt)
+  {
+    s32 lbs = UNKNOWNSIZE, rbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+    NodeBinaryOp::resultBitsizeCalc(lt, rt, lbs, rbs, wordsize);
+
+    s32 maxbs = (lbs > rbs ? lbs : rbs);
+    maxbs += 1; //for addition/subtraction
+    return (maxbs >= wordsize ? wordsize : maxbs);
+  } //resultBitsize
 
   const std::string NodeBinaryOpArithSubtract::methodNameForCodeGen()
   {
@@ -39,7 +47,6 @@ namespace MFM {
     methodname << "_BinOpSubtract" << NodeBinaryOpArith::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UlamValue NodeBinaryOpArithSubtract::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {

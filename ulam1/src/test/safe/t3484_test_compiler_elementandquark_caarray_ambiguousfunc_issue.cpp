@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_EventWindowTest { typedef Unsigned(6) SiteNum;  EventWindow ew( typedef Unsigned(6) SiteNum; );  Int(32) test() {  Unsigned(6) s;  s 6 cast = Atom(96) a;  a ew s [] = 1 return } }\nUq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }\nUq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_EventWindowTest { typedef Unsigned(6) SiteNum;  EventWindow ew( typedef Unsigned(6) SiteNum; );  Int(32) test() {  Unsigned(6) s;  s 6 cast = Atom(96) a;  a ew s [] = 1 cast return } }\nUq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }\nUq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

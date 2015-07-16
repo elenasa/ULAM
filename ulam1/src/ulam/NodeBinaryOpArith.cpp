@@ -35,21 +35,22 @@ namespace MFM {
     return methodname.str();
   } // methodNameForCodeGen
 
-  void NodeBinaryOpArith::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpArith::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     if(m_state.isScalar(getNodeType())) //not an array
       {
-	doBinaryOperationImmediate(lslot, rslot, slots);
+	return doBinaryOperationImmediate(lslot, rslot, slots);
       }
     else
       { //array
 #ifdef SUPPORT_ARITHMETIC_ARRAY_OPS
-	doBinaryOperationArray(lslot, rslot, slots);
+	return doBinaryOperationArray(lslot, rslot, slots);
 #else
 	assert(0);
 #endif //defined below...
       }
+    return false;
   } //end dobinaryop
 
   UTI NodeBinaryOpArith::calcNodeType(UTI lt, UTI rt)
@@ -73,7 +74,7 @@ namespace MFM {
     // Class (i.e. quark) + anything goes to Int(32)
     if(checkScalarTypesOnly(lt, rt))
       {
-	s32 newbs = NodeBinaryOp::maxBitsize(lt, rt);
+	s32 newbs = resultBitsize(lt, rt); //op-specific
 	ULAMTYPE ltypEnum = m_state.getUlamTypeByIndex(lt)->getUlamTypeEnum();
 	ULAMTYPE rtypEnum = m_state.getUlamTypeByIndex(rt)->getUlamTypeEnum();
 
@@ -88,13 +89,12 @@ namespace MFM {
 	  {
 	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Unsigned"), newbs);
 	    newType = m_state.makeUlamType(newkey, Unsigned);
-	    return newType;
 	  }
-
-	UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
-	newType = m_state.makeUlamType(newkey, Int);
-
-	NodeBinaryOp::fixMixedSignsOfVariableWithConstantToVariableType(ltypEnum, rtypEnum, newType); //ref newType
+	else
+	  {
+	    UlamKeyTypeSignature newkey(m_state.m_pool.getIndexForDataString("Int"), newbs);
+	    newType = m_state.makeUlamType(newkey, Int);
+	  }
 
 	if(!NodeBinaryOp::checkSafeToCastTo(newType))
 	  newType = Nav; //outputs error msg

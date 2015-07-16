@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 1\nUe_Foo { Unary(6) energy(6);  Int(32) test() {  Atom(96) a;  energy 63u = a Empty is cond { energy cast 63u cast == cond { 1 return } if energy cast 0u cast == cond { 0 return } if else } if -1 return } }\nUe_Empty { /* empty class block */ }");
+      return std::string("Exit status: 1\nUe_Foo { Unary(6) energy(6);  Int(32) test() {  Atom(96) a;  energy 63u = a Empty is cond { energy cast 63u cast == cond { 1 cast return } if energy cast 0u cast == cond { 0 cast return } if else } if -1 cast return } }\nUe_Empty { /* empty class block */ }");
     }
 
     std::string PresetTest(FileManagerString * fms)

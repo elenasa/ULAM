@@ -35,6 +35,11 @@ namespace MFM {
     return false;
   } //isNumericType
 
+  bool UlamTypeClass::isPrimitiveType()
+  {
+    return isNumericType();
+  }
+
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
