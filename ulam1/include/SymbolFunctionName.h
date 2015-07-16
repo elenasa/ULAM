@@ -81,6 +81,8 @@ namespace MFM{
 
     UTI getCustomArrayReturnType();
 
+    u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
     void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
 
     void updatePrevBlockPtrInFunctionDefs(NodeBlockClass * p);

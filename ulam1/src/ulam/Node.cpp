@@ -513,8 +513,9 @@ namespace MFM {
     assert(vuti != Void);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMTYPE vetype = vut->getUlamTypeEnum();
-    assert( vetype == Int || vetype == Unsigned);
+    //ULAMTYPE vetype = vut->getUlamTypeEnum();
+    //assert( vetype == Int || vetype == Unsigned);
+    assert(vut->isNumericType());
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -666,8 +667,9 @@ namespace MFM {
     assert(vuti != Void);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMTYPE vetype = vut->getUlamTypeEnum();
-    assert( vetype == Int || vetype == Unsigned);
+    //ULAMTYPE vetype = vut->getUlamTypeEnum();
+    //assert( vetype == Int || vetype == Unsigned);
+    assert(vut->isNumericType());
 
     //here, cos is symbol used to determine read method: either self or last of cos.
     //stgcos is symbol used to determine first "hidden" arg
@@ -778,9 +780,9 @@ namespace MFM {
 	  }
       }
 
-    //index is immediate Int arg
-    UlamType * intut = m_state.getUlamTypeByIndex(Int);
-    fp->write(intut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
+    //index is immediate Index arg of targettype in uvpass
+    //UlamType * intut = m_state.getUlamTypeByIndex(Int);
+    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
     fp->write("));\n");
@@ -1264,8 +1266,9 @@ namespace MFM {
       }
 
     //index is immediate Int arg
-    UlamType * intut = m_state.getUlamTypeByIndex(Int);
-    fp->write(intut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
+    //UlamType * intut = m_state.getUlamTypeByIndex(Int);
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+    fp->write(lut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str()); //INDEX
     fp->write("), ");

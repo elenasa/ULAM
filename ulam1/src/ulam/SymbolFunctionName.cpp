@@ -132,7 +132,6 @@ namespace MFM {
 	      {
 		funcSymbol = fsym;
 		matchingFuncCount++;
-		//break;
 	      }
 	    ++it;
 	  }
@@ -362,6 +361,29 @@ namespace MFM {
       }
     return rtnType;
   } //getCustomArrayReturnType
+
+  //similar to
+  u32 SymbolFunctionName::getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
+  {
+    std::vector<UTI> argTypes;
+    std::vector<Node *> constArgs;
+    argTypes.push_back(rnode->getNodeType());
+    constArgs.push_back(rnode->isAConstant() ? rnode : NULL);
+
+    SymbolFunction * fsym = NULL;
+    u32 camatches = findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, fsym, hasHazyArgs);
+
+    if(camatches == 1)
+      {
+	Symbol * asym = fsym->getParameterSymbolPtr(0); //1st arg is index
+	assert(asym);
+	idxuti = asym->getUlamTypeIdx();
+      }
+
+    argTypes.clear();
+    constArgs.clear();
+    return camatches;
+  } //getCustomArrayIndexTypeFor
 
   void SymbolFunctionName::linkToParentNodesInFunctionDefs(NodeBlockClass * p)
   {

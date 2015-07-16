@@ -149,6 +149,15 @@ namespace MFM {
     return classNode->getCustomArrayTypeFromGetFunction(); //returns canonical type
   }
 
+  u32 SymbolClass::getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
+  {
+    assert(isCustomArray());
+    NodeBlockClass * classNode = getClassBlockNode(); //instance
+    assert(classNode);
+    //returns number of matching types; updates last two args.
+    return classNode->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+  }
+
   bool SymbolClass::trySetBitsizeWithUTIValues(s32& totalbits)
   {
     NodeBlockClass * classNode = getClassBlockNode(); //instance
