@@ -1,5 +1,5 @@
-ifndef ROOT_DIR
-$(error ROOT_DIR is unset.  (To make here, run 'make ulam' from the ulam tree toplevel))
+ifndef ULAM_ROOT_DIR
+$(error ULAM_ROOT_DIR is unset.  (To make here, run 'make ulam' from the ulam tree toplevel))
 endif
 BASE_DIR:=../../..
 DRIVER_NAME:=ulam
@@ -20,7 +20,7 @@ $(BUILD_DIR):
 
 $(BIN_DIR)/%: ./%.tmpl FORCE | $(BIN_DIR) # just always do this -- depends on ENV vars
 	sed \
-	    -e "s|@CULAM_PATH@|$(ROOT_DIR)/bin/culam|" \
+	    -e "s|@CULAM_PATH@|$(ULAM_ROOT_DIR)/bin/culam|" \
 	    -e "s|@ULAM_VERSION_MAJOR@|$(ULAM_VERSION_MAJOR)|" \
 	    -e "s|@ULAM_VERSION_MINOR@|$(ULAM_VERSION_MINOR)|" \
 	    -e "s|@ULAM_VERSION_REV@|$(ULAM_VERSION_REV)|" \
@@ -39,7 +39,7 @@ $(BIN_DIR)/%: ./%.tmpl FORCE | $(BIN_DIR) # just always do this -- depends on EN
 
 $(TARGET): $(SRC) FORCE | $(BIN_DIR) # just always do this -- depends on ENV vars
 	sed \
-	    -e "s|@CULAM_PATH@|$(ROOT_DIR)/bin/culam|" \
+	    -e "s|@CULAM_PATH@|$(ULAM_ROOT_DIR)/bin/culam|" \
 	    -e "s|@ULAM_VERSION_MAJOR@|$(ULAM_VERSION_MAJOR)|" \
 	    -e "s|@ULAM_VERSION_MINOR@|$(ULAM_VERSION_MINOR)|" \
 	    -e "s|@ULAM_VERSION_REV@|$(ULAM_VERSION_REV)|" \

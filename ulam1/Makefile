@@ -1,6 +1,10 @@
 ####
 # Top level Makefile driver for ULAM
 
+# Root of source tree
+ULAM_ROOT_DIR := $(shell pwd)
+export ULAM_ROOT_DIR
+
 include VERSION.mk
 
 ####
@@ -51,10 +55,6 @@ dist:	realclean
 ####
 # Variables exported to submakes
 
-# Root of source tree
-ROOT_DIR := $(shell pwd)
-export ROOT_DIR
-
 export SRC_TARGETS
 
 export ULAM_VERSION_MAJOR
@@ -71,7 +71,6 @@ export ULAM_BUILD_TIME := $(shell date -u +%H%M%S)
 export ULAM_BUILD_TIMESTAMP := $(ULAM_BUILD_DATE)$(ULAM_BUILD_TIME)
 export ULAM_BUILD_WHO:=$(shell whoami)
 export ULAM_BUILD_WHERE:=$(shell hostname)
-export ULAM_TREE_VERSION:=$(shell cd $(ROOT_DIR) && git describe || echo "unknown-rev")
 
 DEFINES+=-DBUILD_DATE="0x$(ULAM_BUILD_DATE)" -DBUILD_TIME="0x$(ULAM_BUILD_TIME)" -DBUILD_DATE_TIME="$(ULAM_BUILD_TIMESTAMP)"
 DEFINES+=-DULAM_VERSION_MAJOR=$(ULAM_VERSION_MAJOR) -DULAM_VERSION_MINOR=$(ULAM_VERSION_MINOR) -DULAM_VERSION_REV=$(ULAM_VERSION_REV)
@@ -86,7 +85,7 @@ export LIBS
 
 # Root of shared files tree.
 ifeq ($(ULAM_SHARE_DIR),)
-  ULAM_SHARE_DIR:=$(ROOT_DIR)/share
+  ULAM_SHARE_DIR:=$(ULAM_ROOT_DIR)/share
 endif
 export ULAM_SHARE_DIR
 
@@ -101,18 +100,23 @@ export MFM_TREE_VERSION
 
 # Things that all builds should depend on
 export ALLDEP
-ALLDEP += $(shell find $(ROOT_DIR) -name 'Makefile')
+ALLDEP += $(shell find $(ULAM_ROOT_DIR) -name 'Makefile')
 
 # Allow local configuration, if any, to override us:
 -include Makefile.local.mk
 
 ifeq ($(MFM_ROOT_DIR),)
+# check installed location
+ifeq ("$(wildcard ../MFM)","")
 ${warning MFM_ROOT_DIR not configured}
-${info  =>Consider creating '$(ROOT_DIR)/Makefile.local.mk', containing something like}
+${info  =>Consider creating '$(ULAM_ROOT_DIR)/Makefile.local.mk', containing something like}
 ${info  =>  MFM_ROOT_DIR := /path/to/source/dir/of/MFMv2}
 ${info  =>to avoid this message}
 else
-${info Local configuration: MFM_ROOT_DIR=$(MFM_ROOT_DIR)}
+MFM_ROOT_DIR:=$(realpath ../MFM)
+endif
+endif
+#${info Local configuration: MFM_ROOT_DIR=$(MFM_ROOT_DIR)}
 ## This wants to be rethought and refactored!
 COMPONENTNAME:=ulamic
 MFM_TARGET:=linux
@@ -121,8 +125,6 @@ include $(BASEDIR)/config/Makecommon.mk
 CFLAGS += -I $(BASEDIR)/src/core/include
 CFLAGS += -D ULAM_SHARE_DIR=$(ULAM_SHARE_DIR)
 LIBS := -L $(BASEDIR)/build/core $(LIBS)
-${info (top-level) LIBS='$(LIBS)'}
-endif
 
 ####
 # Top level rules
