@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //notice the 2 casts surrounding the +b; that's why the arithop-on-bits assert didn't hit.
-      return std::string("Exit status: 3\nUe_Foo { System s();  Bool(1) sp(false);  Bits(3) m_i[3](1,2,3);  Bool(3) m_b[3](false,false,true);  Int(32) test() {  m_i 0 [] 1 cast = m_i 1 [] 2 cast = m_i 2 [] m_i 0 [] cast cast cast m_i 1 [] cast cast cast +b cast = m_b 0 [] m_i 0 [] cast = m_b 1 [] m_i 1 [] cast = m_b 2 [] m_i 2 [] cast = s ( m_i 0 [] cast )print . s ( m_i 1 [] cast )print . s ( m_i 2 [] cast )print . s ( m_b 0 [] )print . s ( m_b 1 [] )print . s ( m_b 2 [] )print . m_i 2 [] cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 3\nUe_Foo { System s();  Bool(1) sp(false);  Bits(3) m_i[3](1,2,3);  Bool(3) m_b[3](false,false,true);  Int(32) test() {  m_i 0 [] 1 cast = m_i 1 [] 2 cast = m_i 2 [] m_i 0 [] cast cast m_i 1 [] cast cast +b cast = m_b 0 [] m_i 0 [] cast = m_b 1 [] m_i 1 [] cast = m_b 2 [] m_i 2 [] cast = s ( m_i 0 [] cast )print . s ( m_i 1 [] cast )print . s ( m_i 2 [] cast )print . s ( m_b 0 [] )print . s ( m_b 1 [] )print . s ( m_b 2 [] )print . m_i 2 [] cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

@@ -15,7 +15,7 @@ namespace MFM {
       //developed by Dave (10092014) in c++ and then converted to Ulam.
 
       //constant fold minus
-      return std::string("Exit status: 0\nUe_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(7);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast cast = s ( i )print . j bar2 ( )toInt . cast cast = s ( j )print . j ( i cast cast 7 cast cast +b cast )update = s ( j )print . 0 cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { System s();  Bar bar1( Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2); );  Bar bar2( Bool(1) b(false);  Unsigned(3) x(3);  Unsigned(3) y(0); );  Int(4) i(2);  Int(4) j(7);  Int(32) test() {  Int(32) d;  d 1 cast = bar1 ( d 2 cast )set . bar2 ( 3 cast 0 cast )set . i bar1 ( )toInt . cast cast = s ( i )print . j bar2 ( )toInt . cast cast = s ( j )print . j ( i cast 7 cast +b cast )update = s ( j )print . 0 cast return } }\nUq_System { <NOMAIN> }\nUq_Bar { Bool(1) b(true);  Unsigned(3) x(1);  Unsigned(3) y(2);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
