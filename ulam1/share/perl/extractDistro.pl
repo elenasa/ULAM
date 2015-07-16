@@ -13,9 +13,11 @@ defined $COMBINED_ROOT_DIR and -d $COMBINED_ROOT_DIR
 $COMBINED_ROOT_DIR =~ s!/$!!;
 
 my $OUTPUT_DIR = shift @ARGV;
-defined $OUTPUT_DIR and !-e $OUTPUT_DIR
-    or die "Usage: $0 src|bin|all COMBINED_ROOT_DIR OUTPUT_DIR (bad existing OUTPUT_DIR)\n";
+defined $OUTPUT_DIR
+    or die "Usage: $0 src|bin|all COMBINED_ROOT_DIR OUTPUT_DIR (missing OUTPUT_DIR)\n";
 $OUTPUT_DIR =~ s!/$!!;
+-e $OUTPUT_DIR && !-d $OUTPUT_DIR
+    and die "Usage: $0 src|bin|all COMBINED_ROOT_DIR OUTPUT_DIR (not a dir OUTPUT_DIR)\n";
 
 # The MFM tree shall be at $COMBINED_ROOT_DIR/MFM
 # The ULAM tree shall be at $COMBINED_ROOT_DIR/$ULAM_VERSION_SUBTREE
