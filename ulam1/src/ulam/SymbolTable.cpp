@@ -662,6 +662,19 @@ namespace MFM {
     return caType;
   } //getCustomArrayReturnTypeGetFunction
 
+  //called by current Class block on its function ST; need to find
+  // a "safe" match for rt.
+  u32 SymbolTable::getCustomArrayIndexTypeGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
+  {
+    u32 camatches = 0;
+    Symbol * fnsym = NULL;
+    if(isInTable(m_state.getCustomArrayGetFunctionNameId(), fnsym))
+      {
+	camatches = ((SymbolFunctionName *) fnsym)->getCustomArrayIndexTypeFor(rnode, idxuti, hasHazyArgs);
+      }
+    return camatches;
+  } //getCustomArrayIndexTypeGetFunction
+
   u32 SymbolTable::countNativeFuncDeclsForTableOfFunctions()
   {
     u32 nativeCount = 0;
