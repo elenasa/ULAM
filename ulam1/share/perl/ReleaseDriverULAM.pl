@@ -46,6 +46,8 @@ EOS
 
 ## PRELIMINARIES TO ALL STEPS
 
+my $ULAM_LANGUAGE_VERSION="ulam1";
+
 $| = 1;
 my $GIT_URL = "https://github.com/DaveAckley/ULAM.git";
 my $MFM_GIT_URL = "https://github.com/DaveAckley/MFM.git";
@@ -64,7 +66,7 @@ chomp($STATE_DIR);
 my $mfm_version_tag = undef; # Set in step REPO_BUILD
 my $ulam_version_tag = undef; # Set in step REPO_BUILD
 
-my $workBaseDir = tempdir( CLEANUP => 0 );
+my $workBaseDir = tempdir( "ulamr-XXXXXX", TMPDIR => 1, CLEANUP => 0 );
 my $workDir = "$workBaseDir/work";
 mkdir($workDir) || die "$!";
 chdir($workDir) || die "$!";
@@ -98,7 +100,7 @@ sub REPO_CHECK_OUT {
     print "done\n";
 
     print "Making Makefile.local.mk..";
-    `echo 'MFM_ROOT_DIR := \$(ULAM_ROOT_DIR)/../MFM' > ULAM/ulam1/Makefile.local.mk`;
+    `echo 'MFM_ROOT_DIR := \$(ULAM_ROOT_DIR)/../MFM' > ULAM/$ULAM_LANGUAGE_VERSION/Makefile.local.mk`;
     print "done\n";
     return "";
 }
@@ -119,14 +121,14 @@ sub REPO_BUILD {
     print "$mfm_version_tag\n";
 
     print "Getting version number from ULAM..";
-    $ulam_version_tag = `cd ULAM;make -C ulam1 -f Makedebian.mk --quiet version`;
+    $ulam_version_tag = `cd ULAM;make -C $ULAM_LANGUAGE_VERSION -f Makedebian.mk --quiet version`;
     chomp($ulam_version_tag);
     $ulam_version_tag =~ /^\d+[.]\d+[.]\d+$/ or return "Ulam version not found, got '$ulam_version_tag'";
     print "$ulam_version_tag\n";
 
     print "Getting git version tags\n";
     my $f;
-    $f = "ULAM/ulam1/ULAM_TREEVERSION.mk";
+    $f = "ULAM/$ULAM_LANGUAGE_VERSION/ULAM_TREEVERSION.mk";
     if (-r $f) { print " ".`cat $f`; } else { return "Not found '$f'"; }
     $f = "ULAM/MFM/MFM_TREEVERSION.mk";
     if (-r $f) { print " ".`cat $f`; } else { return "Not found '$f'"; }
@@ -136,7 +138,7 @@ sub REPO_BUILD {
 
 sub FIRST_EXTRACT {
     print "Extracting files for test build..";
-    my $extractPath = "ULAM/ulam1/share/perl/extractDistro.pl";
+    my $extractPath = "ULAM/$ULAM_LANGUAGE_VERSION/share/perl/extractDistro.pl";
     my $ret = `$extractPath src ULAM extract1 >logs/FIRST_EXTRACT.log 2>&1 || echo \$?`;
     return "First extract failed ($ret)"
         unless $ret eq "";
@@ -165,14 +167,14 @@ sub TREE_BUILD {
 
 sub SECOND_EXTRACT {
     print "Extracting files for distribution..";
-    my $extractPath = "ULAM/ulam1/share/perl/extractDistro.pl";
+    my $extractPath = "ULAM/$ULAM_LANGUAGE_VERSION/share/perl/extractDistro.pl";
     my $distroName = "ulam-$ulam_version_tag";
     my $ret = `$extractPath src ULAM $distroName >logs/SECOND_EXTRACT.log 2>&1 || echo \$?`;
     return "Second extract failed ($ret)"
         unless $ret eq "";
 
     print "Removing Makefile.local.mk..";
-    my $del = "$distroName/ULAM/Makefile.local.mk" ;
+    my $del = "$distroName/$ULAM_LANGUAGE_VERSION/Makefile.local.mk" ;
     unlink $del or return "Couldn't unlink $del: $!";
 
     my $tarPath = "$distroName.tgz";
