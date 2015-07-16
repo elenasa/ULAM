@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "File.h"
-#include "inttypes.h"  // for PRId64
+#include "UlamUtil.h"
 
 namespace MFM {
 
@@ -47,9 +47,10 @@ namespace MFM {
 
   s32 File::write_decimal_long(const s64 data)
     {
-      char tmp[64+3];
-      sprintf(tmp,"%"PRId64,data);
-      return write(tmp);
+      // We must avoid printfs involving 64 bit quantities,
+      // due to ANSI C99 limitations, so we do this instead.
+      std::string str = ToSignedDecimal(data);
+      return write(str.c_str());
     }
 
 } //end MFM
