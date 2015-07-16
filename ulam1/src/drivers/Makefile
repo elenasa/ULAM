@@ -9,7 +9,7 @@ SUB_DIRS+=ulam
 
 ####
 # Assume all drivers depend on ulam..
-ALLDEP+=$(ROOT_DIR)/src/ulam
+ALLDEP+=$(ULAM_ROOT_DIR)/src/ulam
 
 ####
 # We are defining BASEDIR relative to our child dirs because they're

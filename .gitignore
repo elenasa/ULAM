@@ -33,3 +33,6 @@ doc/ref
 
 # Ignore *-hold files
 *-hold
+
+# Ignore git version cache files
+*TREEVERSION.mk

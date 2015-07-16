@@ -6,6 +6,12 @@ my $ORIG_PATH = $ENV{'PATH'};
 delete @ENV{'PATH', 'IFS', 'CDPATH', 'ENV', 'BASH_ENV'};
 
 ## Import mfz functions from the MFM tree at 'compile' time
+##
+## NOTE the MFM_ROOT_DIR substituted here is, in general, NOT THE SAME
+## as the $MFM_ROOT_DIR derived below!  _This_ earlier value is as of
+## the ULAM_REPO_BUILD_TIME or ULAM_DISTRO_BUILD_TIME eras only; that
+## later value is also used in the ULAM_INSTALLED_RUN_TIME era.
+##
 <<<INCLUDE:@MFM_ROOT_DIR@/src/drivers/mfzrun/common.pl.inc>>>
 SetUDieMsg("Type '$0 -h' for help\n");
 
@@ -16,8 +22,6 @@ use Carp;
 ####DIRECTORY PATHS WITH DEFAULTS
 
   ##TEMPLATE SUBSTITUTIONS
-  my $CULAM_PATH='@CULAM_PATH@';
-  my $ULAM_SHARE_DIR='@ULAM_SHARE_DIR@';
   my $ULAM_VERSION_MAJOR='@ULAM_VERSION_MAJOR@';
   my $ULAM_VERSION_MINOR='@ULAM_VERSION_MINOR@';
   my $ULAM_VERSION_REV='@ULAM_VERSION_REV@';
@@ -27,12 +31,55 @@ use Carp;
   my $MFM_BUILD_VERSION='@MFM_VERSION_NUMBER@';
   my $MFM_TREE_VERSION='@MFM_TREE_VERSION@';
   my $ULAM_TREE_VERSION='@ULAM_TREE_VERSION@';
-  my $MFM_ROOT_DIR='@MFM_ROOT_DIR@';
   IDie("Templates have not been substituted -- this is not the script you are looking for.\n")
-      if $CULAM_PATH =~ /@/ or $MFM_ROOT_DIR =~ /@/;
+      if $ULAM_VERSION_MAJOR =~ /@/ or $ULAM_TREE_VERSION =~ /@/;
+
+use File::Spec;
+use Cwd 'abs_path';
+
+my $SCRIPT_PATH;
+my $ULAM_ROOT;
+my $CULAM_PATH;
+my $ULAM_SHARE_DIR;
 
 BEGIN {
-    push @INC, '@ULAM_SHARE_DIR@/perl';
+    use File::Basename;
+
+    $SCRIPT_PATH = __FILE__;
+    $SCRIPT_PATH = readlink $SCRIPT_PATH if -l $SCRIPT_PATH;
+    $SCRIPT_PATH = File::Spec->rel2abs( $SCRIPT_PATH );
+
+    $ULAM_ROOT = dirname($SCRIPT_PATH)."/..";
+
+    # Note we're not allowing spaces in the path.  F-U if that's a problem.
+    if ($ULAM_ROOT =~ /^([^" \*\?\[\]\$\|<>&%()!;\\]+)$/) {
+    	$ULAM_ROOT = $1;
+    } else {
+    	die "Bad characters in path '$ULAM_ROOT'";
+    }
+
+    $CULAM_PATH = "$ULAM_ROOT/bin/culam";
+    $ULAM_SHARE_DIR = "$ULAM_ROOT/share";
+#    print "<<$ULAM_SHARE_DIR>>\n";
+    push @INC, "$ULAM_SHARE_DIR/perl";
+}
+
+sub TryToReadWholeFile {
+    my $file = shift;
+    return undef unless -r $file;
+    return ReadWholeFile($file);
+}
+
+my $MFM_ROOT_DIR= "$ULAM_ROOT/../MFM";  # DEFAULT, HOPE AND PRAY.. THIS ONLY WORKS ON THE INSTALLED TREE
+
+# Look for ulam's local config makefile and 'parse' (yeah that's it) what we find
+my $makefilelocalpath = "$ULAM_ROOT/../Makefile.local.mk";
+my $makefilelocal = TryToReadWholeFile($makefilelocalpath);
+if (defined($makefilelocal) &&
+    $makefilelocal =~ /^\s*MFM_ROOT_DIR\s*:=\s*([^\s#]+)\s*(#.*)?$/m) {
+    $MFM_ROOT_DIR = $1;
+    # Do makefile's substitution by hand here
+    $MFM_ROOT_DIR =~ s/\$\(ULAM_ROOT_DIR\)/$ULAM_ROOT/;
 }
 
 use UlamGen;
@@ -1164,6 +1211,11 @@ EOF
             $quarkPtrArrayInits .= "\n    &$stubname";
             ++$quarkPtrArrayCount;
         }
+    }
+
+    if ($quarkPtrArrayCount == 0) {
+        # Avoid zero length array if no quarks
+        $quarkPtrArrayInits = "0";
     }
 
     open(my $handle, ">", $src)

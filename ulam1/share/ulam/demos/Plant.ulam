@@ -1,6 +1,6 @@
 ulam 1;
 
-/** Plant.
+/** Plant.  Convert Res into Plants, DLA style.  Consumed by Animals
 
     \symbol Pl
     \symmetries all

@@ -10,6 +10,7 @@ element Termite
 {
   typedef AtomUtils.Type Type;
   typedef Unary(3) State;
+  typedef Unsigned(3) Direction;
 
   EventWindow ew;
   SiteUtils su;
@@ -17,7 +18,7 @@ element Termite
   Random random;
 
   Type m_heldType;
-  Unsigned(3) m_dir;
+  Direction m_dir;
 
   constant State cFIND_CHIP = 0;
   constant State cMOVE_CHIP = cFIND_CHIP + 1;
@@ -37,40 +38,39 @@ element Termite
     Type baseType = au.getValidType(su.getBase());
     Type emptyType = au.getEmptyType();
 
-    if (m_state == cFIND_CHIP) {
+    if (m_state == cFIND_CHIP) {    // I'm looking for a chip
 
-      if (baseType != emptyType) {
+      if (baseType != emptyType) {  // If I'm over something non-empty
 
-        m_heldType = baseType;
-        su.setBase(au.new((Int) emptyType));
+        m_heldType = baseType;               // Remember its type..
+        su.setBase(au.new((Int) emptyType)); // ..then erase it
 
-        m_state = cMOVE_CHIP;
+        m_state = cMOVE_CHIP;       // Now I'm moving a chip
       }
 
-    } else if (m_state == cMOVE_CHIP) {
+    } else if (m_state == cMOVE_CHIP) {  // I'm moving a chip
 
-      if (baseType == m_heldType)
-        m_state = cDROP_CHIP;
+      if (baseType == m_heldType)        // If I'm over another of the same type..
+        m_state = cDROP_CHIP;            // .. prepare to drop my chip
 
-    } else if (m_state == cDROP_CHIP) {
+    } else if (m_state == cDROP_CHIP) {  // I'm looking to drop my chip
 
-      if (baseType == emptyType) {
+      if (baseType == emptyType) {       // If I'm over an empty spot..
 
-        su.setBase(au.new((Int) m_heldType));
-        m_heldType = emptyType;
-        m_state = cFIND_CHIP;
+        su.setBase(au.new((Int) m_heldType));   // ..fill it with the type I'm carrying..
+        m_heldType = emptyType;                 // (remember I'm not carrying anything)
 
-      } else if (baseType != m_heldType) {
+        m_state = cFIND_CHIP;            // Now I'm looking for a chip again
 
-        // Oops, we're passing over some other thing.
-        // Don't be dropping our chip around here.
-        m_state = cMOVE_CHIP;
+      } else if (baseType != m_heldType) { // If we're over something different than our chip..
+
+        m_state = cMOVE_CHIP;              // ..then don't be dropping our chip around here.
 
       }
     }
 
     if (random.oneIn(pTURN_ODDS))
-      m_dir = (Unsigned(3)) random.bits(m_dir.sizeof);
+      m_dir = (Direction) random.bits(m_dir.sizeof);
 
     ew.swap(0, (Int) m_dir + 1);
   }

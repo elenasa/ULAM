@@ -10,8 +10,15 @@ ulam 1;
  */
 
 element Animal {
-  Unary(32) hunger;
+  typedef Unsigned(7) Hunger;
+  Hunger hunger;
   EventWindow ew;
+
+  /** Days food per plant.
+      \range 0..50
+   */
+  parameter Hunger pPLANT_ENERGY = 10;
+
   Void behave() {
     if (++hunger == hunger.maxof) {
       for (Int i = 0; i < 5; ++i) {
@@ -23,7 +30,7 @@ element Animal {
     }
 
     if (ew[1] is Plant) {
-      if ((hunger -= 4) == hunger.minof) {
+      if ((hunger -= pPLANT_ENERGY) == hunger.minof) {
         hunger = (hunger.maxof-hunger.minof)/2;
         ew[1] = self;
         return;
