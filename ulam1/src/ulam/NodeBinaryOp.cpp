@@ -123,6 +123,9 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
+    if(getNodeType() != Nav)
+      return getNodeType();
+
     UTI leftType = m_nodeLeft->checkAndLabelType();
     UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = Nav;
