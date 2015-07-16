@@ -137,7 +137,7 @@ sub REPO_BUILD {
 sub FIRST_EXTRACT {
     print "Extracting files for test build..";
     my $extractPath = "ULAM/ulam1/share/perl/extractDistro.pl";
-    my $ret = `$extractPath src ULAM/MFM ULAM/ulam1 extract1 >logs/FIRST_EXTRACT.log 2>&1 || echo \$?`;
+    my $ret = `$extractPath src ULAM extract1 >logs/FIRST_EXTRACT.log 2>&1 || echo \$?`;
     return "First extract failed ($ret)"
         unless $ret eq "";
 
@@ -167,7 +167,7 @@ sub SECOND_EXTRACT {
     print "Extracting files for distribution..";
     my $extractPath = "ULAM/ulam1/share/perl/extractDistro.pl";
     my $distroName = "ulam-$ulam_version_tag";
-    my $ret = `$extractPath src ULAM/MFM ULAM/ulam1 $distroName >logs/SECOND_EXTRACT.log 2>&1 || echo \$?`;
+    my $ret = `$extractPath src ULAM $distroName >logs/SECOND_EXTRACT.log 2>&1 || echo \$?`;
     return "Second extract failed ($ret)"
         unless $ret eq "";
 
