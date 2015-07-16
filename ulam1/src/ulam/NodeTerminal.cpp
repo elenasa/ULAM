@@ -146,8 +146,9 @@ namespace MFM {
   FORECAST NodeTerminal::safeToCastTo(UTI newType)
   {
     UTI nuti = getNodeType();
-    //Bool special case: not a matter of fitting
-    if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+    ULAMTYPE typEnum = m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum();
+    //special cases: not a matter of fitting
+    if( typEnum == Bool || typEnum == UAtom || typEnum == Class || typEnum == Void)
       return m_state.getUlamTypeByIndex(newType)->safeCast(nuti);
 
     //for non-bool terminal check for complete types and arrays before fits.
