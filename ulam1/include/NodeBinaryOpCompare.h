@@ -56,15 +56,15 @@ namespace MFM{
 
     virtual const std::string methodNameForCodeGen();
 
-    virtual void doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots);
 
-    virtual void doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
   protected:
 
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
 
     virtual UTI calcNodeType(UTI lt, UTI rt);
   };

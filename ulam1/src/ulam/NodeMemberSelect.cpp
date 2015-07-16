@@ -160,15 +160,16 @@ namespace MFM {
     //assigns rhs to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
     if(slot) //avoid Void's
-      doBinaryOperation(1, 1+slot, slot); //???
+      if(!doBinaryOperation(1, 1+slot, slot))
+	evs = ERROR;
 
     m_state.m_currentObjPtr = saveCurrentObjectPtr; //restore current object ptr
     evalNodeEpilog();
-    return NORMAL;
+    return evs;
   } //eval
 
   //for eval, want the value of the rhs
-  void NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeMemberSelect::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     //the return value of a function call, or value of a data member
@@ -188,8 +189,12 @@ namespace MFM {
 	rtnUV = UlamValue::makePtr(rslot, EVALRETURN, ruti, UNPACKED, m_state);
       }
 
+    if(rtnUV.getUlamValueTypeIdx() == Nav || ruti == Nav)
+      return false;
+
     //copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnUV);
+    return true;
   } //doBinaryOperation
 
   EvalStatus NodeMemberSelect::evalToStoreInto()

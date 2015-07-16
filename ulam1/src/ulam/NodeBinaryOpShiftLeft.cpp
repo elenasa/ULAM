@@ -31,6 +31,15 @@ namespace MFM {
     return methodname.str();
   } //methodNameForCodeGen
 
+  s32 NodeBinaryOpShiftLeft::resultBitsize(UTI lt, UTI rt)
+  {
+    s32 lbs = UNKNOWNSIZE, rbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
+    NodeBinaryOp::resultBitsizeCalcInBits(lt, rt, lbs, rbs, wordsize);
+
+    s32 maxbs = lbs + (1 << rbs); // lbs + 2^rbs
+    return (maxbs >= wordsize ? wordsize : maxbs);
+  } //resultBitsize
+
   UlamValue NodeBinaryOpShiftLeft::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {
     UlamValue rtnUV;

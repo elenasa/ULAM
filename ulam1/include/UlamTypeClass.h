@@ -55,6 +55,8 @@ namespace MFM{
 
     virtual bool isNumericType();
 
+    virtual bool isPrimitiveType();
+
     virtual bool cast(UlamValue& val, UTI typidx);
 
     virtual FORECAST safeCast(UTI typidx);

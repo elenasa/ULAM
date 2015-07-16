@@ -15,7 +15,7 @@ namespace MFM {
       //    Bool(3) Arg: 0x7 (true)
       //    Bool(3) Arg: 0x0 (false)
 
-      return std::string("Exit status: 1\nUe_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  System s();  Bool(UNKNOWN) b1(false);  Bool(UNKNOWN) b2(false);  Int(32) test() {  Atom(96) a;  S(1,2) s12;  s12 b2 . s12 ( )func . = s ( s12 b2 . )print . s12 b1 . s12 ( a )func . = s ( s12 b1 . )print . s12 b2 . return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  System s();  Bool(UNKNOWN) b1(unknown);  Bool(UNKNOWN) b2(unknown);  Int(32) test() {  Atom(96) a;  S(1,2) s12;  s12 b2 . s12 ( )func . = s ( s12 b2 . )print . s12 b1 . s12 ( a )func . = s ( s12 b1 . )print . s12 b2 . return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

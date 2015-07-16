@@ -15,7 +15,7 @@ namespace MFM {
 	 Int(4) Arg: 0x3
       */
       //eval self doesn't reflect correctly (see gen output): is an atom for quark's function call hidden arg
-      return std::string("Exit status: 0\nUe_Foo { IntXY(3u,4u) n( constant Unsigned(32) xbits = 3;  constant Unsigned(32) ybits = 4;  typedef IntXY(3u,4u) Self;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(2);  Int(4) y(3); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 2 )make . = s ( m x . )print . s ( m y . )print . m n ( 2 3 )fromXY . = s ( n x . )print . s ( n y . )print . s ( m x . )print . s ( m y . )print . 0 return } }\nUq_IntXY { constant Unsigned(32) xbits = NONREADYCONST;  constant Unsigned(32) ybits = NONREADYCONST;  typedef IntXY(xbits,ybits) Self;  typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(UNKNOWN) x(0);  Int(UNKNOWN) y(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Foo { IntXY(3u,4u) n( constant Unsigned(32) xbits = 3;  constant Unsigned(32) ybits = 4;  typedef IntXY(3u,4u) Self;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(2);  Int(4) y(3); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 cast 2 cast )make . = s ( m x . )print . s ( m y . )print . m n ( 2 cast 3 cast )fromXY . = s ( n x . )print . s ( n y . )print . s ( m x . )print . s ( m y . )print . 0 cast return } }\nUq_IntXY { constant Unsigned(32) xbits = NONREADYCONST;  constant Unsigned(32) ybits = NONREADYCONST;  typedef IntXY(xbits,ybits) Self;  typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(UNKNOWN) x(0);  Int(UNKNOWN) y(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

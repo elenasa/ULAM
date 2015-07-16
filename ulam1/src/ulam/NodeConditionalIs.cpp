@@ -24,7 +24,7 @@ namespace MFM {
     //assert(m_state.isScalar(luti));
 
     ULAMCLASSTYPE lclasstype = m_state.getUlamTypeByIndex(luti)->getUlamClass();
-    if(!(luti == UAtom || lclasstype == UC_ELEMENT || m_state.isScalar(luti)))
+    if(!((luti == UAtom || lclasstype == UC_ELEMENT) && m_state.isScalar(luti)))
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -41,7 +41,7 @@ namespace MFM {
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(!(rclasstype == UC_ELEMENT || m_state.isScalar(ruti)))
+    if(!(rclasstype == UC_ELEMENT && m_state.isScalar(ruti)))
       {
 	std::ostringstream msg;
 	msg << "Invalid righthand type of conditional operator '" << getName();

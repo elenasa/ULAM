@@ -6,8 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      //36 saturates to 31
-      return std::string("Exit status: 31\nUe_Foo { System s();  Int(32) m_idx(40);  Int(6) m_x(9);  Int(6) m_y(4);  Int(32) test() {  m_x 9 cast = m_y 4 cast = m_idx ( m_x cast m_y cast )func = s ( m_idx )print . s ( m_x cast m_y cast * )print . m_x m_y * cast return } }\nUq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
+      //36 saturates to 31; NO LONGER!!
+      return std::string("Exit status: 36\nUe_Foo { System s();  Int(32) m_idx(40);  Int(6) m_x(9);  Int(6) m_y(4);  Int(32) test() {  m_x 9 cast = m_y 4 cast = m_idx ( m_x cast m_y cast )func = s ( m_idx )print . s ( m_x cast m_y cast * )print . m_x cast m_y cast * cast return } }\nUq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

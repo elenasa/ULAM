@@ -11,7 +11,7 @@ namespace MFM {
        */
       //different casts since Constants have explicit types
       //constant fold: j 1 33 +b, 1 32u cast +b
-      return std::string("Exit status: 34\nUe_A { System s();  Int(32) j(34);  Int(32) test() {  33 = cOW const j 34 = s ( j )print . j return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 34\nUe_A { System s();  Int(32) j(34);  Int(32) test() {  33 = cOW const j 34 cast = s ( j )print . j return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

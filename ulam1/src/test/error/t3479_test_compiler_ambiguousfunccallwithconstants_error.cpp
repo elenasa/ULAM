@@ -13,8 +13,8 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //t3476 uses 9; here 3 fits both.
-      bool rtn1 = fms->add("Tu.ulam", "ulam 1;\nelement Tu {\ntypedef Int(3) I;\n I func(I arg) {\nreturn arg;\n}\n typedef Int(4) J;\n J func(J arg) {\nreturn arg;\n}\n Int test(){\n return func(3);\n}\n}\n");
+      //t3476 uses 9; here 1 fits both. (now, 3 is a Int(3) type so exact match)
+      bool rtn1 = fms->add("Tu.ulam", "ulam 1;\nelement Tu {\ntypedef Int(3) I;\n I func(I arg) {\nreturn arg;\n}\n typedef Int(4) J;\n J func(J arg) {\nreturn arg;\n}\n Int test(){\n return func(1);\n}\n}\n");
 
 
       if(rtn1)
