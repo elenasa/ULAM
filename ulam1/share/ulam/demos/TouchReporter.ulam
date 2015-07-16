@@ -36,7 +36,7 @@ element TouchReporter {
 
   ARGB getColor(Unsigned selector) {
     ARGB tmp;
-    Channel c = (Channel) m_touchCounter * m_touchCounter;
+    Channel c = m_touchCounter * m_touchCounter;
     tmp[0] = 0xffu;
     tmp[1] = 33u;
     tmp[2] = 33u;
