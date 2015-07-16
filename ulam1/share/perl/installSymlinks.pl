@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 # -*- mode:perl -*-
+my $ULAM_LANGUAGE_VERSION = "ulam1";
 
 my $ulamRootDir = shift @ARGV;
 my $symlinkBinDir = shift @ARGV;
@@ -16,7 +17,7 @@ make_path( $symlinkBinDir );
 checkName(\$symlinkBinDir);
 
 for my $u (@ulam_programs) {
-    doLink("$ulamRootDir/ulam1/bin/$u", "$symlinkBinDir/$u");
+    doLink("$ulamRootDir/$ULAM_LANGUAGE_VERSION/bin/$u", "$symlinkBinDir/$u");
 }
 for my $m (@mfm_programs) {
     doLink("$ulamRootDir/MFM/bin/$m", "$symlinkBinDir/$m");
