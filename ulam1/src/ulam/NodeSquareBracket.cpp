@@ -53,9 +53,17 @@ namespace MFM {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
 	bool isCustomArray = lut->isCustomArray();
 
-	if(m_state.isScalar(leftType))
+	if(lut->isScalar())
 	  {
-	    if(!isCustomArray)
+	    if(lut->isHolder())
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+		msg << " used with " << getName();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		errorCount++;
+	      }
+	    else if(!isCustomArray)
 	      {
 		std::ostringstream msg;
 		msg << "Invalid Type: " << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
@@ -382,6 +390,12 @@ namespace MFM {
     // since square brackets determine the constant size for this type, else error
     s32 newarraysize = NONARRAYSIZE;
     UTI sizetype = m_nodeRight->checkAndLabelType();
+    if(sizetype == Nav)
+      {
+	rtnArraySize = UNKNOWNSIZE;
+	return true;
+      }
+
     UlamType * sizeut = m_state.getUlamTypeByIndex(sizetype);
 
     // expects a constant, numeric type within []
@@ -402,7 +416,7 @@ namespace MFM {
 	      }
 	    //else unknown is not an error
 	  }
-	else
+	else //newarraysize = UNKNOWNSIZE; //still true
 	  noerr = false;
 
 	evalNodeEpilog();
