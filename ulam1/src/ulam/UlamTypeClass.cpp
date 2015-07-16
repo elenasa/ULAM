@@ -265,6 +265,20 @@ namespace MFM {
     return caType;
   } //getCustomArrayType
 
+  u32 UlamTypeClass::getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
+  {
+    u32 camatches = 0;
+    assert(m_customArray);
+    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    SymbolClass * csym = NULL;
+
+    if(m_state.alreadyDefinedSymbolClass(cuti, csym))
+      {
+	camatches = csym->getCustomArrayIndexTypeFor(rnode, idxuti, hasHazyArgs);
+      }
+    return camatches;
+  } //getCustomArrayIndexTypeFor
+
   s32 UlamTypeClass::getBitSize()
   {
     s32 bitsize = m_key.getUlamKeyTypeSignatureBitSize();

@@ -234,6 +234,11 @@ namespace MFM {
     return m_functionST.getCustomArrayReturnTypeGetFunction();
   }
 
+  u32 NodeBlockClass::getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
+  {
+    return m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
+  }
+
   EvalStatus NodeBlockClass::eval()
   {
     //#define _DEBUG_SKIP_EVAL

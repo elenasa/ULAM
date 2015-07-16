@@ -115,6 +115,8 @@ namespace MFM{
 
     UTI getCustomArrayReturnTypeGetFunction();
 
+    u32 getCustomArrayIndexTypeGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
     u32 countNativeFuncDeclsForTableOfFunctions();
 
     void calcMaxDepthForTableOfFunctions();

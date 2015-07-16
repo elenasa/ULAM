@@ -75,6 +75,11 @@ namespace MFM {
 	      {
 		//must be a custom array; t.f. lhs is a quark!
 		assert(lut->getUlamClass() != UC_NOTACLASS);
+
+		// can't substitute a function call node for square brackets to leverage
+		// all the overload matching in func call node's c&l, because
+		// we ([]) can't tell which side of = we are on, and whether we should
+		// be a aref or aset.
 		UTI caType = ((UlamTypeClass *) lut)->getCustomArrayType();
 
 		if(!m_state.isComplete(caType))
@@ -103,12 +108,54 @@ namespace MFM {
 
 	m_state.popClassContext();
 
+	UTI idxuti = Int;
 	//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
 	if(!m_state.getUlamTypeByIndex(rightType)->isNumericType())
 	  {
-	    if(Node::checkSafeToCastTo(rightType, Int) == CAST_CLEAR)
+	    std::ostringstream msg;
+	    msg << "Custom array item specifier requires numeric type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    idxuti = Nav; //error!
+	  }
+	else
+	  {
+	    if(isCustomArray)
 	      {
-		if(!makeCastingNode(m_nodeRight, Int, m_nodeRight))
+		bool hasHazyArgs = false;
+		u32 camatches = ((UlamTypeClass *) lut)->getCustomArrayIndexTypeFor(m_nodeRight, idxuti, hasHazyArgs);
+		if(camatches == 0)
+		  {
+		    std::ostringstream msg;
+		    msg << "No defined custom array get function with";
+		    msg << " matching argument type ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		    msg << "; and cannot be called";
+		    if(hasHazyArgs)
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    else
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    idxuti = Nav; //error!
+		  }
+		else if(camatches > 1)
+		  {
+		    std::ostringstream msg;
+		    msg << "Ambiguous matches (" << camatches;
+		    msg << ") of custom array get function for argument type ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		    msg << "; Explicit casting required";
+		    if(hasHazyArgs)
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    else
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    idxuti = Nav; //error!
+		  }
+	      }
+
+	    //if(idxuti != Nav && Node::checkSafeToCastTo(rightType, idxuti) == CAST_CLEAR)
+	    if(idxuti != Nav && m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
+	      {
+		if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
 		  {
 		    newType = Nav; //error!
 		    errorCount++;
