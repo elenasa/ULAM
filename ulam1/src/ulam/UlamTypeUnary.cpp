@@ -234,9 +234,9 @@ namespace MFM {
   void UlamTypeUnary::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%lu", getDataAsCu64(data)); //converted to binary
+      sprintf(valstr,"%s", ToUnsignedDecimal(getDataAsCu64(data)).c_str()); //converted to binary
     else
-      sprintf(valstr,"%c%lu", prefix, getDataAsCu64(data)); //converted to binary
+      sprintf(valstr,"%c%s", prefix, ToUnsignedDecimal(getDataAsCu64(data)).c_str()); //converted to binary
   }
 
   s32 UlamTypeUnary::getDataAsCs32(const u32 data)

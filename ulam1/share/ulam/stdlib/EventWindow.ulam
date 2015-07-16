@@ -35,23 +35,18 @@ quark EventWindow {
   SiteNum size() native;
 
   Atom aref(SiteNum index) native;
-  Atom aref(Int index) { return aref((SiteNum) index); }
   Atom aref(C2D coord) { return aref(getSiteNumber(coord)); }
 
   Void aset(SiteNum index, Atom val) native;
-  Void aset(Int index, Atom val) { aset((SiteNum) index, val); }
   Void aset(C2D coord, Atom val) { aset(getSiteNumber(coord), val); }
 
   Bool isLegal(SiteNum index) { return index < size(); }
-  Bool isLegal(Int index) { return index >= 0 && isLegal((SiteNum) index); }
   Bool isLegal(C2D coord) { return isLegal(getSiteNumber(coord)); }
 
   Bool isLive(SiteNum index) native;
-  Bool isLive(Int index) { return isLegal(index) && isLive((SiteNum) index); }
   Bool isLive(C2D coord) { return isLegal(coord) && isLive(getSiteNumber(coord)); }
 
   Bool isEmpty(SiteNum index) { return isLive(index) && au.isEmpty(aref(index)); }
-  Bool isEmpty(Int index) { return isEmpty((SiteNum) index); }
   Bool isEmpty(C2D coord) { return isLegal(coord) && isLive(getSiteNumber(coord)); }
 
   Bool swap(SiteNum index1, SiteNum index2)  native;
