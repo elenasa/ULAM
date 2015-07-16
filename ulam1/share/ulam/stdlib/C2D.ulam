@@ -1,10 +1,8 @@
 ulam 1;
-use EventWindow;
+
 quark C2D {
   typedef Unsigned(3) Dir;
   typedef Int(16) Coord;
-
-  EventWindow ew;
 
   Coord x;
   Coord y;
@@ -24,10 +22,6 @@ quark C2D {
   Void setX(Int ax) { x = (Coord) ax; }
   Void setY(Int ay) { y = (Coord) ay; }
 
-  C2D make(Int x, Int y) {
-    return make((Coord)x, (Coord)y);
-  }
-
   C2D make(Coord x, Coord y)
   {
     C2D ret;
@@ -40,20 +34,15 @@ quark C2D {
   }
 
   C2D add(C2D other) {
-    return make(x + other.x, y + other.y);
+    return make((Coord) (x + other.x), (Coord) (y + other.y));
   }
 
   C2D subtract(C2D other) {
-    return make(x - other.x, y - other.y);
+    return make((Coord) (x - other.x), (Coord) (y - other.y));
   }
 
   Int dot(C2D other) {
     return x * other.x + y * other.y;
-  }
-
-  Int toInt() {
-    // XXX SHOULD WORK? return ew.getSiteNumber(self);
-    return (Int) ew.getSiteNumber(make((Int) x,(Int) y));
   }
 
   /**
