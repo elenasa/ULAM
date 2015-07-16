@@ -6,6 +6,8 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      //./Foo.ulam:7:7: ERROR: Invalid righthand type of conditional operator 'is'; must be an element name, not type: Empty.
+
       //sh: 1: /home/elenas/WORK/ulam/repo/ULAM/ulam1/src/test/bin/main: not found
 
       // gen code issue: quark doesn't have internalCMethodImplementingIs!!

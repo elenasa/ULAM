@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //no longer an error
-      return std::string("Exit status: 6\nUe_A { typedef Int(4) Foo[8];  Int(4) d[8](6,0,0,0,0,0,0,0);  Int(32) test() {  Bool(1) mybool;  mybool true = d ( mybool )foo = d 0 [] ( 6 )foo cast = d 0 [] cast return } }\n");
+      return std::string("Exit status: 6\nUe_A { typedef Int(4) Foo[8];  Int(4) d[8](6,0,0,0,0,0,0,0);  Int(32) test() {  Bool(1) mybool;  mybool true = d ( mybool )foo = d 0 [] ( 6 cast )foo cast = d 0 [] cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

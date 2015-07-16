@@ -177,10 +177,11 @@ namespace MFM {
     //assigns rhs to lhs UV pointer (handles arrays);
     //also copy result UV to stack, -1 relative to current frame pointer
     if(slot)
-      doBinaryOperation(1, 2, slot);
+      if(!doBinaryOperation(1, 2, slot))
+	evs = ERROR;
 
     evalNodeEpilog();
-    return NORMAL;
+    return evs;
   } //eval
 
   EvalStatus NodeBinaryOpEqual::evalToStoreInto()
@@ -207,7 +208,7 @@ namespace MFM {
     return NORMAL;
   } //evalToStoreInto
 
-  void NodeBinaryOpEqual::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpEqual::doBinaryOperation(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots);
     UTI nuti = getNodeType();
@@ -232,13 +233,17 @@ namespace MFM {
 	  }
       }
 
+    if(ruv.getUlamValueTypeIdx() == Nav || nuti == Nav)
+      return false;
+
     m_state.assignValue(pluv,ruv);
 
     //also copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(ruv);
+    return true;
   } //dobinaryoperation
 
-  void NodeBinaryOpEqual::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpEqual::doBinaryOperationImmediate(s32 lslot, s32 rslot, u32 slots)
   {
     assert(slots == 1);
     UTI nuti = getNodeType();
@@ -251,8 +256,11 @@ namespace MFM {
     assert(slots == 1);
     UlamValue luv = m_state.getPtrTarget(pluv);  //no eval!!
     UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(rslot); //immediate value
-    UlamValue rtnUV;
 
+    if((luv.getUlamValueTypeIdx() == Nav) || (ruv.getUlamValueTypeIdx() == Nav))
+      return false;
+
+    UlamValue rtnUV;
     u32 wordsize = m_state.getTotalWordSize(nuti);
     if(wordsize == MAXBITSPERINT)
       {
@@ -266,16 +274,19 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
-    else
-      assert(0);
+    //else
+    //assert(0);
+    if(rtnUV.getUlamValueTypeIdx() == Nav)
+      return false;
 
     m_state.assignValue(pluv,rtnUV);
 
     //also copy result UV to stack, -1 relative to current frame pointer
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
+    return true;
   } //dobinaryopImmediate
 
-  void NodeBinaryOpEqual::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
+  bool NodeBinaryOpEqual::doBinaryOperationArray(s32 lslot, s32 rslot, u32 slots)
   {
     UlamValue rtnUV;
     UTI nuti = getNodeType();
@@ -330,11 +341,15 @@ namespace MFM {
 	assert(rp.incrementPtr(m_state));
       } //forloop
 
+    if(rtnUV.getUlamValueTypeIdx() == Nav)
+      return false;
+
     if(WritePacked(packRtn))
       {
 	m_state.assignValue(pluv, rtnUV); //overwrite lhs copy with result UV
 	m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1); //store accumulated packed result
       }
+    return true;
   } //dobinaryoparray
 
   UlamValue NodeBinaryOpEqual::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)

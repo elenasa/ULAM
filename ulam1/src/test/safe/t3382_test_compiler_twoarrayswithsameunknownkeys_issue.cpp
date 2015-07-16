@@ -9,7 +9,7 @@ namespace MFM {
 
       //test bug fix: incrementUnknown in setUTIsizes (CS)
       //test: CompilerState.cpp:702: MFM::UlamType* MFM::CompilerState::getUlamTypeByIndex(MFM::u16): Assertion `isDefined(m_indexToUlamKey[typidx], rtnUT)' failed. Aborted (core dumped)
-      return std::string("Exit status: 0\nUq_R { /* empty class block */ }Ue_Palette { typedef Unsigned(6) A[4];  typedef Unsigned(6) B[4];  Int(32) test() {  Unsigned(6) color[4];  Unsigned(6) gray[4];  0 return } }\nUq_Color { typedef Unsigned(6) A[4];  typedef Unsigned(6) B[4];  <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUq_R { /* empty class block */ }Ue_Palette { typedef Unsigned(6) A[4];  typedef Unsigned(6) B[4];  Int(32) test() {  Unsigned(6) color[4];  Unsigned(6) gray[4];  0 cast return } }\nUq_Color { typedef Unsigned(6) A[4];  typedef Unsigned(6) B[4];  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

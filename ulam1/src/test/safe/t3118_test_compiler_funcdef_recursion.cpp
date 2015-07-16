@@ -9,7 +9,7 @@ namespace MFM {
       /* gen code output:
 	 Int Arg: 24
       */
-      return std::string("Exit status: 24\nUe_A { System s();  Bool(7) d(false);  Int(32) a(24);  Int(32) test() {  a ( 4 )fact = s ( a )print . a return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 24\nUe_A { System s();  Bool(7) d(false);  Int(32) a(24);  Int(32) test() {  a ( 4 cast )fact = s ( a )print . a return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

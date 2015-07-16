@@ -6,11 +6,13 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
+      //gencode failure for testing:
+      //include/Ue_10104Ebar10_Types.h:336: FAILED: NULL_POINTER
       /* gen code output:
 	 Int Arg: 512
       */
       //problem with eval answer is that an atom type appears the same as tu.
-      return std::string("Exit status: 0\nUe_Ebar { System s();  Int(32) test() {  s ( shouldBeOK(512) )print . 0 return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 0\nUe_Ebar { System s();  Int(32) test() {  s ( shouldBeOK(512) )print . 0 cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

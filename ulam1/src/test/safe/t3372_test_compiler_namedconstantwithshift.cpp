@@ -10,9 +10,6 @@ namespace MFM {
 	 Bool(3) Arg: 0x7 (true)
        */
 
-      //simplified case answer
-      //Exit status: 4\nUe_A { Bool(3) b(false);  System s();  Int(32) test() {  Counter(3u) c;  c ( )thanWhat . cast return } }\nUq_System { <NOMAIN> }\nUq_Counter { constant Unsigned(32) bits = NONREADYCONST;  typedef Unsigned(UNKNOWN) Count;  <NOMAIN> }
-
       //different casts since Constants have explicit types
       return std::string("Exit status: 4\nUe_A { Bool(3) b(true);  System s();  Int(32) test() {  Counter(3u) c;  b c ( 0u cast 1u cast )isEarlier . = s ( b )print . c ( )thanWhat . cast return } }\nUq_System { <NOMAIN> }\nUq_Counter { constant Unsigned(32) bits = NONREADYCONST;  typedef Unsigned(UNKNOWN) Count;  <NOMAIN> }\n");
     }
@@ -22,7 +19,7 @@ namespace MFM {
       bool rtn1 = fms->add("A.ulam","use System;\nuse Counter;\nelement A{\nSystem s;\nBool(3) b;\nInt test () {\nCounter(3u) c;\n b = c.isEarlier(0u, 1u);\ns.print(b);\n return  c.thanWhat();\n}\n}\n");
 
       //had to add u for (bits -1u) because both are constants, mixed signs, 32 bits.
-      bool rtn2 = fms->add("Counter.ulam", "quark Counter(Unsigned bits) {\n  typedef Unsigned(bits) Count;\nBool(3) isEarlier(Count a, Count b) {\n if (a < b)\n return (b - a) < (Count) (1<< (bits-1u));\n return (a - b) > (Count) (1 << (bits-1u));\n  }\n Count thanWhat() {\nreturn (Count) (1 << (bits-1u));\n  }\n }\n");
+      bool rtn2 = fms->add("Counter.ulam", "quark Counter(Unsigned bits) {\n  typedef Unsigned(bits) Count;\nBool(3) isEarlier(Count a, Count b) {\n if (a < b)\n return (b - a) < (Count) (1<< (bits-1u));\n return (a - b) > (Count) (1 << (bits-1u));\n  }\n Count thanWhat() {\nreturn (Count) (1 << 2u) /*(bits-1u))*/;\n  }\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

@@ -54,7 +54,7 @@ namespace MFM{
     virtual const std::string methodNameForCodeGen();
 
   protected:
-    virtual void doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
+    virtual bool doBinaryOperation(s32 lslot, s32 rslot, u32 slots);
 
     virtual UTI calcNodeType(UTI lt, UTI rt);
   };

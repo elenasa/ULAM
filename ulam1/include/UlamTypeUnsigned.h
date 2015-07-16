@@ -55,6 +55,8 @@ namespace MFM{
 
     virtual bool isNumericType();
 
+    virtual bool isPrimitiveType();
+
     virtual const std::string getUlamTypeVDAsStringForC();
 
     virtual const std::string getUlamTypeImmediateMangledName();
@@ -74,6 +76,8 @@ namespace MFM{
     virtual s64 getDataAsCs64(const u64 data);
 
     virtual u64 getDataAsCu64(const u64 data);
+
+    virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
 
   private:
 

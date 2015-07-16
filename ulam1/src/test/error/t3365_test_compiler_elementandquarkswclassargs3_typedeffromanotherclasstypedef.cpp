@@ -6,12 +6,15 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: -1\nUe_R { Unsigned(32) psize(3);  Int(32) test() {  psize 3u = pvar(-1) cast return } }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef Int(UNKNOWN) Foo;  <NOMAIN> }\nUe_P { constant Int(32) a = NONREADYCONST;  Bool(UNKNOWN) b(false);  <NOMAIN> }\n");
+      // can't test with gencode:
+      //include/Ue_102321R10_Types.h:328: FAILED: NULL_POINTER
+
+      return std::string("Exit status: -1\nUe_R { Unsigned(32) psize(3);  Int(32) test() {  psize 3u = pvar(-1) cast return } }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef Int(UNKNOWN) Foo;  <NOMAIN> }\nUe_P { constant Int(32) a = NONREADYCONST;  Bool(UNKNOWN) b(unknown);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
     {
-      //informed by 3364
+     //informed by 3364
       // recursive typedefs as Element Parameter datamember variable type
       // must already be parsed!
       bool rtn4 = fms->add("R.ulam","ulam 1;\nuse V;\nelement R {\nparameter V.Woof.Foo pvar = -1;\n Unsigned psize;\n Int test() {\n psize = pvar.sizeof;\nreturn pvar;\n}\n}\n");

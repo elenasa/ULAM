@@ -43,6 +43,11 @@ namespace MFM {
     return true;
   }
 
+  bool UlamTypeUnary::isPrimitiveType()
+  {
+    return true;
+  }
+
   const std::string UlamTypeUnary::getUlamTypeVDAsStringForC()
   {
     return "VD::UNARY";
@@ -183,15 +188,21 @@ namespace MFM {
     if(scr != CAST_CLEAR)
       return scr;
 
-    s32 bitsize = getBitSize();
-    s32 valbitsize = m_state.getBitSize(typidx);
-
     bool brtn = true;
-    ULAMTYPE valtypEnum = m_state.getUlamTypeByIndex(typidx)->getUlamTypeEnum();
+    UlamType * vut = m_state.getUlamTypeByIndex(typidx);
+    s32 valbitsize = vut->getBitSize();
+    s32 bitsize = getBitSize();
+    ULAMTYPE valtypEnum = vut->getUlamTypeEnum();
     switch(valtypEnum)
       {
       case Unsigned:
-	brtn = ((bitsize + 1) >= (1 << valbitsize));
+	{
+	  u32 vwordsize = vut->getTotalWordSize();
+	  if(vwordsize <= MAXBITSPERINT)
+	    brtn = ((u32) bitsize >= (u32) vut->getMax());
+	  else
+	    brtn = ((u64) bitsize >= vut->getMax());
+	}
 	break;
       case Unary:
 	brtn = (bitsize >= valbitsize);
@@ -215,17 +226,17 @@ namespace MFM {
   void UlamTypeUnary::getDataAsString(const u32 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%u", PopCount(data)); //converted to binary
+      sprintf(valstr,"%u", getDataAsCu32(data)); //converted to binary
     else
-      sprintf(valstr,"%c%u", prefix, PopCount(data)); //converted to binary
+      sprintf(valstr,"%c%u", prefix, getDataAsCu32(data)); //converted to binary
   }
 
   void UlamTypeUnary::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%u", PopCount64(data)); //converted to binary
+      sprintf(valstr,"%lu", getDataAsCu64(data)); //converted to binary
     else
-      sprintf(valstr,"%c%u", prefix, PopCount64(data)); //converted to binary
+      sprintf(valstr,"%c%lu", prefix, getDataAsCu64(data)); //converted to binary
   }
 
   s32 UlamTypeUnary::getDataAsCs32(const u32 data)
@@ -247,5 +258,38 @@ namespace MFM {
   {
     return _Unary64ToCu64(data, getBitSize());
   }
+
+  s32 UlamTypeUnary::bitsizeToConvertTypeTo(ULAMTYPE tobUT)
+  {
+    s32 wordsize = getTotalWordSize();
+    s32 bitsize = getBitSize();
+    s32 tobitsize = UNKNOWNSIZE;
+    switch(tobUT)
+      {
+      case Unsigned:
+	tobitsize = (s32) _getLogBase2(bitsize) + 1; //fits into unsigned
+	break;
+      case Int:
+	tobitsize = (s32) _getLogBase2(bitsize) + 1 + 1;
+	break;
+      case Bool:
+	tobitsize = 1;
+	break;
+      case Unary:
+      case Bits:
+	tobitsize = bitsize; //self
+	break;
+      case Void:
+	tobitsize = 0;
+	break;
+      case UAtom:
+      case Class:
+	break;
+      default:
+	assert(0);
+	//std::cerr << "UlamTypeUnary convertTypeTo error! " << tobUT << std::endl;
+      };
+    return (tobitsize > wordsize ? wordsize : tobitsize);
+  } //bitsizeToconvertTypeTo
 
 } //end MFM

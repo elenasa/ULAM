@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(Node * left, Node * right, CompilerState & state) : NodeBinaryOpArith(left,right,state) {}
-  NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& ref) : NodeBinaryOpArith(ref) {}
+
+NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& ref) : NodeBinaryOpArith(ref) {}
+
   NodeBinaryOpArithDivide::~NodeBinaryOpArithDivide(){}
 
   Node * NodeBinaryOpArithDivide::instantiate()
@@ -12,18 +14,15 @@ namespace MFM {
     return new NodeBinaryOpArithDivide(*this);
   }
 
-
   const char * NodeBinaryOpArithDivide::getName()
   {
     return "/";
   }
 
-
   const std::string NodeBinaryOpArithDivide::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   const std::string NodeBinaryOpArithDivide::methodNameForCodeGen()
   {
@@ -32,6 +31,47 @@ namespace MFM {
     return methodname.str();
   } //methodNameForCodeGen
 
+  UTI NodeBinaryOpArithDivide::castThyselfToResultType(UTI rt, UTI lt, UTI newType)
+  {
+    UTI nuti = newType;
+    //because the result bitsize for division should be the left bitsize
+    // create a cast! combining newType's base type and left resultbitsize.
+    // could be the same, or "unsafe".
+    if(newType != Nav && m_state.isComplete(newType))
+      {
+	UlamType * newut = m_state.getUlamTypeByIndex(newType);
+	ULAMTYPE typEnum = newut->getUlamTypeEnum();
+	u32 convertSize = m_state.getUlamTypeByIndex(lt)->bitsizeToConvertTypeTo(typEnum);
+	u32 enumStrIdx = m_state.m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(typEnum));
+	UlamKeyTypeSignature tokey(enumStrIdx, convertSize, NONARRAYSIZE);
+	nuti = m_state.makeUlamType(tokey, typEnum);
+
+	if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME) //not same, or dontknow
+	  {
+	    NNO pno = Node::getYourParentNo(); //save
+	    assert(pno);
+	    //not using use makeCastingNode since don't want recursive c&l call
+	    Node * castNode = new NodeCast(this, nuti, NULL, m_state);
+	    assert(castNode);
+	    castNode->setNodeLocation(getNodeLocation());
+
+	    Node * parentNode = m_state.findNodeNoInThisClass(pno);
+	    assert(parentNode);
+	    assert(parentNode->exchangeKids(this, castNode));
+
+	    std::ostringstream msg;
+	    msg << "Exchanged kids! of parent of binary operator" << getName();
+	    msg << ", with a cast to type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " while compiling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    castNode->setYourParentNo(pno); //inverts normal update lineage
+	    setYourParentNo(castNode->getNodeNo());
+	  }
+      }
+    return nuti;
+  } //castThyselfToResultType
 
   UlamValue NodeBinaryOpArithDivide::makeImmediateBinaryOp(UTI type, u32 ldata, u32 rdata, u32 len)
   {

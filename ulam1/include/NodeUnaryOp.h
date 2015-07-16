@@ -92,13 +92,13 @@ namespace MFM{
     virtual UTI calcNodeType(UTI uti) = 0;
 
     bool checkSafeToCastTo(UTI newType);
-    s32 maxBitsize(UTI uti);
+    s32 resultBitsize(UTI uti);
     bool checkForPrimitiveType(UTI uti);
     bool checkNotVoidType(UTI uti);
     bool checkForNumericType(UTI uti);
 
-    virtual void doUnaryOperation(s32 slot, u32 nslots);
-    virtual void doUnaryOperationImmediate(s32 slot, u32 nslots);
+    virtual bool doUnaryOperation(s32 slot, u32 nslots);
+    virtual bool doUnaryOperationImmediate(s32 slot, u32 nslots);
     virtual UlamValue makeImmediateUnaryOp(UTI type, u32 data, u32 len) = 0;
 
   };

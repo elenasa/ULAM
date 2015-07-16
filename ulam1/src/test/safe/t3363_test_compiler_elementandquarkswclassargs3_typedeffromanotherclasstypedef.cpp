@@ -7,7 +7,7 @@ namespace MFM {
     std::string GetAnswerKey()
     {
       //Constants have explicit types
-      return std::string("Exit status: 3\nUe_R { Int(32) test() {  typedef P(3) Foo;  P(3) pvar;  3u cast return } }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef P(a) Foo;  <NOMAIN> }\nUe_P { constant Int(32) a = NONREADYCONST;  Bool(UNKNOWN) b(false);  <NOMAIN> }\n");
+      return std::string("Exit status: 3\nUe_R { Int(32) test() {  typedef P(3) Foo;  P(3) pvar;  3u cast return } }\nUq_V { typedef Q(3) Woof;  <NOMAIN> }\nUq_Q { constant Int(32) s = NONREADYCONST;  typedef P(a) Foo;  <NOMAIN> }\nUe_P { constant Int(32) a = NONREADYCONST;  Bool(UNKNOWN) b(unknown);  <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
