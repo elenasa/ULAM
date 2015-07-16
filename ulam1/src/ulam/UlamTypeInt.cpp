@@ -250,9 +250,9 @@ namespace MFM {
   void UlamTypeInt::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%ld", data);
+      sprintf(valstr,"%s", ToSignedDecimal(data).c_str());
     else
-      sprintf(valstr,"%c%ld", prefix, data);
+      sprintf(valstr,"%c%s", prefix, ToSignedDecimal(data).c_str());
   }
 
   s32 UlamTypeInt::getDataAsCs32(const u32 data)

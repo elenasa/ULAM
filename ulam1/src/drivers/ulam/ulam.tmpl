@@ -73,7 +73,7 @@ sub TryToReadWholeFile {
 my $MFM_ROOT_DIR= "$ULAM_ROOT/../MFM";  # DEFAULT, HOPE AND PRAY.. THIS ONLY WORKS ON THE INSTALLED TREE
 
 # Look for ulam's local config makefile and 'parse' (yeah that's it) what we find
-my $makefilelocalpath = "$ULAM_ROOT/../Makefile.local.mk";
+my $makefilelocalpath = "$ULAM_ROOT/Makefile.local.mk";
 my $makefilelocal = TryToReadWholeFile($makefilelocalpath);
 if (defined($makefilelocal) &&
     $makefilelocal =~ /^\s*MFM_ROOT_DIR\s*:=\s*([^\s#]+)\s*(#.*)?$/m) {

@@ -99,6 +99,26 @@ namespace MFM {
    */
   extern std::string HexEscape(const std::string & source);
 
+  /**
+   * Format an s64 in decimal as if by printf "%ld".  Apply .c_str()
+   * to the result of this and use "%s" to print it
+   *
+   * @param data The data to format in decimal
+   *
+   * @return a string containing the decimal representation
+   */
+  extern std::string ToSignedDecimal(const s64 data);
+
+  /**
+   * Format a u64 in decimal as if by printf "%lu".  Apply .c_str()
+   * to the result of this and use "%s" to print it
+   *
+   * @param data The data to format in decimal
+   *
+   * @return a string containing the decimal representation
+   */
+  extern std::string ToUnsignedDecimal(const u64 data);
+
 }
 
 #endif /* ULAMUTIL_H */

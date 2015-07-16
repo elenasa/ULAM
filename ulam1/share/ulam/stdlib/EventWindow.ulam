@@ -55,7 +55,6 @@ quark EventWindow {
   Bool isEmpty(C2D coord) { return isLegal(coord) && isLive(getSiteNumber(coord)); }
 
   Bool swap(SiteNum index1, SiteNum index2)  native;
-  Bool swap(Int index1, Int index2) { return swap((SiteNum) index1, (SiteNum) index2); }
   Bool swap(C2D coord1, C2D coord2) { return swap(getSiteNumber(coord1), getSiteNumber(coord2)); }
 
   C2D getCoord(SiteNum siteNum) native;

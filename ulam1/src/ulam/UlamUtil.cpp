@@ -172,4 +172,22 @@ namespace MFM
     return os.str();
   }
 
+  std::string ToSignedDecimal(const s64 data)
+  {
+    // We must avoid printfs involving 64 bit quantities,
+    // due to ANSI C99 limitations, so we do this instead.
+    std::stringstream os;
+    os << std::dec << data;
+    return os.str();
+  }
+
+  std::string ToUnsignedDecimal(const u64 data)
+  {
+    // We must avoid printfs involving 64 bit quantities,
+    // due to ANSI C99 limitations, so we do this instead.
+    std::stringstream os;
+    os << std::dec << data;
+    return os.str();
+  }
+
 }
