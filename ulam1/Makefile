@@ -133,7 +133,7 @@ $(SRC_TARGETS):	src
 
 # src rule just passes the make goals down to src
 src:	FORCE
-	@$(MAKE) -C $@ $(MAKECMDGOALS)
+	@$(MAKE) -k -C $@ $(MAKECMDGOALS)
 
 # pattern rule to build shared libs of ulam elements destined to live
 # inside the MFM tree.  NOTE: MAKE BOTH TREES FIRST!
