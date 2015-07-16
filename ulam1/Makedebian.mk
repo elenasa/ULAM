@@ -16,7 +16,7 @@ DEB_SYMLINK_BIN_DIR := $(DESTDIR)/usr/bin
 
 install:	FORCE
 	install -d $(DEB_COMBINED_ROOT_DIR)
-	./share/perl/extractDistro.pl all .. $(DEB_COMBINED_ROOT_DIR)
+	./share/perl/extractDistro.pl bin .. $(DEB_COMBINED_ROOT_DIR)
 	./share/perl/installSymlinks.pl .. $(DEB_SYMLINK_BIN_DIR)
 
 include VERSION.mk
