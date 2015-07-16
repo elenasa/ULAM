@@ -216,9 +216,9 @@ namespace MFM {
   void UlamTypeClass::getDataLongAsString(const u64 data, char * valstr, char prefix)
   {
     if(prefix == 'z')
-      sprintf(valstr,"%ld", data);
+      sprintf(valstr,"%s", ToSignedDecimal(data).c_str());
     else
-      sprintf(valstr,"%c%ld", prefix, data);
+      sprintf(valstr,"%c%s", prefix, ToSignedDecimal(data).c_str());
   }
 
   ULAMCLASSTYPE UlamTypeClass::getUlamClass()
