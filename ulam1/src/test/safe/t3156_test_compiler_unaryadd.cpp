@@ -9,7 +9,7 @@ namespace MFM {
       /* gencode output:
 	 Unary(3) Arg: 0x3
       */
-      return std::string("Exit status: 3\nUe_A { Unary(3) b(1);  System s();  Bool(1) sp(false);  Unary(3) a(2);  Unary(3) c(3);  Int(32) test() {  a 2 cast = b 1 cast = c a cast cast b cast cast +b cast = s ( c )print . c cast return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 3\nUe_A { Unary(3) b(1);  System s();  Bool(1) sp(false);  Unary(3) a(2);  Unary(3) c(3);  Int(32) test() {  a 2 cast = b 1 cast = c a cast b cast +b cast = s ( c )print . c cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)

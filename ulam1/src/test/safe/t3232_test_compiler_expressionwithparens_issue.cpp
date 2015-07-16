@@ -6,7 +6,7 @@ namespace MFM {
   {
     std::string GetAnswerKey()
     {
-      return std::string("Exit status: 72\nUe_Foo { typedef Unsigned(8) Channel;  typedef Unsigned(8) ARGB[4];  Unsigned(3) m_lastTouch(2);  Int(32) test() {  Unsigned(8) tmp[4];  m_lastTouch 2 cast = tmp 1 [] m_lastTouch cast cast 36u cast cast * cast = tmp 1 [] cast return } }\n");
+      return std::string("Exit status: 72\nUe_Foo { typedef Unsigned(8) Channel;  typedef Unsigned(8) ARGB[4];  Unsigned(3) m_lastTouch(2);  Int(32) test() {  Unsigned(8) tmp[4];  m_lastTouch 2 cast = tmp 1 [] m_lastTouch cast 36u cast * cast = tmp 1 [] cast return } }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
