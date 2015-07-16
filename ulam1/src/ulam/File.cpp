@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "File.h"
+#include "inttypes.h"  // for PRId64
 
 namespace MFM {
 
@@ -47,7 +48,7 @@ namespace MFM {
   s32 File::write_decimal_long(const s64 data)
     {
       char tmp[64+3];
-      sprintf(tmp,"%ld",data);
+      sprintf(tmp,"%"PRId64,data);
       return write(tmp);
     }
 
