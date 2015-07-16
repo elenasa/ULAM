@@ -37,6 +37,7 @@
 #ifndef ULAMTYPECLASS_H
 #define ULAMTYPECLASS_H
 
+#include "Node.h"
 #include "UlamType.h"
 
 namespace MFM{
@@ -90,6 +91,8 @@ namespace MFM{
     void setCustomArray();
 
     UTI getCustomArrayType();
+
+    u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
     virtual s32 getBitSize();
 

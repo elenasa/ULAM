@@ -84,6 +84,8 @@ namespace MFM{
 
     UTI getCustomArrayTypeFromGetFunction();
 
+    u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
     void checkDuplicateFunctions();
 
     void calcMaxDepthOfFunctions();
