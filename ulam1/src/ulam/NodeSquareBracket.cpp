@@ -46,12 +46,37 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     u32 errorCount = 0;
     UTI newType = Nav; //init
+    UTI idxuti = Nav;
+
+    //for example, f.chance[i] where i is local, same as f.func(i);
+    NodeBlock * currBlock = m_state.getCurrentBlock();
+    m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
+
+    UTI rightType = m_nodeRight->checkAndLabelType();
+
+    m_state.popClassContext();
+
+      //must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
+    if(!m_state.getUlamTypeByIndex(rightType)->isNumericType())
+      {
+	std::ostringstream msg;
+	msg << "Array item specifier requires numeric type: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	idxuti = Nav; //error!
+	errorCount++;
+      }
+    else
+      idxuti = rightType; //default unless caarray
+
+
     UTI leftType = m_nodeLeft->checkAndLabelType();
+    bool isCustomArray = false;
 
     if(leftType != Nav)
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-	bool isCustomArray = lut->isCustomArray();
+        isCustomArray = lut->isCustomArray();
 
 	if(lut->isScalar())
 	  {
@@ -98,29 +123,9 @@ namespace MFM {
 		    errorCount++;
 		  }
 	      }
-	  }
 
-	//for example, f.chance[i] where i is local, same as f.func(i);
-	NodeBlock * currBlock = m_state.getCurrentBlock();
-	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
-
-	UTI rightType = m_nodeRight->checkAndLabelType();
-
-	m_state.popClassContext();
-
-	UTI idxuti = rightType;
-	//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
-	if(!m_state.getUlamTypeByIndex(rightType)->isNumericType())
-	  {
-	    std::ostringstream msg;
-	    msg << "Custom array item specifier requires numeric type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    idxuti = Nav; //error!
-	  }
-	else
-	  {
-	    if(isCustomArray)
+	    //cant proceed with custom array subscript if lhs is incomplete
+	    if(isCustomArray && errorCount == 0)
 	      {
 		bool hasHazyArgs = false;
 		u32 camatches = ((UlamTypeClass *) lut)->getCustomArrayIndexTypeFor(m_nodeRight, idxuti, hasHazyArgs);
@@ -136,6 +141,7 @@ namespace MFM {
 		    else
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    idxuti = Nav; //error!
+		    errorCount++;
 		  }
 		else if(camatches > 1)
 		  {
@@ -149,39 +155,44 @@ namespace MFM {
 		    else
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    idxuti = Nav; //error!
+		    errorCount++;
 		  }
 	      }
+	  } //lut is scalar
 
-	  }
-
-	//if(idxuti != Nav && Node::checkSafeToCastTo(rightType, idxuti) == CAST_CLEAR)
-	if(idxuti != Nav && m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
+	if(UlamType::compare(idxuti, rightType, m_state) == UTIC_NOTSAME)
 	  {
-	    if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
+	    //if(idxuti != Nav && Node::checkSafeToCastTo(rightType, idxuti) == CAST_CLEAR)
+	    //    if(idxuti != Nav && m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
+	    if(m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
+	      {
+		if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
+		  {
+		    newType = Nav; //error!
+		    errorCount++;
+		  }
+	      }
+	    else
 	      {
 		newType = Nav; //error!
 		errorCount++;
 	      }
 	  }
+      } //lt not nav
+
+    if(errorCount == 0)
+      {
+	// sq bracket purpose in life is to account for array elements;
+	if(isCustomArray)
+	  newType = ((UlamTypeClass *) m_state.getUlamTypeByIndex(leftType))->getCustomArrayType();
 	else
-	  {
-	    newType = Nav; //error!
-	    errorCount++;
-	  }
+	  newType = m_state.getUlamTypeAsScalar(leftType);
 
-	if(errorCount == 0)
-	  {
-	    // sq bracket purpose in life is to account for array elements;
-	    if(isCustomArray)
-	      newType = ((UlamTypeClass *) lut)->getCustomArrayType();
-	    else
-	      newType = m_state.getUlamTypeAsScalar(leftType);
-
-	    setNodeType(newType);
-	    // multi-dimensional possible; MP not ok lhs.
-	    setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
-	  }
+	// multi-dimensional possible; MP not ok lhs.
+	setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
       }
+
+    setNodeType(newType);
     return newType;
   } //checkAndLabelType
 
