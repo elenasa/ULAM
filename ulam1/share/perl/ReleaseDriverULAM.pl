@@ -114,6 +114,12 @@ sub REPO_BUILD {
         unless $ret eq "";
     print "OK\n";
 
+    print "Compiling standard elements..";
+    $ret = `cd ULAM/ulam1 && make ulamexports >../../logs/REPO_BUILD_EXPORTS.log 2>&1 || echo -n \$?`;
+    return "Repo .so build failed ($ret)"
+        unless $ret eq "";
+    print "OK\n";
+
     print "Getting version number from MFM..";
     $mfm_version_tag = `cd ULAM/MFM;make version`;
     chomp($mfm_version_tag);

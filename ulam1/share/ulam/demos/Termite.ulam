@@ -72,7 +72,7 @@ element Termite
     if (random.oneIn(pTURN_ODDS))
       m_dir = (Direction) random.bits(m_dir.sizeof);
 
-    ew.swap(0, (Int) m_dir + 1);
+    ew.swap(0u, m_dir + 1u);
   }
 
   ColorUtils cu;

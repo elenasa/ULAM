@@ -46,8 +46,8 @@ BEGIN {
     use File::Basename;
 
     $SCRIPT_PATH = __FILE__;
-    $SCRIPT_PATH = readlink $SCRIPT_PATH if -l $SCRIPT_PATH;
-    $SCRIPT_PATH = File::Spec->rel2abs( $SCRIPT_PATH );
+    $SCRIPT_PATH = File::Spec->rel2abs( readlink $SCRIPT_PATH, dirname($SCRIPT_PATH))
+        if -l $SCRIPT_PATH;
 
     $ULAM_ROOT = dirname($SCRIPT_PATH)."/..";
 
@@ -60,7 +60,7 @@ BEGIN {
 
     $CULAM_PATH = "$ULAM_ROOT/bin/culam";
     $ULAM_SHARE_DIR = "$ULAM_ROOT/share";
-#    print "<<$ULAM_SHARE_DIR>>\n";
+
     push @INC, "$ULAM_SHARE_DIR/perl";
 }
 
@@ -1015,6 +1015,8 @@ sub runUlamCompilations
     for my $sd (@sourceDirsConfigured) {
         push @args, "-i", $sd;
     }
+    push @args, "-i", "$ULAM_ROOT/share/ulam/stdlib";
+    push @args, "-i", "$ULAM_ROOT/share/ulam/core";
     push @args, @ulamFiles;
     print " Compile ".join(", ",@ulamFiles).": ";
 
