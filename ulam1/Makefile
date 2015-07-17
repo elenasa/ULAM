@@ -122,9 +122,9 @@ COMPONENTNAME:=ulamic
 MFM_TARGET:=linux
 BASEDIR:=$(MFM_ROOT_DIR)
 include $(BASEDIR)/config/Makecommon.mk
-CFLAGS += -I $(BASEDIR)/src/core/include
-CFLAGS += -D ULAM_SHARE_DIR=$(ULAM_SHARE_DIR)
-LIBS := -L $(BASEDIR)/build/core $(LIBS)
+override CFLAGS += -I $(BASEDIR)/src/core/include
+override CFLAGS += -D ULAM_SHARE_DIR=$(ULAM_SHARE_DIR)
+override LIBS := -L $(BASEDIR)/build/core $(LIBS)
 
 ####
 # Top level rules
