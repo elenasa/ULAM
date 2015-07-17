@@ -36,7 +36,6 @@ namespace MFM {
     UTI newType = Bool;
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
-    //assert(m_state.isScalar(luti));
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
@@ -46,7 +45,7 @@ namespace MFM {
 	msg << "Invalid lefthand type of conditional operator '" << getName();
 	msg << "'; must be an atom or element, not ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	if(lclasstype == UC_UNSEEN)
+	if(lclasstype == UC_UNSEEN || luti == Nav)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
@@ -55,7 +54,6 @@ namespace MFM {
 
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
-    //assert(m_state.isScalar(ruti));
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && m_state.isScalar(ruti)))

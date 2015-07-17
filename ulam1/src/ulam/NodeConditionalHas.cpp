@@ -46,7 +46,7 @@ namespace MFM {
 	msg << "Invalid lefthand type of conditional operator '" << getName();
 	msg << "'; must be an atom, element or quark, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	if(lclasstype == UC_UNSEEN)
+	if(lclasstype == UC_UNSEEN || luti == Nav)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
