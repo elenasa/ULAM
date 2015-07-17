@@ -1,5 +1,5 @@
 /usr/lib/ulam/MFM/bin/mfms /usr/bin/mfms
-/usr/lib/ulam/MFM/bin/mfzrun /usr/bin/mfmzrun
-/usr/lib/ulam/MFM/bin/mfzmake /usr/bin/mfmzmake
+/usr/lib/ulam/MFM/bin/mfzrun /usr/bin/mfzrun
+/usr/lib/ulam/MFM/bin/mfzmake /usr/bin/mfzmake
 /usr/lib/ulam/ulam1/bin/culam /usr/bin/culam
 /usr/lib/ulam/ulam1/bin/ulam /usr/bin/ulam
