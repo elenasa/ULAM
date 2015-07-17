@@ -5,8 +5,8 @@ BIN_DIR:=$(BASE_DIR)/bin
 INCLUDE_DIR:=$(BASE_DIR)/include
 TEST_LIB_DIR:=$(BASE_DIR)/build/test
 
-LIBS:= -L $(TEST_LIB_DIR) -ltests $(LIBS)
-INCLUDES += -I${INCLUDE_DIR}
+override LIBS:= -L $(TEST_LIB_DIR) -ltests $(LIBS)
+override INCLUDES += -I${INCLUDE_DIR}
 
 SRCS := $(wildcard *.cpp)
 OBJS := $(patsubst %.cpp,$(BUILD_DIR)/%.o,$(SRCS))
