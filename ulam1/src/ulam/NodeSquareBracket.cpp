@@ -108,7 +108,7 @@ namespace MFM {
 
 	m_state.popClassContext();
 
-	UTI idxuti = Int;
+	UTI idxuti = rightType;
 	//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
 	if(!m_state.getUlamTypeByIndex(rightType)->isNumericType())
 	  {
@@ -152,20 +152,21 @@ namespace MFM {
 		  }
 	      }
 
-	    //if(idxuti != Nav && Node::checkSafeToCastTo(rightType, idxuti) == CAST_CLEAR)
-	    if(idxuti != Nav && m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
-	      {
-		if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
-		  {
-		    newType = Nav; //error!
-		    errorCount++;
-		  }
-	      }
-	    else
+	  }
+
+	//if(idxuti != Nav && Node::checkSafeToCastTo(rightType, idxuti) == CAST_CLEAR)
+	if(idxuti != Nav && m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
+	  {
+	    if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
 	      {
 		newType = Nav; //error!
 		errorCount++;
 	      }
+	  }
+	else
+	  {
+	    newType = Nav; //error!
+	    errorCount++;
 	  }
 
 	if(errorCount == 0)
