@@ -29,6 +29,7 @@ element WindowServices {
   typedef Count CountArray[4];
 
   typedef Unsigned(2) Slot;
+  typedef EventWindow.SiteNum SiteNum;
 
   // Utilities
   MDist mdist;
@@ -56,10 +57,6 @@ element WindowServices {
   // Methods
   Void init() {
     reset(0, 4);
-  }
-
-  Void reset(Int first, Int last) {
-    reset((Radius) first, (Radius) last);
   }
 
   Void reset(Radius first, Radius last) {
@@ -109,7 +106,8 @@ element WindowServices {
     Int et = tu.getEmptyType();
     reset();
     for (Int slot = next(); slot >= 0; slot = next()) {
-      Atom a = ew[slot];
+      SiteNum s = (SiteNum) slot;
+      Atom a = ew[s];
       Int at = tu.getType(a);
       if (at < 0) continue;
       if ((t0 == -4) || (t0 == -2 && at == et) || (t0 == -3 && at != et) || (at == t0)) hit(0);
@@ -136,10 +134,9 @@ element WindowServices {
   Bool hit() { return hit((Slot) 0, (Unsigned) 1); }
 
   Bool hit(Slot slot) { return hit(slot, (Unsigned) 1); }
-  Bool hit(Int slot) { return hit((Slot) slot, (Unsigned) 1); }
 
   Bool hit(Slot slot, Unsigned weight) {
-    hitCount[slot] = hitCount[slot] + (Count) weight;
+    hitCount[slot] = (Count) (hitCount[slot] + weight);
     if (random.create((Unsigned) hitCount[slot]) < weight) {
       chosenIndex[slot] = currentIndex;
       return true;
@@ -152,7 +149,6 @@ element WindowServices {
   }
 
   Count getHits(Slot slot) { return hitCount[slot]; }
-  Count getHits(Int slot) { return getHits((Slot) slot); }
 
   Index getPick() {
     return getPick((Slot) 0);
@@ -163,7 +159,6 @@ element WindowServices {
       return Index.maxof;
     return chosenIndex[slot];
   }
-  Index getPick(Int slot) { return getPick((Slot) slot); }
 
   Int test() {
     Int count = 0;
@@ -180,8 +175,8 @@ element WindowServices {
     count = 0;
     init();
     for (Int index2 = next(); index2 >= 0; index2 = next()) {
-      for (Unsigned idx = 0; idx < 4; idx += 1) {
-        Bits mask = 1<<idx;
+      for (Int idx = 0; idx < 4; idx += 1) {
+        Bits mask = 1<< (Unsigned) idx;
         Bits bcount = count;
         if ((count&mask) != 0) hit((Slot) idx);
       }
