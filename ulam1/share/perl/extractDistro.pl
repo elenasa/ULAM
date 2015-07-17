@@ -107,6 +107,6 @@ for my $c (sort keys %categories) {
 ################# THE TREE IS CREATED.  FINAL CUSTOMIZATIONS
 
 `echo "MFM_ROOT_DIR := $DISTRO_MFM" > $DISTRO_ULAM/Makefile.local.mk`
-    if $content eq "bin";
+    if $content ne "bin";
 `mkdir $DISTRO_ULAM/build`;
 exit 0;
