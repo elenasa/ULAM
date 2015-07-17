@@ -58,10 +58,6 @@ element WindowServices {
     reset(0, 4);
   }
 
-  Void reset(Int first, Int last) {
-    reset((Radius) first, (Radius) last);
-  }
-
   Void reset(Radius first, Radius last) {
     firstRadius = first;
     lastRadius = last;
