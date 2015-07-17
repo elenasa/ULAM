@@ -57,7 +57,7 @@ namespace MFM {
     m_state.popClassContext();
 
       //must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
-    if(!m_state.getUlamTypeByIndex(rightType)->isNumericType())
+    if(rightType != Nav && !m_state.getUlamTypeByIndex(rightType)->isNumericType())
       {
 	std::ostringstream msg;
 	msg << "Array item specifier requires numeric type: ";
