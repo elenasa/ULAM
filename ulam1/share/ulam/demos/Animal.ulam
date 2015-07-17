@@ -14,6 +14,8 @@ element Animal {
   Hunger hunger;
   EventWindow ew;
 
+  typedef EventWindow.SiteNum SiteNum;
+
   /** Days food per plant.
       \range 0..50
    */
@@ -21,7 +23,7 @@ element Animal {
 
   Void behave() {
     if (++hunger == hunger.maxof) {
-      for (Sitenum i = 0; i < 5u; ++i) {
+      for (SiteNum i = 0; i < 5u; ++i) {
         Res r;
         if (i == 0 || ew[i] is Empty)
           ew[i] = r;
