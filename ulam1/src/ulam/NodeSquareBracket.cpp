@@ -48,30 +48,14 @@ namespace MFM {
     UTI newType = Nav; //init
     UTI idxuti = Nav;
 
+    UTI leftType = m_nodeLeft->checkAndLabelType();
+    bool isCustomArray = false;
+
     //for example, f.chance[i] where i is local, same as f.func(i);
     NodeBlock * currBlock = m_state.getCurrentBlock();
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
-
     UTI rightType = m_nodeRight->checkAndLabelType();
-
     m_state.popClassContext();
-
-      //must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
-    if(!m_state.getUlamTypeByIndex(rightType)->isNumericType())
-      {
-	std::ostringstream msg;
-	msg << "Array item specifier requires numeric type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	idxuti = Nav; //error!
-	errorCount++;
-      }
-    else
-      idxuti = rightType; //default unless caarray
-
-
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    bool isCustomArray = false;
 
     if(leftType != Nav)
       {
@@ -124,46 +108,64 @@ namespace MFM {
 		  }
 	      }
 
+	    //set up idxuti..RHS
 	    //cant proceed with custom array subscript if lhs is incomplete
-	    if(isCustomArray && errorCount == 0)
+	    if(errorCount == 0)
 	      {
-		bool hasHazyArgs = false;
-		u32 camatches = ((UlamTypeClass *) lut)->getCustomArrayIndexTypeFor(m_nodeRight, idxuti, hasHazyArgs);
-		if(camatches == 0)
+		if(isCustomArray)
 		  {
-		    std::ostringstream msg;
-		    msg << "No defined custom array get function with";
-		    msg << " matching argument type ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-		    msg << "; and cannot be called";
-		    if(hasHazyArgs)
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		    else
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    idxuti = Nav; //error!
-		    errorCount++;
+		    bool hasHazyArgs = false;
+		    u32 camatches = ((UlamTypeClass *) lut)->getCustomArrayIndexTypeFor(m_nodeRight, idxuti, hasHazyArgs);
+		    if(camatches == 0)
+		      {
+			std::ostringstream msg;
+			msg << "No defined custom array get function with";
+			msg << " matching argument type ";
+			msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+			msg << "; and cannot be called";
+			if(hasHazyArgs)
+			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			else
+			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			idxuti = Nav; //error!
+			errorCount++;
+		      }
+		    else if(camatches > 1)
+		      {
+			std::ostringstream msg;
+			msg << "Ambiguous matches (" << camatches;
+			msg << ") of custom array get function for argument type ";
+			msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+			msg << "; Explicit casting required";
+			if(hasHazyArgs)
+			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			else
+			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			idxuti = Nav; //error!
+			errorCount++;
+		      }
 		  }
-		else if(camatches > 1)
+		else
 		  {
-		    std::ostringstream msg;
-		    msg << "Ambiguous matches (" << camatches;
-		    msg << ") of custom array get function for argument type ";
-		    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-		    msg << "; Explicit casting required";
-		    if(hasHazyArgs)
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    //not custom array
+		    //must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
+		    if(rightType != Nav && !m_state.getUlamTypeByIndex(rightType)->isNumericType())
+		      {
+			std::ostringstream msg;
+			msg << "Array item specifier requires numeric type: ";
+			msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+			idxuti = Nav; //error!
+			errorCount++;
+		      }
 		    else
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-		    idxuti = Nav; //error!
-		    errorCount++;
+		      idxuti = rightType; //default unless caarray
 		  }
-	      }
+	      } //errorcount is zero
 	  } //lut is scalar
 
-	if(UlamType::compare(idxuti, rightType, m_state) == UTIC_NOTSAME)
+	if(idxuti != Nav && UlamType::compare(idxuti, rightType, m_state) == UTIC_NOTSAME)
 	  {
-	    //if(idxuti != Nav && Node::checkSafeToCastTo(rightType, idxuti) == CAST_CLEAR)
-	    //    if(idxuti != Nav && m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
 	    if(m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
 	      {
 		if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
@@ -243,25 +245,44 @@ namespace MFM {
       }
 
     UlamValue offset = m_state.m_nodeEvalStack.popArg();
-
-    // constant expression only required for array declaration
-    s32 arraysize = m_state.getArraySize(ltype);
-    u32 offsetdata = offset.getImmediateData(m_state);
-    s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
-
-    if((offsetInt >= arraysize) && !isCustomArray)
+    UlamType * offut = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx());
+    s32 offsetInt = 0;
+    if(offut->isNumericType())
       {
-	Symbol * lsymptr;
-	u32 lid = 0;
-	if(getSymbolPtr(lsymptr))
-	  lid = lsymptr->getId();
+	// constant expression only required for array declaration
+	s32 arraysize = m_state.getArraySize(ltype);
+	u32 offsetdata = offset.getImmediateData(m_state);
+	offsetInt = offut->getDataAsCs32(offsetdata);
 
-	std::ostringstream msg;
-	msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
-	msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	evalNodeEpilog();
-	return ERROR;
+	if((offsetInt >= arraysize) && !isCustomArray)
+	  {
+	    Symbol * lsymptr;
+	    u32 lid = 0;
+	    if(getSymbolPtr(lsymptr))
+	      lid = lsymptr->getId();
+
+	    std::ostringstream msg;
+	    msg << "Array subscript [" << offsetInt << "] exceeds the size (" << arraysize;
+	    msg << ") of array '" << m_state.m_pool.getDataAsString(lid).c_str() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evalNodeEpilog();
+	    return ERROR;
+	  }
+      }
+    else if(!isCustomArray)
+      {
+	    Symbol * lsymptr;
+	    u32 lid = 0;
+	    if(getSymbolPtr(lsymptr))
+	      lid = lsymptr->getId();
+
+	    std::ostringstream msg;
+	    msg << "Array subscript of array '";
+	    msg << m_state.m_pool.getDataAsString(lid).c_str();
+	    msg << "' requires a numeric type";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    evalNodeEpilog();
+	    return ERROR;
       }
 
     assignReturnValueToStack(pluv.getValAt(offsetInt, m_state));
