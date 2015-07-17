@@ -1015,6 +1015,7 @@ sub runUlamCompilations
     for my $sd (@sourceDirsConfigured) {
         push @args, "-i", $sd;
     }
+    push @args, "-i", "$ULAM_ROOT/share/ulam/core";
     push @args, @ulamFiles;
     print " Compile ".join(", ",@ulamFiles).": ";
 
