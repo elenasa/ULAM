@@ -40,6 +40,4 @@ quark Random {
   }
 
   Bool oneIn(Unsigned odds) { return oddsOf((Unsigned) 1, odds); }
-
-  Bool oneIn(Int odds) { return oneIn((Unsigned) odds); }
 }
