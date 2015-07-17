@@ -512,11 +512,6 @@ namespace MFM {
     vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
     assert(vuti != Void);
 
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    //ULAMTYPE vetype = vut->getUlamTypeEnum();
-    //assert( vetype == Int || vetype == Unsigned);
-    assert(vut->isNumericType());
-
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
     Symbol * cos = NULL;
@@ -540,6 +535,10 @@ namespace MFM {
     // to call even for CA's.
     if(cosut->isCustomArray() && !isHandlingImmediateType())
       return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);
+
+    // check after we know it's not a custom array
+    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+    assert(vut->isNumericType());
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -667,9 +666,7 @@ namespace MFM {
     assert(vuti != Void);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    //ULAMTYPE vetype = vut->getUlamTypeEnum();
-    //assert( vetype == Int || vetype == Unsigned);
-    assert(vut->isNumericType());
+    //assert(vut->isNumericType()); //may not be numeric for custom array
 
     //here, cos is symbol used to determine read method: either self or last of cos.
     //stgcos is symbol used to determine first "hidden" arg
