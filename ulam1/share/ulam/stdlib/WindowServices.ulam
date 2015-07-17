@@ -174,7 +174,7 @@ element WindowServices {
     init();
     for (Int index2 = next(); index2 >= 0; index2 = next()) {
       for (Int idx = 0; idx < 4; idx += 1) {
-        Bits mask = 1<<idx;
+        Bits mask = 1<< (Unsigned) idx;
         Bits bcount = count;
         if ((count&mask) != 0) hit((Slot) idx);
       }
