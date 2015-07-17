@@ -48,11 +48,11 @@ element Burn {
     WindowServices ws;
     ws.reset(1,2);
     for (Int slot = ws.next(); slot >= 0; slot = ws.next()) {
-      Atom other = ew[slot];
+      Atom other = ew[(Unsigned) slot];
       if (other as Trigger) {
         other.doPull();
       }
-      ew[slot] = other;
+      ew[(Unsigned) slot] = other;
     }
 
     // Our work is done.  We're tired.
@@ -63,11 +63,11 @@ element Burn {
   ARGB getColor(Unsigned selector) {
     ColorUtils cu;
     ARGB ret = cu.color(0xffffff00U);
-    if (selector == 1) {
+    if (selector == 1u) {
       Unsigned incr = Unsigned(8).maxof/(Unsigned) state.maxof;
       ret[3] = (Channel) incr*state;
       ret[2] = (Channel) incr*(state.maxof-state);
-    } else if (selector == 2) {
+    } else if (selector == 2u) {
     }
     return ret;
   }

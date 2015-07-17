@@ -21,7 +21,7 @@ element Animal {
 
   Void behave() {
     if (++hunger == hunger.maxof) {
-      for (Int i = 0; i < 5; ++i) {
+      for (Sitenum i = 0; i < 5u; ++i) {
         Res r;
         if (i == 0 || ew[i] is Empty)
           ew[i] = r;
