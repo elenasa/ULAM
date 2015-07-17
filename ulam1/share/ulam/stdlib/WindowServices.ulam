@@ -132,10 +132,9 @@ element WindowServices {
   Bool hit() { return hit((Slot) 0, (Unsigned) 1); }
 
   Bool hit(Slot slot) { return hit(slot, (Unsigned) 1); }
-  Bool hit(Int slot) { return hit((Slot) slot, (Unsigned) 1); }
 
   Bool hit(Slot slot, Unsigned weight) {
-    hitCount[slot] = hitCount[slot] + (Count) weight;
+    hitCount[slot] = (Count) (hitCount[slot] + weight);
     if (random.create((Unsigned) hitCount[slot]) < weight) {
       chosenIndex[slot] = currentIndex;
       return true;
@@ -148,7 +147,6 @@ element WindowServices {
   }
 
   Count getHits(Slot slot) { return hitCount[slot]; }
-  Count getHits(Int slot) { return getHits((Slot) slot); }
 
   Index getPick() {
     return getPick((Slot) 0);
@@ -159,7 +157,6 @@ element WindowServices {
       return Index.maxof;
     return chosenIndex[slot];
   }
-  Index getPick(Int slot) { return getPick((Slot) slot); }
 
   Int test() {
     Int count = 0;
@@ -176,7 +173,7 @@ element WindowServices {
     count = 0;
     init();
     for (Int index2 = next(); index2 >= 0; index2 = next()) {
-      for (Unsigned idx = 0; idx < 4; idx += 1) {
+      for (Int idx = 0; idx < 4; idx += 1) {
         Bits mask = 1<<idx;
         Bits bcount = count;
         if ((count&mask) != 0) hit((Slot) idx);
