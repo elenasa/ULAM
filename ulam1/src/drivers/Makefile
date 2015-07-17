@@ -18,7 +18,7 @@ BASEDIR:=../../..
 ULAM_LIB_DIR:=$(BASEDIR)/build/ulam
 # Include our library at the front and the back because we
 # are utterly lame-o-tronic
-LIBS := -L $(ULAM_LIB_DIR) -lulam $(LIBS) -lulam
+override LIBS := -L $(ULAM_LIB_DIR) -lulam $(LIBS) -lulam
 
 $(SRC_TARGETS):	$(SUB_DIRS)
 
