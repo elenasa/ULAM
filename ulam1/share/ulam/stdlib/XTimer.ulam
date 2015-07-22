@@ -30,6 +30,8 @@ quark XTimer(Unary(5) bits, Unsigned triggerLevel)
 
   Counter current() { return time; }
 
+  Void set(Counter newv) { time = newv; }
+
   Counter max() { return triggerLevel; }
 
   Counter count() {
