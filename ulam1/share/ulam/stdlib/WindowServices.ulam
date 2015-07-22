@@ -106,8 +106,7 @@ element WindowServices {
     Int et = tu.getEmptyType();
     reset();
     for (Int slot = next(); slot >= 0; slot = next()) {
-      SiteNum s = (SiteNum) slot;
-      Atom a = ew[s];
+      Atom a = ew[(SiteNum) slot];
       Int at = tu.getType(a);
       if (at < 0) continue;
       if ((t0 == -4) || (t0 == -2 && at == et) || (t0 == -3 && at != et) || (at == t0)) hit(0);

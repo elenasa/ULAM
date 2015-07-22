@@ -734,7 +734,7 @@ if ($confErrs != 0) {
 
 my @files = @ARGV;
 UDie("No input files\n") unless @files;
-my (@ulamFiles, @normalPackableFiles, @includeFiles, @otherSrcFiles, @mfsFiles, @mfzFiles);
+my (@ulamFiles, @normalPackableFiles, @includeFiles, @otherSrcFiles, @mfsFiles, @mfzFiles, @txtFiles);
 
 my %extensionDispatch = (
     "ulam" => \@ulamFiles,
@@ -744,7 +744,9 @@ my %extensionDispatch = (
     "tcc" => \@includeFiles,
     "cpp" => \@otherSrcFiles,
     "c" => \@otherSrcFiles,
-    "S" => \@otherSrcFiles
+    "S" => \@otherSrcFiles,
+    "txt" => \@txtFiles,
+    "md" => \@txtFiles,
     );
 
 
@@ -825,7 +827,7 @@ sub copyFileTo {
 separateFiles(@files);
 
 # Collect the files we can pack without special concerns
-@normalPackableFiles = sort (@mfsFiles, @includeFiles, @includeFiles, @otherSrcFiles);
+@normalPackableFiles = sort (@mfsFiles, @includeFiles, @includeFiles, @otherSrcFiles, @txtFiles);
 
 # Add in standard files maybe needed for the build (but which we won't pack)
 separateFiles(@stdTccFiles);
