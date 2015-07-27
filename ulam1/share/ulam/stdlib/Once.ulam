@@ -17,7 +17,7 @@ quark Once_(Unary(15) bitpairs)
 }
 
 quark Once {
-  Once_(1) once;
+  Once_(0) once;
   Bool new() { return once.new(); }
   Bool reset() { return once.reset(); }
 }
