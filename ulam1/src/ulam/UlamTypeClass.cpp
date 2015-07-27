@@ -570,7 +570,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("T& getRef() { return m_stg; }\n");
 
-    // what if we skip this part, and generate aref/aset inline...
+    // generate immediate aref/aset inline.
     //if(isCustomArray())
     //  genCustomArrayMangledDefinitionForC(fp);
 
@@ -617,19 +617,6 @@ namespace MFM {
     fp->write(writeMethodForCodeGen().c_str());
     fp->write("(m_stg.GetBits(), v); }\n");
   } //genUlamTypeQuarkWriteDefinitionForC
-
-  void UlamTypeClass::genCustomArrayMangledDefinitionForC(File * fp)
-  {
-    assert(m_class == UC_QUARK);
-
-    assert(isScalar() && isCustomArray());
-
-    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-    SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
-
-    csym->genCustomArrayDefsForC(fp);
-  } //genCustomArrayMangledDefinitionForC
 
   //whole element (based on atom)
   void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)

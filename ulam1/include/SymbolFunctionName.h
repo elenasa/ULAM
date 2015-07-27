@@ -83,10 +83,6 @@ namespace MFM{
 
     u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
-    void generateCustomArrayGetMangledDefsForC(File * fp);
-
-    void generateCustomArraySetMangledDefsForC(File * fp);
-
     void linkToParentNodesInFunctionDefs(NodeBlockClass * p);
 
     void updatePrevBlockPtrInFunctionDefs(NodeBlockClass * p);
