@@ -675,35 +675,6 @@ namespace MFM {
     return camatches;
   } //getCustomArrayIndexTypeGetFunction
 
-  void SymbolTable::genCustomArrayDefsForTableOfFunctions(File * fp)
-  {
-    // called by class block on its function ST
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.find(m_state.getCustomArrayGetFunctionNameId());
-    if(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym->isFunction());
-	assert(sym->getId() == m_state.getCustomArrayGetFunctionNameId());
-
-	m_state.indent(fp);
-	fp->write("//CustomArray GET accessor methods:\n");
-	((SymbolFunctionName *) sym)->generateCustomArrayGetMangledDefsForC(fp);
-      }
-
-    it = m_idToSymbolPtr.begin();
-    it = m_idToSymbolPtr.find(m_state.getCustomArraySetFunctionNameId());
-    if(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	assert(sym->isFunction());
-	assert(sym->getId() == m_state.getCustomArraySetFunctionNameId());
-
-	m_state.indent(fp);
-	fp->write("//CustomArray SET accessor methods:\n");
-	((SymbolFunctionName *) sym)->generateCustomArraySetMangledDefsForC(fp);
-      }
-  } //genCustomArrayDefsForTableOfFunctions
-
   u32 SymbolTable::countNativeFuncDeclsForTableOfFunctions()
   {
     u32 nativeCount = 0;

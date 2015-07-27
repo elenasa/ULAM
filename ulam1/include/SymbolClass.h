@@ -120,8 +120,6 @@ namespace MFM{
 
     void generateTestInstance(File * fp, bool runtest);
 
-    void genCustomArrayDefsForC(File *fp);
-
     void addTargetDescriptionMapEntry(TargetMap& classtargets, u32 scid);
 
     void addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters);

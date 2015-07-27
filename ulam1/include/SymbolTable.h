@@ -117,8 +117,6 @@ namespace MFM{
 
     u32 getCustomArrayIndexTypeGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
-    void genCustomArrayDefsForTableOfFunctions(File * fp);
-
     u32 countNativeFuncDeclsForTableOfFunctions();
 
     void calcMaxDepthForTableOfFunctions();
