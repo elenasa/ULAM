@@ -137,8 +137,6 @@ namespace MFM{
     ULAMCLASSTYPE m_class;
     bool m_customArray;
 
-    void genCustomArrayMangledDefinitionForC(File * fp);
-
     void genUlamTypeQuarkMangledDefinitionForC(File * fp);
     void genUlamTypeQuarkReadDefinitionForC(File * fp);
     void genUlamTypeQuarkWriteDefinitionForC(File * fp);

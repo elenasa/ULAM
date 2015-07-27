@@ -313,7 +313,6 @@ namespace MFM {
 	assert(asym);
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
-
 	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());

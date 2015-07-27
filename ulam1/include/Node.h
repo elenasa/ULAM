@@ -176,6 +176,7 @@ namespace MFM{
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
     void genModelParameterHiddenArgs(File * fp, s32 epi);
     virtual void genLocalMemberNameOfMethod(File * fp);
+    void genLocalMemberNameOfMethodByUsTypedef(File * fp);
 
     const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
     const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass);
