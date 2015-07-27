@@ -313,7 +313,6 @@ namespace MFM {
 	assert(asym);
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
-
 	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());
@@ -348,5 +347,57 @@ namespace MFM {
 	func->genCode(fp, uvpass);
       }
   } //generateFunctionDeclaration
+
+  // called via UlamTypeClass; to generate immediate read array item methods
+  void SymbolFunction::generateCustomArrayGetMangledDefForC(File * fp)
+  {
+    UTI futi = getUlamTypeIdx(); //caType
+    UlamType * fut = m_state.getUlamTypeByIndex(futi);
+
+    // reads an element of array
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(fut->getTmpStorageTypeAsString().c_str()); //T
+    fp->write(" readArrayItem(");
+    fp->write("UlamContext<EC>& uc, ");
+
+    fp->write("const ");
+    // first parameter, Index type may vary (not always Int32)
+    Symbol * asym = getParameterSymbolPtr(0);
+    assert(asym);
+    UTI auti = asym->getUlamTypeIdx();
+    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
+
+    fp->write(" index, const u32 unitsize) { return Us::"); //const unhappy w first arg
+    fp->write(m_state.getCustomArrayGetMangledFunctionName()); //aref
+    fp->write("(uc, m_stg, index); }\n");
+  } //generateCustomArrayGetMangledDefForC
+
+  void SymbolFunction::generateCustomArraySetMangledDefForC(File * fp)
+  {
+    //writes an element of array
+    m_state.indent(fp);
+    fp->write("void writeArrayItem(");
+    fp->write("UlamContext<EC>& uc, const ");
+
+    // 1st parameter, custom array return type:
+    Symbol * casym = getParameterSymbolPtr(1);
+    assert(casym);
+    UTI caType = casym->getUlamTypeIdx(); //don't assume it's an atom
+    UlamType * caut = m_state.getUlamTypeByIndex(caType);
+    fp->write(caut->getImmediateStorageTypeAsString().c_str()); //for C++
+    fp->write(" v, const ");
+
+    // 2nd parameter, Index type may vary (not always Int32)
+    Symbol * asym = getParameterSymbolPtr(0);
+    assert(asym);
+    UTI auti = asym->getUlamTypeIdx();
+    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
+    fp->write(" index, const u32 unitsize) { Us::");
+    fp->write(m_state.getCustomArrayGetMangledFunctionName()); //aset
+    fp->write("(uc, m_stg, index, v); }\n");
+  } //generateCustomArraySetMangledDefForC
 
 } //end MFM

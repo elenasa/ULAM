@@ -109,6 +109,8 @@ namespace MFM{
 
     virtual u32 countNativeFuncDecls();
 
+    void genCustomArrayDefinitionsForC(File * fp);
+
     void generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     virtual void genCode(File * fp, UlamValue& uvpass);

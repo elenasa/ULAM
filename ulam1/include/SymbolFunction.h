@@ -83,6 +83,10 @@ namespace MFM{
 
     void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
+    void generateCustomArrayGetMangledDefForC(File * fp);
+
+    void generateCustomArraySetMangledDefForC(File * fp);
+
   protected:
 
 

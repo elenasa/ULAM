@@ -650,6 +650,14 @@ namespace MFM {
     delete fp; //close
   } //genMangledTypesHeaderFile
 
+  void SymbolClass::genCustomArrayDefsForC(File *fp)
+  {
+    //called via UlamType for TypesHeaderFile
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    classNode->genCustomArrayDefinitionsForC(fp);
+  } //genCustomArrayDefsForC
+
   // append main to .cpp for debug useage
   // outside the MFM namespace !!!
   void SymbolClass::generateMain(FileManager * fm)

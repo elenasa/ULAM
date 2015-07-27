@@ -385,6 +385,32 @@ namespace MFM {
     return camatches;
   } //getCustomArrayIndexTypeFor
 
+  void SymbolFunctionName::generateCustomArrayGetMangledDefsForC(File * fp)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    //loop over 'aref's in case of overloading;
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	fsym->generateCustomArrayGetMangledDefForC(fp);
+	++it;
+      }
+    return;
+  } //generateCustomArrayGetMangledDefsForC
+
+  void SymbolFunctionName::generateCustomArraySetMangledDefsForC(File * fp)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    //loop over 'aset's in case of overloading;
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	fsym->generateCustomArraySetMangledDefForC(fp);
+	++it;
+      }
+    return;
+  } //generateCustomArraySetMangledDefsForC
+
   void SymbolFunctionName::linkToParentNodesInFunctionDefs(NodeBlockClass * p)
   {
     NNO pno = p->getNodeNo();

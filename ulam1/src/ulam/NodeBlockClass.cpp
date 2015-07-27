@@ -383,6 +383,11 @@ namespace MFM {
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
   }
 
+  void NodeBlockClass::genCustomArrayDefinitionsForC(File * fp)
+  {
+    m_functionST.genCustomArrayDefsForTableOfFunctions(fp);
+  }
+
   //header .h file
   void NodeBlockClass::genCode(File * fp, UlamValue& uvpass)
   {
