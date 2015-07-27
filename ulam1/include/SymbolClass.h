@@ -120,6 +120,8 @@ namespace MFM{
 
     void generateTestInstance(File * fp, bool runtest);
 
+    void genCustomArrayDefsForC(File *fp);
+
     void addTargetDescriptionMapEntry(TargetMap& classtargets, u32 scid);
 
     void addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters);
@@ -141,6 +143,7 @@ namespace MFM{
     void generateHeaderIncludes(File * fp);
 
     void genMangledTypesHeaderFile(FileManager * fm);  //obsolete
+
     void generateMain(FileManager * fm);
 
     static std::string firstletterTolowercase(const std::string s);
