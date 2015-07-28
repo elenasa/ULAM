@@ -403,11 +403,15 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // split off reading array items
-    if(isCurrentObjectAnArrayItem(cosuti, uvpass) || isCurrentObjectACustomArrayItem(cosuti, uvpass))
+    if(isCurrentObjectAnArrayItem(cosuti, uvpass))
       return genCodeReadArrayItemIntoATmpVar(fp, uvpass);
+
+    // split if custom array, that requires an 'aref' function call
+    // immediate types no longer have an array method to call for CA's.
+    if(isCurrentObjectACustomArrayItem(cosuti, uvpass))
+      return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);
 
     // write out intermediate tmpVar (i.e. terminal) as temp BitVector arg
     // e.g. when func call is rhs of secondary member select
@@ -419,11 +423,8 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-
-    //NOPE!!! after read does sign extend for ints, etc.
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
-
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
     fp->write(" = ");
 
@@ -527,13 +528,9 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
-    // split if custom array, that requires an 'aref' function call
-    // (that's when cos is neither a local var that's not refining, i.e. cos[0];
-    // nor a local var that's an MP); immediate types no longer have an array method
-    // to call for CA's.
-    if(cosut->isCustomArray())
+    //called by NodeSquareBracket..
+    if(isCurrentObjectACustomArrayItem(cosuti, uvpass))
       return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -572,12 +569,13 @@ namespace MFM {
 	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
+	    assert(0); //no longer valid as arrays
 	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    //read method based on last cos
 	    fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 
-	    //element parameter (could be array?)
+	    //model parameter (could NOT be array)
 	    fp->write("(");
 
 	    if(!isHandlingImmediateType())
@@ -646,7 +644,7 @@ namespace MFM {
     assert(vuti != Void);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    //vut may not be numeric when custom array
+    //vut (index) may not be numeric when custom array
 
     //here, cos is symbol used to determine read method: either self or last of cos.
     //stgcos is symbol used to determine first "hidden" arg
@@ -676,10 +674,8 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-
     fp->write(itemut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
-
     fp->write(m_state.getTmpVarAsString(itemuti, tmpVarNum2, TMPBITVAL).c_str());
     fp->write(" = ");
 
@@ -700,6 +696,7 @@ namespace MFM {
 	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
+	    assert(0); //invalid as array
 	    genModelParameterMemberNameOfMethod(fp, epi);
 
 	    //read method based on last cos
@@ -729,7 +726,7 @@ namespace MFM {
 	      {
 		fp->write("(uc, ");
 		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".getRef()"); //immediate MP needs the T storage within the struct
+		fp->write(".getRef()"); //immediate needs the T storage within the struct
 		fp->write(", ");
 	      }
 	    else if(stgcosclasstype == UC_QUARK)
@@ -783,8 +780,8 @@ namespace MFM {
   {
     assert(luvpass.getUlamValueTypeIdx() == Ptr);
     UTI ruti = ruvpass.getUlamValueTypeIdx();
-    if(ruti == Ptr)
-      ruti = ruvpass.getPtrTargetType();
+    assert(ruti == Ptr); //terminals handled in NodeTerminal
+    ruti = ruvpass.getPtrTargetType();
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -806,8 +803,11 @@ namespace MFM {
     ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
 
     // split if writing an array item or custom array item, here
-    if(isCurrentObjectAnArrayItem(cosuti, luvpass) || isCurrentObjectACustomArrayItem(cosuti, luvpass))
+    if(isCurrentObjectAnArrayItem(cosuti, luvpass))
       return genCodeWriteArrayItemFromATmpVar(fp, luvpass, ruvpass);
+
+    if(isCurrentObjectACustomArrayItem(cosuti, luvpass))
+      return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a func call
 
     if(stgcos->isSelf())
       return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
@@ -945,14 +945,9 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
-
-    if(cosut->isCustomArray())
-      return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a func call
 
     // a data member quark, or the element itself should both getBits from self;
     // getbits needed to go from-atom to-BitVector
@@ -974,6 +969,7 @@ namespace MFM {
 	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
+	    assert(0); //invalid as array
 	    m_state.indent(fp);
 
 	    genModelParameterMemberNameOfMethod(fp, epi);
@@ -1045,8 +1041,8 @@ namespace MFM {
     UTI luti = luvpass.getPtrTargetType();
     UTI ruti = ruvpass.getUlamValueTypeIdx();
 
-    if(ruti == Ptr)
-      ruti = ruvpass.getPtrTargetType();
+    assert(ruti == Ptr); //terminals handled in NodeTerminal
+    ruti = ruvpass.getPtrTargetType();
 
     //rhs could be a constant; or previously cast from Int to Unary variables.
     // here, cos is symbol used to determine read method: either self or last of cos.
@@ -1071,7 +1067,6 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
 
-
     assert(isCurrentObjectACustomArrayItem(cosuti, luvpass));
 
     // a data member quark, or the element itself should both getBits from self;
@@ -1094,6 +1089,7 @@ namespace MFM {
 	s32 epi = isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
+	    assert(0); //invalid as array
 	    m_state.indent(fp);
 
 	    genModelParameterMemberNameOfMethod(fp, epi);
