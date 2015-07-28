@@ -9,11 +9,6 @@
 
 namespace MFM {
 
-  static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
-
-  static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
-
-
   UlamTypeClass::UlamTypeClass(const UlamKeyTypeSignature key, CompilerState & state, ULAMCLASSTYPE type) : UlamType(key, state), m_class(type), m_customArray(false) /* , m_customArrayType(Nav)*/
   {
     m_wordLengthTotal = calcWordSize(getTotalBitSize());
@@ -575,8 +570,9 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("T& getRef() { return m_stg; }\n");
 
-    if(isCustomArray())
-      genCustomArrayMangledDefinitionForC(fp);
+    // generate immediate aref/aset inline.
+    //if(isCustomArray())
+    //  genCustomArrayMangledDefinitionForC(fp);
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -621,41 +617,6 @@ namespace MFM {
     fp->write(writeMethodForCodeGen().c_str());
     fp->write("(m_stg.GetBits(), v); }\n");
   } //genUlamTypeQuarkWriteDefinitionForC
-
-  void UlamTypeClass::genCustomArrayMangledDefinitionForC(File * fp)
-  {
-    assert(m_class == UC_QUARK);
-
-    assert(isScalar() && isCustomArray());
-
-    m_state.indent(fp);
-    fp->write("//CustomArray accessor methods:\n");
-    // reads an element of array
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //T
-    fp->write(" readArrayItem(");
-    fp->write("UlamContext<EC>& uc, ");
-    fp->write("const u32 index, const u32 unitsize) { return Us::"); //const unhappy w first arg
-    fp->write(readArrayItemMethodForCodeGen().c_str()); //aref
-    fp->write("(uc, m_stg, ");
-    fp->write(m_state.getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString().c_str());
-    fp->write("((const s32)index)).read(); }\n");
-
-    // reads an element of array
-    m_state.indent(fp);
-    fp->write("void writeArrayItem(");
-    fp->write("UlamContext<EC>& uc, const ");
-    fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" v, const u32 index, const u32 unitsize) { Us::");
-    fp->write(writeArrayItemMethodForCodeGen().c_str()); //aset
-    fp->write("(uc, m_stg, ");
-    fp->write(m_state.getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString().c_str());
-    fp->write("((const s32) index), ");
-    UTI caType = getCustomArrayType(); //don't assume it's an atom
-    fp->write(m_state.getUlamTypeByIndex(caType)->getImmediateStorageTypeAsString().c_str());
-    fp->write("(v)); }\n");
-  } //genCustomArrayMangledDefinitionForC
 
   //whole element (based on atom)
   void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
@@ -816,14 +777,14 @@ namespace MFM {
   const std::string UlamTypeClass::readArrayItemMethodForCodeGen()
   {
     if(isCustomArray())
-      return CUSTOMARRAY_GET_MANGLEDNAME;
+      return m_state.getCustomArrayGetMangledFunctionName();
     return UlamType::readArrayItemMethodForCodeGen();
   }
 
   const std::string UlamTypeClass::writeArrayItemMethodForCodeGen()
   {
     if(isCustomArray())
-      return CUSTOMARRAY_SET_MANGLEDNAME;
+      return m_state.getCustomArraySetMangledFunctionName();
     return UlamType::writeArrayItemMethodForCodeGen();
   }
 

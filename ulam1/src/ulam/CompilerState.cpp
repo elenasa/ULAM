@@ -47,6 +47,9 @@ namespace MFM {
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
+  static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
+  static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
+
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
   static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
@@ -1594,6 +1597,16 @@ namespace MFM {
   {
     std::string str(CUSTOMARRAY_SET_FUNC_NAME);
     return  m_pool.getIndexForDataString(str);
+  }
+
+  const char * CompilerState::getCustomArrayGetMangledFunctionName()
+  {
+    return CUSTOMARRAY_GET_MANGLEDNAME;
+  }
+
+  const char * CompilerState::getCustomArraySetMangledFunctionName()
+  {
+    return CUSTOMARRAY_SET_MANGLEDNAME;
   }
 
   const char * CompilerState::getIsMangledFunctionName()
