@@ -574,7 +574,7 @@ namespace MFM {
     if(isCustomArray())
       {
 	m_state.indent(fp);
-	fp->write("/* a custom array, btw */\n");
+	fp->write("/* a custom array, btw ('Us' has aref, aset methods) */\n");
       }
 
     m_state.m_currentIndentLevel--;
