@@ -527,11 +527,6 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-
-    //called by NodeSquareBracket..
-    if(isCurrentObjectACustomArrayItem(cosuti, uvpass))
-      return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);
-
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     assert(vut->isNumericType());
 
