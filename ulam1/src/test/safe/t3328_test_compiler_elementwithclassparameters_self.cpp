@@ -15,7 +15,7 @@ namespace MFM {
       //    Bool(3) Arg: 0x7 (true)
       //    Bool(3) Arg: 0x0 (false)
 
-      return std::string("Exit status: 1\nUe_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  System s();  Bool(UNKNOWN) b1(unknown);  Bool(UNKNOWN) b2(unknown);  Int(32) test() {  Atom(96) a;  S(1,2) s12;  s12 b2 . s12 ( )func . = s ( s12 b2 . )print . s12 b1 . s12 ( a )func . = s ( s12 b1 . )print . s12 b2 . return } }\nUq_System { <NOMAIN> }\n");
+      return std::string("Exit status: 1\nUe_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  System s();  Bool(UNKNOWN) b1(unknown);  Bool(UNKNOWN) b2(unknown);  Int(32) test() {  Atom(96) a;  S(1,2) s12;  s12 b2 . s12 ( )func . = s ( s12 b2 . )print . s12 b1 . s12 ( a )func . = s ( s12 b1 . )print . s12 b2 . cast return } }\nUq_System { <NOMAIN> }\n");
     }
 
     std::string PresetTest(FileManagerString * fms)
@@ -31,7 +31,7 @@ namespace MFM {
       // gen output:
       //    Bool(3) Arg: 0x7 (true)
       //    Bool(3) Arg: 0x0 (false)
-      bool rtn1 = fms->add("S.ulam"," ulam 1;\nuse System;\n element S(Int x, Int y){\nSystem s;\nBool(x+y) b1, b2;\n Bool func() {\n return (self is S(x,y));\n}\n  Bool func(Atom d) {\n return (d is S(x,y));\n}\n Int test() {\nAtom a;\nS(1,2) s12;\n s12.b2 = s12.func();\n s.print(s12.b2);\ns12.b1 = s12.func(a);\n s.print(s12.b1);\nreturn s12.b2;\n }\n }\n");
+      bool rtn1 = fms->add("S.ulam"," ulam 1;\nuse System;\n element S(Int x, Int y){\nSystem s;\nBool(x+y) b1, b2;\n Bool func() {\n return (self is S(x,y));\n}\n  Bool func(Atom d) {\n return (d is S(x,y));\n}\n Int test() {\nAtom a;\nS(1,2) s12;\n s12.b2 = s12.func();\n s.print(s12.b2);\ns12.b1 = s12.func(a);\n s.print(s12.b1);\nreturn (Int) s12.b2;\n }\n }\n");
 
       //one type of func, gen output:
       //     Bool(3) Arg: 0x7 (true)
