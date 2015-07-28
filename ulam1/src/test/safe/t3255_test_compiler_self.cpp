@@ -28,7 +28,7 @@ namespace MFM {
 
       // here, only the first definition takes..then the m_funcSymbol for the second one is NULL in eval..
       // fixed bug in NodeMemberSelect (no ERR MSG).
-      bool rtn1 = fms->add("S.ulam"," ulam 1;\nuse System;\n element S{\nSystem s;\nBool sp;\n Bool(3) b1, b2;\n Bool func() {\n return (self is S);\n}\n  Bool func(Atom d) {\n return (d is S);\n}\n Int test() {\nAtom a, t;\n a = self;\n if(a as S) b2 = a.func();\n s.print(b2);\n b1 = func(a);\n s.print(b1);\n b1 = func(t);\n s.print(b1);\n return b2;\n }\n }\n");
+      bool rtn1 = fms->add("S.ulam"," ulam 1;\nuse System;\n element S{\nSystem s;\nBool sp;\n Bool(3) b1, b2;\n Bool func() {\n return (self is S);\n}\n  Bool func(Atom d) {\n return (d is S);\n}\n Int test() {\nAtom a, t;\n a = self;\n if(a as S) b2 = a.func();\n s.print(b2);\n b1 = func(a);\n s.print(b1);\n b1 = func(t);\n s.print(b1);\n return (Int) b2;\n }\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
@@ -43,5 +43,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3255_test_compiler_self)
 
 } //end MFM
-
-

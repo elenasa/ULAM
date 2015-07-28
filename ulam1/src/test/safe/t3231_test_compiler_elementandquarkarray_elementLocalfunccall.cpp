@@ -11,7 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n use Bar;\nuse Poo;\n element Foo {\nSystem s;\nBool b[3];\n Int(4) m_i;\nBool check(Int idx){\n return b[idx];\n}\n Int test() {\nPoo spoon;\nBar boo;\n boo = spoon.mbar[0];\nspoon.mbar[1] = boo;\nAtom a;\na = spoon.sbar[0];\nspoon.sbar[1] = a;\nspoon.sbar.reset(true);\n Foo f;\n return f.check(0);\n }\n }\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse System;\n use Bar;\nuse Poo;\n element Foo {\nSystem s;\nBool b[3];\n Int(4) m_i;\nBool check(Int idx){\n return b[idx];\n}\n Int test() {\nPoo spoon;\nBar boo;\n boo = spoon.mbar[0];\nspoon.mbar[1] = boo;\nAtom a;\na = spoon.sbar[0];\nspoon.sbar[1] = a;\nspoon.sbar.reset(true);\n Foo f;\n return (Int) f.check(0);\n }\n }\n");
 
       bool rtn2 = fms->add("Bar.ulam"," ulam 1;\n quark Bar {\n Bool val_b[3];\n  Void reset(Bool b) {\n b = false;\n }\n Atom aref(Int index) native;\n Void aset(Int index, Atom v) native;\n }\n");
 
