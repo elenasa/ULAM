@@ -212,7 +212,8 @@ namespace MFM {
 	      UTI ptype = psym->getUlamTypeIdx();
 	      Node * argNode = m_argumentNodes->getNodePtr(i); //constArgs[i];
 	      UTI atype = argNode->getNodeType();
-	      if(UlamType::compare(ptype, atype, m_state) != UTIC_SAME)
+	      ULAMTYPECOMPARERESULTS utcr = UlamType::compare(ptype, atype, m_state);
+	      if(utcr == UTIC_NOTSAME)
 		{
 		  Node * argCast = NULL;
 		  if(!makeCastingNode(argNode, ptype, argCast))
@@ -221,7 +222,9 @@ namespace MFM {
 		    }
 		  m_argumentNodes->exchangeKids(argNode, argCast, i);
 		  argsWithCast++;
-		  }
+		}
+	      else if(utcr == UTIC_DONTKNOW)
+		numErrorsFound++; //force a tmp nav
 	    }
 
 	  // do similar casting on any variable arg constants (without parameters)
@@ -265,7 +268,8 @@ namespace MFM {
 
     // late, important to do, but not too soon;
     // o.w. NodeIdents can't find their blocks.
-    if(listuti == Nav)
+    //    if(listuti == Nav)
+    if(listuti == Nav || numErrorsFound > 0)
       {
 	setNodeType(Nav); //happens when the arg list has incomplete types.
 	it = Nav;
