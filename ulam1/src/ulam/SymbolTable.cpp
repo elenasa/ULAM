@@ -444,6 +444,7 @@ namespace MFM {
 	    desc.m_mangledType = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName();
 	    assert(((SymbolParameterValue *) sym)->getValue(desc.m_val)); //is ready.
 	    desc.m_parameterName = m_state.m_pool.getDataAsString(sym->getId());
+	    desc.m_mangledParameterName = sym->getMangledName();
 	    Token scTok;
 	    if(((SymbolParameterValue *) sym)->getStructuredComment(scTok))
 	      {
@@ -456,8 +457,10 @@ namespace MFM {
 	    else
 	      desc.m_structuredComment = "NONE";
 
-	    std::string mangledName = sym->getMangledName();
-	    classmodelparameters.insert(std::pair<std::string, struct ParameterDesc>(mangledName, desc));
+	    //concat mangled class and parameter names to avoid duplicate keys into map
+	    std::ostringstream fullMangledName;
+	    fullMangledName << desc.m_mangledClassName << "_" << desc.m_mangledParameterName;
+	    classmodelparameters.insert(std::pair<std::string, struct ParameterDesc>(fullMangledName.str(), desc));
 	  }
 	it++;
       }

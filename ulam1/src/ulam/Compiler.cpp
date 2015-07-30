@@ -292,7 +292,7 @@ namespace MFM {
 	  << " " << i->second.m_mangledClassName
 	  << " " << i->second.m_mangledType
 	  << " " << i->second.m_parameterName
-	  << " " << i->first
+	  << " " << i->second.m_mangledParameterName
 	  << " 0x" << std::hex << i->second.m_val
 	  << " " << MFM::HexEscape(i->second.m_structuredComment)
 	  << std::endl;
