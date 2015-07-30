@@ -17,7 +17,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\nBool(3) d,e,f,g;\nInt test(){Bool(3) a,b;\na = false;\nb = false;\nd = a || b;\ns.print(d);\nb = true;\ne = a || b;\ns.print(e);\nf = b || a;\ns.print(f);\na = true;\ng = a || b;\ns.print(g);\nreturn b;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\nBool(3) d,e,f,g;\nInt test(){Bool(3) a,b;\na = false;\nb = false;\nd = a || b;\ns.print(d);\nb = true;\ne = a || b;\ns.print(e);\nf = b || a;\ns.print(f);\na = true;\ng = a || b;\ns.print(g);\nreturn (Int) b;\n }\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
@@ -32,5 +32,3 @@ namespace MFM {
   ENDTESTCASECOMPILER(t3243_test_compiler_logicalcomparison_or)
 
 } //end MFM
-
-

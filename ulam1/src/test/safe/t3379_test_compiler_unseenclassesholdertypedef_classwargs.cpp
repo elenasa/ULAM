@@ -13,7 +13,7 @@ namespace MFM {
     {
       bool rtn1 = fms->add("A.ulam","use F;\n use E;\n use D;\n quark A(Int a){Bool(a) y;\n }\n");
 
-      bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo;\n Int test(){\n Foo f;\n f.y = true;\n if(f.y)\n return f.y;\n return 0;\n}\n}\n");
+      bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo;\n Int test(){\n Foo f;\n f.y = true;\n if(f.y)\n return (Int) f.y;\n return 0;\n}\n}\n");
 
       bool rtn3 = fms->add("E.ulam", "element E{\n typedef D.X X;\n }\n");
 

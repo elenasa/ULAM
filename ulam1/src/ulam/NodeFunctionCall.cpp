@@ -154,10 +154,15 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Ambiguous matches (" << numFuncs << ") of function <";
 	    msg << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-	    msg << "> with " << numargs << " matching argument type";
+	    msg << "> called with " << numargs << " argument type";
 	    if(numargs != 1)
 	      msg << "s";
-	    msg << "; Explicit casting required";
+	    msg << ": ";
+	    for(u32 i = 0; i < argTypes.size(); i++)
+	      {
+		msg << m_state.getUlamTypeNameBriefByIndex(argTypes[i]).c_str() << ", ";
+	      }
+	    msg << "explicit casting is required";
 	    if(hasHazyArgs)
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    else

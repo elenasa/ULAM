@@ -16,7 +16,7 @@ namespace MFM {
       //./Foo.ulam:4:5: ERROR: Constant value expression for (s = 8) is not representable as Unary(7).
       // Bar (-1) error:
       //./Foo.ulam:4:5: ERROR: Constant value expression for (s = -1) is not representable as Unary(7).
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\n element Foo {\nBar(3) bar;\n Int test() {\nBool bs = bar.check();\nreturn bs;\n }\n }\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Bar;\n element Foo {\nBar(3) bar;\n Int test() {\nBool bs = bar.check();\nreturn (Int) bs;\n }\n }\n");
 
       //added typedef to use unary constant as bitsize and arraysize, instead of this error:
       //./Bar.ulam:3:23: ERROR: Array size specifier in [] is not a constant number.

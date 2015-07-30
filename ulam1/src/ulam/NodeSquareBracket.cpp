@@ -528,7 +528,7 @@ namespace MFM {
 
     uvpass = offset;
 
-    Node::genCodeReadArrayItemIntoATmpVar(fp, uvpass); //new!!!
+    Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
   } //genCode
 
   void NodeSquareBracket::genCodeToStoreInto(File * fp, UlamValue& uvpass)

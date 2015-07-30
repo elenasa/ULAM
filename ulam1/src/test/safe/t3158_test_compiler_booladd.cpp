@@ -23,7 +23,7 @@ namespace MFM {
       //bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool sp;\n Bool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = a + b;\ns.print(c);\n d = c;\ns.print(d);\n return c;\n }\n }\n");
 
       //./A.ulam:9:42: ERROR: Use explicit cast to convert Unsigned(4) and Int(2) to Int(4) for binary operator>.
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = (((Unsigned(3)) a + (Unsigned(3)) b) > 0u);\n s.print(c);\n d = (Unary(3)) c;\ns.print(d);\n return c;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, b, c;\n Unary(3) d;\n use test;\na = true;\nb = false;\n c = (((Unsigned(3)) a + (Unsigned(3)) b) > 0u);\n s.print(c);\n d = (Unary(3)) c;\ns.print(d);\n return (Int) c;\n }\n }\n");
 
       bool rtn2 = fms->add("test.ulam", "Int test() {\n");
 
