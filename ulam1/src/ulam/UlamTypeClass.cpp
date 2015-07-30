@@ -570,9 +570,12 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("T& getRef() { return m_stg; }\n");
 
-    // generate immediate aref/aset inline.
-    //if(isCustomArray())
-    //  genCustomArrayMangledDefinitionForC(fp);
+    // aref/aset calls generated inline for immediates.
+    if(isCustomArray())
+      {
+	m_state.indent(fp);
+	fp->write("/* a custom array, btw ('Us' has aref, aset methods) */\n");
+      }
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

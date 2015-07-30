@@ -12,7 +12,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       // with renames of typedefs, and arrays based on typedef
-      bool rtn1 = fms->add("B.ulam","use System;\nelement B {\nSystem s;\nBool(7) b;\ntypedef Unsigned(8) Index;\ntypedef Index NIdx;\ntypedef NIdx IndArr[4];\ntypedef IndArr IArray;\n IArray arr;\n Int test(){ arr[0] = 1;\n return /*(Int)*/ (arr[0] == 0);\n }\n }\n");
+      bool rtn1 = fms->add("B.ulam","use System;\nelement B {\nSystem s;\nBool(7) b;\ntypedef Unsigned(8) Index;\ntypedef Index NIdx;\ntypedef NIdx IndArr[4];\ntypedef IndArr IArray;\n IArray arr;\n Int test(){ arr[0] = 1;\n return (Int) (arr[0] == 0);\n }\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

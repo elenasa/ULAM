@@ -171,7 +171,6 @@ namespace MFM{
     bool deleteUlamKeyTypeSignature(UlamKeyTypeSignature key, UTI utarg);
     bool mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI);
     UTI mapIncompleteUTIForCurrentClassInstance(UTI suti);
-    //    void mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc);
     void mapTypesInCurrentClass(UTI fm, UTI to);
 
     UlamKeyTypeSignature getUlamKeyTypeSignatureByIndex(UTI typidx);
@@ -198,8 +197,6 @@ namespace MFM{
     void setBitSize(UTI utArg, s32 total);
     void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void mergeClassUTI(UTI olduti, UTI cuti);
-    //    bool updateClassSymbolsFromHolder(UTI fm, UTI to, Locator loc);
-    //bool updateClassName(UTI cuti, u32 cname);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
     void updateUTIAlias(UTI auti, UTI buti);

@@ -14,7 +14,7 @@ namespace MFM {
       bool rtn1 = fms->add("A.ulam","use F;\n use E;\n use D;\n quark A{ }\n");
 
       // array is not part of E.X typedef
-      bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo[2];\n Int test(){\n Foo f;\n f[0] = true;\n if(f[0])\n return f[0];\n return 0;\n}\n}\n");
+      bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo[2];\n Int test(){\n Foo f;\n f[0] = true;\n if(f[0])\n return (Int) f[0];\n return 0;\n}\n}\n");
 
       //simplify for debugging
       //bool rtn2 = fms->add("F.ulam", "element F{\n typedef E.X Foo[2];\n Int test(){\n return 0;\n}\n}\n");
