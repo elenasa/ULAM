@@ -99,12 +99,12 @@ namespace MFM {
       {
         //use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
-	listuti = m_argumentNodes->checkAndLabelType();  //plus side-effect; void return good
+	listuti = m_argumentNodes->checkAndLabelType(); //plus side-effect; void return is ok
 
 	u32 numargs = getNumberOfArguments();
 	for(u32 i = 0; i < numargs; i++)
 	  {
-	    UTI argtype = m_argumentNodes->getNodeType(i);  //plus side-effect
+	    UTI argtype = m_argumentNodes->getNodeType(i); //plus side-effect
 	    argTypes.push_back(argtype);
 	    if(argtype == Nav)
 	      navArgs++;
@@ -121,6 +121,8 @@ namespace MFM {
 
 	if(navArgs)
 	  {
+	    argTypes.clear();
+	    constArgs.clear();
 	    setNodeType(Nav);
 	    return Nav; //short circuit
 	  }
@@ -169,6 +171,11 @@ namespace MFM {
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    numErrorsFound++;
 	  }
+	else //==1
+	  {
+	    if(hasHazyArgs)
+	      numErrorsFound++; //wait to cast
+	  }
       }
     else
       {
@@ -191,7 +198,7 @@ namespace MFM {
 	  }
       }
 
-    if(!numErrorsFound)
+    if(numErrorsFound == 0)
       {
 	if(m_funcSymbol == NULL)
 	  m_funcSymbol = funcSymbol;
@@ -201,7 +208,7 @@ namespace MFM {
 	it = m_funcSymbol->getUlamTypeIdx();
 	setNodeType(it);
 
-	// insert casts of constant args, now that we have a "matching" function symbol
+	// insert safe casts of complete arg types, now that we have a "matching" function symbol
 	{
 	  std::vector<u32> argsWithCastErr;
 	  u32 argsWithCast = 0;
@@ -212,8 +219,7 @@ namespace MFM {
 	      UTI ptype = psym->getUlamTypeIdx();
 	      Node * argNode = m_argumentNodes->getNodePtr(i); //constArgs[i];
 	      UTI atype = argNode->getNodeType();
-	      ULAMTYPECOMPARERESULTS utcr = UlamType::compare(ptype, atype, m_state);
-	      if(utcr == UTIC_NOTSAME)
+	      if(UlamType::compare(ptype, atype, m_state) == UTIC_NOTSAME) //o.w. known same
 		{
 		  Node * argCast = NULL;
 		  if(!makeCastingNode(argNode, ptype, argCast))
@@ -223,8 +229,6 @@ namespace MFM {
 		  m_argumentNodes->exchangeKids(argNode, argCast, i);
 		  argsWithCast++;
 		}
-	      else if(utcr == UTIC_DONTKNOW)
-		numErrorsFound++; //force a tmp nav
 	    }
 
 	  // do similar casting on any variable arg constants (without parameters)
@@ -268,7 +272,6 @@ namespace MFM {
 
     // late, important to do, but not too soon;
     // o.w. NodeIdents can't find their blocks.
-    //    if(listuti == Nav)
     if(listuti == Nav || numErrorsFound > 0)
       {
 	setNodeType(Nav); //happens when the arg list has incomplete types.
