@@ -102,50 +102,6 @@ namespace MFM {
     return rtnok;
   } //removeFromTable
 
-#if 0
-  bool SymbolTable::mergeTables(NodeBlock * toTable)
-  {
-    if(m_idToSymbolPtr.empty()) return true;
-
-    std::vector<Symbol *> copyList;
-    std::map<u32,Symbol*>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	u32 sid = it->first;
-	Symbol * fsym = it->second;
-	assert(fsym);
-	UTI fsuti = fsym->getUlamTypeIdx();
-	Symbol * tsym = NULL;
-	if(toTable->isIdInScope(sid, tsym))
-	  {
-	    UTI tsuti = tsym->getUlamTypeIdx();
-	    if(tsuti != fsuti)
-	      {
-		m_state.updateUTIAlias(fsuti, tsuti);
-	      }
-	  }
-	else
-	  {
-	    copyList.push_back(fsym);
-	  }
-	it++;
-      } //next symbol
-
-    NNO toNo = toTable->getNodeNo();
-    while(!copyList.empty())
-      {
-	Symbol * sym = copyList.back();
-	u32 sid = sym->getId();
-	Symbol * copysym = sym->cloneKeepsType();
-	copysym->setBlockNoOfST(toNo);
-	toTable->addIdToScope(sid, copysym);
-	copyList.pop_back(); //no deletion
-      }
-
-    return copyList.empty();
-  } //mergeTables
-#endif
-
   Symbol * SymbolTable::getSymbolPtr(u32 id)
   {
     if(m_idToSymbolPtr.empty()) return NULL;
@@ -444,6 +400,7 @@ namespace MFM {
 	    desc.m_mangledType = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName();
 	    assert(((SymbolParameterValue *) sym)->getValue(desc.m_val)); //is ready.
 	    desc.m_parameterName = m_state.m_pool.getDataAsString(sym->getId());
+	    desc.m_mangledParameterName = sym->getMangledName();
 	    Token scTok;
 	    if(((SymbolParameterValue *) sym)->getStructuredComment(scTok))
 	      {
@@ -456,8 +413,10 @@ namespace MFM {
 	    else
 	      desc.m_structuredComment = "NONE";
 
-	    std::string mangledName = sym->getMangledName();
-	    classmodelparameters.insert(std::pair<std::string, struct ParameterDesc>(mangledName, desc));
+	    //concat mangled class and parameter names to avoid duplicate keys into map
+	    std::ostringstream fullMangledName;
+	    fullMangledName << desc.m_mangledClassName << "_" << desc.m_mangledParameterName;
+	    classmodelparameters.insert(std::pair<std::string, struct ParameterDesc>(fullMangledName.str(), desc));
 	  }
 	it++;
       }
