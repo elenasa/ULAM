@@ -1,0 +1,26 @@
+## -*- mode:ulam -*-
+#=t3141_test_compiler_castarg
+#!
+Exit status: 1
+Ue_A { typedef Int(16) Foo[2];  Int(16) d[2](1,0);  Int(32) test() {  Int(32) a;  a 1 cast = d ( a 1 cast == )foo = d 0 [] cast return } }
+#>A.ulam
+element A {
+ typedef Int(16) Foo [2];
+ Foo foo(Bool b) {
+ Foo m;
+ if(b)
+ m[0]=1;
+ else
+ m[0]=2;
+ return m;
+}
+ Int test() {
+ Int a;
+ a = 1;
+d = foo(a==1);
+ return d[0];
+ /* match return type */}
+Foo d;
+ }
+
+#.

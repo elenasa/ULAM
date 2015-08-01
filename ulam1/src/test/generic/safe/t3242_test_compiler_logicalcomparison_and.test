@@ -1,0 +1,47 @@
+## -*- mode:ulam -*-
+#=t3242_test_compiler_logicalcomparison_and
+##      /* gen code output:
+##	 Bool(3) Arg: 0x0 (false)
+##	 Bool(3) Arg: 0x0 (false)
+##	 Bool(3) Arg: 0x0 (false)
+##	 Bool(3) Arg: 0x7 (true)
+##      */
+#!
+Exit status: 1
+Ue_A { System s();  Bool(1) sp(false);  Bool(3) d(false);  Bool(3) e(false);  Bool(3) f(false);  Bool(3) g(true);  Int(32) test() {  Bool(3) a;  Bool(3) b;  a false cast = b false cast = d a b && = s ( d )print . b true cast = e a b && = s ( e )print . f b a && = s ( f )print . a true cast = g a b && = s ( g )print . b cast return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+use System;
+element A {
+System s;
+Bool sp;
+Bool(3) d,e,f,g;
+Int test(){Bool(3) a,b;
+a = false;
+b = false;
+d = a && b;
+s.print(d);
+b = true;
+e = a && b;
+s.print(e);
+f = b && a;
+s.print(f);
+a = true;
+g = a && b;
+s.print(g);
+return (Int) b;
+ }
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

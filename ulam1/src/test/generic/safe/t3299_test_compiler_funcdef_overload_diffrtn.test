@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t3299_test_compiler_funcdef_overload_diffrtn
+#!
+##      /* gen code output:
+##	 Int(3) Arg: 0x3
+##	 Bool(3) Arg: 0x7 (true)
+##      */
+##
+Exit status: 0
+Ue_A { System s();  Bool(1) sp(true);  Int(3) spi(3);  Int(32) test() {  Bool(1) mybool;  mybool true = spi ( mybool 7 cast )foo cast = s ( spi )print . sp ( mybool )foo = s ( sp cast )print . 0 cast return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+ulam 1;
+use System;
+element A {
+System s;
+ Bool sp;
+ Int(3) spi;
+ Int foo(Bool b, Int i){
+return 3;
+}
+ Bool foo(Bool b){
+return b;
+}
+ Int foo(Int i){
+return i;
+}
+ Int test() {
+ Bool mybool = true;
+spi = (Int(3)) foo(mybool, 7);
+ s.print(spi);
+ sp=foo(mybool);
+ s.print((Bool(3)) sp);
+ return 0;
+ }
+}
+##      //different return types ok!
+##
+##      // test system quark with native overloaded print funcs; assert
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

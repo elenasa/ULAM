@@ -1,0 +1,55 @@
+## -*- mode:ulam -*-
+#=t3247_test_compiler_elementatomcast
+##      /* gen code output:
+##	 assert: arg is 1
+##	 after assert's abort: arg is 1
+##	 assert: arg is 1
+##	 after assert's abort: arg is 1
+##      */
+##      // no cast cond
+##      //constant fold minus
+##
+##      //./Foo.ulam:17:4: ERROR: Cannot cast to type: Foo (UTI16); use Conditional-As.
+##      //./Foo.ulam:17:4: ERROR: Cannot CAST type: Atom(96) as a Foo(39)<16>.
+#!
+Exit status: 3
+Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(3);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  b a System has = s ( b ! )assert . a f cast = a Foo is cond bi true cast = if b a System has = s ( b )assert . f a cast = f System has cond bh true cast = if d a System has cast 3 cast +b = d return } }
+Uq_System { <NOMAIN> }
+#>Foo.ulam
+##      // 'a has System' doesn't apply to eval because atoms have no class declarations; but testable for gencode
+use System;
+element Foo {
+System s;
+Bool sp;
+Bool(3) bi, bh;
+Int d;
+Int test(){Atom a;
+Foo f;
+Bool b;
+b=a has System;
+s.assert(!b);
+ a = f; //easy
+if(a is Foo)
+ bi = true;
+ b=a has System;
+s.assert(b);
+ f = (Foo) a; //make sure a is a foo
+if(f has System)
+bh = true;
+ d = (Int) (a has System) + 3;
+return d;
+ }
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
