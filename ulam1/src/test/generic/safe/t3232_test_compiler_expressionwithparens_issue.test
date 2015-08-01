@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t3232_test_compiler_expressionwithparens_issue
+#!
+Exit status: 72
+Ue_Foo { typedef Unsigned(8) Channel;  typedef Unsigned(8) ARGB[4];  Unsigned(3) m_lastTouch(2);  Int(32) test() {  Unsigned(8) tmp[4];  m_lastTouch 2 cast = tmp 1 [] m_lastTouch cast 36u cast * cast = tmp 1 [] cast return } }
+#>Foo.ulam
+ulam 1;
+ element Foo {
+typedef Unsigned(8) Channel;
+ typedef Channel ARGB[4]; Unsigned(3) m_lastTouch;
+ Int test(){
+ARGB tmp;
+ m_lastTouch = 2;
+ tmp[1] = (Channel) (m_lastTouch * (Channel.maxof / m_lastTouch.maxof));
+ return tmp[1];
+ }
+ }
+
+#.
