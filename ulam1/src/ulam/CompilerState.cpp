@@ -1704,16 +1704,6 @@ namespace MFM {
     if(ruv.getUlamValueTypeIdx() == Ptr && (ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom))
       return assignArrayValues(lptr, ruv);
 
-#if 0
-    if(ruv.getUlamValueTypeIdx() == Ptr)
-      {
-	if(getArraySize(ruv.getPtrTargetType()) != NONARRAYSIZE)
-	  return assignArrayValues(lptr, ruv);
-	else if(ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom)
-	  return;// assignValuePtr(lptr, ruv);
-      }
-#endif
-
     //r is data (includes packed arrays), store it into where lptr is pointing
     assert(UlamType::compare(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);
 

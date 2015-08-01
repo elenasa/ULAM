@@ -351,7 +351,7 @@ namespace MFM {
 
     assert(lwordsize == rwordsize);
 
-    // adjust for mixed sign and unsigned types, skip if either is Bits
+    // adjust for mixed sign and unsigned types
     if(ltypEnum != rtypEnum && (ltypEnum == Int || rtypEnum == Int))
       {
 	if(ltypEnum != Int)
@@ -365,7 +365,7 @@ namespace MFM {
 	    rtypEnum = Int;
 	  }
       }
-  } //returnBitsizeCalc
+  } //resultBitsizeCalc
 
   void NodeBinaryOp::resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize)
   {
