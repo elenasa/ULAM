@@ -1,0 +1,68 @@
+## -*- mode:ulam -*-
+#=t3287_test_compiler_primitive_minmaxsizeof
+#!
+##      /* gen code output:
+##	 Unsigned Arg: 4
+##	 Int(4) Arg: 0x8
+##	 Int(4) Arg: 0x7
+##	 Unsigned Arg: 32
+##	 Unsigned Arg: 0
+##	 Unsigned Arg: 4294967295
+##	 Unsigned Arg: 3
+##	 Unary(3) Arg: 0x0
+##	 Unary(3) Arg: 0x3
+##	 Unsigned Arg: 3
+##	 Bool(3) Arg: 0x0 (false)
+##	 Bool(3) Arg: 0x7 (true)
+##	 Unsigned Arg: 2
+##      */
+##
+##      //constant fold minus; constants of lhs type; return sizeof Void (== 0u)
+Exit status: 0
+Ue_Fu { System s();  Int(32) test() {  Int(4) z;  s ( 4u )print . s ( -8 )print . s ( 7 )print . Unsigned(32) y;  s ( 32u cast )print . s ( 0u cast )print . s ( 4294967295u )print . Unary(3) x;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bool(3) v;  s ( 3u )print . s ( 0u )print . s ( 7u )print . Bits(2) t;  s ( 2u )print . 0u cast return } }
+Uq_System { <NOMAIN> }
+#>Fu.ulam
+ulam 1;
+use System;
+element Fu {
+System s;
+Int test(){
+Int(4) z; s.print(z.sizeof);
+ s.print(z.minof);
+ s.print(z.maxof);
+Unsigned y;
+ s.print((Unsigned) y.sizeof);
+ s.print((Unsigned) y.minof);
+ s.print(y.maxof);
+Unary(3) x;
+ s.print(x.sizeof);
+ s.print(x.minof);
+ s.print(x.maxof);
+ Bool(3) v;
+ s.print(v.sizeof);
+ s.print(v.minof);
+ s.print(v.maxof);
+Bits(2) t;
+ s.print(t.sizeof);
+ /*i = t.minof;
+ unsupported request minof Bits */  return Void.sizeof;
+}
+}
+
+
+##      //simply to unary for debugging:
+##      //bool rtn1 = fms->add("Fu.ulam", "ulam 1;\nuse System;\nelement Fu {\nSystem s;\nUnary(3) x;\nInt test(){\n x = x.maxof;\n s.print(x.sizeof);\n s.print(x.minof);\n s.print(x.maxof);\n return Void.sizeof;\n}\n}\n");
+##
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

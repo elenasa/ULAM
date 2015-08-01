@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3184_test_compiler_element_argfunccall
+#!
+##      /* gen code output:
+##	 Bool(3) Arg: 0x0 (false)
+##	 Int(4) Arg: 0x3
+##       */
+Exit status: 3
+Ue_Foo { System s();  Bool(3) m_b(false);  Int(4) m_i(3);  Int(32) test() {  m_b true cast = m_b ( ( 7 cast 7 cast )max )check cast = s ( m_b )print . s ( m_i )print . m_i cast return } }
+Uq_System { <NOMAIN> }
+#>Foo.ulam
+ulam 1;
+use System;
+ element Foo {
+System s;
+Bool(3) m_b;
+ Int(4) m_i;
+  Bool check(Bool b) {
+ if(b) m_i = 4;
+ else m_i = 3;
+ return b;
+ }
+ Bool max(Int a, Int b){
+ return (a - b) != 0;
+ }
+ Int test() {
+ m_b = true;
+ m_b = check( max(7,7) );
+s.print(m_b);
+s.print(m_i);
+ return m_i;
+ }
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

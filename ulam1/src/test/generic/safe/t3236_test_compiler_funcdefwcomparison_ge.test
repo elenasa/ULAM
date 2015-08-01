@@ -1,0 +1,45 @@
+## -*- mode:ulam -*-
+#=t3236_test_compiler_funcdefwcomparison_ge
+##      /* gen code output:
+##	 Int Arg: 5
+##	 Int Arg: 10
+##	 Int Arg: 15
+##	 Int Arg: 20
+##	 Int Arg: 20
+##       */
+#!
+Exit status: 20
+Ue_A { Bool(7) b(false);  Int(32) d(20);  System s();  Int(32) test() {  d ( 4 cast 5 cast )times = s ( d )print . d return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+use System;
+element A {
+ Int times(Int m, Int n) {
+Int d;
+ while(m >= 1)
+{ d += n;
+ m-=1;
+s.print(d);
+}
+ return d;
+ }
+System s;
+Bool(7) b;
+Int d;
+Int test(){ d = times(4,5);
+s.print(d);
+return d;
+ }
+ }
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.
