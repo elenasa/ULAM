@@ -198,7 +198,7 @@ namespace MFM {
 	if(m_state.getBitSize(cuti) != totalbits)
 	  {
 	    std::ostringstream msg;
-	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << "' SIZED " << totalbits << " FAILED";
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	    classNode->setNodeType(Nav); //avoid assert in resolving loop
@@ -206,7 +206,7 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameByIndex(cuti).c_str();
+	    msg << "CLASS (regular) '" << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    msg << "' SIZED: " << totalbits;
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
 	  }

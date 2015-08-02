@@ -1,0 +1,7 @@
+## -*- mode:ulam -*-
+#=t3119_test_compiler_funccall_undefined_error
+#!
+## D.ulam:1:25: ERROR: (2) <fact> is not a defined function, and cannot be called.
+#>D.ulam
+element D { Int test() { a = fact(3); return a; } Int a;  }
+#.

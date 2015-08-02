@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t3130_test_compiler_func_capitalization
+#!
+## //./D.ulam:3:5: ERROR: Name of variable/function <Times>: Identifier must begin with a lower-case letter.
+Ue_D { Int t(15);  Int test() {  t ( 4 5 )Times = } }
+#>D.ulam
+element D {
+Int t;
+Int Times(Int m, Int n) {
+Int e;
+while( m-=1 )
+  e += n;
+return e;
+}
+Int test(){
+{
+ t = Times(4,5);
+ return t;
+}
+}
+}
+#.

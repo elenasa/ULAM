@@ -160,43 +160,41 @@ namespace MFM {
 	  }
       }
 
-    if(errorsFound == 0) //else
+    //check for any array cast errors
+    if(!m_state.isScalar(tobeType))
       {
-	if(!m_state.isScalar(tobeType))
+	MSG(getNodeLocationAsString().c_str(),
+	    "Array casts currently not supported", ERR);
+	errorsFound++;
+
+	if(m_state.isScalar(nodeType))
 	  {
 	    MSG(getNodeLocationAsString().c_str(),
-		"Array casts currently not supported", ERR);
+		"Consider implementing array casts: Cannot cast scalar into array", ERR);
 	    errorsFound++;
-
-	    if(m_state.isScalar(nodeType))
-	      {
-		MSG(getNodeLocationAsString().c_str(),
-		    "Consider implementing array casts: Cannot cast scalar into array", ERR);
-		errorsFound++;
-	      }
-	    else if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
-	      {
-		MSG(getNodeLocationAsString().c_str(),
-		    "Consider implementing array casts: Array sizes differ", ERR);
-		errorsFound++;
-	      }
 	  }
-	else
+	else if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
 	  {
-	    //to be scalar type
-	    if(!m_state.isScalar(nodeType))
-	      {
-		MSG(getNodeLocationAsString().c_str(),
-		    "Consider implementing array casts: Cannot cast array into scalar", ERR);
-		errorsFound++;
-	      }
-	  } // end not scalar errors
+	    MSG(getNodeLocationAsString().c_str(),
+		"Consider implementing array casts: Array sizes differ", ERR);
+	    errorsFound++;
+	  }
+      }
+    else
+      {
+	//to be scalar type
+	if(!m_state.isScalar(nodeType))
+	  {
+	    MSG(getNodeLocationAsString().c_str(),
+		"Consider implementing array casts: Cannot cast array into scalar", ERR);
+	    errorsFound++;
+	  }
+      } // end not scalar errors
 
 	// needs commandline arg..lots of non-explicit warning.
 	// reserve for user requested casts;
 	////if(isExplicitCast())
 	//Node::warnOfNarrowingCast(nodeType, tobeType);
-      }
 
     // special case: user casting a quark to an Int;
     if(errorsFound == 0)
