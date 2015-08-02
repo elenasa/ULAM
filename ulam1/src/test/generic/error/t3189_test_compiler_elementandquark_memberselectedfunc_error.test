@@ -1,0 +1,44 @@
+## -*- mode:ulam -*-
+#=t3189_test_compiler_elementandquark_memberselectedfunc_error
+#!
+##
+##./Foo.ulam:11:20: ERROR: Member selected must be a valid lefthand side, type: C2Dfunc requires a variable; may be a casted function call.
+##
+##      //member selection with a function call must be first saved to a
+##      //variable since we results are returned-by-value (see t3188)
+##
+#>Foo.ulam
+ulam 1;
+ use C2D;
+ element Foo {
+ Int m_idx;
+ C2D func(Int i, Int j) {
+ C2D c;
+ c.init(i,j);
+ return c;
+ }
+ Int test() {
+ m_idx = func(9,4).getIndex(0,0);
+  return m_idx;
+ }
+ }
+
+#:C2D.ulam
+quark C2D {
+ typedef Int(4) IF;
+ IF m_width, m_height;
+  Void init(Int x, Int y) {
+ m_width = (IF) x;
+ m_height = (IF) y;
+ return;
+ }
+ Void init() {
+ m_width = IF.maxof;
+ m_height = 4;
+ return;
+ /* event window overload */ }
+ Int getIndex(Int a, Int b){
+ return ((m_height-b) * m_width + (m_height-a));
+ }
+ }
+#.

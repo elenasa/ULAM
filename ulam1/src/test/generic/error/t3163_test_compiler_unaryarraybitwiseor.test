@@ -1,0 +1,24 @@
+## -*- mode:ulam -*-
+#=t3163_test_compiler_unaryarraybitwiseor
+#!
+##./A.ulam:11:8: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator| ; Suggest writing a loop.
+Ue_A { typedef Unary(3) Mu[2];  Unary(3) a[2](2,1);  Unary(3) b[2](0,2);  Unary(3) c[2](2,2);  Int(32) test() {  a 0 [] 2 cast = a 1 [] 1 cast = b 0 [] 0 cast = b 1 [] 2 cast = c a b | = c 0 [] cast return } }
+Exit status:
+#>A.ulam
+element A {
+ typedef Unary(3) Mu[2];
+Bool sp1;
+Bool(15) sp;
+Mu a, b, c;
+ Int test() {
+  a[0] = 2;
+ a[1] = 1;
+ b[0] = 0;
+ b[1] = 2;
+ c = a | b;
+ return c[0];
+ }
+ }
+##
+##      //bool rtn1 = fms->add("A.ulam","element A { typedef Unary(3) Mu[2]; Mu a, b, c;  use test;  a[0] = 2; a[1] = 1; b[0] = 0; b[1] = 2; c = a | b; return c[0]; } }");
+#.
