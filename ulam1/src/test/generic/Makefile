@@ -1,4 +1,4 @@
-BASE_DIR:=../..
+BASE_DIR:=../../..
 BUILD_DIR:=$(BASE_DIR)/build/test
 INCLUDE_DIR:=$(BASE_DIR)/include
 TGEN_DIR:=$(BASE_DIR)/src/test/bin

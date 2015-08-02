@@ -39,6 +39,7 @@ BEGIN {
 
 my $TOPLEVEL = "$ULAM_ROOT";
 my $TESTDIR =  "$ULAM_ROOT/src/test/generic";
+my $TESTBIN =  "$ULAM_ROOT/src/test/bin";
 my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files
 my $SRC_DIR = "safe";
 #my $SRC_DIR = "error";
@@ -88,7 +89,7 @@ sub main
 
     my @files = <$TESTDIR/$SRC_DIR/$query>;
     chomp @files;
-    
+
     my $fileCount = scalar(@files);
     usage_abort("No tests matching '$TESTDIR/$SRC_DIR/$query'")
         unless $fileCount > 0;
@@ -143,7 +144,9 @@ sub main
 	    }
 	    else
 	    {
-		`./bin/culamtest $f 1>> $log 2>> $errlog`;
+		`make -C $TESTDIR clean`; #before test
+
+		`./bin/culamtest $f 1> $log 2> $errlog`;
                 my $status = $?;
                 if ($status == 0) {
                     ++$testsPassed;
@@ -151,7 +154,11 @@ sub main
                     ++$testsFailed;
                     print "FAILED: $testnum\n";
                 }
+
+		`make -C $TESTDIR gen`;
+		`$TESTBIN/main 1>> $log 2>> $errlog`;
 	    }
+	    print "done with t$testnum\n";
 	    $N++;
 	}
 	else

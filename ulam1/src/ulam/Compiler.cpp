@@ -350,7 +350,7 @@ namespace MFM {
     FileManagerStdio * fm = new FileManagerStdio("./src/test/bin"); //temporary!!!
     if(!fm)
       {
-	errorOutput->write("Error in making new file manager for code generation...aborting");
+	errorOutput->write("Error in making new file manager for test code generation...aborting");
 	return;
       }
     m_state.m_programDefST.genCodeForTableOfClasses(fm);
