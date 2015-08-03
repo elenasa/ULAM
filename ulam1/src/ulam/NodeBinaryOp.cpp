@@ -123,14 +123,17 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
+    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType();
+
+    // efficiency bites! no sooner, need left and right side-effects
+    // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
     if(getNodeType() != Nav)
       return getNodeType();
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = Nav;
 
-    if(leftType && rightType)
+    if(m_state.isComplete(leftType) && m_state.isComplete(rightType))
       newType = calcNodeType(leftType, rightType); //does safety check
 
     setNodeType(newType);
