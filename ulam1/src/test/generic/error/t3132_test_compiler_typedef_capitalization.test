@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t3132_test_compiler_typedef_capitalization
+#!
+## //./D.ulam:2:16: ERROR: Invalid typedef Alias <too>, Type Identifier (2nd arg) requires capitalization.
+Uq_D { Int(4) t(15);  Int(32) test() {  t ( 4 5 )times = } }
+#>D.ulam
+quark D {
+typedef Int(4) too;
+too times(Int(4) m, Int(4) n) {
+      Int(4) e;
+      while( m-=1 )
+         e += n; e;
+}
+Int test(){
+ {
+   t = times(4,5);
+   return t;
+ }
+}
+}
+#.

@@ -160,53 +160,53 @@ namespace MFM {
 	  }
       }
 
-    if(errorsFound == 0) //else
+    //check for any array cast errors
+    if(!m_state.isScalar(tobeType))
       {
-	if(!m_state.isScalar(tobeType))
+	MSG(getNodeLocationAsString().c_str(),
+	    "Array casts currently not supported", ERR);
+	errorsFound++;
+
+	if(m_state.isScalar(nodeType))
 	  {
 	    MSG(getNodeLocationAsString().c_str(),
-		"Array casts currently not supported", ERR);
+		"Consider implementing array casts: Cannot cast scalar into array", ERR);
 	    errorsFound++;
-
-	    if(m_state.isScalar(nodeType))
-	      {
-		MSG(getNodeLocationAsString().c_str(),
-		    "Consider implementing array casts: Cannot cast scalar into array", ERR);
-		errorsFound++;
-	      }
-	    else if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
-	      {
-		MSG(getNodeLocationAsString().c_str(),
-		    "Consider implementing array casts: Array sizes differ", ERR);
-		errorsFound++;
-	      }
 	  }
-	else
+	else if(m_state.getArraySize(tobeType) != m_state.getArraySize(nodeType))
 	  {
-	    //to be scalar type
-	    if(!m_state.isScalar(nodeType))
-	      {
-		MSG(getNodeLocationAsString().c_str(),
-		    "Consider implementing array casts: Cannot cast array into scalar", ERR);
-		errorsFound++;
-	      }
-	  } // end not scalar errors
+	    MSG(getNodeLocationAsString().c_str(),
+		"Consider implementing array casts: Array sizes differ", ERR);
+	    errorsFound++;
+	  }
+      }
+    else
+      {
+	//to be scalar type
+	if(!m_state.isScalar(nodeType))
+	  {
+	    MSG(getNodeLocationAsString().c_str(),
+		"Consider implementing array casts: Cannot cast array into scalar", ERR);
+	    errorsFound++;
+	  }
+      } // end not scalar errors
 
 	// needs commandline arg..lots of non-explicit warning.
 	// reserve for user requested casts;
 	////if(isExplicitCast())
 	//Node::warnOfNarrowingCast(nodeType, tobeType);
-      }
 
-    // special case: user casting a quark to an Int;
     if(errorsFound == 0)
       {
-	ULAMCLASSTYPE nodeClass = m_state.getUlamTypeByIndex(nodeType)->getUlamClass();
+	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+	ULAMCLASSTYPE nodeClass = nut->getUlamClass();
 	if(nodeClass == UC_QUARK)
 	  {
+	    // special case: user casting a quark to an Int;
 	    if(!makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
 	      errorsFound++;
 	  }
+	//can't detect its a CaArray; already resolved by m_node (sqbkt) to caarrayType
 	else
 	  {
 	    //classes are not surprisingly unknown bit sizes at this point
@@ -502,7 +502,10 @@ namespace MFM {
     UTI vuti = uvpass.getUlamValueTypeIdx();
     if(vuti == Ptr)
       vuti = uvpass.getPtrTargetType(); //replace
+    s32 tmpVarNum = uvpass.getPtrSlotIndex();
 
+    //when this is a custom array, the symbol is the "ew" for example,
+    //not the atom (e.g. ew[idx]) that has no symbol
     m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
@@ -522,12 +525,20 @@ namespace MFM {
 	fp->write(m_state.getHasMangledFunctionName(vuti));
 	fp->write("(");
 	fp->write("uc, ");
-	Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
-	if(stgcos->isSelf())
-	  fp->write("GetType(), "); //no read for self
+	if(Node::isCurrentObjectALocalVariableOrArgument())
+	  {
+	    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+	    fp->write(".GetType(), ");
+	  }
 	else
-	  fp->write("read().GetType(), ");
-
+	  {
+	    //Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
+	    fp->write(stgcos->getMangledName().c_str()); //assumes only one!!!
+	    if(stgcos->isSelf())
+	      fp->write("GetType(), "); //no read for self
+	    else
+	      fp->write(".read().GetType(), ");
+	  }
 	fp->write("\"");
 	fp->write(nut->getUlamTypeMangledName().c_str());
 	fp->write("\");\n"); //keeping pos in tmp
@@ -576,9 +587,24 @@ namespace MFM {
 
     //informed by genCodedAutoLocal() in NodeVarDecl used for conditional-as
     // uses stgcos since there's no m_varSymbol in this situation.
+    // before shadowing the lhs of the as-conditional variable with its auto,
+    // let's load its storage from the currentSelfSymbol:
     s32 tmpVarStg = m_state.getNextTmpVarNumber();
     UTI stguti = stgcos->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
+    bool isCustomArray = stgut->isCustomArray();
+    if(isCustomArray)
+      {
+	stguti = ((UlamTypeClass *) stgut)->getCustomArrayType();
+    	stgut = m_state.getUlamTypeByIndex(stguti);
+
+	std::ostringstream msg;
+	msg << "Cannot explicitly cast custom array type ";
+	msg << m_state.getUlamTypeNameBriefByIndex(stguti).c_str();
+	msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << "; Consider using a temporary variable";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+      }
     assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT);
 
     // can't let Node::genCodeReadIntoTmpVar do this for us (we need a ref!):
@@ -612,8 +638,17 @@ namespace MFM {
 
     fp->write(");\n"); //like, shadow lhs of as
 
+    // don't forget the read!
+    s32 tmpIQread = m_state.getNextTmpVarNumber(); //tmp since no variable name
+    m_state.indent(fp);
+    fp->write("const u32 ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpIQread).c_str());
+    fp->write(" = ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpIQ).c_str());
+    fp->write(".read();\n");
+
     //update the uvpass to have the casted immediate quark
-    uvpass = UlamValue::makePtr(tmpIQ, uvpass.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified;
+    uvpass = UlamValue::makePtr(tmpIQread, uvpass.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified;
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCodeCastAtomAndQuark

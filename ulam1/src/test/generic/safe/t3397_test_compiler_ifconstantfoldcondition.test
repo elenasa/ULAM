@@ -1,24 +1,15 @@
-#include "TestCase_EndToEndCompiler.h"
+## -*- mode:ulam -*-
+#=t3397_test_compiler_ifconstantfoldcondition
+#!
+Exit status: 3
+Ue_R { Int(32) test() {  true cond 3 cast return if 0 cast return } }
+#>R.ulam
+ element R{
+ Int test(){
+if(0 < 1)
+ return 3;
+ return 0;
+ }
+}
 
-namespace MFM {
-
-  BEGINTESTCASECOMPILER(t3397_test_compiler_ifconstantfoldcondition)
-  {
-    std::string GetAnswerKey()
-    {
-      return std::string("Exit status: 3\nUe_R { Int(32) test() {  true cond 3 cast return if 0 cast return } }\n");
-    }
-
-    std::string PresetTest(FileManagerString * fms)
-    {
-      bool rtn1 = fms->add("R.ulam"," element R{\n Int test(){\nif(0 < 1)\n return 3;\n return 0;\n }\n}\n");
-
-      if(rtn1 )
-	return std::string("R.ulam");
-      return std::string("");
-    }
-  }
-
-  ENDTESTCASECOMPILER(t3397_test_compiler_ifconstantfoldcondition)
-
-} //end MFM
+#.
