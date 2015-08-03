@@ -54,10 +54,23 @@ namespace MFM {
 	return Nav;
       }
 
-    if(!checkNotVoidTypes(leftType, rightType))
+    if(!NodeBinaryOp::checkNotVoidTypes(leftType, rightType))
       {
     	setNodeType(Nav);
     	return Nav;
+      }
+
+    if(m_state.isScalar(leftType) ^ m_state.isScalar(rightType))
+      {
+	std::ostringstream msg;
+	msg << "Incompatible (nonscalar) types: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+	msg << " and ";
+	msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+	msg << " used with binary operator" << getName();
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	setNodeType(Nav);
+	return Nav;
       }
 
     UTI newType = leftType; //init

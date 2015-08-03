@@ -55,6 +55,7 @@ namespace MFM {
     NodeBlock * currBlock = m_state.getCurrentBlock();
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock); //currblock doesn't change
     UTI rightType = m_nodeRight->checkAndLabelType();
+
     m_state.popClassContext();
 
     if(leftType != Nav)
@@ -107,62 +108,65 @@ namespace MFM {
 		    errorCount++;
 		  }
 	      }
+	  }
 
-	    //set up idxuti..RHS
-	    //cant proceed with custom array subscript if lhs is incomplete
-	    if(errorCount == 0)
+	//set up idxuti..RHS
+	//cant proceed with custom array subscript if lhs is incomplete
+	if(errorCount == 0)
+	  {
+	    if(isCustomArray)
 	      {
-		if(isCustomArray)
+		bool hasHazyArgs = false;
+		u32 camatches = ((UlamTypeClass *) lut)->getCustomArrayIndexTypeFor(m_nodeRight, idxuti, hasHazyArgs);
+		if(camatches == 0)
 		  {
-		    bool hasHazyArgs = false;
-		    u32 camatches = ((UlamTypeClass *) lut)->getCustomArrayIndexTypeFor(m_nodeRight, idxuti, hasHazyArgs);
-		    if(camatches == 0)
-		      {
-			std::ostringstream msg;
-			msg << "No defined custom array get function with";
-			msg << " matching argument type ";
-			msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-			msg << "; and cannot be called";
-			if(hasHazyArgs)
-			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-			else
-			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			idxuti = Nav; //error!
-			errorCount++;
-		      }
-		    else if(camatches > 1)
-		      {
-			std::ostringstream msg;
-			msg << "Ambiguous matches (" << camatches;
-			msg << ") of custom array get function for argument type ";
-			msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-			msg << "; Explicit casting required";
-			if(hasHazyArgs)
-			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-			else
-			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			idxuti = Nav; //error!
-			errorCount++;
-		      }
-		  }
-		else
-		  {
-		    //not custom array
-		    //must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
-		    if(rightType != Nav && !m_state.getUlamTypeByIndex(rightType)->isNumericType())
-		      {
-			std::ostringstream msg;
-			msg << "Array item specifier requires numeric type: ";
-			msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			idxuti = Nav; //error!
-			errorCount++;
-		      }
+		    std::ostringstream msg;
+		    msg << "No defined custom array get function with";
+		    msg << " matching argument type ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		    msg << "; and cannot be called";
+		    if(hasHazyArgs)
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    else
-		      idxuti = rightType; //default unless caarray
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    idxuti = Nav; //error!
+		    errorCount++;
 		  }
-	      } //errorcount is zero
-	  } //lut is scalar
+		else if(camatches > 1)
+		  {
+		    std::ostringstream msg;
+		    msg << "Ambiguous matches (" << camatches;
+		    msg << ") of custom array get function for argument type ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		    msg << "; Explicit casting required";
+		    if(hasHazyArgs)
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    else
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    idxuti = Nav; //error!
+		    errorCount++;
+		      }
+	      }
+	    else
+	      {
+		//not custom array
+		//must be some kind of numeric type: Int, Unsigned, or Unary..of any bit size
+		UlamType * rut = m_state.getUlamTypeByIndex(rightType);
+		if(rightType != Nav && !rut->isNumericType())
+		  {
+		    std::ostringstream msg;
+		    msg << "Array item specifier requires numeric type: ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    idxuti = Nav; //error!
+		    errorCount++;
+		  }
+		else if(rut->getUlamTypeEnum() == Class)
+		  idxuti = Int;
+		else
+		  idxuti = rightType; //default unless caarray
+	      }
+	  } //errorcount is zero
 
 	if(idxuti != Nav && UlamType::compare(idxuti, rightType, m_state) == UTIC_NOTSAME)
 	  {

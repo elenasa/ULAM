@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t3101_test_compiler_uses_invalidchars
+#!
+##      /*
+##	./D.ulam:2:2: ERROR: (Low Level) Weird! Lexer could not find match for: <@>.
+##	./D.ulam:4:7: ERROR: (Low Level) Weird! Lexer could not find match for: <@>.
+##	./D.ulam:4:12: ERROR: (Low Level) Weird! Lexer could not find match for: <@>.
+##	Unrecoverable Program Parse FAILURE.
+##      */
+Ue_D { Int(32) test() { Int(32) a(5);  a 3 2 +b = } }
+##
+##  //recovers from invalid character
+#>D.ulam
+element D {
+ @ Int a;
+ Int test() {
+  a = @3 + @2;
+ return a;
+ }
+}
+
+#.

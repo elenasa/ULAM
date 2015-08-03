@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  TestCase_EndToEndCompilerGeneric::TestCase_EndToEndCompilerGeneric(File * input) 
+  TestCase_EndToEndCompilerGeneric::TestCase_EndToEndCompilerGeneric(File * input)
     : m_state(START)
   {
     if (!input) die("Null input pointer");
@@ -29,14 +29,14 @@ namespace MFM {
 
       if (getInput(0) != '#') {
         switch (m_state) {
-        default: 
+        default:
           die("Impossible");
-        case START: 
+        case START:
           die("Non '#' content with no file or answer active");
-        case FILE: 
-          newFileData(m_currentLine); 
+        case FILE:
+          newFileData(m_currentLine);
           break;
-        case ANSWER: 
+        case ANSWER:
           newAnswerKeyData(m_currentLine);
           break;
         }
@@ -97,14 +97,14 @@ namespace MFM {
     m_currentLine = "#.";
   }
 
-  void TestCase_EndToEndCompilerGeneric::newInputFile(std::string str) 
+  void TestCase_EndToEndCompilerGeneric::newInputFile(std::string str)
   {
     InputFile in;
     in.m_fileName = str;
     m_inputFiles.push_back(in);
   }
 
-  TestCase_EndToEndCompilerGeneric::InputFile & TestCase_EndToEndCompilerGeneric::getLast() 
+  TestCase_EndToEndCompilerGeneric::InputFile & TestCase_EndToEndCompilerGeneric::getLast()
   {
     if (m_inputFiles.size() == 0)
       die("getLast internal error");
@@ -129,7 +129,7 @@ namespace MFM {
     assert(0);
   }
 
-  std::string TestCase_EndToEndCompilerGeneric::PresetTest(FileManagerString * fms) 
+  std::string TestCase_EndToEndCompilerGeneric::PresetTest(FileManagerString * fms)
   {
     if (!fms) die("Null FileManagerString");
 
@@ -146,10 +146,9 @@ namespace MFM {
 
     // Default start file is first file
     return m_inputFiles[0].m_fileName;
+  } //presetTest
 
-  }
-
-  std::string TestCase_EndToEndCompilerGeneric::GetAnswerKey() 
+  std::string TestCase_EndToEndCompilerGeneric::GetAnswerKey()
   {
     std::string answer = m_answerKey.str();
     return answer;

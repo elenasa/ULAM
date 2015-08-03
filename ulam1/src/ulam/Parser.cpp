@@ -3320,7 +3320,7 @@ namespace MFM {
 	unreadToken();
 	std::ostringstream msg;
 	msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(&qTok).c_str();
-	msg << "> after function declaration.";
+	msg << "> after function declaration";
 	MSG(&qTok, msg.str().c_str(), ERR);
       }
     return brtn;

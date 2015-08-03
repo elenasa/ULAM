@@ -1,0 +1,40 @@
+## -*- mode:ulam -*-
+#=t3508_test_compiler_quarkcastcaarray_issue_error
+#!
+Exit status: 0
+Ue_D { Int(32) test() {  QPort4 s;  s ( )update . 0 cast return } }
+Uq_QPort4 { typedef Unsigned(6) SiteNum;  typedef QPort4 Self;  EventWindow ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }
+Uq_EventWindow { typedef Unsigned(6) SiteNum;  <NOMAIN> }
+#>D.ulam
+use QPort4;
+element D {
+  Int test() {
+    QPort4 s;
+    s.update();
+    return 0;
+  }
+}
+
+#:QPort4.ulam
+  use EventWindow;
+quark QPort4
+{
+  typedef QPort4 Self;
+  typedef EventWindow.SiteNum SiteNum;
+  EventWindow ew;
+  Void update()
+  {
+    SiteNum selfIdx = 1;
+    //Atom aa = ew[selfIdx]; //eadded
+    //Self s = (Self) aa;
+    Self s = (Self) ew[selfIdx];
+  }
+}
+#:EventWindow.ulam
+ulam 1;
+quark EventWindow {
+  typedef Unsigned(6) SiteNum;
+  Atom aref(Int index) native;
+  Void aset(Int index, Atom val) native;
+}
+#.
