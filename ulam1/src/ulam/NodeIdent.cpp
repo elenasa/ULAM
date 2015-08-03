@@ -345,6 +345,7 @@ namespace MFM {
   //new
   UlamValue NodeIdent::makeUlamValuePtrForCodeGen()
   {
+    assert(m_varSymbol);
     s32 tmpnum = m_state.getNextTmpVarNumber();
 
     UlamValue ptr;
