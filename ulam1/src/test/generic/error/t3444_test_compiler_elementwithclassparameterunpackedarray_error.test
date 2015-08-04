@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t3444_test_compiler_elementwithclassparameterunpackedarray_error
+#!
+##
+##./S.ulam:2:17: ERROR: Named Constant 'y' cannot be based on a class type: BigSite.
+##./S.ulam:2:17: ERROR: Invalid constant definition of Type <BigSite> and Name <y>.
+##./T.ulam:7:10: ERROR: Too many Class Arguments (2); Class Template 'S' expects 1.
+##
+Exit status: -1
+##
+##    //informed by t3445
+##
+#>T.ulam
+ ulam 1;
+use S;
+ element T{
+typedef Int BigSite[10];
+ Int test(){
+BigSite site;
+ S(site, 3) n;
+ return 0;
+}
+ }
+
+#:S.ulam
+ulam 1;
+quark S(BigSite y, Int i){
+ }
+#.

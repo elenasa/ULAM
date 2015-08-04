@@ -208,7 +208,6 @@ namespace MFM {
     for(u32 i=0; i < numParams; i++)
       {
 	UTI puti = m_parameterSymbols.at(i)->getUlamTypeIdx();
-	// if(UlamType::compare(puti, argTypes[i], m_state) == UTIC_NOTSAME) //same|not ready
 	if(UlamType::compare(puti, argTypes[i], m_state) != UTIC_SAME) //not same|not ready
 	  {
 	    if(constantArg[i])
@@ -216,7 +215,7 @@ namespace MFM {
 		assert(constantArg[i]->isAConstant());
 		//constants can match any bit size, that it fits
 		FORECAST scr = constantArg[i]->safeToCastTo(puti);
-		if( scr == CAST_BAD)
+		if(scr == CAST_BAD)
 		  {
 		    rtnBool = false;
 		    break;
@@ -229,7 +228,7 @@ namespace MFM {
 	      {
 		//willing to cast argType safely TO puti; incomplete types are hazy.
 		FORECAST scr = m_state.getUlamTypeByIndex(puti)->safeCast(argTypes[i]);
-		if( scr == CAST_BAD)
+		if(scr == CAST_BAD)
 		  {
 		    rtnBool = false;
 		    break;
@@ -313,7 +312,6 @@ namespace MFM {
 	assert(asym);
 	UTI auti = asym->getUlamTypeIdx();
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
-
 	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
 	fp->write(" ");
 	fp->write(asym->getMangledName().c_str());

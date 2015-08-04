@@ -61,12 +61,15 @@ namespace MFM{
   public:
 
     Node(CompilerState & state);
+
     Node(const Node& ref);
+
     virtual ~Node() {}
 
     virtual Node * instantiate() = 0;
 
     virtual void setYourParentNo(NNO pno);
+
     NNO getYourParentNo();
 
     virtual void updateLineage(NNO pno);
@@ -74,10 +77,13 @@ namespace MFM{
     virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
 
     NNO getNodeNo();
+
     void resetNodeNo(NNO no); //for constant folding
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void print(File * fp);
+
     virtual void printPostfix(File * fp) = 0;
 
     virtual const char * getName() = 0;
@@ -87,14 +93,19 @@ namespace MFM{
     const std::string nodeName(const std::string& prettyFunction);
 
     UTI getNodeType();
+
     void setNodeType(UTI ut);
 
     bool isStoreIntoAble();
+
     void setStoreIntoAble(bool s);
 
     Locator getNodeLocation();
+
     virtual void setNodeLocation(Locator loc);
+
     void printNodeLocation(File * fp);
+
     std::string getNodeLocationAsString();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
@@ -114,45 +125,36 @@ namespace MFM{
     virtual UTI constantFold();
 
     virtual bool isNegativeConstant();
+
     virtual bool isWordSizeConstant();
 
     virtual bool isFunctionCall();
 
     virtual bool installSymbolTypedef(TypeArgs& args, Symbol *& asymptr);
+
     virtual bool installSymbolConstantValue(TypeArgs& args, Symbol *& asymptr);
+
     virtual bool installSymbolParameterValue(TypeArgs& args, Symbol *& asymptr);
+
     virtual bool installSymbolVariable(TypeArgs& args,  Symbol *& asymptr);
 
     virtual bool assignClassArgValueInStubCopy();
 
     virtual EvalStatus eval() = 0;
+
     virtual EvalStatus evalToStoreInto();
 
-    void evalNodeProlog(u32 depth);
-    void evalNodeEpilog();
-
-    u32 makeRoomForNodeType(UTI type, STORAGE where = EVALRETURN);
-    u32 makeRoomForSlots(u32 slots, STORAGE where = EVALRETURN);
-
-    void assignReturnValueToStack(UlamValue rtnUV, STORAGE where = EVALRETURN);
-    void assignReturnValuePtrToStack(UlamValue rtnUVptr);
-
     virtual void packBitsInOrderOfDeclaration(u32& offset);
+
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
+
     virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
-    virtual void genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue& uvpass);
-    void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
 
     virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
-    void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
-    virtual void genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
-    void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
-
-    void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
-    void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
 
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
 
@@ -170,24 +172,25 @@ namespace MFM{
     bool checkSafeToCastTo(UTI fromType, UTI newType);
 
     bool makeCastingNode(Node * node, UTI tobeType, Node*& rtnNode, bool isExplicit = false);
+
     bool warnOfNarrowingCast(UTI nodeType, UTI tobeType);
+
+    void evalNodeProlog(u32 depth);
+
+    void evalNodeEpilog();
+
+    u32 makeRoomForNodeType(UTI type, STORAGE where = EVALRETURN);
+
+    u32 makeRoomForSlots(u32 slots, STORAGE where = EVALRETURN);
+
+    void assignReturnValueToStack(UlamValue rtnUV, STORAGE where = EVALRETURN);
+
+    void assignReturnValuePtrToStack(UlamValue rtnUVptr);
 
     virtual void genMemberNameOfMethod(File * fp); //helper method to read/write into/from tmpvar
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
-    void genModelParameterHiddenArgs(File * fp, s32 epi);
+
     virtual void genLocalMemberNameOfMethod(File * fp);
-
-    const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
-    const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass);
-
-    const std::string readMethodForCodeGen(UTI nuti, UlamValue uvpass);
-    const std::string readArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
-
-    const std::string writeMethodForCodeGen(UTI nuti, UlamValue uvpass);
-    const std::string writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
-
-    const std::string readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
-    const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
 
     //i.e. an immediate (right-justified); not a data member or self;
     bool isCurrentObjectALocalVariableOrArgument();
@@ -204,7 +207,10 @@ namespace MFM{
 
     u32 adjustedImmediateArrayItemPtrPos(UTI cosuti, UlamValue uvpass);
 
-  protected:
+    void genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass);
+
+    void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
+
     virtual void checkForSymbol();
 
   private:
@@ -216,6 +222,29 @@ namespace MFM{
 
     //common helpers for safe casting
     NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
+
+    void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+
+    void genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue& uvpass);
+    void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
+
+    void genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+
+    void genModelParameterHiddenArgs(File * fp, s32 epi);
+    void genLocalMemberNameOfMethodByUsTypedef(File * fp);
+
+    const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
+    const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass);
+
+    const std::string readMethodForCodeGen(UTI nuti, UlamValue uvpass);
+    const std::string readArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
+
+    const std::string writeMethodForCodeGen(UTI nuti, UlamValue uvpass);
+    const std::string writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass);
+
+    const std::string readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
+    const std::string writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass);
 
   };
 

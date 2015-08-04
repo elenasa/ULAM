@@ -1,0 +1,26 @@
+## -*- mode:ulam -*-
+#=t3357_test_compiler_elementandquarkswclassargs_lhsconstantcompare
+#!
+Exit status: 1
+Ue_Foo { Int(32) test() {  Booly(true) b;  b ( )behave . cast return } }
+Uq_Booly { constant Bool(1) bomb = NONREADYCONST;  <NOMAIN> }
+##
+##      //informed by issue: also tests Bool as class parameter
+#>Foo.ulam
+ulam 1;
+use Booly;
+element Foo{
+Int test(){
+Booly(true) b;
+ return (Int) b.behave();
+}
+}
+
+#:Booly.ulam
+quark Booly(Bool bomb) {
+Bool behave(){
+ if(bomb != false) return true;
+return false;
+}
+}
+#.

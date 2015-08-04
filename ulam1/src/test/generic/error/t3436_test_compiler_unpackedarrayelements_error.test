@@ -1,0 +1,21 @@
+## -*- mode:ulam -*-
+#=t3436_test_compiler_unpackedarrayelements_error
+#!
+##
+##./A.ulam:2:13: ERROR: Invalid non-scalar type: A'. Requires a custom array.
+##
+Exit status: 10
+##
+##      // taken from t3436; here, tests non-typedef decl
+##
+#>A.ulam
+element A {
+Int test(){ A site[10];
+ for(Int i = 0; i < 10; ++i){
+ site[i] = self;
+}
+ return 10;
+ }
+ }
+
+#.

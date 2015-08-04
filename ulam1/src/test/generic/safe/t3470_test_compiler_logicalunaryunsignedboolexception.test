@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t3470_test_compiler_logicalunaryunsignedboolexception
+#!
+Exit status: 1
+Ue_A { Unary(1) a(1);  Unsigned(1) b(1);  Int(32) test() {  a b 1 cast = cast = a cast b cast && cond a cast return if b cast return } }
+##
+##      // no casts required for unary(1) and unsigned(1): return smaller
+#>A.ulam
+element A {
+Unary(1) a;
+ Unsigned(1) b;
+ Int test() {
+ a = b = 1; if(a && b) return a;
+ return b;
+ }
+ }
+
+#.

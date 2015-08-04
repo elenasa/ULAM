@@ -337,7 +337,6 @@ namespace MFM {
     m_state.assignValue(rtnPtr, rtnUV);
   } //assignReturnValueToStack
 
-
   //in case of arrays, rtnUV is a ptr.
   void Node::assignReturnValuePtrToStack(UlamValue rtnUVptr)
   {
@@ -403,11 +402,15 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // split off reading array items
-    if(isCurrentObjectAnArrayItem(cosuti, uvpass) || isCurrentObjectACustomArrayItem(cosuti, uvpass))
+    if(isCurrentObjectAnArrayItem(cosuti, uvpass))
       return genCodeReadArrayItemIntoATmpVar(fp, uvpass);
+
+    // split if custom array, that requires an 'aref' function call
+    // immediate types no longer have an array method to call for CA's.
+    if(isCurrentObjectACustomArrayItem(cosuti, uvpass))
+      return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);
 
     // write out intermediate tmpVar (i.e. terminal) as temp BitVector arg
     // e.g. when func call is rhs of secondary member select
@@ -419,11 +422,8 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-
-    //NOPE!!! after read does sign extend for ints, etc.
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
     fp->write(" ");
-
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
     fp->write(" = ");
 
@@ -527,16 +527,6 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-
-    // split if custom array, that requires an 'aref' function call
-    // (that's when cos is neither a local var that's not refining, i.e. cos[0];
-    // nor a local var that's an MP); o.w. immediate types have an array method
-    // to call even for CA's.
-    if(cosut->isCustomArray() && !isHandlingImmediateType())
-      return genCodeReadCustomArrayItemIntoATmpVar(fp, uvpass);
-
-    // check after we know it's not a custom array
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     assert(vut->isNumericType());
 
@@ -563,82 +553,45 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 	fp->write("(");
 
-	if(cosut->isCustomArray()) //immediate CA
-	  fp->write("uc, ");
-
 	// a data member quark, or the element itself should both getBits from self
 	fp->write(m_state.getHiddenArgName());
 	fp->write(".GetBits()");
 	fp->write(", "); //rest of arg's
       }
-    else
+    else //local var
       {
-	s32 epi = isCurrentObjectsContainingAModelParameter();
-	if(epi >= 0)
+	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
+
+	genLocalMemberNameOfMethod(fp);
+
+	//read method based on last cos
+	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
+
+	if(stgcosclasstype == UC_ELEMENT)
 	  {
-	    genModelParameterMemberNameOfMethod(fp, epi);
-
-	    //read method based on last cos
-	    fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-
-	    //element parameter (could be array?)
 	    fp->write("(");
-
-	    if(!isHandlingImmediateType())
-	      {
-		genModelParameterHiddenArgs(fp, epi);
-		fp->write(", "); //rest of arg's
-	      }
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(".getBits()");
+	    fp->write(", ");
+	  }
+	else
+	  {
+	    // local quark or primitive (i.e. 'notaclass'); has an immediate type:
+	    // uses local variable name, and immediate read method
+	    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+	    if(cosSize == 1)
+	      fp->write("(");
 	    else
 	      {
-		if(cosut->isCustomArray())
-		  fp->write("uc, "); //rest of arg's
-	      }
-	  }
-	else //local var
-	  {
-	    genLocalMemberNameOfMethod(fp);
-
-	    //read method based on last cos
-	    fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-
-	    if(stgcosclasstype == UC_ELEMENT)
-	      {
+		// storage-cos and cos-for-read are different:
+		// use this instance of storage-cos to specify
+		// its non-static read method
 		fp->write("(");
-
-		if(cosut->isCustomArray())
-		  fp->write("uc, ");
-
 		fp->write(stgcos->getMangledName().c_str());
+
+		assert(stgcosclasstype == UC_QUARK);
 		fp->write(".getBits()");
 		fp->write(", ");
-	      }
-	    else
-	      {
-		// local quark or primitive (i.e. 'notaclass'); has an immediate type:
-		// uses local variable name, and immediate read method
-		u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-		if(cosSize == 1)
-		  {
-		    fp->write("(");
-		    if(cosut->isCustomArray())
-		      fp->write("uc, ");
-		  }
-		else
-		  {
-		    // storage-cos and cos-for-read are different:
-		    // use this instance of storage-cos to specify
-		    // its non-static read method
-		    fp->write("(");
-		    if(cosut->isCustomArray())
-		      fp->write("uc, ");
-
-		    fp->write(stgcos->getMangledName().c_str());
-
-		    assert(stgcosclasstype == UC_QUARK);
-		    fp->write(".getBits()");
-		    fp->write(", ");
-		  }
 	      }
 	  }
       }
@@ -666,7 +619,7 @@ namespace MFM {
     assert(vuti != Void);
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    //assert(vut->isNumericType()); //may not be numeric for custom array
+    //vut (index) may not be numeric when custom array
 
     //here, cos is symbol used to determine read method: either self or last of cos.
     //stgcos is symbol used to determine first "hidden" arg
@@ -696,10 +649,8 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("const ");
-
     fp->write(itemut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write(" ");
-
     fp->write(m_state.getTmpVarAsString(itemuti, tmpVarNum2, TMPBITVAL).c_str());
     fp->write(" = ");
 
@@ -715,70 +666,51 @@ namespace MFM {
 	fp->write(m_state.getHiddenArgName()); //no getBits
 	fp->write(", "); //rest of arg's
       }
-    else
+    else  //local var
       {
-	s32 epi = isCurrentObjectsContainingAModelParameter();
-	if(epi >= 0)
+	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
+
+	//read method based on last cos
+	genLocalMemberNameOfMethodByUsTypedef(fp);
+	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
+
+	if(stgcosclasstype == UC_ELEMENT)
 	  {
-	    genModelParameterMemberNameOfMethod(fp, epi);
-
-	    //read method based on last cos
-	    fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-
-	    fp->write("(");
-
-	    //storage based on epi - 1
-	    if(!isHandlingImmediateType())
-	      {
-		genModelParameterHiddenArgs(fp, epi);
-		fp->write(", "); //rest of args
-	      }
-	    else
-	      {
-		if(cosut->isCustomArray())
-		  fp->write("uc, "); //rest of arg's
-	      }
+	    fp->write("(uc, ");
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(".getRef()"); //immediate needs the T storage within the struct
+	    fp->write(", ");
 	  }
-	else  //local var
+	else if(stgcosclasstype == UC_QUARK)
 	  {
-	    genLocalMemberNameOfMethod(fp);
-
-	    //read method based on last cos
-	    fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-
-	    if(stgcosclasstype == UC_ELEMENT)
+	    fp->write("(uc, ");
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(".getRef()"); //immediate needs the T storage within the struct
+	    fp->write(", ");
+	  }
+	else
+	  {
+	    // local primitive (i.e. 'notaclass'); has an immediate type:
+	    // uses local variable name, and immediate read method
+	    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+	    if(cosSize == 1)
 	      {
 		fp->write("(uc, ");
-		fp->write(stgcos->getMangledName().c_str());
-		fp->write(".getRef()"); //immediate MP needs the T storage within the struct
-		fp->write(", ");
 	      }
 	    else
 	      {
-		// local quark or primitive (i.e. 'notaclass'); has an immediate type:
-		// uses local variable name, and immediate read method
-		u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-		if(cosSize == 1)
-		  {
-		    fp->write("(uc, ");
-		  }
-		else
-		  {
-		    // storage-cos and cos-for-read are different:
-		    // use this instance of storage-cos to specify
-		    // its non-static read method
-		    fp->write("(uc, ");
-		    fp->write(stgcos->getMangledName().c_str());
+		// storage-cos and cos-for-read are different:
+		// use this instance of storage-cos to specify
+		// its non-static read method
+		fp->write("(uc, ");
+		fp->write(stgcos->getMangledName().c_str());
 
-		    assert(stgcosclasstype == UC_QUARK);
-		    fp->write(", ");
-		  }
+		assert(stgcosclasstype == UC_QUARK);
+		fp->write(", ");
 	      }
 	  }
       }
-
     //index is immediate Index arg of targettype in uvpass
-    //UlamType * intut = m_state.getUlamTypeByIndex(Int);
     fp->write(vut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //INDEX
@@ -797,20 +729,9 @@ namespace MFM {
   void Node::genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
     assert(luvpass.getUlamValueTypeIdx() == Ptr);
-
-    bool isTerminal = false;
     UTI ruti = ruvpass.getUlamValueTypeIdx();
-
-    if(ruti == Ptr)
-      {
-	ruti = ruvpass.getPtrTargetType();
-      }
-    else
-      {
-	isTerminal = true;
-      }
-
-    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+    assert(ruti == Ptr); //terminals handled in NodeTerminal
+    ruti = ruvpass.getPtrTargetType();
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -831,10 +752,12 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
 
-    // split if writing an array item, here
-    // split if writing a custom array item, here
-    if(isCurrentObjectAnArrayItem(cosuti, luvpass) || isCurrentObjectACustomArrayItem(cosuti, luvpass))
+    // split if writing an array item or custom array item, here
+    if(isCurrentObjectAnArrayItem(cosuti, luvpass))
       return genCodeWriteArrayItemFromATmpVar(fp, luvpass, ruvpass);
+
+    if(isCurrentObjectACustomArrayItem(cosuti, luvpass))
+      return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a func call
 
     if(stgcos->isSelf())
       return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
@@ -857,87 +780,40 @@ namespace MFM {
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAModelParameter();
-	if(epi >= 0)
+	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
+
+	//local
+	genLocalMemberNameOfMethod(fp);
+
+	fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
+	fp->write("(");
+
+	if(cos->isDataMember())
 	  {
-	    assert(0); //shouldn't write into MP
-	    genModelParameterMemberNameOfMethod(fp, epi);
-
-	    fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
-	    fp->write("(");
-
-	    //storage based on epi - 1
-	    if(!isHandlingImmediateType())
+	    // allow for immediate quarks; not element parameters
+	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		genModelParameterHiddenArgs(fp, epi);
-		fp->write(", "); //rest of arg's
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(".getBits()");
+		fp->write(", "); //rest of args
 	      }
-	  }
-	else
-	  {
-	    //local
-	    genLocalMemberNameOfMethod(fp);
-
-	    fp->write(writeMethodForCodeGen(cosuti, luvpass).c_str());
-	    fp->write("(");
-
-	    if(cos->isDataMember())
+	    else if(stgcosclasstype == UC_QUARK)
 	      {
-		assert(!cos->isModelParameter());
-
-		// allow for immediate quarks; not element parameters
-		if(stgcosclasstype == UC_ELEMENT)
-		  {
-		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(".getBits()");
-		    fp->write(", "); //rest of args
-		  }
-		else if(stgcosclasstype == UC_QUARK)
-		  {
-		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(".getBits()");
-		    fp->write(", "); //rest of args
-		  }
-		else
-		  {
-		    //NOT A CLASS
-		  }
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(".getBits()");
+		fp->write(", "); //rest of args
+	      }
+	    else
+	      {
+		//NOT A CLASS
 	      }
 	  }
       }
 
     //VALUE TO BE WRITTEN:
-    if(isTerminal)
-      {
-	// write out terminal explicitly
-       s32 len = m_state.getBitSize(ruti);
-       assert(len != UNKNOWNSIZE);
-       if(len <= MAXBITSPERINT)
-	 {
-	   u32 data = ruvpass.getImmediateData(m_state);
-	   data = rut->getDataAsCu32(data); //neg? or unary?
-	   char dstr[40];
-	   rut->getDataAsString(data, dstr, 'z');
-	   fp->write(dstr);
-	 }
-       else if(len <= MAXBITSPERLONG)
-	 {
-	   u64 data = ruvpass.getImmediateDataLong(m_state);
-	   data = rut->getDataAsCu64(data); //neg? or unary?
-	   char dstr[70];
-	   rut->getDataLongAsString(data, dstr, 'z');
-	   fp->write(dstr);
-	 }
-       else
-	 assert(0);
-      }
-    else
-      {
-	// with immediate quarks, they are read into a tmpreg as other immediates
-	// with immediate elements, too!
-	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-      } //value not a terminal
-
+    // with immediate quarks, they are read into a tmpreg as other immediates
+    // with immediate elements, too! value is not a terminal
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
     fp->write(");\n");
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
@@ -979,21 +855,11 @@ namespace MFM {
   void Node::genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
     assert(luvpass.getUlamValueTypeIdx() == Ptr);
-
-    bool isTerminal = false;
     UTI luti = luvpass.getPtrTargetType();
     UTI ruti = ruvpass.getUlamValueTypeIdx();
 
     if(ruti == Ptr)
-      {
-	ruti = ruvpass.getPtrTargetType();
-      }
-    else
-      {
-	isTerminal = true;
-      }
-
-    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+      ruti = ruvpass.getPtrTargetType();
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -1010,14 +876,9 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
-
-    if(cosut->isCustomArray() && !isHandlingImmediateType())
-      return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a func call
 
     // a data member quark, or the element itself should both getBits from self;
     // getbits needed to go from-atom to-BitVector
@@ -1030,107 +891,47 @@ namespace MFM {
 	// the WRITE method
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 	fp->write("(");
-
-	if(cosut->isCustomArray())
-	  fp->write("uc, ");
-
 	fp->write(m_state.getHiddenArgName());
 	fp->write(".GetBits()");
 	fp->write(", "); //rest of args
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAModelParameter();
-	if(epi >= 0)
+	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
+
+	//local
+	m_state.indent(fp);
+
+	genLocalMemberNameOfMethod(fp);
+
+	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
+	fp->write("(");
+
+	if(cos->isDataMember())
 	  {
-	    m_state.indent(fp);
-
-	    genModelParameterMemberNameOfMethod(fp, epi);
-
-	    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-	    fp->write("(");
-
-	    if(!isHandlingImmediateType())
+	    // allow for immediate quarks; not model parameters
+	    if(stgcosclasstype == UC_ELEMENT)
 	      {
-		genModelParameterHiddenArgs(fp, epi);
-		fp->write(", "); //rest of arg's
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(".getBits()");
+		fp->write(", "); //rest of args
+	      }
+	    else if(stgcosclasstype == UC_QUARK)
+	      {
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(".getBits()");
+		fp->write(", "); //rest of args
 	      }
 	    else
 	      {
-		if(cosut->isCustomArray())
-		  fp->write("uc, "); //rest of arg's
+		//NOT A CLASS
 	      }
-	  }
-	else
-	  {
-	    //local
-	    m_state.indent(fp);
-
-	    genLocalMemberNameOfMethod(fp);
-
-	    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-	    fp->write("(");
-
-	    if(cosut->isCustomArray())
-	      fp->write("uc, ");
-
-	    if(cos->isDataMember() && !cos->isModelParameter())
-	      {
-		// allow for immediate quarks; not element parameters
-		if(stgcosclasstype == UC_ELEMENT)
-		  {
-		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(".getBits()");
-		    fp->write(", "); //rest of args
-		  }
-		else if(stgcosclasstype == UC_QUARK)
-		  {
-		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(".getBits()");
-		    fp->write(", "); //rest of args
-		  }
-		else
-		  {
-		    //NOT A CLASS
-		  }
-		// (what if array?)
-	      }
+	    // (what if array?)
 	  }
       }
-
-    //VALUE TO BE WRITTEN:
-    if(isTerminal)
-      {
-	// write out terminal explicitly
-	s32 len = m_state.getBitSize(ruti);
-	assert(len != UNKNOWNSIZE);
-	if(len <= MAXBITSPERINT)
-	  {
-	    u32 data = ruvpass.getImmediateData(m_state);
-	    data = rut->getDataAsCu32(data); //neg? or unary?
-	    char dstr[40];
-	    rut->getDataAsString(data, dstr, 'z');
-	    fp->write(dstr);
-	  }
-	else if(len <= MAXBITSPERLONG)
-	  {
-	    u64 data = ruvpass.getImmediateDataLong(m_state);
-	    data = rut->getDataAsCu64(data); //neg? or unary?
-	    char dstr[70];
-	    rut->getDataLongAsString(data, dstr, 'z');
-	    fp->write(dstr);
-	  }
-	else
-	  assert(0);
-
-	fp->write(");\n");
-      }
-    else
-      {
-	// with immediate quarks, they are read into a tmpreg as other immediates
-	// with immediate elements, too!
-	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-      } //value not a terminal
+    // with immediate quarks, they are read into a tmpreg as other immediates
+    // with immediate elements, too! value not a terminal
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
 
     // rest of array write args..
     fp->write(", ");
@@ -1149,20 +950,11 @@ namespace MFM {
   {
     assert(luvpass.getUlamValueTypeIdx() == Ptr);
 
-    bool isTerminal = false;
     UTI luti = luvpass.getPtrTargetType();
     UTI ruti = ruvpass.getUlamValueTypeIdx();
 
-    if(ruti == Ptr)
-      {
-	ruti = ruvpass.getPtrTargetType();
-      }
-    else
-      {
-	isTerminal = true;
-      }
-
-    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+    assert(ruti == Ptr); //terminals handled in NodeTerminal
+    ruti = ruvpass.getPtrTargetType();
 
     //rhs could be a constant; or previously cast from Int to Unary variables.
     // here, cos is symbol used to determine read method: either self or last of cos.
@@ -1187,7 +979,6 @@ namespace MFM {
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
 
-
     assert(isCurrentObjectACustomArrayItem(cosuti, luvpass));
 
     // a data member quark, or the element itself should both getBits from self;
@@ -1207,63 +998,35 @@ namespace MFM {
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAModelParameter();
-	if(epi >= 0)
+	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
+
+	//local
+	m_state.indent(fp);
+
+	genLocalMemberNameOfMethodByUsTypedef(fp);
+	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
+
+	fp->write("(uc, ");
+
+	// allow for immediate quarks;
+	if(stgcosclasstype == UC_ELEMENT)
 	  {
-	    m_state.indent(fp);
-
-	    genModelParameterMemberNameOfMethod(fp, epi);
-
-	    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-	    fp->write("(");
-
-	    //storage based on epi - 1
-	    if(!isHandlingImmediateType())
-	      {
-		genModelParameterHiddenArgs(fp, epi);
-		fp->write(", "); //rest of arg's
-	      }
-	    else
-	      {
-		if(cosut->isCustomArray())
-		  fp->write("uc, "); //rest of arg's
-	      }
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(".getRef()"); //immediate needs the T storage within the struct
+	    fp->write(", "); //rest of args
+	  }
+	else if(stgcosclasstype == UC_QUARK)
+	  {
+	    fp->write(stgcos->getMangledName().c_str());
+	    fp->write(".getRef()"); //immediate needs the T storage within the struct
+	    fp->write(", "); //rest of args
 	  }
 	else
 	  {
-	    //local
-	    m_state.indent(fp);
-
-	    genLocalMemberNameOfMethod(fp);
-
-	    fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-	    fp->write("(uc, ");
-
-	    if(cos->isDataMember() && !cos->isModelParameter())
-	      {
-		// allow for immediate quarks; not element parameters
-		if(stgcosclasstype == UC_ELEMENT)
-		  {
-		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(".getRef()"); //immediate MP needs the T storage within the struct
-		    fp->write(", "); //rest of args
-		  }
-		else if(stgcosclasstype == UC_QUARK)
-		  {
-		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(", "); //rest of args
-		  }
-		else
-		  {
-		    //NOT A CLASS
-		  }
-		// (what if array?)
-	      }
+	    //NOT A CLASS
 	  }
       }
-
     //index is immediate Int arg
-    //UlamType * intut = m_state.getUlamTypeByIndex(Int);
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     fp->write(lut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
@@ -1271,61 +1034,25 @@ namespace MFM {
     fp->write("), ");
 
     //VALUE TO BE WRITTEN:
-    if(isTerminal)
-      {
-	// write out terminal explicitly
-	s32 len = m_state.getBitSize(ruti);
-	assert(len != UNKNOWNSIZE);
-	if(len <= MAXBITSPERINT)
-	  {
-	    u32 data = ruvpass.getImmediateData(m_state);
-	    data = rut->getDataAsCu32(data); //neg? or unary?
-	    char dstr[40];
-	    rut->getDataAsString(data, dstr, 'z');
-	    fp->write(dstr);
-	  }
-	else if(len <= MAXBITSPERLONG)
-	  {
-	    u64 data = ruvpass.getImmediateDataLong(m_state);
-	    data = rut->getDataAsCu64(data); //neg? or unary?
-	    char dstr[70];
-	    rut->getDataLongAsString(data, dstr, 'z');
-	    fp->write(dstr);
-	  }
-	else
-	  assert(0);
-	fp->write(");\n");
-      }
-    else
-      {
-	// with immediate quarks, they are read into a tmpreg as other immediates
-	// with immediate elements, too!
-	// aset requires its custom array type (e.g. an atom) as its value:
-	assert(cosclasstype != UC_NOTACLASS);
-	UTI catype = ((UlamTypeClass *) cosut)->getCustomArrayType();
-	fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
-	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-	fp->write(") );\n");
-      } //value not a terminal
+    // with immediate quarks, they are read into a tmpreg as other immediates
+    // with immediate elements, too!  value not a terminal
+    // aset requires its custom array type (e.g. an atom) as its value:
+    assert(cosclasstype != UC_NOTACLASS);
+    UTI catype = ((UlamTypeClass *) cosut)->getCustomArrayType();
+    fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
+    fp->write("(");
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+    fp->write(") );\n");
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeWriteCustomArrayItemFromATmpVar
 
-  // write out intermediate tmpVar, or immediate terminal, as temp BitVector
+  // write out intermediate tmpVar as temp BitVector
   void Node::genCodeConvertATmpVarIntoBitVector(File * fp, UlamValue & uvpass)
   {
     UTI vuti = uvpass.getUlamValueTypeIdx();
-    bool isTerminal = false;
-
-    if(vuti == Ptr)
-      {
-	vuti = uvpass.getPtrTargetType();
-      }
-    else
-      {
-	isTerminal = true;
-      }
+    assert(vuti == Ptr); //terminals handled in NodeTerminal
+    vuti = uvpass.getPtrTargetType();
 
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
@@ -1340,34 +1067,7 @@ namespace MFM {
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2, TMPBITVAL).c_str());
     fp->write("("); // use constructor (not equals)
-    if(isTerminal)
-      {
-	// write out terminal explicitly
-	s32 len = m_state.getBitSize(vuti);
-	assert(len != UNKNOWNSIZE);
-	if(len <= MAXBITSPERINT)
-	  {
-	    u32 data = uvpass.getImmediateData(m_state);
-	    data = vut->getDataAsCu32(data); //neg? or unary?
-	    char dstr[40];
-	    vut->getDataAsString(data, dstr, 'z');
-	    fp->write(dstr);
-	  }
-	else if(len <= MAXBITSPERLONG)
-	  {
-	    u64 data = uvpass.getImmediateDataLong(m_state);
-	    data = vut->getDataAsCu64(data); //neg? or unary?
-	    char dstr[70];
-	    vut->getDataLongAsString(data, dstr, 'z');
-	    fp->write(dstr);
-	  }
-	else
-	  assert(0);
-      }
-    else
-      {
-	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str());
-      }
+    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //VALUE
     fp->write(");\n");
 
     u32 pos = 0; //pos calculated by makePtr(atom-based) (e.g. quark, atom)
@@ -1755,8 +1455,8 @@ namespace MFM {
   } //genMemberNameOfMethod
 
   // "static" data member, a mixture of local variable and dm;
-  // NEW approach as extern immediate; its mangled name includes the
-  // element/quark mangled name; thus, unique MP per ulam class.
+  // NEW approach as extern immediate; [XXXits mangled name includes the
+  // element/quark mangled name; thus,XXX] unique MP per ulam class.
   // No longer a template data member; must be initialized (in .cpp),
   // so only primitive types allowed.
   void Node::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
@@ -1857,14 +1557,25 @@ namespace MFM {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    if(cosSize > 1)
+      return genLocalMemberNameOfMethodByUsTypedef(fp);
 
-    if(cosSize == 1)
-      {
-	fp->write(stgcos->getMangledName().c_str());
-	fp->write(".");
-	return;
-      }
+    assert(cosSize == 1);
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    fp->write(stgcos->getMangledName().c_str());
+    fp->write(".");
+    return;
+  } //genLocalMemberNameOfMethod
+
+  void Node::genLocalMemberNameOfMethodByUsTypedef(File * fp)
+  {
+    assert(isCurrentObjectALocalVariableOrArgument());
+    // model parameter has its own storage, like a local
+    assert(isCurrentObjectsContainingAModelParameter() == -1);
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
     UTI uti = stgcos->getUlamTypeIdx();
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
@@ -1887,7 +1598,7 @@ namespace MFM {
 	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray())
 	  fp->write("Up_Us::"); //atomic parameter needed
       }
-  } //genLocalMemberNameOfMethod
+  } //genLocalMemberNameOfMethodByUsTypedef
 
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
   {
@@ -1913,9 +1624,10 @@ namespace MFM {
   const std::string Node::readArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass)
   {
     std::string method;
-    assert(isCurrentObjectAnArrayItem(nuti, uvpass) || isCurrentObjectACustomArrayItem(nuti, uvpass));
+    bool isCArray = isCurrentObjectACustomArrayItem(nuti, uvpass);
+    assert(isCurrentObjectAnArrayItem(nuti, uvpass) || isCArray);
 
-    if(isHandlingImmediateType())
+    if(isHandlingImmediateType() && !isCArray)
       method = readMethodForImmediateBitValueForCodeGen(nuti, uvpass);
     else
       method = m_state.getUlamTypeByIndex(nuti)->readArrayItemMethodForCodeGen();
@@ -1935,9 +1647,10 @@ namespace MFM {
   const std::string Node::writeArrayItemMethodForCodeGen(UTI nuti, UlamValue uvpass)
   {
     std::string method;
-    assert(isCurrentObjectAnArrayItem(nuti, uvpass) || isCurrentObjectACustomArrayItem(nuti, uvpass));
+    bool isCArray = isCurrentObjectACustomArrayItem(nuti, uvpass);
+    assert(isCurrentObjectAnArrayItem(nuti, uvpass) || isCArray);
 
-    if(isHandlingImmediateType())
+    if(isHandlingImmediateType() && !isCArray)
       method = writeMethodForImmediateBitValueForCodeGen(nuti, uvpass);
     else
       method = m_state.getUlamTypeByIndex(nuti)->writeArrayItemMethodForCodeGen();
@@ -1947,21 +1660,23 @@ namespace MFM {
   //each knows which ReadXXX method to use based on their key(arraysize, bitsize, type);
   const std::string Node::readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass)
   {
-    if(isCurrentObjectAnArrayItem(nuti, uvpass) || isCurrentObjectACustomArrayItem(nuti, uvpass))
-      {
+    if(isCurrentObjectAnArrayItem(nuti, uvpass))
 	return "readArrayItem"; //piece
-      }
+
+    assert(!isCurrentObjectACustomArrayItem(nuti, uvpass));
 
     //note: for the entire array, ie not just a piece, we want to use 'read'
     //      rather then readArrayXXX; unless we're talking UNPACKED.
-    //      For Int's, there is automatich no sign extension for entire arrays.
+    //      For Int's, there is no automatic sign extension for entire arrays.
     return "read";
   } //readMethodForImmediateBitValueForCodeGen
 
   const std::string Node::writeMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass)
   {
-    if(isCurrentObjectAnArrayItem(nuti, uvpass) || isCurrentObjectACustomArrayItem(nuti, uvpass))
-      return "writeArrayItem"; //TBD piece
+    if(isCurrentObjectAnArrayItem(nuti, uvpass))
+      return "writeArrayItem";
+
+    assert(!isCurrentObjectACustomArrayItem(nuti, uvpass));
 
     return "write";
   } //writeMethodForImmediateBitValueForCodeGen

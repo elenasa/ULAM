@@ -1,0 +1,23 @@
+## -*- mode:ulam -*-
+#=t3446_test_compiler_constantdefunpackedarray_error
+#!
+##
+##./T.ulam:4:19: ERROR: Array size [] is included in typedef 'BigSite', and cannot be used by a named constant 'x'.
+##./T.ulam:4:19: ERROR: Invalid constant definition of Type <Int> and Name <x>.
+##
+Exit status: -1
+##
+##    //informed by t3445
+##
+#>T.ulam
+ ulam 1;
+ element T{
+typedef Int BigSite[10];
+ constant BigSite x = 0;
+ Int test(){
+BigSite site;
+ return 0;
+}
+ }
+
+#.
