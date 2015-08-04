@@ -1,28 +1,23 @@
-#include "TestCase_EndToEndCompiler.h"
+## -*- mode:ulam -*-
+#=t3213_test_compiler_elementboolmultiplyequal_error
+#!
+##
+##./Foo.ulam:7:7: ERROR: Incompatible types for binary operator* : Bool(3), Bool(3); Suggest casting to a numeric type first.
+##./Foo.ulam:8:3: ERROR: Arithmetic Operations are invalid on 'Bool' type.
+##./Foo.ulam:9:1: ERROR: Use explicit cast to return Bool(3) as Int(32).
+##
+Exit status: -1
+#>Foo.ulam
+ulam 1;
+ element Foo {
+Bool(3) a, b, c;
+Int test() {
+a = false;
+ b = true;
+c = a * b;
+ a*=b;
+return a;
+ }
+ }
 
-namespace MFM {
-
-  BEGINTESTCASECOMPILER(t3213_test_compiler_elementboolmultiplyequal_error)
-  {
-    std::string GetAnswerKey()
-    {
-      //./Foo.ulam:7:7: ERROR: Incompatible Bool type for binary operator*. Suggest casting to a numeric type first.
-      //./Foo.ulam:8:3: ERROR: Arithmetic Operations are invalid on 'Bool' type.
-
-      return std::string("Exit status: -1\n");
-    }
-
-    std::string PresetTest(FileManagerString * fms)
-    {
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\nBool(3) a, b, c;\nInt test() {\na = false;\n b = true;\nc = a * b;\n a*=b;\nreturn a;\n }\n }\n");
-
-      if(rtn1)
-	return std::string("Foo.ulam");
-
-      return std::string("");
-    }
-  }
-
-  ENDTESTCASECOMPILER(t3213_test_compiler_elementboolmultiplyequal_error)
-
-} //end MFM
+#.

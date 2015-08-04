@@ -77,27 +77,42 @@ namespace MFM {
     //cast RHS if necessary and safe
     if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME)
       {
-	FORECAST rscr = m_nodeRight->safeToCastTo(newType);
-	if(rscr != CAST_CLEAR)
+	//different msg if try to assign non-class to a class type
+	if(m_state.getUlamTypeByIndex(leftType)->getUlamTypeEnum() == Class)
 	  {
 	    std::ostringstream msg;
-	    if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
-	      msg << "Use a comparison operator";
-	    else
-	      msg << "Use explicit cast";
-	    msg << " to convert "; // the real converting-message
+	    msg << "Incompatible class type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(leftType).c_str();
+	    msg << " and ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
-	    msg << " to ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
-	    msg << " for operator" << getName();
-	    if(rscr == CAST_BAD)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    msg << " used with binary operator" << getName();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    newType = Nav; //error
 	  }
-	else if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
-	  newType = Nav; //error
+	else
+	  {
+	    FORECAST rscr = m_nodeRight->safeToCastTo(newType);
+	    if(rscr != CAST_CLEAR)
+	      {
+		std::ostringstream msg;
+		if(m_state.getUlamTypeByIndex(newType)->getUlamTypeEnum() == Bool)
+		  msg << "Use a comparison operator";
+		else
+		  msg << "Use explicit cast";
+		msg << " to convert "; // the real converting-message
+		msg << m_state.getUlamTypeNameBriefByIndex(rightType).c_str();
+		msg << " to ";
+		msg << m_state.getUlamTypeNameBriefByIndex(newType).c_str();
+		msg << " for operator" << getName();
+		if(rscr == CAST_BAD)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		else
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		newType = Nav; //error
+	      }
+	    else if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	      newType = Nav; //error
+	  }
       }
 
     setNodeType(newType);

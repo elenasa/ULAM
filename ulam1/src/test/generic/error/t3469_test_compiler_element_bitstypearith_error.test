@@ -1,27 +1,24 @@
-#include "TestCase_EndToEndCompiler.h"
+## -*- mode:ulam -*-
+#=t3469_test_compiler_element_bitstypearith_error
+#!
+##
+##./Foo.ulam:7:18: ERROR: Incompatible types for binary operator+ : Bits(3), Bits(3); Suggest casting to a numeric type first.
+##./Foo.ulam:8:1: ERROR: Use explicit cast to return Bits(3) as Int(32).
+##
+Exit status: -1
+##
+##      //informed by t3194
+##
+#>Foo.ulam
+ulam 1;
+ element Foo {
+Bits(3) m_i[3];
+ Int test() {
+ m_i[0] = 1;
+ m_i[1] = 2;
+ m_i[2] = m_i[0] + m_i[1];
+return m_i[2];
+ }
+ }
 
-namespace MFM {
-
-  BEGINTESTCASECOMPILER(t3469_test_compiler_element_bitstypearith_error)
-  {
-    std::string GetAnswerKey()
-    {
-      //./Foo.ulam:11:18: ERROR: Incompatible Bits type for binary operator+. Suggest casting to an ordered type first.
-      return std::string("Exit status: -1\n");
-    }
-
-    std::string PresetTest(FileManagerString * fms)
-    {
-      //informed by t3194
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\nBits(3) m_i[3];\n Int test() {\n m_i[0] = 1;\n m_i[1] = 2;\n m_i[2] = m_i[0] + m_i[1];\nreturn m_i[2];\n }\n }\n");
-
-      if(rtn1)
-	return std::string("Foo.ulam");
-
-      return std::string("");
-    }
-  }
-
-  ENDTESTCASECOMPILER(t3469_test_compiler_element_bitstypearith_error)
-
-} //end MFM
+#.
