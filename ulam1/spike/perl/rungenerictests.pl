@@ -134,14 +134,28 @@ sub main
 
 	    if($EXEC_TEST_VALGRIND)
 	    {
-		`cp $src $dest 1> $log 2> $errlog`;
-		`COMMANDS=1 make -C $TOPLEVEL testclean 1>> $log 2>> $errlog`;
-		`valgrind ./bin/test 1>> $log 2>> $errlog`;
-		`COMMANDS=1 make -C $TESTDIR gen 1>> $log 2>> $errlog`;
-		`valgrind $TESTDIR/bin/main 1>> $log 2>> $errlog`;
-		#clean up
-		$dest = $dest . "/" . $testf;
-		`rm -f $dest`;
+		# one at a time, results in testerrlog
+		# grep for:
+                # All heap blocks were freed -- no leaks are possible
+
+		$TESTGENCODE && `make -C $TESTDIR clean`; #before test
+
+		`valgrind ./bin/culamtest $f 1> $log 2> $errlog`;
+                my $status = $?;
+                if ($status == 0) {
+                    ++$testsPassed;
+                } else {
+                    ++$testsFailed;
+                    print "FAILED: $testnum\n";
+                }
+
+                ## compile and run generated code
+		if($TESTGENCODE)
+		{
+		    `make -C $TESTDIR gen`;
+		    `$TESTBIN/main 1>> $log 2>> $errlog`;
+		}
+
 	    }
 	    else
 	    {
