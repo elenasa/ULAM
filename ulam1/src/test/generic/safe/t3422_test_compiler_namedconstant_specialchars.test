@@ -1,0 +1,26 @@
+## -*- mode:ulam -*-
+#=t3422_test_compiler_namedconstant_specialchars
+#!
+Exit status: 0
+Ue_A { Int(32) test() {  7u = cA const 8u = cB const 9u = cT const 10u = cN const 11u = cV const 12u = cF const 13u = cR const 34u = cDQ const 39u = cTIC const 63u = cQ const 92u = cESC const 0 cast return } }
+##
+##      //informed by 3414, except constant type is unsigned char
+#>A.ulam
+element A{
+  Int test () {
+ constant Unsigned(8) cA = '\a';
+ constant Unsigned(8) cB = '\b';
+ constant Unsigned(8) cT = '\t';
+ constant Unsigned(8) cN = '\n';
+ constant Unsigned(8) cV = '\v';
+ constant Unsigned(8) cF = '\f';
+ constant Unsigned(8) cR = '\r';
+  constant Unsigned(8) cDQ = '\"';
+ constant Unsigned(8) cTIC = '\'';
+ constant Unsigned(8) cQ = '\?';
+ constant Unsigned(8) cESC = '\\';
+ return 0;
+}
+}
+
+#.

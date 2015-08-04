@@ -107,10 +107,18 @@ namespace MFM {
     if(fms->get("results", results))
 	{
 	  //compare results with answer
-	  if(results.compare(GetAnswerKey()) != 0)
+          std::string key = GetAnswerKey();
+
+          // ensure last results line is terminated.
+          if (results.length() > 0 && results.at(results.length() - 1) != '\n')
+            results += '\n';
+	  if(results.compare(key) != 0)
 	    {
-	      std::string str("INVALID results:\n");
+	      std::string str("INVALID: GOT[\n");
 	      str.append(results);
+              str.append("]\nBUT EXPECTED[\n");
+              str.append(key);
+              str.append("]\n");
 	      errorOutput->write(str.c_str());
 	      rtn = false;
 	    }

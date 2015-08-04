@@ -1,0 +1,39 @@
+## -*- mode:ulam -*-
+#=t3347_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
+#!
+##      //Constants have explicit types
+Exit status: 3
+Ue_P { constant Unsigned(32) a = NONREADYCONST;  Bool(UNKNOWN) b(unknown);  Unsigned(UNKNOWN) var(0);  Int(32) test() {  P(1u) pel;  pel var . 3u = pel var . return } }
+Uq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+##
+##      // informed by 3339: P is now parametric
+##      // recursive typedefs as local variable type
+##      //this works!!
+##
+#>P.ulam
+ulam 1;
+use Q;
+use V;
+ element P(Unsigned a) {
+Bool(a) b;
+V.Woof.Foo var;
+ Int test() {
+ P(1u) pel;
+ pel.var = 3u;
+ return pel.var;
+}
+}
+
+#:Q.ulam
+ulam 1;
+quark Q(Int s) {
+typedef Unsigned(s) Foo;
+}
+#:V.ulam
+ulam 1;
+use Q;
+ quark V {
+typedef Q(3) Woof;
+}
+#.

@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t3114_test_compiler_funcdef_arrayarg
+#!
+Exit status: 1
+Ue_A { System s();  Int(32) d(1);  Bool(7) sp(false);  Int(32) test() {  Bool(1) mybool[3];  mybool 0 [] true = mybool 1 [] false = mybool 2 [] false = d ( 7 cast mybool )m = s ( d )print . d return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+use System;
+element A {
+System s;
+ Int m(Int m, Bool b[3]) {
+ if(b[0])
+ m=1;
+ else m=2;
+ return m;
+}
+ Int test() {
+ Bool mybool[3];
+ mybool[0] = true;
+ mybool[1] = false;
+ mybool[2]= false;
+ d = m(7, mybool);
+s.print(d);
+ return d;
+ }
+Bool(7) sp;
+ Int d;
+ }
+## want d == 1.
+## test system quark with native overloaded print funcs; assert
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

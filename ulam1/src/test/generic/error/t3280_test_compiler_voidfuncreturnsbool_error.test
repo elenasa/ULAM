@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t3280_test_compiler_voidfuncreturnsbool_error
+#!
+##
+##./Tu.ulam:5:2: ERROR: ISO C forbids return with expression in a function returning void.
+##./Tu.ulam:8:5: ERROR: Void is not a supported type for binary operator|=.
+##./Tu.ulam:9:2: ERROR: Use explicit cast to return Bool(3) as Int(32).
+##
+Exit status:
+#>Tu.ulam
+ulam 1;
+ element Tu {
+ Bool(3) me;
+ Void func() {
+ return true;
+ }
+ Int test(){
+ me |= func();
+ return me;
+}
+}
+#.

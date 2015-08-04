@@ -15,7 +15,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       //./A.ulam:9:4: ERROR: Use a comparison operator to convert Int(32) to Bool(1) for operator=.
-      bool rtn1 = fms->add("A.ulam","element A {\n Bool foo(Int m, Bool b) {\n Int d;\n { Int e[8];\n b = false;\n}\n Bool c;\n d = m;\n c = (d != 0);\n return c;\n } Int test() {\n c = foo(1, true);\n return c;\n } Bool c;\n }\n");  // max depth is 9; should cast return to Int.
+      bool rtn1 = fms->add("A.ulam","element A {\n Bool foo(Int m, Bool b) {\n Int d;\n { Int e[8];\n b = false;\n}\n Bool c;\n d = m;\n c = (d != 0);\n return c;\n } Int test() {\n c = foo(1, true);\n return (Int) c;\n } Bool c;\n }\n");  // max depth is 9; should cast return to Int.
 
       if(rtn1)
 	return std::string("A.ulam");

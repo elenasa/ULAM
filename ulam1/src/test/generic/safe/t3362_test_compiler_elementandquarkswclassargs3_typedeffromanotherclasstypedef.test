@@ -1,0 +1,42 @@
+## -*- mode:ulam -*-
+#=t3362_test_compiler_elementandquarkswclassargs3_typedeffromanotherclasstypedef
+#!
+Exit status: 3
+Ue_R { Int(32) test() {  P(3) pvar;  3u cast return } }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+Uq_Q { constant Int(32) s = NONREADYCONST;  typedef P(a) Foo;  <NOMAIN> }
+Ue_P { constant Int(32) a = NONREADYCONST;  Bool(UNKNOWN) b(unknown);  <NOMAIN> }
+##
+##      //informed by 3339, 3349
+##      // recursive typedefs as local variable type
+##
+#>R.ulam
+ulam 1;
+use V;
+element R {
+Int test() {
+ V.Woof.Foo pvar;
+ return pvar.sizeof;
+}
+}
+
+#:P.ulam
+ulam 1;
+element P(Int a) {
+Bool(a) b;
+}
+##
+##      // as primitive, as regular class, we have no problems.
+#:Q.ulam
+ulam 1;
+use P;
+quark Q(Int s) {
+typedef P(s) Foo;
+}
+#:V.ulam
+ulam 1;
+use Q;
+ quark V {
+typedef Q(3) Woof;
+}
+#.

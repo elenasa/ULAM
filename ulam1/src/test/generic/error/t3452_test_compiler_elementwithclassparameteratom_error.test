@@ -1,0 +1,33 @@
+## -*- mode:ulam -*-
+#=t3452_test_compiler_elementwithclassparameteratom_error
+#!
+##
+##./S.ulam:2:10: ERROR: Invalid constant definition Type <Atom>.
+##./S.ulam:2:16: ERROR: Class Template 'S' has NO parameters; Parens are inapplicable.
+##./T.ulam:5:10: ERROR: Invalid constant definition Type <Atom>.
+##./T.ulam:5:1: ERROR: Invalid Statement (possible missing semicolon).
+##./T.ulam:7:4: ERROR: Too many Class Arguments (1); Class Template 'S' expects 0.
+##
+Exit status: 0
+Ue_T { Int(32) test() {  Atom(96) a;  0 return } }
+Uq_S { /* empty class block */ }
+##
+##    //informed by t3333
+##
+#>T.ulam
+ ulam 1;
+use S;
+ element T{
+ Int test(){
+constant Atom aaa = 3;
+ Atom a;
+ S(a) s;
+ return 0;
+}
+ }
+
+#:S.ulam
+ulam 1;
+ quark S(Atom v){
+ }
+#.

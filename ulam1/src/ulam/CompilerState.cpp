@@ -559,17 +559,6 @@ namespace MFM {
     return newuti;
   } //mapIncompleteUTIForCurrentClassInstance
 
-#if 0
-  void CompilerState::mapHolderTypesInCurrentClass(UTI fm, UTI to, Locator loc)
-  {
-    updateUTIAlias(fm, to);
-
-    updateClassSymbolsFromHolder(fm, to, loc);
-
-    mapTypesInCurrentClass(fm, to);
-  } //mapHolderTypesInCurrentClass
-#endif
-
   void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
   {
     SymbolClassName * cnsym = NULL;
@@ -934,92 +923,6 @@ namespace MFM {
     }
     return;
   } //initUTIAlias
-
-#if 0
-  bool CompilerState::updateClassSymbolsFromHolder(UTI fm, UTI to, Locator loc)
-  {
-    bool rtn = false; //not a class
-    UlamType * tut = getUlamTypeByIndex(to);
-    if(tut->getUlamClass() != UC_NOTACLASS)
-      {
-	SymbolClass * tcsym = NULL;
-	assert(alreadyDefinedSymbolClass(to, tcsym));
-
-	UlamType * fut = getUlamTypeByIndex(fm);
-	if(fut->getUlamClass() != UC_NOTACLASS)
-	  {
-	    SymbolClass * fcsym = NULL;
-	    assert(alreadyDefinedSymbolClass(fm, fcsym));
-
-	    NodeBlockClass * fclassblock = fcsym->getClassBlockNode();
-	    NodeBlockClass * tclassblock = tcsym->getClassBlockNode();
-
-	    assert(fclassblock && tclassblock);
-
-	    rtn = fclassblock->mergeAllSymbolsFromScopeIntoTable(tclassblock);
-	  }
-	else
-	  {
-	    updateClassName(fm, tcsym->getId());
-	  }
-      }
-    else
-      {
-	UlamType * fut = getUlamTypeByIndex(fm);
-	if(fut->getUlamClass() != UC_NOTACLASS)
-	  {
-	    //change 'to' holder to a class, keeping its uti
-	    makeAnonymousClassFromHolder(to, loc);
-	  }
-      }
-    return rtn;
-  } //updateClassSymbolsFromHolder
-#endif
-
-#if 0
-  bool CompilerState::updateClassName(UTI cuti, u32 cname)
-  {
-    bool rtnb = false; // not a class
-    u32 id = m_pool.getIndexForNumberAsString(cuti);
-    SymbolClassName * cnsymId = NULL;
-    if(alreadyDefinedSymbolClassName(id, cnsymId))
-      {
-	if(cname)
-	  {
-	    SymbolClassName * cnsym = NULL;
-	    // if real name exists, we can't do the update; instead..
-	    if(alreadyDefinedSymbolClassName(cname, cnsym))
-	      {
-		UlamKeyTypeSignature idkey = getUlamKeyTypeSignatureByIndex(cuti);
-		UlamKeyTypeSignature newkey(cname, getBitSize(cuti), getArraySize(cuti), cuti);
-		//change the key id only
-		makeUlamTypeFromHolder(idkey, newkey, Class, cuti);
-	      }
-	    else
-	      m_programDefST.replaceInTable(id, cname, cnsym);
-	  }
-	rtnb = true;
-      }
-    else
-      {
-	// anonymous name doesn't exist
-	if(cname)
-	  {
-	    SymbolClassName * cnsym = NULL;
-	    // if real name exists, we can update the cuti (Holder) to it
-	    if(alreadyDefinedSymbolClassName(cname, cnsym))
-	      {
-		UlamKeyTypeSignature cnkey = getUlamKeyTypeSignatureByIndex(cnsym->getUlamTypeIdx());
-		//change the key only, including the class idx to
-		// point to the "real" one!
-		makeUlamTypeFromHolder(cnkey, Class, cuti);
-		rtnb = true;
-	      }
-	  }
-      }
-    return rtnb;
-  } //updateClassName
-#endif
 
   void CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
   {
@@ -1800,16 +1703,6 @@ namespace MFM {
     //handle UAtom assignment as a singleton (not array values)
     if(ruv.getUlamValueTypeIdx() == Ptr && (ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom))
       return assignArrayValues(lptr, ruv);
-
-#if 0
-    if(ruv.getUlamValueTypeIdx() == Ptr)
-      {
-	if(getArraySize(ruv.getPtrTargetType()) != NONARRAYSIZE)
-	  return assignArrayValues(lptr, ruv);
-	else if(ruv.getPtrTargetType() != UAtom || lptr.getPtrTargetType() != UAtom)
-	  return;// assignValuePtr(lptr, ruv);
-      }
-#endif
 
     //r is data (includes packed arrays), store it into where lptr is pointing
     assert(UlamType::compare(lptr.getPtrTargetType(), ruv.getUlamValueTypeIdx(), *this) == UTIC_SAME || lptr.getPtrTargetType() == UAtom || ruv.getUlamValueTypeIdx() == UAtom);

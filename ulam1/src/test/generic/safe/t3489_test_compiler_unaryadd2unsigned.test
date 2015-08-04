@@ -1,0 +1,45 @@
+## -*- mode:ulam -*-
+#=t3489_test_compiler_unaryadd2unsigned
+#!
+##      /* gencode output:
+##	 Unary(3) Arg: 0x3
+##	 Unsigned Arg: 12
+##      */
+Exit status: 3
+Ue_A { constant Unsigned(3) b = 5;  System s();  constant Unsigned(3) a = 7;  constant Unary(3) c = 3;  Unsigned(4) d(12);  Int(32) test() {  d 12u = s ( 7u )print . s ( d cast )print . 7u cast return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+use System;
+element A {
+System s;
+constant Unsigned(3) a = 7u; constant Unsigned(3) b = 5u;
+ constant Unary(3) c = (Unary(3)) (a + b);
+ Unsigned(4) d;
+ use test;
+ d = a + b;
+ s.print(c);
+ s.print((Unsigned) d);
+ return c;
+ }
+ }
+
+#:test.ulam
+Int test() {
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+##
+##      // try as named constants
+##      // without explicit cast of (a+b) we get error:
+##      //./A.ulam:5:11: ERROR: Constant value expression for (c = 7u) is not representable as Unary(3).
+##      //bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nUnary(3) c;\n use test;\n Unsigned(3) a = 7u, b = 5u;\n c = (Unary(3)) (a + b);\ns.print(c);\n return c;\n }\n }\n");
+##
+#.

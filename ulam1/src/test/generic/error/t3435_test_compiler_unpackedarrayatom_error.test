@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t3435_test_compiler_unpackedarrayatom_error
+#!
+##
+##./A.ulam:2:9: ERROR: Invalid non-scalar type: Atom(96)[10]'. Requires a custom array.
+##
+Exit status: 10
+#>A.ulam
+element A {
+typedef Atom BigSite[10];
+Int test(){ BigSite site;
+ for(Int i = 0; i < 10; ++i){
+ site[i] = self;
+}
+ return 10;
+ }
+ }
+
+#.

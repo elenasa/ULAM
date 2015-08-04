@@ -1,0 +1,16 @@
+## -*- mode:ulam -*-
+#=t3369_test_compiler_invalidclasstype_error
+#!
+##
+##      //./Typo.ulam:2:1: ERROR: Invalid Class Type: <quaak>; should be: 'element' , 'quark' , or 'union'.
+##
+Uq_Typo { /* empty class block */ }
+##
+##      //quark misspelled
+##
+#>Typo.ulam
+ulam 1;
+quaak Typo {
+ }
+
+#.
