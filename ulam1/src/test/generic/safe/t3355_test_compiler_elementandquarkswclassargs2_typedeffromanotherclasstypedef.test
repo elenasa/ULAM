@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t3355_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
+#!
+Exit status: 3
+Ue_P { constant Int(32) a = NONREADYCONST;  Bool(1) b(false);  Unsigned(UNKNOWN) var(0);  Int(32) test() {  P(1) pel;  pel var . 3 = pel var . cast return } }
+Uq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+##
+##      //informed by t3345: (except with casts added)
+##      // recursive typedefs as data member variable type of regular class instantiated (pel)
+#>P.ulam
+ulam 1;
+use Q;
+use V;
+element P(Int a){
+Bool b;
+V.Woof.Foo var;
+Int test() {
+ P(1) pel;
+ pel.var = 3;
+ return (Int) pel.var;
+}
+}
+
+#:Q.ulam
+ulam 1;
+quark Q(Int s) {
+typedef Unsigned(s) Foo;
+}
+#:V.ulam
+ulam 1;
+use Q;
+ quark V {
+typedef Q(3) Woof;
+}
+#.

@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t3338_test_compiler_elementandquarkwargs_caarray_isparse
+#!
+##       //Constants have explicit types; a cast changed
+Exit status: -2
+Ue_EventWindowTest { constant Int(32) v = -2;  EventWindow(-2) ew( constant Int(32) w = -2; );  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ew 0 cast [] ewt cast = a ew 0 cast [] = a EventWindowTest is cond -2 return if 1 cast return } }
+Uq_EventWindow { constant Int(32) w = NONREADYCONST;  <NOMAIN> }
+##      //informed by t3248
+##      // added named constant v; tests -2 (also used as "NONREADYCONST") as arg value.
+##      // 'a has System' doesn't appy to eval because atoms have no class declarations; but testable for gencode
+##
+#>EventWindowTest.ulam
+ulam 1;
+use EventWindow;
+element EventWindowTest {
+constant Int v = -2;
+ EventWindow(v) ew;
+ Int test() {
+    Atom a;
+EventWindowTest ewt;
+ ew[0] = ewt;
+   a = ew[0];  // This is me!
+    if (a is EventWindowTest)
+      return v;
+    return 1;
+  }
+}
+
+#:EventWindow.ulam
+ulam 1;
+quark EventWindow(Int w) {
+  Atom aref(Int index) native;
+  Void aset(Int index, Atom val) native;
+}
+#.

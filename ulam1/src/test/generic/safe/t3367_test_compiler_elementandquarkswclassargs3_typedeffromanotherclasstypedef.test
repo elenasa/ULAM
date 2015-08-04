@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3367_test_compiler_elementandquarkswclassargs3_typedeffromanotherclasstypedef
+#!
+Exit status: 4
+Ue_R { P(3) pel( constant Int(32) a = 3;  Unsigned(4) var(0); );  Int(32) test() {  P(3) pvar;  pvar ( )punc = pvar ( )func . cast return } }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+Uq_Q { constant Int(32) s = NONREADYCONST;  typedef P(a) Foo;  <NOMAIN> }
+Uq_P { constant Int(32) a = NONREADYCONST;  Unsigned(UNKNOWN) var(0);  <NOMAIN> }
+##
+##      //informed by t3343, 53 : recursive typedefs as function return value; class with args
+#>R.ulam
+ulam 1;
+use V;
+element R {
+V.Woof.Foo pel;
+V.Woof.Foo punc() {
+ return pel;
+}
+ Int test() {
+V.Woof.Foo pvar;
+ pvar = punc();
+ return (Int) pvar.func();
+}
+}
+
+#:P.ulam
+ulam 1;
+quark P(Int a) {
+Unsigned(a+1) var;
+Unsigned func() {
+ return var.sizeof;
+}
+}
+#:Q.ulam
+ulam 1;
+use P;
+quark Q(Int s) {
+typedef P(s) Foo;
+}
+#:V.ulam
+ulam 1;
+use Q;
+ quark V {
+typedef Q(3) Woof;
+}
+#.

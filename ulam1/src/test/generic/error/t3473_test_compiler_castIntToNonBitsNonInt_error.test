@@ -1,0 +1,32 @@
+## -*- mode:ulam -*-
+#=t3473_test_compiler_castIntToNonBitsNonInt_error
+#!
+##
+##./A.ulam:7:5: ERROR: Use explicit cast to convert Int(3) to Unary(3) for operator=.
+##./A.ulam:8:4: ERROR: Use explicit cast to convert Unsigned(4) to Unary(3) for operator=.
+##./A.ulam:9:4: ERROR: Use explicit cast to convert Int(3) to Unsigned(32) for operator=.
+##./A.ulam:10:3: ERROR: Use explicit cast to convert Unsigned(32) to Int(3) for operator=.
+##./A.ulam:11:4: ERROR: Use explicit cast to convert Unsigned(3) to Int(3) for operator=.
+##
+Exit status: -1
+##
+## // no matter how big the unsigned, can't do it.
+##
+#>A.ulam
+element A {
+Int test() {
+Bits(3) t;
+ Unsigned g = 1;
+ Unary(3) u = 2; //constant ok
+ Int(3) i = 3;
+  u = i;//int to anything non..
+ u = (Unsigned(4)) g; //3 bits ok
+ g = i; //Int to anything non..
+i = g;
+ i = (Unsigned(3)) g;
+ /* same size bad cast */  t = i; //ok to bits
+ return i;
+ }
+ }
+
+#.

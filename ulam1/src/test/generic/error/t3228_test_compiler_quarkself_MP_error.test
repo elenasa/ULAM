@@ -1,0 +1,33 @@
+## -*- mode:ulam -*-
+#=t3228_test_compiler_quarkself_MP_error
+#!
+##
+##./S.ulam:4:12: ERROR: Model Parameters cannot survive within a quark.
+##
+Exit status: 1
+Ue_T { S m_s( Bool(3) b1(false);  Bool(3) b2(false); );  Int(32) test() {  S s;  s iep(7u) . cast return } }
+Uq_S { Bool(3) b1(false);  Bool(3) b2(false);  <NOMAIN> }
+##
+##      //informed by 3259 only quark has the MP!
+##
+#>T.ulam
+ ulam 1;
+ use S;
+ element T{
+S m_s;
+ Int test() {
+S s;
+ return s.iep /*s.getmp()*/;
+ }
+ }
+
+#:S.ulam
+ulam 1;
+ quark S{
+Bool(3) b1, b2;
+ parameter Bool(3) iep = true;
+ Bool(3) getmp() {
+ return iep; //self.iep fails because it's an atom.
+ }
+ }
+#.

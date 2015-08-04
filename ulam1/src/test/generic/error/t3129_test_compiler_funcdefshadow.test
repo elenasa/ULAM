@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t3129_test_compiler_funcdefshadow
+#!
+##      //./D.ulam:3:5: ERROR: Undefined function <times> that has already been declared as a variable.
+Ue_D { Int(32) t(15);  Int(32) test() {  t ( 4 5 )times = } }
+#>D.ulam
+element D {
+Int t;
+Int times(Int m, Int n) {
+Int e;
+while( m-=1 ) e += n;
+return e;
+}
+Int test(){
+{
+Int times;
+t = times(4,5);
+return t;
+}
+}
+}
+#.

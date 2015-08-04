@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t3320_test_compiler_arraynonconstant_error
+#!
+##./A.ulam:7:6: ERROR: Array size specifier in [] is not a constant number.
+##
+Ue_A { Int(32) a(7);  Int(32) test() {  a 7 = } }
+#>A.ulam
+element A {
+Int a;
+Int test() {
+a = 7;
+Int c;
+c = 5;
+Int b[a];
+b[4] = 2;
+return b[4];
+}
+}
+#.

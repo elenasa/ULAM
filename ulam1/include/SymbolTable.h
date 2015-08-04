@@ -68,7 +68,6 @@ namespace MFM{
     void replaceInTable(u32 oldid, u32 newid, Symbol * s);
     void replaceInTable(Symbol * oldsym, Symbol * newsym);
     bool removeFromTable(u32 id, Symbol *& rtnsymptr);
-    //bool mergeTables(NodeBlock * toTable);
 
     Symbol * getSymbolPtr(u32 id);
 
@@ -88,6 +87,7 @@ namespace MFM{
     s32 findPosOfUlamTypeInTable(UTI utype);
 
     void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
+
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
 
     void genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

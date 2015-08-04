@@ -16,7 +16,7 @@ namespace MFM {
     std::string PresetTest(FileManagerString * fms)
     {
       // should be all right (note: [7 + 1] works)
-      bool rtn1 = fms->add("Efoo.ulam","ulam 1;\nuse System;\nelement Efoo {\nSystem s;\ntypedef Unsigned(3) PortId;\n Bool heardFrom[PortId.maxof + 1];\n Int test(){\ntypedef Bool(PortId.sizeof) B3;\n B3 b = true;\ns.print(heardFrom.sizeof);\n return b;\n }\n }\n");
+      bool rtn1 = fms->add("Efoo.ulam","ulam 1;\nuse System;\nelement Efoo {\nSystem s;\ntypedef Unsigned(3) PortId;\n Bool heardFrom[PortId.maxof + 1];\n Int test(){\ntypedef Bool(PortId.sizeof) B3;\n B3 b = true;\ns.print(heardFrom.sizeof);\n return (Int) b;\n }\n }\n");
 
       // test system quark with native overloaded print funcs; assert
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {\nVoid print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");

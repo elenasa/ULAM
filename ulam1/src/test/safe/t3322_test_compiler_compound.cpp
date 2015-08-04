@@ -11,7 +11,7 @@ namespace MFM {
 
     std::string PresetTest(FileManagerString * fms)
     {
-      bool rtn1 = fms->add("A.ulam","quark Bar{Bool b;\n }\n element A {\nBar bar;\n Int test() {\nbar.b = true;\nreturn bar.b;\n }\n }\n"); // compound case
+      bool rtn1 = fms->add("A.ulam","quark Bar{Bool b;\n }\n element A {\nBar bar;\n Int test() {\nbar.b = true;\nreturn (Int) bar.b;\n }\n }\n"); // compound case
 
       if(rtn1)
 	return std::string("A.ulam");

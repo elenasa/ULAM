@@ -1,0 +1,16 @@
+## -*- mode:ulam -*-
+#=t3428_test_compiler_sum64bitint
+#!
+Exit status: 64
+Ue_A { Int(32) test() {  typedef Int(64) Long;  Int(64) k;  Int(64) m;  m k 9223372036854775807 +b = 64u cast return } }
+#>A.ulam
+ element A {
+ Int test(){
+typedef Int(64) Long;
+ Long k,m;
+ m = k + Long.maxof;
+ return m.sizeof;
+ }
+ }
+
+#.

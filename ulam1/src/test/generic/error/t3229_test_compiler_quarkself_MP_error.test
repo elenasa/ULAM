@@ -1,0 +1,28 @@
+#=t3229_test_compiler_quarkself_MP_error
+#!
+##./S.ulam:3:11: ERROR: Model Parameters cannot survive within a quark.
+##
+Exit status: 1
+Ue_T { S(3u) m_s( constant Unsigned(32) a = 3; );  Bool(3) b1(true);  Bool(3) b2(true);  Int(32) test() {  S(1u) s;  S(1u) t;  b1 m_s iep(7u) . = b2 t iep(1u) . cast = s iep(1u) . cast return } }
+Uq_S { constant Unsigned(32) a = NONREADYCONST;  <NOMAIN> }
+##
+##      //informed by 3228
+#>T.ulam
+ ulam 1;
+ use S;
+ element T{
+ S(3) m_s;
+ Bool(3) b1,b2;
+ Int test() {
+ S(1) s, t;
+ b1 = m_s.iep;
+ b2 = t.iep;
+ return s.iep;
+ }
+ }
+#:S.ulam
+ulam 1;
+ quark S(Unsigned a){
+parameter Bool(a) iep = (a != 0); //self.iep fails
+  }
+#.

@@ -141,6 +141,7 @@ namespace MFM{
     void generateHeaderIncludes(File * fp);
 
     void genMangledTypesHeaderFile(FileManager * fm);  //obsolete
+
     void generateMain(FileManager * fm);
 
     static std::string firstletterTolowercase(const std::string s);

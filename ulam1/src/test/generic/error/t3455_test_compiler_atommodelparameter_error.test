@@ -1,0 +1,18 @@
+## -*- mode:ulam -*-
+#=t3455_test_compiler_atommodelparameter_error
+#!
+##
+##./Tu.ulam:4:12: ERROR: Constant value expression for: aep, is not a constant.
+##
+Ue_Tu {
+#>Tu.ulam
+ulam 1;
+element Tu {
+typedef Atom A;
+ parameter A aep = self;
+  Int test(){
+ return 0;
+}
+}
+
+#.

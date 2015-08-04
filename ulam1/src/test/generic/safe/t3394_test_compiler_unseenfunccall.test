@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3394_test_compiler_unseenfunccall
+#!
+Exit status: 0
+Ue_A { /* empty class block */ }Ue_R { Int(32) test() {  typedef Colony(3u) Ish;  Colony(3u) ish;  ish ( 7u cast )setTailAge . 0 cast return } }
+Uq_Colony { typedef Unsigned(UNKNOWN) Tail;  constant Unsigned(32) widthc = NONREADYCONST;  typedef Telomeree(width) Telo;  Telomeree(width) t( constant Unsigned(32) width = NONREADYCONST; );  <NOMAIN> }
+Uq_Telomeree { constant Unsigned(32) width = NONREADYCONST;  typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(0);  <NOMAIN> }
+##
+##      //informed by 3392
+##      // Colony, with args, is Unseen at typedef time.
+#>A.ulam
+use R;
+use Colony;
+ element A{
+}
+
+#:R.ulam
+element R{
+ Int test() {typedef Colony(3u) Ish;
+ Ish ish;
+ ish.setTailAge(7u);
+ return 0;
+}
+}
+#:Colony.ulam
+use Telomeree;
+ quark Colony(Unsigned widthc){
+ typedef Telomeree(widthc) Telo;
+ typedef Telo.Tail Tail;
+ Telo t;
+ Void setTailAge(Unsigned newage) {
+ t.setAge((Tail) newage);
+ }
+}
+#:Telomeree.ulam
+quark Telomeree(Unsigned width){
+ typedef Unsigned(width) Tail;
+ Tail age;
+Tail getAge(){
+ return age;
+}
+Void setAge(Tail newAge){
+age = newAge;
+}
+}
+#.

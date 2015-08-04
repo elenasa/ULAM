@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t3302_test_compiler_controlif
+#!
+Exit status: 0
+Ue_A { Int(32) a(0);  Int(32) b(2);  Int(32) test() {  a 1 cast = b 0 cast = a 1 cast -= 0 cast != cond b 1 cast = if b 2 cast = else a return } }
+#>A.ulam
+element A {
+ Int a, b;
+ Int test() {
+ a = 1;
+ b = 0;
+ if( --a != 0 )
+ b = 1;
+ else
+ b = 2;
+ return a;
+ }
+ }
+
+#.

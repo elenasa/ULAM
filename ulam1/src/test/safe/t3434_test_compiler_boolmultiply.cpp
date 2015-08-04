@@ -25,7 +25,7 @@ namespace MFM {
       //      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a, c;\n Bool b;\nUnary(3) d,e;\nInt test() {\na = true;\n d = b = a * 3;\n s.print(d);\n e = c = a * 3;\n s.print(c);\n s.print(d);\n return b;\n }\n }\n");
       //./A.ulam:11:5: ERROR: Attempting to implicitly cast a non-Bool type, RHS: Unary(3), to a Bool type: Bool(1) for binary operator= without casting. (b = d;)
 
-      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a;\n Bool b;\n Unary(3) d;\nUnsigned(6) e;\n Int test() {\na = true;\n  e = d = (Unary(3))((Unary(3)) a * 3);\n s.print(d);\n s.print((Unsigned)e);\n b = (d != 0);\n return b;\n }\n }\n");
+      bool rtn1 = fms->add("A.ulam","use System;\nelement A {\nSystem s;\nBool(3) a;\n Bool b;\n Unary(3) d;\nUnsigned(6) e;\n Int test() {\na = true;\n  e = d = (Unary(3))((Unary(3)) a * 3);\n s.print(d);\n s.print((Unsigned)e);\n b = (d != 0);\n return (Int) b;\n }\n }\n");
 
       bool rtn3 = fms->add("System.ulam", "ulam 1;\nquark System {Void print(Unsigned arg) native;\nVoid print(Int arg) native;\nVoid print(Int(4) arg) native;\nVoid print(Int(3) arg) native;\nVoid print(Unary(3) arg) native;\nVoid print(Bool(3) arg) native;\nVoid assert(Bool b) native;\n}\n");
 

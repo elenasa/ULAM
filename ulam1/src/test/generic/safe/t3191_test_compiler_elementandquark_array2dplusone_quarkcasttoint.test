@@ -1,0 +1,49 @@
+## -*- mode:ulam -*-
+#=t3191_test_compiler_elementandquark_array2dplusone_quarkcasttoint
+#!
+##./Foo.ulam:4:2: ERROR: Data member <m_array> of type: Unsigned(1)[71], total size: 71 MUST fit into 64 bits; Local variables do not have this restriction.
+##
+Exit status: 1
+Ue_Foo { Unsigned(1) m_array[64](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  Int(32) test() {  C2D c;  c ( 0 cast 0 cast )func = m_array c ( )toInt . 1 cast +b [] 1 cast = m_array c ( )toInt . [] 1 cast = m_array c ( )toInt . [] cast return } }
+Uq_C2D { typedef Int(8) IE;  Int(8) m_width(0);  Int(8) m_height(0);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }
+#>Foo.ulam
+ulam 1;
+ use C2D;
+ element Foo {
+ Unsigned(1) m_array[64];
+ C2D func(Int i, Int j) {
+ C2D c;
+ c.init();
+ c.set(i,j);
+ return c;
+ }
+ Int test() {
+ C2D c;
+ c = func(0,0);
+ m_array[c + 1] = 1; //[41]
+ m_array[c] = 1;
+ return (Int) m_array[c];
+ }
+}
+
+#:C2D.ulam
+quark C2D {
+ typedef Int(8) IE;
+ IE m_width, m_height, m_x, m_y;
+ Void init(Int x, Int y) {
+ m_width = (IE) x;
+ m_height = (IE) y;
+ }
+ Void init() {
+ m_width = 9;
+ m_height = 4;
+ /* event window overload */ }
+ Void set(Int a, Int b) {
+ m_x = (IE) a;
+ m_y = (IE) b;
+ }
+ Int toInt(){
+    return ((m_height-m_y) * m_width + (m_height-m_x));
+ }
+ }
+#.
