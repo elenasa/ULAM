@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t3509_test_compiler_constantsfaileqtest_issue
+#!
+Exit status: 0
+Ue_Ish { constant Int(32) cBITS = 6;  constant Unsigned(32) cNUM2 = 16;  constant Unsigned(32) cNUM1 = 16;  Int(32) test() {  false cond { 1 cast return } if 0 cast return } }
+##
+##
+#>Ish.ulam
+  element Ish {
+  constant Int cBITS = 6;
+  constant Unsigned cNUM2 = ((Unsigned)(1<<cBITS))/4u;
+  constant Unsigned cNUM1 = ((Unsigned)(1<<6))/4u;
+  Int test() {
+    if (cNUM1 != cNUM2) {
+      return 1;
+    }
+    return 0;
+  }
+}
+#.

@@ -915,6 +915,7 @@ namespace MFM {
     bool aok = true;
     std::vector<UTI> lostClasses;
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
+
     while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {
 	SymbolClass * csym = it->second;
