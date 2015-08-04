@@ -36,7 +36,8 @@ namespace MFM {
     s32 lbs = UNKNOWNSIZE, rbs = UNKNOWNSIZE, wordsize = UNKNOWNSIZE;
     NodeBinaryOp::resultBitsizeCalcInBits(lt, rt, lbs, rbs, wordsize);
 
-    s32 maxbs = lbs + (1 << rbs); // lbs + 2^rbs
+    //1 << 32 == 0, not what we want.
+    s32 maxbs = lbs + (rbs >= wordsize ? wordsize : (1 << rbs)); // lbs + 2^rbs
     return (maxbs >= wordsize ? wordsize : maxbs);
   } //resultBitsize
 

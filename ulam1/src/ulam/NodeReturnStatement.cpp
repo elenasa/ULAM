@@ -150,7 +150,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "ISO C forbids ‘return’ with expression in a function returning void";
+		msg << "ISO C forbids return with expression in a function returning void";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?
 	      }

@@ -1,6 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3508_test_compiler_quarkcastcaarray_issue_error
 #!
+##
+##culamtest: UlamValue.cpp:480: MFM::u32 MFM::UlamValue::getImmediateData(MFM::s32) const: Assertion `getUlamValueTypeIdx() != UAtom' failed.
+##
+## without eval (NodeBlockClass define _DEBUG_SKIP_EVAL), only gencode:
+## ./QPort4.ulam:12:15: ERROR: Cannot explicitly cast custom array type Atom(96) to type: QPort4; Consider using a temporary variable.
+##
 Exit status: 0
 Ue_D { Int(32) test() {  QPort4 s;  s ( )update . 0 cast return } }
 Uq_QPort4 { typedef Unsigned(6) SiteNum;  typedef QPort4 Self;  EventWindow ew( typedef Unsigned(6) SiteNum; );  <NOMAIN> }
