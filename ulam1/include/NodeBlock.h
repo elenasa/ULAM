@@ -48,7 +48,9 @@ namespace MFM{
   public:
 
     NodeBlock(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s = NULL);
+
     NodeBlock(const NodeBlock& ref);
+
     virtual ~NodeBlock();
 
     virtual Node * instantiate();
@@ -84,8 +86,6 @@ namespace MFM{
     bool removeIdFromScope(u32 id, Symbol *& rtnsymptr);
 
     void removeAllSymbolsFromScope();
-
-    //bool mergeAllSymbolsFromScopeIntoTable(NodeBlock * toBlocksTable);
 
     NodeBlock * getPreviousBlockPointer();
 

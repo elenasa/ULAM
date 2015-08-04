@@ -15,7 +15,7 @@ namespace MFM {
       //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Booly;\nelement Foo{\nInt test(){\nBooly(0u, 2u, true) b;\n return b.behave();\n}\n}\n");
 
       // this version also tests class arguments with bitsize, and saturation (i.e. 8 == 7)
-      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Booly;\nelement Foo{\nInt test(){\nBooly(7u, 8u, true) b;\n return b.behave();\n}\n}\n");
+      bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Booly;\nelement Foo{\nInt test(){\nBooly(7u, 8u, true) b;\n return (Int) b.behave();\n}\n}\n");
 
       bool rtn2 = fms->add("Booly.ulam","quark Booly(Unsigned(4) firstRange, Unsigned(4) lastRange, Bool bomb) {\nBool behave(){\n if(bomb && lastRange != firstRange) return true;\nreturn false;\n}\n}\n");
 

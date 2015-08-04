@@ -1,0 +1,8 @@
+## -*- mode:ulam -*-
+#=t3120_test_compiler_funcdef_emptytest_error
+#!
+##      //./D.ulam:1:30: ERROR: By convention, Function 'test''s Return type must be 'Int', not Void.
+Ue_D { Int(16) a[3](0,0,0);  Int(16) b(0);  Void test() {  {} } }
+#>D.ulam
+element D { Int(16) a[3], b; Void test() { } }
+#.

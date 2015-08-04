@@ -123,14 +123,17 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
 
+    UTI leftType = m_nodeLeft->checkAndLabelType();
+    UTI rightType = m_nodeRight->checkAndLabelType();
+
+    // efficiency bites! no sooner, need left and right side-effects
+    // (e.g. NodeControl condition is Bool at start; stubs need Symbol ptrs)
     if(getNodeType() != Nav)
       return getNodeType();
 
-    UTI leftType = m_nodeLeft->checkAndLabelType();
-    UTI rightType = m_nodeRight->checkAndLabelType();
     UTI newType = Nav;
 
-    if(leftType && rightType)
+    if(m_state.isComplete(leftType) && m_state.isComplete(rightType))
       newType = calcNodeType(leftType, rightType); //does safety check
 
     setNodeType(newType);
@@ -351,7 +354,7 @@ namespace MFM {
 
     assert(lwordsize == rwordsize);
 
-    // adjust for mixed sign and unsigned types, skip if either is Bits
+    // adjust for mixed sign and unsigned types
     if(ltypEnum != rtypEnum && (ltypEnum == Int || rtypEnum == Int))
       {
 	if(ltypEnum != Int)
@@ -365,7 +368,7 @@ namespace MFM {
 	    rtypEnum = Int;
 	  }
       }
-  } //returnBitsizeCalc
+  } //resultBitsizeCalc
 
   void NodeBinaryOp::resultBitsizeCalcInBits(UTI lt, UTI rt, s32& lbs, s32&rbs, s32&lwordsize)
   {

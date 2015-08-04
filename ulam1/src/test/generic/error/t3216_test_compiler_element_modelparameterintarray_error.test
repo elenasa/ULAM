@@ -1,0 +1,24 @@
+## -*- mode:ulam -*-
+#=t3216_test_compiler_element_modelparameterintarray_error
+#!
+##./Foo.ulam:4:24: ERROR: Array size specified for model parameter.
+##./Foo.ulam:4:18: ERROR: Invalid Model Parameter: Int chance.
+##
+Exit status: -1
+Ue_Foo { System s();  Bool(7) sp(false);  Bool(1) last(false);  Int(32) test() {  Foo f;  s ( chance 1 [] )print . f chance 1 [] . cast return } }
+Uq_System { <NOMAIN> }
+##
+##       //MP cannot be an array, since arrays cannot be initialized
+#>Foo.ulam
+ulam 1;
+ element Foo {
+Bool(7) sp;
+parameter Int(3) chance[2];
+Bool(1) last;
+Int test() {
+ Foo f;
+return f.chance[1];
+ }
+ }
+
+#.

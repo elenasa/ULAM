@@ -1,0 +1,51 @@
+## -*- mode:ulam -*-
+#=t3205_test_compiler_elementandquark_emptyquark
+#!
+##      /* gen code output:
+##	 Int Arg: -1
+##	 Int(4) Arg: 0xf
+##      */
+Exit status: -1
+Ue_Foo { Bool(3) b(false);  System s();  Empty e();  Int(4) i(0);  Int(4) j(15);  Int(32) test() {  i 0 cast = j ( i cast 1 cast -b cast )update = s ( j cast )print . s ( j )print . j cast return } }
+Uq_System { <NOMAIN> }
+Uq_Empty { /* empty class block */ }
+#>Foo.ulam
+ulam 1;
+use System;
+use Empty;
+element Foo {
+System s;
+Empty e;
+Bool(3) b;
+Int(4) i, j;
+Int(4) update(Int(4) x)
+{
+return x;
+}
+Int test(){
+i = 0;
+j = update((Int(4)) (i - 1));
+s.print((Int) j);
+s.print(j);
+return j;
+}
+}
+##      // test explicit cast in arg
+##
+#:Empty.ulam
+ulam 1;
+use System;
+ quark Empty {
+ /* empty quark comment */ }
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -94,41 +94,50 @@ namespace MFM {
 
   UTI NodeReturnStatement::checkAndLabelType()
   {
+    UTI rtnType = m_state.m_currentFunctionReturnType;
     //assert(m_node); a return without an expression (i.e. Void)
     UTI nodeType = Void;
     if(m_node)
       nodeType = m_node->checkAndLabelType();
 
-    if(m_state.isComplete(nodeType) && m_state.isComplete(m_state.m_currentFunctionReturnType))
+    if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))
       {
-	if(UlamType::compare(nodeType, m_state.m_currentFunctionReturnType, m_state) != UTIC_SAME)
+	if(m_state.isScalar(nodeType) ^ m_state.isScalar(rtnType))
 	  {
-	    if(UlamType::compare(m_state.m_currentFunctionReturnType, Void, m_state) == UTIC_NOTSAME)
+	    std::ostringstream msg;
+	    msg << "Returning incompatible (nonscalar) types: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	    msg << " as ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    nodeType = Nav;
+	  }
+	else if(UlamType::compare(nodeType, rtnType, m_state) != UTIC_SAME)
+	  {
+	    if(UlamType::compare(rtnType, Void, m_state) == UTIC_NOTSAME)
 	      {
-		UTI rtnType = m_state.m_currentFunctionReturnType;
 		if(m_node)
 		  {
-		    FORECAST scr = m_node->safeToCastTo(nodeType);
+		    FORECAST scr = m_node->safeToCastTo(rtnType);
 		    if( scr == CAST_CLEAR)
 		      {
-			assert(rtnType == m_state.m_currentFunctionReturnType);
-			if(!makeCastingNode(m_node, m_state.m_currentFunctionReturnType, m_node))
+			if(!makeCastingNode(m_node, rtnType, m_node))
 			  nodeType = Nav;
 			else
-			  nodeType = m_node->getNodeType();
+			  nodeType = m_node->getNodeType(); //casted
 		      }
 		    else
 		      {
 			std::ostringstream msg;
-			if(m_state.getUlamTypeByIndex(m_state.m_currentFunctionReturnType)->getUlamTypeEnum() == Bool)
+			if(m_state.getUlamTypeByIndex(rtnType)->getUlamTypeEnum() == Bool)
 			  msg << "Use a comparison operator";
 			else
 			  msg << "Use explicit cast";
-			msg << "to return ";
+			msg << " to return ";
 			msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 			msg << " as ";
-			msg << m_state.getUlamTypeNameBriefByIndex(m_state.m_currentFunctionReturnType).c_str();
-			if(scr == CAST_CLEAR)
+			msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
+			if(scr == CAST_BAD)
 			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 			else
 			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -141,7 +150,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "ISO C forbids ‘return’ with expression in a function returning void";
+		msg << "ISO C forbids return with expression in a function returning void";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?
 	      }

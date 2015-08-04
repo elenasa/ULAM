@@ -1,0 +1,22 @@
+## -*- mode:ulam -*-
+#=t3439_test_compiler_constantdefvoid_error
+#!
+##
+##./Tu.ulam:3:10: ERROR: Invalid constant definition Type <Void>.
+##
+Ue_Tu {
+#>Tu.ulam
+ulam 1;
+element Tu {
+constant Void c_noway = 0;
+  Void func(/*Void arg*/) {
+ return;
+}
+ Int test(){
+//Void me;
+ /* func(me);
+*/ return 0;
+}
+}
+
+#.

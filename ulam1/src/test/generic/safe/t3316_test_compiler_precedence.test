@@ -1,0 +1,36 @@
+## -*- mode:ulam -*-
+#=t3316_test_compiler_precedence
+#!
+##      /* gen code output:
+##	 Int Arg: 7
+##       */
+##      //constant fold: j 1 2 3 * +b = s
+##
+Exit status: 7
+Ue_A { Bool(7) b(false);  System s();  Int(32) j(7);  Int(32) test() {  j 7 cast = s ( j )print . j return } }
+Uq_System { <NOMAIN> }
+#>A.ulam
+use System;
+element A {
+System s;
+Bool(7) b;
+Int j;
+ Int test() {
+ j = 1 + 2 * 3;
+s.print(j);
+ return j;
+ }
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -1,0 +1,20 @@
+## -*- mode:ulam -*-
+#=t3340_test_compiler_elementandquark_noparamswargs_error
+#!
+##
+##./Foo.ulam:3:13: ERROR: Class without parameters already exists with the same name: NoParms.
+##
+Ue_Foo { NoParms boom();  <NOMAIN> }
+Uq_NoParms { /* empty class block */ }
+#>Foo.ulam
+ulam 1;
+use NoParms;
+element Foo {
+ NoParms(1) boom;
+}
+
+#:NoParms.ulam
+ulam 1;
+quark NoParms {
+ }
+#.

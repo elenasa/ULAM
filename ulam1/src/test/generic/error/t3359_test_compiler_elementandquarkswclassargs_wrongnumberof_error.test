@@ -1,0 +1,30 @@
+## -*- mode:ulam -*-
+#=t3359_test_compiler_elementandquarkswclassargs_wrongnumberof_error
+#!
+##
+##./Foo.ulam:5:2: ERROR: Too few Class Arguments parsed, (2), for template: Booly, by Booly(firstRange,lastRange,bomb).
+##
+Exit status: -1
+Ue_Foo { Int(32) test() {  Booly(firstRange,lastRange,bomb) b;  b ( )behave . cast return } }
+Uq_Booly { constant Unsigned(3) firstRange = NONREADYCONST;  constant Unsigned(3) lastRange = NONREADYCONST;  constant Bool(1) bomb = NONREADYCONST;  <NOMAIN> }
+##
+##      //informed by issue: missing Bool as 3rd class parameter in another class
+##
+#>Foo.ulam
+ulam 1;
+use Booly;
+element Foo{
+Int test(){
+ Booly(0u, 2u) b;
+ return b.behave();
+}
+}
+
+#:Booly.ulam
+quark Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool bomb) {
+Bool behave(){
+ if(bomb && lastRange != firstRange) return true;
+return false;
+}
+}
+#.

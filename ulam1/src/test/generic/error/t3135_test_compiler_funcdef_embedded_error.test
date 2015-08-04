@@ -1,0 +1,17 @@
+## -*- mode:ulam -*-
+#=t3135_test_compiler_funcdef_embedded_error
+#!
+## //./D.ulam:5:12: ERROR: Unexpected token <(> indicates a function call or definition; neither are valid here.
+Uq_D { Int a(0);  Int test() {  ( )foo } }
+#>D.ulam
+quark D {
+Int a;
+Int test() {
+  {
+    Int foo() {
+      1;
+    }
+   return foo();
+  }
+}
+#.

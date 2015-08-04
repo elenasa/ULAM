@@ -49,6 +49,7 @@ namespace MFM
     std::string m_mangledClassName;
     std::string m_mangledType;
     std::string m_parameterName;
+    std::string m_mangledParameterName;
     u64 m_val; //as Bits
     std::string m_structuredComment;
   };

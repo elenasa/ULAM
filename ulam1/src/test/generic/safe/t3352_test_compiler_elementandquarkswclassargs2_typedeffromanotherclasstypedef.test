@@ -1,0 +1,45 @@
+## -*- mode:ulam -*-
+#=t3352_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef
+#!
+Exit status: 3
+Ue_P { constant Int(32) a = NONREADYCONST;  constant Unsigned(UNKNOWN) nvar = NONREADYCONST;  Int(32) test() {  P(1) pel;  pel nvar . return } }
+Uq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+##
+##      //informed by t3342:  recursive typedefs as named constant type
+#>P.ulam
+ulam 1;
+use Q;
+use V;
+ element P(Int a) {
+constant V.Woof.Foo nvar = 3u;
+Int test() {
+ P(1) pel;
+return pel.nvar;
+}
+}
+##
+##      // this works, but limited to 32?
+##      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P(Int a) {\nconstant V.Woof.Foo nvar = 3u;\n Bool(nvar) b;\nInt test() {\n P(1) pel;\npel.b = true;\nreturn pel.b.sizeof;\n}\n}\n");
+##
+##      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P{\nconstant V.Woof.Foo nvar = 3u;\nInt test() {\n P pel;\nreturn pel.nvar;\n}\n}\n");
+##
+##      // ok
+##      //bool rtn1 = fms->add("P.ulam","ulam 1;\nuse Q;\nuse V;\n element P{\nconstant V.Woof.Foo nvar = 3u;\nInt test() {\nreturn nvar;\n}\n}\n");
+##
+##      // requires exchangeKids!!
+##      // return pel.nvar; ---> "ERROR: <nvar> is not a variable and cannot be used as one with class: P(1)"
+##
+
+#:Q.ulam
+ulam 1;
+quark Q(Int s) {
+typedef Unsigned(s) Foo;
+}
+#:V.ulam
+ulam 1;
+use Q;
+ quark V {
+typedef Q(3) Woof;
+}
+#.

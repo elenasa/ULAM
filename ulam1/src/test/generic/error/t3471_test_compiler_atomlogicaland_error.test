@@ -1,0 +1,19 @@
+## -*- mode:ulam -*-
+#=t3471_test_compiler_atomlogicaland_error
+#!
+##
+##./A.ulam:4:8: ERROR: Non-primitive type <Atom(96)> is not supported as left operand type for binary operator&&.
+##./A.ulam:5:8: ERROR: Non-primitive type <Atom(96)> is not supported as right operand type for binary operator||.
+##
+Exit status: -1
+#>A.ulam
+element A {
+Int test() {
+ Atom a, b;
+ b = a && 1;
+ b = 1 || a;
+ return -1;
+ }
+ }
+
+#.
