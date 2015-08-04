@@ -207,8 +207,9 @@ namespace MFM {
 	    msg << " while labeling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    it = suti; //default it==Int for temp class args, maynot match after seeing the template
-	    if(m_nodeExpr) m_nodeExpr->setNodeType(it); //sync the terminal's type too
+	    //this is UNSAFE to do willy nilly..let folding catch it.
+	    //it = suti; //default it==Int for temp class args, maynot match after seeing the template
+	    //if(m_nodeExpr) m_nodeExpr->setNodeType(it); //sync the terminal's type too
 	  }
 
 	if(esuti == Void)
