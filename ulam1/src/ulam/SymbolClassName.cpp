@@ -185,6 +185,7 @@ namespace MFM {
   bool SymbolClassName::setBitSizeOfClassInstances()
   {
     bool aok = true;
+    assert(!isClassTemplate());
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
@@ -202,6 +203,7 @@ namespace MFM {
 	    msg << "' SIZED " << totalbits << " FAILED";
 	    MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
 	    classNode->setNodeType(Nav); //avoid assert in resolving loop
+	    aok = false; //missing?
 	  }
 	else
 	  {

@@ -1,40 +1,68 @@
-#include "TestCase_EndToEndCompiler.h"
+## -*- mode:ulam -*-
+#=t3499_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen_error
+#!
+##
+##./Vector.ulam:3:26: ERROR: Possible Divide By Zero Attempt.
+##
+Exit status: 12
+Ue_R { Int(32) test() {  TypedefIssue(2u) ish;  ish ( )foo2 . return } }
+Ue_TypedefIssue { constant Unsigned(32) tif = NONREADYCONST;  typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(0Holder(UNKNOWN));  Bool(1) b(false);  Vector(vec) t( constant Unsigned(32) vec = NONREADYCONST; );  <NOMAIN> }
+Uq_Vector { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](0);  constant Unsigned(32) vec = NONREADYCONST;  typedef Unsigned(UNKNOWN) Channel;  <NOMAIN> }
+#>R.ulam
+ulam 1;
+ use TypedefIssue;
+ use Vector;
+ element R {
+ Int test(){
+TypedefIssue(2u) ish;
+ return ish.foo2();
+}
+ }
 
-namespace MFM {
+#:TypedefIssue.ulam
+ulam 1;
+element TypedefIssue(Unsigned tif) {
+typedef Vector(tif).Symmetry Symmetry;
+ Symmetry x;
+ Bool b;
+Vector(tif) t;
+ Int foo() {
+x[0] = 2;
+ x[1] = 1;
+if(t.set(x))
+ b=true;
+return t.m[1];
+} Int foo2() {
+ return x.sizeof;
+}
+}
 
-  BEGINTESTCASECOMPILER(t3499_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen_error)
-  {
-    std::string GetAnswerKey()
-    {
-      //./Vector.ulam:3:26: ERROR: Possible Divide By Zero Attempt.
-      //No error about zero bitsize!!
-      return std::string("Exit status: 12\nUe_R { Int(32) test() {  TypedefIssue(2u) ish;  ish ( )foo2 . return } }\nUe_TypedefIssue { constant Unsigned(32) tif = NONREADYCONST;  typedef 0Holder(UNKNOWN) Symmetry;  0Holder(UNKNOWN) x(0Holder(UNKNOWN));  Bool(1) b(false);  Vector(vec) t( constant Unsigned(32) vec = NONREADYCONST; );  <NOMAIN> }\nUq_Vector { typedef Unsigned(UNKNOWN) Symmetry[UNKNOWN];  Unsigned(UNKNOWN) m[UNKNOWN](0);  constant Unsigned(32) vec = NONREADYCONST;  typedef Unsigned(UNKNOWN) Channel;  <NOMAIN> }\n");
-    }
+##
+##       //Divide by Zero can also be detected in Symmetry arraysize (t3498)
+#:Vector.ulam
+ulam 1;
+quark Vector(Unsigned vec) {
+typedef Unsigned((2u*vec)/vec.minof) Channel;
+ typedef Channel Symmetry[vec+1u];
+ Symmetry m;
+Bool set(Symmetry vector) {
+m[0]=vector[0];
+ m[1]=vector[1];
+ return (m[0]!=0 && m[1]!=0);
+ }
+}
 
-    std::string PresetTest(FileManagerString * fms)
-    {
-      //informed by t3499, bitsize has error
-      //./Vector.ulam:4:35: ERROR: Possible Divide By Zero Attempt.
-
-      //informed by 3337, array subscript delayed.
-      //informed by 3269, UNSEEN..
-
-      // informed by t3268: array typedef 'Symmetry' from quark used
-      // as typedef, data member array, and casted arg in element.
-      bool rtn3 = fms->add("R.ulam", "ulam 1;\n use TypedefIssue;\n use Vector;\n element R {\n Int test(){\nTypedefIssue(2u) ish;\n return ish.foo2();\n}\n }\n");
-
-      bool rtn1 = fms->add("TypedefIssue.ulam","ulam 1;\nelement TypedefIssue(Unsigned tif) {\ntypedef Vector(tif).Symmetry Symmetry;\n Symmetry x;\n Bool b;\nVector(tif) t;\n Int foo() {\nx[0] = 2;\n x[1] = 1;\nif(t.set(x))\n b=true;\nreturn t.m[1];\n} Int foo2() {\n return x.sizeof;\n}\n}\n");
-
-      //Divide by Zero can also be detected in Symmetry arraysize (t3498)
-      bool rtn2 = fms->add("Vector.ulam","ulam 1;\nquark Vector(Unsigned vec) {\ntypedef Unsigned((2u*vec)/vec.minof) Channel;\n typedef Channel Symmetry[vec+1u];\n Symmetry m;\nBool set(Symmetry vector) {\nm[0]=vector[0];\n m[1]=vector[1];\n return (m[0]!=0 && m[1]!=0);\n }\n}\n");
-
-      if(rtn1 && rtn2 && rtn3)
-	return std::string("R.ulam");
-
-      return std::string("");
-    }
-  }
-
-  ENDTESTCASECOMPILER(t3499_test_compiler_elementandquark_arraytypedeffromanotherclass_unseen_error)
-
-} //end MFM
+##
+##     //./Vector.ulam:3:26: ERROR: Possible Divide By Zero Attempt.
+##      //No error about zero bitsize!!
+##
+##      //informed by t3499, bitsize has error
+##      //./Vector.ulam:4:35: ERROR: Possible Divide By Zero Attempt.
+##
+##      //informed by 3337, array subscript delayed.
+##      //informed by 3269, UNSEEN..
+##
+##      // informed by t3268: array typedef 'Symmetry' from quark used
+##      // as typedef, data member array, and casted arg in element.
+##
+#.
