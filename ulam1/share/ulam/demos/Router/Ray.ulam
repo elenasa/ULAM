@@ -1,0 +1,17 @@
+/**
+  A westbound line.
+  \symbol Ra
+  \color #0af
+  \symmetries normal
+
+  \author Dave Ackley
+  \license public-domain
+*/
+element Ray {
+  EventWindow ew;
+  Void behave() {
+    ew[1] = ew[0];
+  }
+}
+
+    

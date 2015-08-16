@@ -17,7 +17,7 @@ use Trigger;
    \symmetries normal
    \color #e44
    \author Dave Ackley
-   \license public domain
+   \license public-domain
  */
 element Burn {
   EventWindow ew;

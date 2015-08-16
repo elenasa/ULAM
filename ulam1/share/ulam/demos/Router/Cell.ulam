@@ -1,0 +1,96 @@
+ulam 1;
+
+use Timexp4;
+use Empty;
+use EventWindow;
+use Random;
+use ColorUtils;
+//XXX use CellDataUtils;
+
+/** 32 bit routable data cell.  For four-port router.
+    \symbol Ce
+    \symmetries none
+    \color #33f
+ */
+element Cell {
+  typedef Cell Self;
+
+  typedef Unsigned(2) PortId;
+  typedef Unsigned(8) ARGB[4];
+
+  typedef Unsigned(8) SeqNum;
+  typedef Bits(8) Flags;
+  typedef Bits(32) Data;
+
+  EventWindow ew;
+  Random r;
+
+  Bits(4) reserved;
+  Bool(1) lost;
+  Flags flags;
+  PortId srcPort;
+  PortId dstPort;
+  Timexp4 age;
+  SeqNum cellNum;
+  SeqNum cellLen;
+  Data payload;
+
+  ARGB getColor(Unsigned selector) {
+    Cell aCell;
+    ColorUtils cu;
+    ARGB ret;
+    if (selector == 0u || selector > 4u)   // Def
+      ret = cu.color(0xff3333ffU);
+    else if (selector == 2u || selector == 4u)  // PoRo, Po
+      ret = cu.color(0xff030303U);
+    else /* selector == 1 or 3 */             // PoPa, PaRo
+      ret = portColor(dstPort);
+
+    if (lost) ret = cu.dimmer(ret);
+    return ret;
+  }
+
+  ARGB portColor(PortId portId) {
+    ColorUtils cu;
+    if (portId == 0u) return cu.color(0xffff0000u);
+    if (portId == 1u) return cu.color(0xff00ff00u);
+    if (portId == 2u) return cu.color(0xff0000ffu);
+    if (portId == 3u) return cu.color(0xffffff00u);
+    ARGB argb = cu.color(0xffccccccU);
+    Unsigned(8) min = 90;
+    if (0 != (portId&(PortId) 1)) argb[1] = min;
+    if (0 != (portId&(PortId) 2)) argb[2] = min;
+    if (0 != (portId&(PortId) 4)) argb[3] = min;
+    return argb;
+  }
+
+  Void init(PortId src, PortId dst, Data data) {
+    srcPort = src;
+    dstPort = dst;
+    age.reset();
+    payload = data;
+  }
+
+  Void moved() {
+    lost = false;
+  }
+
+  Void behave() {
+    Unsigned old = 12;     //~2K events half
+
+    if (age.count() > old) {
+      // XXX Skip CellDataUtils reporting to avoid using native code..
+      //      CellDataUtils cdu;
+      //      cdu.finish(srcPort, dstPort, payload, (CellDataUtils.Age) age.current(), false);
+      Empty e;
+      ew[0] = (Atom) e;
+      return;
+    }
+
+    if (lost) {
+      age.count();          // age double when lost
+      ew.diffuse();
+    } else
+      if (r.oneIn(50)) lost = true;
+  }
+}

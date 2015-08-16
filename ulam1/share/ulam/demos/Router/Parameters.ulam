@@ -1,0 +1,13 @@
+element Parameters {
+
+  /**
+     Data cell creation odds.  10-in-this is the odds to (attempt to)
+     inject a new data cell, destined for a random other port, per
+     port atom per event.
+
+     \range 10..1000
+  */
+  parameter Unsigned pDATA_INJECTION_ODDS = 500;
+
+}
+

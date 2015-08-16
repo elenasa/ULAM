@@ -1,0 +1,26 @@
+/** A line segment.
+    \symbol Ln
+    \color #f0f
+    \diffusability 0
+*/
+element Line
+{
+  EventWindow ew;
+  typedef Unsigned(4) Position;
+
+  Position m_position;
+  Bool isMin() { return m_position == Position.minof; }
+  Bool isMax() { return m_position == Position.maxof; }
+  Void behave() {
+    if (!isMin() && ew[1] is Empty) {
+      Line s = self;
+      --s.m_position;
+      ew[1] = s;
+    }
+    if (!isMax() && ew[4] is Empty) {
+      Line s = self;
+      ++s.m_position;
+      ew[4] = s;
+    }
+  }
+}
