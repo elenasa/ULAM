@@ -57,10 +57,12 @@
 #include "NodeUnaryOpPlus.h"
 #include "NodeUnaryOpBang.h"
 #include "NodeVarDecl.h"
+#include "NodeVarDeclDM.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
+#include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "SymbolConstantValue.h"
 #include "SymbolParameterValue.h"
@@ -511,9 +513,23 @@ namespace MFM {
 
 	    if(rtnNode)
 	      {
-		// data members aren't initialized; could be a list of same type.
-		typeargs.m_assignOK = NOASSIGN;
-		rtnNode = parseRestOfDecls(typeargs, iTok, rtnNode, passuti);
+		// non-class data members may be initialized to constant expression
+		Token eTok;
+		getNextToken(eTok);
+		if(eTok.m_type == TOK_EQUAL)
+		  {
+		    Node * initnode = parseExpression();
+		    if(initnode)
+		      ((NodeVarDeclDM*) rtnNode)->setConstantExpr(initnode);
+		    //else error
+		  }
+		else
+		  {
+		    unreadToken();
+		    // could be a list of same type.
+		    typeargs.m_assignOK = NOASSIGN;
+		    rtnNode = parseRestOfDecls(typeargs, iTok, rtnNode, passuti);
+		  }
 	      }
 	  }
       } //regular data member
@@ -1132,14 +1148,14 @@ namespace MFM {
     if(pTok.m_type == TOK_SEMICOLON)
       {
 	unreadToken();
-	rtnNode = new NodeStatementEmpty(m_state);  	//empty statement
+	rtnNode = new NodeStatementEmpty(m_state); //empty statement
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
     else if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	rtnNode = parseDecl();        //updates symbol table
+	rtnNode = parseDecl(); //updates symbol table
       }
     else if(pTok.m_type == TOK_KW_TYPEDEF)
       {
@@ -1151,7 +1167,7 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_KW_RETURN)
       {
-	unreadToken();               //needs location
+	unreadToken(); //needs location
 	rtnNode = parseReturn();
       }
     else if(pTok.m_type == TOK_KW_BREAK)
@@ -3430,7 +3446,10 @@ namespace MFM {
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
 	    // tfr owner of nodetyperef to node var decl
-	    rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, nodetyperef, m_state);
+	    if(asymptr->isDataMember())
+	      rtnNode =  new NodeVarDeclDM((SymbolVariableDataMember *) asymptr, nodetyperef, m_state);
+	    else
+	      rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, nodetyperef, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
 

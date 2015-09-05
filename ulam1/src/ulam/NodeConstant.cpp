@@ -202,6 +202,7 @@ namespace MFM {
   {
     if(!isReadyConstant())
       m_ready = updateConstant(); //sets ready here
+    assert(isReadyConstant()); //must be
     NodeTerminal::genCode(fp, uvpass);
   } //genCode
 

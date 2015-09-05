@@ -54,6 +54,9 @@ namespace MFM {
   static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
+  static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
+  static const char * BUILD_DEFAULT_QUARK_MANGLEDFUNCNAME = "Uf_9217BuildDefaultQuark";
+
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
@@ -1535,6 +1538,18 @@ namespace MFM {
       assert(0);
     return "AS_ERROR";
   } //getAsMangledFunctionName
+
+  const char * CompilerState::getBuildDefaultAtomFunctionName(UTI ltype)
+  {
+    ULAMCLASSTYPE lclasstype = getUlamTypeByIndex(ltype)->getUlamClass();
+    if(lclasstype == UC_ELEMENT)
+      return BUILD_DEFAULT_ATOM_FUNCNAME; //for elements
+    else if(lclasstype == UC_QUARK)
+      return BUILD_DEFAULT_QUARK_MANGLEDFUNCNAME; //??
+    else
+      assert(0);
+    return "BUILDEFAULTATOM_ERROR";
+  } //getBuildDefaultAtomFunctionName
 
   std::string CompilerState::getFileNameForAClassHeader(UTI cuti, bool wSubDir)
   {

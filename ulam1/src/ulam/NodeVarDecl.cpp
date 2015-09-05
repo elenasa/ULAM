@@ -186,7 +186,8 @@ namespace MFM {
 	msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
 	msg << "> is not defined, and cannot be used";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
+      } //alreadyDefined
+
     m_state.popClassContext(); //restore
   } //checkForSymbol
 

@@ -264,6 +264,7 @@ namespace MFM{
     const char * getIsMangledFunctionName();
     const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
+    const char * getBuildDefaultAtomFunctionName(UTI ltype);
 
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
