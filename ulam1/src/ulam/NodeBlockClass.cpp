@@ -259,32 +259,32 @@ namespace MFM {
     }
 #endif
 
-    evalNodeProlog(0);       //new current frame pointer for nodeeval stack
+    evalNodeProlog(0); //new current frame pointer for nodeeval stack
 
-    EvalStatus evs = ERROR;  //init
+    EvalStatus evs = ERROR; //init
 
-#if 0
+#if 1
     // NodeVarDecl's make UlamValue storage now, so don't want their
     // side-effects for the class definition, rather the instance.
     if(m_nodeNext)
-      m_nodeNext->eval();  //side-effect for datamember vardecls
+      m_nodeNext->eval(); //side-effect for datamember vardecls
 #endif
 
+    // eval test method, if there's one:
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
       {
-	UTI saveClassType = getNodeType();  //temp!!
-	setNodeType(Int);   //for testing WHY? clobbers element/quark type
+	UTI saveClassType = getNodeType(); //temp!!
+	setNodeType(Int); //for testing WHY? clobbers element/quark type
 	UTI funcType = funcNode->getNodeType();
 
-	makeRoomForNodeType(funcType);  //Int return
+	makeRoomForNodeType(funcType); //Int return
 
 	evs = funcNode->eval();
 	if(evs == NORMAL)
 	  {
 	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
 	    assignReturnValueToStack(testUV);
-	    //rtnValue = rtnUV.getImmediateData(32);
 	  }
 	setNodeType(saveClassType); //temp, restore
       }

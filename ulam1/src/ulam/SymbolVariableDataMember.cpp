@@ -167,10 +167,6 @@ namespace MFM {
 
 	if(size > 0)
 	  {
-	    //simplifying assumption for testing purposes: center site
-	    //Coord c0(0,0);
-	    //u32 slot = c0.convertCoordToIndex();
-
 	    //build the string of values (for both scalar and packed array)
 	    UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, packFit, m_state, startpos + getPosOffset(), getId());
 	    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);

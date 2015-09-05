@@ -1,21 +1,22 @@
 ## -*- mode:ulam -*-
-#=t3117_test_compiler_funcdef_withdatamembers
+#=t3510_test_compiler_funcdef_withdatamembersinit
 #!
 Exit status: 9
-Ue_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  a 4 = b 5 = s ( a cast b cast +b cast )print . a cast b cast +b cast return } }
+Ue_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test() {  s ( a cast b cast +b cast )print . a cast b cast +b cast return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;
 element A {
 System s;
 Int test(){
-a=4;
-b=5;
+  //a=4;
+  //b=5;
 s.print(a+b);
 return (a + b);
 }
 Bool(7) d;
-Int(4) a,b;
+Int(4) a = 4;
+Int(4) b = 5;
 }
 ##allows data member var defined after use; return an expression
 ##answer is saturated

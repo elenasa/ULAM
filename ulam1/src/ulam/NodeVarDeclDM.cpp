@@ -297,8 +297,70 @@ namespace MFM {
 
   EvalStatus NodeVarDeclDM::eval()
   {
-    return NodeVarDecl::eval();
+    assert(m_varSymbol);
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
+      return NodeVarDecl::eval();
+
+    EvalStatus evs = NORMAL; //init
+    // quark or nonclass data member;
+    if(((SymbolVariableDataMember *) m_varSymbol)->hasInitValue())
+      {
+	evalNodeProlog(0); //new current node eval frame pointer
+
+	makeRoomForSlots(1); //always 1 slot for ptr
+
+	evs = evalToStoreInto();
+	if(evs != NORMAL)
+	  {
+	    evalNodeEpilog();
+	    return evs;
+	  }
+
+	UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+
+	u32 slot = makeRoomForNodeType(nuti);
+
+	evs = m_nodeInitExpr->eval();
+
+	if(evs == NORMAL)
+	  {
+	    if(slot)
+	      {
+		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot+1); //immediate scalar
+
+		m_state.assignValue(pluv,ruv);
+
+		//also copy result UV to stack, -1 relative to current frame pointer
+		assignReturnValueToStack(ruv);
+	      }
+	  } //normal
+
+	evalNodeEpilog();
+      } //has init value
+
+    return evs;
   } //eval
+
+  EvalStatus NodeVarDeclDM::evalToStoreInto()
+  {
+    evalNodeProlog(0); //new current node eval frame pointer
+
+    // (from NodeIdent's makeUlamValuePtr)
+    // return ptr to this data member within the m_currentObjPtr
+    // 'pos' modified by this data member symbol's packed bit position
+    UlamValue rtnUVPtr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+
+    //copy result UV to stack, -1 relative to current frame pointer
+    assignReturnValuePtrToStack(rtnUVPtr);
+
+    evalNodeEpilog();
+    return NORMAL;
+  } //evalToStoreInto
 
   // parse tree in order declared, unlike the ST.
   void NodeVarDeclDM::genCode(File * fp, UlamValue& uvpass)

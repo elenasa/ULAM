@@ -405,7 +405,7 @@ namespace MFM {
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("T ");
+	fp->write("virtual T ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
 	fp->write("() const;\n\n");
 	return;
@@ -415,7 +415,8 @@ namespace MFM {
     fp->write("template<class EC>\n");
 
     m_state.indent(fp);
-    fp->write("T "); //returns object of type T
+    //fp->write("T "); //returns object of type T
+    fp->write("typename EC::ATOM_CONFIG::ATOM_TYPE "); //returns object of type T
 
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
@@ -430,11 +431,9 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("T da = Element::BuildDefaultAtom();\n\n");
+    fp->write("T da = Element<EC>::BuildDefaultAtom();\n\n");
 
-    m_state.indent(fp);
-    fp->write("// Initialize any data members:\n\n");
-
+    //initialize any data members
     genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(fp);
 
     fp->write("\n");
@@ -444,11 +443,12 @@ namespace MFM {
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}  //BuildDefaultAtom\n\n");
+    fp->write("} //BuildDefaultAtom\n\n");
   } //genCodeBuiltInFunctionBuildDefaultAtom
 
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
+    return;
     assert(classtype == UC_QUARK);
 
     UTI cuti = m_state.getCompileThisIdx();
@@ -458,7 +458,7 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("void ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-	fp->write("(t& self) const;\n\n");
+	fp->write("(T& self) const;\n\n");
 	return;
       }
 
@@ -474,15 +474,14 @@ namespace MFM {
 
     fp->write("::");
     fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-    fp->write("(T& self) const\n");
+    fp->write("(typename EC::ATOM_CONFIG::ATOM_TYPE& self) const\n"); //arg object of type T
+    //fp->write("(T& self) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
 
-    m_state.indent(fp);
-    fp->write("// Initialize any data members:\n\n");
-
+    //initialize any data members
     genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(fp);
 
     fp->write("\n");
@@ -491,11 +490,14 @@ namespace MFM {
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}  //BuildDefaultQuark\n\n");
+    fp->write("} //BuildDefaultQuark\n\n");
   } //genCodeBuiltInFunctionBuildDefaultQuark
 
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp)
   {
+    m_state.indent(fp);
+    fp->write("// Initialize any data members:\n");
+
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
@@ -506,11 +508,11 @@ namespace MFM {
 	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	    if(sut->getUlamClass() == UC_QUARK)
 	      {
-		m_state.indent(fp);
-		fp->write(sym->getMangledName().c_str());
-		fp->write(".");
-		fp->write(m_state.getBuildDefaultAtomFunctionName(suti));
-		fp->write("(da);\n"); //initialize quark data members only
+		//m_state.indent(fp);
+		//fp->write(sym->getMangledNameForParameterType().c_str());
+		//fp->write("::");
+		//fp->write(m_state.getBuildDefaultAtomFunctionName(suti));
+		//fp->write("(da);\n"); //initialize quark data members only
 	      }
 	    else if(((SymbolVariableDataMember*)sym)->hasInitValue())
 	      {
@@ -520,11 +522,11 @@ namespace MFM {
 		u64 val = 0;
 		assert(((SymbolVariableDataMember*)sym)->getInitValue(val));
 		m_state.indent(fp);
-		fp->write(sut->getUlamTypeMangledName().c_str());
+		fp->write(sym->getMangledNameForParameterType().c_str());
 		fp->write("::");
 		fp->write(sut->writeMethodForCodeGen().c_str());
-		fp->write("(da, ");
-		fp->write(val);
+		fp->write("(da.GetBits(), ");
+		fp->write_decimal(val);
 		fp->write(");\n");
 	      }
 	  }

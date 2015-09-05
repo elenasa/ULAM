@@ -319,7 +319,8 @@ namespace MFM {
       {
 	if(!m_varSymbol->isDataMember())
 	  {
-	    //local variable to a function
+	    //local variable to a function;
+	    // t.f. must be SymbolVariableStack, not SymbolVariableDataMember
 	    u32 len = m_state.getTotalBitSize(nuti);
 	    UlamValue immUV;
 	    if(len <= MAXBITSPERINT)
@@ -327,12 +328,13 @@ namespace MFM {
 	    else if(len <= MAXBITSPERLONG)
 	      immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
 	    else
-	      immUV = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
+	      immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
 
-	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableDataMember *) m_varSymbol)->getStackFrameSlotIndex());
+	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 	  }
 	else
 	  {
+	    //see NodeVarDeclDM for data members..
 	    assert(0);
 	  }
       }
