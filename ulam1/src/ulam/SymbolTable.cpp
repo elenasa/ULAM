@@ -448,7 +448,7 @@ namespace MFM {
 
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
-    return;
+    //return;
     assert(classtype == UC_QUARK);
 
     UTI cuti = m_state.getCompileThisIdx();
@@ -456,9 +456,9 @@ namespace MFM {
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("void ");
+	fp->write("static void ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-	fp->write("(T& self) const;\n\n");
+	fp->write("(T& da);\n\n");
 	return;
       }
 
@@ -474,8 +474,8 @@ namespace MFM {
 
     fp->write("::");
     fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-    fp->write("(typename EC::ATOM_CONFIG::ATOM_TYPE& self) const\n"); //arg object of type T
-    //fp->write("(T& self) const\n");
+    fp->write("(typename EC::ATOM_CONFIG::ATOM_TYPE& da)\n"); //arg object of type T
+    //fp->write("(T& da) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -508,11 +508,11 @@ namespace MFM {
 	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
 	    if(sut->getUlamClass() == UC_QUARK)
 	      {
-		//m_state.indent(fp);
-		//fp->write(sym->getMangledNameForParameterType().c_str());
-		//fp->write("::");
-		//fp->write(m_state.getBuildDefaultAtomFunctionName(suti));
-		//fp->write("(da);\n"); //initialize quark data members only
+		m_state.indent(fp);
+		fp->write(sym->getMangledNameForParameterType().c_str());
+		fp->write("::");
+		fp->write(m_state.getBuildDefaultAtomFunctionName(suti));
+		fp->write("(da);\n"); //initialize quark data members only
 	      }
 	    else if(((SymbolVariableDataMember*)sym)->hasInitValue())
 	      {

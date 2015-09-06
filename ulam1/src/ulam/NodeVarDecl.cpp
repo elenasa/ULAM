@@ -310,7 +310,8 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
+    if(nuti == UAtom || classtype == UC_ELEMENT)
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
 	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
@@ -319,18 +320,25 @@ namespace MFM {
       {
 	if(!m_varSymbol->isDataMember())
 	  {
-	    //local variable to a function;
-	    // t.f. must be SymbolVariableStack, not SymbolVariableDataMember
-	    u32 len = m_state.getTotalBitSize(nuti);
-	    UlamValue immUV;
-	    if(len <= MAXBITSPERINT)
-	      immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
-	    else if(len <= MAXBITSPERLONG)
-	      immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
-	    else
-	      immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
+	    if(classtype == UC_NOTACLASS)
+	      {
+		//local variable to a function;
+		// t.f. must be SymbolVariableStack, not SymbolVariableDataMember
+		u32 len = m_state.getTotalBitSize(nuti);
+		UlamValue immUV;
+		if(len <= MAXBITSPERINT)
+		  immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+		else if(len <= MAXBITSPERLONG)
+		  immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+		else
+		  immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
 
-	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
+	    else
+	      {
+		buildDefaultClassInstance(nuti);
+	      }
 	  }
 	else
 	  {
@@ -346,6 +354,22 @@ namespace MFM {
     assert(0); //no way to get here!
     return ERROR;
   }
+
+  bool NodeVarDecl::buildDefaultClassInstance(UTI cuti)
+  {
+    SymbolClass * csym = NULL;
+    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+
+    NodeBlockClass * classNode = csym->getClassBlockNode();
+    assert(classNode);
+
+    m_state.pushClassContext(cuti, classNode, classNode, false, NULL); //null blocks likely
+
+    EvalStatus evs = classNode->eval();
+
+    m_state.popClassContext();
+    return evs;
+  } //buildDefaultClass
 
   // parse tree in order declared, unlike the ST.
   void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)

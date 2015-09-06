@@ -100,6 +100,8 @@ namespace MFM{
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
+    bool buildDefaultClassInstance(UTI cuti);
+
   };
 
 }
