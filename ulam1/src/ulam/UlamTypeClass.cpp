@@ -544,16 +544,16 @@ namespace MFM {
     fp->write("T m_stg;  //storage here!\n");
 
     //default constructor (used by local vars)
+    //(unlike element) call build default in case of initialized data members
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() : m_stg() { }\n");
+    fp->write("() : m_stg() { Us::BuildDefaultQuark(m_stg); }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    //fp->write(" d) : m_t(d) {}\n");
     fp->write(" d) { write(d); }\n");
 
     //read 'entire quark' method
