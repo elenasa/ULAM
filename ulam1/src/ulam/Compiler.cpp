@@ -218,6 +218,9 @@ namespace MFM {
 
 	// let Ulam programmer know the bits used/available (needs infoOn)
 	m_state.m_programDefST.printBitSizeOfTableOfClasses();
+
+	// determine any quark default values:
+	m_state.m_programDefST.buildDefaultQuarksFromTableOfClasses();
       }
 
     // count Nodes with illegal Nav types; walk each class' data members and funcdefs.

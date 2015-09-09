@@ -73,13 +73,16 @@ namespace MFM {
 
   void NodeConstantDef::printPostfix(File * fp)
   {
-    if(m_nodeExpr)
-      {
-	m_nodeExpr->printPostfix(fp);
-	fp->write(" = ");
-      }
+
+    fp->write(" constant ");
+    fp->write(m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str());
+    fp->write(" ");
     fp->write(getName());
-    fp->write(" const");
+
+    fp->write(" = ");
+
+    assert(m_constSymbol);
+    m_constSymbol->printPostfixValue(fp);
   }
 
   const char * NodeConstantDef::getName()
@@ -482,6 +485,11 @@ namespace MFM {
       };
     return rtnb;
   } //updateConstant64
+
+  bool NodeConstantDef::buildDefaultQuarkValue(u32& dqref)
+  {
+    return true; //pass on
+  }
 
   void NodeConstantDef::fixPendingArgumentNode()
   {

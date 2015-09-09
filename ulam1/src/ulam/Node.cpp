@@ -219,6 +219,12 @@ namespace MFM {
     return Nav;
   }
 
+  bool Node::buildDefaultQuarkValue(u32& dqref)
+  {
+    assert(0);
+    return false;
+  }
+
   // only for constants (NodeTerminal)
   bool Node::isNegativeConstant()
   {

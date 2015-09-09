@@ -124,6 +124,8 @@ namespace MFM{
 
     virtual UTI constantFold();
 
+    virtual bool buildDefaultQuarkValue(u32& dqref);
+
     virtual bool isNegativeConstant();
 
     virtual bool isWordSizeConstant();

@@ -219,6 +219,11 @@ namespace MFM {
       m_nodeTypeDesc->countNavNodes(cnt);
   } //countNavNodes
 
+  bool NodeTypedef::buildDefaultQuarkValue(u32& dqref)
+  {
+    return true; //pass on
+  }
+
   EvalStatus NodeTypedef::eval()
   {
     assert(m_typedefSymbol);

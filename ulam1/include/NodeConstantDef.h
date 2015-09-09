@@ -87,6 +87,8 @@ namespace MFM{
 
     bool foldConstantExpression();
 
+    virtual bool buildDefaultQuarkValue(u32& dqref);
+
     void fixPendingArgumentNode();
 
     virtual bool assignClassArgValueInStubCopy();

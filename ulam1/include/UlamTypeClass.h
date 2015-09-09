@@ -116,8 +116,6 @@ namespace MFM{
 
     virtual const std::string getImmediateStorageTypeAsString();
 
-    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
-
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
@@ -131,6 +129,10 @@ namespace MFM{
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+
+    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
 
    private:
 

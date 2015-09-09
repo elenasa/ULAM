@@ -279,6 +279,14 @@ namespace MFM {
       case Bits:
 	rtnUV = UlamValue::makeImmediate(uti, data, m_state);
 	break;
+      case Class:
+	{
+	  if(ut->getUlamClass() == UC_QUARK)
+	    {
+	      rtnUV = UlamValue::makeImmediate(uti, data, m_state);
+	      break;
+	    }
+	}
       default:
 	{
 	  std::ostringstream msg;

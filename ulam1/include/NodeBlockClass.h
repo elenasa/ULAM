@@ -68,6 +68,8 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
+    void printPostfixDataMembersParseTree(File * fp); //helper for recursion NodeVarDecDM
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
@@ -85,6 +87,8 @@ namespace MFM{
     UTI getCustomArrayTypeFromGetFunction();
 
     u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
+    bool buildDefaultQuarkValue(u32& dqref); //starts here, called by SymbolClass
 
     void checkDuplicateFunctions();
 

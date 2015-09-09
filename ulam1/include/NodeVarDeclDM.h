@@ -63,6 +63,8 @@ namespace MFM{
 
     virtual void countNavNodes(u32& cnt);
 
+    virtual bool buildDefaultQuarkValue(u32& dqref);
+
     void setConstantExpr(Node * node);
 
     bool foldConstantExpression();
@@ -81,6 +83,8 @@ namespace MFM{
     bool updateConstant(u64 & newconst);
     bool updateConstant32(u64 & newconst);
     bool updateConstant64(u64 & newconst);
+
+    bool foldDefaultQuark(u32 dq);
   };
 
 }

@@ -95,6 +95,8 @@ namespace MFM{
 
     void printBitSizeOfClass();
 
+    bool getDefaultQuark(u32& dq); //return true if ready
+
     void testThisClass(File * fp); //eval-land
 
     bool statusNonreadyClassArguments();
@@ -134,6 +136,8 @@ namespace MFM{
     SymbolClassNameTemplate * m_parentTemplate;
     bool m_quarkunion;
     bool m_stub;
+    u32 m_quarkDefaultValue;
+    bool m_isreadyQuarkDefaultValue;
 
     void generateHeaderPreamble(File * fp);
     void genAllCapsIfndefForHeaderFile(File * fp);

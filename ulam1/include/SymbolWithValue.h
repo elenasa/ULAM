@@ -71,6 +71,8 @@ namespace MFM{
 
     bool foldConstantExpression();
 
+    void printPostfixValue(File * fp);
+
     virtual const std::string getMangledPrefix() = 0;
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype) = 0;
@@ -78,8 +80,6 @@ namespace MFM{
     void changeConstantId(u32 fmid, u32 toid); //for premature class instances
 
   protected:
-
-    void printPostfixValue(File * fp);
 
   private:
     bool m_isReady;

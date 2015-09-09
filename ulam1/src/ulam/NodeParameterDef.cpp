@@ -53,6 +53,11 @@ namespace MFM {
     return nodeType;
   } //checkAndLabelType
 
+  bool NodeParameterDef::buildDefaultQuarkValue(u32& dqref)
+  {
+    return true;
+  }
+
   void NodeParameterDef::checkForSymbol()
   {
     assert(!m_constSymbol);

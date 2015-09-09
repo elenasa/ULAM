@@ -93,6 +93,8 @@ namespace MFM{
     u32 m_vid; // to instantiate
 
     virtual void checkForSymbol();
+    void printTypeAndName(File * fp);
+
     void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
     void genCodedAutoLocal(File * fp, UlamValue & uvpass);
 

@@ -29,10 +29,67 @@ namespace MFM {
     return new NodeVarDeclDM(*this);
   }
 
-  // see SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
+  // see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDeclDM::printPostfix(File * fp)
   {
-    NodeVarDecl::printPostfix(fp);
+    NodeVarDecl::printTypeAndName(fp);
+
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+
+    if(nut->getUlamClass() == UC_QUARK)
+      {
+	SymbolClass * csym = NULL;
+	assert(m_state.alreadyDefinedSymbolClass(nuti, csym));
+	NodeBlockClass * classblock = csym->getClassBlockNode();
+	assert(classblock);
+
+	s32 arraysize = nut->getArraySize();
+	//scalar has 'size=1'; empty array [0] is still '0'.
+	s32 size = (arraysize > NONARRAYSIZE ? arraysize : 1);
+
+	m_state.pushClassContext(csym->getUlamTypeIdx(), classblock, classblock, false, NULL);
+
+	for(s32 i = 0; i < size; i++)
+	  {
+	    if(i > 0)
+	      fp->write("), (");
+	    else
+	      fp->write("(");
+	    classblock->printPostfixDataMembersParseTree(fp); //same default values
+	  }
+	m_state.popClassContext();
+      }
+    else
+      {
+	fp->write("(");
+
+	if(m_nodeInitExpr)
+	  {
+	    // only for quarks and scalars
+	    m_nodeInitExpr->printPostfix(fp);
+	  }
+	else
+	  {
+	    //default (uninitialized) values
+	    char dstr[40];
+
+	    nut->getDataAsString(0, dstr, 'z');
+	    fp->write(dstr);
+
+	    if(!m_state.isScalar(nuti))
+	      {
+		s32 arraysize = m_state.getArraySize(nuti);
+		for(s32 i = 1; i < arraysize; i++)
+		  {
+		    nut->getDataAsString(0, dstr, ',');
+		    fp->write(dstr);
+		  }
+	      }
+	  }
+      }
+    fp->write(")");
+    fp->write("; ");
   } //printPostfix
 
   const char * NodeVarDeclDM::getName()
@@ -295,6 +352,126 @@ namespace MFM {
     return rtnb;
   } //updateConstant64
 
+  //right-justified
+  bool NodeVarDeclDM::buildDefaultQuarkValue(u32& dqref)
+  {
+    bool aok = false; //not ready
+
+    if(m_nodeInitExpr)
+      {
+	assert(m_varSymbol);
+	assert(m_varSymbol->isDataMember());
+
+	UTI nuti = getNodeType(); //same as symbol uti
+	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	u32 mask = _GetNOnes32((u32) nut->getBitSize());
+	u32 pos = m_varSymbol->getPosOffset();
+	u32 valinposition = 0;
+	s32 bitsize = m_state.getBitSize(nuti);
+	s32 quarksize = m_state.getBitSize(m_state.getCompileThisIdx());
+
+	ULAMCLASSTYPE classtype = nut->getUlamClass();
+	if(classtype == UC_QUARK)
+	  {
+	    if(m_state.isScalar(nuti))
+	      {
+		SymbolClass * csym = NULL;
+		if(m_state.alreadyDefinedSymbolClass(nuti, csym))
+		  {
+		    u32 qval = 0;
+		    if(csym->getDefaultQuark(qval))
+		      {
+			valinposition = (qval & mask) << (quarksize - bitsize - pos);
+			dqref |= valinposition;
+			aok = true;
+		      }
+		  }
+	      }
+	    else
+	      {
+		//CAN'T take up more than u32 and be a quark DM.
+		//array of quarks
+		// first, get default value of its scalar quark
+		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
+		u32 bitsize = m_state.getBitSize(nuti);
+		SymbolClass * csym = NULL;
+		assert(m_state.alreadyDefinedSymbolClass(scalaruti, csym));
+
+		u32 qval = 0;
+		assert(csym->getDefaultQuark(qval));
+
+		//initialize each array item
+		u32 arraysize = m_state.getArraySize(nuti);
+		qval &= mask;
+
+		for(u32 j = 0; j < arraysize; j++)
+		  {
+		    dqref |= (qval << (quarksize - (pos + (j * bitsize))));
+		  }
+		aok = true;
+	      }
+	  }
+	else
+	  {
+	    //primitive (not a quark!)
+	    u64 val = 0;
+	    if(((SymbolVariableDataMember *) m_varSymbol)->getInitValue(val))
+	      {
+		valinposition = ((u32) val & mask) << (quarksize - pos - bitsize);
+		dqref |= valinposition;
+		aok = true;
+	      }
+	  }
+
+	//fold quark here for node eval, printpostfix..
+	if(classtype == UC_QUARK && aok)
+	  foldDefaultQuark(dqref);
+      }
+      else
+	aok = true; //no initialized value
+
+    return aok;
+  } //buildDefaultQuarkValue
+
+  bool NodeVarDeclDM::foldDefaultQuark(u32 dq)
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    u64 dqval = 0;
+    //build dqval array
+    if(!nut->isScalar())
+      {
+	//array of quarks
+	s32 quarksize = nut->getBitSize();
+	s32 arraysize = nut->getArraySize();
+	s32 totalbitsize = quarksize * arraysize;
+	s32 qwordsize = nut->getTotalWordSize();
+	if(qwordsize > MAXBITSPERLONG) //64
+	  {
+	    std::ostringstream msg;
+	    msg << "Not supported at this time, UNPACKED Quark array type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return false;
+	  }
+
+	for(s32 i = 0; i < arraysize; i++)
+	  dqval |= (dq << (totalbitsize - quarksize - (i * quarksize)));
+      }
+    else
+      dqval = dq;
+
+    //folding into a terminal node
+    NodeTerminal * newnode = new NodeTerminal(dqval, nuti, m_state);
+    newnode->setNodeLocation(getNodeLocation());
+    delete m_nodeInitExpr;
+    m_nodeInitExpr = newnode;
+    //(in this order)
+    ((SymbolVariableDataMember *) m_varSymbol)->setHasInitValue();
+    ((SymbolVariableDataMember *) m_varSymbol)->setInitValue(dqval);
+    return true;
+  } //foldDefaultQuark
+
   EvalStatus NodeVarDeclDM::eval()
   {
     assert(m_varSymbol);
@@ -303,8 +480,22 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClass();
+
+    if(nuti == UAtom || classtype == UC_ELEMENT)
       return NodeVarDecl::eval();
+
+    // make terminal expression node so rest of eval works for quarks too
+    if(classtype == UC_QUARK && m_nodeInitExpr == NULL)
+      {
+	u32 dqval = 0;
+	if(m_state.getDefaultQuark(nuti, dqval))
+	  {
+	    if(!foldDefaultQuark(dqval))
+	      return ERROR;
+	  }
+      }
 
     EvalStatus evs = NORMAL; //init
     // quark or nonclass data member;
@@ -332,17 +523,14 @@ namespace MFM {
 	    if(slot)
 	      {
 		UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot+1); //immediate scalar
-
 		m_state.assignValue(pluv,ruv);
 
 		//also copy result UV to stack, -1 relative to current frame pointer
 		assignReturnValueToStack(ruv);
 	      }
 	  } //normal
-
 	evalNodeEpilog();
       } //has init value
-
     return evs;
   } //eval
 

@@ -96,6 +96,7 @@ namespace MFM{
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
+    virtual void buildDefaultQuarkForClassInstances();
 
     virtual void testForClassInstances(File * fp);
 

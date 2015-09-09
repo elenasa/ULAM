@@ -188,6 +188,7 @@ namespace MFM{
     UTI getUlamTypeAsScalar(UTI utArg);
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
+    bool getDefaultQuark(UTI cuti, u32& dq);
 
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
@@ -265,6 +266,7 @@ namespace MFM{
     const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getBuildDefaultAtomFunctionName(UTI ltype);
+    const char * getDefaultQuarkFunctionName();
 
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);

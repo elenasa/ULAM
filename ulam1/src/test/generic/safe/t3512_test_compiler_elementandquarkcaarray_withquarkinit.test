@@ -1,0 +1,34 @@
+## -*- mode:ulam -*-
+#=t3512_test_compiler_elementandquarkcaarray_withquarkinit
+#!
+Exit status: 0
+Ue_Foo { typedef Bar Pop[2];  Bool(3) b(true);  Int(4) m_i(1);  Bar m_bar2[2]( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(7);  typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(7); );  Bar sbar( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(7); );  Int(32) test() {  0 cast return } }
+Uq_Bar { typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u( 7u);  <NOMAIN> }
+##
+#>Foo.ulam
+ulam 1;
+ use Bar;
+ element Foo {
+ typedef Bar Pop[2];
+ Bool(3) b = true;
+ Int(4) m_i = 1;
+ Pop m_bar2;
+ Bar sbar;
+
+ Int test() {
+ return 0;
+ }
+ }
+
+#:Bar.ulam
+ ulam 1;
+ quark Bar {
+ typedef Unsigned(6) Index;
+ Bool val_b[3];
+ Index val_u = 7; //didnt work: Index.maxof;
+  Void reset(Index u) {
+    val_u = u;
+ }
+}
+
+#.

@@ -55,7 +55,7 @@ namespace MFM {
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
-  static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "BuildDefaultQuark";
+  static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
 
   //use of this in the initialization list seems to be okay;
   CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
@@ -741,6 +741,20 @@ namespace MFM {
   {
     return ctype; // use its own type
   } //getDefaultUlamTypeOfConstant
+
+  bool CompilerState::getDefaultQuark(UTI cuti, u32& dq)
+  {
+    if(cuti == Nav) return false; //short-circuit
+
+    bool rtnb = false;
+    if(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK && getBitSize(cuti) > 0)
+      {
+	SymbolClass * csym = NULL;
+	assert(alreadyDefinedSymbolClass(cuti, csym));
+	rtnb = csym->getDefaultQuark(dq);
+      }
+    return rtnb;
+  } //getDefaultQuark
 
   bool CompilerState::isScalar(UTI utArg)
   {
@@ -1545,11 +1559,16 @@ namespace MFM {
     if(lclasstype == UC_ELEMENT)
       return BUILD_DEFAULT_ATOM_FUNCNAME; //for elements
     else if(lclasstype == UC_QUARK)
-      return BUILD_DEFAULT_QUARK_FUNCNAME; //??
+      return getDefaultQuarkFunctionName();
     else
       assert(0);
     return "BUILDEFAULTATOM_ERROR";
   } //getBuildDefaultAtomFunctionName
+
+  const char * CompilerState::getDefaultQuarkFunctionName()
+  {
+      return BUILD_DEFAULT_QUARK_FUNCNAME;
+  } //getDefaultQuarkFunctionName
 
   std::string CompilerState::getFileNameForAClassHeader(UTI cuti, bool wSubDir)
   {

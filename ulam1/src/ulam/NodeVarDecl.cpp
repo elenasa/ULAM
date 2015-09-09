@@ -50,8 +50,14 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  // see SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
+  // see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
+  {
+    printTypeAndName(fp);
+    fp->write("; ");
+  } //printPostfix
+
+  void NodeVarDecl::printTypeAndName(File * fp)
   {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
@@ -77,9 +83,7 @@ namespace MFM {
       {
 	fp->write("[UNKNOWN]");
       }
-
-    fp->write("; ");
-  } //printPostfix
+  } //printTypeAndName
 
   const char * NodeVarDecl::getName()
   {

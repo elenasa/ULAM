@@ -112,21 +112,33 @@ namespace MFM {
     //    if(m_nodeNext)
     //  m_nodeNext->printPostfix(fp);  //datamember vardecls
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
-    //simplifying assumption for testing purposes: center site
-    Coord c0(0,0);
-    s32 slot = c0.convertCoordToIndex();
-
-    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
 
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
-      func->printPostfix(fp);
-    else
-      fp->write(" <NOMAIN>"); //not an error
+      {
+	//simplifying assumption for testing purposes: center site
+	Coord c0(0,0);
+	s32 slot = c0.convertCoordToIndex();
 
+	m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
+
+      func->printPostfix(fp);
+      }
+    else
+      {
+	//has only init dm values
+	printPostfixDataMembersParseTree(fp);
+	fp->write(" <NOMAIN>"); //not an error
+      }
     fp->write(" }");
     fp->write("\n");
   } //printPostfix
+
+  void NodeBlockClass::printPostfixDataMembersParseTree(File * fp)
+  {
+    if(m_nodeNext)
+      m_nodeNext->printPostfix(fp);  //datamember vardecls
+  }
 
   const char * NodeBlockClass::getName()
   {
@@ -238,6 +250,15 @@ namespace MFM {
   {
     return m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
   }
+
+  //starts here, called by SymbolClass
+  bool NodeBlockClass::buildDefaultQuarkValue(u32& dqref)
+  {
+    bool aok = true;
+    if(m_nodeNext)
+      aok = m_nodeNext->buildDefaultQuarkValue(dqref); //side-effect for datamember vardecls
+    return aok;
+  } //buildDefaultQuarkValue
 
   EvalStatus NodeBlockClass::eval()
   {

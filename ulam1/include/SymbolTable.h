@@ -133,6 +133,8 @@ namespace MFM{
 
     void printPostfixForTableOfClasses(File * fp);
 
+    void buildDefaultQuarksFromTableOfClasses();
+
     void printForDebugForTableOfClasses(File * fp);
 
     bool statusNonreadyClassArgumentsInTableOfClasses();
