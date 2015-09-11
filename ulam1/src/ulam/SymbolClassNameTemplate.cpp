@@ -1245,6 +1245,31 @@ namespace MFM {
     return true;
   } //copyAnInstancesArgValues
 
+  void SymbolClassNameTemplate::printClassTemplateArgsForPostfix(File * fp)
+  {
+    //    u32 numparams = getNumberOfParameters();
+    u32 pcnt = 0;
+
+    fp->write("(");
+
+    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+    while(pit != m_parameterSymbols.end())
+      {
+	SymbolConstantValue * psym = *pit;
+
+	if(pcnt++ > 0)
+	  fp->write(", ");
+
+	fp->write(m_state.getUlamTypeNameBriefByIndex(psym->getUlamTypeIdx()).c_str());
+	fp->write(" ");
+	fp->write(m_state.m_pool.getDataAsString(psym->getId()).c_str());
+
+	pit++;
+      } //next param
+
+    fp->write(")");
+  } //printClassTemplateArgsForPostfix
+
   // done promptly after the full instantiation
   void SymbolClassNameTemplate::cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to)
   {

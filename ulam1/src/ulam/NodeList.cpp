@@ -92,10 +92,17 @@ namespace MFM{
 
   void NodeList::print(File * fp)
   {
+    fp->write("(");
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	m_nodes[i]->print(fp);
+	if(i > 0)
+	  fp->write(", ");
+
+	fp->write(m_state.getUlamTypeNameBriefByIndex(m_nodes[i]->getNodeType()).c_str());
+	fp->write(" ");
+	fp->write(m_nodes[i]->getName());
       }
+    fp->write(")");
   } //print
 
   const char * NodeList::getName()

@@ -73,17 +73,30 @@ namespace MFM {
 
   void NodeConstantDef::printPostfix(File * fp)
   {
+#if 0
+    if(m_nodeExpr)
+      {
+	m_nodeExpr->printPostfix(fp);
+	fp->write(" = ");
+      }
+    fp->write(getName());
+    fp->write(" const");
+#endif
+    //like SymbolConstantValue
+    fp->write(" constant");
 
-    fp->write(" constant ");
+    fp->write(" ");
     fp->write(m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str());
     fp->write(" ");
-    fp->write(getName());
+    fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
 
-    fp->write(" = ");
-
-    assert(m_constSymbol);
-    m_constSymbol->printPostfixValue(fp);
-  }
+    if(m_nodeExpr)
+      {
+	fp->write(" =");
+	m_nodeExpr->printPostfix(fp);
+      }
+    fp->write("; ");
+  } //printPostfix
 
   const char * NodeConstantDef::getName()
   {

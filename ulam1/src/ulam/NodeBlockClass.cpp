@@ -16,7 +16,7 @@ namespace MFM {
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
-    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); instances don't need this; its got symbols
+    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
   }
 
   NodeBlockClass::~NodeBlockClass()
@@ -98,9 +98,19 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
 
+    //output class template arguments type and name
+    if(m_nodeParameterList->getNumberOfNodes() > 0)
+      {
+	UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+	SymbolClassNameTemplate * cnsym = NULL;
+	assert(m_state.alreadyDefinedSymbolClassNameTemplate(cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym));
+	cnsym->printClassTemplateArgsForPostfix(fp);
+	//m_nodeParameterList->print(fp);
+      }
+
     if(isEmpty())
       {
-	fp->write(" { /* empty class block */ }");
+	fp->write(" { /* empty class block */ }\n");
 	return;
       }
 

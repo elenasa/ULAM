@@ -2,7 +2,7 @@
 #=t3329_test_compiler_elementwithclassparameters_deferred
 #!
 Exit status: 3
-Ue_S { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Bool(1) sp(false);  Int(32) test() {  S(1,2) s12;  s12 ( )func . return } }
+Ue_S(Int(32) x, Int(32) y) { constant Int(32) x = NONREADYCONST;  constant Int(32) y = NONREADYCONST;  Bool(1) sp(false);  Int(32) test() {  S(1,2) s12;  s12 ( )func . return } }
 ##    //informed by t3255
 #>S.ulam
  ulam 1;

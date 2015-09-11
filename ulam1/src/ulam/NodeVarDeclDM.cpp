@@ -37,6 +37,14 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
+    if(nuti == Nav)
+      {
+	fp->write("(");
+	fp->write_decimal(0);
+	fp->write("); ");
+	return;
+      }
+
     if(nut->getUlamClass() == UC_QUARK)
       {
 	SymbolClass * csym = NULL;
