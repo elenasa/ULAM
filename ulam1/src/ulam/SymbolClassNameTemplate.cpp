@@ -394,9 +394,9 @@ namespace MFM {
 		  {
 		  case Int:
 		    {
-		      if(awordsize == MAXBITSPERINT)
+		      if(awordsize <= MAXBITSPERINT)
 			args << ToLeximitedNumber(_SignExtend32((u32)uval, (u32) abs));
-		      else if(awordsize == MAXBITSPERLONG)
+		      else if(awordsize <= MAXBITSPERLONG)
 			args << ToLeximitedNumber64(_SignExtend64(uval, (u32) abs));
 		      else
 			assert(0);
@@ -406,9 +406,9 @@ namespace MFM {
 		  case Unsigned:
 		  case Bits:
 		    {
-		      if(awordsize == MAXBITSPERINT)
+		      if(awordsize <= MAXBITSPERINT)
 			args << ToLeximitedNumber((u32) uval);
-		      else if(awordsize == MAXBITSPERLONG)
+		      else if(awordsize <= MAXBITSPERLONG)
 			args << ToLeximitedNumber64(uval);
 		      else
 			assert(0);
@@ -425,9 +425,9 @@ namespace MFM {
 		  case Bool:
 		    {
 		      bool bval;
-		      if(awordsize == MAXBITSPERINT)
+		      if(awordsize <= MAXBITSPERINT)
 			bval = _Bool32ToCbool((u32) uval, m_state.getBitSize(auti));
-		      else if(awordsize == MAXBITSPERLONG)
+		      else if(awordsize <= MAXBITSPERLONG)
 			bval = _Bool64ToCbool(uval, m_state.getBitSize(auti));
 		      else
 			assert(0);
@@ -512,9 +512,9 @@ namespace MFM {
 		      {
 		      case Int:
 			{
-			  if(awordsize == MAXBITSPERINT)
+			  if(awordsize <= MAXBITSPERINT)
 			    args << _SignExtend32((u32)uval, abs);
-			  else if(awordsize == MAXBITSPERLONG)
+			  else if(awordsize <= MAXBITSPERLONG)
 			    args << _SignExtend64(uval, abs);
 			  else
 			    assert(0);
@@ -537,9 +537,9 @@ namespace MFM {
 		      case Bool:
 			{
 			  bool bval;
-			  if(awordsize == MAXBITSPERINT)
+			  if(awordsize <= MAXBITSPERINT)
 			    bval = _Bool32ToCbool((u32) uval, abs);
-			  else if(awordsize == MAXBITSPERLONG)
+			  else if(awordsize <= MAXBITSPERLONG)
 			    bval = _Bool64ToCbool(uval, abs);
 			  else
 			    assert(0);

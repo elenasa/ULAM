@@ -341,7 +341,12 @@ namespace MFM {
 	      }
 	    else
 	      {
-		buildDefaultClassInstance(nuti);
+		//must be a quark!
+		u32 dq = 0;
+		assert(m_state.getDefaultQuark(nuti, dq));
+		UlamValue immUV = UlamValue::makeImmediate(nuti, dq, m_state);
+
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 	      }
 	  }
 	else
@@ -358,22 +363,6 @@ namespace MFM {
     assert(0); //no way to get here!
     return ERROR;
   }
-
-  bool NodeVarDecl::buildDefaultClassInstance(UTI cuti)
-  {
-    SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
-
-    NodeBlockClass * classNode = csym->getClassBlockNode();
-    assert(classNode);
-
-    m_state.pushClassContext(cuti, classNode, classNode, false, NULL); //null blocks likely
-
-    EvalStatus evs = classNode->eval();
-
-    m_state.popClassContext();
-    return evs;
-  } //buildDefaultClass
 
   // parse tree in order declared, unlike the ST.
   void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)

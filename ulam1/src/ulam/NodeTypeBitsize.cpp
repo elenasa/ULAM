@@ -152,7 +152,6 @@ namespace MFM {
 	    return false;
 	  }
 
-	//if(newbitsize > MAXBITSPERINT)
 	if(newbitsize > MAXBITSPERLONG)
 	  {
 	    std::ostringstream msg;

@@ -95,7 +95,7 @@ namespace MFM{
 
     void printBitSizeOfClass();
 
-    bool getDefaultQuark(u32& dq); //return true if ready
+    bool getDefaultQuark(u32& dqref); //return true if ready
 
     void testThisClass(File * fp); //eval-land
 

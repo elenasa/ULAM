@@ -742,16 +742,21 @@ namespace MFM {
     return ctype; // use its own type
   } //getDefaultUlamTypeOfConstant
 
-  bool CompilerState::getDefaultQuark(UTI cuti, u32& dq)
+  bool CompilerState::getDefaultQuark(UTI cuti, u32& dqref)
   {
     if(cuti == Nav) return false; //short-circuit
 
     bool rtnb = false;
-    if(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK && getBitSize(cuti) > 0)
+    //if(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK && getBitSize(cuti) > 0)
+    if(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
       {
-	SymbolClass * csym = NULL;
-	assert(alreadyDefinedSymbolClass(cuti, csym));
-	rtnb = csym->getDefaultQuark(dq);
+	rtnb = true;
+	if(getBitSize(cuti) > 0)
+	  {
+	    SymbolClass * csym = NULL;
+	    assert(alreadyDefinedSymbolClass(cuti, csym));
+	    rtnb = csym->getDefaultQuark(dqref);
+	  }
       }
     return rtnb;
   } //getDefaultQuark

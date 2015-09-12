@@ -188,7 +188,7 @@ namespace MFM{
     UTI getUlamTypeAsScalar(UTI utArg);
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
-    bool getDefaultQuark(UTI cuti, u32& dq);
+    bool getDefaultQuark(UTI cuti, u32& dqref);
 
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);

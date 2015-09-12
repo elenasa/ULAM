@@ -172,8 +172,8 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(luti, ldata, rdata, len);
       }
-    //else
-      //assert(0);
+    else
+      assert(0); //e.g. 0
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;

@@ -249,9 +249,9 @@ namespace MFM {
   {
     UTI nuti = getNodeType();
     u32 wordsize = m_state.getUlamTypeByIndex(nuti)->getTotalWordSize();
-    if(wordsize == MAXBITSPERINT)
+    if(wordsize <= MAXBITSPERINT)
       return makeTerminalValue(uvarg, (u32) m_constant.uval, nuti);
-    else if(wordsize == MAXBITSPERLONG)
+    else if(wordsize <= MAXBITSPERLONG)
       return makeTerminalValueLong(uvarg, m_constant.uval, nuti);
     else
       assert(0);
@@ -264,7 +264,7 @@ namespace MFM {
     EvalStatus evs = NORMAL; //init ok
     assert(uti != Nav);
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    assert(ut->getBitSize() > 0);
+    assert(ut->getBitSize() >= 0);
 
     ULAMTYPE etype = ut->getUlamTypeEnum();
     switch(etype)
@@ -306,7 +306,7 @@ namespace MFM {
     EvalStatus evs = NORMAL; //init ok
     assert(uti != Nav);
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
-    assert(ut->getBitSize() > 0);
+    assert(ut->getBitSize() >= 0);
 
     ULAMTYPE etype = ut->getUlamTypeEnum();
     switch(etype)
@@ -371,11 +371,11 @@ namespace MFM {
       }
 
     u32 fwordsize = fit->getTotalWordSize();
-    if(fwordsize == MAXBITSPERINT) //32
+    if(fwordsize <= MAXBITSPERINT) //32
       {
 	rtnb = fitsInBits32(fituti);
       }
-    else if(fwordsize == MAXBITSPERLONG) //64
+    else if(fwordsize <= MAXBITSPERLONG) //64
       {
 	rtnb = fitsInBits64(fituti);
       }

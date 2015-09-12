@@ -104,6 +104,10 @@ namespace MFM{
      */
     bool parseDataMember(NodeStatements *& nextNode);
 
+    Node * parseRestOfDataMember(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
+
+    void parseRestOfDataMemberAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
+
     /**
 	<BLOCK> := '{' + <STATEMENTS> + '}'
     */

@@ -225,13 +225,13 @@ namespace MFM {
     MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(),INFO);
   } //printBitSizeOfClass
 
-  bool SymbolClass::getDefaultQuark(u32& dq)
+  bool SymbolClass::getDefaultQuark(u32& dqref)
   {
     assert(getUlamClass() == UC_QUARK);
 
     if(m_isreadyQuarkDefaultValue)
       {
-	dq = m_quarkDefaultValue;
+	dqref = m_quarkDefaultValue;
 	return true; //short-circuit, known
       }
 
@@ -243,16 +243,16 @@ namespace MFM {
     if(sut->getBitSize() == 0)
       {
 	m_isreadyQuarkDefaultValue = true;
-	dq = m_quarkDefaultValue = 0;
+	dqref = m_quarkDefaultValue = 0;
 	return true; //short-circuit, no data members
       }
 
-    dq = 0; //init
+    dqref = 0; //init
     NodeBlockClass * classblock = getClassBlockNode();
-    if(classblock->buildDefaultQuarkValue(dq))
+    if(classblock->buildDefaultQuarkValue(dqref))
       {
 	m_isreadyQuarkDefaultValue = true;
-	m_quarkDefaultValue = dq;
+	m_quarkDefaultValue = dqref;
       }
     else
       m_isreadyQuarkDefaultValue = false;

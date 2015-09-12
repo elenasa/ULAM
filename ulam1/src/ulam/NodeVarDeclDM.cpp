@@ -183,9 +183,9 @@ namespace MFM {
   // (scope of eval is based on the block of const def.)
   bool NodeVarDeclDM::foldConstantExpression()
   {
-    UTI uti = getNodeType();
+    UTI nuti = getNodeType();
 
-    if(uti == Nav || !m_state.isComplete(uti))
+    if(nuti == Nav || !m_state.isComplete(nuti))
       return false; //e.g. not a constant
 
     assert(m_varSymbol);
@@ -198,15 +198,15 @@ namespace MFM {
     // if here, must be a constant init value..
     u64 newconst = 0; //UlamType format (not sign extended)
     evalNodeProlog(0); //new current frame pointer
-    makeRoomForNodeType(uti); //offset a constant expression
+    makeRoomForNodeType(nuti); //offset a constant expression
     EvalStatus evs = m_nodeInitExpr->eval();
     if(evs == NORMAL)
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
-	u32 wordsize = m_state.getTotalWordSize(uti);
-	if(wordsize == MAXBITSPERINT)
+	u32 wordsize = m_state.getTotalWordSize(nuti);
+	if(wordsize <= MAXBITSPERINT)
 	  newconst = cnstUV.getImmediateData(m_state);
-	else if(wordsize == MAXBITSPERLONG)
+	else if(wordsize <= MAXBITSPERLONG)
 	  newconst = cnstUV.getImmediateDataLong(m_state);
 	else
 	  assert(0);
@@ -226,14 +226,14 @@ namespace MFM {
       }
 
     //insure constant value fits in its declared type
-    FORECAST scr = m_nodeInitExpr->safeToCastTo(uti);
+    FORECAST scr = m_nodeInitExpr->safeToCastTo(nuti);
     if(scr != CAST_CLEAR)
       {
 	std::ostringstream msg;
 	msg << "Constant value expression for data member (";
 	msg << getName() << " = " << m_nodeInitExpr->getName() ;
 	msg << ") initialization is not representable as ";
-	msg<< m_state.getUlamTypeNameBriefByIndex(uti).c_str();
+	msg<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	if(scr == CAST_BAD)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
@@ -245,10 +245,10 @@ namespace MFM {
     if(updateConstant(newconst))
       {
 	NodeTerminal * newnode;
-	if(m_state.getUlamTypeByIndex(uti)->getUlamTypeEnum() == Int)
-	  newnode = new NodeTerminal((s64) newconst, uti, m_state);
+	if(m_state.getUlamTypeByIndex(nuti)->getUlamTypeEnum() == Int)
+	  newnode = new NodeTerminal((s64) newconst, nuti, m_state);
 	else
-	  newnode = new NodeTerminal(newconst, uti, m_state);
+	  newnode = new NodeTerminal(newconst, nuti, m_state);
 
 	newnode->setNodeLocation(getNodeLocation());
 	delete m_nodeInitExpr;
@@ -276,9 +276,9 @@ namespace MFM {
     s32 nbitsize = nut->getBitSize();
     assert(nbitsize > 0);
     u32 wordsize = nut->getTotalWordSize();
-    if(wordsize == MAXBITSPERINT)
+    if(wordsize <= MAXBITSPERINT)
       rtnb = updateConstant32(newconst);
-    else if(wordsize == MAXBITSPERLONG)
+    else if(wordsize <= MAXBITSPERLONG)
       rtnb = updateConstant64(newconst);
     else
       assert(0);
@@ -503,6 +503,8 @@ namespace MFM {
 	    if(!foldDefaultQuark(dqval))
 	      return ERROR;
 	  }
+	else
+	  return ERROR;
       }
 
     EvalStatus evs = NORMAL; //init

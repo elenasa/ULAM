@@ -69,12 +69,12 @@ namespace MFM {
 	  {
 	  case Int:
 	    {
-	      if(twordsize == MAXBITSPERINT)
+	      if(twordsize <= MAXBITSPERINT)
 		{
 		  s32 sval = _Int32ToInt32((u32) m_constant.uval, tbs, MAXBITSPERINT);
 		  fp->write_decimal(sval);
 		}
-	      else if(twordsize == MAXBITSPERLONG)
+	      else if(twordsize <= MAXBITSPERLONG)
 		{
 		  s64 sval = _Int64ToInt64(m_constant.uval, tbs, MAXBITSPERLONG);
 		  fp->write_decimal_long(sval);
@@ -133,12 +133,12 @@ namespace MFM {
       {
       case Int:
 	{
-	  if(twordsize == MAXBITSPERINT)
+	  if(twordsize <= MAXBITSPERINT)
 	    {
 	      s32 sval = _Int32ToInt32((u32) m_constant.uval, tbs, MAXBITSPERINT);
 	      vstr = ToLeximitedNumber(sval);
 	    }
-	  else if(twordsize == MAXBITSPERLONG)
+	  else if(twordsize <= MAXBITSPERLONG)
 	    {
 	      s64 sval = _Int64ToInt64(m_constant.uval, tbs, MAXBITSPERLONG);
 	      vstr = ToLeximitedNumber64(sval);

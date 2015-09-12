@@ -391,7 +391,7 @@ namespace MFM {
 	s32 arraysize = getArraySize();
 	s32 bitsize = getBitSize();
 
-	if(getTotalWordSize() < MAXBITSPERLONG)
+	if(getTotalWordSize() <= MAXBITSPERLONG)
 	  {
 	    u64 initqval = 0;
 	    for(s32 j = 0; j < arraysize; j++)
@@ -641,13 +641,13 @@ namespace MFM {
   u32 UlamType::getTotalWordSize()
   {
     assert(isComplete());
-    return m_wordLengthTotal; //e.g. 32, 64, 96
+    return m_wordLengthTotal; //e.g. 0, 32, 64, 96
   }
 
   u32 UlamType::getItemWordSize()
   {
     assert(isComplete());
-    return m_wordLengthItem; //e.g. 32, 64, 96
+    return m_wordLengthItem; //e.g. 0, 32, 64, 96
   }
 
   void UlamType::setTotalWordSize(u32 tw)
@@ -678,9 +678,9 @@ namespace MFM {
   u64 UlamType::getMax(UlamValue& rtnUV, UTI uti)
   {
     u32 wordsize = getTotalWordSize();
-    if(wordsize == MAXBITSPERINT)
+    if(wordsize <= MAXBITSPERINT)
       rtnUV = UlamValue::makeImmediate(uti, (u32) m_max, m_state);
-    else if(wordsize == MAXBITSPERLONG)
+    else if(wordsize <= MAXBITSPERLONG)
       rtnUV = UlamValue::makeImmediateLong(uti, m_max, m_state);
     return m_max;
   } //getMax (UlamValue)
@@ -688,9 +688,9 @@ namespace MFM {
   s64 UlamType::getMin(UlamValue& rtnUV, UTI uti)
   {
     u32 wordsize = getTotalWordSize();
-    if(wordsize == MAXBITSPERINT)
+    if(wordsize <= MAXBITSPERINT)
       rtnUV = UlamValue::makeImmediate(uti, (s32) m_min, m_state);
-    else if(wordsize == MAXBITSPERLONG)
+    else if(wordsize <= MAXBITSPERLONG)
       rtnUV = UlamValue::makeImmediateLong(uti, (s64) m_min, m_state);
     return m_min;
   } //getMin (UlamValue)
