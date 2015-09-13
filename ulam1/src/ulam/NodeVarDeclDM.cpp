@@ -363,22 +363,22 @@ namespace MFM {
   //right-justified
   bool NodeVarDeclDM::buildDefaultQuarkValue(u32& dqref)
   {
-    bool aok = false; //not ready
+    bool aok = false; //init as not ready
+    UTI nuti = getNodeType(); //same as symbol uti
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    ULAMCLASSTYPE classtype = nut->getUlamClass();
 
-    if(m_nodeInitExpr)
+    if(m_nodeInitExpr || classtype == UC_QUARK)
       {
 	assert(m_varSymbol);
 	assert(m_varSymbol->isDataMember());
 
-	UTI nuti = getNodeType(); //same as symbol uti
-	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 	u32 mask = _GetNOnes32((u32) nut->getBitSize());
 	u32 pos = m_varSymbol->getPosOffset();
 	u32 valinposition = 0;
 	s32 bitsize = m_state.getBitSize(nuti);
 	s32 quarksize = m_state.getBitSize(m_state.getCompileThisIdx());
 
-	ULAMCLASSTYPE classtype = nut->getUlamClass();
 	if(classtype == UC_QUARK)
 	  {
 	    if(m_state.isScalar(nuti))
@@ -435,8 +435,8 @@ namespace MFM {
 	if(classtype == UC_QUARK && aok)
 	  foldDefaultQuark(dqref);
       }
-      else
-	aok = true; //no initialized value
+    else
+      aok = true; //no initialized value
 
     return aok;
   } //buildDefaultQuarkValue

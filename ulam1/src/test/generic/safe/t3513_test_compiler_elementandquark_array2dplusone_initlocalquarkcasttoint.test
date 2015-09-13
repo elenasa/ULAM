@@ -11,6 +11,9 @@ Exit status: 41
 Ue_Foo { System s();  Unsigned(1) m_array[64](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  Int(32) test() {  C2D c;  c ( 0 cast 0 cast )func = m_array c ( )toInt . 1 cast +b [] 1 cast = m_array c ( )toInt . [] 1 cast = s ( c m_width . cast )print . s ( c m_height . cast )print . s ( c ( )toInt . 1 cast +b cast )print . s ( m_array c ( )toInt . [] cast )print . c ( )toInt . 1 cast +b cast return } }
 Uq_C2D { typedef Int(8) IE;  Int(8) m_width( 9);  Int(8) m_height( 4);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+##
+## informed by t3191
+##
 #>Foo.ulam
 ulam 1;
  use C2D;
