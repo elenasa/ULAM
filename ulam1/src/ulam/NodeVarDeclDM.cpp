@@ -36,6 +36,16 @@ namespace MFM {
       m_nodeInitExpr->updateLineage(getNodeNo());
   } //updateLineage
 
+  bool NodeVarDeclDM::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeInitExpr == oldnptr)
+      {
+	m_nodeInitExpr = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
+
   bool NodeVarDeclDM::findNodeNo(NNO n, Node *& foundNode)
   {
     if(NodeVarDecl::findNodeNo(n, foundNode))
