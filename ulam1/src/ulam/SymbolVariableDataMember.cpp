@@ -172,9 +172,17 @@ namespace MFM {
 	    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
 
 	    UlamValue atval = m_state.getPtrTarget(nextPtr);
-	    s32 len = nextPtr.getPtrLen();
-	    assert(len != UNKNOWNSIZE);
-	    if(len <= MAXBITSPERINT)
+	    s32 len = m_state.getBitSize(vuti); //nextPtr.getPtrLen();
+	    //assert(len != UNKNOWNSIZE);
+	    if(len == UNKNOWNSIZE)
+	      {
+		sprintf(valstr,"unknown");
+		for(s32 i = 1; i < size; i++)
+		  {
+		    strcat(valstr,", unknown");
+		  }
+	      }
+	    else if(len <= MAXBITSPERINT)
 	      {
 		u32 data = atval.getDataFromAtom(nextPtr, m_state);
 		vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','

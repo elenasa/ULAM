@@ -130,6 +130,9 @@ namespace MFM {
 	      newType = Nav;
 	  }
       }
+    else
+      m_state.setGoAgain(); //since not error
+
 
     setNodeType(newType);
     setStoreIntoAble(false);

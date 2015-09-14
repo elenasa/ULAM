@@ -208,6 +208,7 @@ namespace MFM {
 	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain(); //might not have nodetypedesc
       }
     else
       {

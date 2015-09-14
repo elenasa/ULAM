@@ -40,7 +40,8 @@ namespace MFM {
     if(nuti == Nav)
       {
 	fp->write("(");
-	fp->write_decimal(0);
+	//fp->write_decimal(0);
+	fp->write("unknown");
 	fp->write("); ");
 	return;
       }
@@ -137,7 +138,10 @@ namespace MFM {
 	    if(m_nodeInitExpr->isReadyConstant())
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.setGoAgain(); //since not error
+	      }
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
@@ -190,7 +194,7 @@ namespace MFM {
 
     assert(m_varSymbol);
     if(((SymbolVariableDataMember *) m_varSymbol)->initValueReady())
-      return true;
+      return true; //short-circuit
 
     if(!m_nodeInitExpr)
       return false;
@@ -222,6 +226,7 @@ namespace MFM {
 	msg << "' initialization is not yet ready while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain(); //since not error
 	return false;
       }
 
@@ -237,7 +242,10 @@ namespace MFM {
 	if(scr == CAST_BAD)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error
+	  }
 	return false; //necessary if not just a warning.
       }
 
@@ -268,7 +276,10 @@ namespace MFM {
 
     UTI nuti = getNodeType();
     if(!m_state.isComplete(nuti))
-      return false;
+      {
+	m_state.setGoAgain(); //since not error
+	return false;
+      }
 
     //store in UlamType format
     bool rtnb = true;

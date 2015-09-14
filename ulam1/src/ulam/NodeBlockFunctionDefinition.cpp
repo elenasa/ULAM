@@ -219,8 +219,8 @@ namespace MFM {
     if(m_nodeNext) //non-empty function
       {
 	m_nodeNext->checkAndLabelType(); //side-effect
-	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives errors
-	  setNodeType(Nav); //avoid assert in resolving loop
+	if(!m_state.checkFunctionReturnNodeTypes(m_funcSymbol)) //gives some errors
+	  setNodeType(Nav); //tries to avoid assert in resolving loop; return sets goagain
       }
     else
       {

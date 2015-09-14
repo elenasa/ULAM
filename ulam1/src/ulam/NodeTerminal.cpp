@@ -59,7 +59,7 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     s32 nbitsize = nut->getBitSize();
-    assert(nbitsize > 0);
+    assert(nbitsize >= 0);
     u32 wordsize = nut->getTotalWordSize();
     ULAMTYPE etype = nut->getUlamTypeEnum();
     std::ostringstream num;
@@ -347,6 +347,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	msg << ", to fit into type: " << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain(); //since not an error
 	return false;
       }
 #if 0
@@ -367,6 +368,7 @@ namespace MFM {
 	msg << "Constant is not-a-valid type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain(); //since not an error
 	return false;
       }
 

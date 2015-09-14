@@ -163,6 +163,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	// nodeType = Nav; needed?
+	m_state.setGoAgain();
       }
 
     //check later against defined function return type

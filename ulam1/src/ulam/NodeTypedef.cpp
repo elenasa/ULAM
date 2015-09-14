@@ -126,7 +126,7 @@ namespace MFM {
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)
 	  {
-	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain if nav
 	    if(duti != Nav && duti != it)
 	      {
 		std::ostringstream msg;
@@ -154,6 +154,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    //it = Nav; unlike vardecl
+	    m_state.setGoAgain(); //since not error
 	  }
       } // got typedef symbol
 

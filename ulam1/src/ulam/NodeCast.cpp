@@ -107,7 +107,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	    msg << " (UTI" << tobeType << ")";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    errorsFound++;
+	    errorsFound++; //goAgain set by nodetypedesc
 	  }
       }
 
@@ -119,6 +119,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str();
 	msg << " (UTI" << tobeType << ")";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain(); //in case no nodetypedesc
 	errorsFound++;
       }
     else if(tobeType == Nav)
@@ -153,7 +154,10 @@ namespace MFM {
 	    if(tobe->getUlamTypeEnum() == Bool)
 	      msg << "; Consider using a comparison operator";
 	    if(scr == CAST_HAZY)
+	      {
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      m_state.setGoAgain();
+	      }
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
@@ -204,7 +208,7 @@ namespace MFM {
 	  {
 	    // special case: user casting a quark to an Int;
 	    if(!makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
-	      errorsFound++;
+	      errorsFound++; //and goagain set
 	  }
 	//can't detect its a CaArray; already resolved by m_node (sqbkt) to caarrayType
 	else
