@@ -22,14 +22,17 @@ Uq_System { <NOMAIN> }
 use System;
  element A {
 typedef Int(64) BigSite[10];
-Int test(){System s;
-  BigSite site;  for(Int i = 0; i < 10; ++i){
-Int(64) k = i + Int.maxof;
- site[i] = k;
- s.print((Int) site[i]);
- }
- return site.sizeof;
- }
+Int test(){
+  System s;
+  BigSite site;
+  for(Int i = 0; i < 10; ++i)
+  {
+    Int(64) k = i + Int.maxof;
+    site[i] = k;
+    s.print((Int) site[i]);
+  }
+  return site.sizeof;
+}
  }
 
 #:System.ulam

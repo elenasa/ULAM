@@ -29,13 +29,13 @@ IntXY(2,3) p;
 System s;
  IntXY(3u,4u) m;
  m = n.make(1,2);
- s.print((Unsigned) m.x);
- s.print((Unsigned) m.y);
+ s.print(m.x);
+ s.print(m.y);
  m = n.fromXY(2,3);
- s.print((Unsigned) n.x);
- s.print((Unsigned) n.y);
- s.print((Unsigned) m.x);
- s.print((Unsigned) m.y);
+ s.print(n.x);
+ s.print(n.y);
+ s.print(m.x);
+ s.print(m.y);
  return 0;
 }
  }

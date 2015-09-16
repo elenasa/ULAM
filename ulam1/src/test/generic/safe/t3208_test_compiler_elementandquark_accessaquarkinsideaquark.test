@@ -50,8 +50,8 @@ return 0;
 Void set(Int xarg, Int yarg){
 x=(Unsigned(4)) xarg;
 y=(Unsigned(4)) yarg;
-m_s.print((Unsigned) x);
-m_s.print((Unsigned) y);
+m_s.print(x);
+m_s.print(y);
 
 if(yarg!=0)
 {

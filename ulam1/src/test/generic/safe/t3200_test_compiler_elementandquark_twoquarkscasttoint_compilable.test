@@ -37,10 +37,10 @@ bar2.x = 3u;
 bar2.y = 0u;
 i = (Int(4)) bar1;
 j = (Int(4)) bar2;
-s.print((Unsigned) bar1.x);
-s.print((Unsigned) bar1.y);
-s.print((Unsigned) bar2.x);
-s.print((Unsigned) bar2.y);
+s.print(bar1.x);
+s.print(bar1.y);
+s.print(bar2.x);
+s.print(bar2.y);
 
 s.print(i);
 s.print(j);

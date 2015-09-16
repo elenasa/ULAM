@@ -124,20 +124,43 @@ namespace MFM {
     //track matches with hazy casting for error message output
     if(!funcSymbol)
       {
+	// give priority to safe matches that have same ULAMTYPEs too
+	// e.g. Unsigned(3) arg would safely cast to Int(4), Int(5), and Unsigned param;
+	//      this is ambiguous! but only one is the same Enum; so let's
+	//      call it the winner.
+	SymbolFunction * funcSymbolMatchingUTArgs = NULL;
+	u32 numFuncsWithAllSameUTArgs = 0;
+	u32 numArgs = argTypes.size();
+
 	it = m_mangledFunctionNames.begin();
 	while(it != m_mangledFunctionNames.end())
 	  {
 	    SymbolFunction * fsym = it->second;
-	    if(fsym->matchingTypes(argTypes, constArgs, hasHazyArgs))
+	    u32 numUTmatch = 0;
+	    if(fsym->matchingTypes(argTypes, constArgs, hasHazyArgs, numUTmatch))
 	      {
 		funcSymbol = fsym;
 		matchingFuncCount++;
+		if(numUTmatch == numArgs)
+		  {
+		    numFuncsWithAllSameUTArgs++;
+		    funcSymbolMatchingUTArgs = funcSymbol;
+		  }
 	      }
 	    ++it;
 	  }
 
 	if(matchingFuncCount > 1)
-	  funcSymbol = NULL;
+	  {
+	    if(numFuncsWithAllSameUTArgs > 1)
+	      funcSymbol = NULL;
+	    else
+	      {
+		//instead of null, let's go with the one/none closest in safe matching args
+		matchingFuncCount = numFuncsWithAllSameUTArgs; // ==0 or 1
+		funcSymbol = funcSymbolMatchingUTArgs;
+	      }
+	  }
       } //2nd try
     return matchingFuncCount;
   } //findMatchingFunctionWithConstantsAsArgs

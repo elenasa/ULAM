@@ -6,7 +6,7 @@
 ##          Unsigned Arg: 3
 ##
 Exit status: 0
-Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(unknown);  constant Unsigned(32) a = NONREADYCONST;  Unsigned(UNKNOWN) var(unknown);  Int(32) test() {  System s;  P(1u) pel;  s ( pel var . cast )print . pel var . return } }
+Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(unknown);  constant Unsigned(32) a = NONREADYCONST;  Unsigned(UNKNOWN) var(unknown);  Int(32) test() {  System s;  P(1u) pel;  s ( pel var . )print . pel var . return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -26,7 +26,7 @@ use System;
   Int test() {
     System s;
     P(1u) pel;
-    s.print((Unsigned) pel.var);
+    s.print(pel.var);
     return pel.var;
   }
  }
