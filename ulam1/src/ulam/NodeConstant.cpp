@@ -31,7 +31,9 @@ namespace MFM {
 
   const char * NodeConstant::getName()
   {
-    return NodeTerminal::getName();
+    if(isReadyConstant())
+      return NodeTerminal::getName();
+    return m_state.getTokenDataAsString(&m_token).c_str();
   }
 
   const std::string NodeConstant::prettyNodeName()

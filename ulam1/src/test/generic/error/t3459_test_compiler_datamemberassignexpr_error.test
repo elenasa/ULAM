@@ -2,7 +2,7 @@
 #=t3459_test_compiler_datamemberassignexpr_error
 #!
 ##
-##./A.ulam:2:26: ERROR: Cannot assign to data member <cprint_name> at the time of its declaration.
+##./A.ulam:4:10: ERROR: (2) <cPRINT_NAME> is not defined, and cannot be used with class: A.
 ##
 Exit status: -1
 ##

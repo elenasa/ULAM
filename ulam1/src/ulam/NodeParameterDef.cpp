@@ -19,8 +19,21 @@ namespace MFM {
 
   void NodeParameterDef::printPostfix(File * fp)
   {
-    NodeConstantDef::printPostfix(fp);
+    //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
+    UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
     fp->write("parameter");
+
+    fp->write(" ");
+    fp->write(m_state.getUlamTypeNameBriefByIndex(suti).c_str());
+    fp->write(" ");
+    fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
+
+    if(m_nodeExpr)
+      {
+	fp->write(" =");
+	m_nodeExpr->printPostfix(fp);
+      }
+    fp->write("; ");
   }
 
   const std::string NodeParameterDef::prettyNodeName()

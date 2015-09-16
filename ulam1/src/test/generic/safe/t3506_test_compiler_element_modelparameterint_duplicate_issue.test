@@ -4,34 +4,34 @@
 ## generate code NULL POINTER
 ##
 Exit status: 1
-Ue_Foo { System s();  Int(32) a(1);  Int(32) test() {  Foo f;  s ( chance(1) )print . s ( f chance(1) . )print . a f chance(1) . = a return } }
+Ue_Foo { System s();  Int(32) a(1);  Int(32) test() {  Foo2 f;  s ( chance(1) )print . s ( f chance(1) . )print . a f chance(1) . = a return } }
 Uq_System { <NOMAIN> }
-Ue_Foo2 { System s();  Int(32) a(1);  <NOMAIN> }
+Ue_Foo2 { System s(); parameter Int(32) chance = 1;  Int(32) a(0);  <NOMAIN> }
 #>Foo.ulam
 ulam 1;
 use System;
- use Foo2;
- element Foo {
-System s;
- parameter Int chance = 1;
- Int a;
- Int test() {
- Foo f;
- s.print(chance);
- s.print(f.chance);
- a = f.chance;
- return a;
- }
- }
+use Foo2;
+element Foo {
+  System s;
+  parameter Int chance = 1;
+  Int a;
+  Int test() {
+    Foo2 f;
+    s.print(chance);
+    s.print(f.chance);
+    a = f.chance;
+    return a;
+  }
+}
 
 #:Foo2.ulam
-ulam 1;
+  ulam 1;
 use System;
- element Foo2 {
-System s;
- parameter Int chance = 1;
- Int a;
- }
+element Foo2 {
+  System s;
+  parameter Int chance = 1;
+  Int a;
+}
 #:System.ulam
 ulam 1;
 quark System {

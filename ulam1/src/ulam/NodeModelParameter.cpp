@@ -23,7 +23,7 @@ namespace MFM {
     fp->write(" ");
     fp->write(getName());
     fp->write("(");
-    fp->write(NodeTerminal::getName());
+    fp->write(NodeConstant::getName());
     fp->write(")");
   }
 

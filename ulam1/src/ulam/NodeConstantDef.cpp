@@ -82,11 +82,13 @@ namespace MFM {
     fp->write(getName());
     fp->write(" const");
 #endif
+    //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
+    UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
     //like SymbolConstantValue
     fp->write(" constant");
 
     fp->write(" ");
-    fp->write(m_state.getUlamTypeNameBriefByIndex(getNodeType()).c_str());
+    fp->write(m_state.getUlamTypeNameBriefByIndex(suti).c_str());
     fp->write(" ");
     fp->write(m_state.m_pool.getDataAsString(m_cid).c_str());
 
@@ -144,6 +146,30 @@ namespace MFM {
 	return Nav;
       }
 
+    UTI suti = m_constSymbol->getUlamTypeIdx();
+    UTI cuti = m_state.getCompileThisIdx();
+
+    // type of the constant
+    if(m_nodeTypeDesc)
+      {
+	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
+	if(duti != Nav && suti != duti)
+	  {
+	    std::ostringstream msg;
+	    msg << "REPLACING Symbol UTI" << suti;
+	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
+	    msg << " used with " << prettyNodeName().c_str() << " symbol name '" << getName();
+	    msg << "' with node type descriptor type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
+	    msg << " UTI" << duti << " while labeling class: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_constSymbol->resetUlamType(duti); //consistent!
+	    m_state.mapTypesInCurrentClass(suti, duti);
+	    suti = duti;
+	  }
+      }
+
     // NOASSIGN (e.g. for class parameters) doesn't have this!
     if(m_nodeExpr)
       {
@@ -173,30 +199,6 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-      }
-
-    UTI suti = m_constSymbol->getUlamTypeIdx();
-    UTI cuti = m_state.getCompileThisIdx();
-
-    // type of the constant
-    if(m_nodeTypeDesc)
-      {
-	UTI duti = m_nodeTypeDesc->checkAndLabelType(); //clobbers any expr it
-	if(duti != Nav && suti != duti)
-	  {
-	    std::ostringstream msg;
-	    msg << "REPLACING Symbol UTI" << suti;
-	    msg << ", " << m_state.getUlamTypeNameBriefByIndex(suti).c_str();
-	    msg << " used with " << prettyNodeName().c_str() << " symbol name '" << getName();
-	    msg << "' with node type descriptor type: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(duti).c_str();
-	    msg << " UTI" << duti << " while labeling class: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	    m_constSymbol->resetUlamType(duti); //consistent!
-	    m_state.mapTypesInCurrentClass(suti, duti);
-	    suti = duti;
-	  }
       }
 
     if(!m_state.isComplete(suti)) //reloads
