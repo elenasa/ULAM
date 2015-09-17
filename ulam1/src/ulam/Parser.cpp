@@ -57,10 +57,12 @@
 #include "NodeUnaryOpPlus.h"
 #include "NodeUnaryOpBang.h"
 #include "NodeVarDecl.h"
+#include "NodeVarDeclDM.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
+#include "SymbolVariableDataMember.h"
 #include "SymbolVariableStack.h"
 #include "SymbolConstantValue.h"
 #include "SymbolParameterValue.h"
@@ -511,9 +513,8 @@ namespace MFM {
 
 	    if(rtnNode)
 	      {
-		// data members aren't initialized; could be a list of same type.
-		typeargs.m_assignOK = NOASSIGN;
-		rtnNode = parseRestOfDecls(typeargs, iTok, rtnNode, passuti);
+		parseRestOfDataMemberAssignment(typeargs, iTok, rtnNode, passuti);
+		rtnNode = parseRestOfDataMember(typeargs, iTok, rtnNode, passuti);
 	      }
 	  }
       } //regular data member
@@ -540,6 +541,72 @@ namespace MFM {
       }
     return brtn;
   } //parseDataMember
+
+  Node * Parser::parseRestOfDataMember(TypeArgs& args, Token identTok, Node * dNode, UTI passuti)
+  {
+    Token pTok;
+    getNextToken(pTok);
+
+    args.m_arraysize = NONARRAYSIZE; //clear for decl list (args ref)
+
+    if(pTok.m_type != TOK_COMMA)
+      {
+	unreadToken();
+	return dNode;
+      }
+
+    Node * rtnNode = dNode;
+    Token iTok;
+    getNextToken(iTok);
+    if(iTok.m_type == TOK_IDENTIFIER)
+      {
+	//just the top level as a basic uti (no selects, or arrays)
+	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
+	//another decl of same type
+	Node * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl
+	if (sNode)
+	  {
+	    parseRestOfDataMemberAssignment(args, identTok, sNode, passuti);
+
+	    rtnNode =  new NodeStatements(dNode, m_state);
+	    assert(rtnNode);
+	    rtnNode->setNodeLocation(dNode->getNodeLocation());
+
+	    NodeStatements * nextNode = new NodeStatements(sNode, m_state);
+	    assert(nextNode);
+	    nextNode->setNodeLocation(dNode->getNodeLocation());
+	    ((NodeStatements *) rtnNode)->setNextNode(nextNode);
+	  }
+	//else  error?
+      }
+    else
+      {
+	//perhaps read until semi-colon
+	getTokensUntil(TOK_SEMICOLON);
+	unreadToken();
+      }
+    return parseRestOfDataMember(args, iTok, rtnNode, passuti); //iTok in case of =
+  } //parseRestOfDataMember
+
+  void Parser::parseRestOfDataMemberAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti)
+  {
+    Token pTok;
+    getNextToken(pTok);
+
+    //    args.m_arraysize = NONARRAYSIZE; //clear for decl list (args ref)
+
+    if(pTok.m_type == TOK_EQUAL)
+      {
+	Node * initnode = parseExpression();
+	if(initnode)
+	  ((NodeVarDeclDM*) dNode)->setConstantExpr(initnode);
+	//else error
+      }
+    else
+      unreadToken();
+
+    return; //parseRestOfDataMember(args, identTok, dNode, passuti); //any more?
+  } //parseRestOfDataMemberAssignment
 
   Node * Parser::parseBlock()
   {
@@ -1132,14 +1199,14 @@ namespace MFM {
     if(pTok.m_type == TOK_SEMICOLON)
       {
 	unreadToken();
-	rtnNode = new NodeStatementEmpty(m_state);  	//empty statement
+	rtnNode = new NodeStatementEmpty(m_state); //empty statement
 	assert(rtnNode);
 	rtnNode->setNodeLocation(pTok.m_locator);
       }
     else if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	rtnNode = parseDecl();        //updates symbol table
+	rtnNode = parseDecl(); //updates symbol table
       }
     else if(pTok.m_type == TOK_KW_TYPEDEF)
       {
@@ -1151,7 +1218,7 @@ namespace MFM {
       }
     else if(pTok.m_type == TOK_KW_RETURN)
       {
-	unreadToken();               //needs location
+	unreadToken(); //needs location
 	rtnNode = parseReturn();
       }
     else if(pTok.m_type == TOK_KW_BREAK)
@@ -2883,7 +2950,10 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfAssignExpr
 
-  //assignOK true by default.
+  //assignOK true by default. These assignments are for local variables, not data members.
+  // They create a parse subtree for the binary op equal; and do not have to be constant
+  // expressions. Data member initialization expressions are constant expressions, and
+  // are a child of the NodeVarDeclDM subclass (see parseDataMember).
   Node * Parser::parseRestOfDecls(TypeArgs& args, Token identTok, Node * dNode, UTI passuti)
   {
     Token pTok;
@@ -3430,7 +3500,10 @@ namespace MFM {
 	    linkOrFreeConstantExpressionArraysize(auti, args, (NodeSquareBracket *)lvalNode, nodetyperef);
 
 	    // tfr owner of nodetyperef to node var decl
-	    rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, nodetyperef, m_state);
+	    if(asymptr->isDataMember())
+	      rtnNode =  new NodeVarDeclDM((SymbolVariableDataMember *) asymptr, nodetyperef, m_state);
+	    else
+	      rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, nodetyperef, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
 

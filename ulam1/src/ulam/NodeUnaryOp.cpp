@@ -130,6 +130,9 @@ namespace MFM {
 	      newType = Nav;
 	  }
       }
+    else
+      m_state.setGoAgain(); //since not error
+
 
     setNodeType(newType);
     setStoreIntoAble(false);
@@ -247,9 +250,9 @@ namespace MFM {
       {
 	UlamValue cnstUV = m_state.m_nodeEvalStack.popArg();
 	u32 wordsize = m_state.getTotalWordSize(nuti);
-	if(wordsize == MAXBITSPERINT)
+	if(wordsize <= MAXBITSPERINT)
 	  val = cnstUV.getImmediateData(m_state);
-	else if(wordsize == MAXBITSPERLONG)
+	else if(wordsize <= MAXBITSPERLONG)
 	  val = cnstUV.getImmediateDataLong(m_state);
 	else
 	  assert(0);

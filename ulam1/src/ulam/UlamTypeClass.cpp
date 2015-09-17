@@ -539,21 +539,29 @@ namespace MFM {
     fp->write("> ");
     fp->write(" Up_Us;\n");
 
+    u32 dqval = 0;
+    bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
+
     //storage here in atom
     m_state.indent(fp);
     fp->write("T m_stg;  //storage here!\n");
 
     //default constructor (used by local vars)
+    //(unlike element) call build default in case of initialized data members
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() : m_stg() { }\n");
+    fp->write("() : m_stg( ) { ");
+
+    if(hasDQ)
+      fp->write("write(DEFAULT_QUARK); }\n");
+    else
+      fp->write(" }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    //fp->write(" d) : m_t(d) {}\n");
     fp->write(" d) { write(d); }\n");
 
     //read 'entire quark' method
@@ -936,4 +944,24 @@ namespace MFM {
   {
     assert(0); //only primitive types
   }
+
+  bool UlamTypeClass::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
+  {
+    bool rtnb = false;
+    //if(m_class == UC_QUARK && getBitSize() > 0)
+    if(m_class == UC_QUARK)
+      {
+	//if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref) && dqref > 0)
+	if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))
+	  {
+	    m_state.indent(fp);
+	    fp->write("static const u32 DEFAULT_QUARK = ");
+	    fp->write_decimal_unsigned(dqref);
+	    fp->write(";\n\n");
+	    rtnb = true;
+	  }
+      }
+    return rtnb;
+  } //genUlamTypeDefaultQuarkConstant
+
 } //end MFM

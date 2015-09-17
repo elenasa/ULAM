@@ -77,6 +77,8 @@ namespace MFM{
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
 
+    virtual void buildDefaultQuarkForClassInstances();
+
     virtual void testForClassInstances(File * fp);
 
     virtual void generateCodeForClassInstances(FileManager * fm);

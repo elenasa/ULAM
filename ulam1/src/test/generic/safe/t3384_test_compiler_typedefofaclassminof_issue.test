@@ -7,9 +7,9 @@
 ##
 Exit status: 7
 Ue_R { Ish3 ish( Colony(3u) colony( constant Unsigned(32) widthc = 3;  typedef Telomeree(3u) Telo; ); );  Int(32) test() {  ish colony ( )foo . . cast return } }
-Uq_Ish3 { Colony(3u) colony( constant Unsigned(32) widthc = 3;  typedef Telomeree(3u) Telo; );  <NOMAIN> }
-Uq_Colony { constant Unsigned(32) widthc = NONREADYCONST;  typedef Telomeree(width) Telo;  <NOMAIN> }
-Uq_Telomeree { constant Unsigned(32) width = NONREADYCONST;  typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(0);  <NOMAIN> }
+Uq_Ish3 { Colony(3u) colony( typedef Telomeree(3u) Telo; );  <NOMAIN> }
+Uq_Colony(Unsigned(32) widthc) { typedef Telomeree(width) Telo;  <NOMAIN> }
+Uq_Telomeree(Unsigned(32) width) { typedef Unsigned(UNKNOWN) Tail;  Unsigned(UNKNOWN) age(unknown);  <NOMAIN> }
 ##
 ##       // likes Telomeree first!
 #>R.ulam

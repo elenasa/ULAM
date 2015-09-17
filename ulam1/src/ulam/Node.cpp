@@ -219,6 +219,12 @@ namespace MFM {
     return Nav;
   }
 
+  bool Node::buildDefaultQuarkValue(u32& dqref)
+  {
+    assert(0);
+    return false;
+  }
+
   // only for constants (NodeTerminal)
   bool Node::isNegativeConstant()
   {
@@ -1252,6 +1258,7 @@ namespace MFM {
 	    msg << "(UTI" << tobeType << ") in class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain();
 	  }
 	else
 	  {

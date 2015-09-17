@@ -78,6 +78,8 @@ namespace MFM{
 
     virtual void countNavNodes(u32& cnt);
 
+    virtual bool buildDefaultQuarkValue(u32& dqref);
+
     virtual EvalStatus eval();
 
     virtual void genCode(File * fp, UlamValue& uvpass);

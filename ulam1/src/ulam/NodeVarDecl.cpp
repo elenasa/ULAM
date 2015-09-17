@@ -50,8 +50,14 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  // see SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
+  // see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
+  {
+    printTypeAndName(fp);
+    fp->write("; ");
+  } //printPostfix
+
+  void NodeVarDecl::printTypeAndName(File * fp)
   {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
@@ -77,9 +83,7 @@ namespace MFM {
       {
 	fp->write("[UNKNOWN]");
       }
-
-    fp->write("; ");
-  } //printPostfix
+  } //printTypeAndName
 
   const char * NodeVarDecl::getName()
   {
@@ -112,7 +116,7 @@ namespace MFM {
 	UTI cuti = m_state.getCompileThisIdx();
 	if(m_nodeTypeDesc)
 	  {
-	    UTI duti = m_nodeTypeDesc->checkAndLabelType();
+	    UTI duti = m_nodeTypeDesc->checkAndLabelType(); //sets goagain
 	    if(duti != Nav && duti != it)
 	      {
 		std::ostringstream msg;
@@ -140,6 +144,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    it = Nav;
+	    m_state.setGoAgain(); //since not error
 	  }
       } //end var_symbol
 
@@ -186,7 +191,8 @@ namespace MFM {
 	msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
 	msg << "> is not defined, and cannot be used";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-      }
+      } //alreadyDefined
+
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
@@ -309,7 +315,8 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
+    if(nuti == UAtom || classtype == UC_ELEMENT)
       {
 	UlamValue atomUV = UlamValue::makeAtom(m_varSymbol->getUlamTypeIdx());
 	m_state.m_funcCallStack.storeUlamValueInSlot(atomUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
@@ -318,20 +325,34 @@ namespace MFM {
       {
 	if(!m_varSymbol->isDataMember())
 	  {
-	    //local variable to a function
-	    u32 len = m_state.getTotalBitSize(nuti);
-	    UlamValue immUV;
-	    if(len <= MAXBITSPERINT)
-	      immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
-	    else if(len <= MAXBITSPERLONG)
-	      immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
-	    else
-	      immUV = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
+	    if(classtype == UC_NOTACLASS)
+	      {
+		//local variable to a function;
+		// t.f. must be SymbolVariableStack, not SymbolVariableDataMember
+		u32 len = m_state.getTotalBitSize(nuti);
+		UlamValue immUV;
+		if(len <= MAXBITSPERINT)
+		  immUV = UlamValue::makeImmediate(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+		else if(len <= MAXBITSPERLONG)
+		  immUV = UlamValue::makeImmediateLong(m_varSymbol->getUlamTypeIdx(), 0, m_state);
+		else
+		  immUV = UlamValue::makePtr(((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId()); //array ptr
 
-	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableDataMember *) m_varSymbol)->getStackFrameSlotIndex());
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
+	    else
+	      {
+		//must be a quark!
+		u32 dq = 0;
+		assert(m_state.getDefaultQuark(nuti, dq));
+		UlamValue immUV = UlamValue::makeImmediate(nuti, dq, m_state);
+
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
 	  }
 	else
 	  {
+	    //see NodeVarDeclDM for data members..
 	    assert(0);
 	  }
       }

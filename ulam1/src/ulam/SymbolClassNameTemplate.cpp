@@ -394,9 +394,9 @@ namespace MFM {
 		  {
 		  case Int:
 		    {
-		      if(awordsize == MAXBITSPERINT)
+		      if(awordsize <= MAXBITSPERINT)
 			args << ToLeximitedNumber(_SignExtend32((u32)uval, (u32) abs));
-		      else if(awordsize == MAXBITSPERLONG)
+		      else if(awordsize <= MAXBITSPERLONG)
 			args << ToLeximitedNumber64(_SignExtend64(uval, (u32) abs));
 		      else
 			assert(0);
@@ -406,9 +406,9 @@ namespace MFM {
 		  case Unsigned:
 		  case Bits:
 		    {
-		      if(awordsize == MAXBITSPERINT)
+		      if(awordsize <= MAXBITSPERINT)
 			args << ToLeximitedNumber((u32) uval);
-		      else if(awordsize == MAXBITSPERLONG)
+		      else if(awordsize <= MAXBITSPERLONG)
 			args << ToLeximitedNumber64(uval);
 		      else
 			assert(0);
@@ -425,9 +425,9 @@ namespace MFM {
 		  case Bool:
 		    {
 		      bool bval;
-		      if(awordsize == MAXBITSPERINT)
+		      if(awordsize <= MAXBITSPERINT)
 			bval = _Bool32ToCbool((u32) uval, m_state.getBitSize(auti));
-		      else if(awordsize == MAXBITSPERLONG)
+		      else if(awordsize <= MAXBITSPERLONG)
 			bval = _Bool64ToCbool(uval, m_state.getBitSize(auti));
 		      else
 			assert(0);
@@ -512,9 +512,9 @@ namespace MFM {
 		      {
 		      case Int:
 			{
-			  if(awordsize == MAXBITSPERINT)
+			  if(awordsize <= MAXBITSPERINT)
 			    args << _SignExtend32((u32)uval, abs);
-			  else if(awordsize == MAXBITSPERLONG)
+			  else if(awordsize <= MAXBITSPERLONG)
 			    args << _SignExtend64(uval, abs);
 			  else
 			    assert(0);
@@ -537,9 +537,9 @@ namespace MFM {
 		      case Bool:
 			{
 			  bool bval;
-			  if(awordsize == MAXBITSPERINT)
+			  if(awordsize <= MAXBITSPERINT)
 			    bval = _Bool32ToCbool((u32) uval, abs);
-			  else if(awordsize == MAXBITSPERLONG)
+			  else if(awordsize <= MAXBITSPERLONG)
 			    bval = _Bool64ToCbool(uval, abs);
 			  else
 			    assert(0);
@@ -1039,6 +1039,26 @@ namespace MFM {
       }
   } //packBitsForClassInstances
 
+  void SymbolClassNameTemplate::buildDefaultQuarkForClassInstances()
+  {
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	UTI suti = csym->getUlamTypeIdx(); //this instance
+	if(m_state.isComplete(suti))
+	  {
+	    NodeBlockClass * classNode = csym->getClassBlockNode();
+	    assert(classNode);
+	    m_state.pushClassContext(suti, classNode, classNode, false, NULL);
+	    u32 dqval = 0;
+	    csym->getDefaultQuark(dqval); //this instance
+	    m_state.popClassContext();
+	  }
+	it++;
+      }
+  } //buildDefaultQuarkForClassInstances
+
   void SymbolClassNameTemplate::testForClassInstances(File * fp)
   {
     std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
@@ -1224,6 +1244,31 @@ namespace MFM {
     instancesArgs.clear(); //don't delete the symbols
     return true;
   } //copyAnInstancesArgValues
+
+  void SymbolClassNameTemplate::printClassTemplateArgsForPostfix(File * fp)
+  {
+    //    u32 numparams = getNumberOfParameters();
+    u32 pcnt = 0;
+
+    fp->write("(");
+
+    std::vector<SymbolConstantValue *>::iterator pit = m_parameterSymbols.begin();
+    while(pit != m_parameterSymbols.end())
+      {
+	SymbolConstantValue * psym = *pit;
+
+	if(pcnt++ > 0)
+	  fp->write(", ");
+
+	fp->write(m_state.getUlamTypeNameBriefByIndex(psym->getUlamTypeIdx()).c_str());
+	fp->write(" ");
+	fp->write(m_state.m_pool.getDataAsString(psym->getId()).c_str());
+
+	pit++;
+      } //next param
+
+    fp->write(")");
+  } //printClassTemplateArgsForPostfix
 
   // done promptly after the full instantiation
   void SymbolClassNameTemplate::cloneAnInstancesUTImap(SymbolClass * fm, SymbolClass * to)

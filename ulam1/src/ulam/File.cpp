@@ -53,4 +53,19 @@ namespace MFM {
       return write(str.c_str());
     }
 
+  s32 File::write_decimal_unsigned(const u32 data)
+    {
+      char tmp[32+3];
+      sprintf(tmp,"%i",data);
+      return write(tmp);
+    }
+
+  s32 File::write_decimal_unsignedlong(const u64 data)
+    {
+      // We must avoid printfs involving 64 bit quantities,
+      // due to ANSI C99 limitations, so we do this instead.
+      std::string str = ToUnsignedDecimal(data);
+      return write(str.c_str());
+    }
+
 } //end MFM

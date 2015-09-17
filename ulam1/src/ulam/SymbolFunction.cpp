@@ -193,7 +193,7 @@ namespace MFM {
     return rtnBool;
   } //matchingTypesStrictly
 
-  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs)
+  bool SymbolFunction::matchingTypes(std::vector<UTI> argTypes, std::vector<Node *> constantArg, bool& hasHazyArgs, u32& numUTmatch)
   {
     u32 numArgs = argTypes.size();
     u32 numParams = m_parameterSymbols.size();
@@ -222,7 +222,11 @@ namespace MFM {
 		  }
 		else if(scr == CAST_HAZY)
 		  hasHazyArgs = true;
-		//else CAST_CLEAR
+		else //CAST_CLEAR
+		  {
+		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(argTypes[i])->getUlamTypeEnum())
+		      numUTmatch++;
+		  }
 	      } //constantarg
 	    else
 	      {
@@ -235,9 +239,16 @@ namespace MFM {
 		  }
 		else if(scr == CAST_HAZY)
 		  hasHazyArgs = true;
-		//else CAST_CLEAR
+		else //CAST_CLEAR
+		  {
+		    if(m_state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == m_state.getUlamTypeByIndex(argTypes[i])->getUlamTypeEnum())
+		      numUTmatch++;
+		  }
 	      }
 	  }
+	else
+	  numUTmatch++;
+
       } //next param
     return rtnBool;
   } //matchingTypes

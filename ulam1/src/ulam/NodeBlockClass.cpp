@@ -16,7 +16,7 @@ namespace MFM {
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
-    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); instances don't need this; its got symbols
+    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
   }
 
   NodeBlockClass::~NodeBlockClass()
@@ -98,9 +98,19 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
 
+    //output class template arguments type and name
+    if(m_nodeParameterList->getNumberOfNodes() > 0)
+      {
+	UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
+	SymbolClassNameTemplate * cnsym = NULL;
+	assert(m_state.alreadyDefinedSymbolClassNameTemplate(cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym));
+	cnsym->printClassTemplateArgsForPostfix(fp);
+	//m_nodeParameterList->print(fp);
+      }
+
     if(isEmpty())
       {
-	fp->write(" { /* empty class block */ }");
+	fp->write(" { /* empty class block */ }\n");
 	return;
       }
 
@@ -112,21 +122,33 @@ namespace MFM {
     //    if(m_nodeNext)
     //  m_nodeNext->printPostfix(fp);  //datamember vardecls
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
-    //simplifying assumption for testing purposes: center site
-    Coord c0(0,0);
-    s32 slot = c0.convertCoordToIndex();
-
-    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
 
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
-      func->printPostfix(fp);
-    else
-      fp->write(" <NOMAIN>"); //not an error
+      {
+	//simplifying assumption for testing purposes: center site
+	Coord c0(0,0);
+	s32 slot = c0.convertCoordToIndex();
 
+	m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
+
+      func->printPostfix(fp);
+      }
+    else
+      {
+	//has only init dm values
+	printPostfixDataMembersParseTree(fp);
+	fp->write(" <NOMAIN>"); //not an error
+      }
     fp->write(" }");
     fp->write("\n");
   } //printPostfix
+
+  void NodeBlockClass::printPostfixDataMembersParseTree(File * fp)
+  {
+    if(m_nodeNext)
+      m_nodeNext->printPostfix(fp);  //datamember vardecls
+  }
 
   const char * NodeBlockClass::getName()
   {
@@ -239,6 +261,15 @@ namespace MFM {
     return m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
   }
 
+  //starts here, called by SymbolClass
+  bool NodeBlockClass::buildDefaultQuarkValue(u32& dqref)
+  {
+    bool aok = true;
+    if(m_nodeNext)
+      aok = m_nodeNext->buildDefaultQuarkValue(dqref); //side-effect for datamember vardecls
+    return aok;
+  } //buildDefaultQuarkValue
+
   EvalStatus NodeBlockClass::eval()
   {
     //    #define _DEBUG_SKIP_EVAL
@@ -259,32 +290,32 @@ namespace MFM {
     }
 #endif
 
-    evalNodeProlog(0);       //new current frame pointer for nodeeval stack
+    evalNodeProlog(0); //new current frame pointer for nodeeval stack
 
-    EvalStatus evs = ERROR;  //init
+    EvalStatus evs = ERROR; //init
 
-#if 0
+#if 1
     // NodeVarDecl's make UlamValue storage now, so don't want their
     // side-effects for the class definition, rather the instance.
     if(m_nodeNext)
-      m_nodeNext->eval();  //side-effect for datamember vardecls
+      m_nodeNext->eval(); //side-effect for datamember vardecls
 #endif
 
+    // eval test method, if there's one:
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
     if(funcNode)
       {
-	UTI saveClassType = getNodeType();  //temp!!
-	setNodeType(Int);   //for testing WHY? clobbers element/quark type
+	UTI saveClassType = getNodeType(); //temp!!
+	setNodeType(Int); //for testing WHY? clobbers element/quark type
 	UTI funcType = funcNode->getNodeType();
 
-	makeRoomForNodeType(funcType);  //Int return
+	makeRoomForNodeType(funcType); //Int return
 
 	evs = funcNode->eval();
 	if(evs == NORMAL)
 	  {
 	    UlamValue testUV = m_state.m_nodeEvalStack.popArg();
 	    assignReturnValueToStack(testUV);
-	    //rtnValue = rtnUV.getImmediateData(32);
 	  }
 	setNodeType(saveClassType); //temp, restore
       }

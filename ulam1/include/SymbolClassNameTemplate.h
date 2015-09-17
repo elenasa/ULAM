@@ -96,6 +96,7 @@ namespace MFM{
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
+    virtual void buildDefaultQuarkForClassInstances();
 
     virtual void testForClassInstances(File * fp);
 
@@ -106,6 +107,8 @@ namespace MFM{
     virtual void generateForwardDefsForClassInstances(File * fp);
 
     virtual void generateTestInstanceForClassInstances(File * fp, bool runtest);
+
+    void printClassTemplateArgsForPostfix(File * fp);
 
    protected:
 

@@ -25,7 +25,8 @@ Unsigned(3) u;
  s.print((Int) n);
  s.print( n.minof);
  s.print( n.maxof);
- u = -n; s.print((Unsigned) u);
+ u = -n;
+ s.print(u);
  return 0;
 }
 }

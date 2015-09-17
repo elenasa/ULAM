@@ -31,7 +31,9 @@ namespace MFM {
 
   const char * NodeConstant::getName()
   {
-    return NodeTerminal::getName();
+    if(isReadyConstant())
+      return NodeTerminal::getName();
+    return m_state.getTokenDataAsString(&m_token).c_str();
   }
 
   const std::string NodeConstant::prettyNodeName()
@@ -92,6 +94,7 @@ namespace MFM {
 	msg << "' UTI" << it << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain();
       }
 
     setNodeType(it);
@@ -202,6 +205,7 @@ namespace MFM {
   {
     if(!isReadyConstant())
       m_ready = updateConstant(); //sets ready here
+    assert(isReadyConstant()); //must be
     NodeTerminal::genCode(fp, uvpass);
   } //genCode
 

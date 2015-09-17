@@ -199,6 +199,8 @@ namespace MFM{
 
     virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
+    virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
+
   protected:
     UlamKeyTypeSignature m_key;
     CompilerState& m_state;

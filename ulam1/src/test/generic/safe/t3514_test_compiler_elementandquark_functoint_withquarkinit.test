@@ -1,0 +1,61 @@
+## -*- mode:ulam -*-
+#=t3514_test_compiler_elementandquark_functoint_withquarkinit
+#!
+##      // width 9 saturates at 7, then sum 11 also saturates at 7 for Int(4) aritmetic.
+##      // just got implemented!
+##      //Foo.ulam:1:121: (NodeFunctionCall.cpp:evalToStoreInto:269) ERROR: Use of function calls as lefthand values is not currently supported. Save the results of <func> to a variable, type: C2D.
+##
+Exit status: 11
+Ue_Foo { Q q( C2D c( typedef Int(4) I;  Int(4) m_width(7);  Int(4) m_height(4); ); );  Int(32) test() {  q ( )toInt . cast return } }
+Uq_Q { C2D c( typedef Int(4) I;  Int(4) m_width( 7);  Int(4) m_height( 4); );  <NOMAIN> }
+Uq_C2D { typedef Int(4) I;  Int(4) m_width( 7);  Int(4) m_height( 4);  <NOMAIN> }
+##
+## informed by 3411:
+##      //member selection with a function call must be first saved to a
+##      //variable since we results are returned-by-value (see t3188)
+##
+#>Foo.ulam
+ulam 1;
+ use Q;
+ element Foo {
+ Q q;
+ Int test() { return (Int) q;
+ }
+ }
+
+#:Q.ulam
+ulam 1;
+ use C2D;
+ quark Q {
+ C2D c;
+ C2D func(){
+   //c.init();
+   return c;
+ }
+ Int toInt(){
+   return (Int) func();
+ }
+ }
+
+##
+##      // 9 doesn't fit in Int(4); made typedef for Int(4); cast constant. Int(5) changes the results.
+##      //./C2D.ulam:10:10: ERROR: Attempting to fit a constant <9> into a smaller bit size type, LHS: Int(4), for binary operator= .
+##
+#:C2D.ulam
+quark C2D {
+ typedef Int(4) I;
+ I m_width = (I) 9;
+ I m_height = 4;
+ Void init(Int x, Int y) {
+   m_width = (I) x;
+   m_height = (I) y;
+   return;
+ }
+ Int getIndex(Int a, Int b){
+   return ((m_height-b) * m_width + (m_height-a));
+ }
+ Int toInt(){
+   return (m_width + m_height);
+ }
+ }
+#.

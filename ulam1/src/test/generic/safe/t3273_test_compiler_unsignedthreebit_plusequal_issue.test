@@ -46,18 +46,19 @@ Uq_System { <NOMAIN> }
 use System;
 element A {
 System s;
-Int test(){ Unsigned(3) x = 0, y = 0, z = 0;
- for(Int i = 0; i < 12; ++i){
- x+=1;
- s.print((Unsigned) x);
-++y;
- s.print((Unsigned) y);
-z = (Unsigned(3)) (z + 1);
- s.print((Unsigned) z);
- }
- return 0;
- }
- }
+Int test(){
+  Unsigned(3) x = 0, y = 0, z = 0;
+  for(Int i = 0; i < 12; ++i){
+    x+=1;
+    s.print(x);
+    ++y;
+    s.print(y);
+    z = (Unsigned(3)) (z + 1);
+    s.print(z);
+  }
+  return 0;
+}
+}
 
 ##      // ++, += 1 and z = z + 1 all the same; saturates.
 #:System.ulam

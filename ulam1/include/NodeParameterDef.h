@@ -58,9 +58,11 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual void fixPendingArgumentNode();
+
     virtual UTI checkAndLabelType();
 
-    virtual void fixPendingArgumentNode();
+    virtual bool buildDefaultQuarkValue(u32& dqref);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 

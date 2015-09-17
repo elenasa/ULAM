@@ -40,7 +40,7 @@ BEGIN {
 my $TOPLEVEL = "$ULAM_ROOT";
 my $TESTDIR =  "$ULAM_ROOT/src/test/generic";
 my $TESTBIN =  "$ULAM_ROOT/src/test/bin";
-my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files
+my $EXEC_TEST_VALGRIND = 0;  #=1 produces uncomparable log files (grep for "leaked" in them).
 my $SRC_DIR = "safe";
 #my $SRC_DIR = "error";
 my $TESTGENCODE = 0; # 0 is faster; 1 is thorough
@@ -162,6 +162,7 @@ sub main
 		$TESTGENCODE && `make -C $TESTDIR clean`; #before test
 
 		`./bin/culamtest $f 1> $log 2> $errlog`;
+		##`./bin/culamtest $f 1> $log`;  ##outputs errlog to stderr
                 my $status = $?;
                 if ($status == 0) {
                     ++$testsPassed;

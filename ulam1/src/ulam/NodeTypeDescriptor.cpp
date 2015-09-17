@@ -126,7 +126,7 @@ namespace MFM {
 	    nuti = mappedUTI;
 	  }
 
-	if(!m_state.isComplete(nuti)) //reloads to recheck
+	if(!m_state.isComplete(nuti)) //reloads to recheck for debug message
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete descriptor for type: ";

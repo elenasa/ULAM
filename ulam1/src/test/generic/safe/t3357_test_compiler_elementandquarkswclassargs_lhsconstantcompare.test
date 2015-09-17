@@ -3,7 +3,7 @@
 #!
 Exit status: 1
 Ue_Foo { Int(32) test() {  Booly(true) b;  b ( )behave . cast return } }
-Uq_Booly { constant Bool(1) bomb = NONREADYCONST;  <NOMAIN> }
+Uq_Booly(Bool(1) bomb) { <NOMAIN> }
 ##
 ##      //informed by issue: also tests Bool as class parameter
 #>Foo.ulam

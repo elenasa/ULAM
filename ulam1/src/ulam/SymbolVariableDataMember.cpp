@@ -3,12 +3,12 @@
 
 namespace MFM {
 
-  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, PACKFIT packed, u32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_dataMemberUnpackedSlotIndex(slot)
+  SymbolVariableDataMember::SymbolVariableDataMember(Token id, UTI utype, PACKFIT packed, u32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_dataMemberUnpackedSlotIndex(slot), m_hasInitValue(false), m_initvalReady(false), m_initval(0)
   {
     setDataMember();
   }
 
-  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex) {}
+  SymbolVariableDataMember::SymbolVariableDataMember(const SymbolVariableDataMember& sref) : SymbolVariable(sref), m_dataMemberUnpackedSlotIndex(sref.m_dataMemberUnpackedSlotIndex), m_hasInitValue(sref.m_hasInitValue), m_initvalReady(false), m_initval(0) {} //initval set by node vardecl c&l
 
   SymbolVariableDataMember::~SymbolVariableDataMember()
   {
@@ -33,6 +33,40 @@ namespace MFM {
   const std::string SymbolVariableDataMember::getMangledPrefix()
   {
     return "Um_";
+  }
+
+  bool SymbolVariableDataMember::hasInitValue()
+  {
+    return m_hasInitValue;
+  }
+
+  void SymbolVariableDataMember::setHasInitValue()
+  {
+     m_hasInitValue = true;
+     m_initvalReady = false;
+  }
+
+  bool SymbolVariableDataMember::initValueReady()
+  {
+    return m_initvalReady;
+  }
+
+  bool SymbolVariableDataMember::getInitValue(u64& val)
+  {
+    assert(hasInitValue());
+
+    if(initValueReady())
+      {
+	val = m_initval;
+	return true;
+      }
+    return false;
+  } //getInitValue
+
+  void SymbolVariableDataMember::setInitValue(u64 val)
+  {
+    m_initvalReady = true;
+    m_initval = val;
   }
 
   // replaced by NodeVarDecl:genCode to leverage the declaration order preserved by the parse tree.
@@ -133,18 +167,22 @@ namespace MFM {
 
 	if(size > 0)
 	  {
-	    //simplifying assumption for testing purposes: center site
-	    //Coord c0(0,0);
-	    //u32 slot = c0.convertCoordToIndex();
-
 	    //build the string of values (for both scalar and packed array)
 	    UlamValue arrayPtr = UlamValue::makePtr(slot, EVENTWINDOW, vuti, packFit, m_state, startpos + getPosOffset(), getId());
 	    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
 
 	    UlamValue atval = m_state.getPtrTarget(nextPtr);
-	    s32 len = nextPtr.getPtrLen();
-	    assert(len != UNKNOWNSIZE);
-	    if(len <= MAXBITSPERINT)
+	    s32 len = m_state.getBitSize(vuti); //nextPtr.getPtrLen();
+	    //assert(len != UNKNOWNSIZE);
+	    if(len == UNKNOWNSIZE)
+	      {
+		sprintf(valstr,"unknown");
+		for(s32 i = 1; i < size; i++)
+		  {
+		    strcat(valstr,", unknown");
+		  }
+	      }
+	    else if(len <= MAXBITSPERINT)
 	      {
 		u32 data = atval.getDataFromAtom(nextPtr, m_state);
 		vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','

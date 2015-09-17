@@ -103,7 +103,7 @@ namespace MFM {
 		    if(lut->isComplete())
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    else
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    newType = Nav; //error!
 		    errorCount++;
 		  }
@@ -145,7 +145,7 @@ namespace MFM {
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    idxuti = Nav; //error!
 		    errorCount++;
-		      }
+		  }
 	      }
 	    else
 	      {
@@ -197,6 +197,8 @@ namespace MFM {
 	// multi-dimensional possible; MP not ok lhs.
 	setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
       }
+    else
+      m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
 
     setNodeType(newType);
     return newType;

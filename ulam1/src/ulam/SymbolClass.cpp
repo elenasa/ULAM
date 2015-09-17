@@ -33,9 +33,9 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true) /* default */ {}
+  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_quarkDefaultValue(0), m_isreadyQuarkDefaultValue(false) /* default */ {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_quarkDefaultValue(sref.m_quarkDefaultValue), m_isreadyQuarkDefaultValue(false)
   {
     if(sref.m_classBlock)
       {
@@ -224,6 +224,41 @@ namespace MFM {
       }
     MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(),INFO);
   } //printBitSizeOfClass
+
+  bool SymbolClass::getDefaultQuark(u32& dqref)
+  {
+    assert(getUlamClass() == UC_QUARK);
+
+    if(m_isreadyQuarkDefaultValue)
+      {
+	dqref = m_quarkDefaultValue;
+	return true; //short-circuit, known
+      }
+
+    UTI suti = getUlamTypeIdx();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+
+    assert(sut->isComplete());
+
+    if(sut->getBitSize() == 0)
+      {
+	m_isreadyQuarkDefaultValue = true;
+	dqref = m_quarkDefaultValue = 0;
+	return true; //short-circuit, no data members
+      }
+
+    dqref = 0; //init
+    NodeBlockClass * classblock = getClassBlockNode();
+    if(classblock->buildDefaultQuarkValue(dqref))
+      {
+	m_isreadyQuarkDefaultValue = true;
+	m_quarkDefaultValue = dqref;
+      }
+    else
+      m_isreadyQuarkDefaultValue = false;
+
+    return m_isreadyQuarkDefaultValue;
+  } //getDefaultQuark
 
   void SymbolClass::testThisClass(File * fp)
   {

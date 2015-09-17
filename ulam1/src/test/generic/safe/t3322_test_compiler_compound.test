@@ -3,7 +3,7 @@
 #!
 Exit status: 1
 Ue_A { Bar bar( Bool(1) b(true); );  Int(32) test() {  bar b . true = bar b . cast return } }
-Uq_Bar { Bool(1) b(true);  <NOMAIN> }
+Uq_Bar { Bool(1) b(false);  <NOMAIN> }
 #>A.ulam
 quark Bar{Bool b;
  }

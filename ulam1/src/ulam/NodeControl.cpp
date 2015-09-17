@@ -146,7 +146,10 @@ namespace MFM {
 	m_nodeBody->checkAndLabelType(); //side-effect
       }
     else
-      newType = cuti;
+      {
+	newType = cuti;
+	m_state.setGoAgain();
+      }
 
     setNodeType(newType);  //stays the same
     setStoreIntoAble(false);

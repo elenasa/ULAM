@@ -76,6 +76,7 @@ namespace MFM {
 	msg << "Type Bitsize specifier: " << m_state.getUlamTypeNameBriefByIndex(it);
 	msg << ", within (), is not ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain(); //since not error
 	return Nav; //short-circuit
       }
 
@@ -152,7 +153,6 @@ namespace MFM {
 	    return false;
 	  }
 
-	//if(newbitsize > MAXBITSPERINT)
 	if(newbitsize > MAXBITSPERLONG)
 	  {
 	    std::ostringstream msg;

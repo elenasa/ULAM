@@ -54,7 +54,7 @@ namespace MFM {
 
   UlamValue UlamValue::makeImmediate(UTI utype, u32 v, CompilerState& state)
   {
-    s32 len = state.getBitSize(utype);
+    s32 len = state.getTotalBitSize(utype); //possible packed array (e.g. default qks)
     assert(len != UNKNOWNSIZE);
     return UlamValue::makeImmediate(utype, v, len);
   } //makeImmediate
@@ -71,7 +71,7 @@ namespace MFM {
 
   UlamValue UlamValue::makeImmediateLong(UTI utype, u64 v, CompilerState& state)
   {
-    s32 len = state.getBitSize(utype);
+    s32 len = state.getTotalBitSize(utype);
     assert(len != UNKNOWNSIZE);
     return UlamValue::makeImmediateLong(utype, v, len);
   } //makeImmediateLong
@@ -79,7 +79,7 @@ namespace MFM {
   UlamValue UlamValue::makeImmediateLong(UTI utype, u64 v, s32 len)
   {
     UlamValue rtnVal; //static
-    assert(len <=MAXBITSPERLONG && (s32) len >= 0); //very important!
+    assert(len <= MAXBITSPERLONG && (s32) len >= 0); //very important!
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
     rtnVal.putDataLong(BITSPERATOM - len, len, v); //starts from end for 32-bit boundary case
