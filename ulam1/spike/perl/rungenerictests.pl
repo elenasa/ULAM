@@ -161,8 +161,15 @@ sub main
 	    {
 		$TESTGENCODE && `make -C $TESTDIR clean`; #before test
 
-		`./bin/culamtest $f 1> $log 2> $errlog`;
-		##`./bin/culamtest $f 1> $log`;  ##outputs errlog to stderr
+		if($SRC_DIR =~ /error/)
+		{
+		    `./bin/culamtest $f 1> $log`;  ##outputs errlog to stderr
+		}
+		else
+		{
+		    `./bin/culamtest $f 1> $log 2> $errlog`;
+		}
+
                 my $status = $?;
                 if ($status == 0) {
                     ++$testsPassed;

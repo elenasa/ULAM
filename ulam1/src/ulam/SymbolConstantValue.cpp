@@ -46,6 +46,7 @@ namespace MFM {
     fp->write(" = ");
 
     SymbolWithValue::printPostfixValue(fp);
+    fp->write("; ");
   } //printPostfixValuesOfVariableDeclarations
 
 } //end MFM

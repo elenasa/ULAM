@@ -80,6 +80,26 @@ namespace MFM {
     return m_parameterSymbols.size();
   }
 
+  bool SymbolClassNameTemplate::parameterHasDefaultValue(u32 n)
+  {
+    assert(n < m_parameterSymbols.size());
+    NodeBlockClass * templateclassblock = getClassBlockNode();
+    Node * pnode = templateclassblock->getParameterNode(n);
+    assert(pnode);
+    return ((NodeConstantDef *) pnode)->hasConstantExpr();
+  } //parameterHasDefaultValue
+
+  u32 SymbolClassNameTemplate::getTotalParametersWithDefaultValues()
+  {
+    u32 count = 0;
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+      {
+	if(parameterHasDefaultValue(i))
+	  count++;
+      }
+    return count;
+  } //getTotalParametersWithDefaultValues
+
   u32 SymbolClassNameTemplate::getTotalParameterSlots()
   {
     u32 totalsizes = 0;
@@ -239,6 +259,7 @@ namespace MFM {
     if(m_scalarClassInstanceIdxToSymbolPtr.size() > 0)
       {
 	u32 numparams = getNumberOfParameters();
+	u32 numDefaultParams = getTotalParametersWithDefaultValues();
 	std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.begin();
 	while(it != m_scalarClassInstanceIdxToSymbolPtr.end())
 	  {
@@ -257,9 +278,11 @@ namespace MFM {
 	    //can have 0Holder symbols for possible typedefs seen from another class
 	    //which will increase the count of symbols; can only test for at least
 	    u32 cargs = cblock->getNumberOfSymbolsInTable();
-	    if(cargs < numparams)
+	    //if(cargs < numparams)
+	    if(cargs < numparams && ((cargs + numDefaultParams) < numparams))
 	      {
 		//number of arguments in class instance does not match the number of parameters
+		// including those with default values (u.1.2.1)
 		std::ostringstream msg;
 		msg << "Number of Arguments (" << cargs << ") in class instance '";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
@@ -273,7 +296,9 @@ namespace MFM {
 	    //replace the temporary id with the official parameter name id;
 	    //update the class instance's ST.
 	    u32 foundArgs = 0;
-	    for(u32 i = 0; i < numparams; i++)
+	    s32 firstDefaultParamUsed = -1;
+	    s32 lastDefaultParamUsed = -1;
+	    for(s32 i = 0; i < (s32) numparams; i++)
 	      {
 		Symbol * argsym = NULL;
 		std::ostringstream sname;
@@ -287,11 +312,37 @@ namespace MFM {
 		    cblock->replaceIdInScope(sid, m_parameterSymbols[i]->getId(), argsym);
 		    foundArgs++;
 		  }
+		else
+		  {
+		    if(firstDefaultParamUsed < 0)
+		      firstDefaultParamUsed = lastDefaultParamUsed = i;
+		    else if(i > (lastDefaultParamUsed + 1))
+		      {
+			//error, must continue to be defaults after first one
+			std::ostringstream msg;
+			msg << "Arg " << i + 1 << " (of " << numparams;
+			msg << ") in class instance '";
+			msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
+			msg << "' comes after the last default parameter value used (";
+			msg << lastDefaultParamUsed << ") to fix";
+			MSG(Symbol::getTokPtr(), msg.str().c_str(),ERR);
+		      }
+		    else
+		      {
+			lastDefaultParamUsed = i;
+			// and make a new symbol that's like the default param
+			SymbolConstantValue * asym2 = new SymbolConstantValue(* ((SymbolConstantValue * ) argsym));
+			assert(asym2);
+			asym2->setBlockNoOfST(cblock->getNodeNo());
+			m_state.addSymbolToCurrentScope(asym2);
+			foundArgs++;
+		      }
+		  }
 	      }
 
 	    if(foundArgs != numparams)
 	      {
-		//number of arguments in class instance does not match the number of parameters
+		//num arguments in class instance does not match number of parameters
 		std::ostringstream msg;
 		msg << "Number of Arguments (" << foundArgs << ") in class instance '";
 		msg << m_state.m_pool.getDataAsString(csym->getId()).c_str(); //not a uti
@@ -1144,7 +1195,9 @@ namespace MFM {
     assert(fmclassblock);
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
-    if(cargs < numparams)
+    u32 numDefaultParams = getTotalParametersWithDefaultValues();
+    //if(cargs < numparams)
+    if(cargs < numparams && ((cargs + numDefaultParams) < numparams))
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
@@ -1166,7 +1219,7 @@ namespace MFM {
 	SymbolConstantValue * psym = *pit;
 	//save 'instance's arg constant symbols in a temporary list
 	Symbol * asym = NULL;
-	assert(m_state.takeSymbolFromCurrentScope(psym->getId(), asym)); //ownership transferred to temp list
+	m_state.takeSymbolFromCurrentScope(psym->getId(), asym); //ownership transferred to temp list; NULL if using default value
 	instancesArgs.push_back((SymbolConstantValue *) asym);
 	pit++;
       } //next param
@@ -1180,10 +1233,14 @@ namespace MFM {
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
 	SymbolConstantValue * asym = instancesArgs[i];
-	u32 aid = asym->getId();
+	//u32 aid = asym->getId(); arg might be null if default value used
+	u32 aid = m_parameterSymbols[i]->getId();
 	Symbol * clonesym = NULL;
 	assert(m_state.alreadyDefinedSymbol(aid, clonesym));
-	m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
+	if(asym)
+	  m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
+	else
+	  m_state.addSymbolToCurrentScope(clonesym); //adds new
       } //next arg
 
     instancesArgs.clear(); //don't delete the symbols
@@ -1197,7 +1254,9 @@ namespace MFM {
     assert(fmclassblock);
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
-    if(cargs < numparams)
+    u32 numDefaultParams = getTotalParametersWithDefaultValues();
+    //if(cargs < numparams)
+    if(cargs < numparams && ((cargs + numDefaultParams) < numparams))
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
@@ -1257,13 +1316,19 @@ namespace MFM {
       {
 	SymbolConstantValue * psym = *pit;
 
-	if(pcnt++ > 0)
+	if(pcnt > 0)
 	  fp->write(", ");
 
 	fp->write(m_state.getUlamTypeNameBriefByIndex(psym->getUlamTypeIdx()).c_str());
 	fp->write(" ");
 	fp->write(m_state.m_pool.getDataAsString(psym->getId()).c_str());
 
+	if(parameterHasDefaultValue(pcnt))
+	  {
+	    fp->write(" = ");
+	    psym->printPostfixValue(fp);
+	  }
+	pcnt++;
 	pit++;
       } //next param
 

@@ -52,6 +52,9 @@ namespace MFM{
 
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();
+    bool parameterHasDefaultValue(u32 n);
+    u32 getTotalParametersWithDefaultValues();
+
     u32 getTotalParameterSlots();
     Symbol * getParameterSymbolPtr(u32 n);
 

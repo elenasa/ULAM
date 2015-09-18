@@ -16,7 +16,7 @@ namespace MFM {
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
-    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
+    m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
   }
 
   NodeBlockClass::~NodeBlockClass()
@@ -201,6 +201,12 @@ namespace MFM {
   {
     assert(m_nodeParameterList); //must be a template
     m_nodeParameterList->addNodeToList(nodeArg);
+  }
+
+  Node * NodeBlockClass::getParameterNode(u32 n) const
+  {
+    assert(m_nodeParameterList); //must be a template
+    return m_nodeParameterList->getNodePtr(n);
   }
 
   void NodeBlockClass::countNavNodes(u32& cnt)

@@ -70,7 +70,7 @@
 namespace MFM {
 
 #define QUIETLY true
-#define NOASSIGN false
+#define NOASSIGNOK false
 #define SINGLEDECL true
 
   Parser::Parser(Tokenizer * izer, CompilerState & state): m_state(state), m_tokenizer(izer)
@@ -403,7 +403,7 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	Node * argNode = parseConstdef(NOASSIGN); //named constants
+	Node * argNode = parseConstdef(NOASSIGNOK); //named constants
 	Symbol * argSym = NULL;
 
 	//could be null symbol already in scope
@@ -418,18 +418,17 @@ namespace MFM {
 	      }
 	    else
 	      MSG(&pTok, "No symbol from class parameter declaration", ERR);
-	    //}
+
 	    //potentially needed to resolve its node type
-	    //delete argNode; //no longer needed
 	    cblock->addParameterNode(argNode);
 	  }
       }
     else
       {
 	std::ostringstream msg;
-	msg << "Expected 'A Type' Token!! got Token <";
+	msg << "Expected a 'Type' Token!! got Token '";
 	msg << m_state.getTokenDataAsString(&pTok).c_str();
-	msg << "> instead for class parameter declaration";
+	msg << "' instead for class parameter declaration";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	//continue or short-circuit?
       }
@@ -1320,7 +1319,7 @@ namespace MFM {
   //they are a short-hand for scalar constant expressions (e.g. terminals),
   //that are not 'storeintoable'; scope-specific.
   //doubles as class parameter without keyword or assignment.
-  Node * Parser::parseConstdef(bool assignOK)
+  Node * Parser::parseConstdef(bool assignREQ)
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -1332,7 +1331,7 @@ namespace MFM {
 	TypeArgs typeargs;
 	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
 	assert(typeNode);
-	typeargs.m_assignOK = assignOK;
+	typeargs.m_assignOK = assignREQ;
 
 	Token iTok;
 	getNextToken(iTok);
@@ -1344,9 +1343,9 @@ namespace MFM {
 	else
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid constant definition Alias <";
+	    msg << "Invalid constant definition Alias '";
 	    msg << m_state.getTokenDataAsString(&iTok).c_str();
-	    msg << ">, Constant Identifier (2nd arg) requires lower-case";
+	    msg << "', Constant Identifier (2nd arg) requires lower-case";
 	    MSG(&iTok, msg.str().c_str(), ERR);
 	    delete typeNode;
 	    typeNode = NULL;
@@ -1355,10 +1354,10 @@ namespace MFM {
     else
       {
 	std::ostringstream msg;
-	msg << "Invalid constant definition Type <";
-	msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+	msg << "Invalid constant definition Type '";
+	msg << m_state.getTokenDataAsString(&pTok).c_str() << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
-	if(assignOK)
+	if(assignREQ)
 	  getTokensUntil(TOK_SEMICOLON);
 	else
 	  {
@@ -1584,11 +1583,12 @@ namespace MFM {
 
     UTI cuti = ctsym->getUlamTypeIdx();
     u32 numParams = ctsym->getNumberOfParameters();
+    u32 numParamDefaults = ctsym->getTotalParametersWithDefaultValues();
 
     getNextToken(pTok);
     if(pTok.m_type == TOK_CLOSE_PAREN)
       {
-	if(numParams > 0)
+	if(numParams > 0 && numParamDefaults != numParams)
 	  {
 	    //params but no args
 	    std::ostringstream msg;
@@ -1597,11 +1597,20 @@ namespace MFM {
 	    msg << "' with " << numParams << " parameters";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	    cuti = Nav;
+	    return cuti; //ok to return
 	  }
-	return cuti; //ok to return
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "No Class Arguments for an instance stub of class template '";
+	    msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str();
+	    msg << "' with " << numParams << " parameters";
+	    msg << "; using " << numParamDefaults << " default values";
+	    MSG(&pTok, msg.str().c_str(), DEBUG);
+	  }
       }
 
-    unreadToken(); //not close paren yet
+    unreadToken(); //not close paren yet; unless using defaults (u.1.2.1)
 
     //make a (shallow) Class Instance Stub to collect class args as SymbolConstantValues;
     //has its own uti that will become part of its key; (too soon for a deep copy!)
@@ -1621,11 +1630,14 @@ namespace MFM {
     bool ctUnseen = (ctsym->getUlamClass() == UC_UNSEEN);
     if(!ctUnseen && (parmidx < ctsym->getNumberOfParameters()))
       {
-	std::ostringstream msg;
-	msg << "Too few Class Arguments parsed, " << "(" << parmidx << "), for template: ";
-	msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
-	msg << ", by " << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str() ;
-	MSG(&typeTok, msg.str().c_str(), ERR);
+	if(!ctsym->parameterHasDefaultValue(parmidx))
+	  {
+	    std::ostringstream msg;
+	    msg << "Too few Class Arguments parsed, " << "(" << parmidx << "), for template: ";
+	    msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() ;
+	    msg << ", by " << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str() ;
+	    MSG(&typeTok, msg.str().c_str(), ERR);
+	  }
       }
     return cuti;
   } //parseClassArguments
@@ -1705,6 +1717,20 @@ namespace MFM {
     getNextToken(pTok);
     if(pTok.m_type != TOK_COMMA)
       unreadToken();
+    else
+      {
+	//comma followed by close paren is a parse error
+	Token qTok;
+	getNextToken(qTok);
+	unreadToken();
+	if(qTok.m_type == TOK_CLOSE_PAREN)
+	  {
+	    std::ostringstream msg;
+	    msg << "Class Argument after Comma is missing, for template '";
+	    msg << m_state.m_pool.getDataAsString(csym->getId()).c_str() << "'";
+	    MSG(&qTok, msg.str().c_str(), ERR);
+	  }
+      }
 
     return parseRestOfClassArguments(csym, ctsym, ++parmIdx); //recurse
   } //parseRestOfClassArguments
@@ -3046,11 +3072,12 @@ namespace MFM {
     return parseRestOfDecls(args, identTok, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
 
-  NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK)
+  NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ)
   {
     NodeConstantDef * rtnNode = constNode;
     Token pTok;
-    if(assignOK && getExpectedToken(TOK_EQUAL, pTok, QUIETLY))
+    //    if(assignOK && getExpectedToken(TOK_EQUAL, pTok, QUIETLY))
+    if(getExpectedToken(TOK_EQUAL, pTok, QUIETLY))
       {
 	Node * exprNode = parseExpression();
 	if(exprNode)
@@ -3066,7 +3093,7 @@ namespace MFM {
     else
       {
 	//let the = constant expr be optional in case of class params
-	if(assignOK)
+	if(assignREQ)
 	  {
 	    std::ostringstream msg;
 	    msg << "Missing '=' after named constant definition";
@@ -3085,7 +3112,7 @@ namespace MFM {
 	  }
       }
 
-    if(assignOK)
+    if(assignREQ)
       {
 	if(!getExpectedToken(TOK_SEMICOLON))
 	  {

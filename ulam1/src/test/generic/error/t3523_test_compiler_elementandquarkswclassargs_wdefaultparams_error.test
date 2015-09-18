@@ -1,0 +1,33 @@
+## -*- mode:ulam -*-
+#=t3523_test_compiler_elementandquarkswclassargs_wdefaultparams_error
+#!
+##
+##./P.ulam:6:9: ERROR: Class Argument after Comma is missing, for template 'Q'.
+##./P.ulam:7:11: ERROR: Too many Class Arguments (3); Class Template 'Q' expects 2.
+##./P.ulam:8:7: ERROR: Class Argument after Open Paren is missing, for template 'Q'.
+##./P.ulam:8:7: ERROR: Name of variable <,>: Identifier must begin with a lower-case letter.
+##
+Exit status: -1
+##
+#>P.ulam
+ulam 1;
+use Q;
+element P {
+  Bool b;
+  Int test() {
+    Q(2,) notwork1;
+    Q(2,3,4) notwork2;
+    Q(,3) notwork3;
+    return -1;
+  }
+}
+
+#:Q.ulam
+ulam 1;
+quark Q(Int s = 2, Int t = 3) {
+  typedef Unsigned(s) Foo;
+  typedef Unsigned(t) Bar;
+  Foo f;
+  Bar b;
+}
+#.

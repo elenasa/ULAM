@@ -10,7 +10,8 @@ namespace MFM {
   {
     if(symptr)
       {
-	// node uses current block no, not the one saved in the symbol (e.g. pending class args)
+	// node uses current block no, not the one saved in the symbol
+	// (e.g. pending class args)
 	m_cid = symptr->getId();
       }
     else
@@ -170,7 +171,7 @@ namespace MFM {
 	  }
       }
 
-    // NOASSIGN (e.g. for class parameters) doesn't have this!
+    // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
     if(m_nodeExpr)
       {
 	if(!m_nodeExpr->isAConstant())
@@ -198,7 +199,6 @@ namespace MFM {
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
-
       }
 
     if(!m_state.isComplete(suti)) //reloads
@@ -318,6 +318,11 @@ namespace MFM {
   {
     m_nodeExpr = node;
     m_nodeExpr->updateLineage(getNodeNo()); //for unknown subtrees
+  }
+
+  bool NodeConstantDef::hasConstantExpr()
+  {
+    return (m_nodeExpr != NULL);
   }
 
   // called during parsing rhs of named constant;

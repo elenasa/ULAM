@@ -85,6 +85,8 @@ namespace MFM{
 
     void setConstantExpr(Node * node);
 
+    bool hasConstantExpr();
+
     bool foldConstantExpression();
 
     virtual bool buildDefaultQuarkValue(u32& dqref);

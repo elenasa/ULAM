@@ -116,7 +116,6 @@ namespace MFM {
       }
     else
       fp->write("NONREADYCONST");
-    fp->write("; ");
   } //printPostfixValue
 
   bool SymbolWithValue::getLexValue(std::string& vstr)
