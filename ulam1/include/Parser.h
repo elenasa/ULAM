@@ -179,7 +179,7 @@ namespace MFM{
     /**
        <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
-    Node * parseConstdef(bool assignREQ = true);
+    Node * parseConstdef(bool assignREQ = true, bool isStmt = true);
 
     /**
        <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
@@ -334,7 +334,7 @@ namespace MFM{
 
     Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
 
-    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true);
+    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 
     NodeParameterDef * parseRestOfParameterDef(NodeParameterDef * paramNode);
 

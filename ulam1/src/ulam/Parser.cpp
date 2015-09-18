@@ -403,7 +403,12 @@ namespace MFM {
     if(Token::isTokenAType(pTok))
       {
 	unreadToken();
-	Node * argNode = parseConstdef(NOASSIGNOK); //named constants
+
+	//once a parameter has a default value expression
+	// subsequent parameters must also to avoid ambiguity when instaniated
+	u32 numparams = cntsym->getNumberOfParameters();
+	bool assignrequired = ( (numparams == 0) ? NOASSIGNOK : cntsym->parameterHasDefaultValue(numparams - 1));
+	Node * argNode = parseConstdef(assignrequired, false); //named constants; 2nd arg ->not statement
 	Symbol * argSym = NULL;
 
 	//could be null symbol already in scope
@@ -431,6 +436,7 @@ namespace MFM {
 	msg << "' instead for class parameter declaration";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	//continue or short-circuit?
+	return;
       }
 
     getExpectedToken(TOK_COMMA); //if so, get next parameter; o.w. unread
@@ -1319,7 +1325,7 @@ namespace MFM {
   //they are a short-hand for scalar constant expressions (e.g. terminals),
   //that are not 'storeintoable'; scope-specific.
   //doubles as class parameter without keyword or assignment.
-  Node * Parser::parseConstdef(bool assignREQ)
+  Node * Parser::parseConstdef(bool assignREQ, bool isStmt)
   {
     Node * rtnNode = NULL;
     Token pTok;
@@ -1332,6 +1338,7 @@ namespace MFM {
 	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
 	assert(typeNode);
 	typeargs.m_assignOK = assignREQ;
+	typeargs.m_isStmt = isStmt;
 
 	Token iTok;
 	getNextToken(iTok);
@@ -1357,7 +1364,7 @@ namespace MFM {
 	msg << "Invalid constant definition Type '";
 	msg << m_state.getTokenDataAsString(&pTok).c_str() << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
-	if(assignREQ)
+	if(isStmt)
 	  getTokensUntil(TOK_SEMICOLON);
 	else
 	  {
@@ -3072,7 +3079,7 @@ namespace MFM {
     return parseRestOfDecls(args, identTok, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
 
-  NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ)
+  NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ, bool isStmt)
   {
     NodeConstantDef * rtnNode = constNode;
     Token pTok;
@@ -3096,15 +3103,20 @@ namespace MFM {
 	if(assignREQ)
 	  {
 	    std::ostringstream msg;
-	    msg << "Missing '=' after named constant definition";
+	    msg << "Missing '=' after named constant definition '";
+	    msg << m_state.m_pool.getDataAsString(constNode->getSymbolId()).c_str() << "'";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 
-	    //perhaps read until semi-colon
-	    getTokensUntil(TOK_SEMICOLON);
-	    unreadToken();
-	    delete constNode; //also deletes the symbol, and nodetypedesc.
-	    constNode = NULL;
-	    rtnNode = NULL;
+	    if(isStmt)
+	      {
+		//perhaps read until semi-colon
+		getTokensUntil(TOK_SEMICOLON);
+		unreadToken();
+
+		delete constNode; //also deletes the symbol, and nodetypedesc.
+		constNode = NULL;
+		rtnNode = NULL;
+	      }
 	  }
 	else
 	  {
@@ -3112,7 +3124,7 @@ namespace MFM {
 	  }
       }
 
-    if(assignREQ)
+    if(isStmt)
       {
 	if(!getExpectedToken(TOK_SEMICOLON))
 	  {
@@ -3122,8 +3134,8 @@ namespace MFM {
 	    msg << "; Lists not supported";
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
-      else
-	unreadToken();
+	else
+	  unreadToken();
       }
     return rtnNode;
   } //parseRestOfConstantDef
@@ -3656,11 +3668,12 @@ namespace MFM {
 	    nodetyperef = NULL;
 
 	    //perhaps read until semi-colon
-	    if(args.m_assignOK)
+	    if(args.m_isStmt)
 	      {
 		getTokensUntil(TOK_SEMICOLON);
 		unreadToken();
 	      }
+	    //else class parameter list
 	  }
 	else
 	  {
@@ -3672,7 +3685,7 @@ namespace MFM {
 	    assert(constNode);
 	    constNode->setNodeLocation(args.m_typeTok.m_locator);
 
-	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK); //refactored for readability
+	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK, args.m_isStmt); //refactored for readability
 	  }
       }
     else

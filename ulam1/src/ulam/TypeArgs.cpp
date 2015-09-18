@@ -11,7 +11,8 @@ namespace MFM {
       m_classInstanceIdx(tref.m_classInstanceIdx),
       m_anothertduti(tref.m_anothertduti),
       m_declListOrTypedefScalarType(tref.m_declListOrTypedefScalarType),
-      m_assignOK(tref.m_assignOK)
+      m_assignOK(tref.m_assignOK),
+      m_isStmt(tref.m_isStmt)
     {}
 
   TypeArgs::~TypeArgs() {}
@@ -25,6 +26,7 @@ namespace MFM {
     m_anothertduti = Nav;
     m_declListOrTypedefScalarType = Nav;
     m_assignOK = true;
+    m_isStmt = true;
   }
 
   TypeArgs& TypeArgs::operator=(const TypeArgs& tref)
@@ -36,6 +38,7 @@ namespace MFM {
     m_anothertduti = tref.m_anothertduti;
     m_declListOrTypedefScalarType = tref.m_declListOrTypedefScalarType;
     m_assignOK = tref.m_assignOK;
+    m_isStmt = tref.m_isStmt;
     return *this;
   }
 
