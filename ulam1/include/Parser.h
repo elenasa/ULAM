@@ -48,7 +48,7 @@
 #include "NodeConditionalAs.h"
 #include "NodeConstantDef.h"
 #include "NodeFunctionCall.h"
-#include "NodeParameterDef.h"
+#include "NodeModelParameterDef.h"
 #include "NodeStatements.h"
 #include "NodeSquareBracket.h"
 #include "NodeTypeDescriptor.h"
@@ -179,7 +179,7 @@ namespace MFM{
     /**
        <CONST_DEF> := 'constant' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
     */
-    Node * parseConstdef(bool assignOK = true);
+    Node * parseConstdef(bool assignREQ = true, bool isStmt = true);
 
     /**
        <PARAMETER_DEF> := 'parameter' + <TYPE> + <IDENT> + '=' + <EXPRESSION>
@@ -334,9 +334,9 @@ namespace MFM{
 
     Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
 
-    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignOK = true);
+    NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 
-    NodeParameterDef * parseRestOfParameterDef(NodeParameterDef * paramNode);
+    NodeModelParameterDef * parseRestOfParameterDef(NodeModelParameterDef * paramNode);
 
     /**
 	<FUNC_DEF>  := <ULAM_FUNC_DEF> | <NATIVE_FUNC_DEF>

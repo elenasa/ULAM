@@ -16,7 +16,7 @@ namespace MFM {
   NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
-    //m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
+    m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
   }
 
   NodeBlockClass::~NodeBlockClass()
@@ -162,14 +162,18 @@ namespace MFM {
 
   UTI NodeBlockClass::checkAndLabelType()
   {
+    // for debug purposes only
+    m_state.isClassATemplate(m_state.getCompileThisIdx());
+
+    //do first, might be important!
+    checkParameterNodeTypes();
+
     //side-effect DataMember VAR DECLS
     if(m_nodeNext)
       m_nodeNext->checkAndLabelType();
 
     // label all the function definition bodies
     m_functionST.labelTableOfFunctions();
-
-    checkParameterNodeTypes();
 
     // check that a 'test' function returns Int (ulam convention)
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
@@ -201,6 +205,12 @@ namespace MFM {
   {
     assert(m_nodeParameterList); //must be a template
     m_nodeParameterList->addNodeToList(nodeArg);
+  }
+
+  Node * NodeBlockClass::getParameterNode(u32 n) const
+  {
+    assert(m_nodeParameterList); //must be a template
+    return m_nodeParameterList->getNodePtr(n);
   }
 
   void NodeBlockClass::countNavNodes(u32& cnt)

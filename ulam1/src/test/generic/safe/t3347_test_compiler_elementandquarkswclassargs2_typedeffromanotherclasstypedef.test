@@ -15,14 +15,14 @@ Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 ulam 1;
 use Q;
 use V;
- element P(Unsigned a) {
-Bool(a) b;
-V.Woof.Foo var;
- Int test() {
- P(1u) pel;
- pel.var = 3u;
- return pel.var;
-}
+element P(Unsigned a) {
+  Bool(a) b;
+  V.Woof.Foo var;
+  Int test() {
+    P(1u) pel;
+    pel.var = 3u;
+    return pel.var;
+  }
 }
 
 #:Q.ulam

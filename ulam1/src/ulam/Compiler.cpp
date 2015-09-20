@@ -311,6 +311,7 @@ namespace MFM {
     sumbrtn &= m_state.m_programDefST.setBitSizeOfTableOfClasses();
     sumbrtn &= m_state.m_programDefST.statusNonreadyClassArgumentsInTableOfClasses(); //without context
     sumbrtn &= m_state.m_programDefST.fullyInstantiateTableOfClasses(); //with ready args
+
     //checkAndLabelTypes: lineage updated incrementally
     sumbrtn &= m_state.m_programDefST.labelTableOfClasses(); //labelok, stubs not labeled, checks goagain flag!
     return sumbrtn;

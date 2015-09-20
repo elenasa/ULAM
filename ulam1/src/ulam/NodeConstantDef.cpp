@@ -10,7 +10,8 @@ namespace MFM {
   {
     if(symptr)
       {
-	// node uses current block no, not the one saved in the symbol (e.g. pending class args)
+	// node uses current block no, not the one saved in the symbol
+	// (e.g. pending class args)
 	m_cid = symptr->getId();
       }
     else
@@ -170,7 +171,7 @@ namespace MFM {
 	  }
       }
 
-    // NOASSIGN (e.g. for class parameters) doesn't have this!
+    // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
     if(m_nodeExpr)
       {
 	if(!m_nodeExpr->isAConstant())
@@ -198,7 +199,6 @@ namespace MFM {
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }
-
       }
 
     if(!m_state.isComplete(suti)) //reloads
@@ -210,7 +210,7 @@ namespace MFM {
 	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain(); //might not have nodetypedesc
+	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
       }
     else
       {
@@ -247,11 +247,13 @@ namespace MFM {
 
     if(!(m_constSymbol->isReady()))
       {
-        foldConstantExpression();
-        if(!(m_constSymbol->isReady()))
-          setNodeType(Nav);
+	foldConstantExpression();
+	if(!(m_constSymbol->isReady() || m_constSymbol->hasDefault()))
+	  {
+	    setNodeType(Nav);
+	    m_state.setGoAgain();
+	  }
       }
-
     return getNodeType();
   } //checkAndLabelType
 
@@ -318,6 +320,11 @@ namespace MFM {
   {
     m_nodeExpr = node;
     m_nodeExpr->updateLineage(getNodeNo()); //for unknown subtrees
+  }
+
+  bool NodeConstantDef::hasConstantExpr()
+  {
+    return (m_nodeExpr != NULL);
   }
 
   // called during parsing rhs of named constant;
@@ -399,7 +406,10 @@ namespace MFM {
     else
       return false;
 
-    m_constSymbol->setValue(newconst); //isReady now!
+    if(m_constSymbol->isParameter())
+      m_constSymbol->setDefaultValue(newconst); //hasDefault (not isReady)!
+    else
+      m_constSymbol->setValue(newconst); //isReady now!
     return true;
   } //foldConstantExpression
 

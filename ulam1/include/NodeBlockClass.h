@@ -80,6 +80,8 @@ namespace MFM{
 
     void addParameterNode(Node * nodeArg);
 
+    Node * getParameterNode(u32 n) const;
+
     virtual void countNavNodes(u32& cnt);
 
     void checkCustomArrayTypeFunctions();

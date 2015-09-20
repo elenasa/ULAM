@@ -209,6 +209,7 @@ namespace MFM{
     u32 getTotalBitSize(UTI utArg);
     u32 getTotalWordSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
+    bool isClassATemplate(UTI cuti);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
