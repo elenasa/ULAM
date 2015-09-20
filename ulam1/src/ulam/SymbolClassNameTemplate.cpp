@@ -433,8 +433,7 @@ namespace MFM {
 	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
 	    UTI auti = asym->getUlamTypeIdx();
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-	    u32 awordsize = m_state.getTotalWordSize(auti); //must be complete!
-	    s32 abs = m_state.getBitSize(auti);
+
 	    ULAMTYPE eutype = aut->getUlamTypeEnum();
 
 	    args << aut->getUlamTypeMangledType().c_str();
@@ -443,6 +442,9 @@ namespace MFM {
 	    u64 uval;
 	    if(((SymbolConstantValue *) asym)->getValue(uval))
 	      {
+		u32 awordsize = m_state.getTotalWordSize(auti); //must be complete!
+		s32 abs = m_state.getBitSize(auti);
+
 		switch(eutype)
 		  {
 		  case Int:

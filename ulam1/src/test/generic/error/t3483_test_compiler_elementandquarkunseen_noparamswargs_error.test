@@ -1,11 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3483_test_compiler_elementandquarkunseen_noparamswargs_error
 #!
-##
-##./NoParms.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters <NoParms>.
-##
-Ue_Foo { NoParms boom();  <NOMAIN> }
-Uq_NoParms { /* empty class block */ }
+./NoParms.ulam:2:7: ERROR: Conflicting class args previously seen for class with no parameters <NoParms>.
+Unrecoverable Program Parse FAILURE.
 ##
 ##      //informed by 3340, except seeing quark afterwards
 ##

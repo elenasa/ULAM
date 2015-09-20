@@ -1,13 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3370_test_compiler_unseentemplateclass_error
 #!
+./Eltypo.ulam:4:2: ERROR: Unresolved type <Typ0> was never defined; Fails sizing.
+./Eltypo.ulam:4:2: ERROR: Unresolved type <Typ0> was never defined; Fails labeling.
+./Eltypo.ulam:4:2: ERROR: Unresolved No.1.
+./Eltypo.ulam:4:2: ERROR: Unresolved No.2.
+./Eltypo.ulam:3:10: ERROR: 2 data members with unresolved types remain.
+./Eltypo.ulam:3:10: Warning: 2 data member nodes with unresolved types remain in class 'Eltypo'.
+./Eltypo.ulam:3:10: ERROR: 2 Nodes with unresolved types detected after type labeling class: Eltypo.
+Unrecoverable Program Type Label FAILURE.
 ##
-##./Eltypo.ulam:4:2: ERROR: Unresolved type <Typ0> was never defined; Fails sizing.
-##./Eltypo.ulam:4:2: ERROR: Unresolved type <Typ0> was never defined; Fails labeling.
-##
-Exit status: 0
-Ue_Eltypo { Typo t();  Int(32) test() {  0 cast return } }
-Uq_Typo { /* empty class block */
 #>Eltypo.ulam
 ulam 1;
 use Typo;

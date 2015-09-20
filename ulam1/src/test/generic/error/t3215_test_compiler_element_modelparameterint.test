@@ -1,6 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3215_test_compiler_element_modelparameterint
 #!
+./Foo.ulam:12:2: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE.
 ## f.chance =
 ## ./Foo.ulam:12:11: ERROR: Invalid lefthand side of equals <.>, type: Int(32).
 ## chance =
@@ -8,9 +10,6 @@
 ## generate code for test:
 ##  include/Ue_102323Foo10_Types.h:321: FAILED: NULL_POINTER
 ##
-Exit status: 1
-Ue_Foo { System s();  Int(32) a(1);  Int(32) test() {  Foo f;  s ( chance(1) )print . s ( f chance(1) . )print . a f chance(1) . = a return } }
-Uq_System { <NOMAIN> }
 ##
 ##      // MP not storeintoable/
 #>Foo.ulam

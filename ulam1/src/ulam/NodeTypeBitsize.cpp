@@ -77,7 +77,7 @@ namespace MFM {
 	msg << ", within (), is not ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	m_state.setGoAgain(); //since not error
-	return Nav; //short-circuit
+	//	return Nav; //short-circuit
       }
 
     // expects a constant numeric type
