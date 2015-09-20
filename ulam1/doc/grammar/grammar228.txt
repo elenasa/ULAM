@@ -6,7 +6,7 @@
                  ( 0 | '(' + <CLASS_PARAM_DECLS>) + ')' ) + <CLASS_BLOCK>
 <QUARK_OR_UNION_DEF> := ('quark' | 'union') + <TYPE_IDENT> +
                         ( 0 | '(' + <CLASS_PARAM_DECLS>) + ')' ) + <CLASS_BLOCK>
-<CLASS_PARAM_DECLS> := <CLASS_PARAM> | <CLASS_PARAM> + ',' + <CLASS_PARAMS>
+<CLASS_PARAM_DECLS> := <CLASS_PARAM> | <CLASS_PARAM> + ',' + <CLASS_PARAM_DECLS>
 <CLASS_PARAM>  := <TYPE> + <IDENT> + ( 0 | '=' + <CONSTANT_EXPRESSION> )
 
 <CLASS_BLOCK> := '{' + <CLASS_MEMBERS> + '}'
