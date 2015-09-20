@@ -16,7 +16,7 @@ element P {
     Q() q;
     Q(4) w;
     return q.s + w.s;
-}
+  }
 }
 
 #:Q.ulam

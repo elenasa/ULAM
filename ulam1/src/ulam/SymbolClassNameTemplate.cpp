@@ -82,6 +82,9 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::parameterHasDefaultValue(u32 n)
   {
+    // used while parsing, so c&l not called, and symbol hasDefault not yet set.
+    //SymbolConstantValue * psym = getParameterSymbolPtr(n);
+    //return psym->hasDefault();
     assert(n < m_parameterSymbols.size());
     NodeBlockClass * templateclassblock = getClassBlockNode();
     Node * pnode = templateclassblock->getParameterNode(n);
@@ -112,7 +115,7 @@ namespace MFM {
     return totalsizes;
   } //getTotalParameterSlots
 
-  Symbol * SymbolClassNameTemplate::getParameterSymbolPtr(u32 n)
+  SymbolConstantValue * SymbolClassNameTemplate::getParameterSymbolPtr(u32 n)
   {
     assert(n < m_parameterSymbols.size());
     return m_parameterSymbols[n];
@@ -278,8 +281,7 @@ namespace MFM {
 	    //can have 0Holder symbols for possible typedefs seen from another class
 	    //which will increase the count of symbols; can only test for at least
 	    u32 cargs = cblock->getNumberOfSymbolsInTable();
-	    //if(cargs < numparams)
-	    if(cargs < numparams && ((cargs + numDefaultParams) < numparams))
+	    if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
 	      {
 		//number of arguments in class instance does not match the number of parameters
 		// including those with default values (u.1.2.1)
@@ -773,19 +775,12 @@ namespace MFM {
 	assert(classNode);
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	// classblock node no is NOT the same across instances, NOT TRUE anymore!!!
-	// unlike ALL the other node blocks. sigh.
-	//if(n == getClassBlockNode()->getNodeNo())
-	//  foundNode = classNode; //slight-of-hand magic
-	//else
-	  {
-	    classNode->findNodeNo(n, foundNode);
-	    //if not in the tree, ask the resolver
-	    if(!foundNode)
-	      {
-		csym->findNodeNoInResolver(n, foundNode);
-	      }
-	  }
+	classNode->findNodeNo(n, foundNode); // classblock node no IS the same across instances
+
+	//if not in the tree, ask the resolver
+	if(!foundNode)
+	  csym->findNodeNoInResolver(n, foundNode);
+
 	m_state.popClassContext(); //restore
       }
     return foundNode;
@@ -1196,8 +1191,7 @@ namespace MFM {
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
     u32 numDefaultParams = getTotalParametersWithDefaultValues();
-    //if(cargs < numparams)
-    if(cargs < numparams && ((cargs + numDefaultParams) < numparams))
+    if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
@@ -1232,8 +1226,7 @@ namespace MFM {
     //replace the clone's arg symbols
     for(u32 i = 0; i < m_parameterSymbols.size(); i++)
       {
-	SymbolConstantValue * asym = instancesArgs[i];
-	//u32 aid = asym->getId(); arg might be null if default value used
+	SymbolConstantValue * asym = instancesArgs[i]; //asym might be null if default used
 	u32 aid = m_parameterSymbols[i]->getId();
 	Symbol * clonesym = NULL;
 	assert(m_state.alreadyDefinedSymbol(aid, clonesym));
@@ -1255,8 +1248,7 @@ namespace MFM {
     u32 cargs = fmclassblock->getNumberOfSymbolsInTable();
     u32 numparams = getNumberOfParameters();
     u32 numDefaultParams = getTotalParametersWithDefaultValues();
-    //if(cargs < numparams)
-    if(cargs < numparams && ((cargs + numDefaultParams) < numparams))
+    if((cargs < numparams) && ((cargs + numDefaultParams) < numparams))
       {
 	//error! number of arguments in stub does not match the number of parameters
 	std::ostringstream msg;
@@ -1306,7 +1298,6 @@ namespace MFM {
 
   void SymbolClassNameTemplate::printClassTemplateArgsForPostfix(File * fp)
   {
-    //    u32 numparams = getNumberOfParameters();
     u32 pcnt = 0;
 
     fp->write("(");
@@ -1315,6 +1306,7 @@ namespace MFM {
     while(pit != m_parameterSymbols.end())
       {
 	SymbolConstantValue * psym = *pit;
+	assert(psym->isParameter());
 
 	if(pcnt > 0)
 	  fp->write(", ");

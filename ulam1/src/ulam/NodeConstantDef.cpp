@@ -210,7 +210,7 @@ namespace MFM {
 	msg << "' UTI" << suti << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain(); //might not have nodetypedesc
+	//too soon! m_state.setGoAgain(); //might not have nodetypedesc
       }
     else
       {
@@ -247,11 +247,13 @@ namespace MFM {
 
     if(!(m_constSymbol->isReady()))
       {
-        foldConstantExpression();
-        if(!(m_constSymbol->isReady()))
-          setNodeType(Nav);
+	foldConstantExpression();
+	if(!(m_constSymbol->isReady() || m_constSymbol->hasDefault()))
+	  {
+	    setNodeType(Nav);
+	    m_state.setGoAgain();
+	  }
       }
-
     return getNodeType();
   } //checkAndLabelType
 
@@ -404,7 +406,10 @@ namespace MFM {
     else
       return false;
 
-    m_constSymbol->setValue(newconst); //isReady now!
+    if(m_constSymbol->isParameter())
+      m_constSymbol->setDefaultValue(newconst); //hasDefault (not isReady)!
+    else
+      m_constSymbol->setValue(newconst); //isReady now!
     return true;
   } //foldConstantExpression
 

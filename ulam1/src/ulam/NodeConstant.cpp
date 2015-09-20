@@ -94,7 +94,7 @@ namespace MFM {
 	msg << "' UTI" << it << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	m_state.setGoAgain();
+	//	m_state.setGoAgain(); wait until updateConstant tried.
       }
 
     setNodeType(it);
@@ -103,6 +103,8 @@ namespace MFM {
     //copy m_constant from Symbol into NodeTerminal parent.
     if(!isReadyConstant())
       m_ready = updateConstant(); //sets ready here
+    if(!isReadyConstant())
+	m_state.setGoAgain();
 
     return it;
   } //checkAndLabelType
@@ -214,8 +216,10 @@ namespace MFM {
     u64 val;
     if(!m_constSymbol)
       return false;
-    m_constSymbol->getValue(val);
-    m_constant.uval = val; //value fits type per its constantdef
+
+    if(m_constSymbol->getValue(val))
+      m_constant.uval = val; //value fits type per its constantdef
+    //else don't want default value here
 
     return m_constSymbol->isReady();
   } //updateConstant

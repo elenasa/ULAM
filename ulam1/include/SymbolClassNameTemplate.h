@@ -56,7 +56,7 @@ namespace MFM{
     u32 getTotalParametersWithDefaultValues();
 
     u32 getTotalParameterSlots();
-    Symbol * getParameterSymbolPtr(u32 n);
+    SymbolConstantValue * getParameterSymbolPtr(u32 n);
 
     virtual bool isClassTemplate();
     bool isClassTemplate(UTI cuti);

@@ -1043,7 +1043,8 @@ namespace MFM {
 	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	  {
 	    ((SymbolClassName *) sym)->updateLineageOfClass();
-	    //only regular and templates immediate after updating lineages
+	    //only regular and templates immediately after updating lineages
+	    // not just for efficiency; helps resolves types
 	    ((SymbolClassName *) sym)->checkAndLabelClassFirst();
 	  }
 	it++;

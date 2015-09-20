@@ -162,14 +162,18 @@ namespace MFM {
 
   UTI NodeBlockClass::checkAndLabelType()
   {
+    // for debug purposes only
+    m_state.isClassATemplate(m_state.getCompileThisIdx());
+
+    //do first, might be important!
+    checkParameterNodeTypes();
+
     //side-effect DataMember VAR DECLS
     if(m_nodeNext)
       m_nodeNext->checkAndLabelType();
 
     // label all the function definition bodies
     m_functionST.labelTableOfFunctions();
-
-    checkParameterNodeTypes();
 
     // check that a 'test' function returns Int (ulam convention)
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();

@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeParameterDef.h - Node handling Model Parameter Definition for ULAM
+ * NodeModelParameterDef.h - Node handling Model Parameter Definition for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeParameterDef.h - Node handling Model Parameter Definition for ULAM
+  \file NodeModelParameterDef.h - Node handling Model Parameter Definition for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -34,23 +34,23 @@
 */
 
 
-#ifndef NODEPARAMETERDEF_H
-#define NODEPARAMETERDEF_H
+#ifndef NODEMODELPARAMETERDEF_H
+#define NODEMODELPARAMETERDEF_H
 
 #include "NodeConstantDef.h"
 #include "SymbolParameterValue.h"
 
 namespace MFM{
 
-  class NodeParameterDef : public NodeConstantDef
+  class NodeModelParameterDef : public NodeConstantDef
   {
   public:
 
-    NodeParameterDef(SymbolParameterValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeModelParameterDef(SymbolParameterValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state);
 
-    NodeParameterDef(const NodeParameterDef& ref);
+    NodeModelParameterDef(const NodeModelParameterDef& ref);
 
-    virtual ~NodeParameterDef();
+    virtual ~NodeModelParameterDef();
 
     virtual Node * instantiate();
 
@@ -75,4 +75,4 @@ namespace MFM{
 
 } //MFM
 
-#endif //NODEPARAMETERDEF_H
+#endif //NODEMODELPARAMETERDEF_H

@@ -1049,6 +1049,17 @@ namespace MFM {
     return arraysize;
   } //slotsNeeded
 
+  bool CompilerState::isClassATemplate(UTI cuti)
+  {
+	SymbolClass * csym = NULL;
+	assert(alreadyDefinedSymbolClass(cuti, csym));
+	SymbolClassNameTemplate * cntsym = csym->getParentClassTemplate();
+	//return !(cntsym && cntsym->getUlamTypeIdx() != cuti);
+	if(cntsym)
+	  return cntsym->getUlamTypeIdx() == cuti;
+	return false;
+  } //isClassATemplate
+
   bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {
     return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);

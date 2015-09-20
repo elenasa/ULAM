@@ -3,19 +3,22 @@
 
 namespace MFM {
 
-  SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_parameter(false)
+  SymbolWithValue::SymbolWithValue(Token id, UTI utype, CompilerState & state) : Symbol(id, utype, state), m_isReady(false), m_hasDefault(false), m_parameter(false)
   {
     m_constant.sval = 0;
+    m_default.sval = 0;
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_parameter(sref.m_parameter)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref) : Symbol(sref), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_parameter(false)
   {
     m_constant = sref.m_constant;
+    m_default = sref.m_default;
   }
 
-  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_parameter(sref.m_parameter)
+  SymbolWithValue::SymbolWithValue(const SymbolWithValue & sref, bool keepType) : Symbol(sref, keepType), m_isReady(sref.m_isReady), m_hasDefault(sref.m_hasDefault), m_parameter(false)
   {
     m_constant = sref.m_constant;
+    m_default = sref.m_default;
   }
 
   SymbolWithValue::~SymbolWithValue()
@@ -50,6 +53,35 @@ namespace MFM {
     m_isReady = true;
   }
 
+  bool SymbolWithValue::hasDefault()
+  {
+    return m_hasDefault;
+  }
+
+  bool SymbolWithValue::getDefaultValue(s64& val)
+  {
+    val = m_default.sval;
+    return m_hasDefault;
+  }
+
+  bool SymbolWithValue::getDefaultValue(u64& val)
+  {
+    val = m_default.uval;
+    return  m_hasDefault;
+  }
+
+  void SymbolWithValue::setDefaultValue(s64 val)
+  {
+    m_default.sval = val;
+    m_hasDefault = true;
+  }
+
+  void SymbolWithValue::setDefaultValue(u64 val)
+  {
+    m_default.uval = val;
+    m_hasDefault = true;
+  }
+
   bool SymbolWithValue::foldConstantExpression()
   {
     return true; //stub
@@ -58,8 +90,16 @@ namespace MFM {
   void SymbolWithValue::printPostfixValue(File * fp)
   {
     UTI tuti = getUlamTypeIdx();
-
+    bool oktoprint = true;
+    u64 val = 0;
     if(isReady())
+      val = m_constant.uval;
+    else if(hasDefault())
+      val = m_default.uval;
+    else
+      oktoprint = false;
+
+    if(oktoprint)
       {
 	u32 twordsize =  m_state.getTotalWordSize(tuti); //must be commplete
 	s32 tbs = m_state.getBitSize(tuti);
@@ -71,12 +111,12 @@ namespace MFM {
 	    {
 	      if(twordsize <= MAXBITSPERINT)
 		{
-		  s32 sval = _Int32ToInt32((u32) m_constant.uval, tbs, MAXBITSPERINT);
+		  s32 sval = _Int32ToInt32((u32) val, tbs, MAXBITSPERINT);
 		  fp->write_decimal(sval);
 		}
 	      else if(twordsize <= MAXBITSPERLONG)
 		{
-		  s64 sval = _Int64ToInt64(m_constant.uval, tbs, MAXBITSPERLONG);
+		  s64 sval = _Int64ToInt64(val, tbs, MAXBITSPERLONG);
 		  fp->write_decimal_long(sval);
 		}
 	      else
@@ -85,7 +125,7 @@ namespace MFM {
 	    break;
 	  case Bool:
 	    {
-	      bool bval = _Bool64ToCbool(m_constant.uval, tbs);
+	      bool bval = _Bool64ToCbool(val, tbs);
 	      if(bval)
 		fp->write("true");
 	      else
@@ -94,7 +134,7 @@ namespace MFM {
 	    break;
 	  case Unary:
 	    {
-	      s32 pval = _Unary64ToInt64(m_constant.uval, tbs, MAXBITSPERINT);
+	      s32 pval = _Unary64ToInt64(val, tbs, MAXBITSPERINT);
 	      fp->write_decimal(pval);
 	    }
 	    break;
@@ -103,9 +143,9 @@ namespace MFM {
 	    {
 	      //oddly write_decimal wants a signed int..
 	      if( tbs <= MAXBITSPERINT)
-		fp->write_decimal((s32) m_constant.sval);
+		fp->write_decimal((s32) val);
 	      else if( tbs <= MAXBITSPERLONG)
-		fp->write_decimal_long(m_constant.sval);
+		fp->write_decimal_long((s64) val);
 	      else
 		assert(0);
 	    }

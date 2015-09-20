@@ -1,23 +1,23 @@
 #include <stdlib.h>
-#include "NodeParameterDef.h"
+#include "NodeModelParameterDef.h"
 #include "NodeTerminal.h"
 #include "CompilerState.h"
 
 
 namespace MFM {
 
-  NodeParameterDef::NodeParameterDef(SymbolParameterValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeConstantDef(symptr, nodetype, state) {}
+  NodeModelParameterDef::NodeModelParameterDef(SymbolParameterValue * symptr, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeConstantDef(symptr, nodetype, state) {}
 
-  NodeParameterDef::NodeParameterDef(const NodeParameterDef& ref) : NodeConstantDef(ref) {}
+  NodeModelParameterDef::NodeModelParameterDef(const NodeModelParameterDef& ref) : NodeConstantDef(ref) {}
 
-  NodeParameterDef::~NodeParameterDef() {}
+  NodeModelParameterDef::~NodeModelParameterDef() {}
 
-  Node * NodeParameterDef::instantiate()
+  Node * NodeModelParameterDef::instantiate()
   {
-    return new NodeParameterDef(*this);
+    return new NodeModelParameterDef(*this);
   }
 
-  void NodeParameterDef::printPostfix(File * fp)
+  void NodeModelParameterDef::printPostfix(File * fp)
   {
     //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
     UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
@@ -36,17 +36,17 @@ namespace MFM {
     fp->write("; ");
   }
 
-  const std::string NodeParameterDef::prettyNodeName()
+  const std::string NodeModelParameterDef::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  void NodeParameterDef::fixPendingArgumentNode()
+  void NodeModelParameterDef::fixPendingArgumentNode()
   {
     assert(0);
   }
 
-  UTI NodeParameterDef::checkAndLabelType()
+  UTI NodeModelParameterDef::checkAndLabelType()
   {
     UTI nodeType = NodeConstantDef::checkAndLabelType();
     if(nodeType != Nav)
@@ -66,12 +66,12 @@ namespace MFM {
     return nodeType;
   } //checkAndLabelType
 
-  bool NodeParameterDef::buildDefaultQuarkValue(u32& dqref)
+  bool NodeModelParameterDef::buildDefaultQuarkValue(u32& dqref)
   {
     return true;
   }
 
-  void NodeParameterDef::checkForSymbol()
+  void NodeModelParameterDef::checkForSymbol()
   {
     assert(!m_constSymbol);
 
@@ -104,7 +104,7 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //checkForSymbol
 
-  void NodeParameterDef::genCode(File * fp, UlamValue& uvpass)
+  void NodeModelParameterDef::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_constSymbol->isDataMember());
 
