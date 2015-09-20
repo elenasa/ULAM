@@ -1,12 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3524_test_compiler_elementandquarkswclassargs_wdefaultparamsmissing_error
 #!
-##
-##./Q.ulam:2:25: ERROR: Missing '=' after named constant definition 't'.
-##./P.ulam:6:7: ERROR: NO Class Arguments for an instance stub of class template 'Q' with 3 parameters.
-##
-Exit status: -1
-##
+./Q.ulam:2:25: ERROR: Missing '=' after named constant definition 't'.
+./P.ulam:6:7: ERROR: NO Class Arguments for an instance stub of class template 'Q' with 3 parameters.
+Unrecoverable Program Parse FAILURE.
 #>P.ulam
 ulam 1;
 use Q;

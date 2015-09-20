@@ -1,11 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3190_test_compiler_elementandquark_array2d_quarkcasttoint
 #!
-## ./Foo.ulam:4:2: ERROR: Data member <m_array> of type: Unsigned(1)[71], total size: 71 MUST fit into 64 bits; Local variables do not have this restriction.
-##
-Exit status: -1
-Ue_Foo { Int(32) test() {  Int(1) m_array[71];  C2D c;  c ( 0 0 )func = m_array c ( )toInt . cast [] true cast = m_array c ( )toInt . cast [] cast return } }
-Uq_C2D { Int(8) m_width(0);  Int(8) m_height(0);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }
+./Foo.ulam:4:2: ERROR: Data member <m_array> of type: Unsigned(1)[71], total size: 71 MUST fit into 64 bits; Local variables do not have this restriction.
+Unrecoverable Program Type Label FAILURE.
 ##
 ##      // data members must fit within 32- or 64-bits (BitField limit)
 #>Foo.ulam

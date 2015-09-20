@@ -1,10 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3217_test_compiler_elementandquark_modelparameterquark_error
 #!
-##./Foo.ulam:5:16: ERROR: Model Parameter 'barchance' cannot be based on a class type: Bar.
-##./Foo.ulam:5:16: ERROR: Invalid Model Parameter: Bar barchance.
-##
-Exit status: -1
+./Foo.ulam:5:16: ERROR: Model Parameter 'barchance' cannot be based on a class type: Bar.
+./Foo.ulam:5:16: ERROR: Invalid Model Parameter: Bar barchance.
+./Foo.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Foo'; Possible missing ending curly brace.
+./Foo.ulam:5:25: ERROR: Invalid Class Type <;>; KEYWORD should be 'element', 'quark', or 'union'.
+./Foo.ulam:3:9: ERROR: Invalid Type: Foo.
+ ERROR: No parse tree for This Class: Foo.
+Unrecoverable Program Parse FAILURE.
 ##
 ##      //model parameter can't be a quark or union
 #>Foo.ulam

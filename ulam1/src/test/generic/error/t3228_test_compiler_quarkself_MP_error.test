@@ -1,12 +1,11 @@
 ## -*- mode:ulam -*-
 #=t3228_test_compiler_quarkself_MP_error
 #!
-##
-##./S.ulam:4:12: ERROR: Model Parameters cannot survive within a quark.
-##
-Exit status: 1
-Ue_T { S m_s( Bool(3) b1(false);  Bool(3) b2(false); );  Int(32) test() {  S s;  s iep(7u) . cast return } }
-Uq_S { Bool(3) b1(false);  Bool(3) b2(false);  <NOMAIN> }
+./S.ulam:4:12: ERROR: Model Parameters cannot survive within a quark.
+./S.ulam:2:2: ERROR: Empty/Incomplete Class Definition 'S'; Possible missing ending curly brace.
+./S.ulam:5:2: ERROR: Invalid Class Type <Bool>; KEYWORD should be 'element', 'quark', or 'union'.
+ ERROR: No parse tree for This Class: T.
+Unrecoverable Program Parse FAILURE.
 ##
 ##      //informed by 3259 only quark has the MP!
 ##

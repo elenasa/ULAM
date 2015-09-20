@@ -1,13 +1,49 @@
 ## -*- mode:ulam -*-
 #=t3195_test_compiler_element_bitstype_assignarray
 #!
+./Foo.ulam:11:18: ERROR: Incompatible types for binary operator+ : Bits(3), Bits(3); Suggest casting to a numeric type first.
+./Foo.ulam:12:6: ERROR: Use a comparison operator to convert Bits(3)[3] to Bool(3)[3] for operator=.
+./Foo.ulam:19:2: ERROR: Use explicit cast to return Bool(3) as Int(32).
+./Foo.ulam:4:1: ERROR: Unresolved No.1.
+./Foo.ulam:4:1: ERROR: Unresolved No.2.
+./Foo.ulam:3:9: ERROR: 2 data members with unresolved types remain.
+./Foo.ulam:11:9: ERROR: Unresolved No.1.
+./Foo.ulam:11:18: ERROR: Unresolved No.2.
+./Foo.ulam:12:6: ERROR: Unresolved No.3.
+./Foo.ulam:13:3: ERROR: Unresolved No.4.
+./Foo.ulam:13:3: ERROR: Unresolved No.5.
+./Foo.ulam:13:20: ERROR: Unresolved No.6.
+./Foo.ulam:13:10: ERROR: Unresolved No.7.
+./Foo.ulam:13:3: ERROR: Unresolved No.8.
+./Foo.ulam:14:3: ERROR: Unresolved No.9.
+./Foo.ulam:14:3: ERROR: Unresolved No.10.
+./Foo.ulam:14:20: ERROR: Unresolved No.11.
+./Foo.ulam:14:10: ERROR: Unresolved No.12.
+./Foo.ulam:14:3: ERROR: Unresolved No.13.
+./Foo.ulam:15:3: ERROR: Unresolved No.14.
+./Foo.ulam:15:3: ERROR: Unresolved No.15.
+./Foo.ulam:15:20: ERROR: Unresolved No.16.
+./Foo.ulam:15:10: ERROR: Unresolved No.17.
+./Foo.ulam:15:3: ERROR: Unresolved No.18.
+./Foo.ulam:16:3: ERROR: Unresolved No.19.
+./Foo.ulam:16:3: ERROR: Unresolved No.20.
+./Foo.ulam:16:9: ERROR: Unresolved No.21.
+./Foo.ulam:16:3: ERROR: Unresolved No.22.
+./Foo.ulam:17:3: ERROR: Unresolved No.23.
+./Foo.ulam:17:3: ERROR: Unresolved No.24.
+./Foo.ulam:17:9: ERROR: Unresolved No.25.
+./Foo.ulam:17:3: ERROR: Unresolved No.26.
+./Foo.ulam:18:3: ERROR: Unresolved No.27.
+./Foo.ulam:18:3: ERROR: Unresolved No.28.
+./Foo.ulam:18:9: ERROR: Unresolved No.29.
+./Foo.ulam:18:3: ERROR: Unresolved No.30.
+./Foo.ulam:19:2: ERROR: Unresolved No.31.
+./Foo.ulam:8:2: Warning: 31 nodes with unresolved types remain in function <test> (Uf_4test,1).
+./Foo.ulam:8:6: Warning: Summary: 31 nodes with unresolved types remain in  a single function <test> in class: Foo.
+./Foo.ulam:3:9: Warning: 33 data member nodes with unresolved types remain in class 'Foo'.
+./Foo.ulam:3:9: ERROR: 33 Nodes with unresolved types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
 ##
-##./Foo.ulam:11:18: ERROR: Incompatible types for binary operator+ : Bits(3), Bits(3); Suggest casting to a numeric type first.
-##./Foo.ulam:12:6: ERROR: Use a comparison operator to convert Bits(3)[3] to Bool(3)[3] for operator=.
-##./Foo.ulam:19:2: ERROR: Use explicit cast to return Bool(3) as Int(32).
-##
-Exit status: 3
-Ue_Foo { Bits(3) m_i[3](1,2,3);  Bits(3) m_b[3](1,2,3);  Int(32) test() {  m_i 0 [] 1 cast = m_i 1 [] 2 cast = m_i 2 [] m_i 0 [] cast m_i 1 [] cast +b cast = m_b m_i = m_b 2 [] cast return } }
 #>Foo.ulam
 ulam 1;
 use System;
