@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * ParameterMap.h - Map of Model Parameters for ULAM
+ * MapDataMemberDesc.h - Map of Data Members for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,36 +26,34 @@
  */
 
 /**
-  \file ParameterMap.h -  Map of Model Parameters for ULAM
+  \file MapDataMemberDesc.h -  Map of Data Members for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
   \gpl
 */
 
-#ifndef PARAMETERMAP_H
-#define PARAMETERMAP_H
+#ifndef MAPDATAMEMBERDESC_H
+#define MAPDATAMEMBERDESC_H
 
-#include <map>
-#include <string>
-#include "itype.h"
-#include "Locator.h"
+#include "MapClassMemberDesc.h"
+#include "SymbolVariableDataMember.h"
 
 namespace MFM
 {
-  struct ParameterDesc
+  struct DataMemberDesc : public ClassMemberDesc
   {
-    Locator m_loc;
-    std::string m_mangledClassName;
-    std::string m_mangledType;
-    std::string m_parameterName;
-    std::string m_mangledParameterName;
-    u64 m_val; //as Bits
-    std::string m_structuredComment;
+    DataMemberDesc(SymbolVariableDataMember * dmsym, UTI classtype, CompilerState & state);
+    virtual ~DataMemberDesc();
+
+    virtual std::string getMemberKind();
+    virtual bool getValue(u64& vref);
+
+  private:
+    u64 m_val; //intial default (as Bits)
+
   };
 
-  //key is mangledParameterName, including the mangled class it belongs
-  typedef std::map<std::string, struct ParameterDesc> ParameterMap;
-}
+} //MFM
 
-#endif  /* PARAMETERMAP_H */
+#endif  /* MAPDATAMEMBERDESC_H */

@@ -40,6 +40,7 @@
 #include "File.h"
 #include "NodeStatements.h"
 #include "SymbolTable.h"
+#include "MapClassMemberDesc.h"
 
 namespace MFM{
 
@@ -107,7 +108,7 @@ namespace MFM{
 
     void genModelParameterImmediateDefinitions(File * fp);
 
-    void addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters);
+    virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
   protected:
     SymbolTable m_ST;

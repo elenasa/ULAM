@@ -146,13 +146,6 @@ namespace MFM {
     u32 numParams = m_parameterSymbols.size();
     mangled << ToLeximitedNumber(numParams); //"10" if none
 
-    // use void type when no parameters
-    //    if(m_parameterSymbols.empty())
-    //  {
-    //	UlamType * vit = m_state.getUlamTypeByIndex(Void);
-    //	mangled << vit->getUlamTypeMangledName().c_str();
-    //  }
-
     // append mangled type name, e.g. 1023213Int, for each parameter
     // for template classes, including arg values 10133Bar121013iu1510111b11 for uniqueness
     // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
@@ -375,5 +368,15 @@ namespace MFM {
 	func->genCode(fp, uvpass);
       }
   } //generateFunctionDeclaration
+
+  void SymbolFunction::setStructuredComment()
+  {
+    Token scTok;
+    if(m_state.getStructuredCommentToken(scTok)) //and clears it
+      {
+	m_structuredCommentToken = scTok;
+	m_gotStructuredCommentToken = true;
+      }
+  } //setStructuredComment
 
 } //end MFM

@@ -972,4 +972,11 @@ namespace MFM {
     return newstr;
   } //removePunct
 
+  void NodeBlockClass::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
+  {
+    NodeBlock::addClassMemberDescriptionsToInfoMap(classmembers); //Table of Classes request
+
+    m_functionST.addClassMemberFunctionDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
+  }
+
 } //end MFM

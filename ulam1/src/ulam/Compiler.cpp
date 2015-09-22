@@ -28,11 +28,12 @@ namespace MFM {
     return rtnTargets;
   }
 
-  ParameterMap Compiler::getMangledParametersMap()
+  //  ParameterMap Compiler::getMangledParametersMap()
+  ClassMemberMap Compiler::getMangledClassMembersMap()
   {
-    ParameterMap rtnParameters;
-    m_state.m_programDefST.getModelParameters(rtnParameters);
-    return rtnParameters;
+    ClassMemberMap rtnMembers;
+    m_state.m_programDefST.getClassMembers(rtnMembers);
+    return rtnMembers;
   }
 
   const std::string Compiler::getFullPathLocationAsString(const Locator& loc)
@@ -281,24 +282,30 @@ namespace MFM {
       }
 #endif
 
-    // testing model parameter map only
-    //#define TESTPARAMETERMAP
-#ifdef TESTPARAMETERMAP
-    ParameterMap pm = getMangledParametersMap();
-    std::cerr << "Size of model parameter map is " << pm.size() << std::endl;
-    for(ParameterMap::const_iterator i = pm.begin(); i != pm.end(); ++i)
+    // testing class member map only
+    //#define TESTCLASSMEMBERMAP
+#ifdef TESTCLASSMEMBERMAP
+    ClassMemberMap cmm = getMangledClassMembersMap();
+    std::cerr << "Size of class members map is " << cmm.size() << std::endl;
+    for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
       {
+	assert(i->second); //cannot be null
+	u64 val;
+
 	std::cerr
 	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	  << "PARAMETER "
-	  << MFM::HexEscape(getFullPathLocationAsString(i->second.m_loc))
-	  << " " << i->second.m_mangledClassName
-	  << " " << i->second.m_mangledType
-	  << " " << i->second.m_parameterName
-	  << " " << i->second.m_mangledParameterName
-	  << " 0x" << std::hex << i->second.m_val
-	  << " " << MFM::HexEscape(i->second.m_structuredComment)
-	  << std::endl;
+	  << i->second->getMemberKind() << " "
+	  << MFM::HexEscape(getFullPathLocationAsString(i->second->m_loc))
+	  << " " << i->second->m_mangledClassName
+	  << " " << i->second->m_mangledType
+	  << " " << i->second->m_memberName
+	  << " " << i->second->m_mangledMemberName;
+
+	if(i->second->getValue(val))
+	  std::cerr << " 0x" << std::hex << val;
+
+	std::cerr << " " << MFM::HexEscape(i->second->m_structuredComment)
+		  << std::endl;
       }
 #endif
 

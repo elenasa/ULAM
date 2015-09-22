@@ -3,14 +3,14 @@
 
 namespace MFM {
 
-  SymbolParameterValue::SymbolParameterValue(Token id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_childOf(m_state.getCompileThisIdx()), m_gotStructuredCommentToken(false)
+  SymbolParameterValue::SymbolParameterValue(Token id, UTI utype, CompilerState & state) : SymbolWithValue(id, utype, state), m_childOf(m_state.getCompileThisIdx())
   {
     setDataMember();
   }
 
-  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref) : SymbolWithValue(sref), m_childOf(m_state.getCompileThisIdx()), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken) {}
+  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref) : SymbolWithValue(sref), m_childOf(m_state.getCompileThisIdx()) {}
 
-  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_childOf(m_state.getCompileThisIdx()), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken) {}
+  SymbolParameterValue::SymbolParameterValue(const SymbolParameterValue & sref, bool keepType) : SymbolWithValue(sref, keepType), m_childOf(m_state.getCompileThisIdx()) {}
 
   SymbolParameterValue::~SymbolParameterValue()
   { }
@@ -65,16 +65,5 @@ namespace MFM {
 	m_gotStructuredCommentToken = true;
       }
   } //setStructuredComment
-
-  bool SymbolParameterValue::getStructuredComment(Token& scTok)
-  {
-    if(m_gotStructuredCommentToken)
-      {
-	assert(m_structuredCommentToken.m_type == TOK_STRUCTURED_COMMENT);
-	scTok = m_structuredCommentToken;
-	return true;
-      }
-    return false;
-  } //getStructuredComment
 
 } //end MFM

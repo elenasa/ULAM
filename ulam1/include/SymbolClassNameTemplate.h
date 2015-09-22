@@ -48,7 +48,7 @@ namespace MFM{
 
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
 
-    virtual void getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters);
+    virtual void getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers);
 
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();

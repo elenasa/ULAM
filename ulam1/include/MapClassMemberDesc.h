@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+ * MapClassMemberDesc.h - Map of Class Members for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,51 +26,44 @@
  */
 
 /**
-  \file SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+  \file MapClassMemberDesc.h -  Map of Class Members for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
   \gpl
 */
 
-#ifndef SYMBOLPARAMETERVALUE_H
-#define SYMBOLPARAMETERVALUE_H
+#ifndef MAPCLASSMEMBERDESC_H
+#define MAPCLASSMEMBERDESC_H
 
-#include "SymbolWithValue.h"
+#include <map>
+#include <string>
+#include "itype.h"
+#include "Locator.h"
+#include "Symbol.h"
 
-namespace MFM{
+namespace MFM
+{
+  struct CompilerState; //forward
 
-  class CompilerState;  //forward
-
-  //distinguish between Symbols
-  class SymbolParameterValue : public SymbolWithValue
+  struct ClassMemberDesc
   {
-  public:
-    SymbolParameterValue(Token id, UTI utype, CompilerState& state);
-    SymbolParameterValue(const SymbolParameterValue& sref);
-    SymbolParameterValue(const SymbolParameterValue& sref, bool keepType);
-    virtual ~SymbolParameterValue();
+    ClassMemberDesc(Symbol * sym, UTI classtype, CompilerState & state);
+    virtual ~ClassMemberDesc();
 
-    virtual Symbol * clone();
-    virtual Symbol * cloneKeepsType();
+    Locator m_loc;
+    std::string m_mangledClassName;
+    std::string m_mangledType;
+    std::string m_memberName;
+    std::string m_mangledMemberName;
+    std::string m_structuredComment;
 
-    virtual bool isConstant();
-
-    virtual bool isModelParameter();
-
-    virtual const std::string getMangledPrefix();
-
-    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
-
-    virtual void setStructuredComment();
-
-    //virtual bool getStructuredComment(Token& scTok);
-
-  protected:
-
-  private:
-    UTI m_childOf; //needed for symbol's mangled name
+    virtual std::string getMemberKind() = 0;
+    virtual bool getValue(u64& vref);
   };
-} //MFM
 
-#endif //SYMBOLPARAMETERVALUE_H
+  //key is mangledMemberName, including the mangled class it belongs
+  typedef std::map<std::string, struct ClassMemberDesc *> ClassMemberMap;
+}
+
+#endif  /* MAPCLASSMEMBERDESC_H */

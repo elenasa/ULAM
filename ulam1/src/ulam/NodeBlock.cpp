@@ -217,9 +217,9 @@ namespace MFM {
     m_ST.genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(fp);
   }
 
-  void NodeBlock::addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters)
+  void NodeBlock::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
-    m_ST.addModelParameterDescriptionsToMap(this->getNodeType(), classmodelparameters); //Table of Classes request
+    m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
   }
 
   void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)

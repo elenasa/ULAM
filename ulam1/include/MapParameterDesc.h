@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+ * MapParameterDesc.h - Map of Model Parameters for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,51 +26,35 @@
  */
 
 /**
-  \file SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+  \file MapParameterDesc.h -  Map of Model Parameters for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
   \gpl
 */
 
-#ifndef SYMBOLPARAMETERVALUE_H
-#define SYMBOLPARAMETERVALUE_H
+#ifndef MAPPARAMETERDESC_H
+#define MAPPARAMETERDESC_H
 
-#include "SymbolWithValue.h"
+#include "MapClassMemberDesc.h"
+#include "SymbolParameterValue.h"
 
-namespace MFM{
-
-  class CompilerState;  //forward
-
-  //distinguish between Symbols
-  class SymbolParameterValue : public SymbolWithValue
+namespace MFM
+{
+  struct ParameterDesc : public ClassMemberDesc
   {
-  public:
-    SymbolParameterValue(Token id, UTI utype, CompilerState& state);
-    SymbolParameterValue(const SymbolParameterValue& sref);
-    SymbolParameterValue(const SymbolParameterValue& sref, bool keepType);
-    virtual ~SymbolParameterValue();
 
-    virtual Symbol * clone();
-    virtual Symbol * cloneKeepsType();
+    ParameterDesc(SymbolParameterValue * psym, UTI classtype, CompilerState & state);
+    ~ParameterDesc();
 
-    virtual bool isConstant();
-
-    virtual bool isModelParameter();
-
-    virtual const std::string getMangledPrefix();
-
-    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
-
-    virtual void setStructuredComment();
-
-    //virtual bool getStructuredComment(Token& scTok);
-
-  protected:
+    virtual std::string getMemberKind();
+    virtual bool getValue(u64& vref);
 
   private:
-    UTI m_childOf; //needed for symbol's mangled name
+    u64 m_val; //as Bits
+
   };
+
 } //MFM
 
-#endif //SYMBOLPARAMETERVALUE_H
+#endif  /* MAPPARAMETERDESC_H */

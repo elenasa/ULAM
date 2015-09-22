@@ -83,6 +83,8 @@ namespace MFM{
 
     void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
+    virtual void setStructuredComment();
+
   protected:
 
 

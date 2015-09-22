@@ -41,13 +41,14 @@
 #include <vector>
 #include <map>
 #include "CompilerState.h"
+#include "SourceStream.h"
 #include "FileManager.h"
 #include "File.h"
 #include "Node.h"
-#include "ParameterMap.h"
 #include "Parser.h"
-#include "SourceStream.h"
+#include "MapClassMemberDesc.h"
 #include "TargetMap.h"
+
 
 namespace MFM{
 
@@ -84,7 +85,7 @@ namespace MFM{
 
     TargetMap getMangledTargetsMap();
 
-    ParameterMap getMangledParametersMap();
+    ClassMemberMap getMangledClassMembersMap();
 
     const std::string getFullPathLocationAsString(const Locator& loc);
 

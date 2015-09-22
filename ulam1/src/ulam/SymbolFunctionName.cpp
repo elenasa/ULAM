@@ -6,6 +6,7 @@
 #include "SymbolVariable.h"
 #include "CompilerState.h"
 #include "SymbolTable.h"
+#include "MapFunctionDesc.h"
 
 namespace MFM {
 
@@ -544,6 +545,24 @@ namespace MFM {
 	++it;
       }
   } //generateCodedFunctions
+
+  void SymbolFunctionName::addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	FunctionDesc * descptr = new FunctionDesc(fsym, classType, m_state);
+	assert(descptr);
+
+	//concat mangled class and parameter names to avoid duplicate keys into map
+	std::ostringstream fullMangledName;
+	fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
+	classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
+	++it;
+      }
+  } //addFunctionDescriptionsToClassMemberMap
 
   //private method:
   bool SymbolFunctionName::isDefined(std::string mangledFName, SymbolFunction * & foundSym)
