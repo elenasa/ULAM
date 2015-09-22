@@ -283,7 +283,7 @@ namespace MFM {
 #endif
 
     // testing class member map only
-    //#define TESTCLASSMEMBERMAP
+    //    #define TESTCLASSMEMBERMAP
 #ifdef TESTCLASSMEMBERMAP
     ClassMemberMap cmm = getMangledClassMembersMap();
     std::cerr << "Size of class members map is " << cmm.size() << std::endl;
