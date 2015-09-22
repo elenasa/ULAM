@@ -428,7 +428,6 @@ namespace MFM {
 	while(pit != m_parameterSymbols.end())
 	  {
 	    SymbolConstantValue * psym = *pit;
-	    //get 'instance's value
 	    Symbol * asym = NULL;
 	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
 	    UTI auti = asym->getUlamTypeIdx();
@@ -436,8 +435,10 @@ namespace MFM {
 
 	    ULAMTYPE eutype = aut->getUlamTypeEnum();
 
+	    //append 'instance's arg (mangled) type
 	    args << aut->getUlamTypeMangledType().c_str();
 
+	    //append 'instance's arg value
 	    bool isok = false;
 	    u64 uval;
 	    if(((SymbolConstantValue *) asym)->getValue(uval))

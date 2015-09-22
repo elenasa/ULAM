@@ -143,21 +143,39 @@ namespace MFM {
     std::ostringstream mangled;
     mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
 
+    u32 numParams = m_parameterSymbols.size();
+    mangled << ToLeximitedNumber(numParams); //"10" if none
+
     // use void type when no parameters
-    if(m_parameterSymbols.empty())
-      {
-	UlamType * vit = m_state.getUlamTypeByIndex(Void);
-	mangled << vit->getUlamTypeMangledName().c_str();
-      }
+    //    if(m_parameterSymbols.empty())
+    //  {
+    //	UlamType * vit = m_state.getUlamTypeByIndex(Void);
+    //	mangled << vit->getUlamTypeMangledName().c_str();
+    //  }
 
     // append mangled type name, e.g. 1023213Int, for each parameter
+    // for template classes, including arg values 10133Bar121013iu1510111b11 for uniqueness
     // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
     //        during this parse stage, the key remains consistent.
-    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+    for(u32 i = 0; i < numParams; i++)
       {
 	Symbol * sym = m_parameterSymbols[i];
-	UlamType * sut = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx());
-	mangled << sut->getUlamTypeMangledName().c_str();
+	UTI suti = sym->getUlamTypeIdx();
+	UlamType * sut = m_state.getUlamTypeByIndex(suti);
+
+	// dropping Uprefix:
+	//mangled << sut->getUlamTypeMangledName().c_str();
+	mangled << sut->getUlamTypeMangledType().c_str();
+
+	//append args' types and values or '10' is none
+	if(sut->getUlamTypeEnum() == Class)
+	  {
+	    UlamKeyTypeSignature keyOfArgType = sut->getUlamKeyTypeSignature();
+
+	    SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(keyOfArgType.getUlamKeyTypeSignatureNameId());
+	    assert(cnsym);
+	    mangled << cnsym->formatAnInstancesArgValuesAsAString(suti);
+	  }
       }
     return mangled.str();
   } //getMangledNameWithTypes
