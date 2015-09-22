@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+ * MapConstantDesc.h - Map of Named Constants for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,49 +26,35 @@
  */
 
 /**
-  \file SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+  \file MapConstantDesc.h -  Map of Named Constants for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
   \gpl
 */
 
-#ifndef SYMBOLPARAMETERVALUE_H
-#define SYMBOLPARAMETERVALUE_H
+#ifndef MAPCONSTANTDESC_H
+#define MAPCONSTANTDESC_H
 
-#include "SymbolWithValue.h"
+#include "MapClassMemberDesc.h"
+#include "SymbolConstantValue.h"
 
-namespace MFM{
-
-  class CompilerState;  //forward
-
-  //distinguish between Symbols
-  class SymbolParameterValue : public SymbolWithValue
+namespace MFM
+{
+  struct ConstantDesc : public ClassMemberDesc
   {
-  public:
-    SymbolParameterValue(Token id, UTI utype, CompilerState& state);
-    SymbolParameterValue(const SymbolParameterValue& sref);
-    SymbolParameterValue(const SymbolParameterValue& sref, bool keepType);
-    virtual ~SymbolParameterValue();
 
-    virtual Symbol * clone();
-    virtual Symbol * cloneKeepsType();
+    ConstantDesc(SymbolConstantValue * csym, UTI classtype, CompilerState & state);
+    ~ConstantDesc();
 
-    virtual bool isConstant();
-
-    virtual bool isModelParameter();
-
-    virtual const std::string getMangledPrefix();
-
-    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
-
-    virtual void setStructuredComment();
-
-  protected:
+    virtual std::string getMemberKind();
+    virtual bool getValue(u64& vref);
 
   private:
-    UTI m_childOf; //needed for symbol's mangled name
+    u64 m_val; //as Bits
+
   };
+
 } //MFM
 
-#endif //SYMBOLPARAMETERVALUE_H
+#endif  /* MAPCONSTANTDESC_H */

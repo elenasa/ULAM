@@ -201,6 +201,11 @@ namespace MFM
       return m_memberMap.end();
     }
 
+    ClassMemberMap & GetClassMemberMap()
+    {
+      return m_memberMap;
+    }
+
   private:
     FileManagerStdio * m_srcFileManager;
     FileManagerStdio * m_outFileManager;
@@ -281,25 +286,26 @@ int main(int argc, char ** argv)
 
         for(MFM::ClassMemberMap::const_iterator i = ds.ClassMemberMapBegin(); i != ds.ClassMemberMapEnd(); ++i)
           {
-	assert(i->second); //cannot be null
-	MFM::u64 val;
+	    assert(i->second); //cannot be null
+	    MFM::u64 val;
 
-	std::cerr
-	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	  << i->second->getMemberKind() << " "
-	  << MFM::HexEscape(c.getFullPathLocationAsString(i->second->m_loc))
-	  << " " << i->second->m_mangledClassName
-	  << " " << i->second->m_mangledType
-	  << " " << i->second->m_memberName
-	  << " " << i->second->m_mangledMemberName;
+	    std::cerr
+	      << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	      << i->second->getMemberKind() << " "
+	      << MFM::HexEscape(c.getFullPathLocationAsString(i->second->m_loc))
+	      << " " << i->second->m_mangledClassName
+	      << " " << i->second->m_mangledType
+	      << " " << i->second->m_memberName
+	      << " " << i->second->m_mangledMemberName;
 
-	if(i->second->getValue(val))
-	  std::cerr << " 0x" << std::hex << val;
+	    if(i->second->getValue(val))
+	      std::cerr << " 0x" << std::hex << val;
 
-	std::cerr << " " << MFM::HexEscape(i->second->m_structuredComment)
-		  << std::endl;
+	    std::cerr << " " << MFM::HexEscape(i->second->m_structuredComment)
+		      << std::endl;
 	  }
       }
+    c.clearClassMembersMap(ds.GetClassMemberMap());
     return result;
   }
   catch (int status) {

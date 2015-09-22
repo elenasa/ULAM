@@ -3582,8 +3582,6 @@ namespace MFM {
   Node * Parser::makeTypedefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
   {
     NodeTypedef * rtnNode = NULL;
-    m_state.clearStructuredCommentToken();
-
     Node * lvalNode = parseLvalExpr(identTok);
     if(lvalNode)
       {
@@ -3614,6 +3612,7 @@ namespace MFM {
 		msg << "> (missing symbol)";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
+	    m_state.clearStructuredCommentToken();
 	  }
 	else
 	  {
@@ -3625,6 +3624,7 @@ namespace MFM {
 	    rtnNode =  new NodeTypedef((SymbolTypedef *) asymptr, nodetyperef, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
+	    asymptr->setStructuredComment(); //also clears
 	  }
 
 	if(!rtnNode)
@@ -3638,6 +3638,7 @@ namespace MFM {
       {
 	delete nodetyperef;
 	nodetyperef = NULL;
+	m_state.clearStructuredCommentToken();
       }
     return rtnNode;
   } //makeTypedefSymbol
@@ -3645,8 +3646,6 @@ namespace MFM {
   Node * Parser::makeConstdefSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef)
   {
     NodeConstantDef * rtnNode = NULL;
-    m_state.clearStructuredCommentToken();
-
     Node * lvalNode = parseIdentExpr(identTok); //calls parseLvalExpr
     if(lvalNode)
       {
@@ -3691,6 +3690,7 @@ namespace MFM {
 		unreadToken();
 	      }
 	    //else class parameter list
+	    m_state.clearStructuredCommentToken();
 	  }
 	else
 	  {
@@ -3701,6 +3701,8 @@ namespace MFM {
 	    NodeConstantDef * constNode =  new NodeConstantDef((SymbolConstantValue *) asymptr, nodetyperef, m_state);
 	    assert(constNode);
 	    constNode->setNodeLocation(args.m_typeTok.m_locator);
+	    if(args.m_isStmt)
+	      asymptr->setStructuredComment(); //also clears
 
 	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK, args.m_isStmt);
 	  }
@@ -3709,6 +3711,7 @@ namespace MFM {
       {
 	delete nodetyperef;
 	nodetyperef = NULL;
+	m_state.clearStructuredCommentToken();
       }
     return rtnNode;
   } //makeConstdefSymbol

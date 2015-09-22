@@ -28,13 +28,22 @@ namespace MFM {
     return rtnTargets;
   }
 
-  //  ParameterMap Compiler::getMangledParametersMap()
   ClassMemberMap Compiler::getMangledClassMembersMap()
   {
     ClassMemberMap rtnMembers;
     m_state.m_programDefST.getClassMembers(rtnMembers);
     return rtnMembers;
   }
+
+  void Compiler::clearClassMembersMap(ClassMemberMap & cmm)
+  {
+    for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
+      {
+	delete (i->second); //cannot be null
+	//i->second = NULL; //read-only
+      }
+    cmm.clear();
+  } //clearClassMembersMap
 
   const std::string Compiler::getFullPathLocationAsString(const Locator& loc)
   {
@@ -283,7 +292,7 @@ namespace MFM {
 #endif
 
     // testing class member map only
-    //    #define TESTCLASSMEMBERMAP
+    //#define TESTCLASSMEMBERMAP
 #ifdef TESTCLASSMEMBERMAP
     ClassMemberMap cmm = getMangledClassMembersMap();
     std::cerr << "Size of class members map is " << cmm.size() << std::endl;
@@ -307,6 +316,7 @@ namespace MFM {
 	std::cerr << " " << MFM::HexEscape(i->second->m_structuredComment)
 		  << std::endl;
       }
+    clearClassMembersMap(cmm);
 #endif
 
     return m_state.m_err.getErrorCount();

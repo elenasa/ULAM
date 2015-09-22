@@ -2,28 +2,30 @@
 #=t3527_test_compiler_funcdef_structuredcomment
 #!
 ## In Compiler, define TESTCLASSMEMBERMAP, for ULAM INFO:
-##Size of class members map is 8
-##ULAM INFO: FUNCTION ./A.ulam:25:7: Ue_102321A10 Ut_102321i test Uf_4test10 NONE
-##ULAM INFO: FUNCTION ./A.ulam:20:7: Ue_102321A10 Ut_102321i times Uf_5times10 NONE
+##Size of class members map is 10
+##ULAM INFO: CONSTANT ./A.ulam:7:15: Ue_102321A10 Ut_10181i tries Uc_5tries 0x7f /**%20CONSTANT:%20structured%20comment%20*/
+##ULAM INFO: FUNCTION ./A.ulam:28:7: Ue_102321A10 Ut_102321i test Uf_4test10 /**%20FUNC:%20test%20no%20args%20*/
+##ULAM INFO: FUNCTION ./A.ulam:21:7: Ue_102321A10 Ut_102321i times Uf_5times10 NONE
 ##ULAM INFO: FUNCTION ./A.ulam:13:7: Ue_102321A10 Ut_102321i times Uf_5times12102321i102321i /**%20FUNC:%20times%20*/
-##ULAM INFO: DATAMEMBER ./A.ulam:24:6: Ue_102321A10 Ut_10181i d Um_1d 0x0 /**%20DM:%20d,%20results%20goes%20here%20*/
-##ULAM INFO: DATAMEMBER ./A.ulam:24:9: Ue_102321A10 Ut_10181i e Um_1e 0x0 NONE
+##ULAM INFO: DATAMEMBER ./A.ulam:25:6: Ue_102321A10 Ut_10181i d Um_1d 0x0 /**%20DM:%20d,%20results%20goes%20here%20*/
+##ULAM INFO: DATAMEMBER ./A.ulam:25:9: Ue_102321A10 Ut_10181i e Um_1e 0x3 NONE
 ##ULAM INFO: DATAMEMBER ./A.ulam:5:6: Ue_102321A10 Ut_10181i ano Um_3ano 0x0 NONE
 ##ULAM INFO: DATAMEMBER ./A.ulam:8:6: Ue_102321A10 Ut_10181i bno Um_3bno 0x7f NONE
 ##ULAM INFO: PARAMETER ./A.ulam:10:16: Ue_102321A10 Ut_10181i pyes Up_4pyes 0x7f /**%20MODEL%20P:%20pyes%20is%20max%20tries%20*/
+##ULAM INFO: TYPEDEF ./A.ulam:4:18: Ue_102321A10 Ut_10181i I8 Ut_2I8 /**%20TYPEDEF:%20structured%20comment%20*/
 ##
 Exit status: 15
-Ue_A { typedef Int(8) I8;  Int(8) ano(0);  constant Int(8) tries = 127;  Int(8) bno(127);  Int(8) d(15);  Int(8) e(0);  Int(32) test() {  d ( 4 cast 5 cast )times cast = d cast return } }
+Ue_A { typedef Int(8) I8;  Int(8) ano(0);  constant Int(8) tries = 127;  Int(8) bno(127);  Int(8) d(15);  Int(8) e(3);  Int(32) test() {  d ( 4 cast 5 cast )times cast = d cast return } }
 ##
 ##informed by t3115
 ##
 #>A.ulam
   ulam 1;
 element A {
-  /** TYPEDEF: no structured comment */
+  /** TYPEDEF: structured comment */
   typedef Int(8) I8;
   I8 ano;
-  /** CONSTANT: no structured comment */
+  /** CONSTANT: structured comment */
   constant I8 tries = I8.maxof;
   I8 bno = tries;
   /** MODEL P: pyes is max tries */
@@ -37,11 +39,14 @@ element A {
       d += n;
     return d;
   }
+
   Int times() {
     return 0;
   }
   /** DM: d, results goes here */
-  I8 d, e;
+  I8 d, e = 3;
+
+  /** FUNC: test no args */
   Int test(){
     d = (I8) times(4,5);
     return d;

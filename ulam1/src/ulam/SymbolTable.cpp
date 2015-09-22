@@ -12,6 +12,8 @@
 #include "Node.h"
 #include "MapParameterDesc.h"
 #include "MapDataMemberDesc.h"
+#include "MapConstantDesc.h"
+#include "MapTypedefDesc.h"
 
 namespace MFM {
 
@@ -607,7 +609,21 @@ namespace MFM {
 	    descptr = new DataMemberDesc((SymbolVariableDataMember *) sym, classType, m_state);
 	    assert(descptr);
 	  }
-	//else skip constants, typedefs (functions done separately)
+	else if(sym->isTypedef())
+	  {
+	    descptr = new TypedefDesc((SymbolTypedef *) sym, classType, m_state);
+	    assert(descptr);
+	  }
+	else if(sym->isConstant() && ((SymbolConstantValue *)sym)->isReady())
+	  {
+	    descptr = new ConstantDesc((SymbolConstantValue *) sym, classType, m_state);
+	    assert(descptr);
+	  }
+	else
+	  {
+	    //error not ready perhaps
+	    assert(0); //(functions done separately)
+	  }
 
 	if(descptr)
 	  {
