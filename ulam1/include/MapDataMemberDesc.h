@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+ * MapDataMemberDesc.h - Map of Data Members for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,49 +26,34 @@
  */
 
 /**
-  \file SymbolParameterValue.h - Handling Model Parameter Symbols for ULAM
+  \file MapDataMemberDesc.h -  Map of Data Members for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
   \gpl
 */
 
-#ifndef SYMBOLPARAMETERVALUE_H
-#define SYMBOLPARAMETERVALUE_H
+#ifndef MAPDATAMEMBERDESC_H
+#define MAPDATAMEMBERDESC_H
 
-#include "SymbolWithValue.h"
+#include "MapClassMemberDesc.h"
+#include "SymbolVariableDataMember.h"
 
-namespace MFM{
-
-  class CompilerState;  //forward
-
-  //distinguish between Symbols
-  class SymbolParameterValue : public SymbolWithValue
+namespace MFM
+{
+  struct DataMemberDesc : public ClassMemberDesc
   {
-  public:
-    SymbolParameterValue(Token id, UTI utype, CompilerState& state);
-    SymbolParameterValue(const SymbolParameterValue& sref);
-    SymbolParameterValue(const SymbolParameterValue& sref, bool keepType);
-    virtual ~SymbolParameterValue();
+    DataMemberDesc(SymbolVariableDataMember * dmsym, UTI classtype, CompilerState & state);
+    virtual ~DataMemberDesc();
 
-    virtual Symbol * clone();
-    virtual Symbol * cloneKeepsType();
-
-    virtual bool isConstant();
-
-    virtual bool isModelParameter();
-
-    virtual const std::string getMangledPrefix();
-
-    virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
-
-    virtual void setStructuredComment();
-
-  protected:
+    virtual std::string getMemberKind();
+    virtual bool getValue(u64& vref);
 
   private:
-    UTI m_childOf; //needed for symbol's mangled name
+    u64 m_val; //intial default (as Bits)
+
   };
+
 } //MFM
 
-#endif //SYMBOLPARAMETERVALUE_H
+#endif  /* MAPDATAMEMBERDESC_H */

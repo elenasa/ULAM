@@ -96,9 +96,16 @@ namespace MFM{
 
     virtual void printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
+    virtual void setStructuredComment();
+
+    virtual bool getStructuredComment(Token& scTok);
+
   protected:
     CompilerState & m_state;
     void setId(u32 newid);
+
+    Token m_structuredCommentToken;
+    bool m_gotStructuredCommentToken;
 
   private:
     Token m_idtok; // id to its name (string) in lexer; also in ST

@@ -492,6 +492,7 @@ namespace MFM {
 	    msg << m_state.getTokenDataAsString(&iTok).c_str();
 	    msg << ">: Identifier must begin with a lower-case letter";
 	    MSG(&iTok, msg.str().c_str(), ERR);
+	    m_state.clearStructuredCommentToken();
 	    delete typeNode;
 	    typeNode = NULL;
 	    unreadToken();
@@ -506,8 +507,9 @@ namespace MFM {
 	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode); //with params
 	    if(rtnNode)
 	      brtn = true; //rtnNode belongs to the symbolFunction
-	    //else
+	    else
 	    //MSG(&pTok, "INCOMPLETE Function Definition", ERR);
+	      m_state.clearStructuredCommentToken();
 	  }
 	else
 	  {
@@ -521,6 +523,8 @@ namespace MFM {
 		parseRestOfDataMemberAssignment(typeargs, iTok, rtnNode, passuti);
 		rtnNode = parseRestOfDataMember(typeargs, iTok, rtnNode, passuti);
 	      }
+	    else
+	      m_state.clearStructuredCommentToken();
 	  }
       } //regular data member
 
@@ -3193,6 +3197,7 @@ namespace MFM {
     UTI rtnuti = nodetype->givenUTI();
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok, rtnuti, m_state);
+    fsymptr->setStructuredComment(); //also clears
 
     //WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, nodetype, m_state);
@@ -3540,9 +3545,15 @@ namespace MFM {
 
 	    // tfr owner of nodetyperef to node var decl
 	    if(asymptr->isDataMember())
-	      rtnNode =  new NodeVarDeclDM((SymbolVariableDataMember *) asymptr, nodetyperef, m_state);
+	      {
+		rtnNode =  new NodeVarDeclDM((SymbolVariableDataMember *) asymptr, nodetyperef, m_state);
+		asymptr->setStructuredComment(); //also clears
+	      }
 	    else
-	      rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, nodetyperef, m_state);
+	      {
+		rtnNode =  new NodeVarDecl((SymbolVariable *) asymptr, nodetyperef, m_state);
+		m_state.clearStructuredCommentToken();
+	      }
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
 
@@ -3601,6 +3612,7 @@ namespace MFM {
 		msg << "> (missing symbol)";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
+	    m_state.clearStructuredCommentToken();
 	  }
 	else
 	  {
@@ -3612,6 +3624,7 @@ namespace MFM {
 	    rtnNode =  new NodeTypedef((SymbolTypedef *) asymptr, nodetyperef, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(args.m_typeTok.m_locator);
+	    asymptr->setStructuredComment(); //also clears
 	  }
 
 	if(!rtnNode)
@@ -3625,6 +3638,7 @@ namespace MFM {
       {
 	delete nodetyperef;
 	nodetyperef = NULL;
+	m_state.clearStructuredCommentToken();
       }
     return rtnNode;
   } //makeTypedefSymbol
@@ -3676,6 +3690,7 @@ namespace MFM {
 		unreadToken();
 	      }
 	    //else class parameter list
+	    m_state.clearStructuredCommentToken();
 	  }
 	else
 	  {
@@ -3686,6 +3701,8 @@ namespace MFM {
 	    NodeConstantDef * constNode =  new NodeConstantDef((SymbolConstantValue *) asymptr, nodetyperef, m_state);
 	    assert(constNode);
 	    constNode->setNodeLocation(args.m_typeTok.m_locator);
+	    if(args.m_isStmt)
+	      asymptr->setStructuredComment(); //also clears
 
 	    rtnNode = parseRestOfConstantDef(constNode, args.m_assignOK, args.m_isStmt);
 	  }
@@ -3694,8 +3711,8 @@ namespace MFM {
       {
 	delete nodetyperef;
 	nodetyperef = NULL;
+	m_state.clearStructuredCommentToken();
       }
-
     return rtnNode;
   } //makeConstdefSymbol
 
@@ -3743,6 +3760,8 @@ namespace MFM {
 		getTokensUntil(TOK_SEMICOLON);
 		unreadToken();
 	      }
+
+	    m_state.clearStructuredCommentToken();
 	  }
 	else
 	  {
@@ -3753,6 +3772,7 @@ namespace MFM {
 	    NodeModelParameterDef * paramNode =  new NodeModelParameterDef((SymbolParameterValue *) asymptr, nodetyperef, m_state);
 	    assert(paramNode);
 	    paramNode->setNodeLocation(args.m_typeTok.m_locator);
+	    asymptr->setStructuredComment(); //also clears
 
 	    rtnNode = parseRestOfParameterDef(paramNode);
 	  }
@@ -3761,6 +3781,7 @@ namespace MFM {
       {
 	delete nodetyperef;
 	nodetyperef = NULL;
+	m_state.clearStructuredCommentToken();
       }
     return rtnNode;
   } //makeParameterSymbol
@@ -4393,8 +4414,8 @@ namespace MFM {
       {
 	Token scTok = tok; //save in case next token is a class or parameter
 	brtn = m_tokenizer->getNextToken(tok);
-	if((tok.m_type == TOK_KW_ELEMENT) || (tok.m_type == TOK_KW_QUARK) || (tok.m_type == TOK_KW_QUARKUNION) || tok.m_type == TOK_KW_PARAMETER)
-	  m_state.saveStructuredCommentToken(scTok);
+	//if((tok.m_type == TOK_KW_ELEMENT) || (tok.m_type == TOK_KW_QUARK) || (tok.m_type == TOK_KW_QUARKUNION) || tok.m_type == TOK_KW_PARAMETER)
+	m_state.saveStructuredCommentToken(scTok);
       }
     return brtn;
   } //getNextToken

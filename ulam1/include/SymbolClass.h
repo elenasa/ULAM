@@ -43,7 +43,7 @@
 #include "NodeSquareBracket.h"
 #include "NodeConstantDef.h"
 #include "TargetMap.h"
-#include "ParameterMap.h"
+#include "MapClassMemberDesc.h"
 
 namespace MFM{
 
@@ -124,7 +124,7 @@ namespace MFM{
 
     void addTargetDescriptionMapEntry(TargetMap& classtargets, u32 scid);
 
-    void addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters);
+    void addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers);
 
   protected:
     Resolver * m_resolver;

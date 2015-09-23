@@ -140,15 +140,16 @@ namespace MFM {
       mangled << 10;
 
     mangled << m_state.getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
+    //without types and values of args!!
     return mangled.str();
   } //getUlamTypeMangledType
 
   const std::string UlamTypeClass::getUlamTypeMangledName()
   {
     std::ostringstream mangledclassname;
-    mangledclassname << UlamType::getUlamTypeMangledName();
+    mangledclassname << UlamType::getUlamTypeMangledName(); //includes Uprefix
 
-    //append 0, or each digi-encoded: numberOfParameters, (enum) types and values
+    //appends '10', or numberOfParameters followed by each digi-encoded: mangled type and value
     u32 id = m_key.getUlamKeyTypeSignatureNameId();
     UTI cuti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);

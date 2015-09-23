@@ -50,13 +50,13 @@ namespace MFM{
 
     void resetUnseenClassLocation(Token identTok);
 
-    void setStructuredComment();
+    virtual void setStructuredComment();
 
-    bool getStructuredComment(Token& scTok);
+    //    virtual bool getStructuredComment(Token& scTok);
 
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
 
-    virtual void getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters);
+    virtual void getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers);
 
     virtual bool isClassTemplate();
 
@@ -92,8 +92,8 @@ namespace MFM{
    protected:
 
   private:
-    Token m_structuredCommentToken;
-    bool m_gotStructuredCommentToken;
+    //    Token m_structuredCommentToken;
+    //bool m_gotStructuredCommentToken;
   };
 
 }

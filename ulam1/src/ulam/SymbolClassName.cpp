@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state), m_gotStructuredCommentToken(false)
+  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state)
   {
     unsetStub(); //regular class; classblock may be null if utype is UC_UNSEEN class type.
   }
@@ -30,17 +30,6 @@ namespace MFM {
       }
   } //setStructuredComment
 
-  bool SymbolClassName::getStructuredComment(Token& scTok)
-  {
-    if(m_gotStructuredCommentToken)
-      {
-	assert(m_structuredCommentToken.m_type == TOK_STRUCTURED_COMMENT);
-	scTok = m_structuredCommentToken;
-	return true;
-      }
-    return false;
-  } //getStructuredComment
-
   void SymbolClassName::getTargetDescriptorsForClassInstances(TargetMap& classtargets)
   {
     u32 scid = 0;
@@ -51,10 +40,10 @@ namespace MFM {
     SymbolClass::addTargetDescriptionMapEntry(classtargets, scid);
   } //getTargetDescriptorsForClassInstances
 
-  void SymbolClassName::getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters)
+  void SymbolClassName::getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers)
   {
-    SymbolClass::addModelParameterDescriptionsMapEntry(classmodelparameters);
-  } //getModelParameterDescriptionsForClassInstances
+    SymbolClass::addClassMemberDescriptionsMapEntry(classmembers);
+  } //getClassMemberDescriptionsForClassInstances
 
   bool SymbolClassName::isClassTemplate()
   {

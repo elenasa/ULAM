@@ -227,4 +227,14 @@ namespace MFM {
     fp->write("); ");
   } //printPostfixValuesOfVariableDeclarations
 
+  void SymbolVariableDataMember::setStructuredComment()
+  {
+    Token scTok;
+    if(m_state.getStructuredCommentToken(scTok)) //and clears it
+      {
+	m_structuredCommentToken = scTok;
+	m_gotStructuredCommentToken = true;
+      }
+  } //setStructuredComment
+
 } //end MFM

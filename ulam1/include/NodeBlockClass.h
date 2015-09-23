@@ -127,6 +127,8 @@ namespace MFM{
 
     NodeBlockFunctionDefinition * findToIntFunctionNode();
 
+    virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
+
   protected:
     SymbolTable m_functionST;
 

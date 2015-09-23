@@ -10,6 +10,10 @@
 #include "NodeBlockClass.h"
 #include "NodeBlock.h"
 #include "Node.h"
+#include "MapParameterDesc.h"
+#include "MapDataMemberDesc.h"
+#include "MapConstantDesc.h"
+#include "MapTypedefDesc.h"
 
 namespace MFM {
 
@@ -588,42 +592,62 @@ namespace MFM {
     fp->write("} //getDefaultQuark\n\n");
   } //genCodeBuiltInFunctionBuildDefaultQuark
 
-  void SymbolTable::addModelParameterDescriptionsToMap(UTI classType, ParameterMap& classmodelparameters)
+  void SymbolTable::addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	ClassMemberDesc * descptr = NULL;
+	Symbol * sym = it->second;
+	if(sym->isModelParameter() && ((SymbolParameterValue *)sym)->isReady())
+	  {
+	    descptr = new ParameterDesc((SymbolParameterValue *) sym, classType, m_state);
+	    assert(descptr);
+	  }
+	else if(sym->isDataMember())
+	  {
+	    descptr = new DataMemberDesc((SymbolVariableDataMember *) sym, classType, m_state);
+	    assert(descptr);
+	  }
+	else if(sym->isTypedef())
+	  {
+	    descptr = new TypedefDesc((SymbolTypedef *) sym, classType, m_state);
+	    assert(descptr);
+	  }
+	else if(sym->isConstant() && ((SymbolConstantValue *)sym)->isReady())
+	  {
+	    descptr = new ConstantDesc((SymbolConstantValue *) sym, classType, m_state);
+	    assert(descptr);
+	  }
+	else
+	  {
+	    //error not ready perhaps
+	    assert(0); //(functions done separately)
+	  }
+
+	if(descptr)
+	  {
+	    //concat mangled class and parameter names to avoid duplicate keys into map
+	    std::ostringstream fullMangledName;
+	    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
+	    classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
+	  }
+	it++;
+      }
+  } //addClassMemberDescriptionsToMap
+
+  void SymbolTable::addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(sym->isModelParameter() && ((SymbolParameterValue *)sym)->isReady())
-	  {
-	    //similar to SymbolClass' addTargetDescriptionMapEntry for class targets
-	    struct ParameterDesc desc;
-	    desc.m_loc = sym->getLoc();
-            desc.m_mangledClassName = m_state.getUlamTypeByIndex(classType)->getUlamTypeMangledName(),
-	    desc.m_mangledType = m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName();
-	    assert(((SymbolParameterValue *) sym)->getValue(desc.m_val)); //is ready.
-	    desc.m_parameterName = m_state.m_pool.getDataAsString(sym->getId());
-	    desc.m_mangledParameterName = sym->getMangledName();
-	    Token scTok;
-	    if(((SymbolParameterValue *) sym)->getStructuredComment(scTok))
-	      {
-		std::ostringstream sc;
-		sc << "/**";
-		sc << m_state.m_pool.getDataAsString(scTok.m_dataindex).c_str();
-		sc << "*/";
-		desc.m_structuredComment = sc.str();
-	      }
-	    else
-	      desc.m_structuredComment = "NONE";
+	assert(sym->isFunction());
 
-	    //concat mangled class and parameter names to avoid duplicate keys into map
-	    std::ostringstream fullMangledName;
-	    fullMangledName << desc.m_mangledClassName << "_" << desc.m_mangledParameterName;
-	    classmodelparameters.insert(std::pair<std::string, struct ParameterDesc>(fullMangledName.str(), desc));
-	  }
+	((SymbolFunctionName *) sym)->addFunctionDescriptionsToClassMemberMap(classType, classmembers);
 	it++;
       }
-  } //addModelParameterDescriptionsToMap
+  } //addClassMemberFunctionDescriptionsToMap
 
   //storage for class members persists, so we give up preserving
   //order of declaration that the NodeVarDecl in the parseTree
@@ -882,7 +906,7 @@ namespace MFM {
       } //while
   } //getTargets
 
-  void SymbolTable::getModelParameters(ParameterMap& classmodelparameters)
+  void SymbolTable::getClassMembers(ClassMemberMap& classmembers)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -893,11 +917,11 @@ namespace MFM {
 	//skip anonymous classes
 	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	  {
-	    ((SymbolClassName *) sym)->getModelParameterDescriptionsForClassInstances(classmodelparameters);
+	    ((SymbolClassName *) sym)->getClassMemberDescriptionsForClassInstances(classmembers);
 	  }
 	it++;
       } //while
-  } //getModelParameters
+  } //getClassMembers
 
   void SymbolTable::testForTableOfClasses(File * fp)
   {
