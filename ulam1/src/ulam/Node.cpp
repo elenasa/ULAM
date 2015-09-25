@@ -1587,7 +1587,7 @@ namespace MFM {
     UTI uti = stgcos->getUlamTypeIdx();
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
 
-    // handle inheritance, when data member is in superclass, not current class
+    // handle inheritance, when data member is in superclass, not current class obj
     // now for both immediate elements and quarks..
     u32 cositem = (cosSize > 1) ? 1 : 0;
     NNO cosBlockNo = m_state.m_currentObjSymbolsForCodeGen[cositem]->getBlockNoOfST();

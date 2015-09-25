@@ -158,9 +158,13 @@ namespace MFM {
 
   void NodeBlockClass::printPostfixDataMembersParseTree(File * fp)
   {
+    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+    if(superblock)
+      superblock->printPostfixDataMembersParseTree(fp);
+
     if(m_nodeNext)
       m_nodeNext->printPostfix(fp); //datamember vardecls
-  }
+  } //printPostfixDataMembersParseTree
 
   void NodeBlockClass::printPostfixDataMembersSymbols(File * fp)
   {
@@ -406,7 +410,14 @@ namespace MFM {
     if(m_ST.getTableSize() == 0 && superbs == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
-    return superbs + m_ST.getTotalVariableSymbolsBitSize();
+    if(superbs < 0)
+      return superbs; //error
+
+    s32 mybs = m_ST.getTotalVariableSymbolsBitSize();
+    if(mybs < 0)
+      return mybs; //error
+
+    return superbs + mybs;
   } //getBitSizesOfVariableSymbolsInTable
 
   s32 NodeBlockClass::getMaxBitSizeOfVariableSymbolsInTable()
@@ -420,7 +431,14 @@ namespace MFM {
     if(m_ST.getTableSize() == 0 && superbs == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
-    return superbs + m_ST.getMaxVariableSymbolsBitSize();
+    if(superbs < 0)
+      return superbs; //error
+
+    s32 mybs = m_ST.getMaxVariableSymbolsBitSize();
+    if(mybs < 0)
+      return mybs; //error
+
+    return (superbs > mybs ? superbs : mybs); //return max
   } //getMaxBitSizeOfVariableSymbolsInTable
 
   s32 NodeBlockClass::findUlamTypeInTable(UTI utype)
@@ -442,7 +460,7 @@ namespace MFM {
     if(m_state.isClassASubclass(getNodeType()))
       {
 	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-	funcinscope = superClassBlock->getNumberOfFuncSymbolsInTable();
+	funcinscope = superClassBlock->isFuncIdInScope(id, symptrref);
       }
     return (funcinscope || m_functionST.isInTable(id, symptrref));
   } //isFuncIdInScope
@@ -1148,12 +1166,6 @@ namespace MFM {
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 
-	if(m_state.isClassASubclass(getNodeType()))
-	  {
-	    NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-	    superClassBlock->generateUlamClassInfo(fp, declOnly, dmcount);
-	  }
-
 	generateUlamClassInfo(fp, declOnly, dmcount);
 
 	m_state.m_currentIndentLevel--;
@@ -1176,6 +1188,12 @@ namespace MFM {
 
   void NodeBlockClass::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	superClassBlock->generateUlamClassInfo(fp, declOnly, dmcount);
+      }
+
     if(m_nodeNext)
       m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
   }

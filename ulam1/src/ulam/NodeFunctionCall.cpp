@@ -800,10 +800,28 @@ namespace MFM {
 	//assert(0);
       }
 
+    // use NodeNo for inheritance
+    bool useSuperClassName = false;
+    NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
+    NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
+    UTI superuti = Nav;
+    UlamType * superut = NULL;
+    if(stgcosBlockNo != cosBlockNo && m_state.isClassASubclass(stgcosuti))
+      {
+	Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
+	assert(foundnode);
+	superuti = foundnode->getNodeType();
+	superut = m_state.getUlamTypeByIndex(superuti);
+	useSuperClassName = true;
+      }
+
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
-	fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	if(useSuperClassName)
+	  fp->write(superut->getUlamTypeMangledName().c_str());
+	else
+	  fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::");
 
 	//depending on the "owner" of the func, the instance is needed
@@ -815,7 +833,10 @@ namespace MFM {
     else
       {
 	//immediate quark..
-	fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
+	if(useSuperClassName)
+	  fp->write(superut->getImmediateStorageTypeAsString().c_str());
+	else
+	  fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
 	fp->write("::Us::"); //typedef
       }
 
