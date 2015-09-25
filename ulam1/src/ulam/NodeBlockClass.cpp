@@ -56,6 +56,14 @@ namespace MFM {
   {
     if(NodeBlock::findNodeNo(n, foundNode))
       return true;
+
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	if(superClassBlock->findNodeNo(n, foundNode))
+	  return true;
+      }
+
     if(m_functionST.findNodeNoAcrossTableOfFunctions(n, foundNode)) //all the function defs
       return true;
     if(m_nodeParameterList && m_nodeParameterList->findNodeNo(n, foundNode))
@@ -109,9 +117,8 @@ namespace MFM {
     //output class template arguments type and name
     if(m_nodeParameterList->getNumberOfNodes() > 0)
       {
-	UlamType * cut = m_state.getUlamTypeByIndex(getNodeType());
 	SymbolClassNameTemplate * cnsym = NULL;
-	assert(m_state.alreadyDefinedSymbolClassNameTemplate(cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), cnsym));
+	assert(m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(getNodeType()).getUlamKeyTypeSignatureNameId(), cnsym));
 	cnsym->printClassTemplateArgsForPostfix(fp);
 	//m_nodeParameterList->print(fp);
       }
@@ -354,8 +361,38 @@ namespace MFM {
   //override to check both variables and function names.
   bool NodeBlockClass::isIdInScope(u32 id, Symbol * & symptrref)
   {
-    return (m_ST.isInTable(id, symptrref) || isFuncIdInScope(id, symptrref));
-  }
+    bool inscope = false;
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	inscope = superClassBlock->isIdInScope(id, symptrref);
+      }
+    return (inscope || m_ST.isInTable(id, symptrref) || isFuncIdInScope(id, symptrref));
+  } //isIdInScope
+
+
+  u32 NodeBlockClass::getNumberOfSymbolsInTable()
+  {
+    s32 supers = 0;
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	supers = superClassBlock->getNumberOfSymbolsInTable();
+      }
+
+    return supers + m_ST.getTableSize();
+  } //getNumberOfSymbolsInTable
+
+  u32 NodeBlockClass::getSizeOfSymbolsInTable()
+  {
+    s32 supers = 0;
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	supers = superClassBlock->getSizeOfSymbolsInTable();
+      }
+    return supers + m_ST.getTotalSymbolSize();
+  } //getSizeOfSymbolsInTable
 
   s32 NodeBlockClass::getBitSizesOfVariableSymbolsInTable()
   {
@@ -380,17 +417,35 @@ namespace MFM {
 	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
 	superbs = superClassBlock->getMaxBitSizeOfVariableSymbolsInTable();
       }
-
     if(m_ST.getTableSize() == 0 && superbs == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
     return superbs + m_ST.getMaxVariableSymbolsBitSize();
   } //getMaxBitSizeOfVariableSymbolsInTable
 
+  s32 NodeBlockClass::findUlamTypeInTable(UTI utype)
+  {
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	s32 superpos = superClassBlock->findUlamTypeInTable(utype);
+	if(superpos >= 0)
+	  return superpos; //short-circuit
+      }
+
+    return m_ST.findPosOfUlamTypeInTable(utype);
+  } //findUlamTypeInTable
+
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
   {
-    return m_functionST.isInTable(id, symptrref);
-  }
+    bool funcinscope = false;
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	funcinscope = superClassBlock->getNumberOfFuncSymbolsInTable();
+      }
+    return (funcinscope || m_functionST.isInTable(id, symptrref));
+  } //isFuncIdInScope
 
   void NodeBlockClass::addFuncIdToScope(u32 id, Symbol * symptr)
   {
@@ -399,13 +454,25 @@ namespace MFM {
 
   u32 NodeBlockClass::getNumberOfFuncSymbolsInTable()
   {
-    return m_functionST.getTableSize();
-  }
+    s32 superfs = 0;
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	superfs = superClassBlock->getNumberOfFuncSymbolsInTable();
+      }
+    return superfs + m_functionST.getTableSize();
+  } //getNumberOfFuncSymbolsInTable
 
   u32 NodeBlockClass::getSizeOfFuncSymbolsInTable()
   {
-    return m_functionST.getTotalSymbolSize();
-  }
+    s32 superfs = 0;
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	superfs = superClassBlock->getSizeOfFuncSymbolsInTable();
+      }
+    return superfs + m_functionST.getTotalSymbolSize();
+  } //getSizeOfFuncSymbolsInTable
 
   void NodeBlockClass::updatePrevBlockPtrOfFuncSymbolsInTable()
   {
@@ -791,11 +858,12 @@ namespace MFM {
     fp->write("//BUILT-IN FUNCTIONS:\n\n");
 
     // 'has' is for both class types
-    NodeBlock::generateCodeForBuiltInClassFunctions(fp, declOnly, classtype);
+    genCodeBuiltInFunctionHas(fp, declOnly, classtype);
+    genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
 
     //generate 3 UlamClass:: methods for smart ulam debugging
     u32 dmcount = 0; //pass ref
-    generateUlamClassInfo(fp, declOnly, dmcount);
+    generateUlamClassInfoFunction(fp, declOnly, dmcount);
     generateUlamClassInfoCount(fp, declOnly, dmcount); //after dmcount is updated by nodes
     generateUlamClassGetMangledName(fp, declOnly);
 
@@ -803,6 +871,194 @@ namespace MFM {
     if(classtype == UC_ELEMENT)
       generateInternalIsMethodForElement(fp, declOnly);
   } //generateCodeForBuiltInClassFunctions
+
+  void NodeBlockClass::genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    //'has' applies to both quarks and elements
+    UTI cuti = m_state.getCompileThisIdx();
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("//helper method not called directly\n");
+
+	m_state.indent(fp);
+	fp->write("s32 ");
+	fp->write(m_state.getHasMangledFunctionName(cuti));
+	fp->write("(const char * namearg) const;\n\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    if(classtype == UC_ELEMENT)
+      fp->write("template<class EC>\n");
+    else if(classtype == UC_QUARK)
+      fp->write("template<class EC, u32 POS>\n");
+    else
+      assert(0);
+
+    m_state.indent(fp);
+    fp->write("s32 "); //return pos offset, or -1 if not found
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    if(classtype == UC_ELEMENT)
+      fp->write("<EC>");
+    else if(classtype == UC_QUARK)
+      fp->write("<EC, POS>");
+
+    fp->write("::");
+    fp->write(m_state.getHasMangledFunctionName(cuti));
+    fp->write("(const char * namearg) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+
+    genCodeBuiltInFunctionHasDataMembers(fp);
+
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write("(-1);   //not found\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}  //has\n\n");
+  } //genCodeBuiltInFunctionHas
+
+
+  void NodeBlockClass::genCodeBuiltInFunctionHasDataMembers(File * fp)
+  {
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	superClassBlock->genCodeBuiltInFunctionHasDataMembers(fp);
+      }
+    m_ST.genCodeBuiltInFunctionHasOverTableOfVariableDataMember(fp);
+  } //genCodeBuiltInFunctionHasDataMembers
+
+
+  void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    //'default atom' applies only to elements
+    if(classtype == UC_QUARK)
+      return genCodeBuiltInFunctionBuildDefaultQuark(fp, declOnly, classtype);;
+
+    assert(classtype == UC_ELEMENT);
+
+    UTI cuti = m_state.getCompileThisIdx();
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("virtual T ");
+	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
+	fp->write("() const;\n\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC>\n");
+
+    m_state.indent(fp);
+    //fp->write("T "); //returns object of type T
+    fp->write("typename EC::ATOM_CONFIG::ATOM_TYPE "); //returns object of type T
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write("<EC>");
+
+    fp->write("::");
+    fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
+    fp->write("( ) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    m_state.indent(fp);
+    fp->write("T da = Element<EC>::BuildDefaultAtom();\n\n");
+
+    m_state.indent(fp);
+    fp->write("// Initialize any data members:\n");
+
+    //get all initialized data members packed
+    genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write("(da);\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //BuildDefaultAtom\n\n");
+  } //genCodeBuiltInFunctionBuildDefaultAtom
+
+  void NodeBlockClass::genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp)
+  {
+    UTI nuti = getNodeType();
+    if(m_state.isClassASubclass(nuti))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	superClassBlock->genCodeBuiltInFunctionBuildingDefaultDataMembers(fp);
+      }
+
+    m_ST.genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(fp, nuti);
+  } //genCodeBuiltInFunctionBuildingDefaultDataMembers
+
+  void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    //return;
+    assert(classtype == UC_QUARK);
+
+    UTI cuti = m_state.getCompileThisIdx();
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("static u32 ");
+	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
+	fp->write("( );\n\n");
+	return;
+      }
+
+    m_state.indent(fp);
+    fp->write("template<class EC, u32 POS>\n");
+
+    m_state.indent(fp);
+    fp->write("u32 ");
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    fp->write("<EC, POS>");
+
+    fp->write("::");
+    fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
+    fp->write("( )\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //get all initialized data members in quark
+    SymbolClass * csym = NULL;
+    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    u32 qval = 0;
+    assert(csym->getDefaultQuark(qval));
+
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write_decimal_unsigned(qval);
+    fp->write(";\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //getDefaultQuark\n\n");
+  } //genCodeBuiltInFunctionBuildDefaultQuark
 
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {
@@ -843,7 +1099,7 @@ namespace MFM {
     fp->write("}   //is\n\n");
   } //generateInternalIsMethodForElement
 
-  void NodeBlockClass::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  void NodeBlockClass::generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount)
   {
     UTI cuti = getNodeType();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
@@ -892,8 +1148,13 @@ namespace MFM {
 	fp->write("{\n");
 	m_state.m_currentIndentLevel++;
 
-	if(m_nodeNext)
-	  m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
+	if(m_state.isClassASubclass(getNodeType()))
+	  {
+	    NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	    superClassBlock->generateUlamClassInfo(fp, declOnly, dmcount);
+	  }
+
+	generateUlamClassInfo(fp, declOnly, dmcount);
 
 	m_state.m_currentIndentLevel--;
 	m_state.indent(fp);
@@ -910,7 +1171,14 @@ namespace MFM {
       {
 	fp->write(";\n\n"); //end of declaration
       }
-  } //generateUlamClassInfo
+  } //generateUlamClassInfoFunction
+
+
+  void NodeBlockClass::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  {
+    if(m_nodeNext)
+      m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
+  }
 
   void NodeBlockClass::generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount)
   {
@@ -1044,9 +1312,14 @@ namespace MFM {
 
   void NodeBlockClass::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
-    NodeBlock::addClassMemberDescriptionsToInfoMap(classmembers); //Table of Classes request
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	superClassBlock->addClassMemberDescriptionsToInfoMap(classmembers);
+      }
 
+    NodeBlock::addClassMemberDescriptionsToInfoMap(classmembers); //Table of Classes request
     m_functionST.addClassMemberFunctionDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
-  }
+  } //addClassMemberDescriptionsToInfoMap
 
 } //end MFM

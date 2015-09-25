@@ -90,10 +90,13 @@ namespace MFM{
 
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
 
-    void genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionHasOverTableOfVariableDataMember(File * fp);
 
-void addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
-void addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
+    void genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti);
+
+    void addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
+
+    void addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
 
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
@@ -177,11 +180,6 @@ void addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& clas
     CompilerState & m_state;
     s32 calcVariableSymbolTypeSize(UTI ut);
     bool variableSymbolWithCountableSize(Symbol * sym);
-
-    void genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-    void genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp);
 
   };
 

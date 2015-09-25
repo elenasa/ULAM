@@ -1081,10 +1081,13 @@ namespace MFM {
   UTI CompilerState::isClassASubclass(UTI cuti)
   {
     SymbolClass * csym = NULL;
-    assert(alreadyDefinedSymbolClass(cuti, csym));
-    SymbolClassName * cnsym = NULL;
-    assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
-    return cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      {
+	SymbolClassName * cnsym = NULL;
+	assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
+	return cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
+      }
+    return false; //even for non-classes
   } //isClassASubclass
 
   bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
@@ -1304,6 +1307,7 @@ namespace MFM {
     return brtn;
   } //alreadyDefinedSymbol
 
+#if 0
   bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
@@ -1321,21 +1325,28 @@ namespace MFM {
       }
     return brtn;
   } //isFuncIdInClassScope
+#endif
 
-  bool CompilerState::isIdInClassScope(u32 dataindex, Symbol * & symptr)
+  bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
+
+    //start with the current "top" block and look down the stack
+    //until the 'variable id' is found.
+    NodeBlockClass * classblock = getClassBlock();
+
+    //substitute another selected class block to search for data member
     if(useMemberBlock())
+      classblock = getCurrentMemberClassBlock();
+
+    while(!brtn && classblock)
       {
-	NodeBlockClass * memberblock = getCurrentMemberClassBlock();
-	if(memberblock)
-	  brtn = memberblock->isIdInScope(dataindex,symptr);
+	brtn = classblock->isFuncIdInScope(dataindex,symptr);
+	classblock = (NodeBlockClass *) classblock->getPreviousBlockPointer(); //traverse the chain
       }
-    else
-      brtn = getClassBlock()->isIdInScope(dataindex,symptr);
 
     return brtn;
-  } //isIdInClassScope
+  } //isFuncIdInClassScope
 
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
@@ -2139,6 +2150,28 @@ namespace MFM {
     assert(alreadyDefinedSymbolClassName(getCompileThisId(), cnsym));
     return cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
   } //findNodeNoInThisClass
+
+  Node * CompilerState::findNodeNoInAClass(NNO n, UTI cuti)
+  {
+    u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(cid, cnsym));
+    return cnsym->findNodeNoInAClassInstance(cuti, n);
+  } //findNodeNoInAClass
+
+  NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(cuti, csym));
+    return csym->getClassBlockNode();
+  } //getAClassBlock
+
+  NNO CompilerState::getAClassBlockNo(UTI cuti)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(cuti, csym));
+    return csym->getClassBlockNode()->getNodeNo();
+  } //getAClassBlockNo
 
   u32 CompilerState::getCompileThisId()
   {

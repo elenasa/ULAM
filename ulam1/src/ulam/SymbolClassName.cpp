@@ -102,7 +102,19 @@ namespace MFM {
 
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    classNode->updateLineage(0);
+    UTI superclass = getSuperClass();
+    if(superclass == Nav)
+      classNode->updateLineage(0);
+    else
+      {
+	//for inheritance, get the node no of superblock
+	u32 sid = m_state.getUlamKeyTypeSignatureByIndex(superclass).getUlamKeyTypeSignatureNameId();
+	SymbolClassName * cnsym = NULL;
+	assert(m_state.alreadyDefinedSymbolClassName(sid, cnsym));
+	NodeBlockClass * superblock = cnsym->getClassBlockNode();
+	assert(superblock);
+	classNode->updateLineage(superblock->getNodeNo());
+      }
     m_state.popClassContext(); //restore
   } //updateLineageOfClass
 

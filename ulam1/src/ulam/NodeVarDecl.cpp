@@ -535,21 +535,7 @@ namespace MFM {
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
-    UTI nuti = getNodeType();
-
-    //output a case of switch statement
-    m_state.indent(fp);
-    fp->write("case ");
-    fp->write_decimal(dmcount);
-    fp->write(": { static UlamClassDataMemberInfo i(\"");
-    fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeMangledName().c_str());
-    fp->write("\", \"");
-    fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
-    fp->write("\", ");
-    fp->write_decimal(m_varSymbol->getPosOffset());
-    fp->write("u); return i; }\n");
-
-    dmcount++; //increment data member count
+    assert(0); //see NodeVarDeclDM data members only
   } //generateUlamClassInfo
 
 } //end MFM

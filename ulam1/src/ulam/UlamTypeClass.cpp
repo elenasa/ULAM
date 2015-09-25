@@ -952,7 +952,6 @@ namespace MFM {
     //if(m_class == UC_QUARK && getBitSize() > 0)
     if(m_class == UC_QUARK)
       {
-	//if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref) && dqref > 0)
 	if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))
 	  {
 	    m_state.indent(fp);

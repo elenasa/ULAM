@@ -157,7 +157,6 @@ namespace MFM {
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
 
 	// dropping Uprefix:
-	//mangled << sut->getUlamTypeMangledName().c_str();
 	mangled << sut->getUlamTypeMangledType().c_str();
 
 	//append args' types and values or '10' is none

@@ -222,11 +222,6 @@ namespace MFM {
     m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
   }
 
-  void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    m_ST.genCodeBuiltInFunctionsOverTableOfVariableDataMember(fp, declOnly, classtype);
-  }
-
   void NodeBlock::genCode(File * fp, UlamValue& uvpass)
   {
     m_state.indent(fp);
@@ -239,5 +234,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("}\n");
   } //genCode
+
 
 } //end MFM

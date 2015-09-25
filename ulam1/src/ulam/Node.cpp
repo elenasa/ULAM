@@ -1587,8 +1587,21 @@ namespace MFM {
     UTI uti = stgcos->getUlamTypeIdx();
     UlamType * ut = m_state.getUlamTypeByIndex(uti);
 
+    // handle inheritance, when data member is in superclass, not current class
     // now for both immediate elements and quarks..
-    fp->write(ut->getImmediateStorageTypeAsString().c_str());
+    u32 cositem = (cosSize > 1) ? 1 : 0;
+    NNO cosBlockNo = m_state.m_currentObjSymbolsForCodeGen[cositem]->getBlockNoOfST();
+    NNO stgcosBlockNo = m_state.getAClassBlockNo(uti);
+    if(stgcosBlockNo != cosBlockNo && m_state.isClassASubclass(uti))
+      {
+	Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, uti);
+	assert(foundnode);
+	UTI futi = foundnode->getNodeType();
+	fp->write(m_state.getUlamTypeByIndex(futi)->getImmediateStorageTypeAsString().c_str());
+      }
+    else
+      fp->write(ut->getImmediateStorageTypeAsString().c_str());
+
     fp->write("::");
     fp->write("Us::"); //typedef
 
