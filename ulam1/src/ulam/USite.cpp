@@ -31,6 +31,11 @@ namespace MFM {
     m_site.setAtomElementTypeIdx(type);
   }
 
+  void USite::setElementTypeAndDefaults(UTI type, CompilerState& state)
+  {
+    UlamValue uvRef = UlamValue::makeDefaultAtom(type, state);
+    m_site = uvRef;
+  } //setElementTypeAndDefaults
 
   bool USite::isSiteLive()
   {

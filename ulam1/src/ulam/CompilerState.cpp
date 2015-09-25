@@ -815,6 +815,25 @@ namespace MFM {
     s32 total = bitsize * (arraysize > 0 ? arraysize : 1); //?
     bool isCustomArray = ut->isCustomArray();
 
+    // class total size to include inheritance (i.e. size of super class)
+    UTI superUTI = isClassASubclass(utArg);
+    if(superUTI != Nav)
+      {
+	s32 superbs = getBitSize(superUTI);
+	if(superbs == UNKNOWNSIZE)
+	  {
+	    //cannot continue..
+	    std::ostringstream msg;
+	    msg << "Trying to set bit size (" << bitsize << ") for subclass ";
+	    msg << ut->getUlamTypeNameBrief().c_str() << " without superclass ";
+	    msg << ut->getUlamTypeNameBrief().c_str() << " bits known";
+	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+	    return;
+	  }
+	else
+	  total += superbs;
+      }
+
     //verify total bits is within limits for elements and quarks
     if(classtype == UC_ELEMENT)
       {
@@ -1054,11 +1073,19 @@ namespace MFM {
 	SymbolClass * csym = NULL;
 	assert(alreadyDefinedSymbolClass(cuti, csym));
 	SymbolClassNameTemplate * cntsym = csym->getParentClassTemplate();
-	//return !(cntsym && cntsym->getUlamTypeIdx() != cuti);
 	if(cntsym)
 	  return cntsym->getUlamTypeIdx() == cuti;
 	return false;
   } //isClassATemplate
+
+  UTI CompilerState::isClassASubclass(UTI cuti)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(cuti, csym));
+    SymbolClassName * cnsym = NULL;
+    assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
+    return cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
+  } //isClassASubclass
 
   bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {

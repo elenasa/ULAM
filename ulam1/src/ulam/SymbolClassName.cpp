@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state)
+  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state), m_superClass(Nav)
   {
     unsetStub(); //regular class; classblock may be null if utype is UC_UNSEEN class type.
   }
@@ -49,6 +49,16 @@ namespace MFM {
   {
     return false;
   } //isClassTemplate
+
+  void SymbolClassName::setSuperClass(UTI superclass)
+  {
+    m_superClass = superclass;
+  }
+
+  UTI SymbolClassName::getSuperClass()
+  {
+    return m_superClass; //Nav is none
+  } //getSuperClass
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
@@ -175,6 +185,7 @@ namespace MFM {
   {
     bool aok = true;
     assert(!isClassTemplate());
+
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode); //infinite loop "Incomplete Class <> was never defined, fails sizing"
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);

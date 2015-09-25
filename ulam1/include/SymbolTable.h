@@ -130,6 +130,8 @@ void addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& clas
 
     void getClassMembers(ClassMemberMap& classmembers);
 
+    void initializeElementDefaultsForEval(UlamValue& uvsite);
+
     void testForTableOfClasses(File * fp);
 
     void printPostfixForTableOfClasses(File * fp);

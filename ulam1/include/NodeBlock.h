@@ -96,9 +96,9 @@ namespace MFM{
 
     u32 getSizeOfSymbolsInTable();
 
-    s32 getBitSizesOfVariableSymbolsInTable();
+    virtual s32 getBitSizesOfVariableSymbolsInTable();
 
-    s32 getMaxBitSizeOfVariableSymbolsInTable();
+    virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
     s32 findUlamTypeInTable(UTI utype);
 

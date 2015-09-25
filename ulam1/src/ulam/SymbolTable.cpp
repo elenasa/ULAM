@@ -923,6 +923,44 @@ namespace MFM {
       } //while
   } //getClassMembers
 
+  void SymbolTable::initializeElementDefaultsForEval(UlamValue& uvsite)
+  {
+    if(m_idToSymbolPtr.empty()) return;
+
+    std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
+	  {
+	    //skip quarkunion initializations
+	    if(!((m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeEnum() == Class) && ((SymbolClass *) sym)->isQuarkUnion()))
+	      {
+		//updates the UV at offset with the default of sym
+		if(((SymbolVariableDataMember *) sym)->hasInitValue())
+		  {
+		    u64 dval = 0;
+		    if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
+		      {
+			UTI suti = sym->getUlamTypeIdx();
+			u32 wordsize = m_state.getTotalWordSize(suti);
+			s32 bitsize = m_state.getBitSize(suti);
+			u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
+			if(wordsize <= MAXBITSPERINT)
+			  uvsite.putData(pos + ATOMFIRSTSTATEBITPOS, bitsize, (u32) dval);
+			else if(wordsize <= MAXBITSPERLONG)
+			  uvsite.putDataLong(pos + ATOMFIRSTSTATEBITPOS, bitsize, dval);
+			else
+			  assert(0);
+		      }
+		  }
+	      }
+	  }
+	it++;
+      } //while
+    return;
+  } //initializeElementDefaultsForTesting
+
   void SymbolTable::testForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -1212,6 +1250,17 @@ namespace MFM {
 	else
 	  {
 	    //skip unseen and anonymous classes, o.w. try..
+	    // any super class first
+	    UTI superUTI = m_state.isClassASubclass(cuti);
+	    if(superUTI != Nav)
+	      {
+		UlamType * suput = m_state.getUlamTypeByIndex(superUTI);
+
+		SymbolClassName * supercnsym = NULL;
+		assert(m_state.alreadyDefinedSymbolClassName(suput->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId(), supercnsym));
+		supercnsym->setBitSizeOfClassInstances();
+	      }
+
 	    aok = ((SymbolClassName *) sym)->setBitSizeOfClassInstances();
 	  }
 

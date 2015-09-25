@@ -37,6 +37,20 @@ namespace MFM {
     putData(BITSPERATOM - len, len, v); //starts from end, for 32 bit boundary case
   } //init
 
+  UlamValue UlamValue::makeDefaultAtom(UTI elementType, CompilerState& state)
+  {
+    UlamValue rtnValue = UlamValue::makeAtom();
+    rtnValue.setAtomElementTypeIdx(elementType);
+
+    SymbolClass * csym = NULL;
+    assert(state.alreadyDefinedSymbolClass(elementType, csym));
+    NodeBlockClass * cblock = csym->getClassBlockNode();
+    assert(cblock);
+    cblock->initElementDefaultsForEval(rtnValue);
+
+    return rtnValue;
+  } //makeDefaultAtom
+
   UlamValue UlamValue::makeAtom(UTI elementType)
   {
     UlamValue rtnValue = UlamValue::makeAtom();

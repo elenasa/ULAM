@@ -210,6 +210,7 @@ namespace MFM{
     u32 getTotalWordSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
     bool isClassATemplate(UTI cuti);
+    UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false

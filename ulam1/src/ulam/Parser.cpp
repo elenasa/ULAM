@@ -308,12 +308,55 @@ namespace MFM {
 
   NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym, Token identTok)
   {
+    Token qTok;
+    getNextToken(qTok);
+
+    if(qTok.m_type == TOK_COLON)
+      {
+	//inheritance
+	Token iTok;
+	getNextToken(iTok);
+
+	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
+	  {
+	    SymbolClassName * supercnsym = NULL;
+	    if(m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym))
+	      {
+		UTI superuti = supercnsym->getUlamTypeIdx();
+		cnsym->setSuperClass(superuti); //set here!!
+
+		NodeBlockClass * superclassblock = supercnsym->getClassBlockNode();
+		assert(superclassblock); //?? let's find out
+		m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
+	      }
+	    else
+	      {
+		//super class has yet to be defined...add incomplete type or error?
+		assert(0);
+		m_state.addIncompleteClassSymbolToProgramTable(iTok, supercnsym);
+	      }
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Class Definition '";
+	    msg << m_state.getTokenDataAsString(&identTok).c_str();
+	    msg << "'; Inheritance from invalid Class identifier '";
+	    msg << m_state.getTokenDataAsString(&iTok).c_str() << "'";
+	    MSG(&qTok, msg.str().c_str(), ERR);
+	    //continue?
+	  }
+      }
+    else
+      unreadToken();
+
+
     UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
     NodeBlockClass * rtnNode = cnsym->getClassBlockNode(); //usually NULL
     if(!rtnNode)
       {
+	//this is the class' first block; super class if inherits, o.w. null
 	NodeBlock * prevBlock = m_state.getCurrentBlock();
-	assert(prevBlock == NULL); //this is the class' first block
 
 	rtnNode = new NodeBlockClass(prevBlock, m_state);
 	assert(rtnNode);
@@ -323,6 +366,14 @@ namespace MFM {
 	//set block before returning, so future class instances can link back to it
 	cnsym->setClassBlockNode(rtnNode);
       }
+    else
+      {
+	//this is the class' first block; super class if inherits, o.w. null
+	NodeBlock * prevBlock = m_state.getCurrentBlock();
+	if(prevBlock != rtnNode)
+	  rtnNode->setPreviousBlockPointer(prevBlock);
+      }
+
 
     //current, this block's symbol table added to parse tree stack
     //        for validating and finding scope of program/block variables
@@ -374,6 +425,9 @@ namespace MFM {
 
     //this block's ST is no longer in scope
     m_state.popClassContext(); //m_currentBlock = prevBlock;
+
+    if(cnsym->getSuperClass() != Nav)
+      m_state.popClassContext(); //m_currentBlock = prevBlock;
 
     return rtnNode;
   } //parseClassBlock

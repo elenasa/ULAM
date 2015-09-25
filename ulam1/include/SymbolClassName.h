@@ -52,13 +52,14 @@ namespace MFM{
 
     virtual void setStructuredComment();
 
-    //    virtual bool getStructuredComment(Token& scTok);
-
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
 
     virtual void getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers);
 
     virtual bool isClassTemplate();
+
+    void setSuperClass(UTI superclass);
+    UTI getSuperClass();
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
@@ -92,8 +93,7 @@ namespace MFM{
    protected:
 
   private:
-    //    Token m_structuredCommentToken;
-    //bool m_gotStructuredCommentToken;
+    UTI m_superClass; //single inheritance; regular classes only
   };
 
 }

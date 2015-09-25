@@ -98,6 +98,14 @@ namespace MFM {
     fp->write(m_state.getUlamTypeByIndex(getNodeType())->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
 
+    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+    if(superblock)
+      {
+	fp->write(" : ");
+	fp->write(m_state.getUlamTypeByIndex(superblock->getNodeType())->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
+	fp->write(superblock->getName());
+      }
+
     //output class template arguments type and name
     if(m_nodeParameterList->getNumberOfNodes() > 0)
       {
@@ -121,18 +129,15 @@ namespace MFM {
     // since the two stack-type storage are all gone by now.
     //    if(m_nodeNext)
     //  m_nodeNext->printPostfix(fp);  //datamember vardecls
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
-
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
       {
-	//simplifying assumption for testing purposes: center site
-	Coord c0(0,0);
-	s32 slot = c0.convertCoordToIndex();
+	if(superblock)
+	  superblock->printPostfixDataMembersSymbols(fp);
 
-	m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
+	printPostfixDataMembersSymbols(fp);
 
-      func->printPostfix(fp);
+	func->printPostfix(fp);
       }
     else
       {
@@ -147,13 +152,25 @@ namespace MFM {
   void NodeBlockClass::printPostfixDataMembersParseTree(File * fp)
   {
     if(m_nodeNext)
-      m_nodeNext->printPostfix(fp);  //datamember vardecls
+      m_nodeNext->printPostfix(fp); //datamember vardecls
   }
+
+  void NodeBlockClass::printPostfixDataMembersSymbols(File * fp)
+  {
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
+    assert(classtype == UC_ELEMENT || classtype == UC_QUARK); //sanity check after eval (below)
+
+    //simplifying assumption for testing purposes: center site
+    Coord c0(0,0);
+    s32 slot = c0.convertCoordToIndex();
+
+    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
+  } //printPostfixDataMembersSymbols
 
   const char * NodeBlockClass::getName()
   {
     return m_state.getUlamKeyTypeSignatureByIndex(getNodeType()).getUlamKeyTypeSignatureName(&m_state).c_str();
-  }
+  } //getName
 
   const std::string NodeBlockClass::prettyNodeName()
   {
@@ -317,6 +334,7 @@ namespace MFM {
       {
 	UTI saveClassType = getNodeType(); //temp!!
 	setNodeType(Int); //for testing WHY? clobbers element/quark type
+	//for Node::assignReturnValueToStack assertion (l334)
 	UTI funcType = funcNode->getNodeType();
 
 	makeRoomForNodeType(funcType); //Int return
@@ -338,6 +356,36 @@ namespace MFM {
   {
     return (m_ST.isInTable(id, symptrref) || isFuncIdInScope(id, symptrref));
   }
+
+  s32 NodeBlockClass::getBitSizesOfVariableSymbolsInTable()
+  {
+    s32 superbs = 0;
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	superbs = superClassBlock->getBitSizesOfVariableSymbolsInTable();
+      }
+
+    if(m_ST.getTableSize() == 0 && superbs == 0)
+      return EMPTYSYMBOLTABLE; //should allow no variable data members
+
+    return superbs + m_ST.getTotalVariableSymbolsBitSize();
+  } //getBitSizesOfVariableSymbolsInTable
+
+  s32 NodeBlockClass::getMaxBitSizeOfVariableSymbolsInTable()
+  {
+    s32 superbs = 0;
+    if(m_state.isClassASubclass(getNodeType()))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	superbs = superClassBlock->getMaxBitSizeOfVariableSymbolsInTable();
+      }
+
+    if(m_ST.getTableSize() == 0 && superbs == 0)
+      return EMPTYSYMBOLTABLE; //should allow no variable data members
+
+    return superbs + m_ST.getMaxVariableSymbolsBitSize();
+  } //getMaxBitSizeOfVariableSymbolsInTable
 
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
   {
@@ -363,6 +411,19 @@ namespace MFM {
   {
     m_functionST.updatePrevBlockPtrAcrossTableOfFunctions(this);
   }
+
+  void NodeBlockClass::initElementDefaultsForEval(UlamValue& uv)
+  {
+    UTI buti = getNodeType();
+    if(buti == Int) //kludge nodetype clobbered to test
+      buti = m_state.getCompileThisIdx();
+    if(m_state.isClassASubclass(buti))
+      {
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	superClassBlock->initElementDefaultsForEval(uv);
+      }
+    return m_ST.initializeElementDefaultsForEval(uv);
+  } //initElementDefaultsForEval
 
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
@@ -404,6 +465,14 @@ namespace MFM {
   {
     if(m_ST.getTableSize() == 0) return;
     u32 offset = 0; //relative to ATOMFIRSTSTATEBITPOS
+
+    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+    if(superblock)
+      {
+	UTI superUTI = superblock->getNodeType();
+	offset += m_state.getTotalBitSize(superUTI);
+      }
+
     //m_ST.packBitsForTableOfVariableDataMembers(); //ST order not as declared
     if(m_nodeNext)
       m_nodeNext->packBitsInOrderOfDeclaration(offset);
@@ -548,7 +617,8 @@ namespace MFM {
   void NodeBlockClass::genCodeHeaderElement(File * fp)
   {
     //use the instance UTI instead of the node's original type
-    UlamType * cut = m_state.getUlamTypeByIndex(m_state.getCompileThisIdx());
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     m_state.indent(fp);
     fp->write("template<class EC>\n");

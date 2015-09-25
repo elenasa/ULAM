@@ -92,6 +92,9 @@ namespace MFM{
 
     void init(UTI utype, u32 v, CompilerState& state);
 
+    // returns Atom with default values set
+    static UlamValue makeDefaultAtom(UTI elementType, CompilerState& state);
+
     // returns cleared Atom with element type set
     static UlamValue makeAtom(UTI elementType);
 

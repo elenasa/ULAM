@@ -70,6 +70,8 @@ namespace MFM{
 
     void printPostfixDataMembersParseTree(File * fp); //helper for recursion NodeVarDecDM
 
+    void printPostfixDataMembersSymbols(File * fp);
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
@@ -101,6 +103,10 @@ namespace MFM{
     //checks both function and variable symbol names
     virtual bool isIdInScope(u32 id, Symbol * & symptrref);
 
+    virtual s32 getBitSizesOfVariableSymbolsInTable();
+
+    virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
+
     bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 
     void addFuncIdToScope(u32 id, Symbol * symptr);
@@ -122,6 +128,8 @@ namespace MFM{
     virtual void genCodeExtern(File * fp, bool declOnly);
 
     void genCodeBody(File * fp, UlamValue& uvpass);  //specific for this class
+
+    void initElementDefaultsForEval(UlamValue& uv);
 
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
