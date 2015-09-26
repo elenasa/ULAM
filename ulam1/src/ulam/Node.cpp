@@ -1437,6 +1437,19 @@ namespace MFM {
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       return;
 
+    // when data member belongs to its superclass, specify the class name first
+    NNO cosBlockNo = m_state.m_currentObjSymbolsForCodeGen[0]->getBlockNoOfST();
+    NNO currClassBlockNo = m_state.getClassBlockNo();
+    UTI cuti = m_state.getCompileThisIdx();
+    if(cosBlockNo != currClassBlockNo && m_state.isClassASubclass(cuti))
+      {
+	Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, cuti);
+	assert(foundnode);
+	UTI futi = foundnode->getNodeType();
+	fp->write(m_state.getUlamTypeByIndex(futi)->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::");
+      }
+
     //iterate over COS vector; empty if current object is self
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     for(u32 i = 0; i < cosSize; i++)

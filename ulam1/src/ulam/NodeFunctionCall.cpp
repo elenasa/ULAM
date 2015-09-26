@@ -666,6 +666,19 @@ namespace MFM {
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
 
+    // use NodeNo for inheritance
+    NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
+    NNO currClassBlockNo = m_state.getClassBlockNo();
+    UTI cuti = m_state.getCompileThisIdx();
+    if(cosBlockNo != currClassBlockNo && m_state.isClassASubclass(cuti))
+      {
+	Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, cuti);
+	assert(foundnode);
+	UTI superuti = foundnode->getNodeType();
+	fp->write(m_state.getUlamTypeByIndex(superuti)->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::THE_INSTANCE.");
+      }
+
     //iterate over COS vector; empty if current object is self
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     for(u32 i = 0; i < cosSize; i++)
