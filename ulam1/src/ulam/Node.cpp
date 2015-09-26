@@ -1496,6 +1496,14 @@ namespace MFM {
       stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
+    NNO cosBlockNo = cos->getBlockNoOfST();
+    NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
+    if(stgcosBlockNo != cosBlockNo && m_state.isClassASubclass(stgcosuti))
+      {
+	Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
+	assert(foundnode);
+	stgcosuti = foundnode->getNodeType();
+      }
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
 
