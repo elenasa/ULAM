@@ -303,8 +303,13 @@ namespace MFM {
   bool NodeBlockClass::buildDefaultQuarkValue(u32& dqref)
   {
     bool aok = true;
-    if(m_nodeNext)
-      aok = m_nodeNext->buildDefaultQuarkValue(dqref); //side-effect for datamember vardecls
+    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+    if(superblock)
+      aok = superblock->buildDefaultQuarkValue(dqref);
+
+    if(aok)
+      if(m_nodeNext)
+	aok = m_nodeNext->buildDefaultQuarkValue(dqref); //side-effect for dm vardecls
     return aok;
   } //buildDefaultQuarkValue
 
@@ -933,9 +938,7 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-
     genCodeBuiltInFunctionHasDataMembers(fp);
-
 
     fp->write("\n");
     m_state.indent(fp);
@@ -947,7 +950,6 @@ namespace MFM {
     fp->write("}  //has\n\n");
   } //genCodeBuiltInFunctionHas
 
-
   void NodeBlockClass::genCodeBuiltInFunctionHasDataMembers(File * fp)
   {
     if(m_state.isClassASubclass(getNodeType()))
@@ -957,7 +959,6 @@ namespace MFM {
       }
     m_ST.genCodeBuiltInFunctionHasOverTableOfVariableDataMember(fp);
   } //genCodeBuiltInFunctionHasDataMembers
-
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -1185,7 +1186,6 @@ namespace MFM {
       }
   } //generateUlamClassInfoFunction
 
-
   void NodeBlockClass::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {
     if(m_state.isClassASubclass(getNodeType()))
@@ -1196,7 +1196,7 @@ namespace MFM {
 
     if(m_nodeNext)
       m_nodeNext->generateUlamClassInfo(fp, declOnly, dmcount);
-  }
+  } //generateUlamClassInfo
 
   void NodeBlockClass::generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount)
   {
