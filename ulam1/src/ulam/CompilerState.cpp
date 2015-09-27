@@ -1071,6 +1071,16 @@ namespace MFM {
     return false; //even for non-classes
   } //isClassASubclass
 
+  bool CompilerState::isClassAQuarkUnion(UTI cuti)
+  {
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      {
+	return csym->isQuarkUnion();
+      }
+    return false; //even for non-classes
+  } //isClassAQuarkUnion
+
   bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {
     return m_programDefST.isInTable(dataindex,(Symbol * &) symptr);
@@ -2139,6 +2149,11 @@ namespace MFM {
     assert(alreadyDefinedSymbolClassName(cid, cnsym));
     return cnsym->findNodeNoInAClassInstance(cuti, n);
   } //findNodeNoInAClass
+
+  UTI CompilerState::findClassNodeNo(NNO n)
+  {
+    return m_programDefST.findClassNodeNoForTableOfClasses(n); //Nav not found
+  } //findClassNodeNo
 
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {

@@ -197,8 +197,12 @@ namespace MFM{
     //i.e. an immediate (right-justified); not a data member or self;
     bool isCurrentObjectALocalVariableOrArgument();
 
-    //index of last "static" EP object; o.w.-1
+    //index of last "static" MP object; o.w.-1
     s32 isCurrentObjectsContainingAModelParameter();
+
+    //index of last subclass; o.w.-1
+    s32 isCurrentObjectsContainingASubClass();
+    s32 calcPosOfCurrentObjectsContainingASubClass();
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass);

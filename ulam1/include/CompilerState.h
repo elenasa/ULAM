@@ -211,6 +211,7 @@ namespace MFM{
     s32 slotsNeeded(UTI uti);
     bool isClassATemplate(UTI cuti);
     UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
+    bool isClassAQuarkUnion(UTI cuti);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
@@ -338,6 +339,7 @@ namespace MFM{
 
     Node * findNodeNoInThisClass(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
+    UTI findClassNodeNo(NNO n);
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
 

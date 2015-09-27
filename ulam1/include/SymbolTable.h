@@ -173,6 +173,8 @@ namespace MFM{
 
     void genCodeForTableOfClasses(FileManager * fm);
 
+    UTI findClassNodeNoForTableOfClasses(NNO n);
+
   protected:
     std::map<u32, Symbol* > m_idToSymbolPtr;
 
