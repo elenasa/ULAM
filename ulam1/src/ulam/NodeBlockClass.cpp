@@ -134,8 +134,6 @@ namespace MFM {
     // use Symbol Table of variables instead of parse tree;
     // only want the UEventWindow storage
     // since the two stack-type storage are all gone by now.
-    //    if(m_nodeNext)
-    //  m_nodeNext->printPostfix(fp);  //datamember vardecls
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
       {
@@ -144,7 +142,7 @@ namespace MFM {
       }
     else
       {
-	//has only init dm values
+	//has only initialized DM values
 	printPostfixDataMembersParseTree(fp);
 	fp->write(" <NOMAIN>"); //not an error
       }
@@ -185,10 +183,10 @@ namespace MFM {
       superblock->printPostfixDataMembersSymbols(fp);
 
     assert(classtype == m_state.getUlamTypeByIndex(getNodeType())->getUlamClass()); //may not need classtype
-    assert(classtype == UC_QUARK); //sanity check after eval (below)
+    assert(classtype == UC_QUARK); //quarks only!
 
     m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, classtype);
-  } //printPostfixDataMembersSymbols
+  } //printPostfixDataMembersSymbols (overloaded)
 
   const char * NodeBlockClass::getName()
   {

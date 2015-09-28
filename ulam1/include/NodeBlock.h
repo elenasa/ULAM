@@ -116,7 +116,7 @@ namespace MFM{
   private:
     NodeBlock * m_prevBlockNode;
 
-    SymbolTable * getSymbolTablePtr(); //used for print postfix
+    SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
 
   };
 

@@ -147,11 +147,9 @@ namespace MFM {
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
-	    //	    SymbolTable * stptr = classNode->getSymbolTablePtr(); //ST of data members
 	    u32 newstartpos = startpos + getPosOffset();
 	    s32 len = vut->getBitSize();
 	    for(s32 i = 0; i < size; i++)
-	    //  stptr->printPostfixValuesForTableOfVariableDataMembers(fp, slot, newstartpos + len * i, vclasstype);
 	      classNode->printPostfixDataMembersSymbols(fp, slot, newstartpos + len * i, vclasstype);
 
 	  }
@@ -174,8 +172,7 @@ namespace MFM {
 	    UlamValue nextPtr = UlamValue::makeScalarPtr(arrayPtr, m_state);
 
 	    UlamValue atval = m_state.getPtrTarget(nextPtr);
-	    s32 len = m_state.getBitSize(vuti); //nextPtr.getPtrLen();
-	    //assert(len != UNKNOWNSIZE);
+	    s32 len = m_state.getBitSize(vuti);
 	    if(len == UNKNOWNSIZE)
 	      {
 		sprintf(valstr,"unknown");

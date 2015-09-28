@@ -1901,17 +1901,12 @@ namespace MFM {
 
   bool CompilerState::thisClassHasTheTestMethod()
   {
-    //Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
-    //NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
-    //assert(classNode);
     NodeBlockFunctionDefinition * func = getClassBlock()->findTestFunctionNode();
     return (func != NULL);
   } //thisClassHasTheTestMethod
 
   bool CompilerState::thisClassIsAQuark()
   {
-    //Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId());
-    //UTI cuti = csym->getUlamTypeIdx();
     UTI cuti = getCompileThisIdx();
     return(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK);
   } //thisClassIsAQuark
