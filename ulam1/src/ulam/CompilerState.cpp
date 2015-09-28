@@ -1051,12 +1051,12 @@ namespace MFM {
 
   bool CompilerState::isClassATemplate(UTI cuti)
   {
-	SymbolClass * csym = NULL;
-	assert(alreadyDefinedSymbolClass(cuti, csym));
-	SymbolClassNameTemplate * cntsym = csym->getParentClassTemplate();
-	if(cntsym)
-	  return cntsym->getUlamTypeIdx() == cuti;
-	return false;
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(cuti, csym));
+    SymbolClassNameTemplate * cntsym = csym->getParentClassTemplate();
+    if(cntsym)
+      return cntsym->getUlamTypeIdx() == cuti;
+    return false;
   } //isClassATemplate
 
   UTI CompilerState::isClassASubclass(UTI cuti)
@@ -1080,6 +1080,32 @@ namespace MFM {
       }
     return false; //even for non-classes
   } //isClassAQuarkUnion
+
+  bool CompilerState::isClassACustomArray(UTI cuti)
+  {
+    if(!isScalar(cuti)) return false;
+
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      {
+	return csym->isCustomArray(); //checks via classblock in case of inheritance
+      }
+    return false; //even for non-classes
+  } //isClassACustomArray
+
+  UTI CompilerState::getAClassCustomArrayType(UTI cuti)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(cuti, csym));
+    return csym->getCustomArrayType(); //checks via classblock in case of inheritance
+  } //getAClassCustomArrayType
+
+  UTI CompilerState::getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(cuti, csym));
+    return csym->getCustomArrayIndexTypeFor(rnode, idxuti, hasHazyArgs); //checks via classblock in case of inheritance
+  } //getAClassCustomArrayIndexType
 
   bool CompilerState::alreadyDefinedSymbolClassName(u32 dataindex, SymbolClassName * & symptr)
   {

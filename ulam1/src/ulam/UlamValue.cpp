@@ -194,10 +194,12 @@ namespace MFM {
     assert(getUlamValueTypeIdx() == Ptr);
 
     UTI auti = m_uv.m_ptrValue.m_targetType;
-    UlamType * aut = state.getUlamTypeByIndex(auti);
-    if(aut->isCustomArray())
+    //UlamType * aut = state.getUlamTypeByIndex(auti);
+    //if(aut->isCustomArray())
+    if(state.isClassACustomArray(auti))
       {
-	UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
+	//UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
+	UTI caType = state.getAClassCustomArrayType(auti);
 	UlamType * caut = state.getUlamTypeByIndex(caType);
 	s32 calen = caut->getBitSize();
 	if( calen > MAXBITSPERLONG)

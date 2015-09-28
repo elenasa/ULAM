@@ -88,6 +88,8 @@ namespace MFM{
 
     virtual void countNavNodes(u32& cnt);
 
+    bool hasCustomArray();
+
     void checkCustomArrayTypeFunctions();
 
     UTI getCustomArrayTypeFromGetFunction();

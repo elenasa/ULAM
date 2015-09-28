@@ -642,7 +642,7 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -650,7 +650,8 @@ namespace MFM {
 
     assert(isCurrentObjectACustomArrayItem(cosuti, uvpass));
 
-    UTI itemuti = ((UlamTypeClass *) cosut)->getCustomArrayType();
+    //UTI itemuti = ((UlamTypeClass *) cosut)->getCustomArrayType();
+    UTI itemuti = m_state.getAClassCustomArrayType(cosuti);
     UlamType * itemut = m_state.getUlamTypeByIndex(itemuti);
 
     m_state.indent(fp);
@@ -1044,7 +1045,8 @@ namespace MFM {
     // with immediate elements, too!  value not a terminal
     // aset requires its custom array type (e.g. an atom) as its value:
     assert(cosclasstype != UC_NOTACLASS);
-    UTI catype = ((UlamTypeClass *) cosut)->getCustomArrayType();
+    //UTI catype = ((UlamTypeClass *) cosut)->getCustomArrayType();
+    UTI catype = m_state.getAClassCustomArrayType(cosuti);
     fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
@@ -1500,10 +1502,12 @@ namespace MFM {
     //if last cos is a quark, for Read/Write to work it needs an
     // atomic Parameter type (i.e. Up_Us); not so for custom arrays
     // which are more like a function call
-    UlamType * cosut = m_state.getUlamTypeByIndex(cos->getUlamTypeIdx());
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     // scalar quarks are typedefs and need atomic parametization;
     // arrays are already atomic parameters
-    if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK && !cosut->isCustomArray())
+    //    if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK && !cosut->isCustomArray())
+    if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK && !m_state.isClassACustomArray(cosuti))
       {
 	fp->write("Up_Us::"); //gives quark an atomicparameter type for write
       }
@@ -1584,14 +1588,15 @@ namespace MFM {
 
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     Symbol * epcos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
     UTI epcosuti = epcos->getUlamTypeIdx();
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
     ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClass();
 
-    if(cosut->isCustomArray())
+    //if(cosut->isCustomArray())
+    if(m_state.isClassACustomArray(cosuti))
       fp->write("uc, "); //not for regular READs and WRITEs
 
     fp->write(stgcosut->getUlamTypeMangledName().c_str());
@@ -1603,7 +1608,8 @@ namespace MFM {
 
     if(epcosclasstype != UC_NOTACLASS)
       {
-	if(cosut->isCustomArray())
+	if(m_state.isClassACustomArray(cosuti))
+	//if(cosut->isCustomArray())
 	  fp->write(".getRef()");
 	else
 	  fp->write(".getBits()");
@@ -1686,7 +1692,8 @@ namespace MFM {
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
 	// if its the last cos, a quark, and not a custom array...
-	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray())
+	//if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray())
+	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !m_state.isClassACustomArray(suti))
 	  fp->write("Up_Us::"); //atomic parameter needed
       }
   } //genLocalMemberNameOfMethodByUsTypedef
@@ -1846,12 +1853,13 @@ namespace MFM {
 
   bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass)
   {
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     // a cosuti as a scalar, customarray, may be used as a regular array,
     //     but at this point cosuti would be a scalar in either case (sigh);
     // uvpass would be an array index (an int of sorts), not an array;
     // types would not be the same;
-    return(m_state.isScalar(cosuti) && cosut->isCustomArray() && uvpass.getPtrTargetType() != cosuti);
+    //return(m_state.isScalar(cosuti) && cosut->isCustomArray() && uvpass.getPtrTargetType() != cosuti);
+    return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && uvpass.getPtrTargetType() != cosuti);
   } //isCurrentObjectACustomArrayItem
 
   bool Node::isHandlingImmediateType()

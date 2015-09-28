@@ -138,8 +138,11 @@ namespace MFM {
 
   bool SymbolClass::isCustomArray()
   {
-    return m_state.getUlamTypeByIndex(getUlamTypeIdx())->isCustomArray(); //canonical
-  }
+    //return m_state.getUlamTypeByIndex(getUlamTypeIdx())->isCustomArray(); //canonical
+    NodeBlockClass * classNode = getClassBlockNode(); //instance
+    assert(classNode);
+    return classNode->hasCustomArray(); //checks any super classes
+  } //isCustomArray
 
   UTI SymbolClass::getCustomArrayType()
   {

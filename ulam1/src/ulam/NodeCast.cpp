@@ -596,10 +596,12 @@ namespace MFM {
     s32 tmpVarStg = m_state.getNextTmpVarNumber();
     UTI stguti = stgcos->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
-    bool isCustomArray = stgut->isCustomArray();
+    //bool isCustomArray = stgut->isCustomArray();
+    bool isCustomArray = m_state.isClassACustomArray(stguti);
     if(isCustomArray)
       {
-	stguti = ((UlamTypeClass *) stgut)->getCustomArrayType();
+	//stguti = ((UlamTypeClass *) stgut)->getCustomArrayType();
+	stguti = m_state.getAClassCustomArrayType(stguti);
     	stgut = m_state.getUlamTypeByIndex(stguti);
 
 	std::ostringstream msg;

@@ -90,10 +90,6 @@ namespace MFM{
 
     void setCustomArray();
 
-    UTI getCustomArrayType();
-
-    u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
-
     virtual s32 getBitSize();
 
     virtual bool isHolder();
@@ -146,6 +142,10 @@ namespace MFM{
     void genUlamTypeElementMangledDefinitionForC(File * fp);
     void genUlamTypeElementReadDefinitionForC(File * fp);
     void genUlamTypeElementWriteDefinitionForC(File * fp);
+
+    UTI getCustomArrayType();
+    u32 getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
 
   };
 

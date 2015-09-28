@@ -212,6 +212,9 @@ namespace MFM{
     bool isClassATemplate(UTI cuti);
     UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
     bool isClassAQuarkUnion(UTI cuti);
+    bool isClassACustomArray(UTI cuti);
+    UTI getAClassCustomArrayType(UTI cuti);
+    UTI getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false

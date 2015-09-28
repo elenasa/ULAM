@@ -649,7 +649,8 @@ namespace MFM {
 	//class type should already be flagged as a custom array
 	UTI cuti = cblock->getNodeType();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	if(!((UlamTypeClass *) cut)->isCustomArray())
+	//	if(!((UlamTypeClass *) cut)->isCustomArray())
+	if(!m_state.isClassACustomArray(cuti))
 	  {
 	    std::ostringstream msg;
 	    msg << "Custom array get method '";

@@ -285,29 +285,63 @@ namespace MFM {
       m_functionST.calcMaxDepthForTableOfFunctions(); //returns prob counts, outputs errs
   }
 
-  void NodeBlockClass::checkCustomArrayTypeFunctions()
+  bool NodeBlockClass::hasCustomArray()
   {
-    if(!isEmpty())
+    bool hasCA = false;
+    // custom array flag set at parse time
+    UTI cuti = getNodeType();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    hasCA = ((UlamTypeClass *) cut)->isCustomArray();
+
+    if(!hasCA)
       {
-	// custom array flag set at parse time
-	UTI cuti = getNodeType();
-	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	if(((UlamTypeClass *) cut)->isCustomArray())
-	  {
-	    m_functionST.checkCustomArrayTypeFuncs();
-	  }
+	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	if(superblock)
+	  hasCA = superblock->hasCustomArray();
       }
+  return hasCA;
+} //checkCustomArrayTypeFunctions
+
+void NodeBlockClass::checkCustomArrayTypeFunctions()
+  {
+    if(isEmpty()) return;
+
+    // custom array flag set at parse time
+    UTI cuti = getNodeType();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+    if(((UlamTypeClass *) cut)->isCustomArray())
+      m_functionST.checkCustomArrayTypeFuncs();
+
+    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+    if(superblock)
+      superblock->checkCustomArrayTypeFunctions();
   } //checkCustomArrayTypeFunctions
 
   UTI NodeBlockClass::getCustomArrayTypeFromGetFunction()
   {
-    return m_functionST.getCustomArrayReturnTypeGetFunction();
-  }
+    UTI catype = m_functionST.getCustomArrayReturnTypeGetFunction();
+
+    if(catype == Nav)
+      {
+	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	if(superblock)
+	  catype = superblock->getCustomArrayTypeFromGetFunction();
+      }
+    return catype;
+  } //getCustomArrayTypeFromGetFunction
 
   u32 NodeBlockClass::getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
-    return m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
-  }
+    UTI catype = m_functionST.getCustomArrayIndexTypeGetFunction(rnode, idxuti, hasHazyArgs);
+
+    if(catype == Nav)
+      {
+	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	if(superblock)
+	  catype = superblock->getCustomArrayIndexTypeFromGetFunction(rnode, idxuti, hasHazyArgs);
+      }
+    return catype;
+  } //getCustomArrayIndexTypeFromGetFunction
 
   //starts here, called by SymbolClass
   bool NodeBlockClass::buildDefaultQuarkValue(u32& dqref)
