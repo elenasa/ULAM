@@ -791,6 +791,9 @@ namespace MFM {
 	//skip quarkunion initializations
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
 	  {
+	    s32 bitsize = m_state.getBitSize(suti);
+	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
+
 	    //updates the UV at offset with the default of sym
 	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
 	      {
@@ -798,8 +801,6 @@ namespace MFM {
 		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
 		  {
 		    u32 wordsize = m_state.getTotalWordSize(suti);
-		    s32 bitsize = m_state.getBitSize(suti);
-		    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 		    if(wordsize <= MAXBITSPERINT)
 		      uvsite.putData(pos + ATOMFIRSTSTATEBITPOS, bitsize, (u32) dval);
 		    else if(wordsize <= MAXBITSPERLONG)
@@ -808,11 +809,21 @@ namespace MFM {
 		      assert(0);
 		  }
 	      }
+	    else if(m_state.getUlamTypeByIndex(suti)->getUlamClass() == UC_QUARK)
+	      {
+		SymbolClass * csym = NULL;
+		assert(m_state.alreadyDefinedSymbolClass(suti, csym));
+		u32 dval = 0;
+		if(csym->getDefaultQuark(dval))
+		  {
+		    uvsite.putData(pos + ATOMFIRSTSTATEBITPOS, bitsize, dval);
+		  }
+	      }
 	  }
 	it++;
       } //while
     return;
-  } //initializeElementDefaultsForTesting
+  } //initializeElementDefaultsForEval
 
   void SymbolTable::testForTableOfClasses(File * fp)
   {
@@ -861,7 +872,6 @@ namespace MFM {
 	UTI cuti = sym->getUlamTypeIdx();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	//skip anonymous classes
-	//	if(m_state.isARootUTI(cuti) && !cut->isHolder() && cut->getUlamClass() == UC_QUARK)
 	if(m_state.isARootUTI(cuti) && !cut->isHolder())
 	  {
 	    ULAMCLASSTYPE classtype = cut->getUlamClass();

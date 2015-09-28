@@ -147,11 +147,13 @@ namespace MFM {
 	  {
 	    NodeBlockClass * classNode = csym->getClassBlockNode();
 	    assert(classNode);
-	    SymbolTable * stptr = classNode->getSymbolTablePtr(); //ST of data members
+	    //	    SymbolTable * stptr = classNode->getSymbolTablePtr(); //ST of data members
 	    u32 newstartpos = startpos + getPosOffset();
 	    s32 len = vut->getBitSize();
 	    for(s32 i = 0; i < size; i++)
-	      stptr->printPostfixValuesForTableOfVariableDataMembers(fp, slot, newstartpos + len * i, vclasstype);
+	    //  stptr->printPostfixValuesForTableOfVariableDataMembers(fp, slot, newstartpos + len * i, vclasstype);
+	      classNode->printPostfixDataMembersSymbols(fp, slot, newstartpos + len * i, vclasstype);
+
 	  }
 	else
 	  {

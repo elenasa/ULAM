@@ -6,28 +6,28 @@ Ue_Foo { Bool(3) b(true);  typedef Bar Pop[2];  System s();  Int(4) m_i(0);  Bar
 Uq_System { <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
- use Bar;
- element Foo {
- typedef Bar Pop[2];
-System s;
-Bool(3) b;
- Int(4) m_i;
- Pop m_bar2;
- Bool check(Int v) {
- return true;
- }
- Int test() {
- Foo f;
- f.m_i = 3;
- b = f.check(1);
-s.print(f.m_i);
-s.print(m_i);
-s.print(b);
- return m_i;
- }
- }
+use Bar;
+element Foo {
+  typedef Bar Pop[2];
+  System s;
+  Bool(3) b;
+  Int(4) m_i;
+  Pop m_bar2;
+  Bool check(Int v) {
+    return true;
+  }
+  Int test() {
+    Foo f;
+    f.m_i = 3;
+    b = f.check(1);
+    s.print(f.m_i);
+    s.print(m_i);
+    s.print(b);
+    return m_i;
+  }
+}
 
 ##actual test is 3 rtn's
 #:Bar.ulam
@@ -38,6 +38,7 @@ ulam 1;
  b = false;
  }
  }
+
 #:System.ulam
 ulam 1;
 quark System {

@@ -102,8 +102,6 @@ namespace MFM{
 
     virtual s32 findUlamTypeInTable(UTI utype);
 
-    SymbolTable * getSymbolTablePtr(); //used for print postfix
-
     virtual void genCode(File * fp, UlamValue& uvpass);
 
     void genModelParameterImmediateDefinitions(File * fp);
@@ -117,6 +115,8 @@ namespace MFM{
 
   private:
     NodeBlock * m_prevBlockNode;
+
+    SymbolTable * getSymbolTablePtr(); //used for print postfix
 
   };
 

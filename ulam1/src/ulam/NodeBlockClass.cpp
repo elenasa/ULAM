@@ -139,11 +139,7 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
       {
-	if(superblock)
-	  superblock->printPostfixDataMembersSymbols(fp);
-
 	printPostfixDataMembersSymbols(fp);
-
 	func->printPostfix(fp);
       }
     else
@@ -168,6 +164,10 @@ namespace MFM {
 
   void NodeBlockClass::printPostfixDataMembersSymbols(File * fp)
   {
+    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+    if(superblock)
+      superblock->printPostfixDataMembersSymbols(fp);
+
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
     assert(classtype == UC_ELEMENT || classtype == UC_QUARK); //sanity check after eval (below)
 
@@ -176,6 +176,18 @@ namespace MFM {
     s32 slot = c0.convertCoordToIndex();
 
     m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
+  } //printPostfixDataMembersSymbols
+
+  void NodeBlockClass::printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
+  {
+    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+    if(superblock)
+      superblock->printPostfixDataMembersSymbols(fp);
+
+    assert(classtype == m_state.getUlamTypeByIndex(getNodeType())->getUlamClass()); //may not need classtype
+    assert(classtype == UC_QUARK); //sanity check after eval (below)
+
+    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, classtype);
   } //printPostfixDataMembersSymbols
 
   const char * NodeBlockClass::getName()

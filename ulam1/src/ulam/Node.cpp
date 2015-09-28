@@ -1824,15 +1824,16 @@ namespace MFM {
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(stgcos->getUlamTypeIdx())->getUlamClass();
-    u32 pos = (ct == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0) ;
-    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    for(u32 i = 1; i < cosSize; i++)
-      {
-	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-	pos += sym->getPosOffset();
-      }
-    return pos;
+    return stgcos->getPosOffset();
+    //    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(stgcos->getUlamTypeIdx())->getUlamClass();
+    //u32 pos = (ct == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0) ;
+    //u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    //for(u32 i = 1; i < cosSize; i++)
+    //  {
+    //	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+    //	pos += sym->getPosOffset();
+    //  }
+    //return pos;
   } //calcPosOfCurrentObjectsContainingASubClass
 
   //false means its the entire array or not an array at all (use read() if PACKEDLOADABLE)

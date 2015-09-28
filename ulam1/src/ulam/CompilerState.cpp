@@ -1901,17 +1901,18 @@ namespace MFM {
 
   bool CompilerState::thisClassHasTheTestMethod()
   {
-    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
-    NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
-    assert(classNode);
-    NodeBlockFunctionDefinition * func = classNode->findTestFunctionNode();
+    //Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
+    //NodeBlockClass * classNode = ((SymbolClass *) csym)->getClassBlockNode();
+    //assert(classNode);
+    NodeBlockFunctionDefinition * func = getClassBlock()->findTestFunctionNode();
     return (func != NULL);
   } //thisClassHasTheTestMethod
 
   bool CompilerState::thisClassIsAQuark()
   {
-    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId());
-    UTI cuti = csym->getUlamTypeIdx();
+    //Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId());
+    //UTI cuti = csym->getUlamTypeIdx();
+    UTI cuti = getCompileThisIdx();
     return(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK);
   } //thisClassIsAQuark
 
@@ -1935,9 +1936,7 @@ namespace MFM {
     Coord c0(0,0);
 
     //m_classBlock ok now, reset by NodeProgram after type label done
-    Symbol * csym = m_programDefST.getSymbolPtr(getCompileThisId()); //safer approach
-    UTI cuti = csym->getUlamTypeIdx();
-
+    UTI cuti = getCompileThisIdx();
     m_eventWindow.setSiteElementType(c0, cuti);
     m_currentSelfPtr = m_currentObjPtr = m_eventWindow.makePtrToCenter();
 
