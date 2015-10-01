@@ -2,7 +2,7 @@
 #=t3129_test_compiler_funcdefshadow
 #!
 ./D.ulam:11:5: ERROR: Undefined function <times> that has already been declared as a variable.
-./D.ulam:11:1: ERROR: Invalid Statement (possible missing semicolon).
+./D.ulam:11:12: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE.
 ##
 #>D.ulam

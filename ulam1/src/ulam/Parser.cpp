@@ -388,6 +388,15 @@ namespace MFM {
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
       {
+	if(pTok.m_type == TOK_COLON)
+	  {
+	    std::ostringstream msg;
+	    msg << "Inheritance for template class identifier '";
+	    msg << m_state.getTokenDataAsString(&identTok).c_str();
+	    msg << "' unsupported";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
+
 	delete rtnNode;
 	return NULL;
       }
@@ -1320,8 +1329,18 @@ namespace MFM {
 	  }
       }
 
-    if(!getExpectedToken(TOK_SEMICOLON))
+    if(!getExpectedToken(TOK_SEMICOLON, pTok, QUIETLY))
       {
+	//reportedly difficult to catch as an error, so special case error msg
+	if(pTok.m_type == TOK_PLUS_PLUS || pTok.m_type == TOK_MINUS_MINUS)
+	  {
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Try ";
+	    msg << m_state.getTokenDataAsString(&pTok).c_str();
+	    msg << " as a prefix operator";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
+
 	MSG(&pTok, "Invalid Statement (possible missing semicolon)", ERR);
 	delete rtnNode;
 	rtnNode = NULL;
