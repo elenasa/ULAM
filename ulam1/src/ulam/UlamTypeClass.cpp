@@ -239,7 +239,7 @@ namespace MFM {
 
   bool UlamTypeClass::isCustomArray()
   {
-    return m_customArray; //canonical
+    return m_customArray; //canonical, ignores ancestors
   }
 
   void UlamTypeClass::setCustomArray()
@@ -247,36 +247,16 @@ namespace MFM {
     m_customArray = true;
   }
 
-
   UTI UlamTypeClass::getCustomArrayType()
   {
-  //UTI caType = Nav;
-  //assert(m_customArray);
-  u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-  //    SymbolClass * csym = NULL;
-  //
-  //  if(m_state.alreadyDefinedSymbolClass(cuti, csym))
-  //    {
-  //	caType = csym->getCustomArrayType();
-  //    }
-  //  return caType;
-  return m_state.getAClassCustomArrayType(cuti);
-} //getCustomArrayType
-
+    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    return m_state.getAClassCustomArrayType(cuti);
+  } //getCustomArrayType
 
   u32 UlamTypeClass::getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
-  //u32 camatches = 0;
-  //  assert(m_customArray);
-  u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-  //    SymbolClass * csym = NULL;
-  //
-  //  if(m_state.alreadyDefinedSymbolClass(cuti, csym))
-  //    {
-  //	camatches = csym->getCustomArrayIndexTypeFor(rnode, idxuti, hasHazyArgs);
-  //    }
-  //  return camatches;
-  return m_state.getAClassCustomArrayIndexType(cuti, rnode, idxuti, hasHazyArgs);
+    u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    return m_state.getAClassCustomArrayIndexType(cuti, rnode, idxuti, hasHazyArgs);
   } //getCustomArrayIndexTypeFor
 
   s32 UlamTypeClass::getBitSize()
@@ -371,7 +351,6 @@ namespace MFM {
     if(!isScalar())
       return UlamType::getArrayItemTmpStorageTypeAsString();
 
-    //assert(isCustomArray());
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
   } //getArrayItemTmpStorageTypeAsString
 

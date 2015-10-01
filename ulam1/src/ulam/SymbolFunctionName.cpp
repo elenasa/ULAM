@@ -148,8 +148,8 @@ namespace MFM {
 		    funcSymbolMatchingUTArgs = funcSymbol;
 		  }
 	      }
-	    ++it;
-	  }
+	    it++;
+	  } //end while
 
 	if(matchingFuncCount > 1)
 	  {
@@ -165,20 +165,22 @@ namespace MFM {
       } //2nd try
 
     //3rd try: check any super class, unless hazyargs (causes inf loop)
-    if(!funcSymbol && !hasHazyArgs)
-      return findMatchingFunctionWithConstantsAsArgsInAncestors(argTypes, constArgs, funcSymbol, hasHazyArgs);
+    if(matchingFuncCount == 0)
+	return findMatchingFunctionWithConstantsAsArgsInAncestors(argTypes, constArgs, funcSymbol, hasHazyArgs);
 
     return matchingFuncCount;
   } //findMatchingFunctionWithConstantsAsArgs
 
   u32 SymbolFunctionName::findMatchingFunctionWithConstantsAsArgsInAncestors(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
   {
-	NNO fnno = getBlockNoOfST();
-	Symbol * fnsym = NULL;
-	if(m_state.isFuncIdInClassScopeNNO(fnno, getId(), fnsym))
-	  return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol, hasHazyArgs); //recurse ancestors
-
-	return 0;
+    Symbol * fnsym = NULL;
+    UTI cuti = m_state.findAClassByNodeNo(getBlockNoOfST());
+    assert(cuti != Nav);
+    UTI supercuti = m_state.isClassASubclass(cuti);
+    if(supercuti != Nav)
+      if(m_state.isFuncIdInAClassScope(supercuti, getId(), fnsym))
+	return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol, hasHazyArgs); //recurse ancestors
+    return 0;
   } //findMatchingFunctionWithConstantsAsArgsInAncestors
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()

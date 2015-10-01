@@ -222,12 +222,8 @@ namespace MFM {
 	// an element/quark or a requested scalar of an arraytype
 	if(uv.getUlamValueTypeIdx() != nuti)
 	  {
-	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-	    //if(nut->isCustomArray())
 	    if(m_state.isClassACustomArray(nuti))
 	      {
-		//UTI caType = ((UlamTypeClass *) nut)->getCustomArrayType();
 		UTI caType = m_state.getAClassCustomArrayType(nuti);
 		UlamType * caut = m_state.getUlamTypeByIndex(caType);
 		if(caType == UAtom || caut->getBitSize() > MAXBITSPERINT)
@@ -254,7 +250,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		if(nuti == UAtom || nut->getUlamClass() == UC_ELEMENT)
+		if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
 		  {
 		    uv = m_state.getPtrTarget(uvp); //UlamValue::makeAtom(caType);
 		  }

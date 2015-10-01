@@ -881,9 +881,9 @@ namespace MFM {
       }
 
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
-    fp->write(stgcosut->getUlamTypeMangledName().c_str());
     if(stgclasstype == UC_ELEMENT)
       {
+	fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::");
 	//depending on the "owner" of the func, the instance is needed
 	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
@@ -895,6 +895,7 @@ namespace MFM {
       {
 	if(useSuperClassName)
 	  {
+	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC,");
 	    fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(true));
 	    fp->write(">::");

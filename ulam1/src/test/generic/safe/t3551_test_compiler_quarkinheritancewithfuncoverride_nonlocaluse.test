@@ -1,17 +1,17 @@
 ## -*- mode:ulam -*-
-#=t3545_test_compiler_quarkinheritancewithfuncoverride
+#=t3551_test_compiler_quarkinheritancewithfuncoverride_nonlocaluse
 #!
 ## gencode output:
 ## <blank>
 ##
 Exit status: 0
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Bool(3) cb(false);  Unsigned(3) us(4); );  Int(32) test() {  Foo f;  first f su ( 1 cast )check . . = first cond { s ( first cast )print . 10u cast return } if 0 cast return } }
+Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Bool(3) cb(false);  Unsigned(3) us(4); );  Int(32) test() {  Foo f;  first su ( )check . = first cond { s ( first cast )print . 10u cast return } if 0 cast return } }
 Uq_Soo : Uq_Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  Bool(3) cb(false);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## quark inheritance, regular (non-template) with function call in subclass overriding super
-## (informed by t3536 and t3530, t3544)
+## (informed by t3549, t3545, t3536 and t3530, t3544)
 ##
 #>Foo.ulam
   ulam 1;
@@ -23,7 +23,7 @@ element Foo {
   Soo su;
   Int test() {
     Foo f;
-    first = f.su.check(1);
+    first = su.check();
     if(first)
     {
       s.print(first);
@@ -39,7 +39,7 @@ use Coo;
 quark Soo : Coo {
   Unsigned(3) us = 4u;
   Bool(3) cb;
-  Bool check(Int x)
+  Bool check()
   {
     return cb;
   }

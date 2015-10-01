@@ -3271,7 +3271,7 @@ namespace MFM {
 	((UlamTypeClass *) cut)->setCustomArray();
       }
 
-    //Here before push to get correct block NodeNo
+    //Here before push to get correct class block NodeNo
     //Now, look specifically for a function with the same given name defined
     Symbol * fnSym = NULL;
     if(!currClassBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
@@ -3310,19 +3310,6 @@ namespace MFM {
 
     //parse and add parameters to function symbol (not in ST yet!)
     parseRestOfFunctionParameters(fsymptr, rtnNode);
-
-#if 0
-    //Now, look specifically for a function with the same given name defined
-    Symbol * fnSym = NULL;
-    if(!currClassBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
-      {
-	//first time name used as a function..add symbol function name/typeNav
-	fnSym = new SymbolFunctionName(identTok, Nav, m_state);
-
-	//ownership goes to the class block's ST
-	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
-      }
-#endif
 
     if(rtnNode)
       {

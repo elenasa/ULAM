@@ -1053,9 +1053,6 @@ namespace MFM {
   {
     SymbolClass * csym = NULL;
     assert(alreadyDefinedSymbolClass(cuti, csym));
-    //    SymbolClassNameTemplate * cntsym = csym->getParentClassTemplate();
-    //if(cntsym)
-    //  return cntsym->getUlamTypeIdx() == cuti;
     return csym->isClassTemplate(cuti);
   } //isClassATemplate
 

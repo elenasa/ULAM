@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3548_test_compiler_quarkinheritancewithfuncoverride_nonlocaluse
+#=t3548_test_compiler_quarkinheritancewithfuncoverload_nonlocaluse
 #!
 ## gencode output:
 ## <blank>
@@ -10,7 +10,7 @@ Uq_Soo : Uq_Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  Bool(3) cb(false
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## quark inheritance, regular (non-template) with function call in subclass overriding super
+## quark inheritance, regular (non-template) with function call in subclass overloading super
 ## (informed by t3545, t3536 and t3530, t3544)
 ##
 #>Foo.ulam

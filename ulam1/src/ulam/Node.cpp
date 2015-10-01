@@ -1510,7 +1510,6 @@ namespace MFM {
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     // scalar quarks are typedefs and need atomic parametization;
     // arrays are already atomic parameters
-    //    if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK && !cosut->isCustomArray())
     if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK && !m_state.isClassACustomArray(cosuti))
       {
 	fp->write("Up_Us::"); //gives quark an atomicparameter type for write
@@ -1592,14 +1591,12 @@ namespace MFM {
 
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
-    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     Symbol * epcos = m_state.m_currentObjSymbolsForCodeGen[epi]; //***
     UTI epcosuti = epcos->getUlamTypeIdx();
     UlamType * epcosut = m_state.getUlamTypeByIndex(epcosuti);
     ULAMCLASSTYPE epcosclasstype = epcosut->getUlamClass();
 
-    //if(cosut->isCustomArray())
     if(m_state.isClassACustomArray(cosuti))
       fp->write("uc, "); //not for regular READs and WRITEs
 
@@ -1613,7 +1610,6 @@ namespace MFM {
     if(epcosclasstype != UC_NOTACLASS)
       {
 	if(m_state.isClassACustomArray(cosuti))
-	//if(cosut->isCustomArray())
 	  fp->write(".getRef()");
 	else
 	  fp->write(".getBits()");
@@ -1697,9 +1693,10 @@ namespace MFM {
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     NNO cosBlockNo = cos->getBlockNoOfST();
     NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
+    s32 subcos = -1;
     if(stgcosBlockNo != cosBlockNo)
       {
-	s32 subcos = isCurrentObjectsContainingASubClass();
+	subcos = isCurrentObjectsContainingASubClass();
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1; //for loop later
@@ -1718,7 +1715,8 @@ namespace MFM {
 	      }
 	  }
       }
-    else
+
+    if(subcos < 0)
       {
 	fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
 	fp->write("::");
@@ -1735,7 +1733,6 @@ namespace MFM {
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
 	// if its the last cos, a quark, and not a custom array...
-	//if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !sut->isCustomArray())
 	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !m_state.isClassACustomArray(suti))
 	  fp->write("Up_Us::"); //atomic parameter needed
       }
