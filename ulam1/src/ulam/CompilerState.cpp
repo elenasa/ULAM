@@ -747,7 +747,6 @@ namespace MFM {
     if(cuti == Nav) return false; //short-circuit
 
     bool rtnb = false;
-    //if(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK && getBitSize(cuti) > 0)
     if(getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
       {
 	rtnb = true;

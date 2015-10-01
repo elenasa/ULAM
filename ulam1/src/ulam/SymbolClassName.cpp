@@ -57,7 +57,7 @@ namespace MFM {
 
   UTI SymbolClassName::getSuperClass()
   {
-    return m_superClass; //Nav is none
+    return m_superClass; //Nav is none, not a subclass.
   } //getSuperClass
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
