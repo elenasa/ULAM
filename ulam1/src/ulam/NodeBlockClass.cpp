@@ -137,7 +137,15 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
       {
-	printPostfixDataMembersSymbols(fp);
+	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
+	assert(classtype == UC_ELEMENT || classtype == UC_QUARK); //sanity check after eval (below)
+
+	//simplifying assumption for testing purposes: center site
+	Coord c0(0,0);
+	s32 slot = c0.convertCoordToIndex();
+
+	printPostfixDataMembersSymbols(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
+
 	func->printPostfix(fp);
       }
     else
@@ -154,39 +162,28 @@ namespace MFM {
   {
     NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
     if(superblock)
-      superblock->printPostfixDataMembersParseTree(fp);
+      {
+	fp->write(" :<");
+	superblock->printPostfixDataMembersParseTree(fp);
+	fp->write(">");
+      }
 
     if(m_nodeNext)
       m_nodeNext->printPostfix(fp); //datamember vardecls
   } //printPostfixDataMembersParseTree
 
-  void NodeBlockClass::printPostfixDataMembersSymbols(File * fp)
-  {
-    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-    if(superblock)
-      superblock->printPostfixDataMembersSymbols(fp);
-
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass(); //may not need classtype
-    assert(classtype == UC_ELEMENT || classtype == UC_QUARK); //sanity check after eval (below)
-
-    //simplifying assumption for testing purposes: center site
-    Coord c0(0,0);
-    s32 slot = c0.convertCoordToIndex();
-
-    m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, ATOMFIRSTSTATEBITPOS, classtype);
-  } //printPostfixDataMembersSymbols
-
   void NodeBlockClass::printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
     if(superblock)
-      superblock->printPostfixDataMembersSymbols(fp);
-
-    assert(classtype == m_state.getUlamTypeByIndex(getNodeType())->getUlamClass()); //may not need classtype
-    assert(classtype == UC_QUARK); //quarks only!
+      {
+	fp->write(" :<");
+	superblock->printPostfixDataMembersSymbols(fp, slot, startpos, classtype);
+	fp->write(">");
+      }
 
     m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, classtype);
-  } //printPostfixDataMembersSymbols (overloaded)
+  } //printPostfixDataMembersSymbols
 
   const char * NodeBlockClass::getName()
   {
@@ -411,18 +408,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return evs;
   } //eval
 
-  //override to check both variables and function names.
+  //override to check both variables and function names; not any super class.
   bool NodeBlockClass::isIdInScope(u32 id, Symbol * & symptrref)
   {
-    bool inscope = false;
-    if(m_state.isClassASubclass(getNodeType()))
-      {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-	inscope = superClassBlock->isIdInScope(id, symptrref);
-      }
-    return (inscope || m_ST.isInTable(id, symptrref) || isFuncIdInScope(id, symptrref));
+    return (m_ST.isInTable(id, symptrref) || isFuncIdInScope(id, symptrref));
   } //isIdInScope
-
 
   u32 NodeBlockClass::getNumberOfSymbolsInTable()
   {
@@ -505,13 +495,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
   {
-    bool funcinscope = false;
-    if(m_state.isClassASubclass(getNodeType()))
-      {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-	funcinscope = superClassBlock->isFuncIdInScope(id, symptrref);
-      }
-    return (funcinscope || m_functionST.isInTable(id, symptrref));
+    return m_functionST.isInTable(id, symptrref); // not including any superclass
   } //isFuncIdInScope
 
   void NodeBlockClass::addFuncIdToScope(u32 id, Symbol * symptr)

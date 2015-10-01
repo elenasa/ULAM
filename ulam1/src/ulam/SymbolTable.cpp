@@ -795,7 +795,7 @@ namespace MFM {
 	    s32 bitsize = m_state.getBitSize(suti);
 	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
 
-	    //updates the UV at offset with the default of sym
+	    //updates the UV at offset with the default of sym; non-class arrays have none
 	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
 	      {
 		u64 dval = 0;
@@ -813,11 +813,15 @@ namespace MFM {
 	    else if(m_state.getUlamTypeByIndex(suti)->getUlamClass() == UC_QUARK)
 	      {
 		SymbolClass * csym = NULL;
-		assert(m_state.alreadyDefinedSymbolClass(suti, csym));
+		assert(m_state.alreadyDefinedSymbolClass(suti, csym)); //scalar class symbol
 		u32 dval = 0;
 		if(csym->getDefaultQuark(dval))
 		  {
-		    uvsite.putData(pos + ATOMFIRSTSTATEBITPOS, bitsize, dval);
+		    //could be an array of quarks
+		    s32 arraysize = m_state.getArraySize(suti);
+		    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
+		    for(s32 i = 0; i < arraysize; i++)
+		      uvsite.putData(pos + ATOMFIRSTSTATEBITPOS + i * bitsize, bitsize, dval);
 		  }
 	      }
 	  }

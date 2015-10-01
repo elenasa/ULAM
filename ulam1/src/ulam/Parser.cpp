@@ -3271,6 +3271,18 @@ namespace MFM {
 	((UlamTypeClass *) cut)->setCustomArray();
       }
 
+    //Here before push to get correct block NodeNo
+    //Now, look specifically for a function with the same given name defined
+    Symbol * fnSym = NULL;
+    if(!currClassBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
+      {
+	//first time name used as a function..add symbol function name/typeNav
+	fnSym = new SymbolFunctionName(identTok, Nav, m_state);
+
+	//ownership goes to the class block's ST
+	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
+      }
+
     m_state.pushCurrentBlock(rtnNode); //before parsing the args
 
     //use space on funcCallStack for return statement.
@@ -3299,6 +3311,7 @@ namespace MFM {
     //parse and add parameters to function symbol (not in ST yet!)
     parseRestOfFunctionParameters(fsymptr, rtnNode);
 
+#if 0
     //Now, look specifically for a function with the same given name defined
     Symbol * fnSym = NULL;
     if(!currClassBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
@@ -3309,6 +3322,7 @@ namespace MFM {
 	//ownership goes to the class block's ST
 	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
       }
+#endif
 
     if(rtnNode)
       {
@@ -3354,6 +3368,7 @@ namespace MFM {
 	    rtnNode = NULL;
 	  }
       }
+
     //this block's ST is no longer in scope
     m_state.popClassContext(); //= prevBlock;
     m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
@@ -3577,7 +3592,8 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId());
+		msg << "' and cannot be used as a variable";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -3651,7 +3667,8 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId());
+		msg << "' and cannot be used as a typedef";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	    else

@@ -108,7 +108,8 @@ namespace MFM {
 		// replace ourselves with a constant node instead;
 		// same node no, and loc
 		NodeConstant * newnode = new NodeConstant(*this);
-		Node * parentNode = m_state.findNodeNoInThisClass(Node::getYourParentNo());
+		NNO pno = Node::getYourParentNo();
+		Node * parentNode = m_state.findNodeNoInThisClass(pno);
 		assert(parentNode);
 
 		assert(parentNode->exchangeKids(this, newnode));
@@ -118,6 +119,9 @@ namespace MFM {
 		msg << "> a named constant, in place of a variable with class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+		newnode->setYourParentNo(pno); //missing?
+		newnode->resetNodeNo(getNodeNo()); //missing?
 
 		m_state.popClassContext(); //restore
 
@@ -130,7 +134,8 @@ namespace MFM {
 		// replace ourselves with a parameter node instead;
 		// same node no, and loc
 		NodeModelParameter * newnode = new NodeModelParameter(*this);
-		Node * parentNode = m_state.findNodeNoInThisClass(Node::getYourParentNo());
+		NNO pno = Node::getYourParentNo();
+		Node * parentNode = m_state.findNodeNoInThisClass(pno);
 		assert(parentNode);
 
 		assert(parentNode->exchangeKids(this, newnode));
@@ -140,6 +145,9 @@ namespace MFM {
 		msg << "> a model parameter, in place of a variable with class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+		newnode->setYourParentNo(pno); //missing?
+		newnode->resetNodeNo(getNodeNo()); //missing?
 
 		m_state.popClassContext(); //restore
 

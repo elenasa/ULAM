@@ -202,7 +202,7 @@ namespace MFM{
 
     //index of last subclass; o.w.-1
     s32 isCurrentObjectsContainingASubClass();
-    s32 calcPosOfCurrentObjectsContainingASubClass();
+    s32 calcPosOfCurrentObjectsContainingASubClass(bool isLocal);
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass);
@@ -238,7 +238,11 @@ namespace MFM{
     void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     void genModelParameterHiddenArgs(File * fp, s32 epi);
+
+    void genCustomArrayMemberNameOfMethod(File * fp);
+
     void genLocalMemberNameOfMethodByUsTypedef(File * fp);
+    void genCustomArrayLocalMemberNameOfMethod(File * fp);
 
     const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
     const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass);

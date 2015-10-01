@@ -113,8 +113,10 @@ namespace MFM {
 	assert(m_state.alreadyDefinedSymbolClassName(sid, cnsym));
 	NodeBlockClass * superblock = cnsym->getClassBlockNode();
 	assert(superblock);
+
 	classNode->updateLineage(superblock->getNodeNo());
       }
+
     m_state.popClassContext(); //restore
   } //updateLineageOfClass
 

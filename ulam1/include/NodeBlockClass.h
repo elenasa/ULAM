@@ -70,8 +70,6 @@ namespace MFM{
 
     void printPostfixDataMembersParseTree(File * fp); //helper for recursion NodeVarDecDM
 
-    void printPostfixDataMembersSymbols(File * fp);
-
     void printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
     virtual const char * getName();

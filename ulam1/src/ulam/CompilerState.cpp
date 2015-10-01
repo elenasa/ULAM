@@ -1053,10 +1053,10 @@ namespace MFM {
   {
     SymbolClass * csym = NULL;
     assert(alreadyDefinedSymbolClass(cuti, csym));
-    SymbolClassNameTemplate * cntsym = csym->getParentClassTemplate();
-    if(cntsym)
-      return cntsym->getUlamTypeIdx() == cuti;
-    return false;
+    //    SymbolClassNameTemplate * cntsym = csym->getParentClassTemplate();
+    //if(cntsym)
+    //  return cntsym->getUlamTypeIdx() == cuti;
+    return csym->isClassTemplate(cuti);
   } //isClassATemplate
 
   UTI CompilerState::isClassASubclass(UTI cuti)
@@ -1068,7 +1068,7 @@ namespace MFM {
 	assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
 	return cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
       }
-    return false; //even for non-classes
+    return Nav; //even for non-classes
   } //isClassASubclass
 
   bool CompilerState::isClassAQuarkUnion(UTI cuti)
@@ -1324,26 +1324,6 @@ namespace MFM {
     return brtn;
   } //alreadyDefinedSymbol
 
-#if 0
-  bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
-  {
-    bool brtn = false;
-    if(useMemberBlock())
-      {
-	NodeBlockClass * memberblock = getCurrentMemberClassBlock();
-	if(memberblock)
-	  brtn = memberblock->isFuncIdInScope(dataindex,symptr);
-      }
-    else
-      {
-	NodeBlockClass * classblock = getClassBlock();
-	if(classblock)
-	  brtn = classblock->isFuncIdInScope(dataindex,symptr);
-      }
-    return brtn;
-  } //isFuncIdInClassScope
-#endif
-
   bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
   {
     bool brtn = false;
@@ -1358,12 +1338,32 @@ namespace MFM {
 
     while(!brtn && classblock)
       {
-	brtn = classblock->isFuncIdInScope(dataindex,symptr);
-	classblock = (NodeBlockClass *) classblock->getPreviousBlockPointer(); //traverse the chain
+	brtn = classblock->isFuncIdInScope(dataindex,symptr); //returns symbol
+	classblock = (NodeBlockClass *) classblock->getPreviousBlockPointer(); //inheritance chain
       }
 
     return brtn;
   } //isFuncIdInClassScope
+
+  bool CompilerState::isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr)
+  {
+    UTI cuti = findAClassByNodeNo(cnno); //class of cnno
+    assert(cuti != Nav);
+    return isFuncIdInAClassScope(cuti, dataindex, symptr);
+  } //isFuncIdInClassScopeNNO
+
+  bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr)
+  {
+    SymbolClass * csym = NULL;
+    assert(alreadyDefinedSymbolClass(cuti, csym));
+    NodeBlockClass * cblock = csym->getClassBlockNode();
+    assert(cblock);
+    pushClassContext(cuti, cblock, cblock, false, NULL);
+
+    bool rtnb = isFuncIdInClassScope(dataindex, symptr);
+    popClassContext(); //don't forget!!
+    return rtnb;
+  } //isFuncIdInAClassScope
 
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
@@ -2170,10 +2170,10 @@ namespace MFM {
     return cnsym->findNodeNoInAClassInstance(cuti, n);
   } //findNodeNoInAClass
 
-  UTI CompilerState::findClassNodeNo(NNO n)
+  UTI CompilerState::findAClassByNodeNo(NNO n)
   {
     return m_programDefST.findClassNodeNoForTableOfClasses(n); //Nav not found
-  } //findClassNodeNo
+  } //findAClassByNodeNo
 
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {

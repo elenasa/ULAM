@@ -1,17 +1,17 @@
 ## -*- mode:ulam -*-
-#=t3539_test_compiler_quarkinheritancewithfunc_nonlocaluse
+#=t3545_test_compiler_quarkinheritancewithfuncoverride
 #!
 ## gencode output:
-## Bool(3) Arg: 0x7 (true)
+## <blank>
 ##
-Exit status: 7
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4); );  Int(32) test() {  su ( )check . cond { s ( su cb . )print . 7u cast return } if 0 cast return } }
-Uq_Soo : Uq_Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Exit status: 0
+Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Bool(3) cb(false);  Unsigned(3) us(4); );  Int(32) test() {  Foo f;  first f su ( 1 cast )check . . = first cond { s ( first cast )print . 10u cast return } if 0 cast return } }
+Uq_Soo : Uq_Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  Bool(3) cb(false);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## quark inheritance, regular (non-template) with function call
-## (informed by t3538)
+## quark inheritance, regular (non-template) with function call in subclass overriding super
+## (informed by t3536 and t3530, t3544)
 ##
 #>Foo.ulam
   ulam 1;
@@ -22,9 +22,11 @@ element Foo {
   Bool first;
   Soo su;
   Int test() {
-    if(su.check())
+    Foo f;
+    first = f.su.check(1);
+    if(first)
     {
-      s.print(su.cb);
+      s.print(first);
       return Foo.sizeof;
     }
     return 0;
@@ -36,6 +38,11 @@ element Foo {
 use Coo;
 quark Soo : Coo {
   Unsigned(3) us = 4u;
+  Bool(3) cb;
+  Bool check(Int x)
+  {
+    return cb;
+  }
 }
 
 #:Coo.ulam

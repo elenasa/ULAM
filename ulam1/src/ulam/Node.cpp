@@ -664,7 +664,7 @@ namespace MFM {
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
     if(!isCurrentObjectALocalVariableOrArgument())
       {
-	genMemberNameOfMethod(fp);
+	genCustomArrayMemberNameOfMethod(fp);
 
 	// the READ method
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
@@ -678,7 +678,9 @@ namespace MFM {
 	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
 
 	//read method based on last cos
-	genLocalMemberNameOfMethodByUsTypedef(fp);
+	//genLocalMemberNameOfMethodByUsTypedef(fp);
+	genCustomArrayLocalMemberNameOfMethod(fp);
+
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 
 	if(stgcosclasstype == UC_ELEMENT)
@@ -994,7 +996,7 @@ namespace MFM {
       {
 	m_state.indent(fp);
 
-	genMemberNameOfMethod(fp);
+	genCustomArrayMemberNameOfMethod(fp);
 
 	// the WRITE method
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
@@ -1010,7 +1012,9 @@ namespace MFM {
 	//local
 	m_state.indent(fp);
 
-	genLocalMemberNameOfMethodByUsTypedef(fp);
+	//genLocalMemberNameOfMethodByUsTypedef(fp);
+	genCustomArrayLocalMemberNameOfMethod(fp);
+
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 
 	fp->write("(uc, ");
@@ -1455,7 +1459,7 @@ namespace MFM {
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1;
-	    UTI cosclassuti = m_state.findClassNodeNo(cosBlockNo);
+	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
 	    assert(cosclassuti != Nav);
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
@@ -1465,7 +1469,7 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass());
+		fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
 		fp->write(">::");
 	      }
 	  }
@@ -1482,7 +1486,7 @@ namespace MFM {
 	      {
 		//self is a quark
 		fp->write("<EC,");
-		fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass());
+		fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
 		fp->write(">::");
 	      }
 	  }
@@ -1616,6 +1620,45 @@ namespace MFM {
       }
   } //genModelParameterHiddenArgs
 
+  void Node::genCustomArrayMemberNameOfMethod(File * fp)
+  {
+    assert(!isCurrentObjectALocalVariableOrArgument());
+
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    //find class for cos' custom array method; and blockNo (may be inherited, unlike cos)
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI cosuti = cos->getUlamTypeIdx();
+    NNO cosBlockNo = cos->getBlockNoOfST();
+
+    Symbol * fnsymptr = NULL;
+    assert(m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr)); //searches class of cos
+    NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
+    UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
+    assert(caclassuti != Nav);
+
+    //currently, only regular classes may have subclasses.
+    if((cosBlockNo != caBlockNo) && (cosuti != caclassuti) && !m_state.isClassATemplate(caclassuti))
+      {
+	assert(m_state.isClassASubclass(cosuti));
+	UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
+
+	fp->write(caclassut->getUlamTypeMangledName().c_str());
+	if(caclassut->getUlamClass() == UC_ELEMENT)
+	  assert(0); //fp->write("<EC>::"); only quarks have carrays
+	else
+	  {
+	    fp->write("<EC,");
+	    fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
+	    fp->write(">::");
+	  }
+	return;
+      }
+
+    //otherwise normal data member name..
+    return genMemberNameOfMethod(fp);
+  } //genCustomArrayMemberNameOfMethod
+
   void Node::genLocalMemberNameOfMethod(File * fp)
   {
     assert(isCurrentObjectALocalVariableOrArgument());
@@ -1660,7 +1703,7 @@ namespace MFM {
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1; //for loop later
-	    UTI cosclassuti = m_state.findClassNodeNo(cosBlockNo);
+	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
 	    assert(cosclassuti != Nav);
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
@@ -1670,7 +1713,7 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass());
+		fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
 		fp->write(">::");
 	      }
 	  }
@@ -1697,6 +1740,46 @@ namespace MFM {
 	  fp->write("Up_Us::"); //atomic parameter needed
       }
   } //genLocalMemberNameOfMethodByUsTypedef
+
+  void Node::genCustomArrayLocalMemberNameOfMethod(File * fp)
+  {
+    assert(isCurrentObjectALocalVariableOrArgument());
+
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+
+    // handle inheritance, when data member is in superclass, not current class obj
+    // now for both immediate elements and quarks..
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI cosuti = cos->getUlamTypeIdx();
+    NNO cosBlockNo = cos->getBlockNoOfST();
+
+    Symbol * fnsymptr = NULL;
+    assert(m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr)); //searches class of cos
+    NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
+    UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
+    assert(caclassuti != Nav);
+
+    //currently, only regular classes may have subclasses.
+    if((cosBlockNo != caBlockNo) && (cosuti != caclassuti) && !m_state.isClassATemplate(caclassuti))
+      {
+	assert(m_state.isClassASubclass(cosuti));
+	UlamType * caclassut = m_state.getUlamTypeByIndex(caclassuti);
+
+	fp->write(caclassut->getUlamTypeMangledName().c_str());
+	if(caclassut->getUlamClass() == UC_ELEMENT)
+	  assert(0); //fp->write("<EC>::"); only quarks have carrays
+	else
+	  {
+	    fp->write("<EC,");
+	    fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
+	    fp->write(">::");
+	  }
+	return;
+      }
+
+    //otherwise normal data member name..
+    return genLocalMemberNameOfMethodByUsTypedef(fp);
+  } //genCustomArrayLocalMemberNameOfMethod
 
   const std::string Node::tmpStorageTypeForRead(UTI nuti, UlamValue uvpass)
   {
@@ -1727,6 +1810,8 @@ namespace MFM {
 
     if(isHandlingImmediateType() && !isCArray)
       method = readMethodForImmediateBitValueForCodeGen(nuti, uvpass);
+    else if(isCArray)
+      method = m_state.getCustomArrayGetMangledFunctionName();
     else
       method = m_state.getUlamTypeByIndex(nuti)->readArrayItemMethodForCodeGen();
     return method;
@@ -1750,6 +1835,8 @@ namespace MFM {
 
     if(isHandlingImmediateType() && !isCArray)
       method = writeMethodForImmediateBitValueForCodeGen(nuti, uvpass);
+    else if(isCArray)
+      method = m_state.getCustomArraySetMangledFunctionName();
     else
       method = m_state.getUlamTypeByIndex(nuti)->writeArrayItemMethodForCodeGen();
     return method;
@@ -1826,21 +1913,27 @@ namespace MFM {
   } //isCurrentObjectsContainingASubClass
 
   // returns the index to the last object that's a subclass; o.w. -1 none found;
-  // preceeding object is the "owner", others before it are irrelevant;
-  s32 Node::calcPosOfCurrentObjectsContainingASubClass()
+  // preceeding object is the "owner"
+  s32 Node::calcPosOfCurrentObjectsContainingASubClass(bool isLocal)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    return stgcos->getPosOffset();
-    //    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(stgcos->getUlamTypeIdx())->getUlamClass();
-    //u32 pos = (ct == UC_ELEMENT ? ATOMFIRSTSTATEBITPOS : 0) ;
-    //u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    //for(u32 i = 1; i < cosSize; i++)
-    //  {
-    //	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-    //	pos += sym->getPosOffset();
-    //  }
-    //return pos;
+
+    s32 cosSize = (s32) m_state.m_currentObjSymbolsForCodeGen.size();
+    s32 subcos = isCurrentObjectsContainingASubClass();
+    //assert((subcos >= 0) && (subcos < cosSize));
+    if(subcos < 0)
+      subcos = cosSize - 1; //e.g. custom array is in subclass, not cos
+
+    ULAMCLASSTYPE ct = m_state.getUlamTypeByIndex(stgcos->getUlamTypeIdx())->getUlamClass();
+    u32 pos = ((ct == UC_ELEMENT || !isLocal) ? ATOMFIRSTSTATEBITPOS : 0) ;
+
+    for(s32 i = 0; i <= subcos; i++)
+      {
+    	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
+    	pos += sym->getPosOffset();
+      }
+    return pos;
   } //calcPosOfCurrentObjectsContainingASubClass
 
   //false means its the entire array or not an array at all (use read() if PACKEDLOADABLE)
@@ -1853,12 +1946,10 @@ namespace MFM {
 
   bool Node::isCurrentObjectACustomArrayItem(UTI cosuti, UlamValue uvpass)
   {
-    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     // a cosuti as a scalar, customarray, may be used as a regular array,
     //     but at this point cosuti would be a scalar in either case (sigh);
     // uvpass would be an array index (an int of sorts), not an array;
     // types would not be the same;
-    //return(m_state.isScalar(cosuti) && cosut->isCustomArray() && uvpass.getPtrTargetType() != cosuti);
     return(m_state.isScalar(cosuti) && m_state.isClassACustomArray(cosuti) && uvpass.getPtrTargetType() != cosuti);
   } //isCurrentObjectACustomArrayItem
 

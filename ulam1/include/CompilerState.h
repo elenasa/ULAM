@@ -221,7 +221,9 @@ namespace MFM{
     */
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr);
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr);
-    //bool isIdInClassScope(u32 dataindex, Symbol * & symptr);
+    bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr);
+    bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr);
+
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
@@ -342,7 +344,7 @@ namespace MFM{
 
     Node * findNodeNoInThisClass(NNO n);
     Node * findNodeNoInAClass(NNO n, UTI cuti);
-    UTI findClassNodeNo(NNO n);
+    UTI findAClassByNodeNo(NNO n);
     NodeBlockClass * getAClassBlock(UTI cuti);
     NNO getAClassBlockNo(UTI cuti);
 

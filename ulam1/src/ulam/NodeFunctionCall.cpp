@@ -689,7 +689,7 @@ namespace MFM {
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1;
-	    UTI cosclassuti = m_state.findClassNodeNo(cosBlockNo);
+	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
 	    assert(cosclassuti != Nav);
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
@@ -699,7 +699,7 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass());
+		fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(false));
 		fp->write(">::");
 	      }
 	  }
@@ -719,7 +719,7 @@ namespace MFM {
 	      {
 		//self is a quark
 		fp->write("<EC,");
-		fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass());
+		fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(false));
 		fp->write(">::");
 	      }
 	  }
@@ -872,7 +872,7 @@ namespace MFM {
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1; //for loop later
-	    UTI cosclassuti = m_state.findClassNodeNo(cosBlockNo);
+	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
 	    assert(cosclassuti != Nav);
 	    stgcosuti = cosclassuti; // resets stgcosuti here!!
 	    stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -896,7 +896,7 @@ namespace MFM {
 	if(useSuperClassName)
 	  {
 	    fp->write("<EC,");
-	    fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass());
+	    fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(true));
 	    fp->write(">::");
 	  }
 	else

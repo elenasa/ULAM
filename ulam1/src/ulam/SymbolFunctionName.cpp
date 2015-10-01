@@ -163,8 +163,23 @@ namespace MFM {
 	      }
 	  }
       } //2nd try
+
+    //3rd try: check any super class, unless hazyargs (causes inf loop)
+    if(!funcSymbol && !hasHazyArgs)
+      return findMatchingFunctionWithConstantsAsArgsInAncestors(argTypes, constArgs, funcSymbol, hasHazyArgs);
+
     return matchingFuncCount;
   } //findMatchingFunctionWithConstantsAsArgs
+
+  u32 SymbolFunctionName::findMatchingFunctionWithConstantsAsArgsInAncestors(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
+  {
+	NNO fnno = getBlockNoOfST();
+	Symbol * fnsym = NULL;
+	if(m_state.isFuncIdInClassScopeNNO(fnno, getId(), fnsym))
+	  return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol, hasHazyArgs); //recurse ancestors
+
+	return 0;
+  } //findMatchingFunctionWithConstantsAsArgsInAncestors
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()
   {
@@ -416,6 +431,7 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
+	assert(fsym->getBlockNoOfST() == pno); //was fnsym nodeno == funcdef block in u.1.1.1
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->updateLineage(pno);
