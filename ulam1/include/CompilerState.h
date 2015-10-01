@@ -240,8 +240,8 @@ namespace MFM{
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
-    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
-    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
+    bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
+    bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
 
     void resetUnseenClass(SymbolClassName * cnsym, Token identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);

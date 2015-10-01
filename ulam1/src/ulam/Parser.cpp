@@ -320,21 +320,17 @@ namespace MFM {
 	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
 	  {
 	    SymbolClassName * supercnsym = NULL;
-	    if(m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym))
+	    if(m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym) || m_state.addIncompleteClassSymbolToProgramTable(iTok, supercnsym))
 	      {
 		UTI superuti = supercnsym->getUlamTypeIdx();
 		cnsym->setSuperClass(superuti); //set here!!
 
 		NodeBlockClass * superclassblock = supercnsym->getClassBlockNode();
-		assert(superclassblock); //?? let's find out
+		assert(superclassblock);
 		m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
 	      }
 	    else
-	      {
-		//super class has yet to be defined...add incomplete type or error?
-		assert(0);
-		m_state.addIncompleteClassSymbolToProgramTable(iTok, supercnsym);
-	      }
+	      assert(0); //an unseen superclass was added as incomplete
 	  }
 	else
 	  {

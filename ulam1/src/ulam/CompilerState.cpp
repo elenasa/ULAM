@@ -1165,7 +1165,7 @@ namespace MFM {
   } //alreadyDefinedSymbolClass
 
   //temporary UlamType which will be updated during type labeling.
-  void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
+  bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
     assert(symptr == NULL && !alreadyDefinedSymbolClassName(dataindex,symptr));
@@ -1187,10 +1187,11 @@ namespace MFM {
     m_unseenClasses.insert(symptr);
 
     popClassContext();
+    return true; //compatible with alreadyDefinedSymbolClassName return
   } //addIncompleteClassSymbolToProgramTable
 
   //temporary UlamType which will be updated during type labeling.
-  void CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
+  bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
     assert(symptr == NULL && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
@@ -1212,6 +1213,7 @@ namespace MFM {
     m_unseenClasses.insert(symptr);
 
     popClassContext();
+    return true; //compatible with alreadyDefinedSymbolClassNameTemplate return
   } //addIncompleteClassSymbolToProgramTable
 
   void CompilerState::resetUnseenClass(SymbolClassName * cnsym, Token identTok)

@@ -1,0 +1,29 @@
+## -*- mode:ulam -*-
+#=t3555_test_compiler_elementinheritance_unseen
+#!
+Exit status: 77
+Ue_Foo : Ue_Soo { :< Unsigned(3) us(4); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  Foo f;  f us . cast f a . +b return } }
+Ue_Soo { Unsigned(3) us( 4u);  <NOMAIN> }
+##
+## informed by t3528, the first test of class inheritance, regular (non-template)
+## here, Soo isn't seen until after Foo is parse.
+##
+#>Foo.ulam
+  ulam 1;
+element Foo : Soo {
+  Bool(7) sp;
+  Int a = 73;
+  Int test() {
+    Foo f;
+    return f.us + f.a;
+  }
+}
+  use Soo;
+
+#:Soo.ulam
+  ulam 1;
+element Soo {
+  Unsigned(3) us = 4u;
+}
+
+#.
