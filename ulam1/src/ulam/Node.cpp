@@ -1641,7 +1641,8 @@ namespace MFM {
 
 	fp->write(caclassut->getUlamTypeMangledName().c_str());
 	if(caclassut->getUlamClass() == UC_ELEMENT)
-	  assert(0); //fp->write("<EC>::"); only quarks have carrays
+	  //assert(0); only quarks have carrays
+	  fp->write("<EC>::THE_INSTANCE.");
 	else
 	  {
 	    fp->write("<EC,");
@@ -1764,7 +1765,8 @@ namespace MFM {
 
 	fp->write(caclassut->getUlamTypeMangledName().c_str());
 	if(caclassut->getUlamClass() == UC_ELEMENT)
-	  assert(0); //fp->write("<EC>::"); only quarks have carrays
+	  //assert(0); only quarks have carrays
+	  fp->write("<EC>::THE_INSTANCE.");
 	else
 	  {
 	    fp->write("<EC,");

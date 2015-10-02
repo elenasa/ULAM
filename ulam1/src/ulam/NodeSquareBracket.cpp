@@ -90,9 +90,7 @@ namespace MFM {
 		// all the overload matching in func call node's c&l, because
 		// we ([]) can't tell which side of = we are on, and whether we should
 		// be a aref or aset.
-		//UTI caType = ((UlamTypeClass *) lut)->getCustomArrayType();
 		UTI caType = m_state.getAClassCustomArrayType(leftType);
-
 		if(!m_state.isComplete(caType))
 		  {
 		    std::ostringstream msg;
@@ -191,7 +189,6 @@ namespace MFM {
       {
 	// sq bracket purpose in life is to account for array elements;
 	if(isCustomArray)
-	  //newType = ((UlamTypeClass *) m_state.getUlamTypeByIndex(leftType))->getCustomArrayType();
 	  newType = m_state.getAClassCustomArrayType(leftType);
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);

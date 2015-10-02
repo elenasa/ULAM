@@ -57,7 +57,11 @@ namespace MFM {
     if(NodeBlock::findNodeNo(n, foundNode))
       return true;
 
-    if(m_state.isClassASubclass(getNodeType()))
+    UTI cuti = getNodeType();
+    if(cuti == Int) //kludge nodetype clobbered to test
+      cuti = m_state.getCompileThisIdx();
+
+    if(m_state.isClassASubclass(cuti))
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superblock);
@@ -82,12 +86,16 @@ namespace MFM {
   void NodeBlockClass::print(File * fp)
   {
     printNodeLocation(fp);
-    UTI myut = getNodeType();
+    UTI myuti = getNodeType();
+
+    if(myuti == Int) //kludge nodetype clobbered to test
+      myuti = m_state.getCompileThisIdx();
+
     char id[255];
-    if(myut == Nav)
+    if(myuti == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
     else
-      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myut).c_str());
+      sprintf(id,"%s<%s>\n", prettyNodeName().c_str(), m_state.getUlamTypeNameByIndex(myuti).c_str());
     fp->write(id);
 
     if(m_nodeNext)
@@ -104,11 +112,14 @@ namespace MFM {
 
   void NodeBlockClass::printPostfix(File * fp)
   {
-    UTI nuti = getNodeType();
-    fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
+    UTI cuti = getNodeType();
+    if(cuti == Int) //kludge nodetype clobbered to test
+      cuti = m_state.getCompileThisIdx();
+
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
 
-    if(m_state.isClassASubclass(nuti))
+    if(m_state.isClassASubclass(cuti))
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superblock);
@@ -121,7 +132,7 @@ namespace MFM {
     if(m_nodeParameterList->getNumberOfNodes() > 0)
       {
 	SymbolClassNameTemplate * cnsym = NULL;
-	assert(m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(nuti).getUlamKeyTypeSignatureNameId(), cnsym));
+	assert(m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId(), cnsym));
 	cnsym->printClassTemplateArgsForPostfix(fp);
 	//m_nodeParameterList->print(fp);
       }
@@ -140,7 +151,7 @@ namespace MFM {
     NodeBlockFunctionDefinition * func = findTestFunctionNode();
     if(func)
       {
-	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass(); //may not need classtype
+	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(cuti)->getUlamClass(); //may not need classtype
 	assert(classtype == UC_ELEMENT || classtype == UC_QUARK); //sanity check after eval (below)
 
 	//simplifying assumption for testing purposes: center site
@@ -163,7 +174,11 @@ namespace MFM {
 
   void NodeBlockClass::printPostfixDataMembersParseTree(File * fp)
   {
-    if(m_state.isClassASubclass(getNodeType()))
+    UTI cuti = getNodeType();
+    if(cuti == Int) //kludge nodetype clobbered to test
+      cuti = m_state.getCompileThisIdx();
+
+    if(m_state.isClassASubclass(cuti))
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superblock);
@@ -178,7 +193,11 @@ namespace MFM {
 
   void NodeBlockClass::printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
-    if(m_state.isClassASubclass(getNodeType()))
+    UTI cuti = getNodeType();
+    if(cuti == Int) //kludge nodetype clobbered to test
+      cuti = m_state.getCompileThisIdx();
+
+    if(m_state.isClassASubclass(cuti))
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superblock);
@@ -340,6 +359,8 @@ namespace MFM {
     bool hasCA = false;
     // custom array flag set at parse time
     UTI cuti = getNodeType();
+    if(cuti == Int) //kludge nodetype clobbered to test
+      cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     hasCA = ((UlamTypeClass *) cut)->isCustomArray();
 
@@ -361,6 +382,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     // custom array flag set at parse time
     UTI cuti = getNodeType();
+    if(cuti == Int) //kludge nodetype clobbered to test
+      cuti = m_state.getCompileThisIdx();
+
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     if(((UlamTypeClass *) cut)->isCustomArray())
       m_functionST.checkCustomArrayTypeFuncs();
@@ -379,7 +403,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     if(catype == Nav)
       {
-	if(m_state.isClassASubclass(getNodeType()))
+	UTI cuti = getNodeType();
+	if(cuti == Int) //kludge nodetype clobbered to test
+	  cuti = m_state.getCompileThisIdx();
+
+	if(m_state.isClassASubclass(cuti))
 	  {
 	    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(superblock);
@@ -395,7 +423,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     if(catype == Nav)
       {
-	if(m_state.isClassASubclass(getNodeType()))
+	UTI cuti = getNodeType();
+	if(cuti == Int) //kludge nodetype clobbered to test
+	  cuti = m_state.getCompileThisIdx();
+
+	if(m_state.isClassASubclass(cuti))
 	  {
 	    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
 	    assert(superblock);
