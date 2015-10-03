@@ -32,18 +32,19 @@ System s;
 
 ##
 ##      //note: getIndex calculation done as Int(32) since args are Ints.
+
 #:C2D.ulam
-quark C2D {
- Int(6) m_width = 9;
- Int(6) m_height = 4;
+  quark C2D {
+  Int(6) m_width = 9;
+  Int(6) m_height = 4;
   Void init(Int x, Int y) {
- m_width = (Int(6)) x;
- m_height = (Int(6)) y;
- return;
- }
- Int getIndex(Int a, Int b){
- return ((m_height-b) * m_width + (m_height-a));
- }
+    m_width = (Int(6)) x;
+    m_height = (Int(6)) y;
+    return;
+  }
+  Int getIndex(Int a, Int b){
+    return ((m_height-b) * m_width + (m_height-a));
+  }
  }
 #:System.ulam
 ulam 1;

@@ -308,12 +308,51 @@ namespace MFM {
 
   NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym, Token identTok)
   {
+    Token qTok;
+    getNextToken(qTok);
+
+    if(qTok.m_type == TOK_COLON)
+      {
+	//inheritance
+	Token iTok;
+	getNextToken(iTok);
+
+	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
+	  {
+	    SymbolClassName * supercnsym = NULL;
+	    if(m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym) || m_state.addIncompleteClassSymbolToProgramTable(iTok, supercnsym))
+	      {
+		UTI superuti = supercnsym->getUlamTypeIdx();
+		cnsym->setSuperClass(superuti); //set here!!
+
+		NodeBlockClass * superclassblock = supercnsym->getClassBlockNode();
+		assert(superclassblock);
+		m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
+	      }
+	    else
+	      assert(0); //an unseen superclass was added as incomplete
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Class Definition '";
+	    msg << m_state.getTokenDataAsString(&identTok).c_str();
+	    msg << "'; Inheritance from invalid Class identifier '";
+	    msg << m_state.getTokenDataAsString(&iTok).c_str() << "'";
+	    MSG(&qTok, msg.str().c_str(), ERR);
+	    //continue?
+	  }
+      }
+    else
+      unreadToken();
+
+
     UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
     NodeBlockClass * rtnNode = cnsym->getClassBlockNode(); //usually NULL
     if(!rtnNode)
       {
+	//this is the class' first block; super class if inherits, o.w. null
 	NodeBlock * prevBlock = m_state.getCurrentBlock();
-	assert(prevBlock == NULL); //this is the class' first block
 
 	rtnNode = new NodeBlockClass(prevBlock, m_state);
 	assert(rtnNode);
@@ -323,6 +362,14 @@ namespace MFM {
 	//set block before returning, so future class instances can link back to it
 	cnsym->setClassBlockNode(rtnNode);
       }
+    else
+      {
+	//this is the class' first block; super class if inherits, o.w. null
+	NodeBlock * prevBlock = m_state.getCurrentBlock();
+	if(prevBlock != rtnNode)
+	  rtnNode->setPreviousBlockPointer(prevBlock);
+      }
+
 
     //current, this block's symbol table added to parse tree stack
     //        for validating and finding scope of program/block variables
@@ -341,6 +388,15 @@ namespace MFM {
 
     if(!getExpectedToken(TOK_OPEN_CURLY, pTok))
       {
+	if(pTok.m_type == TOK_COLON)
+	  {
+	    std::ostringstream msg;
+	    msg << "Inheritance for template class identifier '";
+	    msg << m_state.getTokenDataAsString(&identTok).c_str();
+	    msg << "' unsupported";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
+
 	delete rtnNode;
 	return NULL;
       }
@@ -374,6 +430,9 @@ namespace MFM {
 
     //this block's ST is no longer in scope
     m_state.popClassContext(); //m_currentBlock = prevBlock;
+
+    if(cnsym->getSuperClass() != Nav)
+      m_state.popClassContext(); //m_currentBlock = prevBlock;
 
     return rtnNode;
   } //parseClassBlock
@@ -1270,8 +1329,18 @@ namespace MFM {
 	  }
       }
 
-    if(!getExpectedToken(TOK_SEMICOLON))
+    if(!getExpectedToken(TOK_SEMICOLON, pTok, QUIETLY))
       {
+	//reportedly difficult to catch as an error, so special case error msg
+	if(pTok.m_type == TOK_PLUS_PLUS || pTok.m_type == TOK_MINUS_MINUS)
+	  {
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Try ";
+	    msg << m_state.getTokenDataAsString(&pTok).c_str();
+	    msg << " as a prefix operator";
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
+
 	MSG(&pTok, "Invalid Statement (possible missing semicolon)", ERR);
 	delete rtnNode;
 	rtnNode = NULL;
@@ -3217,6 +3286,18 @@ namespace MFM {
 	((UlamTypeClass *) cut)->setCustomArray();
       }
 
+    //Here before push to get correct class block NodeNo
+    //Now, look specifically for a function with the same given name defined
+    Symbol * fnSym = NULL;
+    if(!currClassBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
+      {
+	//first time name used as a function..add symbol function name/typeNav
+	fnSym = new SymbolFunctionName(identTok, Nav, m_state);
+
+	//ownership goes to the class block's ST
+	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
+      }
+
     m_state.pushCurrentBlock(rtnNode); //before parsing the args
 
     //use space on funcCallStack for return statement.
@@ -3244,17 +3325,6 @@ namespace MFM {
 
     //parse and add parameters to function symbol (not in ST yet!)
     parseRestOfFunctionParameters(fsymptr, rtnNode);
-
-    //Now, look specifically for a function with the same given name defined
-    Symbol * fnSym = NULL;
-    if(!currClassBlock->isFuncIdInScope(identTok.m_dataindex, fnSym))
-      {
-	//first time name used as a function..add symbol function name/typeNav
-	fnSym = new SymbolFunctionName(identTok, Nav, m_state);
-
-	//ownership goes to the class block's ST
-	currClassBlock->addFuncIdToScope(fnSym->getId(), fnSym);
-      }
 
     if(rtnNode)
       {
@@ -3300,6 +3370,7 @@ namespace MFM {
 	    rtnNode = NULL;
 	  }
       }
+
     //this block's ST is no longer in scope
     m_state.popClassContext(); //= prevBlock;
     m_state.m_currentFunctionBlockDeclSize = 0; //default zero for datamembers
@@ -3523,7 +3594,8 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId());
+		msg << "' and cannot be used as a variable";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	    else
@@ -3597,7 +3669,8 @@ namespace MFM {
 		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
 		msg << " has a previous declaration as '";
 		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId()) << "'";
+		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId());
+		msg << "' and cannot be used as a typedef";
 		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
 	      }
 	    else

@@ -1,0 +1,77 @@
+## -*- mode:ulam -*-
+#=t3540_test_compiler_quarkinheritanceswithfunc_local
+#!
+## gencode output:
+##Int Arg: -1
+##Int Arg: 1
+##Unsigned Arg: 11
+##
+Exit status: 11
+Ue_Foo { System s();  Bool(1) first(true);  Int(32) test() {  Soo su;  first su cb . cast = su ( )check . cond { s ( su lu . cast )print . su lu . 1u cast = s ( su lu . cast )print . s ( 11u )print . 11u cast return } if 0 cast return } }
+Uq_Soo : Uq_Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Coo : Uq_Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
+Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## quark inheritances, regular (non-template), with func as local variable
+## informed by t3536,3538
+##
+#>Foo.ulam
+  ulam 1;
+use Soo;
+use System;
+element Foo {
+  System s;
+  Bool first;
+  Int test() {
+    Soo su;
+    first = su.cb;
+    if(su.check())
+    {
+      s.print(su.lu);
+      su.lu = 1u;
+      s.print(su.lu);
+      s.print(su.sizeof);
+      return su.sizeof;
+    }
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 1;
+use Coo;
+quark Soo : Coo {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 1;
+use Loo;
+quark Coo : Loo {
+  Bool(3) cb = true;
+  Bool check()
+  {
+    return cb;
+  }
+}
+
+#:Loo.ulam
+  ulam 1;
+quark Loo {
+  Int(5) lu = -1;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

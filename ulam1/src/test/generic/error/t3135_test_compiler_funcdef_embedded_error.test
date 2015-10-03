@@ -2,7 +2,7 @@
 #=t3135_test_compiler_funcdef_embedded_error
 #!
 ./D.ulam:5:12: ERROR: Unexpected token <(> indicates a function call or definition; neither are valid here.
-./D.ulam:5:5: ERROR: Invalid Statement (possible missing semicolon).
+./D.ulam:5:12: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE.
 ##
 #>D.ulam

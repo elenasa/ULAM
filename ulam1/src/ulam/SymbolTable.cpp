@@ -255,11 +255,12 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !((SymbolClass *) sym)->isQuarkUnion())
+	UTI suti = sym->getUlamTypeIdx();
+	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
 	  {
 	    //updates the offset with the bit size of sym
 	    ((SymbolVariable *) sym)->setPosOffset(offsetIntoAtom);
-	    offsetIntoAtom += m_state.getTotalBitSize(sym->getUlamTypeIdx()); //times array size
+	    offsetIntoAtom += m_state.getTotalBitSize(suti); //times array size
 	  }
 	it++;
       }
@@ -316,55 +317,8 @@ namespace MFM {
       }
   } //genModelParameterImmediateDefinitionsForTableOfVariableDataMembers
 
-  void SymbolTable::genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  void SymbolTable::genCodeBuiltInFunctionHasOverTableOfVariableDataMember(File * fp)
   {
-    genCodeBuiltInFunctionHas(fp, declOnly, classtype);
-    genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
-  } //genCodeBuiltInFunctionsOverTableOfVariableDataMember
-
-  void SymbolTable::genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    //'has' applies to both quarks and elements
-    UTI cuti = m_state.getCompileThisIdx();
-
-    if(declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("//helper method not called directly\n");
-
-	m_state.indent(fp);
-	fp->write("s32 ");
-	fp->write(m_state.getHasMangledFunctionName(cuti));
-	fp->write("(const char * namearg) const;\n\n");
-	return;
-      }
-
-    m_state.indent(fp);
-    if(classtype == UC_ELEMENT)
-      fp->write("template<class EC>\n");
-    else if(classtype == UC_QUARK)
-      fp->write("template<class EC, u32 POS>\n");
-    else
-      assert(0);
-
-    m_state.indent(fp);
-    fp->write("s32 "); //return pos offset, or -1 if not found
-
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    if(classtype == UC_ELEMENT)
-      fp->write("<EC>");
-    else if(classtype == UC_QUARK)
-      fp->write("<EC, POS>");
-
-    fp->write("::");
-    fp->write(m_state.getHasMangledFunctionName(cuti));
-    fp->write("(const char * namearg) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
       {
@@ -386,74 +340,11 @@ namespace MFM {
 	  }
 	it++;
       }
-    fp->write("\n");
-    m_state.indent(fp);
-    fp->write("return ");
-    fp->write("(-1);   //not found\n");
+  } //genCodeBuiltInFunctionHasOverTableOfVariableDataMember
 
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}  //has\n\n");
-  } //genCodeBuiltInFunctionHas
-
-  void SymbolTable::genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti)
   {
-    //'default atom' applies only to elements
-    if(classtype == UC_QUARK)
-      return genCodeBuiltInFunctionBuildDefaultQuark(fp, declOnly, classtype);;
-
-    assert(classtype == UC_ELEMENT);
-
-    UTI cuti = m_state.getCompileThisIdx();
-
-    if(declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("virtual T ");
-	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-	fp->write("() const;\n\n");
-	return;
-      }
-
-    m_state.indent(fp);
-    fp->write("template<class EC>\n");
-
-    m_state.indent(fp);
-    //fp->write("T "); //returns object of type T
-    fp->write("typename EC::ATOM_CONFIG::ATOM_TYPE "); //returns object of type T
-
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    fp->write("<EC>");
-
-    fp->write("::");
-    fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-    fp->write("( ) const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("T da = Element<EC>::BuildDefaultAtom();\n\n");
-
-    //get all initialized data members packed
-    genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(fp);
-
-    fp->write("\n");
-    m_state.indent(fp);
-    fp->write("return ");
-    fp->write("(da);\n");
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //BuildDefaultAtom\n\n");
-  } //genCodeBuiltInFunctionBuildDefaultAtom
-
-  void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp)
-  {
-    m_state.indent(fp);
-    fp->write("// Initialize any data members:\n");
+    bool useFullClassName = (cuti != m_state.getCompileThisIdx()); //from its superclass
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())
@@ -477,6 +368,11 @@ namespace MFM {
 			assert(csym->getDefaultQuark(qval));
 
 			m_state.indent(fp);
+			if(useFullClassName)
+			  {
+			    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+			    fp->write("<EC>::");
+			  }
 			fp->write(sym->getMangledNameForParameterType().c_str());
 			fp->write("::Up_Us::");
 			fp->write(sut->writeMethodForCodeGen().c_str());
@@ -502,6 +398,11 @@ namespace MFM {
 			for(u32 j = 0; j < arraysize; j++)
 			  {
 			    m_state.indent(fp);
+			    if(useFullClassName)
+			      {
+				fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+				fp->write("<EC>::");
+			      }
 			    fp->write(sym->getMangledNameForParameterType().c_str());
 			    fp->write("::");
 			    fp->write(sut->writeArrayItemMethodForCodeGen().c_str());
@@ -530,6 +431,11 @@ namespace MFM {
 		assert(((SymbolVariableDataMember*)sym)->getInitValue(val));
 
 		m_state.indent(fp);
+		if(useFullClassName)
+		  {
+		    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+		    fp->write("<EC>::");
+		  }
 		fp->write(sym->getMangledNameForParameterType().c_str());
 		fp->write("::");
 		fp->write(sut->writeMethodForCodeGen().c_str());
@@ -541,56 +447,6 @@ namespace MFM {
 	it++;
       } //end while
   } //genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember
-
-  void SymbolTable::genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    //return;
-    assert(classtype == UC_QUARK);
-
-    UTI cuti = m_state.getCompileThisIdx();
-
-    if(declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("static u32 ");
-	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-	fp->write("( );\n\n");
-	return;
-      }
-
-    m_state.indent(fp);
-    fp->write("template<class EC, u32 POS>\n");
-
-    m_state.indent(fp);
-    fp->write("u32 ");
-
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-    fp->write("<EC, POS>");
-
-    fp->write("::");
-    fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-    fp->write("( )\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    //get all initialized data members in quark
-    SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
-    u32 qval = 0;
-    assert(csym->getDefaultQuark(qval));
-
-    m_state.indent(fp);
-    fp->write("return ");
-    fp->write_decimal_unsigned(qval);
-    fp->write(";\n");
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //getDefaultQuark\n\n");
-  } //genCodeBuiltInFunctionBuildDefaultQuark
 
   void SymbolTable::addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers)
   {
@@ -792,13 +648,12 @@ namespace MFM {
 
 	//class type should already be flagged as a custom array
 	UTI cuti = cblock->getNodeType();
-	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
-	if(!((UlamTypeClass *) cut)->isCustomArray())
+	if(!m_state.isClassACustomArray(cuti))
 	  {
 	    std::ostringstream msg;
 	    msg << "Custom array get method '";
 	    msg << m_state.m_pool.getDataAsString(m_state.getCustomArrayGetFunctionNameId()).c_str();
-	    msg << "' FOUND in class: " << cut->getUlamTypeNameOnly().c_str();
+	    msg << "' FOUND in class: " << m_state.getUlamTypeByIndex(cuti)->getUlamTypeNameOnly().c_str();
 	    MSG(cblock->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    probcount++;
 	  }
@@ -923,6 +778,56 @@ namespace MFM {
       } //while
   } //getClassMembers
 
+  void SymbolTable::initializeElementDefaultsForEval(UlamValue& uvsite)
+  {
+    if(m_idToSymbolPtr.empty()) return;
+
+    std::map<u32, Symbol* >::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	UTI suti = sym->getUlamTypeIdx();
+	//skip quarkunion initializations
+	if(sym->isDataMember() && variableSymbolWithCountableSize(sym) && !m_state.isClassAQuarkUnion(suti))
+	  {
+	    s32 bitsize = m_state.getBitSize(suti);
+	    u32 pos = ((SymbolVariableDataMember *) sym)->getPosOffset();
+
+	    //updates the UV at offset with the default of sym; non-class arrays have none
+	    if(((SymbolVariableDataMember *) sym)->hasInitValue())
+	      {
+		u64 dval = 0;
+		if(((SymbolVariableDataMember *) sym)->getInitValue(dval))
+		  {
+		    u32 wordsize = m_state.getTotalWordSize(suti);
+		    if(wordsize <= MAXBITSPERINT)
+		      uvsite.putData(pos + ATOMFIRSTSTATEBITPOS, bitsize, (u32) dval);
+		    else if(wordsize <= MAXBITSPERLONG)
+		      uvsite.putDataLong(pos + ATOMFIRSTSTATEBITPOS, bitsize, dval);
+		    else
+		      assert(0);
+		  }
+	      }
+	    else if(m_state.getUlamTypeByIndex(suti)->getUlamClass() == UC_QUARK)
+	      {
+		SymbolClass * csym = NULL;
+		assert(m_state.alreadyDefinedSymbolClass(suti, csym)); //scalar class symbol
+		u32 dval = 0;
+		if(csym->getDefaultQuark(dval))
+		  {
+		    //could be an array of quarks
+		    s32 arraysize = m_state.getArraySize(suti);
+		    arraysize = (arraysize == NONARRAYSIZE ? 1 : arraysize);
+		    for(s32 i = 0; i < arraysize; i++)
+		      uvsite.putData(pos + ATOMFIRSTSTATEBITPOS + i * bitsize, bitsize, dval);
+		  }
+	      }
+	  }
+	it++;
+      } //while
+    return;
+  } //initializeElementDefaultsForEval
+
   void SymbolTable::testForTableOfClasses(File * fp)
   {
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -970,7 +875,6 @@ namespace MFM {
 	UTI cuti = sym->getUlamTypeIdx();
 	UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 	//skip anonymous classes
-	//	if(m_state.isARootUTI(cuti) && !cut->isHolder() && cut->getUlamClass() == UC_QUARK)
 	if(m_state.isARootUTI(cuti) && !cut->isHolder())
 	  {
 	    ULAMCLASSTYPE classtype = cut->getUlamClass();
@@ -1212,6 +1116,15 @@ namespace MFM {
 	else
 	  {
 	    //skip unseen and anonymous classes, o.w. try..
+	    // any super class first
+	    UTI superUTI = m_state.isClassASubclass(cuti);
+	    if(superUTI != Nav)
+	      {
+		SymbolClassName * supercnsym = NULL;
+		assert(m_state.alreadyDefinedSymbolClassName(m_state.getUlamKeyTypeSignatureByIndex(superUTI).getUlamKeyTypeSignatureNameId(), supercnsym));
+		supercnsym->setBitSizeOfClassInstances();
+	      }
+
 	    aok = ((SymbolClassName *) sym)->setBitSizeOfClassInstances();
 	  }
 
@@ -1271,7 +1184,7 @@ namespace MFM {
 	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
 	  {
 	    //quark union keep default pos = 0 for each data member, hence skip packing bits.
-	    if(!((SymbolClass *) sym)->isQuarkUnion())
+	    if(!(m_state.isClassAQuarkUnion(cuti)))
 	      {
 		((SymbolClassName *) sym)->packBitsForClassInstances();
 	      }
@@ -1379,6 +1292,26 @@ namespace MFM {
 	it++;
       } //while
   } //genCodeForTableOfClasses
+
+  UTI SymbolTable::findClassNodeNoForTableOfClasses(NNO n)
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    NodeBlockClass * classblock = ((SymbolClassName *) sym)->getClassBlockNode();
+	    if(classblock->getNodeNo() == n)
+	      return sym->getUlamTypeIdx(); //found it!!
+	  }
+	it++;
+      } //while
+    return Nav;
+  } //findClassNodeNoForTableOfClasses
 
   //PRIVATE HELPER METHODS:
   s32 SymbolTable::calcVariableSymbolTypeSize(UTI argut)

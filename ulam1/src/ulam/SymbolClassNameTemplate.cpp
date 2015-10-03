@@ -717,7 +717,8 @@ namespace MFM {
 	m_state.popClassContext();
 	m_state.pushClassContext(cuti, classNode, classNode, false, NULL);
 
-	//set previous block pointer for function definition blocks, as updating lineage.
+	//set previous block pointer for function definition blocks, as updating lineage
+	// to this class block
 	classNode->updatePrevBlockPtrOfFuncSymbolsInTable();
 
 	if(!takeAnInstancesArgValues(csym, clone)) //instead of keeping template's unknown values

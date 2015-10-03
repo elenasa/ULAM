@@ -37,7 +37,7 @@ namespace MFM {
   void NodeBlockFunctionDefinition::updateLineage(NNO pno)
   {
     NodeBlock::updateLineage(pno);
-    m_state.pushCurrentBlock(this);
+    m_state.pushCurrentBlock(this); //before?
     if(m_nodeTypeDesc)
       {
 	m_nodeTypeDesc->updateLineage(getNodeNo());

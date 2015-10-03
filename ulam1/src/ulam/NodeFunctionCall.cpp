@@ -666,9 +666,68 @@ namespace MFM {
   {
     assert(!isCurrentObjectALocalVariableOrArgument());
 
-    //iterate over COS vector; empty if current object is self
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    for(u32 i = 0; i < cosSize; i++)
+    u32 startcos = 0;
+
+    Symbol * stgcos = m_state.m_currentSelfSymbolForCodeGen;
+    UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+
+    // use NodeNo for inheritance
+    NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
+    NNO stgcosBlockNo = stgcos->getBlockNoOfST(); //m_state.getAClassBlockNo(stgcosuti);
+
+    if(cosSize != 0)
+      {
+	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back(); //owner of func
+	if(!m_state.isClassASubclass(cos->getUlamTypeIdx()))
+	  cosBlockNo = cos->getBlockNoOfST(); //compare owner and self
+      }
+
+    if(cosBlockNo != stgcosBlockNo)
+      {
+	s32 subcos = Node::isCurrentObjectsContainingASubClass();
+	if(subcos >= 0)
+	  {
+	    startcos = subcos + 1;
+	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
+	    assert(cosclassuti != Nav);
+	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+
+	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
+	    if(cosclassut->getUlamClass() == UC_ELEMENT)
+	      fp->write("<EC>::THE_INSTANCE.");
+	    else
+	      {
+		fp->write("<EC,");
+		fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(false));
+		fp->write(">::");
+	      }
+	  }
+	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
+	  {
+	    Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
+	    assert(foundnode);
+	    UTI superuti = foundnode->getNodeType();
+	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
+	    fp->write(superut->getUlamTypeMangledName().c_str());
+	    if(superut->getUlamClass() == UC_ELEMENT)
+	      {
+		fp->write("<EC>::THE_INSTANCE.");
+		startcos = cosSize; //bypass all that follows
+	      }
+	    else
+	      {
+		//self is a quark
+		fp->write("<EC,");
+		fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(false));
+		fp->write(">::");
+	      }
+	  }
+	//else do nothing for inheritance
+      }
+
+    //iterate over COS vector; empty if current object is self
+    for(u32 i = startcos; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	if(sym->isSelf())
@@ -781,10 +840,13 @@ namespace MFM {
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
+    u32 startcos = 1;
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
-    if(stgcos->isSelf())
-      return;
+    //if(stgcos->isSelf())
+    //  return;
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -800,12 +862,29 @@ namespace MFM {
 	//assert(0);
       }
 
+    // use NodeNo for inheritance
+    bool useSuperClassName = false;
+    NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
+    NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
+    if(stgcosBlockNo != cosBlockNo)
+      {
+	s32 subcos = Node::isCurrentObjectsContainingASubClass();
+	if(subcos >= 0)
+	  {
+	    startcos = subcos + 1; //for loop later
+	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
+	    assert(cosclassuti != Nav);
+	    stgcosuti = cosclassuti; // resets stgcosuti here!!
+	    stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+	    useSuperClassName = true;
+	  }
+      }
+
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
 	fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::");
-
 	//depending on the "owner" of the func, the instance is needed
 	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
 	UTI cosuti = cos->getUlamTypeIdx();
@@ -814,13 +893,22 @@ namespace MFM {
       }
     else
       {
-	//immediate quark..
-	fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
-	fp->write("::Us::"); //typedef
+	if(useSuperClassName)
+	  {
+	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC,");
+	    fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(true));
+	    fp->write(">::");
+	  }
+	else
+	  {
+	  //immediate quark..
+	  fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
+	  fp->write("::Us::"); //typedef
+	  }
       }
 
-    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-    for(u32 i = 1; i < cosSize; i++)
+    for(u32 i = startcos; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	fp->write(sym->getMangledNameForParameterType().c_str());

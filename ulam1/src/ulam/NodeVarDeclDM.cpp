@@ -185,7 +185,28 @@ namespace MFM {
 	  }
 	else
 	  assert(0);
-      }
+
+	//insure constant value fits in its declared type
+	UTI nuti = getNodeType();
+	FORECAST scr = m_nodeInitExpr->safeToCastTo(nuti);
+	if(scr != CAST_CLEAR)
+	  {
+	    std::ostringstream msg;
+	    msg << "Constant value expression for data member (";
+	    msg << getName() << " = " << m_nodeInitExpr->getName() ;
+	    msg << ") initialization is not representable as ";
+	    msg<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    if(scr == CAST_BAD)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    else
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.setGoAgain(); //since not error
+	      }
+	  }
+	else
+	  assert(Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr)); //we know it's safe!
+      } //finished init expr node
 
     return getNodeType();
   } //checkAndLabelType
@@ -275,7 +296,7 @@ namespace MFM {
 	return false; //necessary if not just a warning.
       }
 
-    //folded here..
+    //folded here..(but no checkandlabel yet)
     if(updateConstant(newconst))
       {
 	NodeTerminal * newnode;
@@ -649,5 +670,24 @@ namespace MFM {
 
     fp->write(";\n"); //func call parameters aren't NodeVarDeclDM's
   } //genCode
+
+  void NodeVarDeclDM::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
+  {
+    UTI nuti = getNodeType();
+
+    //output a case of switch statement
+    m_state.indent(fp);
+    fp->write("case ");
+    fp->write_decimal(dmcount);
+    fp->write(": { static UlamClassDataMemberInfo i(\"");
+    fp->write(m_state.getUlamTypeByIndex(nuti)->getUlamTypeMangledName().c_str());
+    fp->write("\", \"");
+    fp->write(m_state.m_pool.getDataAsString(m_varSymbol->getId()).c_str());
+    fp->write("\", ");
+    fp->write_decimal(m_varSymbol->getPosOffset());
+    fp->write("u); return i; }\n");
+
+    dmcount++; //increment data member count
+  } //generateUlamClassInfo
 
 } //end MFM

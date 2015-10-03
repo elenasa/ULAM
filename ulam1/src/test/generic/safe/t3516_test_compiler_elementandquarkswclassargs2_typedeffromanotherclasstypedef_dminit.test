@@ -2,10 +2,10 @@
 #=t3516_test_compiler_elementandquarkswclassargs2_typedeffromanotherclasstypedef_dminit
 #!
 ##
-## gencode: (needed to see the value of default element)
-##          Unsigned Arg: 3
+## gencode output:
+##   Unsigned Arg: 3
 ##
-Exit status: 0
+Exit status: 3
 Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(unknown);  constant Unsigned(32) a = NONREADYCONST;  Unsigned(UNKNOWN) var(unknown);  Int(32) test() {  System s;  P(1u) pel;  s ( pel var . )print . pel var . return } }
 Uq_V { typedef Q(3) Woof;  <NOMAIN> }
 Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }

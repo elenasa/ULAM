@@ -66,10 +66,9 @@ namespace MFM {
     assert(m_nodeLeft);
     m_nodeLeft->print(fp);
 
-    sprintf(id," %s ",getName());
+    sprintf(id," %s ", getName());
     fp->write(id);
 
-    //fp->write(m_typeTok.getTokenString());
     fp->write(m_state.getUlamKeyTypeSignatureByIndex(ruti).getUlamKeyTypeSignatureName(&m_state).c_str());
     fp->write("\n");
   } //print

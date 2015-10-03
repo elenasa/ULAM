@@ -1,12 +1,12 @@
 ## -*- mode:ulam -*-
 #=t3215_test_compiler_element_modelparameterint
 #!
-./Foo.ulam:12:2: ERROR: Invalid Statement (possible missing semicolon).
+./Foo.ulam:12:9: ERROR: Invalid Statement (possible missing semicolon).
 Unrecoverable Program Parse FAILURE.
 ## f.chance =
 ## ./Foo.ulam:12:11: ERROR: Invalid lefthand side of equals <.>, type: Int(32).
 ## chance =
-## ./Foo.ulam:12:2: ERROR: Invalid Statement (possible missing semicolon).
+## ./Foo.ulam:12:11: ERROR: Invalid Statement (possible missing semicolon).
 ## generate code for test:
 ##  include/Ue_102323Foo10_Types.h:321: FAILED: NULL_POINTER
 ##

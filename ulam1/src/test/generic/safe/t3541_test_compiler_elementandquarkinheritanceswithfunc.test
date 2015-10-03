@@ -1,0 +1,95 @@
+## -*- mode:ulam -*-
+#=t3541_test_compiler_elementandquarkinheritanceswithfunc
+#!
+## gencode output:
+##Bool(3) Arg: 0x7 (true)
+##Int Arg: -1
+##Int Arg: 1
+##Unsigned Arg: 13
+##
+Exit status: 13
+Ue_Foo : Ue_Basel { :< :< Soo su( :< :< Int(5) lu(31); > Bool(3) cb(true); > Unsigned(3) us(4); ); > Bool(1) ba(false); > System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  f first . su cb . cast = s ( f first . cast )print . f su ( )check . . cond { s ( f su lu . . cast )print . f su lu . . 1u cast = s ( f su lu . . cast )print . s ( 13u )print . 13u cast return } if 0 cast return } }
+Ue_Basel : Ue_Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
+Ue_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
+Uq_Soo : Uq_Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Coo : Uq_Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
+Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## element and quark inheritances, regular (non-template), with func as local variable
+## informed by t3540
+##
+#>Foo.ulam
+  ulam 1;
+use Basel;
+use System;
+element Foo : Basel {
+  System s;
+  Bool first;
+  Int test() {
+    Foo f;
+    f.first = su.cb; //DM
+    s.print(f.first);
+    if(f.su.check())
+    {
+      s.print(f.su.lu);
+      f.su.lu = 1u;
+      s.print(f.su.lu);
+      s.print(f.sizeof);
+      return f.sizeof;
+    }
+    return 0;
+  }
+}
+
+#:Basel.ulam
+  ulam 1;
+use Casel;
+element Basel : Casel {
+  Bool ba;
+}
+
+#:Casel.ulam
+  ulam 1;
+use Soo;
+element Casel {
+  Soo su;
+}
+
+#:Soo.ulam
+  ulam 1;
+use Coo;
+quark Soo : Coo {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 1;
+use Loo;
+quark Coo : Loo {
+  Bool(3) cb = true;
+  Bool check()
+  {
+    return cb;
+  }
+}
+
+#:Loo.ulam
+  ulam 1;
+quark Loo {
+  Int(5) lu = -1;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.
