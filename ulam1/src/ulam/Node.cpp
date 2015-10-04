@@ -1175,9 +1175,11 @@ namespace MFM {
       }
 
     ULAMCLASSTYPE nclasstype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
+    ULAMCLASSTYPE tclasstype = m_state.getUlamTypeByIndex(tobeType)->getUlamClass();
+
     if(nclasstype == UC_NOTACLASS)
       {
-	if((nuti == UAtom) && (m_state.getUlamTypeByIndex(tobeType)->getUlamClass() != UC_ELEMENT))
+	if((nuti == UAtom) && (tclasstype != UC_ELEMENT))
 	  doErrMsg = true;
 	else if(nuti == Void)
 	  doErrMsg = true; //cannot cast a void into anything else (reverse is fine)
@@ -1207,6 +1209,24 @@ namespace MFM {
 	      doErrMsg = true;
 	    else
 	      rtnNode = castFunc;
+	  }
+	else if(tclasstype == UC_QUARK)
+	  {
+	    //handle possible inheritance (u.1.2.2) here
+	    //if(isExplicit && m_state.isClassASuperclassOf(nuti, tobeType))
+	    if(m_state.isClassASuperclassOf(nuti, tobeType))
+	      {
+		rtnNode = new NodeCast(node, tobeType, NULL, m_state);
+		assert(rtnNode);
+		rtnNode->setNodeLocation(getNodeLocation());
+		rtnNode->updateLineage(getNodeNo());
+		//((NodeCast *) rtnNode)->setExplicitCast(); //avoid inf loop/seq fault
+		//redo check and type labeling; error msg if not same
+		//UTI newType = rtnNode->checkAndLabelType();
+		//doErrMsg = (UlamType::compare(newType, tobeType, m_state) == UTIC_NOTSAME);
+	      }
+	    else
+	      doErrMsg = true;
 	  }
 	  else
 	  {

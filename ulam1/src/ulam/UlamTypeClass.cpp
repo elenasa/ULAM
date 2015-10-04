@@ -38,18 +38,28 @@ namespace MFM {
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
-    assert(m_state.getUlamTypeByIndex(typidx) == this);
+    assert(m_state.getUlamTypeByIndex(typidx) == this); //tobe
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
     assert(vut->isScalar() && isScalar());
 
     //now allowing atoms to be cast as quarks, as well as elements;
+    // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(m_class == UC_ELEMENT)
-      assert(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME);
+      {
+	if(!(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
+	  {
+	    if(m_state.isClassASuperclassOf(valtypidx, typidx))
+	      val.setAtomElementTypeIdx(typidx);
+	    else
+	      brtn = false;
+	  }
+	//else true
+      }
     else if(m_class == UC_QUARK)
       {
 	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-	assert(valtypidx == UAtom || vclasstype == UC_ELEMENT || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME);
+	//assert(valtypidx == UAtom || vclasstype == UC_ELEMENT || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME);
 	if(vclasstype == UC_ELEMENT)
 	  {
 	    SymbolClass * csym = NULL;
@@ -75,17 +85,27 @@ namespace MFM {
 		  assert(0);
 	      }
 	    else
-	      assert(0);
+	      assert(0); //can't cast element to quark if that quark is not its data member
 	  }
-	//if same type nothing to do; if atom, shows as element in eval-land.
-      }
+	else if(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
+	  {
+	    //if same type nothing to do; if atom, shows as element in eval-land.
+	  }
+	else if(m_state.isClassASuperclassOf(valtypidx, typidx)) //2 quarks
+	  {
+	    // assume both right-justified/immediates???
+	    // Coo c = (Coo) f.su; where su is a Soo : Coo
+	    s32 vlen = vut->getTotalBitSize();
+	    s32 len = getTotalBitSize();
+	    u32 vdata = val.getImmediateData(vlen); //or is this from element?
+	    u32 qdata = vdata >> (vlen - len);
+	    val = UlamValue::makeImmediate(typidx, qdata, len);
+	  }
+	else
+	  brtn = false;
+      } //end quark casting
     else
-      assert(0);
-    // what change is to be made ????
-    // atom type vs. class type
-    // how can it be both in an UlamValue?
-    // what of its contents?
-    // val = UlamValue::makeAtom(valtypidx);
+      assert(0); //neither element nor quark
 
     return brtn;
   } //end cast
@@ -98,6 +118,12 @@ namespace MFM {
 
     if(m_state.getUlamTypeByIndex(typidx) == this)
       return CAST_CLEAR; //same class, quark or element
+    else
+      {
+	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+	if(m_state.isClassASuperclassOf(cuti, typidx))
+	  return CAST_CLEAR;
+      }
 
     return CAST_BAD; //e.g. (typidx == UAtom)
   } //safeCast

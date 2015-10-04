@@ -1067,6 +1067,25 @@ namespace MFM {
     return Nav; //even for non-classes
   } //isClassASubclass
 
+  bool CompilerState::isClassASuperclassOf(UTI cuti, UTI superp)
+  {
+    bool rtnb = false;
+    UTI prevuti = cuti; //init for the loop
+    while(!rtnb && prevuti != Nav)
+      {
+	cuti = prevuti;
+	SymbolClass * csym = NULL;
+	if(alreadyDefinedSymbolClass(cuti, csym))
+	  {
+	    SymbolClassName * cnsym = NULL;
+	    assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
+	    prevuti = cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
+	    rtnb = (superp == prevuti); //compare
+	  }
+      }
+    return rtnb; //even for non-classes
+  } //isClassASuperclassOf
+
   bool CompilerState::isClassAQuarkUnion(UTI cuti)
   {
     SymbolClass * csym = NULL;

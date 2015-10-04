@@ -1,0 +1,40 @@
+## -*- mode:ulam -*-
+#=t3559_test_compiler_elementinheritances_casting
+#!
+Exit status: 77
+Ue_Foo : Ue_Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  Foo f;  Coo c;  c f cast = c cb . cond f us . cast f a . +b return if 0 cast return } }
+Ue_Soo : Ue_Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Coo { Bool(3) cb( true);  <NOMAIN> }
+##
+## chained class inheritance, regular (non-template), with casting
+## informed by t3229
+##
+#>Foo.ulam
+  ulam 1;
+use Soo;
+element Foo : Soo {
+  Bool(7) sp;
+  Int a = 73;
+  Int test() {
+    Foo f;
+    Coo c = (Coo) f;
+    if(c.cb)
+      return f.us + f.a;
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 1;
+use Coo;
+element Soo : Coo {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 1;
+element Coo {
+  Bool(3) cb = true;
+}
+
+#.
