@@ -1082,6 +1082,8 @@ namespace MFM {
 	    prevuti = cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
 	    rtnb = (superp == prevuti); //compare
 	  }
+	else
+	  prevuti = Nav; //avoid inf loop
       }
     return rtnb; //even for non-classes
   } //isClassASuperclassOf

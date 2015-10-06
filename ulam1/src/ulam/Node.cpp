@@ -436,8 +436,6 @@ namespace MFM {
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
     if(!isCurrentObjectALocalVariableOrArgument())
       {
-	genMemberNameOfMethod(fp);
-
 	if(stgcos->isSelf())
 	  {
 	    fp->write(stgcos->getMangledName().c_str());
@@ -445,6 +443,8 @@ namespace MFM {
 	  }
 	else
 	  {
+	    genMemberNameOfMethod(fp);
+
 	    // the READ method
 	    fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
 	    fp->write("(");
@@ -506,7 +506,7 @@ namespace MFM {
       }
     // note: Ints not sign extended until used/cast
     m_state.m_currentObjSymbolsForCodeGen.clear();
-  } //genCodeReadIntoTmp
+  } //genCodeReadIntoATmpVar
 
   void Node::genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
   {
@@ -737,7 +737,11 @@ namespace MFM {
   // ruvpass is the ptr to value to write
   void Node::genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
-    assert(luvpass.getUlamValueTypeIdx() == Ptr);
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    assert(luti == Ptr);
+    luti = luvpass.getPtrTargetType();
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
+
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(ruti == Ptr); //terminals handled in NodeTerminal
     ruti = ruvpass.getPtrTargetType();
@@ -770,6 +774,17 @@ namespace MFM {
 
     if(stgcos->isSelf())
       return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
+
+    bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASuperclassOf(ruti, luti);
+
+    UlamValue typuvpass;
+    if(isElementAncestorCast)
+      {
+	//readTypefield of lhs before the write!
+	// pass as rhs uv to restore method afterward;
+	// avoids making default atom.
+	genCodeReadElementTypeField(fp, typuvpass);
+      }
 
     m_state.indent(fp);
 
@@ -825,14 +840,21 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
     fp->write(");\n");
 
+    // inheritance cast needs the lhs type restored after the generated write
+    if(isElementAncestorCast)
+      restoreElementTypeForAncestorCasting(fp, typuvpass);
+
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeWriteFromATmpVar
 
   void Node::genCodeWriteToSelfFromATmpVar(File * fp, UlamValue & luvpass, UlamValue & ruvpass)
   {
-    assert(luvpass.getUlamValueTypeIdx() == Ptr);
-    UTI ruti = ruvpass.getUlamValueTypeIdx();
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    assert(luti == Ptr);
+    luti = luvpass.getPtrTargetType();
+    UlamType * lut = m_state.getUlamTypeByIndex(luti);
 
+    UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(ruti == Ptr);
     ruti = ruvpass.getPtrTargetType();
 
@@ -850,14 +872,87 @@ namespace MFM {
 	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
 
+    bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASuperclassOf(ruti, luti);
+
+    UlamValue typuvpass;
+    if(isElementAncestorCast)
+      {
+	//readTypefield of lhs before the write!
+	// pass as rhs uv to restore method afterward;
+	// avoids making default atom.
+	genCodeReadElementTypeField(fp, typuvpass);
+      }
+
     m_state.indent(fp);
     fp->write(stgcos->getMangledName().c_str());
     fp->write(" = ");
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
     fp->write(";\n");
 
+    // inheritance cast needs the lhs type restored after the generated write
+    if(isElementAncestorCast)
+      restoreElementTypeForAncestorCasting(fp, typuvpass);
+
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeWriteToSelfFromATmpVar
+
+  void Node::genCodeReadElementTypeField(File * fp, UlamValue & uvpass)
+  {
+    s32 tmpVarType = m_state.getNextTmpVarNumber();
+    m_state.indent(fp);
+    fp->write("const u32 ");
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType).c_str());;
+    fp->write(" = ");
+
+    if(!isCurrentObjectALocalVariableOrArgument())
+      {
+	genMemberNameOfMethod(fp);
+	// the GetType WRITE method
+	fp->write("ReadTypeField(");
+
+	fp->write(m_state.getHiddenArgName());
+	fp->write(".GetBits()");
+      }
+    else
+      {
+	//local
+	genLocalMemberNameOfMethod(fp);
+	fp->write("readTypeField(");
+      }
+    fp->write("); //save type\n\n");
+
+    //update uvpass
+    uvpass = UlamValue::makePtr(tmpVarType, TMPREGISTER, Unsigned, m_state.determinePackable(Unsigned), m_state, 0); //POS 0 rightjustified (atom-based).
+  } //genCodeReadElementTypeField
+
+  void Node::restoreElementTypeForAncestorCasting(File * fp, UlamValue & uvpass)
+  {
+    // inheritance cast needs the lhs type restored after the generated write
+    s32 tmpVarType = uvpass.getPtrSlotIndex();
+
+    m_state.indent(fp);
+
+    if(!isCurrentObjectALocalVariableOrArgument())
+      {
+	genMemberNameOfMethod(fp);
+
+	// the GetType WRITE method
+	fp->write("WriteTypeField(");
+
+	fp->write(m_state.getHiddenArgName());
+	fp->write(".GetBits()");
+	fp->write(", "); //rest of args
+      }
+    else
+      {
+	//local
+	genLocalMemberNameOfMethod(fp);
+	fp->write("writeTypeField(");
+      }
+
+    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType).c_str());;
+    fp->write("); //restore type\n\n");
+  } //restoreElementTypeForAncestorCasting
 
   // two arg's luvpass fine-tunes the current symbol in case of member selection;
   // ruvpass is the ptr to value to write
@@ -1468,6 +1563,8 @@ namespace MFM {
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     Symbol * stgcos = m_state.m_currentSelfSymbolForCodeGen;
     UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
     // when data member belongs to its (or a DM's) superclass, specify its class name first
     NNO cosBlockNo = cos->getBlockNoOfST();
@@ -1479,9 +1576,15 @@ namespace MFM {
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1;
-	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
-	    assert(cosclassuti != Nav);
-	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+	    UTI cosclassuti = cosuti;
+	    UlamType * cosclassut = cosut;
+
+	    if(cosut->getUlamTypeEnum() != Class)
+	      {
+		cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
+		assert(cosclassuti != Nav);
+		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+	      }
 
 	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
 	    if(cosclassut->getUlamClass() == UC_ELEMENT)
@@ -1526,8 +1629,6 @@ namespace MFM {
     //if last cos is a quark, for Read/Write to work it needs an
     // atomic Parameter type (i.e. Up_Us); not so for custom arrays
     // which are more like a function call
-    UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     // scalar quarks are typedefs and need atomic parametization;
     // arrays are already atomic parameters
     if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK && !m_state.isClassACustomArray(cosuti))
@@ -1712,6 +1813,9 @@ namespace MFM {
     // handle inheritance, when data member is in superclass, not current class obj
     // now for both immediate elements and quarks..
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+
     NNO cosBlockNo = cos->getBlockNoOfST();
     NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
     s32 subcos = -1;
@@ -1721,9 +1825,16 @@ namespace MFM {
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1; //for loop later
-	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
-	    assert(cosclassuti != Nav);
-	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+
+	    UTI cosclassuti = cosuti;
+	    UlamType * cosclassut = cosut;
+
+	    if(cosut->getUlamTypeEnum() != Class)
+	      {
+		cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
+		assert(cosclassuti != Nav);
+		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+	      }
 
 	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
 	    if(cosclassut->getUlamClass() == UC_ELEMENT)

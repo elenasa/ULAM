@@ -170,6 +170,9 @@ namespace MFM{
     void genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void generateInternalIsMethodForElement(File * fp, bool declOnly);
+    void generateInternalGetAncestorMethodForElement(File * fp, bool declOnly);
+    void generateInternalTypeAccessorsForElement(File * fp, bool declOnly);
+
     void generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount);
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
     void generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount);

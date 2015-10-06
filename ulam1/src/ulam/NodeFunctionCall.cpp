@@ -676,10 +676,15 @@ namespace MFM {
     NNO cosBlockNo = m_funcSymbol->getBlockNoOfST();
     NNO stgcosBlockNo = stgcos->getBlockNoOfST(); //m_state.getAClassBlockNo(stgcosuti);
 
+    Symbol * cos = NULL;
+    UTI cosuti = Nav;
+    UlamType * cosut = NULL;
     if(cosSize != 0)
       {
-	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back(); //owner of func
-	if(!m_state.isClassASubclass(cos->getUlamTypeIdx()))
+	cos = m_state.m_currentObjSymbolsForCodeGen.back(); //owner of func
+	cosuti = cos->getUlamTypeIdx();
+	cosut = m_state.getUlamTypeByIndex(cosuti);
+	if(!m_state.isClassASubclass(cosuti))
 	  cosBlockNo = cos->getBlockNoOfST(); //compare owner and self
       }
 
@@ -689,9 +694,16 @@ namespace MFM {
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1;
-	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
-	    assert(cosclassuti != Nav);
-	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+
+	    UTI cosclassuti = cosuti;
+	    UlamType * cosclassut = cosut;
+
+	    if(!cos || cosut->getUlamTypeEnum() != Class)
+	      {
+		cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
+		assert(cosclassuti != Nav);
+		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+	      }
 
 	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
 	    if(cosclassut->getUlamClass() == UC_ELEMENT)

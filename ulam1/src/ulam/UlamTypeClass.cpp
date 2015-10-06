@@ -691,6 +691,9 @@ namespace MFM {
     fp->write("typedef typename AC::ATOM_TYPE T;\n");
     m_state.indent(fp);
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    m_state.indent(fp);
+    //fp->write("enum { BPF = 32 /*AC::P3_STATE_BITS_LEN */};\n");
+    fp->write("typedef BitField<BitVector<BPA>, VD::BITS, T::ATOM_FIRST_STATE_BIT, 0> BFTYP;\n");
 
     //element typedef
     m_state.indent(fp);
@@ -781,6 +784,10 @@ namespace MFM {
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write(" read() const { return m_stgRef; }\n");
+
+    m_state.indent(fp);
+    fp->write("const u32 readTypeField()");
+    fp->write("{ return BFTYP::Read(m_stgRef); }\n");
   } //genUlamTypeElementReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeElementWriteDefinitionForC(File * fp)
@@ -793,6 +800,22 @@ namespace MFM {
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write("& v) { m_stgRef = v; }\n");
+
+#if 0
+    // DEFUNKED! going to replace first 24 bits instead..
+    // for casting to ancestor; assumes P3Atom!!!
+    m_state.indent(fp);
+    fp->write("void writeFields(const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //T
+    fp->write("& v) { m_stgRef.SetStateField(0, BPF - T::ATOM_FIRST_STATE_BIT, v.GetStateField(0, BPF - T::ATOM_FIRST_STATE_BIT)); ");
+    fp->write("for(u32 i = BPF; i < BPA; i+= BPF) ");
+    fp->write("m_stgRef.SetStateField(i, BPF, v.GetStateField(i, BPF)); ");
+    fp->write("}\n");
+#endif
+
+    m_state.indent(fp);
+    fp->write("void writeTypeField(const u32 v)");
+    fp->write("{ BFTYP::Write(m_stgRef, v); }\n");
   } //genUlamTypeElementWriteDefinitionForC
 
   const std::string UlamTypeClass::readArrayItemMethodForCodeGen()

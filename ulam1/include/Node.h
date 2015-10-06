@@ -219,6 +219,10 @@ namespace MFM{
 
     virtual void checkForSymbol();
 
+    void genCodeReadElementTypeField(File * fp, UlamValue & uvpass);
+
+    void restoreElementTypeForAncestorCasting(File * fp, UlamValue & uvpass);
+
   private:
     bool m_storeIntoAble;
     UTI m_utype;
