@@ -678,14 +678,14 @@ namespace MFM {
 
     Symbol * cos = NULL;
     UTI cosuti = Nav;
-    UlamType * cosut = NULL;
     if(cosSize != 0)
       {
-	cos = m_state.m_currentObjSymbolsForCodeGen.back(); //owner of func
+	cos = m_state.m_currentObjSymbolsForCodeGen.back(); //"owner" of func
 	cosuti = cos->getUlamTypeIdx();
-	cosut = m_state.getUlamTypeByIndex(cosuti);
 	if(!m_state.isClassASubclass(cosuti))
 	  cosBlockNo = cos->getBlockNoOfST(); //compare owner and self
+	else
+	  stgcosBlockNo = cos->getBlockNoOfST();
       }
 
     if(cosBlockNo != stgcosBlockNo)
@@ -695,16 +695,9 @@ namespace MFM {
 	  {
 	    startcos = subcos + 1;
 
-	    UTI cosclassuti = cosuti;
-	    UlamType * cosclassut = cosut;
-
-	    if(!cos || cosut->getUlamTypeEnum() != Class)
-	      {
-		cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
-		assert(cosclassuti != Nav);
-		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
-	      }
-
+	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
+	    assert(cosclassuti != Nav);
+	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
 	    if(cosclassut->getUlamClass() == UC_ELEMENT)
 	      fp->write("<EC>::THE_INSTANCE.");

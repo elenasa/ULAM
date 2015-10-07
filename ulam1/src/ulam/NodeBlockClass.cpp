@@ -585,8 +585,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   s32 NodeBlockClass::findUlamTypeInTable(UTI utype)
   {
-    if(m_state.isClassASubclass(getNodeType()))
+    UTI superuti = m_state.isClassASubclass(getNodeType());
+    if(superuti != Nav)
       {
+	//check superclass for a match too
+	if(utype == superuti)
+	  return 0; //ancestors always at the start
+
 	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superClassBlock);
 	s32 superpos = superClassBlock->findUlamTypeInTable(utype);
@@ -1096,11 +1101,21 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInFunctionHasDataMembers(File * fp)
   {
-    if(m_state.isClassASubclass(getNodeType()))
+    UTI superuti = m_state.isClassASubclass(getNodeType());
+    if(superuti != Nav)
       {
+	//include any of its quark data members:
 	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superClassBlock);
 	superClassBlock->genCodeBuiltInFunctionHasDataMembers(fp);
+
+	//include superclass also
+	UlamType * superut = m_state.getUlamTypeByIndex(superuti);
+	m_state.indent(fp);
+	fp->write("if(!strcmp(namearg,\"");
+	fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
+	fp->write("\")) return ");
+	fp->write("(0); //inherited offset\n");
       }
     m_ST.genCodeBuiltInFunctionHasOverTableOfVariableDataMember(fp);
   } //genCodeBuiltInFunctionHasDataMembers
@@ -1256,15 +1271,17 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
-    //    fp->write("return ");
-    //fp->write("(THE_INSTANCE.GetType() == targ.GetType());\n");
-    fp->write("if(THE_INSTANCE.GetType() == targ.GetType()) return true;\n");
+    fp->write("if(THE_INSTANCE.GetType() == targ.GetType()) return true;\n\n");
 
+    m_state.indent(fp);
+    fp->write("//check any ancestor\n");
+
+    // note: calling superuti's isMethod (instead of while loop)
+    // can lead to an inf. loop and thus a seg fault
     m_state.indent(fp);
     fp->write("bool rtnIs = false;\n");
 
     m_state.indent(fp);
-    //    fp->write("UlamElement<EC> * ueptr = targ.AsUlamElement()->GetAncestor();\n");
     fp->write("const UlamElement<EC> * ueptr = this->GetAncestor();\n");
 
     m_state.indent(fp);
@@ -1293,14 +1310,23 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n");
+    fp->write("}\n\n");
 
     m_state.indent(fp);
-    fp->write("return rtnIs;\n");
+    fp->write("if(rtnIs) return true;\n\n");
+
+    SymbolClassName * cnsym = NULL;
+    assert(m_state.alreadyDefinedSymbolClassName(m_state.getCompileThisId(), cnsym));
+    cnsym->gencodeIsMethodOfDecendents(fp);
+
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("return false;\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("} //is\n\n");
+    fp->write("} //isMethod\n\n");
   } //generateInternalIsMethodForElement
 
   void NodeBlockClass::generateInternalGetAncestorMethodForElement(File * fp, bool declOnly)

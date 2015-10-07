@@ -276,10 +276,21 @@ namespace MFM {
 	Symbol * sym = it->second;
 	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
 	  {
-	    if(UlamType::compare(sym->getUlamTypeIdx(), utype, m_state) == UTIC_SAME)
+	    UTI suti = sym->getUlamTypeIdx();
+	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
 	      {
 		posfound = ((SymbolVariable *) sym)->getPosOffset();
 		break;
+	      }
+	    else
+	      {
+		// check possible inheritance
+		UTI superuti = m_state.isClassASubclass(suti);
+		if((superuti != Nav) && UlamType::compare(superuti, utype, m_state) == UTIC_SAME)
+		  {
+		    posfound = ((SymbolVariable *) sym)->getPosOffset(); //starts at beginning
+		    break;
+		  }
 	      }
 	  }
 	it++;
@@ -335,7 +346,22 @@ namespace MFM {
 		fp->write("\")) return ");
 		fp->write("(");
 		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
-		fp->write(");   //pos offset\n");
+		fp->write("); //pos offset\n");
+
+		UTI superuti = m_state.isClassASubclass(suti);
+		while(superuti != Nav)
+		  {
+		    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
+		    m_state.indent(fp);
+		    fp->write("if(!strcmp(namearg,\"");
+		    fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
+		    fp->write("\")) return ");
+		    fp->write("(");
+		    fp->write_decimal(((SymbolVariable *) sym)->getPosOffset()); //same offset starts at 0
+		    fp->write("); //inherited pos offset\n");
+
+		    superuti = m_state.isClassASubclass(superuti); //any more
+		  } //while
 	      }
 	  }
 	it++;
@@ -1428,6 +1454,7 @@ namespace MFM {
 
   bool SymbolTable::variableSymbolWithCountableSize(Symbol * sym)
   {
+    // may be a zero-sized quark!!
     return (!sym->isTypedef() && !sym->isModelParameter() && !sym->isConstant());
   }
 

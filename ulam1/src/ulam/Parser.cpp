@@ -324,6 +324,7 @@ namespace MFM {
 	      {
 		UTI superuti = supercnsym->getUlamTypeIdx();
 		cnsym->setSuperClass(superuti); //set here!!
+		supercnsym->addSubClass(cnsym->getUlamTypeIdx()); //set here!!
 
 		NodeBlockClass * superclassblock = supercnsym->getClassBlockNode();
 		assert(superclassblock);
