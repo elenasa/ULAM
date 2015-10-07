@@ -1257,7 +1257,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("template<class EC>\n");
     m_state.indent(fp);
-    fp->write("bool ");  //return pos offset, or -1 if not found
+    fp->write("bool "); //return pos offset, or -1 if not found
 
     UTI cuti = getNodeType();
     //include the mangled class::
@@ -1276,11 +1276,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("//check targ for any ancestors that match\n");
 
-    // note: calling superuti's isMethod (instead of while loop)
-    // can lead to an inf. loop and thus a seg fault
     m_state.indent(fp);
     fp->write("bool rtnIs = false;\n");
 
+    // look up code follows UlamElement.tcc in PositionOfDataMember()
     m_state.indent(fp);
     fp->write("Tile<EC> & tile = uc.GetTile();\n");
 
@@ -1308,13 +1307,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
+
     m_state.indent(fp);
-    //    fp->write("if(ueptr->GetType() == targ.GetType())\n");
     fp->write("if(ueptr->GetType() == THE_INSTANCE.GetType())\n");
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
+
     m_state.indent(fp);
     fp->write("rtnIs = true;\n");
     m_state.indent(fp);
@@ -1333,20 +1333,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.indent(fp);
     fp->write("return rtnIs;\n");
-
-#if 0
-    m_state.indent(fp);
-    fp->write("if(rtnIs) return true;\n\n");
-
-    SymbolClassName * cnsym = NULL;
-    assert(m_state.alreadyDefinedSymbolClassName(m_state.getCompileThisId(), cnsym));
-    cnsym->gencodeIsMethodOfDecendents(fp);
-
-    fp->write("\n");
-
-    m_state.indent(fp);
-    fp->write("return false;\n");
-#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

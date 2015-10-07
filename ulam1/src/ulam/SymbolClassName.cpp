@@ -60,35 +60,6 @@ namespace MFM {
     return m_superClass; //Nav is none, not a subclass.
   } //getSuperClass
 
-
-  void SymbolClassName::addSubClass(UTI subclass)
-  {
-    m_subClasses.insert(subclass);
-  } //addSubclass
-
- u32 SymbolClassName::numberOfDecendants()
-  {
-    return m_subClasses.size(); //size of m_subClasses set
-  }
-
-  bool SymbolClassName::isASubClassOf(UTI subclass)
-  {
-    bool rtnIs = false;
-
-    std::set<UTI>::iterator it = m_subClasses.begin();
-    while(it != m_subClasses.end())
-      {
-	UTI cuti = *it;
-	if(cuti == subclass)
-	  {
-	    rtnIs = true;
-	    break;
-	  }
-	it++;
-      } //while
-    return rtnIs; //true if a subclass
-  } //isASubClassOf
-
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
     assert(getUlamTypeIdx() == instance);
@@ -321,26 +292,5 @@ namespace MFM {
   {
     SymbolClass::generateTestInstance(fp, runtest);
   } //generateTestInstanceForClassInstances
-
-  //unused
-  void SymbolClassName::gencodeIsMethodOfDecendents(File * fp)
-  {
-    m_state.indent(fp);
-    fp->write("//check any decendants\n");
-
-    std::set<UTI>::iterator it = m_subClasses.begin();
-    while(it != m_subClasses.end())
-      {
-	UTI cuti = *it;
-	m_state.indent(fp);
-	fp->write("if(");
-	//include the mangled class::
-	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::THE_INSTANCE.");
-	fp->write(m_state.getIsMangledFunctionName());
-	fp->write("(uc, targ)) return true;\n");
-	it++;
-      } //while
-  } //gencodeIsMethodForDecendents
 
 } //end MFM

@@ -36,7 +36,6 @@
 #ifndef SYMBOLCLASSNAME_H
 #define SYMBOLCLASSNAME_H
 
-#include <set>
 #include "SymbolClass.h"
 #include "SymbolConstantValue.h"
 
@@ -61,10 +60,6 @@ namespace MFM{
 
     void setSuperClass(UTI superclass);
     UTI getSuperClass();
-
-    void addSubClass(UTI subclass);
-    u32 numberOfDecendants(); //size of m_subClasses set
-    bool isASubClassOf(UTI subclass); //true if a subclass
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
@@ -95,13 +90,10 @@ namespace MFM{
 
     virtual void generateTestInstanceForClassInstances(File * fp, bool runtest);
 
-    void gencodeIsMethodOfDecendents(File * fp);
-
    protected:
 
   private:
     UTI m_superClass; //single inheritance; regular classes only
-    std::set<UTI> m_subClasses; //decendantsOfMe; //UTI of subclasses (no dups)
   };
 
 }
