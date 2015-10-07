@@ -1250,7 +1250,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write("bool ");
 	fp->write(m_state.getIsMangledFunctionName());
-	fp->write("(const T& targ) const;\n\n");
+	fp->write("(UlamContext<EC>& uc, const T& targ) const;\n\n");
 	return;
       }
 
@@ -1265,7 +1265,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     fp->write("<EC>::");
     fp->write(m_state.getIsMangledFunctionName());
-    fp->write("(const T& targ) const\n");
+    fp->write("(UlamContext<EC>& uc, const T& targ) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -1274,7 +1274,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("if(THE_INSTANCE.GetType() == targ.GetType()) return true;\n\n");
 
     m_state.indent(fp);
-    fp->write("//check any ancestor\n");
+    fp->write("//check targ for any ancestors that match\n");
 
     // note: calling superuti's isMethod (instead of while loop)
     // can lead to an inf. loop and thus a seg fault
@@ -1282,7 +1282,25 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("bool rtnIs = false;\n");
 
     m_state.indent(fp);
-    fp->write("const UlamElement<EC> * ueptr = this->GetAncestor();\n");
+    fp->write("Tile<EC> & tile = uc.GetTile();\n");
+
+    m_state.indent(fp);
+    fp->write("ElementTable<EC> & et = tile.GetElementTable();\n");
+
+    m_state.indent(fp);
+    fp->write("const Element<EC> * eltptr = et.Lookup(targ.GetType());\n");
+
+    m_state.indent(fp);
+    fp->write("if(!eltptr) return false;\n");
+
+    m_state.indent(fp);
+    fp->write("const UlamElement<EC> * ueptr = eltptr->AsUlamElement();\n");
+
+    m_state.indent(fp);
+    fp->write("if(!ueptr) return false;\n");
+
+    m_state.indent(fp);
+    fp->write("ueptr = ueptr->GetAncestor();\n");
 
     m_state.indent(fp);
     fp->write("while(ueptr)\n");
@@ -1291,7 +1309,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
-    fp->write("if(ueptr->GetType() == targ.GetType())\n");
+    //    fp->write("if(ueptr->GetType() == targ.GetType())\n");
+    fp->write("if(ueptr->GetType() == THE_INSTANCE.GetType())\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -1310,8 +1329,12 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}\n\n");
+    fp->write("} //end while\n");
 
+    m_state.indent(fp);
+    fp->write("return rtnIs;\n");
+
+#if 0
     m_state.indent(fp);
     fp->write("if(rtnIs) return true;\n\n");
 
@@ -1323,6 +1346,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.indent(fp);
     fp->write("return false;\n");
+#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);

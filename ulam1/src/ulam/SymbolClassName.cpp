@@ -322,6 +322,7 @@ namespace MFM {
     SymbolClass::generateTestInstance(fp, runtest);
   } //generateTestInstanceForClassInstances
 
+  //unused
   void SymbolClassName::gencodeIsMethodOfDecendents(File * fp)
   {
     m_state.indent(fp);
@@ -337,7 +338,7 @@ namespace MFM {
 	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::THE_INSTANCE.");
 	fp->write(m_state.getIsMangledFunctionName());
-	fp->write("(targ)) return true;\n");
+	fp->write("(uc, targ)) return true;\n");
 	it++;
       } //while
   } //gencodeIsMethodForDecendents

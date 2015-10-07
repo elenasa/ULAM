@@ -490,7 +490,7 @@ namespace MFM {
 	fp->write(nut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::THE_INSTANCE.");
 	fp->write(m_state.getIsMangledFunctionName());
-	fp->write("(");
+	fp->write("(uc, ");
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
 	fp->write("))\n");
 

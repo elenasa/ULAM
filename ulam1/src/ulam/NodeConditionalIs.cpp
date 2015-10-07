@@ -155,7 +155,7 @@ namespace MFM {
       assert(0);
 
     fp->write(methodNameForCodeGen().c_str()); //mangled
-    fp->write("(");
+    fp->write("(uc, ");
     fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
     fp->write(");\n");
 
