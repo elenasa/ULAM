@@ -139,7 +139,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Invalid lefthand type of conditional operator '" << getName();
+		msg << "Unsupported lefthand type of conditional operator '" << getName();
 		msg <<  "', "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 		msg << "; Passing through as UNFOUND for eval";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -284,7 +284,7 @@ namespace MFM {
       assert(0);
 
     fp->write(methodNameForCodeGen().c_str()); //mangled
-    fp->write("(");
+    fp->write("(uc, ");
     fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
     fp->write(");\n");
 

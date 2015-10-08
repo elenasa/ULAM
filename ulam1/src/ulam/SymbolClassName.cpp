@@ -53,7 +53,7 @@ namespace MFM {
   void SymbolClassName::setSuperClass(UTI superclass)
   {
     m_superClass = superclass;
-  }
+  } //setSuperClass
 
   UTI SymbolClassName::getSuperClass()
   {

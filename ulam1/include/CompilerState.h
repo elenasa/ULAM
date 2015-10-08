@@ -211,6 +211,7 @@ namespace MFM{
     s32 slotsNeeded(UTI uti);
     bool isClassATemplate(UTI cuti);
     UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
+    bool isClassASuperclassOf(UTI cuti, UTI superp);
     bool isClassAQuarkUnion(UTI cuti);
     bool isClassACustomArray(UTI cuti);
     UTI getAClassCustomArrayType(UTI cuti);
