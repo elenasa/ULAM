@@ -33,9 +33,9 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_quarkDefaultValue(0), m_isreadyQuarkDefaultValue(false) /* default */ {}
+  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_quarkDefaultValue(0), m_isreadyQuarkDefaultValue(false) /* default */, m_superClass(Nav) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_quarkDefaultValue(sref.m_quarkDefaultValue), m_isreadyQuarkDefaultValue(false)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_quarkDefaultValue(sref.m_quarkDefaultValue), m_isreadyQuarkDefaultValue(false), m_superClass(Nav)
   {
     if(sref.m_classBlock)
       {
@@ -46,6 +46,8 @@ namespace MFM {
 
     if(sref.m_resolver)
       m_resolver = new Resolver(getUlamTypeIdx(), m_state); //not a clone, populated later
+
+    //m_superClass ???
   }
 
   SymbolClass::~SymbolClass()
@@ -100,6 +102,16 @@ namespace MFM {
   {
     return false;
   }
+
+  void SymbolClass::setSuperClass(UTI superclass)
+  {
+    m_superClass = superclass;
+  } //setSuperClass
+
+  UTI SymbolClass::getSuperClass()
+  {
+    return m_superClass; //Nav is none, not a subclass.
+  } //getSuperClass
 
   const std::string SymbolClass::getMangledPrefix()
   {

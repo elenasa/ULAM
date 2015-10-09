@@ -4,7 +4,7 @@
 
 namespace MFM {
 
-  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state), m_superClass(Nav)
+  SymbolClassName::SymbolClassName(Token id, UTI utype, NodeBlockClass * classblock, CompilerState& state) : SymbolClass(id, utype, classblock, NULL/* parent template */, state)
   {
     unsetStub(); //regular class; classblock may be null if utype is UC_UNSEEN class type.
   }
@@ -50,15 +50,16 @@ namespace MFM {
     return false;
   } //isClassTemplate
 
-  void SymbolClassName::setSuperClass(UTI superclass)
+  void SymbolClassName::setSuperClassForClassInstance(UTI superclass, UTI instance)
   {
-    m_superClass = superclass;
-  } //setSuperClass
+    assert(instance == getUlamTypeIdx());
+    SymbolClass::setSuperClass(superclass);
+  } //setSuperClassForClassInstance
 
-  UTI SymbolClassName::getSuperClass()
+  UTI SymbolClassName::getSuperClassForClassInstance(UTI instance)
   {
-    return m_superClass; //Nav is none, not a subclass.
-  } //getSuperClass
+    return SymbolClass::getSuperClass(); //Nav is none, not a subclass.
+  } //getSuperClassForClassInstance
 
   Node * SymbolClassName::findNodeNoInAClassInstance(UTI instance, NNO n)
   {
@@ -102,7 +103,7 @@ namespace MFM {
 
     m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-    UTI superclass = getSuperClass();
+    UTI superclass = getSuperClassForClassInstance(getUlamTypeIdx());
     if(superclass == Nav)
       classNode->updateLineage(0);
     else

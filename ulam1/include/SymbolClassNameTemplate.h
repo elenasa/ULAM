@@ -60,6 +60,10 @@ namespace MFM{
 
     virtual bool isClassTemplate();
     bool isClassTemplate(UTI cuti);
+
+    virtual void setSuperClassForClassInstance(UTI superclass, UTI instance);
+    virtual UTI getSuperClassForClassInstance(UTI instance);
+
     bool findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref);
     bool findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr);
 

@@ -58,8 +58,8 @@ namespace MFM{
 
     virtual bool isClassTemplate();
 
-    void setSuperClass(UTI superclass);
-    UTI getSuperClass();
+    virtual void setSuperClassForClassInstance(UTI superclass, UTI instance);
+    virtual UTI getSuperClassForClassInstance(UTI instance);
 
     virtual Node * findNodeNoInAClassInstance(UTI instance, NNO n);
 
@@ -93,7 +93,7 @@ namespace MFM{
    protected:
 
   private:
-    UTI m_superClass; //single inheritance; regular classes only
+
   };
 
 }

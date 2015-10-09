@@ -1062,7 +1062,7 @@ namespace MFM {
       {
 	SymbolClassName * cnsym = NULL;
 	assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
-	return cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
+	return cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nav if no inheritance
       }
     return Nav; //even for non-classes
   } //isClassASubclass
@@ -1079,7 +1079,7 @@ namespace MFM {
 	  {
 	    SymbolClassName * cnsym = NULL;
 	    assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
-	    prevuti = cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
+	    prevuti = cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nav if no inheritance
 	    rtnb = (superp == prevuti); //compare
 	  }
 	else

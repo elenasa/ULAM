@@ -132,6 +132,23 @@ namespace MFM {
     return !findClassInstanceByUTI(cuti, csym);
   } //isClassTemplate
 
+  void SymbolClassNameTemplate::setSuperClassForClassInstance(UTI superclass, UTI instance)
+  {
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      csym->setSuperClass(superclass); //Nav is none, not a subclass.
+    //not found???
+    assert(0);
+  } //setSuperClassForClassInstance
+
+  UTI SymbolClassNameTemplate::getSuperClassForClassInstance(UTI instance)
+  {
+    SymbolClass * csym = NULL;
+    if(findClassInstanceByUTI(instance, csym))
+      return csym->getSuperClass(); //Nav is none, not a subclass.
+    return false;
+  } //getSuperClassForClassInstance
+
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);

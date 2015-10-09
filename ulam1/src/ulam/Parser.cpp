@@ -323,7 +323,7 @@ namespace MFM {
 	    if(m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym) || m_state.addIncompleteClassSymbolToProgramTable(iTok, supercnsym))
 	      {
 		UTI superuti = supercnsym->getUlamTypeIdx();
-		cnsym->setSuperClass(superuti); //set here!!
+		cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
 
 		NodeBlockClass * superclassblock = supercnsym->getClassBlockNode();
 		assert(superclassblock);
@@ -431,7 +431,7 @@ namespace MFM {
     //this block's ST is no longer in scope
     m_state.popClassContext(); //m_currentBlock = prevBlock;
 
-    if(cnsym->getSuperClass() != Nav)
+    if(cnsym->getSuperClassForClassInstance(cnsym->getUlamTypeIdx()) != Nav)
       m_state.popClassContext(); //m_currentBlock = prevBlock;
 
     return rtnNode;
