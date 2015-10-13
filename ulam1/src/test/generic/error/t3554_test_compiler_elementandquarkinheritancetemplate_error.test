@@ -1,13 +1,10 @@
 ## -*- mode:ulam -*-
 #=t3554_test_compiler_elementandquarkinheritancetemplate_error
 #!
-./Tu.ulam:3:9: ERROR: Template class 'Foo12' as a superclass for 'Tu' is not supported.
-./Tu.ulam:3:9: ERROR: Unresolved No.1.
-./Tu.ulam:3:9: Warning: 1 data member nodes with unresolved types remain in class 'Tu'.
-./Tu.ulam:3:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Tu.
-Unrecoverable Program Type Label FAILURE.
+./Tu.ulam:3:18: ERROR: Missing Class Arguments for an instance stub of class template 'Foo'.
+Unrecoverable Program Parse FAILURE.
 ##
-##       //classes cannot inherit from a template, and vis versa
+##       //classes can inherit from a template instance, and vis versa; here, missing class args
 ##
 #>Tu.ulam
 ulam 1;

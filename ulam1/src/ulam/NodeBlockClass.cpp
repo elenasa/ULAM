@@ -58,9 +58,6 @@ namespace MFM {
       return true;
 
     UTI cuti = getNodeType();
-    if(cuti == Int) //kludge nodetype clobbered to test
-      cuti = m_state.getCompileThisIdx();
-
     if(m_state.isClassASubclass(cuti))
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
@@ -88,9 +85,6 @@ namespace MFM {
     printNodeLocation(fp);
     UTI myuti = getNodeType();
 
-    if(myuti == Int) //kludge nodetype clobbered to test
-      myuti = m_state.getCompileThisIdx();
-
     char id[255];
     if(myuti == Nav)
       sprintf(id,"%s<NOTYPE>\n", prettyNodeName().c_str());
@@ -113,20 +107,9 @@ namespace MFM {
   void NodeBlockClass::printPostfix(File * fp)
   {
     UTI cuti = getNodeType();
-    if(cuti == Int) //kludge nodetype clobbered to test
-      cuti = m_state.getCompileThisIdx();
 
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
     fp->write(getName());  //unmangled
-
-    if(m_state.isClassASubclass(cuti))
-      {
-	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock);
-	fp->write(" : ");
-	fp->write(m_state.getUlamTypeByIndex(superblock->getNodeType())->getUlamTypeUPrefix().c_str());  //e.g. Ue_Foo
-	fp->write(superblock->getName());
-      }
 
     //output class template arguments type and name
     if(m_nodeParameterList->getNumberOfNodes() > 0)
@@ -135,6 +118,13 @@ namespace MFM {
 	assert(m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId(), cnsym));
 	cnsym->printClassTemplateArgsForPostfix(fp);
 	//m_nodeParameterList->print(fp);
+      }
+
+    UTI superuti = m_state.isClassASubclass(cuti);
+    if(superuti != Nav)
+      {
+	fp->write(" : ");
+	fp->write(m_state.getUlamTypeNameBriefByIndex(superuti).c_str());  //e.g. Foo(a), an instance of
       }
 
     if(isEmpty())
@@ -164,7 +154,7 @@ namespace MFM {
       }
     else
       {
-	//has only initialized DM values
+	//has only initialized DM values, not current values
 	printPostfixDataMembersParseTree(fp);
 	fp->write(" <NOMAIN>"); //not an error
       }
@@ -175,13 +165,21 @@ namespace MFM {
   void NodeBlockClass::printPostfixDataMembersParseTree(File * fp)
   {
     UTI cuti = getNodeType();
-    if(cuti == Int) //kludge nodetype clobbered to test
-      cuti = m_state.getCompileThisIdx();
-
-    if(m_state.isClassASubclass(cuti))
+    UTI superuti = m_state.isClassASubclass(cuti);
+    if(superuti != Nav)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+
+	if(!superblock || (superblock->getNodeType() != superuti))
+	  {
+	    //use SCN instead of SC in case of stub (use template's classblock)
+	    SymbolClassName * supercnsym = NULL;
+	    u32 superid = m_state.getUlamTypeByIndex(superuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+	    assert(m_state.alreadyDefinedSymbolClassName(superid, supercnsym));
+	    superblock = supercnsym->getClassBlockNode();
+	  }
 	assert(superblock);
+
 	fp->write(" :<");
 	superblock->printPostfixDataMembersParseTree(fp);
 	fp->write(">");
@@ -194,13 +192,11 @@ namespace MFM {
   void NodeBlockClass::printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     UTI cuti = getNodeType();
-    if(cuti == Int) //kludge nodetype clobbered to test
-      cuti = m_state.getCompileThisIdx();
-
-    if(m_state.isClassASubclass(cuti))
+    UTI superuti = m_state.isClassASubclass(cuti);
+    if(superuti != Nav)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock);
+	assert(superblock && superblock->getNodeType() == superuti);
 	fp->write(" :<");
 	superblock->printPostfixDataMembersSymbols(fp, slot, startpos, classtype);
 	fp->write(">");
@@ -219,10 +215,18 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  UTI NodeBlockClass::getNodeType()
+  {
+    UTI cuti = Node::getNodeType();
+    if(cuti == Int) //kludge nodetype clobbered to test
+      cuti = m_state.getCompileThisIdx();
+    return cuti;
+  }
+
   UTI NodeBlockClass::checkAndLabelType()
   {
-    // for debug purposes too
-    bool isTemplate = m_state.isClassATemplate(m_state.getCompileThisIdx());
+    // for debug purposes
+    m_state.isClassATemplate(m_state.getCompileThisIdx());
 
     // Inheritance checks
     UTI nuti = getNodeType();
@@ -231,31 +235,33 @@ namespace MFM {
     if(superuti != Nav)
       {
 	//this is a subclass.
-
-	//neither the subclass nor the superclass may be a template too
-	if(isTemplate)
-	  {
-	    std::ostringstream msg;
-	    msg << "Template class as a subclass is not supported: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	  }
-
-	if(m_state.isClassATemplate(superuti))
-	  {
-	    std::ostringstream msg;
-	    msg << "Template class '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-	    msg << "' as a superclass for '";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    msg << "' is not supported";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	  }
-
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	if((superblock == NULL) || (superblock->getNodeType() != superuti))
+	  {
+	    //look up this instance
+	    SymbolClass * csym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(superuti, csym));
+	    NodeBlock::setPreviousBlockPointer(csym->getClassBlockNode()); //fix
+	    superblock = (NodeBlockClass *) getPreviousBlockPointer();
+
+	    //look in this ST for instance class args
+	    if(!csym->statusNonreadyClassArguments())
+	      {
+		std::ostringstream msg;
+		msg << "Subclass '";
+		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+		msg << "' inherits from '";
+		msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+		msg << "', a class with pending arguments";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		m_state.setGoAgain();
+		NodeBlock::setPreviousBlockPointer(NULL); //force to try again!!
+		return Nav; //short-circuit
+	      }
+	  }
+
 	assert(superblock);
+
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClass();
 	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
 	if(superclasstype != classtype)
@@ -359,8 +365,6 @@ namespace MFM {
     bool hasCA = false;
     // custom array flag set at parse time
     UTI cuti = getNodeType();
-    if(cuti == Int) //kludge nodetype clobbered to test
-      cuti = m_state.getCompileThisIdx();
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     hasCA = ((UlamTypeClass *) cut)->isCustomArray();
 
@@ -382,9 +386,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     // custom array flag set at parse time
     UTI cuti = getNodeType();
-    if(cuti == Int) //kludge nodetype clobbered to test
-      cuti = m_state.getCompileThisIdx();
-
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
     if(((UlamTypeClass *) cut)->isCustomArray())
       m_functionST.checkCustomArrayTypeFuncs();
@@ -404,9 +405,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(catype == Nav)
       {
 	UTI cuti = getNodeType();
-	if(cuti == Int) //kludge nodetype clobbered to test
-	  cuti = m_state.getCompileThisIdx();
-
 	if(m_state.isClassASubclass(cuti))
 	  {
 	    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
@@ -424,9 +422,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(catype == Nav)
       {
 	UTI cuti = getNodeType();
-	if(cuti == Int) //kludge nodetype clobbered to test
-	  cuti = m_state.getCompileThisIdx();
-
 	if(m_state.isClassASubclass(cuti))
 	  {
 	    NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
@@ -478,12 +473,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     EvalStatus evs = ERROR; //init
 
-#if 1
     // NodeVarDecl's make UlamValue storage now, so don't want their
     // side-effects for the class definition, rather the instance.
     if(m_nodeNext)
       m_nodeNext->eval(); //side-effect for datamember vardecls
-#endif
 
     // eval test method, if there's one:
     NodeBlockFunctionDefinition * funcNode = findTestFunctionNode();
@@ -541,18 +534,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   s32 NodeBlockClass::getBitSizesOfVariableSymbolsInTable()
   {
     s32 superbs = 0;
-    if(m_state.isClassASubclass(getNodeType()))
-      {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superClassBlock);
-	superbs = superClassBlock->getBitSizesOfVariableSymbolsInTable();
-      }
-
-    if(m_ST.getTableSize() == 0 && superbs == 0)
-      return EMPTYSYMBOLTABLE; //should allow no variable data members
+    UTI superuti = m_state.isClassASubclass(getNodeType());
+    if(superuti)
+      superbs = m_state.getBitSize(superuti);
 
     if(superbs < 0)
       return superbs; //error
+
+    if(m_ST.getTableSize() == 0 && superbs == 0)
+      return EMPTYSYMBOLTABLE; //should allow no variable data members
 
     s32 mybs = m_ST.getTotalVariableSymbolsBitSize();
     if(mybs < 0)
@@ -564,11 +554,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   s32 NodeBlockClass::getMaxBitSizeOfVariableSymbolsInTable()
   {
     s32 superbs = 0;
-    if(m_state.isClassASubclass(getNodeType()))
+    UTI superuti = m_state.isClassASubclass(getNodeType());
+    if(superuti)
       {
 	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superClassBlock);
+	m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
 	superbs = superClassBlock->getMaxBitSizeOfVariableSymbolsInTable();
+	m_state.popClassContext(); //restore
       }
     if(m_ST.getTableSize() == 0 && superbs == 0)
       return EMPTYSYMBOLTABLE; //should allow no variable data members
@@ -594,7 +587,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superClassBlock);
+	m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
 	s32 superpos = superClassBlock->findUlamTypeInTable(utype);
+	m_state.popClassContext(); //restore
 	if(superpos >= 0)
 	  return superpos; //short-circuit
       }
@@ -604,7 +599,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
   {
-    return m_functionST.isInTable(id, symptrref); // not including any superclass
+    return m_functionST.isInTable(id, symptrref); //not including any superclass
   } //isFuncIdInScope
 
   void NodeBlockClass::addFuncIdToScope(u32 id, Symbol * symptr)
@@ -643,8 +638,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   void NodeBlockClass::initElementDefaultsForEval(UlamValue& uv)
   {
     UTI buti = getNodeType();
-    if(buti == Int) //kludge nodetype clobbered to test
-      buti = m_state.getCompileThisIdx();
     if(m_state.isClassASubclass(buti))
       {
 	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
@@ -719,7 +712,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     // done earlier so that problems can be caught before continuing
     // check all the function names for duplicate definitions
-    //m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
     m_functionST.genCodeForTableOfFunctions(fp, declOnly, classtype);
   }
 
@@ -837,7 +829,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(m_nodeNext)
       {
 	UlamValue uvpass;
-	m_nodeNext->genCode(fp, uvpass);  //output the BitField typedefs
+	m_nodeNext->genCode(fp, uvpass); //output the BitField typedefs
 	//NodeBlock::genCodeDeclsForVariableDataMembers(fp, classtype); //not in order declared
 	fp->write("\n");
       }
@@ -856,7 +848,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("class ");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write(" : public UlamElement<EC>");  //was DefaultElement
+    fp->write(" : public UlamElement<EC>"); //was DefaultElement
 
     m_state.indent(fp);
     fp->write("{\n");

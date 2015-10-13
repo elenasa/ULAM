@@ -6,7 +6,7 @@
 ##
 Exit status: 3
 Ue_Foo { System s();  Bool(1) first(true);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4); );  Int(32) test() {  Foo f;  Coo c;  c f su . cast = first c cb . cast = first cond { s ( first cast )print . 3u cast return } if 0 cast return } }
-Uq_Soo : Uq_Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##

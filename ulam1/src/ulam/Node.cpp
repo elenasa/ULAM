@@ -1227,7 +1227,6 @@ namespace MFM {
 
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 rightjustified (atom-based).
     uvpass.setPtrPos(0); //entire register
-
   } //genCodeConvertABitVectorIntoATmpVar
 
   void Node::genCodeExtern(File * fp, bool declOnly)
@@ -1259,6 +1258,17 @@ namespace MFM {
   {
     bool doErrMsg = false;
     UTI nuti = node->getNodeType();
+
+    if(nuti == Nav)
+      {
+	std::ostringstream msg;
+	msg << "Cannot make casting node for a nonready type: " ;
+	msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << " (UTI" << nuti << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	rtnNode = node;
+	return false; //short-circuit
+      }
 
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nuti, tobeType, m_state);
     if(uticr == UTIC_SAME)
@@ -1576,13 +1586,13 @@ namespace MFM {
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1;
+
 	    UTI cosclassuti = cosuti;
 	    UlamType * cosclassut = cosut;
 
 	    if(cosut->getUlamTypeEnum() != Class)
 	      {
-		cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
-		assert(cosclassuti != Nav);
+		cosclassuti = findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
 		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	      }
 
@@ -1831,8 +1841,7 @@ namespace MFM {
 
 	    if(cosut->getUlamTypeEnum() != Class)
 	      {
-		cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
-		assert(cosclassuti != Nav);
+		cosclassuti = findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
 		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	      }
 
@@ -2041,6 +2050,38 @@ namespace MFM {
       }
     return indexOfLastSubClass;
   } //isCurrentObjectsContainingASubClass
+
+  UTI Node::findTypeOfSubClassAndBlockNo(NNO bno, s32 subcosidx)
+  {
+    Symbol * subcossym = NULL;
+    if(subcosidx < 0)
+      subcossym = m_state.m_currentSelfSymbolForCodeGen;
+    else
+      subcossym = m_state.m_currentObjSymbolsForCodeGen[subcosidx];
+    UTI subcosuti = subcossym->getUlamTypeIdx();
+
+    //compare blockclassuti with cosnameuti (in case of templates)
+    UTI blockclassuti = m_state.findAClassByNodeNo(bno); //regular or template
+    assert(blockclassuti != Nav);
+
+    UTI cosclassuti = m_state.getUlamTypeAsScalar(subcosuti); //init as scalar
+    do{
+      SymbolClassName * coscnsym = NULL;
+      UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+      u32 cosid = cosclassut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
+      assert(m_state.alreadyDefinedSymbolClassName(cosid, coscnsym));
+      UTI cosnameuti = coscnsym->getUlamTypeIdx();
+
+      if(blockclassuti == cosnameuti) break;
+
+      subcosuti = cosclassuti;
+      cosclassuti = m_state.isClassASubclass(subcosuti);
+      if(cosclassuti == Nav) break;
+
+    } while(cosclassuti != Nav);
+
+    return cosclassuti;
+  } //findTypeOfSubClassAndBlockNo
 
   // returns the index to the last object that's a subclass; o.w. -1 none found;
   // preceeding object is the "owner"

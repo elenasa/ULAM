@@ -212,6 +212,8 @@ namespace MFM{
     bool isClassATemplate(UTI cuti);
     UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
     bool isClassASuperclassOf(UTI cuti, UTI superp);
+    bool isClassAStub(UTI cuti);
+    bool hasClassAStub(UTI cuti);
     bool isClassAQuarkUnion(UTI cuti);
     bool isClassACustomArray(UTI cuti);
     UTI getAClassCustomArrayType(UTI cuti);

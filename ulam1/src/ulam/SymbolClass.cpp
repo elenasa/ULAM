@@ -33,13 +33,14 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_quarkDefaultValue(0), m_isreadyQuarkDefaultValue(false) /* default */ {}
+  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_quarkDefaultValue(0), m_isreadyQuarkDefaultValue(false) /* default */, m_superClass(Nav) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_quarkDefaultValue(sref.m_quarkDefaultValue), m_isreadyQuarkDefaultValue(false)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_quarkDefaultValue(sref.m_quarkDefaultValue), m_isreadyQuarkDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass))
   {
     if(sref.m_classBlock)
       {
 	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
+	// note: if superclass, the prevBlockPtr of m_classBlock hasn't been set yet!
       }
     else
       m_classBlock = NULL; //i.e. UC_UNSEEN
@@ -100,6 +101,16 @@ namespace MFM {
   {
     return false;
   }
+
+  void SymbolClass::setSuperClass(UTI superclass)
+  {
+    m_superClass = superclass;
+  } //setSuperClass
+
+  UTI SymbolClass::getSuperClass()
+  {
+    return m_superClass; //Nav is none, not a subclass.
+  } //getSuperClass
 
   const std::string SymbolClass::getMangledPrefix()
   {
@@ -189,15 +200,15 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
-	    aok = false;
-	  }
-	else if(totalbits == EMPTYSYMBOLTABLE)
-	  {
-	    totalbits = 0;
-	    aok = true;
-	  }
-	else if(totalbits != UNKNOWNSIZE)
-	  aok = true; //not UNKNOWN
+	aok = false;
+      }
+    else if(totalbits == EMPTYSYMBOLTABLE)
+      {
+	totalbits = 0;
+	aok = true;
+      }
+    else if(totalbits != UNKNOWNSIZE)
+      aok = true; //not UNKNOWN
     return aok;
   } //trySetBitSize
 
@@ -462,11 +473,6 @@ namespace MFM {
 
       m_state.indent(fp);
       fp->write("namespace MFM{\n\n");
-
-      //m_state.m_currentIndentLevel++;
-      //m_classBlock->genCodeExtern(fp, false); //def for MP
-      //m_state.m_currentIndentLevel = 0;
-
       fp->write("} //MFM\n\n");
 
       delete fp; //close

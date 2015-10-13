@@ -614,9 +614,7 @@ namespace MFM {
     UTI tmpforscalaruti = Nav;
     //is this name already a typedef for a complex type?
     if(getUlamTypeByTypedefName(tok.m_dataindex, ut, tmpforscalaruti))
-      {
-	bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
-      }
+      bUT = getUlamTypeByIndex(ut)->getUlamTypeEnum();
     else if(Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD)
       {
 	std::string typeName = getTokenAsATypeName(tok); //Int, etc
@@ -625,10 +623,7 @@ namespace MFM {
 	bUT = UlamType::getEnumFromUlamTypeString(typeName.c_str()); //could be Element, etc.;
       }
     else
-      {
-	//it's an element or quark! base type is Class.
-	bUT = Class;
-      }
+      bUT = Class; //it's an element or quark! base type is Class.
     return bUT;
   } //getBaseTypeFromToken
 
@@ -1057,12 +1052,14 @@ namespace MFM {
 
   UTI CompilerState::isClassASubclass(UTI cuti)
   {
+    UTI subuti = getUlamTypeAsScalar(cuti); //in case of array
+
     SymbolClass * csym = NULL;
-    if(alreadyDefinedSymbolClass(cuti, csym))
+    if(alreadyDefinedSymbolClass(subuti, csym))
       {
 	SymbolClassName * cnsym = NULL;
 	assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
-	return cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
+	return cnsym->getSuperClassForClassInstance(subuti); //returns super UTI, or Nav if no inheritance
       }
     return Nav; //even for non-classes
   } //isClassASubclass
@@ -1079,7 +1076,7 @@ namespace MFM {
 	  {
 	    SymbolClassName * cnsym = NULL;
 	    assert(alreadyDefinedSymbolClassName(csym->getId(), cnsym));
-	    prevuti = cnsym->getSuperClass(); //returns super UTI, or Nav if no inheritance
+	    prevuti = cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nav if no inheritance
 	    rtnb = (superp == prevuti); //compare
 	  }
 	else
@@ -1087,6 +1084,28 @@ namespace MFM {
       }
     return rtnb; //even for non-classes
   } //isClassASuperclassOf
+
+  bool CompilerState::isClassAStub(UTI cuti)
+  {
+    SymbolClass * csym = NULL;
+    if(alreadyDefinedSymbolClass(cuti, csym))
+      return csym->isStub();
+
+    return false; //even for non-classes
+  } //isClassAStub
+
+  bool CompilerState::hasClassAStub(UTI cuti)
+  {
+    bool rtnb = false;
+    UTI prevuti = cuti; //init for the loop
+
+    while(!rtnb && prevuti != Nav)
+      {
+	rtnb = isClassAStub(prevuti);
+	prevuti = isClassASubclass(prevuti);
+      }
+    return rtnb; //even for non-classes
+  } //hasClassAStub
 
   bool CompilerState::isClassAQuarkUnion(UTI cuti)
   {

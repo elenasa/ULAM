@@ -67,18 +67,25 @@ namespace MFM {
   UTI NodeConstant::checkAndLabelType()
   {
     UTI it = Nav;
+
+    bool stubcopy = m_state.isClassAStub(m_state.getCompileThisIdx());
+
     //instantiate, look up in class block; skip if stub copy and already ready.
-    if(m_constSymbol == NULL && !isReadyConstant())
-      checkForSymbol();
+    //    if(!csym->isStub() && m_constSymbol == NULL && !isReadyConstant())
+    if(!stubcopy && m_constSymbol == NULL)
+	checkForSymbol();
+    else
+      {
+    stubcopy = m_state.hasClassAStub(m_state.getCompileThisIdx());
+      }
 
     if(m_constSymbol)
       {
 	it = m_constSymbol->getUlamTypeIdx();
       }
-    else if(isReadyConstant())
+    else if(isReadyConstant() && stubcopy)
       {
 	//stub copy case: still wants uti mapping
-	//it = NodeTerminal::getNodeType();
 	it = NodeTerminal::checkAndLabelType();
       }
 
@@ -94,7 +101,7 @@ namespace MFM {
 	msg << "' UTI" << it << " while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	//	m_state.setGoAgain(); wait until updateConstant tried.
+	// m_state.setGoAgain(); wait until updateConstant tried.
       }
 
     setNodeType(it);
@@ -104,8 +111,12 @@ namespace MFM {
     if(!isReadyConstant())
       m_ready = updateConstant(); //sets ready here
     if(!isReadyConstant())
+      {
+	it = Nav;
+	if(!stubcopy)
+	  m_constSymbol = NULL; //lookup again too! (e.g. inherited template instances)
 	m_state.setGoAgain();
-
+      }
     return it;
   } //checkAndLabelType
 

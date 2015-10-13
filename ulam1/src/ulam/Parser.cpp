@@ -162,7 +162,6 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Invalid Class Type <";
 	msg << m_state.getTokenDataAsString(&pTok).c_str();
-	//msg << pTok.getTokenString();
 	msg << ">; KEYWORD should be '";
 	msg << Token::getTokenAsString(TOK_KW_ELEMENT);
 	msg << "', '";
@@ -308,45 +307,7 @@ namespace MFM {
 
   NodeBlockClass * Parser::parseClassBlock(SymbolClassName * cnsym, Token identTok)
   {
-    Token qTok;
-    getNextToken(qTok);
-
-    if(qTok.m_type == TOK_COLON)
-      {
-	//inheritance
-	Token iTok;
-	getNextToken(iTok);
-
-	if(iTok.m_type == TOK_TYPE_IDENTIFIER)
-	  {
-	    SymbolClassName * supercnsym = NULL;
-	    if(m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym) || m_state.addIncompleteClassSymbolToProgramTable(iTok, supercnsym))
-	      {
-		UTI superuti = supercnsym->getUlamTypeIdx();
-		cnsym->setSuperClass(superuti); //set here!!
-
-		NodeBlockClass * superclassblock = supercnsym->getClassBlockNode();
-		assert(superclassblock);
-		m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
-	      }
-	    else
-	      assert(0); //an unseen superclass was added as incomplete
-	  }
-	else
-	  {
-	    std::ostringstream msg;
-	    msg << "Class Definition '";
-	    msg << m_state.getTokenDataAsString(&identTok).c_str();
-	    msg << "'; Inheritance from invalid Class identifier '";
-	    msg << m_state.getTokenDataAsString(&iTok).c_str() << "'";
-	    MSG(&qTok, msg.str().c_str(), ERR);
-	    //continue?
-	  }
-      }
-    else
-      unreadToken();
-
-
+    bool inherits = false;
     UTI utype = cnsym->getUlamTypeIdx(); //we know its type..sweeter
     NodeBlockClass * rtnNode = cnsym->getClassBlockNode(); //usually NULL
     if(!rtnNode)
@@ -383,6 +344,32 @@ namespace MFM {
 
     if(pTok.m_type == TOK_OPEN_PAREN)
       parseRestOfClassParameters((SymbolClassNameTemplate *) cnsym, rtnNode);
+    else
+      unreadToken();
+
+    Token qTok;
+    getNextToken(qTok);
+
+    if(qTok.m_type == TOK_COLON)
+      {
+	SymbolClassName * supercnsym = NULL;
+	UTI superuti = Nav;
+	inherits = parseRestOfClassInheritance(cnsym, supercnsym, superuti);
+	if(inherits)
+	  {
+	    assert(supercnsym);
+	    NodeBlockClass * superclassblock = supercnsym->getClassBlockNode();
+	    assert(superclassblock);
+
+	    //reset previous block to super class' block after any parameters parse
+	    rtnNode->setPreviousBlockPointer(superclassblock); //tmp could be a stub
+
+	    //rearrange order of class context so that super class is traversed after subclass
+	    m_state.popClassContext(); //m_currentBlock = prevBlock;
+	    m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
+	    m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL); //redo
+	  }
+      }
     else
       unreadToken();
 
@@ -431,7 +418,7 @@ namespace MFM {
     //this block's ST is no longer in scope
     m_state.popClassContext(); //m_currentBlock = prevBlock;
 
-    if(cnsym->getSuperClass() != Nav)
+    if(inherits)
       m_state.popClassContext(); //m_currentBlock = prevBlock;
 
     return rtnNode;
@@ -502,6 +489,33 @@ namespace MFM {
 
     return parseRestOfClassParameters(cntsym, cblock);
   } //parseRestOfClassParameters
+
+  bool Parser::parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClassName *& supercnsym, UTI& superuti)
+  {
+    bool rtninherits = false;
+    assert(cnsym);
+    //inheritance
+    Token iTok;
+    getNextToken(iTok);
+
+    if(iTok.m_type == TOK_TYPE_IDENTIFIER)
+      {
+	superuti = parseClassArguments(iTok);
+	cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
+	assert(m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym)); //could be template
+	rtninherits = true;
+      }
+    else
+      {
+	std::ostringstream msg;
+	msg << "Class Definition '";
+	msg << m_state.getUlamTypeNameBriefByIndex(cnsym->getId()).c_str();
+	msg << "'; Inheritance from invalid Class identifier '";
+	msg << m_state.getTokenDataAsString(&iTok).c_str() << "'";
+	MSG(&iTok, msg.str().c_str(), ERR);
+      }
+    return rtninherits;
+  } //parseRestOfClassInheritance
 
   bool Parser::parseDataMember(NodeStatements *& nextNode)
   {
@@ -1776,7 +1790,6 @@ namespace MFM {
 	  }
 
 	assert(argSym);
-	//argSym->setParameterFlag(); only for templates!!
 	m_state.addSymbolToCurrentScope(argSym); //scope updated to new class instance in parseClassArguments
 
 	m_state.popClassContext(); //restore before making NodeConstantDef, so current context
@@ -3575,7 +3588,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "The keyword 'self' may not be used as a variable name";
 	MSG(&identTok, msg.str().c_str(), ERR);
-	//	return NULL;  keep going?
+	//return NULL;  keep going?
       }
 
     NodeVarDecl * rtnNode = NULL;
@@ -3600,8 +3613,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		//installSymbol failed for other reasons (e.g. problem with [])
-		//rtnNode is NULL;
+		//installSymbol failed for other reasons (e.g. problem with []); rtnNode is NULL;
 		std::ostringstream msg;
 		msg << "Invalid variable declaration of base type <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str() << "> and Name <";
@@ -3676,8 +3688,7 @@ namespace MFM {
 	    else
 	      {
 		//installSymbol failed for other reasons
-		//(e.g. problem with []) , error already output.
-		//rtnNode is NULL;
+		//(e.g. problem with []) , error already output. rtnNode is NULL;
 		std::ostringstream msg;
 		msg << "Invalid typedef of base type <";
 		msg << m_state.getTokenAsATypeName(args.m_typeTok).c_str();
@@ -3742,7 +3753,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		//installSymbol failed for other reasons (e.g. problem with []) , error already output.
+		//installSymbol failed for other reasons (e.g. problem with []), error already output.
 		//rtnNode is NULL;
 		std::ostringstream msg;
 		msg << "Invalid constant definition of Type <";
@@ -3827,7 +3838,6 @@ namespace MFM {
 	    delete nodetyperef;
 	    nodetyperef = NULL;
 
-	    //perhaps read until semi-colon
 	    if(args.m_assignOK)
 	      {
 		getTokensUntil(TOK_SEMICOLON);
@@ -4487,7 +4497,6 @@ namespace MFM {
       {
 	Token scTok = tok; //save in case next token is a class or parameter
 	brtn = m_tokenizer->getNextToken(tok);
-	//if((tok.m_type == TOK_KW_ELEMENT) || (tok.m_type == TOK_KW_QUARK) || (tok.m_type == TOK_KW_QUARKUNION) || tok.m_type == TOK_KW_PARAMETER)
 	m_state.saveStructuredCommentToken(scTok);
       }
     return brtn;

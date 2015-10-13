@@ -119,7 +119,7 @@ namespace MFM {
 	  {
 	    if(Node::checkSafeToCastTo(cuti, newType) == CAST_CLEAR)
 	      {
-		if(!makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
+		if(!Node::makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
 		  newType = Nav;
 	      }
 	    else
@@ -134,7 +134,7 @@ namespace MFM {
 	      {
 		if(Node::checkSafeToCastTo(cuti, newType))
 		  {
-		    if(!makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
+		    if(!Node::makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
 		      newType = Nav;
 		    else
 		      newType = cuti;

@@ -95,6 +95,17 @@ namespace MFM {
     UTI tobeType = getNodeType();
     UTI nodeType = isExplicitCast() ? m_node->checkAndLabelType() : m_node->getNodeType(); //user cast if explicit
 
+    if(nodeType == Nav)
+      {
+	std::ostringstream msg;
+	msg << "Cannot cast a nonready type: " ;
+	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	msg << " (UTI" << nodeType << ")";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain();
+	return Nav; //short-circuit
+      }
+
     if(m_nodeTypeDesc)
       {
 	//might be a mapped uti for instantiated template class
@@ -208,7 +219,7 @@ namespace MFM {
 	if(nodeClass == UC_QUARK && tobe->isNumericType())
 	  {
 	    // special case: user casting a quark to an Int;
-	    if(!makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
+	    if(!Node::makeCastingNode(m_node, tobeType, m_node, isExplicitCast()))
 	      errorsFound++; //and goagain set
 	  }
 	//can't detect its a CaArray; already resolved by m_node (sqbkt) to caarrayType

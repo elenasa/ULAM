@@ -59,7 +59,6 @@ namespace MFM {
     else if(m_class == UC_QUARK)
       {
 	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-	//assert(valtypidx == UAtom || vclasstype == UC_ELEMENT || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME);
 	if(vclasstype == UC_ELEMENT)
 	  {
 	    SymbolClass * csym = NULL;
@@ -801,18 +800,6 @@ namespace MFM {
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write("& v) { m_stgRef = v; }\n");
 
-#if 0
-    // DEFUNKED! going to replace first 24 bits instead..
-    // for casting to ancestor; assumes P3Atom!!!
-    m_state.indent(fp);
-    fp->write("void writeFields(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write("& v) { m_stgRef.SetStateField(0, BPF - T::ATOM_FIRST_STATE_BIT, v.GetStateField(0, BPF - T::ATOM_FIRST_STATE_BIT)); ");
-    fp->write("for(u32 i = BPF; i < BPA; i+= BPF) ");
-    fp->write("m_stgRef.SetStateField(i, BPF, v.GetStateField(i, BPF)); ");
-    fp->write("}\n");
-#endif
-
     m_state.indent(fp);
     fp->write("void writeTypeField(const u32 v)");
     fp->write("{ BFTYP::Write(m_stgRef, v); }\n");
@@ -981,7 +968,6 @@ namespace MFM {
   bool UlamTypeClass::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
   {
     bool rtnb = false;
-    //if(m_class == UC_QUARK && getBitSize() > 0)
     if(m_class == UC_QUARK)
       {
 	if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))

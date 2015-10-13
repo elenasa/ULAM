@@ -1,20 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3556_test_compiler_elementandquarkinheritancetemplate_error
 #!
-./Tu.ulam:3:20: ERROR: Unexpected token <TOK_COLON>; Expected {.
-./Tu.ulam:3:20: ERROR: Inheritance for template class identifier 'Tu' unsupported.
-./Tu.ulam:3:1: ERROR: Empty/Incomplete Class Definition 'Tu'; Possible missing ending curly brace.
-./Tu.ulam:3:20: ERROR: Invalid Class Type <:>; KEYWORD should be 'element', 'quark', or 'union'.
-./Tu.ulam:3:9: ERROR: Invalid Type: Tu.
- ERROR: No parse tree for This Class: Tu.
+./Tu.ulam:2:8: ERROR: Class without parameters already exists with the same name: Foo.
 Unrecoverable Program Parse FAILURE.
 ##
-##       //classes cannot inherit from a template, and vis versa
+##       //template classes can inherit from a regular class
 ##
 #>Tu.ulam
 ulam 1;
 use Foo;
-element Tu (Int x) : Foo {
+element Tu (Int x) : Foo(x) {
 Int test(){
   return -1;
 }

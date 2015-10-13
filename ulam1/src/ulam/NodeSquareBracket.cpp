@@ -171,7 +171,7 @@ namespace MFM {
 	  {
 	    if(m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
 	      {
-		if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
+		if(!Node::makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
 		  {
 		    newType = Nav; //error!
 		    errorCount++;

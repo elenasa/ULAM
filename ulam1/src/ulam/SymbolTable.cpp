@@ -1141,16 +1141,6 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //skip unseen and anonymous classes, o.w. try..
-	    // any super class first
-	    UTI superUTI = m_state.isClassASubclass(cuti);
-	    if(superUTI != Nav)
-	      {
-		SymbolClassName * supercnsym = NULL;
-		assert(m_state.alreadyDefinedSymbolClassName(m_state.getUlamKeyTypeSignatureByIndex(superUTI).getUlamKeyTypeSignatureNameId(), supercnsym));
-		supercnsym->setBitSizeOfClassInstances();
-	      }
-
 	    aok = ((SymbolClassName *) sym)->setBitSizeOfClassInstances();
 	  }
 

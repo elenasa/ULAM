@@ -121,7 +121,7 @@ namespace MFM {
 		    FORECAST scr = m_node->safeToCastTo(rtnType);
 		    if( scr == CAST_CLEAR)
 		      {
-			if(!makeCastingNode(m_node, rtnType, m_node))
+			if(!Node::makeCastingNode(m_node, rtnType, m_node))
 			  nodeType = Nav;
 			else
 			  nodeType = m_node->getNodeType(); //casted

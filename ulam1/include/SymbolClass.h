@@ -65,6 +65,9 @@ namespace MFM{
 
     virtual bool isClassTemplate(UTI cuti);
 
+    void setSuperClass(UTI superclass);
+    UTI getSuperClass();
+
     void setClassBlockNode(NodeBlockClass * node);
 
     NodeBlockClass * getClassBlockNode();
@@ -138,6 +141,7 @@ namespace MFM{
     bool m_stub;
     u32 m_quarkDefaultValue;
     bool m_isreadyQuarkDefaultValue;
+    UTI m_superClass; //single inheritance
 
     void generateHeaderPreamble(File * fp);
     void genAllCapsIfndefForHeaderFile(File * fp);
