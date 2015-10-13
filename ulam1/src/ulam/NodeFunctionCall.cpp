@@ -222,7 +222,7 @@ namespace MFM {
 	      if(UlamType::compare(ptype, atype, m_state) == UTIC_NOTSAME) //o.w. known same
 		{
 		  Node * argCast = NULL;
-		  if(!makeCastingNode(argNode, ptype, argCast))
+		  if(!Node::makeCastingNode(argNode, ptype, argCast))
 		    {
 		      argsWithCastErr.push_back(i); //error!
 		    }
@@ -241,7 +241,7 @@ namespace MFM {
 		      {
 			Node * argNode = constArgs[i];//m_argumentNodes->getNodePtr(i);
 			Node * argCast = NULL;
-			if(!makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]), argCast))
+			if(!Node::makeCastingNode(argNode, m_state.getDefaultUlamTypeOfConstant(argTypes[i]), argCast))
 			  {
 			    argsWithCastErr.push_back(i); //error!
 			  }
@@ -695,9 +695,9 @@ namespace MFM {
 	  {
 	    startcos = subcos + 1;
 
-	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
-	    assert(cosclassuti != Nav);
+	    UTI cosclassuti = Node::findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
+
 	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
 	    if(cosclassut->getUlamClass() == UC_ELEMENT)
 	      fp->write("<EC>::THE_INSTANCE.");
@@ -877,8 +877,8 @@ namespace MFM {
 	if(subcos >= 0)
 	  {
 	    startcos = subcos + 1; //for loop later
-	    UTI cosclassuti = m_state.findAClassByNodeNo(cosBlockNo);
-	    assert(cosclassuti != Nav);
+
+	    UTI cosclassuti = Node::findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
 	    stgcosuti = cosclassuti; // resets stgcosuti here!!
 	    stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	    useSuperClassName = true;

@@ -1,13 +1,13 @@
 ## -*- mode:ulam -*-
-#=t3536_test_compiler_quarkinheritance
+#=t3565_test_compiler_quarkinheritancewclassargs
 #!
 ## gencode output:
 ## Bool(3) Arg: 0x7 (true)
 ##
-Exit status: 7
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4); );  Int(32) test() {  Foo f;  f su cb . . cond { s ( f su cb . . )print . 7u cast return } if 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
-Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
+Exit status: 5
+Ue_Foo { System s();  Bool(1) first(false);  Soo(1,2u) su( :< constant Int(32) a = 1;  Bool(1) cb(true); > constant Int(32) a = 1;  constant Unsigned(32) b = 2;  Unsigned(3) us(4); );  Int(32) test() {  Foo f;  f su cb . . cond { s ( f su cb . . cast )print . 5u cast return } if 0 cast return } }
+Uq_Soo(Int(32) a, Unsigned(32) b) : Coo(a) { :< Bool(UNKNOWN) cb(unknown); > Unsigned(UNKNOWN) us(unknown);  <NOMAIN> }
+Uq_Coo(Int(32) a) { Bool(UNKNOWN) cb(unknown);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ## quark inheritance, regular (non-template)
@@ -19,7 +19,7 @@ use System;
 element Foo {
   System s;
   Bool first;
-  Soo su;
+  Soo(1,2) su;
   Int test() {
     Foo f;
 
@@ -42,14 +42,14 @@ element Foo {
 #:Soo.ulam
   ulam 1;
 use Coo;
-quark Soo : Coo {
+quark Soo(Int a, Unsigned b) : Coo(a) {
   Unsigned(3) us = 4u;
 }
 
 #:Coo.ulam
   ulam 1;
-quark Coo {
-  Bool(3) cb = true;
+quark Coo(Int a) {
+  Bool(a) cb = true; //use to be Bool(3)
 }
 
 #:System.ulam

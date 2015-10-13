@@ -99,6 +99,8 @@ namespace MFM{
 
     void parseRestOfClassParameters(SymbolClassNameTemplate * ctsym, NodeBlockClass * cblock);
 
+    bool parseRestOfClassInheritance(SymbolClassName * cnsym, SymbolClassName *& supercnsym, UTI& superuti);
+
     /**
        <DATA_MEMBERS> := ( 0 | <FUNC_DEF> | <PARAMETER_DEF> + ';' | <TYPE_DEF> + ';'| <CONST_DEF> + ';' )*
      */

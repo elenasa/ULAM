@@ -5,7 +5,7 @@
 ## (gencode) NULL_POINTER due to model parameter
 ##
 Exit status: 3
-Ue_Foo : Ue_Soo { :< Unsigned(3) us(4); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  Foo f;  f mp(7u) . cast return } }
+Ue_Foo : Soo { :< Unsigned(3) us(4); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  Foo f;  f mp(7u) . cast return } }
 Ue_Soo { Unsigned(3) us( 4u); parameter Unary(4) mp = 7u;  <NOMAIN> }
 ##
 ##  test of class inheritance, regular (non-template), with Model Parameter

@@ -137,8 +137,11 @@ namespace MFM {
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
       csym->setSuperClass(superclass); //Nav is none, not a subclass.
-    //not found???
-    assert(0);
+    else if(instance == getUlamTypeIdx())
+      SymbolClass::setSuperClass(superclass); //instance is template definition
+    else
+      //not found???
+      assert(0);
   } //setSuperClassForClassInstance
 
   UTI SymbolClassNameTemplate::getSuperClassForClassInstance(UTI instance)
@@ -146,6 +149,8 @@ namespace MFM {
     SymbolClass * csym = NULL;
     if(findClassInstanceByUTI(instance, csym))
       return csym->getSuperClass(); //Nav is none, not a subclass.
+    else if(instance == getUlamTypeIdx())
+      return SymbolClass::getSuperClass(); //instance is template definition
     return false;
   } //getSuperClassForClassInstance
 
@@ -371,7 +376,8 @@ namespace MFM {
 	      }
 
 	    //importantly, also link the class instance's class block to the classsymbolname's.
-	    cblock->setPreviousBlockPointer(getClassBlockNode());
+	    // later, during c&l if a subclass, the previous ptr is the class block of the superclass
+	    //cblock->setPreviousBlockPointer(getClassBlockNode());
 	    it++;
 	  } //while
       } //any class instances
@@ -724,7 +730,7 @@ namespace MFM {
 	// first time for this cuti, and ready args!
 	m_state.pushClassContext(cuti, NULL, NULL, false, NULL);
 	mapInstanceUTI(cuti, getUlamTypeIdx(), cuti); //map template->instance, instead of fudging.
-	SymbolClass * clone = new SymbolClass(*this);
+	SymbolClass * clone = new SymbolClass(*this); // no longer a stub!
 
 	//at this point we have a NodeBlockClass! update the context
 	//keep the template's location (for targetmap)
@@ -758,7 +764,7 @@ namespace MFM {
       } //while
 
     // done with iteration; go ahead and merge any entries into the non-temp map
-    //mergeClassInstancesFromTEMP();
+    //mergeClassInstancesFromTEMP(); //try at end as well for inherited stubs.
     return aok;
   } //fullyInstantiate
 
@@ -796,7 +802,7 @@ namespace MFM {
 	assert(classNode);
 	m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
 
-	classNode->findNodeNo(n, foundNode); // classblock node no IS the same across instances
+	classNode->findNodeNo(n, foundNode); //classblock node no IS the same across instances
 
 	//if not in the tree, ask the resolver
 	if(!foundNode)

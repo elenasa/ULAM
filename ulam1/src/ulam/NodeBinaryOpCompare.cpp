@@ -22,13 +22,13 @@ namespace MFM {
 	u32 errCnt = 0;
 	if(UlamType::compare(rightType, newType, m_state) != UTIC_SAME)
 	  {
-	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      errCnt++;
 	  }
 
 	if(UlamType::compare(leftType, newType, m_state) != UTIC_SAME)
 	  {
-	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      errCnt++;
 	  }
 

@@ -76,6 +76,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    UTI getNodeType();
+
     virtual UTI checkAndLabelType();
 
     bool checkParameterNodeTypes();

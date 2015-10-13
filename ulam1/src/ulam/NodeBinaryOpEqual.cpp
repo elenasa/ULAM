@@ -110,7 +110,7 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		newType = Nav; //error
 	      }
-	    else if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    else if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav; //error
 	  }
       }

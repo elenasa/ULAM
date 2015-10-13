@@ -2,8 +2,8 @@
 #=t3533_test_compiler_elementinheritanceswithfunc_nonlocaluse
 #!
 Exit status: 77
-Ue_Foo : Ue_Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  ( )check cond us cast a +b return if 0 cast return } }
-Ue_Soo : Ue_Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  ( )check cond us cast a +b return if 0 cast return } }
+Ue_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Ue_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
 ## chained class inheritance, regular (non-template), with a function call
