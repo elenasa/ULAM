@@ -1,8 +1,8 @@
-[Development version: ulam-1.2.3]
+[Development version: ulam-1.2.4]
 
 <LIBRARY> := <PROGRAM_DEF>* + <EOF>
 <PROGRAM_DEF> := <QUARK_OR_UNION_DEF> | <ELEMENT_DEF>
-<ELEMENT_DEF> := 'element' + <ELEMENT_IDENT> + ( 0 | ':' + <ELEMENT_INSTANCE> ) + <CLASS_BLOCK>
+<ELEMENT_DEF> := 'element' + <ELEMENT_IDENT> + ( 0 | ':' + <QUARK_OR_UNION_INSTANCE> ) + <CLASS_BLOCK>
 <ELEMENT_IDENT> := <TYPE_IDENT> + ( 0 | '(' + <CLASS_PARAM_DECLS> + ')' )
 <ELEMENT_INSTANCE> := <TYPE_IDENT> + ( 0 | '(' + <CLASS_ARGS> + ')' )
 <QUARK_OR_UNION_DEF> := ('quark' | 'union') + <QUARK_OR_UNION_IDENT> +
