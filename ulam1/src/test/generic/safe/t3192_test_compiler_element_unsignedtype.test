@@ -6,7 +6,7 @@
 ## Unsigned Arg: 1
 ##
 Exit status: 1
-Ue_Foo { System s();  Unsigned(1) m_array[7](0,1,0,0,0,0,0);  Int(32) test() {  m_array 1 [] 1 cast = s ( m_array 0 [] cast )print . s ( m_array 1 [] cast )print . m_array 1 [] cast return } }
+Ue_Foo { System s();  Unsigned(1) m_array[7](0u,1u,0u,0u,0u,0u,0u);  Int(32) test() {  m_array 1 [] 1 cast = s ( m_array 0 [] cast )print . s ( m_array 1 [] cast )print . m_array 1 [] cast return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
 ulam 1;

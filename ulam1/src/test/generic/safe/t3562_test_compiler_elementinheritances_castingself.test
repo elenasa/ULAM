@@ -2,13 +2,15 @@
 #=t3562_test_compiler_elementinheritances_castingself
 #!
 ## gencode output:
-## Bool(3) Arg: 0x7 (true)
+##Unsigned Arg: 2
+##Unsigned Arg: 3
+##Unsigned Arg: 7
 ##
-Exit status: 77
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4); > Bool(7) sp(true);  Int(32) a(73);  Int(32) test() {  System s;  Coo c;  c self cast = c cb . cond { sp c cb . cast = s ( c cb . )print . us cast a +b return } if 0 cast return } }
+Exit status: 10
+Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) us(3u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  ( 3u cast )setus Coo cc;  cc self cast = s ( cc us . cast )print . cc ( 7u )setus . cc cb . cond { s ( us cast )print . s ( cc us . cast )print . us cast cc us . cast +b cast return } if 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
-Ue_Coo { Bool(3) cb( true);  <NOMAIN> }
+Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 ##
 ## chained class inheritance, regular (non-template), with casting self
 ## informed by t3559, t3229
@@ -20,15 +22,24 @@ use Soo;
 element Foo : Soo {
   Bool(7) sp;
   Int a = 73;
+  Void setus(Unsigned(3) x)
+  {
+    us = x;
+  }
+
   Int test() {
     System s;
-    Coo c = (Coo) self;
-    if(c.cb)
-    {
-      sp = c.cb;
-      s.print(c.cb);
-      return us + a;
-    }
+    setus(3u);
+    Coo cc = (Coo) self; //also works
+    s.print(cc.us); //default 2u
+    cc.setus(7u);
+
+    if(cc.cb)
+      {
+	s.print(us); //3u
+	s.print(cc.us); //7u
+	return us + cc.us; //exit status 10
+      }
     return 0;
   }
 }
@@ -36,14 +47,23 @@ element Foo : Soo {
 #:Soo.ulam
   ulam 1;
 use Coo;
-element Soo : Coo {
+quark Soo : Coo {
   Unsigned(3) us = 4u;
+  Void setus(Unsigned(3) x)
+  {
+    us = x;
+  }
 }
 
 #:Coo.ulam
   ulam 1;
-element Coo {
+quark Coo {
+  Unsigned(3) us = 2u;
   Bool(3) cb = true;
+  Void setus(Unsigned(3) x)
+  {
+    us = x;
+  }
 }
 
 #:System.ulam

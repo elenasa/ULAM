@@ -5,10 +5,10 @@
 ## Bool(3) Arg: 0x7 (true)
 ##
 Exit status: 77
-Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4); > Bool(7) sp(true);  Int(32) a(73);  Int(32) test() {  System s;  Foo f;  Coo c;  c f cast = c cb . cond { sp c cb . cast = s ( c cb . )print . f us . cast f a . +b return } if 0 cast return } }
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(7) sp(true);  Int(32) a(73);  Int(32) test() {  System s;  Foo f;  Coo c;  c cb . cond { sp c cb . cast = s ( c cb . )print . f us . cast f a . +b return } if 0 cast return } }
 Uq_System { <NOMAIN> }
-Ue_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
-Ue_Coo { Bool(3) cb( true);  <NOMAIN> }
+Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 ##
 ## chained class inheritance, regular (non-template), with casting
 ## informed by t3229
@@ -23,10 +23,10 @@ element Foo : Soo {
   Int test() {
     System s;
     Foo f;
-    Coo c = (Coo) f;
+    Coo c; //BAD_CAST: = (Coo) f;
     if(c.cb)
     {
-      sp = c.cb; //inf loop!!!
+      sp = c.cb; //was inf loop!!!
       s.print(c.cb);
       return f.us + f.a;
     }
@@ -37,13 +37,13 @@ element Foo : Soo {
 #:Soo.ulam
   ulam 1;
 use Coo;
-element Soo : Coo {
+quark Soo : Coo {
   Unsigned(3) us = 4u;
 }
 
 #:Coo.ulam
   ulam 1;
-element Coo {
+quark Coo {
   Bool(3) cb = true;
 }
 

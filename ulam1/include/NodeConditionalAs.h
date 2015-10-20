@@ -68,7 +68,7 @@ namespace MFM{
   protected:
 
   private:
-    void genCodeAsQuark(File * fp, UlamValue& uvpass);
+    //void genCodeAsQuark(File * fp, UlamValue& uvpass);
 
     void genCodeAsElement(File * fp, UlamValue& uvpass);
 

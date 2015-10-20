@@ -105,7 +105,7 @@ namespace MFM {
 
     UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
 
-    // DO 'AS': rtype quark 'has'; rtype element 'is'
+    // DO 'AS': rtype quark 'is' related (was 'has'); rtype element 'is'
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
@@ -115,14 +115,18 @@ namespace MFM {
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(rclasstype == UC_QUARK)
       {
-	SymbolClass * csym = NULL;
-	s32 posFound = -1;
+	//SymbolClass * csym = NULL;
+	//s32 posFound = -1;
 
-	if(m_state.alreadyDefinedSymbolClass(luti, csym))
+	//if(m_state.alreadyDefinedSymbolClass(luti, csym))
+	//  {
+	//    NodeBlockClass * classNode = csym->getClassBlockNode();
+	//    assert(classNode);
+	//    posFound = classNode->findUlamTypeInTable(ruti);
+	//  }
+	if(m_state.isClassASuperclassOf(luti, ruti))
 	  {
-	    NodeBlockClass * classNode = csym->getClassBlockNode();
-	    assert(classNode);
-	    posFound = classNode->findUlamTypeInTable(ruti);
+	    asit = true;
 	  }
 	else
 	  {
@@ -145,7 +149,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
-	asit = (posFound >= 0);
+	//asit = (posFound >= 0);
       }
     else if(rclasstype == UC_ELEMENT)
       {
@@ -165,6 +169,9 @@ namespace MFM {
   void NodeConditionalAs::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft);
+    return genCodeAsElement(fp, uvpass);
+#if 0
+    // no longer support as-has for quarks, now as-is-related quark
     UTI ruti = getRightType();
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
 
@@ -174,8 +181,12 @@ namespace MFM {
       return genCodeAsElement(fp, uvpass);
     else
       assert(0);
+#endif
   } //genCode
 
+#if 0
+  // no longer used!!!
+  // see below, special case of 'is'
   void NodeConditionalAs::genCodeAsQuark(File * fp, UlamValue& uvpass)
   {
     UTI nuti = getNodeType();
@@ -244,6 +255,7 @@ namespace MFM {
     m_state.m_genCodingConditionalAs = true;
     //m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ???
   } //genCodeAsQuark
+#endif
 
   void NodeConditionalAs::genCodeAsElement(File * fp, UlamValue& uvpass)
   {
@@ -274,19 +286,41 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs).c_str());
     fp->write(" = ");
 
-    fp->write(rut->getUlamTypeMangledName().c_str());
     if(rclasstype == UC_ELEMENT)
-      fp->write("<EC>::THE_INSTANCE.");
+      {
+	fp->write(rut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::THE_INSTANCE.");
+	fp->write(m_state.getAsMangledFunctionName(luti, ruti));
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
+	fp->write(");\n");
+      }
     // not possible!! we already know rhs is an element
-    //    else if(rclasstype == UC_QUARK)
-    //  fp->write("<EC,POS>::");
+    else if(rclasstype == UC_QUARK)
+      {
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+	if(lclasstype == UC_ELEMENT)
+	  {
+	    fp->write(lut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::THE_INSTANCE.");
+	    // uses UlamElement isMethod to de-reference a lhs atom
+	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
+	    fp->write("("); //one arg
+	  }
+	else
+	  {
+	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
+	    fp->write("(uc, ");
+	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
+	    fp->write(".GetType(), "); //from tmpvar T
+	  }
+	fp->write("\"");
+	fp->write(rut->getUlamTypeMangledName().c_str());
+	fp->write("\");\n");
+      }
     else
       assert(0);
-
-    fp->write(methodNameForCodeGen().c_str()); //mangled
-    fp->write("(uc, ");
-    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
-    fp->write(");\n");
 
     //update uvpass, include lhs name id
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());

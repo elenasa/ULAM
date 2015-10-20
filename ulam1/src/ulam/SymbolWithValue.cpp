@@ -111,12 +111,12 @@ namespace MFM {
 	    {
 	      if(twordsize <= MAXBITSPERINT)
 		{
-		  s32 sval = _Int32ToInt32((u32) val, tbs, MAXBITSPERINT);
+		  s32 sval = _Int32ToCs32((u32) val, tbs);
 		  fp->write_decimal(sval);
 		}
 	      else if(twordsize <= MAXBITSPERLONG)
 		{
-		  s64 sval = _Int64ToInt64(val, tbs, MAXBITSPERLONG);
+		  s64 sval = _Int64ToCs64(val, tbs);
 		  fp->write_decimal_long(sval);
 		}
 	      else
@@ -133,21 +133,18 @@ namespace MFM {
 	    }
 	    break;
 	  case Unary:
-	    {
-	      s32 pval = _Unary64ToInt64(val, tbs, MAXBITSPERINT);
-	      fp->write_decimal(pval);
-	    }
-	    break;
 	  case Unsigned:
 	  case Bits:
 	    {
-	      //oddly write_decimal wants a signed int..
+	      // NO CASTING NEEDED, assume saved in its ulam-native format
+	      //oddly write_decimal wants a signed int..use new write_decimal_unsigned
 	      if( tbs <= MAXBITSPERINT)
-		fp->write_decimal((s32) val);
+		fp->write_decimal_unsigned(val);
 	      else if( tbs <= MAXBITSPERLONG)
-		fp->write_decimal_long((s64) val);
+		fp->write_decimal_unsignedlong(val);
 	      else
 		assert(0);
+	      fp->write("u");
 	    }
 	    break;
 	  default:

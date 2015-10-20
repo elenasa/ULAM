@@ -51,6 +51,8 @@ namespace MFM {
   static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
 
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
+  static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::IsMethod"; //Uf_2is
+
   static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
   static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
 
@@ -1638,8 +1640,11 @@ namespace MFM {
     return CUSTOMARRAY_SET_MANGLEDNAME;
   }
 
-  const char * CompilerState::getIsMangledFunctionName()
+  const char * CompilerState::getIsMangledFunctionName(UTI ltype)
   {
+    if(ltype == UAtom)
+      return IS_MANGLED_FUNC_NAME_FOR_ATOM;
+
     return IS_MANGLED_FUNC_NAME;
   }
 
@@ -1654,11 +1659,12 @@ namespace MFM {
   {
     ULAMCLASSTYPE rclasstype = getUlamTypeByIndex(rtype)->getUlamClass();
     if(rclasstype == UC_QUARK)
-      return getHasMangledFunctionName(ltype);
+      return getIsMangledFunctionName(ltype);
     else if (rclasstype == UC_ELEMENT)
       return IS_MANGLED_FUNC_NAME;
     else
       assert(0);
+
     return "AS_ERROR";
   } //getAsMangledFunctionName
 

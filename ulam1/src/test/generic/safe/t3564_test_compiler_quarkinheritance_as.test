@@ -3,10 +3,10 @@
 #!
 ## gencode output:
 ## Bool(3) Arg: 0x7 (true)
-## Unsigned Arg: 3
+## Unsigned Arg: 7
 ##
 Exit status: 3
-Ue_Foo { System s();  Bool(1) first(true);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4); );  Int(32) test() {  Foo f;  f Coo as cond { Coo f;  first f cb . cast = s ( first cast )print . s ( 3u )print . 3u cast return } if 0 cast return } }
+Ue_Foo { System s();  Bool(1) first(true);  Soo su( :< Bool(3) cb(true); > Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  f Coo has cond { first f su cb . . cast = s ( first cast )print . s ( 7u )print . 3u cast return } if 0 cast return } }
 Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -24,12 +24,13 @@ element Foo {
   Soo su;
   Int test() {
     Foo f;
-    if(f as Coo)
+    //'as' doesnt work with 'has'
+    if(f has Coo)
     {
-      first = f.cb;
+      first = f.su.cb;
       s.print(first);
       s.print(f.sizeof);
-      return f.sizeof;
+      return Coo.sizeof;
     }
     return 0;
   }

@@ -12,7 +12,7 @@
 ##      // constant folded: 3 1 +b, and 2 4 *,
 ##
 Exit status: 5
-Ue_A { Bool(1) b(true);  System s();  Unary(6) sp(0);  Int(32) j(5);  Int(32) i(5);  Int(32) test() {  j 4 cast = s ( j )print . { j j 1 cast +b = s ( j )print . Int(32) j;  j 8 cast = s ( j )print . b j 8 cast == = s ( b )assert . } i j = s ( i )print . j return } }
+Ue_A { Bool(1) b(true);  System s();  Unary(6) sp(0u);  Int(32) j(5);  Int(32) i(5);  Int(32) test() {  j 4 cast = s ( j )print . { j j 1 cast +b = s ( j )print . Int(32) j;  j 8 cast = s ( j )print . b j 8 cast == = s ( b )assert . } i j = s ( i )print . j return } }
 Uq_System { <NOMAIN> }
 ##      //requires new grammar: tests scope
 ##

@@ -263,18 +263,21 @@ namespace MFM {
 	assert(superblock);
 
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClass();
-	ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
-	if(superclasstype != classtype)
+	//ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
+	//if(superclasstype != classtype)
+	if(superclasstype != UC_QUARK)
 	  {
 	    std::ostringstream msg;
 	    msg << "Subclass '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << "' inherits from '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-	    msg << "', a class of a different type";
+	    //	    msg << "', a class of a different type";
+	    msg << "', a class that's not a quark";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	  }
+
       } //done with inheritance checks, continue.
 
     //do first, might be important!
@@ -1017,21 +1020,25 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("//BUILT-IN FUNCTIONS:\n\n");
 
-    // 'has' is for both class types
-    genCodeBuiltInFunctionHas(fp, declOnly, classtype);
-    genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
-
     //generate 3 UlamClass:: methods for smart ulam debugging
     u32 dmcount = 0; //pass ref
     generateUlamClassInfoFunction(fp, declOnly, dmcount);
     generateUlamClassInfoCount(fp, declOnly, dmcount); //after dmcount is updated by nodes
     generateUlamClassGetMangledName(fp, declOnly);
 
+    genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
+
+    // 'has' is for both class types
+    genCodeBuiltInFunctionHas(fp, declOnly, classtype);
+
+    // 'is' quark related for both class types; overloads is-Method with namearg
+    genCodeBuiltInFunctionIsMethodQuarkRelated(fp, declOnly, classtype);
+
     // 'is' is only for element/classes
     if(classtype == UC_ELEMENT)
       {
 	generateInternalIsMethodForElement(fp, declOnly);
-	generateInternalGetAncestorMethodForElement(fp, declOnly);
+	//generateInternalGetAncestorMethodForElement(fp, declOnly); //no longer needed
 	generateInternalTypeAccessorsForElement(fp, declOnly);
       }
   } //generateCodeForBuiltInClassFunctions
@@ -1093,6 +1100,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::genCodeBuiltInFunctionHasDataMembers(File * fp)
   {
+    //first, ours (any that may shadow)
+    m_ST.genCodeBuiltInFunctionHasOverTableOfVariableDataMember(fp);
+
     UTI superuti = m_state.isClassASubclass(getNodeType());
     if(superuti != Nav)
       {
@@ -1102,15 +1112,89 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	superClassBlock->genCodeBuiltInFunctionHasDataMembers(fp);
 
 	//include superclass also
+	//UlamType * superut = m_state.getUlamTypeByIndex(superuti);
+	//m_state.indent(fp);
+	//fp->write("if(!strcmp(namearg,\"");
+	//fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
+	//fp->write("\")) return ");
+	//fp->write("(0); //inherited offset\n");
+      }
+  } //genCodeBuiltInFunctionHasDataMembers
+
+  void NodeBlockClass::genCodeBuiltInFunctionIsMethodQuarkRelated(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    //'has' applies to both quarks and elements
+    UTI cuti = m_state.getCompileThisIdx();
+
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("//helper method not called directly\n");
+
+	m_state.indent(fp);
+	fp->write("bool ");
+	fp->write(m_state.getIsMangledFunctionName(cuti));
+	fp->write("(const char * namearg) const;\n\n"); //overloaded for quark ancestors
+	return;
+      }
+
+    m_state.indent(fp);
+    if(classtype == UC_ELEMENT)
+      fp->write("template<class EC>\n");
+    else if(classtype == UC_QUARK)
+      fp->write("template<class EC, u32 POS>\n");
+    else
+      assert(0);
+
+    m_state.indent(fp);
+    fp->write("bool "); //return true if related
+
+    //include the mangled class::
+    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    if(classtype == UC_ELEMENT)
+      fp->write("<EC>");
+    else if(classtype == UC_QUARK)
+      fp->write("<EC, POS>");
+
+    fp->write("::");
+    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("(const char * namearg) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    genCodeBuiltInFunctionIsRelatedQuarkType(fp);
+
+    fp->write("\n");
+    m_state.indent(fp);
+    fp->write("return ");
+    fp->write("(false);   //not found\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //is-related-quark\n\n");
+  } //genCodeBuiltInFunctionIsMethodQuarkRelated
+
+  void NodeBlockClass::genCodeBuiltInFunctionIsRelatedQuarkType(File * fp)
+  {
+    UTI superuti = m_state.isClassASubclass(getNodeType());
+    if(superuti != Nav)
+      {
+	//first include superclass
 	UlamType * superut = m_state.getUlamTypeByIndex(superuti);
 	m_state.indent(fp);
 	fp->write("if(!strcmp(namearg,\"");
 	fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-	fp->write("\")) return ");
-	fp->write("(0); //inherited offset\n");
+	fp->write("\")) return(true); //inherited quark\n");
+
+	//then include any of its relatives:
+	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+	assert(superClassBlock);
+	superClassBlock->genCodeBuiltInFunctionIsRelatedQuarkType(fp);
       }
-    m_ST.genCodeBuiltInFunctionHasOverTableOfVariableDataMember(fp);
-  } //genCodeBuiltInFunctionHasDataMembers
+    //    m_ST.genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(fp);
+  } //genCodeBuiltInFunctionIsRelatedQuarkType
 
   void NodeBlockClass::genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
@@ -1234,6 +1318,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {
+    UTI cuti = getNodeType();
+
     if(declOnly)
       {
 	m_state.indent(fp);
@@ -1241,8 +1327,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.indent(fp);
 	fp->write("bool ");
-	fp->write(m_state.getIsMangledFunctionName());
-	fp->write("(UlamContext<EC>& uc, const T& targ) const;\n\n");
+	fp->write(m_state.getIsMangledFunctionName(cuti));
+	fp->write("(const T& targ) const;\n\n");
 	return;
       }
 
@@ -1251,18 +1337,21 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("bool "); //return pos offset, or -1 if not found
 
-    UTI cuti = getNodeType();
     //include the mangled class::
     fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 
     fp->write("<EC>::");
-    fp->write(m_state.getIsMangledFunctionName());
-    fp->write("(UlamContext<EC>& uc, const T& targ) const\n");
+    fp->write(m_state.getIsMangledFunctionName(cuti));
+    fp->write("(const T& targ) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
+    fp->write("return (THE_INSTANCE.GetType() == targ.GetType());\n");
+
+#if 0
+    //no longer supporting element-element inheritance
     fp->write("if(THE_INSTANCE.GetType() == targ.GetType()) return true;\n\n");
 
     m_state.indent(fp);
@@ -1325,12 +1414,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.indent(fp);
     fp->write("return rtnIs;\n");
+#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //isMethod\n\n");
   } //generateInternalIsMethodForElement
 
+  //unused
   void NodeBlockClass::generateInternalGetAncestorMethodForElement(File * fp, bool declOnly)
   {
     if(declOnly)
@@ -1357,6 +1448,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
+
+#if 0
+    //supported element inheriting from elements
     UTI superuti = m_state.isClassASubclass(cuti);
     if(superuti == Nav)
       fp->write("return NULL;\n");
@@ -1366,6 +1460,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(m_state.getUlamTypeByIndex(superuti)->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::THE_INSTANCE;\n");
       }
+#else
+    fp->write("return NULL;\n"); //inherit from quarks
+#endif
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1378,6 +1475,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	m_state.indent(fp);
 	fp->write("const u32 ReadTypeField(const BV bv);\n\n");
+	m_state.indent(fp);
 	fp->write("void WriteTypeField(BV& bv, const u32 v);\n\n");
 	return;
       }
