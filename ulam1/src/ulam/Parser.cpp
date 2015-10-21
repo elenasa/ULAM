@@ -1156,11 +1156,12 @@ namespace MFM {
 	if(!(rtnNode = parseIdentExpr(iTok)))
 	  return parseExpression(); //continue as parseAssignExpr
 
-	//next check for 'as' only (is-has are Factors now)
+	//next check for 'as' and 'has' ('is' is a Factor)
 	Token cTok;
 	getNextToken(cTok);
 	unreadToken();
-	if(cTok.m_type == TOK_KW_AS)
+	//if(cTok.m_type == TOK_KW_AS)
+	if( (cTok.m_type == TOK_KW_AS) || (cTok.m_type == TOK_KW_HAS))
 	  {
 	    m_state.saveIdentTokenForConditionalAs(iTok); //sets m_state.m_parsingConditionalAs
 	    rtnNode = makeConditionalExprNode(rtnNode); //done, could be NULL
@@ -2651,7 +2652,8 @@ namespace MFM {
 	  Token tTok;
 	  getNextToken(tTok);
 	  unreadToken();
-	  if(tTok.m_type == TOK_KW_IS || tTok.m_type == TOK_KW_HAS)
+	  //if(tTok.m_type == TOK_KW_IS || tTok.m_type == TOK_KW_HAS)
+	  if(tTok.m_type == TOK_KW_IS)
 	    rtnNode = parseRestOfFactor(rtnNode);
 	}
 	break;
@@ -2726,7 +2728,7 @@ namespace MFM {
 	rtnNode = makeFactorNode();
 	break;
       case TOK_KW_IS:
-      case TOK_KW_HAS:
+	//case TOK_KW_HAS:
 	unreadToken();
 	assert(leftNode);
 	rtnNode = makeConditionalExprNode(leftNode);
@@ -2980,7 +2982,7 @@ namespace MFM {
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
       case TOK_KW_IS:
-      case TOK_KW_HAS:
+	//case TOK_KW_HAS:
 	unreadToken();
 	rtnNode = parseRestOfFactor(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more?

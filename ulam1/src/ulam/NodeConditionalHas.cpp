@@ -36,7 +36,6 @@ namespace MFM {
     UTI newType = Bool;
 
     UTI luti = m_nodeLeft->checkAndLabelType(); //side-effect
-    //assert(m_state.isScalar(luti));
 
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE lclasstype = lut->getUlamClass();
@@ -151,6 +150,86 @@ namespace MFM {
     return evs;
   } //eval
 
+  // use to be quark rhs case of 'as'
+  void NodeConditionalHas::genCode(File * fp, UlamValue& uvpass)
+  {
+    UTI nuti = getNodeType();
+    UTI ruti = getRightType();
+    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
+    s32 tmpVarAs = m_state.getNextTmpVarNumber();
+
+    UlamValue luvpass;
+    m_nodeLeft->genCodeToStoreInto(fp, luvpass); //No need to load lhs into tmp (T); symbol's in COS vector
+    UTI luti = luvpass.getUlamValueTypeIdx();
+    assert(luti == Ptr);
+    luti = luvpass.getPtrTargetType(); //replaces
+
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    Symbol * stgcos = NULL;
+    stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+    // atom is a special case since we have to learn its element type at runtime
+    // before interrogating if it 'as' a particular QuarkName Type; return signed pos.
+    if(luti == UAtom)
+      {
+	m_state.indent(fp);
+	fp->write("const s32 ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarAs).c_str());;
+	fp->write(" = ");
+	//UlamElement<EC> internal method, takes uc, u32 and const char*, returns s32
+	fp->write(methodNameForCodeGen().c_str());
+	fp->write("(");
+	fp->write("uc, ");
+	Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
+	if(stgcos->isSelf())
+	  fp->write("GetType(), "); //no read for self
+	else
+	  fp->write("read().GetType(), ");
+
+	fp->write("\"");
+	fp->write(rut->getUlamTypeMangledName().c_str());
+	fp->write("\");\n"); //keeping pos in tmp
+      }
+    else  //not an atom
+      {
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+
+	m_state.indent(fp);
+	fp->write("const s32 ");
+	fp->write(m_state.getTmpVarAsString(nuti, tmpVarAs).c_str());
+	fp->write(" = ");
+
+	fp->write("(");
+	fp->write(lut->getUlamTypeMangledName().c_str());
+	//	fp->write("<EC>::");
+	if(lclasstype == UC_ELEMENT)
+	  fp->write("<EC>::THE_INSTANCE.");
+	else if(lclasstype == UC_QUARK)
+	  fp->write("<EC,POS>::");
+	else
+	  assert(0);
+
+	fp->write(methodNameForCodeGen().c_str()); //mangled-hAs
+	fp->write("(\"");
+	fp->write(rut->getUlamTypeMangledName().c_str());
+	fp->write("\"));\n"); //keeping pos in tmp
+      }
+
+    //update uvpass, include lhs name id
+    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    u32 lid = m_state.m_currentObjSymbolsForCodeGen.back()->getId();
+    uvpass = UlamValue::makePtr(tmpVarAs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, lid); //POS 0 rightjustified (atom-based).
+
+    //indicate to NodeControl that the value returned in uvpass, still needs to be tested >=0,
+    //since its value represents the posoffset (+ FIRSTSTATEBIT) into T (in case of a quark).
+    m_state.m_genCodingConditionalAs = true;
+    //m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ???
+  } //genCode
+
+
+#if 0
+  //old version of 'has' returned Bool only
   void NodeConditionalHas::genCode(File * fp, UlamValue& uvpass)
   {
     assert(m_nodeLeft);
@@ -217,5 +296,7 @@ namespace MFM {
     uvpass = UlamValue::makePtr(tmpVarHas, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCode
+#endif
+
 
 } //end MFM

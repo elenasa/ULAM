@@ -12,8 +12,8 @@
 ##      //./Foo.ulam:17:4: ERROR: Cannot cast to type: Foo (UTI16); use Conditional-As.
 ##      //./Foo.ulam:17:4: ERROR: Cannot CAST type: Atom(96) as a Foo(39)<16>.
 #!
-Exit status: 3
-Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(3);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  b a System has = s ( b ! )assert . a f cast = a Foo is cond bi true cast = if b a System has = s ( b )assert . f a cast = f System has cond bh true cast = if d a System has cast 3 cast +b = d return } }
+Exit status: 0
+Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  b false = a System has cond { System a;  b true = } if s ( b ! )assert . a f cast = a Foo is cond bi true cast = if a System has cond { System a;  b true = } if s ( b )assert . f a cast = f System has cond { System f;  bh true cast = } if d return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
 ##      // 'a has System' doesn't apply to eval because atoms have no class declarations; but testable for gencode
@@ -26,18 +26,20 @@ element Foo {
   Int test(){
     Atom a;
     Foo f;
-    Bool b;
-    b=a has System;
+    Bool b = false;
+    if(a has System)
+      b = true;
     s.assert(!b);
     a = f; //easy
     if(a is Foo)
       bi = true;
-    b=a has System;
+    if(a has System)
+      b = true;
     s.assert(b);
     f = (Foo) a; //make sure a is a foo
     if(f has System)
       bh = true;
-    d = (Int) (a has System) + 3;
+    //    d = (Int) (a has System) + 3;
     return d;
   }
 }
