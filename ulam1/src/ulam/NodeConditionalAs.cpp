@@ -115,15 +115,6 @@ namespace MFM {
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(rclasstype == UC_QUARK)
       {
-	//SymbolClass * csym = NULL;
-	//s32 posFound = -1;
-
-	//if(m_state.alreadyDefinedSymbolClass(luti, csym))
-	//  {
-	//    NodeBlockClass * classNode = csym->getClassBlockNode();
-	//    assert(classNode);
-	//    posFound = classNode->findUlamTypeInTable(ruti);
-	//  }
 	if(m_state.isClassASuperclassOf(luti, ruti))
 	  {
 	    asit = true;
@@ -149,7 +140,6 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
 	  }
-	//asit = (posFound >= 0);
       }
     else if(rclasstype == UC_ELEMENT)
       {

@@ -202,7 +202,6 @@ namespace MFM {
 
 	fp->write("(");
 	fp->write(lut->getUlamTypeMangledName().c_str());
-	//	fp->write("<EC>::");
 	if(lclasstype == UC_ELEMENT)
 	  fp->write("<EC>::THE_INSTANCE.");
 	else if(lclasstype == UC_QUARK)
@@ -224,79 +223,6 @@ namespace MFM {
     //indicate to NodeControl that the value returned in uvpass, still needs to be tested >=0,
     //since its value represents the posoffset (+ FIRSTSTATEBIT) into T (in case of a quark).
     m_state.m_genCodingConditionalAs = true;
-    //m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ???
   } //genCode
-
-
-#if 0
-  //old version of 'has' returned Bool only
-  void NodeConditionalHas::genCode(File * fp, UlamValue& uvpass)
-  {
-    assert(m_nodeLeft);
-    UTI nuti = getNodeType();
-    UTI ruti = getRightType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    UlamType * rut = m_state.getUlamTypeByIndex(ruti);
-
-    UlamValue luvpass;
-    m_nodeLeft->genCodeToStoreInto(fp, luvpass); //NO need to load lhs into tmp (T)
-    UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
-    luti = luvpass.getPtrTargetType(); //replace
-
-    s32 tmpVarHas = m_state.getNextTmpVarNumber();
-
-    // atom is a special case since we have to learn its element type at runtime
-    // before interrogating if it 'has' a particular QuarkName Type.
-    if(luti == UAtom)
-      {
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32
-	fp->write(" "); //e.g. u32
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarHas).c_str());;
-	fp->write(" = (");
-	//UlamElement<EC> internal method, takes UC, u32 and const char*, returns s32
-	fp->write(methodNameForCodeGen().c_str());
-	fp->write("(");
-	fp->write("uc, ");
-	Node::genLocalMemberNameOfMethod(fp); //assume atom is a local var (neither dm nor ep)
-	fp->write("read().GetType(), ");
-	fp->write("\"");
-	fp->write(rut->getUlamTypeMangledName().c_str());
-	fp->write("\") >= 0);\n"); //bool as u32
-      }
-    else //not atom
-      {
-	UlamType * lut = m_state.getUlamTypeByIndex(luti);
-	ULAMCLASSTYPE lclasstype = lut->getUlamClass();
-
-	m_state.indent(fp);
-	fp->write("const ");
-	fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64, etc.
-	fp->write(" "); //e.g. u32, s32, u64, etc.
-	fp->write(m_state.getTmpVarAsString(nuti, tmpVarHas).c_str());
-	fp->write(" = ");
-
-	fp->write("(");
-	fp->write(lut->getUlamTypeMangledName().c_str());
-	if(lclasstype == UC_ELEMENT)
-	  fp->write("<EC>::THE_INSTANCE.");
-	else if(lclasstype == UC_QUARK)
-	  fp->write("<EC,POS>::");
-	else
-	  assert(0);
-
-	fp->write(methodNameForCodeGen().c_str()); //mangled
-	fp->write("(\"");
-	fp->write(rut->getUlamTypeMangledName().c_str());
-	fp->write("\") >= 0);\n");
-      }
-    //update uvpass
-    uvpass = UlamValue::makePtr(tmpVarHas, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
-  } //genCode
-#endif
-
 
 } //end MFM

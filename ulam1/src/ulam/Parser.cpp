@@ -1160,7 +1160,6 @@ namespace MFM {
 	Token cTok;
 	getNextToken(cTok);
 	unreadToken();
-	//if(cTok.m_type == TOK_KW_AS)
 	if( (cTok.m_type == TOK_KW_AS) || (cTok.m_type == TOK_KW_HAS))
 	  {
 	    m_state.saveIdentTokenForConditionalAs(iTok); //sets m_state.m_parsingConditionalAs
@@ -2652,7 +2651,6 @@ namespace MFM {
 	  Token tTok;
 	  getNextToken(tTok);
 	  unreadToken();
-	  //if(tTok.m_type == TOK_KW_IS || tTok.m_type == TOK_KW_HAS)
 	  if(tTok.m_type == TOK_KW_IS)
 	    rtnNode = parseRestOfFactor(rtnNode);
 	}
@@ -2728,7 +2726,6 @@ namespace MFM {
 	rtnNode = makeFactorNode();
 	break;
       case TOK_KW_IS:
-	//case TOK_KW_HAS:
 	unreadToken();
 	assert(leftNode);
 	rtnNode = makeConditionalExprNode(leftNode);
@@ -2982,7 +2979,6 @@ namespace MFM {
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
       case TOK_KW_IS:
-	//case TOK_KW_HAS:
 	unreadToken();
 	rtnNode = parseRestOfFactor(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more?

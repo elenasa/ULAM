@@ -263,8 +263,6 @@ namespace MFM {
 	assert(superblock);
 
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClass();
-	//ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
-	//if(superclasstype != classtype)
 	if(superclasstype != UC_QUARK)
 	  {
 	    std::ostringstream msg;
@@ -272,7 +270,6 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << "' inherits from '";
 	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
-	    //	    msg << "', a class of a different type";
 	    msg << "', a class that's not a quark";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
@@ -1038,7 +1035,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(classtype == UC_ELEMENT)
       {
 	generateInternalIsMethodForElement(fp, declOnly);
-	//generateInternalGetAncestorMethodForElement(fp, declOnly); //no longer needed
 	generateInternalTypeAccessorsForElement(fp, declOnly);
       }
   } //generateCodeForBuiltInClassFunctions
@@ -1110,14 +1106,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superClassBlock);
 	superClassBlock->genCodeBuiltInFunctionHasDataMembers(fp);
-
-	//include superclass also
-	//UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-	//m_state.indent(fp);
-	//fp->write("if(!strcmp(namearg,\"");
-	//fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-	//fp->write("\")) return ");
-	//fp->write("(0); //inherited offset\n");
       }
   } //genCodeBuiltInFunctionHasDataMembers
 
@@ -1350,124 +1338,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("return (THE_INSTANCE.GetType() == targ.GetType());\n");
 
-#if 0
-    //no longer supporting element-element inheritance
-    fp->write("if(THE_INSTANCE.GetType() == targ.GetType()) return true;\n\n");
-
-    m_state.indent(fp);
-    fp->write("//check targ for any ancestors that match\n");
-
-    m_state.indent(fp);
-    fp->write("bool rtnIs = false;\n");
-
-    // look up code follows UlamElement.tcc in PositionOfDataMember()
-    m_state.indent(fp);
-    fp->write("Tile<EC> & tile = uc.GetTile();\n");
-
-    m_state.indent(fp);
-    fp->write("ElementTable<EC> & et = tile.GetElementTable();\n");
-
-    m_state.indent(fp);
-    fp->write("const Element<EC> * eltptr = et.Lookup(targ.GetType());\n");
-
-    m_state.indent(fp);
-    fp->write("if(!eltptr) return false;\n");
-
-    m_state.indent(fp);
-    fp->write("const UlamElement<EC> * ueptr = eltptr->AsUlamElement();\n");
-
-    m_state.indent(fp);
-    fp->write("if(!ueptr) return false;\n");
-
-    m_state.indent(fp);
-    fp->write("ueptr = ueptr->GetAncestor();\n");
-
-    m_state.indent(fp);
-    fp->write("while(ueptr)\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("if(ueptr->GetType() == THE_INSTANCE.GetType())\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-
-    m_state.indent(fp);
-    fp->write("rtnIs = true;\n");
-    m_state.indent(fp);
-    fp->write("break;\n");
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n");
-
-    m_state.indent(fp);
-    fp->write("ueptr = ueptr->GetAncestor();\n");
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //end while\n");
-
-    m_state.indent(fp);
-    fp->write("return rtnIs;\n");
-#endif
-
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("} //isMethod\n\n");
   } //generateInternalIsMethodForElement
-
-  //unused
-  void NodeBlockClass::generateInternalGetAncestorMethodForElement(File * fp, bool declOnly)
-  {
-    if(declOnly)
-      {
-	m_state.indent(fp);
-	fp->write("virtual UlamElement<EC> * ");
-	fp->write("GetAncestor() const;\n\n");
-	return;
-      }
-
-    m_state.indent(fp);
-    fp->write("template<class EC>\n");
-    m_state.indent(fp);
-    fp->write("UlamElement<EC> * ");  //return NULL if not found
-
-    UTI cuti = getNodeType();
-    //include the mangled class::
-    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
-
-    fp->write("<EC>::");
-    fp->write("GetAncestor() const\n");
-    m_state.indent(fp);
-    fp->write("{\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-
-#if 0
-    //supported element inheriting from elements
-    UTI superuti = m_state.isClassASubclass(cuti);
-    if(superuti == Nav)
-      fp->write("return NULL;\n");
-    else
-      {
-	fp->write("return &");
-	fp->write(m_state.getUlamTypeByIndex(superuti)->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::THE_INSTANCE;\n");
-      }
-#else
-    fp->write("return NULL;\n"); //inherit from quarks
-#endif
-
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("} //GetAncestor\n\n");
-  } //generateInternalGetAncestorMethodForElement
 
   void NodeBlockClass::generateInternalTypeAccessorsForElement(File * fp, bool declOnly)
   {

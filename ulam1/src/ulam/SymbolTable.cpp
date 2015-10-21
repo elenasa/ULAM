@@ -590,7 +590,6 @@ namespace MFM {
     while(it != m_idToSymbolPtr.end())
       {
 	Symbol * sym = it->second;
-	//	if(sym->isTypedef() || sym->isConstant() || (sym->isDataMember() && !sym->isModelParameter()))
 	if(sym->isTypedef() || sym->isConstant() || sym->isModelParameter() || sym->isDataMember())
 	  {
 	    sym->printPostfixValuesOfVariableDeclarations(fp, slot, startpos, classtype);
