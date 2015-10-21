@@ -11,27 +11,27 @@ Ue_S(Int(32) x, Int(32) y) { constant Int(32) x = NONREADYCONST;  constant Int(3
 Uq_System { <NOMAIN> }
 ##    //informed by t3255
 #>S.ulam
- ulam 1;
+  ulam 1;
 use System;
- element S(Int x, Int y){
-System s;
-Bool(x+y) b1, b2;
- Bool func() {
- return (self is S(x,y));
-}
+element S(Int x, Int y){
+  System s;
+  Bool(x+y) b1, b2;
+  Bool func() {
+    return (self is S(x,y));
+  }
   Bool func(Atom d) {
- return (d is S(x,y));
+    return (d is S(x,y));
+  }
+  Int test() {
+    Atom a;
+    S(1,2) s12;
+    s12.b2 = s12.func();
+    s.print(s12.b2);
+    s12.b1 = s12.func(a);
+    s.print(s12.b1);
+    return (Int) s12.b2;
+  }
 }
- Int test() {
-Atom a;
-S(1,2) s12;
- s12.b2 = s12.func();
- s.print(s12.b2);
-s12.b1 = s12.func(a);
- s.print(s12.b1);
-return (Int) s12.b2;
- }
- }
 ##      // simple case: OK!  "Bool(x+y) b1, b2;" works!!
 ##      //bool rtn1 = fms->add("S.ulam"," ulam 1;\n element S(Int x, Int y){\nBool sp;\n Bool(x+y) b1, b2;\n Int test() {\nS(1,2) s;\n/*Atom a;\n a = self;\n self = a;\n*/ return 0;\n }\n }\n");
 ##

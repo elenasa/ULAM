@@ -39,6 +39,8 @@ namespace MFM {
   // replaces NodeTypedef:printPostfix to learn the values of Class' storage in center site
   void SymbolTypedef::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
+    if(getId() == m_state.m_pool.getIndexForDataString("Self")) return;
+
     UTI tuti = getUlamTypeIdx();
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);

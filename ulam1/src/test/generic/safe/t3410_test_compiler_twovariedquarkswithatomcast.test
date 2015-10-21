@@ -12,8 +12,8 @@
 ##      //eval self doesn't reflect correctly (see gen output): is an atom for quark's function call hidden arg
 ##
 Exit status: 0
-Ue_Foo { IntXY(1u,4u) q( constant Unsigned(32) xbits = 1u;  constant Unsigned(32) ybits = 4u;  typedef IntXY(1u,4u) Self;  typedef Unsigned(1) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(1) x(0u);  Unsigned(4) y(0u); );  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef IntXY(3u,4u) Self;  typedef Unsigned(3) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(3) x(2u);  Unsigned(4) y(3u); );  IntXY(2u,3u) p( constant Unsigned(32) xbits = 2u;  constant Unsigned(32) ybits = 3u;  typedef IntXY(2u,3u) Self;  typedef Unsigned(2) XCoord;  typedef Unsigned(3) YCoord;  Unsigned(2) x(0u);  Unsigned(3) y(0u); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 cast 2 cast )make . = s ( m x . cast )print . s ( m y . cast )print . m n ( 2 cast 3 cast )fromXY . = s ( n x . cast )print . s ( n y . cast )print . s ( m x . cast )print . s ( m y . cast )print . 0 cast return } }
-Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef IntXY(xbits,ybits) Self;  typedef Unsigned(UNKNOWN) XCoord;  typedef Unsigned(UNKNOWN) YCoord;  Unsigned(UNKNOWN) x(unknown);  Unsigned(UNKNOWN) y(unknown);  <NOMAIN> }
+Ue_Foo { IntXY(1u,4u) q( constant Unsigned(32) xbits = 1u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(1) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(1) x(0u);  Unsigned(4) y(0u); );  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(3) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(3) x(2u);  Unsigned(4) y(3u); );  IntXY(2u,3u) p( constant Unsigned(32) xbits = 2u;  constant Unsigned(32) ybits = 3u;  typedef Unsigned(2) XCoord;  typedef Unsigned(3) YCoord;  Unsigned(2) x(0u);  Unsigned(3) y(0u); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 cast 2 cast )make . = s ( m x . cast )print . s ( m y . cast )print . m n ( 2 cast 3 cast )fromXY . = s ( n x . cast )print . s ( n y . cast )print . s ( m x . cast )print . s ( m y . cast )print . 0 cast return } }
+Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Unsigned(UNKNOWN) XCoord;  typedef Unsigned(UNKNOWN) YCoord;  Unsigned(UNKNOWN) x(unknown);  Unsigned(UNKNOWN) y(unknown);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3408: here, n is surrounded by two other IntXY data members q and p.
@@ -44,38 +44,38 @@ System s;
 ##      //changed XCoord and YCoord to Unsigned types, because of the error below. Better since class args are Unsigned; used Int to print gen output with various bitsize prints defined. Added maxof test to do --x;
 ##      //./IntXY.ulam:27:19: ERROR: Attempting to fit a constant <1> into a smaller bit size type, LHS: Int(1), for binary operator+= .
 #:IntXY.ulam
-ulam 1;
+  ulam 1;
 quark IntXY(Unsigned xbits, Unsigned ybits) {
- typedef IntXY(xbits, ybits) Self;
- typedef Unsigned(xbits) XCoord;
- typedef Unsigned(ybits) YCoord;
- XCoord x;
- YCoord y;
- Self fromXY(Int x, Int y) {
- init(x,y);
- return (Self) self;
-}
- Self make(Int x, Int y) {
- Self ret;
- ret.init(x,y);
- return ret;
-}
-  Self makeAs(Int x, Int y) {
- if(self as Self){
- self.init(x,y);
- return self;
-}
- return (Self) self;
-}
- Void init(Int ax, Int ay) {
- x = (XCoord) ax;
- y = (YCoord) ay;
- if(x == x.minof) ++x;
- if(y == y.minof) ++y;
- if(x == x.maxof) --x;
- if(y == y.maxof) --y;
-}
+  typedef IntXY(xbits, ybits) Self;
+  typedef Unsigned(xbits) XCoord;
+  typedef Unsigned(ybits) YCoord;
+  XCoord x;
+  YCoord y;
+  Self fromXY(Int x, Int y) {
+    init(x,y);
+    return (Self) self;
   }
+  Self make(Int x, Int y) {
+    Self ret;
+    ret.init(x,y);
+    return ret;
+  }
+  Self makeAs(Int x, Int y) {
+    if(self as Self){
+      self.init(x,y);
+      return self;
+    }
+    return (Self) self;
+  }
+  Void init(Int ax, Int ay) {
+    x = (XCoord) ax;
+    y = (YCoord) ay;
+    if(x == x.minof) ++x;
+    if(y == y.minof) ++y;
+    if(x == x.maxof) --x;
+    if(y == y.maxof) --y;
+  }
+}
 #:System.ulam
 ulam 1;
 quark System {
