@@ -115,9 +115,9 @@ namespace MFM{
     bool m_gotStructuredCommentToken; // avoid testing uninitialized value
     Token m_precedingStructuredCommentToken; //for next class or parameter
 
-    bool m_parsingConditionalAs;          // used for Conditional-As parsing
-    Token m_identTokenForConditionalAs;   // used for Conditional-As parsing
-    bool m_genCodingConditionalAs; // used for Conditional-As code gen
+    bool m_parsingConditionalAs;          // used for Conditional-As/Has parsing
+    Token m_identTokenForConditionalAs;   // used for Conditional-As/Has parsing
+    bool m_genCodingConditionalHas; // used for Conditional-Has code gen
 
     CallStack m_funcCallStack;    //local variables and arguments
     UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
@@ -355,6 +355,8 @@ namespace MFM{
     u32 getCompileThisId();
 
     UTI getCompileThisIdx();
+
+    SymbolClass * getCurrentSelfSymbolForCodeGen();
 
     NodeBlock * getCurrentBlock();
 

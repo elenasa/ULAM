@@ -537,7 +537,7 @@ namespace MFM {
 	    Symbol * stgcos = NULL;
 	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
-		stgcos = m_state.m_currentSelfSymbolForCodeGen;
+		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
 	      }
 	    else
 	      {
@@ -613,7 +613,7 @@ namespace MFM {
 
 	u32 selfid = 0;
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	  selfid = m_state.m_currentSelfSymbolForCodeGen->getId(); //a use for CSS
+	  selfid = m_state.getCurrentSelfSymbolForCodeGen()->getId(); //a use for CSS
 	else
 	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
 
@@ -669,7 +669,7 @@ namespace MFM {
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     u32 startcos = 0;
 
-    Symbol * stgcos = m_state.m_currentSelfSymbolForCodeGen;
+    Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
 
     // use NodeNo for inheritance
@@ -815,7 +815,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
 
     if(epi == 0)
-      stgcos = m_state.m_currentSelfSymbolForCodeGen;
+      stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     else
       stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 

@@ -12,29 +12,49 @@
 ##      //eval self doesn't reflect correctly (see gen output): is an atom for quark's function call hidden arg
 ##
 Exit status: 0
-Ue_Foo { IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(2);  Int(4) y(3); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 cast 2 cast )make . = s ( m x . )print . s ( m y . )print . m n ( 2 cast 3 cast )fromXY . = s ( n x . )print . s ( n y . )print . s ( m x . )print . s ( m y . )print . 0 cast return } }
+Ue_Foo { System s();  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(2);  Int(4) y(3); );  IntXY(3u,4u) m( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(2);  Int(4) y(3); );  Int(32) test() {  m ( 1 cast 2 cast )init . s ( m x . )print . s ( m y . )print . m n ( 2 cast 3 cast )fromXY . = s ( n x . )print . s ( n y . )print . s ( m x . )print . s ( m y . )print . 0 cast return } }
 Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(UNKNOWN) x(unknown);  Int(UNKNOWN) y(unknown);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use IntXY;
 use System;
- element Foo {
-IntXY(3u,4u) n;
- Int test() {
-System s;
- IntXY(3u,4u) m;
- m = n.make(1,2);
- s.print(m.x);
- s.print(m.y);
- m = n.fromXY(2,3);
- s.print(n.x);
- s.print(n.y);
- s.print(m.x);
- s.print(m.y);
- return 0;
+element Foo : IntXY(3u,4u){
+  System s;
+  //IntXY(3u,4u) n;
+
+  Int test() {
+    Foo m;
+    //IntXY(3u,4u) m;
+    //m = n.make(1,2);
+    m = (Foo) m.makeAs(1,2);
+    ////m.init(1,2);
+    s.print(m.x);
+    s.print(m.y);
+    m = (Foo) fromXY(2,3);
+    s.print(x);
+    s.print(y);
+    s.print(m.x);
+    s.print(m.y);
+    return 0;
+  }
+
+  Self makeAs(Int x, Int y) {
+  //  //  if(self as Self){
+  //  //  self.init(x,y);
+  //  //  return self;
+  //  //}
+    Atom a = self;
+    if(a as Self){
+      a.init(x,y);
+    }
+    if(a is Self)
+      self = (Self) a;
+    return self;
+    //return a;
+  }
+
 }
- }
 
 #:IntXY.ulam
   ulam 1;
@@ -44,22 +64,18 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
   typedef Int(ybits) YCoord;
   XCoord x;
   YCoord y;
-  Self fromXY(Int x, Int y) {
+  Atom fromXY(Int x, Int y) {
     init(x,y);
-    return (Self) self;
+    return self;
   }
-  Self make(Int x, Int y) {
-    Self ret;
-    ret.init(x,y);
-    return ret;
-  }
-  Self makeAs(Int x, Int y) {
-    if(self as Self){
-      self.init(x,y);
-      return self;
-    }
-    return (Self) self;
-  }
+
+  //Self make(Int x, Int y) {
+  //  Self ret;
+  //  ret.init(x,y);
+  //  return ret;
+  // }
+  //unused, works???
+
   Void init(Int ax, Int ay) {
     x = (XCoord) ax;
     y = (YCoord) ay;

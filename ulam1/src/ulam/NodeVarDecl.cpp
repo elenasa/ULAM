@@ -134,7 +134,18 @@ namespace MFM {
 	      }
 	  }
 
-	if(!m_state.isComplete(it))
+	if(!m_varSymbol->isDataMember() && m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_QUARK)
+	  {
+	    // we no longer want bare quarks to exist, ie right-justified immediates.
+	    std::ostringstream msg;
+	    msg << "Bare quark: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+	    msg << ", used with variable symbol name '" << getName();
+	    msg << "', is not supported; Try an element type that inherits or contains it";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    it = Nav;
+	  }
+	else if(!m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";
@@ -481,12 +492,12 @@ namespace MFM {
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
     s32 tmpVarPos = uvpass.getPtrSlotIndex();
 
-    // before shadowing the lhs of the as-conditional variable with its auto,
+    // before shadowing the lhs of the h/as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:
     s32 tmpVarStg = m_state.getNextTmpVarNumber();
     UTI stguti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
-    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT);
+    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT); //not quark???
 
     // can't let Node::genCodeReadIntoTmpVar do this for us:
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
@@ -497,6 +508,7 @@ namespace MFM {
     fp->write(" = ");
     fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
 
+    //if(!m_varSymbol->isSelf()) don't do it this way!!
     if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("self"))
       fp->write(".getRef()");
     fp->write(";\n");
@@ -527,9 +539,9 @@ namespace MFM {
     else
       assert(0);
 
-    fp->write(");   //shadows lhs of 'as'\n");
+    fp->write(");   //shadows lhs of 'h/as'\n");
 
-    m_state.m_genCodingConditionalAs = false; // done
+    m_state.m_genCodingConditionalHas = false; // done
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?
   } //genCodedAutoLocal
 

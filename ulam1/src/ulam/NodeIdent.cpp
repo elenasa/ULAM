@@ -217,10 +217,11 @@ namespace MFM {
     if(m_state.isScalar(nuti))
       {
 	uv = m_state.getPtrTarget(uvp);
+	UTI ttype = uv.getUlamValueTypeIdx();
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
-	if(uv.getUlamValueTypeIdx() != nuti)
+	if(ttype != nuti)
 	  {
 	    if(m_state.isClassACustomArray(nuti))
 	      {
@@ -252,7 +253,7 @@ namespace MFM {
 	      {
 		if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
 		  {
-		    uv = m_state.getPtrTarget(uvp); //UlamValue::makeAtom(caType);
+		      uv = m_state.getPtrTarget(uvp);
 		  }
 		else
 		  {
@@ -323,7 +324,18 @@ namespace MFM {
 
     //instead of a ptr to "self" (already a ptr), return "self"
     if(m_varSymbol->isSelf())
-      return m_state.m_currentSelfPtr;
+      {
+	UlamValue selfuvp = m_state.m_currentSelfPtr;
+	UTI ttype = selfuvp.getPtrTargetType();
+
+	if(m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK)
+	  {
+	    //get entire atom/element containing this quark; including its type!
+	    UlamValue ptr = UlamValue::makePtr(selfuvp.getPtrSlotIndex(), selfuvp.getPtrStorage(), m_state.getCompileThisIdx(), UNPACKED, m_state, 0, 0); //don't know the id (last arg), or type so using UAtom.
+	    selfuvp = ptr;
+	  }
+	return selfuvp;
+      }
 
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
     if(classtype == UC_ELEMENT)

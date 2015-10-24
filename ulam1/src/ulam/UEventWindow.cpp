@@ -129,7 +129,6 @@ namespace MFM {
   {
     USite * s;
     if(getSite(c,s))
-      //s->setElementTypeNumber(type);
       s->setElementTypeAndDefaults(type, m_state);
   }
 

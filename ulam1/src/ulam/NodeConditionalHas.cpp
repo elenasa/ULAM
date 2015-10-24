@@ -52,6 +52,15 @@ namespace MFM {
 	newType = Nav;
       }
 
+    if(!strcmp(m_nodeLeft->getName(), "self"))
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand identifier of conditional operator '" << getName();
+	msg << "'; Suggest using a variable of type Atom as 'self'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
 
@@ -222,7 +231,7 @@ namespace MFM {
 
     //indicate to NodeControl that the value returned in uvpass, still needs to be tested >=0,
     //since its value represents the posoffset (+ FIRSTSTATEBIT) into T (in case of a quark).
-    m_state.m_genCodingConditionalAs = true;
+    m_state.m_genCodingConditionalHas = true;
   } //genCode
 
 } //end MFM

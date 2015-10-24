@@ -60,7 +60,7 @@ namespace MFM {
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
@@ -2002,7 +2002,7 @@ namespace MFM {
 
     //m_classBlock ok now, reset by NodeProgram after type label done
     UTI cuti = getCompileThisIdx();
-    m_eventWindow.setSiteElementType(c0, cuti);
+    m_eventWindow.setSiteElementType(c0, cuti); //includes default values
     m_currentSelfPtr = m_currentObjPtr = m_eventWindow.makePtrToCenter();
 
     //set up STACK since func call not called
@@ -2246,6 +2246,18 @@ namespace MFM {
     assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getCompileThisIdx();
   }
+
+  SymbolClass * CompilerState::getCurrentSelfSymbolForCodeGen()
+  {
+    return (SymbolClass *) m_currentSelfSymbolForCodeGen;
+#if 0
+    // no longer all self in h/as conditionals.
+    Symbol * selfsym = NULL;
+    u32 selfid = m_pool.getIndexForDataString("self");
+    assert(alreadyDefinedSymbol(selfid, selfsym));
+    return (SymbolClass *) selfsym;
+#endif
+  } //getCurrentSelfSymbolForCodeGen
 
   NodeBlock * CompilerState::getCurrentBlock()
   {

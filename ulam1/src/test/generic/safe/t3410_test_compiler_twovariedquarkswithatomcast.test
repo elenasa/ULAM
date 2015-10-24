@@ -18,27 +18,27 @@ Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3408: here, n is surrounded by two other IntXY data members q and p.
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use IntXY;
 use System;
- element Foo {
-IntXY(1,4) q;
-IntXY(3u,4u) n;
-IntXY(2,3) p;
- Int test() {
-System s;
- IntXY(3u,4u) m;
- m = n.make(1,2);
- s.print(m.x);
- s.print(m.y);
- m = n.fromXY(2,3);
- s.print(n.x);
- s.print(n.y);
- s.print(m.x);
- s.print(m.y);
- return 0;
+element Foo {
+  IntXY(1,4) q;
+  IntXY(3u,4u) n;
+  IntXY(2,3) p;
+  Int test() {
+    System s;
+    IntXY(3u,4u) m;
+    m = n.make(1,2);
+    s.print(m.x);
+    s.print(m.y);
+    m = n.fromXY(2,3);
+    s.print(n.x);
+    s.print(n.y);
+    s.print(m.x);
+    s.print(m.y);
+    return 0;
+  }
 }
- }
 
 ##
 ##      //changed XCoord and YCoord to Unsigned types, because of the error below. Better since class args are Unsigned; used Int to print gen output with various bitsize prints defined. Added maxof test to do --x;
@@ -60,12 +60,13 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
     ret.init(x,y);
     return ret;
   }
+  //unused, works???
   Self makeAs(Int x, Int y) {
-    if(self as Self){
-      self.init(x,y);
-      return self;
+    Atom a = self;
+    if(a as Self){
+      a.init(x,y);
     }
-    return (Self) self;
+    return (Self) a;
   }
   Void init(Int ax, Int ay) {
     x = (XCoord) ax;

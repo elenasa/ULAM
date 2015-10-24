@@ -33,6 +33,7 @@
 #include "NodeBlockFunctionDefinition.h"
 #include "NodeBreakStatement.h"
 #include "NodeCast.h"
+#include "NodeConditionalAs.h"
 #include "NodeConditionalIs.h"
 #include "NodeConditionalHas.h"
 #include "NodeConstant.h"
@@ -880,7 +881,7 @@ namespace MFM {
     Node * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
       {
-	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditionalAs *) condNode);
+	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
       }
     else
       {
@@ -937,7 +938,7 @@ namespace MFM {
 
     Node * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
-      trueNode = setupAsConditionalBlockAndParseStatements((NodeConditionalAs *) condNode);
+      trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
     else
       trueNode = parseStatement();
 
@@ -1071,7 +1072,7 @@ namespace MFM {
     Node * trueNode = NULL;
     if(m_state.m_parsingConditionalAs)
       {
-	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditionalAs *) condNode);
+	trueNode = setupAsConditionalBlockAndParseStatements((NodeConditional *) condNode);
       }
     else
       {
@@ -1183,7 +1184,7 @@ namespace MFM {
     return parseRestOfAssignExpr(rtnNode);
   } //parseConditionalExpr
 
-  Node * Parser::setupAsConditionalBlockAndParseStatements(NodeConditionalAs * asNode)
+  Node * Parser::setupAsConditionalBlockAndParseStatements(NodeConditional * asNode)
   {
     assert(m_state.m_parsingConditionalAs);
 
@@ -1230,6 +1231,12 @@ namespace MFM {
     tmpni->installSymbolVariable(typeargs, asymptr);
     assert(asymptr);
     asymptr->setAutoLocal(); //set auto flag
+
+    //if(asymptr->getId() == m_state.m_pool.getIndexForDataString("self"))
+    //  {
+	//don't do this!! messes up gencode when really self.
+	//  asymptr->setIsSelf(); //special case lhs
+    //  }
 
     delete tmpni; //done with nti
     tmpni = NULL;

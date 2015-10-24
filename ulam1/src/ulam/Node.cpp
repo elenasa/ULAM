@@ -399,7 +399,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
+	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
@@ -408,6 +408,7 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
+    //UTI stgcosuti = stgcos->getUlamTypeIdx();
 
     // split off reading array items
     if(isCurrentObjectAnArrayItem(cosuti, uvpass))
@@ -436,10 +437,11 @@ namespace MFM {
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
     if(!isCurrentObjectALocalVariableOrArgument())
       {
-	if(stgcos->isSelf())
+	//if(stgcos->isSelf())
+	  if(stgcos->isSelf() && (stgcos == cos))
 	  {
 	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(";\n");
+	    fp->write(";\n"); //stand-alone 'self'
 	  }
 	else
 	  {
@@ -449,9 +451,14 @@ namespace MFM {
 	    fp->write(readMethodForCodeGen(cosuti, uvpass).c_str());
 	    fp->write("(");
 
-	    // a data member quark, or the element itself should both getBits from self
+	    // a data member quark, or the element itself should both GetBits from self
+	    // now, quark's self is treated as the entire atom/element storage
 	    fp->write(m_state.getHiddenArgName());
+	    //if(m_state.getUlamTypeByIndex(stgcosuti)->getUlamClass() == UC_QUARK)
+	    //  fp->write(".getBits()"); //autolocal
+	    //else
 	    fp->write(".GetBits()");
+
 	    fp->write(");\n");
 	  }
       }
@@ -476,10 +483,11 @@ namespace MFM {
 	  }
 	else  //local var
 	  {
-	    if(stgcos->isSelf())
+	    //if(stgcos->isSelf())
+	    if(stgcos->isSelf() && (stgcos == cos))
 	      {
 		fp->write(stgcos->getMangledName().c_str());
-		fp->write(";\n");
+		fp->write(";\n"); //stand-alone 'self'
 	      }
 	    else
 	      {
@@ -524,7 +532,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
+	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
@@ -559,9 +567,13 @@ namespace MFM {
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 	fp->write("(");
 
-	// a data member quark, or the element itself should both getBits from self
+	// a data member quark, or the element itself should both GetBits from self
+	// now, quark's self is treated as the entire atom/element storage
 	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
+	//if(stgcosclasstype == UC_QUARK)
+	//  fp->write(".getBits()"); //autolocal
+	//else
+	  fp->write(".GetBits()");
 	fp->write(", "); //rest of arg's
       }
     else //local var
@@ -633,7 +645,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
+	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
@@ -752,7 +764,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
+	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
@@ -772,7 +784,8 @@ namespace MFM {
     if(isCurrentObjectACustomArrayItem(cosuti, luvpass))
       return genCodeWriteCustomArrayItemFromATmpVar(fp, luvpass, ruvpass); //like a func call
 
-    if(stgcos->isSelf())
+    //if(stgcos->isSelf())
+    if(stgcos->isSelf() && (stgcos == cos))
       return genCodeWriteToSelfFromATmpVar(fp, luvpass, ruvpass);
 
     bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASuperclassOf(ruti, luti);
@@ -788,7 +801,8 @@ namespace MFM {
 
     m_state.indent(fp);
 
-    // a data member quark, or the element itself should both getBits from self;
+    // a data member quark, or the element itself should both GetBits from self;
+    // now, quark's self is treated as the entire atom/element storage
     // getbits needed to go from-atom to-BitVector
     if(!isCurrentObjectALocalVariableOrArgument())
       {
@@ -799,7 +813,10 @@ namespace MFM {
 	fp->write("(");
 
 	fp->write(m_state.getHiddenArgName());
-	fp->write(".GetBits()");
+	//if(stgcosclasstype == UC_QUARK)
+	//  fp->write(".getBits()"); //autolocal
+	//else
+	  fp->write(".GetBits()");
 	fp->write(", "); //rest of args
       }
     else
@@ -864,7 +881,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
+	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
@@ -971,7 +988,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
+	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
@@ -985,6 +1002,7 @@ namespace MFM {
     ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
 
     // a data member quark, or the element itself should both getBits from self;
+    // now, quark's self is treated as the entire atom/element storage
     // getbits needed to go from-atom to-BitVector
     if(!isCurrentObjectALocalVariableOrArgument())
       {
@@ -996,6 +1014,9 @@ namespace MFM {
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 	fp->write("(");
 	fp->write(m_state.getHiddenArgName());
+	//if(stgcosclasstype == UC_QUARK)
+	//  fp->write(".getBits()"); //autolocal
+	//else
 	fp->write(".GetBits()");
 	fp->write(", "); //rest of args
       }
@@ -1067,7 +1088,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcos = cos = m_state.m_currentSelfSymbolForCodeGen;
+	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
@@ -1571,7 +1592,7 @@ namespace MFM {
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     u32 startcos = 0;
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    Symbol * stgcos = m_state.m_currentSelfSymbolForCodeGen;
+    Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
@@ -1666,7 +1687,7 @@ namespace MFM {
 
     Symbol * stgcos = NULL;
     if(epi == 0)
-      stgcos = m_state.m_currentSelfSymbolForCodeGen;
+      stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     else
       stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 
@@ -1715,7 +1736,7 @@ namespace MFM {
 
     Symbol * stgcos = NULL;
     if(epi == 0)
-      stgcos = m_state.m_currentSelfSymbolForCodeGen;
+      stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     else
       stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 
@@ -2060,7 +2081,7 @@ namespace MFM {
   {
     Symbol * subcossym = NULL;
     if(subcosidx < 0)
-      subcossym = m_state.m_currentSelfSymbolForCodeGen;
+      subcossym = m_state.getCurrentSelfSymbolForCodeGen();
     else
       subcossym = m_state.m_currentObjSymbolsForCodeGen[subcosidx];
     UTI subcosuti = subcossym->getUlamTypeIdx();
