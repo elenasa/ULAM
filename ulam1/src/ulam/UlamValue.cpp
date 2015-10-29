@@ -70,6 +70,8 @@ namespace MFM {
   {
     s32 len = state.getTotalBitSize(utype); //possible packed array (e.g. default qks)
     assert(len != UNKNOWNSIZE);
+    if(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() == Class)
+      return UlamValue::makeImmediateQuark(utype, v, len);
     return UlamValue::makeImmediate(utype, v, len);
   } //makeImmediate
 
@@ -79,14 +81,25 @@ namespace MFM {
     assert(len <= MAXBITSPERINT && (s32) len >= 0); //very important!
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
-    rtnVal.putData(BITSPERATOM - len, len, v); //starts from end, for 32 bit boundary case
+    rtnVal.putData(BITSPERATOM - len, len, v); //starts from end, for 32 bit boundary case (primitives)
     return rtnVal;
   } //makeImmediate overloaded
+
+  UlamValue UlamValue::makeImmediateQuark(UTI utype, u32 v, s32 len)
+  {
+    UlamValue rtnVal; //static
+    assert(len <= MAXBITSPERINT && (s32) len >= 0); //very important!
+    rtnVal.clear();
+    rtnVal.setUlamValueTypeIdx(utype);
+    rtnVal.putData(ATOMFIRSTSTATEBITPOS, len, v); //left-justified
+    return rtnVal;
+  } //makeImmediateQuark
 
   UlamValue UlamValue::makeImmediateLong(UTI utype, u64 v, CompilerState& state)
   {
     s32 len = state.getTotalBitSize(utype);
     assert(len != UNKNOWNSIZE);
+    assert(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() != Class);
     return UlamValue::makeImmediateLong(utype, v, len);
   } //makeImmediateLong
 
@@ -478,12 +491,16 @@ namespace MFM {
 
   u32 UlamValue::getImmediateData(CompilerState & state) const
   {
-    s32 len = state.getBitSize(getUlamValueTypeIdx());
+    UTI utype = getUlamValueTypeIdx();
+    s32 len = state.getBitSize(utype);
     assert(len != UNKNOWNSIZE);
     assert(len <= MAXBITSPERINT);
 
     if(len == 0)
       return 0;
+
+    if(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() == Class)
+      return getImmediateQuarkData(len);
 
     return getImmediateData(len);
   } //getImmediateData
@@ -497,6 +514,28 @@ namespace MFM {
 
     return getData(BITSPERATOM - len, len);
   } //getImmediateData const
+
+  u32 UlamValue::getImmediateQuarkData(CompilerState & state) const
+  {
+    s32 len = state.getBitSize(getUlamValueTypeIdx());
+    assert(len != UNKNOWNSIZE);
+    assert(len <= MAXBITSPERINT);
+
+    if(len == 0)
+      return 0;
+
+    return getImmediateQuarkData(len); //left-justified
+  } //getImmediateQuark
+
+  u32 UlamValue::getImmediateQuarkData(s32 len) const
+  {
+    assert(getUlamValueTypeIdx() != UAtom);
+    assert(getUlamValueTypeIdx() != Ptr);
+    assert(getUlamValueTypeIdx() != Nav);
+    assert(len >= 0 && len <= MAXBITSPERINT);
+
+    return getData(ATOMFIRSTSTATEBITPOS, len);
+  } //getImmediateQuarkData const
 
   u64 UlamValue::getImmediateDataLong(CompilerState & state) const
   {

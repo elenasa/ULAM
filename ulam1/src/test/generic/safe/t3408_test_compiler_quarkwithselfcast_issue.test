@@ -20,39 +20,56 @@ Uq_System { <NOMAIN> }
 use IntXY;
 use System;
 element Foo : IntXY(3u,4u){
-  System s;
-  //IntXY(3u,4u) n;
-
   Int test() {
-    Foo m;
-    //IntXY(3u,4u) m;
-    //m = n.make(1,2);
-    m = (Foo) m.makeAs(1,2);
-    ////m.init(1,2);
+    System s;
+    Foo m, n;
     s.print(m.x);
     s.print(m.y);
+    s.print(n.x);
+    s.print(n.y);
+
+    m = make(1,2); //works!!
+    s.print(m.x);
+    s.print(m.y);
+    s.print(n.x);
+    s.print(n.y);
+
+    m = n.makeAs(1,2);
+    //m.init(1,2); //works
+    s.print(m.x);
+    s.print(m.y);
+    s.print(n.x);
+    s.print(n.y);
+
     m = (Foo) fromXY(2,3);
-    s.print(x);
-    s.print(y);
     s.print(m.x);
     s.print(m.y);
+
+    init(2,2);
+    s.print(self.x); //unresolved wo self
+    s.print(self.y); //unresolved wo self
+
     return 0;
   }
 
   Self makeAs(Int x, Int y) {
-  //  //  if(self as Self){
-  //  //  self.init(x,y);
-  //  //  return self;
-  //  //}
     Atom a = self;
     if(a as Self){
       a.init(x,y);
     }
     if(a is Self)
+    {
       self = (Self) a;
-    return self;
-    //return a;
+      return self;
+    }
+    return (Self) a;
   }
+
+  Self make(Int x, Int y) {
+    Self ret;
+    ret.init(x,y);
+    return ret;
+   }
 
 }
 
@@ -68,13 +85,6 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
     init(x,y);
     return self;
   }
-
-  //Self make(Int x, Int y) {
-  //  Self ret;
-  //  ret.init(x,y);
-  //  return ret;
-  // }
-  //unused, works???
 
   Void init(Int ax, Int ay) {
     x = (XCoord) ax;

@@ -134,9 +134,11 @@ namespace MFM {
 	      }
 	  }
 
-	if(!m_varSymbol->isDataMember() && m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_QUARK)
+#if 0
+	if(!m_varSymbol->isDataMember() && !m_varSymbol->isAutoLocal() && m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_QUARK)
 	  {
 	    // we no longer want bare quarks to exist, ie right-justified immediates.
+	    //only allow left-justified quarks for as-conditional (i.e. autolocal)
 	    std::ostringstream msg;
 	    msg << "Bare quark: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
@@ -145,7 +147,10 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    it = Nav;
 	  }
-	else if(!m_state.isComplete(it))
+	else
+#endif
+
+if(!m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";
@@ -425,7 +430,7 @@ namespace MFM {
 
     if(vclasstype == UC_QUARK)
       {
-	//right-justified?
+	//left-justified?
       }
 
     fp->write(";\n"); //func call parameters aren't NodeVarDecl's
@@ -490,7 +495,7 @@ namespace MFM {
     // the uvpass comes from NodeControl, and still has the POS obtained
     // during the condition statement for As..unorthodox, but necessary.
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
-    s32 tmpVarPos = uvpass.getPtrSlotIndex();
+    //s32 tmpVarPos = uvpass.getPtrSlotIndex(); //unused w new auto
 
     // before shadowing the lhs of the h/as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:
@@ -499,25 +504,30 @@ namespace MFM {
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
     assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT); //not quark???
 
-    // can't let Node::genCodeReadIntoTmpVar do this for us:
+#if 1
+    // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
     m_state.indent(fp);
     fp->write(stgut->getTmpStorageTypeAsString().c_str());
-    fp->write("& ");
+    fp->write("& "); //here it is!!
+    //fp->write(" ");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
     fp->write(" = ");
     fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
 
-    //if(!m_varSymbol->isSelf()) don't do it this way!!
-    if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("self"))
+    if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("self")) //not isSelf check
       fp->write(".getRef()");
     fp->write(";\n");
+#endif
+
+    //UlamValue ptr = UlamValue::makePtr(tmpVarStg, TMPBITVAL, stguti, m_state.determinePackable(stguti), m_state, 0, m_state.m_currentObjSymbolsForCodeGen[0]->getId());
+    //genCodeReadIntoATmpVar(fp, uvpass);
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    //ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
     fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
@@ -527,6 +537,8 @@ namespace MFM {
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
 
+#if 0
+    // trying not using auto anymore!!! Sat Oct 24 11:26:32 2015
     if(vclasstype == UC_QUARK)
       {
 	fp->write(", ");
@@ -538,6 +550,7 @@ namespace MFM {
       }
     else
       assert(0);
+#endif
 
     fp->write(");   //shadows lhs of 'h/as'\n");
 

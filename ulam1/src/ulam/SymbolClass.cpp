@@ -684,7 +684,7 @@ namespace MFM {
 	if(ut->needsImmediateType() && classtype != UC_NOTACLASS)
 	  {
 	    ut->genUlamTypeMangledDefinitionForC(fp);
-	    if(classtype == UC_QUARK)
+	    //if(classtype == UC_QUARK) //for elements too Mon Oct 26 07:00:35 2015
 	      ut->genUlamTypeMangledAutoDefinitionForC(fp);
 	  }
 	it++;
