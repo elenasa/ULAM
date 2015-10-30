@@ -53,7 +53,7 @@ namespace MFM {
 
     //short-circuit if lhs is false
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
-    u32 ldata = luv.getImmediateData(len);
+    u32 ldata = luv.getImmediateData(len, m_state);
     if(_Bool32ToCbool(ldata, len) == false)
       {
 	//copies return UV to stack, -1 relative to current frame pointer

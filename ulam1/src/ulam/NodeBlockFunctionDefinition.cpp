@@ -300,7 +300,7 @@ namespace MFM {
       }
     else
       {
-	m_state.m_funcCallStack.returnFrame();
+	m_state.m_funcCallStack.returnFrame(m_state);
 	evalNodeEpilog();
 	return evs;
       }
@@ -310,7 +310,7 @@ namespace MFM {
     //in reverse order ([0] is last at bottom)
     assignReturnValueToStack(rtnUV);
 
-    m_state.m_funcCallStack.returnFrame();
+    m_state.m_funcCallStack.returnFrame(m_state);
     evalNodeEpilog();
     return NORMAL;
   } //eval

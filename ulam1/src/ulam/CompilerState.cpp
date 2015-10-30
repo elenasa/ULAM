@@ -492,6 +492,13 @@ namespace MFM {
 	    return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
 	  }
       }
+
+    // try in Symbol Class..
+    // check for inheritance
+    //    UTI superuti = isClassASubclass(cuti);
+    //if(superuti != Nav)
+    //  return mappedIncompleteUTI(superuti, auti, mappedUTI);
+
     return false; //for compiler
   } //mappedIncompleteUTI
 

@@ -166,7 +166,7 @@ namespace MFM{
 
     u32 getImmediateData(CompilerState& state) const;
 
-    u32 getImmediateData(s32 len = 32) const;
+    u32 getImmediateData(s32 len, CompilerState& state) const;
 
     u32 getImmediateQuarkData(CompilerState & state) const;
     u32 getImmediateQuarkData(s32 len) const;

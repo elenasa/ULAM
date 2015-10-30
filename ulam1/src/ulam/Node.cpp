@@ -288,7 +288,7 @@ namespace MFM {
   void Node::evalNodeEpilog()
   {
     //includes any return value and args; adjusts current fp;
-    m_state.m_nodeEvalStack.returnFrame();
+    m_state.m_nodeEvalStack.returnFrame(m_state);
   }
 
   //default storage type is the EVALRETURN stack

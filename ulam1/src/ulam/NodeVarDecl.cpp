@@ -150,7 +150,7 @@ namespace MFM {
 	else
 #endif
 
-if(!m_state.isComplete(it))
+	  if(!m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";

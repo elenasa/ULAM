@@ -181,6 +181,44 @@ namespace MFM {
       {
 	it = m_varSymbol->getUlamTypeIdx();
 	setStoreIntoAble(true); //store into an array entotal?
+
+	//from NodeTypeDescriptor..e.g. for function call args in NodeList.
+	if(!m_state.isComplete(it))
+	  {
+	    // if Nav, use token
+	    UTI mappedUTI = it;
+	    UTI cuti = m_state.getCompileThisIdx();
+
+	    // the symbol associated with this type, was mapped during instantiation
+	    // since we're call AFTER that (not during), we can look up our
+	    // new UTI and pass that on up the line of NodeType Selects, if any.
+	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		msg << " for incomplete list type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << "' UTI" << it << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
+		m_varSymbol->resetUlamType(it); //consistent!
+		m_state.mapTypesInCurrentClass(it, mappedUTI);
+	      }
+
+	    if(!m_state.isComplete(it)) //reloads to recheck for debug message
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete identifier for type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << " used with list symbol name '" << getName();
+		msg << "' UTI" << it << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+	      }
+	  }
       }
 
     setNodeType(it);

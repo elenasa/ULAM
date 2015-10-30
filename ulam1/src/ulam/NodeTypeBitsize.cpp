@@ -131,7 +131,7 @@ namespace MFM {
 	    else
 	      {
 		if(m_state.getBitSize(bituti) == UNKNOWNSIZE)
-		  newbitsize = bitUV.getImmediateData(MAXBITSPERINT); //use default
+		  newbitsize = bitUV.getImmediateData(MAXBITSPERINT, m_state); //use default
 		else
 		  newbitsize = bitUV.getImmediateData(m_state);
 

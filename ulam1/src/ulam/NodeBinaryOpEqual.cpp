@@ -293,7 +293,7 @@ namespace MFM {
     if(wordsize == MAXBITSPERINT)
       {
 	u32 ldata = luv.getDataFromAtom(pluv, m_state);
-	u32 rdata = ruv.getImmediateData(len);
+	u32 rdata = ruv.getImmediateData(len, m_state);
 	rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)

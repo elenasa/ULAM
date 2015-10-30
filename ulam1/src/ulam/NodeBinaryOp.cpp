@@ -532,8 +532,8 @@ namespace MFM {
     u32 wordsize = m_state.getTotalWordSize(nuti);
     if(wordsize == MAXBITSPERINT)
       {
-	u32 ldata = luv.getImmediateData(len);
-	u32 rdata = ruv.getImmediateData(len);
+	u32 ldata = luv.getImmediateData(len, m_state);
+	u32 rdata = ruv.getImmediateData(len, m_state);
 	rtnUV = makeImmediateBinaryOp(nuti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)

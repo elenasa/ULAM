@@ -59,7 +59,7 @@ namespace MFM
     //returns new "zero"
     u32 addFrameSlots(u32 depth);
 
-    void returnFrame();
+    void returnFrame(CompilerState& state);
 
     u32 getCurrentFramePointer();
 
