@@ -61,18 +61,29 @@ namespace MFM {
       }
     else if(m_class == UC_QUARK)
       {
-#if 0
-	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-	if(vclasstype == UC_ELEMENT)
+	if(valtypidx == UAtom)
+	  brtn = false; //cast atom to a quark???
+	//else if(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
+	else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
 	  {
-	    //checks if quark is a data member or ancestor
-	    SymbolClass * csym = NULL;
-	    assert(m_state.alreadyDefinedSymbolClass(valtypidx, csym));
-	    NodeBlockClass * cblock = csym->getClassBlockNode();
-	    assert(cblock);
-	    s32 pos = cblock->findUlamTypeInTable(typidx);
-	    if(pos >= 0)
+	    //if same type nothing to do; if atom, shows as element in eval-land.
+	    //val.setAtomElementTypeIdx(typidx); //???
+	  }
+	else if(m_state.isClassASuperclassOf(valtypidx, typidx)) //2 quarks, or element (val) inherits from this quark
+	  {
+	    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+	    if(vclasstype == UC_ELEMENT)
 	      {
+		//checks if quark is a data member or ancestor
+		//SymbolClass * csym = NULL;
+		//assert(m_state.alreadyDefinedSymbolClass(valtypidx, csym));
+		//NodeBlockClass * cblock = csym->getClassBlockNode();
+		//assert(cblock);
+		//s32 pos = cblock->findUlamTypeInTable(typidx);
+		//if(pos >= 0)
+
+		//ancestors start at first state bit pos
+		s32 pos = 0;
 		s32 len = getTotalBitSize();
 		assert(len != UNKNOWNSIZE);
 		if(len <= MAXBITSPERINT)
@@ -90,28 +101,16 @@ namespace MFM {
 		  assert(0);
 	      }
 	    else
-	      assert(0); //can't cast element to quark if that quark is not its data member
-	  }
-
-#endif
-	if(valtypidx == UAtom)
-	  brtn = false; //cast atom to a quark???
-	//else if(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
-	else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
-	  {
-	    //if same type nothing to do; if atom, shows as element in eval-land.
-	    //val.setAtomElementTypeIdx(typidx); //???
-	  }
-	else if(m_state.isClassASuperclassOf(valtypidx, typidx)) //2 quarks, or element (val) inherits from this quark
-	  {
-	    // assume both right-justified/immediates???
-	    // Coo c = (Coo) f.su; where su is a Soo : Coo
-	    s32 vlen = vut->getTotalBitSize();
-	    s32 len = getTotalBitSize();
-	    u32 vdata = val.getImmediateQuarkData(vlen); //or is this from element?
-	    //u32 qdata = vdata >> (vlen - len);
-	    u32 qdata = vdata; //stays left-justified
-	    val = UlamValue::makeImmediateQuark(typidx, qdata, len);
+	      {
+		// both left-justified immediate quarks
+		// Coo c = (Coo) f.su; where su is a Soo : Coo
+		s32 vlen = vut->getTotalBitSize();
+		s32 len = getTotalBitSize();
+		u32 vdata = val.getImmediateQuarkData(vlen); //not from element
+		assert((vlen - len) >= 0); //sanity check
+		u32 qdata = vdata >> (vlen - len); //stays left-justified
+		val = UlamValue::makeImmediateQuark(typidx, qdata, len);
+	      }
 	  }
 	else
 	  brtn = false;

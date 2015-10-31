@@ -152,6 +152,15 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    errorsFound++;
 	  }
+	else if(tobe->getUlamClass() == UC_QUARK)
+	  {
+	    std::ostringstream msg;
+	    msg << "Cannot cast "; //an atom
+	    msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
+	    msg << " to " << m_state.getUlamTypeNameBriefByIndex(tobeType).c_str(); //to quark
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    errorsFound++;
+	  }
       }
     else if(isExplicitCast())
       {

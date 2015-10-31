@@ -9,7 +9,7 @@
 ##      //eval self doesn't reflect correctly (see gen output): is an atom for quark's function call hidden arg
 ##
 Exit status: 1
-Ue_Foo { System s();  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(1);  Int(4) y(2); );  Int(32) test() {  n ( 1 cast 2 cast )init . Int(32) i;  i ( self cast )func = s ( i )print . s ( n x . )print . i return } }
+Ue_Foo { System s();  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Int(3) XCoord;  typedef Int(4) YCoord;  Int(3) x(1);  Int(4) y(2); );  Int(32) test() {  n ( 1 cast 2 cast )init . Int(32) i;  i ( n )func = s ( i )print . s ( n x . )print . i return } }
 Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Int(UNKNOWN) XCoord;  typedef Int(UNKNOWN) YCoord;  Int(UNKNOWN) x(unknown);  Int(UNKNOWN) y(unknown);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
@@ -19,12 +19,13 @@ use System;
 element Foo {
   System s;
   IntXY(3u,4u) n;
-  Int func(IntXY(3,4) arg) {
+  Int func(IntXY(3u,4u) arg) {
     return arg.x;
   }
   Int test() {
     n.init(1,2);
-    Int i = func((IntXY(3,4)) self);
+    //    Int i = func((IntXY(3,4)) self);
+    Int i = func(n);
     s.print(i);
     s.print(n.x);
     return i;
