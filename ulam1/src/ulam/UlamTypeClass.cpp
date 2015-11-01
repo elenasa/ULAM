@@ -75,15 +75,13 @@ namespace MFM {
 	    if(vclasstype == UC_ELEMENT)
 	      {
 		//checks if quark is a data member or ancestor
-		//SymbolClass * csym = NULL;
-		//assert(m_state.alreadyDefinedSymbolClass(valtypidx, csym));
-		//NodeBlockClass * cblock = csym->getClassBlockNode();
-		//assert(cblock);
-		//s32 pos = cblock->findUlamTypeInTable(typidx);
-		//if(pos >= 0)
+		SymbolClass * csym = NULL;
+		assert(m_state.alreadyDefinedSymbolClass(valtypidx, csym));
+		NodeBlockClass * cblock = csym->getClassBlockNode();
+		assert(cblock);
+		s32 pos = cblock->findUlamTypeInTable(typidx);
+		assert(pos >= 0); //ancestors start at first state bit pos
 
-		//ancestors start at first state bit pos
-		s32 pos = 0;
 		s32 len = getTotalBitSize();
 		assert(len != UNKNOWNSIZE);
 		if(len <= MAXBITSPERINT)
@@ -1433,6 +1431,18 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write(automangledName.c_str());
 	fp->write("<EC>::");
 	fp->write("write(d); }\n");
+
+	// assignment constructor
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const ");
+	fp->write(mangledName.c_str());
+	fp->write("<EC> & arg) : ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>(m_stg) { ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>::");
+	fp->write("write(arg.read()); }\n");
       }
     else if(m_class == UC_ELEMENT)
       {
@@ -1466,21 +1476,32 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write("); }\n");
 
 
-	  //constructor here (used by const tmpVars); ref param to avoid excessive copying
-	  m_state.indent(fp);
-	  fp->write(mangledName.c_str());
-	  fp->write("(const ");
-	  fp->write(getTmpStorageTypeAsString().c_str()); //T
-	  fp->write("& d) : ");
-	  fp->write(automangledName.c_str());
-	  fp->write("<EC>(m_stg), m_stg(d) ");
-	  fp->write("{ }\n");
+	//constructor here (used by const tmpVars); ref param to avoid excessive copying
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //T
+	fp->write("& d) : ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>(m_stg), m_stg(d) ");
+	fp->write("{ }\n");
 
-	  //default destructor (for completeness)
-	  m_state.indent(fp);
-	  fp->write("~");
-	  fp->write(mangledName.c_str());
-	  fp->write("() {}\n");
+	//assignment constructor (same as quark?)
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const ");
+	fp->write(mangledName.c_str());
+	fp->write("<EC> & arg) : ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>(m_stg) { ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>::write(arg.read()); }\n");
+
+	//default destructor (for completeness)
+	m_state.indent(fp);
+	fp->write("~");
+	fp->write(mangledName.c_str());
+	fp->write("() {}\n");
       }
     else
       assert(0);
