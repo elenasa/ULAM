@@ -5,7 +5,7 @@
 ##Unsigned Arg: 1
 ##
 Exit status: 1
-Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(1) first(false);  Unsigned(3) cus(1u);  Int(32) test() {  System s;  Coo c;  c ( )func = cus c us . = s ( c us . cast )print . c us . cast return } }
+Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(1) first(false);  Unsigned(3) cus(1u);  Int(32) test() {  System s;  Coo c;  c ( )func = cus c us . = s ( c us . cast )print . Coo d;  d c ( )func . = c us . cast return } }
 Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -25,6 +25,7 @@ element Foo : Soo {
     Coo c = func();
     cus = c.us;
     s.print(c.us);
+    Coo d = c.func(); //what happens when self is not an atom? EMPTY_ELEMENT.
     return c.us;
   }
 }
@@ -45,7 +46,7 @@ quark Coo {
   {
     Atom f = self;
     //Foo f = (Foo) self;
-    if(f as Foo)
+    if(f as Foo) //for eval
     {
       if(f as Coo)
       {

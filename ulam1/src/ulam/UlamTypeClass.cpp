@@ -395,7 +395,8 @@ namespace MFM {
     ctype << getUlamTypeImmediateMangledName();
 
     if(m_class == UC_QUARK && isScalar())
-      ctype << "<EC>"; // not ,POS> because immediates know their position
+	//      ctype << "<EC>"; // not ,POS> because immediates know their position
+	ctype << "<EC, " << ATOMFIRSTSTATEBITPOS << ">"; //??? default for inherited, local quarks
 
     if(m_class == UC_ELEMENT)
       ctype << "<EC>";
@@ -546,8 +547,7 @@ namespace MFM {
     fp->write("typedef ");
     fp->write(getUlamTypeMangledName().c_str());
     fp->write("<EC, ");
-    //fp->write_decimal(BITSPERATOM - len);
-    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //left-justified quark
+    fp->write_decimal(BITSPERATOM - len);
     fp->write("> Us;\n");
 
     m_state.indent(fp);
@@ -558,8 +558,7 @@ namespace MFM {
     fp->write(", ");
     fp->write_decimal(len);   //include arraysize
     fp->write(", ");
-    //    fp->write_decimal(BITSPERATOM - len); //right-justified
-    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //left-justified quark
+    fp->write_decimal(BITSPERATOM - len); //right-justified
     fp->write("> ");
     fp->write(" Up_Us;\n");
 
@@ -625,7 +624,7 @@ namespace MFM {
     fp->write("#endif /*");
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
-  } //genUlamTypeQuarkMangledDefinitionForC
+  } //genUlamTypeQuarkMangledDefinitionForC (old version)
 #endif
 
   //formerly //genUlamTypeQuarkMangledDefinitionForC
@@ -672,7 +671,8 @@ namespace MFM {
     fp->write(";  //forward\n\n");
 
     m_state.indent(fp);
-    fp->write("template<class EC>\n");
+    //fp->write("template<class EC>\n");
+    fp->write("template<class EC, u32 POS>\n");
 
     m_state.indent(fp);
     fp->write("struct ");
@@ -698,7 +698,8 @@ namespace MFM {
     fp->write(getUlamTypeMangledName().c_str());
     fp->write("<EC, ");
     //fp->write_decimal(BITSPERATOM - len);
-    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //left-justified quark
+    //fp->write_decimal(ATOMFIRSTSTATEBITPOS); //left-justified quark
+    fp->write("POS"); //positioned
     fp->write("> Us;\n");
 
     m_state.indent(fp);
@@ -707,10 +708,11 @@ namespace MFM {
     fp->write(", ");
     fp->write(getUlamTypeVDAsStringForC().c_str());
     fp->write(", ");
-    fp->write_decimal(len);   //include arraysize
+    fp->write_decimal(len); //includes arraysize
     fp->write(", ");
     //    fp->write_decimal(BITSPERATOM - len); //right-justified
-    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //left-justified quark
+    //fp->write_decimal(ATOMFIRSTSTATEBITPOS); //left-justified quark
+    fp->write("POS"); //positioned
     fp->write("> ");
     fp->write(" Up_Us;\n");
 
@@ -725,6 +727,9 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("T& m_stgToChange;  //ref to storage here!\n");
 
+    m_state.indent(fp);
+    fp->write("const u32 m_pos;   //pos in atom\n");
+
     //default constructor (used by local vars)
     //(unlike element) call build default in case of initialized data members
     //m_state.indent(fp);
@@ -738,7 +743,7 @@ namespace MFM {
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(T& targ) : m_stgToChange(targ) { }\n");
+    fp->write("(T& targ, u32 idx) : m_stgToChange(targ), m_pos(idx) { }\n");
 
     //constructor here (used by const tmpVars)
     //m_state.indent(fp);
@@ -746,6 +751,10 @@ namespace MFM {
     //fp->write("(const ");
     //fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     //fp->write(" d) { write(d); }\n");
+
+    // move up to quark .h, use Us::
+    //m_state.indent(fp);
+    //fp->write("static const u32 getPos() { return POS; }\n");
 
     //read 'entire quark' method
     genUlamTypeQuarkReadDefinitionForC(fp);
@@ -792,9 +801,21 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" read() const { return Up_Us::");
+    fp->write(" read() const { ");
+    fp->write("if(Us::GetPos() == (m_pos + T::ATOM_FIRST_STATE_BIT)) ");
+    fp->write("return Up_Us::");
     fp->write(readMethodForCodeGen().c_str());
-    fp->write("(m_stgToChange.GetBits() ); }\n");
+    fp->write("(m_stgToChange.GetBits());\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("return m_stgToChange.GetBits().");
+    fp->write(readMethodForCodeGen().c_str());
+    fp->write("(m_pos + T::ATOM_FIRST_STATE_BIT, ");
+    fp->write_decimal(getTotalBitSize());
+    fp->write(");");
+    fp->write("}\n");
+    m_state.m_currentIndentLevel--;
   } //genUlamTypeQuarkReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp)
@@ -803,13 +824,24 @@ namespace MFM {
     if(!isScalar())
       return UlamType::genUlamTypeWriteDefinitionForC(fp);
 
-    // here, must be scalar
+    // here, must be scalar; added check for POS != m_pos case (?)
     m_state.indent(fp);
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" v) { Up_Us::");
+    fp->write(" v) { if(Us::GetPos() == ( m_pos + T::ATOM_FIRST_STATE_BIT)) ");
+    fp->write("Up_Us::");
     fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(m_stgToChange.GetBits(), v); }\n");
+    fp->write("(m_stgToChange.GetBits(), v);\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write("else m_stgToChange.GetBits().");
+    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("(m_pos + T::ATOM_FIRST_STATE_BIT, ");
+    fp->write_decimal(getTotalBitSize());
+    fp->write(", v);");
+    fp->write("}\n");
+    m_state.m_currentIndentLevel--;
   } //genUlamTypeQuarkWriteDefinitionForC
 
 #if 0
@@ -946,7 +978,7 @@ namespace MFM {
     fp->write("#endif /*");
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
-  } //genUlamTypeElementMangledDefinitionForC
+  } //genUlamTypeElementMangledDefinitionForC (old version)
 #endif
 
 void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
@@ -1290,7 +1322,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     fp->write("#endif /*");
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
-  } //genUlamTypeMangledAutoDefinitionForC
+  } //genUlamTypeMangledAutoDefinitionForC (old version)
 #endif
 
   //formerly genUlamTypeMangledAutoDefinitionForC
@@ -1326,14 +1358,30 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 
     m_state.m_currentIndentLevel++;
 
-    m_state.indent(fp);
-    fp->write("template<class EC>\n");
-    m_state.indent(fp);
-    fp->write("struct ");
-    fp->write(mangledName.c_str());
-    fp->write(" : public ");
-    fp->write(automangledName.c_str());
-    fp->write("<EC>\n");
+    if(m_class == UC_ELEMENT)
+      {
+	m_state.indent(fp);
+	fp->write("template<class EC>\n");
+	m_state.indent(fp);
+	fp->write("struct ");
+	fp->write(mangledName.c_str());
+	fp->write(" : public ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>\n");
+      }
+    else if(m_class == UC_QUARK)
+      {
+	m_state.indent(fp);
+	fp->write("template<class EC, u32 POS>\n");
+	m_state.indent(fp);
+	fp->write("struct ");
+	fp->write(mangledName.c_str());
+	fp->write(" : public ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC, POS>\n");
+      }
+    else
+      assert(0);
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -1410,12 +1458,14 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write(mangledName.c_str());
 	fp->write("() : ");
 	fp->write(automangledName.c_str());
-	fp->write("<EC>(m_stg), ");
-	fp->write("m_stg() { ");
+	//fp->write("<EC>(m_stg, 0), "); //left-justified, pos 0
+	fp->write("<EC, POS>(m_stg, 0), "); //positioned
+	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
 	if(hasDQ)
 	  {
 	    fp->write(automangledName.c_str());
-	    fp->write("<EC>::");
+	    //	    fp->write("<EC>::");
+	    fp->write("<EC, POS>::");
 	    fp->write("write(DEFAULT_QUARK);");
 	  }
 	fp->write(" }\n");
@@ -1427,9 +1477,12 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" d) : ");
 	fp->write(automangledName.c_str());
-	fp->write("<EC>(m_stg) { ");
+	//	fp->write("<EC>(m_stg, 0) { "); //left-justified, pos 0
+	fp->write("<EC, POS>(m_stg, 0), "); //positioned
+	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
 	fp->write(automangledName.c_str());
-	fp->write("<EC>::");
+	//fp->write("<EC>::");
+	fp->write("<EC, POS>::"); //positioned
 	fp->write("write(d); }\n");
 
 	// assignment constructor
@@ -1437,11 +1490,15 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write(mangledName.c_str());
 	fp->write("(const ");
 	fp->write(mangledName.c_str());
-	fp->write("<EC> & arg) : ");
+	//fp->write("<EC> & arg) : ");
+	fp->write("<EC, POS> & arg) : "); //positioned
 	fp->write(automangledName.c_str());
-	fp->write("<EC>(m_stg) { ");
+	//fp->write("<EC>(m_stg, 0) { "); //left-justified, pos 0
+	fp->write("<EC, POS>(m_stg, 0), "); //positioned
+	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
 	fp->write(automangledName.c_str());
-	fp->write("<EC>::");
+	//fp->write("<EC>::");
+	fp->write("<EC, POS>::"); //positioned
 	fp->write("write(arg.read()); }\n");
       }
     else if(m_class == UC_ELEMENT)
@@ -1486,7 +1543,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write("<EC>(m_stg), m_stg(d) ");
 	fp->write("{ }\n");
 
-	//assignment constructor (same as quark?)
+	//assignment constructor
 	m_state.indent(fp);
 	fp->write(mangledName.c_str());
 	fp->write("(const ");
@@ -1533,10 +1590,15 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
       {
 	if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))
 	  {
+	    std::ostringstream qdhex;
+	    qdhex << "0x" << std::hex << dqref;
+
 	    m_state.indent(fp);
 	    fp->write("static const u32 DEFAULT_QUARK = ");
+	    fp->write(qdhex.str().c_str());
+	    fp->write("; //=");
 	    fp->write_decimal_unsigned(dqref);
-	    fp->write(";\n\n");
+	    fp->write("\n\n");
 	    rtnb = true;
 	  }
       }

@@ -1,0 +1,70 @@
+## -*- mode:ulam -*-
+#=t3587_test_compiler_elementandquarkwargs_returnquark
+#!
+##
+##   gencode output: (correct answer like eval exit status!)
+##	 Unsigned Arg: 2
+##
+Exit status: 2
+Ue_E { System s();  Qfoo m_foo( Unsigned(3) data(2u); );  Int(32) test() {  Qfoo f;  m_foo f ( )func . = s ( m_foo data . cast )print . m_foo data . cast return } }
+Uq_Qfoo { Unsigned(3) data(0);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+##
+#>E.ulam
+  ulam 1;
+use Qfoo;
+use System;
+element E {
+  System s;
+  Qfoo m_foo;
+  Int test(){
+
+    //fails
+    Qfoo f;
+    m_foo = f.func();
+    s.print(m_foo.data);
+
+    //works:
+    //m_foo.func2();
+    //s.print(m_foo.data);
+    return m_foo.data;
+  }
+}
+
+#:Qfoo.ulam
+  ulam 1;
+quark Qfoo {
+  Unsigned(3) data;
+  Qfoo func()
+  {
+    data = 2u; //should work..
+    Atom a = self; //self is an EMPTY_ELEMENT type, of f.
+    if(a as Qfoo)
+    {
+      return a;
+    }
+    // but, with this else case, it works:
+    //Qfoo fail;
+    //fail.data = 2u;
+    //return fail; //when missing, NOT FOUND by culam. perhaps, capture gcc errors?
+    return (Self) self; //BAD CAST
+  }
+  Void func2()
+  {
+    data = 5u;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

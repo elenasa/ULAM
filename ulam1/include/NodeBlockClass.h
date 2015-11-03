@@ -175,6 +175,7 @@ namespace MFM{
 
     void generateInternalIsMethodForElement(File * fp, bool declOnly);
     void generateInternalTypeAccessorsForElement(File * fp, bool declOnly);
+    void generateGetPosForQuark(File * fp, bool declOnly);
 
     void generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount);
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);

@@ -1037,6 +1037,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	generateInternalIsMethodForElement(fp, declOnly);
 	generateInternalTypeAccessorsForElement(fp, declOnly);
       }
+    else if(classtype == UC_QUARK)
+      generateGetPosForQuark(fp, declOnly);
+    else
+      assert(0); //sanity
   } //generateCodeForBuiltInClassFunctions
 
   void NodeBlockClass::genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
@@ -1087,7 +1091,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(-1);   //not found\n");
+    fp->write("(-1); //not found\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1157,7 +1161,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
     m_state.indent(fp);
     fp->write("return ");
-    fp->write("(false);   //not found\n");
+    fp->write("(false); //not found\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1294,10 +1298,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     u32 qval = 0;
     assert(csym->getDefaultQuark(qval));
 
+    std::ostringstream qdhex;
+    qdhex << "0x" << std::hex << qval;
+
     m_state.indent(fp);
     fp->write("return ");
+    fp->write(qdhex.str().c_str());
+    fp->write("; //=");
     fp->write_decimal_unsigned(qval);
-    fp->write(";\n");
+    fp->write("\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -1400,6 +1409,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("} //WriteTypeField\n\n");
   } //generateInternalTypeAccessorsForElement
+
+  void NodeBlockClass::generateGetPosForQuark(File * fp, bool declOnly)
+  {
+    if(declOnly)
+      {
+	m_state.indent(fp);
+	fp->write("__inline__ static const u32 GetPos() { return POS; }\n");
+      }
+  } //generateGetPosForQuark
 
   void NodeBlockClass::generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount)
   {

@@ -495,7 +495,7 @@ namespace MFM {
     // the uvpass comes from NodeControl, and still has the POS obtained
     // during the condition statement for As..unorthodox, but necessary.
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
-    //s32 tmpVarPos = uvpass.getPtrSlotIndex(); //unused w new auto
+    s32 tmpVarPos = uvpass.getPtrSlotIndex();
 
     // before shadowing the lhs of the h/as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:
@@ -504,13 +504,11 @@ namespace MFM {
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
     assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT); //not quark???
 
-#if 1
     // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
     m_state.indent(fp);
     fp->write(stgut->getTmpStorageTypeAsString().c_str());
     fp->write("& "); //here it is!!
-    //fp->write(" ");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
     fp->write(" = ");
     fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
@@ -518,26 +516,32 @@ namespace MFM {
     if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("self")) //not isSelf check
       fp->write(".getRef()");
     fp->write(";\n");
-#endif
-
-    //UlamValue ptr = UlamValue::makePtr(tmpVarStg, TMPBITVAL, stguti, m_state.determinePackable(stguti), m_state, 0, m_state.m_currentObjSymbolsForCodeGen[0]->getId());
-    //genCodeReadIntoATmpVar(fp, uvpass);
 
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    //ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     m_state.indent(fp);
     fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
+    if(vclasstype == UC_QUARK)
+      {
+	fp->write("<EC, ");
+	//fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
+	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //must be constant expression
+	fp->write(" + T::ATOM_FIRST_STATE_BIT");
+	fp->write("> ");
+      }
+    else //element
+      fp->write("<EC> ");
 
-    fp->write("<EC> ");
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
 
-#if 0
+#if 1
+    // include pos Sun Nov  1 14:18:01 2015
     // trying not using auto anymore!!! Sat Oct 24 11:26:32 2015
     if(vclasstype == UC_QUARK)
       {
@@ -546,7 +550,7 @@ namespace MFM {
       }
     else if(vclasstype == UC_ELEMENT)
       {
-	fp->write(", true"); //invokes 'badass' constructor
+	//fp->write(", true"); //invokes 'badass' constructor
       }
     else
       assert(0);

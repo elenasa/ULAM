@@ -1934,7 +1934,7 @@ namespace MFM {
 	  fp->write("<EC>::THE_INSTANCE.");
 	else
 	  {
-	    fp->write("<EC,");
+	    fp->write("<EC, ");
 	    //fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
 	    fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 	    fp->write(">::");

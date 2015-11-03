@@ -435,6 +435,9 @@ namespace MFM {
 			u32 qval = 0;
 			assert(csym->getDefaultQuark(qval));
 
+			std::ostringstream qdhex;
+			qdhex << "0x" << std::hex << qval;
+
 			m_state.indent(fp);
 			if(useFullClassName)
 			  {
@@ -447,9 +450,11 @@ namespace MFM {
 			fp->write("::Up_Us::");
 			fp->write(sut->writeMethodForCodeGen().c_str());
 			fp->write("(da.GetBits(), ");
-			fp->write_decimal_unsignedlong(qval);
+			fp->write(qdhex.str().c_str());
 			fp->write("); //"); //include var name in a comment
 			fp->write(m_state.m_pool.getDataAsString(sym->getId()).c_str());
+			fp->write("=");
+			fp->write_decimal_unsigned(qval);
 			fp->write("\n");
 		      }
 		    else
@@ -462,6 +467,9 @@ namespace MFM {
 
 			u32 qval = 0;
 			assert(csym->getDefaultQuark(qval));
+
+			std::ostringstream qdhex;
+			qdhex << "0x" << std::hex << qval;
 
 			//initialize each array item
 			u32 arraysize = sut->getArraySize();
@@ -479,7 +487,7 @@ namespace MFM {
 			    fp->write("::");
 			    fp->write(sut->writeArrayItemMethodForCodeGen().c_str());
 			    fp->write("(da.GetBits(), ");
-			    fp->write_decimal_unsigned(qval);
+			    fp->write(qdhex.str().c_str());
 			    fp->write(", ");
 			    fp->write_decimal((s32) j); //ITEM INDEX
 			    fp->write(", ");
@@ -489,7 +497,10 @@ namespace MFM {
 			    fp->write(m_state.m_pool.getDataAsString(sym->getId()).c_str());
 			    fp->write("[");
 			    fp->write_decimal((s32) j);
-			    fp->write("]\n");
+			    fp->write("]");
+			    fp->write("=");
+			    fp->write_decimal_unsigned(qval);
+			    fp->write("\n");
 			  }
 		      } //array of quarks
 		  } //countable size
