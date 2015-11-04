@@ -15,15 +15,16 @@ Uq_System { <NOMAIN> }
   ulam 1;
 use Qfoo;
 use System;
-element E {
+element E : Qfoo{
   System s;
+  Bool b;
   Qfoo m_foo;
   Int test(){
-
-    //fails
-    Qfoo f;
+    Qfoo f = func();
+    //return data;
     m_foo = f.func();
     s.print(m_foo.data);
+    Qfoo g = m_foo.func();
 
     //works:
     //m_foo.func2();
@@ -39,16 +40,12 @@ quark Qfoo {
   Qfoo func()
   {
     data = 2u; //should work..
-    Atom a = self; //self is an EMPTY_ELEMENT type, of f.
+    Atom a = atom; //self is an ATOM_UNDEFINED_TYPE type, of f.
     if(a as Qfoo)
     {
       return a;
     }
-    // but, with this else case, it works:
-    //Qfoo fail;
-    //fail.data = 2u;
-    //return fail; //when missing, NOT FOUND by culam. perhaps, capture gcc errors?
-    return (Self) self; //BAD CAST
+    return self; //no cast needed
   }
   Void func2()
   {

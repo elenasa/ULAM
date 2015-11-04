@@ -61,6 +61,15 @@ namespace MFM {
 	newType = Nav;
       }
 
+    if(!strcmp(m_nodeLeft->getName(), "atom"))
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand identifier of conditional operator '" << getName();
+	msg << "'; Suggest using a variable of type Atom as 'atom'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
 

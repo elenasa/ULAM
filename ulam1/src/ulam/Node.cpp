@@ -408,7 +408,7 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    //UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
 
     // split off reading array items
     if(isCurrentObjectAnArrayItem(cosuti, uvpass))
@@ -440,10 +440,23 @@ namespace MFM {
 	//if(stgcos->isSelf())
 	  if(stgcos->isSelf() && (stgcos == cos))
 	  {
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(";\n"); //stand-alone 'self'
+	    if(stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
+	      {
+		UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+		fp->write(stgcosut->getUlamTypeMangledName().c_str());
+		fp->write("<EC, POS>::Up_Us::");
+		fp->write(stgcosut->readMethodForCodeGen().c_str());
+		fp->write("(");
+		fp->write(m_state.getHiddenArgName());
+		fp->write(".GetBits());\n"); //stand-alone 'self'
+	      }
+	    else
+	      {
+		fp->write(stgcos->getMangledName().c_str());
+		fp->write(";\n"); //stand-alone 'atom'
+	      }
 	  }
-	else
+	  else
 	  {
 	    genMemberNameOfMethod(fp);
 
@@ -486,8 +499,21 @@ namespace MFM {
 	    //if(stgcos->isSelf())
 	    if(stgcos->isSelf() && (stgcos == cos))
 	      {
-		fp->write(stgcos->getMangledName().c_str());
-		fp->write(";\n"); //stand-alone 'self'
+		if(stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
+		  {
+		    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+		    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+		    fp->write("<EC, POS>::Up_Us::");
+		    fp->write(stgcosut->readMethodForCodeGen().c_str());
+		    fp->write("(");
+		    fp->write(m_state.getHiddenArgName());
+		    fp->write(".GetBits());\n"); //stand-alone 'self'
+		  }
+		else
+		  {
+		    fp->write(stgcos->getMangledName().c_str());
+		    fp->write(";\n"); //stand-alone 'atom'
+		  }
 	      }
 	    else
 	      {
@@ -568,7 +594,7 @@ namespace MFM {
 	fp->write("(");
 
 	// a data member quark, or the element itself should both GetBits from self
-	// now, quark's self is treated as the entire atom/element storage
+	// now, quark's hidden arg is treated as the entire atom/element storage
 	fp->write(m_state.getHiddenArgName());
 	//if(stgcosclasstype == UC_QUARK)
 	//  fp->write(".getBits()"); //autolocal
@@ -816,7 +842,7 @@ namespace MFM {
 	//if(stgcosclasstype == UC_QUARK)
 	//  fp->write(".getBits()"); //autolocal
 	//else
-	  fp->write(".GetBits()");
+	fp->write(".GetBits()");
 	fp->write(", "); //rest of args
       }
     else
@@ -1443,9 +1469,9 @@ namespace MFM {
 
     m_state.pushCurrentBlock(fblock); //before parsing the args
 
-    //create "self" symbol whose index is "hidden" first arg (i.e. a Ptr to an Atom);
+    //create "atom" symbol whose index is "hidden" first arg (i.e. a Ptr to an Atom);
     //immediately below the return value(s); and belongs to the function definition scope.
-    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    u32 selfid = m_state.m_pool.getIndexForDataString("atom"); //was "self"
     Token selfTok(TOK_IDENTIFIER, loc, selfid);
 
     //negative indicates parameter for symbol install
@@ -1593,6 +1619,11 @@ namespace MFM {
     u32 startcos = 0;
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+
+    //what happens when a quark is both a DM as well as ancestor to CurrentSelfSymbol?
+    if(cosSize > 1)
+      stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
     UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);

@@ -3336,16 +3336,24 @@ namespace MFM {
     m_state.m_currentFunctionBlockDeclSize = -(returnArraySize + 1);
     m_state.m_currentFunctionBlockMaxDepth = 0;
 
-    //create "self" symbol whose index is that of the "hidden" first arg (i.e. ptr to atom);
+    //create "atom" symbol whose index is that of the "hidden" first arg (i.e. ptr to atom);
     //immediately below the return value(s); and belongs to the function definition scope.
+    u32 aselfid = m_state.m_pool.getIndexForDataString("atom"); //was "self"
+    UTI acuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
+    if(m_state.getUlamTypeByIndex(acuti)->getUlamClass() == UC_QUARK)
+      acuti = UAtom; //use atom for quark functions
+    Token aselfTok(TOK_IDENTIFIER, identTok.m_locator, aselfid);
+    SymbolVariableStack * aselfsym = new SymbolVariableStack(aselfTok, acuti, m_state.determinePackable(acuti), m_state.m_currentFunctionBlockDeclSize, m_state);
+    aselfsym->setIsSelf();
+    m_state.addSymbolToCurrentScope(aselfsym); //ownership goes to the block
+
+    //create "self" symbol for the class type;
+    //belongs to the function definition scope.
     u32 selfid = m_state.m_pool.getIndexForDataString("self");
     UTI cuti = currClassBlock->getNodeType(); //luckily we know this now for each class used
-    if(m_state.getUlamTypeByIndex(cuti)->getUlamClass() == UC_QUARK)
-      cuti = UAtom; //use atom for quark functions
     Token selfTok(TOK_IDENTIFIER, identTok.m_locator, selfid);
-
     SymbolVariableStack * selfsym = new SymbolVariableStack(selfTok, cuti, m_state.determinePackable(cuti), m_state.m_currentFunctionBlockDeclSize, m_state);
-    selfsym->setIsSelf();
+    selfsym->setIsSelf(); //???
     m_state.addSymbolToCurrentScope(selfsym); //ownership goes to the block
 
     //parse and add parameters to function symbol (not in ST yet!)
@@ -3599,6 +3607,14 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "The keyword 'self' may not be used as a variable name";
+	MSG(&identTok, msg.str().c_str(), ERR);
+	//return NULL;  keep going?
+      }
+
+    if(identTok.m_dataindex == m_state.m_pool.getIndexForDataString("atom"))
+      {
+	std::ostringstream msg;
+	msg << "The keyword 'atom' may not be used as a variable name";
 	MSG(&identTok, msg.str().c_str(), ERR);
 	//return NULL;  keep going?
       }

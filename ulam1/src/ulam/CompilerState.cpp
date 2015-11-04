@@ -43,7 +43,7 @@ namespace MFM {
 
   static const char * m_indentedSpaceLevel("  "); //2 spaces per level
 
-  static const char * HIDDEN_ARG_NAME = "Uv_4self";
+  static const char * HIDDEN_ARG_NAME = "Uv_4atom"; //was Uv_4self
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
@@ -1524,6 +1524,8 @@ namespace MFM {
     return m_pool.getIndexForDataString(nstr);
   }
 
+  // note: we may miss a missing return value for non-void function; non-trivial to
+  // do logic-flow analysis; gcc catches them until ulam template absorbs gcc errors.
   bool CompilerState::checkFunctionReturnNodeTypes(SymbolFunction * fsym)
   {
     bool rtnBool = true;

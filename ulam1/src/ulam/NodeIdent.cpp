@@ -297,7 +297,12 @@ namespace MFM {
 		  {
 		    UTI vuti = uv.getUlamValueTypeIdx();
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    assert( vuti != Ptr);
+		    //assert( vuti != Ptr);
+		    if(vuti == Ptr)
+		      {
+			uvp = uv;
+			uv = m_state.getPtrTarget(uvp);
+		      }
 
 		    s32 len = uvp.getPtrLen();
 		    assert(len != UNKNOWNSIZE);

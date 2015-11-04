@@ -52,11 +52,20 @@ namespace MFM {
 	newType = Nav;
       }
 
-    if(!strcmp(m_nodeLeft->getName(), "self"))
+    if(!strcmp(m_nodeLeft->getName(), "self")) //was "self"
       {
 	std::ostringstream msg;
 	msg << "Invalid lefthand identifier of conditional operator '" << getName();
 	msg << "'; Suggest using a variable of type Atom as 'self'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+
+    if(!strcmp(m_nodeLeft->getName(), "atom")) //???
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand identifier of conditional operator '" << getName();
+	msg << "'; Suggest using a variable of type Atom as 'atom'";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
       }
