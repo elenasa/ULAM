@@ -813,8 +813,11 @@ namespace MFM {
     fp->write("const u32 ");
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarVal).c_str());;
     fp->write(" = ");
-    fp->write(stgcos->getMangledName().c_str());
-    //if(stgcos->isDataMember())
+    if(stgcos->isSelf())
+      fp->write(m_state.getHiddenArgName());
+    else
+      fp->write(stgcos->getMangledName().c_str());
+
     if(!Node::isCurrentObjectALocalVariableOrArgument())
       fp->write(".GetBits().Read(0 + T::ATOM_FIRST_STATE_BIT, ");
     else

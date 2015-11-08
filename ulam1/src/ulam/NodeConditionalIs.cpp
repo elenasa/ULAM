@@ -39,6 +39,7 @@ namespace MFM {
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
 
+    //rhs is allowed to be a quark due to inheritance.
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
     if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && m_state.isScalar(ruti)))
       {
@@ -170,6 +171,8 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //atom then?
+	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
 	    fp->write("(uc, ");
 	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
 	    fp->write(".GetType(), "); //from tmpvar T

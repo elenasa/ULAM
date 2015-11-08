@@ -147,7 +147,8 @@ namespace MFM {
     else
       {
 	//atom's don't work in eval, only genCode, let pass as not found.
-	if(luti != UAtom)
+	//if(luti != UAtom)
+	if(pluv.getPtrTargetType() != UAtom)
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -168,11 +169,6 @@ namespace MFM {
     bool hasit = (posFound >= 0);
     if(hasit)
       {
-	//u32 newslot = 0;
-	//UlamValue currObjPtr = m_state.getPtrTarget(pluv);
-	//if(currObjPtr.getUlamValueTypeIdx() == Ptr)
-	//  newslot = currObjPtr.getPtrPos();
-
 	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), ruti, m_state.determinePackable(ruti), m_state, pluv.getPtrPos() + posFound, pluv.getPtrNameId());
 	m_state.m_currentAutoObjPtr = ptr;
       }

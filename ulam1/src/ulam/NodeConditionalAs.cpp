@@ -148,7 +148,7 @@ namespace MFM {
 	  {
 	    //atom's don't work in eval, only genCode, let pass as not found.
 	    //if(luti != UAtom)
-	    if(pluv.getUlamValueTypeIdx() != UAtom)
+	    if(pluv.getPtrTargetType() != UAtom)
 	      {
 		std::ostringstream msg;
 		msg << "Invalid lefthand type of conditional operator '" << getName();
