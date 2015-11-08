@@ -7,7 +7,6 @@
 ##       Unsigned Arg: 3
 ##       Unsigned Arg: 3
 ##
-## eval fails outside auto block.
 ##
 Exit status: 3
 Ue_Eltypo { System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > Bool(1) b(false);  constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  elf Bar has cond { Bar elf;  elf ( 3u cast )func . s ( elf bu . cast )print . first elf bu . = } if s ( elf t bu . . cast )print . s ( first cast )print . second elf t bu . . = second cast return } }
@@ -29,7 +28,7 @@ quark Typo(Int a) : Bar{
   ulam 1;
 quark Bar
 {
-  Bool b;
+  Bool b; //testing offset
   Unsigned(3) bu = 7u;
   Void func(Unsigned u)
   {
@@ -55,7 +54,7 @@ element Eltypo {
     }
     s.print(elf.t.bu);
     s.print(first);
-    second = elf.t.bu; //3u, from 7u, fails eval!
+    second = elf.t.bu; //3u, from 7u (no longer fails eval!!).
     return second;
   }
 }

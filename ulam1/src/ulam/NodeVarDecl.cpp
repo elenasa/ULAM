@@ -389,60 +389,14 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
-    assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
-
-    assert(nuti != UAtom); //rhs type of conditional as/has
+    assert(m_varSymbol->getUlamTypeIdx() == nuti);
+    assert(nuti != UAtom); //rhs type of conditional as/has can't be an atom
 
     UlamValue pluv = m_state.m_currentAutoObjPtr;
-    //m_state.m_currentObjPtr = pluv; ??? or member select?
-    //m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+    ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
 
-#if 1
+    m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
 
-    UlamValue luv = m_state.getPtrTarget(pluv);
-    //UTI luti = luv.getUlamValueTypeIdx();
-
-    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
-#define _USEPTRPTR
-
-    if(classtype == UC_ELEMENT)
-      {
-#ifndef _USEPTRPTR
-	//old way
-	m_state.m_funcCallStack.storeUlamValueInSlot(luv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-#else
-	//some kind of new way
-	m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
-#endif
-      }
-    else if(classtype == UC_QUARK)
-      {
-	//assert(m_state.m_currentObjPtr.getPtrTargetType() == nuti); nope
-	//get data out: as -> ancestor pos 0; has-> pos ==
-	//u32 pos = m_state.conditionalPosOffset;
-	u32 pos = pluv.getPtrPos();
-
-#ifndef _USEPTRPTR
-	s32 len = m_state.getTotalBitSize(nuti);
-	u32 datavalue = luv.getData(pos, len);
-	UlamValue immUV = UlamValue::makeImmediateQuark(nuti, datavalue, len);
-	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //was immUV
-
-#else
-
-	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, pos + pluv.getPtrPos(), m_varSymbol->getId());
-
-	m_state.m_funcCallStack.storeUlamValueInSlot(ptr, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //was immUV
-#endif
-
-      }
-    else
-      {
-	//see can't be notaclass
-	assert(0);
-      }
-
-#endif
     return NORMAL;
   } //evalAutoLocal
 

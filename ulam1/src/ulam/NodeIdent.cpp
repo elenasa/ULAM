@@ -394,7 +394,10 @@ namespace MFM {
       } //done
 
     if(m_varSymbol->isAutoLocal())
-      return m_state.m_currentAutoObjPtr; //haha! we're done.
+      //can't use global m_currentAutoObjPtr, since there might be nested h/as conditional blocks.
+      // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
+      return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
+
 
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
     if(classtype == UC_ELEMENT)
@@ -406,14 +409,9 @@ namespace MFM {
       {
 	if(m_varSymbol->isDataMember())
 	  {
-	    // use currObj for pos
-	    //UlamValue currObjPtr = m_state.getPtrTarget(m_state.m_currentObjPtr);
-	    //if(currObjPtr.getUlamValueTypeIdx() != Ptr)
-	      UlamValue currObjPtr = m_state.m_currentObjPtr;
-
 	    // return ptr to this data member within the m_currentObjPtr
 	    // 'pos' modified by this data member symbol's packed bit position
-	    ptr = UlamValue::makePtr(currObjPtr.getPtrSlotIndex(), currObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, currObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	  }
 	else
 	  {
