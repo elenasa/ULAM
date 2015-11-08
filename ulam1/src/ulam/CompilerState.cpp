@@ -1831,9 +1831,20 @@ namespace MFM {
     return lenstr.str();
   } //getBitVectorLengthAsStringForCodeGen
 
+  UlamValue CompilerState::getAtomPtrFromSelfPtr()
+  {
+    UlamValue tuv = getPtrTarget(m_currentSelfPtr);
+    UTI tuti = tuv.getUlamValueTypeIdx();
+
+    UlamValue aptr = UlamValue::makePtr(m_currentSelfPtr.getPtrSlotIndex(), m_currentSelfPtr.getPtrStorage(), tuti, determinePackable(tuti), *this, 0, m_currentSelfPtr.getPtrNameId());
+    return aptr;
+  } //getAtomPtrFromSelfPtr (for eval)
+
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
+    // change to recurse in case of ptr to ptr (e.g. auto for h/as)
     assert(ptr.getUlamValueTypeIdx() == Ptr);
+
     //slot + storage
     UlamValue valAtIdx;
     switch(ptr.getPtrStorage())

@@ -234,6 +234,7 @@ namespace MFM{
     //common helpers for safe casting
     NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
 
+    void genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass);
     void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     void genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue& uvpass);

@@ -102,6 +102,7 @@ namespace MFM{
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
 
+    EvalStatus evalAutoLocal();
   };
 
 }

@@ -549,6 +549,8 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
 
+    assert(!m_varSymbol->isAutoLocal()); // not sure???
+
     if(nuti == UAtom || classtype == UC_ELEMENT)
       return NodeVarDecl::eval();
 
@@ -626,12 +628,12 @@ namespace MFM {
 
     if(m_varSymbol->isDataMember())
       {
-	return genCodedBitFieldTypedef(fp, uvpass);
+	return NodeVarDecl::genCodedBitFieldTypedef(fp, uvpass);
       }
 
     if(m_varSymbol->isAutoLocal())
       {
-	return genCodedAutoLocal(fp, uvpass);
+	return NodeVarDecl::genCodedAutoLocal(fp, uvpass);
       }
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();

@@ -4,32 +4,34 @@
 ##
 ##   gencode output: (correct answer like eval exit status!)
 ##	 Unsigned Arg: 2
+##	 Unsigned Arg: 2
 ##
 Exit status: 2
-Ue_E { System s();  Qfoo m_foo( Unsigned(3) data(2u); );  Int(32) test() {  Qfoo f;  m_foo f ( )func . = s ( m_foo data . cast )print . m_foo data . cast return } }
+Ue_E : Qfoo { :< Unsigned(3) data(2u); > Bool(1) b(false);  System s();  Qfoo m_foo( Unsigned(3) data(2u); );  Int(32) test() {  ( )func s ( data cast )print . Qfoo f;  m_foo f ( )func . = s ( m_foo data . cast )print . Qfoo g;  g m_foo ( )func . = s ( g data . cast )print . g data . cast return } }
 Uq_Qfoo { Unsigned(3) data(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
+##  E both inherits and has DM Qfoo, here.
 ##
 #>E.ulam
   ulam 1;
 use Qfoo;
 use System;
-element E : Qfoo{
+element E : Qfoo {
   System s;
   Bool b;
   Qfoo m_foo;
   Int test(){
-    Qfoo f = func();
-    //return data;
-    m_foo = f.func();
-    s.print(m_foo.data);
-    Qfoo g = m_foo.func();
+    func(); //inherited one
+    s.print(data);
 
-    //works:
-    //m_foo.func2();
-    //s.print(m_foo.data);
-    return m_foo.data;
+    Qfoo f;
+    m_foo = f.func(); //update dm from local
+    s.print(m_foo.data);
+
+    Qfoo g = m_foo.func(); //update local from dm
+    s.print(g.data);
+    return g.data;
   }
 }
 
@@ -39,17 +41,11 @@ quark Qfoo {
   Unsigned(3) data;
   Qfoo func()
   {
-    data = 2u; //should work..
-    Atom a = atom; //self is an ATOM_UNDEFINED_TYPE type, of f.
-    if(a as Qfoo)
-    {
-      return a;
-    }
+    data = 2u;
+    //Atom a = atom; //self is an ATOM_UNDEFINED_TYPE type, of f.
+    //if(a as Qfoo)
+    //  return a;
     return self; //no cast needed
-  }
-  Void func2()
-  {
-    data = 5u;
   }
 }
 

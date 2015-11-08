@@ -128,6 +128,13 @@ namespace MFM {
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
 
+    if(luti == UAtom)
+      {
+	//an atom can be element or quark in eval-land, so let's get specific!
+	UlamValue luv = m_state.getPtrTarget(pluv);
+	luti = luv.getUlamValueTypeIdx();
+      }
+
     bool asit = false;
     UTI ruti = getRightType();
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
@@ -140,17 +147,19 @@ namespace MFM {
 	else
 	  {
 	    //atom's don't work in eval, only genCode, let pass as not found.
-	    if(luti != UAtom)
+	    //if(luti != UAtom)
+	    if(pluv.getUlamValueTypeIdx() != UAtom)
 	      {
 		std::ostringstream msg;
 		msg << "Invalid lefthand type of conditional operator '" << getName();
-		msg << "'; Class ";
+		msg << "'; Class '";
 		msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-		msg << " Not Found during eval";
+		msg << "' Not Found during eval";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	      }
 	    else
 	      {
+		//lhs is an atom!
 		std::ostringstream msg;
 		msg << "Unsupported lefthand type of conditional operator '" << getName();
 		msg <<  "', "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
@@ -165,6 +174,14 @@ namespace MFM {
 	// inclusive result for eval purposes (atoms and element types are orthogonal)
 	asit = (luti == UAtom || luti == ruti);
       }
+
+    if(asit)
+      {
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), ruti, m_state.determinePackable(ruti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
+	m_state.m_currentAutoObjPtr = ptr;
+      }
+    else
+      m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) asit, m_state);
     //also copy result UV to stack, -1 relative to current frame pointer

@@ -617,7 +617,7 @@ namespace MFM {
 	else
 	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
 
-	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, rightjustified; self id in Ptr;
+	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Ptr;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)

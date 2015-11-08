@@ -128,6 +128,13 @@ namespace MFM {
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
 
+    if(luti == UAtom)
+      {
+	//an atom can be element or quark in eval-land, so let's get specific!
+	UlamValue luv = m_state.getPtrTarget(pluv);
+	luti = luv.getUlamValueTypeIdx();
+      }
+
     UTI ruti = getRightType();
     SymbolClass * csym = NULL;
     s32 posFound = -1;
@@ -159,8 +166,20 @@ namespace MFM {
       }
 
     bool hasit = (posFound >= 0);
-    UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) hasit, m_state);
+    if(hasit)
+      {
+	//u32 newslot = 0;
+	//UlamValue currObjPtr = m_state.getPtrTarget(pluv);
+	//if(currObjPtr.getUlamValueTypeIdx() == Ptr)
+	//  newslot = currObjPtr.getPtrPos();
 
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), ruti, m_state.determinePackable(ruti), m_state, pluv.getPtrPos() + posFound, pluv.getPtrNameId());
+	m_state.m_currentAutoObjPtr = ptr;
+      }
+    else
+      m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
+
+    UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) hasit, m_state);
     //also copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnuv);
 

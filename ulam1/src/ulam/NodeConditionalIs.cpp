@@ -40,7 +40,7 @@ namespace MFM {
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
 
     ULAMCLASSTYPE rclasstype = m_state.getUlamTypeByIndex(ruti)->getUlamClass();
-    if(!(rclasstype == UC_ELEMENT && m_state.isScalar(ruti)))
+    if(!((rclasstype == UC_QUARK || rclasstype == UC_ELEMENT) && m_state.isScalar(ruti)))
       {
 	std::ostringstream msg;
 	msg << "Invalid righthand type of conditional operator '" << getName();

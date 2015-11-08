@@ -86,7 +86,7 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
   YCoord y;
   Atom fromXY(Int x, Int y) {
     init(x,y);
-    return self;
+    return atom; //self;
   }
 
   Void init(Int ax, Int ay) {

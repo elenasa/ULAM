@@ -18,7 +18,6 @@
 ##      Unsigned Arg: 3
 ##      Unsigned Arg: 2
 ##      Unsigned Arg: 3
-##      //eval self doesn't reflect correctly (see gen output): is an atom for quark's function call hidden arg
 ##
 Exit status: 0
 Ue_Foo { IntXY(1u,4u) q( constant Unsigned(32) xbits = 1u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(1) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(1) x(0u);  Unsigned(4) y(0u); );  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(3) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(3) x(2u);  Unsigned(4) y(3u); );  IntXY(2u,3u) p( constant Unsigned(32) xbits = 2u;  constant Unsigned(32) ybits = 3u;  typedef Unsigned(2) XCoord;  typedef Unsigned(3) YCoord;  Unsigned(2) x(0u);  Unsigned(3) y(0u); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 cast 2 cast )make . = s ( m x . cast )print . s ( m y . cast )print . s ( n x . cast )print . s ( n y . cast )print . Foo f;  f n ( 2 cast 3 cast )fromXY . cast = s ( f n x . . cast )print . s ( f n y . . cast )print . s ( n x . cast )print . s ( n y . cast )print . f n . m ( 4 cast 1 cast )make . = s ( f n x . . cast )print . s ( f n y . . cast )print . s ( m x . cast )print . s ( m y . cast )print . Foo g;  g n ( 1 cast 1 cast )makeAs . cast = s ( g n x . . cast )print . s ( g n y . . cast )print . s ( n x . cast )print . s ( n y . cast )print . 0 cast return } }
@@ -36,6 +35,7 @@ element Foo {
   IntXY(2,3) p;
   Int test() {
     System s;
+
     //make into local quark
     IntXY(3u,4u) m = n.make(1,2);
     s.print(m.x);
@@ -81,7 +81,7 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
   YCoord y;
   Atom fromXY(Int x, Int y) {
     init(x,y);
-    return self; //cannot return self as Self type inside a quark
+    return atom; //cannot return self as Atom type inside a quark
   }
   Self make(Int x, Int y) {
     Self ret;
@@ -89,11 +89,11 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
     return ret;
   }
   Atom makeAs(Int x, Int y) {
-    Atom a = self;
-    if(a as Self){
+    Atom a = atom; //was self
+    if(a has Self){ //was 'as'
       a.init(x,y);
     }
-    return a; //cannot return self as Self type inside a quark
+    return a;
   }
   Void init(Int ax, Int ay) {
     x = (XCoord) ax;

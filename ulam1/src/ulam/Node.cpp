@@ -408,7 +408,7 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UTI stgcosuti = stgcos->getUlamTypeIdx();
 
     // split off reading array items
     if(isCurrentObjectAnArrayItem(cosuti, uvpass))
@@ -437,26 +437,11 @@ namespace MFM {
     // all the cases where = is used; else BitVector constructor for converting a tmpvar
     if(!isCurrentObjectALocalVariableOrArgument())
       {
-	//if(stgcos->isSelf())
-	  if(stgcos->isSelf() && (stgcos == cos))
+	if(stgcos->isSelf() && (stgcos == cos))
 	  {
-	    if(stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
-	      {
-		UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-		fp->write(stgcosut->getUlamTypeMangledName().c_str());
-		fp->write("<EC, POS>::Up_Us::");
-		fp->write(stgcosut->readMethodForCodeGen().c_str());
-		fp->write("(");
-		fp->write(m_state.getHiddenArgName());
-		fp->write(".GetBits());\n"); //stand-alone 'self'
-	      }
-	    else
-	      {
-		fp->write(stgcos->getMangledName().c_str());
-		fp->write(";\n"); //stand-alone 'atom'
-	      }
+	    genCodeReadSelfIntoATmpVar(fp, uvpass);
 	  }
-	  else
+	else
 	  {
 	    genMemberNameOfMethod(fp);
 
@@ -496,24 +481,9 @@ namespace MFM {
 	  }
 	else  //local var
 	  {
-	    //if(stgcos->isSelf())
 	    if(stgcos->isSelf() && (stgcos == cos))
 	      {
-		if(stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
-		  {
-		    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-		    fp->write(stgcosut->getUlamTypeMangledName().c_str());
-		    fp->write("<EC, POS>::Up_Us::");
-		    fp->write(stgcosut->readMethodForCodeGen().c_str());
-		    fp->write("(");
-		    fp->write(m_state.getHiddenArgName());
-		    fp->write(".GetBits());\n"); //stand-alone 'self'
-		  }
-		else
-		  {
-		    fp->write(stgcos->getMangledName().c_str());
-		    fp->write(";\n"); //stand-alone 'atom'
-		  }
+		genCodeReadSelfIntoATmpVar(fp, uvpass);
 	      }
 	    else
 	      {
@@ -541,6 +511,33 @@ namespace MFM {
     // note: Ints not sign extended until used/cast
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadIntoATmpVar
+
+  void Node::genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass)
+  {
+    Symbol * stgcos = NULL;
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+    else
+      stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
+    if((stgclasstype == UC_QUARK) && stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
+      {
+	fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS>::Up_Us::");
+	fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //of just 'Read' ?
+	fp->write("(");
+	fp->write(m_state.getHiddenArgName());
+	fp->write(".GetBits());\n"); //stand-alone 'self'
+      }
+    else
+      {
+	fp->write(m_state.getHiddenArgName());
+	fp->write(";\n"); //stand-alone 'atom'
+      }
+  } //genCodeReadSelfIntoATmpVar
 
   void Node::genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
   {
@@ -901,20 +898,6 @@ namespace MFM {
     assert(ruti == Ptr);
     ruti = ruvpass.getPtrTargetType();
 
-    // here, cos is symbol used to determine read method: either self or last of cos.
-    // stgcos is symbol used to determine first "hidden" arg
-    Symbol * cos = NULL;
-    Symbol * stgcos = NULL;
-    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-      {
-	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
-      }
-    else
-      {
-	cos = m_state.m_currentObjSymbolsForCodeGen.back();
-	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-      }
-
     bool isElementAncestorCast = (lut->getUlamClass() == UC_ELEMENT) && m_state.isClassASuperclassOf(ruti, luti);
 
     UlamValue typuvpass;
@@ -927,7 +910,8 @@ namespace MFM {
       }
 
     m_state.indent(fp);
-    fp->write(stgcos->getMangledName().c_str());
+    //fp->write(stgcos->getMangledName().c_str());
+    fp->write(m_state.getHiddenArgName());
     fp->write(" = ");
     fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
     fp->write(";\n");

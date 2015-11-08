@@ -331,6 +331,11 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
+    assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
+
+    if(m_varSymbol->isAutoLocal())
+      return evalAutoLocal();
+
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
     if(nuti == UAtom)
       {
@@ -361,11 +366,10 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //must be a quark!
+	    //must be a local quark!
 	    u32 dq = 0;
 	    assert(m_state.getDefaultQuark(nuti, dq));
 	    UlamValue immUV = UlamValue::makeImmediate(nuti, dq, m_state);
-
 	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
 	  }
       }
@@ -376,6 +380,71 @@ namespace MFM {
       }
     return NORMAL;
   } //eval
+
+  EvalStatus NodeVarDecl::evalAutoLocal()
+  {
+    assert(m_varSymbol);
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
+
+    assert(nuti != UAtom); //rhs type of conditional as/has
+
+    UlamValue pluv = m_state.m_currentAutoObjPtr;
+    //m_state.m_currentObjPtr = pluv; ??? or member select?
+    //m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+
+#if 1
+
+    UlamValue luv = m_state.getPtrTarget(pluv);
+    //UTI luti = luv.getUlamValueTypeIdx();
+
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
+#define _USEPTRPTR
+
+    if(classtype == UC_ELEMENT)
+      {
+#ifndef _USEPTRPTR
+	//old way
+	m_state.m_funcCallStack.storeUlamValueInSlot(luv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+#else
+	//some kind of new way
+	m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+#endif
+      }
+    else if(classtype == UC_QUARK)
+      {
+	//assert(m_state.m_currentObjPtr.getPtrTargetType() == nuti); nope
+	//get data out: as -> ancestor pos 0; has-> pos ==
+	//u32 pos = m_state.conditionalPosOffset;
+	u32 pos = pluv.getPtrPos();
+
+#ifndef _USEPTRPTR
+	s32 len = m_state.getTotalBitSize(nuti);
+	u32 datavalue = luv.getData(pos, len);
+	UlamValue immUV = UlamValue::makeImmediateQuark(nuti, datavalue, len);
+	m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //was immUV
+
+#else
+
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, pos + pluv.getPtrPos(), m_varSymbol->getId());
+
+	m_state.m_funcCallStack.storeUlamValueInSlot(ptr, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //was immUV
+#endif
+
+      }
+    else
+      {
+	//see can't be notaclass
+	assert(0);
+      }
+
+#endif
+    return NORMAL;
+  } //evalAutoLocal
 
   EvalStatus  NodeVarDecl::evalToStoreInto()
   {
@@ -546,7 +615,13 @@ namespace MFM {
     if(vclasstype == UC_QUARK)
       {
 	fp->write(", ");
-	fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
+	if(m_state.m_genCodingConditionalHas) //not sure this is posoffset, and not true/false???
+	  fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
+	else
+	  {
+	    assert(m_varSymbol->getPosOffset() == 0);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
+	  }
       }
     else if(vclasstype == UC_ELEMENT)
       {

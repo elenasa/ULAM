@@ -2,29 +2,34 @@
 #=t3586_test_compiler_elementandquarkwargs_hascond
 #!
 ##
-##   gencode output: (correct answer like eval exit status!)
+##   gencode output:
 ##	 Unsigned Arg: 3
 ##       Unsigned Arg: 3
 ##       Unsigned Arg: 3
 ##
+## eval fails outside auto block.
+##
 Exit status: 3
-Ue_Eltypo { System s();  Unsigned(3) first(3u);  Typo(1) t( :< Unsigned(3) bu(7u); > constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  elf Bar has cond { Bar elf;  elf ( 3u cast )func . s ( elf bu . cast )print . first elf bu . = } if s ( elf t bu . . cast )print . s ( first cast )print . elf t bu . . cast return } }
-Uq_Typo(Int(32) a) : Bar { /* empty class block */ }
-Uq_Bar { Unsigned(3) bu( 7u);  <NOMAIN> }
+Ue_Eltypo { System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > Bool(1) b(false);  constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  elf Bar has cond { Bar elf;  elf ( 3u cast )func . s ( elf bu . cast )print . first elf bu . = } if s ( elf t bu . . cast )print . s ( first cast )print . second elf t bu . . = second cast return } }
+Uq_Typo(Int(32) a) : Bar { :< Bool(1) b(false);  Unsigned(3) bu( 7u); > Bool(1) b(false);  <NOMAIN> }
+Uq_Bar { Bool(1) b(false);  Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed loosely by 3371
+## informed loosely by t3371
+## see t3588 and t3589 for 'as' and 'is' versions
 ##
 #:Typo.ulam
   ulam 1;
 use Bar;
 quark Typo(Int a) : Bar{
+  Bool b; //shadows for no reason
 }
 
 #:Bar.ulam
   ulam 1;
 quark Bar
 {
+  Bool b;
   Unsigned(3) bu = 7u;
   Void func(Unsigned u)
   {
@@ -39,6 +44,7 @@ use System;
 element Eltypo {
   System s;
   Unsigned(3) first;
+  Unsigned(3) second;
   Typo(1) t;
   Int test(){
     Eltypo elf;
@@ -49,7 +55,8 @@ element Eltypo {
     }
     s.print(elf.t.bu);
     s.print(first);
-    return elf.t.bu;
+    second = elf.t.bu; //3u, from 7u, fails eval!
+    return second;
   }
 }
 

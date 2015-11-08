@@ -3,9 +3,12 @@
 #!
 ## gencode output:
 ##Unsigned Arg: 1
+##Unsigned Arg: 3
+##Unsigned Arg: 6
+##Unsigned Arg: 4
 ##
-Exit status: 1
-Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(1) first(false);  Unsigned(3) cus(1u);  Int(32) test() {  System s;  Coo c;  c ( )func = cus c us . = s ( c us . cast )print . Coo d;  d c ( )func . = c us . cast return } }
+Exit status: 6
+Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) us(4u); > Bool(1) first(false);  Unsigned(3) cus(1u);  Unsigned(3) dus(3u);  Int(32) test() {  System s;  Coo c;  c ( )func = cus c us . = s ( c us . cast )print . Coo d;  d c ( )func . = dus d us . = s ( d us . cast )print . s ( c us . cast d us . cast +b cast )print . s ( cus cast dus cast +b cast )print . c us . cast d us . cast +b cast return } }
 Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
@@ -19,14 +22,21 @@ use Soo;
 use System;
 element Foo : Soo {
   Bool first;
-  Unsigned(3) cus;
+  Unsigned(3) cus = 6u;
+  Unsigned(3) dus = 6u;
   Int test() {
     System s;
     Coo c = func();
     cus = c.us;
     s.print(c.us);
-    Coo d = c.func(); //what happens when self is not an atom? EMPTY_ELEMENT.
-    return c.us;
+
+    Coo d = c.func(); //what happens when atom is not an Atom, immediate UNDEFINED_TYPE
+    dus = d.us;
+    s.print(d.us);
+
+    s.print(c.us + d.us); //6
+    s.print(cus + dus); //4
+    return (c.us + d.us);
   }
 }
 
@@ -44,7 +54,8 @@ quark Coo {
   Bool(3) cb = true;
   Self func()
   {
-    Atom f = self;
+
+    Atom f = atom; //was self
     //Foo f = (Foo) self;
     if(f as Foo) //for eval
     {
@@ -54,8 +65,8 @@ quark Coo {
 	return f;
       }
     }
-    Self r;
-    return r;
+    us = 3u;
+    return self;
   }
 }
 

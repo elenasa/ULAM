@@ -291,7 +291,7 @@ namespace MFM {
 	      {
 		if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
 		  {
-		      uv = m_state.getPtrTarget(uvp);
+		    uv = m_state.getPtrTarget(uvp);
 		  }
 		else
 		  {
@@ -365,20 +365,36 @@ namespace MFM {
   {
     UlamValue ptr;
 
-    //instead of a ptr to "self" (already a ptr), return "self"
     if(m_varSymbol->isSelf())
       {
+	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
-
-	if(m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK)
+	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
 	  {
-	    //get entire atom/element containing this quark; including its type!
-	    UlamValue ptr = UlamValue::makePtr(selfuvp.getPtrSlotIndex(), selfuvp.getPtrStorage(), m_state.getCompileThisIdx(), UNPACKED, m_state, 0, 0); //don't know the id (last arg), or type so using UAtom.
-	    selfuvp = ptr;
+	    u32 vid = m_varSymbol->getId();
+#if 0
+	    if(vid == m_state.m_pool.getIndexForDataString("self"))
+	      {
+		//'atom' gets entire atom/element containing this quark; including its type!
+		//'self' gets type/pos/len of the quark from which 'atom' can be extracted
+		//UlamValue ptr = UlamValue::makePtr(selfuvp.getPtrSlotIndex(), selfuvp.getPtrStorage(), m_state.getCompileThisIdx(), UNPACKED, m_state, 0, 0); //don't know the id (last arg), or type so using UAtom
+		UlamValue ptr = UlamValue::makePtr(selfuvp.getPtrSlotIndex(), selfuvp.getPtrStorage(), ttype, m_state.determinePackable(ttype), m_state, selfuvp.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+		selfuvp = ptr;
+	      }
+	    else
+#endif
+	      if(vid == m_state.m_pool.getIndexForDataString("atom"))
+	      {
+		selfuvp = m_state.getAtomPtrFromSelfPtr();
+	      }
+	    //else
 	  }
 	return selfuvp;
-      }
+      } //done
+
+    if(m_varSymbol->isAutoLocal())
+      return m_state.m_currentAutoObjPtr; //haha! we're done.
 
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
     if(classtype == UC_ELEMENT)
@@ -390,9 +406,14 @@ namespace MFM {
       {
 	if(m_varSymbol->isDataMember())
 	  {
+	    // use currObj for pos
+	    //UlamValue currObjPtr = m_state.getPtrTarget(m_state.m_currentObjPtr);
+	    //if(currObjPtr.getUlamValueTypeIdx() != Ptr)
+	      UlamValue currObjPtr = m_state.m_currentObjPtr;
+
 	    // return ptr to this data member within the m_currentObjPtr
 	    // 'pos' modified by this data member symbol's packed bit position
-	    ptr = UlamValue::makePtr(m_state.m_currentObjPtr.getPtrSlotIndex(), m_state.m_currentObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, m_state.m_currentObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    ptr = UlamValue::makePtr(currObjPtr.getPtrSlotIndex(), currObjPtr.getPtrStorage(), getNodeType(), m_state.determinePackable(getNodeType()), m_state, currObjPtr.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	  }
 	else
 	  {
