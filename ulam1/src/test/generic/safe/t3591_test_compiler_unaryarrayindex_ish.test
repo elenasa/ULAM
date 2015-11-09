@@ -1,0 +1,81 @@
+## -*- mode:ulam -*-
+#=t3591_test_compiler_unaryarrayindex_ish
+#!
+## gen code output:
+## assert: arg is 1
+## after assert's abort: arg is 1
+## assert: arg is 1
+## after assert's abort: arg is 1
+## assert: arg is 1
+## after assert's abort: arg is 1
+##
+Exit status: 2
+Ue_Ish2 { Bool(1) myState(false);  Bool(1) myOutput(false);  typedef Unary(2) Phase;  Unary(2) phase(2u);  constant Unary(2) cBLUE = 0u;  constant Unary(2) cRED = 1u;  constant Unary(2) cGREEN = 3u;  Int(32) test() {  System s;  Unary(2) p;  p 2 cast = s ( p cast 2 == )assert . s ( ( phase )prev cast 2 == )assert . constant Unary(2) cP = 0u;  Unary(2) q;  q -1 cast = s ( q cast 0 cast == )assert . ( )behave phase ( phase )prev = ( )behave phase ( phase )prev = ( )behave phase ( phase )prev = ( )behave phase ( phase )prev = phase cast return } }
+Uq_System { <NOMAIN> }
+##
+#>Ish2.ulam
+  ulam 1;
+use System;
+ /**
+   Ish, semiminized.  Fails against released ulam-1.1.1
+   \symbol i2
+   \color #ccc
+ */
+element Ish2 {
+  Bool myState;
+  Bool myOutput;
+
+  typedef Unary(2) Phase;
+  Phase phase;
+  constant Phase cBLUE = 0;
+  constant Phase cRED = 1;
+  constant Phase cGREEN = 2;
+
+  Phase prev(Phase cur) {
+    if (cur == cBLUE) return cGREEN;
+    return (Phase) (cur - 1);
+  }
+
+  Void behave() {
+    Bits(1) ngbColor[Phase.maxof+1];  // Track existing neighbor colors
+
+    // THIS WORKS (WITH THE CAST):
+    // if (ngbColor[(Unsigned) prev(phase)] != 0) return;
+    if (ngbColor[prev(phase)] != 0) return; // XXX BUT THIS FAILS (CAUSING ATOM ERASURE)
+  }
+
+  Int test()
+  {
+    System s;
+    Phase p = 2;
+    s.assert(p == 2);
+    s.assert(prev(phase) == 2);
+    constant Phase cP = 0;
+
+    Phase q = (Phase) (cP - 1);
+    s.assert(q == 0);
+    behave();
+    phase = prev(phase); //==2
+    behave();
+    phase = prev(phase); //==1
+    behave();
+    phase = prev(phase); //==0
+    behave();
+    phase = prev(phase); //==2
+    //the important thing is that phase never goes to 3!
+    return phase;
+  }
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

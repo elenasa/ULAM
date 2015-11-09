@@ -963,12 +963,14 @@ namespace MFM {
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
     //'Void' by default is zero and only zero bitsize (already complete)
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-    if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
+    if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize <= 0)
       {
-	if(bUT != Void)
+	if(bUT != Void || bitsize < 0)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeNameBrief().c_str();
+	    msg << "Invalid size (";
+	    msg << bitsize;
+	    msg << ") to set for primitive type: " << UlamType::getUlamTypeEnumAsString(bUT);
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }

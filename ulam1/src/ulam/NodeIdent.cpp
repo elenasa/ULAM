@@ -368,23 +368,14 @@ namespace MFM {
     if(m_varSymbol->isSelf())
       {
 	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
+	//'atom' gets entire atom/element containing this quark; including its type!
+	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
 	UlamValue selfuvp = m_state.m_currentSelfPtr;
 	UTI ttype = selfuvp.getPtrTargetType();
 	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
 	  {
 	    u32 vid = m_varSymbol->getId();
-#if 0
-	    if(vid == m_state.m_pool.getIndexForDataString("self"))
-	      {
-		//'atom' gets entire atom/element containing this quark; including its type!
-		//'self' gets type/pos/len of the quark from which 'atom' can be extracted
-		//UlamValue ptr = UlamValue::makePtr(selfuvp.getPtrSlotIndex(), selfuvp.getPtrStorage(), m_state.getCompileThisIdx(), UNPACKED, m_state, 0, 0); //don't know the id (last arg), or type so using UAtom
-		UlamValue ptr = UlamValue::makePtr(selfuvp.getPtrSlotIndex(), selfuvp.getPtrStorage(), ttype, m_state.determinePackable(ttype), m_state, selfuvp.getPtrPos() + m_varSymbol->getPosOffset(), m_varSymbol->getId());
-		selfuvp = ptr;
-	      }
-	    else
-#endif
-	      if(vid == m_state.m_pool.getIndexForDataString("atom"))
+	    if(vid == m_state.m_pool.getIndexForDataString("atom"))
 	      {
 		selfuvp = m_state.getAtomPtrFromSelfPtr();
 	      }
@@ -397,7 +388,6 @@ namespace MFM {
       //can't use global m_currentAutoObjPtr, since there might be nested h/as conditional blocks.
       // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
       return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
-
 
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
     if(classtype == UC_ELEMENT)
@@ -441,20 +431,20 @@ namespace MFM {
       {
 	if(m_varSymbol->isDataMember())
 	  {
-	    u32 pos = 0;
+	    u32 pos = 0; //later do ATOMFIRSTSTATEBITPOS???
 	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
 		SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
-		pos = sym->getPosOffset();
+		pos = sym->getPosOffset(); //bug! we haven't taken into account any array indexes
 	      }
 	    // 'pos' modified by this data member symbol's packed bit position
-	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, /*m_state.m_currentObjPtr.getPtrPos() +*/ pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	  }
 	else
-	    {
-	      //local variable on the stack; could be array ptr!
-	      ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
-	    }
+	  {
+	    //local variable on the stack; could be array ptr!
+	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+	  }
       }
     return ptr;
   } //makeUlamValuePtrForCodeGen

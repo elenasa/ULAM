@@ -5,25 +5,25 @@ Exit status: 3
 Ue_Foo { System s();  Bool(7) sp(false);  Int(32) m_i(4);  Int(32) test() {  Foo f;  f m_i . 3 cast = s ( f m_i . )print . f ( 1 cast )check . m_i 4 cast = s ( m_i )print . f m_i . return } }
 Uq_System { <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
- element Foo {
-System s;
-Bool(7) sp;
- Int m_i;
- Bool check(Int v) {
- return true;
- }
- Int test() {
- Foo f;
- f.m_i = 3;
-s.print(f.m_i);
- f.check(1);
- m_i = 4;
-s.print(m_i);
- return f.m_i;
- }
- }
+element Foo {
+  System s;
+  Bool(7) sp;
+  Int m_i;
+  Bool check(Int v) {
+    return true;
+  }
+  Int test() {
+    Foo f;
+    f.m_i = 3;
+    s.print(f.m_i);
+    f.check(1); //unused variable
+    m_i = 4;
+    s.print(m_i);
+    return f.m_i;
+  }
+}
 #:System.ulam
 ulam 1;
 quark System {
