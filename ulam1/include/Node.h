@@ -218,6 +218,9 @@ namespace MFM{
 
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
 
+    //e.g. when lhs of member select is an array item of class type
+    void genCodeConvertATmpVarIntoAutoRef(File * fp, UlamValue & uvpass);
+
     virtual void checkForSymbol();
 
     void genCodeReadElementTypeField(File * fp, UlamValue & uvpass);
@@ -236,6 +239,9 @@ namespace MFM{
 
     void genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass);
     void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+
+    void genCodeReadAutorefIntoATmpVar(File * fp, UlamValue& uvpass);
+    void genCodeWriteToAutorefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     void genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue& uvpass);
     void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);

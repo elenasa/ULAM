@@ -379,7 +379,10 @@ namespace MFM {
    if(vuti == Ptr)
       {
 	tmpVarNum = uvpass.getPtrSlotIndex();
-	vuti = uvpass.getPtrTargetType(); //replace
+	if(uvpass.getPtrStorage() == TMPAUTOREF)
+	  vuti = m_node->getNodeType(); //uvpass type is autoref type, not node type.
+	else
+	  vuti = uvpass.getPtrTargetType(); //replace
       }
     else
       {
@@ -429,7 +432,7 @@ namespace MFM {
    fp->write("const ");
    fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32, s32, u64, etc.
    fp->write(" ");
-   fp->write(m_state.getTmpVarAsString(nuti, tmpVarCastNum).c_str());
+   fp->write(m_state.getTmpVarAsString(nuti, tmpVarCastNum, TMPREGISTER).c_str());
    fp->write(" = ");
 
    // write the cast method (e.g. _Unsigned32ToInt32, _Int32ToUnary32, etc..)
@@ -459,7 +462,7 @@ namespace MFM {
      }
    else
      {
-       fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum).c_str());
+       fp->write(m_state.getTmpVarAsString(nuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
      }
 
    fp->write(", ");

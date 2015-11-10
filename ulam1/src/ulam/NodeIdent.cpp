@@ -413,40 +413,50 @@ namespace MFM {
   } //makeUlamValuePtr
 
   //new
-  UlamValue NodeIdent::makeUlamValuePtrForCodeGen()
+  void NodeIdent::makeUlamValuePtrForCodeGen(UlamValue& uvpass)
   {
     assert(m_varSymbol);
     s32 tmpnum = m_state.getNextTmpVarNumber();
 
-    UlamValue ptr;
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
+
     if(classtype == UC_ELEMENT)
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
+	uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
       }
     else
       {
 	if(m_varSymbol->isDataMember())
 	  {
-	    u32 pos = 0; //later do ATOMFIRSTSTATEBITPOS???
-	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+	    u32 pos = 0;
+	    if(uvpass.getUlamValueTypeIdx() == Ptr && uvpass.getPtrStorage() == TMPAUTOREF)
 	      {
-		SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
-		pos = sym->getPosOffset(); //bug! we haven't taken into account any array indexes
+		//pos = uvpass.getPtrPos();
+		//uvpass = UlamValue::makePtr(tmpnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	      }
-	    // 'pos' modified by this data member symbol's packed bit position
-	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    else
+	      {
+		if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+		  {
+		    SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
+		    //here, we haven't taken into account any array indexes, So autoref instead
+		    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
+		    //if(m_state.isScalar(sym->getUlamTypeIdx())) //???
+		    pos = sym->getPosOffset();
+		  }
+		// 'pos' modified by this data member symbol's packed bit position
+		uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	      }
 	  }
 	else
 	  {
 	    //local variable on the stack; could be array ptr!
-	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+	    uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
 	  }
       }
-    return ptr;
   } //makeUlamValuePtrForCodeGen
 
   bool NodeIdent::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
@@ -951,7 +961,7 @@ namespace MFM {
   void NodeIdent::genCode(File * fp, UlamValue & uvpass)
   {
     //return the ptr for an array; square bracket will resolve down to the immediate data
-    uvpass = makeUlamValuePtrForCodeGen();
+    makeUlamValuePtrForCodeGen(uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
 
@@ -963,7 +973,7 @@ namespace MFM {
   {
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data
-    uvpass = makeUlamValuePtrForCodeGen();
+   makeUlamValuePtrForCodeGen(uvpass);
 
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);

@@ -2140,22 +2140,30 @@ namespace MFM {
 
     if(uti == UAtom || getUlamTypeByIndex(uti)->getUlamClass() == UC_ELEMENT)
       {
-	stg = TMPBITVAL; //avoid loading a T into a tmpregister!
+	assert(stg != TMPREGISTER);
+	//stg = TMPBITVAL; //avoid loading a T into a tmpregister!
       }
 
     if(stg == TMPREGISTER)
       {
 	if(WritePacked(packed))
-	  tmpVar << "Uh_tmpreg_loadable_" ;
+	  tmpVar << "Uh_tlreg_" ; //tmp loadable register
 	else
-	  tmpVar << "Uh_tmpreg_unpacked_" ;
+	  tmpVar << "Uh_tureg_" ; //tmp unpacked register
       }
     else if(stg == TMPBITVAL)
       {
 	if(WritePacked(packed))
-	  tmpVar << "Uh_tmpval_loadable_" ;
+	  tmpVar << "Uh_tlval_" ; //tmp loadable value
 	else
-	  tmpVar << "Uh_tmpval_unpacked_" ;
+	  tmpVar << "Uh_tuval_" ; //tmp unpacked value
+      }
+    else if(stg == TMPAUTOREF)
+      {
+	if(WritePacked(packed))
+	  tmpVar << "Uh_tlauto_" ; //tmp loadable autoref
+	else
+	  tmpVar << "Uh_tuauto_" ; //tmp unpacked autoref
       }
     else
       assert(0); //remove assumptions about tmpbitval.

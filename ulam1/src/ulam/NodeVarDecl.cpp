@@ -551,7 +551,6 @@ namespace MFM {
     if(vclasstype == UC_QUARK)
       {
 	fp->write("<EC, ");
-	//fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
 	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //must be constant expression
 	fp->write(" + T::ATOM_FIRST_STATE_BIT");
 	fp->write("> ");
@@ -563,9 +562,6 @@ namespace MFM {
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
 
-#if 1
-    // include pos Sun Nov  1 14:18:01 2015
-    // trying not using auto anymore!!! Sat Oct 24 11:26:32 2015
     if(vclasstype == UC_QUARK)
       {
 	fp->write(", ");
@@ -583,7 +579,6 @@ namespace MFM {
       }
     else
       assert(0);
-#endif
 
     fp->write(");   //shadows lhs of 'h/as'\n");
 

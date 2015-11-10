@@ -32,7 +32,15 @@ element Foo {
     //    Atom a;
     //a = sbar[0];
     //sbar[1] = a; //aset is no-op gencode; but eval WIPES OUT Foo completely
-    b = m_bar2[0].cb;
+
+    //Car car;
+    //m_bar2[0] = car; //l0oking for a clue
+    //    m_bar2[0] = sbar; //l0oking for a clue (Node l1682 fix? CA ancestor?)
+
+    //b = m_bar2[0].cb; //read case
+
+    m_bar2[0].cb = false;     //write case
+
     //s.print(b);
     //s.print(m_i);
     return 0;

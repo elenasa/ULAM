@@ -576,7 +576,6 @@ namespace MFM {
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
     uvpass = offset; //return
-
     // NO RESTORE -- up to caller for lhs.
   } //genCodeToStoreInto
 
