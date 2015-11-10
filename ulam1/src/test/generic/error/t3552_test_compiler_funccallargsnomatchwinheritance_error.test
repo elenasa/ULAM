@@ -32,7 +32,7 @@ Int test(){
 #:Foo.ulam
 ulam 1;
 use System;
-element Foo {
+quark Foo {
   Bool fb = true;
   //no matching function here either!!
 }

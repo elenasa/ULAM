@@ -1,4 +1,4 @@
-[Development version: ulam-1.2.4]
+[Development version: ulam-1.2.5]
 
 <LIBRARY> := <PROGRAM_DEF>* + <EOF>
 <PROGRAM_DEF> := <QUARK_OR_UNION_DEF> | <ELEMENT_DEF>
@@ -63,7 +63,7 @@
 <BREAK_STATEMENT> := 'break' + ';'
 <CONTINUE_STATEMENT> := 'continue' + ';'
 <CONDITIONAL_EXPRESSION> := <SIMPLE_COND_DECL> | <ASSIGN_EXPRESSION>
-<SIMPLE_COND_DECL> := <IDENT> + 'as' + <TYPE_IDENT>
+<SIMPLE_COND_DECL> := <IDENT> + ( 'as' | 'has' ) + <TYPE_IDENT>
 
 
 <SIMPLE_STATEMENT> := ( 0 | <STATEMENT_DECL> | <TYPE_DEF> | <CONST_DEF> | <ASSIGN_EXPRESSION>
@@ -102,7 +102,7 @@
 <MULOP> := '*' | '/' | '%'
 <FACTOR> := <IDENT_EXPRESSION> | <NUMBER> | '(' + <ASSIGN_EXPRESSION> + ')' | <UNOP_EXPRESSION>
             |  <OF_EXPRESSION>
-<UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRESSION> + ('is' | 'has') + <TYPE_IDENT> |
+<UNOP_EXPRESSION> := <UNOP> + <FACTOR> | <IDENT_EXPRESSION> + 'is' + <TYPE_IDENT> |
 		     <LVAL_UNOP> + <LVAL_EXPRESSION>
 <UNOP> := '-' | '+' | '!' | <CAST>
 <CAST> := '(' + <TYPE> + ')'

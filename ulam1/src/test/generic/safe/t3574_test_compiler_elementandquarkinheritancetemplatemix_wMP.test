@@ -2,8 +2,8 @@
 #=t3574_test_compiler_elementandquarkinheritancetemplatemix_wMP
 #!
 Exit status: 4
-Ue_Tu(Int(32) x) : Foo { :<> constant Int(32) x = NONREADYCONST;  Int(32) test() {  Tu(1) tu;  tu mi . return } }
-Ue_Foo {parameter Int(32) mi = 4;  <NOMAIN> }
+Ue_Tu(Int(32) x) : Foo { :<> constant Int(32) x = NONREADYCONST;  parameter Int(32) mi = 4;  Int(32) test() {  Tu(1) tu;  tu mi . return } }
+Uq_Foo { /* empty class block */ }
 ##
 ##       //template classes can inherit from a regular class
 ##       informed by t3567, error/t3556
@@ -12,6 +12,7 @@ Ue_Foo {parameter Int(32) mi = 4;  <NOMAIN> }
 ulam 1;
 use Foo;
 element Tu (Int x) : Foo {
+  parameter Int mi = 4; //parameter only in element!!
 Int test(){
   Tu(1) tu;
   return tu.mi;
@@ -20,7 +21,6 @@ Int test(){
 
 #:Foo.ulam
 ulam 1;
-element Foo {
-  parameter Int mi = 4; //constant, parameter also work!!
+quark Foo {
 }
 #.

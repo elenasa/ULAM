@@ -338,6 +338,13 @@ namespace MFM {
     //m_state.popClassContext(); //keep on stack for name id
     m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL);
 
+
+    //automatically create a Self typedef symbol for this class type
+    u32 selfid = m_state.m_pool.getIndexForDataString("Self");
+    Token selfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
+    SymbolTypedef * symtypedef = new SymbolTypedef(selfTok, utype, utype, m_state);
+    m_state.addSymbolToCurrentScope(symtypedef);
+
     //need class block's ST before parsing any class parameters (i.e. named constants);
     Token pTok;
     getNextToken(pTok);
@@ -1156,11 +1163,11 @@ namespace MFM {
 	if(!(rtnNode = parseIdentExpr(iTok)))
 	  return parseExpression(); //continue as parseAssignExpr
 
-	//next check for 'as' only (is-has are Factors now)
+	//next check for 'as' and 'has' ('is' is a Factor)
 	Token cTok;
 	getNextToken(cTok);
 	unreadToken();
-	if(cTok.m_type == TOK_KW_AS)
+	if( (cTok.m_type == TOK_KW_AS) || (cTok.m_type == TOK_KW_HAS))
 	  {
 	    m_state.saveIdentTokenForConditionalAs(iTok); //sets m_state.m_parsingConditionalAs
 	    rtnNode = makeConditionalExprNode(rtnNode); //done, could be NULL
@@ -2651,7 +2658,7 @@ namespace MFM {
 	  Token tTok;
 	  getNextToken(tTok);
 	  unreadToken();
-	  if(tTok.m_type == TOK_KW_IS || tTok.m_type == TOK_KW_HAS)
+	  if(tTok.m_type == TOK_KW_IS)
 	    rtnNode = parseRestOfFactor(rtnNode);
 	}
 	break;
@@ -2726,7 +2733,6 @@ namespace MFM {
 	rtnNode = makeFactorNode();
 	break;
       case TOK_KW_IS:
-      case TOK_KW_HAS:
 	unreadToken();
 	assert(leftNode);
 	rtnNode = makeConditionalExprNode(leftNode);
@@ -2980,7 +2986,6 @@ namespace MFM {
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
 	break;
       case TOK_KW_IS:
-      case TOK_KW_HAS:
 	unreadToken();
 	rtnNode = parseRestOfFactor(leftNode);
 	rtnNode = parseRestOfExpression(rtnNode); //any more?
@@ -3673,17 +3678,35 @@ namespace MFM {
 	//process identifier...check if already defined in current scope; if not, add it;
 	//returned symbol could be symbolVariable or symbolFunction, detect first.
 	Symbol * asymptr = NULL;
-	if(!lvalNode->installSymbolTypedef(args, asymptr))
+	bool aok = lvalNode->installSymbolTypedef(args, asymptr);
+	if(!aok)
 	  {
 	    if(asymptr)
 	      {
-		std::ostringstream msg;
-		msg << m_state.m_pool.getDataAsString(asymptr->getId()).c_str();
-		msg << " has a previous declaration as '";
-		msg << m_state.getUlamTypeNameByIndex(asymptr->getUlamTypeIdx()).c_str();
-		msg << " " << m_state.m_pool.getDataAsString(asymptr->getId());
-		msg << "' and cannot be used as a typedef";
-		MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		u32 asymid = asymptr->getId();
+		UTI auti = asymptr->getUlamTypeIdx();
+		if(asymid == m_state.m_pool.getIndexForDataString("Self") && auti == m_state.getCompileThisIdx())
+		  {
+		    //special case 'Self' typedef that's also defined by the ulam programmer
+		    std::ostringstream msg;
+		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
+		    msg << " has a previous declaration as '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+		    msg << " " << m_state.m_pool.getDataAsString(asymid);
+		    msg << "' and is a redundant typedef";
+		    MSG(&args.m_typeTok, msg.str().c_str(), INFO);
+		    aok = true; //not a problem
+		  }
+		else
+		  {
+		    std::ostringstream msg;
+		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
+		    msg << " has a previous declaration as '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+		    msg << " " << m_state.m_pool.getDataAsString(asymid);
+		    msg << "' and cannot be used as a typedef";
+		    MSG(&args.m_typeTok, msg.str().c_str(), ERR);
+		  }
 	      }
 	    else
 	      {
@@ -3698,7 +3721,8 @@ namespace MFM {
 	      }
 	    m_state.clearStructuredCommentToken();
 	  }
-	else
+
+	if(aok)
 	  {
 	    UTI auti = asymptr->getUlamTypeIdx();
 	    //chain to NodeType descriptor if array (i.e. non scalar), o.w. delete lval

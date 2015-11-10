@@ -11,16 +11,16 @@ Exit status: 34
 Ue_A { System s();  Int(32) j(34);  Int(32) test() {  constant Int(32) cOW = 33;  j 34 cast = s ( j )print . j return } }
 Uq_System { <NOMAIN> }
 #>A.ulam
-use System;
-element A{
-System s;
-Int j;
-Int test () {
-constant Int cOW = 1 + self.sizeof; // works with A.sizeof
- j = 1 + cOW;
-s.print(j);
- return j;
-}
+  use System;
+element A {
+  System s;
+  Int j;
+  Int test () {
+    constant Int cOW = 1 + self.sizeof; // works with A.sizeof
+    j = 1 + cOW;
+    s.print(j);
+    return j;
+  }
 }
 
 #:System.ulam

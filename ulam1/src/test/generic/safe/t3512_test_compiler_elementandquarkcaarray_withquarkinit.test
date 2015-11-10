@@ -2,7 +2,7 @@
 #=t3512_test_compiler_elementandquarkcaarray_withquarkinit
 #!
 Exit status: 0
-Ue_Foo { typedef Bar Pop[2];  Bool(3) b(true);  Int(4) m_i(1);  Bar m_bar2[2]( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(63);  typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(63); );  Bar sbar( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(63); );  Int(32) test() {  0 cast return } }
+Ue_Foo { typedef Bar Pop[2];  Bool(3) b(true);  Int(4) m_i(1);  Bar m_bar2[2]( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(63u);  typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(63u); );  Bar sbar( typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u(63u); );  Int(32) test() {  0 cast return } }
 Uq_Bar { typedef Unsigned(6) Index;  Bool(1) val_b[3](false,false,false);  Unsigned(6) val_u( 63u);  <NOMAIN> }
 ##
 #>Foo.ulam
