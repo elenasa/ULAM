@@ -92,6 +92,8 @@ namespace MFM{
 
     void genCodeBuiltInFunctionHasOverTableOfVariableDataMember(File * fp);
 
+    //void genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(File * fp); (unused)
+
     void genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti);
 
     void addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);

@@ -7,7 +7,7 @@
 ##      //problem with eval answer is that an atom type appears the same as tu.
 ##
 Exit status: 0
-Ue_Ebar { System s();  Int(32) test() {  s ( shouldBeOK(512) )print . 0 cast return } }
+Ue_Ebar { System s();  parameter Int(32) shouldBeOK = 512;  Int(32) test() {  s ( shouldBeOK(512) )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 #>Ebar.ulam
 ulam 1;

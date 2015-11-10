@@ -1,33 +1,30 @@
 ## -*- mode:ulam -*-
-#=t3544_test_compiler_quarkinheritance_woverridevar
+#=t3581_test_compiler_elementquarkinheritance_nonlocaluse
 #!
 ## gencode output:
-## <blank>
+## Bool(3) Arg: 0x7 (true)
 ##
-Exit status: 0
-Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< Bool(3) cb(true); > Bool(3) cb(false);  Unsigned(3) us(4u); );  Int(32) test() {  Foo f;  f su cb . . cond { s ( f su cb . . )print . 10u cast return } if 0 cast return } }
-Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  Bool(3) cb(false);  <NOMAIN> }
+Exit status: 7
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4u); > System s();  Bool(1) first(false);  Int(32) test() {  cb cond { s ( cb )print . 7u cast return } if 0 cast return } }
+Uq_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo { Bool(3) cb( true);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## quark inheritance, regular (non-template), same dm var name
-## informed by t3536
+## element-quark inheritance, regular (non-template), non-local use
+## (informed by t3537, t3536)
 ##
 #>Foo.ulam
   ulam 1;
 use Soo;
 use System;
-element Foo {
+element Foo : Soo{
   System s;
   Bool first;
-  Soo su;
   Int test() {
-    Foo f;
-
-    if(f.su.cb)
+    if(cb)
     {
-      s.print(f.su.cb);
-      return f.sizeof;
+      s.print(cb);
+      return Foo.sizeof;
     }
     return 0;
   }
@@ -38,7 +35,6 @@ element Foo {
 use Coo;
 quark Soo : Coo {
   Unsigned(3) us = 4u;
-  Bool(3) cb;
 }
 
 #:Coo.ulam

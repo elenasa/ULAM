@@ -3,8 +3,8 @@
 #!
 Exit status: 10
 Ue_R { Int(32) test() {  Tu(1) tu;  Tu(2) tu2;  Tu(3) tu3;  Foo foo;  foo ( )func . tu ( )func . +b tu2 ( )func . +b tu3 ( )func . +b return } }
-Ue_Tu(Int(32) x) : Foo { :< Int(32) mi( 4 cast); > <NOMAIN> }
-Ue_Foo { Int(32) mi( 4 cast);  <NOMAIN> }
+Uq_Tu(Int(32) x) : Foo { :< Int(32) mi( 4 cast); > <NOMAIN> }
+Uq_Foo { Int(32) mi( 4 cast);  <NOMAIN> }
 ##
 ##       //template classes can inherit from a regular class
 ##       informed by t3567, error/t3556
@@ -24,7 +24,7 @@ element R {
 
 #:Tu.ulam
   ulam 1;
-element Tu (Int x) : Foo {
+quark Tu (Int x) : Foo {
   Int func()
   {
     return x; //overrides Foo's
@@ -34,7 +34,7 @@ use Foo; //wait until seen, ok
 
 #:Foo.ulam
 ulam 1;
-element Foo {
+quark Foo {
   Int mi = 4; //constant, parameter also work!!
   Int func()
   {

@@ -10,9 +10,9 @@
 ##Unsigned Arg: 13
 ##
 Exit status: 13
-Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(1); > Bool(3) cb(true); > Unsigned(3) us(4); ); > Bool(1) ba(false); > System s();  Bool(1) first(true);  Int(32) test() {  s ( su cb . )print . first su cb . cast = s ( first cast )print . first su ( )check . = s ( first cast )print . su ( )check . cond { s ( su lu . cast )print . su lu . 1u cast = s ( su lu . cast )print . s ( 13u )print . 13u cast return } if -1 cast return } }
-Ue_Basel : Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
-Ue_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
+Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(1); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(true);  Int(32) test() {  s ( su cb . )print . first su cb . cast = s ( first cast )print . first su ( )check . = s ( first cast )print . su ( )check . cond { s ( su lu . cast )print . su lu . 1u cast = s ( su lu . cast )print . s ( 13u )print . 13u cast return } if -1 cast return } }
+Uq_Basel : Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
+Uq_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
 Uq_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo : Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
 Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
@@ -50,14 +50,14 @@ element Foo : Basel {
 #:Basel.ulam
   ulam 1;
 use Casel;
-element Basel : Casel {
+quark Basel : Casel {
   Bool ba;
 }
 
 #:Casel.ulam
   ulam 1;
 use Soo;
-element Casel {
+quark Casel {
   Soo su;
 }
 

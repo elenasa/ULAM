@@ -1602,7 +1602,8 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
+		//fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
+		fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 		fp->write(">::");
 	      }
 	  }
@@ -1619,7 +1620,8 @@ namespace MFM {
 	      {
 		//self is a quark
 		fp->write("<EC,");
-		fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
+		//fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
+		fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 		fp->write(">::");
 	      }
 	  }
@@ -1777,7 +1779,8 @@ namespace MFM {
 	else
 	  {
 	    fp->write("<EC,");
-	    fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
+	    //fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
+	    fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 	    fp->write(">::");
 	  }
 	return;
@@ -1851,7 +1854,8 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
+		//fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
+		fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 		fp->write(">::");
 	      }
 	  }
@@ -1910,7 +1914,8 @@ namespace MFM {
 	else
 	  {
 	    fp->write("<EC,");
-	    fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
+	    //fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
+	    fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 	    fp->write(">::");
 	  }
 	return;
@@ -2087,7 +2092,10 @@ namespace MFM {
   // preceeding object is the "owner"
   s32 Node::calcPosOfCurrentObjectsContainingASubClass(bool isLocal)
   {
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    //assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
+    //self must be subclass, i.e. inherited quark always at pos 0
+    if(m_state.m_currentObjSymbolsForCodeGen.empty()) return 0;
+
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
     s32 cosSize = (s32) m_state.m_currentObjSymbolsForCodeGen.size();

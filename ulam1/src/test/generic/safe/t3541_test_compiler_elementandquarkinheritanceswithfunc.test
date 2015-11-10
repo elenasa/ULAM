@@ -5,12 +5,13 @@
 ##Bool(3) Arg: 0x7 (true)
 ##Int Arg: -1
 ##Int Arg: 1
+##Unsigned Arg: 4
 ##Unsigned Arg: 13
 ##
 Exit status: 13
-Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(31); > Bool(3) cb(true); > Unsigned(3) us(4); ); > Bool(1) ba(false); > System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  f first . su cb . cast = s ( f first . cast )print . f su ( )check . . cond { s ( f su lu . . cast )print . f su lu . . 1u cast = s ( f su lu . . cast )print . s ( 13u )print . 13u cast return } if 0 cast return } }
-Ue_Basel : Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
-Ue_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
+Ue_Foo : Basel { :< :< Soo su( :< :< Int(5) lu(31); > Bool(3) cb(true); > Unsigned(3) us(4u); ); > Bool(1) ba(false); > System s();  Bool(1) first(false);  Int(32) test() {  Foo f;  f first . su cb . cast = s ( f first . cast )print . f su ( )check . . cond { s ( f su lu . . cast )print . f su lu . . 1u cast = s ( f su lu . . cast )print . s ( f su us . . cast )print . s ( 13u )print . 13u cast return } if 0 cast return } }
+Uq_Basel : Casel { :< Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); ); > Bool(1) ba(false);  <NOMAIN> }
+Uq_Casel { Soo su( :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u); );  <NOMAIN> }
 Uq_Soo : Coo { :< :< Int(5) lu( -1); > Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
 Uq_Coo : Loo { :< Int(5) lu( -1); > Bool(3) cb( true);  <NOMAIN> }
 Uq_Loo { Int(5) lu( -1);  <NOMAIN> }
@@ -35,6 +36,7 @@ element Foo : Basel {
       s.print(f.su.lu);
       f.su.lu = 1u;
       s.print(f.su.lu);
+      s.print(f.su.us);
       s.print(f.sizeof);
       return f.sizeof;
     }
@@ -45,14 +47,14 @@ element Foo : Basel {
 #:Basel.ulam
   ulam 1;
 use Casel;
-element Basel : Casel {
+quark Basel : Casel {
   Bool ba;
 }
 
 #:Casel.ulam
   ulam 1;
 use Soo;
-element Casel {
+quark Casel {
   Soo su;
 }
 
