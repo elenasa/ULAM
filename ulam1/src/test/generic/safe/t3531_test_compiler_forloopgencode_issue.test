@@ -1,0 +1,35 @@
+## -*- mode:ulam -*-
+#=t3531_test_compiler_forloopgencode_issue
+#!
+## apparently a gcc bug:
+## https://gcc.gnu.org/bugzilla/show_bug.cgi?id=59124
+##
+Exit status: 0
+Ue_R { Int(32) test() {  Ish myish;  myish ( )behave . 0 cast return } }
+Ue_Ish { typedef Unsigned(8) ARGB[4];  <NOMAIN> }
+##
+## for loop issue
+##
+#>R.ulam
+  ulam 1;
+use Ish;
+element R {
+  Int test()
+  {
+    Ish myish;
+    myish.behave();
+    return 0;
+  }
+}
+
+#:Ish.ulam
+element Ish {
+  typedef Unsigned(8) ARGB[4];
+
+  Void behave() {
+    ARGB val;
+    for (Int i = 0; i < 3; ++i)
+      val[i] = 0;
+  }
+}
+#.

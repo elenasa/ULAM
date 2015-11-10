@@ -1,0 +1,38 @@
+## -*- mode:ulam -*-
+#=t3532_test_compiler_elementinheritances_nonlocaluse
+#!
+Exit status: 77
+Ue_Foo : Soo { :< :< Bool(3) cb(true); > Unsigned(3) us(4); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  cb cond us cast a +b return if 0 cast return } }
+Ue_Soo : Coo { :< Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Ue_Coo { Bool(3) cb( true);  <NOMAIN> }
+##
+## non-local variables, chained class inheritance, regular (non-template)
+## informed by t3529
+##
+#>Foo.ulam
+  ulam 1;
+use Soo;
+element Foo : Soo {
+  Bool(7) sp;
+  Int a = 73;
+  Int test() {
+    if(cb)
+      return us + a;
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 1;
+use Coo;
+element Soo : Coo {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 1;
+element Coo {
+  Bool(3) cb = true;
+}
+
+#.

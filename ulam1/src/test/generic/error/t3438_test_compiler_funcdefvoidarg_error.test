@@ -1,10 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3438_test_compiler_funcdefvoidarg_error
 #!
+./Tu.ulam:3:12: ERROR: Invalid use of type Void with variable symbol name 'arg'.
+./Tu.ulam:3:12: ERROR: Unresolved No.1.
+./Tu.ulam:3:2: ERROR: Unresolved No.2.
+./Tu.ulam:3:2: Warning: 2 nodes with unresolved types remain in function <func> (Uf_4func,1).
+./Tu.ulam:3:7: Warning: Summary: 2 nodes with unresolved types remain in  a single function <func> in class: Tu.
+./Tu.ulam:2:9: Warning: 2 data member nodes with unresolved types remain in class 'Tu'.
+./Tu.ulam:2:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: Tu.
+Unrecoverable Program Type Label FAILURE.
 ##
-##./Tu.ulam:3:12: ERROR: Invalid use of type Void with variable symbol name 'arg'.
-##
-Ue_Tu {
 #>Tu.ulam
 ulam 1;
 element Tu {

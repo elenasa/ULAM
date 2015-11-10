@@ -43,7 +43,7 @@
 #include "itype.h"
 #include "File.h"
 #include "FileManager.h"
-#include "ParameterMap.h"
+#include "MapClassMemberDesc.h"
 #include "TargetMap.h"
 #include "UlamTypeClass.h"
 
@@ -90,9 +90,13 @@ namespace MFM{
 
     void genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(File *fp);
 
-    void genCodeBuiltInFunctionsOverTableOfVariableDataMember(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionHasOverTableOfVariableDataMember(File * fp);
 
-    void addModelParameterDescriptionsToMap(UTI classType, ParameterMap& classmodelparameters);
+    void genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti);
+
+    void addClassMemberDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
+
+    void addClassMemberFunctionDescriptionsToMap(UTI classType, ClassMemberMap& classmembers);
 
     void printPostfixValuesForTableOfVariableDataMembers(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
 
@@ -127,11 +131,15 @@ namespace MFM{
     // TableOfClasses:
     void getTargets(TargetMap& classtargets);
 
-    void getModelParameters(ParameterMap& classmodelparameters);
+    void getClassMembers(ClassMemberMap& classmembers);
+
+    void initializeElementDefaultsForEval(UlamValue& uvsite);
 
     void testForTableOfClasses(File * fp);
 
     void printPostfixForTableOfClasses(File * fp);
+
+    void buildDefaultQuarksFromTableOfClasses();
 
     void printForDebugForTableOfClasses(File * fp);
 
@@ -165,6 +173,8 @@ namespace MFM{
 
     void genCodeForTableOfClasses(FileManager * fm);
 
+    UTI findClassNodeNoForTableOfClasses(NNO n);
+
   protected:
     std::map<u32, Symbol* > m_idToSymbolPtr;
 
@@ -172,6 +182,7 @@ namespace MFM{
     CompilerState & m_state;
     s32 calcVariableSymbolTypeSize(UTI ut);
     bool variableSymbolWithCountableSize(Symbol * sym);
+
   };
 
 }

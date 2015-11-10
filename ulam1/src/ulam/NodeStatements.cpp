@@ -123,6 +123,16 @@ namespace MFM {
       m_nodeNext->countNavNodes(cnt);
   } //countNavNodes
 
+  bool NodeStatements::buildDefaultQuarkValue(u32& dqref)
+  {
+    bool aok = true;
+    if(m_node)
+      aok |= m_node->buildDefaultQuarkValue(dqref);
+    if(m_nodeNext)
+      aok |= m_nodeNext->buildDefaultQuarkValue(dqref);
+    return aok;
+  } //obuildDefaultQuarkValue
+
   EvalStatus NodeStatements::eval()
   {
     assert(m_node);

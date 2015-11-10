@@ -7,7 +7,7 @@
 ##      */
 Exit status: 1
 Ue_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1;  Unsigned(1) u(0);  Int(2) i(0); );  Int(32) test() {  Eltypo el;  el Typo(1) has cond { s ( t 1 . )print . t 1 . return } if 2u cast return } }
-Uq_Typo { constant Int(32) a = NONREADYCONST;  Unsigned(UNKNOWN) u(0);  Int(UNKNOWN) i(0);  <NOMAIN> }
+Uq_Typo(Int(32) a) { Unsigned(UNKNOWN) u(unknown);  Int(UNKNOWN) i(unknown);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //uses union instead of quark:

@@ -46,6 +46,17 @@ namespace MFM {
     fp->write(" = ");
 
     SymbolWithValue::printPostfixValue(fp);
+    fp->write("; ");
   } //printPostfixValuesOfVariableDeclarations
+
+  void SymbolConstantValue::setStructuredComment()
+  {
+    Token scTok;
+    if(m_state.getStructuredCommentToken(scTok)) //and clears it
+      {
+	m_structuredCommentToken = scTok;
+	m_gotStructuredCommentToken = true;
+      }
+  } //setStructuredComment
 
 } //end MFM

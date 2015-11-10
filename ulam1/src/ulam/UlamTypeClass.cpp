@@ -38,18 +38,27 @@ namespace MFM {
   bool UlamTypeClass::cast(UlamValue & val, UTI typidx)
   {
     bool brtn = true;
-    assert(m_state.getUlamTypeByIndex(typidx) == this);
+    assert(m_state.getUlamTypeByIndex(typidx) == this); //tobe
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
     assert(vut->isScalar() && isScalar());
 
     //now allowing atoms to be cast as quarks, as well as elements;
+    // also allowing subclasses to be cast as their superclass (u1.2.2)
     if(m_class == UC_ELEMENT)
-      assert(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME);
+      {
+	if(!(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
+	  {
+	    if(m_state.isClassASuperclassOf(valtypidx, typidx))
+	      val.setAtomElementTypeIdx(typidx);
+	    else
+	      brtn = false;
+	  }
+	//else true
+      }
     else if(m_class == UC_QUARK)
       {
 	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-	assert(valtypidx == UAtom || vclasstype == UC_ELEMENT || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME);
 	if(vclasstype == UC_ELEMENT)
 	  {
 	    SymbolClass * csym = NULL;
@@ -75,17 +84,27 @@ namespace MFM {
 		  assert(0);
 	      }
 	    else
-	      assert(0);
+	      assert(0); //can't cast element to quark if that quark is not its data member
 	  }
-	//if same type nothing to do; if atom, shows as element in eval-land.
-      }
+	else if(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
+	  {
+	    //if same type nothing to do; if atom, shows as element in eval-land.
+	  }
+	else if(m_state.isClassASuperclassOf(valtypidx, typidx)) //2 quarks
+	  {
+	    // assume both right-justified/immediates???
+	    // Coo c = (Coo) f.su; where su is a Soo : Coo
+	    s32 vlen = vut->getTotalBitSize();
+	    s32 len = getTotalBitSize();
+	    u32 vdata = val.getImmediateData(vlen); //or is this from element?
+	    u32 qdata = vdata >> (vlen - len);
+	    val = UlamValue::makeImmediate(typidx, qdata, len);
+	  }
+	else
+	  brtn = false;
+      } //end quark casting
     else
-      assert(0);
-    // what change is to be made ????
-    // atom type vs. class type
-    // how can it be both in an UlamValue?
-    // what of its contents?
-    // val = UlamValue::makeAtom(valtypidx);
+      assert(0); //neither element nor quark
 
     return brtn;
   } //end cast
@@ -98,6 +117,12 @@ namespace MFM {
 
     if(m_state.getUlamTypeByIndex(typidx) == this)
       return CAST_CLEAR; //same class, quark or element
+    else
+      {
+	u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+	if(m_state.isClassASuperclassOf(cuti, typidx))
+	  return CAST_CLEAR;
+      }
 
     return CAST_BAD; //e.g. (typidx == UAtom)
   } //safeCast
@@ -140,15 +165,16 @@ namespace MFM {
       mangled << 10;
 
     mangled << m_state.getDataAsStringMangled(m_key.getUlamKeyTypeSignatureNameId()).c_str();
+    //without types and values of args!!
     return mangled.str();
   } //getUlamTypeMangledType
 
   const std::string UlamTypeClass::getUlamTypeMangledName()
   {
     std::ostringstream mangledclassname;
-    mangledclassname << UlamType::getUlamTypeMangledName();
+    mangledclassname << UlamType::getUlamTypeMangledName(); //includes Uprefix
 
-    //append 0, or each digi-encoded: numberOfParameters, (enum) types and values
+    //appends '10', or numberOfParameters followed by each digi-encoded: mangled type and value
     u32 id = m_key.getUlamKeyTypeSignatureNameId();
     UTI cuti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
     SymbolClassName * cnsym = (SymbolClassName *) m_state.m_programDefST.getSymbolPtr(id);
@@ -238,7 +264,7 @@ namespace MFM {
 
   bool UlamTypeClass::isCustomArray()
   {
-    return m_customArray; //canonical
+    return m_customArray; //canonical, ignores ancestors
   }
 
   void UlamTypeClass::setCustomArray()
@@ -248,30 +274,14 @@ namespace MFM {
 
   UTI UlamTypeClass::getCustomArrayType()
   {
-    UTI caType = Nav;
-    assert(m_customArray);
     u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-    SymbolClass * csym = NULL;
-
-    if(m_state.alreadyDefinedSymbolClass(cuti, csym))
-      {
-	caType = csym->getCustomArrayType();
-      }
-    return caType;
+    return m_state.getAClassCustomArrayType(cuti);
   } //getCustomArrayType
 
   u32 UlamTypeClass::getCustomArrayIndexTypeFor(Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
-    u32 camatches = 0;
-    assert(m_customArray);
     u32 cuti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
-    SymbolClass * csym = NULL;
-
-    if(m_state.alreadyDefinedSymbolClass(cuti, csym))
-      {
-	camatches = csym->getCustomArrayIndexTypeFor(rnode, idxuti, hasHazyArgs);
-      }
-    return camatches;
+    return m_state.getAClassCustomArrayIndexType(cuti, rnode, idxuti, hasHazyArgs);
   } //getCustomArrayIndexTypeFor
 
   s32 UlamTypeClass::getBitSize()
@@ -366,7 +376,6 @@ namespace MFM {
     if(!isScalar())
       return UlamType::getArrayItemTmpStorageTypeAsString();
 
-    assert(isCustomArray());
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
   } //getArrayItemTmpStorageTypeAsString
 
@@ -539,21 +548,29 @@ namespace MFM {
     fp->write("> ");
     fp->write(" Up_Us;\n");
 
+    u32 dqval = 0;
+    bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
+
     //storage here in atom
     m_state.indent(fp);
     fp->write("T m_stg;  //storage here!\n");
 
     //default constructor (used by local vars)
+    //(unlike element) call build default in case of initialized data members
     m_state.indent(fp);
     fp->write(mangledName.c_str());
-    fp->write("() : m_stg() { }\n");
+    fp->write("() : m_stg( ) { ");
+
+    if(hasDQ)
+      fp->write("write(DEFAULT_QUARK); }\n");
+    else
+      fp->write(" }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
     fp->write(mangledName.c_str());
     fp->write("(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    //fp->write(" d) : m_t(d) {}\n");
     fp->write(" d) { write(d); }\n");
 
     //read 'entire quark' method
@@ -673,6 +690,9 @@ namespace MFM {
     fp->write("typedef typename AC::ATOM_TYPE T;\n");
     m_state.indent(fp);
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    m_state.indent(fp);
+    //fp->write("enum { BPF = 32 /*AC::P3_STATE_BITS_LEN */};\n");
+    fp->write("typedef BitField<BitVector<BPA>, VD::BITS, T::ATOM_FIRST_STATE_BIT, 0> BFTYP;\n");
 
     //element typedef
     m_state.indent(fp);
@@ -763,6 +783,10 @@ namespace MFM {
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write(" read() const { return m_stgRef; }\n");
+
+    m_state.indent(fp);
+    fp->write("const u32 readTypeField()");
+    fp->write("{ return BFTYP::Read(m_stgRef); }\n");
   } //genUlamTypeElementReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeElementWriteDefinitionForC(File * fp)
@@ -775,6 +799,10 @@ namespace MFM {
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
     fp->write("& v) { m_stgRef = v; }\n");
+
+    m_state.indent(fp);
+    fp->write("void writeTypeField(const u32 v)");
+    fp->write("{ BFTYP::Write(m_stgRef, v); }\n");
   } //genUlamTypeElementWriteDefinitionForC
 
   const std::string UlamTypeClass::readArrayItemMethodForCodeGen()
@@ -936,4 +964,22 @@ namespace MFM {
   {
     assert(0); //only primitive types
   }
+
+  bool UlamTypeClass::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
+  {
+    bool rtnb = false;
+    if(m_class == UC_QUARK)
+      {
+	if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))
+	  {
+	    m_state.indent(fp);
+	    fp->write("static const u32 DEFAULT_QUARK = ");
+	    fp->write_decimal_unsigned(dqref);
+	    fp->write(";\n\n");
+	    rtnb = true;
+	  }
+      }
+    return rtnb;
+  } //genUlamTypeDefaultQuarkConstant
+
 } //end MFM

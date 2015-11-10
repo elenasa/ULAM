@@ -1,0 +1,71 @@
+## -*- mode:ulam -*-
+#=t3543_test_compiler_elementandquarkarray_withquarkinitandinheritance
+#!
+##
+## gencode output:
+## Bool(3) Arg: 0x7 (true)
+##Int(4) Arg: 0x7
+##
+Exit status: 0
+Ue_Foo { Bool(3) b(false);  typedef Car Pop[2];  System s();  Int(4) m_i(0);  Car m_bar2[2]( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(false);  :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(false); );  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(false); );  Int(32) test() {  Atom(96) a;  a sbar 0 cast [] = sbar 1 cast [] a = b m_bar2 0 [] cb . cast = s ( b )print . s ( m_i )print . 0 cast return } }
+Uq_System { <NOMAIN> }
+Uq_Car : Bar { :< Bool(1) val_b[3](false,false,false); > Bool(1) cb( true);  <NOMAIN> }
+Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
+##
+## informed by 3223: eval (wipes out element) and gencode (m_bar2s cb is true; m_i is still 7) differ!!
+##
+#>Foo.ulam
+ulam 1;
+use System;
+ use Car;
+ element Foo {
+ typedef Car Pop[2];
+ System s;
+ Bool(3) b;
+ Int(4) m_i = 7;
+ Pop m_bar2;
+ Car sbar;
+ Bool check(Int v) {
+   return true;
+ }
+ Int test() {
+   Atom a;
+   a = sbar[0];
+   sbar[1] = a; //aset is no-op gencode; but eval WIPES OUT Foo completely
+   b = m_bar2[0].cb;
+   s.print(b);
+   s.print(m_i);
+   return 0;
+ }
+ }
+
+#:Car.ulam
+ulam 1;
+use Bar;
+quark Car : Bar {
+  Bool cb = true;
+ }
+
+#:Bar.ulam
+ulam 1;
+ quark Bar {
+ Bool val_b[3];
+ Void reset(Bool b) {
+   b = false;
+ }
+ Atom aref(Int index) native;
+ Void aset(Int index, Atom v) native;
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

@@ -9,33 +9,39 @@
 ##      //Constants have explicit types
 ##
 Exit status: 1
-Ue_P { Bool(UNKNOWN) b(unknown);  constant Unsigned(32) a = NONREADYCONST;  Int(32) foo(0);  Int(32) test() {  System s;  3u = var const P(1u) pel;  s ( pel b sizeof . . )print . s ( P sizeof . )print . s ( pel sizeof . )print . pel b sizeof . . cast return } }
-Uq_Q { constant Int(32) s = NONREADYCONST;  typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
-Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+Ue_R { Int(32) test() {  System s;  constant Unsigned(3) var = 3u;  P(1u) pel;  s ( pel 1u . )print . s ( 33u )print . s ( 33u )print . pel 1u . cast return } }
+Ue_P(Unsigned(32) a) { Bool(UNKNOWN) b(unknown);  Int(32) foo(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+Uq_Q(Int(32) s) { typedef Unsigned(UNKNOWN) Foo;  <NOMAIN> }
 ##
 ##      // informed by 3339: P is now parametric
 ##      // recursive typedefs as local variable type
 ##      //pel.b.sizeof
 ##      //P.ulam:9:15: ERROR: Member selected must be either a quark or an element, not type: Bool(1).
 ##
-#>P.ulam
-ulam 1;
-use Q;
-use V;
-use System;
- element P(Unsigned a) {
-Bool(a) b;
-Int foo;
+#>R.ulam
+  ulam 1;
+  use P;
+  use System;
+  use V;
+element R {
 Int test() {
-System s;
+ System s;
  constant V.Woof.Foo var = 3u;
  P(1u) pel;
  s.print(pel.b.sizeof);
-s.print(P(1u).sizeof);
-s.print(pel.sizeof);
+ s.print(P(1u).sizeof);
+ s.print(pel.sizeof);
  return (Int) pel.b.sizeof;
 }
+}
+
+#:P.ulam
+ulam 1;
+ element P(Unsigned a) {
+Bool(a) b;
+Int foo;
 }
 
 #:Q.ulam
@@ -47,7 +53,7 @@ typedef Unsigned(s) Foo;
 ulam 1;
 use Q;
  quark V {
-typedef Q(3) Woof;
+ typedef Q(3) Woof;
 }
 #:System.ulam
 ulam 1;

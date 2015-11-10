@@ -13,18 +13,18 @@ use System;
 element A {
 System s;
 Bool(3) a;
- Bool b;
- Unary(3) d;
+Bool b;
+Unary(3) d;
 Unsigned(6) e;
- Int test() {
-a = true;
+Int test() {
+  a = true;
   e = d = (Unary(3))((Unary(3)) a * 3);
- s.print(d);
- s.print((Unsigned)e);
- b = (d != 0);
- return (Int) b;
- }
- }
+  s.print(d);
+  s.print((Unsigned)e);
+  b = (d != 0);
+  return (Int) b;
+}
+}
 
 #:System.ulam
 ulam 1;

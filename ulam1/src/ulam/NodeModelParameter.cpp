@@ -23,7 +23,7 @@ namespace MFM {
     fp->write(" ");
     fp->write(getName());
     fp->write("(");
-    fp->write(NodeTerminal::getName());
+    fp->write(NodeConstant::getName());
     fp->write(")");
   }
 
@@ -45,7 +45,7 @@ namespace MFM {
 
   FORECAST NodeModelParameter::safeToCastTo(UTI newType)
   {
-    if(isReadyConstant())
+    if(NodeConstant::isReadyConstant())
       {
 	FORECAST scr = m_state.getUlamTypeByIndex(newType)->safeCast(getNodeType());
 	if(scr == CAST_CLEAR)
@@ -99,8 +99,9 @@ namespace MFM {
 
   void NodeModelParameter::genCode(File * fp, UlamValue& uvpass)
   {
-    if(!isReadyConstant())
-      m_ready = updateConstant(); //sets ready here
+    if(!NodeConstant::isReadyConstant())
+      m_ready = NodeConstant::updateConstant(); //sets ready here
+    assert(NodeConstant::isReadyConstant()); //must be
 
     //excerpt from makeUlamValuePtrForCodeGen in NodeIdent
     UTI nuti = getNodeType();

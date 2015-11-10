@@ -1,8 +1,16 @@
 ## -*- mode:ulam -*-
 #=t3122_test_compiler_opequal_invalidlhs_error
 #!
-##      //./D.ulam:1:36: ERROR: Invalid Statement (possible missing semicolon).
-Ue_D { Int a[2](1,0);  Int test() {  a 0 [] 1 = } }
+./D.ulam:4:7: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE.
+##
 #>D.ulam
-element D { Int a[2]; Int test() { 3 = a[1]; a[0] = 1; return a[1]; } }
+element D {
+  Int a[2];
+  Int test() {
+    3 = a[1];
+    a[0] = 1;
+    return a[1];
+  }
+}
 #.

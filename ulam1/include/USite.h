@@ -57,6 +57,8 @@ namespace MFM
     UTI getElementTypeNumber(); //passes through to AtomValue at site
     void setElementTypeNumber(UTI type);
 
+    void setElementTypeAndDefaults(UTI type, CompilerState& state);
+
     bool isSiteLive();
     void setSiteLive(bool b);
 

@@ -119,7 +119,7 @@ namespace MFM {
 	  {
 	    if(Node::checkSafeToCastTo(cuti, newType) == CAST_CLEAR)
 	      {
-		if(!makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
+		if(!Node::makeCastingNode(m_nodeCondition, newType, m_nodeCondition))
 		  newType = Nav;
 	      }
 	    else
@@ -134,7 +134,7 @@ namespace MFM {
 	      {
 		if(Node::checkSafeToCastTo(cuti, newType))
 		  {
-		    if(!makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
+		    if(!Node::makeCastingNode(m_nodeCondition, cuti, m_nodeCondition))
 		      newType = Nav;
 		    else
 		      newType = cuti;
@@ -146,7 +146,10 @@ namespace MFM {
 	m_nodeBody->checkAndLabelType(); //side-effect
       }
     else
-      newType = cuti;
+      {
+	newType = cuti;
+	m_state.setGoAgain();
+      }
 
     setNodeType(newType);  //stays the same
     setStoreIntoAble(false);

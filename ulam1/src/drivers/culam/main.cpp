@@ -176,7 +176,7 @@ namespace MFM
       int status = C.compileFiles(m_srcFileManager, m_classfiles, m_outFileManager, m_stderr);
       if (status == 0) {
         m_targetMap = C.getMangledTargetsMap();
-        m_parameterMap = C.getMangledParametersMap();
+        m_memberMap = C.getMangledClassMembersMap();
       }
       return status;
     }
@@ -191,14 +191,19 @@ namespace MFM
       return m_targetMap.end();
     }
 
-    ParameterMap::const_iterator ParameterMapBegin() const
+    ClassMemberMap::const_iterator ClassMemberMapBegin() const
     {
-      return m_parameterMap.begin();
+      return m_memberMap.begin();
     }
 
-    ParameterMap::const_iterator ParameterMapEnd() const
+    ClassMemberMap::const_iterator ClassMemberMapEnd() const
     {
-      return m_parameterMap.end();
+      return m_memberMap.end();
+    }
+
+    ClassMemberMap & GetClassMemberMap()
+    {
+      return m_memberMap;
     }
 
   private:
@@ -209,7 +214,7 @@ namespace MFM
     File * m_stderr;
     std::vector<std::string> m_classfiles;
     TargetMap m_targetMap;
-    ParameterMap m_parameterMap;
+    ClassMemberMap m_memberMap;
   };
 } /* namespace MFM */
 
@@ -279,22 +284,28 @@ int main(int argc, char ** argv)
               << std::endl;
           }
 
-        for(MFM::ParameterMap::const_iterator i = ds.ParameterMapBegin(); i != ds.ParameterMapEnd(); ++i)
+        for(MFM::ClassMemberMap::const_iterator i = ds.ClassMemberMapBegin(); i != ds.ClassMemberMapEnd(); ++i)
           {
-            std::cerr
-              << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	      << "PARAMETER "
-              << MFM::HexEscape(c.getFullPathLocationAsString(i->second.m_loc))
-              << " " << i->second.m_mangledClassName
-              << " " << i->second.m_mangledType
-	      << " " << i->second.m_parameterName
-              << " " << i->second.m_mangledParameterName
-	      << " 0x" << std::hex << i->second.m_val
-	      << " " << MFM::HexEscape(i->second.m_structuredComment)
-              << std::endl;
-          }
+	    assert(i->second); //cannot be null
+	    MFM::u64 val;
 
+	    std::cerr
+	      << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
+	      << i->second->getMemberKind() << " "
+	      << MFM::HexEscape(c.getFullPathLocationAsString(i->second->m_loc))
+	      << " " << i->second->m_mangledClassName
+	      << " " << i->second->m_mangledType
+	      << " " << i->second->m_memberName
+	      << " " << i->second->m_mangledMemberName;
+
+	    if(i->second->getValue(val))
+	      std::cerr << " 0x" << std::hex << val;
+
+	    std::cerr << " " << MFM::HexEscape(i->second->m_structuredComment)
+		      << std::endl;
+	  }
       }
+    c.clearClassMembersMap(ds.GetClassMemberMap());
     return result;
   }
   catch (int status) {

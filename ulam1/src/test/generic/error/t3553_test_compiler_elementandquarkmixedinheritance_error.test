@@ -1,0 +1,25 @@
+## -*- mode:ulam -*-
+#=t3553_test_compiler_elementandquarkmixedinheritance_error
+#!
+./Tu.ulam:3:9: ERROR: Subclass 'Tu' inherits from 'Foo', a class of a different type.
+./Tu.ulam:3:9: ERROR: Unresolved No.1.
+./Tu.ulam:3:9: Warning: 1 data member nodes with unresolved types remain in class 'Tu'.
+./Tu.ulam:3:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Tu.
+Unrecoverable Program Type Label FAILURE.
+##
+##       //element inheriting from quark
+##
+#>Tu.ulam
+ulam 1;
+use Foo;
+element Tu : Foo {
+Int test(){
+  return -1;
+}
+}
+
+#:Foo.ulam
+ulam 1;
+quark Foo {
+}
+#.

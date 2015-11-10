@@ -61,7 +61,7 @@ namespace MFM {
     if(leftType != Nav)
       {
 	UlamType * lut = m_state.getUlamTypeByIndex(leftType);
-        isCustomArray = lut->isCustomArray();
+	isCustomArray = m_state.isClassACustomArray(leftType);
 
 	if(lut->isScalar())
 	  {
@@ -90,8 +90,7 @@ namespace MFM {
 		// all the overload matching in func call node's c&l, because
 		// we ([]) can't tell which side of = we are on, and whether we should
 		// be a aref or aset.
-		UTI caType = ((UlamTypeClass *) lut)->getCustomArrayType();
-
+		UTI caType = m_state.getAClassCustomArrayType(leftType);
 		if(!m_state.isComplete(caType))
 		  {
 		    std::ostringstream msg;
@@ -103,7 +102,7 @@ namespace MFM {
 		    if(lut->isComplete())
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    else
-		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		    newType = Nav; //error!
 		    errorCount++;
 		  }
@@ -117,7 +116,7 @@ namespace MFM {
 	    if(isCustomArray)
 	      {
 		bool hasHazyArgs = false;
-		u32 camatches = ((UlamTypeClass *) lut)->getCustomArrayIndexTypeFor(m_nodeRight, idxuti, hasHazyArgs);
+		u32 camatches = m_state.getAClassCustomArrayIndexType(leftType, m_nodeRight, idxuti, hasHazyArgs);
 		if(camatches == 0)
 		  {
 		    std::ostringstream msg;
@@ -145,7 +144,7 @@ namespace MFM {
 		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		    idxuti = Nav; //error!
 		    errorCount++;
-		      }
+		  }
 	      }
 	    else
 	      {
@@ -172,7 +171,7 @@ namespace MFM {
 	  {
 	    if(m_nodeRight->safeToCastTo(idxuti) == CAST_CLEAR)
 	      {
-		if(!makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
+		if(!Node::makeCastingNode(m_nodeRight, idxuti, m_nodeRight))
 		  {
 		    newType = Nav; //error!
 		    errorCount++;
@@ -190,13 +189,15 @@ namespace MFM {
       {
 	// sq bracket purpose in life is to account for array elements;
 	if(isCustomArray)
-	  newType = ((UlamTypeClass *) m_state.getUlamTypeByIndex(leftType))->getCustomArrayType();
+	  newType = m_state.getAClassCustomArrayType(leftType);
 	else
 	  newType = m_state.getUlamTypeAsScalar(leftType);
 
 	// multi-dimensional possible; MP not ok lhs.
 	setStoreIntoAble(m_nodeLeft->isStoreIntoAble());
       }
+    else
+      m_state.setGoAgain(); //covers non-error(debug) messages for incompletes
 
     setNodeType(newType);
     return newType;
@@ -235,8 +236,7 @@ namespace MFM {
     UTI ltype = pluv.getPtrTargetType();
 
     //could be a custom array which is a scalar quark. already checked.
-    UlamType * lut = m_state.getUlamTypeByIndex(ltype);
-    bool isCustomArray = lut->isCustomArray();
+    bool isCustomArray = m_state.isClassACustomArray(ltype);
 
     assert(!m_state.isScalar(ltype) || isCustomArray); //already checked, must be array
 
@@ -328,10 +328,9 @@ namespace MFM {
     s32 offsetInt = m_state.getUlamTypeByIndex(offset.getUlamValueTypeIdx())->getDataAsCs32(offsetdata);
 
     UTI auti = pluv.getPtrTargetType();
-    UlamType * aut = m_state.getUlamTypeByIndex(auti);
-    if(aut->isCustomArray())
+    if(m_state.isClassACustomArray(auti))
       {
-	UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
+	UTI caType = m_state.getAClassCustomArrayType(auti);
 	UlamType * caut = m_state.getUlamTypeByIndex(caType);
 	u32 pos = pluv.getPtrPos();
 	if(caut->getBitSize() > MAXBITSPERINT)

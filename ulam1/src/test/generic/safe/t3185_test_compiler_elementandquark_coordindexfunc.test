@@ -5,9 +5,9 @@
 ##	 Int Arg: 40
 ##       */
 Exit status: 40
-Ue_Foo { System s();  Bool(7) m_b(false);  Int(32) m_idx(40);  C2D m_coord( Int(6) m_width(9);  Int(6) m_height(4); );  Int(32) test() {  m_coord ( )init . m_idx m_coord ( 0 cast 0 cast )getIndex . = s ( m_idx )print . m_idx return } }
+Ue_Foo { System s();  Bool(7) m_b(false);  Int(32) m_idx(40);  C2D m_coord( Int(6) m_width(9);  Int(6) m_height(4); );  Int(32) test() {  m_idx m_coord ( 0 cast 0 cast )getIndex . = s ( m_idx )print . m_idx return } }
 Uq_System { <NOMAIN> }
-Uq_C2D { Int(6) m_width(0);  Int(6) m_height(0);  <NOMAIN> }
+Uq_C2D { Int(6) m_width( 9);  Int(6) m_height( 4);  <NOMAIN> }
 #>Foo.ulam
 ulam 1;
 use System;
@@ -18,27 +18,21 @@ Bool(7) m_b;
  Int m_idx;
  C2D m_coord;
  Int test() {
- m_coord.init();
- m_idx = m_coord.getIndex(0,0);
-s.print(m_idx);
+   m_idx = m_coord.getIndex(0,0);
+   s.print(m_idx);
  return m_idx;
  }
  }
 
 #:C2D.ulam
 quark C2D {
- Int(6) m_width;
- Int(6) m_height;
+ Int(6) m_width = 9;
+ Int(6) m_height = 4;
   Void init(Int x, Int y) {
  m_width = (Int(6)) x;
  m_height = (Int(6)) y;
  return;
  }
- Void init() {
- m_width = 9;
- m_height = 4;
- return;
- /* event window overload */ }
  Int getIndex(Int a, Int b){
 return ((m_height-b) * m_width + (m_height-a));
  }

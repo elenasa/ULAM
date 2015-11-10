@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t3569_test_compiler_quarkinheritancewclassargsmix
+#!
+## gencode output:
+## Bool(3) Arg: 0x7 (true)
+##
+Exit status: 5
+Ue_Foo { System s();  Bool(1) first(false);  Soo su( :< constant Int(32) a = 1;  Bool(1) cb(true); > Unsigned(3) us(4); );  Int(32) test() {  Foo f;  f su cb . . cond { s ( f su cb . . cast )print . 5u cast return } if 0 cast return } }
+Uq_Soo : Coo(1) { :< Bool(1) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Coo(Int(32) a) { Bool(UNKNOWN) cb(unknown);  <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## quark inheritance, regular (non-template)
+##
+#>Foo.ulam
+  ulam 1;
+use Soo;
+use System;
+element Foo {
+  System s;
+  Bool first;
+  Soo su;
+  Int test() {
+    Foo f;
+    if(f.su.cb)
+    {
+      s.print(f.su.cb);
+      return f.sizeof;
+    }
+    return 0;
+  }
+}
+
+#:Soo.ulam
+  ulam 1;
+use Coo;
+quark Soo : Coo(1) {
+  Unsigned(3) us = 4u;
+}
+
+#:Coo.ulam
+  ulam 1;
+quark Coo(Int a) {
+  Bool(a) cb = true;
+}
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+
+#.

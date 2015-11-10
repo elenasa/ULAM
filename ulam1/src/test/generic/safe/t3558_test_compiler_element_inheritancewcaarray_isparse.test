@@ -1,0 +1,41 @@
+## -*- mode:ulam -*-
+#=t3558_test_compiler_element_inheritancewcaarray_isparse
+#!
+Exit status: -2
+Ue_EventWindowTest : EvtWinEl { :< Int(32) m_idx(40); > constant Int(32) v = -2;  Int(32) test() {  Atom(96) a;  EventWindowTest ewt;  ewt 0 cast [] a = a ewt 0 cast [] = a EventWindowTest is cond -2 return if 1 cast return } }
+Ue_EvtWinEl { Int(32) m_idx( 40 cast);  <NOMAIN> }
+##
+##      // element may be a custom array! inherited no less!! Fri Oct  2 09:27:27 2015
+##      // informed by t3338
+##
+#>EventWindowTest.ulam
+  ulam 1;
+use EvtWinEl;
+element EventWindowTest : EvtWinEl {
+  constant Int v = -2;
+  Int test() {
+    Atom a;
+    EventWindowTest ewt;
+    ewt[0] = a;
+    a = ewt[0];  // This is me!
+    if (a is EventWindowTest)
+      return v;
+    return 1;
+ }
+}
+
+#:EvtWinEl.ulam
+  ulam 1;
+element EvtWinEl {
+  Int m_idx = 40;
+  Atom aref(Int index)
+  {
+    Atom a;
+    return a;
+  }
+
+  Void aset(Int index, Atom val)
+  {
+  }
+}
+#.

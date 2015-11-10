@@ -64,7 +64,7 @@ namespace MFM {
 	msg << "'; must be a quark name, not type: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 	if(rclasstype == UC_UNSEEN || ruti == Nav)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
@@ -78,7 +78,7 @@ namespace MFM {
 	msg << " is still incomplete while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	newType = Nav;
+	newType = Nav; //goagain set by nodetypedesc
       }
 
     setNodeType(newType);

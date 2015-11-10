@@ -6,22 +6,30 @@
 ##      //Constants have explicit types; instead of -2 NodeTerminalProxy outputs 'f.sizeof' for example.
 ##
 Exit status: 0
-Ue_Foo { Bool(UNKNOWN) b(unknown);  constant Int(32) x = NONREADYCONST;  constant Unsigned(32) y = NONREADYCONST;  Bool(UNKNOWN) sp(unknown);  Bool(UNKNOWN) c[UNKNOWN](unknown);  Int(32) test() {  Foo(1,3u) f;  Foo(1,3u) p;  f sp . f sizeof . p sizeof . == = 0 cast return } }
+Ue_R { Int(32) test() {  Foo(1,3u) f;  Foo(1,3u) p;  f sp . true = 0 cast return } }
+Ue_Foo(Int(32) x, Unsigned(32) y) { Bool(UNKNOWN) sp(unknown);  Bool(UNKNOWN) b(unknown);  Bool(UNKNOWN) c[UNKNOWN](unknown);  <NOMAIN> }
 Ue_Poo { Bool(1) valb[3](false,false,false);  <NOMAIN> }
 ##
 ##      //decl list with array, first c[1], then try c[x]
-#>Foo.ulam
+##      // use separate calling element R
+#>R.ulam
+  ulam 1;
+use Foo;
+element R{
+Int test() {
+  Foo(1,3u) f;
+  Foo(1,Poo.sizeof) p;
+  f.sp = (f.sizeof == p.sizeof);
+  return 0;
+}
+}
+
+#:Foo.ulam
 ulam 1;
 use Poo;
 element Foo(Int x, Unsigned y) {
 Bool(x) sp;
 Bool(y) b,c[x];
-Int test() {
-Foo(1,3u) f;
- Foo(1,Poo.sizeof) p;
- f.sp = (f.sizeof == p.sizeof);
- return 0;
- }
  }
 ##      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\nuse Poo;\nelement Foo(Int x, Int y) {\nBool(x) sp;\nBool(y) b,c;\nInt test() {\nFoo(1,3) f;\n Foo(1,Poo.sizeof) p;\n f.sp = (f.sizeof == p.sizeof);\n return 0;\n }\n }\n");
 ##      // try without decl list

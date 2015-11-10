@@ -1,11 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3298_test_compiler_sizeofclass_error
 #!
+./Fu.ulam:4:1: ERROR: Unresolved type <Int(UNKNOWN)> used with variable symbol name 'u' found while bit packing class Fu.
+./Fu.ulam:4:1: ERROR: Unresolved No.1.
+./Fu.ulam:4:1: ERROR: Unresolved No.2.
+./Fu.ulam:2:9: ERROR: 2 data members with unresolved types remain.
+./Fu.ulam:2:9: Warning: 2 data member nodes with unresolved types remain in class 'Fu'.
+./Fu.ulam:2:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: Fu.
+Unrecoverable Program Type Label FAILURE.
 ##
-##./Fu.ulam:4:1: ERROR: Unresolved type <Int(UNKNOWN)> used with variable symbol name 'u' found while bit packing class Fu.
-##
-Ue_Fu { System s();  Int(32) u(0);  Int(32) v(64);  Int(32) test() {  u 0u cast = s ( u )print . v 64u cast = s ( v )print . v return } }
-Exit status:
 #>Fu.ulam
 ulam 1;
 element Fu {

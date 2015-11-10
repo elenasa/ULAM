@@ -1,13 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3284_test_compiler_varcalledself_error
 #!
-##
-## ./Su.ulam:5:6: ERROR: The keyword 'self' may not be used as a variable name.
-##
-Ue_Su { 0 cast return } }
-Exit status:
-##
-##      //should return a parse error.
+./Su.ulam:5:6: ERROR: The keyword 'self' may not be used as a variable name.
+Unrecoverable Program Parse FAILURE.
 ##
 #>Su.ulam
 ulam 1;
