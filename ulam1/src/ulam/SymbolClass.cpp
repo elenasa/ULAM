@@ -693,12 +693,10 @@ namespace MFM {
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
-	ULAMCLASSTYPE classtype = ut->getUlamClass();
-	if(ut->needsImmediateType() && classtype != UC_NOTACLASS)
+	if(ut->needsImmediateType())
 	  {
 	    ut->genUlamTypeMangledDefinitionForC(fp);
-	    //if(classtype == UC_QUARK) //for elements too Mon Oct 26 07:00:35 2015
-	      ut->genUlamTypeMangledAutoDefinitionForC(fp);
+	    ut->genUlamTypeMangledAutoDefinitionForC(fp);
 	  }
 	it++;
       }

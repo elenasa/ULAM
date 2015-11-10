@@ -434,7 +434,7 @@ namespace MFM {
 	    u32 pos = 0;
 	    if(uvpass.getUlamValueTypeIdx() == Ptr && uvpass.getPtrStorage() == TMPAUTOREF)
 	      {
-		//pos = uvpass.getPtrPos();
+		//pos = uvpass.getPtrPos(); //runtime, not known now.
 		//uvpass = UlamValue::makePtr(tmpnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	      }
 	    else
@@ -977,11 +977,17 @@ namespace MFM {
 
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
+
+    if(uvpass.getPtrStorage() == TMPAUTOREF)
+      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
   } //genCodeToStoreInto
 
   // overrides NodeTerminal that reads into a tmp var BitVector
   void NodeIdent::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
   {
+    if(uvpass.getPtrStorage() == TMPAUTOREF)
+      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+
     Node::genCodeReadIntoATmpVar(fp, uvpass);
   }
 

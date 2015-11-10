@@ -542,6 +542,21 @@ namespace MFM {
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
 
+    UTI vuti = uvpass.getUlamValueTypeIdx();
+    if(vuti == Ptr)
+      vuti = uvpass.getPtrTargetType();
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(tmpStorageTypeForRead(vuti, uvpass).c_str());
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum2).c_str());
+    fp->write(" = ");
+
+    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
+    fp->write(".read();\n");
+
+#if 0
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
     UTI cosuti = cos->getUlamTypeIdx();
@@ -579,6 +594,11 @@ namespace MFM {
 
     //update uvpass
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, cosuti, m_state.determinePackable(cosuti), m_state, 0); //POS 0 justified (atom-based).
+
+#endif
+
+    //update uvpass
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadAutorefIntoATmpVar
@@ -973,10 +993,11 @@ namespace MFM {
     //cos tell us where to go within the selected member
     s32 tmpVarNum = luvpass.getPtrSlotIndex();
 
-    //    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    //Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-    //UTI cosuti = cos->getUlamTypeIdx();
+    m_state.indent(fp);
+    fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), tmpVarNum, TMPAUTOREF).c_str());
+    fp->write(".write(");
 
+#if 0
     m_state.indent(fp);
     UTI autouti = luvpass.getPtrTargetType();
     UlamType * autout = m_state.getUlamTypeByIndex(autouti);
@@ -1000,6 +1021,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), tmpVarNum, TMPAUTOREF).c_str());
     fp->write(".getBits()");
     fp->write(", "); //rest of args
+#endif
 
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
@@ -1356,7 +1378,7 @@ namespace MFM {
   {
     UTI vuti = uvpass.getUlamValueTypeIdx();
     assert(vuti == Ptr);
-    vuti = uvpass.getPtrTargetType(); //offset
+    vuti = uvpass.getPtrTargetType(); //offset or another autoref
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * cos = NULL;
@@ -1378,43 +1400,66 @@ namespace MFM {
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    assert(cosut->getUlamTypeEnum() == Class);
-    assert(!cosut->isScalar());
-
-    UTI scalarcosuti = m_state.getUlamTypeAsScalar(cosuti);
-    UlamType * scalarcosut = m_state.getUlamTypeByIndex(scalarcosuti);
 
     // write out auto ref constuctor
+    s32 tmpVarNum = uvpass.getPtrSlotIndex();
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
 
-    m_state.indent(fp);
-    fp->write("const ");
-
-    fp->write(scalarcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-    fp->write("<EC, ");
-    fp->write_decimal(ATOMFIRSTSTATEBITPOS);
-    fp->write("> ");
-    fp->write(m_state.getTmpVarAsString(scalarcosuti, tmpVarNum2, TMPAUTOREF).c_str());
-    fp->write("("); // use constructor (not equals)
-
-    if(cosSize > 1)
-      fp->write(stgcos->getMangledName().c_str());
-    else
-      fp->write(m_state.getHiddenArgName());
-
-    fp->write(", ");
-    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex()).c_str()); //pos variable 0-based
-
-    if(cosSize > 0)
+    // write out next chain using auto ref constuctor
+    if(uvpass.getPtrStorage() == TMPAUTOREF)
       {
-	fp->write(" + ");
+	m_state.indent(fp);
+	//fp->write("const ");
+
+	fp->write(cosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+	fp->write("<EC, ");
+	fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	fp->write("> ");
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
+	fp->write("("); // use constructor (not equals)
+	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPAUTOREF).c_str());
+	fp->write(", ");
 	fp->write_decimal_unsigned(cos->getPosOffset());
 	fp->write("u");
+      }
+    else
+      {
+	//first array item, with item in uvpass
+	assert(cosut->getUlamTypeEnum() == Class);
+	assert(!cosut->isScalar());
+
+	cosuti = m_state.getUlamTypeAsScalar(cosuti);
+	cosut = m_state.getUlamTypeByIndex(cosuti);
+
+	m_state.indent(fp);
+	//fp->write("const ");
+
+	fp->write(cosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+	fp->write("<EC, ");
+	fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	fp->write("> ");
+	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
+	fp->write("("); // use constructor (not equals)
+
+	if(cosSize > 1)
+	  fp->write(stgcos->getMangledName().c_str());
+	else
+	  fp->write(m_state.getHiddenArgName());
+
+	fp->write(", ");
+	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //pos variable 0-based
+
+	if(cosSize > 0)
+	  {
+	    fp->write(" + ");
+	    fp->write_decimal_unsigned(cos->getPosOffset());
+	    fp->write("u");
+	  }
       }
 
     fp->write(");\n");
 
-    uvpass = UlamValue::makePtr(tmpVarNum2, TMPAUTOREF, scalarcosuti, m_state.determinePackable(scalarcosuti), m_state, 0, cos->getId()); //POS left-justified by default.
+    uvpass = UlamValue::makePtr(tmpVarNum2, TMPAUTOREF, cosuti, m_state.determinePackable(cosuti), m_state, 0, cos->getId()); //POS left-justified by default.
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeConvertATmpVarIntoAutoRef

@@ -3,11 +3,11 @@
 #!
 ##
 ## gencode output:
-## Bool(3) Arg: 0x7 (true)
-##Int(4) Arg: 0x7
+## Bool(3) Arg: 0x7 (true)  WRONG ANS!!
+## Bool(3) Arg: 0x0 (false)
 ##
 Exit status: 0
-Ue_Foo { Bool(3) b(false);  typedef Car Pop[2];  System s();  Int(4) m_i(0);  Car m_bar2[2]( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(false);  :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(false); );  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(false); );  Int(32) test() {  Atom(96) a;  a sbar 0 cast [] = sbar 1 cast [] a = b m_bar2 0 [] cb . cast = s ( b )print . s ( m_i )print . 0 cast return } }
+Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Bool(3) c(false);  Car m_bar2[2]( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(false);  :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Int(32) test() {  b m_bar2 0 [] cb . cast = s ( b )print . m_bar2 0 [] cb . false = c m_bar2 0 [] cb . cast = s ( c )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Car : Bar { :< Bool(1) val_b[3](false,false,false); > Bool(1) cb( true);  <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
@@ -21,28 +21,23 @@ use Car;
 element Foo {
   typedef Car Pop[2];
   System s;
-  Bool(3) b;
-  Int(4) m_i = 7;
+  Bool(3) b, c;
   Pop m_bar2;
   Car sbar;
   Bool check(Int v) {
     return true;
   }
   Int test() {
-    //    Atom a;
-    //a = sbar[0];
-    //sbar[1] = a; //aset is no-op gencode; but eval WIPES OUT Foo completely
+    b = m_bar2[0].cb; //read case
 
-    //Car car;
-    //m_bar2[0] = car; //l0oking for a clue
-    //    m_bar2[0] = sbar; //l0oking for a clue (Node l1682 fix? CA ancestor?)
+    s.print(b); //true
 
-    //b = m_bar2[0].cb; //read case
+    m_bar2[0].cb = false; //write case
 
-    m_bar2[0].cb = false;     //write case
+    c = m_bar2[0].cb; //read case
 
-    //s.print(b);
-    //s.print(m_i);
+    s.print(c); //false
+
     return 0;
   }
 }
@@ -59,7 +54,7 @@ quark Car : Bar {
 quark Bar {
   Bool val_b[3];
   Void reset(Bool b) {
-    b = false;
+    b = false; //noop
   }
   Atom aref(Int index) native;
   Void aset(Int index, Atom v) native;

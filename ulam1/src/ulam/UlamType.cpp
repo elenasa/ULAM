@@ -275,8 +275,12 @@ namespace MFM {
 
   const std::string UlamType::getUlamTypeImmediateAutoMangledName()
   {
-    assert(0); //only elements and quarks so far
-  }
+    assert(needsImmediateType());
+    std::ostringstream  automn;
+    automn << getUlamTypeImmediateMangledName().c_str();
+    automn << "4auto" ;
+    return automn.str();
+  } //getUlamTypeImmediateAutoMangledName
 
   bool UlamType::needsImmediateType()
   {
@@ -822,8 +826,93 @@ namespace MFM {
 
   void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    assert(0); //only quarks and elements so far
-  }
+    //used in an autoref chain only; not as immediates base class
+    //assert(0); //only quarks and elements so far
+    //assert(isScalar());
+
+    m_state.m_currentIndentLevel = 0;
+    const std::string mangledName = getUlamTypeImmediateMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
+    std::ostringstream  ud;
+    ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
+    std::string udstr = ud.str();
+
+    m_state.indent(fp);
+    fp->write("#ifndef ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("#define ");
+    fp->write(udstr.c_str());
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("namespace MFM{\n");
+    fp->write("\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //forward declaration of element (before struct!)
+    //m_state.indent(fp);
+    //fp->write("template<class EC, u32 POS> class ");
+    //fp->write(getUlamTypeMangledName().c_str());
+    //fp->write(";  //forward\n\n");
+
+    m_state.indent(fp);
+    fp->write("template<class EC, u32 POS>\n");
+
+    m_state.indent(fp);
+    fp->write("struct ");
+    fp->write(automangledName.c_str());
+    fp->write(" : public AutoRefBase<EC>");
+    fp->write("\n");
+
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+
+    //typedef atomic parameter type inside struct
+    m_state.indent(fp);
+    fp->write("typedef typename EC::ATOM_CONFIG AC;\n");
+    m_state.indent(fp);
+    fp->write("typedef typename AC::ATOM_TYPE T;\n");
+    m_state.indent(fp);
+    fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
+    fp->write("\n");
+
+    //element typedef
+    //m_state.indent(fp);
+    //fp->write("typedef ");
+    //fp->write(getUlamTypeMangledName().c_str());
+    //fp->write("<EC> Us;\n");
+    //fp->write("\n");
+
+    //constructor for chain of autorefs (e.g. memberselect with array item)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(AutoRefBase<EC>& arg, u32 pos) : AutoRefBase<EC>(arg, pos) { }\n");
+
+    //default destructor (for completeness)
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(automangledName.c_str());
+    fp->write("() {}\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("};\n");
+
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("} //MFM\n");
+
+    m_state.indent(fp);
+    fp->write("#endif /*");
+    fp->write(udstr.c_str());
+    fp->write(" */\n\n");
+  } //genUlamTypeMangledAutoDefinitionForC
 
   void UlamType::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
   {

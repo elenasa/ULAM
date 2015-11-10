@@ -520,6 +520,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(automangledName.c_str());
+    fp->write(" : public AutoRefBase<EC>");
     fp->write("\n");
     m_state.indent(fp);
     fp->write("{\n");
@@ -554,18 +555,25 @@ namespace MFM {
     fp->write("POS"); //positioned
     fp->write("> ");
     fp->write(" Up_Us;\n");
+    fp->write("\n");
 
     //reference to storage in atom
-    m_state.indent(fp);
-    fp->write("T& m_stgToChange;  //ref to storage here!\n");
+    //m_state.indent(fp);
+    //fp->write("T& m_stgToChange;  //ref to storage here!\n");
 
-    m_state.indent(fp);
-    fp->write("const u32 m_pos;   //pos in atom\n");
+    //m_state.indent(fp);
+    //fp->write("const u32 m_pos;   //pos in atom\n");
 
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(T& targ, u32 idx) : m_stgToChange(targ), m_pos(idx) { }\n");
+    //fp->write("(T& targ, u32 idx) : m_stgToChange(targ), m_pos(idx) { }\n");
+    fp->write("(T& targ, u32 idx) : AutoRefBase<EC>(targ, idx) { }\n");
+
+    //constructor for chain of autorefs (e.g. memberselect with array item)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(AutoRefBase<EC>& arg, u32 idx) : AutoRefBase<EC>(arg, idx) { }\n");
 
     //read 'entire quark' method
     genUlamTypeQuarkReadDefinitionForC(fp);
@@ -574,16 +582,20 @@ namespace MFM {
     genUlamTypeQuarkWriteDefinitionForC(fp);
 
     // getBits method for scalar
-    m_state.indent(fp);
-    fp->write("BitVector<BPA>& getBits() { return m_stgToChange.GetBits(); }\n");
+    //m_state.indent(fp);
+    //fp->write("BitVector<BPA>& getBits() { return m_stgToChange.GetBits(); }\n");
 
     // getBits method for scalar (const version)
-    m_state.indent(fp);
-    fp->write("const BitVector<BPA>& getBits() const { return m_stgToChange.GetBits(); }\n");
+    //m_state.indent(fp);
+    //fp->write("const BitVector<BPA>& getBits() const { return m_stgToChange.GetBits(); }\n");
 
     // non-const T ref method for scalar
-    m_state.indent(fp);
-    fp->write("T& getRef() { return m_stgToChange; }\n");
+    //m_state.indent(fp);
+    //fp->write("T& getRef() { return m_stgToChange; }\n");
+
+    // get pos offset
+    //m_state.indent(fp);
+    //fp->write("const u32 getPosOffset() const { return m_pos; }\n");
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
@@ -617,20 +629,11 @@ namespace MFM {
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" read() const { ");
-    fp->write("if(Us::GetPos() == (m_pos + T::ATOM_FIRST_STATE_BIT)) ");
+    fp->write("if(Us::GetPos() == (AutoRefBase<EC>::getPosOffset() + T::ATOM_FIRST_STATE_BIT)) ");
     fp->write("return Up_Us::");
     fp->write(readMethodForCodeGen().c_str());
-    fp->write("(m_stgToChange.GetBits());\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("return m_stgToChange.GetBits().");
-    fp->write(readMethodForCodeGen().c_str());
-    fp->write("(m_pos + T::ATOM_FIRST_STATE_BIT, ");
-    fp->write_decimal(getTotalBitSize());
-    fp->write(");");
-    fp->write("}\n");
-    m_state.m_currentIndentLevel--;
+    fp->write("(AutoRefBase<EC>::getBits()); ");
+    fp->write("return AutoRefBase<EC>::read(); }\n");
   } //genUlamTypeQuarkReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp)
@@ -643,20 +646,11 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" v) { if(Us::GetPos() == ( m_pos + T::ATOM_FIRST_STATE_BIT)) ");
+    fp->write(" v) { if(Us::GetPos() == ( AutoRefBase<EC>::getPosOffset() + T::ATOM_FIRST_STATE_BIT)) ");
     fp->write("Up_Us::");
     fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(m_stgToChange.GetBits(), v);\n");
-
-    m_state.m_currentIndentLevel++;
-    m_state.indent(fp);
-    fp->write("else m_stgToChange.GetBits().");
-    fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(m_pos + T::ATOM_FIRST_STATE_BIT, ");
-    fp->write_decimal(getTotalBitSize());
-    fp->write(", v);");
-    fp->write("}\n");
-    m_state.m_currentIndentLevel--;
+    fp->write("(AutoRefBase<EC>::getBits(), v); ");
+    fp->write("else AutoRefBase<EC>::write(v); }\n");
   } //genUlamTypeQuarkWriteDefinitionForC
 
 void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
@@ -698,6 +692,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(automangledName.c_str());
+    fp->write(" : public AutoRefBase<EC>");
     fp->write("\n");
 
     m_state.indent(fp);
@@ -715,21 +710,29 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     m_state.indent(fp);
     //fp->write("enum { BPF = 32 /*AC::P3_STATE_BITS_LEN */};\n");
     fp->write("typedef BitField<BitVector<BPA>, VD::BITS, T::ATOM_FIRST_STATE_BIT, 0> BFTYP;\n");
+    fp->write("\n");
 
     //element typedef
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(getUlamTypeMangledName().c_str());
     fp->write("<EC> Us;\n");
+    fp->write("\n");
 
     //reference to storage in atom
-    m_state.indent(fp);
-    fp->write("T& m_stgToChange;  //ref to storage here!\n");
+    //m_state.indent(fp);
+    //fp->write("T& m_stgToChange;  //ref to storage here!\n");
 
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    fp->write("(T& targ) : m_stgToChange(targ) { }\n");
+    //fp->write("(T& targ) : m_stgToChange(targ) { }\n");
+    fp->write("(T& targ) : AutoRefBase<EC>(targ, 0u) { }\n");
+
+    //constructor for chain of autorefs (e.g. memberselect with array item)
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(AutoRefBase<EC>& arg) : AutoRefBase<EC>(arg, 0) { }\n");
 
     //default destructor (for completeness)
     m_state.indent(fp);
@@ -744,14 +747,14 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     genUlamTypeElementWriteDefinitionForC(fp);
 
     // getBits method for scalar
-    m_state.indent(fp);
-    fp->write("BitVector<BPA>& getBits() { return m_stgToChange.GetBits(); }\n");
+    //m_state.indent(fp);
+    //fp->write("BitVector<BPA>& getBits() { return m_stgToChange.GetBits(); }\n");
 
-    fp->write("const BitVector<BPA>& getBits() const { return m_stgToChange.GetBits(); }\n");
+    //fp->write("const BitVector<BPA>& getBits() const { return m_stgToChange.GetBits(); }\n");
 
     // non-const T ref method for scalar
-    m_state.indent(fp);
-    fp->write("T& getRef() { return m_stgToChange; }\n");
+    //m_state.indent(fp);
+    //fp->write("T& getRef() { return m_stgToChange; }\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -776,11 +779,11 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { return m_stgToChange; }\n");
+    fp->write(" read() const { return AutoRefBase<EC>::read(true); /* entire element */ }\n");
 
     m_state.indent(fp);
     fp->write("const u32 readTypeField()");
-    fp->write("{ return BFTYP::Read(m_stgToChange); }\n");
+    fp->write("{ return BFTYP::Read(AutoRefBase<EC>::getRef()); }\n");
   } //genUlamTypeElementReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeElementWriteDefinitionForC(File * fp)
@@ -789,14 +792,14 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     assert(isScalar());
 
     // here, must be scalar; ref param to avoid excessive copying
-    m_state.indent(fp);
-    fp->write("void write(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write("& v) { m_stgToChange = v; }\n");
+    //m_state.indent(fp);
+    //fp->write("void write(const ");
+    //fp->write(getTmpStorageTypeAsString().c_str()); //T
+    //fp->write("& v) { m_stgToChange = v; }\n");
 
     m_state.indent(fp);
     fp->write("void writeTypeField(const u32 v)");
-    fp->write("{ BFTYP::Write(m_stgToChange, v); }\n");
+    fp->write("{ BFTYP::Write(AutoRefBase<EC>::getRef(), v); }\n");
   } //genUlamTypeElementWriteDefinitionForC
 
   const std::string UlamTypeClass::readArrayItemMethodForCodeGen()
@@ -1015,7 +1018,6 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
   } //genUlamTypeMangledAutoDefinitionForC
-
 
   void UlamTypeClass::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
   {
