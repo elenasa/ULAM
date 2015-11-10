@@ -111,6 +111,7 @@ namespace MFM {
     UlamKeyTypeSignature vkey = m_state.getUlamKeyTypeSignatureByIndex(vuti);
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+    ULAMTYPE vetyp = vut->getUlamTypeEnum();
 
     fp->write(" ");
     if(vclasstype == UC_NOTACLASS)
@@ -151,7 +152,6 @@ namespace MFM {
 	    s32 len = vut->getBitSize();
 	    for(s32 i = 0; i < size; i++)
 	      classNode->printPostfixDataMembersSymbols(fp, slot, newstartpos + len * i, vclasstype);
-
 	  }
 	else
 	  {
@@ -185,6 +185,8 @@ namespace MFM {
 	      {
 		u32 data = atval.getDataFromAtom(nextPtr, m_state);
 		vut->getDataAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+		if(vetyp == Unsigned || vetyp == Unary)
+		  strcat(valstr, "u");
 
 		for(s32 i = 1; i < size; i++)
 		  {
@@ -193,6 +195,8 @@ namespace MFM {
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataFromAtom(nextPtr, m_state);
 		    vut->getDataAsString(data, tmpstr, ',');
+		    if(vetyp == Unsigned || vetyp == Unary)
+		      strcat(tmpstr, "u");
 		    strcat(valstr,tmpstr);
 		  }
 	      }
@@ -200,6 +204,8 @@ namespace MFM {
 	      {
 		u64 data = atval.getDataLongFromAtom(nextPtr, m_state);
 		vut->getDataLongAsString(data, valstr, 'z'); //'z' -> no preceeding ','
+		if(vetyp == Unsigned || vetyp == Unary)
+		  strcat(valstr, "u");
 
 		for(s32 i = 1; i < size; i++)
 		  {
@@ -208,6 +214,8 @@ namespace MFM {
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataLongFromAtom(nextPtr, m_state);
 		    vut->getDataLongAsString(data, tmpstr, ',');
+		    if(vetyp == Unsigned || vetyp == Unary)
+		      strcat(tmpstr, "u");
 		    strcat(valstr,tmpstr);
 		  }
 	      }

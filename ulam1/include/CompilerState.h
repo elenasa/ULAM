@@ -273,7 +273,7 @@ namespace MFM{
     u32 getCustomArraySetFunctionNameId();
     const char * getCustomArrayGetMangledFunctionName();
     const char * getCustomArraySetMangledFunctionName();
-    const char * getIsMangledFunctionName();
+    const char * getIsMangledFunctionName(UTI ltype);
     const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
     const char * getBuildDefaultAtomFunctionName(UTI ltype);

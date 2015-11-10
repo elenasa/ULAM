@@ -8,7 +8,7 @@
 ##Int Arg: 1
 ##
 Exit status: 41
-Ue_Foo { System s();  Unsigned(1) m_array[64](0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);  Int(32) test() {  C2D c;  c ( 0 cast 0 cast )func = m_array c ( )toInt . 1 cast +b [] 1 cast = m_array c ( )toInt . [] 1 cast = s ( c m_width . cast )print . s ( c m_height . cast )print . s ( c ( )toInt . 1 cast +b cast )print . s ( m_array c ( )toInt . [] cast )print . c ( )toInt . 1 cast +b cast return } }
+Ue_Foo { System s();  Unsigned(1) m_array[64](0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,1u,1u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u,0u);  Int(32) test() {  C2D c;  c ( 0u cast 0 cast )func = m_array c ( )toInt . 1 cast +b [] 1 cast = m_array c ( )toInt . [] 1 cast = s ( c m_width . cast )print . s ( c m_height . cast )print . s ( c ( )toInt . 1 cast +b cast )print . s ( m_array c ( )toInt . [] cast )print . c ( )toInt . 1 cast +b cast return } }
 Uq_C2D { typedef Int(8) IE;  Int(8) m_width( 9);  Int(8) m_height( 4);  Int(8) m_x(0);  Int(8) m_y(0);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -28,7 +28,7 @@ ulam 1;
    }
    Int test() {
      C2D c;
-     c = func(0,0);
+     c = func(0u,0);
      m_array[c + 1] = 1; //[41]
      m_array[c] = 1;
      s.print(c.m_width);

@@ -80,7 +80,8 @@ namespace MFM {
 
   const std::string NodeConditionalIs::methodNameForCodeGen()
   {
-    return  std::string(m_state.getIsMangledFunctionName());
+    assert(m_nodeLeft);
+    return  std::string(m_state.getIsMangledFunctionName(m_nodeLeft->getNodeType()));
   }
 
   EvalStatus  NodeConditionalIs::eval()
@@ -110,7 +111,8 @@ namespace MFM {
     UTI ruti = getRightType();
 
     // inclusive result for eval purposes (atoms and element types are orthogonal)
-    bool isit = (luti == UAtom || UlamType::compare(luti,ruti,m_state) == UTIC_SAME);
+    bool isit = (luti == UAtom || UlamType::compare(luti,ruti,m_state) == UTIC_SAME || m_state.isClassASuperclassOf(luti, ruti));
+
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) isit, m_state);
 
     //also copy result UV to stack, -1 relative to current frame pointer
@@ -139,25 +141,45 @@ namespace MFM {
     s32 tmpVarNum = luvpass.getPtrSlotIndex();
     s32 tmpVarIs = m_state.getNextTmpVarNumber();
 
-     m_state.indent(fp);
+    m_state.indent(fp);
     fp->write("const ");
     fp->write(nut->getTmpStorageTypeAsString().c_str()); //e.g. u32
     fp->write(" ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpVarIs).c_str());
     fp->write(" = ");
 
-    fp->write(rut->getUlamTypeMangledName().c_str());
     if(rclasstype == UC_ELEMENT)
-      fp->write("<EC>::THE_INSTANCE.");
+      {
+	fp->write(rut->getUlamTypeMangledName().c_str());
+	fp->write("<EC>::THE_INSTANCE.");
+	fp->write(m_state.getIsMangledFunctionName(ruti));
+	fp->write("(");
+	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
+	fp->write(");\n");
+      }
     else if(rclasstype == UC_QUARK)
-      fp->write("<EC,POS>::");
+      {
+	UlamType * lut = m_state.getUlamTypeByIndex(luti);
+	ULAMCLASSTYPE lclasstype = lut->getUlamClass();
+	if(lclasstype == UC_ELEMENT)
+	  {
+	    fp->write(lut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::THE_INSTANCE.");
+	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
+	    fp->write("("); //one arg
+	  }
+	else
+	  {
+	    fp->write("(uc, ");
+	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
+	    fp->write(".GetType(), "); //from tmpvar T
+	  }
+	fp->write("\"");
+	fp->write(rut->getUlamTypeMangledName().c_str());
+	fp->write("\");\n");
+      }
     else
       assert(0);
-
-    fp->write(methodNameForCodeGen().c_str()); //mangled
-    fp->write("(uc, ");
-    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
-    fp->write(");\n");
 
     //update uvpass
     uvpass = UlamValue::makePtr(tmpVarIs, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).

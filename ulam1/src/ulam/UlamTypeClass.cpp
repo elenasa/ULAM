@@ -72,12 +72,12 @@ namespace MFM {
 		assert(len != UNKNOWNSIZE);
 		if(len <= MAXBITSPERINT)
 		  {
-		    u32 qdata = val.getDataFromAtom(pos, len);
+		    u32 qdata = val.getDataFromAtom(pos + ATOMFIRSTSTATEBITPOS, len);
 		    val = UlamValue::makeImmediate(typidx, qdata, len);
 		  }
 		else if(len <= MAXBITSPERLONG)
 		  {
-		    u64 qdata = val.getDataLongFromAtom(pos, len);
+		    u64 qdata = val.getDataLongFromAtom(pos + ATOMFIRSTSTATEBITPOS, len);
 		    val = UlamValue::makeImmediateLong(typidx, qdata, len);
 		  }
 		else

@@ -6,7 +6,7 @@
 ##	 Int Arg: 1
 ##      */
 Exit status: 1
-Ue_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1; );  Int(32) test() {  self Typo(1) has cond { s ( t 1 . )print . t 1 . return } if 0 cast return } }
+Ue_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  elf Typo(1) has cond { Typo(1) elf;  s ( elf 1 . )print . elf 1 . return } if 0 cast return } }
 Uq_Typo(Int(32) a) { /* empty class block */ }
 Uq_System { <NOMAIN> }
 #:Typo.ulam
@@ -15,20 +15,21 @@ quark Typo(Int a) {
  }
 
 #>Eltypo.ulam
-ulam 1;
+  ulam 1;
 use Typo;
 use System;
- element Eltypo {
-System s;
- Typo(1) t;
- Int test(){
- if(self has Typo(1)){
- s.print(t.a);
- return t.a;
+element Eltypo {
+  System s;
+  Typo(1) t;
+  Int test(){
+    Eltypo elf;
+    if(elf has Typo(1)){
+      s.print(elf.a);
+      return elf.a;
+    }
+    return 0;
+  }
 }
- return 0;
-}
- }
 #:System.ulam
 ulam 1;
 quark System {

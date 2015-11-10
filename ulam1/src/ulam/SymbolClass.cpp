@@ -262,6 +262,9 @@ namespace MFM {
 
     dqref = 0; //init
     NodeBlockClass * classblock = getClassBlockNode();
+    assert(classblock);
+    m_state.pushClassContext(suti, classblock, classblock, false, NULL); //missing?
+
     if(classblock->buildDefaultQuarkValue(dqref))
       {
 	m_isreadyQuarkDefaultValue = true;
@@ -269,6 +272,8 @@ namespace MFM {
       }
     else
       m_isreadyQuarkDefaultValue = false;
+
+    m_state.popClassContext();
 
     return m_isreadyQuarkDefaultValue;
   } //getDefaultQuark

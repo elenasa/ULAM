@@ -166,13 +166,14 @@ namespace MFM{
 
     void genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionHasDataMembers(File * fp);
+    void genCodeBuiltInFunctionIsMethodQuarkRelated(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionIsRelatedQuarkType(File * fp);
 
     void genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp);
     void genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void generateInternalIsMethodForElement(File * fp, bool declOnly);
-    void generateInternalGetAncestorMethodForElement(File * fp, bool declOnly);
     void generateInternalTypeAccessorsForElement(File * fp, bool declOnly);
 
     void generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount);

@@ -29,13 +29,13 @@ System s;
  }
 
 #:Typo.ulam
-ulam 1;
+  ulam 1;
 quark Typo {
-Void incr(){
- if(self as ElT) {
- self.i += 1;
-}
-}
+  Void incr(){
+    if(self as ElT) {
+      self.i += 1;
+    }
+  }
  }
 #:System.ulam
 ulam 1;

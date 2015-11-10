@@ -2,8 +2,8 @@
 #=t3391_test_compiler_quarkwithtypedefofitself
 #!
 Exit status: 0
-Ue_ElTypo { Typo t( typedef Typo Self; );  Int(32) test() {  0 cast return } }
-Uq_Typo { typedef Typo Self;  <NOMAIN> }
+Ue_ElTypo { Typo t();  Int(32) test() {  0 cast return } }
+Uq_Typo { <NOMAIN> }
 #>ElTypo.ulam
 ulam 1;
 use Typo;
