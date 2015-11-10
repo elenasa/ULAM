@@ -1,9 +1,15 @@
 ## -*- mode:ulam -*-
 #=t3163_test_compiler_unaryarraybitwiseor
 #!
-##./A.ulam:11:8: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator| ; Suggest writing a loop.
-Ue_A { typedef Unary(3) Mu[2];  Unary(3) a[2](2,1);  Unary(3) b[2](0,2);  Unary(3) c[2](2,2);  Int(32) test() {  a 0 [] 2 cast = a 1 [] 1 cast = b 0 [] 0 cast = b 1 [] 2 cast = c a b | = c 0 [] cast return } }
-Exit status:
+./A.ulam:11:8: ERROR: Incompatible (nonscalar) types Unary(3)[2] and Unary(3)[2] for binary operator| ; Suggest writing a loop.
+./A.ulam:11:4: ERROR: Unresolved No.1.
+./A.ulam:11:8: ERROR: Unresolved No.2.
+./A.ulam:6:2: Warning: 2 nodes with unresolved types remain in function <test> (Uf_4test,1).
+./A.ulam:6:6: Warning: Summary: 2 nodes with unresolved types remain in  a single function <test> in class: A.
+./A.ulam:1:9: Warning: 2 data member nodes with unresolved types remain in class 'A'.
+./A.ulam:1:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: A.
+Unrecoverable Program Type Label FAILURE.
+##
 #>A.ulam
 element A {
  typedef Unary(3) Mu[2];

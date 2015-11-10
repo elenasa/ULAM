@@ -6,6 +6,7 @@
 #include "SymbolVariable.h"
 #include "CompilerState.h"
 #include "SymbolTable.h"
+#include "MapFunctionDesc.h"
 
 namespace MFM {
 
@@ -124,23 +125,63 @@ namespace MFM {
     //track matches with hazy casting for error message output
     if(!funcSymbol)
       {
+	// give priority to safe matches that have same ULAMTYPEs too
+	// e.g. Unsigned(3) arg would safely cast to Int(4), Int(5), and Unsigned param;
+	//      this is ambiguous! but only one is the same Enum; so let's
+	//      call it the winner.
+	SymbolFunction * funcSymbolMatchingUTArgs = NULL;
+	u32 numFuncsWithAllSameUTArgs = 0;
+	u32 numArgs = argTypes.size();
+
 	it = m_mangledFunctionNames.begin();
 	while(it != m_mangledFunctionNames.end())
 	  {
 	    SymbolFunction * fsym = it->second;
-	    if(fsym->matchingTypes(argTypes, constArgs, hasHazyArgs))
+	    u32 numUTmatch = 0;
+	    if(fsym->matchingTypes(argTypes, constArgs, hasHazyArgs, numUTmatch))
 	      {
 		funcSymbol = fsym;
 		matchingFuncCount++;
+		if(numUTmatch == numArgs)
+		  {
+		    numFuncsWithAllSameUTArgs++;
+		    funcSymbolMatchingUTArgs = funcSymbol;
+		  }
 	      }
-	    ++it;
-	  }
+	    it++;
+	  } //end while
 
 	if(matchingFuncCount > 1)
-	  funcSymbol = NULL;
+	  {
+	    if(numFuncsWithAllSameUTArgs > 1)
+	      funcSymbol = NULL;
+	    else
+	      {
+		//instead of null, let's go with the one/none closest in safe matching args
+		matchingFuncCount = numFuncsWithAllSameUTArgs; // ==0 or 1
+		funcSymbol = funcSymbolMatchingUTArgs;
+	      }
+	  }
       } //2nd try
+
+    //3rd try: check any super class, unless hazyargs (causes inf loop)
+    if(matchingFuncCount == 0)
+	return findMatchingFunctionWithConstantsAsArgsInAncestors(argTypes, constArgs, funcSymbol, hasHazyArgs);
+
     return matchingFuncCount;
   } //findMatchingFunctionWithConstantsAsArgs
+
+  u32 SymbolFunctionName::findMatchingFunctionWithConstantsAsArgsInAncestors(std::vector<UTI> argTypes, std::vector<Node*> constArgs, SymbolFunction *& funcSymbol, bool& hasHazyArgs)
+  {
+    Symbol * fnsym = NULL;
+    UTI cuti = m_state.findAClassByNodeNo(getBlockNoOfST());
+    assert(cuti != Nav);
+    UTI supercuti = m_state.isClassASubclass(cuti);
+    if(supercuti != Nav)
+      if(m_state.isFuncIdInAClassScope(supercuti, getId(), fnsym))
+	return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol, hasHazyArgs); //recurse ancestors
+    return 0;
+  } //findMatchingFunctionWithConstantsAsArgsInAncestors
 
   u32 SymbolFunctionName::getDepthSumOfFunctions()
   {
@@ -392,6 +433,7 @@ namespace MFM {
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
+	assert(fsym->getBlockNoOfST() == pno); //was fnsym nodeno == funcdef block in u.1.1.1
 	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
 	assert(func); //how would a function symbol be without a body? perhaps an ACCESSOR to-be-made?
 	func->updateLineage(pno);
@@ -521,6 +563,24 @@ namespace MFM {
 	++it;
       }
   } //generateCodedFunctions
+
+  void SymbolFunctionName::addFunctionDescriptionsToClassMemberMap(UTI classType, ClassMemberMap & classmembers)
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	FunctionDesc * descptr = new FunctionDesc(fsym, classType, m_state);
+	assert(descptr);
+
+	//concat mangled class and parameter names to avoid duplicate keys into map
+	std::ostringstream fullMangledName;
+	fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
+	classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
+	++it;
+      }
+  } //addFunctionDescriptionsToClassMemberMap
 
   //private method:
   bool SymbolFunctionName::isDefined(std::string mangledFName, SymbolFunction * & foundSym)

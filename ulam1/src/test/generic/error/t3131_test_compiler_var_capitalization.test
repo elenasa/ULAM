@@ -1,8 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3131_test_compiler_var_capitalization
 #!
-## //./D.ulam:2:5: ERROR: Name of variable/function <T>: Identifier must begin with a lower-case letter.
-Ue_D { Int T(15);  Int test() {  T ( 4 5 )times = } }
+./D.ulam:2:5: ERROR: Name of variable/function <T>: Identifier must begin with a lower-case letter.
+./D.ulam:1:1: ERROR: Empty/Incomplete Class Definition 'D'; Possible missing ending curly brace.
+./D.ulam:2:5: ERROR: Invalid Class Type <T>; KEYWORD should be 'element', 'quark', or 'union'.
+./D.ulam:1:9: ERROR: Invalid Type: D.
+ ERROR: No parse tree for This Class: D.
+Unrecoverable Program Parse FAILURE.
+##
 #>D.ulam
 element D {
 Int T;

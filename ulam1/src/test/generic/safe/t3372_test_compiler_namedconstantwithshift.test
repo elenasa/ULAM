@@ -8,7 +8,7 @@
 Exit status: 4
 Ue_A { Bool(3) b(true);  System s();  Int(32) test() {  Counter(3u) c;  b c ( 0u cast 1u cast )isEarlier . = s ( b )print . c ( )thanWhat . cast return } }
 Uq_System { <NOMAIN> }
-Uq_Counter { constant Unsigned(32) bits = NONREADYCONST;  typedef Unsigned(UNKNOWN) Count;  <NOMAIN> }
+Uq_Counter(Unsigned(32) bits) { typedef Unsigned(UNKNOWN) Count;  <NOMAIN> }
 #>A.ulam
 use System;
 use Counter;

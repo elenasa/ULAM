@@ -1,0 +1,59 @@
+## -*- mode:ulam -*-
+#=t3506_test_compiler_element_modelparameterint_duplicate_issue
+#!
+## generate code NULL POINTER (due to model parameter)
+## include/Ue_102323Foo10_Types.h:351: FAILED: NULL_POINTER
+##
+Exit status: 1
+Ue_Foo { System s();  Int(32) a(1);  Int(32) test() {  Foo2 f;  s ( chance(1) )print . s ( f chance(1) . )print . a f chance(1) . = a return } }
+Uq_System { <NOMAIN> }
+Ue_Foo2 { System s(); parameter Int(32) chance = 1;  Int(32) a(0);  <NOMAIN> }
+#>Foo.ulam
+ulam 1;
+use System;
+use Foo2;
+element Foo {
+  System s;
+  parameter Int chance = 1;
+  Int a;
+  Int test() {
+    Foo2 f;
+    s.print(chance);
+    s.print(f.chance);
+    a = f.chance;
+    return a;
+  }
+}
+
+#:Foo2.ulam
+  ulam 1;
+use System;
+element Foo2 {
+  System s;
+  parameter Int chance = 1;
+  Int a;
+}
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+##
+##      // using TESTPARAMETERMAP in Compiler.cpp: confirm 2 parameter map records exist
+##      //  when the names are identical.
+##      //Size of model parameter map is 2
+##      //ULAM INFO: PARAMETER ./Foo.ulam:6:16: Ue_102323Foo10 Ut_102321i chance Up_6chance 0x1 NONE
+##      //ULAM INFO: PARAMETER ./Foo2.ulam:5:16: Ue_102324Foo210 Ut_102321i chance Up_6chance 0x1 NONE
+##
+##      // MP not storeintoable/
+##
+##      //simplify for debugging
+##      //bool rtn1 = fms->add("Foo.ulam","ulam 1;\n element Foo {\n parameter Int chance = 1;\n Int a;\n Int test() {\n Foo f;\n a = f.chance;\n return a;\n }\n }\n");
+##
+#.

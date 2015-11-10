@@ -63,7 +63,7 @@ namespace MFM {
 	msg << "'; must be a quark or element name, not ";
 	msg << m_state.getUlamTypeNameBriefByIndex(ruti).c_str();
 	if(rclasstype == UC_UNSEEN || ruti == Nav)
-	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //goagain set
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	newType = Nav;
@@ -77,7 +77,7 @@ namespace MFM {
 	msg << " is still incomplete while labeling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	newType = Nav;
+	newType = Nav; //goagain set by nodetypedesc
       }
 
     setNodeType(newType);
@@ -139,7 +139,7 @@ namespace MFM {
 	    else
 	      {
 		std::ostringstream msg;
-		msg << "Invalid lefthand type of conditional operator '" << getName();
+		msg << "Unsupported lefthand type of conditional operator '" << getName();
 		msg <<  "', "  << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
 		msg << "; Passing through as UNFOUND for eval";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -284,7 +284,7 @@ namespace MFM {
       assert(0);
 
     fp->write(methodNameForCodeGen().c_str()); //mangled
-    fp->write("(");
+    fp->write("(uc, ");
     fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
     fp->write(");\n");
 

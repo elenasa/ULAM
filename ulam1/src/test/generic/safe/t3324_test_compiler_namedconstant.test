@@ -8,7 +8,7 @@
 ##      // constant fold: j 1 7 +b =, 1 6u cast +b
 ##
 Exit status: 8
-Ue_A { Int(32) j(8);  System s();  Int(32) test() {  7 = cOW const j 8 cast = s ( j )print . j return } }
+Ue_A { Int(32) j(8);  System s();  Int(32) test() {  constant Int(32) cOW = 7;  j 8 cast = s ( j )print . j return } }
 Uq_System { <NOMAIN> }
 Uq_B { typedef Int(3) Bar[2];  Int(3) j[2](0,0);  <NOMAIN> }
 #>A.ulam

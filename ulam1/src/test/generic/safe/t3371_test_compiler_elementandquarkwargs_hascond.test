@@ -7,7 +7,8 @@
 ##      */
 Exit status: 1
 Ue_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1; );  Int(32) test() {  self Typo(1) has cond { s ( t 1 . )print . t 1 . return } if 0 cast return } }
-Uq_Typo { /* empty class block */ }Uq_System { <NOMAIN> }
+Uq_Typo(Int(32) a) { /* empty class block */ }
+Uq_System { <NOMAIN> }
 #:Typo.ulam
 ulam 1;
 quark Typo(Int a) {

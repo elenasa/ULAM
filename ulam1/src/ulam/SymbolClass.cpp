@@ -33,13 +33,14 @@ namespace MFM {
     "* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>\n"
     "*/\n\n";
 
-  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true) /* default */ {}
+  SymbolClass::SymbolClass(Token id, UTI utype, NodeBlockClass * classblock, SymbolClassNameTemplate * parent, CompilerState& state) : Symbol(id, utype, state), m_resolver(NULL), m_classBlock(classblock), m_parentTemplate(parent), m_quarkunion(false), m_stub(true), m_quarkDefaultValue(0), m_isreadyQuarkDefaultValue(false) /* default */, m_superClass(Nav) {}
 
-  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub)
+  SymbolClass::SymbolClass(const SymbolClass& sref) : Symbol(sref), m_resolver(NULL), m_parentTemplate(sref.m_parentTemplate), m_quarkunion(sref.m_quarkunion), m_stub(sref.m_stub), m_quarkDefaultValue(sref.m_quarkDefaultValue), m_isreadyQuarkDefaultValue(false), m_superClass(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_superClass))
   {
     if(sref.m_classBlock)
       {
 	m_classBlock = (NodeBlockClass * ) sref.m_classBlock->instantiate(); //note: wasn't correct uti during cloning
+	// note: if superclass, the prevBlockPtr of m_classBlock hasn't been set yet!
       }
     else
       m_classBlock = NULL; //i.e. UC_UNSEEN
@@ -101,6 +102,16 @@ namespace MFM {
     return false;
   }
 
+  void SymbolClass::setSuperClass(UTI superclass)
+  {
+    m_superClass = superclass;
+  } //setSuperClass
+
+  UTI SymbolClass::getSuperClass()
+  {
+    return m_superClass; //Nav is none, not a subclass.
+  } //getSuperClass
+
   const std::string SymbolClass::getMangledPrefix()
   {
     return m_state.getUlamTypeByIndex(getUlamTypeIdx())->getUlamTypeUPrefix();
@@ -138,8 +149,10 @@ namespace MFM {
 
   bool SymbolClass::isCustomArray()
   {
-    return m_state.getUlamTypeByIndex(getUlamTypeIdx())->isCustomArray(); //canonical
-  }
+    NodeBlockClass * classNode = getClassBlockNode(); //instance
+    assert(classNode);
+    return classNode->hasCustomArray(); //checks any super classes
+  } //isCustomArray
 
   UTI SymbolClass::getCustomArrayType()
   {
@@ -187,15 +200,15 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "cycle error!! " << m_state.getUlamTypeNameByIndex(getUlamTypeIdx()).c_str();
 	MSG(Symbol::getTokPtr(), msg.str().c_str(),DEBUG);
-	    aok = false;
-	  }
-	else if(totalbits == EMPTYSYMBOLTABLE)
-	  {
-	    totalbits = 0;
-	    aok = true;
-	  }
-	else if(totalbits != UNKNOWNSIZE)
-	  aok = true; //not UNKNOWN
+	aok = false;
+      }
+    else if(totalbits == EMPTYSYMBOLTABLE)
+      {
+	totalbits = 0;
+	aok = true;
+      }
+    else if(totalbits != UNKNOWNSIZE)
+      aok = true; //not UNKNOWN
     return aok;
   } //trySetBitSize
 
@@ -224,6 +237,41 @@ namespace MFM {
       }
     MSG(m_state.getFullLocationAsString(getLoc()).c_str(), msg.str().c_str(),INFO);
   } //printBitSizeOfClass
+
+  bool SymbolClass::getDefaultQuark(u32& dqref)
+  {
+    assert(getUlamClass() == UC_QUARK);
+
+    if(m_isreadyQuarkDefaultValue)
+      {
+	dqref = m_quarkDefaultValue;
+	return true; //short-circuit, known
+      }
+
+    UTI suti = getUlamTypeIdx();
+    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+
+    assert(sut->isComplete());
+
+    if(sut->getBitSize() == 0)
+      {
+	m_isreadyQuarkDefaultValue = true;
+	dqref = m_quarkDefaultValue = 0;
+	return true; //short-circuit, no data members
+      }
+
+    dqref = 0; //init
+    NodeBlockClass * classblock = getClassBlockNode();
+    if(classblock->buildDefaultQuarkValue(dqref))
+      {
+	m_isreadyQuarkDefaultValue = true;
+	m_quarkDefaultValue = dqref;
+      }
+    else
+      m_isreadyQuarkDefaultValue = false;
+
+    return m_isreadyQuarkDefaultValue;
+  } //getDefaultQuark
 
   void SymbolClass::testThisClass(File * fp)
   {
@@ -425,11 +473,6 @@ namespace MFM {
 
       m_state.indent(fp);
       fp->write("namespace MFM{\n\n");
-
-      //m_state.m_currentIndentLevel++;
-      //m_classBlock->genCodeExtern(fp, false); //def for MP
-      //m_state.m_currentIndentLevel = 0;
-
       fp->write("} //MFM\n\n");
 
       delete fp; //close
@@ -807,11 +850,11 @@ namespace MFM {
     classtargets.insert(std::pair<std::string, struct TargetDesc>(mangledName, desc));
   } //addTargetDesciptionMapEntry
 
-  void SymbolClass::addModelParameterDescriptionsMapEntry(ParameterMap& classmodelparameters)
+  void SymbolClass::addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers)
   {
     NodeBlockClass * classNode = getClassBlockNode();
     assert(classNode);
-    classNode->addModelParameterDescriptionsToInfoMap(classmodelparameters);
-  } //addModelParameterDesciptionsMapEntry
+    classNode->addClassMemberDescriptionsToInfoMap(classmembers);
+  } //addClassMemberDesciptionsMapEntry
 
 } //end MFM

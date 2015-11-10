@@ -40,6 +40,7 @@
 #include "File.h"
 #include "NodeStatements.h"
 #include "SymbolTable.h"
+#include "MapClassMemberDesc.h"
 
 namespace MFM{
 
@@ -91,33 +92,31 @@ namespace MFM{
 
     void setPreviousBlockPointer(NodeBlock *);
 
-    u32 getNumberOfSymbolsInTable();
+    virtual u32 getNumberOfSymbolsInTable();
 
-    u32 getSizeOfSymbolsInTable();
+    virtual u32 getSizeOfSymbolsInTable();
 
-    s32 getBitSizesOfVariableSymbolsInTable();
+    virtual s32 getBitSizesOfVariableSymbolsInTable();
 
-    s32 getMaxBitSizeOfVariableSymbolsInTable();
+    virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
-    s32 findUlamTypeInTable(UTI utype);
-
-    SymbolTable * getSymbolTablePtr(); //used for print postfix
+    virtual s32 findUlamTypeInTable(UTI utype);
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
     void genModelParameterImmediateDefinitions(File * fp);
 
-    void addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters);
+    virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
   protected:
     SymbolTable m_ST;
 
     void genCodeDeclsForVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);
 
-    virtual void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
-
   private:
     NodeBlock * m_prevBlockNode;
+
+    SymbolTable * getSymbolTablePtr(); //use with caution, esp. with inheritance
 
   };
 

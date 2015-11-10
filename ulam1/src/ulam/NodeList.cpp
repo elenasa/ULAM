@@ -92,10 +92,17 @@ namespace MFM{
 
   void NodeList::print(File * fp)
   {
+    fp->write("(");
     for(u32 i = 0; i < m_nodes.size(); i++)
       {
-	m_nodes[i]->print(fp);
+	if(i > 0)
+	  fp->write(", ");
+
+	fp->write(m_state.getUlamTypeNameBriefByIndex(m_nodes[i]->getNodeType()).c_str());
+	fp->write(" ");
+	fp->write(m_nodes[i]->getName());
       }
+    fp->write(")");
   } //print
 
   const char * NodeList::getName()
@@ -115,7 +122,10 @@ namespace MFM{
       {
 	UTI puti = m_nodes[i]->checkAndLabelType();
 	if(!m_state.isComplete(puti))
-	  rtnuti = Nav; //all or none
+	  {
+	    rtnuti = Nav; //all or none
+	    m_state.setGoAgain(); //since no error msg
+	  }
 	else if(!WritePacked(m_state.determinePackable(puti)) && !m_state.isScalar(puti))
 	  {
 	    std::ostringstream msg;

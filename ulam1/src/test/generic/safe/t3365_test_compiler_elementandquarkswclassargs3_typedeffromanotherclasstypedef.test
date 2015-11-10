@@ -1,0 +1,50 @@
+## -*- mode:ulam -*-
+#=t3365_test_compiler_elementandquarkswclassargs3_typedeffromanotherclasstypedef
+#!
+##
+##      // can't test with gencode:
+##      //include/Ue_102321R10_Types.h:328: FAILED: NULL_POINTER
+##
+Exit status: -1
+Ue_R { Unsigned(32) psize(3);  Int(32) test() {  psize 3u = pvar(-1) cast return } }
+Uq_V { typedef Q(3) Woof;  <NOMAIN> }
+Uq_Q(Int(32) s) { typedef Int(UNKNOWN) Foo;  <NOMAIN> }
+Ue_P(Int(32) a) { Bool(UNKNOWN) b(unknown);  <NOMAIN> }
+##
+##     //informed by 3364
+##      // recursive typedefs as Element Parameter datamember variable type
+##
+#>R.ulam
+ulam 1;
+use V;
+element R {
+ parameter V.Woof.Foo pvar = -1;
+ Unsigned psize;
+ Int test() {
+ psize = pvar.sizeof;
+return pvar;
+}
+}
+
+#:P.ulam
+ulam 1;
+element P(Int a) {
+ Bool(a) b;
+}
+
+##
+##       // as primitive, as regular class, we have no problems.
+#:Q.ulam
+ulam 1;
+use P;
+quark Q(Int s) {
+ typedef Int(s) Foo;
+}
+
+#:V.ulam
+ulam 1;
+use Q;
+quark V {
+ typedef Q(3) Woof;
+}
+#.

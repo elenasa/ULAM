@@ -97,6 +97,7 @@ namespace MFM {
 	    msg << "' Proxy, as type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error
 	  }
 	else
 	  {
@@ -275,6 +276,7 @@ namespace MFM {
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	m_state.setGoAgain(); //since not error; maybe no nodetypedesc
 	//rtnb = false; don't want to stop after parsing.
       }
     else
@@ -289,6 +291,7 @@ namespace MFM {
 	    msg << "> is still incomplete and unknown while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error
 	    rtnb = false;
 	  }
 	else

@@ -1,8 +1,14 @@
 ## -*- mode:ulam -*-
 #=t3120_test_compiler_funcdef_emptytest_error
 #!
-##      //./D.ulam:1:30: ERROR: By convention, Function 'test''s Return type must be 'Int', not Void.
-Ue_D { Int(16) a[3](0,0,0);  Int(16) b(0);  Void test() {  {} } }
+./D.ulam:1:30: ERROR: By convention, Function 'test''s Return type must be 'Int', not Void.
+./D.ulam:1:30: ERROR: Unresolved No.1.
+./D.ulam:1:30: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,1).
+./D.ulam:1:35: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: D.
+./D.ulam:1:9: Warning: 1 data member nodes with unresolved types remain in class 'D'.
+./D.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: D.
+Unrecoverable Program Type Label FAILURE.
+##
 #>D.ulam
 element D { Int(16) a[3], b; Void test() { } }
 #.

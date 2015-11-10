@@ -28,7 +28,7 @@ Unsigned(3) u;
  s.assert(n == n.minof);
  m = -n;
  s.print(m);
- u = (Unsigned(3)) -n; s.print((Unsigned) u);
+ u = (Unsigned(3)) -n; s.print(u);
 return m;
 }
 }

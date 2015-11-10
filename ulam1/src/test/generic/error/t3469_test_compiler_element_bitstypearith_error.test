@@ -1,11 +1,16 @@
 ## -*- mode:ulam -*-
 #=t3469_test_compiler_element_bitstypearith_error
 #!
-##
-##./Foo.ulam:7:18: ERROR: Incompatible types for binary operator+ : Bits(3), Bits(3); Suggest casting to a numeric type first.
-##./Foo.ulam:8:1: ERROR: Use explicit cast to return Bits(3) as Int(32).
-##
-Exit status: -1
+./Foo.ulam:7:18: ERROR: Incompatible types for binary operator+ : Bits(3), Bits(3); Suggest casting to a numeric type first.
+./Foo.ulam:8:1: ERROR: Use explicit cast to return Bits(3) as Int(32).
+./Foo.ulam:7:9: ERROR: Unresolved No.1.
+./Foo.ulam:7:18: ERROR: Unresolved No.2.
+./Foo.ulam:8:1: ERROR: Unresolved No.3.
+./Foo.ulam:4:2: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,1).
+./Foo.ulam:4:6: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: Foo.
+./Foo.ulam:2:10: Warning: 3 data member nodes with unresolved types remain in class 'Foo'.
+./Foo.ulam:2:10: ERROR: 3 Nodes with unresolved types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
 ##
 ##      //informed by t3194
 ##

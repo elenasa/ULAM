@@ -37,6 +37,20 @@ namespace MFM {
     putData(BITSPERATOM - len, len, v); //starts from end, for 32 bit boundary case
   } //init
 
+  UlamValue UlamValue::makeDefaultAtom(UTI elementType, CompilerState& state)
+  {
+    UlamValue rtnValue = UlamValue::makeAtom();
+    rtnValue.setAtomElementTypeIdx(elementType);
+
+    SymbolClass * csym = NULL;
+    assert(state.alreadyDefinedSymbolClass(elementType, csym));
+    NodeBlockClass * cblock = csym->getClassBlockNode();
+    assert(cblock);
+    cblock->initElementDefaultsForEval(rtnValue);
+
+    return rtnValue;
+  } //makeDefaultAtom
+
   UlamValue UlamValue::makeAtom(UTI elementType)
   {
     UlamValue rtnValue = UlamValue::makeAtom();
@@ -54,7 +68,7 @@ namespace MFM {
 
   UlamValue UlamValue::makeImmediate(UTI utype, u32 v, CompilerState& state)
   {
-    s32 len = state.getBitSize(utype);
+    s32 len = state.getTotalBitSize(utype); //possible packed array (e.g. default qks)
     assert(len != UNKNOWNSIZE);
     return UlamValue::makeImmediate(utype, v, len);
   } //makeImmediate
@@ -71,7 +85,7 @@ namespace MFM {
 
   UlamValue UlamValue::makeImmediateLong(UTI utype, u64 v, CompilerState& state)
   {
-    s32 len = state.getBitSize(utype);
+    s32 len = state.getTotalBitSize(utype);
     assert(len != UNKNOWNSIZE);
     return UlamValue::makeImmediateLong(utype, v, len);
   } //makeImmediateLong
@@ -79,7 +93,7 @@ namespace MFM {
   UlamValue UlamValue::makeImmediateLong(UTI utype, u64 v, s32 len)
   {
     UlamValue rtnVal; //static
-    assert(len <=MAXBITSPERLONG && (s32) len >= 0); //very important!
+    assert(len <= MAXBITSPERLONG && (s32) len >= 0); //very important!
     rtnVal.clear();
     rtnVal.setUlamValueTypeIdx(utype);
     rtnVal.putDataLong(BITSPERATOM - len, len, v); //starts from end for 32-bit boundary case
@@ -180,10 +194,9 @@ namespace MFM {
     assert(getUlamValueTypeIdx() == Ptr);
 
     UTI auti = m_uv.m_ptrValue.m_targetType;
-    UlamType * aut = state.getUlamTypeByIndex(auti);
-    if(aut->isCustomArray())
+    if(state.isClassACustomArray(auti))
       {
-	UTI caType = ((UlamTypeClass *) aut)->getCustomArrayType();
+	UTI caType = state.getAClassCustomArrayType(auti);
 	UlamType * caut = state.getUlamTypeByIndex(caType);
 	s32 calen = caut->getBitSize();
 	if( calen > MAXBITSPERLONG)

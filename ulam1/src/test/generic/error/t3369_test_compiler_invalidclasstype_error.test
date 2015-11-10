@@ -1,10 +1,9 @@
 ## -*- mode:ulam -*-
 #=t3369_test_compiler_invalidclasstype_error
 #!
-##
-##      //./Typo.ulam:2:1: ERROR: Invalid Class Type: <quaak>; should be: 'element' , 'quark' , or 'union'.
-##
-Uq_Typo { /* empty class block */ }
+./Typo.ulam:2:1: ERROR: Invalid Class Type <quaak>; KEYWORD should be 'element', 'quark', or 'union'.
+ ERROR: No parse tree for This Class: Typo.
+Unrecoverable Program Parse FAILURE.
 ##
 ##      //quark misspelled
 ##

@@ -68,9 +68,15 @@ namespace MFM{
 
     virtual void printPostfix(File * fp);
 
+    void printPostfixDataMembersParseTree(File * fp); //helper for recursion NodeVarDecDM
+
+    void printPostfixDataMembersSymbols(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype);
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();
+
+    UTI getNodeType();
 
     virtual UTI checkAndLabelType();
 
@@ -78,13 +84,19 @@ namespace MFM{
 
     void addParameterNode(Node * nodeArg);
 
+    Node * getParameterNode(u32 n) const;
+
     virtual void countNavNodes(u32& cnt);
+
+    bool hasCustomArray();
 
     void checkCustomArrayTypeFunctions();
 
     UTI getCustomArrayTypeFromGetFunction();
 
     u32 getCustomArrayIndexTypeFromGetFunction(Node * rnode, UTI& idxuti, bool& hasHazyArgs);
+
+    bool buildDefaultQuarkValue(u32& dqref); //starts here, called by SymbolClass
 
     void checkDuplicateFunctions();
 
@@ -94,6 +106,16 @@ namespace MFM{
 
     //checks both function and variable symbol names
     virtual bool isIdInScope(u32 id, Symbol * & symptrref);
+
+    virtual u32 getNumberOfSymbolsInTable();
+
+    virtual u32 getSizeOfSymbolsInTable();
+
+    virtual s32 getBitSizesOfVariableSymbolsInTable();
+
+    virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
+
+    virtual s32 findUlamTypeInTable(UTI utype);
 
     bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 
@@ -117,9 +139,13 @@ namespace MFM{
 
     void genCodeBody(File * fp, UlamValue& uvpass);  //specific for this class
 
+    void initElementDefaultsForEval(UlamValue& uv);
+
     NodeBlockFunctionDefinition * findTestFunctionNode();
 
     NodeBlockFunctionDefinition * findToIntFunctionNode();
+
+    virtual void addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers);
 
   protected:
     SymbolTable m_functionST;
@@ -136,8 +162,20 @@ namespace MFM{
     void genImmediateMangledTypesForHeaderFile(File * fp);
     void genShortNameParameterTypesExtractedForHeaderFile(File * fp);
 
-    virtual void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
+    void genCodeBuiltInFunctionHas(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionHasDataMembers(File * fp);
+
+    void genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+    void genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp);
+    void genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
     void generateInternalIsMethodForElement(File * fp, bool declOnly);
+    void generateInternalGetAncestorMethodForElement(File * fp, bool declOnly);
+    void generateInternalTypeAccessorsForElement(File * fp, bool declOnly);
+
+    void generateUlamClassInfoFunction(File * fp, bool declOnly, u32& dmcount);
     virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
     void generateUlamClassInfoCount(File * fp, bool declOnly, u32 dmcount);
     void generateUlamClassGetMangledName(File * fp, bool declOnly);

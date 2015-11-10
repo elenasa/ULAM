@@ -217,14 +217,9 @@ namespace MFM {
     m_ST.genModelParameterImmediateDefinitionsForTableOfVariableDataMembers(fp);
   }
 
-  void NodeBlock::addModelParameterDescriptionsToInfoMap(ParameterMap& classmodelparameters)
+  void NodeBlock::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
-    m_ST.addModelParameterDescriptionsToMap(this->getNodeType(), classmodelparameters); //Table of Classes request
-  }
-
-  void NodeBlock::generateCodeForBuiltInClassFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
-  {
-    m_ST.genCodeBuiltInFunctionsOverTableOfVariableDataMember(fp, declOnly, classtype);
+    m_ST.addClassMemberDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
   }
 
   void NodeBlock::genCode(File * fp, UlamValue& uvpass)
@@ -239,5 +234,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("}\n");
   } //genCode
+
 
 } //end MFM

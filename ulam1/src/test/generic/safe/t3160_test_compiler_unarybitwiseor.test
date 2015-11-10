@@ -20,7 +20,7 @@ Unary(3) a, b, c;
  c = (Unary(3)) (a | b);
 s.print(c);
 g = (Unsigned(2)) (e | f);
-s.print((Unsigned) g);
+s.print(g);
  return c;
  }
  }

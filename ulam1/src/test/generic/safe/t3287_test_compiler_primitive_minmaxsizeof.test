@@ -30,9 +30,9 @@ Int test(){
 Int(4) z; s.print(z.sizeof);
  s.print(z.minof);
  s.print(z.maxof);
-Unsigned y;
- s.print((Unsigned) y.sizeof);
- s.print((Unsigned) y.minof);
+ Unsigned y;
+ s.print(y.sizeof);
+ s.print(y.minof);
  s.print(y.maxof);
 Unary(3) x;
  s.print(x.sizeof);

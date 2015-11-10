@@ -143,13 +143,13 @@ namespace MFM {
       {
 	if(UlamType::compare(newType, leftType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    if(!makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
+	    if(!Node::makeCastingNode(m_nodeLeft, newType, m_nodeLeft))
 	      newType = Nav;
 	  }
 
 	if(UlamType::compare(newType, rightType, m_state) != UTIC_SAME) //not same, or dontknow
 	  {
-	    if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav;
 	  }
       }
@@ -542,8 +542,8 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
-    //    else
-    //  assert(0);
+    else
+      assert(0);
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 

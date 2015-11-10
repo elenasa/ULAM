@@ -1,8 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3508_test_compiler_quarkcastcaarray_issue_error
 #!
-##
-##culamtest: UlamValue.cpp:480: MFM::u32 MFM::UlamValue::getImmediateData(MFM::s32) const: Assertion `getUlamValueTypeIdx() != UAtom' failed.
+culamtest: UlamValue.cpp:480: MFM::u32 MFM::UlamValue::getImmediateData(MFM::s32) const: Assertion `getUlamValueTypeIdx() != UAtom' failed.
+Aborted (core dumped)
 ##
 ## without eval (NodeBlockClass define _DEBUG_SKIP_EVAL), only gencode:
 ## ./QPort4.ulam:12:15: ERROR: Cannot explicitly cast custom array type Atom(96) to type: QPort4; Consider using a temporary variable.
@@ -31,9 +31,15 @@ quark QPort4
   Void update()
   {
     SiteNum selfIdx = 1;
-    //Atom aa = ew[selfIdx]; //eadded
-    //Self s = (Self) aa;
-    Self s = (Self) ew[selfIdx];
+   // outputs: BAD_CAST FAILURE
+   //Atom aa = ew[selfIdx]; //eadded
+   //Self s = (Self) aa;
+
+   // outputs compiler error (see above); then C++ error follows (why did we go on?)
+   //include/Uq_10106QPort410.tcc:36:82: error: ‘Um_2ew’ was not declared in this scope
+   //  Uh_tmpreg_loadable_216 = UlamElement<EC>::PositionOfDataMember(uc, Um_2ew.read
+
+   Self s = (Self) ew[selfIdx];
   }
 }
 #:EventWindow.ulam

@@ -89,6 +89,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 
 	setNodeType(Nav);
+	m_state.setGoAgain(); //since no error msg
 	return getNodeType();
       } //done
 

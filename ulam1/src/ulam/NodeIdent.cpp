@@ -108,7 +108,8 @@ namespace MFM {
 		// replace ourselves with a constant node instead;
 		// same node no, and loc
 		NodeConstant * newnode = new NodeConstant(*this);
-		Node * parentNode = m_state.findNodeNoInThisClass(Node::getYourParentNo());
+		NNO pno = Node::getYourParentNo();
+		Node * parentNode = m_state.findNodeNoInThisClass(pno);
 		assert(parentNode);
 
 		assert(parentNode->exchangeKids(this, newnode));
@@ -118,6 +119,9 @@ namespace MFM {
 		msg << "> a named constant, in place of a variable with class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+		newnode->setYourParentNo(pno); //missing?
+		newnode->resetNodeNo(getNodeNo()); //missing?
 
 		m_state.popClassContext(); //restore
 
@@ -130,7 +134,8 @@ namespace MFM {
 		// replace ourselves with a parameter node instead;
 		// same node no, and loc
 		NodeModelParameter * newnode = new NodeModelParameter(*this);
-		Node * parentNode = m_state.findNodeNoInThisClass(Node::getYourParentNo());
+		NNO pno = Node::getYourParentNo();
+		Node * parentNode = m_state.findNodeNoInThisClass(pno);
 		assert(parentNode);
 
 		assert(parentNode->exchangeKids(this, newnode));
@@ -140,6 +145,9 @@ namespace MFM {
 		msg << "> a model parameter, in place of a variable with class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+		newnode->setYourParentNo(pno); //missing?
+		newnode->resetNodeNo(getNodeNo()); //missing?
 
 		m_state.popClassContext(); //restore
 
@@ -214,11 +222,9 @@ namespace MFM {
 	// an element/quark or a requested scalar of an arraytype
 	if(uv.getUlamValueTypeIdx() != nuti)
 	  {
-	    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-	    if(nut->isCustomArray())
+	    if(m_state.isClassACustomArray(nuti))
 	      {
-		UTI caType = ((UlamTypeClass *) nut)->getCustomArrayType();
+		UTI caType = m_state.getAClassCustomArrayType(nuti);
 		UlamType * caut = m_state.getUlamTypeByIndex(caType);
 		if(caType == UAtom || caut->getBitSize() > MAXBITSPERINT)
 		  {
@@ -244,7 +250,7 @@ namespace MFM {
 	      }
 	    else
 	      {
-		if(nuti == UAtom || nut->getUlamClass() == UC_ELEMENT)
+		if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
 		  {
 		    uv = m_state.getPtrTarget(uvp); //UlamValue::makeAtom(caType);
 		  }
@@ -589,10 +595,7 @@ namespace MFM {
 	      }
 	  }
 	else
-	  {
-	    m_state.clearStructuredCommentToken();
-	    return false; //already there
-	  }
+	  return false; //already there
       }
 
     // maintain specific type (see isAConstant() Node method)
@@ -647,12 +650,9 @@ namespace MFM {
 	SymbolParameterValue * symparam = new SymbolParameterValue(m_token, uti, m_state);
 	m_state.addSymbolToCurrentScope(symparam);
 
-	symparam->setStructuredComment(); //also clears
-
 	//gets the symbol just created by makeUlamType; true.
 	return (m_state.getCurrentBlock()->isIdInScope(m_token.m_dataindex, asymptr));
       }
-    m_state.clearStructuredCommentToken();
     return false;
   } //installSymbolParameterValue
 

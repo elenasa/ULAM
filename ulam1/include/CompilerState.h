@@ -188,6 +188,7 @@ namespace MFM{
     UTI getUlamTypeAsScalar(UTI utArg);
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
+    bool getDefaultQuark(UTI cuti, u32& dqref);
 
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
@@ -208,13 +209,24 @@ namespace MFM{
     u32 getTotalBitSize(UTI utArg);
     u32 getTotalWordSize(UTI utArg);
     s32 slotsNeeded(UTI uti);
+    bool isClassATemplate(UTI cuti);
+    UTI isClassASubclass(UTI cuti); //returns super UTI, or Nav if no inheritance
+    bool isClassASuperclassOf(UTI cuti, UTI superp);
+    bool isClassAStub(UTI cuti);
+    bool hasClassAStub(UTI cuti);
+    bool isClassAQuarkUnion(UTI cuti);
+    bool isClassACustomArray(UTI cuti);
+    UTI getAClassCustomArrayType(UTI cuti);
+    UTI getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs);
 
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr);
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr);
-    bool isIdInClassScope(u32 dataindex, Symbol * & symptr);
+    bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr);
+    bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr);
+
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
     void replaceSymbolInCurrentScope(u32 oldid, Symbol * symptr); //same symbol, new id
@@ -231,8 +243,8 @@ namespace MFM{
     bool alreadyDefinedSymbolClass(UTI uti, SymbolClass * & symptr);
 
     /** creates temporary class type for dataindex, returns the new Symbol pointer in 2nd arg; */
-    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
-    void addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
+    bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr);
+    bool addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr);
 
     void resetUnseenClass(SymbolClassName * cnsym, Token identTok);
     bool getUnseenClassFilenames(std::vector<std::string>& unseenFiles);
@@ -264,6 +276,8 @@ namespace MFM{
     const char * getIsMangledFunctionName();
     const char * getHasMangledFunctionName(UTI ltype);
     const char * getAsMangledFunctionName(UTI ltype, UTI rtype);
+    const char * getBuildDefaultAtomFunctionName(UTI ltype);
+    const char * getDefaultQuarkFunctionName();
 
     std::string getFileNameForAClassHeader(UTI cuti, bool wSubDir = false);
     std::string getFileNameForThisClassHeader(bool wSubDir = false);
@@ -332,6 +346,10 @@ namespace MFM{
     NNO getNextNodeNo();
 
     Node * findNodeNoInThisClass(NNO n);
+    Node * findNodeNoInAClass(NNO n, UTI cuti);
+    UTI findAClassByNodeNo(NNO n);
+    NodeBlockClass * getAClassBlock(UTI cuti);
+    NNO getAClassBlockNo(UTI cuti);
 
     /** methods for context switching */
     u32 getCompileThisId();

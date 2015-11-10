@@ -48,15 +48,22 @@ namespace MFM{
 
     virtual void getTargetDescriptorsForClassInstances(TargetMap& classtargets);
 
-    virtual void getModelParameterDescriptionsForClassInstances(ParameterMap& classmodelparameters);
+    virtual void getClassMemberDescriptionsForClassInstances(ClassMemberMap& classmembers);
 
     void addParameterSymbol(SymbolConstantValue * argSym);
     u32 getNumberOfParameters();
+    bool parameterHasDefaultValue(u32 n);
+    u32 getTotalParametersWithDefaultValues();
+
     u32 getTotalParameterSlots();
-    Symbol * getParameterSymbolPtr(u32 n);
+    SymbolConstantValue * getParameterSymbolPtr(u32 n);
 
     virtual bool isClassTemplate();
     bool isClassTemplate(UTI cuti);
+
+    virtual void setSuperClassForClassInstance(UTI superclass, UTI instance);
+    virtual UTI getSuperClassForClassInstance(UTI instance);
+
     bool findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref);
     bool findClassInstanceByArgString(UTI cuti, SymbolClass *& csymptr);
 
@@ -96,6 +103,7 @@ namespace MFM{
     virtual bool setBitSizeOfClassInstances();
     virtual void printBitSizeOfClassInstances();
     virtual void packBitsForClassInstances();
+    virtual void buildDefaultQuarkForClassInstances();
 
     virtual void testForClassInstances(File * fp);
 
@@ -106,6 +114,8 @@ namespace MFM{
     virtual void generateForwardDefsForClassInstances(File * fp);
 
     virtual void generateTestInstanceForClassInstances(File * fp, bool runtest);
+
+    void printClassTemplateArgsForPostfix(File * fp);
 
    protected:
 

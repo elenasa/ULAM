@@ -124,6 +124,8 @@ namespace MFM{
 
     virtual UTI constantFold();
 
+    virtual bool buildDefaultQuarkValue(u32& dqref);
+
     virtual bool isNegativeConstant();
 
     virtual bool isWordSizeConstant();
@@ -195,8 +197,13 @@ namespace MFM{
     //i.e. an immediate (right-justified); not a data member or self;
     bool isCurrentObjectALocalVariableOrArgument();
 
-    //index of last "static" EP object; o.w.-1
+    //index of last "static" MP object; o.w.-1
     s32 isCurrentObjectsContainingAModelParameter();
+
+    //index of last subclass; o.w.-1
+    s32 isCurrentObjectsContainingASubClass();
+    UTI findTypeOfSubClassAndBlockNo(NNO bno, s32 subcosidx);
+    s32 calcPosOfCurrentObjectsContainingASubClass(bool isLocal);
 
     //false means its the entire array or not an array at all
     bool isCurrentObjectAnArrayItem(UTI cosuti, UlamValue uvpass);
@@ -212,6 +219,10 @@ namespace MFM{
     void genCodeConvertABitVectorIntoATmpVar(File * fp, UlamValue & uvpass);
 
     virtual void checkForSymbol();
+
+    void genCodeReadElementTypeField(File * fp, UlamValue & uvpass);
+
+    void restoreElementTypeForAncestorCasting(File * fp, UlamValue & uvpass);
 
   private:
     bool m_storeIntoAble;
@@ -232,7 +243,11 @@ namespace MFM{
     void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     void genModelParameterHiddenArgs(File * fp, s32 epi);
+
+    void genCustomArrayMemberNameOfMethod(File * fp);
+
     void genLocalMemberNameOfMethodByUsTypedef(File * fp);
+    void genCustomArrayLocalMemberNameOfMethod(File * fp);
 
     const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
     const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass);

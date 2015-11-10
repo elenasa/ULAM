@@ -110,7 +110,7 @@ namespace MFM {
 		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		newType = Nav; //error
 	      }
-	    else if(!makeCastingNode(m_nodeRight, newType, m_nodeRight))
+	    else if(!Node::makeCastingNode(m_nodeRight, newType, m_nodeRight))
 	      newType = Nav; //error
 	  }
       }
@@ -302,8 +302,9 @@ namespace MFM {
 	u64 rdata = ruv.getImmediateDataLong(len);
 	rtnUV = makeImmediateLongBinaryOp(nuti, ldata, rdata, len);
       }
-    //else
-    //assert(0);
+    else
+      assert(0); //e.g. 0
+
     if(rtnUV.getUlamValueTypeIdx() == Nav)
       return false;
 

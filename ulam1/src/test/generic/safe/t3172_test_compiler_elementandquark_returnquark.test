@@ -27,7 +27,7 @@ System s;
  Foo f;
  f.m_i = 15;
  m_bar[1] = f.check(1);
-s.print((Unsigned) f.m_i);
+s.print(f.m_i);
  return f.m_i;
  }
  }

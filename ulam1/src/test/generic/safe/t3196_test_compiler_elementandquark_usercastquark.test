@@ -7,39 +7,39 @@
 Exit status: 7
 Ue_Foo { System s();  Int(4) m_i(7);  Bar m_bar( Bool(1) val_b[3](false,true,false); );  Int(32) test() {  m_bar ( 1 cast )check = m_i m_bar ( )toInt . cast cast = s ( m_i )print . m_i cast return } }
 Uq_System { <NOMAIN> }
-Uq_Bar { Bool(1) val_b[3](false,true,true);  <NOMAIN> }
+Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use System;
- use Bar;
- element Foo {
-System s;
- Int(4) m_i;
- Bar m_bar;
- Bar check(Int v) {
- Bar b;
- b.val_b[1] = true;
- return b;
- }
- Int test() {
- m_bar = check(1);
- m_i = (Int(4)) m_bar;
-s.print(m_i);
- return m_i;
- }
- }
+use Bar;
+element Foo {
+  System s;
+  Int(4) m_i;
+  Bar m_bar;
+  Bar check(Int v) {
+    Bar b;
+    b.val_b[1] = true;
+    return b;
+  }
+  Int test() {
+    m_bar = check(1);
+    m_i = (Int(4)) m_bar; //toInt here
+    s.print(m_i);
+    return m_i;
+  }
+}
 
 #:Bar.ulam
-ulam 1;
- quark Bar {
- Bool val_b[3];
+  ulam 1;
+quark Bar {
+  Bool val_b[3];
   Void reset(Bool b) {
- b = false;
- }
- Int toInt(){
- return 7;
+    b = false;
+  }
+  Int toInt(){
+    return 7;
+  }
 }
- }
 #:System.ulam
 ulam 1;
 quark System {

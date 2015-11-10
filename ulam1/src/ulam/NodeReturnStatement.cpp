@@ -121,7 +121,7 @@ namespace MFM {
 		    FORECAST scr = m_node->safeToCastTo(rtnType);
 		    if( scr == CAST_CLEAR)
 		      {
-			if(!makeCastingNode(m_node, rtnType, m_node))
+			if(!Node::makeCastingNode(m_node, rtnType, m_node))
 			  nodeType = Nav;
 			else
 			  nodeType = m_node->getNodeType(); //casted
@@ -163,6 +163,7 @@ namespace MFM {
 	msg << m_state.getUlamTypeNameBriefByIndex(nodeType).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	// nodeType = Nav; needed?
+	m_state.setGoAgain();
       }
 
     //check later against defined function return type

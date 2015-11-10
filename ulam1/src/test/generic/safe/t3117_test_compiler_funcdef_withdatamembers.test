@@ -6,7 +6,8 @@ Ue_A { Int(4) b(5);  System s();  Int(4) a(4);  Bool(7) d(false);  Int(32) test(
 Uq_System { <NOMAIN> }
 #>A.ulam
 use System;
-element A {System s;
+element A {
+System s;
 Int test(){
 a=4;
 b=5;
