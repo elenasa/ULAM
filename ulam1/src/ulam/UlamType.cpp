@@ -885,6 +885,24 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("() {}\n");
 
+    //read passing bitsize  to base class
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+    fp->write(" read() const { ");
+    fp->write("return AutoRefBase<EC>::read(");
+    fp->write_decimal_unsigned(getTotalBitSize());
+    fp->write("); }\n");
+
+    //write passing bitsize to base class
+    m_state.indent(fp);
+    fp->write("void write(const ");
+    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+    fp->write(" v) { ");
+    fp->write("AutoRefBase<EC>::write(v, ");
+    fp->write_decimal_unsigned(getTotalBitSize());
+    fp->write("); }\n");
+
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("};\n");

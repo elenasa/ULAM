@@ -610,7 +610,9 @@ namespace MFM {
     fp->write("return Up_Us::");
     fp->write(readMethodForCodeGen().c_str());
     fp->write("(AutoRefBase<EC>::getBits()); ");
-    fp->write("return AutoRefBase<EC>::read(); }\n");
+    fp->write("return AutoRefBase<EC>::read(");
+    fp->write_decimal_unsigned(getTotalBitSize());
+    fp->write("); }\n");
   } //genUlamTypeQuarkReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp)
@@ -627,7 +629,9 @@ namespace MFM {
     fp->write("Up_Us::");
     fp->write(writeMethodForCodeGen().c_str());
     fp->write("(AutoRefBase<EC>::getBits(), v); ");
-    fp->write("else AutoRefBase<EC>::write(v); }\n");
+    fp->write("else AutoRefBase<EC>::write(v, ");
+    fp->write_decimal_unsigned(getTotalBitSize());
+    fp->write("); }\n");
   } //genUlamTypeQuarkWriteDefinitionForC
 
 void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
@@ -740,7 +744,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { return AutoRefBase<EC>::read(true); /* entire element */ }\n");
+    fp->write(" read() const { return AutoRefBase<EC>::read(); /* entire element */ }\n");
 
     m_state.indent(fp);
     fp->write("const u32 readTypeField()");
