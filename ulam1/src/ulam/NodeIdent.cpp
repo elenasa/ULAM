@@ -422,10 +422,10 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
 
-    if(classtype == UC_ELEMENT)
+    if(classtype == UC_ELEMENT || nuti == UAtom)
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
+	uvpass = UlamValue::makePtr(tmpnum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
       }
     else
       {

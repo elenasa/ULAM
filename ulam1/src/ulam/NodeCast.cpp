@@ -515,7 +515,7 @@ namespace MFM {
 	fp->write("<EC>::THE_INSTANCE.");
 	fp->write(m_state.getIsMangledFunctionName(nuti));
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPBITVAL).c_str());
 	fp->write("))\n");
 
 	m_state.m_currentIndentLevel++;
@@ -561,7 +561,7 @@ namespace MFM {
 
 	if(Node::isCurrentObjectALocalVariableOrArgument())
 	  {
-	    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
+	    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPBITVAL).c_str());
 	    fp->write(".GetType();\n");
 	  }
 	else

@@ -155,7 +155,7 @@ namespace MFM {
 	fp->write("<EC>::THE_INSTANCE.");
 	fp->write(m_state.getIsMangledFunctionName(ruti));
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
+	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
 	fp->write(");\n");
       }
     else if(rclasstype == UC_QUARK)
@@ -174,7 +174,7 @@ namespace MFM {
 	    //atom then?
 	    fp->write(m_state.getIsMangledFunctionName(luti)); //UlamElement IsMethod
 	    fp->write("(uc, ");
-	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
+	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
 	    fp->write(".GetType(), "); //from tmpvar T
 	  }
 	fp->write("\"");

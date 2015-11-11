@@ -227,7 +227,7 @@ namespace MFM {
 	fp->write("<EC>::THE_INSTANCE.");
 	fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	fp->write("(");
-	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
+	fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
 	fp->write(");\n");
       }
     // not possible!! we already know rhs is an element
@@ -247,7 +247,7 @@ namespace MFM {
 	  {
 	    fp->write(m_state.getAsMangledFunctionName(luti, ruti));
 	    fp->write("(uc, ");
-	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum).c_str());
+	    fp->write(m_state.getTmpVarAsString(luti, tmpVarNum, luvpass.getPtrStorage()).c_str());
 	    fp->write(".GetType(), "); //from tmpvar T
 	  }
 	fp->write("\"");
