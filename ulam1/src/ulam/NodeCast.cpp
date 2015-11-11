@@ -379,9 +379,9 @@ namespace MFM {
    if(vuti == Ptr)
       {
 	tmpVarNum = uvpass.getPtrSlotIndex();
-	if(uvpass.getPtrStorage() == TMPAUTOREF)
-	  vuti = m_node->getNodeType(); //uvpass type is autoref type, not node type.
-	else
+	// if(uvpass.getPtrStorage() == TMPAUTOREF)
+	// vuti = m_node->getNodeType(); //uvpass type is autoref type, not node type.
+	//else
 	  vuti = uvpass.getPtrTargetType(); //replace
       }
     else
@@ -679,7 +679,6 @@ namespace MFM {
     if(tobeclasstype == UC_QUARK)
       {
 	fp->write("<EC, ");
-	//fp->write(m_state.getTmpVarAsString(Int, tmpVarPos).c_str()); //positioned
 	fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 	fp->write("> ");
       }
@@ -711,69 +710,6 @@ namespace MFM {
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCodeCastAtomAndQuark
-
-#if 0
-  void NodeCast::genCodeCastDecendentElement(File * fp, UlamValue & uvpass)
-  {
-    UTI nuti = getNodeType(); //element tobe
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-
-    UTI vuti = uvpass.getUlamValueTypeIdx();
-    if(vuti == Ptr)
-      vuti = uvpass.getPtrTargetType(); //replace
-    s32 tmpVarNum = uvpass.getPtrSlotIndex();
-
-    m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
-
-    assert(m_state.isClassASuperclassOf(vuti, nuti));
-
-    //update type field to nuti
-    s32 tmpVarType = m_state.getNextTmpVarNumber();
-    m_state.indent(fp);
-    fp->write("const u32 ");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType).c_str());;
-    fp->write(" = ");
-    fp->write(nut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::THE_INSTANCE.ReadTypeField(this->GetBits(");
-    fp->write(nut->getUlamTypeMangledName().c_str());
-    fp->write("<EC>::THE_INSTANCE.GetDefaultAtom())); //get tobe type\n");
-
-    //    UlamValue typuv = UlamValue::makePtr(tmpVarType, TMPREGISTER, Unsigned, m_state.determinePackable(Unsigned), m_state, 0); //POS 0 rightjustified (atom-based).
-
-    s32 tmpVarTobe = m_state.getNextTmpVarNumber();
-    m_state.indent(fp);
-    fp->write(nut->getUlamTypeImmediateMangledName().c_str());
-    fp->write("<EC> ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarTobe).c_str());;
-    fp->write("(");
-    fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());;
-    fp->write(");\n");
-
-    m_state.indent(fp);
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarTobe).c_str());
-    fp->write(".writeTypeField(");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarType).c_str());
-    fp->write("); //restore type\n");
-
-    UlamValue tobeuv = UlamValue::makePtr(tmpVarTobe, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).
-
-    //    Node::genCodeReadIntoATmpVar(fp, tobeuv);
-    s32 tmpVarTobeRead = m_state.getNextTmpVarNumber();
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(nut->getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarTobeRead, tobeuv.getPtrStorage()).c_str());
-    fp->write(" = ");
-    fp->write(m_state.getTmpVarAsString(nuti, tmpVarTobe, tobeuv.getPtrStorage()).c_str());
-    fp->write(".read();\n");
-
-    // update uvpass here..
-    uvpass = UlamValue::makePtr(tmpVarTobeRead, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified (atom-based).
-
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
-  } //genCodeCastDecendentElementt
-#endif
 
   void NodeCast::genCodeCastDecendentElement(File * fp, UlamValue & uvpass)
   {

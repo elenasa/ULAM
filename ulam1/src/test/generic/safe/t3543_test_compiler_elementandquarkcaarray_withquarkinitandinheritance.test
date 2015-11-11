@@ -30,7 +30,7 @@ element Foo {
   Int test() {
     b = m_bar2[0].cb; //read case
 
-    s.print(b); //true
+    s.print(b); //true, should be
 
     m_bar2[0].cb = false; //write case
 

@@ -557,17 +557,10 @@ namespace MFM {
     fp->write(" Up_Us;\n");
     fp->write("\n");
 
-    //reference to storage in atom
-    //m_state.indent(fp);
-    //fp->write("T& m_stgToChange;  //ref to storage here!\n");
-
-    //m_state.indent(fp);
-    //fp->write("const u32 m_pos;   //pos in atom\n");
-
+    // see UlamElement.h for AutoRefBase
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    //fp->write("(T& targ, u32 idx) : m_stgToChange(targ), m_pos(idx) { }\n");
     fp->write("(T& targ, u32 idx) : AutoRefBase<EC>(targ, idx) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
@@ -580,22 +573,6 @@ namespace MFM {
 
     //write 'entire quark' method
     genUlamTypeQuarkWriteDefinitionForC(fp);
-
-    // getBits method for scalar
-    //m_state.indent(fp);
-    //fp->write("BitVector<BPA>& getBits() { return m_stgToChange.GetBits(); }\n");
-
-    // getBits method for scalar (const version)
-    //m_state.indent(fp);
-    //fp->write("const BitVector<BPA>& getBits() const { return m_stgToChange.GetBits(); }\n");
-
-    // non-const T ref method for scalar
-    //m_state.indent(fp);
-    //fp->write("T& getRef() { return m_stgToChange; }\n");
-
-    // get pos offset
-    //m_state.indent(fp);
-    //fp->write("const u32 getPosOffset() const { return m_pos; }\n");
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
@@ -708,7 +685,6 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     m_state.indent(fp);
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     m_state.indent(fp);
-    //fp->write("enum { BPF = 32 /*AC::P3_STATE_BITS_LEN */};\n");
     fp->write("typedef BitField<BitVector<BPA>, VD::BITS, T::ATOM_FIRST_STATE_BIT, 0> BFTYP;\n");
     fp->write("\n");
 
@@ -719,14 +695,9 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     fp->write("<EC> Us;\n");
     fp->write("\n");
 
-    //reference to storage in atom
-    //m_state.indent(fp);
-    //fp->write("T& m_stgToChange;  //ref to storage here!\n");
-
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
-    //fp->write("(T& targ) : m_stgToChange(targ) { }\n");
     fp->write("(T& targ) : AutoRefBase<EC>(targ, 0u) { }\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
@@ -745,16 +716,6 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 
     //write 'entire atom' method
     genUlamTypeElementWriteDefinitionForC(fp);
-
-    // getBits method for scalar
-    //m_state.indent(fp);
-    //fp->write("BitVector<BPA>& getBits() { return m_stgToChange.GetBits(); }\n");
-
-    //fp->write("const BitVector<BPA>& getBits() const { return m_stgToChange.GetBits(); }\n");
-
-    // non-const T ref method for scalar
-    //m_state.indent(fp);
-    //fp->write("T& getRef() { return m_stgToChange; }\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -791,11 +752,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     // arrays are handled separately
     assert(isScalar());
 
-    // here, must be scalar; ref param to avoid excessive copying
-    //m_state.indent(fp);
-    //fp->write("void write(const ");
-    //fp->write(getTmpStorageTypeAsString().c_str()); //T
-    //fp->write("& v) { m_stgToChange = v; }\n");
+    // write must be scalar; ref param to avoid excessive copying
 
     m_state.indent(fp);
     fp->write("void writeTypeField(const u32 v)");

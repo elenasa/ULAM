@@ -705,7 +705,6 @@ namespace MFM {
     u32 len = getTotalBitSize(); //could be 0, e.g. 'unknown'
 
     //scalars are considered packable (arraysize == NONARRAYSIZE); Atoms and Ptrs are NOT.
-    //if(len <= MAXBITSPERINT)
     if(len <= MAXBITSPERLONG)
       rtn = PACKEDLOADABLE;
     else
@@ -826,8 +825,7 @@ namespace MFM {
 
   void UlamType::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    //used in an autoref chain only; not as immediates base class
-    //assert(0); //only quarks and elements so far
+    //used in an autoref chain only; not as primitive immediate base class
     //assert(isScalar());
 
     m_state.m_currentIndentLevel = 0;
@@ -853,12 +851,6 @@ namespace MFM {
 
     m_state.m_currentIndentLevel++;
 
-    //forward declaration of element (before struct!)
-    //m_state.indent(fp);
-    //fp->write("template<class EC, u32 POS> class ");
-    //fp->write(getUlamTypeMangledName().c_str());
-    //fp->write(";  //forward\n\n");
-
     m_state.indent(fp);
     fp->write("template<class EC, u32 POS>\n");
 
@@ -881,13 +873,6 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
-
-    //element typedef
-    //m_state.indent(fp);
-    //fp->write("typedef ");
-    //fp->write(getUlamTypeMangledName().c_str());
-    //fp->write("<EC> Us;\n");
-    //fp->write("\n");
 
     //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
