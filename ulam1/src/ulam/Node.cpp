@@ -1390,8 +1390,11 @@ namespace MFM {
 	else
 	  fp->write(m_state.getHiddenArgName());
 
-	fp->write(", ");
+	fp->write(", (");
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //pos variable 0-based
+	fp->write(" * ");
+	fp->write_decimal_unsigned(cosut->getBitSize());
+	fp->write("u)");
 
 	if(cosSize > 0)
 	  {
