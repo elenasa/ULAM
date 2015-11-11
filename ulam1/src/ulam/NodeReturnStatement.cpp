@@ -222,11 +222,6 @@ namespace MFM {
     // return for void type has a NodeStatementEmpty m_node
     if(m_node && getNodeType() != Void)
       {
-#ifdef TMPVARBRACES
-	m_state.indent(fp);
-	fp->write("{\n");
-	m_state.m_currentIndentLevel++;
-#endif
 	m_node->genCode(fp, uvpass);
 	UTI vuti = uvpass.getUlamValueTypeIdx();
 
@@ -238,14 +233,7 @@ namespace MFM {
 	vuti = uvpass.getPtrTargetType();
 	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str());
 
-	fp->write(")");
-	fp->write(";\n");
-
-#ifdef TMPVARBRACES
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-#endif
+	fp->write(");\n");
       }
     else
       {

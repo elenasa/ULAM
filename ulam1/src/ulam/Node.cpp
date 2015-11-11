@@ -453,8 +453,8 @@ namespace MFM {
 	    // now, quark's self is treated as the entire atom/element storage
 	    fp->write(m_state.getHiddenArgName());
 	    fp->write(".GetBits()");
+	    fp->write(");\n");
 	  }
-	fp->write(");\n");
       }
     else
       {
@@ -894,7 +894,8 @@ namespace MFM {
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
-    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
+    STORAGE rstor = m_state.getUlamTypeByIndex(ruti)->getUlamClass() == UC_QUARK ? TMPREGISTER : ruvpass.getPtrStorage();
+  fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex(), rstor).c_str());
     fp->write(");\n");
 
     // inheritance cast needs the lhs type restored after the generated write
@@ -1288,7 +1289,7 @@ namespace MFM {
 
     // write out immediate tmp BitValue as an intermediate tmpVar
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber();
-    STORAGE tmp2stor = vut->getUlamClass() == UC_QUARK ? TMPREGISTER : TMPBITVAL;
+    STORAGE tmp2stor = (vut->getUlamClass() == UC_ELEMENT || vuti == UAtom) ?  TMPBITVAL : TMPREGISTER;
 
     m_state.indent(fp);
     fp->write("const ");

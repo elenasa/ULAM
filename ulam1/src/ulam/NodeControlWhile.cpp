@@ -91,12 +91,6 @@ namespace MFM {
   {
     assert(m_nodeCondition && m_nodeBody);
 
-#ifdef TMPVARBRACES
-    m_state.indent(fp);
-    fp->write("{\n");  //for overall tmpvars
-    m_state.m_currentIndentLevel++;
-#endif
-
     //while true..
     m_state.indent(fp);
     fp->write(getName());
@@ -177,13 +171,6 @@ namespace MFM {
     fp->write("} // end ");
     fp->write(getName()); //end while
     fp->write("\n");
-
-#ifdef TMPVARBRACES
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n");  //close for tmpVar
-#endif
-
   } //genCode
 
 } //end MFM

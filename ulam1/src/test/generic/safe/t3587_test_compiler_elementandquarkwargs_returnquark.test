@@ -22,7 +22,7 @@ element E : Qfoo {
   Bool b;
   Qfoo m_foo;
   Int test(){
-    func(); //inherited one
+    func(); //inherited one; unused variable!
     s.print(data);
 
     Qfoo f;

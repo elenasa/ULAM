@@ -508,15 +508,6 @@ namespace MFM {
     std::ostringstream arglist;
 
     // presumably there's no = sign.., and no open brace for tmpvars
-#ifdef TMPVARBRACES
-    if(nuti == Void)
-      {
-	m_state.indent(fp);
-	fp->write("{\n");    //open for tmpvar arg's
-	m_state.m_currentIndentLevel++;
-      }
-#endif
-
     // first "hidden" arg is the context
     arglist << m_state.getHiddenContextArgName() << ", ";
 
@@ -645,14 +636,6 @@ namespace MFM {
     fp->write(arglist.str().c_str());
     fp->write(");\n");
 
-#ifdef TMPVARBRACES
-    if(nuti == Void)
-      {
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n"); //close for tmpVar
-      }
-#endif
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //codeGenIntoABitValue
 

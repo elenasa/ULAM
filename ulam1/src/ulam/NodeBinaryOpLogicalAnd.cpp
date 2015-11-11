@@ -104,12 +104,6 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
-#ifdef TMPVARBRACES
-    m_state.indent(fp);
-    fp->write("{\n");
-    m_state.m_currentIndentLevel++;
-#endif
-
     //initialize node result to false
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
@@ -165,11 +159,6 @@ namespace MFM {
 
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //P
 
-#ifdef TMPVARBRACES
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n"); //close for tmpVar
-#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

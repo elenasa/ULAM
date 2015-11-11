@@ -167,12 +167,6 @@ namespace MFM {
 
   void NodeControlIf::genCode(File * fp, UlamValue& uvpass)
   {
-#ifdef TMPVARBRACES
-    m_state.indent(fp);
-    fp->write("{\n");  //for overall tmpvars
-    m_state.m_currentIndentLevel++;
-#endif
-
     NodeControl::genCode(fp, uvpass);  //condition and body
 
     if(m_nodeElse)
@@ -189,12 +183,6 @@ namespace MFM {
 	m_state.indent(fp);
 	fp->write("} //end else\n");
       }
-
-#ifdef TMPVARBRACES
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n");  //overall tmpvar
-#endif
   } //genCode
 
 } //end MFM
