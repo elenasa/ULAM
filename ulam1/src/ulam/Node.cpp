@@ -1385,10 +1385,18 @@ namespace MFM {
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
 
-	if(cosSize > 1)
-	  fp->write(stgcos->getMangledName().c_str());
+	if(cos->isDataMember())
+	  {
+	    if(cosSize > 1)
+	      fp->write(stgcos->getMangledName().c_str());
+	    else
+	      fp->write(m_state.getHiddenArgName());
+	  }
 	else
-	  fp->write(m_state.getHiddenArgName());
+	  {
+	    fp->write(cos->getMangledName().c_str()); //local array
+	    fp->write(".getRef()");
+	  }
 
 	fp->write(", (");
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str()); //pos variable 0-based

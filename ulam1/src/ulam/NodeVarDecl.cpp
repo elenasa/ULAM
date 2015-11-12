@@ -134,22 +134,6 @@ namespace MFM {
 	      }
 	  }
 
-#if 0
-	if(!m_varSymbol->isDataMember() && !m_varSymbol->isAutoLocal() && m_state.getUlamTypeByIndex(it)->getUlamClass() == UC_QUARK)
-	  {
-	    // we no longer want bare quarks to exist, ie right-justified immediates.
-	    //only allow left-justified quarks for as-conditional (i.e. autolocal)
-	    std::ostringstream msg;
-	    msg << "Bare quark: ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << ", used with variable symbol name '" << getName();
-	    msg << "', is not supported; Try an element type that inherits or contains it";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    it = Nav;
-	  }
-	else
-#endif
-
 	  if(!m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
@@ -369,8 +353,49 @@ namespace MFM {
 	    //must be a local quark!
 	    u32 dq = 0;
 	    assert(m_state.getDefaultQuark(nuti, dq));
-	    UlamValue immUV = UlamValue::makeImmediate(nuti, dq, m_state);
-	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	    if(m_state.isScalar(nuti))
+	      {
+		UlamValue immUV = UlamValue::makeImmediate(nuti, dq, m_state);
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
+	    else
+	      {
+		u32 len = m_state.getTotalBitSize(nuti);
+		u32 bitsize = m_state.getBitSize(nuti);
+		u32 pos = 0;
+		u32 arraysize = m_state.getArraySize(nuti);
+		u32 mask = _GetNOnes32((u32) bitsize);
+		dq &= mask;
+		if(len <= MAXBITSPERINT)
+		  {
+		    u32 dqarrval = 0;
+		    //similar to build default quark value in NodeVarDeclDM
+		    for(u32 j = 1; j <= arraysize; j++)
+		      {
+			dqarrval |= (dq << (len - (pos + (j * bitsize))));
+		      }
+
+		    UlamValue immUV = UlamValue::makeImmediate(nuti, dqarrval, m_state);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else if(len <= MAXBITSPERLONG)
+		  {
+		    u64 dqarrval = 0;
+		    //similar to build default quark value in NodeVarDeclDM
+		    for(u32 j = 1; j <= arraysize; j++)
+		      {
+			dqarrval |= (dq << (len - (pos + (j * bitsize))));
+		      }
+
+		    UlamValue immUV = UlamValue::makeImmediateLong(nuti, dqarrval, m_state);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else
+		  {
+		    //unpacked array of quarks is unsupported at this time!!
+		    assert(0);
+		  }
+	      }
 	  }
       }
     else

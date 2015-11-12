@@ -407,7 +407,7 @@ namespace MFM {
 	    fp->write(mangledName.c_str());
 	    fp->write("() : m_stg() { write(");
 	    fp->write_decimal_unsignedlong(initqval);
-	    fp->write("); }\n");
+	    fp->write("u); }\n");
 	  }
 	else
 	  {
@@ -422,8 +422,8 @@ namespace MFM {
 	    fp->write(" writeArrayItem(");
 	    fp->write_decimal_unsigned(dqval);
 	    fp->write(", j, ");
-	    fp->write_decimal(bitsize); //unit size
-	    fp->write(");");
+	    fp->write_decimal_unsigned(bitsize); //unit size
+	    fp->write("u);");
 	    fp->write("}\n");
 	  }
       }
@@ -480,15 +480,15 @@ namespace MFM {
 
     if(!isScalar())
       {
-	//reads an element of array
+	//reads an element of array;
+	//2nd argument generated for compatibility with underlying method
 	m_state.indent(fp);
 	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
 	fp->write("const u32 index, const u32 unitsize) const { return BF::");
 	fp->write(readArrayItemMethodForCodeGen().c_str());
-	fp->write("(m_stg, index, unitsize");
-	fp->write("); }\n");
+	fp->write("(m_stg, index, unitsize); }\n");
       }
   } //genUlamTypeReadDefinitionForC
 
@@ -511,13 +511,13 @@ namespace MFM {
     if(!isScalar())
       {
 	// writes an element of array
+	//3rd argument generated for compatibility with underlying method
 	m_state.indent(fp);
 	fp->write("void writeArrayItem(const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" v, const u32 index, const u32 unitsize) { BF::");
 	fp->write(writeArrayItemMethodForCodeGen().c_str());
-	fp->write("(m_stg, v, index, unitsize");
-	fp->write("); }\n");
+	fp->write("(m_stg, v, index, unitsize); }\n");
       }
   } //genUlamTypeWriteDefinitionForC
 

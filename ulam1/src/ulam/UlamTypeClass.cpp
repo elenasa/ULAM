@@ -378,7 +378,8 @@ namespace MFM {
   const std::string UlamTypeClass::getArrayItemTmpStorageTypeAsString()
   {
     if(!isScalar())
-      return UlamType::getArrayItemTmpStorageTypeAsString();
+      //return UlamType::getArrayItemTmpStorageTypeAsString();
+      return UlamType::getTmpStorageTypeAsString();
 
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
   } //getArrayItemTmpStorageTypeAsString
@@ -388,7 +389,8 @@ namespace MFM {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName();
 
-    if(m_class == UC_QUARK && isScalar())
+    //if(m_class == UC_QUARK && isScalar())
+    if(m_class == UC_QUARK)
       ctype << "<EC, " << ATOMFIRSTSTATEBITPOS << ">"; //default for inherited, local quarks
 
     if(m_class == UC_ELEMENT)
@@ -470,18 +472,21 @@ namespace MFM {
       assert(0);
   } //genUlamTypeMangledDefinitionForC
 
-  //formerly //genUlamTypeQuarkMangledDefinitionForC
   void UlamTypeClass::genUlamTypeQuarkMangledDefinitionForC(File * fp)
   {
     assert(m_class == UC_QUARK);
 
-    if(!isScalar())
-      {
-	// immediate quark arrays are treated like immediate primitives, not quarks
-	  return UlamType::genUlamTypeMangledDefinitionForC(fp);
-      }
+    //if(!isScalar())
+    //  {
+	//// immediate quark arrays are treated like immediate primitives, not quarks
+	//	  return UlamType::genUlamTypeMangledDefinitionForC(fp);
+    // }
 
-    //is scalar here..
+    //class instance idx is always the scalar uti
+    UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
+
+    ///both/////////////is scalar here..
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
@@ -510,7 +515,8 @@ namespace MFM {
     //forward declaration of quark (before struct!)
     m_state.indent(fp);
     fp->write("template<class EC, u32 POS> class ");
-    fp->write(getUlamTypeMangledName().c_str());
+    //  fp->write(getUlamTypeMangledName().c_str());
+    fp->write(scalarmangledName.c_str());
     fp->write(";  //forward\n\n");
 
     m_state.indent(fp);
@@ -539,7 +545,8 @@ namespace MFM {
     //quark typedef
     m_state.indent(fp);
     fp->write("typedef ");
-    fp->write(getUlamTypeMangledName().c_str());
+    //fp->write(getUlamTypeMangledName().c_str());
+    fp->write(scalarmangledName.c_str());
     fp->write("<EC, ");
     fp->write("POS"); //positioned
     fp->write("> Us;\n");
@@ -598,10 +605,10 @@ namespace MFM {
   void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp)
   {
     // arrays are handled separately, not like a quark, more like a primitive
-    if(!isScalar())
-      return UlamType::genUlamTypeReadDefinitionForC(fp);
+    //if(!isScalar())
+    //  return UlamType::genUlamTypeReadDefinitionForC(fp);
 
-    //not an array
+    ////not an array
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
@@ -612,16 +619,29 @@ namespace MFM {
     fp->write("(AutoRefBase<EC>::getBits()); ");
     fp->write("return AutoRefBase<EC>::read(");
     fp->write_decimal_unsigned(getTotalBitSize());
-    fp->write("); }\n");
+    fp->write("u); }\n");
+
+    if(!isScalar())
+      {
+	//reads an element of array
+	//2nd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" readArrayItem(");
+	fp->write("const u32 index, const u32 itemlen) const { return ");
+	fp->write("AutoRefBase<EC>::readArrayItem");
+	fp->write("(index, itemlen); }\n");
+      }
   } //genUlamTypeQuarkReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp)
   {
     // arrays are handled separately, not like a quark, more like a primitive
-    if(!isScalar())
-      return UlamType::genUlamTypeWriteDefinitionForC(fp);
+    //if(!isScalar())
+    //  return UlamType::genUlamTypeWriteDefinitionForC(fp);
 
-    // here, must be scalar; added check for POS != m_pos case (?)
+    ////// here, must be scalar; added check for POS != m_pos case (?)
     m_state.indent(fp);
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
@@ -631,7 +651,19 @@ namespace MFM {
     fp->write("(AutoRefBase<EC>::getBits(), v); ");
     fp->write("else AutoRefBase<EC>::write(v, ");
     fp->write_decimal_unsigned(getTotalBitSize());
-    fp->write("); }\n");
+    fp->write("u); }\n");
+
+    if(!isScalar())
+      {
+	// writes an element of array
+	//3rd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write("void writeArrayItem(const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" v, const u32 index, const u32 itemlen) { ");
+	fp->write("AutoRefBase<EC>::writeArrayItem");
+	fp->write("(v, index, itemlen); }\n");
+      }
   } //genUlamTypeQuarkWriteDefinitionForC
 
 void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
@@ -777,11 +809,12 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     return UlamType::writeArrayItemMethodForCodeGen();
   }
 
-  //formerly genUlamTypeMangledAutoDefinitionForC
+  //actually builds the immediate definition, inheriting from auto
   void UlamTypeClass::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    if(!isScalar())
-      return;
+    //class instance idx is always the scalar uti
+    UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
 
     const std::string mangledName = getUlamTypeImmediateMangledName();
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
@@ -858,7 +891,8 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	//quark typedef
 	m_state.indent(fp);
 	fp->write("typedef ");
-	fp->write(getUlamTypeMangledName().c_str());
+	//fp->write(getUlamTypeMangledName().c_str());
+	fp->write(scalarmangledName.c_str());
 	fp->write("<EC, ");
 	fp->write("POS"); //positioned
 	fp->write("> Us;\n");
@@ -888,9 +922,50 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
 	if(hasDQ)
 	  {
-	    fp->write(automangledName.c_str());
-	    fp->write("<EC, POS>::");
-	    fp->write("write(DEFAULT_QUARK);");
+	    if(isScalar())
+	      {
+		fp->write(automangledName.c_str());
+		fp->write("<EC, POS>::");
+		fp->write("write(DEFAULT_QUARK);");
+	      }
+	    else
+	      {
+		//very packed array
+		if(len <= MAXBITSPERINT)
+		  {
+		    u32 bitsize = getBitSize();
+		    u32 dqarrval = 0;
+		    u32 pos = 0;
+		    u32 mask = _GetNOnes32((u32) bitsize);
+		    u32 arraysize = getArraySize();
+		    dqval &= mask;
+		    //similar to build default quark value in NodeVarDeclDM
+		    for(u32 j = 1; j <= arraysize; j++)
+		      {
+			dqarrval |= (dqval << (len - (pos + (j * bitsize))));
+		      }
+
+		    std::ostringstream qdhex;
+		    qdhex << "0x" << std::hex << dqarrval;
+
+		    fp->write(automangledName.c_str());
+		    fp->write("<EC, POS>::");
+		    fp->write("write( ");
+		    fp->write(qdhex.str().c_str());
+		    fp->write(");");
+		  }
+		else
+		  {
+		    fp->write("u32 n = ");
+		    fp->write_decimal(getArraySize());
+		    fp->write("u; while(n--) { ");
+		    fp->write(automangledName.c_str());
+		    fp->write("<EC, POS>::");
+		    fp->write("AutoRefBase<EC>::writeArrayItem(DEFAULT_QUARK, n, ");
+		    fp->write_decimal_unsigned(getBitSize());
+		    fp->write("u); }");
+		  }
+	      }
 	  }
 	fp->write(" }\n");
 
@@ -990,6 +1065,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     bool rtnb = false;
     if(m_class == UC_QUARK)
       {
+	//always the scalar.
 	if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))
 	  {
 	    std::ostringstream qdhex;
@@ -1000,7 +1076,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	    fp->write(qdhex.str().c_str());
 	    fp->write("; //=");
 	    fp->write_decimal_unsigned(dqref);
-	    fp->write("\n\n");
+	    fp->write("u\n\n");
 	    rtnb = true;
 	  }
       }
