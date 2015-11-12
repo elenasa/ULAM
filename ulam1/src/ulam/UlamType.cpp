@@ -852,7 +852,8 @@ namespace MFM {
     m_state.m_currentIndentLevel++;
 
     m_state.indent(fp);
-    fp->write("template<class EC, u32 POS>\n");
+    //fp->write("template<class EC, u32 POS>\n");
+    fp->write("template<class EC>\n");
 
     m_state.indent(fp);
     fp->write("struct ");

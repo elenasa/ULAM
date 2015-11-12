@@ -502,12 +502,16 @@ namespace MFM {
 	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
 	fp->write("<EC, ");
 	if(classtype == UC_ELEMENT)
-	  fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	  {
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	    fp->write("u");
+	  }
 	else
 	  {
 	    //inside a quark
 	    fp->write("POS + ");
-	    fp->write_decimal(m_varSymbol->getPosOffset());
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	    fp->write("u");
 	  }
       }
     else
@@ -527,7 +531,8 @@ namespace MFM {
 	else
 	  {
 	    assert(classtype == UC_ELEMENT);
-	    fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	    fp->write("u");
 	  }
       }
     fp->write("> ");
@@ -575,10 +580,11 @@ namespace MFM {
     fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
     if(vclasstype == UC_QUARK)
       {
-	fp->write("<EC, ");
-	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //must be constant expression
-	fp->write(" + T::ATOM_FIRST_STATE_BIT");
-	fp->write("> ");
+	//fp->write("<EC, ");
+	//fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //must be constant expression
+	//fp->write(" + T::ATOM_FIRST_STATE_BIT");
+	//fp->write("> ");
+	fp->write("<EC> ");
       }
     else //element
       fp->write("<EC> ");

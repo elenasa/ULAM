@@ -678,9 +678,10 @@ namespace MFM {
     //    if(stgclasstype == UC_QUARK)
     if(tobeclasstype == UC_QUARK)
       {
-	fp->write("<EC, ");
-	fp->write_decimal(ATOMFIRSTSTATEBITPOS);
-	fp->write("> ");
+	//fp->write("<EC, ");
+	//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	//fp->write("> ");
+	fp->write("<EC> ");
       }
     else //element
       fp->write("<EC> ");

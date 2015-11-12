@@ -950,32 +950,6 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), tmpVarNum, TMPAUTOREF).c_str());
     fp->write(".write(");
 
-#if 0
-    m_state.indent(fp);
-    UTI autouti = luvpass.getPtrTargetType();
-    UlamType * autout = m_state.getUlamTypeByIndex(autouti);
-    fp->write(autout->getUlamTypeMangledName().c_str());
-    if(autout->getUlamClass() == UC_ELEMENT)
-      fp->write("<EC>::");
-    else
-      {
-	fp->write("<EC,");
-	fp->write_decimal(ATOMFIRSTSTATEBITPOS);
-	fp->write(">::");
-      }
-
-    //rest of data member name follows...??? what if local???
-    genMemberNameOfMethod(fp);
-
-    // the READ method
-    fp->write(writeMethodForCodeGen(autouti, luvpass).c_str());
-    fp->write("(");
-
-    fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), tmpVarNum, TMPAUTOREF).c_str());
-    fp->write(".getBits()");
-    fp->write(", "); //rest of args
-#endif
-
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
@@ -1357,9 +1331,10 @@ namespace MFM {
 	m_state.indent(fp);
 	//fp->write("const "); can't be const and chainable
 	fp->write(cosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	fp->write("<EC, ");
-	fp->write_decimal(ATOMFIRSTSTATEBITPOS);
-	fp->write("> ");
+	//fp->write("<EC, ");
+	//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	//fp->write("> ");
+	fp->write("<EC> ");
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPAUTOREF).c_str());
@@ -1379,9 +1354,10 @@ namespace MFM {
 	m_state.indent(fp);
 	//fp->write("const "); can't be const and chainable
 	fp->write(cosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	fp->write("<EC, ");
-	fp->write_decimal(ATOMFIRSTSTATEBITPOS);
-	fp->write("> ");
+	//fp->write("<EC, ");
+	//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	//fp->write("> ");
+	fp->write("<EC> ");
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
 
@@ -1793,7 +1769,8 @@ namespace MFM {
 	      {
 		fp->write("<EC,");
 		//fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
-		fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+		//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
 	  }
@@ -1811,7 +1788,8 @@ namespace MFM {
 		//self is a quark
 		fp->write("<EC,");
 		//fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
-		fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+		//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
 	  }
@@ -1971,7 +1949,8 @@ namespace MFM {
 	  {
 	    fp->write("<EC,");
 	    //fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
-	    fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	    //fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	    fp->write("T::ATOM_FIRST_STATE_BIT");
 	    fp->write(">::");
 	  }
 	return;
@@ -2045,9 +2024,11 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		//fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
-		fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+		////fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
+		//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
+		//fp->write("<EC>::");
 	      }
 	  }
       }
@@ -2105,9 +2086,11 @@ namespace MFM {
 	else
 	  {
 	    fp->write("<EC, ");
-	    //fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
-	    fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	    ////fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
+	    //fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	    fp->write("T::ATOM_FIRST_STATE_BIT");
 	    fp->write(">::");
+	    //fp->write("<EC>::");
 	  }
 	return;
       }
