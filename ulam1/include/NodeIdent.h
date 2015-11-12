@@ -99,7 +99,7 @@ namespace MFM{
     bool checkTypedefOfTypedefSizes(TypeArgs& args, UTI tduti);
     bool checkConstantTypedefSizes(TypeArgs& args, UTI tduti);
     UlamValue makeUlamValuePtr();
-    UlamValue makeUlamValuePtrForCodeGen();
+    void makeUlamValuePtrForCodeGen(UlamValue& uvpass);
   };
 
 }

@@ -529,8 +529,36 @@ namespace MFM {
     UlamValue luvpass;
     m_nodeLeft->genCodeToStoreInto(fp, luvpass);
 
-    uvpass = offset;
+    //special case index for non-custom array: numeric unary conversion to cu32
+    UTI luti = luvpass.getPtrTargetType();
+    if(!m_state.isClassACustomArray(luti))
+      {
+	UTI offuti = offset.getUlamValueTypeIdx();
+	if(offuti == Ptr)
+	  offuti = offset.getPtrTargetType();
+	UlamType * offut = m_state.getUlamTypeByIndex(offuti);
+	if(offut->getUlamTypeEnum() == Unary)
+	  {
+	    s32 tmpVarIdx = m_state.getNextTmpVarNumber();
+	    m_state.indent(fp);
+	    fp->write("const u32 ");
+	    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarIdx).c_str());;
+	    fp->write(" = ");
+	    if(offut->getTotalWordSize() <= MAXBITSPERINT)
+	      fp->write("_Unary32ToCu32(");
+	    else //must be long
+	      fp->write("_Unary64ToCu64(");
 
+	    fp->write(m_state.getTmpVarAsString(offuti, offset.getPtrSlotIndex(), TMPREGISTER).c_str());
+	    fp->write(", ");
+	    fp->write_decimal(offut->getBitSize());
+	    fp->write(");\n");
+	    // new uvpass here
+	    offset = UlamValue::makePtr(tmpVarIdx, TMPREGISTER, Unsigned, m_state.determinePackable(offuti), m_state, 0); //POS 0 rightjustified.
+	  } //end unary special case
+      } //for non custom arrays only!
+
+    uvpass = offset;
     Node::genCodeReadIntoATmpVar(fp, uvpass); //splits on array item
   } //genCode
 

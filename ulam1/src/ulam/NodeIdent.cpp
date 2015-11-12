@@ -181,6 +181,44 @@ namespace MFM {
       {
 	it = m_varSymbol->getUlamTypeIdx();
 	setStoreIntoAble(true); //store into an array entotal?
+
+	//from NodeTypeDescriptor..e.g. for function call args in NodeList.
+	if(!m_state.isComplete(it))
+	  {
+	    // if Nav, use token
+	    UTI mappedUTI = it;
+	    UTI cuti = m_state.getCompileThisIdx();
+
+	    // the symbol associated with this type, was mapped during instantiation
+	    // since we're call AFTER that (not during), we can look up our
+	    // new UTI and pass that on up the line of NodeType Selects, if any.
+	    if(m_state.mappedIncompleteUTI(cuti, it, mappedUTI))
+	      {
+		std::ostringstream msg;
+		msg << "Substituting Mapped UTI" << mappedUTI;
+		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
+		msg << " for incomplete list type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << "' UTI" << it << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		it = mappedUTI;
+		m_varSymbol->resetUlamType(it); //consistent!
+		m_state.mapTypesInCurrentClass(it, mappedUTI);
+	      }
+
+	    if(!m_state.isComplete(it)) //reloads to recheck for debug message
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete identifier for type: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << " used with list symbol name '" << getName();
+		msg << "' UTI" << it << " while labeling class: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+	      }
+	  }
       }
 
     setNodeType(it);
@@ -217,10 +255,11 @@ namespace MFM {
     if(m_state.isScalar(nuti))
       {
 	uv = m_state.getPtrTarget(uvp);
+	UTI ttype = uv.getUlamValueTypeIdx();
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
-	if(uv.getUlamValueTypeIdx() != nuti)
+	if(ttype != nuti)
 	  {
 	    if(m_state.isClassACustomArray(nuti))
 	      {
@@ -252,13 +291,18 @@ namespace MFM {
 	      {
 		if(nuti == UAtom || m_state.getUlamTypeByIndex(nuti)->getUlamClass() == UC_ELEMENT)
 		  {
-		    uv = m_state.getPtrTarget(uvp); //UlamValue::makeAtom(caType);
+		    uv = m_state.getPtrTarget(uvp);
 		  }
 		else
 		  {
 		    UTI vuti = uv.getUlamValueTypeIdx();
 		    // does this handle a ptr to a ptr (e.g. "self")? (see makeUlamValuePtr)
-		    assert( vuti != Ptr);
+		    //assert( vuti != Ptr);
+		    if(vuti == Ptr)
+		      {
+			uvp = uv;
+			uv = m_state.getPtrTarget(uvp);
+		      }
 
 		    s32 len = uvp.getPtrLen();
 		    assert(len != UNKNOWNSIZE);
@@ -321,9 +365,29 @@ namespace MFM {
   {
     UlamValue ptr;
 
-    //instead of a ptr to "self" (already a ptr), return "self"
     if(m_varSymbol->isSelf())
-      return m_state.m_currentSelfPtr;
+      {
+	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
+	//'atom' gets entire atom/element containing this quark; including its type!
+	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
+	UlamValue selfuvp = m_state.m_currentSelfPtr;
+	UTI ttype = selfuvp.getPtrTargetType();
+	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
+	  {
+	    u32 vid = m_varSymbol->getId();
+	    if(vid == m_state.m_pool.getIndexForDataString("atom"))
+	      {
+		selfuvp = m_state.getAtomPtrFromSelfPtr();
+	      }
+	    //else
+	  }
+	return selfuvp;
+      } //done
+
+    if(m_varSymbol->isAutoLocal())
+      //can't use global m_currentAutoObjPtr, since there might be nested h/as conditional blocks.
+      // NodeVarDecl for this autolocal sets AutoPtrForEval during its eval.
+      return ((SymbolVariableStack *) m_varSymbol)->getAutoPtrForEval(); //haha! we're done.
 
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
     if(classtype == UC_ELEMENT)
@@ -349,40 +413,50 @@ namespace MFM {
   } //makeUlamValuePtr
 
   //new
-  UlamValue NodeIdent::makeUlamValuePtrForCodeGen()
+  void NodeIdent::makeUlamValuePtrForCodeGen(UlamValue& uvpass)
   {
     assert(m_varSymbol);
     s32 tmpnum = m_state.getNextTmpVarNumber();
 
-    UlamValue ptr;
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
-    if(classtype == UC_ELEMENT)
+
+    if(classtype == UC_ELEMENT || nuti == UAtom)
       {
 	// ptr to explicit atom or element, (e.g. 'f' in f.a=1;)
-	ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
+	uvpass = UlamValue::makePtr(tmpnum, TMPBITVAL, nuti, UNPACKED, m_state, 0, m_varSymbol->getId());
       }
     else
       {
 	if(m_varSymbol->isDataMember())
 	  {
 	    u32 pos = 0;
-	    if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+	    if(uvpass.getUlamValueTypeIdx() == Ptr && uvpass.getPtrStorage() == TMPAUTOREF)
 	      {
-		SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
-		pos = sym->getPosOffset();
+		//pos = uvpass.getPtrPos(); //runtime, not known now.
+		//uvpass = UlamValue::makePtr(tmpnum, TMPAUTOREF, nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
 	      }
-	    // 'pos' modified by this data member symbol's packed bit position
-	    ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, /*m_state.m_currentObjPtr.getPtrPos() +*/ pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	    else
+	      {
+		if(!m_state.m_currentObjSymbolsForCodeGen.empty())
+		  {
+		    SymbolVariable * sym = (SymbolVariable *) m_state.m_currentObjSymbolsForCodeGen.back();
+		    //here, we haven't taken into account any array indexes, So autoref instead
+		    // e.g. m_bar[0].cb, and this NI is for the rhs of member select, 'cb'
+		    //if(m_state.isScalar(sym->getUlamTypeIdx())) //???
+		    pos = sym->getPosOffset();
+		  }
+		// 'pos' modified by this data member symbol's packed bit position
+		uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, pos + m_varSymbol->getPosOffset(), m_varSymbol->getId());
+	      }
 	  }
 	else
-	    {
-	      //local variable on the stack; could be array ptr!
-	      ptr = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
-	    }
+	  {
+	    //local variable on the stack; could be array ptr!
+	    uvpass = UlamValue::makePtr(tmpnum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0, m_varSymbol->getId());
+	  }
       }
-    return ptr;
   } //makeUlamValuePtrForCodeGen
 
   bool NodeIdent::installSymbolTypedef(TypeArgs& args, Symbol *& asymptr)
@@ -887,7 +961,7 @@ namespace MFM {
   void NodeIdent::genCode(File * fp, UlamValue & uvpass)
   {
     //return the ptr for an array; square bracket will resolve down to the immediate data
-    uvpass = makeUlamValuePtrForCodeGen();
+    makeUlamValuePtrForCodeGen(uvpass);
 
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol); //*********UPDATED GLOBAL;
 
@@ -899,15 +973,21 @@ namespace MFM {
   {
     //e.g. return the ptr for an array;
     //square bracket will resolve down to the immediate data
-    uvpass = makeUlamValuePtrForCodeGen();
+   makeUlamValuePtrForCodeGen(uvpass);
 
     //******UPDATED GLOBAL; no restore!!!**************************
     m_state.m_currentObjSymbolsForCodeGen.push_back(m_varSymbol);
+
+    if(uvpass.getPtrStorage() == TMPAUTOREF)
+      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
   } //genCodeToStoreInto
 
   // overrides NodeTerminal that reads into a tmp var BitVector
   void NodeIdent::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
   {
+    if(uvpass.getPtrStorage() == TMPAUTOREF)
+      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+
     Node::genCodeReadIntoATmpVar(fp, uvpass);
   }
 

@@ -162,8 +162,8 @@ namespace MFM {
     u32 wordsize = m_state.getTotalWordSize(luti);
     if(wordsize == MAXBITSPERINT)
       {
-	u32 ldata = luv.getImmediateData(len);
-	u32 rdata = ruv.getImmediateData(len);
+	u32 ldata = luv.getImmediateData(len, m_state);
+	u32 rdata = ruv.getImmediateData(len, m_state);
 	rtnUV = makeImmediateBinaryOp(luti, ldata, rdata, len);
       }
     else if(wordsize == MAXBITSPERLONG)
@@ -248,12 +248,6 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
 
-#ifdef TMPVARBRACES
-    m_state.indent(fp);
-    fp->write("{\n");
-    m_state.m_currentIndentLevel++;
-#endif
-
     // generate rhs first; may update current object globals (e.g. function call)
     UlamValue ruvpass;
     m_nodeRight->genCode(fp, ruvpass);
@@ -299,11 +293,6 @@ namespace MFM {
 
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0);  //P
 
-#ifdef TMPVARBRACES
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n"); //close for tmpVar
-#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

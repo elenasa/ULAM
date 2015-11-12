@@ -1,44 +1,72 @@
 ## -*- mode:ulam -*-
 #=t3410_test_compiler_twovariedquarkswithatomcast
 #!
-##      /* gen code output:
-##	 Unsigned Arg: 1
-##	 Unsigned Arg: 2
-##	 Unsigned Arg: 2
-##	 Unsigned Arg: 3
-##	 Unsigned Arg: 2
-##	 Unsigned Arg: 3
-##      */
-##      //eval self doesn't reflect correctly (see gen output): is an atom for quark's function call hidden arg
+##      gen code output:
+##      Unsigned Arg: 1
+##      Unsigned Arg: 2
+##      Unsigned Arg: 0
+##      Unsigned Arg: 0
+##      Unsigned Arg: 2
+##      Unsigned Arg: 3
+##      Unsigned Arg: 2
+##      Unsigned Arg: 3
+##      Unsigned Arg: 4
+##      Unsigned Arg: 1
+##      Unsigned Arg: 1
+##      Unsigned Arg: 2
+##      Unsigned Arg: 2
+##      Unsigned Arg: 3
+##      Unsigned Arg: 2
+##      Unsigned Arg: 3
 ##
 Exit status: 0
-Ue_Foo { IntXY(1u,4u) q( constant Unsigned(32) xbits = 1u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(1) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(1) x(0u);  Unsigned(4) y(0u); );  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(3) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(3) x(2u);  Unsigned(4) y(3u); );  IntXY(2u,3u) p( constant Unsigned(32) xbits = 2u;  constant Unsigned(32) ybits = 3u;  typedef Unsigned(2) XCoord;  typedef Unsigned(3) YCoord;  Unsigned(2) x(0u);  Unsigned(3) y(0u); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 cast 2 cast )make . = s ( m x . cast )print . s ( m y . cast )print . m n ( 2 cast 3 cast )fromXY . = s ( n x . cast )print . s ( n y . cast )print . s ( m x . cast )print . s ( m y . cast )print . 0 cast return } }
+Ue_Foo { IntXY(1u,4u) q( constant Unsigned(32) xbits = 1u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(1) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(1) x(0u);  Unsigned(4) y(0u); );  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(3) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(3) x(2u);  Unsigned(4) y(3u); );  IntXY(2u,3u) p( constant Unsigned(32) xbits = 2u;  constant Unsigned(32) ybits = 3u;  typedef Unsigned(2) XCoord;  typedef Unsigned(3) YCoord;  Unsigned(2) x(0u);  Unsigned(3) y(0u); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 cast 2 cast )make . = s ( m x . cast )print . s ( m y . cast )print . s ( n x . cast )print . s ( n y . cast )print . Foo f;  f n ( 2 cast 3 cast )fromXY . cast = s ( f n x . . cast )print . s ( f n y . . cast )print . s ( n x . cast )print . s ( n y . cast )print . f n . m ( 4 cast 1 cast )make . = s ( f n x . . cast )print . s ( f n y . . cast )print . s ( m x . cast )print . s ( m y . cast )print . Foo g;  g n ( 1 cast 1 cast )makeAs . cast = s ( g n x . . cast )print . s ( g n y . . cast )print . s ( n x . cast )print . s ( n y . cast )print . 0 cast return } }
 Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Unsigned(UNKNOWN) XCoord;  typedef Unsigned(UNKNOWN) YCoord;  Unsigned(UNKNOWN) x(unknown);  Unsigned(UNKNOWN) y(unknown);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3408: here, n is surrounded by two other IntXY data members q and p.
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use IntXY;
 use System;
- element Foo {
-IntXY(1,4) q;
-IntXY(3u,4u) n;
-IntXY(2,3) p;
- Int test() {
-System s;
- IntXY(3u,4u) m;
- m = n.make(1,2);
- s.print(m.x);
- s.print(m.y);
- m = n.fromXY(2,3);
- s.print(n.x);
- s.print(n.y);
- s.print(m.x);
- s.print(m.y);
- return 0;
+element Foo {
+  IntXY(1,4) q;
+  IntXY(3u,4u) n;
+  IntXY(2,3) p;
+  Int test() {
+    System s;
+
+    //make into local quark
+    IntXY(3u,4u) m = n.make(1,2);
+    s.print(m.x);
+    s.print(m.y);
+    s.print(n.x);
+    s.print(n.y);
+
+    // local element from data member func
+    Foo f = (Foo) n.fromXY(2,3);
+    s.print(f.n.x);
+    s.print(f.n.y);
+    s.print(n.x);
+    s.print(n.y);
+
+    //make local element dm from local var quark
+    f.n = m.make(4,1);
+    s.print(f.n.x);
+    s.print(f.n.y);
+    s.print(m.x);
+    s.print(m.y);
+
+    //local element makeas using data member func
+    Foo g = (Foo) n.makeAs(1,1);
+    s.print(g.n.x);
+    s.print(g.n.y);
+    s.print(n.x);
+    s.print(n.y);
+
+    return 0;
+  }
 }
- }
 
 ##
 ##      //changed XCoord and YCoord to Unsigned types, because of the error below. Better since class args are Unsigned; used Int to print gen output with various bitsize prints defined. Added maxof test to do --x;
@@ -51,21 +79,21 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
   typedef Unsigned(ybits) YCoord;
   XCoord x;
   YCoord y;
-  Self fromXY(Int x, Int y) {
+  Atom fromXY(Int x, Int y) {
     init(x,y);
-    return (Self) self;
+    return atom; //cannot return self as Atom type inside a quark
   }
   Self make(Int x, Int y) {
     Self ret;
     ret.init(x,y);
     return ret;
   }
-  Self makeAs(Int x, Int y) {
-    if(self as Self){
-      self.init(x,y);
-      return self;
+  Atom makeAs(Int x, Int y) {
+    Atom a = atom; //was self
+    if(a has Self){ //was 'as'
+      a.init(x,y);
     }
-    return (Self) self;
+    return a;
   }
   Void init(Int ax, Int ay) {
     x = (XCoord) ax;

@@ -47,4 +47,15 @@ namespace MFM {
     //not sure what this should do for local variables, if anything,
   }
 
+  UlamValue SymbolVariableStack::getAutoPtrForEval()
+  {
+    return m_autoPtrForEval;
+  }
+
+  void SymbolVariableStack::setAutoPtrForEval(UlamValue ptr)
+  {
+    assert(isAutoLocal());
+    m_autoPtrForEval = ptr;
+  }
+
 } //end MFM

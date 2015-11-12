@@ -44,9 +44,9 @@ namespace MFM {
   }
 
 
-  void CallStack::returnFrame()
+  void CallStack::returnFrame(CompilerState& state)
   {
-    s32 prevZero = m_frames[m_currentFrame].getImmediateData();
+    s32 prevZero = m_frames[m_currentFrame].getImmediateData(MAXBITSPERINT, state);
     assert(prevZero < (s32) m_frames.size());
 
     //let caller pop its args!

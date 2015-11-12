@@ -192,19 +192,7 @@ namespace MFM {
     m_state.outputTextAsComment(fp, nodeloc);
     m_state.m_locOfNextLineText = nodeloc; //during gen code here
 
-#ifdef TMPVARBRACES
-    m_state.indent(fp);
-    fp->write("{\n"); //open for tmpvar arg's
-    m_state.m_currentIndentLevel++;
-#endif
-
     m_node->genCode(fp, uvpass);
-
-#ifdef TMPVARBRACES
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n"); //close for tmpVar
-#endif
 
     if(m_nodeNext)
       m_nodeNext->genCode(fp, uvpass);

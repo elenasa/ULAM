@@ -49,34 +49,46 @@ namespace MFM {
       {
 	if(!(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
 	  {
-	    if(m_state.isClassASuperclassOf(valtypidx, typidx))
-	      val.setAtomElementTypeIdx(typidx);
-	    else
-	      brtn = false;
+	    //no longer elements inherit from elements, only quarks.
+	    brtn = false;
 	  }
+	else if(valtypidx == UAtom)
+	  val.setAtomElementTypeIdx(typidx); //for testing purposes, assume ok
 	//else true
       }
     else if(m_class == UC_QUARK)
       {
-	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-	if(vclasstype == UC_ELEMENT)
+	if(valtypidx == UAtom)
+	  brtn = false; //cast atom to a quark???
+	//else if(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
+	else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
 	  {
-	    SymbolClass * csym = NULL;
-	    assert(m_state.alreadyDefinedSymbolClass(valtypidx, csym));
-	    NodeBlockClass * cblock = csym->getClassBlockNode();
-	    assert(cblock);
-	    s32 pos = cblock->findUlamTypeInTable(typidx);
-	    if(pos >= 0)
+	    //if same type nothing to do; if atom, shows as element in eval-land.
+	    //val.setAtomElementTypeIdx(typidx); //???
+	  }
+	else if(m_state.isClassASuperclassOf(valtypidx, typidx)) //2 quarks, or element (val) inherits from this quark
+	  {
+	    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+	    if(vclasstype == UC_ELEMENT)
 	      {
+		//checks if quark is a data member or ancestor
+		SymbolClass * csym = NULL;
+		assert(m_state.alreadyDefinedSymbolClass(valtypidx, csym));
+		NodeBlockClass * cblock = csym->getClassBlockNode();
+		assert(cblock);
+		s32 pos = cblock->findUlamTypeInTable(typidx);
+		assert(pos >= 0); //ancestors start at first state bit pos
+
 		s32 len = getTotalBitSize();
 		assert(len != UNKNOWNSIZE);
 		if(len <= MAXBITSPERINT)
 		  {
 		    u32 qdata = val.getDataFromAtom(pos + ATOMFIRSTSTATEBITPOS, len);
-		    val = UlamValue::makeImmediate(typidx, qdata, len);
+		    val = UlamValue::makeImmediateQuark(typidx, qdata, len);
 		  }
 		else if(len <= MAXBITSPERLONG)
 		  {
+		    assert(0); //quarksare max 32 bits
 		    u64 qdata = val.getDataLongFromAtom(pos + ATOMFIRSTSTATEBITPOS, len);
 		    val = UlamValue::makeImmediateLong(typidx, qdata, len);
 		  }
@@ -84,21 +96,16 @@ namespace MFM {
 		  assert(0);
 	      }
 	    else
-	      assert(0); //can't cast element to quark if that quark is not its data member
-	  }
-	else if(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
-	  {
-	    //if same type nothing to do; if atom, shows as element in eval-land.
-	  }
-	else if(m_state.isClassASuperclassOf(valtypidx, typidx)) //2 quarks
-	  {
-	    // assume both right-justified/immediates???
-	    // Coo c = (Coo) f.su; where su is a Soo : Coo
-	    s32 vlen = vut->getTotalBitSize();
-	    s32 len = getTotalBitSize();
-	    u32 vdata = val.getImmediateData(vlen); //or is this from element?
-	    u32 qdata = vdata >> (vlen - len);
-	    val = UlamValue::makeImmediate(typidx, qdata, len);
+	      {
+		// both left-justified immediate quarks
+		// Coo c = (Coo) f.su; where su is a Soo : Coo
+		s32 vlen = vut->getTotalBitSize();
+		s32 len = getTotalBitSize();
+		u32 vdata = val.getImmediateQuarkData(vlen); //not from element
+		assert((vlen - len) >= 0); //sanity check
+		u32 qdata = vdata >> (vlen - len); //stays left-justified
+		val = UlamValue::makeImmediateQuark(typidx, qdata, len);
+	      }
 	  }
 	else
 	  brtn = false;
@@ -349,10 +356,7 @@ namespace MFM {
     assert(needsImmediateType());
     std::ostringstream  automn;
     automn << getUlamTypeImmediateMangledName().c_str();
-
-    if(m_class == UC_QUARK)
-      automn << "4auto" ;
-
+    automn << "4auto" ;
     return automn.str();
   } //getUlamTypeImmediateAutoMangledName
 
@@ -374,7 +378,7 @@ namespace MFM {
   const std::string UlamTypeClass::getArrayItemTmpStorageTypeAsString()
   {
     if(!isScalar())
-      return UlamType::getArrayItemTmpStorageTypeAsString();
+      return UlamType::getTmpStorageTypeAsString();
 
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
   } //getArrayItemTmpStorageTypeAsString
@@ -384,11 +388,12 @@ namespace MFM {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName();
 
-    if(m_class == UC_QUARK && isScalar())
-      ctype << "<EC>"; // not ,POS> because immediates know their position
-
-    if(m_class == UC_ELEMENT)
+    if(m_class == UC_QUARK)
+      ctype << "<EC>"; //default local quarks
+    else if(m_class == UC_ELEMENT)
       ctype << "<EC>";
+    else
+      assert(0);
 
     return ctype.str();
   } //getImmediateStorageTypeAsString
@@ -470,20 +475,16 @@ namespace MFM {
   {
     assert(m_class == UC_QUARK);
 
-    if(!isScalar())
-      {
-	// immediate quark arrays are treated like immediate primitives, not quarks
-	  return UlamType::genUlamTypeMangledDefinitionForC(fp);
-      }
+    //class instance idx is always the scalar uti
+    UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
 
-    //is scalar here..
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
-    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
+    ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
-
-    s32 len = getTotalBitSize();
 
     m_state.indent(fp);
     fp->write("#ifndef ");
@@ -504,7 +505,7 @@ namespace MFM {
     //forward declaration of quark (before struct!)
     m_state.indent(fp);
     fp->write("template<class EC, u32 POS> class ");
-    fp->write(getUlamTypeMangledName().c_str());
+    fp->write(scalarmangledName.c_str());
     fp->write(";  //forward\n\n");
 
     m_state.indent(fp);
@@ -512,7 +513,8 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("struct ");
-    fp->write(mangledName.c_str());
+    fp->write(automangledName.c_str());
+    fp->write(" : public AutoRefBase<EC>");
     fp->write("\n");
     m_state.indent(fp);
     fp->write("{\n");
@@ -528,64 +530,22 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    //quark typedef (right-justified)
+    // see UlamElement.h for AutoRefBase
+    //constructor for conditional-as (auto)
     m_state.indent(fp);
-    fp->write("typedef ");
-    fp->write(getUlamTypeMangledName().c_str());
-    fp->write("<EC, ");
-    fp->write_decimal(BITSPERATOM - len);
-    fp->write("> Us;\n");
+    fp->write(automangledName.c_str());
+    fp->write("(T& targ, u32 idx) : AutoRefBase<EC>(targ, idx) { }\n");
 
+    //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
-    fp->write("typedef AtomicParameterType");
-    fp->write("<EC"); //BITSPERATOM
-    fp->write(", ");
-    fp->write(getUlamTypeVDAsStringForC().c_str());
-    fp->write(", ");
-    fp->write_decimal(len);   //include arraysize
-    fp->write(", ");
-    fp->write_decimal(BITSPERATOM - len); //right-justified
-    fp->write("> ");
-    fp->write(" Up_Us;\n");
-
-    u32 dqval = 0;
-    bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
-
-    //storage here in atom
-    m_state.indent(fp);
-    fp->write("T m_stg;  //storage here!\n");
-
-    //default constructor (used by local vars)
-    //(unlike element) call build default in case of initialized data members
-    m_state.indent(fp);
-    fp->write(mangledName.c_str());
-    fp->write("() : m_stg( ) { ");
-
-    if(hasDQ)
-      fp->write("write(DEFAULT_QUARK); }\n");
-    else
-      fp->write(" }\n");
-
-    //constructor here (used by const tmpVars)
-    m_state.indent(fp);
-    fp->write(mangledName.c_str());
-    fp->write("(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" d) { write(d); }\n");
+    fp->write(automangledName.c_str());
+    fp->write("(AutoRefBase<EC>& arg, u32 idx) : AutoRefBase<EC>(arg, idx) { }\n");
 
     //read 'entire quark' method
     genUlamTypeQuarkReadDefinitionForC(fp);
 
     //write 'entire quark' method
     genUlamTypeQuarkWriteDefinitionForC(fp);
-
-    // getBits method for scalar
-    m_state.indent(fp);
-    fp->write("BitVector<BPA>& getBits() { return m_stg.GetBits(); }\n");
-
-    // non-const T ref method for scalar
-    m_state.indent(fp);
-    fp->write("T& getRef() { return m_stg; }\n");
 
     // aref/aset calls generated inline for immediates.
     if(isCustomArray())
@@ -610,43 +570,60 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp)
   {
-    // arrays are handled separately, not like a quark, more like a primitive
-    if(!isScalar())
-      return UlamType::genUlamTypeReadDefinitionForC(fp);
-
-    //not an array
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" read() const { return Up_Us::");
-    fp->write(readMethodForCodeGen().c_str());
-    fp->write("(m_stg.GetBits() ); }\n");
+    fp->write(" read() const { ");
+    fp->write("return AutoRefBase<EC>::read(");
+    fp->write_decimal_unsigned(getTotalBitSize());
+    fp->write("u); }\n");
+
+    if(!isScalar())
+      {
+	//reads an element of array
+	//2nd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write("const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" readArrayItem(");
+	fp->write("const u32 index, const u32 itemlen) const { return ");
+	fp->write("AutoRefBase<EC>::readArrayItem");
+	fp->write("(index, itemlen); }\n");
+      }
   } //genUlamTypeQuarkReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeQuarkWriteDefinitionForC(File * fp)
   {
-    // arrays are handled separately, not like a quark, more like a primitive
-    if(!isScalar())
-      return UlamType::genUlamTypeWriteDefinitionForC(fp);
-
-    // here, must be scalar
     m_state.indent(fp);
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" v) { Up_Us::");
-    fp->write(writeMethodForCodeGen().c_str());
-    fp->write("(m_stg.GetBits(), v); }\n");
+    fp->write(" v) { ");
+    fp->write("AutoRefBase<EC>::write(v, ");
+    fp->write_decimal_unsigned(getTotalBitSize());
+    fp->write("u); }\n");
+
+    if(!isScalar())
+      {
+	// writes an element of array
+	//3rd argument generated for compatibility with underlying method
+	m_state.indent(fp);
+	fp->write("void writeArrayItem(const ");
+	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" v, const u32 index, const u32 itemlen) { ");
+	fp->write("AutoRefBase<EC>::writeArrayItem");
+	fp->write("(v, index, itemlen); }\n");
+      }
   } //genUlamTypeQuarkWriteDefinitionForC
 
-  //whole element (based on atom)
-  void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
+void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
   {
     assert(isScalar());
 
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
+    const std::string automangledName = getUlamTypeImmediateAutoMangledName();
     std::ostringstream  ud;
-    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
+    ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
     m_state.indent(fp);
@@ -676,8 +653,10 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write("struct ");
-    fp->write(mangledName.c_str());
+    fp->write(automangledName.c_str());
+    fp->write(" : public AutoRefBase<EC>");
     fp->write("\n");
+
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -691,58 +670,30 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     m_state.indent(fp);
-    //fp->write("enum { BPF = 32 /*AC::P3_STATE_BITS_LEN */};\n");
     fp->write("typedef BitField<BitVector<BPA>, VD::BITS, T::ATOM_FIRST_STATE_BIT, 0> BFTYP;\n");
+    fp->write("\n");
 
     //element typedef
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(getUlamTypeMangledName().c_str());
     fp->write("<EC> Us;\n");
+    fp->write("\n");
 
-    //storage here in atom
+    //constructor for conditional-as (auto)
     m_state.indent(fp);
-    fp->write("T m_stg;  //possible storage here\n");
+    fp->write(automangledName.c_str());
+    fp->write("(T& targ) : AutoRefBase<EC>(targ, 0u) { }\n");
 
-    // ref to storage in atom
+    //constructor for chain of autorefs (e.g. memberselect with array item)
     m_state.indent(fp);
-    fp->write("T& m_stgRef;  //storage ref\n");
-
-    //default constructor (used by local vars)
-    m_state.indent(fp);
-    fp->write(mangledName.c_str());
-    fp->write("() : m_stg(), m_stgRef(m_stg) { }\n");
-
-    //constructor here (used by const tmpVars); ref param to avoid excessive copying
-    m_state.indent(fp);
-    fp->write(mangledName.c_str());
-    fp->write("(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write("& d) : m_stg(d), m_stgRef(m_stg) {}\n");
-
-    if(m_class == UC_ELEMENT)
-      {
-	//constructor here (used by As for elements);
-	// ref points directly into an atom; not so for quark
-	// since pos is required for template (uses auto).
-	m_state.indent(fp);
-	fp->write(mangledName.c_str());
-	fp->write("(");   //not const
-	fp->write(getTmpStorageTypeAsString().c_str()); //T&
-	fp->write("& d, bool badass) : m_stg(), m_stgRef(d) {}\n");
-      }
-
-    //copy constructor here (used by func call return values)
-    m_state.indent(fp);
-    fp->write(mangledName.c_str());
-    fp->write("(const ");
-    fp->write(getImmediateStorageTypeAsString().c_str());
-    fp->write("& d) : m_stg(d.m_stg), m_stgRef(m_stg) {}\n");
+    fp->write(automangledName.c_str());
+    fp->write("(AutoRefBase<EC>& arg) : AutoRefBase<EC>(arg, 0) { }\n");
 
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");
-    fp->write(mangledName.c_str());
+    fp->write(automangledName.c_str());
     fp->write("() {}\n");
 
     //read 'entire atom' method
@@ -750,14 +701,6 @@ namespace MFM {
 
     //write 'entire atom' method
     genUlamTypeElementWriteDefinitionForC(fp);
-
-    // getBits method for scalar
-    m_state.indent(fp);
-    fp->write("BitVector<BPA>& getBits() { return m_stgRef.GetBits(); }\n");
-
-    // non-const T ref method for scalar
-    m_state.indent(fp);
-    fp->write("T& getRef() { return m_stgRef; }\n");
 
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
@@ -782,11 +725,11 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write(" read() const { return m_stgRef; }\n");
+    fp->write(" read() const { return AutoRefBase<EC>::read(); /* entire element */ }\n");
 
     m_state.indent(fp);
     fp->write("const u32 readTypeField()");
-    fp->write("{ return BFTYP::Read(m_stgRef); }\n");
+    fp->write("{ return BFTYP::Read(AutoRefBase<EC>::getRef()); }\n");
   } //genUlamTypeElementReadDefinitionForC
 
   void UlamTypeClass::genUlamTypeElementWriteDefinitionForC(File * fp)
@@ -794,15 +737,11 @@ namespace MFM {
     // arrays are handled separately
     assert(isScalar());
 
-    // here, must be scalar; ref param to avoid excessive copying
-    m_state.indent(fp);
-    fp->write("void write(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //T
-    fp->write("& v) { m_stgRef = v; }\n");
+    // write must be scalar; ref param to avoid excessive copying
 
     m_state.indent(fp);
     fp->write("void writeTypeField(const u32 v)");
-    fp->write("{ BFTYP::Write(m_stgRef, v); }\n");
+    fp->write("{ BFTYP::Write(AutoRefBase<EC>::getRef(), v); }\n");
   } //genUlamTypeElementWriteDefinitionForC
 
   const std::string UlamTypeClass::readArrayItemMethodForCodeGen()
@@ -819,22 +758,18 @@ namespace MFM {
     return UlamType::writeArrayItemMethodForCodeGen();
   }
 
-  // a special struct for quarks (including zero-size quarks access
-  // their methods) and elements that inherits from their immediates
-  // and have a T ref into a "live" atom/element, and a magical
-  // destructor that updates it; used with Conditional-As.
+  //actually builds the immediate definition, inheriting from auto
   void UlamTypeClass::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    if(!isScalar())
-      return;
-
-    s32 len = getTotalBitSize();
+    //class instance idx is always the scalar uti
+    UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+    const std::string scalarmangledName = m_state.getUlamTypeByIndex(scalaruti)->getUlamTypeMangledName();
 
     const std::string mangledName = getUlamTypeImmediateMangledName();
     const std::string automangledName = getUlamTypeImmediateAutoMangledName();
 
     std::ostringstream  ud;
-    ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
+    ud << "Ud_" << mangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
     m_state.m_currentIndentLevel = 0;
@@ -859,9 +794,9 @@ namespace MFM {
     fp->write("template<class EC>\n");
     m_state.indent(fp);
     fp->write("struct ");
-    fp->write(automangledName.c_str());
-    fp->write(" : public ");
     fp->write(mangledName.c_str());
+    fp->write(" : public ");
+    fp->write(automangledName.c_str());
     fp->write("<EC>\n");
 
     m_state.indent(fp);
@@ -878,70 +813,162 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    //reference to storage in atom
+    //storage here in atom
     m_state.indent(fp);
-    fp->write("T& m_stgToChange;  //ref to storage here!\n");
+    fp->write("T m_stg;  //storage here!\n");
 
     if(m_class == UC_QUARK)
       {
-	m_state.indent(fp);
-	fp->write("const u32 m_pos;   //pos in atom\n");
+	s32 len = getTotalBitSize();
 
-	// constructor with args
+	//quark typedef
 	m_state.indent(fp);
-	fp->write(automangledName.c_str());
-	fp->write("(T & realStg, u32 idx) : m_stgToChange(realStg), m_pos(idx)\n");
-	m_state.indent(fp);
-	fp->write("{\n");
+	fp->write("typedef ");
+	fp->write(scalarmangledName.c_str());
+	fp->write("<EC, ");
+	fp->write("T::ATOM_FIRST_STATE_BIT");
+	fp->write("> Us;\n");
 
-	//initialize immediate T in constuctor
-	m_state.m_currentIndentLevel++;
 	m_state.indent(fp);
-	fp->write("const u32 val = realStg.GetBits().Read(m_pos + T::ATOM_FIRST_STATE_BIT, ");
-	fp->write_decimal(len);
-	fp->write(");\n");
-	m_state.indent(fp);
-	fp->write(mangledName.c_str());
-	fp->write("<EC>::write(val);\n");
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n");
-
-	// magical destructor
-	m_state.indent(fp);
-	fp->write("~");
-	fp->write(automangledName.c_str());
-	fp->write("()\n");
-	m_state.indent(fp);
-	fp->write("{\n");
-
-	m_state.m_currentIndentLevel++;
-  	m_state.indent(fp);
-	fp->write("m_stgToChange.GetBits().Write(m_pos + T::ATOM_FIRST_STATE_BIT, ");
-	fp->write_decimal(len);
+	fp->write("typedef AtomicParameterType");
+	fp->write("<EC"); //BITSPERATOM
 	fp->write(", ");
+	fp->write(getUlamTypeVDAsStringForC().c_str());
+	fp->write(", ");
+	fp->write_decimal_unsigned(len); //includes arraysize
+	fp->write("u, ");
+	fp->write("T::ATOM_FIRST_STATE_BIT");
+	fp->write("> ");
+	fp->write(" Up_Us;\n");
+
+	//default constructor (used by local vars)
+	//(unlike element) call build default in case of initialized data members
+	u32 dqval = 0;
+	bool hasDQ = genUlamTypeDefaultQuarkConstant(fp, dqval);
+
+	m_state.indent(fp);
 	fp->write(mangledName.c_str());
-	fp->write("<EC>::read());\n");
-	m_state.m_currentIndentLevel--;
-  	m_state.indent(fp);
-	fp->write("}\n");
+	fp->write("() : ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>(m_stg, 0), ");
+	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
+	if(hasDQ)
+	  {
+	    if(isScalar())
+	      {
+		fp->write(automangledName.c_str());
+		fp->write("<EC>::");
+		fp->write("write(DEFAULT_QUARK);");
+	      }
+	    else
+	      {
+		//very packed array
+		if(len <= MAXBITSPERINT)
+		  {
+		    u32 bitsize = getBitSize();
+		    u32 dqarrval = 0;
+		    u32 pos = 0;
+		    u32 mask = _GetNOnes32((u32) bitsize);
+		    u32 arraysize = getArraySize();
+		    dqval &= mask;
+		    //similar to build default quark value in NodeVarDeclDM
+		    for(u32 j = 1; j <= arraysize; j++)
+		      {
+			dqarrval |= (dqval << (len - (pos + (j * bitsize))));
+		      }
+
+		    std::ostringstream qdhex;
+		    qdhex << "0x" << std::hex << dqarrval;
+
+		    fp->write(automangledName.c_str());
+		    fp->write("<EC>::");
+		    fp->write("write( ");
+		    fp->write(qdhex.str().c_str());
+		    fp->write(");");
+		  }
+		else
+		  {
+		    fp->write("u32 n = ");
+		    fp->write_decimal(getArraySize());
+		    fp->write("u; while(n--) { ");
+		    fp->write(automangledName.c_str());
+		    fp->write("<EC>::");
+		    fp->write("AutoRefBase<EC>::writeArrayItem(DEFAULT_QUARK, n, ");
+		    fp->write_decimal_unsigned(getBitSize());
+		    fp->write("u); }");
+		  }
+	      }
+	  }
+	fp->write(" }\n");
+
+	//constructor here (used by const tmpVars)
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
+	fp->write(" d) : ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>(m_stg, 0), ");
+	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
+	fp->write(automangledName.c_str());
+	fp->write("<EC>::");
+	fp->write("write(d); }\n");
+
+	// assignment constructor
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const ");
+	fp->write(mangledName.c_str());
+	fp->write("<EC> & arg) : ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>(m_stg, 0), ");
+	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
+	fp->write(automangledName.c_str());
+	fp->write("<EC>::");
+	fp->write("write(arg.read()); }\n");
       }
     else if(m_class == UC_ELEMENT)
       {
-	// constructor with args
+	//default constructor (used by local vars)
 	m_state.indent(fp);
-	fp->write(automangledName.c_str());
-	fp->write("(T & realStg) : ");
 	fp->write(mangledName.c_str());
-	fp->write("<EC>(realStg), m_stgToChange(realStg) {}\n");
+	fp->write("() : ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>(m_stg), m_stg() {");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>::write(");
+	fp->write(getUlamTypeMangledName().c_str());
+	fp->write("<EC>");
+	fp->write("::THE_INSTANCE");
+	fp->write(".GetDefaultAtom()"); //returns object of type T
+	fp->write("); }\n");
 
-	// magical destructor
+	//constructor here (used by const tmpVars); ref param to avoid excessive copying
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const ");
+	fp->write(getTmpStorageTypeAsString().c_str()); //T
+	fp->write("& d) : ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>(m_stg), m_stg(d) ");
+	fp->write("{ }\n");
+
+	//assignment constructor
+	m_state.indent(fp);
+	fp->write(mangledName.c_str());
+	fp->write("(const ");
+	fp->write(mangledName.c_str());
+	fp->write("<EC> & arg) : ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>(m_stg), m_stg() { ");
+	fp->write(automangledName.c_str());
+	fp->write("<EC>::write(arg.read()); }\n");
+
+	//default destructor (for completeness)
 	m_state.indent(fp);
 	fp->write("~");
-	fp->write(automangledName.c_str());
-	fp->write("() { m_stgToChange = ");
 	fp->write(mangledName.c_str());
-	fp->write("<EC>::m_stg; }\n");
+	fp->write("() {}\n");
       }
     else
       assert(0);
@@ -970,12 +997,18 @@ namespace MFM {
     bool rtnb = false;
     if(m_class == UC_QUARK)
       {
+	//always the scalar.
 	if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))
 	  {
+	    std::ostringstream qdhex;
+	    qdhex << "0x" << std::hex << dqref;
+
 	    m_state.indent(fp);
 	    fp->write("static const u32 DEFAULT_QUARK = ");
+	    fp->write(qdhex.str().c_str());
+	    fp->write("; //=");
 	    fp->write_decimal_unsigned(dqref);
-	    fp->write(";\n\n");
+	    fp->write("u\n\n");
 	    rtnb = true;
 	  }
       }

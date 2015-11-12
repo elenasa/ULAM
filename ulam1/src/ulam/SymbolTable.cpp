@@ -435,21 +435,26 @@ namespace MFM {
 			u32 qval = 0;
 			assert(csym->getDefaultQuark(qval));
 
+			std::ostringstream qdhex;
+			qdhex << "0x" << std::hex << qval;
+
 			m_state.indent(fp);
 			if(useFullClassName)
 			  {
 			    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 			    fp->write("<EC, "); //inherited quark always starts at 0
-			    fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+			    fp->write("T::ATOM_FIRST_STATE_BIT");
 			    fp->write(">::");
 			  }
 			fp->write(sym->getMangledNameForParameterType().c_str());
 			fp->write("::Up_Us::");
 			fp->write(sut->writeMethodForCodeGen().c_str());
 			fp->write("(da.GetBits(), ");
-			fp->write_decimal_unsignedlong(qval);
+			fp->write(qdhex.str().c_str());
 			fp->write("); //"); //include var name in a comment
 			fp->write(m_state.m_pool.getDataAsString(sym->getId()).c_str());
+			fp->write("=");
+			fp->write_decimal_unsigned(qval);
 			fp->write("\n");
 		      }
 		    else
@@ -463,6 +468,9 @@ namespace MFM {
 			u32 qval = 0;
 			assert(csym->getDefaultQuark(qval));
 
+			std::ostringstream qdhex;
+			qdhex << "0x" << std::hex << qval;
+
 			//initialize each array item
 			u32 arraysize = sut->getArraySize();
 			for(u32 j = 0; j < arraysize; j++)
@@ -472,14 +480,14 @@ namespace MFM {
 			      {
 				fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 				fp->write("<EC, ");
-				fp->write_decimal(ATOMFIRSTSTATEBITPOS); //only inherit from quarks
+				fp->write("T::ATOM_FIRST_STATE_BIT");
 				fp->write(">::");
 			      }
 			    fp->write(sym->getMangledNameForParameterType().c_str());
 			    fp->write("::");
 			    fp->write(sut->writeArrayItemMethodForCodeGen().c_str());
 			    fp->write("(da.GetBits(), ");
-			    fp->write_decimal_unsigned(qval);
+			    fp->write(qdhex.str().c_str());
 			    fp->write(", ");
 			    fp->write_decimal((s32) j); //ITEM INDEX
 			    fp->write(", ");
@@ -489,7 +497,10 @@ namespace MFM {
 			    fp->write(m_state.m_pool.getDataAsString(sym->getId()).c_str());
 			    fp->write("[");
 			    fp->write_decimal((s32) j);
-			    fp->write("]\n");
+			    fp->write("]");
+			    fp->write("=");
+			    fp->write_decimal_unsigned(qval);
+			    fp->write("\n");
 			  }
 		      } //array of quarks
 		  } //countable size
@@ -507,7 +518,7 @@ namespace MFM {
 		  {
 		    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 		    fp->write("<EC, ");
-		    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //only inherit from quarks
+		    fp->write("T::ATOM_FIRST_STATE_BIT");
 		    fp->write(">::");
 		  }
 		fp->write(sym->getMangledNameForParameterType().c_str());

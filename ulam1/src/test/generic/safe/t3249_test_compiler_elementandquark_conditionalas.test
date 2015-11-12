@@ -8,30 +8,30 @@ Exit status: 0
 Ue_Foo { Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Counter4 m_c4( Int(32) d(0); );  Int(32) e(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  a Foo as cond { Foo a;  a bi . true cast = } if a f cast = a Counter4 as cond { Counter4 a;  bh true cast = a ( )incr . e a ( )get . = } if { bh false cast = } else e return } }
 Uq_Counter4 { Int(32) d(0);  <NOMAIN> }
 #>Foo.ulam
-use Counter4;
+  use Counter4;
 element Foo {
-Bool sp;
- Bool(3) bi, bh;
- Counter4 m_c4;
- Int e;
- Int test(){
- Atom a;
- Foo f;
- Bool b;
-if(a as Foo)
-a.bi = true;
- a = f; //easy
- if(a as Counter4){
- bh = true;
- a.incr();
- e=a.get();
- }
- else {
- bh = false;
+  Bool sp;
+  Bool(3) bi, bh;
+  Counter4 m_c4;
+  Int e;
+  Int test(){
+    Atom a;
+    Foo f;
+    Bool b;
+    if(a as Foo)
+      a.bi = true;
+    a = f; //easy
+    if(a as Counter4){
+      bh = true;
+      a.incr();
+      e=a.get();
+    }
+    else {
+      bh = false;
+    }
+    return e;
+  }
 }
-return e;
-}
- }
 
 ##    //no else case:
 ##      //bool rtn1 = fms->add("Foo.ulam","use Counter4;\nelement Foo {\nBool sp;\n Bool(3) bi, bh;\n Counter4 m_c4;\n Int e;\n Int test(){\n Atom a;\n Foo f;\n Bool b;\n a = f; //easy\n if(a as Counter4){\n bi = true;\n a.incr();\n e=a.get();\n }\nreturn e;\n}\n }\n");
@@ -40,14 +40,14 @@ return e;
 ##      //bool rtn1 = fms->add("Foo.ulam","use Counter4;\nelement Foo {\nBool sp;\n Bool(3) bi, bh;\n Counter4 m_c4;\n Int e;\n Int test(){\n Atom a;\n Foo f;\n Bool b;\n a = f; //easy\n if(a as Counter4)\na.incr();\nreturn e;\n}\n }\n");
 ##
 #:Counter4.ulam
-ulam 1;
+  ulam 1;
 quark Counter4 {
-Int d;
-Void incr(){
-d+=1;
+  Int d;
+  Void incr(){
+    d+=1;
+  }
+  Int get(){
+    return d;
+  }
 }
-Int get(){
-return d;
-}
- }
 #.
