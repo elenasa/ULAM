@@ -2147,23 +2147,23 @@ namespace MFM {
     if(stg == TMPREGISTER)
       {
 	if(WritePacked(packed))
-	  tmpVar << "Uh_tlreg_" ; //tmp loadable register
+	  tmpVar << "Uh_5tlreg" ; //tmp loadable register
 	else
-	  tmpVar << "Uh_tureg_" ; //tmp unpacked register
+	  tmpVar << "Uh_5tureg" ; //tmp unpacked register
       }
     else if(stg == TMPBITVAL)
       {
 	if(WritePacked(packed))
-	  tmpVar << "Uh_tlval_" ; //tmp loadable value
+	  tmpVar << "Uh_5tlval" ; //tmp loadable value
 	else
-	  tmpVar << "Uh_tuval_" ; //tmp unpacked value
+	  tmpVar << "Uh_5tuval" ; //tmp unpacked value
       }
     else if(stg == TMPAUTOREF)
       {
 	if(WritePacked(packed))
-	  tmpVar << "Uh_tlauto_" ; //tmp loadable autoref
+	  tmpVar << "Uh_6tlaref" ; //tmp loadable autoref
 	else
-	  tmpVar << "Uh_tuauto_" ; //tmp unpacked autoref
+	  tmpVar << "Uh_6tuaref" ; //tmp unpacked autoref
       }
     else
       assert(0); //remove assumptions about tmpbitval.
