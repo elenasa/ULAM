@@ -300,7 +300,7 @@ namespace MFM {
 	else
 	  {
 	    UlamValue rtnUV = m_state.m_nodeEvalStack.popArg();
-	    rtnValue = rtnUV.getImmediateData(32);
+	    rtnValue = rtnUV.getImmediateData(32, m_state);
 	  }
 
 	//#define CURIOUS_T3146
@@ -314,7 +314,7 @@ namespace MFM {
 	  MSG(Symbol::getTokPtr(),msg.str().c_str() , INFO);
 	}
 #endif
-	m_state.m_nodeEvalStack.returnFrame(); //epilog
+	m_state.m_nodeEvalStack.returnFrame(m_state); //epilog
 
 	fp->write("Exit status: " ); //in compared answer
 	fp->write_decimal(rtnValue);
@@ -383,10 +383,23 @@ namespace MFM {
 
   bool SymbolClass::hasMappedUTI(UTI auti, UTI& mappedUTI)
   {
+#if 0
     if(!m_resolver)
       return false; //not found
-
     return m_resolver->findMappedUTI(auti, mappedUTI);
+#endif
+
+    bool rtnb = false;
+    if(m_resolver)
+      rtnb = m_resolver->findMappedUTI(auti, mappedUTI);
+
+    if(!rtnb && getSuperClass() != Nav)
+      {
+	SymbolClass * csym = NULL;
+	assert(m_state.alreadyDefinedSymbolClass(getSuperClass(), csym));
+	return (csym->hasMappedUTI(auti, mappedUTI));
+      }
+    return rtnb;
   } //hasMappedUTI
 
   bool SymbolClass::findNodeNoInResolver(NNO n, Node *& foundNode)
@@ -680,12 +693,10 @@ namespace MFM {
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
-	ULAMCLASSTYPE classtype = ut->getUlamClass();
-	if(ut->needsImmediateType() && classtype != UC_NOTACLASS)
+	if(ut->needsImmediateType())
 	  {
 	    ut->genUlamTypeMangledDefinitionForC(fp);
-	    if(classtype == UC_QUARK)
-	      ut->genUlamTypeMangledAutoDefinitionForC(fp);
+	    ut->genUlamTypeMangledAutoDefinitionForC(fp);
 	  }
 	it++;
       }

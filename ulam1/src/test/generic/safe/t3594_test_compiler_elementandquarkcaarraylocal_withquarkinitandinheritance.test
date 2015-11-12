@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3543_test_compiler_elementandquarkarray_withquarkinitandinheritance
+#=t3594_test_compiler_elementandquarkarraylocal_withquarkinitandinheritance
 #!
 ##
 ## gencode output:
@@ -7,12 +7,12 @@
 ## Bool(3) Arg: 0x0 (false)
 ##
 Exit status: 0
-Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Bool(3) c(false);  Car m_bar2[2]( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true);  :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(false); );  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Int(32) test() {  Unary(1) i;  i 1u cast = b m_bar2 i [] cb . cast = s ( b )print . m_bar2 i [] cb . false = c m_bar2 i [] cb . cast = s ( c )print . 0 cast return } }
+Ue_Foo { Bool(3) b(true);  typedef Car Pop[2];  System s();  Bool(3) c(false);  Car sbar( :< Bool(1) val_b[3](false,false,false); > Bool(1) cb(true); );  Int(32) test() {  Car m_bar2[2];  Unary(2) i;  i 0 cast = b m_bar2 i [] cb . cast = s ( b )print . m_bar2 i [] cb . false = c m_bar2 i [] cb . cast = s ( c )print . 0 cast return } }
 Uq_System { <NOMAIN> }
 Uq_Car : Bar { :< Bool(1) val_b[3](false,false,false); > Bool(1) cb( true);  <NOMAIN> }
 Uq_Bar { Bool(1) val_b[3](false,false,false);  <NOMAIN> }
 ##
-## informed by 3223: eval (wipes out element) and gencode (m_bar2s cb is true; m_i is still 7) differ!!
+## informed by 3543, m_bar2 is a local array here
 ##
 #>Foo.ulam
   ulam 1;
@@ -22,13 +22,13 @@ element Foo {
   typedef Car Pop[2];
   System s;
   Bool(3) b, c;
-  Pop m_bar2;
   Car sbar;
   Bool check(Int v) {
     return true;
   }
   Int test() {
-    Unary(1) i = 1u;
+    Pop m_bar2;
+    Unary(2) i = 0;
 
     b = m_bar2[i].cb; //read case
 

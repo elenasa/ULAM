@@ -9,21 +9,21 @@ Uq_Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(3) bomb) { <NOMAIN>
 ##      // b.bomb has NodeMemberSelect as parent, not NodeStatements event though its a "solo" statement
 ##
 #>Foo.ulam
-ulam 1;
+  ulam 1;
 use Booly;
 element Foo{
-Int test(){
-Booly(0u, 2u, true) b;
-b.bomb;
- return b.lastRange;
-}
+  Int test(){
+    Booly(0u, 2u, true) b;
+    b.bomb; //unused variable
+    return b.lastRange;
+  }
 }
 
 #:Booly.ulam
 quark Booly(Unsigned(3) firstRange, Unsigned(3) lastRange, Bool(3) bomb) {
-Bool behave(){
- if(bomb && lastRange != firstRange) return true;
-return false;
-}
+  Bool behave(){
+    if(bomb && lastRange != firstRange) return true;
+    return false;
+  }
 }
 #.

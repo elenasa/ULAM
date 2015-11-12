@@ -353,7 +353,7 @@ namespace MFM {
     if(uv.getUlamValueTypeIdx() == Nav || nuti == Nav)
       return false;
 
-    u32 data = uv.getImmediateData(len);
+    u32 data = uv.getImmediateData(len, m_state);
     UlamValue rtnUV = makeImmediateUnaryOp(nuti, data, len);
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;

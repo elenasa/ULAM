@@ -526,7 +526,7 @@ namespace MFM {
     bool fb1 = m_state.getUlamTypeByIndex(fituti)->cast(uv, fituti);
     //2nd cast back to node type:
     bool fb2 = m_state.getUlamTypeByIndex(nuti)->cast(uv, nuti);
-    return ((fb1 && fb2) ? uv.getImmediateData() : ~data);
+    return ((fb1 && fb2) ? uv.getImmediateData(MAXBITSPERINT, m_state) : ~data);
   } //convertForthAndBack
 
   u64 NodeTerminal::convertForthAndBackLong(const u64 data, UTI fituti)
@@ -557,12 +557,14 @@ namespace MFM {
 	    if(sval < 0)
 	      rtnb = true;
 	  }
-	else
+	else if(wordsize <= MAXBITSPERLONG)
 	  {
 	    s64 sval = _Int64ToCs64(m_constant.uval, (u32) nbitsize);
 	    if(sval < 0)
 	      rtnb = true;
 	  }
+	else
+	  assert(0);
       }
     return rtnb;
   } //isNegativeConstant

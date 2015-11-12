@@ -508,15 +508,6 @@ namespace MFM {
     std::ostringstream arglist;
 
     // presumably there's no = sign.., and no open brace for tmpvars
-#ifdef TMPVARBRACES
-    if(nuti == Void)
-      {
-	m_state.indent(fp);
-	fp->write("{\n");    //open for tmpvar arg's
-	m_state.m_currentIndentLevel++;
-      }
-#endif
-
     // first "hidden" arg is the context
     arglist << m_state.getHiddenContextArgName() << ", ";
 
@@ -537,7 +528,7 @@ namespace MFM {
 	    Symbol * stgcos = NULL;
 	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
-		stgcos = m_state.m_currentSelfSymbolForCodeGen;
+		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
 	      }
 	    else
 	      {
@@ -613,11 +604,11 @@ namespace MFM {
 
 	u32 selfid = 0;
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	  selfid = m_state.m_currentSelfSymbolForCodeGen->getId(); //a use for CSS
+	  selfid = m_state.getCurrentSelfSymbolForCodeGen()->getId(); //a use for CSS
 	else
 	  selfid = m_state.m_currentObjSymbolsForCodeGen[0]->getId();
 
-	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, rightjustified; self id in Ptr;
+	uvpass = UlamValue::makePtr(rtnSlot, TMPBITVAL, nuti, m_state.determinePackable(nuti), m_state, pos, selfid); //POS adjusted for BitVector, justified; self id in Ptr;
 
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
@@ -645,14 +636,6 @@ namespace MFM {
     fp->write(arglist.str().c_str());
     fp->write(");\n");
 
-#ifdef TMPVARBRACES
-    if(nuti == Void)
-      {
-	m_state.m_currentIndentLevel--;
-	m_state.indent(fp);
-	fp->write("}\n"); //close for tmpVar
-      }
-#endif
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //codeGenIntoABitValue
 
@@ -669,7 +652,7 @@ namespace MFM {
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     u32 startcos = 0;
 
-    Symbol * stgcos = m_state.m_currentSelfSymbolForCodeGen;
+    Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
 
     // use NodeNo for inheritance
@@ -704,8 +687,7 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		//fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(false));
-		fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
 	  }
@@ -725,8 +707,7 @@ namespace MFM {
 	      {
 		//self is a quark
 		fp->write("<EC,");
-		//fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(false));
-		fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
 	  }
@@ -815,7 +796,7 @@ namespace MFM {
     Symbol * stgcos = NULL;
 
     if(epi == 0)
-      stgcos = m_state.m_currentSelfSymbolForCodeGen;
+      stgcos = m_state.getCurrentSelfSymbolForCodeGen();
     else
       stgcos = m_state.m_currentObjSymbolsForCodeGen[epi - 1]; //***
 
@@ -904,8 +885,7 @@ namespace MFM {
 	  {
 	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC,");
-	    //fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(true));
-	    fp->write_decimal(ATOMFIRSTSTATEBITPOS);
+	    fp->write("T::ATOM_FIRST_STATE_BIT");
 	    fp->write(">::");
 	  }
 	else

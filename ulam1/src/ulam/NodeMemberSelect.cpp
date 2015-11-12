@@ -273,6 +273,9 @@ namespace MFM {
 
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
 
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
+      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+
     m_nodeRight->genCode(fp, uvpass);  // is this ok?
 
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************?
@@ -284,7 +287,11 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     m_nodeLeft->genCodeToStoreInto(fp, uvpass);
-    m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected
+
+    if(!m_state.m_currentObjSymbolsForCodeGen.empty() && !m_state.isScalar(m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx()))
+      Node::genCodeConvertATmpVarIntoAutoRef(fp, uvpass); //uvpass becomes the autoref, and clears stack
+
+    m_nodeRight->genCodeToStoreInto(fp, uvpass); //uvpass contains the member selected, or cos obj symbol?
   } //genCodeToStoreInto
 
 } //end MFM

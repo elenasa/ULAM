@@ -77,7 +77,6 @@ namespace MFM {
 	msg << ", within (), is not ready";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	m_state.setGoAgain(); //since not error
-	//	return Nav; //short-circuit
       }
 
     // expects a constant numeric type
@@ -89,6 +88,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -131,7 +131,7 @@ namespace MFM {
 	    else
 	      {
 		if(m_state.getBitSize(bituti) == UNKNOWNSIZE)
-		  newbitsize = bitUV.getImmediateData(MAXBITSPERINT); //use default
+		  newbitsize = bitUV.getImmediateData(MAXBITSPERINT, m_state); //use default
 		else
 		  newbitsize = bitUV.getImmediateData(m_state);
 
