@@ -123,7 +123,7 @@ namespace MFM{
 	UTI puti = m_nodes[i]->checkAndLabelType();
 	if(!m_state.isComplete(puti))
 	  {
-	    rtnuti = Nav; //all or none
+	    rtnuti = Nav; // all or none
 	    m_state.setGoAgain(); //since no error msg
 	  }
 	else if(!WritePacked(m_state.determinePackable(puti)) && !m_state.isScalar(puti))

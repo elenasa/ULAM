@@ -470,7 +470,7 @@ namespace MFM {
 		u32 arraysize = m_state.getArraySize(nuti);
 		qval &= mask;
 
-		for(u32 j = 0; j < arraysize; j++)
+		for(u32 j = 1; j <= arraysize; j++)
 		  {
 		    dqref |= (qval << (quarksize - (pos + (j * bitsize))));
 		  }
@@ -479,13 +479,17 @@ namespace MFM {
 	  }
 	else
 	  {
+	    //arrays not initialized at this time
 	    //primitive (not a quark!)
-	    u64 val = 0;
-	    if(((SymbolVariableDataMember *) m_varSymbol)->getInitValue(val))
+	    if(m_state.isScalar(nuti))
 	      {
-		valinposition = ((u32) val & mask) << (quarksize - pos - bitsize);
-		dqref |= valinposition;
-		aok = true;
+		u64 val = 0;
+		if(((SymbolVariableDataMember *) m_varSymbol)->getInitValue(val))
+		  {
+		    valinposition = ((u32) val & mask) << (quarksize - pos - bitsize);
+		    dqref |= valinposition;
+		    aok = true;
+		  }
 	      }
 	  }
 
@@ -548,6 +552,8 @@ namespace MFM {
 
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
+
+    assert(!m_varSymbol->isAutoLocal());
 
     if(nuti == UAtom || classtype == UC_ELEMENT)
       return NodeVarDecl::eval();
@@ -626,12 +632,12 @@ namespace MFM {
 
     if(m_varSymbol->isDataMember())
       {
-	return genCodedBitFieldTypedef(fp, uvpass);
+	return NodeVarDecl::genCodedBitFieldTypedef(fp, uvpass);
       }
 
     if(m_varSymbol->isAutoLocal())
       {
-	return genCodedAutoLocal(fp, uvpass);
+	return NodeVarDecl::genCodedAutoLocal(fp, uvpass);
       }
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();

@@ -45,7 +45,7 @@
 #include "NodeBinaryOpEqual.h"
 #include "NodeBinaryOp.h"
 #include "NodeBlock.h"
-#include "NodeConditionalAs.h"
+#include "NodeConditional.h"
 #include "NodeConstantDef.h"
 #include "NodeFunctionCall.h"
 #include "NodeModelParameterDef.h"
@@ -161,7 +161,7 @@ namespace MFM{
     /**
        (helper for 'as' condition in if/while)
     */
-    Node * setupAsConditionalBlockAndParseStatements(NodeConditionalAs * asNode);
+    Node * setupAsConditionalBlockAndParseStatements(NodeConditional * asNode);
 
     /**
 	<SIMPLE_STATEMENT> := ( 0 | <STATEMENT_DECL> | <TYPE_DEF> | <CONST_DEF> | <ASSIGN_EXPR> |

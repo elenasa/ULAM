@@ -43,7 +43,7 @@ namespace MFM {
 
   static const char * m_indentedSpaceLevel("  "); //2 spaces per level
 
-  static const char * HIDDEN_ARG_NAME = "Uv_4self";
+  static const char * HIDDEN_ARG_NAME = "Uv_4atom"; //was Uv_4self
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
@@ -60,7 +60,7 @@ namespace MFM {
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
 
   //use of this in the initialization list seems to be okay;
-  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalAs(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
+  CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
   }
@@ -492,6 +492,13 @@ namespace MFM {
 	    return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
 	  }
       }
+
+    // try in Symbol Class..
+    // check for inheritance
+    //    UTI superuti = isClassASubclass(cuti);
+    //if(superuti != Nav)
+    //  return mappedIncompleteUTI(superuti, auti, mappedUTI);
+
     return false; //for compiler
   } //mappedIncompleteUTI
 
@@ -956,12 +963,14 @@ namespace MFM {
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
     //'Void' by default is zero and only zero bitsize (already complete)
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
-    if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize == 0)
+    if(key.getUlamKeyTypeSignatureBitSize() == 0 || bitsize <= 0)
       {
-	if(bUT != Void)
+	if(bUT != Void || bitsize < 0)
 	  {
 	    std::ostringstream msg;
-	    msg << "Invalid zero sizes to set for nonClass: " << ut->getUlamTypeNameBrief().c_str();
+	    msg << "Invalid size (";
+	    msg << bitsize;
+	    msg << ") to set for primitive type: " << UlamType::getUlamTypeEnumAsString(bUT);
 	    MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR);
 	    return;
 	  }
@@ -1517,6 +1526,8 @@ namespace MFM {
     return m_pool.getIndexForDataString(nstr);
   }
 
+  // note: we may miss a missing return value for non-void function; non-trivial to
+  // do logic-flow analysis; gcc catches them until ulam template absorbs gcc errors.
   bool CompilerState::checkFunctionReturnNodeTypes(SymbolFunction * fsym)
   {
     bool rtnBool = true;
@@ -1822,9 +1833,20 @@ namespace MFM {
     return lenstr.str();
   } //getBitVectorLengthAsStringForCodeGen
 
+  UlamValue CompilerState::getAtomPtrFromSelfPtr()
+  {
+    UlamValue tuv = getPtrTarget(m_currentSelfPtr);
+    UTI tuti = tuv.getUlamValueTypeIdx();
+
+    UlamValue aptr = UlamValue::makePtr(m_currentSelfPtr.getPtrSlotIndex(), m_currentSelfPtr.getPtrStorage(), tuti, determinePackable(tuti), *this, 0, m_currentSelfPtr.getPtrNameId());
+    return aptr;
+  } //getAtomPtrFromSelfPtr (for eval)
+
   UlamValue CompilerState::getPtrTarget(UlamValue ptr)
   {
+    // change to recurse in case of ptr to ptr (e.g. auto for h/as)
     assert(ptr.getUlamValueTypeIdx() == Ptr);
+
     //slot + storage
     UlamValue valAtIdx;
     switch(ptr.getPtrStorage())
@@ -2002,7 +2024,7 @@ namespace MFM {
 
     //m_classBlock ok now, reset by NodeProgram after type label done
     UTI cuti = getCompileThisIdx();
-    m_eventWindow.setSiteElementType(c0, cuti);
+    m_eventWindow.setSiteElementType(c0, cuti); //includes default values
     m_currentSelfPtr = m_currentObjPtr = m_eventWindow.makePtrToCenter();
 
     //set up STACK since func call not called
@@ -2118,22 +2140,30 @@ namespace MFM {
 
     if(uti == UAtom || getUlamTypeByIndex(uti)->getUlamClass() == UC_ELEMENT)
       {
-	stg = TMPBITVAL; //avoid loading a T into a tmpregister!
+	assert(stg != TMPREGISTER);
+	//stg = TMPBITVAL; //avoid loading a T into a tmpregister!
       }
 
     if(stg == TMPREGISTER)
       {
 	if(WritePacked(packed))
-	  tmpVar << "Uh_tmpreg_loadable_" ;
+	  tmpVar << "Uh_5tlreg" ; //tmp loadable register
 	else
-	  tmpVar << "Uh_tmpreg_unpacked_" ;
+	  tmpVar << "Uh_5tureg" ; //tmp unpacked register
       }
     else if(stg == TMPBITVAL)
       {
 	if(WritePacked(packed))
-	  tmpVar << "Uh_tmpval_loadable_" ;
+	  tmpVar << "Uh_5tlval" ; //tmp loadable value
 	else
-	  tmpVar << "Uh_tmpval_unpacked_" ;
+	  tmpVar << "Uh_5tuval" ; //tmp unpacked value
+      }
+    else if(stg == TMPAUTOREF)
+      {
+	if(WritePacked(packed))
+	  tmpVar << "Uh_6tlaref" ; //tmp loadable autoref
+	else
+	  tmpVar << "Uh_6tuaref" ; //tmp unpacked autoref
       }
     else
       assert(0); //remove assumptions about tmpbitval.
@@ -2246,6 +2276,18 @@ namespace MFM {
     assert(m_classContextStack.getCurrentClassContext(cc));
     return cc.getCompileThisIdx();
   }
+
+  SymbolClass * CompilerState::getCurrentSelfSymbolForCodeGen()
+  {
+    return (SymbolClass *) m_currentSelfSymbolForCodeGen;
+#if 0
+    // no longer all self in h/as conditionals.
+    Symbol * selfsym = NULL;
+    u32 selfid = m_pool.getIndexForDataString("self");
+    assert(alreadyDefinedSymbol(selfid, selfsym));
+    return (SymbolClass *) selfsym;
+#endif
+  } //getCurrentSelfSymbolForCodeGen
 
   NodeBlock * CompilerState::getCurrentBlock()
   {

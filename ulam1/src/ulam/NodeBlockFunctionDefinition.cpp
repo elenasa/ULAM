@@ -300,7 +300,7 @@ namespace MFM {
       }
     else
       {
-	m_state.m_funcCallStack.returnFrame();
+	m_state.m_funcCallStack.returnFrame(m_state);
 	evalNodeEpilog();
 	return evs;
       }
@@ -310,7 +310,7 @@ namespace MFM {
     //in reverse order ([0] is last at bottom)
     assignReturnValueToStack(rtnUV);
 
-    m_state.m_funcCallStack.returnFrame();
+    m_state.m_funcCallStack.returnFrame(m_state);
     evalNodeEpilog();
     return NORMAL;
   } //eval
@@ -351,7 +351,7 @@ namespace MFM {
       m_nodeParameterList->calcMaxDepth(max1, nomaxdepth, base);
 
     //set self slot just below return value
-    u32 selfid = m_state.m_pool.getIndexForDataString("self");
+    u32 selfid = m_state.m_pool.getIndexForDataString("atom");
     Symbol * selfsym = NULL;
     assert(m_state.alreadyDefinedSymbol(selfid, selfsym));
     s32 newslot = -1 - m_state.slotsNeeded(getNodeType());

@@ -53,7 +53,7 @@ namespace MFM {
 
     //short-circuit if lhs is false
     UlamValue luv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot); //immediate value
-    u32 ldata = luv.getImmediateData(len);
+    u32 ldata = luv.getImmediateData(len, m_state);
     if(_Bool32ToCbool(ldata, len) == false)
       {
 	//copies return UV to stack, -1 relative to current frame pointer
@@ -103,12 +103,6 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
-
-#ifdef TMPVARBRACES
-    m_state.indent(fp);
-    fp->write("{\n");
-    m_state.m_currentIndentLevel++;
-#endif
 
     //initialize node result to false
     UTI nuti = getNodeType();
@@ -165,11 +159,6 @@ namespace MFM {
 
     uvpass = UlamValue::makePtr(tmpVarNum, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //P
 
-#ifdef TMPVARBRACES
-    m_state.m_currentIndentLevel--;
-    m_state.indent(fp);
-    fp->write("}\n"); //close for tmpVar
-#endif
     assert(m_state.m_currentObjSymbolsForCodeGen.empty()); //*************
   } //genCode
 

@@ -52,6 +52,24 @@ namespace MFM {
 	newType = Nav;
       }
 
+    if(!strcmp(m_nodeLeft->getName(), "self"))
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand identifier of conditional operator '" << getName();
+	msg << "'; Suggest using a variable of type Atom as 'self'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+
+    if(!strcmp(m_nodeLeft->getName(), "atom"))
+      {
+	std::ostringstream msg;
+	msg << "Invalid lefthand identifier of conditional operator '" << getName();
+	msg << "'; Suggest using a variable of type Atom as 'atom'";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	newType = Nav;
+      }
+
     assert(m_nodeTypeDesc);
     UTI ruti = m_nodeTypeDesc->checkAndLabelType();
 
@@ -110,6 +128,13 @@ namespace MFM {
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
 
+    if(luti == UAtom)
+      {
+	//an atom can be element or quark in eval-land, so let's get specific!
+	UlamValue luv = m_state.getPtrTarget(pluv);
+	luti = luv.getUlamValueTypeIdx();
+      }
+
     UTI ruti = getRightType();
     SymbolClass * csym = NULL;
     s32 posFound = -1;
@@ -122,7 +147,8 @@ namespace MFM {
     else
       {
 	//atom's don't work in eval, only genCode, let pass as not found.
-	if(luti != UAtom)
+	//if(luti != UAtom)
+	if(pluv.getPtrTargetType() != UAtom)
 	  {
 	    std::ostringstream msg;
 	    msg << "Invalid lefthand type of conditional operator '" << getName();
@@ -141,8 +167,15 @@ namespace MFM {
       }
 
     bool hasit = (posFound >= 0);
-    UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) hasit, m_state);
+    if(hasit)
+      {
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), ruti, m_state.determinePackable(ruti), m_state, pluv.getPtrPos() + posFound, pluv.getPtrNameId());
+	m_state.m_currentAutoObjPtr = ptr;
+      }
+    else
+      m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
 
+    UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) hasit, m_state);
     //also copy result UV to stack, -1 relative to current frame pointer
     assignReturnValueToStack(rtnuv);
 
@@ -222,7 +255,7 @@ namespace MFM {
 
     //indicate to NodeControl that the value returned in uvpass, still needs to be tested >=0,
     //since its value represents the posoffset (+ FIRSTSTATEBIT) into T (in case of a quark).
-    m_state.m_genCodingConditionalAs = true;
+    m_state.m_genCodingConditionalHas = true;
   } //genCode
 
 } //end MFM

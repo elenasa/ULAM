@@ -106,6 +106,8 @@ namespace MFM{
 
     static UlamValue makeImmediate(UTI utype, u32 v, s32 len = 32);
 
+    static UlamValue makeImmediateQuark(UTI utype, u32 v, s32 len);
+
     static UlamValue makeImmediateLong(UTI utype, u64 v, CompilerState& state);
 
     static UlamValue makeImmediateLong(UTI utype, u64 v, s32 len = 64);
@@ -164,7 +166,10 @@ namespace MFM{
 
     u32 getImmediateData(CompilerState& state) const;
 
-    u32 getImmediateData(s32 len = 32) const;
+    u32 getImmediateData(s32 len, CompilerState& state) const;
+
+    u32 getImmediateQuarkData(CompilerState & state) const;
+    u32 getImmediateQuarkData(s32 len) const;
 
     u64 getImmediateDataLong(CompilerState & state) const;
 

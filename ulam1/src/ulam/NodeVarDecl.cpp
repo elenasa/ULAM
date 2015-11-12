@@ -134,7 +134,7 @@ namespace MFM {
 	      }
 	  }
 
-	if(!m_state.isComplete(it))
+	  if(!m_state.isComplete(it))
 	  {
 	    std::ostringstream msg;
 	    msg << "Incomplete Variable Decl for type: ";
@@ -315,6 +315,11 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
+    assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
+
+    if(m_varSymbol->isAutoLocal())
+      return evalAutoLocal();
+
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
     if(nuti == UAtom)
       {
@@ -345,12 +350,52 @@ namespace MFM {
 	  }
 	else
 	  {
-	    //must be a quark!
+	    //must be a local quark!
 	    u32 dq = 0;
 	    assert(m_state.getDefaultQuark(nuti, dq));
-	    UlamValue immUV = UlamValue::makeImmediate(nuti, dq, m_state);
+	    if(m_state.isScalar(nuti))
+	      {
+		UlamValue immUV = UlamValue::makeImmediate(nuti, dq, m_state);
+		m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+	      }
+	    else
+	      {
+		u32 len = m_state.getTotalBitSize(nuti);
+		u32 bitsize = m_state.getBitSize(nuti);
+		u32 pos = 0;
+		u32 arraysize = m_state.getArraySize(nuti);
+		u32 mask = _GetNOnes32((u32) bitsize);
+		dq &= mask;
+		if(len <= MAXBITSPERINT)
+		  {
+		    u32 dqarrval = 0;
+		    //similar to build default quark value in NodeVarDeclDM
+		    for(u32 j = 1; j <= arraysize; j++)
+		      {
+			dqarrval |= (dq << (len - (pos + (j * bitsize))));
+		      }
 
-	    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		    UlamValue immUV = UlamValue::makeImmediate(nuti, dqarrval, m_state);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else if(len <= MAXBITSPERLONG)
+		  {
+		    u64 dqarrval = 0;
+		    //similar to build default quark value in NodeVarDeclDM
+		    for(u32 j = 1; j <= arraysize; j++)
+		      {
+			dqarrval |= (dq << (len - (pos + (j * bitsize))));
+		      }
+
+		    UlamValue immUV = UlamValue::makeImmediateLong(nuti, dqarrval, m_state);
+		    m_state.m_funcCallStack.storeUlamValueInSlot(immUV, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex());
+		  }
+		else
+		  {
+		    //unpacked array of quarks is unsupported at this time!!
+		    assert(0);
+		  }
+	      }
 	  }
       }
     else
@@ -360,6 +405,25 @@ namespace MFM {
       }
     return NORMAL;
   } //eval
+
+  EvalStatus NodeVarDecl::evalAutoLocal()
+  {
+    assert(m_varSymbol);
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    assert(m_varSymbol->getUlamTypeIdx() == nuti);
+    assert(nuti != UAtom); //rhs type of conditional as/has can't be an atom
+
+    UlamValue pluv = m_state.m_currentAutoObjPtr;
+    ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
+
+    m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
+
+    return NORMAL;
+  } //evalAutoLocal
 
   EvalStatus  NodeVarDecl::evalToStoreInto()
   {
@@ -414,7 +478,7 @@ namespace MFM {
 
     if(vclasstype == UC_QUARK)
       {
-	//right-justified?
+	//left-justified?
       }
 
     fp->write(";\n"); //func call parameters aren't NodeVarDecl's
@@ -438,12 +502,16 @@ namespace MFM {
 	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
 	fp->write("<EC, ");
 	if(classtype == UC_ELEMENT)
-	  fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	  {
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	    fp->write("u");
+	  }
 	else
 	  {
 	    //inside a quark
 	    fp->write("POS + ");
-	    fp->write_decimal(m_varSymbol->getPosOffset());
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
+	    fp->write("u");
 	  }
       }
     else
@@ -463,7 +531,8 @@ namespace MFM {
 	else
 	  {
 	    assert(classtype == UC_ELEMENT);
-	    fp->write_decimal(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
+	    fp->write("u");
 	  }
       }
     fp->write("> ");
@@ -481,23 +550,23 @@ namespace MFM {
     assert(uvpass.getUlamValueTypeIdx() == Ptr);
     s32 tmpVarPos = uvpass.getPtrSlotIndex();
 
-    // before shadowing the lhs of the as-conditional variable with its auto,
+    // before shadowing the lhs of the h/as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:
     s32 tmpVarStg = m_state.getNextTmpVarNumber();
     UTI stguti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
-    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT);
+    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT); //not quark???
 
-    // can't let Node::genCodeReadIntoTmpVar do this for us:
+    // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
     m_state.indent(fp);
     fp->write(stgut->getTmpStorageTypeAsString().c_str());
-    fp->write("& ");
+    fp->write("& "); //here it is!!
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
     fp->write(" = ");
     fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
 
-    if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("self"))
+    if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
       fp->write(".getRef()");
     fp->write(";\n");
 
@@ -509,7 +578,6 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
-
     fp->write("<EC> ");
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("(");
@@ -518,18 +586,24 @@ namespace MFM {
     if(vclasstype == UC_QUARK)
       {
 	fp->write(", ");
-	fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
+	if(m_state.m_genCodingConditionalHas) //not sure this is posoffset, and not true/false???
+	  fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
+	else
+	  {
+	    assert(m_varSymbol->getPosOffset() == 0);
+	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
+	  }
       }
     else if(vclasstype == UC_ELEMENT)
       {
-	fp->write(", true"); //invokes 'badass' constructor
+	//fp->write(", true"); //invokes 'badass' constructor
       }
     else
       assert(0);
 
-    fp->write(");   //shadows lhs of 'as'\n");
+    fp->write(");   //shadows lhs of 'h/as'\n");
 
-    m_state.m_genCodingConditionalAs = false; // done
+    m_state.m_genCodingConditionalHas = false; // done
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?
   } //genCodedAutoLocal
 

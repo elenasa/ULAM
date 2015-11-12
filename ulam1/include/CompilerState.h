@@ -115,9 +115,9 @@ namespace MFM{
     bool m_gotStructuredCommentToken; // avoid testing uninitialized value
     Token m_precedingStructuredCommentToken; //for next class or parameter
 
-    bool m_parsingConditionalAs;          // used for Conditional-As parsing
-    Token m_identTokenForConditionalAs;   // used for Conditional-As parsing
-    bool m_genCodingConditionalAs; // used for Conditional-As code gen
+    bool m_parsingConditionalAs;          // used for Conditional-As/Has parsing
+    Token m_identTokenForConditionalAs;   // used for Conditional-As/Has parsing
+    bool m_genCodingConditionalHas; // used for Conditional-Has code gen
 
     CallStack m_funcCallStack;    //local variables and arguments
     UEventWindow  m_eventWindow;  //storage for 41 atoms (elements)
@@ -141,6 +141,7 @@ namespace MFM{
     UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
                                 // becomes currentObjPtr for args
+    UlamValue m_currentAutoObjPtr; //used in eval, lhs of conditional as/has:
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
@@ -294,6 +295,9 @@ namespace MFM{
 
     const std::string getBitVectorLengthAsStringForCodeGen(UTI uti);
 
+    /** returns ulamvalue ptr to entire atom/element from m_currentSelfPtr */
+    UlamValue getAtomPtrFromSelfPtr();
+
     /** returns immediate target value: extracts data from packed targets;
 	unpacked array targets are invalid */
     UlamValue getPtrTarget(UlamValue ptr);
@@ -355,6 +359,8 @@ namespace MFM{
     u32 getCompileThisId();
 
     UTI getCompileThisIdx();
+
+    SymbolClass * getCurrentSelfSymbolForCodeGen();
 
     NodeBlock * getCurrentBlock();
 
