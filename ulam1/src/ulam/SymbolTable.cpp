@@ -443,7 +443,6 @@ namespace MFM {
 			  {
 			    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 			    fp->write("<EC, "); //inherited quark always starts at 0
-			    //fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 			    fp->write("T::ATOM_FIRST_STATE_BIT");
 			    fp->write(">::");
 			  }
@@ -481,7 +480,6 @@ namespace MFM {
 			      {
 				fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 				fp->write("<EC, ");
-				//fp->write_decimal(ATOMFIRSTSTATEBITPOS); //only inherit from quarks
 				fp->write("T::ATOM_FIRST_STATE_BIT");
 				fp->write(">::");
 			      }
@@ -520,7 +518,6 @@ namespace MFM {
 		  {
 		    fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
 		    fp->write("<EC, ");
-		    //fp->write_decimal(ATOMFIRSTSTATEBITPOS); //only inherit from quarks
 		    fp->write("T::ATOM_FIRST_STATE_BIT");
 		    fp->write(">::");
 		  }

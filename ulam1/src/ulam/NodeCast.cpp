@@ -674,17 +674,7 @@ namespace MFM {
     // time to (like a) "shadow 'self'" with auto local variable:
     m_state.indent(fp);
     fp->write(nut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
-    ULAMCLASSTYPE tobeclasstype = nut->getUlamClass();
-    //    if(stgclasstype == UC_QUARK)
-    if(tobeclasstype == UC_QUARK)
-      {
-	//fp->write("<EC, ");
-	//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
-	//fp->write("> ");
-	fp->write("<EC> ");
-      }
-    else //element
-      fp->write("<EC> ");
+    fp->write("<EC> ");
 
     s32 tmpIQ = m_state.getNextTmpVarNumber(); //tmp since no variable name
     fp->write(m_state.getTmpVarAsString(nuti, tmpIQ).c_str());
@@ -721,8 +711,6 @@ namespace MFM {
     if(vuti == Ptr)
       vuti = uvpass.getPtrTargetType(); //replace
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
-    //s32 tmpVarNum = uvpass.getPtrSlotIndex();
 
     m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
 

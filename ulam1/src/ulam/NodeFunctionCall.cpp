@@ -687,8 +687,6 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		//fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(false));
-		//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
@@ -709,8 +707,6 @@ namespace MFM {
 	      {
 		//self is a quark
 		fp->write("<EC,");
-		//fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(false));
-		//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
@@ -889,8 +885,6 @@ namespace MFM {
 	  {
 	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	    fp->write("<EC,");
-	    //fp->write_decimal(Node::calcPosOfCurrentObjectsContainingASubClass(true));
-	    //fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 	    fp->write("T::ATOM_FIRST_STATE_BIT");
 	    fp->write(">::");
 	  }

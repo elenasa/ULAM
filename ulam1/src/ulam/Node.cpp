@@ -1354,9 +1354,6 @@ namespace MFM {
 	m_state.indent(fp);
 	//fp->write("const "); can't be const and chainable
 	fp->write(cosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	//fp->write("<EC, ");
-	//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
-	//fp->write("> ");
 	fp->write("<EC> ");
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
@@ -1768,8 +1765,6 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		//fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
-		//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
@@ -1787,8 +1782,6 @@ namespace MFM {
 	      {
 		//self is a quark
 		fp->write("<EC,");
-		//fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
-		//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
@@ -1948,8 +1941,6 @@ namespace MFM {
 	else
 	  {
 	    fp->write("<EC,");
-	    //fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(false));
-	    //fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 	    fp->write("T::ATOM_FIRST_STATE_BIT");
 	    fp->write(">::");
 	  }
@@ -2024,11 +2015,8 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC,");
-		////fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
-		//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
-		//fp->write("<EC>::");
 	      }
 	  }
       }
@@ -2086,11 +2074,8 @@ namespace MFM {
 	else
 	  {
 	    fp->write("<EC, ");
-	    ////fp->write_decimal(calcPosOfCurrentObjectsContainingASubClass(true));
-	    //fp->write_decimal(ATOMFIRSTSTATEBITPOS);
 	    fp->write("T::ATOM_FIRST_STATE_BIT");
 	    fp->write(">::");
-	    //fp->write("<EC>::");
 	  }
 	return;
       }
