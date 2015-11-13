@@ -4,7 +4,9 @@
 namespace MFM {
 
   NodeBinaryOpCompareEqualEqual::NodeBinaryOpCompareEqualEqual(Node * left, Node * right, CompilerState & state) : NodeBinaryOpCompare(left,right,state) {}
+
   NodeBinaryOpCompareEqualEqual::NodeBinaryOpCompareEqualEqual(const NodeBinaryOpCompareEqualEqual& ref) : NodeBinaryOpCompare(ref) {}
+
   NodeBinaryOpCompareEqualEqual::~NodeBinaryOpCompareEqualEqual(){}
 
   Node * NodeBinaryOpCompareEqualEqual::instantiate()
@@ -12,19 +14,15 @@ namespace MFM {
     return new NodeBinaryOpCompareEqualEqual(*this);
   }
 
-
-
   const char * NodeBinaryOpCompareEqualEqual::getName()
   {
     return "==";
   }
 
-
   const std::string NodeBinaryOpCompareEqualEqual::prettyNodeName()
   {
     return nodeName(__PRETTY_FUNCTION__);
   }
-
 
   const std::string NodeBinaryOpCompareEqualEqual::methodNameForCodeGen()
   {
@@ -32,7 +30,6 @@ namespace MFM {
     methodname << "_BinOpCompareEqEq" << NodeBinaryOpCompare::methodNameForCodeGen();
     return methodname.str();
   } //methodNameForCodeGen
-
 
   UTI NodeBinaryOpCompareEqualEqual::calcNodeType(UTI lt, UTI rt)
   {
