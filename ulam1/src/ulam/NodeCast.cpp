@@ -93,7 +93,8 @@ namespace MFM {
     // this is for checking for errors, before eval happens.
     u32 errorsFound = 0;
     UTI tobeType = getNodeType();
-    UTI nodeType = isExplicitCast() ? m_node->checkAndLabelType() : m_node->getNodeType(); //user cast if explicit
+    //UTI nodeType = isExplicitCast() ? m_node->checkAndLabelType() : m_node->getNodeType(); //user cast if explicit
+    UTI nodeType = m_node->checkAndLabelType();
 
     if(nodeType == Nav)
       {
