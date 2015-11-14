@@ -171,7 +171,8 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    if(m_state.alreadyDefinedSymbol(m_vid, asymptr))
+    bool hazyKin = false;
+    if(m_state.alreadyDefinedSymbol(m_vid, asymptr, hazyKin) && !hazyKin)
       {
 	if(!asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter() && !asymptr->isFunction())
 	  {
@@ -190,7 +191,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) Variable <" << m_state.m_pool.getDataAsString(m_vid).c_str();
 	msg << "> is not defined, and cannot be used";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!hazyKin)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       } //alreadyDefined
 
     m_state.popClassContext(); //restore

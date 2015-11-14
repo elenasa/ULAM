@@ -80,7 +80,8 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    if(m_state.alreadyDefinedSymbol(m_cid, asymptr))
+    bool hazyKin = false;
+    if(m_state.alreadyDefinedSymbol(m_cid, asymptr, hazyKin) && !hazyKin)
       {
 	if(asymptr->isModelParameter())
 	  {
@@ -99,7 +100,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) Model Parameter <" << m_state.m_pool.getDataAsString(m_cid).c_str();
 	msg << "> is not defined, and cannot be used";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!hazyKin)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol

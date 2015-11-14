@@ -172,7 +172,8 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
+    bool hazyKin = false;
+    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr, hazyKin) && !hazyKin)
       {
 	if(asymptr->isTypedef())
 	  {
@@ -192,7 +193,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 	msg << "> is not defined, and cannot be used";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!hazyKin)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	//errCnt++;
       }
     m_state.popClassContext(); //restore

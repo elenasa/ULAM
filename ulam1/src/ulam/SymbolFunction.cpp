@@ -21,7 +21,8 @@ namespace MFM {
 	  {
 	    u32 pid = sref.m_parameterSymbols[i]->getId();
 	    Symbol * sym = NULL; //NOT here: sref.m_parameterSymbols[i]->clone();
-	    assert(m_state.alreadyDefinedSymbol(pid, sym));
+	    bool hazyKin = false; //don't care?
+	    assert(m_state.alreadyDefinedSymbol(pid, sym, hazyKin));
 	    m_parameterSymbols.push_back(sym);
 	  }
 	m_state.popClassContext();

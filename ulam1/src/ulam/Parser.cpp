@@ -1151,8 +1151,9 @@ namespace MFM {
     if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
       {
 	Symbol * asymptr = NULL;
+	bool hazyKin = false; //don't care
 	//may continue when symbol not defined yet (e.g. FuncCall)
-	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex,asymptr))
+	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex, asymptr, hazyKin))
 	  {
 	    if(asymptr->isConstant()) //check for constant first
 	      {
@@ -1921,7 +1922,8 @@ namespace MFM {
 
     SymbolClassName * cnsym = NULL;
     Symbol * asym = NULL; //or a typedef that we've already seen
-    if(!(m_state.alreadyDefinedSymbolClassName(args.m_typeTok.m_dataindex, cnsym) || m_state.alreadyDefinedSymbol(args.m_typeTok.m_dataindex, asym)))
+    bool hazyKin = false; //don't care
+    if(!(m_state.alreadyDefinedSymbolClassName(args.m_typeTok.m_dataindex, cnsym) || m_state.alreadyDefinedSymbol(args.m_typeTok.m_dataindex, asym, hazyKin)))
       {
 	//if here, the last typedef might have been a holder for some unknown type
 	// now we know (thanks to the dot and subsequent type token) that its a holder
@@ -2154,7 +2156,8 @@ namespace MFM {
 	//check for a named constant already defined (e.g. class
 	//parameter) and continue parsing expression instead of ident.
 	Symbol * sym = NULL;
-	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex,sym))
+	bool hazyKin = false; //don't care
+	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex, sym, hazyKin))
 	  {
 	    if(sym->isConstant() || sym->isModelParameter())
 	      {
@@ -2194,10 +2197,11 @@ namespace MFM {
     unreadToken(); //put whatever back
 
     Symbol * asymptr = NULL;
+    bool hazyKin = false; //don't care
     //may continue when symbol not defined yet (e.g. Decl)
     // don't return a NodeConstant, instead of NodeIdent, without arrays
     // even if already defined as one.
-    m_state.alreadyDefinedSymbol(identTok.m_dataindex,asymptr);
+    m_state.alreadyDefinedSymbol(identTok.m_dataindex, asymptr, hazyKin);
 
     //o.w. make a variable;  symbol could be Null!
     Node * rtnNode = new NodeIdent(identTok, (SymbolVariable *) asymptr, m_state);
@@ -2217,8 +2221,9 @@ namespace MFM {
     if(pTok.m_type == TOK_OPEN_PAREN)
       {
 	Symbol * asymptr = NULL;
+	bool hazyKin = false; //don't care
 	//may continue when symbol not defined yet (e.g. FuncCall)
-	m_state.alreadyDefinedSymbol(identTok.m_dataindex,asymptr);
+	m_state.alreadyDefinedSymbol(identTok.m_dataindex, asymptr, hazyKin);
 	if(asymptr && !asymptr->isFunction())
 	  {
 	    std::ostringstream msg;
@@ -2266,7 +2271,8 @@ namespace MFM {
   {
     Node * rtnNode = NULL;
     Symbol * dsymptr = NULL;
-    if(m_state.alreadyDefinedSymbol(memberTok.m_dataindex, dsymptr))
+    bool hazyKin = false; //don't care
+    if(m_state.alreadyDefinedSymbol(memberTok.m_dataindex, dsymptr, hazyKin))
       rtnNode = parseMinMaxSizeofType(memberTok, dsymptr->getUlamTypeIdx(), NULL);
     else
       rtnNode = parseMinMaxSizeofType(memberTok);
@@ -2635,7 +2641,8 @@ namespace MFM {
       case TOK_IDENTIFIER:
 	{
 	  Symbol * asymptr = NULL;
-	  if(m_state.alreadyDefinedSymbol(pTok.m_dataindex,asymptr))
+	  bool hazyKin = false; //don't care
+	  if(m_state.alreadyDefinedSymbol(pTok.m_dataindex, asymptr, hazyKin))
 	    {
 	      //if already defined named constant, or model parameter, in current block,
 	      //then return a NodeConstant (or NodeMP), instead of NodeIdent, without arrays.
@@ -3151,7 +3158,8 @@ namespace MFM {
 
     //makeup node for lhs; using same symbol as dNode(could be Null!)
     Symbol * dsymptr = NULL;
-    assert(m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr));
+    bool hazyKin = false; //don't care
+    assert(m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr, hazyKin));
     Node * leftNode = new NodeIdent(identTok, (SymbolVariable *) dsymptr, m_state);
     assert(leftNode);
     leftNode->setNodeLocation(dNode->getNodeLocation());
