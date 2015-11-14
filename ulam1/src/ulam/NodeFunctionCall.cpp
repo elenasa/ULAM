@@ -94,8 +94,9 @@ namespace MFM {
     u32 constantArgs = 0;
     u32 navArgs = 0;
     UTI listuti = Nav;
+    bool hazyKin = false;
 
-    if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr))
+    if(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex,fnsymptr, hazyKin) && !hazyKin)
       {
         //use member block doesn't apply to arguments; no change to current block
 	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
@@ -182,7 +183,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
 	msg << "> is not a defined function, and cannot be called";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(hazyKin)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	numErrorsFound++;
       }
 

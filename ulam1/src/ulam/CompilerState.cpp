@@ -1368,14 +1368,17 @@ namespace MFM {
     //data member variables in class block; function symbols are linked to their
     //function def block; check function data members separately.
     if(!brtn)
-      brtn = isFuncIdInClassScope(dataindex, symptr);
-
+      {
+	bool hazyKin = false; //not sure how to use this info yet
+	brtn = isFuncIdInClassScope(dataindex, symptr, hazyKin);
+      }
     return brtn;
   } //alreadyDefinedSymbol
 
-  bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr)
+  bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     bool brtn = false;
+    assert(!hasHazyKin);
 
     //start with the current "top" block and look down the stack
     //until the 'variable id' is found.
@@ -1387,21 +1390,25 @@ namespace MFM {
 
     while(!brtn && classblock)
       {
+	UTI cuti = classblock->getNodeType();
+	if(!isComplete(cuti)) hasHazyKin = true; //self is incomplete
+	UTI superuti = isClassASubclass(cuti);
 	brtn = classblock->isFuncIdInScope(dataindex,symptr); //returns symbol
 	classblock = (NodeBlockClass *) classblock->getPreviousBlockPointer(); //inheritance chain
+	if(superuti != Nav && (!classblock || classblock->getNodeType() != superuti)) hasHazyKin = true;
       }
-
     return brtn;
   } //isFuncIdInClassScope
 
-  bool CompilerState::isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr)
+  bool CompilerState::isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     UTI cuti = findAClassByNodeNo(cnno); //class of cnno
     assert(cuti != Nav);
-    return isFuncIdInAClassScope(cuti, dataindex, symptr);
+    assert(!hasHazyKin);
+    return isFuncIdInAClassScope(cuti, dataindex, symptr, hasHazyKin);
   } //isFuncIdInClassScopeNNO
 
-  bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr)
+bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     SymbolClass * csym = NULL;
     assert(alreadyDefinedSymbolClass(cuti, csym));
@@ -1409,7 +1416,7 @@ namespace MFM {
     assert(cblock);
     pushClassContext(cuti, cblock, cblock, false, NULL);
 
-    bool rtnb = isFuncIdInClassScope(dataindex, symptr);
+    bool rtnb = isFuncIdInClassScope(dataindex, symptr, hasHazyKin);
     popClassContext(); //don't forget!!
     return rtnb;
   } //isFuncIdInAClassScope
