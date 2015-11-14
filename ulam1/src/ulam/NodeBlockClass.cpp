@@ -235,14 +235,14 @@ namespace MFM {
     if(superuti != Nav)
       {
 	//this is a subclass.
-	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	NodeBlockClass * superblock = (NodeBlockClass *) NodeBlock::getPreviousBlockPointer();
 	if((superblock == NULL) || (superblock->getNodeType() != superuti))
 	  {
 	    //look up this instance
 	    SymbolClass * csym = NULL;
 	    assert(m_state.alreadyDefinedSymbolClass(superuti, csym));
 	    NodeBlock::setPreviousBlockPointer(csym->getClassBlockNode()); //fix
-	    superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	    superblock = (NodeBlockClass *) NodeBlock::getPreviousBlockPointer(); //not override
 
 	    //look in this ST for instance class args
 	    if(!csym->statusNonreadyClassArguments())
@@ -261,7 +261,6 @@ namespace MFM {
 	  }
 
 	assert(superblock);
-
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClass();
 	if(superclasstype != UC_QUARK)
 	  {

@@ -224,9 +224,9 @@ namespace MFM{
 	search SymbolTables LIFO order; o.w. return false
     */
     bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr);
-    bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr);
-    bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr);
-    bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr);
+    bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+    bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+    bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
 
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
