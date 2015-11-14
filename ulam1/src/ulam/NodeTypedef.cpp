@@ -51,6 +51,7 @@ namespace MFM {
   {
     assert(m_typedefSymbol);
     if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Self")) return;
+    if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Super")) return;
 
     UTI tuti = m_typedefSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);

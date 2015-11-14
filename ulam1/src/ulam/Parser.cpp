@@ -339,7 +339,6 @@ namespace MFM {
     //m_state.popClassContext(); //keep on stack for name id
     m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL);
 
-
     //automatically create a Self typedef symbol for this class type
     u32 selfid = m_state.m_pool.getIndexForDataString("Self");
     Token selfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
@@ -376,6 +375,12 @@ namespace MFM {
 	    m_state.popClassContext(); //m_currentBlock = prevBlock;
 	    m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
 	    m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL); //redo
+
+	    //automatically create a Super typedef symbol for this class' super type
+	    u32 superid = m_state.m_pool.getIndexForDataString("Super");
+	    Token superTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, superid);
+	    SymbolTypedef * symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
+	    m_state.addSymbolToCurrentScope(symtypedef);
 	  }
       }
     else
@@ -3718,7 +3723,19 @@ namespace MFM {
 		UTI auti = asymptr->getUlamTypeIdx();
 		if(asymid == m_state.m_pool.getIndexForDataString("Self") && auti == m_state.getCompileThisIdx())
 		  {
-		    //special case 'Self' typedef that's also defined by the ulam programmer
+		    //special case 'Self' typedef that's also defined sometimes by the ulam programmer
+		    std::ostringstream msg;
+		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
+		    msg << " has a previous declaration as '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+		    msg << " " << m_state.m_pool.getDataAsString(asymid);
+		    msg << "' and is a redundant typedef";
+		    MSG(&args.m_typeTok, msg.str().c_str(), INFO);
+		    aok = true; //not a problem
+		  }
+		else if(asymid == m_state.m_pool.getIndexForDataString("Super") && auti == m_state.isClassASubclass(m_state.getCompileThisIdx()))
+		  {
+		    //special case 'Super' typedef that's also sometimes defined by the ulam programmer
 		    std::ostringstream msg;
 		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
 		    msg << " has a previous declaration as '";
