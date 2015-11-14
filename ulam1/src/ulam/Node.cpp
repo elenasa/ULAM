@@ -1923,7 +1923,9 @@ namespace MFM {
     NNO cosBlockNo = cos->getBlockNoOfST();
 
     Symbol * fnsymptr = NULL;
-    assert(m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr)); //searches class of cos
+    bool hazyKin = false;
+    assert(m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin)); //searches class of cos
+    assert(!hazyKin);
     NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
     UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
     assert(caclassuti != Nav);
@@ -2056,7 +2058,9 @@ namespace MFM {
     NNO cosBlockNo = cos->getBlockNoOfST();
 
     Symbol * fnsymptr = NULL;
-    assert(m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr)); //searches class of cos
+    bool hazyKin = false;
+    assert(m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin)); //searches class of cos
+    assert(!hazyKin);
     NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
     UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
     assert(caclassuti != Nav);

@@ -5,8 +5,13 @@
 ./D.ulam:6:3: ERROR: Unresolved No.1.
 ./D.ulam:3:1: Warning: 1 nodes with unresolved types remain in function <foo> (Uf_3foo,1).
 ./D.ulam:3:5: Warning: Summary: 1 nodes with unresolved types remain in  a single function <foo> in class: D.
-./D.ulam:1:9: Warning: 1 data member nodes with unresolved types remain in class 'D'.
-./D.ulam:1:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: D.
+./D.ulam:9:5: ERROR: Unresolved No.1.
+./D.ulam:9:7: ERROR: Unresolved No.2.
+./D.ulam:9:7: ERROR: Unresolved No.3.
+./D.ulam:8:1: Warning: 3 nodes with unresolved types remain in function <test> (Uf_4test,1).
+./D.ulam:8:5: Warning: Summary: 3 nodes with unresolved types remain in  a single function <test> in class: D.
+./D.ulam:1:9: Warning: 4 data member nodes with unresolved types remain in class 'D'.
+./D.ulam:1:9: ERROR: 4 Nodes with unresolved types detected after type labeling class: D.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>D.ulam
