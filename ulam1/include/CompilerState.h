@@ -223,7 +223,7 @@ namespace MFM{
     /** return true and the Symbol pointer in 2nd arg if found;
 	search SymbolTables LIFO order; o.w. return false
     */
-    bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr);
+    bool alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);

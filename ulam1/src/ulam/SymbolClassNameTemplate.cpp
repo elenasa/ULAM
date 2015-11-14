@@ -452,7 +452,8 @@ namespace MFM {
 	  {
 	    SymbolConstantValue * psym = *pit;
 	    Symbol * asym = NULL;
-	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
+	    bool hazyKin = false; //don't care
+	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin));
 	    UTI auti = asym->getUlamTypeIdx();
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
 
@@ -576,7 +577,8 @@ namespace MFM {
 	    //get 'instance's value
 	    bool isok = false;
 	    Symbol * asym = NULL;
-	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym));
+	    bool hazyKin = false; //don't care
+	    assert(m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin));
 	    UTI auti = asym->getUlamTypeIdx();
 	    if(m_state.isComplete(auti))
 	      {
@@ -1256,7 +1258,8 @@ namespace MFM {
 	SymbolConstantValue * asym = instancesArgs[i]; //asym might be null if default used
 	u32 aid = m_parameterSymbols[i]->getId();
 	Symbol * clonesym = NULL;
-	assert(m_state.alreadyDefinedSymbol(aid, clonesym));
+	bool hazyKin = false; //don't care
+	assert(m_state.alreadyDefinedSymbol(aid, clonesym, hazyKin));
 	if(asym)
 	  m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
 	else
@@ -1297,7 +1300,8 @@ namespace MFM {
 	SymbolConstantValue * psym = *pit;
 	//save 'instance's arg constant symbols in a temporary list
 	Symbol * asym = NULL;
-	assert(m_state.alreadyDefinedSymbol(psym->getId(), asym)); //no ownership change
+	bool hazyKin = false; //don't care
+	assert(m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin)); //no ownership change
 	instancesArgs.push_back((SymbolConstantValue *) asym); //for reference only
 	pit++;
       } //next param

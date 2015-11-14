@@ -88,7 +88,8 @@ namespace MFM {
     Symbol * asymptr = NULL;
     if(m_uti == Nav)
       {
-	if(m_state.alreadyDefinedSymbol(m_ofTok.m_dataindex,asymptr))
+	bool hazyKin = false;
+	if(m_state.alreadyDefinedSymbol(m_ofTok.m_dataindex, asymptr, hazyKin) && !hazyKin)
 	  {
 	    m_uti = asymptr->getUlamTypeIdx();
 	    std::ostringstream msg;
@@ -107,7 +108,10 @@ namespace MFM {
 		msg << "Undetermined type for missing member '";
 		msg << m_state.getTokenDataAsString(&m_ofTok).c_str();
 		msg << "' Proxy";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		if(!hazyKin)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		else
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		return Nav;
 	      }
 	  }

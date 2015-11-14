@@ -95,7 +95,9 @@ namespace MFM {
 	m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
 	Symbol * asymptr = NULL;
-	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
+	bool hazyKin = false;
+	// don't capture symbol ptr yet if part of incomplete chain.
+	if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin) && !hazyKin)
 	  {
 	    if(!asymptr->isFunction() && !asymptr->isTypedef() && !asymptr->isConstant() && !asymptr->isModelParameter())
 	      {
@@ -171,7 +173,13 @@ namespace MFM {
 	    msg << "(2) <" << m_state.getTokenDataAsString(&m_token).c_str();
 	    msg << "> is not defined, and cannot be used with class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    if(!hazyKin)
+	      {
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		//errCnt++;
+	      }
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    errCnt++;
 	  }
 	m_state.popClassContext(); //restore
@@ -216,11 +224,9 @@ namespace MFM {
 		msg << "' UTI" << it << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
 	      }
 	  }
       }
-
     setNodeType(it);
     return it;
   } //checkAndLabelType

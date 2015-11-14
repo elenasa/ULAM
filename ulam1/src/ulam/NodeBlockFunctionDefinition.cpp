@@ -353,7 +353,8 @@ namespace MFM {
     //set self slot just below return value
     u32 selfid = m_state.m_pool.getIndexForDataString("atom");
     Symbol * selfsym = NULL;
-    assert(m_state.alreadyDefinedSymbol(selfid, selfsym));
+    bool hazyKin = false; //return is always false?
+    assert(m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin);
     s32 newslot = -1 - m_state.slotsNeeded(getNodeType());
     s32 oldslot = ((SymbolVariable *) selfsym)->getStackFrameSlotIndex();
     if(oldslot != newslot)

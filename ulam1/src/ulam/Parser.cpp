@@ -339,7 +339,6 @@ namespace MFM {
     //m_state.popClassContext(); //keep on stack for name id
     m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL);
 
-
     //automatically create a Self typedef symbol for this class type
     u32 selfid = m_state.m_pool.getIndexForDataString("Self");
     Token selfTok(TOK_TYPE_IDENTIFIER, identTok.m_locator, selfid);
@@ -376,6 +375,12 @@ namespace MFM {
 	    m_state.popClassContext(); //m_currentBlock = prevBlock;
 	    m_state.pushClassContext(superuti, superclassblock, superclassblock, false, NULL);
 	    m_state.pushClassContext(cnsym->getUlamTypeIdx(), rtnNode, rtnNode, false, NULL); //redo
+
+	    //automatically create a Super typedef symbol for this class' super type
+	    u32 superid = m_state.m_pool.getIndexForDataString("Super");
+	    Token superTok(TOK_TYPE_IDENTIFIER, qTok.m_locator, superid);
+	    SymbolTypedef * symtypedef = new SymbolTypedef(superTok, superuti, superuti, m_state);
+	    m_state.addSymbolToCurrentScope(symtypedef);
 	  }
       }
     else
@@ -1151,8 +1156,9 @@ namespace MFM {
     if(getExpectedToken(TOK_IDENTIFIER, iTok, QUIETLY))
       {
 	Symbol * asymptr = NULL;
+	bool hazyKin = false; //don't care
 	//may continue when symbol not defined yet (e.g. FuncCall)
-	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex,asymptr))
+	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex, asymptr, hazyKin))
 	  {
 	    if(asymptr->isConstant()) //check for constant first
 	      {
@@ -1921,7 +1927,8 @@ namespace MFM {
 
     SymbolClassName * cnsym = NULL;
     Symbol * asym = NULL; //or a typedef that we've already seen
-    if(!(m_state.alreadyDefinedSymbolClassName(args.m_typeTok.m_dataindex, cnsym) || m_state.alreadyDefinedSymbol(args.m_typeTok.m_dataindex, asym)))
+    bool hazyKin = false; //don't care
+    if(!(m_state.alreadyDefinedSymbolClassName(args.m_typeTok.m_dataindex, cnsym) || m_state.alreadyDefinedSymbol(args.m_typeTok.m_dataindex, asym, hazyKin)))
       {
 	//if here, the last typedef might have been a holder for some unknown type
 	// now we know (thanks to the dot and subsequent type token) that its a holder
@@ -2154,7 +2161,8 @@ namespace MFM {
 	//check for a named constant already defined (e.g. class
 	//parameter) and continue parsing expression instead of ident.
 	Symbol * sym = NULL;
-	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex,sym))
+	bool hazyKin = false; //don't care
+	if(m_state.alreadyDefinedSymbol(iTok.m_dataindex, sym, hazyKin))
 	  {
 	    if(sym->isConstant() || sym->isModelParameter())
 	      {
@@ -2194,10 +2202,11 @@ namespace MFM {
     unreadToken(); //put whatever back
 
     Symbol * asymptr = NULL;
+    bool hazyKin = false; //don't care
     //may continue when symbol not defined yet (e.g. Decl)
     // don't return a NodeConstant, instead of NodeIdent, without arrays
     // even if already defined as one.
-    m_state.alreadyDefinedSymbol(identTok.m_dataindex,asymptr);
+    m_state.alreadyDefinedSymbol(identTok.m_dataindex, asymptr, hazyKin);
 
     //o.w. make a variable;  symbol could be Null!
     Node * rtnNode = new NodeIdent(identTok, (SymbolVariable *) asymptr, m_state);
@@ -2217,8 +2226,9 @@ namespace MFM {
     if(pTok.m_type == TOK_OPEN_PAREN)
       {
 	Symbol * asymptr = NULL;
+	bool hazyKin = false; //don't care
 	//may continue when symbol not defined yet (e.g. FuncCall)
-	m_state.alreadyDefinedSymbol(identTok.m_dataindex,asymptr);
+	m_state.alreadyDefinedSymbol(identTok.m_dataindex, asymptr, hazyKin);
 	if(asymptr && !asymptr->isFunction())
 	  {
 	    std::ostringstream msg;
@@ -2266,7 +2276,8 @@ namespace MFM {
   {
     Node * rtnNode = NULL;
     Symbol * dsymptr = NULL;
-    if(m_state.alreadyDefinedSymbol(memberTok.m_dataindex, dsymptr))
+    bool hazyKin = false; //don't care
+    if(m_state.alreadyDefinedSymbol(memberTok.m_dataindex, dsymptr, hazyKin))
       rtnNode = parseMinMaxSizeofType(memberTok, dsymptr->getUlamTypeIdx(), NULL);
     else
       rtnNode = parseMinMaxSizeofType(memberTok);
@@ -2635,7 +2646,8 @@ namespace MFM {
       case TOK_IDENTIFIER:
 	{
 	  Symbol * asymptr = NULL;
-	  if(m_state.alreadyDefinedSymbol(pTok.m_dataindex,asymptr))
+	  bool hazyKin = false; //don't care
+	  if(m_state.alreadyDefinedSymbol(pTok.m_dataindex, asymptr, hazyKin))
 	    {
 	      //if already defined named constant, or model parameter, in current block,
 	      //then return a NodeConstant (or NodeMP), instead of NodeIdent, without arrays.
@@ -3151,7 +3163,8 @@ namespace MFM {
 
     //makeup node for lhs; using same symbol as dNode(could be Null!)
     Symbol * dsymptr = NULL;
-    assert(m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr));
+    bool hazyKin = false; //don't care
+    assert(m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr, hazyKin));
     Node * leftNode = new NodeIdent(identTok, (SymbolVariable *) dsymptr, m_state);
     assert(leftNode);
     leftNode->setNodeLocation(dNode->getNodeLocation());
@@ -3710,7 +3723,19 @@ namespace MFM {
 		UTI auti = asymptr->getUlamTypeIdx();
 		if(asymid == m_state.m_pool.getIndexForDataString("Self") && auti == m_state.getCompileThisIdx())
 		  {
-		    //special case 'Self' typedef that's also defined by the ulam programmer
+		    //special case 'Self' typedef that's also defined sometimes by the ulam programmer
+		    std::ostringstream msg;
+		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
+		    msg << " has a previous declaration as '";
+		    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+		    msg << " " << m_state.m_pool.getDataAsString(asymid);
+		    msg << "' and is a redundant typedef";
+		    MSG(&args.m_typeTok, msg.str().c_str(), INFO);
+		    aok = true; //not a problem
+		  }
+		else if(asymid == m_state.m_pool.getIndexForDataString("Super") && auti == m_state.isClassASubclass(m_state.getCompileThisIdx()))
+		  {
+		    //special case 'Super' typedef that's also sometimes defined by the ulam programmer
 		    std::ostringstream msg;
 		    msg << m_state.m_pool.getDataAsString(asymid).c_str();
 		    msg << " has a previous declaration as '";

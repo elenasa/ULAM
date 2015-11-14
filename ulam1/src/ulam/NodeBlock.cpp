@@ -170,6 +170,11 @@ namespace MFM {
     m_prevBlockNode = b;
   }
 
+  bool NodeBlock::isAClassBlock()
+  {
+    return false;
+  }
+
   u32 NodeBlock::getNumberOfSymbolsInTable()
   {
     return m_ST.getTableSize();

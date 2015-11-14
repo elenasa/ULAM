@@ -2,14 +2,14 @@
 #=t3562_test_compiler_elementinheritances_castingself
 #!
 ## gencode output:
-##Unsigned Arg: 2
+##Unsigned Arg: 3
 ##Unsigned Arg: 3
 ##Unsigned Arg: 7
 ##
 Exit status: 10
-Ue_Foo : Soo { :< :< Unsigned(3) us(2u);  Bool(3) cb(true); > Unsigned(3) us(3u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  ( 3u cast )setus Coo cc;  cc self cast = s ( cc us . cast )print . cc ( 7u )setus . cc cb . cond { s ( us cast )print . s ( cc us . cast )print . us cast cc us . cast +b cast return } if 0 cast return } }
+Ue_Foo : Soo { :< :< Unsigned(3) us(3u);  Bool(3) cb(true); > Unsigned(3) sus(4u); > Bool(7) sp(false);  Int(32) a(73);  Int(32) test() {  System s;  ( 3u cast )setus Coo cc;  cc self cast = s ( cc us . cast )print . cc ( 7u )setus . cc cb . cond { s ( us cast )print . s ( cc us . cast )print . us cast cc us . cast +b cast return } if 0 cast return } }
 Uq_System { <NOMAIN> }
-Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) us( 4u);  <NOMAIN> }
+Uq_Soo : Coo { :< Unsigned(3) us( 2u);  Bool(3) cb( true); > Unsigned(3) sus( 4u);  <NOMAIN> }
 Uq_Coo { Unsigned(3) us( 2u);  Bool(3) cb( true);  <NOMAIN> }
 ##
 ## chained class inheritance, regular (non-template), with casting self
@@ -31,7 +31,7 @@ element Foo : Soo {
     System s;
     setus(3u);
     Coo cc = (Coo) self; //also works
-    s.print(cc.us); //default 2u
+    s.print(cc.us); //not default 2u
     cc.setus(7u);
 
     if(cc.cb)
@@ -48,10 +48,10 @@ element Foo : Soo {
   ulam 1;
 use Coo;
 quark Soo : Coo {
-  Unsigned(3) us = 4u;
+  Unsigned(3) sus = 4u;
   Void setus(Unsigned(3) x)
   {
-    us = x;
+    sus = x;
   }
 }
 

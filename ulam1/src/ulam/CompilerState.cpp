@@ -693,12 +693,13 @@ namespace MFM {
   {
     bool rtnBool = false;
     Symbol * asymptr = NULL;
+    bool hazyKin = false; //useful?
 
     //e.g. KEYWORDS have no m_dataindex (=0); short-circuit
     if(nameIdx == 0) return false;
 
     //searched back through all block's ST for idx
-    if(alreadyDefinedSymbol(nameIdx, asymptr))
+    if(alreadyDefinedSymbol(nameIdx, asymptr, hazyKin))
       {
 	if(asymptr->isTypedef())
 	  {
@@ -1347,9 +1348,10 @@ namespace MFM {
     return rtnB;
   } //completeIncompleteClassSymbolForTypedef
 
-  bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr)
+  bool CompilerState::alreadyDefinedSymbol(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     bool brtn = false;
+    assert(!hasHazyKin);
 
     //start with the current "top" block and look down the stack
     //until the 'variable id' is found.
@@ -1361,24 +1363,27 @@ namespace MFM {
 
     while(!brtn && blockNode)
       {
-	brtn = blockNode->isIdInScope(dataindex,symptr);
+	brtn = blockNode->isIdInScope(dataindex,symptr); //check ST
+
+	//hazy check..
+	UTI buti = blockNode->getNodeType();
+	if(blockNode->isAClassBlock() && (isClassAStub(buti) || (isClassASubclass(buti) && !((NodeBlockClass *) blockNode)->isSuperClassLinkReady())))
+	  hasHazyKin = true;
+
 	blockNode = blockNode->getPreviousBlockPointer(); //traverse the chain
       }
 
     //data member variables in class block; function symbols are linked to their
     //function def block; check function data members separately.
     if(!brtn)
-      {
-	bool hazyKin = false; //not sure how to use this info yet
-	brtn = isFuncIdInClassScope(dataindex, symptr, hazyKin);
-      }
+      brtn = isFuncIdInClassScope(dataindex, symptr, hasHazyKin);
     return brtn;
   } //alreadyDefinedSymbol
 
   bool CompilerState::isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     bool brtn = false;
-    assert(!hasHazyKin);
+    //assert(!hasHazyKin); might come from alreadyDefinedSymbol now, and have a hazy chain.
 
     //start with the current "top" block and look down the stack
     //until the 'variable id' is found.
@@ -1391,11 +1396,14 @@ namespace MFM {
     while(!brtn && classblock)
       {
 	UTI cuti = classblock->getNodeType();
-	if(!isComplete(cuti)) hasHazyKin = true; //self is incomplete
+	//	if(!isComplete(cuti)) hasHazyKin = true; //self is incomplete
+	if(isClassAStub(cuti))
+	  hasHazyKin = true; //self is stub
 	UTI superuti = isClassASubclass(cuti);
 	brtn = classblock->isFuncIdInScope(dataindex,symptr); //returns symbol
 	classblock = (NodeBlockClass *) classblock->getPreviousBlockPointer(); //inheritance chain
-	if(superuti != Nav && (!classblock || classblock->getNodeType() != superuti)) hasHazyKin = true;
+	if(superuti != Nav && (!classblock || classblock->getNodeType() != superuti))
+	  hasHazyKin = true;
       }
     return brtn;
   } //isFuncIdInClassScope
@@ -2291,7 +2299,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     // no longer all self in h/as conditionals.
     Symbol * selfsym = NULL;
     u32 selfid = m_pool.getIndexForDataString("self");
-    assert(alreadyDefinedSymbol(selfid, selfsym));
+    assert(alreadyDefinedSymbol(selfid, selfsym, hazyKin));
     return (SymbolClass *) selfsym;
 #endif
   } //getCurrentSelfSymbolForCodeGen
