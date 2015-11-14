@@ -178,7 +178,7 @@ namespace MFM {
     assert(cuti != Nav);
     UTI supercuti = m_state.isClassASubclass(cuti);
     if(supercuti != Nav)
-      if(m_state.isFuncIdInAClassScope(supercuti, getId(), fnsym))
+      if(m_state.isFuncIdInAClassScope(supercuti, getId(), fnsym, hasHazyArgs) && !hasHazyArgs)
 	return ((SymbolFunctionName *) fnsym)->findMatchingFunctionWithConstantsAsArgs(argTypes, constArgs, funcSymbol, hasHazyArgs); //recurse ancestors
     return 0;
   } //findMatchingFunctionWithConstantsAsArgsInAncestors
