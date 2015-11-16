@@ -186,7 +186,6 @@ namespace MFM {
 	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 	    msg << "> is not a typedef, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    //errCnt++;
 	  }
       }
     else
@@ -198,7 +197,6 @@ namespace MFM {
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	else
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	//errCnt++;
       }
     m_state.popClassContext(); //restore
   } //toinstantiate
