@@ -1395,15 +1395,13 @@ namespace MFM {
 
     while(!brtn && classblock)
       {
-	UTI cuti = classblock->getNodeType();
-	//	if(!isComplete(cuti)) hasHazyKin = true; //self is incomplete
-	if(isClassAStub(cuti))
-	  hasHazyKin = true; //self is stub
-	UTI superuti = isClassASubclass(cuti);
 	brtn = classblock->isFuncIdInScope(dataindex,symptr); //returns symbol
+
+	UTI cuti = classblock->getNodeType();
+	if(isClassAStub(cuti) || (isClassASubclass(cuti) && !classblock->isSuperClassLinkReady()))
+	  hasHazyKin = true; //self is stub
+
 	classblock = (NodeBlockClass *) classblock->getPreviousBlockPointer(); //inheritance chain
-	if(superuti != Nav && (!classblock || classblock->getNodeType() != superuti))
-	  hasHazyKin = true;
       }
     return brtn;
   } //isFuncIdInClassScope

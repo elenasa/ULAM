@@ -222,11 +222,12 @@ namespace MFM {
 
   bool NodeBlockClass::isAClassBlock()
   {
-    return true;
+    return true; //used in searches for already defined symbol
   }
 
   bool NodeBlockClass::isSuperClassLinkReady()
   {
+    //call for known subclasses only
     UTI superuti = m_state.isClassASubclass(getNodeType());
     assert(superuti != Nav);
     //this is a subclass.
@@ -258,6 +259,7 @@ namespace MFM {
 		msg << "', a class with pending arguments";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_state.setGoAgain();
+		//need to break the chain; e.g. don't want template symbol addresses used
 		NodeBlock::setPreviousBlockPointer(NULL); //force to try again!! avoid inf loop
 		return Nav; //short-circuit
 	      }
