@@ -235,9 +235,9 @@ namespace MFM {
 
     //initialize this classes VTable to super classes' VTable, or empty
     // some entries may be modified; or table may expand
-    //SymbolClass * csym = NULL;
-    //assert(alreadyDefinedSymbolClass(cuti, csym));
-    //csym->initVTable();
+    SymbolClass * csym = NULL;
+    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    csym->initVTable();
 
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
@@ -245,12 +245,12 @@ namespace MFM {
 	SymbolFunction * fsym = it->second;
 	UTI futi = fsym->getUlamTypeIdx();
 
-	UTI kinuti; //possibly us, or a great-ancestor that has first decl of this func
-	// what to do with it now that we went to all the trouble to save it???
+	//possibly us, or a great-ancestor that has first decl of this func
+	UTI kinuti; // ref to find, Nav if not found
 	s32 vidx = UNKNOWNSIZE; //virtual index
 
-	//check for super-class virtual function for exact name/type
-	// if so, this function must also be virtual
+	//search for virtual function w exact name/type in superclass
+	// if found, this function must also be virtual
 	if(superuti != Nav)
 	  {
 	    std::vector<UTI> pTypes;
@@ -268,7 +268,7 @@ namespace MFM {
 	      {
 		if(superfsym->isVirtualFunction())
 		  {
-		    //like c++, we are too!
+		    //like c++, this fsym should be too!
 		    if(!fsym->isVirtualFunction())
 		      {
 			std::ostringstream msg;
@@ -278,40 +278,48 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
 			MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG);
 
-			fsym->setVirtualFunction();
+			fsym->setVirtualFunction(); //fix
 			assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
 			vidx = superfsym->getVirtualMethodIdx();
 		      }
 		  }
+		else
+		  {
+		    if(fsym->isVirtualFunction())
+		      {
+			//c++, quietly fails
+			std::ostringstream msg;
+			msg << "Virtual overloaded function <";
+			msg << m_state.m_pool.getDataAsString(fid).c_str();
+			msg << "> has a NON-VIRTUAL ancestor in class: ";
+			msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
+			MSG(fsym->getTokPtr(), msg.str().c_str(), WARN);
+			//probably upsets compiler assert...need a Nav node?
+		      }
+		  }
 	      }
 	    else
-	      kinuti = futi;
+	      kinuti = cuti; //new entry, this class
 	  } //end ancestor check
 	else
-	  kinuti = futi;
+	  kinuti = cuti; //new entry, this class
 
 	if(fsym->isVirtualFunction())
 	  {
-	    s32 idx = UNKNOWNSIZE;
-	    if(vidx != UNKNOWNSIZE)
+	    if(vidx == UNKNOWNSIZE)
 	      {
-		//uses ancestor index, if found; maxidx stays same
-		idx = vidx;
+		//table extends with new (next) entry/idx
+		vidx = (maxidx != UNKNOWNSIZE ? maxidx : 0);
+		maxidx = vidx + 1;
 	      }
-	    else
-	      {
-		//ow table extends with new (next) entry/idx
-		idx = (maxidx != UNKNOWNSIZE ? maxidx : 0);
-		maxidx = idx + 1;
-	      }
-	    //std::string fmangled = fsym->getMangledNameWithTypes();
-	    fsym->setVirtualMethodIdx(idx);
+	    //else use ancestor index; maxidx stays same
+	    fsym->setVirtualMethodIdx(vidx);
+	    csym->updateVTable(vidx, fsym, kinuti);
 	  }
 	else
 	  maxidx = (maxidx != UNKNOWNSIZE ? maxidx : 0); //stays same, or known 0
-
 	++it;
-      }
+      } //while
     return;
   } //calcMaxIndexOfVirtualFunctions
 

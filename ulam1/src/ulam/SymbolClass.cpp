@@ -873,4 +873,49 @@ namespace MFM {
     classNode->addClassMemberDescriptionsToInfoMap(classmembers);
   } //addClassMemberDesciptionsMapEntry
 
+  void SymbolClass::initVTable()
+  {
+    if(getSuperClass() != Nav)
+      {
+	SymbolClass * csym = NULL;
+	assert(m_state.alreadyDefinedSymbolClass(getSuperClass(), csym));
+	//copy superclass' VTable
+	m_vtable = csym->getVTableRef();
+      }
+    //else empty.
+  } //initVTable
+
+  void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti)
+  {
+    if(idx < m_vtable.size())
+      {
+	m_vtable[idx].m_funcPtr = fsym;
+	m_vtable[idx].m_ofClassUTI = kinuti;
+      }
+    else
+      {
+	struct VTEntry ve;
+	ve.m_funcPtr = fsym;
+	ve.m_ofClassUTI = kinuti;
+	m_vtable.push_back(ve);
+      }
+  }//updateVTable
+
+  VT& SymbolClass::getVTableRef()
+  {
+    return m_vtable;
+  }
+
+  UTI SymbolClass::getClassForVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_ofClassUTI;
+  }
+
+  std::string SymbolClass::getMangledFunctionNameForVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_funcPtr->getMangledNameWithTypes();
+  }
+
 } //end MFM

@@ -257,12 +257,10 @@ namespace MFM {
     u32 navcount = m_state.m_programDefST.countNavNodesAcrossTableOfClasses();
     if(navcount > 0)
       {
-	// not necessarily goAgain, e.g. atom is Empty,
-	// where Empty is a quark instead of an element
-	// the NodeTypeDescriptor is perfectly fine with
-	// a complete quark type, so no need to go again;
-	// however, in the context of "is", this is an
-	// error and t.f. a Nav node.
+	// not necessarily goAgain, e.g. atom is Empty, where Empty is a quark instead of an element
+	// the NodeTypeDescriptor is perfectly fine with a complete quark type, so no need to go again;
+	// however, in the context of "is", this is an error and t.f. a Nav node.
+	errCnt = m_state.m_err.getErrorCount(); //latest count?
 	assert(m_state.goAgain() || errCnt > 0); //sanity check; ran out of iterations
 
 	std::ostringstream msg;
