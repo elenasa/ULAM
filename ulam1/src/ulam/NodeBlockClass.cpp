@@ -1077,6 +1077,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
 
+    genCodeBuiltInVirtualTable(fp, declOnly, classtype);
+
     // 'has' is for both class types
     genCodeBuiltInFunctionHas(fp, declOnly, classtype);
 
@@ -1364,6 +1366,144 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("} //getDefaultQuark\n\n");
   } //genCodeBuiltInFunctionBuildDefaultQuark
+
+  void NodeBlockClass::genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    //VTable applies to both quarks and elements
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    SymbolClass * csym = NULL;
+    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+
+    s32 maxidx = getVirtualMethodMaxIdx();
+    assert(maxidx >= 0);
+
+    if(maxidx == 0)
+      return;
+
+    m_state.indent(fp);
+    fp->write("typedef void (*VTablePtr)(); // Generic function pointer we'll cast at point of use\n\n");
+
+    if(declOnly)
+      {
+#if 0
+	//enum for method indexes
+	m_state.indent(fp);
+	fp->write("enum VmethodNumbers {\n");
+	m_state.m_currentIndentLevel++;
+	for(s32 i = 0; i < maxidx; i++)
+	  {
+	    m_state.indent(fp);
+	    fp->write("MN_METHOD_IDX_");
+	    fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
+	    if(i == 0)
+	      fp->write(" = 0");
+	    fp->write(",\n");
+	  }
+	m_state.indent(fp);
+	fp->write("MN_MAX_METHOD_IDX\n");
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("};\n\n");
+#endif
+
+	m_state.indent(fp);
+	fp->write("static const ");
+	fp->write("VTablePtr m_vtable[");
+	fp->write_decimal_unsigned(maxidx);
+	fp->write("];\n");
+
+	//VTable accessor method
+	m_state.indent(fp);
+	fp->write("const VTablePtr getVTablePtr();\n\n");
+	return;
+      } //done w h-file
+
+    //The VTABLE Definition:
+    m_state.indent(fp);
+    if(classtype == UC_ELEMENT)
+      fp->write("template<class EC>\n");
+    else if(classtype == UC_QUARK)
+      fp->write("template<class EC, u32 POS>\n");
+    else
+      assert(0);
+
+    m_state.indent(fp);
+    fp->write("const ");
+    fp->write("VTablePtr ");
+
+    //include the mangled class::
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    if(classtype == UC_ELEMENT)
+      fp->write("<EC>::");
+    else if(classtype == UC_QUARK)
+      fp->write("<EC, POS>::");
+
+    fp->write("m_vtable[");
+    fp->write_decimal_unsigned(maxidx);
+    fp->write("] = {\n");
+
+    m_state.m_currentIndentLevel++;
+    //generate each VT entry:
+    for(s32 i = 0; i < maxidx; i++)
+      {
+	if(i > 0)
+	  fp->write(",\n");
+	UTI veuti = csym->getClassForVTableEntry(i);
+	UlamType * veut = m_state.getUlamTypeByIndex(veuti);
+	ULAMCLASSTYPE veclasstype = veut->getUlamClass();
+	m_state.indent(fp);
+	fp->write("&");
+	fp->write(veut->getUlamTypeMangledName().c_str());
+	if(veclasstype == UC_ELEMENT)
+	  fp->write("<EC>::THE_INSTANCE.");
+	else if(veclasstype == UC_QUARK)
+	  {
+	    fp->write("<EC, ");
+	    if(classtype == UC_QUARK)
+	      fp->write("POS");
+	    else
+	      fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS);
+	    fp->write(">::");
+	  }
+	else
+	  assert(0);
+	fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
+      }
+    fp->write("\n");
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}; //VT\n\n");
+
+
+    //VTable accessor method
+    m_state.indent(fp);
+    if(classtype == UC_ELEMENT)
+      fp->write("template<class EC>\n");
+    else if(classtype == UC_QUARK)
+      fp->write("template<class EC, u32 POS>\n");
+    else
+      assert(0);
+
+    m_state.indent(fp);
+    fp->write("const VTablePtr ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    if(classtype == UC_ELEMENT)
+      fp->write("<EC>::");
+    else if(classtype == UC_QUARK)
+      fp->write("<EC, POS>::");
+    fp->write("getVTablePtr()\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write(" return m_vtable;\n");
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n\n");
+  }//genCodeBuiltInVirtualTable
 
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {

@@ -1,0 +1,100 @@
+## -*- mode:ulam -*-
+#=t3600_test_compiler_elementinheritedquark_virtualfuncs
+##
+## gen output: * 13
+##assert: arg is 1
+##after assert's abort: arg is 1
+##
+#!
+Exit status: 0
+Ue_Test : System { :<> Int(32) test() {  Base b;  ( b ( )afunc . 1 cast == )assert ( b ( 1 cast )afunc . 2 cast == )assert Sub1 s1;  ( s1 ( )afunc . 4 cast == )assert ( s1 ( 1 cast )afunc . 2 cast == )assert ( s1 ( )bfunc . 5 cast == )assert ( s1 ( )cfunc . 6 cast == )assert E1 e1;  ( e1 ( )afunc . 1 cast == )assert ( e1 ( 1 cast )afunc . 7 cast == )assert ( e1 ( )bfunc . 8 cast == )assert E2 e2;  ( e2 ( )afunc . 4 cast == )assert ( e2 ( 1 cast )afunc . 9 cast == )assert ( e2 ( )bfunc . 5 cast == )assert ( e2 ( )cfunc . 10 cast == )assert 0 cast return } }
+Uq_Base { <NOMAIN> }
+Uq_Sub1 : Base { :<> <NOMAIN> }
+Ue_E1 : Base { :<> <NOMAIN> }
+Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by vtable-example 11/17/15
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  Int afunc() { return 1; } // not virtual
+  virtual Int afunc(Int a) { return 2; } // but overload of same name can be virtual
+  virtual Int bfunc() { return 3; }
+}
+
+#:Sub1.ulam
+  ulam 2;
+use Base;
+quark Sub1 : Base {
+  Int afunc() { return 4; } // not virtual
+  Int bfunc() { return 5; } // virtual override
+  virtual Int cfunc() { return 6; } // new func
+}
+
+#:E1.ulam
+  ulam 2;
+use Base;
+element E1 : Base {
+  Int afunc(Int a) { return 7; } // virtual override
+  Int bfunc() { return 8; } // virtual override
+}
+
+#:E2.ulam
+  ulam 2;
+use Sub1;
+element E2 : Sub1 {
+  Int afunc(Int a) { return 9; }
+  Int cfunc() { return 10; }
+}
+
+#>Test.ulam
+  ulam 2;
+use Base;
+use Sub1;
+use E1;
+use E2;
+use System;
+element Test : System {
+  Int test() {
+    Base b;
+    assert(b.afunc() == 1);
+    assert(b.afunc(1) == 2);
+
+    Sub1 s1;
+    assert(s1.afunc() == 4);
+    assert(s1.afunc(1) == 2);
+    assert(s1.bfunc() == 5);
+    assert(s1.cfunc() == 6);
+
+    E1 e1;
+    assert(e1.afunc() == 1);
+    assert(e1.afunc(1) == 7);
+    assert(e1.bfunc() == 8);
+
+    E2 e2;
+    assert(e2.afunc() == 4);
+    assert(e2.afunc(1) == 9);
+    assert(e2.bfunc() == 5);
+    assert(e2.cfunc() == 10);
+
+    // Note none of the above _requires_ vtable use, since all that
+    // type info is known at compile time.  But now we rock it out..
+    // see t3601
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

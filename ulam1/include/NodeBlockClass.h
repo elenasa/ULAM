@@ -184,6 +184,8 @@ namespace MFM{
     void genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp);
     void genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
+    void genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
     void generateInternalIsMethodForElement(File * fp, bool declOnly);
     void generateInternalTypeAccessorsForElement(File * fp, bool declOnly);
     void generateGetPosForQuark(File * fp, bool declOnly);

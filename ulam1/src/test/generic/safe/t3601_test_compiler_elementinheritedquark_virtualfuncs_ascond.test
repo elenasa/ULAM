@@ -1,0 +1,107 @@
+## -*- mode:ulam -*-
+#=t3600_test_compiler_elementinheritedquark_virtualfuncs
+#!
+Exit status: 0
+Ue_Test : System { :<> Bool(1) b[10](true,true,true,false,false,false,false,false,false,false);  Int(32) test() {  E1 e1;  E2 e2;  Atom(96) a1;  a1 e1 cast = Atom(96) a2;  a2 e2 cast = a1 Base as cond { Base a1;  b 0 [] a1 ( )afunc . 1 cast == = ( b 0 [] )assert b 1 [] a1 ( 1 cast )afunc . 7 cast == = ( b 1 [] )assert b 2 [] a1 ( )bfunc . 8 cast == = ( b 2 [] )assert } if 0 cast return } }
+Uq_Base { <NOMAIN> }
+Uq_Sub1 : Base { :<> <NOMAIN> }
+Ue_E1 : Base { :<> <NOMAIN> }
+Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by vtable-example 11/17/15, t3600
+##
+#:Base.ulam
+  ulam 2;
+quark Base {
+  Int afunc() { return 1; } // not virtual
+  virtual Int afunc(Int a) { return 2; } // but overload of same name can be virtual
+  virtual Int bfunc() { return 3; }
+}
+
+#:Sub1.ulam
+  ulam 2;
+use Base;
+quark Sub1 : Base {
+  Int afunc() { return 4; } // not virtual
+  Int bfunc() { return 5; } // virtual override
+  virtual Int cfunc() { return 6; } // new func
+}
+
+#:E1.ulam
+  ulam 2;
+use Base;
+element E1 : Base {
+  Int afunc(Int a) { return 7; } // virtual override
+  Int bfunc() { return 8; } // virtual override
+}
+
+#:E2.ulam
+  ulam 2;
+use Sub1;
+element E2 : Sub1 {
+  Int afunc(Int a) { return 9; }
+  Int cfunc() { return 10; }
+}
+
+#>Test.ulam
+  ulam 2;
+use Base;
+use Sub1;
+use E1;
+use E2;
+use System;
+element Test : System {
+  Bool b[10]; //test results should all be true when we're done!
+
+  Int test() {
+    E1 e1;
+    E2 e2;
+
+    //but eval Atom type loses element info...
+    E1 a1 = e1;       // (Atom a1 is copy of e1, unknown to culam)
+    E2 a2 = e2;     // (a2 is copy of e2, unknown to culam)
+
+    if (a1 is Base) {      // succeeds
+      b[0] = (a1.afunc() == 1);
+      assert(b[0]);
+      b[1] = (a1.afunc(1) == 7);
+      assert(b[1]); // E1's vtable used!
+      b[2] = (a1.bfunc() == 8);
+      assert(b[2]); // ditto!
+    }
+
+
+    if (a2 is Base) {      // succeeds
+      assert(a2.afunc() == 1); // !! not 4!  afunc() is not virtual
+      assert(a2.afunc(1) == 9); // E2's vtable used!
+      assert(a2.bfunc() == 5); // ditto!
+    }
+
+    if (a1 is Sub1) {      // not true
+    }
+
+    if (a2 is Sub1) {      // succeeds
+      assert(a2.afunc() == 4); // !! not 1!  a2 is a Sub1 here
+      assert(a2.afunc(1) == 9); // E2's vtable used!
+      assert(a2.bfunc() == 5); // ditto!
+      assert(a2.cfunc() == 10); // ditto!
+    }
+
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+
+#.
