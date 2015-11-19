@@ -561,7 +561,12 @@ namespace MFM {
       }
     else //regular data member: function or variable
       {
-	unreadToken(); //put back for parsing type descriptor
+	bool isVirtual = false;
+	if(pTok.m_type == TOK_KW_VIRTUAL)
+	  isVirtual = true;
+	else
+	  unreadToken(); //put back for parsing type descriptor
+
 	TypeArgs typeargs;
 	NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs, true);
 
@@ -590,7 +595,7 @@ namespace MFM {
 	  {
 	    isFunc = true;
 	    //eats the '(' when found; NULL if error occurred
-	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode); //with params
+	    rtnNode = makeFunctionSymbol(typeargs, iTok, typeNode, isVirtual); //with params
 	    if(rtnNode)
 	      brtn = true; //rtnNode belongs to the symbolFunction
 	    else
@@ -599,6 +604,16 @@ namespace MFM {
 	  }
 	else
 	  {
+	    if(isVirtual)
+	      {
+		std::ostringstream msg;
+		msg << "Unexpected input!! Token <";
+		msg << m_state.getTokenDataAsString(&pTok).c_str() << ">";
+		msg << " applies to functions";
+		MSG(&pTok, msg.str().c_str(), ERR);
+		//continue
+	      }
+
 	    //not '(', so token is unread, and we know
 	    //it's a variable, not a function; also handles arrays
 	    UTI passuti = typeNode->givenUTI(); //before it may become an array
@@ -3290,7 +3305,7 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfParameterDef
 
-  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype)
+  NodeBlockFunctionDefinition * Parser::makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype, bool isVirtual)
   {
     NodeBlockFunctionDefinition * rtnNode = NULL;
 
@@ -3305,6 +3320,9 @@ namespace MFM {
 
     SymbolFunction * fsymptr = new SymbolFunction(identTok, rtnuti, m_state);
     fsymptr->setStructuredComment(); //also clears
+
+    if(isVirtual)
+      fsymptr->setVirtualFunction();
 
     //WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, nodetype, m_state);
@@ -3557,7 +3575,7 @@ namespace MFM {
     return brtn;
   } //parseFunctionBody
 
-  Node * Parser::makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype)
+  Node * Parser::makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype, bool isVirtual)
   {
     //first check that the function name begins with a lower case letter
     if(Token::isTokenAType(identTok))
@@ -3592,7 +3610,7 @@ namespace MFM {
 
     //not in scope, or not yet defined, or possible overloading
     //o.w. build symbol for function: return type + name + parameter symbols
-    Node * rtnNode = makeFunctionBlock(args, identTok, nodetype);
+    Node * rtnNode = makeFunctionBlock(args, identTok, nodetype, isVirtual);
 
     //exclude the declaration & definition from the parse tree
     //(since in SymbolFunction) & return NULL.

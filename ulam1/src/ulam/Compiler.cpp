@@ -222,6 +222,25 @@ namespace MFM {
 	// must happen after type labeling and before eval (test)
 	m_state.m_programDefST.calcMaxDepthOfFunctionsForTableOfClasses();
 
+	// due to inheritance, might take more than a couple times around..
+	infcounter = 0;
+	sumbrtn = false;
+	while(!sumbrtn)
+	  {
+	    // must happen after type labeling, check duplicateFunctions, and before eval (test)
+	    sumbrtn = m_state.m_programDefST.calcMaxIndexOfVirtualFunctionsForTableOfClasses();
+	    if(++infcounter > MAX_ITERATIONS)
+	      {
+		std::ostringstream msg;
+		msg << "Incomplete calc of max index for virtual functions---";
+		msg << "possible INCOMPLETE Super class detected---";
+		msg << " after " << infcounter << " iterations";
+		MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		//note: not an error because template uses with deferred args remain unresolved
+		break;
+	      }
+	  } //while
+
 	// must happen after type labeling and before code gen;
 	// separate pass. want UNKNOWNS reported
 	m_state.m_programDefST.packBitsForTableOfClasses();

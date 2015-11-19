@@ -717,6 +717,26 @@ namespace MFM {
     return;
   } //calcMaxDepthForTableOfFunctions
 
+  void SymbolTable::calcMaxIndexForVirtualTableOfFunctions(s32& maxidx)
+  {
+
+    if(m_idToSymbolPtr.empty())
+      {
+	maxidx = maxidx > 0 ? maxidx : 0; //same as base class, o.w. zero when empty
+	return;
+      }
+
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isFunction());
+	((SymbolFunctionName *) sym)->calcMaxIndexOfVirtualFunctions(maxidx);
+	it++;
+      }
+    return;
+  } //calcMaxIndexForVirtualTableOfFunctions
+
   //called by current Class block on its function ST
   bool SymbolTable::checkCustomArrayTypeFuncs()
   {
@@ -1115,7 +1135,27 @@ namespace MFM {
 	  }
 	it++;
       }
-  } //calcMaxDepthOfFunctionsForTableOfClasses
+  } //caclMaxDepthOfFunctionsForTableOfClasses
+
+  bool SymbolTable::calcMaxIndexOfVirtualFunctionsForTableOfClasses()
+  {
+    bool aok = true;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    aok &= ((SymbolClassName *) sym)->calcMaxIndexOfVirtualFunctionsForClassInstances();
+	  }
+	it++;
+      }
+    return aok;
+  } //calcMaxIndexOfVirtualFunctionsForTableOfClasses
 
   bool SymbolTable::labelTableOfClasses()
   {

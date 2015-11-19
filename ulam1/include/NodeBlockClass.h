@@ -106,6 +106,8 @@ namespace MFM{
 
     void calcMaxDepthOfFunctions();
 
+    void calcMaxIndexOfVirtualFunctions();
+
     virtual EvalStatus eval();
 
     //checks both function and variable symbol names
@@ -133,6 +135,10 @@ namespace MFM{
 
     void packBitsForVariableDataMembers();
 
+    s32 getVirtualMethodMaxIdx();
+
+    void setVirtualMethodMaxIdx(s32 maxidx);
+
     virtual u32 countNativeFuncDecls();
 
     void generateCodeForFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
@@ -153,6 +159,7 @@ namespace MFM{
 
   protected:
     SymbolTable m_functionST;
+    s32 m_virtualmethodMaxIdx;
 
   private:
 

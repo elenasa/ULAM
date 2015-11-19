@@ -3,6 +3,7 @@
 #include "ClassContext.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "SymbolFunctionName.h"
 #include "SymbolTable.h"
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
@@ -1426,6 +1427,39 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     popClassContext(); //don't forget!!
     return rtnb;
   } //isFuncIdInAClassScope
+
+  bool CompilerState::findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor)
+  {
+    bool rtnb = false;
+    UTI superuti = isClassASubclass(cuti);
+    while(!rtnb)
+      {
+	if(superuti != Nav)
+	  {
+	    SymbolClass * supercsym = NULL;
+	    assert(alreadyDefinedSymbolClass(superuti, supercsym));
+	    NodeBlockClass * cblock = supercsym->getClassBlockNode();
+	    assert(cblock);
+	    pushClassContextUsingMemberClassBlock(cblock);
+
+	    Symbol * fnSym = NULL;
+	    if(cblock->isFuncIdInScope(fid, fnSym)) //dont check ancestor
+	      rtnb = (((SymbolFunctionName *) fnSym)->findMatchingFunction(typeVec, fsymref) == 1); //exact
+	    if(rtnb)
+	      foundInAncestor = superuti;
+	    else
+	      superuti = isClassASubclass(superuti);
+
+	    popClassContext(); //don't forget!!
+	  }
+	else
+	  {
+	    foundInAncestor = Nav;
+	    break;
+	  }
+      } //while
+    return rtnb;
+  } //findMatchingFunctionInAncestor
 
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)

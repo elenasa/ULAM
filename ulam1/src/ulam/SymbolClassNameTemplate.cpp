@@ -914,6 +914,38 @@ namespace MFM {
       }
   } //calcMaxDepthOfFunctionsForClassInstances
 
+
+  bool SymbolClassNameTemplate::calcMaxIndexOfVirtualFunctionsForClassInstances()
+  {
+    bool aok = true;
+    // only need to check the unique class instances that have been deeply copied
+    std::map<std::string, SymbolClass* >::iterator it = m_scalarClassArgStringsToSymbolPtr.begin();
+    while(it != m_scalarClassArgStringsToSymbolPtr.end())
+      {
+	SymbolClass * csym = it->second;
+	NodeBlockClass * classNode = csym->getClassBlockNode();
+	assert(classNode);
+	if(!csym->isStub())
+	  {
+	    m_state.pushClassContext(csym->getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+	    classNode->calcMaxIndexOfVirtualFunctions(); //do each instance
+	    m_state.popClassContext(); //restore
+	    aok &= (classNode->getVirtualMethodMaxIdx() != UNKNOWNSIZE);
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << " Class instance '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(csym->getUlamTypeIdx()).c_str();
+	    msg << "' is still a stub; No calc max index of virtual functions error";
+	    MSG(classNode->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+	it++;
+      }
+    return aok;
+  } //calcMaxIndexOfVirtualFunctionsForClassInstances
+
   void SymbolClassNameTemplate::checkAndLabelClassInstances()
   {
     // only need to c&l the unique class instances that have been deeply copied

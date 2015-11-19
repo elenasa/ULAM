@@ -7,13 +7,13 @@
 
 namespace MFM {
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_isEmpty(false)
   {
     m_nodeParameterList = new NodeList(state);
     assert(m_nodeParameterList);
   }
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
     m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
@@ -361,11 +361,58 @@ namespace MFM {
       m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
   }
 
-  void NodeBlockClass::calcMaxDepthOfFunctions()
+    void NodeBlockClass::calcMaxDepthOfFunctions()
   {
     // for all the function names, calculate their max depth
     if(!isEmpty())
       m_functionST.calcMaxDepthForTableOfFunctions(); //returns prob counts, outputs errs
+  }
+
+  void NodeBlockClass::calcMaxIndexOfVirtualFunctions()
+  {
+    UTI nuti = getNodeType();
+    UTI superuti = m_state.isClassASubclass(nuti);
+    s32 maxidx = getVirtualMethodMaxIdx();
+
+    if(maxidx != UNKNOWNSIZE)
+      return; //short-circuit, re-called if any subclass is waiting on a super
+
+    if(superuti != Nav)
+      {
+	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	assert(superblock);
+	maxidx = superblock->getVirtualMethodMaxIdx();
+	if(maxidx < 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Subclass '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << "' inherits from '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+	    msg << "', a class who max index for virtual functions is still unknown";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    //m_state.setGoAgain();
+	    return;
+	  }
+      }
+
+    // for all the virtual function names, calculate their index in the VM Table
+    if(!isEmpty())
+      m_functionST.calcMaxIndexForVirtualTableOfFunctions(maxidx);
+    else
+      maxidx = maxidx > 0 ? maxidx : 0; //same as base class, o.w. zero when empty
+
+    setVirtualMethodMaxIdx(maxidx);
+  } //calcMaxIndexOfVirtualFunctions
+
+  s32 NodeBlockClass::getVirtualMethodMaxIdx()
+  {
+    return m_virtualmethodMaxIdx;
+  }
+
+  void NodeBlockClass::setVirtualMethodMaxIdx(s32 maxidx)
+  {
+    m_virtualmethodMaxIdx = maxidx;
   }
 
   bool NodeBlockClass::hasCustomArray()
@@ -657,7 +704,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
   {
-    Symbol * fnSym;
+    Symbol * fnSym = NULL;
     NodeBlockFunctionDefinition * func = NULL;
     u32 testid = m_state.m_pool.getIndexForDataString("test");
     if(isFuncIdInScope(testid, fnSym))
@@ -665,17 +712,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	SymbolFunction * funcSymbol = NULL;
 	std::vector<UTI> voidVector;
 	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol) == 1)
-	  {
-	    func = funcSymbol->getFunctionNode();
-	  }
+	  func = funcSymbol->getFunctionNode();
       }
     return func;
-  } //findTestFunctionNode()
+  } //findTestFunctionNode
 
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findToIntFunctionNode()
   {
-    Symbol * fnSym;
+    Symbol * fnSym = NULL;
     NodeBlockFunctionDefinition * func = NULL;
     u32 tointid = m_state.m_pool.getIndexForDataString("toInt");
     if(isFuncIdInScope(tointid, fnSym))
@@ -683,12 +728,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	SymbolFunction * funcSymbol = NULL;
 	std::vector<UTI> voidVector;
 	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol) == 1)
-	  {
-	    func = funcSymbol->getFunctionNode();
-	  }
+	  func = funcSymbol->getFunctionNode();
       }
     return func;
-  } //findToIntFunctionNode()
+  } //findToIntFunctionNode
 
   void NodeBlockClass::packBitsForVariableDataMembers()
   {
@@ -700,7 +743,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superblock);
 	UTI superUTI = superblock->getNodeType();
-	offset += m_state.getTotalBitSize(superUTI);
+	u32 superoffset = m_state.getTotalBitSize(superUTI);
+	assert(superoffset >= 0);
+	offset += superoffset;
       }
 
     //m_ST.packBitsForTableOfVariableDataMembers(); //ST order not as declared

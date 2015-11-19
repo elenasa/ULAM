@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(Token id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false)
+  SymbolFunction::SymbolFunction(Token id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false)
   {
     setDataMember(); // by definition all function definitions are data members
   }
 
-  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs)
+  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual)
   {
     //parameters belong to functiondefinition block's ST; do not clone them again here!
     if(sref.m_functionNode)
@@ -112,32 +112,6 @@ namespace MFM {
     return "Uf_";
   }
 
-  //supports overloading functions with SymbolFunctionName;
-  // join function name with comma-delimited UTI parameters
-  const std::string SymbolFunction::getMangledNameWithUTIparameters()
-  {
-    std::ostringstream mangled;
-    mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
-
-    // use void type when no parameters
-    if(m_parameterSymbols.empty())
-      {
-	UTI avuti = Void;
-	mangled << "," << avuti;
-      }
-
-    // append UTI for each parameter
-    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
-    //        during this parse stage, the key remains consistent.
-    // many UTI -to- one key, how does this impact the scheme?
-    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
-      {
-	Symbol * sym = m_parameterSymbols[i];
-	mangled << "," << sym->getUlamTypeIdx();
-      }
-    return mangled.str();
-  } //getMangledNameWithUTIparameters
-
   //supports overloading functions with SymbolFunctionName
   const std::string SymbolFunction::getMangledNameWithTypes()
   {
@@ -172,6 +146,32 @@ namespace MFM {
       }
     return mangled.str();
   } //getMangledNameWithTypes
+
+  //supports overloading functions with SymbolFunctionName;
+  // join function name with comma-delimited UTI parameters
+  const std::string SymbolFunction::getMangledNameWithUTIparameters()
+  {
+    std::ostringstream mangled;
+    mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
+
+    // use void type when no parameters
+    if(m_parameterSymbols.empty())
+      {
+	UTI avuti = Void;
+	mangled << "," << avuti;
+      }
+
+    // append UTI for each parameter
+    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
+    //        during this parse stage, the key remains consistent.
+    // many UTI -to- one key, how does this impact the scheme?
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+      {
+	Symbol * sym = m_parameterSymbols[i];
+	mangled << "," << sym->getUlamTypeIdx();
+      }
+    return mangled.str();
+  } //getMangledNameWithUTIparameters
 
   bool SymbolFunction::checkParameterTypes()
   {
@@ -270,6 +270,28 @@ namespace MFM {
     assert(func);
     return (func->isNative() ? 1 : 0);
   } //isNativeFunctionDeclaration
+
+  bool SymbolFunction::isVirtualFunction()
+  {
+    return m_isVirtual;
+  }
+
+  void SymbolFunction::setVirtualFunction()
+  {
+    m_isVirtual = true;
+  }
+
+  u32 SymbolFunction::getVirtualMethodIdx()
+  {
+    assert(isVirtualFunction());
+    return m_virtualIdx;
+  }
+
+  void SymbolFunction::setVirtualMethodIdx(u32 idx)
+  {
+    assert(isVirtualFunction());
+    m_virtualIdx = idx;
+  }
 
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {

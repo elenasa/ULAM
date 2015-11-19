@@ -227,6 +227,7 @@ namespace MFM{
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+    bool findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
 
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member

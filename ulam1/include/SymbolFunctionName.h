@@ -76,6 +76,8 @@ namespace MFM{
 
     void calcMaxDepthOfFunctions(); //called after all UTI sizes are known
 
+    void calcMaxIndexOfVirtualFunctions(s32& maxidx);
+
     u32 checkFunctionNames();
 
     u32 checkCustomArrayGetFunctions(UTI& rtnType);

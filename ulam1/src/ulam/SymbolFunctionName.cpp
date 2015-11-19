@@ -23,7 +23,6 @@ namespace MFM {
 	SymbolFunction * foundSym = it->second;
 	SymbolFunction * cloneOf = (SymbolFunction *) foundSym->clone();
 	// return types could be mapped UTI, and not the same
-	//assert(foundSym != cloneOf && foundSym->getUlamTypeIdx() == cloneOf->getUlamTypeIdx());
 	overloadFunction(cloneOf);
 	++it;
       }
@@ -60,7 +59,6 @@ namespace MFM {
   {
     bool overloaded = false;
     // return types may differ, as long as params are different
-    //assert(getUlamTypeIdx() == fsym->getUlamTypeIdx());
 
     std::string mangled = fsym->getMangledNameWithUTIparameters();
 
@@ -224,6 +222,98 @@ namespace MFM {
       }
     return;
   } //calcMaxDepthOfFunctions
+
+  // after all the UTI types are known, including array and bitsize
+  // and before eval() for testing, calc the max index of virtual functions,
+  // where base class functions come first; arg is UNKNOWNSIZE if first time
+  // and any ancestors are already known.
+  void SymbolFunctionName::calcMaxIndexOfVirtualFunctions(s32& maxidx)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    u32 fid = getId();
+    UTI superuti = m_state.isClassASubclass(cuti);
+
+    //initialize this classes VTable to super classes' VTable, or empty
+    // some entries may be modified; or table may expand
+    //SymbolClass * csym = NULL;
+    //assert(alreadyDefinedSymbolClass(cuti, csym));
+    //csym->initVTable();
+
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	UTI futi = fsym->getUlamTypeIdx();
+
+	UTI kinuti; //possibly us, or a great-ancestor that has first decl of this func
+	// what to do with it now that we went to all the trouble to save it???
+	s32 vidx = UNKNOWNSIZE; //virtual index
+
+	//check for super-class virtual function for exact name/type
+	// if so, this function must also be virtual
+	if(superuti != Nav)
+	  {
+	    std::vector<UTI> pTypes;
+	    u32 numparams = fsym->getNumberOfParameters();
+	    for(u32 j = 0; j < numparams; j++)
+	      {
+		Symbol * psym = fsym->getParameterSymbolPtr(j);
+		assert(psym);
+		pTypes.push_back(psym->getUlamTypeIdx());
+	      }
+
+	    SymbolFunction * superfsym = NULL;
+	    //might belong to a great-ancestor (can't tell from isFuncIdInAClassScope())
+	    if(m_state.findMatchingFunctionInAncestor(futi, fid, pTypes, superfsym, kinuti))
+	      {
+		if(superfsym->isVirtualFunction())
+		  {
+		    //like c++, we are too!
+		    if(!fsym->isVirtualFunction())
+		      {
+			std::ostringstream msg;
+			msg << "Non-virtual overloaded function <";
+			msg << m_state.m_pool.getDataAsString(fid).c_str();
+			msg << "> has a VIRTUAL ancestor in class: ";
+			msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
+			MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG);
+
+			fsym->setVirtualFunction();
+			assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
+			vidx = superfsym->getVirtualMethodIdx();
+		      }
+		  }
+	      }
+	    else
+	      kinuti = futi;
+	  } //end ancestor check
+	else
+	  kinuti = futi;
+
+	if(fsym->isVirtualFunction())
+	  {
+	    s32 idx = UNKNOWNSIZE;
+	    if(vidx != UNKNOWNSIZE)
+	      {
+		//uses ancestor index, if found; maxidx stays same
+		idx = vidx;
+	      }
+	    else
+	      {
+		//ow table extends with new (next) entry/idx
+		idx = (maxidx != UNKNOWNSIZE ? maxidx : 0);
+		maxidx = idx + 1;
+	      }
+	    //std::string fmangled = fsym->getMangledNameWithTypes();
+	    fsym->setVirtualMethodIdx(idx);
+	  }
+	else
+	  maxidx = (maxidx != UNKNOWNSIZE ? maxidx : 0); //stays same, or known 0
+
+	++it;
+      }
+    return;
+  } //calcMaxIndexOfVirtualFunctions
 
   // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
   u32 SymbolFunctionName::checkFunctionNames()
