@@ -100,6 +100,9 @@ namespace MFM{
     bool m_hasVariableArgs;
     bool m_isVirtual; //overloaded funcs may have different virtual status
     u32 m_virtualIdx;
+
+    void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
   };
 
 }

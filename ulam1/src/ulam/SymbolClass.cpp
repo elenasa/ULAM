@@ -915,6 +915,12 @@ namespace MFM {
   std::string SymbolClass::getMangledFunctionNameForVTableEntry(u32 idx)
   {
     assert(idx < m_vtable.size());
+    return m_vtable[idx].m_funcPtr->getMangledName(); //need to cast overloaded-ness
+  }
+
+  std::string SymbolClass::getMangledFunctionNameWithTypesForVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
     return m_vtable[idx].m_funcPtr->getMangledNameWithTypes();
   }
 

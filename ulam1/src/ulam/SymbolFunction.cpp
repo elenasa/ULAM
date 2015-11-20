@@ -389,7 +389,49 @@ namespace MFM {
 	UlamValue uvpass;
 	func->genCode(fp, uvpass);
       }
+
+    if(declOnly && !func->isNative() && isVirtualFunction())
+      generateFunctionDeclarationVirtualTypedef(fp, declOnly, classtype);
   } //generateFunctionDeclaration
+
+  void SymbolFunction::generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    NodeBlockFunctionDefinition * func = getFunctionNode();
+    assert(func); //how would a function symbol be without a body?
+
+    //up to programmer to define this function!!!
+    assert(declOnly && !func->isNative());
+
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
+
+    m_state.indent(fp);
+    fp->write("//and its contextual type info for virtual table entries:\n");
+
+    m_state.indent(fp);
+    fp->write("typedef ");
+    fp->write(sut->getImmediateStorageTypeAsString().c_str()); //return type for C++
+    fp->write(" (*");
+
+    fp->write(getMangledNameWithTypes().c_str());
+    fp->write(") (");
+
+    //arg types only
+    fp->write("UlamContext<EC>&, "); //first arg is unmangled context
+    fp->write("T& "); //the hidden arg is "atom" (was "self"), a T& (atom)
+
+    u32 numparams = getNumberOfParameters();
+    for(u32 i = 0; i < numparams; i++)
+      {
+	fp->write(", ");
+
+	Symbol * asym = getParameterSymbolPtr(i);
+	assert(asym);
+	UTI auti = asym->getUlamTypeIdx();
+	UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
+      }
+    fp->write(");\n");
+  } //generateFunctionDeclarationVirtualTypedef
 
   void SymbolFunction::setStructuredComment()
   {

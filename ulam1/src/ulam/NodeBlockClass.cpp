@@ -993,6 +993,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel = 0;
 
+    //don't include own header file, since .tcc is included in the .h
     //generate include statements for all the other classes that have appeared
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
     fp->write("\n");
@@ -1382,8 +1383,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(maxidx == 0)
       return;
 
-    m_state.indent(fp);
-    fp->write("typedef void (*VTablePtr)(); // Generic function pointer we'll cast at point of use\n\n");
+    // now in UlamElement.h
+    // why is this needed in both .h and .tcc? can't it go in one place???
+    //    m_state.indent(fp);
+    //fp->write("typedef void (*VTablePtr)(); // Generic function pointer we'll cast at point of use\n\n");
 
     if(declOnly)
       {
@@ -1409,14 +1412,14 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 #endif
 
 	m_state.indent(fp);
-	fp->write("static const ");
+	fp->write("static ");
 	fp->write("VTablePtr m_vtable[");
 	fp->write_decimal_unsigned(maxidx);
 	fp->write("];\n");
 
 	//VTable accessor method
 	m_state.indent(fp);
-	fp->write("const VTablePtr getVTablePtr();\n\n");
+	fp->write("virtual VTablePtr* getVTablePtr();\n\n");
 	return;
       } //done w h-file
 
@@ -1430,7 +1433,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       assert(0);
 
     m_state.indent(fp);
-    fp->write("const ");
+    //fp->write("const ");
     fp->write("VTablePtr ");
 
     //include the mangled class::
@@ -1454,7 +1457,25 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	UlamType * veut = m_state.getUlamTypeByIndex(veuti);
 	ULAMCLASSTYPE veclasstype = veut->getUlamClass();
 	m_state.indent(fp);
-	fp->write("&");
+	fp->write("(VTablePtr) "); //cast to void
+	fp->write("((typename "); //cast to contextual type info
+	fp->write(veut->getUlamTypeMangledName().c_str());
+	if(veclasstype == UC_ELEMENT)
+	  fp->write("<EC>::THE_INSTANCE.");
+	else if(veclasstype == UC_QUARK)
+	  {
+	    fp->write("<EC, ");
+	    if(classtype == UC_QUARK)
+	      fp->write("POS");
+	    else
+	      fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS);
+	    fp->write(">::");
+	  }
+	else
+	  assert(0);
+	fp->write(csym->getMangledFunctionNameWithTypesForVTableEntry(i).c_str());
+
+	fp->write(") &");
 	fp->write(veut->getUlamTypeMangledName().c_str());
 	if(veclasstype == UC_ELEMENT)
 	  fp->write("<EC>::THE_INSTANCE.");
@@ -1470,12 +1491,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	else
 	  assert(0);
 	fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
-      }
+	fp->write(")");
+      } //next vt entry
+
     fp->write("\n");
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
-    fp->write("}; //VT\n\n");
-
+    fp->write("}; //VTABLE Definition\n\n");
 
     //VTable accessor method
     m_state.indent(fp);
@@ -1487,7 +1509,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       assert(0);
 
     m_state.indent(fp);
-    fp->write("const VTablePtr ");
+    fp->write("VTablePtr* ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     if(classtype == UC_ELEMENT)
       fp->write("<EC>::");

@@ -135,6 +135,7 @@ namespace MFM{
     VT& getVTableRef();
     UTI getClassForVTableEntry(u32 idx);
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
+    std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
 
   protected:
     Resolver * m_resolver;
