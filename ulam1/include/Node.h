@@ -249,7 +249,7 @@ namespace MFM{
     void genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
     void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
-    void genModelParameterHiddenArgs(File * fp, s32 epi);
+    virtual void genModelParameterHiddenArgs(File * fp, s32 epi);
 
     void genCustomArrayMemberNameOfMethod(File * fp);
 

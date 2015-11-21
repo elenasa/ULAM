@@ -98,10 +98,10 @@ namespace MFM{
     virtual void genMemberNameOfMethod(File * fp);
 
     virtual void genModelParameterMemberNameOfMethod(File * fp, s32 epi);
-    std::string genModelParameterHiddenArgs(s32 epi);
-    virtual void genLocalMemberNameOfMethod(File * fp);
 
-    void genCodeIntoABitValue(File * fp, UlamValue& uvpass);
+    virtual std::string genModelParameterHiddenArgs(s32 epi);
+
+    virtual void genLocalMemberNameOfMethod(File * fp);
 
   private:
 
@@ -110,6 +110,10 @@ namespace MFM{
     //std::vector<Node *> m_argumentNodes;
     NodeList * m_argumentNodes;
 
+    void genCodeIntoABitValue(File * fp, UlamValue& uvpass);
+    void genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass);
+    std::string genHiddenArgs();
+    std::string genRestOfFunctionArgs(File * fp, UlamValue & uvpass);
   };
 
 }

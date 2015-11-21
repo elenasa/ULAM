@@ -507,93 +507,14 @@ namespace MFM {
     UTI nuti = getNodeType();
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
 
-    //wiped out by arg processing; needed to determine owner of called function
-    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
     std::ostringstream arglist;
-
     // presumably there's no = sign.., and no open brace for tmpvars
-    // first "hidden" arg is the context
-    arglist << m_state.getHiddenContextArgName() << ", ";
+    arglist << genHiddenArgs().c_str();
 
-    //"hidden" self arg
-    if(!isCurrentObjectALocalVariableOrArgument())
-      {
-	arglist << m_state.getHiddenArgName();
-      }
-    else
-      {
-	s32 epi = isCurrentObjectsContainingAModelParameter();
-	if(epi >= 0)
-	  {
-	    arglist << genModelParameterHiddenArgs(epi);
-	  }
-	else //local var
-	  {
-	    Symbol * stgcos = NULL;
-	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
-	      {
-		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
-	      }
-	    else
-	      {
-		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-	      }
+    //loads any variables into tmps before used as args (needs fp)
+    arglist << genRestOfFunctionArgs(fp, uvpass).c_str();
 
-	    arglist << stgcos->getMangledName().c_str();
-
-	    // for both immediate quarks and elements now..not self.
-	    if(!stgcos->isSelf())
-	      arglist << ".getRef()"; //the T storage within the struct for immediate quarks
-	  }
-      }
-
-    u32 numParams = m_funcSymbol->getNumberOfParameters();
-    // handle any variable number of args separately
-    // since non-datamember variables can modify globals, save/restore before/after each
-    for(u32 i = 0; i < numParams; i++)
-      {
-	UlamValue auvpass;
-	UTI auti;
-	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
-
-	m_argumentNodes->genCode(fp, auvpass, i);
-	Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
-	auti = auvpass.getUlamValueTypeIdx();
-	if(auti == Ptr)
-	  {
-	    auti = auvpass.getPtrTargetType();
-	  }
-	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
-      } //next arg..
-
-    if(m_funcSymbol->takesVariableArgs())
-      {
-	u32 numargs = getNumberOfArguments();
-	for(u32 i = numParams; i < numargs; i++)
-	  {
-	    UlamValue auvpass;
-	    UTI auti;
-	    m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
-
-	    m_argumentNodes->genCode(fp, auvpass, i);
-	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
-
-	    auti = auvpass.getUlamValueTypeIdx();
-	    if(auti == Ptr)
-	      {
-		auti = auvpass.getPtrTargetType();
-	      }
-
-	    // use pointer for variable arg's since all the same size that way
-	    arglist << ", &" << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
-	  } //end forloop through variable number of args
-
-	arglist << ", (void *) 0"; //indicates end of args
-      } //end of handling variable arguments
-
-    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore vector after args******
-
-    //non-void return value saved in a tmp BitValue; depends on return type
+    //non-void RETURN value saved in a tmp BitValue; depends on return type
     m_state.indent(fp);
     if(nuti != Void)
       {
@@ -623,25 +544,78 @@ namespace MFM {
 	fp->write(" = ");
       } //not void return
 
-    // static functions..oh yeah..but only for quarks
+    // static functions..oh yeah..but only for quarks and virtual funcs
     // who's function is it?
-    if(!isCurrentObjectALocalVariableOrArgument())
-      genMemberNameOfMethod(fp);
+    if(m_funcSymbol->isVirtualFunction())
+      genCodeVirtualFunctionCall(fp, uvpass); //indirect call thru func ptr
     else
       {
-	s32 epi = isCurrentObjectsContainingAModelParameter();
-	if(epi >= 0)
-	  genModelParameterMemberNameOfMethod(fp,epi);
+	if(!isCurrentObjectALocalVariableOrArgument())
+	  genMemberNameOfMethod(fp);
 	else
-	  genLocalMemberNameOfMethod(fp);
+	  {
+	    s32 epi = isCurrentObjectsContainingAModelParameter();
+	    if(epi >= 0)
+	      genModelParameterMemberNameOfMethod(fp,epi);
+	    else
+	      genLocalMemberNameOfMethod(fp);
+	  }
+	fp->write(m_funcSymbol->getMangledName().c_str());
       }
-    fp->write(m_funcSymbol->getMangledName().c_str());
+
+    // the arguments
     fp->write("(");
     fp->write(arglist.str().c_str());
     fp->write(");\n");
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
-  } //codeGenIntoABitValue
+  } //genCodeIntoABitValue
+
+  void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass)
+  {
+    //requires runtime lookup for virtual function pointer
+    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+    Symbol * cos = NULL; //any owner of func
+
+    if(cosSize != 0)
+      cos = m_state.m_currentObjSymbolsForCodeGen.back(); //"owner" of func
+    else
+      cos = m_state.getCurrentSelfSymbolForCodeGen();
+    UTI cosuti = cos->getUlamTypeIdx();
+
+    SymbolClass * csym = NULL;
+    assert(m_state.alreadyDefinedSymbolClass(cosuti, csym));
+
+    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+
+    //typedef of conextual type info from any class with this function
+    //Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+    //UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
+    UTI cvfuti = csym->getClassForVTableEntry(m_funcSymbol->getVirtualMethodIdx());
+    UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
+
+    fp->write("((typename ");
+    fp->write(cvfut->getUlamTypeMangledName().c_str());
+    if(cvfut->getUlamClass() == UC_ELEMENT)
+      fp->write("<EC>::");
+    else
+      {
+	fp->write("<EC,");
+	fp->write("T::ATOM_FIRST_STATE_BIT");
+	fp->write(">::");
+      }
+    fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
+    //    fp->write(" *) ");
+    fp->write(") ");
+    fp->write("UlamElement<EC>::GetVTableEntry(");
+    fp->write(genHiddenArgs().c_str());
+    fp->write(", ");
+    fp->write_decimal_unsigned(m_funcSymbol->getVirtualMethodIdx());
+    fp->write("u)) ");
+    //args to function pointer remain
+  } //genCodeVirtualFunctionCall
 
   // overrides Node in case of memberselect genCode
   void NodeFunctionCall::genCodeReadIntoATmpVar(File * fp, UlamValue & uvpass)
@@ -789,6 +763,47 @@ namespace MFM {
       }
   } //genModelParamenterMemberNameOfMethod
 
+  std::string NodeFunctionCall::genHiddenArgs()
+  {
+    std::ostringstream hiddenargs;
+
+    // first "hidden" arg is the context
+    hiddenargs << m_state.getHiddenContextArgName() << ", ";
+
+    //"hidden" self arg
+    if(!isCurrentObjectALocalVariableOrArgument())
+      {
+	hiddenargs << m_state.getHiddenArgName();
+      }
+    else
+      {
+	s32 epi = isCurrentObjectsContainingAModelParameter();
+	if(epi >= 0)
+	  {
+	    hiddenargs << genModelParameterHiddenArgs(epi).c_str();
+	  }
+	else //local var
+	  {
+	    Symbol * stgcos = NULL;
+	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	      {
+		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+	      }
+	    else
+	      {
+		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	      }
+
+	    hiddenargs << stgcos->getMangledName().c_str();
+
+	    // for both immediate quarks and elements now..not self.
+	    if(!stgcos->isSelf())
+	      hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
+	  }
+      }
+    return hiddenargs.str();
+  } //genHiddenArgs
+
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.
   std::string NodeFunctionCall::genModelParameterHiddenArgs(s32 epi)
@@ -822,9 +837,64 @@ namespace MFM {
       {
 	hiddenlist << ".getRef()";
       }
-
     return hiddenlist.str();
   } //genModelParameterHiddenArgs
+
+  std::string NodeFunctionCall::genRestOfFunctionArgs(File * fp, UlamValue& uvpass)
+  {
+    std::ostringstream arglist;
+
+    //wiped out by arg processing; needed to determine owner of called function
+    std::vector<Symbol *> saveCOSVector = m_state.m_currentObjSymbolsForCodeGen;
+
+    u32 numParams = m_funcSymbol->getNumberOfParameters();
+    // handle any variable number of args separately
+    // since non-datamember variables can modify globals, save/restore before/after each
+    for(u32 i = 0; i < numParams; i++)
+      {
+	UlamValue auvpass;
+	UTI auti;
+	m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
+
+	m_argumentNodes->genCode(fp, auvpass, i);
+	Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+	auti = auvpass.getUlamValueTypeIdx();
+	if(auti == Ptr)
+	  {
+	    auti = auvpass.getPtrTargetType();
+	  }
+	arglist << ", " << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
+      } //next arg..
+
+    if(m_funcSymbol->takesVariableArgs())
+      {
+	u32 numargs = getNumberOfArguments();
+	for(u32 i = numParams; i < numargs; i++)
+	  {
+	    UlamValue auvpass;
+	    UTI auti;
+	    m_state.m_currentObjSymbolsForCodeGen.clear(); //*************
+
+	    m_argumentNodes->genCode(fp, auvpass, i);
+	    Node::genCodeConvertATmpVarIntoBitVector(fp, auvpass);
+
+	    auti = auvpass.getUlamValueTypeIdx();
+	    if(auti == Ptr)
+	      {
+		auti = auvpass.getPtrTargetType();
+	      }
+
+	    // use pointer for variable arg's since all the same size that way
+	    arglist << ", &" << m_state.getTmpVarAsString(auti, auvpass.getPtrSlotIndex(), auvpass.getPtrStorage()).c_str();
+	  } //end forloop through variable number of args
+
+	arglist << ", (void *) 0"; //indicates end of args
+      } //end of handling variable arguments
+
+    m_state.m_currentObjSymbolsForCodeGen = saveCOSVector; //restore vector after args******
+
+    return arglist.str();
+  } //genRestOfFunctionArgs
 
   void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {
