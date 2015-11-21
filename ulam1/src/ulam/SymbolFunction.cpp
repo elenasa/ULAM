@@ -309,7 +309,8 @@ namespace MFM {
     m_state.indent(fp);
     if(declOnly)
       {
-	if(classtype == UC_QUARK)
+	//	if(classtype == UC_QUARK)
+	if(classtype == UC_QUARK || isVirtualFunction())
 	  fp->write("static ");   //element functions are not static
       }
     else
@@ -375,18 +376,23 @@ namespace MFM {
 	  fp->write("; //native\n\n");
 	else
 	  {
-	    if(classtype == UC_ELEMENT)
-	      fp->write(" const"); //element functions are const, not static
+	    //	    if(classtype == UC_ELEMENT)
+	    //  fp->write(" const"); //element functions are const, not static
 
 	    if(isVirtualFunction())
 	      fp->write("; //virtual\n\n");
 	    else
-	      fp->write(";\n\n");
+	      {
+		if(classtype == UC_ELEMENT)
+		  fp->write(" const"); //element functions are const, not static
+		fp->write(";\n\n");
+	      }
 	  }
       }
     else
       {
-	if(classtype == UC_ELEMENT)
+	//if(classtype == UC_ELEMENT)
+	if((classtype == UC_ELEMENT) && !isVirtualFunction())
 	  fp->write(" const"); //element functions are const, not static
 
 	UlamValue uvpass;
@@ -413,8 +419,16 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(sut->getImmediateStorageTypeAsString().c_str()); //return type for C++
-    fp->write(" (*");
+    fp->write(" (");
 
+    //    if(classtype == UC_ELEMENT)
+    //  {
+    //	UTI cuti = m_state.getCompileThisIdx();
+    //	//include the mangled class::
+    //	fp->write(m_state.getUlamTypeByIndex(cuti)->getUlamTypeMangledName().c_str());
+    //	fp->write("<EC>::");
+    //  }
+    fp->write("*"); //ptr to
     fp->write(getMangledNameWithTypes().c_str());
     fp->write(") (");
 
@@ -433,7 +447,10 @@ namespace MFM {
 	UlamType * aut = m_state.getUlamTypeByIndex(auti);
 	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
       }
-    fp->write(");\n");
+    fp->write(")");
+    //if(classtype == UC_ELEMENT)
+    //  fp->write(" const");
+    fp->write(";\n");
   } //generateFunctionDeclarationVirtualTypedef
 
   void SymbolFunction::setStructuredComment()

@@ -1386,7 +1386,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     // now in UlamElement.h
     // why is this needed in both .h and .tcc? can't it go in one place???
     //    m_state.indent(fp);
-    //fp->write("typedef void (*VTablePtr)(); // Generic function pointer we'll cast at point of use\n\n");
+    //fp->write("typedef void (*VfuncPtr)(); // Generic function pointer we'll cast at point of use\n\n");
 
     if(declOnly)
       {
@@ -1413,13 +1413,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	m_state.indent(fp);
 	fp->write("static ");
-	fp->write("VTablePtr m_vtable[");
+	fp->write("VfuncPtr m_vtable[");
 	fp->write_decimal_unsigned(maxidx);
 	fp->write("];\n");
 
 	//VTable accessor method
 	m_state.indent(fp);
-	fp->write("virtual VTablePtr* getVTablePtr();\n\n");
+	fp->write("virtual VfuncPtr getVTableEntry(u32 idx);\n\n");
 	return;
       } //done w h-file
 
@@ -1434,7 +1434,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.indent(fp);
     //fp->write("const ");
-    fp->write("VTablePtr ");
+    fp->write("VfuncPtr ");
 
     //include the mangled class::
     fp->write(cut->getUlamTypeMangledName().c_str());
@@ -1457,7 +1457,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	UlamType * veut = m_state.getUlamTypeByIndex(veuti);
 	ULAMCLASSTYPE veclasstype = veut->getUlamClass();
 	m_state.indent(fp);
-	fp->write("(VTablePtr) "); //cast to void
+	fp->write("(VfuncPtr) "); //cast to void
 	fp->write("((typename "); //cast to contextual type info
 	fp->write(veut->getUlamTypeMangledName().c_str());
 	if(veclasstype == UC_ELEMENT)
@@ -1509,19 +1509,19 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       assert(0);
 
     m_state.indent(fp);
-    fp->write("VTablePtr* ");
+    fp->write("VfuncPtr ");
     fp->write(cut->getUlamTypeMangledName().c_str());
     if(classtype == UC_ELEMENT)
       fp->write("<EC>::");
     else if(classtype == UC_QUARK)
       fp->write("<EC, POS>::");
-    fp->write("getVTablePtr()\n");
+    fp->write("getVTableEntry(u32 idx)\n");
     m_state.indent(fp);
     fp->write("{\n");
 
     m_state.m_currentIndentLevel++;
     m_state.indent(fp);
-    fp->write(" return m_vtable;\n");
+    fp->write(" return m_vtable[idx];\n");
     m_state.m_currentIndentLevel--;
     m_state.indent(fp);
     fp->write("}\n\n");
