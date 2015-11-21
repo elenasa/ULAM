@@ -378,7 +378,10 @@ namespace MFM {
 	    if(classtype == UC_ELEMENT)
 	      fp->write(" const"); //element functions are const, not static
 
-	    fp->write(";\n\n");
+	    if(isVirtualFunction())
+	      fp->write("; //virtual\n\n");
+	    else
+	      fp->write(";\n\n");
 	  }
       }
     else

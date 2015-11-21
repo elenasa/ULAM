@@ -237,13 +237,13 @@ namespace MFM {
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
     assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
-    csym->initVTable();
+    csym->initVTable(maxidx);
 
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	UTI futi = fsym->getUlamTypeIdx();
+	//UTI futi = fsym->getUlamTypeIdx();
 
 	//possibly us, or a great-ancestor that has first decl of this func
 	UTI kinuti; // ref to find, Nav if not found
@@ -264,7 +264,7 @@ namespace MFM {
 
 	    SymbolFunction * superfsym = NULL;
 	    //might belong to a great-ancestor (can't tell from isFuncIdInAClassScope())
-	    if(m_state.findMatchingFunctionInAncestor(futi, fid, pTypes, superfsym, kinuti))
+	    if(m_state.findMatchingFunctionInAncestor(cuti, fid, pTypes, superfsym, kinuti))
 	      {
 		if(superfsym->isVirtualFunction())
 		  {
@@ -281,6 +281,7 @@ namespace MFM {
 			fsym->setVirtualFunction(); //fix
 			assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
 			vidx = superfsym->getVirtualMethodIdx();
+			kinuti = cuti; //overrides
 		      }
 		  }
 		else

@@ -1461,7 +1461,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write("((typename "); //cast to contextual type info
 	fp->write(veut->getUlamTypeMangledName().c_str());
 	if(veclasstype == UC_ELEMENT)
-	  fp->write("<EC>::THE_INSTANCE.");
+	  fp->write("<EC>::");
 	else if(veclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");
@@ -1478,7 +1478,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(") &");
 	fp->write(veut->getUlamTypeMangledName().c_str());
 	if(veclasstype == UC_ELEMENT)
-	  fp->write("<EC>::THE_INSTANCE.");
+	  fp->write("<EC>::");
 	else if(veclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");

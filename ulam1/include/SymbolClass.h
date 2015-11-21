@@ -130,12 +130,13 @@ namespace MFM{
 
     void addClassMemberDescriptionsMapEntry(ClassMemberMap& classmembers);
 
-    void initVTable();
+    void initVTable(s32 initialmax);
     void updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti);
     VT& getVTableRef();
     UTI getClassForVTableEntry(u32 idx);
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
     std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);
+    struct VTEntry getVTableEntry(u32 idx);
 
   protected:
     Resolver * m_resolver;

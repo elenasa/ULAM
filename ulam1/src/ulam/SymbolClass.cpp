@@ -873,16 +873,26 @@ namespace MFM {
     classNode->addClassMemberDescriptionsToInfoMap(classmembers);
   } //addClassMemberDesciptionsMapEntry
 
-  void SymbolClass::initVTable()
+  void SymbolClass::initVTable(s32 initialmax)
   {
+    if(initialmax == UNKNOWNSIZE) return; //nothing to initialize
+    assert(initialmax >= 0);
+    if((u32) initialmax == m_vtable.size()) return; //not first time here
+
     if(getSuperClass() != Nav)
       {
 	SymbolClass * csym = NULL;
 	assert(m_state.alreadyDefinedSymbolClass(getSuperClass(), csym));
 	//copy superclass' VTable
-	m_vtable = csym->getVTableRef();
+	//m_vtable = csym->getVTableRef();
+	for(s32 i = 0; i < initialmax; i++)
+	  {
+	    struct VTEntry ve = csym->getVTableEntry(i);
+	    m_vtable.push_back(ve);
+	  }
       }
     //else empty.
+    assert(m_vtable.size() == (u32) initialmax);
   } //initVTable
 
   void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti)
@@ -922,6 +932,12 @@ namespace MFM {
   {
     assert(idx < m_vtable.size());
     return m_vtable[idx].m_funcPtr->getMangledNameWithTypes();
+  }
+
+  struct VTEntry SymbolClass::getVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx];
   }
 
 } //end MFM
