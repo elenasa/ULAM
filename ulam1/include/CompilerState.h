@@ -141,7 +141,7 @@ namespace MFM{
     UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
                                 // becomes currentObjPtr for args
-    UlamValue m_currentAutoObjPtr; //used in eval, lhs of conditional as/has:
+    UlamValue m_currentAutoObjPtr; //used in eval, uses rhs type of conditional as/has:
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf

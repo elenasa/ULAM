@@ -112,9 +112,13 @@ namespace MFM {
 
   EvalStatus NodeBlock::eval()
   {
+    m_state.pushCurrentBlock(this);
     assert(m_nodeNext);
-    return m_nodeNext->eval(); //no return value
-  }
+    //    return m_nodeNext->eval(); //no return value
+    EvalStatus evs = m_nodeNext->eval(); //no return value
+    m_state.popClassContext(); //restore
+    return evs;
+  } //eval
 
   void NodeBlock::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {

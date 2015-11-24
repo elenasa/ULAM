@@ -3,11 +3,11 @@
 ##
 ## gen output: * 13
 ##assert: arg is 1
-##after assert's abort: arg is 1
+##after asserts abort: arg is 1
 ##
 #!
 Exit status: 0
-Ue_Test : System { :<> Int(32) test() {  Base b;  ( b ( )afunc . 1 cast == )assert ( b ( 1 cast )afunc . 2 cast == )assert Sub1 s1;  ( s1 ( )afunc . 4 cast == )assert ( s1 ( 1 cast )afunc . 2 cast == )assert ( s1 ( )bfunc . 5 cast == )assert ( s1 ( )cfunc . 6 cast == )assert E1 e1;  ( e1 ( )afunc . 1 cast == )assert ( e1 ( 1 cast )afunc . 7 cast == )assert ( e1 ( )bfunc . 8 cast == )assert E2 e2;  ( e2 ( )afunc . 4 cast == )assert ( e2 ( 1 cast )afunc . 9 cast == )assert ( e2 ( )bfunc . 5 cast == )assert ( e2 ( )cfunc . 10 cast == )assert 0 cast return } }
+Ue_Test : System { :<> Bool(1) brtn[13](true,true,true,true,true,true,true,true,true,true,true,true,true);  Int(32) test() {  E1 e1;  brtn 6 [] e1 ( )afunc . 1 cast == = ( brtn 6 [] )assert brtn 7 [] e1 ( 1 cast )afunc . 7 cast == = ( brtn 7 [] )assert brtn 8 [] e1 ( )bfunc . 8 cast == = ( brtn 8 [] )assert E2 e2;  brtn 9 [] e2 ( )afunc . 4 cast == = ( brtn 9 [] )assert brtn 10 [] e2 ( 1 cast )afunc . 9 cast == = ( brtn 10 [] )assert brtn 11 [] e2 ( )bfunc . 5 cast == = ( brtn 11 [] )assert brtn 12 [] e2 ( )cfunc . 10 cast == = ( brtn 12 [] )assert Base b;  brtn 0 [] b ( )afunc . 1 cast == = ( brtn 0 [] )assert brtn 1 [] b ( 1 cast )afunc . 2 cast == = ( brtn 1 [] )assert Sub1 s1;  brtn 2 [] s1 ( )afunc . 4 cast == = ( brtn 2 [] )assert brtn 3 [] s1 ( 1 cast )afunc . 2 cast == = ( brtn 3 [] )assert brtn 4 [] s1 ( )bfunc . 5 cast == = ( brtn 4 [] )assert brtn 5 [] s1 ( )cfunc . 6 cast == = ( brtn 5 [] )assert 0 cast return } }
 Uq_Base { <NOMAIN> }
 Uq_Sub1 : Base { :<> <NOMAIN> }
 Ue_E1 : Base { :<> <NOMAIN> }
@@ -57,31 +57,48 @@ use E1;
 use E2;
 use System;
 element Test : System {
+  Bool brtn[13];
   Int test() {
-    Base b;
-    assert(b.afunc() == 1);
-    assert(b.afunc(1) == 2);
-
-    Sub1 s1;
-    assert(s1.afunc() == 4);
-    assert(s1.afunc(1) == 2);
-    assert(s1.bfunc() == 5);
-    assert(s1.cfunc() == 6);
 
     E1 e1;
-    assert(e1.afunc() == 1);
-    assert(e1.afunc(1) == 7);
-    assert(e1.bfunc() == 8);
+    brtn[6] = (e1.afunc() == 1);
+    assert(brtn[6]);
+    brtn[7] = (e1.afunc(1) == 7);
+    assert(brtn[7]);
+    brtn[8] = (e1.bfunc() == 8);
+    assert(brtn[8]);
 
     E2 e2;
-    assert(e2.afunc() == 4);
-    assert(e2.afunc(1) == 9);
-    assert(e2.bfunc() == 5);
-    assert(e2.cfunc() == 10);
+    brtn[9] = (e2.afunc() == 4);
+    assert(brtn[9]);
+    brtn[10] = (e2.afunc(1) == 9);
+    assert(brtn[10]);
+    brtn[11] = (e2.bfunc() == 5);
+    assert(brtn[11]);
+    brtn[12] = (e2.cfunc() == 10);
+    assert(brtn[12]);
+
+    //       requires immediate quark vtable support
+    Base b;
+    brtn[0] = (b.afunc() == 1);
+    assert(brtn[0]);
+    brtn[1] = (b.afunc(1) == 2);
+    assert(brtn[1]);
+
+    //       requires immediate quark vtable support
+    Sub1 s1;
+    brtn[2] = (s1.afunc() == 4);
+    assert(brtn[2]);
+    brtn[3] = (s1.afunc(1) == 2);
+    assert(brtn[3]);
+    brtn[4] = (s1.bfunc() == 5);
+    assert(brtn[4]);
+    brtn[5] = (s1.cfunc() == 6);
+    assert(brtn[5]);
 
     // Note none of the above _requires_ vtable use, since all that
     // type info is known at compile time.  But now we rock it out..
-    // see t3601
+    // (see t3601)
     return 0;
   }
 }

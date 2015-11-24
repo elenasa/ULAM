@@ -1,8 +1,13 @@
 ## -*- mode:ulam -*-
 #=t3600_test_compiler_elementinheritedquark_virtualfuncs
 #!
+##
+## gen code output: (times 10)
+## assert: arg is 1
+##after asserts abort: arg is 1
+##
 Exit status: 0
-Ue_Test : System { :<> Bool(1) b[10](true,true,true,false,false,false,false,false,false,false);  Int(32) test() {  E1 e1;  E2 e2;  Atom(96) a1;  a1 e1 cast = Atom(96) a2;  a2 e2 cast = a1 Base as cond { Base a1;  b 0 [] a1 ( )afunc . 1 cast == = ( b 0 [] )assert b 1 [] a1 ( 1 cast )afunc . 7 cast == = ( b 1 [] )assert b 2 [] a1 ( )bfunc . 8 cast == = ( b 2 [] )assert } if 0 cast return } }
+Ue_Test : System { :<> Bool(1) b[10](true,true,true,true,true,true,true,true,true,true);  Int(32) test() {  E1 e1;  Atom(96) a1;  a1 e1 cast = a1 Sub1 as cond { Sub1 a1;  } if e1 Base as cond { Base e1;  b 0 [] e1 ( )afunc . 1 cast == = ( b 0 [] )assert b 1 [] e1 ( 1 cast )afunc . 7 cast == = ( b 1 [] )assert b 2 [] e1 ( )bfunc . 8 cast == = ( b 2 [] )assert } if E2 e2;  E2 a2;  a2 e2 = a2 Base as cond { Base a2;  b 3 [] a2 ( )afunc . 1 cast == = ( b 3 [] )assert b 4 [] a2 ( 1 cast )afunc . 9 cast == = ( b 4 [] )assert b 5 [] a2 ( )bfunc . 5 cast == = ( b 5 [] )assert } if a2 Sub1 as cond { Sub1 a2;  b 6 [] a2 ( )afunc . 4 cast == = ( b 6 [] )assert b 7 [] a2 ( 1 cast )afunc . 9 cast == = ( b 7 [] )assert b 8 [] a2 ( )bfunc . 5 cast == = ( b 8 [] )assert b 9 [] a2 ( )cfunc . 10 cast == = ( b 9 [] )assert } if 0 cast return } }
 Uq_Base { <NOMAIN> }
 Uq_Sub1 : Base { :<> <NOMAIN> }
 Ue_E1 : Base { :<> <NOMAIN> }
@@ -56,38 +61,47 @@ element Test : System {
 
   Int test() {
     E1 e1;
-    E2 e2;
 
     //but eval Atom type loses element info...
-    E1 a1 = e1;       // (Atom a1 is copy of e1, unknown to culam)
-    E2 a2 = e2;     // (a2 is copy of e2, unknown to culam)
+    Atom a1 = e1;     // (Atom a1 is copy of e1, unknown to culam)
 
-    if (a1 is Base) {      // succeeds
-      b[0] = (a1.afunc() == 1);
+    //./Test.ulam:33:12: ERROR: Invalid lefthand type of conditional operator 'as'; Class 'E1' Not Found during eval.
+    if (a1 as Sub1) {      // not true!!
+     }
+
+    if (e1 as Base) {      // succeeds
+      b[0] = (e1.afunc() == 1);
       assert(b[0]);
-      b[1] = (a1.afunc(1) == 7);
+      b[1] = (e1.afunc(1) == 7);
       assert(b[1]); // E1's vtable used!
-      b[2] = (a1.bfunc() == 8);
+      b[2] = (e1.bfunc() == 8);
       assert(b[2]); // ditto!
     }
 
 
-    if (a2 is Base) {      // succeeds
-      assert(a2.afunc() == 1); // !! not 4!  afunc() is not virtual
-      assert(a2.afunc(1) == 9); // E2's vtable used!
-      assert(a2.bfunc() == 5); // ditto!
+
+    E2 e2;
+    E2 a2 = e2;     // (a2 is copy of e2, unknown to culam)
+
+    if (a2 as Base) {      // succeeds
+      b[3] = (a2.afunc() == 1); // !! not 4!  afunc() is not virtual
+      assert(b[3]);
+      b[4] = (a2.afunc(1) == 9); // E2's vtable used!
+      assert(b[4]);
+      b[5] = (a2.bfunc() == 5); // ditto!
+      assert(b[5]);
     }
 
-    if (a1 is Sub1) {      // not true
+    if (a2 as Sub1) {      // succeeds
+      b[6] = (a2.afunc() == 4); // !! not 1!  a2 is a Sub1 here
+      assert(b[6]);
+      b[7] = (a2.afunc(1) == 9); // E2's vtable used!
+      assert(b[7]);
+      b[8] = (a2.bfunc() == 5); // ditto!
+      assert(b[8]);
+      b[9] = (a2.cfunc() == 10); // ditto!
+      assert(b[9]);
     }
-
-    if (a2 is Sub1) {      // succeeds
-      assert(a2.afunc() == 4); // !! not 1!  a2 is a Sub1 here
-      assert(a2.afunc(1) == 9); // E2's vtable used!
-      assert(a2.bfunc() == 5); // ditto!
-      assert(a2.cfunc() == 10); // ditto!
-    }
-
     return 0;
   }
 }

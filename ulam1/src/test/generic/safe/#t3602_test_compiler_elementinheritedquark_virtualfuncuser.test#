@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3602_test_compiler_elementinheritedquark_virtualfuncuser
 ##
-## gen output: (times 4)
+## gen output: (times 4) requires quark vtable support
 ##assert: arg is 1
 ##after asserts abort: arg is 1
 ##

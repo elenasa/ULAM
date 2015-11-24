@@ -391,7 +391,82 @@ namespace MFM {
     // and upcoming rtnslots: current_atom_index - relative_top_index (+ returns)
     m_state.m_currentObjPtr = saveCurrentObjectPtr; // RESTORE *********
     UlamValue atomPtr = m_state.m_currentObjPtr; //*********
-    if(saveCurrentObjectPtr.getPtrStorage() == STACK)
+
+    //update func def (at eval time) based on class in virtual table
+    // this requires symbol search like used in c&l and parsing;
+    // t.f. we use the classblock stack to track the block ST's
+    if(m_funcSymbol->isVirtualFunction())
+      {
+	u32 vtidx = m_funcSymbol->getVirtualMethodIdx();
+	u32 atomid = atomPtr.getPtrNameId();
+	if(atomid != 0)
+	  {
+	    //if auto local, set shadowed lhs type (, and pos?)
+	    Symbol * asym = NULL;
+	    bool hazyKin = false;
+	    if(m_state.alreadyDefinedSymbol(atomid, asym, hazyKin) && !hazyKin)
+	      {
+		if(asym->isAutoLocal()) //must be a class
+		  {
+		    NodeBlock * currblock = m_state.getCurrentBlock();
+		    assert(currblock);
+		    NodeBlock * prevblock = currblock->getPreviousBlockPointer();
+		    assert(prevblock);
+		    m_state.pushCurrentBlock(prevblock);
+
+		    Symbol * shadsym = NULL; //same name in some prev block
+		    assert(m_state.alreadyDefinedSymbol(atomid, shadsym, hazyKin) && !hazyKin);
+		    UTI shadowtype = shadsym->getUlamTypeIdx();
+		    //when autolocal, use original (lhs) auto storage to lookup class to use
+		    atomPtr.setPtrTargetType(shadowtype); //what about POS? e.g. has-conditional
+		    m_state.popClassContext(); //restore
+		  }
+	      }
+	  } //else can't be an autolocal
+
+	UTI cuti = atomPtr.getPtrTargetType(); //must be a class
+	SymbolClass * vcsym = NULL;
+	assert(m_state.alreadyDefinedSymbolClass(cuti, vcsym));
+	UTI vtcuti = vcsym->getClassForVTableEntry(vtidx);
+
+	//is the virtual class uti the same as what we already have?
+	NNO funcstnno = m_funcSymbol->getBlockNoOfST();
+	UTI funcclassuti = m_state.findAClassByNodeNo(funcstnno);
+	if(funcclassuti != vtcuti)
+	  {
+	    SymbolClass * vtcsym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(vtcuti, vtcsym));
+
+	    NodeBlockClass * memberClassNode = vtcsym->getClassBlockNode();
+	    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
+	    //set up compiler state to use the member class block for symbol searches
+	    m_state.pushClassContextUsingMemberClassBlock(memberClassNode);
+
+	    Symbol * fnsymptr = NULL;
+	    bool hazyKin = false;
+	    assert(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin);
+
+	    //find this func in the virtual class; get its func def.
+	    std::vector<UTI> pTypes;
+	    u32 numparams = m_funcSymbol->getNumberOfParameters();
+	    for(u32 j = 0; j < numparams; j++)
+	      {
+		Symbol * psym = m_funcSymbol->getParameterSymbolPtr(j);
+		assert(psym);
+		pTypes.push_back(psym->getUlamTypeIdx());
+	      }
+
+	    SymbolFunction * funcSymbol = NULL;
+	    u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunction(pTypes, funcSymbol);
+	    assert(numFuncs == 1);
+
+	    m_state.popClassContext(); //restore here
+
+	    func = funcSymbol->getFunctionNode(); //replace with virtual function def!!!
+	  } //end use virtual function
+      } //end virtual function
+
+    if(atomPtr.getPtrStorage() == STACK)
       {
 	//adjust index if on the STACK, not for Event Window site
 	s32 nextslot = m_state.m_funcCallStack.getRelativeTopOfStackNextSlot();

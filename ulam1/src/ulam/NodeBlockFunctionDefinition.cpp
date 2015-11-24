@@ -261,6 +261,8 @@ namespace MFM {
     if(nuti == Nav)
       return ERROR;
 
+    m_state.pushCurrentBlock(this); //push func def
+
     // m_currentObjPtr set up by caller
     assert(m_state.m_currentObjPtr.getUlamValueTypeIdx() != Nav);
     m_state.m_currentFunctionReturnType = nuti; //to help find hidden first arg
@@ -271,6 +273,8 @@ namespace MFM {
     m_state.m_funcCallStack.addFrameSlots(getMaxDepth()); //local variables on callstack!
 
     EvalStatus evs = m_nodeNext->eval();
+
+    m_state.popClassContext(); //restore
 
     PACKFIT packRtn = m_state.determinePackable(nuti);
     UlamValue rtnUV;

@@ -523,7 +523,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
     }
 #endif
-
     evalNodeProlog(0); //new current frame pointer for nodeeval stack
 
     EvalStatus evs = ERROR; //init
@@ -1419,7 +1418,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	//VTable accessor method
 	m_state.indent(fp);
-	fp->write("virtual VfuncPtr getVTableEntry(u32 idx);\n\n");
+	fp->write("virtual VfuncPtr getVTableEntry(u32 idx) const;\n\n");
 	return;
       } //done w h-file
 
@@ -1515,7 +1514,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       fp->write("<EC>::");
     else if(classtype == UC_QUARK)
       fp->write("<EC, POS>::");
-    fp->write("getVTableEntry(u32 idx)\n");
+    fp->write("getVTableEntry(u32 idx) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
