@@ -59,26 +59,19 @@ namespace MFM {
     else if(m_class == UC_QUARK)
       {
 	if(valtypidx == UAtom)
-	  brtn = false; //cast atom to a quark???
-	//else if(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
+	  brtn = false; //cast atom to a quark?
 	else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
 	  {
 	    //if same type nothing to do; if atom, shows as element in eval-land.
-	    //val.setAtomElementTypeIdx(typidx); //???
+	    //val.setAtomElementTypeIdx(typidx); //?
 	  }
-	else if(m_state.isClassASuperclassOf(valtypidx, typidx)) //2 quarks, or element (val) inherits from this quark
+	else if(m_state.isClassASuperclassOf(valtypidx, typidx))
 	  {
+	    //2 quarks, or element (val) inherits from this quark
 	    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 	    if(vclasstype == UC_ELEMENT)
 	      {
-		//checks if quark is a data member or ancestor
-		SymbolClass * csym = NULL;
-		assert(m_state.alreadyDefinedSymbolClass(valtypidx, csym));
-		NodeBlockClass * cblock = csym->getClassBlockNode();
-		assert(cblock);
-		s32 pos = cblock->findUlamTypeInTable(typidx);
-		assert(pos >= 0); //ancestors start at first state bit pos
-
+		s32 pos = 0; //ancestors start at first state bit pos
 		s32 len = getTotalBitSize();
 		assert(len != UNKNOWNSIZE);
 		if(len <= MAXBITSPERINT)
@@ -88,7 +81,7 @@ namespace MFM {
 		  }
 		else if(len <= MAXBITSPERLONG)
 		  {
-		    assert(0); //quarksare max 32 bits
+		    assert(0); //quarks are max 32 bits
 		    u64 qdata = val.getDataLongFromAtom(pos + ATOMFIRSTSTATEBITPOS, len);
 		    val = UlamValue::makeImmediateLong(typidx, qdata, len);
 		  }

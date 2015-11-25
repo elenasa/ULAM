@@ -632,22 +632,25 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   s32 NodeBlockClass::findUlamTypeInTable(UTI utype)
   {
-    UTI superuti = m_state.isClassASubclass(getNodeType());
-    if(superuti != Nav)
+    s32 rtnpos = m_ST.findPosOfUlamTypeInTable(utype);
+    if(rtnpos < 0)
       {
-	//check superclass for a match too
-	if(utype == superuti)
-	  return 0; //ancestors always at the start
-
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superClassBlock);
-	m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
-	s32 superpos = superClassBlock->findUlamTypeInTable(utype);
-	m_state.popClassContext(); //restore
-	if(superpos >= 0)
-	  return superpos; //short-circuit
+	//check superclass for dm match, next:
+	UTI superuti = m_state.isClassASubclass(getNodeType());
+	if(superuti != Nav)
+	  {
+	    // quarks can't contain themselves
+	    if(utype != superuti)
+	      {
+		NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+		assert(superClassBlock);
+		m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
+		rtnpos = superClassBlock->findUlamTypeInTable(utype);
+		m_state.popClassContext(); //restore
+	      }
+	  }
       }
-    return m_ST.findPosOfUlamTypeInTable(utype);
+    return rtnpos;
   } //findUlamTypeInTable
 
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)

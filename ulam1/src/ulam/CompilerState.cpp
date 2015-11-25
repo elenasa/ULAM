@@ -1077,6 +1077,8 @@ namespace MFM {
     return Nav; //even for non-classes
   } //isClassASubclass
 
+  //return true if the second arg is a superclass of the first arg.
+  // i.e. cuti is a subclass of superp. recurses the family tree.
   bool CompilerState::isClassASuperclassOf(UTI cuti, UTI superp)
   {
     bool rtnb = false;
@@ -1094,7 +1096,7 @@ namespace MFM {
 	  }
 	else
 	  prevuti = Nav; //avoid inf loop
-      }
+      } //end while
     return rtnb; //even for non-classes
   } //isClassASuperclassOf
 

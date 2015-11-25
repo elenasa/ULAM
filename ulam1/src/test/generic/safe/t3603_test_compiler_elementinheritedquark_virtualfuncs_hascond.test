@@ -1,5 +1,5 @@
 ## -*- mode:ulam -*-
-#=t3601_test_compiler_elementinheritedquark_virtualfuncs_ascond
+#=t3603_test_compiler_elementinheritedquark_virtualfuncs_hascond
 #!
 ##
 ## gen code output: (times 10)
@@ -66,10 +66,10 @@ element Test : System {
     Atom a1 = e1;     // (Atom a1 is copy of e1, unknown to culam)
 
     //./Test.ulam:33:12: ERROR: Invalid lefthand type of conditional operator 'as'; Class 'E1' Not Found during eval.
-    if (a1 as Sub1) {      // not true!!
+    if (a1 has Sub1) {      // not true!!
      }
 
-    if (e1 as Base) {      // succeeds
+    if (e1 has Base) {      // succeeds
       b[0] = (e1.afunc() == 1);
       assert(b[0]);
       b[1] = (e1.afunc(1) == 7);
@@ -83,7 +83,7 @@ element Test : System {
     E2 e2;
     E2 a2 = e2;     // (a2 is copy of e2, unknown to culam)
 
-    if (a2 as Base) {      // succeeds
+    if (a2 has Base) {      // succeeds
       b[3] = (a2.afunc() == 1); // !! not 4!  afunc() is not virtual
       assert(b[3]);
       b[4] = (a2.afunc(1) == 9); // E2's vtable used!
@@ -92,7 +92,7 @@ element Test : System {
       assert(b[5]);
     }
 
-    if (a2 as Sub1) {      // succeeds
+    if (a2 has Sub1) {      // succeeds
       b[6] = (a2.afunc() == 4); // !! not 1!  a2 is a Sub1 here
       assert(b[6]);
       b[7] = (a2.afunc(1) == 9); // E2's vtable used!
