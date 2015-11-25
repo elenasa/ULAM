@@ -1191,7 +1191,7 @@ namespace MFM {
 	unreadToken();
 	if( (cTok.m_type == TOK_KW_AS) || (cTok.m_type == TOK_KW_HAS))
 	  {
-	    m_state.saveIdentTokenForConditionalAs(iTok); //sets m_state.m_parsingConditionalAs
+	    m_state.saveIdentTokenForConditionalAs(iTok, cTok); //SETS other related globals
 	    rtnNode = makeConditionalExprNode(rtnNode); //done, could be NULL
 	  }
       }
@@ -1251,7 +1251,7 @@ namespace MFM {
     Symbol * asymptr = NULL; //a place to put the new symbol; not a decl list, nor typedef from another class
     tmpni->installSymbolVariable(typeargs, asymptr);
     assert(asymptr);
-    asymptr->setAutoLocal(); //set auto flag
+    asymptr->setAutoLocalType(m_state.m_parsingConditionalToken); //set auto flag/type
 
     //if(asymptr->getId() == m_state.m_pool.getIndexForDataString("self"))
     //  {

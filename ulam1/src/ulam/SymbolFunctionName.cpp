@@ -237,13 +237,12 @@ namespace MFM {
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
     assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
-    csym->initVTable(maxidx);
+    //csym->initVTable(maxidx);
 
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
       {
 	SymbolFunction * fsym = it->second;
-	//UTI futi = fsym->getUlamTypeIdx();
 
 	//possibly us, or a great-ancestor that has first decl of this func
 	UTI kinuti; // ref to find, Nav if not found
@@ -280,9 +279,9 @@ namespace MFM {
 
 			fsym->setVirtualFunction(); //fix
 			assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
-			vidx = superfsym->getVirtualMethodIdx();
-			kinuti = cuti; //overrides
 		      }
+		    vidx = superfsym->getVirtualMethodIdx();
+		    kinuti = cuti; //overriding
 		  }
 		else
 		  {
@@ -296,6 +295,7 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
 			MSG(fsym->getTokPtr(), msg.str().c_str(), WARN);
 			//probably upsets compiler assert...need a Nav node?
+			kinuti = cuti;
 		      }
 		  }
 	      }

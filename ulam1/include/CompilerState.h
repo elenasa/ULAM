@@ -117,6 +117,7 @@ namespace MFM{
 
     bool m_parsingConditionalAs;          // used for Conditional-As/Has parsing
     Token m_identTokenForConditionalAs;   // used for Conditional-As/Has parsing
+    Token m_parsingConditionalToken;       // used for Conditional-As/Has parsing
     bool m_genCodingConditionalHas; // used for Conditional-Has code gen
 
     CallStack m_funcCallStack;    //local variables and arguments
@@ -339,8 +340,8 @@ namespace MFM{
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
     const std::string getLabelNumAsString(s32 num);
 
-    /** for conditional as-magic */
-    void saveIdentTokenForConditionalAs(Token iTok);
+    /** for conditional h/as-magic */
+    void saveIdentTokenForConditionalAs(Token iTok, Token cTok);
 
     /** class or model parameter structured comment for MFM */
     void saveStructuredCommentToken(Token scTok);

@@ -2229,9 +2229,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   } //getLabelNumAsString
 
-  void CompilerState::saveIdentTokenForConditionalAs(Token iTok)
+  void CompilerState::saveIdentTokenForConditionalAs(Token iTok, Token cTok)
   {
     m_identTokenForConditionalAs = iTok;
+    m_parsingConditionalToken = cTok;
     m_parsingConditionalAs = true; //cleared manually
   } //saveIdentTokenForConditionalAs
 

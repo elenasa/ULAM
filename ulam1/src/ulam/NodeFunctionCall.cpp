@@ -401,12 +401,13 @@ namespace MFM {
 	u32 atomid = atomPtr.getPtrNameId();
 	if(atomid != 0)
 	  {
-	    //if auto local, set shadowed lhs type (, and pos?)
+	    //if auto local as, set shadowed lhs type (, and pos?)
 	    Symbol * asym = NULL;
 	    bool hazyKin = false;
 	    if(m_state.alreadyDefinedSymbol(atomid, asym, hazyKin) && !hazyKin)
 	      {
-		if(asym->isAutoLocal()) //must be a class
+		ALT autolocaltype = asym->getAutoLocalType();
+		if(autolocaltype == ALT_AS) //must be a class
 		  {
 		    NodeBlock * currblock = m_state.getCurrentBlock();
 		    assert(currblock);
@@ -416,10 +417,21 @@ namespace MFM {
 
 		    Symbol * shadsym = NULL; //same name in some prev block
 		    assert(m_state.alreadyDefinedSymbol(atomid, shadsym, hazyKin) && !hazyKin);
+
+		    //RECURSE UNTIL NON-AUTO or HAS-AUTO??? refactor this!!!
+
 		    UTI shadowtype = shadsym->getUlamTypeIdx();
 		    //when autolocal, use original (lhs) auto storage to lookup class to use
 		    atomPtr.setPtrTargetType(shadowtype); //what about POS? e.g. has-conditional
 		    m_state.popClassContext(); //restore
+		  }
+		else if(autolocaltype == ALT_HAS)
+		  {
+		    //if the auto type is a superclass of the data member, we
+		    // must use the type of the data member, rather than the base (rhs)
+		    //u32 apos = atomPtr.getPtrPos();
+
+
 		  }
 	      }
 	  } //else can't be an autolocal
@@ -678,11 +690,10 @@ namespace MFM {
     else
       {
 	fp->write("<EC,");
-	fp->write("T::ATOM_FIRST_STATE_BIT");
+	fp->write("T::ATOM_FIRST_STATE_BIT"); //presumes ancestor or immediate quark
 	fp->write(">::");
       }
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
-    //    fp->write(" *) ");
     fp->write(") ");
     fp->write("UlamElement<EC>::GetVTableEntry(");
     fp->write(genHiddenArgs().c_str());

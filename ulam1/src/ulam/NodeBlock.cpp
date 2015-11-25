@@ -205,10 +205,13 @@ namespace MFM {
     return m_ST.getMaxVariableSymbolsBitSize();
   }
 
+#if 0
   s32 NodeBlock::findUlamTypeInTable(UTI utype)
   {
+    assert(0);
     return m_ST.findPosOfUlamTypeInTable(utype);
   }
+#endif
 
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {

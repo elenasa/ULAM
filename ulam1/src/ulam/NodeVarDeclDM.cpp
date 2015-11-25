@@ -580,7 +580,7 @@ namespace MFM {
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
     ULAMCLASSTYPE classtype = nut->getUlamClass();
 
-    assert(!m_varSymbol->isAutoLocal());
+    assert(m_varSymbol->getAutoLocalType() == ALT_NOT);
 
     if(nuti == UAtom || classtype == UC_ELEMENT)
       return NodeVarDecl::eval();

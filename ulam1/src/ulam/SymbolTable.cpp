@@ -267,7 +267,7 @@ namespace MFM {
   }
 #endif
 
-  s32 SymbolTable::findPosOfUlamTypeInTable(UTI utype)
+  s32 SymbolTable::findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti)
   {
     s32 posfound = -1;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -280,6 +280,7 @@ namespace MFM {
 	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
 	      {
 		posfound = ((SymbolVariable *) sym)->getPosOffset();
+		insidecuti = suti;
 		break;
 	      }
 	    else
@@ -289,6 +290,7 @@ namespace MFM {
 		if((superuti != Nav) && UlamType::compare(superuti, utype, m_state) == UTIC_SAME)
 		  {
 		    posfound = ((SymbolVariable *) sym)->getPosOffset(); //starts at beginning
+		    insidecuti = suti;
 		    break;
 		  }
 	      }
@@ -719,12 +721,20 @@ namespace MFM {
 
   void SymbolTable::calcMaxIndexForVirtualTableOfFunctions(s32& maxidx)
   {
+    UTI cuti = m_state.getCompileThisIdx();
+    UTI superuti = m_state.isClassASubclass(cuti);
 
-    if(m_idToSymbolPtr.empty())
+    if(m_idToSymbolPtr.empty() && superuti == Nav)
       {
-	maxidx = maxidx > 0 ? maxidx : 0; //same as base class, o.w. zero when empty
-	return;
+	assert(maxidx <= 0);
+    	maxidx = 0; //use zero when empty
       }
+
+    //initialize this classes VTable to super classes' VTable, or empty
+    // some entries may be modified; or table may expand
+    SymbolClass * csym = NULL;
+    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    csym->initVTable(maxidx);
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
     while(it != m_idToSymbolPtr.end())

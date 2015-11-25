@@ -397,11 +397,7 @@ namespace MFM {
       }
 
     // for all the virtual function names, calculate their index in the VM Table
-    if(!isEmpty())
-      m_functionST.calcMaxIndexForVirtualTableOfFunctions(maxidx);
-    else
-      maxidx = maxidx > 0 ? maxidx : 0; //same as base class, o.w. zero when empty
-
+    m_functionST.calcMaxIndexForVirtualTableOfFunctions(maxidx);
     setVirtualMethodMaxIdx(maxidx);
   } //calcMaxIndexOfVirtualFunctions
 
@@ -630,6 +626,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return (superbs > mybs ? superbs : mybs); //return max
   } //getMaxBitSizeOfVariableSymbolsInTable
 
+#if 0
   s32 NodeBlockClass::findUlamTypeInTable(UTI utype)
   {
     s32 rtnpos = m_ST.findPosOfUlamTypeInTable(utype);
@@ -651,6 +648,30 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	  }
       }
     return rtnpos;
+  } //findUlamTypeInTable
+#endif
+
+  s32 NodeBlockClass::findUlamTypeInTable(UTI utype, UTI& insidecuti)
+  {
+    s32 rtnpos = m_ST.findPosOfUlamTypeInTable(utype, insidecuti);
+    if(rtnpos < 0)
+      {
+	//check superclass for dm match, next:
+	UTI superuti = m_state.isClassASubclass(getNodeType());
+	if(superuti != Nav)
+	  {
+	    // quarks can't contain themselves
+	    if(utype != superuti)
+	      {
+		NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+		assert(superClassBlock);
+		m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
+		rtnpos = superClassBlock->findUlamTypeInTable(utype, insidecuti);
+		m_state.popClassContext(); //restore
+	      }
+	  }
+      }
+    return rtnpos;  //also return DM (sub) class type where utype was found
   } //findUlamTypeInTable
 
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
