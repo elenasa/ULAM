@@ -398,6 +398,7 @@ namespace MFM {
     if(m_funcSymbol->isVirtualFunction())
       {
 	u32 vtidx = m_funcSymbol->getVirtualMethodIdx();
+#if 1
 	u32 atomid = atomPtr.getPtrNameId();
 	if(atomid != 0)
 	  {
@@ -427,14 +428,13 @@ namespace MFM {
 		  }
 		else if(autolocaltype == ALT_HAS)
 		  {
-		    //if the auto type is a superclass of the data member, we
-		    // must use the type of the data member, rather than the base (rhs)
+		    // auto type is the type of the data member,
+		    // rather than the base (rhs)
 		    //u32 apos = atomPtr.getPtrPos();
-
-
 		  }
 	      }
 	  } //else can't be an autolocal
+#endif
 
 	UTI cuti = atomPtr.getPtrTargetType(); //must be a class
 	SymbolClass * vcsym = NULL;

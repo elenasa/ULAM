@@ -177,7 +177,9 @@ namespace MFM {
 
     if(asit)
       {
-	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), ruti, m_state.determinePackable(ruti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
+	//UTI asuti = (luti == UAtom ? ruti : luti);
+	UTI asuti = ruti;
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
 	m_state.m_currentAutoObjPtr = ptr;
       }
     else

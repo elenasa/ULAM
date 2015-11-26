@@ -368,50 +368,6 @@ namespace MFM {
       }
   } //genCodeBuiltInFunctionHasOverTableOfVariableDataMember
 
-#if 0
-  void SymbolTable::genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(File * fp)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	    if(sut->getUlamClass() == UC_QUARK)
-	      {
-		m_state.indent(fp);
-		fp->write("if(!strcmp(namearg,\"");
-		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-		fp->write("\") && posarg == ");
-		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
-		fp->write(") return (");
-		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
-		fp->write("); //pos offset\n");
-
-		UTI superuti = m_state.isClassASubclass(suti);
-		while(superuti != Nav)
-		  {
-		    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-		    m_state.indent(fp);
-		    fp->write("if(!strcmp(namearg,\"");
-		    fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-		    fp->write("\") && posarg == POS");
-		    //fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
-		    fp->write(") return (");
-		    fp->write_decimal(((SymbolVariable *) sym)->getPosOffset()); //same offset starts at 0
-		    fp->write("); //inherited pos offset\n");
-
-		    superuti = m_state.isClassASubclass(superuti); //any more
-		  } //while
-	      }
-	  }
-	it++;
-      }
-  } //genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember
-#endif
-
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti)
   {
     bool useFullClassName = (cuti != m_state.getCompileThisIdx()); //from its superclass
@@ -1145,7 +1101,7 @@ namespace MFM {
 	  }
 	it++;
       }
-  } //caclMaxDepthOfFunctionsForTableOfClasses
+  } //calcMaxDepthOfFunctionsForTableOfClasses
 
   bool SymbolTable::calcMaxIndexOfVirtualFunctionsForTableOfClasses()
   {

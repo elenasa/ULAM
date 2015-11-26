@@ -102,8 +102,6 @@ namespace MFM{
 
     virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
-    //virtual s32 findUlamTypeInTable(UTI utype);
-
     virtual void genCode(File * fp, UlamValue& uvpass);
 
     void genModelParameterImmediateDefinitions(File * fp);

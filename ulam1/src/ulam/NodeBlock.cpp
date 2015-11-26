@@ -114,10 +114,10 @@ namespace MFM {
   {
     m_state.pushCurrentBlock(this);
     assert(m_nodeNext);
-    //    return m_nodeNext->eval(); //no return value
     EvalStatus evs = m_nodeNext->eval(); //no return value
     m_state.popClassContext(); //restore
     return evs;
+    //return m_nodeNext->eval(); //no return value
   } //eval
 
   void NodeBlock::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
@@ -204,14 +204,6 @@ namespace MFM {
 
     return m_ST.getMaxVariableSymbolsBitSize();
   }
-
-#if 0
-  s32 NodeBlock::findUlamTypeInTable(UTI utype)
-  {
-    assert(0);
-    return m_ST.findPosOfUlamTypeInTable(utype);
-  }
-#endif
 
   SymbolTable * NodeBlock::getSymbolTablePtr()
   {
