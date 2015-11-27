@@ -410,23 +410,6 @@ namespace MFM {
 		ALT autolocaltype = asym->getAutoLocalType();
 		if(autolocaltype == ALT_AS) //must be a class
 		  {
-		    /*
-		    NodeBlock * currblock = m_state.getCurrentBlock();
-		    assert(currblock);
-		    NodeBlock * prevblock = currblock->getPreviousBlockPointer();
-		    assert(prevblock);
-		    m_state.pushCurrentBlock(prevblock);
-
-		    Symbol * shadsym = NULL; //same name in some prev block
-		    assert(m_state.alreadyDefinedSymbol(atomid, shadsym, hazyKin) && !hazyKin);
-
-		    //RECURSE UNTIL NON-AUTO or HAS-AUTO??? refactor this!!!
-
-		    UTI shadowtype = shadsym->getUlamTypeIdx();
-		    //when autolocal, use original (lhs) auto storage to lookup class to use
-		    atomPtr.setPtrTargetType(shadowtype); //what about POS? e.g. has-conditional
-		    m_state.popClassContext(); //restore
-		    */
 		    atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
 		  }
 		else if(autolocaltype == ALT_HAS)
