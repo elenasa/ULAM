@@ -657,19 +657,12 @@ namespace MFM {
     SymbolClass * csym = NULL;
     assert(m_state.alreadyDefinedSymbolClass(cosuti, csym));
 
-    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-
-    //typedef of conextual type info from any class with this function
-    //Symbol * stgcos = m_state.getCurrentSelfSymbolForCodeGen();
-    //UTI stgcosuti = stgcos->getUlamTypeIdx();
-    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-
     UTI cvfuti = csym->getClassForVTableEntry(m_funcSymbol->getVirtualMethodIdx());
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
-
+    ULAMCLASSTYPE cvclasstype = cvfut->getUlamClass();
     fp->write("((typename ");
     fp->write(cvfut->getUlamTypeMangledName().c_str());
-    if(cvfut->getUlamClass() == UC_ELEMENT)
+    if(cvclasstype == UC_ELEMENT)
       fp->write("<EC>::");
     else
       {
@@ -681,6 +674,8 @@ namespace MFM {
     fp->write(") ");
     fp->write("UlamElement<EC>::GetVTableEntry(");
     fp->write(genHiddenArgs().c_str());
+    fp->write(", ");
+    fp->write(genStorageType().c_str());
     fp->write(", ");
     fp->write_decimal_unsigned(m_funcSymbol->getVirtualMethodIdx());
     fp->write("u)) ");
@@ -873,6 +868,47 @@ namespace MFM {
       }
     return hiddenargs.str();
   } //genHiddenArgs
+
+  std::string NodeFunctionCall::genStorageType()
+  {
+    std::ostringstream stype;
+
+    //"hidden" self arg
+    if(!isCurrentObjectALocalVariableOrArgument())
+      {
+	stype << m_state.getHiddenArgName();
+	stype << ".GetType()";
+      }
+    else
+      {
+	s32 epi = isCurrentObjectsContainingAModelParameter();
+	if(epi >= 0)
+	  {
+	    stype << genModelParameterHiddenArgs(epi).c_str();
+	  }
+	else //local var
+	  {
+	    Symbol * stgcos = NULL;
+	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	      {
+		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+	      }
+	    else
+	      {
+		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	      }
+
+	    stype << stgcos->getMangledName().c_str();
+
+	    // for both immediate quarks and elements now...
+	    if(!stgcos->isSelf())
+	      stype << ".getType()"; //the T storage within the struct for immediate quarks
+	    else
+	      stype << ".GetType()";
+	  }
+      }
+    return stype.str();
+  } //genStorageType
 
   // "static" data member, a mixture of local variable and dm;
   // requires THE_INSTANCE, and local variables are superfluous.

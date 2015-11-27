@@ -114,6 +114,7 @@ namespace MFM{
     void genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass);
     std::string genHiddenArgs();
     std::string genRestOfFunctionArgs(File * fp, UlamValue & uvpass);
+    std::string genStorageType(); //for VTable entry
   };
 
 }
