@@ -65,11 +65,16 @@ namespace MFM{
 
     void setAutoPtrForEval(UlamValue ptr);
 
+    UTI getAutoStorageTypeForEval();
+
+    void setAutoStorageTypeForEval(UTI uti);
+
   protected:
 
   private:
     s32 m_stackFrameSlotIndex;
     UlamValue m_autoPtrForEval;
+    UTI m_autoStgTypeForEval;
   };
 
 }

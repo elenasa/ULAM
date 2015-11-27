@@ -423,6 +423,7 @@ namespace MFM {
 
     UlamValue pluv = m_state.m_currentAutoObjPtr;
     ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
+    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_state.m_currentAutoStorageType); //for future virtual function call eval uses
 
     m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
 

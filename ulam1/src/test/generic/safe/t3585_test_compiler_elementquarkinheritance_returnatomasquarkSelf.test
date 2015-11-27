@@ -30,8 +30,6 @@ element Foo : Soo {
     Coo c = func();
     cus = c.us;
     s.print(c.us);
-    //s.print(cus); //is correct 1, but postfix answer shows 6u, not 1u.
-
 
     Coo d = c.func(); //what happens when atom is not an Atom, immediate UNDEFINED_TYPE
     dus = d.us;
@@ -41,7 +39,6 @@ element Foo : Soo {
 
     s.print(cus + dus); //4
     return (c.us + d.us);
-    //return (cus + dus);
   }
 }
 
@@ -59,10 +56,9 @@ quark Coo {
   Bool(3) cb = true;
   Self func()
   {
-
     Atom f = atom; //was self
     ////Foo f = (Foo) self;
-    if(f as Foo) //for eval
+    //if(f as Foo) //for eval
     {
       if(f as Coo)
       {

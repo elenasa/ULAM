@@ -4,6 +4,7 @@
 #include "SymbolFunction.h"
 #include "SymbolFunctionName.h"
 #include "SymbolVariableDataMember.h"
+#include "SymbolVariableStack.h"
 #include "CallStack.h"
 
 
@@ -398,7 +399,6 @@ namespace MFM {
     if(m_funcSymbol->isVirtualFunction())
       {
 	u32 vtidx = m_funcSymbol->getVirtualMethodIdx();
-#if 1
 	u32 atomid = atomPtr.getPtrNameId();
 	if(atomid != 0)
 	  {
@@ -410,6 +410,7 @@ namespace MFM {
 		ALT autolocaltype = asym->getAutoLocalType();
 		if(autolocaltype == ALT_AS) //must be a class
 		  {
+		    /*
 		    NodeBlock * currblock = m_state.getCurrentBlock();
 		    assert(currblock);
 		    NodeBlock * prevblock = currblock->getPreviousBlockPointer();
@@ -425,16 +426,16 @@ namespace MFM {
 		    //when autolocal, use original (lhs) auto storage to lookup class to use
 		    atomPtr.setPtrTargetType(shadowtype); //what about POS? e.g. has-conditional
 		    m_state.popClassContext(); //restore
+		    */
+		    atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
 		  }
 		else if(autolocaltype == ALT_HAS)
 		  {
 		    // auto type is the type of the data member,
 		    // rather than the base (rhs)
-		    //u32 apos = atomPtr.getPtrPos();
 		  }
 	      }
 	  } //else can't be an autolocal
-#endif
 
 	UTI cuti = atomPtr.getPtrTargetType(); //must be a class
 	SymbolClass * vcsym = NULL;

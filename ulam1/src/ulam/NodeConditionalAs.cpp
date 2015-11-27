@@ -181,9 +181,13 @@ namespace MFM {
 	UTI asuti = ruti;
 	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
 	m_state.m_currentAutoObjPtr = ptr;
+	m_state.m_currentAutoStorageType = luti;
       }
     else
+      {
       m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
+      m_state.m_currentAutoStorageType = Nav;
+      }
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) asit, m_state);
     //also copy result UV to stack, -1 relative to current frame pointer
