@@ -202,7 +202,7 @@ namespace MFM{
 
     //index of last subclass; o.w.-1
     s32 isCurrentObjectsContainingASubClass();
-    UTI findTypeOfSubClassAndBlockNo(NNO bno, s32 subcosidx);
+    UTI findTypeOfAncestorAndBlockNo(NNO bno, s32 subcosidx);
     s32 calcPosOfCurrentObjectsContainingASubClass(bool isLocal);
 
     //false means its the entire array or not an array at all

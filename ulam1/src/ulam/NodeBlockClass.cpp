@@ -626,31 +626,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return (superbs > mybs ? superbs : mybs); //return max
   } //getMaxBitSizeOfVariableSymbolsInTable
 
-#if 0
-  s32 NodeBlockClass::findUlamTypeInTable(UTI utype)
-  {
-    s32 rtnpos = m_ST.findPosOfUlamTypeInTable(utype);
-    if(rtnpos < 0)
-      {
-	//check superclass for dm match, next:
-	UTI superuti = m_state.isClassASubclass(getNodeType());
-	if(superuti != Nav)
-	  {
-	    // quarks can't contain themselves
-	    if(utype != superuti)
-	      {
-		NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-		assert(superClassBlock);
-		m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
-		rtnpos = superClassBlock->findUlamTypeInTable(utype);
-		m_state.popClassContext(); //restore
-	      }
-	  }
-      }
-    return rtnpos;
-  } //findUlamTypeInTable
-#endif
-
   s32 NodeBlockClass::findUlamTypeInTable(UTI utype, UTI& insidecuti)
   {
     s32 rtnpos = m_ST.findPosOfUlamTypeInTable(utype, insidecuti);

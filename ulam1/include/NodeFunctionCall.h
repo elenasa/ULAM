@@ -107,7 +107,6 @@ namespace MFM{
 
     Token m_functionNameTok;
     SymbolFunction * m_funcSymbol;
-    //std::vector<Node *> m_argumentNodes;
     NodeList * m_argumentNodes;
 
     void genCodeIntoABitValue(File * fp, UlamValue& uvpass);

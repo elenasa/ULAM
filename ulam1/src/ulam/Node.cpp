@@ -1755,7 +1755,8 @@ namespace MFM {
 
 	    if(cosut->getUlamTypeEnum() != Class)
 	      {
-		cosclassuti = findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
+		cosclassuti = findTypeOfAncestorAndBlockNo(cosBlockNo, subcos);
+		assert(cosclassuti != Nav);
 		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	      }
 
@@ -2007,7 +2008,8 @@ namespace MFM {
 
 	    if(cosut->getUlamTypeEnum() != Class)
 	      {
-		cosclassuti = findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
+		cosclassuti = findTypeOfAncestorAndBlockNo(cosBlockNo, subcos);
+		assert(cosclassuti != Nav);
 		cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 	      }
 
@@ -2219,14 +2221,14 @@ namespace MFM {
     return indexOfLastSubClass;
   } //isCurrentObjectsContainingASubClass
 
-  UTI Node::findTypeOfSubClassAndBlockNo(NNO bno, s32 subcosidx)
+  UTI Node::findTypeOfAncestorAndBlockNo(NNO bno, s32 subcosidx)
   {
-    Symbol * subcossym = NULL;
+    Symbol * subcos = NULL;
     if(subcosidx < 0)
-      subcossym = m_state.getCurrentSelfSymbolForCodeGen();
+      subcos = m_state.getCurrentSelfSymbolForCodeGen();
     else
-      subcossym = m_state.m_currentObjSymbolsForCodeGen[subcosidx];
-    UTI subcosuti = subcossym->getUlamTypeIdx();
+      subcos = m_state.m_currentObjSymbolsForCodeGen[subcosidx];
+    UTI subcosuti = subcos->getUlamTypeIdx();
 
     //compare blockclassuti with cosnameuti (in case of templates)
     UTI blockclassuti = m_state.findAClassByNodeNo(bno); //regular or template
@@ -2243,13 +2245,15 @@ namespace MFM {
       if(blockclassuti == cosnameuti) break;
 
       subcosuti = cosclassuti;
-      cosclassuti = m_state.isClassASubclass(subcosuti);
-      if(cosclassuti == Nav) break;
+      cosclassuti = m_state.isClassASubclass(subcosuti); //returns superuti, an instance!
+
+      if(cosclassuti == Nav)
+	return subcosuti;
 
     } while(cosclassuti != Nav);
 
     return cosclassuti;
-  } //findTypeOfSubClassAndBlockNo
+  } //findTypeOfAncestorAndBlockNo
 
   // returns the index to the last object that's a subclass; o.w. -1 none found;
   // preceeding object is the "owner"

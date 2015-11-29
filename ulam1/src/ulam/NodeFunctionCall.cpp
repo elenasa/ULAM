@@ -651,23 +651,36 @@ namespace MFM {
     if(cosSize != 0)
       cos = m_state.m_currentObjSymbolsForCodeGen.back(); //"owner" of func
     else
-      cos = m_state.getCurrentSelfSymbolForCodeGen();
-    UTI cosuti = cos->getUlamTypeIdx();
+      cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self' could be a superclass of?
 
+    //what if 'self' is a superclass? how do we find out its decendent?
+    // and lookup this func using its VTable? XXX
+    // or, better yet, let 'self' BE the subclass!!! XXX
+
+    UTI cosuti = cos->getUlamTypeIdx();
     SymbolClass * csym = NULL;
     assert(m_state.alreadyDefinedSymbolClass(cosuti, csym));
 
     UTI cvfuti = csym->getClassForVTableEntry(m_funcSymbol->getVirtualMethodIdx());
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
     ULAMCLASSTYPE cvclasstype = cvfut->getUlamClass();
+
     fp->write("((typename ");
     fp->write(cvfut->getUlamTypeMangledName().c_str());
     if(cvclasstype == UC_ELEMENT)
       fp->write("<EC>::");
     else
       {
-	fp->write("<EC,");
-	fp->write("T::ATOM_FIRST_STATE_BIT"); //presumes ancestor or immediate quark
+	fp->write("<EC, ");
+	if(cos->isDataMember())
+	  {
+	    fp->write_decimal_unsigned(cos->getPosOffset());
+	    fp->write("u");
+	  }
+	else
+	  {
+	    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestor or immediate quark)
+	  }
 	fp->write(">::");
       }
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
@@ -716,12 +729,13 @@ namespace MFM {
 
     if(cosBlockNo != stgcosBlockNo)
       {
-	s32 subcos = Node::isCurrentObjectsContainingASubClass();
-	if(subcos >= 0)
+	s32 subcosidx = Node::isCurrentObjectsContainingASubClass(); //from end
+	if(subcosidx >= 0)
 	  {
-	    startcos = subcos + 1;
+	    startcos = subcosidx + 1; //for loop later
 
-	    UTI cosclassuti = Node::findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
+	    UTI cosclassuti = Node::findTypeOfAncestorAndBlockNo(cosBlockNo, subcosidx);
+	    assert(cosclassuti != Nav);
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
 
 	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
@@ -729,9 +743,10 @@ namespace MFM {
 	      fp->write("<EC>::THE_INSTANCE.");
 	    else
 	      {
-		fp->write("<EC,");
-		fp->write("T::ATOM_FIRST_STATE_BIT");
-		fp->write(">::");
+		fp->write("<EC, ");
+		//fp->write("T::ATOM_FIRST_STATE_BIT");
+		fp->write_decimal_unsigned(cos->getPosOffset());
+		fp->write("u>::");
 	      }
 	  }
 	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
@@ -749,8 +764,9 @@ namespace MFM {
 	    else
 	      {
 		//self is a quark
-		fp->write("<EC,");
-		fp->write("T::ATOM_FIRST_STATE_BIT");
+		fp->write("<EC, ");
+		fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
+		//fp->write("POS");
 		fp->write(">::");
 	      }
 	  }
@@ -1036,12 +1052,13 @@ namespace MFM {
     NNO stgcosBlockNo = m_state.getAClassBlockNo(stgcosuti);
     if(stgcosBlockNo != cosBlockNo)
       {
-	s32 subcos = Node::isCurrentObjectsContainingASubClass();
-	if(subcos >= 0)
+	s32 subcosidx = Node::isCurrentObjectsContainingASubClass(); //from end
+	if(subcosidx >= 0)
 	  {
-	    startcos = subcos + 1; //for loop later
+	    startcos = subcosidx + 1; //for loop later
 
-	    UTI cosclassuti = Node::findTypeOfSubClassAndBlockNo(cosBlockNo, subcos);
+	    UTI cosclassuti = Node::findTypeOfAncestorAndBlockNo(cosBlockNo, subcosidx);
+	    assert(cosclassuti != Nav);
 	    stgcosuti = cosclassuti; // resets stgcosuti here!!
 	    stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	    useSuperClassName = true;
