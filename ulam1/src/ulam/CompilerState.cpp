@@ -52,10 +52,10 @@ namespace MFM {
   static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
 
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
-  static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::IsMethod"; //Uf_2is
+  static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClassTemplated<EC>::IsMethod"; //Uf_2is
 
   static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
-  static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
+  static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClassTemplated<EC>::PositionOfDataMember";
 
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";

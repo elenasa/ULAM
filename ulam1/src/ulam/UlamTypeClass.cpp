@@ -523,7 +523,7 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    // see UlamElement.h for AutoRefBase
+    // see UlamClassTemplated.h for AutoRefBase
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());

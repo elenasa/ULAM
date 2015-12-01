@@ -844,7 +844,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write(" : public UlamClass");  //was tbd inheritance
+    fp->write(" : public UlamQuark<EC>");
 
     fp->write("\n");
 

@@ -651,11 +651,15 @@ namespace MFM {
     if(cosSize != 0)
       cos = m_state.m_currentObjSymbolsForCodeGen.back(); //"owner" of func
     else
-      cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self' could be a superclass of?
-
-    //what if 'self' is a superclass? how do we find out its decendent?
-    // and lookup this func using its VTable? XXX
-    // or, better yet, let 'self' BE the subclass!!! XXX
+      {
+	//what if 'self' is a superclass? how do we find out its decendent?
+	// and lookup this func using its VTable? XXX
+	// or, better yet, let 'self' BE the subclass!!! XXX
+	//cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self' could be a superclass of?
+	cos = m_state.m_currentSubclassSelfSymbolForCodeGen; //WHAT IF???
+	if(cos == NULL)
+	  cos = m_state.getCurrentSelfSymbolForCodeGen();
+      }
 
     UTI cosuti = cos->getUlamTypeIdx();
     SymbolClass * csym = NULL;
@@ -685,7 +689,7 @@ namespace MFM {
       }
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(") ");
-    fp->write("UlamElement<EC>::GetVTableEntry(");
+    fp->write("UlamClassTemplated<EC>::GetVTableEntry(");
     fp->write(genHiddenArgs().c_str());
     fp->write(", ");
     fp->write(genStorageType().c_str());
@@ -734,6 +738,8 @@ namespace MFM {
 	  {
 	    startcos = subcosidx + 1; //for loop later
 
+	    m_state.m_currentSubclassSelfSymbolForCodeGen = m_state.m_currentObjSymbolsForCodeGen[subcosidx]; //WHAT IF???
+
 	    UTI cosclassuti = Node::findTypeOfAncestorAndBlockNo(cosBlockNo, subcosidx);
 	    assert(cosclassuti != Nav);
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
@@ -751,6 +757,8 @@ namespace MFM {
 	  }
 	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
 	  {
+	    m_state.m_currentSubclassSelfSymbolForCodeGen = stgcos; //WHAT IF???
+
 	    Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
 	    assert(foundnode);
 	    UTI superuti = foundnode->getNodeType();
@@ -770,7 +778,8 @@ namespace MFM {
 		fp->write(">::");
 	      }
 	  }
-	//else do nothing for inheritance
+	else //do nothing for inheritance
+	  m_state.m_currentSubclassSelfSymbolForCodeGen = NULL; //WHAT IF???
       }
 
     //iterate over COS vector; empty if current object is self
@@ -1062,7 +1071,11 @@ namespace MFM {
 	    stgcosuti = cosclassuti; // resets stgcosuti here!!
 	    stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	    useSuperClassName = true;
+
+	    m_state.m_currentSubclassSelfSymbolForCodeGen = m_state.m_currentObjSymbolsForCodeGen[subcosidx]; //WHAT IF???
 	  }
+	else
+	    m_state.m_currentSubclassSelfSymbolForCodeGen = NULL; //WHAT IF???
       }
 
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
