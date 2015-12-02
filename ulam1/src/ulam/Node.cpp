@@ -1320,6 +1320,7 @@ namespace MFM {
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
     // write out auto ref constuctor
     s32 tmpVarNum = uvpass.getPtrSlotIndex();
@@ -1331,10 +1332,15 @@ namespace MFM {
 	m_state.indent(fp);
 	//fp->write("const "); can't be const and chainable
 	fp->write(cosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	//fp->write("<EC, ");
-	//fp->write_decimal(ATOMFIRSTSTATEBITPOS);
-	//fp->write("> ");
-	fp->write("<EC> ");
+	if(cosclasstype == UC_QUARK)
+	  {
+	    fp->write("<EC, ");
+	    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //must be a constant
+	    fp->write("u> ");
+	  }
+	else
+	  fp->write("<EC> ");
+
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
 	fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, TMPAUTOREF).c_str());
@@ -1354,7 +1360,15 @@ namespace MFM {
 	m_state.indent(fp);
 	//fp->write("const "); can't be const and chainable
 	fp->write(cosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	fp->write("<EC> ");
+	if(cosclasstype == UC_QUARK)
+	  {
+	    fp->write("<EC, ");
+	    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //must be a constant
+	    fp->write("u> ");
+	  }
+	else
+	  fp->write("<EC> ");
+
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)
 
