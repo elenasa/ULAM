@@ -769,7 +769,7 @@ namespace MFM {
 	    fp->write(superut->getUlamTypeMangledName().c_str());
 	    if(superut->getUlamClass() == UC_ELEMENT)
 	      {
-		fp->write("<EC>::THE_INSTANCE.");
+		fp->write("<EC>::");
 		startcos = cosSize; //bypass all that follows
 	      }
 	    else
@@ -779,7 +779,6 @@ namespace MFM {
 		fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
 		//fp->write("POS");
 		fp->write(">::");
-		fp->write("THE_INSTANCE."); //non-static functions require an instance
 	      }
 	  }
 	else //do nothing for inheritance
@@ -797,9 +796,9 @@ namespace MFM {
 	  continue;
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
-	if(i == 0)
-	  fp->write("THE_INSTANCE."); //missing for quarks too!
       }
+
+    fp->write("THE_INSTANCE."); //non-static functions require an instance
 
     //NOT FOR Funccalls
     //if last cos is a quark, for Read/Write to work it needs an
