@@ -2045,7 +2045,7 @@ namespace MFM {
 		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
-	    fp->write("THE_INSTANCE.");
+	    //fp->write("THE_INSTANCE.");
 	  }
       }
 
