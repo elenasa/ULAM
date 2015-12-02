@@ -337,7 +337,7 @@ namespace MFM {
 	  pos = 0;
 	//  itemUV = UlamValue::makeAtom(caType);
 	//else
-	//  itemUV = UlamValue::makeImmediate(caType, 0, m_state);  //quietly skip for now XXX
+	//  itemUV = UlamValue::makeImmediate(caType, 0, m_state);  //quietly skip for now
 
 	//use CA type, not the left ident's type
 	UlamValue scalarPtr = UlamValue::makePtr(pluv.getPtrSlotIndex(),

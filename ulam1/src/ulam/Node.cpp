@@ -2151,7 +2151,7 @@ namespace MFM {
     return method;
   } //writeArrayItemMethodForCodeGen
 
-  //each knows which ReadXXX method to use based on their key(arraysize, bitsize, type);
+  //each knows which Read method to use based on their key(arraysize, bitsize, type);
   const std::string Node::readMethodForImmediateBitValueForCodeGen(UTI nuti, UlamValue uvpass)
   {
     if(isCurrentObjectAnArrayItem(nuti, uvpass))
@@ -2160,7 +2160,7 @@ namespace MFM {
     assert(!isCurrentObjectACustomArrayItem(nuti, uvpass));
 
     //note: for the entire array, ie not just a piece, we want to use 'read'
-    //      rather then readArrayXXX; unless we're talking UNPACKED.
+    //      rather then readArrayItem; unless we're talking UNPACKED.
     //      For Int's, there is no automatic sign extension for entire arrays.
     return "read";
   } //readMethodForImmediateBitValueForCodeGen
@@ -2177,9 +2177,9 @@ namespace MFM {
 
   bool Node::isCurrentObjectALocalVariableOrArgument()
   {
-    // include model parameters as LocalVariableOrArgument, since more alike XXX
-    // an element's "self" as obj[0] is like it isn't there for purposes of this discovery.
-    // quark's self is an atom, and should be treated like a local arg.
+    //include model parameters as LocalVariableOrArgument, since more alike;
+    //an element's "self" as obj[0] is like it isn't there for purposes of this discovery.
+    //quark's self is an atom, and should be treated like a local arg.
     // note: self is not a data member.
     return !(m_state.m_currentObjSymbolsForCodeGen.empty() || (m_state.m_currentObjSymbolsForCodeGen[0]->isDataMember() && isCurrentObjectsContainingAModelParameter() == -1) || (m_state.m_currentObjSymbolsForCodeGen[0]->isSelf() && m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx() != UAtom && isCurrentObjectsContainingAModelParameter() == -1));
   }

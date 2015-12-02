@@ -216,9 +216,9 @@ namespace MFM {
 	if( calen > MAXBITSPERLONG)
 	  return UlamValue::makeAtom(caType);
 	if(calen > MAXBITSPERINT)
-	  return UlamValue::makeImmediateLong(caType, 0, state); //quietly skip for now XXX
+	  return UlamValue::makeImmediateLong(caType, 0, state); //quietly skip for now
 
-	return UlamValue::makeImmediate(caType, 0, state); //quietly skip for now XXX
+	return UlamValue::makeImmediate(caType, 0, state); //quietly skip for now
       }
 
     assert(state.getArraySize(auti) >= 0); //allow zero length arrays

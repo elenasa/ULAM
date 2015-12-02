@@ -719,7 +719,7 @@ namespace MFM {
       return utArg;
 
     //for typedef array, the scalar is the primitive type
-    // maintained in the symbol!! can't get to it from utarg. XXX
+    // maintained in the symbol!! can't get to it from utarg.
     ULAMTYPE bUT = ut->getUlamTypeEnum();
 
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
