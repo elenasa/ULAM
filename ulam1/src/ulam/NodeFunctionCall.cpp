@@ -615,6 +615,7 @@ namespace MFM {
 	fp->write(" = ");
       } //not void return
 
+    // no longer for quarks!!
     // static functions..oh yeah..but only for quarks and virtual funcs
     // who's function is it?
     if(m_funcSymbol->isVirtualFunction())
@@ -686,6 +687,7 @@ namespace MFM {
 	    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestor or immediate quark)
 	  }
 	fp->write(">::");
+	//fp->write("THE_INSTANCE."); //non-static functions require an instance
       }
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(") ");
@@ -753,6 +755,7 @@ namespace MFM {
 		//fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write_decimal_unsigned(cos->getPosOffset());
 		fp->write("u>::");
+		fp->write("THE_INSTANCE."); //non-static functions require an instance
 	      }
 	  }
 	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
@@ -776,11 +779,15 @@ namespace MFM {
 		fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
 		//fp->write("POS");
 		fp->write(">::");
+		fp->write("THE_INSTANCE."); //non-static functions require an instance
 	      }
 	  }
 	else //do nothing for inheritance
 	  m_state.m_currentSubclassSelfSymbolForCodeGen = NULL; //WHAT IF???
       }
+    else
+      m_state.m_currentSubclassSelfSymbolForCodeGen = NULL; //WHAT IF???
+
 
     //iterate over COS vector; empty if current object is self
     for(u32 i = startcos; i < cosSize; i++)
@@ -790,6 +797,8 @@ namespace MFM {
 	  continue;
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
+	if(i == 0)
+	  fp->write("THE_INSTANCE."); //missing for quarks too!
       }
 
     //NOT FOR Funccalls
@@ -837,6 +846,7 @@ namespace MFM {
 	    fp->write(cosut->getImmediateStorageTypeAsString().c_str());
 	    fp->write("::");
 	    fp->write("Us::"); //typedef, always for funccalls
+	    fp->write("THE_INSTANCE."); //non-static functions require an instance
 	  }
       }
 
@@ -1081,22 +1091,21 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
-	fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	fp->write("<EC>::");
-	//depending on the "owner" of the func, the instance is needed
-	Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
-	UTI cosuti = cos->getUlamTypeIdx();
-	if(m_state.getUlamTypeByIndex(cosuti)->getUlamClass() == UC_ELEMENT)
-	  fp->write("THE_INSTANCE."); //non-static functions require an instance
+	//fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+	fp->write("<EC>");
+	fp->write("::Us::");
       }
     else
       {
 	if(useSuperClassName)
 	  {
-	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	    //then a quark ancestor
+	    //fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	    fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
 	    fp->write("<EC,");
-	    fp->write("T::ATOM_FIRST_STATE_BIT");
-	    fp->write(">::");
+	    fp->write("T::ATOM_FIRST_STATE_BIT>");
+	    fp->write("::Us::");
 	  }
 	else
 	  {
@@ -1104,6 +1113,7 @@ namespace MFM {
 	  fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
 	  fp->write("::Us::"); //typedef
 	  }
+	//	fp->write("THE_INSTANCE."); //non-static functions require an instance
       }
 
     for(u32 i = startcos; i < cosSize; i++)
@@ -1111,7 +1121,15 @@ namespace MFM {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
+	//if( (i + 1 == cosSize) && sym->isDataMember() && (m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeEnum() == Class))
+	// fp->write("THE_INSTANCE.");
       }
+
+    //depending on the "owner" of the func, the instance is needed
+    Symbol * cos = m_state.m_currentObjSymbolsForCodeGen.back();
+    UTI cosuti = cos->getUlamTypeIdx();
+    if(m_state.getUlamTypeByIndex(cosuti)->getUlamTypeEnum() == Class)
+      fp->write("THE_INSTANCE."); //non-static functions require an instance
   } //genLocalMemberNameOfMethod
 
 } //end MFM

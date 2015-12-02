@@ -583,7 +583,15 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
-    fp->write("<EC> ");
+    if(vclasstype == UC_ELEMENT)
+      fp->write("<EC> ");
+    else //QUARK
+      {
+	fp->write("<EC, ");
+	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //POS should be 0+25 for inheritance
+	fp->write("u + T::ATOM_FIRST_STATE_BIT >");
+      }
+
     fp->write(m_varSymbol->getMangledName().c_str());
     fp->write("(");
     fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());

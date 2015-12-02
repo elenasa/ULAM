@@ -1798,6 +1798,8 @@ namespace MFM {
 	  continue;
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
+	//if(i == 0)
+	//  fp->write("THE_INSTANCE."); not with parameter types!!!
       }
 
     //if last cos is a quark, for Read/Write to work it needs an
@@ -1806,9 +1808,15 @@ namespace MFM {
     // scalar quarks are typedefs and need atomic parametization;
     // arrays are already atomic parameters
     // ancestor issues up for grabs?
-    if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK && !cosut->isCustomArray())
+    bool isCA = cosut->isCustomArray();
+    if(cosut->isScalar() && cosut->getUlamClass() == UC_QUARK)
       {
-	fp->write("Up_Us::"); //gives quark an atomicparameter type for write
+	if(!isCA)
+	  fp->write("Up_Us::"); //gives quark an atomicparameter type for write
+	else if(isCA)
+	  fp->write("THE_INSTANCE.");
+	else if(cos->isDataMember())
+	  fp->write("THE_INSTANCE."); //Ut_..
       }
   } //genMemberNameOfMethod
 
@@ -1946,6 +1954,7 @@ namespace MFM {
 	    fp->write("<EC,");
 	    fp->write("T::ATOM_FIRST_STATE_BIT");
 	    fp->write(">::");
+	    fp->write("THE_INSTANCE."); //quarks need an object
 	  }
 	return;
       }
@@ -2022,28 +2031,44 @@ namespace MFM {
 		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
+	    fp->write("THE_INSTANCE.");
 	  }
       }
 
+    //stgcos is not the base of the type (possibly remove code???)
     if(subcos < 0)
       {
 	fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
 	fp->write("::");
 	fp->write("Us::"); //typedef
+	if(cosSize == 1)
+	  fp->write("THE_INSTANCE.");
       }
 
-    for(u32 i = startcos; i < cosSize; i++)
+
+      for(u32 i = startcos; i < cosSize; i++)
       {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	UTI suti = sym->getUlamTypeIdx();
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	ULAMCLASSTYPE sclasstype = sut->getUlamClass();
+	//ULAMCLASSTYPE sclasstype = sut->getUlamClass();
 	//not the model parameter, but a data member..
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
-	// if its the last cos, a quark, and not a custom array...
-	if(sclasstype == UC_QUARK && (i + 1 == cosSize) && sut->isScalar() && !m_state.isClassACustomArray(suti))
-	  fp->write("Up_Us::"); //atomic parameter needed
+	// if its the last cos, a quark, and scalar
+	if((i + 1 == cosSize) && sut->isScalar() && (sut->getUlamClass() == UC_QUARK))
+	  {
+	    bool isCA = m_state.isClassACustomArray(suti);
+	    if(!isCA)
+	      {
+		//not a custom array...
+		fp->write("Up_Us::"); //atomic parameter needed
+	      }
+	    else if(isCA)
+	      fp->write("THE_INSTANCE."); //custom array
+	    else if(sym->isDataMember())
+	      fp->write("THE_INSTANCE."); //Ut_Um...
+	  }
       }
   } //genLocalMemberNameOfMethodByUsTypedef
 
@@ -2082,6 +2107,7 @@ namespace MFM {
 	    fp->write("<EC, ");
 	    fp->write("T::ATOM_FIRST_STATE_BIT");
 	    fp->write(">::");
+	    fp->write("THE_INSTANCE."); //quarks need an object
 	  }
 	return;
       }

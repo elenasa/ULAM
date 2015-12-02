@@ -814,6 +814,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::THE_INSTANCE;\n\n");
       }
+    else
+      {
+	//also, for QUARKS now..
+	fp->write("\n");
+	m_state.indent(fp);
+	fp->write("template<class EC, u32 POS>\n");
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS> ");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS>::THE_INSTANCE;\n\n");
+      }
 
     //output any externs, outside of class decl
     genCodeExtern(fp, declOnly);
@@ -871,7 +883,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("typedef AtomicParameterType <EC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n");
+    fp->write("typedef AtomicParameterType <EC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n\n");
+
+    //default constructor/destructor; initializes UlamElement with MFM__UUID_FOR
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();\n");
+
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();\n\n");
+
+    m_state.indent(fp);
+    fp->write("static ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write(" THE_INSTANCE;\n");
 
     fp->write("\n");
 
@@ -1046,6 +1073,41 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	m_state.indent(fp);
 	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>");
+	fp->write("::~");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("(){}\n\n");
+
+	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+      }
+    else
+      {
+	//default constructor for quark
+	m_state.indent(fp);
+	fp->write("template<class EC, u32 POS>\n");
+
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS>");
+	fp->write("::");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+
+	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+	fp->write("() : UlamQuark<EC>(MFM_UUID_FOR(\"");
+	fp->write(namestrlong.c_str());
+	fp->write("\", 0))\n");
+
+	m_state.indent(fp);
+	fp->write("{ }\n\n");
+
+	//default destructor
+	m_state.indent(fp);
+	fp->write("template<class EC, u32 POS>\n");
+
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS>");
 	fp->write("::~");
 	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("(){}\n\n");
@@ -1321,9 +1383,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("static u32 ");
+	fp->write("virtual u32 ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-	fp->write("( );\n\n");
+	fp->write("( ) const;\n\n");
 	return;
       }
 
@@ -1339,7 +1401,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     fp->write("::");
     fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-    fp->write("( )\n");
+    fp->write("( ) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -1627,7 +1689,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("__inline__ static const u32 GetPos() { return POS; }\n");
+	//	fp->write("__inline__ static const u32 GetPos() { return POS; }\n");
+	fp->write("__inline__ const u32 GetPos() const { return POS; }\n");
       }
   } //generateGetPosForQuark
 
