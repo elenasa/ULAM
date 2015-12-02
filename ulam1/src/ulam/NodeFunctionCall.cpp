@@ -689,7 +689,7 @@ namespace MFM {
       }
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(") ");
-    fp->write("UlamClassTemplated<EC>::GetVTableEntry(");
+    fp->write("UlamClass<EC>::GetVTableEntry(");
     fp->write(genHiddenArgs().c_str());
     fp->write(", ");
     fp->write(genStorageType().c_str());
