@@ -687,7 +687,6 @@ namespace MFM {
 	    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestor or immediate quark)
 	  }
 	fp->write(">::");
-	//fp->write("THE_INSTANCE."); //non-static functions require an instance
       }
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(") ");
@@ -752,7 +751,6 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC, ");
-		//fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write_decimal_unsigned(cos->getPosOffset());
 		fp->write("u>::");
 		fp->write("THE_INSTANCE."); //non-static functions require an instance
@@ -777,7 +775,6 @@ namespace MFM {
 		//self is a quark
 		fp->write("<EC, ");
 		fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestors at first state bit
-		//fp->write("POS");
 		fp->write(">::");
 	      }
 	  }
@@ -857,8 +854,6 @@ namespace MFM {
 	//not the model parameter, but a data member..
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
-	//NOT FOR Funccalls
-	//  fp->write("Up_Us::");   //atomic parameter needed
       }
   } //genModelParamenterMemberNameOfMethod
 
@@ -1047,8 +1042,7 @@ namespace MFM {
 
     Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
-    //if(stgcos->isSelf())
-    //  return;
+    //if(stgcos->isSelf()) return;
 
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
@@ -1061,7 +1055,6 @@ namespace MFM {
 	msg << " <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
 	msg << ">, type: " << m_state.getUlamTypeNameBriefByIndex(stgcosuti).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//assert(0);
       }
 
     // use NodeNo for inheritance
@@ -1090,7 +1083,6 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
-	//fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
 	fp->write("<EC>");
 	fp->write("::Us::");
@@ -1100,7 +1092,6 @@ namespace MFM {
 	if(useSuperClassName)
 	  {
 	    //then a quark ancestor
-	    //fp->write(stgcosut->getUlamTypeMangledName().c_str());
 	    fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
 	    fp->write("<EC,");
 	    fp->write("T::ATOM_FIRST_STATE_BIT>");
@@ -1112,7 +1103,6 @@ namespace MFM {
 	  fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
 	  fp->write("::Us::"); //typedef
 	  }
-	//	fp->write("THE_INSTANCE."); //non-static functions require an instance
       }
 
     for(u32 i = startcos; i < cosSize; i++)
@@ -1120,8 +1110,6 @@ namespace MFM {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
-	//if( (i + 1 == cosSize) && sym->isDataMember() && (m_state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeEnum() == Class))
-	// fp->write("THE_INSTANCE.");
       }
 
     //depending on the "owner" of the func, the instance is needed

@@ -309,10 +309,8 @@ namespace MFM {
     m_state.indent(fp);
     if(declOnly)
       {
-	//	if(classtype == UC_QUARK)
-	//if(classtype == UC_QUARK || isVirtualFunction())
 	if(isVirtualFunction())
-	  fp->write("static ");   //quark and element functions are not static
+	  fp->write("static "); //quark and element functions are not static
       }
     else
       {
@@ -377,14 +375,10 @@ namespace MFM {
 	  fp->write("; //native\n\n");
 	else
 	  {
-	    //	    if(classtype == UC_ELEMENT)
-	    //  fp->write(" const"); //element functions are const, not static
-
 	    if(isVirtualFunction())
 	      fp->write("; //virtual\n\n");
 	    else
 	      {
-		//if(classtype == UC_ELEMENT)
 		fp->write(" const"); //quark and element functions are const, not static
 		fp->write(";\n\n");
 	      }
@@ -392,8 +386,6 @@ namespace MFM {
       }
     else
       {
-	//if(classtype == UC_ELEMENT)
-	//if((classtype == UC_ELEMENT) && !isVirtualFunction())
 	if(!isVirtualFunction())
 	  fp->write(" const"); //quark and element functions are const, not static
 
@@ -443,8 +435,6 @@ namespace MFM {
 	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
       }
     fp->write(")");
-    //if(classtype == UC_ELEMENT)
-    //  fp->write(" const");
     fp->write(";\n");
   } //generateFunctionDeclarationVirtualTypedef
 

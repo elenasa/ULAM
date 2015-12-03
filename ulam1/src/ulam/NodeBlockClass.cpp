@@ -1443,11 +1443,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(maxidx == 0)
       return;
 
-    // now in UlamElement.h
-    // why is this needed in both .h and .tcc? can't it go in one place???
-    //    m_state.indent(fp);
-    //fp->write("typedef void (*VfuncPtr)(); // Generic function pointer we'll cast at point of use\n\n");
-
     if(declOnly)
       {
 #if 0
@@ -1493,7 +1488,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       assert(0);
 
     m_state.indent(fp);
-    //fp->write("const ");
     fp->write("VfuncPtr ");
 
     //include the mangled class::
@@ -1689,7 +1683,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	//	fp->write("__inline__ static const u32 GetPos() { return POS; }\n");
 	fp->write("__inline__ const u32 GetPos() const { return POS; }\n");
       }
   } //generateGetPosForQuark

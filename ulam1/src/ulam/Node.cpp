@@ -2045,7 +2045,6 @@ namespace MFM {
 		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
-	    //fp->write("THE_INSTANCE.");
 	  }
       }
 
@@ -2065,7 +2064,6 @@ namespace MFM {
 	Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
 	UTI suti = sym->getUlamTypeIdx();
 	UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	//ULAMCLASSTYPE sclasstype = sut->getUlamClass();
 	//not the model parameter, but a data member..
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
@@ -2114,7 +2112,6 @@ namespace MFM {
 
 	fp->write(caclassut->getUlamTypeMangledName().c_str());
 	if(caclassut->getUlamClass() == UC_ELEMENT)
-	  //assert(0); only quarks have carrays
 	  fp->write("<EC>::THE_INSTANCE.");
 	else
 	  {
