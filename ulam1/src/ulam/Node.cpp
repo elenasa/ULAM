@@ -2245,9 +2245,13 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC, ");
-		assert(stgcos->isDataMember());
-		fp->write_decimal_unsigned(stgcos->getPosOffset());
-		fp->write("u + T::ATOM_FIRST_STATE_BIT");
+		//assert(stgcos->isDataMember());
+		if(stgcos->isDataMember())
+		  {
+		    fp->write_decimal_unsigned(stgcos->getPosOffset());
+		    fp->write("u + ");
+		  }
+		fp->write("T::ATOM_FIRST_STATE_BIT");
 		fp->write(">::");
 	      }
 	  }
@@ -2269,8 +2273,8 @@ namespace MFM {
 		    fp->write_decimal_unsigned(stgcos->getPosOffset());
 		    fp->write("u + ");
 		  }
-		//fp->write("T::ATOM_FIRST_STATE_BIT");
-		fp->write("POS>::");
+		fp->write("T::ATOM_FIRST_STATE_BIT>::");
+		//fp->write("POS>::");
 	      }
 	  }
 	//else do nothing for inheritance
@@ -2515,10 +2519,12 @@ namespace MFM {
 	      {
 		fp->write("<EC, ");
 		u32 posoff = 0;
-		for(u32 i = startcos; i > 0; i--)
+		for(u32 i = subcos; i > 0; i--)
 		  {
 		    Symbol * sym = m_state.m_currentObjSymbolsForCodeGen[i];
-		    if(sym->isDataMember())
+		    UTI suti = sym->getUlamTypeIdx();
+		    UlamType * sut = m_state.getUlamTypeByIndex(suti);
+		    if(sym->isDataMember() && sut->getUlamTypeEnum() == Class)
 		      posoff += sym->getPosOffset();
 		  }
 		if(posoff > 0)

@@ -590,7 +590,7 @@ namespace MFM {
       {
 	fp->write("<EC, ");
 	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //POS should be 0+25 for inheritance
-	fp->write("u + T::ATOM_FIRST_STATE_BIT>");
+	fp->write("u + T::ATOM_FIRST_STATE_BIT> ");
       }
 
     fp->write(m_varSymbol->getMangledName().c_str());
@@ -600,7 +600,7 @@ namespace MFM {
     if(vclasstype == UC_QUARK)
       {
 	fp->write(", ");
-	if(m_state.m_genCodingConditionalHas) //not sure this is posoffset, and not true/false???
+	if(m_state.m_genCodingConditionalHas) //not sure this is posoffset, and not true/false?
 	  fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
 	else
 	  {

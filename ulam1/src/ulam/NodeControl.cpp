@@ -258,7 +258,7 @@ namespace MFM {
     m_nodeBody->genCode(fp, uvpass);
 
     //probably should have been done within the body, to avoid any
-    //subsequent if/whiles from misinterpretting it as there's; if so, again, moot.
+    //subsequent if/whiles from misinterpretting it as theirs; if so, again, moot.
     assert(!m_state.m_genCodingConditionalHas);
 
     m_state.m_currentIndentLevel--;

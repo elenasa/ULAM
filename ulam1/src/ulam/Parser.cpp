@@ -1189,7 +1189,8 @@ namespace MFM {
 	Token cTok;
 	getNextToken(cTok);
 	unreadToken();
-	if( (cTok.m_type == TOK_KW_AS) || (cTok.m_type == TOK_KW_HAS))
+	//if( (cTok.m_type == TOK_KW_AS) || (cTok.m_type == TOK_KW_HAS))
+	if(cTok.m_type == TOK_KW_AS)
 	  {
 	    m_state.saveIdentTokenForConditionalAs(iTok, cTok); //SETS other related globals
 	    rtnNode = makeConditionalExprNode(rtnNode); //done, could be NULL
@@ -4008,7 +4009,8 @@ namespace MFM {
 	rtnNode = new NodeConditionalIs(leftNode, typeNode, m_state);
 	break;
       case TOK_KW_HAS:
-	rtnNode = new NodeConditionalHas(leftNode, typeNode, m_state);
+	//rtnNode = new NodeConditionalHas(leftNode, typeNode, m_state);
+	assert(0); //deprecated
 	break;
       case TOK_KW_AS:
 	rtnNode = new NodeConditionalAs(leftNode, typeNode, m_state);

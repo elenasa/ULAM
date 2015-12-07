@@ -6,15 +6,25 @@
 ## assert: arg is 1
 ##after asserts abort: arg is 1
 ##
-## requires immediate quark vtable support!!!
+## requires immediate quark vtable support!!! and 'has'
 ##
-Exit status: 0
-Ue_Test : System { :<> Bool(1) b[10](true,true,true,true,true,true,true,true,true,true);  Int(32) test() {  E1 e1;  Atom(96) a1;  a1 e1 cast = a1 Sub1 has cond { Sub1 a1;  } if e1 Base has cond { Base e1;  b 0 [] e1 ( )afunc . 1 cast == = ( b 0 [] )assert b 1 [] e1 ( 1 cast )afunc . 2 cast == = ( b 1 [] )assert b 2 [] e1 ( )bfunc . 3 cast == = ( b 2 [] )assert } if E2 e2;  E2 a2;  a2 e2 = a2 Base has cond { Base a2;  b 3 [] a2 ( )afunc . 1 cast == = ( b 3 [] )assert b 4 [] a2 ( 1 cast )afunc . 2 cast == = ( b 4 [] )assert b 5 [] a2 ( )bfunc . 5 cast == = ( b 5 [] )assert } if a2 Sub1 has cond { Sub1 a2;  b 6 [] a2 ( )afunc . 4 cast == = ( b 6 [] )assert b 7 [] a2 ( 1 cast )afunc . 2 cast == = ( b 7 [] )assert b 8 [] a2 ( )bfunc . 5 cast == = ( b 8 [] )assert b 9 [] a2 ( )cfunc . 6 cast == = ( b 9 [] )assert } if 0 cast return } }
-Uq_Base { Int(3) m_i(0);  <NOMAIN> }
-Uq_Sub1 : Base { :< Int(3) m_i(0); > <NOMAIN> }
-Ue_E1 { Bool(1) sp(false);  Base m_base( Int(3) m_i(0); );  <NOMAIN> }
-Ue_E2 { Bool(1) sp(false);  Sub1 m_sub( :< Int(3) m_i(0); >);  <NOMAIN> }
-Uq_System { <NOMAIN> }
+##Exit status: 0
+##Ue_Test : System { :<> Bool(1) b[10](true,true,true,true,true,true,true,true,true,true);  Int(32) test() {  E1 e1;  Atom(96) a1;  a1 e1 cast = a1 Sub1 has cond { Sub1 a1;  } if e1 Base has cond { Base e1;  b 0 [] e1 ( )afunc . 1 cast == = ( b 0 [] )assert b 1 [] e1 ( 1 cast )afunc . 2 cast == = ( b 1 [] )assert b 2 [] e1 ( )bfunc . 3 cast == = ( b 2 [] )assert } if E2 e2;  E2 a2;  a2 e2 = a2 Base has cond { Base a2;  b 3 [] a2 ( )afunc . 1 cast == = ( b 3 [] )assert b 4 [] a2 ( 1 cast )afunc . 2 cast == = ( b 4 [] )assert b 5 [] a2 ( )bfunc . 5 cast == = ( b 5 [] )assert } if a2 Sub1 has cond { Sub1 a2;  b 6 [] a2 ( )afunc . 4 cast == = ( b 6 [] )assert b 7 [] a2 ( 1 cast )afunc . 2 cast == = ( b 7 [] )assert b 8 [] a2 ( )bfunc . 5 cast == = ( b 8 [] )assert b 9 [] a2 ( )cfunc . 6 cast == = ( b 9 [] )assert } if 0 cast return } }
+##Uq_Base { Int(3) m_i(0);  <NOMAIN> }
+##Uq_Sub1 : Base { :< Int(3) m_i(0); > <NOMAIN> }
+##Ue_E1 { Bool(1) sp(false);  Base m_base( Int(3) m_i(0); );  <NOMAIN> }
+##Ue_E2 { Bool(1) sp(false);  Sub1 m_sub( :< Int(3) m_i(0); >);  <NOMAIN> }
+##Uq_System { <NOMAIN> }
+##
+./Test.ulam:17:14: ERROR: (Low Level) DEPRECATED keyword <has>.
+./Test.ulam:17:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Test.ulam:17:20: ERROR: Invalid Statement (possible missing semicolon).
+./Test.ulam:20:14: ERROR: (Low Level) DEPRECATED keyword <has>.
+./Test.ulam:7:1: ERROR: Empty/Incomplete Class Definition 'Test'; Possible missing ending curly brace.
+./Test.ulam:52:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', or 'union'.
+./Test.ulam:7:9: ERROR: Invalid Type: Test.
+ ERROR: No parse tree for This Class: Test.
+Unrecoverable Program Parse FAILURE.
 ##
 ## informed by vtable-example 11/17/15, t3601
 ##
@@ -77,14 +87,14 @@ element Test : System {
      }
 
     if (e1 has Base) {      // succeeds
-      b[0] = (e1.afunc() == 1);
+      b[0] = (e1.m_base.afunc() == 1);
       assert(b[0]);
-      b[1] = (e1.afunc(1) == 2);
+      b[1] = (e1.m_base.afunc(1) == 2);
       assert(b[1]); // E1's vtable UN-used for 'has'
-      b[2] = (e1.bfunc() == 3);
+      b[2] = (e1.m_base.bfunc() == 3);
       assert(b[2]); // ditto!
     }
-
+    /*
     E2 e2;
     E2 a2 = e2;     // (a2 is copy of e2, unknown to culam)
 
@@ -107,6 +117,7 @@ element Test : System {
       b[9] = (a2.cfunc() == 6); // ditto!
       assert(b[9]);
     }
+    */
     return 0;
   }
 }

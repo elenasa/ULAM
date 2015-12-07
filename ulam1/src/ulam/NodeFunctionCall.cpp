@@ -1162,14 +1162,14 @@ namespace MFM {
 	  {
 	    //then a quark ancestor
 	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC,");
+	    fp->write("<EC, ");
 	    fp->write("T::ATOM_FIRST_STATE_BIT>");
 	    fp->write("::");
 	  }
 	else if(stgcos->isAutoLocal())
 	  {
 	    fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
-	    fp->write("<EC,");
+	    fp->write("<EC, ");
 	    fp->write("T::ATOM_FIRST_STATE_BIT>");
 	    fp->write("::Us::");
 	  }

@@ -11,10 +11,22 @@
 ##
 ##      //./Foo.ulam:17:4: ERROR: Cannot cast to type: Foo (UTI16); use Conditional-As.
 ##      //./Foo.ulam:17:4: ERROR: Cannot CAST type: Atom(96) as a Foo(39)<16>.
+##
+## Exit status: 0
+## Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  b false = a System has cond { System a;  b true = } if s ( b ! )assert . a f cast = a Foo is cond bi true cast = if a System has cond { System a;  b true = } if s ( b )assert . f a cast = f System has cond { System f;  bh true cast = } if d return } }
+## Uq_System { <NOMAIN> }
+##
 #!
-Exit status: 0
-Ue_Foo { System s();  Bool(1) sp(false);  Bool(3) bi(true);  Bool(3) bh(true);  Int(32) d(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  b false = a System has cond { System a;  b true = } if s ( b ! )assert . a f cast = a Foo is cond bi true cast = if a System has cond { System a;  b true = } if s ( b )assert . f a cast = f System has cond { System f;  bh true cast = } if d return } }
-Uq_System { <NOMAIN> }
+./Foo.ulam:11:12: ERROR: (Low Level) DEPRECATED keyword <has>.
+./Foo.ulam:11:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Foo.ulam:11:20: ERROR: Invalid Statement (possible missing semicolon).
+./Foo.ulam:17:12: ERROR: (Low Level) DEPRECATED keyword <has>.
+./Foo.ulam:17:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Foo.ulam:17:20: ERROR: Invalid Statement (possible missing semicolon).
+./Foo.ulam:21:12: ERROR: (Low Level) DEPRECATED keyword <has>.
+./Foo.ulam:21:20: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Foo.ulam:21:20: ERROR: Invalid Statement (possible missing semicolon).
+Unrecoverable Program Parse FAILURE.
 #>Foo.ulam
 ##      // 'a has System' doesn't apply to eval because atoms have no class declarations; but testable for gencode
   use System;

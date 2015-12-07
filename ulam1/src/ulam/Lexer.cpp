@@ -178,6 +178,13 @@ namespace MFM {
 	    tok.init(ttype,firstloc,0);
 	    return 0;
 	  }
+	else if(sptok == TOKSP_DEPRECATED)
+	  {
+	    std::ostringstream errmsg;
+	    errmsg << "DEPRECATED keyword <" << aname << ">";
+	    brtn = m_state.m_pool.getIndexForDataString(errmsg.str());
+	    return brtn; //short circuit
+	  }
 	else
 	  {
 	    std::ostringstream errmsg;

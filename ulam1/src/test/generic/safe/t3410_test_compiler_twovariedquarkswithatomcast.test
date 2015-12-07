@@ -14,17 +14,15 @@
 ##      Unsigned Arg: 1
 ##      Unsigned Arg: 1
 ##      Unsigned Arg: 2
-##      Unsigned Arg: 2
-##      Unsigned Arg: 3
-##      Unsigned Arg: 2
-##      Unsigned Arg: 3
 ##
 Exit status: 0
-Ue_Foo { IntXY(1u,4u) q( constant Unsigned(32) xbits = 1u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(1) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(1) x(0u);  Unsigned(4) y(0u); );  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(3) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(3) x(2u);  Unsigned(4) y(3u); );  IntXY(2u,3u) p( constant Unsigned(32) xbits = 2u;  constant Unsigned(32) ybits = 3u;  typedef Unsigned(2) XCoord;  typedef Unsigned(3) YCoord;  Unsigned(2) x(0u);  Unsigned(3) y(0u); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 cast 2 cast )make . = s ( m x . cast )print . s ( m y . cast )print . s ( n x . cast )print . s ( n y . cast )print . Foo f;  f n ( 2 cast 3 cast )fromXY . cast = s ( f n x . . cast )print . s ( f n y . . cast )print . s ( n x . cast )print . s ( n y . cast )print . f n . m ( 4 cast 1 cast )make . = s ( f n x . . cast )print . s ( f n y . . cast )print . s ( m x . cast )print . s ( m y . cast )print . Foo g;  g n ( 1 cast 1 cast )makeAs . cast = s ( g n x . . cast )print . s ( g n y . . cast )print . s ( n x . cast )print . s ( n y . cast )print . 0 cast return } }
+Ue_Foo { IntXY(1u,4u) q( constant Unsigned(32) xbits = 1u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(1) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(1) x(0u);  Unsigned(4) y(0u); );  IntXY(3u,4u) n( constant Unsigned(32) xbits = 3u;  constant Unsigned(32) ybits = 4u;  typedef Unsigned(3) XCoord;  typedef Unsigned(4) YCoord;  Unsigned(3) x(2u);  Unsigned(4) y(3u); );  IntXY(2u,3u) p( constant Unsigned(32) xbits = 2u;  constant Unsigned(32) ybits = 3u;  typedef Unsigned(2) XCoord;  typedef Unsigned(3) YCoord;  Unsigned(2) x(0u);  Unsigned(3) y(0u); );  Int(32) test() {  System s;  IntXY(3u,4u) m;  m n ( 1 cast 2 cast )make . = s ( m x . cast )print . s ( m y . cast )print . s ( n x . cast )print . s ( n y . cast )print . Foo f;  f n ( 2 cast 3 cast )fromXY . cast = s ( f n x . . cast )print . s ( f n y . . cast )print . s ( n x . cast )print . s ( n y . cast )print . f n . m ( 4 cast 1 cast )make . = s ( f n x . . cast )print . s ( f n y . . cast )print . s ( m x . cast )print . s ( m y . cast )print . 0 cast return } }
 Uq_IntXY(Unsigned(32) xbits, Unsigned(32) ybits) { typedef Unsigned(UNKNOWN) XCoord;  typedef Unsigned(UNKNOWN) YCoord;  Unsigned(UNKNOWN) x(unknown);  Unsigned(UNKNOWN) y(unknown);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
 ##      //informed by t3408: here, n is surrounded by two other IntXY data members q and p.
+##      removed makeAs portion of test, no more 'has' Mon Dec  7 11:04:45 2015
+##
 #>Foo.ulam
   ulam 1;
 use IntXY;
@@ -57,13 +55,14 @@ element Foo {
     s.print(m.x);
     s.print(m.y);
 
+    /*
     //local element makeas using data member func
     Foo g = (Foo) n.makeAs(1,1);
     s.print(g.n.x);
     s.print(g.n.y);
     s.print(n.x);
     s.print(n.y);
-
+    */
     return 0;
   }
 }
@@ -88,13 +87,14 @@ quark IntXY(Unsigned xbits, Unsigned ybits) {
     ret.init(x,y);
     return ret;
   }
-  Atom makeAs(Int x, Int y) {
-    Atom a = atom; //was self
-    if(a has Self){ //was 'as'
-      a.init(x,y);
-    }
-    return a;
-  }
+
+  //Atom makeAs(Int x, Int y) {
+  //  Atom a = atom; //was self
+  //  if(a has Self){ //was 'as'
+  //    a.init(x,y);
+  //  }
+  //  return a;
+  // }
   Void init(Int ax, Int ay) {
     x = (XCoord) ax;
     y = (YCoord) ay;
