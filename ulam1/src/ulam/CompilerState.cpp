@@ -46,6 +46,7 @@ namespace MFM {
 
   static const char * HIDDEN_ARG_NAME = "Uv_4atom"; //was Uv_4self
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
+  static const char * AUTO_HIDDEN_CONTEXT_ARG_NAME = "_ucAuto"; //unmangled, out-of-band
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
   static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
@@ -1676,6 +1677,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   const char * CompilerState::getHiddenContextArgName()
   {
     return  HIDDEN_CONTEXT_ARG_NAME;
+  }
+
+  const char * CompilerState::getAutoHiddenContextArgName()
+  {
+    return  AUTO_HIDDEN_CONTEXT_ARG_NAME;
   }
 
   u32 CompilerState::getCustomArrayGetFunctionNameId()

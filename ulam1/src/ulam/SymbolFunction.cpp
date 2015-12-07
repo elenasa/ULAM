@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(Token id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false)
+  SymbolFunction::SymbolFunction(Token id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_definedinaQuark(false)
   {
     setDataMember(); // by definition all function definitions are data members
   }
 
-  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual)
+  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_definedinaQuark(sref.m_definedinaQuark)
   {
     //parameters belong to functiondefinition block's ST; do not clone them again here!
     if(sref.m_functionNode)
@@ -293,6 +293,16 @@ namespace MFM {
     m_virtualIdx = idx;
   }
 
+  bool SymbolFunction::isDefinedInAQuark()
+  {
+    return m_definedinaQuark;
+  }
+
+  void SymbolFunction::setDefinedInAQuark()
+  {
+    m_definedinaQuark = true;
+  }
+
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
@@ -309,8 +319,9 @@ namespace MFM {
     m_state.indent(fp);
     if(declOnly)
       {
+	//only ulam virtual functions are c++ static functions
 	if(isVirtualFunction())
-	  fp->write("static "); //quark and element functions are not static
+	  fp->write("static ");
       }
     else
       {
@@ -340,7 +351,7 @@ namespace MFM {
     fp->write(getMangledName().c_str());
     fp->write("(");
 
-    fp->write("UlamContext<EC>& uc, "); //first arg is unmangled context
+    fp->write("const UlamContext<EC>& uc, "); //first arg is unmangled context
 
     //the hidden arg is "atom" (was "self"), a T& (atom)
     fp->write("T& "); //a reference
@@ -420,7 +431,7 @@ namespace MFM {
     fp->write(") (");
 
     //arg types only
-    fp->write("UlamContext<EC>&, "); //first arg is unmangled context
+    fp->write("const UlamContext<EC>&, "); //first arg is unmangled context
     fp->write("T& "); //the hidden arg is "atom" (was "self"), a T& (atom)
 
     u32 numparams = getNumberOfParameters();

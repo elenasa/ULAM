@@ -3324,6 +3324,9 @@ namespace MFM {
     if(isVirtual)
       fsymptr->setVirtualFunction();
 
+    if(m_state.getUlamClassForThisClass() == UC_QUARK)
+      fsymptr->setDefinedInAQuark();
+
     //WAIT for the parameters, so we can add it to the SymbolFunctionName map..
     rtnNode =  new NodeBlockFunctionDefinition(fsymptr, prevBlock, nodetype, m_state);
     assert(rtnNode);

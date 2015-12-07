@@ -87,6 +87,9 @@ namespace MFM{
     u32 getVirtualMethodIdx();
     void setVirtualMethodIdx(u32 idx);
 
+    bool isDefinedInAQuark();
+    void setDefinedInAQuark();
+
     void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     virtual void setStructuredComment();
@@ -100,7 +103,7 @@ namespace MFM{
     bool m_hasVariableArgs;
     bool m_isVirtual; //overloaded funcs may have different virtual status
     u32 m_virtualIdx;
-
+    bool m_definedinaQuark;
     void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
   };

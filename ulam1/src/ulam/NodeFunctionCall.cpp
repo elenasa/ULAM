@@ -622,11 +622,11 @@ namespace MFM {
       genCodeVirtualFunctionCall(fp, uvpass); //indirect call thru func ptr
     else
       {
-	if(!isCurrentObjectALocalVariableOrArgument())
+	if(!Node::isCurrentObjectALocalVariableOrArgument())
 	  genMemberNameOfMethod(fp);
 	else
 	  {
-	    s32 epi = isCurrentObjectsContainingAModelParameter();
+	    s32 epi = Node::isCurrentObjectsContainingAModelParameter();
 	    if(epi >= 0)
 	      genModelParameterMemberNameOfMethod(fp,epi);
 	    else
@@ -646,27 +646,23 @@ namespace MFM {
   void NodeFunctionCall::genCodeVirtualFunctionCall(File * fp, UlamValue & uvpass)
   {
     //requires runtime lookup for virtual function pointer
+    u32 vfidx = m_funcSymbol->getVirtualMethodIdx();
+
+    //need typedef typename for this vfunc, any vtable of any owner of this vfunc
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     Symbol * cos = NULL; //any owner of func
 
     if(cosSize != 0)
       cos = m_state.m_currentObjSymbolsForCodeGen.back(); //"owner" of func
     else
-      {
-	//what if 'self' is a superclass? how do we find out its decendent?
-	// and lookup this func using its VTable? XXX
-	// or, better yet, let 'self' BE the subclass!!! XXX
-	//cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self' could be a superclass of?
-	cos = m_state.m_currentSubclassSelfSymbolForCodeGen; //WHAT IF???
-	if(cos == NULL)
-	  cos = m_state.getCurrentSelfSymbolForCodeGen();
-      }
+      cos = m_state.getCurrentSelfSymbolForCodeGen(); //'self'
 
     UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     SymbolClass * csym = NULL;
     assert(m_state.alreadyDefinedSymbolClass(cosuti, csym));
 
-    UTI cvfuti = csym->getClassForVTableEntry(m_funcSymbol->getVirtualMethodIdx());
+    UTI cvfuti = csym->getClassForVTableEntry(vfidx);
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);
     ULAMCLASSTYPE cvclasstype = cvfut->getUlamClass();
 
@@ -680,23 +676,45 @@ namespace MFM {
 	if(cos->isDataMember())
 	  {
 	    fp->write_decimal_unsigned(cos->getPosOffset());
-	    fp->write("u");
+	    fp->write("u + ");
 	  }
-	else
-	  {
-	    fp->write("T::ATOM_FIRST_STATE_BIT"); //ancestor or immediate quark)
-	  }
-	fp->write(">::");
+	fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ancestor or immediate quark)
       }
     fp->write(m_funcSymbol->getMangledNameWithTypes().c_str());
     fp->write(") ");
-    fp->write("UlamClass<EC>::GetVTableEntry(");
-    fp->write(genHiddenArgs().c_str());
-    fp->write(", ");
-    fp->write(genStorageType().c_str());
-    fp->write(", ");
-    fp->write_decimal_unsigned(m_funcSymbol->getVirtualMethodIdx());
-    fp->write("u)) ");
+
+    //requires runtime lookup for virtual function pointer
+    if(cos->isSelf() || cosSize == 0)
+      {
+	fp->write(m_state.getHiddenContextArgName());
+	fp->write(".GetEffectiveSelf()->getVTableEntry(");
+      }
+    else if(cos->isAutoLocal())
+      {
+	fp->write(m_state.getAutoHiddenContextArgName());
+	fp->write(".GetEffectiveSelf()->getVTableEntry(");
+      }
+    else
+      {
+	//unless local or dm, known at compile time!
+	fp->write(cosut->getUlamTypeMangledName().c_str());
+	if(cosut->getUlamClass() == UC_ELEMENT)
+	  fp->write("<EC>::");
+	else
+	  {
+	    fp->write("<EC, ");
+	    if(cos->isDataMember())
+	      {
+		fp->write_decimal_unsigned(cos->getPosOffset());
+		fp->write("u + ");
+	      }
+	    fp->write("T::ATOM_FIRST_STATE_BIT>::"); //ancestor or immediate quark)
+	  }
+	fp->write("THE_INSTANCE.getVTableEntry(");
+      }
+
+    fp->write_decimal_unsigned(vfidx);
+    fp->write(")) ");
     //args to function pointer remain
   } //genCodeVirtualFunctionCall
 
@@ -708,7 +726,7 @@ namespace MFM {
 
   void NodeFunctionCall::genMemberNameOfMethod(File * fp)
   {
-    assert(!isCurrentObjectALocalVariableOrArgument());
+    assert(!Node::isCurrentObjectALocalVariableOrArgument());
 
     u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
     u32 startcos = 0;
@@ -747,13 +765,12 @@ namespace MFM {
 
 	    fp->write(cosclassut->getUlamTypeMangledName().c_str());
 	    if(cosclassut->getUlamClass() == UC_ELEMENT)
-	      fp->write("<EC>::THE_INSTANCE.");
+	      fp->write("<EC>::");
 	    else
 	      {
 		fp->write("<EC, ");
 		fp->write_decimal_unsigned(cos->getPosOffset());
-		fp->write("u>::");
-		fp->write("THE_INSTANCE."); //non-static functions require an instance
+		fp->write("u + T::ATOM_FIRST_STATE_BIT>::");
 	      }
 	  }
 	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
@@ -862,18 +879,41 @@ namespace MFM {
     std::ostringstream hiddenargs;
 
     // first "hidden" arg is the context
-    hiddenargs << m_state.getHiddenContextArgName() << ", ";
-
-    //"hidden" self arg
-    if(!isCurrentObjectALocalVariableOrArgument())
+    //hiddenargs << m_state.getHiddenContextArgName() << ", ";
+    Symbol * cos = NULL;
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	hiddenargs << m_state.getHiddenArgName();
+	cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAModelParameter();
+	cos = m_state.m_currentObjSymbolsForCodeGen.back();
+      }
+    UTI cosuti = cos->getUlamTypeIdx();
+    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+
+    //"hidden" self arg
+    if(!Node::isCurrentObjectALocalVariableOrArgument())
+      {
+	if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	  hiddenargs << m_state.getHiddenContextArgName(); //same uc
+	else
+	  {
+	    //update uc to reflect "effective" self for this funccall
+	    hiddenargs << "UlamContext<EC>(uc, &";
+	    hiddenargs << cosut->getUlamTypeMangledName().c_str();
+	    hiddenargs << "<EC, " << cos->getPosOffset();
+	    hiddenargs << "u + T::ATOM_FIRST_STATE_BIT>::THE_INSTANCE)";
+	  }
+	hiddenargs << ", " << m_state.getHiddenArgName(); //atom
+      }
+    else
+      {
+	s32 epi = Node::isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
+	    //model parameters no longer classes, deprecated
+	    assert(0);
 	    hiddenargs << genModelParameterHiddenArgs(epi).c_str();
 	  }
 	else //local var
@@ -881,15 +921,41 @@ namespace MFM {
 	    Symbol * stgcos = NULL;
 	    if(m_state.m_currentObjSymbolsForCodeGen.empty())
 	      {
+		hiddenargs << m_state.getHiddenContextArgName(); //same uc
 		stgcos = m_state.getCurrentSelfSymbolForCodeGen();
+	      }
+	    else if(cos->isAutoLocal())
+	      {
+		//update uc to reflect "effective" self for this funccall
+		//hiddenargs << "UlamContext<EC>(";
+		//hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
+		//hiddenargs << ", ";
+		//hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
+		//hiddenargs << ".LookupElementTypeFromContext(";
+		//hiddenargs << cos->getMangledName().c_str();
+		//hiddenargs << ".getType()))";
+		hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
+		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	      }
 	    else
 	      {
+		//update uc to reflect "effective" self for this funccall
+		hiddenargs << "UlamContext<EC>(uc, &";
+		hiddenargs << cosut->getUlamTypeMangledName().c_str();
+		if(cosut->getUlamClass() == UC_QUARK)
+		  {
+		    hiddenargs << "<EC, ";
+		    if(cos->isDataMember()) //dm of local stgcos
+		      hiddenargs << cos->getPosOffset() << "u + ";
+
+		  hiddenargs << "T::ATOM_FIRST_STATE_BIT>::THE_INSTANCE)";
+		  }
+		else
+		  hiddenargs << "<EC>::THE_INSTANCE)";
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	      }
 
-	    hiddenargs << stgcos->getMangledName().c_str();
-
+	    hiddenargs << ", " << stgcos->getMangledName().c_str();
 	    // for both immediate quarks and elements now..not self.
 	    if(!stgcos->isSelf())
 	      hiddenargs << ".getRef()"; //the T storage within the struct for immediate quarks
@@ -903,14 +969,14 @@ namespace MFM {
     std::ostringstream stype;
 
     //"hidden" self arg
-    if(!isCurrentObjectALocalVariableOrArgument())
+    if(!Node::isCurrentObjectALocalVariableOrArgument())
       {
 	stype << m_state.getHiddenArgName();
 	stype << ".GetType()";
       }
     else
       {
-	s32 epi = isCurrentObjectsContainingAModelParameter();
+	s32 epi = Node::isCurrentObjectsContainingAModelParameter();
 	if(epi >= 0)
 	  {
 	    stype << genModelParameterHiddenArgs(epi).c_str();
@@ -1033,7 +1099,7 @@ namespace MFM {
 
   void NodeFunctionCall::genLocalMemberNameOfMethod(File * fp)
   {
-    assert(isCurrentObjectALocalVariableOrArgument());
+    assert(Node::isCurrentObjectALocalVariableOrArgument());
 
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
 
@@ -1083,7 +1149,10 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if(stgclasstype == UC_ELEMENT)
       {
-	fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+	if(stgcos->isAutoLocal())
+	  fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
+	else
+	  fp->write(stgcosut->getUlamTypeImmediateMangledName().c_str());
 	fp->write("<EC>");
 	fp->write("::Us::");
       }
@@ -1092,6 +1161,13 @@ namespace MFM {
 	if(useSuperClassName)
 	  {
 	    //then a quark ancestor
+	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC,");
+	    fp->write("T::ATOM_FIRST_STATE_BIT>");
+	    fp->write("::");
+	  }
+	else if(stgcos->isAutoLocal())
+	  {
 	    fp->write(stgcosut->getUlamTypeImmediateAutoMangledName().c_str()); //e.g. 4auto
 	    fp->write("<EC,");
 	    fp->write("T::ATOM_FIRST_STATE_BIT>");

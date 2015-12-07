@@ -558,9 +558,10 @@ namespace MFM {
     // before shadowing the lhs of the h/as-conditional variable with its auto,
     // let's load its storage from the currentSelfSymbol:
     s32 tmpVarStg = m_state.getNextTmpVarNumber();
-    UTI stguti = m_state.m_currentObjSymbolsForCodeGen[0]->getUlamTypeIdx();
+    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+    UTI stguti = stgcos->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
-    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT); //not quark???
+    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT); //not quark
 
     // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
@@ -589,7 +590,7 @@ namespace MFM {
       {
 	fp->write("<EC, ");
 	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //POS should be 0+25 for inheritance
-	fp->write("u + T::ATOM_FIRST_STATE_BIT >");
+	fp->write("u + T::ATOM_FIRST_STATE_BIT>");
       }
 
     fp->write(m_varSymbol->getMangledName().c_str());
@@ -615,6 +616,27 @@ namespace MFM {
       assert(0);
 
     fp->write(");   //shadows lhs of 'h/as'\n");
+
+    m_state.indent(fp);
+
+    //special ulamcontext for autos based on its (lhs) storage
+    fp->write("const UlamContext<EC> ");
+    fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
+
+    if(stgcos->isAutoLocal())
+      {
+	//shadows previous _ucAuto
+	fp->write("(");
+	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
+	fp->write("(, ");
+	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
+	fp->write(".LookupElementTypeFromContext(");
+      }
+    else
+      fp->write("(uc, uc.LookupElementTypeFromContext(");
+
+    fp->write(m_varSymbol->getMangledName().c_str()); //auto's name
+    fp->write(".getType()));\n");
 
     m_state.m_genCodingConditionalHas = false; // done
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?

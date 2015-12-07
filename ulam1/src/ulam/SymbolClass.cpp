@@ -585,7 +585,14 @@ namespace MFM {
 	    m_state.indent(fp);
 	    fp->write("rtn = "); //MFM::Ui_Ut_102323Int
 	    fp->write(sut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE.Uf_4test(uc, atom);\n");
+
+	    // pass uc with effective self setup
+	    //fp->write("<EC>::THE_INSTANCE.Uf_4test(uc, atom);\n");
+	    fp->write("<EC>::THE_INSTANCE.Uf_4test(");
+	    fp->write("UlamContext<EC>(uc, &");
+	    fp->write(sut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::THE_INSTANCE)");
+	    fp->write(", atom);\n");
 
 	    m_state.indent(fp);
 	    fp->write("//std::cerr << rtn.read() << std::endl;\n"); //useful to return result of test?
@@ -793,6 +800,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("uc.SetTile(tile);\n");
 
+    //eventually ends up at SC::generateTestInstance()
     m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
     m_state.m_currentIndentLevel--;

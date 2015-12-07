@@ -7,7 +7,7 @@
 namespace MFM{
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_9212printContext(UlamContext<EC>& uc,
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_9212printContext(const UlamContext<EC>& uc,
                                                              typename EC::ATOM_CONFIG::ATOM_TYPE & Uv_4self,
                                                              Ui_Ut_102321u Uv_5flags)
   {
@@ -26,7 +26,7 @@ namespace MFM{
   } // Uf_9212printContext
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131i Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131i Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -35,7 +35,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10141i Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10141i Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(4); //mask
@@ -44,7 +44,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321i Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321i Uv_3arg) //native
   {
     s32 tmp = Uv_3arg.read();
     LOG.Message("print: Int: %d", tmp);
@@ -52,7 +52,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321u Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_102321u Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     LOG.Message("print: Unsigned: %u", tmp);
@@ -60,7 +60,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131y Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131y Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -70,7 +70,7 @@ namespace MFM{
 
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131b Uv_3arg) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10131b Uv_3arg) //native
   {
     u32 tmp = Uv_3arg.read();
     tmp &= _GetNOnes32(3); //mask
@@ -81,7 +81,7 @@ namespace MFM{
   // Note this is a template function, not a template class member!
   // It doesn't follow the ulam native function interface rules!
   template<class EC>
-  inline void Uq_10109210DebugUtils10_printAtom(UlamContext<EC>& uc,
+  inline void Uq_10109210DebugUtils10_printAtom(const UlamContext<EC>& uc,
                                                 typename EC::ATOM_CONFIG::ATOM_TYPE & atom,
                                                 u32 flags,
                                                 ByteSink & buff)
@@ -125,7 +125,7 @@ namespace MFM{
 
   //! DebugUtils.ulam:10:   Void print(Atom a, Unsigned flags)
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_1a, Ui_Ut_102321u Uv_5flags)
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_5print(const UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_1a, Ui_Ut_102321u Uv_5flags)
   {
     OString512 buff;
     T atom = Uv_1a.read();
@@ -136,7 +136,7 @@ namespace MFM{
   } // Uf_5print
 
   template<class EC, u32 POS>
-  void Uq_10109210DebugUtils10<EC, POS>::Uf_6assert(UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10111b Uv_1b) //native
+  void Uq_10109210DebugUtils10<EC, POS>::Uf_6assert(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10111b Uv_1b) //native
   {
     bool btmp = Uv_1b.read();
     printf("assert: arg is %d\n",btmp);
