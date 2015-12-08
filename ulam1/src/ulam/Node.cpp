@@ -930,21 +930,22 @@ namespace MFM {
     //here, cos is symbol used to determine read method: either self or last of cos.
     //stgcos is symbol used to determine first "hidden" arg
     Symbol * cos = NULL;
-    Symbol * stgcos = NULL;
+    //Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
+	//stgcos =
+	cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
 	cos = m_state.m_currentObjSymbolsForCodeGen.back();
-	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	//stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();
+    //UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    //ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();
 
     assert(isCurrentObjectACustomArrayItem(cosuti, uvpass));
 
@@ -966,9 +967,10 @@ namespace MFM {
 	// the READ method
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 	//fp->write("(uc, ");
-	fp->write("(UlamContext<EC>(uc), ");
+	//fp->write("(UlamContext<EC>(uc), ");
 
-	fp->write(m_state.getHiddenArgName()); //no getBits
+	//fp->write(m_state.getHiddenArgName()); //no getBits
+	genCustomArrayHiddenArgs(fp);
 	fp->write(", "); //rest of arg's
       }
     else  //local var
@@ -980,45 +982,44 @@ namespace MFM {
 
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
 
-	if(stgcosclasstype == UC_ELEMENT)
-	  {
-	    //fp->write("(uc, ");
-	    fp->write("(UlamContext<EC>(uc), ");
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".getRef()"); //immediate needs the T storage within the struct
-	    fp->write(", ");
-	  }
-	else if(stgcosclasstype == UC_QUARK)
-	  {
-	    //fp->write("(uc, ");
-	    fp->write("(UlamContext<EC>(uc), ");
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".getRef()"); //immediate needs the T storage within the struct
-	    fp->write(", ");
-	  }
-	else
-	  {
+	genCustomArrayHiddenArgs(fp);
+	fp->write(", "); //rest of args
+
+	//if(stgcosclasstype == UC_ELEMENT)
+	// {
+	//  fp->write("(UlamContext<EC>(uc), ");
+	//	    fp->write(stgcos->getMangledName().c_str());
+	//    fp->write(".getRef()"); //immediate needs the T storage within the struct
+	//   fp->write(", ");
+	// }
+	//else if(stgcosclasstype == UC_QUARK)
+	// {
+	//	    fp->write("(UlamContext<EC>(uc), ");
+	//  fp->write(stgcos->getMangledName().c_str());
+	//  fp->write(".getRef()"); //immediate needs the T storage within the struct
+	//  fp->write(", ");
+	// }
+	//else
+	// {
 	    // local primitive (i.e. 'notaclass'); has an immediate type:
 	    // uses local variable name, and immediate read method
-	    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
-	    if(cosSize == 1)
-	      {
-		//fp->write("(uc, ");
-		fp->write("(UlamContext<EC>(uc), ");
-	      }
-	    else
-	      {
-		// storage-cos and cos-for-read are different:
-		// use this instance of storage-cos to specify
-		// its non-static read method
-		//fp->write("(uc, ");
-		fp->write("(UlamContext<EC>(uc), ");
-		fp->write(stgcos->getMangledName().c_str());
-
-		assert(stgcosclasstype == UC_QUARK);
-		fp->write(", ");
-	      }
-	  }
+	    //u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
+	    //if(cosSize == 1)
+	// {
+	//		fp->write("(UlamContext<EC>(uc), ");
+	//    }
+	//  else
+	//    {
+	//	// storage-cos and cos-for-read are different:
+	//	// use this instance of storage-cos to specify
+	//	// its non-static read method
+	//	fp->write("(UlamContext<EC>(uc), ");
+	//	fp->write(stgcos->getMangledName().c_str());
+	//
+	//	assert(stgcosclasstype == UC_QUARK);
+	//	fp->write(", ");
+	//    }
+	//}
       }
     //index is immediate Index arg of targettype in uvpass
     fp->write(vut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
@@ -1595,26 +1596,27 @@ namespace MFM {
 
     //rhs could be a constant; or previously cast from Int to Unary variables.
     // here, cos is symbol used to determine read method: either self or last of cos.
-    // stgcos is symbol used to determine first "hidden" arg
+    // stgcos is symbol used to determine "hidden" args
     Symbol * cos = NULL;
-    Symbol * stgcos = NULL;
+    //Symbol * stgcos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
-	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
+	//stgcos =
+	cos = m_state.getCurrentSelfSymbolForCodeGen();
       }
     else
       {
 	cos = m_state.m_currentObjSymbolsForCodeGen.back();
-	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+	//stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
 
-    UTI stgcosuti = stgcos->getUlamTypeIdx();
-    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-    ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
+    //UTI stgcosuti = stgcos->getUlamTypeIdx();
+    //UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    //ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
 
     assert(isCurrentObjectACustomArrayItem(cosuti, luvpass));
 
@@ -1628,15 +1630,15 @@ namespace MFM {
 
 	// the WRITE method
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-	//fp->write("(uc, ");
-	fp->write("(UlamContext<EC>(uc), ");
-	fp->write(m_state.getHiddenArgName());
+
+	//fp->write("(UlamContext<EC>(uc), ");
+	//fp->write(m_state.getHiddenArgName());
+	genCustomArrayHiddenArgs(fp);
 	fp->write(", "); //rest of args
       }
     else
       {
 	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
-
 	//local
 	m_state.indent(fp);
 
@@ -1644,26 +1646,29 @@ namespace MFM {
 
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 
+	genCustomArrayHiddenArgs(fp);
+	fp->write(", "); //rest of args
+
 	//fp->write("(uc, ");
-	fp->write("(UlamContext<EC>(uc), ");
+	//fp->write("(UlamContext<EC>(uc), ");
 
 	// allow for immediate quarks;
-	if(stgcosclasstype == UC_ELEMENT)
-	  {
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".getRef()"); //immediate needs the T storage within the struct
-	    fp->write(", "); //rest of args
-	  }
-	else if(stgcosclasstype == UC_QUARK)
-	  {
-	    fp->write(stgcos->getMangledName().c_str());
-	    fp->write(".getRef()"); //immediate needs the T storage within the struct
-	    fp->write(", "); //rest of args
-	  }
-	else
-	  {
-	    //NOT A CLASS
-	  }
+	//	if(stgcosclasstype == UC_ELEMENT)
+	//  {
+	//  fp->write(stgcos->getMangledName().c_str());
+	//  fp->write(".getRef()"); //immediate needs the T storage within the struct
+	//  fp->write(", "); //rest of args
+	// }
+	//else if(stgcosclasstype == UC_QUARK)
+	//  {
+	//   fp->write(stgcos->getMangledName().c_str());
+	//  fp->write(".getRef()"); //immediate needs the T storage within the struct
+	//  fp->write(", "); //rest of args
+	// }
+	//else
+	//  {
+	//    //NOT A CLASS
+	//  }
       }
     //index is immediate Int arg
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
@@ -2457,6 +2462,88 @@ namespace MFM {
     //otherwise normal data member name..
     return genMemberNameOfMethod(fp);
   } //genCustomArrayMemberNameOfMethod
+
+  void Node::genCustomArrayHiddenArgs(File * fp)
+  {
+    Symbol * cos = NULL;
+    Symbol * stgcos = NULL;
+    if(m_state.m_currentObjSymbolsForCodeGen.empty())
+      {
+	stgcos = cos = m_state.getCurrentSelfSymbolForCodeGen();
+      }
+    else
+      {
+	cos = m_state.m_currentObjSymbolsForCodeGen.back();
+	stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
+      }
+
+    //UTI cosuti = cos->getUlamTypeIdx();
+    //UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
+    //ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
+
+    UTI stgcosuti = stgcos->getUlamTypeIdx();
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+    ULAMCLASSTYPE stgcosclasstype =  stgcosut->getUlamClass();
+
+    fp->write("(");
+
+    // first "hidden" arg is the context, then
+    //"hidden" self (atom) arg
+    if(!Node::isCurrentObjectALocalVariableOrArgument())
+      {
+	if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	  fp->write(m_state.getHiddenContextArgName()); //same uc
+	else
+	  {
+	    //update uc to reflect "effective" self for this funccall
+	    fp->write("UlamContext<EC>(uc, &");
+	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC");
+	    if(stgcosclasstype == UC_QUARK)
+	      {
+		fp->write(", ");
+		fp->write_decimal_unsigned(stgcos->getPosOffset());
+		fp->write("u + T::ATOM_FIRST_STATE_BIT");
+	      }
+	    fp->write(">::THE_INSTANCE)");
+	  }
+	fp->write(", ");
+	fp->write(m_state.getHiddenArgName()); //atom
+      }
+    else
+      {
+	assert(isCurrentObjectsContainingAModelParameter() == -1); //MP invalid
+	//local var
+	if(m_state.m_currentObjSymbolsForCodeGen.empty())
+	  fp->write(m_state.getHiddenContextArgName()); //same uc
+	else if(stgcos->isAutoLocal())
+	  fp->write(m_state.getAutoHiddenContextArgName()); //_ucaut
+	else
+	  {
+	    //update uc to reflect "effective" self for this funccall
+	    fp->write("UlamContext<EC>(uc, &");
+	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC");
+	    if(stgcosclasstype == UC_QUARK)
+	      {
+		fp->write(", ");
+		if(cos->isDataMember()) //dm of local stgcos
+		      {
+			fp->write_decimal_unsigned(stgcos->getPosOffset());
+			fp->write("u + ");
+		      }
+		fp->write("T::ATOM_FIRST_STATE_BIT");
+	      }
+	    fp->write(">::THE_INSTANCE)");
+	  }
+	fp->write(", ");
+	fp->write(stgcos->getMangledName().c_str());
+	// for both immediate quarks and elements now..not self.
+	if(!stgcos->isSelf())
+	  fp->write(".getRef()"); //the T storage within the struct for immediate quarks
+      }
+    return;
+  } //genCustomArrayHiddenArgs
 
   void Node::genLocalMemberNameOfMethod(File * fp)
   {

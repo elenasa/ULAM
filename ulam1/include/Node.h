@@ -258,6 +258,8 @@ namespace MFM{
     virtual void genModelParameterHiddenArgs(File * fp, s32 epi);
 
     void genCustomArrayMemberNameOfMethod(File * fp);
+    void genCustomArrayHiddenArgs(File * fp);
+
     void genLocalMemberNameOfMethodByUsTypedef(File * fp);
     void genCustomArrayLocalMemberNameOfMethod(File * fp);
 

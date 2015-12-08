@@ -877,9 +877,6 @@ namespace MFM {
   std::string NodeFunctionCall::genHiddenArgs()
   {
     std::ostringstream hiddenargs;
-
-    // first "hidden" arg is the context
-    //hiddenargs << m_state.getHiddenContextArgName() << ", ";
     Symbol * cos = NULL;
     if(m_state.m_currentObjSymbolsForCodeGen.empty())
       {
@@ -892,7 +889,8 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
-    //"hidden" self arg
+    // first "hidden" arg is the context, then
+    //"hidden" self (atom) arg
     if(!Node::isCurrentObjectALocalVariableOrArgument())
       {
 	if(m_state.m_currentObjSymbolsForCodeGen.empty())
