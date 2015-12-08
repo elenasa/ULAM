@@ -902,8 +902,13 @@ namespace MFM {
 	    //update uc to reflect "effective" self for this funccall
 	    hiddenargs << "UlamContext<EC>(uc, &";
 	    hiddenargs << cosut->getUlamTypeMangledName().c_str();
-	    hiddenargs << "<EC, " << cos->getPosOffset();
-	    hiddenargs << "u + T::ATOM_FIRST_STATE_BIT>::THE_INSTANCE)";
+	    hiddenargs << "<EC";
+	    if(cosut->getUlamClass() == UC_QUARK)
+	      {
+		hiddenargs << ", " << cos->getPosOffset();
+		hiddenargs << "u + T::ATOM_FIRST_STATE_BIT";
+	      }
+	    hiddenargs << ">::THE_INSTANCE)";
 	  }
 	hiddenargs << ", " << m_state.getHiddenArgName(); //atom
       }
@@ -934,16 +939,17 @@ namespace MFM {
 		//update uc to reflect "effective" self for this funccall
 		hiddenargs << "UlamContext<EC>(uc, &";
 		hiddenargs << cosut->getUlamTypeMangledName().c_str();
+		hiddenargs << "<EC";
 		if(cosut->getUlamClass() == UC_QUARK)
 		  {
-		    hiddenargs << "<EC, ";
+		    hiddenargs << ", ";
 		    if(cos->isDataMember()) //dm of local stgcos
 		      hiddenargs << cos->getPosOffset() << "u + ";
 
-		  hiddenargs << "T::ATOM_FIRST_STATE_BIT>::THE_INSTANCE)";
+		    hiddenargs << "T::ATOM_FIRST_STATE_BIT";
 		  }
-		else
-		  hiddenargs << "<EC>::THE_INSTANCE)";
+
+		hiddenargs << ">::THE_INSTANCE)";
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	      }
 

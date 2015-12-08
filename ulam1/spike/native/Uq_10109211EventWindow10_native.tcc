@@ -23,8 +23,7 @@ namespace MFM{
   {
     u32 siteNumber = Uv_5index.read();
 
-    UlamContext<CC> mutableuc(uc);
-    EventWindow<CC> & ew = mutableuc.GetEventWindow();
+    EventWindow<CC> & ew = const_cast <UlamContext<CC> &>(uc).GetEventWindow();
     ew.SetAtomSym(siteNumber, Uv_1v.read());
   }
 
