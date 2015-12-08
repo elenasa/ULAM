@@ -587,7 +587,6 @@ namespace MFM {
 	    fp->write(sut->getUlamTypeMangledName().c_str());
 
 	    // pass uc with effective self setup
-	    //fp->write("<EC>::THE_INSTANCE.Uf_4test(uc, atom);\n");
 	    fp->write("<EC>::THE_INSTANCE.Uf_4test(");
 	    fp->write("UlamContext<EC>(uc, &");
 	    fp->write(sut->getUlamTypeMangledName().c_str());
@@ -892,7 +891,6 @@ namespace MFM {
 	SymbolClass * csym = NULL;
 	assert(m_state.alreadyDefinedSymbolClass(getSuperClass(), csym));
 	//copy superclass' VTable
-	//m_vtable = csym->getVTableRef();
 	for(s32 i = 0; i < initialmax; i++)
 	  {
 	    struct VTEntry ve = csym->getVTableEntry(i);
