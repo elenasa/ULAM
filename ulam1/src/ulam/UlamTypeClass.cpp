@@ -595,14 +595,6 @@ namespace MFM {
     fp->write("(AutoRefBase<EC>::getBits()); ");
     fp->write("}\n");
 
-    //offer slower read for virtual functions
-    m_state.indent(fp);
-    fp->write("const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" read(bool slowread) const { ");
-    fp->write("return AutoRefBase<EC>::read();");
-    fp->write("}\n");
-
     if(!isScalar())
       {
 	//reads an element of array
@@ -627,14 +619,6 @@ namespace MFM {
     fp->write("Up_Us::");
     fp->write(writeMethodForCodeGen().c_str());
     fp->write("(AutoRefBase<EC>::getBits(), v); ");
-    fp->write("}\n");
-
-    //offer slower write for virtual functions
-    m_state.indent(fp);
-    fp->write("void write(const ");
-    fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
-    fp->write(" v, bool slowwrite) { ");
-    fp->write("AutoRefBase<EC>::write(v);");
     fp->write("}\n");
 
     if(!isScalar())

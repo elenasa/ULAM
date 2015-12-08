@@ -427,10 +427,6 @@ namespace MFM {
     if(uvpass.getPtrStorage() == TMPAUTOREF)
       return genCodeReadAutorefIntoATmpVar(fp, uvpass);
 
-    //split off if within a virtual quark function, to use slower read
-    if(m_state.m_gencodingAVirtualFunctionDefinedInAQuark)
-      return genCodeReadIntoATmpVarUsingBitVector(fp, uvpass);
-
     m_state.indent(fp);
     fp->write("const ");
     fp->write(tmpStorageTypeForRead(cosuti, uvpass).c_str());
@@ -514,9 +510,6 @@ namespace MFM {
 
   void Node::genCodeReadIntoATmpVarUsingBitVector(File * fp, UlamValue & uvpass)
   {
-    //here, we know we are in a virtual function defined in a quark
-    assert(m_state.m_gencodingAVirtualFunctionDefinedInAQuark);
-
     //note: arrays, custom arrays, autoref reads already split off
     UTI vuti = uvpass.getUlamValueTypeIdx();
 
@@ -646,26 +639,12 @@ namespace MFM {
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
     if((stgclasstype == UC_QUARK) && stgcos->getId() == m_state.m_pool.getIndexForDataString("self"))
       {
-	if(m_state.m_gencodingAVirtualFunctionDefinedInAQuark)
-	  {
-	    fp->write(m_state.getHiddenArgName());
-	    fp->write(".GetBits().");
-	    fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //or just 'Read' ?
-	    fp->write("(");
-	    fp->write_decimal_unsigned(uvpass.getPtrPos()); //start
-	    fp->write("u, ");
-	    fp->write_decimal_unsigned(uvpass.getPtrLen()); //length
-	    fp->write("u);\n"); //stand-alone 'self'
-	  }
-	else
-	  {
-	    fp->write(stgcosut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC, POS>::Up_Us::");
-	    fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //or just 'Read' ?
-	    fp->write("(");
-	    fp->write(m_state.getHiddenArgName());
-	    fp->write(".GetBits());\n"); //stand-alone 'self'
-	  }
+	fp->write(stgcosut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS>::Up_Us::");
+	fp->write(readMethodForCodeGen(stgcosuti, uvpass).c_str()); //or just 'Read' ?
+	fp->write("(");
+	fp->write(m_state.getHiddenArgName());
+	fp->write(".GetBits());\n"); //stand-alone 'self'
       }
     else
       {
@@ -693,10 +672,7 @@ namespace MFM {
     fp->write(" = ");
 
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum, uvpass.getPtrStorage()).c_str());
-    if(m_state.m_gencodingAVirtualFunctionDefinedInAQuark)
-      fp->write(".read(true);\n");
-    else
-      fp->write(".read();\n");
+    fp->write(".read();\n");
 
     //update uvpass
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPREGISTER, vuti, m_state.determinePackable(vuti), m_state, 0); //POS 0 justified (atom-based).
@@ -706,9 +682,6 @@ namespace MFM {
 
   void Node::genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue & uvpass)
   {
-    if(m_state.m_gencodingAVirtualFunctionDefinedInAQuark)
-      return genCodeReadArrayItemIntoATmpVarUsingBitVector(fp, uvpass);
-
     UTI vuti = uvpass.getUlamValueTypeIdx();
 
     assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
@@ -815,9 +788,6 @@ namespace MFM {
 
   void Node::genCodeReadArrayItemIntoATmpVarUsingBitVector(File * fp, UlamValue & uvpass)
   {
-    //here, we know we are in a virtual function defined in a quark
-    assert(m_state.m_gencodingAVirtualFunctionDefinedInAQuark);
-
     UTI vuti = uvpass.getUlamValueTypeIdx();
 
     assert(vuti == Ptr); //terminals handled in NodeTerminal as BitVector for args
@@ -1037,10 +1007,6 @@ namespace MFM {
 	genCodeReadElementTypeField(fp, typuvpass);
       }
 
-    //split off if within a virtual quark function, to use slower write
-    if(m_state.m_gencodingAVirtualFunctionDefinedInAQuark)
-      return genCodeWriteFromATmpVarUsingBitVector(fp, luvpass, ruvpass);
-
     m_state.indent(fp);
 
     // a data member quark, or the element itself should both GetBits from self;
@@ -1106,8 +1072,6 @@ namespace MFM {
 
   void Node::genCodeWriteFromATmpVarUsingBitVector(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
-    //here, we know we are in a virtual function defined in a quark
-    assert(m_state.m_gencodingAVirtualFunctionDefinedInAQuark);
     bool needsBVflag = false;
 
     UTI luti = luvpass.getUlamValueTypeIdx();
@@ -1253,16 +1217,11 @@ namespace MFM {
     m_state.indent(fp);
     fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), tmpVarNum, TMPAUTOREF).c_str());
     fp->write(".write(");
-
     //VALUE TO BE WRITTEN:
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too! value is not a terminal
     fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
-
-    if(m_state.m_gencodingAVirtualFunctionDefinedInAQuark)
-      fp->write(", true);\n");
-    else
-      fp->write(");\n");
+    fp->write(");\n");
 
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeWriteToAutorefFromATmpVar
@@ -1329,10 +1288,6 @@ namespace MFM {
   // ruvpass is the ptr to value to write
   void Node::genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
-    //split off if within a virtual quark function, to use slower write
-    if(m_state.m_gencodingAVirtualFunctionDefinedInAQuark)
-      return genCodeWriteArrayItemFromATmpVarUsingBitVector(fp, luvpass, ruvpass);
-
     assert(luvpass.getUlamValueTypeIdx() == Ptr);
     UTI luti = luvpass.getPtrTargetType();
     UTI ruti = ruvpass.getUlamValueTypeIdx();
@@ -1427,8 +1382,6 @@ namespace MFM {
   void Node::genCodeWriteArrayItemFromATmpVarUsingBitVector(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
     bool valueLastArg = false;
-    //here, we know we are in a virtual function defined in a quark
-    assert(m_state.m_gencodingAVirtualFunctionDefinedInAQuark);
 
     assert(luvpass.getUlamValueTypeIdx() == Ptr);
     UTI luti = luvpass.getPtrTargetType();

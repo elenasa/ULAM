@@ -695,10 +695,7 @@ namespace MFM {
     fp->write(m_state.getTmpVarAsString(Unsigned, tmpIQread).c_str());
     fp->write(" = ");
     fp->write(m_state.getTmpVarAsString(nuti, tmpIQ).c_str());
-    if(m_state.m_gencodingAVirtualFunctionDefinedInAQuark)
-      fp->write(".read(true);\n");
-    else
-      fp->write(".read();\n");
+    fp->write(".read();\n");
 
     //update the uvpass to have the casted immediate quark
     uvpass = UlamValue::makePtr(tmpIQread, uvpass.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, uvpass.getPtrPos()); //POS 0 is justified;

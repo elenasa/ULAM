@@ -411,11 +411,6 @@ namespace MFM {
 
     assert(!isNative());
 
-    //Virtual Quark functions must? use (less efficient)
-    //read/write without POS template arg
-    //m_state.m_gencodingAVirtualFunctionDefinedInAQuark = (m_funcSymbol->isVirtualFunction() && m_funcSymbol->isDefinedInAQuark());
-    m_state.m_gencodingAVirtualFunctionDefinedInAQuark = false;
-
     fp->write("\n");
     m_state.indent(fp);
     fp->write("{\n");
