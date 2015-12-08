@@ -147,7 +147,6 @@ namespace MFM{
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
-    Symbol * m_currentSubclassSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf //WHAT IF??? doesn't follow flow of execution.
     bool m_gencodingAVirtualFunctionDefinedInAQuark; //uses less efficient read/write without POS template arg
 
     u32 m_currentIndentLevel; //used in code generation: func def, blocks, control body

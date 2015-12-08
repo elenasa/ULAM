@@ -757,8 +757,6 @@ namespace MFM {
 	  {
 	    startcos = subcosidx + 1; //for loop later
 
-	    m_state.m_currentSubclassSelfSymbolForCodeGen = m_state.m_currentObjSymbolsForCodeGen[subcosidx]; //WHAT IF???
-
 	    UTI cosclassuti = Node::findTypeOfAncestorAndBlockNo(cosBlockNo, subcosidx);
 	    assert(cosclassuti != Nav);
 	    UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
@@ -775,8 +773,6 @@ namespace MFM {
 	  }
 	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
 	  {
-	    m_state.m_currentSubclassSelfSymbolForCodeGen = stgcos; //WHAT IF???
-
 	    Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
 	    assert(foundnode);
 	    UTI superuti = foundnode->getNodeType();
@@ -795,12 +791,8 @@ namespace MFM {
 		fp->write(">::");
 	      }
 	  }
-	else //do nothing for inheritance
-	  m_state.m_currentSubclassSelfSymbolForCodeGen = NULL; //WHAT IF???
-      }
-    else
-      m_state.m_currentSubclassSelfSymbolForCodeGen = NULL; //WHAT IF???
-
+	//else do nothing for inheritance
+      } //done with inheritance
 
     //iterate over COS vector; empty if current object is self
     for(u32 i = startcos; i < cosSize; i++)
@@ -811,12 +803,7 @@ namespace MFM {
 	fp->write(sym->getMangledNameForParameterType().c_str());
 	fp->write("::");
       }
-
     fp->write("THE_INSTANCE."); //non-static functions require an instance
-
-    //NOT FOR Funccalls
-    //if last cos is a quark, for Read/Write to work it needs an
-    // atomic Parameter type (i.e. Up_Us);
   } //genMemberNameOfMethod
 
   void NodeFunctionCall::genModelParameterMemberNameOfMethod(File * fp, s32 epi)
@@ -1135,11 +1122,8 @@ namespace MFM {
 	    stgcosuti = cosclassuti; // resets stgcosuti here!!
 	    stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
 	    useSuperClassName = true;
-
-	    m_state.m_currentSubclassSelfSymbolForCodeGen = m_state.m_currentObjSymbolsForCodeGen[subcosidx]; //WHAT IF???
 	  }
-	else
-	    m_state.m_currentSubclassSelfSymbolForCodeGen = NULL; //WHAT IF???
+	//else
       }
 
     ULAMCLASSTYPE stgclasstype = stgcosut->getUlamClass();
