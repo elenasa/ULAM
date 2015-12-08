@@ -6,15 +6,15 @@ Ue_EventWindowTest { EventWindow ew();  Int(32) test() {  Atom(96) a;  EventWind
 Uq_EventWindow { <NOMAIN> }
 #>EventWindowTest.ulam
 ##      // 'a has System' doesn't appy to eval because atoms have no class declarations; but testable for gencode
-ulam 1;
+  ulam 1;
 use EventWindow;
 element EventWindowTest {
-EventWindow ew;
- Int test() {
+  EventWindow ew;
+  Int test() {
     Atom a;
-EventWindowTest ewt;
- ew[0] = ewt;
-   a = ew[0];  // This is me!
+    EventWindowTest ewt;
+    ew[0] = ewt;
+    a = ew[0];  // This is me!
     if (a is EventWindowTest)
       return 0;
     return 1;
@@ -22,7 +22,7 @@ EventWindowTest ewt;
 }
 
 #:EventWindow.ulam
-ulam 1;
+  ulam 1;
 quark EventWindow {
   Atom aref(Int index) native;
   Void aset(Int index, Atom val) native;

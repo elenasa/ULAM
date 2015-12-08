@@ -10,7 +10,7 @@ namespace MFM{
                                                                 T& Uv_4self, Ui_Ut_102321i Uv_5index)	 //native
   {
     u32 siteNumber = Uv_5index.read();
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    const EventWindow<EC> & ew = uc.GetEventWindow();
     const T & a = ew.GetAtomSym(siteNumber);
     return Ui_Ut_102961a<EC>(a);
   }
@@ -20,7 +20,9 @@ namespace MFM{
                                                 T& Uv_4self, Ui_Ut_102321i Uv_5index, Ui_Ut_102961a<EC> Uv_1v) //native
   {
     u32 siteNumber = Uv_5index.read();
-    EventWindow<EC> & ew = uc.GetEventWindow();
+
+    UlamContext<EC> mutableuc(uc);
+    EventWindow<EC> & ew = mutableuc.GetEventWindow();
     ew.SetAtomSym(siteNumber, Uv_1v.read());
   }
 

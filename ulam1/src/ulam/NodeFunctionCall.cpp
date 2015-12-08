@@ -926,14 +926,6 @@ namespace MFM {
 	      }
 	    else if(cos->isAutoLocal())
 	      {
-		//update uc to reflect "effective" self for this funccall
-		//hiddenargs << "UlamContext<EC>(";
-		//hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
-		//hiddenargs << ", ";
-		//hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
-		//hiddenargs << ".LookupElementTypeFromContext(";
-		//hiddenargs << cos->getMangledName().c_str();
-		//hiddenargs << ".getType()))";
 		hiddenargs << m_state.getAutoHiddenContextArgName(); //_ucaut
 		stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 	      }

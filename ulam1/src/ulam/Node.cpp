@@ -965,7 +965,8 @@ namespace MFM {
 
 	// the READ method
 	fp->write(readArrayItemMethodForCodeGen(cosuti, uvpass).c_str());
-	fp->write("(uc, ");
+	//fp->write("(uc, ");
+	fp->write("(UlamContext<EC>(uc), ");
 
 	fp->write(m_state.getHiddenArgName()); //no getBits
 	fp->write(", "); //rest of arg's
@@ -981,14 +982,16 @@ namespace MFM {
 
 	if(stgcosclasstype == UC_ELEMENT)
 	  {
-	    fp->write("(uc, ");
+	    //fp->write("(uc, ");
+	    fp->write("(UlamContext<EC>(uc), ");
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".getRef()"); //immediate needs the T storage within the struct
 	    fp->write(", ");
 	  }
 	else if(stgcosclasstype == UC_QUARK)
 	  {
-	    fp->write("(uc, ");
+	    //fp->write("(uc, ");
+	    fp->write("(UlamContext<EC>(uc), ");
 	    fp->write(stgcos->getMangledName().c_str());
 	    fp->write(".getRef()"); //immediate needs the T storage within the struct
 	    fp->write(", ");
@@ -1000,14 +1003,16 @@ namespace MFM {
 	    u32 cosSize = m_state.m_currentObjSymbolsForCodeGen.size();
 	    if(cosSize == 1)
 	      {
-		fp->write("(uc, ");
+		//fp->write("(uc, ");
+		fp->write("(UlamContext<EC>(uc), ");
 	      }
 	    else
 	      {
 		// storage-cos and cos-for-read are different:
 		// use this instance of storage-cos to specify
 		// its non-static read method
-		fp->write("(uc, ");
+		//fp->write("(uc, ");
+		fp->write("(UlamContext<EC>(uc), ");
 		fp->write(stgcos->getMangledName().c_str());
 
 		assert(stgcosclasstype == UC_QUARK);
@@ -1025,7 +1030,6 @@ namespace MFM {
     uvpass = UlamValue::makePtr(tmpVarNum2, TMPBITVAL, itemuti, m_state.determinePackable(itemuti), m_state, 0); //POS 0 rightjustified (atom-based).
 
     genCodeConvertABitVectorIntoATmpVar(fp, uvpass); //updates uvpass again
-
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeReadCustomArrayItemIntoTmp
 
@@ -1624,8 +1628,8 @@ namespace MFM {
 
 	// the WRITE method
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
-	fp->write("(uc, ");
-
+	//fp->write("(uc, ");
+	fp->write("(UlamContext<EC>(uc), ");
 	fp->write(m_state.getHiddenArgName());
 	fp->write(", "); //rest of args
       }
@@ -1640,7 +1644,8 @@ namespace MFM {
 
 	fp->write(writeArrayItemMethodForCodeGen(cosuti, luvpass).c_str());
 
-	fp->write("(uc, ");
+	//fp->write("(uc, ");
+	fp->write("(UlamContext<EC>(uc), ");
 
 	// allow for immediate quarks;
 	if(stgcosclasstype == UC_ELEMENT)
