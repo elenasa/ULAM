@@ -1222,7 +1222,6 @@ namespace MFM {
     // with immediate elements, too! value is not a terminal
     fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex(), ruvpass.getPtrStorage()).c_str());
     fp->write(");\n");
-
     m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCodeWriteToAutorefFromATmpVar
 
@@ -2088,6 +2087,8 @@ namespace MFM {
       stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
     UTI stgcosuti = stgcos->getUlamTypeIdx(); //more general instead of current class
+    UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
+
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
 
@@ -2118,7 +2119,6 @@ namespace MFM {
 	    else
 	      {
 		fp->write("<EC, ");
-		//assert(stgcos->isDataMember());
 		if(stgcos->isDataMember())
 		  {
 		    fp->write_decimal_unsigned(stgcos->getPosOffset());
@@ -2139,15 +2139,12 @@ namespace MFM {
 	      fp->write("<EC>::");
 	    else
 	      {
-		//self is a quark
+		//super is a quark, stg might be either:
 		fp->write("<EC, ");
-		if(stgcos->isDataMember())
-		  {
-		    fp->write_decimal_unsigned(stgcos->getPosOffset());
-		    fp->write("u + ");
-		  }
-		fp->write("T::ATOM_FIRST_STATE_BIT>::");
-		//fp->write("POS>::");
+		if(stgcosut->getUlamClass() == UC_ELEMENT)
+		  fp->write("T::ATOM_FIRST_STATE_BIT>::");
+		else
+		  fp->write("POS>::"); //quarks know this
 	      }
 	  }
 	//else do nothing for inheritance
