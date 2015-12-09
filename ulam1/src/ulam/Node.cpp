@@ -2130,25 +2130,22 @@ namespace MFM {
 	  }
 	else if(m_state.isClassASubclass(stgcosuti)) //self is subclass
 	  {
+	    //could be in a super-super class
 	    Node * foundnode = m_state.findNodeNoInAClass(cosBlockNo, stgcosuti);
 	    assert(foundnode);
 	    UTI superuti = foundnode->getNodeType();
 	    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
 	    fp->write(superut->getUlamTypeMangledName().c_str());
-	    if(superut->getUlamClass() == UC_ELEMENT)
-	      fp->write("<EC>::");
+	    assert(superut->getUlamClass() != UC_ELEMENT);
+	    //super is a quark, stg might be either:
+	    fp->write("<EC, ");
+	    if(stgcosut->getUlamClass() == UC_ELEMENT)
+	      fp->write("T::ATOM_FIRST_STATE_BIT>::");
 	    else
-	      {
-		//super is a quark, stg might be either:
-		fp->write("<EC, ");
-		if(stgcosut->getUlamClass() == UC_ELEMENT)
-		  fp->write("T::ATOM_FIRST_STATE_BIT>::");
-		else
-		  fp->write("POS>::"); //quarks know this
-	      }
+	      fp->write("POS>::"); //quarks know this
 	  }
-	//else do nothing for inheritance
       }
+    //else do nothing for inheritance
 
     //iterate over COS vector; empty if current object is self
     for(u32 i = startcos; i < cosSize; i++)
