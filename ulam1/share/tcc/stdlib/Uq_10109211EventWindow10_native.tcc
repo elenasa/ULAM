@@ -10,7 +10,7 @@ namespace MFM{
 							      Ui_Ut_10161u Uv_5index) //native
   {
     u32 siteNumber = Uv_5index.read();
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    const EventWindow<EC> & ew = uc.GetEventWindow();
     const T & a = ew.GetAtomSym(siteNumber);
     return Ui_Ut_102961a<EC>(a);
   }
@@ -21,7 +21,7 @@ namespace MFM{
                                                 Ui_Ut_102961a<EC> Uv_1v) //native
   {
     u32 siteNumber = Uv_5index.read();
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     ew.SetAtomSym(siteNumber, Uv_1v.read());
   }
 
@@ -30,7 +30,7 @@ namespace MFM{
                                                              T& Uv_4self, Ui_Ut_10161u Uv_5index)
   {
     u32 siteNumber = Uv_5index.read();
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    const EventWindow<EC> & ew = uc.GetEventWindow();
     return Ui_Ut_10111b(ew.IsLiveSiteSym(siteNumber));
   }
 
@@ -41,7 +41,7 @@ namespace MFM{
   {
     u32 idx1 = Uv_6index1.read();
     u32 idx2 = Uv_6index2.read();
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     if (!ew.IsLiveSiteSym(idx1) || !ew.IsLiveSiteSym(idx2))
       return Ui_Ut_10111b(false);
     ew.SwapAtomsSym(idx1,idx2);
@@ -53,7 +53,7 @@ namespace MFM{
   {
     //! EventWindow.ulam:21:     C2D ret;
     Ui_Uq_102323C2D10<EC> Uv_3ret;
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    const EventWindow<EC> & ew = uc.GetEventWindow();
     u32 idx = Uv_7siteNum.read();
     SPoint loc = ew.MapToPointSymValid(idx);
 
@@ -70,7 +70,7 @@ namespace MFM{
   Ui_Ut_10161u Uq_10109211EventWindow10<EC, POS>::Uf_9213getSiteNumber(const UlamContext<EC> & uc, T& Uv_4self, Ui_Uq_102323C2D10<EC> Uv_5coord)
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    const EventWindow<EC> & ew = uc.GetEventWindow();
 
     const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x::Read(Uv_5coord.getBits()), 16);
     const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y::Read(Uv_5coord.getBits()), 16);
@@ -94,7 +94,7 @@ namespace MFM{
   Ui_Ut_10131u Uq_10109211EventWindow10<EC, POS>::Uf_9214changeSymmetry(const UlamContext<EC> & uc,T& Uv_4self,
 								       Ui_Ut_10131u Uv_6newSym)
   {
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
 
     const u32 oldSym = (u32) ew.GetSymmetry();
     const u32 newSym = (u32) Uv_6newSym.read();
@@ -108,7 +108,7 @@ namespace MFM{
   Ui_Uq_102323C2D10<EC> Uq_10109211EventWindow10<EC, POS>::Uf_6mapSym(const UlamContext<EC> & uc, T& Uv_4self,
 								      Ui_Uq_102323C2D10<EC> Uv_9211directCoord)
   {
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    const EventWindow<EC> & ew = uc.GetEventWindow();
 
     const s32 x = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1x::Read(Uv_9211directCoord.getBits()), 16);
     const s32 y = _SignExtend32(Ui_Uq_102323C2D10<EC>::Us::Up_Um_1y::Read(Uv_9211directCoord.getBits()), 16);
@@ -130,7 +130,7 @@ namespace MFM{
   void Uq_10109211EventWindow10<EC,POS>::Uf_7diffuse(const UlamContext<EC> & uc,
                                                    T& Uv_4self)	 //native
   {
-    EventWindow<EC> & ew = uc.GetEventWindow();
+    EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     ew.Diffuse();
   }
 
