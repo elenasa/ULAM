@@ -395,7 +395,7 @@ EOF
     if ($csyc == 1) {
         $symbody .= "return $syms[0];";
     } else {
-        $symbody .= "Random & r = uc.GetRandom();\n";
+        $symbody .= "Random & r = const_cast<UlamContext<EC> &>(uc).GetRandom();\n";
         if ($csyc == 8) {
             $symbody .= "      return r.Create($csyc);";
         } else {
@@ -450,7 +450,7 @@ namespace MFM {
     const u32 GetVersion() const { return $cver; }
 $movfunc
     const u32 GetElementColor() const { $body }
-    const u32 GetSymmetry(UlamContext<EC>& uc) const {
+    const u32 GetSymmetry(const UlamContext<EC>& uc) const {
       $symbody
     }
 EOF
