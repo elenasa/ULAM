@@ -422,7 +422,8 @@ namespace MFM {
 
 	UTI cuti = atomPtr.getPtrTargetType(); //must be a class
 	SymbolClass * vcsym = NULL;
-	assert(m_state.alreadyDefinedSymbolClass(cuti, vcsym));
+	bool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
+	assert(isDefined);
 	UTI vtcuti = vcsym->getClassForVTableEntry(vtidx);
 
 	//is the virtual class uti the same as what we already have?
@@ -431,7 +432,8 @@ namespace MFM {
 	if(funcclassuti != vtcuti)
 	  {
 	    SymbolClass * vtcsym = NULL;
-	    assert(m_state.alreadyDefinedSymbolClass(vtcuti, vtcsym));
+	    bool isDefined = m_state.alreadyDefinedSymbolClass(vtcuti, vtcsym);
+	    assert(isDefined);
 
 	    NodeBlockClass * memberClassNode = vtcsym->getClassBlockNode();
 	    assert(memberClassNode);  //e.g. forgot the closing brace on quark definition
@@ -440,7 +442,8 @@ namespace MFM {
 
 	    Symbol * fnsymptr = NULL;
 	    bool hazyKin = false;
-	    assert(m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin);
+	    bool isDefinedFunc = (m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin);
+	    assert(isDefinedFunc);
 
 	    //find this func in the virtual class; get its func def.
 	    std::vector<UTI> pTypes;
@@ -660,7 +663,8 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cosuti, csym));
+    bool isDefined = m_state.alreadyDefinedSymbolClass(cosuti, csym);
+    assert(isDefined);
 
     UTI cvfuti = csym->getClassForVTableEntry(vfidx);
     UlamType * cvfut = m_state.getUlamTypeByIndex(cvfuti);

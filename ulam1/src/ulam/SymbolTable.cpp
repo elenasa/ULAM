@@ -388,10 +388,12 @@ namespace MFM {
 		    if(m_state.isScalar(suti))
 		      {
 			SymbolClass * csym = NULL;
-			assert(m_state.alreadyDefinedSymbolClass(suti, csym));
+			bool isDefined = m_state.alreadyDefinedSymbolClass(suti, csym);
+			assert(isDefined);
 
 			u32 qval = 0;
-			assert(csym->getDefaultQuark(qval));
+			bool isDefinedQuark = csym->getDefaultQuark(qval);
+			assert(isDefinedQuark);
 
 			std::ostringstream qdhex;
 			qdhex << "0x" << std::hex << qval;
@@ -421,10 +423,12 @@ namespace MFM {
 			// first, get default value of its scalar quark
 			UTI scalaruti = m_state.getUlamTypeAsScalar(suti);
 			SymbolClass * csym = NULL;
-			assert(m_state.alreadyDefinedSymbolClass(scalaruti, csym));
+			bool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+			assert(isDefined);
 
 			u32 qval = 0;
-			assert(csym->getDefaultQuark(qval));
+			bool isDefinedQuark = csym->getDefaultQuark(qval);
+			assert(isDefinedQuark);
 
 			std::ostringstream qdhex;
 			qdhex << "0x" << std::hex << qval;
@@ -469,7 +473,8 @@ namespace MFM {
 		// but does this data member have an initialization value?
 		// o.w. zero
 		u64 val = 0;
-		assert(((SymbolVariableDataMember*)sym)->getInitValue(val));
+		bool isDefined = ((SymbolVariableDataMember*)sym)->getInitValue(val);
+		assert(isDefined);
 
 		m_state.indent(fp);
 		if(useFullClassName)
@@ -689,7 +694,8 @@ namespace MFM {
     //initialize this classes VTable to super classes' VTable, or empty
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    bool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
     csym->initVTable(maxidx);
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -882,7 +888,8 @@ namespace MFM {
 	    else if(m_state.getUlamTypeByIndex(suti)->getUlamClass() == UC_QUARK)
 	      {
 		SymbolClass * csym = NULL;
-		assert(m_state.alreadyDefinedSymbolClass(suti, csym)); //scalar class symbol
+		bool isDefined = m_state.alreadyDefinedSymbolClass(suti, csym); //scalar class symbol;
+		assert(isDefined);
 		u32 dval = 0;
 		if(csym->getDefaultQuark(dval))
 		  {

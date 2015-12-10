@@ -43,7 +43,8 @@ namespace MFM {
     rtnValue.setAtomElementTypeIdx(elementType);
 
     SymbolClass * csym = NULL;
-    assert(state.alreadyDefinedSymbolClass(elementType, csym));
+    bool isDefined = state.alreadyDefinedSymbolClass(elementType, csym);
+    assert(isDefined);
     NodeBlockClass * cblock = csym->getClassBlockNode();
     assert(cblock);
     cblock->initElementDefaultsForEval(rtnValue);
@@ -141,7 +142,6 @@ namespace MFM {
     if(pos == 0)
       {
 	//figure out the pos based on targettype; both elements and quarks start at first state bit (25)
-	//if(targetType == UAtom || state.getUlamTypeByIndex(targetType)->getUlamClass() == UC_ELEMENT)
 	if(targetType == UAtom || state.getUlamTypeByIndex(targetType)->getUlamTypeEnum() == Class)
 	  rtnUV.m_uv.m_ptrValue.m_posInAtom = ATOMFIRSTSTATEBITPOS; //len is predetermined
 	else
@@ -225,7 +225,8 @@ namespace MFM {
 
     UlamValue scalarPtr = UlamValue::makeScalarPtr(*this, state);
 
-    assert(scalarPtr.incrementPtr(state, offset)); //incr appropriately by packed-ness
+    bool isNext = scalarPtr.incrementPtr(state, offset); //incr appropriately by packed-ness
+    assert(isNext);
     UlamValue atval = state.getPtrTarget(scalarPtr);
 
     // redo what getPtrTarget use to do, when types didn't match due to
@@ -500,9 +501,6 @@ namespace MFM {
     if(len == 0)
       return 0;
 
-    //    if(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() == Class)
-    //  return getImmediateQuarkData(len);
-
     return getImmediateData(len, state);
   } //getImmediateData
 
@@ -611,12 +609,6 @@ namespace MFM {
 	assert(len != UNKNOWNSIZE);
 	if(len <= MAXBITSPERINT)
 	  {
-	    //u32 datavalue = 0;
-	    //if(state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == Class)
-	    //  datavalue = getImmediateQuarkData(len); //left-justified
-	    //else
-	    //  datavalue = data.getImmediateData(len);
-
 	    u32 datavalue = data.getImmediateData(len, state);
 	    putData(p.getPtrPos(), len, datavalue);
 	  }
@@ -657,7 +649,8 @@ namespace MFM {
 	    u64 datavalue = data.getDataLong((BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
 	    putDataLong(nextPPtr.getPtrPos(), nextPPtr.getPtrLen(), datavalue);
 	  }
-	assert(nextPPtr.incrementPtr(state));
+	bool isNext = nextPPtr.incrementPtr(state);
+	assert(isNext);
       }
   } //putPackedArrayDataIntoAtom
 

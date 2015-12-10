@@ -111,7 +111,8 @@ namespace MFM {
 	//for inheritance, get the node no of superblock
 	u32 sid = m_state.getUlamKeyTypeSignatureByIndex(superclass).getUlamKeyTypeSignatureNameId();
 	SymbolClassName * cnsym = NULL;
-	assert(m_state.alreadyDefinedSymbolClassName(sid, cnsym));
+	bool isDefined = m_state.alreadyDefinedSymbolClassName(sid, cnsym);
+	assert(isDefined);
 	NodeBlockClass * superblock = cnsym->getClassBlockNode();
 	assert(superblock);
 

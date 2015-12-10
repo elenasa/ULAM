@@ -515,7 +515,8 @@ namespace MFM {
       {
 	superuti = parseClassArguments(iTok);
 	cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
-	assert(m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym)); //could be template
+	bool isDefined = m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym); //could be template;
+	assert(isDefined);
 	rtninherits = true;
       }
     else
@@ -2000,7 +2001,8 @@ namespace MFM {
 		else
 		  {
 		    u32 cid = tmpcsym->getId();
-		    assert(m_state.alreadyDefinedSymbolClassName(cid, cnsym));
+		    bool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
+		    assert(isDefined);
 		  }
 	      }
 	  }
@@ -3180,7 +3182,8 @@ namespace MFM {
     //makeup node for lhs; using same symbol as dNode(could be Null!)
     Symbol * dsymptr = NULL;
     bool hazyKin = false; //don't care
-    assert(m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr, hazyKin));
+    bool isDefined = m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr, hazyKin);
+    assert(isDefined);
     Node * leftNode = new NodeIdent(identTok, (SymbolVariable *) dsymptr, m_state);
     assert(leftNode);
     leftNode->setNodeLocation(dNode->getNodeLocation());

@@ -75,7 +75,8 @@ namespace MFM {
     if(nut->getUlamClass() == UC_QUARK)
       {
 	SymbolClass * csym = NULL;
-	assert(m_state.alreadyDefinedSymbolClass(nuti, csym));
+	bool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+	assert(isDefined);
 	NodeBlockClass * classblock = csym->getClassBlockNode();
 	assert(classblock);
 
@@ -202,7 +203,8 @@ namespace MFM {
 	//constant fold if possible, set symbol value
 	if(m_varSymbol)
 	  {
-	    assert(((SymbolVariableDataMember *) m_varSymbol)->hasInitValue());
+	    bool isDefined = ((SymbolVariableDataMember *) m_varSymbol)->hasInitValue();
+	    assert(isDefined);
 	    if(!(((SymbolVariableDataMember *) m_varSymbol)->initValueReady()))
 	      {
 		foldConstantExpression(); //sets init constant value
@@ -232,7 +234,10 @@ namespace MFM {
 	      }
 	  }
 	else
-	  assert(Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr)); //we know it's safe!
+	  {
+	    bool isDefined = Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr); //we know it's safe!
+	    assert(isDefined);
+	  }
       } //finished init expr node
 
     return getNodeType();
@@ -488,10 +493,12 @@ namespace MFM {
 		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 		u32 bitsize = m_state.getBitSize(nuti);
 		SymbolClass * csym = NULL;
-		assert(m_state.alreadyDefinedSymbolClass(scalaruti, csym));
+		bool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+		assert(isDefined);
 
 		u32 qval = 0;
-		assert(csym->getDefaultQuark(qval));
+		bool isDefinedQuark = csym->getDefaultQuark(qval);
+		assert(isDefinedQuark);
 
 		//initialize each array item
 		u32 arraysize = m_state.getArraySize(nuti);

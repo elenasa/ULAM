@@ -115,7 +115,8 @@ namespace MFM {
     if(m_nodeParameterList->getNumberOfNodes() > 0)
       {
 	SymbolClassNameTemplate * cnsym = NULL;
-	assert(m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId(), cnsym));
+	bool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId(), cnsym);
+	assert(isDefined);
 	cnsym->printClassTemplateArgsForPostfix(fp);
 	//m_nodeParameterList->print(fp);
       }
@@ -174,7 +175,8 @@ namespace MFM {
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * supercnsym = NULL;
 	    u32 superid = m_state.getUlamTypeByIndex(superuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-	    assert(m_state.alreadyDefinedSymbolClassName(superid, supercnsym));
+	    bool isDefined = m_state.alreadyDefinedSymbolClassName(superid, supercnsym);
+	    assert(isDefined);
 	    superblock = supercnsym->getClassBlockNode();
 	  }
 	assert(superblock);
@@ -266,7 +268,8 @@ namespace MFM {
 
 	    //look up this instance
 	    SymbolClass * csym = NULL;
-	    assert(m_state.alreadyDefinedSymbolClass(superuti, csym));
+	    bool isDefined = m_state.alreadyDefinedSymbolClass(superuti, csym);
+	    assert(isDefined);
 	    NodeBlock::setPreviousBlockPointer(csym->getClassBlockNode()); //fix
 	  }
 
@@ -1409,9 +1412,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     //get all initialized data members in quark
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    bool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
     u32 qval = 0;
-    assert(csym->getDefaultQuark(qval));
+    bool isQuark = csym->getDefaultQuark(qval);
+    assert(isQuark);
 
     std::ostringstream qdhex;
     qdhex << "0x" << std::hex << qval;
@@ -1435,7 +1440,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    bool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
 
     s32 maxidx = getVirtualMethodMaxIdx();
     assert(maxidx >= 0);

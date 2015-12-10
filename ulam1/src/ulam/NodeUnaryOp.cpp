@@ -281,7 +281,8 @@ namespace MFM {
     Node * parentNode = m_state.findNodeNoInThisClass(pno);
     assert(parentNode);
 
-    assert(parentNode->exchangeKids(this, newnode));
+    bool swapOk = parentNode->exchangeKids(this, newnode);
+    assert(swapOk);
 
     std::ostringstream msg;
     msg << "Exchanged kids! for unary operator" << getName();

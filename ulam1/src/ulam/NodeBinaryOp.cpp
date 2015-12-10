@@ -456,7 +456,8 @@ namespace MFM {
     Node * parentNode = m_state.findNodeNoInThisClass(pno);
     assert(parentNode);
 
-    assert(parentNode->exchangeKids(this, newnode));
+    bool swapOk = parentNode->exchangeKids(this, newnode);
+    assert(swapOk);
 
     std::ostringstream msg;
     msg << "Exchanged kids! for binary operator" << getName();
@@ -595,8 +596,10 @@ namespace MFM {
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
 
-	assert(lp.incrementPtr(m_state));
-	assert(rp.incrementPtr(m_state));
+	bool isNextLeft = lp.incrementPtr(m_state);
+	assert(isNextLeft);
+	bool isNextRight = rp.incrementPtr(m_state);
+	assert(isNextRight);
       } //forloop
 
     if(rtnUV.getUlamValueTypeIdx() == Nav)

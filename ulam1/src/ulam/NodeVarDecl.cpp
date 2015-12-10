@@ -356,7 +356,8 @@ namespace MFM {
 	  {
 	    //must be a local quark!
 	    u32 dq = 0;
-	    assert(m_state.getDefaultQuark(nuti, dq));
+	    bool isDefinedQuark = m_state.getDefaultQuark(nuti, dq);
+	    assert(isDefinedQuark);
 	    if(m_state.isScalar(nuti))
 	      {
 		UlamValue immUV = UlamValue::makeImmediate(nuti, dq, m_state);

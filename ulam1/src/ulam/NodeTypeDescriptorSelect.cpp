@@ -104,7 +104,8 @@ namespace MFM {
 	if(seletype == Class)
 	  {
 	    SymbolClass * csym = NULL;
-	    assert(m_state.alreadyDefinedSymbolClass(seluti, csym));
+	    bool isDefined = m_state.alreadyDefinedSymbolClass(seluti, csym);
+	    assert(isDefined);
 
 	    m_state.pushClassContext(seluti, csym->getClassBlockNode(), csym->getClassBlockNode(), false, NULL);
 	    // find our id in the "selected" class, must be a typedef at top level

@@ -719,7 +719,6 @@ namespace MFM {
     Symbol * stgcos = NULL;
     stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
-    //assert(m_state.isClassASuperclassOf(vuti, nuti));
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
     m_state.indent(fp);
     fp->write("if(! ");

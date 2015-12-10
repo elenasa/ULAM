@@ -10,7 +10,6 @@ namespace MFM {
     m_loc = sym->getLoc();
     m_mangledClassName = state.getUlamTypeByIndex(classtype)->getUlamTypeMangledName();
     m_mangledType = state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName();
-    //  assert(((SymbolParameterValue *) sym)->getValue(desc.m_val)); //is ready.
     m_memberName = state.m_pool.getDataAsString(sym->getId());
     m_mangledMemberName = sym->getMangledName();
     Token scTok;

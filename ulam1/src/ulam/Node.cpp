@@ -2522,7 +2522,8 @@ namespace MFM {
 
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
-    assert(m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin)); //searches class of cos
+    bool isDefined = m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos
+    assert(isDefined);
     assert(!hazyKin);
     NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
     UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
@@ -2700,7 +2701,8 @@ namespace MFM {
       SymbolClassName * coscnsym = NULL;
       UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
       u32 cosid = cosclassut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-      assert(m_state.alreadyDefinedSymbolClassName(cosid, coscnsym));
+      bool isDefined = m_state.alreadyDefinedSymbolClassName(cosid, coscnsym);
+      assert(isDefined);
       UTI cosnameuti = coscnsym->getUlamTypeIdx();
 
       if(blockclassuti == cosnameuti) break;
