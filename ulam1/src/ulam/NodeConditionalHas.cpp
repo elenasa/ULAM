@@ -138,11 +138,13 @@ namespace MFM {
     UTI ruti = getRightType();
     SymbolClass * csym = NULL;
     s32 posFound = -1;
+    UTI insidecuti;
+
     if(m_state.alreadyDefinedSymbolClass(luti, csym))
       {
 	NodeBlockClass * classNode = csym->getClassBlockNode();
 	assert(classNode);
-	posFound = classNode->findUlamTypeInTable(ruti);
+	posFound = classNode->findUlamTypeInTable(ruti, insidecuti);
       }
     else
       {
@@ -169,11 +171,16 @@ namespace MFM {
     bool hasit = (posFound >= 0);
     if(hasit)
       {
-	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), ruti, m_state.determinePackable(ruti), m_state, pluv.getPtrPos() + posFound, pluv.getPtrNameId());
+	// insidecuti might be the same as ruti, or a sub-class of ruti!!!
+	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), insidecuti, m_state.determinePackable(ruti), m_state, pluv.getPtrPos() + posFound, pluv.getPtrNameId());
 	m_state.m_currentAutoObjPtr = ptr;
+	m_state.m_currentAutoStorageType = luti;
       }
     else
-      m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
+      {
+	m_state.m_currentAutoObjPtr = UlamValue(); //wipeout
+	m_state.m_currentAutoStorageType = Nav;
+      }
 
     UlamValue rtnuv = UlamValue::makeImmediate(nuti, (u32) hasit, m_state);
     //also copy result UV to stack, -1 relative to current frame pointer

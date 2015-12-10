@@ -84,7 +84,7 @@ namespace MFM{
 
     //void packBitsForTableOfVariableDataMembers();  //after type labeling, before code gen
 
-    s32 findPosOfUlamTypeInTable(UTI utype);
+    s32 findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti);
 
     void genCodeForTableOfVariableDataMembers(File * fp, ULAMCLASSTYPE classtype);  //(unused)
 
@@ -127,6 +127,8 @@ namespace MFM{
 
     void calcMaxDepthForTableOfFunctions();
 
+    void calcMaxIndexForVirtualTableOfFunctions(s32& maxidx);
+
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
 
@@ -156,6 +158,8 @@ namespace MFM{
     void checkDuplicateFunctionsForTableOfClasses();
 
     void calcMaxDepthOfFunctionsForTableOfClasses();
+
+    bool calcMaxIndexOfVirtualFunctionsForTableOfClasses();
 
     bool labelTableOfClasses();
 

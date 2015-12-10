@@ -6,11 +6,11 @@
 
 namespace MFM {
 
-  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_gotStructuredCommentToken(false), m_idtok(id), m_uti(utype), m_dataMember(false), m_autoLocal(false), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()){}
+  Symbol::Symbol(Token id, UTI utype, CompilerState & state) : m_state(state), m_gotStructuredCommentToken(false), m_idtok(id), m_uti(utype), m_dataMember(false), m_autoLocalType(ALT_NOT), m_isSelf(false), m_stBlockNo(state.getCurrentBlockNo()){}
 
-  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMember(sref.m_dataMember), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol & sref) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(sref.m_uti)), m_dataMember(sref.m_dataMember), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
-  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMember(sref.m_dataMember), m_autoLocal(sref.m_autoLocal), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
+  Symbol::Symbol(const Symbol& sref, bool keepType) : m_state(sref.m_state), m_structuredCommentToken(sref.m_structuredCommentToken), m_gotStructuredCommentToken(sref.m_gotStructuredCommentToken), m_idtok(sref.m_idtok), m_uti(sref.m_uti), m_dataMember(sref.m_dataMember), m_autoLocalType(sref.m_autoLocalType), m_isSelf(sref.m_isSelf), m_stBlockNo(sref.m_stBlockNo) {}
 
   Symbol::~Symbol(){}
 
@@ -96,14 +96,29 @@ namespace MFM {
     return false;
   }
 
-  void Symbol::setAutoLocal()
+  void Symbol::setAutoLocalType(Token cTok)
   {
-      m_autoLocal = true;
+    if(cTok.m_type == TOK_KW_AS)
+      setAutoLocalType(ALT_AS);
+    else if(cTok.m_type == TOK_KW_HAS)
+      setAutoLocalType(ALT_HAS);
+    else
+      setAutoLocalType(ALT_NOT);
+  }
+
+  void Symbol::setAutoLocalType(ALT alt)
+  {
+    m_autoLocalType = alt; /* private */
+  }
+
+  ALT Symbol::getAutoLocalType()
+  {
+    return m_autoLocalType;
   }
 
   bool Symbol::isAutoLocal()
   {
-    return m_autoLocal;
+    return (m_autoLocalType != ALT_NOT);
   }
 
   void Symbol::setIsSelf()

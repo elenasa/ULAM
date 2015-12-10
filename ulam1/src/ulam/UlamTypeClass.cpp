@@ -59,26 +59,19 @@ namespace MFM {
     else if(m_class == UC_QUARK)
       {
 	if(valtypidx == UAtom)
-	  brtn = false; //cast atom to a quark???
-	//else if(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
+	  brtn = false; //cast atom to a quark?
 	else if(UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME)
 	  {
 	    //if same type nothing to do; if atom, shows as element in eval-land.
-	    //val.setAtomElementTypeIdx(typidx); //???
+	    //val.setAtomElementTypeIdx(typidx); //?
 	  }
-	else if(m_state.isClassASuperclassOf(valtypidx, typidx)) //2 quarks, or element (val) inherits from this quark
+	else if(m_state.isClassASuperclassOf(valtypidx, typidx))
 	  {
+	    //2 quarks, or element (val) inherits from this quark
 	    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 	    if(vclasstype == UC_ELEMENT)
 	      {
-		//checks if quark is a data member or ancestor
-		SymbolClass * csym = NULL;
-		assert(m_state.alreadyDefinedSymbolClass(valtypidx, csym));
-		NodeBlockClass * cblock = csym->getClassBlockNode();
-		assert(cblock);
-		s32 pos = cblock->findUlamTypeInTable(typidx);
-		assert(pos >= 0); //ancestors start at first state bit pos
-
+		s32 pos = 0; //ancestors start at first state bit pos
 		s32 len = getTotalBitSize();
 		assert(len != UNKNOWNSIZE);
 		if(len <= MAXBITSPERINT)
@@ -88,7 +81,7 @@ namespace MFM {
 		  }
 		else if(len <= MAXBITSPERLONG)
 		  {
-		    assert(0); //quarksare max 32 bits
+		    assert(0); //quarks are max 32 bits
 		    u64 qdata = val.getDataLongFromAtom(pos + ATOMFIRSTSTATEBITPOS, len);
 		    val = UlamValue::makeImmediateLong(typidx, qdata, len);
 		  }
@@ -509,7 +502,7 @@ namespace MFM {
     fp->write(";  //forward\n\n");
 
     m_state.indent(fp);
-    fp->write("template<class EC>\n");
+    fp->write("template<class EC, u32 POS>\n"); //quark auto per POS
 
     m_state.indent(fp);
     fp->write("struct ");
@@ -530,7 +523,29 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-    // see UlamElement.h for AutoRefBase
+    //quark typedef
+    m_state.indent(fp);
+    fp->write("typedef ");
+    fp->write(scalarmangledName.c_str());
+    fp->write("<EC, ");
+    fp->write("T::ATOM_FIRST_STATE_BIT");
+    fp->write("> Us;\n");
+
+    s32 len = getTotalBitSize();
+
+    m_state.indent(fp);
+    fp->write("typedef AtomicParameterType");
+    fp->write("<EC"); //BITSPERATOM
+    fp->write(", ");
+    fp->write(getUlamTypeVDAsStringForC().c_str());
+    fp->write(", ");
+    fp->write_decimal_unsigned(len); //includes arraysize
+    fp->write("u, ");
+    fp->write("T::ATOM_FIRST_STATE_BIT");
+    fp->write("> ");
+    fp->write(" Up_Us;\n");
+
+    // see UlamClass.h for AutoRefBase
     //constructor for conditional-as (auto)
     m_state.indent(fp);
     fp->write(automangledName.c_str());
@@ -574,9 +589,11 @@ namespace MFM {
     fp->write("const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" read() const { ");
-    fp->write("return AutoRefBase<EC>::read(");
-    fp->write_decimal_unsigned(getTotalBitSize());
-    fp->write("u); }\n");
+    //fp->write("assert(Us::THE_INSTANCE.GetPos() == (AutoRefBase<EC>::getPosOffset() + T::ATOM_FIRST_STATE_BIT)); "); //assert temporary XXX
+    fp->write("return Up_Us::");
+    fp->write(readMethodForCodeGen().c_str());
+    fp->write("(AutoRefBase<EC>::getBits()); ");
+    fp->write("}\n");
 
     if(!isScalar())
       {
@@ -598,9 +615,11 @@ namespace MFM {
     fp->write("void write(const ");
     fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
     fp->write(" v) { ");
-    fp->write("AutoRefBase<EC>::write(v, ");
-    fp->write_decimal_unsigned(getTotalBitSize());
-    fp->write("u); }\n");
+    //fp->write("assert(Us::THE_INSTANCE.GetPos() == ( AutoRefBase<EC>::getPosOffset() + T::ATOM_FIRST_STATE_BIT)); "); //assert temporary XXX
+    fp->write("Up_Us::");
+    fp->write(writeMethodForCodeGen().c_str());
+    fp->write("(AutoRefBase<EC>::getBits(), v); ");
+    fp->write("}\n");
 
     if(!isScalar())
       {
@@ -797,7 +816,10 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     fp->write(mangledName.c_str());
     fp->write(" : public ");
     fp->write(automangledName.c_str());
-    fp->write("<EC>\n");
+    if(m_class == UC_QUARK)
+      fp->write("<EC, EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT>\n");
+    else
+      fp->write("<EC>\n");
 
     m_state.indent(fp);
     fp->write("{\n");
@@ -850,14 +872,14 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write(mangledName.c_str());
 	fp->write("() : ");
 	fp->write(automangledName.c_str());
-	fp->write("<EC>(m_stg, 0), ");
+	fp->write("<EC, T::ATOM_FIRST_STATE_BIT>(m_stg, 0), ");
 	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
 	if(hasDQ)
 	  {
 	    if(isScalar())
 	      {
 		fp->write(automangledName.c_str());
-		fp->write("<EC>::");
+		fp->write("<EC, T::ATOM_FIRST_STATE_BIT>::");
 		fp->write("write(DEFAULT_QUARK);");
 	      }
 	    else
@@ -881,7 +903,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 		    qdhex << "0x" << std::hex << dqarrval;
 
 		    fp->write(automangledName.c_str());
-		    fp->write("<EC>::");
+		    fp->write("<EC, T::ATOM_FIRST_STATE_BIT>::");
 		    fp->write("write( ");
 		    fp->write(qdhex.str().c_str());
 		    fp->write(");");
@@ -892,7 +914,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 		    fp->write_decimal(getArraySize());
 		    fp->write("u; while(n--) { ");
 		    fp->write(automangledName.c_str());
-		    fp->write("<EC>::");
+		    fp->write("<EC, T::ATOM_FIRST_STATE_BIT>::");
 		    fp->write("AutoRefBase<EC>::writeArrayItem(DEFAULT_QUARK, n, ");
 		    fp->write_decimal_unsigned(getBitSize());
 		    fp->write("u); }");
@@ -908,10 +930,10 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write(getTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" d) : ");
 	fp->write(automangledName.c_str());
-	fp->write("<EC>(m_stg, 0), ");
+	fp->write("<EC, T::ATOM_FIRST_STATE_BIT>(m_stg, 0), ");
 	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
 	fp->write(automangledName.c_str());
-	fp->write("<EC>::");
+	fp->write("<EC, T::ATOM_FIRST_STATE_BIT>::");
 	fp->write("write(d); }\n");
 
 	// assignment constructor
@@ -921,10 +943,10 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
 	fp->write(mangledName.c_str());
 	fp->write("<EC> & arg) : ");
 	fp->write(automangledName.c_str());
-	fp->write("<EC>(m_stg, 0), ");
+	fp->write("<EC, T::ATOM_FIRST_STATE_BIT>(m_stg, 0), ");
 	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { "); //for immediate quarks
 	fp->write(automangledName.c_str());
-	fp->write("<EC>::");
+	fp->write("<EC, T::ATOM_FIRST_STATE_BIT>::");
 	fp->write("write(arg.read()); }\n");
       }
     else if(m_class == UC_ELEMENT)

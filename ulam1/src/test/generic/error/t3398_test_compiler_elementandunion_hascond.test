@@ -1,0 +1,60 @@
+## -*- mode:ulam -*-
+#=t3398_test_compiler_elementandunion_hascond
+#!
+##
+## deprecated 'has'
+##      /* gen code output:
+##	 Int Arg: 1
+##      */
+##Exit status: 1
+##Ue_Eltypo { System s();  Typo(1) t( constant Int(32) a = 1;  Unsigned(1) u(0u);  Int(2) i(0); );  Int(32) test() {  Eltypo el;  el Typo(1) has cond { Typo(1) el;  el u . 1u = s ( el u . cast )print . el u . cast return } if 2u cast return } }
+##Uq_Typo(Int(32) a) { Unsigned(UNKNOWN) u(unknown);  Int(UNKNOWN) i(unknown);  <NOMAIN> }
+##Uq_System { <NOMAIN> }
+./Eltypo.ulam:9:13: ERROR: (Low Level) DEPRECATED keyword <has>.
+./Eltypo.ulam:9:22: ERROR: Name of variable <)>: Identifier must begin with a lower-case letter.
+./Eltypo.ulam:9:22: ERROR: Invalid Statement (possible missing semicolon).
+./Eltypo.ulam:4:1: ERROR: Empty/Incomplete Class Definition 'Eltypo'; Possible missing ending curly brace.
+./Eltypo.ulam:14:5: ERROR: Invalid Class Type <return>; KEYWORD should be 'element', 'quark', or 'union'.
+./Eltypo.ulam:4:9: ERROR: Invalid Type: Eltypo.
+ ERROR: No parse tree for This Class: Eltypo.
+Unrecoverable Program Parse FAILURE.
+##
+##      //uses union instead of quark:
+##
+#>Eltypo.ulam
+  ulam 1;
+use Typo;
+use System;
+element Eltypo {
+  System s;
+  Typo(1) t;
+  Int test(){
+    Eltypo el;
+    if(el has Typo(1)){
+      el.u = 1u;
+      s.print(el.u);
+      return el.u;
+    }
+    return t.sizeof;
+  }
+}
+
+#:Typo.ulam
+ulam 1;
+union Typo(Int a) {
+      Unsigned(a) u;
+      Int(a+1) i;
+ }
+
+#:System.ulam
+ulam 1;
+quark System {
+Void print(Unsigned arg) native;
+Void print(Int arg) native;
+Void print(Int(4) arg) native;
+Void print(Int(3) arg) native;
+Void print(Unary(3) arg) native;
+Void print(Bool(3) arg) native;
+Void assert(Bool b) native;
+}
+#.

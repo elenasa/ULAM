@@ -1,0 +1,80 @@
+## -*- mode:ulam -*-
+#=t3604_test_compiler_elementinheritedquark_dmvirtualfunccalls
+##
+## gen output: (times 4) requires quark vtable support
+##assert: arg is 1
+##after asserts abort: arg is 1
+##
+#!
+Exit status: 0
+Ue_Foo { Bool(1) brtn[4](true,true,true,true);  QSubBase1 m1( :< Int(3) bmem(1); >);  QSubBase2 m2( :< Int(3) bmem(2); >);  Int(32) test() {  System s;  brtn 0 [] m1 ( )func . 3 cast == = s ( brtn 0 [] )assert . brtn 1 [] m2 ( )func . 4 cast == = s ( brtn 1 [] )assert . brtn 2 [] m1 bmem . 1 cast == = s ( brtn 2 [] )assert . brtn 3 [] m2 bmem . 2 == = s ( brtn 3 [] )assert . 0 cast return } }
+Uq_QSubBase1 : QMemBase { /* empty class block */ }
+Uq_QMemBase { Int(3) bmem(0);  <NOMAIN> }
+Uq_QSubBase2 : QMemBase { :< Int(3) bmem(0); > <NOMAIN> }
+Uq_System { <NOMAIN> }
+##
+## informed by vtable-example 11/25/15
+##
+#:QMemBase.ulam
+  ulam 2;
+quark QMemBase {
+  Int(3) bmem;
+  Int func() {
+    return vfunc();
+  }
+  virtual Int vfunc() {
+    bmem = 1;
+    return 3;
+  }
+}
+
+#:QSubBase1.ulam
+  ulam 2;
+use QMemBase;
+quark QSubBase1 : QMemBase { }
+
+#:QSubBase2.ulam
+  ulam 2;
+use QMemBase;
+quark QSubBase2 : QMemBase {
+  virtual Int vfunc() {
+    bmem = 2;
+    return 4;
+  }
+}
+
+#>Foo.ulam
+  ulam 2;
+use QSubBase1;
+use QSubBase2;
+use System;
+element Foo {
+  Bool brtn[4];
+  QSubBase1 m1;
+  QSubBase2 m2;
+  Int test() {
+    System s;
+    brtn[0] = (m1.func() == 3);
+    s.assert(brtn[0]);
+    brtn[1] = (m2.func() == 4);
+    s.assert(brtn[1]);
+    brtn[2] = (m1.bmem == 1);
+    s.assert(brtn[2]);
+    brtn[3] = (m2.bmem == 2);
+    s.assert(brtn[3]);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

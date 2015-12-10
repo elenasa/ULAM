@@ -76,7 +76,8 @@ namespace MFM{
 
     virtual bool isModelParameter();
 
-    void setAutoLocal();
+    void setAutoLocalType(Token cTok);
+    ALT getAutoLocalType();
     bool isAutoLocal();
 
     void setIsSelf();
@@ -112,9 +113,11 @@ namespace MFM{
     UTI m_uti; // may seem redundant, but not; from NodeVarDecl, before m_value known.
                // base type, not array type, used here (e.g. NodeBinaryOp::calcNodeType)
     bool m_dataMember;
-    bool m_autoLocal;
+    ALT m_autoLocalType;
     bool m_isSelf;       // hidden arg symbol
     NNO m_stBlockNo;
+
+    void setAutoLocalType(ALT alt);
   };
 
 }

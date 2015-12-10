@@ -112,9 +112,14 @@ namespace MFM {
 
   EvalStatus NodeBlock::eval()
   {
+    // block stack needed for symbol lookup during eval of virtual func call on as-conditional auto
+    //return m_nodeNext->eval(); //no return value
+    m_state.pushCurrentBlock(this);
     assert(m_nodeNext);
-    return m_nodeNext->eval(); //no return value
-  }
+    EvalStatus evs = m_nodeNext->eval(); //no return value
+    m_state.popClassContext(); //restore
+    return evs;
+  } //eval
 
   void NodeBlock::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
@@ -199,11 +204,6 @@ namespace MFM {
       return EMPTYSYMBOLTABLE; //should allow no variable data members
 
     return m_ST.getMaxVariableSymbolsBitSize();
-  }
-
-  s32 NodeBlock::findUlamTypeInTable(UTI utype)
-  {
-    return m_ST.findPosOfUlamTypeInTable(utype);
   }
 
   SymbolTable * NodeBlock::getSymbolTablePtr()

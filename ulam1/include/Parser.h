@@ -350,7 +350,7 @@ namespace MFM{
 	<FUNC_PARAMS> := <FUNC_PARAM> | <FUNC_PARAM> + ',' + <FUNC_PARAMS>
 	<FUNC_PARAM>  := <TYPE> + <VAR_DECL>
      */
-    NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype);
+    NodeBlockFunctionDefinition * makeFunctionBlock(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
 
     void parseRestOfFunctionParameters(SymbolFunction * sym, NodeBlockFunctionDefinition * fblock);
 
@@ -362,7 +362,7 @@ namespace MFM{
 
 
     /** helper for parseDataMember */
-    Node * makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype);
+    Node * makeFunctionSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor * nodetype, bool isVirtual);
 
     /** helper for parseDecl and parseRestOfDecls */
     Node * makeVariableSymbol(TypeArgs& args, Token identTok, NodeTypeDescriptor *& nodetyperef);

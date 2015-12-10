@@ -4,17 +4,17 @@
 Exit status: 0
 Ue_Foo { Bool(1) b(true);  Int(32) test() {  b true = Bool(1) c;  c self ( 0 cast )check . = 0 cast return } }
 #>Foo.ulam
-ulam 1;
- element Foo {
-Bool b;
-Bool check(Int idx){
- return b;
+  ulam 1;
+element Foo {
+  Bool b;
+  Bool check(Int idx){
+    return b;
+  }
+  Int test() {
+    b = true;
+    Bool c = self.check(0);
+    return 0;
+  }
 }
- Int test() {
-b = true;
-Bool c = self.check(0);
-return 0;
- }
- }
 
 #.

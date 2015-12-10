@@ -151,6 +151,17 @@ namespace MFM {
     m_state.popClassContext(); //restore
   } //calcMaxDepthOfFunctionsForClassInstances
 
+  bool SymbolClassName::calcMaxIndexOfVirtualFunctionsForClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    classNode->calcMaxIndexOfVirtualFunctions();
+    m_state.popClassContext(); //restore
+    return (classNode->getVirtualMethodMaxIdx() != UNKNOWNSIZE);
+  } //calcMaxIndexOfVirtualFunctionsForClassInstances
+
   void SymbolClassName::checkAndLabelClassFirst()
   {
     NodeBlockClass * classNode = getClassBlockNode();

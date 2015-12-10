@@ -202,7 +202,7 @@ namespace MFM{
 
     //index of last subclass; o.w.-1
     s32 isCurrentObjectsContainingASubClass();
-    UTI findTypeOfSubClassAndBlockNo(NNO bno, s32 subcosidx);
+    UTI findTypeOfAncestorAndBlockNo(NNO bno, s32 subcosidx);
     s32 calcPosOfCurrentObjectsContainingASubClass(bool isLocal);
 
     //false means its the entire array or not an array at all
@@ -237,6 +237,10 @@ namespace MFM{
     //common helpers for safe casting
     NodeFunctionCall * buildCastingFunctionCallNode(Node * node, UTI tobeType);
 
+    // 'UsingBitVector' variations for virtual quark functions only
+    void genCodeReadIntoATmpVarUsingBitVector(File * fp, UlamValue & uvpass);
+    void genCodeWriteFromATmpVarUsingBitVector(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+
     void genCodeReadSelfIntoATmpVar(File * fp, UlamValue & uvpass);
     void genCodeWriteToSelfFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
@@ -244,14 +248,17 @@ namespace MFM{
     void genCodeWriteToAutorefFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
     void genCodeReadArrayItemIntoATmpVar(File * fp, UlamValue& uvpass);
+    void genCodeReadArrayItemIntoATmpVarUsingBitVector(File * fp, UlamValue& uvpass);
     void genCodeReadCustomArrayItemIntoATmpVar(File * fp, UlamValue & uvpass);
 
     void genCodeWriteArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
+    void genCodeWriteArrayItemFromATmpVarUsingBitVector(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
     void genCodeWriteCustomArrayItemFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);
 
-    void genModelParameterHiddenArgs(File * fp, s32 epi);
+    virtual void genModelParameterHiddenArgs(File * fp, s32 epi);
 
     void genCustomArrayMemberNameOfMethod(File * fp);
+    void genCustomArrayHiddenArgs(File * fp);
 
     void genLocalMemberNameOfMethodByUsTypedef(File * fp);
     void genCustomArrayLocalMemberNameOfMethod(File * fp);

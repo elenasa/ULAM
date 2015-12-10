@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(Token id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false)
+  SymbolFunction::SymbolFunction(Token id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_definedinaQuark(false)
   {
     setDataMember(); // by definition all function definitions are data members
   }
 
-  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs)
+  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_definedinaQuark(sref.m_definedinaQuark)
   {
     //parameters belong to functiondefinition block's ST; do not clone them again here!
     if(sref.m_functionNode)
@@ -112,32 +112,6 @@ namespace MFM {
     return "Uf_";
   }
 
-  //supports overloading functions with SymbolFunctionName;
-  // join function name with comma-delimited UTI parameters
-  const std::string SymbolFunction::getMangledNameWithUTIparameters()
-  {
-    std::ostringstream mangled;
-    mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
-
-    // use void type when no parameters
-    if(m_parameterSymbols.empty())
-      {
-	UTI avuti = Void;
-	mangled << "," << avuti;
-      }
-
-    // append UTI for each parameter
-    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
-    //        during this parse stage, the key remains consistent.
-    // many UTI -to- one key, how does this impact the scheme?
-    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
-      {
-	Symbol * sym = m_parameterSymbols[i];
-	mangled << "," << sym->getUlamTypeIdx();
-      }
-    return mangled.str();
-  } //getMangledNameWithUTIparameters
-
   //supports overloading functions with SymbolFunctionName
   const std::string SymbolFunction::getMangledNameWithTypes()
   {
@@ -172,6 +146,32 @@ namespace MFM {
       }
     return mangled.str();
   } //getMangledNameWithTypes
+
+  //supports overloading functions with SymbolFunctionName;
+  // join function name with comma-delimited UTI parameters
+  const std::string SymbolFunction::getMangledNameWithUTIparameters()
+  {
+    std::ostringstream mangled;
+    mangled << Symbol::getMangledName(); //e.g. Uf_14name, with lexNumbers
+
+    // use void type when no parameters
+    if(m_parameterSymbols.empty())
+      {
+	UTI avuti = Void;
+	mangled << "," << avuti;
+      }
+
+    // append UTI for each parameter
+    // note: though Classes (as args) may be 'incomplete' (i.e. bit size == UNKNOWN),
+    //        during this parse stage, the key remains consistent.
+    // many UTI -to- one key, how does this impact the scheme?
+    for(u32 i = 0; i < m_parameterSymbols.size(); i++)
+      {
+	Symbol * sym = m_parameterSymbols[i];
+	mangled << "," << sym->getUlamTypeIdx();
+      }
+    return mangled.str();
+  } //getMangledNameWithUTIparameters
 
   bool SymbolFunction::checkParameterTypes()
   {
@@ -271,6 +271,38 @@ namespace MFM {
     return (func->isNative() ? 1 : 0);
   } //isNativeFunctionDeclaration
 
+  bool SymbolFunction::isVirtualFunction()
+  {
+    return m_isVirtual;
+  }
+
+  void SymbolFunction::setVirtualFunction()
+  {
+    m_isVirtual = true;
+  }
+
+  u32 SymbolFunction::getVirtualMethodIdx()
+  {
+    assert(isVirtualFunction());
+    return m_virtualIdx;
+  }
+
+  void SymbolFunction::setVirtualMethodIdx(u32 idx)
+  {
+    assert(isVirtualFunction());
+    m_virtualIdx = idx;
+  }
+
+  bool SymbolFunction::isDefinedInAQuark()
+  {
+    return m_definedinaQuark;
+  }
+
+  void SymbolFunction::setDefinedInAQuark()
+  {
+    m_definedinaQuark = true;
+  }
+
   void SymbolFunction::generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
@@ -287,8 +319,9 @@ namespace MFM {
     m_state.indent(fp);
     if(declOnly)
       {
-	if(classtype == UC_QUARK)
-	  fp->write("static ");   //element functions are not static
+	//only ulam virtual functions are c++ static functions
+	if(isVirtualFunction())
+	  fp->write("static ");
       }
     else
       {
@@ -318,7 +351,7 @@ namespace MFM {
     fp->write(getMangledName().c_str());
     fp->write("(");
 
-    fp->write("UlamContext<EC>& uc, "); //first arg is unmangled context
+    fp->write("const UlamContext<EC>& uc, "); //first arg is unmangled context
 
     //the hidden arg is "atom" (was "self"), a T& (atom)
     fp->write("T& "); //a reference
@@ -353,21 +386,68 @@ namespace MFM {
 	  fp->write("; //native\n\n");
 	else
 	  {
-	    if(classtype == UC_ELEMENT)
-	      fp->write(" const"); //element functions are const, not static
-
-	    fp->write(";\n\n");
+	    if(isVirtualFunction())
+	      fp->write("; //virtual\n\n");
+	    else
+	      {
+		fp->write(" const"); //quark and element functions are const, not static
+		fp->write(";\n\n");
+	      }
 	  }
       }
     else
       {
-	if(classtype == UC_ELEMENT)
-	  fp->write(" const"); //element functions are const, not static
+	if(!isVirtualFunction())
+	  fp->write(" const"); //quark and element functions are const, not static
 
 	UlamValue uvpass;
 	func->genCode(fp, uvpass);
       }
+
+    if(declOnly && !func->isNative() && isVirtualFunction())
+      generateFunctionDeclarationVirtualTypedef(fp, declOnly, classtype);
   } //generateFunctionDeclaration
+
+  void SymbolFunction::generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    NodeBlockFunctionDefinition * func = getFunctionNode();
+    assert(func); //how would a function symbol be without a body?
+
+    //up to programmer to define this function!!!
+    assert(declOnly && !func->isNative());
+
+    UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
+
+    m_state.indent(fp);
+    fp->write("//and its contextual type info for virtual table entries:\n");
+
+    m_state.indent(fp);
+    fp->write("typedef ");
+    fp->write(sut->getImmediateStorageTypeAsString().c_str()); //return type for C++
+    fp->write(" (");
+
+    fp->write("* "); //ptr to
+    fp->write(getMangledNameWithTypes().c_str());
+    fp->write(") (");
+
+    //arg types only
+    fp->write("const UlamContext<EC>&, "); //first arg is unmangled context
+    fp->write("T& "); //the hidden arg is "atom" (was "self"), a T& (atom)
+
+    u32 numparams = getNumberOfParameters();
+    for(u32 i = 0; i < numparams; i++)
+      {
+	fp->write(", ");
+
+	Symbol * asym = getParameterSymbolPtr(i);
+	assert(asym);
+	UTI auti = asym->getUlamTypeIdx();
+	UlamType * aut = m_state.getUlamTypeByIndex(auti);
+	fp->write(aut->getImmediateStorageTypeAsString().c_str()); //for C++
+      }
+    fp->write(")");
+    fp->write(";\n");
+  } //generateFunctionDeclarationVirtualTypedef
 
   void SymbolFunction::setStructuredComment()
   {

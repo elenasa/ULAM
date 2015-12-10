@@ -3,6 +3,7 @@
 #include "ClassContext.h"
 #include "CompilerState.h"
 #include "NodeBlockClass.h"
+#include "SymbolFunctionName.h"
 #include "SymbolTable.h"
 #include "SymbolTypedef.h"
 #include "SymbolVariable.h"
@@ -45,16 +46,17 @@ namespace MFM {
 
   static const char * HIDDEN_ARG_NAME = "Uv_4atom"; //was Uv_4self
   static const char * HIDDEN_CONTEXT_ARG_NAME = "uc"; //unmangled
+  static const char * AUTO_HIDDEN_CONTEXT_ARG_NAME = "_ucAuto"; //unmangled, out-of-band
   static const char * CUSTOMARRAY_GET_FUNC_NAME = "aref"; //unmangled
   static const char * CUSTOMARRAY_SET_FUNC_NAME = "aset"; //unmangled
   static const char * CUSTOMARRAY_GET_MANGLEDNAME = "Uf_4aref";
   static const char * CUSTOMARRAY_SET_MANGLEDNAME = "Uf_4aset";
 
   static const char * IS_MANGLED_FUNC_NAME = "internalCMethodImplementingIs"; //Uf_2is
-  static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::IsMethod"; //Uf_2is
+  static const char * IS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::IsMethod"; //Uf_2is
 
   static const char * HAS_MANGLED_FUNC_NAME = "PositionOfDataMemberType"; //Uf_3has
-  static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamElement<EC>::PositionOfDataMember";
+  static const char * HAS_MANGLED_FUNC_NAME_FOR_ATOM = "UlamClass<EC>::PositionOfDataMember";
 
   static const char * BUILD_DEFAULT_ATOM_FUNCNAME = "BuildDefaultAtom";
   static const char * BUILD_DEFAULT_QUARK_FUNCNAME = "getDefaultQuark";
@@ -718,7 +720,7 @@ namespace MFM {
       return utArg;
 
     //for typedef array, the scalar is the primitive type
-    // maintained in the symbol!! can't get to it from utarg. XXX
+    // maintained in the symbol!! can't get to it from utarg.
     ULAMTYPE bUT = ut->getUlamTypeEnum();
 
     UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
@@ -1076,6 +1078,8 @@ namespace MFM {
     return Nav; //even for non-classes
   } //isClassASubclass
 
+  //return true if the second arg is a superclass of the first arg.
+  // i.e. cuti is a subclass of superp. recurses the family tree.
   bool CompilerState::isClassASuperclassOf(UTI cuti, UTI superp)
   {
     bool rtnb = false;
@@ -1093,7 +1097,7 @@ namespace MFM {
 	  }
 	else
 	  prevuti = Nav; //avoid inf loop
-      }
+      } //end while
     return rtnb; //even for non-classes
   } //isClassASuperclassOf
 
@@ -1427,6 +1431,39 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return rtnb;
   } //isFuncIdInAClassScope
 
+  bool CompilerState::findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor)
+  {
+    bool rtnb = false;
+    UTI superuti = isClassASubclass(cuti);
+    while(!rtnb)
+      {
+	if(superuti != Nav)
+	  {
+	    SymbolClass * supercsym = NULL;
+	    assert(alreadyDefinedSymbolClass(superuti, supercsym));
+	    NodeBlockClass * cblock = supercsym->getClassBlockNode();
+	    assert(cblock);
+	    pushClassContextUsingMemberClassBlock(cblock);
+
+	    Symbol * fnSym = NULL;
+	    if(cblock->isFuncIdInScope(fid, fnSym)) //dont check ancestor
+	      rtnb = (((SymbolFunctionName *) fnSym)->findMatchingFunction(typeVec, fsymref) == 1); //exact
+	    if(rtnb)
+	      foundInAncestor = superuti;
+	    else
+	      superuti = isClassASubclass(superuti);
+
+	    popClassContext(); //don't forget!!
+	  }
+	else
+	  {
+	    foundInAncestor = Nav;
+	    break;
+	  }
+      } //while
+    return rtnb;
+  } //findMatchingFunctionInAncestor
+
   //symbol ownership goes to the current block (end of vector)
   void CompilerState::addSymbolToCurrentScope(Symbol * symptr)
   {
@@ -1640,6 +1677,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   const char * CompilerState::getHiddenContextArgName()
   {
     return  HIDDEN_CONTEXT_ARG_NAME;
+  }
+
+  const char * CompilerState::getAutoHiddenContextArgName()
+  {
+    return  AUTO_HIDDEN_CONTEXT_ARG_NAME;
   }
 
   u32 CompilerState::getCustomArrayGetFunctionNameId()
@@ -2193,9 +2235,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     return labelname.str();
   } //getLabelNumAsString
 
-  void CompilerState::saveIdentTokenForConditionalAs(Token iTok)
+  void CompilerState::saveIdentTokenForConditionalAs(Token iTok, Token cTok)
   {
     m_identTokenForConditionalAs = iTok;
+    m_parsingConditionalToken = cTok;
     m_parsingConditionalAs = true; //cleared manually
   } //saveIdentTokenForConditionalAs
 

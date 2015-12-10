@@ -117,6 +117,7 @@ namespace MFM{
 
     bool m_parsingConditionalAs;          // used for Conditional-As/Has parsing
     Token m_identTokenForConditionalAs;   // used for Conditional-As/Has parsing
+    Token m_parsingConditionalToken;       // used for Conditional-As/Has parsing
     bool m_genCodingConditionalHas; // used for Conditional-Has code gen
 
     CallStack m_funcCallStack;    //local variables and arguments
@@ -141,10 +142,13 @@ namespace MFM{
     UlamValue m_currentObjPtr; //used in eval of members: data or funcs; updated at each '.'
     UlamValue m_currentSelfPtr; //used in eval of func calls: updated after args,
                                 // becomes currentObjPtr for args
-    UlamValue m_currentAutoObjPtr; //used in eval, lhs of conditional as/has:
+    UlamValue m_currentAutoObjPtr; //used in eval, uses rhs type of conditional as/has:
+    UTI m_currentAutoStorageType; //used in eval, uses lhs type of conditional as/has:
 
     std::vector<Symbol *> m_currentObjSymbolsForCodeGen;  //used in code generation;
     Symbol * m_currentSelfSymbolForCodeGen; //used in code gen; parallels m_currentSelf
+    bool m_gencodingAVirtualFunctionDefinedInAQuark; //uses less efficient read/write without POS template arg
+
     u32 m_currentIndentLevel; //used in code generation: func def, blocks, control body
     s32 m_nextTmpVarNumber; //used in code gen when a "slot index" is not available
     NNO m_nextNodeNumber; //used to identify blocks in clone classes with unknown subtrees
@@ -227,6 +231,7 @@ namespace MFM{
     bool isFuncIdInClassScope(u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInClassScopeNNO(NNO cnno, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
     bool isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin);
+    bool findMatchingFunctionInAncestor(UTI cuti, u32 fid, std::vector<UTI> typeVec, SymbolFunction*& fsymref, UTI& foundInAncestor);
 
     void addSymbolToCurrentScope(Symbol * symptr); //ownership goes to the block
     void addSymbolToCurrentMemberClassScope(Symbol * symptr); //making stuff up for member
@@ -270,6 +275,7 @@ namespace MFM{
     void indent(File * fp);
     const char * getHiddenArgName();
     const char * getHiddenContextArgName();
+    const char * getAutoHiddenContextArgName();
     u32 getCustomArrayGetFunctionNameId();
     u32 getCustomArraySetFunctionNameId();
     const char * getCustomArrayGetMangledFunctionName();
@@ -338,8 +344,8 @@ namespace MFM{
     const std::string getTmpVarAsString(UTI uti, s32 num, STORAGE stg = TMPREGISTER);
     const std::string getLabelNumAsString(s32 num);
 
-    /** for conditional as-magic */
-    void saveIdentTokenForConditionalAs(Token iTok);
+    /** for conditional h/as-magic */
+    void saveIdentTokenForConditionalAs(Token iTok, Token cTok);
 
     /** class or model parameter structured comment for MFM */
     void saveStructuredCommentToken(Token scTok);

@@ -3,13 +3,13 @@
 
 namespace MFM {
 
-  SymbolVariableStack::SymbolVariableStack(Token id, UTI utype, PACKFIT packed, s32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_stackFrameSlotIndex(slot)
+  SymbolVariableStack::SymbolVariableStack(Token id, UTI utype, PACKFIT packed, s32 slot, CompilerState& state) : SymbolVariable(id, utype, packed, state), m_stackFrameSlotIndex(slot), m_autoStgTypeForEval(Nav)
   {
     //if(getId() == m_state.m_pool.getIndexForDataString("self"))
     // setIsSelf();
   }
 
-  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref) : SymbolVariable(sref), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex) {}
+  SymbolVariableStack::SymbolVariableStack(const SymbolVariableStack& sref) : SymbolVariable(sref), m_stackFrameSlotIndex(sref.m_stackFrameSlotIndex), m_autoStgTypeForEval(sref.m_autoStgTypeForEval) {}
 
   SymbolVariableStack::~SymbolVariableStack()
   {}
@@ -57,5 +57,17 @@ namespace MFM {
     assert(isAutoLocal());
     m_autoPtrForEval = ptr;
   }
+
+  void SymbolVariableStack::setAutoStorageTypeForEval(UTI uti)
+  {
+    assert(isAutoLocal());
+    m_autoStgTypeForEval = uti;
+  }
+
+  UTI SymbolVariableStack::getAutoStorageTypeForEval()
+  {
+    return m_autoStgTypeForEval;
+  }
+
 
 } //end MFM

@@ -81,6 +81,15 @@ namespace MFM{
 
     u32 isNativeFunctionDeclaration();
 
+    bool isVirtualFunction();
+    void setVirtualFunction();
+
+    u32 getVirtualMethodIdx();
+    void setVirtualMethodIdx(u32 idx);
+
+    bool isDefinedInAQuark();
+    void setDefinedInAQuark();
+
     void generateFunctionDeclaration(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     virtual void setStructuredComment();
@@ -92,6 +101,11 @@ namespace MFM{
     std::vector<Symbol *> m_parameterSymbols;  // variable or function can be an args
     NodeBlockFunctionDefinition * m_functionNode;
     bool m_hasVariableArgs;
+    bool m_isVirtual; //overloaded funcs may have different virtual status
+    u32 m_virtualIdx;
+    bool m_definedinaQuark;
+    void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
   };
 
 }

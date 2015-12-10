@@ -70,6 +70,7 @@ namespace MFM{
     virtual void checkCustomArraysOfClassInstances();
     virtual void checkDuplicateFunctionsForClassInstances();
     virtual void calcMaxDepthOfFunctionsForClassInstances();
+    virtual bool calcMaxIndexOfVirtualFunctionsForClassInstances();
 
     virtual void checkAndLabelClassInstances();
     void checkAndLabelClassFirst();

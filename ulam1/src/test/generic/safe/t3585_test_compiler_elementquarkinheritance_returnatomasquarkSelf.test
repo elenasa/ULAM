@@ -26,6 +26,7 @@ element Foo : Soo {
   Unsigned(3) dus = 6u;
   Int test() {
     System s;
+
     Coo c = func();
     cus = c.us;
     s.print(c.us);
@@ -35,6 +36,7 @@ element Foo : Soo {
     s.print(d.us);
 
     s.print(c.us + d.us); //6
+
     s.print(cus + dus); //4
     return (c.us + d.us);
   }
@@ -54,10 +56,9 @@ quark Coo {
   Bool(3) cb = true;
   Self func()
   {
-
     Atom f = atom; //was self
-    //Foo f = (Foo) self;
-    if(f as Foo) //for eval
+    ////Foo f = (Foo) self;
+    //if(f as Foo) //for eval
     {
       if(f as Coo)
       {

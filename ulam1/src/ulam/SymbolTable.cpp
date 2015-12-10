@@ -267,7 +267,7 @@ namespace MFM {
   }
 #endif
 
-  s32 SymbolTable::findPosOfUlamTypeInTable(UTI utype)
+  s32 SymbolTable::findPosOfUlamTypeInTable(UTI utype, UTI& insidecuti)
   {
     s32 posfound = -1;
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -280,6 +280,7 @@ namespace MFM {
 	    if(UlamType::compare(suti, utype, m_state) == UTIC_SAME)
 	      {
 		posfound = ((SymbolVariable *) sym)->getPosOffset();
+		insidecuti = suti;
 		break;
 	      }
 	    else
@@ -289,6 +290,7 @@ namespace MFM {
 		if((superuti != Nav) && UlamType::compare(superuti, utype, m_state) == UTIC_SAME)
 		  {
 		    posfound = ((SymbolVariable *) sym)->getPosOffset(); //starts at beginning
+		    insidecuti = suti;
 		    break;
 		  }
 	      }
@@ -365,50 +367,6 @@ namespace MFM {
 	it++;
       }
   } //genCodeBuiltInFunctionHasOverTableOfVariableDataMember
-
-#if 0
-  void SymbolTable::genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember(File * fp)
-  {
-    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
-    while(it != m_idToSymbolPtr.end())
-      {
-	Symbol * sym = it->second;
-	if(sym->isDataMember() && variableSymbolWithCountableSize(sym))
-	  {
-	    UTI suti = sym->getUlamTypeIdx();
-	    UlamType * sut = m_state.getUlamTypeByIndex(suti);
-	    if(sut->getUlamClass() == UC_QUARK)
-	      {
-		m_state.indent(fp);
-		fp->write("if(!strcmp(namearg,\"");
-		fp->write(sut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-		fp->write("\") && posarg == ");
-		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
-		fp->write(") return (");
-		fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
-		fp->write("); //pos offset\n");
-
-		UTI superuti = m_state.isClassASubclass(suti);
-		while(superuti != Nav)
-		  {
-		    UlamType * superut = m_state.getUlamTypeByIndex(superuti);
-		    m_state.indent(fp);
-		    fp->write("if(!strcmp(namearg,\"");
-		    fp->write(superut->getUlamTypeMangledName().c_str()); //mangled, including class args!
-		    fp->write("\") && posarg == POS");
-		    //fp->write_decimal(((SymbolVariable *) sym)->getPosOffset());
-		    fp->write(") return (");
-		    fp->write_decimal(((SymbolVariable *) sym)->getPosOffset()); //same offset starts at 0
-		    fp->write("); //inherited pos offset\n");
-
-		    superuti = m_state.isClassASubclass(superuti); //any more
-		  } //while
-	      }
-	  }
-	it++;
-      }
-  } //genCodeBuiltInFunctionHasPosOverTableOfVariableDataMember
-#endif
 
   void SymbolTable::genCodeBuiltInFunctionBuildDefaultsOverTableOfVariableDataMember(File * fp, UTI cuti)
   {
@@ -716,6 +674,34 @@ namespace MFM {
       }
     return;
   } //calcMaxDepthForTableOfFunctions
+
+  void SymbolTable::calcMaxIndexForVirtualTableOfFunctions(s32& maxidx)
+  {
+    UTI cuti = m_state.getCompileThisIdx();
+    UTI superuti = m_state.isClassASubclass(cuti);
+
+    if(m_idToSymbolPtr.empty() && superuti == Nav)
+      {
+	assert(maxidx <= 0);
+    	maxidx = 0; //use zero when empty
+      }
+
+    //initialize this classes VTable to super classes' VTable, or empty
+    // some entries may be modified; or table may expand
+    SymbolClass * csym = NULL;
+    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    csym->initVTable(maxidx);
+
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isFunction());
+	((SymbolFunctionName *) sym)->calcMaxIndexOfVirtualFunctions(maxidx);
+	it++;
+      }
+    return;
+  } //calcMaxIndexForVirtualTableOfFunctions
 
   //called by current Class block on its function ST
   bool SymbolTable::checkCustomArrayTypeFuncs()
@@ -1116,6 +1102,26 @@ namespace MFM {
 	it++;
       }
   } //calcMaxDepthOfFunctionsForTableOfClasses
+
+  bool SymbolTable::calcMaxIndexOfVirtualFunctionsForTableOfClasses()
+  {
+    bool aok = true;
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    aok &= ((SymbolClassName *) sym)->calcMaxIndexOfVirtualFunctionsForClassInstances();
+	  }
+	it++;
+      }
+    return aok;
+  } //calcMaxIndexOfVirtualFunctionsForTableOfClasses
 
   bool SymbolTable::labelTableOfClasses()
   {

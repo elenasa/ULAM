@@ -585,7 +585,13 @@ namespace MFM {
 	    m_state.indent(fp);
 	    fp->write("rtn = "); //MFM::Ui_Ut_102323Int
 	    fp->write(sut->getUlamTypeMangledName().c_str());
-	    fp->write("<EC>::THE_INSTANCE.Uf_4test(uc, atom);\n");
+
+	    // pass uc with effective self setup
+	    fp->write("<EC>::THE_INSTANCE.Uf_4test(");
+	    fp->write("UlamContext<EC>(uc, &");
+	    fp->write(sut->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>::THE_INSTANCE)");
+	    fp->write(", atom);\n");
 
 	    m_state.indent(fp);
 	    fp->write("//std::cerr << rtn.read() << std::endl;\n"); //useful to return result of test?
@@ -793,6 +799,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("uc.SetTile(tile);\n");
 
+    //eventually ends up at SC::generateTestInstance()
     m_state.m_programDefST.generateTestInstancesForTableOfClasses(fp);
 
     m_state.m_currentIndentLevel--;
@@ -872,5 +879,71 @@ namespace MFM {
     assert(classNode);
     classNode->addClassMemberDescriptionsToInfoMap(classmembers);
   } //addClassMemberDesciptionsMapEntry
+
+  void SymbolClass::initVTable(s32 initialmax)
+  {
+    if(initialmax == UNKNOWNSIZE) return; //nothing to initialize
+    assert(initialmax >= 0);
+    if((u32) initialmax == m_vtable.size()) return; //not first time here
+
+    if(getSuperClass() != Nav)
+      {
+	SymbolClass * csym = NULL;
+	assert(m_state.alreadyDefinedSymbolClass(getSuperClass(), csym));
+	//copy superclass' VTable
+	for(s32 i = 0; i < initialmax; i++)
+	  {
+	    struct VTEntry ve = csym->getVTableEntry(i);
+	    m_vtable.push_back(ve);
+	  }
+      }
+    //else empty.
+    assert(m_vtable.size() == (u32) initialmax);
+  } //initVTable
+
+  void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti)
+  {
+    if(idx < m_vtable.size())
+      {
+	m_vtable[idx].m_funcPtr = fsym;
+	m_vtable[idx].m_ofClassUTI = kinuti;
+      }
+    else
+      {
+	struct VTEntry ve;
+	ve.m_funcPtr = fsym;
+	ve.m_ofClassUTI = kinuti;
+	m_vtable.push_back(ve);
+      }
+  }//updateVTable
+
+  VT& SymbolClass::getVTableRef()
+  {
+    return m_vtable;
+  }
+
+  UTI SymbolClass::getClassForVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_ofClassUTI;
+  }
+
+  std::string SymbolClass::getMangledFunctionNameForVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_funcPtr->getMangledName(); //need to cast overloaded-ness
+  }
+
+  std::string SymbolClass::getMangledFunctionNameWithTypesForVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_funcPtr->getMangledNameWithTypes();
+  }
+
+  struct VTEntry SymbolClass::getVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx];
+  }
 
 } //end MFM

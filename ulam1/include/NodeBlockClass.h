@@ -106,6 +106,8 @@ namespace MFM{
 
     void calcMaxDepthOfFunctions();
 
+    void calcMaxIndexOfVirtualFunctions();
+
     virtual EvalStatus eval();
 
     //checks both function and variable symbol names
@@ -119,7 +121,8 @@ namespace MFM{
 
     virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
-    virtual s32 findUlamTypeInTable(UTI utype);
+    //virtual s32 findUlamTypeInTable(UTI utype);
+    s32 findUlamTypeInTable(UTI utype, UTI& insidecuti);
 
     bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 
@@ -132,6 +135,10 @@ namespace MFM{
     void updatePrevBlockPtrOfFuncSymbolsInTable();
 
     void packBitsForVariableDataMembers();
+
+    s32 getVirtualMethodMaxIdx();
+
+    void setVirtualMethodMaxIdx(s32 maxidx);
 
     virtual u32 countNativeFuncDecls();
 
@@ -153,6 +160,7 @@ namespace MFM{
 
   protected:
     SymbolTable m_functionST;
+    s32 m_virtualmethodMaxIdx;
 
   private:
 
@@ -176,6 +184,8 @@ namespace MFM{
     void genCodeBuiltInFunctionBuildDefaultAtom(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
     void genCodeBuiltInFunctionBuildingDefaultDataMembers(File * fp);
     void genCodeBuiltInFunctionBuildDefaultQuark(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
+
+    void genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
     void generateInternalIsMethodForElement(File * fp, bool declOnly);
     void generateInternalTypeAccessorsForElement(File * fp, bool declOnly);

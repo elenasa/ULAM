@@ -7,13 +7,13 @@
 
 namespace MFM {
 
-  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_isEmpty(false)
+  NodeBlockClass::NodeBlockClass(NodeBlock * prevBlockNode, CompilerState & state, NodeStatements * s) : NodeBlock(prevBlockNode, state, s), m_functionST(state), m_virtualmethodMaxIdx(UNKNOWNSIZE), m_isEmpty(false)
   {
     m_nodeParameterList = new NodeList(state);
     assert(m_nodeParameterList);
   }
 
-  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
+  NodeBlockClass::NodeBlockClass(const NodeBlockClass& ref) : NodeBlock(ref), m_functionST(ref.m_functionST) /* deep copy */, m_virtualmethodMaxIdx(ref.m_virtualmethodMaxIdx), m_isEmpty(ref.m_isEmpty), m_nodeParameterList(NULL)
   {
     setNodeType(m_state.getCompileThisIdx());
     m_nodeParameterList = (NodeList *) ref.m_nodeParameterList->instantiate(); //instances don't need this; its got symbols
@@ -361,11 +361,54 @@ namespace MFM {
       m_functionST.checkTableOfFunctions(); //returns prob counts, outputs errs
   }
 
-  void NodeBlockClass::calcMaxDepthOfFunctions()
+    void NodeBlockClass::calcMaxDepthOfFunctions()
   {
     // for all the function names, calculate their max depth
     if(!isEmpty())
       m_functionST.calcMaxDepthForTableOfFunctions(); //returns prob counts, outputs errs
+  }
+
+  void NodeBlockClass::calcMaxIndexOfVirtualFunctions()
+  {
+    UTI nuti = getNodeType();
+    UTI superuti = m_state.isClassASubclass(nuti);
+    s32 maxidx = getVirtualMethodMaxIdx();
+
+    if(maxidx != UNKNOWNSIZE)
+      return; //short-circuit, re-called if any subclass is waiting on a super
+
+    if(superuti != Nav)
+      {
+	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
+	assert(superblock);
+	maxidx = superblock->getVirtualMethodMaxIdx();
+	if(maxidx < 0)
+	  {
+	    std::ostringstream msg;
+	    msg << "Subclass '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << "' inherits from '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+	    msg << "', a class who max index for virtual functions is still unknown";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    //m_state.setGoAgain();
+	    return;
+	  }
+      }
+
+    // for all the virtual function names, calculate their index in the VM Table
+    m_functionST.calcMaxIndexForVirtualTableOfFunctions(maxidx);
+    setVirtualMethodMaxIdx(maxidx);
+  } //calcMaxIndexOfVirtualFunctions
+
+  s32 NodeBlockClass::getVirtualMethodMaxIdx()
+  {
+    return m_virtualmethodMaxIdx;
+  }
+
+  void NodeBlockClass::setVirtualMethodMaxIdx(s32 maxidx)
+  {
+    m_virtualmethodMaxIdx = maxidx;
   }
 
   bool NodeBlockClass::hasCustomArray()
@@ -476,7 +519,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN);
     }
 #endif
-
     evalNodeProlog(0); //new current frame pointer for nodeeval stack
 
     EvalStatus evs = ERROR; //init
@@ -584,24 +626,27 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     return (superbs > mybs ? superbs : mybs); //return max
   } //getMaxBitSizeOfVariableSymbolsInTable
 
-  s32 NodeBlockClass::findUlamTypeInTable(UTI utype)
+  s32 NodeBlockClass::findUlamTypeInTable(UTI utype, UTI& insidecuti)
   {
-    UTI superuti = m_state.isClassASubclass(getNodeType());
-    if(superuti != Nav)
+    s32 rtnpos = m_ST.findPosOfUlamTypeInTable(utype, insidecuti);
+    if(rtnpos < 0)
       {
-	//check superclass for a match too
-	if(utype == superuti)
-	  return 0; //ancestors always at the start
-
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superClassBlock);
-	m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
-	s32 superpos = superClassBlock->findUlamTypeInTable(utype);
-	m_state.popClassContext(); //restore
-	if(superpos >= 0)
-	  return superpos; //short-circuit
+	//check superclass for dm match, next:
+	UTI superuti = m_state.isClassASubclass(getNodeType());
+	if(superuti != Nav)
+	  {
+	    // quarks can't contain themselves
+	    if(utype != superuti)
+	      {
+		NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
+		assert(superClassBlock);
+		m_state.pushClassContext(superuti, superClassBlock, superClassBlock, false, NULL);
+		rtnpos = superClassBlock->findUlamTypeInTable(utype, insidecuti);
+		m_state.popClassContext(); //restore
+	      }
+	  }
       }
-    return m_ST.findPosOfUlamTypeInTable(utype);
+    return rtnpos;  //also return DM (sub) class type where utype was found
   } //findUlamTypeInTable
 
   bool NodeBlockClass::isFuncIdInScope(u32 id, Symbol * & symptrref)
@@ -657,7 +702,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findTestFunctionNode()
   {
-    Symbol * fnSym;
+    Symbol * fnSym = NULL;
     NodeBlockFunctionDefinition * func = NULL;
     u32 testid = m_state.m_pool.getIndexForDataString("test");
     if(isFuncIdInScope(testid, fnSym))
@@ -665,17 +710,15 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	SymbolFunction * funcSymbol = NULL;
 	std::vector<UTI> voidVector;
 	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol) == 1)
-	  {
-	    func = funcSymbol->getFunctionNode();
-	  }
+	  func = funcSymbol->getFunctionNode();
       }
     return func;
-  } //findTestFunctionNode()
+  } //findTestFunctionNode
 
   //don't set nextNode since it'll get deleted with program.
   NodeBlockFunctionDefinition * NodeBlockClass::findToIntFunctionNode()
   {
-    Symbol * fnSym;
+    Symbol * fnSym = NULL;
     NodeBlockFunctionDefinition * func = NULL;
     u32 tointid = m_state.m_pool.getIndexForDataString("toInt");
     if(isFuncIdInScope(tointid, fnSym))
@@ -683,12 +726,10 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	SymbolFunction * funcSymbol = NULL;
 	std::vector<UTI> voidVector;
 	if(((SymbolFunctionName *) fnSym)->findMatchingFunction(voidVector, funcSymbol) == 1)
-	  {
-	    func = funcSymbol->getFunctionNode();
-	  }
+	  func = funcSymbol->getFunctionNode();
       }
     return func;
-  } //findToIntFunctionNode()
+  } //findToIntFunctionNode
 
   void NodeBlockClass::packBitsForVariableDataMembers()
   {
@@ -700,7 +741,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superblock);
 	UTI superUTI = superblock->getNodeType();
-	offset += m_state.getTotalBitSize(superUTI);
+	u32 superoffset = m_state.getTotalBitSize(superUTI);
+	assert(superoffset >= 0);
+	offset += superoffset;
       }
 
     //m_ST.packBitsForTableOfVariableDataMembers(); //ST order not as declared
@@ -771,6 +814,18 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	fp->write(cut->getUlamTypeMangledName().c_str());
 	fp->write("<EC>::THE_INSTANCE;\n\n");
       }
+    else
+      {
+	//also, for QUARKS now..
+	fp->write("\n");
+	m_state.indent(fp);
+	fp->write("template<class EC, u32 POS>\n");
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS> ");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS>::THE_INSTANCE;\n\n");
+      }
 
     //output any externs, outside of class decl
     genCodeExtern(fp, declOnly);
@@ -801,7 +856,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("struct ");
     fp->write(cut->getUlamTypeMangledName().c_str());
-    fp->write(" : public UlamClass");  //was tbd inheritance
+    fp->write(" : public UlamQuark<EC>");
 
     fp->write("\n");
 
@@ -828,7 +883,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     fp->write("\n");
 
     m_state.indent(fp);
-    fp->write("typedef AtomicParameterType <EC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n");
+    fp->write("typedef AtomicParameterType <EC, VD::BITS, QUARK_SIZE, POS> Up_Us; //entire quark\n\n");
+
+    //default constructor/destructor; initializes UlamElement with MFM__UUID_FOR
+    m_state.indent(fp);
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();\n");
+
+    m_state.indent(fp);
+    fp->write("~");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write("();\n\n");
+
+    m_state.indent(fp);
+    fp->write("static ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    fp->write(" THE_INSTANCE;\n");
 
     fp->write("\n");
 
@@ -948,6 +1018,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     m_state.m_currentIndentLevel = 0;
 
+    //don't include own header file, since .tcc is included in the .h
     //generate include statements for all the other classes that have appeared
     m_state.m_programDefST.generateIncludesForTableOfClasses(fp);
     fp->write("\n");
@@ -1008,6 +1079,41 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
 	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
       }
+    else
+      {
+	//default constructor for quark
+	m_state.indent(fp);
+	fp->write("template<class EC, u32 POS>\n");
+
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS>");
+	fp->write("::");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+
+	std::string namestr = cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureName(&m_state);
+	std::string namestrlong = removePunct(cut->getUlamTypeMangledName());
+
+	fp->write("() : UlamQuark<EC>(MFM_UUID_FOR(\"");
+	fp->write(namestrlong.c_str());
+	fp->write("\", 0))\n");
+
+	m_state.indent(fp);
+	fp->write("{ }\n\n");
+
+	//default destructor
+	m_state.indent(fp);
+	fp->write("template<class EC, u32 POS>\n");
+
+	m_state.indent(fp);
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("<EC, POS>");
+	fp->write("::~");
+	fp->write(cut->getUlamTypeMangledName().c_str());
+	fp->write("(){}\n\n");
+
+	assert(m_state.getCompileThisId() == cut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId());
+      }
 
     generateCodeForFunctions(fp, false, classtype);
 
@@ -1031,6 +1137,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     generateUlamClassGetMangledName(fp, declOnly);
 
     genCodeBuiltInFunctionBuildDefaultAtom(fp, declOnly, classtype);
+
+    genCodeBuiltInVirtualTable(fp, declOnly, classtype);
 
     // 'has' is for both class types
     genCodeBuiltInFunctionHas(fp, declOnly, classtype);
@@ -1275,9 +1383,9 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("static u32 ");
+	fp->write("virtual u32 ");
 	fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-	fp->write("( );\n\n");
+	fp->write("( ) const;\n\n");
 	return;
       }
 
@@ -1293,7 +1401,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     fp->write("::");
     fp->write(m_state.getBuildDefaultAtomFunctionName(cuti));
-    fp->write("( )\n");
+    fp->write("( ) const\n");
     m_state.indent(fp);
     fp->write("{\n");
 
@@ -1319,6 +1427,159 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     m_state.indent(fp);
     fp->write("} //getDefaultQuark\n\n");
   } //genCodeBuiltInFunctionBuildDefaultQuark
+
+  void NodeBlockClass::genCodeBuiltInVirtualTable(File * fp, bool declOnly, ULAMCLASSTYPE classtype)
+  {
+    //VTable applies to both quarks and elements
+    UTI cuti = m_state.getCompileThisIdx();
+    UlamType * cut = m_state.getUlamTypeByIndex(cuti);
+
+    SymbolClass * csym = NULL;
+    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+
+    s32 maxidx = getVirtualMethodMaxIdx();
+    assert(maxidx >= 0);
+
+    if(maxidx == 0)
+      return;
+
+    if(declOnly)
+      {
+#if 0
+	//enum for method indexes
+	m_state.indent(fp);
+	fp->write("enum VmethodNumbers {\n");
+	m_state.m_currentIndentLevel++;
+	for(s32 i = 0; i < maxidx; i++)
+	  {
+	    m_state.indent(fp);
+	    fp->write("MN_METHOD_IDX_");
+	    fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
+	    if(i == 0)
+	      fp->write(" = 0");
+	    fp->write(",\n");
+	  }
+	m_state.indent(fp);
+	fp->write("MN_MAX_METHOD_IDX\n");
+	m_state.m_currentIndentLevel--;
+	m_state.indent(fp);
+	fp->write("};\n\n");
+#endif
+
+	m_state.indent(fp);
+	fp->write("static ");
+	fp->write("VfuncPtr m_vtable[");
+	fp->write_decimal_unsigned(maxidx);
+	fp->write("];\n");
+
+	//VTable accessor method
+	m_state.indent(fp);
+	fp->write("virtual VfuncPtr getVTableEntry(u32 idx) const;\n\n");
+	return;
+      } //done w h-file
+
+    //The VTABLE Definition:
+    m_state.indent(fp);
+    if(classtype == UC_ELEMENT)
+      fp->write("template<class EC>\n");
+    else if(classtype == UC_QUARK)
+      fp->write("template<class EC, u32 POS>\n");
+    else
+      assert(0);
+
+    m_state.indent(fp);
+    fp->write("VfuncPtr ");
+
+    //include the mangled class::
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    if(classtype == UC_ELEMENT)
+      fp->write("<EC>::");
+    else if(classtype == UC_QUARK)
+      fp->write("<EC, POS>::");
+
+    fp->write("m_vtable[");
+    fp->write_decimal_unsigned(maxidx);
+    fp->write("] = {\n");
+
+    m_state.m_currentIndentLevel++;
+    //generate each VT entry:
+    for(s32 i = 0; i < maxidx; i++)
+      {
+	if(i > 0)
+	  fp->write(",\n");
+	UTI veuti = csym->getClassForVTableEntry(i);
+	UlamType * veut = m_state.getUlamTypeByIndex(veuti);
+	ULAMCLASSTYPE veclasstype = veut->getUlamClass();
+	m_state.indent(fp);
+	fp->write("(VfuncPtr) "); //cast to void
+	fp->write("((typename "); //cast to contextual type info
+	fp->write(veut->getUlamTypeMangledName().c_str());
+	if(veclasstype == UC_ELEMENT)
+	  fp->write("<EC>::");
+	else if(veclasstype == UC_QUARK)
+	  {
+	    fp->write("<EC, ");
+	    if(classtype == UC_QUARK)
+	      fp->write("POS");
+	    else
+	      fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS);
+	    fp->write(">::");
+	  }
+	else
+	  assert(0);
+	fp->write(csym->getMangledFunctionNameWithTypesForVTableEntry(i).c_str());
+
+	fp->write(") &");
+	fp->write(veut->getUlamTypeMangledName().c_str());
+	if(veclasstype == UC_ELEMENT)
+	  fp->write("<EC>::");
+	else if(veclasstype == UC_QUARK)
+	  {
+	    fp->write("<EC, ");
+	    if(classtype == UC_QUARK)
+	      fp->write("POS");
+	    else
+	      fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS);
+	    fp->write(">::");
+	  }
+	else
+	  assert(0);
+	fp->write(csym->getMangledFunctionNameForVTableEntry(i).c_str());
+	fp->write(")");
+      } //next vt entry
+
+    fp->write("\n");
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}; //VTABLE Definition\n\n");
+
+    //VTable accessor method
+    m_state.indent(fp);
+    if(classtype == UC_ELEMENT)
+      fp->write("template<class EC>\n");
+    else if(classtype == UC_QUARK)
+      fp->write("template<class EC, u32 POS>\n");
+    else
+      assert(0);
+
+    m_state.indent(fp);
+    fp->write("VfuncPtr ");
+    fp->write(cut->getUlamTypeMangledName().c_str());
+    if(classtype == UC_ELEMENT)
+      fp->write("<EC>::");
+    else if(classtype == UC_QUARK)
+      fp->write("<EC, POS>::");
+    fp->write("getVTableEntry(u32 idx) const\n");
+    m_state.indent(fp);
+    fp->write("{\n");
+
+    m_state.m_currentIndentLevel++;
+    m_state.indent(fp);
+    fp->write(" return m_vtable[idx];\n");
+    m_state.m_currentIndentLevel--;
+    m_state.indent(fp);
+    fp->write("}\n\n");
+  }//genCodeBuiltInVirtualTable
 
   void NodeBlockClass::generateInternalIsMethodForElement(File * fp, bool declOnly)
   {
@@ -1422,7 +1683,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(declOnly)
       {
 	m_state.indent(fp);
-	fp->write("__inline__ static const u32 GetPos() { return POS; }\n");
+	fp->write("__inline__ const u32 GetPos() const { return POS; }\n");
       }
   } //generateGetPosForQuark
 
