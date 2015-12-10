@@ -1,6 +1,6 @@
 /* -*- C++ -*- */
 
-#include "const UlamContext.h"
+#include "UlamContext.h"
 #include "Random.h"
 
 namespace MFM{
