@@ -40,6 +40,7 @@ namespace MFM {
   void SymbolTypedef::printPostfixValuesOfVariableDeclarations(File * fp, s32 slot, u32 startpos, ULAMCLASSTYPE classtype)
   {
     if(getId() == m_state.m_pool.getIndexForDataString("Self")) return;
+    if(getId() == m_state.m_pool.getIndexForDataString("Super")) return;
 
     UTI tuti = getUlamTypeIdx();
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);

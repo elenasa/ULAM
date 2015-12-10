@@ -78,6 +78,10 @@ namespace MFM{
 
     UTI getNodeType();
 
+    virtual bool isAClassBlock();
+
+    bool isSuperClassLinkReady();
+
     virtual UTI checkAndLabelType();
 
     bool checkParameterNodeTypes();

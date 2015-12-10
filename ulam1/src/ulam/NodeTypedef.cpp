@@ -51,6 +51,7 @@ namespace MFM {
   {
     assert(m_typedefSymbol);
     if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Self")) return;
+    if(m_typedefSymbol->getId() == m_state.m_pool.getIndexForDataString("Super")) return;
 
     UTI tuti = m_typedefSymbol->getUlamTypeIdx();
     UlamKeyTypeSignature tkey = m_state.getUlamKeyTypeSignatureByIndex(tuti);
@@ -172,7 +173,8 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr))
+    bool hazyKin = false;
+    if(m_state.alreadyDefinedSymbol(m_tdid, asymptr, hazyKin) && !hazyKin)
       {
 	if(asymptr->isTypedef())
 	  {
@@ -184,7 +186,6 @@ namespace MFM {
 	    msg << "(1) <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 	    msg << "> is not a typedef, and cannot be used as one";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    //errCnt++;
 	  }
       }
     else
@@ -192,8 +193,10 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "(2) Typedef <" << m_state.m_pool.getDataAsString(m_tdid).c_str();
 	msg << "> is not defined, and cannot be used";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	//errCnt++;
+	if(!hazyKin)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     m_state.popClassContext(); //restore
   } //toinstantiate

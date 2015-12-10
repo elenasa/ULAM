@@ -141,6 +141,33 @@ namespace MFM {
   {
     NodeVarDecl::checkAndLabelType(); //sets node type
 
+    //don't allow a subclass to shadow a superclass datamember
+    UTI cuti = m_state.getCompileThisIdx();
+    UTI superuti = m_state.isClassASubclass(cuti);
+    if(superuti != Nav)
+      {
+	//is a subclass' DM..
+	//check for shadowed superclass DM of same name
+	NodeBlockClass * superclassblock = m_state.getAClassBlock(superuti);
+	assert(superclassblock);
+	m_state.pushClassContextUsingMemberClassBlock(superclassblock);
+
+	Symbol * varSymbolOfSameName = NULL;
+	bool hazyKin = false;
+	if(m_state.alreadyDefinedSymbol(m_vid, varSymbolOfSameName, hazyKin))
+	  {
+	    std::ostringstream msg;
+	    msg << "Data member '";
+	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << "' is shadowing an ancestor";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    m_state.popClassContext();
+	    return Nav; //short-circuit
+	  }
+	m_state.popClassContext();
+      } //end subclass error checking
+
     if(m_nodeInitExpr)
       {
 	if(!m_nodeInitExpr->isAConstant())
