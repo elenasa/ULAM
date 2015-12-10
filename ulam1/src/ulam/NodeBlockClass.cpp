@@ -169,8 +169,7 @@ namespace MFM {
     if(superuti != Nav)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-
-	if(!superblock || (superblock->getNodeType() != superuti))
+	if(!isSuperClassLinkReady())
 	  {
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * supercnsym = NULL;
@@ -179,7 +178,6 @@ namespace MFM {
 	    superblock = supercnsym->getClassBlockNode();
 	  }
 	assert(superblock);
-
 	fp->write(" :<");
 	superblock->printPostfixDataMembersParseTree(fp);
 	fp->write(">");
@@ -201,7 +199,6 @@ namespace MFM {
 	superblock->printPostfixDataMembersSymbols(fp, slot, startpos, classtype);
 	fp->write(">");
       }
-
     m_ST.printPostfixValuesForTableOfVariableDataMembers(fp, slot, startpos, classtype);
   } //printPostfixDataMembersSymbols
 
@@ -223,6 +220,21 @@ namespace MFM {
     return cuti;
   }
 
+  bool NodeBlockClass::isAClassBlock()
+  {
+    return true; //used in searches for already defined symbol
+  }
+
+  bool NodeBlockClass::isSuperClassLinkReady()
+  {
+    //call for known subclasses only
+    UTI superuti = m_state.isClassASubclass(getNodeType());
+    assert(superuti != Nav);
+    //this is a subclass.
+    NodeBlockClass * superblock = (NodeBlockClass *) NodeBlock::getPreviousBlockPointer();
+    return !((superblock == NULL) || (superblock->getNodeType() != superuti));
+  } //isSuperClassLinkReady
+
   UTI NodeBlockClass::checkAndLabelType()
   {
     // for debug purposes
@@ -235,17 +247,9 @@ namespace MFM {
     if(superuti != Nav)
       {
 	//this is a subclass.
-	NodeBlockClass * superblock = (NodeBlockClass *) NodeBlock::getPreviousBlockPointer();
-	if((superblock == NULL) || (superblock->getNodeType() != superuti))
+	if(!isSuperClassLinkReady())
 	  {
-	    //look up this instance
-	    SymbolClass * csym = NULL;
-	    assert(m_state.alreadyDefinedSymbolClass(superuti, csym));
-	    NodeBlock::setPreviousBlockPointer(csym->getClassBlockNode()); //fix
-	    superblock = (NodeBlockClass *) NodeBlock::getPreviousBlockPointer(); //not override
-
-	    //look in this ST for instance class args
-	    if(!csym->statusNonreadyClassArguments())
+	    if(m_state.isClassAStub(superuti))
 	      {
 		std::ostringstream msg;
 		msg << "Subclass '";
@@ -255,12 +259,18 @@ namespace MFM {
 		msg << "', a class with pending arguments";
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 		m_state.setGoAgain();
-		NodeBlock::setPreviousBlockPointer(NULL); //force to try again!!
+		//need to break the chain; e.g. don't want template symbol addresses used
+		NodeBlock::setPreviousBlockPointer(NULL); //force to try again!! avoid inf loop
 		return Nav; //short-circuit
 	      }
+
+	    //look up this instance
+	    SymbolClass * csym = NULL;
+	    assert(m_state.alreadyDefinedSymbolClass(superuti, csym));
+	    NodeBlock::setPreviousBlockPointer(csym->getClassBlockNode()); //fix
 	  }
 
-	assert(superblock);
+	assert(isSuperClassLinkReady());
 	ULAMCLASSTYPE superclasstype = m_state.getUlamTypeByIndex(superuti)->getUlamClass();
 	if(superclasstype != UC_QUARK)
 	  {
@@ -273,7 +283,6 @@ namespace MFM {
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	  }
-
       } //done with inheritance checks, continue.
 
     //do first, might be important!
@@ -554,7 +563,7 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
   {
     s32 superbs = 0;
     UTI superuti = m_state.isClassASubclass(getNodeType());
-    if(superuti)
+    if(superuti != Nav)
       {
 	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
 	assert(superClassBlock);
@@ -592,7 +601,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 	if(superpos >= 0)
 	  return superpos; //short-circuit
       }
-
     return m_ST.findPosOfUlamTypeInTable(utype);
   } //findUlamTypeInTable
 

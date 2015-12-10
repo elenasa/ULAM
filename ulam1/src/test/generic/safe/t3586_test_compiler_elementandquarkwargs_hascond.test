@@ -9,8 +9,8 @@
 ##
 ##
 Exit status: 3
-Ue_Eltypo { System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > Bool(1) b(false);  constant Int(32) a = 1; );  Int(32) test() {  Eltypo elf;  elf Bar has cond { Bar elf;  elf ( 3u cast )func . s ( elf bu . cast )print . first elf bu . = } if s ( elf t bu . . cast )print . s ( first cast )print . second elf t bu . . = second cast return } }
-Uq_Typo(Int(32) a) : Bar { :< Bool(1) b(false);  Unsigned(3) bu( 7u); > Bool(1) b(false);  <NOMAIN> }
+Ue_Eltypo { System s();  Unsigned(3) first(3u);  Unsigned(3) second(3u);  Typo(1) t( :< Bool(1) b(false);  Unsigned(3) bu(7u); > constant Int(32) a = 1;  Bool(1) by(false); );  Int(32) test() {  Eltypo elf;  elf Bar has cond { Bar elf;  elf ( 3u cast )func . s ( elf bu . cast )print . first elf bu . = } if s ( elf t bu . . cast )print . s ( first cast )print . second elf t bu . . = second cast return } }
+Uq_Typo(Int(32) a) : Bar { :< Bool(1) b(false);  Unsigned(3) bu( 7u); > Bool(1) by(false);  <NOMAIN> }
 Uq_Bar { Bool(1) b(false);  Unsigned(3) bu( 7u);  <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
@@ -21,7 +21,7 @@ Uq_System { <NOMAIN> }
   ulam 1;
 use Bar;
 quark Typo(Int a) : Bar{
-  Bool b; //shadows for no reason
+  Bool by; //remove shadow since for no reason
 }
 
 #:Bar.ulam

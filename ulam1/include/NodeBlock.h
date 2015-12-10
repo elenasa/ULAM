@@ -92,6 +92,8 @@ namespace MFM{
 
     void setPreviousBlockPointer(NodeBlock *);
 
+    virtual bool isAClassBlock();
+
     virtual u32 getNumberOfSymbolsInTable();
 
     virtual u32 getSizeOfSymbolsInTable();

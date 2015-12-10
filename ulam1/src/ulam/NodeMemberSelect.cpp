@@ -62,6 +62,19 @@ namespace MFM {
 	return Nav;
       } //done
 
+    if(!m_state.isComplete(luti))
+      {
+	std::ostringstream msg;
+	msg << "Member selected is incomplete class: ";
+	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
+	msg << ", check and label fails this time around";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+
+	setNodeType(Nav);
+	m_state.setGoAgain(); //since no error msg
+	return getNodeType();
+      } //done
+
     UlamType * lut = m_state.getUlamTypeByIndex(luti);
     ULAMCLASSTYPE classtype = lut->getUlamClass();
     if(classtype == UC_NOTACLASS && lut->getUlamTypeEnum() != Holder)
@@ -77,19 +90,6 @@ namespace MFM {
 
 	setNodeType(Nav);
 	return Nav;
-      } //done
-
-    if(!m_state.isComplete(luti)) //reloads
-      {
-	std::ostringstream msg;
-	msg << "Member selected is incomplete class: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(luti).c_str();
-	msg << ", check and label fails this time around";
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-
-	setNodeType(Nav);
-	m_state.setGoAgain(); //since no error msg
-	return getNodeType();
       } //done
 
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug

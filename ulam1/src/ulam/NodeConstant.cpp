@@ -127,7 +127,8 @@ namespace MFM {
     m_state.pushCurrentBlockAndDontUseMemberBlock(currBlock);
 
     Symbol * asymptr = NULL;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
+    bool hazyKin = false;
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
       {
 	if(asymptr->isConstant())
 	  {
@@ -148,7 +149,10 @@ namespace MFM {
 	msg << "(2) Named Constant <" << m_state.getTokenDataAsString(&m_token).c_str();
 	msg << "> is not defined, and cannot be used with class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	if(!hazyKin)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
       }
     m_state.popClassContext(); //restore
   } //checkForSymbol
@@ -189,8 +193,10 @@ namespace MFM {
       return true; //nothing to do
 
     Symbol * asymptr = NULL;
-    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex,asymptr))
+    bool hazyKin = false;
+    if(m_state.alreadyDefinedSymbol(m_token.m_dataindex, asymptr, hazyKin))
       {
+	assert(hazyKin); //always hazy, right?
 	if(asymptr->isConstant())
 	  {
 	    u64 val = 0;
