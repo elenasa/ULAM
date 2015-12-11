@@ -34,18 +34,6 @@ namespace MFM {
     m_state.m_programDefST.getClassMembers(rtnMembers);
     return rtnMembers;
   }
-#if 0
-  void Compiler::clearClassMembersMap(ClassMemberMap & cmm)
-  {
-    for(ClassMemberMap::iterator i = cmm.begin(); i != cmm.end(); ++i)
-      {
-	struct ClassMemberDescHolder val = (i->second);
-	delete val; //cannot be null
-	i->second = NULL; //read-only
-      }
-    cmm.clear();
-  } //clearClassMembersMap
-#endif
 
   const std::string Compiler::getFullPathLocationAsString(const Locator& loc)
   {
@@ -317,25 +305,23 @@ namespace MFM {
     std::cerr << "Size of class members map is " << cmm.size() << std::endl;
     for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
       {
-	assert(i->second); //cannot be null
 	u64 val;
-
+	const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
 	std::cerr
 	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	  << i->second->getMemberKind() << " "
-	  << MFM::HexEscape(getFullPathLocationAsString(i->second->m_loc))
-	  << " " << i->second->m_mangledClassName
-	  << " " << i->second->m_mangledType
-	  << " " << i->second->m_memberName
-	  << " " << i->second->m_mangledMemberName;
+	  << cmd->getMemberKind() << " "
+	  << MFM::HexEscape(getFullPathLocationAsString(cmd->m_loc))
+	  << " " << cmd->m_mangledClassName
+	  << " " << cmd->m_mangledType
+	  << " " << cmd->m_memberName
+	  << " " << cmd->m_mangledMemberName;
 
-	if(i->second->getValue(val))
+	if(cmd->getValue(val))
 	  std::cerr << " 0x" << std::hex << val;
 
-	std::cerr << " " << MFM::HexEscape(i->second->m_structuredComment)
+	std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
 		  << std::endl;
       }
-    clearClassMembersMap(cmm);
 #endif
 
     return m_state.m_err.getErrorCount();

@@ -286,7 +286,6 @@ int main(int argc, char ** argv)
 
         for(MFM::ClassMemberMap::const_iterator i = ds.ClassMemberMapBegin(); i != ds.ClassMemberMapEnd(); ++i)
           {
-	    //assert(i->second); //cannot be null
 	    MFM::u64 val;
 	    const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
 	    std::cerr
@@ -305,7 +304,6 @@ int main(int argc, char ** argv)
 		      << std::endl;
 	  }
       }
-    //c.clearClassMembersMap(ds.GetClassMemberMap());
     return result;
   }
   catch (int status) {
