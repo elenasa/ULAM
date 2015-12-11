@@ -45,10 +45,14 @@ namespace MFM
   {
 
     ConstantDesc(SymbolConstantValue * csym, UTI classtype, CompilerState & state);
+    ConstantDesc(const ConstantDesc& cref);
+
     ~ConstantDesc();
 
-    virtual std::string getMemberKind();
-    virtual bool getValue(u64& vref);
+    virtual ClassMemberDesc * clone() const;
+
+    virtual std::string getMemberKind() const;
+    virtual bool getValue(u64& vref) const;
 
   private:
     u64 m_val; //as Bits

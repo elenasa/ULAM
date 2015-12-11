@@ -87,7 +87,7 @@ namespace MFM{
 
     ClassMemberMap getMangledClassMembersMap();
 
-    void clearClassMembersMap(ClassMemberMap & cmm);
+    //void clearClassMembersMap(ClassMemberMap & cmm);
 
     const std::string getFullPathLocationAsString(const Locator& loc);
 

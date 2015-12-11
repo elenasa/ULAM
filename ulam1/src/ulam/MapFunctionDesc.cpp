@@ -9,9 +9,16 @@ namespace MFM {
     m_mangledMemberName = fsym->getMangledNameWithTypes();
   }
 
+  FunctionDesc::FunctionDesc(const FunctionDesc& fref) : ClassMemberDesc(fref) {}
+
   FunctionDesc::~FunctionDesc() {}
 
-  std::string FunctionDesc::getMemberKind()
+  const ClassMemberDesc *  FunctionDesc::clone() const
+  {
+    return new FunctionDesc(*this);
+  }
+
+  std::string FunctionDesc::getMemberKind() const
   {
     return "FUNCTION";
   }

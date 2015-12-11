@@ -44,10 +44,13 @@ namespace MFM
   struct DataMemberDesc : public ClassMemberDesc
   {
     DataMemberDesc(SymbolVariableDataMember * dmsym, UTI classtype, CompilerState & state);
-    virtual ~DataMemberDesc();
+    DataMemberDesc(const DataMemberDesc& dref);
 
-    virtual std::string getMemberKind();
-    virtual bool getValue(u64& vref);
+    virtual ~DataMemberDesc();
+    virtual const ClassMemberDesc * clone() const;
+
+    virtual std::string getMemberKind() const;
+    virtual bool getValue(u64& vref) const;
 
   private:
     u64 m_val; //intial default (as Bits)

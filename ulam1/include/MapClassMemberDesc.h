@@ -49,7 +49,10 @@ namespace MFM
   struct ClassMemberDesc
   {
     ClassMemberDesc(Symbol * sym, UTI classtype, CompilerState & state);
+    ClassMemberDesc(const ClassMemberDesc& cref);
     virtual ~ClassMemberDesc();
+
+    virtual const ClassMemberDesc * clone() const = 0;
 
     Locator m_loc;
     std::string m_mangledClassName;
@@ -58,12 +61,22 @@ namespace MFM
     std::string m_mangledMemberName;
     std::string m_structuredComment;
 
-    virtual std::string getMemberKind() = 0;
-    virtual bool getValue(u64& vref);
+    virtual std::string getMemberKind() const = 0;
+    virtual bool getValue(u64& vref) const;
+  };
+
+  struct ClassMemberDescHolder
+  {
+    ClassMemberDescHolder(ClassMemberDesc * cp) : m_classmemberdesc(cp) {}
+    ClassMemberDescHolder(const ClassMemberDescHolder& cref) : m_classmemberdesc(cref.m_classmemberdesc->clone()){ }
+    ~ClassMemberDescHolder() { delete m_classmemberdesc; m_classmemberdesc = NULL; }
+    const ClassMemberDesc * getClassMemberDesc() const { return m_classmemberdesc; }
+  private:
+    const ClassMemberDesc * m_classmemberdesc;
   };
 
   //key is mangledMemberName, including the mangled class it belongs
-  typedef std::map<std::string, struct ClassMemberDesc *> ClassMemberMap;
+  typedef std::map<std::string, struct ClassMemberDescHolder> ClassMemberMap;
 }
 
 #endif  /* MAPCLASSMEMBERDESC_H */

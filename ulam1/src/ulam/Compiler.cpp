@@ -34,17 +34,18 @@ namespace MFM {
     m_state.m_programDefST.getClassMembers(rtnMembers);
     return rtnMembers;
   }
-
+#if 0
   void Compiler::clearClassMembersMap(ClassMemberMap & cmm)
   {
     for(ClassMemberMap::iterator i = cmm.begin(); i != cmm.end(); ++i)
       {
-	struct ClassMemberDesc * val = (i->second);
+	struct ClassMemberDescHolder val = (i->second);
 	delete val; //cannot be null
 	i->second = NULL; //read-only
       }
     cmm.clear();
   } //clearClassMembersMap
+#endif
 
   const std::string Compiler::getFullPathLocationAsString(const Locator& loc)
   {

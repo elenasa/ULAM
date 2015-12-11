@@ -8,14 +8,21 @@ namespace MFM {
     psym->getValue(m_val); //must be ready!
   }
 
+  ParameterDesc::ParameterDesc(const ParameterDesc & pref) : ClassMemberDesc(pref), m_val(pref.m_val) {}
+
   ParameterDesc::~ParameterDesc(){}
 
-  std::string ParameterDesc::getMemberKind()
+  const ClassMemberDesc *  ParameterDesc::clone() const
+  {
+    return new ParameterDesc(*this);
+  }
+
+  std::string ParameterDesc::getMemberKind() const
   {
     return "PARAMETER";
   }
 
-  bool ParameterDesc::getValue(u64& vref)
+  bool ParameterDesc::getValue(u64& vref) const
   {
     vref = m_val;
     return true;

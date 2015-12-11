@@ -534,7 +534,7 @@ namespace MFM {
 	    //concat mangled class and parameter names to avoid duplicate keys into map
 	    std::ostringstream fullMangledName;
 	    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
-	    classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
+	    classmembers.insert(std::pair<std::string, ClassMemberDescHolder>(fullMangledName.str(), ClassMemberDescHolder(descptr)));
 	  }
 	it++;
       }

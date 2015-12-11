@@ -45,9 +45,10 @@ namespace MFM
   {
 
     TypedefDesc(SymbolTypedef * tdsym, UTI classtype, CompilerState & state);
-    ~TypedefDesc();
-
-    virtual std::string getMemberKind();
+    TypedefDesc(const TypedefDesc& tref);
+    virtual ~TypedefDesc();
+    virtual const ClassMemberDesc * clone() const;
+    virtual std::string getMemberKind() const;
 
   private:
     u64 m_val; //as Bits
