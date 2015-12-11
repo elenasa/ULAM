@@ -236,7 +236,7 @@ namespace MFM {
     //initialize this classes VTable to super classes' VTable, or empty
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
-    bool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
 
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();

@@ -191,7 +191,7 @@ namespace MFM {
 		for(s32 i = 1; i < size; i++)
 		  {
 		    char tmpstr[8];
-		    bool isNext = nextPtr.incrementPtr(m_state);
+		    AssertBool isNext = nextPtr.incrementPtr(m_state);
 		    assert(isNext);
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataFromAtom(nextPtr, m_state);
@@ -211,7 +211,7 @@ namespace MFM {
 		for(s32 i = 1; i < size; i++)
 		  {
 		    char tmpstr[8];
-		    bool isNext = nextPtr.incrementPtr(m_state);
+		    AssertBool isNext = nextPtr.incrementPtr(m_state);
 		    assert(isNext);
 		    atval = m_state.getPtrTarget(nextPtr);
 		    data = atval.getDataLongFromAtom(nextPtr, m_state);

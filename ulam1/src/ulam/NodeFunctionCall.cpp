@@ -422,7 +422,7 @@ namespace MFM {
 
 	UTI cuti = atomPtr.getPtrTargetType(); //must be a class
 	SymbolClass * vcsym = NULL;
-	bool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, vcsym);
 	assert(isDefined);
 	UTI vtcuti = vcsym->getClassForVTableEntry(vtidx);
 
@@ -432,7 +432,7 @@ namespace MFM {
 	if(funcclassuti != vtcuti)
 	  {
 	    SymbolClass * vtcsym = NULL;
-	    bool isDefined = m_state.alreadyDefinedSymbolClass(vtcuti, vtcsym);
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(vtcuti, vtcsym);
 	    assert(isDefined);
 
 	    NodeBlockClass * memberClassNode = vtcsym->getClassBlockNode();
@@ -442,7 +442,7 @@ namespace MFM {
 
 	    Symbol * fnsymptr = NULL;
 	    bool hazyKin = false;
-	    bool isDefinedFunc = (m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin);
+	    AssertBool isDefinedFunc = (m_state.isFuncIdInClassScope(m_functionNameTok.m_dataindex, fnsymptr, hazyKin) && !hazyKin);
 	    assert(isDefinedFunc);
 
 	    //find this func in the virtual class; get its func def.
@@ -457,7 +457,19 @@ namespace MFM {
 
 	    SymbolFunction * funcSymbol = NULL;
 	    u32 numFuncs = ((SymbolFunctionName *) fnsymptr)->findMatchingFunction(pTypes, funcSymbol);
-	    assert(numFuncs == 1);
+
+	    if(numFuncs != 1)
+	      {
+		std::ostringstream msg;
+		msg << "Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
+		msg << "> is ";
+		if(numFuncs > 1)
+		  msg << "ambiguous";
+		else
+		  msg << "not found";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		assert(0);
+	      }
 
 	    m_state.popClassContext(); //restore here
 
@@ -663,7 +675,7 @@ namespace MFM {
     UTI cosuti = cos->getUlamTypeIdx();
     UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
     SymbolClass * csym = NULL;
-    bool isDefined = m_state.alreadyDefinedSymbolClass(cosuti, csym);
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cosuti, csym);
     assert(isDefined);
 
     UTI cvfuti = csym->getClassForVTableEntry(vfidx);

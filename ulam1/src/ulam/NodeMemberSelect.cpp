@@ -95,7 +95,7 @@ namespace MFM {
     std::string className = m_state.getUlamTypeNameBriefByIndex(luti); //help me debug
 
     SymbolClass * csym = NULL;
-    bool isDefined = m_state.alreadyDefinedSymbolClass(luti, csym);
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(luti, csym);
     assert(isDefined);
 
     NodeBlockClass * memberClassNode = csym->getClassBlockNode();

@@ -202,7 +202,7 @@ namespace MFM {
     if(getNumberOfParameters() > 0)
       {
 	SymbolClass * csym = NULL;
-	bool isDefined = findClassInstanceByUTI(instance, csym);
+	AssertBool isDefined = findClassInstanceByUTI(instance, csym);
 	assert(isDefined);
 	rtnpending = csym->pendingClassArgumentsForClassInstance();
 	if(rtnpending) assert(csym->isStub());
@@ -237,7 +237,7 @@ namespace MFM {
     assert(instance != newuti);
 
     SymbolClass * csym = NULL;
-    bool isDefined = findClassInstanceByUTI(instance, csym);
+    AssertBool isDefined = findClassInstanceByUTI(instance, csym);
     assert(isDefined);
 
     assert(csym->pendingClassArgumentsForClassInstance());
@@ -455,7 +455,7 @@ namespace MFM {
 	    SymbolConstantValue * psym = *pit;
 	    Symbol * asym = NULL;
 	    bool hazyKin = false; //don't care
-	    bool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
+	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
 	    assert(isDefined);
 	    UTI auti = asym->getUlamTypeIdx();
 	    UlamType * aut = m_state.getUlamTypeByIndex(auti);
@@ -581,7 +581,7 @@ namespace MFM {
 	    bool isok = false;
 	    Symbol * asym = NULL;
 	    bool hazyKin = false; //don't care
-	    bool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
+	    AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin);
 	    assert(isDefined);
 	    UTI auti = asym->getUlamTypeIdx();
 	    if(m_state.isComplete(auti))
@@ -785,7 +785,7 @@ namespace MFM {
 	    SymbolClass * csym = it->second;
 	    SymbolClassNameTemplate * ctsym = NULL;
 	    //possibly a different template than the one currently being instantiated
-	    bool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(csym->getId(), ctsym);
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(csym->getId(), ctsym);
 	    assert(isDefined);
 	    ctsym->addClassInstanceUTI(cuti, csym); //stub
 	    it++;
@@ -1296,7 +1296,7 @@ namespace MFM {
 	u32 aid = m_parameterSymbols[i]->getId();
 	Symbol * clonesym = NULL;
 	bool hazyKin = false; //don't care
-	bool isDefined = m_state.alreadyDefinedSymbol(aid, clonesym, hazyKin);
+	AssertBool isDefined = m_state.alreadyDefinedSymbol(aid, clonesym, hazyKin);
 	assert(isDefined);
 	if(asym)
 	  m_state.replaceSymbolInCurrentScope(clonesym, asym); //deletes old, adds new
@@ -1339,7 +1339,7 @@ namespace MFM {
 	//save 'instance's arg constant symbols in a temporary list
 	Symbol * asym = NULL;
 	bool hazyKin = false; //don't care
-	bool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin); //no ownership change;
+	AssertBool isDefined = m_state.alreadyDefinedSymbol(psym->getId(), asym, hazyKin); //no ownership change;
 	assert(isDefined);
 	instancesArgs.push_back((SymbolConstantValue *) asym); //for reference only
 	pit++;

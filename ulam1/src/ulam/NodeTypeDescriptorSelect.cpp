@@ -104,7 +104,7 @@ namespace MFM {
 	if(seletype == Class)
 	  {
 	    SymbolClass * csym = NULL;
-	    bool isDefined = m_state.alreadyDefinedSymbolClass(seluti, csym);
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(seluti, csym);
 	    assert(isDefined);
 
 	    m_state.pushClassContext(seluti, csym->getClassBlockNode(), csym->getClassBlockNode(), false, NULL);

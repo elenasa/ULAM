@@ -123,12 +123,14 @@ namespace MFM {
 
     UTI uti = uvpass.getUlamValueTypeIdx();
     assert(uti == Ptr);
-    fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex()).c_str());
+    uti = uvpass.getPtrTargetType();
+    fp->write(m_state.getTmpVarAsString(uti, uvpass.getPtrSlotIndex()).c_str());
     fp->write(", ");
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(ruti == Ptr);
-    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+    ruti = ruvpass.getPtrTargetType();
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());

@@ -114,7 +114,7 @@ namespace MFM {
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
 		assert(parentNode);
 
-		bool swapOk = parentNode->exchangeKids(this, newnode);
+		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
 		assert(swapOk);
 
 		std::ostringstream msg;
@@ -141,7 +141,7 @@ namespace MFM {
 		Node * parentNode = m_state.findNodeNoInThisClass(pno);
 		assert(parentNode);
 
-		bool swapOk = parentNode->exchangeKids(this, newnode);
+		AssertBool swapOk = parentNode->exchangeKids(this, newnode);
 		assert(swapOk);
 
 		std::ostringstream msg;

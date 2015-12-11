@@ -281,7 +281,7 @@ namespace MFM {
     Node * parentNode = m_state.findNodeNoInThisClass(pno);
     assert(parentNode);
 
-    bool swapOk = parentNode->exchangeKids(this, newnode);
+    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
     assert(swapOk);
 
     std::ostringstream msg;
@@ -382,8 +382,8 @@ namespace MFM {
 
     UTI uti = uvpass.getUlamValueTypeIdx();
     assert(uti == Ptr);
-
-    fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex()).c_str());
+    uti = uvpass.getPtrTargetType();
+    fp->write(m_state.getTmpVarAsString(uti, uvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());

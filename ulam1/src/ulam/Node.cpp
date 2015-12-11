@@ -689,6 +689,7 @@ namespace MFM {
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
     vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
     assert(vuti != Void);
+    assert(m_state.getUlamTypeByIndex(vuti)->isNumericType());
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -705,9 +706,6 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    assert(vut->isNumericType());
-
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();
@@ -795,6 +793,7 @@ namespace MFM {
     s32 tmpVarNum2 = m_state.getNextTmpVarNumber(); //tmp for data
     vuti = uvpass.getPtrTargetType(); //replaces vuti w target type
     assert(vuti != Void);
+    assert(m_state.getUlamTypeByIndex(vuti)->isNumericType());
 
     // here, cos is symbol used to determine read method: either self or last of cos.
     // stgcos is symbol used to determine first "hidden" arg
@@ -811,9 +810,6 @@ namespace MFM {
       }
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    assert(vut->isNumericType());
-
     UTI stgcosuti = stgcos->getUlamTypeIdx();
     UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
     ULAMCLASSTYPE stgcosclasstype = stgcosut->getUlamClass();
@@ -1073,13 +1069,13 @@ namespace MFM {
   void Node::genCodeWriteFromATmpVarUsingBitVector(File * fp, UlamValue& luvpass, UlamValue& ruvpass)
   {
     bool needsBVflag = false;
-
     UTI luti = luvpass.getUlamValueTypeIdx();
-    assert(luti == Ptr);
-    luti = luvpass.getPtrTargetType();
+    AssertBool isPtrL = (luti == Ptr);
+    assert(isPtrL);
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
-    assert(ruti == Ptr); //terminals handled in NodeTerminal
+    AssertBool isPtrR = (ruti == Ptr);
+    assert(isPtrR); //terminals handled in NodeTerminal
     ruti = ruvpass.getPtrTargetType();
 
     // here, cos is symbol used to determine read method: either self or last of cos.
@@ -1501,9 +1497,6 @@ namespace MFM {
       cos = m_state.m_currentObjSymbolsForCodeGen.back();
 
     UTI cosuti = cos->getUlamTypeIdx();
-    UlamType * cosut = m_state.getUlamTypeByIndex(cosuti);
-    ULAMCLASSTYPE cosclasstype = cosut->getUlamClass();
-
     assert(isCurrentObjectACustomArrayItem(cosuti, luvpass));
 
     // a data member quark, or the element itself should both getBits from self;
@@ -2283,7 +2276,8 @@ namespace MFM {
 
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
-    assert(m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin)); //searches class of cos
+    AssertBool isDefinedFunc = m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos
+    assert(isDefinedFunc);
     assert(!hazyKin);
     NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
     UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
@@ -2522,8 +2516,8 @@ namespace MFM {
 
     Symbol * fnsymptr = NULL;
     bool hazyKin = false;
-    bool isDefined = m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos
-    assert(isDefined);
+    AssertBool isDefinedFunc = m_state.isFuncIdInAClassScope(cosuti, m_state.getCustomArrayGetFunctionNameId(),fnsymptr, hazyKin); //searches class of cos
+    assert(isDefinedFunc);
     assert(!hazyKin);
     NNO caBlockNo = fnsymptr->getBlockNoOfST(); //block of aref
     UTI caclassuti = m_state.findAClassByNodeNo(caBlockNo);
@@ -2701,7 +2695,7 @@ namespace MFM {
       SymbolClassName * coscnsym = NULL;
       UlamType * cosclassut = m_state.getUlamTypeByIndex(cosclassuti);
       u32 cosid = cosclassut->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-      bool isDefined = m_state.alreadyDefinedSymbolClassName(cosid, coscnsym);
+      AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cosid, coscnsym);
       assert(isDefined);
       UTI cosnameuti = coscnsym->getUlamTypeIdx();
 

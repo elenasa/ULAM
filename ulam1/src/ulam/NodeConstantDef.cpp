@@ -429,8 +429,7 @@ namespace MFM {
     //store in UlamType format
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    s32 nbitsize = nut->getBitSize();
-    assert(nbitsize > 0);
+    assert(nut->getBitSize() > 0);
     u32 wordsize = nut->getTotalWordSize();
     if(wordsize == MAXBITSPERINT)
       rtnb = updateConstant32(newconst);

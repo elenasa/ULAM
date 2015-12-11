@@ -181,7 +181,7 @@ namespace MFM {
       }
     else
       {
-	bool isDefined = anyDefinedUTI(newkey,auti); //don't wipe out uti
+	AssertBool isDefined = anyDefinedUTI(newkey,auti); //don't wipe out uti
 	assert(isDefined);
       }
 
@@ -199,7 +199,7 @@ namespace MFM {
     }
 
     UlamType * ut = NULL;
-    bool isDef = isDefined(newkey, ut);
+    AssertBool isDef = isDefined(newkey, ut);
     assert(isDef);
 
     return  uti; //return same uti (third arg)
@@ -215,6 +215,7 @@ namespace MFM {
     UlamKeyTypeSignature ackey(id, UNKNOWNSIZE, NONARRAYSIZE, cuti);
     UTI cuti2 = makeUlamTypeFromHolder(ackey, Class, cuti);
     assert(cuti2 == cuti); //keeps same uti
+    cuti = cuti2;
 
     if(!m_programDefST.isInTable(id, (Symbol *&) cnsym))
       {
@@ -244,7 +245,7 @@ namespace MFM {
     //can't be a typedef!! get's the wrong name for type key; use key as arg
     UTI tmputi;
     UTI tmpforscalaruti;
-    bool isDef = getUlamTypeByTypedefName(typeTok.m_dataindex, tmputi, tmpforscalaruti);
+    AssertBool isDef = getUlamTypeByTypedefName(typeTok.m_dataindex, tmputi, tmpforscalaruti);
     assert(!isDef);
 
     //is this name already a typedef for a complex type?
@@ -264,7 +265,7 @@ namespace MFM {
       }
     else
       {
-	bool isDefined = anyDefinedUTI(key,uti);
+	AssertBool isDefined = anyDefinedUTI(key,uti);
 	assert(isDefined);
       }
     return uti;
@@ -296,7 +297,7 @@ namespace MFM {
 		    //if this classInstanceIdx (suti) is a template with parameters
 		    //then make a new uti; o.w. no need for a new uti, it's defined.
 		    SymbolClassName * cnsym = NULL;
-		    bool isDefined = alreadyDefinedSymbolClassName(getUlamKeyTypeSignatureByIndex(suti).getUlamKeyTypeSignatureNameId(), cnsym);
+		    AssertBool isDefined = alreadyDefinedSymbolClassName(getUlamKeyTypeSignatureByIndex(suti).getUlamKeyTypeSignatureNameId(), cnsym);
 		    assert(isDefined);
 		    if(cnsym->isClassTemplate())
 		      key.append(uti);
@@ -329,14 +330,14 @@ namespace MFM {
 
 	incrementKeyToAnyUTICounter(key, uti);
 
-	bool isDef = isDefined(key, ut);
+	AssertBool isDef = isDefined(key, ut);
 	assert(isDef);
 
 	initUTIAlias(uti);
       }
     else
       {
-	bool isDefined = anyDefinedUTI(key,uti);
+	AssertBool isDefined = anyDefinedUTI(key,uti);
 	assert(isDefined);
       }
     return uti;
@@ -479,7 +480,7 @@ namespace MFM {
   bool CompilerState::mappedIncompleteUTI(UTI cuti, UTI auti, UTI& mappedUTI)
   {
     SymbolClass * csym = NULL;
-    bool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     if(csym->hasMappedUTI(auti, mappedUTI))
       return true;
@@ -495,7 +496,7 @@ namespace MFM {
       {
 	UlamKeyTypeSignature akey = getUlamKeyTypeSignatureByIndex(auti);
 	SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
-	bool isDefined = alreadyDefinedSymbolClassName(akey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete);
+	AssertBool isDefined = alreadyDefinedSymbolClassName(akey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete);
 	assert(isDefined);
 	UTI utiofinc = cnsymOfIncomplete->getUlamTypeIdx();
 	if(utiofinc != cuti)
@@ -525,7 +526,7 @@ namespace MFM {
       return suti;
 
     SymbolClassNameTemplate * cnsym = NULL;
-    bool isDefined = alreadyDefinedSymbolClassNameTemplate(getCompileThisId(), cnsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassNameTemplate(getCompileThisId(), cnsym);
     assert(isDefined);
     UTI mappedUTI;
     if(cnsym->hasInstanceMappedUTI(getCompileThisIdx(), suti, mappedUTI))
@@ -540,7 +541,7 @@ namespace MFM {
     SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
     if(bUT == Class)
       {
-	bool isDefined = alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete);
+	AssertBool isDefined = alreadyDefinedSymbolClassName(skey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete);
 	assert(isDefined);
 	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
@@ -589,7 +590,7 @@ namespace MFM {
   void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
   {
     SymbolClassName * cnsym = NULL;
-    bool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
     assert(isDefined);
     if(cnsym->isClassTemplate())
       ((SymbolClassNameTemplate *) cnsym)->mapInstanceUTI(getCompileThisIdx(), fm, to);
@@ -614,7 +615,7 @@ namespace MFM {
 	MSG2("", msg.str().c_str(),DEBUG);
 	typidx = 0;
       }
-    bool isDef = isDefined(m_indexToUlamKey[typidx], rtnUT);
+    AssertBool isDef = isDefined(m_indexToUlamKey[typidx], rtnUT);
     assert(isDef);
     return rtnUT;
   } //getUlamTypeByIndex
@@ -622,7 +623,7 @@ namespace MFM {
   const std::string CompilerState::getUlamTypeNameBriefByIndex(UTI uti)
   {
     UlamType * ut = NULL;
-    bool isDef = isDefined(m_indexToUlamKey[uti], ut);
+    AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
     assert(isDef);
     return ut->getUlamTypeNameBrief();
   }
@@ -630,7 +631,8 @@ namespace MFM {
   const std::string CompilerState::getUlamTypeNameByIndex(UTI uti)
   {
     UlamType * ut = NULL;
-    assert(isDefined(m_indexToUlamKey[uti], ut));
+    AssertBool isDef = isDefined(m_indexToUlamKey[uti], ut);
+    assert(isDef);
     return ut->getUlamTypeName();
   }
 
@@ -776,7 +778,7 @@ namespace MFM {
 	if(getBitSize(cuti) > 0)
 	  {
 	    SymbolClass * csym = NULL;
-	    bool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+	    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
 	    assert(isDefined);
 	    rtnb = csym->getDefaultQuark(dqref);
 	  }
@@ -972,14 +974,12 @@ namespace MFM {
   void CompilerState::setSizesOfNonClass(UTI utArg, s32 bitsize, s32 arraysize)
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
-    ULAMTYPE bUT = ut->getUlamTypeEnum();
-    ULAMCLASSTYPE classtype = ut->getUlamClass();
-
-    assert(classtype == UC_NOTACLASS);
+    assert(ut->getUlamClass() == UC_NOTACLASS);
 
     if(ut->isComplete())
       return;  //nothing to do
 
+    ULAMTYPE bUT = ut->getUlamTypeEnum();
     //disallow zero-sized primitives (no such thing as a BitVector<0u>)
     //'Void' by default is zero and only zero bitsize (already complete)
     UlamKeyTypeSignature key = ut->getUlamKeyTypeSignature();
@@ -1077,7 +1077,7 @@ namespace MFM {
   bool CompilerState::isClassATemplate(UTI cuti)
   {
     SymbolClass * csym = NULL;
-    bool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     return csym->isClassTemplate(cuti);
   } //isClassATemplate
@@ -1090,7 +1090,7 @@ namespace MFM {
     if(alreadyDefinedSymbolClass(subuti, csym))
       {
 	SymbolClassName * cnsym = NULL;
-	bool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
+	AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
 	assert(isDefined);
 	return cnsym->getSuperClassForClassInstance(subuti); //returns super UTI, or Nav if no inheritance
       }
@@ -1110,7 +1110,7 @@ namespace MFM {
 	if(alreadyDefinedSymbolClass(cuti, csym))
 	  {
 	    SymbolClassName * cnsym = NULL;
-	    bool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
+	    AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
 	    assert(isDefined);
 	    prevuti = cnsym->getSuperClassForClassInstance(cuti); //returns super UTI, or Nav if no inheritance
 	    rtnb = (superp == prevuti); //compare
@@ -1168,7 +1168,7 @@ namespace MFM {
   UTI CompilerState::getAClassCustomArrayType(UTI cuti)
   {
     SymbolClass * csym = NULL;
-    bool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     return csym->getCustomArrayType(); //checks via classblock in case of inheritance
   } //getAClassCustomArrayType
@@ -1176,7 +1176,7 @@ namespace MFM {
   UTI CompilerState::getAClassCustomArrayIndexType(UTI cuti, Node * rnode, UTI& idxuti, bool& hasHazyArgs)
   {
     SymbolClass * csym = NULL;
-    bool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     return csym->getCustomArrayIndexTypeFor(rnode, idxuti, hasHazyArgs); //checks via classblock in case of inheritance
   } //getAClassCustomArrayIndexType
@@ -1246,7 +1246,7 @@ namespace MFM {
   bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassName * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
-    bool isDefined = (symptr == NULL && !alreadyDefinedSymbolClassName(dataindex, symptr));
+    AssertBool isDefined = (symptr == NULL && !alreadyDefinedSymbolClassName(dataindex, symptr));
     assert(isDefined);
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE);  //"-2" and scalar default
@@ -1273,7 +1273,7 @@ namespace MFM {
   bool CompilerState::addIncompleteClassSymbolToProgramTable(Token cTok, SymbolClassNameTemplate * & symptr)
   {
     u32 dataindex = cTok.m_dataindex;
-    bool isDefined = (symptr == NULL && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
+    AssertBool isDefined = (symptr == NULL && !alreadyDefinedSymbolClassNameTemplate(dataindex,symptr));
     assert(isDefined);
 
     UlamKeyTypeSignature key(dataindex, UNKNOWNSIZE); //"-2" and scalar default
@@ -1315,11 +1315,8 @@ namespace MFM {
     while(it != m_unseenClasses.end())
       {
 	SymbolClassName * cnsym = *it;
-	UTI cuti = cnsym->getUlamTypeIdx();
-	UlamType * cut = getUlamTypeByIndex(cuti);
 	//excludes anonymous classes, only unseen classes with known names
-	ULAMCLASSTYPE classtype = cut->getUlamClass();
-	assert(classtype == UC_UNSEEN);
+	assert(getUlamTypeByIndex(cnsym->getUlamTypeIdx())->getUlamClass() == UC_UNSEEN);
 	{
 	  std::ostringstream fn;
 	  fn << m_pool.getDataAsString(cnsym->getId()).c_str() << ".ulam";
@@ -1339,7 +1336,7 @@ namespace MFM {
     if(alreadyDefinedSymbolClass(incomplete, csym))
       {
 	SymbolClassName * cnsym = NULL;
-	bool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
+	AssertBool isDefined = alreadyDefinedSymbolClassName(csym->getId(), cnsym);
 	assert(isDefined);
 	UTI but = cnsym->getUlamTypeIdx();
 
@@ -1446,7 +1443,7 @@ namespace MFM {
 bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & symptr, bool& hasHazyKin)
   {
     SymbolClass * csym = NULL;
-    bool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     NodeBlockClass * cblock = csym->getClassBlockNode();
     assert(cblock);
@@ -1466,7 +1463,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	if(superuti != Nav)
 	  {
 	    SymbolClass * supercsym = NULL;
-	    bool isDefined = alreadyDefinedSymbolClass(superuti, supercsym);
+	    AssertBool isDefined = alreadyDefinedSymbolClass(superuti, supercsym);
 	    assert(isDefined);
 	    NodeBlockClass * cblock = supercsym->getClassBlockNode();
 	    assert(cblock);
@@ -1843,7 +1840,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       f << "src/";
 
     SymbolClassName * cnsym = NULL;
-    bool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
     assert(isDefined);
     if(cnsym->isClassTemplate())
       {
@@ -2038,9 +2035,9 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	    else
 	      assignValue(nextlptr, atval);
 
-	    bool isNextLeft = nextlptr.incrementPtr(*this);
+	    AssertBool isNextLeft = nextlptr.incrementPtr(*this);
 	    assert(isNextLeft);
-	    bool isNextRight = nextrptr.incrementPtr(*this);
+	    AssertBool isNextRight = nextrptr.incrementPtr(*this);
 	    assert(isNextRight);
 	  }
       }
@@ -2091,10 +2088,10 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   bool CompilerState::quarkHasAToIntMethod(UTI quti)
   {
     SymbolClass * csym = NULL;
-    bool isDefined = alreadyDefinedSymbolClass(quti, csym);
+    AssertBool isDefined = alreadyDefinedSymbolClass(quti, csym);
     assert(isDefined);
 
-    bool isQuark = (getUlamTypeByIndex(csym->getUlamTypeIdx())->getUlamClass() == UC_QUARK);
+    AssertBool isQuark = (getUlamTypeByIndex(csym->getUlamTypeIdx())->getUlamClass() == UC_QUARK);
     assert(isQuark);
     NodeBlockClass * classNode = csym->getClassBlockNode();
     assert(classNode);
@@ -2311,7 +2308,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	UTI mbuti = getCurrentMemberClassBlock()->getNodeType();
 	u32 mbid = getUlamKeyTypeSignatureByIndex(mbuti).getUlamKeyTypeSignatureNameId();
 	SymbolClassName * cnsym = NULL;
-	bool isDefined = alreadyDefinedSymbolClassName(mbid, cnsym);
+	AssertBool isDefined = alreadyDefinedSymbolClassName(mbid, cnsym);
 	assert(isDefined);
 	return cnsym->findNodeNoInAClassInstance(mbuti, n);
       }
@@ -2321,7 +2318,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       return currBlock; //avoid chix-n-egg with functiondefs
 
     SymbolClassName * cnsym = NULL;
-    bool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
     assert(isDefined);
     return cnsym->findNodeNoInAClassInstance(getCompileThisIdx(), n);
   } //findNodeNoInThisClass
@@ -2330,7 +2327,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   {
     u32 cid = getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId();
     SymbolClassName * cnsym = NULL;
-    bool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
+    AssertBool isDefined = alreadyDefinedSymbolClassName(cid, cnsym);
     assert(isDefined);
     return cnsym->findNodeNoInAClassInstance(cuti, n);
   } //findNodeNoInAClass
@@ -2343,7 +2340,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   NodeBlockClass * CompilerState::getAClassBlock(UTI cuti)
   {
     SymbolClass * csym = NULL;
-    bool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     return csym->getClassBlockNode();
   } //getAClassBlock
@@ -2351,7 +2348,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   NNO CompilerState::getAClassBlockNo(UTI cuti)
   {
     SymbolClass * csym = NULL;
-    bool isDefined = alreadyDefinedSymbolClass(cuti, csym);
+    AssertBool isDefined = alreadyDefinedSymbolClass(cuti, csym);
     assert(isDefined);
     return csym->getClassBlockNode()->getNodeNo();
   } //getAClassBlockNo
@@ -2359,7 +2356,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   u32 CompilerState::getCompileThisId()
   {
     ClassContext cc;
-    bool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getCompileThisId();
   }
@@ -2367,7 +2364,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   UTI CompilerState::getCompileThisIdx()
   {
     ClassContext cc;
-    bool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getCompileThisIdx();
   }
@@ -2388,7 +2385,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   NodeBlock * CompilerState::getCurrentBlock()
   {
     ClassContext cc;
-    assert(m_classContextStack.getCurrentClassContext(cc));
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    assert(isDefined);
     return cc.getCurrentBlock();
   } //getCurrentBlock
 
@@ -2403,7 +2401,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   NodeBlockClass * CompilerState::getClassBlock()
   {
     ClassContext cc;
-    bool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getClassBlock();
   }
@@ -2411,7 +2409,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   NNO CompilerState::getClassBlockNo()
   {
     ClassContext cc;
-    bool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     if(cc.getClassBlock())
       return cc.getClassBlock()->getNodeNo();
@@ -2429,7 +2427,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   NodeBlockClass * CompilerState::getCurrentMemberClassBlock()
   {
     ClassContext cc;
-    bool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getCurrentMemberClassBlock();
   }
@@ -2449,7 +2447,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   void CompilerState::pushCurrentBlock(NodeBlock * currblock)
   {
     ClassContext cc;
-    bool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     cc.setCurrentBlock(currblock); //could be NULL
     m_classContextStack.pushClassContext(cc);
@@ -2458,7 +2456,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   void CompilerState::pushCurrentBlockAndDontUseMemberBlock(NodeBlock * currblock)
   {
     ClassContext cc;
-    bool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     cc.setCurrentBlock(currblock);
     cc.useMemberBlock(false);
@@ -2468,7 +2466,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   void CompilerState::pushClassContextUsingMemberClassBlock(NodeBlockClass * memberblock)
   {
     ClassContext cc;
-    bool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     cc.setCurrentMemberClassBlock(memberblock);
     cc.useMemberBlock(true);
@@ -2478,7 +2476,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   std::string CompilerState::getClassContextAsStringForDebugging()
   {
     ClassContext cc;
-    bool isDefined = m_classContextStack.getCurrentClassContext(cc);
+    AssertBool isDefined = m_classContextStack.getCurrentClassContext(cc);
     assert(isDefined);
     return cc.getClassContextAsString();
   }

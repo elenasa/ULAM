@@ -22,7 +22,7 @@ namespace MFM {
 	    u32 pid = sref.m_parameterSymbols[i]->getId();
 	    Symbol * sym = NULL; //NOT here: sref.m_parameterSymbols[i]->clone();
 	    bool hazyKin = false; //don't care?
-	    bool isDefined = m_state.alreadyDefinedSymbol(pid, sym, hazyKin);
+	    AssertBool isDefined = m_state.alreadyDefinedSymbol(pid, sym, hazyKin);
 	    assert(isDefined);
 	    m_parameterSymbols.push_back(sym);
 	  }
@@ -415,7 +415,8 @@ namespace MFM {
     assert(func); //how would a function symbol be without a body?
 
     //up to programmer to define this function!!!
-    assert(declOnly && !func->isNative());
+    AssertBool virtualNonNative = (declOnly && !func->isNative());
+    assert(virtualNonNative);
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
 

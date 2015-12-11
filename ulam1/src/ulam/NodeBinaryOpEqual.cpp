@@ -366,9 +366,9 @@ namespace MFM {
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
 
-	bool isNextLeft = lp.incrementPtr(m_state);
+	AssertBool isNextLeft = lp.incrementPtr(m_state);
 	assert(isNextLeft);
-	bool isNextRight = rp.incrementPtr(m_state);
+	AssertBool isNextRight = rp.incrementPtr(m_state);
 	assert(isNextRight);
       } //forloop
 

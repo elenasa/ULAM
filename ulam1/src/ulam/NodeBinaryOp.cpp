@@ -352,7 +352,17 @@ namespace MFM {
     else //could be Unsigned or Int, not Bits
       assert(rtypEnum == Unsigned || rtypEnum == Int);
 
-    assert(lwordsize == rwordsize);
+    if(lwordsize != rwordsize)
+      {
+	std::ostringstream msg;
+	msg << "Word sizes incompatible for types ";
+	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	msg << " for binary operator";
+	msg << getName() << " ; Suggest a cast";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	assert(0);
+      }
 
     // adjust for mixed sign and unsigned types
     if(ltypEnum != rtypEnum && (ltypEnum == Int || rtypEnum == Int))
@@ -398,7 +408,18 @@ namespace MFM {
 	if(rut->isNumericType()) //i.e. a quark
 	  rwordsize = rbs = MAXBITSPERINT; //32
       }
-    assert(lwordsize == rwordsize);
+
+    if(lwordsize != rwordsize)
+      {
+	std::ostringstream msg;
+	msg << "Word sizes incompatible for types ";
+	msg << m_state.getUlamTypeNameBriefByIndex(lt).c_str();
+	msg << " and " << m_state.getUlamTypeNameBriefByIndex(rt).c_str();
+	msg << " for binary operator";
+	msg << getName() << " ; Suggest a cast";
+	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	assert(0);
+      }
   } //resultBitsizeCalcInBits
 
   void NodeBinaryOp::countNavNodes(u32& cnt)
@@ -456,7 +477,7 @@ namespace MFM {
     Node * parentNode = m_state.findNodeNoInThisClass(pno);
     assert(parentNode);
 
-    bool swapOk = parentNode->exchangeKids(this, newnode);
+    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
     assert(swapOk);
 
     std::ostringstream msg;
@@ -596,9 +617,9 @@ namespace MFM {
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
 
-	bool isNextLeft = lp.incrementPtr(m_state);
+	AssertBool isNextLeft = lp.incrementPtr(m_state);
 	assert(isNextLeft);
-	bool isNextRight = rp.incrementPtr(m_state);
+	AssertBool isNextRight = rp.incrementPtr(m_state);
 	assert(isNextRight);
       } //forloop
 
@@ -642,14 +663,15 @@ namespace MFM {
 
     UTI luti = luvpass.getUlamValueTypeIdx();
     assert(luti == Ptr);
-
-    fp->write(m_state.getTmpVarAsString(luvpass.getPtrTargetType(), luvpass.getPtrSlotIndex()).c_str());
+    luti = luvpass.getPtrTargetType();
+    fp->write(m_state.getTmpVarAsString(luti, luvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(ruti == Ptr);
-    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+    ruti = ruvpass.getPtrTargetType();
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
 

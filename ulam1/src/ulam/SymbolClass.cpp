@@ -396,7 +396,7 @@ namespace MFM {
     if(!rtnb && getSuperClass() != Nav)
       {
 	SymbolClass * csym = NULL;
-	bool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
 	assert(isDefined);
 	return (csym->hasMappedUTI(auti, mappedUTI));
       }
@@ -890,7 +890,7 @@ namespace MFM {
     if(getSuperClass() != Nav)
       {
 	SymbolClass * csym = NULL;
-	bool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
 	assert(isDefined);
 	//copy superclass' VTable
 	for(s32 i = 0; i < initialmax; i++)

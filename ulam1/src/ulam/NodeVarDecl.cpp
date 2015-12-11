@@ -356,7 +356,7 @@ namespace MFM {
 	  {
 	    //must be a local quark!
 	    u32 dq = 0;
-	    bool isDefinedQuark = m_state.getDefaultQuark(nuti, dq);
+	    AssertBool isDefinedQuark = m_state.getDefaultQuark(nuti, dq);
 	    assert(isDefinedQuark);
 	    if(m_state.isScalar(nuti))
 	      {

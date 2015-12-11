@@ -143,12 +143,13 @@ namespace MFM {
     m_nodeRight->genCode(fp, ruvpass);
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(ruti == Ptr);
+    ruti = ruvpass.getPtrTargetType();
 
     //set node's tmp var to whatever rhs value
     m_state.indent(fp);
     fp->write(m_state.getTmpVarAsString(nuti,tmpVarNum).c_str());
     fp->write(" = ");
-    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
     fp->write(";\n");
 
     m_state.m_currentIndentLevel--;

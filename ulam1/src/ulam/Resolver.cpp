@@ -123,7 +123,7 @@ namespace MFM {
   {
     NodeBlockClass * classblock = mycsym->getClassBlockNode();
     SymbolClass * contextSym = NULL;
-    bool isDefined = m_state.alreadyDefinedSymbolClass(context,contextSym);
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(context,contextSym);
     assert(isDefined);
 
     std::vector<NodeConstantDef *>::const_iterator vit = rslvr.m_nonreadyClassArgSubtrees.begin();
@@ -134,7 +134,7 @@ namespace MFM {
 	NodeConstantDef * cloneNode = new NodeConstantDef(*ceNode);
 
 	Symbol * cvsym = NULL;
-	bool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
+	AssertBool isDefined = classblock->isIdInScope(cloneNode->getSymbolId(), cvsym);
 	assert(isDefined);
 	cloneNode->setSymbolPtr((SymbolConstantValue *) cvsym);
 
@@ -182,7 +182,7 @@ namespace MFM {
       {
 	//sanity check please..
 	UTI checkuti;
-	bool isMapped = findMappedUTI(fmuti,checkuti);
+	AssertBool isMapped = findMappedUTI(fmuti,checkuti);
 	assert(isMapped);
 	assert(checkuti == touti);
       }

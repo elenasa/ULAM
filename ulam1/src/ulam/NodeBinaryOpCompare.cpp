@@ -233,9 +233,9 @@ namespace MFM {
 	    //cp result UV to stack, -1 (first array element deepest) relative to current frame pointer
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
-	bool isNextLeft = lp.incrementPtr(m_state);
+	AssertBool isNextLeft = lp.incrementPtr(m_state);
 	assert(isNextLeft);
-	bool isNextRight = rp.incrementPtr(m_state);
+	AssertBool isNextRight = rp.incrementPtr(m_state);
 	assert(isNextRight);
       } //forloop
 
@@ -284,7 +284,8 @@ namespace MFM {
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(ruti == Ptr);
-    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+    ruti = ruvpass.getPtrTargetType(); //reset
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
 

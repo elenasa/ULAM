@@ -43,7 +43,7 @@ namespace MFM {
     rtnValue.setAtomElementTypeIdx(elementType);
 
     SymbolClass * csym = NULL;
-    bool isDefined = state.alreadyDefinedSymbolClass(elementType, csym);
+    AssertBool isDefined = state.alreadyDefinedSymbolClass(elementType, csym);
     assert(isDefined);
     NodeBlockClass * cblock = csym->getClassBlockNode();
     assert(cblock);
@@ -225,7 +225,7 @@ namespace MFM {
 
     UlamValue scalarPtr = UlamValue::makeScalarPtr(*this, state);
 
-    bool isNext = scalarPtr.incrementPtr(state, offset); //incr appropriately by packed-ness
+    AssertBool isNext = scalarPtr.incrementPtr(state, offset); //incr appropriately by packed-ness
     assert(isNext);
     UlamValue atval = state.getPtrTarget(scalarPtr);
 
@@ -533,11 +533,9 @@ namespace MFM {
   u32 UlamValue::getImmediateQuarkData(s32 len) const
   {
     UTI utype = getUlamValueTypeIdx();
-    assert(utype != UAtom);
-    assert(utype != Ptr);
-    assert(utype != Nav);
+    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav));
+    assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERINT);
-
     return getData(ATOMFIRSTSTATEBITPOS, len);
   } //getImmediateQuarkData const
 
@@ -556,11 +554,9 @@ namespace MFM {
   u64 UlamValue::getImmediateDataLong(s32 len) const
   {
     UTI utype = getUlamValueTypeIdx();
-    assert(utype != UAtom);
-    assert(utype != Ptr);
-    assert(utype != Nav);
+    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav));
+    assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERLONG);
-
     return getDataLong(BITSPERATOM - len, len);
   } //getImmediateDataLong const
 
@@ -570,7 +566,8 @@ namespace MFM {
     // apparently amused by other types..
     UTI duti = data.getUlamValueTypeIdx();
     UTI puti = p.getPtrTargetType();
-    assert((UlamType::compare(duti, puti, state) == UTIC_SAME) || (UlamType::compare(getUlamValueTypeIdx(), puti, state))); //ALL-PURPOSE!
+    AssertBool comparesOk = (UlamType::compare(duti, puti, state) == UTIC_SAME) || (UlamType::compare(getUlamValueTypeIdx(), puti, state));
+    assert(comparesOk); //ALL-PURPOSE!
 
     if(p.isTargetPacked() == PACKED)
       {
@@ -649,7 +646,7 @@ namespace MFM {
 	    u64 datavalue = data.getDataLong((BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
 	    putDataLong(nextPPtr.getPtrPos(), nextPPtr.getPtrLen(), datavalue);
 	  }
-	bool isNext = nextPPtr.incrementPtr(state);
+	AssertBool isNext = nextPPtr.incrementPtr(state);
 	assert(isNext);
       }
   } //putPackedArrayDataIntoAtom
