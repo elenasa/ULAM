@@ -37,10 +37,11 @@ namespace MFM {
 
   void Compiler::clearClassMembersMap(ClassMemberMap & cmm)
   {
-    for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
+    for(ClassMemberMap::iterator i = cmm.begin(); i != cmm.end(); ++i)
       {
-	delete (i->second); //cannot be null
-	//i->second = NULL; //read-only
+	struct ClassMemberDesc * val = (i->second);
+	delete val; //cannot be null
+	i->second = NULL; //read-only
       }
     cmm.clear();
   } //clearClassMembersMap

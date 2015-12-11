@@ -1906,13 +1906,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
-    if(m_state.isClassASubclass(getNodeType()))
-      {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superClassBlock);
-	superClassBlock->addClassMemberDescriptionsToInfoMap(classmembers);
-      }
-
     NodeBlock::addClassMemberDescriptionsToInfoMap(classmembers); //Table of Classes request
     m_functionST.addClassMemberFunctionDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
   } //addClassMemberDescriptionsToInfoMap
