@@ -1536,7 +1536,7 @@ namespace MFM {
     // with immediate quarks, they are read into a tmpreg as other immediates
     // with immediate elements, too!  value not a terminal
     // aset requires its custom array type (e.g. an atom) as its value:
-    assert(cosclasstype != UC_NOTACLASS);
+    assert(m_state.getUlamTypeByIndex(cosuti)->getUlamClass() != UC_NOTACLASS);
     UTI catype = m_state.getAClassCustomArrayType(cosuti);
     fp->write(m_state.getUlamTypeByIndex(catype)->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32> exception
     fp->write("(");
