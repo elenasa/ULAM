@@ -214,9 +214,8 @@ namespace MFM {
     u32 id = m_pool.getIndexForNumberAsString(cuti);
 
     UlamKeyTypeSignature ackey(id, UNKNOWNSIZE, NONARRAYSIZE, cuti);
-    UTI cuti2 = makeUlamTypeFromHolder(ackey, Class, cuti);
-    assert(cuti2 == cuti); //keeps same uti
-    cuti = cuti2;
+    AssertBool isCutie = (makeUlamTypeFromHolder(ackey, Class, cuti) == cuti);
+    assert(isCutie); //keeps same uti
 
     if(!m_programDefST.isInTable(id, (Symbol *&) cnsym))
       {
