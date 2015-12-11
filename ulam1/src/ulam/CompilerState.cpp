@@ -65,6 +65,7 @@ namespace MFM {
   CompilerState::CompilerState(): m_programDefST(*this), m_currentFunctionBlockDeclSize(0), m_currentFunctionBlockMaxDepth(0), m_parsingControlLoop(0), m_gotStructuredCommentToken(false), m_parsingConditionalAs(false), m_genCodingConditionalHas(false), m_eventWindow(*this), m_goAgainResolveLoop(false), m_currentSelfSymbolForCodeGen(NULL), m_nextTmpVarNumber(0), m_nextNodeNumber(0)
   {
     m_err.init(this, debugOn, infoOn, warnOn, NULL);
+    Token::initTokenMap(*this);
   }
 
   CompilerState::~CompilerState()

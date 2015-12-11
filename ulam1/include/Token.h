@@ -73,11 +73,19 @@ namespace MFM{
 
     ~Token();
 
+    static void initTokenMap(CompilerState & state);
+
     void init(TokenType t, Locator l, u32 d);
 
+    u32 getTokenStringId();
+    u32 getTokenEnumNameId();
+
+    const char * getTokenString();
+    const char * getTokenEnumName();
+
     const std::string getTokenStringFromPool(CompilerState * state);
-    const std::string getTokenEnumNameFromPool(CompilerState * state);
     static const std::string getTokenAsStringFromPool(TokenType ttype, CompilerState * state);
+    const std::string getTokenEnumNameFromPool(CompilerState * state);
 
     static SpecialTokenWork getSpecialTokenWork(TokenType ttype);
     static TokenType getTokenTypeFromString(const char * aname);
@@ -92,8 +100,6 @@ namespace MFM{
     void print(File * fp, CompilerState * state);
 
   private:
-    const char * getTokenString();
-    const char * getTokenEnumName();
   };
 }
 
