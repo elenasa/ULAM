@@ -1557,7 +1557,8 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       {
 	return m_pool.getDataAsString(tok->m_dataindex);
       }
-    return std::string(tok->getTokenString());
+    //return std::string(tok->getTokenString()); //VG: Invalid Read
+    return tok->getTokenStringFromPool(this);
   }
 
   std::string CompilerState::getDataAsStringMangled(u32 dataindex)
@@ -1575,7 +1576,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
       {
 	if((Token::getSpecialTokenWork(tok.m_type) == TOKSP_TYPEKEYWORD))
 	  {
-	    return std::string(Token::getTokenAsString(tok.m_type));
+	    return tok.getTokenStringFromPool(this);
 	  }
 	else
 	  {

@@ -226,8 +226,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for data member (";
-	    msg << getName() << " = ";
-	    msg << m_nodeInitExpr->getName();
+	    msg << getName() << " = " << m_nodeInitExpr->getName();
 	    msg << ") initialization is not representable as ";
 	    msg<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    if(scr == CAST_BAD)

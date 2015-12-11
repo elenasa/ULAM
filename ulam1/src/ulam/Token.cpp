@@ -1,4 +1,3 @@
-#include <string.h>
 #include "Token.h"
 #include "CompilerState.h"
 
@@ -50,14 +49,32 @@ namespace MFM {
     return tok_string[m_type];
   }
 
+  const std::string Token::getTokenStringFromPool(CompilerState * state)
+  {
+    assert(state);
+    std::string s(tok_string[m_type]);
+    u32 si = state->m_pool.getIndexForDataString(s);
+    return state->m_pool.getDataAsString(si);
+  }
+
+  const std::string Token::getTokenAsStringFromPool(TokenType ttype, CompilerState * state)
+  {
+    assert(state);
+    std::string s(tok_string[ttype]);
+    u32 si = state->m_pool.getIndexForDataString(s);
+    return state->m_pool.getDataAsString(si);
+  } //static
+
   const char * Token::getTokenEnumName()
   {
     return tok_name[m_type];
   }
 
-  const char *  Token::getTokenAsString(TokenType ttype)
+  const std::string Token::getTokenEnumNameFromPool(CompilerState * state)
   {
-    return  tok_string[ttype];
+    std::string s(tok_name[m_type]);
+    u32 si = state->m_pool.getIndexForDataString(s);
+    return state->m_pool.getDataAsString(si);
   }
 
   SpecialTokenWork Token::getSpecialTokenWork(TokenType ttype)

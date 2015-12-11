@@ -164,11 +164,11 @@ namespace MFM {
 	msg << "Invalid Class Type <";
 	msg << m_state.getTokenDataAsString(&pTok).c_str();
 	msg << ">; KEYWORD should be '";
-	msg << Token::getTokenAsString(TOK_KW_ELEMENT);
+	msg << Token::getTokenAsStringFromPool(TOK_KW_ELEMENT, &m_state).c_str();
 	msg << "', '";
-	msg << Token::getTokenAsString(TOK_KW_QUARK);
+	msg << Token::getTokenAsStringFromPool(TOK_KW_QUARK, &m_state).c_str();
 	msg << "', or '";
-	msg << Token::getTokenAsString(TOK_KW_QUARKUNION);
+	msg << Token::getTokenAsStringFromPool(TOK_KW_QUARKUNION, &m_state).c_str();
 	msg << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	m_state.clearStructuredCommentToken();
@@ -1971,7 +1971,7 @@ namespace MFM {
 	  {
 	    unreadToken(); //put dot back, minof or maxof perhaps?
 	    std::ostringstream msg;
-	    msg << "Unexpected input!! Token <" << args.m_typeTok.getTokenEnumName();
+	    msg << "Unexpected input!! Token <" << args.m_typeTok.getTokenEnumNameFromPool(&m_state).c_str();
 	    msg << "> is not a 'seen' class type: <";
 	    msg << m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">";
 	    MSG(&args.m_typeTok, msg.str().c_str(), DEBUG);
@@ -1991,7 +1991,7 @@ namespace MFM {
 		  {
 		    unreadToken(); //put dot back, minof or maxof perhaps?
 		    std::ostringstream msg;
-		    msg << "Unexpected input!! Token <" << args.m_typeTok.getTokenEnumName();
+		    msg << "Unexpected input!! Token <" << args.m_typeTok.getTokenEnumNameFromPool(&m_state).c_str();
 		    msg << "> is not a 'seen' class typedef <";
 		    msg << m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">";
 		    MSG(&args.m_typeTok, msg.str().c_str(), DEBUG);
@@ -3980,9 +3980,9 @@ namespace MFM {
     if(!Token::isTokenAType(tTok))
       {
 	std::ostringstream msg;
-	msg << "Right operand of conditional-" << fTok.getTokenString();
+	msg << "Right operand of conditional-" << fTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is not a Type: ";
-	msg << tTok.getTokenString() << "; Operation deleted";
+	msg << tTok.getTokenStringFromPool(&m_state).c_str() << "; Operation deleted";
 	MSG(&tTok, msg.str().c_str(), ERR);
 	delete leftNode;
 	m_state.m_parsingConditionalAs = false;
@@ -3994,8 +3994,8 @@ namespace MFM {
     if(!m_state.isScalar(cuti))
       {
 	std::ostringstream msg;
-	msg << "Right operand of conditional-" << fTok.getTokenString() << " is an array: ";
-	msg << tTok.getTokenString() << "; Operation deleted";
+	msg << "Right operand of conditional-" << fTok.getTokenStringFromPool(&m_state).c_str() << " is an array: ";
+	msg << tTok.getTokenStringFromPool(&m_state).c_str() << "; Operation deleted";
 	MSG(&tTok, msg.str().c_str(), ERR);
 	delete leftNode;
 	m_state.m_parsingConditionalAs = false;
@@ -4042,7 +4042,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Assignment deleted";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	delete leftNode;
@@ -4098,7 +4098,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4139,7 +4139,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4183,7 +4183,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4224,7 +4224,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4271,7 +4271,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4312,7 +4312,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4353,7 +4353,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4397,7 +4397,7 @@ namespace MFM {
     if(!factorNode)
       {
 	std::ostringstream msg;
-	msg << "Factor is missing; Unary operation " << pTok.getTokenString() << " deleted";
+	msg << "Factor is missing; Unary operation " << pTok.getTokenStringFromPool(&m_state).c_str() << " deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	return NULL;
       }
@@ -4569,8 +4569,8 @@ namespace MFM {
 	if(!quietly)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unexpected token <" << pTok.getTokenEnumName() << ">; Expected ";
-	    msg << Token::getTokenAsString(eTokType);
+	    msg << "Unexpected token <" << pTok.getTokenEnumNameFromPool(&m_state).c_str() << ">; Expected ";
+	    msg << Token::getTokenAsStringFromPool(eTokType, &m_state).c_str();
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
 	brtn = false;
