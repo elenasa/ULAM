@@ -709,6 +709,19 @@ namespace MFM {
     return;
   } //calcMaxIndexForVirtualTableOfFunctions
 
+  void SymbolTable::checkAbstractInstanceErrorsAcrossTableOfFunctions()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isFunction());
+	((SymbolFunctionName *) sym)->checkAbstractInstanceErrorsInFunctions();
+	it++;
+      }
+    return;
+  } //checkAbstractInstanceErrorsAcrossTableOfFunctions
+
   //called by current Class block on its function ST
   bool SymbolTable::checkCustomArrayTypeFuncs()
   {

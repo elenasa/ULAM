@@ -1,7 +1,7 @@
 ## -*- mode:ulam -*-
 #=t3112_test_compiler_funcdecl_incomplete_error
 #!
-./D.ulam:1:36: ERROR: Unexpected input!! Token <;> after function declaration.
+./D.ulam:1:36: ERROR: Unexpected input!! Token <;> after non-virtual function declaration.
 Unrecoverable Program Parse FAILURE.
 ##
 #>D.ulam

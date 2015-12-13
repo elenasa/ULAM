@@ -3588,6 +3588,7 @@ namespace MFM {
 	    msg << "Pure Virtual Function <" << funcNode->getName() << ">";
 	    MSG(&qTok, msg.str().c_str(), INFO);
 
+	    unreadToken();
 	    brtn = true;
 	  }
 	else

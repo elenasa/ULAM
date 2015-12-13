@@ -324,6 +324,20 @@ namespace MFM {
     return;
   } //calcMaxIndexOfVirtualFunctions
 
+  void SymbolFunctionName::checkAbstractInstanceErrorsInFunctions()
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func); //how would a function symbol be without a body?
+	func->checkAbstractInstanceErrors();
+	++it;
+      }
+    return;
+  } //checkAbstractInstanceErrorsInFunctions
+
   // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
   u32 SymbolFunctionName::checkFunctionNames()
   {

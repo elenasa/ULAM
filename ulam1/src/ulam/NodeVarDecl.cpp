@@ -66,6 +66,7 @@ namespace MFM {
 	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    msg << " used with variable symbol name '" << getName() << "'";
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
 	  }
       }
   } //checkAbstractInstanceErrors

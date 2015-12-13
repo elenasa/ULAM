@@ -73,6 +73,13 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeBlockClass::checkAbstractInstanceErrors()
+  {
+    NodeBlock::checkAbstractInstanceErrors();
+    if(!isEmpty())
+      m_functionST.checkAbstractInstanceErrorsAcrossTableOfFunctions();
+  } //checkAbstractInstanceErrors
+
   void NodeBlockClass::setNodeLocation(Locator loc)
   {
     if(m_nodeParameterList)
@@ -1513,6 +1520,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	if(i > 0)
 	  fp->write(",\n");
+
+	if(csym->isPureVTableEntry(i))
+	  {
+	    fp->write("&UlamClass<EC>::PureVirtualFunctionCalled");
+	    continue;
+	  }
+
 	UTI veuti = csym->getClassForVTableEntry(i);
 	UlamType * veut = m_state.getUlamTypeByIndex(veuti);
 	ULAMCLASSTYPE veclasstype = veut->getUlamClass();

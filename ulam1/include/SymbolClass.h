@@ -133,6 +133,7 @@ namespace MFM{
     void initVTable(s32 initialmax);
     void updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure);
     VT& getVTableRef();
+    bool isPureVTableEntry(u32 idx);
     UTI getClassForVTableEntry(u32 idx);
     std::string getMangledFunctionNameForVTableEntry(u32 idx);
     std::string getMangledFunctionNameWithTypesForVTableEntry(u32 idx);

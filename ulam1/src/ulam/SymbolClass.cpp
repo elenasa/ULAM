@@ -926,6 +926,12 @@ namespace MFM {
     return m_vtable;
   }
 
+  bool SymbolClass::isPureVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_isPure;
+  }
+
   UTI SymbolClass::getClassForVTableEntry(u32 idx)
   {
     assert(idx < m_vtable.size());
@@ -941,6 +947,7 @@ namespace MFM {
   std::string SymbolClass::getMangledFunctionNameWithTypesForVTableEntry(u32 idx)
   {
     assert(idx < m_vtable.size());
+    assert(!m_vtable[idx].m_isPure);
     return m_vtable[idx].m_funcPtr->getMangledNameWithTypes();
   }
 

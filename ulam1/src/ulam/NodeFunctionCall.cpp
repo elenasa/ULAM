@@ -471,6 +471,17 @@ namespace MFM {
 		assert(0);
 	      }
 
+	    if(funcSymbol->isPureVirtualFunction())
+	      {
+		std::ostringstream msg;
+		msg << "Virtual function <" << funcSymbol->getMangledNameWithTypes().c_str();
+		msg << "> is pure; cannot be called";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		m_state.popClassContext(); //restore here
+		evalNodeEpilog();
+		return ERROR;
+	      }
+
 	    m_state.popClassContext(); //restore here
 
 	    func = funcSymbol->getFunctionNode(); //replace with virtual function def!!!

@@ -1,0 +1,86 @@
+## -*- mode:ulam -*-
+#=t3607_test_compiler_elementinheritedquark_purevirtualfunc_error
+##
+##
+#!
+./Foo.ulam:5:3: ERROR: Instance of Abstract Class QSubBase1 used with variable symbol name 'm1'.
+./Foo.ulam:5:3: ERROR: Unresolved No.1.
+./Foo.ulam:4:9: ERROR: 1 data members with unresolved types remain.
+./Foo.ulam:4:9: Warning: 1 data member nodes with unresolved types remain in class 'Foo'.
+./Test.ulam:4:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Test.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3606
+##
+#:QMemBase.ulam
+  ulam 2;
+quark QMemBase {
+  Int(3) bmem;
+  Int func() {
+    return vfunc();
+  }
+  virtual Int vfunc(); //pure
+}
+
+#:QSubBase1.ulam
+  ulam 2;
+use QMemBase;
+quark QSubBase1 : QMemBase
+{
+  //virtual Int vfunc() {
+  //  bmem = 1;
+  //  return 3;
+  // }
+}
+
+#:QSubBase2.ulam
+  ulam 2;
+use QMemBase;
+quark QSubBase2 : QMemBase {
+  virtual Int vfunc() {
+    bmem = 2;
+    return 4;
+  }
+}
+
+#:Foo.ulam
+  ulam 2;
+use QSubBase1;
+use QSubBase2;
+element Foo {
+  QSubBase1 m1;
+  QSubBase2 m2;
+}
+
+#>Test.ulam
+  ulam 2;
+use Foo;
+use System;
+element Test : System {
+  Bool brtn[4];
+  Int test() {
+    Foo f; //the local element
+    brtn[0] = (f.m1.func() == 3);
+    assert(brtn[0]);
+    brtn[1] = (f.m2.func() == 4);
+    assert(brtn[1]);
+    brtn[2] = (f.m1.bmem == 1);
+    assert(brtn[2]);
+    brtn[3] = (f.m2.bmem == 2);
+    assert(brtn[3]);
+    return 0;
+  }
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.

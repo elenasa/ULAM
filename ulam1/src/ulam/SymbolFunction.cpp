@@ -322,7 +322,7 @@ namespace MFM {
     assert(func); //how would a function symbol be without a body?
 
     //up to programmer to define this function!!!
-    if(!declOnly && func->isNative())
+    if(!declOnly && (func->isNative() || (isVirtualFunction() && isPureVirtualFunction())))
       return;
 
     m_state.outputTextAsComment(fp, func->getNodeLocation());
