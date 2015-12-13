@@ -395,29 +395,32 @@ namespace MFM {
 
     if(declOnly)
       {
-	if(func->isNative())
-	  fp->write("; //native\n\n");
+	if(isVirtualFunction())
+	  {
+	    fp->write("; //virtual");
+	    if(func->isNative())
+	      fp->write(", native");
+	    fp->write("\n\n");
+	  }
 	else
 	  {
-	    if(isVirtualFunction())
-	      fp->write("; //virtual\n\n");
+	    fp->write(" const"); //quark and element functions (incl natives) are const, not c++ static
+	    if(func->isNative())
+	      fp->write("; //native\n\n");
 	    else
-	      {
-		fp->write(" const"); //quark and element functions are const, not static
-		fp->write(";\n\n");
-	      }
+	      fp->write(";\n\n");
 	  }
       }
     else
       {
 	if(!isVirtualFunction())
-	  fp->write(" const"); //quark and element functions are const, not static
+	  fp->write(" const"); //quark and element functions (incl natives) are const, not c++ static
 
 	UlamValue uvpass;
 	func->genCode(fp, uvpass);
       }
 
-    if(declOnly && !func->isNative() && isVirtualFunction())
+    if(declOnly && isVirtualFunction()) //can be native too
       generateFunctionDeclarationVirtualTypedef(fp, declOnly, classtype);
   } //generateFunctionDeclaration
 
@@ -425,10 +428,7 @@ namespace MFM {
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func); //how would a function symbol be without a body?
-
-    //up to programmer to define this function!!!
-    AssertBool virtualNonNative = (declOnly && !func->isNative());
-    assert(virtualNonNative);
+                  //natives may also be virtuals.
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
 
