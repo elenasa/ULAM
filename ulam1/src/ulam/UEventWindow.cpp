@@ -9,18 +9,15 @@ namespace MFM {
     init();
   }
 
-
   UEventWindow::~UEventWindow()
   {
     //clear();
   }
 
-
   void UEventWindow::clear()
   {
     m_diamondOfSites.clear();
   }
-
 
   void UEventWindow::init()
   {
@@ -70,7 +67,7 @@ namespace MFM {
 	k--;
       }
     assert(count == shouldTotal);
-  }
+  } //init
 
   //tests and converts index to valid coords, preferred way to do conversion
   bool UEventWindow::isValidSite(u32 index, Coord& c)
@@ -82,14 +79,12 @@ namespace MFM {
 	rtnB = isValidSite(c);
       }
     return rtnB;
-  }
-
+  } //isValidSite
 
   bool UEventWindow::isValidSite(Coord c)
   {
     return (((c.x + c.y) >= -MAXMANHATTANDIST) && ((c.x + c.y) <= MAXMANHATTANDIST));
   }
-
 
   bool UEventWindow::getSite(Coord c, USite* & sref)
   {
@@ -101,8 +96,7 @@ namespace MFM {
 	rtnB = true;
       }
     return rtnB;
-  }
-
+  } //getSite
 
   UTI UEventWindow::getSiteElementType(u32 index) //passes through to AtomValue at site
   {
@@ -112,10 +106,8 @@ namespace MFM {
     USite * s;
     if(getSite(c,s))
       uti = s->getElementTypeNumber();
-
     return uti;
-  }
-
+  } //getSiteElementType
 
   void UEventWindow::setSiteElementType(u32 index, UTI type)
   {
@@ -124,7 +116,6 @@ namespace MFM {
     setSiteElementType(c,type);
   }
 
-
   void UEventWindow::setSiteElementType(Coord c, UTI type)
   {
     USite * s;
@@ -132,28 +123,23 @@ namespace MFM {
       s->setElementTypeAndDefaults(type, m_state);
   }
 
-
   bool UEventWindow::isSiteLive(Coord c)
   {
     USite * s;
     if(getSite(c,s))
       return s->isSiteLive();
-
     //error site doesn't exist
     return false;
-  }
-
+  } //isSiteLive
 
   void UEventWindow::setSiteLive(Coord c, bool b)
   {
     USite * s;
     if(getSite(c,s))
       s->setSiteLive(b);
-
     //error site doesn't exist
     assert(0);
-  }
-
+  } //setSiteLive
 
   UlamValue UEventWindow::loadAtomFromSite(u32 index) //converts index into 2D coord, returns Atom
   {
@@ -165,8 +151,7 @@ namespace MFM {
 
     //error!
     return UlamValue();  //Nav
-  }
-
+  } //loadAtomFromSite
 
   bool UEventWindow::storeAtomIntoSite(u32 index, UlamValue uv)
   {
@@ -174,7 +159,6 @@ namespace MFM {
     assert(isValidSite(index, c));
     return storeAtomIntoSite(c,uv);
   }
-
 
   bool UEventWindow::storeAtomIntoSite(Coord c, UlamValue v)
   {
@@ -187,8 +171,7 @@ namespace MFM {
       }
     //error!
     return rtnB;
-  }
-
+  } //storeAtomIntoSite
 
   void UEventWindow::assignUlamValue(UlamValue pluv, UlamValue ruv)
   {
@@ -218,21 +201,19 @@ namespace MFM {
 	    stored = storeAtomIntoSite(leftindex, lvalAtIdx);
 	  }
       }
-    assert(stored);
-  }
-
+    AssertBool isStored = stored;
+    assert(isStored);
+  } //assignUlamValue
 
   void UEventWindow::assignUlamValuePtr(UlamValue pluv, UlamValue puv)
   {
     assert(0); //invalid assignment
   }
 
-
   UlamValue UEventWindow::makePtrToCenter()
   {
     return makePtrToSite(Coord(0,0));
   }
-
 
   UlamValue UEventWindow::makePtrToSite(Coord c)
   {
@@ -240,6 +221,5 @@ namespace MFM {
     UlamValue ptr = UlamValue::makePtr(cidx, EVENTWINDOW, getSiteElementType(cidx), UNPACKED, m_state);
     return ptr;
   }
-
 
 } //MFM

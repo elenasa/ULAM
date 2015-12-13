@@ -73,7 +73,7 @@ namespace MFM {
 	Symbol * oldsym = it->second;
 	assert(oldsym == s);
 	m_idToSymbolPtr.erase(it);
-	addToTable(newid, s);
+	addToTable(newid, oldsym);
       }
     else
       {
@@ -388,10 +388,12 @@ namespace MFM {
 		    if(m_state.isScalar(suti))
 		      {
 			SymbolClass * csym = NULL;
-			assert(m_state.alreadyDefinedSymbolClass(suti, csym));
+			AssertBool isDefined = m_state.alreadyDefinedSymbolClass(suti, csym);
+			assert(isDefined);
 
 			u32 qval = 0;
-			assert(csym->getDefaultQuark(qval));
+			AssertBool isDefinedQuark = csym->getDefaultQuark(qval);
+			assert(isDefinedQuark);
 
 			std::ostringstream qdhex;
 			qdhex << "0x" << std::hex << qval;
@@ -421,10 +423,12 @@ namespace MFM {
 			// first, get default value of its scalar quark
 			UTI scalaruti = m_state.getUlamTypeAsScalar(suti);
 			SymbolClass * csym = NULL;
-			assert(m_state.alreadyDefinedSymbolClass(scalaruti, csym));
+			AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+			assert(isDefined);
 
 			u32 qval = 0;
-			assert(csym->getDefaultQuark(qval));
+			AssertBool isDefinedQuark = csym->getDefaultQuark(qval);
+			assert(isDefinedQuark);
 
 			std::ostringstream qdhex;
 			qdhex << "0x" << std::hex << qval;
@@ -469,7 +473,8 @@ namespace MFM {
 		// but does this data member have an initialization value?
 		// o.w. zero
 		u64 val = 0;
-		assert(((SymbolVariableDataMember*)sym)->getInitValue(val));
+		AssertBool isDefined = ((SymbolVariableDataMember*)sym)->getInitValue(val);
+		assert(isDefined);
 
 		m_state.indent(fp);
 		if(useFullClassName)
@@ -529,7 +534,7 @@ namespace MFM {
 	    //concat mangled class and parameter names to avoid duplicate keys into map
 	    std::ostringstream fullMangledName;
 	    fullMangledName << descptr->m_mangledClassName << "_" << descptr->m_mangledMemberName;
-	    classmembers.insert(std::pair<std::string, struct ClassMemberDesc *>(fullMangledName.str(), descptr));
+	    classmembers.insert(std::pair<std::string, ClassMemberDescHolder>(fullMangledName.str(), ClassMemberDescHolder(descptr)));
 	  }
 	it++;
       }
@@ -689,7 +694,8 @@ namespace MFM {
     //initialize this classes VTable to super classes' VTable, or empty
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
     csym->initVTable(maxidx);
 
     std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
@@ -702,6 +708,19 @@ namespace MFM {
       }
     return;
   } //calcMaxIndexForVirtualTableOfFunctions
+
+  void SymbolTable::checkAbstractInstanceErrorsAcrossTableOfFunctions()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym->isFunction());
+	((SymbolFunctionName *) sym)->checkAbstractInstanceErrorsInFunctions();
+	it++;
+      }
+    return;
+  } //checkAbstractInstanceErrorsAcrossTableOfFunctions
 
   //called by current Class block on its function ST
   bool SymbolTable::checkCustomArrayTypeFuncs()
@@ -882,7 +901,8 @@ namespace MFM {
 	    else if(m_state.getUlamTypeByIndex(suti)->getUlamClass() == UC_QUARK)
 	      {
 		SymbolClass * csym = NULL;
-		assert(m_state.alreadyDefinedSymbolClass(suti, csym)); //scalar class symbol
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(suti, csym); //scalar class symbol;
+		assert(isDefined);
 		u32 dval = 0;
 		if(csym->getDefaultQuark(dval))
 		  {
@@ -1122,6 +1142,23 @@ namespace MFM {
       }
     return aok;
   } //calcMaxIndexOfVirtualFunctionsForTableOfClasses
+
+  void SymbolTable::checkAbstractInstanceErrorsForTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->checkAbstractInstanceErrorsForClassInstances();
+	  }
+	it++;
+      }
+  } //checkAbstractInstanceErrorsForTableOfClasses
 
   bool SymbolTable::labelTableOfClasses()
   {

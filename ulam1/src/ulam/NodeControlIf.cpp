@@ -51,6 +51,13 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeControlIf::checkAbstractInstanceErrors()
+  {
+    NodeControl::checkAbstractInstanceErrors();
+    if(m_nodeElse)
+      m_nodeElse->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeControlIf::print(File * fp)
   {
     NodeControl::print(fp);

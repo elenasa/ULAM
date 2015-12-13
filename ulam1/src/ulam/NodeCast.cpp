@@ -42,6 +42,11 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeCast::checkAbstractInstanceErrors()
+  {
+    m_node->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   const char * NodeCast::getName()
   {
     return "cast";
@@ -419,8 +424,8 @@ namespace MFM {
        {
 	 std::ostringstream msg;
 	 msg << "Casting 'incomplete' types: ";
-	 msg << m_state.getUlamTypeNameByIndex(nuti).c_str();
-	 msg << "(UTI" << nuti << ") to be " << m_state.getUlamTypeNameByIndex(vuti).c_str();
+	 msg << nut->getUlamTypeName().c_str();
+	 msg << "(UTI" << nuti << ") to be " << vut->getUlamTypeName().c_str();
 	 msg << "(UTI" << vuti << ")";
 	 MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	 return;
@@ -616,9 +621,9 @@ namespace MFM {
 	    //e.g. a quark here would be wrong, if not a superclass
 	    std::ostringstream msg;
 	    msg << "Casting 'incomplete' types ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << nut->getUlamTypeNameBrief().c_str();
 	    msg << " to be ";
-	    msg << m_state.getUlamTypeNameBriefByIndex(vuti).c_str();
+	    msg << vut->getUlamTypeNameBrief().c_str();
 	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    assert(0);//return;
 	  }
@@ -641,7 +646,6 @@ namespace MFM {
     s32 tmpVarStg = m_state.getNextTmpVarNumber();
     UTI stguti = stgcos->getUlamTypeIdx();
     UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
-    ULAMCLASSTYPE stgclasstype = stgut->getUlamClass();
     bool isCustomArray = m_state.isClassACustomArray(stguti);
     if(isCustomArray)
       {
@@ -650,12 +654,12 @@ namespace MFM {
 
 	std::ostringstream msg;
 	msg << "Cannot explicitly cast custom array type ";
-	msg << m_state.getUlamTypeNameBriefByIndex(stguti).c_str();
-	msg << " to type: " << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	msg << stgut->getUlamTypeNameBrief().c_str();
+	msg << " to type: " << nut->getUlamTypeNameBrief().c_str();
 	msg << "; Consider using a temporary variable";
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
       }
-    assert(stguti == UAtom || stgclasstype == UC_ELEMENT);
+    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT);
 
     // can't let Node::genCodeReadIntoTmpVar do this for us (we need a ref!):
     assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
@@ -719,7 +723,6 @@ namespace MFM {
     Symbol * stgcos = NULL;
     stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
 
-    //assert(m_state.isClassASuperclassOf(vuti, nuti));
     // "downcast" might not be true; compare to be sure the element is-related to quark "Foo"
     m_state.indent(fp);
     fp->write("if(! ");

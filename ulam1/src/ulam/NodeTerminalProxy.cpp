@@ -52,7 +52,7 @@ namespace MFM {
       {
 	fp->write(m_state.getTokenDataAsString(&m_ofTok).c_str());
 	fp->write(" ");
-	fp->write(m_state.getTokenDataAsString(&m_funcTok).c_str());
+	fp->write(m_funcTok.getTokenString());
 	fp->write(" .");
       }
   } //printPostfix
@@ -62,7 +62,7 @@ namespace MFM {
     if(isReadyConstant())
       return NodeTerminal::getName();
 
-    return m_state.getTokenDataAsString(&m_funcTok).c_str();
+    return m_funcTok.getTokenString();
   }
 
   const std::string NodeTerminalProxy::prettyNodeName()
@@ -276,7 +276,7 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	msg << " is still incomplete and unknown for its '";
-	msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
+	msg << m_funcTok.getTokenString();
 	msg << "' while compiling class: ";
 	msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
@@ -291,7 +291,7 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Proxy Type: " << m_state.getUlamTypeNameBriefByIndex(m_uti).c_str();
 	    msg << " constant value for its <";
-	    msg << m_state.getTokenDataAsString(&m_funcTok).c_str();
+	    msg << m_funcTok.getTokenString();
 	    msg << "> is still incomplete and unknown while compiling class: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(m_state.getCompileThisIdx()).c_str();
 	    MSG(&m_funcTok, msg.str().c_str(), DEBUG);

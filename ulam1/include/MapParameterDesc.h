@@ -45,10 +45,11 @@ namespace MFM
   {
 
     ParameterDesc(SymbolParameterValue * psym, UTI classtype, CompilerState & state);
-    ~ParameterDesc();
-
-    virtual std::string getMemberKind();
-    virtual bool getValue(u64& vref);
+    ParameterDesc(const ParameterDesc& pref);
+    virtual ~ParameterDesc();
+    virtual const ClassMemberDesc * clone() const;
+    virtual std::string getMemberKind() const;
+    virtual bool getValue(u64& vref) const;
 
   private:
     u64 m_val; //as Bits

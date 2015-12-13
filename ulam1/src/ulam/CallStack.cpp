@@ -113,8 +113,7 @@ namespace MFM {
 	  }
 
 	// never is lvalAtIdx a Ptr
-	UTI luti = lvalAtIdx.getUlamValueTypeIdx();
-	assert(luti != Ptr);
+	assert(lvalAtIdx.getUlamValueTypeIdx() != Ptr);
 
 	s32 len = pluv.getPtrLen(); //state.getBitSize(luti);
 	assert(len != UNKNOWNSIZE);

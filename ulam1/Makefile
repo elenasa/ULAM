@@ -79,6 +79,7 @@ DEFINES+=-DULAM_TREE_VERSION="$(ULAM_TREE_VERSION)"
 # Compilation flags from top level
 export CFLAGS
 CFLAGS+=-g2 -ansi -Wall -pedantic -Werror -Wformat
+#CFLAGS+=-DNDEBUG
 
 # Libs from top level
 export LIBS

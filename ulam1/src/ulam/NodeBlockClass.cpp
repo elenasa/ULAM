@@ -73,6 +73,13 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeBlockClass::checkAbstractInstanceErrors()
+  {
+    NodeBlock::checkAbstractInstanceErrors();
+    if(!isEmpty())
+      m_functionST.checkAbstractInstanceErrorsAcrossTableOfFunctions();
+  } //checkAbstractInstanceErrors
+
   void NodeBlockClass::setNodeLocation(Locator loc)
   {
     if(m_nodeParameterList)
@@ -115,7 +122,8 @@ namespace MFM {
     if(m_nodeParameterList->getNumberOfNodes() > 0)
       {
 	SymbolClassNameTemplate * cnsym = NULL;
-	assert(m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId(), cnsym));
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClassNameTemplate(m_state.getUlamKeyTypeSignatureByIndex(cuti).getUlamKeyTypeSignatureNameId(), cnsym);
+	assert(isDefined);
 	cnsym->printClassTemplateArgsForPostfix(fp);
 	//m_nodeParameterList->print(fp);
       }
@@ -174,7 +182,8 @@ namespace MFM {
 	    //use SCN instead of SC in case of stub (use template's classblock)
 	    SymbolClassName * supercnsym = NULL;
 	    u32 superid = m_state.getUlamTypeByIndex(superuti)->getUlamKeyTypeSignature().getUlamKeyTypeSignatureNameId();
-	    assert(m_state.alreadyDefinedSymbolClassName(superid, supercnsym));
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(superid, supercnsym);
+	    assert(isDefined);
 	    superblock = supercnsym->getClassBlockNode();
 	  }
 	assert(superblock);
@@ -266,7 +275,8 @@ namespace MFM {
 
 	    //look up this instance
 	    SymbolClass * csym = NULL;
-	    assert(m_state.alreadyDefinedSymbolClass(superuti, csym));
+	    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(superuti, csym);
+	    assert(isDefined);
 	    NodeBlock::setPreviousBlockPointer(csym->getClassBlockNode()); //fix
 	  }
 
@@ -1409,9 +1419,11 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
     //get all initialized data members in quark
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
     u32 qval = 0;
-    assert(csym->getDefaultQuark(qval));
+    AssertBool isQuark = csym->getDefaultQuark(qval);
+    assert(isQuark);
 
     std::ostringstream qdhex;
     qdhex << "0x" << std::hex << qval;
@@ -1435,7 +1447,8 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     UlamType * cut = m_state.getUlamTypeByIndex(cuti);
 
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
 
     s32 maxidx = getVirtualMethodMaxIdx();
     assert(maxidx >= 0);
@@ -1507,6 +1520,13 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
       {
 	if(i > 0)
 	  fp->write(",\n");
+
+	if(csym->isPureVTableEntry(i))
+	  {
+	    fp->write("&UlamClass<EC>::PureVirtualFunctionCalled");
+	    continue;
+	  }
+
 	UTI veuti = csym->getClassForVTableEntry(i);
 	UlamType * veut = m_state.getUlamTypeByIndex(veuti);
 	ULAMCLASSTYPE veclasstype = veut->getUlamClass();
@@ -1900,13 +1920,6 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
 
   void NodeBlockClass::addClassMemberDescriptionsToInfoMap(ClassMemberMap& classmembers)
   {
-    if(m_state.isClassASubclass(getNodeType()))
-      {
-	NodeBlockClass * superClassBlock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superClassBlock);
-	superClassBlock->addClassMemberDescriptionsToInfoMap(classmembers);
-      }
-
     NodeBlock::addClassMemberDescriptionsToInfoMap(classmembers); //Table of Classes request
     m_functionST.addClassMemberFunctionDescriptionsToMap(this->getNodeType(), classmembers); //Table of Classes request
   } //addClassMemberDescriptionsToInfoMap

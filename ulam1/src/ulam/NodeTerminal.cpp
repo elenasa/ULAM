@@ -602,7 +602,8 @@ namespace MFM {
   void NodeTerminal::genCode(File * fp, UlamValue& uvpass)
   {
     UlamValue tv;
-    assert(makeTerminalValue(tv) == NORMAL);
+    AssertBool isNormal = (makeTerminalValue(tv) == NORMAL);
+    assert(isNormal);
     // unclear to do this read or not; squarebracket not happy, or cast not happy ?
     genCodeReadIntoATmpVar(fp, tv);  //tv updated to Ptr with a tmpVar "slot"
     uvpass = tv;
@@ -611,7 +612,8 @@ namespace MFM {
   void NodeTerminal::genCodeToStoreInto(File * fp, UlamValue& uvpass)
   {
     UlamValue tv;
-    assert(makeTerminalValue(tv) == NORMAL);
+    AssertBool isNormal = (makeTerminalValue(tv) == NORMAL);
+    assert(isNormal);
     uvpass = tv; //uvpass is an immediate UV, not a PTR
   } //genCodeToStoreInto
 

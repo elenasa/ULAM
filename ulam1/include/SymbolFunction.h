@@ -84,6 +84,9 @@ namespace MFM{
     bool isVirtualFunction();
     void setVirtualFunction();
 
+    bool isPureVirtualFunction();
+    void setPureVirtualFunction();
+
     u32 getVirtualMethodIdx();
     void setVirtualMethodIdx(u32 idx);
 
@@ -102,6 +105,7 @@ namespace MFM{
     NodeBlockFunctionDefinition * m_functionNode;
     bool m_hasVariableArgs;
     bool m_isVirtual; //overloaded funcs may have different virtual status
+    bool m_pureVirtual; //overloaded funcs may have different pure virtual status
     u32 m_virtualIdx;
     bool m_definedinaQuark;
     void generateFunctionDeclarationVirtualTypedef(File * fp, bool declOnly, ULAMCLASSTYPE classtype);

@@ -3,7 +3,7 @@
 namespace MFM{
 
   template<class EC, u32 POS>
-  Ui_Ut_10121u Uq_1010919SiteUtils10<EC, POS>::Uf_8getTouch(const UlamContext<EC>& uc, T& Uv_4self)
+  Ui_Ut_10121u Uq_1010919SiteUtils10<EC, POS>::Uf_8getTouch(const UlamContext<EC>& uc, T& Uv_4self) const
   {
     typedef typename EC::ATOM_CONFIG AC;
     const Site<AC> & site = uc.GetSite();
@@ -12,7 +12,7 @@ namespace MFM{
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_14181u Uq_1010919SiteUtils10<EC, POS>::Uf_5getIn(const UlamContext<EC>& uc, T& Uv_4self)
+  Ui_Ut_14181u Uq_1010919SiteUtils10<EC, POS>::Uf_5getIn(const UlamContext<EC>& uc, T& Uv_4self) const
   {
     FAIL(INCOMPLETE_CODE);
 #if 0
@@ -28,7 +28,7 @@ namespace MFM{
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_14181u Uq_1010919SiteUtils10<EC, POS>::Uf_6getOut(const UlamContext<EC>& uc, T& Uv_4self)
+  Ui_Ut_14181u Uq_1010919SiteUtils10<EC, POS>::Uf_6getOut(const UlamContext<EC>& uc, T& Uv_4self) const
   {
     typedef typename EC::ATOM_CONFIG AC;
 
@@ -42,7 +42,7 @@ namespace MFM{
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_14181u Uq_1010919SiteUtils10<EC, POS>::Uf_6setOut(const UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_14181u Uv_6newVal)
+  Ui_Ut_14181u Uq_1010919SiteUtils10<EC, POS>::Uf_6setOut(const UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_14181u Uv_6newVal) const
   {
     typedef typename EC::ATOM_CONFIG AC;
 
@@ -58,7 +58,7 @@ namespace MFM{
   }
 
   template<class EC, u32 POS>
-  Ui_Ut_102961a<EC> Uq_1010919SiteUtils10<EC, POS>::Uf_7getBase(const UlamContext<EC>& uc, T& Uv_4self)
+  Ui_Ut_102961a<EC> Uq_1010919SiteUtils10<EC, POS>::Uf_7getBase(const UlamContext<EC>& uc, T& Uv_4self) const
   {
     typedef typename EC::ATOM_CONFIG AC;
 
@@ -72,7 +72,7 @@ namespace MFM{
   } // Uf_7getBase
 
   template<class EC, u32 POS>
-  void Uq_1010919SiteUtils10<EC, POS>::Uf_7setBase(const UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_1a)
+  void Uq_1010919SiteUtils10<EC, POS>::Uf_7setBase(const UlamContext<EC>& uc, T& Uv_4self, Ui_Ut_102961a<EC> Uv_1a) const
   {
     typedef typename EC::ATOM_CONFIG AC;
 

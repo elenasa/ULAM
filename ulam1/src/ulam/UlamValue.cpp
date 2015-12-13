@@ -43,7 +43,8 @@ namespace MFM {
     rtnValue.setAtomElementTypeIdx(elementType);
 
     SymbolClass * csym = NULL;
-    assert(state.alreadyDefinedSymbolClass(elementType, csym));
+    AssertBool isDefined = state.alreadyDefinedSymbolClass(elementType, csym);
+    assert(isDefined);
     NodeBlockClass * cblock = csym->getClassBlockNode();
     assert(cblock);
     cblock->initElementDefaultsForEval(rtnValue);
@@ -141,7 +142,6 @@ namespace MFM {
     if(pos == 0)
       {
 	//figure out the pos based on targettype; both elements and quarks start at first state bit (25)
-	//if(targetType == UAtom || state.getUlamTypeByIndex(targetType)->getUlamClass() == UC_ELEMENT)
 	if(targetType == UAtom || state.getUlamTypeByIndex(targetType)->getUlamTypeEnum() == Class)
 	  rtnUV.m_uv.m_ptrValue.m_posInAtom = ATOMFIRSTSTATEBITPOS; //len is predetermined
 	else
@@ -225,7 +225,8 @@ namespace MFM {
 
     UlamValue scalarPtr = UlamValue::makeScalarPtr(*this, state);
 
-    assert(scalarPtr.incrementPtr(state, offset)); //incr appropriately by packed-ness
+    AssertBool isNext = scalarPtr.incrementPtr(state, offset); //incr appropriately by packed-ness
+    assert(isNext);
     UlamValue atval = state.getPtrTarget(scalarPtr);
 
     // redo what getPtrTarget use to do, when types didn't match due to
@@ -500,9 +501,6 @@ namespace MFM {
     if(len == 0)
       return 0;
 
-    //    if(state.getUlamTypeByIndex(utype)->getUlamTypeEnum() == Class)
-    //  return getImmediateQuarkData(len);
-
     return getImmediateData(len, state);
   } //getImmediateData
 
@@ -535,11 +533,9 @@ namespace MFM {
   u32 UlamValue::getImmediateQuarkData(s32 len) const
   {
     UTI utype = getUlamValueTypeIdx();
-    assert(utype != UAtom);
-    assert(utype != Ptr);
-    assert(utype != Nav);
+    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav));
+    assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERINT);
-
     return getData(ATOMFIRSTSTATEBITPOS, len);
   } //getImmediateQuarkData const
 
@@ -558,11 +554,9 @@ namespace MFM {
   u64 UlamValue::getImmediateDataLong(s32 len) const
   {
     UTI utype = getUlamValueTypeIdx();
-    assert(utype != UAtom);
-    assert(utype != Ptr);
-    assert(utype != Nav);
+    AssertBool utypOk = ((utype != UAtom) && (utype != Ptr) && (utype != Nav));
+    assert(utypOk);
     assert(len >= 0 && len <= MAXBITSPERLONG);
-
     return getDataLong(BITSPERATOM - len, len);
   } //getImmediateDataLong const
 
@@ -572,7 +566,8 @@ namespace MFM {
     // apparently amused by other types..
     UTI duti = data.getUlamValueTypeIdx();
     UTI puti = p.getPtrTargetType();
-    assert((UlamType::compare(duti, puti, state) == UTIC_SAME) || (UlamType::compare(getUlamValueTypeIdx(), puti, state))); //ALL-PURPOSE!
+    AssertBool comparesOk = (UlamType::compare(duti, puti, state) == UTIC_SAME) || (UlamType::compare(getUlamValueTypeIdx(), puti, state));
+    assert(comparesOk); //ALL-PURPOSE!
 
     if(p.isTargetPacked() == PACKED)
       {
@@ -611,12 +606,6 @@ namespace MFM {
 	assert(len != UNKNOWNSIZE);
 	if(len <= MAXBITSPERINT)
 	  {
-	    //u32 datavalue = 0;
-	    //if(state.getUlamTypeByIndex(puti)->getUlamTypeEnum() == Class)
-	    //  datavalue = getImmediateQuarkData(len); //left-justified
-	    //else
-	    //  datavalue = data.getImmediateData(len);
-
 	    u32 datavalue = data.getImmediateData(len, state);
 	    putData(p.getPtrPos(), len, datavalue);
 	  }
@@ -657,7 +646,8 @@ namespace MFM {
 	    u64 datavalue = data.getDataLong((BITSPERATOM-(bitsize * (arraysize - i))), bitsize);
 	    putDataLong(nextPPtr.getPtrPos(), nextPPtr.getPtrLen(), datavalue);
 	  }
-	assert(nextPPtr.incrementPtr(state));
+	AssertBool isNext = nextPPtr.incrementPtr(state);
+	assert(isNext);
       }
   } //putPackedArrayDataIntoAtom
 

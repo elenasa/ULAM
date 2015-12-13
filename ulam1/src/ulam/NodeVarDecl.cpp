@@ -50,7 +50,28 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  // see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
+  void NodeVarDecl::checkAbstractInstanceErrors()
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    if(nut->getUlamTypeEnum() == Class)
+      {
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+	assert(isDefined);
+	if(csym->isAbstract())
+	  {
+	    std::ostringstream msg;
+	    msg << "Instance of Abstract Class ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " used with variable symbol name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	  }
+      }
+  } //checkAbstractInstanceErrors
+
+  //see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
   {
     printTypeAndName(fp);
@@ -356,7 +377,8 @@ namespace MFM {
 	  {
 	    //must be a local quark!
 	    u32 dq = 0;
-	    assert(m_state.getDefaultQuark(nuti, dq));
+	    AssertBool isDefinedQuark = m_state.getDefaultQuark(nuti, dq);
+	    assert(isDefinedQuark);
 	    if(m_state.isScalar(nuti))
 	      {
 		UlamValue immUV = UlamValue::makeImmediate(nuti, dq, m_state);

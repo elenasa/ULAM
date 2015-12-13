@@ -164,11 +164,11 @@ namespace MFM {
 	msg << "Invalid Class Type <";
 	msg << m_state.getTokenDataAsString(&pTok).c_str();
 	msg << ">; KEYWORD should be '";
-	msg << Token::getTokenAsString(TOK_KW_ELEMENT);
+	msg << Token::getTokenAsStringFromPool(TOK_KW_ELEMENT, &m_state).c_str();
 	msg << "', '";
-	msg << Token::getTokenAsString(TOK_KW_QUARK);
+	msg << Token::getTokenAsStringFromPool(TOK_KW_QUARK, &m_state).c_str();
 	msg << "', or '";
-	msg << Token::getTokenAsString(TOK_KW_QUARKUNION);
+	msg << Token::getTokenAsStringFromPool(TOK_KW_QUARKUNION, &m_state).c_str();
 	msg << "'";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	m_state.clearStructuredCommentToken();
@@ -515,7 +515,8 @@ namespace MFM {
       {
 	superuti = parseClassArguments(iTok);
 	cnsym->setSuperClassForClassInstance(superuti, cnsym->getUlamTypeIdx()); //set here!!
-	assert(m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym)); //could be template
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(iTok.m_dataindex, supercnsym); //could be template;
+	assert(isDefined);
 	rtninherits = true;
       }
     else
@@ -1970,7 +1971,7 @@ namespace MFM {
 	  {
 	    unreadToken(); //put dot back, minof or maxof perhaps?
 	    std::ostringstream msg;
-	    msg << "Unexpected input!! Token <" << args.m_typeTok.getTokenEnumName();
+	    msg << "Unexpected input!! Token <" << args.m_typeTok.getTokenEnumNameFromPool(&m_state).c_str();
 	    msg << "> is not a 'seen' class type: <";
 	    msg << m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">";
 	    MSG(&args.m_typeTok, msg.str().c_str(), DEBUG);
@@ -1990,7 +1991,7 @@ namespace MFM {
 		  {
 		    unreadToken(); //put dot back, minof or maxof perhaps?
 		    std::ostringstream msg;
-		    msg << "Unexpected input!! Token <" << args.m_typeTok.getTokenEnumName();
+		    msg << "Unexpected input!! Token <" << args.m_typeTok.getTokenEnumNameFromPool(&m_state).c_str();
 		    msg << "> is not a 'seen' class typedef <";
 		    msg << m_state.getTokenDataAsString(&args.m_typeTok).c_str() << ">";
 		    MSG(&args.m_typeTok, msg.str().c_str(), DEBUG);
@@ -2000,7 +2001,8 @@ namespace MFM {
 		else
 		  {
 		    u32 cid = tmpcsym->getId();
-		    assert(m_state.alreadyDefinedSymbolClassName(cid, cnsym));
+		    AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(cid, cnsym);
+		    assert(isDefined);
 		  }
 	      }
 	  }
@@ -2378,7 +2380,6 @@ namespace MFM {
   {
     Node * rtnNode = NULL;
     UlamType * ut = m_state.getUlamTypeByIndex(utype);
-    ULAMCLASSTYPE classtype = ut->getUlamClass();
 
     Token pTok;
     getNextToken(pTok);
@@ -2394,7 +2395,7 @@ namespace MFM {
 	{
 	  if(ut->isComplete())
 	    {
-	      assert(classtype == UC_NOTACLASS); //can't be a class and complete
+	      assert(ut->getUlamClass() == UC_NOTACLASS); //can't be a class and complete
 	      rtnNode = makeTerminal(fTok, (u64) ut->getTotalBitSize(), Unsigned);
 	      delete nodetype; //unlikely
 	    }
@@ -3180,7 +3181,8 @@ namespace MFM {
     //makeup node for lhs; using same symbol as dNode(could be Null!)
     Symbol * dsymptr = NULL;
     bool hazyKin = false; //don't care
-    assert(m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr, hazyKin));
+    AssertBool isDefined = m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr, hazyKin);
+    assert(isDefined);
     Node * leftNode = new NodeIdent(identTok, (SymbolVariable *) dsymptr, m_state);
     assert(leftNode);
     leftNode->setNodeLocation(dNode->getNodeLocation());
@@ -3567,6 +3569,36 @@ namespace MFM {
 	MSG(&qTok, msg.str().c_str(), INFO);
 
 	brtn = true;
+      }
+    else if(qTok.m_type == TOK_SEMICOLON)
+      {
+	SymbolFunction * fsymFromDef = funcNode->getFuncSymbolPtr();
+	assert(fsymFromDef);
+	if(fsymFromDef->isVirtualFunction())
+	  {
+	    NodeStatements * nextNode;
+	    nextNode = new NodeBlockEmpty(m_state.getCurrentBlock(), m_state); //legal
+	    assert(nextNode);
+	    nextNode->setNodeLocation(qTok.m_locator);
+	    funcNode->setNextNode(nextNode);
+
+	    fsymFromDef->setPureVirtualFunction();
+
+	    std::ostringstream msg;
+	    msg << "Pure Virtual Function <" << funcNode->getName() << ">";
+	    MSG(&qTok, msg.str().c_str(), INFO);
+
+	    unreadToken();
+	    brtn = true;
+	  }
+	else
+	  {
+	    unreadToken();
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(&qTok).c_str();
+	    msg << "> after non-virtual function declaration";
+	    MSG(&qTok, msg.str().c_str(), ERR);
+	  }
       }
     else
       {
@@ -3978,9 +4010,9 @@ namespace MFM {
     if(!Token::isTokenAType(tTok))
       {
 	std::ostringstream msg;
-	msg << "Right operand of conditional-" << fTok.getTokenString();
+	msg << "Right operand of conditional-" << fTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is not a Type: ";
-	msg << tTok.getTokenString() << "; Operation deleted";
+	msg << tTok.getTokenStringFromPool(&m_state).c_str() << "; Operation deleted";
 	MSG(&tTok, msg.str().c_str(), ERR);
 	delete leftNode;
 	m_state.m_parsingConditionalAs = false;
@@ -3992,8 +4024,8 @@ namespace MFM {
     if(!m_state.isScalar(cuti))
       {
 	std::ostringstream msg;
-	msg << "Right operand of conditional-" << fTok.getTokenString() << " is an array: ";
-	msg << tTok.getTokenString() << "; Operation deleted";
+	msg << "Right operand of conditional-" << fTok.getTokenStringFromPool(&m_state).c_str() << " is an array: ";
+	msg << tTok.getTokenStringFromPool(&m_state).c_str() << "; Operation deleted";
 	MSG(&tTok, msg.str().c_str(), ERR);
 	delete leftNode;
 	m_state.m_parsingConditionalAs = false;
@@ -4040,7 +4072,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Assignment deleted";
 	MSG(&pTok, msg.str().c_str(), ERR);
 	delete leftNode;
@@ -4096,7 +4128,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4137,7 +4169,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4181,7 +4213,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4222,7 +4254,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4269,7 +4301,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4310,7 +4342,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4351,7 +4383,7 @@ namespace MFM {
     if(!rightNode)
       {
 	std::ostringstream msg;
-	msg << "Right operand of binary operator" << pTok.getTokenString();
+	msg << "Right operand of binary operator" << pTok.getTokenStringFromPool(&m_state).c_str();
 	msg << " is missing; Operation deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	delete leftNode;
@@ -4395,7 +4427,7 @@ namespace MFM {
     if(!factorNode)
       {
 	std::ostringstream msg;
-	msg << "Factor is missing; Unary operation " << pTok.getTokenString() << " deleted";
+	msg << "Factor is missing; Unary operation " << pTok.getTokenStringFromPool(&m_state).c_str() << " deleted";
 	MSG(&pTok, msg.str().c_str(), DEBUG);
 	return NULL;
       }
@@ -4567,8 +4599,8 @@ namespace MFM {
 	if(!quietly)
 	  {
 	    std::ostringstream msg;
-	    msg << "Unexpected token <" << pTok.getTokenEnumName() << ">; Expected ";
-	    msg << Token::getTokenAsString(eTokType);
+	    msg << "Unexpected token <" << pTok.getTokenEnumNameFromPool(&m_state).c_str() << ">; Expected ";
+	    msg << Token::getTokenAsStringFromPool(eTokType, &m_state).c_str();
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	  }
 	brtn = false;
@@ -4625,48 +4657,48 @@ namespace MFM {
     // unfortunately, Nav, Atom, Class (except quarks with toInt), Ptr and Holder
     // are not considered PRIMITIVE during type processing (use ut->isPrimitiveType());
     UlamKeyTypeSignature nkey(m_state.m_pool.getIndexForDataString("0Nav"), ULAMTYPE_DEFAULTBITSIZE[Nav]);
-    UTI nidx = m_state.makeUlamType(nkey, Nav);
-    assert(nidx == Nav); //true for primitives
+    AssertBool isNav = (m_state.makeUlamType(nkey, Nav) == Nav);
+    assert(isNav); //true for primitives
 
     UlamKeyTypeSignature vkey(m_state.m_pool.getIndexForDataString("Void"), ULAMTYPE_DEFAULTBITSIZE[Void]);
-    UTI vidx = m_state.makeUlamType(vkey, Void);
-    assert(vidx == Void); //true for primitives
+    AssertBool isVoid = (m_state.makeUlamType(vkey, Void) == Void);
+    assert(isVoid); //true for primitives
 
     UlamKeyTypeSignature ikey(m_state.m_pool.getIndexForDataString("Int"), ULAMTYPE_DEFAULTBITSIZE[Int]);
-    UTI iidx = m_state.makeUlamType(ikey, Int);
-    assert(iidx == Int);
+    AssertBool isInt = (m_state.makeUlamType(ikey, Int) == Int);
+    assert(isInt);
 
     UlamKeyTypeSignature uikey(m_state.m_pool.getIndexForDataString("Unsigned"), ULAMTYPE_DEFAULTBITSIZE[Unsigned]);
-    UTI uiidx = m_state.makeUlamType(uikey, Unsigned);
-    assert(uiidx == Unsigned);
+    AssertBool isUnsigned = (m_state.makeUlamType(uikey, Unsigned) == Unsigned);
+    assert(isUnsigned);
 
     UlamKeyTypeSignature bkey(m_state.m_pool.getIndexForDataString("Bool"), ULAMTYPE_DEFAULTBITSIZE[Bool]);
-    UTI bidx = m_state.makeUlamType(bkey, Bool);
-    assert(bidx == Bool);
+    AssertBool isBool = (m_state.makeUlamType(bkey, Bool) == Bool);
+    assert(isBool);
 
     UlamKeyTypeSignature ukey(m_state.m_pool.getIndexForDataString("Unary"), ULAMTYPE_DEFAULTBITSIZE[Unary]);
-    UTI uidx = m_state.makeUlamType(ukey, Unary);
-    assert(uidx == Unary);
+    AssertBool isUnary = (m_state.makeUlamType(ukey, Unary) == Unary);
+    assert(isUnary);
 
     UlamKeyTypeSignature bitskey(m_state.m_pool.getIndexForDataString("Bits"), ULAMTYPE_DEFAULTBITSIZE[Bits]);
-    UTI bitsidx = m_state.makeUlamType(bitskey, Bits);
-    assert(bitsidx == Bits);
+    AssertBool isBits = (m_state.makeUlamType(bitskey, Bits) == Bits);
+    assert(isBits);
 
     UlamKeyTypeSignature ckey(m_state.m_pool.getIndexForDataString("0Class"), ULAMTYPE_DEFAULTBITSIZE[Class]); //bits tbd
-    UTI cidx = m_state.makeUlamType(ckey, Class);
-    assert(cidx == Class);
+    AssertBool isClass = (m_state.makeUlamType(ckey, Class) == Class);
+    assert(isClass);
 
     UlamKeyTypeSignature akey(m_state.m_pool.getIndexForDataString("Atom"), ULAMTYPE_DEFAULTBITSIZE[UAtom]);
-    UTI aidx = m_state.makeUlamType(akey, UAtom);
-    assert(aidx == UAtom);
+    AssertBool isUAtom = (m_state.makeUlamType(akey, UAtom) == UAtom);
+    assert(isUAtom);
 
     UlamKeyTypeSignature pkey(m_state.m_pool.getIndexForDataString("0Ptr"), ULAMTYPE_DEFAULTBITSIZE[Ptr]);
-    UTI pidx = m_state.makeUlamType(pkey, Ptr);
-    assert(pidx == Ptr);
+    AssertBool isPtr = (m_state.makeUlamType(pkey, Ptr) == Ptr);
+    assert(isPtr);
 
     UlamKeyTypeSignature hkey(m_state.m_pool.getIndexForDataString("0Holder"), UNKNOWNSIZE);
-    UTI hidx = m_state.makeUlamType(hkey, Holder);
-    assert(hidx == Holder);
+    AssertBool isHolder = (m_state.makeUlamType(hkey, Holder) == Holder);
+    assert(isHolder);
 
     // next in line, the 64 basics:
     m_state.getLongUTI();
@@ -4674,8 +4706,8 @@ namespace MFM {
     m_state.getBigBitsUTI();
 
     //initialize call stack with 'Int' UlamType pointer
-    m_state.m_funcCallStack.init(iidx);
-    m_state.m_nodeEvalStack.init(iidx);
+    m_state.m_funcCallStack.init(Int);
+    m_state.m_nodeEvalStack.init(Int);
     //m_state.m_eventWindow.init(iidx); //necessary?
   } //initPrimitiveUlamTypes
 

@@ -60,6 +60,14 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeBlockFunctionDefinition::checkAbstractInstanceErrors()
+  {
+    if(m_nodeParameterList)
+      m_nodeParameterList->checkAbstractInstanceErrors();
+    if(m_nodeNext)
+      m_nodeNext->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeBlockFunctionDefinition::setNodeLocation(Locator loc)
   {
     m_nodeParameterList->setNodeLocation(loc);
@@ -358,7 +366,8 @@ namespace MFM {
     u32 selfid = m_state.m_pool.getIndexForDataString("atom");
     Symbol * selfsym = NULL;
     bool hazyKin = false; //return is always false?
-    assert(m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin);
+    AssertBool isDefined = m_state.alreadyDefinedSymbol(selfid, selfsym, hazyKin) && !hazyKin;
+    assert(isDefined);
     s32 newslot = -1 - m_state.slotsNeeded(getNodeType());
     s32 oldslot = ((SymbolVariable *) selfsym)->getStackFrameSlotIndex();
     if(oldslot != newslot)

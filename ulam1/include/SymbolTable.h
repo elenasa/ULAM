@@ -129,6 +129,8 @@ namespace MFM{
 
     void calcMaxIndexForVirtualTableOfFunctions(s32& maxidx);
 
+    void checkAbstractInstanceErrorsAcrossTableOfFunctions();
+
     void genCodeForTableOfFunctions(File * fp, bool declOnly, ULAMCLASSTYPE classtype);
 
 
@@ -160,6 +162,8 @@ namespace MFM{
     void calcMaxDepthOfFunctionsForTableOfClasses();
 
     bool calcMaxIndexOfVirtualFunctionsForTableOfClasses();
+
+    void checkAbstractInstanceErrorsForTableOfClasses();
 
     bool labelTableOfClasses();
 

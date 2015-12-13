@@ -5,12 +5,12 @@
 
 namespace MFM {
 
-  SymbolFunction::SymbolFunction(Token id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_definedinaQuark(false)
+  SymbolFunction::SymbolFunction(Token id, UTI typetoreturn, CompilerState& state ) : Symbol(id,typetoreturn,state), m_functionNode(NULL), m_hasVariableArgs(false), m_isVirtual(false), m_pureVirtual(false), m_definedinaQuark(false)
   {
     setDataMember(); // by definition all function definitions are data members
   }
 
-  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_definedinaQuark(sref.m_definedinaQuark)
+  SymbolFunction::SymbolFunction(const SymbolFunction& sref) : Symbol(sref), m_hasVariableArgs(sref.m_hasVariableArgs), m_isVirtual(sref.m_isVirtual), m_pureVirtual(sref.m_pureVirtual), m_definedinaQuark(sref.m_definedinaQuark)
   {
     //parameters belong to functiondefinition block's ST; do not clone them again here!
     if(sref.m_functionNode)
@@ -22,7 +22,8 @@ namespace MFM {
 	    u32 pid = sref.m_parameterSymbols[i]->getId();
 	    Symbol * sym = NULL; //NOT here: sref.m_parameterSymbols[i]->clone();
 	    bool hazyKin = false; //don't care?
-	    assert(m_state.alreadyDefinedSymbol(pid, sym, hazyKin));
+	    AssertBool isDefined = m_state.alreadyDefinedSymbol(pid, sym, hazyKin);
+	    assert(isDefined);
 	    m_parameterSymbols.push_back(sym);
 	  }
 	m_state.popClassContext();
@@ -281,6 +282,18 @@ namespace MFM {
     m_isVirtual = true;
   }
 
+  bool SymbolFunction::isPureVirtualFunction()
+  {
+    assert(isVirtualFunction());
+    return m_pureVirtual;
+  }
+
+  void SymbolFunction::setPureVirtualFunction()
+  {
+    assert(isVirtualFunction());
+    m_pureVirtual = true;
+  }
+
   u32 SymbolFunction::getVirtualMethodIdx()
   {
     assert(isVirtualFunction());
@@ -309,7 +322,7 @@ namespace MFM {
     assert(func); //how would a function symbol be without a body?
 
     //up to programmer to define this function!!!
-    if(!declOnly && func->isNative())
+    if(!declOnly && (func->isNative() || (isVirtualFunction() && isPureVirtualFunction())))
       return;
 
     m_state.outputTextAsComment(fp, func->getNodeLocation());
@@ -382,29 +395,32 @@ namespace MFM {
 
     if(declOnly)
       {
-	if(func->isNative())
-	  fp->write("; //native\n\n");
+	if(isVirtualFunction())
+	  {
+	    fp->write("; //virtual");
+	    if(func->isNative())
+	      fp->write(", native");
+	    fp->write("\n\n");
+	  }
 	else
 	  {
-	    if(isVirtualFunction())
-	      fp->write("; //virtual\n\n");
+	    fp->write(" const"); //quark and element functions (incl natives) are const, not c++ static
+	    if(func->isNative())
+	      fp->write("; //native\n\n");
 	    else
-	      {
-		fp->write(" const"); //quark and element functions are const, not static
-		fp->write(";\n\n");
-	      }
+	      fp->write(";\n\n");
 	  }
       }
     else
       {
 	if(!isVirtualFunction())
-	  fp->write(" const"); //quark and element functions are const, not static
+	  fp->write(" const"); //quark and element functions (incl natives) are const, not c++ static
 
 	UlamValue uvpass;
 	func->genCode(fp, uvpass);
       }
 
-    if(declOnly && !func->isNative() && isVirtualFunction())
+    if(declOnly && isVirtualFunction()) //can be native too
       generateFunctionDeclarationVirtualTypedef(fp, declOnly, classtype);
   } //generateFunctionDeclaration
 
@@ -412,9 +428,7 @@ namespace MFM {
   {
     NodeBlockFunctionDefinition * func = getFunctionNode();
     assert(func); //how would a function symbol be without a body?
-
-    //up to programmer to define this function!!!
-    assert(declOnly && !func->isNative());
+                  //natives may also be virtuals.
 
     UlamType * sut = m_state.getUlamTypeByIndex(getUlamTypeIdx()); //return type
 

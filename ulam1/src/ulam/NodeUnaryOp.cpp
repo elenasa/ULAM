@@ -43,6 +43,12 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeUnaryOp::checkAbstractInstanceErrors()
+  {
+    if(m_node)
+      m_node->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeUnaryOp::print(File * fp)
   {
     printNodeLocation(fp);
@@ -281,7 +287,8 @@ namespace MFM {
     Node * parentNode = m_state.findNodeNoInThisClass(pno);
     assert(parentNode);
 
-    assert(parentNode->exchangeKids(this, newnode));
+    AssertBool swapOk = parentNode->exchangeKids(this, newnode);
+    assert(swapOk);
 
     std::ostringstream msg;
     msg << "Exchanged kids! for unary operator" << getName();
@@ -381,8 +388,8 @@ namespace MFM {
 
     UTI uti = uvpass.getUlamValueTypeIdx();
     assert(uti == Ptr);
-
-    fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), uvpass.getPtrSlotIndex()).c_str());
+    uti = uvpass.getPtrTargetType();
+    fp->write(m_state.getTmpVarAsString(uti, uvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
     fp->write_decimal(nut->getBitSize());

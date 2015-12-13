@@ -47,6 +47,12 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeSimpleStatement::checkAbstractInstanceErrors()
+  {
+    if(m_node)
+      m_node->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeSimpleStatement::print(File * fp)
   {
     printNodeLocation(fp);  //has same location as it's node

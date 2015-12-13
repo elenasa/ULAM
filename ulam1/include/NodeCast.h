@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
+    virtual void checkAbstractInstanceErrors();
+
     virtual const char * getName();
 
     virtual const std::string prettyNodeName();

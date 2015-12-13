@@ -55,7 +55,8 @@ namespace MFM {
     assert(m_state.getUlamTypeByIndex(typidx) == this);
     UTI valtypidx = val.getUlamValueTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(valtypidx);
-    assert(vut->isScalar() && isScalar());
+    AssertBool isScalars = (vut->isScalar() && isScalar());
+    assert(isScalars);
 
     assert(vut->getUlamClass() == UC_ELEMENT);
     // what change is to be made ????

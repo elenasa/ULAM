@@ -62,6 +62,8 @@ namespace MFM{
 
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
+    virtual void checkAbstractInstanceErrors();
+
     virtual void setNodeLocation(Locator loc);
 
     virtual void print(File * fp);
@@ -122,7 +124,7 @@ namespace MFM{
     virtual s32 getMaxBitSizeOfVariableSymbolsInTable();
 
     //virtual s32 findUlamTypeInTable(UTI utype);
-    s32 findUlamTypeInTable(UTI utype, UTI& insidecuti);
+     s32 findUlamTypeInTable(UTI utype, UTI& insidecuti);
 
     bool isFuncIdInScope(u32 id, Symbol * & symptrref);
 

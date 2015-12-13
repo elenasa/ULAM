@@ -40,7 +40,7 @@
 #include "Locator.h"
 #include "itype.h"
 #include "File.h"
-
+#include <string>
 
 namespace MFM{
 
@@ -73,14 +73,22 @@ namespace MFM{
 
     ~Token();
 
+    static void initTokenMap(CompilerState & state);
+
     void init(TokenType t, Locator l, u32 d);
+
+    u32 getTokenStringId();
+    u32 getTokenEnumNameId();
 
     const char * getTokenString();
     const char * getTokenEnumName();
 
+    const std::string getTokenStringFromPool(CompilerState * state);
+    static const std::string getTokenAsStringFromPool(TokenType ttype, CompilerState * state);
+    const std::string getTokenEnumNameFromPool(CompilerState * state);
+
     static SpecialTokenWork getSpecialTokenWork(TokenType ttype);
     static TokenType getTokenTypeFromString(const char * aname);
-    static const char *  getTokenAsString(TokenType ttype);
 
     /**
 	ulam says an identifier is a Type when it starts with a capital letter
@@ -91,6 +99,7 @@ namespace MFM{
 
     void print(File * fp, CompilerState * state);
 
+  private:
   };
 }
 

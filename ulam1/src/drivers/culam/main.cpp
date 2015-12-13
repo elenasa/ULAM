@@ -286,26 +286,24 @@ int main(int argc, char ** argv)
 
         for(MFM::ClassMemberMap::const_iterator i = ds.ClassMemberMapBegin(); i != ds.ClassMemberMapEnd(); ++i)
           {
-	    assert(i->second); //cannot be null
 	    MFM::u64 val;
-
+	    const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
 	    std::cerr
 	      << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	      << i->second->getMemberKind() << " "
-	      << MFM::HexEscape(c.getFullPathLocationAsString(i->second->m_loc))
-	      << " " << i->second->m_mangledClassName
-	      << " " << i->second->m_mangledType
-	      << " " << i->second->m_memberName
-	      << " " << i->second->m_mangledMemberName;
+	      << cmd->getMemberKind() << " "
+	      << MFM::HexEscape(c.getFullPathLocationAsString(cmd->m_loc))
+	      << " " << cmd->m_mangledClassName
+	      << " " << cmd->m_mangledType
+	      << " " << cmd->m_memberName
+	      << " " << cmd->m_mangledMemberName;
 
-	    if(i->second->getValue(val))
+	    if(cmd->getValue(val))
 	      std::cerr << " 0x" << std::hex << val;
 
-	    std::cerr << " " << MFM::HexEscape(i->second->m_structuredComment)
+	    std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
 		      << std::endl;
 	  }
       }
-    c.clearClassMembersMap(ds.GetClassMemberMap());
     return result;
   }
   catch (int status) {

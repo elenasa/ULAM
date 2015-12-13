@@ -78,6 +78,8 @@ namespace MFM{
 
     void calcMaxIndexOfVirtualFunctions(s32& maxidx);
 
+    void checkAbstractInstanceErrorsInFunctions();
+
     u32 checkFunctionNames();
 
     u32 checkCustomArrayGetFunctions(UTI& rtnType);

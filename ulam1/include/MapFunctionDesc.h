@@ -44,9 +44,10 @@ namespace MFM
   struct FunctionDesc : public ClassMemberDesc
   {
     FunctionDesc(SymbolFunction * fsym, UTI classtype, CompilerState & state);
+    FunctionDesc(const FunctionDesc& fref);
     virtual ~FunctionDesc();
-
-    virtual std::string getMemberKind();
+    virtual const ClassMemberDesc * clone() const;
+    virtual std::string getMemberKind() const;
   };
 
 } //MFM

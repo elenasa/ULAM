@@ -236,8 +236,8 @@ namespace MFM {
     //initialize this classes VTable to super classes' VTable, or empty
     // some entries may be modified; or table may expand
     SymbolClass * csym = NULL;
-    assert(m_state.alreadyDefinedSymbolClass(cuti, csym));
-    //csym->initVTable(maxidx);
+    AssertBool isDefined = m_state.alreadyDefinedSymbolClass(cuti, csym);
+    assert(isDefined);
 
     std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
     while(it != m_mangledFunctionNames.end())
@@ -275,7 +275,7 @@ namespace MFM {
 			msg << m_state.m_pool.getDataAsString(fid).c_str();
 			msg << "> has a VIRTUAL ancestor in class: ";
 			msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
-			MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG);
+			MSG(fsym->getTokPtr(), msg.str().c_str(), WARN);
 
 			fsym->setVirtualFunction(); //fix
 			assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
@@ -315,7 +315,7 @@ namespace MFM {
 	      }
 	    //else use ancestor index; maxidx stays same
 	    fsym->setVirtualMethodIdx(vidx);
-	    csym->updateVTable(vidx, fsym, kinuti);
+	    csym->updateVTable(vidx, fsym, kinuti, fsym->isPureVirtualFunction());
 	  }
 	else
 	  maxidx = (maxidx != UNKNOWNSIZE ? maxidx : 0); //stays same, or known 0
@@ -323,6 +323,20 @@ namespace MFM {
       } //while
     return;
   } //calcMaxIndexOfVirtualFunctions
+
+  void SymbolFunctionName::checkAbstractInstanceErrorsInFunctions()
+  {
+    std::map<std::string, SymbolFunction *>::iterator it = m_mangledFunctionNames.begin();
+    while(it != m_mangledFunctionNames.end())
+      {
+	SymbolFunction * fsym = it->second;
+	NodeBlockFunctionDefinition * func = fsym->getFunctionNode();
+	assert(func); //how would a function symbol be without a body?
+	func->checkAbstractInstanceErrors();
+	++it;
+      }
+    return;
+  } //checkAbstractInstanceErrorsInFunctions
 
   // before generating code, remove duplicate funcs to avoid "previously declared" gcc error.
   u32 SymbolFunctionName::checkFunctionNames()

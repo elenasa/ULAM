@@ -1,26 +1,26 @@
 ## -*- mode:ulam -*-
-#=t3602_test_compiler_elementinheritedquark_virtualfuncuser
+#=t3608_test_compiler_elementinheritedquark_purevirtualfuncuser
 ##
-## gen output: (times 4) requires quark vtable support
+## gen output: (times 3) requires quark vtable support
 ##assert: arg is 1
 ##after asserts abort: arg is 1
 ##
 #!
 Exit status: 0
-Ue_Test : System { :<> Bool(1) brtn[4](true,true,true,true);  Int(32) test() {  E1 e1;  brtn 2 [] e1 ( )vuser . 7 cast == = ( brtn 2 [] )assert E2 e2;  brtn 3 [] e2 ( )vuser . 9 cast == = ( brtn 3 [] )assert Base b;  brtn 0 [] b ( )vuser . 2 cast == = ( brtn 0 [] )assert Sub1 s1;  brtn 1 [] s1 ( )vuser . 2 cast == = ( brtn 1 [] )assert 0 cast return } }
+Ue_Test : System { :<> Bool(1) brtn[4](false,true,true,true);  Int(32) test() {  E1 e1;  brtn 2 [] e1 ( )vuser . 7 cast == = ( brtn 2 [] )assert E2 e2;  brtn 3 [] e2 ( )vuser . 9 cast == = ( brtn 3 [] )assert Sub1 s1;  brtn 1 [] s1 ( )vuser . 2 cast == = ( brtn 1 [] )assert 0 cast return } }
 Uq_Base { <NOMAIN> }
 Uq_Sub1 : Base { :<> <NOMAIN> }
 Ue_E1 : Base { :<> <NOMAIN> }
 Ue_E2 : Sub1 { :< :<>> <NOMAIN> }
 Uq_System { <NOMAIN> }
 ##
-## informed by vtable-example 11/19/15
+## informed by t3602
 ##
 #:Base.ulam
   ulam 2;
 quark Base {
   Int afunc() { return 1; } // not virtual
-  virtual Int afunc(Int a) { return 2; } // but overload of same name can be virtual
+  virtual Int afunc(Int a); // pure, but overload of same name can be virtual
   virtual Int bfunc() { return 3; }
   Int vuser() {
     return afunc(0); // virtual function invocation: Might return 2, 7, or 9 in this example!
@@ -32,6 +32,7 @@ quark Base {
 use Base;
 quark Sub1 : Base {
   Int afunc() { return 4; } // not virtual
+  virtual Int afunc(Int a) { return 2; } // but overload of same name can be virtual
   virtual Int bfunc() { return 5; } // virtual override
   virtual Int cfunc() { return 6; } // new func
 }
@@ -71,11 +72,12 @@ element Test : System {
     E2 e2;
     brtn[3] = (e2.vuser() == 9);
     assert(brtn[3]);
-
+    /* pure
     //       requires immediate quark vtable support
     Base b;
     brtn[0] = (b.vuser() == 2);
     assert(brtn[0]);
+    */
 
     //       requires immediate quark vtable support
     Sub1 s1;

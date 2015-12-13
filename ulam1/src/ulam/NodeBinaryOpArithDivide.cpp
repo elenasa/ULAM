@@ -57,7 +57,8 @@ NodeBinaryOpArithDivide::NodeBinaryOpArithDivide(const NodeBinaryOpArithDivide& 
 
 	    Node * parentNode = m_state.findNodeNoInThisClass(pno);
 	    assert(parentNode);
-	    assert(parentNode->exchangeKids(this, castNode));
+	    AssertBool swapOk = parentNode->exchangeKids(this, castNode);
+	    assert(swapOk);
 
 	    std::ostringstream msg;
 	    msg << "Exchanged kids! of parent of binary operator" << getName();

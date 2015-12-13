@@ -8,14 +8,21 @@ namespace MFM {
     csym->getValue(m_val); //must be ready!
   }
 
+  ConstantDesc::ConstantDesc(const ConstantDesc& cref) : ClassMemberDesc(cref), m_val(cref.m_val) {}
+
   ConstantDesc::~ConstantDesc(){}
 
-  std::string ConstantDesc::getMemberKind()
+  ClassMemberDesc * ConstantDesc::clone() const
+  {
+    return new ConstantDesc(*this);
+  }
+
+  std::string ConstantDesc::getMemberKind() const
   {
     return "CONSTANT";
   }
 
-  bool ConstantDesc::getValue(u64& vref)
+  bool ConstantDesc::getValue(u64& vref) const
   {
     vref = m_val;
     return true;

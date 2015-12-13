@@ -396,7 +396,8 @@ namespace MFM {
     if(!rtnb && getSuperClass() != Nav)
       {
 	SymbolClass * csym = NULL;
-	assert(m_state.alreadyDefinedSymbolClass(getSuperClass(), csym));
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
+	assert(isDefined);
 	return (csym->hasMappedUTI(auti, mappedUTI));
       }
     return rtnb;
@@ -889,7 +890,8 @@ namespace MFM {
     if(getSuperClass() != Nav)
       {
 	SymbolClass * csym = NULL;
-	assert(m_state.alreadyDefinedSymbolClass(getSuperClass(), csym));
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(getSuperClass(), csym);
+	assert(isDefined);
 	//copy superclass' VTable
 	for(s32 i = 0; i < initialmax; i++)
 	  {
@@ -901,18 +903,20 @@ namespace MFM {
     assert(m_vtable.size() == (u32) initialmax);
   } //initVTable
 
-  void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti)
+  void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure)
   {
     if(idx < m_vtable.size())
       {
 	m_vtable[idx].m_funcPtr = fsym;
 	m_vtable[idx].m_ofClassUTI = kinuti;
+	m_vtable[idx].m_isPure = isPure;
       }
     else
       {
 	struct VTEntry ve;
 	ve.m_funcPtr = fsym;
 	ve.m_ofClassUTI = kinuti;
+	ve.m_isPure = isPure;
 	m_vtable.push_back(ve);
       }
   }//updateVTable
@@ -920,6 +924,12 @@ namespace MFM {
   VT& SymbolClass::getVTableRef()
   {
     return m_vtable;
+  }
+
+  bool SymbolClass::isPureVTableEntry(u32 idx)
+  {
+    assert(idx < m_vtable.size());
+    return m_vtable[idx].m_isPure;
   }
 
   UTI SymbolClass::getClassForVTableEntry(u32 idx)
@@ -937,6 +947,7 @@ namespace MFM {
   std::string SymbolClass::getMangledFunctionNameWithTypesForVTableEntry(u32 idx)
   {
     assert(idx < m_vtable.size());
+    assert(!m_vtable[idx].m_isPure);
     return m_vtable[idx].m_funcPtr->getMangledNameWithTypes();
   }
 
@@ -946,4 +957,14 @@ namespace MFM {
     return m_vtable[idx];
   }
 
+  bool SymbolClass::isAbstract()
+  {
+    u32 vtsize = m_vtable.size();
+    for(u32 i = 0; i < vtsize; i++)
+      {
+	if(m_vtable[i].m_isPure)
+	  return true;
+      }
+    return false;
+  }
 } //end MFM

@@ -63,6 +63,8 @@ namespace MFM {
 
   enum ALT { ALT_NOT = 0, ALT_AS, ALT_HAS}; //autolocaltype
 
+  typedef  bool __attribute__((unused)) AssertBool;
+
 #ifndef BITSPERATOM
 #define BITSPERATOM (96)
 #endif //BITSPERATOM

@@ -75,7 +75,8 @@ namespace MFM {
     if(nut->getUlamClass() == UC_QUARK)
       {
 	SymbolClass * csym = NULL;
-	assert(m_state.alreadyDefinedSymbolClass(nuti, csym));
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+	assert(isDefined);
 	NodeBlockClass * classblock = csym->getClassBlockNode();
 	assert(classblock);
 
@@ -202,12 +203,17 @@ namespace MFM {
 	//constant fold if possible, set symbol value
 	if(m_varSymbol)
 	  {
-	    assert(((SymbolVariableDataMember *) m_varSymbol)->hasInitValue());
+	    AssertBool isDefined = ((SymbolVariableDataMember *) m_varSymbol)->hasInitValue();
+	    assert(isDefined);
 	    if(!(((SymbolVariableDataMember *) m_varSymbol)->initValueReady()))
 	      {
 		foldConstantExpression(); //sets init constant value
 		if(!(((SymbolVariableDataMember *) m_varSymbol)->initValueReady()))
-		  setNodeType(Nav);
+		  {
+		    setNodeType(Nav);
+		    m_state.setGoAgain(); //since not error
+		    return Nav;
+		  }
 	      }
 	  }
 	else
@@ -220,7 +226,7 @@ namespace MFM {
 	  {
 	    std::ostringstream msg;
 	    msg << "Constant value expression for data member (";
-	    msg << getName() << " = " << m_nodeInitExpr->getName() ;
+	    msg << getName() << " = " << m_nodeInitExpr->getName();
 	    msg << ") initialization is not representable as ";
 	    msg<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
 	    if(scr == CAST_BAD)
@@ -232,7 +238,10 @@ namespace MFM {
 	      }
 	  }
 	else
-	  assert(Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr)); //we know it's safe!
+	  {
+	    AssertBool isDefined = Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr); //we know it's safe!
+	    assert(isDefined);
+	  }
       } //finished init expr node
 
     return getNodeType();
@@ -358,8 +367,8 @@ namespace MFM {
     //store in UlamType format
     bool rtnb = true;
     UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    s32 nbitsize = nut->getBitSize();
-    assert(nbitsize > 0);
+    AssertBool isKnownSize = (nut->getBitSize() > 0);
+    assert(isKnownSize);
     u32 wordsize = nut->getTotalWordSize();
     if(wordsize <= MAXBITSPERINT)
       rtnb = updateConstant32(newconst);
@@ -488,10 +497,12 @@ namespace MFM {
 		UTI scalaruti = m_state.getUlamTypeAsScalar(nuti);
 		u32 bitsize = m_state.getBitSize(nuti);
 		SymbolClass * csym = NULL;
-		assert(m_state.alreadyDefinedSymbolClass(scalaruti, csym));
+		AssertBool isDefined = m_state.alreadyDefinedSymbolClass(scalaruti, csym);
+		assert(isDefined);
 
 		u32 qval = 0;
-		assert(csym->getDefaultQuark(qval));
+		AssertBool isDefinedQuark = csym->getDefaultQuark(qval);
+		assert(isDefinedQuark);
 
 		//initialize each array item
 		u32 arraysize = m_state.getArraySize(nuti);

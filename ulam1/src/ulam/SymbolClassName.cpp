@@ -111,7 +111,8 @@ namespace MFM {
 	//for inheritance, get the node no of superblock
 	u32 sid = m_state.getUlamKeyTypeSignatureByIndex(superclass).getUlamKeyTypeSignatureNameId();
 	SymbolClassName * cnsym = NULL;
-	assert(m_state.alreadyDefinedSymbolClassName(sid, cnsym));
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClassName(sid, cnsym);
+	assert(isDefined);
 	NodeBlockClass * superblock = cnsym->getClassBlockNode();
 	assert(superblock);
 
@@ -161,6 +162,17 @@ namespace MFM {
     m_state.popClassContext(); //restore
     return (classNode->getVirtualMethodMaxIdx() != UNKNOWNSIZE);
   } //calcMaxIndexOfVirtualFunctionsForClassInstances
+
+  void SymbolClassName::checkAbstractInstanceErrorsForClassInstances()
+  {
+    NodeBlockClass * classNode = getClassBlockNode();
+    assert(classNode);
+    m_state.pushClassContext(getUlamTypeIdx(), classNode, classNode, false, NULL);
+
+    classNode->checkAbstractInstanceErrors();
+    m_state.popClassContext(); //restore
+    return;
+  } //checkAbstractInstanceErrorsForClassInstances
 
   void SymbolClassName::checkAndLabelClassFirst()
   {

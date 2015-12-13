@@ -10,7 +10,6 @@ namespace MFM {
     m_loc = sym->getLoc();
     m_mangledClassName = state.getUlamTypeByIndex(classtype)->getUlamTypeMangledName();
     m_mangledType = state.getUlamTypeByIndex(sym->getUlamTypeIdx())->getUlamTypeMangledName();
-    //  assert(((SymbolParameterValue *) sym)->getValue(desc.m_val)); //is ready.
     m_memberName = state.m_pool.getDataAsString(sym->getId());
     m_mangledMemberName = sym->getMangledName();
     Token scTok;
@@ -26,10 +25,11 @@ namespace MFM {
       m_structuredComment = "NONE";
   }
 
+  ClassMemberDesc::ClassMemberDesc(const ClassMemberDesc& cref) : m_loc(cref.m_loc), m_mangledClassName(cref.m_mangledClassName), m_mangledType(cref.m_mangledType), m_memberName(cref.m_memberName), m_mangledMemberName(cref.m_mangledMemberName), m_structuredComment(cref.m_structuredComment) {}
 
   ClassMemberDesc::~ClassMemberDesc() {}
 
-  bool ClassMemberDesc::getValue(u64& vref)
+  bool ClassMemberDesc::getValue(u64& vref) const
   {
     return false;
   }

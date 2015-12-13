@@ -35,16 +35,6 @@ namespace MFM {
     return rtnMembers;
   }
 
-  void Compiler::clearClassMembersMap(ClassMemberMap & cmm)
-  {
-    for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
-      {
-	delete (i->second); //cannot be null
-	//i->second = NULL; //read-only
-      }
-    cmm.clear();
-  } //clearClassMembersMap
-
   const std::string Compiler::getFullPathLocationAsString(const Locator& loc)
   {
     return m_state.getFullLocationAsString(loc);
@@ -241,6 +231,9 @@ namespace MFM {
 	      }
 	  } //while
 
+	//after virtual table is set, check for abstract classes used as:
+	//local var, data member, or func parameter types.
+	m_state.m_programDefST.checkAbstractInstanceErrorsForTableOfClasses();
 	// must happen after type labeling and before code gen;
 	// separate pass. want UNKNOWNS reported
 	m_state.m_programDefST.packBitsForTableOfClasses();
@@ -315,25 +308,23 @@ namespace MFM {
     std::cerr << "Size of class members map is " << cmm.size() << std::endl;
     for(ClassMemberMap::const_iterator i = cmm.begin(); i != cmm.end(); ++i)
       {
-	assert(i->second); //cannot be null
 	u64 val;
-
+	const MFM::ClassMemberDesc * cmd = i->second.getClassMemberDesc();
 	std::cerr
 	  << "ULAM INFO: "  // Magic cookie text! ulam.tmpl recognizes it! emacs *compilation* doesn't!
-	  << i->second->getMemberKind() << " "
-	  << MFM::HexEscape(getFullPathLocationAsString(i->second->m_loc))
-	  << " " << i->second->m_mangledClassName
-	  << " " << i->second->m_mangledType
-	  << " " << i->second->m_memberName
-	  << " " << i->second->m_mangledMemberName;
+	  << cmd->getMemberKind() << " "
+	  << MFM::HexEscape(getFullPathLocationAsString(cmd->m_loc))
+	  << " " << cmd->m_mangledClassName
+	  << " " << cmd->m_mangledType
+	  << " " << cmd->m_memberName
+	  << " " << cmd->m_mangledMemberName;
 
-	if(i->second->getValue(val))
+	if(cmd->getValue(val))
 	  std::cerr << " 0x" << std::hex << val;
 
-	std::cerr << " " << MFM::HexEscape(i->second->m_structuredComment)
+	std::cerr << " " << MFM::HexEscape(cmd->m_structuredComment)
 		  << std::endl;
       }
-    clearClassMembersMap(cmm);
 #endif
 
     return m_state.m_err.getErrorCount();

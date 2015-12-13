@@ -194,7 +194,7 @@ namespace MFM {
     UTI ruti = m_nodeRight->getNodeType();
     s32 arraysize = m_state.getArraySize(luti);
 
-    assert(arraysize = m_state.getArraySize(nuti)); //node is same array size as lhs/rhs
+    assert(arraysize == m_state.getArraySize(nuti)); //node is same array size as lhs/rhs
 
     s32 bitsize = m_state.getBitSize(luti);
     UTI scalartypidx = m_state.getUlamTypeAsScalar(luti);
@@ -233,8 +233,10 @@ namespace MFM {
 	    //cp result UV to stack, -1 (first array element deepest) relative to current frame pointer
 	    m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -slots + i);
 	  }
-	assert(lp.incrementPtr(m_state));
-	assert(rp.incrementPtr(m_state));
+	AssertBool isNextLeft = lp.incrementPtr(m_state);
+	assert(isNextLeft);
+	AssertBool isNextRight = rp.incrementPtr(m_state);
+	assert(isNextRight);
       } //forloop
 
     if(WritePacked(packRtn))
@@ -282,7 +284,8 @@ namespace MFM {
 
     UTI ruti = ruvpass.getUlamValueTypeIdx();
     assert(ruti == Ptr);
-    fp->write(m_state.getTmpVarAsString(ruvpass.getPtrTargetType(), ruvpass.getPtrSlotIndex()).c_str());
+    ruti = ruvpass.getPtrTargetType(); //reset
+    fp->write(m_state.getTmpVarAsString(ruti, ruvpass.getPtrSlotIndex()).c_str());
 
     fp->write(", ");
 
