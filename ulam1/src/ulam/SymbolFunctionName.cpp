@@ -275,7 +275,7 @@ namespace MFM {
 			msg << m_state.m_pool.getDataAsString(fid).c_str();
 			msg << "> has a VIRTUAL ancestor in class: ";
 			msg << m_state.getUlamTypeNameBriefByIndex(kinuti).c_str();
-			MSG(fsym->getTokPtr(), msg.str().c_str(), DEBUG);
+			MSG(fsym->getTokPtr(), msg.str().c_str(), WARN);
 
 			fsym->setVirtualFunction(); //fix
 			assert(maxidx != UNKNOWNSIZE); //o.w. wouldn't be here yet
@@ -315,7 +315,7 @@ namespace MFM {
 	      }
 	    //else use ancestor index; maxidx stays same
 	    fsym->setVirtualMethodIdx(vidx);
-	    csym->updateVTable(vidx, fsym, kinuti);
+	    csym->updateVTable(vidx, fsym, kinuti, fsym->isPureVirtualFunction());
 	  }
 	else
 	  maxidx = (maxidx != UNKNOWNSIZE ? maxidx : 0); //stays same, or known 0

@@ -52,6 +52,12 @@ namespace MFM {
     return m_nodeBody->findNodeNo(n, foundNode);
   } //findNodeNo
 
+  void NodeControl::checkAbstractInstanceErrors()
+  {
+    m_nodeCondition->checkAbstractInstanceErrors();
+    m_nodeBody->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeControl::print(File * fp)
   {
     printNodeLocation(fp);

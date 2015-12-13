@@ -43,6 +43,12 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeUnaryOp::checkAbstractInstanceErrors()
+  {
+    if(m_node)
+      m_node->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeUnaryOp::print(File * fp)
   {
     printNodeLocation(fp);

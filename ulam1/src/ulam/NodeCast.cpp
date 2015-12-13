@@ -42,6 +42,11 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeCast::checkAbstractInstanceErrors()
+  {
+    m_node->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   const char * NodeCast::getName()
   {
     return "cast";

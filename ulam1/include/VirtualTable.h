@@ -46,6 +46,7 @@ namespace MFM
   {
     SymbolFunction * m_funcPtr;
     UTI m_ofClassUTI;
+    bool m_isPure;
   };
 
   // key is virtual index

@@ -50,6 +50,12 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeBlock::checkAbstractInstanceErrors()
+  {
+    if(m_nodeNext)
+      m_nodeNext->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeBlock::print(File * fp)
   {
     printNodeLocation(fp);

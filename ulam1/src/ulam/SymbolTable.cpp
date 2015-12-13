@@ -1130,6 +1130,23 @@ namespace MFM {
     return aok;
   } //calcMaxIndexOfVirtualFunctionsForTableOfClasses
 
+  void SymbolTable::checkAbstractInstanceErrorsForTableOfClasses()
+  {
+    std::map<u32, Symbol *>::iterator it = m_idToSymbolPtr.begin();
+    while(it != m_idToSymbolPtr.end())
+      {
+	Symbol * sym = it->second;
+	assert(sym && sym->isClass());
+	UTI cuti = sym->getUlamTypeIdx();
+	//skip anonymous classes
+	if(m_state.isARootUTI(cuti) && !m_state.getUlamTypeByIndex(cuti)->isHolder())
+	  {
+	    ((SymbolClassName *) sym)->checkAbstractInstanceErrorsForClassInstances();
+	  }
+	it++;
+      }
+  } //checkAbstractInstanceErrorsForTableOfClasses
+
   bool SymbolTable::labelTableOfClasses()
   {
     m_state.clearGoAgain();

@@ -231,6 +231,9 @@ namespace MFM {
 	      }
 	  } //while
 
+	//after virtual table is set, check for abstract classes used as:
+	//local var, data member, or func parameter types.
+	m_state.m_programDefST.checkAbstractInstanceErrorsForTableOfClasses();
 	// must happen after type labeling and before code gen;
 	// separate pass. want UNKNOWNS reported
 	m_state.m_programDefST.packBitsForTableOfClasses();

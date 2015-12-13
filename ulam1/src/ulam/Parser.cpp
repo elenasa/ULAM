@@ -3570,6 +3570,35 @@ namespace MFM {
 
 	brtn = true;
       }
+    else if(qTok.m_type == TOK_SEMICOLON)
+      {
+	SymbolFunction * fsymFromDef = funcNode->getFuncSymbolPtr();
+	assert(fsymFromDef);
+	if(fsymFromDef->isVirtualFunction())
+	  {
+	    NodeStatements * nextNode;
+	    nextNode = new NodeBlockEmpty(m_state.getCurrentBlock(), m_state); //legal
+	    assert(nextNode);
+	    nextNode->setNodeLocation(qTok.m_locator);
+	    funcNode->setNextNode(nextNode);
+
+	    fsymFromDef->setPureVirtualFunction();
+
+	    std::ostringstream msg;
+	    msg << "Pure Virtual Function <" << funcNode->getName() << ">";
+	    MSG(&qTok, msg.str().c_str(), INFO);
+
+	    brtn = true;
+	  }
+	else
+	  {
+	    unreadToken();
+	    std::ostringstream msg;
+	    msg << "Unexpected input!! Token <" << m_state.getTokenDataAsString(&qTok).c_str();
+	    msg << "> after non-virtual function declaration";
+	    MSG(&qTok, msg.str().c_str(), ERR);
+	  }
+      }
     else
       {
 	unreadToken();

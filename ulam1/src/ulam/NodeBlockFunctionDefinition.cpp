@@ -60,6 +60,14 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeBlockFunctionDefinition::checkAbstractInstanceErrors()
+  {
+    if(m_nodeParameterList)
+      m_nodeParameterList->checkAbstractInstanceErrors();
+    if(m_nodeNext)
+      m_nodeNext->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeBlockFunctionDefinition::setNodeLocation(Locator loc)
   {
     m_nodeParameterList->setNodeLocation(loc);

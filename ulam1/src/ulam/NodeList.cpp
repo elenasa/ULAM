@@ -82,6 +82,12 @@ namespace MFM{
     return rtnb;
   } //findNodeNo
 
+  void NodeList::checkAbstractInstanceErrors()
+  {
+    for(u32 i = 0; i < m_nodes.size(); i++)
+      m_nodes[i]->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeList::printPostfix(File * fp)
   {
     for(u32 i = 0; i < m_nodes.size(); i++)

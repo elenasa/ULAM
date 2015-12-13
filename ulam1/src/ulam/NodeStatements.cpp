@@ -53,6 +53,14 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeStatements::checkAbstractInstanceErrors()
+  {
+    if(m_node)
+      m_node->checkAbstractInstanceErrors();
+    if(m_nodeNext)
+      m_nodeNext->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeStatements::print(File * fp)
   {
     printNodeLocation(fp); //has same location as it's node

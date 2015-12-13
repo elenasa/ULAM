@@ -72,6 +72,12 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeConstantDef::checkAbstractInstanceErrors()
+  {
+    if(m_nodeExpr)
+      m_nodeExpr->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeConstantDef::printPostfix(File * fp)
   {
 #if 0

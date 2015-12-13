@@ -50,7 +50,27 @@ namespace MFM {
     return false;
   } //findNodeNo
 
-  // see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
+  void NodeVarDecl::checkAbstractInstanceErrors()
+  {
+    UTI nuti = getNodeType();
+    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+    if(nut->getUlamTypeEnum() == Class)
+      {
+	SymbolClass * csym = NULL;
+	AssertBool isDefined = m_state.alreadyDefinedSymbolClass(nuti, csym);
+	assert(isDefined);
+	if(csym->isAbstract())
+	  {
+	    std::ostringstream msg;
+	    msg << "Instance of Abstract Class ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << " used with variable symbol name '" << getName() << "'";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+      }
+  } //checkAbstractInstanceErrors
+
+  //see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarDecl::printPostfix(File * fp)
   {
     printTypeAndName(fp);

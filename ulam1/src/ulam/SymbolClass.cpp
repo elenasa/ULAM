@@ -903,18 +903,20 @@ namespace MFM {
     assert(m_vtable.size() == (u32) initialmax);
   } //initVTable
 
-  void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti)
+  void SymbolClass::updateVTable(u32 idx, SymbolFunction * fsym, UTI kinuti, bool isPure)
   {
     if(idx < m_vtable.size())
       {
 	m_vtable[idx].m_funcPtr = fsym;
 	m_vtable[idx].m_ofClassUTI = kinuti;
+	m_vtable[idx].m_isPure = isPure;
       }
     else
       {
 	struct VTEntry ve;
 	ve.m_funcPtr = fsym;
 	ve.m_ofClassUTI = kinuti;
+	ve.m_isPure = isPure;
 	m_vtable.push_back(ve);
       }
   }//updateVTable
@@ -948,4 +950,14 @@ namespace MFM {
     return m_vtable[idx];
   }
 
+  bool SymbolClass::isAbstract()
+  {
+    u32 vtsize = m_vtable.size();
+    for(u32 i = 0; i < vtsize; i++)
+      {
+	if(m_vtable[i].m_isPure)
+	  return true;
+      }
+    return false;
+  }
 } //end MFM

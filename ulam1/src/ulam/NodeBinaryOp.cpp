@@ -54,6 +54,12 @@ namespace MFM {
     return false;
   } //findNodeNo
 
+  void NodeBinaryOp::checkAbstractInstanceErrors()
+  {
+      m_nodeLeft->checkAbstractInstanceErrors();
+      m_nodeRight->checkAbstractInstanceErrors();
+  } //checkAbstractInstanceErrors
+
   void NodeBinaryOp::print(File * fp)
   {
     printNodeLocation(fp);

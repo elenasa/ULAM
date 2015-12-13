@@ -161,6 +161,8 @@ namespace MFM{
 
     bool calcMaxIndexOfVirtualFunctionsForTableOfClasses();
 
+    void checkAbstractInstanceErrorsForTableOfClasses();
+
     bool labelTableOfClasses();
 
     u32 countNavNodesAcrossTableOfClasses();

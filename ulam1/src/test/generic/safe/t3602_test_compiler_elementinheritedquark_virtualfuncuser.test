@@ -32,7 +32,7 @@ quark Base {
 use Base;
 quark Sub1 : Base {
   Int afunc() { return 4; } // not virtual
-  Int bfunc() { return 5; } // virtual override
+  virtual Int bfunc() { return 5; } // virtual override
   virtual Int cfunc() { return 6; } // new func
 }
 
@@ -40,16 +40,16 @@ quark Sub1 : Base {
   ulam 2;
 use Base;
 element E1 : Base {
-  Int afunc(Int a) { return 7; } // virtual override
-  Int bfunc() { return 8; } // virtual override
+  virtual Int afunc(Int a) { return 7; } // virtual override
+  virtual Int bfunc() { return 8; } // virtual override
 }
 
 #:E2.ulam
   ulam 2;
 use Sub1;
 element E2 : Sub1 {
-  Int afunc(Int a) { return 9; }
-  Int cfunc() { return 10; }
+  virtual Int afunc(Int a) { return 9; }
+  virtual Int cfunc() { return 10; }
 }
 
 #>Test.ulam
