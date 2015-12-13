@@ -3,7 +3,7 @@
 namespace MFM{
 
   template<class CC, u32 POS>
-  Ui_Ut_102321i Uq_10104Math10<CC, POS>::Uf_3max(const UlamContext<CC>& uc, T& Uv_4self, ...) //native
+  Ui_Ut_102321i Uq_10104Math10<CC, POS>::Uf_3max(const UlamContext<CC>& uc, T& Uv_4self, ...) const //native
   {
     va_list ap;
     va_start(ap, Uv_4self);

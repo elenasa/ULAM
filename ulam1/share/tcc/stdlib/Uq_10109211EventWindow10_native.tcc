@@ -7,7 +7,7 @@ namespace MFM{
 
   template<class EC, u32 POS>
   Ui_Ut_102961a<EC> Uq_10109211EventWindow10<EC,POS>::Uf_4aref(const UlamContext<EC> & uc, T& Uv_4self,
-							      Ui_Ut_10161u Uv_5index) //native
+							      Ui_Ut_10161u Uv_5index) const //native
   {
     u32 siteNumber = Uv_5index.read();
     const EventWindow<EC> & ew = uc.GetEventWindow();
@@ -18,7 +18,7 @@ namespace MFM{
   template<class EC, u32 POS>
   void Uq_10109211EventWindow10<EC,POS>::Uf_4aset(const UlamContext<EC> & uc,
                                                 T& Uv_4self, Ui_Ut_10161u Uv_5index,
-                                                Ui_Ut_102961a<EC> Uv_1v) //native
+                                                Ui_Ut_102961a<EC> Uv_1v) const //native
   {
     u32 siteNumber = Uv_5index.read();
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
@@ -27,7 +27,7 @@ namespace MFM{
 
   template<class EC, u32 POS>
   Ui_Ut_10111b Uq_10109211EventWindow10<EC,POS>::Uf_6isLive(const UlamContext<EC> & uc,
-                                                             T& Uv_4self, Ui_Ut_10161u Uv_5index)
+                                                             T& Uv_4self, Ui_Ut_10161u Uv_5index) const
   {
     u32 siteNumber = Uv_5index.read();
     const EventWindow<EC> & ew = uc.GetEventWindow();
@@ -37,7 +37,7 @@ namespace MFM{
   template<class EC, u32 POS>
   Ui_Ut_10111b Uq_10109211EventWindow10<EC,POS>::Uf_4swap(const UlamContext<EC> & uc, T& Uv_4self,
 							 Ui_Ut_10161u Uv_6index1,
-							 Ui_Ut_10161u Uv_6index2)
+							 Ui_Ut_10161u Uv_6index2) const
   {
     u32 idx1 = Uv_6index1.read();
     u32 idx2 = Uv_6index2.read();
@@ -49,7 +49,7 @@ namespace MFM{
   }
 
   template<class EC, u32 POS>
-  Ui_Uq_102323C2D10<EC> Uq_10109211EventWindow10<EC, POS>::Uf_8getCoord(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10161u Uv_7siteNum)
+  Ui_Uq_102323C2D10<EC> Uq_10109211EventWindow10<EC, POS>::Uf_8getCoord(const UlamContext<EC> & uc, T& Uv_4self, Ui_Ut_10161u Uv_7siteNum) const
   {
     //! EventWindow.ulam:21:     C2D ret;
     Ui_Uq_102323C2D10<EC> Uv_3ret;
@@ -67,7 +67,7 @@ namespace MFM{
   } // Uf_8getCoord
 
   template<class EC, u32 POS>
-  Ui_Ut_10161u Uq_10109211EventWindow10<EC, POS>::Uf_9213getSiteNumber(const UlamContext<EC> & uc, T& Uv_4self, Ui_Uq_102323C2D10<EC> Uv_5coord)
+  Ui_Ut_10161u Uq_10109211EventWindow10<EC, POS>::Uf_9213getSiteNumber(const UlamContext<EC> & uc, T& Uv_4self, Ui_Uq_102323C2D10<EC> Uv_5coord) const
   {
     enum { R = EC::EVENT_WINDOW_RADIUS };
     const EventWindow<EC> & ew = uc.GetEventWindow();
@@ -86,13 +86,14 @@ namespace MFM{
   //! EventWindow.ulam:28:   SiteNum size() native;
   template<class EC, u32 POS>
   Ui_Ut_10161u Uq_10109211EventWindow10<EC,POS>::Uf_4size(const UlamContext<EC> & uc,
-                                                               T& Uv_4self) {
+                                                               T& Uv_4self) const
+  {
     return Ui_Ut_10161u(EventWindow<EC>::SITE_COUNT);
   }
 
   template<class EC, u32 POS>
   Ui_Ut_10131u Uq_10109211EventWindow10<EC, POS>::Uf_9214changeSymmetry(const UlamContext<EC> & uc,T& Uv_4self,
-								       Ui_Ut_10131u Uv_6newSym)
+								       Ui_Ut_10131u Uv_6newSym) const
   {
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
 
@@ -106,7 +107,7 @@ namespace MFM{
   //! EventWindow.ulam:34:   C2D mapSym(C2D directCoord) {
   template<class EC, u32 POS>
   Ui_Uq_102323C2D10<EC> Uq_10109211EventWindow10<EC, POS>::Uf_6mapSym(const UlamContext<EC> & uc, T& Uv_4self,
-								      Ui_Uq_102323C2D10<EC> Uv_9211directCoord)
+								      Ui_Uq_102323C2D10<EC> Uv_9211directCoord) const
   {
     const EventWindow<EC> & ew = uc.GetEventWindow();
 
@@ -128,7 +129,7 @@ namespace MFM{
 
   template<class EC, u32 POS>
   void Uq_10109211EventWindow10<EC,POS>::Uf_7diffuse(const UlamContext<EC> & uc,
-                                                   T& Uv_4self)	 //native
+                                                   T& Uv_4self) const	 //native
   {
     EventWindow<EC> & ew = const_cast <UlamContext<EC> &>(uc).GetEventWindow();
     ew.Diffuse();
