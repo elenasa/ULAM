@@ -342,8 +342,7 @@ namespace MFM {
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti); //is it so? if so, some cleanup needed
 
-    if(m_varSymbol->isAutoLocal())
-      return evalAutoLocal();
+    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::eval
 
     ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(nuti)->getUlamClass();
     if(nuti == UAtom)
@@ -432,26 +431,6 @@ namespace MFM {
     return NORMAL;
   } //eval
 
-  EvalStatus NodeVarDecl::evalAutoLocal()
-  {
-    assert(m_varSymbol);
-
-    UTI nuti = getNodeType();
-    if(nuti == Nav)
-      return ERROR;
-
-    assert(m_varSymbol->getUlamTypeIdx() == nuti);
-    assert(nuti != UAtom); //rhs type of conditional as/has can't be an atom
-
-    UlamValue pluv = m_state.m_currentAutoObjPtr;
-    ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
-    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_state.m_currentAutoStorageType); //for future virtual function call eval uses
-
-    m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
-
-    return NORMAL;
-  } //evalAutoLocal
-
   EvalStatus  NodeVarDecl::evalToStoreInto()
   {
     assert(0); //no way to get here!
@@ -469,10 +448,7 @@ namespace MFM {
 	return genCodedBitFieldTypedef(fp, uvpass);
       }
 
-    if(m_varSymbol->isAutoLocal())
-      {
-	return genCodedAutoLocal(fp, uvpass);
-      }
+    assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::genCode
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
@@ -510,7 +486,6 @@ namespace MFM {
 
     fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   } //genCode
-
 
   // variable is a data member; not an element
   void NodeVarDecl::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
@@ -566,103 +541,6 @@ namespace MFM {
     fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
     fp->write(";\n"); //func call parameters aren't NodeVarDecl's
   } //genCodedBitFieldTypedef
-
-  // this is the auto local variable's node, created at parse time,
-  // for Conditional-As case.
-  void NodeVarDecl::genCodedAutoLocal(File * fp, UlamValue & uvpass)
-  {
-    assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
-    // the uvpass comes from NodeControl, and still has the POS obtained
-    // during the condition statement for As..unorthodox, but necessary.
-    assert(uvpass.getUlamValueTypeIdx() == Ptr);
-    s32 tmpVarPos = uvpass.getPtrSlotIndex();
-
-    // before shadowing the lhs of the h/as-conditional variable with its auto,
-    // let's load its storage from the currentSelfSymbol:
-    s32 tmpVarStg = m_state.getNextTmpVarNumber();
-    Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen[0];
-    UTI stguti = stgcos->getUlamTypeIdx();
-    UlamType * stgut = m_state.getUlamTypeByIndex(stguti);
-    assert(stguti == UAtom || stgut->getUlamClass() == UC_ELEMENT); //not quark
-
-    // can't let Node::genCodeReadIntoTmpVar do this for us: it's a ref.
-    assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
-    m_state.indent(fp);
-    fp->write(stgut->getTmpStorageTypeAsString().c_str());
-    fp->write("& "); //here it is!!
-    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
-    fp->write(" = ");
-    fp->write(m_state.m_currentObjSymbolsForCodeGen[0]->getMangledName().c_str());
-
-    if(m_varSymbol->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
-      fp->write(".getRef()");
-    fp->write(";\n");
-
-    // now we have our pos in tmpVarPos, and our T in tmpVarStg
-    // time to shadow 'self' with auto local variable:
-    UTI vuti = m_varSymbol->getUlamTypeIdx();
-    UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-    ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-
-    m_state.indent(fp);
-    fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
-    if(vclasstype == UC_ELEMENT)
-      fp->write("<EC> ");
-    else //QUARK
-      {
-	fp->write("<EC, ");
-	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //POS should be 0+25 for inheritance
-	fp->write("u + T::ATOM_FIRST_STATE_BIT> ");
-      }
-
-    fp->write(m_varSymbol->getMangledName().c_str());
-    fp->write("(");
-    fp->write(m_state.getTmpVarAsString(stguti, tmpVarStg, TMPBITVAL).c_str());
-
-    if(vclasstype == UC_QUARK)
-      {
-	fp->write(", ");
-	if(m_state.m_genCodingConditionalHas) //not sure this is posoffset, and not true/false?
-	  fp->write(m_state.getTmpVarAsString(uvpass.getPtrTargetType(), tmpVarPos).c_str());
-	else
-	  {
-	    assert(m_varSymbol->getPosOffset() == 0);
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //should be 0!
-	  }
-      }
-    else if(vclasstype == UC_ELEMENT)
-      {
-	//fp->write(", true"); //invokes 'badass' constructor
-      }
-    else
-      assert(0);
-
-    fp->write(");   //shadows lhs of 'h/as'\n");
-
-    m_state.indent(fp);
-
-    //special ulamcontext for autos based on its (lhs) storage
-    fp->write("const UlamContext<EC> ");
-    fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
-
-    if(stgcos->isAutoLocal())
-      {
-	//shadows previous _ucAuto
-	fp->write("(");
-	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
-	fp->write("(, ");
-	fp->write(m_state.getAutoHiddenContextArgName()); // _ucauto
-	fp->write(".LookupElementTypeFromContext(");
-      }
-    else
-      fp->write("(uc, uc.LookupElementTypeFromContext(");
-
-    fp->write(m_varSymbol->getMangledName().c_str()); //auto's name
-    fp->write(".getType()));\n");
-
-    m_state.m_genCodingConditionalHas = false; // done
-    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs ?
-  } //genCodedAutoLocal
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {

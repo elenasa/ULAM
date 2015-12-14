@@ -673,10 +673,7 @@ namespace MFM {
 	return NodeVarDecl::genCodedBitFieldTypedef(fp, uvpass);
       }
 
-    if(m_varSymbol->isAutoLocal())
-      {
-	return NodeVarDecl::genCodedAutoLocal(fp, uvpass);
-      }
+    assert(!m_varSymbol->isAutoLocal());
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);

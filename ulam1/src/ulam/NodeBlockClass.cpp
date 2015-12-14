@@ -390,7 +390,10 @@ namespace MFM {
     if(superuti != Nav)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock);
+	//assert(superblock);
+	if(!superblock)
+	  return; //error after all the iterations
+
 	maxidx = superblock->getVirtualMethodMaxIdx();
 	if(maxidx < 0)
 	  {
@@ -451,10 +454,22 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(((UlamTypeClass *) cut)->isCustomArray())
       m_functionST.checkCustomArrayTypeFuncs();
 
-    if(m_state.isClassASubclass(cuti))
+    UTI superuti = m_state.isClassASubclass(cuti);
+    if(superuti)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock);
+	if(!superblock)
+	  {
+	    std::ostringstream msg;
+	    msg << "Subclass '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
+	    msg << "' inherits from '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+	    msg << "', an INCOMPLETE Super class; ";
+	    msg << "No check of custom array type functions";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return;
+	  }
 	superblock->checkCustomArrayTypeFunctions();
       }
   } //checkCustomArrayTypeFunctions
@@ -746,12 +761,26 @@ void NodeBlockClass::checkCustomArrayTypeFunctions()
     if(m_ST.getTableSize() == 0) return;
     u32 offset = 0; //relative to ATOMFIRSTSTATEBITPOS
 
-    if(m_state.isClassASubclass(getNodeType()))
+    UTI nuti = getNodeType();
+    UTI superuti = m_state.isClassASubclass(nuti);
+    if(superuti != Nav)
       {
 	NodeBlockClass * superblock = (NodeBlockClass *) getPreviousBlockPointer();
-	assert(superblock);
-	UTI superUTI = superblock->getNodeType();
-	u32 superoffset = m_state.getTotalBitSize(superUTI);
+	if(!superblock)
+	  {
+	    std::ostringstream msg;
+	    msg << "Subclass '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	    msg << "' inherits from '";
+	    msg << m_state.getUlamTypeNameBriefByIndex(superuti).c_str();
+	    msg << "', an INCOMPLETE Super class; ";
+	    msg << "No bit packing of variable data members";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    return;
+	  }
+
+	assert(superblock->getNodeType() == superuti);
+	u32 superoffset = m_state.getTotalBitSize(superuti);
 	assert(superoffset >= 0);
 	offset += superoffset;
       }

@@ -5,7 +5,7 @@
 ##      // no cast before cond
 #!
 Exit status: 0
-Ue_Foo { Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Counter4 m_c4( Int(32) d(0); );  Int(32) e(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  a Foo as cond { Foo a;  a bi . true cast = } if a f cast = a Counter4 as cond { Counter4 a;  bh true cast = a ( )incr . e a ( )get . = } if { bh false cast = } else e return } }
+Ue_Foo { Bool(1) sp(false);  Bool(3) bi(false);  Bool(3) bh(false);  Counter4 m_c4( Int(32) d(0); );  Int(32) e(0);  Int(32) test() {  Atom(96) a;  Foo f;  Bool(1) b;  a Foo as cond { Foo& a;  a bi . true cast = } if a f cast = a Counter4 as cond { Counter4& a;  bh true cast = a ( )incr . e a ( )get . = } if { bh false cast = } else e return } }
 Uq_Counter4 { Int(32) d(0);  <NOMAIN> }
 #>Foo.ulam
   use Counter4;

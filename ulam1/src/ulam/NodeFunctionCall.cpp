@@ -414,8 +414,14 @@ namespace MFM {
 		  }
 		else if(autolocaltype == ALT_HAS)
 		  {
+		    assert(0); //deprecated
 		    // auto type is the type of the data member,
 		    // rather than the base (rhs)
+		  }
+		else if(autolocaltype == ALT_REF)
+		  {
+		    //unlike alt_as, alt_ref can be a primitive or a class
+		    atomPtr.setPtrTargetType(((SymbolVariableStack *) asym)->getAutoStorageTypeForEval());
 		  }
 	      }
 	  } //else can't be an autolocal

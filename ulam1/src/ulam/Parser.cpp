@@ -59,6 +59,7 @@
 #include "NodeUnaryOpBang.h"
 #include "NodeVarDecl.h"
 #include "NodeVarDeclDM.h"
+#include "NodeVarRef.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
 #include "SymbolFunction.h"
@@ -1269,7 +1270,7 @@ namespace MFM {
     assert(typeNode);
 
     //insert var decl into NodeStatements..as if parseStatement was called..
-    Node * varNode = new NodeVarDecl((SymbolVariable*) asymptr, typeNode, m_state);
+    Node * varNode = new NodeVarRef((SymbolVariable*) asymptr, typeNode, m_state);
     assert(varNode);
     varNode->setNodeLocation(asNode->getNodeLocation());
 
@@ -1655,6 +1656,10 @@ namespace MFM {
 	  }
 	else
 	  castUTI = typeargs.m_anothertduti;
+      }
+    else if(dTok.m_type == TOK_AMP)
+      {
+	typeargs.m_declRef = true; //a declared reference
       }
     return typeNode;
   } //parseTypeDescriptor
@@ -2398,6 +2403,7 @@ namespace MFM {
 	      assert(ut->getUlamClass() == UC_NOTACLASS); //can't be a class and complete
 	      rtnNode = makeTerminal(fTok, (u64) ut->getTotalBitSize(), Unsigned);
 	      delete nodetype; //unlikely
+	      nodetype = NULL;
 	    }
 	  else
 	    {
@@ -2414,6 +2420,7 @@ namespace MFM {
 		{
 		  rtnNode = makeTerminal(fTok, ut->getMax(), utype); //ut->getUlamTypeEnum());
 		  delete nodetype; //unlikely
+		  nodetype = NULL;
 		}
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
@@ -2436,6 +2443,7 @@ namespace MFM {
 		{
 		  rtnNode = makeTerminal(fTok, ut->getMin(), utype); //ut->getUlamTypeEnum());
 		  delete nodetype; //unlikely
+		  nodetype = NULL;
 		}
 	      else
 		rtnNode = new NodeTerminalProxy(memberTok, utype, fTok, nodetype, m_state);
@@ -2450,6 +2458,13 @@ namespace MFM {
 	    }
 	}
 	break;
+      case TOK_IDENTIFIER:
+	{
+	  //possible named constant?
+	  //rtnNode = new NodeConstantProxy(memberTok, utype, fTok, nodetype, m_state);
+
+	}
+	//break;
       default:
 	{
 	  //std::ostringstream msg;
@@ -2650,9 +2665,18 @@ namespace MFM {
 	rtnNode = parseMinMaxSizeofType(pTok, uti, typeNode); //optionally, gets next dot token
 	if(!rtnNode)
 	  {
-	    //clean up, some kind of error parsing min/max/sizeof
-	    delete typeNode;
-	    typeNode = NULL;
+	    Token iTok;
+	    getNextToken(iTok);
+	    if(iTok.m_type == TOK_IDENTIFIER)
+	      {
+		rtnNode = makeConstdefSymbol(typeargs, iTok, typeNode);
+	      }
+	    else
+	      {
+		//clean up, some kind of error parsing min/max/sizeof
+		delete typeNode;
+		typeNode = NULL;
+	      }
 	  }
 	return rtnNode; //rtnNode could be NULL!
       } //not a Type
@@ -3726,6 +3750,11 @@ namespace MFM {
 	    if(asymptr->isDataMember())
 	      {
 		rtnNode =  new NodeVarDeclDM((SymbolVariableDataMember *) asymptr, nodetyperef, m_state);
+		asymptr->setStructuredComment(); //also clears
+	      }
+	    else if(asymptr->isAutoLocal())
+	      {
+		rtnNode =  new NodeVarRef((SymbolVariable *) asymptr, nodetyperef, m_state);
 		asymptr->setStructuredComment(); //also clears
 	      }
 	    else

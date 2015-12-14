@@ -192,9 +192,9 @@ namespace MFM {
 	if(++infcounter > MAX_ITERATIONS || errCnt > 0)
 	  {
 	    std::ostringstream msg;
-	    msg << errCnt << " Errors found during resolving loop---";
-	    msg << "possible INCOMPLETE (or Template) class detected---";
-	    msg << " after " << infcounter << " iterations";
+	    msg << errCnt << " Errors found during resolving loop --- ";
+	    msg << "possible INCOMPLETE (or Template) class detected --- ";
+	    msg << "after " << infcounter << " iterations";
 	    MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	    //note: not an error because template uses with deferred args remain unresolved
 	    break;
@@ -222,8 +222,8 @@ namespace MFM {
 	    if(++infcounter > MAX_ITERATIONS)
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete calc of max index for virtual functions---";
-		msg << "possible INCOMPLETE Super class detected---";
+		msg << "Incomplete calc of max index for virtual functions --- ";
+		msg << "possible INCOMPLETE Super class detected ---";
 		msg << " after " << infcounter << " iterations";
 		MSG(m_state.getClassBlock()->getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		//note: not an error because template uses with deferred args remain unresolved

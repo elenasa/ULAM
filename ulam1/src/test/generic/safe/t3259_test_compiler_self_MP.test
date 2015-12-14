@@ -5,7 +5,7 @@
 ##include/Ue_10161S10_Types.h:224: FAILED: NULL_POINTER
 ##
 Exit status: 1
-Ue_S { Bool(3) b1(false);  Bool(3) b2(true);  parameter Bool(3) iep = true;  Int(32) test() {  Atom(96) a;  a self cast = a S as cond { S a;  b2 a iep(7u) . = } if b2 cast return } }
+Ue_S { Bool(3) b1(false);  Bool(3) b2(true);  parameter Bool(3) iep = true;  Int(32) test() {  Atom(96) a;  a self cast = a S as cond { S& a;  b2 a iep(7u) . = } if b2 cast return } }
 #>S.ulam
  ulam 1;
  element S{

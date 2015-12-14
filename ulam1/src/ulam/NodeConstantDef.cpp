@@ -180,17 +180,6 @@ namespace MFM {
     // NOASSIGN REQUIRED (e.g. for class parameters) doesn't have to have this!
     if(m_nodeExpr)
       {
-	if(!m_nodeExpr->isAConstant())
-	  {
-	    std::ostringstream msg;
-	    msg << "Constant value expression for: ";
-	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
-	    msg << ", is not a constant";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    setNodeType(Nav);
-	    return Nav; //short-circuit
-	  }
-
 	it = m_nodeExpr->checkAndLabelType();
 	if(it == Nav)
 	  {
@@ -198,10 +187,21 @@ namespace MFM {
 	    msg << "Constant value expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
 	    msg << ", is invalid";
-	    if(m_nodeExpr->isReadyConstant())
+	    if(m_nodeExpr->isAConstant() && m_nodeExpr->isReadyConstant())
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    else
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+
+	if(!m_nodeExpr->isAConstant())
+	  {
+	    std::ostringstream msg;
+	    msg << "Constant value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_cid).c_str();
+	    msg << ", is not a constant";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    setNodeType(Nav);
 	    return Nav; //short-circuit
 	  }

@@ -816,15 +816,27 @@ namespace MFM {
 	    uti = m_state.makeUlamType(newarraykey, bUT);
 	  }
 
-	SymbolVariable * sym = makeSymbol(uti);
-	m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
-	setSymbolPtr(sym); //sets m_varSymbol and st block no.
-	asymptr = sym;
+	SymbolVariable * sym = makeSymbol(uti, args.m_declRef);
+	if(sym)
+	  {
+	    m_state.addSymbolToCurrentScope(sym); //ownership goes to the block
+	    setSymbolPtr(sym); //sets m_varSymbol and st block no.
+	    asymptr = sym;
+	  }
+	else
+	  {
+	    std::ostringstream msg;
+	    msg << "Variable symbol '";
+	    msg << m_state.m_pool.getDataAsString(m_token.m_dataindex).c_str();
+	    msg << "' cannot be a reference";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    brtn = false;
+	  }
       }
     return brtn;
   } //installSymbolVariable
 
-  SymbolVariable *  NodeIdent::makeSymbol(UTI auti)
+  SymbolVariable *  NodeIdent::makeSymbol(UTI auti, bool isref)
   {
     //adjust decl count and max_depth, used for function definitions
     PACKFIT packit = m_state.determinePackable(auti);
@@ -834,6 +846,8 @@ namespace MFM {
 	u32 baseslot = 1;  //unpacked fixed later
 
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
+	if(isref)
+	  return NULL; //error! dm's not references
 	return (new SymbolVariableDataMember(m_token, auti, packit, baseslot, m_state));
       }
 
@@ -843,11 +857,19 @@ namespace MFM {
 	//1 slot for scalar or packed array
 	m_state.m_currentFunctionBlockDeclSize -= m_state.slotsNeeded(auti);
 
-	return (new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
+	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
+	assert(rtnSym);
+
+	if(isref)
+	  rtnSym->setAutoLocalType(Token(TOK_AMP, m_token.m_locator, 0));
+	return rtnSym;
       }
 
     //(else) Symbol is a local variable, always on the stack
     SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
+    assert(rtnLocalSym);
+    if(isref)
+      rtnLocalSym->setAutoLocalType(Token(TOK_AMP, m_token.m_locator, 0));
 
     m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
 
