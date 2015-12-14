@@ -77,10 +77,8 @@ namespace MFM{
 
     virtual void printTypeAndName(File * fp);
 
-
-
-
   private:
+    void genCodedAutoLocal(File * fp, UlamValue & uvpass);
 
   };
 

@@ -1562,6 +1562,8 @@ namespace MFM {
     TypeArgs typeargs;
     NodeTypeDescriptor * typeNode = parseTypeDescriptor(typeargs);
     assert(typeNode);
+    if(parseSingleDecl)
+      typeargs.m_isStmt = false; //for function params (e.g. refs)
 
     Token iTok;
     getNextToken(iTok);
@@ -1660,6 +1662,8 @@ namespace MFM {
     else if(dTok.m_type == TOK_AMP)
       {
 	typeargs.m_declRef = true; //a declared reference
+	typeargs.m_assignOK = true; //required
+	typeargs.m_isStmt = true; //unless a func param
       }
     return typeNode;
   } //parseTypeDescriptor
@@ -3140,7 +3144,7 @@ namespace MFM {
 
     args.m_arraysize = NONARRAYSIZE; //clear for decl list (args ref)
 
-    if(pTok.m_type == TOK_EQUAL)
+    if(pTok.m_type == TOK_EQUAL) //first check for '='
       {
 	if(args.m_assignOK)
 	  {
@@ -3159,15 +3163,33 @@ namespace MFM {
 	    return dNode;
 	  }
       }
-    else if(pTok.m_type != TOK_COMMA)
+    else if(args.m_declRef)
       {
+	//assignments required for references
+	std::ostringstream msg;
+	msg << "Must assign to reference <" << m_state.getTokenDataAsString(&identTok).c_str();
+	msg << "> at the time of its declaration";
+	MSG(&pTok, msg.str().c_str(), ERR);
+	getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	unreadToken();
 	return dNode;
+      }
+    else if(pTok.m_type != TOK_COMMA)
+      {
+	unreadToken(); //likely semicolon
+	return dNode;  //done
       }
 
     Node * rtnNode = dNode;
     Token iTok;
     getNextToken(iTok);
+
+    if(iTok.m_type == TOK_AMP)
+      {
+	args.m_declRef = true;
+	getNextToken(iTok);
+      }
+
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//just the top level as a basic uti (no selects, or arrays)
@@ -3224,6 +3246,7 @@ namespace MFM {
     nextNode->setNodeLocation(assignNode->getNodeLocation());
     rtnNode->setNextNode(nextNode);
 
+    args.m_declRef = false; //clear flag in case of decl list
     return parseRestOfDecls(args, identTok, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
 
@@ -3755,7 +3778,7 @@ namespace MFM {
 	    else if(asymptr->isAutoLocal())
 	      {
 		rtnNode =  new NodeVarRef((SymbolVariable *) asymptr, nodetyperef, m_state);
-		asymptr->setStructuredComment(); //also clears
+		m_state.clearStructuredCommentToken();
 	      }
 	    else
 	      {

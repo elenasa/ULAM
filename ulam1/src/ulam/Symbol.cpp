@@ -100,8 +100,9 @@ namespace MFM {
   {
     if(cTok.m_type == TOK_KW_AS)
       setAutoLocalType(ALT_AS);
-    //    else if(cTok.m_type == TOK_KW_HAS)
-    //  setAutoLocalType(ALT_HAS);
+    else if(cTok.m_type == TOK_KW_HAS)
+      //  setAutoLocalType(ALT_HAS);
+      assert(0); //deprecated
     else if(cTok.m_type == TOK_AMP)
       setAutoLocalType(ALT_REF);
     else

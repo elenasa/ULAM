@@ -154,9 +154,17 @@ namespace MFM {
     return NORMAL;
   }
 
-  // this is the auto local variable's node, created at parse time,
-  // for Conditional-As case. (was genCodedAutoLocal)
   void NodeVarRef::genCode(File * fp, UlamValue & uvpass)
+  {
+    if(m_varSymbol->getAutoLocalType() == ALT_AS)
+      return genCodedAutoLocal(fp, uvpass);
+
+    assert(0); //TDB
+  } //genCode
+
+  // this is the auto local variable's node, created at parse time,
+  // for Conditional-As case.
+  void NodeVarRef::genCodedAutoLocal(File * fp, UlamValue & uvpass)
   {
     assert(!m_state.m_currentObjSymbolsForCodeGen.empty());
     // the uvpass comes from NodeControl, and still has the POS obtained
