@@ -8,16 +8,40 @@
 
 namespace MFM {
 
-  NodeVarRef::NodeVarRef(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeVarDecl(sym, nodetype, state) { }
+  NodeVarRef::NodeVarRef(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeVarDecl(sym, nodetype, state), m_storageExpr(NULL) { }
 
-  NodeVarRef::NodeVarRef(const NodeVarRef& ref) : NodeVarDecl(ref) { }
+  NodeVarRef::NodeVarRef(const NodeVarRef& ref) : NodeVarDecl(ref), m_storageExpr(NULL)
+  {
+    if(ref.m_storageExpr)
+      m_storageExpr = ref.m_storageExpr->instantiate();
+  }
 
-  NodeVarRef::~NodeVarRef() { }
+  NodeVarRef::~NodeVarRef()
+  {
+    delete m_storageExpr;
+    m_storageExpr = NULL;
+  }
 
   Node * NodeVarRef::instantiate()
   {
     return new NodeVarRef(*this);
   }
+
+  void NodeVarRef::updateLineage(NNO pno)
+  {
+    NodeVarDecl::updateLineage(pno);
+    if(m_storageExpr)
+      m_storageExpr->updateLineage(getNodeNo());
+  } //updateLineage
+
+  bool NodeVarRef::findNodeNo(NNO n, Node *& foundNode)
+  {
+    if(NodeVarDecl::findNodeNo(n, foundNode))
+      return true;
+    if(m_storageExpr && m_storageExpr->findNodeNo(n, foundNode))
+      return true;
+    return false;
+  } //findNodeNo
 
   void NodeVarRef::checkAbstractInstanceErrors()
   {
@@ -45,6 +69,11 @@ namespace MFM {
   void NodeVarRef::printPostfix(File * fp)
   {
     printTypeAndName(fp);
+    if(m_storageExpr)
+      {
+	fp->write(" =");
+	m_storageExpr->printPostfix(fp);
+      }
     fp->write("; ");
   } //printPostfix
 
@@ -86,12 +115,58 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  void NodeVarRef::setStorageExpr(Node * node)
+  {
+    m_storageExpr = node;
+    m_storageExpr->updateLineage(getNodeNo()); //for unknown subtrees
+  }
+
+  bool NodeVarRef::hasStorageExpr()
+  {
+    return (m_storageExpr != NULL);
+  }
+
+  bool NodeVarRef::foldStorageExpression()
+  {
+    assert(0); //TBD;
+  }
+
   UTI NodeVarRef::checkAndLabelType()
   {
     UTI it = NodeVarDecl::checkAndLabelType();
 
     ////requires non-constant, non-funccall value
-    //TBD
+    //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
+    if(m_storageExpr)
+      {
+	it = m_storageExpr->checkAndLabelType();
+	if(it == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Storage expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << ", is invalid";
+	    if(!m_storageExpr->isStoreIntoAble())
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+
+	//if(m_storageExpr->isStoreIntoAble())
+	Symbol * storsym = NULL;
+	if(m_storageExpr->getSymbolPtr(storsym) && (storsym->isConstant() || storsym->isFunction()))
+	  {
+	    std::ostringstream msg;
+	    msg << "Storage expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << ", must be storeintoable";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+      }
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -117,8 +192,50 @@ namespace MFM {
     depth += m_state.slotsNeeded(getNodeType());
   } //calcMaxDepth
 
-  //was evalAutoLocal
+  void NodeVarRef::countNavNodes(u32& cnt)
+  {
+    if(m_storageExpr)
+      m_storageExpr->countNavNodes(cnt);
+
+    Node::countNavNodes(cnt);
+  } //countNavNodes
+
   EvalStatus NodeVarRef::eval()
+  {
+    assert(m_varSymbol);
+
+    if(m_varSymbol->getAutoLocalType() == ALT_AS)
+      return evalAutoLocal();
+
+    UTI nuti = getNodeType();
+    if(nuti == Nav)
+      return ERROR;
+
+    assert(m_varSymbol->getUlamTypeIdx() == nuti);
+    assert(m_storageExpr);
+
+    evalNodeProlog(0); //new current frame pointer
+
+    makeRoomForSlots(1); //always 1 slot for ptr
+
+    EvalStatus evs = m_storageExpr->evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    UlamValue pluv = m_state.m_nodeEvalStack.popArg();
+    ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
+    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_storageExpr->getNodeType()); //for future virtual function call eval uses
+
+    m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
+
+    evalNodeEpilog();
+    return NORMAL;
+  } //eval
+
+  EvalStatus NodeVarRef::evalAutoLocal()
   {
     assert(m_varSymbol);
 
@@ -159,7 +276,57 @@ namespace MFM {
     if(m_varSymbol->getAutoLocalType() == ALT_AS)
       return genCodedAutoLocal(fp, uvpass);
 
-    assert(0); //TDB
+    //reference
+    assert(m_varSymbol->isAutoLocal());
+    if(m_storageExpr)
+      {
+	m_storageExpr->genCodeToStoreInto(fp, uvpass);
+
+	assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
+	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
+
+	UTI vuti = m_varSymbol->getUlamTypeIdx();
+	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
+	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
+
+	assert(vuti == stgcos->getUlamTypeIdx());
+
+	m_state.indent(fp);
+	fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
+	if(vclasstype == UC_ELEMENT)
+	  fp->write("<EC> ");
+	else if(vclasstype == UC_QUARK)
+	  {
+	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(uvpass.getPtrPos());
+	    fp->write("u> ");
+	  }
+	else //primitive
+	  fp->write("<EC> ");
+
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write("("); //pass ref in constructor (ref's not assigned with =)
+	if(stgcos->isDataMember())
+	  {
+	    fp->write("Uv_4atom, ");
+	    fp->write_decimal_unsigned(stgcos->getPosOffset());
+	    fp->write("u");
+	  }
+	else
+	  {
+	    fp->write(stgcos->getMangledName().c_str());
+	    if(stgcos->getId() != m_state.m_pool.getIndexForDataString("atom")) //not isSelf check; was "self"
+	      fp->write(".getRef()");
+	    fp->write(", ");
+	    if(vclasstype == UC_NOTACLASS)
+	      fp->write_decimal_unsigned(vut->getTotalWordSize() - vut->getTotalBitSize()); //right-justified
+	    else
+	      fp->write(", 0"); //left-justified
+	  }
+	fp->write(");\n"); //func call parameters aren't NodeVarDecl's
+      } //storage
+
+    m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?
   } //genCode
 
   // this is the auto local variable's node, created at parse time,

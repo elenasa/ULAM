@@ -54,6 +54,7 @@
 #include "NodeTypeDescriptor.h"
 #include "NodeTypeBitsize.h"
 #include "NodeUnaryOp.h"
+#include "NodeVarDecl.h"
 #include "Symbol.h"
 #include "SymbolFunction.h"
 #include "SymbolClassName.h"
@@ -332,9 +333,9 @@ namespace MFM{
 
     Node * parseRestOfAssignExpr(Node * leftNode);
 
-    Node * parseRestOfDecls(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
+    Node * parseRestOfDecls(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
 
-    Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti);
+    Node * parseRestOfDeclAssignment(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti);
 
     NodeConstantDef * parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ = true, bool isStmt = true);
 

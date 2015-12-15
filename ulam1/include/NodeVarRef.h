@@ -53,6 +53,10 @@ namespace MFM{
 
     virtual Node * instantiate();
 
+    virtual void updateLineage(NNO pno);
+
+    virtual bool findNodeNo(NNO n, Node *& foundNode);
+
     virtual void checkAbstractInstanceErrors();
 
     virtual void printPostfix(File * f);
@@ -61,11 +65,19 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    void setStorageExpr(Node * node);
+
+    bool hasStorageExpr();
+
+    bool foldStorageExpression();
+
     virtual UTI checkAndLabelType();
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
 
     virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+
+    virtual void countNavNodes(u32& cnt);
 
     virtual EvalStatus eval();
 
@@ -78,6 +90,9 @@ namespace MFM{
     virtual void printTypeAndName(File * fp);
 
   private:
+    Node * m_storageExpr;
+
+    EvalStatus evalAutoLocal();
     void genCodedAutoLocal(File * fp, UlamValue & uvpass);
 
   };

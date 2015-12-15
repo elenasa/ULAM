@@ -57,7 +57,6 @@
 #include "NodeUnaryOpMinus.h"
 #include "NodeUnaryOpPlus.h"
 #include "NodeUnaryOpBang.h"
-#include "NodeVarDecl.h"
 #include "NodeVarDeclDM.h"
 #include "NodeVarRef.h"
 #include "SymbolClass.h"
@@ -1574,7 +1573,7 @@ namespace MFM {
 	if(rtnNode && !parseSingleDecl)
 	  {
 	    //for multi's of same type (rtnType), and/or its assignment
-	    return parseRestOfDecls(typeargs, iTok, rtnNode, passuti);
+	    return parseRestOfDecls(typeargs, iTok, (NodeVarDecl *) rtnNode, rtnNode, passuti);
 	  }
       }
     else
@@ -3137,8 +3136,14 @@ namespace MFM {
   // They create a parse subtree for the binary op equal; and do not have to be constant
   // expressions. Data member initialization expressions are constant expressions, and
   // are a child of the NodeVarDeclDM subclass (see parseDataMember).
-  Node * Parser::parseRestOfDecls(TypeArgs& args, Token identTok, Node * dNode, UTI passuti)
+  // References (locals only) save their initialized value, a storeintoable ("lval") expression, in their NodeVarRef.
+  Node * Parser::parseRestOfDecls(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
+    //rtnNode is NodeStatments on list recursion, not the NodeVar...
+    //dNode is the NodeVar.. needed for references, also in the rtnNode nextNode ptr.
+    if(dNode == NULL)
+      return rtnNode; //quit!
+
     Token pTok;
     getNextToken(pTok);
 
@@ -3148,8 +3153,8 @@ namespace MFM {
       {
 	if(args.m_assignOK)
 	  {
-	    unreadToken();
-	    return parseRestOfDeclAssignment(args, identTok, dNode, passuti); //pass args for more decls
+	    unreadToken(); //needed to makeAssignExprNode
+	    return parseRestOfDeclAssignment(args, identTok, dNode, rtnNode, passuti); //pass args for more decls
 	  }
 	else
 	  {
@@ -3160,7 +3165,7 @@ namespace MFM {
 	    MSG(&pTok, msg.str().c_str(), ERR);
 	    getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	    unreadToken();
-	    return dNode;
+	    return rtnNode; //done
 	  }
       }
     else if(args.m_declRef)
@@ -3172,15 +3177,14 @@ namespace MFM {
 	MSG(&pTok, msg.str().c_str(), ERR);
 	getTokensUntil(TOK_SEMICOLON); //rest of statement is ignored.
 	unreadToken();
-	return dNode;
+	return rtnNode; //done
       }
     else if(pTok.m_type != TOK_COMMA)
       {
 	unreadToken(); //likely semicolon
-	return dNode;  //done
+	return rtnNode; //done
       }
 
-    Node * rtnNode = dNode;
     Token iTok;
     getNextToken(iTok);
 
@@ -3194,11 +3198,12 @@ namespace MFM {
       {
 	//just the top level as a basic uti (no selects, or arrays)
 	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
+
 	//another decl of same type
-	Node * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl
+	NodeVarDecl * sNode = (NodeVarDecl *) makeVariableSymbol(args, iTok, typeNode); //a decl !!
 	if (sNode)
 	  {
-	    rtnNode =  new NodeStatements(dNode, m_state);
+	    rtnNode =  new NodeStatements(rtnNode, m_state);
 	    assert(rtnNode);
 	    rtnNode->setNodeLocation(dNode->getNodeLocation());
 
@@ -3207,28 +3212,58 @@ namespace MFM {
 	    nextNode->setNodeLocation(dNode->getNodeLocation());
 	    ((NodeStatements *) rtnNode)->setNextNode(nextNode);
 	  }
-	//else  error?
+	//else error?
+	dNode = sNode; //replace dNode, no leaks
       }
     else
       {
+	dNode = NULL;
 	//perhaps read until semi-colon
 	getTokensUntil(TOK_SEMICOLON);
 	unreadToken();
       }
-    return parseRestOfDecls(args, iTok, rtnNode, passuti); //iTok in case of =
+    return parseRestOfDecls(args, iTok, dNode, rtnNode, passuti); //iTok in case of =
   } //parseRestOfDecls
 
-    Node * Parser::parseRestOfDeclAssignment(TypeArgs& args, Token identTok, Node * dNode, UTI passuti)
+  Node * Parser::parseRestOfDeclAssignment(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
-    NodeStatements * rtnNode = new NodeStatements(dNode, m_state);
-    assert(rtnNode);
-    rtnNode->setNodeLocation(dNode->getNodeLocation());
+    assert(dNode);
+    if(args.m_declRef)
+      {
+	Token eTok;
+	getNextToken(eTok);
+	assert(eTok.m_type == TOK_EQUAL);
 
-    //makeup node for lhs; using same symbol as dNode(could be Null!)
+	if(getExpectedToken(TOK_IDENTIFIER, eTok))
+	  {
+	    Node * rightNode = parseLvalExpr(eTok);
+	    if(!rightNode)
+	      {
+		std::ostringstream msg;
+		msg << "Value of reference " << identTok.getTokenStringFromPool(&m_state).c_str();
+		msg << " is missing; Ref deleted";
+		MSG(&identTok, msg.str().c_str(), ERR);
+	      }
+	    else
+	      {
+		((NodeVarRef *) dNode)->setStorageExpr(rightNode);
+	      }
+	  }
+	//else error
+
+	args.m_declRef = false; //clear flag in case of decl list
+	return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //parseTree stays the same, any more?
+      } //ref done
+
+    NodeStatements * stmtNode = new NodeStatements(rtnNode, m_state);
+    assert(stmtNode);
+    stmtNode->setNodeLocation(rtnNode->getNodeLocation());
+
+    //makeup node for lhs; using same symbol as dNode (symbol could be Null!)
     Symbol * dsymptr = NULL;
-    bool hazyKin = false; //don't care
-    AssertBool isDefined = m_state.alreadyDefinedSymbol(identTok.m_dataindex, dsymptr, hazyKin);
+    AssertBool isDefined = dNode->getSymbolPtr(dsymptr);
     assert(isDefined);
+
     Node * leftNode = new NodeIdent(identTok, (SymbolVariable *) dsymptr, m_state);
     assert(leftNode);
     leftNode->setNodeLocation(dNode->getNodeLocation());
@@ -3237,17 +3272,16 @@ namespace MFM {
     if(!assignNode)
       {
 	//leftnode was deleted; dNode will be.
-	delete rtnNode;
+	delete stmtNode;
 	return NULL;
       }
 
     NodeStatements * nextNode = new NodeStatements(assignNode, m_state);
     assert(nextNode);
     nextNode->setNodeLocation(assignNode->getNodeLocation());
-    rtnNode->setNextNode(nextNode);
+    stmtNode->setNextNode(nextNode);
 
-    args.m_declRef = false; //clear flag in case of decl list
-    return parseRestOfDecls(args, identTok, rtnNode, passuti); //any more?
+    return parseRestOfDecls(args, identTok, dNode, stmtNode, passuti); //any more?
   } //parseRestOfDeclAssignment
 
   NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ, bool isStmt)

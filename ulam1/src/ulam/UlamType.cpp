@@ -879,6 +879,11 @@ namespace MFM {
     fp->write(automangledName.c_str());
     fp->write("(AutoRefBase<EC>& arg, u32 pos) : AutoRefBase<EC>(arg, pos) { }\n");
 
+    //constructor for chain of refs
+    m_state.indent(fp);
+    fp->write(automangledName.c_str());
+    fp->write("(T& arg, u32 pos) : AutoRefBase<EC>(arg, pos) { }\n");
+
     //default destructor (for completeness)
     m_state.indent(fp);
     fp->write("~");

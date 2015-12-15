@@ -180,7 +180,7 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
-
+    setStoreIntoAble(true);
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType
@@ -454,16 +454,7 @@ namespace MFM {
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
     m_state.indent(fp);
-    if(!m_varSymbol->isDataMember())
-      {
-	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
-      }
-    else
-      {
-	fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
-	assert(0); //doesn't happen anymore..
-      }
-
+    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
     fp->write(" ");
     fp->write(m_varSymbol->getMangledName().c_str());
 
