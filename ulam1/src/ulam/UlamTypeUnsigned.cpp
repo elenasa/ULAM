@@ -58,7 +58,6 @@ namespace MFM {
     if(needsImmediateType())
       return UlamType::getUlamTypeImmediateMangledName();
 
-    //return getImmediateStorageTypeAsString(state); //"u32"; inf loop
     return UlamType::getUlamTypeImmediateMangledName(); //? for constants
   }
 

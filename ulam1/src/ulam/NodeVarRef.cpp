@@ -302,7 +302,14 @@ namespace MFM {
 	    fp->write("u> ");
 	  }
 	else //primitive
-	  fp->write("<EC> ");
+	  {
+	    fp->write("<EC, ");
+	    if(stgcos->isDataMember())
+	      fp->write("T::ATOM_FIRST_STATE_BIT + ");
+
+	    fp->write_decimal_unsigned(uvpass.getPtrPos());
+	    fp->write("u> ");
+	  }
 
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write("("); //pass ref in constructor (ref's not assigned with =)
@@ -310,7 +317,6 @@ namespace MFM {
 	  {
 	    fp->write("Uv_4atom, ");
 	    fp->write_decimal_unsigned(stgcos->getPosOffset());
-	    fp->write("u");
 	  }
 	else
 	  {
@@ -319,11 +325,11 @@ namespace MFM {
 	      fp->write(".getRef()");
 	    fp->write(", ");
 	    if(vclasstype == UC_NOTACLASS)
-	      fp->write_decimal_unsigned(vut->getTotalWordSize() - vut->getTotalBitSize()); //right-justified
+	      fp->write_decimal_unsigned(BITSPERATOM - vut->getTotalBitSize()); //right-justified
 	    else
 	      fp->write(", 0"); //left-justified
 	  }
-	fp->write(");\n"); //func call parameters aren't NodeVarDecl's
+	fp->write("u);\n"); //func call parameters aren't NodeVarDecl's
       } //storage
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of rhs ?

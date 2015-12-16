@@ -603,7 +603,7 @@ namespace MFM {
 	fp->write("const ");
 	fp->write(getArrayItemTmpStorageTypeAsString().c_str()); //s32 or u32
 	fp->write(" readArrayItem(");
-	fp->write("const u32 index, const u32 itemlen) const { return ");
+	fp->write("const u32 index, const u32 itemlen) const { return "); //was const after )
 	fp->write("AutoRefBase<EC>::readArrayItem");
 	fp->write("(index, itemlen); }\n");
       }

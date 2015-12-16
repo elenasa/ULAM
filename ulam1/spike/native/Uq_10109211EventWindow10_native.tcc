@@ -7,7 +7,7 @@ namespace MFM{
 
   template<class CC, u32 POS>
   Ui_Ut_102961a<CC> Uq_10109211EventWindow10<CC,POS>::Uf_4aref(const UlamContext<CC> & uc,
-                                                                T& Uv_4atom, Ui_Ut_102321i Uv_5index) const //native
+							       T& Uv_4atom, Ui_Ut_102321i<CC> Uv_5index) const //native
   {
     u32 siteNumber = Uv_5index.read();
 
@@ -19,7 +19,7 @@ namespace MFM{
 
   template<class CC, u32 POS>
   void Uq_10109211EventWindow10<CC,POS>::Uf_4aset(const UlamContext<CC> & uc, T& Uv_4atom,
-						 Ui_Ut_102321i Uv_5index, Ui_Ut_102961a<CC> Uv_1v) const //native
+						  Ui_Ut_102321i<CC> Uv_5index, Ui_Ut_102961a<CC> Uv_1v) const //native
   {
     u32 siteNumber = Uv_5index.read();
 

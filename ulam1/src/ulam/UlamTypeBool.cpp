@@ -52,8 +52,6 @@ namespace MFM {
     if(needsImmediateType())
       return UlamType::getUlamTypeImmediateMangledName();
 
-    //return getImmediateStorageTypeAsString(state);  //"bool" inf loop
-    //return getTmpStorageTypeAsString(state);
     return UlamType::getUlamTypeImmediateMangledName(); //? for constants
   }
 

@@ -1371,8 +1371,11 @@ namespace MFM {
     fp->write("\n");
     m_state.indent(fp);
     fp->write("OurAtomAll atom;\n");
-    m_state.indent(fp);
-    fp->write("MFM::Ui_Ut_102321i rtn;\n");
+
+    //m_state.indent(fp);
+    //fp->write("MFM::");
+    //fp->write(m_state.getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString().c_str());
+    //fp->write(" rtn;\n");
 
     it = m_idToSymbolPtr.begin();
     s32 idcounter = 1;

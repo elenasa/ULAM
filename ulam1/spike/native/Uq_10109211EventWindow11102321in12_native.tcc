@@ -7,7 +7,7 @@ namespace MFM{
 
   template<class EC, u32 POS>
   Ui_Ut_102961a<EC> Uq_10109211EventWindow11102321in12<EC,POS>::Uf_4aref(const UlamContext<EC> & uc,
-                                                                T& Uv_4self, Ui_Ut_102321i Uv_5index) const //native
+									 T& Uv_4self, Ui_Ut_102321i<EC> Uv_5index) const //native
   {
     u32 siteNumber = Uv_5index.read();
     const EventWindow<EC> & ew = uc.GetEventWindow();
@@ -17,7 +17,7 @@ namespace MFM{
 
   template<class EC, u32 POS>
   void Uq_10109211EventWindow11102321in12<EC,POS>::Uf_4aset(const UlamContext<EC> & uc,
-                                                T& Uv_4self, Ui_Ut_102321i Uv_5index, Ui_Ut_102961a<EC> Uv_1v) const //native
+							    T& Uv_4self, Ui_Ut_102321i<EC> Uv_5index, Ui_Ut_102961a<EC> Uv_1v) const //native
   {
     u32 siteNumber = Uv_5index.read();
 

@@ -584,7 +584,7 @@ namespace MFM {
 	    m_state.indent(fp);
 	    fp->write("tile.PlaceAtom(atom, center);\n");
 	    m_state.indent(fp);
-	    fp->write("rtn = "); //MFM::Ui_Ut_102323Int
+	    //fp->write("rtn = "); //MFM::Ui_Ut_102323Int
 	    fp->write(sut->getUlamTypeMangledName().c_str());
 
 	    // pass uc with effective self setup
