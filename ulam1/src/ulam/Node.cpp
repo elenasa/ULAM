@@ -1670,11 +1670,17 @@ namespace MFM {
 	if(cosclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");
-	    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //must be a constant
+	    fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS); //must be a constant
 	    fp->write("u> ");
 	  }
-	else
+	else if(cosclasstype == UC_ELEMENT || cosuti == UAtom)
 	  fp->write("<EC> ");
+	else
+	  {
+	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - cosut->getTotalBitSize() ); //must be a constant
+	    fp->write("u> ");
+	  }
 
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); //use constructor (not equals)
@@ -1698,11 +1704,17 @@ namespace MFM {
 	if(cosclasstype == UC_QUARK)
 	  {
 	    fp->write("<EC, ");
-	    fp->write_decimal(ATOMFIRSTSTATEBITPOS); //must be a constant
+	    fp->write_decimal_unsigned(ATOMFIRSTSTATEBITPOS); //must be a constant
 	    fp->write("u> ");
 	  }
-	else
+	else if(cosclasstype == UC_ELEMENT || cosuti == UAtom)
 	  fp->write("<EC> ");
+	else
+	  {
+	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - cosut->getTotalBitSize() ); //must be a constant
+	    fp->write("u> ");
+	  }
 
 	fp->write(m_state.getTmpVarAsString(cosuti, tmpVarNum2, TMPAUTOREF).c_str());
 	fp->write("("); // use constructor (not equals)

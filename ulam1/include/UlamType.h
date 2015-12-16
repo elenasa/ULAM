@@ -79,6 +79,10 @@ namespace MFM{
 
     UlamKeyTypeSignature getUlamKeyTypeSignature();
 
+    virtual bool isNumericType();
+
+    virtual bool isPrimitiveType();
+
     virtual bool cast(UlamValue& val, UTI typidx);
 
     virtual FORECAST safeCast(UTI typidx);
@@ -99,13 +103,7 @@ namespace MFM{
 
     virtual s32 bitsizeToConvertTypeTo(ULAMTYPE tobUT);
 
-    virtual ULAMCLASSTYPE getUlamClass();
-
     virtual ULAMTYPE getUlamTypeEnum() = 0;
-
-    virtual bool isNumericType();
-
-    virtual bool isPrimitiveType();
 
     virtual const std::string getUlamTypeAsStringForC();
 
@@ -117,11 +115,11 @@ namespace MFM{
 
     virtual const std::string getUlamTypeUPrefix();
 
+    virtual bool needsImmediateType();
+
     virtual const std::string getUlamTypeImmediateMangledName();
 
     virtual const std::string getUlamTypeImmediateAutoMangledName();
-
-    virtual bool needsImmediateType();
 
     virtual const std::string getImmediateStorageTypeAsString();
 
@@ -135,21 +133,23 @@ namespace MFM{
 
     virtual const char * getUlamTypeAsSingleLowercaseLetter();
 
-    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+    virtual const std::string castMethodForCodeGen(UTI nodetype);
 
-    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
-
-    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledImmediateDefinitionForC(File * fp);
 
     static const char * getUlamTypeEnumCodeChar(ULAMTYPE etype);
 
     static const char * getUlamTypeEnumAsString(ULAMTYPE etype);
 
     static ULAMTYPE getEnumFromUlamTypeString(const char * typestr);
+
+    virtual ULAMCLASSTYPE getUlamClass();
 
     virtual bool isScalar(); //arraysize == NOTARRAYSIZE is scalar
 
@@ -195,9 +195,9 @@ namespace MFM{
     virtual const std::string readArrayItemMethodForCodeGen();
     virtual const std::string writeArrayItemMethodForCodeGen();
 
-    virtual const std::string castMethodForCodeGen(UTI nodetype);
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
-    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
+    virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 
     virtual bool genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref);
 

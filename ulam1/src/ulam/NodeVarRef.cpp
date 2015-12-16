@@ -306,7 +306,7 @@ namespace MFM {
 	    fp->write("<EC, ");
 	    if(stgcos->isDataMember())
 	      fp->write("T::ATOM_FIRST_STATE_BIT + ");
-
+	    //ptr pos is absolute for non-data members, i think
 	    fp->write_decimal_unsigned(uvpass.getPtrPos());
 	    fp->write("u> ");
 	  }
@@ -374,13 +374,20 @@ namespace MFM {
 
     m_state.indent(fp);
     fp->write(vut->getUlamTypeImmediateAutoMangledName().c_str()); //for C++ local vars, ie non-data members
-    if(vclasstype == UC_ELEMENT)
+    if(vclasstype == UC_ELEMENT || vuti == UAtom)
       fp->write("<EC> ");
-    else //QUARK
+    else if(vclasstype == UC_QUARK)//QUARK
       {
 	fp->write("<EC, ");
 	fp->write_decimal_unsigned(m_varSymbol->getPosOffset()); //POS should be 0+25 for inheritance
 	fp->write("u + T::ATOM_FIRST_STATE_BIT> ");
+      }
+    else
+      {
+	//primitive
+	fp->write("<EC, ");
+	fp->write_decimal_unsigned(BITSPERATOM - vut->getTotalBitSize() ); //must be a constant
+	fp->write("u> ");
       }
 
     fp->write(m_varSymbol->getMangledName().c_str());

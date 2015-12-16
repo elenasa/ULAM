@@ -391,26 +391,6 @@ namespace MFM {
     return ctype.str();
   } //getImmediateStorageTypeAsString
 
-  void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp)
-  {
-    if(m_class == UC_QUARK)
-      return genUlamTypeQuarkReadDefinitionForC(fp);
-    else if(m_class == UC_ELEMENT)
-      return genUlamTypeElementReadDefinitionForC(fp);
-    else
-      assert(0);
-  } //genUlamTypeReadDefinitionForC
-
-  void UlamTypeClass::genUlamTypeWriteDefinitionForC(File * fp)
-  {
-    if(m_class == UC_QUARK)
-      return genUlamTypeQuarkWriteDefinitionForC(fp);
-    else if(m_class == UC_ELEMENT)
-      return genUlamTypeElementWriteDefinitionForC(fp);
-    else
-      assert(0);
-  } //genUlamTypeWriteDefinitionForC
-
   const std::string UlamTypeClass::castMethodForCodeGen(UTI nodetype)
   {
     std::ostringstream rtnMethod;
@@ -454,17 +434,17 @@ namespace MFM {
     return rtnMethod.str();
   } //castMethodForCodeGen
 
-  void UlamTypeClass::genUlamTypeMangledDefinitionForC(File * fp)
+  void UlamTypeClass::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
     if(m_class == UC_QUARK)
-      return genUlamTypeQuarkMangledDefinitionForC(fp);
+      return genUlamTypeQuarkMangledAutoDefinitionForC(fp);
     else if(m_class == UC_ELEMENT)
-      return genUlamTypeElementMangledDefinitionForC(fp);
+      return genUlamTypeElementMangledAutoDefinitionForC(fp);
     else
       assert(0);
-  } //genUlamTypeMangledDefinitionForC
+  } //genUlamTypeMangledAutoDefinitionForC
 
-  void UlamTypeClass::genUlamTypeQuarkMangledDefinitionForC(File * fp)
+  void UlamTypeClass::genUlamTypeQuarkMangledAutoDefinitionForC(File * fp)
   {
     assert(m_class == UC_QUARK);
 
@@ -581,7 +561,28 @@ namespace MFM {
     fp->write("#endif /*");
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
-  } //genUlamTypeQuarkMangledDefinitionForC
+  } //genUlamTypeQuarkMangledAutoDefinitionForC
+
+  void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp)
+  {
+    if(m_class == UC_QUARK)
+      return genUlamTypeQuarkReadDefinitionForC(fp);
+    else if(m_class == UC_ELEMENT)
+      return genUlamTypeElementReadDefinitionForC(fp);
+    else
+      assert(0);
+  } //genUlamTypeReadDefinitionForC
+
+  void UlamTypeClass::genUlamTypeWriteDefinitionForC(File * fp)
+  {
+    if(m_class == UC_QUARK)
+      return genUlamTypeQuarkWriteDefinitionForC(fp);
+    else if(m_class == UC_ELEMENT)
+      return genUlamTypeElementWriteDefinitionForC(fp);
+    else
+      assert(0);
+  } //genUlamTypeWriteDefinitionForC
+
 
   void UlamTypeClass::genUlamTypeQuarkReadDefinitionForC(File * fp)
   {
@@ -634,7 +635,7 @@ namespace MFM {
       }
   } //genUlamTypeQuarkWriteDefinitionForC
 
-void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
+  void UlamTypeClass::genUlamTypeElementMangledAutoDefinitionForC(File * fp)
   {
     assert(isScalar());
 
@@ -733,7 +734,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     fp->write("#endif /*");
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
-  } //genUlamTypeElementMangledDefinitionForC
+  } //genUlamTypeElementMangledAutoDefinitionForC
 
   void UlamTypeClass::genUlamTypeElementReadDefinitionForC(File * fp)
   {
@@ -777,8 +778,8 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     return UlamType::writeArrayItemMethodForCodeGen();
   }
 
-  //actually builds the immediate definition, inheriting from auto
-  void UlamTypeClass::genUlamTypeMangledAutoDefinitionForC(File * fp)
+  //builds the immediate definition, inheriting from auto
+  void UlamTypeClass::genUlamTypeMangledDefinitionForC(File * fp)
   {
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -1007,7 +1008,7 @@ void UlamTypeClass::genUlamTypeElementMangledDefinitionForC(File * fp)
     fp->write("#endif /*");
     fp->write(udstr.c_str());
     fp->write(" */\n\n");
-  } //genUlamTypeMangledAutoDefinitionForC
+  } //genUlamTypeMangledDefinitionForC
 
   void UlamTypeClass::genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp)
   {

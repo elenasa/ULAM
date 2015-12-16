@@ -66,11 +66,17 @@ namespace MFM{
 
     virtual FORECAST safeCast(UTI typidx);
 
-    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+    virtual void genUlamTypeMangledAutoDefinitionForC(File * fp);
 
     virtual void genUlamTypeReadDefinitionForC(File * fp);
 
     virtual void genUlamTypeWriteDefinitionForC(File * fp);
+
+    virtual void genUlamTypeMangledDefinitionForC(File * fp);
+
+    virtual const std::string readMethodForCodeGen();
+
+    virtual const std::string writeMethodForCodeGen();
 
     virtual bool isMinMaxAllowed();
 

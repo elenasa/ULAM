@@ -691,7 +691,10 @@ namespace MFM {
 	UlamType * ut = it->second;
 	//e.g. skip constants, include atom
 	if(ut->needsImmediateType() && ut->getUlamClass() == UC_NOTACLASS)
-	  ut->genUlamTypeMangledDefinitionForC(fp);
+	  {
+	    ut->genUlamTypeMangledAutoDefinitionForC(fp);
+	    ut->genUlamTypeMangledDefinitionForC(fp);
+	  }
 	it++;
       }
 
@@ -700,10 +703,10 @@ namespace MFM {
     while(it != m_state.m_definedUlamTypes.end())
       {
 	UlamType * ut = it->second;
-	if(ut->needsImmediateType())
+	if(ut->needsImmediateType() && ut->getUlamClass() != UC_NOTACLASS)
 	  {
-	    ut->genUlamTypeMangledDefinitionForC(fp);
 	    ut->genUlamTypeMangledAutoDefinitionForC(fp);
+	    ut->genUlamTypeMangledDefinitionForC(fp);
 	  }
 	it++;
       }
