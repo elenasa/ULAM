@@ -865,7 +865,8 @@ namespace MFM {
     fp->write("T m_stg;  //storage here!\n\n");
 
 #if 0
-    //here, if an array of quarks (left-justified like singleton quarks)
+    //here, if an array of quarks (no longer right-justified like prims)
+    // (see ulamtypeclass)
     u32 dqval = 0;
     bool hasDefaultQuark = genUlamTypeDefaultQuarkConstant(fp, dqval);
 
@@ -887,11 +888,16 @@ namespace MFM {
 	    fp->write(mangledName.c_str());
 	    fp->write("() : ");
 	    fp->write(automangledName.c_str());
-	    fp->write("<EC, T::ATOM_FIRST_STATE_BIT");
-	    fp->write(">(m_stg, ");
-	    fp->write("0u), ");
+	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - len);
+	    fp->write("u>(m_stg, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
+	    fp->write("u), ");
 	    fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { ");
-	    fp->write("write(");
+	    fp->write(automangledName.c_str());
+	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - len);
+	    fp->write("u>::write(");
 	    fp->write_decimal_unsignedlong(initqval);
 	    fp->write("u); }\n");
 	  }
@@ -903,24 +909,30 @@ namespace MFM {
 	    fp->write(mangledName.c_str());
 	    fp->write("() : ");
 	    fp->write(automangledName.c_str());
-	    fp->write("<EC, T::ATOM_FIRST_STATE_BIT");
-	    fp->write(">(m_stg, ");
-	    fp->write("0u), ");
+	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - len);
+	    fp->write("u>(m_stg, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
+	    fp->write("u), ");
 	    fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { ");
 
 	    fp->write("for(u32 j = 0; j < ");
 	    fp->write_decimal(arraysize);
 	    fp->write("; j++) ");
-	    fp->write(" writeArrayItem(");
+	    fp->write(automangledName.c_str());
+	    fp->write("<EC, ");
+	    fp->write_decimal_unsigned(BITSPERATOM - len);
+	    fp->write("u>::writeArrayItem(");
 	    fp->write_decimal_unsigned(dqval);
 	    fp->write(", j, ");
 	    fp->write_decimal_unsigned(bitsize); //unit size
 	    fp->write("u);");
-	    fp->write(" }\n");
+	    fp->write("}\n");
 	  }
       }
     else
 #endif
+
       {
 	//default constructor (used by local vars)
 	m_state.indent(fp);
