@@ -8,19 +8,11 @@
 
 namespace MFM {
 
-  NodeVarRef::NodeVarRef(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeVarDecl(sym, nodetype, state), m_storageExpr(NULL) { }
+  NodeVarRef::NodeVarRef(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : NodeVarDecl(sym, nodetype, state) { }
 
-  NodeVarRef::NodeVarRef(const NodeVarRef& ref) : NodeVarDecl(ref), m_storageExpr(NULL)
-  {
-    if(ref.m_storageExpr)
-      m_storageExpr = ref.m_storageExpr->instantiate();
-  }
+  NodeVarRef::NodeVarRef(const NodeVarRef& ref) : NodeVarDecl(ref) { }
 
-  NodeVarRef::~NodeVarRef()
-  {
-    delete m_storageExpr;
-    m_storageExpr = NULL;
-  }
+  NodeVarRef::~NodeVarRef() { }
 
   Node * NodeVarRef::instantiate()
   {
@@ -30,15 +22,11 @@ namespace MFM {
   void NodeVarRef::updateLineage(NNO pno)
   {
     NodeVarDecl::updateLineage(pno);
-    if(m_storageExpr)
-      m_storageExpr->updateLineage(getNodeNo());
   } //updateLineage
 
   bool NodeVarRef::findNodeNo(NNO n, Node *& foundNode)
   {
     if(NodeVarDecl::findNodeNo(n, foundNode))
-      return true;
-    if(m_storageExpr && m_storageExpr->findNodeNo(n, foundNode))
       return true;
     return false;
   } //findNodeNo
@@ -68,13 +56,7 @@ namespace MFM {
   //see also SymbolVariable: printPostfixValuesOfVariableDeclarations via ST.
   void NodeVarRef::printPostfix(File * fp)
   {
-    printTypeAndName(fp);
-    if(m_storageExpr)
-      {
-	fp->write(" =");
-	m_storageExpr->printPostfix(fp);
-      }
-    fp->write("; ");
+    NodeVarDecl::printPostfix(fp);
   } //printPostfix
 
   void NodeVarRef::printTypeAndName(File * fp)
@@ -89,7 +71,7 @@ namespace MFM {
     else
       fp->write(vut->getUlamTypeNameBrief().c_str());
 
-    fp->write("& ");
+    fp->write("& "); //<--the difference!!!
     fp->write(getName());
 
     s32 arraysize = m_state.getArraySize(vuti);
@@ -115,38 +97,22 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
-  void NodeVarRef::setStorageExpr(Node * node)
-  {
-    m_storageExpr = node;
-    m_storageExpr->updateLineage(getNodeNo()); //for unknown subtrees
-  }
-
-  bool NodeVarRef::hasStorageExpr()
-  {
-    return (m_storageExpr != NULL);
-  }
-
-  bool NodeVarRef::foldStorageExpression()
-  {
-    assert(0); //TBD;
-  }
-
   UTI NodeVarRef::checkAndLabelType()
   {
     UTI it = NodeVarDecl::checkAndLabelType();
 
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
-    if(m_storageExpr)
+    if(m_nodeInitExpr)
       {
-	it = m_storageExpr->checkAndLabelType();
+	it = m_nodeInitExpr->getNodeType();
 	if(it == Nav)
 	  {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";
 	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
 	    msg << ", is invalid";
-	    if(!m_storageExpr->isStoreIntoAble())
+	    if(!m_nodeInitExpr->isStoreIntoAble())
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	    else
 	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //possibly still hazy
@@ -156,7 +122,7 @@ namespace MFM {
 
 	//if(m_storageExpr->isStoreIntoAble())
 	Symbol * storsym = NULL;
-	if(m_storageExpr->getSymbolPtr(storsym) && (storsym->isConstant() || storsym->isFunction()))
+	if(m_nodeInitExpr->getSymbolPtr(storsym) && (storsym->isConstant() || storsym->isFunction()))
 	  {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";
@@ -194,10 +160,7 @@ namespace MFM {
 
   void NodeVarRef::countNavNodes(u32& cnt)
   {
-    if(m_storageExpr)
-      m_storageExpr->countNavNodes(cnt);
-
-    Node::countNavNodes(cnt);
+    NodeVarDecl::countNavNodes(cnt);
   } //countNavNodes
 
   EvalStatus NodeVarRef::eval()
@@ -212,13 +175,13 @@ namespace MFM {
       return ERROR;
 
     assert(m_varSymbol->getUlamTypeIdx() == nuti);
-    assert(m_storageExpr);
+    assert(m_nodeInitExpr);
 
     evalNodeProlog(0); //new current frame pointer
 
     makeRoomForSlots(1); //always 1 slot for ptr
 
-    EvalStatus evs = m_storageExpr->evalToStoreInto();
+    EvalStatus evs = m_nodeInitExpr->evalToStoreInto();
     if(evs != NORMAL)
       {
 	evalNodeEpilog();
@@ -227,7 +190,7 @@ namespace MFM {
 
     UlamValue pluv = m_state.m_nodeEvalStack.popArg();
     ((SymbolVariableStack *) m_varSymbol)->setAutoPtrForEval(pluv); //for future ident eval uses
-    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_storageExpr->getNodeType()); //for future virtual function call eval uses
+    ((SymbolVariableStack *) m_varSymbol)->setAutoStorageTypeForEval(m_nodeInitExpr->getNodeType()); //for future virtual function call eval uses
 
     m_state.m_funcCallStack.storeUlamValueInSlot(pluv, ((SymbolVariableStack *) m_varSymbol)->getStackFrameSlotIndex()); //doesn't seem to matter..
 
@@ -278,9 +241,9 @@ namespace MFM {
 
     //reference
     assert(m_varSymbol->isAutoLocal());
-    if(m_storageExpr)
+    if(m_nodeInitExpr)
       {
-	m_storageExpr->genCodeToStoreInto(fp, uvpass);
+	m_nodeInitExpr->genCodeToStoreInto(fp, uvpass);
 
 	assert(m_state.m_currentObjSymbolsForCodeGen.size() == 1);
 	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen.back();

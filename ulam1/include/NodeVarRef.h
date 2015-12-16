@@ -90,7 +90,7 @@ namespace MFM{
     virtual void printTypeAndName(File * fp);
 
   private:
-    Node * m_storageExpr;
+    //Node * m_storageExpr;
 
     EvalStatus evalAutoLocal();
     void genCodedAutoLocal(File * fp, UlamValue & uvpass);

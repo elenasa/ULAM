@@ -58,6 +58,8 @@ namespace MFM{
 
     virtual void updateLineage(NNO pno);
 
+    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
+
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void checkAbstractInstanceErrors();
@@ -69,6 +71,12 @@ namespace MFM{
     virtual const std::string prettyNodeName();
 
     virtual bool getSymbolPtr(Symbol *& symptrref);
+
+    virtual void setInitExpr(Node * node);
+
+    bool hasInitExpr();
+
+    virtual bool foldInitExpression();
 
     virtual UTI checkAndLabelType();
 
@@ -94,14 +102,18 @@ namespace MFM{
     SymbolVariable * m_varSymbol;
     u32 m_vid; // to instantiate
 
+    Node * m_nodeInitExpr;
+
     virtual void checkForSymbol();
     virtual void printTypeAndName(File * fp);
 
-    void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
+    EvalStatus evalInitExpr();
 
   private:
     NNO m_currBlockNo;
     NodeTypeDescriptor * m_nodeTypeDesc; //can be NULL
+
+    UlamValue makeUlamValuePtr(); //for locals
   };
 
 }

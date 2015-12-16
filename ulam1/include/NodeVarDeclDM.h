@@ -55,8 +55,6 @@ namespace MFM{
 
     virtual void updateLineage(NNO pno);
 
-    virtual bool exchangeKids(Node * oldnptr, Node * newnptr);
-
     virtual bool findNodeNo(NNO n, Node *& foundNode);
 
     virtual void printPostfix(File * f);
@@ -71,9 +69,9 @@ namespace MFM{
 
     virtual bool buildDefaultQuarkValue(u32& dqref);
 
-    void setConstantExpr(Node * node);
+    virtual void setInitExpr(Node * node); //was setConstantExpr
 
-    bool foldConstantExpression();
+    virtual bool foldInitExpression(); //was foldConstantExpression
 
     virtual EvalStatus eval();
 
@@ -86,13 +84,14 @@ namespace MFM{
   protected:
 
   private:
-    Node * m_nodeInitExpr;
-
+    //    Node * m_nodeInitExpr;
     bool updateConstant(u64 & newconst);
     bool updateConstant32(u64 & newconst);
     bool updateConstant64(u64 & newconst);
 
     bool foldDefaultQuark(u32 dq);
+    void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
+
   };
 
 }

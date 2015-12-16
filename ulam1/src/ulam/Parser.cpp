@@ -708,7 +708,7 @@ namespace MFM {
       {
 	Node * initnode = parseExpression();
 	if(initnode)
-	  ((NodeVarDeclDM*) dNode)->setConstantExpr(initnode);
+	  ((NodeVarDeclDM*) dNode)->setInitExpr(initnode);
 	//else error
       }
     else
@@ -3228,12 +3228,12 @@ namespace MFM {
   Node * Parser::parseRestOfDeclAssignment(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
     assert(dNode);
+    Token eTok;
+    getNextToken(eTok);
+    assert(eTok.m_type == TOK_EQUAL);
+
     if(args.m_declRef)
       {
-	Token eTok;
-	getNextToken(eTok);
-	assert(eTok.m_type == TOK_EQUAL);
-
 	if(getExpectedToken(TOK_IDENTIFIER, eTok))
 	  {
 	    Node * rightNode = parseLvalExpr(eTok);
@@ -3241,12 +3241,12 @@ namespace MFM {
 	      {
 		std::ostringstream msg;
 		msg << "Value of reference " << identTok.getTokenStringFromPool(&m_state).c_str();
-		msg << " is missing; Ref deleted";
+		msg << " is missing";
 		MSG(&identTok, msg.str().c_str(), ERR);
 	      }
 	    else
 	      {
-		((NodeVarRef *) dNode)->setStorageExpr(rightNode);
+		((NodeVarRef *) dNode)->setInitExpr(rightNode);
 	      }
 	  }
 	//else error
@@ -3255,6 +3255,7 @@ namespace MFM {
 	return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //parseTree stays the same, any more?
       } //ref done
 
+#if 0
     NodeStatements * stmtNode = new NodeStatements(rtnNode, m_state);
     assert(stmtNode);
     stmtNode->setNodeLocation(rtnNode->getNodeLocation());
@@ -3267,21 +3268,33 @@ namespace MFM {
     Node * leftNode = new NodeIdent(identTok, (SymbolVariable *) dsymptr, m_state);
     assert(leftNode);
     leftNode->setNodeLocation(dNode->getNodeLocation());
+#endif
 
-    Node * assignNode = makeAssignExprNode(leftNode);
+    Node * assignNode = parseAssignExpr(); //makeAssignExprNode(leftNode);
     if(!assignNode)
       {
+	std::ostringstream msg;
+	msg << "Initial value of variable " << identTok.getTokenStringFromPool(&m_state).c_str();
+	msg << " is missing";
+	MSG(&identTok, msg.str().c_str(), ERR);
+
 	//leftnode was deleted; dNode will be.
-	delete stmtNode;
-	return NULL;
+	//delete stmtNode;
+	//return NULL;
+      }
+    else
+      {
+	dNode->setInitExpr(assignNode);
       }
 
+#if 0
     NodeStatements * nextNode = new NodeStatements(assignNode, m_state);
     assert(nextNode);
     nextNode->setNodeLocation(assignNode->getNodeLocation());
     stmtNode->setNextNode(nextNode);
+#endif
 
-    return parseRestOfDecls(args, identTok, dNode, stmtNode, passuti); //any more?
+    return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
 
   NodeConstantDef * Parser::parseRestOfConstantDef(NodeConstantDef * constNode, bool assignREQ, bool isStmt)

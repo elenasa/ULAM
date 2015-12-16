@@ -8,7 +8,7 @@
 
 namespace MFM {
 
-  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
+  NodeVarDecl::NodeVarDecl(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state) : Node(state), m_varSymbol(sym), m_vid(0), m_nodeInitExpr(NULL), m_currBlockNo(0), m_nodeTypeDesc(nodetype)
   {
     if(sym)
       {
@@ -17,16 +17,22 @@ namespace MFM {
       }
   }
 
-  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
+  NodeVarDecl::NodeVarDecl(const NodeVarDecl& ref) : Node(ref), m_varSymbol(NULL), m_vid(ref.m_vid), m_nodeInitExpr(NULL), m_currBlockNo(ref.m_currBlockNo), m_nodeTypeDesc(NULL)
   {
     if(ref.m_nodeTypeDesc)
       m_nodeTypeDesc = (NodeTypeDescriptor *) ref.m_nodeTypeDesc->instantiate();
+
+    if(ref.m_nodeInitExpr)
+      m_nodeInitExpr = (Node *) ref.m_nodeInitExpr->instantiate();
   }
 
   NodeVarDecl::~NodeVarDecl()
   {
     delete m_nodeTypeDesc;
     m_nodeTypeDesc = NULL;
+
+    delete m_nodeInitExpr;
+    m_nodeInitExpr = NULL;
   }
 
   Node * NodeVarDecl::instantiate()
@@ -39,13 +45,27 @@ namespace MFM {
     Node::updateLineage(pno);
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->updateLineage(getNodeNo());
+    if(m_nodeInitExpr)
+      m_nodeInitExpr->updateLineage(getNodeNo());
   } //updateLineage
+
+  bool NodeVarDecl::exchangeKids(Node * oldnptr, Node * newnptr)
+  {
+    if(m_nodeInitExpr == oldnptr)
+      {
+	m_nodeInitExpr = newnptr;
+	return true;
+      }
+    return false;
+  } //exhangeKids
 
   bool NodeVarDecl::findNodeNo(NNO n, Node *& foundNode)
   {
     if(Node::findNodeNo(n, foundNode))
       return true;
     if(m_nodeTypeDesc && m_nodeTypeDesc->findNodeNo(n, foundNode))
+      return true;
+    if(m_nodeInitExpr && m_nodeInitExpr->findNodeNo(n, foundNode))
       return true;
     return false;
   } //findNodeNo
@@ -75,6 +95,11 @@ namespace MFM {
   void NodeVarDecl::printPostfix(File * fp)
   {
     printTypeAndName(fp);
+    if(m_nodeInitExpr)
+      {
+	fp->write(" =");
+	m_nodeInitExpr->printPostfix(fp);
+      }
     fp->write("; ");
   } //printPostfix
 
@@ -120,6 +145,23 @@ namespace MFM {
   {
     symptrref = m_varSymbol;
     return true;
+  }
+
+  void NodeVarDecl::setInitExpr(Node * node)
+  {
+    assert(node);
+    m_nodeInitExpr = node;
+    m_nodeInitExpr->updateLineage(getNodeNo()); //for unknown subtrees
+  }
+
+  bool NodeVarDecl::hasInitExpr()
+  {
+    return (m_nodeInitExpr != NULL);
+  }
+
+  bool NodeVarDecl::foldInitExpression()
+  {
+    assert(0); //TBD;
   }
 
   UTI NodeVarDecl::checkAndLabelType()
@@ -180,6 +222,64 @@ namespace MFM {
 	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 	it = Nav;
       }
+
+    if(m_nodeInitExpr)
+      {
+	UTI eit = m_nodeInitExpr->checkAndLabelType();
+	if(eit == Nav)
+	  {
+	    std::ostringstream msg;
+	    msg << "Initial value expression for: ";
+	    msg << m_state.m_pool.getDataAsString(m_vid).c_str();
+	    msg << ", initialization is invalid";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error
+	    setNodeType(Nav);
+	    return Nav; //short-circuit
+	  }
+
+	//cast RHS if necessary and safe
+	if(UlamType::compare(it, eit, m_state) != UTIC_SAME)
+	  {
+	    //different msg if try to assign non-class to a class type
+	    if(m_state.getUlamTypeByIndex(it)->getUlamTypeEnum() == Class)
+	      {
+		std::ostringstream msg;
+		msg << "Incompatible class type ";
+		msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		msg << " and ";
+		msg << m_state.getUlamTypeNameBriefByIndex(eit).c_str();
+		msg << " used with variable initialization";
+		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		it = Nav; //error
+	      }
+	    else
+	      {
+		FORECAST rscr = m_nodeInitExpr->safeToCastTo(it);
+		if(rscr != CAST_CLEAR)
+		  {
+		    std::ostringstream msg;
+		    if(m_state.getUlamTypeByIndex(it)->getUlamTypeEnum() == Bool)
+		      msg << "Use a comparison operator";
+		    else
+		      msg << "Use explicit cast";
+		    msg << " to convert "; // the real converting-message
+		    msg << m_state.getUlamTypeNameBriefByIndex(eit).c_str();
+		    msg << " to ";
+		    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
+		    msg << " for variable initialization";
+		    if(rscr == CAST_BAD)
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		    else
+		      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		    it = Nav; //error
+		  }
+		else if(!Node::makeCastingNode(m_nodeInitExpr, it, m_nodeInitExpr))
+		  it = Nav; //error
+	      }
+	  } //safe cast
+      }
+
     setStoreIntoAble(true);
     setNodeType(it);
     return getNodeType();
@@ -329,6 +429,9 @@ namespace MFM {
     if(m_nodeTypeDesc)
       m_nodeTypeDesc->countNavNodes(cnt);
 
+    if(m_nodeInitExpr)
+      m_nodeInitExpr->countNavNodes(cnt);
+
     Node::countNavNodes(cnt);
   } //countNavNodes
 
@@ -428,14 +531,101 @@ namespace MFM {
 	//see NodeVarDeclDM for data members..
 	assert(0);
       }
+
+    if(m_nodeInitExpr)
+      return evalInitExpr();
     return NORMAL;
   } //eval
 
-  EvalStatus  NodeVarDecl::evalToStoreInto()
+  EvalStatus NodeVarDecl::evalInitExpr()
   {
-    assert(0); //no way to get here!
-    return ERROR;
-  }
+    EvalStatus evs = NORMAL; //init
+    // quark or nonclass data member;
+    evalNodeProlog(0); //new current node eval frame pointer
+
+    makeRoomForSlots(1); //always 1 slot for ptr
+
+    evs = evalToStoreInto();
+    if(evs != NORMAL)
+      {
+	evalNodeEpilog();
+	return evs;
+      }
+
+    UlamValue pluv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(1);
+
+    u32 slot = makeRoomForNodeType(getNodeType());
+
+    evs = m_nodeInitExpr->eval();
+
+    if(evs == NORMAL)
+      {
+	if(slot)
+	  {
+	    UlamValue ruv = m_state.m_nodeEvalStack.loadUlamValueFromSlot(slot+1); //immediate scalar
+	    m_state.assignValue(pluv,ruv);
+
+	    //also copy result UV to stack, -1 relative to current frame pointer
+	    assignReturnValueToStack(ruv);
+	  }
+      } //normal
+    evalNodeEpilog();
+    return evs;
+  } //evalInitExpr
+
+  EvalStatus NodeVarDecl::evalToStoreInto()
+  {
+    evalNodeProlog(0); //new current node eval frame pointer
+
+    // return ptr to this local var (from NodeIdent's makeUlamValuePtr)
+    UlamValue rtnUVPtr = makeUlamValuePtr();
+
+    //copy result UV to stack, -1 relative to current frame pointer
+    assignReturnValuePtrToStack(rtnUVPtr);
+
+    evalNodeEpilog();
+    return NORMAL;
+  } //evalToStoreInto
+
+  UlamValue NodeVarDecl::makeUlamValuePtr()
+  {
+    // (from NodeIdent's makeUlamValuePtr)
+    UlamValue ptr;
+    if(m_varSymbol->isSelf())
+      {
+	//when "self/atom" is a quark, we're inside a func called on a quark (e.g. dm or local)
+	//'atom' gets entire atom/element containing this quark; including its type!
+	//'self' gets type/pos/len of the quark from which 'atom' can be extracted
+	UlamValue selfuvp = m_state.m_currentSelfPtr;
+	UTI ttype = selfuvp.getPtrTargetType();
+	if((m_state.getUlamTypeByIndex(ttype)->getUlamClass() == UC_QUARK))
+	  {
+	    u32 vid = m_varSymbol->getId();
+	    if(vid == m_state.m_pool.getIndexForDataString("atom"))
+	      {
+		selfuvp = m_state.getAtomPtrFromSelfPtr();
+	      }
+	    //else
+	  }
+	return selfuvp;
+      } //done
+
+    assert(!m_varSymbol->isAutoLocal()); //nodevarref, not here!
+
+    ULAMCLASSTYPE classtype = m_state.getUlamTypeByIndex(getNodeType())->getUlamClass();
+    if(classtype == UC_ELEMENT)
+      {
+	  // ptr to explicit atom or element, (e.g.'f' in f.a=1) becomes new m_currentObjPtr
+	  ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), UNPACKED, m_state, 0, m_varSymbol->getId());
+      }
+    else
+      {
+	assert(!m_varSymbol->isDataMember());
+	//local variable on the stack; could be array ptr!
+	ptr = UlamValue::makePtr(m_varSymbol->getStackFrameSlotIndex(), STACK, getNodeType(), m_state.determinePackable(getNodeType()), m_state, 0, m_varSymbol->getId());
+      }
+    return ptr;
+  } //makeUlamValuePtr
 
   // parse tree in order declared, unlike the ST.
   void NodeVarDecl::genCode(File * fp, UlamValue& uvpass)
@@ -443,11 +633,7 @@ namespace MFM {
     assert(m_varSymbol);
     assert(getNodeType() != Nav);
 
-    if(m_varSymbol->isDataMember())
-      {
-	return genCodedBitFieldTypedef(fp, uvpass);
-      }
-
+    assert(!m_varSymbol->isDataMember()); //NodeVarDeclDM::genCode
     assert(!m_varSymbol->isAutoLocal()); //NodeVarRef::genCode
 
     UTI vuti = m_varSymbol->getUlamTypeIdx();
@@ -469,69 +655,20 @@ namespace MFM {
 	fp->write("::THE_INSTANCE");
 	fp->write(".GetDefaultAtom()"); //returns object of type T
       }
-
-    if(vclasstype == UC_QUARK)
+    else if(vclasstype == UC_QUARK)
       {
 	//left-justified?
       }
-
-    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
-  } //genCode
-
-  // variable is a data member; not an element
-  void NodeVarDecl::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
-  {
-    UTI nuti = getNodeType();
-    UlamType * nut = m_state.getUlamTypeByIndex(nuti);
-    ULAMCLASSTYPE nclasstype = nut->getUlamClass();
-    ULAMCLASSTYPE classtype = m_state.getUlamClassForThisClass();
-
-    m_state.indent(fp);
-    if(nclasstype == UC_QUARK && nut->isScalar())
-      {
-	// use typedef rather than atomic parameter for quarks within elements,
-	// except if an array of quarks.
-	fp->write("typedef ");
-	fp->write(nut->getUlamTypeMangledName().c_str()); //for C++
-	fp->write("<EC, ");
-	if(classtype == UC_ELEMENT)
-	  {
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
-	    fp->write("u");
-	  }
-	else
-	  {
-	    //inside a quark
-	    fp->write("POS + ");
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset());
-	    fp->write("u");
-	  }
-      }
     else
       {
-	fp->write("typedef AtomicParameterType");
-	fp->write("<EC"); //BITSPERATOM
-	fp->write(", ");
-	fp->write(nut->getUlamTypeVDAsStringForC().c_str());
-	fp->write(", ");
-	fp->write_decimal(nut->getTotalBitSize());   //include arraysize
-	fp->write(", ");
-	if(classtype == UC_QUARK)
+	if(m_nodeInitExpr)
 	  {
-	    fp->write("POS + ");
-	    fp->write_decimal(m_varSymbol->getPosOffset());
-	  }
-	else
-	  {
-	    assert(classtype == UC_ELEMENT);
-	    fp->write_decimal_unsigned(m_varSymbol->getPosOffset() + ATOMFIRSTSTATEBITPOS);
-	    fp->write("u");
+	    fp->write(" = ");
+	    m_nodeInitExpr->genCode(fp, uvpass);
 	  }
       }
-    fp->write("> ");
-    fp->write(m_varSymbol->getMangledNameForParameterType().c_str());
-    fp->write(";\n"); //func call parameters aren't NodeVarDecl's
-  } //genCodedBitFieldTypedef
+    fp->write(";\n"); //func call args aren't NodeVarDecl's
+  } //genCode
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)
   {

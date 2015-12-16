@@ -1,22 +1,22 @@
 ## -*- mode:ulam -*-
 #=t3455_test_compiler_atommodelparameter_error
 #!
-./Tu.ulam:4:12: ERROR: Constant value expression for: aep, is not a constant.
-./Tu.ulam:4:12: ERROR: Unresolved No.1.
-./Tu.ulam:4:20: ERROR: Unresolved No.2.
+./Tu.ulam:4:13: ERROR: Constant value expression for: aep, is not a constant.
+./Tu.ulam:4:13: ERROR: Unresolved No.1.
+./Tu.ulam:4:21: ERROR: Unresolved No.2.
 ./Tu.ulam:2:9: ERROR: 2 data members with unresolved types remain.
 ./Tu.ulam:2:9: Warning: 2 data member nodes with unresolved types remain in class 'Tu'.
 ./Tu.ulam:2:9: ERROR: 2 Nodes with unresolved types detected after type labeling class: Tu.
 Unrecoverable Program Type Label FAILURE.
 ##
 #>Tu.ulam
-ulam 1;
+  ulam 1;
 element Tu {
-typedef Atom A;
- parameter A aep = self;
+  typedef Atom A;
+  parameter A aep = self;
   Int test(){
- return 0;
-}
+    return 0;
+  }
 }
 
 #.

@@ -7,7 +7,7 @@
 ##	 Int Arg: 0
 ##      */
 Exit status: 0
-Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  d 3 cast = Int(32) index;  { index 0 cast = index d < cond b index 0 cast != cast = _1: index 1 cast += while } { Int(32) index;  index 0 cast = index 3 cast < cond { d 1 cast -= s ( d )print . } _2: index 1 cast += while } d return } }
+Ue_A { Bool(7) b(true);  System s();  Int(32) d(0);  Int(32) test() {  d 3 cast = Int(32) index;  { index 0 cast = index d < cond b index 0 cast != cast = _1: index 1 cast += while } { Int(32) index = 0 cast;  index 3 cast < cond { d 1 cast -= s ( d )print . } _2: index 1 cast += while } d return } }
 Uq_System { <NOMAIN> }
 ##
 ##       //informed by: WindowUtils, and 3266

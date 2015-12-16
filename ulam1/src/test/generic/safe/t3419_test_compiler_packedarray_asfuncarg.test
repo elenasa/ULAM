@@ -2,7 +2,7 @@
 #=t3419_test_compiler_packedarray_asfuncarg
 #!
 Exit status: 3
-Ue_A { typedef Int(3) BigSite[10];  Int(32) test() {  Int(3) site[10];  site ( )func2 = Int(3) site2[10];  site2 site = ( site )func return } }
+Ue_A { typedef Int(3) BigSite[10];  Int(32) test() {  Int(3) site[10] = ( )func2;  Int(3) site2[10] = site;  ( site )func return } }
 ##
 ##      //informed by error/t3417_
 ##      //no binaryop+ even for packed array (site1 + site2).
