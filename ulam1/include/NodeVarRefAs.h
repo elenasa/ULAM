@@ -1,5 +1,5 @@
 /**                                        -*- mode:C++ -*-
- * NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
+ * NodeVarRefAs.h - Node handling of Conditional-As for ULAM
  *
  * Copyright (C) 2015 The Regents of the University of New Mexico.
  * Copyright (C) 2015 Ackleyshack LLC.
@@ -26,7 +26,7 @@
  */
 
 /**
-  \file NodeVarDeclDM.h -  Data Member Variable Declarations for ULAM
+  \file NodeVarRefAs.h - Node handling of Conditional-As for ULAM
   \author Elenas S. Ackley.
   \author David H. Ackley.
   \date (C) 2015 All rights reserved.
@@ -34,22 +34,22 @@
 */
 
 
-#ifndef NODEVARDECLDM_H
-#define NODEVARDECLDM_H
+#ifndef NODEVARREFAS_H
+#define NODEVARREFAS_H
 
-#include "NodeVarDecl.h"
+#include "NodeVarRef.h"
 
 namespace MFM{
 
-  class NodeVarDeclDM : public NodeVarDecl
+  class NodeVarRefAs : public NodeVarRef
   {
   public:
 
-    NodeVarDeclDM(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state);
+    NodeVarRefAs(SymbolVariable * sym, NodeTypeDescriptor * nodetype, CompilerState & state);
 
-    NodeVarDeclDM(const NodeVarDeclDM& ref);
+    NodeVarRefAs(const NodeVarRefAs& ref);
 
-    virtual ~NodeVarDeclDM();
+    virtual ~NodeVarRefAs();
 
     virtual Node * instantiate();
 
@@ -65,13 +65,11 @@ namespace MFM{
 
     virtual UTI checkAndLabelType();
 
+    virtual void packBitsInOrderOfDeclaration(u32& offset);
+
+    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+
     virtual void countNavNodes(u32& cnt);
-
-    virtual bool buildDefaultQuarkValue(u32& dqref);
-
-    virtual void setInitExpr(Node * node); //was setConstantExpr
-
-    virtual bool foldInitExpression(); //was foldConstantExpression
 
     virtual EvalStatus eval();
 
@@ -79,20 +77,12 @@ namespace MFM{
 
     virtual void genCode(File * fp, UlamValue& uvpass);
 
-    virtual void generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount);
-
   protected:
 
   private:
 
-    bool updateConstant(u64 & newconst);
-    bool updateConstant32(u64 & newconst);
-    bool updateConstant64(u64 & newconst);
-
-    bool foldDefaultQuark(u32 dq);
-    void genCodedBitFieldTypedef(File * fp, UlamValue& uvpass);
-
   };
+
 } //MFM
 
-#endif //end NODEVARDECLDM_H
+#endif //end NODEVARREFAS_H

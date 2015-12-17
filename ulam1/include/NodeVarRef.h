@@ -65,12 +65,6 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
-    void setStorageExpr(Node * node);
-
-    bool hasStorageExpr();
-
-    bool foldStorageExpression();
-
     virtual UTI checkAndLabelType();
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);
@@ -90,13 +84,9 @@ namespace MFM{
     virtual void printTypeAndName(File * fp);
 
   private:
-    //Node * m_storageExpr;
-
-    EvalStatus evalAutoLocal();
-    void genCodedAutoLocal(File * fp, UlamValue & uvpass);
 
   };
 
-}
+} //MFM
 
 #endif //end NODEVARREF_H

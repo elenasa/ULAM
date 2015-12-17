@@ -639,16 +639,15 @@ namespace MFM {
     UTI vuti = m_varSymbol->getUlamTypeIdx();
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
 
-    m_state.indent(fp);
-    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
-    fp->write(" ");
-    fp->write(m_varSymbol->getMangledName().c_str());
-
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
     //initialize T to default atom (might need "OurAtom" if data member ?)
     if(vclasstype == UC_ELEMENT)
       {
+	m_state.indent(fp);
+	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write(" = ");
 	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
 	fp->write("<EC>");
@@ -658,16 +657,36 @@ namespace MFM {
     else if(vclasstype == UC_QUARK)
       {
 	//left-justified?
+	m_state.indent(fp);
+	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str());
       }
     else
       {
+	//immediate primitive, perhaps initialized
 	if(m_nodeInitExpr)
 	  {
-	    fp->write(" = ");
 	    m_nodeInitExpr->genCode(fp, uvpass);
+
+	    m_state.indent(fp);
+	    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_varSymbol->getMangledName().c_str());
+	    fp->write("("); // use constructor (not equals)
+	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
+	    fp->write(")");
+	  }
+	else
+	  {
+	    m_state.indent(fp);
+	    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(" ");
+	    fp->write(m_varSymbol->getMangledName().c_str()); //default 0
 	  }
       }
     fp->write(";\n"); //func call args aren't NodeVarDecl's
+    m_state.m_currentObjSymbolsForCodeGen.clear();
   } //genCode
 
   void NodeVarDecl::generateUlamClassInfo(File * fp, bool declOnly, u32& dmcount)

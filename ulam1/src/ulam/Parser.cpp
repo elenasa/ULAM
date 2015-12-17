@@ -59,6 +59,7 @@
 #include "NodeUnaryOpBang.h"
 #include "NodeVarDeclDM.h"
 #include "NodeVarRef.h"
+#include "NodeVarRefAs.h"
 #include "SymbolClass.h"
 #include "SymbolClassName.h"
 #include "SymbolFunction.h"
@@ -1269,7 +1270,7 @@ namespace MFM {
     assert(typeNode);
 
     //insert var decl into NodeStatements..as if parseStatement was called..
-    Node * varNode = new NodeVarRef((SymbolVariable*) asymptr, typeNode, m_state);
+    Node * varNode = new NodeVarRefAs((SymbolVariable*) asymptr, typeNode, m_state);
     assert(varNode);
     varNode->setNodeLocation(asNode->getNodeLocation());
 
@@ -3132,15 +3133,17 @@ namespace MFM {
     return rtnNode;
   } //parseRestOfAssignExpr
 
-  //assignOK true by default. These assignments are for local variables, not data members.
-  // They create a parse subtree for the binary op equal; and do not have to be constant
-  // expressions. Data member initialization expressions are constant expressions, and
+  //assignOK true by default. These assignments are for local
+  // variables, not data members.  They create a parse subtree for the
+  // NodeVarDecl; and do not have to be constant expressions. Data
+  // member initialization expressions are constant expressions, and
   // are a child of the NodeVarDeclDM subclass (see parseDataMember).
-  // References (locals only) save their initialized value, a storeintoable ("lval") expression, in their NodeVarRef.
+  // References (locals only) save their initialized value, a
+  // storeintoable ("lval") expression, in their NodeVarRef.
   Node * Parser::parseRestOfDecls(TypeArgs& args, Token identTok, NodeVarDecl * dNode, Node * rtnNode, UTI passuti)
   {
-    //rtnNode is NodeStatments on list recursion, not the NodeVar...
-    //dNode is the NodeVar.. needed for references, also in the rtnNode nextNode ptr.
+    //rtnNode is NodeStatments on list recursion, contains the NodeVarD ptr
+    //dNode is the NodeVarD ptr needed for assignments
     if(dNode == NULL)
       return rtnNode; //quit!
 
@@ -3153,7 +3156,7 @@ namespace MFM {
       {
 	if(args.m_assignOK)
 	  {
-	    unreadToken(); //needed to makeAssignExprNode
+	    unreadToken();
 	    return parseRestOfDeclAssignment(args, identTok, dNode, rtnNode, passuti); //pass args for more decls
 	  }
 	else
@@ -3232,6 +3235,7 @@ namespace MFM {
     getNextToken(eTok);
     assert(eTok.m_type == TOK_EQUAL);
 
+    //update dNode with init expression: lval for ref, assign for local car
     if(args.m_declRef)
       {
 	if(getExpectedToken(TOK_IDENTIFIER, eTok))
@@ -3250,50 +3254,23 @@ namespace MFM {
 	      }
 	  }
 	//else error
-
 	args.m_declRef = false; //clear flag in case of decl list
-	return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //parseTree stays the same, any more?
       } //ref done
-
-#if 0
-    NodeStatements * stmtNode = new NodeStatements(rtnNode, m_state);
-    assert(stmtNode);
-    stmtNode->setNodeLocation(rtnNode->getNodeLocation());
-
-    //makeup node for lhs; using same symbol as dNode (symbol could be Null!)
-    Symbol * dsymptr = NULL;
-    AssertBool isDefined = dNode->getSymbolPtr(dsymptr);
-    assert(isDefined);
-
-    Node * leftNode = new NodeIdent(identTok, (SymbolVariable *) dsymptr, m_state);
-    assert(leftNode);
-    leftNode->setNodeLocation(dNode->getNodeLocation());
-#endif
-
-    Node * assignNode = parseAssignExpr(); //makeAssignExprNode(leftNode);
-    if(!assignNode)
-      {
-	std::ostringstream msg;
-	msg << "Initial value of variable " << identTok.getTokenStringFromPool(&m_state).c_str();
-	msg << " is missing";
-	MSG(&identTok, msg.str().c_str(), ERR);
-
-	//leftnode was deleted; dNode will be.
-	//delete stmtNode;
-	//return NULL;
-      }
     else
       {
-	dNode->setInitExpr(assignNode);
+	Node * assignNode = parseAssignExpr(); //makeAssignExprNode(leftNode);
+	if(!assignNode)
+	  {
+	    std::ostringstream msg;
+	    msg << "Initial value of variable " << identTok.getTokenStringFromPool(&m_state).c_str();
+	    msg << " is missing";
+	    MSG(&identTok, msg.str().c_str(), ERR);
+	  }
+	else
+	  {
+	    dNode->setInitExpr(assignNode);
+	  }
       }
-
-#if 0
-    NodeStatements * nextNode = new NodeStatements(assignNode, m_state);
-    assert(nextNode);
-    nextNode->setNodeLocation(assignNode->getNodeLocation());
-    stmtNode->setNextNode(nextNode);
-#endif
-
     return parseRestOfDecls(args, identTok, dNode, rtnNode, passuti); //any more?
   } //parseRestOfDeclAssignment
 

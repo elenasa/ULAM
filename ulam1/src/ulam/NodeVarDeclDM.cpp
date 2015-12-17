@@ -612,38 +612,12 @@ namespace MFM {
     assert(m_varSymbol);
     assert(getNodeType() != Nav);
 
-    if(m_varSymbol->isDataMember())
-      {
-	genCodedBitFieldTypedef(fp, uvpass);
-      }
+    assert(m_varSymbol->isDataMember());
 
-    assert(!m_varSymbol->isAutoLocal());
-
-    if(((SymbolVariableDataMember *) m_varSymbol)->hasInitValue())
-      {
-	UTI vuti = m_varSymbol->getUlamTypeIdx();
-	UlamType * vut = m_state.getUlamTypeByIndex(vuti);
-
-	m_state.indent(fp);
-	fp->write(vut->getUlamTypeMangledName().c_str()); //for C++
-
-	fp->write(" ");
-	fp->write(m_varSymbol->getMangledName().c_str());
-
-	ULAMCLASSTYPE vclasstype = vut->getUlamClass();
-
-	assert(vclasstype != UC_ELEMENT);
-	if(vclasstype == UC_NOTACLASS)
-	  {
-	    //can only be initialized to a constant
-	    fp->write(" = ");
-	    m_nodeInitExpr->genCode(fp, uvpass);
-	  }
-      }
-    fp->write(";\n");
+    return genCodedBitFieldTypedef(fp, uvpass);
   } //genCode
 
-    // variable is a data member; not an element
+  // variable is a data member; cannot be an element
   void NodeVarDeclDM::genCodedBitFieldTypedef(File * fp, UlamValue& uvpass)
   {
     UTI nuti = getNodeType();
