@@ -74,6 +74,8 @@ namespace MFM{
 
     virtual void genUlamTypeMangledDefinitionForC(File * fp);
 
+    virtual void genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp);
+
     virtual const std::string readMethodForCodeGen();
 
     virtual const std::string writeMethodForCodeGen();
