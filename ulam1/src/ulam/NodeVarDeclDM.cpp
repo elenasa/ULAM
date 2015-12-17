@@ -115,6 +115,35 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  FORECAST NodeVarDeclDM::safeToCastTo(UTI newType)
+  {
+    UTI nuti = getNodeType();
+    //cast RHS if necessary and safe
+    //insure constant value fits in its declared type
+    FORECAST rscr = m_nodeInitExpr->safeToCastTo(nuti);
+    if(rscr != CAST_CLEAR)
+      {
+	std::ostringstream msg;
+	msg << "Constant value expression for data member (";
+	msg << getName() << " = " << m_nodeInitExpr->getName();
+	msg << ") initialization is not representable as ";
+	msg<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
+	if(rscr == CAST_BAD)
+	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	else
+	  {
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    m_state.setGoAgain(); //since not error
+	  }
+      }
+    else
+      {
+	AssertBool isDefined = Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr); //we know it's safe!
+	assert(isDefined);
+      }
+    return rscr;
+  } //safeToCastTo
+
   UTI NodeVarDeclDM::checkAndLabelType()
   {
     NodeVarDecl::checkAndLabelType(); //sets node type
@@ -159,7 +188,6 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
 
-	//	UTI it = m_nodeInitExpr->checkAndLabelType();
 	UTI it = m_nodeInitExpr->getNodeType();
 	if(it == Nav)
 	  {
@@ -197,29 +225,9 @@ namespace MFM {
 	else
 	  assert(0);
 
-	//insure constant value fits in its declared type
-	UTI nuti = getNodeType();
-	FORECAST scr = m_nodeInitExpr->safeToCastTo(nuti);
-	if(scr != CAST_CLEAR)
-	  {
-	    std::ostringstream msg;
-	    msg << "Constant value expression for data member (";
-	    msg << getName() << " = " << m_nodeInitExpr->getName();
-	    msg << ") initialization is not representable as ";
-	    msg<< m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-	    if(scr == CAST_BAD)
-	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    else
-	      {
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		m_state.setGoAgain(); //since not error
-	      }
-	  }
-	else
-	  {
-	    AssertBool isDefined = Node::makeCastingNode(m_nodeInitExpr, nuti, m_nodeInitExpr); //we know it's safe!
-	    assert(isDefined);
-	  }
+	//insure constant value fits in its declared type,
+	//done in NodeVarDecl c&l
+	//safeToCastTo(nuti);
       } //finished init expr node
 
     return getNodeType();

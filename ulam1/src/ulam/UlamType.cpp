@@ -371,7 +371,9 @@ namespace MFM {
     ud << "Ud_" << automangledName; //d for define (p used for atomicparametrictype)
     std::string udstr = ud.str();
 
-    //s32 len = getTotalBitSize();
+    s32 len = getTotalBitSize();
+    if(len > BITSPERATOM)
+      assert(0); //do something else!! but what?
 
     m_state.indent(fp);
     fp->write("#ifndef ");
@@ -410,27 +412,11 @@ namespace MFM {
     fp->write("enum { BPA = AC::BITS_PER_ATOM };\n");
     fp->write("\n");
 
-#if 1
     //typedef bitfield inside struct ???
     m_state.indent(fp);
     fp->write("typedef ");
     fp->write(getUlamTypeAsStringForC().c_str()); //e.g. BitField
     fp->write(" BF;\n");
-
-    //moved if array of quarks into the immediate, not here!!!
-#endif
-
-#if 0
-    m_state.indent(fp);
-    fp->write("typedef AtomicParameterType");
-    fp->write("<EC"); //BITSPERATOM
-    fp->write(", ");
-    fp->write(getUlamTypeVDAsStringForC().c_str());
-    fp->write(", ");
-    fp->write_decimal_unsigned(len); //includes arraysize
-    fp->write("u, POS> ");
-    fp->write(" Up_Us;\n");
-#endif
 
     // see UlamClass.h for AutoRefBase
     //constructor for ref (auto)

@@ -1,5 +1,8 @@
 ## -*- mode:ulam -*-
 #=t3574_test_compiler_elementandquarkinheritancetemplatemix_wMP
+##
+## gen code: FAILED: NULL_POINTER
+##
 #!
 Exit status: 4
 Ue_Tu(Int(32) x) : Foo { :<> constant Int(32) x = NONREADYCONST;  parameter Int(32) mi = 4;  Int(32) test() {  Tu(1) tu;  tu mi . return } }

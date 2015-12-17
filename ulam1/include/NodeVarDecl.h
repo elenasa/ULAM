@@ -78,6 +78,8 @@ namespace MFM{
 
     virtual bool foldInitExpression();
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
     virtual NNO getBlockNo();

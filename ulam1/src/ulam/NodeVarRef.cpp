@@ -96,6 +96,42 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  FORECAST NodeVarRef::safeToCastTo(UTI newType)
+  {
+    UTI nuti = getNodeType();
+    //cast RHS if necessary and safe
+    //insure lval is same bitsize/arraysize
+    // if classes, safe to cast a subclass to any of its superclasses
+    FORECAST rscr = CAST_CLEAR;
+    if(UlamType::compare(nuti, newType, m_state) != UTIC_SAME)
+      {
+	UlamType * nut = m_state.getUlamTypeByIndex(nuti);
+	UlamType * newt = m_state.getUlamTypeByIndex(newType);
+	rscr = newt->safeCast(nuti);
+	if((nut->getUlamTypeEnum() == Class) && (newt->getUlamTypeEnum() == Class))
+	  {
+	    std::ostringstream msg;
+	    msg << "Incompatible class types ";
+	    msg << nut->getUlamTypeNameBrief().c_str();
+	    msg << " and ";
+	    msg << newt->getUlamTypeNameBrief().c_str();
+	    msg << " used with variable reference initialization";
+	    if(rscr == CAST_HAZY)
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	    else
+	      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+	  }
+	else
+	  {
+	    //primitives must be exactly the same size;
+	    // even "clear" when complete yet not the same is "bad".
+	    if(rscr != CAST_HAZY)
+	      rscr = CAST_BAD;
+	  }
+      }
+    return rscr;
+  } //safeToCastTo
+
   UTI NodeVarRef::checkAndLabelType()
   {
     UTI it = NodeVarDecl::checkAndLabelType();
@@ -104,8 +140,8 @@ namespace MFM {
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
     if(m_nodeInitExpr)
       {
-	it = m_nodeInitExpr->getNodeType();
-	if(it == Nav)
+	UTI eit = m_nodeInitExpr->getNodeType();
+	if(eit == Nav)
 	  {
 	    std::ostringstream msg;
 	    msg << "Storage expression for: ";
@@ -132,6 +168,7 @@ namespace MFM {
 	    return Nav; //short-circuit
 	  }
       }
+
     setNodeType(it);
     return getNodeType();
   } //checkAndLabelType

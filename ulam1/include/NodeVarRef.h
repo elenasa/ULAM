@@ -65,6 +65,8 @@ namespace MFM{
 
     virtual const std::string prettyNodeName();
 
+    virtual FORECAST safeToCastTo(UTI newType);
+
     virtual UTI checkAndLabelType();
 
     virtual void packBitsInOrderOfDeclaration(u32& offset);

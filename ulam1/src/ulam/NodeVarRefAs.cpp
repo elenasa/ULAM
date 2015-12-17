@@ -47,6 +47,11 @@ namespace MFM {
     return nodeName(__PRETTY_FUNCTION__);
   }
 
+  FORECAST NodeVarRefAs::safeToCastTo(UTI newType)
+  {
+    return CAST_CLEAR; //created automatically when 'as' is true
+  }
+
   UTI NodeVarRefAs::checkAndLabelType()
   {
     UTI it = NodeVarRef::checkAndLabelType();
