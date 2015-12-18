@@ -1567,6 +1567,12 @@ namespace MFM {
 
     Token iTok;
     getNextToken(iTok);
+    if(iTok.m_type == TOK_AMP)
+      {
+	typeargs.m_declRef = true;
+	getNextToken(iTok);
+      }
+
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	UTI passuti = typeNode->givenUTI(); //before it may become an array

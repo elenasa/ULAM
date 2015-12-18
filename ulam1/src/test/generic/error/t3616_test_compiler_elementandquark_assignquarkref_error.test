@@ -1,0 +1,46 @@
+## -*- mode:ulam -*-
+#=t3616_test_compiler_elementandquark_assignquarkref_error
+#!
+./Foo.ulam:8:5: ERROR: Incompatible class types Foo and Bar used to initalize reference 'f'.
+./Foo.ulam:8:5: ERROR: Unresolved No.1.
+./Foo.ulam:6:3: Warning: 1 nodes with unresolved types remain in function <test> (Uf_4test,1).
+./Foo.ulam:6:7: Warning: Summary: 1 nodes with unresolved types remain in  a single function <test> in class: Foo.
+./Foo.ulam:4:9: Warning: 1 data member nodes with unresolved types remain in class 'Foo'.
+./Foo.ulam:4:9: ERROR: 1 Nodes with unresolved types detected after type labeling class: Foo.
+Unrecoverable Program Type Label FAILURE.
+##
+## informed by t3615
+##
+#>Foo.ulam
+  ulam 2;
+use Bar;
+use System;
+element Foo {
+  Bar m_bar;
+  Int test() {
+    System s;
+    Foo & f = m_bar;
+    m_bar.val_b[1] = true;
+    s.assert(f.m_bar.val_b[1]);
+    return (Int) (f.m_bar.val_b[1]);
+  }
+}
+
+#:Bar.ulam
+  ulam 1;
+quark Bar {
+  Bool val_b[3];
+}
+
+#:System.ulam
+  ulam 1;
+quark System {
+  Void print(Unsigned arg) native;
+  Void print(Int arg) native;
+  Void print(Int(4) arg) native;
+  Void print(Int(3) arg) native;
+  Void print(Unary(3) arg) native;
+  Void print(Bool(3) arg) native;
+  Void assert(Bool b) native;
+}
+#.
