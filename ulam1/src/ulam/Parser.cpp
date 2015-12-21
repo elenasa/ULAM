@@ -1254,7 +1254,7 @@ namespace MFM {
 
     Symbol * asymptr = NULL; //a place to put the new symbol; not a decl list, nor typedef from another class
     tmpni->installSymbolVariable(typeargs, asymptr);
-    //    assert(asymptr);
+    assert(asymptr);
     //asymptr->setAutoLocalType(m_state.m_parsingConditionalToken); //set auto flag/type
 
     //if(asymptr->getId() == m_state.m_pool.getIndexForDataString("self"))
@@ -2115,10 +2115,13 @@ namespace MFM {
 
 	    //update token argument
 	    if(tdclasstype == UC_NOTACLASS)
-	      args.m_typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), pTok.m_locator, 0);
+	      //args.m_typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), pTok.m_locator, 0);
+	      //args.m_typeTok.init(pTok);
+	      args.m_typeTok = pTok;
 	    else
 	      {
-		args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
+		//args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
+	      args.m_typeTok = pTok;
 		isclasstd = true;
 	      }
 
