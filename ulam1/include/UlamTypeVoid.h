@@ -62,7 +62,7 @@ namespace MFM{
 
     virtual bool needsImmediateType();
 
-    virtual const std::string getImmediateStorageTypeAsString();
+    virtual const std::string getLocalStorageTypeAsString();
 
     virtual const std::string getTmpStorageTypeAsString();
 

@@ -22,7 +22,7 @@ namespace MFM {
 
   bool UlamTypeClass::isNumericType()
   {
-    if(m_class == UC_QUARK)
+    if(getUlamClass() == UC_QUARK)
       {
 	u32 quti = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
 	return (m_state.quarkHasAToIntMethod(quti));
@@ -45,7 +45,7 @@ namespace MFM {
 
     //now allowing atoms to be cast as quarks, as well as elements;
     // also allowing subclasses to be cast as their superclass (u1.2.2)
-    if(m_class == UC_ELEMENT)
+    if(getUlamClass() == UC_ELEMENT)
       {
 	if(!(valtypidx == UAtom || UlamType::compare(valtypidx, typidx, m_state) == UTIC_SAME))
 	  {
@@ -56,7 +56,7 @@ namespace MFM {
 	  val.setAtomElementTypeIdx(typidx); //for testing purposes, assume ok
 	//else true
       }
-    else if(m_class == UC_QUARK)
+    else if(getUlamClass() == UC_QUARK)
       {
 	if(valtypidx == UAtom)
 	  brtn = false; //cast atom to a quark?
@@ -129,7 +129,7 @@ namespace MFM {
 
   const char * UlamTypeClass::getUlamTypeAsSingleLowercaseLetter()
   {
-    switch(m_class)
+    switch(getUlamClass())
       {
       case UC_ELEMENT:
 	return "e";
@@ -185,8 +185,8 @@ namespace MFM {
   //quarks are right-justified in an atom space
   const std::string UlamTypeClass::getUlamTypeAsStringForC()
   {
-    assert(m_class != UC_UNSEEN);
-    if(m_class == UC_QUARK)
+    assert(getUlamClass() != UC_UNSEEN);
+    if(getUlamClass() == UC_QUARK)
       {
 	return UlamType::getUlamTypeAsStringForC();
       }
@@ -198,7 +198,7 @@ namespace MFM {
     if(getArraySize() > 0)
       return "Ut_";
 
-    switch(m_class)
+    switch(getUlamClass())
       {
       case UC_ELEMENT:
 	return "Ue_";
@@ -244,6 +244,11 @@ namespace MFM {
 
   ULAMCLASSTYPE UlamTypeClass::getUlamClass()
   {
+    if(m_class == UC_UNSEEN && isReference())
+      {
+	UTI classidx = m_key.getUlamKeyTypeSignatureClassInstanceIdx();
+	setUlamClass(m_state.getUlamTypeByIndex(classidx)->getUlamClass());
+      }
     return m_class;
   }
 
@@ -302,6 +307,9 @@ namespace MFM {
     if(isHolder())
       return false;
 
+    if(getUlamClass() == UC_UNSEEN)
+      return false; //forgotten?
+
     return UlamType::isComplete();
   }
 
@@ -312,7 +320,7 @@ namespace MFM {
 
   PACKFIT UlamTypeClass::getPackable()
   {
-    if(m_class == UC_ELEMENT)
+    if(getUlamClass() == UC_ELEMENT)
       return UNPACKED; //was PACKED, now matches ATOM regardless of its bit size.
     return UlamType::getPackable(); //quarks depend their size
   }
@@ -323,7 +331,7 @@ namespace MFM {
       return false;
 
     bool rtnb = false;
-    if(m_class == UC_QUARK || m_class == UC_ELEMENT)
+    if((getUlamClass() == UC_QUARK || getUlamClass() == UC_ELEMENT) && !isReference())
       {
 	rtnb = true;
 	u32 id = m_key.getUlamKeyTypeSignatureNameId();
@@ -332,12 +340,15 @@ namespace MFM {
 	if(cnsym->isClassTemplate() && ((SymbolClassNameTemplate *) cnsym)->isClassTemplate(cuti))
 	  rtnb = false; //the "template" has no immediate, only instances
       }
+    //else if(isReference())
+    //  rtnb = true; //needs auto, not immediate; since immediate inherits fm auto we're covered for _Types.h defs.
+
     return rtnb;
   } //needsImmediateType
 
   const std::string UlamTypeClass::getUlamTypeImmediateMangledName()
   {
-    if(needsImmediateType())
+    if(needsImmediateType() || isReference())
       {
 	return UlamType::getUlamTypeImmediateMangledName();
       }
@@ -346,7 +357,7 @@ namespace MFM {
 
   const std::string UlamTypeClass::getUlamTypeImmediateAutoMangledName()
   {
-    assert(needsImmediateType());
+    assert(needsImmediateType() || isReference());
     std::ostringstream  automn;
     automn << getUlamTypeImmediateMangledName().c_str();
     automn << "4auto" ;
@@ -355,11 +366,11 @@ namespace MFM {
 
   const std::string UlamTypeClass::getTmpStorageTypeAsString()
   {
-    if(m_class == UC_QUARK)
+    if(getUlamClass() == UC_QUARK)
       {
 	return UlamType::getTmpStorageTypeAsString(); // entire, u32 or u64
       }
-    else if(m_class == UC_ELEMENT)
+    else if(getUlamClass() == UC_ELEMENT)
       {
  	return "T";
       }
@@ -376,20 +387,20 @@ namespace MFM {
     return m_state.getUlamTypeByIndex(getCustomArrayType())->getTmpStorageTypeAsString();
   } //getArrayItemTmpStorageTypeAsString
 
-  const std::string UlamTypeClass::getImmediateStorageTypeAsString()
+  const std::string UlamTypeClass::getLocalStorageTypeAsString()
   {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName();
 
-    if(m_class == UC_QUARK)
+    if(getUlamClass() == UC_QUARK)
       ctype << "<EC>"; //default local quarks
-    else if(m_class == UC_ELEMENT)
+    else if(getUlamClass() == UC_ELEMENT)
       ctype << "<EC>";
     else
       assert(0);
 
     return ctype.str();
-  } //getImmediateStorageTypeAsString
+  } //getLocalStorageTypeAsString
 
   const std::string UlamTypeClass::castMethodForCodeGen(UTI nodetype)
   {
@@ -410,7 +421,7 @@ namespace MFM {
 	MSG(m_state.getFullLocationAsString(m_state.m_locOfNextLineText).c_str(),msg.str().c_str(), ERR);
       }
 
-    if(m_class != UC_ELEMENT)
+    if(getUlamClass() != UC_ELEMENT)
       {
 	std::ostringstream msg;
 	msg << "Quarks only cast 'toInt': value type and size was: ";
@@ -436,9 +447,9 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeMangledAutoDefinitionForC(File * fp)
   {
-    if(m_class == UC_QUARK)
+    if(getUlamClass() == UC_QUARK)
       return genUlamTypeQuarkMangledAutoDefinitionForC(fp);
-    else if(m_class == UC_ELEMENT)
+    else if(getUlamClass() == UC_ELEMENT)
       return genUlamTypeElementMangledAutoDefinitionForC(fp);
     else
       assert(0);
@@ -446,7 +457,7 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeQuarkMangledAutoDefinitionForC(File * fp)
   {
-    assert(m_class == UC_QUARK);
+    assert(getUlamClass() == UC_QUARK);
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -565,9 +576,9 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeReadDefinitionForC(File * fp)
   {
-    if(m_class == UC_QUARK)
+    if(getUlamClass() == UC_QUARK)
       return genUlamTypeQuarkReadDefinitionForC(fp);
-    else if(m_class == UC_ELEMENT)
+    else if(getUlamClass() == UC_ELEMENT)
       return genUlamTypeElementReadDefinitionForC(fp);
     else
       assert(0);
@@ -575,9 +586,9 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeWriteDefinitionForC(File * fp)
   {
-    if(m_class == UC_QUARK)
+    if(getUlamClass() == UC_QUARK)
       return genUlamTypeQuarkWriteDefinitionForC(fp);
-    else if(m_class == UC_ELEMENT)
+    else if(getUlamClass() == UC_ELEMENT)
       return genUlamTypeElementWriteDefinitionForC(fp);
     else
       assert(0);
@@ -822,7 +833,7 @@ namespace MFM {
     fp->write(mangledName.c_str());
     fp->write(" : public ");
     fp->write(automangledName.c_str());
-    if(m_class == UC_QUARK)
+    if(getUlamClass() == UC_QUARK)
       fp->write("<EC, EC::ATOM_CONFIG::ATOM_TYPE::ATOM_FIRST_STATE_BIT>\n");
     else
       fp->write("<EC>\n");
@@ -845,7 +856,7 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("T m_stg;  //storage here!\n");
 
-    if(m_class == UC_QUARK)
+    if(getUlamClass() == UC_QUARK)
       {
 	s32 len = getTotalBitSize();
 
@@ -955,7 +966,7 @@ namespace MFM {
 	fp->write("<EC, T::ATOM_FIRST_STATE_BIT>::");
 	fp->write("write(arg.read()); }\n");
       }
-    else if(m_class == UC_ELEMENT)
+    else if(getUlamClass() == UC_ELEMENT)
       {
 	//default constructor (used by local vars)
 	m_state.indent(fp);
@@ -1017,9 +1028,9 @@ namespace MFM {
 
   void UlamTypeClass::genUlamTypeMangledUnpackedArrayDefinitionForC(File * fp)
   {
-    if(m_class == UC_ELEMENT)
+    if(getUlamClass() == UC_ELEMENT)
       return genUlamTypeMangledUnpackedElementArrayDefinitionForC(fp);
-    else if(m_class == UC_QUARK)
+    else if(getUlamClass() == UC_QUARK)
       return genUlamTypeMangledUnpackedQuarkArrayDefinitionForC(fp);
     assert(0);
     return;
@@ -1372,7 +1383,7 @@ namespace MFM {
   bool UlamTypeClass::genUlamTypeDefaultQuarkConstant(File * fp, u32& dqref)
   {
     bool rtnb = false;
-    if(m_class == UC_QUARK)
+    if(getUlamClass() == UC_QUARK)
       {
 	//always the scalar.
 	if(m_state.getDefaultQuark(m_key.getUlamKeyTypeSignatureClassInstanceIdx(), dqref))

@@ -73,17 +73,10 @@ namespace MFM{
 
   struct less_than_key
   {
+    //see operator< in UlamKeyTypeSignature
     inline bool operator() (const UlamKeyTypeSignature key1, const UlamKeyTypeSignature key2)
     {
-      if(key1.m_typeNameId < key2.m_typeNameId) return true;
-      if(key1.m_typeNameId > key2.m_typeNameId) return false;
-      if(key1.m_bits < key2.m_bits) return true;
-      if(key1.m_bits > key2.m_bits ) return false;
-      if(key1.m_arraySize < key2.m_arraySize) return true;
-      if(key1.m_arraySize > key2.m_arraySize) return false;
-      if(key1.m_classInstanceIdx < key2.m_classInstanceIdx) return true;
-      if(key1.m_classInstanceIdx > key2.m_classInstanceIdx) return false;
-      return false;
+      return (key1 < key2);
     }
   };
 
@@ -166,7 +159,7 @@ namespace MFM{
     UTI makeUlamTypeFromHolder(UlamKeyTypeSignature oldkey, UlamKeyTypeSignature newkey, ULAMTYPE utype, UTI uti);
     SymbolClassName * makeAnonymousClassFromHolder(UTI cuti, Locator cloc);
 
-    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx);
+    UTI makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype = ALT_NOT);
     UTI makeUlamType(UlamKeyTypeSignature key, ULAMTYPE utype);
     bool isDefined(UlamKeyTypeSignature key, UlamType *& foundUT);
     bool anyDefinedUTI(UlamKeyTypeSignature key, UTI& foundUTI);
@@ -191,6 +184,12 @@ namespace MFM{
 
     /** turns array into its single element type */
     UTI getUlamTypeAsScalar(UTI utArg);
+    /** turns a reference into its dereferenced type */
+    UTI getUlamTypeAsDeref(UTI utArg);
+    /** turns a regular type into its referenced type */
+    UTI getUlamTypeAsRef(UTI utArg);
+    UTI getUlamTypeAsRef(UTI utArg, ALT altArg);
+
     UTI getUlamTypeOfConstant(ULAMTYPE etype);
     UTI getDefaultUlamTypeOfConstant(UTI ctype);
     bool getDefaultQuark(UTI cuti, u32& dqref);
@@ -198,6 +197,7 @@ namespace MFM{
     bool isScalar(UTI utArg);
     s32 getArraySize(UTI utArg);
     s32 getBitSize(UTI utArg);
+    ALT getReferenceType(UTI utArg);
     bool isComplete(UTI utArg);
     bool isHolder(UTI utArg);
     void setBitSize(UTI utArg, s32 total);

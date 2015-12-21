@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeTypeDescriptorArray::NodeTypeDescriptorArray(Token typetoken, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state) : NodeTypeDescriptor(typetoken, auti, state), m_nodeScalar(scalarnode), m_unknownArraysizeSubtree(NULL)
+  NodeTypeDescriptorArray::NodeTypeDescriptorArray(TypeArgs targs, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state) : NodeTypeDescriptor(targs, auti, state), m_nodeScalar(scalarnode), m_unknownArraysizeSubtree(NULL)
   {
     m_nodeScalar->updateLineage(getNodeNo()); //for unknown subtrees
   }

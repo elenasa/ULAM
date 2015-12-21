@@ -110,7 +110,7 @@ namespace MFM{
 
     virtual const std::string getArrayItemTmpStorageTypeAsString();
 
-    virtual const std::string getImmediateStorageTypeAsString();
+    virtual const std::string getLocalStorageTypeAsString();
 
     virtual const std::string castMethodForCodeGen(UTI nodetype);
 

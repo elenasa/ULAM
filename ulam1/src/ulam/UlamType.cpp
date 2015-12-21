@@ -230,6 +230,9 @@ namespace MFM {
     s32 bitsize = getBitSize();
     s32 arraysize = getArraySize();
 
+    if(isReference())
+      mangled << "r";
+
     if(arraysize > 0)
       mangled << ToLeximitedNumber(arraysize);
     else
@@ -281,12 +284,17 @@ namespace MFM {
     return automn.str();
   } //getUlamTypeImmediateAutoMangledName
 
-  const std::string UlamType::getImmediateStorageTypeAsString()
+  //  const std::string UlamType::getLocalStorageTypeAsString()
+  const std::string UlamType::getLocalStorageTypeAsString()
   {
     std::ostringstream ctype;
-    ctype << getUlamTypeImmediateMangledName() << "<EC>"; //name of struct w typedef(bf) and storage(bv);
+    if(isReference())
+      ctype << getUlamTypeImmediateAutoMangledName();
+    else
+      ctype << getUlamTypeImmediateMangledName();
+    ctype << "<EC>"; //name of struct w typedef(bf) and storage(bv);
     return ctype.str();
-  } //getImmediateStorageTypeAsString
+  } //getLocalStorageTypeAsString
 
   const std::string UlamType::getImmediateModelParameterStorageTypeAsString()
   {
@@ -294,7 +302,7 @@ namespace MFM {
     //substitutes Up_ for Ut_ for model parameter immediate
     mpimangled << "Ui_Up_" << getUlamTypeMangledType();
     return mpimangled.str();
-  } //getImmediateStorageTypeAsString
+  } //getImmediateModelParameterStorageTypeAsString
 
   const std::string UlamType::getArrayItemTmpStorageTypeAsString()
   {
@@ -578,6 +586,16 @@ namespace MFM {
     s32 bitsize = getBitSize();
     bitsize = (bitsize != UNKNOWNSIZE ? bitsize : 0);
     return bitsize * arraysize; // >= 0
+  }
+
+  ALT UlamType::getReferenceType()
+  {
+    return m_key.getUlamKeyTypeSignatureReferenceType();
+  }
+
+  bool UlamType::isReference()
+  {
+    return m_key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT;
   }
 
   bool UlamType::isHolder()

@@ -785,7 +785,7 @@ namespace MFM {
       {
 	//UlamTypes automatically created for the base types with different array sizes.
 	//but with typedef's "scope" of use, typedef needed to be checked first.
-	auti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nav);
+	auti = m_state.makeUlamType(args.m_typeTok, args.m_bitsize, args.m_arraysize, Nav, args.m_declRef);
 	brtn = true;
       }
     else
@@ -811,10 +811,12 @@ namespace MFM {
 	    if(args.m_bitsize == 0)
 	      args.m_bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize);
-	    newarraykey.append(scalarUTI);
-	    uti = m_state.makeUlamType(newarraykey, bUT);
+	    UlamKeyTypeSignature newarraykey(key.getUlamKeyTypeSignatureNameId(), args.m_bitsize, args.m_arraysize, scalarUTI, key.getUlamKeyTypeSignatureReferenceType()); //same reftype as key (or args?)
+	    //newarraykey.append(scalarUTI);
+	    auti = m_state.makeUlamType(newarraykey, bUT);
 	  }
+
+	uti = m_state.getUlamTypeAsRef(auti, args.m_declRef); //ut not current
 
 	SymbolVariable * sym = makeSymbol(uti, args.m_declRef);
 	if(sym)
@@ -836,7 +838,7 @@ namespace MFM {
     return brtn;
   } //installSymbolVariable
 
-  SymbolVariable *  NodeIdent::makeSymbol(UTI auti, bool isref)
+  SymbolVariable *  NodeIdent::makeSymbol(UTI auti, ALT reftype)
   {
     //adjust decl count and max_depth, used for function definitions
     PACKFIT packit = m_state.determinePackable(auti);
@@ -846,7 +848,7 @@ namespace MFM {
 	u32 baseslot = 1;  //unpacked fixed later
 
 	//variable-index, ulamtype, ulamvalue(ownership to symbol); always packed
-	if(isref)
+	if(reftype != ALT_NOT)
 	  return NULL; //error! dm's not references
 	return (new SymbolVariableDataMember(m_token, auti, packit, baseslot, m_state));
       }
@@ -860,16 +862,15 @@ namespace MFM {
 	SymbolVariableStack * rtnSym = (new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state)); //slot after adjust
 	assert(rtnSym);
 
-	if(isref)
-	  rtnSym->setAutoLocalType(Token(TOK_AMP, m_token.m_locator, 0));
+	rtnSym->setAutoLocalType(reftype);
+
 	return rtnSym;
       }
 
     //(else) Symbol is a local variable, always on the stack
     SymbolVariableStack * rtnLocalSym = new SymbolVariableStack(m_token, auti, packit, m_state.m_currentFunctionBlockDeclSize, m_state); //slot before adjustment
     assert(rtnLocalSym);
-    if(isref)
-      rtnLocalSym->setAutoLocalType(Token(TOK_AMP, m_token.m_locator, 0));
+    rtnLocalSym->setAutoLocalType(reftype);
 
     m_state.m_currentFunctionBlockDeclSize += m_state.slotsNeeded(auti);
 

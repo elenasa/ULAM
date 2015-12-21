@@ -464,6 +464,7 @@ namespace MFM {
 
 	    //append 'instance's arg (mangled) type
 	    args << aut->getUlamTypeMangledType().c_str();
+	    assert(!aut->isReference());
 
 	    //append 'instance's arg value
 	    bool isok = false;

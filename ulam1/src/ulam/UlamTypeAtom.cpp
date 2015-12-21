@@ -33,7 +33,7 @@ namespace MFM {
     return "T";
   }
 
-  const std::string UlamTypeAtom::getImmediateStorageTypeAsString()
+  const std::string UlamTypeAtom::getLocalStorageTypeAsString()
   {
     std::ostringstream ctype;
     ctype << getUlamTypeImmediateMangledName() << "<EC>";

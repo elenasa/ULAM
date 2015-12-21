@@ -121,7 +121,7 @@ namespace MFM{
 
     virtual const std::string getUlamTypeImmediateAutoMangledName();
 
-    virtual const std::string getImmediateStorageTypeAsString();
+    virtual const std::string getLocalStorageTypeAsString();
 
     virtual const std::string getImmediateModelParameterStorageTypeAsString();
 
@@ -160,6 +160,10 @@ namespace MFM{
     virtual s32 getBitSize(); //except for default size constants, known after type labeling
 
     u32 getTotalBitSize(); //bitsize * arraysize, accounting for constants and scalars
+
+    ALT getReferenceType();
+
+    bool isReference();
 
     virtual bool isHolder();
 

@@ -5,13 +5,14 @@
 
 namespace MFM {
 
-  NodeTypeDescriptor::NodeTypeDescriptor(Token typetoken, UTI auti, CompilerState & state) : Node(state),  m_typeTok(typetoken), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(TypeArgs targs, UTI auti, CompilerState & state) : Node(state), m_typeTok(targs.m_typeTok), m_uti(auti), m_refType(targs.m_declRef), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
-    setNodeLocation(typetoken.m_locator);
+    setNodeLocation(m_typeTok.m_locator);
+    m_uti = m_state.getUlamTypeAsRef(auti, m_refType);
   }
 
   //since there's no assoc symbol, we map the m_uti here (e.g. S(x,y).sizeof nodeterminalproxy)
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_refType(ref.m_refType), m_ready(false), m_unknownBitsizeSubtree(NULL)
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?

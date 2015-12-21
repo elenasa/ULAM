@@ -237,7 +237,7 @@ namespace MFM {
 
   //convenience method (refactors code originally from installSymbol)
   //if exists, just returns it, o.w. makes it; trick to know the base ULAMTYPE
-  UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx)
+  UTI CompilerState::makeUlamType(Token typeTok, s32 bitsize, s32 arraysize, UTI classinstanceidx, ALT reftype)
   {
     //type names begin with capital letter..and the rest can be either
     u32 typeNameId = getTokenAsATypeNameId(typeTok); //Foo, Int, etc
@@ -253,7 +253,7 @@ namespace MFM {
     if(bitsize == 0)
       bitsize = ULAMTYPE_DEFAULTBITSIZE[bUT];
 
-    UlamKeyTypeSignature key(typeNameId,bitsize,arraysize,classinstanceidx);
+    UlamKeyTypeSignature key(typeNameId, bitsize, arraysize, classinstanceidx, reftype);
 
     UTI uti = Nav;
     UlamType * ut = NULL; //for isDefined.
@@ -286,6 +286,10 @@ namespace MFM {
 	      {
 		//keep classinstanceid of scalar in key
 		assert(suti > 0 && !isComplete(suti));
+	      }
+	    else if(key.getUlamKeyTypeSignatureReferenceType() != ALT_NOT) //array type
+	      {
+		//need a new UTI for reference
 	      }
 	    else
 	      {
@@ -489,12 +493,24 @@ namespace MFM {
     if(findaUTIAlias(auti, mappedUTI))
        return mappedUTI; //anonymous UTI
 
-    //move this test after looking for the mapped class symbol type in "cuti" (always compileThis?)
     UlamType * aut = getUlamTypeByIndex(auti);
+    UlamKeyTypeSignature akey = getUlamKeyTypeSignatureByIndex(auti);
+    if(aut->isReference())
+      {
+	UTI classidx = akey.getUlamKeyTypeSignatureClassInstanceIdx();
+	UlamType * cut = getUlamTypeByIndex(classidx);
+	if(cut->isComplete())
+	  {
+	    mappedUTI = getUlamTypeAsRef(classidx, aut->getReferenceType());
+	    return true;
+	  }
+	return false;
+      }
+
+    //move this test after looking for the mapped class symbol type in "cuti" (always compileThis?)
     ULAMTYPE bUT = aut->getUlamTypeEnum();
     if(bUT == Class)
       {
-	UlamKeyTypeSignature akey = getUlamKeyTypeSignatureByIndex(auti);
 	SymbolClassName * cnsymOfIncomplete = NULL; //could be a different class than being compiled
 	AssertBool isDefined = alreadyDefinedSymbolClassName(akey.getUlamKeyTypeSignatureNameId(), cnsymOfIncomplete);
 	assert(isDefined);
@@ -506,13 +522,6 @@ namespace MFM {
 	    return (cnsymOfIncomplete->hasMappedUTI(auti, mappedUTI));
 	  }
       }
-
-    // try in Symbol Class..
-    // check for inheritance
-    //    UTI superuti = isClassASubclass(cuti);
-    //if(superuti != Nav)
-    //  return mappedIncompleteUTI(superuti, auti, mappedUTI);
-
     return false; //for compiler
   } //mappedIncompleteUTI
 
@@ -589,6 +598,9 @@ namespace MFM {
 
   void CompilerState::mapTypesInCurrentClass(UTI fm, UTI to)
   {
+    if(getReferenceType(to) != ALT_NOT)
+      return; //only a reference to a class type, skip
+
     SymbolClassName * cnsym = NULL;
     AssertBool isDefined = alreadyDefinedSymbolClassName(getCompileThisId(), cnsym);
     assert(isDefined);
@@ -755,6 +767,49 @@ namespace MFM {
     return buti;
   } //getUlamTypeAsScalar
 
+  UTI CompilerState::getUlamTypeAsDeref(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    if(!ut->isReference())
+      return utArg;
+
+    ULAMTYPE bUT = ut->getUlamTypeEnum();
+    UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
+
+    u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
+    u32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
+    UTI classidx = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
+
+    UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, arraysize, classidx, ALT_NOT);  //default array size is zero
+
+    UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
+    return buti;
+  } //getUlamTypeAsDeref
+
+  UTI CompilerState::getUlamTypeAsRef(UTI utArg)
+  {
+    return getUlamTypeAsRef(utArg, ALT_REF);
+  } //getUlamTypeAsRef
+
+  UTI CompilerState::getUlamTypeAsRef(UTI utArg, ALT altArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    if(ut->getReferenceType() == altArg)
+      return utArg;
+
+    ULAMTYPE bUT = ut->getUlamTypeEnum();
+    UlamKeyTypeSignature keyOfArg = ut->getUlamKeyTypeSignature();
+
+    u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
+    u32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
+    UTI classidx = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
+
+    UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, arraysize, classidx, altArg);  //default array size is zero
+
+    UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
+    return buti;
+  } //getUlamTypeAsRef
+
   UTI CompilerState::getUlamTypeOfConstant(ULAMTYPE etype)
   {
     u32 enumStrIdx = m_pool.getIndexForDataString(UlamType::getUlamTypeEnumAsString(etype));
@@ -802,6 +857,12 @@ namespace MFM {
   {
     UlamType * ut = getUlamTypeByIndex(utArg);
     return (ut->getBitSize());
+  }
+
+  ALT CompilerState::getReferenceType(UTI utArg)
+  {
+    UlamType * ut = getUlamTypeByIndex(utArg);
+    return ut->getReferenceType();
   }
 
   bool CompilerState::isComplete(UTI utArg)

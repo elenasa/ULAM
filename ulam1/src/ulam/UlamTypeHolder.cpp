@@ -24,7 +24,7 @@ namespace MFM {
     return false;
   }
 
-  const std::string UlamTypeHolder::getImmediateStorageTypeAsString()
+  const std::string UlamTypeHolder::getLocalStorageTypeAsString()
   {
     assert(0);
     return "holder";

@@ -149,6 +149,8 @@ namespace MFM {
   {
     UTI it = NodeVarDecl::checkAndLabelType();
 
+    assert((it == Nav) || m_state.getUlamTypeByIndex(it)->isReference());
+
     ////requires non-constant, non-funccall value
     //NOASSIGN REQUIRED (e.g. for function parameters) doesn't have to have this!
     if(m_nodeInitExpr)
@@ -279,7 +281,6 @@ namespace MFM {
 	Symbol * stgcos = m_state.m_currentObjSymbolsForCodeGen.back();
 	UTI stgcosuti = stgcos->getUlamTypeIdx();
 	UlamType * stgcosut = m_state.getUlamTypeByIndex(stgcosuti);
-	//	ULAMCLASSTYPE sclasstype = stgcosut->getUlamClass();
 
 	UTI vuti = m_varSymbol->getUlamTypeIdx(); //i.e. this node
 	UlamType * vut = m_state.getUlamTypeByIndex(vuti);

@@ -1374,7 +1374,7 @@ namespace MFM {
 
     //m_state.indent(fp);
     //fp->write("MFM::");
-    //fp->write(m_state.getUlamTypeByIndex(Int)->getImmediateStorageTypeAsString().c_str());
+    //fp->write(m_state.getUlamTypeByIndex(Int)->getLocalStorageTypeAsString().c_str());
     //fp->write(" rtn;\n");
 
     it = m_idToSymbolPtr.begin();

@@ -25,7 +25,7 @@ namespace MFM {
     return false;
   }
 
-  const std::string UlamTypeNav::getImmediateStorageTypeAsString()
+  const std::string UlamTypeNav::getLocalStorageTypeAsString()
   {
     assert(0);
     return "nav";

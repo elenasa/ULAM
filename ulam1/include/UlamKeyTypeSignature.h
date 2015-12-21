@@ -51,10 +51,11 @@ namespace MFM{
     s32 m_bits;
     s32 m_arraySize;
     UTI m_classInstanceIdx;
+    ALT m_referenceType;
 
     UlamKeyTypeSignature();
-    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize=NONARRAYSIZE);
-    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, UTI classinstanceIdx);
+    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize=NONARRAYSIZE, ALT reftype = ALT_NOT);
+    UlamKeyTypeSignature(u32 nameid, s32 bitsize, s32 arraysize, UTI classinstanceIdx, ALT reftype = ALT_NOT);
     ~UlamKeyTypeSignature();
 
     void append(UTI cuti);
@@ -64,6 +65,7 @@ namespace MFM{
     s32 getUlamKeyTypeSignatureBitSize();
     s32 getUlamKeyTypeSignatureArraySize();
     UTI getUlamKeyTypeSignatureClassInstanceIdx();
+    ALT getUlamKeyTypeSignatureReferenceType();
 
     const std::string getUlamKeyTypeSignatureNameAndBitSize(CompilerState * state);
     const std::string getUlamKeyTypeSignatureNameAndSize(CompilerState * state);
@@ -71,8 +73,8 @@ namespace MFM{
     const std::string getUlamKeyTypeSignatureAsString(CompilerState * state);
     static const std::string getUlamKeyTypeSignatureAsString(UlamKeyTypeSignature utk, CompilerState * state);
 
-    bool operator<(const UlamKeyTypeSignature & key2);
-    bool operator==(const UlamKeyTypeSignature & key2);
+    bool operator<(const UlamKeyTypeSignature & key2) const;
+    bool operator==(const UlamKeyTypeSignature & key2) const;
   };
 
 

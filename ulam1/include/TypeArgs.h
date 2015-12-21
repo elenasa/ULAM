@@ -53,7 +53,7 @@ namespace MFM{
     UTI m_declListOrTypedefScalarType;
     bool m_assignOK;
     bool m_isStmt;
-    bool m_declRef;
+    ALT m_declRef;
 
     TypeArgs();
     TypeArgs(const TypeArgs& tref);

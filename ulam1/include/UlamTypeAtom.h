@@ -58,7 +58,7 @@ namespace MFM{
 
     virtual const std::string getTmpStorageTypeAsString();
 
-    virtual const std::string getImmediateStorageTypeAsString();
+    virtual const std::string getLocalStorageTypeAsString();
 
     virtual void genUlamTypeMangledImmediateModelParameterDefinitionForC(File * fp);
 

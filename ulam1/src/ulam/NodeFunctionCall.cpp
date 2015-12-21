@@ -641,7 +641,7 @@ namespace MFM {
 	// put result of function call into a variable;
 	// (C turns it into the copy constructor)
 	fp->write("const ");
-	fp->write(nut->getImmediateStorageTypeAsString().c_str()); //e.g. BitVector<32>
+	fp->write(nut->getLocalStorageTypeAsString().c_str()); //e.g. BitVector<32>
 	fp->write(" ");
 	fp->write(m_state.getTmpVarAsString(nuti, rtnSlot, TMPBITVAL).c_str());
 	fp->write(" = ");
@@ -876,7 +876,7 @@ namespace MFM {
 	else
 	  {
 	    //for immmediate quark MP..?
-	    fp->write(cosut->getImmediateStorageTypeAsString().c_str());
+	    fp->write(cosut->getLocalStorageTypeAsString().c_str());
 	    fp->write("::");
 	    fp->write("Us::"); //typedef, always for funccalls
 	    fp->write("THE_INSTANCE."); //non-static functions require an instance
@@ -1189,7 +1189,7 @@ namespace MFM {
 	else
 	  {
 	  //immediate quark..
-	  fp->write(stgcosut->getImmediateStorageTypeAsString().c_str());
+	  fp->write(stgcosut->getLocalStorageTypeAsString().c_str());
 	  fp->write("::Us::"); //typedef
 	  }
       }

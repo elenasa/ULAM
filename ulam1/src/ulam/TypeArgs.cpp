@@ -28,7 +28,7 @@ namespace MFM {
     m_declListOrTypedefScalarType = Nav;
     m_assignOK = true;
     m_isStmt = true;
-    m_declRef = false;
+    m_declRef = ALT_NOT;
   }
 
   TypeArgs& TypeArgs::operator=(const TypeArgs& tref)

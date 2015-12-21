@@ -656,7 +656,7 @@ namespace MFM {
     if(vclasstype == UC_ELEMENT)
       {
 	m_state.indent(fp);
-	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
 	fp->write(" = ");
@@ -669,7 +669,7 @@ namespace MFM {
       {
 	//left-justified?
 	m_state.indent(fp);
-	fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
       }
@@ -681,7 +681,7 @@ namespace MFM {
 	    m_nodeInitExpr->genCode(fp, uvpass);
 
 	    m_state.indent(fp);
-	    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");
 	    fp->write(m_varSymbol->getMangledName().c_str());
 	    fp->write("("); // use constructor (not equals)
@@ -691,7 +691,7 @@ namespace MFM {
 	else
 	  {
 	    m_state.indent(fp);
-	    fp->write(vut->getImmediateStorageTypeAsString().c_str()); //for C++ local vars
+	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	    fp->write(" ");
 	    fp->write(m_varSymbol->getMangledName().c_str()); //default 0
 	  }

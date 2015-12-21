@@ -265,6 +265,8 @@ namespace MFM{
     void genLocalMemberNameOfMethodByUsTypedef(File * fp);
     void genCustomArrayLocalMemberNameOfMethod(File * fp);
 
+    const std::string localStorageTypeAsString(UTI nuti);
+
     const std::string tmpStorageTypeForRead(UTI nuti, UlamValue uvpass);
     const std::string tmpStorageTypeForReadArrayItem(UTI nuti, UlamValue uvpass);
 

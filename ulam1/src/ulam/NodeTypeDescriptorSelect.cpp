@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeTypeDescriptorSelect::NodeTypeDescriptorSelect(Token typetoken, UTI auti, NodeTypeDescriptor * node, CompilerState & state) : NodeTypeDescriptor(typetoken, auti, state), m_nodeSelect(node)
+  NodeTypeDescriptorSelect::NodeTypeDescriptorSelect(TypeArgs targs, UTI auti, NodeTypeDescriptor * node, CompilerState & state) : NodeTypeDescriptor(targs, auti, state), m_nodeSelect(node)
   {
     if(m_nodeSelect)
       m_nodeSelect->updateLineage(getNodeNo()); //for unknown subtrees
