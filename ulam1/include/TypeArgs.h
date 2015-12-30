@@ -61,6 +61,7 @@ namespace MFM{
 
     void init(Token typetoken);
     TypeArgs& operator=(const TypeArgs& tref);
+    void setdeclref(Token ftoken);
   };
 
 } //MFM

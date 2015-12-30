@@ -104,7 +104,14 @@ namespace MFM {
     //assert(m_node); a return without an expression (i.e. Void)
     UTI nodeType = Void;
     if(m_node)
-      nodeType = m_node->checkAndLabelType();
+      {
+	nodeType = m_node->checkAndLabelType();
+	UlamType * nut = m_state.getUlamTypeByIndex(nodeType);
+	ALT nodereftype = nut->getReferenceType();
+	//treat ALT_AS as defref'd type; ALT_REF is its own type.
+	if(nodereftype == ALT_AS)
+	  nodeType = m_state.getUlamTypeAsDeref(nodeType);
+      }
 
     if(m_state.isComplete(nodeType) && m_state.isComplete(rtnType))
       {
@@ -125,10 +132,10 @@ namespace MFM {
 		if(m_node)
 		  {
 		    FORECAST scr = m_node->safeToCastTo(rtnType);
-		    if( scr == CAST_CLEAR)
+		    if(scr == CAST_CLEAR)
 		      {
 			if(!Node::makeCastingNode(m_node, rtnType, m_node))
-			  nodeType = Nav;
+			  nodeType = Nav; //no casting node
 			else
 			  nodeType = m_node->getNodeType(); //casted
 		      }
@@ -145,14 +152,12 @@ namespace MFM {
 			msg << m_state.getUlamTypeNameBriefByIndex(rtnType).c_str();
 			if(scr == CAST_BAD)
 			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-			else
-			  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+			    else
+			      MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 			nodeType = Nav; //missing?
 		      }
 		  }
-		else
-		  nodeType = Nav;  //no casting node
-	      }
+	      } //no node
 	    else
 	      {
 		std::ostringstream msg;
@@ -160,7 +165,7 @@ namespace MFM {
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		nodeType = Nav; //missing?
 	      }
-	  }
+	  } // not the same
       } // not nav
     else if(!m_state.isComplete(nodeType))
       {
@@ -222,6 +227,13 @@ namespace MFM {
     evalNodeEpilog();
     return RETURN;
   } //eval
+
+  void NodeReturnStatement::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    if(m_node)
+      m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
+    return; //work done by NodeStatements and NodeBlock
+  }
 
   void NodeReturnStatement::genCode(File * fp, UlamValue& uvpass)
   {

@@ -81,8 +81,11 @@ namespace MFM{
 
     virtual EvalStatus eval();
 
+    virtual void calcMaxDepth(u32& depth, u32& maxdepth, s32 base);
+
     virtual void genCode(File * fp, UlamValue& uvpass);
-    virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
+
+  virtual void genCodeToStoreInto(File * fp, UlamValue& uvpass);
 
     virtual void genCodeReadIntoATmpVar(File * fp, UlamValue& uvpass);
     virtual void genCodeWriteFromATmpVar(File * fp, UlamValue& luvpass, UlamValue& ruvpass);

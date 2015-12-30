@@ -347,6 +347,13 @@ namespace MFM {
     return UlamValue();
   }
 
+  void NodeCast::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    if(m_node)
+      m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
+    return; //work done by NodeStatements and NodeBlock
+  }
+
   void NodeCast::genCode(File * fp, UlamValue& uvpass)
   {
     m_node->genCode(fp, uvpass);
@@ -742,8 +749,10 @@ namespace MFM {
     //read from pos 0, for length of quark
     s32 tmpVarVal = m_state.getNextTmpVarNumber();
     m_state.indent(fp);
-    fp->write("const u32 ");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarVal).c_str());;
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //u32
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarVal).c_str());
     fp->write(" = ");
     if(stgcos->isSelf())
       fp->write(m_state.getHiddenArgName());
@@ -758,7 +767,7 @@ namespace MFM {
     fp->write(");\n");
 
     //update the uvpass to have the casted immediate quark
-    uvpass = UlamValue::makePtr(tmpVarVal, uvpass.getPtrStorage(), nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified;
+    uvpass = UlamValue::makePtr(tmpVarVal, TMPREGISTER, nuti, m_state.determinePackable(nuti), m_state, 0); //POS 0 rightjustified;
 
     m_state.m_currentObjSymbolsForCodeGen.clear(); //clear remnant of lhs
   } //genCodeCastDecendentElement
@@ -775,13 +784,15 @@ namespace MFM {
 
     m_node->genCodeToStoreInto(fp, uvpass); //No need to load lhs into tmp (T); symbol's in COS vector
 
-    assert(m_state.isClassASuperclassOf(vuti, nuti));
+    assert(m_state.isClassASuperclassOf(vuti, nuti)); //vuti is subclass of nuti
     s32 tmpVarSuper = m_state.getNextTmpVarNumber();
 
     //e.g. a quark here would be ok if a superclass
     m_state.indent(fp);
-    fp->write("const u32 ");
-    fp->write(m_state.getTmpVarAsString(Unsigned, tmpVarSuper).c_str());;
+    fp->write("const ");
+    fp->write(nut->getTmpStorageTypeAsString().c_str()); //u32
+    fp->write(" ");
+    fp->write(m_state.getTmpVarAsString(nuti, tmpVarSuper).c_str());;
     fp->write(" = _ShiftOpRightInt32(");
     // right shift the bitlen of vuti - the bitlen of nuti
     fp->write(m_state.getTmpVarAsString(vuti, tmpVarNum).c_str());
@@ -801,7 +812,9 @@ namespace MFM {
   bool NodeCast::needsACast()
   {
     UTI tobeType = getNodeType();
+    //tobeType = m_state.getUlamTypeAsDeref(tobeType);
     UTI nodeType = m_node->getNodeType();
+    //nodeType = m_state.getUlamTypeAsDeref(nodeType);
 
     ULAMTYPECOMPARERESULTS uticr = UlamType::compare(nodeType, tobeType, m_state);
     if(uticr == UTIC_DONTKNOW)

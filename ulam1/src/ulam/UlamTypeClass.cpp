@@ -795,7 +795,11 @@ namespace MFM {
   {
     u32 len = getTotalBitSize(); //could be 0, includes arrays
     if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
-      return genUlamTypeMangledUnpackedArrayDefinitionForC(fp); //no auto, juost immediates
+      return genUlamTypeMangledUnpackedArrayDefinitionForC(fp); //no auto, just immediate
+
+    //regardless of actual element size, it takes up the full atom space
+    if(!isScalar() && (getUlamClass() == UC_ELEMENT))
+      return genUlamTypeMangledUnpackedArrayDefinitionForC(fp); //no auto, just immediate
 
     //class instance idx is always the scalar uti
     UTI scalaruti =  m_key.getUlamKeyTypeSignatureClassInstanceIdx();
@@ -1293,12 +1297,12 @@ namespace MFM {
     fp->write("for(u32 j = 0; j < ");
     fp->write_decimal_unsigned(arraysize);
     fp->write("u; j++) ");
-    fp->write("m_stgarr[j].writeArrayItem(j, ");
-    fp->write(getUlamTypeMangledName().c_str());
+    fp->write("writeArrayItem(");
+    fp->write(scalarmangledName.c_str());
     fp->write("<EC>");
     fp->write("::THE_INSTANCE");
     fp->write(".GetDefaultAtom()"); //returns object of type T
-    fp->write("); }\n");
+    fp->write(", j, BPA); }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
@@ -1309,7 +1313,7 @@ namespace MFM {
     fp->write("for(u32 j = 0; j < ");
     fp->write_decimal_unsigned(arraysize);
     fp->write("u; j++) {");
-    fp->write("writeArrayItem(j, d);");
+    fp->write("writeArrayItem(d, j, BPA);");
     fp->write(" } }\n");
 
     //default destructor (for completeness)

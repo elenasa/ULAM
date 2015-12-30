@@ -45,7 +45,7 @@ namespace MFM{
   {
   public:
 
-    NodeTypeDescriptorSelect(TypeArgs args, UTI auti, NodeTypeDescriptor * node, CompilerState & state);
+    NodeTypeDescriptorSelect(Token tokarg, UTI auti, NodeTypeDescriptor * node, CompilerState & state);
 
     NodeTypeDescriptorSelect(const NodeTypeDescriptorSelect& ref);
 

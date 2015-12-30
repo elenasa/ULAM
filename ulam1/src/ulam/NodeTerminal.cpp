@@ -350,18 +350,6 @@ namespace MFM {
 	m_state.setGoAgain(); //since not an error
 	return false;
       }
-#if 0
-    // does this matter any more Fri Jul 10 12:34:19 2015
-    if(!fit->isMinMaxAllowed() && (fit->getUlamTypeEnum() != Bits))
-      {
-	std::ostringstream msg;
-	msg << "Cannot check constant '" << getName() << "' fits into type: ";
-	msg << m_state.getUlamTypeNameBriefByIndex(fituti).c_str();
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), WARN); //warn?
-	return false;
-      }
-#endif
-
     if(nuti == Nav)
       {
 	std::ostringstream msg;

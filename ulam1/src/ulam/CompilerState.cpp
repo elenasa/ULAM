@@ -554,6 +554,12 @@ namespace MFM {
 	assert(isDefined);
 	if(!cnsymOfIncomplete->isClassTemplate())
 	  return suti;
+	if(skey.getUlamKeyTypeSignatureReferenceType() == ALT_AS)
+	  {
+	    UTI asref = getUlamTypeAsRef(getCompileThisIdx(), ALT_AS);
+	    return asref;
+	  }
+	//if(ALT_REF)??? XXX
 	if(!((SymbolClassNameTemplate *) cnsymOfIncomplete)->pendingClassArgumentsForStubClassInstance(suti))
 	  return suti;
       }
@@ -803,10 +809,13 @@ namespace MFM {
     u32 bitsize = keyOfArg.getUlamKeyTypeSignatureBitSize();
     u32 arraysize = keyOfArg.getUlamKeyTypeSignatureArraySize();
     UTI classidx = keyOfArg.getUlamKeyTypeSignatureClassInstanceIdx();
-
-    UlamKeyTypeSignature baseKey(keyOfArg.m_typeNameId, bitsize, arraysize, classidx, altArg);  //default array size is zero
+    u32 nameid = keyOfArg.m_typeNameId;
+    //    if(classidx != Nav)
+    //  classidx = utArg; //use instance, rather than template in reference key
+    UlamKeyTypeSignature baseKey(nameid, bitsize, arraysize, classidx, altArg);  //default array size is zero
 
     UTI buti = makeUlamType(baseKey, bUT); //could be a new one, oops.
+
     return buti;
   } //getUlamTypeAsRef
 
@@ -981,6 +990,48 @@ namespace MFM {
     }
   } //mergeClassUTI
 
+  void CompilerState::rekeyToReferenceUTI(ALT autoreftype, UTI auti)
+  {
+    UlamType * aut = getUlamTypeByIndex(auti);
+
+    UlamKeyTypeSignature key1 = aut->getUlamKeyTypeSignature();
+    UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key1.getUlamKeyTypeSignatureNameId(), key1.getUlamKeyTypeSignatureBitSize(), key1.getUlamKeyTypeSignatureArraySize(), key1.getUlamKeyTypeSignatureClassInstanceIdx(), autoreftype);
+    //UlamKeyTypeSignature newkey = UlamKeyTypeSignature(key1.getUlamKeyTypeSignatureNameId(), key1.getUlamKeyTypeSignatureBitSize(), key1.getUlamKeyTypeSignatureArraySize(), auti, autoreftype);
+
+    if(key1 == newkey)
+      return;
+
+    ULAMTYPE etype = aut->getUlamTypeEnum();
+    bool isAClass = (etype == Class);
+    bool isCustomArray = (isAClass ? aut->isCustomArray() : false);
+    ULAMCLASSTYPE classtype = aut->getUlamClass(); // or notaclass
+
+    //removes old key and its ulamtype from map, if no longer pointed to
+    deleteUlamKeyTypeSignature(key1, auti);
+
+    UlamType * newut = NULL;
+    if(!isDefined(newkey, newut))
+      {
+	newut = createUlamType(newkey, etype);
+	m_definedUlamTypes.insert(std::pair<UlamKeyTypeSignature, UlamType *>(newkey,newut));
+	if(isAClass)
+	  {
+	    ((UlamTypeClass *) newut)->setUlamClass(classtype); //restore from original ut
+	    if(isCustomArray)
+	      ((UlamTypeClass *) newut)->setCustomArray();
+	  }
+      }
+
+    m_indexToUlamKey[auti] = newkey;
+    incrementKeyToAnyUTICounter(newkey, auti);
+    {
+      std::ostringstream msg;
+      msg << "Reference key for (UTI" << auti << ") ";
+      msg << getUlamTypeNameBriefByIndex(auti).c_str();
+      MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), DEBUG);
+    }
+  } //rekeyToReferenceUTI
+
   bool CompilerState::isARootUTI(UTI auti)
   {
     UTI tmpalias;
@@ -1125,8 +1176,12 @@ namespace MFM {
     if(uti == Void)
       return 0;
 
-    s32 arraysize = getArraySize(uti);
-    PACKFIT packed = determinePackable(uti);
+    UlamType * ut = getUlamTypeByIndex(uti);
+    if(ut->isReference())
+      return 1;
+
+    s32 arraysize = ut->getArraySize();
+    PACKFIT packed = ut->getPackable();
 
     if(WritePacked(packed))
       arraysize = 1;
@@ -1255,6 +1310,9 @@ namespace MFM {
 	std::ostringstream msg;
 	msg << "Class without parameters already exists with the same name: ";
 	msg << m_pool.getDataAsString(symptr->getId()).c_str();
+	//msg << " (";
+	//msg << getUlamTypeNameByIndex(symptr->getUlamTypeIdx()).c_str();
+	//msg << ")";
 	MSG2(getFullLocationAsString(m_locOfNextLineText).c_str(), msg.str().c_str(), ERR); //parsing
       }
     return (rtnb && symptr->isClassTemplate());
@@ -1671,7 +1729,7 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 
     if(m_currentFunctionReturnNodes.empty())
       {
-	if(it != Void && !fsym->isNativeFunctionDeclaration() && !fsym->isPureVirtualFunction())
+	if(it != Void && !fsym->isNativeFunctionDeclaration() && (fsym->isVirtualFunction() && !fsym->isPureVirtualFunction()))
 	  {
 	    std::ostringstream msg;
 	    msg << "Function '" << m_pool.getDataAsString(fsym->getId()).c_str();
@@ -1697,6 +1755,11 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
 	    m_err.buildMessage(rNode->getNodeLocationAsString().c_str(), msg.str().c_str(), "MFM::NodeReturnStatement", "checkAndLabelType", rNode->getNodeLocation().getLineNo(), MSG_DEBUG);
 	    continue;
 	  }
+
+	//treat ALT_AS as defref'd type; ALT_REF is its own type.
+	//ALT reftype = getUlamTypeByIndex(rType)->getReferenceType();
+	//if(reftype == ALT_AS)
+	// rType = getUlamTypeAsDeref(rType);
 
 	if(UlamType::compare(rType, it, *this) != UTIC_SAME)
 	  {
@@ -2157,7 +2220,13 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
     assert(isQuark);
     NodeBlockClass * classNode = csym->getClassBlockNode();
     assert(classNode);
+
+    //pushClassContextUsingMemberClassBlock(classNode);
+
     NodeBlockFunctionDefinition * func = classNode->findToIntFunctionNode();
+
+    //popClassContext(); //don't forget!!
+
     return (func != NULL);
   } //quarkHasAToIntMethod
 
@@ -2434,14 +2503,6 @@ bool CompilerState::isFuncIdInAClassScope(UTI cuti, u32 dataindex, Symbol * & sy
   SymbolClass * CompilerState::getCurrentSelfSymbolForCodeGen()
   {
     return (SymbolClass *) m_currentSelfSymbolForCodeGen;
-#if 0
-    // no longer all self in h/as conditionals.
-    Symbol * selfsym = NULL;
-    u32 selfid = m_pool.getIndexForDataString("self");
-    bool isDefined = alreadyDefinedSymbol(selfid, selfsym, hazyKin);
-    assert(isDefined);
-    return (SymbolClass *) selfsym;
-#endif
   } //getCurrentSelfSymbolForCodeGen
 
   NodeBlock * CompilerState::getCurrentBlock()

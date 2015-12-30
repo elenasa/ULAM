@@ -80,15 +80,6 @@ namespace MFM {
 
   void NodeConstantDef::printPostfix(File * fp)
   {
-#if 0
-    if(m_nodeExpr)
-      {
-	m_nodeExpr->printPostfix(fp);
-	fp->write(" = ");
-      }
-    fp->write(getName());
-    fp->write(" const");
-#endif
     //in case the node belongs to the template, use the symbol uti, o.w. 0Nav.
     UTI suti = m_constSymbol ? m_constSymbol->getUlamTypeIdx() : getNodeType();
     //like SymbolConstantValue

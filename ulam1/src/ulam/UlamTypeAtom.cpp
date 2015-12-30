@@ -386,7 +386,7 @@ namespace MFM {
     fp->write("for(u32 j = 0; j < ");
     fp->write_decimal_unsigned(arraysize);
     fp->write("u; j++) {");
-    fp->write("writeArrayItem(j, d);");
+    fp->write("writeArrayItem(d, j, BPA);");
     fp->write(" } }\n");
 
     //default destructor (for completeness)

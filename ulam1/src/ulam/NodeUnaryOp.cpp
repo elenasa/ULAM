@@ -112,6 +112,7 @@ namespace MFM {
   {
     assert(m_node);
     UTI uti = m_node->checkAndLabelType();
+    //uti = m_state.getUlamTypeAsDeref(uti);
 
     if(!m_state.isScalar(uti)) //array unsupported at this time
       {
@@ -365,6 +366,13 @@ namespace MFM {
     m_state.m_nodeEvalStack.storeUlamValueInSlot(rtnUV, -1);
     return true;
   } //dounaryopImmediate
+
+  void NodeUnaryOp::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    assert(m_node);
+    m_node->calcMaxDepth(depth, maxdepth, base); //funccall?
+    return; //work done by NodeStatements and NodeBlock
+  }
 
   void NodeUnaryOp::genCode(File * fp, UlamValue& uvpass)
   {

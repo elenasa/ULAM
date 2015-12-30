@@ -433,6 +433,9 @@ namespace MFM {
 	((SymbolVariable *) m_varSymbol)->setStackFrameSlotIndex(newslot);
       }
     depth += m_state.slotsNeeded(getNodeType());
+
+    if(m_nodeInitExpr)
+      m_nodeInitExpr->calcMaxDepth(depth, maxdepth, base);
   } //calcMaxDepth
 
   void NodeVarDecl::countNavNodes(u32& cnt)
@@ -652,6 +655,22 @@ namespace MFM {
 
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 
+    if(m_nodeInitExpr)
+      {
+	m_nodeInitExpr->genCode(fp, uvpass);
+
+	m_state.indent(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str());
+	fp->write("("); // use constructor (not equals)
+	fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
+	fp->write(")");
+	fp->write(";\n"); //func call args aren't NodeVarDecl's
+	m_state.m_currentObjSymbolsForCodeGen.clear();
+	return;
+      }
+
     //initialize T to default atom (might need "OurAtom" if data member ?)
     if(vclasstype == UC_ELEMENT)
       {
@@ -659,11 +678,15 @@ namespace MFM {
 	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
 	fp->write(" ");
 	fp->write(m_varSymbol->getMangledName().c_str());
-	fp->write(" = ");
-	fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
-	fp->write("<EC>");
-	fp->write("::THE_INSTANCE");
-	fp->write(".GetDefaultAtom()"); //returns object of type T
+	if(vut->isScalar())
+	  {
+	    fp->write(" = ");
+	    fp->write(m_state.getUlamTypeByIndex(vuti)->getUlamTypeMangledName().c_str());
+	    fp->write("<EC>");
+	    fp->write("::THE_INSTANCE");
+	    fp->write(".GetDefaultAtom()"); //returns object of type T
+	  }
+	//else
       }
     else if(vclasstype == UC_QUARK)
       {
@@ -675,26 +698,10 @@ namespace MFM {
       }
     else
       {
-	//immediate primitive, perhaps initialized
-	if(m_nodeInitExpr)
-	  {
-	    m_nodeInitExpr->genCode(fp, uvpass);
-
-	    m_state.indent(fp);
-	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	    fp->write(" ");
-	    fp->write(m_varSymbol->getMangledName().c_str());
-	    fp->write("("); // use constructor (not equals)
-	    fp->write(m_state.getTmpVarAsString(vuti, uvpass.getPtrSlotIndex(), uvpass.getPtrStorage()).c_str()); //VALUE
-	    fp->write(")");
-	  }
-	else
-	  {
-	    m_state.indent(fp);
-	    fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
-	    fp->write(" ");
-	    fp->write(m_varSymbol->getMangledName().c_str()); //default 0
-	  }
+	m_state.indent(fp);
+	fp->write(vut->getLocalStorageTypeAsString().c_str()); //for C++ local vars
+	fp->write(" ");
+	fp->write(m_varSymbol->getMangledName().c_str()); //default 0
       }
     fp->write(";\n"); //func call args aren't NodeVarDecl's
     m_state.m_currentObjSymbolsForCodeGen.clear();

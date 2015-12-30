@@ -183,7 +183,7 @@ namespace MFM {
       {
 	std::ostringstream msg;
 	msg << "(2) <" << m_state.getTokenDataAsString(&m_functionNameTok).c_str();
-	msg << "> is not a defined function, and cannot be called";
+	msg << "> is not a defined function, or cannot be safely called in this context";
 	if(hazyKin)
 	  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	else
@@ -214,6 +214,9 @@ namespace MFM {
 	setNodeType(it);
 
 	// insert safe casts of complete arg types, now that we have a "matching" function symbol
+        //use member block doesn't apply to arguments; no change to current block
+	m_state.pushCurrentBlockAndDontUseMemberBlock(m_state.getCurrentBlock()); //set forall args
+
 	{
 	  std::vector<u32> argsWithCastErr;
 	  u32 argsWithCast = 0;
@@ -264,7 +267,7 @@ namespace MFM {
 		  {
 		    if(i > 0)
 		      msg << ", ";
-		    msg << i + 1;
+		    msg << "arg_" << i + 1;
 		  }
 
 		msg << " to function <";
@@ -273,6 +276,8 @@ namespace MFM {
 		argsWithCastErr.clear();
 	      }
 	} //constants
+
+	m_state.popClassContext(); //restore here
       } // no errors found
 
     // late, important to do, but not too soon;
@@ -298,7 +303,19 @@ namespace MFM {
   {
     u32 argbase = 0;
     //allot enough stack space for the function call to another func
-    argbase += m_argumentNodes->getTotalSlotsNeeded(); //args assigned at eval
+    //argbase += m_argumentNodes->getTotalSlotsNeeded(); //args assigned at eval; what if arg is a function call???
+    u32 numargs = m_argumentNodes->getNumberOfNodes();
+    for(u32 i = 0; i < numargs; i++)
+      {
+	u32 depthi = 0;
+	u32 nomaxdepth = 0;
+	u32 nobase = 0;
+	m_argumentNodes->getNodePtr(i)->calcMaxDepth(depthi, nomaxdepth, nobase); //possible func call as arg
+	u32 sloti = m_state.slotsNeeded(m_argumentNodes->getNodeType(i)); //just a variable or constant
+	//take the greater
+	argbase += depthi > sloti ? depthi : sloti;
+      }
+
     argbase += m_state.slotsNeeded(getNodeType()); //return
     argbase += 1; //hidden
     depth += argbase;

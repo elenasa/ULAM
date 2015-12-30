@@ -99,6 +99,7 @@ namespace MFM {
   FORECAST NodeVarRef::safeToCastTo(UTI newType)
   {
     UTI nuti = getNodeType();
+    nuti = m_state.getUlamTypeAsDeref(nuti);
     //cast RHS if necessary and safe
     //insure lval is same bitsize/arraysize
     // if classes, safe to cast a subclass to any of its superclasses
@@ -129,7 +130,7 @@ namespace MFM {
 	  {
 	    //primitives must be exactly the same size;
 	    // even "clear" when complete yet not the same is "bad".
-	    if(rscr != CAST_HAZY)
+	    if(rscr != CAST_CLEAR)
 	      {
 		std::ostringstream msg;
 		msg << "Reference variable " << getName() << "'s type ";
@@ -137,7 +138,10 @@ namespace MFM {
 		msg << ", and its initial value type ";
 		msg << newt->getUlamTypeNameBrief().c_str();
 		msg << ", are incompatible";
-		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
+		if(rscr == CAST_HAZY)
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+		else
+		  MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
 		rscr = CAST_BAD;
 	      }
 	  }
@@ -195,18 +199,7 @@ namespace MFM {
 
   void NodeVarRef::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
   {
-    assert(m_varSymbol);
-    s32 newslot = depth + base;
-    s32 oldslot = ((SymbolVariable *) m_varSymbol)->getStackFrameSlotIndex();
-    if(oldslot != newslot)
-      {
-	std::ostringstream msg;
-	msg << "'" << m_state.m_pool.getDataAsString(m_vid).c_str();
-	msg << "' was at slot: " << oldslot << ", new slot is " << newslot;
-	MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-	((SymbolVariable *) m_varSymbol)->setStackFrameSlotIndex(newslot);
-      }
-    depth += m_state.slotsNeeded(getNodeType());
+    return NodeVarDecl::calcMaxDepth(depth, maxdepth, base);
   } //calcMaxDepth
 
   void NodeVarRef::countNavNodes(u32& cnt)

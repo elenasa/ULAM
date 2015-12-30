@@ -267,7 +267,8 @@ namespace MFM {
 
 	// redo what getPtrTarget use to do, when types didn't match due to
 	// an element/quark or a requested scalar of an arraytype
-	if(ttype != nuti)
+	//if(ttype != nuti)
+	if(UlamType::compare(ttype, nuti, m_state) == UTIC_NOTSAME)
 	  {
 	    if(m_state.isClassACustomArray(nuti))
 	      {

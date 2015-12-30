@@ -328,7 +328,8 @@ namespace MFM {
 	break;
       default:
 	{
-	  ctype = getTmpStorageTypeAsString(getItemWordSize()); //u32, u64
+	  //ctype = getTmpStorageTypeAsString(getItemWordSize()); //u32, u64 (inf loop)
+	  ctype = "T";
 	  //assert(0);
 	  //MSG(getNodeLocationAsString().c_str(), "Need UNPACKED ARRAY", INFO);
 	}
@@ -809,7 +810,7 @@ namespace MFM {
   {
     u32 len = getTotalBitSize(); //could be 0, includes arrays
     if(len > (BITSPERATOM - ATOMFIRSTSTATEBITPOS))
-      return genUlamTypeMangledUnpackedArrayDefinitionForC(fp); //no auto, juost immediates
+      return genUlamTypeMangledUnpackedArrayDefinitionForC(fp); //no auto, just immediate
 
     m_state.m_currentIndentLevel = 0;
     const std::string mangledName = getUlamTypeImmediateMangledName();
@@ -864,88 +865,17 @@ namespace MFM {
     m_state.indent(fp);
     fp->write("T m_stg;  //storage here!\n\n");
 
-#if 0
-    //here, if an array of quarks (no longer right-justified like prims)
-    // (see ulamtypeclass)
-    u32 dqval = 0;
-    bool hasDefaultQuark = genUlamTypeDefaultQuarkConstant(fp, dqval);
-
-    if(hasDefaultQuark)
-      {
-	assert(!isScalar());
-	s32 arraysize = getArraySize();
-	s32 bitsize = getBitSize();
-
-	if(getTotalWordSize() <= MAXBITSPERLONG)
-	  {
-	    u64 initqval = 0;
-	    for(s32 j = 0; j < arraysize; j++)
-	      initqval |= (dqval << (j*bitsize));
-
-	    //default constructor (used by local vars)
-	    // packed array of quarks:
-	    m_state.indent(fp);
-	    fp->write(mangledName.c_str());
-	    fp->write("() : ");
-	    fp->write(automangledName.c_str());
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(BITSPERATOM - len);
-	    fp->write("u>(m_stg, ");
-	    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
-	    fp->write("u), ");
-	    fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { ");
-	    fp->write(automangledName.c_str());
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(BITSPERATOM - len);
-	    fp->write("u>::write(");
-	    fp->write_decimal_unsignedlong(initqval);
-	    fp->write("u); }\n");
-	  }
-	else
-	  {
-	    //default constructor (used by local vars)
-	    //unpacked array of quarks:
-	    m_state.indent(fp);
-	    fp->write(mangledName.c_str());
-	    fp->write("() : ");
-	    fp->write(automangledName.c_str());
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(BITSPERATOM - len);
-	    fp->write("u>(m_stg, ");
-	    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
-	    fp->write("u), ");
-	    fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { ");
-
-	    fp->write("for(u32 j = 0; j < ");
-	    fp->write_decimal(arraysize);
-	    fp->write("; j++) ");
-	    fp->write(automangledName.c_str());
-	    fp->write("<EC, ");
-	    fp->write_decimal_unsigned(BITSPERATOM - len);
-	    fp->write("u>::writeArrayItem(");
-	    fp->write_decimal_unsigned(dqval);
-	    fp->write(", j, ");
-	    fp->write_decimal_unsigned(bitsize); //unit size
-	    fp->write("u);");
-	    fp->write("}\n");
-	  }
-      }
-    else
-#endif
-
-      {
-	//default constructor (used by local vars)
-	m_state.indent(fp);
-	fp->write(mangledName.c_str());
-	fp->write("() : ");
-	fp->write(automangledName.c_str());
-	fp->write("<EC, ");
-	fp->write_decimal_unsigned(BITSPERATOM - len);
-	fp->write("u>(m_stg, ");
-	fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
-	fp->write("u), ");
-	fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { }\n");
-      }
+    //default constructor (used by local vars)
+    m_state.indent(fp);
+    fp->write(mangledName.c_str());
+    fp->write("() : ");
+    fp->write(automangledName.c_str());
+    fp->write("<EC, ");
+    fp->write_decimal_unsigned(BITSPERATOM - len);
+    fp->write("u>(m_stg, ");
+    fp->write_decimal_unsigned(BITSPERATOM - ATOMFIRSTSTATEBITPOS - len);
+    fp->write("u), ");
+    fp->write("m_stg(T::ATOM_UNDEFINED_TYPE) { }\n");
 
     //constructor here (used by const tmpVars)
     m_state.indent(fp);
@@ -1065,8 +995,9 @@ namespace MFM {
     fp->write_decimal_unsigned(arraysize);
     fp->write("u; j++) {");
     fp->write("m_stgarr[j].SetUndefinedImpl(); "); //T::ATOM_UNDEFINED_TYPE
-    fp->write("writeArrayItem(j, d);");
-    fp->write(" } }\n");
+    fp->write("writeArrayItem(d, j, ");
+    fp->write_decimal_unsigned(itemlen); //right-justified per item
+    fp->write("u); } }\n");
 
     //default destructor (for completeness)
     m_state.indent(fp);

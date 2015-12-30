@@ -673,7 +673,7 @@ namespace MFM {
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//just the top level as a basic uti (no selects, or arrays)
-	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args, passuti, m_state);
+	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state);
 	//another decl of same type
 	Node * sNode = makeVariableSymbol(args, iTok, typeNode); //a decl
 	if (sNode)
@@ -1238,12 +1238,31 @@ namespace MFM {
     NodeIdent * tmpni = new NodeIdent(m_state.m_identTokenForConditionalAs, NULL, m_state);
     assert(tmpni);
 
-    UTI tuti = asNode->getRightType();
+    UTI ruti = asNode->getRightType(); //what if Self?
+    UTI tuti = m_state.getUlamTypeAsRef(ruti, ALT_AS);
+    //m_state.rekeyToReferenceUTI(ALT_AS, tuti);
     UlamType * tut = m_state.getUlamTypeByIndex(tuti);
     const std::string tdname = tut->getUlamTypeNameOnly();
     Token typeTok;
     u32 tdid = m_state.m_pool.getIndexForDataString(tdname);
     typeTok.init(TOK_TYPE_IDENTIFIER, asNode->getNodeLocation(), tdid);
+
+    SymbolClassName * ctsym = NULL;
+    if(m_state.alreadyDefinedSymbolClassName(tdid, ctsym) && ctsym->isClassTemplate())
+      {
+	if(m_state.isClassAStub(ruti))
+	  //gets copy of class args too
+	  ((SymbolClassNameTemplate *) ctsym)->copyAStubClassInstance(ruti, tuti, m_state.getCompileThisIdx());
+	else if(ruti != m_state.getCompileThisIdx()) //not Self
+	  {
+	    std::ostringstream msg;
+	    msg << "Missing instance stub for AS-reference of class template '";
+	    msg << m_state.m_pool.getDataAsString(ctsym->getId()).c_str() << "'";
+	    msg << " (UTI" << ruti << ") ";
+	    msg << m_state.getUlamTypeNameByIndex(ruti).c_str();
+	    MSG(&pTok, msg.str().c_str(), ERR);
+	  }
+      }
 
     TypeArgs typeargs;
     typeargs.init(typeTok);
@@ -1255,19 +1274,12 @@ namespace MFM {
     Symbol * asymptr = NULL; //a place to put the new symbol; not a decl list, nor typedef from another class
     tmpni->installSymbolVariable(typeargs, asymptr);
     assert(asymptr);
-    //asymptr->setAutoLocalType(m_state.m_parsingConditionalToken); //set auto flag/type
-
-    //if(asymptr->getId() == m_state.m_pool.getIndexForDataString("self"))
-    //  {
-	//don't do this!! messes up gencode when really self.
-	//  asymptr->setIsSelf(); //special case lhs
-    //  }
 
     delete tmpni; //done with nti
     tmpni = NULL;
     m_state.m_parsingConditionalAs = false; //done with flag and identToken.
 
-    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(typeargs, tuti, m_state);
+    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, tuti, m_state);
     assert(typeNode);
 
     //insert var decl into NodeStatements..as if parseStatement was called..
@@ -1619,16 +1631,16 @@ namespace MFM {
   {
     NodeTypeDescriptor * typeNode = NULL;
     Token pTok = typeargs.m_typeTok;
-
-    if(m_state.getBaseTypeFromToken(pTok) == Class)
+    bool isAClassType = (m_state.getBaseTypeFromToken(pTok) == Class);
+    if(isAClassType)
       {
-	UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI?
+	UTI cuti = parseClassArguments(pTok); //not sure what to do with the UTI? could be a declref type
 	if(m_state.isScalar(cuti))
 	  typeargs.m_classInstanceIdx = cuti;
 	else
 	  typeargs.m_classInstanceIdx = m_state.getUlamTypeAsScalar(cuti); //eg typedef class array
 	castUTI = cuti; //unless a dot is next
-	typeNode = new NodeTypeDescriptor(typeargs, cuti, m_state);
+	typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, cuti, m_state);
 	assert(typeNode);
       }
     else
@@ -1643,7 +1655,7 @@ namespace MFM {
 	castUTI = tuti;
 
 	//bitsize is unknown, e.g. based on a Class.sizeof
-	typeNode = new NodeTypeDescriptor(typeargs, tuti, m_state);
+	typeNode = new NodeTypeDescriptor(typeargs.m_typeTok, tuti, m_state);
 	assert(typeNode);
 
 	if(bitsizeNode)
@@ -1671,6 +1683,9 @@ namespace MFM {
 	typeargs.m_declRef = ALT_REF; //a declared reference
 	typeargs.m_assignOK = true; //required
 	typeargs.m_isStmt = true; //unless a func param
+	// change uti to reference key
+	assert(typeNode);
+	typeNode->setReferenceType(ALT_REF);
       }
     return typeNode;
   } //parseTypeDescriptor
@@ -2115,13 +2130,10 @@ namespace MFM {
 
 	    //update token argument
 	    if(tdclasstype == UC_NOTACLASS)
-	      //args.m_typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), pTok.m_locator, 0);
-	      //args.m_typeTok.init(pTok);
-	      args.m_typeTok = pTok;
+	      args.m_typeTok.init(Token::getTokenTypeFromString(tdname.c_str()), pTok.m_locator, 0);
 	    else
 	      {
-		//args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
-	      args.m_typeTok = pTok;
+		args.m_typeTok.init(TOK_TYPE_IDENTIFIER, pTok.m_locator, m_state.m_pool.getIndexForDataString(tdname));
 		isclasstd = true;
 	      }
 
@@ -2142,8 +2154,7 @@ namespace MFM {
 
 	    //link this selection to NodeTypeDescriptor;
 	    //keep typedef alias name here (i.e. pTok)
-	    //NodeTypeDescriptorSelect * selNode = new NodeTypeDescriptorSelect(pTok, tduti, rtnTypeDesc, m_state);
-	    NodeTypeDescriptorSelect * selNode = new NodeTypeDescriptorSelect(args, tduti, rtnTypeDesc, m_state);
+	    NodeTypeDescriptorSelect * selNode = new NodeTypeDescriptorSelect(pTok, tduti, rtnTypeDesc, m_state);
 	    rtnTypeDesc = selNode;
 	  }
 	else
@@ -3211,7 +3222,7 @@ namespace MFM {
     if(iTok.m_type == TOK_IDENTIFIER)
       {
 	//just the top level as a basic uti (no selects, or arrays)
-	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args, passuti, m_state);
+	NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(args.m_typeTok, passuti, m_state, args.m_declRef);
 
 	//another decl of same type
 	NodeVarDecl * sNode = (NodeVarDecl *) makeVariableSymbol(args, iTok, typeNode); //a decl !!
@@ -4122,8 +4133,9 @@ namespace MFM {
     TypeArgs typeargs;
     typeargs.init(tTok);
     typeargs.m_classInstanceIdx = cuti; //is scalar
+    typeargs.setdeclref(fTok);
 
-    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(typeargs, cuti, m_state);
+    NodeTypeDescriptor * typeNode = new NodeTypeDescriptor(tTok, cuti, m_state);
     assert(typeNode);
 
     switch(fTok.m_type)
@@ -4662,7 +4674,7 @@ namespace MFM {
     // could be local array typedef, no square brackets this time (else)
     if(m_state.isScalar(nodetyperef->givenUTI()))
       {
-	NodeTypeDescriptorArray * nodetypearray = new NodeTypeDescriptorArray(args, auti, nodetyperef, m_state);
+	NodeTypeDescriptorArray * nodetypearray = new NodeTypeDescriptorArray(args.m_typeTok, auti, nodetyperef, m_state);
 	assert(nodetypearray);
 	nodetypearray->linkConstantExpressionArraysize(ceForArraySize);
 	nodetyperef = nodetypearray;

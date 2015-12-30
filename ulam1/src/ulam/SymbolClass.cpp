@@ -383,12 +383,6 @@ namespace MFM {
 
   bool SymbolClass::hasMappedUTI(UTI auti, UTI& mappedUTI)
   {
-#if 0
-    if(!m_resolver)
-      return false; //not found
-    return m_resolver->findMappedUTI(auti, mappedUTI);
-#endif
-
     bool rtnb = false;
     if(m_resolver)
       rtnb = m_resolver->findMappedUTI(auti, mappedUTI);

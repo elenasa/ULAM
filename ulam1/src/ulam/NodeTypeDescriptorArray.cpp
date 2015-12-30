@@ -5,7 +5,7 @@
 
 namespace MFM {
 
-  NodeTypeDescriptorArray::NodeTypeDescriptorArray(TypeArgs targs, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state) : NodeTypeDescriptor(targs, auti, state), m_nodeScalar(scalarnode), m_unknownArraysizeSubtree(NULL)
+  NodeTypeDescriptorArray::NodeTypeDescriptorArray(Token tokarg, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state) : NodeTypeDescriptor(tokarg, auti, state), m_nodeScalar(scalarnode), m_unknownArraysizeSubtree(NULL)
   {
     m_nodeScalar->updateLineage(getNodeNo()); //for unknown subtrees
   }
@@ -98,11 +98,11 @@ namespace MFM {
 	    std::ostringstream msg;
 	    msg << "Invalid non-scalar type: ";
 	    msg << m_state.getUlamTypeNameBriefByIndex(it).c_str();
-	    msg << "'. Requires a custom array";
-	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), ERR);
-	    it = Nav;
+	    msg << ". Requires a custom array";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG); //was ERR
+	    //it = Nav;
 	  }
-	else
+	//else
 	  {
 	    m_ready = true; // set here
 	    setNodeType(it);
@@ -116,49 +116,50 @@ namespace MFM {
 
   bool NodeTypeDescriptorArray::resolveType(UTI& rtnuti)
   {
-    bool rtnb = false;
     if(isReadyType())
       {
 	rtnuti = getNodeType();
 	return true;
       }
 
+    bool rtnb = false;
+    // not node select, we are the array on top of the scalar leaf
+    UTI nuti = givenUTI();
+
     // scalar type
     assert(m_nodeScalar);
-
     UTI scuti = m_nodeScalar->checkAndLabelType();
+
     if(m_nodeScalar->isReadyType())
       {
-	// not node select, we are the array on top of the scalar leaf
-	UTI nuti = givenUTI();
-
-	if(!m_state.isComplete(nuti))
+	//check scalar completeness
+	if(!m_state.isComplete(scuti))
 	  {
-	    UTI mappedUTI = nuti;
+	    UTI mappedUTI = scuti;
 	    UTI cuti = m_state.getCompileThisIdx();
 
 	    // the symbol associated with this type, was mapped during instantiation
 	    // since we're call AFTER that (not during), we can look up our
 	    // new UTI and pass that on up the line of NodeType Selects, if any.
-	    if(m_state.mappedIncompleteUTI(cuti, nuti, mappedUTI))
+	    if(m_state.mappedIncompleteUTI(cuti, scuti, mappedUTI))
 	      {
 		std::ostringstream msg;
 		msg << "Substituting Mapped UTI" << mappedUTI;
 		msg << ", " << m_state.getUlamTypeNameBriefByIndex(mappedUTI).c_str();
-		msg << " for incomplete descriptor array type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		msg << "' UTI" << nuti << " while labeling class: ";
+		msg << " for incomplete descriptor for acalar of array: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
+		msg << "' UTI" << scuti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
-		nuti = mappedUTI;
+		scuti = mappedUTI;
 	      }
 
-	    if(!m_state.isComplete(nuti)) //reloads to recheck
+	    if(!m_state.isComplete(scuti)) //reloads to recheck
 	      {
 		std::ostringstream msg;
-		msg << "Incomplete descriptor for array type: ";
-		msg << m_state.getUlamTypeNameBriefByIndex(nuti).c_str();
-		msg << " UTI" << nuti << " while labeling class: ";
+		msg << "Incomplete descriptor for scalar of array: ";
+		msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
+		msg << " UTI" << scuti << " while labeling class: ";
 		msg << m_state.getUlamTypeNameBriefByIndex(cuti).c_str();
 		MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
 	      }
@@ -188,11 +189,13 @@ namespace MFM {
       {
 	// keep in case a template
 	//delete m_unknownArraysizeSubtree;
-	    //m_unknownArraysizeSubtree = NULL;
 	m_state.setUTISizes(auti, m_state.getBitSize(scuti), as); //update UlamType
       }
 
     attemptToResolveHolderArrayType(auti, scuti);
+
+    checkAndMatchClassTypes(auti, scuti);
+
     return (m_state.isComplete(auti)); //repeat if holder or bitsize is still unknown
   } //resolveTypeArraysize
 
@@ -227,6 +230,29 @@ namespace MFM {
 
     return rtnstat;
   } //attemptToResolveHolderArrayType
+
+  void NodeTypeDescriptorArray::checkAndMatchClassTypes(UTI auti, UTI scuti)
+  {
+    //update class types to match, if necessary
+    UlamType * aut = m_state.getUlamTypeByIndex(auti);
+    if(aut->getUlamTypeEnum() == Class)
+      {
+	ULAMCLASSTYPE aclasstype = aut->getUlamClass();
+	UlamType * scut = m_state.getUlamTypeByIndex(scuti);
+	ULAMCLASSTYPE sclasstype = scut->getUlamClass();
+	if(aclasstype != sclasstype)
+	  {
+	    ((UlamTypeClass *) aut)->setUlamClass(sclasstype); //could have been unseen array
+	    std::ostringstream msg;
+	    msg << "Class type of array type: ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(auti).c_str();
+	    msg << " (UTI" << auti << ") set to match its scalar type ";
+	    msg << m_state.getUlamTypeNameBriefByIndex(scuti).c_str();
+	    msg << " (UTI" << auti << ")";
+	    MSG(getNodeLocationAsString().c_str(), msg.str().c_str(), DEBUG);
+	  }
+      }
+  } //checkAndMatchClassTypes
 
   void NodeTypeDescriptorArray::countNavNodes(u32& cnt)
   {

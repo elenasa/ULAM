@@ -157,7 +157,7 @@ namespace MFM{
     for(s32 i = m_nodes.size() - 1; i >= 0; i--)
       {
 	u32 max1 = 0;
-	m_nodes[i]->calcMaxDepth(max1, nomaxdepth, negrun);
+	m_nodes[i]->calcMaxDepth(max1, nomaxdepth, negrun); //side effects func def param (NodeVarDecl)
 	negrun += max1;
       }
   } //calcMaxDepth

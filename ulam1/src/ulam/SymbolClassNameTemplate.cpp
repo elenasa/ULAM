@@ -156,6 +156,9 @@ namespace MFM {
 
   bool SymbolClassNameTemplate::findClassInstanceByUTI(UTI uti, SymbolClass * & symptrref)
   {
+    //UlamType * ut = m_state.getUlamTypeByIndex(uti);
+    //assert(!ut->isReference()); //tmp debug
+
     std::map<UTI, SymbolClass* >::iterator it = m_scalarClassInstanceIdxToSymbolPtr.find(uti);
     if(it != m_scalarClassInstanceIdxToSymbolPtr.end())
       {

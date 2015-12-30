@@ -145,7 +145,6 @@ namespace MFM {
     // now we have our pos in tmpVarPos, and our T in tmpVarStg
     // time to shadow 'self' with auto local variable:
     UTI vuti = m_varSymbol->getUlamTypeIdx();
-    vuti = m_state.getUlamTypeAsDeref(vuti); //new!!!
     UlamType * vut = m_state.getUlamTypeByIndex(vuti);
     ULAMCLASSTYPE vclasstype = vut->getUlamClass();
 

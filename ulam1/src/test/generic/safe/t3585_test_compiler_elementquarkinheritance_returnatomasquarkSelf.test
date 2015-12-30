@@ -25,19 +25,21 @@ element Foo : Soo {
   Unsigned(3) cus = 6u;
   Unsigned(3) dus = 6u;
   Int test() {
-    System s;
+    //System s;
 
     Coo c = func();
+    //Coo c;
+    //c = func();
     cus = c.us;
-    s.print(c.us);
+    //s.print(c.us); //1
 
     Coo d = c.func(); //what happens when atom is not an Atom, immediate UNDEFINED_TYPE
     dus = d.us;
-    s.print(d.us);
+    //s.print(d.us); //3
 
-    s.print(c.us + d.us); //6
+    //s.print(c.us + d.us); //6
 
-    s.print(cus + dus); //4
+    //s.print(cus + dus); //4
     return (c.us + d.us);
   }
 }

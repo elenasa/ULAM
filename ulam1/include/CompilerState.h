@@ -203,6 +203,7 @@ namespace MFM{
     void setBitSize(UTI utArg, s32 total);
     void setUTISizes(UTI utArg, s32 bitsize, s32 arraysize);
     void mergeClassUTI(UTI olduti, UTI cuti);
+    void rekeyToReferenceUTI(ALT autoreftype, UTI auti);
     bool isARootUTI(UTI auti);
     bool findaUTIAlias(UTI auti, UTI& aliasuti);
     void updateUTIAlias(UTI auti, UTI buti);

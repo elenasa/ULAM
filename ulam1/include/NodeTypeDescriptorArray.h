@@ -46,7 +46,7 @@ namespace MFM{
   {
   public:
 
-    NodeTypeDescriptorArray(TypeArgs targs, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state);
+    NodeTypeDescriptorArray(Token tokarg, UTI auti, NodeTypeDescriptor * scalarnode, CompilerState & state);
 
     NodeTypeDescriptorArray(const NodeTypeDescriptorArray& ref);
 
@@ -78,6 +78,7 @@ namespace MFM{
 
     bool resolveTypeArraysize(UTI auti, UTI scuti);
     bool attemptToResolveHolderArrayType(UTI auti, UTI buti);
+    void checkAndMatchClassTypes(UTI auti, UTI scuti);
   };
 
 } //MFM

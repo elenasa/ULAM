@@ -14,7 +14,9 @@ namespace MFM {
   {
     assert(m_nodeLeft && m_nodeRight);
     UTI leftType = m_nodeLeft->checkAndLabelType();
+    //leftType = m_state.getUlamTypeAsDeref(leftType);
     UTI rightType = m_nodeRight->checkAndLabelType();
+    //rightType = m_state.getUlamTypeAsDeref(rightType);
     UTI newType = calcNodeType(leftType, rightType); //Bits, or Nav error
 
     setNodeType(newType);

@@ -34,7 +34,9 @@ namespace MFM {
     assert(m_nodeLeft && m_nodeRight);
 
     UTI leftType = m_nodeLeft->checkAndLabelType();
+    //leftType = m_state.getUlamTypeAsDeref(leftType);
     UTI rightType = m_nodeRight->checkAndLabelType();
+    //rightType = m_state.getUlamTypeAsDeref(rightType);
 
     if(!m_state.isComplete(leftType) || !m_state.isComplete(rightType))
       {
@@ -398,6 +400,13 @@ namespace MFM {
   void NodeBinaryOpEqual::appendBinaryOp(UlamValue& refUV, u32 ldata, u32 rdata, u32 pos, u32 len)
   {
     assert(0); //unused
+  }
+
+  void NodeBinaryOpEqual::calcMaxDepth(u32& depth, u32& maxdepth, s32 base)
+  {
+    assert(m_nodeRight);
+    m_nodeRight->calcMaxDepth(depth, maxdepth, base); //funccall?
+    return; //work done by NodeStatements and NodeBlock
   }
 
   void NodeBinaryOpEqual::genCode(File * fp, UlamValue& uvpass)

@@ -5,14 +5,19 @@
 
 namespace MFM {
 
-  NodeTypeDescriptor::NodeTypeDescriptor(TypeArgs targs, UTI auti, CompilerState & state) : Node(state), m_typeTok(targs.m_typeTok), m_uti(auti), m_refType(targs.m_declRef), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ALT_NOT)
   {
     setNodeLocation(m_typeTok.m_locator);
-    m_uti = m_state.getUlamTypeAsRef(auti, m_refType);
+  }
+
+  NodeTypeDescriptor::NodeTypeDescriptor(Token tokarg, UTI auti, CompilerState & state, ALT refarg) : Node(state), m_typeTok(tokarg), m_uti(auti), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(refarg)
+  {
+    setNodeLocation(m_typeTok.m_locator);
+    //m_uti = m_state.getUlamTypeAsRef(auti, refarg);
   }
 
   //since there's no assoc symbol, we map the m_uti here (e.g. S(x,y).sizeof nodeterminalproxy)
-  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_refType(ref.m_refType), m_ready(false), m_unknownBitsizeSubtree(NULL)
+  NodeTypeDescriptor::NodeTypeDescriptor(const NodeTypeDescriptor& ref) : Node(ref), m_typeTok(ref.m_typeTok), m_uti(m_state.mapIncompleteUTIForCurrentClassInstance(ref.m_uti)), m_ready(false), m_unknownBitsizeSubtree(NULL), m_refType(ref.m_refType)
   {
     if(ref.m_unknownBitsizeSubtree)
       m_unknownBitsizeSubtree = new NodeTypeBitsize(*ref.m_unknownBitsizeSubtree); //mapped UTI?
@@ -76,6 +81,16 @@ namespace MFM {
     return m_uti;
   }
 
+  ALT NodeTypeDescriptor::getReferenceType()
+  {
+    return m_refType;
+  }
+
+  void NodeTypeDescriptor::setReferenceType(ALT refarg)
+  {
+    m_refType = refarg;
+  }
+
   UTI NodeTypeDescriptor::checkAndLabelType()
   {
     if(isReadyType())
@@ -104,6 +119,9 @@ namespace MFM {
 
     // not node select, we are the leaf Type: a typedef, class or primitive scalar.
     UTI nuti = givenUTI(); //getNodeType();
+
+    if(m_refType != ALT_NOT)
+      nuti = m_state.getUlamTypeAsRef(nuti, m_refType);
 
     if(!m_state.isComplete(nuti))
       {

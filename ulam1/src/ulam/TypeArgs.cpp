@@ -45,4 +45,24 @@ namespace MFM {
     return *this;
   }
 
+  void TypeArgs::setdeclref(Token ftoken)
+  {
+    switch(ftoken.m_type)
+      {
+      case TOK_KW_AS:
+	m_declRef = ALT_AS;
+	break;
+      case TOK_KW_HAS:
+	assert(0); //deprecated
+	break;
+      case TOK_AMP:
+	m_declRef = ALT_REF;
+	break;
+      case TOK_KW_IS:
+      default:
+	m_declRef = ALT_NOT;
+	break;
+      };
+    return;
+  }//setdelref
 } //MFM

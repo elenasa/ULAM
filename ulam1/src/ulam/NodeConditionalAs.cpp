@@ -127,6 +127,7 @@ namespace MFM {
     UTI luti = pluv.getUlamValueTypeIdx();
     assert(luti == Ptr);
     luti = pluv.getPtrTargetType();
+    //luti = m_state.getUlamTypeAsDeref(luti);
 
     if(luti == UAtom)
       {
@@ -178,7 +179,8 @@ namespace MFM {
     if(asit)
       {
 	//UTI asuti = (luti == UAtom ? ruti : luti);
-	UTI asuti = ruti;
+	UTI asuti = ruti; //as deref'd type
+	//UTI asuti = m_state.getUlamTypeAsRef(ruti, ALT_AS); //???
 	UlamValue ptr = UlamValue::makePtr(pluv.getPtrSlotIndex(), pluv.getPtrStorage(), asuti, m_state.determinePackable(asuti), m_state, pluv.getPtrPos() + 0, pluv.getPtrNameId());
 	m_state.m_currentAutoObjPtr = ptr;
 	m_state.m_currentAutoStorageType = luti;
